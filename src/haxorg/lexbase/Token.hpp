@@ -27,6 +27,8 @@ template <
     typename MaskType = IdBase>
 struct TokenId
     : dod::Id<IdBase, MaskType, std::integral_constant<MaskType, 16>> {
+    using base_type = dod::
+        Id<IdBase, MaskType, std::integral_constant<MaskType, 16>>;
     using value_type = Token<K, V>;
     static auto Nil() -> TokenId { return FromValue(0); };
     static auto FromValue(IdBase arg) -> TokenId<K, V> {
@@ -41,9 +43,8 @@ struct TokenId
 
     MaskType getStoreIdx() const { return this->getMask(); }
 
-    explicit TokenId(IdBase arg)
-        : dod::Id<IdBase, MaskType, std::integral_constant<MaskType, 16>>(
-              arg) {}
+    explicit TokenId(IdBase arg) : base_type(arg) {}
+    TokenId(base_type arg) : base_type(arg) {}
 };
 
 template <typename K, typename V>
@@ -185,7 +186,7 @@ struct Tokenizer {
     TokenGroup<K, V>* out;
     Tokenizer(TokenGroup<K, V>* _out) : out(_out) {}
     Vec<Vec<Token<K, V>>*> buffer;
-    void clearBuffer() { buffer.pop_back(); }
+    void                   clearBuffer() { buffer.pop_back(); }
     /// \brief Get reference to token with specified ID
     Token<K, V>& at(TokenId<K, V> id) { return out->at(id); }
     /// \brief Get ID of the last token

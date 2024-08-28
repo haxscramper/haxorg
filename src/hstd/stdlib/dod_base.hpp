@@ -64,6 +64,8 @@ struct [[nodiscard]] Id {
     /// \brief Number of bits allotted for the mask value
     static const inline int mask_size = MaskSizeT::value;
 
+    static Id FromIndex(IdType id) { return Id{id}; }
+
     /// \brief Create ID value from provided mask and underlying ID base
     static auto FromMasked(IdType id, MaskType mask) -> Id {
         Id res{IdType{}};
@@ -354,14 +356,14 @@ struct Store {
     [[nodiscard]] auto add(const T& value) -> Id {
         int index = content.size();
         content.push_back(value);
-        return Id(index);
+        return Id::FromIndex(index);
     }
 
     /// \brief Add new item to the store and return newly created ID
     [[nodiscard]] auto add(const T&& value) -> Id {
         int index = content.size();
         content.push_back(value);
-        return Id(index);
+        return Id::FromIndex(index);
     }
 
     /// \brief Last element stored in the store (by index)

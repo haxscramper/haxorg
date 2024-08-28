@@ -66,15 +66,14 @@ struct ImmId : ImmIdBase {
     }
 
     static ImmId Nil() {
-        auto res = ImmId(0, OrgSemKind(0), 0, nullptr);
+        auto res = ImmId(0, OrgSemKind(0), 0);
         return res;
     }
 
-    ImmId(
-        StoreIdxT     storeIndex,
-        OrgSemKind    kind,
-        NodeIdxT      nodeIndex,
-        ContextStore* _store)
+    ImmId() : ImmIdBase{0} {};
+    ImmId(ImmIdBase const& base) : ImmIdBase{base} {};
+
+    ImmId(StoreIdxT storeIndex, OrgSemKind kind, NodeIdxT nodeIndex)
         : ImmIdBase{combineFullValue(storeIndex, kind, nodeIndex)} {}
 
     OrgSemKind getKind() const { return ImmId::getKind(value); }
@@ -87,33 +86,9 @@ struct ImmId : ImmIdBase {
     /// \brief Get index of an associated local store
     StoreIdxT getStoreIndex() const { return ImmId::getStoreIndex(value); }
 
-    /// \name Get pointer to the associated sem org node from ID
-    ///
-    /// \warning Resulting pointers are *not* stable -- underlying store
-    /// content is subject to relocation and as such pointers are bound to
-    /// be invalidated if the new nodes are added. The pattern of `ptr =
-    /// node.get() ... add nodes ... ptr->something` will lead to subtle
-    /// bugs with dangling pointers and should be avoided. Instead
-    /// `node->whatever ... add nodes ... node->whatever` must be used. For
-    /// the same reason storing pointers in containers is discouraged.
-    ///
-    /// {@
-    ImmOrg const* get() const;
-    ImmOrg const* operator->() const { return get(); }
-
-    template <typename T>
-    T const* getAs() const {
-        return dynamic_cast<T const*>(get());
-    }
-    /// @}
-
     /// \brief Convert this node to one with specified kind
     template <typename T>
     ImmIdT<T> as() const;
-
-    /// \brief Get parent node ID for the node pointed to by this ID
-    ImmId      getParent() const;
-    Vec<ImmId> getParentChain(bool withSelf = false) const;
 
     /// \brief non-nil nodes are converter to `true`
     operator bool() const { return !isNil(); }
@@ -132,11 +107,8 @@ template <typename T>
 struct ImmIdT : public ImmId {
     ImmId toId() const { return *this; }
     ImmIdT(ImmId base) : ImmId(base) {}
+    ImmIdT() : ImmId(ImmId::Nil()) {}
 
-    T*       operator->() { return get(); }
-    T const* operator->() const { return get(); }
-    T*       get() { return static_cast<T*>(ImmId::get()); }
-    T const* get() const { return static_cast<T const*>(ImmId::get()); }
     static ImmIdT<T> Nil() { return ImmIdT<T>(ImmId::Nil()); }
 };
 
@@ -144,6 +116,7 @@ struct ImmOrg {
     Opt<ImmId>         parent;
     ImmVec<ImmId>      nested;
     virtual OrgSemKind getKind() const = 0;
+    DESC_FIELDS(ImmOrg, (parent, nested));
 };
 
 

@@ -653,7 +653,18 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
                 obj.methods = [it for it in obj.methods if it.name in ["getKind"]]
                 obj.GenDescribeMethods = False
                 obj.nested = [it for it in obj.nested if not isinstance(it, GenTuPass)]
+                obj.methods.append(
+                    GenTuFunction(
+                        result=QualType.ForName("bool"),
+                        name="operator==",
+                        isConst=True,
+                        arguments=[
+                            GenTuIdent(type=obj.name.asConstRef(), name="other")
+                        ],
+                    ))
+
                 if hasattr(obj, "isOrgType"):
+
                     # conv_type(obj.name)
                     # obj.name.name = "Imm" + obj.name.name
                     # obj.name.Spaces = [ORG_SPACE]

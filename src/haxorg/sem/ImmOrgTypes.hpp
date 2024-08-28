@@ -10,7 +10,10 @@ struct ImmCmdArgument : public org::ImmOrg {
                        (ImmOrg),
                        (),
                        (),
-                       (staticKind, key, varname, value))
+                       (staticKind,
+                        key,
+                        varname,
+                        value))
   static OrgSemKind const staticKind;
   /// \brief Key
   Opt<ImmBox<Str>> key = std::nullopt;
@@ -19,6 +22,7 @@ struct ImmCmdArgument : public org::ImmOrg {
   /// \brief Value
   ImmBox<Str> value;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdArgument; }
+  bool operator==(org::ImmCmdArgument const& other) const;
 };
 
 /// \brief Data type to wrap list of identical command arguments
@@ -29,11 +33,13 @@ struct ImmCmdArgumentList : public org::ImmOrg {
                        (ImmOrg),
                        (),
                        (),
-                       (staticKind, args))
+                       (staticKind,
+                        args))
   static OrgSemKind const staticKind;
   /// \brief List of arguments
   ImmVec<org::ImmIdT<org::ImmCmdArgument>> args = {};
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdArgumentList; }
+  bool operator==(org::ImmCmdArgumentList const& other) const;
 };
 
 /// \brief Additional arguments for command blocks
@@ -44,13 +50,16 @@ struct ImmCmdArguments : public org::ImmOrg {
                        (ImmOrg),
                        (),
                        (),
-                       (staticKind, positional, named))
+                       (staticKind,
+                        positional,
+                        named))
   static OrgSemKind const staticKind;
   /// \brief Positional arguments with no keys
   org::ImmIdT<org::ImmCmdArgumentList> positional = org::ImmIdT<org::ImmCmdArgumentList>::Nil();
   /// \brief Stored key-value mapping
   ImmMap<Str, org::ImmIdT<org::ImmCmdArgumentList>> named;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdArguments; }
+  bool operator==(org::ImmCmdArguments const& other) const;
 };
 
 struct ImmErrorItem : public org::ImmOrg {
@@ -60,7 +69,10 @@ struct ImmErrorItem : public org::ImmOrg {
                        (ImmOrg),
                        (),
                        (),
-                       (staticKind, message, function, line))
+                       (staticKind,
+                        message,
+                        function,
+                        line))
   static OrgSemKind const staticKind;
   ImmBox<Str> message;
   /// \brief Conversion function name where the error was created
@@ -68,6 +80,7 @@ struct ImmErrorItem : public org::ImmOrg {
   /// \brief Line number for the conversion where the error was created
   Opt<ImmBox<int>> line = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::ErrorItem; }
+  bool operator==(org::ImmErrorItem const& other) const;
 };
 
 /// \brief Group of value conversion errors
@@ -78,7 +91,10 @@ struct ImmErrorGroup : public org::ImmOrg {
                        (ImmOrg),
                        (),
                        (),
-                       (staticKind, diagnostics, function, line))
+                       (staticKind,
+                        diagnostics,
+                        function,
+                        line))
   static OrgSemKind const staticKind;
   ImmVec<org::ImmIdT<org::ImmErrorItem>> diagnostics = {};
   /// \brief Conversion function name where the error was created
@@ -86,21 +102,32 @@ struct ImmErrorGroup : public org::ImmOrg {
   /// \brief Line number for the conversion where the error was created
   Opt<ImmBox<Str>> line = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::ErrorGroup; }
+  bool operator==(org::ImmErrorGroup const& other) const;
 };
 
 /// \brief Base class for all document-level entries. Note that some node kinds might also have inline entries (examples include links, source code blocks, call blocks)
 struct ImmStmt : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmStmt() = default;
-  BOOST_DESCRIBE_CLASS(ImmStmt, (ImmOrg), (), (), (attached))
+  BOOST_DESCRIBE_CLASS(ImmStmt,
+                       (ImmOrg),
+                       (),
+                       (),
+                       (attached))
   ImmVec<org::ImmIdT<org::ImmOrg>> attached;
+  bool operator==(org::ImmStmt const& other) const;
 };
 
 /// \brief Base class for all inline elements
 struct ImmInline : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmInline() = default;
-  BOOST_DESCRIBE_CLASS(ImmInline, (ImmOrg), (), (), ())
+  BOOST_DESCRIBE_CLASS(ImmInline,
+                       (ImmOrg),
+                       (),
+                       (),
+                       ())
+  bool operator==(org::ImmInline const& other) const;
 };
 
 /// \brief Zero or more statement nodes
@@ -114,6 +141,7 @@ struct ImmStmtList : public org::ImmOrg {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::StmtList; }
+  bool operator==(org::ImmStmtList const& other) const;
 };
 
 /// \brief Node without content
@@ -127,45 +155,71 @@ struct ImmEmpty : public org::ImmOrg {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Empty; }
+  bool operator==(org::ImmEmpty const& other) const;
 };
 
 /// \brief Base class for block or line commands
 struct ImmCmd : public org::ImmStmt {
   using ImmStmt::ImmStmt;
   virtual ~ImmCmd() = default;
-  BOOST_DESCRIBE_CLASS(ImmCmd, (ImmStmt), (), (), (parameters))
+  BOOST_DESCRIBE_CLASS(ImmCmd,
+                       (ImmStmt),
+                       (),
+                       (),
+                       (parameters))
   /// \brief Additional parameters aside from 'exporter',
   Opt<ImmBox<org::ImmIdT<org::ImmCmdArguments>>> parameters = std::nullopt;
+  bool operator==(org::ImmCmd const& other) const;
 };
 
 /// \brief Block command type
 struct ImmBlock : public org::ImmCmd {
   using ImmCmd::ImmCmd;
   virtual ~ImmBlock() = default;
-  BOOST_DESCRIBE_CLASS(ImmBlock, (ImmCmd), (), (), ())
+  BOOST_DESCRIBE_CLASS(ImmBlock,
+                       (ImmCmd),
+                       (),
+                       (),
+                       ())
+  bool operator==(org::ImmBlock const& other) const;
 };
 
 /// \brief Line commands
 struct ImmLineCommand : public org::ImmCmd {
   using ImmCmd::ImmCmd;
   virtual ~ImmLineCommand() = default;
-  BOOST_DESCRIBE_CLASS(ImmLineCommand, (ImmCmd), (), (), ())
+  BOOST_DESCRIBE_CLASS(ImmLineCommand,
+                       (ImmCmd),
+                       (),
+                       (),
+                       ())
+  bool operator==(org::ImmLineCommand const& other) const;
 };
 
 /// \brief Line command that might get attached to some block element
 struct ImmAttached : public org::ImmLineCommand {
   using ImmLineCommand::ImmLineCommand;
   virtual ~ImmAttached() = default;
-  BOOST_DESCRIBE_CLASS(ImmAttached, (ImmLineCommand), (), (), ())
+  BOOST_DESCRIBE_CLASS(ImmAttached,
+                       (ImmLineCommand),
+                       (),
+                       (),
+                       ())
+  bool operator==(org::ImmAttached const& other) const;
 };
 
 /// \brief Final node
 struct ImmLeaf : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmLeaf() = default;
-  BOOST_DESCRIBE_CLASS(ImmLeaf, (ImmOrg), (), (), (text))
+  BOOST_DESCRIBE_CLASS(ImmLeaf,
+                       (ImmOrg),
+                       (),
+                       (),
+                       (text))
   /// \brief Final leaf value
   ImmBox<Str> text = "";
+  bool operator==(org::ImmLeaf const& other) const;
 };
 
 /// \brief Caption annotation for any subsequent node
@@ -176,11 +230,13 @@ struct ImmCmdCaption : public org::ImmAttached {
                        (ImmAttached),
                        (),
                        (),
-                       (staticKind, text))
+                       (staticKind,
+                        text))
   static OrgSemKind const staticKind;
   /// \brief Content description
   org::ImmIdT<org::ImmParagraph> text = org::ImmIdT<org::ImmParagraph>::Nil();
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdCaption; }
+  bool operator==(org::ImmCmdCaption const& other) const;
 };
 
 /// \brief Name identifier for the statement elements.
@@ -191,10 +247,12 @@ struct ImmCmdName : public org::ImmAttached {
                        (ImmAttached),
                        (),
                        (),
-                       (staticKind, name))
+                       (staticKind,
+                        name))
   static OrgSemKind const staticKind;
   ImmBox<Str> name;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdName; }
+  bool operator==(org::ImmCmdName const& other) const;
 };
 
 /// \brief Custom line command with list of parsed arguments
@@ -205,11 +263,14 @@ struct ImmCmdCustomArgs : public org::ImmCmd {
                        (ImmCmd),
                        (),
                        (),
-                       (staticKind, name, isAttached))
+                       (staticKind,
+                        name,
+                        isAttached))
   static OrgSemKind const staticKind;
   ImmBox<Str> name;
   bool isAttached = false;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdCustomArgs; }
+  bool operator==(org::ImmCmdCustomArgs const& other) const;
 };
 
 /// \brief Custom command with raw unparsed string value
@@ -220,12 +281,16 @@ struct ImmCmdCustomRaw : public org::ImmStmt {
                        (ImmStmt),
                        (),
                        (),
-                       (staticKind, name, isAttached, text))
+                       (staticKind,
+                        name,
+                        isAttached,
+                        text))
   static OrgSemKind const staticKind;
   ImmBox<Str> name;
   bool isAttached = false;
   ImmBox<Str> text;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdCustomRaw; }
+  bool operator==(org::ImmCmdCustomRaw const& other) const;
 };
 
 /// \brief Custom line command with text paragraph value
@@ -236,12 +301,16 @@ struct ImmCmdCustomText : public org::ImmStmt {
                        (ImmStmt),
                        (),
                        (),
-                       (staticKind, name, isAttached, text))
+                       (staticKind,
+                        name,
+                        isAttached,
+                        text))
   static OrgSemKind const staticKind;
   ImmBox<Str> name;
   bool isAttached = false;
   org::ImmIdT<org::ImmParagraph> text = org::ImmIdT<org::ImmParagraph>::Nil();
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdCustomText; }
+  bool operator==(org::ImmCmdCustomText const& other) const;
 };
 
 struct ImmCmdResults : public org::ImmAttached {
@@ -254,6 +323,7 @@ struct ImmCmdResults : public org::ImmAttached {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdResults; }
+  bool operator==(org::ImmCmdResults const& other) const;
 };
 
 /// \brief Tblfm command type
@@ -267,6 +337,7 @@ struct ImmCmdTblfm : public org::ImmCmd {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdTblfm; }
+  bool operator==(org::ImmCmdTblfm const& other) const;
 };
 
 /// \brief Single or nested inline hash-tag
@@ -277,13 +348,16 @@ struct ImmHashTag : public org::ImmInline {
                        (ImmInline),
                        (),
                        (),
-                       (staticKind, head, subtags))
+                       (staticKind,
+                        head,
+                        subtags))
   static OrgSemKind const staticKind;
   /// \brief Main part of the tag
   ImmBox<Str> head;
   /// \brief List of nested tags
   ImmVec<org::ImmIdT<org::ImmHashTag>> subtags = {};
   virtual OrgSemKind getKind() const { return OrgSemKind::HashTag; }
+  bool operator==(org::ImmHashTag const& other) const;
 };
 
 /// \brief Inline and regular footnote definition
@@ -296,13 +370,16 @@ struct ImmFootnote : public org::ImmInline {
                        (ImmInline),
                        (),
                        (),
-                       (staticKind, tag, definition))
+                       (staticKind,
+                        tag,
+                        definition))
   static OrgSemKind const staticKind;
   /// \brief Footnote text target name
   ImmBox<Str> tag = "";
   /// \brief Link to possibly resolved definition
   Opt<ImmBox<org::ImmIdT<org::ImmOrg>>> definition = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::Footnote; }
+  bool operator==(org::ImmFootnote const& other) const;
 };
 
 /// \brief Single static or dynamic timestamp (active or inactive)
@@ -326,24 +403,39 @@ struct ImmTime : public org::ImmOrg {
     /// \brief Repetition period. Temporary placeholder for now, until I figure out what would be the proper way to represent whatever org can do ... which is to be determined as well
     enum class Period : short int { Year, Month, Week, Day, Hour, Minute, };
     BOOST_DESCRIBE_NESTED_ENUM(Period, Year, Month, Week, Day, Hour, Minute)
-    BOOST_DESCRIBE_CLASS(Repeat, (), (), (), (mode, period, count))
+    BOOST_DESCRIBE_CLASS(Repeat,
+                         (),
+                         (),
+                         (),
+                         (mode, period, count))
     /// \brief mode
     org::ImmTime::Repeat::Mode mode;
     /// \brief period
     org::ImmTime::Repeat::Period period;
     /// \brief count
     int count;
+    bool operator==(org::ImmTime::Repeat const& other) const;
   };
 
   struct Static {
-    BOOST_DESCRIBE_CLASS(Static, (), (), (), (repeat, time))
+    BOOST_DESCRIBE_CLASS(Static,
+                         (),
+                         (),
+                         (),
+                         (repeat, time))
     Opt<ImmBox<org::ImmTime::Repeat>> repeat;
     UserTime time;
+    bool operator==(org::ImmTime::Static const& other) const;
   };
 
   struct Dynamic {
-    BOOST_DESCRIBE_CLASS(Dynamic, (), (), (), (expr))
+    BOOST_DESCRIBE_CLASS(Dynamic,
+                         (),
+                         (),
+                         (),
+                         (expr))
     ImmBox<Str> expr;
+    bool operator==(org::ImmTime::Dynamic const& other) const;
   };
 
   using TimeVariant = std::variant<org::ImmTime::Static, org::ImmTime::Dynamic>;
@@ -363,6 +455,7 @@ struct ImmTime : public org::ImmOrg {
   bool isActive = false;
   org::ImmTime::TimeVariant time;
   virtual OrgSemKind getKind() const { return OrgSemKind::Time; }
+  bool operator==(org::ImmTime const& other) const;
   org::ImmTime::Static const& getStatic() const { return std::get<0>(time); }
   org::ImmTime::Static& getStatic() { return std::get<0>(time); }
   org::ImmTime::Dynamic const& getDynamic() const { return std::get<1>(time); }
@@ -379,13 +472,16 @@ struct ImmTimeRange : public org::ImmOrg {
                        (ImmOrg),
                        (),
                        (),
-                       (staticKind, from, to))
+                       (staticKind,
+                        from,
+                        to))
   static OrgSemKind const staticKind;
   /// \brief Starting time
   org::ImmIdT<org::ImmTime> from = org::ImmIdT<org::ImmTime>::Nil();
   /// \brief Finishing time
   org::ImmIdT<org::ImmTime> to = org::ImmIdT<org::ImmTime>::Nil();
   virtual OrgSemKind getKind() const { return OrgSemKind::TimeRange; }
+  bool operator==(org::ImmTimeRange const& other) const;
 };
 
 /// \brief Inline macro invocation
@@ -396,13 +492,16 @@ struct ImmMacro : public org::ImmOrg {
                        (ImmOrg),
                        (),
                        (),
-                       (staticKind, name, parameters))
+                       (staticKind,
+                        name,
+                        parameters))
   static OrgSemKind const staticKind;
   /// \brief Macro name
   ImmBox<Str> name = "";
   /// \brief Additional parameters aside from 'exporter',
   org::ImmIdT<org::ImmCmdArguments> parameters = org::ImmIdT<org::ImmCmdArguments>::Nil();
   virtual OrgSemKind getKind() const { return OrgSemKind::Macro; }
+  bool operator==(org::ImmMacro const& other) const;
 };
 
 /// \brief Text symbol or symbol command
@@ -411,18 +510,26 @@ struct ImmSymbol : public org::ImmOrg {
   virtual ~ImmSymbol() = default;
   /// \brief Symbol parameters
   struct Param {
-    BOOST_DESCRIBE_CLASS(Param, (), (), (), (key, value))
+    BOOST_DESCRIBE_CLASS(Param,
+                         (),
+                         (),
+                         (),
+                         (key, value))
     /// \brief Key -- for non-positional
     Opt<ImmBox<Str>> key;
     /// \brief Uninterpreted value
     ImmBox<Str> value;
+    bool operator==(org::ImmSymbol::Param const& other) const;
   };
 
   BOOST_DESCRIBE_CLASS(ImmSymbol,
                        (ImmOrg),
                        (),
                        (),
-                       (staticKind, name, parameters, positional))
+                       (staticKind,
+                        name,
+                        parameters,
+                        positional))
   static OrgSemKind const staticKind;
   /// \brief Name of the symbol
   ImmBox<Str> name;
@@ -431,6 +538,7 @@ struct ImmSymbol : public org::ImmOrg {
   /// \brief Positional parameters
   ImmVec<org::ImmIdT<org::ImmOrg>> positional;
   virtual OrgSemKind getKind() const { return OrgSemKind::Symbol; }
+  bool operator==(org::ImmSymbol const& other) const;
 };
 
 /// \brief Escaped text
@@ -444,6 +552,7 @@ struct ImmEscaped : public org::ImmLeaf {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Escaped; }
+  bool operator==(org::ImmEscaped const& other) const;
 };
 
 /// \brief \n newline
@@ -457,6 +566,7 @@ struct ImmNewline : public org::ImmLeaf {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Newline; }
+  bool operator==(org::ImmNewline const& other) const;
 };
 
 /// \brief ' "space",
@@ -470,6 +580,7 @@ struct ImmSpace : public org::ImmLeaf {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Space; }
+  bool operator==(org::ImmSpace const& other) const;
 };
 
 /// \brief word
@@ -483,6 +594,7 @@ struct ImmWord : public org::ImmLeaf {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Word; }
+  bool operator==(org::ImmWord const& other) const;
 };
 
 /// \brief @mention
@@ -496,6 +608,7 @@ struct ImmAtMention : public org::ImmLeaf {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::AtMention; }
+  bool operator==(org::ImmAtMention const& other) const;
 };
 
 struct ImmRawText : public org::ImmLeaf {
@@ -508,6 +621,7 @@ struct ImmRawText : public org::ImmLeaf {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::RawText; }
+  bool operator==(org::ImmRawText const& other) const;
 };
 
 struct ImmPunctuation : public org::ImmLeaf {
@@ -520,6 +634,7 @@ struct ImmPunctuation : public org::ImmLeaf {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Punctuation; }
+  bool operator==(org::ImmPunctuation const& other) const;
 };
 
 struct ImmPlaceholder : public org::ImmLeaf {
@@ -532,6 +647,7 @@ struct ImmPlaceholder : public org::ImmLeaf {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Placeholder; }
+  bool operator==(org::ImmPlaceholder const& other) const;
 };
 
 struct ImmBigIdent : public org::ImmLeaf {
@@ -544,6 +660,7 @@ struct ImmBigIdent : public org::ImmLeaf {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::BigIdent; }
+  bool operator==(org::ImmBigIdent const& other) const;
 };
 
 /// \brief ~<<<target>>>~
@@ -557,6 +674,7 @@ struct ImmRadioTarget : public org::ImmLeaf {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::RadioTarget; }
+  bool operator==(org::ImmRadioTarget const& other) const;
 };
 
 /// \brief ~<<target>>~
@@ -570,12 +688,18 @@ struct ImmTextTarget : public org::ImmLeaf {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::TextTarget; }
+  bool operator==(org::ImmTextTarget const& other) const;
 };
 
 struct ImmMarkup : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmMarkup() = default;
-  BOOST_DESCRIBE_CLASS(ImmMarkup, (ImmOrg), (), (), ())
+  BOOST_DESCRIBE_CLASS(ImmMarkup,
+                       (ImmOrg),
+                       (),
+                       (),
+                       ())
+  bool operator==(org::ImmMarkup const& other) const;
 };
 
 struct ImmBold : public org::ImmMarkup {
@@ -588,6 +712,7 @@ struct ImmBold : public org::ImmMarkup {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Bold; }
+  bool operator==(org::ImmBold const& other) const;
 };
 
 struct ImmUnderline : public org::ImmMarkup {
@@ -600,6 +725,7 @@ struct ImmUnderline : public org::ImmMarkup {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Underline; }
+  bool operator==(org::ImmUnderline const& other) const;
 };
 
 struct ImmMonospace : public org::ImmMarkup {
@@ -612,6 +738,7 @@ struct ImmMonospace : public org::ImmMarkup {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Monospace; }
+  bool operator==(org::ImmMonospace const& other) const;
 };
 
 struct ImmMarkQuote : public org::ImmMarkup {
@@ -624,6 +751,7 @@ struct ImmMarkQuote : public org::ImmMarkup {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::MarkQuote; }
+  bool operator==(org::ImmMarkQuote const& other) const;
 };
 
 struct ImmVerbatim : public org::ImmMarkup {
@@ -636,6 +764,7 @@ struct ImmVerbatim : public org::ImmMarkup {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Verbatim; }
+  bool operator==(org::ImmVerbatim const& other) const;
 };
 
 struct ImmItalic : public org::ImmMarkup {
@@ -648,6 +777,7 @@ struct ImmItalic : public org::ImmMarkup {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Italic; }
+  bool operator==(org::ImmItalic const& other) const;
 };
 
 struct ImmStrike : public org::ImmMarkup {
@@ -660,6 +790,7 @@ struct ImmStrike : public org::ImmMarkup {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Strike; }
+  bool operator==(org::ImmStrike const& other) const;
 };
 
 struct ImmPar : public org::ImmMarkup {
@@ -672,6 +803,7 @@ struct ImmPar : public org::ImmMarkup {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Par; }
+  bool operator==(org::ImmPar const& other) const;
 };
 
 /// \brief Latex code body
@@ -685,50 +817,91 @@ struct ImmLatex : public org::ImmOrg {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Latex; }
+  bool operator==(org::ImmLatex const& other) const;
 };
 
 struct ImmLink : public org::ImmStmt {
   using ImmStmt::ImmStmt;
   virtual ~ImmLink() = default;
   struct Raw {
-    BOOST_DESCRIBE_CLASS(Raw, (), (), (), (text))
+    BOOST_DESCRIBE_CLASS(Raw,
+                         (),
+                         (),
+                         (),
+                         (text))
     ImmBox<Str> text;
+    bool operator==(org::ImmLink::Raw const& other) const;
   };
 
   struct Id {
-    BOOST_DESCRIBE_CLASS(Id, (), (), (), (text))
+    BOOST_DESCRIBE_CLASS(Id,
+                         (),
+                         (),
+                         (),
+                         (text))
     ImmBox<Str> text;
+    bool operator==(org::ImmLink::Id const& other) const;
   };
 
   struct Person {
-    BOOST_DESCRIBE_CLASS(Person, (), (), (), (name))
+    BOOST_DESCRIBE_CLASS(Person,
+                         (),
+                         (),
+                         (),
+                         (name))
     ImmBox<Str> name;
+    bool operator==(org::ImmLink::Person const& other) const;
   };
 
   struct UserProtocol {
-    BOOST_DESCRIBE_CLASS(UserProtocol, (), (), (), (protocol, target))
+    BOOST_DESCRIBE_CLASS(UserProtocol,
+                         (),
+                         (),
+                         (),
+                         (protocol, target))
     ImmBox<Str> protocol;
     ImmBox<Str> target;
+    bool operator==(org::ImmLink::UserProtocol const& other) const;
   };
 
   struct Internal {
-    BOOST_DESCRIBE_CLASS(Internal, (), (), (), (target))
+    BOOST_DESCRIBE_CLASS(Internal,
+                         (),
+                         (),
+                         (),
+                         (target))
     ImmBox<Str> target;
+    bool operator==(org::ImmLink::Internal const& other) const;
   };
 
   struct Footnote {
-    BOOST_DESCRIBE_CLASS(Footnote, (), (), (), (target))
+    BOOST_DESCRIBE_CLASS(Footnote,
+                         (),
+                         (),
+                         (),
+                         (target))
     ImmBox<Str> target;
+    bool operator==(org::ImmLink::Footnote const& other) const;
   };
 
   struct File {
-    BOOST_DESCRIBE_CLASS(File, (), (), (), (file))
+    BOOST_DESCRIBE_CLASS(File,
+                         (),
+                         (),
+                         (),
+                         (file))
     ImmBox<Str> file;
+    bool operator==(org::ImmLink::File const& other) const;
   };
 
   struct Attachment {
-    BOOST_DESCRIBE_CLASS(Attachment, (), (), (), (file))
+    BOOST_DESCRIBE_CLASS(Attachment,
+                         (),
+                         (),
+                         (),
+                         (file))
     ImmBox<Str> file;
+    bool operator==(org::ImmLink::Attachment const& other) const;
   };
 
   using Data = std::variant<org::ImmLink::Raw, org::ImmLink::Id, org::ImmLink::Person, org::ImmLink::UserProtocol, org::ImmLink::Internal, org::ImmLink::Footnote, org::ImmLink::File, org::ImmLink::Attachment>;
@@ -747,6 +920,7 @@ struct ImmLink : public org::ImmStmt {
   Opt<ImmBox<org::ImmIdT<org::ImmParagraph>>> description = std::nullopt;
   org::ImmLink::Data data;
   virtual OrgSemKind getKind() const { return OrgSemKind::Link; }
+  bool operator==(org::ImmLink const& other) const;
   org::ImmLink::Raw const& getRaw() const { return std::get<0>(data); }
   org::ImmLink::Raw& getRaw() { return std::get<0>(data); }
   org::ImmLink::Id const& getId() const { return std::get<1>(data); }
@@ -778,6 +952,7 @@ struct ImmBlockCenter : public org::ImmBlock {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockCenter; }
+  bool operator==(org::ImmBlockCenter const& other) const;
 };
 
 /// \brief Quotation block
@@ -791,6 +966,7 @@ struct ImmBlockQuote : public org::ImmBlock {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockQuote; }
+  bool operator==(org::ImmBlockQuote const& other) const;
 };
 
 /// \brief Comment block
@@ -804,6 +980,7 @@ struct ImmBlockComment : public org::ImmStmt {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockComment; }
+  bool operator==(org::ImmBlockComment const& other) const;
 };
 
 /// \brief Verse quotation block
@@ -817,6 +994,7 @@ struct ImmBlockVerse : public org::ImmBlock {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockVerse; }
+  bool operator==(org::ImmBlockVerse const& other) const;
 };
 
 /// \brief Example block
@@ -830,6 +1008,7 @@ struct ImmBlockExample : public org::ImmBlock {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockExample; }
+  bool operator==(org::ImmBlockExample const& other) const;
 };
 
 /// \brief Direct export passthrough
@@ -850,7 +1029,11 @@ struct ImmBlockExport : public org::ImmBlock {
                        (ImmBlock),
                        (),
                        (),
-                       (staticKind, format, exporter, placement, content))
+                       (staticKind,
+                        format,
+                        exporter,
+                        placement,
+                        content))
   static OrgSemKind const staticKind;
   /// \brief Export block type
   org::ImmBlockExport::Format format = Format::Inline;
@@ -861,6 +1044,7 @@ struct ImmBlockExport : public org::ImmBlock {
   /// \brief Raw exporter content string
   ImmBox<Str> content;
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockExport; }
+  bool operator==(org::ImmBlockExport const& other) const;
 };
 
 /// \brief Block of text with admonition tag: 'note',', 'warning','
@@ -874,6 +1058,7 @@ struct ImmBlockAdmonition : public org::ImmBlock {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockAdmonition; }
+  bool operator==(org::ImmBlockAdmonition const& other) const;
 };
 
 /// \brief Base class for all code blocks
@@ -883,18 +1068,33 @@ struct ImmBlockCode : public org::ImmBlock {
   struct Line {
     struct Part {
       struct Raw {
-        BOOST_DESCRIBE_CLASS(Raw, (), (), (), (code))
+        BOOST_DESCRIBE_CLASS(Raw,
+                             (),
+                             (),
+                             (),
+                             (code))
         ImmBox<Str> code;
+        bool operator==(org::ImmBlockCode::Line::Part::Raw const& other) const;
       };
 
       struct Callout {
-        BOOST_DESCRIBE_CLASS(Callout, (), (), (), (name))
+        BOOST_DESCRIBE_CLASS(Callout,
+                             (),
+                             (),
+                             (),
+                             (name))
         ImmBox<Str> name;
+        bool operator==(org::ImmBlockCode::Line::Part::Callout const& other) const;
       };
 
       struct Tangle {
-        BOOST_DESCRIBE_CLASS(Tangle, (), (), (), (target))
+        BOOST_DESCRIBE_CLASS(Tangle,
+                             (),
+                             (),
+                             (),
+                             (target))
         ImmBox<Str> target;
+        bool operator==(org::ImmBlockCode::Line::Part::Tangle const& other) const;
       };
 
       using Data = std::variant<org::ImmBlockCode::Line::Part::Raw, org::ImmBlockCode::Line::Part::Callout, org::ImmBlockCode::Line::Part::Tangle>;
@@ -908,6 +1108,7 @@ struct ImmBlockCode : public org::ImmBlock {
                            (),
                            (data))
       org::ImmBlockCode::Line::Part::Data data;
+      bool operator==(org::ImmBlockCode::Line::Part const& other) const;
       org::ImmBlockCode::Line::Part::Raw const& getRaw() const { return std::get<0>(data); }
       org::ImmBlockCode::Line::Part::Raw& getRaw() { return std::get<0>(data); }
       org::ImmBlockCode::Line::Part::Callout const& getCallout() const { return std::get<1>(data); }
@@ -918,41 +1119,71 @@ struct ImmBlockCode : public org::ImmBlock {
       org::ImmBlockCode::Line::Part::Kind getKind() const { return getKind(data); }
     };
 
-    BOOST_DESCRIBE_CLASS(Line, (), (), (), (parts))
+    BOOST_DESCRIBE_CLASS(Line,
+                         (),
+                         (),
+                         (),
+                         (parts))
     /// \brief parts of the single line
     ImmVec<org::ImmBlockCode::Line::Part> parts = {};
+    bool operator==(org::ImmBlockCode::Line const& other) const;
   };
 
   /// \brief Extra configuration switches that can be used to control representation of the rendered code block. This field does not exactly correspond to the `-XX` parameters that can be passed directly in the field, but also works with attached `#+options` from the block
   struct Switch {
     /// \brief Enumerate code lines starting from `start` value instead of default indexing.
     struct LineStart {
-      BOOST_DESCRIBE_CLASS(LineStart, (), (), (), (start, extendLast))
+      BOOST_DESCRIBE_CLASS(LineStart,
+                           (),
+                           (),
+                           (),
+                           (start, extendLast))
       /// \brief First line number
       int start;
       /// \brief Continue numbering from the previous block nstead of starting anew
       bool extendLast = false;
+      bool operator==(org::ImmBlockCode::Switch::LineStart const& other) const;
     };
 
     struct CalloutFormat {
-      BOOST_DESCRIBE_CLASS(CalloutFormat, (), (), (), (format))
+      BOOST_DESCRIBE_CLASS(CalloutFormat,
+                           (),
+                           (),
+                           (),
+                           (format))
       ImmBox<Str> format = "";
+      bool operator==(org::ImmBlockCode::Switch::CalloutFormat const& other) const;
     };
 
     struct RemoveCallout {
-      BOOST_DESCRIBE_CLASS(RemoveCallout, (), (), (), (remove))
+      BOOST_DESCRIBE_CLASS(RemoveCallout,
+                           (),
+                           (),
+                           (),
+                           (remove))
       bool remove = true;
+      bool operator==(org::ImmBlockCode::Switch::RemoveCallout const& other) const;
     };
 
     /// \brief Emphasize single line -- can be repeated multiple times
     struct EmphasizeLine {
-      BOOST_DESCRIBE_CLASS(EmphasizeLine, (), (), (), (line))
+      BOOST_DESCRIBE_CLASS(EmphasizeLine,
+                           (),
+                           (),
+                           (),
+                           (line))
       ImmVec<int> line = {};
+      bool operator==(org::ImmBlockCode::Switch::EmphasizeLine const& other) const;
     };
 
     struct Dedent {
-      BOOST_DESCRIBE_CLASS(Dedent, (), (), (), (value))
+      BOOST_DESCRIBE_CLASS(Dedent,
+                           (),
+                           (),
+                           (),
+                           (value))
       int value = 0;
+      bool operator==(org::ImmBlockCode::Switch::Dedent const& other) const;
     };
 
     using Data = std::variant<org::ImmBlockCode::Switch::LineStart, org::ImmBlockCode::Switch::CalloutFormat, org::ImmBlockCode::Switch::RemoveCallout, org::ImmBlockCode::Switch::EmphasizeLine, org::ImmBlockCode::Switch::Dedent>;
@@ -966,6 +1197,7 @@ struct ImmBlockCode : public org::ImmBlock {
                          (),
                          (data))
     org::ImmBlockCode::Switch::Data data;
+    bool operator==(org::ImmBlockCode::Switch const& other) const;
     org::ImmBlockCode::Switch::LineStart const& getLineStart() const { return std::get<0>(data); }
     org::ImmBlockCode::Switch::LineStart& getLineStart() { return std::get<0>(data); }
     org::ImmBlockCode::Switch::CalloutFormat const& getCalloutFormat() const { return std::get<1>(data); }
@@ -1001,26 +1233,46 @@ struct ImmBlockCode : public org::ImmBlock {
   struct EvalResult {
     /// \brief Default value
     struct None {
-      BOOST_DESCRIBE_CLASS(None, (), (), (), ())
+      BOOST_DESCRIBE_CLASS(None,
+                           (),
+                           (),
+                           (),
+                           ())
+      bool operator==(org::ImmBlockCode::EvalResult::None const& other) const;
     };
 
     /// \brief Source code block evaluated to an org-mode node element
     struct OrgValue {
-      BOOST_DESCRIBE_CLASS(OrgValue, (), (), (), (value))
+      BOOST_DESCRIBE_CLASS(OrgValue,
+                           (),
+                           (),
+                           (),
+                           (value))
       /// \brief Parsed value of the evaluation result
       org::ImmIdT<org::ImmOrg> value = org::ImmIdT<org::ImmOrg>::Nil();
+      bool operator==(org::ImmBlockCode::EvalResult::OrgValue const& other) const;
     };
 
     /// \brief Output evaluation results to a file
     struct File {
-      BOOST_DESCRIBE_CLASS(File, (), (), (), (path))
+      BOOST_DESCRIBE_CLASS(File,
+                           (),
+                           (),
+                           (),
+                           (path))
       ImmBox<Str> path;
+      bool operator==(org::ImmBlockCode::EvalResult::File const& other) const;
     };
 
     /// \brief Evaluation output is a raw text
     struct Raw {
-      BOOST_DESCRIBE_CLASS(Raw, (), (), (), (text))
+      BOOST_DESCRIBE_CLASS(Raw,
+                           (),
+                           (),
+                           (),
+                           (text))
       ImmBox<Str> text;
+      bool operator==(org::ImmBlockCode::EvalResult::Raw const& other) const;
     };
 
     using Data = std::variant<org::ImmBlockCode::EvalResult::None, org::ImmBlockCode::EvalResult::OrgValue, org::ImmBlockCode::EvalResult::File, org::ImmBlockCode::EvalResult::Raw>;
@@ -1034,6 +1286,7 @@ struct ImmBlockCode : public org::ImmBlock {
                          (),
                          (data))
     org::ImmBlockCode::EvalResult::Data data;
+    bool operator==(org::ImmBlockCode::EvalResult const& other) const;
     org::ImmBlockCode::EvalResult::None const& getNone() const { return std::get<0>(data); }
     org::ImmBlockCode::EvalResult::None& getNone() { return std::get<0>(data); }
     org::ImmBlockCode::EvalResult::OrgValue const& getOrgValue() const { return std::get<1>(data); }
@@ -1083,6 +1336,7 @@ struct ImmBlockCode : public org::ImmBlock {
   /// \brief ?
   bool tangle = false;
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockCode; }
+  bool operator==(org::ImmBlockCode const& other) const;
 };
 
 /// \brief Single subtree log entry
@@ -1091,9 +1345,14 @@ struct ImmSubtreeLog : public org::ImmOrg {
   virtual ~ImmSubtreeLog() = default;
   /// \brief Base value for the log variant
   struct DescribedLog {
-    BOOST_DESCRIBE_CLASS(DescribedLog, (), (), (), (desc))
+    BOOST_DESCRIBE_CLASS(DescribedLog,
+                         (),
+                         (),
+                         (),
+                         (desc))
     /// \brief Optional description of the log entry
     Opt<ImmBox<org::ImmIdT<org::ImmStmtList>>> desc = std::nullopt;
+    bool operator==(org::ImmSubtreeLog::DescribedLog const& other) const;
   };
 
   /// \brief Priority added
@@ -1121,55 +1380,86 @@ struct ImmSubtreeLog : public org::ImmOrg {
     org::ImmIdT<org::ImmTime> on = org::ImmIdT<org::ImmTime>::Nil();
     /// \brief Which action taken
     org::ImmSubtreeLog::Priority::Action action;
+    bool operator==(org::ImmSubtreeLog::Priority const& other) const;
   };
 
   /// \brief Timestamped note
   struct Note : public org::ImmSubtreeLog::DescribedLog {
-    BOOST_DESCRIBE_CLASS(Note, (DescribedLog), (), (), (on))
+    BOOST_DESCRIBE_CLASS(Note,
+                         (DescribedLog),
+                         (),
+                         (),
+                         (on))
     /// \brief Where log was taken
     org::ImmIdT<org::ImmTime> on = org::ImmIdT<org::ImmTime>::Nil();
+    bool operator==(org::ImmSubtreeLog::Note const& other) const;
   };
 
   /// \brief Refiling action
   struct Refile : public org::ImmSubtreeLog::DescribedLog {
-    BOOST_DESCRIBE_CLASS(Refile, (DescribedLog), (), (), (on, from))
+    BOOST_DESCRIBE_CLASS(Refile,
+                         (DescribedLog),
+                         (),
+                         (),
+                         (on, from))
     /// \brief When the refiling happened
     org::ImmIdT<org::ImmTime> on = org::ImmIdT<org::ImmTime>::Nil();
     /// \brief Link to the original subtree
     org::ImmIdT<org::ImmLink> from = org::ImmIdT<org::ImmLink>::Nil();
+    bool operator==(org::ImmSubtreeLog::Refile const& other) const;
   };
 
   /// \brief Clock entry `CLOCK: [2023-04-30 Sun 13:29:04]--[2023-04-30 Sun 14:51:16] => 1:22`
   struct Clock : public org::ImmSubtreeLog::DescribedLog {
-    BOOST_DESCRIBE_CLASS(Clock, (DescribedLog), (), (), (from, to))
+    BOOST_DESCRIBE_CLASS(Clock,
+                         (DescribedLog),
+                         (),
+                         (),
+                         (from, to))
     /// \brief Clock start time
     org::ImmIdT<org::ImmTime> from = org::ImmIdT<org::ImmTime>::Nil();
     /// \brief Optional end of the clock
     Opt<ImmBox<org::ImmIdT<org::ImmTime>>> to = std::nullopt;
+    bool operator==(org::ImmSubtreeLog::Clock const& other) const;
   };
 
   /// \brief Change of the subtree state -- `- State "WIP" from "TODO" [2023-04-30 Sun 13:29:04]`
   struct State : public org::ImmSubtreeLog::DescribedLog {
-    BOOST_DESCRIBE_CLASS(State, (DescribedLog), (), (), (from, to, on))
+    BOOST_DESCRIBE_CLASS(State,
+                         (DescribedLog),
+                         (),
+                         (),
+                         (from, to, on))
     ImmBox<Str> from;
     ImmBox<Str> to;
     org::ImmIdT<org::ImmTime> on = org::ImmIdT<org::ImmTime>::Nil();
+    bool operator==(org::ImmSubtreeLog::State const& other) const;
   };
 
   /// \brief Assign tag to the subtree `- Tag "project##haxorg" Added on [2023-04-30 Sun 13:29:06]`
   struct Tag : public org::ImmSubtreeLog::DescribedLog {
-    BOOST_DESCRIBE_CLASS(Tag, (DescribedLog), (), (), (on, tag, added))
+    BOOST_DESCRIBE_CLASS(Tag,
+                         (DescribedLog),
+                         (),
+                         (),
+                         (on, tag, added))
     /// \brief When the log was assigned
     org::ImmIdT<org::ImmTime> on = org::ImmIdT<org::ImmTime>::Nil();
     /// \brief Tag in question
     org::ImmIdT<org::ImmHashTag> tag = org::ImmIdT<org::ImmHashTag>::Nil();
     /// \brief Added/removed?
     bool added = false;
+    bool operator==(org::ImmSubtreeLog::Tag const& other) const;
   };
 
   /// \brief Unknown subtree log entry kind
   struct Unknown : public org::ImmSubtreeLog::DescribedLog {
-    BOOST_DESCRIBE_CLASS(Unknown, (DescribedLog), (), (), ())
+    BOOST_DESCRIBE_CLASS(Unknown,
+                         (DescribedLog),
+                         (),
+                         (),
+                         ())
+    bool operator==(org::ImmSubtreeLog::Unknown const& other) const;
   };
 
   using LogEntry = std::variant<org::ImmSubtreeLog::Priority, org::ImmSubtreeLog::Note, org::ImmSubtreeLog::Refile, org::ImmSubtreeLog::Clock, org::ImmSubtreeLog::State, org::ImmSubtreeLog::Tag, org::ImmSubtreeLog::Unknown>;
@@ -1186,6 +1476,7 @@ struct ImmSubtreeLog : public org::ImmOrg {
   static OrgSemKind const staticKind;
   org::ImmSubtreeLog::LogEntry log = Note{};
   virtual OrgSemKind getKind() const { return OrgSemKind::SubtreeLog; }
+  bool operator==(org::ImmSubtreeLog const& other) const;
   org::ImmSubtreeLog::Priority const& getPriority() const { return std::get<0>(log); }
   org::ImmSubtreeLog::Priority& getPriority() { return std::get<0>(log); }
   org::ImmSubtreeLog::Note const& getNote() const { return std::get<1>(log); }
@@ -1228,13 +1519,18 @@ struct ImmSubtree : public org::ImmOrg {
       Repeated,
     };
     BOOST_DESCRIBE_NESTED_ENUM(Kind, Clocked, Closed, Scheduled, Titled, Deadline, Created, Repeated)
-    BOOST_DESCRIBE_CLASS(Period, (), (), (), (kind, from, to))
+    BOOST_DESCRIBE_CLASS(Period,
+                         (),
+                         (),
+                         (),
+                         (kind, from, to))
     /// \brief Time period kind -- not associated with point/range distinction
     org::ImmSubtree::Period::Kind kind;
     /// \brief Clock start time
     org::ImmIdT<org::ImmTime> from = org::ImmIdT<org::ImmTime>::Nil();
     /// \brief Optional end of the clock
     Opt<ImmBox<org::ImmIdT<org::ImmTime>>> to = std::nullopt;
+    bool operator==(org::ImmSubtree::Period const& other) const;
   };
 
   /// \brief Single subtree property
@@ -1244,95 +1540,175 @@ struct ImmSubtree : public org::ImmOrg {
     enum class InheritanceMode : short int { ThisAndSub, OnlyThis, OnlySub, };
     BOOST_DESCRIBE_NESTED_ENUM(InheritanceMode, ThisAndSub, OnlyThis, OnlySub)
     struct Nonblocking {
-      BOOST_DESCRIBE_CLASS(Nonblocking, (), (), (), (isBlocking))
+      BOOST_DESCRIBE_CLASS(Nonblocking,
+                           (),
+                           (),
+                           (),
+                           (isBlocking))
       bool isBlocking;
+      bool operator==(org::ImmSubtree::Property::Nonblocking const& other) const;
     };
 
     struct Trigger {
-      BOOST_DESCRIBE_CLASS(Trigger, (), (), (), ())
+      BOOST_DESCRIBE_CLASS(Trigger,
+                           (),
+                           (),
+                           (),
+                           ())
+      bool operator==(org::ImmSubtree::Property::Trigger const& other) const;
     };
 
     struct Origin {
-      BOOST_DESCRIBE_CLASS(Origin, (), (), (), (text))
+      BOOST_DESCRIBE_CLASS(Origin,
+                           (),
+                           (),
+                           (),
+                           (text))
       org::ImmIdT<org::ImmParagraph> text = org::ImmIdT<org::ImmParagraph>::Nil();
+      bool operator==(org::ImmSubtree::Property::Origin const& other) const;
     };
 
     struct ExportLatexClass {
-      BOOST_DESCRIBE_CLASS(ExportLatexClass, (), (), (), (latexClass))
+      BOOST_DESCRIBE_CLASS(ExportLatexClass,
+                           (),
+                           (),
+                           (),
+                           (latexClass))
       ImmBox<Str> latexClass;
+      bool operator==(org::ImmSubtree::Property::ExportLatexClass const& other) const;
     };
 
     struct ExportLatexClassOptions {
-      BOOST_DESCRIBE_CLASS(ExportLatexClassOptions, (), (), (), (options))
+      BOOST_DESCRIBE_CLASS(ExportLatexClassOptions,
+                           (),
+                           (),
+                           (),
+                           (options))
       ImmVec<Str> options;
+      bool operator==(org::ImmSubtree::Property::ExportLatexClassOptions const& other) const;
     };
 
     struct ExportLatexHeader {
-      BOOST_DESCRIBE_CLASS(ExportLatexHeader, (), (), (), (header))
+      BOOST_DESCRIBE_CLASS(ExportLatexHeader,
+                           (),
+                           (),
+                           (),
+                           (header))
       ImmBox<Str> header;
+      bool operator==(org::ImmSubtree::Property::ExportLatexHeader const& other) const;
     };
 
     struct ExportLatexCompiler {
-      BOOST_DESCRIBE_CLASS(ExportLatexCompiler, (), (), (), (compiler))
+      BOOST_DESCRIBE_CLASS(ExportLatexCompiler,
+                           (),
+                           (),
+                           (),
+                           (compiler))
       ImmBox<Str> compiler;
+      bool operator==(org::ImmSubtree::Property::ExportLatexCompiler const& other) const;
     };
 
     struct Ordered {
-      BOOST_DESCRIBE_CLASS(Ordered, (), (), (), (isOrdered))
+      BOOST_DESCRIBE_CLASS(Ordered,
+                           (),
+                           (),
+                           (),
+                           (isOrdered))
       bool isOrdered;
+      bool operator==(org::ImmSubtree::Property::Ordered const& other) const;
     };
 
     struct Effort {
-      BOOST_DESCRIBE_CLASS(Effort, (), (), (), (hours, minutes))
+      BOOST_DESCRIBE_CLASS(Effort,
+                           (),
+                           (),
+                           (),
+                           (hours, minutes))
       int hours = 0;
       int minutes = 0;
+      bool operator==(org::ImmSubtree::Property::Effort const& other) const;
     };
 
     struct Visibility {
       enum class Level : short int { Folded, Children, Content, All, };
       BOOST_DESCRIBE_NESTED_ENUM(Level, Folded, Children, Content, All)
-      BOOST_DESCRIBE_CLASS(Visibility, (), (), (), (level))
+      BOOST_DESCRIBE_CLASS(Visibility,
+                           (),
+                           (),
+                           (),
+                           (level))
       org::ImmSubtree::Property::Visibility::Level level;
+      bool operator==(org::ImmSubtree::Property::Visibility const& other) const;
     };
 
     struct ExportOptions {
-      BOOST_DESCRIBE_CLASS(ExportOptions, (), (), (), (backend, values))
+      BOOST_DESCRIBE_CLASS(ExportOptions,
+                           (),
+                           (),
+                           (),
+                           (backend, values))
       ImmBox<Str> backend;
       ImmMap<Str, Str> values;
+      bool operator==(org::ImmSubtree::Property::ExportOptions const& other) const;
     };
 
     struct Blocker {
-      BOOST_DESCRIBE_CLASS(Blocker, (), (), (), (blockers))
+      BOOST_DESCRIBE_CLASS(Blocker,
+                           (),
+                           (),
+                           (),
+                           (blockers))
       ImmVec<Str> blockers;
+      bool operator==(org::ImmSubtree::Property::Blocker const& other) const;
     };
 
     struct Unnumbered {
-      BOOST_DESCRIBE_CLASS(Unnumbered, (), (), (), ())
+      BOOST_DESCRIBE_CLASS(Unnumbered,
+                           (),
+                           (),
+                           (),
+                           ())
+      bool operator==(org::ImmSubtree::Property::Unnumbered const& other) const;
     };
 
     struct Created {
-      BOOST_DESCRIBE_CLASS(Created, (), (), (), (time))
+      BOOST_DESCRIBE_CLASS(Created,
+                           (),
+                           (),
+                           (),
+                           (time))
       org::ImmIdT<org::ImmTime> time = org::ImmIdT<org::ImmTime>::Nil();
+      bool operator==(org::ImmSubtree::Property::Created const& other) const;
     };
 
     /// \brief Custop property with unparsed arguments
     struct CustomArgs {
-      BOOST_DESCRIBE_CLASS(CustomArgs, (), (), (), (name, sub, parameters))
+      BOOST_DESCRIBE_CLASS(CustomArgs,
+                           (),
+                           (),
+                           (),
+                           (name, sub, parameters))
       /// \brief Original name of the property
       ImmBox<Str> name = "";
       /// \brief Property target specialization
       Opt<ImmBox<Str>> sub = std::nullopt;
       /// \brief Property parameters
       org::ImmIdT<org::ImmCmdArguments> parameters = org::ImmIdT<org::ImmCmdArguments>::Nil();
+      bool operator==(org::ImmSubtree::Property::CustomArgs const& other) const;
     };
 
     /// \brief Custop property with unparsed arguments
     struct CustomRaw {
-      BOOST_DESCRIBE_CLASS(CustomRaw, (), (), (), (name, value))
+      BOOST_DESCRIBE_CLASS(CustomRaw,
+                           (),
+                           (),
+                           (),
+                           (name, value))
       /// \brief Original name of the property
       ImmBox<Str> name = "";
       /// \brief Property value
       ImmBox<Str> value = "";
+      bool operator==(org::ImmSubtree::Property::CustomRaw const& other) const;
     };
 
     using Data = std::variant<org::ImmSubtree::Property::Nonblocking, org::ImmSubtree::Property::Trigger, org::ImmSubtree::Property::Origin, org::ImmSubtree::Property::ExportLatexClass, org::ImmSubtree::Property::ExportLatexClassOptions, org::ImmSubtree::Property::ExportLatexHeader, org::ImmSubtree::Property::ExportLatexCompiler, org::ImmSubtree::Property::Ordered, org::ImmSubtree::Property::Effort, org::ImmSubtree::Property::Visibility, org::ImmSubtree::Property::ExportOptions, org::ImmSubtree::Property::Blocker, org::ImmSubtree::Property::Unnumbered, org::ImmSubtree::Property::Created, org::ImmSubtree::Property::CustomArgs, org::ImmSubtree::Property::CustomRaw>;
@@ -1352,6 +1728,7 @@ struct ImmSubtree : public org::ImmOrg {
     org::ImmSubtree::Property::SetMode subSetRule = Property::SetMode::Override;
     org::ImmSubtree::Property::InheritanceMode inheritanceMode = Property::InheritanceMode::ThisAndSub;
     org::ImmSubtree::Property::Data data;
+    bool operator==(org::ImmSubtree::Property const& other) const;
     org::ImmSubtree::Property::Nonblocking const& getNonblocking() const { return std::get<0>(data); }
     org::ImmSubtree::Property::Nonblocking& getNonblocking() { return std::get<0>(data); }
     org::ImmSubtree::Property::Trigger const& getTrigger() const { return std::get<1>(data); }
@@ -1438,6 +1815,7 @@ struct ImmSubtree : public org::ImmOrg {
   bool isArchived = false;
   Opt<ImmBox<Str>> priority = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::Subtree; }
+  bool operator==(org::ImmSubtree const& other) const;
 };
 
 /// \brief Completion status of the subtree list element
@@ -1448,7 +1826,10 @@ struct ImmSubtreeCompletion : public org::ImmInline {
                        (ImmInline),
                        (),
                        (),
-                       (staticKind, done, full, isPercent))
+                       (staticKind,
+                        done,
+                        full,
+                        isPercent))
   static OrgSemKind const staticKind;
   /// \brief Number of completed tasks
   int done = 0;
@@ -1457,6 +1838,7 @@ struct ImmSubtreeCompletion : public org::ImmInline {
   /// \brief Use fraction or percent to display completion
   bool isPercent = false;
   virtual OrgSemKind getKind() const { return OrgSemKind::SubtreeCompletion; }
+  bool operator==(org::ImmSubtreeCompletion const& other) const;
 };
 
 /// \brief Table cell
@@ -1467,11 +1849,13 @@ struct ImmCell : public org::ImmCmd {
                        (ImmCmd),
                        (),
                        (),
-                       (staticKind, isBlock))
+                       (staticKind,
+                        isBlock))
   static OrgSemKind const staticKind;
   /// \brief Single-line pipe cell or `#+cell:` command
   bool isBlock = false;
   virtual OrgSemKind getKind() const { return OrgSemKind::Cell; }
+  bool operator==(org::ImmCell const& other) const;
 };
 
 /// \brief Table row
@@ -1482,13 +1866,16 @@ struct ImmRow : public org::ImmCmd {
                        (ImmCmd),
                        (),
                        (),
-                       (staticKind, cells, isBlock))
+                       (staticKind,
+                        cells,
+                        isBlock))
   static OrgSemKind const staticKind;
   /// \brief List of cells on the row
   ImmVec<org::ImmIdT<org::ImmCell>> cells = {};
   /// \brief Single-line pipe cell or `#+cell:` command
   bool isBlock = false;
   virtual OrgSemKind getKind() const { return OrgSemKind::Row; }
+  bool operator==(org::ImmRow const& other) const;
 };
 
 /// \brief Table
@@ -1499,13 +1886,16 @@ struct ImmTable : public org::ImmBlock {
                        (ImmBlock),
                        (),
                        (),
-                       (staticKind, rows, isBlock))
+                       (staticKind,
+                        rows,
+                        isBlock))
   static OrgSemKind const staticKind;
   /// \brief List of rows for the table
   ImmVec<org::ImmIdT<org::ImmRow>> rows = {};
   /// \brief Single-line pipe cell or `#+cell:` command
   bool isBlock = false;
   virtual OrgSemKind getKind() const { return OrgSemKind::Table; }
+  bool operator==(org::ImmTable const& other) const;
 };
 
 /// \brief Top-level or inline paragraph
@@ -1519,6 +1909,7 @@ struct ImmParagraph : public org::ImmStmt {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Paragraph; }
+  bool operator==(org::ImmParagraph const& other) const;
 };
 
 /// \brief Top-level or inline paragraph with prefix annotation
@@ -1526,24 +1917,44 @@ struct ImmAnnotatedParagraph : public org::ImmStmt {
   using ImmStmt::ImmStmt;
   virtual ~ImmAnnotatedParagraph() = default;
   struct None {
-    BOOST_DESCRIBE_CLASS(None, (), (), (), ())
+    BOOST_DESCRIBE_CLASS(None,
+                         (),
+                         (),
+                         (),
+                         ())
+    bool operator==(org::ImmAnnotatedParagraph::None const& other) const;
   };
 
   struct Footnote {
-    BOOST_DESCRIBE_CLASS(Footnote, (), (), (), (name))
+    BOOST_DESCRIBE_CLASS(Footnote,
+                         (),
+                         (),
+                         (),
+                         (name))
     ImmBox<Str> name;
+    bool operator==(org::ImmAnnotatedParagraph::Footnote const& other) const;
   };
 
   struct Admonition {
-    BOOST_DESCRIBE_CLASS(Admonition, (), (), (), (name))
+    BOOST_DESCRIBE_CLASS(Admonition,
+                         (),
+                         (),
+                         (),
+                         (name))
     /// \brief Prefix admonition for the paragraph
     org::ImmIdT<sem::BigIdent> name = org::ImmIdT<org::ImmBigIdent>::Nil();
+    bool operator==(org::ImmAnnotatedParagraph::Admonition const& other) const;
   };
 
   struct Timestamp {
-    BOOST_DESCRIBE_CLASS(Timestamp, (), (), (), (time))
+    BOOST_DESCRIBE_CLASS(Timestamp,
+                         (),
+                         (),
+                         (),
+                         (time))
     /// \brief Leading timestamp for the paragraph
     org::ImmIdT<org::ImmTime> time = org::ImmIdT<org::ImmTime>::Nil();
+    bool operator==(org::ImmAnnotatedParagraph::Timestamp const& other) const;
   };
 
   using Data = std::variant<org::ImmAnnotatedParagraph::None, org::ImmAnnotatedParagraph::Footnote, org::ImmAnnotatedParagraph::Admonition, org::ImmAnnotatedParagraph::Timestamp>;
@@ -1560,6 +1971,7 @@ struct ImmAnnotatedParagraph : public org::ImmStmt {
   static OrgSemKind const staticKind;
   org::ImmAnnotatedParagraph::Data data;
   virtual OrgSemKind getKind() const { return OrgSemKind::AnnotatedParagraph; }
+  bool operator==(org::ImmAnnotatedParagraph const& other) const;
   org::ImmAnnotatedParagraph::None const& getNone() const { return std::get<0>(data); }
   org::ImmAnnotatedParagraph::None& getNone() { return std::get<0>(data); }
   org::ImmAnnotatedParagraph::Footnote const& getFootnote() const { return std::get<1>(data); }
@@ -1583,6 +1995,7 @@ struct ImmColonExample : public org::ImmOrg {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::ColonExample; }
+  bool operator==(org::ImmColonExample const& other) const;
 };
 
 /// \brief Caption annotation for any subsequent node
@@ -1593,10 +2006,12 @@ struct ImmCmdAttr : public org::ImmAttached {
                        (ImmAttached),
                        (),
                        (),
-                       (staticKind, target))
+                       (staticKind,
+                        target))
   static OrgSemKind const staticKind;
   ImmBox<Str> target;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdAttr; }
+  bool operator==(org::ImmCmdAttr const& other) const;
 };
 
 /// \brief Inline, statement or block call
@@ -1607,7 +2022,10 @@ struct ImmCall : public org::ImmOrg {
                        (ImmOrg),
                        (),
                        (),
-                       (staticKind, name, parameters, isCommand))
+                       (staticKind,
+                        name,
+                        parameters,
+                        isCommand))
   static OrgSemKind const staticKind;
   /// \brief Call target name
   ImmBox<Str> name;
@@ -1615,6 +2033,7 @@ struct ImmCall : public org::ImmOrg {
   org::ImmIdT<org::ImmCmdArguments> parameters = org::ImmIdT<org::ImmCmdArguments>::Nil();
   bool isCommand = false;
   virtual OrgSemKind getKind() const { return OrgSemKind::Call; }
+  bool operator==(org::ImmCall const& other) const;
 };
 
 struct ImmList : public org::ImmStmt {
@@ -1627,6 +2046,7 @@ struct ImmList : public org::ImmStmt {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::List; }
+  bool operator==(org::ImmList const& other) const;
 };
 
 struct ImmListItem : public org::ImmOrg {
@@ -1638,7 +2058,10 @@ struct ImmListItem : public org::ImmOrg {
                        (ImmOrg),
                        (),
                        (),
-                       (staticKind, checkbox, header, bullet))
+                       (staticKind,
+                        checkbox,
+                        header,
+                        bullet))
   static OrgSemKind const staticKind;
   org::ImmListItem::Checkbox checkbox = Checkbox::None;
   /// \brief Description list item header
@@ -1646,6 +2069,7 @@ struct ImmListItem : public org::ImmOrg {
   /// \brief Full text of the numbered list item, e.g. `a)`, `a.`
   Opt<ImmBox<Str>> bullet = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::ListItem; }
+  bool operator==(org::ImmListItem const& other) const;
 };
 
 struct ImmDocumentOptions : public org::ImmOrg {
@@ -1653,8 +2077,13 @@ struct ImmDocumentOptions : public org::ImmOrg {
   virtual ~ImmDocumentOptions() = default;
   struct ExportConfig {
     struct TaskExport {
-      BOOST_DESCRIBE_CLASS(TaskExport, (), (), (), (taskWhitelist))
+      BOOST_DESCRIBE_CLASS(TaskExport,
+                           (),
+                           (),
+                           (),
+                           (taskWhitelist))
       ImmVec<Str> taskWhitelist = {};
+      bool operator==(org::ImmDocumentOptions::ExportConfig::TaskExport const& other) const;
     };
 
     enum class TagExport : short int {
@@ -1678,13 +2107,23 @@ struct ImmDocumentOptions : public org::ImmOrg {
     enum class BrokenLinks : short int { Mark, Raise, Ignore, };
     BOOST_DESCRIBE_NESTED_ENUM(BrokenLinks, Mark, Raise, Ignore)
     struct DoExport {
-      BOOST_DESCRIBE_CLASS(DoExport, (), (), (), (exportToc))
+      BOOST_DESCRIBE_CLASS(DoExport,
+                           (),
+                           (),
+                           (),
+                           (exportToc))
       bool exportToc;
+      bool operator==(org::ImmDocumentOptions::ExportConfig::DoExport const& other) const;
     };
 
     struct ExportFixed {
-      BOOST_DESCRIBE_CLASS(ExportFixed, (), (), (), (exportLevels))
+      BOOST_DESCRIBE_CLASS(ExportFixed,
+                           (),
+                           (),
+                           (),
+                           (exportLevels))
       int exportLevels;
+      bool operator==(org::ImmDocumentOptions::ExportConfig::ExportFixed const& other) const;
     };
 
     using TocExport = std::variant<org::ImmDocumentOptions::ExportConfig::DoExport, org::ImmDocumentOptions::ExportConfig::ExportFixed>;
@@ -1723,6 +2162,7 @@ struct ImmDocumentOptions : public org::ImmOrg {
     org::ImmDocumentOptions::ExportConfig::TocExport tocExport;
     org::ImmDocumentOptions::ExportConfig::TagExport tagExport;
     org::ImmDocumentOptions::ExportConfig::TocExport data;
+    bool operator==(org::ImmDocumentOptions::ExportConfig const& other) const;
     org::ImmDocumentOptions::ExportConfig::DoExport const& getDoExport() const { return std::get<0>(data); }
     org::ImmDocumentOptions::ExportConfig::DoExport& getDoExport() { return std::get<0>(data); }
     org::ImmDocumentOptions::ExportConfig::ExportFixed const& getExportFixed() const { return std::get<1>(data); }
@@ -1756,6 +2196,7 @@ struct ImmDocumentOptions : public org::ImmOrg {
   Opt<ImmBox<Str>> setupfile = std::nullopt;
   Opt<ImmBox<int>> maxSubtreeLevelExport = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::DocumentOptions; }
+  bool operator==(org::ImmDocumentOptions const& other) const;
 };
 
 struct ImmDocument : public org::ImmOrg {
@@ -1784,6 +2225,7 @@ struct ImmDocument : public org::ImmOrg {
   org::ImmIdT<org::ImmDocumentOptions> options = org::ImmIdT<org::ImmDocumentOptions>::Nil();
   Opt<ImmBox<Str>> exportFileName = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::Document; }
+  bool operator==(org::ImmDocument const& other) const;
 };
 
 struct ImmFileTarget : public org::ImmOrg {
@@ -1808,6 +2250,7 @@ struct ImmFileTarget : public org::ImmOrg {
   Opt<ImmBox<Str>> targetId = std::nullopt;
   Opt<ImmBox<Str>> regexp = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::FileTarget; }
+  bool operator==(org::ImmFileTarget const& other) const;
 };
 
 struct ImmTextSeparator : public org::ImmOrg {
@@ -1820,27 +2263,48 @@ struct ImmTextSeparator : public org::ImmOrg {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::TextSeparator; }
+  bool operator==(org::ImmTextSeparator const& other) const;
 };
 
 struct ImmInclude : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmInclude() = default;
   struct Example {
-    BOOST_DESCRIBE_CLASS(Example, (), (), (), ())
+    BOOST_DESCRIBE_CLASS(Example,
+                         (),
+                         (),
+                         (),
+                         ())
+    bool operator==(org::ImmInclude::Example const& other) const;
   };
 
   struct Export {
-    BOOST_DESCRIBE_CLASS(Export, (), (), (), ())
+    BOOST_DESCRIBE_CLASS(Export,
+                         (),
+                         (),
+                         (),
+                         ())
+    bool operator==(org::ImmInclude::Export const& other) const;
   };
 
   struct Src {
-    BOOST_DESCRIBE_CLASS(Src, (), (), (), ())
+    BOOST_DESCRIBE_CLASS(Src,
+                         (),
+                         (),
+                         (),
+                         ())
+    bool operator==(org::ImmInclude::Src const& other) const;
   };
 
   struct OrgDocument {
-    BOOST_DESCRIBE_CLASS(OrgDocument, (), (), (), (minLevel))
+    BOOST_DESCRIBE_CLASS(OrgDocument,
+                         (),
+                         (),
+                         (),
+                         (minLevel))
     /// \brief The minimum level of headlines to include. Headlines with a level smaller than this value will be demoted to this level.
     Opt<ImmBox<int>> minLevel = std::nullopt;
+    bool operator==(org::ImmInclude::OrgDocument const& other) const;
   };
 
   using Data = std::variant<org::ImmInclude::Example, org::ImmInclude::Export, org::ImmInclude::Src, org::ImmInclude::OrgDocument>;
@@ -1866,6 +2330,7 @@ struct ImmInclude : public org::ImmOrg {
   Opt<ImmBox<int>> lastLine = std::nullopt;
   org::ImmInclude::Data data;
   virtual OrgSemKind getKind() const { return OrgSemKind::Include; }
+  bool operator==(org::ImmInclude const& other) const;
   org::ImmInclude::Example const& getExample() const { return std::get<0>(data); }
   org::ImmInclude::Example& getExample() { return std::get<0>(data); }
   org::ImmInclude::Export const& getExport() const { return std::get<1>(data); }
@@ -1888,6 +2353,7 @@ struct ImmDocumentGroup : public org::ImmOrg {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::DocumentGroup; }
+  bool operator==(org::ImmDocumentGroup const& other) const;
 };
 
 }
