@@ -44,6 +44,7 @@ template <
 struct [[nodiscard]] Id {
     /// \brief Base type used to store value
     using id_base_type = IdType;
+    using id_mask_type = MaskType;
     /// Create new ID value from the stored ID index.
     explicit Id(IdType in) : value(in + 1) {}
 
@@ -64,7 +65,7 @@ struct [[nodiscard]] Id {
     static const inline int mask_size = MaskSizeT::value;
 
     /// \brief Create ID value from provided mask and underlying ID base
-    static auto FromMasked(MaskType mask, IdType id) -> Id {
+    static auto FromMasked(IdType id, MaskType mask) -> Id {
         Id res{IdType{}};
         res.value = id | (mask << mask_offset);
         return res;
@@ -183,26 +184,27 @@ struct [[nodiscard]] Id {
 
 #define DECL_ID_TYPE_MASKED(__value, __name, __type, __mask)              \
     struct __value;                                                       \
-    struct [[nodiscard]] __name                                           \
-        : dod::Id<                                                        \
-              __type,                                                     \
-              __type,                                                     \
-              std::integral_constant<__type, __mask>> {                   \
+    using __name##BaseId = dod::                                          \
+        Id<__type, __type, std::integral_constant<__type, __mask>>;       \
+    struct [[nodiscard]] __name : __name##BaseId {                        \
+                                                                          \
         using value_type = __value;                                       \
+                                                                          \
         static auto Nil() -> __name { return FromValue(0); };             \
+                                                                          \
         static auto FromValue(__type arg) -> __name {                     \
             __name res{__type{}};                                         \
             res.setValue(arg);                                            \
             return res;                                                   \
         }                                                                 \
+                                                                          \
         auto operator==(__name other) const -> bool {                     \
             return getValue() == other.getValue();                        \
         }                                                                 \
-        explicit __name(__type arg)                                       \
-            : dod::Id<                                                    \
-                  __type,                                                 \
-                  __type,                                                 \
-                  std::integral_constant<__type, __mask>>(arg) {}         \
+                                                                          \
+        __name(__name##BaseId const& arg) : __name##BaseId(arg) {}        \
+                                                                          \
+        explicit __name(__type arg) : __name##BaseId(arg) {}              \
     };
 
 
@@ -335,6 +337,20 @@ struct Store {
     }
 
     /// Add value to the storage and return newly created ID
+    [[nodiscard]] auto add(const T& value, Id::id_mask_type mask) -> Id {
+        int index = content.size();
+        content.push_back(value);
+        return Id::FromMasked(index, mask);
+    }
+
+    /// \brief Add new item to the store and return newly created ID
+    [[nodiscard]] auto add(const T&& value, Id::id_mask_type mask) -> Id {
+        int index = content.size();
+        content.push_back(value);
+        return Id::FromMasked(index, mask);
+    }
+
+    /// Add value to the storage and return newly created ID
     [[nodiscard]] auto add(const T& value) -> Id {
         int index = content.size();
         content.push_back(value);
@@ -427,12 +443,15 @@ struct InternStore {
 
     /// Add value to the store - if the value is already contained can
     /// return previous ID
-    [[nodiscard]] auto add(CR<Val> in) -> Id {
+    [[nodiscard]] auto add(
+        CR<Val>                                  in,
+        std::optional<typename Id::id_mask_type> mask = std::nullopt)
+        -> Id {
         auto found = id_map.find(in);
         if (found != id_map.end()) {
             return found->second;
         } else {
-            auto result = content.add(in);
+            auto result = mask ? content.add(in, *mask) : content.add(in);
             id_map.insert({in, result});
             return result;
         }

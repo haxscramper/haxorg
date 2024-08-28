@@ -35,10 +35,9 @@ using ImmIdBase                = dod::
     Id<u64, u64, std::integral_constant<u64, ImmIdMaskSize>>;
 
 struct ImmId : ImmIdBase {
-    using IdType          = u64;
-    using NodeIdxT        = u32;
-    using StoreIdxT       = u32;
-    ContextStore* context = nullptr;
+    using IdType    = u64;
+    using NodeIdxT  = u32;
+    using StoreIdxT = u32;
 
     static const u64 NodeIdxMask    = 0x000000FFFFFFFFFF; // >>0*0=0,
     static const u64 NodeIdxOffset  = 0;
@@ -53,12 +52,16 @@ struct ImmId : ImmIdBase {
     static OrgSemKind getKind(IdType id)       { return OrgSemKind((id & NodeKindMask) >> NodeKindOffset); }
     // clang-format on
 
-    static IdType combineIdxValue(
+    static IdType combineMask(StoreIdxT store, OrgSemKind kind) {
+        return (u64(kind) << NodeKindOffset) & (~NodeKindMask)
+            || (u64(store) << StoreIdxOffset) & (~StoreIdxMask);
+    }
+
+    static IdType combineFullValue(
         StoreIdxT  store,
         OrgSemKind kind,
         NodeIdxT   node) {
-        return (u64(kind) << NodeKindOffset) & (~NodeKindMask)
-            || (u64(store) << StoreIdxOffset) & (~StoreIdxMask)
+        return combineMask(store, kind)
             || (u64(node) << NodeIdxOffset) & (~NodeIdxMask);
     }
 
@@ -72,8 +75,7 @@ struct ImmId : ImmIdBase {
         OrgSemKind    kind,
         NodeIdxT      nodeIndex,
         ContextStore* _store)
-        : ImmIdBase{combineIdxValue(storeIndex, kind, nodeIndex)}
-        , context(_store) {}
+        : ImmIdBase{combineFullValue(storeIndex, kind, nodeIndex)} {}
 
     OrgSemKind getKind() const { return ImmId::getKind(value); }
     bool       is(OrgSemKind kind) const;
@@ -100,25 +102,10 @@ struct ImmId : ImmIdBase {
     ImmOrg const* operator->() const { return get(); }
 
     template <typename T>
-    T* getAs() {
-        return dynamic_cast<T*>(get());
-    }
-
-    template <typename T>
     T const* getAs() const {
         return dynamic_cast<T const*>(get());
     }
     /// @}
-
-    /// \brief Add new subnode
-    ///
-    /// \note This method *must* be used instead of the
-    /// `id->push_back(convert())` and similar because otherwise it might
-    /// cause dangling pointers due to the following sequence: (1) `->` is
-    /// evaluated, (2) `convert()` is evaluated, (3) `push_back` is called
-    /// on the pointer created earlier, which might be invalidated due to
-    /// relocation in p2
-    void push_back(ImmId sub);
 
     /// \brief Convert this node to one with specified kind
     template <typename T>
@@ -130,12 +117,6 @@ struct ImmId : ImmIdBase {
 
     /// \brief non-nil nodes are converter to `true`
     operator bool() const { return !isNil(); }
-
-
-    using SubnodeVisitor = Func<void(ImmId)>;
-    /// \brief Recursively visit each subnode in the tree and apply the
-    /// provided callback
-    void eachSubnodeRec(SubnodeVisitor cb);
 
     std::string getReadableId() const {
         if (isNil()) {

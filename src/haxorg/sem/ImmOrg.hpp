@@ -4,6 +4,27 @@
 #include <haxorg/sem/ImmOrgTypes.hpp>
 #include <haxorg/sem/SemOrg.hpp>
 
+
+#define _declare_hash(__kind)                                             \
+    template <>                                                           \
+    struct std::hash<org::Imm##__kind> {                                  \
+        std::size_t operator()(                                           \
+            org::Imm##__kind const& it) const noexcept;                   \
+    };
+
+EACH_SEM_ORG_KIND(_declare_hash)
+#undef _declare_hash
+
+#define _declare_hash(__parent, __qual, _)                                \
+    template <>                                                           \
+    struct std::hash<org::Imm##__parent::__qual> {                        \
+        std::size_t operator()(                                           \
+            org::Imm##__parent::__qual const& it) const noexcept;         \
+    };
+
+EACH_SEM_ORG_RECORD_NESTED(_declare_hash)
+#undef _declare_hash
+
 namespace org {
 
 
@@ -17,32 +38,12 @@ struct KindStore {
 
     KindStore(ContextStore* context) : context(context) {}
 
-    T* getForIndex(ImmId::NodeIdxT index) {
-        CHECK(0 <= index && index < values.size());
-        return &values.at(index);
-    }
-
-    ImmId add(
-        ImmId::StoreIndexT   selfIndex,
-        sem::SemId<sem::Org> data,
-        ImmId                parent,
-        ContextStore*        context);
-
-    using StoreVisitor = Func<
-        void(ImmId::StoreIndexT selfIndex, KindStore<T>* store)>;
-
-    using NodeVisitor = Func<void(ImmIdT<T> node)>;
-
-    generator<ImmIdT<T>> nodes(ImmId::StoreIndexT selfIndex) {
-        for (ImmId::NodeIdxT node = 0; node < values.size(); ++node) {
-            co_yield ImmIdT<T>(
-                ImmId(selfIndex, T::staticKind, node, context));
-        }
-    }
-
-    void eachNode(ImmId::StoreIndexT selfIndex, CR<NodeVisitor> cb) {
-        for (const auto& id : nodes(selfIndex)) { cb(id); }
-    }
+    T const* at(org::ImmId id) const { return &values.at(id); }
+    ImmId    add(
+           ImmId::StoreIdxT     selfIndex,
+           sem::SemId<sem::Org> data,
+           ImmId                parent,
+           ContextStore*        context);
 };
 
 #define __id(I) , org::KindStore<org::Imm##I>*
@@ -65,29 +66,32 @@ struct ParseUnitStore {
     {
     }
 
-    ImmOrg* get(OrgSemKind kind, ImmId::NodeIdxT index);
-    ImmId   add(
-          ImmId::StoreIndexT   selfIndex,
-          sem::SemId<sem::Org> data,
-          ImmId                parent,
-          ContextStore*        context);
+    ImmOrg const* at(ImmId index) const;
+    ImmId         add(
+                ImmId::StoreIdxT     selfIndex,
+                sem::SemId<sem::Org> data,
+                ImmId                parent,
+                ContextStore*        context);
 
     using StoreVisitor = Func<
-        void(ImmId::StoreIndexT selfIndex, OrgKindStorePtrVariant store)>;
+        void(ImmId::StoreIdxT selfIndex, OrgKindStorePtrVariant store)>;
 };
 
 /// \brief Global group of stores that all nodes are written to
 struct ContextStore {
     /// \brief Get reference to a local store by index
-    ParseUnitStore& getStoreByIndex(ImmId::StoreIndexT index);
-    void            ensureStoreForIndex(ImmId::StoreIndexT index);
+    ParseUnitStore&       getStoreByIndex(ImmId::StoreIdxT index);
+    ParseUnitStore const& getStoreByIndex(ImmId::StoreIdxT index) const;
+    void                  ensureStoreForIndex(ImmId::StoreIdxT index);
 
     /// \brief Create new sem node of the specified kind in the local store
     /// with `index`
     ImmId add(
-        ImmId::StoreIndexT   index,
+        ImmId::StoreIdxT     index,
         sem::SemId<sem::Org> data,
         ImmId                parent);
+
+    ImmOrg const* at(ImmId id) const;
 
     Vec<ParseUnitStore> stores;
 

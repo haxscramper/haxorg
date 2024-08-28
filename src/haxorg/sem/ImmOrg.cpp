@@ -5,21 +5,51 @@
     const OrgSemKind org::Imm##__Kind::staticKind = OrgSemKind::__Kind;
 
 EACH_SEM_ORG_KIND(_define_static)
+namespace {
+template <typename T>
+std::size_t imm_hash_build(T const& value) {
+    std::size_t result = 0;
+    for_each_field_with_bases<T>([&](auto const& field) {
+        boost::hash_combine(
+            result,
+            std::hash<
+                std::remove_cvref_t<decltype(value.*field.pointer)>>{}(
+                value.*field.pointer));
+    });
+    return result;
+}
+} // namespace
 
 #undef _define_static
+#define _define_hash(__kind)                                              \
+    std::size_t std::hash<org::Imm##__kind>::operator()(                  \
+        org::Imm##__kind const& it) const noexcept {                      \
+        return imm_hash_build(it);                                        \
+    }
 
+EACH_SEM_ORG_KIND(_define_hash)
+#undef _define_hash
+
+#define _define_hash(__parent, __qual, _)                                 \
+    std::size_t std::hash<org::Imm##__parent::__qual>::operator()(        \
+        org::Imm##__parent::__qual const& it) const noexcept {            \
+        return imm_hash_build(it);                                        \
+    }
+
+EACH_SEM_ORG_RECORD_NESTED(_define_hash)
+#undef _define_hash
 
 using namespace org;
 
 struct store_error : CRTP_hexception<store_error> {};
 
-ImmOrg* ParseUnitStore::get(OrgSemKind kind, ImmId::NodeIdxT index) {
-    switch (kind) {
+const ImmOrg* ParseUnitStore::at(ImmId index) const {
+    switch (index.getKind()) {
 
 #define _case(__Kind)                                                     \
     case OrgSemKind::__Kind: {                                            \
-        org::Imm##__Kind* res = store##__Kind.getForIndex(index);         \
-        CHECK(res->getKind() == kind);                                    \
+        org::Imm##__Kind const* res = store##__Kind.at(index);            \
+        CHECK(res->getKind() == index.getKind());                         \
         return res;                                                       \
     }
         EACH_SEM_ORG_KIND(_case)
@@ -29,7 +59,7 @@ ImmOrg* ParseUnitStore::get(OrgSemKind kind, ImmId::NodeIdxT index) {
 
 
 ImmId ParseUnitStore::add(
-    ImmId::StoreIndexT   selfIndex,
+    ImmId::StoreIdxT     selfIndex,
     sem::SemId<sem::Org> data,
     ImmId                parent,
     ContextStore*        context) {
@@ -61,19 +91,24 @@ ImmId ParseUnitStore::add(
 // EACH_SEM_ORG_KIND(_create)
 // #undef _create
 
-ImmOrg const* ImmId::get() const {
-    ImmOrg const* res = context->getStoreByIndex(getStoreIndex())
-                            .get(getKind(), getNodeIndex());
-    CHECK(res->getKind() == getKind());
+const ImmOrg* ContextStore::at(ImmId id) const {
+    ImmOrg const* res = getStoreByIndex(id.getStoreIndex()).at(id);
+    CHECK(res->getKind() == id.getKind());
     return res;
 }
 
-ParseUnitStore& ContextStore::getStoreByIndex(ImmId::StoreIndexT index) {
+
+ParseUnitStore& ContextStore::getStoreByIndex(ImmId::StoreIdxT index) {
     ensureStoreForIndex(index);
     return stores.at(index);
 }
 
-void ContextStore::ensureStoreForIndex(ImmId::StoreIndexT index) {
+ParseUnitStore const& ContextStore::getStoreByIndex(
+    ImmId::StoreIdxT index) const {
+    return stores.at(index);
+}
+
+void ContextStore::ensureStoreForIndex(ImmId::StoreIdxT index) {
     int diff = index - stores.size();
     CHECK(diff < 120000); // Debugging assertion
 
@@ -82,11 +117,12 @@ void ContextStore::ensureStoreForIndex(ImmId::StoreIndexT index) {
 
 
 ImmId ContextStore::add(
-    ImmId::StoreIndexT   index,
+    ImmId::StoreIdxT     index,
     sem::SemId<sem::Org> data,
     ImmId                parent) {
     return getStoreByIndex(index).add(index, data, parent, this);
 }
+
 
 template <typename Mut>
 struct imm_to_sem_map {};
@@ -102,7 +138,7 @@ EACH_SEM_ORG_KIND(_gen_map)
 
 template <typename T>
 org::ImmId org::KindStore<T>::add(
-    ImmId::StoreIndexT   selfIndex,
+    ImmId::StoreIdxT     selfIndex,
     sem::SemId<sem::Org> data,
     ImmId                parent,
     ContextStore*        context) {
@@ -118,28 +154,9 @@ org::ImmId org::KindStore<T>::add(
 
     // for_each_field_with_bases<SemType>(data);
 
-    T value;
-
-    ImmId result = ImmId(
-        selfIndex,
-        T::staticKind,
-        static_cast<ImmId::NodeIdxT>(values.size()),
-        context);
-
-    values.push_back(value);
-
-    if (false) {
-        LOG(INFO) << fmt(
-            "Push back of values {}, values:{:x}, this:{:x} data:{:x} "
-            "size:{} capacity:{}",
-            T::staticKind,
-            reinterpret_cast<u64>(&values),
-            reinterpret_cast<u64>(this),
-            reinterpret_cast<u64>(values.data()),
-            values.size(),
-            values.capacity());
-    }
-
+    T     value;
+    ImmId result = values.add(
+        value, ImmId::combineMask(selfIndex, T::staticKind));
 
     return result;
 }

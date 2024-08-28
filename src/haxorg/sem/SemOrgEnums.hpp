@@ -72,6 +72,99 @@
     __IMPL(TextSeparator) \
     __IMPL(Include) \
     __IMPL(DocumentGroup)
+#define EACH_SEM_ORG_RECORD_NESTED(__IMPL) \
+    __IMPL(Time, Repeat, (Repeat)) \
+    __IMPL(Time, Static, (Static)) \
+    __IMPL(Time, Dynamic, (Dynamic)) \
+    __IMPL(Symbol, Param, (Param)) \
+    __IMPL(Link, Raw, (Raw)) \
+    __IMPL(Link, Id, (Id)) \
+    __IMPL(Link, Person, (Person)) \
+    __IMPL(Link, UserProtocol, (UserProtocol)) \
+    __IMPL(Link, Internal, (Internal)) \
+    __IMPL(Link, Footnote, (Footnote)) \
+    __IMPL(Link, File, (File)) \
+    __IMPL(Link, Attachment, (Attachment)) \
+    __IMPL(BlockCode, Line, (Line)) \
+    __IMPL(BlockCode, Line::Part, (Line, Part)) \
+    __IMPL(BlockCode, Line::Part::Raw, (Line, Part, Raw)) \
+    __IMPL(BlockCode, Line::Part::Callout, (Line, Part, Callout)) \
+    __IMPL(BlockCode, Line::Part::Tangle, (Line, Part, Tangle)) \
+    __IMPL(BlockCode, Switch, (Switch)) \
+    __IMPL(BlockCode, Switch::LineStart, (Switch, LineStart)) \
+    __IMPL(BlockCode, Switch::CalloutFormat, (Switch, CalloutFormat)) \
+    __IMPL(BlockCode, Switch::RemoveCallout, (Switch, RemoveCallout)) \
+    __IMPL(BlockCode, Switch::EmphasizeLine, (Switch, EmphasizeLine)) \
+    __IMPL(BlockCode, Switch::Dedent, (Switch, Dedent)) \
+    __IMPL(BlockCode, EvalResult, (EvalResult)) \
+    __IMPL(BlockCode, EvalResult::None, (EvalResult, None)) \
+    __IMPL(BlockCode, EvalResult::OrgValue, (EvalResult, OrgValue)) \
+    __IMPL(BlockCode, EvalResult::File, (EvalResult, File)) \
+    __IMPL(BlockCode, EvalResult::Raw, (EvalResult, Raw)) \
+    __IMPL(SubtreeLog, DescribedLog, (DescribedLog)) \
+    __IMPL(SubtreeLog, Priority, (Priority)) \
+    __IMPL(SubtreeLog, Note, (Note)) \
+    __IMPL(SubtreeLog, Refile, (Refile)) \
+    __IMPL(SubtreeLog, Clock, (Clock)) \
+    __IMPL(SubtreeLog, State, (State)) \
+    __IMPL(SubtreeLog, Tag, (Tag)) \
+    __IMPL(SubtreeLog, Unknown, (Unknown)) \
+    __IMPL(Subtree, Period, (Period)) \
+    __IMPL(Subtree, Property, (Property)) \
+    __IMPL(Subtree, Property::Nonblocking, (Property, Nonblocking)) \
+    __IMPL(Subtree, Property::Trigger, (Property, Trigger)) \
+    __IMPL(Subtree, Property::Origin, (Property, Origin)) \
+    __IMPL(Subtree, Property::ExportLatexClass, (Property, ExportLatexClass)) \
+    __IMPL(Subtree, Property::ExportLatexClassOptions, (Property, ExportLatexClassOptions)) \
+    __IMPL(Subtree, Property::ExportLatexHeader, (Property, ExportLatexHeader)) \
+    __IMPL(Subtree, Property::ExportLatexCompiler, (Property, ExportLatexCompiler)) \
+    __IMPL(Subtree, Property::Ordered, (Property, Ordered)) \
+    __IMPL(Subtree, Property::Effort, (Property, Effort)) \
+    __IMPL(Subtree, Property::Visibility, (Property, Visibility)) \
+    __IMPL(Subtree, Property::ExportOptions, (Property, ExportOptions)) \
+    __IMPL(Subtree, Property::Blocker, (Property, Blocker)) \
+    __IMPL(Subtree, Property::Unnumbered, (Property, Unnumbered)) \
+    __IMPL(Subtree, Property::Created, (Property, Created)) \
+    __IMPL(Subtree, Property::CustomArgs, (Property, CustomArgs)) \
+    __IMPL(Subtree, Property::CustomRaw, (Property, CustomRaw)) \
+    __IMPL(AnnotatedParagraph, None, (None)) \
+    __IMPL(AnnotatedParagraph, Footnote, (Footnote)) \
+    __IMPL(AnnotatedParagraph, Admonition, (Admonition)) \
+    __IMPL(AnnotatedParagraph, Timestamp, (Timestamp)) \
+    __IMPL(DocumentOptions, ExportConfig, (ExportConfig)) \
+    __IMPL(DocumentOptions, ExportConfig::TaskExport, (ExportConfig, TaskExport)) \
+    __IMPL(DocumentOptions, ExportConfig::DoExport, (ExportConfig, DoExport)) \
+    __IMPL(DocumentOptions, ExportConfig::ExportFixed, (ExportConfig, ExportFixed)) \
+    __IMPL(Include, Example, (Example)) \
+    __IMPL(Include, Export, (Export)) \
+    __IMPL(Include, Src, (Src)) \
+    __IMPL(Include, OrgDocument, (OrgDocument))
+#define EACH_SEM_ORG_ENUM_NESTED(__IMPL) \
+    __IMPL(Time, Repeat::Mode, (Repeat, Mode)) \
+    __IMPL(Time, Repeat::Period, (Repeat, Period)) \
+    __IMPL(Time, TimeKind, (TimeKind)) \
+    __IMPL(Link, Kind, (Kind)) \
+    __IMPL(BlockExport, Format, (Format)) \
+    __IMPL(BlockCode, Line::Part::Kind, (Line, Part, Kind)) \
+    __IMPL(BlockCode, Switch::Kind, (Switch, Kind)) \
+    __IMPL(BlockCode, Results, (Results)) \
+    __IMPL(BlockCode, Exports, (Exports)) \
+    __IMPL(BlockCode, EvalResult::Kind, (EvalResult, Kind)) \
+    __IMPL(SubtreeLog, Priority::Action, (Priority, Action)) \
+    __IMPL(SubtreeLog, Kind, (Kind)) \
+    __IMPL(Subtree, Period::Kind, (Period, Kind)) \
+    __IMPL(Subtree, Property::SetMode, (Property, SetMode)) \
+    __IMPL(Subtree, Property::InheritanceMode, (Property, InheritanceMode)) \
+    __IMPL(Subtree, Property::Visibility::Level, (Property, Visibility, Level)) \
+    __IMPL(Subtree, Property::Kind, (Property, Kind)) \
+    __IMPL(AnnotatedParagraph, AnnotationKind, (AnnotationKind)) \
+    __IMPL(ListItem, Checkbox, (Checkbox)) \
+    __IMPL(DocumentOptions, ExportConfig::TagExport, (ExportConfig, TagExport)) \
+    __IMPL(DocumentOptions, ExportConfig::TaskFiltering, (ExportConfig, TaskFiltering)) \
+    __IMPL(DocumentOptions, ExportConfig::BrokenLinks, (ExportConfig, BrokenLinks)) \
+    __IMPL(DocumentOptions, ExportConfig::TocExportKind, (ExportConfig, TocExportKind)) \
+    __IMPL(DocumentOptions, Visibility, (Visibility)) \
+    __IMPL(Include, Kind, (Kind))
 enum class OrgSpecName : short int { Unnamed, Result, Year, Day, Clock, Repeater, Zone, Link, Tags, Tag, State, Protocol, Desc, Times, Drawer, Args, Name, Definition, Body, HeaderArgs, File, Kind, Lang, Prefix, Text, Todo, Importance, Title, Completion, Head, Subnodes, Properties, Logbook, Description, Logs, Newstate, Oldstate, Time, From, EndArgs, Flags, Value, Assoc, Main, Hash, Bullet, Counter, Checkbox, Header, To, Diff, Property, Subname, Values, Cells, Rows, Lines, Chunks, InheritanceMode, MainSetRule, SubSetRule, };
 template <>
 struct enum_serde<OrgSpecName> {
