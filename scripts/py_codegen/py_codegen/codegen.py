@@ -140,6 +140,83 @@ def get_exporter_methods(forward: bool,
 
 
 @beartype
+def get_imm_serde(types: List[GenTuStruct], ast: ASTBuilder) -> List[GenTuPass]:
+    serde: List[GenTuStruct] = []
+
+    base_map = get_base_map(types)
+
+    def aux(it):
+        match it:
+            case GenTuStruct():
+                if not it.concreteKind:
+                    return
+
+                sem_type = it.name
+                respace = it.name.flatQualSpaces()[1:] + [it.name.withoutAllSpaces()]
+                respace[0].name = "Imm" + respace[0].name
+                respace = [QualType(name="org")] + respace
+                imm_type = respace[-1].model_copy(update=dict(Spaces=respace[:-1]))
+
+                writer_body: List[BlockId] = [
+                    ast.line(ast.Type(imm_type), ast.string(" result;"))
+                ]
+
+                def field_aux(sub: GenTuStruct):
+                    for field in sub.fields:
+                        if not field.isStatic:
+                            writer_body.append(
+                                ast.Call(
+                                    func=ast.string("copy_field"),
+                                    Args=[
+                                        ast.string(f"result.{field.name}"),
+                                        ast.string(f"value.{field.name}"),
+                                        ast.string("ctx"),
+                                    ],
+                                    Stmt=True,
+                                ))
+
+                    for base in sub.bases:
+                        assert sub.name.name != base.name, f"{sub.name} ->>>> {base}"
+                        if base.name in base_map:
+                            it_base = base_map[base.name]
+                            assert it_base.name.name != sub.name.name
+                            field_aux(it_base)
+
+                # sys.setrecursionlimit(32)
+                field_aux(it)
+
+                writer_body.append(ast.Return(ast.string("result")))
+
+                writer = MethodDeclParams(
+                    Params=FunctionParams(
+                        Name="to_immer",
+                        ResultTy=imm_type,
+                        Args=[
+                            ParmVarParams(name="value", type=sem_type.asConstRef()),
+                            ParmVarParams(name="ctx",
+                                          type=QualType(name="AddContext").asConstRef()),
+                        ],
+                        Body=writer_body,
+                        AllowOneLine=False,
+                    ),
+                    isStatic=True,
+                )
+
+                rec = RecordParams(
+                    name="ImmSemSerde",
+                    NameParams=[sem_type, imm_type],
+                    Template=TemplateParams(Stacks=[TemplateGroup(Params=[])]),
+                    members=[writer],
+                )
+
+                serde.append(GenTuPass(ast.Record(rec)))
+
+    iterate_object_tree(types, [], pre_visit=aux)
+
+    return serde
+
+
+@beartype
 def get_concrete_types(expanded: List[GenTuStruct]) -> Sequence[GenTuStruct]:
     return [struct for struct in expanded if struct.concreteKind]
 
@@ -766,7 +843,6 @@ def gen_pyhaxorg_iteration_macros(types: List[GenTuStruct],
                 if 2 < len(flat):
                     parent = flat[1]
                     nested = flat[2:]
-                    print(parent.format(), [it.format() for it in nested])
                     value = (
                         parent.name,
                         "::".join(it.name for it in nested),
@@ -783,7 +859,6 @@ def gen_pyhaxorg_iteration_macros(types: List[GenTuStruct],
                         "::".join(it.name for it in flat[1:]),
                         "({})".format(", ".join(it.name for it in flat[1:])),
                     ))
-
 
     iterate_object_tree(types, [], pre_visit=aux)
 
@@ -886,6 +961,11 @@ def gen_pyhaxorg_wrappers(
             GenTu(
                 "{base}/exporters/Exporter.tcc",
                 get_exporter_methods(False, expanded),
+            ),),
+        GenUnit(
+            GenTu(
+                "{base}/sem/ImmOrgSerde.tcc",
+                get_imm_serde(types=expanded, ast=ast),
             ),),
         GenUnit(
             GenTu("{base}/exporters/ExporterMethods.tcc",

@@ -169,6 +169,12 @@ class QualType(BaseModel, extra="forbid"):
              tuple([hash(T) for T in self.Spaces]),
              tuple([hash(T) for T in self.Parameters])))
 
+    def __repr__(self) -> str:
+        return self.format()
+
+    def __str__(self) -> str:
+        return self.format()
+
     def format(self, dbgOrigin: bool = False) -> str:
         cvref = "{const}{ptr}{ref}".format(
             const=" const" if self.isConst else "",
@@ -291,7 +297,7 @@ class ParmVarParams:
 @dataclass
 class FunctionParams:
     Name: str
-    doc: DocParams
+    doc: DocParams = field(default_factory=lambda: DocParams(""))
     Template: TemplateParams = field(default_factory=TemplateParams)
     ResultTy: Optional[QualType] = field(default_factory=lambda: QualType.ForName("void"))
     Args: List[ParmVarParams] = field(default_factory=list)
@@ -446,7 +452,7 @@ RecordNested = Union[EnumParams, 'RecordParams', BlockId]
 @dataclass
 class RecordParams:
     name: str
-    doc: DocParams
+    doc: DocParams = field(default_factory=lambda: DocParams(""))
     NameParams: List[QualType] = field(default_factory=list)
     bases: List[QualType] = field(default_factory=list)
     members: List[RecordMember] = field(default_factory=list)
