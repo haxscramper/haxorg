@@ -28,6 +28,27 @@ struct std::formatter<ImmBox<T>> : std::formatter<std::string> {
     }
 };
 
+template <>
+struct std::formatter<ImmBox<std::string>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const ImmBox<std::string>& p, FormatContext& ctx) const {
+        fmt_ctx("Box{", ctx);
+        fmt_ctx(escape_literal(p.get()), ctx);
+        return fmt_ctx("}", ctx);
+    }
+};
+
+template <>
+struct std::formatter<ImmBox<Str>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const ImmBox<Str>& p, FormatContext& ctx) const {
+        fmt_ctx("Box{", ctx);
+        fmt_ctx(escape_literal(p.get()), ctx);
+        return fmt_ctx("}", ctx);
+    }
+};
+
+
 template <typename T>
 struct std::formatter<ImmVec<T>> : std::formatter<std::string> {
     template <typename FormatContext>
