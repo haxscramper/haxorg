@@ -158,7 +158,16 @@ def get_imm_serde(types: List[GenTuStruct], ast: ASTBuilder) -> List[GenTuPass]:
                 imm_type = respace[-1].model_copy(update=dict(Spaces=respace[:-1]))
 
                 writer_body: List[BlockId] = [
-                    ast.line(ast.Type(imm_type), ast.string(" result;"))
+                    ast.line(
+                        ast.Type(imm_type),
+                        ast.string(" result = "),
+                        ast.CallStatic(
+                            typ=QualType(name="SerdeDefaultProvider",
+                                          Parameters=[imm_type]),
+                            opc="get",
+                        ),
+                        ast.string(";"),
+                    )
                 ]
 
                 def field_aux(sub: GenTuStruct):
@@ -721,7 +730,8 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
                 obj.value = f"org::ImmIdT<org::Imm{obj.type.par0().name}>::Nil()"
 
             case GenTuField(type=QualType(name="Opt")):
-                obj.type.Parameters = [obj.type.par0().withWrapperType(IMM_BOX)]
+                obj.type.Parameters = [obj.type.par0().withWrapperType("Opt")]
+                obj.type.name = IMM_BOX
 
             case GenTuField(type=QualType(name="Str")):
                 obj.type = QualType.ForName(IMM_BOX, Parameters=[obj.type])

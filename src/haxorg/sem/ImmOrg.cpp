@@ -1,6 +1,7 @@
 #include <haxorg/sem/ImmOrg.hpp>
 #include <hstd/stdlib/Exception.hpp>
 #include <immer/vector_transient.hpp>
+#include <immer/map_transient.hpp>
 #include <hstd/stdlib/Enumerate.hpp>
 #include <boost/mp11.hpp>
 #include <boost/preprocessor.hpp>
@@ -295,18 +296,30 @@ struct AddContext {
     ImmId::StoreIdxT idx        = 0;
 };
 
-template <typename Sem, typename Imm>
-struct ImmSemSerde {
-    // static Imm to_immer(Sem const& value, AddContext const& ctx) {
-    //     throw store_error::init(
-    //         fmt("Implement store conversion for value {}",
-    //             demangle(typeid(value).name())));
-    //     return Imm{};
-    // }
-    // static Sem from_immer(AddContext const& ctx, Imm const& value) {
-    //     return Sem{};
-    // }
+template <>
+struct SerdeDefaultProvider<org::ImmSubtreeLog::Priority> {
+    static org::ImmSubtreeLog::Priority get() {
+        return org::ImmSubtreeLog::Priority{};
+    }
 };
+
+template <>
+struct SerdeDefaultProvider<org::ImmBlockCode::Switch::LineStart> {
+    static org::ImmBlockCode::Switch::LineStart get() {
+        return org::ImmBlockCode::Switch::LineStart{};
+    }
+};
+
+template <>
+struct SerdeDefaultProvider<org::ImmBlockCode::Switch> {
+    static org::ImmBlockCode::Switch get() {
+        return org::ImmBlockCode::Switch{
+            org::ImmBlockCode::Switch::LineStart{}};
+    }
+};
+
+template <typename Sem, typename Imm>
+struct ImmSemSerde {};
 
 using SemId_t = sem::SemId<sem::Org>;
 using ImmId_t = org::ImmId;
@@ -319,12 +332,30 @@ struct ImmSemSerde<SemId_t, ImmId_t> {
     }
 };
 
+template <typename SemType, typename ImmType>
+struct ImmSemSerde<sem::SemId<SemType>, org::ImmIdT<ImmType>> {
+    static org::ImmIdT<ImmType> to_immer(
+        sem::SemId<SemType> const& id,
+        AddContext const&          ctx) {
+        return ctx.store->getStoreByIndex(ctx.idx)
+            .add(ctx.idx, id.asOrg(), ctx.store)
+            .template as<ImmType>();
+    }
+};
+
+
+template <IsEnum SemType, IsEnum ImmType>
+struct ImmSemSerde<SemType, ImmType> {
+    static ImmType to_immer(SemType const& value, AddContext const& ctx) {
+        return static_cast<ImmType>(value);
+    }
+};
+
+
 template <IsVariant SemType, IsVariant ImmType>
-struct ImmSemSerde<Vec<SemType>, ImmVec<ImmType>> {
-    static ImmVec<ImmType> to_immer(
-        SemType const&    value,
-        AddContext const& ctx) {
-        ImmType result = variant_from_index(value.index());
+struct ImmSemSerde<SemType, ImmType> {
+    static ImmType to_immer(SemType const& value, AddContext const& ctx) {
+        ImmType result = variant_from_index<ImmType>(value.index());
         std::visit(
             [&](auto& out) {
                 using ImmVariantItem = std::remove_cvref_t<decltype(out)>;
@@ -332,11 +363,34 @@ struct ImmSemSerde<Vec<SemType>, ImmVec<ImmType>> {
                     boost::mp11::mp_find<ImmType, ImmVariantItem>::value,
                     SemType>;
 
-                out = ImmSemSerde<SemType, ImmType>::to_immer(
-                    std::get<SemVariantItem>(value), ctx);
+                out = ImmSemSerde<SemVariantItem, ImmVariantItem>::
+                    to_immer(std::get<SemVariantItem>(value), ctx);
             },
             result);
         return result;
+    }
+};
+
+template <
+    typename SemKey,
+    typename SemValue,
+    typename ImmKey,
+    typename ImmValue>
+struct ImmSemSerde<
+    UnorderedMap<SemKey, SemValue>,
+    ImmMap<ImmKey, ImmValue>> {
+    static ImmMap<ImmKey, ImmValue> to_immer(
+        UnorderedMap<SemKey, SemValue> const& value,
+        AddContext const&                     ctx) {
+        ImmMap<ImmKey, ImmValue> result;
+        auto                     tmp = result.transient();
+        for (auto const& [key, value] : value) {
+            tmp.insert({
+                ImmSemSerde<SemKey, ImmKey>::to_immer(key, ctx),
+                ImmSemSerde<SemValue, ImmValue>::to_immer(value, ctx),
+            });
+        }
+        return tmp.persistent();
     }
 };
 
@@ -350,7 +404,7 @@ struct ImmSemSerde<Opt<SemType>, Opt<ImmType>> {
             base = ImmSemSerde<SemType, ImmType>::to_immer(
                 value.value(), ctx);
         }
-        return tmp.persistent();
+        return base;
     }
 };
 
@@ -369,33 +423,27 @@ struct ImmSemSerde<Vec<SemType>, ImmVec<ImmType>> {
     }
 };
 
-template <>
-struct ImmSemSerde<int, int> {
-    static int to_immer(int const& value, AddContext const& ctx) {
-        return value;
-    }
-};
+#define __same_type(__T)                                                  \
+    template <>                                                           \
+    struct ImmSemSerde<__T, __T> {                                        \
+        static __T to_immer(__T const& value, AddContext const& ctx) {    \
+            return value;                                                 \
+        }                                                                 \
+    };
 
-template <>
-struct ImmSemSerde<Str, Str> {
-    static Str to_immer(Str const& value, AddContext const& ctx) {
-        return value;
-    }
-};
+__same_type(int);
+__same_type(Str);
+__same_type(float);
+__same_type(bool);
+__same_type(std::string);
+__same_type(UserTime);
 
-template <>
-struct ImmSemSerde<std::string, std::string> {
-    static std::string to_immer(
-        std::string const& value,
-        AddContext const&  ctx) {
-        return value;
-    }
-};
-
-template <typename T>
-struct ImmSemSerde<T, ImmBox<T>> {
-    static T to_immer(ImmBox<T> const& value, AddContext const& ctx) {
-        return ImmSemSerde<T, T>::to_immer(value, ctx);
+template <typename SemType, typename ImmType>
+struct ImmSemSerde<SemType, ImmBox<ImmType>> {
+    static ImmBox<ImmType> to_immer(
+        SemType const&    value,
+        AddContext const& ctx) {
+        return ImmSemSerde<SemType, ImmType>::to_immer(value, ctx);
     }
 };
 

@@ -16,9 +16,9 @@ struct ImmCmdArgument : public org::ImmOrg {
                         value))
   static OrgSemKind const staticKind;
   /// \brief Key
-  Opt<ImmBox<Str>> key = std::nullopt;
+  ImmBox<Opt<Str>> key = std::nullopt;
   /// \brief When used in the `:var` assignment, this stores variable name
-  Opt<ImmBox<Str>> varname = std::nullopt;
+  ImmBox<Opt<Str>> varname = std::nullopt;
   /// \brief Value
   ImmBox<Str> value;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdArgument; }
@@ -76,9 +76,9 @@ struct ImmErrorItem : public org::ImmOrg {
   static OrgSemKind const staticKind;
   ImmBox<Str> message;
   /// \brief Conversion function name where the error was created
-  Opt<ImmBox<Str>> function = std::nullopt;
+  ImmBox<Opt<Str>> function = std::nullopt;
   /// \brief Line number for the conversion where the error was created
-  Opt<ImmBox<int>> line = std::nullopt;
+  ImmBox<Opt<int>> line = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::ErrorItem; }
   bool operator==(org::ImmErrorItem const& other) const;
 };
@@ -98,9 +98,9 @@ struct ImmErrorGroup : public org::ImmOrg {
   static OrgSemKind const staticKind;
   ImmVec<org::ImmIdT<org::ImmErrorItem>> diagnostics = {};
   /// \brief Conversion function name where the error was created
-  Opt<ImmBox<Str>> function = std::nullopt;
+  ImmBox<Opt<Str>> function = std::nullopt;
   /// \brief Line number for the conversion where the error was created
-  Opt<ImmBox<Str>> line = std::nullopt;
+  ImmBox<Opt<Str>> line = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::ErrorGroup; }
   bool operator==(org::ImmErrorGroup const& other) const;
 };
@@ -168,7 +168,7 @@ struct ImmCmd : public org::ImmStmt {
                        (),
                        (parameters))
   /// \brief Additional parameters aside from 'exporter',
-  Opt<ImmBox<org::ImmIdT<org::ImmCmdArguments>>> parameters = std::nullopt;
+  ImmBox<Opt<org::ImmIdT<org::ImmCmdArguments>>> parameters = std::nullopt;
   bool operator==(org::ImmCmd const& other) const;
 };
 
@@ -377,7 +377,7 @@ struct ImmFootnote : public org::ImmInline {
   /// \brief Footnote text target name
   ImmBox<Str> tag = "";
   /// \brief Link to possibly resolved definition
-  Opt<ImmBox<org::ImmIdT<org::ImmOrg>>> definition = std::nullopt;
+  ImmBox<Opt<org::ImmIdT<org::ImmOrg>>> definition = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::Footnote; }
   bool operator==(org::ImmFootnote const& other) const;
 };
@@ -423,7 +423,7 @@ struct ImmTime : public org::ImmOrg {
                          (),
                          (),
                          (repeat, time))
-    Opt<ImmBox<org::ImmTime::Repeat>> repeat;
+    ImmBox<Opt<org::ImmTime::Repeat>> repeat;
     UserTime time;
     bool operator==(org::ImmTime::Static const& other) const;
   };
@@ -516,7 +516,7 @@ struct ImmSymbol : public org::ImmOrg {
                          (),
                          (key, value))
     /// \brief Key -- for non-positional
-    Opt<ImmBox<Str>> key;
+    ImmBox<Opt<Str>> key;
     /// \brief Uninterpreted value
     ImmBox<Str> value;
     bool operator==(org::ImmSymbol::Param const& other) const;
@@ -917,7 +917,7 @@ struct ImmLink : public org::ImmStmt {
                         description,
                         data))
   static OrgSemKind const staticKind;
-  Opt<ImmBox<org::ImmIdT<org::ImmParagraph>>> description = std::nullopt;
+  ImmBox<Opt<org::ImmIdT<org::ImmParagraph>>> description = std::nullopt;
   org::ImmLink::Data data;
   virtual OrgSemKind getKind() const { return OrgSemKind::Link; }
   bool operator==(org::ImmLink const& other) const;
@@ -1040,7 +1040,7 @@ struct ImmBlockExport : public org::ImmBlock {
   /// \brief Exporter backend name
   ImmBox<Str> exporter;
   /// \brief Customized position of the text in the final exporting document.
-  Opt<ImmBox<Str>> placement = std::nullopt;
+  ImmBox<Opt<Str>> placement = std::nullopt;
   /// \brief Raw exporter content string
   ImmBox<Str> content;
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockExport; }
@@ -1316,13 +1316,13 @@ struct ImmBlockCode : public org::ImmBlock {
                         tangle))
   static OrgSemKind const staticKind;
   /// \brief Code block language name
-  Opt<ImmBox<Str>> lang = std::nullopt;
+  ImmBox<Opt<Str>> lang = std::nullopt;
   /// \brief Switch options for block
   ImmVec<org::ImmBlockCode::Switch> switches = {};
   /// \brief What to export
   org::ImmBlockCode::Exports exports = Exports::Both;
   /// \brief Code evaluation results
-  Opt<ImmBox<org::ImmBlockCode::EvalResult>> result = std::nullopt;
+  ImmBox<Opt<org::ImmBlockCode::EvalResult>> result = std::nullopt;
   /// \brief Collected code lines
   ImmVec<org::ImmBlockCode::Line> lines = {};
   /// \brief Do cache values?
@@ -1351,7 +1351,7 @@ struct ImmSubtreeLog : public org::ImmOrg {
                          (),
                          (desc))
     /// \brief Optional description of the log entry
-    Opt<ImmBox<org::ImmIdT<org::ImmStmtList>>> desc = std::nullopt;
+    ImmBox<Opt<org::ImmIdT<org::ImmStmtList>>> desc = std::nullopt;
     bool operator==(org::ImmSubtreeLog::DescribedLog const& other) const;
   };
 
@@ -1373,9 +1373,9 @@ struct ImmSubtreeLog : public org::ImmOrg {
                          (),
                          (oldPriority, newPriority, on, action))
     /// \brief Previous priority for change and removal
-    Opt<ImmBox<std::string>> oldPriority = std::nullopt;
+    ImmBox<Opt<std::string>> oldPriority = std::nullopt;
     /// \brief New priority for change and addition
-    Opt<ImmBox<std::string>> newPriority = std::nullopt;
+    ImmBox<Opt<std::string>> newPriority = std::nullopt;
     /// \brief When priority was changed
     org::ImmIdT<org::ImmTime> on = org::ImmIdT<org::ImmTime>::Nil();
     /// \brief Which action taken
@@ -1419,7 +1419,7 @@ struct ImmSubtreeLog : public org::ImmOrg {
     /// \brief Clock start time
     org::ImmIdT<org::ImmTime> from = org::ImmIdT<org::ImmTime>::Nil();
     /// \brief Optional end of the clock
-    Opt<ImmBox<org::ImmIdT<org::ImmTime>>> to = std::nullopt;
+    ImmBox<Opt<org::ImmIdT<org::ImmTime>>> to = std::nullopt;
     bool operator==(org::ImmSubtreeLog::Clock const& other) const;
   };
 
@@ -1529,7 +1529,7 @@ struct ImmSubtree : public org::ImmOrg {
     /// \brief Clock start time
     org::ImmIdT<org::ImmTime> from = org::ImmIdT<org::ImmTime>::Nil();
     /// \brief Optional end of the clock
-    Opt<ImmBox<org::ImmIdT<org::ImmTime>>> to = std::nullopt;
+    ImmBox<Opt<org::ImmIdT<org::ImmTime>>> to = std::nullopt;
     bool operator==(org::ImmSubtree::Period const& other) const;
   };
 
@@ -1691,7 +1691,7 @@ struct ImmSubtree : public org::ImmOrg {
       /// \brief Original name of the property
       ImmBox<Str> name = "";
       /// \brief Property target specialization
-      Opt<ImmBox<Str>> sub = std::nullopt;
+      ImmBox<Opt<Str>> sub = std::nullopt;
       /// \brief Property parameters
       org::ImmIdT<org::ImmCmdArguments> parameters = org::ImmIdT<org::ImmCmdArguments>::Nil();
       bool operator==(org::ImmSubtree::Property::CustomArgs const& other) const;
@@ -1789,12 +1789,12 @@ struct ImmSubtree : public org::ImmOrg {
   /// \brief Subtree level
   int level = 0;
   /// \brief :ID: property
-  Opt<ImmBox<Str>> treeId = std::nullopt;
+  ImmBox<Opt<Str>> treeId = std::nullopt;
   /// \brief Todo state of the tree
-  Opt<ImmBox<Str>> todo = std::nullopt;
+  ImmBox<Opt<Str>> todo = std::nullopt;
   /// \brief Task completion state
-  Opt<ImmBox<org::ImmIdT<org::ImmSubtreeCompletion>>> completion = std::nullopt;
-  Opt<ImmBox<org::ImmIdT<org::ImmParagraph>>> description = std::nullopt;
+  ImmBox<Opt<org::ImmIdT<org::ImmSubtreeCompletion>>> completion = std::nullopt;
+  ImmBox<Opt<org::ImmIdT<org::ImmParagraph>>> description = std::nullopt;
   /// \brief Trailing tags
   ImmVec<org::ImmIdT<org::ImmHashTag>> tags = {};
   /// \brief Main title
@@ -1804,16 +1804,16 @@ struct ImmSubtree : public org::ImmOrg {
   /// \brief Immediate properties
   ImmVec<org::ImmSubtree::Property> properties = {};
   /// \brief When subtree was marked as closed
-  Opt<ImmBox<org::ImmIdT<org::ImmTime>>> closed = std::nullopt;
+  ImmBox<Opt<org::ImmIdT<org::ImmTime>>> closed = std::nullopt;
   /// \brief When is the deadline
-  Opt<ImmBox<org::ImmIdT<org::ImmTime>>> deadline = std::nullopt;
+  ImmBox<Opt<org::ImmIdT<org::ImmTime>>> deadline = std::nullopt;
   /// \brief When the event is scheduled
-  Opt<ImmBox<org::ImmIdT<org::ImmTime>>> scheduled = std::nullopt;
+  ImmBox<Opt<org::ImmIdT<org::ImmTime>>> scheduled = std::nullopt;
   /// \brief Subtree is annotated with the COMMENT keyword
   bool isComment = false;
   /// \brief Subtree is tagged with `:ARCHIVE:` tag
   bool isArchived = false;
-  Opt<ImmBox<Str>> priority = std::nullopt;
+  ImmBox<Opt<Str>> priority = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::Subtree; }
   bool operator==(org::ImmSubtree const& other) const;
 };
@@ -2065,9 +2065,9 @@ struct ImmListItem : public org::ImmOrg {
   static OrgSemKind const staticKind;
   org::ImmListItem::Checkbox checkbox = Checkbox::None;
   /// \brief Description list item header
-  Opt<ImmBox<org::ImmIdT<org::ImmParagraph>>> header = std::nullopt;
+  ImmBox<Opt<org::ImmIdT<org::ImmParagraph>>> header = std::nullopt;
   /// \brief Full text of the numbered list item, e.g. `a)`, `a.`
-  Opt<ImmBox<Str>> bullet = std::nullopt;
+  ImmBox<Opt<Str>> bullet = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::ListItem; }
   bool operator==(org::ImmListItem const& other) const;
 };
@@ -2148,16 +2148,16 @@ struct ImmDocumentOptions : public org::ImmOrg {
                           tocExport,
                           tagExport,
                           data))
-    Opt<ImmBox<bool>> inlinetasks = std::nullopt;
-    Opt<ImmBox<bool>> footnotes = std::nullopt;
-    Opt<ImmBox<bool>> clock = std::nullopt;
-    Opt<ImmBox<bool>> author = std::nullopt;
-    Opt<ImmBox<bool>> emphasis = std::nullopt;
-    Opt<ImmBox<bool>> specialStrings = std::nullopt;
-    Opt<ImmBox<bool>> propertyDrawers = std::nullopt;
-    Opt<ImmBox<bool>> statisticsCookies = std::nullopt;
+    ImmBox<Opt<bool>> inlinetasks = std::nullopt;
+    ImmBox<Opt<bool>> footnotes = std::nullopt;
+    ImmBox<Opt<bool>> clock = std::nullopt;
+    ImmBox<Opt<bool>> author = std::nullopt;
+    ImmBox<Opt<bool>> emphasis = std::nullopt;
+    ImmBox<Opt<bool>> specialStrings = std::nullopt;
+    ImmBox<Opt<bool>> propertyDrawers = std::nullopt;
+    ImmBox<Opt<bool>> statisticsCookies = std::nullopt;
     /// \brief Include todo keywords in export
-    Opt<ImmBox<bool>> todoText = std::nullopt;
+    ImmBox<Opt<bool>> todoText = std::nullopt;
     org::ImmDocumentOptions::ExportConfig::BrokenLinks brokenLinks;
     org::ImmDocumentOptions::ExportConfig::TocExport tocExport;
     org::ImmDocumentOptions::ExportConfig::TagExport tagExport;
@@ -2190,11 +2190,11 @@ struct ImmDocumentOptions : public org::ImmOrg {
   org::ImmDocumentOptions::Visibility initialVisibility = Visibility::ShowEverything;
   ImmVec<org::ImmSubtree::Property> properties = {};
   org::ImmDocumentOptions::ExportConfig exportConfig;
-  Opt<ImmBox<bool>> fixedWidthSections = std::nullopt;
-  Opt<ImmBox<bool>> startupIndented = std::nullopt;
-  Opt<ImmBox<Str>> category = std::nullopt;
-  Opt<ImmBox<Str>> setupfile = std::nullopt;
-  Opt<ImmBox<int>> maxSubtreeLevelExport = std::nullopt;
+  ImmBox<Opt<bool>> fixedWidthSections = std::nullopt;
+  ImmBox<Opt<bool>> startupIndented = std::nullopt;
+  ImmBox<Opt<Str>> category = std::nullopt;
+  ImmBox<Opt<Str>> setupfile = std::nullopt;
+  ImmBox<Opt<int>> maxSubtreeLevelExport = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::DocumentOptions; }
   bool operator==(org::ImmDocumentOptions const& other) const;
 };
@@ -2216,14 +2216,14 @@ struct ImmDocument : public org::ImmOrg {
                         options,
                         exportFileName))
   static OrgSemKind const staticKind;
-  Opt<ImmBox<org::ImmIdT<org::ImmParagraph>>> title = std::nullopt;
-  Opt<ImmBox<org::ImmIdT<org::ImmParagraph>>> author = std::nullopt;
-  Opt<ImmBox<org::ImmIdT<org::ImmParagraph>>> creator = std::nullopt;
+  ImmBox<Opt<org::ImmIdT<org::ImmParagraph>>> title = std::nullopt;
+  ImmBox<Opt<org::ImmIdT<org::ImmParagraph>>> author = std::nullopt;
+  ImmBox<Opt<org::ImmIdT<org::ImmParagraph>>> creator = std::nullopt;
   ImmVec<org::ImmIdT<org::ImmHashTag>> filetags = {};
-  Opt<ImmBox<org::ImmIdT<org::ImmRawText>>> email = std::nullopt;
+  ImmBox<Opt<org::ImmIdT<org::ImmRawText>>> email = std::nullopt;
   ImmVec<Str> language = {};
   org::ImmIdT<org::ImmDocumentOptions> options = org::ImmIdT<org::ImmDocumentOptions>::Nil();
-  Opt<ImmBox<Str>> exportFileName = std::nullopt;
+  ImmBox<Opt<Str>> exportFileName = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::Document; }
   bool operator==(org::ImmDocument const& other) const;
 };
@@ -2244,11 +2244,11 @@ struct ImmFileTarget : public org::ImmOrg {
                         regexp))
   static OrgSemKind const staticKind;
   ImmBox<Str> path;
-  Opt<ImmBox<int>> line = std::nullopt;
-  Opt<ImmBox<Str>> searchTarget = std::nullopt;
+  ImmBox<Opt<int>> line = std::nullopt;
+  ImmBox<Opt<Str>> searchTarget = std::nullopt;
   bool restrictToHeadlines = false;
-  Opt<ImmBox<Str>> targetId = std::nullopt;
-  Opt<ImmBox<Str>> regexp = std::nullopt;
+  ImmBox<Opt<Str>> targetId = std::nullopt;
+  ImmBox<Opt<Str>> regexp = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::FileTarget; }
   bool operator==(org::ImmFileTarget const& other) const;
 };
@@ -2303,7 +2303,7 @@ struct ImmInclude : public org::ImmOrg {
                          (),
                          (minLevel))
     /// \brief The minimum level of headlines to include. Headlines with a level smaller than this value will be demoted to this level.
-    Opt<ImmBox<int>> minLevel = std::nullopt;
+    ImmBox<Opt<int>> minLevel = std::nullopt;
     bool operator==(org::ImmInclude::OrgDocument const& other) const;
   };
 
@@ -2325,9 +2325,9 @@ struct ImmInclude : public org::ImmOrg {
   /// \brief Path to include
   ImmBox<Str> path;
   /// \brief 0-based index of the first line to include. NOTE: Org-mode syntax uses 1-based half-open range in the text
-  Opt<ImmBox<int>> firstLine = std::nullopt;
+  ImmBox<Opt<int>> firstLine = std::nullopt;
   /// \brief 0-based index of the last line to include
-  Opt<ImmBox<int>> lastLine = std::nullopt;
+  ImmBox<Opt<int>> lastLine = std::nullopt;
   org::ImmInclude::Data data;
   virtual OrgSemKind getKind() const { return OrgSemKind::Include; }
   bool operator==(org::ImmInclude const& other) const;
