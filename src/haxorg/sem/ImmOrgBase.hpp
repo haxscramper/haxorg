@@ -126,7 +126,18 @@ struct ImmId : ImmIdBase {
 
     /// \brief Convert this node to one with specified kind
     template <typename T>
-    ImmIdT<T> as() const;
+    ImmIdT<T> as() const {
+        if constexpr (!std::is_abstract_v<T>) {
+            if (T::staticKind != getKind()) {
+                throw std::logic_error(
+                    fmt("Kind for type T '{}' != ID kind '{}'",
+                        T::staticKind,
+                        getKind()));
+            }
+        }
+
+        return ImmIdT<T>{*this};
+    }
 
     /// \brief non-nil nodes are converter to `true`
     operator bool() const { return !isNil(); }
@@ -150,12 +161,12 @@ struct ImmIdT : public ImmId {
     static ImmIdT<T> Nil() { return ImmIdT<T>(ImmId::Nil()); }
 };
 
+
 struct ImmOrg {
     ImmVec<ImmId>      subnodes;
     virtual OrgSemKind getKind() const = 0;
     DESC_FIELDS(ImmOrg, (subnodes));
 };
-
 
 } // namespace org
 
