@@ -207,6 +207,7 @@ struct ImmAdapter {
     }
 
     ImmOrg const* get() const { return ctx->at(id); }
+    ImmOrg const* operator->() const { return get(); }
     ImmAdapter    at(int idx) const {
         return ImmAdapter(ctx->at(id)->subnodes.at(idx), ctx);
     }
@@ -254,6 +255,9 @@ struct ImmAdapterT : ImmAdapter {
     T const* get() const { return ctx->at_t<T>(id); }
     T const* operator->() const { return get(); }
 };
+
+using SubnodeVisitor = Func<void(ImmAdapter)>;
+void eachSubnodeRec(org::ImmAdapter id, SubnodeVisitor cb);
 
 } // namespace org
 

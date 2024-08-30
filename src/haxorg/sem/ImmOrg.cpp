@@ -509,6 +509,76 @@ mask:              {:064b}
     return result;
 }
 
+namespace {
+void eachSubnodeRecImpl(
+    CR<org::SubnodeVisitor> visitor,
+    ImmAdapter              org,
+    bool                    originalBase);
+
+template <sem::NotOrg T>
+void visitField(CR<org::SubnodeVisitor>, CR<T>) {}
+
+
+void visitField(CR<org::SubnodeVisitor> visitor, ImmAdapter node) {
+    if (!node.isNil()) { eachSubnodeRecImpl(visitor, node, true); }
+}
+
+template <sem::IsOrg T>
+void visitField(CR<org::SubnodeVisitor> visitor, CR<T> node) {
+    visitField(visitor, node.asOrg());
+}
+
+
+template <typename T>
+void visitField(CR<org::SubnodeVisitor> visitor, CVec<T> value) {
+    for (const auto& it : value) { visitField(visitor, it); }
+}
+
+
+template <typename T>
+void visitField(CR<org::SubnodeVisitor> visitor, CR<Opt<T>> value) {
+    if (value) { visitField(visitor, *value); }
+}
+
+template <typename T>
+void recVisitOrgNodesImpl(
+    CR<org::SubnodeVisitor> visitor,
+    ImmAdapterT<T>          tree,
+    bool                    originalBase) {
+    if (tree.isNil()) { return; }
+    if (originalBase) { visitor(tree); }
+
+    for_each_field_with_bases<T>([&](auto const& field) {
+        visitField(visitor, tree.get()->*field.pointer);
+    });
+}
+
+
+void eachSubnodeRecImpl(
+    CR<org::SubnodeVisitor> visitor,
+    ImmAdapter              org,
+    bool                    originalBase) {
+    switch (org->getKind()) {
+
+
+#define __case(__Kind)                                                    \
+    case OrgSemKind::__Kind: {                                            \
+        recVisitOrgNodesImpl(                                             \
+            visitor, org.as<org::Imm##__Kind>(), originalBase);           \
+        break;                                                            \
+    }
+        EACH_SEM_ORG_KIND(__case)
+#undef __case
+    }
+}
+} // namespace
+
+
+void org::eachSubnodeRec(ImmAdapter id, SubnodeVisitor cb) {
+    eachSubnodeRecImpl(cb, id, true);
+}
+
+
 #define forward_declare(__Kind)                                           \
     template class org::KindStore<org::Imm##__Kind>;
 EACH_SEM_ORG_KIND(forward_declare)

@@ -66,6 +66,15 @@ org::graph::MapGraphState org::graph::addNode(
 }
 
 
+static const SemSet NestedNodes{
+    OrgSemKind::Subtree,
+    OrgSemKind::Document,
+    OrgSemKind::List,
+    OrgSemKind::ListItem,
+    OrgSemKind::StmtList,
+};
+
+
 Opt<MapNodeProp> getNodeInsert(
     MapGraphState const& s,
     org::ImmAdapter      node,
@@ -127,8 +136,8 @@ Opt<MapNodeProp> getNodeInsert(
                 }
             }
         }
-    } else if (!NestedNodes.contains(node.getKind())) {
-        sem::eachSubnodeRec(node, register_used_links);
+    } else if (!NestedNodes.contains(node->getKind())) {
+        org::eachSubnodeRec(node, register_used_links);
     }
 
     switch (node->getKind()) {
