@@ -2,87 +2,104 @@
 
 #include <haxorg/sem/ImmOrg.hpp>
 #include <immer/set.hpp>
+#include <hstd/stdlib/TraceBase.hpp>
 
 template <typename T>
 using ImmSet = immer::set<T>;
 
 namespace org::graph {
 
+struct graph_error : CRTP_hexception<graph_error> {};
 
-struct ImmLink {
+struct MapLink {
     /// \brief Original link used to create the graph edge. Used to return
     /// an edge to unresolved state when target is deleted. When source is
     /// deleted the edge is simply dropped.
     org::ImmId link;
-    /// Link description field can be reused or, for description list
+    /// MapLink description field can be reused or, for description list
     /// items, this field contains a newly created statment list
     Opt<org::ImmId> description;
-    DESC_FIELDS(ImmLink, (link, description));
+    DESC_FIELDS(MapLink, (link, description));
 };
 
 
-struct ImmNodeProp {
-    ImmVec<ImmLink> unresolved;
-    DESC_FIELDS(ImmNodeProp, (unresolved));
+struct MapNodeProp {
+    Vec<MapLink> unresolved;
+    DESC_FIELDS(MapNodeProp, (unresolved));
 };
 
-struct ImmEdgeProp {
-    ImmLink link;
-    DESC_FIELDS(ImmEdgeProp, (link));
+struct MapEdgeProp {
+    MapLink link;
+    DESC_FIELDS(MapEdgeProp, (link));
 };
 
-struct ImmNode {
+struct MapNode {
     org::ImmId id;
-    DESC_FIELDS(ImmNode, (id));
+    DESC_FIELDS(MapNode, (id));
 };
 
-struct ImmEdge {
-    ImmNode source;
-    ImmNode target;
-    DESC_FIELDS(ImmEdge, (source, target));
+struct MapEdge {
+    MapNode source;
+    MapNode target;
+    DESC_FIELDS(MapEdge, (source, target));
 };
 
-struct ImmStructureUpdate {
-    Vec<ImmEdge> removed_edges;
-    Vec<ImmEdge> added_edges;
-    Opt<ImmNode> removed_node = std::nullopt;
-    Opt<ImmNode> added_node   = std::nullopt;
+struct StructureUpdate {
+    Vec<MapEdge> removed_edges;
+    Vec<MapEdge> added_edges;
+    Opt<MapNode> removed_node = std::nullopt;
+    Opt<MapNode> added_node   = std::nullopt;
 
     DESC_FIELDS(
-        ImmStructureUpdate,
+        StructureUpdate,
         (removed_edges, removed_node, added_edges, added_node));
 };
 
-using ImmNodeProps = immer::map<ImmNode, ImmNodeProp>;
-using ImmEdgeProps = immer::map<ImmEdge, ImmEdgeProp>;
-using ImmAdjList   = immer::map<ImmNode, immer::vector<ImmNode>>;
+using NodeProps = immer::map<MapNode, MapNodeProp>;
+using EdgeProps = immer::map<MapEdge, MapEdgeProp>;
+using AdjList   = immer::map<MapNode, immer::vector<MapNode>>;
 
-struct ImmTransient {
-    ImmNodeProps::transient_type& nodeProps;
-    ImmEdgeProps::transient_type& edgeProps;
-    ImmAdjList::transient_type&   adjList;
+struct MapGraphTransient {
+    NodeProps::transient_type& nodeProps;
+    EdgeProps::transient_type& edgeProps;
+    AdjList::transient_type&   adjList;
 };
 
-struct ImmGraph {
+struct MapGraph {
     org::ContextStore* ctx;
-    ImmNodeProps       nodeProps;
-    ImmEdgeProps       edgeProps;
-    ImmAdjList         adjList;
+    NodeProps          nodeProps;
+    EdgeProps          edgeProps;
+    AdjList            adjList;
 };
 
-struct ResolvedLink {};
-
-struct ImmResolveTarget {
-    ImmNode           node;
-    Vec<ResolvedLink> resolved;
-    DESC_FIELDS(ImmResolveTarget, (node, resolved));
+struct MapResolvedLink {
+    MapLink link;
+    MapNode target;
+    MapNode source;
+    DESC_FIELDS(MapResolvedLink, (link, target, source));
 };
 
-struct ImmState {
-    ImmSet<ImmNode> unresolved;
-    ImmGraph        graph;
+struct MapResolveResult {
+    Vec<MapNode>         unresolved;
+    Vec<MapResolvedLink> resolved;
+    DESC_FIELDS(MapResolveResult, (unresolved, resolved));
 };
 
-ImmState addNode(ImmState const& g, org::ImmId);
+struct MapOpsConfig : OperationsTracer {};
+
+struct MapGraphState {
+    ImmSet<MapNode> unresolved;
+    MapGraph        graph;
+};
+
+MapGraphState addNode(
+    MapGraphState const& g,
+    org::ImmId           node,
+    MapOpsConfig&        conf);
+
+Opt<MapNodeProp> getNodeInsert(
+    MapGraphState const& s,
+    org::ImmId           node,
+    MapOpsConfig&        conf);
 
 } // namespace org::graph

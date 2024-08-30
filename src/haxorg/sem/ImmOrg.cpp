@@ -188,21 +188,29 @@ ImmId ParseUnitStore::add(
     ImmId::StoreIdxT     selfIndex,
     sem::SemId<sem::Org> data,
     ContextStore*        context) {
-    switch (data->getKind()) {
+    org::ImmId result = org::ImmId::Nil();
 
+    switch (data->getKind()) {
 #define _case(__Kind)                                                     \
     case OrgSemKind::__Kind: {                                            \
-        auto result = store##__Kind.add(selfIndex, data, context);        \
-        return result;                                                    \
+        result = store##__Kind.add(selfIndex, data, context);             \
+        break;                                                            \
     }
 
         EACH_SEM_ORG_KIND(_case)
 #undef _case
     }
 
-    LOG(FATAL)
-        << ("Unhandled node kind for automatic creation $#"
-            % to_string_vec(data->getKind()));
+    if (result.isNil()) {
+        throw logic_assertion_error::init(
+            fmt("Unhandled node kind for automatic creation {}",
+                data->getKind()));
+    } else {
+        for (auto const& sub : at(result)->subnodes) {
+            parents.insert({sub, result});
+        }
+        return result;
+    }
 }
 
 const ImmOrg* ContextStore::at(ImmId id) const {

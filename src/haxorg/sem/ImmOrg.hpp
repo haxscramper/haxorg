@@ -45,6 +45,8 @@ using OrgKindStorePtrVariant = std::variant<EACH_SEM_ORG_KIND_CSV(__id)>;
 
 
 struct ParseUnitStore {
+    UnorderedMap<org::ImmId, org::ImmId> parents;
+
 #define _kind(__Kind) KindStore<Imm##__Kind> store##__Kind;
     EACH_SEM_ORG_KIND(_kind)
 #undef _kind
@@ -59,6 +61,18 @@ struct ParseUnitStore {
     }
 
     void format(ColStream& os, std::string const& prefix = "") const;
+
+    Opt<ImmId> getParent(ImmId id) const { return parents.get(id); }
+
+    Vec<ImmId> getParentChain(ImmId id, bool withSelf = true) const {
+        Vec<ImmId> result;
+        Opt<ImmId> tmp = id;
+        while (tmp) {
+            if (withSelf && tmp == id) { result.push_back(tmp.value()); }
+            tmp = getParent(tmp.value());
+        }
+        return result;
+    }
 
     ImmOrg const* at(ImmId index) const;
     ImmId         add(
@@ -75,13 +89,36 @@ struct ContextStore {
     /// \brief Get reference to a local store by index
     ParseUnitStore&       getStoreByIndex(ImmId::StoreIdxT index);
     ParseUnitStore const& getStoreByIndex(ImmId::StoreIdxT index) const;
-    void                  ensureStoreForIndex(ImmId::StoreIdxT index);
+    ParseUnitStore&       getStoreByIndex(ImmId id) {
+        return getStoreByIndex(id.getStoreIndex());
+    }
+
+    ParseUnitStore const& getStoreByIndex(ImmId id) const {
+        return getStoreByIndex(id.getStoreIndex());
+    }
+
+    Vec<ImmId> getParentChain(ImmId id, bool withSelf = true) const {
+        return getStoreByIndex(id).getParentChain(id, withSelf);
+    }
+
+    void ensureStoreForIndex(ImmId::StoreIdxT index);
 
     /// \brief Create new sem node of the specified kind in the local store
     /// with `index`
     ImmId add(ImmId::StoreIdxT index, sem::SemId<sem::Org> data);
 
     ImmOrg const* at(ImmId id) const;
+
+    template <typename T>
+    T const* at_t(ImmId id) const {
+        return at(id)->template as<T>();
+    }
+
+    template <typename T>
+    T const* at(ImmIdT<T> id) const {
+        return at(id)->template as<T>();
+    }
+
     void format(ColStream& os, std::string const& prefix = "") const;
 
     Vec<ParseUnitStore> stores;

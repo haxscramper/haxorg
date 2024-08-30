@@ -186,6 +186,34 @@ struct ImmIdT : public ImmId {
 struct ImmOrg {
     ImmVec<ImmId>      subnodes;
     virtual OrgSemKind getKind() const = 0;
+
+    auto begin() const { return subnodes.begin(); }
+    auto end() const { return subnodes.end(); }
+
+    bool is(OrgSemKind kind) const { return getKind() == kind; }
+
+    template <typename T>
+    T const* dyn_cast() const {
+        return dynamic_cast<T const*>(this);
+    }
+
+    template <typename T>
+    T const* as() const {
+        auto res = dyn_cast<T>();
+        if (res == nullptr) {
+            if constexpr (std::is_abstract_v<T>) {
+                throw std::logic_error(
+                    fmt("Cannot cast node of kind {}", this->getKind()));
+            } else {
+                throw std::logic_error(
+                    fmt("Cannot cast node of kind {} to kind {}",
+                        this->getKind(),
+                        T::staticKind));
+            }
+        }
+        return res;
+    }
+
     DESC_FIELDS(ImmOrg, (subnodes));
 };
 
