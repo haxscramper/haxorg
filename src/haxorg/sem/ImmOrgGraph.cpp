@@ -28,8 +28,8 @@ bool isLinkedDescriptionItem(org::ImmAdapter n) {
     // item, ignore the entry as it has already been added as a part of the
     // link descripion.
     return rs::any_of(
-        ctx->getParentChain(box, /*withSelf = */ false),
-        [&](org::ImmId parent) -> bool {
+        n.getParentChain(/*withSelf = */ false),
+        [&](org::ImmAdapter parent) -> bool {
             return isLinkedDescriptionItemNode(parent);
         });
 }
@@ -37,30 +37,29 @@ bool isLinkedDescriptionItem(org::ImmAdapter n) {
 /// \brief Check if getBoxedNode is a description list. By design, having
 /// at least one description list item in the description list makes the
 /// whole list into a linked description as well.
-bool isLinkedDescriptionList(org::ContextStore* ctx, org::ImmId box) {
-    return ctx->at(box)->is(osk::List)
-        && rs::any_of(*ctx->at(box), [&](org::ImmId arg) -> bool {
-               return isLinkedDescriptionItem(ctx, arg);
+bool isLinkedDescriptionList(org::ImmAdapter n) {
+    return n.is(osk::List)
+        && rs::any_of(n, [&](org::ImmAdapter arg) -> bool {
+               return isLinkedDescriptionItem(arg);
            });
 }
 
 /// \brief Check if a node is placed in the description list item or *is* a
 /// description list item.
-bool isInLinkedDescriptionList(org::ContextStore* ctx, org::ImmId box) {
-    return rs::any_of(ctx->getParentChain(box), [&](org::ImmId tree) {
-        return isLinkedDescriptionItem(ctx, tree);
+bool isInLinkedDescriptionList(org::ImmAdapter n) {
+    return rs::any_of(n.getParentChain(), [](org::ImmAdapter tree) {
+        return isLinkedDescriptionItem(tree);
     });
 }
 
-bool isMmapIgnored(org::ContextStore* ctx, org::ImmId box) {
-    return isInLinkedDescriptionList(ctx, box)
-        || isLinkedDescriptionList(ctx, box);
+bool isMmapIgnored(org::ImmAdapter n) {
+    return isInLinkedDescriptionList(n) || isLinkedDescriptionList(n);
 }
 } // namespace
 
 org::graph::MapGraphState org::graph::addNode(
-    const MapGraphState& g,
-    ImmId                node,
+    MapGraphState const& g,
+    org::ImmAdapter      node,
     MapOpsConfig&        conf) {
     return g;
 }
@@ -68,35 +67,24 @@ org::graph::MapGraphState org::graph::addNode(
 
 Opt<MapNodeProp> getNodeInsert(
     MapGraphState const& s,
-    org::ImmId           node,
+    org::ImmAdapter      node,
     MapOpsConfig&        conf) {
     // `- [[link-to-something]] :: Description` is stored as a description
     // field and is collected from the list item. So all boxes with
     // individual list items are dropped here.
-    if (isMmapIgnored(store, node)) { return std::nullopt; }
+    if (isMmapIgnored(node)) { return std::nullopt; }
 
-    if (state.debug) {
-        _qfmt(
-            "box:{} desc-item:{} desc-list:{} ID:{}",
-            box,
-            isLinkedDescriptionItem(store, box),
-            isLinkedDescriptionList(store, box),
-            store->getBoxedNode(box)->original.id);
+    if (conf.TraceState) {
+        conf.message(
+            fmt("box:{} desc-item:{} desc-list:{}",
+                node,
+                isLinkedDescriptionItem(node),
+                isLinkedDescriptionList(node)));
     }
 
-    OrgGraphNode result{.box = box};
+    MapNodeProp result{.id = node};
 
-    sem::SemId<sem::Org> node = store->getBoxedNode(box);
-    if (auto tree = node.asOpt<sem::Subtree>()) {
-        if (tree->treeId) { result.subtreeId = tree->treeId.value(); }
-    } else if (auto par = node.asOpt<sem::AnnotatedParagraph>()) {
-        if (par->getAnnotationKind()
-            == sem::AnnotatedParagraph::AnnotationKind::Footnote) {
-            result.footnoteName = par->getFootnote().name;
-        }
-    }
-
-    auto register_used_links = [&](org::ImmId arg) {
+    auto register_used_links = [&](org::ImmAdapterI arg) {
         Q_ASSERT(!arg.isNil());
         // Unconditionally register all links as unresolved -- some of
         // them will be converted to edges later on.

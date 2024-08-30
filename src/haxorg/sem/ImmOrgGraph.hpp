@@ -24,7 +24,29 @@ struct MapLink {
 
 
 struct MapNodeProp {
-    Vec<MapLink> unresolved;
+    org::ImmAdapter id;
+    Vec<MapLink>    unresolved;
+
+    Opt<Str> getSubtreeId() const {
+        if (auto tree = id.asOpt<org::ImmSubtree>();
+            tree.value()->treeId.get()) {
+            return tree.value()->treeId->value();
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    Opt<Str> getFootnoteName() const {
+        if (auto par = id.asOpt<org::ImmAnnotatedParagraph>();
+            par->get()->getAnnotationKind()
+            == org::ImmAnnotatedParagraph::AnnotationKind::Footnote) {
+            // return par->getFootnote().name;
+            logic_todo_impl();
+        } else {
+            return std::nullopt;
+        }
+    }
+
     DESC_FIELDS(MapNodeProp, (unresolved));
 };
 
@@ -66,10 +88,9 @@ struct MapGraphTransient {
 };
 
 struct MapGraph {
-    org::ContextStore* ctx;
-    NodeProps          nodeProps;
-    EdgeProps          edgeProps;
-    AdjList            adjList;
+    NodeProps nodeProps;
+    EdgeProps edgeProps;
+    AdjList   adjList;
 };
 
 struct MapResolvedLink {
@@ -94,12 +115,12 @@ struct MapGraphState {
 
 MapGraphState addNode(
     MapGraphState const& g,
-    org::ImmId           node,
+    org::ImmAdapter      node,
     MapOpsConfig&        conf);
 
 Opt<MapNodeProp> getNodeInsert(
     MapGraphState const& s,
-    org::ImmId           node,
+    org::ImmAdapter      node,
     MapOpsConfig&        conf);
 
 } // namespace org::graph

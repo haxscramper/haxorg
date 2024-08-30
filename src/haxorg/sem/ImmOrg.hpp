@@ -93,6 +93,10 @@ struct ContextStore {
         return getStoreByIndex(id.getStoreIndex());
     }
 
+    Opt<ImmId> getParent(ImmId id) const {
+        return getStoreByIndex(id.getStoreIndex()).getParent(id);
+    }
+
     ParseUnitStore const& getStoreByIndex(ImmId id) const {
         return getStoreByIndex(id.getStoreIndex());
     }
@@ -185,6 +189,22 @@ struct ImmAdapter {
         return ImmAdapter(id, ctx);
     }
 
+    Opt<ImmAdapter> getParent() const {
+        if (auto parent = ctx->getParent(id)) {
+            return ImmAdapter{parent.value(), ctx};
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    Vec<ImmAdapter> getParentChain(bool withSelf = true) const {
+        Vec<ImmAdapter> result;
+        for (auto const& it : ctx->getParentChain(id, withSelf)) {
+            result.push_back(ImmAdapter{it, ctx});
+        }
+        return result;
+    }
+
     ImmOrg const* get() const { return ctx->at(id); }
     ImmAdapter    at(int idx) const {
         return ImmAdapter(ctx->at(id)->subnodes.at(idx), ctx);
@@ -194,7 +214,24 @@ struct ImmAdapter {
 
     template <typename T>
     ImmAdapterT<T> as() const {
+        if constexpr (!std::is_abstract_v<T>) {
+            logic_assertion_check(
+                T::staticKind != id.getKind(),
+                "static kind:{} id kind:{}",
+                T::staticKind,
+                id.getKind());
+        }
+
         return ImmAdapterT<T>(id, ctx);
+    }
+
+    template <typename T>
+    Opt<ImmAdapterT<T>> asOpt() const {
+        if (T::staticKind == id) {
+            return as<T>();
+        } else {
+            return std::nullopt;
+        }
     }
 };
 
@@ -207,3 +244,12 @@ struct ImmAdapterT : ImmAdapter {
 };
 
 } // namespace org
+
+
+template <>
+struct std::formatter<org::ImmAdapter> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const org::ImmAdapter& p, FormatContext& ctx) const {
+        return fmt_ctx(p.id, ctx);
+    }
+};
