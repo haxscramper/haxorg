@@ -1,4 +1,5 @@
 #include "ImmOrgGraph.hpp"
+#include "haxorg/sem/SemBaseApi.hpp"
 #include <hstd/stdlib/Ranges.hpp>
 
 using namespace org::graph;
@@ -84,51 +85,49 @@ Opt<MapNodeProp> getNodeInsert(
 
     MapNodeProp result{.id = node};
 
-    auto register_used_links = [&](org::ImmAdapterI arg) {
-        Q_ASSERT(!arg.isNil());
+    auto register_used_links = [&](org::ImmAdapter arg) {
         // Unconditionally register all links as unresolved -- some of
         // them will be converted to edges later on.
-        if (arg->is(osk::Link)) {
-            auto link = arg.as<sem::Link>();
+        if (arg.is(osk::Link)) {
+            auto link = arg.as<org::ImmLink>();
             if (link->getLinkKind() != slk::Raw) {
-                result.unresolved.push_back(GraphLink{
-                    .link = arg.as<sem::Link>(),
+                result.unresolved.push_back(MapLink{
+                    .link = arg.as<org::ImmLink>(),
                     .description //
-                    = link->description
-                        ? std::make_optional(link->description->asOrg())
-                        : std::nullopt,
+                    = link->description.get()
+                        ? Vec{arg.pass(
+                              link->description.get().value().toId())}
+                        : Vec<org::ImmAdapter>{},
                 });
             }
         }
     };
 
-    if (auto tree = node.asOpt<sem::Subtree>()) {
+    if (auto tree = node.asOpt<org::ImmSubtree>()) {
         // Description lists with links in header are attached as the
         // outgoing link to the parent subtree. It is the only supported
         // way to provide an extensive label between subtree edges.
-        for (auto const& list : tree.subAs<sem::List>()) {
-            for (auto const& item : list.subAs<sem::ListItem>()) {
-                if (isLinkedDescriptionItem(item.asOrg())) {
+        for (auto const& list : tree->subAs<org::ImmList>()) {
+            for (auto const& item : list.subAs<org::ImmListItem>()) {
+                if (isLinkedDescriptionItem(item)) {
                     for (auto const& link :
-                         item->header->subAs<sem::Link>()) {
+                         item.pass(item->header->value())
+                             .subAs<org::ImmLink>()) {
                         // Description list header might contain
                         // non-link elements. These are ignored in the
                         // mind map.
                         if (link->getLinkKind() != slk::Raw) {
-                            auto description = sem::SemId<
-                                sem::StmtList>::New();
-                            description->subnodes = item->subnodes;
-                            Q_ASSERT(!link.isNil());
-                            result.unresolved.push_back(GraphLink{
-                                .link        = link,
-                                .description = description,
-                            });
+                            MapLink map_link{.link = link};
+                            for (auto const& sub : item) {
+                                map_link.description.push_back(sub);
+                            }
+                            result.unresolved.push_back(map_link);
                         }
                     }
                 }
             }
         }
-    } else if (!NestedNodes.contains(node->getKind())) {
+    } else if (!NestedNodes.contains(node.getKind())) {
         sem::eachSubnodeRec(node, register_used_links);
     }
 

@@ -15,10 +15,10 @@ struct MapLink {
     /// \brief Original link used to create the graph edge. Used to return
     /// an edge to unresolved state when target is deleted. When source is
     /// deleted the edge is simply dropped.
-    org::ImmId link;
+    org::ImmAdapterT<org::ImmLink> link;
     /// MapLink description field can be reused or, for description list
     /// items, this field contains a newly created statment list
-    Opt<org::ImmId> description;
+    Vec<org::ImmAdapter> description;
     DESC_FIELDS(MapLink, (link, description));
 };
 

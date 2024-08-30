@@ -179,6 +179,7 @@ struct ImmAdapter {
 
     iterator begin() const { return iterator(id, ctx); }
     iterator end() const { return iterator(id, ctx); }
+    bool     isNil() const { return id.isNil(); }
 
     ImmAdapter(ImmId id, ContextStore* ctx) : id{id}, ctx{ctx} {}
 
@@ -211,6 +212,17 @@ struct ImmAdapter {
     }
 
     bool is(OrgSemKind kind) const { return get()->is(kind); }
+
+    template <typename T>
+    Vec<ImmAdapterT<T>> subAs() const {
+        Vec<ImmAdapterT<T>> result;
+        for (auto const& it : *this) {
+            if (auto sub = it.asOpt<T>()) {
+                result.push_back(sub.value());
+            }
+        }
+        return result;
+    }
 
     template <typename T>
     ImmAdapterT<T> as() const {
