@@ -3,36 +3,34 @@
 
 using namespace org::graph;
 using osk = OrgSemKind;
-using slk = sem::Link::Kind;
+using slk = org::ImmLink::Kind;
 
 namespace {
 
-bool isDescriptionItem(org::ContextStore* ctx, org::ImmId id) {
-    return ctx->at(id)->as<org::ImmListItem>()->header->has_value();
+bool isDescriptionItem(org::ImmAdapter node) {
+    return node.as<org::ImmListItem>()->header->has_value();
 }
 
-bool isLinkedDescriptionItemNode(org::ContextStore* ctx, org::ImmId n) {
-    return ctx->at(n)->is(osk::ListItem) //
-        && isDescriptionItem(ctx, n)     //
+bool isLinkedDescriptionItemNode(org::ImmAdapter n) {
+    return n.is(osk::ListItem)  //
+        && isDescriptionItem(n) //
         && rs::any_of(
-               ctx->at(
-                      ctx->at_t<org::ImmListItem>(n)->header.get().value())
-                   ->subnodes,
-               [&](org::ImmId head) -> bool {
-                   return ctx->at(head)->is(osk::Link)
-                       && ctx->at_t<sem::Link>(head)->getLinkKind()
+               n.pass(n.as<org::ImmListItem>()->header.get().value()),
+               [](org::ImmAdapter head) -> bool {
+                   return head.is(osk::Link)
+                       && head.as<org::ImmLink>()->getLinkKind()
                               != slk::Raw;
                });
 }
 
-bool isLinkedDescriptionItem(org::ContextStore* ctx, org::ImmId box) {
+bool isLinkedDescriptionItem(org::ImmAdapter n) {
     // If any of the parent nodes for this box is a linked description
     // item, ignore the entry as it has already been added as a part of the
     // link descripion.
     return rs::any_of(
         ctx->getParentChain(box, /*withSelf = */ false),
         [&](org::ImmId parent) -> bool {
-            return isLinkedDescriptionItemNode(ctx, parent);
+            return isLinkedDescriptionItemNode(parent);
         });
 }
 

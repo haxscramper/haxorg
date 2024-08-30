@@ -128,4 +128,82 @@ struct ContextStore {
     ContextStore& operator=(const ContextStore&) = delete;
 };
 
+template <typename T>
+struct ImmAdapterT;
+
+struct ImmAdapter {
+    ImmId         id;
+    ContextStore* ctx;
+
+    class iterator {
+      public:
+        ImmId         id;
+        ContextStore* ctx;
+        int           idx = 0;
+
+      public:
+        typedef std::forward_iterator_tag iterator_category;
+        typedef ImmAdapter                value_type;
+        typedef std::ptrdiff_t            difference_type;
+
+        iterator(ImmId id, ContextStore* ctx, int idx = 0)
+            : id{id}, ctx{ctx}, idx{idx} {}
+
+        ImmAdapter operator*() const {
+            check();
+            return ImmAdapter{ctx->at(id)->subnodes.at(idx), ctx};
+        }
+
+        void check() const {
+            if (!(!id.isNil() && id.getIndex() < ctx->at(id)->size())) {
+                throw logic_assertion_error::init(
+                    fmt("Check node id iterator {} < {}",
+                        idx,
+                        ctx->at(id)->size()));
+            }
+        }
+
+        iterator& operator++() {
+            ++idx;
+            return *this;
+        }
+
+        bool operator!=(const iterator& other) const {
+            return this->idx != other.idx;
+        }
+    };
+
+    iterator begin() const { return iterator(id, ctx); }
+    iterator end() const { return iterator(id, ctx); }
+
+    ImmAdapter(ImmId id, ContextStore* ctx) : id{id}, ctx{ctx} {}
+
+    ImmAdapter pass(ImmId id) const { return ImmAdapter(id, ctx); }
+
+    template <typename T>
+    ImmAdapter pass(ImmIdT<T> id) const {
+        return ImmAdapter(id, ctx);
+    }
+
+    ImmOrg const* get() const { return ctx->at(id); }
+    ImmAdapter    at(int idx) const {
+        return ImmAdapter(ctx->at(id)->subnodes.at(idx), ctx);
+    }
+
+    bool is(OrgSemKind kind) const { return get()->is(kind); }
+
+    template <typename T>
+    ImmAdapterT<T> as() const {
+        return ImmAdapterT<T>(id, ctx);
+    }
+};
+
+template <typename T>
+struct ImmAdapterT : ImmAdapter {
+    using ImmAdapter::at;
+    using ImmAdapter::ImmAdapter;
+    T const* get() const { return ctx->at_t<T>(id); }
+    T const* operator->() const { return get(); }
+};
+
 } // namespace org

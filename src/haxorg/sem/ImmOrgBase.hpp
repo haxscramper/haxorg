@@ -189,6 +189,7 @@ struct ImmOrg {
 
     auto begin() const { return subnodes.begin(); }
     auto end() const { return subnodes.end(); }
+    int  size() const { return subnodes.size(); }
 
     bool is(OrgSemKind kind) const { return getKind() == kind; }
 
