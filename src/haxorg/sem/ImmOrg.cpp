@@ -530,10 +530,14 @@ void visitField(CR<org::SubnodeVisitor> visitor, CR<T> node) {
 
 
 template <typename T>
-void visitField(CR<org::SubnodeVisitor> visitor, CVec<T> value) {
+void visitField(CR<org::SubnodeVisitor> visitor, ImmVec<T> const& value) {
     for (const auto& it : value) { visitField(visitor, it); }
 }
 
+template <typename T>
+void visitField(CR<org::SubnodeVisitor> visitor, CR<ImmBox<T>> value) {
+    visitField(visitor, value.get());
+}
 
 template <typename T>
 void visitField(CR<org::SubnodeVisitor> visitor, CR<Opt<T>> value) {

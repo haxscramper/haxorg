@@ -24,6 +24,16 @@ struct MapLink {
 
 
 struct MapNodeProp {
+    DECL_DESCRIBED_ENUM(
+        Kind,
+        Subtree,
+        Document,
+        Paragraph,
+        Footnote,
+        List,
+        ListItem);
+
+    Kind            kind;
     org::ImmAdapter id;
     Vec<MapLink>    unresolved;
 

@@ -40,7 +40,7 @@ struct logic_assertion_error : CRTP_hexception<logic_assertion_error> {};
 #define logic_assertion_check(expr, message_fmt, ...)                     \
     if (!(expr)) {                                                        \
         throw logic_assertion_error::init(                                \
-            "{}:" message_fmt, #expr __VA_OPT__(, ) __VA_ARGS__);         \
+            fmt("{}:" message_fmt, #expr __VA_OPT__(, ) __VA_ARGS__));    \
     }
 
 #define logic_todo_impl() throw logic_assertion_error::init("TODO");

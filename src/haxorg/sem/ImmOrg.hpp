@@ -214,6 +214,12 @@ struct ImmAdapter {
 
     bool is(OrgSemKind kind) const { return get()->is(kind); }
 
+    Vec<ImmAdapter> sub() const {
+        Vec<ImmAdapter> result;
+        for (auto const& it : *this) { result.push_back(it); }
+        return result;
+    }
+
     template <typename T>
     Vec<ImmAdapterT<T>> subAs() const {
         Vec<ImmAdapterT<T>> result;
@@ -240,7 +246,7 @@ struct ImmAdapter {
 
     template <typename T>
     Opt<ImmAdapterT<T>> asOpt() const {
-        if (T::staticKind == id) {
+        if (T::staticKind == id.getKind()) {
             return as<T>();
         } else {
             return std::nullopt;
@@ -266,6 +272,15 @@ template <>
 struct std::formatter<org::ImmAdapter> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const org::ImmAdapter& p, FormatContext& ctx) const {
+        return fmt_ctx(p.id, ctx);
+    }
+};
+
+
+template <typename T>
+struct std::formatter<org::ImmAdapterT<T>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const org::ImmAdapterT<T>& p, FormatContext& ctx) const {
         return fmt_ctx(p.id, ctx);
     }
 };

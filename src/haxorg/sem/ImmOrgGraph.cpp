@@ -16,11 +16,10 @@ bool isLinkedDescriptionItemNode(org::ImmAdapter n) {
     return n.is(osk::ListItem)  //
         && isDescriptionItem(n) //
         && rs::any_of(
-               n.pass(n.as<org::ImmListItem>()->header.get().value()),
-               [](org::ImmAdapter head) -> bool {
-                   return head.is(osk::Link)
-                       && head.as<org::ImmLink>()->getLinkKind()
-                              != slk::Raw;
+               n.pass(n.as<org::ImmListItem>()->header.get().value())
+                   .subAs<org::ImmLink>(),
+               [](org::ImmAdapterT<org::ImmLink> head) -> bool {
+                   return head->getLinkKind() != slk::Raw;
                });
 }
 
@@ -40,7 +39,7 @@ bool isLinkedDescriptionItem(org::ImmAdapter n) {
 /// whole list into a linked description as well.
 bool isLinkedDescriptionList(org::ImmAdapter n) {
     return n.is(osk::List)
-        && rs::any_of(n, [&](org::ImmAdapter arg) -> bool {
+        && rs::any_of(n.sub(), [&](org::ImmAdapter arg) -> bool {
                return isLinkedDescriptionItem(arg);
            });
 }
@@ -142,37 +141,37 @@ Opt<MapNodeProp> getNodeInsert(
 
     switch (node->getKind()) {
         case osk::Subtree: {
-            result.kind = OrgGraphNode::Kind::Subtree;
+            result.kind = MapNodeProp::Kind::Subtree;
             break;
         }
 
         case osk::AnnotatedParagraph: {
             if (node.as<sem::AnnotatedParagraph>()->getAnnotationKind()
                 == sem::AnnotatedParagraph::AnnotationKind::Footnote) {
-                result.kind = OrgGraphNode::Kind::Footnote;
+                result.kind = MapNodeProp::Kind::Footnote;
             } else {
-                result.kind = OrgGraphNode::Kind::Paragraph;
+                result.kind = MapNodeProp::Kind::Paragraph;
             }
             break;
         }
 
         case osk::Paragraph: {
-            result.kind = OrgGraphNode::Kind::Paragraph;
+            result.kind = MapNodeProp::Kind::Paragraph;
             break;
         }
 
         case osk::Document: {
-            result.kind = OrgGraphNode::Kind::Document;
+            result.kind = MapNodeProp::Kind::Document;
             break;
         }
 
         case osk::List: {
-            result.kind = OrgGraphNode::Kind::List;
+            result.kind = MapNodeProp::Kind::List;
             break;
         }
 
         case osk::ListItem: {
-            result.kind = OrgGraphNode::Kind::ListItem;
+            result.kind = MapNodeProp::Kind::ListItem;
             break;
         }
 
@@ -180,8 +179,8 @@ Opt<MapNodeProp> getNodeInsert(
         }
     }
 
-    if (state.debug) {
-        _qfmt("box:{} unresolved:{}", box, result.unresolved);
+    if (conf.TraceState) {
+        conf.message(fmt("box:{} unresolved:{}", node, result.unresolved));
     }
 
     return result;
