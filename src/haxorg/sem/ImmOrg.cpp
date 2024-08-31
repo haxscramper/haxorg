@@ -608,5 +608,21 @@ void org::eachSubnodeRec(ImmAdapter id, SubnodeVisitor cb) {
 
 #define forward_declare(__Kind)                                           \
     template class org::KindStore<org::Imm##__Kind>;
+
 EACH_SEM_ORG_KIND(forward_declare)
 #undef forward_declare
+
+
+void ImmAdapter::treeRepr(ColStream& os, const TreeReprConf& conf) const {
+    Func<void(org::ImmAdapter const& id, int level)> aux;
+    aux = [&](org::ImmAdapter const& id, int level) {
+        os.indent(level * 2);
+        os << fmt("{} {}", id->getKind(), id.id.getReadableId());
+        for (auto const& sub : id.sub()) {
+            os << "\n";
+            aux(sub, level + 1);
+        }
+    };
+
+    aux(*this, 0);
+}

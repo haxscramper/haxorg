@@ -814,3 +814,42 @@ TEST(ImmMapApi, AddNode) {
     auto     gv = s2.graph.toGraphviz();
     gvc.renderToFile("/tmp/MapS2.png", gv);
 }
+
+TEST(ImmMapApi, AddNodeWithLinks) {
+    Str text{R"(
+Paragraph [[id:subtree-id]]
+
+* Subtree
+  :properties:
+  :id: subtree-id
+  :end:
+)"_ss};
+
+    auto n1 = parseNode(text);
+
+    org::ContextStore         store;
+    org::graph::MapGraphState s1;
+    org::graph::MapOpsConfig  conf;
+    conf.setTraceFile("/tmp/ImmMapApi_AddNodeWithLinks.txt");
+    EXPECT_EQ(s1.graph.nodeCount(), 0);
+    org::ImmAdapter root{store.add(0, n1), &store};
+
+    ColStream os;
+    store.format(os);
+    writeFile(
+        "/tmp/AddNodeWithLinks_treerepr.txt",
+        fmt("tree:\n{}\nbuffer:\n{}",
+            root.treeRepr().toString(false),
+            os.getBuffer().toString(false)));
+
+    auto s2 = org::graph::addNode(s1, root.at(0), conf);
+    auto s3 = org::graph::addNode(s2, root.at(1), conf);
+
+    EXPECT_EQ(s3.graph.nodeCount(), 2);
+
+    writeFile("/tmp/AddNodeWithLinks.json", to_json_eval(s3).dump(2));
+
+    Graphviz gvc;
+    auto     gv = s3.graph.toGraphviz();
+    gvc.renderToFile("/tmp/AddNodeWithLinks.png", gv);
+}

@@ -186,6 +186,20 @@ struct ImmAdapter {
 
     ImmAdapter pass(ImmId id) const { return ImmAdapter(id, ctx); }
 
+    struct TreeReprConf {
+        int maxDepth = 40;
+
+        static TreeReprConf getDefault() { return TreeReprConf{}; }
+    };
+
+    void    treeRepr(ColStream& os, TreeReprConf const& conf) const;
+    ColText treeRepr(
+        TreeReprConf const& conf = TreeReprConf::getDefault()) const {
+        ColStream os;
+        treeRepr(os, conf);
+        return os.getBuffer();
+    }
+
     template <typename T>
     ImmAdapter pass(ImmIdT<T> id) const {
         return ImmAdapter(id, ctx);
@@ -221,7 +235,9 @@ struct ImmAdapter {
 
     Vec<ImmAdapter> sub() const {
         Vec<ImmAdapter> result;
-        for (auto const& it : *this) { result.push_back(it); }
+        for (auto const& it : ctx->at(id)->subnodes) {
+            result.push_back(pass(it));
+        }
         return result;
     }
 
@@ -240,7 +256,7 @@ struct ImmAdapter {
     ImmAdapterT<T> as() const {
         if constexpr (!std::is_abstract_v<T>) {
             logic_assertion_check(
-                T::staticKind != id.getKind(),
+                T::staticKind == id.getKind(),
                 "static kind:{} id kind:{}",
                 T::staticKind,
                 id.getKind());
