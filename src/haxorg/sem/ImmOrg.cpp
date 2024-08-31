@@ -235,7 +235,7 @@ const ImmOrg* ContextStore::at(ImmId id) const {
         kind,
         kind,
         kindLow,
-        highLow);
+        kindHigh);
 
     ImmOrg const* res = getStoreByIndex(id.getStoreIndex()).at(id);
     CHECK(res->getKind() == id.getKind());

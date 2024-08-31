@@ -38,7 +38,7 @@ struct MapNodeProp {
 
     Opt<Str> getSubtreeId() const {
         if (auto tree = id.asOpt<org::ImmSubtree>();
-            tree.value()->treeId.get()) {
+            tree && tree.value()->treeId.get()) {
             return tree.value()->treeId->value();
         } else {
             return std::nullopt;
@@ -47,8 +47,10 @@ struct MapNodeProp {
 
     Opt<Str> getFootnoteName() const {
         if (auto par = id.asOpt<org::ImmAnnotatedParagraph>();
-            par->get()->getAnnotationKind()
-            == org::ImmAnnotatedParagraph::AnnotationKind::Footnote) {
+            par
+            && par->get()->getAnnotationKind()
+                   == org::ImmAnnotatedParagraph::AnnotationKind::
+                       Footnote) {
             // return par->getFootnote().name;
             logic_todo_impl();
         } else {

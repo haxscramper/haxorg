@@ -210,6 +210,8 @@ org::graph::MapGraphState org::graph::addNode(
             *id, mapNode);
     }
 
+    outputState.graph = graphTransient.persistent();
+
     return outputState;
 }
 
