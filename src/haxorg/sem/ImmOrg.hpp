@@ -207,6 +207,10 @@ struct ImmAdapter {
         return result;
     }
 
+    bool operator==(ImmAdapter const& id) const {
+        return this->id == id.id;
+    }
+
     ImmOrg const* get() const { return ctx->at(id); }
     ImmOrg const* operator->() const { return get(); }
     ImmAdapter    at(int idx) const {

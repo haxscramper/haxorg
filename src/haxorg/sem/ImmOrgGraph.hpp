@@ -177,6 +177,11 @@ MapGraphState addNode(
     MapNodeProp const&   node,
     MapOpsConfig&        conf);
 
+MapGraphState addNode(
+    MapGraphState const&   g,
+    org::ImmAdapter const& node,
+    MapOpsConfig&          conf);
+
 /// \brief Get node properties without resolving the target links.
 Opt<MapNodeProp> getUnresolvedNodeInsert(
     MapGraphState const& s,

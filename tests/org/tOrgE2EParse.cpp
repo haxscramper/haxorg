@@ -793,3 +793,6 @@ TEST(ImmOrgApi, StoreNode) {
     store.format(os);
     writeFile("/tmp/StoreNode.txt", os.getBuffer().toString(false));
 }
+
+
+TEST(ImmMapApi, AddNode) {}

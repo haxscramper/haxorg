@@ -1,6 +1,8 @@
 #include "ImmOrgGraph.hpp"
 #include "haxorg/sem/SemBaseApi.hpp"
 #include <hstd/stdlib/Ranges.hpp>
+#include <immer/set_transient.hpp>
+#include <immer/vector_transient.hpp>
 
 using namespace org::graph;
 using osk = OrgSemKind;
@@ -57,133 +59,154 @@ bool isMmapIgnored(org::ImmAdapter n) {
 }
 } // namespace
 
+void removeUnresolvedNodeProps(
+    NodeProps::transient_type&  props,
+    MapNodeResolveResult const& resolved_node,
+    MapNode const&              newNode,
+    ImmSet<MapNode> const&      existingUnresolved) {
+    for (auto const& op : resolved_node.resolved) {
+        auto remove_resolved = [&](MapNode node) {
+            MapNodeProp prop = props[node];
+            rs::actions::remove_if(
+                prop.unresolved, [&](CR<MapLink> old) -> bool {
+                    bool result = old.link == op.link.link;
+                    return result;
+                });
+
+            props.set(node, prop);
+        };
+
+        for (auto const& box : existingUnresolved) {
+            remove_resolved(box);
+        }
+        remove_resolved(newNode);
+    }
+}
+
+ImmSet<MapNode> updateUnresolvedNodeTracking(
+    MapGraphState const&        inputState,
+    NodeProps::transient_type&  props,
+    MapNodeResolveResult const& resolved_node,
+    MapNode const&              newNode) {
+    auto tmp = inputState.unresolved.transient();
+    if (resolved_node.node.unresolved.empty()) {
+        // Newly added node has no unresolved elements, remove the ID from
+        // map state tracking.
+        if (inputState.unresolved.find(newNode)) { tmp.erase(newNode); }
+    } else {
+        logic_assertion_check(
+            !inputState.unresolved.find(newNode),
+            "Duplicate unresolved boxes are not expected: {}",
+            newNode);
+
+        tmp.insert(newNode);
+    }
+
+    for (auto const& op : resolved_node.resolved) {
+        for (auto it : inputState.unresolved) {
+            if (props.at(it).unresolved.empty()) { tmp.erase(it); }
+        }
+    }
+
+    return tmp.persistent();
+}
+
 org::graph::MapGraphState org::graph::addNode(
-    MapGraphState const& g,
-    MapNodeProp const&   node,
+    MapGraphState const& inputState,
+    MapNodeProp const&   unresolved_node,
     MapOpsConfig&        conf) {
 
-    auto    graphTransient = g.graph.transient();
-    MapNode mapNode{node.id.id};
+    MapGraphState outputState    = inputState;
+    auto          graphTransient = inputState.graph.transient();
+    MapNode       mapNode{unresolved_node.id.id};
 
     graphTransient.adjList.set(mapNode, ImmVec<MapNode>{});
     if (conf.TraceState) {
-        conf.message(fmt("unresolved:{}", g.unresolved));
+        conf.message(fmt("unresolved:{}", inputState.unresolved));
     }
 
-    auto footnotesTransient = g.footnoteTargets.transient();
-    auto subtreesTransient  = g.subtreeTargets.transient();
 
-    if (auto footnote = node.getFootnoteName()) {
-        logic_assertion_check(
-            footnotesTransient.find(*footnote) == nullptr,
-            "Duplicate footnote");
-        footnotesTransient.set(*footnote, mapNode);
-    }
+    MapNodeResolveResult resolved_node = getResolvedNodeInsert(
+        inputState, unresolved_node, conf);
 
-    if (auto id = node.getSubtreeId()) {
-        logic_assertion_check(
-            subtreesTransient.find(*id) == nullptr,
-            "Duplicate subtree ID");
-        subtreesTransient.set(*id, mapNode);
-    }
+    graphTransient.nodeProps.set(mapNode, resolved_node.node);
 
-    graphTransient.nodeProps.set(mapNode, node);
-
-#if false
-    ResolveResult updated_resolve = getUnresolvedEdits(edit);
     if (conf.TraceState) {
         conf.message(
             fmt("v:{} g[v]:{} edit:{} updated:{}",
-                v,
-                g[v].unresolved,
-                edit.unresolved,
-                updated_resolve.node.unresolved));
+                mapNode,
+                inputState.graph.at(mapNode).unresolved,
+                unresolved_node.unresolved,
+                resolved_node.node.unresolved));
 
-        for (auto const& u : g[v].unresolved) {
-            conf.message(
-                fmt(">> g[v] unresolved {}", ::debug(u.link.asOrg())));
+        for (auto const& u : inputState.graph.at(mapNode).unresolved) {
+            conf.message(fmt(">> g[v] unresolved {}", u.link));
         }
-        for (conf.message(fmt const& u : updated_resolve.node.unresolved) {
-            conf.message(
-                fmt("<<- updated unresolved {}", ::debug(u.link.asOrg())));
+
+        for (auto const& u : resolved_node.node.unresolved) {
+            conf.message(fmt("<<- updated unresolved {}", u.link));
         }
-        for (auto const& u : updated_resolve.resolved) {
+        for (auto const& u : resolved_node.resolved) {
             conf.message(
                 fmt("<<+ updated resolved {} {}->{}",
-                    ::debug(u.link.link.asOrg()),
+                    u.link.link,
                     u.source,
                     u.target));
         }
     }
 
-    g[v] = updated_resolve.node;
 
-    if (g[v].unresolved.empty()) {
-        if (unresolved.contains(edit.box)) { unresolved.erase(edit.box); }
-    } else {
-        Q_ASSERT_X(
-            !unresolved.contains(edit.box),
-            "addMutation",
-            fmt("Duplicate unresolved boxes are not expected: {}", edit));
+    removeUnresolvedNodeProps(
+        graphTransient.nodeProps,
+        resolved_node,
+        mapNode,
+        inputState.unresolved);
 
-        unresolved.incl(edit.box);
-    }
+    outputState.unresolved = updateUnresolvedNodeTracking(
+        inputState, graphTransient.nodeProps, resolved_node, mapNode);
 
-
-    for (auto const& op : updated_resolve.resolved) {
-        auto remove_resolved = [&](OrgBoxId box) {
-            auto desc = boxToVertex.at(box);
-            rs::actions::remove_if(
-                g[desc].unresolved, [&](CR<GraphLink> old) -> bool {
-                    bool result = old == op.link;
-                    return result;
-                });
-        };
-
-        for (auto const& box : unresolved) { remove_resolved(box); }
-        remove_resolved(edit.box);
-
-        for (auto it = unresolved.begin(); it != unresolved.end();) {
-            if (g[boxToVertex.at(*it)].unresolved.empty()) {
-                it = unresolved.erase(it);
-            } else {
-                ++it;
-            }
-        }
-
-        VDesc source = boxToVertex.at(op.source);
-        VDesc target = boxToVertex.at(op.target);
-        for (auto [it, end] = boost::in_edges(target, g); it != end;
-             ++it) {
-            Q_ASSERT_X(
-                (boost::source(*it, g) != source),
-                "duplicate edge",
-                fmt("There is already a link between {} and {} (vertex "
-                    "{}-{}), graph cannot contain duplicate edges op:{}",
-                    op.source,
-                    op.target,
-                    source,
-                    target,
-                    op));
+    for (auto const& op : resolved_node.resolved) {
+        for (auto const& target : graphTransient.adjList.at(op.source)) {
+            logic_assertion_check(
+                op.target != target,
+                "There is already a link between {} and {}, graph cannot "
+                "contain duplicate edges op:{}",
+                op.source,
+                op.target,
+                op);
         }
 
         if (conf.TraceState) {
-            conf.message(
-                fmt("add edge {}-{} (vertex {}-{})",
-                    op.source,
-                    op.target,
-                    source,
-                    target));
+            conf.message(fmt("add edge {}-{}", op.source, op.target));
         }
 
-        auto [e, added] = boost::add_edge(source, target, g);
+        MapEdge edge{op.source, op.target};
 
-        result.added_edges.push_back(e);
-        g[e] = OrgGraphEdge{.link = op.link};
+        graphTransient.adjList.set(
+            op.source,
+            graphTransient.adjList.at(op.source).push_back(op.target));
+
+        graphTransient.edgeProps.set(edge, MapEdgeProp{.link = op.link});
     }
 
-    return g;
-#endif
+
+    if (auto footnote = unresolved_node.getFootnoteName()) {
+        logic_assertion_check(
+            inputState.footnoteTargets.find(*footnote) == nullptr,
+            "Duplicate footnote");
+        outputState.footnoteTargets = inputState.footnoteTargets.set(
+            *footnote, mapNode);
+    }
+
+    if (auto id = unresolved_node.getSubtreeId()) {
+        logic_assertion_check(
+            inputState.subtreeTargets.find(*id) == nullptr,
+            "Duplicate subtree ID");
+        outputState.subtreeTargets = inputState.subtreeTargets.set(
+            *id, mapNode);
+    }
+
+    return outputState;
 }
 
 
@@ -449,4 +472,16 @@ MapNodeResolveResult getResolvedNodeInsert(
     }
 
     return result;
+}
+
+MapGraphState addNode(
+    const MapGraphState&   g,
+    const org::ImmAdapter& node,
+    MapOpsConfig&          conf) {
+    auto prop = getUnresolvedNodeInsert(g, node, conf);
+    if (prop) {
+        return addNode(g, *prop, conf);
+    } else {
+        return g;
+    }
 }
