@@ -182,6 +182,7 @@ struct ImmAdapter {
     bool     isNil() const { return id.isNil(); }
 
     ImmAdapter(ImmId id, ContextStore* ctx) : id{id}, ctx{ctx} {}
+    ImmAdapter() : id{ImmId::Nil()}, ctx{nullptr} {}
 
     ImmAdapter pass(ImmId id) const { return ImmAdapter(id, ctx); }
 

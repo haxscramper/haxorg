@@ -1,11 +1,10 @@
 #pragma once
 
 #include <haxorg/sem/ImmOrg.hpp>
-#include <immer/set.hpp>
-#include <hstd/stdlib/TraceBase.hpp>
 
-template <typename T>
-using ImmSet = immer::set<T>;
+#include <hstd/stdlib/TraceBase.hpp>
+#include <immer/map_transient.hpp>
+
 
 namespace org::graph {
 
@@ -37,6 +36,8 @@ struct MapNodeProp {
     org::ImmAdapter id;
     Vec<MapLink>    unresolved;
 
+    MapNodeProp() {}
+
     Opt<Str> getSubtreeId() const {
         if (auto tree = id.asOpt<org::ImmSubtree>();
             tree.value()->treeId.get()) {
@@ -57,12 +58,14 @@ struct MapNodeProp {
         }
     }
 
-    DESC_FIELDS(MapNodeProp, (unresolved));
+    DESC_FIELDS(MapNodeProp, (unresolved, id, kind));
 };
 
 struct MapEdgeProp {
+    DECL_DESCRIBED_ENUM(Kind, SubtreeId, Footnote);
+    Kind    kind;
     MapLink link;
-    DESC_FIELDS(MapEdgeProp, (link));
+    DESC_FIELDS(MapEdgeProp, (link, kind));
 };
 
 struct MapNode {
@@ -91,46 +94,63 @@ using NodeProps = immer::map<MapNode, MapNodeProp>;
 using EdgeProps = immer::map<MapEdge, MapEdgeProp>;
 using AdjList   = immer::map<MapNode, immer::vector<MapNode>>;
 
+struct MapGraph;
+
 struct MapGraphTransient {
-    NodeProps::transient_type& nodeProps;
-    EdgeProps::transient_type& edgeProps;
-    AdjList::transient_type&   adjList;
+    NodeProps::transient_type nodeProps;
+    EdgeProps::transient_type edgeProps;
+    AdjList::transient_type   adjList;
+
+    MapGraph persistent();
 };
 
 struct MapGraph {
     NodeProps nodeProps;
     EdgeProps edgeProps;
     AdjList   adjList;
+
+    MapGraphTransient transient() const;
 };
 
-struct MapResolvedLink {
+struct MapLinkResolveResult {
     MapLink link;
     MapNode target;
     MapNode source;
-    DESC_FIELDS(MapResolvedLink, (link, target, source));
-};
-
-struct MapResolveResult {
-    Vec<MapNode>         unresolved;
-    Vec<MapResolvedLink> resolved;
-    DESC_FIELDS(MapResolveResult, (unresolved, resolved));
+    DESC_FIELDS(MapLinkResolveResult, (link, target, source));
 };
 
 struct MapOpsConfig : OperationsTracer {};
 
 struct MapGraphState {
-    ImmSet<MapNode> unresolved;
-    MapGraph        graph;
+    ImmSet<MapNode>      unresolved;
+    ImmMap<Str, MapNode> footnoteTargets;
+    ImmMap<Str, MapNode> subtreeTargets;
+    MapGraph             graph;
 };
 
 MapGraphState addNode(
     MapGraphState const& g,
+    MapNodeProp const&   node,
+    MapOpsConfig&        conf);
+
+/// \brief Get node properties without resolving the target links.
+Opt<MapNodeProp> getUnresolvedNodeInsert(
+    MapGraphState const& s,
     org::ImmAdapter      node,
     MapOpsConfig&        conf);
 
-Opt<MapNodeProp> getNodeInsert(
+struct MapNodeResolveResult {
+    MapNodeProp               node = MapNodeProp{};
+    Vec<MapLinkResolveResult> resolved;
+    DESC_FIELDS(MapNodeResolveResult, (node, resolved));
+};
+
+/// \brief Attempt to resolve links in the initial insert and split the
+/// graph links into `.node.unresolved` and `.resolved` fields of the
+/// returned.
+MapNodeResolveResult getResolvedNodeInsert(
     MapGraphState const& s,
-    org::ImmAdapter      node,
+    MapNodeProp const&   node,
     MapOpsConfig&        conf);
 
 } // namespace org::graph

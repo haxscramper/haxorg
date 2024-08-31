@@ -8,6 +8,7 @@
 #include <immer/vector.hpp>
 #include <immer/box.hpp>
 #include <immer/map.hpp>
+#include <immer/set.hpp>
 
 template <typename T>
 using ImmVec = immer::vector<T>;
@@ -17,6 +18,9 @@ using ImmBox = immer::box<T>;
 
 template <typename K, typename V>
 using ImmMap = immer::map<K, V>;
+
+template <typename T>
+using ImmSet = immer::set<T>;
 
 template <typename T>
 struct std::formatter<ImmBox<T>> : std::formatter<std::string> {
@@ -58,6 +62,18 @@ struct std::formatter<ImmVec<T>> : std::formatter<std::string> {
         fmt.format("[", ctx);
         fmt.format(join(", ", p), ctx);
         return fmt.format("]", ctx);
+    }
+};
+
+template <typename T>
+struct std::formatter<ImmSet<T>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(ImmSet<T> const& p, FormatContext& ctx)
+        const {
+        std::formatter<std::string> fmt;
+        fmt.format("{", ctx);
+        fmt.format(join(", ", p), ctx);
+        return fmt.format("}", ctx);
     }
 };
 
