@@ -343,9 +343,11 @@ struct std::formatter<org::ImmId> : std::formatter<std::string> {
 template <>
 struct JsonSerde<org::ImmId> {
     static json to_json(org::ImmId const& it) {
-        return json(it.getValue());
+        return json::object(
+            {{"number", it.getValue()}, {"format", it.getReadableId()}});
     }
     static org::ImmId from_json(json const& j) {
-        return org::ImmId::FromValue(j.get<unsigned long long>());
+        return org::ImmId::FromValue(
+            j["number"].get<unsigned long long>());
     }
 };

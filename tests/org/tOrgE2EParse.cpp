@@ -846,6 +846,7 @@ Paragraph [[id:subtree-id]]
     auto s3 = org::graph::addNode(s2, root.at(3), conf);
 
     EXPECT_EQ(s3.graph.nodeCount(), 2);
+    EXPECT_EQ(s3.graph.edgeCount(), 1);
 
     writeFile("/tmp/AddNodeWithLinks.json", to_json_eval(s3).dump(2));
 

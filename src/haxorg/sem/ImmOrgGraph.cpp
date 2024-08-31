@@ -126,89 +126,10 @@ ImmSet<MapNode> updateUnresolvedNodeTracking(
     return tmp.persistent();
 }
 
-org::graph::MapGraphState org::graph::addNode(
-    MapGraphState const& inputState,
-    MapNodeProp const&   unresolved_node,
-    MapOpsConfig&        conf) {
-
-    MapGraphState outputState    = inputState;
-    auto          graphTransient = inputState.graph.transient();
-    MapNode       mapNode{unresolved_node.id.id};
-
-    graphTransient.adjList.set(mapNode, ImmVec<MapNode>{});
-    if (conf.TraceState) {
-        conf.message(
-            fmt("unresolved:{}", inputState.unresolved), conf.activeLevel);
-    }
-
-
-    MapNodeResolveResult resolved_node;
-
-    {
-        auto __tmp    = conf.scopeLevel();
-        resolved_node = getResolvedNodeInsert(
-            inputState, unresolved_node, conf);
-    }
-
-    graphTransient.nodeProps.set(mapNode, resolved_node.node);
-
-    if (conf.TraceState) {
-        conf.message(
-            fmt("v:{} g[v]:{} edit:{} updated:{}",
-                mapNode,
-                resolved_node.node.unresolved,
-                unresolved_node.unresolved,
-                resolved_node.node.unresolved),
-            conf.activeLevel);
-
-        if (inputState.graph.nodeProps.find(mapNode) != nullptr) {
-            for (auto const& u : inputState.graph.at(mapNode).unresolved) {
-                conf.message(
-                    fmt(">> g[v] unresolved {}", u.link),
-                    conf.activeLevel);
-            }
-        } else {
-            conf.message(
-                fmt(">> new node, no preexisting unresolved"),
-                conf.activeLevel);
-        }
-
-        for (auto const& u : resolved_node.node.unresolved) {
-            conf.message(
-                fmt("<<- updated unresolved {}", u.link),
-                conf.activeLevel);
-        }
-        for (auto const& u : resolved_node.resolved) {
-            conf.message(
-                fmt("<<+ updated resolved {} {}->{}",
-                    u.link.link,
-                    u.source,
-                    u.target),
-                conf.activeLevel);
-        }
-    }
-
-
-    {
-        auto __tmp = conf.scopeLevel();
-        removeUnresolvedNodeProps(
-            graphTransient.nodeProps,
-            resolved_node,
-            mapNode,
-            inputState.unresolved,
-            conf);
-    }
-
-    {
-        auto __tmp             = conf.scopeLevel();
-        outputState.unresolved = updateUnresolvedNodeTracking(
-            inputState,
-            graphTransient.nodeProps,
-            resolved_node,
-            mapNode,
-            conf);
-    }
-
+void updateResolvedEdges(
+    MapGraphTransient&          graphTransient,
+    MapNodeResolveResult const& resolved_node,
+    MapOpsConfig&               conf) {
     for (auto const& op : resolved_node.resolved) {
         for (auto const& target : graphTransient.adjList.at(op.source)) {
             logic_assertion_check(
@@ -234,7 +155,15 @@ org::graph::MapGraphState org::graph::addNode(
 
         graphTransient.edgeProps.set(edge, MapEdgeProp{.link = op.link});
     }
+}
 
+org::graph::MapGraphState updateTrackingTables(
+    MapGraphState const& inputState,
+    MapNodeProp const&   unresolved_node,
+    MapOpsConfig&        conf) {
+
+    MapGraphState outputState = inputState;
+    MapNode       mapNode{unresolved_node.id.id};
 
     if (auto footnote = unresolved_node.getFootnoteName()) {
         logic_assertion_check(
@@ -252,6 +181,109 @@ org::graph::MapGraphState org::graph::addNode(
             *id, mapNode);
     }
 
+    return outputState;
+}
+
+void traceNodeResolve(
+    MapGraphState const&        outputState,
+    MapNodeResolveResult const& resolved_node,
+    MapOpsConfig&               conf,
+    MapNode const&              mapNode) {
+    if (conf.TraceState) {
+        conf.message(
+            fmt("v:{} original unresolved state:{} resolved:{} still "
+                "unresolved:{}",
+                mapNode,
+                outputState.unresolved,
+                resolved_node.node.unresolved,
+                resolved_node.resolved),
+            conf.activeLevel);
+
+        if (outputState.graph.nodeProps.find(mapNode) != nullptr) {
+            for (auto const& u :
+                 outputState.graph.at(mapNode).unresolved) {
+                conf.message(
+                    fmt(">> g[v] unresolved {}", u.link),
+                    conf.activeLevel);
+            }
+        } else {
+            conf.message(
+                fmt(">> new node, no preexisting unresolved"),
+                conf.activeLevel);
+        }
+
+        for (auto const& u : resolved_node.node.unresolved) {
+            conf.message(
+                fmt("<<- updated unresolved {}", u.link),
+                conf.activeLevel);
+        }
+        for (auto const& u : resolved_node.resolved) {
+            conf.message(
+                fmt("<<+ updated resolved {} {}->{}",
+                    u.link.link,
+                    u.source,
+                    u.target),
+                conf.activeLevel);
+        }
+    }
+}
+
+org::graph::MapGraphState org::graph::addNode(
+    MapGraphState const& inputState,
+    MapNodeProp const&   unresolved_node,
+    MapOpsConfig&        conf) {
+
+    // Update ID tracking tables so the newly added node could be found by
+    // the ID resolution.
+    MapGraphState outputState = updateTrackingTables(
+        inputState, unresolved_node, conf);
+
+    auto    graphTransient = inputState.graph.transient();
+    MapNode mapNode{unresolved_node.id.id};
+
+    graphTransient.adjList.set(mapNode, ImmVec<MapNode>{});
+    if (conf.TraceState) {
+        conf.message(
+            fmt("unresolved:{}", outputState.unresolved),
+            conf.activeLevel);
+    }
+
+    MapNodeResolveResult resolved_node;
+
+    {
+        auto __tmp    = conf.scopeLevel();
+        resolved_node = getResolvedNodeInsert(
+            outputState, unresolved_node, conf);
+    }
+
+    // debug-print node resolution state
+    traceNodeResolve(outputState, resolved_node, conf, mapNode);
+
+    // Assign node resolution result to node properties, all links have
+    // been finalized.
+    graphTransient.nodeProps.set(mapNode, resolved_node.node);
+
+    {
+        auto __tmp = conf.scopeLevel();
+        removeUnresolvedNodeProps(
+            graphTransient.nodeProps,
+            resolved_node,
+            mapNode,
+            outputState.unresolved,
+            conf);
+    }
+
+    {
+        auto __tmp             = conf.scopeLevel();
+        outputState.unresolved = updateUnresolvedNodeTracking(
+            outputState,
+            graphTransient.nodeProps,
+            resolved_node,
+            mapNode,
+            conf);
+    }
+
+    updateResolvedEdges(graphTransient, resolved_node, conf);
     outputState.graph = graphTransient.persistent();
 
     return outputState;
@@ -491,7 +523,15 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
     }
 
     for (auto const& nodeWithUnresolved : s.unresolved) {
-        logic_assertion_check(nodeWithUnresolved.id != node.id.id, "");
+        logic_assertion_check(
+            nodeWithUnresolved.id != node.id.id,
+            "cannot resolve already inserted node {} == {} ({}) is "
+            "recorded in "
+            "s.unresolved",
+            nodeWithUnresolved.id,
+            node.id.id,
+            nodeWithUnresolved.id != node.id.id);
+
         for (auto const& link :
              s.graph.at(nodeWithUnresolved).unresolved) {
             Opt<MapLinkResolveResult> resolved_edit = getResolveTarget(

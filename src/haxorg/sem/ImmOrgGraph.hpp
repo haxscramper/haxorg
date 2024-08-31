@@ -216,6 +216,8 @@ struct MapLinkResolveResult {
     DESC_FIELDS(MapLinkResolveResult, (link, target, source, kind));
 };
 
+/// \brief Resolve a single link with the state `s` and return the edge.
+/// Use `source` as an edge origin.
 Opt<MapLinkResolveResult> getResolveTarget(
     MapGraphState const& s,
     MapNode const&       source,

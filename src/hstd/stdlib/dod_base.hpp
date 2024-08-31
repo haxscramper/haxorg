@@ -165,7 +165,7 @@ check: {2:064b}
 
     /// \brief  Compare full ID value for inequality
     bool operator!=(Id other) const noexcept {
-        return getValue() == other.getValue();
+        return getValue() != other.getValue();
     }
 
     /// \brief Write strig representation of the ID into output stream
