@@ -37,28 +37,39 @@ void OperationsTracer::endStream(ColStream& stream) {
     }
 }
 
-void OperationsTracer::message(const std::string& value) {
+void OperationsTracer::message(
+    const std::string& value,
+    int                level,
+    int                line,
+    const char*        function,
+    const char*        file) {
     if (TraceState) {
-        auto os = getStream();
-        os << value;
-        endStream(os);
+        message(OperationsMsg{
+            .level    = level,
+            .function = function,
+            .line     = line,
+            .msg      = value,
+            .file     = file,
+        });
     }
 }
 
 void OperationsTracer::message(const OperationsMsg& value) {
     if (TraceState) {
-
         auto os = getStream();
         if (traceStructured) {
             os << to_json_eval(value).dump();
         } else {
             os << fmt(
-                "{}:{}:{} @{} {}",
-                value.file ? fs::path{value.file}.filename().native() : "",
-                value.line,
-                value.column,
-                value.function ? value.function : "?",
-                value.msg ? value.msg.value() : "");
+                "{0}{1}{2}{3} @{4} {5}",
+                /*0*/ Str{"  "}.repeated(value.level),
+                /*1*/ value.file ? fs::path{value.file}.filename().native()
+                                 : "",
+                /*2*/ value.line == 0 ? "" : fmt(":{}", value.line),
+                /*3*/ value.column == 0 ? "" : fmt(":{}", value.column),
+                /*4*/ value.function ? fmt("{:_<24}", value.function)
+                                     : "?",
+                /*5*/ value.msg ? value.msg.value() : "");
         }
         endStream(os);
     }

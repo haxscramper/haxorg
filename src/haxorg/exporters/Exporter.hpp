@@ -61,8 +61,7 @@ struct ExporterEventBase : OperationsTracer {
             VisitVariant);
 
         Kind                      kind;
-        Opt<sem::SemId<sem::Org>> node  = std::nullopt;
-        int                       level = 0;
+        Opt<sem::SemId<sem::Org>> node = std::nullopt;
         Opt<std::string>          field;
         bool                      isStart = true;
         Opt<std::string>          type;

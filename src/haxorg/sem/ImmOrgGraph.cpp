@@ -63,7 +63,8 @@ void removeUnresolvedNodeProps(
     NodeProps::transient_type&  props,
     MapNodeResolveResult const& resolved_node,
     MapNode const&              newNode,
-    ImmSet<MapNode> const&      existingUnresolved) {
+    ImmSet<MapNode> const&      existingUnresolved,
+    MapOpsConfig&               conf) {
     for (auto const& op : resolved_node.resolved) {
         auto remove_resolved = [&](MapNode node) {
             MapNodeProp prop = props[node];
@@ -87,7 +88,12 @@ ImmSet<MapNode> updateUnresolvedNodeTracking(
     MapGraphState const&        inputState,
     NodeProps::transient_type&  props,
     MapNodeResolveResult const& resolved_node,
-    MapNode const&              newNode) {
+    MapNode const&              newNode,
+    MapOpsConfig&               conf) {
+    conf.message(
+        fmt("New node {}, resolution result {}", newNode, resolved_node),
+        conf.activeLevel);
+
     auto tmp = inputState.unresolved.transient();
     if (resolved_node.node.unresolved.empty()) {
         // Newly added node has no unresolved elements, remove the ID from
@@ -99,12 +105,21 @@ ImmSet<MapNode> updateUnresolvedNodeTracking(
             "Duplicate unresolved boxes are not expected: {}",
             newNode);
 
+        if (conf.TraceState) {
+            conf.message(
+                fmt("Adding {} as unresolved", newNode), conf.activeLevel);
+        }
         tmp.insert(newNode);
     }
 
     for (auto const& op : resolved_node.resolved) {
         for (auto it : inputState.unresolved) {
-            if (props.at(it).unresolved.empty()) { tmp.erase(it); }
+            if (props.at(it).unresolved.empty()) {
+                conf.message(
+                    fmt("Node {} fixed all unresolved properties", it),
+                    conf.activeLevel);
+                tmp.erase(it);
+            }
         }
     }
 
@@ -122,12 +137,18 @@ org::graph::MapGraphState org::graph::addNode(
 
     graphTransient.adjList.set(mapNode, ImmVec<MapNode>{});
     if (conf.TraceState) {
-        conf.message(fmt("unresolved:{}", inputState.unresolved));
+        conf.message(
+            fmt("unresolved:{}", inputState.unresolved), conf.activeLevel);
     }
 
 
-    MapNodeResolveResult resolved_node = getResolvedNodeInsert(
-        inputState, unresolved_node, conf);
+    MapNodeResolveResult resolved_node;
+
+    {
+        auto __tmp    = conf.scopeLevel();
+        resolved_node = getResolvedNodeInsert(
+            inputState, unresolved_node, conf);
+    }
 
     graphTransient.nodeProps.set(mapNode, resolved_node.node);
 
@@ -137,37 +158,56 @@ org::graph::MapGraphState org::graph::addNode(
                 mapNode,
                 resolved_node.node.unresolved,
                 unresolved_node.unresolved,
-                resolved_node.node.unresolved));
+                resolved_node.node.unresolved),
+            conf.activeLevel);
 
         if (inputState.graph.nodeProps.find(mapNode) != nullptr) {
             for (auto const& u : inputState.graph.at(mapNode).unresolved) {
-                conf.message(fmt(">> g[v] unresolved {}", u.link));
+                conf.message(
+                    fmt(">> g[v] unresolved {}", u.link),
+                    conf.activeLevel);
             }
         } else {
-            conf.message(fmt(">> new node, no preexisting unresolved"));
+            conf.message(
+                fmt(">> new node, no preexisting unresolved"),
+                conf.activeLevel);
         }
 
         for (auto const& u : resolved_node.node.unresolved) {
-            conf.message(fmt("<<- updated unresolved {}", u.link));
+            conf.message(
+                fmt("<<- updated unresolved {}", u.link),
+                conf.activeLevel);
         }
         for (auto const& u : resolved_node.resolved) {
             conf.message(
                 fmt("<<+ updated resolved {} {}->{}",
                     u.link.link,
                     u.source,
-                    u.target));
+                    u.target),
+                conf.activeLevel);
         }
     }
 
 
-    removeUnresolvedNodeProps(
-        graphTransient.nodeProps,
-        resolved_node,
-        mapNode,
-        inputState.unresolved);
+    {
+        auto __tmp = conf.scopeLevel();
+        removeUnresolvedNodeProps(
+            graphTransient.nodeProps,
+            resolved_node,
+            mapNode,
+            inputState.unresolved,
+            conf);
+    }
 
-    outputState.unresolved = updateUnresolvedNodeTracking(
-        inputState, graphTransient.nodeProps, resolved_node, mapNode);
+    {
+        auto __tmp             = conf.scopeLevel();
+        outputState.unresolved = updateUnresolvedNodeTracking(
+            inputState,
+            graphTransient.nodeProps,
+            resolved_node,
+            mapNode,
+            conf);
+    }
 
     for (auto const& op : resolved_node.resolved) {
         for (auto const& target : graphTransient.adjList.at(op.source)) {
@@ -181,7 +221,9 @@ org::graph::MapGraphState org::graph::addNode(
         }
 
         if (conf.TraceState) {
-            conf.message(fmt("add edge {}-{}", op.source, op.target));
+            conf.message(
+                fmt("add edge {}-{}", op.source, op.target),
+                conf.activeLevel);
         }
 
         MapEdge edge{op.source, op.target};
@@ -232,19 +274,25 @@ Opt<MapNodeProp> org::graph::getUnresolvedNodeInsert(
     // `- [[link-to-something]] :: Description` is stored as a description
     // field and is collected from the list item. So all boxes with
     // individual list items are dropped here.
-    if (isMmapIgnored(node)) { return std::nullopt; }
+    if (isMmapIgnored(node)) {
+        conf.message(
+            fmt("Node {} is ignored for mmap", node), conf.activeLevel);
+        return std::nullopt;
+    }
 
     if (conf.TraceState) {
         conf.message(
             fmt("box:{} desc-item:{} desc-list:{}",
                 node,
                 isLinkedDescriptionItem(node),
-                isLinkedDescriptionList(node)));
+                isLinkedDescriptionList(node)),
+            conf.activeLevel);
     }
 
     MapNodeProp result{.id = node};
 
     auto register_used_links = [&](org::ImmAdapter arg) {
+        conf.message(fmt("Node {}", arg), conf.activeLevel);
         // Unconditionally register all links as unresolved -- some of
         // them will be converted to edges later on.
         if (arg.is(osk::Link)) {
@@ -265,7 +313,7 @@ Opt<MapNodeProp> org::graph::getUnresolvedNodeInsert(
     if (auto tree = node.asOpt<org::ImmSubtree>()) {
         // Description lists with links in header are attached as the
         // outgoing link to the parent subtree. It is the only supported
-        // way to provide an extensive label between subtree edges.
+        // way to provide an extensive label between subtree nodes.
         for (auto const& list : tree->subAs<org::ImmList>()) {
             for (auto const& item : list.subAs<org::ImmListItem>()) {
                 if (isLinkedDescriptionItem(item)) {
@@ -287,6 +335,9 @@ Opt<MapNodeProp> org::graph::getUnresolvedNodeInsert(
             }
         }
     } else if (!NestedNodes.contains(node->getKind())) {
+        conf.message(
+            "registering nested outgoing links", conf.activeLevel);
+        auto __tmp = conf.scopeLevel();
         org::eachSubnodeRec(node, register_used_links);
     }
 
@@ -331,7 +382,9 @@ Opt<MapNodeProp> org::graph::getUnresolvedNodeInsert(
     }
 
     if (conf.TraceState) {
-        conf.message(fmt("box:{} unresolved:{}", node, result.unresolved));
+        conf.message(
+            fmt("box:{} unresolved:{}", node, result.unresolved),
+            conf.activeLevel);
     }
 
     return result;
@@ -366,7 +419,8 @@ Opt<MapLinkResolveResult> org::graph::getResolveTarget(
             fmt("subtreeIds:{} footnoteTargets:{} link:{}",
                 s.subtreeTargets,
                 s.footnoteTargets,
-                link));
+                link),
+            conf.activeLevel);
     }
 
     auto add_edge = [&](MapEdgeProp::Kind kind, MapNode target) {
@@ -418,7 +472,7 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
         node);
 
     if (conf.TraceState) {
-        conf.message(fmt("unresolved:{}", s.unresolved));
+        conf.message(fmt("unresolved:{}", s.unresolved), conf.activeLevel);
     }
 
     for (auto const& unresolvedLink : node.unresolved) {
@@ -426,7 +480,8 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
             s, MapNode{node.id.id}, unresolvedLink, conf);
         if (resolved_edit) {
             if (conf.TraceState) {
-                conf.message(fmt("resolved:{}", *resolved_edit));
+                conf.message(
+                    fmt("resolved:{}", *resolved_edit), conf.activeLevel);
             }
 
             result.resolved.push_back(*resolved_edit);
@@ -447,7 +502,8 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
                         fmt("resolved:{} it:{} edit:{}",
                             *resolved_edit,
                             nodeWithUnresolved,
-                            node));
+                            node),
+                        conf.activeLevel);
                 }
                 result.resolved.push_back(*resolved_edit);
             }
@@ -459,7 +515,8 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
             fmt("box:{} resolved:{} unresolved:{}",
                 node,
                 result.resolved,
-                result.node.unresolved));
+                result.node.unresolved),
+            conf.activeLevel);
     }
 
     for (auto const& r1 : result.resolved) {
@@ -484,8 +541,15 @@ MapGraphState org::graph::addNode(
     const MapGraphState&   g,
     const org::ImmAdapter& node,
     MapOpsConfig&          conf) {
+    if (conf.TraceState) {
+        conf.message(Str("- ").repeated(32), conf.activeLevel);
+    }
     auto prop = getUnresolvedNodeInsert(g, node, conf);
     if (prop) {
+        if (conf.TraceState) {
+            conf.message("ID maps to graph node", conf.activeLevel);
+        }
+        auto __init = conf.scopeLevel();
         return addNode(g, *prop, conf);
     } else {
         return g;

@@ -11,6 +11,7 @@ struct OperationsMsg {
     char const*      function = nullptr;
     int              line     = 0;
     int              column   = 0;
+    int              level    = 0;
     DESC_FIELDS(OperationsMsg, (msg, file, function, line, column));
 };
 
@@ -27,11 +28,18 @@ struct OperationsTracer {
     OperationsTracer(fs::path const& info) { setTraceFile(info); }
 
     SPtr<std::ostream> stream;
-    void               setTraceFile(fs::path const& outfile);
-    ColStream          getStream();
-    void               endStream(ColStream& stream);
-    void               message(std::string const& value);
-    void               message(OperationsMsg const& value);
+
+    void      setTraceFile(fs::path const& outfile);
+    ColStream getStream();
+    void      endStream(ColStream& stream);
+    void      message(OperationsMsg const& value);
+
+    void message(
+        std::string const& value,
+        int                level    = 0,
+        int                line     = __builtin_LINE(),
+        char const*        function = __builtin_FUNCTION(),
+        char const*        file     = __builtin_FILE());
 };
 
 

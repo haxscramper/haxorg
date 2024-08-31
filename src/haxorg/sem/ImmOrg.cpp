@@ -535,74 +535,172 @@ mask:              {:064b}
 namespace {
 void eachSubnodeRecImpl(
     CR<org::SubnodeVisitor> visitor,
-    ImmAdapter              org,
-    bool                    originalBase);
-
-template <sem::NotOrg T>
-void visitField(CR<org::SubnodeVisitor>, CR<T>) {}
-
-
-void visitField(CR<org::SubnodeVisitor> visitor, ImmAdapter node) {
-    if (!node.isNil()) { eachSubnodeRecImpl(visitor, node, true); }
-}
-
-template <sem::IsOrg T>
-void visitField(CR<org::SubnodeVisitor> visitor, CR<T> node) {
-    visitField(visitor, node.asOrg());
-}
-
+    ImmId                   org,
+    bool                    originalBase,
+    org::ContextStore*      ctx);
 
 template <typename T>
-void visitField(CR<org::SubnodeVisitor> visitor, ImmVec<T> const& value) {
-    for (const auto& it : value) { visitField(visitor, it); }
-}
+struct Visitor {};
+
+
+#define placeholder_visitor(__Type)                                       \
+    template <>                                                           \
+    struct Visitor<__Type> {                                              \
+        static void visitField(                                           \
+            CR<org::SubnodeVisitor> visitor,                              \
+            __Type const&           tmp,                                  \
+            org::ContextStore*      ctx) {}                                    \
+    };
+
+placeholder_visitor(Str);
+placeholder_visitor(int);
+placeholder_visitor(bool);
+placeholder_visitor(absl::Time);
+placeholder_visitor(UserTime);
+placeholder_visitor(std::string);
+placeholder_visitor(sem::BigIdent);
+placeholder_visitor(org::ImmIdT<sem::BigIdent>);
+placeholder_visitor(Vec<sem::SemId<sem::Org>>);
+
+
+template <IsEnum T>
+struct Visitor<T> {
+    static void visitField(
+        CR<org::SubnodeVisitor> visitor,
+        T const&                tree,
+        org::ContextStore*      ctx) {}
+};
 
 template <typename T>
-void visitField(CR<org::SubnodeVisitor> visitor, CR<ImmBox<T>> value) {
-    visitField(visitor, value.get());
-}
+struct Visitor<ImmIdT<T>> {
+    static void visitField(
+        CR<org::SubnodeVisitor> visitor,
+        ImmIdT<T>               tree,
+        org::ContextStore*      ctx) {
 
-template <typename T>
-void visitField(CR<org::SubnodeVisitor> visitor, CR<Opt<T>> value) {
-    if (value) { visitField(visitor, *value); }
-}
+        if (tree.isNil()) { return; }
+        visitor(ImmAdapter{tree.toId(), ctx});
 
-template <typename T>
-void recVisitOrgNodesImpl(
-    CR<org::SubnodeVisitor> visitor,
-    ImmAdapterT<T>          tree,
-    bool                    originalBase) {
-    if (tree.isNil()) { return; }
-    if (originalBase) { visitor(tree); }
+        for_each_field_with_bases<T>([&](auto const& field) {
+            Visitor<std::remove_cvref_t<
+                decltype(ctx->at(tree)->*field.pointer)>>::
+                visitField(visitor, ctx->at(tree)->*field.pointer, ctx);
+        });
+    }
+};
 
-    for_each_field_with_bases<T>([&](auto const& field) {
-        visitField(visitor, tree.get()->*field.pointer);
-    });
-}
+template <DescribedRecord T>
+struct Visitor<T> {
+    static void visitField(
+        CR<org::SubnodeVisitor> visitor,
+        T const&                obj,
+        org::ContextStore*      ctx) {
+        for_each_field_with_bases<T>([&](auto const& field) {
+            Visitor<std::remove_cvref_t<decltype(obj.*field.pointer)>>::
+                visitField(visitor, obj.*field.pointer, ctx);
+        });
+    }
+};
 
 
-void eachSubnodeRecImpl(
-    CR<org::SubnodeVisitor> visitor,
-    ImmAdapter              org,
-    bool                    originalBase) {
-    switch (org->getKind()) {
+template <>
+struct Visitor<ImmId> {
+    static void visitField(
+        CR<org::SubnodeVisitor> visitor,
+        ImmId                   org,
+        org::ContextStore*      ctx) {
+        switch (ctx->at(org)->getKind()) {
 
 
 #define __case(__Kind)                                                    \
     case OrgSemKind::__Kind: {                                            \
-        recVisitOrgNodesImpl(                                             \
-            visitor, org.as<org::Imm##__Kind>(), originalBase);           \
+        Visitor<org::ImmIdT<org::Imm##__Kind>>::visitField(               \
+            visitor, org.as<org::Imm##__Kind>(), ctx);                    \
         break;                                                            \
     }
-        EACH_SEM_ORG_KIND(__case)
+            EACH_SEM_ORG_KIND(__case)
 #undef __case
+        }
     }
-}
+};
+
+
+template <sem::IsOrg T>
+struct Visitor<T> {
+    static void visitField(
+        CR<org::SubnodeVisitor> visitor,
+        CR<T>                   node,
+        org::ContextStore*      ctx) {
+        Visitor<ImmId>::visitField(visitor, node.asOrg(), ctx);
+    }
+};
+
+template <IsVariant T>
+struct Visitor<T> {
+    static void visitField(
+        CR<org::SubnodeVisitor> visitor,
+        CR<T>                   node,
+        org::ContextStore*      ctx) {
+        std::visit(
+            [&](auto const& it) {
+                Visitor<std::remove_cvref_t<decltype(it)>>::visitField(
+                    visitor, it, ctx);
+            },
+            node);
+    }
+};
+
+
+template <typename T>
+struct Visitor<ImmVec<T>> {
+    static void visitField(
+        CR<org::SubnodeVisitor> visitor,
+        ImmVec<T> const&        value,
+        org::ContextStore*      ctx) {
+        for (const auto& it : value) {
+            Visitor<T>::visitField(visitor, it, ctx);
+        }
+    }
+};
+
+template <typename K, typename V>
+struct Visitor<ImmMap<K, V>> {
+    static void visitField(
+        CR<org::SubnodeVisitor> visitor,
+        ImmMap<K, V> const&     value,
+        org::ContextStore*      ctx) {
+        for (const auto& [key, value] : value) {
+            Visitor<V>::visitField(visitor, value, ctx);
+        }
+    }
+};
+
+
+template <typename T>
+struct Visitor<ImmBox<T>> {
+    static void visitField(
+        CR<org::SubnodeVisitor> visitor,
+        CR<ImmBox<T>>           value,
+        org::ContextStore*      ctx) {
+        Visitor<T>::visitField(visitor, value.get(), ctx);
+    }
+};
+
+template <typename T>
+struct Visitor<Opt<T>> {
+    static void visitField(
+        CR<org::SubnodeVisitor> visitor,
+        CR<Opt<T>>              value,
+        org::ContextStore*      ctx) {
+        if (value) { Visitor<T>::visitField(visitor, *value, ctx); }
+    }
+};
+
 } // namespace
 
 
 void org::eachSubnodeRec(ImmAdapter id, SubnodeVisitor cb) {
-    eachSubnodeRecImpl(cb, id, true);
+    Visitor<ImmId>::visitField(cb, id.id, id.ctx);
 }
 
 

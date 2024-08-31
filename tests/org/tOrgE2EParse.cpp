@@ -830,7 +830,7 @@ Paragraph [[id:subtree-id]]
     org::ContextStore         store;
     org::graph::MapGraphState s1;
     org::graph::MapOpsConfig  conf;
-    conf.setTraceFile("/tmp/ImmMapApi_AddNodeWithLinks.txt");
+    conf.setTraceFile("/tmp/AddNodeWithLinks_log.txt");
     EXPECT_EQ(s1.graph.nodeCount(), 0);
     org::ImmAdapter root{store.add(0, n1), &store};
 
@@ -842,8 +842,8 @@ Paragraph [[id:subtree-id]]
             root.treeRepr().toString(false),
             os.getBuffer().toString(false)));
 
-    auto s2 = org::graph::addNode(s1, root.at(0), conf);
-    auto s3 = org::graph::addNode(s2, root.at(1), conf);
+    auto s2 = org::graph::addNode(s1, root.at(1), conf);
+    auto s3 = org::graph::addNode(s2, root.at(3), conf);
 
     EXPECT_EQ(s3.graph.nodeCount(), 2);
 

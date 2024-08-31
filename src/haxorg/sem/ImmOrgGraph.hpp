@@ -170,7 +170,13 @@ struct MapGraph {
 };
 
 
-struct MapOpsConfig : OperationsTracer {};
+struct MapOpsConfig : OperationsTracer {
+    int  activeLevel = 0;
+    auto scopeLevel() {
+        ++activeLevel;
+        return finally{[&]() { --activeLevel; }};
+    }
+};
 
 struct MapGraphState {
     /// \brief List of nodes with unresolved outgoing links.
@@ -183,7 +189,6 @@ struct MapGraphState {
     DESC_FIELDS(
         MapGraphState,
         (unresolved, footnoteTargets, subtreeTargets, graph));
-
 };
 
 MapGraphState addNode(

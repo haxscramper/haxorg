@@ -120,7 +120,7 @@ struct ContextStore {
 
     template <typename T>
     T const* at(ImmIdT<T> id) const {
-        return at(id)->template as<T>();
+        return at(id.toId())->template as<T>();
     }
 
     void format(ColStream& os, std::string const& prefix = "") const;
