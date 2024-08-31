@@ -135,12 +135,16 @@ org::graph::MapGraphState org::graph::addNode(
         conf.message(
             fmt("v:{} g[v]:{} edit:{} updated:{}",
                 mapNode,
-                inputState.graph.at(mapNode).unresolved,
+                resolved_node.node.unresolved,
                 unresolved_node.unresolved,
                 resolved_node.node.unresolved));
 
-        for (auto const& u : inputState.graph.at(mapNode).unresolved) {
-            conf.message(fmt(">> g[v] unresolved {}", u.link));
+        if (inputState.graph.nodeProps.find(mapNode) != nullptr) {
+            for (auto const& u : inputState.graph.at(mapNode).unresolved) {
+                conf.message(fmt(">> g[v] unresolved {}", u.link));
+            }
+        } else {
+            conf.message(fmt(">> new node, no preexisting unresolved"));
         }
 
         for (auto const& u : resolved_node.node.unresolved) {
@@ -219,7 +223,7 @@ static const SemSet NestedNodes{
 };
 
 
-Opt<MapNodeProp> getNodeInsert(
+Opt<MapNodeProp> org::graph::getUnresolvedNodeInsert(
     MapGraphState const& s,
     org::ImmAdapter      node,
     MapOpsConfig&        conf) {
@@ -397,7 +401,7 @@ Opt<MapLinkResolveResult> org::graph::getResolveTarget(
 }
 
 
-MapNodeResolveResult getResolvedNodeInsert(
+MapNodeResolveResult org::graph::getResolvedNodeInsert(
     const MapGraphState& s,
     const MapNodeProp&   node,
     MapOpsConfig&        conf) {
@@ -474,7 +478,7 @@ MapNodeResolveResult getResolvedNodeInsert(
     return result;
 }
 
-MapGraphState addNode(
+MapGraphState org::graph::addNode(
     const MapGraphState&   g,
     const org::ImmAdapter& node,
     MapOpsConfig&          conf) {

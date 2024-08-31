@@ -17,6 +17,7 @@
 #include <haxorg/exporters/ExporterJson.hpp>
 #include <haxorg/sem/SemBaseApi.hpp>
 #include <haxorg/sem/ImmOrg.hpp>
+#include <haxorg/sem/ImmOrgGraph.hpp>
 #include <fstream>
 
 struct compare_context {
@@ -795,4 +796,17 @@ TEST(ImmOrgApi, StoreNode) {
 }
 
 
-TEST(ImmMapApi, AddNode) {}
+TEST(ImmMapApi, AddNode) {
+    auto n1 = parseNode("* subtree");
+
+    org::ContextStore         store;
+    org::graph::MapGraphState s1;
+    org::graph::MapOpsConfig  conf;
+    conf.setTraceFile("/tmp/ImmMapApi_AddNode.txt");
+    EXPECT_EQ(s1.graph.nodeCount(), 0);
+    auto s2 = org::graph::addNode(
+        s1, org::ImmAdapter{store.add(0, n1), &store}, conf);
+    EXPECT_EQ(s2.graph.nodeCount(), 1);
+
+    writeFile("/tmp/MapS2.json", to_json_eval(s2).dump(2));
+}

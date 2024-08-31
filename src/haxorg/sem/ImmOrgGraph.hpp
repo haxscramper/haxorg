@@ -150,6 +150,9 @@ struct MapGraph {
 
     MapGraphTransient transient() const;
 
+    int nodeCount() const { return nodeProps.size(); }
+    int edgeCount() const { return edgeProps.size(); }
+
     MapNodeProp const& at(MapNode const& node) const {
         return nodeProps.at(node);
     }
@@ -157,6 +160,8 @@ struct MapGraph {
     MapEdgeProp const& at(MapEdge const& edge) const {
         return edgeProps.at(edge);
     }
+
+    DESC_FIELDS(MapGraph, (nodeProps, edgeProps, adjList));
 };
 
 
@@ -170,6 +175,9 @@ struct MapGraphState {
     /// \brief Loopup of the subtree targets by the subtree IDs
     ImmMap<Str, MapNode> subtreeTargets;
     MapGraph             graph;
+    DESC_FIELDS(
+        MapGraphState,
+        (unresolved, footnoteTargets, subtreeTargets, graph));
 };
 
 MapGraphState addNode(

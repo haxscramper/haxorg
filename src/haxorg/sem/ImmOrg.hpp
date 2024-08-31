@@ -289,3 +289,26 @@ struct std::formatter<org::ImmAdapterT<T>> : std::formatter<std::string> {
         return fmt_ctx(p.id, ctx);
     }
 };
+
+
+template <>
+struct JsonSerde<org::ImmAdapter> {
+    static json to_json(org::ImmAdapter const& it) {
+        return json(it.id.getValue());
+    }
+    static org::ImmAdapter from_json(json const& j) {
+        throw logic_assertion_error::init(
+            "org::ImmAdapter does not support deserialization.");
+    }
+};
+
+template <typename T>
+struct JsonSerde<org::ImmAdapterT<T>> {
+    static json to_json(org::ImmAdapterT<T> const& it) {
+        return json(it.id.getValue());
+    }
+    static org::ImmAdapterT<T> from_json(json const& j) {
+        throw logic_assertion_error::init(
+            "org::ImmAdapterT<T> does not support deserialization.");
+    }
+};

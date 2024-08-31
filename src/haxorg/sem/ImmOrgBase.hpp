@@ -9,6 +9,7 @@
 #include <immer/box.hpp>
 #include <immer/map.hpp>
 #include <immer/set.hpp>
+#include <hstd/stdlib/Json.hpp>
 
 template <typename T>
 using ImmVec = immer::vector<T>;
@@ -84,6 +85,46 @@ struct std::formatter<ImmVec<T>> : std::formatter<std::string> {
 };
 
 template <typename T>
+struct JsonSerde<ImmVec<T>> {
+    static json to_json(ImmVec<T> const& it) {
+        auto result = json::array();
+        for (auto const& i : it) {
+            result.push_back(JsonSerde<T>::to_json(i));
+        }
+
+        return result;
+    }
+    static ImmVec<T> from_json(json const& j) {
+        ImmVec<T> result;
+        auto      tmp = result.transient();
+        for (auto const& i : j) {
+            tmp.push_back(JsonSerde<T>::from_json(i));
+        }
+        return tmp.persistent();
+    }
+};
+
+template <typename T>
+struct JsonSerde<ImmSet<T>> {
+    static json to_json(ImmSet<T> const& it) {
+        auto result = json::array();
+        for (auto const& i : it) {
+            result.push_back(JsonSerde<T>::to_json(i));
+        }
+
+        return result;
+    }
+    static ImmSet<T> from_json(json const& j) {
+        ImmSet<T> result;
+        auto      tmp = result.transient();
+        for (auto const& i : j) {
+            result.insert(JsonSerde<T>::from_json(i));
+        }
+        return tmp.persistent();
+    }
+};
+
+template <typename T>
 struct std::formatter<ImmSet<T>> : std::formatter<std::string> {
     template <typename FormatContext>
     FormatContext::iterator format(ImmSet<T> const& p, FormatContext& ctx)
@@ -112,6 +153,42 @@ struct std::formatter<ImmMap<K, V>> : std::formatter<std::string> {
             fmt_ctx(value, ctx);
         }
         return fmt.format("}", ctx);
+    }
+};
+
+
+template <typename K, typename V>
+struct JsonSerde<immer::map<K, V>> {
+    static json to_json(immer::map<K, V> const& it) {
+        auto result = json::array();
+        for (auto const& [key, val] : it) {
+            result.push_back(json::object({
+                {"key", JsonSerde<K>::to_json(key)},
+                {"value", JsonSerde<V>::to_json(val)},
+            }));
+        }
+
+        return result;
+    }
+    static immer::map<K, V> from_json(json const& j) {
+        immer::map<K, V> result;
+        auto             tmp = result.transient();
+        for (auto const& i : j) {
+            result.insert(
+                JsonSerde<K>::from_json(i["key"]),
+                JsonSerde<V>::from_json(i["value"]));
+        }
+        return tmp.persistent();
+    }
+};
+
+template <typename K, typename V>
+struct JsonSerde<ImmMap<K, V>> {
+    static json to_json(ImmMap<K, V> const& it) {
+        return JsonSerde<immer::map<K, V>>::to_json(it);
+    }
+    static ImmMap<K, V> from_json(json const& j) {
+        return JsonSerde<immer::map<K, V>>::from_json(j);
     }
 };
 
@@ -259,5 +336,16 @@ struct std::formatter<org::ImmId> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const org::ImmId& p, FormatContext& ctx) const {
         return fmt_ctx(p.getReadableId(), ctx);
+    }
+};
+
+
+template <>
+struct JsonSerde<org::ImmId> {
+    static json to_json(org::ImmId const& it) {
+        return json(it.getValue());
+    }
+    static org::ImmId from_json(json const& j) {
+        return org::ImmId::FromValue(j.get<unsigned long long>());
     }
 };

@@ -175,12 +175,19 @@ const ImmOrg* ParseUnitStore::at(ImmId index) const {
 #define _case(__Kind)                                                     \
     case OrgSemKind::__Kind: {                                            \
         org::Imm##__Kind const* res = store##__Kind.at(index);            \
-        CHECK(res->getKind() == index.getKind());                         \
+        logic_assertion_check(                                            \
+            res->getKind() == index.getKind(),                            \
+            "index kind {} does not match result node kind {}",           \
+            index.getKind(),                                              \
+            res->getKind());                                              \
         return res;                                                       \
     }
         EACH_SEM_ORG_KIND(_case)
 #undef _case
     }
+
+    throw logic_unreachable_error::init(
+        fmt("Cannot get node for index {}", index));
 }
 
 
@@ -214,6 +221,22 @@ ImmId ParseUnitStore::add(
 }
 
 const ImmOrg* ContextStore::at(ImmId id) const {
+    logic_assertion_check(
+        id.getStoreIndex() == 0, "{}", id.getStoreIndex());
+    u64 kind     = static_cast<u64>(id.getKind());
+    u64 kindLow  = static_cast<u64>(value_domain<OrgSemKind>::low());
+    u64 kindHigh = static_cast<u64>(value_domain<OrgSemKind>::high());
+
+    logic_assertion_check(
+        kindLow <= kind && kind <= kindHigh,
+        "ID kind value out of range: ID int value is: {} (bin: {:032b}, "
+        "hex: {:032X}), low {} high {}",
+        kind,
+        kind,
+        kind,
+        kindLow,
+        highLow);
+
     ImmOrg const* res = getStoreByIndex(id.getStoreIndex()).at(id);
     CHECK(res->getKind() == id.getKind());
     return res;
