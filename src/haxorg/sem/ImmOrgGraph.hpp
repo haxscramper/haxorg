@@ -4,7 +4,7 @@
 
 #include <hstd/stdlib/TraceBase.hpp>
 #include <immer/map_transient.hpp>
-
+#include <hstd/wrappers/hstd_extra/graphviz.hpp>
 
 namespace org::graph {
 
@@ -163,6 +163,9 @@ struct MapGraph {
         return edgeProps.at(edge);
     }
 
+
+    Graphviz::Graph toGraphviz() const;
+
     DESC_FIELDS(MapGraph, (nodeProps, edgeProps, adjList));
 };
 
@@ -180,6 +183,7 @@ struct MapGraphState {
     DESC_FIELDS(
         MapGraphState,
         (unresolved, footnoteTargets, subtreeTargets, graph));
+
 };
 
 MapGraphState addNode(

@@ -491,3 +491,33 @@ MapGraphState org::graph::addNode(
         return g;
     }
 }
+
+Graphviz::Graph MapGraph::toGraphviz() const {
+    Graphviz::Graph                       res{"g"_ss};
+    UnorderedMap<MapNode, Graphviz::Node> gvNodes;
+    UnorderedMap<MapEdge, Graphviz::Edge> gvEdges;
+    for (auto const& [it, props] : nodeProps) {
+        gvNodes.insert_or_assign(it, res.node(it.id.getReadableId()));
+    }
+
+    for (auto const& [source, targets] : adjList) {
+        for (auto const& target : targets) {
+            gvEdges.insert_or_assign(
+                {source, target},
+                res.edge(gvNodes.at(source), gvNodes.at(target)));
+        }
+    }
+
+    for (auto const& [it, prop] : nodeProps) {
+        using Record = Graphviz::Node::Record;
+        auto& node   = gvNodes.at(it);
+        node.startRecord();
+        auto rec = node.getNodeRecord();
+        rec->push_back(Record{{Record{"ID"}, Record{fmt1(it.id)}}});
+        rec->push_back(Record{{Record{"ID"}, Record{fmt1(it.id)}}});
+
+        node.finishRecord();
+    }
+
+    return res;
+}

@@ -294,7 +294,7 @@ struct std::formatter<org::ImmAdapterT<T>> : std::formatter<std::string> {
 template <>
 struct JsonSerde<org::ImmAdapter> {
     static json to_json(org::ImmAdapter const& it) {
-        return json(it.id.getValue());
+        return json(it.id.getReadableId());
     }
     static org::ImmAdapter from_json(json const& j) {
         throw logic_assertion_error::init(
@@ -305,7 +305,7 @@ struct JsonSerde<org::ImmAdapter> {
 template <typename T>
 struct JsonSerde<org::ImmAdapterT<T>> {
     static json to_json(org::ImmAdapterT<T> const& it) {
-        return json(it.id.getValue());
+        return json(it.id.getReadableId());
     }
     static org::ImmAdapterT<T> from_json(json const& j) {
         throw logic_assertion_error::init(

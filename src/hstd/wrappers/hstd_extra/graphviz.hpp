@@ -260,6 +260,7 @@ class Graphviz {
         void startRecord() {
             setShape(Shape::record);
             bindRecord<Record>("record");
+            getNodeRecord()->content = Vec<Record>{};
         }
 
         Record* getNodeRecord() { return getRecord<Record>("record"); }

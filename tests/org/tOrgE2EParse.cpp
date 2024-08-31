@@ -809,4 +809,8 @@ TEST(ImmMapApi, AddNode) {
     EXPECT_EQ(s2.graph.nodeCount(), 1);
 
     writeFile("/tmp/MapS2.json", to_json_eval(s2).dump(2));
+
+    Graphviz gvc;
+    auto     gv = s2.graph.toGraphviz();
+    gvc.renderToFile("/tmp/MapS2.png", gv);
 }
