@@ -324,7 +324,7 @@ MapGraphTransient org::graph::MapGraph::transient() const {
     };
 }
 
-Opt<MapLinkResolveResult> getResolveTarget(
+Opt<MapLinkResolveResult> org::graph::getResolveTarget(
     const MapGraphState& s,
     MapNode const&       source,
     MapLink const&       link,
@@ -340,11 +340,12 @@ Opt<MapLinkResolveResult> getResolveTarget(
                 link));
     }
 
-    auto add_edge = [&](MapNodeProp::Kind kind, MapNode target) {
+    auto add_edge = [&](MapEdgeProp::Kind kind, MapNode target) {
         result = MapLinkResolveResult{
             .link   = link,
             .target = target,
             .source = source,
+            .kind   = kind,
         };
     };
 
@@ -391,28 +392,33 @@ MapNodeResolveResult getResolvedNodeInsert(
         conf.message(fmt("unresolved:{}", s.unresolved));
     }
 
-    for (auto const& it : node.unresolved) {
+    for (auto const& unresolvedLink : node.unresolved) {
         Opt<MapLinkResolveResult> resolved_edit = getResolveTarget(
-            node, it);
+            s, MapNode{node.id.id}, unresolvedLink, conf);
         if (resolved_edit) {
-            if (conf.TraceState) { _qfmt("resolved:{}", *resolved_edit); }
+            if (conf.TraceState) {
+                conf.message(fmt("resolved:{}", *resolved_edit));
+            }
+
             result.resolved.push_back(*resolved_edit);
         } else {
-            result.node.unresolved.push_back(it);
+            result.node.unresolved.push_back(unresolvedLink);
         }
     }
 
-    for (auto const& it : unresolved) {
-        Q_ASSERT(it != edit.box);
-        for (auto const& link : g[boxToVertex.at(it)].unresolved) {
-            Opt<ResolvedLink> resolved_edit = getResolveTarget(it, link);
+    for (auto const& nodeWithUnresolved : s.unresolved) {
+        logic_assertion_check(nodeWithUnresolved.id != node.id.id, "");
+        for (auto const& link :
+             s.graph.at(nodeWithUnresolved).unresolved) {
+            Opt<MapLinkResolveResult> resolved_edit = getResolveTarget(
+                s, nodeWithUnresolved, link, conf);
             if (resolved_edit) {
-                if (debug) {
-                    _qfmt(
-                        "resolved:{} it:{} edit:{}",
-                        *resolved_edit,
-                        it,
-                        edit.box);
+                if (conf.TraceState) {
+                    conf.message(
+                        fmt("resolved:{} it:{} edit:{}",
+                            *resolved_edit,
+                            nodeWithUnresolved,
+                            node));
                 }
                 result.resolved.push_back(*resolved_edit);
             }
@@ -420,11 +426,11 @@ MapNodeResolveResult getResolvedNodeInsert(
     }
 
     if (conf.TraceState) {
-        _qfmt(
-            "box:{} resolved:{} unresolved:{}",
-            edit.box,
-            result.resolved,
-            result.node.unresolved);
+        conf.message(
+            fmt("box:{} resolved:{} unresolved:{}",
+                node,
+                result.resolved,
+                result.node.unresolved));
     }
 
     for (auto const& r1 : result.resolved) {
@@ -435,12 +441,11 @@ MapNodeResolveResult getResolvedNodeInsert(
             }
         }
 
-        Q_ASSERT_X(
+        logic_assertion_check(
             count <= 1,
-            "resolved duplicates",
-            fmt("Resolved link target contains duplicate edges: {}-{}",
-                r1.source,
-                r1.target));
+            "Resolved link target contains duplicate edges: {}-{}",
+            r1.source,
+            r1.target);
     }
 
     return result;

@@ -17,10 +17,28 @@ template <typename T>
 using ImmBox = immer::box<T>;
 
 template <typename K, typename V>
-using ImmMap = immer::map<K, V>;
+struct ImmMap : immer::map<K, V> {
+    using base = immer::map<K, V>;
+    using base::at;
+    using base::base;
+    using base::find;
+
+    ImmMap(base const& val) : base{val} {}
+
+    Opt<V> get(K const& key) const {
+        if (auto val = find(key)) {
+            return *val;
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    bool contains(K const& key) const { return find(key) != nullptr; }
+};
 
 template <typename T>
 using ImmSet = immer::set<T>;
+
 
 template <typename T>
 struct std::formatter<ImmBox<T>> : std::formatter<std::string> {

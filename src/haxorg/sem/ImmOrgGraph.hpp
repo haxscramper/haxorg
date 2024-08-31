@@ -36,8 +36,6 @@ struct MapNodeProp {
     org::ImmAdapter id;
     Vec<MapLink>    unresolved;
 
-    MapNodeProp() {}
-
     Opt<Str> getSubtreeId() const {
         if (auto tree = id.asOpt<org::ImmSubtree>();
             tree.value()->treeId.get()) {
@@ -68,8 +66,14 @@ struct MapEdgeProp {
     DESC_FIELDS(MapEdgeProp, (link, kind));
 };
 
+
 struct MapNode {
     org::ImmId id;
+
+    bool operator==(MapNode const& other) const {
+        return this->id == other.id;
+    }
+
     DESC_FIELDS(MapNode, (id));
 };
 
@@ -77,8 +81,43 @@ struct MapEdge {
     MapNode source;
     MapNode target;
     DESC_FIELDS(MapEdge, (source, target));
+
+    bool operator==(MapEdge const& other) const {
+        return this->source == other.source
+            && this->target == other.target;
+    }
+};
+} // namespace org::graph
+
+
+template <typename T>
+inline void hax_hash_combine(std::size_t& seed, const T& v) {
+    std::hash<T> hasher;
+    seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+}
+
+
+template <>
+struct std::hash<org::graph::MapNode> {
+    std::size_t operator()(org::graph::MapNode const& it) const noexcept {
+        std::size_t result = 0;
+        hax_hash_combine(result, it.id);
+        return result;
+    }
 };
 
+
+template <>
+struct std::hash<org::graph::MapEdge> {
+    std::size_t operator()(org::graph::MapEdge const& it) const noexcept {
+        std::size_t result = 0;
+        hax_hash_combine(result, it.source.id);
+        hax_hash_combine(result, it.target.id);
+        return result;
+    }
+};
+
+namespace org::graph {
 struct StructureUpdate {
     Vec<MapEdge> removed_edges;
     Vec<MapEdge> added_edges;
@@ -110,20 +149,25 @@ struct MapGraph {
     AdjList   adjList;
 
     MapGraphTransient transient() const;
+
+    MapNodeProp const& at(MapNode const& node) const {
+        return nodeProps.at(node);
+    }
+
+    MapEdgeProp const& at(MapEdge const& edge) const {
+        return edgeProps.at(edge);
+    }
 };
 
-struct MapLinkResolveResult {
-    MapLink link;
-    MapNode target;
-    MapNode source;
-    DESC_FIELDS(MapLinkResolveResult, (link, target, source));
-};
 
 struct MapOpsConfig : OperationsTracer {};
 
 struct MapGraphState {
-    ImmSet<MapNode>      unresolved;
+    /// \brief List of nodes with unresolved outgoing links.
+    ImmSet<MapNode> unresolved;
+    /// \brief Lookup of the nodes by the footnote IDs
     ImmMap<Str, MapNode> footnoteTargets;
+    /// \brief Loopup of the subtree targets by the subtree IDs
     ImmMap<Str, MapNode> subtreeTargets;
     MapGraph             graph;
 };
@@ -139,6 +183,21 @@ Opt<MapNodeProp> getUnresolvedNodeInsert(
     org::ImmAdapter      node,
     MapOpsConfig&        conf);
 
+
+struct MapLinkResolveResult {
+    MapLink           link;
+    MapNode           target;
+    MapNode           source;
+    MapEdgeProp::Kind kind;
+    DESC_FIELDS(MapLinkResolveResult, (link, target, source, kind));
+};
+
+Opt<MapLinkResolveResult> getResolveTarget(
+    MapGraphState const& s,
+    MapNode const&       source,
+    MapLink const&       link,
+    MapOpsConfig&        conf);
+
 struct MapNodeResolveResult {
     MapNodeProp               node = MapNodeProp{};
     Vec<MapLinkResolveResult> resolved;
@@ -152,5 +211,6 @@ MapNodeResolveResult getResolvedNodeInsert(
     MapGraphState const& s,
     MapNodeProp const&   node,
     MapOpsConfig&        conf);
+
 
 } // namespace org::graph
