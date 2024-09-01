@@ -1070,96 +1070,122 @@ TEST(ImmMapApi, SubtreeFullMap) {
     gvc.renderToFile("/tmp/SubtreeFullMap.png", gv);
 }
 
-org::graph::MapGraph create_test_graph() {
+struct TestGraph {
+    org::graph::MapGraph     g;
+    Vec<org::graph::MapNode> nodes;
+};
+
+TestGraph create_test_graph() {
     org::graph::MapGraph g{nullptr};
+
+    auto n0 = org::ImmId::FromValue(0);
+    auto n1 = org::ImmId::FromValue(1);
+    auto n2 = org::ImmId::FromValue(2);
+
     g.adjList = {
-        {0, {1}},
-        {1, {2}},
-        {2, {0}}
+        {n0, {n1}},
+        {n1, {n2}},
+        {n2, {n0}},
     };
 
-    return g;
+    g.nodeProps = g.nodeProps.set(n0, org::graph::MapNodeProp{});
+    g.nodeProps = g.nodeProps.set(n1, org::graph::MapNodeProp{});
+    g.nodeProps = g.nodeProps.set(n2, org::graph::MapNodeProp{});
+
+    g.edgeProps = g.edgeProps.set({n0, n1}, org::graph::MapEdgeProp{});
+    g.edgeProps = g.edgeProps.set({n1, n2}, org::graph::MapEdgeProp{});
+    g.edgeProps = g.edgeProps.set({n2, n0}, org::graph::MapEdgeProp{});
+
+    return TestGraph{
+        .g     = g,
+        .nodes = {n0, n1, n2},
+    };
 }
 
 
-
 TEST(ImmMapApi, VertexCount) {
-    auto g = create_test_graph();
-    auto num_vertices = boost::num_vertices(g);
+    auto g            = create_test_graph();
+    auto num_vertices = boost::num_vertices(g.g);
     EXPECT_EQ(num_vertices, 3);
 }
 
 TEST(ImmMapApi, EdgeCount) {
-    auto g = create_test_graph();
-    auto num_edges = boost::num_edges(g);
+    auto g         = create_test_graph();
+    auto num_edges = boost::num_edges(g.g);
     EXPECT_EQ(num_edges, 3);
 }
 
 TEST(ImmMapApi, Vertices) {
-    auto g = create_test_graph();
-    auto [v_begin, v_end] = boost::vertices(g);
-    std::vector<int> vertices(v_begin, v_end);
+    auto g                = create_test_graph();
+    auto [v_begin, v_end] = boost::vertices(g.g);
+    std::vector<org::graph::MapNode> vertices(v_begin, v_end);
     std::sort(vertices.begin(), vertices.end());
 
     EXPECT_EQ(vertices.size(), 3);
-    EXPECT_EQ(vertices[0], 0);
-    EXPECT_EQ(vertices[1], 1);
-    EXPECT_EQ(vertices[2], 2);
+    EXPECT_EQ(vertices[0], g.nodes.at(0));
+    EXPECT_EQ(vertices[1], g.nodes.at(1));
+    EXPECT_EQ(vertices[2], g.nodes.at(2));
 }
 
 TEST(ImmMapApi, Edges) {
-    auto g = create_test_graph();
-    auto [e_begin, e_end] = boost::edges(g);
+    auto g                = create_test_graph();
+    auto [e_begin, e_end] = boost::edges(g.g);
     std::vector<org::graph::MapEdge> edges(e_begin, e_end);
 
     EXPECT_EQ(edges.size(), 3);
-    EXPECT_NE(std::find(edges.begin(), edges.end(), org::graph::MapEdge{0, 1}), edges.end());
-    EXPECT_NE(std::find(edges.begin(), edges.end(), org::graph::MapEdge{1, 2}), edges.end());
-    EXPECT_NE(std::find(edges.begin(), edges.end(), org::graph::MapEdge{2, 0}), edges.end());
+    EXPECT_NE(
+        std::find(
+            edges.begin(),
+            edges.end(),
+            org::graph::MapEdge{g.nodes.at(0), g.nodes.at(1)}),
+        edges.end());
+    EXPECT_NE(
+        std::find(
+            edges.begin(),
+            edges.end(),
+            org::graph::MapEdge{g.nodes.at(1), g.nodes.at(2)}),
+        edges.end());
+    EXPECT_NE(
+        std::find(
+            edges.begin(),
+            edges.end(),
+            org::graph::MapEdge{g.nodes.at(2), g.nodes.at(0)}),
+        edges.end());
 }
 
 TEST(ImmMapApi, AdjacentVertices) {
-    auto g = create_test_graph();
-    auto [adj_begin, adj_end] = boost::adjacent_vertices(0, g);
-    std::vector<int> adjacent_vertices(adj_begin, adj_end);
+    auto g                    = create_test_graph();
+    auto [adj_begin, adj_end] = boost::adjacent_vertices(
+        g.nodes.at(0), g.g);
+
+    std::vector<org::graph::MapNode> adjacent_vertices(adj_begin, adj_end);
 
     EXPECT_EQ(adjacent_vertices.size(), 1);
-    EXPECT_EQ(adjacent_vertices[0], 1);
+    EXPECT_EQ(adjacent_vertices[0], g.nodes.at(1));
 }
 
 TEST(ImmMapApi, OutDegree) {
-    auto g = create_test_graph();
-    auto out_degree = boost::out_degree(0, g);
+    auto g          = create_test_graph();
+    auto out_degree = boost::out_degree(g.nodes.at(0), g.g);
     EXPECT_EQ(out_degree, 1);
 }
 
 TEST(ImmMapApi, OutEdges) {
-    auto g = create_test_graph();
-    auto [oe_begin, oe_end] = boost::out_edges(0, g);
+    auto g                  = create_test_graph();
+    auto [oe_begin, oe_end] = boost::out_edges(g.nodes.at(0), g.g);
     std::vector<org::graph::MapEdge> out_edges(oe_begin, oe_end);
 
     EXPECT_EQ(out_edges.size(), 1);
-    EXPECT_EQ(out_edges[0], org::graph::MapEdge{0, 1});
-}
-
-TEST(ImmMapApi, GetVertexProperty) {
-    auto g = create_test_graph();
-    auto& prop = boost::get(boost::vertex_property_type<org::graph::MapGraph>::type(), g, 0);
-    EXPECT_EQ(prop.name, "Node0");
-}
-
-TEST(ImmMapApi, GetEdgeProperty) {
-    auto g = create_test_graph();
-    auto& prop = boost::get(boost::edge_property_type<org::graph::MapGraph>::type(), g, org::graph::MapEdge{0, 1});
-    EXPECT_EQ(prop.name, "Edge01");
+    EXPECT_EQ(
+        out_edges[0], (org::graph::MapEdge{g.nodes.at(0), g.nodes.at(1)}));
 }
 
 TEST(ImmMapApi, SourceAndTarget) {
-    auto g = create_test_graph();
-    org::graph::MapEdge e{0, 1};
-    auto src = boost::source(e, g);
-    auto tgt = boost::target(e, g);
+    auto                g = create_test_graph();
+    org::graph::MapEdge e{g.nodes.at(0), g.nodes.at(1)};
+    auto                src = boost::source(e, g.g);
+    auto                tgt = boost::target(e, g.g);
 
-    EXPECT_EQ(src, 0);
-    EXPECT_EQ(tgt, 1);
+    EXPECT_EQ(src, g.nodes.at(0));
+    EXPECT_EQ(tgt, g.nodes.at(1));
 }

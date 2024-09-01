@@ -80,6 +80,8 @@ struct MapNode {
         return this->id == other.id;
     }
 
+    bool operator<(MapNode const& other) const { return id < other.id; }
+
     DESC_FIELDS(MapNode, (id));
 };
 
