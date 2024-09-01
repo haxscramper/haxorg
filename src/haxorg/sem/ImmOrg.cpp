@@ -713,6 +713,63 @@ EACH_SEM_ORG_KIND(forward_declare)
 #undef forward_declare
 
 
+#define DEFINE_VISITOR_BASE_STRUCT(                                       \
+    __VisitorTypename,                                                    \
+    __VisitorTemplateArgs,                                                \
+    __VisitorSharedArgs,                                                  \
+    __VisitorTypeSpecification,                                           \
+    __VisitorResultType)                                                  \
+                                                                          \
+    template <BOOST_PP_TUPLE_REM() __VisitorTemplateArgs>                 \
+    struct __VisitorTypename<__VisitorTypeSpecification> {                \
+        static __VisitorResultType visit(                                 \
+            __VisitorTypeSpecification const& arg,                        \
+            BOOST_PP_TUPLE_REM() __VisitorSharedArgs);                    \
+    };
+
+#define IS_EMPTY_TUPLE(tuple)                                             \
+    BOOST_PP_IS_EMPTY(BOOST_PP_TUPLE_ELEM(0, tuple))
+
+// clang-format off
+#define DEFINE_VISITOR_BASE_METHOD_SIGNATURE(                             \
+    __VisitorTypename,                                                    \
+    __VisitorTemplateArgs,                                                \
+    __VisitorSharedArgs,                                                  \
+    __VisitorTypeSpecification,                                           \
+    __VisitorResultType)                                                  \
+                                                                          \
+    BOOST_PP_IF(                                                          \
+        IS_EMPTY_TUPLE(__VisitorTemplateArgs),                            \
+        BOOST_PP_EMPTY(),                                                   \
+        template <BOOST_PP_TUPLE_REM() __VisitorTemplateArgs>)            \
+    __VisitorResultType                                                   \
+        __VisitorTypename<__VisitorTypeSpecification>::visit(             \
+            __VisitorTypeSpecification const& arg,                        \
+            BOOST_PP_TUPLE_REM() __VisitorSharedArgs)
+// clang-format on
+
+#define DEFINE_VISITOR_BASE_ALL(                                          \
+    __VisitorTypename,                                                    \
+    __VisitorTemplateArgs,                                                \
+    __VisitorSharedArgs,                                                  \
+    __VisitorTypeSpecification,                                           \
+    __VisitorResultType)                                                  \
+                                                                          \
+    DEFINE_VISITOR_BASE_STRUCT(                                           \
+        __VisitorTypename,                                                \
+        __VisitorTemplateArgs,                                            \
+        __VisitorSharedArgs,                                              \
+        __VisitorTypeSpecification,                                       \
+        __VisitorResultType)                                              \
+                                                                          \
+    DEFINE_VISITOR_BASE_METHOD_SIGNATURE(                                 \
+        __VisitorTypename,                                                \
+        __VisitorTemplateArgs,                                            \
+        __VisitorSharedArgs,                                              \
+        __VisitorTypeSpecification,                                       \
+        __VisitorResultType)
+
+
 namespace {
 struct ImmTreeReprContext {
     int                level;
@@ -727,125 +784,88 @@ struct ImmTreeReprContext {
 template <typename T>
 struct ImmTreeReprVisitor {};
 
-#define placeholder_visitor(__Type)                                       \
-    template <>                                                           \
-    struct ImmTreeReprVisitor<__Type> {                                   \
-        static void visit(                                                \
-            ColStream&                os,                                 \
-            __Type const&             id,                                 \
-            ImmTreeReprContext const& ctx) {}                             \
-    };
-
-placeholder_visitor(Str);
-placeholder_visitor(int);
-placeholder_visitor(bool);
-placeholder_visitor(absl::Time);
-placeholder_visitor(UserTime);
-placeholder_visitor(std::string);
-placeholder_visitor(sem::BigIdent);
-placeholder_visitor(org::ImmIdT<sem::BigIdent>);
-placeholder_visitor(Vec<sem::SemId<sem::Org>>);
-
-#undef placeholder_visitor
 
 template <typename T>
 struct ImmTreeReprVisitor<org::ImmAdapterT<T>> {
     static void visit(
-        ColStream&                os,
         org::ImmAdapterT<T>       id,
+        ColStream&                os,
         ImmTreeReprContext const& ctx);
 };
 
-template <typename T>
-struct ImmTreeReprVisitor<ImmBox<T>> {
-    static void visit(
-        ColStream&                os,
-        ImmBox<T> const&          id,
-        ImmTreeReprContext const& ctx) {
-        ImmTreeReprVisitor<T>::visit(os, id.get(), ctx);
+#define IMM_TREE_REPR_IMPL(__TemplateArgs, __VisitorTypeSpecification)    \
+    DEFINE_VISITOR_BASE_ALL(                                              \
+        ImmTreeReprVisitor /*visitor name*/,                              \
+        __TemplateArgs /*pass template*/,                                 \
+        (ColStream & os, ImmTreeReprContext const& ctx) /*shared args*/,  \
+        __VisitorTypeSpecification /*structure type specializatin*/,      \
+        void /*return type*/)
+
+IMM_TREE_REPR_IMPL((typename T), ImmBox<T>) {
+    ImmTreeReprVisitor<T>::visit(arg.get(), os, ctx);
+}
+
+IMM_TREE_REPR_IMPL((typename T), Opt<T>) {
+    if (arg) { ImmTreeReprVisitor<T>::visit(arg.value(), os, ctx); }
+}
+
+IMM_TREE_REPR_IMPL((typename T), ImmVec<T>) {
+    int subIdx = 0;
+    for (auto const& sub : arg) {
+        os << "\n";
+        os.indent(ctx.level * 2);
+        os << fmt("[{}]\n", subIdx);
+        ImmTreeReprVisitor<T>::visit(sub, os, ctx.addLevel(1));
     }
-};
+}
 
-template <typename T>
-struct ImmTreeReprVisitor<Opt<T>> {
-    static void visit(
-        ColStream&                os,
-        Opt<T> const&             id,
-        ImmTreeReprContext const& ctx) {
-        if (id) { ImmTreeReprVisitor<T>::visit(os, id.value(), ctx); }
-    }
-};
-
-template <typename T>
-struct ImmTreeReprVisitor<ImmVec<T>> {
-    static void visit(
-        ColStream&                os,
-        ImmVec<T> const&          id,
-        ImmTreeReprContext const& ctx) {
-
-        int subIdx = 0;
-        for (auto const& sub : id) {
-            os << "\n";
-            os.indent(ctx.level * 2);
-            os << fmt("[{}]\n", subIdx);
-            ImmTreeReprVisitor<T>::visit(os, sub, ctx.addLevel(1));
-        }
-    }
-};
-
-template <>
-struct ImmTreeReprVisitor<org::ImmAdapter> {
-    static void visit(
-        ColStream&                os,
-        org::ImmAdapter           id,
-        ImmTreeReprContext const& ctx) {
-        switch (id->getKind()) {
+IMM_TREE_REPR_IMPL((), org::ImmAdapter) {
+    switch (arg->getKind()) {
 #define __case(__Kind)                                                    \
     case OrgSemKind::__Kind: {                                            \
-        auto id_t = id.as<org::Imm##__Kind>();                            \
+        auto id_t = arg.as<org::Imm##__Kind>();                           \
         ImmTreeReprVisitor<org::ImmAdapterT<org::Imm##__Kind>>::visit(    \
-            os, id_t, ctx);                                               \
+            id_t, os, ctx);                                               \
         break;                                                            \
     }
-            EACH_SEM_ORG_KIND(__case)
+        EACH_SEM_ORG_KIND(__case)
 #undef __case
-            default: {
-                os.indent(ctx.level * 2);
-                os << fmt(
-                    "ERR Invalid kind value {0:064b} {0:064X}",
-                    id.id.getValue());
-            }
+        default: {
+            os.indent(ctx.level * 2);
+            os << fmt(
+                "ERR Invalid kind value {0:064b} {0:064X}",
+                arg.id.getValue());
         }
     }
-};
+}
 
-template <>
-struct ImmTreeReprVisitor<org::ImmId> {
-    static void visit(
-        ColStream&                os,
-        org::ImmId                id,
-        ImmTreeReprContext const& ctx) {
-        ImmTreeReprVisitor<org::ImmAdapter>::visit(
-            os, org::ImmAdapter{id, ctx.ctx}, ctx);
-    }
-};
+IMM_TREE_REPR_IMPL((), Str) {}
+IMM_TREE_REPR_IMPL((), bool) {}
+
+IMM_TREE_REPR_IMPL((IsVariant T), T) {
+    std::visit(
+        [&]<typename V>(V const& var) {
+            ImmTreeReprVisitor<V>::visit(var, os, ctx);
+        },
+        arg);
+}
 
 
-template <typename T>
-struct ImmTreeReprVisitor<org::ImmIdT<T>> {
-    static void visit(
-        ColStream&                os,
-        org::ImmIdT<T>            id,
-        ImmTreeReprContext const& ctx) {
-        ImmTreeReprVisitor<org::ImmAdapterT<T>>::visit(
-            os, org::ImmAdapter{id, ctx.ctx}.as<T>(), ctx);
-    }
-};
+IMM_TREE_REPR_IMPL((), org::ImmId) {
+    ImmTreeReprVisitor<org::ImmAdapter>::visit(
+        org::ImmAdapter{arg, ctx.ctx}, os, ctx);
+}
+
+
+IMM_TREE_REPR_IMPL((typename T), org::ImmIdT<T>) {
+    ImmTreeReprVisitor<org::ImmAdapterT<T>>::visit(
+        org::ImmAdapter{arg, ctx.ctx}.as<T>(), os, ctx);
+}
 
 template <typename T>
 void ImmTreeReprVisitor<org::ImmAdapterT<T>>::visit(
-    ColStream&                os,
     org::ImmAdapterT<T>       id,
+    ColStream&                os,
     ImmTreeReprContext const& ctx) {
     os.indent(ctx.level * 2);
     os << fmt("{} {}", id->getKind(), id.id.getReadableId());
@@ -857,7 +877,7 @@ void ImmTreeReprVisitor<org::ImmAdapterT<T>>::visit(
         os.indent((ctx.level + 1) * 2);
         os << f.name;
         ImmTreeReprVisitor<FieldType>::visit(
-            os, id.get()->*f.pointer, ctx.addLevel(1));
+            id.get()->*f.pointer, os, ctx.addLevel(1));
     });
 }
 
@@ -866,8 +886,8 @@ void ImmTreeReprVisitor<org::ImmAdapterT<T>>::visit(
 
 void ImmAdapter::treeRepr(ColStream& os, const TreeReprConf& conf) const {
     ImmTreeReprVisitor<org::ImmAdapter>::visit(
-        os,
         *this,
+        os,
         ImmTreeReprContext{
             .level = 0,
             .ctx   = this->ctx,
