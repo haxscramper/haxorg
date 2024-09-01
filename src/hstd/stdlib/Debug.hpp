@@ -11,12 +11,11 @@
 
 void setMessageStream(std::ostream& stream);
 
-
 #define _dbg(expr)                                                        \
-    ([](auto const& it) {                                                 \
-        DLOG(INFO) << (#expr) << " = ⦃" << it << "⦄";                     \
+    ([](auto const& it, char const* __base_function) {                    \
+        DLOG(INFO) << fmt("@{} {} = ⦃{}⦄", __base_function, #expr, it);   \
         return it;                                                        \
-    }((expr)))
+    }((expr), __FUNCTION__))
 
 #define _dfmt_impl(_1, _2, arg)                                           \
     << " " << BOOST_PP_STRINGIZE(arg) << fmt(" = ⦃{}⦄", arg)

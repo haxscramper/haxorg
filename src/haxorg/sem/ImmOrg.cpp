@@ -243,8 +243,10 @@ const ImmOrg* ContextStore::at(ImmId id) const {
 }
 
 template <typename T>
-void KindStore<T>::format(ColStream& os, const std::string& linePrefix)
-    const {
+void KindStore<T>::format(
+    ColStream&                        os,
+    const UnorderedMap<ImmId, ImmId>& parents,
+    const std::string&                linePrefix) const {
     bool       isFirst = true;
     Vec<ImmId> ids;
     for (auto const& it : values.id_map) { ids.push_back(it.second); }
@@ -255,7 +257,11 @@ void KindStore<T>::format(ColStream& os, const std::string& linePrefix)
         if (!isFirst) { os << "\n"; }
         isFirst = false;
         os << fmt(
-            "{}[{}]: {}", linePrefix, id.getReadableId(), values.at(id));
+            "{}[{}] (parent {}): {}",
+            linePrefix,
+            id.getReadableId(),
+            parents.get(id),
+            values.at(id));
     }
 }
 
@@ -268,7 +274,7 @@ void ParseUnitStore::format(ColStream& os, const std::string& prefix)
             prefix,                                                       \
             #__Kind,                                                      \
             u64(OrgSemKind::__Kind));                                     \
-        store##__Kind.format(os, prefix + "  ");                          \
+        store##__Kind.format(os, parents, prefix + "  ");                 \
     }
 
     EACH_SEM_ORG_KIND(_kind)

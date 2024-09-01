@@ -343,7 +343,8 @@ Opt<MapNodeProp> org::graph::getUnresolvedNodeInsert(
         for (auto const& list : tree->subAs<org::ImmList>()) {
             conf.message("Subtree has list", conf.activeLevel);
             for (auto const& item : list.subAs<org::ImmListItem>()) {
-                if (isLinkedDescriptionItem(item)) {
+                conf.message(fmt("{}", item.id), conf.activeLevel);
+                if (isLinkedDescriptionItemNode(item)) {
                     conf.message(
                         "List has description item", conf.activeLevel);
                     for (auto const& link :

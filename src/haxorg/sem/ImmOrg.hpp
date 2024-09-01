@@ -28,7 +28,10 @@ struct KindStore {
     int size() const { return values.size(); }
 
     KindStore(ContextStore* context) : context(context) {}
-    void format(ColStream& os, std::string const& linePrefix = "") const;
+    void format(
+        ColStream&                                  os,
+        UnorderedMap<org::ImmId, org::ImmId> const& parents,
+        std::string const&                          linePrefix = "") const;
 
     bool     empty() const { return values.empty(); }
     T const* at(org::ImmId id) const { return &values.at(id); }
@@ -68,7 +71,7 @@ struct ParseUnitStore {
         Vec<ImmId> result;
         Opt<ImmId> tmp = id;
         while (tmp) {
-            if (withSelf && tmp == id) { result.push_back(tmp.value()); }
+            if (withSelf || tmp != id) { result.push_back(tmp.value()); }
             tmp = getParent(tmp.value());
         }
         return result;

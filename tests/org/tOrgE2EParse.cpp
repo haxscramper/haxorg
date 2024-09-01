@@ -921,7 +921,7 @@ TEST(ImmMapApi, SubtreeBacklinks) {
     EXPECT_EQ(s2.unresolved.size(), 1);
 
     EXPECT_EQ(s3.graph.nodeCount(), 2);
-    EXPECT_EQ(s3.graph.edgeCount(), 1);
+    EXPECT_EQ(s3.graph.edgeCount(), 2);
     EXPECT_EQ(s3.unresolved.size(), 0);
 
     writeFile(
