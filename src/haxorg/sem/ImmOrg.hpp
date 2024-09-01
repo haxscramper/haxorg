@@ -244,8 +244,8 @@ struct ImmAdapter {
     template <typename T>
     Vec<ImmAdapterT<T>> subAs() const {
         Vec<ImmAdapterT<T>> result;
-        for (auto const& it : *this) {
-            if (auto sub = it.asOpt<T>()) {
+        for (auto const& it : ctx->at(id)->subnodes) {
+            if (auto sub = pass(it).asOpt<T>()) {
                 result.push_back(sub.value());
             }
         }

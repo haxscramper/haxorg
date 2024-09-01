@@ -248,13 +248,9 @@ org::graph::MapGraphState org::graph::addNode(
             conf.activeLevel);
     }
 
-    MapNodeResolveResult resolved_node;
+    MapNodeResolveResult resolved_node = getResolvedNodeInsert(
+        outputState, unresolved_node, conf);
 
-    {
-        auto __tmp    = conf.scopeLevel();
-        resolved_node = getResolvedNodeInsert(
-            outputState, unresolved_node, conf);
-    }
 
     // debug-print node resolution state
     traceNodeResolve(outputState, resolved_node, conf, mapNode);
@@ -263,26 +259,24 @@ org::graph::MapGraphState org::graph::addNode(
     // been finalized.
     graphTransient.nodeProps.set(mapNode, resolved_node.node);
 
-    {
-        auto __tmp = conf.scopeLevel();
-        removeUnresolvedNodeProps(
-            graphTransient.nodeProps,
-            resolved_node,
-            mapNode,
-            outputState.unresolved,
-            conf);
-    }
+    // Iterate over all known unresolved nodes and adjust node property
+    // values in the graph to account for new property changes.
+    removeUnresolvedNodeProps(
+        graphTransient.nodeProps,
+        resolved_node,
+        mapNode,
+        outputState.unresolved,
+        conf);
 
-    {
-        auto __tmp             = conf.scopeLevel();
-        outputState.unresolved = updateUnresolvedNodeTracking(
-            outputState,
-            graphTransient.nodeProps,
-            resolved_node,
-            mapNode,
-            conf);
-    }
+    // Collect new list of unresolved nodes for the changes.
+    outputState.unresolved = updateUnresolvedNodeTracking(
+        outputState,
+        graphTransient.nodeProps,
+        resolved_node,
+        mapNode,
+        conf);
 
+    // Add all resolved edges to the graph
     updateResolvedEdges(graphTransient, resolved_node, conf);
     outputState.graph = graphTransient.persistent();
 
@@ -347,11 +341,17 @@ Opt<MapNodeProp> org::graph::getUnresolvedNodeInsert(
         // outgoing link to the parent subtree. It is the only supported
         // way to provide an extensive label between subtree nodes.
         for (auto const& list : tree->subAs<org::ImmList>()) {
+            conf.message("Subtree has list", conf.activeLevel);
             for (auto const& item : list.subAs<org::ImmListItem>()) {
                 if (isLinkedDescriptionItem(item)) {
+                    conf.message(
+                        "List has description item", conf.activeLevel);
                     for (auto const& link :
                          item.pass(item->header->value())
                              .subAs<org::ImmLink>()) {
+                        conf.message(
+                            fmt("List item contains link {}", link),
+                            conf.activeLevel);
                         // Description list header might contain
                         // non-link elements. These are ignored in the
                         // mind map.

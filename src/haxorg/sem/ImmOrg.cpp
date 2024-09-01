@@ -562,6 +562,8 @@ placeholder_visitor(sem::BigIdent);
 placeholder_visitor(org::ImmIdT<sem::BigIdent>);
 placeholder_visitor(Vec<sem::SemId<sem::Org>>);
 
+#undef placeholder_visitor
+
 
 template <IsEnum T>
 struct Visitor<T> {
@@ -711,16 +713,163 @@ EACH_SEM_ORG_KIND(forward_declare)
 #undef forward_declare
 
 
-void ImmAdapter::treeRepr(ColStream& os, const TreeReprConf& conf) const {
-    Func<void(org::ImmAdapter const& id, int level)> aux;
-    aux = [&](org::ImmAdapter const& id, int level) {
-        os.indent(level * 2);
-        os << fmt("{} {}", id->getKind(), id.id.getReadableId());
-        for (auto const& sub : id.sub()) {
-            os << "\n";
-            aux(sub, level + 1);
-        }
+namespace {
+struct ImmTreeReprContext {
+    int                level;
+    ContextStore*      ctx;
+    ImmTreeReprContext addLevel(int diff) const {
+        ImmTreeReprContext result = *this;
+        result.level += diff;
+        return result;
+    }
+};
+
+template <typename T>
+struct ImmTreeReprVisitor {};
+
+#define placeholder_visitor(__Type)                                       \
+    template <>                                                           \
+    struct ImmTreeReprVisitor<__Type> {                                   \
+        static void visit(                                                \
+            ColStream&                os,                                 \
+            __Type const&             id,                                 \
+            ImmTreeReprContext const& ctx) {}                             \
     };
 
-    aux(*this, 0);
+placeholder_visitor(Str);
+placeholder_visitor(int);
+placeholder_visitor(bool);
+placeholder_visitor(absl::Time);
+placeholder_visitor(UserTime);
+placeholder_visitor(std::string);
+placeholder_visitor(sem::BigIdent);
+placeholder_visitor(org::ImmIdT<sem::BigIdent>);
+placeholder_visitor(Vec<sem::SemId<sem::Org>>);
+
+#undef placeholder_visitor
+
+template <typename T>
+struct ImmTreeReprVisitor<org::ImmAdapterT<T>> {
+    static void visit(
+        ColStream&                os,
+        org::ImmAdapterT<T>       id,
+        ImmTreeReprContext const& ctx);
+};
+
+template <typename T>
+struct ImmTreeReprVisitor<ImmBox<T>> {
+    static void visit(
+        ColStream&                os,
+        ImmBox<T> const&          id,
+        ImmTreeReprContext const& ctx) {
+        ImmTreeReprVisitor<T>::visit(os, id.get(), ctx);
+    }
+};
+
+template <typename T>
+struct ImmTreeReprVisitor<Opt<T>> {
+    static void visit(
+        ColStream&                os,
+        Opt<T> const&             id,
+        ImmTreeReprContext const& ctx) {
+        if (id) { ImmTreeReprVisitor<T>::visit(os, id.value(), ctx); }
+    }
+};
+
+template <typename T>
+struct ImmTreeReprVisitor<ImmVec<T>> {
+    static void visit(
+        ColStream&                os,
+        ImmVec<T> const&          id,
+        ImmTreeReprContext const& ctx) {
+
+        int subIdx = 0;
+        for (auto const& sub : id) {
+            os << "\n";
+            os.indent(ctx.level * 2);
+            os << fmt("[{}]\n", subIdx);
+            ImmTreeReprVisitor<T>::visit(os, sub, ctx.addLevel(1));
+        }
+    }
+};
+
+template <>
+struct ImmTreeReprVisitor<org::ImmAdapter> {
+    static void visit(
+        ColStream&                os,
+        org::ImmAdapter           id,
+        ImmTreeReprContext const& ctx) {
+        switch (id->getKind()) {
+#define __case(__Kind)                                                    \
+    case OrgSemKind::__Kind: {                                            \
+        auto id_t = id.as<org::Imm##__Kind>();                            \
+        ImmTreeReprVisitor<org::ImmAdapterT<org::Imm##__Kind>>::visit(    \
+            os, id_t, ctx);                                               \
+        break;                                                            \
+    }
+            EACH_SEM_ORG_KIND(__case)
+#undef __case
+            default: {
+                os.indent(ctx.level * 2);
+                os << fmt(
+                    "ERR Invalid kind value {0:064b} {0:064X}",
+                    id.id.getValue());
+            }
+        }
+    }
+};
+
+template <>
+struct ImmTreeReprVisitor<org::ImmId> {
+    static void visit(
+        ColStream&                os,
+        org::ImmId                id,
+        ImmTreeReprContext const& ctx) {
+        ImmTreeReprVisitor<org::ImmAdapter>::visit(
+            os, org::ImmAdapter{id, ctx.ctx}, ctx);
+    }
+};
+
+
+template <typename T>
+struct ImmTreeReprVisitor<org::ImmIdT<T>> {
+    static void visit(
+        ColStream&                os,
+        org::ImmIdT<T>            id,
+        ImmTreeReprContext const& ctx) {
+        ImmTreeReprVisitor<org::ImmAdapterT<T>>::visit(
+            os, org::ImmAdapter{id, ctx.ctx}.as<T>(), ctx);
+    }
+};
+
+template <typename T>
+void ImmTreeReprVisitor<org::ImmAdapterT<T>>::visit(
+    ColStream&                os,
+    org::ImmAdapterT<T>       id,
+    ImmTreeReprContext const& ctx) {
+    os.indent(ctx.level * 2);
+    os << fmt("{} {}", id->getKind(), id.id.getReadableId());
+
+    for_each_field_with_bases<T>([&](auto const& f) {
+        using FieldType = std::remove_cvref_t<
+            decltype(id.get()->*f.pointer)>;
+        os << "\n";
+        os.indent((ctx.level + 1) * 2);
+        os << f.name;
+        ImmTreeReprVisitor<FieldType>::visit(
+            os, id.get()->*f.pointer, ctx.addLevel(1));
+    });
+}
+
+
+} // namespace
+
+void ImmAdapter::treeRepr(ColStream& os, const TreeReprConf& conf) const {
+    ImmTreeReprVisitor<org::ImmAdapter>::visit(
+        os,
+        *this,
+        ImmTreeReprContext{
+            .level = 0,
+            .ctx   = this->ctx,
+        });
 }

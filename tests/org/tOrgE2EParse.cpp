@@ -827,11 +827,9 @@ Paragraph [[id:subtree-id]]
 
     auto n1 = parseNode(text);
 
-    org::ContextStore         store;
-    org::graph::MapGraphState s1;
-    org::graph::MapOpsConfig  conf;
+    org::ContextStore        store;
+    org::graph::MapOpsConfig conf;
     conf.setTraceFile("/tmp/AddNodeWithLinks_log.txt");
-    EXPECT_EQ(s1.graph.nodeCount(), 0);
     org::ImmAdapter root{store.add(0, n1), &store};
 
     ColStream os;
@@ -842,15 +840,100 @@ Paragraph [[id:subtree-id]]
             root.treeRepr().toString(false),
             os.getBuffer().toString(false)));
 
+    org::graph::MapGraphState s1;
     auto s2 = org::graph::addNode(s1, root.at(1), conf);
     auto s3 = org::graph::addNode(s2, root.at(3), conf);
 
+    EXPECT_EQ(s1.graph.nodeCount(), 0);
+    EXPECT_EQ(s1.graph.edgeCount(), 0);
+    EXPECT_EQ(s1.unresolved.size(), 0);
+
+    EXPECT_EQ(s2.graph.nodeCount(), 1);
+    EXPECT_EQ(s2.graph.edgeCount(), 0);
+    EXPECT_EQ(s2.unresolved.size(), 1);
+
     EXPECT_EQ(s3.graph.nodeCount(), 2);
     EXPECT_EQ(s3.graph.edgeCount(), 1);
+    EXPECT_EQ(s3.unresolved.size(), 0);
 
-    writeFile("/tmp/AddNodeWithLinks.json", to_json_eval(s3).dump(2));
+    writeFile(
+        "/tmp/AddNodeWithLinks.json",
+        to_json_eval(Vec<org::graph::MapGraphState>{
+                         s1,
+                         s2,
+                         s3,
+                     })
+            .dump(2));
 
     Graphviz gvc;
     auto     gv = s3.graph.toGraphviz();
     gvc.renderToFile("/tmp/AddNodeWithLinks.png", gv);
+}
+
+
+TEST(ImmMapApi, SubtreeBacklinks) {
+    Str text1{R"(
+* Subtree1
+  :properties:
+  :id: subtree-1
+  :end:
+
+- [[id:subtree-2]] :: Forward link
+)"_ss};
+
+    Str text2{R"(
+* Subtree2
+  :properties:
+  :id: subtree-2
+  :end:
+
+- [[id:subtree-1]] :: Backlink
+)"_ss};
+
+    auto n1 = parseNode(text1);
+    auto n2 = parseNode(text2);
+
+    org::ContextStore        store;
+    org::graph::MapOpsConfig conf;
+    conf.setTraceFile("/tmp/SubtreeBacklinks_log.txt");
+    org::ImmAdapter file1{store.add(0, n1), &store};
+    org::ImmAdapter file2{store.add(0, n2), &store};
+
+    ColStream os;
+    store.format(os);
+    writeFile(
+        "/tmp/SubtreeBacklinks_treerepr.txt",
+        fmt("tree1:\n{}\ntree1:\n{}\nbuffer:\n{}",
+            file1.treeRepr().toString(false),
+            file2.treeRepr().toString(false),
+            os.getBuffer().toString(false)));
+
+    org::graph::MapGraphState s1;
+    auto s2 = org::graph::addNode(s1, file1.at(1), conf);
+    auto s3 = org::graph::addNode(s2, file2.at(1), conf);
+
+    EXPECT_EQ(s1.graph.nodeCount(), 0);
+    EXPECT_EQ(s1.graph.edgeCount(), 0);
+    EXPECT_EQ(s1.unresolved.size(), 0);
+
+    EXPECT_EQ(s2.graph.nodeCount(), 1);
+    EXPECT_EQ(s2.graph.edgeCount(), 0);
+    EXPECT_EQ(s2.unresolved.size(), 1);
+
+    EXPECT_EQ(s3.graph.nodeCount(), 2);
+    EXPECT_EQ(s3.graph.edgeCount(), 1);
+    EXPECT_EQ(s3.unresolved.size(), 0);
+
+    writeFile(
+        "/tmp/SubtreeBacklinks.json",
+        to_json_eval(Vec<org::graph::MapGraphState>{
+                         s1,
+                         s2,
+                         s3,
+                     })
+            .dump(2));
+
+    Graphviz gvc;
+    auto     gv = s3.graph.toGraphviz();
+    gvc.renderToFile("/tmp/SubtreeBacklinks.png", gv);
 }
