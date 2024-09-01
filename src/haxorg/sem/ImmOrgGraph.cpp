@@ -622,16 +622,29 @@ Graphviz::Graph MapGraph::toGraphviz() const {
         using Record = Graphviz::Node::Record;
         auto& node   = gvNodes.at(it);
         node.startRecord();
-        auto rec = node.getNodeRecord();
-        rec->push_back(Record{{Record{"ID"}, Record{fmt1(it.id)}}});
-        rec->push_back(
-            Record{{Record{"Path"}, Record{fmt1(store->getPath(it.id))}}});
-        rec->push_back(Record{{Record{"Kind"}, Record{fmt1(prop.kind)}}});
+        auto rec       = node.getNodeRecord();
+        auto add_field = [&](Record const& r) { rec->push_back(r); };
+
+        add_field(Record{{
+            Record{left_aligned("ID", 16)},
+            Record{fmt1(it.id)},
+        }});
+
+        add_field(Record{{
+            Record{left_aligned("Path", 16)},
+            Record{join("/", store->getPath(it.id))},
+        }});
+
+        add_field(Record{{
+            Record{left_aligned("Kind", 16)},
+            Record{fmt1(prop.kind)},
+        }});
 
         for (auto const& [idx, unresolved] : enumerate(prop.unresolved)) {
-            rec->push_back(Record{
-                {Record{fmt("Unresolved [{}]", idx)},
-                 Record{fmt1(unresolved.link)}}});
+            add_field(Record{{
+                Record{left_aligned(fmt("Unresolved [{}]", idx), 16)},
+                Record{fmt1(unresolved.link)},
+            }});
         }
 
         switch (prop.kind) {

@@ -265,7 +265,9 @@ class Graphviz {
 
         Record* getNodeRecord() { return getRecord<Record>("record"); }
 
-        void finishRecord() { setLabel(getNodeRecord()->toString()); }
+        void finishRecord(int braceCount = 1) {
+            setLabel(getNodeRecord()->toString(braceCount));
+        }
 
         Node(Agraph_t* graph, Str const& name, Record const& record);
 

@@ -1055,5 +1055,6 @@ TEST(ImmMapApi, SubtreeFullMap) {
     Graphviz gvc;
     auto     gv = s2.graph.toGraphviz();
     gv.setRankDirection(Graphviz::Graph::RankDirection::LR);
+    gvc.writeFile("/tmp/SubtreeFullMap.dot", gv);
     gvc.renderToFile("/tmp/SubtreeFullMap.png", gv);
 }
