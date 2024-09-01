@@ -1,5 +1,6 @@
 #pragma once
 
+#include <boost/graph/properties.hpp>
 #include <haxorg/sem/ImmOrg.hpp>
 
 #include <hstd/stdlib/TraceBase.hpp>
@@ -73,6 +74,7 @@ struct MapEdgeProp {
 struct MapNode {
     org::ImmId id;
 
+    MapNode() : id{org::ImmId::Nil()} {}
     MapNode(org::ImmId id) : id{id} {}
     MapNode(org::ImmAdapter id) : id{id.id} {}
 
@@ -318,11 +320,11 @@ struct map_graph_adjacent_vertices_iterator {
     using pointer           = const value_type*;
     using reference         = const value_type&;
 
-    typename immer::vector<org::graph::MapNode>::const_iterator iter;
+    typename org::graph::AdjNodesList::const_iterator iter;
 
     map_graph_adjacent_vertices_iterator() = default;
     map_graph_adjacent_vertices_iterator(
-        typename immer::vector<org::graph::MapNode>::const_iterator it)
+        typename org::graph::AdjNodesList::const_iterator it)
         : iter(it) {}
 
     reference operator*() const { return *iter; }
@@ -331,6 +333,17 @@ struct map_graph_adjacent_vertices_iterator {
     map_graph_adjacent_vertices_iterator& operator++() {
         ++iter;
         return *this;
+    }
+
+    map_graph_adjacent_vertices_iterator operator++(int) {
+        auto res = *this;
+        operator++();
+        return res;
+    }
+
+    bool operator==(
+        const map_graph_adjacent_vertices_iterator& other) const {
+        return iter == other.iter;
     }
 
     bool operator!=(
@@ -364,8 +377,18 @@ struct map_graph_out_edges_iterator {
         return *this;
     }
 
+    map_graph_out_edges_iterator operator++(int) {
+        auto res = *this;
+        operator++();
+        return res;
+    }
+
+    bool operator==(const map_graph_out_edges_iterator& other) const {
+        return source == other.source && iter == other.iter;
+    }
+
     bool operator!=(const map_graph_out_edges_iterator& other) const {
-        return iter != other.iter;
+        return source != other.source || iter != other.iter;
     }
 };
 
@@ -389,13 +412,23 @@ struct map_graph_edges_iterator {
             iter->first, iter->second.at(outEdgeIndex)};
     }
 
+    map_graph_edges_iterator operator++(int) {
+        auto res = *this;
+        operator++();
+        return res;
+    }
+
     map_graph_edges_iterator& operator++() {
         ++iter;
         return *this;
     }
 
+    bool operator==(const map_graph_edges_iterator& other) const {
+        return outEdgeIndex == other.outEdgeIndex && iter == other.iter;
+    }
+
     bool operator!=(const map_graph_edges_iterator& other) const {
-        return iter != other.iter;
+        return outEdgeIndex != other.outEdgeIndex || iter != other.iter;
     }
 };
 
@@ -409,7 +442,7 @@ struct graph_traits<org::graph::MapGraph> {
     using edge_iterator          = map_graph_edges_iterator;
     using vertex_iterator        = map_graph_vertices_iterator;
     using directed_category      = directed_tag;
-    using edge_parallel_category = allow_parallel_edge_tag;
+    using edge_parallel_category = disallow_parallel_edge_tag;
     using traversal_category     = vector_as_graph_traversal_tag;
     using vertices_size_type     = int;
     using edges_size_type        = int;
@@ -521,6 +554,83 @@ inline org::graph::MapNode target(
     org::graph::MapEdge const& e,
     org::graph::MapGraph const&) {
     return e.target;
+}
+
+template <typename Key, typename Value>
+struct immer_map_property_map {
+    using key_type   = Key;
+    using value_type = Value;
+    using reference  = const Value&;
+    using category   = boost::readable_property_map_tag;
+
+    const immer::map<Key, Value>& map_ref;
+
+    immer_map_property_map(const immer::map<Key, Value>& map)
+        : map_ref(map) {}
+
+    reference operator[](const key_type& key) const {
+        return map_ref.at(key);
+    }
+};
+
+template <typename Key, typename Value>
+immer_map_property_map<Key, Value> make_immer_map_property_map(
+    const immer::map<Key, Value>& map) {
+    return immer_map_property_map<Key, Value>(map);
+}
+
+template <typename Key, typename Value>
+Value get(immer_map_property_map<Key, Value> const& map, Key const& key) {
+    return map[key];
+}
+
+
+template <>
+struct property_map<org::graph::MapGraph, vertex_index_t> {
+    using const_type = immer_map_property_map<
+        org::graph::MapNode,
+        org::graph::MapNodeProp>;
+    using type = const_type;
+};
+
+inline property_map<org::graph::MapGraph, vertex_index_t>::const_type get(
+    vertex_index_t,
+    org::graph::MapGraph const& g) {
+    return make_immer_map_property_map(g.nodeProps);
+}
+
+template <>
+struct property_map<org::graph::MapGraph, vertex_bundle_t> {
+    using const_type = immer_map_property_map<
+        org::graph::MapNode,
+        org::graph::MapNodeProp>;
+    using type = const_type;
+};
+
+inline property_map<org::graph::MapGraph, vertex_bundle_t>::const_type get(
+    vertex_bundle_t,
+    org::graph::MapGraph const& g) {
+    return make_immer_map_property_map(g.nodeProps);
+}
+
+
+struct map_vertex_identity_map {
+    using key_type   = org::graph::MapNode;
+    using value_type = org::graph::MapNode;
+    using reference  = const org::graph::MapNode&;
+    using category   = boost::readable_property_map_tag;
+
+    reference operator[](key_type const& key) const { return key; }
+};
+
+map_vertex_identity_map make_map_vertex_identity_map() {
+    return map_vertex_identity_map{};
+}
+
+org::graph::MapNode get(
+    map_vertex_identity_map const& map,
+    org::graph::MapNode const&     key) {
+    return map[key];
 }
 
 

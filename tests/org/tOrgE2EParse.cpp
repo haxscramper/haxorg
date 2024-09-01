@@ -18,6 +18,8 @@
 #include <haxorg/sem/SemBaseApi.hpp>
 #include <haxorg/sem/ImmOrg.hpp>
 #include <haxorg/sem/ImmOrgGraph.hpp>
+#include <boost/graph/graphml.hpp>
+#include <boost/graph/graphviz.hpp>
 #include <fstream>
 
 struct compare_context {
@@ -1188,4 +1190,46 @@ TEST(ImmMapApi, SourceAndTarget) {
 
     EXPECT_EQ(src, g.nodes.at(0));
     EXPECT_EQ(tgt, g.nodes.at(1));
+}
+
+TEST(ImmMapApi, BoostPropertyWriter) {
+    auto                      test_g = create_test_graph();
+    auto const&               g      = test_g.g;
+    std::stringstream         os;
+    boost::dynamic_properties dp;
+
+
+    dp //
+        .property(
+            "node_id",
+            make_transform_value_property_map<std::string>(
+                [&](org::graph::MapNode const& prop) -> std::string {
+                    return fmt1(prop.id);
+                },
+                boost::make_map_vertex_identity_map()))
+        .property(
+            "splines",
+            boost::make_constant_property<org::graph::MapGraph>(
+                std::string("polyline")))
+        .property(
+            "shape",
+            boost::make_constant_property<org::graph::MapNode>(
+                std::string("rect")))
+        .property(
+            "color",
+            make_transform_value_property_map<std::string>(
+                [&](org::graph::MapNodeProp const& prop) -> std::string {
+                    return prop.unresolved.empty() ? "green" : "yellow";
+                },
+                boost::get(boost::vertex_bundle, g)))
+        .property(
+            "label",
+            make_transform_value_property_map<std::string>(
+                [&](org::graph::MapNodeProp const& prop) -> std::string {
+                    return fmt("{}", prop.id);
+                },
+                boost::get(boost::vertex_bundle, g)));
+
+
+    write_graphviz_dp(os, g, dp);
 }
