@@ -300,6 +300,7 @@ Vec<int> ParseUnitStore::getPath(ImmId id) const {
         parent = getParent(id);
     }
 
+    rv::reverse(result);
     return result;
 }
 

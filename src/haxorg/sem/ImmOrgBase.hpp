@@ -241,6 +241,9 @@ struct ImmId : ImmIdBase {
     }
 
     ImmId() : ImmIdBase{0} {};
+    static ImmId FromValue(u64 value) {
+        return ImmId{ImmIdBase::FromValue(value)};
+    }
     ImmId(ImmIdBase const& base) : ImmIdBase{base} {};
 
     ImmId(StoreIdxT storeIndex, OrgSemKind kind, NodeIdxT nodeIndex)
