@@ -721,9 +721,10 @@ EACH_SEM_ORG_KIND(forward_declare)
     __VisitorResultType)                                                  \
                                                                           \
     template <BOOST_PP_TUPLE_REM() __VisitorTemplateArgs>                 \
-    struct __VisitorTypename<__VisitorTypeSpecification> {                \
-        static __VisitorResultType visit(                                 \
-            __VisitorTypeSpecification const& arg,                        \
+    struct __VisitorTypename<BOOST_PP_TUPLE_REM()                         \
+                                 __VisitorTypeSpecification> {            \
+        static BOOST_PP_TUPLE_REM() __VisitorResultType visit(            \
+            BOOST_PP_TUPLE_REM() __VisitorTypeSpecification const& arg,   \
             BOOST_PP_TUPLE_REM() __VisitorSharedArgs);                    \
     };
 
@@ -742,9 +743,9 @@ EACH_SEM_ORG_KIND(forward_declare)
         IS_EMPTY_TUPLE(__VisitorTemplateArgs),                            \
         BOOST_PP_EMPTY(),                                                   \
         template <BOOST_PP_TUPLE_REM() __VisitorTemplateArgs>)            \
-    __VisitorResultType                                                   \
-        __VisitorTypename<__VisitorTypeSpecification>::visit(             \
-            __VisitorTypeSpecification const& arg,                        \
+    BOOST_PP_TUPLE_REM() __VisitorResultType                                                   \
+        __VisitorTypename<BOOST_PP_TUPLE_REM() __VisitorTypeSpecification>::visit(             \
+            BOOST_PP_TUPLE_REM() __VisitorTypeSpecification const& arg,                        \
             BOOST_PP_TUPLE_REM() __VisitorSharedArgs)
 // clang-format on
 
@@ -769,6 +770,22 @@ EACH_SEM_ORG_KIND(forward_declare)
         __VisitorTypeSpecification,                                       \
         __VisitorResultType)
 
+
+template <typename T>
+struct __DescFieldTypeHelper {};
+
+#define DESC_FIELD_TYPE(__field)                                          \
+    __DescFieldTypeHelper<decltype(__field.pointer)>::Type
+
+template <typename StructType, typename FieldType>
+struct __DescFieldTypeHelper<FieldType StructType::*> {
+    using Type = std::remove_cvref_t<FieldType>;
+};
+
+template <typename StructType, typename FieldType>
+struct __DescFieldTypeHelper<FieldType StructType::*const> {
+    using Type = std::remove_cvref_t<FieldType>;
+};
 
 namespace {
 struct ImmTreeReprContext {
@@ -795,31 +812,29 @@ struct ImmTreeReprVisitor<org::ImmAdapterT<T>> {
 
 #define IMM_TREE_REPR_IMPL(__TemplateArgs, __VisitorTypeSpecification)    \
     DEFINE_VISITOR_BASE_ALL(                                              \
-        ImmTreeReprVisitor /*visitor name*/,                              \
-        __TemplateArgs /*pass template*/,                                 \
-        (ColStream & os, ImmTreeReprContext const& ctx) /*shared args*/,  \
-        __VisitorTypeSpecification /*structure type specializatin*/,      \
-        void /*return type*/)
+        /*Typename=*/ImmTreeReprVisitor,                                  \
+        /*TemplateArgs=*/__TemplateArgs,                                  \
+        /*SharedArgs=*/(ColStream & os, ImmTreeReprContext const& ctx),   \
+        /*TypeSpecification=*/__VisitorTypeSpecification,                 \
+        /*ResultType=*/(void))
 
-IMM_TREE_REPR_IMPL((typename T), ImmBox<T>) {
+IMM_TREE_REPR_IMPL((typename T), (ImmBox<T>)) {
     ImmTreeReprVisitor<T>::visit(arg.get(), os, ctx);
 }
 
-IMM_TREE_REPR_IMPL((typename T), Opt<T>) {
+IMM_TREE_REPR_IMPL((typename T), (Opt<T>)) {
     if (arg) { ImmTreeReprVisitor<T>::visit(arg.value(), os, ctx); }
 }
 
-IMM_TREE_REPR_IMPL((typename T), ImmVec<T>) {
+IMM_TREE_REPR_IMPL((typename T), (ImmVec<T>)) {
     int subIdx = 0;
     for (auto const& sub : arg) {
         os << "\n";
-        os.indent(ctx.level * 2);
-        os << fmt("[{}]\n", subIdx);
         ImmTreeReprVisitor<T>::visit(sub, os, ctx.addLevel(1));
     }
 }
 
-IMM_TREE_REPR_IMPL((), org::ImmAdapter) {
+IMM_TREE_REPR_IMPL((), (org::ImmAdapter)) {
     switch (arg->getKind()) {
 #define __case(__Kind)                                                    \
     case OrgSemKind::__Kind: {                                            \
@@ -839,10 +854,28 @@ IMM_TREE_REPR_IMPL((), org::ImmAdapter) {
     }
 }
 
-IMM_TREE_REPR_IMPL((), Str) {}
-IMM_TREE_REPR_IMPL((), bool) {}
+IMM_TREE_REPR_IMPL((), (Vec<sem::SemId<sem::Org>>)) {}
+IMM_TREE_REPR_IMPL((typename T), (ImmMap<Str, T>)) {}
+IMM_TREE_REPR_IMPL((), (absl::Time)) {}
+IMM_TREE_REPR_IMPL((), (absl::TimeZone)) {}
 
-IMM_TREE_REPR_IMPL((IsVariant T), T) {
+IMM_TREE_REPR_IMPL((), (std::string)) {
+    os << fmt(" {}", escape_literal(arg));
+}
+
+IMM_TREE_REPR_IMPL((), (Str)) { os << fmt(" {}", escape_literal(arg)); }
+IMM_TREE_REPR_IMPL((), (bool)) { os << fmt(" {}", arg); }
+IMM_TREE_REPR_IMPL((), (int)) { os << fmt(" {}", arg); }
+IMM_TREE_REPR_IMPL((IsEnum E), (E)) {}
+
+IMM_TREE_REPR_IMPL((DescribedRecord R), (R)) {
+    for_each_field_with_bases<R>([&](auto const& f) {
+        using F = DESC_FIELD_TYPE(f);
+        ImmTreeReprVisitor<F>::visit(arg.*f.pointer, os, ctx);
+    });
+}
+
+IMM_TREE_REPR_IMPL((IsVariant T), (T)) {
     std::visit(
         [&]<typename V>(V const& var) {
             ImmTreeReprVisitor<V>::visit(var, os, ctx);
@@ -851,13 +884,13 @@ IMM_TREE_REPR_IMPL((IsVariant T), T) {
 }
 
 
-IMM_TREE_REPR_IMPL((), org::ImmId) {
+IMM_TREE_REPR_IMPL((), (org::ImmId)) {
     ImmTreeReprVisitor<org::ImmAdapter>::visit(
         org::ImmAdapter{arg, ctx.ctx}, os, ctx);
 }
 
 
-IMM_TREE_REPR_IMPL((typename T), org::ImmIdT<T>) {
+IMM_TREE_REPR_IMPL((typename T), (org::ImmIdT<T>)) {
     ImmTreeReprVisitor<org::ImmAdapterT<T>>::visit(
         org::ImmAdapter{arg, ctx.ctx}.as<T>(), os, ctx);
 }
