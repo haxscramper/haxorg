@@ -141,14 +141,20 @@ struct MapGraphTransient {
     NodeProps::transient_type nodeProps;
     EdgeProps::transient_type edgeProps;
     AdjList::transient_type   adjList;
+    ContextStore*             store;
+
+    MapGraphTransient(ContextStore* store) : store{store} {}
 
     MapGraph persistent();
 };
 
 struct MapGraph {
-    NodeProps nodeProps;
-    EdgeProps edgeProps;
-    AdjList   adjList;
+    NodeProps     nodeProps;
+    EdgeProps     edgeProps;
+    AdjList       adjList;
+    ContextStore* store;
+
+    MapGraph(ContextStore* store) : store{store} {}
 
     MapGraphTransient transient() const;
 
@@ -176,6 +182,11 @@ struct MapOpsConfig : OperationsTracer {
         ++activeLevel;
         return finally{[&]() { --activeLevel; }};
     }
+
+    auto scopeTrace(bool state) {
+        TraceState = state;
+        return finally{[state, this]() { TraceState = !state; }};
+    }
 };
 
 struct MapGraphState {
@@ -186,6 +197,9 @@ struct MapGraphState {
     /// \brief Loopup of the subtree targets by the subtree IDs
     ImmMap<Str, MapNode> subtreeTargets;
     MapGraph             graph;
+
+    MapGraphState(ContextStore* store) : graph{store} {}
+
     DESC_FIELDS(
         MapGraphState,
         (unresolved, footnoteTargets, subtreeTargets, graph));
@@ -197,6 +211,11 @@ MapGraphState addNode(
     MapOpsConfig&        conf);
 
 MapGraphState addNode(
+    MapGraphState const&   g,
+    org::ImmAdapter const& node,
+    MapOpsConfig&          conf);
+
+MapGraphState addNodeRec(
     MapGraphState const&   g,
     org::ImmAdapter const& node,
     MapOpsConfig&          conf);

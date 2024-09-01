@@ -800,7 +800,7 @@ TEST(ImmMapApi, AddNode) {
     auto n1 = parseNode("* subtree");
 
     org::ContextStore         store;
-    org::graph::MapGraphState s1;
+    org::graph::MapGraphState s1{&store};
     org::graph::MapOpsConfig  conf;
     conf.setTraceFile("/tmp/ImmMapApi_AddNode.txt");
     EXPECT_EQ(s1.graph.nodeCount(), 0);
@@ -840,7 +840,7 @@ Paragraph [[id:subtree-id]]
             root.treeRepr().toString(false),
             os.getBuffer().toString(false)));
 
-    org::graph::MapGraphState s1;
+    org::graph::MapGraphState s1{&store};
     auto s2 = org::graph::addNode(s1, root.at(1), conf);
     auto s3 = org::graph::addNode(s2, root.at(3), conf);
 
@@ -908,7 +908,7 @@ TEST(ImmMapApi, SubtreeBacklinks) {
             file2.treeRepr().toString(false),
             os.getBuffer().toString(false)));
 
-    org::graph::MapGraphState s1;
+    org::graph::MapGraphState s1{&store};
     auto s2 = org::graph::addNode(s1, file1.at(1), conf);
     auto s3 = org::graph::addNode(s2, file2.at(1), conf);
 
@@ -936,4 +936,124 @@ TEST(ImmMapApi, SubtreeBacklinks) {
     Graphviz gvc;
     auto     gv = s3.graph.toGraphviz();
     gvc.renderToFile("/tmp/SubtreeBacklinks.png", gv);
+}
+
+Str getFullMindMapText() {
+    Vec<Str> text{
+        R"(
+* Mind map nodes are made from subtrees
+)",
+        R"(
+** Subtrees can be nested for clustering
+   :PROPERTIES:
+   :ID:       c468e9c7-7422-4b17-8ccb-53575f186fe0
+   :END:
+)",
+        R"(
+** More than one subtree can exist in cluster
+)",
+        R"(
+Tree  description, maybe  on multiple  lines.
+Can include  [[id:c468e9c7-7422-4b17-8ccb-53575f186fe0][links]] to  other trees.
+Links are attached to specific [[id:6d6d6689-d9da-418d-9f91-1c8c4428e5af][rows]] in the text
+so it is easier to track which part of the
+description refers to the [[id:9879fed7-f0a4-44bd-bf56-983279afc622][other]] tree
+)",
+        R"(- )",
+        R"(when [[id:c468e9c7-7422-4b17-8ccb-53575f186fe0][link]] :: Description lists can be used for annotated links
+
+)",
+        R"(  Multiple paragraphs attached to link
+)",
+        R"(
+used in description list it's placed as annotation to the graph node.
+Description can take multiple lines[fn:lines-20].
+)",
+        R"(
+[fn:lines-20]  Footnotes  are placed  into  separate  nodes. You  can  have
+nested[fn:nested-23]
+)",
+        R"(
+[fn:nested-23] footnotes
+)",
+        R"(
+** Extra entries
+   :PROPERTIES:
+   :ID:       6d6d6689-d9da-418d-9f91-1c8c4428e5af
+   :END:
+)",
+        R"(
+Parent subtrees can contain some things.
+)",
+        R"(
+* Several clusters can exist
+)",
+        R"(
+Nested subtrees
+Multiline [[id:6d6d6689-d9da-418d-9f91-1c8c4428e5af][Extra entries]]
+)",
+        R"(
+** With multiple nodes
+   :PROPERTIES:
+   :ID:       9879fed7-f0a4-44bd-bf56-983279afc622
+   :END:
+)",
+        R"(
+** And even nested
+)",
+        R"(
+*** Clusters
+)",
+        R"(
+*** And nodes
+)",
+        R"(
+*** Intercluster links are possible
+)",
+        R"(
+[[id:c468e9c7-7422-4b17-8ccb-53575f186fe0][Annotation for the target subtree]]
+[[id:XXSDASD][Unresolved subtree]]
+)",
+        "- ",
+        "Regular list element\n",
+        "- ",
+        "Two items in a list\n",
+    };
+    return join("", text);
+}
+
+using osk = OrgSemKind;
+
+TEST(ImmMapApi, SubtreeFullMap) {
+    auto n = parseNode(getFullMindMapText());
+
+    org::ContextStore         store;
+    org::graph::MapOpsConfig  conf;
+    org::ImmAdapter           file{store.add(0, n), &store};
+    org::graph::MapGraphState s1{&store};
+
+    ColStream os;
+    store.format(os);
+    writeFile(
+        "/tmp/SubtreeFullMap_repr.txt",
+        fmt("tree:\n{}\nbuffer:\n{}",
+            file.treeRepr().toString(false),
+            os.getBuffer().toString(false)));
+
+
+    EXPECT_EQ(file.at(1)->getKind(), osk::Subtree);
+    EXPECT_EQ(file.at({1, 0})->getKind(), osk::Subtree);
+    EXPECT_EQ(
+        file.at({1, 0}).as<org::ImmSubtree>()->treeId->value(),
+        "c468e9c7-7422-4b17-8ccb-53575f186fe0");
+
+
+    conf.setTraceFile("/tmp/SubtreeFullMap_log.txt");
+
+    auto s2 = org::graph::addNodeRec(s1, file, conf);
+
+    Graphviz gvc;
+    auto     gv = s2.graph.toGraphviz();
+    gv.setRankDirection(Graphviz::Graph::RankDirection::LR);
+    gvc.renderToFile("/tmp/SubtreeFullMap.png", gv);
 }

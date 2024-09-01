@@ -3,6 +3,7 @@
 #include <hstd/stdlib/Ranges.hpp>
 #include <immer/set_transient.hpp>
 #include <immer/vector_transient.hpp>
+#include <haxorg/exporters/ExporterUltraplain.hpp>
 
 using namespace org::graph;
 using osk = OrgSemKind;
@@ -358,7 +359,7 @@ Opt<MapNodeProp> org::graph::getUnresolvedNodeInsert(
                         // mind map.
                         if (link->getLinkKind() != slk::Raw) {
                             MapLink map_link{.link = link};
-                            for (auto const& sub : item) {
+                            for (auto const& sub : item.sub()) {
                                 map_link.description.push_back(sub);
                             }
                             result.unresolved.push_back(map_link);
@@ -424,19 +425,23 @@ Opt<MapNodeProp> org::graph::getUnresolvedNodeInsert(
 }
 
 MapGraph org::graph::MapGraphTransient::persistent() {
-    return MapGraph{
-        .adjList   = adjList.persistent(),
-        .edgeProps = edgeProps.persistent(),
-        .nodeProps = nodeProps.persistent(),
-    };
+    auto result = MapGraph{store};
+
+    result.adjList   = adjList.persistent();
+    result.edgeProps = edgeProps.persistent();
+    result.nodeProps = nodeProps.persistent();
+
+    return result;
 }
 
 MapGraphTransient org::graph::MapGraph::transient() const {
-    return MapGraphTransient{
-        .nodeProps = nodeProps.transient(),
-        .edgeProps = edgeProps.transient(),
-        .adjList   = adjList.transient(),
-    };
+    auto result = MapGraphTransient{store};
+
+    result.nodeProps = nodeProps.transient();
+    result.edgeProps = edgeProps.transient();
+    result.adjList   = adjList.transient();
+
+    return result;
 }
 
 Opt<MapLinkResolveResult> org::graph::getResolveTarget(
@@ -619,10 +624,67 @@ Graphviz::Graph MapGraph::toGraphviz() const {
         node.startRecord();
         auto rec = node.getNodeRecord();
         rec->push_back(Record{{Record{"ID"}, Record{fmt1(it.id)}}});
-        rec->push_back(Record{{Record{"ID"}, Record{fmt1(it.id)}}});
+        rec->push_back(
+            Record{{Record{"Path"}, Record{fmt1(store->getPath(it.id))}}});
+        rec->push_back(Record{{Record{"Kind"}, Record{fmt1(prop.kind)}}});
+
+        for (auto const& [idx, unresolved] : enumerate(prop.unresolved)) {
+            rec->push_back(Record{
+                {Record{fmt("Unresolved [{}]", idx)},
+                 Record{fmt1(unresolved.link)}}});
+        }
+
+        switch (prop.kind) {
+            case MapNodeProp::Kind::Subtree: {
+                break;
+            }
+            default: {
+            }
+        }
 
         node.finishRecord();
     }
+
+    return res;
+}
+
+MapGraphState org::graph::addNodeRec(
+    const MapGraphState&   g,
+    const org::ImmAdapter& node,
+    MapOpsConfig&          conf) {
+    auto                               res = g;
+    Func<void(org::ImmAdapter const&)> aux;
+    aux = [&](org::ImmAdapter const& node) {
+        conf.message(fmt("recursive add {}", node), conf.activeLevel);
+        auto __tmp = conf.scopeLevel();
+        switch (node->getKind()) {
+            case osk::Document:
+            case osk::ListItem:
+            case osk::List: {
+                for (auto const& it : node) { aux(it); }
+                break;
+            }
+            case osk::Paragraph: {
+                {
+                    auto __add = conf.scopeTrace(false);
+                    res        = addNode(res, node, conf);
+                }
+                break;
+            }
+            case osk::Subtree: {
+                {
+                    auto __add = conf.scopeTrace(false);
+                    res        = addNode(res, node, conf);
+                }
+                for (auto const& it : node) { aux(it); }
+                break;
+            }
+            default: {
+            }
+        }
+    };
+
+    aux(node);
 
     return res;
 }

@@ -281,6 +281,38 @@ void ParseUnitStore::format(ColStream& os, const std::string& prefix)
 #undef _kind
 }
 
+Vec<int> ParseUnitStore::getPath(ImmId id) const {
+    Vec<int>   result;
+    Opt<ImmId> parent = getParent(id);
+    while (parent) {
+        int selfIndex = -1;
+        int idx       = 0;
+        for (auto const& it : at(*parent)->subnodes) {
+            if (it == id) {
+                selfIndex = idx;
+                break;
+            }
+            ++idx;
+        }
+        logic_assertion_check(selfIndex != -1, "");
+        result.push_back(selfIndex);
+        id     = parent.value();
+        parent = getParent(id);
+    }
+
+    return result;
+}
+
+Vec<ImmId> ParseUnitStore::getParentChain(ImmId id, bool withSelf) const {
+    Vec<ImmId> result;
+    Opt<ImmId> tmp = id;
+    while (tmp) {
+        if (withSelf || tmp != id) { result.push_back(tmp.value()); }
+        tmp = getParent(tmp.value());
+    }
+    return result;
+}
+
 
 void ContextStore::format(ColStream& os, const std::string& prefix) const {
     for (auto const& it : enumerator(stores)) {
@@ -795,8 +827,17 @@ struct __DescFieldTypeHelper<FieldType StructType::*const> {
 
 namespace {
 struct ImmTreeReprContext {
-    int                level;
-    ContextStore*      ctx;
+    int                           level;
+    Vec<int>                      path;
+    org::ImmAdapter::TreeReprConf conf;
+    ContextStore*                 ctx;
+
+    ImmTreeReprContext addPath(int diff) const {
+        ImmTreeReprContext result = *this;
+        result.path.push_back(diff);
+        return result;
+    }
+
     ImmTreeReprContext addLevel(int diff) const {
         ImmTreeReprContext result = *this;
         result.level += diff;
@@ -866,12 +907,21 @@ IMM_TREE_REPR_IMPL((), (absl::Time)) {}
 IMM_TREE_REPR_IMPL((), (absl::TimeZone)) {}
 
 IMM_TREE_REPR_IMPL((), (std::string)) {
-    os << fmt(" {}", escape_literal(arg));
+    os << os.indent(ctx.level * 2) << fmt(" {}", escape_literal(arg));
 }
 
-IMM_TREE_REPR_IMPL((), (Str)) { os << fmt(" {}", escape_literal(arg)); }
-IMM_TREE_REPR_IMPL((), (bool)) { os << fmt(" {}", arg); }
-IMM_TREE_REPR_IMPL((), (int)) { os << fmt(" {}", arg); }
+IMM_TREE_REPR_IMPL((), (Str)) {
+    os << os.indent(ctx.level * 2) << fmt(" {}", escape_literal(arg));
+}
+
+IMM_TREE_REPR_IMPL((), (bool)) {
+    os << os.indent(ctx.level * 2) << fmt(" {}", arg);
+}
+
+IMM_TREE_REPR_IMPL((), (int)) {
+    os << os.indent(ctx.level * 2) << fmt(" {}", arg);
+}
+
 IMM_TREE_REPR_IMPL((IsEnum E), (E)) {}
 
 IMM_TREE_REPR_IMPL((DescribedRecord R), (R)) {
@@ -907,16 +957,32 @@ void ImmTreeReprVisitor<org::ImmAdapterT<T>>::visit(
     ColStream&                os,
     ImmTreeReprContext const& ctx) {
     os.indent(ctx.level * 2);
-    os << fmt("{} {}", id->getKind(), id.id.getReadableId());
+    os << fmt(
+        "{} {} PATH:{}", id->getKind(), id.id.getReadableId(), ctx.path);
 
     for_each_field_with_bases<T>([&](auto const& f) {
-        using FieldType = std::remove_cvref_t<
-            decltype(id.get()->*f.pointer)>;
-        os << "\n";
-        os.indent((ctx.level + 1) * 2);
-        os << f.name;
-        ImmTreeReprVisitor<FieldType>::visit(
-            id.get()->*f.pointer, os, ctx.addLevel(1));
+        auto const& fieldValue = id.get()->*f.pointer;
+        using FieldType        = std::remove_cvref_t<decltype(fieldValue)>;
+        auto subctx            = ctx.addLevel(1);
+        if (f.name == "subnodes"_ss) {
+            if constexpr (std::is_same_v<ImmVec<org::ImmId>, FieldType>) {
+                for (int i = 0; i < fieldValue.size(); ++i) {
+                    os << "\n";
+                    ImmTreeReprVisitor<typename FieldType::value_type>::
+                        visit(fieldValue.at(i), os, subctx.addPath(i));
+                }
+            } else {
+                throw logic_unreachable_error::init(
+                    "subnodes field is a vector of imm ID");
+            }
+        } else if (ctx.conf.withAuxFields) {
+            os << "\n";
+            os.indent((ctx.level + 1) * 2);
+            os << f.name;
+            os << "\n";
+            ImmTreeReprVisitor<FieldType>::visit(
+                fieldValue, os, subctx.addLevel(1));
+        }
     });
 }
 
@@ -928,6 +994,7 @@ void ImmAdapter::treeRepr(ColStream& os, const TreeReprConf& conf) const {
         *this,
         os,
         ImmTreeReprContext{
+            .conf  = conf,
             .level = 0,
             .ctx   = this->ctx,
         });

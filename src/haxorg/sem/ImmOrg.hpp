@@ -63,19 +63,10 @@ struct ParseUnitStore {
     {
     }
 
-    void format(ColStream& os, std::string const& prefix = "") const;
-
+    void       format(ColStream& os, std::string const& prefix = "") const;
     Opt<ImmId> getParent(ImmId id) const { return parents.get(id); }
-
-    Vec<ImmId> getParentChain(ImmId id, bool withSelf = true) const {
-        Vec<ImmId> result;
-        Opt<ImmId> tmp = id;
-        while (tmp) {
-            if (withSelf || tmp != id) { result.push_back(tmp.value()); }
-            tmp = getParent(tmp.value());
-        }
-        return result;
-    }
+    Vec<int>   getPath(ImmId id) const;
+    Vec<ImmId> getParentChain(ImmId id, bool withSelf = true) const;
 
     ImmOrg const* at(ImmId index) const;
     ImmId         add(
@@ -102,6 +93,10 @@ struct ContextStore {
 
     ParseUnitStore const& getStoreByIndex(ImmId id) const {
         return getStoreByIndex(id.getStoreIndex());
+    }
+
+    Vec<int> getPath(ImmId id) const {
+        return getStoreByIndex(id).getPath(id);
     }
 
     Vec<ImmId> getParentChain(ImmId id, bool withSelf = true) const {
@@ -162,7 +157,7 @@ struct ImmAdapter {
         }
 
         void check() const {
-            if (!(!id.isNil() && id.getIndex() < ctx->at(id)->size())) {
+            if (!(!id.isNil() && idx < ctx->at(id)->size())) {
                 throw logic_assertion_error::init(
                     fmt("Check node id iterator {} < {}",
                         idx,
@@ -180,8 +175,9 @@ struct ImmAdapter {
         }
     };
 
+    int      size() const { return ctx->at(id)->subnodes.size(); }
     iterator begin() const { return iterator(id, ctx); }
-    iterator end() const { return iterator(id, ctx); }
+    iterator end() const { return iterator(id, ctx, size()); }
     bool     isNil() const { return id.isNil(); }
 
     ImmAdapter(ImmId id, ContextStore* ctx) : id{id}, ctx{ctx} {}
@@ -190,7 +186,8 @@ struct ImmAdapter {
     ImmAdapter pass(ImmId id) const { return ImmAdapter(id, ctx); }
 
     struct TreeReprConf {
-        int maxDepth = 40;
+        int  maxDepth      = 40;
+        bool withAuxFields = false;
 
         static TreeReprConf getDefault() { return TreeReprConf{}; }
     };
@@ -232,6 +229,12 @@ struct ImmAdapter {
     ImmOrg const* operator->() const { return get(); }
     ImmAdapter    at(int idx) const {
         return ImmAdapter(ctx->at(id)->subnodes.at(idx), ctx);
+    }
+
+    ImmAdapter at(Vec<int> const& path) const {
+        auto res = *this;
+        for (int idx : path) { res = res.at(idx); }
+        return res;
     }
 
     bool is(OrgSemKind kind) const { return get()->is(kind); }
