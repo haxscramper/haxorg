@@ -425,7 +425,7 @@ Opt<MapNodeProp> org::graph::getUnresolvedNodeInsert(
 }
 
 MapGraph org::graph::MapGraphTransient::persistent() {
-    auto result = MapGraph{store};
+    auto result = MapGraph{};
 
     result.adjList   = adjList.persistent();
     result.edgeProps = edgeProps.persistent();
@@ -435,7 +435,7 @@ MapGraph org::graph::MapGraphTransient::persistent() {
 }
 
 MapGraphTransient org::graph::MapGraph::transient() const {
-    auto result = MapGraphTransient{store};
+    auto result = MapGraphTransient{};
 
     result.nodeProps = nodeProps.transient();
     result.edgeProps = edgeProps.transient();
@@ -602,7 +602,7 @@ MapGraphState org::graph::addNode(
     }
 }
 
-Graphviz::Graph MapGraph::toGraphviz() const {
+Graphviz::Graph MapGraph::toGraphviz(org::ImmAstContext const& ctx) const {
     Graphviz::Graph                       res{"g"_ss};
     UnorderedMap<MapNode, Graphviz::Node> gvNodes;
     UnorderedMap<MapEdge, Graphviz::Edge> gvEdges;
@@ -632,7 +632,7 @@ Graphviz::Graph MapGraph::toGraphviz() const {
 
         add_field(Record{{
             Record{left_aligned("Path", 16)},
-            Record{join("/", store->getPath(it.id))},
+            Record{join("/", ctx.getPath(it.id))},
         }});
 
         add_field(Record{{

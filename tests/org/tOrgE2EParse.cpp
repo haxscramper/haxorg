@@ -820,18 +820,18 @@ TEST(ImmMapApi, AddNode) {
     auto n1 = parseNode("* subtree");
 
     org::ImmAstContext        store;
-    org::graph::MapGraphState s1{&store};
+    org::graph::MapGraphState s1{};
     org::graph::MapOpsConfig  conf;
     conf.setTraceFile("/tmp/ImmMapApi_AddNode.txt");
     EXPECT_EQ(s1.graph.nodeCount(), 0);
-    auto s2 = org::graph::addNode(
-        s1, org::ImmAdapter{store.add(n1), &store}, conf);
+    auto [store2, root] = store.addRoot(n1);
+    auto s2 = org::graph::addNode(s1, org::ImmAdapter{root, &store}, conf);
     EXPECT_EQ(s2.graph.nodeCount(), 1);
 
     writeFile("/tmp/MapS2.json", to_json_eval(s2).dump(2));
 
     Graphviz gvc;
-    auto     gv = s2.graph.toGraphviz();
+    auto     gv = s2.graph.toGraphviz(store2);
     gvc.renderToFile("/tmp/MapS2.png", gv);
 }
 
@@ -850,7 +850,8 @@ Paragraph [[id:subtree-id]]
     org::ImmAstContext       store;
     org::graph::MapOpsConfig conf;
     conf.setTraceFile("/tmp/AddNodeWithLinks_log.txt");
-    org::ImmAdapter root{store.add(n1), &store};
+    auto [store2, root_node] = store.addRoot(n1);
+    org::ImmAdapter root{root_node, &store};
 
     ColStream os;
     store.format(os);
@@ -860,7 +861,7 @@ Paragraph [[id:subtree-id]]
             root.treeRepr().toString(false),
             os.getBuffer().toString(false)));
 
-    org::graph::MapGraphState s1{&store};
+    org::graph::MapGraphState s1{};
     auto s2 = org::graph::addNode(s1, root.at(1), conf);
     auto s3 = org::graph::addNode(s2, root.at(3), conf);
 
@@ -886,7 +887,7 @@ Paragraph [[id:subtree-id]]
             .dump(2));
 
     Graphviz gvc;
-    auto     gv = s3.graph.toGraphviz();
+    auto     gv = s3.graph.toGraphviz(store2);
     gvc.renderToFile("/tmp/AddNodeWithLinks.png", gv);
 }
 
@@ -916,8 +917,12 @@ TEST(ImmMapApi, SubtreeBacklinks) {
     org::ImmAstContext       store;
     org::graph::MapOpsConfig conf;
     conf.setTraceFile("/tmp/SubtreeBacklinks_log.txt");
-    org::ImmAdapter file1{store.add(n1), &store};
-    org::ImmAdapter file2{store.add(n2), &store};
+
+    auto [store2, root_1] = store.addRoot(n1);
+    auto [store3, root_2] = store2.addRoot(n2);
+
+    org::ImmAdapter file1{root_1, &store};
+    org::ImmAdapter file2{root_2, &store};
 
     ColStream os;
     store.format(os);
@@ -928,7 +933,7 @@ TEST(ImmMapApi, SubtreeBacklinks) {
             file2.treeRepr().toString(false),
             os.getBuffer().toString(false)));
 
-    org::graph::MapGraphState s1{&store};
+    org::graph::MapGraphState s1{};
     auto s2 = org::graph::addNode(s1, file1.at(1), conf);
     auto s3 = org::graph::addNode(s2, file2.at(1), conf);
 
@@ -954,7 +959,7 @@ TEST(ImmMapApi, SubtreeBacklinks) {
             .dump(2));
 
     Graphviz gvc;
-    auto     gv = s3.graph.toGraphviz();
+    auto     gv = s3.graph.toGraphviz(store3);
     gvc.renderToFile("/tmp/SubtreeBacklinks.png", gv);
 }
 
@@ -1047,10 +1052,11 @@ using osk = OrgSemKind;
 TEST(ImmMapApi, SubtreeFullMap) {
     auto n = parseNode(getFullMindMapText());
 
-    org::ImmAstContext        store;
-    org::graph::MapOpsConfig  conf;
-    org::ImmAdapter           file{store.add(n), &store};
-    org::graph::MapGraphState s1{&store};
+    org::ImmAstContext       store;
+    org::graph::MapOpsConfig conf;
+    auto [store2, root1] = store.addRoot(n);
+    org::ImmAdapter           file{root1, &store};
+    org::graph::MapGraphState s1{};
 
     ColStream os;
     store.format(os);
@@ -1084,7 +1090,7 @@ TEST(ImmMapApi, SubtreeFullMap) {
     EXPECT_TRUE(s2.graph.hasEdge(node_p110, node_s10));
 
     Graphviz gvc;
-    auto     gv = s2.graph.toGraphviz();
+    auto     gv = s2.graph.toGraphviz(store2);
     gv.setRankDirection(Graphviz::Graph::RankDirection::LR);
     gvc.writeFile("/tmp/SubtreeFullMap.dot", gv);
     gvc.renderToFile("/tmp/SubtreeFullMap.png", gv);
@@ -1096,7 +1102,7 @@ struct TestGraph {
 };
 
 TestGraph create_test_graph() {
-    org::graph::MapGraph g{nullptr};
+    org::graph::MapGraph g{};
 
     auto n0 = org::ImmId::FromValue(0);
     auto n1 = org::ImmId::FromValue(1);
@@ -1213,10 +1219,11 @@ TEST(ImmMapApi, SourceAndTarget) {
 TEST(ImmMapApi, BoostPropertyWriter) {
     auto n = parseNode(getFullMindMapText());
 
-    org::ImmAstContext        store;
-    org::graph::MapOpsConfig  conf;
-    org::ImmAdapter           file{store.add(n), &store};
-    org::graph::MapGraphState s1{&store};
+    org::ImmAstContext       store;
+    org::graph::MapOpsConfig conf;
+    auto [store2, root1] = store.addRoot(n);
+    org::ImmAdapter           file{root1, &store};
+    org::graph::MapGraphState s1{};
     auto                      s2 = org::graph::addNodeRec(s1, file, conf);
 
     std::stringstream os;

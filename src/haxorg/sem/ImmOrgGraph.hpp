@@ -149,20 +149,13 @@ struct MapGraphTransient {
     NodeProps::transient_type nodeProps;
     EdgeProps::transient_type edgeProps;
     AdjList::transient_type   adjList;
-    ImmAstContext*             store;
-
-    MapGraphTransient(ImmAstContext* store) : store{store} {}
-
-    MapGraph persistent();
+    MapGraph                  persistent();
 };
 
 struct MapGraph {
-    NodeProps     nodeProps;
-    EdgeProps     edgeProps;
-    AdjList       adjList;
-    ImmAstContext* store;
-
-    MapGraph(ImmAstContext* store) : store{store} {}
+    NodeProps nodeProps;
+    EdgeProps edgeProps;
+    AdjList   adjList;
 
     MapGraphTransient transient() const;
 
@@ -188,7 +181,7 @@ struct MapGraph {
     }
 
 
-    Graphviz::Graph toGraphviz() const;
+    Graphviz::Graph toGraphviz(const ImmAstContext &ctx) const;
 
     DESC_FIELDS(MapGraph, (nodeProps, edgeProps, adjList));
 };
@@ -218,7 +211,7 @@ struct MapGraphState {
     ImmMap<Str, MapNode> subtreeTargets;
     MapGraph             graph;
 
-    MapGraphState(ImmAstContext* store) : graph{store} {}
+    MapGraphState() {}
 
     DESC_FIELDS(
         MapGraphState,
