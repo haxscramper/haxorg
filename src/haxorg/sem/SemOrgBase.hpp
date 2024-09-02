@@ -302,3 +302,4 @@ struct std::formatter<sem::SemId<T>> : std::formatter<std::string> {
         }
     }
 };
+

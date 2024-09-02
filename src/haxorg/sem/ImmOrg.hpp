@@ -14,6 +14,18 @@
     };
 
 EACH_SEM_ORG_KIND(_declare_hash)
+#undef _declare_hash
+
+
+#define _declare_hash(__parent, __qual, _)                                \
+    template <>                                                           \
+    struct std::hash<org::Imm##__parent::__qual> {                        \
+        std::size_t operator()(                                           \
+            org::Imm##__parent::__qual const& it) const noexcept;         \
+    };
+
+EACH_SEM_ORG_RECORD_NESTED(_declare_hash)
+#undef _declare_hash
 
 
 namespace org {
@@ -39,6 +51,8 @@ struct KindStore {
            ImmId::StoreIdxT     selfIndex,
            sem::SemId<sem::Org> data,
            ContextStore*        context);
+
+    sem::SemId<sem::Org> get(org::ImmId id, ContextStore* context);
 };
 
 #define __id(I) , org::KindStore<org::Imm##I>*
@@ -74,6 +88,8 @@ struct ParseUnitStore {
                 sem::SemId<sem::Org> data,
                 ContextStore*        context);
 
+    sem::SemId<sem::Org> get(org::ImmId id, ContextStore* context);
+
     using StoreVisitor = Func<
         void(ImmId::StoreIdxT selfIndex, OrgKindStorePtrVariant store)>;
 };
@@ -108,6 +124,7 @@ struct ContextStore {
     /// \brief Create new sem node of the specified kind in the local store
     /// with `index`
     ImmId add(ImmId::StoreIdxT index, sem::SemId<sem::Org> data);
+    sem::SemId<sem::Org> get(org::ImmId id);
 
     ImmOrg const* at(ImmId id) const;
 

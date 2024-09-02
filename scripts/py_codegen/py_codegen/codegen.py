@@ -170,12 +170,26 @@ def get_imm_serde(types: List[GenTuStruct], ast: ASTBuilder) -> List[GenTuPass]:
                     )
                 ]
 
+                reader_body: List[BlockId] = [
+                    ast.line(
+                        ast.Type(sem_type),
+                        ast.string(" result = "),
+                        ast.CallStatic(
+                            typ=QualType(name="SerdeDefaultProvider",
+                                          Parameters=[sem_type]),
+                            opc="get",
+                        ),
+                        ast.string(";"),
+                    )
+                ]
+
+
                 def field_aux(sub: GenTuStruct):
                     for field in sub.fields:
                         if not field.isStatic:
                             writer_body.append(
                                 ast.Call(
-                                    func=ast.string("copy_field"),
+                                    func=ast.string("assign_immer_field"),
                                     Args=[
                                         ast.string(f"result.{field.name}"),
                                         ast.string(f"value.{field.name}"),
@@ -183,6 +197,18 @@ def get_imm_serde(types: List[GenTuStruct], ast: ASTBuilder) -> List[GenTuPass]:
                                     ],
                                     Stmt=True,
                                 ))
+
+                            reader_body.append(
+                                ast.Call(
+                                    func=ast.string("assign_sem_field"),
+                                    Args=[
+                                        ast.string(f"result.{field.name}"),
+                                        ast.string(f"value.{field.name}"),
+                                        ast.string("ctx"),
+                                    ],
+                                    Stmt=True,
+                                ))
+                            
 
                     for base in sub.bases:
                         assert sub.name.name != base.name, f"{sub.name} ->>>> {base}"
@@ -195,6 +221,7 @@ def get_imm_serde(types: List[GenTuStruct], ast: ASTBuilder) -> List[GenTuPass]:
                 field_aux(it)
 
                 writer_body.append(ast.Return(ast.string("result")))
+                reader_body.append(ast.Return(ast.string("result")))
 
                 writer = MethodDeclParams(
                     Params=FunctionParams(
@@ -211,11 +238,26 @@ def get_imm_serde(types: List[GenTuStruct], ast: ASTBuilder) -> List[GenTuPass]:
                     isStatic=True,
                 )
 
+                reader = MethodDeclParams(
+                    Params=FunctionParams(
+                        Name="from_immer",
+                        ResultTy=sem_type,
+                        Args=[
+                            ParmVarParams(name="value", type=imm_type.asConstRef()),
+                            ParmVarParams(name="ctx",
+                                          type=QualType(name="AddContext").asConstRef()),
+                        ],
+                        Body=reader_body,
+                        AllowOneLine=False,
+                    ),
+                    isStatic=True,
+                )
+
                 rec = RecordParams(
                     name="ImmSemSerde",
                     NameParams=[sem_type, imm_type],
                     Template=TemplateParams(Stacks=[TemplateGroup(Params=[])]),
-                    members=[writer],
+                    members=[writer, reader],
                 )
 
                 serde.append(GenTuPass(ast.Record(rec)))
