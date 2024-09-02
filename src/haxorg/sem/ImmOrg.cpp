@@ -75,11 +75,10 @@ EACH_SEM_ORG_RECORD(_eq_method)
 #undef _eq_method
 
 
-
 using namespace org;
 
 
-const ImmOrg* ParseUnitStore::at(ImmId index) const {
+const ImmOrg* ImmAstStore::at(ImmId index) const {
     switch (index.getKind()) {
 
 #define _case(__Kind)                                                     \
@@ -105,7 +104,7 @@ void eachSubnodeRecImpl(
     CR<org::SubnodeVisitor> visitor,
     ImmId                   org,
     bool                    originalBase,
-    org::ContextStore*      ctx);
+    org::ImmAstContext*     ctx);
 
 template <typename T>
 struct Visitor {};
@@ -117,7 +116,7 @@ struct Visitor {};
         static void visitField(                                           \
             CR<org::SubnodeVisitor> visitor,                              \
             __Type const&           tmp,                                  \
-            org::ContextStore*      ctx) {}                                    \
+            org::ImmAstContext*     ctx) {}                                   \
     };
 
 placeholder_visitor(Str);
@@ -138,7 +137,7 @@ struct Visitor<T> {
     static void visitField(
         CR<org::SubnodeVisitor> visitor,
         T const&                tree,
-        org::ContextStore*      ctx) {}
+        org::ImmAstContext*     ctx) {}
 };
 
 template <typename T>
@@ -146,7 +145,7 @@ struct Visitor<ImmIdT<T>> {
     static void visitField(
         CR<org::SubnodeVisitor> visitor,
         ImmIdT<T>               tree,
-        org::ContextStore*      ctx) {
+        org::ImmAstContext*     ctx) {
 
         if (tree.isNil()) { return; }
         visitor(ImmAdapter{tree.toId(), ctx});
@@ -164,7 +163,7 @@ struct Visitor<T> {
     static void visitField(
         CR<org::SubnodeVisitor> visitor,
         T const&                obj,
-        org::ContextStore*      ctx) {
+        org::ImmAstContext*     ctx) {
         for_each_field_with_bases<T>([&](auto const& field) {
             Visitor<std::remove_cvref_t<decltype(obj.*field.pointer)>>::
                 visitField(visitor, obj.*field.pointer, ctx);
@@ -178,7 +177,7 @@ struct Visitor<ImmId> {
     static void visitField(
         CR<org::SubnodeVisitor> visitor,
         ImmId                   org,
-        org::ContextStore*      ctx) {
+        org::ImmAstContext*     ctx) {
         switch (ctx->at(org)->getKind()) {
 
 
@@ -200,7 +199,7 @@ struct Visitor<T> {
     static void visitField(
         CR<org::SubnodeVisitor> visitor,
         CR<T>                   node,
-        org::ContextStore*      ctx) {
+        org::ImmAstContext*     ctx) {
         Visitor<ImmId>::visitField(visitor, node.asOrg(), ctx);
     }
 };
@@ -210,7 +209,7 @@ struct Visitor<T> {
     static void visitField(
         CR<org::SubnodeVisitor> visitor,
         CR<T>                   node,
-        org::ContextStore*      ctx) {
+        org::ImmAstContext*     ctx) {
         std::visit(
             [&](auto const& it) {
                 Visitor<std::remove_cvref_t<decltype(it)>>::visitField(
@@ -226,7 +225,7 @@ struct Visitor<ImmVec<T>> {
     static void visitField(
         CR<org::SubnodeVisitor> visitor,
         ImmVec<T> const&        value,
-        org::ContextStore*      ctx) {
+        org::ImmAstContext*     ctx) {
         for (const auto& it : value) {
             Visitor<T>::visitField(visitor, it, ctx);
         }
@@ -238,7 +237,7 @@ struct Visitor<ImmMap<K, V>> {
     static void visitField(
         CR<org::SubnodeVisitor> visitor,
         ImmMap<K, V> const&     value,
-        org::ContextStore*      ctx) {
+        org::ImmAstContext*     ctx) {
         for (const auto& [key, value] : value) {
             Visitor<V>::visitField(visitor, value, ctx);
         }
@@ -251,7 +250,7 @@ struct Visitor<ImmBox<T>> {
     static void visitField(
         CR<org::SubnodeVisitor> visitor,
         CR<ImmBox<T>>           value,
-        org::ContextStore*      ctx) {
+        org::ImmAstContext*     ctx) {
         Visitor<T>::visitField(visitor, value.get(), ctx);
     }
 };
@@ -261,7 +260,7 @@ struct Visitor<Opt<T>> {
     static void visitField(
         CR<org::SubnodeVisitor> visitor,
         CR<Opt<T>>              value,
-        org::ContextStore*      ctx) {
+        org::ImmAstContext*     ctx) {
         if (value) { Visitor<T>::visitField(visitor, *value, ctx); }
     }
 };
@@ -353,7 +352,7 @@ struct ImmTreeReprContext {
     int                           level;
     Vec<int>                      path;
     org::ImmAdapter::TreeReprConf conf;
-    ContextStore*                 ctx;
+    ImmAstContext*                ctx;
 
     ImmTreeReprContext addPath(int diff) const {
         ImmTreeReprContext result = *this;

@@ -11,17 +11,17 @@ struct store_error : CRTP_hexception<store_error> {};
 
 #define _kind(__Kind)                                                     \
     template <>                                                           \
-    KindStore<Imm##__Kind>* ParseUnitStore::getStore() {                  \
+    ImmAstKindStore<Imm##__Kind>* ImmAstStore::getStore() {               \
         return &store##__Kind;                                            \
     }
 EACH_SEM_ORG_KIND(_kind)
 #undef _kind
 
 
-ImmId ParseUnitStore::setSubnodes(
-    ImmId         target,
-    ImmVec<ImmId> subnodes,
-    ContextStore* ctx) {
+ImmId ImmAstStore::setSubnodes(
+    ImmId          target,
+    ImmVec<ImmId>  subnodes,
+    ImmAstContext* ctx) {
     logic_assertion_check(
         !target.isNil(), "cannot set subnodes to nil node");
     org::ImmId result_node = org::ImmId::Nil();
@@ -50,10 +50,10 @@ ImmId ParseUnitStore::setSubnodes(
     return result_node;
 }
 
-Vec<ImmId> ParseUnitStore::cascadeUpdate(
-    ImmId         originalNode,
-    ImmId         updatedNode,
-    ContextStore* ctx) {
+Vec<ImmId> ImmAstStore::cascadeUpdate(
+    ImmId          originalNode,
+    ImmId          updatedNode,
+    ImmAstContext* ctx) {
     auto originalParent = getParent(originalNode);
     auto updatedParent  = getParent(updatedNode);
 
@@ -64,10 +64,10 @@ Vec<ImmId> ParseUnitStore::cascadeUpdate(
 }
 
 
-ImmId ParseUnitStore::add(
+ImmId ImmAstStore::add(
     ImmId::StoreIdxT     selfIndex,
     sem::SemId<sem::Org> data,
-    ContextStore*        context) {
+    ImmAstContext*       context) {
     org::ImmId result = org::ImmId::Nil();
 
     switch (data->getKind()) {
@@ -93,7 +93,7 @@ ImmId ParseUnitStore::add(
     }
 }
 
-sem::SemId<sem::Org> ParseUnitStore::get(ImmId id, ContextStore* context) {
+sem::SemId<sem::Org> ImmAstStore::get(ImmId id, ImmAstContext* context) {
     sem::SemId<sem::Org> result;
     switch (id.getKind()) {
 #define _case(__Kind)                                                     \
@@ -114,7 +114,7 @@ sem::SemId<sem::Org> ParseUnitStore::get(ImmId id, ContextStore* context) {
     return result;
 }
 
-const ImmOrg* ContextStore::at(ImmId id) const {
+const ImmOrg* ImmAstContext::at(ImmId id) const {
     logic_assertion_check(
         id.getStoreIndex() == 0, "{}", id.getStoreIndex());
     u64 kind     = static_cast<u64>(id.getKind());
@@ -137,7 +137,7 @@ const ImmOrg* ContextStore::at(ImmId id) const {
 }
 
 template <org::IsImmOrgValueType T>
-void KindStore<T>::format(
+void ImmAstKindStore<T>::format(
     ColStream&                        os,
     const UnorderedMap<ImmId, ImmId>& parents,
     const std::string&                linePrefix) const {
@@ -160,8 +160,7 @@ void KindStore<T>::format(
 }
 
 
-void ParseUnitStore::format(ColStream& os, const std::string& prefix)
-    const {
+void ImmAstStore::format(ColStream& os, const std::string& prefix) const {
 #define _kind(__Kind)                                                     \
     if (!store##__Kind.empty()) {                                         \
         os << fmt(                                                        \
@@ -176,7 +175,7 @@ void ParseUnitStore::format(ColStream& os, const std::string& prefix)
 #undef _kind
 }
 
-Vec<int> ParseUnitStore::getPath(ImmId id) const {
+Vec<int> ImmAstStore::getPath(ImmId id) const {
     Vec<int>   result;
     Opt<ImmId> parent = getParent(id);
     while (parent) {
@@ -199,7 +198,7 @@ Vec<int> ParseUnitStore::getPath(ImmId id) const {
     return result;
 }
 
-Vec<ImmId> ParseUnitStore::getParentChain(ImmId id, bool withSelf) const {
+Vec<ImmId> ImmAstStore::getParentChain(ImmId id, bool withSelf) const {
     Vec<ImmId> result;
     Opt<ImmId> tmp = id;
     while (tmp) {
@@ -210,13 +209,14 @@ Vec<ImmId> ParseUnitStore::getParentChain(ImmId id, bool withSelf) const {
 }
 
 
-void ContextStore::format(ColStream& os, const std::string& prefix) const {
+void ImmAstContext::format(ColStream& os, const std::string& prefix)
+    const {
     os << fmt("{}ImmAstStore\n", prefix);
     store->format(os, prefix + "  ");
 }
 
 
-ImmId ContextStore::add(
+ImmId ImmAstContext::add(
     ImmId::StoreIdxT     index,
     sem::SemId<sem::Org> data) {
     return store->add(index, data, this);
@@ -243,7 +243,7 @@ EACH_SEM_ORG_KIND(_gen_map)
 
 
 struct AddContext {
-    ContextStore*    store;
+    ImmAstContext*   store;
     ImmId::StoreIdxT idx = 0;
 };
 
@@ -496,15 +496,15 @@ void assign_sem_field(
 
 #include "ImmOrgSerde.tcc"
 
-sem::SemId<sem::Org> ContextStore::get(ImmId id) {
+sem::SemId<sem::Org> ImmAstContext::get(ImmId id) {
     return store->get(id, this);
 }
 
 template <org::IsImmOrgValueType ImmType>
-ImmId_t org::KindStore<ImmType>::add(
+ImmId_t org::ImmAstKindStore<ImmType>::add(
     ImmId::StoreIdxT selfIndex,
     SemId_t          data,
-    ContextStore*    context) {
+    ImmAstContext*   context) {
 
 
     using SemType = imm_to_sem_map<ImmType>::sem_type;
@@ -528,10 +528,10 @@ ImmId_t org::KindStore<ImmType>::add(
 }
 
 template <org::IsImmOrgValueType T>
-ImmId KindStore<T>::add(
+ImmId ImmAstKindStore<T>::add(
     ImmId::StoreIdxT selfIndex,
     const T&         value,
-    ContextStore*    context) {
+    ImmAstContext*   context) {
     auto  mask   = ImmId::combineMask(selfIndex, T::staticKind);
     ImmId result = values.add(value, mask);
 
@@ -552,7 +552,9 @@ mask:              {:064b}
 
 
 template <org::IsImmOrgValueType T>
-sem::SemId<sem::Org> KindStore<T>::get(ImmId id, ContextStore* context) {
+sem::SemId<sem::Org> ImmAstKindStore<T>::get(
+    ImmId          id,
+    ImmAstContext* context) {
     if (id.isNil()) {
         return sem::SemId<sem::Org>::Nil();
     } else {
@@ -571,7 +573,7 @@ sem::SemId<sem::Org> KindStore<T>::get(ImmId id, ContextStore* context) {
 
 
 #define forward_declare(__Kind)                                           \
-    template class org::KindStore<org::Imm##__Kind>;
+    template class org::ImmAstKindStore<org::Imm##__Kind>;
 
 EACH_SEM_ORG_KIND(forward_declare)
 #undef forward_declare

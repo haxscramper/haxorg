@@ -35,14 +35,14 @@ template <typename T>
 concept IsImmOrgValueType = std::derived_from<T, ImmOrg>;
 
 template <org::IsImmOrgValueType T>
-struct KindStore {
-    ContextStore* context;
+struct ImmAstKindStore {
+    ImmAstContext* context;
     using NodeType = T;
     dod::InternStore<org::ImmId, T> values;
 
     int size() const { return values.size(); }
 
-    KindStore(ContextStore* context) : context(context) {}
+    ImmAstKindStore(ImmAstContext* context) : context(context) {}
     void format(
         ColStream&                                  os,
         UnorderedMap<org::ImmId, org::ImmId> const& parents,
@@ -54,34 +54,28 @@ struct KindStore {
     ImmId add(
         ImmId::StoreIdxT selfIndex,
         T const&         value,
-        ContextStore*    context);
+        ImmAstContext*   context);
 
     ImmId add(
         ImmId::StoreIdxT     selfIndex,
         sem::SemId<sem::Org> data,
-        ContextStore*        context);
+        ImmAstContext*       context);
 
-    sem::SemId<sem::Org> get(org::ImmId id, ContextStore* context);
+    sem::SemId<sem::Org> get(org::ImmId id, ImmAstContext* context);
 };
 
-#define __id(I) , org::KindStore<org::Imm##I>*
-/// \brief Global variant of all sem node derivations
-using OrgKindStorePtrVariant = std::variant<EACH_SEM_ORG_KIND_CSV(__id)>;
-#undef __id
-
-
-struct ParseUnitStore {
+struct ImmAstStore {
     UnorderedMap<org::ImmId, org::ImmId> parents;
 
     template <typename T>
-    KindStore<T>* getStore();
+    ImmAstKindStore<T>* getStore();
 
-#define _kind(__Kind) KindStore<Imm##__Kind> store##__Kind;
+#define _kind(__Kind) ImmAstKindStore<Imm##__Kind> store##__Kind;
     EACH_SEM_ORG_KIND(_kind)
 #undef _kind
 
 
-    ParseUnitStore(ContextStore* context)
+    ImmAstStore(ImmAstContext* context)
         :
 #define _kind(__Kind) , store##__Kind(context)
         EACH_SEM_ORG_KIND_CSV(_kind)
@@ -105,35 +99,32 @@ struct ParseUnitStore {
     ImmId setSubnodes(
         org::ImmId         target,
         ImmVec<org::ImmId> subnodes,
-        ContextStore*      ctx);
+        ImmAstContext*     ctx);
 
     /// \brief Generate new set of parent nodes for the node update.
     Vec<ImmId> cascadeUpdate(
-        org::ImmId    originalNode,
-        org::ImmId    updatedNode,
-        ContextStore* ctx);
+        org::ImmId     originalNode,
+        org::ImmId     updatedNode,
+        ImmAstContext* ctx);
 
     template <org::IsImmOrgValueType T>
     ImmId add(
         ImmId::StoreIdxT selfIndex,
         T const&         value,
-        ContextStore*    ctx) {
+        ImmAstContext*   ctx) {
         return getStore<T>().add(selfIndex, value, ctx);
     }
 
     ImmId add(
         ImmId::StoreIdxT     selfIndex,
         sem::SemId<sem::Org> data,
-        ContextStore*        context);
+        ImmAstContext*       context);
 
-    sem::SemId<sem::Org> get(org::ImmId id, ContextStore* context);
-
-    using StoreVisitor = Func<
-        void(ImmId::StoreIdxT selfIndex, OrgKindStorePtrVariant store)>;
+    sem::SemId<sem::Org> get(org::ImmId id, ImmAstContext* context);
 };
 
 /// \brief Global group of stores that all nodes are written to
-struct ContextStore {
+struct ImmAstContext {
     /// \brief Get reference to a local store by index
     Opt<ImmId> getParent(ImmId id) const { return store->getParent(id); }
     Vec<int>   getPath(ImmId id) const { return store->getPath(id); }
@@ -166,30 +157,30 @@ struct ContextStore {
 
     void format(ColStream& os, std::string const& prefix = "") const;
 
-    SPtr<ParseUnitStore> store;
+    SPtr<ImmAstStore> store;
 
-    ContextStore() : store{std::make_shared<ParseUnitStore>(this)} {}
+    ImmAstContext() : store{std::make_shared<ImmAstStore>(this)} {}
 };
 
 template <typename T>
 struct ImmAdapterT;
 
 struct ImmAdapter {
-    ImmId         id;
-    ContextStore* ctx;
+    ImmId          id;
+    ImmAstContext* ctx;
 
     class iterator {
       public:
-        ImmId         id;
-        ContextStore* ctx;
-        int           idx = 0;
+        ImmId          id;
+        ImmAstContext* ctx;
+        int            idx = 0;
 
       public:
         typedef std::forward_iterator_tag iterator_category;
         typedef ImmAdapter                value_type;
         typedef std::ptrdiff_t            difference_type;
 
-        iterator(ImmId id, ContextStore* ctx, int idx = 0)
+        iterator(ImmId id, ImmAstContext* ctx, int idx = 0)
             : id{id}, ctx{ctx}, idx{idx} {}
 
         ImmAdapter operator*() const {
@@ -221,7 +212,7 @@ struct ImmAdapter {
     iterator end() const { return iterator(id, ctx, size()); }
     bool     isNil() const { return id.isNil(); }
 
-    ImmAdapter(ImmId id, ContextStore* ctx) : id{id}, ctx{ctx} {}
+    ImmAdapter(ImmId id, ImmAstContext* ctx) : id{id}, ctx{ctx} {}
     ImmAdapter() : id{ImmId::Nil()}, ctx{nullptr} {}
 
     ImmAdapter pass(ImmId id) const { return ImmAdapter(id, ctx); }

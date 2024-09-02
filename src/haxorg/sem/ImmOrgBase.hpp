@@ -199,7 +199,7 @@ namespace org {
 EACH_SEM_ORG_KIND(forward_declare)
 #undef forward_declare
 
-struct ContextStore;
+struct ImmAstContext;
 struct ImmOrg;
 
 template <typename T>

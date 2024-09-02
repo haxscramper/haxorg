@@ -794,7 +794,7 @@ TEST(ImmOrgApi, StoreNode) {
 
 =pybind11= python module exposing the org-mode AST for scripting. intern intern intern intern
 )");
-    org::ContextStore store;
+    org::ImmAstContext store;
     store.add(0, node);
     ColStream os;
     store.format(os);
@@ -804,7 +804,7 @@ TEST(ImmOrgApi, StoreNode) {
 TEST(ImmOrgApi, RountripImmutableAst) {
     std::string       file = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
     std::string       source = readFile(fs::path(file));
-    org::ContextStore store;
+    org::ImmAstContext store;
     sem::SemId        write_node = parseNode(source);
     org::ImmId        immer_node = store.add(0, write_node);
     sem::SemId        read_node  = store.get(immer_node);
@@ -820,7 +820,7 @@ TEST(ImmOrgApi, RountripImmutableAst) {
 TEST(ImmMapApi, AddNode) {
     auto n1 = parseNode("* subtree");
 
-    org::ContextStore         store;
+    org::ImmAstContext         store;
     org::graph::MapGraphState s1{&store};
     org::graph::MapOpsConfig  conf;
     conf.setTraceFile("/tmp/ImmMapApi_AddNode.txt");
@@ -848,7 +848,7 @@ Paragraph [[id:subtree-id]]
 
     auto n1 = parseNode(text);
 
-    org::ContextStore        store;
+    org::ImmAstContext        store;
     org::graph::MapOpsConfig conf;
     conf.setTraceFile("/tmp/AddNodeWithLinks_log.txt");
     org::ImmAdapter root{store.add(0, n1), &store};
@@ -914,7 +914,7 @@ TEST(ImmMapApi, SubtreeBacklinks) {
     auto n1 = parseNode(text1);
     auto n2 = parseNode(text2);
 
-    org::ContextStore        store;
+    org::ImmAstContext        store;
     org::graph::MapOpsConfig conf;
     conf.setTraceFile("/tmp/SubtreeBacklinks_log.txt");
     org::ImmAdapter file1{store.add(0, n1), &store};
@@ -1048,7 +1048,7 @@ using osk = OrgSemKind;
 TEST(ImmMapApi, SubtreeFullMap) {
     auto n = parseNode(getFullMindMapText());
 
-    org::ContextStore         store;
+    org::ImmAstContext         store;
     org::graph::MapOpsConfig  conf;
     org::ImmAdapter           file{store.add(0, n), &store};
     org::graph::MapGraphState s1{&store};
@@ -1214,7 +1214,7 @@ TEST(ImmMapApi, SourceAndTarget) {
 TEST(ImmMapApi, BoostPropertyWriter) {
     auto n = parseNode(getFullMindMapText());
 
-    org::ContextStore         store;
+    org::ImmAstContext         store;
     org::graph::MapOpsConfig  conf;
     org::ImmAdapter           file{store.add(0, n), &store};
     org::graph::MapGraphState s1{&store};
