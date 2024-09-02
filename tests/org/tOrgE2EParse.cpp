@@ -18,6 +18,7 @@
 #include <haxorg/sem/SemBaseApi.hpp>
 #include <haxorg/sem/ImmOrg.hpp>
 #include <haxorg/sem/ImmOrgGraph.hpp>
+#include <haxorg/sem/ImmOrgGraphBoost.hpp>
 #include <boost/graph/graphml.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <fstream>
@@ -1200,45 +1201,12 @@ TEST(ImmMapApi, BoostPropertyWriter) {
     org::ImmAdapter           file{store.add(0, n), &store};
     org::graph::MapGraphState s1{&store};
     auto                      s2 = org::graph::addNodeRec(s1, file, conf);
-    auto const&               g  = s2.graph;
 
+    std::stringstream os;
 
-    std::stringstream         os;
-    boost::dynamic_properties dp;
+    auto dp = org::graph::toGraphvizDynamicProperties(s2.graph);
 
-    dp //
-        .property(
-            "node_id",
-            make_transform_value_property_map<std::string>(
-                [&](org::graph::MapNode const& prop) -> std::string {
-                    return fmt1(prop.id);
-                },
-                boost::make_map_vertex_identity_map()))
-        .property(
-            "splines",
-            boost::make_constant_property<org::graph::MapGraph>(
-                std::string("polyline")))
-        .property(
-            "shape",
-            boost::make_constant_property<org::graph::MapNode>(
-                std::string("rect")))
-        .property(
-            "color",
-            make_transform_value_property_map<std::string>(
-                [&](org::graph::MapNodeProp const& prop) -> std::string {
-                    return prop.unresolved.empty() ? "green" : "yellow";
-                },
-                boost::get(boost::vertex_bundle, g)))
-        .property(
-            "label",
-            make_transform_value_property_map<std::string>(
-                [&](org::graph::MapNodeProp const& prop) -> std::string {
-                    return fmt("{}", prop.id);
-                },
-                boost::get(boost::vertex_bundle, g)));
-
-
-    write_graphviz_dp(os, g, dp);
+    write_graphviz_dp(os, s2.graph, dp);
 
     writeFile("/tmp/BoostPropertyWriter.dot", os.str());
 }
