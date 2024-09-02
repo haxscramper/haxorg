@@ -31,8 +31,7 @@ ImmId ImmAstStore::setSubnodes(
         using ImmType   = org::Imm##__Kind;                               \
         ImmType result  = *ctx->at_t<ImmType>(target);                    \
         result.subnodes = subnodes;                                       \
-        result_node     = getStore<ImmType>()->add(                       \
-            target.getStoreIndex(), result, ctx);                     \
+        result_node     = getStore<ImmType>()->add(result, ctx);          \
         break;                                                            \
     }
         EACH_SEM_ORG_KIND(_case)
@@ -64,16 +63,13 @@ Vec<ImmId> ImmAstStore::cascadeUpdate(
 }
 
 
-ImmId ImmAstStore::add(
-    ImmId::StoreIdxT     selfIndex,
-    sem::SemId<sem::Org> data,
-    ImmAstContext*       context) {
+ImmId ImmAstStore::add(sem::SemId<sem::Org> data, ImmAstContext* context) {
     org::ImmId result = org::ImmId::Nil();
 
     switch (data->getKind()) {
 #define _case(__Kind)                                                     \
     case OrgSemKind::__Kind: {                                            \
-        result = store##__Kind.add(selfIndex, data, context);             \
+        result = store##__Kind.add(data, context);                        \
         break;                                                            \
     }
 
@@ -115,8 +111,6 @@ sem::SemId<sem::Org> ImmAstStore::get(ImmId id, ImmAstContext* context) {
 }
 
 const ImmOrg* ImmAstContext::at(ImmId id) const {
-    logic_assertion_check(
-        id.getStoreIndex() == 0, "{}", id.getStoreIndex());
     u64 kind     = static_cast<u64>(id.getKind());
     u64 kindLow  = static_cast<u64>(value_domain<OrgSemKind>::low());
     u64 kindHigh = static_cast<u64>(value_domain<OrgSemKind>::high());
@@ -216,10 +210,8 @@ void ImmAstContext::format(ColStream& os, const std::string& prefix)
 }
 
 
-ImmId ImmAstContext::add(
-    ImmId::StoreIdxT     index,
-    sem::SemId<sem::Org> data) {
-    return store->add(index, data, this);
+ImmId ImmAstContext::add(sem::SemId<sem::Org> data) {
+    return store->add(data, this);
 }
 
 
@@ -243,8 +235,7 @@ EACH_SEM_ORG_KIND(_gen_map)
 
 
 struct AddContext {
-    ImmAstContext*   store;
-    ImmId::StoreIdxT idx = 0;
+    ImmAstContext* store;
 };
 
 template <>
@@ -278,7 +269,7 @@ using ImmId_t = org::ImmId;
 template <>
 struct ImmSemSerde<SemId_t, ImmId_t> {
     static ImmId_t to_immer(SemId_t const& id, AddContext const& ctx) {
-        return ctx.store->store->add(ctx.idx, id, ctx.store);
+        return ctx.store->store->add(id, ctx.store);
     }
 
     static SemId_t from_immer(ImmId_t const& id, AddContext const& ctx) {
@@ -291,7 +282,7 @@ struct ImmSemSerde<sem::SemId<SemType>, org::ImmIdT<ImmType>> {
     static org::ImmIdT<ImmType> to_immer(
         sem::SemId<SemType> const& id,
         AddContext const&          ctx) {
-        return ctx.store->store->add(ctx.idx, id.asOrg(), ctx.store)
+        return ctx.store->store->add(id.asOrg(), ctx.store)
             .template as<ImmType>();
     }
 
@@ -502,9 +493,8 @@ sem::SemId<sem::Org> ImmAstContext::get(ImmId id) {
 
 template <org::IsImmOrgValueType ImmType>
 ImmId_t org::ImmAstKindStore<ImmType>::add(
-    ImmId::StoreIdxT selfIndex,
-    SemId_t          data,
-    ImmAstContext*   context) {
+    SemId_t        data,
+    ImmAstContext* context) {
 
 
     using SemType = imm_to_sem_map<ImmType>::sem_type;
@@ -517,22 +507,15 @@ ImmId_t org::ImmAstKindStore<ImmType>::add(
 
 
     ImmType value = ImmSemSerde<SemType, ImmType>::to_immer(
-        *data.as<SemType>(),
-        AddContext{
-            .store = context,
-            .idx   = selfIndex,
-        });
+        *data.as<SemType>(), AddContext{.store = context});
 
     CHECK(data->getKind() == ImmType::staticKind);
-    return add(selfIndex, value, context);
+    return add(value, context);
 }
 
 template <org::IsImmOrgValueType T>
-ImmId ImmAstKindStore<T>::add(
-    ImmId::StoreIdxT selfIndex,
-    const T&         value,
-    ImmAstContext*   context) {
-    auto  mask   = ImmId::combineMask(selfIndex, T::staticKind);
+ImmId ImmAstKindStore<T>::add(const T& value, ImmAstContext* context) {
+    auto  mask   = ImmId::combineMask(T::staticKind);
     ImmId result = values.add(value, mask);
 
     CHECK(result.getKind() == value.getKind())
@@ -561,11 +544,7 @@ sem::SemId<sem::Org> ImmAstKindStore<T>::get(
         using SemType = imm_to_sem_map<T>::sem_type;
         auto result   = sem::SemId<SemType>::New();
         *result.value = ImmSemSerde<SemType, T>::from_immer(
-            *context->at_t<T>(id),
-            AddContext{
-                .store = context,
-                .idx   = id.getStoreIndex(),
-            });
+            *context->at_t<T>(id), AddContext{.store = context});
 
         return result.asOrg();
     }

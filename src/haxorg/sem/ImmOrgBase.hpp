@@ -211,32 +211,25 @@ using ImmIdBase                  = dod::
     Id<u64, u64, std::integral_constant<u64, ImmIdMaskSize>>;
 
 struct ImmId : ImmIdBase {
-    using IdType    = u64;
-    using NodeIdxT  = u32;
-    using StoreIdxT = u32;
+    using IdType   = u64;
+    using NodeIdxT = u32;
 
     static const u64 NodeIdxMask;
     static const u64 NodeIdxOffset;
     static const u64 NodeKindMask;
     static const u64 NodeKindOffset;
-    static const u64 StoreIdxMask;
-    static const u64 StoreIdxOffset;
 
     // clang-format off
-    static StoreIdxT  getStoreIndex(IdType id) { return StoreIdxT((id & StoreIdxMask) >> StoreIdxOffset); }
     static NodeIdxT   getNodeIdx(IdType id)    { return NodeIdxT((id & NodeIdxMask) >> NodeIdxOffset); }
     static OrgSemKind getKind(IdType id)       { return OrgSemKind((id & NodeKindMask) >> NodeKindOffset); }
     // clang-format on
 
-    static IdType combineMask(StoreIdxT store, OrgSemKind kind);
+    static IdType combineMask(OrgSemKind kind);
 
-    static IdType combineFullValue(
-        StoreIdxT  store,
-        OrgSemKind kind,
-        NodeIdxT   node);
+    static IdType combineFullValue(OrgSemKind kind, NodeIdxT node);
 
     static ImmId Nil() {
-        auto res = ImmId(0, OrgSemKind(0), 0);
+        auto res = ImmId(OrgSemKind(0), 0);
         return res;
     }
 
@@ -246,8 +239,8 @@ struct ImmId : ImmIdBase {
     }
     ImmId(ImmIdBase const& base) : ImmIdBase{base} {};
 
-    ImmId(StoreIdxT storeIndex, OrgSemKind kind, NodeIdxT nodeIndex)
-        : ImmIdBase{combineFullValue(storeIndex, kind, nodeIndex)} {}
+    ImmId(OrgSemKind kind, NodeIdxT nodeIndex)
+        : ImmIdBase{combineFullValue(kind, nodeIndex)} {}
 
     OrgSemKind getKind() const { return ImmId::getKind(value); }
     bool       is(OrgSemKind kind) const;
@@ -255,9 +248,6 @@ struct ImmId : ImmIdBase {
     /// \brief Get index of the node in associated kind store. NOTE: The
     /// node must not be nil
     NodeIdxT getNodeIndex() const { return ImmId::getNodeIdx(value); }
-
-    /// \brief Get index of an associated local store
-    StoreIdxT getStoreIndex() const { return ImmId::getStoreIndex(value); }
 
     /// \brief Convert this node to one with specified kind
     template <typename T>
@@ -281,8 +271,7 @@ struct ImmId : ImmIdBase {
         if (isNil()) {
             return "nil";
         } else {
-            return std::format(
-                "{}_{}_{}", getStoreIndex(), getKind(), getNodeIndex());
+            return std::format("{}_{}", getKind(), getNodeIndex());
         }
     }
 };

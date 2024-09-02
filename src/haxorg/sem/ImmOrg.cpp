@@ -11,14 +11,9 @@ const u64 org::ImmId::NodeIdxMask    = 0x000000FFFFFFFFFF; // >>0*0=0,
 const u64 org::ImmId::NodeIdxOffset  = 0;
 const u64 org::ImmId::NodeKindMask   = 0x000FFF0000000000; // >>10*4=40
 const u64 org::ImmId::NodeKindOffset = 40;
-const u64 org::ImmId::StoreIdxMask   = 0xFFF0000000000000; // >>13*4=52
-const u64 org::ImmId::StoreIdxOffset = 52;
 
-org::ImmId::IdType org::ImmId::combineMask(
-    StoreIdxT  store,
-    OrgSemKind kind) {
-    auto res = (u64(kind) << NodeKindOffset) & NodeKindMask
-             | (u64(store) << StoreIdxOffset) & StoreIdxMask;
+org::ImmId::IdType org::ImmId::combineMask(OrgSemKind kind) {
+    auto res = (u64(kind) << NodeKindOffset) & NodeKindMask;
 
     auto t = ImmId{ImmId::FromMaskedIdx(0, res >> ImmIdMaskOffset)};
     CHECK(t.getKind() == kind) << fmt(
@@ -44,10 +39,9 @@ res:     {7:016X} {7:064b})",
 }
 
 org::ImmId::IdType org::ImmId::combineFullValue(
-    StoreIdxT  store,
     OrgSemKind kind,
     NodeIdxT   node) {
-    return (combineMask(store, kind) << ImmIdMaskOffset)
+    return (combineMask(kind) << ImmIdMaskOffset)
          | (u64(node) << NodeIdxOffset) & NodeIdxMask;
 }
 

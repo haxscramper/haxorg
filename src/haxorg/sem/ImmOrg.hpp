@@ -50,16 +50,8 @@ struct ImmAstKindStore {
 
     bool     empty() const { return values.empty(); }
     T const* at(org::ImmId id) const { return &values.at(id); }
-
-    ImmId add(
-        ImmId::StoreIdxT selfIndex,
-        T const&         value,
-        ImmAstContext*   context);
-
-    ImmId add(
-        ImmId::StoreIdxT     selfIndex,
-        sem::SemId<sem::Org> data,
-        ImmAstContext*       context);
+    ImmId    add(T const& value, ImmAstContext* context);
+    ImmId    add(sem::SemId<sem::Org> data, ImmAstContext* context);
 
     sem::SemId<sem::Org> get(org::ImmId id, ImmAstContext* context);
 };
@@ -108,17 +100,11 @@ struct ImmAstStore {
         ImmAstContext* ctx);
 
     template <org::IsImmOrgValueType T>
-    ImmId add(
-        ImmId::StoreIdxT selfIndex,
-        T const&         value,
-        ImmAstContext*   ctx) {
-        return getStore<T>().add(selfIndex, value, ctx);
+    ImmId add(T const& value, ImmAstContext* ctx) {
+        return getStore<T>().add(value, ctx);
     }
 
-    ImmId add(
-        ImmId::StoreIdxT     selfIndex,
-        sem::SemId<sem::Org> data,
-        ImmAstContext*       context);
+    ImmId add(sem::SemId<sem::Org> data, ImmAstContext* context);
 
     sem::SemId<sem::Org> get(org::ImmId id, ImmAstContext* context);
 };
@@ -134,7 +120,7 @@ struct ImmAstContext {
 
     /// \brief Create new sem node of the specified kind in the local store
     /// with `index`
-    ImmId add(ImmId::StoreIdxT index, sem::SemId<sem::Org> data);
+    ImmId                add(sem::SemId<sem::Org> data);
     sem::SemId<sem::Org> get(org::ImmId id);
 
     template <typename T>

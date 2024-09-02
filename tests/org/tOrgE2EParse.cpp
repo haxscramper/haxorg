@@ -785,7 +785,7 @@ TEST(SimpleNodeConversion, MyersDiffCompile) {
 
 
 TEST(ImmOrgApi, StoreNode) {
-    auto              node = parseNode(R"(
+    auto               node = parseNode(R"(
 ** ~pyhaxorg~
     CLOSED: [2024-06-22 Sat 22:00:27 +04]
     :PROPERTIES:
@@ -795,19 +795,19 @@ TEST(ImmOrgApi, StoreNode) {
 =pybind11= python module exposing the org-mode AST for scripting. intern intern intern intern
 )");
     org::ImmAstContext store;
-    store.add(0, node);
+    store.add(node);
     ColStream os;
     store.format(os);
     writeFile("/tmp/StoreNode.txt", os.getBuffer().toString(false));
 }
 
 TEST(ImmOrgApi, RountripImmutableAst) {
-    std::string       file = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
-    std::string       source = readFile(fs::path(file));
+    std::string file   = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
+    std::string source = readFile(fs::path(file));
     org::ImmAstContext store;
-    sem::SemId        write_node = parseNode(source);
-    org::ImmId        immer_node = store.add(0, write_node);
-    sem::SemId        read_node  = store.get(immer_node);
+    sem::SemId         write_node = parseNode(source);
+    org::ImmId         immer_node = store.add(write_node);
+    sem::SemId         read_node  = store.get(immer_node);
 
     Vec<compare_report> out;
 
@@ -820,13 +820,13 @@ TEST(ImmOrgApi, RountripImmutableAst) {
 TEST(ImmMapApi, AddNode) {
     auto n1 = parseNode("* subtree");
 
-    org::ImmAstContext         store;
+    org::ImmAstContext        store;
     org::graph::MapGraphState s1{&store};
     org::graph::MapOpsConfig  conf;
     conf.setTraceFile("/tmp/ImmMapApi_AddNode.txt");
     EXPECT_EQ(s1.graph.nodeCount(), 0);
     auto s2 = org::graph::addNode(
-        s1, org::ImmAdapter{store.add(0, n1), &store}, conf);
+        s1, org::ImmAdapter{store.add(n1), &store}, conf);
     EXPECT_EQ(s2.graph.nodeCount(), 1);
 
     writeFile("/tmp/MapS2.json", to_json_eval(s2).dump(2));
@@ -848,10 +848,10 @@ Paragraph [[id:subtree-id]]
 
     auto n1 = parseNode(text);
 
-    org::ImmAstContext        store;
+    org::ImmAstContext       store;
     org::graph::MapOpsConfig conf;
     conf.setTraceFile("/tmp/AddNodeWithLinks_log.txt");
-    org::ImmAdapter root{store.add(0, n1), &store};
+    org::ImmAdapter root{store.add(n1), &store};
 
     ColStream os;
     store.format(os);
@@ -914,11 +914,11 @@ TEST(ImmMapApi, SubtreeBacklinks) {
     auto n1 = parseNode(text1);
     auto n2 = parseNode(text2);
 
-    org::ImmAstContext        store;
+    org::ImmAstContext       store;
     org::graph::MapOpsConfig conf;
     conf.setTraceFile("/tmp/SubtreeBacklinks_log.txt");
-    org::ImmAdapter file1{store.add(0, n1), &store};
-    org::ImmAdapter file2{store.add(0, n2), &store};
+    org::ImmAdapter file1{store.add(n1), &store};
+    org::ImmAdapter file2{store.add(n2), &store};
 
     ColStream os;
     store.format(os);
@@ -1048,9 +1048,9 @@ using osk = OrgSemKind;
 TEST(ImmMapApi, SubtreeFullMap) {
     auto n = parseNode(getFullMindMapText());
 
-    org::ImmAstContext         store;
+    org::ImmAstContext        store;
     org::graph::MapOpsConfig  conf;
-    org::ImmAdapter           file{store.add(0, n), &store};
+    org::ImmAdapter           file{store.add(n), &store};
     org::graph::MapGraphState s1{&store};
 
     ColStream os;
@@ -1214,9 +1214,9 @@ TEST(ImmMapApi, SourceAndTarget) {
 TEST(ImmMapApi, BoostPropertyWriter) {
     auto n = parseNode(getFullMindMapText());
 
-    org::ImmAstContext         store;
+    org::ImmAstContext        store;
     org::graph::MapOpsConfig  conf;
-    org::ImmAdapter           file{store.add(0, n), &store};
+    org::ImmAdapter           file{store.add(n), &store};
     org::graph::MapGraphState s1{&store};
     auto                      s2 = org::graph::addNodeRec(s1, file, conf);
 
