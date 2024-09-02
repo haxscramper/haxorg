@@ -135,29 +135,11 @@ struct ParseUnitStore {
 /// \brief Global group of stores that all nodes are written to
 struct ContextStore {
     /// \brief Get reference to a local store by index
-    ParseUnitStore&       getStoreByIndex(ImmId::StoreIdxT index);
-    ParseUnitStore const& getStoreByIndex(ImmId::StoreIdxT index) const;
-    ParseUnitStore&       getStoreByIndex(ImmId id) {
-        return getStoreByIndex(id.getStoreIndex());
-    }
-
-    Opt<ImmId> getParent(ImmId id) const {
-        return getStoreByIndex(id.getStoreIndex()).getParent(id);
-    }
-
-    ParseUnitStore const& getStoreByIndex(ImmId id) const {
-        return getStoreByIndex(id.getStoreIndex());
-    }
-
-    Vec<int> getPath(ImmId id) const {
-        return getStoreByIndex(id).getPath(id);
-    }
-
+    Opt<ImmId> getParent(ImmId id) const { return store->getParent(id); }
+    Vec<int>   getPath(ImmId id) const { return store->getPath(id); }
     Vec<ImmId> getParentChain(ImmId id, bool withSelf = true) const {
-        return getStoreByIndex(id).getParentChain(id, withSelf);
+        return store->getParentChain(id, withSelf);
     }
-
-    void ensureStoreForIndex(ImmId::StoreIdxT index);
 
     /// \brief Create new sem node of the specified kind in the local store
     /// with `index`
@@ -184,11 +166,9 @@ struct ContextStore {
 
     void format(ColStream& os, std::string const& prefix = "") const;
 
-    Vec<ParseUnitStore> stores;
+    SPtr<ParseUnitStore> store;
 
-    ContextStore() {}
-    ContextStore(const ContextStore&)            = delete;
-    ContextStore& operator=(const ContextStore&) = delete;
+    ContextStore() : store{std::make_shared<ParseUnitStore>(this)} {}
 };
 
 template <typename T>

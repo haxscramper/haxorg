@@ -131,7 +131,7 @@ const ImmOrg* ContextStore::at(ImmId id) const {
         kindLow,
         kindHigh);
 
-    ImmOrg const* res = getStoreByIndex(id.getStoreIndex()).at(id);
+    ImmOrg const* res = store->at(id);
     CHECK(res->getKind() == id.getKind());
     return res;
 }
@@ -211,35 +211,15 @@ Vec<ImmId> ParseUnitStore::getParentChain(ImmId id, bool withSelf) const {
 
 
 void ContextStore::format(ColStream& os, const std::string& prefix) const {
-    for (auto const& it : enumerator(stores)) {
-        os << fmt("{}ParseUnitStore [{}]\n", prefix, it.index());
-        it.value().format(os, prefix + "  ");
-    }
-}
-
-
-ParseUnitStore& ContextStore::getStoreByIndex(ImmId::StoreIdxT index) {
-    ensureStoreForIndex(index);
-    return stores.at(index);
-}
-
-ParseUnitStore const& ContextStore::getStoreByIndex(
-    ImmId::StoreIdxT index) const {
-    return stores.at(index);
-}
-
-void ContextStore::ensureStoreForIndex(ImmId::StoreIdxT index) {
-    int diff = index - stores.size();
-    CHECK(diff < 120000); // Debugging assertion
-
-    while (!(index < stores.size())) { stores.emplace_back(this); }
+    os << fmt("{}ImmAstStore\n", prefix);
+    store->format(os, prefix + "  ");
 }
 
 
 ImmId ContextStore::add(
     ImmId::StoreIdxT     index,
     sem::SemId<sem::Org> data) {
-    return getStoreByIndex(index).add(index, data, this);
+    return store->add(index, data, this);
 }
 
 
@@ -298,12 +278,11 @@ using ImmId_t = org::ImmId;
 template <>
 struct ImmSemSerde<SemId_t, ImmId_t> {
     static ImmId_t to_immer(SemId_t const& id, AddContext const& ctx) {
-        return ctx.store->getStoreByIndex(ctx.idx).add(
-            ctx.idx, id, ctx.store);
+        return ctx.store->store->add(ctx.idx, id, ctx.store);
     }
 
     static SemId_t from_immer(ImmId_t const& id, AddContext const& ctx) {
-        return ctx.store->getStoreByIndex(ctx.idx).get(id, ctx.store);
+        return ctx.store->store->get(id, ctx.store);
     }
 };
 
@@ -312,17 +291,14 @@ struct ImmSemSerde<sem::SemId<SemType>, org::ImmIdT<ImmType>> {
     static org::ImmIdT<ImmType> to_immer(
         sem::SemId<SemType> const& id,
         AddContext const&          ctx) {
-        return ctx.store->getStoreByIndex(ctx.idx)
-            .add(ctx.idx, id.asOrg(), ctx.store)
+        return ctx.store->store->add(ctx.idx, id.asOrg(), ctx.store)
             .template as<ImmType>();
     }
 
     static sem::SemId<SemType> from_immer(
         org::ImmIdT<ImmType> const& id,
         AddContext const&           ctx) {
-        return ctx.store->getStoreByIndex(ctx.idx)
-            .get(id, ctx.store)
-            .template as<SemType>();
+        return ctx.store->store->get(id, ctx.store).template as<SemType>();
     }
 };
 
@@ -521,7 +497,7 @@ void assign_sem_field(
 #include "ImmOrgSerde.tcc"
 
 sem::SemId<sem::Org> ContextStore::get(ImmId id) {
-    return getStoreByIndex(id.getStoreIndex()).get(id, this);
+    return store->get(id, this);
 }
 
 template <org::IsImmOrgValueType ImmType>
