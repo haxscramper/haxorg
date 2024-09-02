@@ -29,9 +29,9 @@ ImmId ImmAstStore::setSubnodes(
 #define _case(__Kind)                                                     \
     case OrgSemKind::__Kind: {                                            \
         using ImmType   = org::Imm##__Kind;                               \
-        ImmType result  = *ctx.ctx->at_t<ImmType>(target);                \
+        ImmType result  = ctx.ctx->value<ImmType>(target);                \
         result.subnodes = subnodes;                                       \
-        result_node     = getStore<ImmType>()->add(result, ctx.ctx);      \
+        result_node     = getStore<ImmType>()->add(result, ctx);          \
         break;                                                            \
     }
         EACH_SEM_ORG_KIND(_case)
@@ -63,13 +63,13 @@ Vec<ImmId> ImmAstStore::cascadeUpdate(
 }
 
 
-ImmId ImmAstStore::add(sem::SemId<sem::Org> data, ImmAstContext* context) {
+ImmId ImmAstStore::add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx) {
     org::ImmId result = org::ImmId::Nil();
 
     switch (data->getKind()) {
 #define _case(__Kind)                                                     \
     case OrgSemKind::__Kind: {                                            \
-        result = store##__Kind.add(data, context);                        \
+        result = store##__Kind.add(data, ctx);                            \
         break;                                                            \
     }
 
@@ -83,18 +83,18 @@ ImmId ImmAstStore::add(sem::SemId<sem::Org> data, ImmAstContext* context) {
                 data->getKind()));
     } else {
         for (auto const& sub : at(result)->subnodes) {
-            parents.insert({sub, result});
+            ctx.parents.setParent(sub, result);
         }
         return result;
     }
 }
 
-sem::SemId<sem::Org> ImmAstStore::get(ImmId id, ImmAstContext* context) {
+sem::SemId<sem::Org> ImmAstStore::get(ImmId id, const ImmAstContext& ctx) {
     sem::SemId<sem::Org> result;
     switch (id.getKind()) {
 #define _case(__Kind)                                                     \
     case OrgSemKind::__Kind: {                                            \
-        result = store##__Kind.get(id, context);                          \
+        result = store##__Kind.get(id, ctx);                              \
         break;                                                            \
     }
 
@@ -211,8 +211,16 @@ void ImmAstContext::format(ColStream& os, const std::string& prefix)
 }
 
 
-ImmId ImmAstContext::add(sem::SemId<sem::Org> data) {
-    return store->add(data, this);
+ImmId ImmAstContext::add(
+    sem::SemId<sem::Org> data,
+    ImmAstEditContext&   ctx) {
+    return store->add(data, ctx);
+}
+
+ImmRootAddResult ImmAstContext::addRoot(sem::SemId<sem::Org> data) {
+    auto edit = getEditContext();
+    auto root = add(data, edit);
+    return ImmRootAddResult{.root = root, .context = edit.finish()};
 }
 
 
@@ -269,12 +277,14 @@ using ImmId_t = org::ImmId;
 
 template <>
 struct ImmSemSerde<SemId_t, ImmId_t> {
-    static ImmId_t to_immer(SemId_t const& id, AddContext const& ctx) {
-        return ctx.store->store->add(id, ctx.store);
+    static ImmId_t to_immer(SemId_t const& id, ImmAstEditContext& ctx) {
+        return ctx.ctx->store->add(id, ctx);
     }
 
-    static SemId_t from_immer(ImmId_t const& id, AddContext const& ctx) {
-        return ctx.store->store->get(id, ctx.store);
+    static SemId_t from_immer(
+        ImmId_t const&       id,
+        ImmAstContext const& ctx) {
+        return ctx.store->get(id, ctx);
     }
 };
 
@@ -282,28 +292,27 @@ template <typename SemType, typename ImmType>
 struct ImmSemSerde<sem::SemId<SemType>, org::ImmIdT<ImmType>> {
     static org::ImmIdT<ImmType> to_immer(
         sem::SemId<SemType> const& id,
-        AddContext const&          ctx) {
-        return ctx.store->store->add(id.asOrg(), ctx.store)
-            .template as<ImmType>();
+        ImmAstEditContext&         ctx) {
+        return ctx.ctx->store->add(id.asOrg(), ctx).template as<ImmType>();
     }
 
     static sem::SemId<SemType> from_immer(
         org::ImmIdT<ImmType> const& id,
-        AddContext const&           ctx) {
-        return ctx.store->store->get(id, ctx.store).template as<SemType>();
+        ImmAstContext const&        ctx) {
+        return ctx.store->get(id, ctx).template as<SemType>();
     }
 };
 
 
 template <IsEnum SemType, IsEnum ImmType>
 struct ImmSemSerde<SemType, ImmType> {
-    static ImmType to_immer(SemType const& value, AddContext const& ctx) {
+    static ImmType to_immer(SemType const& value, ImmAstEditContext& ctx) {
         return static_cast<ImmType>(value);
     }
 
     static SemType from_immer(
-        ImmType const&    value,
-        AddContext const& ctx) {
+        ImmType const&       value,
+        ImmAstContext const& ctx) {
         return static_cast<SemType>(value);
     }
 };
@@ -311,7 +320,7 @@ struct ImmSemSerde<SemType, ImmType> {
 
 template <IsVariant SemType, IsVariant ImmType>
 struct ImmSemSerde<SemType, ImmType> {
-    static ImmType to_immer(SemType const& value, AddContext const& ctx) {
+    static ImmType to_immer(SemType const& value, ImmAstEditContext& ctx) {
         ImmType result = variant_from_index<ImmType>(value.index());
         std::visit(
             [&](auto& out) {
@@ -329,8 +338,8 @@ struct ImmSemSerde<SemType, ImmType> {
     }
 
     static SemType from_immer(
-        ImmType const&    value,
-        AddContext const& ctx) {
+        ImmType const&       value,
+        ImmAstContext const& ctx) {
         SemType result = variant_from_index<SemType>(value.index());
         std::visit(
             [&](auto& out) {
@@ -357,7 +366,7 @@ struct ImmSemSerde<
     ImmMap<ImmKey, ImmValue>> {
     static ImmMap<ImmKey, ImmValue> to_immer(
         UnorderedMap<SemKey, SemValue> const& value,
-        AddContext const&                     ctx) {
+        ImmAstEditContext&                    ctx) {
         ImmMap<ImmKey, ImmValue> result;
         auto                     tmp = result.transient();
         for (auto const& [key, value] : value) {
@@ -371,7 +380,7 @@ struct ImmSemSerde<
 
     static UnorderedMap<SemKey, SemValue> from_immer(
         ImmMap<ImmKey, ImmValue> const& value,
-        AddContext const&               ctx) {
+        ImmAstContext const&            ctx) {
         UnorderedMap<SemKey, SemValue> result;
         for (auto const& [key, value] : value) {
             result.insert({
@@ -387,7 +396,7 @@ template <typename SemType, typename ImmType>
 struct ImmSemSerde<Opt<SemType>, Opt<ImmType>> {
     static Opt<ImmType> to_immer(
         Opt<SemType> const& value,
-        AddContext const&   ctx) {
+        ImmAstEditContext&  ctx) {
         Opt<ImmType> base{};
         if (value) {
             base = ImmSemSerde<SemType, ImmType>::to_immer(
@@ -397,8 +406,8 @@ struct ImmSemSerde<Opt<SemType>, Opt<ImmType>> {
     }
 
     static Opt<SemType> from_immer(
-        Opt<ImmType> const& value,
-        AddContext const&   ctx) {
+        Opt<ImmType> const&  value,
+        ImmAstContext const& ctx) {
         Opt<SemType> base{};
         if (value) {
             base = ImmSemSerde<SemType, ImmType>::from_immer(
@@ -412,7 +421,7 @@ template <typename SemType, typename ImmType>
 struct ImmSemSerde<Vec<SemType>, ImmVec<ImmType>> {
     static ImmVec<ImmType> to_immer(
         Vec<SemType> const& value,
-        AddContext const&   ctx) {
+        ImmAstEditContext&  ctx) {
         ImmVec<ImmType> base{};
         auto            tmp = base.transient();
         for (auto const& sub : value) {
@@ -424,7 +433,7 @@ struct ImmSemSerde<Vec<SemType>, ImmVec<ImmType>> {
 
     static Vec<SemType> from_immer(
         ImmVec<ImmType> const& value,
-        AddContext const&      ctx) {
+        ImmAstContext const&   ctx) {
         Vec<SemType> tmp{};
         for (auto const& sub : value) {
             tmp.push_back(
@@ -437,11 +446,13 @@ struct ImmSemSerde<Vec<SemType>, ImmVec<ImmType>> {
 #define __same_type(__T)                                                  \
     template <>                                                           \
     struct ImmSemSerde<__T, __T> {                                        \
-        static __T to_immer(__T const& value, AddContext const& ctx) {    \
+        static __T to_immer(__T const& value, ImmAstEditContext& ctx) {   \
             return value;                                                 \
         }                                                                 \
                                                                           \
-        static __T from_immer(__T const& value, AddContext const& ctx) {  \
+        static __T from_immer(                                            \
+            __T const&           value,                                   \
+            ImmAstContext const& ctx) {                                   \
             return value;                                                 \
         }                                                                 \
     };
@@ -456,14 +467,14 @@ __same_type(UserTime);
 template <typename SemType, typename ImmType>
 struct ImmSemSerde<SemType, ImmBox<ImmType>> {
     static ImmBox<ImmType> to_immer(
-        SemType const&    value,
-        AddContext const& ctx) {
+        SemType const&     value,
+        ImmAstEditContext& ctx) {
         return ImmSemSerde<SemType, ImmType>::to_immer(value, ctx);
     }
 
     static SemType from_immer(
         ImmBox<ImmType> const& value,
-        AddContext const&      ctx) {
+        ImmAstContext const&   ctx) {
         return ImmSemSerde<SemType, ImmType>::from_immer(value.get(), ctx);
     }
 };
@@ -471,17 +482,17 @@ struct ImmSemSerde<SemType, ImmBox<ImmType>> {
 
 template <typename SemType, typename ImmType>
 void assign_immer_field(
-    ImmType&          field,
-    SemType const&    value,
-    AddContext const& ctx) {
+    ImmType&           field,
+    SemType const&     value,
+    ImmAstEditContext& ctx) {
     field = ImmSemSerde<SemType, ImmType>::to_immer(value, ctx);
 }
 
 template <typename SemType, typename ImmType>
 void assign_sem_field(
-    SemType&          field,
-    ImmType const&    value,
-    AddContext const& ctx) {
+    SemType&             field,
+    ImmType const&       value,
+    ImmAstContext const& ctx) {
     field = ImmSemSerde<SemType, ImmType>::from_immer(value, ctx);
 }
 
@@ -489,13 +500,13 @@ void assign_sem_field(
 #include "ImmOrgSerde.tcc"
 
 sem::SemId<sem::Org> ImmAstContext::get(ImmId id) {
-    return store->get(id, this);
+    return store->get(id, *this);
 }
 
 template <org::IsImmOrgValueType ImmType>
 ImmId_t org::ImmAstKindStore<ImmType>::add(
-    SemId_t        data,
-    ImmAstContext* context) {
+    SemId_t            data,
+    ImmAstEditContext& ctx) {
 
 
     using SemType = imm_to_sem_map<ImmType>::sem_type;
@@ -508,14 +519,14 @@ ImmId_t org::ImmAstKindStore<ImmType>::add(
 
 
     ImmType value = ImmSemSerde<SemType, ImmType>::to_immer(
-        *data.as<SemType>(), AddContext{.store = context});
+        *data.as<SemType>(), ctx);
 
     CHECK(data->getKind() == ImmType::staticKind);
-    return add(value, context);
+    return add(value, ctx);
 }
 
 template <org::IsImmOrgValueType T>
-ImmId ImmAstKindStore<T>::add(const T& value, ImmAstContext* context) {
+ImmId ImmAstKindStore<T>::add(const T& value, ImmAstEditContext& ctx) {
     auto  mask   = ImmId::combineMask(T::staticKind);
     ImmId result = values.add(value, mask);
 
@@ -537,15 +548,15 @@ mask:              {:064b}
 
 template <org::IsImmOrgValueType T>
 sem::SemId<sem::Org> ImmAstKindStore<T>::get(
-    ImmId          id,
-    ImmAstContext* context) {
+    ImmId                id,
+    const ImmAstContext& ctx) {
     if (id.isNil()) {
         return sem::SemId<sem::Org>::Nil();
     } else {
         using SemType = imm_to_sem_map<T>::sem_type;
         auto result   = sem::SemId<SemType>::New();
         *result.value = ImmSemSerde<SemType, T>::from_immer(
-            *context->at_t<T>(id), AddContext{.store = context});
+            ctx.value<T>(id), ctx);
 
         return result.asOrg();
     }

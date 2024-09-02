@@ -163,7 +163,7 @@ def get_imm_serde(types: List[GenTuStruct], ast: ASTBuilder) -> List[GenTuPass]:
                         ast.string(" result = "),
                         ast.CallStatic(
                             typ=QualType(name="SerdeDefaultProvider",
-                                          Parameters=[imm_type]),
+                                         Parameters=[imm_type]),
                             opc="get",
                         ),
                         ast.string(";"),
@@ -176,13 +176,12 @@ def get_imm_serde(types: List[GenTuStruct], ast: ASTBuilder) -> List[GenTuPass]:
                         ast.string(" result = "),
                         ast.CallStatic(
                             typ=QualType(name="SerdeDefaultProvider",
-                                          Parameters=[sem_type]),
+                                         Parameters=[sem_type]),
                             opc="get",
                         ),
                         ast.string(";"),
                     )
                 ]
-
 
                 def field_aux(sub: GenTuStruct):
                     for field in sub.fields:
@@ -208,7 +207,6 @@ def get_imm_serde(types: List[GenTuStruct], ast: ASTBuilder) -> List[GenTuPass]:
                                     ],
                                     Stmt=True,
                                 ))
-                            
 
                     for base in sub.bases:
                         assert sub.name.name != base.name, f"{sub.name} ->>>> {base}"
@@ -229,8 +227,9 @@ def get_imm_serde(types: List[GenTuStruct], ast: ASTBuilder) -> List[GenTuPass]:
                         ResultTy=imm_type,
                         Args=[
                             ParmVarParams(name="value", type=sem_type.asConstRef()),
-                            ParmVarParams(name="ctx",
-                                          type=QualType(name="AddContext").asConstRef()),
+                            ParmVarParams(
+                                name="ctx",
+                                type=QualType(name="ImmAstEditContext").asRef()),
                         ],
                         Body=writer_body,
                         AllowOneLine=False,
@@ -244,8 +243,9 @@ def get_imm_serde(types: List[GenTuStruct], ast: ASTBuilder) -> List[GenTuPass]:
                         ResultTy=sem_type,
                         Args=[
                             ParmVarParams(name="value", type=imm_type.asConstRef()),
-                            ParmVarParams(name="ctx",
-                                          type=QualType(name="AddContext").asConstRef()),
+                            ParmVarParams(
+                                name="ctx",
+                                type=QualType(name="ImmAstContext").asConstRef()),
                         ],
                         Body=reader_body,
                         AllowOneLine=False,

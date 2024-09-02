@@ -35,28 +35,6 @@ namespace org {
 template <typename T>
 concept IsImmOrgValueType = std::derived_from<T, ImmOrg>;
 
-template <org::IsImmOrgValueType T>
-struct ImmAstKindStore {
-    ImmAstContext* context;
-    using NodeType = T;
-    dod::InternStore<org::ImmId, T> values;
-
-    int size() const { return values.size(); }
-
-    ImmAstKindStore(ImmAstContext* context) : context(context) {}
-    void format(
-        ColStream&                                  os,
-        UnorderedMap<org::ImmId, org::ImmId> const& parents,
-        std::string const&                          linePrefix = "") const;
-
-    bool     empty() const { return values.empty(); }
-    T const* at(org::ImmId id) const { return &values.at(id); }
-    ImmId    add(T const& value, ImmAstContext* context);
-    ImmId    add(sem::SemId<sem::Org> data, ImmAstContext* context);
-
-    sem::SemId<sem::Org> get(org::ImmId id, ImmAstContext* context);
-};
-
 using ImmAstParentMapType = ImmMap<org::ImmId, org::ImmId>;
 
 struct ImmAstParentMap;
@@ -86,11 +64,34 @@ struct ImmAstParentMap {
     }
 };
 
+
 struct ImmAstEditContext {
     ImmAstParentMapTransient parents;
     ImmAstContext*           ctx;
     ImmAstContext            finish();
 };
+
+template <org::IsImmOrgValueType T>
+struct ImmAstKindStore {
+    using NodeType = T;
+    dod::InternStore<org::ImmId, T> values;
+
+    int size() const { return values.size(); }
+
+    ImmAstKindStore() {}
+    void format(
+        ColStream&                                  os,
+        UnorderedMap<org::ImmId, org::ImmId> const& parents,
+        std::string const&                          linePrefix = "") const;
+
+    bool     empty() const { return values.empty(); }
+    T const* at(org::ImmId id) const { return &values.at(id); }
+    ImmId    add(T const& value, ImmAstEditContext& ctx);
+    ImmId    add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx);
+
+    sem::SemId<sem::Org> get(org::ImmId id, ImmAstContext const& ctx);
+};
+
 
 struct ImmAstStore {
     UnorderedMap<org::ImmId, org::ImmId> parents;
@@ -103,9 +104,9 @@ struct ImmAstStore {
 #undef _kind
 
 
-    ImmAstStore(ImmAstContext* context)
+    ImmAstStore()
         :
-#define _kind(__Kind) , store##__Kind(context)
+#define _kind(__Kind) , store##__Kind()
         EACH_SEM_ORG_KIND_CSV(_kind)
 #undef _kind
     {
@@ -128,16 +129,21 @@ struct ImmAstStore {
         ImmAstEditContext& ctx);
 
     template <org::IsImmOrgValueType T>
-    ImmId add(T const& value, ImmAstContext* ctx) {
+    ImmId add(T const& value, ImmAstEditContext& ctx) {
         return getStore<T>().add(value, ctx);
     }
 
-    ImmId add(sem::SemId<sem::Org> data, ImmAstContext* context);
+    ImmId add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx);
 
-    sem::SemId<sem::Org> get(org::ImmId id, ImmAstContext* context);
+    sem::SemId<sem::Org> get(org::ImmId id, ImmAstContext const& ctx);
 };
 
+struct ImmRootAddResult;
+
 struct [[nodiscard]] ImmAstContext {
+    SPtr<ImmAstStore> store;
+    ImmAstParentMap   parents;
+
     Opt<ImmId> getParent(ImmId id) const { return parents.getParent(id); }
     Vec<int> getPath(ImmId id) const { return parents.getPath(id, *this); }
     Vec<ImmId> getParentChain(ImmId id, bool withSelf = true) const {
@@ -159,7 +165,9 @@ struct [[nodiscard]] ImmAstContext {
 
     /// \brief Create new sem node of the specified kind in the local store
     /// with `index`
-    ImmId                add(sem::SemId<sem::Org> data);
+    ImmId add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx);
+    ImmRootAddResult addRoot(sem::SemId<sem::Org> data);
+
     sem::SemId<sem::Org> get(org::ImmId id);
 
     template <typename T>
@@ -182,10 +190,13 @@ struct [[nodiscard]] ImmAstContext {
 
     void format(ColStream& os, std::string const& prefix = "") const;
 
-    SPtr<ImmAstStore> store;
-    ImmAstParentMap   parents;
 
-    ImmAstContext() : store{std::make_shared<ImmAstStore>(this)} {}
+    ImmAstContext() : store{std::make_shared<ImmAstStore>()} {}
+};
+
+struct ImmRootAddResult {
+    ImmAstContext context;
+    org::ImmId    root;
 };
 
 template <typename T>

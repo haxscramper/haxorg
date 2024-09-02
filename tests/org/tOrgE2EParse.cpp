@@ -785,7 +785,7 @@ TEST(SimpleNodeConversion, MyersDiffCompile) {
 
 
 TEST(ImmOrgApi, StoreNode) {
-    auto               node = parseNode(R"(
+    auto node          = parseNode(R"(
 ** ~pyhaxorg~
     CLOSED: [2024-06-22 Sat 22:00:27 +04]
     :PROPERTIES:
@@ -794,8 +794,7 @@ TEST(ImmOrgApi, StoreNode) {
 
 =pybind11= python module exposing the org-mode AST for scripting. intern intern intern intern
 )");
-    org::ImmAstContext store;
-    store.add(node);
+    auto [store, root] = org::ImmAstContext{}.addRoot(node);
     ColStream os;
     store.format(os);
     writeFile("/tmp/StoreNode.txt", os.getBuffer().toString(false));
@@ -806,8 +805,8 @@ TEST(ImmOrgApi, RountripImmutableAst) {
     std::string source = readFile(fs::path(file));
     org::ImmAstContext store;
     sem::SemId         write_node = parseNode(source);
-    org::ImmId         immer_node = store.add(write_node);
-    sem::SemId         read_node  = store.get(immer_node);
+    auto [store2, immer_root]     = store.addRoot(write_node);
+    sem::SemId read_node          = store2.get(immer_root);
 
     Vec<compare_report> out;
 
