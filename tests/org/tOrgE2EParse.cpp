@@ -280,6 +280,21 @@ compare_report cmp_field_value(CR<T> lhs, CR<T> rhs, Field T::*fieldPtr) {
         lhs.*fieldPtr, rhs.*fieldPtr);
 };
 
+void show_compare_reports(Vec<compare_report> const& out) {
+    for (auto const& it : out) {
+        std::string ctx = it.context
+                        | rv::transform(
+                              [](compare_context const& c) -> std::string {
+                                  return fmt("{}.{}", c.type, c.field);
+                              })
+                        | rv::intersperse("->") //
+                        | rv::join              //
+                        | rs::to<std::string>();
+
+        ADD_FAILURE() << fmt(
+            "{} failed: original != parsed {}", ctx, it.message);
+    }
+}
 
 TEST(TestFiles, AllNodeSerde) {
     std::string file = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
@@ -332,19 +347,7 @@ TEST(TestFiles, AllNodeSerde) {
     reporting_comparator<sem::SemId<sem::Org>>::compare(
         write_node, read_node, out, {});
 
-    for (auto const& it : out) {
-        std::string ctx = it.context
-                        | rv::transform(
-                              [](compare_context const& c) -> std::string {
-                                  return fmt("{}.{}", c.type, c.field);
-                              })
-                        | rv::intersperse("->") //
-                        | rv::join              //
-                        | rs::to<std::string>();
-
-        ADD_FAILURE() << fmt(
-            "{} failed: original != parsed {}", ctx, it.message);
-    }
+    show_compare_reports(out);
 }
 
 TEST(TestFiles, AllNodeCoverage) {
@@ -796,6 +799,21 @@ TEST(ImmOrgApi, StoreNode) {
     ColStream os;
     store.format(os);
     writeFile("/tmp/StoreNode.txt", os.getBuffer().toString(false));
+}
+
+TEST(ImmOrgApi, RountripImmutableAst) {
+    std::string       file = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
+    std::string       source = readFile(fs::path(file));
+    org::ContextStore store;
+    sem::SemId        write_node = parseNode(source);
+    org::ImmId        immer_node = store.add(0, write_node);
+    sem::SemId        read_node  = store.get(immer_node);
+
+    Vec<compare_report> out;
+
+    reporting_comparator<sem::SemId<sem::Org>>::compare(
+        write_node, read_node, out, {});
+    show_compare_reports(out);
 }
 
 

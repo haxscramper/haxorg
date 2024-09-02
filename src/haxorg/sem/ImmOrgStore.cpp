@@ -190,10 +190,17 @@ ImmId ContextStore::add(
 template <typename Mut>
 struct imm_to_sem_map {};
 
+template <typename Mut>
+struct sem_to_imm_map {};
+
 #define _gen_map(__Kind)                                                  \
     template <>                                                           \
     struct imm_to_sem_map<org::Imm##__Kind> {                             \
         using sem_type = sem::__Kind;                                     \
+    };                                                                    \
+    template <>                                                           \
+    struct sem_to_imm_map<sem::__Kind> {                                  \
+        using imm_type = org::Imm##__Kind;                                \
     };
 EACH_SEM_ORG_KIND(_gen_map)
 #undef _gen_map
@@ -201,8 +208,7 @@ EACH_SEM_ORG_KIND(_gen_map)
 
 struct AddContext {
     ContextStore*    store;
-    ImmId            currentAdd = ImmId::Nil();
-    ImmId::StoreIdxT idx        = 0;
+    ImmId::StoreIdxT idx = 0;
 };
 
 template <>
@@ -506,10 +512,18 @@ mask:              {:064b}
 
 template <typename T>
 sem::SemId<sem::Org> KindStore<T>::get(ImmId id, ContextStore* context) {
-    return ImmSemSerde<SemId_t, ImmId_t>::from_immer(
-        id,
-        AddContext{
-            .store = context,
-            .idx   = id.getStoreIndex(),
-        });
+    if (id.isNil()) {
+        return sem::SemId<sem::Org>::Nil();
+    } else {
+        using SemType = imm_to_sem_map<T>::sem_type;
+        auto result   = sem::SemId<SemType>::New();
+        *result.value = ImmSemSerde<SemType, T>::from_immer(
+            *context->at_t<T>(id),
+            AddContext{
+                .store = context,
+                .idx   = id.getStoreIndex(),
+            });
+
+        return result.asOrg();
+    }
 }
