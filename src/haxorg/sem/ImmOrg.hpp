@@ -107,6 +107,12 @@ struct ParseUnitStore {
         ImmVec<org::ImmId> subnodes,
         ContextStore*      ctx);
 
+    /// \brief Generate new set of parent nodes for the node update.
+    Vec<ImmId> cascadeUpdate(
+        org::ImmId    originalNode,
+        org::ImmId    updatedNode,
+        ContextStore* ctx);
+
     template <org::IsImmOrgValueType T>
     ImmId add(
         ImmId::StoreIdxT selfIndex,

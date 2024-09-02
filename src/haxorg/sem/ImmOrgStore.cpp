@@ -50,6 +50,19 @@ ImmId ParseUnitStore::setSubnodes(
     return result_node;
 }
 
+Vec<ImmId> ParseUnitStore::cascadeUpdate(
+    ImmId         originalNode,
+    ImmId         updatedNode,
+    ContextStore* ctx) {
+    auto originalParent = getParent(originalNode);
+    auto updatedParent  = getParent(updatedNode);
+
+    Vec<ImmId> result;
+    while (originalParent && updatedParent) {}
+
+    return result;
+}
+
 
 ImmId ParseUnitStore::add(
     ImmId::StoreIdxT     selfIndex,

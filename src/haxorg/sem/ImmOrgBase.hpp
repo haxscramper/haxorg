@@ -304,6 +304,12 @@ struct ImmOrg {
     auto begin() const { return subnodes.begin(); }
     auto end() const { return subnodes.end(); }
     int  size() const { return subnodes.size(); }
+    int  indexOf(org::ImmId subnode) const {
+        for (int i = 0; i < subnodes.size(); ++i) {
+            if (subnodes.at(i) == subnode) { return i; }
+        }
+        return -1;
+    }
 
     bool is(OrgSemKind kind) const { return getKind() == kind; }
 
