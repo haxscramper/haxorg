@@ -100,7 +100,6 @@ const ImmOrg* ParseUnitStore::at(ImmId index) const {
         fmt("Cannot get node for index {}", index));
 }
 
-
 namespace {
 void eachSubnodeRecImpl(
     CR<org::SubnodeVisitor> visitor,
@@ -273,13 +272,6 @@ struct Visitor<Opt<T>> {
 void org::eachSubnodeRec(ImmAdapter id, SubnodeVisitor cb) {
     Visitor<ImmId>::visitField(cb, id.id, id.ctx);
 }
-
-
-#define forward_declare(__Kind)                                           \
-    template class org::KindStore<org::Imm##__Kind>;
-
-EACH_SEM_ORG_KIND(forward_declare)
-#undef forward_declare
 
 
 #define DEFINE_VISITOR_BASE_STRUCT(                                       \

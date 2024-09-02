@@ -32,6 +32,9 @@ namespace org {
 
 
 template <typename T>
+concept IsImmOrgValueType = std::derived_from<T, ImmOrg>;
+
+template <org::IsImmOrgValueType T>
 struct KindStore {
     ContextStore* context;
     using NodeType = T;
@@ -47,10 +50,16 @@ struct KindStore {
 
     bool     empty() const { return values.empty(); }
     T const* at(org::ImmId id) const { return &values.at(id); }
-    ImmId    add(
-           ImmId::StoreIdxT     selfIndex,
-           sem::SemId<sem::Org> data,
-           ContextStore*        context);
+
+    ImmId add(
+        ImmId::StoreIdxT selfIndex,
+        T const&         value,
+        ContextStore*    context);
+
+    ImmId add(
+        ImmId::StoreIdxT     selfIndex,
+        sem::SemId<sem::Org> data,
+        ContextStore*        context);
 
     sem::SemId<sem::Org> get(org::ImmId id, ContextStore* context);
 };
@@ -63,6 +72,9 @@ using OrgKindStorePtrVariant = std::variant<EACH_SEM_ORG_KIND_CSV(__id)>;
 
 struct ParseUnitStore {
     UnorderedMap<org::ImmId, org::ImmId> parents;
+
+    template <typename T>
+    KindStore<T>* getStore();
 
 #define _kind(__Kind) KindStore<Imm##__Kind> store##__Kind;
     EACH_SEM_ORG_KIND(_kind)
@@ -81,12 +93,32 @@ struct ParseUnitStore {
     Opt<ImmId> getParent(ImmId id) const { return parents.get(id); }
     Vec<int>   getPath(ImmId id) const;
     Vec<ImmId> getParentChain(ImmId id, bool withSelf = true) const;
+    bool       hasParent(org::ImmId node) const {
+        return parents.contains(node);
+    }
+    void setParent(org::ImmId node, org::ImmId parent) {
+        parents.insert({node, parent});
+    }
 
     ImmOrg const* at(ImmId index) const;
-    ImmId         add(
-                ImmId::StoreIdxT     selfIndex,
-                sem::SemId<sem::Org> data,
-                ContextStore*        context);
+
+    ImmId setSubnodes(
+        org::ImmId         target,
+        ImmVec<org::ImmId> subnodes,
+        ContextStore*      ctx);
+
+    template <org::IsImmOrgValueType T>
+    ImmId add(
+        ImmId::StoreIdxT selfIndex,
+        T const&         value,
+        ContextStore*    ctx) {
+        return getStore<T>().add(selfIndex, value, ctx);
+    }
+
+    ImmId add(
+        ImmId::StoreIdxT     selfIndex,
+        sem::SemId<sem::Org> data,
+        ContextStore*        context);
 
     sem::SemId<sem::Org> get(org::ImmId id, ContextStore* context);
 
@@ -125,6 +157,12 @@ struct ContextStore {
     /// with `index`
     ImmId add(ImmId::StoreIdxT index, sem::SemId<sem::Org> data);
     sem::SemId<sem::Org> get(org::ImmId id);
+
+    template <typename T>
+    T const& value(ImmId id) const {
+        logic_assertion_check(!id.isNil(), "cannot get value for nil ID");
+        return *at_t<T>(id);
+    }
 
     ImmOrg const* at(ImmId id) const;
 
@@ -305,6 +343,38 @@ struct ImmAdapterT : ImmAdapter {
     T const* get() const { return ctx->at_t<T>(id); }
     T const* operator->() const { return get(); }
 };
+
+
+template <typename T>
+struct remove_sem_org {
+    using type = remove_smart_pointer<T>::type;
+};
+
+template <>
+struct remove_sem_org<ImmId> {
+    using type = ImmOrg;
+};
+
+template <>
+struct remove_sem_org<ImmAdapter> {
+    using type = ImmOrg;
+};
+
+template <typename T>
+struct remove_sem_org<ImmIdT<T>> {
+    using type = remove_smart_pointer<T>::type;
+};
+
+template <typename T>
+struct remove_sem_org<ImmAdapterT<T>> {
+    using type = remove_smart_pointer<T>::type;
+};
+
+
+template <typename T>
+concept IsImmOrg = std::
+    derived_from<typename remove_sem_org<T>::type, ImmOrg>;
+
 
 using SubnodeVisitor = Func<void(ImmAdapter)>;
 void eachSubnodeRec(org::ImmAdapter id, SubnodeVisitor cb);
