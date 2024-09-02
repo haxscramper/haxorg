@@ -1193,11 +1193,18 @@ TEST(ImmMapApi, SourceAndTarget) {
 }
 
 TEST(ImmMapApi, BoostPropertyWriter) {
-    auto                      test_g = create_test_graph();
-    auto const&               g      = test_g.g;
+    auto n = parseNode(getFullMindMapText());
+
+    org::ContextStore         store;
+    org::graph::MapOpsConfig  conf;
+    org::ImmAdapter           file{store.add(0, n), &store};
+    org::graph::MapGraphState s1{&store};
+    auto                      s2 = org::graph::addNodeRec(s1, file, conf);
+    auto const&               g  = s2.graph;
+
+
     std::stringstream         os;
     boost::dynamic_properties dp;
-
 
     dp //
         .property(

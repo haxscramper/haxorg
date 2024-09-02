@@ -203,8 +203,10 @@ struct MapOpsConfig : OperationsTracer {
     }
 
     auto scopeTrace(bool state) {
-        TraceState = state;
-        return finally{[state, this]() { TraceState = !state; }};
+        bool initialTrace = TraceState;
+        TraceState        = state;
+        return finally{
+            [initialTrace, this]() { TraceState = initialTrace; }};
     }
 };
 
@@ -395,13 +397,18 @@ struct map_graph_edges_iterator {
     using pointer           = const value_type*;
     using reference         = const value_type&;
 
-    typename org::graph::AdjList::const_iterator iter;
-    int                                          outEdgeIndex = 0;
+    org::graph::AdjList::const_iterator iter;
+    org::graph::AdjList const*          fullList     = nullptr;
+    int                                 outEdgeIndex = 0;
 
     map_graph_edges_iterator() {};
     map_graph_edges_iterator(
-        typename org::graph::AdjList::const_iterator it)
-        : iter{it} {}
+        org::graph::AdjList::const_iterator it,
+        org::graph::AdjList const&          fullList)
+        : iter{it}, fullList{&fullList} {
+        while (iter != fullList.end() && iter->second.empty()) { ++iter; }
+        outEdgeIndex = 0;
+    }
 
     value_type operator*() const {
         return org::graph::MapEdge{
@@ -415,7 +422,19 @@ struct map_graph_edges_iterator {
     }
 
     map_graph_edges_iterator& operator++() {
-        ++iter;
+        logic_assertion_check(
+            fullList != nullptr,
+            "cannot increment iterator with empty full list");
+        if (outEdgeIndex < iter->second.size() - 1) {
+            ++outEdgeIndex;
+        } else {
+            ++iter;
+            while (iter != fullList->end() && iter->second.empty()) {
+                ++iter;
+            }
+            outEdgeIndex = 0;
+        }
+
         return *this;
     }
 
@@ -481,8 +500,8 @@ inline std::pair<map_graph_vertices_iterator, map_graph_vertices_iterator> verti
 inline std::pair<map_graph_edges_iterator, map_graph_edges_iterator> edges(
     org::graph::MapGraph const& g) {
     return {
-        map_graph_edges_iterator(g.adjList.begin()),
-        map_graph_edges_iterator(g.adjList.end()),
+        map_graph_edges_iterator{g.adjList.begin(), g.adjList},
+        map_graph_edges_iterator{g.adjList.end(), g.adjList},
     };
 }
 
