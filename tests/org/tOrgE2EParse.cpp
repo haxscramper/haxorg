@@ -815,6 +815,22 @@ TEST(ImmOrgApi, RountripImmutableAst) {
     show_compare_reports(out);
 }
 
+TEST(ImmOrgApi, ReplaceSubnodeAtPath) {
+    auto start_node   = parseNode("word0 word2 word4");
+    auto replace_node = parseNode("wordXX").at(0).at(0);
+    // Document[0].Paragraph[0]
+
+    org::ImmAstContext start;
+    auto [store, root] = start.addRoot(start_node);
+    auto paragraph     = store.at(root)->subnodes.at(0);
+
+    auto ctx     = store.getEditContext();
+    auto word_xx = store.add(replace_node, ctx);
+    auto cascade = ctx.ctx->store->setSubnode(paragraph, word_xx, 2, ctx);
+    auto store2  = ctx.finish();
+
+    LOG(INFO) << fmt1(cascade);
+}
 
 TEST(ImmMapApi, AddNode) {
     auto n1 = parseNode("* subtree");

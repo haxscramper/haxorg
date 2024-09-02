@@ -49,15 +49,53 @@ ImmId ImmAstStore::setSubnodes(
     return result_node;
 }
 
-Vec<ImmId> ImmAstStore::cascadeUpdate(
-    ImmId              originalNode,
-    ImmId              updatedNode,
+Vec<ImmAstStore::AstReplaceCascade> ImmAstStore::setSubnode(
+    ImmId              target,
+    ImmId              newSubnode,
+    int                position,
     ImmAstEditContext& ctx) {
-    auto originalParent = ctx.ctx->getParent(originalNode);
-    auto updatedParent  = ctx.ctx->getParent(updatedNode);
+    ImmId replaced = setSubnodes(
+        target,
+        ctx.ctx->at(target)->subnodes.set(position, newSubnode),
+        ctx);
+    return cascadeUpdate(
+        {AstReplace{
+            .original = target,
+            .replaced = replaced,
+        }},
+        ctx);
+}
 
-    Vec<ImmId> result;
-    while (originalParent && updatedParent) {}
+Vec<ImmAstStore::AstReplaceCascade> ImmAstStore::cascadeUpdate(
+    const Vec<AstReplace>& replace,
+    ImmAstEditContext&     ctx) {
+    Vec<ImmAstStore::AstReplaceCascade> result;
+    for (auto const& act : replace) {
+        auto              original       = act.original;
+        auto              originalParent = ctx.ctx->getParent(original);
+        auto              replaced       = act.replaced;
+        AstReplaceCascade cascade{.chain = {act}};
+        while (originalParent) {
+            ImmId replacedParent = setSubnodes(
+                *originalParent,
+                ctx.ctx->at(*originalParent)
+                    ->subnodes.set(
+                        ctx.ctx->at(*originalParent)->indexOf(original),
+                        replaced),
+                ctx);
+
+            cascade.chain.push_back(AstReplace{
+                .original = *originalParent,
+                .replaced = replacedParent,
+            });
+
+            replaced       = replacedParent;
+            original       = *originalParent;
+            originalParent = ctx.ctx->getParent(original);
+        }
+
+        result.push_back(cascade);
+    }
 
     return result;
 }

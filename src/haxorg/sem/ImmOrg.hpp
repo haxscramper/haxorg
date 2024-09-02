@@ -117,15 +117,34 @@ struct ImmAstStore {
 
     ImmOrg const* at(ImmId index) const;
 
+
     ImmId setSubnodes(
         org::ImmId         target,
         ImmVec<org::ImmId> subnodes,
         ImmAstEditContext& ctx);
 
+    struct AstReplace {
+        org::ImmId original;
+        org::ImmId replaced;
+
+        DESC_FIELDS(AstReplace, (original, replaced));
+    };
+
+    struct AstReplaceCascade {
+        Vec<AstReplace> chain;
+
+        DESC_FIELDS(AstReplaceCascade, (chain));
+    };
+
+    Vec<AstReplaceCascade> setSubnode(
+        org::ImmId         target,
+        org::ImmId         newSubnode,
+        int                position,
+        ImmAstEditContext& ctx);
+
     /// \brief Generate new set of parent nodes for the node update.
-    Vec<ImmId> cascadeUpdate(
-        org::ImmId         originalNode,
-        org::ImmId         updatedNode,
+    Vec<AstReplaceCascade> cascadeUpdate(
+        Vec<AstReplace> const&,
         ImmAstEditContext& ctx);
 
     template <org::IsImmOrgValueType T>
