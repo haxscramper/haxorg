@@ -515,3 +515,11 @@ void ImmAdapter::treeRepr(ColStream& os, const TreeReprConf& conf) const {
             .ctx   = this->ctx,
         });
 }
+
+ImmAstParentMap ImmAstParentMapTransient::persistent() {
+    return ImmAstParentMap{.parents = parents.persistent()};
+}
+
+ImmAstContext ImmAstEditContext::finish() {
+    return ctx->finishEdit(*this);
+}

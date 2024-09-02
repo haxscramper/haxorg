@@ -19,9 +19,9 @@ EACH_SEM_ORG_KIND(_kind)
 
 
 ImmId ImmAstStore::setSubnodes(
-    ImmId          target,
-    ImmVec<ImmId>  subnodes,
-    ImmAstContext* ctx) {
+    ImmId              target,
+    ImmVec<ImmId>      subnodes,
+    ImmAstEditContext& ctx) {
     logic_assertion_check(
         !target.isNil(), "cannot set subnodes to nil node");
     org::ImmId result_node = org::ImmId::Nil();
@@ -29,9 +29,9 @@ ImmId ImmAstStore::setSubnodes(
 #define _case(__Kind)                                                     \
     case OrgSemKind::__Kind: {                                            \
         using ImmType   = org::Imm##__Kind;                               \
-        ImmType result  = *ctx->at_t<ImmType>(target);                    \
+        ImmType result  = *ctx.ctx->at_t<ImmType>(target);                \
         result.subnodes = subnodes;                                       \
-        result_node     = getStore<ImmType>()->add(result, ctx);          \
+        result_node     = getStore<ImmType>()->add(result, ctx.ctx);      \
         break;                                                            \
     }
         EACH_SEM_ORG_KIND(_case)
@@ -43,18 +43,18 @@ ImmId ImmAstStore::setSubnodes(
         !result_node.isNil(), "added node must not be nil");
 
     for (auto const& sub : subnodes) {
-        if (hasParent(sub)) { setParent(sub, result_node); }
+        ctx.parents.setParent(sub, result_node);
     }
 
     return result_node;
 }
 
 Vec<ImmId> ImmAstStore::cascadeUpdate(
-    ImmId          originalNode,
-    ImmId          updatedNode,
-    ImmAstContext* ctx) {
-    auto originalParent = getParent(originalNode);
-    auto updatedParent  = getParent(updatedNode);
+    ImmId              originalNode,
+    ImmId              updatedNode,
+    ImmAstEditContext& ctx) {
+    auto originalParent = ctx.ctx->getParent(originalNode);
+    auto updatedParent  = ctx.ctx->getParent(updatedNode);
 
     Vec<ImmId> result;
     while (originalParent && updatedParent) {}
@@ -169,13 +169,14 @@ void ImmAstStore::format(ColStream& os, const std::string& prefix) const {
 #undef _kind
 }
 
-Vec<int> ImmAstStore::getPath(ImmId id) const {
+Vec<int> ImmAstParentMap::getPath(ImmId id, const ImmAstContext& ctx)
+    const {
     Vec<int>   result;
     Opt<ImmId> parent = getParent(id);
     while (parent) {
         int selfIndex = -1;
         int idx       = 0;
-        for (auto const& it : at(*parent)->subnodes) {
+        for (auto const& it : ctx.at(*parent)->subnodes) {
             if (it == id) {
                 selfIndex = idx;
                 break;
@@ -192,7 +193,7 @@ Vec<int> ImmAstStore::getPath(ImmId id) const {
     return result;
 }
 
-Vec<ImmId> ImmAstStore::getParentChain(ImmId id, bool withSelf) const {
+Vec<ImmId> ImmAstParentMap::getParentChain(ImmId id, bool withSelf) const {
     Vec<ImmId> result;
     Opt<ImmId> tmp = id;
     while (tmp) {

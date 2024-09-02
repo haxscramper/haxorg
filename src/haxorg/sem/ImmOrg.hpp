@@ -4,6 +4,7 @@
 #include <haxorg/sem/ImmOrgTypes.hpp>
 #include <haxorg/sem/SemOrg.hpp>
 #include <hstd/stdlib/ColText.hpp>
+#include <immer/map_transient.hpp>
 
 
 #define _declare_hash(__kind)                                             \
@@ -56,6 +57,41 @@ struct ImmAstKindStore {
     sem::SemId<sem::Org> get(org::ImmId id, ImmAstContext* context);
 };
 
+using ImmAstParentMapType = ImmMap<org::ImmId, org::ImmId>;
+
+struct ImmAstParentMap;
+
+struct ImmAstParentMapTransient {
+    ImmAstParentMapType::transient_type parents;
+
+    void setParent(org::ImmId node, org::ImmId parent) {
+        parents.insert({node, parent});
+    }
+
+    ImmAstParentMap persistent();
+};
+
+struct ImmAstParentMap {
+    ImmAstParentMapType parents;
+
+    Opt<ImmId> getParent(ImmId id) const { return parents.get(id); }
+    Vec<int>   getPath(ImmId id, ImmAstContext const& ctx) const;
+    Vec<ImmId> getParentChain(ImmId id, bool withSelf = true) const;
+    bool       hasParent(org::ImmId node) const {
+        return parents.contains(node);
+    }
+
+    ImmAstParentMapTransient transient() {
+        return {.parents = parents.transient()};
+    }
+};
+
+struct ImmAstEditContext {
+    ImmAstParentMapTransient parents;
+    ImmAstContext*           ctx;
+    ImmAstContext            finish();
+};
+
 struct ImmAstStore {
     UnorderedMap<org::ImmId, org::ImmId> parents;
 
@@ -75,29 +111,21 @@ struct ImmAstStore {
     {
     }
 
-    void       format(ColStream& os, std::string const& prefix = "") const;
-    Opt<ImmId> getParent(ImmId id) const { return parents.get(id); }
-    Vec<int>   getPath(ImmId id) const;
-    Vec<ImmId> getParentChain(ImmId id, bool withSelf = true) const;
-    bool       hasParent(org::ImmId node) const {
-        return parents.contains(node);
-    }
-    void setParent(org::ImmId node, org::ImmId parent) {
-        parents.insert({node, parent});
-    }
+    void format(ColStream& os, std::string const& prefix = "") const;
+
 
     ImmOrg const* at(ImmId index) const;
 
     ImmId setSubnodes(
         org::ImmId         target,
         ImmVec<org::ImmId> subnodes,
-        ImmAstContext*     ctx);
+        ImmAstEditContext& ctx);
 
     /// \brief Generate new set of parent nodes for the node update.
     Vec<ImmId> cascadeUpdate(
-        org::ImmId     originalNode,
-        org::ImmId     updatedNode,
-        ImmAstContext* ctx);
+        org::ImmId         originalNode,
+        org::ImmId         updatedNode,
+        ImmAstEditContext& ctx);
 
     template <org::IsImmOrgValueType T>
     ImmId add(T const& value, ImmAstContext* ctx) {
@@ -109,13 +137,24 @@ struct ImmAstStore {
     sem::SemId<sem::Org> get(org::ImmId id, ImmAstContext* context);
 };
 
-/// \brief Global group of stores that all nodes are written to
-struct ImmAstContext {
-    /// \brief Get reference to a local store by index
-    Opt<ImmId> getParent(ImmId id) const { return store->getParent(id); }
-    Vec<int>   getPath(ImmId id) const { return store->getPath(id); }
+struct [[nodiscard]] ImmAstContext {
+    Opt<ImmId> getParent(ImmId id) const { return parents.getParent(id); }
+    Vec<int> getPath(ImmId id) const { return parents.getPath(id, *this); }
     Vec<ImmId> getParentChain(ImmId id, bool withSelf = true) const {
-        return store->getParentChain(id, withSelf);
+        return parents.getParentChain(id, withSelf);
+    }
+
+    ImmAstEditContext getEditContext() {
+        return ImmAstEditContext{
+            .parents = parents.transient(),
+            .ctx     = this,
+        };
+    }
+
+    ImmAstContext finishEdit(ImmAstEditContext ctx) {
+        ImmAstContext result = *this;
+        result.parents       = ctx.parents.persistent();
+        return result;
     }
 
     /// \brief Create new sem node of the specified kind in the local store
@@ -144,6 +183,7 @@ struct ImmAstContext {
     void format(ColStream& os, std::string const& prefix = "") const;
 
     SPtr<ImmAstStore> store;
+    ImmAstParentMap   parents;
 
     ImmAstContext() : store{std::make_shared<ImmAstStore>(this)} {}
 };
