@@ -1232,4 +1232,6 @@ TEST(ImmMapApi, BoostPropertyWriter) {
 
 
     write_graphviz_dp(os, g, dp);
+
+    writeFile("/tmp/BoostPropertyWriter.dot", os.str());
 }

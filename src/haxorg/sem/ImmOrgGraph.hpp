@@ -281,10 +281,6 @@ MapNodeResolveResult getResolvedNodeInsert(
 
 namespace boost {
 
-struct vector_as_graph_traversal_tag
-    : public vertex_list_graph_tag
-    , public adjacency_graph_tag
-    , public incidence_graph_tag {};
 
 struct map_graph_vertices_iterator {
     using iterator_category = std::forward_iterator_tag;
@@ -431,6 +427,16 @@ struct map_graph_edges_iterator {
         return outEdgeIndex != other.outEdgeIndex || iter != other.iter;
     }
 };
+
+struct vector_as_graph_traversal_tag
+    // can iterate over vertices
+    : public vertex_list_graph_tag
+    , public adjacency_graph_tag
+    , public incidence_graph_tag
+    // can iterate over edges
+    , public edge_list_graph_tag
+//
+{};
 
 template <>
 struct graph_traits<org::graph::MapGraph> {
@@ -623,11 +629,11 @@ struct map_vertex_identity_map {
     reference operator[](key_type const& key) const { return key; }
 };
 
-map_vertex_identity_map make_map_vertex_identity_map() {
+inline map_vertex_identity_map make_map_vertex_identity_map() {
     return map_vertex_identity_map{};
 }
 
-org::graph::MapNode get(
+inline org::graph::MapNode get(
     map_vertex_identity_map const& map,
     org::graph::MapNode const&     key) {
     return map[key];
