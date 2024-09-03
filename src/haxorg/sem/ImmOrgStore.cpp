@@ -18,20 +18,20 @@ EACH_SEM_ORG_KIND(_kind)
 #undef _kind
 
 
-ImmId ImmAstStore::setSubnodes(
+ImmAstReplace ImmAstStore::setSubnodes(
     ImmId              target,
     ImmVec<ImmId>      subnodes,
     ImmAstEditContext& ctx) {
     logic_assertion_check(
         !target.isNil(), "cannot set subnodes to nil node");
-    org::ImmId result_node = org::ImmId::Nil();
+    ImmAstReplace result;
     switch (target.getKind()) {
 #define _case(__Kind)                                                     \
     case OrgSemKind::__Kind: {                                            \
-        using ImmType   = org::Imm##__Kind;                               \
-        ImmType result  = ctx.ctx->value<ImmType>(target);                \
-        result.subnodes = subnodes;                                       \
-        result_node     = getStore<ImmType>()->add(result, ctx);          \
+        using ImmType = org::Imm##__Kind;                                 \
+        ImmType tmp   = ctx.ctx->value<ImmType>(target);                  \
+        tmp.subnodes  = subnodes;                                         \
+        result        = setNode(target, tmp, ctx);                        \
         break;                                                            \
     }
         EACH_SEM_ORG_KIND(_case)
@@ -40,30 +40,37 @@ ImmId ImmAstStore::setSubnodes(
 #undef _case
 
     logic_assertion_check(
-        !result_node.isNil(), "added node must not be nil");
+        !result.replaced.isNil(), "added node must not be nil");
 
     for (auto const& sub : subnodes) {
-        ctx.parents.setParent(sub, result_node);
+        ctx.parents.setParent(sub, result.replaced);
     }
 
-    return result_node;
+    return result;
 }
+
+
+template <org::IsImmOrgValueType T>
+ImmAstReplace ImmAstStore::setNode(
+    ImmId              target,
+    const T&           value,
+    ImmAstEditContext& ctx) {
+    auto result_node = getStore<T>()->add(value, ctx);
+    return ImmAstReplace{.replaced = result_node, .original = target};
+}
+
 
 ImmAstReplaceEpoch ImmAstStore::setSubnode(
     ImmId              target,
     ImmId              newSubnode,
     int                position,
     ImmAstEditContext& ctx) {
-    ImmId replaced = setSubnodes(
+    ImmAstReplace update = setSubnodes(
         target,
         ctx.ctx->at(target)->subnodes.set(position, newSubnode),
         ctx);
-    return cascadeUpdate(
-        {ImmAstReplace{
-            .original = target,
-            .replaced = replaced,
-        }},
-        ctx);
+
+    return cascadeUpdate({update}, ctx);
 }
 
 ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
@@ -71,13 +78,13 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
     ImmAstEditContext&        ctx) {
     Vec<ImmAstReplaceCascade> result;
     for (auto const& act : replace) {
+        auto replaced       = act.replaced;
         auto original       = act.original;
         auto originalParent = ctx.ctx->getParent(original);
-        auto replaced       = act.replaced;
 
         ImmAstReplaceCascade cascade{.chain = {act}};
         while (originalParent) {
-            ImmId replacedParent = setSubnodes(
+            ImmAstReplace act = setSubnodes(
                 *originalParent,
                 ctx.ctx->at(*originalParent)
                     ->subnodes.set(
@@ -85,15 +92,12 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
                         replaced),
                 ctx);
 
-            cascade.chain.push_back(ImmAstReplace{
-                .original = *originalParent,
-                .replaced = replacedParent,
-            });
+            cascade.chain.push_back(act);
 
             ctx.parents.removeParent(original);
 
-            replaced       = replacedParent;
-            original       = *originalParent;
+            replaced       = act.replaced;
+            original       = act.original;
             originalParent = ctx.ctx->getParent(original);
         }
 

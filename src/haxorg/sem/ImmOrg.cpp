@@ -525,22 +525,28 @@ ImmAstContext ImmAstEditContext::finish() {
     return ctx->finishEdit(*this);
 }
 
-Graphviz::Graph org::toGraphviz(const Vec<ImmAstVersion>& history) {
+Graphviz::Graph org::toGraphviz(
+    const Vec<ImmAstVersion>& history,
+    ImmAstGraphvizConf const& conf) {
     Graphviz::Graph                     g{"g"_ss};
     UnorderedSet<ImmId>                 visited;
     UnorderedMap<ImmId, Graphviz::Node> gvNodes;
     Vec<Str>                            epochColors = {
         "gray", "red", "blue", "yellow", "cyan", "orange"};
 
-    auto get_node = [&](ImmId id, int idx) {
-        if (!gvNodes.contains(id)) {
-            auto node = g.node(id.getReadableId());
-            node.setColor(epochColors.at(idx));
-            node.setShape(Graphviz::Node::Shape::rectangle);
-            gvNodes.insert_or_assign(id, node);
-        }
+    auto get_node = [&](ImmId id, int idx) -> Opt<Graphviz::Node> {
+        if (conf.skippedKinds.contains(id.getKind())) {
+            return std::nullopt;
+        } else {
+            if (!gvNodes.contains(id)) {
+                auto node = g.node(id.getReadableId());
+                node.setColor(epochColors.at(idx));
+                node.setShape(Graphviz::Node::Shape::rectangle);
+                gvNodes.insert_or_assign(id, node);
+            }
 
-        return gvNodes.at(id);
+            return gvNodes.at(id);
+        }
     };
 
     ImmAstContext ctx = history.front().context;
@@ -548,11 +554,16 @@ Graphviz::Graph org::toGraphviz(const Vec<ImmAstVersion>& history) {
     Func<void(ImmId, int)> aux;
     aux = [&](ImmId id, int idx) {
         auto node = get_node(id, idx);
-        for (auto const& sub : ctx.at(id)->subnodes) {
-            aux(sub, idx);
-            auto sub_imm = get_node(sub, idx);
-            auto edge    = g.edge(node, sub_imm);
-            edge.setColor(epochColors.at(idx));
+        if (node) {
+            for (auto const& it : enumerator(ctx.at(id)->subnodes)) {
+                aux(it.value(), idx);
+                auto sub_imm = get_node(it.value(), idx);
+                if (sub_imm) {
+                    auto edge = g.edge(*node, *sub_imm);
+                    edge.setColor(epochColors.at(idx));
+                    edge.setLabel(fmt1(it.index()));
+                }
+            }
         }
     };
 

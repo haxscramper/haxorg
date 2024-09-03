@@ -143,8 +143,13 @@ struct ImmAstStore {
 
     ImmOrg const* at(ImmId index) const;
 
+    template <org::IsImmOrgValueType T>
+    ImmAstReplace setNode(
+        org::ImmId         target,
+        T const&           value,
+        ImmAstEditContext& ctx);
 
-    ImmId setSubnodes(
+    ImmAstReplace setSubnodes(
         org::ImmId         target,
         ImmVec<org::ImmId> subnodes,
         ImmAstEditContext& ctx);
@@ -243,7 +248,13 @@ struct ImmAstVersion {
     DESC_FIELDS(ImmAstVersion, (context, epoch));
 };
 
-Graphviz::Graph toGraphviz(Vec<ImmAstVersion> const& history);
+struct ImmAstGraphvizConf {
+    SemSet skippedKinds;
+};
+
+Graphviz::Graph toGraphviz(
+    Vec<ImmAstVersion> const& history,
+    ImmAstGraphvizConf const& conf = ImmAstGraphvizConf{});
 
 template <typename T>
 struct ImmAdapterT;
