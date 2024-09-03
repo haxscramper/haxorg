@@ -270,6 +270,40 @@ Vec<ImmId> allSubnodes(T const& value, org::ImmAstContext const& ctx);
 
 Vec<ImmId> allSubnodes(ImmId const& value, org::ImmAstContext const& ctx);
 
+template <typename Func>
+void switch_node_kind(
+    org::ImmId           id,
+    ImmAstContext const& ctx,
+    Func const&          cb) {
+    switch (id.getKind()) {
+#define _case(__Kind)                                                     \
+    case OrgSemKind::__Kind: {                                            \
+        cb(ctx.value<org::Imm##__Kind>(id));                              \
+        break;                                                            \
+    }
+
+        EACH_SEM_ORG_KIND(_case)
+#undef _case
+    }
+}
+
+template <typename T, typename Func>
+void for_each_field_value_with_bases(T const& value, Func const& cb) {
+    for_each_field_with_bases<T>(
+        [&](auto const& field) { cb(field.name, value.*field.pointer); });
+}
+
+template <typename Func>
+void switch_node_fields(
+    org::ImmId           id,
+    ImmAstContext const& ctx,
+    Func const&          cb) {
+    switch_node_kind(id, ctx, [&]<typename T>(T const& node) {
+        for_each_field_value_with_bases(node, cb);
+    });
+}
+
+
 Graphviz::Graph toGraphviz(
     Vec<ImmAstVersion> const& history,
     ImmAstGraphvizConf const& conf = ImmAstGraphvizConf{});

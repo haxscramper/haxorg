@@ -83,3 +83,10 @@ struct std::formatter<UnorderedMap<K, V>> : std::formatter<std::string> {
         return fmt.format("}", ctx);
     }
 };
+
+template <typename K, typename V>
+struct value_metadata<UnorderedMap<K, V>> {
+    static bool isEmpty(UnorderedMap<K, V> const& value) {
+        return value.empty();
+    }
+};

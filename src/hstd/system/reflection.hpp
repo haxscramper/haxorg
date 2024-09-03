@@ -14,6 +14,44 @@
 #include <format>
 #include <type_traits>
 
+
+template <typename T>
+struct value_metadata<std::vector<T>> {
+    static bool isEmpty(std::vector<T> const& value) {
+        return value.empty();
+    }
+};
+
+template <typename T>
+struct value_metadata<std::optional<T>> {
+    static bool isEmpty(std::optional<T> const& value) {
+        return !value.has_value();
+    }
+
+    static bool isNil(std::optional<T> const& value) {
+        return !value.has_value();
+    }
+};
+
+template <typename T>
+struct value_metadata<T*> {
+    static bool isEmpty(T* const& value) { return value == nullptr; }
+    static bool isNil(T* const& value) { return value == nullptr; }
+};
+
+template <typename T>
+struct value_metadata<T const*> {
+    static bool isEmpty(T const* const& value) { return value == nullptr; }
+    static bool isNil(T const* const& value) { return value == nullptr; }
+};
+
+
+template <>
+struct value_metadata<std::string> {
+    static bool isEmpty(std::string const& value) { return value.empty(); }
+};
+
+
 template <typename T>
 concept IsEnum = std::is_enum<T>::value;
 

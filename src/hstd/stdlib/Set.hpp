@@ -58,3 +58,10 @@ struct std::formatter<UnorderedSet<T>> : std::formatter<std::string> {
         return fmt.format("}", ctx);
     }
 };
+
+template <typename T>
+struct value_metadata<UnorderedSet<T>> {
+    static bool isEmpty(UnorderedSet<T> const& value) {
+        return value.empty();
+    }
+};

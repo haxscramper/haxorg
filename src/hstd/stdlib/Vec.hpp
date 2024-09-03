@@ -398,3 +398,8 @@ struct std::formatter<std::vector<T>> : std::formatter<std::string> {
 
 template <typename T>
 using CVec = CR<Vec<T>>;
+
+template <typename T>
+struct value_metadata<Vec<T>> {
+    static bool isEmpty(Vec<T> const& value) { return value.empty(); }
+};
