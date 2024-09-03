@@ -821,15 +821,18 @@ TEST(ImmOrgApi, ReplaceSubnodeAtPath) {
     // Document[0].Paragraph[0]
 
     org::ImmAstContext start;
-    auto [store, root] = start.addRoot(start_node);
-    auto paragraph     = store.at(root)->subnodes.at(0);
 
-    auto ctx     = store.getEditContext();
-    auto word_xx = store.add(replace_node, ctx);
-    auto cascade = ctx.ctx->store->setSubnode(paragraph, word_xx, 2, ctx);
-    auto store2  = ctx.finish();
+    auto version1  = start.init(start_node);
+    auto store     = version1.context;
+    auto paragraph = store.at(version1.epoch.getRoot())->subnodes.at(0);
 
-    auto const& c = cascade.replaced.at(0).chain;
+    auto ctx      = store.getEditContext();
+    auto word_xx  = store.add(replace_node, ctx);
+    auto version2 = store.finishEdit(
+        ctx, ctx.ctx->store->setSubnode(paragraph, word_xx, 2, ctx));
+
+    auto        store2 = version2.context;
+    auto const& c      = version2.epoch.replaced.at(0).chain;
 
     auto const& doc1_id = c.at(1).original;
     auto const& doc2_id = c.at(1).replaced;

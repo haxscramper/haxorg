@@ -523,3 +523,6 @@ ImmAstParentMap ImmAstParentMapTransient::persistent() {
 ImmAstContext ImmAstEditContext::finish() {
     return ctx->finishEdit(*this);
 }
+
+Graphviz::Graph toGraphviz(const Vec<ImmAstVersion>& history) {}
+

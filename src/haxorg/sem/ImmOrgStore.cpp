@@ -252,6 +252,20 @@ void ImmAstContext::format(ColStream& os, const std::string& prefix)
 }
 
 
+ImmAstContext ImmAstContext::finishEdit(ImmAstEditContext& ctx) {
+    ImmAstContext result = *this;
+    result.parents       = ctx.parents.persistent();
+    return result;
+}
+
+
+ImmAstVersion ImmAstContext::finishEdit(
+    ImmAstEditContext&        ctx,
+    const ImmAstReplaceEpoch& epoch) {
+    auto newContext = finishEdit(ctx);
+    return ImmAstVersion{.context = newContext, .epoch = epoch};
+}
+
 ImmId ImmAstContext::add(
     sem::SemId<sem::Org> data,
     ImmAstEditContext&   ctx) {
@@ -262,6 +276,19 @@ ImmRootAddResult ImmAstContext::addRoot(sem::SemId<sem::Org> data) {
     auto edit = getEditContext();
     auto root = add(data, edit);
     return ImmRootAddResult{.root = root, .context = edit.finish()};
+}
+
+ImmAstVersion ImmAstContext::init(sem::SemId<sem::Org> root) {
+    auto [store, imm_root] = addRoot(root);
+    ImmAstReplace replace{
+        .original = ImmId::Nil(),
+        .replaced = imm_root,
+    };
+
+    ImmAstVersion result{.context = store};
+    result.epoch.replaced.push_back(ImmAstReplaceCascade{{replace}});
+
+    return result;
 }
 
 

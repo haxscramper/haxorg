@@ -5,6 +5,7 @@
 #include <haxorg/sem/SemOrg.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <immer/map_transient.hpp>
+#include <hstd/wrappers/hstd_extra/graphviz.hpp>
 
 
 #define _declare_hash(__kind)                                             \
@@ -53,6 +54,7 @@ struct ImmAstParentMapTransient {
 
 struct ImmAstParentMap {
     ImmAstParentMapType parents;
+    DESC_FIELDS(ImmAstParentMap, (parents));
 
     Opt<ImmId> getParent(ImmId id) const { return parents.get(id); }
     Vec<int>   getPath(ImmId id, ImmAstContext const& ctx) const;
@@ -109,6 +111,11 @@ struct ImmAstReplaceCascade {
 
 struct ImmAstReplaceEpoch {
     Vec<ImmAstReplaceCascade> replaced;
+
+    ImmId getRoot() const {
+        return replaced.front().chain.back().replaced;
+    }
+
     DESC_FIELDS(ImmAstReplaceEpoch, (replaced));
 };
 
@@ -170,6 +177,8 @@ struct [[nodiscard]] ImmAstContext {
     SPtr<ImmAstStore> store;
     ImmAstParentMap   parents;
 
+    DESC_FIELDS(ImmAstContext, (store, parents));
+
     bool       hasParent(ImmId id) const { return parents.hasParent(id); }
     Opt<ImmId> getParent(ImmId id) const { return parents.getParent(id); }
     Vec<int> getPath(ImmId id) const { return parents.getPath(id, *this); }
@@ -184,16 +193,17 @@ struct [[nodiscard]] ImmAstContext {
         };
     }
 
-    ImmAstContext finishEdit(ImmAstEditContext ctx) {
-        ImmAstContext result = *this;
-        result.parents       = ctx.parents.persistent();
-        return result;
-    }
+    ImmAstContext finishEdit(ImmAstEditContext& ctx);
+
+    ImmAstVersion finishEdit(
+        ImmAstEditContext&        ctx,
+        ImmAstReplaceEpoch const& epoch);
 
     /// \brief Create new sem node of the specified kind in the local store
     /// with `index`
     ImmId add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx);
     ImmRootAddResult addRoot(sem::SemId<sem::Org> data);
+    ImmAstVersion    init(sem::SemId<sem::Org> root);
 
     sem::SemId<sem::Org> get(org::ImmId id);
 
@@ -224,12 +234,16 @@ struct [[nodiscard]] ImmAstContext {
 struct ImmRootAddResult {
     ImmAstContext context;
     org::ImmId    root;
+    DESC_FIELDS(ImmRootAddResult, (context, root));
 };
 
 struct ImmAstVersion {
     ImmAstContext      context;
     ImmAstReplaceEpoch epoch;
+    DESC_FIELDS(ImmAstVersion, (context, epoch));
 };
+
+Graphviz::Graph toGraphviz(Vec<ImmAstVersion> const& history);
 
 template <typename T>
 struct ImmAdapterT;
@@ -426,6 +440,22 @@ using SubnodeVisitor = Func<void(ImmAdapter)>;
 void eachSubnodeRec(org::ImmAdapter id, SubnodeVisitor cb);
 
 } // namespace org
+
+template <>
+struct std::formatter<org::ImmAstStore*>
+    : std_format_ptr_as_hex<org::ImmAstStore> {};
+
+template <>
+struct std::formatter<org::ImmAstContext*>
+    : std_format_ptr_as_hex<org::ImmAstContext> {};
+
+template <>
+struct std::formatter<org::ImmAstStore> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const org::ImmAstStore& p, FormatContext& ctx) const {
+        return fmt_ctx("ImmAstStore{}", ctx);
+    }
+};
 
 
 template <>
