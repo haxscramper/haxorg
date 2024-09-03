@@ -829,7 +829,7 @@ TEST(ImmOrgApi, ReplaceSubnodeAtPath) {
     auto cascade = ctx.ctx->store->setSubnode(paragraph, word_xx, 2, ctx);
     auto store2  = ctx.finish();
 
-    auto const& c = cascade.at(0).chain;
+    auto const& c = cascade.replaced.at(0).chain;
 
     auto const& doc1_id = c.at(1).original;
     auto const& doc2_id = c.at(1).replaced;

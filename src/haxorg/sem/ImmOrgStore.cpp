@@ -49,7 +49,7 @@ ImmId ImmAstStore::setSubnodes(
     return result_node;
 }
 
-Vec<ImmAstStore::AstReplaceCascade> ImmAstStore::setSubnode(
+ImmAstReplaceEpoch ImmAstStore::setSubnode(
     ImmId              target,
     ImmId              newSubnode,
     int                position,
@@ -59,22 +59,23 @@ Vec<ImmAstStore::AstReplaceCascade> ImmAstStore::setSubnode(
         ctx.ctx->at(target)->subnodes.set(position, newSubnode),
         ctx);
     return cascadeUpdate(
-        {AstReplace{
+        {ImmAstReplace{
             .original = target,
             .replaced = replaced,
         }},
         ctx);
 }
 
-Vec<ImmAstStore::AstReplaceCascade> ImmAstStore::cascadeUpdate(
-    const Vec<AstReplace>& replace,
-    ImmAstEditContext&     ctx) {
-    Vec<ImmAstStore::AstReplaceCascade> result;
+ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
+    const Vec<ImmAstReplace>& replace,
+    ImmAstEditContext&        ctx) {
+    Vec<ImmAstReplaceCascade> result;
     for (auto const& act : replace) {
-        auto              original       = act.original;
-        auto              originalParent = ctx.ctx->getParent(original);
-        auto              replaced       = act.replaced;
-        AstReplaceCascade cascade{.chain = {act}};
+        auto original       = act.original;
+        auto originalParent = ctx.ctx->getParent(original);
+        auto replaced       = act.replaced;
+
+        ImmAstReplaceCascade cascade{.chain = {act}};
         while (originalParent) {
             ImmId replacedParent = setSubnodes(
                 *originalParent,
@@ -84,7 +85,7 @@ Vec<ImmAstStore::AstReplaceCascade> ImmAstStore::cascadeUpdate(
                         replaced),
                 ctx);
 
-            cascade.chain.push_back(AstReplace{
+            cascade.chain.push_back(ImmAstReplace{
                 .original = *originalParent,
                 .replaced = replacedParent,
             });
@@ -99,7 +100,7 @@ Vec<ImmAstStore::AstReplaceCascade> ImmAstStore::cascadeUpdate(
         result.push_back(cascade);
     }
 
-    return result;
+    return {result};
 }
 
 

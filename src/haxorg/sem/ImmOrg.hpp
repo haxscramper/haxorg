@@ -94,6 +94,23 @@ struct ImmAstKindStore {
     sem::SemId<sem::Org> get(org::ImmId id, ImmAstContext const& ctx);
 };
 
+struct ImmAstReplace {
+    org::ImmId original;
+    org::ImmId replaced;
+
+    DESC_FIELDS(ImmAstReplace, (original, replaced));
+};
+
+struct ImmAstReplaceCascade {
+    Vec<ImmAstReplace> chain;
+
+    DESC_FIELDS(ImmAstReplaceCascade, (chain));
+};
+
+struct ImmAstReplaceEpoch {
+    Vec<ImmAstReplaceCascade> replaced;
+    DESC_FIELDS(ImmAstReplaceEpoch, (replaced));
+};
 
 struct ImmAstStore {
     UnorderedMap<org::ImmId, org::ImmId> parents;
@@ -125,28 +142,15 @@ struct ImmAstStore {
         ImmVec<org::ImmId> subnodes,
         ImmAstEditContext& ctx);
 
-    struct AstReplace {
-        org::ImmId original;
-        org::ImmId replaced;
-
-        DESC_FIELDS(AstReplace, (original, replaced));
-    };
-
-    struct AstReplaceCascade {
-        Vec<AstReplace> chain;
-
-        DESC_FIELDS(AstReplaceCascade, (chain));
-    };
-
-    Vec<AstReplaceCascade> setSubnode(
+    ImmAstReplaceEpoch setSubnode(
         org::ImmId         target,
         org::ImmId         newSubnode,
         int                position,
         ImmAstEditContext& ctx);
 
     /// \brief Generate new set of parent nodes for the node update.
-    Vec<AstReplaceCascade> cascadeUpdate(
-        Vec<AstReplace> const&,
+    ImmAstReplaceEpoch cascadeUpdate(
+        Vec<ImmAstReplace> const&,
         ImmAstEditContext& ctx);
 
     template <org::IsImmOrgValueType T>
@@ -160,6 +164,7 @@ struct ImmAstStore {
 };
 
 struct ImmRootAddResult;
+struct ImmAstVersion;
 
 struct [[nodiscard]] ImmAstContext {
     SPtr<ImmAstStore> store;
@@ -219,6 +224,11 @@ struct [[nodiscard]] ImmAstContext {
 struct ImmRootAddResult {
     ImmAstContext context;
     org::ImmId    root;
+};
+
+struct ImmAstVersion {
+    ImmAstContext      context;
+    ImmAstReplaceEpoch epoch;
 };
 
 template <typename T>
