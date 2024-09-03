@@ -155,20 +155,6 @@ sem::SemId<sem::Org> ImmAstStore::get(ImmId id, const ImmAstContext& ctx) {
 }
 
 const ImmOrg* ImmAstContext::at(ImmId id) const {
-    u64 kind     = static_cast<u64>(id.getKind());
-    u64 kindLow  = static_cast<u64>(value_domain<OrgSemKind>::low());
-    u64 kindHigh = static_cast<u64>(value_domain<OrgSemKind>::high());
-
-    logic_assertion_check(
-        kindLow <= kind && kind <= kindHigh,
-        "ID kind value out of range: ID int value is: {} (bin: {:032b}, "
-        "hex: {:032X}), low {} high {}",
-        kind,
-        kind,
-        kind,
-        kindLow,
-        kindHigh);
-
     ImmOrg const* res = store->at(id);
     CHECK(res->getKind() == id.getKind());
     return res;

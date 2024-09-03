@@ -267,13 +267,9 @@ struct ImmId : ImmIdBase {
     /// \brief non-nil nodes are converter to `true`
     operator bool() const { return !isNil(); }
 
-    std::string getReadableId() const {
-        if (isNil()) {
-            return "nil";
-        } else {
-            return std::format("{}_{}", getKind(), getNodeIndex());
-        }
-    }
+    std::string getReadableId() const;
+
+    void assertValid() const;
 };
 
 template <typename T>

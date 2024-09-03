@@ -46,6 +46,39 @@ org::ImmId::IdType org::ImmId::combineFullValue(
          | (u64(node) << NodeIdxOffset) & NodeIdxMask;
 }
 
+
+std::string org::ImmId::getReadableId() const {
+    if (isNil()) {
+        return "nil";
+    } else {
+        try {
+            return std::format("{}_{}", getKind(), getNodeIndex());
+        } catch (std::domain_error const& err) {
+            return std::format(
+                "ERR {} MASK:{:016b} IDX:{:032b}",
+                err.what(),
+                static_cast<u64>(getKind()),
+                static_cast<u64>(getNodeIndex()));
+        }
+    }
+}
+
+void org::ImmId::assertValid() const {
+    u64 kind     = static_cast<u64>(getKind());
+    u64 kindLow  = static_cast<u64>(value_domain<OrgSemKind>::low());
+    u64 kindHigh = static_cast<u64>(value_domain<OrgSemKind>::high());
+
+    logic_assertion_check(
+        kindLow <= kind && kind <= kindHigh,
+        "ID kind value out of range: ID int value is: {} (bin: {:032b}, "
+        "hex: {:032X}), low {} high {}",
+        kind,
+        kind,
+        kind,
+        kindLow,
+        kindHigh);
+}
+
 #define _define_static(__Kind)                                            \
     const OrgSemKind org::Imm##__Kind::staticKind = OrgSemKind::__Kind;
 
@@ -480,7 +513,9 @@ Graphviz::Graph org::toGraphviz(
     aux = [&](ImmId id, int idx) {
         auto node = get_node(id, idx);
         if (node) {
-            for (auto const& it : enumerator(allSubnodes(id, ctx))) {
+            auto subnodes = allSubnodes(id, ctx);
+            for (auto const& it : enumerator(subnodes)) {
+                it.value().assertValid();
                 aux(it.value(), idx);
                 auto sub_imm = get_node(it.value(), idx);
                 if (sub_imm) {
@@ -512,15 +547,15 @@ struct ImmSubnodeCollectionVisitor {};
         /*ResultType=*/(Vec<ImmId>),                                      \
         /*MethodName=*/getSubnodes)
 
-IMM_SUBNODE_COLLECTOR((), (ImmVec<ImmId>)) {
-    return Vec<ImmId>{arg.begin(), arg.end()};
-}
-
 IMM_SUBNODE_COLLECTOR((typename T), (ImmIdT<T>)) {
+    arg.toId().assertValid();
     return Vec<ImmId>{arg.toId()};
 }
 
-IMM_SUBNODE_COLLECTOR((), (ImmId)) { return Vec<ImmId>{arg}; }
+IMM_SUBNODE_COLLECTOR((), (ImmId)) {
+    arg.assertValid();
+    return Vec<ImmId>{arg};
+}
 IMM_SUBNODE_COLLECTOR((), (Str)) { return {}; }
 IMM_SUBNODE_COLLECTOR((), (bool)) { return {}; }
 IMM_SUBNODE_COLLECTOR((), (int)) { return {}; }
@@ -555,7 +590,11 @@ IMM_SUBNODE_COLLECTOR((IsVariant T), (T)) {
 
 
 IMM_SUBNODE_COLLECTOR((typename T), (ImmBox<T>)) {
-    return ImmSubnodeCollectionVisitor<T>::getSubnodes(arg.get(), ctx);
+    if (arg.impl() == nullptr) {
+        return {};
+    } else {
+        return ImmSubnodeCollectionVisitor<T>::getSubnodes(arg.get(), ctx);
+    }
 }
 
 IMM_SUBNODE_COLLECTOR((typename T), (Opt<T>)) {
@@ -574,15 +613,17 @@ Vec<ImmId> org::allSubnodes(
     Vec<ImmId> subnodes;
     for_each_field_with_bases<T>([&](auto const& f) {
         using FieldType = DESC_FIELD_TYPE(f);
-        subnodes.append(
-            ImmSubnodeCollectionVisitor<FieldType>::getSubnodes(
-                value.*f.pointer, ctx));
+        auto tmp = ImmSubnodeCollectionVisitor<FieldType>::getSubnodes(
+            value.*f.pointer, ctx);
+        for (auto const& it : tmp) { it.assertValid(); }
+        subnodes.append(tmp);
     });
     return subnodes;
 }
 
 
 Vec<ImmId> org::allSubnodes(const ImmId& value, const ImmAstContext& ctx) {
+    value.assertValid();
     switch (value.getKind()) {
 #define _case(__Kind)                                                     \
     case OrgSemKind::__Kind: {                                            \
