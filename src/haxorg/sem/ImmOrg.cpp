@@ -107,24 +107,16 @@ using namespace org;
 
 
 const ImmOrg* ImmAstStore::at(ImmId index) const {
-    switch (index.getKind()) {
-
-#define _case(__Kind)                                                     \
-    case OrgSemKind::__Kind: {                                            \
-        org::Imm##__Kind const* res = store##__Kind.at(index);            \
-        logic_assertion_check(                                            \
-            res->getKind() == index.getKind(),                            \
-            "index kind {} does not match result node kind {}",           \
-            index.getKind(),                                              \
-            res->getKind());                                              \
-        return res;                                                       \
-    }
-        EACH_SEM_ORG_KIND(_case)
-#undef _case
-    }
-
-    throw logic_unreachable_error::init(
-        fmt("Cannot get node for index {}", index));
+    ImmOrg const* res;
+    switch_node_kind(index, [&]<typename K>(org::ImmIdT<K> id) {
+        res = getStore<K>()->at(index);
+        logic_assertion_check(
+            res->getKind() == index.getKind(),
+            "index kind {} does not match result node kind {}",
+            index.getKind(),
+            res->getKind());
+    });
+    return res;
 }
 
 namespace {
@@ -206,18 +198,9 @@ struct Visitor<ImmId> {
         CR<org::SubnodeVisitor> visitor,
         ImmId                   org,
         org::ImmAstContext*     ctx) {
-        switch (ctx->at(org)->getKind()) {
-
-
-#define __case(__Kind)                                                    \
-    case OrgSemKind::__Kind: {                                            \
-        Visitor<org::ImmIdT<org::Imm##__Kind>>::visitField(               \
-            visitor, org.as<org::Imm##__Kind>(), ctx);                    \
-        break;                                                            \
-    }
-            EACH_SEM_ORG_KIND(__case)
-#undef __case
-        }
+        switch_node_value(org, *ctx, [&]<typename N>(N const& value) {
+            Visitor<org::ImmIdT<N>>::visitField(visitor, org.as<N>(), ctx);
+        });
     }
 };
 
@@ -359,23 +342,10 @@ IMM_TREE_REPR_IMPL((typename T), (ImmVec<T>)) {
 }
 
 IMM_TREE_REPR_IMPL((), (org::ImmAdapter)) {
-    switch (arg->getKind()) {
-#define __case(__Kind)                                                    \
-    case OrgSemKind::__Kind: {                                            \
-        auto id_t = arg.as<org::Imm##__Kind>();                           \
-        ImmTreeReprVisitor<org::ImmAdapterT<org::Imm##__Kind>>::visit(    \
-            id_t, os, ctx);                                               \
-        break;                                                            \
-    }
-        EACH_SEM_ORG_KIND(__case)
-#undef __case
-        default: {
-            os.indent(ctx.level * 2);
-            os << fmt(
-                "ERR Invalid kind value {0:064b} {0:064X}",
-                arg.id.getValue());
-        }
-    }
+    switch_node_value(arg.id, *arg.ctx, [&]<typename N>(N const& value) {
+        auto id_t = arg.as<N>();
+        ImmTreeReprVisitor<org::ImmAdapterT<N>>::visit(id_t, os, ctx);
+    });
 }
 
 IMM_TREE_REPR_IMPL((), (Vec<sem::SemId<sem::Org>>)) {}
@@ -492,7 +462,6 @@ struct value_metadata<ImmVec<T>> {
 };
 
 
-
 template <typename T>
 struct value_metadata<ImmSet<T>> {
     static bool isEmpty(ImmSet<T> const& value) { return value.empty(); }
@@ -512,7 +481,6 @@ struct value_metadata<ImmBox<T>> {
         return value.impl() == nullptr;
     }
 };
-
 
 
 Graphviz::Graph org::toGraphviz(
@@ -543,8 +511,6 @@ Graphviz::Graph org::toGraphviz(
                             value));
                 };
 
-                field("ID", id);
-
 
                 switch_node_fields(
                     id,
@@ -554,6 +520,7 @@ Graphviz::Graph org::toGraphviz(
                             maxFieldWidth, name.size());
                     });
 
+                field("ID", id);
                 switch_node_fields(
                     id,
                     ctx,

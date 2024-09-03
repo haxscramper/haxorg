@@ -122,8 +122,18 @@ struct ImmAstReplaceEpoch {
 struct ImmAstStore {
     UnorderedMap<org::ImmId, org::ImmId> parents;
 
-    template <typename T>
-    ImmAstKindStore<T>* getStore();
+    template <org::IsImmOrgValueType T>
+    ImmAstKindStore<T> const* getStoreImpl() const;
+
+    template <org::IsImmOrgValueType T>
+    ImmAstKindStore<T> const* getStore() const {
+        return getStoreImpl<T>();
+    }
+
+    template <org::IsImmOrgValueType T>
+    ImmAstKindStore<T>* getStore() {
+        return const_cast<ImmAstKindStore<T>*>(getStoreImpl<T>());
+    }
 
 #define _kind(__Kind) ImmAstKindStore<Imm##__Kind> store##__Kind;
     EACH_SEM_ORG_KIND(_kind)
@@ -271,20 +281,29 @@ Vec<ImmId> allSubnodes(T const& value, org::ImmAstContext const& ctx);
 Vec<ImmId> allSubnodes(ImmId const& value, org::ImmAstContext const& ctx);
 
 template <typename Func>
-void switch_node_kind(
-    org::ImmId           id,
-    ImmAstContext const& ctx,
-    Func const&          cb) {
+void switch_node_kind(org::ImmId id, Func const& cb) {
     switch (id.getKind()) {
 #define _case(__Kind)                                                     \
     case OrgSemKind::__Kind: {                                            \
-        cb(ctx.value<org::Imm##__Kind>(id));                              \
+        cb(id.as<org::Imm##__Kind>());                                    \
         break;                                                            \
     }
 
         EACH_SEM_ORG_KIND(_case)
 #undef _case
+        default: {
+            id.assertValid();
+        }
     }
+}
+
+template <typename Func>
+void switch_node_value(
+    org::ImmId           id,
+    ImmAstContext const& ctx,
+    Func const&          cb) {
+    switch_node_kind(
+        id, [&]<typename K>(org::ImmIdT<K> id) { cb(ctx.value<K>(id)); });
 }
 
 template <typename T, typename Func>
@@ -298,7 +317,7 @@ void switch_node_fields(
     org::ImmId           id,
     ImmAstContext const& ctx,
     Func const&          cb) {
-    switch_node_kind(id, ctx, [&]<typename T>(T const& node) {
+    switch_node_value(id, ctx, [&]<typename T>(T const& node) {
         for_each_field_value_with_bases(node, cb);
     });
 }

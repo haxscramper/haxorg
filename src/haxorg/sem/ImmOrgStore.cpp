@@ -11,7 +11,8 @@ struct store_error : CRTP_hexception<store_error> {};
 
 #define _kind(__Kind)                                                     \
     template <>                                                           \
-    ImmAstKindStore<Imm##__Kind>* ImmAstStore::getStore() {               \
+    ImmAstKindStore<Imm##__Kind> const* ImmAstStore::getStoreImpl()       \
+        const {                                                           \
         return &store##__Kind;                                            \
     }
 EACH_SEM_ORG_KIND(_kind)
@@ -24,19 +25,13 @@ ImmAstReplace ImmAstStore::setSubnodes(
     ImmAstEditContext& ctx) {
     logic_assertion_check(
         !target.isNil(), "cannot set subnodes to nil node");
-    switch (target.getKind()) {
-#define _case(__Kind)                                                     \
-    case OrgSemKind::__Kind: {                                            \
-        using ImmType = org::Imm##__Kind;                                 \
-        ImmType tmp   = ctx.ctx->value<ImmType>(target);                  \
-        tmp.subnodes  = subnodes;                                         \
-        return setNode(target, tmp, ctx);                                 \
-        break;                                                            \
-    }
-        EACH_SEM_ORG_KIND(_case)
-    }
+    ImmAstReplace result;
+    switch_node_value(target, *ctx.ctx, [&]<typename N>(N node) {
+        node.subnodes = subnodes;
+        result        = setNode(target, node, ctx);
+    });
 
-#undef _case
+    return result;
 }
 
 
@@ -109,17 +104,11 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
 
 ImmId ImmAstStore::add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx) {
     org::ImmId result = org::ImmId::Nil();
-
-    switch (data->getKind()) {
-#define _case(__Kind)                                                     \
-    case OrgSemKind::__Kind: {                                            \
-        result = store##__Kind.add(data, ctx);                            \
-        break;                                                            \
-    }
-
-        EACH_SEM_ORG_KIND(_case)
-#undef _case
-    }
+    switch_node_kind(
+        org::ImmId{data->getKind(), 0},
+        [&]<typename K>(org::ImmIdT<K> id) {
+            result = getStore<K>()->add(data, ctx);
+        });
 
     if (result.isNil()) {
         throw logic_unreachable_error::init(
@@ -135,21 +124,9 @@ ImmId ImmAstStore::add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx) {
 
 sem::SemId<sem::Org> ImmAstStore::get(ImmId id, const ImmAstContext& ctx) {
     sem::SemId<sem::Org> result;
-    switch (id.getKind()) {
-#define _case(__Kind)                                                     \
-    case OrgSemKind::__Kind: {                                            \
-        result = store##__Kind.get(id, ctx);                              \
-        break;                                                            \
-    }
-
-        EACH_SEM_ORG_KIND(_case)
-#undef _case
-        default: {
-            throw logic_unreachable_error::init(
-                fmt("Unhandled node kind for automatic creation {}",
-                    id.getKind()));
-        }
-    }
+    switch_node_kind(id, [&]<typename K>(org::ImmIdT<K> id) {
+        result = getStore<K>()->get(id, ctx);
+    });
 
     return result;
 }
