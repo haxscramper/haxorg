@@ -268,80 +268,6 @@ void org::eachSubnodeRec(ImmAdapter id, SubnodeVisitor cb) {
 }
 
 
-#define DEFINE_VISITOR_BASE_STRUCT(                                       \
-    __VisitorTypename,                                                    \
-    __VisitorTemplateArgs,                                                \
-    __VisitorSharedArgs,                                                  \
-    __VisitorTypeSpecification,                                           \
-    __VisitorResultType)                                                  \
-                                                                          \
-    template <BOOST_PP_TUPLE_REM() __VisitorTemplateArgs>                 \
-    struct __VisitorTypename<BOOST_PP_TUPLE_REM()                         \
-                                 __VisitorTypeSpecification> {            \
-        static BOOST_PP_TUPLE_REM() __VisitorResultType visit(            \
-            BOOST_PP_TUPLE_REM() __VisitorTypeSpecification const& arg,   \
-            BOOST_PP_TUPLE_REM() __VisitorSharedArgs);                    \
-    };
-
-#define IS_EMPTY_TUPLE(tuple)                                             \
-    BOOST_PP_IS_EMPTY(BOOST_PP_TUPLE_ELEM(0, tuple))
-
-// clang-format off
-#define DEFINE_VISITOR_BASE_METHOD_SIGNATURE(                             \
-    __VisitorTypename,                                                    \
-    __VisitorTemplateArgs,                                                \
-    __VisitorSharedArgs,                                                  \
-    __VisitorTypeSpecification,                                           \
-    __VisitorResultType)                                                  \
-                                                                          \
-    BOOST_PP_IF(                                                          \
-        IS_EMPTY_TUPLE(__VisitorTemplateArgs),                            \
-        BOOST_PP_EMPTY(),                                                   \
-        template <BOOST_PP_TUPLE_REM() __VisitorTemplateArgs>)            \
-    BOOST_PP_TUPLE_REM() __VisitorResultType                                                   \
-        __VisitorTypename<BOOST_PP_TUPLE_REM() __VisitorTypeSpecification>::visit(             \
-            BOOST_PP_TUPLE_REM() __VisitorTypeSpecification const& arg,                        \
-            BOOST_PP_TUPLE_REM() __VisitorSharedArgs)
-// clang-format on
-
-#define DEFINE_VISITOR_BASE_ALL(                                          \
-    __VisitorTypename,                                                    \
-    __VisitorTemplateArgs,                                                \
-    __VisitorSharedArgs,                                                  \
-    __VisitorTypeSpecification,                                           \
-    __VisitorResultType)                                                  \
-                                                                          \
-    DEFINE_VISITOR_BASE_STRUCT(                                           \
-        __VisitorTypename,                                                \
-        __VisitorTemplateArgs,                                            \
-        __VisitorSharedArgs,                                              \
-        __VisitorTypeSpecification,                                       \
-        __VisitorResultType)                                              \
-                                                                          \
-    DEFINE_VISITOR_BASE_METHOD_SIGNATURE(                                 \
-        __VisitorTypename,                                                \
-        __VisitorTemplateArgs,                                            \
-        __VisitorSharedArgs,                                              \
-        __VisitorTypeSpecification,                                       \
-        __VisitorResultType)
-
-
-template <typename T>
-struct __DescFieldTypeHelper {};
-
-#define DESC_FIELD_TYPE(__field)                                          \
-    __DescFieldTypeHelper<decltype(__field.pointer)>::Type
-
-template <typename StructType, typename FieldType>
-struct __DescFieldTypeHelper<FieldType StructType::*> {
-    using Type = std::remove_cvref_t<FieldType>;
-};
-
-template <typename StructType, typename FieldType>
-struct __DescFieldTypeHelper<FieldType StructType::*const> {
-    using Type = std::remove_cvref_t<FieldType>;
-};
-
 namespace {
 struct ImmTreeReprContext {
     int                           level;
@@ -380,7 +306,8 @@ struct ImmTreeReprVisitor<org::ImmAdapterT<T>> {
         /*TemplateArgs=*/__TemplateArgs,                                  \
         /*SharedArgs=*/(ColStream & os, ImmTreeReprContext const& ctx),   \
         /*TypeSpecification=*/__VisitorTypeSpecification,                 \
-        /*ResultType=*/(void))
+        /*ResultType=*/(void),                                            \
+        /*MethodName=*/visit)
 
 IMM_TREE_REPR_IMPL((typename T), (ImmBox<T>)) {
     ImmTreeReprVisitor<T>::visit(arg.get(), os, ctx);
@@ -531,8 +458,6 @@ Graphviz::Graph org::toGraphviz(
     Graphviz::Graph                     g{"g"_ss};
     UnorderedSet<ImmId>                 visited;
     UnorderedMap<ImmId, Graphviz::Node> gvNodes;
-    Vec<Str>                            epochColors = {
-        "gray", "red", "blue", "yellow", "cyan", "orange"};
 
     auto get_node = [&](ImmId id, int idx) -> Opt<Graphviz::Node> {
         if (conf.skippedKinds.contains(id.getKind())) {
@@ -540,7 +465,7 @@ Graphviz::Graph org::toGraphviz(
         } else {
             if (!gvNodes.contains(id)) {
                 auto node = g.node(id.getReadableId());
-                node.setColor(epochColors.at(idx));
+                node.setColor(conf.epochColors.at(idx));
                 node.setShape(Graphviz::Node::Shape::rectangle);
                 gvNodes.insert_or_assign(id, node);
             }
@@ -555,12 +480,12 @@ Graphviz::Graph org::toGraphviz(
     aux = [&](ImmId id, int idx) {
         auto node = get_node(id, idx);
         if (node) {
-            for (auto const& it : enumerator(ctx.at(id)->subnodes)) {
+            for (auto const& it : enumerator(allSubnodes(id, ctx))) {
                 aux(it.value(), idx);
                 auto sub_imm = get_node(it.value(), idx);
                 if (sub_imm) {
                     auto edge = g.edge(*node, *sub_imm);
-                    edge.setColor(epochColors.at(idx));
+                    edge.setColor(conf.epochColors.at(idx));
                     edge.setLabel(fmt1(it.index()));
                 }
             }
@@ -572,4 +497,99 @@ Graphviz::Graph org::toGraphviz(
     }
 
     return g;
+}
+
+
+template <typename T>
+struct ImmSubnodeCollectionVisitor {};
+
+#define IMM_SUBNODE_COLLECTOR(__TemplateArgs, __VisitorTypeSpecification) \
+    DEFINE_VISITOR_BASE_ALL(                                              \
+        /*Typename=*/ImmSubnodeCollectionVisitor,                         \
+        /*TemplateArgs=*/__TemplateArgs,                                  \
+        /*SharedArgs=*/(org::ImmAstContext const& ctx),                   \
+        /*TypeSpecification=*/__VisitorTypeSpecification,                 \
+        /*ResultType=*/(Vec<ImmId>),                                      \
+        /*MethodName=*/getSubnodes)
+
+IMM_SUBNODE_COLLECTOR((), (ImmVec<ImmId>)) {
+    return Vec<ImmId>{arg.begin(), arg.end()};
+}
+
+IMM_SUBNODE_COLLECTOR((typename T), (ImmIdT<T>)) {
+    return Vec<ImmId>{arg.toId()};
+}
+
+IMM_SUBNODE_COLLECTOR((), (ImmId)) { return Vec<ImmId>{arg}; }
+IMM_SUBNODE_COLLECTOR((), (Str)) { return {}; }
+IMM_SUBNODE_COLLECTOR((), (bool)) { return {}; }
+IMM_SUBNODE_COLLECTOR((), (int)) { return {}; }
+IMM_SUBNODE_COLLECTOR((IsEnum E), (E)) { return {}; }
+IMM_SUBNODE_COLLECTOR((DescribedRecord R), (R)) { return {}; }
+IMM_SUBNODE_COLLECTOR((typename K, typename V), (ImmMap<K, V>)) {
+    Vec<ImmId> result;
+    for (auto const& [key, value] : arg) {
+        result.append(
+            ImmSubnodeCollectionVisitor<V>::getSubnodes(value, ctx));
+    }
+    return result;
+}
+
+IMM_SUBNODE_COLLECTOR((typename T), (ImmVec<T>)) {
+    Vec<ImmId> result{};
+    for (auto const& it : arg) {
+        result.append(
+            ImmSubnodeCollectionVisitor<T>::getSubnodes(it, ctx));
+    }
+    return result;
+}
+
+
+IMM_SUBNODE_COLLECTOR((IsVariant T), (T)) {
+    return std::visit(
+        [&]<typename VarT>(VarT const& it) {
+            return ImmSubnodeCollectionVisitor<VarT>::getSubnodes(it, ctx);
+        },
+        arg);
+}
+
+
+IMM_SUBNODE_COLLECTOR((typename T), (ImmBox<T>)) {
+    return ImmSubnodeCollectionVisitor<T>::getSubnodes(arg.get(), ctx);
+}
+
+IMM_SUBNODE_COLLECTOR((typename T), (Opt<T>)) {
+    if (arg) {
+        return ImmSubnodeCollectionVisitor<T>::getSubnodes(
+            arg.value(), ctx);
+    } else {
+        return {};
+    }
+}
+
+template <org::IsImmOrgValueType T>
+Vec<ImmId> org::allSubnodes(
+    T const&                  value,
+    org::ImmAstContext const& ctx) {
+    Vec<ImmId> subnodes;
+    for_each_field_with_bases<T>([&](auto const& f) {
+        using FieldType = DESC_FIELD_TYPE(f);
+        subnodes.append(
+            ImmSubnodeCollectionVisitor<FieldType>::getSubnodes(
+                value.*f.pointer, ctx));
+    });
+    return subnodes;
+}
+
+
+Vec<ImmId> org::allSubnodes(const ImmId& value, const ImmAstContext& ctx) {
+    switch (value.getKind()) {
+#define _case(__Kind)                                                     \
+    case OrgSemKind::__Kind: {                                            \
+        return allSubnodes(ctx.value<org::Imm##__Kind>(value), ctx);      \
+    }
+        EACH_SEM_ORG_KIND(_case)
+    }
+
+#undef _case
 }

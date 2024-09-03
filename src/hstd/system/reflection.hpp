@@ -272,6 +272,24 @@ bool equal_on_all_fields(CR<T> lhs, CR<T> rhs) {
     };
 
 
+template <typename T>
+struct __DescFieldTypeHelper {};
+
+/// \brief Get type of the boost::describe field descriptor.
+#define DESC_FIELD_TYPE(__field)                                          \
+    __DescFieldTypeHelper<decltype(__field.pointer)>::Type
+
+template <typename StructType, typename FieldType>
+struct __DescFieldTypeHelper<FieldType StructType::*> {
+    using Type = std::remove_cvref_t<FieldType>;
+};
+
+template <typename StructType, typename FieldType>
+struct __DescFieldTypeHelper<FieldType StructType::*const> {
+    using Type = std::remove_cvref_t<FieldType>;
+};
+
+
 // clang-format off
 
 // They thought 52 arguments would be enough for anyone ...

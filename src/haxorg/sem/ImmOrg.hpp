@@ -250,7 +250,14 @@ struct ImmAstVersion {
 
 struct ImmAstGraphvizConf {
     SemSet skippedKinds;
+    Vec<Str>
+        epochColors = {"gray", "red", "blue", "yellow", "cyan", "orange"};
 };
+
+template <org::IsImmOrgValueType T>
+Vec<ImmId> allSubnodes(T const& value, org::ImmAstContext const& ctx);
+
+Vec<ImmId> allSubnodes(ImmId const& value, org::ImmAstContext const& ctx);
 
 Graphviz::Graph toGraphviz(
     Vec<ImmAstVersion> const& history,

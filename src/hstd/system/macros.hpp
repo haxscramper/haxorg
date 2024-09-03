@@ -94,3 +94,78 @@ concept IsSubVariantType = requires() {
 
 #define DESC_FIELDS(classname, arg)                                       \
     BOOST_DESCRIBE_CLASS(classname, (), arg, (), ())
+
+
+#define DEFINE_VISITOR_BASE_STRUCT(                                       \
+    __VisitorTypename,                                                    \
+    __VisitorTemplateArgs,                                                \
+    __VisitorSharedArgs,                                                  \
+    __VisitorTypeSpecification,                                           \
+    __VisitorResultType,                                                  \
+    __VisitorMethodName)                                                  \
+                                                                          \
+    template <BOOST_PP_TUPLE_REM() __VisitorTemplateArgs>                 \
+    struct __VisitorTypename<BOOST_PP_TUPLE_REM()                         \
+                                 __VisitorTypeSpecification> {            \
+        static BOOST_PP_TUPLE_REM() __VisitorResultType                   \
+            __VisitorMethodName(                                          \
+                BOOST_PP_TUPLE_REM()                                      \
+                    __VisitorTypeSpecification const& arg,                \
+                BOOST_PP_TUPLE_REM() __VisitorSharedArgs);                \
+    };
+
+#define IS_EMPTY_TUPLE(tuple)                                             \
+    BOOST_PP_IS_EMPTY(BOOST_PP_TUPLE_ELEM(0, tuple))
+
+#define DEFINE_VISITOR_BASE_METHOD_SIGNATURE(                             \
+    __VisitorTypename,                                                    \
+    __VisitorTemplateArgs,                                                \
+    __VisitorSharedArgs,                                                  \
+    __VisitorTypeSpecification,                                           \
+    __VisitorResultType,                                                  \
+    __VisitorMethodName)                                                  \
+                                                                          \
+    BOOST_PP_EXPAND(BOOST_PP_TUPLE_REM() BOOST_PP_IF(                     \
+        IS_EMPTY_TUPLE(__VisitorTemplateArgs),                            \
+        (),                                                               \
+        (template <BOOST_PP_TUPLE_REM() __VisitorTemplateArgs>)))         \
+    BOOST_PP_TUPLE_REM()                                                  \
+    __VisitorResultType __VisitorTypename<                                \
+        BOOST_PP_TUPLE_REM() __VisitorTypeSpecification>::                \
+        __VisitorMethodName(                                              \
+            BOOST_PP_TUPLE_REM() __VisitorTypeSpecification const& arg,   \
+            BOOST_PP_TUPLE_REM() __VisitorSharedArgs)
+
+/// ```
+/// #define IMM_TREE_REPR_IMPL(__TemplateArgs, __VisitorTypeSpecification)   \
+///    DEFINE_VISITOR_BASE_ALL(                                              \
+///        /*Typename=*/ImmTreeReprVisitor,                                  \
+///        /*TemplateArgs=*/__TemplateArgs,                                  \
+///        /*SharedArgs=*/(ColStream & os, ImmTreeReprContext const& ctx),   \
+///        /*TypeSpecification=*/__VisitorTypeSpecification,                 \
+///        /*ResultType=*/(void))
+/// ```
+
+#define DEFINE_VISITOR_BASE_ALL(                                          \
+    __VisitorTypename,                                                    \
+    __VisitorTemplateArgs,                                                \
+    __VisitorSharedArgs,                                                  \
+    __VisitorTypeSpecification,                                           \
+    __VisitorResultType,                                                  \
+    __VisitorMethodName)                                                  \
+                                                                          \
+    DEFINE_VISITOR_BASE_STRUCT(                                           \
+        __VisitorTypename,                                                \
+        __VisitorTemplateArgs,                                            \
+        __VisitorSharedArgs,                                              \
+        __VisitorTypeSpecification,                                       \
+        __VisitorResultType,                                              \
+        __VisitorMethodName)                                              \
+                                                                          \
+    DEFINE_VISITOR_BASE_METHOD_SIGNATURE(                                 \
+        __VisitorTypename,                                                \
+        __VisitorTemplateArgs,                                            \
+        __VisitorSharedArgs,                                              \
+        __VisitorTypeSpecification,                                       \
+        __VisitorResultType,                                              \
+        __VisitorMethodName)

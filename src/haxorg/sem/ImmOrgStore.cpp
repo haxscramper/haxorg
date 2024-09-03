@@ -24,29 +24,19 @@ ImmAstReplace ImmAstStore::setSubnodes(
     ImmAstEditContext& ctx) {
     logic_assertion_check(
         !target.isNil(), "cannot set subnodes to nil node");
-    ImmAstReplace result;
     switch (target.getKind()) {
 #define _case(__Kind)                                                     \
     case OrgSemKind::__Kind: {                                            \
         using ImmType = org::Imm##__Kind;                                 \
         ImmType tmp   = ctx.ctx->value<ImmType>(target);                  \
         tmp.subnodes  = subnodes;                                         \
-        result        = setNode(target, tmp, ctx);                        \
+        return setNode(target, tmp, ctx);                                 \
         break;                                                            \
     }
         EACH_SEM_ORG_KIND(_case)
     }
 
 #undef _case
-
-    logic_assertion_check(
-        !result.replaced.isNil(), "added node must not be nil");
-
-    for (auto const& sub : subnodes) {
-        ctx.parents.setParent(sub, result.replaced);
-    }
-
-    return result;
 }
 
 
@@ -56,6 +46,15 @@ ImmAstReplace ImmAstStore::setNode(
     const T&           value,
     ImmAstEditContext& ctx) {
     auto result_node = getStore<T>()->add(value, ctx);
+
+    logic_assertion_check(
+        !result_node.isNil(), "added node must not be nil");
+
+    for (auto const& sub : allSubnodes<T>(value, *ctx.ctx)) {
+        ctx.parents.setParent(sub, result_node);
+    }
+
+
     return ImmAstReplace{.replaced = result_node, .original = target};
 }
 
