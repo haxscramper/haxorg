@@ -829,7 +829,54 @@ TEST(ImmOrgApi, ReplaceSubnodeAtPath) {
     auto cascade = ctx.ctx->store->setSubnode(paragraph, word_xx, 2, ctx);
     auto store2  = ctx.finish();
 
-    LOG(INFO) << fmt1(cascade);
+    auto const& c = cascade.at(0).chain;
+
+    auto const& doc1_id = c.at(1).original;
+    auto const& doc2_id = c.at(1).replaced;
+    auto const& par1_id = c.at(0).original;
+    auto const& par2_id = c.at(0).replaced;
+
+    EXPECT_EQ(doc1_id.getKind(), OrgSemKind::Document);
+    EXPECT_EQ(doc2_id.getKind(), OrgSemKind::Document);
+
+    EXPECT_EQ(doc1_id.getNodeIndex(), 1);
+    EXPECT_EQ(doc2_id.getNodeIndex(), 2);
+
+    EXPECT_EQ(par1_id.getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(par2_id.getKind(), OrgSemKind::Paragraph);
+
+    EXPECT_EQ(par1_id.getNodeIndex(), 1);
+    EXPECT_EQ(par2_id.getNodeIndex(), 2);
+
+    auto const& doc1 = store2.at_t<org::ImmDocument>(doc1_id);
+    auto const& doc2 = store2.at_t<org::ImmDocument>(doc2_id);
+
+    auto const& par1 = store2.at_t<org::ImmParagraph>(par1_id);
+    auto const& par2 = store2.at_t<org::ImmParagraph>(par2_id);
+
+    EXPECT_EQ(doc1->subnodes.size(), 1);
+    EXPECT_EQ(doc1->indexOf(par1_id), 0);
+    EXPECT_FALSE(store.hasParent(par2_id));
+    EXPECT_TRUE(store.hasParent(par1_id));
+    EXPECT_EQ(store.getParent(par1_id).value(), doc1_id);
+
+    EXPECT_EQ(doc2->subnodes.size(), 1);
+    EXPECT_EQ(doc2->indexOf(par2_id), 0);
+    EXPECT_FALSE(store2.hasParent(par1_id));
+    EXPECT_TRUE(store2.hasParent(par2_id));
+    EXPECT_EQ(store2.getParent(par2_id).value(), doc2_id);
+
+    auto word0_id = par1->subnodes.at(0);
+    auto word2_id = par1->subnodes.at(2);
+    auto word4_id = par1->subnodes.at(4);
+
+    EXPECT_EQ(word0_id.getKind(), OrgSemKind::Word);
+    EXPECT_EQ(word2_id.getKind(), OrgSemKind::Word);
+    EXPECT_EQ(word4_id.getKind(), OrgSemKind::Word);
+
+    EXPECT_EQ(store.at_t<org::ImmWord>(word0_id)->text, "word0");
+    EXPECT_EQ(store.at_t<org::ImmWord>(word2_id)->text, "word2");
+    EXPECT_EQ(store.at_t<org::ImmWord>(word4_id)->text, "word4");
 }
 
 TEST(ImmMapApi, AddNode) {

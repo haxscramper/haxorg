@@ -89,6 +89,8 @@ Vec<ImmAstStore::AstReplaceCascade> ImmAstStore::cascadeUpdate(
                 .replaced = replacedParent,
             });
 
+            ctx.parents.removeParent(original);
+
             replaced       = replacedParent;
             original       = *originalParent;
             originalParent = ctx.ctx->getParent(original);

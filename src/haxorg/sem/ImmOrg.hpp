@@ -46,6 +46,8 @@ struct ImmAstParentMapTransient {
         parents.insert({node, parent});
     }
 
+    void removeParent(org::ImmId node) { parents.erase(node); }
+
     ImmAstParentMap persistent();
 };
 
@@ -163,6 +165,7 @@ struct [[nodiscard]] ImmAstContext {
     SPtr<ImmAstStore> store;
     ImmAstParentMap   parents;
 
+    bool       hasParent(ImmId id) const { return parents.hasParent(id); }
     Opt<ImmId> getParent(ImmId id) const { return parents.getParent(id); }
     Vec<int> getPath(ImmId id) const { return parents.getPath(id, *this); }
     Vec<ImmId> getParentChain(ImmId id, bool withSelf = true) const {
