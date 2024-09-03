@@ -250,8 +250,19 @@ struct ImmAstVersion {
 
 struct ImmAstGraphvizConf {
     SemSet skippedKinds;
-    Vec<Str>
-        epochColors = {"gray", "red", "blue", "yellow", "cyan", "orange"};
+
+    UnorderedMap<Str, Vec<Str>> skippedFields = {
+        {"DocumentOptions", {"exportConfig"}},
+    };
+
+    Vec<Str> epochColors = {
+        "gray",
+        "red",
+        "blue",
+        "yellow",
+        "cyan",
+        "orange",
+    };
 };
 
 template <org::IsImmOrgValueType T>

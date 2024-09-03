@@ -485,12 +485,99 @@ ImmAstContext ImmAstEditContext::finish() {
     return ctx->finishEdit(*this);
 }
 
+template <typename T>
+struct ValueMetadata {
+    static bool isEmpty(T const& value) { return false; }
+};
+
+template <typename T>
+struct ValueMetadata<ImmVec<T>> {
+    static bool isEmpty(ImmVec<T> const& value) { return value.empty(); }
+};
+
+template <typename T>
+struct ValueMetadata<Vec<T>> {
+    static bool isEmpty(Vec<T> const& value) { return value.empty(); }
+};
+
+template <typename T>
+struct ValueMetadata<std::vector<T>> {
+    static bool isEmpty(std::vector<T> const& value) {
+        return value.empty();
+    }
+};
+
+template <typename T>
+struct ValueMetadata<ImmSet<T>> {
+    static bool isEmpty(ImmSet<T> const& value) { return value.empty(); }
+};
+
+template <typename T>
+struct ValueMetadata<Opt<T>> {
+    static bool isEmpty(Opt<T> const& value) { return !value.has_value(); }
+};
+
+template <typename T>
+struct ValueMetadata<ImmBox<Opt<T>>> {
+    static bool isEmpty(ImmBox<Opt<T>> const& value) {
+        return value.impl() == nullptr || !value.get().has_value();
+    }
+};
+
+template <typename T>
+struct ValueMetadata<ImmBox<T>> {
+    static bool isEmpty(ImmBox<T> const& value) {
+        return value.impl() == nullptr;
+    }
+};
+
+template <typename T>
+struct ValueMetadata<UnorderedSet<T>> {
+    static bool isEmpty(UnorderedSet<T> const& value) {
+        return value.empty();
+    }
+};
+
+template <typename Func>
+void switch_node_kind(
+    org::ImmId           id,
+    ImmAstContext const& ctx,
+    Func const&          cb) {
+    switch (id.getKind()) {
+#define _case(__Kind)                                                     \
+    case OrgSemKind::__Kind: {                                            \
+        cb(ctx.value<org::Imm##__Kind>(id));                              \
+        break;                                                            \
+    }
+
+        EACH_SEM_ORG_KIND(_case)
+#undef _case
+    }
+}
+
+template <typename T, typename Func>
+void for_each_field_value_with_bases(T const& value, Func const& cb) {
+    for_each_field_with_bases<T>(
+        [&](auto const& field) { cb(field.name, value.*field.pointer); });
+}
+
+template <typename Func>
+void switch_node_fields(
+    org::ImmId           id,
+    ImmAstContext const& ctx,
+    Func const&          cb) {
+    switch_node_kind(id, ctx, [&]<typename T>(T const& node) {
+        for_each_field_value_with_bases(node, cb);
+    });
+}
+
 Graphviz::Graph org::toGraphviz(
     const Vec<ImmAstVersion>& history,
     ImmAstGraphvizConf const& conf) {
     Graphviz::Graph                     g{"g"_ss};
     UnorderedSet<ImmId>                 visited;
     UnorderedMap<ImmId, Graphviz::Node> gvNodes;
+    ImmAstContext                       ctx = history.front().context;
 
     auto get_node = [&](ImmId id, int idx) -> Opt<Graphviz::Node> {
         if (conf.skippedKinds.contains(id.getKind())) {
@@ -501,13 +588,50 @@ Graphviz::Graph org::toGraphviz(
                 node.setColor(conf.epochColors.at(idx));
                 node.setShape(Graphviz::Node::Shape::rectangle);
                 gvNodes.insert_or_assign(id, node);
+                Vec<Str> label;
+                int      maxFieldWidth = 0;
+
+                auto field = [&]<typename T>(
+                                 Str const& name, T const& value) {
+                    label.push_back(
+                        fmt("{}: {}",
+                            left_aligned(name, maxFieldWidth),
+                            value));
+                };
+
+                field("ID", id);
+
+
+                switch_node_fields(
+                    id,
+                    ctx,
+                    [&]<typename F>(Str const& name, F const& value) {
+                        maxFieldWidth = std::max<int>(
+                            maxFieldWidth, name.size());
+                    });
+
+                switch_node_fields(
+                    id,
+                    ctx,
+                    [&]<typename F>(Str const& name, F const& value) {
+                        if (auto skipped = conf.skippedFields.get(
+                                fmt1(id.getKind()));
+                            skipped && skipped->contains(name)) {
+                            return;
+                        } else if (ValueMetadata<F>::isEmpty(value)) {
+                            return;
+                        } else {
+                            field(name, value);
+                        }
+                    });
+
+                node.setLabel(join("\n", label));
             }
 
             return gvNodes.at(id);
         }
     };
 
-    ImmAstContext ctx = history.front().context;
 
     Func<void(ImmId, int)> aux;
     aux = [&](ImmId id, int idx) {

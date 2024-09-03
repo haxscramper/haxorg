@@ -61,16 +61,7 @@ class Graphviz {
         Right
     };
 
-    static Str alignText(Str const& text, TextAlign direction) {
-        Str res = text;
-        switch (direction) {
-            case TextAlign::Left: res.replaceAll("\n", "\\l"); break;
-            case TextAlign::Right: res.replaceAll("\n", "\\r"); break;
-            case TextAlign::Center: break;
-        }
-
-        return res;
-    }
+    static Str alignText(Str const& text, TextAlign direction);
 
     template <typename T>
     struct GraphvizObjBase : CRTP_this_method<T> {
