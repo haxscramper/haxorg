@@ -880,6 +880,11 @@ TEST(ImmOrgApi, ReplaceSubnodeAtPath) {
     EXPECT_EQ(store.at_t<org::ImmWord>(word0_id)->text, "word0");
     EXPECT_EQ(store.at_t<org::ImmWord>(word2_id)->text, "word2");
     EXPECT_EQ(store.at_t<org::ImmWord>(word4_id)->text, "word4");
+
+    auto     gv = org::toGraphviz({version1, version2});
+    Graphviz gvc;
+    gvc.renderToFile("/tmp/ReplaceSubnodeAtPath.png", gv);
+    gvc.writeFile("/tmp/ReplaceSubnodeAtPath.dot", gv);
 }
 
 TEST(ImmMapApi, AddNode) {
