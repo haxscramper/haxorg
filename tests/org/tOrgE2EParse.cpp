@@ -913,6 +913,7 @@ TEST(ImmOrgApi, SubtreePromotion) {
 )");
 
     org::ImmAstContext start;
+    start.debug->setTraceFile("/tmp/SubtreePromotion_trace.txt");
     org::ImmAstVersion v1 = start.init(start_node);
 
     {
@@ -941,6 +942,12 @@ TEST(ImmOrgApi, SubtreePromotion) {
     writeFile(
         "/tmp/SubtreePromotion_repr_v2.txt",
         v2.getRootAdapter().treeRepr(conf).toString(false));
+
+    ColStream os;
+    start.format(os);
+    writeFile(
+        "/tmp/SubtreePromotion_store.txt", os.getBuffer().toString(false));
+
 
     {
         Graphviz gvc;

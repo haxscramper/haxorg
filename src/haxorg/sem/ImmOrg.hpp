@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hstd/stdlib/TraceBase.hpp"
 #include <haxorg/sem/ImmOrgBase.hpp>
 #include <haxorg/sem/ImmOrgTypes.hpp>
 #include <haxorg/sem/SemOrg.hpp>
@@ -229,8 +230,18 @@ struct ImmAstVersion;
 struct ImmAdapter;
 
 struct [[nodiscard]] ImmAstContext {
-    SPtr<ImmAstStore> store;
-    ImmAstParentMap   parents;
+    SPtr<OperationsTracer> debug;
+    SPtr<ImmAstStore>      store;
+    ImmAstParentMap        parents;
+
+    void message(
+        std::string const& value,
+        int                level    = 0,
+        int                line     = __builtin_LINE(),
+        char const*        function = __builtin_FUNCTION(),
+        char const*        file     = __builtin_FILE()) {
+        if (debug) { debug->message(value, level, line, function, file); }
+    }
 
     DESC_FIELDS(ImmAstContext, (store, parents));
 
@@ -292,7 +303,10 @@ struct [[nodiscard]] ImmAstContext {
     void format(ColStream& os, std::string const& prefix = "") const;
 
 
-    ImmAstContext() : store{std::make_shared<ImmAstStore>()} {}
+    ImmAstContext()
+        : store{std::make_shared<ImmAstStore>()}
+        , debug{std::make_shared<OperationsTracer>()} //
+    {}
 };
 
 template <org::IsImmOrgValueType T, typename Func>
@@ -300,7 +314,14 @@ ImmAstReplace ImmAstStore::updateNode(
     ImmId              id,
     ImmAstEditContext& ctx,
     Func               cb) {
-    return setNode(id, cb(ctx.ctx->value<T>(id)), ctx);
+    auto const&   start_value  = ctx.ctx->value<T>(id);
+    auto const&   update_value = cb(start_value);
+    ImmAstReplace update       = setNode(id, update_value, ctx);
+    ctx->message(
+        fmt("Original ID:{:<16} {}", fmt1(update.original), start_value));
+    ctx->message(
+        fmt("Replaced ID:{:<16} {}", fmt1(update.replaced), update_value));
+    return update;
 }
 
 struct ImmRootAddResult {
@@ -324,6 +345,7 @@ struct ImmAstGraphvizConf {
 
     UnorderedMap<Str, Vec<Str>> skippedFields = {
         {"DocumentOptions", {"exportConfig"}},
+        {"Subtree", {"title", "subnodes"}},
     };
 
     Vec<Str> epochColors = {

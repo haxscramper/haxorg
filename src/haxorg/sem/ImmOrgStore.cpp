@@ -51,6 +51,7 @@ ImmAstReplace ImmAstStore::setNode(
         ctx.parents.setParent(sub, result_node);
     }
 
+    ctx->message(fmt("Added node {} in place of {}", result_node, target));
 
     return ImmAstReplace{.replaced = result_node, .original = target};
 }
@@ -105,6 +106,7 @@ Vec<ImmAstReplace> ImmAstStore::demoteSubtreeRecursive(
     }
 
     if (newParent.isNil()) {
+        ctx->message("new parent is nil");
         newParent = currentParent;
         // No positional movement is required -- there are no nodes above
         // the current one, so demoting subtree will not change the
@@ -124,6 +126,7 @@ Vec<ImmAstReplace> ImmAstStore::demoteSubtreeRecursive(
             });
         edits.push_back(update);
     } else {
+        ctx->message(fmt("new parent is {}", newParent));
         // Remove subtree from the current parent
         auto [popEdit, _] = popSubnode(currentParent, currentIndex, ctx);
         edits.push_back(popEdit);

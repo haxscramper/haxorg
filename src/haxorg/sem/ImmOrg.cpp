@@ -501,6 +501,7 @@ Graphviz::Graph org::toGraphviz(
         if (conf.clusterEpochs) {
             if (!gvClusters.has(epoch)) {
                 auto sub = g.newSubgraph(fmt("epoch_{}", epoch));
+                sub.setLabel(fmt("Epoch {}", epoch));
                 gvClusters.resize_at(epoch, sub);
             }
 
