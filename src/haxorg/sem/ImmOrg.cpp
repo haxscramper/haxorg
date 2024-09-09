@@ -455,6 +455,8 @@ ImmAstContext ImmAstEditContext::finish() {
     return ctx->finishEdit(*this);
 }
 
+ImmAstStore& ImmAstEditContext::store() { return *ctx->store; }
+
 
 template <typename T>
 struct value_metadata<ImmVec<T>> {
@@ -668,4 +670,33 @@ Vec<ImmId> org::allSubnodes(const ImmId& value, const ImmAstContext& ctx) {
     }
 
 #undef _case
+}
+
+ImmId ImmAstContext::getParentForce(ImmId id) const {
+    auto parent = getParent(id);
+    if (parent) {
+        return *parent;
+    } else {
+        throw logic_assertion_error::init(
+            fmt("Node {} does not have a parent in context {}",
+                id,
+                parents.parents.size() < 24 ? fmt1(parents.parents) : ""));
+    }
+}
+
+ImmId ImmAstEditContext::getParentForce(ImmId id) const {
+    auto parent = getParent(id);
+    if (parent) {
+        return *parent;
+    } else {
+        throw logic_assertion_error::init(fmt(
+            "Node {} does not have a parent in edit context {}",
+            id,
+            parents.parents.size() < 24 ? fmt1(parents.parents)
+                                        : fmt1(parents.parents.size())));
+    }
+}
+
+ImmAdapter ImmAstVersion::getRootAdapter() {
+    return context.adapt(epoch.getRoot());
 }

@@ -9,10 +9,11 @@
 #include <immer/box.hpp>
 #include <immer/map.hpp>
 #include <immer/set.hpp>
+#include <immer/flex_vector.hpp>
 #include <hstd/stdlib/Json.hpp>
 
 template <typename T>
-using ImmVec = immer::vector<T>;
+using ImmVec = immer::flex_vector<T>;
 
 template <typename T>
 using ImmBox = immer::box<T>;
@@ -137,24 +138,45 @@ struct std::formatter<ImmSet<T>> : std::formatter<std::string> {
 };
 
 template <typename K, typename V>
-struct std::formatter<ImmMap<K, V>> : std::formatter<std::string> {
+using ImmMapTransientDefault = immer::map_transient<
+    K,
+    V,
+    /*Hash        =*/std::hash<K>,
+    /*Equal       =*/std::equal_to<K>,
+    /*MemoryPolicy=*/immer::default_memory_policy,
+    /*B           =*/immer::default_bits>;
+
+template <typename K, typename V, typename Type>
+struct std_kv_tuple_iterator_formatter : std::formatter<std::string> {
     template <typename FormatContext>
-    FormatContext::iterator format(
-        ImmMap<K, V> const& p,
-        FormatContext&      ctx) const {
-        std::formatter<std::string> fmt;
-        fmt.format("{", ctx);
+    FormatContext::iterator format(Type const& p, FormatContext& ctx)
+        const {
+        fmt_ctx("{", ctx);
         bool first = true;
         for (const auto& [key, value] : p) {
-            if (!first) { fmt.format(", ", ctx); }
+            if (!first) { fmt_ctx(", ", ctx); }
             first = false;
             fmt_ctx(key, ctx);
-            fmt.format(": ", ctx);
+            fmt_ctx(": ", ctx);
             fmt_ctx(value, ctx);
         }
-        return fmt.format("}", ctx);
+        return fmt_ctx("}", ctx);
     }
 };
+
+
+template <typename K, typename V>
+struct std::formatter<ImmMapTransientDefault<K, V>>
+    : std_kv_tuple_iterator_formatter<K, V, ImmMapTransientDefault<K, V>> {
+};
+
+template <typename K, typename V>
+struct std::formatter<ImmMap<K, V>>
+    : std_kv_tuple_iterator_formatter<K, V, ImmMap<K, V>> {};
+
+template <typename K, typename V>
+struct std::formatter<immer::map<K, V>>
+    : std_kv_tuple_iterator_formatter<K, V, immer::map<K, V>> {};
 
 
 template <typename K, typename V>
@@ -243,7 +265,7 @@ struct ImmId : ImmIdBase {
         : ImmIdBase{combineFullValue(kind, nodeIndex)} {}
 
     OrgSemKind getKind() const { return ImmId::getKind(value); }
-    bool       is(OrgSemKind kind) const;
+    bool       is(OrgSemKind kind) const { return getKind() == kind; }
 
     /// \brief Get index of the node in associated kind store. NOTE: The
     /// node must not be nil
@@ -286,10 +308,11 @@ struct ImmOrg {
     ImmVec<ImmId>      subnodes;
     virtual OrgSemKind getKind() const = 0;
 
-    auto begin() const { return subnodes.begin(); }
-    auto end() const { return subnodes.end(); }
-    int  size() const { return subnodes.size(); }
-    int  indexOf(org::ImmId subnode) const {
+    ImmId at(int pos) const { return subnodes.at(pos); }
+    auto  begin() const { return subnodes.begin(); }
+    auto  end() const { return subnodes.end(); }
+    int   size() const { return subnodes.size(); }
+    int   indexOf(org::ImmId subnode) const {
         for (int i = 0; i < subnodes.size(); ++i) {
             if (subnodes.at(i) == subnode) { return i; }
         }

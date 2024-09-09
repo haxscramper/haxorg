@@ -50,6 +50,7 @@ struct ImmAstParentMapTransient {
     void removeParent(org::ImmId node) { parents.erase(node); }
 
     ImmAstParentMap persistent();
+    DESC_FIELDS(ImmAstParentMapTransient, (parents));
 };
 
 struct ImmAstParentMap {
@@ -68,11 +69,25 @@ struct ImmAstParentMap {
     }
 };
 
+struct ImmAstStore;
 
 struct ImmAstEditContext {
     ImmAstParentMapTransient parents;
     ImmAstContext*           ctx;
     ImmAstContext            finish();
+    ImmAstStore&             store();
+
+    ImmId getParentForce(ImmId id) const;
+
+    Opt<ImmId> getParent(ImmId id) const {
+        if (auto parent = parents.parents.find(id); parent != nullptr) {
+            return *parent;
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    ImmAstContext* operator->() { return ctx; }
 };
 
 template <org::IsImmOrgValueType T>
@@ -112,9 +127,7 @@ struct ImmAstReplaceCascade {
 struct ImmAstReplaceEpoch {
     Vec<ImmAstReplaceCascade> replaced;
 
-    ImmId getRoot() const {
-        return replaced.front().chain.back().replaced;
-    }
+    ImmId getRoot() const { return replaced.back().chain.back().replaced; }
 
     DESC_FIELDS(ImmAstReplaceEpoch, (replaced));
 };
@@ -159,15 +172,40 @@ struct ImmAstStore {
         T const&           value,
         ImmAstEditContext& ctx);
 
+    template <org::IsImmOrgValueType T, typename Func>
+    ImmAstReplace updateNode(
+        org::ImmId         id,
+        ImmAstEditContext& ctx,
+        Func               cb);
+
     ImmAstReplace setSubnodes(
         org::ImmId         target,
         ImmVec<org::ImmId> subnodes,
         ImmAstEditContext& ctx);
 
-    ImmAstReplaceEpoch setSubnode(
+    ImmAstReplace setSubnode(
         org::ImmId         target,
         org::ImmId         newSubnode,
         int                position,
+        ImmAstEditContext& ctx);
+
+    ImmAstReplace insertSubnode(
+        ImmId              target,
+        ImmId              add,
+        int                position,
+        ImmAstEditContext& ctx);
+
+    Pair<ImmAstReplace, org::ImmId> popSubnode(
+        org::ImmId         target,
+        int                position,
+        ImmAstEditContext& ctx);
+
+    Vec<ImmAstReplace> demoteSubtreeRecursive(
+        org::ImmId         target,
+        ImmAstEditContext& ctx);
+
+    Vec<ImmAstReplace> promoteSubtreeRecursive(
+        org::ImmId         target,
         ImmAstEditContext& ctx);
 
     /// \brief Generate new set of parent nodes for the node update.
@@ -185,8 +223,10 @@ struct ImmAstStore {
     sem::SemId<sem::Org> get(org::ImmId id, ImmAstContext const& ctx);
 };
 
+
 struct ImmRootAddResult;
 struct ImmAstVersion;
+struct ImmAdapter;
 
 struct [[nodiscard]] ImmAstContext {
     SPtr<ImmAstStore> store;
@@ -194,12 +234,20 @@ struct [[nodiscard]] ImmAstContext {
 
     DESC_FIELDS(ImmAstContext, (store, parents));
 
+    /// \brief Get the parent ID, and if it is missing, raise a logic
+    /// assertion error excetion.
+    ImmId getParentForce(ImmId id) const;
+
     bool       hasParent(ImmId id) const { return parents.hasParent(id); }
     Opt<ImmId> getParent(ImmId id) const { return parents.getParent(id); }
     Vec<int> getPath(ImmId id) const { return parents.getPath(id, *this); }
     Vec<ImmId> getParentChain(ImmId id, bool withSelf = true) const {
         return parents.getParentChain(id, withSelf);
     }
+
+    ImmAstVersion getEditVersion(Func<Vec<ImmAstReplace>(
+                                     ImmAstContext&     ast,
+                                     ImmAstEditContext& ctx)> cb);
 
     ImmAstEditContext getEditContext() {
         return ImmAstEditContext{
@@ -217,10 +265,11 @@ struct [[nodiscard]] ImmAstContext {
     /// \brief Create new sem node of the specified kind in the local store
     /// with `index`
     ImmId add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx);
-    ImmRootAddResult addRoot(sem::SemId<sem::Org> data);
-    ImmAstVersion    init(sem::SemId<sem::Org> root);
 
+    ImmRootAddResult     addRoot(sem::SemId<sem::Org> data);
+    ImmAstVersion        init(sem::SemId<sem::Org> root);
     sem::SemId<sem::Org> get(org::ImmId id);
+    ImmAdapter           adapt(org::ImmId id);
 
     template <typename T>
     T const& value(ImmId id) const {
@@ -246,6 +295,14 @@ struct [[nodiscard]] ImmAstContext {
     ImmAstContext() : store{std::make_shared<ImmAstStore>()} {}
 };
 
+template <org::IsImmOrgValueType T, typename Func>
+ImmAstReplace ImmAstStore::updateNode(
+    ImmId              id,
+    ImmAstEditContext& ctx,
+    Func               cb) {
+    return setNode(id, cb(ctx.ctx->value<T>(id)), ctx);
+}
+
 struct ImmRootAddResult {
     ImmAstContext context;
     org::ImmId    root;
@@ -256,6 +313,9 @@ struct ImmAstVersion {
     ImmAstContext      context;
     ImmAstReplaceEpoch epoch;
     DESC_FIELDS(ImmAstVersion, (context, epoch));
+
+    ImmId      getRoot() const { return epoch.getRoot(); }
+    ImmAdapter getRootAdapter();
 };
 
 struct ImmAstGraphvizConf {

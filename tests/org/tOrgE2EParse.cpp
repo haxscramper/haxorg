@@ -829,7 +829,9 @@ TEST(ImmOrgApi, ReplaceSubnodeAtPath) {
     auto ctx      = store.getEditContext();
     auto word_xx  = store.add(replace_node, ctx);
     auto version2 = store.finishEdit(
-        ctx, ctx.ctx->store->setSubnode(paragraph, word_xx, 2, ctx));
+        ctx,
+        ctx.store().cascadeUpdate(
+            {ctx.store().setSubnode(paragraph, word_xx, 2, ctx)}, ctx));
 
     auto        store2 = version2.context;
     auto const& c      = version2.epoch.replaced.at(0).chain;
@@ -890,6 +892,50 @@ TEST(ImmOrgApi, ReplaceSubnodeAtPath) {
     Graphviz gvc;
     gvc.renderToFile("/tmp/ReplaceSubnodeAtPath.png", gv);
     gvc.writeFile("/tmp/ReplaceSubnodeAtPath.dot", gv);
+}
+
+TEST(ImmOrgApi, SubtreePromotion) {
+    {
+        auto m1 = ImmMap<int, int>{};
+        auto m2 = m1.transient();
+        m2.set(1, 2);
+        EXPECT_EQ(m2.at(1), 2);
+        auto m3 = m2.persistent();
+        EXPECT_EQ(m3.at(1), 2);
+    }
+
+    auto start_node = parseNode(R"(* s1
+** s2dash
+*** s3dash
+*** s3dashdash
+** s2dashdash
+*** s3dashdashdash
+)");
+
+    org::ImmAstContext start;
+    org::ImmAstVersion v1 = start.init(start_node);
+
+    auto root = start.adapt(v1.epoch.getRoot());
+    writeFile(
+        "/tmp/SubtreePromotion_repr.txt", root.treeRepr().toString(false));
+
+    org::ImmAstVersion v2 = v1.context.getEditVersion(
+        [&](org::ImmAstContext&     ast,
+            org::ImmAstEditContext& ctx) -> Vec<org::ImmAstReplace> {
+            auto root   = ctx->adapt(v1.epoch.getRoot());
+            auto s2dash = root.at({0, 0});
+            EXPECT_EQ(s2dash->getKind(), OrgSemKind::Subtree);
+            EXPECT_EQ(s2dash->as<org::ImmSubtree>()->level, 2);
+            return ast.store->demoteSubtreeRecursive(s2dash.id, ctx);
+        });
+
+    org::ImmAdapter::TreeReprConf conf{.withAuxFields = true};
+
+    writeFile(
+        "/tmp/SubtreePromotion_repr.txt",
+        fmt("{}\n- - - - - - - - -\n{}",
+            v1.getRootAdapter().treeRepr(conf).toString(false),
+            v2.getRootAdapter().treeRepr(conf).toString(false)));
 }
 
 TEST(ImmMapApi, AddNode) {

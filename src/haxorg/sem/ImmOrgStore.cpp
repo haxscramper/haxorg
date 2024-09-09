@@ -4,6 +4,8 @@
 #include <immer/vector_transient.hpp>
 #include <immer/set_transient.hpp>
 #include <immer/map_transient.hpp>
+#include <immer/flex_vector_transient.hpp>
+#include <immer/flex_vector.hpp>
 
 using namespace org;
 
@@ -54,17 +56,87 @@ ImmAstReplace ImmAstStore::setNode(
 }
 
 
-ImmAstReplaceEpoch ImmAstStore::setSubnode(
+ImmAstReplace ImmAstStore::setSubnode(
     ImmId              target,
     ImmId              newSubnode,
     int                position,
     ImmAstEditContext& ctx) {
-    ImmAstReplace update = setSubnodes(
+    return setSubnodes(
         target,
         ctx.ctx->at(target)->subnodes.set(position, newSubnode),
         ctx);
+}
 
-    return cascadeUpdate({update}, ctx);
+ImmAstReplace ImmAstStore::insertSubnode(
+    ImmId              target,
+    ImmId              add,
+    int                position,
+    ImmAstEditContext& ctx) {
+    return setSubnodes(
+        target, ctx.ctx->at(target)->subnodes.insert(position, add), ctx);
+}
+
+Pair<ImmAstReplace, ImmId> ImmAstStore::popSubnode(
+    ImmId              target,
+    int                position,
+    ImmAstEditContext& ctx) {
+    auto pop    = ctx.ctx->at(target)->subnodes.at(position);
+    auto update = setSubnodes(
+        target, ctx.ctx->at(target)->subnodes.take(position), ctx);
+
+    return {update, pop};
+}
+
+Vec<ImmAstReplace> ImmAstStore::demoteSubtreeRecursive(
+    ImmId              target,
+    ImmAstEditContext& ctx) {
+    logic_assertion_check(target.is(OrgSemKind::Subtree), "");
+    Vec<ImmAstReplace> edits;
+    ImmId              currentParent = ctx.getParentForce(target);
+    int   currentIndex = ctx->at(currentParent)->indexOf(target);
+    ImmId newParent    = ImmId::Nil();
+    for (int i = currentIndex - 1; 0 <= i; --i) {
+        auto adj = ctx->at(currentParent)->at(i);
+        if (adj.is(OrgSemKind::Subtree)) {
+            newParent = adj;
+        } else {
+            break;
+        }
+    }
+
+    if (newParent.isNil()) {
+        newParent = currentParent;
+        // No positional movement is required -- there are no nodes above
+        // the current one, so demoting subtree will not change the
+        // structure.
+        //
+        // ```
+        // *
+        // ** <- demoting this
+        //
+        // *
+        // *** <- will convert to this
+        // ```
+        auto update = updateNode<org::ImmSubtree>(
+            target, ctx, [](org::ImmSubtree value) {
+                value.level += 1;
+                return value;
+            });
+        edits.push_back(update);
+    } else {
+        // Remove subtree from the current parent
+        auto [popEdit, _] = popSubnode(currentParent, currentIndex, ctx);
+        edits.push_back(popEdit);
+        auto update = updateNode<org::ImmSubtree>(
+            target, ctx, [](org::ImmSubtree value) {
+                value.level += 1;
+                return value;
+            });
+        edits.push_back(update);
+    }
+
+
+    return edits;
 }
 
 ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
@@ -217,6 +289,13 @@ void ImmAstContext::format(ColStream& os, const std::string& prefix)
     store->format(os, prefix + "  ");
 }
 
+
+ImmAstVersion ImmAstContext::getEditVersion(
+    Func<Vec<ImmAstReplace>(ImmAstContext& ast, ImmAstEditContext&)> cb) {
+    auto ctx     = getEditContext();
+    auto replace = cb(*this, ctx);
+    return finishEdit(ctx, ctx.store().cascadeUpdate(replace, ctx));
+}
 
 ImmAstContext ImmAstContext::finishEdit(ImmAstEditContext& ctx) {
     ImmAstContext result = *this;
@@ -536,6 +615,8 @@ void assign_sem_field(
 sem::SemId<sem::Org> ImmAstContext::get(ImmId id) {
     return store->get(id, *this);
 }
+
+ImmAdapter ImmAstContext::adapt(ImmId id) { return ImmAdapter{id, this}; }
 
 template <org::IsImmOrgValueType ImmType>
 ImmId_t org::ImmAstKindStore<ImmType>::add(

@@ -140,7 +140,7 @@ struct StructureUpdate {
 
 using NodeProps    = immer::map<MapNode, MapNodeProp>;
 using EdgeProps    = immer::map<MapEdge, MapEdgeProp>;
-using AdjNodesList = immer::vector<MapNode>;
+using AdjNodesList = ImmVec<MapNode>;
 using AdjList      = immer::map<MapNode, AdjNodesList>;
 
 struct MapGraph;
@@ -181,7 +181,7 @@ struct MapGraph {
     }
 
 
-    Graphviz::Graph toGraphviz(const ImmAstContext &ctx) const;
+    Graphviz::Graph toGraphviz(const ImmAstContext& ctx) const;
 
     DESC_FIELDS(MapGraph, (nodeProps, edgeProps, adjList));
 };
