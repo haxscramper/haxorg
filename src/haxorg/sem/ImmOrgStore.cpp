@@ -51,7 +51,9 @@ ImmAstReplace ImmAstStore::setNode(
         ctx.parents.setParent(sub, result_node);
     }
 
-    ctx.message(fmt("Added node {} in place of {}", result_node, target));
+    ctx.message(fmt(
+        "Original ID:{:<16} {}", fmt1(target), ctx.ctx->value<T>(target)));
+    ctx.message(fmt("Replaced ID:{:<16} {}", fmt1(result_node), value));
 
     return ImmAstReplace{.replaced = result_node, .original = target};
 }
@@ -62,6 +64,7 @@ ImmAstReplace ImmAstStore::setSubnode(
     ImmId              newSubnode,
     int                position,
     ImmAstEditContext& ctx) {
+    ctx.message(fmt("Set {}[{}] = {}", target, position, newSubnode));
     return setSubnodes(
         target,
         ctx.ctx->at(target)->subnodes.set(position, newSubnode),
@@ -73,6 +76,7 @@ ImmAstReplace ImmAstStore::insertSubnode(
     ImmId              add,
     int                position,
     ImmAstEditContext& ctx) {
+    ctx.message(fmt("Insert {}[{}] = {}", target, position, add));
     return setSubnodes(
         target, ctx.ctx->at(target)->subnodes.insert(position, add), ctx);
 }
@@ -139,6 +143,7 @@ Vec<ImmAstReplace> ImmAstStore::demoteSubtreeRecursive(
     }
 
     for (auto const& sub : ctx->adapt(target)) {
+        auto __scope = ctx.debug.scopeLevel();
         edits.append(demoteSubtreeRecursive(sub.id, ctx));
     }
 
@@ -149,9 +154,12 @@ Vec<ImmAstReplace> ImmAstStore::demoteSubtreeRecursive(
 ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
     const Vec<ImmAstReplace>& replace,
     ImmAstEditContext&        ctx) {
+    ctx.message("Start cascade update");
     auto                      __scope = ctx.debug.scopeLevel();
     Vec<ImmAstReplaceCascade> result;
     for (auto const& act : replace) {
+        ctx.message(fmt("Replace {} -> {}", act.original, act.replaced));
+        auto __scope        = ctx.debug.scopeLevel();
         auto replaced       = act.replaced;
         auto original       = act.original;
         auto originalParent = ctx.ctx->getParent(original);

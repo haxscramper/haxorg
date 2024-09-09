@@ -498,7 +498,9 @@ struct value_metadata<ImmBox<T>> {
 Graphviz::Graph org::toGraphviz(
     const Vec<ImmAstVersion>& history,
     ImmAstGraphvizConf const& conf) {
-    Graphviz::Graph                                  g{"g"_ss};
+    Graphviz::Graph g{"g"_ss};
+    g.setBackgroundColor("beige");
+
     UnorderedSet<ImmId>                              visited;
     UnorderedMap<ImmId, Graphviz::Node>              gvNodes;
     UnorderedMap<Pair<ImmId, ImmId>, Graphviz::Edge> gvEdges;
@@ -602,10 +604,7 @@ Graphviz::Graph org::toGraphviz(
 
     if (conf.withAuxNodes) {
         for (ImmId id : ctx.store->all_ids()) {
-            if (!gvNodes.contains(id)) {
-                LOG(INFO) << fmt1(id);
-                aux(id, history.size());
-            }
+            if (!gvNodes.contains(id)) { aux(id, history.size()); }
         }
     }
 

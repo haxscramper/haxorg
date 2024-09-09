@@ -1027,7 +1027,12 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote) {
         });
 
     writeGvHistory(
-        {v1, v2}, "v1_v2", org::ImmAstGraphvizConf{.withAuxNodes = true});
+        {v1, v2},
+        "v1_v2",
+        org::ImmAstGraphvizConf{
+            .withAuxNodes    = true,
+            .withEditHistory = true,
+        });
 
     {
         auto r    = v2.getRootAdapter();

@@ -352,10 +352,6 @@ ImmAstReplace ImmAstStore::updateNode(
     auto const&   start_value  = ctx.ctx->value<T>(id);
     auto const&   update_value = cb(start_value);
     ImmAstReplace update       = setNode(id, update_value, ctx);
-    ctx->message(
-        fmt("Original ID:{:<16} {}", fmt1(update.original), start_value));
-    ctx->message(
-        fmt("Replaced ID:{:<16} {}", fmt1(update.replaced), update_value));
     return update;
 }
 
@@ -376,8 +372,9 @@ struct ImmAstVersion {
 
 struct ImmAstGraphvizConf {
     SemSet skippedKinds;
-    bool   clusterEpochs = true;
-    bool   withAuxNodes  = false;
+    bool   clusterEpochs   = true;
+    bool   withAuxNodes    = false;
+    bool   withEditHistory = false;
 
     UnorderedMap<Str, Vec<Str>> skippedFields = {
         {"DocumentOptions", {"exportConfig"}},
@@ -385,7 +382,7 @@ struct ImmAstGraphvizConf {
     };
 
     Vec<Str> epochColors = {
-        "gray",
+        "black",
         "red",
         "blue",
         "yellow",
