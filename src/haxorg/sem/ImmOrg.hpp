@@ -30,6 +30,20 @@ EACH_SEM_ORG_KIND(_declare_hash)
 EACH_SEM_ORG_RECORD_NESTED(_declare_hash)
 #undef _declare_hash
 
+template <typename Func>
+void switch_node_nullptr(OrgSemKind kind, Func const& cb) {
+    switch (kind) {
+#define _case(__Kind)                                                     \
+    case OrgSemKind::__Kind: {                                            \
+        cb((org::Imm##__Kind*)nullptr);                                   \
+        break;                                                            \
+    }
+
+        EACH_SEM_ORG_KIND(_case)
+#undef _case
+    }
+}
+
 
 namespace org {
 
@@ -170,6 +184,19 @@ struct ImmAstStore {
     }
 
     void format(ColStream& os, std::string const& prefix = "") const;
+
+    generator<ImmId> all_ids() const {
+        for (auto const& kind : sliceT<OrgSemKind>()) {
+            int size = 0;
+            switch_node_nullptr(kind, [&]<typename N>(N*) {
+                size = getStore<N>()->size();
+            });
+
+            for (int i = 0; i < size; ++i) {
+                co_yield org::ImmId{kind, static_cast<ImmId::NodeIdxT>(i)};
+            }
+        }
+    }
 
 
     ImmOrg const* at(ImmId index) const;
@@ -350,6 +377,7 @@ struct ImmAstVersion {
 struct ImmAstGraphvizConf {
     SemSet skippedKinds;
     bool   clusterEpochs = true;
+    bool   withAuxNodes  = false;
 
     UnorderedMap<Str, Vec<Str>> skippedFields = {
         {"DocumentOptions", {"exportConfig"}},
@@ -370,6 +398,7 @@ template <org::IsImmOrgValueType T>
 Vec<ImmId> allSubnodes(T const& value, org::ImmAstContext const& ctx);
 
 Vec<ImmId> allSubnodes(ImmId const& value, org::ImmAstContext const& ctx);
+
 
 template <typename Func>
 void switch_node_kind(org::ImmId id, Func const& cb) {

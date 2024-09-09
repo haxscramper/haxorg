@@ -917,9 +917,10 @@ class ImmOrgApiEdit : public ::testing::Test {
 
     void writeGvHistory(
         const Vec<org::ImmAstVersion>& history,
-        std::string                    suffix) {
+        std::string                    suffix,
+        org::ImmAstGraphvizConf const& conf = org::ImmAstGraphvizConf{}) {
         Graphviz gvc;
-        auto     gv = org::toGraphviz(history);
+        auto     gv = org::toGraphviz(history, conf);
         gvc.writeFile(getDebugFile(suffix + ".dot"), gv);
         gvc.renderToFile(getDebugFile(suffix + ".png"), gv);
     }
@@ -939,12 +940,18 @@ Vec<int> getDfsSubtreeLevels(org::ImmAdapter n) {
 }
 
 Str getSubtreeDash() {
+    // 0     * s1
+    // 0.0   ** s200
+    // 0.0.0 *** s3000
+    // 0.0.1 *** s3001
+    // 0.1   ** s201
+    // 0.1.0 *** s3010
     return R"(* s1
-** s2dash
-*** s3dash
-*** s3dashdash
-** s2dashdash
-*** s3dashdashdash
+** s200
+*** s3000
+*** s3001
+** s201
+*** s3010
 )";
 }
 
@@ -964,11 +971,11 @@ TEST_F(ImmOrgApiEdit, LeafSubtreeDemote) {
     org::ImmAstVersion v2 = v1.context.getEditVersion(
         [&](org::ImmAstContext&     ast,
             org::ImmAstEditContext& ctx) -> Vec<org::ImmAstReplace> {
-            auto root   = ctx->adapt(v1.epoch.getRoot());
-            auto s2dash = root.at(path);
-            EXPECT_EQ(s2dash->getKind(), OrgSemKind::Subtree);
-            EXPECT_EQ(s2dash->as<org::ImmSubtree>()->level, 3);
-            return ast.store->demoteSubtreeRecursive(s2dash.id, ctx);
+            auto root  = ctx->adapt(v1.epoch.getRoot());
+            auto s3010 = root.at(path);
+            EXPECT_EQ(s3010->getKind(), OrgSemKind::Subtree);
+            EXPECT_EQ(s3010->as<org::ImmSubtree>()->level, 3);
+            return ast.store->demoteSubtreeRecursive(s3010.id, ctx);
         });
 
     org::ImmAdapter::TreeReprConf conf{.withAuxFields = true};
@@ -987,21 +994,51 @@ TEST_F(ImmOrgApiEdit, LeafSubtreeDemote) {
     writeGvHistory({v1, v2}, "v1_v2");
 
     {
-        auto r      = v1.getRootAdapter();
-        auto s2dash = r.at(path);
-        EXPECT_EQ(s2dash->getKind(), OrgSemKind::Subtree);
-        EXPECT_EQ(s2dash->as<org::ImmSubtree>()->level, 3);
+        auto r     = v1.getRootAdapter();
+        auto s3010 = r.at(path);
+        EXPECT_EQ(s3010->getKind(), OrgSemKind::Subtree);
+        EXPECT_EQ(s3010->as<org::ImmSubtree>()->level, 3);
         auto levels = getDfsSubtreeLevels(r);
         EXPECT_EQ(levels, (Vec<int>{1, 2, 3, 3, 2, 3}));
     }
 
     {
-        auto r      = v2.getRootAdapter();
-        auto s2dash = r.at(path);
-        EXPECT_EQ(s2dash->getKind(), OrgSemKind::Subtree);
-        EXPECT_EQ(s2dash->as<org::ImmSubtree>()->level, 4);
+        auto r     = v2.getRootAdapter();
+        auto s3010 = r.at(path);
+        EXPECT_EQ(s3010->getKind(), OrgSemKind::Subtree);
+        EXPECT_EQ(s3010->as<org::ImmSubtree>()->level, 4);
         auto levels = getDfsSubtreeLevels(r);
         EXPECT_EQ(levels, (Vec<int>{1, 2, 3, 3, 2, 4}));
+    }
+}
+
+TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote) {
+    setTraceFile(getDebugFile("trace.txt"));
+    org::ImmAstVersion v1 = getInitialVersion(getSubtreeDash());
+
+    org::ImmAstVersion v2 = v1.context.getEditVersion(
+        [&](org::ImmAstContext&     ast,
+            org::ImmAstEditContext& ctx) -> Vec<org::ImmAstReplace> {
+            auto root = ctx->adapt(v1.epoch.getRoot());
+            auto s201 = root.at({0, 1});
+            EXPECT_EQ(s201->getKind(), OrgSemKind::Subtree);
+            EXPECT_EQ(s201->as<org::ImmSubtree>()->level, 2);
+            return ast.store->demoteSubtreeRecursive(s201.id, ctx);
+        });
+
+    writeGvHistory(
+        {v1, v2}, "v1_v2", org::ImmAstGraphvizConf{.withAuxNodes = true});
+
+    {
+        auto r    = v2.getRootAdapter();
+        auto s201 = r.at({0, 1});
+        EXPECT_EQ(s201->getKind(), OrgSemKind::Subtree);
+        EXPECT_EQ(s201->as<org::ImmSubtree>()->level, 3);
+        auto s3010 = r.at({0, 1, 0});
+        EXPECT_EQ(s3010->getKind(), OrgSemKind::Subtree);
+        EXPECT_EQ(s3010->as<org::ImmSubtree>()->level, 4);
+        auto levels = getDfsSubtreeLevels(r);
+        EXPECT_EQ(levels, (Vec<int>{1, 2, 3, 3, 3, 4}));
     }
 }
 

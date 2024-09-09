@@ -506,7 +506,7 @@ Graphviz::Graph org::toGraphviz(
     ImmAstContext ctx = history.front().context;
 
     auto get_graph = [&](int epoch) -> Graphviz::Graph& {
-        if (conf.clusterEpochs) {
+        if (conf.clusterEpochs && epoch < history.size()) {
             if (!gvClusters.has(epoch)) {
                 auto sub = g.newSubgraph(fmt("epoch_{}", epoch));
                 sub.setLabel(fmt("Epoch {}", epoch));
@@ -525,7 +525,9 @@ Graphviz::Graph org::toGraphviz(
         } else {
             if (!gvNodes.contains(id)) {
                 auto node = get_graph(idx).node(id.getReadableId());
-                node.setColor(conf.epochColors.at(idx));
+                if (auto color = conf.epochColors.get(idx); color) {
+                    node.setColor(*color);
+                }
                 node.setShape(Graphviz::Node::Shape::rectangle);
                 gvNodes.insert_or_assign(id, node);
                 Vec<Str> label;
@@ -596,6 +598,15 @@ Graphviz::Graph org::toGraphviz(
 
     for (auto const& [idx, epoch] : enumerate(history)) {
         aux(epoch.epoch.getRoot(), idx);
+    }
+
+    if (conf.withAuxNodes) {
+        for (ImmId id : ctx.store->all_ids()) {
+            if (!gvNodes.contains(id)) {
+                LOG(INFO) << fmt1(id);
+                aux(id, history.size());
+            }
+        }
     }
 
     return g;
