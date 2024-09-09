@@ -422,7 +422,9 @@ void ImmTreeReprVisitor<org::ImmAdapterT<T>>::visit(
                 throw logic_unreachable_error::init(
                     "subnodes field is a vector of imm ID");
             }
-        } else if (ctx.conf.withAuxFields) {
+        } else if (
+            ctx.conf.withAuxFields
+            && !value_metadata<FieldType>::isEmpty(fieldValue)) {
             os << "\n";
             os.indent((ctx.level + 1) * 2);
             os << f.name;
@@ -488,17 +490,32 @@ struct value_metadata<ImmBox<T>> {
 Graphviz::Graph org::toGraphviz(
     const Vec<ImmAstVersion>& history,
     ImmAstGraphvizConf const& conf) {
-    Graphviz::Graph                     g{"g"_ss};
-    UnorderedSet<ImmId>                 visited;
-    UnorderedMap<ImmId, Graphviz::Node> gvNodes;
-    ImmAstContext                       ctx = history.front().context;
+    Graphviz::Graph                                  g{"g"_ss};
+    UnorderedSet<ImmId>                              visited;
+    UnorderedMap<ImmId, Graphviz::Node>              gvNodes;
+    UnorderedMap<Pair<ImmId, ImmId>, Graphviz::Edge> gvEdges;
+    Vec<Graphviz::Graph>                             gvClusters;
+    ImmAstContext ctx = history.front().context;
+
+    auto get_graph = [&](int epoch) -> Graphviz::Graph& {
+        if (conf.clusterEpochs) {
+            if (!gvClusters.has(epoch)) {
+                auto sub = g.newSubgraph(fmt("epoch_{}", epoch));
+                gvClusters.resize_at(epoch, sub);
+            }
+
+            return gvClusters.at(epoch);
+        } else {
+            return g;
+        }
+    };
 
     auto get_node = [&](ImmId id, int idx) -> Opt<Graphviz::Node> {
         if (conf.skippedKinds.contains(id.getKind())) {
             return std::nullopt;
         } else {
             if (!gvNodes.contains(id)) {
-                auto node = g.node(id.getReadableId());
+                auto node = get_graph(idx).node(id.getReadableId());
                 node.setColor(conf.epochColors.at(idx));
                 node.setShape(Graphviz::Node::Shape::rectangle);
                 gvNodes.insert_or_assign(id, node);
@@ -556,9 +573,13 @@ Graphviz::Graph org::toGraphviz(
                 aux(it.value(), idx);
                 auto sub_imm = get_node(it.value(), idx);
                 if (sub_imm) {
-                    auto edge = g.edge(*node, *sub_imm);
-                    edge.setColor(conf.epochColors.at(idx));
-                    edge.setLabel(fmt1(it.index()));
+                    Pair<ImmId, ImmId> pair{id, it.value()};
+                    if (!gvEdges.contains(pair)) {
+                        auto edge = g.edge(*node, *sub_imm);
+                        edge.setColor(conf.epochColors.at(idx));
+                        edge.setLabel(fmt1(it.index()));
+                        gvEdges.insert_or_assign(pair, edge);
+                    }
                 }
             }
         }

@@ -135,6 +135,10 @@ Vec<ImmAstReplace> ImmAstStore::demoteSubtreeRecursive(
         edits.push_back(update);
     }
 
+    for (auto const& sub : ctx->adapt(target)) {
+        edits.append(demoteSubtreeRecursive(sub.id, ctx));
+    }
+
 
     return edits;
 }

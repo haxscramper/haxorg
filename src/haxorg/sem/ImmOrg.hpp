@@ -320,6 +320,7 @@ struct ImmAstVersion {
 
 struct ImmAstGraphvizConf {
     SemSet skippedKinds;
+    bool   clusterEpochs = true;
 
     UnorderedMap<Str, Vec<Str>> skippedFields = {
         {"DocumentOptions", {"exportConfig"}},

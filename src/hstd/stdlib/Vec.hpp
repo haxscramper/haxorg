@@ -395,6 +395,18 @@ struct std::formatter<std::vector<T>> : std::formatter<std::string> {
     }
 };
 
+template <typename T>
+struct std::hash<Vec<T>> {
+    std::size_t operator()(Vec<T> const& it) const noexcept {
+        std::size_t result = 0;
+        for (int i = 0; i < it.size(); ++i) {
+            hax_hash_combine(result, i);
+            hax_hash_combine(result, it.at(i));
+        }
+        return result;
+    }
+};
+
 
 template <typename T>
 using CVec = CR<Vec<T>>;

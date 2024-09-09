@@ -506,7 +506,7 @@ class Graphviz {
 
 
         Graph newSubgraph(Str const& name) {
-            return Graph(agsubg(graph, strdup(name), 1));
+            return Graph(agsubg(graph, strdup("cluster_" + name), 1));
         }
 
         void setSplines(Splines splines);

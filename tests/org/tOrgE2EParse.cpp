@@ -915,9 +915,12 @@ TEST(ImmOrgApi, SubtreePromotion) {
     org::ImmAstContext start;
     org::ImmAstVersion v1 = start.init(start_node);
 
-    auto root = start.adapt(v1.epoch.getRoot());
-    writeFile(
-        "/tmp/SubtreePromotion_repr.txt", root.treeRepr().toString(false));
+    {
+        auto root = start.adapt(v1.epoch.getRoot());
+        writeFile(
+            "/tmp/SubtreePromotion_repr.txt",
+            root.treeRepr().toString(false));
+    }
 
     org::ImmAstVersion v2 = v1.context.getEditVersion(
         [&](org::ImmAstContext&     ast,
@@ -932,10 +935,33 @@ TEST(ImmOrgApi, SubtreePromotion) {
     org::ImmAdapter::TreeReprConf conf{.withAuxFields = true};
 
     writeFile(
-        "/tmp/SubtreePromotion_repr.txt",
-        fmt("{}\n- - - - - - - - -\n{}",
-            v1.getRootAdapter().treeRepr(conf).toString(false),
-            v2.getRootAdapter().treeRepr(conf).toString(false)));
+        "/tmp/SubtreePromotion_repr_v1.txt",
+        v1.getRootAdapter().treeRepr(conf).toString(false));
+
+    writeFile(
+        "/tmp/SubtreePromotion_repr_v2.txt",
+        v2.getRootAdapter().treeRepr(conf).toString(false));
+
+    {
+        Graphviz gvc;
+        auto     gv = org::toGraphviz({v1, v2});
+        gvc.writeFile("/tmp/SubtreePromotion.dot", gv);
+        gvc.renderToFile("/tmp/SubtreePromotion.png", gv);
+    }
+
+    {
+        auto r      = v1.getRootAdapter();
+        auto s2dash = r.at({0, 0});
+        EXPECT_EQ(s2dash->getKind(), OrgSemKind::Subtree);
+        EXPECT_EQ(s2dash->as<org::ImmSubtree>()->level, 2);
+    }
+
+    {
+        auto r      = v2.getRootAdapter();
+        auto s2dash = r.at({0, 0});
+        EXPECT_EQ(s2dash->getKind(), OrgSemKind::Subtree);
+        EXPECT_EQ(s2dash->as<org::ImmSubtree>()->level, 3);
+    }
 }
 
 TEST(ImmMapApi, AddNode) {

@@ -16,6 +16,13 @@
 
 
 template <typename T>
+inline void hax_hash_combine(std::size_t& seed, const T& v) {
+    std::hash<T> hasher;
+    seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+}
+
+
+template <typename T>
 struct value_metadata<std::vector<T>> {
     static bool isEmpty(std::vector<T> const& value) {
         return value.empty();
@@ -25,7 +32,7 @@ struct value_metadata<std::vector<T>> {
 template <typename T>
 struct value_metadata<std::optional<T>> {
     static bool isEmpty(std::optional<T> const& value) {
-        return !value.has_value();
+        return !value.has_value() || value_metadata<T>::isEmpty(*value);
     }
 
     static bool isNil(std::optional<T> const& value) {
