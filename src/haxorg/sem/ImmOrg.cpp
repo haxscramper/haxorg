@@ -459,6 +459,14 @@ ImmAstContext ImmAstEditContext::finish() {
 
 ImmAstStore& ImmAstEditContext::store() { return *ctx->store; }
 
+void ImmAstEditContext::message(
+    const std::string& value,
+    int                line,
+    const char*        function,
+    const char*        file) {
+    ctx->message(value, debug.activeLevel, line, function, file);
+}
+
 
 template <typename T>
 struct value_metadata<ImmVec<T>> {

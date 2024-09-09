@@ -1,6 +1,7 @@
 #include <hstd/stdlib/TraceBase.hpp>
 #include <hstd/stdlib/Json.hpp>
 #include <fstream>
+#include <hstd/stdlib/Exception.hpp>
 
 void OperationsTracer::setTraceFile(const fs::path& outfile) {
     CHECK(outfile.native().size() != 0)
@@ -65,7 +66,7 @@ void OperationsTracer::message(const OperationsMsg& value) {
                 /*0*/ Str{"  "}.repeated(value.level),
                 /*1*/ value.file ? fs::path{value.file}.filename().native()
                                  : "",
-                /*2*/ value.line == 0 ? "" : fmt(":{}", value.line),
+                /*2*/ value.line == 0 ? "" : fmt(":{:<4}", value.line),
                 /*3*/ value.column == 0 ? "" : fmt(":{}", value.column),
                 /*4*/ value.function ? fmt("{:_<24}", value.function)
                                      : "?",
@@ -73,4 +74,18 @@ void OperationsTracer::message(const OperationsMsg& value) {
         }
         endStream(os);
     }
+}
+
+finally OperationsScope::scopeLevel() {
+    ++activeLevel;
+    return finally{[&]() { --activeLevel; }};
+}
+
+finally OperationsScope::scopeTrace(bool state) {
+    logic_assertion_check(
+        TraceState != nullptr,
+        "use operations tracer `.TraceState` field as a pointer base");
+    bool initialTrace = TraceState;
+    *TraceState       = state;
+    return finally{[initialTrace, this]() { *TraceState = initialTrace; }};
 }

@@ -15,6 +15,14 @@ struct OperationsMsg {
     DESC_FIELDS(OperationsMsg, (msg, file, function, line, column));
 };
 
+struct OperationsScope {
+    bool* TraceState;
+    int   activeLevel = 0;
+
+    finally scopeLevel();
+    finally scopeTrace(bool state);
+};
+
 struct OperationsTracer {
     bool        TraceState      = false;
     bool        traceToFile     = false;

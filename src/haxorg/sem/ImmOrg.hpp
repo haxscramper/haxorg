@@ -77,6 +77,13 @@ struct ImmAstEditContext {
     ImmAstContext*           ctx;
     ImmAstContext            finish();
     ImmAstStore&             store();
+    OperationsScope          debug;
+
+    void message(
+        std::string const& value,
+        int                line     = __builtin_LINE(),
+        char const*        function = __builtin_FUNCTION(),
+        char const*        file     = __builtin_FILE());
 
     ImmId getParentForce(ImmId id) const;
 
@@ -314,6 +321,7 @@ ImmAstReplace ImmAstStore::updateNode(
     ImmId              id,
     ImmAstEditContext& ctx,
     Func               cb) {
+    auto          __scope      = ctx.debug.scopeLevel();
     auto const&   start_value  = ctx.ctx->value<T>(id);
     auto const&   update_value = cb(start_value);
     ImmAstReplace update       = setNode(id, update_value, ctx);
