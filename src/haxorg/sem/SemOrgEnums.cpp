@@ -384,6 +384,7 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
 }
 
 Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
+  if (value == "None") { return OrgSemKind::None; } else
   if (value == "CmdArgument") { return OrgSemKind::CmdArgument; } else
   if (value == "CmdArgumentList") { return OrgSemKind::CmdArgumentList; } else
   if (value == "CmdArguments") { return OrgSemKind::CmdArguments; } else
@@ -456,6 +457,7 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
 }
 std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
   switch (value) {
+    case OrgSemKind::None: return "None";
     case OrgSemKind::CmdArgument: return "CmdArgument";
     case OrgSemKind::CmdArgumentList: return "CmdArgumentList";
     case OrgSemKind::CmdArguments: return "CmdArguments";

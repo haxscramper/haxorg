@@ -23,6 +23,11 @@ class LineCol:
     column: int
     pos: int
 
+class None(Org):
+    def __init__(self) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+
 class CmdArgument(Org):
     def __init__(self, key: Optional[str], varname: Optional[str], value: str) -> None: ...
     def getInt(self) -> Optional[int]: ...
@@ -1574,74 +1579,75 @@ class OrgNodeKind(Enum):
     SubtreeImportance = 121
 
 class OrgSemKind(Enum):
-    CmdArgument = 1
-    CmdArgumentList = 2
-    CmdArguments = 3
-    ErrorItem = 4
-    ErrorGroup = 5
-    StmtList = 6
-    Empty = 7
-    CmdCaption = 8
-    CmdName = 9
-    CmdCustomArgs = 10
-    CmdCustomRaw = 11
-    CmdCustomText = 12
-    CmdResults = 13
-    CmdTblfm = 14
-    HashTag = 15
-    Footnote = 16
-    Time = 17
-    TimeRange = 18
-    Macro = 19
-    Symbol = 20
-    Escaped = 21
-    Newline = 22
-    Space = 23
-    Word = 24
-    AtMention = 25
-    RawText = 26
-    Punctuation = 27
-    Placeholder = 28
-    BigIdent = 29
-    RadioTarget = 30
-    TextTarget = 31
-    Bold = 32
-    Underline = 33
-    Monospace = 34
-    MarkQuote = 35
-    Verbatim = 36
-    Italic = 37
-    Strike = 38
-    Par = 39
-    Latex = 40
-    Link = 41
-    BlockCenter = 42
-    BlockQuote = 43
-    BlockComment = 44
-    BlockVerse = 45
-    BlockExample = 46
-    BlockExport = 47
-    BlockAdmonition = 48
-    BlockCode = 49
-    SubtreeLog = 50
-    Subtree = 51
-    SubtreeCompletion = 52
-    Cell = 53
-    Row = 54
-    Table = 55
-    Paragraph = 56
-    AnnotatedParagraph = 57
-    ColonExample = 58
-    CmdAttr = 59
-    Call = 60
-    List = 61
-    ListItem = 62
-    DocumentOptions = 63
-    Document = 64
-    FileTarget = 65
-    TextSeparator = 66
-    Include = 67
-    DocumentGroup = 68
+    _None = 1
+    CmdArgument = 2
+    CmdArgumentList = 3
+    CmdArguments = 4
+    ErrorItem = 5
+    ErrorGroup = 6
+    StmtList = 7
+    Empty = 8
+    CmdCaption = 9
+    CmdName = 10
+    CmdCustomArgs = 11
+    CmdCustomRaw = 12
+    CmdCustomText = 13
+    CmdResults = 14
+    CmdTblfm = 15
+    HashTag = 16
+    Footnote = 17
+    Time = 18
+    TimeRange = 19
+    Macro = 20
+    Symbol = 21
+    Escaped = 22
+    Newline = 23
+    Space = 24
+    Word = 25
+    AtMention = 26
+    RawText = 27
+    Punctuation = 28
+    Placeholder = 29
+    BigIdent = 30
+    RadioTarget = 31
+    TextTarget = 32
+    Bold = 33
+    Underline = 34
+    Monospace = 35
+    MarkQuote = 36
+    Verbatim = 37
+    Italic = 38
+    Strike = 39
+    Par = 40
+    Latex = 41
+    Link = 42
+    BlockCenter = 43
+    BlockQuote = 44
+    BlockComment = 45
+    BlockVerse = 46
+    BlockExample = 47
+    BlockExport = 48
+    BlockAdmonition = 49
+    BlockCode = 50
+    SubtreeLog = 51
+    Subtree = 52
+    SubtreeCompletion = 53
+    Cell = 54
+    Row = 55
+    Table = 56
+    Paragraph = 57
+    AnnotatedParagraph = 58
+    ColonExample = 59
+    CmdAttr = 60
+    Call = 61
+    List = 62
+    ListItem = 63
+    DocumentOptions = 64
+    Document = 65
+    FileTarget = 66
+    TextSeparator = 67
+    Include = 68
+    DocumentGroup = 69
 
 class UserTimeBreakdown:
     def __init__(self, year: Optional[int], month: Optional[int], day: Optional[int], hour: Optional[int], minute: Optional[int], second: Optional[int], zone: Optional[str]) -> None: ...

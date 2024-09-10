@@ -1,5 +1,11 @@
 /* clang-format off */
 template <typename V, typename R>
+void Exporter<V, R>::visitNone(R& res, In<sem::None> object) {
+  auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visitCmdArgument(R& res, In<sem::CmdArgument> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, key);

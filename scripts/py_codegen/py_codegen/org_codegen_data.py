@@ -1626,6 +1626,7 @@ def get_sem_subtree():
 
 def get_types() -> Sequence[GenTuStruct]:
     return [
+        d_org("None", GenTuDoc("No node"), bases=[t_org("Org")]),
         *get_sem_misc(),
         *get_sem_bases(),
         *get_sem_commands(),
@@ -1772,8 +1773,14 @@ def get_types() -> Sequence[GenTuStruct]:
                     GenTuDoc("Full text of the numbered list item, e.g. `a)`, `a.`",))
             ],
             nested=[
-                d_simple_enum(t_nest("Checkbox", ["ListItem"]), GenTuDoc(""), "None", "Done", "Empty",
-                              "Partial",)
+                d_simple_enum(
+                    t_nest("Checkbox", ["ListItem"]),
+                    GenTuDoc(""),
+                    "None",
+                    "Done",
+                    "Empty",
+                    "Partial",
+                )
             ],
             methods=[
                 GenTuFunction(

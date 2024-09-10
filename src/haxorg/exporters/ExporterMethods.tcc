@@ -1,4 +1,5 @@
 /* clang-format off */
+void visitNone(R& res, In<sem::None> object);
 void visitCmdArgument(R& res, In<sem::CmdArgument> object);
 void visitCmdArgumentList(R& res, In<sem::CmdArgumentList> object);
 void visitCmdArguments(R& res, In<sem::CmdArguments> object);

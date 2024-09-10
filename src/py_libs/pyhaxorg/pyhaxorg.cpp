@@ -132,6 +132,21 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<sem::None, sem::SemId<sem::None>, sem::Org>(m, "None")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::None {
+                        sem::None result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("__repr__", [](sem::None _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::None _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<sem::CmdArgument, sem::SemId<sem::CmdArgument>, sem::Org>(m, "CmdArgument")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdArgument {
                         sem::CmdArgument result{};
@@ -3610,6 +3625,7 @@ node can have subnodes.)RAW")
     ;
   bind_enum_iterator<OrgSemKind>(m, "OrgSemKind", type_registry_guard);
   pybind11::enum_<OrgSemKind>(m, "OrgSemKind")
+    .value("None", OrgSemKind::None)
     .value("CmdArgument", OrgSemKind::CmdArgument)
     .value("CmdArgumentList", OrgSemKind::CmdArgumentList)
     .value("CmdArguments", OrgSemKind::CmdArguments)

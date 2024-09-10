@@ -4,6 +4,7 @@
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #define EACH_SEM_ORG_KIND(__IMPL) \
+    __IMPL(None) \
     __IMPL(CmdArgument) \
     __IMPL(CmdArgumentList) \
     __IMPL(CmdArguments) \
@@ -166,6 +167,7 @@
     __IMPL(DocumentOptions, Visibility, (Visibility)) \
     __IMPL(Include, Kind, (Kind))
 #define EACH_SEM_ORG_RECORD(__IMPL) \
+    __IMPL(None, (None)) \
     __IMPL(CmdArgument, (CmdArgument)) \
     __IMPL(CmdArgumentList, (CmdArgumentList)) \
     __IMPL(CmdArguments, (CmdArguments)) \
@@ -554,7 +556,7 @@ struct value_domain<OrgNodeKind> : public value_domain_ungapped<OrgNodeKind,
                                                                 OrgNodeKind::None,
                                                                 OrgNodeKind::SubtreeImportance> {};
 
-enum class OrgSemKind : short int { CmdArgument, CmdArgumentList, CmdArguments, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdResults, CmdTblfm, HashTag, Footnote, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, RadioTarget, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockExample, BlockExport, BlockAdmonition, BlockCode, SubtreeLog, Subtree, SubtreeCompletion, Cell, Row, Table, Paragraph, AnnotatedParagraph, ColonExample, CmdAttr, Call, List, ListItem, DocumentOptions, Document, FileTarget, TextSeparator, Include, DocumentGroup, };
+enum class OrgSemKind : short int { None, CmdArgument, CmdArgumentList, CmdArguments, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdResults, CmdTblfm, HashTag, Footnote, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, RadioTarget, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockExample, BlockExport, BlockAdmonition, BlockCode, SubtreeLog, Subtree, SubtreeCompletion, Cell, Row, Table, Paragraph, AnnotatedParagraph, ColonExample, CmdAttr, Call, List, ListItem, DocumentOptions, Document, FileTarget, TextSeparator, Include, DocumentGroup, };
 template <>
 struct enum_serde<OrgSemKind> {
   static Opt<OrgSemKind> from_string(std::string value);
@@ -563,7 +565,7 @@ struct enum_serde<OrgSemKind> {
 
 template <>
 struct value_domain<OrgSemKind> : public value_domain_ungapped<OrgSemKind,
-                                                               OrgSemKind::CmdArgument,
+                                                               OrgSemKind::None,
                                                                OrgSemKind::DocumentGroup> {};
 
 

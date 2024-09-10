@@ -12,6 +12,19 @@
 #include <haxorg/sem/SemOrgBase.hpp>
 #include <haxorg/sem/SemOrgEnums.hpp>
 namespace sem{
+/// \brief No node
+struct None : public sem::Org {
+  using Org::Org;
+  virtual ~None() = default;
+  BOOST_DESCRIBE_CLASS(None,
+                       (Org),
+                       (),
+                       (),
+                       (staticKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::None; }
+};
+
 /// \brief Single key-value (or positional)
 struct CmdArgument : public sem::Org {
   using Org::Org;

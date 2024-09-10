@@ -1,6 +1,14 @@
 /* clang-format off */
 #include <haxorg/sem/SemOrgSerde.hpp>
 #include <haxorg/sem/SemOrgSerdeDeclarations.hpp>
+void proto_serde<::orgproto::None, sem::None>::write(::orgproto::None* out, sem::None const& in) {
+  proto_serde<::orgproto::None, sem::Org>::write(out, in);
+}
+
+void proto_serde<::orgproto::None, sem::None>::read(::orgproto::None const& out, proto_write_accessor<sem::None> in) {
+  proto_serde<::orgproto::None, sem::Org>::read(out, in.as<sem::Org>());
+}
+
 void proto_serde<::orgproto::CmdArgument, sem::CmdArgument>::write(::orgproto::CmdArgument* out, sem::CmdArgument const& in) {
   proto_serde<::orgproto::CmdArgument, sem::Org>::write(out, in);
   if (in.key) {

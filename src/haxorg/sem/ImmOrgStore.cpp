@@ -157,11 +157,14 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
     }
 
     Func<ImmId(ImmAdapter node)> aux;
+    ImmAstReplaceEpoch           result;
+
     aux = [&](ImmAdapter node) -> ImmId {
         auto __scope = ctx.debug.scopeLevel();
         if (editParents.contains(node.id)) {
             // The node is a parent subnode for some edit.
-            if (auto edit = editReplaces.get(node.id); edit) {
+            auto edit = editReplaces.get(node.id);
+            if (edit) {
                 LOGIC_ASSERTION_CHECK(
                     ctx->adapt(edit->replaced)->subnodes
                         == ctx->adapt(edit->original)->subnodes,
@@ -179,14 +182,13 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
                     /*4*/ editDependencies.at(edit->original));
             }
 
+            result.replaced.push_back(*edit);
             Vec<ImmId> updatedSubnodes;
             for (auto const& sub : node.sub()) {
                 updatedSubnodes.push_back(aux(sub));
             }
 
-            ImmId updateTarget = editReplaces.contains(node.id)
-                                   ? editReplaces.at(node.id).replaced
-                                   : node.id;
+            ImmId updateTarget = edit ? edit->replaced : node.id;
 
             ImmAstReplace act = setSubnodes(
                 updateTarget,
@@ -196,14 +198,17 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
                 },
                 ctx);
 
+            result.replaced.push_back(act);
+
             return act.replaced;
 
         } else {
             // The node is not a parent for any other replacement. If it
             // was updated, return a new version, otherwise return the same
             // node.
-            if (editReplaces.contains(node.id)) {
-                return editReplaces.at(node.id).replaced;
+            if (auto edit = editReplaces.get(node.id); edit) {
+                result.replaced.push_back(*edit);
+                return edit->replaced;
             } else {
                 ctx.message(fmt("No changes in {}", node.id));
                 return node.id;
@@ -211,8 +216,6 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
         }
     };
 
-
-    ImmAstReplaceEpoch result;
 
     ImmId root = ImmId::Nil();
     for (auto const& act : replace) {
@@ -226,8 +229,7 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
         }
     }
 
-    aux(ctx->adapt(root));
-
+    result.root = aux(ctx->adapt(root));
     return result;
 }
 

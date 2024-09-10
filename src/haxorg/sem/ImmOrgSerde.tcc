@@ -1,5 +1,19 @@
 /* clang-format off */
 template <>
+struct ImmSemSerde<sem::None, org::ImmNone> {
+  static org::ImmNone to_immer(sem::None const& value, ImmAstEditContext& ctx) {
+    org::ImmNone result = SerdeDefaultProvider<org::ImmNone>::get();
+    assign_immer_field(result.subnodes, value.subnodes, ctx);
+    return result;
+  }
+  static sem::None from_immer(org::ImmNone const& value, ImmAstContext const& ctx) {
+    sem::None result = SerdeDefaultProvider<sem::None>::get();
+    assign_sem_field(result.subnodes, value.subnodes, ctx);
+    return result;
+  }
+};
+
+template <>
 struct ImmSemSerde<sem::CmdArgument, org::ImmCmdArgument> {
   static org::ImmCmdArgument to_immer(sem::CmdArgument const& value, ImmAstEditContext& ctx) {
     org::ImmCmdArgument result = SerdeDefaultProvider<org::ImmCmdArgument>::get();

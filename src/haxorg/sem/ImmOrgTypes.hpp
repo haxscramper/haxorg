@@ -2,6 +2,20 @@
 #pragma once
 #include <haxorg/sem/ImmOrgBase.hpp>
 namespace org{
+/// \brief No node
+struct ImmNone : public org::ImmOrg {
+  using ImmOrg::ImmOrg;
+  virtual ~ImmNone() = default;
+  BOOST_DESCRIBE_CLASS(ImmNone,
+                       (ImmOrg),
+                       (),
+                       (),
+                       (staticKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::None; }
+  bool operator==(org::ImmNone const& other) const;
+};
+
 /// \brief Single key-value (or positional)
 struct ImmCmdArgument : public org::ImmOrg {
   using ImmOrg::ImmOrg;

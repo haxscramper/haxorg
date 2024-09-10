@@ -394,6 +394,7 @@ Vec<ImmId> allSubnodes(ImmId const& value, org::ImmAstContext const& ctx);
 
 template <typename Func>
 void switch_node_kind(org::ImmId id, Func const& cb) {
+    LOGIC_ASSERTION_CHECK(id.getKind() != OrgSemKind::None, "");
     switch (id.getKind()) {
 #define _case(__Kind)                                                     \
     case OrgSemKind::__Kind: {                                            \
@@ -414,6 +415,7 @@ void switch_node_value(
     org::ImmId           id,
     ImmAstContext const& ctx,
     Func const&          cb) {
+    LOGIC_ASSERTION_CHECK(id.getKind() != OrgSemKind::None, "");
     switch_node_kind(
         id, [&]<typename K>(org::ImmIdT<K> id) { cb(ctx.value<K>(id)); });
 }
@@ -429,6 +431,7 @@ void switch_node_fields(
     org::ImmId           id,
     ImmAstContext const& ctx,
     Func const&          cb) {
+    LOGIC_ASSERTION_CHECK(id.getKind() != OrgSemKind::None, "");
     switch_node_value(id, ctx, [&]<typename T>(T const& node) {
         for_each_field_value_with_bases(node, cb);
     });

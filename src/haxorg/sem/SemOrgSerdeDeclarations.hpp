@@ -2,6 +2,7 @@
 #pragma once
 #include <haxorg/sem/SemOrgSerde.hpp>
 #define EACH_ANY_NODE_PROTO_FIELD(__MAP) \
+        __MAP(kNone, none, None)  \
         __MAP(kCmdargument, cmdargument, CmdArgument)  \
         __MAP(kCmdargumentlist, cmdargumentlist, CmdArgumentList)  \
         __MAP(kCmdarguments, cmdarguments, CmdArguments)  \
@@ -70,6 +71,13 @@
         __MAP(kTextseparator, textseparator, TextSeparator)  \
         __MAP(kInclude, include, Include)  \
         __MAP(kDocumentgroup, documentgroup, DocumentGroup)  \
+
+template <>
+struct proto_serde<::orgproto::None, sem::None> {
+  static void write(::orgproto::None* out, sem::None const& in);
+  static void read(::orgproto::None const& out, proto_write_accessor<sem::None> in);
+};
+
 
 template <>
 struct proto_serde<::orgproto::CmdArgument, sem::CmdArgument> {
