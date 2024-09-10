@@ -1094,14 +1094,28 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_WithParentChange) {
                 s1.id, org::ImmAstStore::SubtreeMove::ForceLevels, ctx);
         });
 
-    writeTreeRepr(v1.getRootAdapter(), "v1_repr.txt");
-    writeTreeRepr(v2.getRootAdapter(), "v2_repr.txt");
-
     writeGvHistory({v1, v2}, "v1_v2");
+    auto r = v2.getRootAdapter();
 
-    EXPECT_EQ(
-        getDfsSubtreeLevels(v2.getRootAdapter()),
-        (Vec<int>{1, 2, 3, 4, 2, 3}));
+    EXPECT_EQ(getDfsSubtreeLevels(r), (Vec<int>{1, 2, 3, 4, 2, 3}));
+
+    Vec<int> p0000 = {0, 0, 0, 0};
+    Vec<int> p000  = {0, 0, 0};
+    Vec<int> p00   = {0, 0};
+    Vec<int> p0    = {0};
+
+
+    EXPECT_TRUE(r.at(p0000).is(OrgSemKind::Subtree));
+    EXPECT_EQ(r.at(p0000).as<org::ImmSubtree>()->level, 4);
+    EXPECT_EQ(r.at(p0000).getParent().value().id, r.at(p000).id);
+    EXPECT_EQ(r.at(p000).at(0).id, r.at(p0000).id);
+
+    EXPECT_EQ(r.at(p000).as<org::ImmSubtree>()->level, 3);
+    EXPECT_EQ(r.at(p000).getParent().value().id, r.at(p00).id);
+    EXPECT_EQ(r.at(p00).at(0).id, r.at(p000).id);
+
+    EXPECT_EQ(r.at(p00).as<org::ImmSubtree>()->level, 2);
+    EXPECT_EQ(r.at(p0).at(0).id, r.at(p00).id);
 }
 
 TEST(ImmMapApi, AddNode) {
