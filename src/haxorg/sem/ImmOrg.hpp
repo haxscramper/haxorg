@@ -59,6 +59,14 @@ struct ImmAstParentMapTransient {
     ImmAstParentMapType::transient_type parents;
 
     void setParent(org::ImmId node, org::ImmId parent) {
+        LOGIC_ASSERTION_CHECK(
+            parents.find(node) == nullptr,
+            "Cannot override a parent mapping for a node {} -- its parent "
+            "node is already set as {}, cannot reset to {}",
+            node,
+            *parents.find(node),
+            parent);
+
         parents.insert({node, parent});
     }
 
@@ -270,6 +278,22 @@ struct ImmAstStore {
         ImmId              target,
         ImmId              add,
         int                position,
+        ImmAstEditContext& ctx);
+
+    ImmAstReplace appendSubnode(
+        ImmId              target,
+        ImmId              add,
+        ImmAstEditContext& ctx);
+
+
+    ImmAstReplace dropSubnode(
+        org::ImmId         target,
+        int                position,
+        ImmAstEditContext& ctx);
+
+    ImmAstReplace dropSubnode(
+        org::ImmId         target,
+        org::ImmId         subnode,
         ImmAstEditContext& ctx);
 
     Pair<ImmAstReplace, org::ImmId> popSubnode(
@@ -601,6 +625,37 @@ struct ImmAdapter {
         } else {
             return std::nullopt;
         }
+    }
+
+    int getSelfIndex() const {
+        auto parent = getParent();
+        if (parent) {
+            return parent.value()->indexOf(this->id);
+        } else {
+            return -1;
+        }
+    }
+
+    Opt<ImmAdapter> getAdjacentNode(int offset) const {
+        auto parent = getParent();
+        if (parent) {
+            int selfIndex = getSelfIndex();
+            return parent->at(selfIndex + offset);
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    Opt<ImmAdapter> getParentSubtree() const {
+        auto parent = getParent();
+        while (parent) {
+            if (parent->is(OrgSemKind::Subtree)) {
+                return parent;
+            } else {
+                parent = parent->getParent();
+            }
+        }
+        return std::nullopt;
     }
 
     Vec<ImmAdapter> getParentChain(bool withSelf = true) const {

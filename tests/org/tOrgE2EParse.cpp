@@ -900,8 +900,11 @@ class ImmOrgApiEdit : public ::testing::Test {
     org::ImmAstContext start;
 
     Str getDebugFile(Str const& suffix) {
+        auto dir = fs::path{"/tmp/haxorg_tests/ImmOrgApiEdit"};
+        if (!fs::is_directory(dir)) { fs::create_directory(dir); }
         return fmt(
-            "/tmp/ImmOrgApiEdit_{}_{}",
+            "{}/{}_{}",
+            dir.native(),
             ::testing::UnitTest::GetInstance()
                 ->current_test_info()
                 ->name(),
@@ -914,6 +917,15 @@ class ImmOrgApiEdit : public ::testing::Test {
 
     org::ImmAstVersion getInitialVersion(Str const& text) {
         return start.init(parseNode(text));
+    }
+
+    void writeTreeRepr(
+        org::ImmAdapter               n,
+        Str const                     suffix,
+        org::ImmAdapter::TreeReprConf conf = org::ImmAdapter::TreeReprConf{
+            .withAuxFields = false,
+        }) {
+        writeFile(getDebugFile(suffix), n.treeRepr(conf).toString(false));
     }
 
     void writeGvHistory(
@@ -1067,6 +1079,29 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_All) {
     EXPECT_EQ(
         getDfsSubtreeLevels(v2.getRootAdapter()),
         (Vec<int>{2, 3, 4, 4, 3, 4}));
+}
+
+TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_WithParentChange) {
+    setTraceFile(getDebugFile("trace.txt"));
+    org::ImmAstVersion v1 = getInitialVersion(getSubtreeDash());
+
+    org::ImmAstVersion v2 = v1.context.getEditVersion(
+        [&](org::ImmAstContext&     ast,
+            org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
+            auto root = ctx->adapt(v1.epoch.getRoot());
+            auto s1   = root.at({0, 0, 1});
+            return ast.store->demoteSubtree(
+                s1.id, org::ImmAstStore::SubtreeMove::ForceLevels, ctx);
+        });
+
+    writeTreeRepr(v1.getRootAdapter(), "v1_repr.txt");
+    writeTreeRepr(v2.getRootAdapter(), "v2_repr.txt");
+
+    writeGvHistory({v1, v2}, "v1_v2");
+
+    EXPECT_EQ(
+        getDfsSubtreeLevels(v2.getRootAdapter()),
+        (Vec<int>{1, 2, 3, 4, 2, 3}));
 }
 
 TEST(ImmMapApi, AddNode) {

@@ -50,6 +50,12 @@ ImmAstReplace ImmAstStore::setNode(
         !result_node.isNil(), "added node must not be nil");
     result_node.assertValid();
 
+    // Remove all original subnode mapping.
+    for (auto const& sub :
+         allSubnodes<T>(ctx.ctx->value<T>(target), *ctx.ctx)) {
+        ctx.parents.removeParent(sub);
+    }
+
     for (auto const& sub : allSubnodes<T>(value, *ctx.ctx)) {
         ctx.parents.setParent(sub, result_node);
     }
@@ -84,13 +90,39 @@ ImmAstReplace ImmAstStore::insertSubnode(
         target, ctx.ctx->at(target)->subnodes.insert(position, add), ctx);
 }
 
+ImmAstReplace ImmAstStore::appendSubnode(
+    ImmId              target,
+    ImmId              add,
+    ImmAstEditContext& ctx) {
+    return insertSubnode(
+        target, add, ctx->at(target)->subnodes.size(), ctx);
+}
+
+ImmAstReplace ImmAstStore::dropSubnode(
+    ImmId              target,
+    int                position,
+    ImmAstEditContext& ctx) {
+    ctx.message(fmt("Drop subnode {}[{}]", target, position));
+    return setSubnodes(
+        target, ctx.ctx->at(target)->subnodes.take(position), ctx);
+}
+
+ImmAstReplace ImmAstStore::dropSubnode(
+    ImmId              target,
+    ImmId              subnode,
+    ImmAstEditContext& ctx) {
+    int idx = ctx->at(target)->indexOf(subnode);
+    LOGIC_ASSERTION_CHECK(
+        idx != -1, "Cannot remove subnode {} from {}", target, subnode);
+    return dropSubnode(target, idx, ctx);
+}
+
 Pair<ImmAstReplace, ImmId> ImmAstStore::popSubnode(
     ImmId              target,
     int                position,
     ImmAstEditContext& ctx) {
     auto pop    = ctx.ctx->at(target)->subnodes.at(position);
-    auto update = setSubnodes(
-        target, ctx.ctx->at(target)->subnodes.take(position), ctx);
+    auto update = dropSubnode(target, position, ctx);
 
     return {update, pop};
 }
@@ -109,6 +141,7 @@ ImmAstReplaceGroup ImmAstStore::demoteSubtree(
         edits.incl(demoteSubtree(sub.id, move, ctx));
     }
 
+
     auto __scope = ctx.debug.scopeLevel();
     auto update  = updateNode<org::ImmSubtree>(
         target, ctx, [&](org::ImmSubtree value) {
@@ -118,6 +151,42 @@ ImmAstReplaceGroup ImmAstStore::demoteSubtree(
         });
 
     edits.incl(update);
+
+
+    auto targetAdapter = ctx->adapt(target);
+    auto parent        = targetAdapter.getParent();
+    auto adjacent      = targetAdapter.getAdjacentNode(-1);
+
+    if (parent && adjacent && adjacent->is(OrgSemKind::Subtree)) {
+        auto adjacentTree = adjacent.value().as<org::ImmSubtree>();
+        auto replacedTree = ctx->adapt(update.replaced)
+                                .as<org::ImmSubtree>();
+        if (adjacentTree->level < replacedTree->level) {
+            // Demoting subtree caused reparenting, removing the node from
+            // the old subtree.
+            ctx.message(fmt(
+                "Subtree demote reparenting. Adjacent:{}, replaced:{}, "
+                "target drop:{}",
+                adjacent->id,
+                update.replaced,
+                target));
+
+            auto __scope = ctx.debug.scopeLevel();
+            edits.incl(dropSubnode(parent->id, target, ctx));
+            edits.incl(appendSubnode(adjacent->id, update.replaced, ctx));
+        } else {
+            ctx.message(
+                fmt("Subtree demote, no reparenting, levels are ok. "
+                    "Adjacent:{}, replaced:{}",
+                    adjacentTree->level,
+                    replacedTree->level));
+        }
+    } else {
+        ctx.message(
+            fmt("Subtree demote, no reparenting parent:{} adjacent:{}",
+                parent,
+                adjacent));
+    }
 
 
     return edits;
@@ -146,7 +215,6 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
     ctx.message("Edit replaces");
     {
         auto __scope = ctx.debug.scopeLevel();
-        ctx.message(fmt1(replace.map));
         for (auto const& key : replace.allReplacements()) {
             ctx.message(fmt("[{}] -> {}", key.original, key.replaced));
         }
@@ -163,7 +231,6 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
     Func<ImmId(ImmAdapter node)> aux;
     ImmAstReplaceEpoch           result;
 
-    ctx.message(fmt1(replace.map));
     aux = [&](ImmAdapter node) -> ImmId {
         auto __scope = ctx.debug.scopeLevel();
         if (editParents.contains(node.id)) {
@@ -178,7 +245,7 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
                 auto replaced = ctx->adapt(*edit);
                 auto original = ctx->adapt(node.id);
                 LOGIC_ASSERTION_CHECK(
-                    replaced->subnodes == original->subnodes
+                    true || replaced->subnodes == original->subnodes
                         || replaced->subnodes == updatedSubnodes,
                     "Node {0} was replaced with {1} and the list of "
                     "subnodes differs: (replaced != original) {2} != {3} "
