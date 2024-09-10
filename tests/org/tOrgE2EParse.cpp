@@ -919,7 +919,10 @@ class ImmOrgApiEdit : public ::testing::Test {
     void writeGvHistory(
         const Vec<org::ImmAstVersion>& history,
         std::string                    suffix,
-        org::ImmAstGraphvizConf const& conf = org::ImmAstGraphvizConf{}) {
+        org::ImmAstGraphvizConf const& conf = org::ImmAstGraphvizConf{
+            .withAuxNodes    = true,
+            .withEditHistory = true,
+        }) {
         Graphviz gvc;
         auto     gv = org::toGraphviz(history, conf);
         gvc.writeFile(getDebugFile(suffix + ".dot"), gv);
@@ -1013,7 +1016,7 @@ TEST_F(ImmOrgApiEdit, LeafSubtreeDemote) {
     }
 }
 
-TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote) {
+TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_OneNested) {
     setTraceFile(getDebugFile("trace.txt"));
     org::ImmAstVersion v1 = getInitialVersion(getSubtreeDash());
 
@@ -1027,25 +1030,40 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote) {
             return ast.store->demoteSubtreeRecursive(s201.id, ctx);
         });
 
-    writeGvHistory(
-        {v1, v2},
-        "v1_v2",
-        org::ImmAstGraphvizConf{
-            .withAuxNodes    = true,
-            .withEditHistory = true,
+    writeGvHistory({v1, v2}, "v1_v2");
+
+    auto r    = v2.getRootAdapter();
+    auto s201 = r.at({0, 1});
+    EXPECT_EQ(s201->getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(s201->as<org::ImmSubtree>()->level, 3);
+    auto s3010 = r.at({0, 1, 0});
+    EXPECT_EQ(s3010->getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(s3010->as<org::ImmSubtree>()->level, 4);
+    auto levels = getDfsSubtreeLevels(r);
+    EXPECT_EQ(levels, (Vec<int>{1, 2, 3, 3, 3, 4}));
+}
+
+TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_All) {
+    setTraceFile(getDebugFile("trace.txt"));
+    org::ImmAstVersion v1 = getInitialVersion(getSubtreeDash());
+
+    org::ImmAstVersion v2 = v1.context.getEditVersion(
+        [&](org::ImmAstContext&     ast,
+            org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
+            auto root = ctx->adapt(v1.epoch.getRoot());
+            auto s1   = root.at(0);
+            return ast.store->demoteSubtreeRecursive(s1.id, ctx);
         });
 
-    {
-        auto r    = v2.getRootAdapter();
-        auto s201 = r.at({0, 1});
-        EXPECT_EQ(s201->getKind(), OrgSemKind::Subtree);
-        EXPECT_EQ(s201->as<org::ImmSubtree>()->level, 3);
-        auto s3010 = r.at({0, 1, 0});
-        EXPECT_EQ(s3010->getKind(), OrgSemKind::Subtree);
-        EXPECT_EQ(s3010->as<org::ImmSubtree>()->level, 4);
-        auto levels = getDfsSubtreeLevels(r);
-        EXPECT_EQ(levels, (Vec<int>{1, 2, 3, 3, 3, 4}));
-    }
+    writeGvHistory({v1, v2}, "v1_v2");
+
+    EXPECT_EQ(
+        getDfsSubtreeLevels(v1.getRootAdapter()),
+        (Vec<int>{1, 2, 3, 3, 2, 3}));
+
+    EXPECT_EQ(
+        getDfsSubtreeLevels(v2.getRootAdapter()),
+        (Vec<int>{2, 3, 4, 4, 3, 4}));
 }
 
 TEST(ImmMapApi, AddNode) {

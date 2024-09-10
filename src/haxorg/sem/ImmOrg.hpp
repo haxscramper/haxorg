@@ -140,8 +140,14 @@ struct ImmAstReplace {
     DESC_FIELDS(ImmAstReplace, (original, replaced));
 };
 
+struct ImmIdFullCompare {
+    bool operator()(ImmId first, ImmId other) const {
+        return first.getValue() < other.getValue();
+    }
+};
+
 struct ImmAstReplaceGroup {
-    SortedMap<ImmId, ImmId> map;
+    SortedMap<ImmId, ImmId, ImmIdFullCompare> map;
 
     ImmAstReplaceGroup() {}
     ImmAstReplaceGroup(ImmAstReplace const& replace) { incl(replace); }
@@ -383,7 +389,6 @@ ImmAstReplace ImmAstStore::updateNode(
     ImmId              id,
     ImmAstEditContext& ctx,
     Func               cb) {
-    auto          __scope      = ctx.debug.scopeLevel();
     auto const&   start_value  = ctx.ctx->value<T>(id);
     auto const&   update_value = cb(start_value);
     ImmAstReplace update       = setNode(id, update_value, ctx);

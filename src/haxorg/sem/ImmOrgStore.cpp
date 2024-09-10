@@ -101,13 +101,15 @@ ImmAstReplaceGroup ImmAstStore::demoteSubtreeRecursive(
     LOGIC_ASSERTION_CHECK(target.is(OrgSemKind::Subtree), "");
     ImmAstReplaceGroup edits;
 
+    ctx.message(fmt("Demote subtree {}", target));
+
     for (auto const& sub : ctx->adapt(target)) {
         auto __scope = ctx.debug.scopeLevel();
         edits.incl(demoteSubtreeRecursive(sub.id, ctx));
     }
 
-    auto __s    = ctx.debug.scopeLevel();
-    auto update = updateNode<org::ImmSubtree>(
+    auto __scope = ctx.debug.scopeLevel();
+    auto update  = updateNode<org::ImmSubtree>(
         target, ctx, [&](org::ImmSubtree value) {
             value.subnodes = edits.newSubnodes(value.subnodes);
             value.level += 1;
@@ -143,6 +145,7 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
     ctx.message("Edit replaces");
     {
         auto __scope = ctx.debug.scopeLevel();
+        ctx.message(fmt1(replace.map));
         for (auto const& key : replace.allReplacements()) {
             ctx.message(fmt("[{}] -> {}", key.original, key.replaced));
         }
@@ -159,12 +162,12 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
     Func<ImmId(ImmAdapter node)> aux;
     ImmAstReplaceEpoch           result;
 
+    ctx.message(fmt1(replace.map));
     aux = [&](ImmAdapter node) -> ImmId {
         auto __scope = ctx.debug.scopeLevel();
         if (editParents.contains(node.id)) {
             // The node is a parent subnode for some edit.
-            auto edit = replace.map.get(node.id);
-
+            Opt<ImmId> edit = replace.map.get(node.id);
             Vec<ImmId> updatedSubnodes;
             for (auto const& sub : node.sub()) {
                 updatedSubnodes.push_back(aux(sub));
@@ -190,12 +193,13 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
                     /*3*/ replaced->subnodes,
                     /*4*/ editDependencies.at(node.id),
                     /*5*/ updatedSubnodes);
+
+                result.replaced.incl({node.id, edit.value()});
             }
 
-            result.replaced.incl({node.id, *edit});
 
+            ImmId updateTarget = edit ? edit.value() : node.id;
 
-            ImmId updateTarget = edit ? *edit : node.id;
 
             // List of subnodes can be updated together with the original
             // edits. In this case there is no need to insert the same list
@@ -242,6 +246,7 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
         }
     }
 
+    ctx.message(fmt("Main root {}", root));
     result.root = aux(ctx->adapt(root));
     return result;
 }

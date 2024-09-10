@@ -17,7 +17,7 @@ struct MapBase : public CRTP_this_method<Map> {
     }
 
     std::optional<V> get(K const& key) const {
-        if (contains(key)) {
+        if (_this()->contains(key)) {
             return _this()->at(key);
         } else {
             return std::nullopt;
@@ -50,39 +50,50 @@ struct UnorderedMap
 };
 
 
-template <typename K, typename V>
+template <typename K, typename V, typename _Compare = std::less<K>>
 struct SortedMap
-    : public std::map<K, V>
-    , public MapBase<SortedMap<K, V>, K, V> {
-    using Base = std::map<K, V>;
-    using API  = MapBase<SortedMap<K, V>, K, V>;
-    using API::contains;
+    : public std::map<K, V, _Compare>
+    , public MapBase<SortedMap<K, V, _Compare>, K, V> {
+    using Base = std::map<K, V, _Compare>;
+    using API  = MapBase<SortedMap<K, V, _Compare>, K, V>;
+    inline bool contains(CR<K> key) const {
+        return Base::find(key) != Base::end();
+    }
+
     using API::get;
     using API::keys;
     using Base::Base;
+    using Base::end;
     using Base::operator[];
 };
 
 
-template <typename K, typename V>
-struct std::formatter<UnorderedMap<K, V>> : std::formatter<std::string> {
-    using FmtType = UnorderedMap<K, V>;
+template <typename K, typename V, typename Type>
+struct std_kv_tuple_iterator_formatter : std::formatter<std::string> {
     template <typename FormatContext>
-    FormatContext::iterator format(FmtType const& p, FormatContext& ctx)
+    FormatContext::iterator format(Type const& p, FormatContext& ctx)
         const {
-        std::formatter<std::string> fmt;
-        fmt.format("{", ctx);
+        fmt_ctx("{", ctx);
         bool first = true;
         for (const auto& [key, value] : p) {
-            if (!first) { fmt.format(", ", ctx); }
+            if (!first) { fmt_ctx(", ", ctx); }
             first = false;
             fmt_ctx(key, ctx);
-            fmt.format(": ", ctx);
+            fmt_ctx(": ", ctx);
             fmt_ctx(value, ctx);
         }
-        return fmt.format("}", ctx);
+        return fmt_ctx("}", ctx);
     }
 };
+
+
+template <typename K, typename V>
+struct std::formatter<UnorderedMap<K, V>>
+    : std_kv_tuple_iterator_formatter<K, V, UnorderedMap<K, V>> {};
+
+template <typename K, typename V, typename _Compare>
+struct std::formatter<SortedMap<K, V, _Compare>>
+    : std_kv_tuple_iterator_formatter<K, V, SortedMap<K, V, _Compare>> {};
 
 template <typename K, typename V>
 struct value_metadata<UnorderedMap<K, V>> {
