@@ -450,6 +450,32 @@ void ImmAdapter::treeRepr(ColStream& os, const TreeReprConf& conf) const {
         });
 }
 
+Opt<ImmAdapter> ImmAdapter::getAdjacentNode(int offset) const {
+    auto parent = getParent();
+    if (parent) {
+        int pos = getSelfIndex() + offset;
+        if (0 <= pos && pos < size()) {
+            return parent->at(pos);
+        } else {
+            return std::nullopt;
+        }
+    } else {
+        return std::nullopt;
+    }
+}
+
+Opt<ImmAdapter> ImmAdapter::getParentSubtree() const {
+    auto parent = getParent();
+    while (parent) {
+        if (parent->is(OrgSemKind::Subtree)) {
+            return parent;
+        } else {
+            parent = parent->getParent();
+        }
+    }
+    return std::nullopt;
+}
+
 ImmAstParentMap ImmAstParentMapTransient::persistent() {
     return ImmAstParentMap{.parents = parents.persistent()};
 }
@@ -554,6 +580,10 @@ Graphviz::Graph org::toGraphviz(
                     });
 
                 field("ID", id);
+                if (conf.withNodePath) {
+                    field(
+                        "Path", fmt1(history.at(idx).context.getPath(id)));
+                }
                 switch_node_fields(
                     id,
                     ctx,

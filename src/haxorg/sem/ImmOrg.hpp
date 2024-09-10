@@ -472,10 +472,11 @@ struct ImmAstGraphvizConf {
     bool   clusterEpochs   = true;
     bool   withAuxNodes    = false;
     bool   withEditHistory = false;
+    bool   withNodePath    = false;
 
     UnorderedMap<Str, Vec<Str>> skippedFields = {
         {"DocumentOptions", {"exportConfig"}},
-        {"Subtree", {"title", "subnodes"}},
+        {"Subtree", {"title"}},
     };
 
     Vec<Str> epochColors = {
@@ -636,27 +637,8 @@ struct ImmAdapter {
         }
     }
 
-    Opt<ImmAdapter> getAdjacentNode(int offset) const {
-        auto parent = getParent();
-        if (parent) {
-            int selfIndex = getSelfIndex();
-            return parent->at(selfIndex + offset);
-        } else {
-            return std::nullopt;
-        }
-    }
-
-    Opt<ImmAdapter> getParentSubtree() const {
-        auto parent = getParent();
-        while (parent) {
-            if (parent->is(OrgSemKind::Subtree)) {
-                return parent;
-            } else {
-                parent = parent->getParent();
-            }
-        }
-        return std::nullopt;
-    }
+    Opt<ImmAdapter> getAdjacentNode(int offset) const;
+    Opt<ImmAdapter> getParentSubtree() const;
 
     Vec<ImmAdapter> getParentChain(bool withSelf = true) const {
         Vec<ImmAdapter> result;

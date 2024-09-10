@@ -934,6 +934,7 @@ class ImmOrgApiEdit : public ::testing::Test {
         org::ImmAstGraphvizConf const& conf = org::ImmAstGraphvizConf{
             .withAuxNodes    = true,
             .withEditHistory = true,
+            .withNodePath    = true,
         }) {
         Graphviz gvc;
         auto     gv = org::toGraphviz(history, conf);
@@ -1094,28 +1095,58 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_WithParentChange) {
                 s1.id, org::ImmAstStore::SubtreeMove::ForceLevels, ctx);
         });
 
-    writeGvHistory({v1, v2}, "v1_v2");
-    auto r = v2.getRootAdapter();
 
-    EXPECT_EQ(getDfsSubtreeLevels(r), (Vec<int>{1, 2, 3, 4, 2, 3}));
+    {
+        auto r = v2.getRootAdapter();
 
-    Vec<int> p0000 = {0, 0, 0, 0};
-    Vec<int> p000  = {0, 0, 0};
-    Vec<int> p00   = {0, 0};
-    Vec<int> p0    = {0};
+        writeTreeRepr(v1.getRootAdapter(), "repr_v1.txt");
+        writeTreeRepr(v2.getRootAdapter(), "repr_v2.txt");
+        writeGvHistory({v1, v2}, "v1_v2");
+
+        EXPECT_EQ(getDfsSubtreeLevels(r), (Vec<int>{1, 2, 3, 4, 2, 3}));
+
+        Vec<int> p0000 = {0, 0, 0, 0};
+        Vec<int> p000  = {0, 0, 0};
+        Vec<int> p00   = {0, 0};
+        Vec<int> p0    = {0};
 
 
-    EXPECT_TRUE(r.at(p0000).is(OrgSemKind::Subtree));
-    EXPECT_EQ(r.at(p0000).as<org::ImmSubtree>()->level, 4);
-    EXPECT_EQ(r.at(p0000).getParent().value().id, r.at(p000).id);
-    EXPECT_EQ(r.at(p000).at(0).id, r.at(p0000).id);
+        EXPECT_TRUE(r.at(p0000).is(OrgSemKind::Subtree));
+        EXPECT_EQ(r.at(p0000).as<org::ImmSubtree>()->level, 4);
+        EXPECT_EQ(r.at(p0000).getParent().value().id, r.at(p000).id);
+        EXPECT_EQ(r.at(p000).at(0).id, r.at(p0000).id);
 
-    EXPECT_EQ(r.at(p000).as<org::ImmSubtree>()->level, 3);
-    EXPECT_EQ(r.at(p000).getParent().value().id, r.at(p00).id);
-    EXPECT_EQ(r.at(p00).at(0).id, r.at(p000).id);
+        EXPECT_EQ(r.at(p000).as<org::ImmSubtree>()->level, 3);
+        EXPECT_EQ(r.at(p000).getParent().value().id, r.at(p00).id);
+        EXPECT_EQ(r.at(p00).at(0).id, r.at(p000).id);
 
-    EXPECT_EQ(r.at(p00).as<org::ImmSubtree>()->level, 2);
-    EXPECT_EQ(r.at(p0).at(0).id, r.at(p00).id);
+        EXPECT_EQ(r.at(p00).as<org::ImmSubtree>()->level, 2);
+        EXPECT_EQ(r.at(p0).at(0).id, r.at(p00).id);
+    }
+
+    org::ImmAstVersion v3 = v2.context.getEditVersion(
+        [&](org::ImmAstContext&     ast,
+            org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
+            return ast.store->demoteSubtree(
+                v2.getRootAdapter().at({0, 1}).id,
+                org::ImmAstStore::SubtreeMove::ForceLevels,
+                ctx);
+        });
+
+    writeTreeRepr(v3.getRootAdapter(), "repr_v3.txt");
+
+    org::ImmAstVersion v4 = v3.context.getEditVersion(
+        [&](org::ImmAstContext&     ast,
+            org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
+            return ast.store->demoteSubtree(
+                v3.getRootAdapter().at({0, 1}).id,
+                org::ImmAstStore::SubtreeMove::ForceLevels,
+                ctx);
+        });
+
+    writeTreeRepr(v4.getRootAdapter(), "repr_v4.txt");
+
+    writeGvHistory({v1, v2, v3, v4}, "v1_v2_v3_v4");
 }
 
 TEST(ImmMapApi, AddNode) {

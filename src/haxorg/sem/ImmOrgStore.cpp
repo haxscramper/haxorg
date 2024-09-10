@@ -423,7 +423,7 @@ Vec<int> ImmAstParentMap::getPath(ImmId id, const ImmAstContext& ctx)
         parent = getParent(id);
     }
 
-    rv::reverse(result);
+    reverse(result);
     return result;
 }
 
