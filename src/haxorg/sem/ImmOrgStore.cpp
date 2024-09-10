@@ -236,16 +236,21 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
         if (editParents.contains(node.id)) {
             // The node is a parent subnode for some edit.
             Opt<ImmId> edit = replace.map.get(node.id);
+            ctx.message(fmt("Node {} direct edit:{}", node.id, edit));
+
             Vec<ImmId> updatedSubnodes;
-            for (auto const& sub : node.sub()) {
+            ImmId      updateTarget = edit ? edit.value() : node.id;
+
+            for (auto const& sub : ctx->adapt(updateTarget).sub()) {
                 updatedSubnodes.push_back(aux(sub));
             }
 
-            if (edit) {
+
+            if (false) {
                 auto replaced = ctx->adapt(*edit);
                 auto original = ctx->adapt(node.id);
                 LOGIC_ASSERTION_CHECK(
-                    true || replaced->subnodes == original->subnodes
+                    replaced->subnodes == original->subnodes
                         || replaced->subnodes == updatedSubnodes,
                     "Node {0} was replaced with {1} and the list of "
                     "subnodes differs: (replaced != original) {2} != {3} "
@@ -266,13 +271,17 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
             }
 
 
-            ImmId updateTarget = edit ? edit.value() : node.id;
-
-
             // List of subnodes can be updated together with the original
             // edits. In this case there is no need to insert the same list
             // of subnodes.
             if (updatedSubnodes != ctx->adapt(updateTarget)->subnodes) {
+                ctx.message(
+                    fmt("Updated subnodes changed: updated:{} != "
+                        "target({}):{}",
+                        updatedSubnodes,
+                        updateTarget,
+                        ctx->adapt(updateTarget)->subnodes));
+
                 ImmAstReplace act = setSubnodes(
                     updateTarget,
                     ImmVec<ImmId>{
