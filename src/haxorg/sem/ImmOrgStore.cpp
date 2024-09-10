@@ -95,8 +95,9 @@ Pair<ImmAstReplace, ImmId> ImmAstStore::popSubnode(
     return {update, pop};
 }
 
-ImmAstReplaceGroup ImmAstStore::demoteSubtreeRecursive(
+ImmAstReplaceGroup ImmAstStore::demoteSubtree(
     ImmId              target,
+    SubtreeMove        move,
     ImmAstEditContext& ctx) {
     LOGIC_ASSERTION_CHECK(target.is(OrgSemKind::Subtree), "");
     ImmAstReplaceGroup edits;
@@ -105,7 +106,7 @@ ImmAstReplaceGroup ImmAstStore::demoteSubtreeRecursive(
 
     for (auto const& sub : ctx->adapt(target)) {
         auto __scope = ctx.debug.scopeLevel();
-        edits.incl(demoteSubtreeRecursive(sub.id, ctx));
+        edits.incl(demoteSubtree(sub.id, move, ctx));
     }
 
     auto __scope = ctx.debug.scopeLevel();

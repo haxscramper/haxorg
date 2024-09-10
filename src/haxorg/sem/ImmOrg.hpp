@@ -277,12 +277,45 @@ struct ImmAstStore {
         int                position,
         ImmAstEditContext& ctx);
 
-    ImmAstReplaceGroup demoteSubtreeRecursive(
+    enum class SubtreeMove
+    {
+        /// \brief Demote the subtree node without affecting any of the
+        /// subnodes. The new subtree might be placed under a different
+        /// parent and original subtrees might be reparented. This move
+        /// emulates adding/removing one `*` in the org-mode file, without
+        /// changing anything else.
+        Physical,
+        /// \brief Add/remove one level from the tree and all subtrees,
+        /// irrespective of their relative levels.
+        ForceLevels,
+        /// \brief Add/remove level from the subtree if the current value
+        /// would break hierarchy after demote. Otherwise leave the level
+        /// as they are.
+        ///
+        /// ```
+        /// // Demoting `*` will also demote `**`. otherwise the nesting
+        /// // would've been broken.
+        /// *
+        /// **
+        /// ```
+        ///
+        /// ```
+        /// // Demoting `*` will not change the hierarchy, so `***` is not
+        /// // demoted further.
+        /// *
+        /// ***
+        /// ```
+        EnsureLevels,
+    };
+
+    ImmAstReplaceGroup demoteSubtree(
         org::ImmId         target,
+        SubtreeMove        move,
         ImmAstEditContext& ctx);
 
-    Vec<ImmAstReplace> promoteSubtreeRecursive(
+    Vec<ImmAstReplace> promoteSubtree(
         org::ImmId         target,
+        SubtreeMove        move,
         ImmAstEditContext& ctx);
 
     /// \brief Generate new set of parent nodes for the node update.

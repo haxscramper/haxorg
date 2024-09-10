@@ -979,7 +979,8 @@ TEST_F(ImmOrgApiEdit, LeafSubtreeDemote) {
             auto s3010 = root.at(path);
             EXPECT_EQ(s3010->getKind(), OrgSemKind::Subtree);
             EXPECT_EQ(s3010->as<org::ImmSubtree>()->level, 3);
-            return ast.store->demoteSubtreeRecursive(s3010.id, ctx);
+            return ast.store->demoteSubtree(
+                s3010.id, org::ImmAstStore::SubtreeMove::ForceLevels, ctx);
         });
 
     org::ImmAdapter::TreeReprConf conf{.withAuxFields = true};
@@ -1027,7 +1028,8 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_OneNested) {
             auto s201 = root.at({0, 1});
             EXPECT_EQ(s201->getKind(), OrgSemKind::Subtree);
             EXPECT_EQ(s201->as<org::ImmSubtree>()->level, 2);
-            return ast.store->demoteSubtreeRecursive(s201.id, ctx);
+            return ast.store->demoteSubtree(
+                s201.id, org::ImmAstStore::SubtreeMove::ForceLevels, ctx);
         });
 
     writeGvHistory({v1, v2}, "v1_v2");
@@ -1052,7 +1054,8 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_All) {
             org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
             auto root = ctx->adapt(v1.epoch.getRoot());
             auto s1   = root.at(0);
-            return ast.store->demoteSubtreeRecursive(s1.id, ctx);
+            return ast.store->demoteSubtree(
+                s1.id, org::ImmAstStore::SubtreeMove::ForceLevels, ctx);
         });
 
     writeGvHistory({v1, v2}, "v1_v2");
