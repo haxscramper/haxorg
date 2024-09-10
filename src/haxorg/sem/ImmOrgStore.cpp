@@ -44,10 +44,11 @@ ImmAstReplace ImmAstStore::setNode(
     ImmId              target,
     const T&           value,
     ImmAstEditContext& ctx) {
-    auto result_node = getStore<T>()->add(value, ctx);
+    ImmId result_node = getStore<T>()->add(value, ctx);
 
     LOGIC_ASSERTION_CHECK(
         !result_node.isNil(), "added node must not be nil");
+    result_node.assertValid();
 
     for (auto const& sub : allSubnodes<T>(value, *ctx.ctx)) {
         ctx.parents.setParent(sub, result_node);
@@ -94,25 +95,26 @@ Pair<ImmAstReplace, ImmId> ImmAstStore::popSubnode(
     return {update, pop};
 }
 
-Vec<ImmAstReplace> ImmAstStore::demoteSubtreeRecursive(
+ImmAstReplaceGroup ImmAstStore::demoteSubtreeRecursive(
     ImmId              target,
     ImmAstEditContext& ctx) {
     LOGIC_ASSERTION_CHECK(target.is(OrgSemKind::Subtree), "");
-    Vec<ImmAstReplace> edits;
-
-    auto __s    = ctx.debug.scopeLevel();
-    auto update = updateNode<org::ImmSubtree>(
-
-        target, ctx, [](org::ImmSubtree value) {
-            value.level += 1;
-            return value;
-        });
-    edits.push_back(update);
+    ImmAstReplaceGroup edits;
 
     for (auto const& sub : ctx->adapt(target)) {
         auto __scope = ctx.debug.scopeLevel();
-        edits.append(demoteSubtreeRecursive(sub.id, ctx));
+        edits.incl(demoteSubtreeRecursive(sub.id, ctx));
     }
+
+    auto __s    = ctx.debug.scopeLevel();
+    auto update = updateNode<org::ImmSubtree>(
+        target, ctx, [&](org::ImmSubtree value) {
+            value.subnodes = edits.newSubnodes(value.subnodes);
+            value.level += 1;
+            return value;
+        });
+
+    edits.incl(update);
 
 
     return edits;
@@ -120,21 +122,19 @@ Vec<ImmAstReplace> ImmAstStore::demoteSubtreeRecursive(
 
 
 ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
-    const Vec<ImmAstReplace>& replace,
+    ImmAstReplaceGroup const& replace,
     ImmAstEditContext&        ctx) {
     ctx.message("Start cascade update");
     auto __scope = ctx.debug.scopeLevel();
 
-    UnorderedMap<ImmId, Vec<ImmId>>    editDependencies;
-    UnorderedMap<ImmId, ImmAstReplace> editReplaces;
-    UnorderedSet<ImmId>                editParents;
+    UnorderedMap<ImmId, Vec<ImmId>> editDependencies;
+    UnorderedSet<ImmId>             editParents;
 
-    for (auto const& act : replace) { editReplaces[act.original] = act; }
-    for (auto const& act : replace) {
+    for (auto const& act : replace.allReplacements()) {
         for (auto const& parent :
              ctx->getParentChain(act.original, false)) {
             editParents.incl(parent);
-            if (editReplaces.contains(parent)) {
+            if (replace.map.contains(parent)) {
                 editDependencies[parent].push_back(act.original);
             }
         }
@@ -143,8 +143,8 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
     ctx.message("Edit replaces");
     {
         auto __scope = ctx.debug.scopeLevel();
-        for (auto const& key : sorted(editReplaces.keys())) {
-            ctx.message(fmt("[{}] -> {}", key, editReplaces.at(key)));
+        for (auto const& key : replace.allReplacements()) {
+            ctx.message(fmt("[{}] -> {}", key.original, key.replaced));
         }
     }
 
@@ -163,32 +163,39 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
         auto __scope = ctx.debug.scopeLevel();
         if (editParents.contains(node.id)) {
             // The node is a parent subnode for some edit.
-            auto edit = editReplaces.get(node.id);
-            if (edit) {
-                LOGIC_ASSERTION_CHECK(
-                    ctx->adapt(edit->replaced)->subnodes
-                        == ctx->adapt(edit->original)->subnodes,
-                    "Node {0} was replaced with {1} and the list of "
-                    "subnodes differs: {2} != {3}. The node {0} is a "
-                    "parent for edits {4} in this batch, meaning it will "
-                    "have the subnodes replaced, and the original subnode "
-                    "changes will be lost. To avoid this issue, separate "
-                    "the `.subnode` field update and nested node edits "
-                    "into two different batches of updates.",
-                    /*0*/ edit->original,
-                    /*1*/ edit->replaced,
-                    /*2*/ ctx->adapt(edit->original)->subnodes,
-                    /*3*/ ctx->adapt(edit->replaced)->subnodes,
-                    /*4*/ editDependencies.at(edit->original));
-            }
+            auto edit = replace.map.get(node.id);
 
-            result.replaced.push_back(*edit);
             Vec<ImmId> updatedSubnodes;
             for (auto const& sub : node.sub()) {
                 updatedSubnodes.push_back(aux(sub));
             }
 
-            ImmId updateTarget = edit ? edit->replaced : node.id;
+            if (edit) {
+                auto replaced = ctx->adapt(*edit);
+                auto original = ctx->adapt(node.id);
+                LOGIC_ASSERTION_CHECK(
+                    replaced->subnodes == original->subnodes
+                        || replaced->subnodes == updatedSubnodes,
+                    "Node {0} was replaced with {1} and the list of "
+                    "subnodes differs: (replaced != original) {2} != {3} "
+                    "and (replaced != updated) {2} != {5}. The node {0} "
+                    "is a parent for edits {4} in this batch, meaning it "
+                    "will have the subnodes replaced, and the original "
+                    "subnode changes will be lost. To avoid this issue, "
+                    "separate the `.subnode` field update and nested node "
+                    "edits into two different batches of updates.",
+                    /*0*/ node.id,
+                    /*1*/ *edit,
+                    /*2*/ original->subnodes,
+                    /*3*/ replaced->subnodes,
+                    /*4*/ editDependencies.at(node.id),
+                    /*5*/ updatedSubnodes);
+            }
+
+            result.replaced.incl({node.id, *edit});
+
+
+            ImmId updateTarget = edit ? *edit : node.id;
 
             ImmAstReplace act = setSubnodes(
                 updateTarget,
@@ -198,7 +205,7 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
                 },
                 ctx);
 
-            result.replaced.push_back(act);
+            result.replaced.incl(act);
 
             return act.replaced;
 
@@ -206,9 +213,9 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
             // The node is not a parent for any other replacement. If it
             // was updated, return a new version, otherwise return the same
             // node.
-            if (auto edit = editReplaces.get(node.id); edit) {
-                result.replaced.push_back(*edit);
-                return edit->replaced;
+            if (auto edit = replace.map.get(node.id); edit) {
+                result.replaced.incl({node.id, *edit});
+                return *edit;
             } else {
                 ctx.message(fmt("No changes in {}", node.id));
                 return node.id;
@@ -218,7 +225,7 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
 
 
     ImmId root = ImmId::Nil();
-    for (auto const& act : replace) {
+    for (auto const& act : replace.allReplacements()) {
         auto original = ctx->adapt(act.original);
         auto doc      = original.getParentChain(false).back().id;
         if (root.isNil()) {
@@ -351,7 +358,7 @@ void ImmAstContext::format(ColStream& os, const std::string& prefix)
 
 
 ImmAstVersion ImmAstContext::getEditVersion(
-    Func<Vec<ImmAstReplace>(ImmAstContext& ast, ImmAstEditContext&)> cb) {
+    Func<ImmAstReplaceGroup(ImmAstContext& ast, ImmAstEditContext&)> cb) {
     auto ctx     = getEditContext();
     auto replace = cb(*this, ctx);
     return finishEdit(ctx, ctx.store().cascadeUpdate(replace, ctx));
@@ -390,10 +397,13 @@ ImmAstVersion ImmAstContext::init(sem::SemId<sem::Org> root) {
         .replaced = imm_root,
     };
 
-    return ImmAstVersion{
+    ImmAstVersion result{
         .context = store,
-        .epoch = ImmAstReplaceEpoch{.root = imm_root, .replaced = {replace}},
+        .epoch   = ImmAstReplaceEpoch{.root = imm_root},
     };
+
+    result.epoch.replaced.incl(replace);
+    return result;
 }
 
 

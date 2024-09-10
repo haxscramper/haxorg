@@ -2,6 +2,7 @@
 #include <haxorg/sem/ImmOrg.hpp>
 #include <hstd/stdlib/Exception.hpp>
 #include <immer/vector_transient.hpp>
+#include <immer/flex_vector_transient.hpp>
 #include <immer/map_transient.hpp>
 #include <hstd/stdlib/Enumerate.hpp>
 #include <boost/mp11.hpp>
@@ -739,4 +740,19 @@ ImmId ImmAstEditContext::getParentForce(ImmId id) const {
 
 ImmAdapter ImmAstVersion::getRootAdapter() {
     return context.adapt(epoch.getRoot());
+}
+
+ImmVec<ImmId> ImmAstReplaceGroup::newSubnodes(
+    ImmVec<ImmId> oldSubnodes) const {
+    ImmVec<ImmId> result;
+    auto          tmp = result.transient();
+    for (auto const& it : oldSubnodes) {
+        if (auto update = map.get(it); *update) {
+            tmp.push_back(*update);
+        } else {
+            tmp.push_back(it);
+        }
+    }
+
+    return tmp.persistent();
 }

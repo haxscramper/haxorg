@@ -140,8 +140,45 @@ struct ImmAstReplace {
     DESC_FIELDS(ImmAstReplace, (original, replaced));
 };
 
+struct ImmAstReplaceGroup {
+    SortedMap<ImmId, ImmId> map;
+
+    ImmAstReplaceGroup() {}
+    ImmAstReplaceGroup(ImmAstReplace const& replace) { incl(replace); }
+
+    void incl(ImmAstReplace const& replace) {
+        LOGIC_ASSERTION_CHECK(
+            !map.contains(replace.original),
+            "replacement group cannot contain duplicate nodes. {0} -> {1} "
+            "is already added, {0} -> {2} cannot be included",
+            /*0*/ replace.original,
+            /*1*/ map.at(replace.original),
+            /*2*/ replace.replaced);
+        map.insert_or_assign(replace.original, replace.replaced);
+    }
+
+    void incl(ImmAstReplaceGroup const& replace) {
+        for (auto const& it : replace.allReplacements()) { incl(it); }
+    }
+
+    /// \brief Update list of subnodes to a new replaced coutnerparts. Use
+    /// during recursive node updates to construct the final node value in
+    /// a single go -- this reduces the number of intermediate nodes in the
+    /// cascading update. See `demoteSubtreeRecursive` for use example.
+    ImmVec<ImmId> newSubnodes(ImmVec<ImmId> oldSubnodes) const;
+
+    generator<ImmAstReplace> allReplacements() const {
+        for (auto const& [original, replaced] : this->map) {
+            co_yield ImmAstReplace{
+                .original = original,
+                .replaced = replaced,
+            };
+        }
+    }
+};
+
 struct ImmAstReplaceEpoch {
-    Vec<ImmAstReplace> replaced;
+    ImmAstReplaceGroup replaced;
     ImmId              root;
 
     ImmId getRoot() const { return root; }
@@ -230,7 +267,7 @@ struct ImmAstStore {
         int                position,
         ImmAstEditContext& ctx);
 
-    Vec<ImmAstReplace> demoteSubtreeRecursive(
+    ImmAstReplaceGroup demoteSubtreeRecursive(
         org::ImmId         target,
         ImmAstEditContext& ctx);
 
@@ -240,7 +277,7 @@ struct ImmAstStore {
 
     /// \brief Generate new set of parent nodes for the node update.
     ImmAstReplaceEpoch cascadeUpdate(
-        Vec<ImmAstReplace> const&,
+        const ImmAstReplaceGroup&,
         ImmAstEditContext& ctx);
 
     template <org::IsImmOrgValueType T>
@@ -285,9 +322,8 @@ struct [[nodiscard]] ImmAstContext {
         return parents.getParentChain(id, withSelf);
     }
 
-    ImmAstVersion getEditVersion(Func<Vec<ImmAstReplace>(
-                                     ImmAstContext&     ast,
-                                     ImmAstEditContext& ctx)> cb);
+    ImmAstVersion getEditVersion(
+        Func<ImmAstReplaceGroup(ImmAstContext&, ImmAstEditContext&)> cb);
 
     ImmAstEditContext getEditContext() {
         return ImmAstEditContext{

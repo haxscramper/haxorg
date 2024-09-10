@@ -831,10 +831,11 @@ TEST(ImmOrgApi, ReplaceSubnodeAtPath) {
     auto version2 = store.finishEdit(
         ctx,
         ctx.store().cascadeUpdate(
-            {ctx.store().setSubnode(paragraph, word_xx, 2, ctx)}, ctx));
+            ctx.store().setSubnode(paragraph, word_xx, 2, ctx), ctx));
 
     auto        store2 = version2.context;
-    auto const& c      = version2.epoch.replaced;
+    auto const& c = gen_view(version2.epoch.replaced.allReplacements())
+                  | rs::to<Vec>();
 
     auto const& doc1_id = c.at(1).original;
     auto const& doc2_id = c.at(1).replaced;
@@ -970,7 +971,7 @@ TEST_F(ImmOrgApiEdit, LeafSubtreeDemote) {
 
     org::ImmAstVersion v2 = v1.context.getEditVersion(
         [&](org::ImmAstContext&     ast,
-            org::ImmAstEditContext& ctx) -> Vec<org::ImmAstReplace> {
+            org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
             auto root  = ctx->adapt(v1.epoch.getRoot());
             auto s3010 = root.at(path);
             EXPECT_EQ(s3010->getKind(), OrgSemKind::Subtree);
@@ -1018,7 +1019,7 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote) {
 
     org::ImmAstVersion v2 = v1.context.getEditVersion(
         [&](org::ImmAstContext&     ast,
-            org::ImmAstEditContext& ctx) -> Vec<org::ImmAstReplace> {
+            org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
             auto root = ctx->adapt(v1.epoch.getRoot());
             auto s201 = root.at({0, 1});
             EXPECT_EQ(s201->getKind(), OrgSemKind::Subtree);
