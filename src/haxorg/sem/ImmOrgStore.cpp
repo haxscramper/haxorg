@@ -1,4 +1,5 @@
 #include "hstd/stdlib/Set.hpp"
+#include "hstd/stdlib/algorithms.hpp"
 #include <haxorg/sem/ImmOrg.hpp>
 #include <haxorg/sem/ImmOrgHash.hpp>
 #include <hstd/stdlib/Enumerate.hpp>
@@ -98,50 +99,15 @@ Vec<ImmAstReplace> ImmAstStore::demoteSubtreeRecursive(
     ImmAstEditContext& ctx) {
     LOGIC_ASSERTION_CHECK(target.is(OrgSemKind::Subtree), "");
     Vec<ImmAstReplace> edits;
-    ImmId              currentParent = ctx.getParentForce(target);
-    int   currentIndex = ctx->at(currentParent)->indexOf(target);
-    ImmId newParent    = ImmId::Nil();
-    for (int i = currentIndex - 1; 0 <= i; --i) {
-        auto adj = ctx->at(currentParent)->at(i);
-        if (adj.is(OrgSemKind::Subtree)) {
-            newParent = adj;
-        } else {
-            break;
-        }
-    }
 
-    if (newParent.isNil()) {
-        ctx.message("new parent is nil");
-        newParent = currentParent;
-        // No positional movement is required -- there are no nodes above
-        // the current one, so demoting subtree will not change the
-        // structure.
-        //
-        // ```
-        // *
-        // ** <- demoting this
-        //
-        // *
-        // *** <- will convert to this
-        // ```
-        auto update = updateNode<org::ImmSubtree>(
-            target, ctx, [](org::ImmSubtree value) {
-                value.level += 1;
-                return value;
-            });
-        edits.push_back(update);
-    } else {
-        ctx.message(fmt("new parent is {}", newParent));
-        // Remove subtree from the current parent
-        auto [popEdit, _] = popSubnode(currentParent, currentIndex, ctx);
-        edits.push_back(popEdit);
-        auto update = updateNode<org::ImmSubtree>(
-            target, ctx, [](org::ImmSubtree value) {
-                value.level += 1;
-                return value;
-            });
-        edits.push_back(update);
-    }
+    auto __s    = ctx.debug.scopeLevel();
+    auto update = updateNode<org::ImmSubtree>(
+
+        target, ctx, [](org::ImmSubtree value) {
+            value.level += 1;
+            return value;
+        });
+    edits.push_back(update);
 
     for (auto const& sub : ctx->adapt(target)) {
         auto __scope = ctx.debug.scopeLevel();
@@ -174,6 +140,22 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
         }
     }
 
+    ctx.message("Edit replaces");
+    {
+        auto __scope = ctx.debug.scopeLevel();
+        for (auto const& key : sorted(editReplaces.keys())) {
+            ctx.message(fmt("[{}] -> {}", key, editReplaces.at(key)));
+        }
+    }
+
+    ctx.message("Edit dependencies");
+    {
+        auto __scope = ctx.debug.scopeLevel();
+        for (auto const& key : sorted(editDependencies.keys())) {
+            ctx.message(fmt("[{}] -> {}", key, editDependencies.at(key)));
+        }
+    }
+
     Func<ImmId(ImmAdapter node)> aux;
     aux = [&](ImmAdapter node) -> ImmId {
         auto __scope = ctx.debug.scopeLevel();
@@ -193,7 +175,7 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
                     /*0*/ edit->original,
                     /*1*/ edit->replaced,
                     /*2*/ ctx->adapt(edit->original)->subnodes,
-                    /*3*/ ctx->adapt(edit->replaced),
+                    /*3*/ ctx->adapt(edit->replaced)->subnodes,
                     /*4*/ editDependencies.at(edit->original));
             }
 
