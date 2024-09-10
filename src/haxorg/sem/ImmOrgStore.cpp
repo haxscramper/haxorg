@@ -205,7 +205,7 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
                 },
                 ctx);
 
-            result.replaced.incl(act);
+            result.replaced.set(act);
 
             return act.replaced;
 
