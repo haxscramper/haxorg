@@ -140,18 +140,13 @@ struct ImmAstReplace {
     DESC_FIELDS(ImmAstReplace, (original, replaced));
 };
 
-struct ImmAstReplaceCascade {
-    Vec<ImmAstReplace> chain;
-
-    DESC_FIELDS(ImmAstReplaceCascade, (chain));
-};
-
 struct ImmAstReplaceEpoch {
-    Vec<ImmAstReplaceCascade> replaced;
+    Vec<ImmAstReplace> replaced;
+    ImmId              root;
 
-    ImmId getRoot() const { return replaced.back().chain.back().replaced; }
+    ImmId getRoot() const { return root; }
 
-    DESC_FIELDS(ImmAstReplaceEpoch, (replaced));
+    DESC_FIELDS(ImmAstReplaceEpoch, (root, replaced));
 };
 
 struct ImmAstStore {
@@ -318,7 +313,7 @@ struct [[nodiscard]] ImmAstContext {
 
     template <typename T>
     T const& value(ImmId id) const {
-        logic_assertion_check(!id.isNil(), "cannot get value for nil ID");
+        LOGIC_ASSERTION_CHECK(!id.isNil(), "cannot get value for nil ID");
         return *at_t<T>(id);
     }
 
@@ -575,7 +570,7 @@ struct ImmAdapter {
     template <typename T>
     ImmAdapterT<T> as() const {
         if constexpr (!std::is_abstract_v<T>) {
-            logic_assertion_check(
+            LOGIC_ASSERTION_CHECK(
                 T::staticKind == id.getKind(),
                 "static kind:{} id kind:{}",
                 T::staticKind,

@@ -251,7 +251,7 @@ struct ImmId : ImmIdBase {
     static IdType combineFullValue(OrgSemKind kind, NodeIdxT node);
 
     static ImmId Nil() {
-        auto res = ImmId(OrgSemKind(0), 0);
+        auto res = ImmId::FromValue(0);
         return res;
     }
 

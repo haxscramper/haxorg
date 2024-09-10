@@ -144,7 +144,7 @@ struct map_graph_edges_iterator {
     }
 
     map_graph_edges_iterator& operator++() {
-        logic_assertion_check(
+        LOGIC_ASSERTION_CHECK(
             fullList != nullptr,
             "cannot increment iterator with empty full list");
         if (outEdgeIndex < iter->second.size() - 1) {

@@ -834,7 +834,7 @@ TEST(ImmOrgApi, ReplaceSubnodeAtPath) {
             {ctx.store().setSubnode(paragraph, word_xx, 2, ctx)}, ctx));
 
     auto        store2 = version2.context;
-    auto const& c      = version2.epoch.replaced.at(0).chain;
+    auto const& c      = version2.epoch.replaced;
 
     auto const& doc1_id = c.at(1).original;
     auto const& doc2_id = c.at(1).replaced;

@@ -35,13 +35,15 @@ struct CRTP_hexception
 
 
 struct logic_assertion_error : CRTP_hexception<logic_assertion_error> {};
-struct logic_unreachable_error :CRTP_hexception<logic_assertion_error> {};
+struct logic_unreachable_error : CRTP_hexception<logic_assertion_error> {};
 
 
-#define logic_assertion_check(expr, message_fmt, ...)                     \
+#define LOGIC_ASSERTION_CHECK(expr, message_fmt, ...)                     \
     if (!(expr)) {                                                        \
         throw logic_assertion_error::init(                                \
-            fmt("{}:" message_fmt, #expr __VA_OPT__(, ) __VA_ARGS__));    \
+            fmt("{}:{}",                                                  \
+                #expr,                                                    \
+                fmt(message_fmt __VA_OPT__(, ) __VA_ARGS__)));            \
     }
 
 #define logic_todo_impl() throw logic_assertion_error::init("TODO");

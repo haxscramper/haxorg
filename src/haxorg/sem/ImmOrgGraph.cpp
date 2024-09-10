@@ -101,7 +101,7 @@ ImmSet<MapNode> updateUnresolvedNodeTracking(
         // map state tracking.
         if (inputState.unresolved.find(newNode)) { tmp.erase(newNode); }
     } else {
-        logic_assertion_check(
+        LOGIC_ASSERTION_CHECK(
             !inputState.unresolved.find(newNode),
             "Duplicate unresolved boxes are not expected: {}",
             newNode);
@@ -133,7 +133,7 @@ void updateResolvedEdges(
     MapOpsConfig&               conf) {
     for (auto const& op : resolved_node.resolved) {
         for (auto const& target : graphTransient.adjList.at(op.source)) {
-            logic_assertion_check(
+            LOGIC_ASSERTION_CHECK(
                 op.target != target,
                 "There is already a link between {} and {}, graph cannot "
                 "contain duplicate edges op:{}",
@@ -167,7 +167,7 @@ org::graph::MapGraphState updateTrackingTables(
     MapNode       mapNode{unresolved_node.id.id};
 
     if (auto footnote = unresolved_node.getFootnoteName()) {
-        logic_assertion_check(
+        LOGIC_ASSERTION_CHECK(
             inputState.footnoteTargets.find(*footnote) == nullptr,
             "Duplicate footnote");
         outputState.footnoteTargets = inputState.footnoteTargets.set(
@@ -175,7 +175,7 @@ org::graph::MapGraphState updateTrackingTables(
     }
 
     if (auto id = unresolved_node.getSubtreeId()) {
-        logic_assertion_check(
+        LOGIC_ASSERTION_CHECK(
             inputState.subtreeTargets.find(*id) == nullptr,
             "Duplicate subtree ID");
         outputState.subtreeTargets = inputState.subtreeTargets.set(
@@ -503,7 +503,7 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
     result.node = node;
     result.node.unresolved.clear();
 
-    logic_assertion_check(
+    LOGIC_ASSERTION_CHECK(
         s.unresolved.find(MapNode{node.id.id}) == nullptr,
         "Node edit with unresolved elements is already listed as "
         "unresolved node: box is {}",
@@ -529,7 +529,7 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
     }
 
     for (auto const& nodeWithUnresolved : s.unresolved) {
-        logic_assertion_check(
+        LOGIC_ASSERTION_CHECK(
             nodeWithUnresolved.id != node.id.id,
             "cannot resolve already inserted node {} == {} ({}) is "
             "recorded in "
@@ -573,7 +573,7 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
             }
         }
 
-        logic_assertion_check(
+        LOGIC_ASSERTION_CHECK(
             count <= 1,
             "Resolved link target contains duplicate edges: {}-{}",
             r1.source,
