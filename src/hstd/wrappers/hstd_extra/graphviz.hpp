@@ -444,6 +444,7 @@ class Graphviz {
         Node head() { return Node(graph, AGHEAD(edge_)); }
         Node tail() { return Node(graph, AGTAIL(edge_)); }
 
+        _attr(Constraint, constraint, bool);
         /// \brief Color of the edge
         _attr(Color, color, Str /*Str*/);
         /// \brief Font color of the edge's label

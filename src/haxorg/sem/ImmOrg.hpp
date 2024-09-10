@@ -147,6 +147,7 @@ struct ImmAstReplaceGroup {
     ImmAstReplaceGroup(ImmAstReplace const& replace) { incl(replace); }
 
     void set(ImmAstReplace const& replace) {
+        LOGIC_ASSERTION_CHECK(replace.original != replace.replaced, "");
         map.insert_or_assign(replace.original, replace.replaced);
     }
     void incl(ImmAstReplace const& replace) {

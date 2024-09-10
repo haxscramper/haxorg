@@ -609,6 +609,22 @@ Graphviz::Graph org::toGraphviz(
         }
     }
 
+    if (conf.withEditHistory) {
+        for (auto const& epoch : history) {
+            for (auto const& act :
+                 epoch.epoch.replaced.allReplacements()) {
+                auto const& src = gvNodes.get(act.original);
+                auto const& dst = gvNodes.get(act.replaced);
+                if (src && dst) {
+                    auto edge = g.edge(*src, *dst);
+                    edge.setConstraint(false);
+                    edge.setStyle("dashed");
+                    edge.setColor("darkgreen");
+                }
+            }
+        }
+    }
+
     return g;
 }
 

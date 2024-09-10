@@ -197,18 +197,24 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
 
             ImmId updateTarget = edit ? *edit : node.id;
 
-            ImmAstReplace act = setSubnodes(
-                updateTarget,
-                ImmVec<ImmId>{
-                    updatedSubnodes.begin(),
-                    updatedSubnodes.end(),
-                },
-                ctx);
+            // List of subnodes can be updated together with the original
+            // edits. In this case there is no need to insert the same list
+            // of subnodes.
+            if (updatedSubnodes != ctx->adapt(updateTarget)->subnodes) {
+                ImmAstReplace act = setSubnodes(
+                    updateTarget,
+                    ImmVec<ImmId>{
+                        updatedSubnodes.begin(),
+                        updatedSubnodes.end(),
+                    },
+                    ctx);
 
-            result.replaced.set(act);
+                result.replaced.set(act);
 
-            return act.replaced;
-
+                return act.replaced;
+            } else {
+                return updateTarget;
+            }
         } else {
             // The node is not a parent for any other replacement. If it
             // was updated, return a new version, otherwise return the same
