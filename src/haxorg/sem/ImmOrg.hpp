@@ -483,9 +483,19 @@ struct ImmAstGraphvizConf {
         "black",
         "red",
         "blue",
-        "yellow",
-        "cyan",
+        "goldenrod",
+        "deepskyblue3",
         "orange",
+        "darkgreen",
+        "purple",
+        "darkslateblue",
+        "firebrick",
+        "darkturquoise",
+        "sienna",
+        "orchid",
+        "darkviolet",
+        "teal",
+        "darkolivegreen",
     };
 };
 

@@ -1139,7 +1139,7 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_WithParentChange) {
         [&](org::ImmAstContext&     ast,
             org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
             return ast.store->demoteSubtree(
-                v3.getRootAdapter().at({0, 1}).id,
+                v3.getRootAdapter().at({0, 0, 1}).id,
                 org::ImmAstStore::SubtreeMove::ForceLevels,
                 ctx);
         });

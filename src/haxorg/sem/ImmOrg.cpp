@@ -454,7 +454,7 @@ Opt<ImmAdapter> ImmAdapter::getAdjacentNode(int offset) const {
     auto parent = getParent();
     if (parent) {
         int pos = getSelfIndex() + offset;
-        if (0 <= pos && pos < size()) {
+        if (0 <= pos && pos < parent->size()) {
             return parent->at(pos);
         } else {
             return std::nullopt;
@@ -580,9 +580,9 @@ Graphviz::Graph org::toGraphviz(
                     });
 
                 field("ID", id);
-                if (conf.withNodePath) {
-                    field(
-                        "Path", fmt1(history.at(idx).context.getPath(id)));
+                if (conf.withNodePath && history.has(idx)) {
+                    auto path = history.at(idx).context.getPath(id);
+                    if (!path.empty()) { field("Path", fmt1(path)); }
                 }
                 switch_node_fields(
                     id,
