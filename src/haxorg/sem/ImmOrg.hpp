@@ -120,6 +120,9 @@ struct ImmAstEditContext {
     ImmAstContext* operator->() { return ctx; }
 };
 
+#define AST_EDIT_MSG(...)                                                 \
+    if (ctx.debug.TraceState) { ctx.message(__VA_ARGS__); }
+
 template <org::IsImmOrgValueType T>
 struct ImmAstKindStore {
     using NodeType = T;

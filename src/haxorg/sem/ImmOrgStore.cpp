@@ -60,9 +60,9 @@ ImmAstReplace ImmAstStore::setNode(
         ctx.parents.setParent(sub, result_node);
     }
 
-    ctx.message(fmt(
+    AST_EDIT_MSG(fmt(
         "Original ID:{:<16} {}", fmt1(target), ctx.ctx->value<T>(target)));
-    ctx.message(fmt("Replaced ID:{:<16} {}", fmt1(result_node), value));
+    AST_EDIT_MSG(fmt("Replaced ID:{:<16} {}", fmt1(result_node), value));
 
     return ImmAstReplace{.replaced = result_node, .original = target};
 }
@@ -73,7 +73,7 @@ ImmAstReplace ImmAstStore::setSubnode(
     ImmId              newSubnode,
     int                position,
     ImmAstEditContext& ctx) {
-    ctx.message(fmt("Set {}[{}] = {}", target, position, newSubnode));
+    AST_EDIT_MSG(fmt("Set {}[{}] = {}", target, position, newSubnode));
     return setSubnodes(
         target,
         ctx.ctx->at(target)->subnodes.set(position, newSubnode),
@@ -85,7 +85,7 @@ ImmAstReplace ImmAstStore::insertSubnode(
     ImmId              add,
     int                position,
     ImmAstEditContext& ctx) {
-    ctx.message(fmt("Insert {}[{}] = {}", target, position, add));
+    AST_EDIT_MSG(fmt("Insert {}[{}] = {}", target, position, add));
     return setSubnodes(
         target, ctx.ctx->at(target)->subnodes.insert(position, add), ctx);
 }
@@ -100,7 +100,7 @@ ImmAstReplace ImmAstStore::insertSubnodes(
 
 
     auto tmp = ctx.ctx->at(target)->subnodes;
-    ctx.message(fmt("Insert {} at {} in {}", add, position, tmp));
+    AST_EDIT_MSG(fmt("Insert {} at {} in {}", add, position, tmp));
     for (int i = 0; i < position; ++i) { u.push_back(tmp.at(i)); }
     for (auto const& a : add) { u.push_back(a); }
     for (int i = position; i < tmp.size(); ++i) { u.push_back(tmp.at(i)); }
@@ -119,7 +119,7 @@ ImmAstReplace ImmAstStore::dropSubnode(
     ImmId              target,
     int                position,
     ImmAstEditContext& ctx) {
-    ctx.message(fmt("Drop subnode {}[{}]", target, position));
+    AST_EDIT_MSG(fmt("Drop subnode {}[{}]", target, position));
     return setSubnodes(
         target, ctx.ctx->at(target)->subnodes.take(position), ctx);
 }
@@ -154,7 +154,7 @@ ImmAstReplaceGroup ImmAstStore::demoteSubtree(
     if (move == SubtreeMove::EnsureLevels
         || move == SubtreeMove::ForceLevels) {
 
-        ctx.message(fmt("Demote subtree {}", mainTarget));
+        AST_EDIT_MSG(fmt("Demote subtree {}", mainTarget));
         Func<ImmAstReplace(ImmId)> aux;
         aux = [&](ImmId target) -> ImmAstReplace {
             for (auto const& sub : ctx->adapt(target)) {
@@ -186,7 +186,7 @@ ImmAstReplaceGroup ImmAstStore::demoteSubtree(
             if (adjacentTree->level < replacedTree->level) {
                 // Demoting subtree caused reparenting, removing the
                 // node from the old subtree.
-                ctx.message(
+                AST_EDIT_MSG(
                     fmt("Subtree demote reparenting. Adjacent:{}, "
                         "replaced:{}, "
                         "target drop:{}",
@@ -199,7 +199,7 @@ ImmAstReplaceGroup ImmAstStore::demoteSubtree(
                 edits.incl(
                     appendSubnode(adjacent->id, update.replaced, ctx));
             } else {
-                ctx.message(
+                AST_EDIT_MSG(
                     fmt("Subtree demote, no reparenting, levels are "
                         "ok. "
                         "Adjacent:{}, replaced:{}",
@@ -207,14 +207,14 @@ ImmAstReplaceGroup ImmAstStore::demoteSubtree(
                         replacedTree->level));
             }
         } else {
-            ctx.message(
+            AST_EDIT_MSG(
                 fmt("Subtree demote, no reparenting parent:{} "
                     "adjacent:{}",
                     parent,
                     adjacent));
         }
     } else {
-        ctx.message(fmt("Physical demote subtree {}", mainTarget));
+        AST_EDIT_MSG(fmt("Physical demote subtree {}", mainTarget));
         Vec<ImmId> newSubnodes;
         Vec<ImmId> moveSubnodes;
         auto       tree  = ctx->adapt(mainTarget).as<org::ImmSubtree>();
@@ -231,8 +231,8 @@ ImmAstReplaceGroup ImmAstStore::demoteSubtree(
             }
         }
 
-        ctx.message(fmt("New subnode list {}", newSubnodes));
-        ctx.message(fmt("Move subnode list {}", moveSubnodes));
+        AST_EDIT_MSG(fmt("New subnode list {}", newSubnodes));
+        AST_EDIT_MSG(fmt("Move subnode list {}", moveSubnodes));
 
         auto update = updateNode<org::ImmSubtree>(
             mainTarget, ctx, [&](org::ImmSubtree value) {
@@ -260,7 +260,7 @@ ImmAstReplaceGroup ImmAstStore::demoteSubtree(
 ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
     ImmAstReplaceGroup const& replace,
     ImmAstEditContext&        ctx) {
-    ctx.message("Start cascade update");
+    AST_EDIT_MSG("Start cascade update");
     auto __scope = ctx.debug.scopeLevel();
 
     UnorderedMap<ImmId, Vec<ImmId>> editDependencies;
@@ -276,19 +276,19 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
         }
     }
 
-    ctx.message("Edit replaces");
+    AST_EDIT_MSG("Edit replaces");
     {
         auto __scope = ctx.debug.scopeLevel();
         for (auto const& key : replace.allReplacements()) {
-            ctx.message(fmt("[{}] -> {}", key.original, key.replaced));
+            AST_EDIT_MSG(fmt("[{}] -> {}", key.original, key.replaced));
         }
     }
 
-    ctx.message("Edit dependencies");
+    AST_EDIT_MSG("Edit dependencies");
     {
         auto __scope = ctx.debug.scopeLevel();
         for (auto const& key : sorted(editDependencies.keys())) {
-            ctx.message(fmt("[{}] -> {}", key, editDependencies.at(key)));
+            AST_EDIT_MSG(fmt("[{}] -> {}", key, editDependencies.at(key)));
         }
     }
 
@@ -300,7 +300,7 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
         if (editParents.contains(node.id)) {
             // The node is a parent subnode for some edit.
             Opt<ImmId> edit = replace.map.get(node.id);
-            ctx.message(fmt("Node {} direct edit:{}", node.id, edit));
+            AST_EDIT_MSG(fmt("Node {} direct edit:{}", node.id, edit));
 
             Vec<ImmId> updatedSubnodes;
             ImmId      updateTarget = edit ? edit.value() : node.id;
@@ -339,7 +339,7 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
             // edits. In this case there is no need to insert the same list
             // of subnodes.
             if (updatedSubnodes != ctx->adapt(updateTarget)->subnodes) {
-                ctx.message(
+                AST_EDIT_MSG(
                     fmt("Updated subnodes changed: updated:{} != "
                         "target({}):{}",
                         updatedSubnodes,
@@ -368,7 +368,7 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
                 result.replaced.incl({node.id, *edit});
                 return *edit;
             } else {
-                ctx.message(fmt("No changes in {}", node.id));
+                AST_EDIT_MSG(fmt("No changes in {}", node.id));
                 return node.id;
             }
         }
@@ -387,7 +387,7 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
         }
     }
 
-    ctx.message(fmt("Main root {}", root));
+    AST_EDIT_MSG(fmt("Main root {}", root));
     result.root = aux(ctx->adapt(root));
     return result;
 }

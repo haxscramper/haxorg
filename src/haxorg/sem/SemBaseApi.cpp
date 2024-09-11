@@ -799,3 +799,15 @@ sem::SemId<Time> sem::newSemTimeStatic(
 
     return result;
 }
+
+sem::SemId<Org> sem::asOneNode(OrgArg arg) {
+    switch (arg->getKind()) {
+        case osk::StmtList:
+        case osk::Document:
+            LOGIC_ASSERTION_CHECK(
+                arg.size() == 1,
+                "`asOneNode` expects a node with a single nested element");
+            return sem::asOneNode(arg->at(0));
+        default: return arg;
+    }
+}

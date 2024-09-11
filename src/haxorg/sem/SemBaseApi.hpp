@@ -32,6 +32,14 @@ struct [[refl]] OrgParseParameters {
     OrgParseParameters const& opts);
 
 
+/// \brief Remove outer wrapper containers from a node and return its
+/// single subnode.
+///
+/// Intended to be used for `asOneNode(parseString("some paragraph"))` --
+/// remove the outer `Document` node and get to the actual paragraph entry
+/// at hand.
+[[refl]] sem::SemId<sem::Org> asOneNode(sem::OrgArg arg);
+
 [[refl]] std::string formatToString(sem::SemId<sem::Org> arg);
 
 struct [[refl]] OrgYamlExportOpts {
