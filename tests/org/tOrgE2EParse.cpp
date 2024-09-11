@@ -1186,6 +1186,31 @@ TEST_F(ImmOrgApiEdit, PhysicalDemote) {
         (Vec<int>{1, 3, 3, 3, 2, 3}));
 }
 
+TEST_F(ImmOrgApiEdit, ResetTitle) {
+    setTraceFile(getDebugFile("trace.txt"));
+    org::ImmAstVersion v1 = getInitialVersion("* subtree");
+    writeTreeRepr(v1.getRootAdapter(), "repr_v1.txt");
+
+    org::ImmAstVersion v2 = v1.context.getEditVersion(
+        [&](org::ImmAstContext&     ast,
+            org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
+            return ctx.store().updateNode<org::ImmSubtree>(
+                v1.getRootAdapter().at(0).id,
+                ctx,
+                [&](org::ImmSubtree tree) {
+                    tree.title = ctx->add(
+                                        sem::asOneNode(
+                                            sem::parseString("replaced")),
+                                        ctx)
+                                     .as<org::ImmParagraph>();
+                    return tree;
+                });
+        });
+
+    writeGvHistory({v1, v2}, "v1_v2");
+    writeTreeRepr(v2.getRootAdapter(), "repr_v2.txt");
+}
+
 TEST(ImmMapApi, AddNode) {
     auto n1 = parseNode("* subtree");
 
