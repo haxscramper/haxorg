@@ -1171,10 +1171,11 @@ TEST_F(ImmOrgApiEdit, PhysicalDemote) {
             auto root = ctx->adapt(v1.epoch.getRoot());
             auto s1   = root.at({0, 0});
             return ast.store->demoteSubtree(
-                s1.id, org::ImmAstStore::SubtreeMove::ForceLevels, ctx);
+                s1.id, org::ImmAstStore::SubtreeMove::Physical, ctx);
         });
 
     writeGvHistory({v1, v2}, "v1_v2");
+    writeTreeRepr(v2.getRootAdapter(), "repr_v2.txt");
 
     EXPECT_EQ(
         getDfsSubtreeLevels(v1.getRootAdapter()),

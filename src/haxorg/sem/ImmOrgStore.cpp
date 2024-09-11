@@ -96,12 +96,15 @@ ImmAstReplace ImmAstStore::insertSubnodes(
     int                position,
     ImmAstEditContext& ctx) {
     Vec<ImmId> u;
+    LOGIC_ASSERTION_CHECK(0 <= position, "{}", position);
+
 
     auto tmp = ctx.ctx->at(target)->subnodes;
+    ctx.message(fmt("Insert {} at {} in {}", add, position, tmp));
     for (int i = 0; i < position; ++i) { u.push_back(tmp.at(i)); }
     for (auto const& a : add) { u.push_back(a); }
     for (int i = position; i < tmp.size(); ++i) { u.push_back(tmp.at(i)); }
-    return setSubnodes(target, ImmVec<ImmId>{u.begin(), u.begin()}, ctx);
+    return setSubnodes(target, ImmVec<ImmId>{u.begin(), u.end()}, ctx);
 }
 
 ImmAstReplace ImmAstStore::appendSubnode(
@@ -148,12 +151,10 @@ ImmAstReplaceGroup ImmAstStore::demoteSubtree(
     LOGIC_ASSERTION_CHECK(mainTarget.is(OrgSemKind::Subtree), "");
     ImmAstReplaceGroup edits;
 
-    char const* __func = "demote";
-    ctx.message(fmt("Demote subtree {}", mainTarget), __func);
-
     if (move == SubtreeMove::EnsureLevels
         || move == SubtreeMove::ForceLevels) {
 
+        ctx.message(fmt("Demote subtree {}", mainTarget));
         Func<ImmAstReplace(ImmId)> aux;
         aux = [&](ImmId target) -> ImmAstReplace {
             for (auto const& sub : ctx->adapt(target)) {
@@ -191,8 +192,7 @@ ImmAstReplaceGroup ImmAstStore::demoteSubtree(
                         "target drop:{}",
                         adjacent->id,
                         update.replaced,
-                        mainTarget),
-                    __func);
+                        mainTarget));
 
                 auto __scope = ctx.debug.scopeLevel();
                 edits.incl(dropSubnode(parent->id, mainTarget, ctx));
@@ -204,18 +204,17 @@ ImmAstReplaceGroup ImmAstStore::demoteSubtree(
                         "ok. "
                         "Adjacent:{}, replaced:{}",
                         adjacentTree->level,
-                        replacedTree->level),
-                    __func);
+                        replacedTree->level));
             }
         } else {
             ctx.message(
                 fmt("Subtree demote, no reparenting parent:{} "
                     "adjacent:{}",
                     parent,
-                    adjacent),
-                __func);
+                    adjacent));
         }
     } else {
+        ctx.message(fmt("Physical demote subtree {}", mainTarget));
         Vec<ImmId> newSubnodes;
         Vec<ImmId> moveSubnodes;
         auto       tree  = ctx->adapt(mainTarget).as<org::ImmSubtree>();
@@ -231,6 +230,9 @@ ImmAstReplaceGroup ImmAstStore::demoteSubtree(
                 newSubnodes.push_back(sub.id);
             }
         }
+
+        ctx.message(fmt("New subnode list {}", newSubnodes));
+        ctx.message(fmt("Move subnode list {}", moveSubnodes));
 
         auto update = updateNode<org::ImmSubtree>(
             mainTarget, ctx, [&](org::ImmSubtree value) {
