@@ -1086,15 +1086,21 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_WithParentChange) {
     setTraceFile(getDebugFile("trace.txt"));
     org::ImmAstVersion v1 = getInitialVersion(getSubtreeDash());
 
-    org::ImmAstVersion v2 = v1.context.getEditVersion(
-        [&](org::ImmAstContext&     ast,
-            org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
-            auto root = ctx->adapt(v1.epoch.getRoot());
-            auto s1   = root.at({0, 0, 1});
-            return ast.store->demoteSubtree(
-                s1.id, org::ImmAstStore::SubtreeMove::ForceLevels, ctx);
-        });
+    auto demotePath = [&](org::ImmAstVersion v,
+                          CVec<int>          path) -> org::ImmAstVersion {
+        return v.context.getEditVersion(
+            [&](org::ImmAstContext&     ast,
+                org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
+                auto root = ctx->adapt(v.epoch.getRoot());
+                auto s1   = root.at(path);
+                return ast.store->demoteSubtree(
+                    s1.id,
+                    org::ImmAstStore::SubtreeMove::ForceLevels,
+                    ctx);
+            });
+    };
 
+    org::ImmAstVersion v2 = demotePath(v1, {0, 0, 1});
 
     {
         auto r = v2.getRootAdapter();
@@ -1124,29 +1130,34 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_WithParentChange) {
         EXPECT_EQ(r.at(p0).at(0).id, r.at(p00).id);
     }
 
-    org::ImmAstVersion v3 = v2.context.getEditVersion(
-        [&](org::ImmAstContext&     ast,
-            org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
-            return ast.store->demoteSubtree(
-                v2.getRootAdapter().at({0, 1}).id,
-                org::ImmAstStore::SubtreeMove::ForceLevels,
-                ctx);
-        });
-
+    org::ImmAstVersion v3 = demotePath(v2, {0, 1});
     writeTreeRepr(v3.getRootAdapter(), "repr_v3.txt");
-
-    org::ImmAstVersion v4 = v3.context.getEditVersion(
-        [&](org::ImmAstContext&     ast,
-            org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
-            return ast.store->demoteSubtree(
-                v3.getRootAdapter().at({0, 0, 1}).id,
-                org::ImmAstStore::SubtreeMove::ForceLevels,
-                ctx);
+    org::ImmAstVersion v4 = demotePath(v3, {0, 0, 1});
+    writeTreeRepr(v4.getRootAdapter(), "repr_v4.txt");
+    org::ImmAstVersion v5 = demotePath(v4, {0, 0, 0, 1});
+    writeTreeRepr(v5.getRootAdapter(), "repr_v5.txt");
+    writeGvHistory(
+        {v1, v2, v3, v4, v5},
+        "v_final",
+        org::ImmAstGraphvizConf{
+            .withAuxNodes      = true,
+            .withEditHistory   = false,
+            .withNodePath      = false,
+            .withEpochClusters = false,
         });
 
-    writeTreeRepr(v4.getRootAdapter(), "repr_v4.txt");
-
-    writeGvHistory({v1, v2, v3, v4}, "v1_v2_v3_v4");
+    {
+        auto r = v5.getRootAdapter();
+        EXPECT_TRUE(
+            r.at({0, 0, 0, 0, 0, 0}).isSubnodeOf(r.at({0, 0, 0, 0, 0})));
+        EXPECT_EQ(
+            r.at({0, 0, 0, 0, 0, 0}).as<org::ImmSubtree>()->level, 6);
+        EXPECT_EQ(
+            r.at({0, 0, 0, 0, 0, 0}).as<org::ImmSubtree>()->level, 6);
+        EXPECT_EQ(r.at({0, 0, 0, 0, 0}).as<org::ImmSubtree>()->level, 5);
+        EXPECT_EQ(r.at({0, 0, 0, 0}).as<org::ImmSubtree>()->level, 4);
+        EXPECT_EQ(r.at({0, 0, 0}).as<org::ImmSubtree>()->level, 3);
+    }
 }
 
 TEST(ImmMapApi, AddNode) {

@@ -469,10 +469,10 @@ struct ImmAstVersion {
 
 struct ImmAstGraphvizConf {
     SemSet skippedKinds;
-    bool   clusterEpochs   = true;
-    bool   withAuxNodes    = false;
-    bool   withEditHistory = false;
-    bool   withNodePath    = false;
+    bool   withEpochClusters = true;
+    bool   withAuxNodes      = false;
+    bool   withEditHistory   = false;
+    bool   withNodePath      = false;
 
     UnorderedMap<Str, Vec<Str>> skippedFields = {
         {"DocumentOptions", {"exportConfig"}},
@@ -628,6 +628,26 @@ struct ImmAdapter {
     template <typename T>
     ImmAdapter pass(ImmIdT<T> id) const {
         return ImmAdapter(id, ctx);
+    }
+
+    bool isDirectParentOf(ImmAdapter const& other) const {
+        if (auto parent = other.getParent(); parent) {
+            return parent->id == this->id;
+        } else {
+            return false;
+        }
+    }
+
+    bool isIndirectParentOf(ImmAdapter const& other) const {
+        for (auto const& parent : other.getParentChain(false)) {
+            if (parent.id == this->id) { return true; }
+        }
+
+        return false;
+    }
+
+    bool isSubnodeOf(ImmAdapter const& other) const {
+        return other->indexOf(this->id) != -1;
     }
 
     Opt<ImmAdapter> getParent() const {

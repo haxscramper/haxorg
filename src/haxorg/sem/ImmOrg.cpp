@@ -535,7 +535,7 @@ Graphviz::Graph org::toGraphviz(
     ImmAstContext ctx = history.front().context;
 
     auto get_graph = [&](int epoch) -> Graphviz::Graph& {
-        if (conf.clusterEpochs && epoch < history.size()) {
+        if (conf.withEpochClusters && epoch < history.size()) {
             if (!gvClusters.has(epoch)) {
                 auto sub = g.newSubgraph(fmt("epoch_{}", epoch));
                 sub.setLabel(fmt("Epoch {}", epoch));
