@@ -581,8 +581,10 @@ Graphviz::Graph org::toGraphviz(
 
                 field("ID", id);
                 if (conf.withNodePath && history.has(idx)) {
-                    auto path = history.at(idx).context.getPath(id);
-                    if (!path.empty()) { field("Path", fmt1(path)); }
+                    if (auto path = history.at(idx).context.getPath(id);
+                        path) {
+                        if (!path->empty()) { field("Path", fmt1(path)); }
+                    }
                 }
                 switch_node_fields(
                     id,

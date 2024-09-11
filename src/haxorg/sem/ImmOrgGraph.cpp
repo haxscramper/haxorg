@@ -630,10 +630,12 @@ Graphviz::Graph MapGraph::toGraphviz(org::ImmAstContext const& ctx) const {
             Record{fmt1(it.id)},
         }});
 
-        add_field(Record{{
-            Record{left_aligned("Path", 16)},
-            Record{join("/", ctx.getPath(it.id))},
-        }});
+        if (auto path = ctx.getPath(it.id); path) {
+            add_field(Record{{
+                Record{left_aligned("Path", 16)},
+                Record{join("/", *path)},
+            }});
+        }
 
         add_field(Record{{
             Record{left_aligned("Kind", 16)},

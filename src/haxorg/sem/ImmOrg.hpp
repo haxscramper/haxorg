@@ -81,9 +81,13 @@ struct ImmAstParentMap {
     DESC_FIELDS(ImmAstParentMap, (parents));
 
     Opt<ImmId> getParent(ImmId id) const { return parents.get(id); }
-    Vec<int>   getPath(ImmId id, ImmAstContext const& ctx) const;
-    Vec<ImmId> getParentChain(ImmId id, bool withSelf = true) const;
-    bool       hasParent(org::ImmId node) const {
+    /// \brief Return path from the root node of the document to this node,
+    /// following indices in the `.subnode` fields. If the node is stored
+    /// in the member fields, the path is `std::nullopt`, the the root node
+    /// itself has an empty path `[]`.
+    Opt<Vec<int>> getPath(ImmId id, ImmAstContext const& ctx) const;
+    Vec<ImmId>    getParentChain(ImmId id, bool withSelf = true) const;
+    bool          hasParent(org::ImmId node) const {
         return parents.contains(node);
     }
 
@@ -393,7 +397,9 @@ struct [[nodiscard]] ImmAstContext {
 
     bool       hasParent(ImmId id) const { return parents.hasParent(id); }
     Opt<ImmId> getParent(ImmId id) const { return parents.getParent(id); }
-    Vec<int> getPath(ImmId id) const { return parents.getPath(id, *this); }
+    Opt<Vec<int>> getPath(ImmId id) const {
+        return parents.getPath(id, *this);
+    }
     Vec<ImmId> getParentChain(ImmId id, bool withSelf = true) const {
         return parents.getParentChain(id, withSelf);
     }

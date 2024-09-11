@@ -467,7 +467,7 @@ void ImmAstStore::format(ColStream& os, const std::string& prefix) const {
 #undef _kind
 }
 
-Vec<int> ImmAstParentMap::getPath(ImmId id, const ImmAstContext& ctx)
+Opt<Vec<int>> ImmAstParentMap::getPath(ImmId id, const ImmAstContext& ctx)
     const {
     Vec<int>   result;
     Opt<ImmId> parent = getParent(id);
@@ -481,7 +481,7 @@ Vec<int> ImmAstParentMap::getPath(ImmId id, const ImmAstContext& ctx)
             }
             ++idx;
         }
-        LOGIC_ASSERTION_CHECK(selfIndex != -1, "");
+        if (selfIndex == -1) { return std::nullopt; }
         result.push_back(selfIndex);
         id     = parent.value();
         parent = getParent(id);
