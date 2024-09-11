@@ -90,6 +90,20 @@ ImmAstReplace ImmAstStore::insertSubnode(
         target, ctx.ctx->at(target)->subnodes.insert(position, add), ctx);
 }
 
+ImmAstReplace ImmAstStore::insertSubnodes(
+    ImmId              target,
+    Vec<ImmId>         add,
+    int                position,
+    ImmAstEditContext& ctx) {
+    Vec<ImmId> u;
+
+    auto tmp = ctx.ctx->at(target)->subnodes;
+    for (int i = 0; i < position; ++i) { u.push_back(tmp.at(i)); }
+    for (auto const& a : add) { u.push_back(a); }
+    for (int i = position; i < tmp.size(); ++i) { u.push_back(tmp.at(i)); }
+    return setSubnodes(target, ImmVec<ImmId>{u.begin(), u.begin()}, ctx);
+}
+
 ImmAstReplace ImmAstStore::appendSubnode(
     ImmId              target,
     ImmId              add,
@@ -128,64 +142,112 @@ Pair<ImmAstReplace, ImmId> ImmAstStore::popSubnode(
 }
 
 ImmAstReplaceGroup ImmAstStore::demoteSubtree(
-    ImmId              target,
+    ImmId              mainTarget,
     SubtreeMove        move,
     ImmAstEditContext& ctx) {
-    LOGIC_ASSERTION_CHECK(target.is(OrgSemKind::Subtree), "");
+    LOGIC_ASSERTION_CHECK(mainTarget.is(OrgSemKind::Subtree), "");
     ImmAstReplaceGroup edits;
 
-    ctx.message(fmt("Demote subtree {}", target));
+    char const* __func = "demote";
+    ctx.message(fmt("Demote subtree {}", mainTarget), __func);
 
-    for (auto const& sub : ctx->adapt(target)) {
-        auto __scope = ctx.debug.scopeLevel();
-        edits.incl(demoteSubtree(sub.id, move, ctx));
-    }
+    if (move == SubtreeMove::EnsureLevels
+        || move == SubtreeMove::ForceLevels) {
 
-
-    auto __scope = ctx.debug.scopeLevel();
-    auto update  = updateNode<org::ImmSubtree>(
-        target, ctx, [&](org::ImmSubtree value) {
-            value.subnodes = edits.newSubnodes(value.subnodes);
-            value.level += 1;
-            return value;
-        });
-
-    edits.incl(update);
-
-
-    auto targetAdapter = ctx->adapt(target);
-    auto parent        = targetAdapter.getParent();
-    auto adjacent      = targetAdapter.getAdjacentNode(-1);
-
-    if (parent && adjacent && adjacent->is(OrgSemKind::Subtree)) {
-        auto adjacentTree = adjacent.value().as<org::ImmSubtree>();
-        auto replacedTree = ctx->adapt(update.replaced)
-                                .as<org::ImmSubtree>();
-        if (adjacentTree->level < replacedTree->level) {
-            // Demoting subtree caused reparenting, removing the node from
-            // the old subtree.
-            ctx.message(fmt(
-                "Subtree demote reparenting. Adjacent:{}, replaced:{}, "
-                "target drop:{}",
-                adjacent->id,
-                update.replaced,
-                target));
+        Func<ImmAstReplace(ImmId)> aux;
+        aux = [&](ImmId target) -> ImmAstReplace {
+            for (auto const& sub : ctx->adapt(target)) {
+                auto __scope = ctx.debug.scopeLevel();
+                aux(sub.id);
+            }
 
             auto __scope = ctx.debug.scopeLevel();
-            edits.incl(dropSubnode(parent->id, target, ctx));
-            edits.incl(appendSubnode(adjacent->id, update.replaced, ctx));
+            auto update  = updateNode<org::ImmSubtree>(
+                target, ctx, [&](org::ImmSubtree value) {
+                    value.subnodes = edits.newSubnodes(value.subnodes);
+                    value.level += 1;
+                    return value;
+                });
+
+            edits.incl(update);
+            return update;
+        };
+
+        auto update        = aux(mainTarget);
+        auto targetAdapter = ctx->adapt(mainTarget);
+        auto parent        = targetAdapter.getParent();
+        auto adjacent      = targetAdapter.getAdjacentNode(-1);
+
+        if (parent && adjacent && adjacent->is(OrgSemKind::Subtree)) {
+            auto adjacentTree = adjacent.value().as<org::ImmSubtree>();
+            auto replacedTree = ctx->adapt(update.replaced)
+                                    .as<org::ImmSubtree>();
+            if (adjacentTree->level < replacedTree->level) {
+                // Demoting subtree caused reparenting, removing the
+                // node from the old subtree.
+                ctx.message(
+                    fmt("Subtree demote reparenting. Adjacent:{}, "
+                        "replaced:{}, "
+                        "target drop:{}",
+                        adjacent->id,
+                        update.replaced,
+                        mainTarget),
+                    __func);
+
+                auto __scope = ctx.debug.scopeLevel();
+                edits.incl(dropSubnode(parent->id, mainTarget, ctx));
+                edits.incl(
+                    appendSubnode(adjacent->id, update.replaced, ctx));
+            } else {
+                ctx.message(
+                    fmt("Subtree demote, no reparenting, levels are "
+                        "ok. "
+                        "Adjacent:{}, replaced:{}",
+                        adjacentTree->level,
+                        replacedTree->level),
+                    __func);
+            }
         } else {
             ctx.message(
-                fmt("Subtree demote, no reparenting, levels are ok. "
-                    "Adjacent:{}, replaced:{}",
-                    adjacentTree->level,
-                    replacedTree->level));
+                fmt("Subtree demote, no reparenting parent:{} "
+                    "adjacent:{}",
+                    parent,
+                    adjacent),
+                __func);
         }
     } else {
-        ctx.message(
-            fmt("Subtree demote, no reparenting parent:{} adjacent:{}",
-                parent,
-                adjacent));
+        Vec<ImmId> newSubnodes;
+        Vec<ImmId> moveSubnodes;
+        auto       tree  = ctx->adapt(mainTarget).as<org::ImmSubtree>();
+        int        level = tree->level;
+        for (auto const& sub : tree.sub()) {
+            if (auto subtree = sub.asOpt<org::ImmSubtree>(); subtree) {
+                if (subtree.value()->level < level + 1) {
+                    newSubnodes.push_back(subtree->id);
+                } else {
+                    moveSubnodes.push_back(subtree->id);
+                }
+            } else {
+                newSubnodes.push_back(sub.id);
+            }
+        }
+
+        auto update = updateNode<org::ImmSubtree>(
+            mainTarget, ctx, [&](org::ImmSubtree value) {
+                value.subnodes = ImmVec<ImmId>{
+                    newSubnodes.begin(), newSubnodes.end()};
+                value.level += 1;
+                return value;
+            });
+
+        edits.incl(update);
+
+        if (!moveSubnodes.empty()) {
+            auto parent = tree.getParent();
+            auto update = insertSubnodes(
+                parent->id, moveSubnodes, tree.getSelfIndex(), ctx);
+            edits.incl(update);
+        }
     }
 
 

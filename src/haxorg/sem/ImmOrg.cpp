@@ -488,10 +488,10 @@ ImmAstStore& ImmAstEditContext::store() { return *ctx->store; }
 
 void ImmAstEditContext::message(
     const std::string& value,
-    int                line,
     const char*        function,
+    int                line,
     const char*        file) {
-    ctx->message(value, debug.activeLevel, line, function, file);
+    ctx->message(value, debug.activeLevel, function, line, file);
 }
 
 

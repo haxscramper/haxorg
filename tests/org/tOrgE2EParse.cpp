@@ -1160,6 +1160,31 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_WithParentChange) {
     }
 }
 
+TEST_F(ImmOrgApiEdit, PhysicalDemote) {
+    setTraceFile(getDebugFile("trace.txt"));
+    org::ImmAstVersion v1 = getInitialVersion(getSubtreeDash());
+    writeTreeRepr(v1.getRootAdapter(), "repr_v1.txt");
+
+    org::ImmAstVersion v2 = v1.context.getEditVersion(
+        [&](org::ImmAstContext&     ast,
+            org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
+            auto root = ctx->adapt(v1.epoch.getRoot());
+            auto s1   = root.at({0, 0});
+            return ast.store->demoteSubtree(
+                s1.id, org::ImmAstStore::SubtreeMove::ForceLevels, ctx);
+        });
+
+    writeGvHistory({v1, v2}, "v1_v2");
+
+    EXPECT_EQ(
+        getDfsSubtreeLevels(v1.getRootAdapter()),
+        (Vec<int>{1, 2, 3, 3, 2, 3}));
+
+    EXPECT_EQ(
+        getDfsSubtreeLevels(v2.getRootAdapter()),
+        (Vec<int>{1, 3, 3, 3, 2, 3}));
+}
+
 TEST(ImmMapApi, AddNode) {
     auto n1 = parseNode("* subtree");
 

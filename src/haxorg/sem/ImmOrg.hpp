@@ -103,8 +103,8 @@ struct ImmAstEditContext {
 
     void message(
         std::string const& value,
-        int                line     = __builtin_LINE(),
         char const*        function = __builtin_FUNCTION(),
+        int                line     = __builtin_LINE(),
         char const*        file     = __builtin_FILE());
 
     ImmId getParentForce(ImmId id) const;
@@ -280,6 +280,12 @@ struct ImmAstStore {
         int                position,
         ImmAstEditContext& ctx);
 
+    ImmAstReplace insertSubnodes(
+        ImmId              target,
+        Vec<ImmId>         add,
+        int                position,
+        ImmAstEditContext& ctx);
+
     ImmAstReplace appendSubnode(
         ImmId              target,
         ImmId              add,
@@ -370,8 +376,8 @@ struct [[nodiscard]] ImmAstContext {
     void message(
         std::string const& value,
         int                level    = 0,
-        int                line     = __builtin_LINE(),
         char const*        function = __builtin_FUNCTION(),
+        int                line     = __builtin_LINE(),
         char const*        file     = __builtin_FILE()) {
         if (debug) { debug->message(value, level, line, function, file); }
     }
