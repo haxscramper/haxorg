@@ -901,7 +901,7 @@ class ImmOrgApiEdit : public ::testing::Test {
 
     Str getDebugFile(Str const& suffix) {
         auto dir = fs::path{"/tmp/haxorg_tests/ImmOrgApiEdit"};
-        if (!fs::is_directory(dir)) { fs::create_directory(dir); }
+        if (!fs::is_directory(dir)) { createDirectory(dir); }
         return fmt(
             "{}/{}_{}",
             dir.native(),
