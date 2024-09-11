@@ -757,6 +757,7 @@ template <typename T>
 struct ImmAdapterT : ImmAdapter {
     using ImmAdapter::at;
     using ImmAdapter::ImmAdapter;
+    using ImmAdapter::pass;
     T const* get() const { return ctx->at_t<T>(id); }
     T const* operator->() const { return get(); }
 };

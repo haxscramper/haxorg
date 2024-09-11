@@ -1209,6 +1209,20 @@ TEST_F(ImmOrgApiEdit, ResetTitle) {
 
     writeGvHistory({v1, v2}, "v1_v2");
     writeTreeRepr(v2.getRootAdapter(), "repr_v2.txt");
+
+    {
+        auto tree = v1.getRootAdapter().at(0).as<org::ImmSubtree>();
+        EXPECT_EQ(
+            tree.pass(tree->title).at(0).as<org::ImmWord>()->text,
+            "subtree");
+    }
+
+    {
+        auto tree = v2.getRootAdapter().at(0).as<org::ImmSubtree>();
+        EXPECT_EQ(
+            tree.pass(tree->title).at(0).as<org::ImmWord>()->text,
+            "replaced");
+    }
 }
 
 TEST(ImmMapApi, AddNode) {
