@@ -1,12 +1,14 @@
 #pragma once
 
 #include "hstd/stdlib/TraceBase.hpp"
+#include <boost/preprocessor/facilities/expand.hpp>
 #include <haxorg/sem/ImmOrgBase.hpp>
 #include <haxorg/sem/ImmOrgTypes.hpp>
 #include <haxorg/sem/SemOrg.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <immer/map_transient.hpp>
 #include <hstd/wrappers/hstd_extra/graphviz.hpp>
+#include <boost/preprocessor.hpp>
 
 
 #define _declare_hash(__kind)                                             \
@@ -53,9 +55,59 @@ concept IsImmOrgValueType = std::derived_from<T, ImmOrg>;
 
 using ImmAstParentMapType = ImmMap<org::ImmId, org::ImmId>;
 
-struct ImmAstParentMap;
+struct ImmAstTrackingMap;
 
-struct ImmAstParentMapTransient {
+#define IMM_PATH_NAMES title
+
+BOOST_PP_EXPAND(
+    DECL_DESCRIBED_ENUM_STANDALONE(ImmPathField, IMM_PATH_NAMES))
+
+struct ImmPathItem {
+    Variant<int, ImmPathField> step;
+
+    ImmPathField getField() const { return std::get<ImmPathField>(step); }
+    int          getIndex() const { return std::get<int>(step); }
+    bool         isIndex() const { return step.index() == 0; }
+    bool         isField() const { return step.index() == 1; }
+};
+
+struct ImmPath {
+    ImmId            root;
+    Vec<ImmPathItem> steps;
+
+    ImmPath(ImmId root) : root{root} {};
+    ImmPath(ImmId root, Vec<ImmPathItem> const& path)
+        : root{root}, steps{path} {}
+    ImmPath(ImmId root, Span<ImmPathItem> const& path)
+        : root{root}, steps{path.begin(), path.end()} {}
+
+    generator<Span<ImmPathItem>> pathSpans(bool leafStart = true) const {
+        if (leafStart) {
+            for (int i = steps.high(); 0 <= i; --i) {
+                co_yield steps.at(slice(0, i));
+            }
+        } else {
+            for (int i = 0; i < steps.size(); ++i) {
+                co_yield steps.at(slice(0, i));
+            }
+        }
+    }
+
+
+    ImmPath add(int idx) const {
+        auto res = *this;
+        res.steps.push_back(ImmPathItem{idx});
+        return res;
+    }
+
+    ImmPath pop() const {
+        auto res = *this;
+        res.steps.pop_back();
+        return res;
+    }
+};
+
+struct ImmAstTrackingMapTransient {
     ImmAstParentMapType::transient_type parents;
 
     void setParent(org::ImmId node, org::ImmId parent) {
@@ -72,13 +124,13 @@ struct ImmAstParentMapTransient {
 
     void removeParent(org::ImmId node) { parents.erase(node); }
 
-    ImmAstParentMap persistent();
-    DESC_FIELDS(ImmAstParentMapTransient, (parents));
+    ImmAstTrackingMap persistent();
+    DESC_FIELDS(ImmAstTrackingMapTransient, (parents));
 };
 
-struct ImmAstParentMap {
+struct ImmAstTrackingMap {
     ImmAstParentMapType parents;
-    DESC_FIELDS(ImmAstParentMap, (parents));
+    DESC_FIELDS(ImmAstTrackingMap, (parents));
 
     Opt<ImmId> getParent(ImmId id) const { return parents.get(id); }
     /// \brief Return path from the root node of the document to this node,
@@ -91,7 +143,7 @@ struct ImmAstParentMap {
         return parents.contains(node);
     }
 
-    ImmAstParentMapTransient transient() {
+    ImmAstTrackingMapTransient transient() {
         return {.parents = parents.transient()};
     }
 };
@@ -99,11 +151,11 @@ struct ImmAstParentMap {
 struct ImmAstStore;
 
 struct ImmAstEditContext {
-    ImmAstParentMapTransient parents;
-    ImmAstContext*           ctx;
-    ImmAstContext            finish();
-    ImmAstStore&             store();
-    OperationsScope          debug;
+    ImmAstTrackingMapTransient parents;
+    ImmAstContext*             ctx;
+    ImmAstContext              finish();
+    ImmAstStore&               store();
+    OperationsScope            debug;
 
     void message(
         std::string const& value,
@@ -299,7 +351,7 @@ struct ImmAdapter;
 struct [[nodiscard]] ImmAstContext {
     SPtr<OperationsTracer> debug;
     SPtr<ImmAstStore>      store;
-    ImmAstParentMap        parents;
+    ImmAstTrackingMap      parents;
 
     void message(
         std::string const& value,
@@ -348,7 +400,6 @@ struct [[nodiscard]] ImmAstContext {
     ImmRootAddResult     addRoot(sem::SemId<sem::Org> data);
     ImmAstVersion        init(sem::SemId<sem::Org> root);
     sem::SemId<sem::Org> get(org::ImmId id);
-    ImmAdapter           adapt(org::ImmId id);
 
     template <typename T>
     T const& value(ImmId id) const {
@@ -367,6 +418,9 @@ struct [[nodiscard]] ImmAstContext {
     T const* at(ImmIdT<T> id) const {
         return at(id.toId())->template as<T>();
     }
+
+
+    ImmId at(ImmId node, const ImmPathItem& item) const;
 
     void format(ColStream& os, std::string const& prefix = "") const;
 
@@ -497,33 +551,31 @@ struct ImmAdapterT;
 struct ImmAdapter {
     ImmId          id;
     ImmAstContext* ctx;
+    ImmPath        selfPath;
 
     class iterator {
       public:
-        ImmId          id;
-        ImmAstContext* ctx;
-        int            idx = 0;
+        ImmAdapter const* it;
+        int               idx = 0;
 
       public:
         typedef std::forward_iterator_tag iterator_category;
         typedef ImmAdapter                value_type;
         typedef std::ptrdiff_t            difference_type;
 
-        iterator(ImmId id, ImmAstContext* ctx, int idx = 0)
-            : id{id}, ctx{ctx}, idx{idx} {}
+        iterator(ImmAdapter const* it, int idx = 0) : it{it}, idx{idx} {}
 
         ImmAdapter operator*() const {
             check();
-            return ImmAdapter{ctx->at(id)->subnodes.at(idx), ctx};
+            return it->at(idx);
         }
 
         void check() const {
-            if (!(!id.isNil() && idx < ctx->at(id)->size())) {
-                throw logic_assertion_error::init(
-                    fmt("Check node id iterator {} < {}",
-                        idx,
-                        ctx->at(id)->size()));
-            }
+            LOGIC_ASSERTION_CHECK(
+                idx < it->size(),
+                "Check node id iterator {} < {}",
+                idx,
+                it->size());
         }
 
         iterator& operator++() {
@@ -537,14 +589,27 @@ struct ImmAdapter {
     };
 
     int      size() const { return ctx->at(id)->subnodes.size(); }
-    iterator begin() const { return iterator(id, ctx); }
-    iterator end() const { return iterator(id, ctx, size()); }
+    iterator begin() const { return iterator(this); }
+    iterator end() const { return iterator(this, size()); }
     bool     isNil() const { return id.isNil(); }
 
-    ImmAdapter(ImmId id, ImmAstContext* ctx) : id{id}, ctx{ctx} {}
-    ImmAdapter() : id{ImmId::Nil()}, ctx{nullptr} {}
+    static ImmAdapter FromRoot(
+        ImmId          root,
+        ImmAstContext* ctx,
+        ImmPath const& path) {}
 
-    ImmAdapter pass(ImmId id) const { return ImmAdapter(id, ctx); }
+    ImmAdapter(ImmId id, ImmAstContext* ctx, ImmPath const& path)
+        : id{id}
+        , ctx{ctx}
+        , selfPath{path} //
+    {}
+
+    ImmAdapter()
+        : id{ImmId::Nil()}, ctx{nullptr}, selfPath{ImmId::Nil()} {}
+
+    ImmAdapter pass(ImmId id, ImmPath const& path) const {
+        return ImmAdapter(id, ctx, path);
+    }
 
     struct TreeReprConf {
         int  maxDepth      = 40;
@@ -588,7 +653,7 @@ struct ImmAdapter {
 
     Opt<ImmAdapter> getParent() const {
         if (auto parent = ctx->getParent(id)) {
-            return ImmAdapter{parent.value(), ctx};
+            return ImmAdapter{parent.value(), ctx, selfPath.pop()};
         } else {
             return std::nullopt;
         }
@@ -608,8 +673,9 @@ struct ImmAdapter {
 
     Vec<ImmAdapter> getParentChain(bool withSelf = true) const {
         Vec<ImmAdapter> result;
-        for (auto const& it : ctx->getParentChain(id, withSelf)) {
-            result.push_back(ImmAdapter{it, ctx});
+        for (auto const& span : selfPath.pathSpans()) {
+            result.push_back(ImmAdapter::FromRoot(
+                selfPath.root, ctx, ImmPath{selfPath.root, span}));
         }
         return result;
     }
@@ -621,7 +687,8 @@ struct ImmAdapter {
     ImmOrg const* get() const { return ctx->at(id); }
     ImmOrg const* operator->() const { return get(); }
     ImmAdapter    at(int idx) const {
-        return ImmAdapter(ctx->at(id)->subnodes.at(idx), ctx);
+        return ImmAdapter{
+            ctx->at(id)->subnodes.at(idx), ctx, selfPath.add(idx)};
     }
 
     ImmAdapter at(Vec<int> const& path) const {
@@ -634,19 +701,15 @@ struct ImmAdapter {
 
     Vec<ImmAdapter> sub() const {
         Vec<ImmAdapter> result;
-        for (auto const& it : ctx->at(id)->subnodes) {
-            result.push_back(pass(it));
-        }
+        for (int i = 0; i < size(); ++i) { result.push_back(at(i)); }
         return result;
     }
 
     template <typename T>
     Vec<ImmAdapterT<T>> subAs() const {
         Vec<ImmAdapterT<T>> result;
-        for (auto const& it : ctx->at(id)->subnodes) {
-            if (auto sub = pass(it).asOpt<T>()) {
-                result.push_back(sub.value());
-            }
+        for (auto const& it : sub()) {
+            if (it.is(T::staticKind)) { result.push_back(it.as<T>()); }
         }
         return result;
     }

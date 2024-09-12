@@ -128,12 +128,12 @@ void eachSubnodeRecImpl(
     org::ImmAstContext*     ctx);
 
 template <typename T>
-struct Visitor {};
+struct SubnodeRecVisitor {};
 
 
 #define placeholder_visitor(__Type)                                       \
     template <>                                                           \
-    struct Visitor<__Type> {                                              \
+    struct SubnodeRecVisitor<__Type> {                                    \
         static void visitField(                                           \
             CR<org::SubnodeVisitor> visitor,                              \
             __Type const&           tmp,                                  \
@@ -154,7 +154,7 @@ placeholder_visitor(Vec<sem::SemId<sem::Org>>);
 
 
 template <IsEnum T>
-struct Visitor<T> {
+struct SubnodeRecVisitor<T> {
     static void visitField(
         CR<org::SubnodeVisitor> visitor,
         T const&                tree,
@@ -162,17 +162,17 @@ struct Visitor<T> {
 };
 
 template <typename T>
-struct Visitor<ImmIdT<T>> {
+struct SubnodeRecVisitor<ImmIdT<T>> {
     static void visitField(
         CR<org::SubnodeVisitor> visitor,
         ImmIdT<T>               tree,
         org::ImmAstContext*     ctx) {
 
         if (tree.isNil()) { return; }
-        visitor(ImmAdapter{tree.toId(), ctx});
+        visitor(ImmAdapter{tree.toId(), ctx, org::ImmPath{tree.toId()}});
 
         for_each_field_with_bases<T>([&](auto const& field) {
-            Visitor<std::remove_cvref_t<
+            SubnodeRecVisitor<std::remove_cvref_t<
                 decltype(ctx->at(tree)->*field.pointer)>>::
                 visitField(visitor, ctx->at(tree)->*field.pointer, ctx);
         });
@@ -180,13 +180,14 @@ struct Visitor<ImmIdT<T>> {
 };
 
 template <DescribedRecord T>
-struct Visitor<T> {
+struct SubnodeRecVisitor<T> {
     static void visitField(
         CR<org::SubnodeVisitor> visitor,
         T const&                obj,
         org::ImmAstContext*     ctx) {
         for_each_field_with_bases<T>([&](auto const& field) {
-            Visitor<std::remove_cvref_t<decltype(obj.*field.pointer)>>::
+            SubnodeRecVisitor<
+                std::remove_cvref_t<decltype(obj.*field.pointer)>>::
                 visitField(visitor, obj.*field.pointer, ctx);
         });
     }
@@ -194,38 +195,39 @@ struct Visitor<T> {
 
 
 template <>
-struct Visitor<ImmId> {
+struct SubnodeRecVisitor<ImmId> {
     static void visitField(
         CR<org::SubnodeVisitor> visitor,
         ImmId                   org,
         org::ImmAstContext*     ctx) {
         switch_node_value(org, *ctx, [&]<typename N>(N const& value) {
-            Visitor<org::ImmIdT<N>>::visitField(visitor, org.as<N>(), ctx);
+            SubnodeRecVisitor<org::ImmIdT<N>>::visitField(
+                visitor, org.as<N>(), ctx);
         });
     }
 };
 
 
 template <sem::IsOrg T>
-struct Visitor<T> {
+struct SubnodeRecVisitor<T> {
     static void visitField(
         CR<org::SubnodeVisitor> visitor,
         CR<T>                   node,
         org::ImmAstContext*     ctx) {
-        Visitor<ImmId>::visitField(visitor, node.asOrg(), ctx);
+        SubnodeRecVisitor<ImmId>::visitField(visitor, node.asOrg(), ctx);
     }
 };
 
 template <IsVariant T>
-struct Visitor<T> {
+struct SubnodeRecVisitor<T> {
     static void visitField(
         CR<org::SubnodeVisitor> visitor,
         CR<T>                   node,
         org::ImmAstContext*     ctx) {
         std::visit(
             [&](auto const& it) {
-                Visitor<std::remove_cvref_t<decltype(it)>>::visitField(
-                    visitor, it, ctx);
+                SubnodeRecVisitor<std::remove_cvref_t<decltype(it)>>::
+                    visitField(visitor, it, ctx);
             },
             node);
     }
@@ -233,47 +235,49 @@ struct Visitor<T> {
 
 
 template <typename T>
-struct Visitor<ImmVec<T>> {
+struct SubnodeRecVisitor<ImmVec<T>> {
     static void visitField(
         CR<org::SubnodeVisitor> visitor,
         ImmVec<T> const&        value,
         org::ImmAstContext*     ctx) {
         for (const auto& it : value) {
-            Visitor<T>::visitField(visitor, it, ctx);
+            SubnodeRecVisitor<T>::visitField(visitor, it, ctx);
         }
     }
 };
 
 template <typename K, typename V>
-struct Visitor<ImmMap<K, V>> {
+struct SubnodeRecVisitor<ImmMap<K, V>> {
     static void visitField(
         CR<org::SubnodeVisitor> visitor,
         ImmMap<K, V> const&     value,
         org::ImmAstContext*     ctx) {
         for (const auto& [key, value] : value) {
-            Visitor<V>::visitField(visitor, value, ctx);
+            SubnodeRecVisitor<V>::visitField(visitor, value, ctx);
         }
     }
 };
 
 
 template <typename T>
-struct Visitor<ImmBox<T>> {
+struct SubnodeRecVisitor<ImmBox<T>> {
     static void visitField(
         CR<org::SubnodeVisitor> visitor,
         CR<ImmBox<T>>           value,
         org::ImmAstContext*     ctx) {
-        Visitor<T>::visitField(visitor, value.get(), ctx);
+        SubnodeRecVisitor<T>::visitField(visitor, value.get(), ctx);
     }
 };
 
 template <typename T>
-struct Visitor<Opt<T>> {
+struct SubnodeRecVisitor<Opt<T>> {
     static void visitField(
         CR<org::SubnodeVisitor> visitor,
         CR<Opt<T>>              value,
         org::ImmAstContext*     ctx) {
-        if (value) { Visitor<T>::visitField(visitor, *value, ctx); }
+        if (value) {
+            SubnodeRecVisitor<T>::visitField(visitor, *value, ctx);
+        }
     }
 };
 
@@ -281,7 +285,7 @@ struct Visitor<Opt<T>> {
 
 
 void org::eachSubnodeRec(ImmAdapter id, SubnodeVisitor cb) {
-    Visitor<ImmId>::visitField(cb, id.id, id.ctx);
+    SubnodeRecVisitor<ImmId>::visitField(cb, id.id, id.ctx);
 }
 
 
@@ -390,7 +394,7 @@ IMM_TREE_REPR_IMPL((IsVariant T), (T)) {
 
 IMM_TREE_REPR_IMPL((), (org::ImmId)) {
     ImmTreeReprVisitor<org::ImmAdapter>::visit(
-        org::ImmAdapter{arg, ctx.ctx}, os, ctx);
+        org::ImmAdapter{arg, ctx.ctx, ImmPath{arg}}, os, ctx);
 }
 
 
@@ -476,8 +480,8 @@ Opt<ImmAdapter> ImmAdapter::getParentSubtree() const {
     return std::nullopt;
 }
 
-ImmAstParentMap ImmAstParentMapTransient::persistent() {
-    return ImmAstParentMap{.parents = parents.persistent()};
+ImmAstTrackingMap ImmAstTrackingMapTransient::persistent() {
+    return ImmAstTrackingMap{.parents = parents.persistent()};
 }
 
 ImmAstContext ImmAstEditContext::finish() {

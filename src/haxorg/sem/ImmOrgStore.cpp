@@ -239,6 +239,35 @@ const ImmOrg* ImmAstContext::at(ImmId id) const {
     return res;
 }
 
+ImmId ImmAstContext::at(ImmId node, const ImmPathItem& item) const {
+    if (item.isField()) {
+        std::string name = enum_serde<ImmPathField>::to_string(
+            item.getField());
+        ImmId result;
+        bool  found = false;
+        switch_node_fields(
+            node,
+            *this,
+            [&]<typename T>(std::string const& field, T const& value) {
+                if (field == name) {
+                    if constexpr (std::is_same_v<T, ImmId>) {
+                        found  = true;
+                        result = value;
+                    }
+                }
+            });
+
+        if (found) {
+            return result;
+        } else {
+            throw std::out_of_range(
+                fmt("No field {} in node {}", name, node));
+        }
+    } else {
+        return store->at(node)->subnodes.at(item.getIndex());
+    }
+}
+
 template <org::IsImmOrgValueType T>
 void ImmAstKindStore<T>::format(
     ColStream&                        os,
@@ -278,8 +307,9 @@ void ImmAstStore::format(ColStream& os, const std::string& prefix) const {
 #undef _kind
 }
 
-Opt<Vec<int>> ImmAstParentMap::getPath(ImmId id, const ImmAstContext& ctx)
-    const {
+Opt<Vec<int>> ImmAstTrackingMap::getPath(
+    ImmId                id,
+    const ImmAstContext& ctx) const {
     Vec<int>   result;
     Opt<ImmId> parent = getParent(id);
     while (parent) {
@@ -302,7 +332,8 @@ Opt<Vec<int>> ImmAstParentMap::getPath(ImmId id, const ImmAstContext& ctx)
     return result;
 }
 
-Vec<ImmId> ImmAstParentMap::getParentChain(ImmId id, bool withSelf) const {
+Vec<ImmId> ImmAstTrackingMap::getParentChain(ImmId id, bool withSelf)
+    const {
     Vec<ImmId> result;
     Opt<ImmId> tmp = id;
     while (tmp) {
@@ -648,8 +679,6 @@ void assign_sem_field(
 sem::SemId<sem::Org> ImmAstContext::get(ImmId id) {
     return store->get(id, *this);
 }
-
-ImmAdapter ImmAstContext::adapt(ImmId id) { return ImmAdapter{id, this}; }
 
 template <org::IsImmOrgValueType ImmType>
 ImmId_t org::ImmAstKindStore<ImmType>::add(
