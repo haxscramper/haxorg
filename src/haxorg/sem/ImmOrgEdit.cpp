@@ -190,3 +190,42 @@ ImmAstReplaceGroup org::demoteSubtree(
 
     return edits;
 }
+
+Opt<ImmAstReplace> org::moveSubnode(
+    ImmId              target,
+    int                position,
+    int                offset,
+    ImmAstEditContext& ctx,
+    bool               bounded) {
+    int  targetPosition = position + offset;
+    auto targetAdapter  = ctx->adapt(target);
+
+    LOGIC_ASSERTION_CHECK(
+        0 <= position && position < targetAdapter.size(),
+        "Node {} has no subnode at position {}",
+        target,
+        position);
+
+    if (bounded) {
+        LOGIC_ASSERTION_CHECK(
+            0 <= targetPosition && targetPosition < targetAdapter.size(),
+            "Cannot move subnode {} of node {} to offset {} (position {} "
+            "is out of subnode bounds)",
+            position,
+            target,
+            offset,
+            targetPosition);
+    }
+
+    targetPosition = std::clamp(
+        targetPosition, 0, targetAdapter.size() - 1);
+
+    if (targetPosition == position) { return std::nullopt; }
+
+    auto subnodes = targetAdapter->subnodes;
+    auto inserted = subnodes.at(position);
+    subnodes      = subnodes.drop(position);
+    subnodes      = subnodes.insert(inserted, targetPosition);
+
+    return setSubnodes(target, subnodes, ctx);
+}

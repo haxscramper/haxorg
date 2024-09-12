@@ -271,7 +271,6 @@ struct ImmAstStore {
         Func               cb);
 
 
-
     /// \brief Generate new set of parent nodes for the node update.
     ImmAstReplaceEpoch cascadeUpdate(
         const ImmAstReplaceGroup&,
@@ -287,6 +286,11 @@ struct ImmAstStore {
     sem::SemId<sem::Org> get(org::ImmId id, ImmAstContext const& ctx);
 };
 
+
+ImmAstReplace setSubnodes(
+    org::ImmId         target,
+    ImmVec<org::ImmId> subnodes,
+    ImmAstEditContext& ctx);
 
 struct ImmRootAddResult;
 struct ImmAstVersion;
@@ -713,7 +717,6 @@ concept IsImmOrg = std::
 
 using SubnodeVisitor = Func<void(ImmAdapter)>;
 void eachSubnodeRec(org::ImmAdapter id, SubnodeVisitor cb);
-
 
 
 } // namespace org

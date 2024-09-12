@@ -23,7 +23,7 @@ EACH_SEM_ORG_KIND(_kind)
 #undef _kind
 
 
-ImmAstReplace ImmAstStore::setSubnodes(
+ImmAstReplace org::setSubnodes(
     ImmId              target,
     ImmVec<ImmId>      subnodes,
     ImmAstEditContext& ctx) {
@@ -32,7 +32,7 @@ ImmAstReplace ImmAstStore::setSubnodes(
     ImmAstReplace result;
     switch_node_value(target, *ctx.ctx, [&]<typename N>(N node) {
         node.subnodes = subnodes;
-        result        = setNode(target, node, ctx);
+        result        = ctx.store().setNode(target, node, ctx);
     });
 
     return result;
