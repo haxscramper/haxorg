@@ -343,7 +343,7 @@ ImmRootAddResult ImmAstContext::addRoot(sem::SemId<sem::Org> data) {
 ImmAstVersion ImmAstContext::init(sem::SemId<sem::Org> root) {
     auto [store, imm_root] = addRoot(root);
     ImmAstReplace replace{
-        .original = ImmPath{},
+        .original = ImmUniqId{},
         .replaced = imm_root,
     };
 

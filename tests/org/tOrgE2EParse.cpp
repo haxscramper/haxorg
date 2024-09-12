@@ -825,7 +825,7 @@ TEST(ImmOrgApi, ReplaceSubnodeAtPath) {
 
     auto version1  = start.init(start_node);
     auto store     = version1.context;
-    auto paragraph = store.at(version1.epoch.getRoot())->subnodes.at(0);
+    auto paragraph = version1.getRootAdapter().at(0);
 
     auto ctx      = store.getEditContext();
     auto word_xx  = store.add(replace_node, ctx);
@@ -838,52 +838,46 @@ TEST(ImmOrgApi, ReplaceSubnodeAtPath) {
     auto const& c = gen_view(version2.epoch.replaced.allReplacements())
                   | rs::to<Vec>();
 
-    auto const& doc1_id = c.at(1).original;
-    auto const& doc2_id = c.at(1).replaced;
-    auto const& par1_id = c.at(0).original;
-    auto const& par2_id = c.at(0).replaced;
+    auto const& doc1_id = ctx->adapt(c.at(1).original);
+    auto const& doc2_id = ctx->adapt(c.at(1).replaced);
+    auto const& par1_id = ctx->adapt(c.at(0).original);
+    auto const& par2_id = ctx->adapt(c.at(0).replaced);
 
-    EXPECT_EQ(doc1_id.getKind(), OrgSemKind::Document);
-    EXPECT_EQ(doc2_id.getKind(), OrgSemKind::Document);
+    EXPECT_EQ(doc1_id->getKind(), OrgSemKind::Document);
+    EXPECT_EQ(doc2_id->getKind(), OrgSemKind::Document);
 
-    EXPECT_EQ(doc1_id.getNodeIndex(), 1);
-    EXPECT_EQ(doc2_id.getNodeIndex(), 2);
+    EXPECT_EQ(doc1_id.id.getNodeIndex(), 1);
+    EXPECT_EQ(doc2_id.id.getNodeIndex(), 2);
 
-    EXPECT_EQ(par1_id.getKind(), OrgSemKind::Paragraph);
-    EXPECT_EQ(par2_id.getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(par1_id->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(par2_id->getKind(), OrgSemKind::Paragraph);
 
-    EXPECT_EQ(par1_id.getNodeIndex(), 1);
-    EXPECT_EQ(par2_id.getNodeIndex(), 2);
+    EXPECT_EQ(par1_id.id.getNodeIndex(), 1);
+    EXPECT_EQ(par2_id.id.getNodeIndex(), 2);
 
-    auto const& doc1 = store2.at_t<org::ImmDocument>(doc1_id);
-    auto const& doc2 = store2.at_t<org::ImmDocument>(doc2_id);
+    auto const& doc1 = doc1_id.value<org::ImmDocument>();
+    auto const& doc2 = doc2_id.value<org::ImmDocument>();
+    auto const& par1 = par1_id.value<org::ImmParagraph>();
+    auto const& par2 = par2_id.value<org::ImmParagraph>();
 
-    auto const& par1 = store2.at_t<org::ImmParagraph>(par1_id);
-    auto const& par2 = store2.at_t<org::ImmParagraph>(par2_id);
+    EXPECT_EQ(doc1.subnodes.size(), 1);
+    EXPECT_EQ(doc1.indexOf(par1_id.id), 0);
 
-    EXPECT_EQ(doc1->subnodes.size(), 1);
-    EXPECT_EQ(doc1->indexOf(par1_id), 0);
-    EXPECT_FALSE(store.hasParent(par2_id));
-    EXPECT_TRUE(store.hasParent(par1_id));
-    EXPECT_EQ(store.getParent(par1_id).value(), doc1_id);
+    EXPECT_EQ(doc2.subnodes.size(), 1);
+    EXPECT_EQ(doc2.indexOf(par2_id.id), 0);
 
-    EXPECT_EQ(doc2->subnodes.size(), 1);
-    EXPECT_EQ(doc2->indexOf(par2_id), 0);
-    EXPECT_FALSE(store2.hasParent(par1_id));
-    EXPECT_TRUE(store2.hasParent(par2_id));
-    EXPECT_EQ(store2.getParent(par2_id).value(), doc2_id);
 
-    auto word0_id = par1->subnodes.at(0);
-    auto word2_id = par1->subnodes.at(2);
-    auto word4_id = par1->subnodes.at(4);
+    auto word0_id = par1_id.at(0);
+    auto word2_id = par1_id.at(2);
+    auto word4_id = par1_id.at(4);
 
-    EXPECT_EQ(word0_id.getKind(), OrgSemKind::Word);
-    EXPECT_EQ(word2_id.getKind(), OrgSemKind::Word);
-    EXPECT_EQ(word4_id.getKind(), OrgSemKind::Word);
+    EXPECT_EQ(word0_id->getKind(), OrgSemKind::Word);
+    EXPECT_EQ(word2_id->getKind(), OrgSemKind::Word);
+    EXPECT_EQ(word4_id->getKind(), OrgSemKind::Word);
 
-    EXPECT_EQ(store.at_t<org::ImmWord>(word0_id)->text, "word0");
-    EXPECT_EQ(store.at_t<org::ImmWord>(word2_id)->text, "word2");
-    EXPECT_EQ(store.at_t<org::ImmWord>(word4_id)->text, "word4");
+    EXPECT_EQ(word0_id.value<org::ImmWord>().text, "word0");
+    EXPECT_EQ(word2_id.value<org::ImmWord>().text, "word2");
+    EXPECT_EQ(word4_id.value<org::ImmWord>().text, "word4");
 
     auto gv = org::toGraphviz(
         {version1, version2},
@@ -935,7 +929,6 @@ class ImmOrgApiEdit : public ::testing::Test {
         org::ImmAstGraphvizConf const& conf = org::ImmAstGraphvizConf{
             .withAuxNodes    = true,
             .withEditHistory = true,
-            .withNodePath    = true,
         }) {
         Graphviz gvc;
         auto     gv = org::toGraphviz(history, conf);
@@ -978,7 +971,7 @@ TEST_F(ImmOrgApiEdit, LeafSubtreeDemote) {
     org::ImmAstVersion v1 = getInitialVersion(getSubtreeDash());
 
     {
-        auto root = start.adapt(v1.epoch.getRoot());
+        auto root = v1.getRootAdapter();
         writeFile(
             "/tmp/SubtreePromotion_repr.txt",
             root.treeRepr().toString(false));
@@ -989,12 +982,12 @@ TEST_F(ImmOrgApiEdit, LeafSubtreeDemote) {
     org::ImmAstVersion v2 = v1.context.getEditVersion(
         [&](org::ImmAstContext&     ast,
             org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
-            auto root  = ctx->adapt(v1.epoch.getRoot());
+            auto root  = v1.getRootAdapter();
             auto s3010 = root.at(path);
             EXPECT_EQ(s3010->getKind(), OrgSemKind::Subtree);
             EXPECT_EQ(s3010->as<org::ImmSubtree>()->level, 3);
             return demoteSubtree(
-                s3010.id, org::SubtreeMove::ForceLevels, ctx);
+                s3010, org::SubtreeMove::ForceLevels, ctx);
         });
 
     org::ImmAdapter::TreeReprConf conf{.withAuxFields = true};
@@ -1038,12 +1031,11 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_OneNested) {
     org::ImmAstVersion v2 = v1.context.getEditVersion(
         [&](org::ImmAstContext&     ast,
             org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
-            auto root = ctx->adapt(v1.epoch.getRoot());
+            auto root = v1.getRootAdapter();
             auto s201 = root.at({0, 1});
             EXPECT_EQ(s201->getKind(), OrgSemKind::Subtree);
             EXPECT_EQ(s201->as<org::ImmSubtree>()->level, 2);
-            return demoteSubtree(
-                s201.id, org::SubtreeMove::ForceLevels, ctx);
+            return demoteSubtree(s201, org::SubtreeMove::ForceLevels, ctx);
         });
 
     writeGvHistory({v1, v2}, "v1_v2");
@@ -1066,7 +1058,7 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_All) {
     org::ImmAstVersion v2 = v1.context.getEditVersion(
         [&](org::ImmAstContext&     ast,
             org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
-            auto root = ctx->adapt(v1.epoch.getRoot());
+            auto root = v1.getRootAdapter();
             auto s1   = root.at(0);
             return demoteSubtree(
                 s1.id, org::SubtreeMove::ForceLevels, ctx);
@@ -1092,7 +1084,7 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_WithParentChange) {
         return v.context.getEditVersion(
             [&](org::ImmAstContext&     ast,
                 org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
-                auto root = ctx->adapt(v.epoch.getRoot());
+                auto root = v.getRootAdapter();
                 auto s1   = root.at(path);
                 return demoteSubtree(
                     s1.id, org::SubtreeMove::ForceLevels, ctx);
@@ -1141,7 +1133,6 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_WithParentChange) {
         org::ImmAstGraphvizConf{
             .withAuxNodes      = true,
             .withEditHistory   = false,
-            .withNodePath      = false,
             .withEpochClusters = false,
         });
 
@@ -1167,7 +1158,7 @@ TEST_F(ImmOrgApiEdit, PhysicalDemote) {
     org::ImmAstVersion v2 = v1.context.getEditVersion(
         [&](org::ImmAstContext&     ast,
             org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
-            auto root = ctx->adapt(v1.epoch.getRoot());
+            auto root = v1.getRootAdapter();
             auto s1   = root.at({0, 0});
             return demoteSubtree(s1.id, org::SubtreeMove::Physical, ctx);
         });
@@ -1193,9 +1184,7 @@ TEST_F(ImmOrgApiEdit, ResetTitle) {
         [&](org::ImmAstContext&     ast,
             org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
             return ctx.store().updateNode<org::ImmSubtree>(
-                v1.getRootAdapter().at(0).id,
-                ctx,
-                [&](org::ImmSubtree tree) {
+                v1.getRootAdapter().at(0), ctx, [&](org::ImmSubtree tree) {
                     tree.title = ctx->add(
                                         sem::asOneNode(
                                             sem::parseString("replaced")),
@@ -1233,7 +1222,7 @@ TEST_F(ImmOrgApiEdit, MoveSubnodes) {
             [&](org::ImmAstContext&     ast,
                 org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
                 auto update = moveSubnode(
-                    v1.getRootAdapter().at(0).id,
+                    v1.getRootAdapter().at(0),
                     position,
                     offset,
                     ctx,

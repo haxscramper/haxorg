@@ -70,6 +70,22 @@ struct ImmPathItem {
     int          getIndex() const { return std::get<int>(step); }
     bool         isIndex() const { return step.index() == 0; }
     bool         isField() const { return step.index() == 1; }
+
+    bool operator==(ImmPathItem const& other) const {
+        return step == other.step;
+    }
+
+    bool operator<(ImmPathItem const& other) const {
+        if (isIndex() == other.isIndex()) {
+            if (isIndex()) {
+                return getIndex() < other.getIndex();
+            } else {
+                return getField() < other.getField();
+            }
+        } else {
+            return isIndex() < other.isIndex();
+        }
+    }
 };
 
 struct ImmPath {
@@ -109,6 +125,21 @@ struct ImmPath {
         auto res = *this;
         res.steps.pop_back();
         return res;
+    }
+
+    bool operator==(ImmPath const& other) const {
+        return root == other.root && steps == other.steps;
+    }
+
+    bool operator<(ImmPath const& other) const {
+        if (steps.size() == other.steps.size()) {
+            for (int i = 0; i < steps.size(); ++i) {
+                if (steps.at(i) < other.steps.at(i)) { return true; }
+            }
+            return false;
+        } else {
+            return steps.size() < other.steps.size();
+        }
     }
 };
 
@@ -183,6 +214,13 @@ struct ImmAstReplace {
     DESC_FIELDS(ImmAstReplace, (original, replaced));
 };
 
+struct ImmUniqFullCompare {
+    bool operator()(ImmUniqId first, ImmUniqId other) const {
+        return first.id.getValue() < other.id.getValue()
+            && first.path < other.path;
+    }
+};
+
 struct ImmIdFullCompare {
     bool operator()(ImmId first, ImmId other) const {
         return first.getValue() < other.getValue();
@@ -190,8 +228,8 @@ struct ImmIdFullCompare {
 };
 
 struct ImmAstReplaceGroup {
-    SortedMap<ImmUniqId, ImmUniqId, ImmIdFullCompare> map;
-    SortedMap<ImmId, ImmId, ImmIdFullCompare>         nodeReplaceMap;
+    SortedMap<ImmUniqId, ImmUniqId, ImmUniqFullCompare> map;
+    SortedMap<ImmId, ImmId, ImmIdFullCompare>           nodeReplaceMap;
 
     ImmAstReplaceGroup() {}
     ImmAstReplaceGroup(ImmAstReplace const& replace) { incl(replace); }
@@ -708,7 +746,7 @@ ImmAstReplace ImmAstStore::updateNode(
     ImmAdapter         id,
     ImmAstEditContext& ctx,
     Func               cb) {
-    auto const&   start_value  = ctx.ctx->value<T>(id);
+    auto const&   start_value  = id.value<T>();
     auto const&   update_value = cb(start_value);
     ImmAstReplace update       = setNode(id, update_value, ctx);
     return update;
