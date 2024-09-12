@@ -4,29 +4,26 @@
 using namespace org;
 
 ImmAstReplace org::setSubnode(
-    ImmId              target,
+    CR<ImmAdapter>     node,
     ImmId              newSubnode,
     int                position,
     ImmAstEditContext& ctx) {
-    AST_EDIT_MSG(fmt("Set {}[{}] = {}", target, position, newSubnode));
+    AST_EDIT_MSG(fmt("Set {}[{}] = {}", node, position, newSubnode));
     return setSubnodes(
-        target,
-        ctx.ctx->at(target)->subnodes.set(position, newSubnode),
-        ctx);
+        node, node->subnodes.set(position, newSubnode), ctx);
 }
 
 ImmAstReplace org::insertSubnode(
-    ImmId              target,
+    CR<ImmAdapter>     node,
     ImmId              add,
     int                position,
     ImmAstEditContext& ctx) {
-    AST_EDIT_MSG(fmt("Insert {}[{}] = {}", target, position, add));
-    return setSubnodes(
-        target, ctx.ctx->at(target)->subnodes.insert(position, add), ctx);
+    AST_EDIT_MSG(fmt("Insert {}[{}] = {}", node, position, add));
+    return setSubnodes(node, node->subnodes.insert(position, add), ctx);
 }
 
 ImmAstReplace org::insertSubnodes(
-    ImmId              target,
+    CR<ImmAdapter>     node,
     Vec<ImmId>         add,
     int                position,
     ImmAstEditContext& ctx) {
@@ -34,67 +31,65 @@ ImmAstReplace org::insertSubnodes(
     LOGIC_ASSERTION_CHECK(0 <= position, "{}", position);
 
 
-    auto tmp = ctx.ctx->at(target)->subnodes;
+    auto tmp = node->subnodes;
     AST_EDIT_MSG(fmt("Insert {} at {} in {}", add, position, tmp));
     for (int i = 0; i < position; ++i) { u.push_back(tmp.at(i)); }
     for (auto const& a : add) { u.push_back(a); }
     for (int i = position; i < tmp.size(); ++i) { u.push_back(tmp.at(i)); }
-    return setSubnodes(target, ImmVec<ImmId>{u.begin(), u.end()}, ctx);
+    return setSubnodes(node, ImmVec<ImmId>{u.begin(), u.end()}, ctx);
 }
 
 ImmAstReplace org::appendSubnode(
-    ImmId              target,
+    CR<ImmAdapter>     node,
     ImmId              add,
     ImmAstEditContext& ctx) {
-    return insertSubnode(
-        target, add, ctx->at(target)->subnodes.size(), ctx);
+    return insertSubnode(node, add, node->size(), ctx);
 }
 
 ImmAstReplace org::dropSubnode(
-    ImmId              target,
+    CR<ImmAdapter>     node,
     int                position,
     ImmAstEditContext& ctx) {
-    AST_EDIT_MSG(fmt("Drop subnode {}[{}]", target, position));
-    return setSubnodes(
-        target, ctx.ctx->at(target)->subnodes.take(position), ctx);
+    AST_EDIT_MSG(fmt("Drop subnode {}[{}]", node, position));
+    return setSubnodes(node, node->subnodes.take(position), ctx);
 }
 
 ImmAstReplace org::dropSubnode(
-    ImmId              target,
+    CR<ImmAdapter>     node,
     ImmId              subnode,
     ImmAstEditContext& ctx) {
-    int idx = ctx->at(target)->indexOf(subnode);
+    int idx = node->indexOf(subnode);
     LOGIC_ASSERTION_CHECK(
-        idx != -1, "Cannot remove subnode {} from {}", target, subnode);
-    return dropSubnode(target, idx, ctx);
+        idx != -1, "Cannot remove subnode {} from {}", node, subnode);
+    return dropSubnode(node, idx, ctx);
 }
 
 Pair<ImmAstReplace, ImmId> org::popSubnode(
-    ImmId              target,
+    CR<ImmAdapter>     node,
     int                position,
     ImmAstEditContext& ctx) {
-    auto pop    = ctx.ctx->at(target)->subnodes.at(position);
-    auto update = dropSubnode(target, position, ctx);
+    auto pop    = node->subnodes.at(position);
+    auto update = dropSubnode(node, position, ctx);
 
     return {update, pop};
 }
 
 ImmAstReplaceGroup org::demoteSubtree(
-    ImmId              mainTarget,
+    CR<ImmAdapter>     node,
     SubtreeMove        move,
     ImmAstEditContext& ctx) {
-    LOGIC_ASSERTION_CHECK(mainTarget.is(OrgSemKind::Subtree), "");
+    LOGIC_ASSERTION_CHECK(node.is(OrgSemKind::Subtree), "");
     ImmAstReplaceGroup edits;
 
     if (move == SubtreeMove::EnsureLevels
         || move == SubtreeMove::ForceLevels) {
 
-        AST_EDIT_MSG(fmt("Demote subtree {}", mainTarget));
-        Func<ImmAstReplace(ImmId)> aux;
-        aux = [&](ImmId target) -> ImmAstReplace {
-            for (auto const& sub : ctx->adapt(target)) {
+        AST_EDIT_MSG(fmt("Demote subtree {}", node));
+        Func<ImmAstReplace(CR<ImmAdapter>)> aux;
+        aux = [&](CR<ImmAdapter> target) -> ImmAstReplace {
+            for (auto const& sub : node.sub()) {
                 auto __scope = ctx.debug.scopeLevel();
-                aux(sub.id);
+                aux(sub);
             }
 
             auto __scope = ctx.debug.scopeLevel();
@@ -109,10 +104,9 @@ ImmAstReplaceGroup org::demoteSubtree(
             return update;
         };
 
-        auto update        = aux(mainTarget);
-        auto targetAdapter = ctx->adapt(mainTarget);
-        auto parent        = targetAdapter.getParent();
-        auto adjacent      = targetAdapter.getAdjacentNode(-1);
+        auto update   = aux(node);
+        auto parent   = node.getParent();
+        auto adjacent = node.getAdjacentNode(-1);
 
         if (parent && adjacent && adjacent->is(OrgSemKind::Subtree)) {
             auto adjacentTree = adjacent.value().as<org::ImmSubtree>();
@@ -127,12 +121,12 @@ ImmAstReplaceGroup org::demoteSubtree(
                         "target drop:{}",
                         adjacent->id,
                         update.replaced,
-                        mainTarget));
+                        node));
 
                 auto __scope = ctx.debug.scopeLevel();
-                edits.incl(dropSubnode(parent->id, mainTarget, ctx));
+                edits.incl(dropSubnode(*parent, node.id, ctx));
                 edits.incl(
-                    appendSubnode(adjacent->id, update.replaced, ctx));
+                    appendSubnode(*adjacent, update.replaced.id, ctx));
             } else {
                 AST_EDIT_MSG(
                     fmt("Subtree demote, no reparenting, levels are "
@@ -149,10 +143,10 @@ ImmAstReplaceGroup org::demoteSubtree(
                     adjacent));
         }
     } else {
-        AST_EDIT_MSG(fmt("Physical demote subtree {}", mainTarget));
+        AST_EDIT_MSG(fmt("Physical demote subtree {}", node));
         Vec<ImmId> newSubnodes;
         Vec<ImmId> moveSubnodes;
-        auto       tree  = ctx->adapt(mainTarget).as<org::ImmSubtree>();
+        auto       tree  = node.as<org::ImmSubtree>();
         int        level = tree->level;
         for (auto const& sub : tree.sub()) {
             if (auto subtree = sub.asOpt<org::ImmSubtree>(); subtree) {
@@ -170,7 +164,7 @@ ImmAstReplaceGroup org::demoteSubtree(
         AST_EDIT_MSG(fmt("Move subnode list {}", moveSubnodes));
 
         auto update = ctx.store().updateNode<org::ImmSubtree>(
-            mainTarget, ctx, [&](org::ImmSubtree value) {
+            node, ctx, [&](org::ImmSubtree value) {
                 value.subnodes = ImmVec<ImmId>{
                     newSubnodes.begin(), newSubnodes.end()};
                 value.level += 1;
@@ -182,7 +176,7 @@ ImmAstReplaceGroup org::demoteSubtree(
         if (!moveSubnodes.empty()) {
             auto parent = tree.getParent();
             auto update = insertSubnodes(
-                parent->id, moveSubnodes, tree.getSelfIndex(), ctx);
+                *parent, moveSubnodes, tree.getSelfIndex(), ctx);
             edits.incl(update);
         }
     }
@@ -192,40 +186,38 @@ ImmAstReplaceGroup org::demoteSubtree(
 }
 
 Opt<ImmAstReplace> org::moveSubnode(
-    ImmId              target,
+    CR<ImmAdapter>     node,
     int                position,
     int                offset,
     ImmAstEditContext& ctx,
     bool               bounded) {
-    int  targetPosition = position + offset;
-    auto targetAdapter  = ctx->adapt(target);
+    int targetPosition = position + offset;
 
     LOGIC_ASSERTION_CHECK(
-        0 <= position && position < targetAdapter.size(),
+        0 <= position && position < node.size(),
         "Node {} has no subnode at position {}",
-        target,
+        node,
         position);
 
     if (bounded) {
         LOGIC_ASSERTION_CHECK(
-            0 <= targetPosition && targetPosition < targetAdapter.size(),
+            0 <= targetPosition && targetPosition < node.size(),
             "Cannot move subnode {} of node {} to offset {} (position {} "
             "is out of subnode bounds)",
             position,
-            target,
+            node,
             offset,
             targetPosition);
     }
 
-    targetPosition = std::clamp(
-        targetPosition, 0, targetAdapter.size() - 1);
+    targetPosition = std::clamp(targetPosition, 0, node.size() - 1);
 
     if (targetPosition == position) { return std::nullopt; }
 
-    auto subnodes = targetAdapter->subnodes;
+    auto subnodes = node->subnodes;
     auto inserted = subnodes.at(position);
     subnodes      = subnodes.drop(position);
     subnodes      = subnodes.insert(inserted, targetPosition);
 
-    return setSubnodes(target, subnodes, ctx);
+    return setSubnodes(node, subnodes, ctx);
 }

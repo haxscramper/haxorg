@@ -36,16 +36,16 @@ enum class SubtreeMove
     EnsureLevels,
 };
 
-ImmAstReplaceGroup demoteSubtree(org::ImmId target, SubtreeMove move, ImmAstEditContext &ctx);
-Vec<ImmAstReplace> promoteSubtree(org::ImmId target, SubtreeMove move, ImmAstEditContext &ctx);
-ImmAstReplace setSubnode(org::ImmId target, org::ImmId newSubnode, int position, ImmAstEditContext &ctx);
-ImmAstReplace insertSubnode(ImmId target, ImmId add, int position, ImmAstEditContext &ctx);
-ImmAstReplace insertSubnodes(ImmId target, Vec<ImmId> add, int position, ImmAstEditContext &ctx);
-ImmAstReplace appendSubnode(ImmId target, ImmId add, ImmAstEditContext &ctx);
-ImmAstReplace dropSubnode(org::ImmId target, int position, ImmAstEditContext &ctx);
-ImmAstReplace dropSubnode(org::ImmId target, org::ImmId subnode, ImmAstEditContext &ctx);
-Opt<ImmAstReplace> moveSubnode(org::ImmId target, int position, int offset, ImmAstEditContext &ctx, bool bounded = true);
-Pair<ImmAstReplace, org::ImmId> popSubnode(org::ImmId target, int position, ImmAstEditContext &ctx);
+ImmAstReplaceGroup demoteSubtree(CR<ImmAdapter> node, SubtreeMove move, ImmAstEditContext& ctx);
+Vec<ImmAstReplace> promoteSubtree(CR<ImmAdapter> node, SubtreeMove move, ImmAstEditContext& ctx);
+ImmAstReplace setSubnode(CR<ImmAdapter> node, org::ImmId newSubnode, int position, ImmAstEditContext& ctx);
+ImmAstReplace insertSubnode(CR<ImmAdapter> node, ImmId add, int position, ImmAstEditContext& ctx);
+ImmAstReplace insertSubnodes(CR<ImmAdapter> node, Vec<ImmId> add, int position, ImmAstEditContext& ctx);
+ImmAstReplace appendSubnode(CR<ImmAdapter> node, ImmId add, ImmAstEditContext& ctx);
+ImmAstReplace dropSubnode(CR<ImmAdapter> node, int position, ImmAstEditContext& ctx);
+ImmAstReplace dropSubnode(CR<ImmAdapter> node, org::ImmId subnode, ImmAstEditContext& ctx);
+Opt<ImmAstReplace> moveSubnode(CR<ImmAdapter> node, int position, int offset, ImmAstEditContext& ctx, bool bounded = true);
+Pair<ImmAstReplace, org::ImmId> popSubnode(CR<ImmAdapter> node, int position, ImmAstEditContext& ctx);
 
 // clang-format on
 } // namespace org

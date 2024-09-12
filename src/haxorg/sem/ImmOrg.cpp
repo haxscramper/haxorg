@@ -481,7 +481,7 @@ Opt<ImmAdapter> ImmAdapter::getParentSubtree() const {
 }
 
 ImmAstTrackingMap ImmAstTrackingMapTransient::persistent() {
-    return ImmAstTrackingMap{.parents = parents.persistent()};
+    return ImmAstTrackingMap{};
 }
 
 ImmAstContext ImmAstEditContext::finish() {
@@ -584,12 +584,6 @@ Graphviz::Graph org::toGraphviz(
                     });
 
                 field("ID", id);
-                if (conf.withNodePath && history.has(idx)) {
-                    if (auto path = history.at(idx).context.getPath(id);
-                        path) {
-                        if (!path->empty()) { field("Path", fmt1(path)); }
-                    }
-                }
                 switch_node_fields(
                     id,
                     ctx,
@@ -649,8 +643,8 @@ Graphviz::Graph org::toGraphviz(
         for (auto const& epoch : history) {
             for (auto const& act :
                  epoch.epoch.replaced.allReplacements()) {
-                auto const& src = gvNodes.get(act.original);
-                auto const& dst = gvNodes.get(act.replaced);
+                auto const& src = gvNodes.get(act.original.id);
+                auto const& dst = gvNodes.get(act.replaced.id);
                 if (src && dst) {
                     auto edge = g.edge(*src, *dst);
                     edge.setConstraint(false);
@@ -765,30 +759,6 @@ Vec<ImmId> org::allSubnodes(const ImmId& value, const ImmAstContext& ctx) {
 #undef _case
 }
 
-ImmId ImmAstContext::getParentForce(ImmId id) const {
-    auto parent = getParent(id);
-    if (parent) {
-        return *parent;
-    } else {
-        throw logic_assertion_error::init(
-            fmt("Node {} does not have a parent in context {}",
-                id,
-                parents.parents.size() < 24 ? fmt1(parents.parents) : ""));
-    }
-}
-
-ImmId ImmAstEditContext::getParentForce(ImmId id) const {
-    auto parent = getParent(id);
-    if (parent) {
-        return *parent;
-    } else {
-        throw logic_assertion_error::init(fmt(
-            "Node {} does not have a parent in edit context {}",
-            id,
-            parents.parents.size() < 24 ? fmt1(parents.parents)
-                                        : fmt1(parents.parents.size())));
-    }
-}
 
 ImmAdapter ImmAstVersion::getRootAdapter() {
     return org::ImmAdapter{
@@ -803,7 +773,7 @@ ImmVec<ImmId> ImmAstReplaceGroup::newSubnodes(
     ImmVec<ImmId> result;
     auto          tmp = result.transient();
     for (auto const& it : oldSubnodes) {
-        if (auto update = map.get(it); *update) {
+        if (auto update = nodeReplaceMap.get(it); *update) {
             tmp.push_back(*update);
         } else {
             tmp.push_back(it);

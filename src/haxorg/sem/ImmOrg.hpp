@@ -191,11 +191,14 @@ struct ImmIdFullCompare {
 
 struct ImmAstReplaceGroup {
     SortedMap<ImmUniqId, ImmUniqId, ImmIdFullCompare> map;
+    SortedMap<ImmId, ImmId, ImmIdFullCompare>         nodeReplaceMap;
 
     ImmAstReplaceGroup() {}
     ImmAstReplaceGroup(ImmAstReplace const& replace) { incl(replace); }
 
     void set(ImmAstReplace const& replace) {
+        nodeReplaceMap.insert_or_assign(
+            replace.original.id, replace.replaced.id);
         map.insert_or_assign(replace.original, replace.replaced);
     }
 
@@ -289,11 +292,14 @@ struct ImmAstStore {
     ImmOrg const* at(ImmId index) const;
 
     template <org::IsImmOrgValueType T>
-    ImmAstReplace setNode(ImmAdapter const& target, T const& value);
+    ImmAstReplace setNode(
+        ImmAdapter const&  target,
+        T const&           value,
+        ImmAstEditContext& ctx);
 
     template <org::IsImmOrgValueType T, typename Func>
     ImmAstReplace updateNode(
-        org::ImmId         id,
+        ImmAdapter         id,
         ImmAstEditContext& ctx,
         Func               cb);
 
@@ -391,16 +397,6 @@ struct [[nodiscard]] ImmAstContext {
     {}
 };
 
-template <org::IsImmOrgValueType T, typename Func>
-ImmAstReplace ImmAstStore::updateNode(
-    ImmId              id,
-    ImmAstEditContext& ctx,
-    Func               cb) {
-    auto const&   start_value  = ctx.ctx->value<T>(id);
-    auto const&   update_value = cb(start_value);
-    ImmAstReplace update       = setNode(id, update_value, ctx);
-    return update;
-}
 
 struct ImmRootAddResult {
     ImmAstContext context;
@@ -422,7 +418,6 @@ struct ImmAstGraphvizConf {
     bool   withEpochClusters = true;
     bool   withAuxNodes      = false;
     bool   withEditHistory   = false;
-    bool   withNodePath      = false;
 
     UnorderedMap<Str, Vec<Str>> skippedFields = {
         {"DocumentOptions", {"exportConfig"}},
@@ -679,6 +674,12 @@ struct ImmAdapter {
         return result;
     }
 
+
+    template <typename T>
+    T const& value() const {
+        return *as<T>().get();
+    }
+
     template <typename T>
     ImmAdapterT<T> as() const {
         if constexpr (!std::is_abstract_v<T>) {
@@ -702,7 +703,21 @@ struct ImmAdapter {
     }
 };
 
-ImmAstReplace setSubnodes(ImmAdapter target, ImmVec<org::ImmId> subnodes);
+template <org::IsImmOrgValueType T, typename Func>
+ImmAstReplace ImmAstStore::updateNode(
+    ImmAdapter         id,
+    ImmAstEditContext& ctx,
+    Func               cb) {
+    auto const&   start_value  = ctx.ctx->value<T>(id);
+    auto const&   update_value = cb(start_value);
+    ImmAstReplace update       = setNode(id, update_value, ctx);
+    return update;
+}
+
+ImmAstReplace setSubnodes(
+    ImmAdapter         target,
+    ImmVec<org::ImmId> subnodes,
+    ImmAstEditContext& ctx);
 
 
 template <typename T>
@@ -768,12 +783,19 @@ struct std::formatter<org::ImmAstStore> : std::formatter<std::string> {
     }
 };
 
+template <>
+struct std::formatter<org::ImmPath> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const org::ImmPath& p, FormatContext& ctx) const {
+        return fmt_ctx(fmt("{}//{}", p.root, p.steps), ctx);
+    }
+};
 
 template <>
 struct std::formatter<org::ImmAdapter> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const org::ImmAdapter& p, FormatContext& ctx) const {
-        return fmt_ctx(p.id, ctx);
+        return fmt_ctx(fmt("{}->{}", p.selfPath, p.id), ctx);
     }
 };
 

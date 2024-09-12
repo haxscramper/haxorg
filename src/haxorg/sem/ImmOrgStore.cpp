@@ -23,13 +23,16 @@ EACH_SEM_ORG_KIND(_kind)
 #undef _kind
 
 
-ImmAstReplace org::setSubnodes(ImmAdapter target, ImmVec<ImmId> subnodes) {
+ImmAstReplace org::setSubnodes(
+    ImmAdapter         target,
+    ImmVec<ImmId>      subnodes,
+    ImmAstEditContext& ctx) {
     LOGIC_ASSERTION_CHECK(
         !target.isNil(), "cannot set subnodes to nil node");
     Opt<ImmAstReplace> result;
     switch_node_value(target.id, *target.ctx, [&]<typename N>(N node) {
         node.subnodes = subnodes;
-        result        = target.ctx->store->setNode(target, node);
+        result        = target.ctx->store->setNode(target, node, ctx);
     });
 
     return result.value();
@@ -38,9 +41,9 @@ ImmAstReplace org::setSubnodes(ImmAdapter target, ImmVec<ImmId> subnodes) {
 
 template <org::IsImmOrgValueType T>
 ImmAstReplace ImmAstStore::setNode(
-    const ImmAdapter& target,
-    const T&          value) {
-    auto& ctx         = *target.ctx;
+    const ImmAdapter&  target,
+    const T&           value,
+    ImmAstEditContext& ctx) {
     ImmId result_node = getStore<T>()->add(value, ctx);
 
     LOGIC_ASSERTION_CHECK(
@@ -48,7 +51,7 @@ ImmAstReplace ImmAstStore::setNode(
     result_node.assertValid();
 
     AST_EDIT_MSG(
-        fmt("Original ID:{:<16} {}", fmt1(target), ctx.value<T>(target)));
+        fmt("Original ID:{:<16} {}", fmt1(target), target.value<T>()));
     AST_EDIT_MSG(fmt("Replaced ID:{:<16} {}", fmt1(result_node), value));
 
     return ImmAstReplace{
@@ -64,15 +67,15 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
     AST_EDIT_MSG("Start cascade update");
     auto __scope = ctx.debug.scopeLevel();
 
-    UnorderedMap<ImmId, Vec<ImmId>> editDependencies;
-    UnorderedSet<ImmId>             editParents;
+    UnorderedMap<ImmUniqId, Vec<ImmUniqId>> editDependencies;
+    UnorderedSet<ImmUniqId>                 editParents;
 
     for (auto const& act : replace.allReplacements()) {
         for (auto const& parent :
-             ctx->getParentChain(act.original, false)) {
-            editParents.incl(parent);
-            if (replace.map.contains(parent)) {
-                editDependencies[parent].push_back(act.original);
+             ctx->adapt(act.original).getParentChain(false)) {
+            editParents.incl(parent.uniq());
+            if (replace.map.contains(parent.uniq())) {
+                editDependencies[parent.uniq()].push_back(act.original);
             }
         }
     }
@@ -98,7 +101,7 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
 
     aux = [&](ImmAdapter node) -> ImmId {
         auto __scope = ctx.debug.scopeLevel();
-        if (editParents.contains(node.id)) {
+        if (editParents.contains(node.uniq())) {
             // The node is a parent subnode for some edit.
             Opt<ImmUniqId> edit = replace.map.get(node.uniq());
             AST_EDIT_MSG(fmt("Node {} direct edit:{}", node.id, edit));
@@ -130,7 +133,7 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
                     /*1*/ *edit,
                     /*2*/ original->subnodes,
                     /*3*/ replaced->subnodes,
-                    /*4*/ editDependencies.at(node.id),
+                    /*4*/ editDependencies.at(node.uniq()),
                     /*5*/ updatedSubnodes);
 
                 result.replaced.incl({node.uniq(), *edit});
