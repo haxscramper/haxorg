@@ -64,6 +64,7 @@ BOOST_PP_EXPAND(
 
 struct ImmPathItem {
     Variant<int, ImmPathField> step;
+    DESC_FIELDS(ImmPathItem, (step));
 
     ImmPathField getField() const { return std::get<ImmPathField>(step); }
     int          getIndex() const { return std::get<int>(step); }
@@ -74,7 +75,11 @@ struct ImmPathItem {
 struct ImmPath {
     ImmId            root;
     Vec<ImmPathItem> steps;
+    DESC_FIELDS(ImmPath, (root, steps));
 
+    bool empty() const { return steps.empty(); }
+
+    ImmPath() : root{ImmId::Nil()} {}
     ImmPath(ImmId root) : root{root} {};
     ImmPath(ImmId root, Vec<ImmPathItem> const& path)
         : root{root}, steps{path} {}
@@ -107,45 +112,26 @@ struct ImmPath {
     }
 };
 
-struct ImmAstTrackingMapTransient {
-    ImmAstParentMapType::transient_type parents;
+struct ImmUniqId {
+    ImmId   id;
+    ImmPath path;
+    DESC_FIELDS(ImmUniqId, (id, path));
 
-    void setParent(org::ImmId node, org::ImmId parent) {
-        LOGIC_ASSERTION_CHECK(
-            parents.find(node) == nullptr,
-            "Cannot override a parent mapping for a node {} -- its parent "
-            "node is already set as {}, cannot reset to {}",
-            node,
-            *parents.find(node),
-            parent);
-
-        parents.insert({node, parent});
+    ImmUniqId update(ImmId id) const {
+        auto res = *this;
+        res.id   = id;
+        return res;
     }
+};
 
-    void removeParent(org::ImmId node) { parents.erase(node); }
-
+struct ImmAstTrackingMapTransient {
     ImmAstTrackingMap persistent();
-    DESC_FIELDS(ImmAstTrackingMapTransient, (parents));
+    DESC_FIELDS(ImmAstTrackingMapTransient, ());
 };
 
 struct ImmAstTrackingMap {
-    ImmAstParentMapType parents;
-    DESC_FIELDS(ImmAstTrackingMap, (parents));
-
-    Opt<ImmId> getParent(ImmId id) const { return parents.get(id); }
-    /// \brief Return path from the root node of the document to this node,
-    /// following indices in the `.subnode` fields. If the node is stored
-    /// in the member fields, the path is `std::nullopt`, the the root node
-    /// itself has an empty path `[]`.
-    Opt<Vec<int>> getPath(ImmId id, ImmAstContext const& ctx) const;
-    Vec<ImmId>    getParentChain(ImmId id, bool withSelf = true) const;
-    bool          hasParent(org::ImmId node) const {
-        return parents.contains(node);
-    }
-
-    ImmAstTrackingMapTransient transient() {
-        return {.parents = parents.transient()};
-    }
+    DESC_FIELDS(ImmAstTrackingMap, ());
+    ImmAstTrackingMapTransient transient() { return {}; }
 };
 
 struct ImmAstStore;
@@ -162,16 +148,6 @@ struct ImmAstEditContext {
         char const*        function = __builtin_FUNCTION(),
         int                line     = __builtin_LINE(),
         char const*        file     = __builtin_FILE());
-
-    ImmId getParentForce(ImmId id) const;
-
-    Opt<ImmId> getParent(ImmId id) const {
-        if (auto parent = parents.parents.find(id); parent != nullptr) {
-            return *parent;
-        } else {
-            return std::nullopt;
-        }
-    }
 
     ImmAstContext* operator->() { return ctx; }
 };
@@ -201,8 +177,8 @@ struct ImmAstKindStore {
 };
 
 struct ImmAstReplace {
-    org::ImmId original;
-    org::ImmId replaced;
+    org::ImmUniqId original;
+    org::ImmUniqId replaced;
 
     DESC_FIELDS(ImmAstReplace, (original, replaced));
 };
@@ -214,15 +190,15 @@ struct ImmIdFullCompare {
 };
 
 struct ImmAstReplaceGroup {
-    SortedMap<ImmId, ImmId, ImmIdFullCompare> map;
+    SortedMap<ImmUniqId, ImmUniqId, ImmIdFullCompare> map;
 
     ImmAstReplaceGroup() {}
     ImmAstReplaceGroup(ImmAstReplace const& replace) { incl(replace); }
 
     void set(ImmAstReplace const& replace) {
-        LOGIC_ASSERTION_CHECK(replace.original != replace.replaced, "");
         map.insert_or_assign(replace.original, replace.replaced);
     }
+
     void incl(ImmAstReplace const& replace) {
         LOGIC_ASSERTION_CHECK(
             !map.contains(replace.original),
@@ -262,6 +238,8 @@ struct ImmAstReplaceEpoch {
 
     DESC_FIELDS(ImmAstReplaceEpoch, (root, replaced));
 };
+
+struct ImmAdapter;
 
 struct ImmAstStore {
     UnorderedMap<org::ImmId, org::ImmId> parents;
@@ -311,10 +289,7 @@ struct ImmAstStore {
     ImmOrg const* at(ImmId index) const;
 
     template <org::IsImmOrgValueType T>
-    ImmAstReplace setNode(
-        org::ImmId         target,
-        T const&           value,
-        ImmAstEditContext& ctx);
+    ImmAstReplace setNode(ImmAdapter const& target, T const& value);
 
     template <org::IsImmOrgValueType T, typename Func>
     ImmAstReplace updateNode(
@@ -339,11 +314,6 @@ struct ImmAstStore {
 };
 
 
-ImmAstReplace setSubnodes(
-    org::ImmId         target,
-    ImmVec<org::ImmId> subnodes,
-    ImmAstEditContext& ctx);
-
 struct ImmRootAddResult;
 struct ImmAstVersion;
 struct ImmAdapter;
@@ -363,19 +333,6 @@ struct [[nodiscard]] ImmAstContext {
     }
 
     DESC_FIELDS(ImmAstContext, (store, parents));
-
-    /// \brief Get the parent ID, and if it is missing, raise a logic
-    /// assertion error excetion.
-    ImmId getParentForce(ImmId id) const;
-
-    bool       hasParent(ImmId id) const { return parents.hasParent(id); }
-    Opt<ImmId> getParent(ImmId id) const { return parents.getParent(id); }
-    Opt<Vec<int>> getPath(ImmId id) const {
-        return parents.getPath(id, *this);
-    }
-    Vec<ImmId> getParentChain(ImmId id, bool withSelf = true) const {
-        return parents.getParentChain(id, withSelf);
-    }
 
     ImmAstVersion getEditVersion(
         Func<ImmAstReplaceGroup(ImmAstContext&, ImmAstEditContext&)> cb);
@@ -421,8 +378,11 @@ struct [[nodiscard]] ImmAstContext {
 
 
     ImmId at(ImmId node, const ImmPathItem& item) const;
+    ImmId at(ImmPath const& item) const;
 
     void format(ColStream& os, std::string const& prefix = "") const;
+
+    ImmAdapter adapt(ImmUniqId const& id);
 
 
     ImmAstContext()
@@ -593,22 +553,24 @@ struct ImmAdapter {
     iterator end() const { return iterator(this, size()); }
     bool     isNil() const { return id.isNil(); }
 
-    static ImmAdapter FromRoot(
-        ImmId          root,
-        ImmAstContext* ctx,
-        ImmPath const& path) {}
+    ImmAdapter(ImmPath const& path, ImmAstContext* ctx)
+        : id{ctx->at(path)}, ctx{ctx}, selfPath{path} {}
+
+    ImmAdapter(ImmUniqId id, ImmAstContext* ctx)
+        : id{id.id}, ctx{ctx}, selfPath{id.path} {}
 
     ImmAdapter(ImmId id, ImmAstContext* ctx, ImmPath const& path)
-        : id{id}
-        , ctx{ctx}
-        , selfPath{path} //
-    {}
+        : id{id}, ctx{ctx}, selfPath{path} {}
 
     ImmAdapter()
         : id{ImmId::Nil()}, ctx{nullptr}, selfPath{ImmId::Nil()} {}
 
     ImmAdapter pass(ImmId id, ImmPath const& path) const {
         return ImmAdapter(id, ctx, path);
+    }
+
+    ImmUniqId uniq() const {
+        return ImmUniqId{.id = id, .path = selfPath};
     }
 
     struct TreeReprConf {
@@ -652,10 +614,11 @@ struct ImmAdapter {
     }
 
     Opt<ImmAdapter> getParent() const {
-        if (auto parent = ctx->getParent(id)) {
-            return ImmAdapter{parent.value(), ctx, selfPath.pop()};
-        } else {
+        if (selfPath.empty()) {
             return std::nullopt;
+        } else {
+            auto newPath = selfPath.pop();
+            return ImmAdapter{ctx->at(newPath), ctx, newPath};
         }
     }
 
@@ -674,8 +637,10 @@ struct ImmAdapter {
     Vec<ImmAdapter> getParentChain(bool withSelf = true) const {
         Vec<ImmAdapter> result;
         for (auto const& span : selfPath.pathSpans()) {
-            result.push_back(ImmAdapter::FromRoot(
-                selfPath.root, ctx, ImmPath{selfPath.root, span}));
+            result.push_back(ImmAdapter{
+                ImmPath{selfPath.root, span},
+                ctx,
+            });
         }
         return result;
     }
@@ -736,6 +701,9 @@ struct ImmAdapter {
         }
     }
 };
+
+ImmAstReplace setSubnodes(ImmAdapter target, ImmVec<org::ImmId> subnodes);
+
 
 template <typename T>
 struct ImmAdapterT : ImmAdapter {

@@ -23,48 +23,38 @@ EACH_SEM_ORG_KIND(_kind)
 #undef _kind
 
 
-ImmAstReplace org::setSubnodes(
-    ImmId              target,
-    ImmVec<ImmId>      subnodes,
-    ImmAstEditContext& ctx) {
+ImmAstReplace org::setSubnodes(ImmAdapter target, ImmVec<ImmId> subnodes) {
     LOGIC_ASSERTION_CHECK(
         !target.isNil(), "cannot set subnodes to nil node");
-    ImmAstReplace result;
-    switch_node_value(target, *ctx.ctx, [&]<typename N>(N node) {
+    Opt<ImmAstReplace> result;
+    switch_node_value(target.id, *target.ctx, [&]<typename N>(N node) {
         node.subnodes = subnodes;
-        result        = ctx.store().setNode(target, node, ctx);
+        result        = target.ctx->store->setNode(target, node);
     });
 
-    return result;
+    return result.value();
 }
 
 
 template <org::IsImmOrgValueType T>
 ImmAstReplace ImmAstStore::setNode(
-    ImmId              target,
-    const T&           value,
-    ImmAstEditContext& ctx) {
+    const ImmAdapter& target,
+    const T&          value) {
+    auto& ctx         = *target.ctx;
     ImmId result_node = getStore<T>()->add(value, ctx);
 
     LOGIC_ASSERTION_CHECK(
         !result_node.isNil(), "added node must not be nil");
     result_node.assertValid();
 
-    // Remove all original subnode mapping.
-    for (auto const& sub :
-         allSubnodes<T>(ctx.ctx->value<T>(target), *ctx.ctx)) {
-        ctx.parents.removeParent(sub);
-    }
-
-    for (auto const& sub : allSubnodes<T>(value, *ctx.ctx)) {
-        ctx.parents.setParent(sub, result_node);
-    }
-
-    AST_EDIT_MSG(fmt(
-        "Original ID:{:<16} {}", fmt1(target), ctx.ctx->value<T>(target)));
+    AST_EDIT_MSG(
+        fmt("Original ID:{:<16} {}", fmt1(target), ctx.value<T>(target)));
     AST_EDIT_MSG(fmt("Replaced ID:{:<16} {}", fmt1(result_node), value));
 
-    return ImmAstReplace{.replaced = result_node, .original = target};
+    return ImmAstReplace{
+        .replaced = target.uniq().update(result_node),
+        .original = target.uniq(),
+    };
 }
 
 
@@ -110,20 +100,21 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
         auto __scope = ctx.debug.scopeLevel();
         if (editParents.contains(node.id)) {
             // The node is a parent subnode for some edit.
-            Opt<ImmId> edit = replace.map.get(node.id);
+            Opt<ImmUniqId> edit = replace.map.get(node.uniq());
             AST_EDIT_MSG(fmt("Node {} direct edit:{}", node.id, edit));
 
             Vec<ImmId> updatedSubnodes;
-            ImmId      updateTarget = edit ? edit.value() : node.id;
+            ImmAdapter updateTarget = edit ? ImmAdapter{*edit, ctx.ctx}
+                                           : node;
 
-            for (auto const& sub : ctx->adapt(updateTarget).sub()) {
+            for (auto const& sub : updateTarget.sub()) {
                 updatedSubnodes.push_back(aux(sub));
             }
 
 
             if (false) {
-                auto replaced = ctx->adapt(*edit);
-                auto original = ctx->adapt(node.id);
+                auto replaced = ImmAdapter{*edit, ctx.ctx};
+                auto original = node;
                 LOGIC_ASSERTION_CHECK(
                     replaced->subnodes == original->subnodes
                         || replaced->subnodes == updatedSubnodes,
@@ -142,42 +133,41 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
                     /*4*/ editDependencies.at(node.id),
                     /*5*/ updatedSubnodes);
 
-                result.replaced.incl({node.id, edit.value()});
+                result.replaced.incl({node.uniq(), *edit});
             }
 
 
             // List of subnodes can be updated together with the original
             // edits. In this case there is no need to insert the same list
             // of subnodes.
-            if (updatedSubnodes != ctx->adapt(updateTarget)->subnodes) {
+            if (updatedSubnodes != updateTarget->subnodes) {
                 AST_EDIT_MSG(
                     fmt("Updated subnodes changed: updated:{} != "
                         "target({}):{}",
                         updatedSubnodes,
                         updateTarget,
-                        ctx->adapt(updateTarget)->subnodes));
+                        updateTarget->subnodes));
 
                 ImmAstReplace act = setSubnodes(
                     updateTarget,
                     ImmVec<ImmId>{
                         updatedSubnodes.begin(),
                         updatedSubnodes.end(),
-                    },
-                    ctx);
+                    });
 
                 result.replaced.set(act);
 
-                return act.replaced;
+                return act.replaced.id;
             } else {
-                return updateTarget;
+                return updateTarget.id;
             }
         } else {
             // The node is not a parent for any other replacement. If it
             // was updated, return a new version, otherwise return the same
             // node.
-            if (auto edit = replace.map.get(node.id); edit) {
-                result.replaced.incl({node.id, *edit});
-                return *edit;
+            if (auto edit = replace.map.get(node.uniq()); edit) {
+                result.replaced.incl({node.uniq(), *edit});
+                return edit->id;
             } else {
                 AST_EDIT_MSG(fmt("No changes in {}", node.id));
                 return node.id;
@@ -186,10 +176,10 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
     };
 
 
-    ImmId root = ImmId::Nil();
+    ImmAdapter root;
     for (auto const& act : replace.allReplacements()) {
         auto original = ctx->adapt(act.original);
-        auto doc      = original.getParentChain(false).back().id;
+        auto doc      = original.getParentChain(false).back();
         if (root.isNil()) {
             root = doc;
         } else {
@@ -199,7 +189,7 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
     }
 
     AST_EDIT_MSG(fmt("Main root {}", root));
-    result.root = aux(ctx->adapt(root));
+    result.root = aux(root);
     return result;
 }
 
@@ -211,17 +201,6 @@ ImmId ImmAstStore::add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx) {
         [&]<typename K>(org::ImmIdT<K> id) {
             result = getStore<K>()->add(data, ctx);
         });
-
-    if (result.isNil()) {
-        throw logic_unreachable_error::init(
-            fmt("Unhandled node kind for automatic creation {}",
-                data->getKind()));
-    } else {
-        for (auto const& sub : at(result)->subnodes) {
-            ctx.parents.setParent(sub, result);
-        }
-        return result;
-    }
 }
 
 sem::SemId<sem::Org> ImmAstStore::get(ImmId id, const ImmAstContext& ctx) {
@@ -268,6 +247,13 @@ ImmId ImmAstContext::at(ImmId node, const ImmPathItem& item) const {
     }
 }
 
+ImmId ImmAstContext::at(const ImmPath& item) const {
+    auto result = item.root;
+    for (auto const& step : item.steps) { result = at(result, step); }
+
+    return result;
+}
+
 template <org::IsImmOrgValueType T>
 void ImmAstKindStore<T>::format(
     ColStream&                        os,
@@ -307,47 +293,14 @@ void ImmAstStore::format(ColStream& os, const std::string& prefix) const {
 #undef _kind
 }
 
-Opt<Vec<int>> ImmAstTrackingMap::getPath(
-    ImmId                id,
-    const ImmAstContext& ctx) const {
-    Vec<int>   result;
-    Opt<ImmId> parent = getParent(id);
-    while (parent) {
-        int selfIndex = -1;
-        int idx       = 0;
-        for (auto const& it : ctx.at(*parent)->subnodes) {
-            if (it == id) {
-                selfIndex = idx;
-                break;
-            }
-            ++idx;
-        }
-        if (selfIndex == -1) { return std::nullopt; }
-        result.push_back(selfIndex);
-        id     = parent.value();
-        parent = getParent(id);
-    }
-
-    reverse(result);
-    return result;
-}
-
-Vec<ImmId> ImmAstTrackingMap::getParentChain(ImmId id, bool withSelf)
-    const {
-    Vec<ImmId> result;
-    Opt<ImmId> tmp = id;
-    while (tmp) {
-        if (withSelf || tmp != id) { result.push_back(tmp.value()); }
-        tmp = getParent(tmp.value());
-    }
-    return result;
-}
-
-
 void ImmAstContext::format(ColStream& os, const std::string& prefix)
     const {
     os << fmt("{}ImmAstStore\n", prefix);
     store->format(os, prefix + "  ");
+}
+
+ImmAdapter ImmAstContext::adapt(const ImmUniqId& id) {
+    return org::ImmAdapter{id, this};
 }
 
 
@@ -387,7 +340,7 @@ ImmRootAddResult ImmAstContext::addRoot(sem::SemId<sem::Org> data) {
 ImmAstVersion ImmAstContext::init(sem::SemId<sem::Org> root) {
     auto [store, imm_root] = addRoot(root);
     ImmAstReplace replace{
-        .original = ImmId::Nil(),
+        .original = ImmPath{},
         .replaced = imm_root,
     };
 

@@ -791,7 +791,11 @@ ImmId ImmAstEditContext::getParentForce(ImmId id) const {
 }
 
 ImmAdapter ImmAstVersion::getRootAdapter() {
-    return context.adapt(epoch.getRoot());
+    return org::ImmAdapter{
+        epoch.getRoot(),
+        &context,
+        ImmPath{epoch.getRoot()},
+    };
 }
 
 ImmVec<ImmId> ImmAstReplaceGroup::newSubnodes(
