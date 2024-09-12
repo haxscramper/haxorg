@@ -57,10 +57,7 @@ using ImmAstParentMapType = ImmMap<org::ImmId, org::ImmId>;
 
 struct ImmAstTrackingMap;
 
-#define IMM_PATH_NAMES title
-
-BOOST_PP_EXPAND(
-    DECL_DESCRIBED_ENUM_STANDALONE(ImmPathField, IMM_PATH_NAMES))
+DECL_DESCRIBED_ENUM_STANDALONE(ImmPathField, title, description);
 
 struct ImmPathItem {
     Variant<int, ImmPathField> step;
@@ -114,6 +111,11 @@ struct ImmPath {
         }
     }
 
+    ImmPath add(ImmPathField idx) const {
+        auto res = *this;
+        res.steps.push_back(ImmPathItem{idx});
+        return res;
+    }
 
     ImmPath add(int idx) const {
         auto res = *this;
@@ -152,6 +154,14 @@ struct ImmUniqId {
         auto res = *this;
         res.id   = id;
         return res;
+    }
+
+    bool operator==(ImmUniqId const& it) const {
+        return id == it.id && path == it.path;
+    }
+
+    bool operator<(ImmUniqId const& it) const {
+        return id < it.id && path < it.path;
     }
 };
 
@@ -684,9 +694,17 @@ struct ImmAdapter {
 
     ImmOrg const* get() const { return ctx->at(id); }
     ImmOrg const* operator->() const { return get(); }
-    ImmAdapter    at(int idx) const {
-        return ImmAdapter{
-            ctx->at(id)->subnodes.at(idx), ctx, selfPath.add(idx)};
+
+    ImmAdapter at(ImmId id, ImmPathField idx) const {
+        return ImmAdapter{id, ctx, selfPath.add(idx)};
+    }
+
+    ImmAdapter at(ImmId id, int idx) const {
+        return ImmAdapter{id, ctx, selfPath.add(idx)};
+    }
+
+    ImmAdapter at(int idx) const {
+        return at(ctx->at(id)->subnodes.at(idx));
     }
 
     ImmAdapter at(Vec<int> const& path) const {
@@ -866,5 +884,36 @@ struct JsonSerde<org::ImmAdapterT<T>> {
     static org::ImmAdapterT<T> from_json(json const& j) {
         throw logic_assertion_error::init(
             "org::ImmAdapterT<T> does not support deserialization.");
+    }
+};
+
+template <>
+struct std::hash<org::ImmPathItem> {
+    std::size_t operator()(org::ImmPathItem const& it) const noexcept {
+        std::size_t result = 0;
+        hax_hash_combine(result, it.step);
+        return result;
+    }
+};
+
+
+template <>
+struct std::hash<org::ImmPath> {
+    std::size_t operator()(org::ImmPath const& it) const noexcept {
+        std::size_t result = 0;
+        hax_hash_combine(result, it.root);
+        hax_hash_combine(result, it.steps);
+        return result;
+    }
+};
+
+
+template <>
+struct std::hash<org::ImmUniqId> {
+    std::size_t operator()(org::ImmUniqId const& it) const noexcept {
+        std::size_t result = 0;
+        hax_hash_combine(result, it.id);
+        hax_hash_combine(result, it.path);
+        return result;
     }
 };

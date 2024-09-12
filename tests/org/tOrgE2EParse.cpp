@@ -1060,8 +1060,7 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_All) {
             org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
             auto root = v1.getRootAdapter();
             auto s1   = root.at(0);
-            return demoteSubtree(
-                s1.id, org::SubtreeMove::ForceLevels, ctx);
+            return demoteSubtree(s1, org::SubtreeMove::ForceLevels, ctx);
         });
 
     writeGvHistory({v1, v2}, "v1_v2");
@@ -1087,7 +1086,7 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_WithParentChange) {
                 auto root = v.getRootAdapter();
                 auto s1   = root.at(path);
                 return demoteSubtree(
-                    s1.id, org::SubtreeMove::ForceLevels, ctx);
+                    s1, org::SubtreeMove::ForceLevels, ctx);
             });
     };
 
@@ -1160,7 +1159,7 @@ TEST_F(ImmOrgApiEdit, PhysicalDemote) {
             org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
             auto root = v1.getRootAdapter();
             auto s1   = root.at({0, 0});
-            return demoteSubtree(s1.id, org::SubtreeMove::Physical, ctx);
+            return demoteSubtree(s1, org::SubtreeMove::Physical, ctx);
         });
 
     writeGvHistory({v1, v2}, "v1_v2");

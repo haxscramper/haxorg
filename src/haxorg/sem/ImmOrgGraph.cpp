@@ -329,8 +329,9 @@ Opt<MapNodeProp> org::graph::getUnresolvedNodeInsert(
                     .link = arg.as<org::ImmLink>(),
                     .description //
                     = link->description.get()
-                        ? Vec{arg.pass(
-                              link->description.get().value().toId())}
+                        ? Vec{arg.at(
+                              link->description.get().value().toId(),
+                              ImmPathField::description)}
                         : Vec<org::ImmAdapter>{},
                 });
             }
@@ -629,13 +630,6 @@ Graphviz::Graph MapGraph::toGraphviz(org::ImmAstContext const& ctx) const {
             Record{left_aligned("ID", 16)},
             Record{fmt1(it.id)},
         }});
-
-        if (auto path = ctx.getPath(it.id); path) {
-            add_field(Record{{
-                Record{left_aligned("Path", 16)},
-                Record{join("/", *path)},
-            }});
-        }
 
         add_field(Record{{
             Record{left_aligned("Kind", 16)},

@@ -156,7 +156,8 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
                     ImmVec<ImmId>{
                         updatedSubnodes.begin(),
                         updatedSubnodes.end(),
-                    });
+                    },
+                    ctx);
 
                 result.replaced.set(act);
 
