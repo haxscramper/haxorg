@@ -643,7 +643,7 @@ Graphviz::Graph org::toGraphviz(
         for (auto const& epoch : history) {
             for (auto const& act :
                  epoch.epoch.replaced.allReplacements()) {
-                auto const& src = gvNodes.get(act.original.id);
+                auto const& src = gvNodes.get(act.original->id);
                 auto const& dst = gvNodes.get(act.replaced.id);
                 if (src && dst) {
                     auto edge = g.edge(*src, *dst);
@@ -774,25 +774,26 @@ ImmAstVersion ImmAstVersion::getEditVersion(
 }
 
 void ImmAstReplaceGroup::set(const ImmAstReplace& replace) {
+    LOGIC_ASSERTION_CHECK(replace.original.has_value(), "");
     LOGIC_ASSERTION_CHECK(
         replace.original != replace.replaced,
         "Identical original and replaced node: {}",
         replace);
-    replace.original.id.assertValid();
+    replace.original->id.assertValid();
     replace.replaced.id.assertValid();
 
     nodeReplaceMap.insert_or_assign(
-        replace.original.id, replace.replaced.id);
-    map.insert_or_assign(replace.original, replace.replaced);
+        replace.original->id, replace.replaced.id);
+    map.insert_or_assign(*replace.original, replace.replaced);
 }
 
 void ImmAstReplaceGroup::incl(const ImmAstReplace& replace) {
     LOGIC_ASSERTION_CHECK(
-        !map.contains(replace.original),
+        !map.contains(replace.original.value()),
         "replacement group cannot contain duplicate nodes. {0} -> {1} "
         "is already added, {0} -> {2} cannot be included",
         /*0*/ replace.original,
-        /*1*/ map.at(replace.original),
+        /*1*/ map.at(replace.original.value()),
         /*2*/ replace.replaced);
     set(replace);
 }

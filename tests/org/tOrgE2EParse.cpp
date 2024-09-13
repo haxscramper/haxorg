@@ -840,9 +840,9 @@ TEST(ImmOrgApi, ReplaceSubnodeAtPath) {
     auto const& c = gen_view(version2.epoch.replaced.allReplacements())
                   | rs::to<Vec>();
 
-    auto const& doc1_id = ctx->adapt(c.at(1).original);
+    auto const& doc1_id = ctx->adapt(c.at(1).original.value());
     auto const& doc2_id = ctx->adapt(c.at(1).replaced);
-    auto const& par1_id = ctx->adapt(c.at(0).original);
+    auto const& par1_id = ctx->adapt(c.at(0).original.value());
     auto const& par2_id = ctx->adapt(c.at(0).replaced);
 
     EXPECT_EQ(doc1_id->getKind(), OrgSemKind::Document);

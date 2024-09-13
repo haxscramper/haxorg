@@ -76,10 +76,11 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
 
     for (auto const& act : replace.allReplacements()) {
         for (auto const& parent :
-             ctx->adapt(act.original).getParentChain(false)) {
+             ctx->adapt(act.original.value()).getParentChain(false)) {
             editParents.incl(parent.uniq());
             if (replace.map.contains(parent.uniq())) {
-                editDependencies[parent.uniq()].push_back(act.original);
+                editDependencies[parent.uniq()].push_back(
+                    act.original.value());
             }
         }
     }
@@ -363,7 +364,7 @@ ImmRootAddResult ImmAstContext::addRoot(sem::SemId<sem::Org> data) {
 ImmAstVersion ImmAstContext::init(sem::SemId<sem::Org> root) {
     auto [store, imm_root] = addRoot(root);
     ImmAstReplace replace{
-        .original = ImmUniqId{},
+        .original = std::nullopt,
         .replaced = imm_root,
     };
 
@@ -371,8 +372,6 @@ ImmAstVersion ImmAstContext::init(sem::SemId<sem::Org> root) {
         .context = store,
         .epoch   = ImmAstReplaceEpoch{.root = imm_root},
     };
-
-    result.epoch.replaced.incl(replace);
     return result;
 }
 

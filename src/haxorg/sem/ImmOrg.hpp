@@ -235,8 +235,8 @@ struct ImmAstKindStore {
 };
 
 struct ImmAstReplace {
-    org::ImmUniqId original;
-    org::ImmUniqId replaced;
+    Opt<org::ImmUniqId> original;
+    org::ImmUniqId      replaced;
 
     DESC_FIELDS(ImmAstReplace, (original, replaced));
 };
