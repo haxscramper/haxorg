@@ -1,6 +1,7 @@
 #pragma once
 
 #include "hstd/stdlib/TraceBase.hpp"
+#include "hstd/stdlib/algorithms.hpp"
 #include <boost/preprocessor/facilities/expand.hpp>
 #include <haxorg/sem/ImmOrgBase.hpp>
 #include <haxorg/sem/ImmOrgTypes.hpp>
@@ -46,9 +47,7 @@ void switch_node_nullptr(OrgSemKind kind, Func const& cb) {
     }
 }
 
-
 namespace org {
-
 
 template <typename T>
 concept IsImmOrgValueType = std::derived_from<T, ImmOrg>;
@@ -65,8 +64,10 @@ struct ImmPathItem {
 
     ImmPathField getField() const { return std::get<ImmPathField>(step); }
     int          getIndex() const { return std::get<int>(step); }
-    bool         isIndex() const { return step.index() == 0; }
-    bool         isField() const { return step.index() == 1; }
+    bool isIndex() const { return std::holds_alternative<int>(step); }
+    bool isField() const {
+        return std::holds_alternative<ImmPathField>(step);
+    }
 
     bool operator==(ImmPathItem const& other) const {
         return step == other.step;
@@ -165,6 +166,22 @@ struct ImmUniqId {
     }
 };
 
+} // namespace org
+
+
+template <>
+struct std::hash<org::ImmUniqId> {
+    std::size_t operator()(org::ImmUniqId const& it) const noexcept {
+        std::size_t result = 0;
+        hax_hash_combine(result, it.id);
+        hax_hash_combine(result, it.path);
+        return result;
+    }
+};
+
+
+namespace org {
+
 struct ImmAstTrackingMapTransient {
     ImmAstTrackingMap persistent();
     DESC_FIELDS(ImmAstTrackingMapTransient, ());
@@ -194,7 +211,7 @@ struct ImmAstEditContext {
 };
 
 #define AST_EDIT_MSG(...)                                                 \
-    if (ctx.debug.TraceState) { ctx.message(__VA_ARGS__); }
+    if (ctx.ctx->debug->TraceState) { ctx.message(__VA_ARGS__); }
 
 template <org::IsImmOrgValueType T>
 struct ImmAstKindStore {
@@ -224,22 +241,10 @@ struct ImmAstReplace {
     DESC_FIELDS(ImmAstReplace, (original, replaced));
 };
 
-struct ImmUniqFullCompare {
-    bool operator()(ImmUniqId first, ImmUniqId other) const {
-        return first.id.getValue() < other.id.getValue()
-            && first.path < other.path;
-    }
-};
-
-struct ImmIdFullCompare {
-    bool operator()(ImmId first, ImmId other) const {
-        return first.getValue() < other.getValue();
-    }
-};
-
 struct ImmAstReplaceGroup {
-    SortedMap<ImmUniqId, ImmUniqId, ImmUniqFullCompare> map;
-    SortedMap<ImmId, ImmId, ImmIdFullCompare>           nodeReplaceMap;
+    UnorderedMap<ImmUniqId, ImmUniqId> map;
+    UnorderedMap<ImmId, ImmId>         nodeReplaceMap;
+    DESC_FIELDS(ImmAstReplaceGroup, (map, nodeReplaceMap));
 
     ImmAstReplaceGroup() {}
     ImmAstReplaceGroup(ImmAstReplace const& replace) { incl(replace); }
@@ -250,16 +255,7 @@ struct ImmAstReplaceGroup {
         map.insert_or_assign(replace.original, replace.replaced);
     }
 
-    void incl(ImmAstReplace const& replace) {
-        LOGIC_ASSERTION_CHECK(
-            !map.contains(replace.original),
-            "replacement group cannot contain duplicate nodes. {0} -> {1} "
-            "is already added, {0} -> {2} cannot be included",
-            /*0*/ replace.original,
-            /*1*/ map.at(replace.original),
-            /*2*/ replace.replaced);
-        set(replace);
-    }
+    void incl(ImmAstReplace const& replace);
 
     void incl(ImmAstReplaceGroup const& replace) {
         for (auto const& it : replace.allReplacements()) { incl(it); }
@@ -270,12 +266,13 @@ struct ImmAstReplaceGroup {
     /// a single go -- this reduces the number of intermediate nodes in the
     /// cascading update. See `demoteSubtreeRecursive` for use example.
     ImmVec<ImmId> newSubnodes(ImmVec<ImmId> oldSubnodes) const;
+    Vec<ImmId>    newSubnodes(Vec<ImmId> oldSubnodes) const;
 
     generator<ImmAstReplace> allReplacements() const {
-        for (auto const& [original, replaced] : this->map) {
+        for (auto const& key : sorted(this->map.keys())) {
             co_yield ImmAstReplace{
-                .original = original,
-                .replaced = replaced,
+                .original = key,
+                .replaced = this->map.at(key),
             };
         }
     }
@@ -395,7 +392,10 @@ struct [[nodiscard]] ImmAstContext {
         return ImmAstEditContext{
             .parents = parents.transient(),
             .ctx     = this,
-        };
+            .debug   = OperationsScope{
+                  .TraceState  = &debug->TraceState,
+                  .activeLevel = 0,
+            }};
     }
 
     ImmAstContext finishEdit(ImmAstEditContext& ctx);
@@ -704,7 +704,7 @@ struct ImmAdapter {
     }
 
     ImmAdapter at(int idx) const {
-        return at(ctx->at(id)->subnodes.at(idx));
+        return at(ctx->at(id)->subnodes.at(idx), idx);
     }
 
     ImmAdapter at(Vec<int> const& path) const {
@@ -746,7 +746,7 @@ struct ImmAdapter {
                 id.getKind());
         }
 
-        return ImmAdapterT<T>(id, ctx);
+        return ImmAdapterT<T>{id, ctx, selfPath};
     }
 
     template <typename T>
@@ -831,13 +831,20 @@ template <>
 struct std::formatter<org::ImmAstContext*>
     : std_format_ptr_as_hex<org::ImmAstContext> {};
 
+
 template <>
-struct std::formatter<org::ImmAstStore> : std::formatter<std::string> {
+struct std::formatter<org::ImmPathItem> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const org::ImmAstStore& p, FormatContext& ctx) const {
-        return fmt_ctx("ImmAstStore{}", ctx);
+    auto format(const org::ImmPathItem& p, FormatContext& ctx) const {
+        fmt_ctx(".", ctx);
+        if (p.isField()) {
+            return fmt_ctx(fmt1(p.getField()), ctx);
+        } else {
+            return fmt_ctx(p.getIndex(), ctx);
+        }
     }
 };
+
 
 template <>
 struct std::formatter<org::ImmPath> : std::formatter<std::string> {
@@ -846,6 +853,24 @@ struct std::formatter<org::ImmPath> : std::formatter<std::string> {
         return fmt_ctx(fmt("{}//{}", p.root, p.steps), ctx);
     }
 };
+
+template <>
+struct std::formatter<org::ImmUniqId> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const org::ImmUniqId& p, FormatContext& ctx) const {
+        return fmt_ctx(fmt("{}->{}", p.path, p.id), ctx);
+    }
+};
+
+
+template <>
+struct std::formatter<org::ImmAstStore> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const org::ImmAstStore& p, FormatContext& ctx) const {
+        return fmt_ctx("ImmAstStore{}", ctx);
+    }
+};
+
 
 template <>
 struct std::formatter<org::ImmAdapter> : std::formatter<std::string> {
@@ -903,17 +928,6 @@ struct std::hash<org::ImmPath> {
         std::size_t result = 0;
         hax_hash_combine(result, it.root);
         hax_hash_combine(result, it.steps);
-        return result;
-    }
-};
-
-
-template <>
-struct std::hash<org::ImmUniqId> {
-    std::size_t operator()(org::ImmUniqId const& it) const noexcept {
-        std::size_t result = 0;
-        hax_hash_combine(result, it.id);
-        hax_hash_combine(result, it.path);
         return result;
     }
 };

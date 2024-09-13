@@ -768,6 +768,17 @@ ImmAdapter ImmAstVersion::getRootAdapter() {
     };
 }
 
+void ImmAstReplaceGroup::incl(const ImmAstReplace& replace) {
+    LOGIC_ASSERTION_CHECK(
+        !map.contains(replace.original),
+        "replacement group cannot contain duplicate nodes. {0} -> {1} "
+        "is already added, {0} -> {2} cannot be included",
+        /*0*/ replace.original,
+        /*1*/ map.at(replace.original),
+        /*2*/ replace.replaced);
+    set(replace);
+}
+
 ImmVec<ImmId> ImmAstReplaceGroup::newSubnodes(
     ImmVec<ImmId> oldSubnodes) const {
     ImmVec<ImmId> result;
@@ -781,4 +792,10 @@ ImmVec<ImmId> ImmAstReplaceGroup::newSubnodes(
     }
 
     return tmp.persistent();
+}
+
+Vec<ImmId> ImmAstReplaceGroup::newSubnodes(Vec<ImmId> oldSubnodes) const {
+    auto tmp = newSubnodes(
+        ImmVec<ImmId>{oldSubnodes.begin(), oldSubnodes.end()});
+    return Vec<ImmId>{tmp.begin(), tmp.end()};
 }

@@ -44,18 +44,21 @@ ImmAstReplace ImmAstStore::setNode(
     const ImmAdapter&  target,
     const T&           value,
     ImmAstEditContext& ctx) {
-    ImmId result_node = getStore<T>()->add(value, ctx);
+    ImmId     result_node = getStore<T>()->add(value, ctx);
+    ImmUniqId replaced    = target.uniq().update(result_node);
 
     LOGIC_ASSERTION_CHECK(
         !result_node.isNil(), "added node must not be nil");
     result_node.assertValid();
 
-    AST_EDIT_MSG(
-        fmt("Original ID:{:<16} {}", fmt1(target), target.value<T>()));
-    AST_EDIT_MSG(fmt("Replaced ID:{:<16} {}", fmt1(result_node), value));
+    auto ft = fmt1(target);
+    auto fr = fmt1(replaced);
+    auto w  = std::max(ft.size(), fr.size());
+    AST_EDIT_MSG(fmt("Original ID:{:<{}} {}", ft, w, target.value<T>()));
+    AST_EDIT_MSG(fmt("Replaced ID:{:<{}} {}", fr, w, value));
 
     return ImmAstReplace{
-        .replaced = target.uniq().update(result_node),
+        .replaced = replaced,
         .original = target.uniq(),
     };
 }
@@ -205,6 +208,7 @@ ImmId ImmAstStore::add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx) {
         [&]<typename K>(org::ImmIdT<K> id) {
             result = getStore<K>()->add(data, ctx);
         });
+    return result;
 }
 
 sem::SemId<sem::Org> ImmAstStore::get(ImmId id, const ImmAstContext& ctx) {

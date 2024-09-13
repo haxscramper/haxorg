@@ -64,8 +64,10 @@ void OperationsTracer::message(const OperationsMsg& value) {
             os << fmt(
                 "{0}{1}{2}{3} @{4} {5}",
                 /*0*/ Str{"  "}.repeated(value.level),
-                /*1*/ value.file ? fs::path{value.file}.filename().native()
-                                 : "",
+                /*1*/ value.file
+                    ? fmt("{:_<24}",
+                          fs::path{value.file}.filename().native())
+                    : "",
                 /*2*/ value.line == 0 ? "" : fmt(":{:<4}", value.line),
                 /*3*/ value.column == 0 ? "" : fmt(":{}", value.column),
                 /*4*/ value.function ? fmt("{:_<24}", value.function)

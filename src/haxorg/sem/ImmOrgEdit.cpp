@@ -27,12 +27,12 @@ ImmAstReplace org::insertSubnodes(
     Vec<ImmId>         add,
     int                position,
     ImmAstEditContext& ctx) {
+    AST_EDIT_MSG(fmt("Insert {} at {} in {}", add, position, node));
     Vec<ImmId> u;
     LOGIC_ASSERTION_CHECK(0 <= position, "{}", position);
 
 
     auto tmp = node->subnodes;
-    AST_EDIT_MSG(fmt("Insert {} at {} in {}", add, position, tmp));
     for (int i = 0; i < position; ++i) { u.push_back(tmp.at(i)); }
     for (auto const& a : add) { u.push_back(a); }
     for (int i = position; i < tmp.size(); ++i) { u.push_back(tmp.at(i)); }
@@ -163,21 +163,33 @@ ImmAstReplaceGroup org::demoteSubtree(
         AST_EDIT_MSG(fmt("New subnode list {}", newSubnodes));
         AST_EDIT_MSG(fmt("Move subnode list {}", moveSubnodes));
 
-        auto update = ctx.store().updateNode<org::ImmSubtree>(
-            node, ctx, [&](org::ImmSubtree value) {
-                value.subnodes = ImmVec<ImmId>{
-                    newSubnodes.begin(), newSubnodes.end()};
-                value.level += 1;
-                return value;
-            });
 
-        edits.incl(update);
+        {
+            auto __scope = ctx.debug.scopeLevel();
+            auto update  = ctx.store().updateNode<org::ImmSubtree>(
+                node, ctx, [&](org::ImmSubtree value) {
+                    value.subnodes = ImmVec<ImmId>{
+                        newSubnodes.begin(), newSubnodes.end()};
+                    value.level += 1;
+                    return value;
+                });
 
-        if (!moveSubnodes.empty()) {
-            auto parent = tree.getParent();
-            auto update = insertSubnodes(
-                *parent, moveSubnodes, tree.getSelfIndex(), ctx);
+            AST_EDIT_MSG(fmt("Update subtree {}", update));
             edits.incl(update);
+
+            moveSubnodes = edits.newSubnodes(moveSubnodes);
+
+            if (!moveSubnodes.empty()) {
+                auto parent = tree.getParent();
+                AST_EDIT_MSG(fmt("Tree {} parent {}", tree, parent));
+                auto update = insertSubnodes(
+                    parent.value(),
+                    moveSubnodes,
+                    tree.getSelfIndex(),
+                    ctx);
+                AST_EDIT_MSG(fmt("Update subnode list {}", update));
+                edits.incl(update);
+            }
         }
     }
 
