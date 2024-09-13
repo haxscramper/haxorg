@@ -143,49 +143,55 @@ ImmAstReplaceGroup org::demoteSubtree(
         }
     } else {
         AST_EDIT_MSG(fmt("Physical demote subtree {}", node));
-        Vec<ImmId> newSubnodes;
-        Vec<ImmId> moveSubnodes;
+        Vec<ImmId> demotedSubnodes;
+        Vec<ImmId> reparentedSubnodes;
         auto       tree  = node.as<org::ImmSubtree>();
         int        level = tree->level;
         for (auto const& sub : tree.sub()) {
             if (auto subtree = sub.asOpt<org::ImmSubtree>(); subtree) {
                 if (subtree.value()->level < level + 1) {
-                    newSubnodes.push_back(subtree->id);
+                    demotedSubnodes.push_back(subtree->id);
                 } else {
-                    moveSubnodes.push_back(subtree->id);
+                    reparentedSubnodes.push_back(subtree->id);
                 }
             } else {
-                newSubnodes.push_back(sub.id);
+                demotedSubnodes.push_back(sub.id);
             }
         }
 
-        AST_EDIT_MSG(fmt("New subnode list {}", newSubnodes));
-        AST_EDIT_MSG(fmt("Move subnode list {}", moveSubnodes));
+        AST_EDIT_MSG(fmt("New subnode list {}", demotedSubnodes));
+        AST_EDIT_MSG(fmt("Move subnode list {}", reparentedSubnodes));
 
 
         {
             auto __scope = ctx.debug.scopeLevel();
             auto update  = ctx.store().updateNode<org::ImmSubtree>(
                 node, ctx, [&](org::ImmSubtree value) {
-                    value.subnodes = ImmVec<ImmId>{
-                        newSubnodes.begin(), newSubnodes.end()};
+                    value.subnodes = edits.newSubnodes(ImmVec<ImmId>{
+                        demotedSubnodes.begin(), demotedSubnodes.end()});
                     value.level += 1;
                     return value;
                 });
 
             AST_EDIT_MSG(fmt("Update subtree {}", update));
             edits.incl(update);
-            AST_EDIT_MSG(fmt("EDITS {}", edits));
 
-            // moveSubnodes = edits.newSubnodes(moveSubnodes);
+            if (!reparentedSubnodes.empty()) {
 
-            if (!moveSubnodes.empty()) {
-                auto parent = tree.getParent();
+                auto parent            = tree.getParent().value();
+                auto newParentSubnodes = edits.newSubnodes(Vec<ImmId>{
+                    parent->subnodes.begin(), parent->subnodes.end()});
                 AST_EDIT_MSG(fmt("Tree {} parent {}", tree, parent));
-                auto update = insertSubnodes(
-                    parent.value(),
-                    moveSubnodes,
-                    tree.getSelfIndex(),
+
+                reparentedSubnodes = edits.newSubnodes(reparentedSubnodes);
+                newParentSubnodes.insert(
+                    newParentSubnodes.begin() + tree.getSelfIndex(),
+                    reparentedSubnodes.begin(),
+                    reparentedSubnodes.end());
+
+                auto update = setSubnodes(
+                    parent,
+                    {newParentSubnodes.begin(), newParentSubnodes.end()},
                     ctx);
                 AST_EDIT_MSG(fmt("Update subnode list {}", update));
                 edits.incl(update);
