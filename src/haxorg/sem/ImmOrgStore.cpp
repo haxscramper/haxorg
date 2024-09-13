@@ -105,6 +105,14 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
         }
     }
 
+    AST_EDIT_MSG("Edit parents");
+    {
+        auto __scope = ctx.debug.scopeLevel();
+        for (auto const& key : sorted(editParents | rs::to<Vec>())) {
+            AST_EDIT_MSG(fmt("[{}]", key));
+        }
+    }
+
     Func<ImmId(ImmAdapter node)> aux;
     ImmAstReplaceEpoch           result;
 

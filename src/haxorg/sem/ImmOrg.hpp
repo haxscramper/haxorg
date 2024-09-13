@@ -450,6 +450,7 @@ struct ImmRootAddResult {
     DESC_FIELDS(ImmRootAddResult, (context, root));
 };
 
+/// \brief Specific version of the document.
 struct ImmAstVersion {
     ImmAstContext      context;
     ImmAstReplaceEpoch epoch;
@@ -688,6 +689,7 @@ struct ImmAdapter {
                 ctx,
             });
         }
+        result.push_back(ImmAdapter{ImmPath{selfPath.root}, ctx});
         return result;
     }
 
