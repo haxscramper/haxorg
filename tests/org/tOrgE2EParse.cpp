@@ -1236,6 +1236,20 @@ TEST_F(ImmOrgApiEdit, MoveSubnodes) {
             });
     };
 
+    Func<Vec<Str>(org::ImmAdapter const&)> flat;
+    flat = [&](org::ImmAdapter const& it) -> Vec<Str> {
+        Vec<Str> result;
+        if (auto i = it.asOpt<org::ImmWord>(); i) {
+            result.push_back(i.value()->text);
+        } else if (auto i = it.asOpt<org::ImmSpace>(); i) {
+            result.push_back(i.value()->text);
+        } else {
+            for (auto const& sub : it.sub()) { result.append(flat(sub)); }
+        }
+
+        return result;
+    };
+
     writeGvHistory({v1}, "graph_v1");
 
     org::ImmAstVersion v2 = move(0, 2, true);
@@ -1243,6 +1257,18 @@ TEST_F(ImmOrgApiEdit, MoveSubnodes) {
     org::ImmAstVersion v4 = move(2, -2, true);
 
     writeGvHistory({v1, v2, v3, v4}, "graph");
+    EXPECT_EQ(
+        flat(v1.getRootAdapter()),
+        (Vec<Str>{"zero", " ", "one", " ", "two", " ", "three"}));
+    EXPECT_EQ(
+        flat(v2.getRootAdapter()),
+        (Vec<Str>{" ", "one", "zero", " ", "two", " ", "three"}));
+    EXPECT_EQ(
+        flat(v3.getRootAdapter()),
+        (Vec<Str>{" ", "one", " ", "two", "zero", " ", "three"}));
+    EXPECT_EQ(
+        flat(v4.getRootAdapter()),
+        (Vec<Str>{"one", "zero", " ", " ", "two", " ", "three"}));
 }
 
 TEST(ImmMapApi, AddNode) {
