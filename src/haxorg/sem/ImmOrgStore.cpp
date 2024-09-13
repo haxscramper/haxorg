@@ -54,8 +54,8 @@ ImmAstReplace ImmAstStore::setNode(
     auto ft = fmt1(target);
     auto fr = fmt1(replaced);
     auto w  = std::max(ft.size(), fr.size());
-    AST_EDIT_MSG(fmt("Original ID:{:<{}} {}", ft, w, target.value<T>()));
-    AST_EDIT_MSG(fmt("Replaced ID:{:<{}} {}", fr, w, value));
+    AST_EDIT_MSG(fmt("| Original ID:{:<{}} {}", ft, w, target.value<T>()));
+    AST_EDIT_MSG(fmt("| Replaced ID:{:<{}} {}", fr, w, value));
 
     return ImmAstReplace{
         .replaced = replaced,
@@ -170,8 +170,7 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
                         updateTarget->subnodes),
                     "aux");
 
-                auto          __scope = ctx.debug.scopeLevel();
-                ImmAstReplace act     = setSubnodes(
+                ImmAstReplace act = setSubnodes(
                     updateTarget,
                     ImmVec<ImmId>{
                         updatedSubnodes.begin(),

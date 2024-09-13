@@ -92,8 +92,7 @@ ImmAstReplaceGroup org::demoteSubtree(
                 aux(sub);
             }
 
-            auto __scope = ctx.debug.scopeLevel();
-            auto update  = ctx.store().updateNode<org::ImmSubtree>(
+            auto update = ctx.store().updateNode<org::ImmSubtree>(
                 target, ctx, [&](org::ImmSubtree value) {
                     value.subnodes = edits.newSubnodes(value.subnodes);
                     value.level += 1;
