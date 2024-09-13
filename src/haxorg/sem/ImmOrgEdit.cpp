@@ -87,7 +87,7 @@ ImmAstReplaceGroup org::demoteSubtree(
         AST_EDIT_MSG(fmt("Demote subtree {}", node));
         Func<ImmAstReplace(CR<ImmAdapter>)> aux;
         aux = [&](CR<ImmAdapter> target) -> ImmAstReplace {
-            for (auto const& sub : node.sub()) {
+            for (auto const& sub : target.sub()) {
                 auto __scope = ctx.debug.scopeLevel();
                 aux(sub);
             }

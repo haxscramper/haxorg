@@ -125,15 +125,24 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
                 fmt("Node {} direct edit:{}", node.id, edit), "aux");
 
             Vec<ImmId> updatedSubnodes;
+            // If there were no modifications to the original node, use its
+            // direct subnodes. Otherwise, take a newer version of the node
+            // and map its subnodes instead.
             ImmAdapter updateTarget = edit ? ImmAdapter{*edit, ctx.ctx}
                                            : node;
 
-            for (auto const& sub : node.sub()) {
+            for (auto const& sub : updateTarget.sub()) {
                 updatedSubnodes.push_back(aux(sub));
             }
 
 
-            if (false) {
+            if (false) { // FIXME Temporarily commented out -- the
+                         // assertion check is very conservative and did
+                         // not account for all the valid edge cases. I
+                         // will either remove it, or re-enable it later on
+                         // once there is a better understanding of what
+                         // tree editing edge cases are actually not
+                         // allowed.
                 auto replaced = ImmAdapter{*edit, ctx.ctx};
                 auto original = node;
                 LOGIC_ASSERTION_CHECK(
@@ -224,12 +233,14 @@ sem::SemId<sem::Org> ImmAstStore::get(ImmId id, const ImmAstContext& ctx) {
 }
 
 const ImmOrg* ImmAstContext::at(ImmId id) const {
+    id.assertValid();
     ImmOrg const* res = store->at(id);
     CHECK(res->getKind() == id.getKind());
     return res;
 }
 
 ImmId ImmAstContext::at(ImmId node, const ImmPathItem& item) const {
+    node.assertValid();
     if (item.isField()) {
         std::string name = enum_serde<ImmPathField>::to_string(
             item.getField());
