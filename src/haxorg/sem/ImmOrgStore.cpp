@@ -44,6 +44,12 @@ ImmAstReplace ImmAstStore::setNode(
     const ImmAdapter&  target,
     const T&           value,
     ImmAstEditContext& ctx) {
+
+
+    for (auto const& it : allSubnodes<T>(value, *ctx.ctx)) {
+        it.assertValid();
+    }
+
     ImmId     result_node = getStore<T>()->add(value, ctx);
     ImmUniqId replaced    = target.uniq().update(result_node);
 
@@ -56,6 +62,7 @@ ImmAstReplace ImmAstStore::setNode(
     auto w  = std::max(ft.size(), fr.size());
     AST_EDIT_MSG(fmt("| Original ID:{:<{}} {}", ft, w, target.value<T>()));
     AST_EDIT_MSG(fmt("| Replaced ID:{:<{}} {}", fr, w, value));
+
 
     return ImmAstReplace{
         .replaced = replaced,

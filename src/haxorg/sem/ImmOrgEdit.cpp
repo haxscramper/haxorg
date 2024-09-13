@@ -234,8 +234,18 @@ Opt<ImmAstReplace> org::moveSubnode(
 
     auto subnodes = node->subnodes;
     auto inserted = subnodes.at(position);
-    subnodes      = subnodes.drop(position);
-    subnodes      = subnodes.insert(inserted, targetPosition);
+    inserted.assertValid();
+    subnodes = subnodes.erase(position);
+    subnodes = subnodes.insert(targetPosition, inserted);
+
+    AST_EDIT_MSG(
+        fmt("Move subnodes {}[{} + {} => {}] -> {} -> {}",
+            node,
+            position,
+            offset,
+            targetPosition,
+            node->subnodes,
+            subnodes));
 
     return setSubnodes(node, subnodes, ctx);
 }

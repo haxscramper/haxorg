@@ -1215,7 +1215,7 @@ TEST_F(ImmOrgApiEdit, ResetTitle) {
 
 TEST_F(ImmOrgApiEdit, MoveSubnodes) {
     setTraceFile(getDebugFile("trace.txt"));
-    org::ImmAstVersion v1 = getInitialVersion("zero one two three four");
+    org::ImmAstVersion v1 = getInitialVersion("zero one two three");
 
     auto move =
         [&](int position, int offset, bool bounded) -> org::ImmAstVersion {
@@ -1238,9 +1238,9 @@ TEST_F(ImmOrgApiEdit, MoveSubnodes) {
 
     writeGvHistory({v1}, "graph_v1");
 
-    org::ImmAstVersion v2 = move(0, 1, true);
-    org::ImmAstVersion v3 = move(0, 2, true);
-    org::ImmAstVersion v4 = move(1, -1, true);
+    org::ImmAstVersion v2 = move(0, 2, true);
+    org::ImmAstVersion v3 = move(0, 4, true);
+    org::ImmAstVersion v4 = move(2, -2, true);
 
     writeGvHistory({v1, v2, v3, v4}, "graph");
 }

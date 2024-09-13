@@ -78,6 +78,12 @@ void org::ImmId::assertValid() const {
         kind,
         kindLow,
         kindHigh);
+
+    if (!isNil()) {
+        LOGIC_ASSERTION_CHECK(
+            getKind() != OrgSemKind::None,
+            "Valid ID must have a kind different from 'None'");
+    }
 }
 
 #define _define_static(__Kind)                                            \
@@ -553,7 +559,7 @@ Graphviz::Graph org::toGraphviz(
     };
 
     auto get_node = [&](ImmId id, int idx) -> Opt<Graphviz::Node> {
-        if (conf.skippedKinds.contains(id.getKind())) {
+        if (conf.skippedKinds.contains(id.getKind()) || id.isNil()) {
             return std::nullopt;
         } else {
             if (!gvNodes.contains(id)) {
@@ -672,14 +678,10 @@ struct ImmSubnodeCollectionVisitor {};
         /*MethodName=*/getSubnodes)
 
 IMM_SUBNODE_COLLECTOR((typename T), (ImmIdT<T>)) {
-    arg.toId().assertValid();
     return Vec<ImmId>{arg.toId()};
 }
 
-IMM_SUBNODE_COLLECTOR((), (ImmId)) {
-    arg.assertValid();
-    return Vec<ImmId>{arg};
-}
+IMM_SUBNODE_COLLECTOR((), (ImmId)) { return Vec<ImmId>{arg}; }
 IMM_SUBNODE_COLLECTOR((), (Str)) { return {}; }
 IMM_SUBNODE_COLLECTOR((), (bool)) { return {}; }
 IMM_SUBNODE_COLLECTOR((), (int)) { return {}; }
@@ -739,7 +741,6 @@ Vec<ImmId> org::allSubnodes(
         using FieldType = DESC_FIELD_TYPE(f);
         auto tmp = ImmSubnodeCollectionVisitor<FieldType>::getSubnodes(
             value.*f.pointer, ctx);
-        for (auto const& it : tmp) { it.assertValid(); }
         subnodes.append(tmp);
     });
     return subnodes;
