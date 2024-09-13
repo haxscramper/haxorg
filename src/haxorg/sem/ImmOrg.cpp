@@ -768,6 +768,19 @@ ImmAdapter ImmAstVersion::getRootAdapter() {
     };
 }
 
+void ImmAstReplaceGroup::set(const ImmAstReplace& replace) {
+    LOGIC_ASSERTION_CHECK(
+        replace.original != replace.replaced,
+        "Identical original and replaced node: {}",
+        replace);
+    replace.original.id.assertValid();
+    replace.replaced.id.assertValid();
+
+    nodeReplaceMap.insert_or_assign(
+        replace.original.id, replace.replaced.id);
+    map.insert_or_assign(replace.original, replace.replaced);
+}
+
 void ImmAstReplaceGroup::incl(const ImmAstReplace& replace) {
     LOGIC_ASSERTION_CHECK(
         !map.contains(replace.original),
@@ -784,12 +797,14 @@ ImmVec<ImmId> ImmAstReplaceGroup::newSubnodes(
     ImmVec<ImmId> result;
     auto          tmp = result.transient();
     for (auto const& it : oldSubnodes) {
-        if (auto update = nodeReplaceMap.get(it); *update) {
+        if (auto update = nodeReplaceMap.get(it); update) {
             tmp.push_back(*update);
         } else {
             tmp.push_back(it);
         }
     }
+
+    for (auto const& it : tmp) { it.assertValid(); }
 
     return tmp.persistent();
 }

@@ -176,8 +176,9 @@ ImmAstReplaceGroup org::demoteSubtree(
 
             AST_EDIT_MSG(fmt("Update subtree {}", update));
             edits.incl(update);
+            AST_EDIT_MSG(fmt("EDITS {}", edits));
 
-            moveSubnodes = edits.newSubnodes(moveSubnodes);
+            // moveSubnodes = edits.newSubnodes(moveSubnodes);
 
             if (!moveSubnodes.empty()) {
                 auto parent = tree.getParent();

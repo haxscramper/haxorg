@@ -249,11 +249,7 @@ struct ImmAstReplaceGroup {
     ImmAstReplaceGroup() {}
     ImmAstReplaceGroup(ImmAstReplace const& replace) { incl(replace); }
 
-    void set(ImmAstReplace const& replace) {
-        nodeReplaceMap.insert_or_assign(
-            replace.original.id, replace.replaced.id);
-        map.insert_or_assign(replace.original, replace.replaced);
-    }
+    void set(ImmAstReplace const& replace);
 
     void incl(ImmAstReplace const& replace);
 

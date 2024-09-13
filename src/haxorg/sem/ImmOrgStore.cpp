@@ -89,6 +89,11 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
         for (auto const& key : replace.allReplacements()) {
             AST_EDIT_MSG(fmt("[{}] -> {}", key.original, key.replaced));
         }
+
+        for (auto const& key : sorted(replace.nodeReplaceMap.keys())) {
+            AST_EDIT_MSG(
+                fmt("[{}] -> {}", key, replace.nodeReplaceMap.at(key)));
+        }
     }
 
     AST_EDIT_MSG("Edit dependencies");
@@ -107,13 +112,14 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
         if (editParents.contains(node.uniq())) {
             // The node is a parent subnode for some edit.
             Opt<ImmUniqId> edit = replace.map.get(node.uniq());
-            AST_EDIT_MSG(fmt("Node {} direct edit:{}", node.id, edit));
+            AST_EDIT_MSG(
+                fmt("Node {} direct edit:{}", node.id, edit), "aux");
 
             Vec<ImmId> updatedSubnodes;
             ImmAdapter updateTarget = edit ? ImmAdapter{*edit, ctx.ctx}
                                            : node;
 
-            for (auto const& sub : updateTarget.sub()) {
+            for (auto const& sub : node.sub()) {
                 updatedSubnodes.push_back(aux(sub));
             }
 
@@ -132,7 +138,7 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
                     "subnode changes will be lost. To avoid this issue, "
                     "separate the `.subnode` field update and nested node "
                     "edits into two different batches of updates.",
-                    /*0*/ node.id,
+                    /*0*/ node,
                     /*1*/ *edit,
                     /*2*/ original->subnodes,
                     /*3*/ replaced->subnodes,
@@ -152,7 +158,8 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
                         "target({}):{}",
                         updatedSubnodes,
                         updateTarget,
-                        updateTarget->subnodes));
+                        updateTarget->subnodes),
+                    "aux");
 
                 ImmAstReplace act = setSubnodes(
                     updateTarget,
@@ -176,7 +183,7 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
                 result.replaced.incl({node.uniq(), *edit});
                 return edit->id;
             } else {
-                AST_EDIT_MSG(fmt("No changes in {}", node.id));
+                AST_EDIT_MSG(fmt("No changes in {}", node), "aux");
                 return node.id;
             }
         }
