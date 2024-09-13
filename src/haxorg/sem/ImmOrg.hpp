@@ -347,6 +347,7 @@ struct ImmAstStore {
 
     /// \brief Generate new set of parent nodes for the node update.
     ImmAstReplaceEpoch cascadeUpdate(
+        const ImmAdapter& root,
         const ImmAstReplaceGroup&,
         ImmAstEditContext& ctx);
 
@@ -382,6 +383,7 @@ struct [[nodiscard]] ImmAstContext {
     DESC_FIELDS(ImmAstContext, (store, parents));
 
     ImmAstVersion getEditVersion(
+        ImmAdapter const&                                            root,
         Func<ImmAstReplaceGroup(ImmAstContext&, ImmAstEditContext&)> cb);
 
     ImmAstEditContext getEditContext() {
@@ -455,6 +457,10 @@ struct ImmAstVersion {
 
     ImmId      getRoot() const { return epoch.getRoot(); }
     ImmAdapter getRootAdapter();
+
+    ImmAstVersion getEditVersion(
+        Func<ImmAstReplaceGroup(ImmAstContext& ast, ImmAstEditContext&)>
+            cb);
 };
 
 struct ImmAstGraphvizConf {
@@ -591,6 +597,7 @@ struct ImmAdapter {
     iterator begin() const { return iterator(this); }
     iterator end() const { return iterator(this, size()); }
     bool     isNil() const { return id.isNil(); }
+    bool     isRoot() const { return selfPath.empty(); }
 
     ImmAdapter(ImmPath const& path, ImmAstContext* ctx)
         : id{ctx->at(path)}, ctx{ctx}, selfPath{path} {}

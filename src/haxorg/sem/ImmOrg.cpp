@@ -768,6 +768,11 @@ ImmAdapter ImmAstVersion::getRootAdapter() {
     };
 }
 
+ImmAstVersion ImmAstVersion::getEditVersion(
+    Func<ImmAstReplaceGroup(ImmAstContext&, ImmAstEditContext&)> cb) {
+    return context.getEditVersion(getRootAdapter(), cb);
+}
+
 void ImmAstReplaceGroup::set(const ImmAstReplace& replace) {
     LOGIC_ASSERTION_CHECK(
         replace.original != replace.replaced,

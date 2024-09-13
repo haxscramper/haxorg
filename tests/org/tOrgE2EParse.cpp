@@ -832,7 +832,9 @@ TEST(ImmOrgApi, ReplaceSubnodeAtPath) {
     auto version2 = store.finishEdit(
         ctx,
         ctx.store().cascadeUpdate(
-            setSubnode(paragraph, word_xx, 2, ctx), ctx));
+            version1.getRootAdapter(),
+            setSubnode(paragraph, word_xx, 2, ctx),
+            ctx));
 
     auto        store2 = version2.context;
     auto const& c = gen_view(version2.epoch.replaced.allReplacements())
@@ -979,7 +981,7 @@ TEST_F(ImmOrgApiEdit, LeafSubtreeDemote) {
 
     Vec<int> path{0, 1, 0};
 
-    org::ImmAstVersion v2 = v1.context.getEditVersion(
+    org::ImmAstVersion v2 = v1.getEditVersion(
         [&](org::ImmAstContext&     ast,
             org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
             auto root  = v1.getRootAdapter();
@@ -1028,7 +1030,7 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_OneNested) {
     setTraceFile(getDebugFile("trace.txt"));
     org::ImmAstVersion v1 = getInitialVersion(getSubtreeDash());
 
-    org::ImmAstVersion v2 = v1.context.getEditVersion(
+    org::ImmAstVersion v2 = v1.getEditVersion(
         [&](org::ImmAstContext&     ast,
             org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
             auto root = v1.getRootAdapter();
@@ -1055,7 +1057,7 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_All) {
     setTraceFile(getDebugFile("trace.txt"));
     org::ImmAstVersion v1 = getInitialVersion(getSubtreeDash());
 
-    org::ImmAstVersion v2 = v1.context.getEditVersion(
+    org::ImmAstVersion v2 = v1.getEditVersion(
         [&](org::ImmAstContext&     ast,
             org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
             auto root = v1.getRootAdapter();
@@ -1080,7 +1082,7 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_WithParentChange) {
 
     auto demotePath = [&](org::ImmAstVersion v,
                           CVec<int>          path) -> org::ImmAstVersion {
-        return v.context.getEditVersion(
+        return v.getEditVersion(
             [&](org::ImmAstContext&     ast,
                 org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
                 auto root = v.getRootAdapter();
@@ -1154,7 +1156,7 @@ TEST_F(ImmOrgApiEdit, PhysicalDemote) {
     org::ImmAstVersion v1 = getInitialVersion(getSubtreeDash());
     writeTreeRepr(v1.getRootAdapter(), "repr_v1.txt");
 
-    org::ImmAstVersion v2 = v1.context.getEditVersion(
+    org::ImmAstVersion v2 = v1.getEditVersion(
         [&](org::ImmAstContext&     ast,
             org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
             auto root = v1.getRootAdapter();
@@ -1179,7 +1181,7 @@ TEST_F(ImmOrgApiEdit, ResetTitle) {
     org::ImmAstVersion v1 = getInitialVersion("* subtree");
     writeTreeRepr(v1.getRootAdapter(), "repr_v1.txt");
 
-    org::ImmAstVersion v2 = v1.context.getEditVersion(
+    org::ImmAstVersion v2 = v1.getEditVersion(
         [&](org::ImmAstContext&     ast,
             org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
             return ctx.store().updateNode<org::ImmSubtree>(
@@ -1217,7 +1219,7 @@ TEST_F(ImmOrgApiEdit, MoveSubnodes) {
 
     auto move =
         [&](int position, int offset, bool bounded) -> org::ImmAstVersion {
-        return v1.context.getEditVersion(
+        return v1.getEditVersion(
             [&](org::ImmAstContext&     ast,
                 org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
                 auto update = moveSubnode(

@@ -65,6 +65,7 @@ ImmAstReplace ImmAstStore::setNode(
 
 
 ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
+    ImmAdapter const&         root,
     ImmAstReplaceGroup const& replace,
     ImmAstEditContext&        ctx) {
     AST_EDIT_MSG("Start cascade update");
@@ -161,7 +162,8 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
                         updateTarget->subnodes),
                     "aux");
 
-                ImmAstReplace act = setSubnodes(
+                auto          __scope = ctx.debug.scopeLevel();
+                ImmAstReplace act     = setSubnodes(
                     updateTarget,
                     ImmVec<ImmId>{
                         updatedSubnodes.begin(),
@@ -188,19 +190,6 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
             }
         }
     };
-
-
-    ImmAdapter root;
-    for (auto const& act : replace.allReplacements()) {
-        auto original = ctx->adapt(act.original);
-        auto doc      = original.getParentChain(false).back();
-        if (root.isNil()) {
-            root = doc;
-        } else {
-            LOGIC_ASSERTION_CHECK(
-                doc == root, "doc:{} != root:{}", doc, root);
-        }
-    }
 
     AST_EDIT_MSG(fmt("Main root {}", root));
     result.root = aux(root);
@@ -320,10 +309,11 @@ ImmAdapter ImmAstContext::adapt(const ImmUniqId& id) {
 
 
 ImmAstVersion ImmAstContext::getEditVersion(
+    const org::ImmAdapter&                                           root,
     Func<ImmAstReplaceGroup(ImmAstContext& ast, ImmAstEditContext&)> cb) {
     auto ctx     = getEditContext();
     auto replace = cb(*this, ctx);
-    return finishEdit(ctx, ctx.store().cascadeUpdate(replace, ctx));
+    return finishEdit(ctx, ctx.store().cascadeUpdate(root, replace, ctx));
 }
 
 ImmAstContext ImmAstContext::finishEdit(ImmAstEditContext& ctx) {
