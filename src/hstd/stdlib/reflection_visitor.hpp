@@ -222,26 +222,28 @@ struct ReflVisitor<T> {
     }
 };
 
-template <typename K, typename V>
-struct ReflVisitor<UnorderedMap<K, V>> {
+template <typename K, typename V, typename Map>
+struct ReflVisitorKeyValue {
     /// \brief Apply callback to passed value if the path points to it,
     /// otherwise follow the path down the data structure.
     template <typename Func>
     static void visit(
-        UnorderedMap<K, V> const& value,
-        ReflPathItem const&       step,
-        Func const&               cb) {
+        Map const&          value,
+        ReflPathItem const& step,
+        Func const&         cb) {
         LOGIC_ASSERTION_CHECK(step.isAnyKey(), "{}", step.getKind());
         cb(value.at(step.getAnyKey().get<K>()));
     }
 
 
-    static Vec<ReflPathItem> subitems(UnorderedMap<K, V> const& value) {
+    static Vec<ReflPathItem> subitems(Map const& value) {
         Vec<ReflPathItem> result;
         if constexpr (requires(K a, K b) {
                           { a < b } -> std::convertible_to<bool>;
                       }) {
-            for (auto const& key : sorted(value.keys())) {
+            Vec<K> keys;
+            for (auto const& [key, _] : value) { keys.push_back(key); }
+            for (auto const& key : sorted(keys)) {
                 result.push_back(ReflPathItem::FromAnyKey(key));
             }
         } else {
@@ -254,6 +256,22 @@ struct ReflVisitor<UnorderedMap<K, V>> {
         return result;
     }
 };
+
+template <typename K, typename V>
+struct ReflVisitor<UnorderedMap<K, V>>
+    : ReflVisitorKeyValue<K, V, UnorderedMap<K, V>> {};
+
+template <typename K, typename V>
+struct ReflVisitor<SortedMap<K, V>>
+    : ReflVisitorKeyValue<K, V, SortedMap<K, V>> {};
+
+template <typename K, typename V>
+struct ReflVisitor<std::unordered_map<K, V>>
+    : ReflVisitorKeyValue<K, V, std::unordered_map<K, V>> {};
+
+template <typename K, typename V>
+struct ReflVisitor<std::map<K, V>>
+    : ReflVisitorKeyValue<K, V, std::map<K, V>> {};
 
 template <typename T>
 struct ReflVisitorLeafType {
