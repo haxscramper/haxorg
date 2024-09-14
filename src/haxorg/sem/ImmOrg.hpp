@@ -56,9 +56,20 @@ using ImmAstParentMapType = ImmMap<org::ImmId, org::ImmId>;
 
 struct ImmAstTrackingMap;
 
-DECL_DESCRIBED_ENUM_STANDALONE(ImmPathField, title, description);
+DECL_DESCRIBED_ENUM_STANDALONE(
+    ImmPathField,
+    title,
+    description,
+    positional,
+    text,
+    from,
+    to);
 
+/// \brief Component of a path indexing into an ImmOrg node
 struct ImmPathItem {
+    /// \brief Index into a subnode or a field name. In case of a field,
+    /// additional clarification for subnode access is stored in the
+    /// `subfield`
     Variant<int, ImmPathField> step;
     DESC_FIELDS(ImmPathItem, (step));
 
@@ -353,7 +364,7 @@ struct ImmAstStore {
 
     template <org::IsImmOrgValueType T>
     ImmId add(T const& value, ImmAstEditContext& ctx) {
-        return getStore<T>().add(value, ctx);
+        return getStore<T>()->add(value, ctx);
     }
 
     ImmId add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx);

@@ -798,8 +798,6 @@ struct GroupToken {
     Kind kind;
     Data data;
 
-    bool isLeaf() const { return getDataKind() == DataKind::Leaf; }
-    bool isNested() const { return getDataKind() == DataKind::Nested; }
     bool isSrc() const {
         if (!(isNested() && getNested().subgroups.has(0))) {
             return false;

@@ -128,8 +128,6 @@ struct OrgConverter : public OperationsTracer {
 
         SUB_VARIANTS(Kind, Data, data, getKind, Node, Error);
         Data data;
-        bool isNode() const { return getKind() == Kind::Node; }
-        bool isError() const { return getKind() == Kind::Error; }
 
         Opt<SemId<ErrorGroup>> optError() const {
             return isError() ? std::make_optional(error()) : std::nullopt;

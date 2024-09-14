@@ -301,6 +301,7 @@ struct ImmOrg {
         return -1;
     }
 
+    bool is(SemSet const& kind) const { return kind.contains(getKind()); }
     bool is(OrgSemKind kind) const { return getKind() == kind; }
 
     template <typename T>

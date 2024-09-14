@@ -816,6 +816,23 @@ TEST(ImmOrgApi, RountripImmutableAst) {
     show_compare_reports(out);
 }
 
+TEST(ImmOrgApi, ImmAstFieldIteration) {
+    org::ImmAstContext store;
+    auto               edit = store.getEditContext();
+    for (auto const& k : sliceT<OrgSemKind>()) {
+        if (k != OrgSemKind::None) {
+            switch_node_nullptr(k, [&]<typename N>(N*) {
+                N    tmp{};
+                auto id = store.store->add(tmp, edit);
+                try {
+                    store.at(
+                        id, org::ImmPathItem{org::ImmPathField::title});
+                } catch (std::out_of_range const& ex) {}
+            });
+        }
+    }
+}
+
 TEST(ImmOrgApi, ReplaceSubnodeAtPath) {
     auto start_node   = parseNode("word0 word2 word4");
     auto replace_node = parseNode("wordXX").at(0).at(0);
@@ -1270,6 +1287,7 @@ TEST_F(ImmOrgApiEdit, MoveSubnodes) {
         flat(v4.getRootAdapter()),
         (Vec<Str>{"one", "zero", " ", " ", "two", " ", "three"}));
 }
+
 
 TEST(ImmMapApi, AddNode) {
     auto n1 = parseNode("* subtree");

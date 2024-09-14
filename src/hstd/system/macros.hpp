@@ -26,7 +26,10 @@
 /// \internal Generate getter methods for SUB_VARIANTS
 #define __SUB_VARIANT_GETTER(fieldName, Type)                             \
     Type&       get##Type() { return std::get<Type>(fieldName); }         \
-    Type const& get##Type() const { return std::get<Type>(fieldName); }
+    Type const& get##Type() const { return std::get<Type>(fieldName); }   \
+    bool        is##Type() const {                                        \
+        return std::holds_alternative<Type>(fieldName);            \
+    }
 
 /// \internal Generate kind getter lambda for SUB_VARIANTS
 #define __SUB_VARIANT_KIND_LAMBDA(EnumName, Type)                         \

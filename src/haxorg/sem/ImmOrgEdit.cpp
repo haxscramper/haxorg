@@ -1,4 +1,5 @@
 #include "ImmOrgEdit.hpp"
+#include <immer/flex_vector_transient.hpp>
 
 
 using namespace org;
@@ -248,4 +249,46 @@ Opt<ImmAstReplace> org::moveSubnode(
             subnodes));
 
     return setSubnodes(node, subnodes, ctx);
+}
+
+ImmAstReplace org::swapSubnode(
+    CR<ImmAdapter>     node,
+    int                from,
+    int                to,
+    ImmAstEditContext& ctx) {
+    LOGIC_ASSERTION_CHECK(from != to, "{}", from);
+    auto subnodes = node->subnodes;
+    auto tmp      = subnodes.transient();
+    tmp.set(from, node->subnodes.at(to));
+    tmp.set(to, node->subnodes.at(from));
+    return setSubnodes(node, tmp.persistent(), ctx);
+}
+
+Opt<ImmAstReplace> org::moveSubnodeStructural(
+    CR<ImmAdapter>     node,
+    int                position,
+    int                offset,
+    ImmAstEditContext& ctx) {
+
+    if (node->dyn_cast<org::ImmStmt>() != nullptr) {
+        int targetOffset    = offset;
+        int offsetDirection = 0 < offset ? 1 : -1;
+        for (auto adj = node.getAdjacentNode(targetOffset);
+             adj.has_value() && adj->is(OrgSemKind::Space);
+             adj = node.getAdjacentNode(targetOffset)) {
+            targetOffset += offsetDirection;
+        }
+
+        if (auto adj = node.getAdjacentNode(targetOffset); adj) {
+            return swapSubnode(
+                node.getParent().value(),
+                node.getSelfIndex(),
+                node.getSelfIndex() + targetOffset,
+                ctx);
+        } else {
+            return std::nullopt;
+        }
+    } else {
+        return std::nullopt;
+    }
 }

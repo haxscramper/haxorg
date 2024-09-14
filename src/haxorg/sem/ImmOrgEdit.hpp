@@ -46,6 +46,9 @@ ImmAstReplace dropSubnode(CR<ImmAdapter> node, int position, ImmAstEditContext& 
 ImmAstReplace dropSubnode(CR<ImmAdapter> node, org::ImmId subnode, ImmAstEditContext& ctx);
 Opt<ImmAstReplace> moveSubnode(CR<ImmAdapter> node, int position, int offset, ImmAstEditContext& ctx, bool bounded = true);
 Pair<ImmAstReplace, org::ImmId> popSubnode(CR<ImmAdapter> node, int position, ImmAstEditContext& ctx);
+ImmAstReplace swapSubnode(CR<ImmAdapter> node, int from, int to, ImmAstEditContext& ctx);
+/// \brief Move subnode up/down with the structural movements -- jumping over spaces, newlines etc.
+Opt<ImmAstReplace> moveSubnodeStructural(CR<ImmAdapter> node, int position, int offset, ImmAstEditContext& ctx);
 
 // clang-format on
 } // namespace org
