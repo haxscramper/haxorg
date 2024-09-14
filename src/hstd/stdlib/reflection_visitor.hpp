@@ -7,6 +7,56 @@
 #include <hstd/stdlib/Span.hpp>
 #include <hstd/stdlib/Exception.hpp>
 #include <hstd/stdlib/Variant.hpp>
+#include <hstd/stdlib/Map.hpp>
+#include <any>
+#include <hstd/stdlib/algorithms.hpp>
+
+template <>
+struct std::formatter<std::any> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const std::any& p, FormatContext& ctx) const {
+        return fmt_ctx(p.type().name(), ctx);
+    }
+};
+
+template <typename... Ts>
+struct AnyHasher {
+    std::size_t operator()(const std::any& a) const {
+        return hash_impl<Ts...>(a);
+    }
+
+  private:
+    template <typename T, typename... Rest>
+    std::size_t hash_impl(const std::any& a) const {
+        if (a.type() == typeid(T)) {
+            return std::hash<T>{}(*std::any_cast<T>(&a));
+        } else if constexpr (sizeof...(Rest) > 0) {
+            return hash_impl<Rest...>(a);
+        } else {
+            throw std::bad_any_cast();
+        }
+    }
+};
+
+template <typename... Ts>
+struct AnyEqual {
+    bool operator()(const std::any& a, const std::any& b) const {
+        return equal_impl<Ts...>(a, b);
+    }
+
+  private:
+    template <typename T, typename... Rest>
+    bool equal_impl(const std::any& a, const std::any& b) const {
+        if (a.type() == typeid(T) && b.type() == typeid(T)) {
+            return *std::any_cast<T>(&a) == *std::any_cast<T>(&b);
+        } else if constexpr (sizeof...(Rest) > 0) {
+            return equal_impl<Rest...>(a, b);
+        } else {
+            throw std::bad_any_cast();
+        }
+    }
+};
+
 
 struct ReflPathItem {
     /// \brief Target field is a vector.
@@ -16,6 +66,17 @@ struct ReflPathItem {
 
         bool operator==(SubIndex const& other) const {
             return index == other.index;
+        }
+    };
+
+    struct AnyKey {
+        std::any key;
+        DESC_FIELDS(AnyKey, (key));
+        bool operator==(AnyKey const& other) const { return false; }
+
+        template <typename T>
+        T const& get() const {
+            return *std::any_cast<T>(&key);
         }
     };
 
@@ -32,7 +93,12 @@ struct ReflPathItem {
         return ReflPathItem{FieldName{.name = name}};
     }
 
-    SUB_VARIANTS(Kind, Data, data, getKind, SubIndex, FieldName);
+    template <typename K>
+    static ReflPathItem FromAnyKey(K const& name) {
+        return ReflPathItem{AnyKey{.key = std::any(name)}};
+    }
+
+    SUB_VARIANTS(Kind, Data, data, getKind, SubIndex, FieldName, AnyKey);
     Data data;
     DESC_FIELDS(ReflPathItem, (data));
     bool operator==(ReflPathItem const& it) const {
@@ -57,6 +123,15 @@ struct std::hash<ReflPathItem::FieldName> {
         ReflPathItem::FieldName const& it) const noexcept {
         std::size_t result = 0;
         hax_hash_combine(result, it.name);
+        return result;
+    }
+};
+
+template <>
+struct std::hash<ReflPathItem::AnyKey> {
+    std::size_t operator()(ReflPathItem::AnyKey const& it) const noexcept {
+        std::size_t result = 0;
+        // hax_hash_combine(result, it.key);
         return result;
     }
 };
@@ -142,6 +217,39 @@ struct ReflVisitor<T> {
             value, [&]<typename F>(char const* name, F const& value) {
                 result.push_back(ReflPathItem::FromFieldName(name));
             });
+
+        return result;
+    }
+};
+
+template <typename K, typename V>
+struct ReflVisitor<UnorderedMap<K, V>> {
+    /// \brief Apply callback to passed value if the path points to it,
+    /// otherwise follow the path down the data structure.
+    template <typename Func>
+    static void visit(
+        UnorderedMap<K, V> const& value,
+        ReflPathItem const&       step,
+        Func const&               cb) {
+        LOGIC_ASSERTION_CHECK(step.isAnyKey(), "{}", step.getKind());
+        cb(value.at(step.getAnyKey().get<K>()));
+    }
+
+
+    static Vec<ReflPathItem> subitems(UnorderedMap<K, V> const& value) {
+        Vec<ReflPathItem> result;
+        if constexpr (requires(K a, K b) {
+                          { a < b } -> std::convertible_to<bool>;
+                      }) {
+            for (auto const& key : sorted(value.keys())) {
+                result.push_back(ReflPathItem::FromAnyKey(key));
+            }
+        } else {
+            for (auto const& key : value.keys()) {
+                result.push_back(ReflPathItem::FromAnyKey(key));
+            }
+        }
+
 
         return result;
     }

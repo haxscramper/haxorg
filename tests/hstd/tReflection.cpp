@@ -263,3 +263,40 @@ TEST(ReflectionVisitor, FieldNames) {
             "char",
         }));
 }
+
+
+TEST(ReflectionVisitor, UnorderedMap) {
+    UnorderedMap<std::string, int> map;
+    map["f1"] = 2;
+    map["f2"] = 3;
+    map["f3"] = 4;
+
+    auto items = reflSubItems(map);
+    EXPECT_EQ(items.size(), 3);
+    EXPECT_EQ(items.at(0).getAnyKey().get<std::string>(), "f1");
+    EXPECT_EQ(items.at(1).getAnyKey().get<std::string>(), "f2");
+    EXPECT_EQ(items.at(2).getAnyKey().get<std::string>(), "f3");
+
+    std::vector<std::string> visitNames;
+    reflVisitAll(
+        map,
+        {},
+        overloaded{
+            [&](ReflPath const&                       path,
+                UnorderedMap<std::string, int> const& field) {
+                visitNames.push_back("map");
+            },
+            [&](ReflPath const& path, int const& field) {
+                visitNames.push_back("int");
+            },
+        });
+
+    EXPECT_EQ(
+        visitNames,
+        (Vec<std::string>{
+            "map",
+            "int",
+            "int",
+            "int",
+        }));
+}
