@@ -38,17 +38,3 @@ struct std::hash<ImmMap<K, V>> {
         return result;
     }
 };
-
-template <IsVariant T>
-struct std::hash<T> {
-    std::size_t operator()(T const& it) const noexcept {
-        std::size_t result = 0;
-        boost::hash_combine(result, get_std_hash(it.index()));
-        std::visit(
-            [&](auto const& var) {
-                boost::hash_combine(result, get_std_hash(var));
-            },
-            it);
-        return result;
-    }
-};

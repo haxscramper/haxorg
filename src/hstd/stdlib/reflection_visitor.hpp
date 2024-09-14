@@ -6,6 +6,7 @@
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Span.hpp>
 #include <hstd/stdlib/Exception.hpp>
+#include <hstd/stdlib/Variant.hpp>
 
 struct ReflPathItem {
     /// \brief Target field is a vector.
@@ -27,12 +28,39 @@ struct ReflPathItem {
         }
     };
 
+    static ReflPathItem FromFieldName(std::string const& name) {
+        return ReflPathItem{FieldName{.name = name}};
+    }
+
     SUB_VARIANTS(Kind, Data, data, getKind, SubIndex, FieldName);
     Data data;
+    DESC_FIELDS(ReflPathItem, (data));
     bool operator==(ReflPathItem const& it) const {
         return data == it.data;
     }
 };
+
+
+template <>
+struct std::hash<ReflPathItem::SubIndex> {
+    std::size_t operator()(
+        ReflPathItem::SubIndex const& it) const noexcept {
+        std::size_t result = 0;
+        hax_hash_combine(result, it.index);
+        return result;
+    }
+};
+
+template <>
+struct std::hash<ReflPathItem::FieldName> {
+    std::size_t operator()(
+        ReflPathItem::FieldName const& it) const noexcept {
+        std::size_t result = 0;
+        hax_hash_combine(result, it.name);
+        return result;
+    }
+};
+
 
 template <>
 struct std::hash<ReflPathItem> {
@@ -89,37 +117,75 @@ template <typename T>
 struct ReflVisitor {};
 
 
+struct refl_invalid_visit : CRTP_hexception<refl_invalid_visit> {};
+
 template <DescribedRecord T>
 struct ReflVisitor<T> {
     /// \brief Apply callback to passed value if the path points to it,
     /// otherwise follow the path down the data structure.
     template <typename Func>
     static void visit(
-        T const&        value,
-        ReflPath const& path,
-        Func const&     cb) {
-        if (path.empty()) {
-            cb(value);
-        } else {
-            auto [step, nested] = path.split();
-            LOGIC_ASSERTION_CHECK(
-                step.isFieldName(), "{}", step.getKind());
-            for_each_field_value_with_bases<T>(
-                [&]<typename F>(char const* name, F const& value) {
-                    if (name == step.getFieldName().name) {
-                        ReflVisitor<F>::visit(value, nested, cb);
-                    }
-                });
-        }
+        T const&            value,
+        ReflPathItem const& step,
+        Func const&         cb) {
+        LOGIC_ASSERTION_CHECK(step.isFieldName(), "{}", step.getKind());
+        for_each_field_value_with_bases<T>(
+            value, [&]<typename F>(char const* name, F const& value) {
+                if (Str{name} == step.getFieldName().name) { cb(value); }
+            });
     }
 
-    static Vec<ReflPath> subitems(T const& value, ReflPath const& parent) {
-        Vec<ReflPath> result;
-        for_each_field_value_with_bases<T>(
-            [&]<typename F>(char const* name, F const& value) {
-                result.push_back(parent.addFieldName(name));
+
+    static Vec<ReflPathItem> subitems(T const& value) {
+        Vec<ReflPathItem> result;
+        for_each_field_value_with_bases(
+            value, [&]<typename F>(char const* name, F const& value) {
+                result.push_back(ReflPathItem::FromFieldName(name));
             });
 
         return result;
     }
 };
+
+template <typename T>
+struct ReflVisitorLeafType {
+    template <typename Func>
+    static void visit(
+        T const&            value,
+        ReflPathItem const& step,
+        Func const&         cb) {
+        throw refl_invalid_visit::init(
+            fmt("Type {} cannot be indexed into using path step {}",
+                demangle(typeid(T).name()),
+                step));
+    }
+
+
+    static Vec<ReflPathItem> subitems(T const& value) { return {}; }
+};
+
+template <>
+struct ReflVisitor<int> : ReflVisitorLeafType<int> {};
+
+template <>
+struct ReflVisitor<char> : ReflVisitorLeafType<char> {};
+
+template <>
+struct ReflVisitor<std::string> : ReflVisitorLeafType<std::string> {};
+
+
+template <typename T>
+Vec<ReflPathItem> reflSubItems(T const& item) {
+    return ReflVisitor<T>::subitems(item);
+}
+
+template <typename T, typename Func>
+void reflVisitAll(T const& value, ReflPath const& path, Func const& cb) {
+    cb(path, value);
+    for (auto const& step : ReflVisitor<T>::subitems(value)) {
+        ReflVisitor<T>::visit(
+            value, step, [&]<typename F>(F const& fieldValue) {
+                reflVisitAll<F>(fieldValue, path.add(step), cb);
+            });
+    }
+}

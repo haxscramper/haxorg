@@ -540,12 +540,6 @@ void switch_node_value(
         id, [&]<typename K>(org::ImmIdT<K> id) { cb(ctx.value<K>(id)); });
 }
 
-template <typename T, typename Func>
-void for_each_field_value_with_bases(T const& value, Func const& cb) {
-    for_each_field_with_bases<T>(
-        [&](auto const& field) { cb(field.name, value.*field.pointer); });
-}
-
 template <typename Func>
 void switch_node_fields(
     org::ImmId           id,

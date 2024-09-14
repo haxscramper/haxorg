@@ -35,6 +35,18 @@ struct std::formatter<V> : std::formatter<std::string> {
 
 
 template <IsVariant V>
+struct std::hash<V> {
+    std::size_t operator()(V const& it) const noexcept {
+        std::size_t result = 0;
+        hax_hash_combine(result, it.index());
+        std::visit(
+            [&](auto const& var) { hax_hash_combine(result, var); }, it);
+        return result;
+    }
+};
+
+
+template <IsVariant V>
 auto variant_from_index(size_t index) -> V {
     return boost::mp11::mp_with_index<
         boost::mp11::mp_size<V>>(index, [](auto I) {

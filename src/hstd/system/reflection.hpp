@@ -292,6 +292,14 @@ void for_each_field_with_bases(Func cb, bool pre_bases = true) {
     }
 }
 
+
+template <typename T, typename Func>
+void for_each_field_value_with_bases(T const& value, Func const& cb) {
+    for_each_field_with_bases<T>(
+        [&](auto const& field) { cb(field.name, value.*field.pointer); });
+}
+
+
 template <typename T>
 bool equal_on_all_fields(CR<T> lhs, CR<T> rhs) {
     bool equal = true;

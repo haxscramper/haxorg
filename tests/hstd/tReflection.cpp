@@ -3,6 +3,7 @@
 #include <hstd/system/macros.hpp>
 #include <hstd/system/Formatter.hpp>
 #include <hstd/system/aux_utils.hpp>
+#include <hstd/stdlib/reflection_visitor.hpp>
 
 
 enum class TestEnum_EnumToString
@@ -217,4 +218,48 @@ TEST(Reflection, SubVariants) {
         EXPECT_EQ(it.getFirst().f, 24);
         EXPECT_THROW(it.getSecond(), std::bad_variant_access);
     }
+}
+
+
+struct ReflData {
+    int         f1;
+    std::string f2;
+    char        f3;
+    DESC_FIELDS(ReflData, (f1, f2, f3));
+};
+
+TEST(ReflectionVisitor, FieldNames) {
+    auto items = reflSubItems(ReflData{});
+    EXPECT_EQ(items.size(), 3);
+    EXPECT_EQ(items.at(0).getFieldName().name, "f1");
+    EXPECT_EQ(items.at(1).getFieldName().name, "f2");
+    EXPECT_EQ(items.at(2).getFieldName().name, "f3");
+
+    std::vector<std::string> visitNames;
+    reflVisitAll(
+        ReflData{},
+        {},
+        overloaded{
+            [&](ReflPath const& path, ReflData const& field) {
+                visitNames.push_back("ReflData");
+            },
+            [&](ReflPath const& path, std::string const& field) {
+                visitNames.push_back("std::string");
+            },
+            [&](ReflPath const& path, int const& field) {
+                visitNames.push_back("int");
+            },
+            [&](ReflPath const& path, char const& field) {
+                visitNames.push_back("char");
+            },
+        });
+
+    EXPECT_EQ(
+        visitNames,
+        (Vec<std::string>{
+            "ReflData",
+            "int",
+            "std::string",
+            "char",
+        }));
 }
