@@ -235,10 +235,12 @@ TEST(ReflectionVisitor, FieldNames) {
     EXPECT_EQ(items.at(1).getFieldName().name, "f2");
     EXPECT_EQ(items.at(2).getFieldName().name, "f3");
 
-    std::vector<std::string> visitNames;
+    std::vector<std::string>  visitNames;
+    ReflRecursiveVisitContext ctx;
     reflVisitAll(
         ReflData{},
         {},
+        ctx,
         overloaded{
             [&](ReflPath const& path, ReflData const& field) {
                 visitNames.push_back("ReflData");
@@ -277,10 +279,12 @@ TEST(ReflectionVisitor, UnorderedMap) {
     EXPECT_EQ(items.at(1).getAnyKey().get<std::string>(), "f2");
     EXPECT_EQ(items.at(2).getAnyKey().get<std::string>(), "f3");
 
-    std::vector<std::string> visitNames;
+    std::vector<std::string>  visitNames;
+    ReflRecursiveVisitContext ctx;
     reflVisitAll(
         map,
         {},
+        ctx,
         overloaded{
             [&](ReflPath const&                       path,
                 UnorderedMap<std::string, int> const& field) {
@@ -298,5 +302,39 @@ TEST(ReflectionVisitor, UnorderedMap) {
             "int",
             "int",
             "int",
+        }));
+}
+
+TEST(ReflectionVisitor, Vector) {
+    Vec<std::string> map{"f1", "f2", "f3"};
+
+    auto items = reflSubItems(map);
+    EXPECT_EQ(items.size(), 3);
+    EXPECT_EQ(items.at(0).getIndex().index, 0);
+    EXPECT_EQ(items.at(1).getIndex().index, 1);
+    EXPECT_EQ(items.at(2).getIndex().index, 2);
+
+    std::vector<std::string>  visitNames;
+    ReflRecursiveVisitContext ctx;
+    reflVisitAll(
+        map,
+        {},
+        ctx,
+        overloaded{
+            [&](ReflPath const& path, Vec<std::string> const& field) {
+                visitNames.push_back("vec");
+            },
+            [&](ReflPath const& path, std::string const& field) {
+                visitNames.push_back("std::string");
+            },
+        });
+
+    EXPECT_EQ(
+        visitNames,
+        (Vec<std::string>{
+            "vec",
+            "std::string",
+            "std::string",
+            "std::string",
         }));
 }

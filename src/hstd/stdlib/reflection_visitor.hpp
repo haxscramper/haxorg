@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hstd/stdlib/Set.hpp"
 #include <hstd/system/aux_utils.hpp>
 #include <hstd/system/reflection.hpp>
 #include <hstd/system/macros.hpp>
@@ -60,11 +61,11 @@ struct AnyEqual {
 
 struct ReflPathItem {
     /// \brief Target field is a vector.
-    struct SubIndex {
+    struct Index {
         int index;
-        DESC_FIELDS(SubIndex, (index));
+        DESC_FIELDS(Index, (index));
 
-        bool operator==(SubIndex const& other) const {
+        bool operator==(Index const& other) const {
             return index == other.index;
         }
     };
@@ -89,8 +90,19 @@ struct ReflPathItem {
         }
     };
 
+    struct Deref {
+        DESC_FIELDS(Deref, ());
+        bool operator==(Deref const& other) const { return true; }
+    };
+
     static ReflPathItem FromFieldName(std::string const& name) {
         return ReflPathItem{FieldName{.name = name}};
+    }
+
+    static ReflPathItem FromDeref() { return ReflPathItem{Deref{}}; }
+
+    static ReflPathItem FromIndex(int const& name) {
+        return ReflPathItem{Index{.index = name}};
     }
 
     template <typename K>
@@ -98,7 +110,15 @@ struct ReflPathItem {
         return ReflPathItem{AnyKey{.key = std::any(name)}};
     }
 
-    SUB_VARIANTS(Kind, Data, data, getKind, SubIndex, FieldName, AnyKey);
+    SUB_VARIANTS(
+        Kind,
+        Data,
+        data,
+        getKind,
+        Index,
+        FieldName,
+        AnyKey,
+        Deref);
     Data data;
     DESC_FIELDS(ReflPathItem, (data));
     bool operator==(ReflPathItem const& it) const {
@@ -106,11 +126,18 @@ struct ReflPathItem {
     }
 };
 
+template <>
+struct std::hash<ReflPathItem::Deref> {
+    std::size_t operator()(ReflPathItem::Deref const& it) const noexcept {
+        std::size_t result = 0;
+        return result;
+    }
+};
+
 
 template <>
-struct std::hash<ReflPathItem::SubIndex> {
-    std::size_t operator()(
-        ReflPathItem::SubIndex const& it) const noexcept {
+struct std::hash<ReflPathItem::Index> {
+    std::size_t operator()(ReflPathItem::Index const& it) const noexcept {
         std::size_t result = 0;
         hax_hash_combine(result, it.index);
         return result;
@@ -187,10 +214,34 @@ struct std::hash<ReflPath> {
     }
 };
 
-
 template <typename T>
 struct ReflVisitor {};
 
+
+template <typename T>
+struct ReflPointer {
+    static Opt<u64> getPointerId(T const&) { return std::nullopt; }
+};
+
+template <typename T>
+struct ReflPointer<T const*> {
+    static Opt<u64> getPointerId(T const* ptr) { return (u64)(ptr); }
+};
+
+template <typename T>
+struct ReflPointer<std::shared_ptr<T>> {
+    static Opt<u64> getPointerId(std::shared_ptr<T> const& ptr) {
+        return ReflPointer<T>::getPointerId(ptr.get());
+    }
+};
+
+
+template <typename T>
+struct ReflPointer<std::unique_ptr<T>> {
+    static Opt<u64> getPointerId(std::unique_ptr<T> const& ptr) {
+        return ReflPointer<T>::getPointerId(ptr.get());
+    }
+};
 
 struct refl_invalid_visit : CRTP_hexception<refl_invalid_visit> {};
 
@@ -257,6 +308,157 @@ struct ReflVisitorKeyValue {
     }
 };
 
+template <typename T, typename Indexed>
+struct ReflVisitorIndexed {
+    /// \brief Apply callback to passed value if the path points to it,
+    /// otherwise follow the path down the data structure.
+    template <typename Func>
+    static void visit(
+        Indexed const&      value,
+        ReflPathItem const& step,
+        Func const&         cb) {
+        LOGIC_ASSERTION_CHECK(step.isIndex(), "{}", step.getKind());
+        cb(value.at(step.getIndex().index));
+    }
+
+
+    static Vec<ReflPathItem> subitems(Indexed const& value) {
+        Vec<ReflPathItem> result;
+        for (int i = 0; i < value.size(); ++i) {
+            result.push_back(ReflPathItem::FromIndex(i));
+        }
+
+        return result;
+    }
+};
+
+template <typename T>
+struct ReflVisitor<Opt<T>> {
+    /// \brief Apply callback to passed value if the path points to it,
+    /// otherwise follow the path down the data structure.
+    template <typename Func>
+    static void visit(
+        Opt<T> const&       value,
+        ReflPathItem const& step,
+        Func const&         cb) {
+        LOGIC_ASSERTION_CHECK(step.isDeref(), "{}", step.getKind());
+        cb(value.value());
+    }
+
+
+    static Vec<ReflPathItem> subitems(Opt<T> const& value) {
+        Vec<ReflPathItem> result;
+        if (value.has_value()) {
+            result.push_back(ReflPathItem::FromDeref());
+        }
+
+        return result;
+    }
+};
+
+template <typename Tuple, typename Func, std::size_t... Is>
+void apply_to_tuple_impl(
+    Tuple&&     t,
+    std::size_t index,
+    Func&&      func,
+    std::index_sequence<Is...>) {
+    ((Is == index ? (void)func(std::get<Is>(t)) : void()), ...);
+}
+
+template <typename Tuple, typename Func>
+void apply_to_tuple(Tuple&& t, std::size_t index, Func&& func) {
+    constexpr std::size_t size = std::tuple_size_v<std::decay_t<Tuple>>;
+    if (index >= size) { throw std::out_of_range("Index out of range"); }
+    apply_to_tuple_impl(
+        std::forward<Tuple>(t),
+        index,
+        std::forward<Func>(func),
+        std::make_index_sequence<size>{});
+}
+
+template <typename... Args>
+struct ReflVisitor<std::tuple<Args...>> {
+    /// \brief Apply callback to passed value if the path points to it,
+    /// otherwise follow the path down the data structure.
+    template <typename Func>
+    static void visit(
+        std::tuple<Args...> const& value,
+        ReflPathItem const&        step,
+        Func const&                cb) {
+        LOGIC_ASSERTION_CHECK(step.isIndex(), "{}", step.getKind());
+        apply_to_tuple(value, step.getIndex().index, cb);
+    }
+
+
+    static Vec<ReflPathItem> subitems(std::tuple<Args...> const& value) {
+        Vec<ReflPathItem> result;
+        for (int i = 0; i < std::tuple_size_v<std::tuple<Args...>>; ++i) {
+            result.push_back(ReflPathItem::FromIndex(i));
+        }
+        return result;
+    }
+};
+
+template <typename T1, typename T2>
+struct ReflVisitor<Pair<T1, T2>> {
+    /// \brief Apply callback to passed value if the path points to it,
+    /// otherwise follow the path down the data structure.
+    template <typename Func>
+    static void visit(
+        Pair<T1, T2> const& value,
+        ReflPathItem const& step,
+        Func const&         cb) {
+        LOGIC_ASSERTION_CHECK(step.isIndex(), "{}", step.getKind());
+        LOGIC_ASSERTION_CHECK(
+            (0 <= step.getIndex().index && step.getIndex().index <= 1),
+            "{}",
+            step.getIndex().index);
+        if (step.getIndex().index == 0) {
+            cb(value.first);
+        } else {
+            cb(value.second);
+        }
+    }
+
+    static Vec<ReflPathItem> subitems(Pair<T1, T2> const& value) {
+        Vec<ReflPathItem> result;
+        for (int i = 0; i < std::tuple_size_v<Pair<T1, T2>>; ++i) {
+            result.push_back(ReflPathItem::FromIndex(i));
+        }
+        return result;
+    }
+};
+
+template <IsVariant T>
+struct ReflVisitor<T> {
+    /// \brief Apply callback to passed value if the path points to it,
+    /// otherwise follow the path down the data structure.
+    template <typename Func>
+    static void visit(
+        T const&            value,
+        ReflPathItem const& step,
+        Func const&         cb) {
+        LOGIC_ASSERTION_CHECK(step.isIndex(), "{}", step.getKind());
+        LOGIC_ASSERTION_CHECK(
+            value.index() == step.getIndex().index, "{}", value.index());
+        std::visit([&](auto const& it) { cb(it); });
+    }
+
+
+    static Vec<ReflPathItem> subitems(T const& value) {
+        Vec<ReflPathItem> result;
+        result.push_back(ReflPathItem::FromIndex(value.index()));
+        return result;
+    }
+};
+
+template <typename T>
+struct ReflVisitor<Vec<T>> : ReflVisitorIndexed<T, Vec<T>> {};
+
+template <typename T>
+struct ReflVisitor<std::vector<T>>
+    : ReflVisitorIndexed<T, std::vector<T>> {};
+
 template <typename K, typename V>
 struct ReflVisitor<UnorderedMap<K, V>>
     : ReflVisitorKeyValue<K, V, UnorderedMap<K, V>> {};
@@ -297,6 +499,15 @@ template <>
 struct ReflVisitor<char> : ReflVisitorLeafType<char> {};
 
 template <>
+struct ReflVisitor<float> : ReflVisitorLeafType<float> {};
+
+template <>
+struct ReflVisitor<double> : ReflVisitorLeafType<double> {};
+
+template <>
+struct ReflVisitor<char const*> : ReflVisitorLeafType<char const*> {};
+
+template <>
 struct ReflVisitor<std::string> : ReflVisitorLeafType<std::string> {};
 
 
@@ -305,13 +516,35 @@ Vec<ReflPathItem> reflSubItems(T const& item) {
     return ReflVisitor<T>::subitems(item);
 }
 
+struct ReflRecursiveVisitContext {
+    UnorderedSet<u64> visitedPointers;
+    template <typename T>
+    bool canRecurse(T const& item) const {
+        Opt<u64> id = ReflPointer<T>::getPointerId(item);
+        return !id.has_value() || !visitedPointers.contains(*id);
+    }
+
+    template <typename T>
+    void visit(T const& item) {
+        Opt<u64> id = ReflPointer<T>::getPointerId(item);
+        if (id) { visitedPointers.incl(*id); }
+    }
+};
+
 template <typename T, typename Func>
-void reflVisitAll(T const& value, ReflPath const& path, Func const& cb) {
+void reflVisitAll(
+    T const&                   value,
+    ReflPath const&            path,
+    ReflRecursiveVisitContext& ctx,
+    Func const&                cb) {
     cb(path, value);
-    for (auto const& step : ReflVisitor<T>::subitems(value)) {
-        ReflVisitor<T>::visit(
-            value, step, [&]<typename F>(F const& fieldValue) {
-                reflVisitAll<F>(fieldValue, path.add(step), cb);
-            });
+    if (ctx.canRecurse(value)) {
+        ctx.visit(value);
+        for (auto const& step : ReflVisitor<T>::subitems(value)) {
+            ReflVisitor<T>::visit(
+                value, step, [&]<typename F>(F const& fieldValue) {
+                    reflVisitAll<F>(fieldValue, path.add(step), ctx, cb);
+                });
+        }
     }
 }
