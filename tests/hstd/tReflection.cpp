@@ -6,11 +6,6 @@
 #include <hstd/stdlib/reflection_visitor.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
 
-template <>
-struct std::formatter<int const*> : std_format_ptr_as_value<int const*> {};
-
-template <>
-struct std::formatter<int*> : std_format_ptr_as_value<int*> {};
 
 enum class TestEnum_EnumToString
 {
@@ -449,19 +444,27 @@ TEST(ReflectionVisitor, ComplexDataStructure) {
         visitNames,
         (std::vector<std::string>{
             "DataStructure",
-            "std::unordered_map<std::string, int>",
             "std::unordered_set<int>",
-            "std::nullptr_t",
-            "std::optional<int>",
-            "std::pair<int, std::string>",
-            "CustomData",
-            "std::shared_ptr<int>",
+            "std::unordered_map<std::string, int>",
+            "std::vector<std::string>",
             "std::string",
-            "std::unique_ptr<int>",
-            "TupleType",
+            "CustomData",
             "int",
             "VariantType",
-            "std::vector<std::string>",
+            "int",
+            "std::pair<int, std::string>",
+            "int",
+            "std::string",
+            "TupleType",
+            "int",
+            "std::string",
+            "CustomData",
+            "int",
+            "std::nullptr_t",
+            "std::optional<int>",
+            "int",
+            "std::shared_ptr<int>",
+            "std::unique_ptr<int>",
         }));
 }
 

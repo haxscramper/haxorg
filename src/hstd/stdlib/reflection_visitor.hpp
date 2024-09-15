@@ -377,6 +377,36 @@ struct ReflVisitorIndexed {
     }
 };
 
+
+template <typename T, typename Unordered>
+struct ReflVisitorUnorderedIndexed {
+    static Vec<CRw<T>> getSorted(Unordered const& it) {
+        Vec<CRw<T>> items;
+        for (auto const& sub : it) { items.push_back(sub); }
+        std::sort(items.begin(), items.end());
+    }
+
+    template <typename Func>
+    static void visit(
+        Unordered const&    value,
+        ReflPathItem const& step,
+        Func const&         cb) {
+        LOGIC_ASSERTION_CHECK(step.isIndex(), "{}", step.getKind());
+        cb(getSorted(value).at(step.getIndex().index).get());
+    }
+
+
+    static Vec<ReflPathItem> subitems(Unordered const& value) {
+        Vec<ReflPathItem> result;
+        for (int i = 0; i < value.size(); ++i) {
+            result.push_back(ReflPathItem::FromIndex(i));
+        }
+
+        return result;
+    }
+};
+
+
 template <typename T>
 struct ReflVisitor<Opt<T>> {
     /// \brief Apply callback to passed value if the path points to it,
@@ -571,6 +601,19 @@ struct ReflVisitor<std::map<K, V>>
     : ReflVisitorKeyValue<K, V, std::map<K, V>> {};
 
 template <typename T>
+struct ReflVisitor<std::set<T>>
+    : ReflVisitorUnorderedIndexed<T, std::set<T>> {};
+
+template <typename T>
+struct ReflVisitor<std::unordered_set<T>>
+    : ReflVisitorUnorderedIndexed<T, std::unordered_set<T>> {};
+
+template <typename T>
+struct ReflVisitor<UnorderedSet<T>>
+    : ReflVisitorUnorderedIndexed<T, UnorderedSet<T>> {};
+
+
+template <typename T>
 struct ReflVisitorLeafType {
     template <typename Func>
     static void visit(
@@ -605,6 +648,9 @@ struct ReflVisitor<char const*> : ReflVisitorLeafType<char const*> {};
 template <>
 struct ReflVisitor<std::string> : ReflVisitorLeafType<std::string> {};
 
+template <>
+struct ReflVisitor<std::nullptr_t>
+    : ReflVisitorLeafType<std::nullptr_t> {};
 
 template <typename T>
 Vec<ReflPathItem> reflSubItems(T const& item) {

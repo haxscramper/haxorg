@@ -86,6 +86,14 @@ struct std_kv_tuple_iterator_formatter : std::formatter<std::string> {
     }
 };
 
+template <typename K, typename V>
+struct std::formatter<std::unordered_map<K, V>>
+    : std_kv_tuple_iterator_formatter<K, V, std::unordered_map<K, V>> {};
+
+template <typename K, typename V>
+struct std::formatter<std::map<K, V>>
+    : std_kv_tuple_iterator_formatter<K, V, std::map<K, V>> {};
+
 
 template <typename K, typename V>
 struct std::formatter<UnorderedMap<K, V>>

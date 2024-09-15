@@ -80,17 +80,6 @@ OrgFill fill(OrgLexer& lex) {
 }
 
 template <typename T>
-struct std::formatter<std::reference_wrapper<T>>
-    : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(
-        std::reference_wrapper<T> const& p,
-        FormatContext&                   ctx) const {
-        return fmt_ctx(p.get(), ctx);
-    }
-};
-
-template <typename T>
 struct std::formatter<rs::subrange<T>> : std::formatter<std::string> {
     template <typename FormatContext>
     FormatContext::iterator format(

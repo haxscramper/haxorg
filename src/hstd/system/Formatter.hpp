@@ -42,3 +42,45 @@ FormatContext::iterator fmt_ctx(const char* t, FormatContext& ctx) {
     with_std_formatter(t);
     return std::formatter<std::string>{}.format(t, ctx);
 }
+
+template <typename T>
+struct std_format_ptr_as_value : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(T const* p, FormatContext& ctx) const {
+        if (p == nullptr) {
+            return fmt_ctx("nullptr", ctx);
+        } else {
+            return fmt_ctx(*p, ctx);
+        }
+    }
+};
+
+
+template <typename T>
+struct std_format_ptr_as_hex : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(T const* p, FormatContext& ctx) const {
+        if (p == nullptr) {
+            return fmt_ctx("nullptr", ctx);
+        } else {
+            return fmt_ctx(
+                std::format("{:p}", static_cast<const void*>(p)), ctx);
+        }
+    }
+};
+
+template <>
+struct std::formatter<int const*> : std_format_ptr_as_value<int> {};
+
+template <>
+struct std::formatter<int*> : std_format_ptr_as_value<int> {};
+
+template <typename T>
+struct std::formatter<std::reference_wrapper<T>>
+    : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const std::reference_wrapper<T>& p, FormatContext& ctx)
+        const {
+        return fmt_ctx(p.get(), ctx);
+    }
+};
