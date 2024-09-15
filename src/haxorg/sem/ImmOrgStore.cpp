@@ -45,6 +45,30 @@ ImmAstReplace ImmAstStore::setNode(
     const T&           value,
     ImmAstEditContext& ctx) {
 
+    auto visit_node = overloaded{
+        [&](org::ImmSubtree const& subtree, ImmId node, bool add) {
+            if (auto id = subtree.treeId.get(); id) {
+                if (add) {
+                    ctx.track.subtrees.set(*id, node);
+                } else {
+                    ctx.track.subtrees.erase(*id);
+                }
+            }
+        },
+        [&](org::ImmAnnotatedParagraph const& par, ImmId node, bool add) {
+            if (par.getAnnotationKind()
+                == org::ImmAnnotatedParagraph::AnnotationKind::Footnote) {
+                auto id = par.getFootnote().name.get();
+                if (add) {
+                    ctx.track.footnotes.set(id, node);
+                } else {
+                    ctx.track.footnotes.erase(id);
+                }
+            }
+        },
+        [&](auto const& nodeValue, ImmId node, bool add) {},
+
+    };
 
     for (auto const& it : allSubnodes<T>(value, *ctx.ctx)) {
         it.assertValid();
@@ -63,6 +87,8 @@ ImmAstReplace ImmAstStore::setNode(
     AST_EDIT_MSG(fmt("| Original ID:{:<{}} {}", ft, w, target.value<T>()));
     AST_EDIT_MSG(fmt("| Replaced ID:{:<{}} {}", fr, w, value));
 
+    visit_node(target.value<T>(), target.id, false);
+    visit_node(value, result_node, true);
 
     return ImmAstReplace{
         .replaced = replaced,
@@ -344,7 +370,7 @@ ImmAstVersion ImmAstContext::getEditVersion(
 
 ImmAstContext ImmAstContext::finishEdit(ImmAstEditContext& ctx) {
     ImmAstContext result = *this;
-    result.parents       = ctx.parents.persistent();
+    result.parents       = ctx.track.persistent();
     return result;
 }
 

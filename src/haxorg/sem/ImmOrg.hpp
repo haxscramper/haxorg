@@ -153,19 +153,40 @@ struct std::hash<org::ImmUniqId> {
 namespace org {
 
 struct ImmAstTrackingMapTransient {
+    ImmMap<Str, ImmId>::transient_type footnotes;
+    ImmMap<Str, ImmId>::transient_type subtrees;
+    ImmMap<Str, ImmId>::transient_type radioTargets;
+    ImmMap<Str, ImmId>::transient_type anchorTargets;
+
     ImmAstTrackingMap persistent();
-    DESC_FIELDS(ImmAstTrackingMapTransient, ());
+    DESC_FIELDS(
+        ImmAstTrackingMapTransient,
+        (footnotes, subtrees, radioTargets, anchorTargets));
 };
 
 struct ImmAstTrackingMap {
-    DESC_FIELDS(ImmAstTrackingMap, ());
-    ImmAstTrackingMapTransient transient() { return {}; }
+    ImmMap<Str, ImmId> footnotes;
+    ImmMap<Str, ImmId> subtrees;
+    ImmMap<Str, ImmId> radioTargets;
+    ImmMap<Str, ImmId> anchorTargets;
+
+    DESC_FIELDS(
+        ImmAstTrackingMap,
+        (footnotes, subtrees, radioTargets, anchorTargets));
+    ImmAstTrackingMapTransient transient() {
+        return {
+            .footnotes     = footnotes.transient(),
+            .subtrees      = subtrees.transient(),
+            .radioTargets  = radioTargets.transient(),
+            .anchorTargets = anchorTargets.transient(),
+        };
+    }
 };
 
 struct ImmAstStore;
 
 struct ImmAstEditContext {
-    ImmAstTrackingMapTransient parents;
+    ImmAstTrackingMapTransient track;
     ImmAstContext*             ctx;
     ImmAstContext              finish();
     ImmAstStore&               store();
@@ -358,7 +379,7 @@ struct [[nodiscard]] ImmAstContext {
 
     ImmAstEditContext getEditContext() {
         return ImmAstEditContext{
-            .parents = parents.transient(),
+            .track = parents.transient(),
             .ctx     = this,
             .debug   = OperationsScope{
                   .TraceState  = &debug->TraceState,

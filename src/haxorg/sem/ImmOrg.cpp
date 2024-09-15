@@ -487,7 +487,12 @@ Opt<ImmAdapter> ImmAdapter::getParentSubtree() const {
 }
 
 ImmAstTrackingMap ImmAstTrackingMapTransient::persistent() {
-    return ImmAstTrackingMap{};
+    return ImmAstTrackingMap{
+        .footnotes     = footnotes.persistent(),
+        .subtrees      = subtrees.persistent(),
+        .radioTargets  = radioTargets.persistent(),
+        .anchorTargets = anchorTargets.persistent(),
+    };
 }
 
 ImmAstContext ImmAstEditContext::finish() {
