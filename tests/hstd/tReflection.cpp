@@ -338,3 +338,123 @@ TEST(ReflectionVisitor, Vector) {
             "std::string",
         }));
 }
+
+struct CustomData {
+    int value;
+    DESC_FIELDS(CustomData, (value));
+};
+
+using VariantType = std::variant<int, std::string, CustomData>;
+using TupleType   = std::tuple<int, std::string, CustomData>;
+
+struct DataStructure {
+    std::unordered_set<int>              uset;
+    std::unordered_map<std::string, int> umap;
+    std::vector<std::string>             vec;
+    std::string                          str;
+    CustomData                           custom;
+    VariantType                          variant;
+    std::pair<int, std::string>          pair;
+    TupleType                            tuple;
+    std::nullptr_t                       nullp;
+    std::optional<int>                   opt;
+    int                                  regularField;
+    std::shared_ptr<int>                 sharedPtr;
+    std::unique_ptr<int>                 uniquePtr;
+    DESC_FIELDS(
+        DataStructure,
+        (uset,
+         umap,
+         vec,
+         str,
+         custom,
+         variant,
+         pair,
+         tuple,
+         nullp,
+         opt,
+         regularField,
+         sharedPtr,
+         uniquePtr));
+};
+
+TEST(ReflectionVisitor, ComplexDataStructure) {
+
+
+    DataStructure data;
+
+    std::vector<std::string>  visitNames;
+    ReflRecursiveVisitContext ctx;
+    reflVisitAll(
+        data,
+        {},
+        ctx,
+        overloaded{
+            [&](ReflPath const& path, DataStructure const& field) {
+                visitNames.push_back("DataStructure");
+            },
+            [&](ReflPath const&                path,
+                std::unordered_set<int> const& field) {
+                visitNames.push_back("std::unordered_set<int>");
+            },
+            [&](ReflPath const&                             path,
+                std::unordered_map<std::string, int> const& field) {
+                visitNames.push_back(
+                    "std::unordered_map<std::string, int>");
+            },
+            [&](ReflPath const&                 path,
+                std::vector<std::string> const& field) {
+                visitNames.push_back("std::vector<std::string>");
+            },
+            [&](ReflPath const& path, std::string const& field) {
+                visitNames.push_back("std::string");
+            },
+            [&](ReflPath const& path, CustomData const& field) {
+                visitNames.push_back("CustomData");
+            },
+            [&](ReflPath const& path, VariantType const& field) {
+                visitNames.push_back("VariantType");
+            },
+            [&](ReflPath const&                    path,
+                std::pair<int, std::string> const& field) {
+                visitNames.push_back("std::pair<int, std::string>");
+            },
+            [&](ReflPath const& path, TupleType const& field) {
+                visitNames.push_back("TupleType");
+            },
+            [&](ReflPath const& path, std::nullptr_t const& field) {
+                visitNames.push_back("std::nullptr_t");
+            },
+            [&](ReflPath const& path, std::optional<int> const& field) {
+                visitNames.push_back("std::optional<int>");
+            },
+            [&](ReflPath const& path, int const& field) {
+                visitNames.push_back("int");
+            },
+            [&](ReflPath const& path, std::shared_ptr<int> const& field) {
+                visitNames.push_back("std::shared_ptr<int>");
+            },
+            [&](ReflPath const& path, std::unique_ptr<int> const& field) {
+                visitNames.push_back("std::unique_ptr<int>");
+            },
+        });
+
+    EXPECT_EQ(
+        visitNames,
+        (std::vector<std::string>{
+            "DataStructure",
+            "std::unordered_map<std::string, int>",
+            "std::unordered_set<int>",
+            "std::nullptr_t",
+            "std::optional<int>",
+            "std::pair<int, std::string>",
+            "CustomData",
+            "std::shared_ptr<int>",
+            "std::string",
+            "std::unique_ptr<int>",
+            "TupleType",
+            "int",
+            "VariantType",
+            "std::vector<std::string>",
+        }));
+}
