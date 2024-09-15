@@ -822,12 +822,16 @@ TEST(ImmOrgApi, ImmAstFieldIteration) {
     for (auto const& k : sliceT<OrgSemKind>()) {
         if (k != OrgSemKind::None) {
             switch_node_nullptr(k, [&]<typename N>(N*) {
-                N    tmp{};
-                auto id = store.store->add(tmp, edit);
-                try {
-                    store.at(
-                        id, org::ImmPathItem{org::ImmPathField::title});
-                } catch (std::out_of_range const& ex) {}
+                N                         tmp{};
+                ReflRecursiveVisitContext ctx;
+                Vec<ReflPath>             paths;
+                reflVisitAll<N>(
+                    tmp,
+                    ReflPath{},
+                    ctx,
+                    [&]<typename T>(ReflPath const& path, T const& value) {
+                        paths.push_back(path);
+                    });
             });
         }
     }

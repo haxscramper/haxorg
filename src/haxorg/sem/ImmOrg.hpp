@@ -62,6 +62,10 @@ struct ImmPathStep {
     /// \brief path from the root of the immer node to the next ImmId
     /// element.
     ReflPath path;
+    DESC_FIELDS(ImmPathStep, (path));
+    bool operator==(ImmPathStep const& other) const {
+        return path == other.path;
+    }
 };
 
 struct ImmPath {
@@ -664,6 +668,14 @@ struct ImmAdapter {
         return ImmAdapter{id, ctx, selfPath.add(idx)};
     }
 
+    ImmAdapter at(ImmId id, std::string field) const {
+        return ImmAdapter{
+            id,
+            ctx,
+            selfPath.add(
+                ImmPathStep{{ReflPathItem::FromFieldName(field)}})};
+    }
+
     ImmAdapter at(ImmId id, int idx) const {
         return ImmAdapter{
             id,
@@ -802,24 +814,10 @@ struct std::formatter<org::ImmAstContext*>
 
 
 template <>
-struct std::formatter<org::ImmPathStep> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(const org::ImmPathStep& p, FormatContext& ctx) const {
-        fmt_ctx(".", ctx);
-        if (p.isField()) {
-            return fmt_ctx(fmt1(p.getField()), ctx);
-        } else {
-            return fmt_ctx(p.getIndex(), ctx);
-        }
-    }
-};
-
-
-template <>
 struct std::formatter<org::ImmPath> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const org::ImmPath& p, FormatContext& ctx) const {
-        return fmt_ctx(fmt("{}//{}", p.root, p.steps), ctx);
+        return fmt_ctx(fmt("{}//{}", p.root, p.path), ctx);
     }
 };
 
@@ -882,21 +880,29 @@ struct JsonSerde<org::ImmAdapterT<T>> {
 };
 
 template <>
-struct std::hash<org::ImmPathItem> {
-    std::size_t operator()(org::ImmPathItem const& it) const noexcept {
-        std::size_t result = 0;
-        hax_hash_combine(result, it.step);
+struct std::hash<org::ImmPathStep> {
+    std::size_t operator()(org::ImmPathStep const& step) const noexcept {
+        AnyHasher<Str> hasher;
+        std::size_t    result = 0;
+        for (int i = 0; i < step.path.path.size(); ++i) {
+            auto const& it = step.path.path.at(i);
+            hax_hash_combine(result, i);
+            if (it.isAnyKey()) {
+                hax_hash_combine(result, hasher(it.getAnyKey().key));
+            } else {
+                hax_hash_combine(result, it);
+            }
+        }
         return result;
     }
 };
-
 
 template <>
 struct std::hash<org::ImmPath> {
     std::size_t operator()(org::ImmPath const& it) const noexcept {
         std::size_t result = 0;
         hax_hash_combine(result, it.root);
-        hax_hash_combine(result, it.steps);
+        hax_hash_combine(result, it.path);
         return result;
     }
 };

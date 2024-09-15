@@ -692,10 +692,19 @@ template <>
 struct ReflVisitor<double> : ReflVisitorLeafType<double> {};
 
 template <>
+struct ReflVisitor<bool> : ReflVisitorLeafType<bool> {};
+
+template <IsEnum E>
+struct ReflVisitor<E> : ReflVisitorLeafType<E> {};
+
+template <>
 struct ReflVisitor<char const*> : ReflVisitorLeafType<char const*> {};
 
 template <>
 struct ReflVisitor<std::string> : ReflVisitorLeafType<std::string> {};
+
+template <>
+struct ReflVisitor<Str> : ReflVisitorLeafType<Str> {};
 
 template <>
 struct ReflVisitor<std::nullptr_t>

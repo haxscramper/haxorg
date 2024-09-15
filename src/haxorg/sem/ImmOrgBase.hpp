@@ -11,6 +11,7 @@
 #include <immer/set.hpp>
 #include <immer/flex_vector.hpp>
 #include <hstd/stdlib/Json.hpp>
+#include <hstd/stdlib/reflection_visitor.hpp>
 
 template <typename T>
 using ImmVec = immer::flex_vector<T>;
@@ -41,6 +42,44 @@ struct ImmMap : immer::map<K, V> {
 template <typename T>
 using ImmSet = immer::set<T>;
 
+template <typename K, typename V>
+struct ReflVisitor<immer::map<K, V>>
+    : ReflVisitorKeyValue<K, V, immer::map<K, V>> {};
+
+
+template <typename K, typename V>
+struct ReflVisitor<ImmMap<K, V>>
+    : ReflVisitorKeyValue<K, V, ImmMap<K, V>> {};
+
+template <typename T>
+struct ReflVisitor<immer::set<T>>
+    : ReflVisitorUnorderedIndexed<T, immer::set<T>> {};
+
+template <typename T>
+struct ReflVisitor<immer::flex_vector<T>>
+    : ReflVisitorIndexed<T, immer::flex_vector<T>> {};
+
+
+template <typename T>
+struct ReflVisitor<ImmBox<T>> {
+    /// \brief Apply callback to passed value if the path points to it,
+    /// otherwise follow the path down the data structure.
+    template <typename Func>
+    static void visit(
+        ImmBox<T> const&    value,
+        ReflPathItem const& step,
+        Func const&         cb) {
+        LOGIC_ASSERTION_CHECK(step.isDeref(), "{}", step.getKind());
+        cb(value.get());
+    }
+
+
+    static Vec<ReflPathItem> subitems(ImmBox<T> const& value) {
+        Vec<ReflPathItem> result;
+        result.push_back(ReflPathItem::FromDeref());
+        return result;
+    }
+};
 
 template <typename T>
 struct std::formatter<ImmBox<T>> : std::formatter<std::string> {
@@ -351,3 +390,10 @@ struct JsonSerde<org::ImmId> {
             j["number"].get<unsigned long long>());
     }
 };
+
+template <>
+struct ReflVisitor<org::ImmId> : ReflVisitorLeafType<org::ImmId> {};
+
+template <typename T>
+struct ReflVisitor<org::ImmIdT<T>>
+    : ReflVisitorLeafType<org::ImmIdT<T>> {};

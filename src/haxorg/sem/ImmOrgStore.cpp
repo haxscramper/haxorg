@@ -254,28 +254,27 @@ ImmId ImmAstContext::at(ImmId node, const ImmPathStep& item) const {
             item.path.first().getIndex().index);
     } else {
         Opt<ImmId> result;
-        switch_node_value(
-            node, *this, [&]<typename T>(org::ImmIdT<T> const& value) {
-                reflVisitPath<T>(
-                    this->value<T>(value),
-                    item,
-                    overloaded{
-                        [&](ImmId const& id) { result = id; },
-                        [&]<typename K>(ImmIdT<K> const& id) {
-                            result = id.toId();
-                        },
-                        [&](auto const& other) {
-                            LOGIC_ASSERTION_CHECK(
-                                false,
-                                "Path {} does not point to a field with "
-                                "ID, "
-                                "resolved to {}",
-                                item,
-                                other);
-                        },
-                    });
-            });
-        return result;
+        switch_node_value(node, *this, [&]<typename T>(T const& value) {
+            reflVisitPath<T>(
+                value,
+                item.path,
+                overloaded{
+                    [&](ImmId const& id) { result = id; },
+                    [&]<typename K>(ImmIdT<K> const& id) {
+                        result = id.toId();
+                    },
+                    [&](auto const& other) {
+                        LOGIC_ASSERTION_CHECK(
+                            false,
+                            "Path {} does not point to a field with "
+                            "ID, "
+                            "resolved to {}",
+                            item,
+                            other);
+                    },
+                });
+        });
+        return result.value();
     }
 }
 
