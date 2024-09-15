@@ -5,6 +5,7 @@
 #include <hstd/system/aux_utils.hpp>
 #include <hstd/stdlib/reflection_visitor.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
+#include <hstd/stdlib/Ranges.hpp>
 
 
 enum class TestEnum_EnumToString
@@ -503,11 +504,62 @@ TEST(ReflectionVisitor, PopulatedDataStructure) {
 
     std::unordered_map<
         ReflPath,
-        std::string,
+        Opt<std::string>,
         ReflPathHasher<int, std::string>,
         ReflPathComparator<int, std::string>>
         expectedValues;
 
+    { // root item
+        ReflPath path;
+        expectedValues[path] = std::nullopt;
+    }
+
+    {
+        ReflPath path;
+        path.path.push_back(ReflPathItem::FromFieldName("pair"));
+        expectedValues[path] = std::nullopt;
+    }
+    {
+        ReflPath path;
+        path.path.push_back(ReflPathItem::FromFieldName("uset"));
+        expectedValues[path] = std::nullopt;
+    }
+
+    {
+        ReflPath path;
+        path.path.push_back(ReflPathItem::FromFieldName("tuple"));
+        expectedValues[path] = std::nullopt;
+    }
+    {
+        ReflPath path;
+        path.path.push_back(ReflPathItem::FromFieldName("vec"));
+        expectedValues[path] = std::nullopt;
+    }
+    {
+        ReflPath path;
+        path.path.push_back(ReflPathItem::FromFieldName("sharedPtr"));
+        expectedValues[path] = std::nullopt;
+    }
+    {
+        ReflPath path;
+        path.path.push_back(ReflPathItem::FromFieldName("umap"));
+        expectedValues[path] = std::nullopt;
+    }
+    {
+        ReflPath path;
+        path.path.push_back(ReflPathItem::FromFieldName("opt"));
+        expectedValues[path] = std::nullopt;
+    }
+    {
+        ReflPath path;
+        path.path.push_back(ReflPathItem::FromFieldName("uniquePtr"));
+        expectedValues[path] = std::nullopt;
+    }
+    {
+        ReflPath path;
+        path.path.push_back(ReflPathItem::FromFieldName("custom"));
+        expectedValues[path] = std::nullopt;
+    }
     {
         ReflPath path;
         path.path.push_back(ReflPathItem::FromFieldName("str"));
@@ -524,11 +576,14 @@ TEST(ReflectionVisitor, PopulatedDataStructure) {
         path.path.push_back(ReflPathItem::FromFieldName("value"));
         expectedValues[path] = "42";
     }
-    for (int value : data.uset) {
-        ReflPath path;
-        path.path.push_back(ReflPathItem::FromFieldName("uset"));
-        path.path.push_back(ReflPathItem::FromAnyKey(value));
-        expectedValues[path] = std::to_string(value);
+    {
+        Vec<int> sorted_uset = sorted(data.uset | rs::to<Vec>());
+        for (int i = 0; i < data.uset.size(); ++i) {
+            ReflPath path;
+            path.path.push_back(ReflPathItem::FromFieldName("uset"));
+            path.path.push_back(ReflPathItem::FromIndex(i));
+            expectedValues[path] = fmt1(sorted_uset.at(i));
+        }
     }
     for (auto const& [key, val] : data.umap) {
         ReflPath path;
@@ -545,7 +600,13 @@ TEST(ReflectionVisitor, PopulatedDataStructure) {
     {
         ReflPath path;
         path.path.push_back(ReflPathItem::FromFieldName("variant"));
+        path.path.push_back(ReflPathItem::FromIndex(1));
         expectedValues[path] = std::get<std::string>(data.variant);
+    }
+    {
+        ReflPath path;
+        path.path.push_back(ReflPathItem::FromFieldName("variant"));
+        expectedValues[path] = std::nullopt;
     }
     {
         ReflPath path;
@@ -565,15 +626,15 @@ TEST(ReflectionVisitor, PopulatedDataStructure) {
         path.path.push_back(ReflPathItem::FromDeref());
         expectedValues[path] = "400";
     }
-    {
+    { // `data.pair`
         ReflPath path_first;
         path_first.path.push_back(ReflPathItem::FromFieldName("pair"));
-        path_first.path.push_back(ReflPathItem::FromFieldName("first"));
+        path_first.path.push_back(ReflPathItem::FromIndex(0));
         expectedValues[path_first] = "10";
 
         ReflPath path_second;
         path_second.path.push_back(ReflPathItem::FromFieldName("pair"));
-        path_second.path.push_back(ReflPathItem::FromFieldName("second"));
+        path_second.path.push_back(ReflPathItem::FromIndex(1));
         expectedValues[path_second] = "pair string";
     }
     {
@@ -592,17 +653,30 @@ TEST(ReflectionVisitor, PopulatedDataStructure) {
         path2.path.push_back(ReflPathItem::FromIndex(2));
         path2.path.push_back(ReflPathItem::FromFieldName("value"));
         expectedValues[path2] = "84";
+
+        ReflPath path3;
+        path3.path.push_back(ReflPathItem::FromFieldName("tuple"));
+        path3.path.push_back(ReflPathItem::FromIndex(2));
+        expectedValues[path3] = std::nullopt;
     }
     {
         ReflPath path;
         path.path.push_back(ReflPathItem::FromFieldName("nullp"));
-        expectedValues[path] = "nullptr";
+        expectedValues[path] = "0x0";
     }
 
-    EXPECT_EQ(visitedValues.size(), expectedValues.size());
     for (const auto& [path, value] : expectedValues) {
         auto it = visitedValues.find(path);
-        EXPECT_NE(it, visitedValues.end());
-        EXPECT_EQ(it->second, value);
+        EXPECT_NE(it, visitedValues.end()) << fmt("No path {}", path);
+        if (value) {
+            EXPECT_EQ(it->second, value.value())
+                << fmt("{} -> {} != {}", path, it->second, value);
+        }
+    }
+
+    for (const auto& [path, value] : visitedValues) {
+        auto it = expectedValues.find(path);
+        EXPECT_NE(it, expectedValues.end())
+            << fmt("Unexpected path {}", path);
     }
 }

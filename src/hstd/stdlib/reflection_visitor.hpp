@@ -175,7 +175,8 @@ struct std::hash<ReflPathItem> {
 
 
 struct ReflPath {
-    Vec<ReflPathItem>   path;
+    Vec<ReflPathItem> path;
+    DESC_FIELDS(ReflPath, (path));
     ReflPathItem const& at(int idx) const { return path.at(idx); }
 
     Pair<ReflPathItem, ReflPath> split() const {
@@ -206,6 +207,7 @@ struct ReflPath {
     }
 };
 
+
 template <>
 struct std::hash<ReflPath> {
     std::size_t operator()(ReflPath const& it) const noexcept {
@@ -222,7 +224,7 @@ struct ReflPathHasher {
         AnyHasher<AnyKeyTypes...> anyHasher;
         for (auto const& it : it.path) {
             if (it.isAnyKey()) {
-                hax_hash_combine(result, anyHasher(it));
+                hax_hash_combine(result, anyHasher(it.getAnyKey().key));
             } else {
                 hax_hash_combine(result, it);
             }
@@ -236,12 +238,14 @@ struct ReflPathComparator {
     std::size_t operator()(ReflPath const& lhs, ReflPath const& rhs)
         const noexcept {
         std::size_t              result = 0;
-        AnyEqual<AnyKeyTypes...> anyHasher;
+        AnyEqual<AnyKeyTypes...> anyEq;
         if (lhs.path.size() == rhs.path.size()) {
             for (int i = 0; i < lhs.path.size(); ++i) {
                 if (lhs.at(i).getKind() == rhs.at(i).getKind()) {
                     if (lhs.at(i).isAnyKey()) {
-                        if (!anyHasher(lhs.at(i), rhs.at(i))) {
+                        if (!anyEq(
+                                lhs.at(i).getAnyKey().key,
+                                rhs.at(i).getAnyKey().key)) {
                             return false;
                         }
                     } else {
@@ -384,6 +388,7 @@ struct ReflVisitorUnorderedIndexed {
         Vec<CRw<T>> items;
         for (auto const& sub : it) { items.push_back(sub); }
         std::sort(items.begin(), items.end());
+        return items;
     }
 
     template <typename Func>
