@@ -124,6 +124,27 @@ struct ReflPathItem {
     bool operator==(ReflPathItem const& it) const {
         return data == it.data;
     }
+
+    bool operator<(ReflPathItem const& it) const {
+        if (getKind() == it.getKind()) {
+            switch (getKind()) {
+                case Kind::AnyKey: {
+                    return false;
+                }
+                case Kind::Index: {
+                    return getIndex().index < it.getIndex().index;
+                }
+                case Kind::Deref: {
+                    return false;
+                }
+                case Kind::FieldName: {
+                    return getFieldName().name < it.getFieldName().name;
+                }
+            }
+        } else {
+            return getKind() < it.getKind();
+        }
+    }
 };
 
 template <>
@@ -179,6 +200,18 @@ struct ReflPath {
     DESC_FIELDS(ReflPath, (path));
     ReflPathItem const& at(int idx) const { return path.at(idx); }
 
+    using iterator = Vec<ReflPathItem>::iterator;
+
+    ReflPath() {}
+    ReflPath(iterator begin, iterator end) : path{begin, end} {}
+    ReflPath(Vec<ReflPathItem> path) : path{path} {}
+    ReflPath(ReflPathItem const& single) : path{{single}} {}
+
+    bool isSingle() const { return path.size() == 1; }
+
+    ReflPathItem const& first() const { return path.at(0); }
+    ReflPathItem const& last() const { return path.back(); }
+
     Pair<ReflPathItem, ReflPath> split() const {
         if (path.size() == 1) {
             return {path.front(), {}};
@@ -204,6 +237,17 @@ struct ReflPath {
 
     bool operator==(ReflPath const& other) const {
         return path == other.path;
+    }
+
+    bool operator<(ReflPath const& other) const {
+        if (path.size() == other.path.size()) {
+            for (int i = 0; i < path.size(); ++i) {
+                if (path.at(i) < other.path.at(i)) { return true; }
+            }
+            return false;
+        } else {
+            return path.size() < other.path.size();
+        }
     }
 };
 
@@ -692,5 +736,18 @@ void reflVisitAll(
                     reflVisitAll<F>(fieldValue, path.add(step), ctx, cb);
                 });
         }
+    }
+}
+
+template <typename T, typename Func>
+void reflVisitPath(T const& value, ReflPath const& path, Func const& cb) {
+    if (path.empty()) {
+        cb(value);
+    } else {
+        auto [head, tail] = path.split();
+        ReflVisitor<T>::visit(
+            value, head, [&]<typename F>(F const& fieldValue) {
+                reflVisitPath<F>(fieldValue, tail, cb);
+            });
     }
 }

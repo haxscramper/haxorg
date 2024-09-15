@@ -10,6 +10,7 @@
 #include <immer/map_transient.hpp>
 #include <hstd/wrappers/hstd_extra/graphviz.hpp>
 #include <boost/preprocessor.hpp>
+#include <hstd/stdlib/reflection_visitor.hpp>
 
 
 #define _declare_hash(__kind)                                             \
@@ -56,104 +57,58 @@ using ImmAstParentMapType = ImmMap<org::ImmId, org::ImmId>;
 
 struct ImmAstTrackingMap;
 
-DECL_DESCRIBED_ENUM_STANDALONE(
-    ImmPathField,
-    title,
-    description,
-    positional,
-    text,
-    from,
-    to);
 
-/// \brief Component of a path indexing into an ImmOrg node
-struct ImmPathItem {
-    /// \brief Index into a subnode or a field name. In case of a field,
-    /// additional clarification for subnode access is stored in the
-    /// `subfield`
-    Variant<int, ImmPathField> step;
-    DESC_FIELDS(ImmPathItem, (step));
-
-    ImmPathField getField() const { return std::get<ImmPathField>(step); }
-    int          getIndex() const { return std::get<int>(step); }
-    bool isIndex() const { return std::holds_alternative<int>(step); }
-    bool isField() const {
-        return std::holds_alternative<ImmPathField>(step);
-    }
-
-    bool operator==(ImmPathItem const& other) const {
-        return step == other.step;
-    }
-
-    bool operator<(ImmPathItem const& other) const {
-        if (isIndex() == other.isIndex()) {
-            if (isIndex()) {
-                return getIndex() < other.getIndex();
-            } else {
-                return getField() < other.getField();
-            }
-        } else {
-            return isIndex() < other.isIndex();
-        }
-    }
+struct ImmPathStep {
+    /// \brief path from the root of the immer node to the next ImmId
+    /// element.
+    ReflPath path;
 };
 
 struct ImmPath {
     ImmId            root;
-    Vec<ImmPathItem> steps;
-    DESC_FIELDS(ImmPath, (root, steps));
+    Vec<ImmPathStep> path;
+    DESC_FIELDS(ImmPath, (root, path));
 
-    bool empty() const { return steps.empty(); }
+    bool empty() const { return path.empty(); }
 
     ImmPath() : root{ImmId::Nil()} {}
     ImmPath(ImmId root) : root{root} {};
-    ImmPath(ImmId root, Vec<ImmPathItem> const& path)
-        : root{root}, steps{path} {}
-    ImmPath(ImmId root, Span<ImmPathItem> const& path)
-        : root{root}, steps{path.begin(), path.end()} {}
+    ImmPath(ImmId root, Vec<ImmPathStep> const& path)
+        : root{root}, path{path} {}
+    ImmPath(ImmId root, Span<ImmPathStep> const& span)
+        : root{root}, path{span.begin(), span.end()} {}
 
-    generator<Span<ImmPathItem>> pathSpans(bool leafStart = true) const {
+    generator<Span<ImmPathStep>> pathSpans(bool leafStart = true) const {
         if (leafStart) {
-            for (int i = steps.high(); 0 <= i; --i) {
-                co_yield steps.at(slice(0, i));
+            for (int i = path.high(); 0 <= i; --i) {
+                co_yield path.at(slice(0, i));
             }
         } else {
-            for (int i = 0; i < steps.size(); ++i) {
-                co_yield steps.at(slice(0, i));
+            for (int i = 0; i < path.size(); ++i) {
+                co_yield path.at(slice(0, i));
             }
         }
-    }
-
-    ImmPath add(ImmPathField idx) const {
-        auto res = *this;
-        res.steps.push_back(ImmPathItem{idx});
-        return res;
-    }
-
-    ImmPath add(int idx) const {
-        auto res = *this;
-        res.steps.push_back(ImmPathItem{idx});
-        return res;
     }
 
     ImmPath pop() const {
         auto res = *this;
-        res.steps.pop_back();
+        res.path.pop_back();
+        return res;
+    }
+
+    ImmPath add(ImmPathStep const& it) const {
+        auto res = *this;
+        res.path.push_back(it);
         return res;
     }
 
     bool operator==(ImmPath const& other) const {
-        return root == other.root && steps == other.steps;
+        return root == other.root && path == other.path;
     }
 
     bool operator<(ImmPath const& other) const {
-        if (steps.size() == other.steps.size()) {
-            for (int i = 0; i < steps.size(); ++i) {
-                if (steps.at(i) < other.steps.at(i)) { return true; }
-            }
-            return false;
-        } else {
-            return steps.size() < other.steps.size();
-        }
+        logic_todo_impl();
+        return root < other.root;
     }
 };
 
@@ -440,7 +395,7 @@ struct [[nodiscard]] ImmAstContext {
     }
 
 
-    ImmId at(ImmId node, const ImmPathItem& item) const;
+    ImmId at(ImmId node, const ImmPathStep& item) const;
     ImmId at(ImmPath const& item) const;
 
     void format(ColStream& os, std::string const& prefix = "") const;
@@ -705,13 +660,17 @@ struct ImmAdapter {
     ImmOrg const* get() const { return ctx->at(id); }
     ImmOrg const* operator->() const { return get(); }
 
-    ImmAdapter at(ImmId id, ImmPathField idx) const {
+    ImmAdapter at(ImmId id, ImmPathStep idx) const {
         return ImmAdapter{id, ctx, selfPath.add(idx)};
     }
 
     ImmAdapter at(ImmId id, int idx) const {
-        return ImmAdapter{id, ctx, selfPath.add(idx)};
+        return ImmAdapter{
+            id,
+            ctx,
+            selfPath.add(ImmPathStep{{ReflPathItem::FromIndex(idx)}})};
     }
+
 
     ImmAdapter at(int idx) const {
         return at(ctx->at(id)->subnodes.at(idx), idx);
@@ -843,9 +802,9 @@ struct std::formatter<org::ImmAstContext*>
 
 
 template <>
-struct std::formatter<org::ImmPathItem> : std::formatter<std::string> {
+struct std::formatter<org::ImmPathStep> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const org::ImmPathItem& p, FormatContext& ctx) const {
+    auto format(const org::ImmPathStep& p, FormatContext& ctx) const {
         fmt_ctx(".", ctx);
         if (p.isField()) {
             return fmt_ctx(fmt1(p.getField()), ctx);

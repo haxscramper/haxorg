@@ -247,40 +247,41 @@ const ImmOrg* ImmAstContext::at(ImmId id) const {
     return res;
 }
 
-ImmId ImmAstContext::at(ImmId node, const ImmPathItem& item) const {
+ImmId ImmAstContext::at(ImmId node, const ImmPathStep& item) const {
     node.assertValid();
-    if (item.isField()) {
-        std::string name = enum_serde<ImmPathField>::to_string(
-            item.getField());
-        ImmId result;
-        bool  found = false;
-        switch_node_fields(
-            node,
-            *this,
-            [&]<typename T>(std::string const& field, T const& value) {
-                if (field == name) {
-                    if constexpr (std::is_same_v<T, ImmId>) {
-                        found  = true;
-                        result = value;
-                    }
-                }
-            });
-
-        if (found) {
-            return result;
-        } else {
-            throw std::out_of_range(
-                fmt("No field {} in node {}", name, node));
-        }
+    if (item.path.isSingle() && item.path.first().isIndex()) {
+        return value<org::ImmOrg>(node).subnodes.at(
+            item.path.first().getIndex().index);
     } else {
-        return store->at(node)->subnodes.at(item.getIndex());
+        Opt<ImmId> result;
+        switch_node_value(
+            node, *this, [&]<typename T>(org::ImmIdT<T> const& value) {
+                reflVisitPath<T>(
+                    this->value<T>(value),
+                    item,
+                    overloaded{
+                        [&](ImmId const& id) { result = id; },
+                        [&]<typename K>(ImmIdT<K> const& id) {
+                            result = id.toId();
+                        },
+                        [&](auto const& other) {
+                            LOGIC_ASSERTION_CHECK(
+                                false,
+                                "Path {} does not point to a field with "
+                                "ID, "
+                                "resolved to {}",
+                                item,
+                                other);
+                        },
+                    });
+            });
+        return result;
     }
 }
 
 ImmId ImmAstContext::at(const ImmPath& item) const {
     auto result = item.root;
-    for (auto const& step : item.steps) { result = at(result, step); }
-
+    for (auto const& step : item.path) { result = at(result, step); }
     return result;
 }
 
