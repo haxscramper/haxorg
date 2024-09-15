@@ -380,10 +380,10 @@ struct [[nodiscard]] ImmAstContext {
     ImmAstEditContext getEditContext() {
         return ImmAstEditContext{
             .track = parents.transient(),
-            .ctx     = this,
-            .debug   = OperationsScope{
-                  .TraceState  = &debug->TraceState,
-                  .activeLevel = 0,
+            .ctx   = this,
+            .debug = OperationsScope{
+                .TraceState  = &debug->TraceState,
+                .activeLevel = 0,
             }};
     }
 
@@ -584,6 +584,15 @@ struct ImmAdapter {
     iterator end() const { return iterator(this, size()); }
     bool     isNil() const { return id.isNil(); }
     bool     isRoot() const { return selfPath.empty(); }
+    ReflPath reflPath() const {
+        ReflPath result;
+        for (auto const& it : selfPath.path) { result.add(it.path); }
+        return result;
+    }
+
+    ReflPathItem const& lastPath() const {
+        return selfPath.path.back().path.last();
+    }
 
     ImmAdapter(ImmPath const& path, ImmAstContext* ctx)
         : id{ctx->at(path)}, ctx{ctx}, selfPath{path} {}
@@ -665,6 +674,7 @@ struct ImmAdapter {
 
     Opt<ImmAdapter> getAdjacentNode(int offset) const;
     Opt<ImmAdapter> getParentSubtree() const;
+    Vec<ImmAdapter> getAllSubnodes() const;
 
     Vec<ImmAdapter> getParentChain(bool withSelf = true) const {
         Vec<ImmAdapter> result;

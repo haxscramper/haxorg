@@ -486,6 +486,35 @@ Opt<ImmAdapter> ImmAdapter::getParentSubtree() const {
     return std::nullopt;
 }
 
+Vec<ImmAdapter> ImmAdapter::getAllSubnodes() const {
+    Vec<ImmAdapter>           result;
+    auto                      root = *this;
+    ReflRecursiveVisitContext visitCtx;
+
+    auto add_id = [&](ReflPath const& parent, ImmId const& id) {
+        result.push_back(
+            root.pass(id, ImmPath{root.selfPath.root, {{parent}}}));
+    };
+
+    switch_node_value(id, *ctx, [&]<typename T>(T const& value) {
+        reflVisitAll<T>(
+            value,
+            root.reflPath(),
+            visitCtx,
+            overloaded{
+                [&](ReflPath const& parent, ImmId const& id) {
+                    add_id(parent, id);
+                },
+                [&]<typename K>(
+                    ReflPath const& parent, ImmIdT<K> const& id) {
+                    add_id(parent, id.toId());
+                },
+                [&](auto const& other) {},
+            });
+    });
+    return result;
+}
+
 ImmAstTrackingMap ImmAstTrackingMapTransient::persistent() {
     return ImmAstTrackingMap{
         .footnotes     = footnotes.persistent(),

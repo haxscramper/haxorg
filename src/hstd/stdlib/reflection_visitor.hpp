@@ -274,6 +274,12 @@ struct ReflPath {
         return add(ReflPathItem{ReflPathItem::FieldName{name}});
     }
 
+    ReflPath add(ReflPath const& item) const {
+        auto res = *this;
+        res.path.append(item.path);
+        return res;
+    }
+
     ReflPath add(ReflPathItem const& item) const {
         auto res = *this;
         res.path.push_back(item);
@@ -792,6 +798,16 @@ void reflVisitAll(
                     reflVisitAll<F>(fieldValue, path.add(step), ctx, cb);
                 });
         }
+    }
+}
+
+template <typename T, typename Func>
+void reflVisitDirectItems(T const& value, Func const& cb) {
+    for (auto const& step : ReflVisitor<T>::subitems(value)) {
+        ReflVisitor<T>::visit(
+            value, step, [&]<typename F>(F const& fieldValue) {
+                cb(step, fieldValue);
+            });
     }
 }
 
