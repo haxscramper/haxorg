@@ -29,3 +29,24 @@ struct std::formatter<Pair<A, B>> : std::formatter<std::string> {
         return fmt_ctx(")", ctx);
     }
 };
+
+template <typename Tuple, std::size_t... Is, typename FormatContext>
+auto format_tuple_impl(
+    const Tuple&   t,
+    FormatContext& ctx,
+    std::index_sequence<Is...>) {
+    fmt_ctx("(", ctx);
+    (...,
+     (fmt_ctx(std::get<Is>(t), ctx),
+      fmt_ctx((Is + 1 == sizeof...(Is) ? "" : ", "), ctx)));
+    return fmt_ctx(")", ctx);
+}
+
+template <typename... Args>
+struct std::formatter<std::tuple<Args...>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const std::tuple<Args...>& t, FormatContext& ctx) const {
+        return format_tuple_impl(
+            t, ctx, std::index_sequence_for<Args...>{});
+    }
+};

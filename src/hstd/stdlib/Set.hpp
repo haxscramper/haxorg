@@ -41,11 +41,10 @@ struct UnorderedSet
     }
 };
 
-template <typename T>
-struct std::formatter<UnorderedSet<T>> : std::formatter<std::string> {
-    using FmtType = UnorderedSet<T>;
+template <typename T, typename Set>
+struct std_format_set_type : std::formatter<std::string> {
     template <typename FormatContext>
-    FormatContext::iterator format(FmtType const& p, FormatContext& ctx)
+    FormatContext::iterator format(Set const& p, FormatContext& ctx)
         const {
         std::formatter<std::string> fmt;
         fmt.format("{", ctx);
@@ -58,6 +57,18 @@ struct std::formatter<UnorderedSet<T>> : std::formatter<std::string> {
         return fmt.format("}", ctx);
     }
 };
+
+template <typename T>
+struct std::formatter<UnorderedSet<T>>
+    : std_format_set_type<T, UnorderedSet<T>> {};
+
+template <typename T>
+struct std::formatter<std::unordered_set<T>>
+    : std_format_set_type<T, std::unordered_set<T>> {};
+
+template <typename T>
+struct std::formatter<std::set<T>>
+    : std_format_set_type<T, std::set<T>> {};
 
 template <typename T>
 struct value_metadata<UnorderedSet<T>> {

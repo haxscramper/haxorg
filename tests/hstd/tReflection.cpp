@@ -4,7 +4,13 @@
 #include <hstd/system/Formatter.hpp>
 #include <hstd/system/aux_utils.hpp>
 #include <hstd/stdlib/reflection_visitor.hpp>
+#include <hstd/stdlib/Ptrs.hpp>
 
+template <>
+struct std::formatter<int const*> : std_format_ptr_as_value<int const*> {};
+
+template <>
+struct std::formatter<int*> : std_format_ptr_as_value<int*> {};
 
 enum class TestEnum_EnumToString
 {
@@ -380,8 +386,8 @@ struct DataStructure {
 
 TEST(ReflectionVisitor, ComplexDataStructure) {
 
-
     DataStructure data;
+    ReflVisitor<DataStructure>::subitems(data);
 
     std::vector<std::string>  visitNames;
     ReflRecursiveVisitContext ctx;
@@ -457,4 +463,143 @@ TEST(ReflectionVisitor, ComplexDataStructure) {
             "VariantType",
             "std::vector<std::string>",
         }));
+}
+
+TEST(ReflectionVisitor, PopulatedDataStructure) {
+    DataStructure data;
+    data.uset    = {1, 2, 3};
+    data.umap    = {{"one", 1}, {"two", 2}};
+    data.vec     = {"hello", "world"};
+    data.str     = "test string";
+    data.custom  = CustomData{42};
+    data.variant = std::string("variant string");
+    data.pair    = std::make_pair(10, "pair string");
+    data.tuple   = std::make_tuple(20, "tuple string", CustomData{84});
+    data.nullp   = nullptr;
+    data.opt     = 100;
+    data.regularField = 200;
+    data.sharedPtr    = std::make_shared<int>(300);
+    data.uniquePtr    = std::make_unique<int>(400);
+
+    std::unordered_map<
+        ReflPath,
+        std::string,
+        ReflPathHasher<int, std::string>,
+        ReflPathComparator<int, std::string>>
+                              visitedValues;
+    ReflRecursiveVisitContext ctx;
+    reflVisitAll(
+        data,
+        {},
+        ctx,
+        overloaded{[&](ReflPath const& path, auto const& field) {
+            std::stringstream ss;
+            ss << fmt1(field);
+            visitedValues[path] = ss.str();
+        }});
+
+    std::unordered_map<
+        ReflPath,
+        std::string,
+        ReflPathHasher<int, std::string>,
+        ReflPathComparator<int, std::string>>
+        expectedValues;
+
+    {
+        ReflPath path;
+        path.path.push_back(ReflPathItem::FromFieldName("str"));
+        expectedValues[path] = "test string";
+    }
+    {
+        ReflPath path;
+        path.path.push_back(ReflPathItem::FromFieldName("regularField"));
+        expectedValues[path] = "200";
+    }
+    {
+        ReflPath path;
+        path.path.push_back(ReflPathItem::FromFieldName("custom"));
+        path.path.push_back(ReflPathItem::FromFieldName("value"));
+        expectedValues[path] = "42";
+    }
+    for (int value : data.uset) {
+        ReflPath path;
+        path.path.push_back(ReflPathItem::FromFieldName("uset"));
+        path.path.push_back(ReflPathItem::FromAnyKey(value));
+        expectedValues[path] = std::to_string(value);
+    }
+    for (auto const& [key, val] : data.umap) {
+        ReflPath path;
+        path.path.push_back(ReflPathItem::FromFieldName("umap"));
+        path.path.push_back(ReflPathItem::FromAnyKey(key));
+        expectedValues[path] = std::to_string(val);
+    }
+    for (size_t i = 0; i < data.vec.size(); ++i) {
+        ReflPath path;
+        path.path.push_back(ReflPathItem::FromFieldName("vec"));
+        path.path.push_back(ReflPathItem::FromIndex(static_cast<int>(i)));
+        expectedValues[path] = data.vec[i];
+    }
+    {
+        ReflPath path;
+        path.path.push_back(ReflPathItem::FromFieldName("variant"));
+        expectedValues[path] = std::get<std::string>(data.variant);
+    }
+    {
+        ReflPath path;
+        path.path.push_back(ReflPathItem::FromFieldName("opt"));
+        path.path.push_back(ReflPathItem::FromDeref());
+        expectedValues[path] = "100";
+    }
+    {
+        ReflPath path;
+        path.path.push_back(ReflPathItem::FromFieldName("sharedPtr"));
+        path.path.push_back(ReflPathItem::FromDeref());
+        expectedValues[path] = "300";
+    }
+    {
+        ReflPath path;
+        path.path.push_back(ReflPathItem::FromFieldName("uniquePtr"));
+        path.path.push_back(ReflPathItem::FromDeref());
+        expectedValues[path] = "400";
+    }
+    {
+        ReflPath path_first;
+        path_first.path.push_back(ReflPathItem::FromFieldName("pair"));
+        path_first.path.push_back(ReflPathItem::FromFieldName("first"));
+        expectedValues[path_first] = "10";
+
+        ReflPath path_second;
+        path_second.path.push_back(ReflPathItem::FromFieldName("pair"));
+        path_second.path.push_back(ReflPathItem::FromFieldName("second"));
+        expectedValues[path_second] = "pair string";
+    }
+    {
+        ReflPath path0;
+        path0.path.push_back(ReflPathItem::FromFieldName("tuple"));
+        path0.path.push_back(ReflPathItem::FromIndex(0));
+        expectedValues[path0] = "20";
+
+        ReflPath path1;
+        path1.path.push_back(ReflPathItem::FromFieldName("tuple"));
+        path1.path.push_back(ReflPathItem::FromIndex(1));
+        expectedValues[path1] = "tuple string";
+
+        ReflPath path2;
+        path2.path.push_back(ReflPathItem::FromFieldName("tuple"));
+        path2.path.push_back(ReflPathItem::FromIndex(2));
+        path2.path.push_back(ReflPathItem::FromFieldName("value"));
+        expectedValues[path2] = "84";
+    }
+    {
+        ReflPath path;
+        path.path.push_back(ReflPathItem::FromFieldName("nullp"));
+        expectedValues[path] = "nullptr";
+    }
+
+    EXPECT_EQ(visitedValues.size(), expectedValues.size());
+    for (const auto& [path, value] : expectedValues) {
+        auto it = visitedValues.find(path);
+        EXPECT_NE(it, visitedValues.end());
+        EXPECT_EQ(it->second, value);
+    }
 }

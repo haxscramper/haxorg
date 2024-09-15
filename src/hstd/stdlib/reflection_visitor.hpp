@@ -175,7 +175,8 @@ struct std::hash<ReflPathItem> {
 
 
 struct ReflPath {
-    Vec<ReflPathItem> path;
+    Vec<ReflPathItem>   path;
+    ReflPathItem const& at(int idx) const { return path.at(idx); }
 
     Pair<ReflPathItem, ReflPath> split() const {
         if (path.size() == 1) {
@@ -214,6 +215,50 @@ struct std::hash<ReflPath> {
     }
 };
 
+template <typename... AnyKeyTypes>
+struct ReflPathHasher {
+    std::size_t operator()(ReflPath const& it) const noexcept {
+        std::size_t               result = 0;
+        AnyHasher<AnyKeyTypes...> anyHasher;
+        for (auto const& it : it.path) {
+            if (it.isAnyKey()) {
+                hax_hash_combine(result, anyHasher(it));
+            } else {
+                hax_hash_combine(result, it);
+            }
+        }
+        return result;
+    }
+};
+
+template <typename... AnyKeyTypes>
+struct ReflPathComparator {
+    std::size_t operator()(ReflPath const& lhs, ReflPath const& rhs)
+        const noexcept {
+        std::size_t              result = 0;
+        AnyEqual<AnyKeyTypes...> anyHasher;
+        if (lhs.path.size() == rhs.path.size()) {
+            for (int i = 0; i < lhs.path.size(); ++i) {
+                if (lhs.at(i).getKind() == rhs.at(i).getKind()) {
+                    if (lhs.at(i).isAnyKey()) {
+                        if (!anyHasher(lhs.at(i), rhs.at(i))) {
+                            return false;
+                        }
+                    } else {
+                        if (lhs.at(i) != rhs.at(i)) { return false; }
+                    }
+                } else {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+};
+
+
 template <typename T>
 struct ReflVisitor {};
 
@@ -231,7 +276,7 @@ struct ReflPointer<T const*> {
 template <typename T>
 struct ReflPointer<std::shared_ptr<T>> {
     static Opt<u64> getPointerId(std::shared_ptr<T> const& ptr) {
-        return ReflPointer<T>::getPointerId(ptr.get());
+        return ReflPointer<T const*>::getPointerId(ptr.get());
     }
 };
 
@@ -239,7 +284,7 @@ struct ReflPointer<std::shared_ptr<T>> {
 template <typename T>
 struct ReflPointer<std::unique_ptr<T>> {
     static Opt<u64> getPointerId(std::unique_ptr<T> const& ptr) {
-        return ReflPointer<T>::getPointerId(ptr.get());
+        return ReflPointer<T const*>::getPointerId(ptr.get());
     }
 };
 
@@ -356,6 +401,56 @@ struct ReflVisitor<Opt<T>> {
     }
 };
 
+template <typename T>
+struct ReflVisitor<std::shared_ptr<T>> {
+    /// \brief Apply callback to passed value if the path points to it,
+    /// otherwise follow the path down the data structure.
+    template <typename Func>
+    static void visit(
+        std::shared_ptr<T> const& value,
+        ReflPathItem const&       step,
+        Func const&               cb) {
+        LOGIC_ASSERTION_CHECK(step.isDeref(), "{}", step.getKind());
+        LOGIC_ASSERTION_CHECK(value.get() != nullptr, "");
+        cb(*value.get());
+    }
+
+
+    static Vec<ReflPathItem> subitems(std::shared_ptr<T> const& value) {
+        Vec<ReflPathItem> result;
+        if (value.get() != nullptr) {
+            result.push_back(ReflPathItem::FromDeref());
+        }
+
+        return result;
+    }
+};
+
+template <typename T>
+struct ReflVisitor<std::unique_ptr<T>> {
+    /// \brief Apply callback to passed value if the path points to it,
+    /// otherwise follow the path down the data structure.
+    template <typename Func>
+    static void visit(
+        std::unique_ptr<T> const& value,
+        ReflPathItem const&       step,
+        Func const&               cb) {
+        LOGIC_ASSERTION_CHECK(step.isDeref(), "{}", step.getKind());
+        LOGIC_ASSERTION_CHECK(value.get() != nullptr, "");
+        cb(*value.get());
+    }
+
+
+    static Vec<ReflPathItem> subitems(std::unique_ptr<T> const& value) {
+        Vec<ReflPathItem> result;
+        if (value.get() != nullptr) {
+            result.push_back(ReflPathItem::FromDeref());
+        }
+
+        return result;
+    }
+};
+
 template <typename Tuple, typename Func, std::size_t... Is>
 void apply_to_tuple_impl(
     Tuple&&     t,
@@ -441,7 +536,7 @@ struct ReflVisitor<T> {
         LOGIC_ASSERTION_CHECK(step.isIndex(), "{}", step.getKind());
         LOGIC_ASSERTION_CHECK(
             value.index() == step.getIndex().index, "{}", value.index());
-        std::visit([&](auto const& it) { cb(it); });
+        std::visit([&](auto const& it) { cb(it); }, value);
     }
 
 
