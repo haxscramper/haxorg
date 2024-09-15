@@ -880,12 +880,32 @@ struct JsonSerde<org::ImmAdapterT<T>> {
 };
 
 template <>
+struct std::formatter<org::ImmPathStep> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const org::ImmPathStep& p, FormatContext& ctx) const {
+        Vec<Str>          result;
+        AnyFormatter<Str> anyFmt;
+        for (ReflPathItem const& step : p.path.path) {
+            if (step.isAnyKey()) {
+                result.push_back(anyFmt(step.getAnyKey().key));
+            } else {
+                std::visit(
+                    [&](auto const& it) { result.push_back(fmt1(it)); },
+                    step.data);
+            }
+        }
+
+        return fmt_ctx(join(">>", result), ctx);
+    }
+};
+
+template <>
 struct std::hash<org::ImmPathStep> {
     std::size_t operator()(org::ImmPathStep const& step) const noexcept {
         AnyHasher<Str> hasher;
         std::size_t    result = 0;
         for (int i = 0; i < step.path.path.size(); ++i) {
-            auto const& it = step.path.path.at(i);
+            ReflPathItem const& it = step.path.path.at(i);
             hax_hash_combine(result, i);
             if (it.isAnyKey()) {
                 hax_hash_combine(result, hasher(it.getAnyKey().key));

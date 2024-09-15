@@ -21,6 +21,25 @@ struct std::formatter<std::any> : std::formatter<std::string> {
 };
 
 template <typename... Ts>
+struct AnyFormatter {
+    std::string operator()(const std::any& a) const {
+        return format_impl<Ts...>(a);
+    }
+
+  private:
+    template <typename T, typename... Rest>
+    std::string format_impl(const std::any& a) const {
+        if (a.type() == typeid(T)) {
+            return fmt1(*std::any_cast<T>(&a));
+        } else if constexpr (sizeof...(Rest) > 0) {
+            return format_impl<Rest...>(a);
+        } else {
+            throw std::bad_any_cast();
+        }
+    }
+};
+
+template <typename... Ts>
 struct AnyHasher {
     std::size_t operator()(const std::any& a) const {
         return hash_impl<Ts...>(a);
@@ -155,6 +174,23 @@ struct std::hash<ReflPathItem::Deref> {
     }
 };
 
+template <>
+struct std::formatter<ReflPathItem::Deref> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const ReflPathItem::Deref& p, FormatContext& ctx) const {
+        return fmt_ctx("*()", ctx);
+    }
+};
+
+template <>
+struct std::formatter<ReflPathItem::Index> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const ReflPathItem::Index& p, FormatContext& ctx) const {
+        fmt_ctx("[", ctx);
+        fmt_ctx(p.index, ctx);
+        return fmt_ctx("]", ctx);
+    }
+};
 
 template <>
 struct std::hash<ReflPathItem::Index> {
@@ -172,6 +208,17 @@ struct std::hash<ReflPathItem::FieldName> {
         std::size_t result = 0;
         hax_hash_combine(result, it.name);
         return result;
+    }
+};
+
+template <>
+struct std::formatter<ReflPathItem::FieldName>
+    : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const ReflPathItem::FieldName& p, FormatContext& ctx)
+        const {
+        fmt_ctx(".", ctx);
+        return fmt_ctx(p.name, ctx);
     }
 };
 

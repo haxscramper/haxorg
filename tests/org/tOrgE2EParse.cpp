@@ -818,7 +818,6 @@ TEST(ImmOrgApi, RountripImmutableAst) {
 
 TEST(ImmOrgApi, ImmAstFieldIteration) {
     org::ImmAstContext store;
-    auto               edit = store.getEditContext();
     for (auto const& k : sliceT<OrgSemKind>()) {
         if (k != OrgSemKind::None) {
             switch_node_nullptr(k, [&]<typename N>(N*) {
