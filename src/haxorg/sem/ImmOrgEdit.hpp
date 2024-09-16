@@ -52,7 +52,7 @@ Opt<ImmAstReplace> moveSubnodeStructural(CR<ImmAdapter> node, int position, int 
 
 // clang-format on
 
-Vec<Str> flatLeafNodes(ImmAdapter const& node);
+Vec<Str> flatWords(ImmAdapter const& node);
 
 struct OrgSelectorLink {
     enum class Kind

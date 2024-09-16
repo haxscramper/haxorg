@@ -293,144 +293,156 @@ Opt<ImmAstReplace> org::moveSubnodeStructural(
     }
 }
 
+namespace {
+using PathIter = Vec<OrgSelectorCondition>::const_iterator;
+
+struct Ctx {
+    Opt<int>                   maxDepth = std::nullopt;
+    Vec<ImmAdapter>&           result;
+    OrgDocumentSelector const* sel;
+
+    Ctx with_max_depth(int depth) const {
+        Ctx res      = *this;
+        res.maxDepth = maxDepth;
+        return res;
+    }
+};
+
+bool recMatches(
+    PathIter   condition,
+    ImmAdapter node,
+    int        depth,
+    Ctx const& ctx) {
+    ctx.sel->message(
+        fmt("condition={} (@{}/{}) node={}",
+            condition->debug,
+            std::distance(ctx.sel->path.begin(), condition),
+            ctx.sel->path.high(),
+            node->getKind()),
+        depth);
+
+    if (ctx.maxDepth && ctx.maxDepth.value() < depth) {
+        ctx.sel->message(
+            fmt("maxDepth {} < depth {}", ctx.maxDepth.value(), depth),
+            depth);
+
+        return false;
+    }
+
+    OrgSelectorResult matchResult = condition->check(node);
+    if (matchResult.isMatching) {
+        bool isMatch = false;
+
+        if (condition == ctx.sel->path.end() - 1) {
+            ctx.sel->message("last condition in path, match ok", depth);
+            isMatch = true;
+        } else {
+            CHECK(condition->link)
+                << "Selector path element is not the last in the "
+                   "list, but does not have the subnode search link "
+                   "condition";
+
+            switch (condition->link->getKind()) {
+                case OrgSelectorLink::Kind::DirectSubnode: {
+                    ctx.sel->message("link direct subnode", depth);
+                    for (auto const& sub : node.getAllSubnodes()) {
+                        if (recMatches(
+                                condition + 1,
+                                sub,
+                                depth + 1,
+                                ctx.with_max_depth(depth + 1))) {
+                            ctx.sel->message(
+                                "got match on the direct subnode", depth);
+                            isMatch = true;
+                        }
+                    }
+                    break;
+                }
+
+                case OrgSelectorLink::Kind::IndirectSubnode: {
+                    ctx.sel->message("link indirect subnode", depth);
+                    for (auto const& sub : node.getAllSubnodes()) {
+                        if (recMatches(
+                                condition + 1, sub, depth + 1, ctx)) {
+                            ctx.sel->message(
+                                "got match on indirect subnode", depth);
+                            isMatch = true;
+                        }
+                    }
+                    break;
+                }
+
+                case OrgSelectorLink::Kind::FieldName: {
+                    auto const& name = std::get<
+                        OrgSelectorLink::FieldName>(condition->link->data);
+                    ctx.sel->message(
+                        fmt("link field name '{}'", name.name), depth);
+
+                    for (auto const& sub : node.getAllSubnodes()) {
+                        if (sub.lastPath().isFieldName()
+                            && sub.lastPath().getFieldName().name
+                                   == name.name) {
+                            if (recMatches(
+                                    condition + 1, sub, depth + 1, ctx)) {
+                                ctx.sel->message(
+                                    "got match on field subnode", depth);
+                                isMatch = true;
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        if (isMatch && condition->isTarget) {
+            ctx.sel->message(
+                "node is matched and marked as target", depth);
+            ctx.result.push_back(node);
+        }
+
+        return isMatch;
+    } else {
+        bool isMatch = false;
+        if (matchResult.tryNestedNodes) {
+            for (auto const& sub : node.getAllSubnodes()) {
+                if (recMatches(condition, sub, depth + 1, ctx)) {
+                    isMatch = true;
+                }
+            }
+        }
+
+        return isMatch;
+    }
+}
+} // namespace
 
 Vec<ImmAdapter> OrgDocumentSelector::getMatches(
     const ImmAdapter& node) const {
     Vec<ImmAdapter> result;
-
-    using PathIter = Vec<OrgSelectorCondition>::const_iterator;
-    struct Ctx {
-        Opt<int> maxDepth = std::nullopt;
-    };
-
-    Func<bool(
-        PathIter condition, ImmAdapter node, int depth, Ctx const& ctx)>
-        aux;
-
-    aux = [&](PathIter   condition,
-              ImmAdapter node,
-              int        depth,
-              Ctx const& ctx) -> bool {
-        if (debug) {
-            message(
-                fmt("condition={} (@{}/{}) node={}",
-                    condition->debug,
-                    std::distance(path.begin(), condition),
-                    path.high(),
-                    node->getKind()),
-                depth);
-        }
-
-        if (ctx.maxDepth && ctx.maxDepth.value() < depth) {
-            message(
-                fmt("maxDepth {} < depth {}", ctx.maxDepth.value(), depth),
-                depth);
-
-            return false;
-        }
-
-        OrgSelectorResult matchResult = condition->check(node);
-        if (matchResult.isMatching) {
-            bool isMatch = false;
-
-            if (condition == this->path.end() - 1) {
-                message("last condition in path, match ok", depth);
-                isMatch = true;
-            } else {
-                CHECK(condition->link)
-                    << "Selector path element is not the last in the "
-                       "list, but does not have the subnode search link "
-                       "condition";
-
-                switch (condition->link->getKind()) {
-                    case OrgSelectorLink::Kind::DirectSubnode: {
-                        message("link direct subnode", depth);
-                        for (auto const& sub : node.getAllSubnodes()) {
-                            if (aux(condition + 1,
-                                    sub,
-                                    depth + 1,
-                                    Ctx{.maxDepth = depth + 1})) {
-                                message(
-                                    "got match on the direct subnode",
-                                    depth);
-                                isMatch = true;
-                            }
-                        }
-                        break;
-                    }
-
-                    case OrgSelectorLink::Kind::IndirectSubnode: {
-                        message("link indirect subnode", depth);
-                        for (auto const& sub : node.getAllSubnodes()) {
-                            if (aux(condition + 1, sub, depth + 1, ctx)) {
-                                message(
-                                    "got match on indirect subnode",
-                                    depth);
-                                isMatch = true;
-                            }
-                        }
-                        break;
-                    }
-
-                    case OrgSelectorLink::Kind::FieldName: {
-                        auto const& name = std::get<
-                            OrgSelectorLink::FieldName>(
-                            condition->link->data);
-                        message(
-                            fmt("link field name '{}'", name.name), depth);
-
-                        for (auto const& sub : node.getAllSubnodes()) {
-                            if (sub.lastPath().isFieldName()
-                                && sub.lastPath().getFieldName().name
-                                       == name.name) {
-                                if (aux(condition + 1,
-                                        sub,
-                                        depth + 1,
-                                        ctx)) {
-                                    message(
-                                        "got match on field subnode",
-                                        depth);
-                                    isMatch = true;
-                                }
-                            }
-                        }
-                        break;
-                    }
-                }
-            }
-
-            if (isMatch && condition->isTarget) {
-                message("node is matched and marked as target", depth);
-                result.push_back(node);
-            }
-
-            return isMatch;
-        } else {
-            bool isMatch = false;
-            if (matchResult.tryNestedNodes) {
-                for (auto const& sub : node.getAllSubnodes()) {
-                    if (aux(condition, sub, depth + 1, ctx)) {
-                        isMatch = true;
-                    }
-                }
-            }
-
-            return isMatch;
-        }
-    };
-
-    aux(path.begin(), node, 0, Ctx{});
-
+    recMatches(
+        path.begin(),
+        node,
+        0,
+        Ctx{
+            .result = result,
+            .sel    = this,
+        });
     return result;
 }
 
-Vec<Str> org::flatLeafNodes(ImmAdapter const& node) {
+Vec<Str> org::flatWords(ImmAdapter const& node) {
     Vec<Str> result;
     if (auto it = node->dyn_cast<org::ImmLeaf>(); it != nullptr) {
-        result.push_back(it->text);
+        if (it->is(SemSet{
+                OrgSemKind::RawText,
+                OrgSemKind::Word,
+                OrgSemKind::BigIdent})) {
+            result.push_back(it->text);
+        }
     } else {
         for (auto const& sub : node.sub()) {
-            result.append(flatLeafNodes(sub));
+            result.append(flatWords(sub));
         }
     }
     return result;
@@ -444,8 +456,7 @@ void OrgDocumentSelector::searchSubtreePlaintextTitle(
         .check = [title,
                   this](ImmAdapter const& node) -> OrgSelectorResult {
             if (auto tree = node.asOpt<org::ImmSubtree>(); tree) {
-                Vec<Str> plaintext = flatLeafNodes(
-                    tree.value().at("title"));
+                Vec<Str> plaintext = flatWords(tree.value().at("title"));
                 message(
                     fmt("{} == {} -> {}",
                         plaintext,
