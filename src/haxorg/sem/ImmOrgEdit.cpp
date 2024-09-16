@@ -418,20 +418,32 @@ Vec<ImmAdapter> OrgDocumentSelector::getMatches(
     return result;
 }
 
+Vec<Str> org::flatLeafNodes(ImmAdapter const& node) {
+    Vec<Str> result;
+    if (auto it = node->dyn_cast<org::ImmLeaf>(); it != nullptr) {
+        result.push_back(it->text);
+    } else {
+        for (auto const& sub : node.sub()) {
+            result.append(flatLeafNodes(sub));
+        }
+    }
+    return result;
+}
+
 void OrgDocumentSelector::searchSubtreePlaintextTitle(
-    const Str&           title,
+    const Vec<Str>&      title,
     bool                 isTarget,
     Opt<OrgSelectorLink> link) {
     path.push_back(OrgSelectorCondition{
         .check = [title,
                   this](ImmAdapter const& node) -> OrgSelectorResult {
-            if (node->is(osk::Subtree)) {
-                Str plaintext = ExporterUltraplain::toStr(
-                    node.as<Subtree>()->title);
+            if (auto tree = node.asOpt<org::ImmSubtree>(); tree) {
+                Vec<Str> plaintext = flatLeafNodes(
+                    tree.value().at("title"));
                 this->dbg(
                     fmt("{} == {} -> {}",
-                        escape_literal(plaintext),
-                        escape_literal(title),
+                        plaintext,
+                        title,
                         plaintext == title),
                     0);
 

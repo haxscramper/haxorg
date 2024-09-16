@@ -509,7 +509,7 @@ Vec<ImmAdapter> ImmAdapter::getAllSubnodes() const {
                     ReflPath const& parent, ImmIdT<K> const& id) {
                     add_id(parent, id.toId());
                 },
-                [&](auto const& other) {},
+                [&](ReflPath const& parent, auto const& other) {},
             });
     });
     return result;

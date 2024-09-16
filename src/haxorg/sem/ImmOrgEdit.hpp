@@ -52,6 +52,7 @@ Opt<ImmAstReplace> moveSubnodeStructural(CR<ImmAdapter> node, int position, int 
 
 // clang-format on
 
+Vec<Str> flatLeafNodes(ImmAdapter const& node);
 
 struct OrgSelectorLink {
     enum class Kind
@@ -128,7 +129,7 @@ struct OrgDocumentSelector {
     }
 
     void searchSubtreePlaintextTitle(
-        Str const&           title,
+        Vec<Str> const&      title,
         bool                 isTarget,
         Opt<OrgSelectorLink> link = std::nullopt);
 

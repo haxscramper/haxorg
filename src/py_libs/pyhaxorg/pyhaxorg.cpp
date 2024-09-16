@@ -42,8 +42,6 @@ PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Row>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Row>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem /*  [201] [244]regular type namespaces */::SemId<sem /*  [201] [244]regular type namespaces */::Subtree /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Elaborated */>)
 PYBIND11_MAKE_OPAQUE(Vec<sem /*  [201] [244]regular type namespaces */::SemId<sem /*  [201] [244]regular type namespaces */::Subtree /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */)
-PYBIND11_MAKE_OPAQUE(std::vector<sem /*  [201] [244]regular type namespaces */::OrgSelectorCondition /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */>)
-PYBIND11_MAKE_OPAQUE(Vec<sem /*  [201] [244]regular type namespaces */::OrgSelectorCondition /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */)
 PYBIND11_MAKE_OPAQUE(IntSet<OrgSemKind /*  [492]Type parameter [427] >elaborated [437] >enum [502]typeclass=Enum [502]typeclass=Elaborated */> /*  [395] T-reference [401] >ref/ptr [368] T-const [427] >elaborated [433] >record [502]typeclass=Elaborated [502]typeclass=LValueReference */)
 PYBIND11_MAKE_OPAQUE(std::vector<SequenceSegment /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */>)
 PYBIND11_MAKE_OPAQUE(Vec<SequenceSegment /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */)
@@ -3886,100 +3884,6 @@ fields)RAW")
                      })
     .def("__getattr__",
          [](sem /*  [201] [244]regular type namespaces */::OrgDocumentContext /*  [433] >record [502]typeclass=Record */ _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [433] >record [502]typeclass=Record */>(m, "OrgSelectorLink")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [433] >record [502]typeclass=Record */ {
-                        sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [433] >record [502]typeclass=Record */ result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [433] >record [502]typeclass=Record */ _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [433] >record [502]typeclass=Record */ _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem /*  [201] [244]regular type namespaces */::OrgSelectorResult /*  [433] >record [502]typeclass=Record */>(m, "OrgSelectorResult")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem /*  [201] [244]regular type namespaces */::OrgSelectorResult /*  [433] >record [502]typeclass=Record */ {
-                        sem /*  [201] [244]regular type namespaces */::OrgSelectorResult /*  [433] >record [502]typeclass=Record */ result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](sem /*  [201] [244]regular type namespaces */::OrgSelectorResult /*  [433] >record [502]typeclass=Record */ _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem /*  [201] [244]regular type namespaces */::OrgSelectorResult /*  [433] >record [502]typeclass=Record */ _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem /*  [201] [244]regular type namespaces */::OrgSelectorCondition /*  [433] >record [502]typeclass=Record */>(m, "OrgSelectorCondition")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem /*  [201] [244]regular type namespaces */::OrgSelectorCondition /*  [433] >record [502]typeclass=Record */ {
-                        sem /*  [201] [244]regular type namespaces */::OrgSelectorCondition /*  [433] >record [502]typeclass=Record */ result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("isTarget", &sem /*  [201] [244]regular type namespaces */::OrgSelectorCondition /*  [433] >record [502]typeclass=Record */::isTarget, R"RAW(\brief Matched node should be added to the full match set)RAW")
-    .def_readwrite("debug", &sem /*  [201] [244]regular type namespaces */::OrgSelectorCondition /*  [433] >record [502]typeclass=Record */::debug)
-    .def_readwrite("link", &sem /*  [201] [244]regular type namespaces */::OrgSelectorCondition /*  [433] >record [502]typeclass=Record */::link)
-    .def("__repr__", [](sem /*  [201] [244]regular type namespaces */::OrgSelectorCondition /*  [433] >record [502]typeclass=Record */ _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem /*  [201] [244]regular type namespaces */::OrgSelectorCondition /*  [433] >record [502]typeclass=Record */ _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */>(m, "OrgDocumentSelector")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */ {
-                        sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */ result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("path", &sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::path)
-    .def_readwrite("debug", &sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::debug)
-    .def("getMatches",
-         static_cast<Vec<sem /*  [201] [244]regular type namespaces */::SemId<sem /*  [201] [244]regular type namespaces */::Org /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */(sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::*)(sem /*  [201] [244]regular type namespaces */::SemId<sem /*  [201] [244]regular type namespaces */::Org /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> const& /*  [395] T-reference [401] >ref/ptr [368] T-const [427] >elaborated [433] >record [502]typeclass=Elaborated [502]typeclass=LValueReference */) const>(&sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::getMatches),
-         pybind11::arg("node"))
-    .def("linkDirectSubnode", static_cast<sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */(sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::*)() const>(&sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::linkDirectSubnode))
-    .def("linkIndirectSubnode", static_cast<sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */(sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::*)() const>(&sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::linkIndirectSubnode))
-    .def("linkField",
-         static_cast<sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */(sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::*)(Str const& /*  [395] T-reference [401] >ref/ptr [368] T-const [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated [502]typeclass=LValueReference */) const>(&sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::linkField),
-         pybind11::arg("name"))
-    .def("searchSubtreePlaintextTitle",
-         static_cast<void /*  [502]typeclass=Builtin */(sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::*)(Str const& /*  [395] T-reference [401] >ref/ptr [368] T-const [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated [502]typeclass=LValueReference */, bool /*  [404] >bool [502]typeclass=Builtin */, std /*  [201] [244]regular type namespaces */::optional<sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */)>(&sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::searchSubtreePlaintextTitle),
-         pybind11::arg("title"),
-         pybind11::arg("isTarget"),
-         pybind11::arg_v("link", std::nullopt))
-    .def("searchSubtreeId",
-         static_cast<void /*  [502]typeclass=Builtin */(sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::*)(Str const& /*  [395] T-reference [401] >ref/ptr [368] T-const [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated [502]typeclass=LValueReference */, bool /*  [404] >bool [502]typeclass=Builtin */, std /*  [201] [244]regular type namespaces */::optional<int /*  [492]Type parameter [415] >builtin/unqual [502]typeclass=Builtin */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */, std /*  [201] [244]regular type namespaces */::optional<sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */)>(&sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::searchSubtreeId),
-         pybind11::arg("id"),
-         pybind11::arg("isTarget"),
-         pybind11::arg_v("maxLevel", std::nullopt),
-         pybind11::arg_v("link", std::nullopt))
-    .def("searchAnyKind",
-         static_cast<void /*  [502]typeclass=Builtin */(sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::*)(IntSet<OrgSemKind /*  [492]Type parameter [427] >elaborated [437] >enum [502]typeclass=Enum [502]typeclass=Elaborated */> const& /*  [395] T-reference [401] >ref/ptr [368] T-const [427] >elaborated [433] >record [502]typeclass=Elaborated [502]typeclass=LValueReference */, bool /*  [404] >bool [502]typeclass=Builtin */, std /*  [201] [244]regular type namespaces */::optional<sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */)>(&sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::searchAnyKind),
-         pybind11::arg("kinds"),
-         pybind11::arg("isTarget"),
-         pybind11::arg_v("link", std::nullopt))
-    .def("searchPredicate",
-         static_cast<void /*  [502]typeclass=Builtin */(sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::*)(sem /*  [201] [244]regular type namespaces */::OrgSelectorCondition /*  [201] [251]type namespace */::Predicate const& /*  [395] T-reference [401] >ref/ptr [368] T-const [385] typedef type sem/SemBaseApi.hpp:256:11 [502]typeclass=LValueReference */, bool /*  [404] >bool [502]typeclass=Builtin */, std /*  [201] [244]regular type namespaces */::optional<sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [427] >elaborated [433] >record [502]typeclass=Elaborated */)>(&sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */::searchPredicate),
-         pybind11::arg("predicate"),
-         pybind11::arg("isTarget"),
-         pybind11::arg_v("link", std::nullopt))
-    .def("__repr__", [](sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */ _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem /*  [201] [244]regular type namespaces */::OrgDocumentSelector /*  [433] >record [502]typeclass=Record */ _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))

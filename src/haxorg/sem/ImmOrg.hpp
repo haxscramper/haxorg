@@ -699,6 +699,12 @@ struct ImmAdapter {
         return ImmAdapter{id, ctx, selfPath.add(idx)};
     }
 
+    ImmAdapter at(std::string const& field) const {
+        return at(
+            ctx->at(id, ImmPathStep{{ReflPathItem::FromFieldName(field)}}),
+            field);
+    }
+
     ImmAdapter at(ImmId id, std::string field) const {
         return ImmAdapter{
             id,
