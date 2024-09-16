@@ -54,6 +54,7 @@ Opt<ImmAstReplace> moveSubnodeStructural(CR<ImmAdapter> node, int position, int 
 
 Vec<Str> flatWords(ImmAdapter const& node);
 
+/// \brief How to select next target for the selector search.
 struct OrgSelectorLink {
     enum class Kind
     {

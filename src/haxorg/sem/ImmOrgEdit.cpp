@@ -315,7 +315,7 @@ bool recMatches(
     Ctx const& ctx) {
     ctx.sel->message(
         fmt("condition={} (@{}/{}) node={}",
-            condition->debug,
+            condition->debug.value_or("<?>"),
             std::distance(ctx.sel->path.begin(), condition),
             ctx.sel->path.high(),
             node->getKind()),
@@ -337,10 +337,11 @@ bool recMatches(
             ctx.sel->message("last condition in path, match ok", depth);
             isMatch = true;
         } else {
-            CHECK(condition->link)
-                << "Selector path element is not the last in the "
-                   "list, but does not have the subnode search link "
-                   "condition";
+            LOGIC_ASSERTION_CHECK(
+                condition->link,
+                "Selector path element is not the last in the "
+                "list, but does not have the subnode search link "
+                "condition");
 
             switch (condition->link->getKind()) {
                 case OrgSelectorLink::Kind::DirectSubnode: {
@@ -361,7 +362,7 @@ bool recMatches(
 
                 case OrgSelectorLink::Kind::IndirectSubnode: {
                     ctx.sel->message("link indirect subnode", depth);
-                    for (auto const& sub : node.getAllSubnodes()) {
+                    for (auto const& sub : node.getAllSubnodesDFS()) {
                         if (recMatches(
                                 condition + 1, sub, depth + 1, ctx)) {
                             ctx.sel->message(
@@ -379,6 +380,11 @@ bool recMatches(
                         fmt("link field name '{}'", name.name), depth);
 
                     for (auto const& sub : node.getAllSubnodes()) {
+                        ctx.sel->message(
+                            fmt("Subnode {} on path {}",
+                                sub.id,
+                                sub.selfPath),
+                            depth);
                         if (sub.lastPath().isFieldName()
                             && sub.lastPath().getFieldName().name
                                    == name.name) {

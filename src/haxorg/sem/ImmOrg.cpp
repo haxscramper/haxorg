@@ -499,7 +499,7 @@ Vec<ImmAdapter> ImmAdapter::getAllSubnodes() const {
     switch_node_value(id, *ctx, [&]<typename T>(T const& value) {
         reflVisitAll<T>(
             value,
-            root.reflPath(),
+            root.flatPath(),
             visitCtx,
             overloaded{
                 [&](ReflPath const& parent, ImmId const& id) {
@@ -512,6 +512,17 @@ Vec<ImmAdapter> ImmAdapter::getAllSubnodes() const {
                 [&](ReflPath const& parent, auto const& other) {},
             });
     });
+    return result;
+}
+
+Vec<ImmAdapter> ImmAdapter::getAllSubnodesDFS() const {
+    Vec<ImmAdapter>               result;
+    Func<void(ImmAdapter const&)> aux;
+    aux = [&](ImmAdapter const& it) {
+        result.push_back(it);
+        for (auto const& sub : getAllSubnodes()) { aux(sub); }
+    };
+    for (auto const& it : getAllSubnodes()) { aux(it); }
     return result;
 }
 

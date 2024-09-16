@@ -584,7 +584,7 @@ struct ImmAdapter {
     iterator end() const { return iterator(this, size()); }
     bool     isNil() const { return id.isNil(); }
     bool     isRoot() const { return selfPath.empty(); }
-    ReflPath reflPath() const {
+    ReflPath flatPath() const {
         ReflPath result;
         for (auto const& it : selfPath.path) { result.add(it.path); }
         return result;
@@ -675,6 +675,7 @@ struct ImmAdapter {
     Opt<ImmAdapter> getAdjacentNode(int offset) const;
     Opt<ImmAdapter> getParentSubtree() const;
     Vec<ImmAdapter> getAllSubnodes() const;
+    Vec<ImmAdapter> getAllSubnodesDFS() const;
 
     Vec<ImmAdapter> getParentChain(bool withSelf = true) const {
         Vec<ImmAdapter> result;
