@@ -312,7 +312,8 @@ Vec<ImmAdapter> OrgDocumentSelector::getMatches(
               int        depth,
               Ctx const& ctx) -> bool {
         if (debug) {
-            dbg(fmt("condition={} (@{}/{}) node={}",
+            message(
+                fmt("condition={} (@{}/{}) node={}",
                     condition->debug,
                     std::distance(path.begin(), condition),
                     path.high(),
@@ -321,7 +322,8 @@ Vec<ImmAdapter> OrgDocumentSelector::getMatches(
         }
 
         if (ctx.maxDepth && ctx.maxDepth.value() < depth) {
-            dbg(fmt("maxDepth {} < depth {}", ctx.maxDepth.value(), depth),
+            message(
+                fmt("maxDepth {} < depth {}", ctx.maxDepth.value(), depth),
                 depth);
 
             return false;
@@ -332,7 +334,7 @@ Vec<ImmAdapter> OrgDocumentSelector::getMatches(
             bool isMatch = false;
 
             if (condition == this->path.end() - 1) {
-                dbg("last condition in path, match ok", depth);
+                message("last condition in path, match ok", depth);
                 isMatch = true;
             } else {
                 CHECK(condition->link)
@@ -342,13 +344,14 @@ Vec<ImmAdapter> OrgDocumentSelector::getMatches(
 
                 switch (condition->link->getKind()) {
                     case OrgSelectorLink::Kind::DirectSubnode: {
-                        dbg("link direct subnode", depth);
+                        message("link direct subnode", depth);
                         for (auto const& sub : node.getAllSubnodes()) {
                             if (aux(condition + 1,
                                     sub,
                                     depth + 1,
                                     Ctx{.maxDepth = depth + 1})) {
-                                dbg("got match on the direct subnode",
+                                message(
+                                    "got match on the direct subnode",
                                     depth);
                                 isMatch = true;
                             }
@@ -357,10 +360,11 @@ Vec<ImmAdapter> OrgDocumentSelector::getMatches(
                     }
 
                     case OrgSelectorLink::Kind::IndirectSubnode: {
-                        dbg("link indirect subnode", depth);
+                        message("link indirect subnode", depth);
                         for (auto const& sub : node.getAllSubnodes()) {
                             if (aux(condition + 1, sub, depth + 1, ctx)) {
-                                dbg("got match on indirect subnode",
+                                message(
+                                    "got match on indirect subnode",
                                     depth);
                                 isMatch = true;
                             }
@@ -372,7 +376,8 @@ Vec<ImmAdapter> OrgDocumentSelector::getMatches(
                         auto const& name = std::get<
                             OrgSelectorLink::FieldName>(
                             condition->link->data);
-                        dbg(fmt("link field name '{}'", name.name), depth);
+                        message(
+                            fmt("link field name '{}'", name.name), depth);
 
                         for (auto const& sub : node.getAllSubnodes()) {
                             if (sub.lastPath().isFieldName()
@@ -382,7 +387,8 @@ Vec<ImmAdapter> OrgDocumentSelector::getMatches(
                                         sub,
                                         depth + 1,
                                         ctx)) {
-                                    dbg("got match on field subnode",
+                                    message(
+                                        "got match on field subnode",
                                         depth);
                                     isMatch = true;
                                 }
@@ -394,7 +400,7 @@ Vec<ImmAdapter> OrgDocumentSelector::getMatches(
             }
 
             if (isMatch && condition->isTarget) {
-                dbg("node is matched and marked as target", depth);
+                message("node is matched and marked as target", depth);
                 result.push_back(node);
             }
 
@@ -440,12 +446,11 @@ void OrgDocumentSelector::searchSubtreePlaintextTitle(
             if (auto tree = node.asOpt<org::ImmSubtree>(); tree) {
                 Vec<Str> plaintext = flatLeafNodes(
                     tree.value().at("title"));
-                this->dbg(
+                message(
                     fmt("{} == {} -> {}",
                         plaintext,
                         title,
-                        plaintext == title),
-                    0);
+                        plaintext == title));
 
                 return OrgSelectorResult{
                     .isMatching = title == plaintext,
@@ -522,11 +527,4 @@ void OrgDocumentSelector::searchPredicate(
         .link     = link,
         .isTarget = isTarget,
     });
-}
-
-void OrgDocumentSelector::dbg(const Str& msg, int depth, int line) const {
-    if (debug) {
-        LOG(INFO) << fmt(
-            "{}[{}] {}", Str("  ").repeated(depth), line, msg);
-    }
 }

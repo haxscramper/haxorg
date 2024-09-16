@@ -12,7 +12,7 @@ void OperationsTracer::setTraceFile(const fs::path& outfile) {
         std::ofstream{outfile.native()});
 }
 
-ColStream OperationsTracer::getStream() {
+ColStream OperationsTracer::getStream() const {
     if (traceToBuffer) {
         auto os    = ColStream{};
         os.colored = traceColored;
@@ -29,10 +29,11 @@ ColStream OperationsTracer::getStream() {
     }
 }
 
-void OperationsTracer::endStream(ColStream& stream) {
+void OperationsTracer::endStream(ColStream& stream) const {
     if (traceToBuffer) {
         stream << "\n";
-        traceBuffer += stream.toString(traceColored);
+        const_cast<OperationsTracer*>(this)->traceBuffer += stream.toString(
+            traceColored);
     } else {
         (*stream.ostream) << std::endl;
     }
@@ -43,7 +44,7 @@ void OperationsTracer::message(
     int                level,
     int                line,
     const char*        function,
-    const char*        file) {
+    const char*        file) const {
     if (TraceState) {
         message(OperationsMsg{
             .level    = level,
@@ -55,7 +56,7 @@ void OperationsTracer::message(
     }
 }
 
-void OperationsTracer::message(const OperationsMsg& value) {
+void OperationsTracer::message(const OperationsMsg& value) const {
     if (TraceState) {
         auto os = getStream();
         if (traceStructured) {

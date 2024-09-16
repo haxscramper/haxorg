@@ -37,16 +37,16 @@ struct OperationsTracer {
     SPtr<std::ostream> stream;
 
     void      setTraceFile(fs::path const& outfile);
-    ColStream getStream();
-    void      endStream(ColStream& stream);
-    void      message(OperationsMsg const& value);
+    ColStream getStream() const;
+    void      endStream(ColStream& stream) const;
+    void      message(OperationsMsg const& value) const;
 
     void message(
         std::string const& value,
         int                level    = 0,
         int                line     = __builtin_LINE(),
         char const*        function = __builtin_FUNCTION(),
-        char const*        file     = __builtin_FILE());
+        char const*        file     = __builtin_FILE()) const;
 };
 
 

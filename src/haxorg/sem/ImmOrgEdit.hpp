@@ -155,9 +155,6 @@ struct OrgDocumentSelector
         bool                                        isTarget,
         Opt<OrgSelectorLink>                        link = std::nullopt);
 
-    void dbg(Str const& msg, int depth, int line = __builtin_LINE()) const;
-
-
     BOOST_DESCRIBE_CLASS(OrgDocumentSelector, (), (path), (), ());
 };
 
