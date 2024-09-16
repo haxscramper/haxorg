@@ -346,7 +346,8 @@ bool recMatches(
             switch (condition->link->getKind()) {
                 case OrgSelectorLink::Kind::DirectSubnode: {
                     ctx.sel->message("link direct subnode", depth);
-                    for (auto const& sub : node.getAllSubnodes()) {
+                    for (auto const& sub :
+                         node.getAllSubnodes(std::nullopt)) {
                         if (recMatches(
                                 condition + 1,
                                 sub,
@@ -362,7 +363,8 @@ bool recMatches(
 
                 case OrgSelectorLink::Kind::IndirectSubnode: {
                     ctx.sel->message("link indirect subnode", depth);
-                    for (auto const& sub : node.getAllSubnodesDFS()) {
+                    for (auto const& sub :
+                         node.getAllSubnodesDFS(std::nullopt)) {
                         if (recMatches(
                                 condition + 1, sub, depth + 1, ctx)) {
                             ctx.sel->message(
@@ -379,14 +381,13 @@ bool recMatches(
                     ctx.sel->message(
                         fmt("link field name '{}'", name.name), depth);
 
-                    for (auto const& sub : node.getAllSubnodes()) {
+                    for (auto const& sub :
+                         node.getAllSubnodes(std::nullopt)) {
                         ctx.sel->message(
-                            fmt("Subnode {} on path {}",
-                                sub.id,
-                                sub.selfPath),
+                            fmt("Subnode {} on path {}", sub.id, sub.path),
                             depth);
-                        if (sub.lastPath().isFieldName()
-                            && sub.lastPath().getFieldName().name
+                        if (sub.firstPath().isFieldName()
+                            && sub.firstPath().getFieldName().name
                                    == name.name) {
                             if (recMatches(
                                     condition + 1, sub, depth + 1, ctx)) {
@@ -411,7 +412,7 @@ bool recMatches(
     } else {
         bool isMatch = false;
         if (matchResult.tryNestedNodes) {
-            for (auto const& sub : node.getAllSubnodes()) {
+            for (auto const& sub : node.getAllSubnodes(std::nullopt)) {
                 if (recMatches(condition, sub, depth + 1, ctx)) {
                     isMatch = true;
                 }

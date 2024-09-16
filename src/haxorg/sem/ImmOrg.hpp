@@ -71,12 +71,18 @@ struct ImmPathStep {
 struct ImmPath {
     ImmId            root;
     Vec<ImmPathStep> path;
+
+
     DESC_FIELDS(ImmPath, (root, path));
 
     bool empty() const { return path.empty(); }
 
     ImmPath() : root{ImmId::Nil()} {}
     ImmPath(ImmId root) : root{root} {};
+    ImmPath(ImmId root, ReflPath const& step0)
+        : root{root}, path{ImmPathStep{step0}} {}
+    ImmPath(ImmId root, ImmPathStep const& step0)
+        : root{root}, path{{step0}} {}
     ImmPath(ImmId root, Vec<ImmPathStep> const& path)
         : root{root}, path{path} {}
     ImmPath(ImmId root, Span<ImmPathStep> const& span)
@@ -542,7 +548,7 @@ struct ImmAdapterT;
 struct ImmAdapter {
     ImmId          id;
     ImmAstContext* ctx;
-    ImmPath        selfPath;
+    ImmPath        path;
 
     class iterator {
       public:
@@ -583,36 +589,37 @@ struct ImmAdapter {
     iterator begin() const { return iterator(this); }
     iterator end() const { return iterator(this, size()); }
     bool     isNil() const { return id.isNil(); }
-    bool     isRoot() const { return selfPath.empty(); }
+    bool     isRoot() const { return path.empty(); }
     ReflPath flatPath() const {
         ReflPath result;
-        for (auto const& it : selfPath.path) { result.add(it.path); }
+        for (auto const& it : path.path) { result.add(it.path); }
         return result;
     }
 
     ReflPathItem const& lastPath() const {
-        return selfPath.path.back().path.last();
+        return path.path.back().path.last();
+    }
+
+    ReflPathItem const& firstPath() const {
+        return path.path.front().path.first();
     }
 
     ImmAdapter(ImmPath const& path, ImmAstContext* ctx)
-        : id{ctx->at(path)}, ctx{ctx}, selfPath{path} {}
+        : id{ctx->at(path)}, ctx{ctx}, path{path} {}
 
     ImmAdapter(ImmUniqId id, ImmAstContext* ctx)
-        : id{id.id}, ctx{ctx}, selfPath{id.path} {}
+        : id{id.id}, ctx{ctx}, path{id.path} {}
 
     ImmAdapter(ImmId id, ImmAstContext* ctx, ImmPath const& path)
-        : id{id}, ctx{ctx}, selfPath{path} {}
+        : id{id}, ctx{ctx}, path{path} {}
 
-    ImmAdapter()
-        : id{ImmId::Nil()}, ctx{nullptr}, selfPath{ImmId::Nil()} {}
+    ImmAdapter() : id{ImmId::Nil()}, ctx{nullptr}, path{ImmId::Nil()} {}
 
     ImmAdapter pass(ImmId id, ImmPath const& path) const {
         return ImmAdapter(id, ctx, path);
     }
 
-    ImmUniqId uniq() const {
-        return ImmUniqId{.id = id, .path = selfPath};
-    }
+    ImmUniqId uniq() const { return ImmUniqId{.id = id, .path = path}; }
 
     struct TreeReprConf {
         int  maxDepth      = 40;
@@ -655,10 +662,10 @@ struct ImmAdapter {
     }
 
     Opt<ImmAdapter> getParent() const {
-        if (selfPath.empty()) {
+        if (path.empty()) {
             return std::nullopt;
         } else {
-            auto newPath = selfPath.pop();
+            auto newPath = path.pop();
             return ImmAdapter{ctx->at(newPath), ctx, newPath};
         }
     }
@@ -674,18 +681,18 @@ struct ImmAdapter {
 
     Opt<ImmAdapter> getAdjacentNode(int offset) const;
     Opt<ImmAdapter> getParentSubtree() const;
-    Vec<ImmAdapter> getAllSubnodes() const;
-    Vec<ImmAdapter> getAllSubnodesDFS() const;
+    Vec<ImmAdapter> getAllSubnodes(Opt<ImmPath> rootPath) const;
+    Vec<ImmAdapter> getAllSubnodesDFS(Opt<ImmPath> rootPath) const;
 
     Vec<ImmAdapter> getParentChain(bool withSelf = true) const {
         Vec<ImmAdapter> result;
-        for (auto const& span : selfPath.pathSpans()) {
+        for (auto const& span : path.pathSpans()) {
             result.push_back(ImmAdapter{
-                ImmPath{selfPath.root, span},
+                ImmPath{path.root, span},
                 ctx,
             });
         }
-        result.push_back(ImmAdapter{ImmPath{selfPath.root}, ctx});
+        result.push_back(ImmAdapter{ImmPath{path.root}, ctx});
         return result;
     }
 
@@ -697,7 +704,7 @@ struct ImmAdapter {
     ImmOrg const* operator->() const { return get(); }
 
     ImmAdapter at(ImmId id, ImmPathStep idx) const {
-        return ImmAdapter{id, ctx, selfPath.add(idx)};
+        return ImmAdapter{id, ctx, path.add(idx)};
     }
 
     ImmAdapter at(Str const& field) const {
@@ -710,15 +717,14 @@ struct ImmAdapter {
         return ImmAdapter{
             id,
             ctx,
-            selfPath.add(
-                ImmPathStep{{ReflPathItem::FromFieldName(field)}})};
+            path.add(ImmPathStep{{ReflPathItem::FromFieldName(field)}})};
     }
 
     ImmAdapter at(ImmId id, int idx) const {
         return ImmAdapter{
             id,
             ctx,
-            selfPath.add(ImmPathStep{{ReflPathItem::FromIndex(idx)}})};
+            path.add(ImmPathStep{{ReflPathItem::FromIndex(idx)}})};
     }
 
 
@@ -765,7 +771,7 @@ struct ImmAdapter {
                 id.getKind());
         }
 
-        return ImmAdapterT<T>{id, ctx, selfPath};
+        return ImmAdapterT<T>{id, ctx, path};
     }
 
     template <typename T>
@@ -881,7 +887,7 @@ template <>
 struct std::formatter<org::ImmAdapter> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const org::ImmAdapter& p, FormatContext& ctx) const {
-        return fmt_ctx(fmt("{}->{}", p.selfPath, p.id), ctx);
+        return fmt_ctx(fmt("{}->{}", p.path, p.id), ctx);
     }
 };
 

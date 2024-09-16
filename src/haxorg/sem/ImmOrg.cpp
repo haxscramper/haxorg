@@ -486,20 +486,26 @@ Opt<ImmAdapter> ImmAdapter::getParentSubtree() const {
     return std::nullopt;
 }
 
-Vec<ImmAdapter> ImmAdapter::getAllSubnodes() const {
+Vec<ImmAdapter> ImmAdapter::getAllSubnodes(Opt<ImmPath> rootPath) const {
     Vec<ImmAdapter>           result;
     auto                      root = *this;
     ReflRecursiveVisitContext visitCtx;
 
     auto add_id = [&](ReflPath const& parent, ImmId const& id) {
-        result.push_back(
-            root.pass(id, ImmPath{root.selfPath.root, {{parent}}}));
+        ImmPath path;
+        if (rootPath) {
+            path = *rootPath;
+        } else {
+            path.root = this->id;
+        }
+        path.path.push_back(ImmPathStep{parent});
+        result.push_back(root.pass(id, path));
     };
 
     switch_node_value(id, *ctx, [&]<typename T>(T const& value) {
         reflVisitAll<T>(
             value,
-            root.flatPath(),
+            {},
             visitCtx,
             overloaded{
                 [&](ReflPath const& parent, ImmId const& id) {
@@ -515,14 +521,17 @@ Vec<ImmAdapter> ImmAdapter::getAllSubnodes() const {
     return result;
 }
 
-Vec<ImmAdapter> ImmAdapter::getAllSubnodesDFS() const {
-    Vec<ImmAdapter>               result;
-    Func<void(ImmAdapter const&)> aux;
-    aux = [&](ImmAdapter const& it) {
+Vec<ImmAdapter> ImmAdapter::getAllSubnodesDFS(
+    Opt<ImmPath> rootPath) const {
+    Vec<ImmAdapter>                                    result;
+    Func<void(ImmAdapter const&, ImmPath const& root)> aux;
+    aux = [&](ImmAdapter const& it, ImmPath const& root) {
         result.push_back(it);
-        for (auto const& sub : getAllSubnodes()) { aux(sub); }
+        for (auto const& sub : getAllSubnodes(root)) {
+            aux(sub, sub.path);
+        }
     };
-    for (auto const& it : getAllSubnodes()) { aux(it); }
+    for (auto const& it : getAllSubnodes(rootPath)) { aux(it, it.path); }
     return result;
 }
 
