@@ -383,8 +383,8 @@ Opt<MapNodeProp> org::graph::getUnresolvedNodeInsert(
         }
 
         case osk::AnnotatedParagraph: {
-            if (node.as<sem::AnnotatedParagraph>()->getAnnotationKind()
-                == sem::AnnotatedParagraph::AnnotationKind::Footnote) {
+            if (node.as<org::ImmAnnotatedParagraph>()->getAnnotationKind()
+                == org::ImmAnnotatedParagraph::AnnotationKind::Footnote) {
                 result.kind = MapNodeProp::Kind::Footnote;
             } else {
                 result.kind = MapNodeProp::Kind::Paragraph;

@@ -72,7 +72,6 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::SemId<sem::Cell>>(m, "VecOfSemIdOfCell", type_registry_guard);
   bind_vector<sem::SemId<sem::Row>>(m, "VecOfSemIdOfRow", type_registry_guard);
   bind_vector<sem /*  [201] [244]regular type namespaces */::SemId<sem /*  [201] [244]regular type namespaces */::Subtree /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */> /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Elaborated */>(m, "VecOfSemIdOfSubtree", type_registry_guard);
-  bind_vector<sem /*  [201] [244]regular type namespaces */::OrgSelectorCondition /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */>(m, "VecOfOrgSelectorCondition", type_registry_guard);
   bind_int_set<OrgSemKind /*  [492]Type parameter [427] >elaborated [437] >enum [502]typeclass=Enum [502]typeclass=Elaborated */>(m, "IntSetOfOrgSemKind", type_registry_guard);
   bind_vector<SequenceSegment /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */>(m, "VecOfSequenceSegment", type_registry_guard);
   bind_vector<SequenceAnnotationTag /*  [492]Type parameter [427] >elaborated [433] >record [502]typeclass=Record [502]typeclass=Elaborated */>(m, "VecOfSequenceAnnotationTag", type_registry_guard);
@@ -4102,17 +4101,6 @@ and a segment kind.)RAW")
     .def("__iter__", [](sem /*  [201] [244]regular type namespaces */::SubnodeVisitorCtxPart /*  [201] [251]type namespace */::Kind /*  [983]enum direct sem/SemBaseApi.hpp:118:25 */ _self) -> PyEnumIterator<sem /*  [201] [244]regular type namespaces */::SubnodeVisitorCtxPart /*  [201] [251]type namespace */::Kind /*  [983]enum direct sem/SemBaseApi.hpp:118:25 */> {
                      return
                      PyEnumIterator<sem /*  [201] [244]regular type namespaces */::SubnodeVisitorCtxPart /*  [201] [251]type namespace */::Kind /*  [983]enum direct sem/SemBaseApi.hpp:118:25 */>
-                     ();
-                     })
-    ;
-  bind_enum_iterator<sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [201] [251]type namespace */::Kind /*  [983]enum direct sem/SemBaseApi.hpp:213:25 */>(m, "OrgSelectorLinkKind", type_registry_guard);
-  pybind11::enum_<sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [201] [251]type namespace */::Kind /*  [983]enum direct sem/SemBaseApi.hpp:213:25 */>(m, "OrgSelectorLinkKind")
-    .value("DirectSubnode", sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [201] [251]type namespace */::Kind /*  [983]enum direct sem/SemBaseApi.hpp:213:25 */::DirectSubnode)
-    .value("IndirectSubnode", sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [201] [251]type namespace */::Kind /*  [983]enum direct sem/SemBaseApi.hpp:213:25 */::IndirectSubnode)
-    .value("FieldName", sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [201] [251]type namespace */::Kind /*  [983]enum direct sem/SemBaseApi.hpp:213:25 */::FieldName)
-    .def("__iter__", [](sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [201] [251]type namespace */::Kind /*  [983]enum direct sem/SemBaseApi.hpp:213:25 */ _self) -> PyEnumIterator<sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [201] [251]type namespace */::Kind /*  [983]enum direct sem/SemBaseApi.hpp:213:25 */> {
-                     return
-                     PyEnumIterator<sem /*  [201] [244]regular type namespaces */::OrgSelectorLink /*  [201] [251]type namespace */::Kind /*  [983]enum direct sem/SemBaseApi.hpp:213:25 */>
                      ();
                      })
     ;

@@ -486,7 +486,7 @@ TEST_F(ImmOrgDocumentSelector, GetMatchingNodeByKind) {
 
     EXPECT_EQ(words.size(), 1);
     EXPECT_EQ(words.at(0)->getKind(), OrgSemKind::Word);
-    EXPECT_EQ(words.at(0).as<sem::Word>()->text, "bold");
+    EXPECT_EQ(words.at(0).as<org::ImmWord>()->text, "bold");
 }
 
 TEST_F(ImmOrgDocumentSelector, GetMultipleMatchingNodesByKind) {
@@ -497,8 +497,8 @@ TEST_F(ImmOrgDocumentSelector, GetMultipleMatchingNodesByKind) {
     auto words = selector.getMatches(node.getRootAdapter());
 
     EXPECT_EQ(words.size(), 2);
-    EXPECT_EQ(words.at(0).as<sem::Word>()->text, "word");
-    EXPECT_EQ(words.at(1).as<sem::Word>()->text, "bold");
+    EXPECT_EQ(words.at(0).as<org::ImmWord>()->text, "word");
+    EXPECT_EQ(words.at(1).as<org::ImmWord>()->text, "bold");
 }
 
 TEST_F(ImmOrgDocumentSelector, GetDirectlyNestedNode) {
@@ -512,7 +512,7 @@ TEST_F(ImmOrgDocumentSelector, GetDirectlyNestedNode) {
 
     EXPECT_EQ(words.size(), 1);
     EXPECT_EQ(words.at(0)->getKind(), OrgSemKind::Word);
-    EXPECT_EQ(words.at(0).as<sem::Word>()->text, "bold");
+    EXPECT_EQ(words.at(0).as<org::ImmWord>()->text, "bold");
 }
 
 TEST_F(ImmOrgDocumentSelector, GetSubtreeByTitle) {
@@ -649,9 +649,9 @@ TEST_F(ImmOrgDocumentSelector, NonLeafSubtrees) {
                 | rs::to<Vec>();
 
     rs::sort(titles);
-    EXPECT_EQ(titles.at(0), "s1");
-    EXPECT_EQ(titles.at(1), "s3");
-    EXPECT_EQ(titles.at(2), "s6");
+    EXPECT_EQ(titles.at(0), Vec<Str>{"s1"});
+    EXPECT_EQ(titles.at(1), Vec<Str>{"s3"});
+    EXPECT_EQ(titles.at(2), Vec<Str>{"s6"});
 }
 
 TEST_F(ImmOrgDocumentSelector, SubtreesWithDateInTitleAndBody) {
@@ -1049,7 +1049,7 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_OneNested) {
         [&](org::ImmAstContext&     ast,
             org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
             auto root = v1.getRootAdapter();
-            auto s201 = root.at({0, 1});
+            auto s201 = root.at(Vec{0, 1});
             EXPECT_EQ(s201->getKind(), OrgSemKind::Subtree);
             EXPECT_EQ(s201->as<org::ImmSubtree>()->level, 2);
             return demoteSubtree(s201, org::SubtreeMove::ForceLevels, ctx);
@@ -1058,7 +1058,7 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_OneNested) {
     writeGvHistory({v1, v2}, "v1_v2");
 
     auto r    = v2.getRootAdapter();
-    auto s201 = r.at({0, 1});
+    auto s201 = r.at(Vec{0, 1});
     EXPECT_EQ(s201->getKind(), OrgSemKind::Subtree);
     EXPECT_EQ(s201->as<org::ImmSubtree>()->level, 3);
     auto s3010 = r.at({0, 1, 0});
@@ -1175,7 +1175,7 @@ TEST_F(ImmOrgApiEdit, PhysicalDemote) {
         [&](org::ImmAstContext&     ast,
             org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
             auto root = v1.getRootAdapter();
-            auto s1   = root.at({0, 0});
+            auto s1   = root.at(Vec{0, 0});
             return demoteSubtree(s1, org::SubtreeMove::Physical, ctx);
         });
 
@@ -1539,9 +1539,9 @@ TEST(ImmMapApi, SubtreeFullMap) {
 
 
     EXPECT_EQ(file.at(1)->getKind(), osk::Subtree);
-    auto node_s10  = file.at({1, 0});
+    auto node_s10  = file.at(Vec{1, 0});
     auto node_p110 = file.at({1, 1, 0});
-    auto node_s12  = file.at({1, 2});
+    auto node_s12  = file.at(Vec{1, 2});
     EXPECT_EQ(node_s10->getKind(), osk::Subtree);
     EXPECT_EQ(
         node_s10.as<org::ImmSubtree>()->treeId->value(),
