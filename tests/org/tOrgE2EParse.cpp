@@ -433,7 +433,11 @@ struct ImmOrgApiTestBase : public ::testing::Test {
     org::ImmAstContext start;
 
     Str getDebugFile(Str const& suffix) {
-        auto dir = fs::path{"/tmp/haxorg_tests/ImmOrgApiEdit"};
+        auto dir = fs::path{
+            fmt("/tmp/haxorg_tests/{}",
+                ::testing::UnitTest::GetInstance()
+                    ->current_test_info()
+                    ->test_suite_name())};
         if (!fs::is_directory(dir)) { createDirectory(dir); }
         return fmt(
             "{}/{}_{}",
@@ -528,6 +532,7 @@ Paragraph under subtitle 2
 
     {
         org::OrgDocumentSelector selector;
+        selector.setTraceFile(getDebugFile("title_search_1"));
         selector.searchSubtreePlaintextTitle({"Title1"}, true);
 
         auto title1 = selector.getMatches(doc.getRootAdapter());
@@ -537,6 +542,7 @@ Paragraph under subtitle 2
 
     {
         org::OrgDocumentSelector selector;
+        selector.setTraceFile(getDebugFile("title_search_2"));
         selector.searchSubtreePlaintextTitle(
             {"Subtitle2"}, false, selector.linkIndirectSubnode());
         selector.searchAnyKind({OrgSemKind::Word}, true);
@@ -558,6 +564,7 @@ Paragraph under subtitle 2
 
     {
         org::OrgDocumentSelector selector;
+        selector.setTraceFile(getDebugFile("title_search_3"));
         selector.searchSubtreePlaintextTitle(
             {"Subtitle2"}, false, selector.linkField("subnodes"));
         selector.searchAnyKind({OrgSemKind::Word}, true);

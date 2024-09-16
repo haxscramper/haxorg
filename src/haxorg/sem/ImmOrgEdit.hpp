@@ -109,9 +109,15 @@ struct OrgSelectorCondition {
     BOOST_DESCRIBE_CLASS(OrgSelectorCondition, (), (), (), ());
 };
 
-struct OrgDocumentSelector {
+struct OrgDocumentSelector
+    : OperationsTracer
+    , OperationsScope {
     Vec<OrgSelectorCondition> path;
     bool                      debug = false;
+
+    OrgDocumentSelector() {
+        OperationsScope::TraceState = &(OperationsTracer::TraceState);
+    }
 
     Vec<ImmAdapter> getMatches(ImmAdapter const& node) const;
 
