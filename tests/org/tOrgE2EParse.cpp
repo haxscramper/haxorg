@@ -548,7 +548,7 @@ Paragraph under subtitle 2
         selector.searchAnyKind({OrgSemKind::Word}, true);
 
         auto words = selector.getMatches(doc.getRootAdapter());
-        EXPECT_EQ(words.size(), 5);
+        EXPECT_EQ(words.size(), 5) << fmt1(words);
         // Subtree nodes are added as targets in the post-order DFS
         // traversal over all 'nested' elements. First the words in subtree
         // are collected.
@@ -559,7 +559,8 @@ Paragraph under subtitle 2
         // Then visitation gets to the subtree title itself. Nested fields
         // for each node are iterated starting from the base's fields and
         // then to the concrete type -- also in the DFS order.
-        EXPECT_EQ(words.at(4).as<org::ImmWord>()->text, "Subtitle2");
+        EXPECT_EQ(
+            words.at(4).as<org::ImmWord>()->text->toBase(), "Subtitle2");
     }
 
     {

@@ -527,7 +527,7 @@ Vec<ImmAdapter> ImmAdapter::getAllSubnodesDFS(
     Func<void(ImmAdapter const&, ImmPath const& root)> aux;
     aux = [&](ImmAdapter const& it, ImmPath const& root) {
         result.push_back(it);
-        for (auto const& sub : getAllSubnodes(root)) {
+        for (auto const& sub : it.getAllSubnodes(root)) {
             aux(sub, sub.path);
         }
     };

@@ -19,7 +19,7 @@ struct OperationsScope {
     bool* TraceState;
     int   activeLevel = 0;
 
-    finally scopeLevel();
+    finally scopeLevel() const;
     finally scopeTrace(bool state);
 };
 

@@ -2,6 +2,7 @@
 #include <hstd/stdlib/Json.hpp>
 #include <fstream>
 #include <hstd/stdlib/Exception.hpp>
+#include <hstd/stdlib/strutils.hpp>
 
 void OperationsTracer::setTraceFile(const fs::path& outfile) {
     CHECK(outfile.native().size() != 0)
@@ -62,8 +63,8 @@ void OperationsTracer::message(const OperationsMsg& value) const {
         if (traceStructured) {
             os << to_json_eval(value).dump();
         } else {
-            os << fmt(
-                "{0}{1}{2}{3} @{4} {5}",
+            std::string prefix = fmt(
+                "{0}{1}{2}{3} @{4}",
                 /*0*/ Str{"  "}.repeated(value.level),
                 /*1*/ value.file
                     ? fmt("{:_<24}",
@@ -72,16 +73,34 @@ void OperationsTracer::message(const OperationsMsg& value) const {
                 /*2*/ value.line == 0 ? "" : fmt(":{:<4}", value.line),
                 /*3*/ value.column == 0 ? "" : fmt(":{}", value.column),
                 /*4*/ value.function ? fmt("{:_<24}", value.function)
-                                     : "?",
-                /*5*/ value.msg ? value.msg.value() : "");
+                                     : "?");
+            os << prefix;
+            if (value.msg) {
+                if (value.msg.value().find('\n') == -1) {
+                    os << " " << value.msg.value();
+                } else {
+                    bool isFirst = true;
+                    for (auto const& line : split(*value.msg, '\n')) {
+                        if (isFirst) {
+                            os << " " << line;
+                            isFirst = false;
+                        } else {
+                            os << "\n"
+                               << Str(" ").repeated(prefix.size()) << " "
+                               << line;
+                        }
+                    }
+                }
+            }
         }
         endStream(os);
     }
 }
 
-finally OperationsScope::scopeLevel() {
-    ++activeLevel;
-    return finally{[&]() { --activeLevel; }};
+finally OperationsScope::scopeLevel() const {
+    ++(const_cast<OperationsScope*>(this)->activeLevel);
+    return finally{
+        [&]() { --(const_cast<OperationsScope*>(this)->activeLevel); }};
 }
 
 finally OperationsScope::scopeTrace(bool state) {

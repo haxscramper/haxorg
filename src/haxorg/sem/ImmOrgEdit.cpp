@@ -319,12 +319,13 @@ bool recMatches(
             std::distance(ctx.sel->path.begin(), condition),
             ctx.sel->path.high(),
             node->getKind()),
-        depth);
+        ctx.sel->activeLevel);
+    auto __scope = ctx.sel->scopeLevel();
 
     if (ctx.maxDepth && ctx.maxDepth.value() < depth) {
         ctx.sel->message(
             fmt("maxDepth {} < depth {}", ctx.maxDepth.value(), depth),
-            depth);
+            ctx.sel->activeLevel);
 
         return false;
     }
@@ -334,7 +335,8 @@ bool recMatches(
         bool isMatch = false;
 
         if (condition == ctx.sel->path.end() - 1) {
-            ctx.sel->message("last condition in path, match ok", depth);
+            ctx.sel->message(
+                "last condition in path, match ok", ctx.sel->activeLevel);
             isMatch = true;
         } else {
             LOGIC_ASSERTION_CHECK(
@@ -354,7 +356,8 @@ bool recMatches(
                                 depth + 1,
                                 ctx.with_max_depth(depth + 1))) {
                             ctx.sel->message(
-                                "got match on the direct subnode", depth);
+                                "got match on the direct subnode",
+                                ctx.sel->activeLevel);
                             isMatch = true;
                         }
                     }
@@ -368,7 +371,8 @@ bool recMatches(
                         if (recMatches(
                                 condition + 1, sub, depth + 1, ctx)) {
                             ctx.sel->message(
-                                "got match on indirect subnode", depth);
+                                "got match on indirect subnode",
+                                ctx.sel->activeLevel);
                             isMatch = true;
                         }
                     }
@@ -379,20 +383,22 @@ bool recMatches(
                     auto const& name = std::get<
                         OrgSelectorLink::FieldName>(condition->link->data);
                     ctx.sel->message(
-                        fmt("link field name '{}'", name.name), depth);
+                        fmt("link field name '{}'", name.name),
+                        ctx.sel->activeLevel);
 
                     for (auto const& sub :
                          node.getAllSubnodes(std::nullopt)) {
                         ctx.sel->message(
                             fmt("Subnode {} on path {}", sub.id, sub.path),
-                            depth);
+                            ctx.sel->activeLevel);
                         if (sub.firstPath().isFieldName()
                             && sub.firstPath().getFieldName().name
                                    == name.name) {
                             if (recMatches(
                                     condition + 1, sub, depth + 1, ctx)) {
                                 ctx.sel->message(
-                                    "got match on field subnode", depth);
+                                    "got match on field subnode",
+                                    ctx.sel->activeLevel);
                                 isMatch = true;
                             }
                         }
@@ -404,7 +410,9 @@ bool recMatches(
 
         if (isMatch && condition->isTarget) {
             ctx.sel->message(
-                "node is matched and marked as target", depth);
+                fmt("node is matched and marked as target\n{}",
+                    node.treeRepr().toString(false)),
+                ctx.sel->activeLevel);
             ctx.result.push_back(node);
         }
 
@@ -468,7 +476,8 @@ void OrgDocumentSelector::searchSubtreePlaintextTitle(
                     fmt("{} == {} -> {}",
                         plaintext,
                         title,
-                        plaintext == title));
+                        plaintext == title),
+                    activeLevel);
 
                 return OrgSelectorResult{
                     .isMatching = title == plaintext,
