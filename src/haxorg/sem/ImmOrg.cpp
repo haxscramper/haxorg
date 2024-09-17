@@ -315,142 +315,30 @@ struct ImmTreeReprContext {
     }
 };
 
-template <typename T>
-struct ImmTreeReprVisitor {};
-
-
-template <typename T>
-struct ImmTreeReprVisitor<org::ImmAdapterT<T>> {
-    static void visit(
-        org::ImmAdapterT<T>       id,
-        ColStream&                os,
-        ImmTreeReprContext const& ctx);
-};
-
-#define IMM_TREE_REPR_IMPL(__TemplateArgs, __VisitorTypeSpecification)    \
-    DEFINE_VISITOR_BASE_ALL(                                              \
-        /*Typename=*/ImmTreeReprVisitor,                                  \
-        /*TemplateArgs=*/__TemplateArgs,                                  \
-        /*SharedArgs=*/(ColStream & os, ImmTreeReprContext const& ctx),   \
-        /*TypeSpecification=*/__VisitorTypeSpecification,                 \
-        /*ResultType=*/(void),                                            \
-        /*MethodName=*/visit)
-
-IMM_TREE_REPR_IMPL((typename T), (ImmBox<T>)) {
-    ImmTreeReprVisitor<T>::visit(arg.get(), os, ctx);
-}
-
-IMM_TREE_REPR_IMPL((typename T), (Opt<T>)) {
-    if (arg) { ImmTreeReprVisitor<T>::visit(arg.value(), os, ctx); }
-}
-
-IMM_TREE_REPR_IMPL((typename T), (ImmVec<T>)) {
-    int subIdx = 0;
-    for (auto const& sub : arg) {
-        os << "\n";
-        ImmTreeReprVisitor<T>::visit(sub, os, ctx.addLevel(1));
-    }
-}
-
-IMM_TREE_REPR_IMPL((), (org::ImmAdapter)) {
-    switch_node_value(arg.id, *arg.ctx, [&]<typename N>(N const& value) {
-        auto id_t = arg.as<N>();
-        ImmTreeReprVisitor<org::ImmAdapterT<N>>::visit(id_t, os, ctx);
-    });
-}
-
-IMM_TREE_REPR_IMPL((), (Vec<sem::SemId<sem::Org>>)) {}
-IMM_TREE_REPR_IMPL((typename T), (ImmMap<Str, T>)) {}
-IMM_TREE_REPR_IMPL((), (absl::Time)) {}
-IMM_TREE_REPR_IMPL((), (absl::TimeZone)) {}
-
-IMM_TREE_REPR_IMPL((), (std::string)) {
-    os << os.indent(ctx.level * 2) << fmt(" {}", escape_literal(arg));
-}
-
-IMM_TREE_REPR_IMPL((), (Str)) {
-    os << os.indent(ctx.level * 2) << fmt(" {}", escape_literal(arg));
-}
-
-IMM_TREE_REPR_IMPL((), (bool)) {
-    os << os.indent(ctx.level * 2) << fmt(" {}", arg);
-}
-
-IMM_TREE_REPR_IMPL((), (int)) {
-    os << os.indent(ctx.level * 2) << fmt(" {}", arg);
-}
-
-IMM_TREE_REPR_IMPL((IsEnum E), (E)) {}
-
-IMM_TREE_REPR_IMPL((DescribedRecord R), (R)) {
-    for_each_field_with_bases<R>([&](auto const& f) {
-        using F = DESC_FIELD_TYPE(f);
-        ImmTreeReprVisitor<F>::visit(arg.*f.pointer, os, ctx);
-    });
-}
-
-IMM_TREE_REPR_IMPL((IsVariant T), (T)) {
-    std::visit(
-        [&]<typename V>(V const& var) {
-            ImmTreeReprVisitor<V>::visit(var, os, ctx);
-        },
-        arg);
-}
-
-
-IMM_TREE_REPR_IMPL((), (org::ImmId)) {
-    ImmTreeReprVisitor<org::ImmAdapter>::visit(
-        org::ImmAdapter{arg, ctx.ctx, ImmPath{arg}}, os, ctx);
-}
-
-
-IMM_TREE_REPR_IMPL((typename T), (org::ImmIdT<T>)) {
-    ImmTreeReprVisitor<org::ImmAdapterT<T>>::visit(
-        org::ImmAdapter{arg, ctx.ctx}.as<T>(), os, ctx);
-}
-
-template <typename T>
-void ImmTreeReprVisitor<org::ImmAdapterT<T>>::visit(
-    org::ImmAdapterT<T>       id,
+void treeReprRec(
+    org::ImmAdapter           id,
     ColStream&                os,
     ImmTreeReprContext const& ctx) {
     os.indent(ctx.level * 2);
     os << fmt(
         "{} {} PATH:{}", id->getKind(), id.id.getReadableId(), ctx.path);
 
-    for_each_field_with_bases<T>([&](auto const& f) {
-        auto const& fieldValue = id.get()->*f.pointer;
-        using FieldType        = std::remove_cvref_t<decltype(fieldValue)>;
-        auto subctx            = ctx.addLevel(1);
-        if (f.name == "subnodes"_ss) {
-            if constexpr (std::is_same_v<ImmVec<org::ImmId>, FieldType>) {
-                for (int i = 0; i < fieldValue.size(); ++i) {
-                    os << "\n";
-                    ImmTreeReprVisitor<typename FieldType::value_type>::
-                        visit(fieldValue.at(i), os, subctx.addPath(i));
-                }
-            } else {
-                throw logic_unreachable_error::init(
-                    "subnodes field is a vector of imm ID");
-            }
-        } else if (
-            ctx.conf.withAuxFields
-            && !value_metadata<FieldType>::isEmpty(fieldValue)) {
-            os << "\n";
-            os.indent((ctx.level + 1) * 2);
-            os << f.name;
-            os << "\n";
-            ImmTreeReprVisitor<FieldType>::visit(
-                fieldValue, os, subctx.addLevel(1));
-        }
-    });
+    if (ctx.conf.withAuxFields) {
+        switch_node_value(id.id, *id.ctx, [&]<typename N>(N const& node) {
+            os << " " << fmt1(node);
+        });
+    }
+
+    int idx = 0;
+    for (auto const& it : id.sub()) {
+        treeReprRec(it, os, ctx.addLevel(1).addPath(idx));
+        ++idx;
+    }
 }
-
-
 } // namespace
 
 void ImmAdapter::treeRepr(ColStream& os, const TreeReprConf& conf) const {
-    ImmTreeReprVisitor<org::ImmAdapter>::visit(
+    treeReprRec(
         *this,
         os,
         ImmTreeReprContext{

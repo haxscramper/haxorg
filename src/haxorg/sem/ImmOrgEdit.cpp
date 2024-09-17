@@ -411,7 +411,10 @@ bool recMatches(
         if (isMatch && condition->isTarget) {
             ctx.sel->message(
                 fmt("node is matched and marked as target\n{}",
-                    node.treeRepr().toString(false)),
+                    node.treeRepr(org::ImmAdapter::TreeReprConf{
+                                      .withAuxFields = true,
+                                  })
+                        .toString(false)),
                 ctx.sel->activeLevel);
             ctx.result.push_back(node);
         }
