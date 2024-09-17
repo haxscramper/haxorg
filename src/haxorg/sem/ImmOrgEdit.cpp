@@ -298,8 +298,32 @@ using PathIter = Vec<OrgSelectorCondition>::const_iterator;
 
 struct Ctx {
     Opt<int>                   maxDepth = std::nullopt;
-    Vec<ImmAdapter>&           result;
+    Vec<ImmAdapter>*           matches;
     OrgDocumentSelector const* sel;
+    using VisitSet = UnorderedSet<ImmUniqId>;
+    SPtr<VisitSet> visitedPaths;
+
+    void addMatch(ImmAdapter const& m) { matches->push_back(m); }
+
+    void visit(ImmAdapter const& it) {
+        if (visitedPaths) { visitedPaths->incl(it.uniq()); }
+    }
+
+    bool can_visit(ImmAdapter const& it) const {
+        if (visitedPaths) {
+            return !visitedPaths->contains(it.uniq());
+        } else {
+            return true;
+        }
+    }
+
+    Ctx with_visited() const {
+        Ctx res = *this;
+        if (res.visitedPaths.get() == nullptr) {
+            res.visitedPaths = std::make_shared<VisitSet>();
+        }
+        return res;
+    }
 
     Ctx with_max_depth(int depth) const {
         Ctx res      = *this;
@@ -308,17 +332,20 @@ struct Ctx {
     }
 };
 
-bool recMatches(
-    PathIter   condition,
-    ImmAdapter node,
-    int        depth,
-    Ctx const& ctx) {
+bool recMatches(PathIter condition, ImmAdapter node, int depth, Ctx ctx) {
+    if (ctx.can_visit(node)) {
+        ctx.visit(node);
+    } else {
+        ctx.sel->message(
+            fmt("Cannot visit adapter {}", node), ctx.sel->activeLevel);
+        return false;
+    }
     ctx.sel->message(
         fmt("condition={} (@{}/{}) node={}",
             condition->debug.value_or("<?>"),
             std::distance(ctx.sel->path.begin(), condition),
             ctx.sel->path.high(),
-            node->getKind()),
+            node),
         ctx.sel->activeLevel);
     auto __scope = ctx.sel->scopeLevel();
 
@@ -349,7 +376,7 @@ bool recMatches(
                 case OrgSelectorLink::Kind::DirectSubnode: {
                     ctx.sel->message("link direct subnode", depth);
                     for (auto const& sub :
-                         node.getAllSubnodes(std::nullopt)) {
+                         node.getAllSubnodes(node.path)) {
                         if (recMatches(
                                 condition + 1,
                                 sub,
@@ -366,10 +393,11 @@ bool recMatches(
 
                 case OrgSelectorLink::Kind::IndirectSubnode: {
                     ctx.sel->message("link indirect subnode", depth);
+                    auto tmp = ctx.with_visited();
                     for (auto const& sub :
-                         node.getAllSubnodesDFS(std::nullopt)) {
+                         node.getAllSubnodesDFS(node.path)) {
                         if (recMatches(
-                                condition + 1, sub, depth + 1, ctx)) {
+                                condition + 1, sub, depth + 1, tmp)) {
                             ctx.sel->message(
                                 "got match on indirect subnode",
                                 ctx.sel->activeLevel);
@@ -387,7 +415,7 @@ bool recMatches(
                         ctx.sel->activeLevel);
 
                     for (auto const& sub :
-                         node.getAllSubnodes(std::nullopt)) {
+                         node.getAllSubnodes(node.path)) {
                         ctx.sel->message(
                             fmt("Subnode {} on path {}", sub.id, sub.path),
                             ctx.sel->activeLevel);
@@ -416,14 +444,14 @@ bool recMatches(
                                   })
                         .toString(false)),
                 ctx.sel->activeLevel);
-            ctx.result.push_back(node);
+            ctx.addMatch(node);
         }
 
         return isMatch;
     } else {
         bool isMatch = false;
         if (matchResult.tryNestedNodes) {
-            for (auto const& sub : node.getAllSubnodes(std::nullopt)) {
+            for (auto const& sub : node.getAllSubnodes(node.path)) {
                 if (recMatches(condition, sub, depth + 1, ctx)) {
                     isMatch = true;
                 }
@@ -443,8 +471,8 @@ Vec<ImmAdapter> OrgDocumentSelector::getMatches(
         node,
         0,
         Ctx{
-            .result = result,
-            .sel    = this,
+            .matches = &result,
+            .sel     = this,
         });
     return result;
 }

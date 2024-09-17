@@ -530,7 +530,7 @@ Paragraph under subtitle 2
 * Multi-part title
 )");
 
-    {
+    if (true) {
         org::OrgDocumentSelector selector;
         selector.setTraceFile(getDebugFile("title_search_1"));
         selector.searchSubtreePlaintextTitle({"Title1"}, true);
@@ -540,7 +540,7 @@ Paragraph under subtitle 2
         EXPECT_EQ(title1.at(0)->getKind(), OrgSemKind::Subtree);
     }
 
-    {
+    if (true) {
         org::OrgDocumentSelector selector;
         selector.setTraceFile(getDebugFile("title_search_2"));
         selector.searchSubtreePlaintextTitle(
@@ -563,7 +563,7 @@ Paragraph under subtitle 2
             words.at(4).as<org::ImmWord>()->text->toBase(), "Subtitle2");
     }
 
-    {
+    if (true) {
         org::OrgDocumentSelector selector;
         selector.setTraceFile(getDebugFile("title_search_3"));
         selector.searchSubtreePlaintextTitle(
