@@ -592,7 +592,9 @@ struct ImmAdapter {
     bool     isRoot() const { return path.empty(); }
     ReflPath flatPath() const {
         ReflPath result;
-        for (auto const& it : path.path) { result.add(it.path); }
+        for (auto const& it : path.path) {
+            result.path.append(it.path.path);
+        }
         return result;
     }
 

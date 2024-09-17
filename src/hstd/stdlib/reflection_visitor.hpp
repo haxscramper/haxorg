@@ -259,6 +259,18 @@ struct ReflPath {
     ReflPathItem const& first() const { return path.at(0); }
     ReflPathItem const& last() const { return path.back(); }
 
+    ReflPath dropPrefix(ReflPath const& other) {
+        ReflPath result;
+        for (int i = 0; i < path.size(); ++i) {
+            if (i < other.path.size()) {
+                LOGIC_ASSERTION_CHECK(other.path.at(i) == path.at(i), "");
+            } else {
+                result.path.push_back(path.at(i));
+            }
+        }
+        return result;
+    }
+
     Pair<ReflPathItem, ReflPath> split() const {
         if (path.size() == 1) {
             return {path.front(), {}};

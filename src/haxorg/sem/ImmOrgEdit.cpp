@@ -416,11 +416,17 @@ bool recMatches(PathIter condition, ImmAdapter node, int depth, Ctx ctx) {
 
                     for (auto const& sub :
                          node.getAllSubnodes(node.path)) {
+                        auto drop = sub.flatPath().dropPrefix(
+                            node.flatPath());
                         ctx.sel->message(
-                            fmt("Subnode {} on path {}", sub.id, sub.path),
+                            fmt("Subnode {} on path {} prefix {} drop {}",
+                                sub.id,
+                                sub.flatPath(),
+                                node.flatPath(),
+                                drop),
                             ctx.sel->activeLevel);
-                        if (sub.firstPath().isFieldName()
-                            && sub.firstPath().getFieldName().name
+                        if (!drop.empty() && drop.first().isFieldName()
+                            && drop.first().getFieldName().name
                                    == name.name) {
                             if (recMatches(
                                     condition + 1, sub, depth + 1, ctx)) {
