@@ -802,14 +802,22 @@ ImmAstReplace setSubnodes(
     ImmVec<org::ImmId> subnodes,
     ImmAstEditContext& ctx);
 
-
 template <typename T>
-struct ImmAdapterT : ImmAdapter {
+struct ImmAdapterTBase : ImmAdapter {
     using ImmAdapter::at;
     using ImmAdapter::ImmAdapter;
     using ImmAdapter::pass;
     T const* get() const { return ctx->at_t<T>(id); }
     T const* operator->() const { return get(); }
+};
+
+template <typename T>
+struct ImmAdapterT : ImmAdapterTBase<T> {
+    using ImmAdapterTBase<T>::at;
+    using ImmAdapterTBase<T>::ImmAdapterTBase;
+    using ImmAdapterTBase<T>::pass;
+    using ImmAdapterTBase<T>::get;
+    using ImmAdapterTBase<T>::operator->;
 };
 
 
