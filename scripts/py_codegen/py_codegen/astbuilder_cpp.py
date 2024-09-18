@@ -12,6 +12,7 @@ import itertools
 
 from py_textlayout.py_textlayout_wrap import BlockId, TextLayout
 
+DEBUG_TYPE_ORIGIN = False
 
 class QualTypeKind(str, Enum):
     RegularType = "RegularTyp0e"
@@ -1219,7 +1220,7 @@ class ASTBuilder(base.AstbuilderBase):
                     qualifiers += "&&"
 
         def get_dbg_str() -> str:
-            if type_.dbg_origin:
+            if DEBUG_TYPE_ORIGIN and type_.dbg_origin:
                 return f" /* {type_.dbg_origin} */"
 
             else:

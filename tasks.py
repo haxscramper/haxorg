@@ -961,7 +961,7 @@ def cmake_haxorg(
                     "--build",
                     build_dir,
                     "--target",
-                    *target,
+                    *cond(0 < len(target), target, ["all"]),
                     "--parallel",
                     *(["--", *ninja_flag] if 0 < len(ninja_flag) else []),
                 ],
