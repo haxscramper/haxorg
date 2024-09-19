@@ -103,86 +103,7 @@ Opt<sem::SemId<CmdArgument>> Cmd::getFirstArgument(CR<Str> kind) const {
     return Stmt::getFirstArgument(kind);
 }
 
-Vec<SubtreePeriod> Subtree::getTimePeriods(
-    IntSet<SubtreePeriod::Kind> kinds) const {
-    Vec<SubtreePeriod> res;
-    for (const auto& it : title->subnodes) {
-        if (it->getKind() == osk::Time) {
-            SubtreePeriod period{};
-            period.from = it.as<Time>()->getStatic().time;
-            period.kind = SubtreePeriod::Kind::Titled;
-            res.push_back(period);
-        } else if (it->getKind() == osk::TimeRange) {
-            SubtreePeriod period{};
-            period.from = it.as<TimeRange>()->from->getStatic().time;
-            period.to   = it.as<TimeRange>()->to->getStatic().time;
-            period.kind = SubtreePeriod::Kind::Titled;
-            res.push_back(period);
-        }
-    }
 
-    if (kinds.contains(SubtreePeriod::Kind::Deadline) && this->deadline) {
-        SubtreePeriod period{};
-        period.from = this->deadline.value()->getStatic().time;
-        period.kind = SubtreePeriod::Kind::Deadline;
-        res.push_back(period);
-    }
-
-    if (kinds.contains(SubtreePeriod::Kind::Scheduled)
-        && this->scheduled) {
-        SubtreePeriod period{};
-        period.from = this->scheduled.value()->getStatic().time;
-        period.kind = SubtreePeriod::Kind::Scheduled;
-        res.push_back(period);
-    }
-
-    if (kinds.contains(SubtreePeriod::Kind::Closed) && this->closed) {
-        SubtreePeriod period{};
-        period.from = this->closed.value()->getStatic().time;
-        period.kind = SubtreePeriod::Kind::Closed;
-        res.push_back(period);
-    }
-
-    if (kinds.contains(SubtreePeriod::Kind::Clocked)) {
-        for (auto const& log : this->logbook) {
-            if (log->getLogKind() == SubtreeLog::Kind::Clock) {
-                SubtreePeriod period{};
-                period.from = log->getClock().from->getStatic().time;
-                if (log->getClock().to) {
-                    period.to = //
-                        log->getClock().to.value()->getStatic().time;
-                }
-                period.kind = SubtreePeriod::Kind::Clocked;
-                res.push_back(period);
-            }
-        }
-    }
-
-    for (const auto& prop : properties) {
-        std::visit(
-            overloaded{
-                [&](Property::Created const& cr) {
-                    SubtreePeriod period{};
-                    period.from = cr.time;
-                    period.kind = SubtreePeriod::Kind::Created;
-                    res.push_back(period);
-                },
-                [](auto const&) {}},
-            prop.data);
-    }
-
-
-    return res;
-}
-
-Vec<Property> Subtree::getProperties(Str const& kind, CR<Opt<Str>> subkind)
-    const {
-    Vec<Property> result;
-    for (const auto& prop : properties) {
-        if (prop.isMatching(kind, subkind)) { result.push_back(prop); }
-    }
-    return result;
-}
 
 
 bool HashTag::prefixMatch(CR<Vec<Str>> prefix) const {
@@ -221,15 +142,7 @@ void Subtree::setProperty(Property const& value) {
     properties.push_back(value);
 }
 
-Opt<Property> Subtree::getProperty(Str const& kind, CR<Opt<Str>> subkind)
-    const {
-    auto props = getProperties(kind, subkind);
-    if (props.empty()) {
-        return std::nullopt;
-    } else {
-        return props[0];
-    }
-}
+
 
 void Subtree::removeProperty(const Str& kind, const Opt<Str>& subkind) {
     for (int i = properties.high(); 0 <= i; --i) {

@@ -36,8 +36,8 @@ EACH_SEM_ORG_RECORD_NESTED(_declare_hash)
 
 #define _declare_hash(__qual, _)                                          \
     template <>                                                           \
-    struct std::hash<sem::__qual> {                                      \
-        std::size_t operator()(sem::__qual const& it) const noexcept;    \
+    struct std::hash<sem::__qual> {                                       \
+        std::size_t operator()(sem::__qual const& it) const noexcept;     \
     };
 
 EACH_SHARED_ORG_RECORD(_declare_hash)
@@ -828,6 +828,19 @@ struct ImmAdapterT : ImmAdapterTBase<T> {
     using ImmAdapterTBase<T>::pass;
     using ImmAdapterTBase<T>::get;
     using ImmAdapterTBase<T>::operator->;
+};
+
+
+template <>
+struct ImmAdapterT<ImmSubtree> : ImmAdapterTBase<ImmSubtree> {
+    Vec<sem::SubtreePeriod> getTimePeriods(
+        IntSet<sem::SubtreePeriod::Kind> kinds) const;
+    Vec<sem::NamedProperty> getProperties(
+        Str const&      kind,
+        Opt<Str> const& subkind = std::nullopt) const;
+    Opt<sem::NamedProperty> getProperty(
+        Str const&      kind,
+        Opt<Str> const& subkind = std::nullopt) const;
 };
 
 
