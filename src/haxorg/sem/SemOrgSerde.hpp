@@ -109,19 +109,17 @@ struct proto_write_accessor<T>
 };
 
 template <>
-struct SerdeDefaultProvider<sem::BlockCode::EvalResult::OrgValue> {
-    static sem::BlockCode::EvalResult::OrgValue get() {
-        return sem::BlockCode::EvalResult::OrgValue{
-            .value = sem::SemId<sem::Org>::Nil()};
+struct SerdeDefaultProvider<sem::BlockCodeEvalResult::OrgValue> {
+    static sem::BlockCodeEvalResult::OrgValue get() {
+        return sem::BlockCodeEvalResult::OrgValue{};
     }
 };
 
 template <>
-struct SerdeDefaultProvider<sem::BlockCode::EvalResult> {
-    static sem::BlockCode::EvalResult get() {
-        return sem::BlockCode::EvalResult{
-            sem::BlockCode::EvalResult::OrgValue{
-                .value = sem::SemId<sem::Org>::Nil()}};
+struct SerdeDefaultProvider<sem::BlockCodeEvalResult> {
+    static sem::BlockCodeEvalResult get() {
+        return sem::BlockCodeEvalResult{
+            sem::BlockCodeEvalResult::OrgValue{}};
     }
 };
 

@@ -26,6 +26,34 @@ std::string enum_serde<InitialSubtreeVisibility>::to_string(InitialSubtreeVisibi
   }
 }
 
+Opt<BlockCodeResults> enum_serde<BlockCodeResults>::from_string(std::string value) {
+  if (value == "Replace") { return BlockCodeResults::Replace; } else
+  { return std::nullopt; }
+}
+std::string enum_serde<BlockCodeResults>::to_string(BlockCodeResults value) {
+  switch (value) {
+    case BlockCodeResults::Replace: return "Replace";
+    default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
+  }
+}
+
+Opt<BlockCodeExports> enum_serde<BlockCodeExports>::from_string(std::string value) {
+  if (value == "None") { return BlockCodeExports::None; } else
+  if (value == "Both") { return BlockCodeExports::Both; } else
+  if (value == "Code") { return BlockCodeExports::Code; } else
+  if (value == "Results") { return BlockCodeExports::Results; } else
+  { return std::nullopt; }
+}
+std::string enum_serde<BlockCodeExports>::to_string(BlockCodeExports value) {
+  switch (value) {
+    case BlockCodeExports::None: return "None";
+    case BlockCodeExports::Both: return "Both";
+    case BlockCodeExports::Code: return "Code";
+    case BlockCodeExports::Results: return "Results";
+    default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
+  }
+}
+
 Opt<OrgSpecName> enum_serde<OrgSpecName>::from_string(std::string value) {
   if (value == "Unnamed") { return OrgSpecName::Unnamed; } else
   if (value == "Result") { return OrgSpecName::Result; } else

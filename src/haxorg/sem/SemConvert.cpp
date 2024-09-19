@@ -1367,21 +1367,21 @@ OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(
     }
 
     if (a.kind() == onk::SrcInlineCode) {
-        BlockCode::Line& line = result->lines.emplace_back();
+        BlockCodeLine& line = result->lines.emplace_back();
         for (auto const& it : one(a, N::Body)) {
             line.parts.push_back(
-                BlockCode::Line::Part(BlockCode::Line::Part::Raw{
+                BlockCodeLine::Part(BlockCodeLine::Part::Raw{
                     .code = get_text(it),
                 }));
         }
     } else {
         for (auto const& it : one(a, N::Body)) {
-            BlockCode::Line& line = result->lines.emplace_back();
+            BlockCodeLine& line = result->lines.emplace_back();
             for (auto const& part : it) {
                 switch (part.kind()) {
                     case onk::CodeText: {
-                        line.parts.push_back(BlockCode::Line::Part(
-                            BlockCode::Line::Part::Raw{
+                        line.parts.push_back(
+                            BlockCodeLine::Part(BlockCodeLine::Part::Raw{
                                 .code = get_text(part),
                             }));
                         break;
@@ -1396,8 +1396,8 @@ OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(
 
     if (auto res = one(a, N::Result); res.kind() != onk::Empty) {
         auto body      = one(res, N::Body);
-        result->result = sem::BlockCode::EvalResult{
-            sem::BlockCode::EvalResult::OrgValue{.value = convert(body)}};
+        result->result = sem::BlockCodeEvalResult{
+            sem::BlockCodeEvalResult::OrgValue{.value = get_text(body)}};
     }
 
     return result;

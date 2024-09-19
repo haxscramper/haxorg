@@ -12,6 +12,228 @@
 #include <haxorg/sem/SemOrgBase.hpp>
 #include <haxorg/sem/SemOrgEnums.hpp>
 namespace sem{
+struct BlockCodeLine {
+  struct Part {
+    struct Raw {
+      BOOST_DESCRIBE_CLASS(Raw,
+                           (),
+                           (),
+                           (),
+                           (code))
+      Str code;
+      bool operator==(sem::BlockCodeLine::Part::Raw const& other) const;
+    };
+
+    struct Callout {
+      BOOST_DESCRIBE_CLASS(Callout,
+                           (),
+                           (),
+                           (),
+                           (name))
+      Str name;
+      bool operator==(sem::BlockCodeLine::Part::Callout const& other) const;
+    };
+
+    struct Tangle {
+      BOOST_DESCRIBE_CLASS(Tangle,
+                           (),
+                           (),
+                           (),
+                           (target))
+      Str target;
+      bool operator==(sem::BlockCodeLine::Part::Tangle const& other) const;
+    };
+
+    using Data = std::variant<sem::BlockCodeLine::Part::Raw, sem::BlockCodeLine::Part::Callout, sem::BlockCodeLine::Part::Tangle>;
+    enum class Kind : short int { Raw, Callout, Tangle, };
+    BOOST_DESCRIBE_NESTED_ENUM(Kind, Raw, Callout, Tangle)
+    using variant_enum_type = sem::BlockCodeLine::Part::Kind;
+    using variant_data_type = sem::BlockCodeLine::Part::Data;
+    BOOST_DESCRIBE_CLASS(Part,
+                         (),
+                         (),
+                         (),
+                         (data))
+    sem::BlockCodeLine::Part::Data data;
+    bool operator==(sem::BlockCodeLine::Part const& other) const;
+    sem::BlockCodeLine::Part::Raw const& getRaw() const { return std::get<0>(data); }
+    sem::BlockCodeLine::Part::Raw& getRaw() { return std::get<0>(data); }
+    sem::BlockCodeLine::Part::Callout const& getCallout() const { return std::get<1>(data); }
+    sem::BlockCodeLine::Part::Callout& getCallout() { return std::get<1>(data); }
+    sem::BlockCodeLine::Part::Tangle const& getTangle() const { return std::get<2>(data); }
+    sem::BlockCodeLine::Part::Tangle& getTangle() { return std::get<2>(data); }
+    static sem::BlockCodeLine::Part::Kind getKind(sem::BlockCodeLine::Part::Data const& __input) { return static_cast<sem::BlockCodeLine::Part::Kind>(__input.index()); }
+    sem::BlockCodeLine::Part::Kind getKind() const { return getKind(data); }
+  };
+
+  BOOST_DESCRIBE_CLASS(BlockCodeLine,
+                       (),
+                       (),
+                       (),
+                       (parts))
+  /// \brief parts of the single line
+  Vec<sem::BlockCodeLine::Part> parts = {};
+  bool operator==(sem::BlockCodeLine const& other) const;
+};
+
+/// \brief Extra configuration switches that can be used to control representation of the rendered code block. This field does not exactly correspond to the `-XX` parameters that can be passed directly in the field, but also works with attached `#+options` from the block
+struct BlockCodeSwitch {
+  BlockCodeSwitch() {}
+  /// \brief Enumerate code lines starting from `start` value instead of default indexing.
+  struct LineStart {
+    LineStart() {}
+    BOOST_DESCRIBE_CLASS(LineStart,
+                         (),
+                         (),
+                         (),
+                         (start, extendLast))
+    /// \brief First line number
+    int start;
+    /// \brief Continue numbering from the previous block nstead of starting anew
+    bool extendLast = false;
+    bool operator==(sem::BlockCodeSwitch::LineStart const& other) const;
+  };
+
+  struct CalloutFormat {
+    CalloutFormat() {}
+    BOOST_DESCRIBE_CLASS(CalloutFormat,
+                         (),
+                         (),
+                         (),
+                         (format))
+    Str format = "";
+    bool operator==(sem::BlockCodeSwitch::CalloutFormat const& other) const;
+  };
+
+  struct RemoveCallout {
+    RemoveCallout() {}
+    BOOST_DESCRIBE_CLASS(RemoveCallout,
+                         (),
+                         (),
+                         (),
+                         (remove))
+    bool remove = true;
+    bool operator==(sem::BlockCodeSwitch::RemoveCallout const& other) const;
+  };
+
+  /// \brief Emphasize single line -- can be repeated multiple times
+  struct EmphasizeLine {
+    EmphasizeLine() {}
+    BOOST_DESCRIBE_CLASS(EmphasizeLine,
+                         (),
+                         (),
+                         (),
+                         (line))
+    Vec<int> line = {};
+    bool operator==(sem::BlockCodeSwitch::EmphasizeLine const& other) const;
+  };
+
+  struct Dedent {
+    Dedent() {}
+    BOOST_DESCRIBE_CLASS(Dedent,
+                         (),
+                         (),
+                         (),
+                         (value))
+    int value = 0;
+    bool operator==(sem::BlockCodeSwitch::Dedent const& other) const;
+  };
+
+  using Data = std::variant<sem::BlockCodeSwitch::LineStart, sem::BlockCodeSwitch::CalloutFormat, sem::BlockCodeSwitch::RemoveCallout, sem::BlockCodeSwitch::EmphasizeLine, sem::BlockCodeSwitch::Dedent>;
+  enum class Kind : short int { LineStart, CalloutFormat, RemoveCallout, EmphasizeLine, Dedent, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, LineStart, CalloutFormat, RemoveCallout, EmphasizeLine, Dedent)
+  using variant_enum_type = sem::BlockCodeSwitch::Kind;
+  using variant_data_type = sem::BlockCodeSwitch::Data;
+  BOOST_DESCRIBE_CLASS(BlockCodeSwitch,
+                       (),
+                       (),
+                       (),
+                       (data))
+  sem::BlockCodeSwitch::Data data;
+  bool operator==(sem::BlockCodeSwitch const& other) const;
+  sem::BlockCodeSwitch::LineStart const& getLineStart() const { return std::get<0>(data); }
+  sem::BlockCodeSwitch::LineStart& getLineStart() { return std::get<0>(data); }
+  sem::BlockCodeSwitch::CalloutFormat const& getCalloutFormat() const { return std::get<1>(data); }
+  sem::BlockCodeSwitch::CalloutFormat& getCalloutFormat() { return std::get<1>(data); }
+  sem::BlockCodeSwitch::RemoveCallout const& getRemoveCallout() const { return std::get<2>(data); }
+  sem::BlockCodeSwitch::RemoveCallout& getRemoveCallout() { return std::get<2>(data); }
+  sem::BlockCodeSwitch::EmphasizeLine const& getEmphasizeLine() const { return std::get<3>(data); }
+  sem::BlockCodeSwitch::EmphasizeLine& getEmphasizeLine() { return std::get<3>(data); }
+  sem::BlockCodeSwitch::Dedent const& getDedent() const { return std::get<4>(data); }
+  sem::BlockCodeSwitch::Dedent& getDedent() { return std::get<4>(data); }
+  static sem::BlockCodeSwitch::Kind getKind(sem::BlockCodeSwitch::Data const& __input) { return static_cast<sem::BlockCodeSwitch::Kind>(__input.index()); }
+  sem::BlockCodeSwitch::Kind getKind() const { return getKind(data); }
+};
+
+struct BlockCodeEvalResult {
+  /// \brief Default value
+  struct None {
+    BOOST_DESCRIBE_CLASS(None,
+                         (),
+                         (),
+                         (),
+                         ())
+    bool operator==(sem::BlockCodeEvalResult::None const& other) const;
+  };
+
+  /// \brief Source code block evaluated to an org-mode node element
+  struct OrgValue {
+    BOOST_DESCRIBE_CLASS(OrgValue,
+                         (),
+                         (),
+                         (),
+                         (value))
+    /// \brief Evaluation result
+    Str value = "";
+    bool operator==(sem::BlockCodeEvalResult::OrgValue const& other) const;
+  };
+
+  /// \brief Output evaluation results to a file
+  struct File {
+    BOOST_DESCRIBE_CLASS(File,
+                         (),
+                         (),
+                         (),
+                         (path))
+    Str path;
+    bool operator==(sem::BlockCodeEvalResult::File const& other) const;
+  };
+
+  /// \brief Evaluation output is a raw text
+  struct Raw {
+    BOOST_DESCRIBE_CLASS(Raw,
+                         (),
+                         (),
+                         (),
+                         (text))
+    Str text;
+    bool operator==(sem::BlockCodeEvalResult::Raw const& other) const;
+  };
+
+  using Data = std::variant<sem::BlockCodeEvalResult::None, sem::BlockCodeEvalResult::OrgValue, sem::BlockCodeEvalResult::File, sem::BlockCodeEvalResult::Raw>;
+  enum class Kind : short int { None, OrgValue, File, Raw, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, None, OrgValue, File, Raw)
+  using variant_enum_type = sem::BlockCodeEvalResult::Kind;
+  using variant_data_type = sem::BlockCodeEvalResult::Data;
+  BOOST_DESCRIBE_CLASS(BlockCodeEvalResult,
+                       (),
+                       (),
+                       (),
+                       (data))
+  sem::BlockCodeEvalResult::Data data;
+  bool operator==(sem::BlockCodeEvalResult const& other) const;
+  sem::BlockCodeEvalResult::None const& getNone() const { return std::get<0>(data); }
+  sem::BlockCodeEvalResult::None& getNone() { return std::get<0>(data); }
+  sem::BlockCodeEvalResult::OrgValue const& getOrgValue() const { return std::get<1>(data); }
+  sem::BlockCodeEvalResult::OrgValue& getOrgValue() { return std::get<1>(data); }
+  sem::BlockCodeEvalResult::File const& getFile() const { return std::get<2>(data); }
+  sem::BlockCodeEvalResult::File& getFile() { return std::get<2>(data); }
+  sem::BlockCodeEvalResult::Raw const& getRaw() const { return std::get<3>(data); }
+  sem::BlockCodeEvalResult::Raw& getRaw() { return std::get<3>(data); }
+  static sem::BlockCodeEvalResult::Kind getKind(sem::BlockCodeEvalResult::Data const& __input) { return static_cast<sem::BlockCodeEvalResult::Kind>(__input.index()); }
+  sem::BlockCodeEvalResult::Kind getKind() const { return getKind(data); }
+};
+
 struct DocumentExportConfig {
   struct TaskExport {
     BOOST_DESCRIBE_CLASS(TaskExport,
@@ -1314,178 +1536,6 @@ struct BlockAdmonition : public sem::Block {
 struct BlockCode : public sem::Block {
   using Block::Block;
   virtual ~BlockCode() = default;
-  struct Line {
-    struct Part {
-      struct Raw {
-        BOOST_DESCRIBE_CLASS(Raw, (), (), (), (code))
-        Str code;
-      };
-
-      struct Callout {
-        BOOST_DESCRIBE_CLASS(Callout, (), (), (), (name))
-        Str name;
-      };
-
-      struct Tangle {
-        BOOST_DESCRIBE_CLASS(Tangle, (), (), (), (target))
-        Str target;
-      };
-
-      using Data = std::variant<sem::BlockCode::Line::Part::Raw, sem::BlockCode::Line::Part::Callout, sem::BlockCode::Line::Part::Tangle>;
-      enum class Kind : short int { Raw, Callout, Tangle, };
-      BOOST_DESCRIBE_NESTED_ENUM(Kind, Raw, Callout, Tangle)
-      using variant_enum_type = sem::BlockCode::Line::Part::Kind;
-      using variant_data_type = sem::BlockCode::Line::Part::Data;
-      BOOST_DESCRIBE_CLASS(Part,
-                           (),
-                           (),
-                           (),
-                           (data))
-      sem::BlockCode::Line::Part::Data data;
-      sem::BlockCode::Line::Part::Raw const& getRaw() const { return std::get<0>(data); }
-      sem::BlockCode::Line::Part::Raw& getRaw() { return std::get<0>(data); }
-      sem::BlockCode::Line::Part::Callout const& getCallout() const { return std::get<1>(data); }
-      sem::BlockCode::Line::Part::Callout& getCallout() { return std::get<1>(data); }
-      sem::BlockCode::Line::Part::Tangle const& getTangle() const { return std::get<2>(data); }
-      sem::BlockCode::Line::Part::Tangle& getTangle() { return std::get<2>(data); }
-      static sem::BlockCode::Line::Part::Kind getKind(sem::BlockCode::Line::Part::Data const& __input) { return static_cast<sem::BlockCode::Line::Part::Kind>(__input.index()); }
-      sem::BlockCode::Line::Part::Kind getKind() const { return getKind(data); }
-    };
-
-    BOOST_DESCRIBE_CLASS(Line, (), (), (), (parts))
-    /// \brief parts of the single line
-    Vec<sem::BlockCode::Line::Part> parts = {};
-  };
-
-  /// \brief Extra configuration switches that can be used to control representation of the rendered code block. This field does not exactly correspond to the `-XX` parameters that can be passed directly in the field, but also works with attached `#+options` from the block
-  struct Switch {
-    Switch() {}
-    /// \brief Enumerate code lines starting from `start` value instead of default indexing.
-    struct LineStart {
-      LineStart() {}
-      BOOST_DESCRIBE_CLASS(LineStart, (), (), (), (start, extendLast))
-      /// \brief First line number
-      int start;
-      /// \brief Continue numbering from the previous block nstead of starting anew
-      bool extendLast = false;
-    };
-
-    struct CalloutFormat {
-      CalloutFormat() {}
-      BOOST_DESCRIBE_CLASS(CalloutFormat, (), (), (), (format))
-      Str format = "";
-    };
-
-    struct RemoveCallout {
-      RemoveCallout() {}
-      BOOST_DESCRIBE_CLASS(RemoveCallout, (), (), (), (remove))
-      bool remove = true;
-    };
-
-    /// \brief Emphasize single line -- can be repeated multiple times
-    struct EmphasizeLine {
-      EmphasizeLine() {}
-      BOOST_DESCRIBE_CLASS(EmphasizeLine, (), (), (), (line))
-      Vec<int> line = {};
-    };
-
-    struct Dedent {
-      Dedent() {}
-      BOOST_DESCRIBE_CLASS(Dedent, (), (), (), (value))
-      int value = 0;
-    };
-
-    using Data = std::variant<sem::BlockCode::Switch::LineStart, sem::BlockCode::Switch::CalloutFormat, sem::BlockCode::Switch::RemoveCallout, sem::BlockCode::Switch::EmphasizeLine, sem::BlockCode::Switch::Dedent>;
-    enum class Kind : short int { LineStart, CalloutFormat, RemoveCallout, EmphasizeLine, Dedent, };
-    BOOST_DESCRIBE_NESTED_ENUM(Kind, LineStart, CalloutFormat, RemoveCallout, EmphasizeLine, Dedent)
-    using variant_enum_type = sem::BlockCode::Switch::Kind;
-    using variant_data_type = sem::BlockCode::Switch::Data;
-    BOOST_DESCRIBE_CLASS(Switch,
-                         (),
-                         (),
-                         (),
-                         (data))
-    sem::BlockCode::Switch::Data data;
-    sem::BlockCode::Switch::LineStart const& getLineStart() const { return std::get<0>(data); }
-    sem::BlockCode::Switch::LineStart& getLineStart() { return std::get<0>(data); }
-    sem::BlockCode::Switch::CalloutFormat const& getCalloutFormat() const { return std::get<1>(data); }
-    sem::BlockCode::Switch::CalloutFormat& getCalloutFormat() { return std::get<1>(data); }
-    sem::BlockCode::Switch::RemoveCallout const& getRemoveCallout() const { return std::get<2>(data); }
-    sem::BlockCode::Switch::RemoveCallout& getRemoveCallout() { return std::get<2>(data); }
-    sem::BlockCode::Switch::EmphasizeLine const& getEmphasizeLine() const { return std::get<3>(data); }
-    sem::BlockCode::Switch::EmphasizeLine& getEmphasizeLine() { return std::get<3>(data); }
-    sem::BlockCode::Switch::Dedent const& getDedent() const { return std::get<4>(data); }
-    sem::BlockCode::Switch::Dedent& getDedent() { return std::get<4>(data); }
-    static sem::BlockCode::Switch::Kind getKind(sem::BlockCode::Switch::Data const& __input) { return static_cast<sem::BlockCode::Switch::Kind>(__input.index()); }
-    sem::BlockCode::Switch::Kind getKind() const { return getKind(data); }
-  };
-
-  /// \brief What to do with newly evaluated result
-  enum class Results : short int {
-    /// \brief Remove old result, replace with new value
-    Replace,
-  };
-  BOOST_DESCRIBE_NESTED_ENUM(Results, Replace)
-  /// \brief What part of the code block should be visible in export
-  enum class Exports : short int {
-    /// \brief Hide both original code and run result
-    None,
-    /// \brief Show output and code
-    Both,
-    /// \brief Show only code
-    Code,
-    /// \brief Show only evaluation results
-    Results,
-  };
-  BOOST_DESCRIBE_NESTED_ENUM(Exports, None, Both, Code, Results)
-  struct EvalResult {
-    /// \brief Default value
-    struct None {
-      BOOST_DESCRIBE_CLASS(None, (), (), (), ())
-    };
-
-    /// \brief Source code block evaluated to an org-mode node element
-    struct OrgValue {
-      BOOST_DESCRIBE_CLASS(OrgValue, (), (), (), (value))
-      /// \brief Parsed value of the evaluation result
-      sem::SemId<sem::Org> value = sem::SemId<sem::Org>::Nil();
-    };
-
-    /// \brief Output evaluation results to a file
-    struct File {
-      BOOST_DESCRIBE_CLASS(File, (), (), (), (path))
-      Str path;
-    };
-
-    /// \brief Evaluation output is a raw text
-    struct Raw {
-      BOOST_DESCRIBE_CLASS(Raw, (), (), (), (text))
-      Str text;
-    };
-
-    using Data = std::variant<sem::BlockCode::EvalResult::None, sem::BlockCode::EvalResult::OrgValue, sem::BlockCode::EvalResult::File, sem::BlockCode::EvalResult::Raw>;
-    enum class Kind : short int { None, OrgValue, File, Raw, };
-    BOOST_DESCRIBE_NESTED_ENUM(Kind, None, OrgValue, File, Raw)
-    using variant_enum_type = sem::BlockCode::EvalResult::Kind;
-    using variant_data_type = sem::BlockCode::EvalResult::Data;
-    BOOST_DESCRIBE_CLASS(EvalResult,
-                         (),
-                         (),
-                         (),
-                         (data))
-    sem::BlockCode::EvalResult::Data data;
-    sem::BlockCode::EvalResult::None const& getNone() const { return std::get<0>(data); }
-    sem::BlockCode::EvalResult::None& getNone() { return std::get<0>(data); }
-    sem::BlockCode::EvalResult::OrgValue const& getOrgValue() const { return std::get<1>(data); }
-    sem::BlockCode::EvalResult::OrgValue& getOrgValue() { return std::get<1>(data); }
-    sem::BlockCode::EvalResult::File const& getFile() const { return std::get<2>(data); }
-    sem::BlockCode::EvalResult::File& getFile() { return std::get<2>(data); }
-    sem::BlockCode::EvalResult::Raw const& getRaw() const { return std::get<3>(data); }
-    sem::BlockCode::EvalResult::Raw& getRaw() { return std::get<3>(data); }
-    static sem::BlockCode::EvalResult::Kind getKind(sem::BlockCode::EvalResult::Data const& __input) { return static_cast<sem::BlockCode::EvalResult::Kind>(__input.index()); }
-    sem::BlockCode::EvalResult::Kind getKind() const { return getKind(data); }
-  };
-
   BOOST_DESCRIBE_CLASS(BlockCode,
                        (Block),
                        (),
@@ -1505,13 +1555,13 @@ struct BlockCode : public sem::Block {
   /// \brief Code block language name
   Opt<Str> lang = std::nullopt;
   /// \brief Switch options for block
-  Vec<sem::BlockCode::Switch> switches = {};
+  Vec<sem::BlockCodeSwitch> switches = {};
   /// \brief What to export
-  sem::BlockCode::Exports exports = Exports::Both;
+  BlockCodeExports exports = BlockCodeExports::Both;
   /// \brief Code evaluation results
-  Opt<sem::BlockCode::EvalResult> result = std::nullopt;
+  Opt<sem::BlockCodeEvalResult> result = std::nullopt;
   /// \brief Collected code lines
-  Vec<sem::BlockCode::Line> lines = {};
+  Vec<sem::BlockCodeLine> lines = {};
   /// \brief Do cache values?
   bool cache = false;
   /// \brief Eval on export?

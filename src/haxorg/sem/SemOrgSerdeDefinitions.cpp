@@ -1,6 +1,214 @@
 /* clang-format off */
 #include <haxorg/sem/SemOrgSerde.hpp>
 #include <haxorg/sem/SemOrgSerdeDeclarations.hpp>
+void proto_serde<::orgproto::BlockCodeLine::Part::Raw, sem::BlockCodeLine::Part::Raw>::write(::orgproto::BlockCodeLine::Part::Raw* out, sem::BlockCodeLine::Part::Raw const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_code(), in.code);
+}
+
+void proto_serde<::orgproto::BlockCodeLine::Part::Raw, sem::BlockCodeLine::Part::Raw>::read(::orgproto::BlockCodeLine::Part::Raw const& out, proto_write_accessor<sem::BlockCodeLine::Part::Raw> in) {
+  proto_serde<std::string, Str>::read(out.code(), in.for_field(&sem::BlockCodeLine::Part::Raw::code));
+}
+
+void proto_serde<::orgproto::BlockCodeLine::Part::Callout, sem::BlockCodeLine::Part::Callout>::write(::orgproto::BlockCodeLine::Part::Callout* out, sem::BlockCodeLine::Part::Callout const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
+}
+
+void proto_serde<::orgproto::BlockCodeLine::Part::Callout, sem::BlockCodeLine::Part::Callout>::read(::orgproto::BlockCodeLine::Part::Callout const& out, proto_write_accessor<sem::BlockCodeLine::Part::Callout> in) {
+  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::BlockCodeLine::Part::Callout::name));
+}
+
+void proto_serde<::orgproto::BlockCodeLine::Part::Tangle, sem::BlockCodeLine::Part::Tangle>::write(::orgproto::BlockCodeLine::Part::Tangle* out, sem::BlockCodeLine::Part::Tangle const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_target(), in.target);
+}
+
+void proto_serde<::orgproto::BlockCodeLine::Part::Tangle, sem::BlockCodeLine::Part::Tangle>::read(::orgproto::BlockCodeLine::Part::Tangle const& out, proto_write_accessor<sem::BlockCodeLine::Part::Tangle> in) {
+  proto_serde<std::string, Str>::read(out.target(), in.for_field(&sem::BlockCodeLine::Part::Tangle::target));
+}
+
+void proto_serde<::orgproto::BlockCodeLine::Part, sem::BlockCodeLine::Part>::write(::orgproto::BlockCodeLine::Part* out, sem::BlockCodeLine::Part const& in) {
+  switch (in.data.index()) {
+    case 0:
+      proto_serde<orgproto::BlockCodeLine::Part::Raw, sem::BlockCodeLine::Part::Raw>::write(out->mutable_data()->mutable_raw(), std::get<0>(in.data));
+      break;
+    case 1:
+      proto_serde<orgproto::BlockCodeLine::Part::Callout, sem::BlockCodeLine::Part::Callout>::write(out->mutable_data()->mutable_callout(), std::get<1>(in.data));
+      break;
+    case 2:
+      proto_serde<orgproto::BlockCodeLine::Part::Tangle, sem::BlockCodeLine::Part::Tangle>::write(out->mutable_data()->mutable_tangle(), std::get<2>(in.data));
+      break;
+  }
+}
+
+void proto_serde<::orgproto::BlockCodeLine::Part, sem::BlockCodeLine::Part>::read(::orgproto::BlockCodeLine::Part const& out, proto_write_accessor<sem::BlockCodeLine::Part> in) {
+  switch (out.data().kind_case()) {
+    case ::orgproto::BlockCodeLine::Part::Data::kRaw:
+      proto_serde<orgproto::BlockCodeLine::Part::Raw, sem::BlockCodeLine::Part::Raw>::read(out.data().raw(), in.for_field_variant<0>(&sem::BlockCodeLine::Part::data));
+      break;
+    case ::orgproto::BlockCodeLine::Part::Data::kCallout:
+      proto_serde<orgproto::BlockCodeLine::Part::Callout, sem::BlockCodeLine::Part::Callout>::read(out.data().callout(), in.for_field_variant<1>(&sem::BlockCodeLine::Part::data));
+      break;
+    case ::orgproto::BlockCodeLine::Part::Data::kTangle:
+      proto_serde<orgproto::BlockCodeLine::Part::Tangle, sem::BlockCodeLine::Part::Tangle>::read(out.data().tangle(), in.for_field_variant<2>(&sem::BlockCodeLine::Part::data));
+      break;
+  }
+}
+
+void proto_serde<::orgproto::BlockCodeLine, sem::BlockCodeLine>::write(::orgproto::BlockCodeLine* out, sem::BlockCodeLine const& in) {
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::BlockCodeLine::Part>, Vec<sem::BlockCodeLine::Part>>::write(out->mutable_parts(), in.parts);
+}
+
+void proto_serde<::orgproto::BlockCodeLine, sem::BlockCodeLine>::read(::orgproto::BlockCodeLine const& out, proto_write_accessor<sem::BlockCodeLine> in) {
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::BlockCodeLine::Part>, Vec<sem::BlockCodeLine::Part>>::read(out.parts(), in.for_field(&sem::BlockCodeLine::parts));
+}
+
+void proto_serde<::orgproto::BlockCodeSwitch::LineStart, sem::BlockCodeSwitch::LineStart>::write(::orgproto::BlockCodeSwitch::LineStart* out, sem::BlockCodeSwitch::LineStart const& in) {
+  out->set_start(in.start);
+  out->set_extendlast(in.extendLast);
+}
+
+void proto_serde<::orgproto::BlockCodeSwitch::LineStart, sem::BlockCodeSwitch::LineStart>::read(::orgproto::BlockCodeSwitch::LineStart const& out, proto_write_accessor<sem::BlockCodeSwitch::LineStart> in) {
+  in.for_field(&sem::BlockCodeSwitch::LineStart::start).get() = out.start();
+  in.for_field(&sem::BlockCodeSwitch::LineStart::extendLast).get() = out.extendlast();
+}
+
+void proto_serde<::orgproto::BlockCodeSwitch::CalloutFormat, sem::BlockCodeSwitch::CalloutFormat>::write(::orgproto::BlockCodeSwitch::CalloutFormat* out, sem::BlockCodeSwitch::CalloutFormat const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_format(), in.format);
+}
+
+void proto_serde<::orgproto::BlockCodeSwitch::CalloutFormat, sem::BlockCodeSwitch::CalloutFormat>::read(::orgproto::BlockCodeSwitch::CalloutFormat const& out, proto_write_accessor<sem::BlockCodeSwitch::CalloutFormat> in) {
+  proto_serde<std::string, Str>::read(out.format(), in.for_field(&sem::BlockCodeSwitch::CalloutFormat::format));
+}
+
+void proto_serde<::orgproto::BlockCodeSwitch::RemoveCallout, sem::BlockCodeSwitch::RemoveCallout>::write(::orgproto::BlockCodeSwitch::RemoveCallout* out, sem::BlockCodeSwitch::RemoveCallout const& in) {
+  out->set_remove(in.remove);
+}
+
+void proto_serde<::orgproto::BlockCodeSwitch::RemoveCallout, sem::BlockCodeSwitch::RemoveCallout>::read(::orgproto::BlockCodeSwitch::RemoveCallout const& out, proto_write_accessor<sem::BlockCodeSwitch::RemoveCallout> in) {
+  in.for_field(&sem::BlockCodeSwitch::RemoveCallout::remove).get() = out.remove();
+}
+
+void proto_serde<::orgproto::BlockCodeSwitch::EmphasizeLine, sem::BlockCodeSwitch::EmphasizeLine>::write(::orgproto::BlockCodeSwitch::EmphasizeLine* out, sem::BlockCodeSwitch::EmphasizeLine const& in) {
+  proto_serde<::google::protobuf::RepeatedField<::int32_t>, Vec<int>>::write(out->mutable_line(), in.line);
+}
+
+void proto_serde<::orgproto::BlockCodeSwitch::EmphasizeLine, sem::BlockCodeSwitch::EmphasizeLine>::read(::orgproto::BlockCodeSwitch::EmphasizeLine const& out, proto_write_accessor<sem::BlockCodeSwitch::EmphasizeLine> in) {
+  proto_serde<::google::protobuf::RepeatedField<::int32_t>, Vec<int>>::read(out.line(), in.for_field(&sem::BlockCodeSwitch::EmphasizeLine::line));
+}
+
+void proto_serde<::orgproto::BlockCodeSwitch::Dedent, sem::BlockCodeSwitch::Dedent>::write(::orgproto::BlockCodeSwitch::Dedent* out, sem::BlockCodeSwitch::Dedent const& in) {
+  out->set_value(in.value);
+}
+
+void proto_serde<::orgproto::BlockCodeSwitch::Dedent, sem::BlockCodeSwitch::Dedent>::read(::orgproto::BlockCodeSwitch::Dedent const& out, proto_write_accessor<sem::BlockCodeSwitch::Dedent> in) {
+  in.for_field(&sem::BlockCodeSwitch::Dedent::value).get() = out.value();
+}
+
+void proto_serde<::orgproto::BlockCodeSwitch, sem::BlockCodeSwitch>::write(::orgproto::BlockCodeSwitch* out, sem::BlockCodeSwitch const& in) {
+  switch (in.data.index()) {
+    case 0:
+      proto_serde<orgproto::BlockCodeSwitch::LineStart, sem::BlockCodeSwitch::LineStart>::write(out->mutable_data()->mutable_linestart(), std::get<0>(in.data));
+      break;
+    case 1:
+      proto_serde<orgproto::BlockCodeSwitch::CalloutFormat, sem::BlockCodeSwitch::CalloutFormat>::write(out->mutable_data()->mutable_calloutformat(), std::get<1>(in.data));
+      break;
+    case 2:
+      proto_serde<orgproto::BlockCodeSwitch::RemoveCallout, sem::BlockCodeSwitch::RemoveCallout>::write(out->mutable_data()->mutable_removecallout(), std::get<2>(in.data));
+      break;
+    case 3:
+      proto_serde<orgproto::BlockCodeSwitch::EmphasizeLine, sem::BlockCodeSwitch::EmphasizeLine>::write(out->mutable_data()->mutable_emphasizeline(), std::get<3>(in.data));
+      break;
+    case 4:
+      proto_serde<orgproto::BlockCodeSwitch::Dedent, sem::BlockCodeSwitch::Dedent>::write(out->mutable_data()->mutable_dedent(), std::get<4>(in.data));
+      break;
+  }
+}
+
+void proto_serde<::orgproto::BlockCodeSwitch, sem::BlockCodeSwitch>::read(::orgproto::BlockCodeSwitch const& out, proto_write_accessor<sem::BlockCodeSwitch> in) {
+  switch (out.data().kind_case()) {
+    case ::orgproto::BlockCodeSwitch::Data::kLinestart:
+      proto_serde<orgproto::BlockCodeSwitch::LineStart, sem::BlockCodeSwitch::LineStart>::read(out.data().linestart(), in.for_field_variant<0>(&sem::BlockCodeSwitch::data));
+      break;
+    case ::orgproto::BlockCodeSwitch::Data::kCalloutformat:
+      proto_serde<orgproto::BlockCodeSwitch::CalloutFormat, sem::BlockCodeSwitch::CalloutFormat>::read(out.data().calloutformat(), in.for_field_variant<1>(&sem::BlockCodeSwitch::data));
+      break;
+    case ::orgproto::BlockCodeSwitch::Data::kRemovecallout:
+      proto_serde<orgproto::BlockCodeSwitch::RemoveCallout, sem::BlockCodeSwitch::RemoveCallout>::read(out.data().removecallout(), in.for_field_variant<2>(&sem::BlockCodeSwitch::data));
+      break;
+    case ::orgproto::BlockCodeSwitch::Data::kEmphasizeline:
+      proto_serde<orgproto::BlockCodeSwitch::EmphasizeLine, sem::BlockCodeSwitch::EmphasizeLine>::read(out.data().emphasizeline(), in.for_field_variant<3>(&sem::BlockCodeSwitch::data));
+      break;
+    case ::orgproto::BlockCodeSwitch::Data::kDedent:
+      proto_serde<orgproto::BlockCodeSwitch::Dedent, sem::BlockCodeSwitch::Dedent>::read(out.data().dedent(), in.for_field_variant<4>(&sem::BlockCodeSwitch::data));
+      break;
+  }
+}
+
+void proto_serde<::orgproto::BlockCodeEvalResult::None, sem::BlockCodeEvalResult::None>::write(::orgproto::BlockCodeEvalResult::None* out, sem::BlockCodeEvalResult::None const& in) {
+
+}
+
+void proto_serde<::orgproto::BlockCodeEvalResult::None, sem::BlockCodeEvalResult::None>::read(::orgproto::BlockCodeEvalResult::None const& out, proto_write_accessor<sem::BlockCodeEvalResult::None> in) {
+
+}
+
+void proto_serde<::orgproto::BlockCodeEvalResult::OrgValue, sem::BlockCodeEvalResult::OrgValue>::write(::orgproto::BlockCodeEvalResult::OrgValue* out, sem::BlockCodeEvalResult::OrgValue const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_value(), in.value);
+}
+
+void proto_serde<::orgproto::BlockCodeEvalResult::OrgValue, sem::BlockCodeEvalResult::OrgValue>::read(::orgproto::BlockCodeEvalResult::OrgValue const& out, proto_write_accessor<sem::BlockCodeEvalResult::OrgValue> in) {
+  proto_serde<std::string, Str>::read(out.value(), in.for_field(&sem::BlockCodeEvalResult::OrgValue::value));
+}
+
+void proto_serde<::orgproto::BlockCodeEvalResult::File, sem::BlockCodeEvalResult::File>::write(::orgproto::BlockCodeEvalResult::File* out, sem::BlockCodeEvalResult::File const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_path(), in.path);
+}
+
+void proto_serde<::orgproto::BlockCodeEvalResult::File, sem::BlockCodeEvalResult::File>::read(::orgproto::BlockCodeEvalResult::File const& out, proto_write_accessor<sem::BlockCodeEvalResult::File> in) {
+  proto_serde<std::string, Str>::read(out.path(), in.for_field(&sem::BlockCodeEvalResult::File::path));
+}
+
+void proto_serde<::orgproto::BlockCodeEvalResult::Raw, sem::BlockCodeEvalResult::Raw>::write(::orgproto::BlockCodeEvalResult::Raw* out, sem::BlockCodeEvalResult::Raw const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_text(), in.text);
+}
+
+void proto_serde<::orgproto::BlockCodeEvalResult::Raw, sem::BlockCodeEvalResult::Raw>::read(::orgproto::BlockCodeEvalResult::Raw const& out, proto_write_accessor<sem::BlockCodeEvalResult::Raw> in) {
+  proto_serde<std::string, Str>::read(out.text(), in.for_field(&sem::BlockCodeEvalResult::Raw::text));
+}
+
+void proto_serde<::orgproto::BlockCodeEvalResult, sem::BlockCodeEvalResult>::write(::orgproto::BlockCodeEvalResult* out, sem::BlockCodeEvalResult const& in) {
+  switch (in.data.index()) {
+    case 0:
+      proto_serde<orgproto::BlockCodeEvalResult::None, sem::BlockCodeEvalResult::None>::write(out->mutable_data()->mutable_none(), std::get<0>(in.data));
+      break;
+    case 1:
+      proto_serde<orgproto::BlockCodeEvalResult::OrgValue, sem::BlockCodeEvalResult::OrgValue>::write(out->mutable_data()->mutable_orgvalue(), std::get<1>(in.data));
+      break;
+    case 2:
+      proto_serde<orgproto::BlockCodeEvalResult::File, sem::BlockCodeEvalResult::File>::write(out->mutable_data()->mutable_file(), std::get<2>(in.data));
+      break;
+    case 3:
+      proto_serde<orgproto::BlockCodeEvalResult::Raw, sem::BlockCodeEvalResult::Raw>::write(out->mutable_data()->mutable_raw(), std::get<3>(in.data));
+      break;
+  }
+}
+
+void proto_serde<::orgproto::BlockCodeEvalResult, sem::BlockCodeEvalResult>::read(::orgproto::BlockCodeEvalResult const& out, proto_write_accessor<sem::BlockCodeEvalResult> in) {
+  switch (out.data().kind_case()) {
+    case ::orgproto::BlockCodeEvalResult::Data::kNone:
+      proto_serde<orgproto::BlockCodeEvalResult::None, sem::BlockCodeEvalResult::None>::read(out.data().none(), in.for_field_variant<0>(&sem::BlockCodeEvalResult::data));
+      break;
+    case ::orgproto::BlockCodeEvalResult::Data::kOrgvalue:
+      proto_serde<orgproto::BlockCodeEvalResult::OrgValue, sem::BlockCodeEvalResult::OrgValue>::read(out.data().orgvalue(), in.for_field_variant<1>(&sem::BlockCodeEvalResult::data));
+      break;
+    case ::orgproto::BlockCodeEvalResult::Data::kFile:
+      proto_serde<orgproto::BlockCodeEvalResult::File, sem::BlockCodeEvalResult::File>::read(out.data().file(), in.for_field_variant<2>(&sem::BlockCodeEvalResult::data));
+      break;
+    case ::orgproto::BlockCodeEvalResult::Data::kRaw:
+      proto_serde<orgproto::BlockCodeEvalResult::Raw, sem::BlockCodeEvalResult::Raw>::read(out.data().raw(), in.for_field_variant<3>(&sem::BlockCodeEvalResult::data));
+      break;
+  }
+}
+
 void proto_serde<::orgproto::DocumentExportConfig::TaskExport, sem::DocumentExportConfig::TaskExport>::write(::orgproto::DocumentExportConfig::TaskExport* out, sem::DocumentExportConfig::TaskExport const& in) {
   proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::write(out->mutable_taskwhitelist(), in.taskWhitelist);
 }
@@ -1151,216 +1359,6 @@ void proto_serde<::orgproto::BlockAdmonition, sem::BlockAdmonition>::read(::orgp
   proto_serde<::orgproto::BlockAdmonition, sem::Org>::read(out, in.as<sem::Org>());
 }
 
-void proto_serde<::orgproto::BlockCode::Line::Part::Raw, sem::BlockCode::Line::Part::Raw>::write(::orgproto::BlockCode::Line::Part::Raw* out, sem::BlockCode::Line::Part::Raw const& in) {
-  proto_serde<std::string, Str>::write(out->mutable_code(), in.code);
-}
-
-void proto_serde<::orgproto::BlockCode::Line::Part::Raw, sem::BlockCode::Line::Part::Raw>::read(::orgproto::BlockCode::Line::Part::Raw const& out, proto_write_accessor<sem::BlockCode::Line::Part::Raw> in) {
-  proto_serde<std::string, Str>::read(out.code(), in.for_field(&sem::BlockCode::Line::Part::Raw::code));
-}
-
-void proto_serde<::orgproto::BlockCode::Line::Part::Callout, sem::BlockCode::Line::Part::Callout>::write(::orgproto::BlockCode::Line::Part::Callout* out, sem::BlockCode::Line::Part::Callout const& in) {
-  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
-}
-
-void proto_serde<::orgproto::BlockCode::Line::Part::Callout, sem::BlockCode::Line::Part::Callout>::read(::orgproto::BlockCode::Line::Part::Callout const& out, proto_write_accessor<sem::BlockCode::Line::Part::Callout> in) {
-  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::BlockCode::Line::Part::Callout::name));
-}
-
-void proto_serde<::orgproto::BlockCode::Line::Part::Tangle, sem::BlockCode::Line::Part::Tangle>::write(::orgproto::BlockCode::Line::Part::Tangle* out, sem::BlockCode::Line::Part::Tangle const& in) {
-  proto_serde<std::string, Str>::write(out->mutable_target(), in.target);
-}
-
-void proto_serde<::orgproto::BlockCode::Line::Part::Tangle, sem::BlockCode::Line::Part::Tangle>::read(::orgproto::BlockCode::Line::Part::Tangle const& out, proto_write_accessor<sem::BlockCode::Line::Part::Tangle> in) {
-  proto_serde<std::string, Str>::read(out.target(), in.for_field(&sem::BlockCode::Line::Part::Tangle::target));
-}
-
-void proto_serde<::orgproto::BlockCode::Line::Part, sem::BlockCode::Line::Part>::write(::orgproto::BlockCode::Line::Part* out, sem::BlockCode::Line::Part const& in) {
-  switch (in.data.index()) {
-    case 0:
-      proto_serde<orgproto::BlockCode::Line::Part::Raw, sem::BlockCode::Line::Part::Raw>::write(out->mutable_data()->mutable_raw(), std::get<0>(in.data));
-      break;
-    case 1:
-      proto_serde<orgproto::BlockCode::Line::Part::Callout, sem::BlockCode::Line::Part::Callout>::write(out->mutable_data()->mutable_callout(), std::get<1>(in.data));
-      break;
-    case 2:
-      proto_serde<orgproto::BlockCode::Line::Part::Tangle, sem::BlockCode::Line::Part::Tangle>::write(out->mutable_data()->mutable_tangle(), std::get<2>(in.data));
-      break;
-  }
-}
-
-void proto_serde<::orgproto::BlockCode::Line::Part, sem::BlockCode::Line::Part>::read(::orgproto::BlockCode::Line::Part const& out, proto_write_accessor<sem::BlockCode::Line::Part> in) {
-  switch (out.data().kind_case()) {
-    case ::orgproto::BlockCode::Line::Part::Data::kRaw:
-      proto_serde<orgproto::BlockCode::Line::Part::Raw, sem::BlockCode::Line::Part::Raw>::read(out.data().raw(), in.for_field_variant<0>(&sem::BlockCode::Line::Part::data));
-      break;
-    case ::orgproto::BlockCode::Line::Part::Data::kCallout:
-      proto_serde<orgproto::BlockCode::Line::Part::Callout, sem::BlockCode::Line::Part::Callout>::read(out.data().callout(), in.for_field_variant<1>(&sem::BlockCode::Line::Part::data));
-      break;
-    case ::orgproto::BlockCode::Line::Part::Data::kTangle:
-      proto_serde<orgproto::BlockCode::Line::Part::Tangle, sem::BlockCode::Line::Part::Tangle>::read(out.data().tangle(), in.for_field_variant<2>(&sem::BlockCode::Line::Part::data));
-      break;
-  }
-}
-
-void proto_serde<::orgproto::BlockCode::Line, sem::BlockCode::Line>::write(::orgproto::BlockCode::Line* out, sem::BlockCode::Line const& in) {
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::BlockCode::Line::Part>, Vec<sem::BlockCode::Line::Part>>::write(out->mutable_parts(), in.parts);
-}
-
-void proto_serde<::orgproto::BlockCode::Line, sem::BlockCode::Line>::read(::orgproto::BlockCode::Line const& out, proto_write_accessor<sem::BlockCode::Line> in) {
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::BlockCode::Line::Part>, Vec<sem::BlockCode::Line::Part>>::read(out.parts(), in.for_field(&sem::BlockCode::Line::parts));
-}
-
-void proto_serde<::orgproto::BlockCode::Switch::LineStart, sem::BlockCode::Switch::LineStart>::write(::orgproto::BlockCode::Switch::LineStart* out, sem::BlockCode::Switch::LineStart const& in) {
-  out->set_start(in.start);
-  out->set_extendlast(in.extendLast);
-}
-
-void proto_serde<::orgproto::BlockCode::Switch::LineStart, sem::BlockCode::Switch::LineStart>::read(::orgproto::BlockCode::Switch::LineStart const& out, proto_write_accessor<sem::BlockCode::Switch::LineStart> in) {
-  in.for_field(&sem::BlockCode::Switch::LineStart::start).get() = out.start();
-  in.for_field(&sem::BlockCode::Switch::LineStart::extendLast).get() = out.extendlast();
-}
-
-void proto_serde<::orgproto::BlockCode::Switch::CalloutFormat, sem::BlockCode::Switch::CalloutFormat>::write(::orgproto::BlockCode::Switch::CalloutFormat* out, sem::BlockCode::Switch::CalloutFormat const& in) {
-  proto_serde<std::string, Str>::write(out->mutable_format(), in.format);
-}
-
-void proto_serde<::orgproto::BlockCode::Switch::CalloutFormat, sem::BlockCode::Switch::CalloutFormat>::read(::orgproto::BlockCode::Switch::CalloutFormat const& out, proto_write_accessor<sem::BlockCode::Switch::CalloutFormat> in) {
-  proto_serde<std::string, Str>::read(out.format(), in.for_field(&sem::BlockCode::Switch::CalloutFormat::format));
-}
-
-void proto_serde<::orgproto::BlockCode::Switch::RemoveCallout, sem::BlockCode::Switch::RemoveCallout>::write(::orgproto::BlockCode::Switch::RemoveCallout* out, sem::BlockCode::Switch::RemoveCallout const& in) {
-  out->set_remove(in.remove);
-}
-
-void proto_serde<::orgproto::BlockCode::Switch::RemoveCallout, sem::BlockCode::Switch::RemoveCallout>::read(::orgproto::BlockCode::Switch::RemoveCallout const& out, proto_write_accessor<sem::BlockCode::Switch::RemoveCallout> in) {
-  in.for_field(&sem::BlockCode::Switch::RemoveCallout::remove).get() = out.remove();
-}
-
-void proto_serde<::orgproto::BlockCode::Switch::EmphasizeLine, sem::BlockCode::Switch::EmphasizeLine>::write(::orgproto::BlockCode::Switch::EmphasizeLine* out, sem::BlockCode::Switch::EmphasizeLine const& in) {
-  proto_serde<::google::protobuf::RepeatedField<::int32_t>, Vec<int>>::write(out->mutable_line(), in.line);
-}
-
-void proto_serde<::orgproto::BlockCode::Switch::EmphasizeLine, sem::BlockCode::Switch::EmphasizeLine>::read(::orgproto::BlockCode::Switch::EmphasizeLine const& out, proto_write_accessor<sem::BlockCode::Switch::EmphasizeLine> in) {
-  proto_serde<::google::protobuf::RepeatedField<::int32_t>, Vec<int>>::read(out.line(), in.for_field(&sem::BlockCode::Switch::EmphasizeLine::line));
-}
-
-void proto_serde<::orgproto::BlockCode::Switch::Dedent, sem::BlockCode::Switch::Dedent>::write(::orgproto::BlockCode::Switch::Dedent* out, sem::BlockCode::Switch::Dedent const& in) {
-  out->set_value(in.value);
-}
-
-void proto_serde<::orgproto::BlockCode::Switch::Dedent, sem::BlockCode::Switch::Dedent>::read(::orgproto::BlockCode::Switch::Dedent const& out, proto_write_accessor<sem::BlockCode::Switch::Dedent> in) {
-  in.for_field(&sem::BlockCode::Switch::Dedent::value).get() = out.value();
-}
-
-void proto_serde<::orgproto::BlockCode::Switch, sem::BlockCode::Switch>::write(::orgproto::BlockCode::Switch* out, sem::BlockCode::Switch const& in) {
-  switch (in.data.index()) {
-    case 0:
-      proto_serde<orgproto::BlockCode::Switch::LineStart, sem::BlockCode::Switch::LineStart>::write(out->mutable_data()->mutable_linestart(), std::get<0>(in.data));
-      break;
-    case 1:
-      proto_serde<orgproto::BlockCode::Switch::CalloutFormat, sem::BlockCode::Switch::CalloutFormat>::write(out->mutable_data()->mutable_calloutformat(), std::get<1>(in.data));
-      break;
-    case 2:
-      proto_serde<orgproto::BlockCode::Switch::RemoveCallout, sem::BlockCode::Switch::RemoveCallout>::write(out->mutable_data()->mutable_removecallout(), std::get<2>(in.data));
-      break;
-    case 3:
-      proto_serde<orgproto::BlockCode::Switch::EmphasizeLine, sem::BlockCode::Switch::EmphasizeLine>::write(out->mutable_data()->mutable_emphasizeline(), std::get<3>(in.data));
-      break;
-    case 4:
-      proto_serde<orgproto::BlockCode::Switch::Dedent, sem::BlockCode::Switch::Dedent>::write(out->mutable_data()->mutable_dedent(), std::get<4>(in.data));
-      break;
-  }
-}
-
-void proto_serde<::orgproto::BlockCode::Switch, sem::BlockCode::Switch>::read(::orgproto::BlockCode::Switch const& out, proto_write_accessor<sem::BlockCode::Switch> in) {
-  switch (out.data().kind_case()) {
-    case ::orgproto::BlockCode::Switch::Data::kLinestart:
-      proto_serde<orgproto::BlockCode::Switch::LineStart, sem::BlockCode::Switch::LineStart>::read(out.data().linestart(), in.for_field_variant<0>(&sem::BlockCode::Switch::data));
-      break;
-    case ::orgproto::BlockCode::Switch::Data::kCalloutformat:
-      proto_serde<orgproto::BlockCode::Switch::CalloutFormat, sem::BlockCode::Switch::CalloutFormat>::read(out.data().calloutformat(), in.for_field_variant<1>(&sem::BlockCode::Switch::data));
-      break;
-    case ::orgproto::BlockCode::Switch::Data::kRemovecallout:
-      proto_serde<orgproto::BlockCode::Switch::RemoveCallout, sem::BlockCode::Switch::RemoveCallout>::read(out.data().removecallout(), in.for_field_variant<2>(&sem::BlockCode::Switch::data));
-      break;
-    case ::orgproto::BlockCode::Switch::Data::kEmphasizeline:
-      proto_serde<orgproto::BlockCode::Switch::EmphasizeLine, sem::BlockCode::Switch::EmphasizeLine>::read(out.data().emphasizeline(), in.for_field_variant<3>(&sem::BlockCode::Switch::data));
-      break;
-    case ::orgproto::BlockCode::Switch::Data::kDedent:
-      proto_serde<orgproto::BlockCode::Switch::Dedent, sem::BlockCode::Switch::Dedent>::read(out.data().dedent(), in.for_field_variant<4>(&sem::BlockCode::Switch::data));
-      break;
-  }
-}
-
-void proto_serde<::orgproto::BlockCode::EvalResult::None, sem::BlockCode::EvalResult::None>::write(::orgproto::BlockCode::EvalResult::None* out, sem::BlockCode::EvalResult::None const& in) {
-
-}
-
-void proto_serde<::orgproto::BlockCode::EvalResult::None, sem::BlockCode::EvalResult::None>::read(::orgproto::BlockCode::EvalResult::None const& out, proto_write_accessor<sem::BlockCode::EvalResult::None> in) {
-
-}
-
-void proto_serde<::orgproto::BlockCode::EvalResult::OrgValue, sem::BlockCode::EvalResult::OrgValue>::write(::orgproto::BlockCode::EvalResult::OrgValue* out, sem::BlockCode::EvalResult::OrgValue const& in) {
-  if (!in.value.isNil()) {
-    proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(out->mutable_value(), in.value);
-  }
-}
-
-void proto_serde<::orgproto::BlockCode::EvalResult::OrgValue, sem::BlockCode::EvalResult::OrgValue>::read(::orgproto::BlockCode::EvalResult::OrgValue const& out, proto_write_accessor<sem::BlockCode::EvalResult::OrgValue> in) {
-  proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::read(out.value(), in.for_field(&sem::BlockCode::EvalResult::OrgValue::value));
-}
-
-void proto_serde<::orgproto::BlockCode::EvalResult::File, sem::BlockCode::EvalResult::File>::write(::orgproto::BlockCode::EvalResult::File* out, sem::BlockCode::EvalResult::File const& in) {
-  proto_serde<std::string, Str>::write(out->mutable_path(), in.path);
-}
-
-void proto_serde<::orgproto::BlockCode::EvalResult::File, sem::BlockCode::EvalResult::File>::read(::orgproto::BlockCode::EvalResult::File const& out, proto_write_accessor<sem::BlockCode::EvalResult::File> in) {
-  proto_serde<std::string, Str>::read(out.path(), in.for_field(&sem::BlockCode::EvalResult::File::path));
-}
-
-void proto_serde<::orgproto::BlockCode::EvalResult::Raw, sem::BlockCode::EvalResult::Raw>::write(::orgproto::BlockCode::EvalResult::Raw* out, sem::BlockCode::EvalResult::Raw const& in) {
-  proto_serde<std::string, Str>::write(out->mutable_text(), in.text);
-}
-
-void proto_serde<::orgproto::BlockCode::EvalResult::Raw, sem::BlockCode::EvalResult::Raw>::read(::orgproto::BlockCode::EvalResult::Raw const& out, proto_write_accessor<sem::BlockCode::EvalResult::Raw> in) {
-  proto_serde<std::string, Str>::read(out.text(), in.for_field(&sem::BlockCode::EvalResult::Raw::text));
-}
-
-void proto_serde<::orgproto::BlockCode::EvalResult, sem::BlockCode::EvalResult>::write(::orgproto::BlockCode::EvalResult* out, sem::BlockCode::EvalResult const& in) {
-  switch (in.data.index()) {
-    case 0:
-      proto_serde<orgproto::BlockCode::EvalResult::None, sem::BlockCode::EvalResult::None>::write(out->mutable_data()->mutable_none(), std::get<0>(in.data));
-      break;
-    case 1:
-      proto_serde<orgproto::BlockCode::EvalResult::OrgValue, sem::BlockCode::EvalResult::OrgValue>::write(out->mutable_data()->mutable_orgvalue(), std::get<1>(in.data));
-      break;
-    case 2:
-      proto_serde<orgproto::BlockCode::EvalResult::File, sem::BlockCode::EvalResult::File>::write(out->mutable_data()->mutable_file(), std::get<2>(in.data));
-      break;
-    case 3:
-      proto_serde<orgproto::BlockCode::EvalResult::Raw, sem::BlockCode::EvalResult::Raw>::write(out->mutable_data()->mutable_raw(), std::get<3>(in.data));
-      break;
-  }
-}
-
-void proto_serde<::orgproto::BlockCode::EvalResult, sem::BlockCode::EvalResult>::read(::orgproto::BlockCode::EvalResult const& out, proto_write_accessor<sem::BlockCode::EvalResult> in) {
-  switch (out.data().kind_case()) {
-    case ::orgproto::BlockCode::EvalResult::Data::kNone:
-      proto_serde<orgproto::BlockCode::EvalResult::None, sem::BlockCode::EvalResult::None>::read(out.data().none(), in.for_field_variant<0>(&sem::BlockCode::EvalResult::data));
-      break;
-    case ::orgproto::BlockCode::EvalResult::Data::kOrgvalue:
-      proto_serde<orgproto::BlockCode::EvalResult::OrgValue, sem::BlockCode::EvalResult::OrgValue>::read(out.data().orgvalue(), in.for_field_variant<1>(&sem::BlockCode::EvalResult::data));
-      break;
-    case ::orgproto::BlockCode::EvalResult::Data::kFile:
-      proto_serde<orgproto::BlockCode::EvalResult::File, sem::BlockCode::EvalResult::File>::read(out.data().file(), in.for_field_variant<2>(&sem::BlockCode::EvalResult::data));
-      break;
-    case ::orgproto::BlockCode::EvalResult::Data::kRaw:
-      proto_serde<orgproto::BlockCode::EvalResult::Raw, sem::BlockCode::EvalResult::Raw>::read(out.data().raw(), in.for_field_variant<3>(&sem::BlockCode::EvalResult::data));
-      break;
-  }
-}
-
 void proto_serde<::orgproto::BlockCode, sem::BlockCode>::write(::orgproto::BlockCode* out, sem::BlockCode const& in) {
   proto_serde<::orgproto::BlockCode, sem::Cmd>::write(out, in);
   proto_serde<::orgproto::BlockCode, sem::Stmt>::write(out, in);
@@ -1368,12 +1366,12 @@ void proto_serde<::orgproto::BlockCode, sem::BlockCode>::write(::orgproto::Block
   if (in.lang) {
     proto_serde<std::string, Str>::write(out->mutable_lang(), *in.lang);
   }
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::BlockCode::Switch>, Vec<sem::BlockCode::Switch>>::write(out->mutable_switches(), in.switches);
-  out->set_exports(static_cast<orgproto::BlockCode_Exports>(in.exports));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::BlockCodeSwitch>, Vec<sem::BlockCodeSwitch>>::write(out->mutable_switches(), in.switches);
+  out->set_exports(static_cast<orgproto::BlockCodeExports>(in.exports));
   if (in.result) {
-    proto_serde<orgproto::BlockCode::EvalResult, sem::BlockCode::EvalResult>::write(out->mutable_result(), *in.result);
+    proto_serde<orgproto::BlockCodeEvalResult, sem::BlockCodeEvalResult>::write(out->mutable_result(), *in.result);
   }
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::BlockCode::Line>, Vec<sem::BlockCode::Line>>::write(out->mutable_lines(), in.lines);
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::BlockCodeLine>, Vec<sem::BlockCodeLine>>::write(out->mutable_lines(), in.lines);
   out->set_cache(in.cache);
   out->set_eval(in.eval);
   out->set_noweb(in.noweb);
@@ -1388,12 +1386,12 @@ void proto_serde<::orgproto::BlockCode, sem::BlockCode>::read(::orgproto::BlockC
   if (out.has_lang()) {
     proto_serde<Opt<std::string>, Opt<Str>>::read(out.lang(), in.for_field(&sem::BlockCode::lang));
   }
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::BlockCode::Switch>, Vec<sem::BlockCode::Switch>>::read(out.switches(), in.for_field(&sem::BlockCode::switches));
-  in.for_field(&sem::BlockCode::exports).get() = static_cast<sem::BlockCode::Exports>(out.exports());
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::BlockCodeSwitch>, Vec<sem::BlockCodeSwitch>>::read(out.switches(), in.for_field(&sem::BlockCode::switches));
+  in.for_field(&sem::BlockCode::exports).get() = static_cast<BlockCodeExports>(out.exports());
   if (out.has_result()) {
-    proto_serde<Opt<orgproto::BlockCode::EvalResult>, Opt<sem::BlockCode::EvalResult>>::read(out.result(), in.for_field(&sem::BlockCode::result));
+    proto_serde<Opt<orgproto::BlockCodeEvalResult>, Opt<sem::BlockCodeEvalResult>>::read(out.result(), in.for_field(&sem::BlockCode::result));
   }
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::BlockCode::Line>, Vec<sem::BlockCode::Line>>::read(out.lines(), in.for_field(&sem::BlockCode::lines));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::BlockCodeLine>, Vec<sem::BlockCodeLine>>::read(out.lines(), in.for_field(&sem::BlockCode::lines));
   in.for_field(&sem::BlockCode::cache).get() = out.cache();
   in.for_field(&sem::BlockCode::eval).get() = out.eval();
   in.for_field(&sem::BlockCode::noweb).get() = out.noweb();

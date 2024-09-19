@@ -7,6 +7,10 @@
 #include "pyhaxorg_manual_impl.hpp"
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Org>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Org>>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::BlockCodeLine::Part>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::BlockCodeLine::Part>)
+PYBIND11_MAKE_OPAQUE(std::vector<int>)
+PYBIND11_MAKE_OPAQUE(Vec<int>)
 PYBIND11_MAKE_OPAQUE(std::vector<Str>)
 PYBIND11_MAKE_OPAQUE(Vec<Str>)
 PYBIND11_MAKE_OPAQUE(std::unordered_map<Str, Str>)
@@ -21,14 +25,10 @@ PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::HashTag>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::HashTag>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::Symbol::Param>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Symbol::Param>)
-PYBIND11_MAKE_OPAQUE(std::vector<sem::BlockCode::Line::Part>)
-PYBIND11_MAKE_OPAQUE(Vec<sem::BlockCode::Line::Part>)
-PYBIND11_MAKE_OPAQUE(std::vector<int>)
-PYBIND11_MAKE_OPAQUE(Vec<int>)
-PYBIND11_MAKE_OPAQUE(std::vector<sem::BlockCode::Switch>)
-PYBIND11_MAKE_OPAQUE(Vec<sem::BlockCode::Switch>)
-PYBIND11_MAKE_OPAQUE(std::vector<sem::BlockCode::Line>)
-PYBIND11_MAKE_OPAQUE(Vec<sem::BlockCode::Line>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::BlockCodeSwitch>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::BlockCodeSwitch>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::BlockCodeLine>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::BlockCodeLine>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::SubtreeLog>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::SubtreeLog>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::NamedProperty>)
@@ -53,6 +53,8 @@ PYBIND11_MAKE_OPAQUE(Vec<SequenceSegmentGroup>)
 PYBIND11_MODULE(pyhaxorg, m) {
   PyTypeRegistryGuard type_registry_guard{};
   bind_vector<sem::SemId<sem::Org>>(m, "VecOfSemIdOfOrg", type_registry_guard);
+  bind_vector<sem::BlockCodeLine::Part>(m, "VecOfBlockCodeLinePart", type_registry_guard);
+  bind_vector<int>(m, "VecOfint", type_registry_guard);
   bind_vector<Str>(m, "VecOfStr", type_registry_guard);
   bind_unordered_map<Str, Str>(m, "UnorderedMapOfStrStr", type_registry_guard);
   bind_vector<sem::SemId<sem::CmdArgument>>(m, "VecOfSemIdOfCmdArgument", type_registry_guard);
@@ -60,10 +62,8 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::SemId<sem::ErrorItem>>(m, "VecOfSemIdOfErrorItem", type_registry_guard);
   bind_vector<sem::SemId<sem::HashTag>>(m, "VecOfSemIdOfHashTag", type_registry_guard);
   bind_vector<sem::Symbol::Param>(m, "VecOfSymbolParam", type_registry_guard);
-  bind_vector<sem::BlockCode::Line::Part>(m, "VecOfBlockCodeLinePart", type_registry_guard);
-  bind_vector<int>(m, "VecOfint", type_registry_guard);
-  bind_vector<sem::BlockCode::Switch>(m, "VecOfBlockCodeSwitch", type_registry_guard);
-  bind_vector<sem::BlockCode::Line>(m, "VecOfBlockCodeLine", type_registry_guard);
+  bind_vector<sem::BlockCodeSwitch>(m, "VecOfBlockCodeSwitch", type_registry_guard);
+  bind_vector<sem::BlockCodeLine>(m, "VecOfBlockCodeLine", type_registry_guard);
   bind_vector<sem::SemId<sem::SubtreeLog>>(m, "VecOfSemIdOfSubtreeLog", type_registry_guard);
   bind_vector<sem::NamedProperty>(m, "VecOfNamedProperty", type_registry_guard);
   bind_vector<sem::SubtreePeriod>(m, "VecOfSubtreePeriod", type_registry_guard);
@@ -123,6 +123,370 @@ node can have subnodes.)RAW")
                      })
     .def("__getattr__",
          [](LineCol _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::BlockCodeLine::Part::Raw>(m, "BlockCodeLinePartRaw")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCodeLine::Part::Raw {
+                        sem::BlockCodeLine::Part::Raw result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("code", &sem::BlockCodeLine::Part::Raw::code)
+    .def("operator==",
+         static_cast<bool(sem::BlockCodeLine::Part::Raw::*)(sem::BlockCodeLine::Part::Raw const&) const>(&sem::BlockCodeLine::Part::Raw::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::BlockCodeLine::Part::Raw _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::BlockCodeLine::Part::Raw _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::BlockCodeLine::Part::Callout>(m, "BlockCodeLinePartCallout")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCodeLine::Part::Callout {
+                        sem::BlockCodeLine::Part::Callout result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("name", &sem::BlockCodeLine::Part::Callout::name)
+    .def("operator==",
+         static_cast<bool(sem::BlockCodeLine::Part::Callout::*)(sem::BlockCodeLine::Part::Callout const&) const>(&sem::BlockCodeLine::Part::Callout::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::BlockCodeLine::Part::Callout _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::BlockCodeLine::Part::Callout _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::BlockCodeLine::Part::Tangle>(m, "BlockCodeLinePartTangle")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCodeLine::Part::Tangle {
+                        sem::BlockCodeLine::Part::Tangle result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("target", &sem::BlockCodeLine::Part::Tangle::target)
+    .def("operator==",
+         static_cast<bool(sem::BlockCodeLine::Part::Tangle::*)(sem::BlockCodeLine::Part::Tangle const&) const>(&sem::BlockCodeLine::Part::Tangle::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::BlockCodeLine::Part::Tangle _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::BlockCodeLine::Part::Tangle _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<sem::BlockCodeLine::Part::Kind>(m, "BlockCodeLinePartKind", type_registry_guard);
+  pybind11::enum_<sem::BlockCodeLine::Part::Kind>(m, "BlockCodeLinePartKind")
+    .value("Raw", sem::BlockCodeLine::Part::Kind::Raw)
+    .value("Callout", sem::BlockCodeLine::Part::Kind::Callout)
+    .value("Tangle", sem::BlockCodeLine::Part::Kind::Tangle)
+    .def("__iter__", [](sem::BlockCodeLine::Part::Kind _self) -> PyEnumIterator<sem::BlockCodeLine::Part::Kind> {
+                     return
+                     PyEnumIterator<sem::BlockCodeLine::Part::Kind>
+                     ();
+                     })
+    ;
+  pybind11::class_<sem::BlockCodeLine::Part>(m, "BlockCodeLinePart")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCodeLine::Part {
+                        sem::BlockCodeLine::Part result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("data", &sem::BlockCodeLine::Part::data)
+    .def("operator==",
+         static_cast<bool(sem::BlockCodeLine::Part::*)(sem::BlockCodeLine::Part const&) const>(&sem::BlockCodeLine::Part::operator==),
+         pybind11::arg("other"))
+    .def("getRaw", static_cast<sem::BlockCodeLine::Part::Raw&(sem::BlockCodeLine::Part::*)()>(&sem::BlockCodeLine::Part::getRaw))
+    .def("getCallout", static_cast<sem::BlockCodeLine::Part::Callout&(sem::BlockCodeLine::Part::*)()>(&sem::BlockCodeLine::Part::getCallout))
+    .def("getTangle", static_cast<sem::BlockCodeLine::Part::Tangle&(sem::BlockCodeLine::Part::*)()>(&sem::BlockCodeLine::Part::getTangle))
+    .def_static("getKindStatic",
+                static_cast<sem::BlockCodeLine::Part::Kind(*)(sem::BlockCodeLine::Part::Data const&)>(&sem::BlockCodeLine::Part::getKind),
+                pybind11::arg("__input"))
+    .def("getKind", static_cast<sem::BlockCodeLine::Part::Kind(sem::BlockCodeLine::Part::*)() const>(&sem::BlockCodeLine::Part::getKind))
+    .def("__repr__", [](sem::BlockCodeLine::Part _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::BlockCodeLine::Part _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::BlockCodeLine>(m, "BlockCodeLine")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCodeLine {
+                        sem::BlockCodeLine result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("parts", &sem::BlockCodeLine::parts, R"RAW(parts of the single line)RAW")
+    .def("operator==",
+         static_cast<bool(sem::BlockCodeLine::*)(sem::BlockCodeLine const&) const>(&sem::BlockCodeLine::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::BlockCodeLine _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::BlockCodeLine _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::BlockCodeSwitch::LineStart>(m, "BlockCodeSwitchLineStart")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCodeSwitch::LineStart {
+                        sem::BlockCodeSwitch::LineStart result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("start", &sem::BlockCodeSwitch::LineStart::start, R"RAW(First line number)RAW")
+    .def_readwrite("extendLast", &sem::BlockCodeSwitch::LineStart::extendLast, R"RAW(Continue numbering from the previous block nstead of starting anew)RAW")
+    .def("operator==",
+         static_cast<bool(sem::BlockCodeSwitch::LineStart::*)(sem::BlockCodeSwitch::LineStart const&) const>(&sem::BlockCodeSwitch::LineStart::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::BlockCodeSwitch::LineStart _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::BlockCodeSwitch::LineStart _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::BlockCodeSwitch::CalloutFormat>(m, "BlockCodeSwitchCalloutFormat")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCodeSwitch::CalloutFormat {
+                        sem::BlockCodeSwitch::CalloutFormat result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("format", &sem::BlockCodeSwitch::CalloutFormat::format)
+    .def("operator==",
+         static_cast<bool(sem::BlockCodeSwitch::CalloutFormat::*)(sem::BlockCodeSwitch::CalloutFormat const&) const>(&sem::BlockCodeSwitch::CalloutFormat::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::BlockCodeSwitch::CalloutFormat _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::BlockCodeSwitch::CalloutFormat _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::BlockCodeSwitch::RemoveCallout>(m, "BlockCodeSwitchRemoveCallout")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCodeSwitch::RemoveCallout {
+                        sem::BlockCodeSwitch::RemoveCallout result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("remove", &sem::BlockCodeSwitch::RemoveCallout::remove)
+    .def("operator==",
+         static_cast<bool(sem::BlockCodeSwitch::RemoveCallout::*)(sem::BlockCodeSwitch::RemoveCallout const&) const>(&sem::BlockCodeSwitch::RemoveCallout::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::BlockCodeSwitch::RemoveCallout _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::BlockCodeSwitch::RemoveCallout _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::BlockCodeSwitch::EmphasizeLine>(m, "BlockCodeSwitchEmphasizeLine")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCodeSwitch::EmphasizeLine {
+                        sem::BlockCodeSwitch::EmphasizeLine result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("line", &sem::BlockCodeSwitch::EmphasizeLine::line)
+    .def("operator==",
+         static_cast<bool(sem::BlockCodeSwitch::EmphasizeLine::*)(sem::BlockCodeSwitch::EmphasizeLine const&) const>(&sem::BlockCodeSwitch::EmphasizeLine::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::BlockCodeSwitch::EmphasizeLine _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::BlockCodeSwitch::EmphasizeLine _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::BlockCodeSwitch::Dedent>(m, "BlockCodeSwitchDedent")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCodeSwitch::Dedent {
+                        sem::BlockCodeSwitch::Dedent result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("value", &sem::BlockCodeSwitch::Dedent::value)
+    .def("operator==",
+         static_cast<bool(sem::BlockCodeSwitch::Dedent::*)(sem::BlockCodeSwitch::Dedent const&) const>(&sem::BlockCodeSwitch::Dedent::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::BlockCodeSwitch::Dedent _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::BlockCodeSwitch::Dedent _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<sem::BlockCodeSwitch::Kind>(m, "BlockCodeSwitchKind", type_registry_guard);
+  pybind11::enum_<sem::BlockCodeSwitch::Kind>(m, "BlockCodeSwitchKind")
+    .value("LineStart", sem::BlockCodeSwitch::Kind::LineStart)
+    .value("CalloutFormat", sem::BlockCodeSwitch::Kind::CalloutFormat)
+    .value("RemoveCallout", sem::BlockCodeSwitch::Kind::RemoveCallout)
+    .value("EmphasizeLine", sem::BlockCodeSwitch::Kind::EmphasizeLine)
+    .value("Dedent", sem::BlockCodeSwitch::Kind::Dedent)
+    .def("__iter__", [](sem::BlockCodeSwitch::Kind _self) -> PyEnumIterator<sem::BlockCodeSwitch::Kind> {
+                     return
+                     PyEnumIterator<sem::BlockCodeSwitch::Kind>
+                     ();
+                     })
+    ;
+  pybind11::class_<sem::BlockCodeSwitch>(m, "BlockCodeSwitch")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCodeSwitch {
+                        sem::BlockCodeSwitch result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("data", &sem::BlockCodeSwitch::data)
+    .def("operator==",
+         static_cast<bool(sem::BlockCodeSwitch::*)(sem::BlockCodeSwitch const&) const>(&sem::BlockCodeSwitch::operator==),
+         pybind11::arg("other"))
+    .def("getLineStart", static_cast<sem::BlockCodeSwitch::LineStart&(sem::BlockCodeSwitch::*)()>(&sem::BlockCodeSwitch::getLineStart))
+    .def("getCalloutFormat", static_cast<sem::BlockCodeSwitch::CalloutFormat&(sem::BlockCodeSwitch::*)()>(&sem::BlockCodeSwitch::getCalloutFormat))
+    .def("getRemoveCallout", static_cast<sem::BlockCodeSwitch::RemoveCallout&(sem::BlockCodeSwitch::*)()>(&sem::BlockCodeSwitch::getRemoveCallout))
+    .def("getEmphasizeLine", static_cast<sem::BlockCodeSwitch::EmphasizeLine&(sem::BlockCodeSwitch::*)()>(&sem::BlockCodeSwitch::getEmphasizeLine))
+    .def("getDedent", static_cast<sem::BlockCodeSwitch::Dedent&(sem::BlockCodeSwitch::*)()>(&sem::BlockCodeSwitch::getDedent))
+    .def_static("getKindStatic",
+                static_cast<sem::BlockCodeSwitch::Kind(*)(sem::BlockCodeSwitch::Data const&)>(&sem::BlockCodeSwitch::getKind),
+                pybind11::arg("__input"))
+    .def("getKind", static_cast<sem::BlockCodeSwitch::Kind(sem::BlockCodeSwitch::*)() const>(&sem::BlockCodeSwitch::getKind))
+    .def("__repr__", [](sem::BlockCodeSwitch _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::BlockCodeSwitch _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::BlockCodeEvalResult::None>(m, "BlockCodeEvalResultNone")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCodeEvalResult::None {
+                        sem::BlockCodeEvalResult::None result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("operator==",
+         static_cast<bool(sem::BlockCodeEvalResult::None::*)(sem::BlockCodeEvalResult::None const&) const>(&sem::BlockCodeEvalResult::None::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::BlockCodeEvalResult::None _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::BlockCodeEvalResult::None _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::BlockCodeEvalResult::OrgValue>(m, "BlockCodeEvalResultOrgValue")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCodeEvalResult::OrgValue {
+                        sem::BlockCodeEvalResult::OrgValue result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("value", &sem::BlockCodeEvalResult::OrgValue::value, R"RAW(Evaluation result)RAW")
+    .def("operator==",
+         static_cast<bool(sem::BlockCodeEvalResult::OrgValue::*)(sem::BlockCodeEvalResult::OrgValue const&) const>(&sem::BlockCodeEvalResult::OrgValue::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::BlockCodeEvalResult::OrgValue _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::BlockCodeEvalResult::OrgValue _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::BlockCodeEvalResult::File>(m, "BlockCodeEvalResultFile")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCodeEvalResult::File {
+                        sem::BlockCodeEvalResult::File result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("path", &sem::BlockCodeEvalResult::File::path)
+    .def("operator==",
+         static_cast<bool(sem::BlockCodeEvalResult::File::*)(sem::BlockCodeEvalResult::File const&) const>(&sem::BlockCodeEvalResult::File::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::BlockCodeEvalResult::File _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::BlockCodeEvalResult::File _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::BlockCodeEvalResult::Raw>(m, "BlockCodeEvalResultRaw")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCodeEvalResult::Raw {
+                        sem::BlockCodeEvalResult::Raw result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("text", &sem::BlockCodeEvalResult::Raw::text)
+    .def("operator==",
+         static_cast<bool(sem::BlockCodeEvalResult::Raw::*)(sem::BlockCodeEvalResult::Raw const&) const>(&sem::BlockCodeEvalResult::Raw::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::BlockCodeEvalResult::Raw _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::BlockCodeEvalResult::Raw _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<sem::BlockCodeEvalResult::Kind>(m, "BlockCodeEvalResultKind", type_registry_guard);
+  pybind11::enum_<sem::BlockCodeEvalResult::Kind>(m, "BlockCodeEvalResultKind")
+    .value("None", sem::BlockCodeEvalResult::Kind::None)
+    .value("OrgValue", sem::BlockCodeEvalResult::Kind::OrgValue)
+    .value("File", sem::BlockCodeEvalResult::Kind::File)
+    .value("Raw", sem::BlockCodeEvalResult::Kind::Raw)
+    .def("__iter__", [](sem::BlockCodeEvalResult::Kind _self) -> PyEnumIterator<sem::BlockCodeEvalResult::Kind> {
+                     return
+                     PyEnumIterator<sem::BlockCodeEvalResult::Kind>
+                     ();
+                     })
+    ;
+  pybind11::class_<sem::BlockCodeEvalResult>(m, "BlockCodeEvalResult")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCodeEvalResult {
+                        sem::BlockCodeEvalResult result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("data", &sem::BlockCodeEvalResult::data)
+    .def("operator==",
+         static_cast<bool(sem::BlockCodeEvalResult::*)(sem::BlockCodeEvalResult const&) const>(&sem::BlockCodeEvalResult::operator==),
+         pybind11::arg("other"))
+    .def("getNone", static_cast<sem::BlockCodeEvalResult::None&(sem::BlockCodeEvalResult::*)()>(&sem::BlockCodeEvalResult::getNone))
+    .def("getOrgValue", static_cast<sem::BlockCodeEvalResult::OrgValue&(sem::BlockCodeEvalResult::*)()>(&sem::BlockCodeEvalResult::getOrgValue))
+    .def("getFile", static_cast<sem::BlockCodeEvalResult::File&(sem::BlockCodeEvalResult::*)()>(&sem::BlockCodeEvalResult::getFile))
+    .def("getRaw", static_cast<sem::BlockCodeEvalResult::Raw&(sem::BlockCodeEvalResult::*)()>(&sem::BlockCodeEvalResult::getRaw))
+    .def_static("getKindStatic",
+                static_cast<sem::BlockCodeEvalResult::Kind(*)(sem::BlockCodeEvalResult::Data const&)>(&sem::BlockCodeEvalResult::getKind),
+                pybind11::arg("__input"))
+    .def("getKind", static_cast<sem::BlockCodeEvalResult::Kind(sem::BlockCodeEvalResult::*)() const>(&sem::BlockCodeEvalResult::getKind))
+    .def("__repr__", [](sem::BlockCodeEvalResult _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::BlockCodeEvalResult _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -2181,343 +2545,6 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::BlockCode::Line::Part::Raw>(m, "BlockCodeLinePartRaw")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCode::Line::Part::Raw {
-                        sem::BlockCode::Line::Part::Raw result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("code", &sem::BlockCode::Line::Part::Raw::code)
-    .def("__repr__", [](sem::BlockCode::Line::Part::Raw _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::BlockCode::Line::Part::Raw _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::BlockCode::Line::Part::Callout>(m, "BlockCodeLinePartCallout")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCode::Line::Part::Callout {
-                        sem::BlockCode::Line::Part::Callout result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("name", &sem::BlockCode::Line::Part::Callout::name)
-    .def("__repr__", [](sem::BlockCode::Line::Part::Callout _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::BlockCode::Line::Part::Callout _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::BlockCode::Line::Part::Tangle>(m, "BlockCodeLinePartTangle")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCode::Line::Part::Tangle {
-                        sem::BlockCode::Line::Part::Tangle result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("target", &sem::BlockCode::Line::Part::Tangle::target)
-    .def("__repr__", [](sem::BlockCode::Line::Part::Tangle _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::BlockCode::Line::Part::Tangle _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  bind_enum_iterator<sem::BlockCode::Line::Part::Kind>(m, "BlockCodeLinePartKind", type_registry_guard);
-  pybind11::enum_<sem::BlockCode::Line::Part::Kind>(m, "BlockCodeLinePartKind")
-    .value("Raw", sem::BlockCode::Line::Part::Kind::Raw)
-    .value("Callout", sem::BlockCode::Line::Part::Kind::Callout)
-    .value("Tangle", sem::BlockCode::Line::Part::Kind::Tangle)
-    .def("__iter__", [](sem::BlockCode::Line::Part::Kind _self) -> PyEnumIterator<sem::BlockCode::Line::Part::Kind> {
-                     return
-                     PyEnumIterator<sem::BlockCode::Line::Part::Kind>
-                     ();
-                     })
-    ;
-  pybind11::class_<sem::BlockCode::Line::Part>(m, "BlockCodeLinePart")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCode::Line::Part {
-                        sem::BlockCode::Line::Part result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("data", &sem::BlockCode::Line::Part::data)
-    .def("getRaw", static_cast<sem::BlockCode::Line::Part::Raw&(sem::BlockCode::Line::Part::*)()>(&sem::BlockCode::Line::Part::getRaw))
-    .def("getCallout", static_cast<sem::BlockCode::Line::Part::Callout&(sem::BlockCode::Line::Part::*)()>(&sem::BlockCode::Line::Part::getCallout))
-    .def("getTangle", static_cast<sem::BlockCode::Line::Part::Tangle&(sem::BlockCode::Line::Part::*)()>(&sem::BlockCode::Line::Part::getTangle))
-    .def_static("getKindStatic",
-                static_cast<sem::BlockCode::Line::Part::Kind(*)(sem::BlockCode::Line::Part::Data const&)>(&sem::BlockCode::Line::Part::getKind),
-                pybind11::arg("__input"))
-    .def("getKind", static_cast<sem::BlockCode::Line::Part::Kind(sem::BlockCode::Line::Part::*)() const>(&sem::BlockCode::Line::Part::getKind))
-    .def("__repr__", [](sem::BlockCode::Line::Part _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::BlockCode::Line::Part _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::BlockCode::Line>(m, "BlockCodeLine")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCode::Line {
-                        sem::BlockCode::Line result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("parts", &sem::BlockCode::Line::parts, R"RAW(parts of the single line)RAW")
-    .def("__repr__", [](sem::BlockCode::Line _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::BlockCode::Line _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::BlockCode::Switch::LineStart>(m, "BlockCodeSwitchLineStart")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCode::Switch::LineStart {
-                        sem::BlockCode::Switch::LineStart result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("start", &sem::BlockCode::Switch::LineStart::start, R"RAW(First line number)RAW")
-    .def_readwrite("extendLast", &sem::BlockCode::Switch::LineStart::extendLast, R"RAW(Continue numbering from the previous block nstead of starting anew)RAW")
-    .def("__repr__", [](sem::BlockCode::Switch::LineStart _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::BlockCode::Switch::LineStart _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::BlockCode::Switch::CalloutFormat>(m, "BlockCodeSwitchCalloutFormat")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCode::Switch::CalloutFormat {
-                        sem::BlockCode::Switch::CalloutFormat result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("format", &sem::BlockCode::Switch::CalloutFormat::format)
-    .def("__repr__", [](sem::BlockCode::Switch::CalloutFormat _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::BlockCode::Switch::CalloutFormat _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::BlockCode::Switch::RemoveCallout>(m, "BlockCodeSwitchRemoveCallout")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCode::Switch::RemoveCallout {
-                        sem::BlockCode::Switch::RemoveCallout result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("remove", &sem::BlockCode::Switch::RemoveCallout::remove)
-    .def("__repr__", [](sem::BlockCode::Switch::RemoveCallout _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::BlockCode::Switch::RemoveCallout _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::BlockCode::Switch::EmphasizeLine>(m, "BlockCodeSwitchEmphasizeLine")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCode::Switch::EmphasizeLine {
-                        sem::BlockCode::Switch::EmphasizeLine result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("line", &sem::BlockCode::Switch::EmphasizeLine::line)
-    .def("__repr__", [](sem::BlockCode::Switch::EmphasizeLine _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::BlockCode::Switch::EmphasizeLine _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::BlockCode::Switch::Dedent>(m, "BlockCodeSwitchDedent")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCode::Switch::Dedent {
-                        sem::BlockCode::Switch::Dedent result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("value", &sem::BlockCode::Switch::Dedent::value)
-    .def("__repr__", [](sem::BlockCode::Switch::Dedent _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::BlockCode::Switch::Dedent _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  bind_enum_iterator<sem::BlockCode::Switch::Kind>(m, "BlockCodeSwitchKind", type_registry_guard);
-  pybind11::enum_<sem::BlockCode::Switch::Kind>(m, "BlockCodeSwitchKind")
-    .value("LineStart", sem::BlockCode::Switch::Kind::LineStart)
-    .value("CalloutFormat", sem::BlockCode::Switch::Kind::CalloutFormat)
-    .value("RemoveCallout", sem::BlockCode::Switch::Kind::RemoveCallout)
-    .value("EmphasizeLine", sem::BlockCode::Switch::Kind::EmphasizeLine)
-    .value("Dedent", sem::BlockCode::Switch::Kind::Dedent)
-    .def("__iter__", [](sem::BlockCode::Switch::Kind _self) -> PyEnumIterator<sem::BlockCode::Switch::Kind> {
-                     return
-                     PyEnumIterator<sem::BlockCode::Switch::Kind>
-                     ();
-                     })
-    ;
-  pybind11::class_<sem::BlockCode::Switch>(m, "BlockCodeSwitch")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCode::Switch {
-                        sem::BlockCode::Switch result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("data", &sem::BlockCode::Switch::data)
-    .def("getLineStart", static_cast<sem::BlockCode::Switch::LineStart&(sem::BlockCode::Switch::*)()>(&sem::BlockCode::Switch::getLineStart))
-    .def("getCalloutFormat", static_cast<sem::BlockCode::Switch::CalloutFormat&(sem::BlockCode::Switch::*)()>(&sem::BlockCode::Switch::getCalloutFormat))
-    .def("getRemoveCallout", static_cast<sem::BlockCode::Switch::RemoveCallout&(sem::BlockCode::Switch::*)()>(&sem::BlockCode::Switch::getRemoveCallout))
-    .def("getEmphasizeLine", static_cast<sem::BlockCode::Switch::EmphasizeLine&(sem::BlockCode::Switch::*)()>(&sem::BlockCode::Switch::getEmphasizeLine))
-    .def("getDedent", static_cast<sem::BlockCode::Switch::Dedent&(sem::BlockCode::Switch::*)()>(&sem::BlockCode::Switch::getDedent))
-    .def_static("getKindStatic",
-                static_cast<sem::BlockCode::Switch::Kind(*)(sem::BlockCode::Switch::Data const&)>(&sem::BlockCode::Switch::getKind),
-                pybind11::arg("__input"))
-    .def("getKind", static_cast<sem::BlockCode::Switch::Kind(sem::BlockCode::Switch::*)() const>(&sem::BlockCode::Switch::getKind))
-    .def("__repr__", [](sem::BlockCode::Switch _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::BlockCode::Switch _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  bind_enum_iterator<sem::BlockCode::Results>(m, "BlockCodeResults", type_registry_guard);
-  pybind11::enum_<sem::BlockCode::Results>(m, "BlockCodeResults")
-    .value("Replace", sem::BlockCode::Results::Replace, R"RAW(Remove old result, replace with new value)RAW")
-    .def("__iter__", [](sem::BlockCode::Results _self) -> PyEnumIterator<sem::BlockCode::Results> {
-                     return
-                     PyEnumIterator<sem::BlockCode::Results>
-                     ();
-                     })
-    ;
-  bind_enum_iterator<sem::BlockCode::Exports>(m, "BlockCodeExports", type_registry_guard);
-  pybind11::enum_<sem::BlockCode::Exports>(m, "BlockCodeExports")
-    .value("None", sem::BlockCode::Exports::None, R"RAW(Hide both original code and run result)RAW")
-    .value("Both", sem::BlockCode::Exports::Both, R"RAW(Show output and code)RAW")
-    .value("Code", sem::BlockCode::Exports::Code, R"RAW(Show only code)RAW")
-    .value("Results", sem::BlockCode::Exports::Results, R"RAW(Show only evaluation results)RAW")
-    .def("__iter__", [](sem::BlockCode::Exports _self) -> PyEnumIterator<sem::BlockCode::Exports> {
-                     return
-                     PyEnumIterator<sem::BlockCode::Exports>
-                     ();
-                     })
-    ;
-  pybind11::class_<sem::BlockCode::EvalResult::None>(m, "BlockCodeEvalResultNone")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCode::EvalResult::None {
-                        sem::BlockCode::EvalResult::None result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](sem::BlockCode::EvalResult::None _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::BlockCode::EvalResult::None _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::BlockCode::EvalResult::OrgValue>(m, "BlockCodeEvalResultOrgValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCode::EvalResult::OrgValue {
-                        sem::BlockCode::EvalResult::OrgValue result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("value", &sem::BlockCode::EvalResult::OrgValue::value, R"RAW(Parsed value of the evaluation result)RAW")
-    .def("__repr__", [](sem::BlockCode::EvalResult::OrgValue _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::BlockCode::EvalResult::OrgValue _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::BlockCode::EvalResult::File>(m, "BlockCodeEvalResultFile")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCode::EvalResult::File {
-                        sem::BlockCode::EvalResult::File result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("path", &sem::BlockCode::EvalResult::File::path)
-    .def("__repr__", [](sem::BlockCode::EvalResult::File _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::BlockCode::EvalResult::File _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::BlockCode::EvalResult::Raw>(m, "BlockCodeEvalResultRaw")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCode::EvalResult::Raw {
-                        sem::BlockCode::EvalResult::Raw result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("text", &sem::BlockCode::EvalResult::Raw::text)
-    .def("__repr__", [](sem::BlockCode::EvalResult::Raw _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::BlockCode::EvalResult::Raw _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  bind_enum_iterator<sem::BlockCode::EvalResult::Kind>(m, "BlockCodeEvalResultKind", type_registry_guard);
-  pybind11::enum_<sem::BlockCode::EvalResult::Kind>(m, "BlockCodeEvalResultKind")
-    .value("None", sem::BlockCode::EvalResult::Kind::None)
-    .value("OrgValue", sem::BlockCode::EvalResult::Kind::OrgValue)
-    .value("File", sem::BlockCode::EvalResult::Kind::File)
-    .value("Raw", sem::BlockCode::EvalResult::Kind::Raw)
-    .def("__iter__", [](sem::BlockCode::EvalResult::Kind _self) -> PyEnumIterator<sem::BlockCode::EvalResult::Kind> {
-                     return
-                     PyEnumIterator<sem::BlockCode::EvalResult::Kind>
-                     ();
-                     })
-    ;
-  pybind11::class_<sem::BlockCode::EvalResult>(m, "BlockCodeEvalResult")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCode::EvalResult {
-                        sem::BlockCode::EvalResult result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("data", &sem::BlockCode::EvalResult::data)
-    .def("getNone", static_cast<sem::BlockCode::EvalResult::None&(sem::BlockCode::EvalResult::*)()>(&sem::BlockCode::EvalResult::getNone))
-    .def("getOrgValue", static_cast<sem::BlockCode::EvalResult::OrgValue&(sem::BlockCode::EvalResult::*)()>(&sem::BlockCode::EvalResult::getOrgValue))
-    .def("getFile", static_cast<sem::BlockCode::EvalResult::File&(sem::BlockCode::EvalResult::*)()>(&sem::BlockCode::EvalResult::getFile))
-    .def("getRaw", static_cast<sem::BlockCode::EvalResult::Raw&(sem::BlockCode::EvalResult::*)()>(&sem::BlockCode::EvalResult::getRaw))
-    .def_static("getKindStatic",
-                static_cast<sem::BlockCode::EvalResult::Kind(*)(sem::BlockCode::EvalResult::Data const&)>(&sem::BlockCode::EvalResult::getKind),
-                pybind11::arg("__input"))
-    .def("getKind", static_cast<sem::BlockCode::EvalResult::Kind(sem::BlockCode::EvalResult::*)() const>(&sem::BlockCode::EvalResult::getKind))
-    .def("__repr__", [](sem::BlockCode::EvalResult _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::BlockCode::EvalResult _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
   pybind11::class_<sem::BlockCode, sem::SemId<sem::BlockCode>, sem::Block>(m, "BlockCode")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCode {
                         sem::BlockCode result{};
@@ -3445,6 +3472,27 @@ node can have subnodes.)RAW")
     .def("__iter__", [](InitialSubtreeVisibility _self) -> PyEnumIterator<InitialSubtreeVisibility> {
                      return
                      PyEnumIterator<InitialSubtreeVisibility>
+                     ();
+                     })
+    ;
+  bind_enum_iterator<BlockCodeResults>(m, "BlockCodeResults", type_registry_guard);
+  pybind11::enum_<BlockCodeResults>(m, "BlockCodeResults")
+    .value("Replace", BlockCodeResults::Replace, R"RAW(Remove old result, replace with new value)RAW")
+    .def("__iter__", [](BlockCodeResults _self) -> PyEnumIterator<BlockCodeResults> {
+                     return
+                     PyEnumIterator<BlockCodeResults>
+                     ();
+                     })
+    ;
+  bind_enum_iterator<BlockCodeExports>(m, "BlockCodeExports", type_registry_guard);
+  pybind11::enum_<BlockCodeExports>(m, "BlockCodeExports")
+    .value("None", BlockCodeExports::None, R"RAW(Hide both original code and run result)RAW")
+    .value("Both", BlockCodeExports::Both, R"RAW(Show output and code)RAW")
+    .value("Code", BlockCodeExports::Code, R"RAW(Show only code)RAW")
+    .value("Results", BlockCodeExports::Results, R"RAW(Show only evaluation results)RAW")
+    .def("__iter__", [](BlockCodeExports _self) -> PyEnumIterator<BlockCodeExports> {
+                     return
+                     PyEnumIterator<BlockCodeExports>
                      ();
                      })
     ;

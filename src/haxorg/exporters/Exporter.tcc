@@ -1,5 +1,65 @@
 /* clang-format off */
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::BlockCodeLine const& object) { __obj_field(res, object, parts); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::BlockCodeLine::Part::Data const& object) { visitVariants(res, sem::BlockCodeLine::Part::getKind(object), object); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::BlockCodeLine::Part const& object) { __obj_field(res, object, data); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::BlockCodeLine::Part::Raw const& object) { __obj_field(res, object, code); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::BlockCodeLine::Part::Callout const& object) { __obj_field(res, object, name); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::BlockCodeLine::Part::Tangle const& object) { __obj_field(res, object, target); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::BlockCodeSwitch::Data const& object) { visitVariants(res, sem::BlockCodeSwitch::getKind(object), object); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::BlockCodeSwitch const& object) { __obj_field(res, object, data); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::BlockCodeSwitch::LineStart const& object) {
+  __obj_field(res, object, start);
+  __obj_field(res, object, extendLast);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::BlockCodeSwitch::CalloutFormat const& object) { __obj_field(res, object, format); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::BlockCodeSwitch::RemoveCallout const& object) { __obj_field(res, object, remove); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::BlockCodeSwitch::EmphasizeLine const& object) { __obj_field(res, object, line); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::BlockCodeSwitch::Dedent const& object) { __obj_field(res, object, value); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::BlockCodeEvalResult::Data const& object) { visitVariants(res, sem::BlockCodeEvalResult::getKind(object), object); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::BlockCodeEvalResult const& object) { __obj_field(res, object, data); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::BlockCodeEvalResult::None const& object) {  }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::BlockCodeEvalResult::OrgValue const& object) { __obj_field(res, object, value); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::BlockCodeEvalResult::File const& object) { __obj_field(res, object, path); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::BlockCodeEvalResult::Raw const& object) { __obj_field(res, object, text); }
+
+template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::DocumentExportConfig::TocExport const& object) { visitVariants(res, sem::DocumentExportConfig::getTocExportKind(object), object); }
 
 template <typename V, typename R>
@@ -606,66 +666,6 @@ void Exporter<V, R>::visitBlockCode(R& res, In<sem::BlockCode> object) {
   __org_field(res, object, attached);
   __org_field(res, object, subnodes);
 }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::BlockCode::Line const& object) { __obj_field(res, object, parts); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::BlockCode::Line::Part::Data const& object) { visitVariants(res, sem::BlockCode::Line::Part::getKind(object), object); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::BlockCode::Line::Part const& object) { __obj_field(res, object, data); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::BlockCode::Line::Part::Raw const& object) { __obj_field(res, object, code); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::BlockCode::Line::Part::Callout const& object) { __obj_field(res, object, name); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::BlockCode::Line::Part::Tangle const& object) { __obj_field(res, object, target); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::BlockCode::Switch::Data const& object) { visitVariants(res, sem::BlockCode::Switch::getKind(object), object); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::BlockCode::Switch const& object) { __obj_field(res, object, data); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::BlockCode::Switch::LineStart const& object) {
-  __obj_field(res, object, start);
-  __obj_field(res, object, extendLast);
-}
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::BlockCode::Switch::CalloutFormat const& object) { __obj_field(res, object, format); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::BlockCode::Switch::RemoveCallout const& object) { __obj_field(res, object, remove); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::BlockCode::Switch::EmphasizeLine const& object) { __obj_field(res, object, line); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::BlockCode::Switch::Dedent const& object) { __obj_field(res, object, value); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::BlockCode::EvalResult::Data const& object) { visitVariants(res, sem::BlockCode::EvalResult::getKind(object), object); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::BlockCode::EvalResult const& object) { __obj_field(res, object, data); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::BlockCode::EvalResult::None const& object) {  }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::BlockCode::EvalResult::OrgValue const& object) { __obj_field(res, object, value); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::BlockCode::EvalResult::File const& object) { __obj_field(res, object, path); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::BlockCode::EvalResult::Raw const& object) { __obj_field(res, object, text); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::SubtreeLog::LogEntry const& object) { visitVariants(res, sem::SubtreeLog::getLogKind(object), object); }

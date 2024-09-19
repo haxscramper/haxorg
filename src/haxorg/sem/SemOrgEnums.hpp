@@ -4,6 +4,19 @@
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #define EACH_SHARED_ORG_RECORD_NESTED(__IMPL) \
+    __IMPL(BlockCodeLine, Part, (Part)) \
+    __IMPL(BlockCodeLine, Part::Raw, (Part, Raw)) \
+    __IMPL(BlockCodeLine, Part::Callout, (Part, Callout)) \
+    __IMPL(BlockCodeLine, Part::Tangle, (Part, Tangle)) \
+    __IMPL(BlockCodeSwitch, LineStart, (LineStart)) \
+    __IMPL(BlockCodeSwitch, CalloutFormat, (CalloutFormat)) \
+    __IMPL(BlockCodeSwitch, RemoveCallout, (RemoveCallout)) \
+    __IMPL(BlockCodeSwitch, EmphasizeLine, (EmphasizeLine)) \
+    __IMPL(BlockCodeSwitch, Dedent, (Dedent)) \
+    __IMPL(BlockCodeEvalResult, None, (None)) \
+    __IMPL(BlockCodeEvalResult, OrgValue, (OrgValue)) \
+    __IMPL(BlockCodeEvalResult, File, (File)) \
+    __IMPL(BlockCodeEvalResult, Raw, (Raw)) \
     __IMPL(DocumentExportConfig, TaskExport, (TaskExport)) \
     __IMPL(DocumentExportConfig, DoExport, (DoExport)) \
     __IMPL(DocumentExportConfig, ExportFixed, (ExportFixed)) \
@@ -23,6 +36,9 @@
     __IMPL(NamedProperty, CustomArgs, (CustomArgs)) \
     __IMPL(NamedProperty, CustomRaw, (CustomRaw))
 #define EACH_SHARED_ORG_ENUM_NESTED(__IMPL) \
+    __IMPL(BlockCodeLine, Part::Kind, (Part, Kind)) \
+    __IMPL(BlockCodeSwitch, Kind, (Kind)) \
+    __IMPL(BlockCodeEvalResult, Kind, (Kind)) \
     __IMPL(DocumentExportConfig, TagExport, (TagExport)) \
     __IMPL(DocumentExportConfig, TaskFiltering, (TaskFiltering)) \
     __IMPL(DocumentExportConfig, BrokenLinks, (BrokenLinks)) \
@@ -33,6 +49,22 @@
     __IMPL(NamedProperty, Visibility::Level, (Visibility, Level)) \
     __IMPL(NamedProperty, Kind, (Kind))
 #define EACH_SHARED_ORG_RECORD(__IMPL) \
+    __IMPL(BlockCodeLine, (BlockCodeLine)) \
+    __IMPL(BlockCodeLine::Part, (BlockCodeLine, Part)) \
+    __IMPL(BlockCodeLine::Part::Raw, (BlockCodeLine, Part, Raw)) \
+    __IMPL(BlockCodeLine::Part::Callout, (BlockCodeLine, Part, Callout)) \
+    __IMPL(BlockCodeLine::Part::Tangle, (BlockCodeLine, Part, Tangle)) \
+    __IMPL(BlockCodeSwitch, (BlockCodeSwitch)) \
+    __IMPL(BlockCodeSwitch::LineStart, (BlockCodeSwitch, LineStart)) \
+    __IMPL(BlockCodeSwitch::CalloutFormat, (BlockCodeSwitch, CalloutFormat)) \
+    __IMPL(BlockCodeSwitch::RemoveCallout, (BlockCodeSwitch, RemoveCallout)) \
+    __IMPL(BlockCodeSwitch::EmphasizeLine, (BlockCodeSwitch, EmphasizeLine)) \
+    __IMPL(BlockCodeSwitch::Dedent, (BlockCodeSwitch, Dedent)) \
+    __IMPL(BlockCodeEvalResult, (BlockCodeEvalResult)) \
+    __IMPL(BlockCodeEvalResult::None, (BlockCodeEvalResult, None)) \
+    __IMPL(BlockCodeEvalResult::OrgValue, (BlockCodeEvalResult, OrgValue)) \
+    __IMPL(BlockCodeEvalResult::File, (BlockCodeEvalResult, File)) \
+    __IMPL(BlockCodeEvalResult::Raw, (BlockCodeEvalResult, Raw)) \
     __IMPL(DocumentExportConfig, (DocumentExportConfig)) \
     __IMPL(DocumentExportConfig::TaskExport, (DocumentExportConfig, TaskExport)) \
     __IMPL(DocumentExportConfig::DoExport, (DocumentExportConfig, DoExport)) \
@@ -67,22 +99,6 @@
     __IMPL(Link, Footnote, (Footnote)) \
     __IMPL(Link, File, (File)) \
     __IMPL(Link, Attachment, (Attachment)) \
-    __IMPL(BlockCode, Line, (Line)) \
-    __IMPL(BlockCode, Line::Part, (Line, Part)) \
-    __IMPL(BlockCode, Line::Part::Raw, (Line, Part, Raw)) \
-    __IMPL(BlockCode, Line::Part::Callout, (Line, Part, Callout)) \
-    __IMPL(BlockCode, Line::Part::Tangle, (Line, Part, Tangle)) \
-    __IMPL(BlockCode, Switch, (Switch)) \
-    __IMPL(BlockCode, Switch::LineStart, (Switch, LineStart)) \
-    __IMPL(BlockCode, Switch::CalloutFormat, (Switch, CalloutFormat)) \
-    __IMPL(BlockCode, Switch::RemoveCallout, (Switch, RemoveCallout)) \
-    __IMPL(BlockCode, Switch::EmphasizeLine, (Switch, EmphasizeLine)) \
-    __IMPL(BlockCode, Switch::Dedent, (Switch, Dedent)) \
-    __IMPL(BlockCode, EvalResult, (EvalResult)) \
-    __IMPL(BlockCode, EvalResult::None, (EvalResult, None)) \
-    __IMPL(BlockCode, EvalResult::OrgValue, (EvalResult, OrgValue)) \
-    __IMPL(BlockCode, EvalResult::File, (EvalResult, File)) \
-    __IMPL(BlockCode, EvalResult::Raw, (EvalResult, Raw)) \
     __IMPL(SubtreeLog, DescribedLog, (DescribedLog)) \
     __IMPL(SubtreeLog, Priority, (Priority)) \
     __IMPL(SubtreeLog, Note, (Note)) \
@@ -105,11 +121,6 @@
     __IMPL(Time, TimeKind, (TimeKind)) \
     __IMPL(Link, Kind, (Kind)) \
     __IMPL(BlockExport, Format, (Format)) \
-    __IMPL(BlockCode, Line::Part::Kind, (Line, Part, Kind)) \
-    __IMPL(BlockCode, Switch::Kind, (Switch, Kind)) \
-    __IMPL(BlockCode, Results, (Results)) \
-    __IMPL(BlockCode, Exports, (Exports)) \
-    __IMPL(BlockCode, EvalResult::Kind, (EvalResult, Kind)) \
     __IMPL(SubtreeLog, Priority::Action, (Priority, Action)) \
     __IMPL(SubtreeLog, Kind, (Kind)) \
     __IMPL(AnnotatedParagraph, AnnotationKind, (AnnotationKind)) \
@@ -186,22 +197,6 @@
     __IMPL(BlockExport, (BlockExport)) \
     __IMPL(BlockAdmonition, (BlockAdmonition)) \
     __IMPL(BlockCode, (BlockCode)) \
-    __IMPL(BlockCode::Line, (BlockCode, Line)) \
-    __IMPL(BlockCode::Line::Part, (BlockCode, Line, Part)) \
-    __IMPL(BlockCode::Line::Part::Raw, (BlockCode, Line, Part, Raw)) \
-    __IMPL(BlockCode::Line::Part::Callout, (BlockCode, Line, Part, Callout)) \
-    __IMPL(BlockCode::Line::Part::Tangle, (BlockCode, Line, Part, Tangle)) \
-    __IMPL(BlockCode::Switch, (BlockCode, Switch)) \
-    __IMPL(BlockCode::Switch::LineStart, (BlockCode, Switch, LineStart)) \
-    __IMPL(BlockCode::Switch::CalloutFormat, (BlockCode, Switch, CalloutFormat)) \
-    __IMPL(BlockCode::Switch::RemoveCallout, (BlockCode, Switch, RemoveCallout)) \
-    __IMPL(BlockCode::Switch::EmphasizeLine, (BlockCode, Switch, EmphasizeLine)) \
-    __IMPL(BlockCode::Switch::Dedent, (BlockCode, Switch, Dedent)) \
-    __IMPL(BlockCode::EvalResult, (BlockCode, EvalResult)) \
-    __IMPL(BlockCode::EvalResult::None, (BlockCode, EvalResult, None)) \
-    __IMPL(BlockCode::EvalResult::OrgValue, (BlockCode, EvalResult, OrgValue)) \
-    __IMPL(BlockCode::EvalResult::File, (BlockCode, EvalResult, File)) \
-    __IMPL(BlockCode::EvalResult::Raw, (BlockCode, EvalResult, Raw)) \
     __IMPL(SubtreeLog, (SubtreeLog)) \
     __IMPL(SubtreeLog::DescribedLog, (SubtreeLog, DescribedLog)) \
     __IMPL(SubtreeLog::Priority, (SubtreeLog, Priority)) \
@@ -318,6 +313,44 @@ template <>
 struct value_domain<InitialSubtreeVisibility> : public value_domain_ungapped<InitialSubtreeVisibility,
                                                                              InitialSubtreeVisibility::Overview,
                                                                              InitialSubtreeVisibility::ShowEverything> {};
+
+/// \brief What to do with newly evaluated result
+enum class BlockCodeResults : short int {
+  /// \brief Remove old result, replace with new value
+  Replace,
+};
+template <>
+struct enum_serde<BlockCodeResults> {
+  static Opt<BlockCodeResults> from_string(std::string value);
+  static std::string to_string(BlockCodeResults value);
+};
+
+template <>
+struct value_domain<BlockCodeResults> : public value_domain_ungapped<BlockCodeResults,
+                                                                     BlockCodeResults::Replace,
+                                                                     BlockCodeResults::Replace> {};
+
+/// \brief What part of the code block should be visible in export
+enum class BlockCodeExports : short int {
+  /// \brief Hide both original code and run result
+  None,
+  /// \brief Show output and code
+  Both,
+  /// \brief Show only code
+  Code,
+  /// \brief Show only evaluation results
+  Results,
+};
+template <>
+struct enum_serde<BlockCodeExports> {
+  static Opt<BlockCodeExports> from_string(std::string value);
+  static std::string to_string(BlockCodeExports value);
+};
+
+template <>
+struct value_domain<BlockCodeExports> : public value_domain_ungapped<BlockCodeExports,
+                                                                     BlockCodeExports::None,
+                                                                     BlockCodeExports::Results> {};
 
 enum class OrgSpecName : short int { Unnamed, Result, Year, Day, Clock, Repeater, Zone, Link, Tags, Tag, State, Protocol, Desc, Times, Drawer, Args, Name, Definition, Body, HeaderArgs, File, Kind, Lang, Prefix, Text, Todo, Importance, Title, Completion, Head, Subnodes, Properties, Logbook, Description, Logs, Newstate, Oldstate, Time, From, EndArgs, Flags, Value, Assoc, Main, Hash, Bullet, Counter, Checkbox, Header, To, Diff, Property, Subname, Values, Cells, Rows, Lines, Chunks, InheritanceMode, MainSetRule, SubSetRule, };
 template <>

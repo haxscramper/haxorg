@@ -304,15 +304,15 @@ auto Formatter::toString(SemId<BlockCode> id, CR<Context> ctx) -> Res {
         auto line = b.line();
         for (auto const& part : it.parts) {
             switch (part.getKind()) {
-                case BlockCode::Line::Part::Kind::Raw: {
+                case BlockCodeLine::Part::Kind::Raw: {
                     add(line, str(part.getRaw().code));
                     break;
                 }
-                case BlockCode::Line::Part::Kind::Callout: {
+                case BlockCodeLine::Part::Kind::Callout: {
                     add(line, str(part.getCallout().name));
                     break;
                 }
-                case BlockCode::Line::Part::Kind::Tangle: {
+                case BlockCodeLine::Part::Kind::Tangle: {
                     add(line, str(part.getTangle().target));
                     break;
                 }
@@ -334,23 +334,22 @@ auto Formatter::toString(SemId<BlockCode> id, CR<Context> ctx) -> Res {
         add(result, str(""));
         add(result, b.line({str("#+results:")}));
         switch (id->result->getKind()) {
-            case BlockCode::EvalResult::Kind::OrgValue: {
-                add(result,
-                    toString(id->result->getOrgValue().value, ctx));
+            case BlockCodeEvalResult::Kind::OrgValue: {
+                add(result, str(id->result->getOrgValue().value));
                 break;
             }
 
-            case BlockCode::EvalResult::Kind::Raw: {
+            case BlockCodeEvalResult::Kind::Raw: {
                 add(result, str(id->result->getRaw().text));
                 break;
             }
 
 
-            case BlockCode::EvalResult::Kind::None: {
+            case BlockCodeEvalResult::Kind::None: {
                 break;
             }
 
-            case BlockCode::EvalResult::Kind::File: {
+            case BlockCodeEvalResult::Kind::File: {
                 add(result,
                     str(fmt("[file:{}]", id->result->getFile().path)));
                 break;

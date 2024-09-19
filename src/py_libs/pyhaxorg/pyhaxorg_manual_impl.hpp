@@ -467,7 +467,7 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
         _this()->visitDispatch(res, node);
     }
 
-    void visit(Res& res, sem::BlockCode::Switch const&) {}
+    void visit(Res& res, sem::BlockCodeSwitch const&) {}
     void visit(Res& res, sem::Symbol::Param const&) {}
     void visit(Res& res, sem::NamedProperty const&) {}
     void visit(Res& res, Str const&) {}

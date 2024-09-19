@@ -439,21 +439,6 @@ struct SerdeDefaultProvider<org::ImmSubtreeLog::Priority> {
     }
 };
 
-template <>
-struct SerdeDefaultProvider<org::ImmBlockCode::Switch::LineStart> {
-    static org::ImmBlockCode::Switch::LineStart get() {
-        return org::ImmBlockCode::Switch::LineStart{};
-    }
-};
-
-template <>
-struct SerdeDefaultProvider<org::ImmBlockCode::Switch> {
-    static org::ImmBlockCode::Switch get() {
-        return org::ImmBlockCode::Switch{
-            org::ImmBlockCode::Switch::LineStart{}};
-    }
-};
-
 template <typename Sem, typename Imm>
 struct ImmSemSerde {};
 
@@ -650,6 +635,9 @@ __same_type(std::string);
 __same_type(UserTime);
 __same_type(sem::NamedProperty);
 __same_type(sem::DocumentExportConfig);
+__same_type(sem::BlockCodeSwitch);
+__same_type(sem::BlockCodeEvalResult);
+__same_type(sem::BlockCodeLine);
 
 
 template <typename SemType, typename ImmType>

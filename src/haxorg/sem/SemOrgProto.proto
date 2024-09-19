@@ -13,6 +13,17 @@ enum InitialSubtreeVisibility {
   InitialSubtreeVisibility_ShowEverything_f                                         = 7;
 }
 
+enum BlockCodeResults {
+  BlockCodeResults_Replace_f                                                        = 0;
+}
+
+enum BlockCodeExports {
+  BlockCodeExports_None_f                                                           = 0;
+  BlockCodeExports_Both_f                                                           = 1;
+  BlockCodeExports_Code_f                                                           = 2;
+  BlockCodeExports_Results_f                                                        = 3;
+}
+
 enum OrgSpecName {
   OrgSpecName_Unnamed_f                                                             = 0;
   OrgSpecName_Result_f                                                              = 1;
@@ -271,6 +282,115 @@ enum OrgSemKind {
   OrgSemKind_TextSeparator_f                                                        = 66;
   OrgSemKind_Include_f                                                              = 67;
   OrgSemKind_DocumentGroup_f                                                        = 68;
+}
+
+message BlockCodeLine {
+  message Part {
+    message Raw {
+      string                                       code                             = 1;
+      string                                       debug                            = 1000;
+    }
+    message Callout {
+      string                                       name                             = 1;
+      string                                       debug                            = 1000;
+    }
+    message Tangle {
+      string                                       target                           = 1;
+      string                                       debug                            = 1000;
+    }
+    message Data {
+      oneof kind {
+        BlockCodeLine.Part.Raw                     raw                              = 1;
+        BlockCodeLine.Part.Callout                 callout                          = 2;
+        BlockCodeLine.Part.Tangle                  tangle                           = 3;
+      }
+    }
+    enum Kind {
+      Kind_Raw_f                                                                    = 0;
+      Kind_Callout_f                                                                = 1;
+      Kind_Tangle_f                                                                 = 2;
+    }
+    BlockCodeLine.Part.Data                        data                             = 1;
+    string                                         debug                            = 1000;
+  }
+  repeated BlockCodeLine.Part                      parts                            = 1;
+  string                                           debug                            = 1000;
+}
+
+message BlockCodeSwitch {
+  message LineStart {
+    int32                                          start                            = 1;
+    bool                                           extendLast                       = 2;
+    string                                         debug                            = 1000;
+  }
+  message CalloutFormat {
+    string                                         format                           = 1;
+    string                                         debug                            = 1000;
+  }
+  message RemoveCallout {
+    bool                                           remove                           = 1;
+    string                                         debug                            = 1000;
+  }
+  message EmphasizeLine {
+    repeated int32                                 line                             = 1;
+    string                                         debug                            = 1000;
+  }
+  message Dedent {
+    int32                                          value                            = 1;
+    string                                         debug                            = 1000;
+  }
+  message Data {
+    oneof kind {
+      BlockCodeSwitch.LineStart                    linestart                        = 1;
+      BlockCodeSwitch.CalloutFormat                calloutformat                    = 2;
+      BlockCodeSwitch.RemoveCallout                removecallout                    = 3;
+      BlockCodeSwitch.EmphasizeLine                emphasizeline                    = 4;
+      BlockCodeSwitch.Dedent                       dedent                           = 5;
+    }
+  }
+  enum Kind {
+    Kind_LineStart_f                                                                = 0;
+    Kind_CalloutFormat_f                                                            = 1;
+    Kind_RemoveCallout_f                                                            = 2;
+    Kind_EmphasizeLine_f                                                            = 3;
+    Kind_Dedent_f                                                                   = 4;
+  }
+  BlockCodeSwitch.Data                             data                             = 1;
+  string                                           debug                            = 1000;
+}
+
+message BlockCodeEvalResult {
+  message None {
+    string                                         debug                            = 1000;
+  }
+  message OrgValue {
+    string                                         value                            = 1;
+    string                                         debug                            = 1000;
+  }
+  message File {
+    string                                         path                             = 1;
+    string                                         debug                            = 1000;
+  }
+  message Raw {
+    string                                         text                             = 1;
+    string                                         debug                            = 1000;
+  }
+  message Data {
+    oneof kind {
+      BlockCodeEvalResult.None                     none                             = 1;
+      BlockCodeEvalResult.OrgValue                 orgvalue                         = 2;
+      BlockCodeEvalResult.File                     file                             = 3;
+      BlockCodeEvalResult.Raw                      raw                              = 4;
+    }
+  }
+  enum Kind {
+    Kind_None_f                                                                     = 0;
+    Kind_OrgValue_f                                                                 = 1;
+    Kind_File_f                                                                     = 2;
+    Kind_Raw_f                                                                      = 3;
+  }
+  BlockCodeEvalResult.Data                         data                             = 1;
+  string                                           debug                            = 1000;
 }
 
 message DocumentExportConfig {
@@ -994,130 +1114,15 @@ message BlockAdmonition {
 }
 
 message BlockCode {
-  message Line {
-    message Part {
-      message Raw {
-        string                                     code                             = 1;
-        string                                     debug                            = 1000;
-      }
-      message Callout {
-        string                                     name                             = 1;
-        string                                     debug                            = 1000;
-      }
-      message Tangle {
-        string                                     target                           = 1;
-        string                                     debug                            = 1000;
-      }
-      message Data {
-        oneof kind {
-          BlockCode.Line.Part.Raw                  raw                              = 1;
-          BlockCode.Line.Part.Callout              callout                          = 2;
-          BlockCode.Line.Part.Tangle               tangle                           = 3;
-        }
-      }
-      enum Kind {
-        Kind_Raw_f                                                                  = 0;
-        Kind_Callout_f                                                              = 1;
-        Kind_Tangle_f                                                               = 2;
-      }
-      BlockCode.Line.Part.Data                     data                             = 1;
-      string                                       debug                            = 1000;
-    }
-    repeated BlockCode.Line.Part                   parts                            = 1;
-    string                                         debug                            = 1000;
-  }
-  message Switch {
-    message LineStart {
-      int32                                        start                            = 1;
-      bool                                         extendLast                       = 2;
-      string                                       debug                            = 1000;
-    }
-    message CalloutFormat {
-      string                                       format                           = 1;
-      string                                       debug                            = 1000;
-    }
-    message RemoveCallout {
-      bool                                         remove                           = 1;
-      string                                       debug                            = 1000;
-    }
-    message EmphasizeLine {
-      repeated int32                               line                             = 1;
-      string                                       debug                            = 1000;
-    }
-    message Dedent {
-      int32                                        value                            = 1;
-      string                                       debug                            = 1000;
-    }
-    message Data {
-      oneof kind {
-        BlockCode.Switch.LineStart                 linestart                        = 1;
-        BlockCode.Switch.CalloutFormat             calloutformat                    = 2;
-        BlockCode.Switch.RemoveCallout             removecallout                    = 3;
-        BlockCode.Switch.EmphasizeLine             emphasizeline                    = 4;
-        BlockCode.Switch.Dedent                    dedent                           = 5;
-      }
-    }
-    enum Kind {
-      Kind_LineStart_f                                                              = 0;
-      Kind_CalloutFormat_f                                                          = 1;
-      Kind_RemoveCallout_f                                                          = 2;
-      Kind_EmphasizeLine_f                                                          = 3;
-      Kind_Dedent_f                                                                 = 4;
-    }
-    BlockCode.Switch.Data                          data                             = 1;
-    string                                         debug                            = 1000;
-  }
-  enum Results {
-    Results_Replace_f                                                               = 0;
-  }
-  enum Exports {
-    Exports_None_f                                                                  = 0;
-    Exports_Both_f                                                                  = 1;
-    Exports_Code_f                                                                  = 2;
-    Exports_Results_f                                                               = 3;
-  }
-  message EvalResult {
-    message None {
-      string                                       debug                            = 1000;
-    }
-    message OrgValue {
-      AnyNode                                      value                            = 1;
-      string                                       debug                            = 1000;
-    }
-    message File {
-      string                                       path                             = 1;
-      string                                       debug                            = 1000;
-    }
-    message Raw {
-      string                                       text                             = 1;
-      string                                       debug                            = 1000;
-    }
-    message Data {
-      oneof kind {
-        BlockCode.EvalResult.None                  none                             = 1;
-        BlockCode.EvalResult.OrgValue              orgvalue                         = 2;
-        BlockCode.EvalResult.File                  file                             = 3;
-        BlockCode.EvalResult.Raw                   raw                              = 4;
-      }
-    }
-    enum Kind {
-      Kind_None_f                                                                   = 0;
-      Kind_OrgValue_f                                                               = 1;
-      Kind_File_f                                                                   = 2;
-      Kind_Raw_f                                                                    = 3;
-    }
-    BlockCode.EvalResult.Data                      data                             = 1;
-    string                                         debug                            = 1000;
-  }
   optional CmdArguments                            parameters                       = 1;
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
   optional string                                  lang                             = 5;
-  repeated BlockCode.Switch                        switches                         = 6;
-  BlockCode.Exports                                exports                          = 7;
-  optional BlockCode.EvalResult                    result                           = 8;
-  repeated BlockCode.Line                          lines                            = 9;
+  repeated BlockCodeSwitch                         switches                         = 6;
+  BlockCodeExports                                 exports                          = 7;
+  optional BlockCodeEvalResult                     result                           = 8;
+  repeated BlockCodeLine                           lines                            = 9;
   bool                                             cache                            = 10;
   bool                                             eval                             = 11;
   bool                                             noweb                            = 12;
