@@ -299,9 +299,7 @@ def get_subtree_property_types():
             GenTuDoc(""),
             fields=[GenTuField(t_str(), "compiler", GenTuDoc(""))],
             nested=[GenTuPass("ExportLatexCompiler() {}")],
-            methods=[
-                eq_method(t_nest_shared("ExportLatexCompiler", ["NamedProperty"]))
-            ],
+            methods=[eq_method(t_nest_shared("ExportLatexCompiler", ["NamedProperty"]))],
         ),
         GenTuStruct(
             t_nest_shared("Ordered", ["NamedProperty"]),
@@ -1433,14 +1431,15 @@ def get_sem_subtree():
             ],
             methods=[
                 GenTuFunction(
-                    t_vec(t_nest(t("Period"), ["Subtree"])),
+                    t_vec(t_nest_shared(t("SubtreePeriod"), [])),
                     "getTimePeriods",
                     GenTuDoc(""),
                     isConst=True,
                     arguments=[
                         GenTuIdent(
-                            QualType(name="IntSet",
-                                     Parameters=[t_nest("Kind", ["Subtree", "Period"])]),
+                            QualType(
+                                name="IntSet",
+                                Parameters=[t_nest_shared("Kind", ["SubtreePeriod"])]),
                             "kinds",
                         )
                     ],
@@ -1483,8 +1482,7 @@ def get_sem_subtree():
                         "Create or override existing property value in the subtree property list"
                     ),
                     arguments=[
-                        GenTuIdent(t_cr(t_nest_shared(t("NamedProperty"), [])),
-                                   "value"),
+                        GenTuIdent(t_cr(t_nest_shared(t("NamedProperty"), [])), "value"),
                     ],
                 ),
                 GenTuFunction(
@@ -1498,61 +1496,6 @@ def get_sem_subtree():
                         GenTuIdent(t_cr(t_str()), "value"),
                         GenTuIdent(t_cr(t_str()), "kind"),
                         GenTuIdent(t_cr(t_opt(t_str())), "subkind", value="std::nullopt"),
-                    ],
-                ),
-            ],
-            nested=[
-                GenTuStruct(
-                    t_nest("Period", ["Subtree"]),
-                    GenTuDoc("Type of the subtree associated time periods"),
-                    fields=[
-                        GenTuField(
-                            t_nest("Kind", ["Subtree", "Period"]),
-                            "kind",
-                            GenTuDoc(
-                                "Time period kind -- not associated with point/range distinction"
-                            ),
-                        ),
-                        GenTuField(t("UserTime"), "from", GenTuDoc("Clock start time")),
-                        opt_field(t("UserTime"), "to",
-                                  GenTuDoc("Optional end of the clock")),
-                    ],
-                    nested=[
-                        GenTuPass("Period() {}"),
-                        GenTuEnum(
-                            t_nest("Kind", ["Subtree", "Period"]),
-                            GenTuDoc("Period kind"),
-                            [
-                                GenTuEnumField(
-                                    "Clocked",
-                                    GenTuDoc("Time period of the task execution.")),
-                                GenTuEnumField("Closed",
-                                               GenTuDoc("Task marked as closed")),
-                                GenTuEnumField(
-                                    "Scheduled",
-                                    GenTuDoc(
-                                        "Date of task execution start plus it's estimated effort duration. If the latter one is missing then only a single time point is returned"
-                                    ),
-                                ),
-                                GenTuEnumField(
-                                    "Titled",
-                                    GenTuDoc(
-                                        "Single point or time range used in title. Single point can also be a simple time, such as `12:20`"
-                                    ),
-                                ),
-                                GenTuEnumField(
-                                    "Deadline",
-                                    GenTuDoc(
-                                        "Date of task completion. Must be a single time point"
-                                    ),
-                                ),
-                                GenTuEnumField("Created",
-                                               GenTuDoc("When the subtree was created")),
-                                GenTuEnumField(
-                                    "Repeated",
-                                    GenTuDoc("Last repeat time of the recurring tasks")),
-                            ],
-                        ),
                     ],
                 ),
             ],
@@ -1580,6 +1523,58 @@ def get_sem_subtree():
 
 def get_shared_sem_types() -> Sequence[GenTuStruct]:
     return [
+        GenTuStruct(
+            t_nest_shared("SubtreePeriod", []),
+            GenTuDoc("Type of the subtree associated time periods"),
+            methods=[
+                eq_method(t_nest_shared("SubtreePeriod", [])),
+            ],
+            fields=[
+                GenTuField(
+                    t_nest_shared("Kind", ["SubtreePeriod"]),
+                    "kind",
+                    GenTuDoc(
+                        "Time period kind -- not associated with point/range distinction"
+                    ),
+                ),
+                GenTuField(t("UserTime"), "from", GenTuDoc("Clock start time")),
+                opt_field(t("UserTime"), "to", GenTuDoc("Optional end of the clock")),
+            ],
+            nested=[
+                GenTuPass("SubtreePeriod() {}"),
+                GenTuEnum(
+                    t_nest_shared("Kind", ["SubtreePeriod"]),
+                    GenTuDoc("Period kind"),
+                    [
+                        GenTuEnumField("Clocked",
+                                       GenTuDoc("Time period of the task execution.")),
+                        GenTuEnumField("Closed", GenTuDoc("Task marked as closed")),
+                        GenTuEnumField(
+                            "Scheduled",
+                            GenTuDoc(
+                                "Date of task execution start plus it's estimated effort duration. If the latter one is missing then only a single time point is returned"
+                            ),
+                        ),
+                        GenTuEnumField(
+                            "Titled",
+                            GenTuDoc(
+                                "Single point or time range used in title. Single point can also be a simple time, such as `12:20`"
+                            ),
+                        ),
+                        GenTuEnumField(
+                            "Deadline",
+                            GenTuDoc(
+                                "Date of task completion. Must be a single time point"),
+                        ),
+                        GenTuEnumField("Created",
+                                       GenTuDoc("When the subtree was created")),
+                        GenTuEnumField(
+                            "Repeated",
+                            GenTuDoc("Last repeat time of the recurring tasks")),
+                    ],
+                ),
+            ],
+        ),
         GenTuStruct(
             t_nest_shared("NamedProperty", []),
             GenTuDoc("Single subtree property"),
@@ -1951,8 +1946,7 @@ def get_types() -> Sequence[GenTuStruct]:
                     "initialVisibility",
                     value="Visibility::ShowEverything",
                 ),
-                vec_field(t_nest_shared("NamedProperty", []), "properties",
-                          GenTuDoc("")),
+                vec_field(t_nest_shared("NamedProperty", []), "properties", GenTuDoc("")),
                 org_field(t_nest("ExportConfig", ["DocumentOptions"]), "exportConfig"),
                 opt_field(t_bool(), "fixedWidthSections"),
                 opt_field(t_bool(), "startupIndented"),

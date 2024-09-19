@@ -20,11 +20,11 @@ using osk      = OrgSemKind;
 using Property = NamedProperty;
 
 template <>
-struct value_domain<sem::Subtree::Period::Kind>
+struct value_domain<sem::SubtreePeriod::Kind>
     : value_domain_ungapped<
-          sem::Subtree::Period::Kind,
-          sem::Subtree::Period::Kind::Clocked,
-          sem::Subtree::Period::Kind::Repeated> {};
+          sem::SubtreePeriod::Kind,
+          sem::SubtreePeriod::Kind::Clocked,
+          sem::SubtreePeriod::Kind::Repeated> {};
 
 namespace sem {
 sem::OrgIdVariant asVariant(SemId<Org> in) {
@@ -103,55 +103,56 @@ Opt<sem::SemId<CmdArgument>> Cmd::getFirstArgument(CR<Str> kind) const {
     return Stmt::getFirstArgument(kind);
 }
 
-Vec<Subtree::Period> Subtree::getTimePeriods(
-    IntSet<Period::Kind> kinds) const {
-    Vec<Period> res;
+Vec<SubtreePeriod> Subtree::getTimePeriods(
+    IntSet<SubtreePeriod::Kind> kinds) const {
+    Vec<SubtreePeriod> res;
     for (const auto& it : title->subnodes) {
         if (it->getKind() == osk::Time) {
-            Period period{};
+            SubtreePeriod period{};
             period.from = it.as<Time>()->getStatic().time;
-            period.kind = Period::Kind::Titled;
+            period.kind = SubtreePeriod::Kind::Titled;
             res.push_back(period);
         } else if (it->getKind() == osk::TimeRange) {
-            Period period{};
+            SubtreePeriod period{};
             period.from = it.as<TimeRange>()->from->getStatic().time;
             period.to   = it.as<TimeRange>()->to->getStatic().time;
-            period.kind = Period::Kind::Titled;
+            period.kind = SubtreePeriod::Kind::Titled;
             res.push_back(period);
         }
     }
 
-    if (kinds.contains(Period::Kind::Deadline) && this->deadline) {
-        Period period{};
+    if (kinds.contains(SubtreePeriod::Kind::Deadline) && this->deadline) {
+        SubtreePeriod period{};
         period.from = this->deadline.value()->getStatic().time;
-        period.kind = Period::Kind::Deadline;
+        period.kind = SubtreePeriod::Kind::Deadline;
         res.push_back(period);
     }
 
-    if (kinds.contains(Period::Kind::Scheduled) && this->scheduled) {
-        Period period{};
+    if (kinds.contains(SubtreePeriod::Kind::Scheduled)
+        && this->scheduled) {
+        SubtreePeriod period{};
         period.from = this->scheduled.value()->getStatic().time;
-        period.kind = Period::Kind::Scheduled;
+        period.kind = SubtreePeriod::Kind::Scheduled;
         res.push_back(period);
     }
 
-    if (kinds.contains(Period::Kind::Closed) && this->closed) {
-        Period period{};
+    if (kinds.contains(SubtreePeriod::Kind::Closed) && this->closed) {
+        SubtreePeriod period{};
         period.from = this->closed.value()->getStatic().time;
-        period.kind = Period::Kind::Closed;
+        period.kind = SubtreePeriod::Kind::Closed;
         res.push_back(period);
     }
 
-    if (kinds.contains(Period::Kind::Clocked)) {
+    if (kinds.contains(SubtreePeriod::Kind::Clocked)) {
         for (auto const& log : this->logbook) {
             if (log->getLogKind() == SubtreeLog::Kind::Clock) {
-                Period period{};
+                SubtreePeriod period{};
                 period.from = log->getClock().from->getStatic().time;
                 if (log->getClock().to) {
                     period.to = //
                         log->getClock().to.value()->getStatic().time;
                 }
-                period.kind = Period::Kind::Clocked;
+                period.kind = SubtreePeriod::Kind::Clocked;
                 res.push_back(period);
             }
         }
@@ -161,9 +162,9 @@ Vec<Subtree::Period> Subtree::getTimePeriods(
         std::visit(
             overloaded{
                 [&](Property::Created const& cr) {
-                    Period period{};
+                    SubtreePeriod period{};
                     period.from = cr.time;
-                    period.kind = Period::Kind::Created;
+                    period.kind = SubtreePeriod::Kind::Created;
                     res.push_back(period);
                 },
                 [](auto const&) {}},

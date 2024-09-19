@@ -1,4 +1,5 @@
 /* clang-format off */
+void visit(R& res, sem::SubtreePeriod const& object);
 void visit(R& res, sem::NamedProperty::Data const& object);
 void visit(R& res, sem::NamedProperty const& object);
 void visit(R& res, sem::NamedProperty::Nonblocking const& object);
@@ -118,7 +119,6 @@ void visit(R& res, sem::SubtreeLog::State const& object);
 void visit(R& res, sem::SubtreeLog::Tag const& object);
 void visit(R& res, sem::SubtreeLog::Unknown const& object);
 void visitSubtree(R& res, In<sem::Subtree> object);
-void visit(R& res, sem::Subtree::Period const& object);
 void visitSubtreeCompletion(R& res, In<sem::SubtreeCompletion> object);
 void visitCell(R& res, In<sem::Cell> object);
 void visitRow(R& res, In<sem::Row> object);

@@ -1513,40 +1513,6 @@ struct ImmSubtreeLog : public org::ImmOrg {
 struct ImmSubtree : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmSubtree() = default;
-  /// \brief Type of the subtree associated time periods
-  struct Period {
-    /// \brief Period kind
-    enum class Kind : short int {
-      /// \brief Time period of the task execution.
-      Clocked,
-      /// \brief Task marked as closed
-      Closed,
-      /// \brief Date of task execution start plus it's estimated effort duration. If the latter one is missing then only a single time point is returned
-      Scheduled,
-      /// \brief Single point or time range used in title. Single point can also be a simple time, such as `12:20`
-      Titled,
-      /// \brief Date of task completion. Must be a single time point
-      Deadline,
-      /// \brief When the subtree was created
-      Created,
-      /// \brief Last repeat time of the recurring tasks
-      Repeated,
-    };
-    BOOST_DESCRIBE_NESTED_ENUM(Kind, Clocked, Closed, Scheduled, Titled, Deadline, Created, Repeated)
-    BOOST_DESCRIBE_CLASS(Period,
-                         (),
-                         (),
-                         (),
-                         (kind, from, to))
-    /// \brief Time period kind -- not associated with point/range distinction
-    org::ImmSubtree::Period::Kind kind;
-    /// \brief Clock start time
-    UserTime from;
-    /// \brief Optional end of the clock
-    ImmBox<Opt<UserTime>> to = std::nullopt;
-    bool operator==(org::ImmSubtree::Period const& other) const;
-  };
-
   BOOST_DESCRIBE_CLASS(ImmSubtree,
                        (ImmOrg),
                        (),

@@ -20,11 +20,13 @@
     __IMPL(NamedProperty, CustomArgs, (CustomArgs)) \
     __IMPL(NamedProperty, CustomRaw, (CustomRaw))
 #define EACH_SHARED_ORG_ENUM_NESTED(__IMPL) \
+    __IMPL(SubtreePeriod, Kind, (Kind)) \
     __IMPL(NamedProperty, SetMode, (SetMode)) \
     __IMPL(NamedProperty, InheritanceMode, (InheritanceMode)) \
     __IMPL(NamedProperty, Visibility::Level, (Visibility, Level)) \
     __IMPL(NamedProperty, Kind, (Kind))
 #define EACH_SHARED_ORG_RECORD(__IMPL) \
+    __IMPL(SubtreePeriod, (SubtreePeriod)) \
     __IMPL(NamedProperty, (NamedProperty)) \
     __IMPL(NamedProperty::Nonblocking, (NamedProperty, Nonblocking)) \
     __IMPL(NamedProperty::Trigger, (NamedProperty, Trigger)) \
@@ -78,7 +80,6 @@
     __IMPL(SubtreeLog, State, (State)) \
     __IMPL(SubtreeLog, Tag, (Tag)) \
     __IMPL(SubtreeLog, Unknown, (Unknown)) \
-    __IMPL(Subtree, Period, (Period)) \
     __IMPL(AnnotatedParagraph, None, (None)) \
     __IMPL(AnnotatedParagraph, Footnote, (Footnote)) \
     __IMPL(AnnotatedParagraph, Admonition, (Admonition)) \
@@ -104,7 +105,6 @@
     __IMPL(BlockCode, EvalResult::Kind, (EvalResult, Kind)) \
     __IMPL(SubtreeLog, Priority::Action, (Priority, Action)) \
     __IMPL(SubtreeLog, Kind, (Kind)) \
-    __IMPL(Subtree, Period::Kind, (Period, Kind)) \
     __IMPL(AnnotatedParagraph, AnnotationKind, (AnnotationKind)) \
     __IMPL(ListItem, Checkbox, (Checkbox)) \
     __IMPL(DocumentOptions, ExportConfig::TagExport, (ExportConfig, TagExport)) \
@@ -210,7 +210,6 @@
     __IMPL(SubtreeLog::Tag, (SubtreeLog, Tag)) \
     __IMPL(SubtreeLog::Unknown, (SubtreeLog, Unknown)) \
     __IMPL(Subtree, (Subtree)) \
-    __IMPL(Subtree::Period, (Subtree, Period)) \
     __IMPL(SubtreeCompletion, (SubtreeCompletion)) \
     __IMPL(Cell, (Cell)) \
     __IMPL(Row, (Row)) \

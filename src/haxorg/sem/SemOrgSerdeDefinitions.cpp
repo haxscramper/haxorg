@@ -1,6 +1,22 @@
 /* clang-format off */
 #include <haxorg/sem/SemOrgSerde.hpp>
 #include <haxorg/sem/SemOrgSerdeDeclarations.hpp>
+void proto_serde<::orgproto::SubtreePeriod, sem::SubtreePeriod>::write(::orgproto::SubtreePeriod* out, sem::SubtreePeriod const& in) {
+  out->set_kind(static_cast<orgproto::SubtreePeriod_Kind>(in.kind));
+  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_from(), in.from);
+  if (in.to) {
+    proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_to(), *in.to);
+  }
+}
+
+void proto_serde<::orgproto::SubtreePeriod, sem::SubtreePeriod>::read(::orgproto::SubtreePeriod const& out, proto_write_accessor<sem::SubtreePeriod> in) {
+  in.for_field(&sem::SubtreePeriod::kind).get() = static_cast<sem::SubtreePeriod::Kind>(out.kind());
+  proto_serde<orgproto::UserTime, UserTime>::read(out.from(), in.for_field(&sem::SubtreePeriod::from));
+  if (out.has_to()) {
+    proto_serde<Opt<orgproto::UserTime>, Opt<UserTime>>::read(out.to(), in.for_field(&sem::SubtreePeriod::to));
+  }
+}
+
 void proto_serde<::orgproto::NamedProperty::Nonblocking, sem::NamedProperty::Nonblocking>::write(::orgproto::NamedProperty::Nonblocking* out, sem::NamedProperty::Nonblocking const& in) {
   out->set_isblocking(in.isBlocking);
 }
@@ -1442,22 +1458,6 @@ void proto_serde<::orgproto::SubtreeLog, sem::SubtreeLog>::read(::orgproto::Subt
     case ::orgproto::SubtreeLog::LogEntry::kUnknown:
       proto_serde<orgproto::SubtreeLog::Unknown, sem::SubtreeLog::Unknown>::read(out.log().unknown(), in.for_field_variant<6>(&sem::SubtreeLog::log));
       break;
-  }
-}
-
-void proto_serde<::orgproto::Subtree::Period, sem::Subtree::Period>::write(::orgproto::Subtree::Period* out, sem::Subtree::Period const& in) {
-  out->set_kind(static_cast<orgproto::Subtree_Period_Kind>(in.kind));
-  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_from(), in.from);
-  if (in.to) {
-    proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_to(), *in.to);
-  }
-}
-
-void proto_serde<::orgproto::Subtree::Period, sem::Subtree::Period>::read(::orgproto::Subtree::Period const& out, proto_write_accessor<sem::Subtree::Period> in) {
-  in.for_field(&sem::Subtree::Period::kind).get() = static_cast<sem::Subtree::Period::Kind>(out.kind());
-  proto_serde<orgproto::UserTime, UserTime>::read(out.from(), in.for_field(&sem::Subtree::Period::from));
-  if (out.has_to()) {
-    proto_serde<Opt<orgproto::UserTime>, Opt<UserTime>>::read(out.to(), in.for_field(&sem::Subtree::Period::to));
   }
 }
 

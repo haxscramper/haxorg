@@ -12,6 +12,41 @@
 #include <haxorg/sem/SemOrgBase.hpp>
 #include <haxorg/sem/SemOrgEnums.hpp>
 namespace sem{
+/// \brief Type of the subtree associated time periods
+struct SubtreePeriod {
+  SubtreePeriod() {}
+  /// \brief Period kind
+  enum class Kind : short int {
+    /// \brief Time period of the task execution.
+    Clocked,
+    /// \brief Task marked as closed
+    Closed,
+    /// \brief Date of task execution start plus it's estimated effort duration. If the latter one is missing then only a single time point is returned
+    Scheduled,
+    /// \brief Single point or time range used in title. Single point can also be a simple time, such as `12:20`
+    Titled,
+    /// \brief Date of task completion. Must be a single time point
+    Deadline,
+    /// \brief When the subtree was created
+    Created,
+    /// \brief Last repeat time of the recurring tasks
+    Repeated,
+  };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, Clocked, Closed, Scheduled, Titled, Deadline, Created, Repeated)
+  BOOST_DESCRIBE_CLASS(SubtreePeriod,
+                       (),
+                       (),
+                       (),
+                       (kind, from, to))
+  /// \brief Time period kind -- not associated with point/range distinction
+  sem::SubtreePeriod::Kind kind;
+  /// \brief Clock start time
+  UserTime from;
+  /// \brief Optional end of the clock
+  Opt<UserTime> to = std::nullopt;
+  bool operator==(sem::SubtreePeriod const& other) const;
+};
+
 /// \brief Single subtree property
 struct NamedProperty {
   NamedProperty() {}
@@ -1526,36 +1561,6 @@ struct SubtreeLog : public sem::Org {
 struct Subtree : public sem::Org {
   using Org::Org;
   virtual ~Subtree() = default;
-  /// \brief Type of the subtree associated time periods
-  struct Period {
-    Period() {}
-    /// \brief Period kind
-    enum class Kind : short int {
-      /// \brief Time period of the task execution.
-      Clocked,
-      /// \brief Task marked as closed
-      Closed,
-      /// \brief Date of task execution start plus it's estimated effort duration. If the latter one is missing then only a single time point is returned
-      Scheduled,
-      /// \brief Single point or time range used in title. Single point can also be a simple time, such as `12:20`
-      Titled,
-      /// \brief Date of task completion. Must be a single time point
-      Deadline,
-      /// \brief When the subtree was created
-      Created,
-      /// \brief Last repeat time of the recurring tasks
-      Repeated,
-    };
-    BOOST_DESCRIBE_NESTED_ENUM(Kind, Clocked, Closed, Scheduled, Titled, Deadline, Created, Repeated)
-    BOOST_DESCRIBE_CLASS(Period, (), (), (), (kind, from, to))
-    /// \brief Time period kind -- not associated with point/range distinction
-    sem::Subtree::Period::Kind kind;
-    /// \brief Clock start time
-    UserTime from;
-    /// \brief Optional end of the clock
-    Opt<UserTime> to = std::nullopt;
-  };
-
   BOOST_DESCRIBE_CLASS(Subtree,
                        (Org),
                        (),
@@ -1606,7 +1611,7 @@ struct Subtree : public sem::Org {
   bool isArchived = false;
   Opt<Str> priority = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::Subtree; }
-  Vec<sem::Subtree::Period> getTimePeriods(IntSet<sem::Subtree::Period::Kind> kinds) const;
+  Vec<sem::SubtreePeriod> getTimePeriods(IntSet<sem::SubtreePeriod::Kind> kinds) const;
   Vec<sem::NamedProperty> getProperties(Str const& kind, Opt<Str> const& subkind = std::nullopt) const;
   Opt<sem::NamedProperty> getProperty(Str const& kind, Opt<Str> const& subkind = std::nullopt) const;
   /// \brief Remove all instances of the property with matching kind/subkind from the property list

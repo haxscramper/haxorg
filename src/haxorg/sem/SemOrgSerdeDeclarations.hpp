@@ -73,6 +73,13 @@
         __MAP(kDocumentgroup, documentgroup, DocumentGroup)  \
 
 template <>
+struct proto_serde<::orgproto::SubtreePeriod, sem::SubtreePeriod> {
+  static void write(::orgproto::SubtreePeriod* out, sem::SubtreePeriod const& in);
+  static void read(::orgproto::SubtreePeriod const& out, proto_write_accessor<sem::SubtreePeriod> in);
+};
+
+
+template <>
 struct proto_serde<::orgproto::NamedProperty::Nonblocking, sem::NamedProperty::Nonblocking> {
   static void write(::orgproto::NamedProperty::Nonblocking* out, sem::NamedProperty::Nonblocking const& in);
   static void read(::orgproto::NamedProperty::Nonblocking const& out, proto_write_accessor<sem::NamedProperty::Nonblocking> in);
@@ -790,13 +797,6 @@ template <>
 struct proto_serde<::orgproto::SubtreeLog, sem::SubtreeLog> {
   static void write(::orgproto::SubtreeLog* out, sem::SubtreeLog const& in);
   static void read(::orgproto::SubtreeLog const& out, proto_write_accessor<sem::SubtreeLog> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Period, sem::Subtree::Period> {
-  static void write(::orgproto::Subtree::Period* out, sem::Subtree::Period const& in);
-  static void read(::orgproto::Subtree::Period const& out, proto_write_accessor<sem::Subtree::Period> in);
 };
 
 

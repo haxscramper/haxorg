@@ -436,12 +436,12 @@ Opt<UserTime> getCreationTime(const SemId<Org>& node) {
     } else if (node->is(osk::Subtree)) {
         auto const& tree = node.as<Subtree>();
         for (auto const& period :
-             tree->getTimePeriods({Subtree::Period::Kind::Created})) {
+             tree->getTimePeriods({SubtreePeriod::Kind::Created})) {
             return period.from;
         }
 
         for (auto const& period :
-             tree->getTimePeriods({Subtree::Period::Kind::Titled})) {
+             tree->getTimePeriods({SubtreePeriod::Kind::Titled})) {
             return period.from;
         }
     }

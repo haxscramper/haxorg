@@ -262,6 +262,22 @@ enum OrgSemKind {
   OrgSemKind_DocumentGroup_f                                                        = 68;
 }
 
+message SubtreePeriod {
+  enum Kind {
+    Kind_Clocked_f                                                                  = 0;
+    Kind_Closed_f                                                                   = 1;
+    Kind_Scheduled_f                                                                = 2;
+    Kind_Titled_f                                                                   = 3;
+    Kind_Deadline_f                                                                 = 4;
+    Kind_Created_f                                                                  = 5;
+    Kind_Repeated_f                                                                 = 6;
+  }
+  SubtreePeriod.Kind                               kind                             = 1;
+  UserTime                                         from                             = 2;
+  optional UserTime                                to                               = 3;
+  string                                           debug                            = 1000;
+}
+
 message NamedProperty {
   enum SetMode {
     SetMode_Override_f                                                              = 0;
@@ -1124,21 +1140,6 @@ message SubtreeLog {
 }
 
 message Subtree {
-  message Period {
-    enum Kind {
-      Kind_Clocked_f                                                                = 0;
-      Kind_Closed_f                                                                 = 1;
-      Kind_Scheduled_f                                                              = 2;
-      Kind_Titled_f                                                                 = 3;
-      Kind_Deadline_f                                                               = 4;
-      Kind_Created_f                                                                = 5;
-      Kind_Repeated_f                                                               = 6;
-    }
-    Subtree.Period.Kind                            kind                             = 1;
-    UserTime                                       from                             = 2;
-    optional UserTime                              to                               = 3;
-    string                                         debug                            = 1000;
-  }
   repeated AnyNode                                 subnodes                         = 1;
   OrgSemKind                                       staticKind                       = 2;
   int32                                            level                            = 3;

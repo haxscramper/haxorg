@@ -1484,24 +1484,6 @@ struct ImmSemSerde<sem::Subtree, org::ImmSubtree> {
 };
 
 template <>
-struct ImmSemSerde<sem::Subtree::Period, org::ImmSubtree::Period> {
-  static org::ImmSubtree::Period to_immer(sem::Subtree::Period const& value, ImmAstEditContext& ctx) {
-    org::ImmSubtree::Period result = SerdeDefaultProvider<org::ImmSubtree::Period>::get();
-    assign_immer_field(result.kind, value.kind, ctx);
-    assign_immer_field(result.from, value.from, ctx);
-    assign_immer_field(result.to, value.to, ctx);
-    return result;
-  }
-  static sem::Subtree::Period from_immer(org::ImmSubtree::Period const& value, ImmAstContext const& ctx) {
-    sem::Subtree::Period result = SerdeDefaultProvider<sem::Subtree::Period>::get();
-    assign_sem_field(result.kind, value.kind, ctx);
-    assign_sem_field(result.from, value.from, ctx);
-    assign_sem_field(result.to, value.to, ctx);
-    return result;
-  }
-};
-
-template <>
 struct ImmSemSerde<sem::SubtreeCompletion, org::ImmSubtreeCompletion> {
   static org::ImmSubtreeCompletion to_immer(sem::SubtreeCompletion const& value, ImmAstEditContext& ctx) {
     org::ImmSubtreeCompletion result = SerdeDefaultProvider<org::ImmSubtreeCompletion>::get();

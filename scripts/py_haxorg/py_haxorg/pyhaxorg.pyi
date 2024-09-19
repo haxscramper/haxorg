@@ -23,6 +23,24 @@ class LineCol:
     column: int
     pos: int
 
+class SubtreePeriodKind(Enum):
+    Clocked = 1
+    Closed = 2
+    Scheduled = 3
+    Titled = 4
+    Deadline = 5
+    Created = 6
+    Repeated = 7
+
+class SubtreePeriod:
+    def __init__(self, kind: SubtreePeriodKind, from_: UserTime, to: Optional[UserTime]) -> None: ...
+    def operator==(self, other: SubtreePeriod) -> bool: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    kind: SubtreePeriodKind
+    from_: UserTime
+    to: Optional[UserTime]
+
 class NamedPropertySetMode(Enum):
     Override = 1
     Add = 2
@@ -1032,23 +1050,6 @@ class SubtreeLog(Org):
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     log: SubtreeLogLogEntry
-
-class SubtreePeriodKind(Enum):
-    Clocked = 1
-    Closed = 2
-    Scheduled = 3
-    Titled = 4
-    Deadline = 5
-    Created = 6
-    Repeated = 7
-
-class SubtreePeriod:
-    def __init__(self, kind: SubtreePeriodKind, from_: UserTime, to: Optional[UserTime]) -> None: ...
-    def __repr__(self) -> str: ...
-    def __getattr__(self, name: str) -> object: ...
-    kind: SubtreePeriodKind
-    from_: UserTime
-    to: Optional[UserTime]
 
 class Subtree(Org):
     def __init__(self, level: int, treeId: Optional[str], todo: Optional[str], completion: Optional[SubtreeCompletion], description: Optional[Paragraph], tags: List[HashTag], title: Paragraph, logbook: List[SubtreeLog], properties: List[NamedProperty], closed: Optional[Time], deadline: Optional[Time], scheduled: Optional[Time], isComment: bool, isArchived: bool, priority: Optional[str]) -> None: ...

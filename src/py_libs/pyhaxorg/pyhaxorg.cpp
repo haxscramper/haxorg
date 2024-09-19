@@ -33,9 +33,9 @@ PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::SubtreeLog>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::SubtreeLog>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::NamedProperty>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::NamedProperty>)
-PYBIND11_MAKE_OPAQUE(std::vector<sem::Subtree::Period>)
-PYBIND11_MAKE_OPAQUE(Vec<sem::Subtree::Period>)
-PYBIND11_MAKE_OPAQUE(IntSet<sem::Subtree::Period::Kind>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::SubtreePeriod>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::SubtreePeriod>)
+PYBIND11_MAKE_OPAQUE(IntSet<sem::SubtreePeriod::Kind>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Cell>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Cell>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Row>>)
@@ -66,8 +66,8 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::BlockCode::Line>(m, "VecOfBlockCodeLine", type_registry_guard);
   bind_vector<sem::SemId<sem::SubtreeLog>>(m, "VecOfSemIdOfSubtreeLog", type_registry_guard);
   bind_vector<sem::NamedProperty>(m, "VecOfNamedProperty", type_registry_guard);
-  bind_vector<sem::Subtree::Period>(m, "VecOfSubtreePeriod", type_registry_guard);
-  bind_int_set<sem::Subtree::Period::Kind>(m, "IntSetOfSubtreePeriodKind", type_registry_guard);
+  bind_vector<sem::SubtreePeriod>(m, "VecOfSubtreePeriod", type_registry_guard);
+  bind_int_set<sem::SubtreePeriod::Kind>(m, "IntSetOfSubtreePeriodKind", type_registry_guard);
   bind_vector<sem::SemId<sem::Cell>>(m, "VecOfSemIdOfCell", type_registry_guard);
   bind_vector<sem::SemId<sem::Row>>(m, "VecOfSemIdOfRow", type_registry_guard);
   bind_vector<sem::SemId<sem::Subtree>>(m, "VecOfSemIdOfSubtree", type_registry_guard);
@@ -123,6 +123,42 @@ node can have subnodes.)RAW")
                      })
     .def("__getattr__",
          [](LineCol _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<sem::SubtreePeriod::Kind>(m, "SubtreePeriodKind", type_registry_guard);
+  pybind11::enum_<sem::SubtreePeriod::Kind>(m, "SubtreePeriodKind")
+    .value("Clocked", sem::SubtreePeriod::Kind::Clocked, R"RAW(Time period of the task execution.)RAW")
+    .value("Closed", sem::SubtreePeriod::Kind::Closed, R"RAW(Task marked as closed)RAW")
+    .value("Scheduled", sem::SubtreePeriod::Kind::Scheduled, R"RAW(Date of task execution start plus it's estimated effort duration. If the latter one is missing then only a single time point is returned)RAW")
+    .value("Titled", sem::SubtreePeriod::Kind::Titled, R"RAW(Single point or time range used in title. Single point can also be a simple time, such as `12:20`)RAW")
+    .value("Deadline", sem::SubtreePeriod::Kind::Deadline, R"RAW(Date of task completion. Must be a single time point)RAW")
+    .value("Created", sem::SubtreePeriod::Kind::Created, R"RAW(When the subtree was created)RAW")
+    .value("Repeated", sem::SubtreePeriod::Kind::Repeated, R"RAW(Last repeat time of the recurring tasks)RAW")
+    .def("__iter__", [](sem::SubtreePeriod::Kind _self) -> PyEnumIterator<sem::SubtreePeriod::Kind> {
+                     return
+                     PyEnumIterator<sem::SubtreePeriod::Kind>
+                     ();
+                     })
+    ;
+  pybind11::class_<sem::SubtreePeriod>(m, "SubtreePeriod")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreePeriod {
+                        sem::SubtreePeriod result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("kind", &sem::SubtreePeriod::kind, R"RAW(Time period kind -- not associated with point/range distinction)RAW")
+    .def_readwrite("from_", &sem::SubtreePeriod::from, R"RAW(Clock start time)RAW")
+    .def_readwrite("to", &sem::SubtreePeriod::to, R"RAW(Optional end of the clock)RAW")
+    .def("operator==",
+         static_cast<bool(sem::SubtreePeriod::*)(sem::SubtreePeriod const&) const>(&sem::SubtreePeriod::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::SubtreePeriod _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreePeriod _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -2583,39 +2619,6 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  bind_enum_iterator<sem::Subtree::Period::Kind>(m, "SubtreePeriodKind", type_registry_guard);
-  pybind11::enum_<sem::Subtree::Period::Kind>(m, "SubtreePeriodKind")
-    .value("Clocked", sem::Subtree::Period::Kind::Clocked, R"RAW(Time period of the task execution.)RAW")
-    .value("Closed", sem::Subtree::Period::Kind::Closed, R"RAW(Task marked as closed)RAW")
-    .value("Scheduled", sem::Subtree::Period::Kind::Scheduled, R"RAW(Date of task execution start plus it's estimated effort duration. If the latter one is missing then only a single time point is returned)RAW")
-    .value("Titled", sem::Subtree::Period::Kind::Titled, R"RAW(Single point or time range used in title. Single point can also be a simple time, such as `12:20`)RAW")
-    .value("Deadline", sem::Subtree::Period::Kind::Deadline, R"RAW(Date of task completion. Must be a single time point)RAW")
-    .value("Created", sem::Subtree::Period::Kind::Created, R"RAW(When the subtree was created)RAW")
-    .value("Repeated", sem::Subtree::Period::Kind::Repeated, R"RAW(Last repeat time of the recurring tasks)RAW")
-    .def("__iter__", [](sem::Subtree::Period::Kind _self) -> PyEnumIterator<sem::Subtree::Period::Kind> {
-                     return
-                     PyEnumIterator<sem::Subtree::Period::Kind>
-                     ();
-                     })
-    ;
-  pybind11::class_<sem::Subtree::Period>(m, "SubtreePeriod")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Period {
-                        sem::Subtree::Period result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("kind", &sem::Subtree::Period::kind, R"RAW(Time period kind -- not associated with point/range distinction)RAW")
-    .def_readwrite("from_", &sem::Subtree::Period::from, R"RAW(Clock start time)RAW")
-    .def_readwrite("to", &sem::Subtree::Period::to, R"RAW(Optional end of the clock)RAW")
-    .def("__repr__", [](sem::Subtree::Period _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Subtree::Period _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
   pybind11::class_<sem::Subtree, sem::SemId<sem::Subtree>, sem::Org>(m, "Subtree")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree {
                         sem::Subtree result{};
@@ -2638,7 +2641,7 @@ node can have subnodes.)RAW")
     .def_readwrite("isArchived", &sem::Subtree::isArchived, R"RAW(Subtree is tagged with `:ARCHIVE:` tag)RAW")
     .def_readwrite("priority", &sem::Subtree::priority)
     .def("getTimePeriods",
-         static_cast<Vec<sem::Subtree::Period>(sem::Subtree::*)(IntSet<sem::Subtree::Period::Kind>) const>(&sem::Subtree::getTimePeriods),
+         static_cast<Vec<sem::SubtreePeriod>(sem::Subtree::*)(IntSet<sem::SubtreePeriod::Kind>) const>(&sem::Subtree::getTimePeriods),
          pybind11::arg("kinds"))
     .def("getProperties",
          static_cast<Vec<sem::NamedProperty>(sem::Subtree::*)(Str const&, Opt<Str> const&) const>(&sem::Subtree::getProperties),
