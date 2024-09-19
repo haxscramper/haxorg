@@ -73,114 +73,114 @@
         __MAP(kDocumentgroup, documentgroup, DocumentGroup)  \
 
 template <>
-struct proto_serde<::orgproto::SubtreeProperty::Nonblocking, sem::SubtreeProperty::Nonblocking> {
-  static void write(::orgproto::SubtreeProperty::Nonblocking* out, sem::SubtreeProperty::Nonblocking const& in);
-  static void read(::orgproto::SubtreeProperty::Nonblocking const& out, proto_write_accessor<sem::SubtreeProperty::Nonblocking> in);
+struct proto_serde<::orgproto::NamedProperty::Nonblocking, sem::NamedProperty::Nonblocking> {
+  static void write(::orgproto::NamedProperty::Nonblocking* out, sem::NamedProperty::Nonblocking const& in);
+  static void read(::orgproto::NamedProperty::Nonblocking const& out, proto_write_accessor<sem::NamedProperty::Nonblocking> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::SubtreeProperty::Trigger, sem::SubtreeProperty::Trigger> {
-  static void write(::orgproto::SubtreeProperty::Trigger* out, sem::SubtreeProperty::Trigger const& in);
-  static void read(::orgproto::SubtreeProperty::Trigger const& out, proto_write_accessor<sem::SubtreeProperty::Trigger> in);
+struct proto_serde<::orgproto::NamedProperty::Trigger, sem::NamedProperty::Trigger> {
+  static void write(::orgproto::NamedProperty::Trigger* out, sem::NamedProperty::Trigger const& in);
+  static void read(::orgproto::NamedProperty::Trigger const& out, proto_write_accessor<sem::NamedProperty::Trigger> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::SubtreeProperty::ExportLatexClass, sem::SubtreeProperty::ExportLatexClass> {
-  static void write(::orgproto::SubtreeProperty::ExportLatexClass* out, sem::SubtreeProperty::ExportLatexClass const& in);
-  static void read(::orgproto::SubtreeProperty::ExportLatexClass const& out, proto_write_accessor<sem::SubtreeProperty::ExportLatexClass> in);
+struct proto_serde<::orgproto::NamedProperty::ExportLatexClass, sem::NamedProperty::ExportLatexClass> {
+  static void write(::orgproto::NamedProperty::ExportLatexClass* out, sem::NamedProperty::ExportLatexClass const& in);
+  static void read(::orgproto::NamedProperty::ExportLatexClass const& out, proto_write_accessor<sem::NamedProperty::ExportLatexClass> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::SubtreeProperty::ExportLatexClassOptions, sem::SubtreeProperty::ExportLatexClassOptions> {
-  static void write(::orgproto::SubtreeProperty::ExportLatexClassOptions* out, sem::SubtreeProperty::ExportLatexClassOptions const& in);
-  static void read(::orgproto::SubtreeProperty::ExportLatexClassOptions const& out, proto_write_accessor<sem::SubtreeProperty::ExportLatexClassOptions> in);
+struct proto_serde<::orgproto::NamedProperty::ExportLatexClassOptions, sem::NamedProperty::ExportLatexClassOptions> {
+  static void write(::orgproto::NamedProperty::ExportLatexClassOptions* out, sem::NamedProperty::ExportLatexClassOptions const& in);
+  static void read(::orgproto::NamedProperty::ExportLatexClassOptions const& out, proto_write_accessor<sem::NamedProperty::ExportLatexClassOptions> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::SubtreeProperty::ExportLatexHeader, sem::SubtreeProperty::ExportLatexHeader> {
-  static void write(::orgproto::SubtreeProperty::ExportLatexHeader* out, sem::SubtreeProperty::ExportLatexHeader const& in);
-  static void read(::orgproto::SubtreeProperty::ExportLatexHeader const& out, proto_write_accessor<sem::SubtreeProperty::ExportLatexHeader> in);
+struct proto_serde<::orgproto::NamedProperty::ExportLatexHeader, sem::NamedProperty::ExportLatexHeader> {
+  static void write(::orgproto::NamedProperty::ExportLatexHeader* out, sem::NamedProperty::ExportLatexHeader const& in);
+  static void read(::orgproto::NamedProperty::ExportLatexHeader const& out, proto_write_accessor<sem::NamedProperty::ExportLatexHeader> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::SubtreeProperty::ExportLatexCompiler, sem::SubtreeProperty::ExportLatexCompiler> {
-  static void write(::orgproto::SubtreeProperty::ExportLatexCompiler* out, sem::SubtreeProperty::ExportLatexCompiler const& in);
-  static void read(::orgproto::SubtreeProperty::ExportLatexCompiler const& out, proto_write_accessor<sem::SubtreeProperty::ExportLatexCompiler> in);
+struct proto_serde<::orgproto::NamedProperty::ExportLatexCompiler, sem::NamedProperty::ExportLatexCompiler> {
+  static void write(::orgproto::NamedProperty::ExportLatexCompiler* out, sem::NamedProperty::ExportLatexCompiler const& in);
+  static void read(::orgproto::NamedProperty::ExportLatexCompiler const& out, proto_write_accessor<sem::NamedProperty::ExportLatexCompiler> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::SubtreeProperty::Ordered, sem::SubtreeProperty::Ordered> {
-  static void write(::orgproto::SubtreeProperty::Ordered* out, sem::SubtreeProperty::Ordered const& in);
-  static void read(::orgproto::SubtreeProperty::Ordered const& out, proto_write_accessor<sem::SubtreeProperty::Ordered> in);
+struct proto_serde<::orgproto::NamedProperty::Ordered, sem::NamedProperty::Ordered> {
+  static void write(::orgproto::NamedProperty::Ordered* out, sem::NamedProperty::Ordered const& in);
+  static void read(::orgproto::NamedProperty::Ordered const& out, proto_write_accessor<sem::NamedProperty::Ordered> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::SubtreeProperty::Effort, sem::SubtreeProperty::Effort> {
-  static void write(::orgproto::SubtreeProperty::Effort* out, sem::SubtreeProperty::Effort const& in);
-  static void read(::orgproto::SubtreeProperty::Effort const& out, proto_write_accessor<sem::SubtreeProperty::Effort> in);
+struct proto_serde<::orgproto::NamedProperty::Effort, sem::NamedProperty::Effort> {
+  static void write(::orgproto::NamedProperty::Effort* out, sem::NamedProperty::Effort const& in);
+  static void read(::orgproto::NamedProperty::Effort const& out, proto_write_accessor<sem::NamedProperty::Effort> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::SubtreeProperty::Visibility, sem::SubtreeProperty::Visibility> {
-  static void write(::orgproto::SubtreeProperty::Visibility* out, sem::SubtreeProperty::Visibility const& in);
-  static void read(::orgproto::SubtreeProperty::Visibility const& out, proto_write_accessor<sem::SubtreeProperty::Visibility> in);
+struct proto_serde<::orgproto::NamedProperty::Visibility, sem::NamedProperty::Visibility> {
+  static void write(::orgproto::NamedProperty::Visibility* out, sem::NamedProperty::Visibility const& in);
+  static void read(::orgproto::NamedProperty::Visibility const& out, proto_write_accessor<sem::NamedProperty::Visibility> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::SubtreeProperty::ExportOptions, sem::SubtreeProperty::ExportOptions> {
-  static void write(::orgproto::SubtreeProperty::ExportOptions* out, sem::SubtreeProperty::ExportOptions const& in);
-  static void read(::orgproto::SubtreeProperty::ExportOptions const& out, proto_write_accessor<sem::SubtreeProperty::ExportOptions> in);
+struct proto_serde<::orgproto::NamedProperty::ExportOptions, sem::NamedProperty::ExportOptions> {
+  static void write(::orgproto::NamedProperty::ExportOptions* out, sem::NamedProperty::ExportOptions const& in);
+  static void read(::orgproto::NamedProperty::ExportOptions const& out, proto_write_accessor<sem::NamedProperty::ExportOptions> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::SubtreeProperty::Blocker, sem::SubtreeProperty::Blocker> {
-  static void write(::orgproto::SubtreeProperty::Blocker* out, sem::SubtreeProperty::Blocker const& in);
-  static void read(::orgproto::SubtreeProperty::Blocker const& out, proto_write_accessor<sem::SubtreeProperty::Blocker> in);
+struct proto_serde<::orgproto::NamedProperty::Blocker, sem::NamedProperty::Blocker> {
+  static void write(::orgproto::NamedProperty::Blocker* out, sem::NamedProperty::Blocker const& in);
+  static void read(::orgproto::NamedProperty::Blocker const& out, proto_write_accessor<sem::NamedProperty::Blocker> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::SubtreeProperty::Unnumbered, sem::SubtreeProperty::Unnumbered> {
-  static void write(::orgproto::SubtreeProperty::Unnumbered* out, sem::SubtreeProperty::Unnumbered const& in);
-  static void read(::orgproto::SubtreeProperty::Unnumbered const& out, proto_write_accessor<sem::SubtreeProperty::Unnumbered> in);
+struct proto_serde<::orgproto::NamedProperty::Unnumbered, sem::NamedProperty::Unnumbered> {
+  static void write(::orgproto::NamedProperty::Unnumbered* out, sem::NamedProperty::Unnumbered const& in);
+  static void read(::orgproto::NamedProperty::Unnumbered const& out, proto_write_accessor<sem::NamedProperty::Unnumbered> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::SubtreeProperty::Created, sem::SubtreeProperty::Created> {
-  static void write(::orgproto::SubtreeProperty::Created* out, sem::SubtreeProperty::Created const& in);
-  static void read(::orgproto::SubtreeProperty::Created const& out, proto_write_accessor<sem::SubtreeProperty::Created> in);
+struct proto_serde<::orgproto::NamedProperty::Created, sem::NamedProperty::Created> {
+  static void write(::orgproto::NamedProperty::Created* out, sem::NamedProperty::Created const& in);
+  static void read(::orgproto::NamedProperty::Created const& out, proto_write_accessor<sem::NamedProperty::Created> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::SubtreeProperty::CustomArgs, sem::SubtreeProperty::CustomArgs> {
-  static void write(::orgproto::SubtreeProperty::CustomArgs* out, sem::SubtreeProperty::CustomArgs const& in);
-  static void read(::orgproto::SubtreeProperty::CustomArgs const& out, proto_write_accessor<sem::SubtreeProperty::CustomArgs> in);
+struct proto_serde<::orgproto::NamedProperty::CustomArgs, sem::NamedProperty::CustomArgs> {
+  static void write(::orgproto::NamedProperty::CustomArgs* out, sem::NamedProperty::CustomArgs const& in);
+  static void read(::orgproto::NamedProperty::CustomArgs const& out, proto_write_accessor<sem::NamedProperty::CustomArgs> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::SubtreeProperty::CustomRaw, sem::SubtreeProperty::CustomRaw> {
-  static void write(::orgproto::SubtreeProperty::CustomRaw* out, sem::SubtreeProperty::CustomRaw const& in);
-  static void read(::orgproto::SubtreeProperty::CustomRaw const& out, proto_write_accessor<sem::SubtreeProperty::CustomRaw> in);
+struct proto_serde<::orgproto::NamedProperty::CustomRaw, sem::NamedProperty::CustomRaw> {
+  static void write(::orgproto::NamedProperty::CustomRaw* out, sem::NamedProperty::CustomRaw const& in);
+  static void read(::orgproto::NamedProperty::CustomRaw const& out, proto_write_accessor<sem::NamedProperty::CustomRaw> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::SubtreeProperty, sem::SubtreeProperty> {
-  static void write(::orgproto::SubtreeProperty* out, sem::SubtreeProperty const& in);
-  static void read(::orgproto::SubtreeProperty const& out, proto_write_accessor<sem::SubtreeProperty> in);
+struct proto_serde<::orgproto::NamedProperty, sem::NamedProperty> {
+  static void write(::orgproto::NamedProperty* out, sem::NamedProperty const& in);
+  static void read(::orgproto::NamedProperty const& out, proto_write_accessor<sem::NamedProperty> in);
 };
 
 

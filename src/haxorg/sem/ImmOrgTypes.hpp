@@ -1584,7 +1584,7 @@ struct ImmSubtree : public org::ImmOrg {
   /// \brief Associated subtree log
   ImmVec<org::ImmIdT<org::ImmSubtreeLog>> logbook = {};
   /// \brief Immediate properties
-  ImmVec<sem::SubtreeProperty> properties = {};
+  ImmVec<sem::NamedProperty> properties = {};
   /// \brief When subtree was marked as closed
   ImmBox<Opt<org::ImmIdT<org::ImmTime>>> closed = std::nullopt;
   /// \brief When is the deadline
@@ -1970,7 +1970,7 @@ struct ImmDocumentOptions : public org::ImmOrg {
                         maxSubtreeLevelExport))
   static OrgSemKind const staticKind;
   org::ImmDocumentOptions::Visibility initialVisibility = Visibility::ShowEverything;
-  ImmVec<sem::SubtreeProperty> properties = {};
+  ImmVec<sem::NamedProperty> properties = {};
   org::ImmDocumentOptions::ExportConfig exportConfig;
   ImmBox<Opt<bool>> fixedWidthSections = std::nullopt;
   ImmBox<Opt<bool>> startupIndented = std::nullopt;

@@ -18,7 +18,7 @@ using namespace sem;
 using onk      = OrgNodeKind;
 using otk      = OrgTokenKind;
 using Err      = OrgConverter::Errors;
-using Property = sem::SubtreeProperty;
+using Property = sem::NamedProperty;
 
 namespace {
 bool org_streq(CR<Str> str1, CR<Str> str2) {
@@ -410,7 +410,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
 
     } else if (name == "visibility") {
         if (auto visibility = parseOrgEnum<
-                sem::SubtreeProperty::Visibility::Level>(
+                sem::NamedProperty::Visibility::Level>(
                 get_text(one(a, N::Values).at(0)));
             visibility) {
             Property::Visibility prop;
@@ -423,7 +423,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
     } else if (name == "effort") {
         Str const&              value    = get_text(one(a, N::Values));
         Vec<Str>                duration = value.split(":");
-        SubtreeProperty::Effort prop;
+        NamedProperty::Effort prop;
 
         if (duration.size() == 1) {
             prop.minutes = duration[0].toInt();
@@ -432,10 +432,10 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
             prop.hours   = duration[0].toInt();
         }
 
-        result = SubtreeProperty(prop);
+        result = NamedProperty(prop);
 
     } else {
-        SubtreeProperty::CustomRaw prop;
+        NamedProperty::CustomRaw prop;
         prop.name = basename;
         if (one(a, N::Values).kind() == onk::RawText) {
             prop.value = get_text(one(a, N::Values));
@@ -444,31 +444,31 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
                 prop.value += get_text(arg);
             }
         }
-        result = SubtreeProperty(prop);
+        result = NamedProperty(prop);
     }
 
     if (false && result) {
         const auto inh = get_text(one(a, N::InheritanceMode));
         if (inh == "!!") {
-            result->inheritanceMode = SubtreeProperty::InheritanceMode::
+            result->inheritanceMode = NamedProperty::InheritanceMode::
                 OnlyThis;
         } else if (inh == "!") {
-            result->inheritanceMode = SubtreeProperty::InheritanceMode::
+            result->inheritanceMode = NamedProperty::InheritanceMode::
                 OnlySub;
         }
 
         const auto sub = get_text(one(a, N::SubSetRule));
         if (sub == "+") {
-            result->subSetRule = SubtreeProperty::SetMode::Add;
+            result->subSetRule = NamedProperty::SetMode::Add;
         } else if (sub == "-") {
-            result->subSetRule = SubtreeProperty::SetMode::Subtract;
+            result->subSetRule = NamedProperty::SetMode::Subtract;
         }
 
         const auto main = get_text(one(a, N::MainSetRule));
         if (main == "+") {
-            result->subSetRule = SubtreeProperty::SetMode::Add;
+            result->subSetRule = NamedProperty::SetMode::Add;
         } else if (main == "-") {
-            result->subSetRule = SubtreeProperty::SetMode::Subtract;
+            result->subSetRule = NamedProperty::SetMode::Subtract;
         }
     }
 
@@ -1643,7 +1643,7 @@ SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
 
     SemId<Document> doc = Sem<Document>(adapter);
     doc->options        = Sem<DocumentOptions>(adapter);
-    using Prop          = SubtreeProperty;
+    using Prop          = NamedProperty;
     Vec<OrgAdapter> buffer;
 
     if (adapter.kind() == onk::StmtList) {

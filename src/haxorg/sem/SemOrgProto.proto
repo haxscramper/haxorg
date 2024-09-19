@@ -262,7 +262,7 @@ enum OrgSemKind {
   OrgSemKind_DocumentGroup_f                                                        = 68;
 }
 
-message SubtreeProperty {
+message NamedProperty {
   enum SetMode {
     SetMode_Override_f                                                              = 0;
     SetMode_Add_f                                                                   = 1;
@@ -312,7 +312,7 @@ message SubtreeProperty {
       Level_Content_f                                                               = 2;
       Level_All_f                                                                   = 3;
     }
-    SubtreeProperty.Visibility.Level               level                            = 1;
+    NamedProperty.Visibility.Level                 level                            = 1;
     string                                         debug                            = 1000;
   }
   message ExportOptions {
@@ -344,21 +344,21 @@ message SubtreeProperty {
   }
   message Data {
     oneof kind {
-      SubtreeProperty.Nonblocking                  nonblocking                      = 1;
-      SubtreeProperty.Trigger                      trigger                          = 2;
-      SubtreeProperty.ExportLatexClass             exportlatexclass                 = 3;
-      SubtreeProperty.ExportLatexClassOptions      exportlatexclassoptions          = 4;
-      SubtreeProperty.ExportLatexHeader            exportlatexheader                = 5;
-      SubtreeProperty.ExportLatexCompiler          exportlatexcompiler              = 6;
-      SubtreeProperty.Ordered                      ordered                          = 7;
-      SubtreeProperty.Effort                       effort                           = 8;
-      SubtreeProperty.Visibility                   visibility                       = 9;
-      SubtreeProperty.ExportOptions                exportoptions                    = 10;
-      SubtreeProperty.Blocker                      blocker                          = 11;
-      SubtreeProperty.Unnumbered                   unnumbered                       = 12;
-      SubtreeProperty.Created                      created                          = 13;
-      SubtreeProperty.CustomArgs                   customargs                       = 14;
-      SubtreeProperty.CustomRaw                    customraw                        = 15;
+      NamedProperty.Nonblocking                    nonblocking                      = 1;
+      NamedProperty.Trigger                        trigger                          = 2;
+      NamedProperty.ExportLatexClass               exportlatexclass                 = 3;
+      NamedProperty.ExportLatexClassOptions        exportlatexclassoptions          = 4;
+      NamedProperty.ExportLatexHeader              exportlatexheader                = 5;
+      NamedProperty.ExportLatexCompiler            exportlatexcompiler              = 6;
+      NamedProperty.Ordered                        ordered                          = 7;
+      NamedProperty.Effort                         effort                           = 8;
+      NamedProperty.Visibility                     visibility                       = 9;
+      NamedProperty.ExportOptions                  exportoptions                    = 10;
+      NamedProperty.Blocker                        blocker                          = 11;
+      NamedProperty.Unnumbered                     unnumbered                       = 12;
+      NamedProperty.Created                        created                          = 13;
+      NamedProperty.CustomArgs                     customargs                       = 14;
+      NamedProperty.CustomRaw                      customraw                        = 15;
     }
   }
   enum Kind {
@@ -378,10 +378,10 @@ message SubtreeProperty {
     Kind_CustomArgs_f                                                               = 13;
     Kind_CustomRaw_f                                                                = 14;
   }
-  SubtreeProperty.SetMode                          mainSetRule                      = 1;
-  SubtreeProperty.SetMode                          subSetRule                       = 2;
-  SubtreeProperty.InheritanceMode                  inheritanceMode                  = 3;
-  SubtreeProperty.Data                             data                             = 4;
+  NamedProperty.SetMode                            mainSetRule                      = 1;
+  NamedProperty.SetMode                            subSetRule                       = 2;
+  NamedProperty.InheritanceMode                    inheritanceMode                  = 3;
+  NamedProperty.Data                               data                             = 4;
   string                                           debug                            = 1000;
 }
 
@@ -1149,7 +1149,7 @@ message Subtree {
   repeated HashTag                                 tags                             = 8;
   Paragraph                                        title                            = 9;
   repeated SubtreeLog                              logbook                          = 10;
-  repeated SubtreeProperty                         properties                       = 11;
+  repeated NamedProperty                           properties                       = 11;
   optional Time                                    closed                           = 12;
   optional Time                                    deadline                         = 13;
   optional Time                                    scheduled                        = 14;
@@ -1355,7 +1355,7 @@ message DocumentOptions {
   repeated AnyNode                                 subnodes                         = 1;
   OrgSemKind                                       staticKind                       = 2;
   DocumentOptions.Visibility                       initialVisibility                = 3;
-  repeated SubtreeProperty                         properties                       = 4;
+  repeated NamedProperty                           properties                       = 4;
   DocumentOptions.ExportConfig                     exportConfig                     = 5;
   optional bool                                    fixedWidthSections               = 6;
   optional bool                                    startupIndented                  = 7;

@@ -13,8 +13,8 @@
 #include <haxorg/sem/SemOrgEnums.hpp>
 namespace sem{
 /// \brief Single subtree property
-struct SubtreeProperty {
-  SubtreeProperty() {}
+struct NamedProperty {
+  NamedProperty() {}
   enum class SetMode : short int { Override, Add, Subtract, };
   BOOST_DESCRIBE_NESTED_ENUM(SetMode, Override, Add, Subtract)
   enum class InheritanceMode : short int { ThisAndSub, OnlyThis, OnlySub, };
@@ -27,7 +27,7 @@ struct SubtreeProperty {
                          (),
                          (isBlocking))
     bool isBlocking;
-    bool operator==(sem::SubtreeProperty::Nonblocking const& other) const;
+    bool operator==(sem::NamedProperty::Nonblocking const& other) const;
   };
 
   struct Trigger {
@@ -37,7 +37,7 @@ struct SubtreeProperty {
                          (),
                          (),
                          ())
-    bool operator==(sem::SubtreeProperty::Trigger const& other) const;
+    bool operator==(sem::NamedProperty::Trigger const& other) const;
   };
 
   struct ExportLatexClass {
@@ -48,7 +48,7 @@ struct SubtreeProperty {
                          (),
                          (latexClass))
     Str latexClass;
-    bool operator==(sem::SubtreeProperty::ExportLatexClass const& other) const;
+    bool operator==(sem::NamedProperty::ExportLatexClass const& other) const;
   };
 
   struct ExportLatexClassOptions {
@@ -59,7 +59,7 @@ struct SubtreeProperty {
                          (),
                          (options))
     Vec<Str> options;
-    bool operator==(sem::SubtreeProperty::ExportLatexClassOptions const& other) const;
+    bool operator==(sem::NamedProperty::ExportLatexClassOptions const& other) const;
   };
 
   struct ExportLatexHeader {
@@ -70,7 +70,7 @@ struct SubtreeProperty {
                          (),
                          (header))
     Str header;
-    bool operator==(sem::SubtreeProperty::ExportLatexHeader const& other) const;
+    bool operator==(sem::NamedProperty::ExportLatexHeader const& other) const;
   };
 
   struct ExportLatexCompiler {
@@ -81,7 +81,7 @@ struct SubtreeProperty {
                          (),
                          (compiler))
     Str compiler;
-    bool operator==(sem::SubtreeProperty::ExportLatexCompiler const& other) const;
+    bool operator==(sem::NamedProperty::ExportLatexCompiler const& other) const;
   };
 
   struct Ordered {
@@ -92,7 +92,7 @@ struct SubtreeProperty {
                          (),
                          (isOrdered))
     bool isOrdered;
-    bool operator==(sem::SubtreeProperty::Ordered const& other) const;
+    bool operator==(sem::NamedProperty::Ordered const& other) const;
   };
 
   struct Effort {
@@ -104,7 +104,7 @@ struct SubtreeProperty {
                          (hours, minutes))
     int hours = 0;
     int minutes = 0;
-    bool operator==(sem::SubtreeProperty::Effort const& other) const;
+    bool operator==(sem::NamedProperty::Effort const& other) const;
   };
 
   struct Visibility {
@@ -116,8 +116,8 @@ struct SubtreeProperty {
                          (),
                          (),
                          (level))
-    sem::SubtreeProperty::Visibility::Level level;
-    bool operator==(sem::SubtreeProperty::Visibility const& other) const;
+    sem::NamedProperty::Visibility::Level level;
+    bool operator==(sem::NamedProperty::Visibility const& other) const;
   };
 
   struct ExportOptions {
@@ -129,7 +129,7 @@ struct SubtreeProperty {
                          (backend, values))
     Str backend;
     UnorderedMap<Str, Str> values;
-    bool operator==(sem::SubtreeProperty::ExportOptions const& other) const;
+    bool operator==(sem::NamedProperty::ExportOptions const& other) const;
   };
 
   struct Blocker {
@@ -140,7 +140,7 @@ struct SubtreeProperty {
                          (),
                          (blockers))
     Vec<Str> blockers;
-    bool operator==(sem::SubtreeProperty::Blocker const& other) const;
+    bool operator==(sem::NamedProperty::Blocker const& other) const;
   };
 
   struct Unnumbered {
@@ -150,7 +150,7 @@ struct SubtreeProperty {
                          (),
                          (),
                          ())
-    bool operator==(sem::SubtreeProperty::Unnumbered const& other) const;
+    bool operator==(sem::NamedProperty::Unnumbered const& other) const;
   };
 
   struct Created {
@@ -161,7 +161,7 @@ struct SubtreeProperty {
                          (),
                          (time))
     UserTime time;
-    bool operator==(sem::SubtreeProperty::Created const& other) const;
+    bool operator==(sem::NamedProperty::Created const& other) const;
   };
 
   /// \brief Custop property with unparsed arguments
@@ -178,7 +178,7 @@ struct SubtreeProperty {
     Opt<Str> sub = std::nullopt;
     /// \brief Property parameters
     Vec<Str> parameters = {};
-    bool operator==(sem::SubtreeProperty::CustomArgs const& other) const;
+    bool operator==(sem::NamedProperty::CustomArgs const& other) const;
   };
 
   /// \brief Custop property with unparsed arguments
@@ -193,16 +193,16 @@ struct SubtreeProperty {
     Str name = "";
     /// \brief Property value
     Str value = "";
-    bool operator==(sem::SubtreeProperty::CustomRaw const& other) const;
+    bool operator==(sem::NamedProperty::CustomRaw const& other) const;
   };
 
-  using Data = std::variant<sem::SubtreeProperty::Nonblocking, sem::SubtreeProperty::Trigger, sem::SubtreeProperty::ExportLatexClass, sem::SubtreeProperty::ExportLatexClassOptions, sem::SubtreeProperty::ExportLatexHeader, sem::SubtreeProperty::ExportLatexCompiler, sem::SubtreeProperty::Ordered, sem::SubtreeProperty::Effort, sem::SubtreeProperty::Visibility, sem::SubtreeProperty::ExportOptions, sem::SubtreeProperty::Blocker, sem::SubtreeProperty::Unnumbered, sem::SubtreeProperty::Created, sem::SubtreeProperty::CustomArgs, sem::SubtreeProperty::CustomRaw>;
+  using Data = std::variant<sem::NamedProperty::Nonblocking, sem::NamedProperty::Trigger, sem::NamedProperty::ExportLatexClass, sem::NamedProperty::ExportLatexClassOptions, sem::NamedProperty::ExportLatexHeader, sem::NamedProperty::ExportLatexCompiler, sem::NamedProperty::Ordered, sem::NamedProperty::Effort, sem::NamedProperty::Visibility, sem::NamedProperty::ExportOptions, sem::NamedProperty::Blocker, sem::NamedProperty::Unnumbered, sem::NamedProperty::Created, sem::NamedProperty::CustomArgs, sem::NamedProperty::CustomRaw>;
   enum class Kind : short int { Nonblocking, Trigger, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, CustomArgs, CustomRaw, };
   BOOST_DESCRIBE_NESTED_ENUM(Kind, Nonblocking, Trigger, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, CustomArgs, CustomRaw)
-  using variant_enum_type = sem::SubtreeProperty::Kind;
-  using variant_data_type = sem::SubtreeProperty::Data;
-  SubtreeProperty(CR<Data> data) : data(data) {}
-  BOOST_DESCRIBE_CLASS(SubtreeProperty,
+  using variant_enum_type = sem::NamedProperty::Kind;
+  using variant_data_type = sem::NamedProperty::Data;
+  NamedProperty(CR<Data> data) : data(data) {}
+  BOOST_DESCRIBE_CLASS(NamedProperty,
                        (),
                        (),
                        (),
@@ -210,49 +210,49 @@ struct SubtreeProperty {
                         subSetRule,
                         inheritanceMode,
                         data))
-  sem::SubtreeProperty::SetMode mainSetRule = SubtreeProperty::SetMode::Override;
-  sem::SubtreeProperty::SetMode subSetRule = SubtreeProperty::SetMode::Override;
-  sem::SubtreeProperty::InheritanceMode inheritanceMode = SubtreeProperty::InheritanceMode::ThisAndSub;
-  sem::SubtreeProperty::Data data;
+  sem::NamedProperty::SetMode mainSetRule = NamedProperty::SetMode::Override;
+  sem::NamedProperty::SetMode subSetRule = NamedProperty::SetMode::Override;
+  sem::NamedProperty::InheritanceMode inheritanceMode = NamedProperty::InheritanceMode::ThisAndSub;
+  sem::NamedProperty::Data data;
   /// \brief Check if property matches specified kind and optional subkind. Built-in property checking is also done with this function -- 'created' etc.
   bool isMatching(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;
   /// \brief Get non-normalized name of the property (for built-in and user)
   Str getName() const;
   /// \brief Get non-normalized sub-kind for the property.
   Opt<Str> getSubKind() const;
-  bool operator==(sem::SubtreeProperty const& other) const;
-  sem::SubtreeProperty::Nonblocking const& getNonblocking() const { return std::get<0>(data); }
-  sem::SubtreeProperty::Nonblocking& getNonblocking() { return std::get<0>(data); }
-  sem::SubtreeProperty::Trigger const& getTrigger() const { return std::get<1>(data); }
-  sem::SubtreeProperty::Trigger& getTrigger() { return std::get<1>(data); }
-  sem::SubtreeProperty::ExportLatexClass const& getExportLatexClass() const { return std::get<2>(data); }
-  sem::SubtreeProperty::ExportLatexClass& getExportLatexClass() { return std::get<2>(data); }
-  sem::SubtreeProperty::ExportLatexClassOptions const& getExportLatexClassOptions() const { return std::get<3>(data); }
-  sem::SubtreeProperty::ExportLatexClassOptions& getExportLatexClassOptions() { return std::get<3>(data); }
-  sem::SubtreeProperty::ExportLatexHeader const& getExportLatexHeader() const { return std::get<4>(data); }
-  sem::SubtreeProperty::ExportLatexHeader& getExportLatexHeader() { return std::get<4>(data); }
-  sem::SubtreeProperty::ExportLatexCompiler const& getExportLatexCompiler() const { return std::get<5>(data); }
-  sem::SubtreeProperty::ExportLatexCompiler& getExportLatexCompiler() { return std::get<5>(data); }
-  sem::SubtreeProperty::Ordered const& getOrdered() const { return std::get<6>(data); }
-  sem::SubtreeProperty::Ordered& getOrdered() { return std::get<6>(data); }
-  sem::SubtreeProperty::Effort const& getEffort() const { return std::get<7>(data); }
-  sem::SubtreeProperty::Effort& getEffort() { return std::get<7>(data); }
-  sem::SubtreeProperty::Visibility const& getVisibility() const { return std::get<8>(data); }
-  sem::SubtreeProperty::Visibility& getVisibility() { return std::get<8>(data); }
-  sem::SubtreeProperty::ExportOptions const& getExportOptions() const { return std::get<9>(data); }
-  sem::SubtreeProperty::ExportOptions& getExportOptions() { return std::get<9>(data); }
-  sem::SubtreeProperty::Blocker const& getBlocker() const { return std::get<10>(data); }
-  sem::SubtreeProperty::Blocker& getBlocker() { return std::get<10>(data); }
-  sem::SubtreeProperty::Unnumbered const& getUnnumbered() const { return std::get<11>(data); }
-  sem::SubtreeProperty::Unnumbered& getUnnumbered() { return std::get<11>(data); }
-  sem::SubtreeProperty::Created const& getCreated() const { return std::get<12>(data); }
-  sem::SubtreeProperty::Created& getCreated() { return std::get<12>(data); }
-  sem::SubtreeProperty::CustomArgs const& getCustomArgs() const { return std::get<13>(data); }
-  sem::SubtreeProperty::CustomArgs& getCustomArgs() { return std::get<13>(data); }
-  sem::SubtreeProperty::CustomRaw const& getCustomRaw() const { return std::get<14>(data); }
-  sem::SubtreeProperty::CustomRaw& getCustomRaw() { return std::get<14>(data); }
-  static sem::SubtreeProperty::Kind getKind(sem::SubtreeProperty::Data const& __input) { return static_cast<sem::SubtreeProperty::Kind>(__input.index()); }
-  sem::SubtreeProperty::Kind getKind() const { return getKind(data); }
+  bool operator==(sem::NamedProperty const& other) const;
+  sem::NamedProperty::Nonblocking const& getNonblocking() const { return std::get<0>(data); }
+  sem::NamedProperty::Nonblocking& getNonblocking() { return std::get<0>(data); }
+  sem::NamedProperty::Trigger const& getTrigger() const { return std::get<1>(data); }
+  sem::NamedProperty::Trigger& getTrigger() { return std::get<1>(data); }
+  sem::NamedProperty::ExportLatexClass const& getExportLatexClass() const { return std::get<2>(data); }
+  sem::NamedProperty::ExportLatexClass& getExportLatexClass() { return std::get<2>(data); }
+  sem::NamedProperty::ExportLatexClassOptions const& getExportLatexClassOptions() const { return std::get<3>(data); }
+  sem::NamedProperty::ExportLatexClassOptions& getExportLatexClassOptions() { return std::get<3>(data); }
+  sem::NamedProperty::ExportLatexHeader const& getExportLatexHeader() const { return std::get<4>(data); }
+  sem::NamedProperty::ExportLatexHeader& getExportLatexHeader() { return std::get<4>(data); }
+  sem::NamedProperty::ExportLatexCompiler const& getExportLatexCompiler() const { return std::get<5>(data); }
+  sem::NamedProperty::ExportLatexCompiler& getExportLatexCompiler() { return std::get<5>(data); }
+  sem::NamedProperty::Ordered const& getOrdered() const { return std::get<6>(data); }
+  sem::NamedProperty::Ordered& getOrdered() { return std::get<6>(data); }
+  sem::NamedProperty::Effort const& getEffort() const { return std::get<7>(data); }
+  sem::NamedProperty::Effort& getEffort() { return std::get<7>(data); }
+  sem::NamedProperty::Visibility const& getVisibility() const { return std::get<8>(data); }
+  sem::NamedProperty::Visibility& getVisibility() { return std::get<8>(data); }
+  sem::NamedProperty::ExportOptions const& getExportOptions() const { return std::get<9>(data); }
+  sem::NamedProperty::ExportOptions& getExportOptions() { return std::get<9>(data); }
+  sem::NamedProperty::Blocker const& getBlocker() const { return std::get<10>(data); }
+  sem::NamedProperty::Blocker& getBlocker() { return std::get<10>(data); }
+  sem::NamedProperty::Unnumbered const& getUnnumbered() const { return std::get<11>(data); }
+  sem::NamedProperty::Unnumbered& getUnnumbered() { return std::get<11>(data); }
+  sem::NamedProperty::Created const& getCreated() const { return std::get<12>(data); }
+  sem::NamedProperty::Created& getCreated() { return std::get<12>(data); }
+  sem::NamedProperty::CustomArgs const& getCustomArgs() const { return std::get<13>(data); }
+  sem::NamedProperty::CustomArgs& getCustomArgs() { return std::get<13>(data); }
+  sem::NamedProperty::CustomRaw const& getCustomRaw() const { return std::get<14>(data); }
+  sem::NamedProperty::CustomRaw& getCustomRaw() { return std::get<14>(data); }
+  static sem::NamedProperty::Kind getKind(sem::NamedProperty::Data const& __input) { return static_cast<sem::NamedProperty::Kind>(__input.index()); }
+  sem::NamedProperty::Kind getKind() const { return getKind(data); }
 };
 
 /// \brief No node
@@ -1593,7 +1593,7 @@ struct Subtree : public sem::Org {
   /// \brief Associated subtree log
   Vec<sem::SemId<sem::SubtreeLog>> logbook = {};
   /// \brief Immediate properties
-  Vec<sem::SubtreeProperty> properties = {};
+  Vec<sem::NamedProperty> properties = {};
   /// \brief When subtree was marked as closed
   Opt<sem::SemId<sem::Time>> closed = std::nullopt;
   /// \brief When is the deadline
@@ -1607,12 +1607,12 @@ struct Subtree : public sem::Org {
   Opt<Str> priority = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::Subtree; }
   Vec<sem::Subtree::Period> getTimePeriods(IntSet<sem::Subtree::Period::Kind> kinds) const;
-  Vec<sem::SubtreeProperty> getProperties(Str const& kind, Opt<Str> const& subkind = std::nullopt) const;
-  Opt<sem::SubtreeProperty> getProperty(Str const& kind, Opt<Str> const& subkind = std::nullopt) const;
+  Vec<sem::NamedProperty> getProperties(Str const& kind, Opt<Str> const& subkind = std::nullopt) const;
+  Opt<sem::NamedProperty> getProperty(Str const& kind, Opt<Str> const& subkind = std::nullopt) const;
   /// \brief Remove all instances of the property with matching kind/subkind from the property list
   void removeProperty(Str const& kind, Opt<Str> const& subkind = std::nullopt);
   /// \brief Create or override existing property value in the subtree property list
-  void setProperty(sem::SubtreeProperty const& value);
+  void setProperty(sem::NamedProperty const& value);
   /// \brief Assign a raw string literal to a property.
   ///
   /// This function will not do the conversion or parsing of the assigned value, so if it is a 'created' or some other property with a typed value, it will still remain as string until the file is written and then parsed back from scratch.
@@ -1935,7 +1935,7 @@ struct DocumentOptions : public sem::Org {
                         maxSubtreeLevelExport))
   static OrgSemKind const staticKind;
   sem::DocumentOptions::Visibility initialVisibility = Visibility::ShowEverything;
-  Vec<sem::SubtreeProperty> properties = {};
+  Vec<sem::NamedProperty> properties = {};
   sem::DocumentOptions::ExportConfig exportConfig;
   Opt<bool> fixedWidthSections = std::nullopt;
   Opt<bool> startupIndented = std::nullopt;
@@ -1943,8 +1943,8 @@ struct DocumentOptions : public sem::Org {
   Opt<Str> setupfile = std::nullopt;
   Opt<int> maxSubtreeLevelExport = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::DocumentOptions; }
-  Vec<sem::SubtreeProperty> getProperties(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;
-  Opt<sem::SubtreeProperty> getProperty(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;
+  Vec<sem::NamedProperty> getProperties(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;
+  Opt<sem::NamedProperty> getProperty(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;
 };
 
 struct Document : public sem::Org {
@@ -1973,8 +1973,8 @@ struct Document : public sem::Org {
   sem::SemId<sem::DocumentOptions> options = sem::SemId<sem::DocumentOptions>::Nil();
   Opt<Str> exportFileName = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::Document; }
-  Vec<sem::SubtreeProperty> getProperties(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;
-  Opt<sem::SubtreeProperty> getProperty(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;
+  Vec<sem::NamedProperty> getProperties(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;
+  Opt<sem::NamedProperty> getProperty(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;
 };
 
 struct FileTarget : public sem::Org {

@@ -581,46 +581,46 @@ class MindMapGraph():
                 meta.title = formatOrgWithoutTime(node.title)
                 meta.level = node.level
 
-                prop: org.SubtreeProperty
+                prop: org.NamedProperty
                 export_options: Dict[str, Dict[str, str]] = {}
                 for prop in node.properties:
                     value = {}
                     match prop.getKind():
-                        case org.SubtreePropertyKind.Effort:
+                        case org.NamedPropertyKind.Effort:
                             value["hours"] = prop.getEffort().hours
                             value["minutes"] = prop.getEffort().minutes
 
-                        case org.SubtreePropertyKind.CustomRaw:
+                        case org.NamedPropertyKind.CustomRaw:
                             value["value"] = prop.getCustomRaw().value
 
-                        case org.SubtreePropertyKind.Ordered:
+                        case org.NamedPropertyKind.Ordered:
                             value["isOrdered"] = prop.getOrdered().isOrdered
 
-                        case org.SubtreePropertyKind.Created:
+                        case org.NamedPropertyKind.Created:
                             value["created"] = evalDateTime(
                                 prop.getCreated().time.getStatic().time)
 
-                        case org.SubtreePropertyKind.Visibility:
+                        case org.NamedPropertyKind.Visibility:
                             value["level"] = str(prop.getVisibility().level)
 
-                        case org.SubtreePropertyKind.ExportOptions:
+                        case org.NamedPropertyKind.ExportOptions:
                             export_options[prop.getExportOptions().
                                            backend] = prop.getExportOptions().values
                             value = export_options
 
-                        case org.SubtreePropertyKind.ExportLatexCompiler:
+                        case org.NamedPropertyKind.ExportLatexCompiler:
                             value["compiler"] = prop.getExportLatexCompiler().compiler
 
-                        case org.SubtreePropertyKind.ExportLatexHeader:
+                        case org.NamedPropertyKind.ExportLatexHeader:
                             value["header"] = prop.getExportLatexHeader().header
 
-                        case org.SubtreePropertyKind.ExportLatexClassOptions:
+                        case org.NamedPropertyKind.ExportLatexClassOptions:
                             value["header"] = prop.getExportLatexClassOptions().options
 
-                        case org.SubtreePropertyKind.Trigger:
+                        case org.NamedPropertyKind.Trigger:
                             pass  # TODO implement trigger property
 
-                        case org.SubtreePropertyKind.Unnumbered:
+                        case org.NamedPropertyKind.Unnumbered:
                             pass
 
                         case _:

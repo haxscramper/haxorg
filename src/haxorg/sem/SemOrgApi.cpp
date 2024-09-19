@@ -17,7 +17,7 @@ using namespace boost::describe;
 
 using namespace sem;
 using osk      = OrgSemKind;
-using Property = SubtreeProperty;
+using Property = NamedProperty;
 
 template <>
 struct value_domain<sem::Subtree::Period::Kind>
@@ -239,7 +239,7 @@ void Subtree::removeProperty(const Str& kind, const Opt<Str>& subkind) {
     }
 }
 
-Str SubtreeProperty::getName() const {
+Str NamedProperty::getName() const {
     if (getKind() == Kind::CustomRaw) {
         return getCustomRaw().name;
     } else {
@@ -247,7 +247,7 @@ Str SubtreeProperty::getName() const {
     }
 }
 
-Opt<Str> SubtreeProperty::getSubKind() const {
+Opt<Str> NamedProperty::getSubKind() const {
     if (getKind() == Kind::ExportOptions) {
         return getExportOptions().backend;
     } else {
@@ -255,7 +255,7 @@ Opt<Str> SubtreeProperty::getSubKind() const {
     }
 }
 
-bool SubtreeProperty::isMatching(Str const& kind, CR<Opt<Str>> subkind)
+bool NamedProperty::isMatching(Str const& kind, CR<Opt<Str>> subkind)
     const {
     if (getKind() == Property::Kind::CustomRaw) {
         return normalize(getCustomRaw().name) == normalize(kind);
@@ -270,17 +270,17 @@ bool SubtreeProperty::isMatching(Str const& kind, CR<Opt<Str>> subkind)
     }
 }
 
-Vec<SubtreeProperty> DocumentOptions::getProperties(
+Vec<NamedProperty> DocumentOptions::getProperties(
     Str const&   kind,
     CR<Opt<Str>> subkind) const {
-    Vec<SubtreeProperty> result;
+    Vec<NamedProperty> result;
     for (const auto& prop : properties) {
         if (prop.isMatching(kind, subkind)) { result.push_back(prop); }
     }
     return result;
 }
 
-Opt<SubtreeProperty> DocumentOptions::getProperty(
+Opt<NamedProperty> DocumentOptions::getProperty(
     CR<Str>      kind,
     CR<Opt<Str>> subkind) const {
     auto props = getProperties(kind, subkind);
@@ -291,7 +291,7 @@ Opt<SubtreeProperty> DocumentOptions::getProperty(
     }
 }
 
-Vec<SubtreeProperty> Document::getProperties(
+Vec<NamedProperty> Document::getProperties(
     CR<Str>      kind,
     CR<Opt<Str>> subkind) const {
     if (options.isNil()) {
@@ -301,7 +301,7 @@ Vec<SubtreeProperty> Document::getProperties(
     }
 }
 
-Opt<SubtreeProperty> Document::getProperty(
+Opt<NamedProperty> Document::getProperty(
     CR<Str>      kind,
     CR<Opt<Str>> subkind) const {
     if (options.isNil()) {

@@ -648,7 +648,7 @@ __same_type(float);
 __same_type(bool);
 __same_type(std::string);
 __same_type(UserTime);
-__same_type(sem::SubtreeProperty);
+__same_type(sem::NamedProperty);
 
 
 template <typename SemType, typename ImmType>

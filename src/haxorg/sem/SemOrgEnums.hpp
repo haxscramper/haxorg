@@ -4,43 +4,43 @@
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #define EACH_SHARED_ORG_RECORD_NESTED(__IMPL) \
-    __IMPL(SubtreeProperty, Nonblocking, (Nonblocking)) \
-    __IMPL(SubtreeProperty, Trigger, (Trigger)) \
-    __IMPL(SubtreeProperty, ExportLatexClass, (ExportLatexClass)) \
-    __IMPL(SubtreeProperty, ExportLatexClassOptions, (ExportLatexClassOptions)) \
-    __IMPL(SubtreeProperty, ExportLatexHeader, (ExportLatexHeader)) \
-    __IMPL(SubtreeProperty, ExportLatexCompiler, (ExportLatexCompiler)) \
-    __IMPL(SubtreeProperty, Ordered, (Ordered)) \
-    __IMPL(SubtreeProperty, Effort, (Effort)) \
-    __IMPL(SubtreeProperty, Visibility, (Visibility)) \
-    __IMPL(SubtreeProperty, ExportOptions, (ExportOptions)) \
-    __IMPL(SubtreeProperty, Blocker, (Blocker)) \
-    __IMPL(SubtreeProperty, Unnumbered, (Unnumbered)) \
-    __IMPL(SubtreeProperty, Created, (Created)) \
-    __IMPL(SubtreeProperty, CustomArgs, (CustomArgs)) \
-    __IMPL(SubtreeProperty, CustomRaw, (CustomRaw))
+    __IMPL(NamedProperty, Nonblocking, (Nonblocking)) \
+    __IMPL(NamedProperty, Trigger, (Trigger)) \
+    __IMPL(NamedProperty, ExportLatexClass, (ExportLatexClass)) \
+    __IMPL(NamedProperty, ExportLatexClassOptions, (ExportLatexClassOptions)) \
+    __IMPL(NamedProperty, ExportLatexHeader, (ExportLatexHeader)) \
+    __IMPL(NamedProperty, ExportLatexCompiler, (ExportLatexCompiler)) \
+    __IMPL(NamedProperty, Ordered, (Ordered)) \
+    __IMPL(NamedProperty, Effort, (Effort)) \
+    __IMPL(NamedProperty, Visibility, (Visibility)) \
+    __IMPL(NamedProperty, ExportOptions, (ExportOptions)) \
+    __IMPL(NamedProperty, Blocker, (Blocker)) \
+    __IMPL(NamedProperty, Unnumbered, (Unnumbered)) \
+    __IMPL(NamedProperty, Created, (Created)) \
+    __IMPL(NamedProperty, CustomArgs, (CustomArgs)) \
+    __IMPL(NamedProperty, CustomRaw, (CustomRaw))
 #define EACH_SHARED_ORG_ENUM_NESTED(__IMPL) \
-    __IMPL(SubtreeProperty, SetMode, (SetMode)) \
-    __IMPL(SubtreeProperty, InheritanceMode, (InheritanceMode)) \
-    __IMPL(SubtreeProperty, Visibility::Level, (Visibility, Level)) \
-    __IMPL(SubtreeProperty, Kind, (Kind))
+    __IMPL(NamedProperty, SetMode, (SetMode)) \
+    __IMPL(NamedProperty, InheritanceMode, (InheritanceMode)) \
+    __IMPL(NamedProperty, Visibility::Level, (Visibility, Level)) \
+    __IMPL(NamedProperty, Kind, (Kind))
 #define EACH_SHARED_ORG_RECORD(__IMPL) \
-    __IMPL(SubtreeProperty, (SubtreeProperty)) \
-    __IMPL(SubtreeProperty::Nonblocking, (SubtreeProperty, Nonblocking)) \
-    __IMPL(SubtreeProperty::Trigger, (SubtreeProperty, Trigger)) \
-    __IMPL(SubtreeProperty::ExportLatexClass, (SubtreeProperty, ExportLatexClass)) \
-    __IMPL(SubtreeProperty::ExportLatexClassOptions, (SubtreeProperty, ExportLatexClassOptions)) \
-    __IMPL(SubtreeProperty::ExportLatexHeader, (SubtreeProperty, ExportLatexHeader)) \
-    __IMPL(SubtreeProperty::ExportLatexCompiler, (SubtreeProperty, ExportLatexCompiler)) \
-    __IMPL(SubtreeProperty::Ordered, (SubtreeProperty, Ordered)) \
-    __IMPL(SubtreeProperty::Effort, (SubtreeProperty, Effort)) \
-    __IMPL(SubtreeProperty::Visibility, (SubtreeProperty, Visibility)) \
-    __IMPL(SubtreeProperty::ExportOptions, (SubtreeProperty, ExportOptions)) \
-    __IMPL(SubtreeProperty::Blocker, (SubtreeProperty, Blocker)) \
-    __IMPL(SubtreeProperty::Unnumbered, (SubtreeProperty, Unnumbered)) \
-    __IMPL(SubtreeProperty::Created, (SubtreeProperty, Created)) \
-    __IMPL(SubtreeProperty::CustomArgs, (SubtreeProperty, CustomArgs)) \
-    __IMPL(SubtreeProperty::CustomRaw, (SubtreeProperty, CustomRaw))
+    __IMPL(NamedProperty, (NamedProperty)) \
+    __IMPL(NamedProperty::Nonblocking, (NamedProperty, Nonblocking)) \
+    __IMPL(NamedProperty::Trigger, (NamedProperty, Trigger)) \
+    __IMPL(NamedProperty::ExportLatexClass, (NamedProperty, ExportLatexClass)) \
+    __IMPL(NamedProperty::ExportLatexClassOptions, (NamedProperty, ExportLatexClassOptions)) \
+    __IMPL(NamedProperty::ExportLatexHeader, (NamedProperty, ExportLatexHeader)) \
+    __IMPL(NamedProperty::ExportLatexCompiler, (NamedProperty, ExportLatexCompiler)) \
+    __IMPL(NamedProperty::Ordered, (NamedProperty, Ordered)) \
+    __IMPL(NamedProperty::Effort, (NamedProperty, Effort)) \
+    __IMPL(NamedProperty::Visibility, (NamedProperty, Visibility)) \
+    __IMPL(NamedProperty::ExportOptions, (NamedProperty, ExportOptions)) \
+    __IMPL(NamedProperty::Blocker, (NamedProperty, Blocker)) \
+    __IMPL(NamedProperty::Unnumbered, (NamedProperty, Unnumbered)) \
+    __IMPL(NamedProperty::Created, (NamedProperty, Created)) \
+    __IMPL(NamedProperty::CustomArgs, (NamedProperty, CustomArgs)) \
+    __IMPL(NamedProperty::CustomRaw, (NamedProperty, CustomRaw))
 #define EACH_SEM_ORG_RECORD_NESTED(__IMPL) \
     __IMPL(Time, Repeat, (Repeat)) \
     __IMPL(Time, Static, (Static)) \

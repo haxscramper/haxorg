@@ -727,7 +727,7 @@ TEST(OrgApi, EachSubnodeWithContext) {
         }                                                                 \
     }
 
-TEST(OrgApi, SubtreePropertyModification) {
+TEST(OrgApi, NamedPropertyModification) {
     auto doc = parseNode(R"(* Subtree)");
 
     auto tree = doc.at(0).as<sem::Subtree>();

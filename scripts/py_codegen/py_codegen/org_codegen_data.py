@@ -259,74 +259,74 @@ def d_simple_enum(name: QualType, doc: GenTuDoc, *args):
 def get_subtree_property_types():
     return [
         GenTuStruct(
-            t_nest_shared("Nonblocking", ["SubtreeProperty"]),
+            t_nest_shared("Nonblocking", ["NamedProperty"]),
             GenTuDoc(""),
             fields=[GenTuField(t_bool(), "isBlocking", GenTuDoc(""))],
             nested=[GenTuPass("Nonblocking() {}")],
-            methods=[eq_method(t_nest_shared("Nonblocking", ["SubtreeProperty"]))],
+            methods=[eq_method(t_nest_shared("Nonblocking", ["NamedProperty"]))],
         ),
         GenTuStruct(
-            t_nest_shared("Trigger", ["SubtreeProperty"]),
+            t_nest_shared("Trigger", ["NamedProperty"]),
             GenTuDoc(""),
             nested=[GenTuPass("Trigger() {}")],
-            methods=[eq_method(t_nest_shared("Trigger", ["SubtreeProperty"]))],
+            methods=[eq_method(t_nest_shared("Trigger", ["NamedProperty"]))],
         ),
         GenTuStruct(
-            t_nest_shared("ExportLatexClass", ["SubtreeProperty"]),
+            t_nest_shared("ExportLatexClass", ["NamedProperty"]),
             GenTuDoc(""),
             fields=[GenTuField(t_str(), "latexClass", GenTuDoc(""))],
             nested=[GenTuPass("ExportLatexClass() {}")],
-            methods=[eq_method(t_nest_shared("ExportLatexClass", ["SubtreeProperty"]))],
+            methods=[eq_method(t_nest_shared("ExportLatexClass", ["NamedProperty"]))],
         ),
         GenTuStruct(
-            t_nest_shared("ExportLatexClassOptions", ["SubtreeProperty"]),
+            t_nest_shared("ExportLatexClassOptions", ["NamedProperty"]),
             GenTuDoc(""),
             fields=[GenTuField(t_vec(t_str()), "options", GenTuDoc(""))],
             nested=[GenTuPass("ExportLatexClassOptions() {}")],
             methods=[
-                eq_method(t_nest_shared("ExportLatexClassOptions", ["SubtreeProperty"]))
+                eq_method(t_nest_shared("ExportLatexClassOptions", ["NamedProperty"]))
             ],
         ),
         GenTuStruct(
-            t_nest_shared("ExportLatexHeader", ["SubtreeProperty"]),
+            t_nest_shared("ExportLatexHeader", ["NamedProperty"]),
             GenTuDoc(""),
             fields=[GenTuField(t_str(), "header", GenTuDoc(""))],
             nested=[GenTuPass("ExportLatexHeader() {}")],
-            methods=[eq_method(t_nest_shared("ExportLatexHeader", ["SubtreeProperty"]))],
+            methods=[eq_method(t_nest_shared("ExportLatexHeader", ["NamedProperty"]))],
         ),
         GenTuStruct(
-            t_nest_shared("ExportLatexCompiler", ["SubtreeProperty"]),
+            t_nest_shared("ExportLatexCompiler", ["NamedProperty"]),
             GenTuDoc(""),
             fields=[GenTuField(t_str(), "compiler", GenTuDoc(""))],
             nested=[GenTuPass("ExportLatexCompiler() {}")],
             methods=[
-                eq_method(t_nest_shared("ExportLatexCompiler", ["SubtreeProperty"]))
+                eq_method(t_nest_shared("ExportLatexCompiler", ["NamedProperty"]))
             ],
         ),
         GenTuStruct(
-            t_nest_shared("Ordered", ["SubtreeProperty"]),
+            t_nest_shared("Ordered", ["NamedProperty"]),
             GenTuDoc(""),
             fields=[GenTuField(t_bool(), "isOrdered", GenTuDoc(""))],
             nested=[GenTuPass("Ordered() {}")],
-            methods=[eq_method(t_nest_shared("Ordered", ["SubtreeProperty"]))],
+            methods=[eq_method(t_nest_shared("Ordered", ["NamedProperty"]))],
         ),
         GenTuStruct(
-            t_nest_shared("Effort", ["SubtreeProperty"]),
+            t_nest_shared("Effort", ["NamedProperty"]),
             GenTuDoc(""),
             fields=[
                 GenTuField(t_int(), "hours", GenTuDoc(""), value="0"),
                 GenTuField(t_int(), "minutes", GenTuDoc(""), value="0"),
             ],
             nested=[GenTuPass("Effort() {}")],
-            methods=[eq_method(t_nest_shared("Effort", ["SubtreeProperty"]))],
+            methods=[eq_method(t_nest_shared("Effort", ["NamedProperty"]))],
         ),
         GenTuStruct(
-            t_nest_shared("Visibility", ["SubtreeProperty"]),
+            t_nest_shared("Visibility", ["NamedProperty"]),
             GenTuDoc(""),
             nested=[
                 GenTuPass("Visibility() {}"),
                 d_simple_enum(
-                    t_nest_shared("Level", ["SubtreeProperty", "Visibility"]),
+                    t_nest_shared("Level", ["NamedProperty", "Visibility"]),
                     GenTuDoc(""),
                     "Folded",
                     "Children",
@@ -336,48 +336,48 @@ def get_subtree_property_types():
             ],
             fields=[
                 GenTuField(
-                    t_nest_shared("Level", ["SubtreeProperty", "Visibility"]),
+                    t_nest_shared("Level", ["NamedProperty", "Visibility"]),
                     "level",
                     GenTuDoc(""),
                 )
             ],
-            methods=[eq_method(t_nest_shared("Visibility", ["SubtreeProperty"]))],
+            methods=[eq_method(t_nest_shared("Visibility", ["NamedProperty"]))],
         ),
         GenTuStruct(
-            t_nest_shared("ExportOptions", ["SubtreeProperty"]),
+            t_nest_shared("ExportOptions", ["NamedProperty"]),
             GenTuDoc(""),
             nested=[GenTuPass("ExportOptions() {}")],
-            methods=[eq_method(t_nest_shared("ExportOptions", ["SubtreeProperty"]))],
+            methods=[eq_method(t_nest_shared("ExportOptions", ["NamedProperty"]))],
             fields=[
                 GenTuField(t_str(), "backend", GenTuDoc("")),
                 GenTuField(t_map(t_str(), t_str()), "values", GenTuDoc("")),
             ],
         ),
         GenTuStruct(
-            t_nest_shared("Blocker", ["SubtreeProperty"]),
+            t_nest_shared("Blocker", ["NamedProperty"]),
             GenTuDoc(""),
             nested=[GenTuPass("Blocker() {}")],
             fields=[GenTuField(t_vec(t_str()), "blockers", GenTuDoc(""))],
-            methods=[eq_method(t_nest_shared("Blocker", ["SubtreeProperty"]))],
+            methods=[eq_method(t_nest_shared("Blocker", ["NamedProperty"]))],
         ),
         GenTuStruct(
-            t_nest_shared("Unnumbered", ["SubtreeProperty"]),
+            t_nest_shared("Unnumbered", ["NamedProperty"]),
             GenTuDoc(""),
             nested=[GenTuPass("Unnumbered() {}")],
-            methods=[eq_method(t_nest_shared("Unnumbered", ["SubtreeProperty"]))],
+            methods=[eq_method(t_nest_shared("Unnumbered", ["NamedProperty"]))],
         ),
         GenTuStruct(
-            t_nest_shared("Created", ["SubtreeProperty"]),
+            t_nest_shared("Created", ["NamedProperty"]),
             GenTuDoc(""),
             nested=[GenTuPass("Created() {}")],
             fields=[GenTuField(t("UserTime"), "time", GenTuDoc(""))],
-            methods=[eq_method(t_nest_shared("Created", ["SubtreeProperty"]))],
+            methods=[eq_method(t_nest_shared("Created", ["NamedProperty"]))],
         ),
         GenTuStruct(
-            t_nest_shared("CustomArgs", ["SubtreeProperty"]),
+            t_nest_shared("CustomArgs", ["NamedProperty"]),
             GenTuDoc("Custop property with unparsed arguments"),
             nested=[GenTuPass("CustomArgs() {}")],
-            methods=[eq_method(t_nest_shared("CustomArgs", ["SubtreeProperty"]))],
+            methods=[eq_method(t_nest_shared("CustomArgs", ["NamedProperty"]))],
             fields=[
                 str_field("name", GenTuDoc("Original name of the property")),
                 opt_field(t_str(), "sub", GenTuDoc("Property target specialization")),
@@ -385,10 +385,10 @@ def get_subtree_property_types():
             ],
         ),
         GenTuStruct(
-            t_nest_shared("CustomRaw", ["SubtreeProperty"]),
+            t_nest_shared("CustomRaw", ["NamedProperty"]),
             GenTuDoc("Custop property with unparsed arguments"),
             nested=[GenTuPass("CustomRaw() {}")],
-            methods=[eq_method(t_nest_shared("CustomRaw", ["SubtreeProperty"]))],
+            methods=[eq_method(t_nest_shared("CustomRaw", ["NamedProperty"]))],
             fields=[
                 str_field("name", GenTuDoc("Original name of the property")),
                 str_field("value", GenTuDoc("Property value")),
@@ -1418,7 +1418,7 @@ def get_sem_subtree():
                 id_field("Paragraph", "title", GenTuDoc("Main title")),
                 vec_field(t_id("SubtreeLog"), "logbook",
                           GenTuDoc("Associated subtree log")),
-                vec_field(t_nest_shared(t("SubtreeProperty"), []), "properties",
+                vec_field(t_nest_shared(t("NamedProperty"), []), "properties",
                           GenTuDoc("Immediate properties")),
                 opt_field(t_id("Time"), "closed",
                           GenTuDoc("When subtree was marked as closed")),
@@ -1446,7 +1446,7 @@ def get_sem_subtree():
                     ],
                 ),
                 GenTuFunction(
-                    t_vec(t_nest_shared(t("SubtreeProperty"), [])),
+                    t_vec(t_nest_shared(t("NamedProperty"), [])),
                     "getProperties",
                     GenTuDoc(""),
                     isConst=True,
@@ -1456,7 +1456,7 @@ def get_sem_subtree():
                     ],
                 ),
                 GenTuFunction(
-                    t_opt(t_nest_shared(t("SubtreeProperty"), [])),
+                    t_opt(t_nest_shared(t("NamedProperty"), [])),
                     "getProperty",
                     GenTuDoc(""),
                     isConst=True,
@@ -1483,7 +1483,7 @@ def get_sem_subtree():
                         "Create or override existing property value in the subtree property list"
                     ),
                     arguments=[
-                        GenTuIdent(t_cr(t_nest_shared(t("SubtreeProperty"), [])),
+                        GenTuIdent(t_cr(t_nest_shared(t("NamedProperty"), [])),
                                    "value"),
                     ],
                 ),
@@ -1581,7 +1581,7 @@ def get_sem_subtree():
 def get_shared_sem_types() -> Sequence[GenTuStruct]:
     return [
         GenTuStruct(
-            t_nest_shared("SubtreeProperty", []),
+            t_nest_shared("NamedProperty", []),
             GenTuDoc("Single subtree property"),
             methods=[
                 GenTuFunction(
@@ -1611,37 +1611,37 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     GenTuDoc("Get non-normalized sub-kind for the property."),
                     isConst=True,
                 ),
-                eq_method(t_nest_shared("SubtreeProperty", [])),
+                eq_method(t_nest_shared("NamedProperty", [])),
             ],
             fields=[
                 GenTuField(
-                    t_nest_shared("SetMode", ["SubtreeProperty"]),
+                    t_nest_shared("SetMode", ["NamedProperty"]),
                     "mainSetRule",
                     GenTuDoc(""),
-                    value="SubtreeProperty::SetMode::Override",
+                    value="NamedProperty::SetMode::Override",
                 ),
-                GenTuField(t_nest_shared("SetMode", ["SubtreeProperty"]),
+                GenTuField(t_nest_shared("SetMode", ["NamedProperty"]),
                            "subSetRule",
                            GenTuDoc(""),
-                           value="SubtreeProperty::SetMode::Override"),
+                           value="NamedProperty::SetMode::Override"),
                 GenTuField(
-                    t_nest_shared("InheritanceMode", ["SubtreeProperty"]),
+                    t_nest_shared("InheritanceMode", ["NamedProperty"]),
                     "inheritanceMode",
                     GenTuDoc(""),
-                    value="SubtreeProperty::InheritanceMode::ThisAndSub",
+                    value="NamedProperty::InheritanceMode::ThisAndSub",
                 ),
             ],
             nested=[
-                GenTuPass("SubtreeProperty() {}"),
+                GenTuPass("NamedProperty() {}"),
                 d_simple_enum(
-                    t_nest_shared("SetMode", ["SubtreeProperty"]),
+                    t_nest_shared("SetMode", ["NamedProperty"]),
                     GenTuDoc(""),
                     "Override",
                     "Add",
                     "Subtract",
                 ),
                 d_simple_enum(
-                    t_nest_shared("InheritanceMode", ["SubtreeProperty"]),
+                    t_nest_shared("InheritanceMode", ["NamedProperty"]),
                     GenTuDoc(""),
                     "ThisAndSub",
                     "OnlyThis",
@@ -1649,10 +1649,10 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 ),
                 GenTuTypeGroup(
                     get_subtree_property_types(),
-                    enumName=t_nest_shared("Kind", ["SubtreeProperty"]),
-                    variantName=t_nest_shared("Data", ["SubtreeProperty"]),
+                    enumName=t_nest_shared("Kind", ["NamedProperty"]),
+                    variantName=t_nest_shared("Data", ["NamedProperty"]),
                 ),
-                GenTuPass("SubtreeProperty(CR<Data> data) : data(data) {}"),
+                GenTuPass("NamedProperty(CR<Data> data) : data(data) {}"),
             ],
         ),
     ]
@@ -1832,7 +1832,7 @@ def get_types() -> Sequence[GenTuStruct]:
             bases=[t_org("Org")],
             methods=[
                 GenTuFunction(
-                    t_vec(t_nest_shared("SubtreeProperty", [])),
+                    t_vec(t_nest_shared("NamedProperty", [])),
                     "getProperties",
                     GenTuDoc(""),
                     isConst=True,
@@ -1842,7 +1842,7 @@ def get_types() -> Sequence[GenTuStruct]:
                     ],
                 ),
                 GenTuFunction(
-                    t_opt(t_nest_shared("SubtreeProperty", [])),
+                    t_opt(t_nest_shared("NamedProperty", [])),
                     "getProperty",
                     GenTuDoc(""),
                     isConst=True,
@@ -1951,7 +1951,7 @@ def get_types() -> Sequence[GenTuStruct]:
                     "initialVisibility",
                     value="Visibility::ShowEverything",
                 ),
-                vec_field(t_nest_shared("SubtreeProperty", []), "properties",
+                vec_field(t_nest_shared("NamedProperty", []), "properties",
                           GenTuDoc("")),
                 org_field(t_nest("ExportConfig", ["DocumentOptions"]), "exportConfig"),
                 opt_field(t_bool(), "fixedWidthSections"),
@@ -1967,7 +1967,7 @@ def get_types() -> Sequence[GenTuStruct]:
             bases=[t_org("Org")],
             methods=[
                 GenTuFunction(
-                    t_vec(t_nest_shared("SubtreeProperty", [])),
+                    t_vec(t_nest_shared("NamedProperty", [])),
                     "getProperties",
                     GenTuDoc(""),
                     isConst=True,
@@ -1977,7 +1977,7 @@ def get_types() -> Sequence[GenTuStruct]:
                     ],
                 ),
                 GenTuFunction(
-                    t_opt(t_nest_shared("SubtreeProperty", [])),
+                    t_opt(t_nest_shared("NamedProperty", [])),
                     "getProperty",
                     isConst=True,
                     arguments=[

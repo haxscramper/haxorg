@@ -178,7 +178,7 @@ auto Formatter::toString(SemId<Document> id, CR<Context> ctx) -> Res {
 
     if (!id->options.isNil()) {
         for (auto const& prop : id->options->properties) {
-            using P = sem::SubtreeProperty;
+            using P = sem::NamedProperty;
             switch (prop.getKind()) {
                 case P::Kind::CustomRaw: {
                     add(result,
@@ -917,7 +917,7 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
         if (id->treeId) { add(head, str(fmt(":ID: {}", *id->treeId))); }
 
         for (auto const& prop : id->properties) {
-            using P = sem::SubtreeProperty;
+            using P = sem::NamedProperty;
             switch (prop.getKind()) {
                 case P::Kind::Created: {
                     add(head,

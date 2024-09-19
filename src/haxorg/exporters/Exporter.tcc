@@ -1,9 +1,9 @@
 /* clang-format off */
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::SubtreeProperty::Data const& object) { visitVariants(res, sem::SubtreeProperty::getKind(object), object); }
+void Exporter<V, R>::visit(R& res, sem::NamedProperty::Data const& object) { visitVariants(res, sem::NamedProperty::getKind(object), object); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::SubtreeProperty const& object) {
+void Exporter<V, R>::visit(R& res, sem::NamedProperty const& object) {
   __obj_field(res, object, mainSetRule);
   __obj_field(res, object, subSetRule);
   __obj_field(res, object, inheritanceMode);
@@ -11,59 +11,59 @@ void Exporter<V, R>::visit(R& res, sem::SubtreeProperty const& object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::SubtreeProperty::Nonblocking const& object) { __obj_field(res, object, isBlocking); }
+void Exporter<V, R>::visit(R& res, sem::NamedProperty::Nonblocking const& object) { __obj_field(res, object, isBlocking); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::SubtreeProperty::Trigger const& object) {  }
+void Exporter<V, R>::visit(R& res, sem::NamedProperty::Trigger const& object) {  }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::SubtreeProperty::ExportLatexClass const& object) { __obj_field(res, object, latexClass); }
+void Exporter<V, R>::visit(R& res, sem::NamedProperty::ExportLatexClass const& object) { __obj_field(res, object, latexClass); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::SubtreeProperty::ExportLatexClassOptions const& object) { __obj_field(res, object, options); }
+void Exporter<V, R>::visit(R& res, sem::NamedProperty::ExportLatexClassOptions const& object) { __obj_field(res, object, options); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::SubtreeProperty::ExportLatexHeader const& object) { __obj_field(res, object, header); }
+void Exporter<V, R>::visit(R& res, sem::NamedProperty::ExportLatexHeader const& object) { __obj_field(res, object, header); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::SubtreeProperty::ExportLatexCompiler const& object) { __obj_field(res, object, compiler); }
+void Exporter<V, R>::visit(R& res, sem::NamedProperty::ExportLatexCompiler const& object) { __obj_field(res, object, compiler); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::SubtreeProperty::Ordered const& object) { __obj_field(res, object, isOrdered); }
+void Exporter<V, R>::visit(R& res, sem::NamedProperty::Ordered const& object) { __obj_field(res, object, isOrdered); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::SubtreeProperty::Effort const& object) {
+void Exporter<V, R>::visit(R& res, sem::NamedProperty::Effort const& object) {
   __obj_field(res, object, hours);
   __obj_field(res, object, minutes);
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::SubtreeProperty::Visibility const& object) { __obj_field(res, object, level); }
+void Exporter<V, R>::visit(R& res, sem::NamedProperty::Visibility const& object) { __obj_field(res, object, level); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::SubtreeProperty::ExportOptions const& object) {
+void Exporter<V, R>::visit(R& res, sem::NamedProperty::ExportOptions const& object) {
   __obj_field(res, object, backend);
   __obj_field(res, object, values);
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::SubtreeProperty::Blocker const& object) { __obj_field(res, object, blockers); }
+void Exporter<V, R>::visit(R& res, sem::NamedProperty::Blocker const& object) { __obj_field(res, object, blockers); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::SubtreeProperty::Unnumbered const& object) {  }
+void Exporter<V, R>::visit(R& res, sem::NamedProperty::Unnumbered const& object) {  }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::SubtreeProperty::Created const& object) { __obj_field(res, object, time); }
+void Exporter<V, R>::visit(R& res, sem::NamedProperty::Created const& object) { __obj_field(res, object, time); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::SubtreeProperty::CustomArgs const& object) {
+void Exporter<V, R>::visit(R& res, sem::NamedProperty::CustomArgs const& object) {
   __obj_field(res, object, name);
   __obj_field(res, object, sub);
   __obj_field(res, object, parameters);
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::SubtreeProperty::CustomRaw const& object) {
+void Exporter<V, R>::visit(R& res, sem::NamedProperty::CustomRaw const& object) {
   __obj_field(res, object, name);
   __obj_field(res, object, value);
 }
