@@ -34,6 +34,16 @@ EACH_SEM_ORG_KIND(_declare_hash)
 EACH_SEM_ORG_RECORD_NESTED(_declare_hash)
 #undef _declare_hash
 
+#define _declare_hash(__qual, _)                                          \
+    template <>                                                           \
+    struct std::hash<sem::__qual> {                                      \
+        std::size_t operator()(sem::__qual const& it) const noexcept;    \
+    };
+
+EACH_SHARED_ORG_RECORD(_declare_hash)
+#undef _declare_hash
+
+
 template <typename Func>
 void switch_node_nullptr(OrgSemKind kind, Func const& cb) {
     switch (kind) {

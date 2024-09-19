@@ -17,7 +17,7 @@ using namespace boost::describe;
 
 using namespace sem;
 using osk      = OrgSemKind;
-using Property = Subtree::Property;
+using Property = SubtreeProperty;
 
 template <>
 struct value_domain<sem::Subtree::Period::Kind>
@@ -109,13 +109,13 @@ Vec<Subtree::Period> Subtree::getTimePeriods(
     for (const auto& it : title->subnodes) {
         if (it->getKind() == osk::Time) {
             Period period{};
-            period.from = it.as<Time>();
+            period.from = it.as<Time>()->getStatic().time;
             period.kind = Period::Kind::Titled;
             res.push_back(period);
         } else if (it->getKind() == osk::TimeRange) {
             Period period{};
-            period.from = it.as<TimeRange>()->from;
-            period.to   = it.as<TimeRange>()->to;
+            period.from = it.as<TimeRange>()->from->getStatic().time;
+            period.to   = it.as<TimeRange>()->to->getStatic().time;
             period.kind = Period::Kind::Titled;
             res.push_back(period);
         }
@@ -123,21 +123,21 @@ Vec<Subtree::Period> Subtree::getTimePeriods(
 
     if (kinds.contains(Period::Kind::Deadline) && this->deadline) {
         Period period{};
-        period.from = this->deadline.value();
+        period.from = this->deadline.value()->getStatic().time;
         period.kind = Period::Kind::Deadline;
         res.push_back(period);
     }
 
     if (kinds.contains(Period::Kind::Scheduled) && this->scheduled) {
         Period period{};
-        period.from = this->scheduled.value();
+        period.from = this->scheduled.value()->getStatic().time;
         period.kind = Period::Kind::Scheduled;
         res.push_back(period);
     }
 
     if (kinds.contains(Period::Kind::Closed) && this->closed) {
         Period period{};
-        period.from = this->closed.value();
+        period.from = this->closed.value()->getStatic().time;
         period.kind = Period::Kind::Closed;
         res.push_back(period);
     }
@@ -146,8 +146,11 @@ Vec<Subtree::Period> Subtree::getTimePeriods(
         for (auto const& log : this->logbook) {
             if (log->getLogKind() == SubtreeLog::Kind::Clock) {
                 Period period{};
-                period.from = log->getClock().from;
-                period.to   = log->getClock().to;
+                period.from = log->getClock().from->getStatic().time;
+                if (log->getClock().to) {
+                    period.to = //
+                        log->getClock().to.value()->getStatic().time;
+                }
                 period.kind = Period::Kind::Clocked;
                 res.push_back(period);
             }
@@ -236,7 +239,7 @@ void Subtree::removeProperty(const Str& kind, const Opt<Str>& subkind) {
     }
 }
 
-Str Subtree::Property::getName() const {
+Str SubtreeProperty::getName() const {
     if (getKind() == Kind::CustomRaw) {
         return getCustomRaw().name;
     } else {
@@ -244,7 +247,7 @@ Str Subtree::Property::getName() const {
     }
 }
 
-Opt<Str> Subtree::Property::getSubKind() const {
+Opt<Str> SubtreeProperty::getSubKind() const {
     if (getKind() == Kind::ExportOptions) {
         return getExportOptions().backend;
     } else {
@@ -252,7 +255,7 @@ Opt<Str> Subtree::Property::getSubKind() const {
     }
 }
 
-bool Subtree::Property::isMatching(Str const& kind, CR<Opt<Str>> subkind)
+bool SubtreeProperty::isMatching(Str const& kind, CR<Opt<Str>> subkind)
     const {
     if (getKind() == Property::Kind::CustomRaw) {
         return normalize(getCustomRaw().name) == normalize(kind);
@@ -267,17 +270,17 @@ bool Subtree::Property::isMatching(Str const& kind, CR<Opt<Str>> subkind)
     }
 }
 
-Vec<Subtree::Property> DocumentOptions::getProperties(
+Vec<SubtreeProperty> DocumentOptions::getProperties(
     Str const&   kind,
     CR<Opt<Str>> subkind) const {
-    Vec<Subtree::Property> result;
+    Vec<SubtreeProperty> result;
     for (const auto& prop : properties) {
         if (prop.isMatching(kind, subkind)) { result.push_back(prop); }
     }
     return result;
 }
 
-Opt<Subtree::Property> DocumentOptions::getProperty(
+Opt<SubtreeProperty> DocumentOptions::getProperty(
     CR<Str>      kind,
     CR<Opt<Str>> subkind) const {
     auto props = getProperties(kind, subkind);
@@ -288,7 +291,7 @@ Opt<Subtree::Property> DocumentOptions::getProperty(
     }
 }
 
-Vec<Subtree::Property> Document::getProperties(
+Vec<SubtreeProperty> Document::getProperties(
     CR<Str>      kind,
     CR<Opt<Str>> subkind) const {
     if (options.isNil()) {
@@ -298,7 +301,7 @@ Vec<Subtree::Property> Document::getProperties(
     }
 }
 
-Opt<Subtree::Property> Document::getProperty(
+Opt<SubtreeProperty> Document::getProperty(
     CR<Str>      kind,
     CR<Opt<Str>> subkind) const {
     if (options.isNil()) {

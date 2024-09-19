@@ -1541,242 +1541,10 @@ struct ImmSubtree : public org::ImmOrg {
     /// \brief Time period kind -- not associated with point/range distinction
     org::ImmSubtree::Period::Kind kind;
     /// \brief Clock start time
-    org::ImmIdT<org::ImmTime> from = org::ImmIdT<org::ImmTime>::Nil();
+    UserTime from;
     /// \brief Optional end of the clock
-    ImmBox<Opt<org::ImmIdT<org::ImmTime>>> to = std::nullopt;
+    ImmBox<Opt<UserTime>> to = std::nullopt;
     bool operator==(org::ImmSubtree::Period const& other) const;
-  };
-
-  /// \brief Single subtree property
-  struct Property {
-    enum class SetMode : short int { Override, Add, Subtract, };
-    BOOST_DESCRIBE_NESTED_ENUM(SetMode, Override, Add, Subtract)
-    enum class InheritanceMode : short int { ThisAndSub, OnlyThis, OnlySub, };
-    BOOST_DESCRIBE_NESTED_ENUM(InheritanceMode, ThisAndSub, OnlyThis, OnlySub)
-    struct Nonblocking {
-      BOOST_DESCRIBE_CLASS(Nonblocking,
-                           (),
-                           (),
-                           (),
-                           (isBlocking))
-      bool isBlocking;
-      bool operator==(org::ImmSubtree::Property::Nonblocking const& other) const;
-    };
-
-    struct Trigger {
-      BOOST_DESCRIBE_CLASS(Trigger,
-                           (),
-                           (),
-                           (),
-                           ())
-      bool operator==(org::ImmSubtree::Property::Trigger const& other) const;
-    };
-
-    struct Origin {
-      BOOST_DESCRIBE_CLASS(Origin,
-                           (),
-                           (),
-                           (),
-                           (text))
-      org::ImmIdT<org::ImmParagraph> text = org::ImmIdT<org::ImmParagraph>::Nil();
-      bool operator==(org::ImmSubtree::Property::Origin const& other) const;
-    };
-
-    struct ExportLatexClass {
-      BOOST_DESCRIBE_CLASS(ExportLatexClass,
-                           (),
-                           (),
-                           (),
-                           (latexClass))
-      ImmBox<Str> latexClass;
-      bool operator==(org::ImmSubtree::Property::ExportLatexClass const& other) const;
-    };
-
-    struct ExportLatexClassOptions {
-      BOOST_DESCRIBE_CLASS(ExportLatexClassOptions,
-                           (),
-                           (),
-                           (),
-                           (options))
-      ImmVec<Str> options;
-      bool operator==(org::ImmSubtree::Property::ExportLatexClassOptions const& other) const;
-    };
-
-    struct ExportLatexHeader {
-      BOOST_DESCRIBE_CLASS(ExportLatexHeader,
-                           (),
-                           (),
-                           (),
-                           (header))
-      ImmBox<Str> header;
-      bool operator==(org::ImmSubtree::Property::ExportLatexHeader const& other) const;
-    };
-
-    struct ExportLatexCompiler {
-      BOOST_DESCRIBE_CLASS(ExportLatexCompiler,
-                           (),
-                           (),
-                           (),
-                           (compiler))
-      ImmBox<Str> compiler;
-      bool operator==(org::ImmSubtree::Property::ExportLatexCompiler const& other) const;
-    };
-
-    struct Ordered {
-      BOOST_DESCRIBE_CLASS(Ordered,
-                           (),
-                           (),
-                           (),
-                           (isOrdered))
-      bool isOrdered;
-      bool operator==(org::ImmSubtree::Property::Ordered const& other) const;
-    };
-
-    struct Effort {
-      BOOST_DESCRIBE_CLASS(Effort,
-                           (),
-                           (),
-                           (),
-                           (hours, minutes))
-      int hours = 0;
-      int minutes = 0;
-      bool operator==(org::ImmSubtree::Property::Effort const& other) const;
-    };
-
-    struct Visibility {
-      enum class Level : short int { Folded, Children, Content, All, };
-      BOOST_DESCRIBE_NESTED_ENUM(Level, Folded, Children, Content, All)
-      BOOST_DESCRIBE_CLASS(Visibility,
-                           (),
-                           (),
-                           (),
-                           (level))
-      org::ImmSubtree::Property::Visibility::Level level;
-      bool operator==(org::ImmSubtree::Property::Visibility const& other) const;
-    };
-
-    struct ExportOptions {
-      BOOST_DESCRIBE_CLASS(ExportOptions,
-                           (),
-                           (),
-                           (),
-                           (backend, values))
-      ImmBox<Str> backend;
-      ImmMap<Str, Str> values;
-      bool operator==(org::ImmSubtree::Property::ExportOptions const& other) const;
-    };
-
-    struct Blocker {
-      BOOST_DESCRIBE_CLASS(Blocker,
-                           (),
-                           (),
-                           (),
-                           (blockers))
-      ImmVec<Str> blockers;
-      bool operator==(org::ImmSubtree::Property::Blocker const& other) const;
-    };
-
-    struct Unnumbered {
-      BOOST_DESCRIBE_CLASS(Unnumbered,
-                           (),
-                           (),
-                           (),
-                           ())
-      bool operator==(org::ImmSubtree::Property::Unnumbered const& other) const;
-    };
-
-    struct Created {
-      BOOST_DESCRIBE_CLASS(Created,
-                           (),
-                           (),
-                           (),
-                           (time))
-      org::ImmIdT<org::ImmTime> time = org::ImmIdT<org::ImmTime>::Nil();
-      bool operator==(org::ImmSubtree::Property::Created const& other) const;
-    };
-
-    /// \brief Custop property with unparsed arguments
-    struct CustomArgs {
-      BOOST_DESCRIBE_CLASS(CustomArgs,
-                           (),
-                           (),
-                           (),
-                           (name, sub, parameters))
-      /// \brief Original name of the property
-      ImmBox<Str> name = "";
-      /// \brief Property target specialization
-      ImmBox<Opt<Str>> sub = std::nullopt;
-      /// \brief Property parameters
-      org::ImmIdT<org::ImmCmdArguments> parameters = org::ImmIdT<org::ImmCmdArguments>::Nil();
-      bool operator==(org::ImmSubtree::Property::CustomArgs const& other) const;
-    };
-
-    /// \brief Custop property with unparsed arguments
-    struct CustomRaw {
-      BOOST_DESCRIBE_CLASS(CustomRaw,
-                           (),
-                           (),
-                           (),
-                           (name, value))
-      /// \brief Original name of the property
-      ImmBox<Str> name = "";
-      /// \brief Property value
-      ImmBox<Str> value = "";
-      bool operator==(org::ImmSubtree::Property::CustomRaw const& other) const;
-    };
-
-    using Data = std::variant<org::ImmSubtree::Property::Nonblocking, org::ImmSubtree::Property::Trigger, org::ImmSubtree::Property::Origin, org::ImmSubtree::Property::ExportLatexClass, org::ImmSubtree::Property::ExportLatexClassOptions, org::ImmSubtree::Property::ExportLatexHeader, org::ImmSubtree::Property::ExportLatexCompiler, org::ImmSubtree::Property::Ordered, org::ImmSubtree::Property::Effort, org::ImmSubtree::Property::Visibility, org::ImmSubtree::Property::ExportOptions, org::ImmSubtree::Property::Blocker, org::ImmSubtree::Property::Unnumbered, org::ImmSubtree::Property::Created, org::ImmSubtree::Property::CustomArgs, org::ImmSubtree::Property::CustomRaw>;
-    enum class Kind : short int { Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, CustomArgs, CustomRaw, };
-    BOOST_DESCRIBE_NESTED_ENUM(Kind, Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, CustomArgs, CustomRaw)
-    using variant_enum_type = org::ImmSubtree::Property::Kind;
-    using variant_data_type = org::ImmSubtree::Property::Data;
-    BOOST_DESCRIBE_CLASS(Property,
-                         (),
-                         (),
-                         (),
-                         (mainSetRule,
-                          subSetRule,
-                          inheritanceMode,
-                          data))
-    org::ImmSubtree::Property::SetMode mainSetRule = Property::SetMode::Override;
-    org::ImmSubtree::Property::SetMode subSetRule = Property::SetMode::Override;
-    org::ImmSubtree::Property::InheritanceMode inheritanceMode = Property::InheritanceMode::ThisAndSub;
-    org::ImmSubtree::Property::Data data;
-    bool operator==(org::ImmSubtree::Property const& other) const;
-    org::ImmSubtree::Property::Nonblocking const& getNonblocking() const { return std::get<0>(data); }
-    org::ImmSubtree::Property::Nonblocking& getNonblocking() { return std::get<0>(data); }
-    org::ImmSubtree::Property::Trigger const& getTrigger() const { return std::get<1>(data); }
-    org::ImmSubtree::Property::Trigger& getTrigger() { return std::get<1>(data); }
-    org::ImmSubtree::Property::Origin const& getOrigin() const { return std::get<2>(data); }
-    org::ImmSubtree::Property::Origin& getOrigin() { return std::get<2>(data); }
-    org::ImmSubtree::Property::ExportLatexClass const& getExportLatexClass() const { return std::get<3>(data); }
-    org::ImmSubtree::Property::ExportLatexClass& getExportLatexClass() { return std::get<3>(data); }
-    org::ImmSubtree::Property::ExportLatexClassOptions const& getExportLatexClassOptions() const { return std::get<4>(data); }
-    org::ImmSubtree::Property::ExportLatexClassOptions& getExportLatexClassOptions() { return std::get<4>(data); }
-    org::ImmSubtree::Property::ExportLatexHeader const& getExportLatexHeader() const { return std::get<5>(data); }
-    org::ImmSubtree::Property::ExportLatexHeader& getExportLatexHeader() { return std::get<5>(data); }
-    org::ImmSubtree::Property::ExportLatexCompiler const& getExportLatexCompiler() const { return std::get<6>(data); }
-    org::ImmSubtree::Property::ExportLatexCompiler& getExportLatexCompiler() { return std::get<6>(data); }
-    org::ImmSubtree::Property::Ordered const& getOrdered() const { return std::get<7>(data); }
-    org::ImmSubtree::Property::Ordered& getOrdered() { return std::get<7>(data); }
-    org::ImmSubtree::Property::Effort const& getEffort() const { return std::get<8>(data); }
-    org::ImmSubtree::Property::Effort& getEffort() { return std::get<8>(data); }
-    org::ImmSubtree::Property::Visibility const& getVisibility() const { return std::get<9>(data); }
-    org::ImmSubtree::Property::Visibility& getVisibility() { return std::get<9>(data); }
-    org::ImmSubtree::Property::ExportOptions const& getExportOptions() const { return std::get<10>(data); }
-    org::ImmSubtree::Property::ExportOptions& getExportOptions() { return std::get<10>(data); }
-    org::ImmSubtree::Property::Blocker const& getBlocker() const { return std::get<11>(data); }
-    org::ImmSubtree::Property::Blocker& getBlocker() { return std::get<11>(data); }
-    org::ImmSubtree::Property::Unnumbered const& getUnnumbered() const { return std::get<12>(data); }
-    org::ImmSubtree::Property::Unnumbered& getUnnumbered() { return std::get<12>(data); }
-    org::ImmSubtree::Property::Created const& getCreated() const { return std::get<13>(data); }
-    org::ImmSubtree::Property::Created& getCreated() { return std::get<13>(data); }
-    org::ImmSubtree::Property::CustomArgs const& getCustomArgs() const { return std::get<14>(data); }
-    org::ImmSubtree::Property::CustomArgs& getCustomArgs() { return std::get<14>(data); }
-    org::ImmSubtree::Property::CustomRaw const& getCustomRaw() const { return std::get<15>(data); }
-    org::ImmSubtree::Property::CustomRaw& getCustomRaw() { return std::get<15>(data); }
-    static org::ImmSubtree::Property::Kind getKind(org::ImmSubtree::Property::Data const& __input) { return static_cast<org::ImmSubtree::Property::Kind>(__input.index()); }
-    org::ImmSubtree::Property::Kind getKind() const { return getKind(data); }
   };
 
   BOOST_DESCRIBE_CLASS(ImmSubtree,
@@ -1816,7 +1584,7 @@ struct ImmSubtree : public org::ImmOrg {
   /// \brief Associated subtree log
   ImmVec<org::ImmIdT<org::ImmSubtreeLog>> logbook = {};
   /// \brief Immediate properties
-  ImmVec<org::ImmSubtree::Property> properties = {};
+  ImmVec<sem::SubtreeProperty> properties = {};
   /// \brief When subtree was marked as closed
   ImmBox<Opt<org::ImmIdT<org::ImmTime>>> closed = std::nullopt;
   /// \brief When is the deadline
@@ -2202,7 +1970,7 @@ struct ImmDocumentOptions : public org::ImmOrg {
                         maxSubtreeLevelExport))
   static OrgSemKind const staticKind;
   org::ImmDocumentOptions::Visibility initialVisibility = Visibility::ShowEverything;
-  ImmVec<org::ImmSubtree::Property> properties = {};
+  ImmVec<sem::SubtreeProperty> properties = {};
   org::ImmDocumentOptions::ExportConfig exportConfig;
   ImmBox<Opt<bool>> fixedWidthSections = std::nullopt;
   ImmBox<Opt<bool>> startupIndented = std::nullopt;

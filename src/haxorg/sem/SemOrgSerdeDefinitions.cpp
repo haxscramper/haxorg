@@ -1,6 +1,246 @@
 /* clang-format off */
 #include <haxorg/sem/SemOrgSerde.hpp>
 #include <haxorg/sem/SemOrgSerdeDeclarations.hpp>
+void proto_serde<::orgproto::SubtreeProperty::Nonblocking, sem::SubtreeProperty::Nonblocking>::write(::orgproto::SubtreeProperty::Nonblocking* out, sem::SubtreeProperty::Nonblocking const& in) {
+  out->set_isblocking(in.isBlocking);
+}
+
+void proto_serde<::orgproto::SubtreeProperty::Nonblocking, sem::SubtreeProperty::Nonblocking>::read(::orgproto::SubtreeProperty::Nonblocking const& out, proto_write_accessor<sem::SubtreeProperty::Nonblocking> in) {
+  in.for_field(&sem::SubtreeProperty::Nonblocking::isBlocking).get() = out.isblocking();
+}
+
+void proto_serde<::orgproto::SubtreeProperty::Trigger, sem::SubtreeProperty::Trigger>::write(::orgproto::SubtreeProperty::Trigger* out, sem::SubtreeProperty::Trigger const& in) {
+
+}
+
+void proto_serde<::orgproto::SubtreeProperty::Trigger, sem::SubtreeProperty::Trigger>::read(::orgproto::SubtreeProperty::Trigger const& out, proto_write_accessor<sem::SubtreeProperty::Trigger> in) {
+
+}
+
+void proto_serde<::orgproto::SubtreeProperty::ExportLatexClass, sem::SubtreeProperty::ExportLatexClass>::write(::orgproto::SubtreeProperty::ExportLatexClass* out, sem::SubtreeProperty::ExportLatexClass const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_latexclass(), in.latexClass);
+}
+
+void proto_serde<::orgproto::SubtreeProperty::ExportLatexClass, sem::SubtreeProperty::ExportLatexClass>::read(::orgproto::SubtreeProperty::ExportLatexClass const& out, proto_write_accessor<sem::SubtreeProperty::ExportLatexClass> in) {
+  proto_serde<std::string, Str>::read(out.latexclass(), in.for_field(&sem::SubtreeProperty::ExportLatexClass::latexClass));
+}
+
+void proto_serde<::orgproto::SubtreeProperty::ExportLatexClassOptions, sem::SubtreeProperty::ExportLatexClassOptions>::write(::orgproto::SubtreeProperty::ExportLatexClassOptions* out, sem::SubtreeProperty::ExportLatexClassOptions const& in) {
+  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::write(out->mutable_options(), in.options);
+}
+
+void proto_serde<::orgproto::SubtreeProperty::ExportLatexClassOptions, sem::SubtreeProperty::ExportLatexClassOptions>::read(::orgproto::SubtreeProperty::ExportLatexClassOptions const& out, proto_write_accessor<sem::SubtreeProperty::ExportLatexClassOptions> in) {
+  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::read(out.options(), in.for_field(&sem::SubtreeProperty::ExportLatexClassOptions::options));
+}
+
+void proto_serde<::orgproto::SubtreeProperty::ExportLatexHeader, sem::SubtreeProperty::ExportLatexHeader>::write(::orgproto::SubtreeProperty::ExportLatexHeader* out, sem::SubtreeProperty::ExportLatexHeader const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_header(), in.header);
+}
+
+void proto_serde<::orgproto::SubtreeProperty::ExportLatexHeader, sem::SubtreeProperty::ExportLatexHeader>::read(::orgproto::SubtreeProperty::ExportLatexHeader const& out, proto_write_accessor<sem::SubtreeProperty::ExportLatexHeader> in) {
+  proto_serde<std::string, Str>::read(out.header(), in.for_field(&sem::SubtreeProperty::ExportLatexHeader::header));
+}
+
+void proto_serde<::orgproto::SubtreeProperty::ExportLatexCompiler, sem::SubtreeProperty::ExportLatexCompiler>::write(::orgproto::SubtreeProperty::ExportLatexCompiler* out, sem::SubtreeProperty::ExportLatexCompiler const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_compiler(), in.compiler);
+}
+
+void proto_serde<::orgproto::SubtreeProperty::ExportLatexCompiler, sem::SubtreeProperty::ExportLatexCompiler>::read(::orgproto::SubtreeProperty::ExportLatexCompiler const& out, proto_write_accessor<sem::SubtreeProperty::ExportLatexCompiler> in) {
+  proto_serde<std::string, Str>::read(out.compiler(), in.for_field(&sem::SubtreeProperty::ExportLatexCompiler::compiler));
+}
+
+void proto_serde<::orgproto::SubtreeProperty::Ordered, sem::SubtreeProperty::Ordered>::write(::orgproto::SubtreeProperty::Ordered* out, sem::SubtreeProperty::Ordered const& in) {
+  out->set_isordered(in.isOrdered);
+}
+
+void proto_serde<::orgproto::SubtreeProperty::Ordered, sem::SubtreeProperty::Ordered>::read(::orgproto::SubtreeProperty::Ordered const& out, proto_write_accessor<sem::SubtreeProperty::Ordered> in) {
+  in.for_field(&sem::SubtreeProperty::Ordered::isOrdered).get() = out.isordered();
+}
+
+void proto_serde<::orgproto::SubtreeProperty::Effort, sem::SubtreeProperty::Effort>::write(::orgproto::SubtreeProperty::Effort* out, sem::SubtreeProperty::Effort const& in) {
+  out->set_hours(in.hours);
+  out->set_minutes(in.minutes);
+}
+
+void proto_serde<::orgproto::SubtreeProperty::Effort, sem::SubtreeProperty::Effort>::read(::orgproto::SubtreeProperty::Effort const& out, proto_write_accessor<sem::SubtreeProperty::Effort> in) {
+  in.for_field(&sem::SubtreeProperty::Effort::hours).get() = out.hours();
+  in.for_field(&sem::SubtreeProperty::Effort::minutes).get() = out.minutes();
+}
+
+void proto_serde<::orgproto::SubtreeProperty::Visibility, sem::SubtreeProperty::Visibility>::write(::orgproto::SubtreeProperty::Visibility* out, sem::SubtreeProperty::Visibility const& in) {
+  out->set_level(static_cast<orgproto::SubtreeProperty_Visibility_Level>(in.level));
+}
+
+void proto_serde<::orgproto::SubtreeProperty::Visibility, sem::SubtreeProperty::Visibility>::read(::orgproto::SubtreeProperty::Visibility const& out, proto_write_accessor<sem::SubtreeProperty::Visibility> in) {
+  in.for_field(&sem::SubtreeProperty::Visibility::level).get() = static_cast<sem::SubtreeProperty::Visibility::Level>(out.level());
+}
+
+void proto_serde<::orgproto::SubtreeProperty::ExportOptions, sem::SubtreeProperty::ExportOptions>::write(::orgproto::SubtreeProperty::ExportOptions* out, sem::SubtreeProperty::ExportOptions const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_backend(), in.backend);
+  proto_serde<::google::protobuf::Map<std::string, std::string>, UnorderedMap<Str, Str>>::write(out->mutable_values(), in.values);
+}
+
+void proto_serde<::orgproto::SubtreeProperty::ExportOptions, sem::SubtreeProperty::ExportOptions>::read(::orgproto::SubtreeProperty::ExportOptions const& out, proto_write_accessor<sem::SubtreeProperty::ExportOptions> in) {
+  proto_serde<std::string, Str>::read(out.backend(), in.for_field(&sem::SubtreeProperty::ExportOptions::backend));
+  proto_serde<::google::protobuf::Map<std::string, std::string>, UnorderedMap<Str, Str>>::read(out.values(), in.for_field(&sem::SubtreeProperty::ExportOptions::values));
+}
+
+void proto_serde<::orgproto::SubtreeProperty::Blocker, sem::SubtreeProperty::Blocker>::write(::orgproto::SubtreeProperty::Blocker* out, sem::SubtreeProperty::Blocker const& in) {
+  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::write(out->mutable_blockers(), in.blockers);
+}
+
+void proto_serde<::orgproto::SubtreeProperty::Blocker, sem::SubtreeProperty::Blocker>::read(::orgproto::SubtreeProperty::Blocker const& out, proto_write_accessor<sem::SubtreeProperty::Blocker> in) {
+  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::read(out.blockers(), in.for_field(&sem::SubtreeProperty::Blocker::blockers));
+}
+
+void proto_serde<::orgproto::SubtreeProperty::Unnumbered, sem::SubtreeProperty::Unnumbered>::write(::orgproto::SubtreeProperty::Unnumbered* out, sem::SubtreeProperty::Unnumbered const& in) {
+
+}
+
+void proto_serde<::orgproto::SubtreeProperty::Unnumbered, sem::SubtreeProperty::Unnumbered>::read(::orgproto::SubtreeProperty::Unnumbered const& out, proto_write_accessor<sem::SubtreeProperty::Unnumbered> in) {
+
+}
+
+void proto_serde<::orgproto::SubtreeProperty::Created, sem::SubtreeProperty::Created>::write(::orgproto::SubtreeProperty::Created* out, sem::SubtreeProperty::Created const& in) {
+  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_time(), in.time);
+}
+
+void proto_serde<::orgproto::SubtreeProperty::Created, sem::SubtreeProperty::Created>::read(::orgproto::SubtreeProperty::Created const& out, proto_write_accessor<sem::SubtreeProperty::Created> in) {
+  proto_serde<orgproto::UserTime, UserTime>::read(out.time(), in.for_field(&sem::SubtreeProperty::Created::time));
+}
+
+void proto_serde<::orgproto::SubtreeProperty::CustomArgs, sem::SubtreeProperty::CustomArgs>::write(::orgproto::SubtreeProperty::CustomArgs* out, sem::SubtreeProperty::CustomArgs const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
+  if (in.sub) {
+    proto_serde<std::string, Str>::write(out->mutable_sub(), *in.sub);
+  }
+  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::write(out->mutable_parameters(), in.parameters);
+}
+
+void proto_serde<::orgproto::SubtreeProperty::CustomArgs, sem::SubtreeProperty::CustomArgs>::read(::orgproto::SubtreeProperty::CustomArgs const& out, proto_write_accessor<sem::SubtreeProperty::CustomArgs> in) {
+  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::SubtreeProperty::CustomArgs::name));
+  if (out.has_sub()) {
+    proto_serde<Opt<std::string>, Opt<Str>>::read(out.sub(), in.for_field(&sem::SubtreeProperty::CustomArgs::sub));
+  }
+  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::read(out.parameters(), in.for_field(&sem::SubtreeProperty::CustomArgs::parameters));
+}
+
+void proto_serde<::orgproto::SubtreeProperty::CustomRaw, sem::SubtreeProperty::CustomRaw>::write(::orgproto::SubtreeProperty::CustomRaw* out, sem::SubtreeProperty::CustomRaw const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
+  proto_serde<std::string, Str>::write(out->mutable_value(), in.value);
+}
+
+void proto_serde<::orgproto::SubtreeProperty::CustomRaw, sem::SubtreeProperty::CustomRaw>::read(::orgproto::SubtreeProperty::CustomRaw const& out, proto_write_accessor<sem::SubtreeProperty::CustomRaw> in) {
+  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::SubtreeProperty::CustomRaw::name));
+  proto_serde<std::string, Str>::read(out.value(), in.for_field(&sem::SubtreeProperty::CustomRaw::value));
+}
+
+void proto_serde<::orgproto::SubtreeProperty, sem::SubtreeProperty>::write(::orgproto::SubtreeProperty* out, sem::SubtreeProperty const& in) {
+  out->set_mainsetrule(static_cast<orgproto::SubtreeProperty_SetMode>(in.mainSetRule));
+  out->set_subsetrule(static_cast<orgproto::SubtreeProperty_SetMode>(in.subSetRule));
+  out->set_inheritancemode(static_cast<orgproto::SubtreeProperty_InheritanceMode>(in.inheritanceMode));
+  switch (in.data.index()) {
+    case 0:
+      proto_serde<orgproto::SubtreeProperty::Nonblocking, sem::SubtreeProperty::Nonblocking>::write(out->mutable_data()->mutable_nonblocking(), std::get<0>(in.data));
+      break;
+    case 1:
+      proto_serde<orgproto::SubtreeProperty::Trigger, sem::SubtreeProperty::Trigger>::write(out->mutable_data()->mutable_trigger(), std::get<1>(in.data));
+      break;
+    case 2:
+      proto_serde<orgproto::SubtreeProperty::ExportLatexClass, sem::SubtreeProperty::ExportLatexClass>::write(out->mutable_data()->mutable_exportlatexclass(), std::get<2>(in.data));
+      break;
+    case 3:
+      proto_serde<orgproto::SubtreeProperty::ExportLatexClassOptions, sem::SubtreeProperty::ExportLatexClassOptions>::write(out->mutable_data()->mutable_exportlatexclassoptions(), std::get<3>(in.data));
+      break;
+    case 4:
+      proto_serde<orgproto::SubtreeProperty::ExportLatexHeader, sem::SubtreeProperty::ExportLatexHeader>::write(out->mutable_data()->mutable_exportlatexheader(), std::get<4>(in.data));
+      break;
+    case 5:
+      proto_serde<orgproto::SubtreeProperty::ExportLatexCompiler, sem::SubtreeProperty::ExportLatexCompiler>::write(out->mutable_data()->mutable_exportlatexcompiler(), std::get<5>(in.data));
+      break;
+    case 6:
+      proto_serde<orgproto::SubtreeProperty::Ordered, sem::SubtreeProperty::Ordered>::write(out->mutable_data()->mutable_ordered(), std::get<6>(in.data));
+      break;
+    case 7:
+      proto_serde<orgproto::SubtreeProperty::Effort, sem::SubtreeProperty::Effort>::write(out->mutable_data()->mutable_effort(), std::get<7>(in.data));
+      break;
+    case 8:
+      proto_serde<orgproto::SubtreeProperty::Visibility, sem::SubtreeProperty::Visibility>::write(out->mutable_data()->mutable_visibility(), std::get<8>(in.data));
+      break;
+    case 9:
+      proto_serde<orgproto::SubtreeProperty::ExportOptions, sem::SubtreeProperty::ExportOptions>::write(out->mutable_data()->mutable_exportoptions(), std::get<9>(in.data));
+      break;
+    case 10:
+      proto_serde<orgproto::SubtreeProperty::Blocker, sem::SubtreeProperty::Blocker>::write(out->mutable_data()->mutable_blocker(), std::get<10>(in.data));
+      break;
+    case 11:
+      proto_serde<orgproto::SubtreeProperty::Unnumbered, sem::SubtreeProperty::Unnumbered>::write(out->mutable_data()->mutable_unnumbered(), std::get<11>(in.data));
+      break;
+    case 12:
+      proto_serde<orgproto::SubtreeProperty::Created, sem::SubtreeProperty::Created>::write(out->mutable_data()->mutable_created(), std::get<12>(in.data));
+      break;
+    case 13:
+      proto_serde<orgproto::SubtreeProperty::CustomArgs, sem::SubtreeProperty::CustomArgs>::write(out->mutable_data()->mutable_customargs(), std::get<13>(in.data));
+      break;
+    case 14:
+      proto_serde<orgproto::SubtreeProperty::CustomRaw, sem::SubtreeProperty::CustomRaw>::write(out->mutable_data()->mutable_customraw(), std::get<14>(in.data));
+      break;
+  }
+}
+
+void proto_serde<::orgproto::SubtreeProperty, sem::SubtreeProperty>::read(::orgproto::SubtreeProperty const& out, proto_write_accessor<sem::SubtreeProperty> in) {
+  in.for_field(&sem::SubtreeProperty::mainSetRule).get() = static_cast<sem::SubtreeProperty::SetMode>(out.mainsetrule());
+  in.for_field(&sem::SubtreeProperty::subSetRule).get() = static_cast<sem::SubtreeProperty::SetMode>(out.subsetrule());
+  in.for_field(&sem::SubtreeProperty::inheritanceMode).get() = static_cast<sem::SubtreeProperty::InheritanceMode>(out.inheritancemode());
+  switch (out.data().kind_case()) {
+    case ::orgproto::SubtreeProperty::Data::kNonblocking:
+      proto_serde<orgproto::SubtreeProperty::Nonblocking, sem::SubtreeProperty::Nonblocking>::read(out.data().nonblocking(), in.for_field_variant<0>(&sem::SubtreeProperty::data));
+      break;
+    case ::orgproto::SubtreeProperty::Data::kTrigger:
+      proto_serde<orgproto::SubtreeProperty::Trigger, sem::SubtreeProperty::Trigger>::read(out.data().trigger(), in.for_field_variant<1>(&sem::SubtreeProperty::data));
+      break;
+    case ::orgproto::SubtreeProperty::Data::kExportlatexclass:
+      proto_serde<orgproto::SubtreeProperty::ExportLatexClass, sem::SubtreeProperty::ExportLatexClass>::read(out.data().exportlatexclass(), in.for_field_variant<2>(&sem::SubtreeProperty::data));
+      break;
+    case ::orgproto::SubtreeProperty::Data::kExportlatexclassoptions:
+      proto_serde<orgproto::SubtreeProperty::ExportLatexClassOptions, sem::SubtreeProperty::ExportLatexClassOptions>::read(out.data().exportlatexclassoptions(), in.for_field_variant<3>(&sem::SubtreeProperty::data));
+      break;
+    case ::orgproto::SubtreeProperty::Data::kExportlatexheader:
+      proto_serde<orgproto::SubtreeProperty::ExportLatexHeader, sem::SubtreeProperty::ExportLatexHeader>::read(out.data().exportlatexheader(), in.for_field_variant<4>(&sem::SubtreeProperty::data));
+      break;
+    case ::orgproto::SubtreeProperty::Data::kExportlatexcompiler:
+      proto_serde<orgproto::SubtreeProperty::ExportLatexCompiler, sem::SubtreeProperty::ExportLatexCompiler>::read(out.data().exportlatexcompiler(), in.for_field_variant<5>(&sem::SubtreeProperty::data));
+      break;
+    case ::orgproto::SubtreeProperty::Data::kOrdered:
+      proto_serde<orgproto::SubtreeProperty::Ordered, sem::SubtreeProperty::Ordered>::read(out.data().ordered(), in.for_field_variant<6>(&sem::SubtreeProperty::data));
+      break;
+    case ::orgproto::SubtreeProperty::Data::kEffort:
+      proto_serde<orgproto::SubtreeProperty::Effort, sem::SubtreeProperty::Effort>::read(out.data().effort(), in.for_field_variant<7>(&sem::SubtreeProperty::data));
+      break;
+    case ::orgproto::SubtreeProperty::Data::kVisibility:
+      proto_serde<orgproto::SubtreeProperty::Visibility, sem::SubtreeProperty::Visibility>::read(out.data().visibility(), in.for_field_variant<8>(&sem::SubtreeProperty::data));
+      break;
+    case ::orgproto::SubtreeProperty::Data::kExportoptions:
+      proto_serde<orgproto::SubtreeProperty::ExportOptions, sem::SubtreeProperty::ExportOptions>::read(out.data().exportoptions(), in.for_field_variant<9>(&sem::SubtreeProperty::data));
+      break;
+    case ::orgproto::SubtreeProperty::Data::kBlocker:
+      proto_serde<orgproto::SubtreeProperty::Blocker, sem::SubtreeProperty::Blocker>::read(out.data().blocker(), in.for_field_variant<10>(&sem::SubtreeProperty::data));
+      break;
+    case ::orgproto::SubtreeProperty::Data::kUnnumbered:
+      proto_serde<orgproto::SubtreeProperty::Unnumbered, sem::SubtreeProperty::Unnumbered>::read(out.data().unnumbered(), in.for_field_variant<11>(&sem::SubtreeProperty::data));
+      break;
+    case ::orgproto::SubtreeProperty::Data::kCreated:
+      proto_serde<orgproto::SubtreeProperty::Created, sem::SubtreeProperty::Created>::read(out.data().created(), in.for_field_variant<12>(&sem::SubtreeProperty::data));
+      break;
+    case ::orgproto::SubtreeProperty::Data::kCustomargs:
+      proto_serde<orgproto::SubtreeProperty::CustomArgs, sem::SubtreeProperty::CustomArgs>::read(out.data().customargs(), in.for_field_variant<13>(&sem::SubtreeProperty::data));
+      break;
+    case ::orgproto::SubtreeProperty::Data::kCustomraw:
+      proto_serde<orgproto::SubtreeProperty::CustomRaw, sem::SubtreeProperty::CustomRaw>::read(out.data().customraw(), in.for_field_variant<14>(&sem::SubtreeProperty::data));
+      break;
+  }
+}
+
 void proto_serde<::orgproto::None, sem::None>::write(::orgproto::None* out, sem::None const& in) {
   proto_serde<::orgproto::None, sem::Org>::write(out, in);
 }
@@ -1207,279 +1447,17 @@ void proto_serde<::orgproto::SubtreeLog, sem::SubtreeLog>::read(::orgproto::Subt
 
 void proto_serde<::orgproto::Subtree::Period, sem::Subtree::Period>::write(::orgproto::Subtree::Period* out, sem::Subtree::Period const& in) {
   out->set_kind(static_cast<orgproto::Subtree_Period_Kind>(in.kind));
-  if (!in.from.isNil()) {
-    proto_serde<orgproto::Time, sem::SemId<sem::Time>>::write(out->mutable_from(), in.from);
-  }
+  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_from(), in.from);
   if (in.to) {
-    proto_serde<orgproto::Time, sem::SemId<sem::Time>>::write(out->mutable_to(), *in.to);
+    proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_to(), *in.to);
   }
 }
 
 void proto_serde<::orgproto::Subtree::Period, sem::Subtree::Period>::read(::orgproto::Subtree::Period const& out, proto_write_accessor<sem::Subtree::Period> in) {
   in.for_field(&sem::Subtree::Period::kind).get() = static_cast<sem::Subtree::Period::Kind>(out.kind());
-  proto_serde<orgproto::Time, sem::SemId<sem::Time>>::read(out.from(), in.for_field(&sem::Subtree::Period::from));
+  proto_serde<orgproto::UserTime, UserTime>::read(out.from(), in.for_field(&sem::Subtree::Period::from));
   if (out.has_to()) {
-    proto_serde<Opt<orgproto::Time>, Opt<sem::SemId<sem::Time>>>::read(out.to(), in.for_field(&sem::Subtree::Period::to));
-  }
-}
-
-void proto_serde<::orgproto::Subtree::Property::Nonblocking, sem::Subtree::Property::Nonblocking>::write(::orgproto::Subtree::Property::Nonblocking* out, sem::Subtree::Property::Nonblocking const& in) {
-  out->set_isblocking(in.isBlocking);
-}
-
-void proto_serde<::orgproto::Subtree::Property::Nonblocking, sem::Subtree::Property::Nonblocking>::read(::orgproto::Subtree::Property::Nonblocking const& out, proto_write_accessor<sem::Subtree::Property::Nonblocking> in) {
-  in.for_field(&sem::Subtree::Property::Nonblocking::isBlocking).get() = out.isblocking();
-}
-
-void proto_serde<::orgproto::Subtree::Property::Trigger, sem::Subtree::Property::Trigger>::write(::orgproto::Subtree::Property::Trigger* out, sem::Subtree::Property::Trigger const& in) {
-
-}
-
-void proto_serde<::orgproto::Subtree::Property::Trigger, sem::Subtree::Property::Trigger>::read(::orgproto::Subtree::Property::Trigger const& out, proto_write_accessor<sem::Subtree::Property::Trigger> in) {
-
-}
-
-void proto_serde<::orgproto::Subtree::Property::Origin, sem::Subtree::Property::Origin>::write(::orgproto::Subtree::Property::Origin* out, sem::Subtree::Property::Origin const& in) {
-  if (!in.text.isNil()) {
-    proto_serde<orgproto::Paragraph, sem::SemId<sem::Paragraph>>::write(out->mutable_text(), in.text);
-  }
-}
-
-void proto_serde<::orgproto::Subtree::Property::Origin, sem::Subtree::Property::Origin>::read(::orgproto::Subtree::Property::Origin const& out, proto_write_accessor<sem::Subtree::Property::Origin> in) {
-  proto_serde<orgproto::Paragraph, sem::SemId<sem::Paragraph>>::read(out.text(), in.for_field(&sem::Subtree::Property::Origin::text));
-}
-
-void proto_serde<::orgproto::Subtree::Property::ExportLatexClass, sem::Subtree::Property::ExportLatexClass>::write(::orgproto::Subtree::Property::ExportLatexClass* out, sem::Subtree::Property::ExportLatexClass const& in) {
-  proto_serde<std::string, Str>::write(out->mutable_latexclass(), in.latexClass);
-}
-
-void proto_serde<::orgproto::Subtree::Property::ExportLatexClass, sem::Subtree::Property::ExportLatexClass>::read(::orgproto::Subtree::Property::ExportLatexClass const& out, proto_write_accessor<sem::Subtree::Property::ExportLatexClass> in) {
-  proto_serde<std::string, Str>::read(out.latexclass(), in.for_field(&sem::Subtree::Property::ExportLatexClass::latexClass));
-}
-
-void proto_serde<::orgproto::Subtree::Property::ExportLatexClassOptions, sem::Subtree::Property::ExportLatexClassOptions>::write(::orgproto::Subtree::Property::ExportLatexClassOptions* out, sem::Subtree::Property::ExportLatexClassOptions const& in) {
-  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::write(out->mutable_options(), in.options);
-}
-
-void proto_serde<::orgproto::Subtree::Property::ExportLatexClassOptions, sem::Subtree::Property::ExportLatexClassOptions>::read(::orgproto::Subtree::Property::ExportLatexClassOptions const& out, proto_write_accessor<sem::Subtree::Property::ExportLatexClassOptions> in) {
-  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::read(out.options(), in.for_field(&sem::Subtree::Property::ExportLatexClassOptions::options));
-}
-
-void proto_serde<::orgproto::Subtree::Property::ExportLatexHeader, sem::Subtree::Property::ExportLatexHeader>::write(::orgproto::Subtree::Property::ExportLatexHeader* out, sem::Subtree::Property::ExportLatexHeader const& in) {
-  proto_serde<std::string, Str>::write(out->mutable_header(), in.header);
-}
-
-void proto_serde<::orgproto::Subtree::Property::ExportLatexHeader, sem::Subtree::Property::ExportLatexHeader>::read(::orgproto::Subtree::Property::ExportLatexHeader const& out, proto_write_accessor<sem::Subtree::Property::ExportLatexHeader> in) {
-  proto_serde<std::string, Str>::read(out.header(), in.for_field(&sem::Subtree::Property::ExportLatexHeader::header));
-}
-
-void proto_serde<::orgproto::Subtree::Property::ExportLatexCompiler, sem::Subtree::Property::ExportLatexCompiler>::write(::orgproto::Subtree::Property::ExportLatexCompiler* out, sem::Subtree::Property::ExportLatexCompiler const& in) {
-  proto_serde<std::string, Str>::write(out->mutable_compiler(), in.compiler);
-}
-
-void proto_serde<::orgproto::Subtree::Property::ExportLatexCompiler, sem::Subtree::Property::ExportLatexCompiler>::read(::orgproto::Subtree::Property::ExportLatexCompiler const& out, proto_write_accessor<sem::Subtree::Property::ExportLatexCompiler> in) {
-  proto_serde<std::string, Str>::read(out.compiler(), in.for_field(&sem::Subtree::Property::ExportLatexCompiler::compiler));
-}
-
-void proto_serde<::orgproto::Subtree::Property::Ordered, sem::Subtree::Property::Ordered>::write(::orgproto::Subtree::Property::Ordered* out, sem::Subtree::Property::Ordered const& in) {
-  out->set_isordered(in.isOrdered);
-}
-
-void proto_serde<::orgproto::Subtree::Property::Ordered, sem::Subtree::Property::Ordered>::read(::orgproto::Subtree::Property::Ordered const& out, proto_write_accessor<sem::Subtree::Property::Ordered> in) {
-  in.for_field(&sem::Subtree::Property::Ordered::isOrdered).get() = out.isordered();
-}
-
-void proto_serde<::orgproto::Subtree::Property::Effort, sem::Subtree::Property::Effort>::write(::orgproto::Subtree::Property::Effort* out, sem::Subtree::Property::Effort const& in) {
-  out->set_hours(in.hours);
-  out->set_minutes(in.minutes);
-}
-
-void proto_serde<::orgproto::Subtree::Property::Effort, sem::Subtree::Property::Effort>::read(::orgproto::Subtree::Property::Effort const& out, proto_write_accessor<sem::Subtree::Property::Effort> in) {
-  in.for_field(&sem::Subtree::Property::Effort::hours).get() = out.hours();
-  in.for_field(&sem::Subtree::Property::Effort::minutes).get() = out.minutes();
-}
-
-void proto_serde<::orgproto::Subtree::Property::Visibility, sem::Subtree::Property::Visibility>::write(::orgproto::Subtree::Property::Visibility* out, sem::Subtree::Property::Visibility const& in) {
-  out->set_level(static_cast<orgproto::Subtree_Property_Visibility_Level>(in.level));
-}
-
-void proto_serde<::orgproto::Subtree::Property::Visibility, sem::Subtree::Property::Visibility>::read(::orgproto::Subtree::Property::Visibility const& out, proto_write_accessor<sem::Subtree::Property::Visibility> in) {
-  in.for_field(&sem::Subtree::Property::Visibility::level).get() = static_cast<sem::Subtree::Property::Visibility::Level>(out.level());
-}
-
-void proto_serde<::orgproto::Subtree::Property::ExportOptions, sem::Subtree::Property::ExportOptions>::write(::orgproto::Subtree::Property::ExportOptions* out, sem::Subtree::Property::ExportOptions const& in) {
-  proto_serde<std::string, Str>::write(out->mutable_backend(), in.backend);
-  proto_serde<::google::protobuf::Map<std::string, std::string>, UnorderedMap<Str, Str>>::write(out->mutable_values(), in.values);
-}
-
-void proto_serde<::orgproto::Subtree::Property::ExportOptions, sem::Subtree::Property::ExportOptions>::read(::orgproto::Subtree::Property::ExportOptions const& out, proto_write_accessor<sem::Subtree::Property::ExportOptions> in) {
-  proto_serde<std::string, Str>::read(out.backend(), in.for_field(&sem::Subtree::Property::ExportOptions::backend));
-  proto_serde<::google::protobuf::Map<std::string, std::string>, UnorderedMap<Str, Str>>::read(out.values(), in.for_field(&sem::Subtree::Property::ExportOptions::values));
-}
-
-void proto_serde<::orgproto::Subtree::Property::Blocker, sem::Subtree::Property::Blocker>::write(::orgproto::Subtree::Property::Blocker* out, sem::Subtree::Property::Blocker const& in) {
-  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::write(out->mutable_blockers(), in.blockers);
-}
-
-void proto_serde<::orgproto::Subtree::Property::Blocker, sem::Subtree::Property::Blocker>::read(::orgproto::Subtree::Property::Blocker const& out, proto_write_accessor<sem::Subtree::Property::Blocker> in) {
-  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::read(out.blockers(), in.for_field(&sem::Subtree::Property::Blocker::blockers));
-}
-
-void proto_serde<::orgproto::Subtree::Property::Unnumbered, sem::Subtree::Property::Unnumbered>::write(::orgproto::Subtree::Property::Unnumbered* out, sem::Subtree::Property::Unnumbered const& in) {
-
-}
-
-void proto_serde<::orgproto::Subtree::Property::Unnumbered, sem::Subtree::Property::Unnumbered>::read(::orgproto::Subtree::Property::Unnumbered const& out, proto_write_accessor<sem::Subtree::Property::Unnumbered> in) {
-
-}
-
-void proto_serde<::orgproto::Subtree::Property::Created, sem::Subtree::Property::Created>::write(::orgproto::Subtree::Property::Created* out, sem::Subtree::Property::Created const& in) {
-  if (!in.time.isNil()) {
-    proto_serde<orgproto::Time, sem::SemId<sem::Time>>::write(out->mutable_time(), in.time);
-  }
-}
-
-void proto_serde<::orgproto::Subtree::Property::Created, sem::Subtree::Property::Created>::read(::orgproto::Subtree::Property::Created const& out, proto_write_accessor<sem::Subtree::Property::Created> in) {
-  proto_serde<orgproto::Time, sem::SemId<sem::Time>>::read(out.time(), in.for_field(&sem::Subtree::Property::Created::time));
-}
-
-void proto_serde<::orgproto::Subtree::Property::CustomArgs, sem::Subtree::Property::CustomArgs>::write(::orgproto::Subtree::Property::CustomArgs* out, sem::Subtree::Property::CustomArgs const& in) {
-  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
-  if (in.sub) {
-    proto_serde<std::string, Str>::write(out->mutable_sub(), *in.sub);
-  }
-  if (!in.parameters.isNil()) {
-    proto_serde<orgproto::CmdArguments, sem::SemId<sem::CmdArguments>>::write(out->mutable_parameters(), in.parameters);
-  }
-}
-
-void proto_serde<::orgproto::Subtree::Property::CustomArgs, sem::Subtree::Property::CustomArgs>::read(::orgproto::Subtree::Property::CustomArgs const& out, proto_write_accessor<sem::Subtree::Property::CustomArgs> in) {
-  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::Subtree::Property::CustomArgs::name));
-  if (out.has_sub()) {
-    proto_serde<Opt<std::string>, Opt<Str>>::read(out.sub(), in.for_field(&sem::Subtree::Property::CustomArgs::sub));
-  }
-  proto_serde<orgproto::CmdArguments, sem::SemId<sem::CmdArguments>>::read(out.parameters(), in.for_field(&sem::Subtree::Property::CustomArgs::parameters));
-}
-
-void proto_serde<::orgproto::Subtree::Property::CustomRaw, sem::Subtree::Property::CustomRaw>::write(::orgproto::Subtree::Property::CustomRaw* out, sem::Subtree::Property::CustomRaw const& in) {
-  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
-  proto_serde<std::string, Str>::write(out->mutable_value(), in.value);
-}
-
-void proto_serde<::orgproto::Subtree::Property::CustomRaw, sem::Subtree::Property::CustomRaw>::read(::orgproto::Subtree::Property::CustomRaw const& out, proto_write_accessor<sem::Subtree::Property::CustomRaw> in) {
-  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::Subtree::Property::CustomRaw::name));
-  proto_serde<std::string, Str>::read(out.value(), in.for_field(&sem::Subtree::Property::CustomRaw::value));
-}
-
-void proto_serde<::orgproto::Subtree::Property, sem::Subtree::Property>::write(::orgproto::Subtree::Property* out, sem::Subtree::Property const& in) {
-  out->set_mainsetrule(static_cast<orgproto::Subtree_Property_SetMode>(in.mainSetRule));
-  out->set_subsetrule(static_cast<orgproto::Subtree_Property_SetMode>(in.subSetRule));
-  out->set_inheritancemode(static_cast<orgproto::Subtree_Property_InheritanceMode>(in.inheritanceMode));
-  switch (in.data.index()) {
-    case 0:
-      proto_serde<orgproto::Subtree::Property::Nonblocking, sem::Subtree::Property::Nonblocking>::write(out->mutable_data()->mutable_nonblocking(), std::get<0>(in.data));
-      break;
-    case 1:
-      proto_serde<orgproto::Subtree::Property::Trigger, sem::Subtree::Property::Trigger>::write(out->mutable_data()->mutable_trigger(), std::get<1>(in.data));
-      break;
-    case 2:
-      proto_serde<orgproto::Subtree::Property::Origin, sem::Subtree::Property::Origin>::write(out->mutable_data()->mutable_origin(), std::get<2>(in.data));
-      break;
-    case 3:
-      proto_serde<orgproto::Subtree::Property::ExportLatexClass, sem::Subtree::Property::ExportLatexClass>::write(out->mutable_data()->mutable_exportlatexclass(), std::get<3>(in.data));
-      break;
-    case 4:
-      proto_serde<orgproto::Subtree::Property::ExportLatexClassOptions, sem::Subtree::Property::ExportLatexClassOptions>::write(out->mutable_data()->mutable_exportlatexclassoptions(), std::get<4>(in.data));
-      break;
-    case 5:
-      proto_serde<orgproto::Subtree::Property::ExportLatexHeader, sem::Subtree::Property::ExportLatexHeader>::write(out->mutable_data()->mutable_exportlatexheader(), std::get<5>(in.data));
-      break;
-    case 6:
-      proto_serde<orgproto::Subtree::Property::ExportLatexCompiler, sem::Subtree::Property::ExportLatexCompiler>::write(out->mutable_data()->mutable_exportlatexcompiler(), std::get<6>(in.data));
-      break;
-    case 7:
-      proto_serde<orgproto::Subtree::Property::Ordered, sem::Subtree::Property::Ordered>::write(out->mutable_data()->mutable_ordered(), std::get<7>(in.data));
-      break;
-    case 8:
-      proto_serde<orgproto::Subtree::Property::Effort, sem::Subtree::Property::Effort>::write(out->mutable_data()->mutable_effort(), std::get<8>(in.data));
-      break;
-    case 9:
-      proto_serde<orgproto::Subtree::Property::Visibility, sem::Subtree::Property::Visibility>::write(out->mutable_data()->mutable_visibility(), std::get<9>(in.data));
-      break;
-    case 10:
-      proto_serde<orgproto::Subtree::Property::ExportOptions, sem::Subtree::Property::ExportOptions>::write(out->mutable_data()->mutable_exportoptions(), std::get<10>(in.data));
-      break;
-    case 11:
-      proto_serde<orgproto::Subtree::Property::Blocker, sem::Subtree::Property::Blocker>::write(out->mutable_data()->mutable_blocker(), std::get<11>(in.data));
-      break;
-    case 12:
-      proto_serde<orgproto::Subtree::Property::Unnumbered, sem::Subtree::Property::Unnumbered>::write(out->mutable_data()->mutable_unnumbered(), std::get<12>(in.data));
-      break;
-    case 13:
-      proto_serde<orgproto::Subtree::Property::Created, sem::Subtree::Property::Created>::write(out->mutable_data()->mutable_created(), std::get<13>(in.data));
-      break;
-    case 14:
-      proto_serde<orgproto::Subtree::Property::CustomArgs, sem::Subtree::Property::CustomArgs>::write(out->mutable_data()->mutable_customargs(), std::get<14>(in.data));
-      break;
-    case 15:
-      proto_serde<orgproto::Subtree::Property::CustomRaw, sem::Subtree::Property::CustomRaw>::write(out->mutable_data()->mutable_customraw(), std::get<15>(in.data));
-      break;
-  }
-}
-
-void proto_serde<::orgproto::Subtree::Property, sem::Subtree::Property>::read(::orgproto::Subtree::Property const& out, proto_write_accessor<sem::Subtree::Property> in) {
-  in.for_field(&sem::Subtree::Property::mainSetRule).get() = static_cast<sem::Subtree::Property::SetMode>(out.mainsetrule());
-  in.for_field(&sem::Subtree::Property::subSetRule).get() = static_cast<sem::Subtree::Property::SetMode>(out.subsetrule());
-  in.for_field(&sem::Subtree::Property::inheritanceMode).get() = static_cast<sem::Subtree::Property::InheritanceMode>(out.inheritancemode());
-  switch (out.data().kind_case()) {
-    case ::orgproto::Subtree::Property::Data::kNonblocking:
-      proto_serde<orgproto::Subtree::Property::Nonblocking, sem::Subtree::Property::Nonblocking>::read(out.data().nonblocking(), in.for_field_variant<0>(&sem::Subtree::Property::data));
-      break;
-    case ::orgproto::Subtree::Property::Data::kTrigger:
-      proto_serde<orgproto::Subtree::Property::Trigger, sem::Subtree::Property::Trigger>::read(out.data().trigger(), in.for_field_variant<1>(&sem::Subtree::Property::data));
-      break;
-    case ::orgproto::Subtree::Property::Data::kOrigin:
-      proto_serde<orgproto::Subtree::Property::Origin, sem::Subtree::Property::Origin>::read(out.data().origin(), in.for_field_variant<2>(&sem::Subtree::Property::data));
-      break;
-    case ::orgproto::Subtree::Property::Data::kExportlatexclass:
-      proto_serde<orgproto::Subtree::Property::ExportLatexClass, sem::Subtree::Property::ExportLatexClass>::read(out.data().exportlatexclass(), in.for_field_variant<3>(&sem::Subtree::Property::data));
-      break;
-    case ::orgproto::Subtree::Property::Data::kExportlatexclassoptions:
-      proto_serde<orgproto::Subtree::Property::ExportLatexClassOptions, sem::Subtree::Property::ExportLatexClassOptions>::read(out.data().exportlatexclassoptions(), in.for_field_variant<4>(&sem::Subtree::Property::data));
-      break;
-    case ::orgproto::Subtree::Property::Data::kExportlatexheader:
-      proto_serde<orgproto::Subtree::Property::ExportLatexHeader, sem::Subtree::Property::ExportLatexHeader>::read(out.data().exportlatexheader(), in.for_field_variant<5>(&sem::Subtree::Property::data));
-      break;
-    case ::orgproto::Subtree::Property::Data::kExportlatexcompiler:
-      proto_serde<orgproto::Subtree::Property::ExportLatexCompiler, sem::Subtree::Property::ExportLatexCompiler>::read(out.data().exportlatexcompiler(), in.for_field_variant<6>(&sem::Subtree::Property::data));
-      break;
-    case ::orgproto::Subtree::Property::Data::kOrdered:
-      proto_serde<orgproto::Subtree::Property::Ordered, sem::Subtree::Property::Ordered>::read(out.data().ordered(), in.for_field_variant<7>(&sem::Subtree::Property::data));
-      break;
-    case ::orgproto::Subtree::Property::Data::kEffort:
-      proto_serde<orgproto::Subtree::Property::Effort, sem::Subtree::Property::Effort>::read(out.data().effort(), in.for_field_variant<8>(&sem::Subtree::Property::data));
-      break;
-    case ::orgproto::Subtree::Property::Data::kVisibility:
-      proto_serde<orgproto::Subtree::Property::Visibility, sem::Subtree::Property::Visibility>::read(out.data().visibility(), in.for_field_variant<9>(&sem::Subtree::Property::data));
-      break;
-    case ::orgproto::Subtree::Property::Data::kExportoptions:
-      proto_serde<orgproto::Subtree::Property::ExportOptions, sem::Subtree::Property::ExportOptions>::read(out.data().exportoptions(), in.for_field_variant<10>(&sem::Subtree::Property::data));
-      break;
-    case ::orgproto::Subtree::Property::Data::kBlocker:
-      proto_serde<orgproto::Subtree::Property::Blocker, sem::Subtree::Property::Blocker>::read(out.data().blocker(), in.for_field_variant<11>(&sem::Subtree::Property::data));
-      break;
-    case ::orgproto::Subtree::Property::Data::kUnnumbered:
-      proto_serde<orgproto::Subtree::Property::Unnumbered, sem::Subtree::Property::Unnumbered>::read(out.data().unnumbered(), in.for_field_variant<12>(&sem::Subtree::Property::data));
-      break;
-    case ::orgproto::Subtree::Property::Data::kCreated:
-      proto_serde<orgproto::Subtree::Property::Created, sem::Subtree::Property::Created>::read(out.data().created(), in.for_field_variant<13>(&sem::Subtree::Property::data));
-      break;
-    case ::orgproto::Subtree::Property::Data::kCustomargs:
-      proto_serde<orgproto::Subtree::Property::CustomArgs, sem::Subtree::Property::CustomArgs>::read(out.data().customargs(), in.for_field_variant<14>(&sem::Subtree::Property::data));
-      break;
-    case ::orgproto::Subtree::Property::Data::kCustomraw:
-      proto_serde<orgproto::Subtree::Property::CustomRaw, sem::Subtree::Property::CustomRaw>::read(out.data().customraw(), in.for_field_variant<15>(&sem::Subtree::Property::data));
-      break;
+    proto_serde<Opt<orgproto::UserTime>, Opt<UserTime>>::read(out.to(), in.for_field(&sem::Subtree::Period::to));
   }
 }
 
@@ -1503,7 +1481,7 @@ void proto_serde<::orgproto::Subtree, sem::Subtree>::write(::orgproto::Subtree* 
     proto_serde<orgproto::Paragraph, sem::SemId<sem::Paragraph>>::write(out->mutable_title(), in.title);
   }
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::SubtreeLog>, Vec<sem::SemId<sem::SubtreeLog>>>::write(out->mutable_logbook(), in.logbook);
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Subtree::Property>, Vec<sem::Subtree::Property>>::write(out->mutable_properties(), in.properties);
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::SubtreeProperty>, Vec<sem::SubtreeProperty>>::write(out->mutable_properties(), in.properties);
   if (in.closed) {
     proto_serde<orgproto::Time, sem::SemId<sem::Time>>::write(out->mutable_closed(), *in.closed);
   }
@@ -1538,7 +1516,7 @@ void proto_serde<::orgproto::Subtree, sem::Subtree>::read(::orgproto::Subtree co
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::HashTag>, Vec<sem::SemId<sem::HashTag>>>::read(out.tags(), in.for_field(&sem::Subtree::tags));
   proto_serde<orgproto::Paragraph, sem::SemId<sem::Paragraph>>::read(out.title(), in.for_field(&sem::Subtree::title));
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::SubtreeLog>, Vec<sem::SemId<sem::SubtreeLog>>>::read(out.logbook(), in.for_field(&sem::Subtree::logbook));
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Subtree::Property>, Vec<sem::Subtree::Property>>::read(out.properties(), in.for_field(&sem::Subtree::properties));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::SubtreeProperty>, Vec<sem::SubtreeProperty>>::read(out.properties(), in.for_field(&sem::Subtree::properties));
   if (out.has_closed()) {
     proto_serde<Opt<orgproto::Time>, Opt<sem::SemId<sem::Time>>>::read(out.closed(), in.for_field(&sem::Subtree::closed));
   }
@@ -1892,7 +1870,7 @@ void proto_serde<::orgproto::DocumentOptions::ExportConfig, sem::DocumentOptions
 void proto_serde<::orgproto::DocumentOptions, sem::DocumentOptions>::write(::orgproto::DocumentOptions* out, sem::DocumentOptions const& in) {
   proto_serde<::orgproto::DocumentOptions, sem::Org>::write(out, in);
   out->set_initialvisibility(static_cast<orgproto::DocumentOptions_Visibility>(in.initialVisibility));
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Subtree::Property>, Vec<sem::Subtree::Property>>::write(out->mutable_properties(), in.properties);
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::SubtreeProperty>, Vec<sem::SubtreeProperty>>::write(out->mutable_properties(), in.properties);
   proto_serde<orgproto::DocumentOptions::ExportConfig, sem::DocumentOptions::ExportConfig>::write(out->mutable_exportconfig(), in.exportConfig);
   if (in.fixedWidthSections) {
     out->set_fixedwidthsections(*in.fixedWidthSections);
@@ -1914,7 +1892,7 @@ void proto_serde<::orgproto::DocumentOptions, sem::DocumentOptions>::write(::org
 void proto_serde<::orgproto::DocumentOptions, sem::DocumentOptions>::read(::orgproto::DocumentOptions const& out, proto_write_accessor<sem::DocumentOptions> in) {
   proto_serde<::orgproto::DocumentOptions, sem::Org>::read(out, in.as<sem::Org>());
   in.for_field(&sem::DocumentOptions::initialVisibility).get() = static_cast<sem::DocumentOptions::Visibility>(out.initialvisibility());
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Subtree::Property>, Vec<sem::Subtree::Property>>::read(out.properties(), in.for_field(&sem::DocumentOptions::properties));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::SubtreeProperty>, Vec<sem::SubtreeProperty>>::read(out.properties(), in.for_field(&sem::DocumentOptions::properties));
   proto_serde<orgproto::DocumentOptions::ExportConfig, sem::DocumentOptions::ExportConfig>::read(out.exportconfig(), in.for_field(&sem::DocumentOptions::exportConfig));
   if (out.has_fixedwidthsections()) {
     proto_serde<Opt<bool>, Opt<bool>>::read(out.fixedwidthsections(), in.for_field(&sem::DocumentOptions::fixedWidthSections));

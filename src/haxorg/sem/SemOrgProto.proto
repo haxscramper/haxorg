@@ -262,6 +262,129 @@ enum OrgSemKind {
   OrgSemKind_DocumentGroup_f                                                        = 68;
 }
 
+message SubtreeProperty {
+  enum SetMode {
+    SetMode_Override_f                                                              = 0;
+    SetMode_Add_f                                                                   = 1;
+    SetMode_Subtract_f                                                              = 2;
+  }
+  enum InheritanceMode {
+    InheritanceMode_ThisAndSub_f                                                    = 0;
+    InheritanceMode_OnlyThis_f                                                      = 1;
+    InheritanceMode_OnlySub_f                                                       = 2;
+  }
+  message Nonblocking {
+    bool                                           isBlocking                       = 1;
+    string                                         debug                            = 1000;
+  }
+  message Trigger {
+    string                                         debug                            = 1000;
+  }
+  message ExportLatexClass {
+    string                                         latexClass                       = 1;
+    string                                         debug                            = 1000;
+  }
+  message ExportLatexClassOptions {
+    repeated string                                options                          = 1;
+    string                                         debug                            = 1000;
+  }
+  message ExportLatexHeader {
+    string                                         header                           = 1;
+    string                                         debug                            = 1000;
+  }
+  message ExportLatexCompiler {
+    string                                         compiler                         = 1;
+    string                                         debug                            = 1000;
+  }
+  message Ordered {
+    bool                                           isOrdered                        = 1;
+    string                                         debug                            = 1000;
+  }
+  message Effort {
+    int32                                          hours                            = 1;
+    int32                                          minutes                          = 2;
+    string                                         debug                            = 1000;
+  }
+  message Visibility {
+    enum Level {
+      Level_Folded_f                                                                = 0;
+      Level_Children_f                                                              = 1;
+      Level_Content_f                                                               = 2;
+      Level_All_f                                                                   = 3;
+    }
+    SubtreeProperty.Visibility.Level               level                            = 1;
+    string                                         debug                            = 1000;
+  }
+  message ExportOptions {
+    string                                         backend                          = 1;
+    map<string, string>                            values                           = 2;
+    string                                         debug                            = 1000;
+  }
+  message Blocker {
+    repeated string                                blockers                         = 1;
+    string                                         debug                            = 1000;
+  }
+  message Unnumbered {
+    string                                         debug                            = 1000;
+  }
+  message Created {
+    UserTime                                       time                             = 1;
+    string                                         debug                            = 1000;
+  }
+  message CustomArgs {
+    string                                         name                             = 1;
+    optional string                                sub                              = 2;
+    repeated string                                parameters                       = 3;
+    string                                         debug                            = 1000;
+  }
+  message CustomRaw {
+    string                                         name                             = 1;
+    string                                         value                            = 2;
+    string                                         debug                            = 1000;
+  }
+  message Data {
+    oneof kind {
+      SubtreeProperty.Nonblocking                  nonblocking                      = 1;
+      SubtreeProperty.Trigger                      trigger                          = 2;
+      SubtreeProperty.ExportLatexClass             exportlatexclass                 = 3;
+      SubtreeProperty.ExportLatexClassOptions      exportlatexclassoptions          = 4;
+      SubtreeProperty.ExportLatexHeader            exportlatexheader                = 5;
+      SubtreeProperty.ExportLatexCompiler          exportlatexcompiler              = 6;
+      SubtreeProperty.Ordered                      ordered                          = 7;
+      SubtreeProperty.Effort                       effort                           = 8;
+      SubtreeProperty.Visibility                   visibility                       = 9;
+      SubtreeProperty.ExportOptions                exportoptions                    = 10;
+      SubtreeProperty.Blocker                      blocker                          = 11;
+      SubtreeProperty.Unnumbered                   unnumbered                       = 12;
+      SubtreeProperty.Created                      created                          = 13;
+      SubtreeProperty.CustomArgs                   customargs                       = 14;
+      SubtreeProperty.CustomRaw                    customraw                        = 15;
+    }
+  }
+  enum Kind {
+    Kind_Nonblocking_f                                                              = 0;
+    Kind_Trigger_f                                                                  = 1;
+    Kind_ExportLatexClass_f                                                         = 2;
+    Kind_ExportLatexClassOptions_f                                                  = 3;
+    Kind_ExportLatexHeader_f                                                        = 4;
+    Kind_ExportLatexCompiler_f                                                      = 5;
+    Kind_Ordered_f                                                                  = 6;
+    Kind_Effort_f                                                                   = 7;
+    Kind_Visibility_f                                                               = 8;
+    Kind_ExportOptions_f                                                            = 9;
+    Kind_Blocker_f                                                                  = 10;
+    Kind_Unnumbered_f                                                               = 11;
+    Kind_Created_f                                                                  = 12;
+    Kind_CustomArgs_f                                                               = 13;
+    Kind_CustomRaw_f                                                                = 14;
+  }
+  SubtreeProperty.SetMode                          mainSetRule                      = 1;
+  SubtreeProperty.SetMode                          subSetRule                       = 2;
+  SubtreeProperty.InheritanceMode                  inheritanceMode                  = 3;
+  SubtreeProperty.Data                             data                             = 4;
+  string                                           debug                            = 1000;
+}
+
 message None {
   repeated AnyNode                                 subnodes                         = 1;
   OrgSemKind                                       staticKind                       = 2;
@@ -1012,136 +1135,8 @@ message Subtree {
       Kind_Repeated_f                                                               = 6;
     }
     Subtree.Period.Kind                            kind                             = 1;
-    Time                                           from                             = 2;
-    optional Time                                  to                               = 3;
-    string                                         debug                            = 1000;
-  }
-  message Property {
-    enum SetMode {
-      SetMode_Override_f                                                            = 0;
-      SetMode_Add_f                                                                 = 1;
-      SetMode_Subtract_f                                                            = 2;
-    }
-    enum InheritanceMode {
-      InheritanceMode_ThisAndSub_f                                                  = 0;
-      InheritanceMode_OnlyThis_f                                                    = 1;
-      InheritanceMode_OnlySub_f                                                     = 2;
-    }
-    message Nonblocking {
-      bool                                         isBlocking                       = 1;
-      string                                       debug                            = 1000;
-    }
-    message Trigger {
-      string                                       debug                            = 1000;
-    }
-    message Origin {
-      Paragraph                                    text                             = 1;
-      string                                       debug                            = 1000;
-    }
-    message ExportLatexClass {
-      string                                       latexClass                       = 1;
-      string                                       debug                            = 1000;
-    }
-    message ExportLatexClassOptions {
-      repeated string                              options                          = 1;
-      string                                       debug                            = 1000;
-    }
-    message ExportLatexHeader {
-      string                                       header                           = 1;
-      string                                       debug                            = 1000;
-    }
-    message ExportLatexCompiler {
-      string                                       compiler                         = 1;
-      string                                       debug                            = 1000;
-    }
-    message Ordered {
-      bool                                         isOrdered                        = 1;
-      string                                       debug                            = 1000;
-    }
-    message Effort {
-      int32                                        hours                            = 1;
-      int32                                        minutes                          = 2;
-      string                                       debug                            = 1000;
-    }
-    message Visibility {
-      enum Level {
-        Level_Folded_f                                                              = 0;
-        Level_Children_f                                                            = 1;
-        Level_Content_f                                                             = 2;
-        Level_All_f                                                                 = 3;
-      }
-      Subtree.Property.Visibility.Level            level                            = 1;
-      string                                       debug                            = 1000;
-    }
-    message ExportOptions {
-      string                                       backend                          = 1;
-      map<string, string>                          values                           = 2;
-      string                                       debug                            = 1000;
-    }
-    message Blocker {
-      repeated string                              blockers                         = 1;
-      string                                       debug                            = 1000;
-    }
-    message Unnumbered {
-      string                                       debug                            = 1000;
-    }
-    message Created {
-      Time                                         time                             = 1;
-      string                                       debug                            = 1000;
-    }
-    message CustomArgs {
-      string                                       name                             = 1;
-      optional string                              sub                              = 2;
-      CmdArguments                                 parameters                       = 3;
-      string                                       debug                            = 1000;
-    }
-    message CustomRaw {
-      string                                       name                             = 1;
-      string                                       value                            = 2;
-      string                                       debug                            = 1000;
-    }
-    message Data {
-      oneof kind {
-        Subtree.Property.Nonblocking               nonblocking                      = 1;
-        Subtree.Property.Trigger                   trigger                          = 2;
-        Subtree.Property.Origin                    origin                           = 3;
-        Subtree.Property.ExportLatexClass          exportlatexclass                 = 4;
-        Subtree.Property.ExportLatexClassOptions   exportlatexclassoptions          = 5;
-        Subtree.Property.ExportLatexHeader         exportlatexheader                = 6;
-        Subtree.Property.ExportLatexCompiler       exportlatexcompiler              = 7;
-        Subtree.Property.Ordered                   ordered                          = 8;
-        Subtree.Property.Effort                    effort                           = 9;
-        Subtree.Property.Visibility                visibility                       = 10;
-        Subtree.Property.ExportOptions             exportoptions                    = 11;
-        Subtree.Property.Blocker                   blocker                          = 12;
-        Subtree.Property.Unnumbered                unnumbered                       = 13;
-        Subtree.Property.Created                   created                          = 14;
-        Subtree.Property.CustomArgs                customargs                       = 15;
-        Subtree.Property.CustomRaw                 customraw                        = 16;
-      }
-    }
-    enum Kind {
-      Kind_Nonblocking_f                                                            = 0;
-      Kind_Trigger_f                                                                = 1;
-      Kind_Origin_f                                                                 = 2;
-      Kind_ExportLatexClass_f                                                       = 3;
-      Kind_ExportLatexClassOptions_f                                                = 4;
-      Kind_ExportLatexHeader_f                                                      = 5;
-      Kind_ExportLatexCompiler_f                                                    = 6;
-      Kind_Ordered_f                                                                = 7;
-      Kind_Effort_f                                                                 = 8;
-      Kind_Visibility_f                                                             = 9;
-      Kind_ExportOptions_f                                                          = 10;
-      Kind_Blocker_f                                                                = 11;
-      Kind_Unnumbered_f                                                             = 12;
-      Kind_Created_f                                                                = 13;
-      Kind_CustomArgs_f                                                             = 14;
-      Kind_CustomRaw_f                                                              = 15;
-    }
-    Subtree.Property.SetMode                       mainSetRule                      = 1;
-    Subtree.Property.SetMode                       subSetRule                       = 2;
-    Subtree.Property.InheritanceMode               inheritanceMode                  = 3;
-    Subtree.Property.Data                          data                             = 4;
+    UserTime                                       from                             = 2;
+    optional UserTime                              to                               = 3;
     string                                         debug                            = 1000;
   }
   repeated AnyNode                                 subnodes                         = 1;
@@ -1154,7 +1149,7 @@ message Subtree {
   repeated HashTag                                 tags                             = 8;
   Paragraph                                        title                            = 9;
   repeated SubtreeLog                              logbook                          = 10;
-  repeated Subtree.Property                        properties                       = 11;
+  repeated SubtreeProperty                         properties                       = 11;
   optional Time                                    closed                           = 12;
   optional Time                                    deadline                         = 13;
   optional Time                                    scheduled                        = 14;
@@ -1360,7 +1355,7 @@ message DocumentOptions {
   repeated AnyNode                                 subnodes                         = 1;
   OrgSemKind                                       staticKind                       = 2;
   DocumentOptions.Visibility                       initialVisibility                = 3;
-  repeated Subtree.Property                        properties                       = 4;
+  repeated SubtreeProperty                         properties                       = 4;
   DocumentOptions.ExportConfig                     exportConfig                     = 5;
   optional bool                                    fixedWidthSections               = 6;
   optional bool                                    startupIndented                  = 7;

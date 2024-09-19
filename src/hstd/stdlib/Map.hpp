@@ -109,3 +109,23 @@ struct value_metadata<UnorderedMap<K, V>> {
         return value.empty();
     }
 };
+
+template <typename K, typename V, typename Type>
+struct std_kv_tuple_iterator_hash {
+    std::size_t operator()(Type const& it) const noexcept {
+        std::size_t result = 0;
+        for (auto const& [key, value] : it) {
+            hax_hash_combine(result, key);
+            hax_hash_combine(result, value);
+        }
+        return result;
+    }
+};
+
+template <typename K, typename V>
+struct std::hash<UnorderedMap<K, V>>
+    : std_kv_tuple_iterator_hash<K, V, UnorderedMap<K, V>> {};
+
+template <typename K, typename V>
+struct std::hash<SortedMap<K, V>>
+    : std_kv_tuple_iterator_hash<K, V, SortedMap<K, V>> {};

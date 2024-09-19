@@ -18,7 +18,7 @@ using namespace sem;
 using onk      = OrgNodeKind;
 using otk      = OrgTokenKind;
 using Err      = OrgConverter::Errors;
-using Property = sem::Subtree::Property;
+using Property = sem::SubtreeProperty;
 
 namespace {
 bool org_streq(CR<Str> str1, CR<Str> str2) {
@@ -400,7 +400,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         auto par0 = par->at(0);
 
         if (par0->is(osk::Time)) {
-            created.time = par0.as<sem::Time>();
+            created.time = par0.as<sem::Time>()->getStatic().time;
             result       = Property(created);
         } else {
             throw convert_logic_error::init(
@@ -408,14 +408,9 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
                     a.treeRepr(false)));
         }
 
-    } else if (name == "origin") {
-        Property::Origin origin;
-        origin.text = convert(one(a, N::Values)).as<sem::Paragraph>();
-        result      = Property(origin);
-
     } else if (name == "visibility") {
         if (auto visibility = parseOrgEnum<
-                sem::Subtree::Property::Visibility::Level>(
+                sem::SubtreeProperty::Visibility::Level>(
                 get_text(one(a, N::Values).at(0)));
             visibility) {
             Property::Visibility prop;
@@ -426,9 +421,9 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         }
 
     } else if (name == "effort") {
-        Str const&       value    = get_text(one(a, N::Values));
-        Vec<Str>         duration = value.split(":");
-        Property::Effort prop;
+        Str const&              value    = get_text(one(a, N::Values));
+        Vec<Str>                duration = value.split(":");
+        SubtreeProperty::Effort prop;
 
         if (duration.size() == 1) {
             prop.minutes = duration[0].toInt();
@@ -437,10 +432,10 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
             prop.hours   = duration[0].toInt();
         }
 
-        result = Property(prop);
+        result = SubtreeProperty(prop);
 
     } else {
-        Property::CustomRaw prop;
+        SubtreeProperty::CustomRaw prop;
         prop.name = basename;
         if (one(a, N::Values).kind() == onk::RawText) {
             prop.value = get_text(one(a, N::Values));
@@ -449,29 +444,31 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
                 prop.value += get_text(arg);
             }
         }
-        result = Property(prop);
+        result = SubtreeProperty(prop);
     }
 
     if (false && result) {
         const auto inh = get_text(one(a, N::InheritanceMode));
         if (inh == "!!") {
-            result->inheritanceMode = Property::InheritanceMode::OnlyThis;
+            result->inheritanceMode = SubtreeProperty::InheritanceMode::
+                OnlyThis;
         } else if (inh == "!") {
-            result->inheritanceMode = Property::InheritanceMode::OnlySub;
+            result->inheritanceMode = SubtreeProperty::InheritanceMode::
+                OnlySub;
         }
 
         const auto sub = get_text(one(a, N::SubSetRule));
         if (sub == "+") {
-            result->subSetRule = Property::SetMode::Add;
+            result->subSetRule = SubtreeProperty::SetMode::Add;
         } else if (sub == "-") {
-            result->subSetRule = Property::SetMode::Subtract;
+            result->subSetRule = SubtreeProperty::SetMode::Subtract;
         }
 
         const auto main = get_text(one(a, N::MainSetRule));
         if (main == "+") {
-            result->subSetRule = Property::SetMode::Add;
+            result->subSetRule = SubtreeProperty::SetMode::Add;
         } else if (main == "-") {
-            result->subSetRule = Property::SetMode::Subtract;
+            result->subSetRule = SubtreeProperty::SetMode::Subtract;
         }
     }
 
@@ -1646,7 +1643,7 @@ SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
 
     SemId<Document> doc = Sem<Document>(adapter);
     doc->options        = Sem<DocumentOptions>(adapter);
-    using Prop          = Subtree::Property;
+    using Prop          = SubtreeProperty;
     Vec<OrgAdapter> buffer;
 
     if (adapter.kind() == onk::StmtList) {
@@ -1667,10 +1664,12 @@ SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
 
                 case onk::CmdPropertyArgs: {
                     Prop::CustomArgs prop;
-                    prop.name       = get_text(one(sub, N::Name));
-                    prop.parameters = convertCmdArguments(
-                                          one(sub, N::Args))
-                                          .value();
+                    prop.name = get_text(one(sub, N::Name));
+                    for (auto const& it :
+                         convertCmdArguments(one(sub, N::Args)).value()) {
+                        logic_todo_impl();
+                        // prop.parameters.push_back(it);
+                    }
                     doc->options->properties.push_back(Prop(prop));
                     break;
                 }

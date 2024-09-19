@@ -437,12 +437,12 @@ Opt<UserTime> getCreationTime(const SemId<Org>& node) {
         auto const& tree = node.as<Subtree>();
         for (auto const& period :
              tree->getTimePeriods({Subtree::Period::Kind::Created})) {
-            return period.from->getStatic().time;
+            return period.from;
         }
 
         for (auto const& period :
              tree->getTimePeriods({Subtree::Period::Kind::Titled})) {
-            return period.from->getStatic().time;
+            return period.from;
         }
     }
 

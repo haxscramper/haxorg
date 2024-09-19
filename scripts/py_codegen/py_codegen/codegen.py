@@ -94,7 +94,7 @@ def get_exporter_methods(forward: bool,
                             f"visitVariants(res, sem::{'::'.join(full_scoped_name)}::{kindGetter}(object), object);",
                         ))
 
-            if len(scope_full) == 0:
+            if value.name.isOrgType() and len(scope_full) == 0:
                 method = GenTuFunction(
                     QualType.ForName("void"),
                     f"{decl_scope}visit{name}",
@@ -747,8 +747,13 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
 
             case QualType(name=TypeName,
                           Spaces=[QualType(name="sem")]) if "Id" not in TypeName:
-                obj.name = "Imm" + obj.name
-                obj.Spaces = [ORG_SPACE]
+                match obj:
+                    case QualType(meta={"isOrgType": False}):
+                        pass
+
+                    case _:
+                        obj.name = "Imm" + obj.name
+                        obj.Spaces = [ORG_SPACE]
 
             case QualType(name="Vec"):
                 obj.name = "ImmVec"
@@ -782,12 +787,14 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
                 obj.methods = [it for it in obj.methods if it.name in ["getKind"]]
                 obj.GenDescribeMethods = False
                 obj.nested = [it for it in obj.nested if not isinstance(it, GenTuPass)]
+                self_arg = obj.name.asConstRef()
+                # conv_type(self_arg)
                 obj.methods.append(
                     GenTuFunction(
                         result=QualType.ForName("bool"),
                         name="operator==",
                         isConst=True,
-                        arguments=[GenTuIdent(type=obj.name.asConstRef(), name="other")],
+                        arguments=[GenTuIdent(type=self_arg, name="other")],
                     ))
 
                 if hasattr(obj, "isOrgType"):
@@ -880,13 +887,16 @@ def gen_adaptagrams_wrappers(
 
 
 @beartype
-def gen_pyhaxorg_iteration_macros(types: List[GenTuStruct],
-                                  base_map: Dict[str, GenTuStruct]) -> List[GenTuPass]:
-    result: List[GenTuPass] = []
+@dataclass
+class PyhaxorgTypenameGroups:
+    nested_records: List[Tuple[str, str, str]] = field(default_factory=list)
+    nested_enums: List[Tuple[str, str, str]] = field(default_factory=list)
+    all_records: List[Tuple[str, str]] = field(default_factory=list)
 
-    nested_records: List[Tuple[str, str, str]] = []
-    nested_enums: List[Tuple[str, str, str]] = []
-    all_records: List[Tuple[str, str]] = []
+
+@beartype
+def collect_pyhaxorg_typename_groups(types: List[GenTuStruct]) -> PyhaxorgTypenameGroups:
+    res = PyhaxorgTypenameGroups()
 
     def aux(it):
         match it:
@@ -901,36 +911,60 @@ def gen_pyhaxorg_iteration_macros(types: List[GenTuStruct],
                         "({})".format(", ".join(it.name for it in nested)),
                     )
                     if isinstance(it, GenTuStruct):
-                        nested_records.append(value)
+                        res.nested_records.append(value)
 
                     else:
-                        nested_enums.append(value)
+                        res.nested_enums.append(value)
 
                 if isinstance(it, GenTuStruct):
-                    all_records.append((
+                    res.all_records.append((
                         "::".join(it.name for it in flat[1:]),
                         "({})".format(", ".join(it.name for it in flat[1:])),
                     ))
 
     iterate_object_tree(types, [], pre_visit=aux)
 
+    return res
+
+
+@beartype
+def gen_iteration_macros(res: PyhaxorgTypenameGroups,
+                         macro_group: str) -> List[GenTuPass]:
+    result: List[GenTuPass] = []
+
+    result.append(
+        GenTuPass(f"#define EACH_{macro_group}_ORG_RECORD_NESTED(__IMPL) \\\n" +
+                  (" \\\n".join(
+                      ["    __IMPL({}, {}, {})".format(*it)
+                       for it in res.nested_records]))))
+
+    result.append(
+        GenTuPass(f"#define EACH_{macro_group}_ORG_ENUM_NESTED(__IMPL) \\\n" +
+                  (" \\\n".join(
+                      ["    __IMPL({}, {}, {})".format(*it)
+                       for it in res.nested_enums]))))
+
+    result.append(
+        GenTuPass(f"#define EACH_{macro_group}_ORG_RECORD(__IMPL) \\\n" + (
+            " \\\n".join(["    __IMPL({}, {})".format(*it) for it in res.all_records]))))
+
+    return result
+
+
+@beartype
+def gen_pyhaxorg_shared_iteration_macros(types: List[GenTuStruct]) -> List[GenTuPass]:
+    return gen_iteration_macros(collect_pyhaxorg_typename_groups(types), "SHARED")
+
+
+@beartype
+def gen_pyhaxorg_iteration_macros(types: List[GenTuStruct]) -> List[GenTuPass]:
+    res = collect_pyhaxorg_typename_groups(types)
+
+    result: List[GenTuPass] = gen_iteration_macros(res, "SEM")
     result.append(
         GenTuPass("#define EACH_SEM_ORG_KIND(__IMPL) \\\n" + (" \\\n".join(
             [f"    __IMPL({struct.name.name})"
              for struct in get_concrete_types(types)]))))
-
-    result.append(
-        GenTuPass("#define EACH_SEM_ORG_RECORD_NESTED(__IMPL) \\\n" + (" \\\n".join(
-            ["    __IMPL({}, {}, {})".format(*it) for it in nested_records]))))
-
-    result.append(
-        GenTuPass("#define EACH_SEM_ORG_ENUM_NESTED(__IMPL) \\\n" + (
-            " \\\n".join(["    __IMPL({}, {}, {})".format(*it) for it in nested_enums]))))
-
-    result.append(
-        GenTuPass("#define EACH_SEM_ORG_RECORD(__IMPL) \\\n" +
-                  (" \\\n".join(["    __IMPL({}, {})".format(*it)
-                                 for it in all_records]))))
 
     return result
 
@@ -941,9 +975,11 @@ def gen_pyhaxorg_wrappers(
     pyast: pya.ASTBuilder,
     reflection_path: Path,
 ) -> GenFiles:
+    shared_types = expand_type_groups(ast, get_shared_sem_types())
     expanded = expand_type_groups(ast, get_types())
     immutable = expand_type_groups(ast, rewrite_to_immutable(get_types()))
-    proto = pb.ProtoBuilder(get_enums() + [get_osk_enum(expanded)] + expanded, ast)
+    proto = pb.ProtoBuilder(
+        get_enums() + [get_osk_enum(expanded)] + shared_types + expanded, ast)
     t = ast.b
 
     protobuf = proto.build_protobuf()
@@ -966,6 +1002,7 @@ def gen_pyhaxorg_wrappers(
     org_type_names = [Typ.name for Typ in expanded]
 
     res = Py11Module("pyhaxorg")
+    add_structures(res, ast, shared_types)
     add_structures(res, ast, expanded)
     add_enums(res, ast, get_enums() + [get_osk_enum(expanded)])
     add_translation_unit(res, ast, tu)
@@ -1012,6 +1049,7 @@ def gen_pyhaxorg_wrappers(
         GenUnit(
             GenTu(
                 "{base}/exporters/Exporter.tcc",
+                get_exporter_methods(False, shared_types) +
                 get_exporter_methods(False, expanded),
             ),),
         GenUnit(
@@ -1020,8 +1058,10 @@ def gen_pyhaxorg_wrappers(
                 get_imm_serde(types=expanded, ast=ast),
             ),),
         GenUnit(
-            GenTu("{base}/exporters/ExporterMethods.tcc",
-                  get_exporter_methods(True, expanded))),
+            GenTu(
+                "{base}/exporters/ExporterMethods.tcc",
+                get_exporter_methods(True, shared_types) +
+                get_exporter_methods(True, expanded))),
         GenUnit(
             GenTu(
                 "{root}/src/py_libs/pyhaxorg/pyhaxorg.cpp",
@@ -1039,9 +1079,9 @@ def gen_pyhaxorg_wrappers(
             GenTu(
                 "{base}/sem/SemOrgEnums.hpp",
                 with_enum_reflection_api(
-                    gen_pyhaxorg_iteration_macros(expanded, get_base_map(expanded))) +
-                full_enums + ([
-                    GenTuPass("""
+                    gen_pyhaxorg_shared_iteration_macros(shared_types) +
+                    gen_pyhaxorg_iteration_macros(expanded)) + full_enums + ([
+                        GenTuPass("""
 template <>
 struct std::formatter<OrgSemKind> : std::formatter<std::string> {
     template <typename FormatContext>
@@ -1052,7 +1092,7 @@ struct std::formatter<OrgSemKind> : std::formatter<std::string> {
     }
 };
                     """)
-                ]),
+                    ]),
             ),
             GenTu(
                 "{base}/sem/SemOrgEnums.cpp",
@@ -1075,7 +1115,7 @@ struct std::formatter<OrgSemKind> : std::formatter<std::string> {
                     GenTuInclude("hstd/system/macros.hpp", True),
                     GenTuInclude("haxorg/sem/SemOrgBase.hpp", True),
                     GenTuInclude("haxorg/sem/SemOrgEnums.hpp", True),
-                    GenTuNamespace("sem", expanded),
+                    GenTuNamespace("sem", shared_types + expanded),
                 ],
             )),
         GenUnit(

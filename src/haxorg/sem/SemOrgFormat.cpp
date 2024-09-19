@@ -178,7 +178,7 @@ auto Formatter::toString(SemId<Document> id, CR<Context> ctx) -> Res {
 
     if (!id->options.isNil()) {
         for (auto const& prop : id->options->properties) {
-            using P = sem::Subtree::Property;
+            using P = sem::SubtreeProperty;
             switch (prop.getKind()) {
                 case P::Kind::CustomRaw: {
                     add(result,
@@ -191,13 +191,15 @@ auto Formatter::toString(SemId<Document> id, CR<Context> ctx) -> Res {
                     break;
                 }
                 case P::Kind::CustomArgs: {
-                    add(result,
-                        b.line({
-                            str("#+property: "),
-                            str(prop.getCustomArgs().name),
-                            str(" "),
-                            toString(prop.getCustomArgs().parameters, ctx),
-                        }));
+                    Vec<Res> tmp;
+                    tmp.push_back(str("#+property: "));
+                    tmp.push_back(str(prop.getCustomArgs().name));
+                    for (auto const& it :
+                         prop.getCustomArgs().parameters) {
+                        tmp.push_back(str(" "));
+                        tmp.push_back(str(it));
+                    }
+                    add(result, b.line(tmp));
                     break;
                 }
                 case P::Kind::ExportLatexHeader: {
@@ -915,13 +917,14 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
         if (id->treeId) { add(head, str(fmt(":ID: {}", *id->treeId))); }
 
         for (auto const& prop : id->properties) {
-            using P = sem::Subtree::Property;
+            using P = sem::SubtreeProperty;
             switch (prop.getKind()) {
                 case P::Kind::Created: {
                     add(head,
                         b.line(
                             {str(":CREATED: "),
-                             toString(prop.getCreated().time, ctx)}));
+                             str(prop.getCreated().time.format(
+                                 UserTime::Format::OrgFormat))}));
                     break;
                 }
                 case P::Kind::CustomRaw: {

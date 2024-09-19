@@ -66,6 +66,9 @@ class QualType(BaseModel, extra="forbid"):
     def test(self, met: bool) -> bool:
         return self.meta.get(met, False)
 
+    def isOrgType(self) -> bool:
+        return self.meta.get("isOrgType", False)
+
     @staticmethod
     def ForName(name: str, **args) -> 'QualType':
         return QualType(name=name, **args)

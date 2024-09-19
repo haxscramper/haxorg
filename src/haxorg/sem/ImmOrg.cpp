@@ -92,22 +92,7 @@ void org::ImmId::assertValid() const {
 EACH_SEM_ORG_KIND(_define_static)
 #undef _define_static
 
-#define _eq_method(__QualType, _)                                         \
-    bool org::Imm##__QualType::operator==(                                \
-        org::Imm##__QualType const& other) const {                        \
-        bool result = true;                                               \
-        for_each_field_with_bases<org::Imm##__QualType>(                  \
-            [&](auto const& field) {                                      \
-                if (result) {                                             \
-                    result &= this->*field.pointer                        \
-                           == other.*field.pointer;                       \
-                }                                                         \
-            });                                                           \
-        return result;                                                    \
-    }
 
-EACH_SEM_ORG_RECORD(_eq_method)
-#undef _eq_method
 
 
 using namespace org;
@@ -239,6 +224,18 @@ struct SubnodeRecVisitor<T> {
     }
 };
 
+template <typename T>
+struct SubnodeRecVisitor<Vec<T>> {
+    static void visitField(
+        CR<org::SubnodeVisitor> visitor,
+        Vec<T> const&           value,
+        org::ImmAstContext*     ctx) {
+        for (const auto& it : value) {
+            SubnodeRecVisitor<T>::visitField(visitor, it, ctx);
+        }
+    }
+};
+
 
 template <typename T>
 struct SubnodeRecVisitor<ImmVec<T>> {
@@ -251,6 +248,19 @@ struct SubnodeRecVisitor<ImmVec<T>> {
         }
     }
 };
+
+template <typename K, typename V>
+struct SubnodeRecVisitor<UnorderedMap<K, V>> {
+    static void visitField(
+        CR<org::SubnodeVisitor>   visitor,
+        UnorderedMap<K, V> const& value,
+        org::ImmAstContext*       ctx) {
+        for (const auto& [key, value] : value) {
+            SubnodeRecVisitor<V>::visitField(visitor, value, ctx);
+        }
+    }
+};
+
 
 template <typename K, typename V>
 struct SubnodeRecVisitor<ImmMap<K, V>> {

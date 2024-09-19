@@ -469,7 +469,7 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
 
     void visit(Res& res, sem::BlockCode::Switch const&) {}
     void visit(Res& res, sem::Symbol::Param const&) {}
-    void visit(Res& res, sem::Subtree::Property const&) {}
+    void visit(Res& res, sem::SubtreeProperty const&) {}
     void visit(Res& res, Str const&) {}
     void visit(Res& res, Vec<Str> const&) {}
     void visit(

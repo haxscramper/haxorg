@@ -73,6 +73,118 @@
         __MAP(kDocumentgroup, documentgroup, DocumentGroup)  \
 
 template <>
+struct proto_serde<::orgproto::SubtreeProperty::Nonblocking, sem::SubtreeProperty::Nonblocking> {
+  static void write(::orgproto::SubtreeProperty::Nonblocking* out, sem::SubtreeProperty::Nonblocking const& in);
+  static void read(::orgproto::SubtreeProperty::Nonblocking const& out, proto_write_accessor<sem::SubtreeProperty::Nonblocking> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::SubtreeProperty::Trigger, sem::SubtreeProperty::Trigger> {
+  static void write(::orgproto::SubtreeProperty::Trigger* out, sem::SubtreeProperty::Trigger const& in);
+  static void read(::orgproto::SubtreeProperty::Trigger const& out, proto_write_accessor<sem::SubtreeProperty::Trigger> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::SubtreeProperty::ExportLatexClass, sem::SubtreeProperty::ExportLatexClass> {
+  static void write(::orgproto::SubtreeProperty::ExportLatexClass* out, sem::SubtreeProperty::ExportLatexClass const& in);
+  static void read(::orgproto::SubtreeProperty::ExportLatexClass const& out, proto_write_accessor<sem::SubtreeProperty::ExportLatexClass> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::SubtreeProperty::ExportLatexClassOptions, sem::SubtreeProperty::ExportLatexClassOptions> {
+  static void write(::orgproto::SubtreeProperty::ExportLatexClassOptions* out, sem::SubtreeProperty::ExportLatexClassOptions const& in);
+  static void read(::orgproto::SubtreeProperty::ExportLatexClassOptions const& out, proto_write_accessor<sem::SubtreeProperty::ExportLatexClassOptions> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::SubtreeProperty::ExportLatexHeader, sem::SubtreeProperty::ExportLatexHeader> {
+  static void write(::orgproto::SubtreeProperty::ExportLatexHeader* out, sem::SubtreeProperty::ExportLatexHeader const& in);
+  static void read(::orgproto::SubtreeProperty::ExportLatexHeader const& out, proto_write_accessor<sem::SubtreeProperty::ExportLatexHeader> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::SubtreeProperty::ExportLatexCompiler, sem::SubtreeProperty::ExportLatexCompiler> {
+  static void write(::orgproto::SubtreeProperty::ExportLatexCompiler* out, sem::SubtreeProperty::ExportLatexCompiler const& in);
+  static void read(::orgproto::SubtreeProperty::ExportLatexCompiler const& out, proto_write_accessor<sem::SubtreeProperty::ExportLatexCompiler> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::SubtreeProperty::Ordered, sem::SubtreeProperty::Ordered> {
+  static void write(::orgproto::SubtreeProperty::Ordered* out, sem::SubtreeProperty::Ordered const& in);
+  static void read(::orgproto::SubtreeProperty::Ordered const& out, proto_write_accessor<sem::SubtreeProperty::Ordered> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::SubtreeProperty::Effort, sem::SubtreeProperty::Effort> {
+  static void write(::orgproto::SubtreeProperty::Effort* out, sem::SubtreeProperty::Effort const& in);
+  static void read(::orgproto::SubtreeProperty::Effort const& out, proto_write_accessor<sem::SubtreeProperty::Effort> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::SubtreeProperty::Visibility, sem::SubtreeProperty::Visibility> {
+  static void write(::orgproto::SubtreeProperty::Visibility* out, sem::SubtreeProperty::Visibility const& in);
+  static void read(::orgproto::SubtreeProperty::Visibility const& out, proto_write_accessor<sem::SubtreeProperty::Visibility> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::SubtreeProperty::ExportOptions, sem::SubtreeProperty::ExportOptions> {
+  static void write(::orgproto::SubtreeProperty::ExportOptions* out, sem::SubtreeProperty::ExportOptions const& in);
+  static void read(::orgproto::SubtreeProperty::ExportOptions const& out, proto_write_accessor<sem::SubtreeProperty::ExportOptions> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::SubtreeProperty::Blocker, sem::SubtreeProperty::Blocker> {
+  static void write(::orgproto::SubtreeProperty::Blocker* out, sem::SubtreeProperty::Blocker const& in);
+  static void read(::orgproto::SubtreeProperty::Blocker const& out, proto_write_accessor<sem::SubtreeProperty::Blocker> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::SubtreeProperty::Unnumbered, sem::SubtreeProperty::Unnumbered> {
+  static void write(::orgproto::SubtreeProperty::Unnumbered* out, sem::SubtreeProperty::Unnumbered const& in);
+  static void read(::orgproto::SubtreeProperty::Unnumbered const& out, proto_write_accessor<sem::SubtreeProperty::Unnumbered> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::SubtreeProperty::Created, sem::SubtreeProperty::Created> {
+  static void write(::orgproto::SubtreeProperty::Created* out, sem::SubtreeProperty::Created const& in);
+  static void read(::orgproto::SubtreeProperty::Created const& out, proto_write_accessor<sem::SubtreeProperty::Created> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::SubtreeProperty::CustomArgs, sem::SubtreeProperty::CustomArgs> {
+  static void write(::orgproto::SubtreeProperty::CustomArgs* out, sem::SubtreeProperty::CustomArgs const& in);
+  static void read(::orgproto::SubtreeProperty::CustomArgs const& out, proto_write_accessor<sem::SubtreeProperty::CustomArgs> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::SubtreeProperty::CustomRaw, sem::SubtreeProperty::CustomRaw> {
+  static void write(::orgproto::SubtreeProperty::CustomRaw* out, sem::SubtreeProperty::CustomRaw const& in);
+  static void read(::orgproto::SubtreeProperty::CustomRaw const& out, proto_write_accessor<sem::SubtreeProperty::CustomRaw> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::SubtreeProperty, sem::SubtreeProperty> {
+  static void write(::orgproto::SubtreeProperty* out, sem::SubtreeProperty const& in);
+  static void read(::orgproto::SubtreeProperty const& out, proto_write_accessor<sem::SubtreeProperty> in);
+};
+
+
+template <>
 struct proto_serde<::orgproto::None, sem::None> {
   static void write(::orgproto::None* out, sem::None const& in);
   static void read(::orgproto::None const& out, proto_write_accessor<sem::None> in);
@@ -685,125 +797,6 @@ template <>
 struct proto_serde<::orgproto::Subtree::Period, sem::Subtree::Period> {
   static void write(::orgproto::Subtree::Period* out, sem::Subtree::Period const& in);
   static void read(::orgproto::Subtree::Period const& out, proto_write_accessor<sem::Subtree::Period> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property::Nonblocking, sem::Subtree::Property::Nonblocking> {
-  static void write(::orgproto::Subtree::Property::Nonblocking* out, sem::Subtree::Property::Nonblocking const& in);
-  static void read(::orgproto::Subtree::Property::Nonblocking const& out, proto_write_accessor<sem::Subtree::Property::Nonblocking> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property::Trigger, sem::Subtree::Property::Trigger> {
-  static void write(::orgproto::Subtree::Property::Trigger* out, sem::Subtree::Property::Trigger const& in);
-  static void read(::orgproto::Subtree::Property::Trigger const& out, proto_write_accessor<sem::Subtree::Property::Trigger> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property::Origin, sem::Subtree::Property::Origin> {
-  static void write(::orgproto::Subtree::Property::Origin* out, sem::Subtree::Property::Origin const& in);
-  static void read(::orgproto::Subtree::Property::Origin const& out, proto_write_accessor<sem::Subtree::Property::Origin> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property::ExportLatexClass, sem::Subtree::Property::ExportLatexClass> {
-  static void write(::orgproto::Subtree::Property::ExportLatexClass* out, sem::Subtree::Property::ExportLatexClass const& in);
-  static void read(::orgproto::Subtree::Property::ExportLatexClass const& out, proto_write_accessor<sem::Subtree::Property::ExportLatexClass> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property::ExportLatexClassOptions, sem::Subtree::Property::ExportLatexClassOptions> {
-  static void write(::orgproto::Subtree::Property::ExportLatexClassOptions* out, sem::Subtree::Property::ExportLatexClassOptions const& in);
-  static void read(::orgproto::Subtree::Property::ExportLatexClassOptions const& out, proto_write_accessor<sem::Subtree::Property::ExportLatexClassOptions> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property::ExportLatexHeader, sem::Subtree::Property::ExportLatexHeader> {
-  static void write(::orgproto::Subtree::Property::ExportLatexHeader* out, sem::Subtree::Property::ExportLatexHeader const& in);
-  static void read(::orgproto::Subtree::Property::ExportLatexHeader const& out, proto_write_accessor<sem::Subtree::Property::ExportLatexHeader> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property::ExportLatexCompiler, sem::Subtree::Property::ExportLatexCompiler> {
-  static void write(::orgproto::Subtree::Property::ExportLatexCompiler* out, sem::Subtree::Property::ExportLatexCompiler const& in);
-  static void read(::orgproto::Subtree::Property::ExportLatexCompiler const& out, proto_write_accessor<sem::Subtree::Property::ExportLatexCompiler> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property::Ordered, sem::Subtree::Property::Ordered> {
-  static void write(::orgproto::Subtree::Property::Ordered* out, sem::Subtree::Property::Ordered const& in);
-  static void read(::orgproto::Subtree::Property::Ordered const& out, proto_write_accessor<sem::Subtree::Property::Ordered> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property::Effort, sem::Subtree::Property::Effort> {
-  static void write(::orgproto::Subtree::Property::Effort* out, sem::Subtree::Property::Effort const& in);
-  static void read(::orgproto::Subtree::Property::Effort const& out, proto_write_accessor<sem::Subtree::Property::Effort> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property::Visibility, sem::Subtree::Property::Visibility> {
-  static void write(::orgproto::Subtree::Property::Visibility* out, sem::Subtree::Property::Visibility const& in);
-  static void read(::orgproto::Subtree::Property::Visibility const& out, proto_write_accessor<sem::Subtree::Property::Visibility> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property::ExportOptions, sem::Subtree::Property::ExportOptions> {
-  static void write(::orgproto::Subtree::Property::ExportOptions* out, sem::Subtree::Property::ExportOptions const& in);
-  static void read(::orgproto::Subtree::Property::ExportOptions const& out, proto_write_accessor<sem::Subtree::Property::ExportOptions> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property::Blocker, sem::Subtree::Property::Blocker> {
-  static void write(::orgproto::Subtree::Property::Blocker* out, sem::Subtree::Property::Blocker const& in);
-  static void read(::orgproto::Subtree::Property::Blocker const& out, proto_write_accessor<sem::Subtree::Property::Blocker> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property::Unnumbered, sem::Subtree::Property::Unnumbered> {
-  static void write(::orgproto::Subtree::Property::Unnumbered* out, sem::Subtree::Property::Unnumbered const& in);
-  static void read(::orgproto::Subtree::Property::Unnumbered const& out, proto_write_accessor<sem::Subtree::Property::Unnumbered> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property::Created, sem::Subtree::Property::Created> {
-  static void write(::orgproto::Subtree::Property::Created* out, sem::Subtree::Property::Created const& in);
-  static void read(::orgproto::Subtree::Property::Created const& out, proto_write_accessor<sem::Subtree::Property::Created> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property::CustomArgs, sem::Subtree::Property::CustomArgs> {
-  static void write(::orgproto::Subtree::Property::CustomArgs* out, sem::Subtree::Property::CustomArgs const& in);
-  static void read(::orgproto::Subtree::Property::CustomArgs const& out, proto_write_accessor<sem::Subtree::Property::CustomArgs> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property::CustomRaw, sem::Subtree::Property::CustomRaw> {
-  static void write(::orgproto::Subtree::Property::CustomRaw* out, sem::Subtree::Property::CustomRaw const& in);
-  static void read(::orgproto::Subtree::Property::CustomRaw const& out, proto_write_accessor<sem::Subtree::Property::CustomRaw> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property, sem::Subtree::Property> {
-  static void write(::orgproto::Subtree::Property* out, sem::Subtree::Property const& in);
-  static void read(::orgproto::Subtree::Property const& out, proto_write_accessor<sem::Subtree::Property> in);
 };
 
 

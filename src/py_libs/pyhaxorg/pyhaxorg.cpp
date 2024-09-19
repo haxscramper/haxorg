@@ -7,6 +7,10 @@
 #include "pyhaxorg_manual_impl.hpp"
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Org>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Org>>)
+PYBIND11_MAKE_OPAQUE(std::vector<Str>)
+PYBIND11_MAKE_OPAQUE(Vec<Str>)
+PYBIND11_MAKE_OPAQUE(std::unordered_map<Str, Str>)
+PYBIND11_MAKE_OPAQUE(UnorderedMap<Str, Str>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::CmdArgument>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::CmdArgument>>)
 PYBIND11_MAKE_OPAQUE(std::unordered_map<Str, sem::SemId<sem::CmdArgumentList>>)
@@ -15,8 +19,6 @@ PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::ErrorItem>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::ErrorItem>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::HashTag>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::HashTag>>)
-PYBIND11_MAKE_OPAQUE(std::vector<Str>)
-PYBIND11_MAKE_OPAQUE(Vec<Str>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::Symbol::Param>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Symbol::Param>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::BlockCode::Line::Part>)
@@ -27,12 +29,10 @@ PYBIND11_MAKE_OPAQUE(std::vector<sem::BlockCode::Switch>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::BlockCode::Switch>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::BlockCode::Line>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::BlockCode::Line>)
-PYBIND11_MAKE_OPAQUE(std::unordered_map<Str, Str>)
-PYBIND11_MAKE_OPAQUE(UnorderedMap<Str, Str>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::SubtreeLog>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::SubtreeLog>>)
-PYBIND11_MAKE_OPAQUE(std::vector<sem::Subtree::Property>)
-PYBIND11_MAKE_OPAQUE(Vec<sem::Subtree::Property>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::SubtreeProperty>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::SubtreeProperty>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::Subtree::Period>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Subtree::Period>)
 PYBIND11_MAKE_OPAQUE(IntSet<sem::Subtree::Period::Kind>)
@@ -53,19 +53,19 @@ PYBIND11_MAKE_OPAQUE(Vec<SequenceSegmentGroup>)
 PYBIND11_MODULE(pyhaxorg, m) {
   PyTypeRegistryGuard type_registry_guard{};
   bind_vector<sem::SemId<sem::Org>>(m, "VecOfSemIdOfOrg", type_registry_guard);
+  bind_vector<Str>(m, "VecOfStr", type_registry_guard);
+  bind_unordered_map<Str, Str>(m, "UnorderedMapOfStrStr", type_registry_guard);
   bind_vector<sem::SemId<sem::CmdArgument>>(m, "VecOfSemIdOfCmdArgument", type_registry_guard);
   bind_unordered_map<Str, sem::SemId<sem::CmdArgumentList>>(m, "UnorderedMapOfStrSemIdOfCmdArgumentList", type_registry_guard);
   bind_vector<sem::SemId<sem::ErrorItem>>(m, "VecOfSemIdOfErrorItem", type_registry_guard);
   bind_vector<sem::SemId<sem::HashTag>>(m, "VecOfSemIdOfHashTag", type_registry_guard);
-  bind_vector<Str>(m, "VecOfStr", type_registry_guard);
   bind_vector<sem::Symbol::Param>(m, "VecOfSymbolParam", type_registry_guard);
   bind_vector<sem::BlockCode::Line::Part>(m, "VecOfBlockCodeLinePart", type_registry_guard);
   bind_vector<int>(m, "VecOfint", type_registry_guard);
   bind_vector<sem::BlockCode::Switch>(m, "VecOfBlockCodeSwitch", type_registry_guard);
   bind_vector<sem::BlockCode::Line>(m, "VecOfBlockCodeLine", type_registry_guard);
-  bind_unordered_map<Str, Str>(m, "UnorderedMapOfStrStr", type_registry_guard);
   bind_vector<sem::SemId<sem::SubtreeLog>>(m, "VecOfSemIdOfSubtreeLog", type_registry_guard);
-  bind_vector<sem::Subtree::Property>(m, "VecOfSubtreeProperty", type_registry_guard);
+  bind_vector<sem::SubtreeProperty>(m, "VecOfSubtreeProperty", type_registry_guard);
   bind_vector<sem::Subtree::Period>(m, "VecOfSubtreePeriod", type_registry_guard);
   bind_int_set<sem::Subtree::Period::Kind>(m, "IntSetOfSubtreePeriodKind", type_registry_guard);
   bind_vector<sem::SemId<sem::Cell>>(m, "VecOfSemIdOfCell", type_registry_guard);
@@ -123,6 +123,399 @@ node can have subnodes.)RAW")
                      })
     .def("__getattr__",
          [](LineCol _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<sem::SubtreeProperty::SetMode>(m, "SubtreePropertySetMode", type_registry_guard);
+  pybind11::enum_<sem::SubtreeProperty::SetMode>(m, "SubtreePropertySetMode")
+    .value("Override", sem::SubtreeProperty::SetMode::Override)
+    .value("Add", sem::SubtreeProperty::SetMode::Add)
+    .value("Subtract", sem::SubtreeProperty::SetMode::Subtract)
+    .def("__iter__", [](sem::SubtreeProperty::SetMode _self) -> PyEnumIterator<sem::SubtreeProperty::SetMode> {
+                     return
+                     PyEnumIterator<sem::SubtreeProperty::SetMode>
+                     ();
+                     })
+    ;
+  bind_enum_iterator<sem::SubtreeProperty::InheritanceMode>(m, "SubtreePropertyInheritanceMode", type_registry_guard);
+  pybind11::enum_<sem::SubtreeProperty::InheritanceMode>(m, "SubtreePropertyInheritanceMode")
+    .value("ThisAndSub", sem::SubtreeProperty::InheritanceMode::ThisAndSub)
+    .value("OnlyThis", sem::SubtreeProperty::InheritanceMode::OnlyThis)
+    .value("OnlySub", sem::SubtreeProperty::InheritanceMode::OnlySub)
+    .def("__iter__", [](sem::SubtreeProperty::InheritanceMode _self) -> PyEnumIterator<sem::SubtreeProperty::InheritanceMode> {
+                     return
+                     PyEnumIterator<sem::SubtreeProperty::InheritanceMode>
+                     ();
+                     })
+    ;
+  pybind11::class_<sem::SubtreeProperty::Nonblocking>(m, "SubtreePropertyNonblocking")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeProperty::Nonblocking {
+                        sem::SubtreeProperty::Nonblocking result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("isBlocking", &sem::SubtreeProperty::Nonblocking::isBlocking)
+    .def("operator==",
+         static_cast<bool(sem::SubtreeProperty::Nonblocking::*)(sem::SubtreeProperty::Nonblocking const&) const>(&sem::SubtreeProperty::Nonblocking::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::SubtreeProperty::Nonblocking _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeProperty::Nonblocking _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::SubtreeProperty::Trigger>(m, "SubtreePropertyTrigger")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeProperty::Trigger {
+                        sem::SubtreeProperty::Trigger result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("operator==",
+         static_cast<bool(sem::SubtreeProperty::Trigger::*)(sem::SubtreeProperty::Trigger const&) const>(&sem::SubtreeProperty::Trigger::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::SubtreeProperty::Trigger _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeProperty::Trigger _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::SubtreeProperty::ExportLatexClass>(m, "SubtreePropertyExportLatexClass")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeProperty::ExportLatexClass {
+                        sem::SubtreeProperty::ExportLatexClass result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("latexClass", &sem::SubtreeProperty::ExportLatexClass::latexClass)
+    .def("operator==",
+         static_cast<bool(sem::SubtreeProperty::ExportLatexClass::*)(sem::SubtreeProperty::ExportLatexClass const&) const>(&sem::SubtreeProperty::ExportLatexClass::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::SubtreeProperty::ExportLatexClass _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeProperty::ExportLatexClass _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::SubtreeProperty::ExportLatexClassOptions>(m, "SubtreePropertyExportLatexClassOptions")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeProperty::ExportLatexClassOptions {
+                        sem::SubtreeProperty::ExportLatexClassOptions result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("options", &sem::SubtreeProperty::ExportLatexClassOptions::options)
+    .def("operator==",
+         static_cast<bool(sem::SubtreeProperty::ExportLatexClassOptions::*)(sem::SubtreeProperty::ExportLatexClassOptions const&) const>(&sem::SubtreeProperty::ExportLatexClassOptions::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::SubtreeProperty::ExportLatexClassOptions _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeProperty::ExportLatexClassOptions _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::SubtreeProperty::ExportLatexHeader>(m, "SubtreePropertyExportLatexHeader")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeProperty::ExportLatexHeader {
+                        sem::SubtreeProperty::ExportLatexHeader result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("header", &sem::SubtreeProperty::ExportLatexHeader::header)
+    .def("operator==",
+         static_cast<bool(sem::SubtreeProperty::ExportLatexHeader::*)(sem::SubtreeProperty::ExportLatexHeader const&) const>(&sem::SubtreeProperty::ExportLatexHeader::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::SubtreeProperty::ExportLatexHeader _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeProperty::ExportLatexHeader _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::SubtreeProperty::ExportLatexCompiler>(m, "SubtreePropertyExportLatexCompiler")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeProperty::ExportLatexCompiler {
+                        sem::SubtreeProperty::ExportLatexCompiler result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("compiler", &sem::SubtreeProperty::ExportLatexCompiler::compiler)
+    .def("operator==",
+         static_cast<bool(sem::SubtreeProperty::ExportLatexCompiler::*)(sem::SubtreeProperty::ExportLatexCompiler const&) const>(&sem::SubtreeProperty::ExportLatexCompiler::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::SubtreeProperty::ExportLatexCompiler _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeProperty::ExportLatexCompiler _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::SubtreeProperty::Ordered>(m, "SubtreePropertyOrdered")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeProperty::Ordered {
+                        sem::SubtreeProperty::Ordered result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("isOrdered", &sem::SubtreeProperty::Ordered::isOrdered)
+    .def("operator==",
+         static_cast<bool(sem::SubtreeProperty::Ordered::*)(sem::SubtreeProperty::Ordered const&) const>(&sem::SubtreeProperty::Ordered::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::SubtreeProperty::Ordered _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeProperty::Ordered _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::SubtreeProperty::Effort>(m, "SubtreePropertyEffort")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeProperty::Effort {
+                        sem::SubtreeProperty::Effort result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("hours", &sem::SubtreeProperty::Effort::hours)
+    .def_readwrite("minutes", &sem::SubtreeProperty::Effort::minutes)
+    .def("operator==",
+         static_cast<bool(sem::SubtreeProperty::Effort::*)(sem::SubtreeProperty::Effort const&) const>(&sem::SubtreeProperty::Effort::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::SubtreeProperty::Effort _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeProperty::Effort _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<sem::SubtreeProperty::Visibility::Level>(m, "SubtreePropertyVisibilityLevel", type_registry_guard);
+  pybind11::enum_<sem::SubtreeProperty::Visibility::Level>(m, "SubtreePropertyVisibilityLevel")
+    .value("Folded", sem::SubtreeProperty::Visibility::Level::Folded)
+    .value("Children", sem::SubtreeProperty::Visibility::Level::Children)
+    .value("Content", sem::SubtreeProperty::Visibility::Level::Content)
+    .value("All", sem::SubtreeProperty::Visibility::Level::All)
+    .def("__iter__", [](sem::SubtreeProperty::Visibility::Level _self) -> PyEnumIterator<sem::SubtreeProperty::Visibility::Level> {
+                     return
+                     PyEnumIterator<sem::SubtreeProperty::Visibility::Level>
+                     ();
+                     })
+    ;
+  pybind11::class_<sem::SubtreeProperty::Visibility>(m, "SubtreePropertyVisibility")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeProperty::Visibility {
+                        sem::SubtreeProperty::Visibility result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("level", &sem::SubtreeProperty::Visibility::level)
+    .def("operator==",
+         static_cast<bool(sem::SubtreeProperty::Visibility::*)(sem::SubtreeProperty::Visibility const&) const>(&sem::SubtreeProperty::Visibility::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::SubtreeProperty::Visibility _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeProperty::Visibility _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::SubtreeProperty::ExportOptions>(m, "SubtreePropertyExportOptions")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeProperty::ExportOptions {
+                        sem::SubtreeProperty::ExportOptions result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("backend", &sem::SubtreeProperty::ExportOptions::backend)
+    .def_readwrite("values", &sem::SubtreeProperty::ExportOptions::values)
+    .def("operator==",
+         static_cast<bool(sem::SubtreeProperty::ExportOptions::*)(sem::SubtreeProperty::ExportOptions const&) const>(&sem::SubtreeProperty::ExportOptions::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::SubtreeProperty::ExportOptions _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeProperty::ExportOptions _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::SubtreeProperty::Blocker>(m, "SubtreePropertyBlocker")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeProperty::Blocker {
+                        sem::SubtreeProperty::Blocker result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("blockers", &sem::SubtreeProperty::Blocker::blockers)
+    .def("operator==",
+         static_cast<bool(sem::SubtreeProperty::Blocker::*)(sem::SubtreeProperty::Blocker const&) const>(&sem::SubtreeProperty::Blocker::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::SubtreeProperty::Blocker _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeProperty::Blocker _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::SubtreeProperty::Unnumbered>(m, "SubtreePropertyUnnumbered")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeProperty::Unnumbered {
+                        sem::SubtreeProperty::Unnumbered result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("operator==",
+         static_cast<bool(sem::SubtreeProperty::Unnumbered::*)(sem::SubtreeProperty::Unnumbered const&) const>(&sem::SubtreeProperty::Unnumbered::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::SubtreeProperty::Unnumbered _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeProperty::Unnumbered _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::SubtreeProperty::Created>(m, "SubtreePropertyCreated")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeProperty::Created {
+                        sem::SubtreeProperty::Created result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("time", &sem::SubtreeProperty::Created::time)
+    .def("operator==",
+         static_cast<bool(sem::SubtreeProperty::Created::*)(sem::SubtreeProperty::Created const&) const>(&sem::SubtreeProperty::Created::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::SubtreeProperty::Created _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeProperty::Created _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::SubtreeProperty::CustomArgs>(m, "SubtreePropertyCustomArgs")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeProperty::CustomArgs {
+                        sem::SubtreeProperty::CustomArgs result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("name", &sem::SubtreeProperty::CustomArgs::name, R"RAW(Original name of the property)RAW")
+    .def_readwrite("sub", &sem::SubtreeProperty::CustomArgs::sub, R"RAW(Property target specialization)RAW")
+    .def_readwrite("parameters", &sem::SubtreeProperty::CustomArgs::parameters, R"RAW(Property parameters)RAW")
+    .def("operator==",
+         static_cast<bool(sem::SubtreeProperty::CustomArgs::*)(sem::SubtreeProperty::CustomArgs const&) const>(&sem::SubtreeProperty::CustomArgs::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::SubtreeProperty::CustomArgs _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeProperty::CustomArgs _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::SubtreeProperty::CustomRaw>(m, "SubtreePropertyCustomRaw")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeProperty::CustomRaw {
+                        sem::SubtreeProperty::CustomRaw result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("name", &sem::SubtreeProperty::CustomRaw::name, R"RAW(Original name of the property)RAW")
+    .def_readwrite("value", &sem::SubtreeProperty::CustomRaw::value, R"RAW(Property value)RAW")
+    .def("operator==",
+         static_cast<bool(sem::SubtreeProperty::CustomRaw::*)(sem::SubtreeProperty::CustomRaw const&) const>(&sem::SubtreeProperty::CustomRaw::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::SubtreeProperty::CustomRaw _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeProperty::CustomRaw _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<sem::SubtreeProperty::Kind>(m, "SubtreePropertyKind", type_registry_guard);
+  pybind11::enum_<sem::SubtreeProperty::Kind>(m, "SubtreePropertyKind")
+    .value("Nonblocking", sem::SubtreeProperty::Kind::Nonblocking)
+    .value("Trigger", sem::SubtreeProperty::Kind::Trigger)
+    .value("ExportLatexClass", sem::SubtreeProperty::Kind::ExportLatexClass)
+    .value("ExportLatexClassOptions", sem::SubtreeProperty::Kind::ExportLatexClassOptions)
+    .value("ExportLatexHeader", sem::SubtreeProperty::Kind::ExportLatexHeader)
+    .value("ExportLatexCompiler", sem::SubtreeProperty::Kind::ExportLatexCompiler)
+    .value("Ordered", sem::SubtreeProperty::Kind::Ordered)
+    .value("Effort", sem::SubtreeProperty::Kind::Effort)
+    .value("Visibility", sem::SubtreeProperty::Kind::Visibility)
+    .value("ExportOptions", sem::SubtreeProperty::Kind::ExportOptions)
+    .value("Blocker", sem::SubtreeProperty::Kind::Blocker)
+    .value("Unnumbered", sem::SubtreeProperty::Kind::Unnumbered)
+    .value("Created", sem::SubtreeProperty::Kind::Created)
+    .value("CustomArgs", sem::SubtreeProperty::Kind::CustomArgs)
+    .value("CustomRaw", sem::SubtreeProperty::Kind::CustomRaw)
+    .def("__iter__", [](sem::SubtreeProperty::Kind _self) -> PyEnumIterator<sem::SubtreeProperty::Kind> {
+                     return
+                     PyEnumIterator<sem::SubtreeProperty::Kind>
+                     ();
+                     })
+    ;
+  pybind11::class_<sem::SubtreeProperty>(m, "SubtreeProperty")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeProperty {
+                        sem::SubtreeProperty result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("mainSetRule", &sem::SubtreeProperty::mainSetRule)
+    .def_readwrite("subSetRule", &sem::SubtreeProperty::subSetRule)
+    .def_readwrite("inheritanceMode", &sem::SubtreeProperty::inheritanceMode)
+    .def_readwrite("data", &sem::SubtreeProperty::data)
+    .def("isMatching",
+         static_cast<bool(sem::SubtreeProperty::*)(Str const&, Opt<Str> const&) const>(&sem::SubtreeProperty::isMatching),
+         pybind11::arg("kind"),
+         pybind11::arg_v("subKind", std::nullopt),
+         R"RAW(Check if property matches specified kind and optional subkind. Built-in property checking is also done with this function -- 'created' etc.)RAW")
+    .def("getName", static_cast<Str(sem::SubtreeProperty::*)() const>(&sem::SubtreeProperty::getName), R"RAW(Get non-normalized name of the property (for built-in and user))RAW")
+    .def("getSubKind", static_cast<Opt<Str>(sem::SubtreeProperty::*)() const>(&sem::SubtreeProperty::getSubKind), R"RAW(Get non-normalized sub-kind for the property.)RAW")
+    .def("operator==",
+         static_cast<bool(sem::SubtreeProperty::*)(sem::SubtreeProperty const&) const>(&sem::SubtreeProperty::operator==),
+         pybind11::arg("other"))
+    .def("getNonblocking", static_cast<sem::SubtreeProperty::Nonblocking&(sem::SubtreeProperty::*)()>(&sem::SubtreeProperty::getNonblocking))
+    .def("getTrigger", static_cast<sem::SubtreeProperty::Trigger&(sem::SubtreeProperty::*)()>(&sem::SubtreeProperty::getTrigger))
+    .def("getExportLatexClass", static_cast<sem::SubtreeProperty::ExportLatexClass&(sem::SubtreeProperty::*)()>(&sem::SubtreeProperty::getExportLatexClass))
+    .def("getExportLatexClassOptions", static_cast<sem::SubtreeProperty::ExportLatexClassOptions&(sem::SubtreeProperty::*)()>(&sem::SubtreeProperty::getExportLatexClassOptions))
+    .def("getExportLatexHeader", static_cast<sem::SubtreeProperty::ExportLatexHeader&(sem::SubtreeProperty::*)()>(&sem::SubtreeProperty::getExportLatexHeader))
+    .def("getExportLatexCompiler", static_cast<sem::SubtreeProperty::ExportLatexCompiler&(sem::SubtreeProperty::*)()>(&sem::SubtreeProperty::getExportLatexCompiler))
+    .def("getOrdered", static_cast<sem::SubtreeProperty::Ordered&(sem::SubtreeProperty::*)()>(&sem::SubtreeProperty::getOrdered))
+    .def("getEffort", static_cast<sem::SubtreeProperty::Effort&(sem::SubtreeProperty::*)()>(&sem::SubtreeProperty::getEffort))
+    .def("getVisibility", static_cast<sem::SubtreeProperty::Visibility&(sem::SubtreeProperty::*)()>(&sem::SubtreeProperty::getVisibility))
+    .def("getExportOptions", static_cast<sem::SubtreeProperty::ExportOptions&(sem::SubtreeProperty::*)()>(&sem::SubtreeProperty::getExportOptions))
+    .def("getBlocker", static_cast<sem::SubtreeProperty::Blocker&(sem::SubtreeProperty::*)()>(&sem::SubtreeProperty::getBlocker))
+    .def("getUnnumbered", static_cast<sem::SubtreeProperty::Unnumbered&(sem::SubtreeProperty::*)()>(&sem::SubtreeProperty::getUnnumbered))
+    .def("getCreated", static_cast<sem::SubtreeProperty::Created&(sem::SubtreeProperty::*)()>(&sem::SubtreeProperty::getCreated))
+    .def("getCustomArgs", static_cast<sem::SubtreeProperty::CustomArgs&(sem::SubtreeProperty::*)()>(&sem::SubtreeProperty::getCustomArgs))
+    .def("getCustomRaw", static_cast<sem::SubtreeProperty::CustomRaw&(sem::SubtreeProperty::*)()>(&sem::SubtreeProperty::getCustomRaw))
+    .def_static("getKindStatic",
+                static_cast<sem::SubtreeProperty::Kind(*)(sem::SubtreeProperty::Data const&)>(&sem::SubtreeProperty::getKind),
+                pybind11::arg("__input"))
+    .def("getKind", static_cast<sem::SubtreeProperty::Kind(sem::SubtreeProperty::*)() const>(&sem::SubtreeProperty::getKind))
+    .def("__repr__", [](sem::SubtreeProperty _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeProperty _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -2223,369 +2616,6 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  bind_enum_iterator<sem::Subtree::Property::SetMode>(m, "SubtreePropertySetMode", type_registry_guard);
-  pybind11::enum_<sem::Subtree::Property::SetMode>(m, "SubtreePropertySetMode")
-    .value("Override", sem::Subtree::Property::SetMode::Override)
-    .value("Add", sem::Subtree::Property::SetMode::Add)
-    .value("Subtract", sem::Subtree::Property::SetMode::Subtract)
-    .def("__iter__", [](sem::Subtree::Property::SetMode _self) -> PyEnumIterator<sem::Subtree::Property::SetMode> {
-                     return
-                     PyEnumIterator<sem::Subtree::Property::SetMode>
-                     ();
-                     })
-    ;
-  bind_enum_iterator<sem::Subtree::Property::InheritanceMode>(m, "SubtreePropertyInheritanceMode", type_registry_guard);
-  pybind11::enum_<sem::Subtree::Property::InheritanceMode>(m, "SubtreePropertyInheritanceMode")
-    .value("ThisAndSub", sem::Subtree::Property::InheritanceMode::ThisAndSub)
-    .value("OnlyThis", sem::Subtree::Property::InheritanceMode::OnlyThis)
-    .value("OnlySub", sem::Subtree::Property::InheritanceMode::OnlySub)
-    .def("__iter__", [](sem::Subtree::Property::InheritanceMode _self) -> PyEnumIterator<sem::Subtree::Property::InheritanceMode> {
-                     return
-                     PyEnumIterator<sem::Subtree::Property::InheritanceMode>
-                     ();
-                     })
-    ;
-  pybind11::class_<sem::Subtree::Property::Nonblocking>(m, "SubtreePropertyNonblocking")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property::Nonblocking {
-                        sem::Subtree::Property::Nonblocking result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("isBlocking", &sem::Subtree::Property::Nonblocking::isBlocking)
-    .def("__repr__", [](sem::Subtree::Property::Nonblocking _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Subtree::Property::Nonblocking _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::Subtree::Property::Trigger>(m, "SubtreePropertyTrigger")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property::Trigger {
-                        sem::Subtree::Property::Trigger result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](sem::Subtree::Property::Trigger _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Subtree::Property::Trigger _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::Subtree::Property::Origin>(m, "SubtreePropertyOrigin")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property::Origin {
-                        sem::Subtree::Property::Origin result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("text", &sem::Subtree::Property::Origin::text)
-    .def("__repr__", [](sem::Subtree::Property::Origin _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Subtree::Property::Origin _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::Subtree::Property::ExportLatexClass>(m, "SubtreePropertyExportLatexClass")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property::ExportLatexClass {
-                        sem::Subtree::Property::ExportLatexClass result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("latexClass", &sem::Subtree::Property::ExportLatexClass::latexClass)
-    .def("__repr__", [](sem::Subtree::Property::ExportLatexClass _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Subtree::Property::ExportLatexClass _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::Subtree::Property::ExportLatexClassOptions>(m, "SubtreePropertyExportLatexClassOptions")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property::ExportLatexClassOptions {
-                        sem::Subtree::Property::ExportLatexClassOptions result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("options", &sem::Subtree::Property::ExportLatexClassOptions::options)
-    .def("__repr__", [](sem::Subtree::Property::ExportLatexClassOptions _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Subtree::Property::ExportLatexClassOptions _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::Subtree::Property::ExportLatexHeader>(m, "SubtreePropertyExportLatexHeader")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property::ExportLatexHeader {
-                        sem::Subtree::Property::ExportLatexHeader result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("header", &sem::Subtree::Property::ExportLatexHeader::header)
-    .def("__repr__", [](sem::Subtree::Property::ExportLatexHeader _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Subtree::Property::ExportLatexHeader _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::Subtree::Property::ExportLatexCompiler>(m, "SubtreePropertyExportLatexCompiler")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property::ExportLatexCompiler {
-                        sem::Subtree::Property::ExportLatexCompiler result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("compiler", &sem::Subtree::Property::ExportLatexCompiler::compiler)
-    .def("__repr__", [](sem::Subtree::Property::ExportLatexCompiler _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Subtree::Property::ExportLatexCompiler _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::Subtree::Property::Ordered>(m, "SubtreePropertyOrdered")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property::Ordered {
-                        sem::Subtree::Property::Ordered result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("isOrdered", &sem::Subtree::Property::Ordered::isOrdered)
-    .def("__repr__", [](sem::Subtree::Property::Ordered _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Subtree::Property::Ordered _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::Subtree::Property::Effort>(m, "SubtreePropertyEffort")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property::Effort {
-                        sem::Subtree::Property::Effort result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("hours", &sem::Subtree::Property::Effort::hours)
-    .def_readwrite("minutes", &sem::Subtree::Property::Effort::minutes)
-    .def("__repr__", [](sem::Subtree::Property::Effort _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Subtree::Property::Effort _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  bind_enum_iterator<sem::Subtree::Property::Visibility::Level>(m, "SubtreePropertyVisibilityLevel", type_registry_guard);
-  pybind11::enum_<sem::Subtree::Property::Visibility::Level>(m, "SubtreePropertyVisibilityLevel")
-    .value("Folded", sem::Subtree::Property::Visibility::Level::Folded)
-    .value("Children", sem::Subtree::Property::Visibility::Level::Children)
-    .value("Content", sem::Subtree::Property::Visibility::Level::Content)
-    .value("All", sem::Subtree::Property::Visibility::Level::All)
-    .def("__iter__", [](sem::Subtree::Property::Visibility::Level _self) -> PyEnumIterator<sem::Subtree::Property::Visibility::Level> {
-                     return
-                     PyEnumIterator<sem::Subtree::Property::Visibility::Level>
-                     ();
-                     })
-    ;
-  pybind11::class_<sem::Subtree::Property::Visibility>(m, "SubtreePropertyVisibility")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property::Visibility {
-                        sem::Subtree::Property::Visibility result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("level", &sem::Subtree::Property::Visibility::level)
-    .def("__repr__", [](sem::Subtree::Property::Visibility _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Subtree::Property::Visibility _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::Subtree::Property::ExportOptions>(m, "SubtreePropertyExportOptions")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property::ExportOptions {
-                        sem::Subtree::Property::ExportOptions result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("backend", &sem::Subtree::Property::ExportOptions::backend)
-    .def_readwrite("values", &sem::Subtree::Property::ExportOptions::values)
-    .def("__repr__", [](sem::Subtree::Property::ExportOptions _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Subtree::Property::ExportOptions _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::Subtree::Property::Blocker>(m, "SubtreePropertyBlocker")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property::Blocker {
-                        sem::Subtree::Property::Blocker result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("blockers", &sem::Subtree::Property::Blocker::blockers)
-    .def("__repr__", [](sem::Subtree::Property::Blocker _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Subtree::Property::Blocker _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::Subtree::Property::Unnumbered>(m, "SubtreePropertyUnnumbered")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property::Unnumbered {
-                        sem::Subtree::Property::Unnumbered result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](sem::Subtree::Property::Unnumbered _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Subtree::Property::Unnumbered _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::Subtree::Property::Created>(m, "SubtreePropertyCreated")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property::Created {
-                        sem::Subtree::Property::Created result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("time", &sem::Subtree::Property::Created::time)
-    .def("__repr__", [](sem::Subtree::Property::Created _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Subtree::Property::Created _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::Subtree::Property::CustomArgs>(m, "SubtreePropertyCustomArgs")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property::CustomArgs {
-                        sem::Subtree::Property::CustomArgs result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("name", &sem::Subtree::Property::CustomArgs::name, R"RAW(Original name of the property)RAW")
-    .def_readwrite("sub", &sem::Subtree::Property::CustomArgs::sub, R"RAW(Property target specialization)RAW")
-    .def_readwrite("parameters", &sem::Subtree::Property::CustomArgs::parameters, R"RAW(Property parameters)RAW")
-    .def("__repr__", [](sem::Subtree::Property::CustomArgs _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Subtree::Property::CustomArgs _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::Subtree::Property::CustomRaw>(m, "SubtreePropertyCustomRaw")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property::CustomRaw {
-                        sem::Subtree::Property::CustomRaw result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("name", &sem::Subtree::Property::CustomRaw::name, R"RAW(Original name of the property)RAW")
-    .def_readwrite("value", &sem::Subtree::Property::CustomRaw::value, R"RAW(Property value)RAW")
-    .def("__repr__", [](sem::Subtree::Property::CustomRaw _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Subtree::Property::CustomRaw _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  bind_enum_iterator<sem::Subtree::Property::Kind>(m, "SubtreePropertyKind", type_registry_guard);
-  pybind11::enum_<sem::Subtree::Property::Kind>(m, "SubtreePropertyKind")
-    .value("Nonblocking", sem::Subtree::Property::Kind::Nonblocking)
-    .value("Trigger", sem::Subtree::Property::Kind::Trigger)
-    .value("Origin", sem::Subtree::Property::Kind::Origin)
-    .value("ExportLatexClass", sem::Subtree::Property::Kind::ExportLatexClass)
-    .value("ExportLatexClassOptions", sem::Subtree::Property::Kind::ExportLatexClassOptions)
-    .value("ExportLatexHeader", sem::Subtree::Property::Kind::ExportLatexHeader)
-    .value("ExportLatexCompiler", sem::Subtree::Property::Kind::ExportLatexCompiler)
-    .value("Ordered", sem::Subtree::Property::Kind::Ordered)
-    .value("Effort", sem::Subtree::Property::Kind::Effort)
-    .value("Visibility", sem::Subtree::Property::Kind::Visibility)
-    .value("ExportOptions", sem::Subtree::Property::Kind::ExportOptions)
-    .value("Blocker", sem::Subtree::Property::Kind::Blocker)
-    .value("Unnumbered", sem::Subtree::Property::Kind::Unnumbered)
-    .value("Created", sem::Subtree::Property::Kind::Created)
-    .value("CustomArgs", sem::Subtree::Property::Kind::CustomArgs)
-    .value("CustomRaw", sem::Subtree::Property::Kind::CustomRaw)
-    .def("__iter__", [](sem::Subtree::Property::Kind _self) -> PyEnumIterator<sem::Subtree::Property::Kind> {
-                     return
-                     PyEnumIterator<sem::Subtree::Property::Kind>
-                     ();
-                     })
-    ;
-  pybind11::class_<sem::Subtree::Property>(m, "SubtreeProperty")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree::Property {
-                        sem::Subtree::Property result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("mainSetRule", &sem::Subtree::Property::mainSetRule)
-    .def_readwrite("subSetRule", &sem::Subtree::Property::subSetRule)
-    .def_readwrite("inheritanceMode", &sem::Subtree::Property::inheritanceMode)
-    .def_readwrite("data", &sem::Subtree::Property::data)
-    .def("isMatching",
-         static_cast<bool(sem::Subtree::Property::*)(Str const&, Opt<Str> const&) const>(&sem::Subtree::Property::isMatching),
-         pybind11::arg("kind"),
-         pybind11::arg_v("subKind", std::nullopt),
-         R"RAW(Check if property matches specified kind and optional subkind. Built-in property checking is also done with this function -- 'created' etc.)RAW")
-    .def("getName", static_cast<Str(sem::Subtree::Property::*)() const>(&sem::Subtree::Property::getName), R"RAW(Get non-normalized name of the property (for built-in and user))RAW")
-    .def("getSubKind", static_cast<Opt<Str>(sem::Subtree::Property::*)() const>(&sem::Subtree::Property::getSubKind), R"RAW(Get non-normalized sub-kind for the property.)RAW")
-    .def("getNonblocking", static_cast<sem::Subtree::Property::Nonblocking&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getNonblocking))
-    .def("getTrigger", static_cast<sem::Subtree::Property::Trigger&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getTrigger))
-    .def("getOrigin", static_cast<sem::Subtree::Property::Origin&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getOrigin))
-    .def("getExportLatexClass", static_cast<sem::Subtree::Property::ExportLatexClass&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getExportLatexClass))
-    .def("getExportLatexClassOptions", static_cast<sem::Subtree::Property::ExportLatexClassOptions&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getExportLatexClassOptions))
-    .def("getExportLatexHeader", static_cast<sem::Subtree::Property::ExportLatexHeader&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getExportLatexHeader))
-    .def("getExportLatexCompiler", static_cast<sem::Subtree::Property::ExportLatexCompiler&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getExportLatexCompiler))
-    .def("getOrdered", static_cast<sem::Subtree::Property::Ordered&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getOrdered))
-    .def("getEffort", static_cast<sem::Subtree::Property::Effort&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getEffort))
-    .def("getVisibility", static_cast<sem::Subtree::Property::Visibility&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getVisibility))
-    .def("getExportOptions", static_cast<sem::Subtree::Property::ExportOptions&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getExportOptions))
-    .def("getBlocker", static_cast<sem::Subtree::Property::Blocker&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getBlocker))
-    .def("getUnnumbered", static_cast<sem::Subtree::Property::Unnumbered&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getUnnumbered))
-    .def("getCreated", static_cast<sem::Subtree::Property::Created&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getCreated))
-    .def("getCustomArgs", static_cast<sem::Subtree::Property::CustomArgs&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getCustomArgs))
-    .def("getCustomRaw", static_cast<sem::Subtree::Property::CustomRaw&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getCustomRaw))
-    .def_static("getKindStatic",
-                static_cast<sem::Subtree::Property::Kind(*)(sem::Subtree::Property::Data const&)>(&sem::Subtree::Property::getKind),
-                pybind11::arg("__input"))
-    .def("getKind", static_cast<sem::Subtree::Property::Kind(sem::Subtree::Property::*)() const>(&sem::Subtree::Property::getKind))
-    .def("__repr__", [](sem::Subtree::Property _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Subtree::Property _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
   pybind11::class_<sem::Subtree, sem::SemId<sem::Subtree>, sem::Org>(m, "Subtree")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree {
                         sem::Subtree result{};
@@ -2611,11 +2641,11 @@ node can have subnodes.)RAW")
          static_cast<Vec<sem::Subtree::Period>(sem::Subtree::*)(IntSet<sem::Subtree::Period::Kind>) const>(&sem::Subtree::getTimePeriods),
          pybind11::arg("kinds"))
     .def("getProperties",
-         static_cast<Vec<sem::Subtree::Property>(sem::Subtree::*)(Str const&, Opt<Str> const&) const>(&sem::Subtree::getProperties),
+         static_cast<Vec<sem::SubtreeProperty>(sem::Subtree::*)(Str const&, Opt<Str> const&) const>(&sem::Subtree::getProperties),
          pybind11::arg("kind"),
          pybind11::arg_v("subkind", std::nullopt))
     .def("getProperty",
-         static_cast<Opt<sem::Subtree::Property>(sem::Subtree::*)(Str const&, Opt<Str> const&) const>(&sem::Subtree::getProperty),
+         static_cast<Opt<sem::SubtreeProperty>(sem::Subtree::*)(Str const&, Opt<Str> const&) const>(&sem::Subtree::getProperty),
          pybind11::arg("kind"),
          pybind11::arg_v("subkind", std::nullopt))
     .def("removeProperty",
@@ -2624,7 +2654,7 @@ node can have subnodes.)RAW")
          pybind11::arg_v("subkind", std::nullopt),
          R"RAW(Remove all instances of the property with matching kind/subkind from the property list)RAW")
     .def("setProperty",
-         static_cast<void(sem::Subtree::*)(sem::Subtree::Property const&)>(&sem::Subtree::setProperty),
+         static_cast<void(sem::Subtree::*)(sem::SubtreeProperty const&)>(&sem::Subtree::setProperty),
          pybind11::arg("value"),
          R"RAW(Create or override existing property value in the subtree property list)RAW")
     .def("setPropertyStrValue",
@@ -3205,11 +3235,11 @@ node can have subnodes.)RAW")
     .def_readwrite("setupfile", &sem::DocumentOptions::setupfile)
     .def_readwrite("maxSubtreeLevelExport", &sem::DocumentOptions::maxSubtreeLevelExport)
     .def("getProperties",
-         static_cast<Vec<sem::Subtree::Property>(sem::DocumentOptions::*)(Str const&, Opt<Str> const&) const>(&sem::DocumentOptions::getProperties),
+         static_cast<Vec<sem::SubtreeProperty>(sem::DocumentOptions::*)(Str const&, Opt<Str> const&) const>(&sem::DocumentOptions::getProperties),
          pybind11::arg("kind"),
          pybind11::arg_v("subKind", std::nullopt))
     .def("getProperty",
-         static_cast<Opt<sem::Subtree::Property>(sem::DocumentOptions::*)(Str const&, Opt<Str> const&) const>(&sem::DocumentOptions::getProperty),
+         static_cast<Opt<sem::SubtreeProperty>(sem::DocumentOptions::*)(Str const&, Opt<Str> const&) const>(&sem::DocumentOptions::getProperty),
          pybind11::arg("kind"),
          pybind11::arg_v("subKind", std::nullopt))
     .def("__repr__", [](sem::DocumentOptions _self) -> std::string {
@@ -3236,11 +3266,11 @@ node can have subnodes.)RAW")
     .def_readwrite("options", &sem::Document::options)
     .def_readwrite("exportFileName", &sem::Document::exportFileName)
     .def("getProperties",
-         static_cast<Vec<sem::Subtree::Property>(sem::Document::*)(Str const&, Opt<Str> const&) const>(&sem::Document::getProperties),
+         static_cast<Vec<sem::SubtreeProperty>(sem::Document::*)(Str const&, Opt<Str> const&) const>(&sem::Document::getProperties),
          pybind11::arg("kind"),
          pybind11::arg_v("subKind", std::nullopt))
     .def("getProperty",
-         static_cast<Opt<sem::Subtree::Property>(sem::Document::*)(Str const&, Opt<Str> const&) const>(&sem::Document::getProperty),
+         static_cast<Opt<sem::SubtreeProperty>(sem::Document::*)(Str const&, Opt<Str> const&) const>(&sem::Document::getProperty),
          pybind11::arg("kind"),
          pybind11::arg_v("subKind", std::nullopt))
     .def("__repr__", [](sem::Document _self) -> std::string {

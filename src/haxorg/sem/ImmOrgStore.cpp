@@ -648,6 +648,8 @@ __same_type(float);
 __same_type(bool);
 __same_type(std::string);
 __same_type(UserTime);
+__same_type(sem::SubtreeProperty);
+
 
 template <typename SemType, typename ImmType>
 struct ImmSemSerde<SemType, ImmBox<ImmType>> {

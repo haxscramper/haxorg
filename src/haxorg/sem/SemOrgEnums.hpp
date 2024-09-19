@@ -3,76 +3,44 @@
 #include <hstd/system/basic_templates.hpp>
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Opt.hpp>
-#define EACH_SEM_ORG_KIND(__IMPL) \
-    __IMPL(None) \
-    __IMPL(CmdArgument) \
-    __IMPL(CmdArgumentList) \
-    __IMPL(CmdArguments) \
-    __IMPL(ErrorItem) \
-    __IMPL(ErrorGroup) \
-    __IMPL(StmtList) \
-    __IMPL(Empty) \
-    __IMPL(CmdCaption) \
-    __IMPL(CmdName) \
-    __IMPL(CmdCustomArgs) \
-    __IMPL(CmdCustomRaw) \
-    __IMPL(CmdCustomText) \
-    __IMPL(CmdResults) \
-    __IMPL(CmdTblfm) \
-    __IMPL(HashTag) \
-    __IMPL(Footnote) \
-    __IMPL(Time) \
-    __IMPL(TimeRange) \
-    __IMPL(Macro) \
-    __IMPL(Symbol) \
-    __IMPL(Escaped) \
-    __IMPL(Newline) \
-    __IMPL(Space) \
-    __IMPL(Word) \
-    __IMPL(AtMention) \
-    __IMPL(RawText) \
-    __IMPL(Punctuation) \
-    __IMPL(Placeholder) \
-    __IMPL(BigIdent) \
-    __IMPL(RadioTarget) \
-    __IMPL(TextTarget) \
-    __IMPL(Bold) \
-    __IMPL(Underline) \
-    __IMPL(Monospace) \
-    __IMPL(MarkQuote) \
-    __IMPL(Verbatim) \
-    __IMPL(Italic) \
-    __IMPL(Strike) \
-    __IMPL(Par) \
-    __IMPL(Latex) \
-    __IMPL(Link) \
-    __IMPL(BlockCenter) \
-    __IMPL(BlockQuote) \
-    __IMPL(BlockComment) \
-    __IMPL(BlockVerse) \
-    __IMPL(BlockExample) \
-    __IMPL(BlockExport) \
-    __IMPL(BlockAdmonition) \
-    __IMPL(BlockCode) \
-    __IMPL(SubtreeLog) \
-    __IMPL(Subtree) \
-    __IMPL(SubtreeCompletion) \
-    __IMPL(Cell) \
-    __IMPL(Row) \
-    __IMPL(Table) \
-    __IMPL(Paragraph) \
-    __IMPL(AnnotatedParagraph) \
-    __IMPL(ColonExample) \
-    __IMPL(CmdAttr) \
-    __IMPL(Call) \
-    __IMPL(List) \
-    __IMPL(ListItem) \
-    __IMPL(DocumentOptions) \
-    __IMPL(Document) \
-    __IMPL(FileTarget) \
-    __IMPL(TextSeparator) \
-    __IMPL(Include) \
-    __IMPL(DocumentGroup)
+#define EACH_SHARED_ORG_RECORD_NESTED(__IMPL) \
+    __IMPL(SubtreeProperty, Nonblocking, (Nonblocking)) \
+    __IMPL(SubtreeProperty, Trigger, (Trigger)) \
+    __IMPL(SubtreeProperty, ExportLatexClass, (ExportLatexClass)) \
+    __IMPL(SubtreeProperty, ExportLatexClassOptions, (ExportLatexClassOptions)) \
+    __IMPL(SubtreeProperty, ExportLatexHeader, (ExportLatexHeader)) \
+    __IMPL(SubtreeProperty, ExportLatexCompiler, (ExportLatexCompiler)) \
+    __IMPL(SubtreeProperty, Ordered, (Ordered)) \
+    __IMPL(SubtreeProperty, Effort, (Effort)) \
+    __IMPL(SubtreeProperty, Visibility, (Visibility)) \
+    __IMPL(SubtreeProperty, ExportOptions, (ExportOptions)) \
+    __IMPL(SubtreeProperty, Blocker, (Blocker)) \
+    __IMPL(SubtreeProperty, Unnumbered, (Unnumbered)) \
+    __IMPL(SubtreeProperty, Created, (Created)) \
+    __IMPL(SubtreeProperty, CustomArgs, (CustomArgs)) \
+    __IMPL(SubtreeProperty, CustomRaw, (CustomRaw))
+#define EACH_SHARED_ORG_ENUM_NESTED(__IMPL) \
+    __IMPL(SubtreeProperty, SetMode, (SetMode)) \
+    __IMPL(SubtreeProperty, InheritanceMode, (InheritanceMode)) \
+    __IMPL(SubtreeProperty, Visibility::Level, (Visibility, Level)) \
+    __IMPL(SubtreeProperty, Kind, (Kind))
+#define EACH_SHARED_ORG_RECORD(__IMPL) \
+    __IMPL(SubtreeProperty, (SubtreeProperty)) \
+    __IMPL(SubtreeProperty::Nonblocking, (SubtreeProperty, Nonblocking)) \
+    __IMPL(SubtreeProperty::Trigger, (SubtreeProperty, Trigger)) \
+    __IMPL(SubtreeProperty::ExportLatexClass, (SubtreeProperty, ExportLatexClass)) \
+    __IMPL(SubtreeProperty::ExportLatexClassOptions, (SubtreeProperty, ExportLatexClassOptions)) \
+    __IMPL(SubtreeProperty::ExportLatexHeader, (SubtreeProperty, ExportLatexHeader)) \
+    __IMPL(SubtreeProperty::ExportLatexCompiler, (SubtreeProperty, ExportLatexCompiler)) \
+    __IMPL(SubtreeProperty::Ordered, (SubtreeProperty, Ordered)) \
+    __IMPL(SubtreeProperty::Effort, (SubtreeProperty, Effort)) \
+    __IMPL(SubtreeProperty::Visibility, (SubtreeProperty, Visibility)) \
+    __IMPL(SubtreeProperty::ExportOptions, (SubtreeProperty, ExportOptions)) \
+    __IMPL(SubtreeProperty::Blocker, (SubtreeProperty, Blocker)) \
+    __IMPL(SubtreeProperty::Unnumbered, (SubtreeProperty, Unnumbered)) \
+    __IMPL(SubtreeProperty::Created, (SubtreeProperty, Created)) \
+    __IMPL(SubtreeProperty::CustomArgs, (SubtreeProperty, CustomArgs)) \
+    __IMPL(SubtreeProperty::CustomRaw, (SubtreeProperty, CustomRaw))
 #define EACH_SEM_ORG_RECORD_NESTED(__IMPL) \
     __IMPL(Time, Repeat, (Repeat)) \
     __IMPL(Time, Static, (Static)) \
@@ -111,23 +79,6 @@
     __IMPL(SubtreeLog, Tag, (Tag)) \
     __IMPL(SubtreeLog, Unknown, (Unknown)) \
     __IMPL(Subtree, Period, (Period)) \
-    __IMPL(Subtree, Property, (Property)) \
-    __IMPL(Subtree, Property::Nonblocking, (Property, Nonblocking)) \
-    __IMPL(Subtree, Property::Trigger, (Property, Trigger)) \
-    __IMPL(Subtree, Property::Origin, (Property, Origin)) \
-    __IMPL(Subtree, Property::ExportLatexClass, (Property, ExportLatexClass)) \
-    __IMPL(Subtree, Property::ExportLatexClassOptions, (Property, ExportLatexClassOptions)) \
-    __IMPL(Subtree, Property::ExportLatexHeader, (Property, ExportLatexHeader)) \
-    __IMPL(Subtree, Property::ExportLatexCompiler, (Property, ExportLatexCompiler)) \
-    __IMPL(Subtree, Property::Ordered, (Property, Ordered)) \
-    __IMPL(Subtree, Property::Effort, (Property, Effort)) \
-    __IMPL(Subtree, Property::Visibility, (Property, Visibility)) \
-    __IMPL(Subtree, Property::ExportOptions, (Property, ExportOptions)) \
-    __IMPL(Subtree, Property::Blocker, (Property, Blocker)) \
-    __IMPL(Subtree, Property::Unnumbered, (Property, Unnumbered)) \
-    __IMPL(Subtree, Property::Created, (Property, Created)) \
-    __IMPL(Subtree, Property::CustomArgs, (Property, CustomArgs)) \
-    __IMPL(Subtree, Property::CustomRaw, (Property, CustomRaw)) \
     __IMPL(AnnotatedParagraph, None, (None)) \
     __IMPL(AnnotatedParagraph, Footnote, (Footnote)) \
     __IMPL(AnnotatedParagraph, Admonition, (Admonition)) \
@@ -154,10 +105,6 @@
     __IMPL(SubtreeLog, Priority::Action, (Priority, Action)) \
     __IMPL(SubtreeLog, Kind, (Kind)) \
     __IMPL(Subtree, Period::Kind, (Period, Kind)) \
-    __IMPL(Subtree, Property::SetMode, (Property, SetMode)) \
-    __IMPL(Subtree, Property::InheritanceMode, (Property, InheritanceMode)) \
-    __IMPL(Subtree, Property::Visibility::Level, (Property, Visibility, Level)) \
-    __IMPL(Subtree, Property::Kind, (Property, Kind)) \
     __IMPL(AnnotatedParagraph, AnnotationKind, (AnnotationKind)) \
     __IMPL(ListItem, Checkbox, (Checkbox)) \
     __IMPL(DocumentOptions, ExportConfig::TagExport, (ExportConfig, TagExport)) \
@@ -264,23 +211,6 @@
     __IMPL(SubtreeLog::Unknown, (SubtreeLog, Unknown)) \
     __IMPL(Subtree, (Subtree)) \
     __IMPL(Subtree::Period, (Subtree, Period)) \
-    __IMPL(Subtree::Property, (Subtree, Property)) \
-    __IMPL(Subtree::Property::Nonblocking, (Subtree, Property, Nonblocking)) \
-    __IMPL(Subtree::Property::Trigger, (Subtree, Property, Trigger)) \
-    __IMPL(Subtree::Property::Origin, (Subtree, Property, Origin)) \
-    __IMPL(Subtree::Property::ExportLatexClass, (Subtree, Property, ExportLatexClass)) \
-    __IMPL(Subtree::Property::ExportLatexClassOptions, (Subtree, Property, ExportLatexClassOptions)) \
-    __IMPL(Subtree::Property::ExportLatexHeader, (Subtree, Property, ExportLatexHeader)) \
-    __IMPL(Subtree::Property::ExportLatexCompiler, (Subtree, Property, ExportLatexCompiler)) \
-    __IMPL(Subtree::Property::Ordered, (Subtree, Property, Ordered)) \
-    __IMPL(Subtree::Property::Effort, (Subtree, Property, Effort)) \
-    __IMPL(Subtree::Property::Visibility, (Subtree, Property, Visibility)) \
-    __IMPL(Subtree::Property::ExportOptions, (Subtree, Property, ExportOptions)) \
-    __IMPL(Subtree::Property::Blocker, (Subtree, Property, Blocker)) \
-    __IMPL(Subtree::Property::Unnumbered, (Subtree, Property, Unnumbered)) \
-    __IMPL(Subtree::Property::Created, (Subtree, Property, Created)) \
-    __IMPL(Subtree::Property::CustomArgs, (Subtree, Property, CustomArgs)) \
-    __IMPL(Subtree::Property::CustomRaw, (Subtree, Property, CustomRaw)) \
     __IMPL(SubtreeCompletion, (SubtreeCompletion)) \
     __IMPL(Cell, (Cell)) \
     __IMPL(Row, (Row)) \
@@ -310,6 +240,76 @@
     __IMPL(Include::Src, (Include, Src)) \
     __IMPL(Include::OrgDocument, (Include, OrgDocument)) \
     __IMPL(DocumentGroup, (DocumentGroup))
+#define EACH_SEM_ORG_KIND(__IMPL) \
+    __IMPL(None) \
+    __IMPL(CmdArgument) \
+    __IMPL(CmdArgumentList) \
+    __IMPL(CmdArguments) \
+    __IMPL(ErrorItem) \
+    __IMPL(ErrorGroup) \
+    __IMPL(StmtList) \
+    __IMPL(Empty) \
+    __IMPL(CmdCaption) \
+    __IMPL(CmdName) \
+    __IMPL(CmdCustomArgs) \
+    __IMPL(CmdCustomRaw) \
+    __IMPL(CmdCustomText) \
+    __IMPL(CmdResults) \
+    __IMPL(CmdTblfm) \
+    __IMPL(HashTag) \
+    __IMPL(Footnote) \
+    __IMPL(Time) \
+    __IMPL(TimeRange) \
+    __IMPL(Macro) \
+    __IMPL(Symbol) \
+    __IMPL(Escaped) \
+    __IMPL(Newline) \
+    __IMPL(Space) \
+    __IMPL(Word) \
+    __IMPL(AtMention) \
+    __IMPL(RawText) \
+    __IMPL(Punctuation) \
+    __IMPL(Placeholder) \
+    __IMPL(BigIdent) \
+    __IMPL(RadioTarget) \
+    __IMPL(TextTarget) \
+    __IMPL(Bold) \
+    __IMPL(Underline) \
+    __IMPL(Monospace) \
+    __IMPL(MarkQuote) \
+    __IMPL(Verbatim) \
+    __IMPL(Italic) \
+    __IMPL(Strike) \
+    __IMPL(Par) \
+    __IMPL(Latex) \
+    __IMPL(Link) \
+    __IMPL(BlockCenter) \
+    __IMPL(BlockQuote) \
+    __IMPL(BlockComment) \
+    __IMPL(BlockVerse) \
+    __IMPL(BlockExample) \
+    __IMPL(BlockExport) \
+    __IMPL(BlockAdmonition) \
+    __IMPL(BlockCode) \
+    __IMPL(SubtreeLog) \
+    __IMPL(Subtree) \
+    __IMPL(SubtreeCompletion) \
+    __IMPL(Cell) \
+    __IMPL(Row) \
+    __IMPL(Table) \
+    __IMPL(Paragraph) \
+    __IMPL(AnnotatedParagraph) \
+    __IMPL(ColonExample) \
+    __IMPL(CmdAttr) \
+    __IMPL(Call) \
+    __IMPL(List) \
+    __IMPL(ListItem) \
+    __IMPL(DocumentOptions) \
+    __IMPL(Document) \
+    __IMPL(FileTarget) \
+    __IMPL(TextSeparator) \
+    __IMPL(Include) \
+    __IMPL(DocumentGroup)
 enum class OrgSpecName : short int { Unnamed, Result, Year, Day, Clock, Repeater, Zone, Link, Tags, Tag, State, Protocol, Desc, Times, Drawer, Args, Name, Definition, Body, HeaderArgs, File, Kind, Lang, Prefix, Text, Todo, Importance, Title, Completion, Head, Subnodes, Properties, Logbook, Description, Logs, Newstate, Oldstate, Time, From, EndArgs, Flags, Value, Assoc, Main, Hash, Bullet, Counter, Checkbox, Header, To, Diff, Property, Subname, Values, Cells, Rows, Lines, Chunks, InheritanceMode, MainSetRule, SubSetRule, };
 template <>
 struct enum_serde<OrgSpecName> {
