@@ -472,9 +472,7 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
     void visit(Res& res, sem::NamedProperty const&) {}
     void visit(Res& res, Str const&) {}
     void visit(Res& res, Vec<Str> const&) {}
-    void visit(
-        Res& res,
-        sem::DocumentOptions::ExportConfig::TocExport const&) {}
+    void visit(Res& res, sem::DocumentExportConfig::TocExport const&) {}
     void visit(Res& res, int const&) {}
 
     template <sem::IsOrg T>

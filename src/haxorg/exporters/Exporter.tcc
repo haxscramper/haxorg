@@ -1,5 +1,34 @@
 /* clang-format off */
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::DocumentExportConfig::TocExport const& object) { visitVariants(res, sem::DocumentExportConfig::getTocExportKind(object), object); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::DocumentExportConfig const& object) {
+  __obj_field(res, object, inlinetasks);
+  __obj_field(res, object, footnotes);
+  __obj_field(res, object, clock);
+  __obj_field(res, object, author);
+  __obj_field(res, object, emphasis);
+  __obj_field(res, object, specialStrings);
+  __obj_field(res, object, propertyDrawers);
+  __obj_field(res, object, statisticsCookies);
+  __obj_field(res, object, todoText);
+  __obj_field(res, object, brokenLinks);
+  __obj_field(res, object, tocExport);
+  __obj_field(res, object, tagExport);
+  __obj_field(res, object, data);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::DocumentExportConfig::TaskExport const& object) { __obj_field(res, object, taskWhitelist); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::DocumentExportConfig::DoExport const& object) { __obj_field(res, object, exportToc); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::DocumentExportConfig::ExportFixed const& object) { __obj_field(res, object, exportLevels); }
+
+template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::SubtreePeriod const& object) {
   __obj_field(res, object, kind);
   __obj_field(res, object, from);
@@ -841,35 +870,6 @@ void Exporter<V, R>::visitDocumentOptions(R& res, In<sem::DocumentOptions> objec
   __org_field(res, object, maxSubtreeLevelExport);
   __org_field(res, object, subnodes);
 }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::DocumentOptions::ExportConfig::TocExport const& object) { visitVariants(res, sem::DocumentOptions::ExportConfig::getTocExportKind(object), object); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::DocumentOptions::ExportConfig const& object) {
-  __obj_field(res, object, inlinetasks);
-  __obj_field(res, object, footnotes);
-  __obj_field(res, object, clock);
-  __obj_field(res, object, author);
-  __obj_field(res, object, emphasis);
-  __obj_field(res, object, specialStrings);
-  __obj_field(res, object, propertyDrawers);
-  __obj_field(res, object, statisticsCookies);
-  __obj_field(res, object, todoText);
-  __obj_field(res, object, brokenLinks);
-  __obj_field(res, object, tocExport);
-  __obj_field(res, object, tagExport);
-  __obj_field(res, object, data);
-}
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::DocumentOptions::ExportConfig::TaskExport const& object) { __obj_field(res, object, taskWhitelist); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::DocumentOptions::ExportConfig::DoExport const& object) { __obj_field(res, object, exportToc); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::DocumentOptions::ExportConfig::ExportFixed const& object) { __obj_field(res, object, exportLevels); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitDocument(R& res, In<sem::Document> object) {

@@ -1,4 +1,9 @@
 /* clang-format off */
+void visit(R& res, sem::DocumentExportConfig::TocExport const& object);
+void visit(R& res, sem::DocumentExportConfig const& object);
+void visit(R& res, sem::DocumentExportConfig::TaskExport const& object);
+void visit(R& res, sem::DocumentExportConfig::DoExport const& object);
+void visit(R& res, sem::DocumentExportConfig::ExportFixed const& object);
 void visit(R& res, sem::SubtreePeriod const& object);
 void visit(R& res, sem::NamedProperty::Data const& object);
 void visit(R& res, sem::NamedProperty const& object);
@@ -136,11 +141,6 @@ void visitCall(R& res, In<sem::Call> object);
 void visitList(R& res, In<sem::List> object);
 void visitListItem(R& res, In<sem::ListItem> object);
 void visitDocumentOptions(R& res, In<sem::DocumentOptions> object);
-void visit(R& res, sem::DocumentOptions::ExportConfig::TocExport const& object);
-void visit(R& res, sem::DocumentOptions::ExportConfig const& object);
-void visit(R& res, sem::DocumentOptions::ExportConfig::TaskExport const& object);
-void visit(R& res, sem::DocumentOptions::ExportConfig::DoExport const& object);
-void visit(R& res, sem::DocumentOptions::ExportConfig::ExportFixed const& object);
 void visitDocument(R& res, In<sem::Document> object);
 void visitFileTarget(R& res, In<sem::FileTarget> object);
 void visitTextSeparator(R& res, In<sem::TextSeparator> object);

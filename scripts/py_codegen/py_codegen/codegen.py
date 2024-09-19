@@ -979,7 +979,7 @@ def gen_pyhaxorg_wrappers(
     expanded = expand_type_groups(ast, get_types())
     immutable = expand_type_groups(ast, rewrite_to_immutable(get_types()))
     proto = pb.ProtoBuilder(
-        get_enums() + [get_osk_enum(expanded)] + shared_types + expanded, ast)
+        get_shared_sem_enums() + get_enums() + [get_osk_enum(expanded)] + shared_types + expanded, ast)
     t = ast.b
 
     protobuf = proto.build_protobuf()
@@ -988,7 +988,7 @@ def gen_pyhaxorg_wrappers(
 
     import yaml
 
-    full_enums = get_enums() + [get_osk_enum(expanded)]
+    full_enums = get_shared_sem_enums() + get_enums() + [get_osk_enum(expanded)]
     tu: ConvTu = conv_proto_file(reflection_path)
 
     with open("/tmp/reflection_data.yaml", "w") as file:
@@ -1004,7 +1004,7 @@ def gen_pyhaxorg_wrappers(
     res = Py11Module("pyhaxorg")
     add_structures(res, ast, shared_types)
     add_structures(res, ast, expanded)
-    add_enums(res, ast, get_enums() + [get_osk_enum(expanded)])
+    add_enums(res, ast, get_shared_sem_enums() + get_enums() + [get_osk_enum(expanded)])
     add_translation_unit(res, ast, tu)
     add_type_specializations(res, ast)
     res.Decls.append(ast.Include("pyhaxorg_manual_wrap.hpp"))

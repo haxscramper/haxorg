@@ -1,6 +1,31 @@
 /* clang-format off */
 #include "SemOrgEnums.hpp"
 
+Opt<InitialSubtreeVisibility> enum_serde<InitialSubtreeVisibility>::from_string(std::string value) {
+  if (value == "Overview") { return InitialSubtreeVisibility::Overview; } else
+  if (value == "Content") { return InitialSubtreeVisibility::Content; } else
+  if (value == "ShowAll") { return InitialSubtreeVisibility::ShowAll; } else
+  if (value == "Show2Levels") { return InitialSubtreeVisibility::Show2Levels; } else
+  if (value == "Show3Levels") { return InitialSubtreeVisibility::Show3Levels; } else
+  if (value == "Show4Levels") { return InitialSubtreeVisibility::Show4Levels; } else
+  if (value == "Show5Levels") { return InitialSubtreeVisibility::Show5Levels; } else
+  if (value == "ShowEverything") { return InitialSubtreeVisibility::ShowEverything; } else
+  { return std::nullopt; }
+}
+std::string enum_serde<InitialSubtreeVisibility>::to_string(InitialSubtreeVisibility value) {
+  switch (value) {
+    case InitialSubtreeVisibility::Overview: return "Overview";
+    case InitialSubtreeVisibility::Content: return "Content";
+    case InitialSubtreeVisibility::ShowAll: return "ShowAll";
+    case InitialSubtreeVisibility::Show2Levels: return "Show2Levels";
+    case InitialSubtreeVisibility::Show3Levels: return "Show3Levels";
+    case InitialSubtreeVisibility::Show4Levels: return "Show4Levels";
+    case InitialSubtreeVisibility::Show5Levels: return "Show5Levels";
+    case InitialSubtreeVisibility::ShowEverything: return "ShowEverything";
+    default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
+  }
+}
+
 Opt<OrgSpecName> enum_serde<OrgSpecName>::from_string(std::string value) {
   if (value == "Unnamed") { return OrgSpecName::Unnamed; } else
   if (value == "Result") { return OrgSpecName::Result; } else

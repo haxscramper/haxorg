@@ -127,6 +127,144 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<sem::DocumentExportConfig::TaskExport>(m, "DocumentExportConfigTaskExport")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::DocumentExportConfig::TaskExport {
+                        sem::DocumentExportConfig::TaskExport result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("taskWhitelist", &sem::DocumentExportConfig::TaskExport::taskWhitelist)
+    .def("operator==",
+         static_cast<bool(sem::DocumentExportConfig::TaskExport::*)(sem::DocumentExportConfig::TaskExport const&) const>(&sem::DocumentExportConfig::TaskExport::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::DocumentExportConfig::TaskExport _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::DocumentExportConfig::TaskExport _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<sem::DocumentExportConfig::TagExport>(m, "DocumentExportConfigTagExport", type_registry_guard);
+  pybind11::enum_<sem::DocumentExportConfig::TagExport>(m, "DocumentExportConfigTagExport")
+    .value("None", sem::DocumentExportConfig::TagExport::None)
+    .value("All", sem::DocumentExportConfig::TagExport::All)
+    .value("NotInToc", sem::DocumentExportConfig::TagExport::NotInToc, R"RAW(Expot tags in subtree titles but not in the table of content)RAW")
+    .def("__iter__", [](sem::DocumentExportConfig::TagExport _self) -> PyEnumIterator<sem::DocumentExportConfig::TagExport> {
+                     return
+                     PyEnumIterator<sem::DocumentExportConfig::TagExport>
+                     ();
+                     })
+    ;
+  bind_enum_iterator<sem::DocumentExportConfig::TaskFiltering>(m, "DocumentExportConfigTaskFiltering", type_registry_guard);
+  pybind11::enum_<sem::DocumentExportConfig::TaskFiltering>(m, "DocumentExportConfigTaskFiltering")
+    .value("Whitelist", sem::DocumentExportConfig::TaskFiltering::Whitelist, R"RAW(Include tasks from the whitelist)RAW")
+    .value("Done", sem::DocumentExportConfig::TaskFiltering::Done, R"RAW(Include tasks marked as done)RAW")
+    .value("None", sem::DocumentExportConfig::TaskFiltering::None, R"RAW(Exclude all task subtrees from export)RAW")
+    .value("All", sem::DocumentExportConfig::TaskFiltering::All, R"RAW(Add all task subtrees to export)RAW")
+    .def("__iter__", [](sem::DocumentExportConfig::TaskFiltering _self) -> PyEnumIterator<sem::DocumentExportConfig::TaskFiltering> {
+                     return
+                     PyEnumIterator<sem::DocumentExportConfig::TaskFiltering>
+                     ();
+                     })
+    ;
+  bind_enum_iterator<sem::DocumentExportConfig::BrokenLinks>(m, "DocumentExportConfigBrokenLinks", type_registry_guard);
+  pybind11::enum_<sem::DocumentExportConfig::BrokenLinks>(m, "DocumentExportConfigBrokenLinks")
+    .value("Mark", sem::DocumentExportConfig::BrokenLinks::Mark)
+    .value("Raise", sem::DocumentExportConfig::BrokenLinks::Raise)
+    .value("Ignore", sem::DocumentExportConfig::BrokenLinks::Ignore)
+    .def("__iter__", [](sem::DocumentExportConfig::BrokenLinks _self) -> PyEnumIterator<sem::DocumentExportConfig::BrokenLinks> {
+                     return
+                     PyEnumIterator<sem::DocumentExportConfig::BrokenLinks>
+                     ();
+                     })
+    ;
+  pybind11::class_<sem::DocumentExportConfig::DoExport>(m, "DocumentExportConfigDoExport")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::DocumentExportConfig::DoExport {
+                        sem::DocumentExportConfig::DoExport result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("exportToc", &sem::DocumentExportConfig::DoExport::exportToc)
+    .def("operator==",
+         static_cast<bool(sem::DocumentExportConfig::DoExport::*)(sem::DocumentExportConfig::DoExport const&) const>(&sem::DocumentExportConfig::DoExport::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::DocumentExportConfig::DoExport _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::DocumentExportConfig::DoExport _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::DocumentExportConfig::ExportFixed>(m, "DocumentExportConfigExportFixed")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::DocumentExportConfig::ExportFixed {
+                        sem::DocumentExportConfig::ExportFixed result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("exportLevels", &sem::DocumentExportConfig::ExportFixed::exportLevels)
+    .def("operator==",
+         static_cast<bool(sem::DocumentExportConfig::ExportFixed::*)(sem::DocumentExportConfig::ExportFixed const&) const>(&sem::DocumentExportConfig::ExportFixed::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::DocumentExportConfig::ExportFixed _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::DocumentExportConfig::ExportFixed _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<sem::DocumentExportConfig::TocExportKind>(m, "DocumentExportConfigTocExportKind", type_registry_guard);
+  pybind11::enum_<sem::DocumentExportConfig::TocExportKind>(m, "DocumentExportConfigTocExportKind")
+    .value("DoExport", sem::DocumentExportConfig::TocExportKind::DoExport)
+    .value("ExportFixed", sem::DocumentExportConfig::TocExportKind::ExportFixed)
+    .def("__iter__", [](sem::DocumentExportConfig::TocExportKind _self) -> PyEnumIterator<sem::DocumentExportConfig::TocExportKind> {
+                     return
+                     PyEnumIterator<sem::DocumentExportConfig::TocExportKind>
+                     ();
+                     })
+    ;
+  pybind11::class_<sem::DocumentExportConfig>(m, "DocumentExportConfig")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::DocumentExportConfig {
+                        sem::DocumentExportConfig result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("inlinetasks", &sem::DocumentExportConfig::inlinetasks)
+    .def_readwrite("footnotes", &sem::DocumentExportConfig::footnotes)
+    .def_readwrite("clock", &sem::DocumentExportConfig::clock)
+    .def_readwrite("author", &sem::DocumentExportConfig::author)
+    .def_readwrite("emphasis", &sem::DocumentExportConfig::emphasis)
+    .def_readwrite("specialStrings", &sem::DocumentExportConfig::specialStrings)
+    .def_readwrite("propertyDrawers", &sem::DocumentExportConfig::propertyDrawers)
+    .def_readwrite("statisticsCookies", &sem::DocumentExportConfig::statisticsCookies)
+    .def_readwrite("todoText", &sem::DocumentExportConfig::todoText, R"RAW(Include todo keywords in export)RAW")
+    .def_readwrite("brokenLinks", &sem::DocumentExportConfig::brokenLinks)
+    .def_readwrite("tocExport", &sem::DocumentExportConfig::tocExport)
+    .def_readwrite("tagExport", &sem::DocumentExportConfig::tagExport)
+    .def_readwrite("data", &sem::DocumentExportConfig::data)
+    .def("operator==",
+         static_cast<bool(sem::DocumentExportConfig::*)(sem::DocumentExportConfig const&) const>(&sem::DocumentExportConfig::operator==),
+         pybind11::arg("other"))
+    .def("getDoExport", static_cast<sem::DocumentExportConfig::DoExport&(sem::DocumentExportConfig::*)()>(&sem::DocumentExportConfig::getDoExport))
+    .def("getExportFixed", static_cast<sem::DocumentExportConfig::ExportFixed&(sem::DocumentExportConfig::*)()>(&sem::DocumentExportConfig::getExportFixed))
+    .def_static("getTocExportKindStatic",
+                static_cast<sem::DocumentExportConfig::TocExportKind(*)(sem::DocumentExportConfig::TocExport const&)>(&sem::DocumentExportConfig::getTocExportKind),
+                pybind11::arg("__input"))
+    .def("getTocExportKind", static_cast<sem::DocumentExportConfig::TocExportKind(sem::DocumentExportConfig::*)() const>(&sem::DocumentExportConfig::getTocExportKind))
+    .def("__repr__", [](sem::DocumentExportConfig _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::DocumentExportConfig _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   bind_enum_iterator<sem::SubtreePeriod::Kind>(m, "SubtreePeriodKind", type_registry_guard);
   pybind11::enum_<sem::SubtreePeriod::Kind>(m, "SubtreePeriodKind")
     .value("Clocked", sem::SubtreePeriod::Kind::Clocked, R"RAW(Time period of the task execution.)RAW")
@@ -3081,148 +3219,6 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::DocumentOptions::ExportConfig::TaskExport>(m, "DocumentOptionsExportConfigTaskExport")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::DocumentOptions::ExportConfig::TaskExport {
-                        sem::DocumentOptions::ExportConfig::TaskExport result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("taskWhitelist", &sem::DocumentOptions::ExportConfig::TaskExport::taskWhitelist)
-    .def("__repr__", [](sem::DocumentOptions::ExportConfig::TaskExport _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::DocumentOptions::ExportConfig::TaskExport _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  bind_enum_iterator<sem::DocumentOptions::ExportConfig::TagExport>(m, "DocumentOptionsExportConfigTagExport", type_registry_guard);
-  pybind11::enum_<sem::DocumentOptions::ExportConfig::TagExport>(m, "DocumentOptionsExportConfigTagExport")
-    .value("None", sem::DocumentOptions::ExportConfig::TagExport::None)
-    .value("All", sem::DocumentOptions::ExportConfig::TagExport::All)
-    .value("NotInToc", sem::DocumentOptions::ExportConfig::TagExport::NotInToc, R"RAW(Expot tags in subtree titles but not in the table of content)RAW")
-    .def("__iter__", [](sem::DocumentOptions::ExportConfig::TagExport _self) -> PyEnumIterator<sem::DocumentOptions::ExportConfig::TagExport> {
-                     return
-                     PyEnumIterator<sem::DocumentOptions::ExportConfig::TagExport>
-                     ();
-                     })
-    ;
-  bind_enum_iterator<sem::DocumentOptions::ExportConfig::TaskFiltering>(m, "DocumentOptionsExportConfigTaskFiltering", type_registry_guard);
-  pybind11::enum_<sem::DocumentOptions::ExportConfig::TaskFiltering>(m, "DocumentOptionsExportConfigTaskFiltering")
-    .value("Whitelist", sem::DocumentOptions::ExportConfig::TaskFiltering::Whitelist, R"RAW(Include tasks from the whitelist)RAW")
-    .value("Done", sem::DocumentOptions::ExportConfig::TaskFiltering::Done, R"RAW(Include tasks marked as done)RAW")
-    .value("None", sem::DocumentOptions::ExportConfig::TaskFiltering::None, R"RAW(Exclude all task subtrees from export)RAW")
-    .value("All", sem::DocumentOptions::ExportConfig::TaskFiltering::All, R"RAW(Add all task subtrees to export)RAW")
-    .def("__iter__", [](sem::DocumentOptions::ExportConfig::TaskFiltering _self) -> PyEnumIterator<sem::DocumentOptions::ExportConfig::TaskFiltering> {
-                     return
-                     PyEnumIterator<sem::DocumentOptions::ExportConfig::TaskFiltering>
-                     ();
-                     })
-    ;
-  bind_enum_iterator<sem::DocumentOptions::ExportConfig::BrokenLinks>(m, "DocumentOptionsExportConfigBrokenLinks", type_registry_guard);
-  pybind11::enum_<sem::DocumentOptions::ExportConfig::BrokenLinks>(m, "DocumentOptionsExportConfigBrokenLinks")
-    .value("Mark", sem::DocumentOptions::ExportConfig::BrokenLinks::Mark)
-    .value("Raise", sem::DocumentOptions::ExportConfig::BrokenLinks::Raise)
-    .value("Ignore", sem::DocumentOptions::ExportConfig::BrokenLinks::Ignore)
-    .def("__iter__", [](sem::DocumentOptions::ExportConfig::BrokenLinks _self) -> PyEnumIterator<sem::DocumentOptions::ExportConfig::BrokenLinks> {
-                     return
-                     PyEnumIterator<sem::DocumentOptions::ExportConfig::BrokenLinks>
-                     ();
-                     })
-    ;
-  pybind11::class_<sem::DocumentOptions::ExportConfig::DoExport>(m, "DocumentOptionsExportConfigDoExport")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::DocumentOptions::ExportConfig::DoExport {
-                        sem::DocumentOptions::ExportConfig::DoExport result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("exportToc", &sem::DocumentOptions::ExportConfig::DoExport::exportToc)
-    .def("__repr__", [](sem::DocumentOptions::ExportConfig::DoExport _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::DocumentOptions::ExportConfig::DoExport _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::DocumentOptions::ExportConfig::ExportFixed>(m, "DocumentOptionsExportConfigExportFixed")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::DocumentOptions::ExportConfig::ExportFixed {
-                        sem::DocumentOptions::ExportConfig::ExportFixed result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("exportLevels", &sem::DocumentOptions::ExportConfig::ExportFixed::exportLevels)
-    .def("__repr__", [](sem::DocumentOptions::ExportConfig::ExportFixed _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::DocumentOptions::ExportConfig::ExportFixed _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  bind_enum_iterator<sem::DocumentOptions::ExportConfig::TocExportKind>(m, "DocumentOptionsExportConfigTocExportKind", type_registry_guard);
-  pybind11::enum_<sem::DocumentOptions::ExportConfig::TocExportKind>(m, "DocumentOptionsExportConfigTocExportKind")
-    .value("DoExport", sem::DocumentOptions::ExportConfig::TocExportKind::DoExport)
-    .value("ExportFixed", sem::DocumentOptions::ExportConfig::TocExportKind::ExportFixed)
-    .def("__iter__", [](sem::DocumentOptions::ExportConfig::TocExportKind _self) -> PyEnumIterator<sem::DocumentOptions::ExportConfig::TocExportKind> {
-                     return
-                     PyEnumIterator<sem::DocumentOptions::ExportConfig::TocExportKind>
-                     ();
-                     })
-    ;
-  pybind11::class_<sem::DocumentOptions::ExportConfig>(m, "DocumentOptionsExportConfig")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::DocumentOptions::ExportConfig {
-                        sem::DocumentOptions::ExportConfig result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("inlinetasks", &sem::DocumentOptions::ExportConfig::inlinetasks)
-    .def_readwrite("footnotes", &sem::DocumentOptions::ExportConfig::footnotes)
-    .def_readwrite("clock", &sem::DocumentOptions::ExportConfig::clock)
-    .def_readwrite("author", &sem::DocumentOptions::ExportConfig::author)
-    .def_readwrite("emphasis", &sem::DocumentOptions::ExportConfig::emphasis)
-    .def_readwrite("specialStrings", &sem::DocumentOptions::ExportConfig::specialStrings)
-    .def_readwrite("propertyDrawers", &sem::DocumentOptions::ExportConfig::propertyDrawers)
-    .def_readwrite("statisticsCookies", &sem::DocumentOptions::ExportConfig::statisticsCookies)
-    .def_readwrite("todoText", &sem::DocumentOptions::ExportConfig::todoText, R"RAW(Include todo keywords in export)RAW")
-    .def_readwrite("brokenLinks", &sem::DocumentOptions::ExportConfig::brokenLinks)
-    .def_readwrite("tocExport", &sem::DocumentOptions::ExportConfig::tocExport)
-    .def_readwrite("tagExport", &sem::DocumentOptions::ExportConfig::tagExport)
-    .def_readwrite("data", &sem::DocumentOptions::ExportConfig::data)
-    .def("getDoExport", static_cast<sem::DocumentOptions::ExportConfig::DoExport&(sem::DocumentOptions::ExportConfig::*)()>(&sem::DocumentOptions::ExportConfig::getDoExport))
-    .def("getExportFixed", static_cast<sem::DocumentOptions::ExportConfig::ExportFixed&(sem::DocumentOptions::ExportConfig::*)()>(&sem::DocumentOptions::ExportConfig::getExportFixed))
-    .def_static("getTocExportKindStatic",
-                static_cast<sem::DocumentOptions::ExportConfig::TocExportKind(*)(sem::DocumentOptions::ExportConfig::TocExport const&)>(&sem::DocumentOptions::ExportConfig::getTocExportKind),
-                pybind11::arg("__input"))
-    .def("getTocExportKind", static_cast<sem::DocumentOptions::ExportConfig::TocExportKind(sem::DocumentOptions::ExportConfig::*)() const>(&sem::DocumentOptions::ExportConfig::getTocExportKind))
-    .def("__repr__", [](sem::DocumentOptions::ExportConfig _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::DocumentOptions::ExportConfig _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  bind_enum_iterator<sem::DocumentOptions::Visibility>(m, "DocumentOptionsVisibility", type_registry_guard);
-  pybind11::enum_<sem::DocumentOptions::Visibility>(m, "DocumentOptionsVisibility")
-    .value("Overview", sem::DocumentOptions::Visibility::Overview)
-    .value("Content", sem::DocumentOptions::Visibility::Content)
-    .value("ShowAll", sem::DocumentOptions::Visibility::ShowAll)
-    .value("Show2Levels", sem::DocumentOptions::Visibility::Show2Levels)
-    .value("Show3Levels", sem::DocumentOptions::Visibility::Show3Levels)
-    .value("Show4Levels", sem::DocumentOptions::Visibility::Show4Levels)
-    .value("Show5Levels", sem::DocumentOptions::Visibility::Show5Levels)
-    .value("ShowEverything", sem::DocumentOptions::Visibility::ShowEverything)
-    .def("__iter__", [](sem::DocumentOptions::Visibility _self) -> PyEnumIterator<sem::DocumentOptions::Visibility> {
-                     return
-                     PyEnumIterator<sem::DocumentOptions::Visibility>
-                     ();
-                     })
-    ;
   pybind11::class_<sem::DocumentOptions, sem::SemId<sem::DocumentOptions>, sem::Org>(m, "DocumentOptions")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::DocumentOptions {
                         sem::DocumentOptions result{};
@@ -3435,6 +3431,22 @@ node can have subnodes.)RAW")
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
+    ;
+  bind_enum_iterator<InitialSubtreeVisibility>(m, "InitialSubtreeVisibility", type_registry_guard);
+  pybind11::enum_<InitialSubtreeVisibility>(m, "InitialSubtreeVisibility")
+    .value("Overview", InitialSubtreeVisibility::Overview)
+    .value("Content", InitialSubtreeVisibility::Content)
+    .value("ShowAll", InitialSubtreeVisibility::ShowAll)
+    .value("Show2Levels", InitialSubtreeVisibility::Show2Levels)
+    .value("Show3Levels", InitialSubtreeVisibility::Show3Levels)
+    .value("Show4Levels", InitialSubtreeVisibility::Show4Levels)
+    .value("Show5Levels", InitialSubtreeVisibility::Show5Levels)
+    .value("ShowEverything", InitialSubtreeVisibility::ShowEverything)
+    .def("__iter__", [](InitialSubtreeVisibility _self) -> PyEnumIterator<InitialSubtreeVisibility> {
+                     return
+                     PyEnumIterator<InitialSubtreeVisibility>
+                     ();
+                     })
     ;
   bind_enum_iterator<OrgSpecName>(m, "OrgSpecName", type_registry_guard);
   pybind11::enum_<OrgSpecName>(m, "OrgSpecName")

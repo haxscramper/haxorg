@@ -421,8 +421,8 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         }
 
     } else if (name == "effort") {
-        Str const&              value    = get_text(one(a, N::Values));
-        Vec<Str>                duration = value.split(":");
+        Str const&            value    = get_text(one(a, N::Values));
+        Vec<Str>              duration = value.split(":");
         NamedProperty::Effort prop;
 
         if (duration.size() == 1) {
@@ -1588,22 +1588,22 @@ void OrgConverter::convertDocumentOptions(
             auto tail  = split[1];
             if (org_streq(head, "broken-links")) {
                 if (org_streq(tail, "mark")) {
-                    opts->exportConfig.brokenLinks = DocumentOptions::
-                        ExportConfig::BrokenLinks::Mark;
+                    opts->exportConfig.brokenLinks = DocumentExportConfig::
+                        BrokenLinks::Mark;
                 } else if (org_streq(tail, "t")) {
-                    opts->exportConfig.brokenLinks = DocumentOptions::
-                        ExportConfig::BrokenLinks::Ignore;
+                    opts->exportConfig.brokenLinks = DocumentExportConfig::
+                        BrokenLinks::Ignore;
                 }
             } else if (org_streq(head, "toc")) {
                 if (org_streq(tail, "t")) {
-                    opts->exportConfig.tocExport = DocumentOptions::
-                        ExportConfig::DoExport{true};
+                    opts->exportConfig.tocExport = DocumentExportConfig::
+                        DoExport{true};
                 } else if (org_streq(tail, "nil")) {
-                    opts->exportConfig.tocExport = DocumentOptions::
-                        ExportConfig::DoExport{false};
+                    opts->exportConfig.tocExport = DocumentExportConfig::
+                        DoExport{false};
                 } else if ('0' <= tail[0] && tail[0] <= '9') {
-                    opts->exportConfig.tocExport = DocumentOptions::
-                        ExportConfig::ExportFixed{tail.toInt()};
+                    opts->exportConfig.tocExport = DocumentExportConfig::
+                        ExportFixed{tail.toInt()};
                 }
             } else if (org_streq(head, "<")) {
                 opts->exportConfig.inlinetasks = parseBool(tail);
@@ -1677,7 +1677,7 @@ SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
                 case onk::CmdStartup: {
                     Vec<Str> args = get_text(sub.at(0)).split(" ");
                     Str      text = normalize(args.at(0));
-                    using K       = DocumentOptions::Visibility;
+                    using K       = InitialSubtreeVisibility;
                     if (text == "content") {
                         doc->options->initialVisibility = K::Content;
                     } else if (text == "overview") {

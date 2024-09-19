@@ -649,6 +649,7 @@ __same_type(bool);
 __same_type(std::string);
 __same_type(UserTime);
 __same_type(sem::NamedProperty);
+__same_type(sem::DocumentExportConfig);
 
 
 template <typename SemType, typename ImmType>

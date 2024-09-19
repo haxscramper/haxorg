@@ -110,12 +110,14 @@ def org_struct(
     doc: AnyDoc = GenTuDoc(""),
     fields: List[GenTuField] = [],
     nested: List[GenTuEntry] = [],
+    methods: List[GenTuFunction] = [],
 ) -> GenTuStruct:
     return GenTuStruct(
         name=typ,
         doc=org_doc(doc),
         fields=fields,
         nested=nested,
+        methods=methods,
     )
 
 
@@ -1521,8 +1523,105 @@ def get_sem_subtree():
     ]
 
 
+def get_shared_sem_enums() -> Sequence[GenTuEnum]:
+    return [
+        d_simple_enum(
+            t("InitialSubtreeVisibility"),
+            GenTuDoc(""),
+            "Overview",
+            "Content",
+            "ShowAll",
+            "Show2Levels",
+            "Show3Levels",
+            "Show4Levels",
+            "Show5Levels",
+            "ShowEverything",
+        ),
+    ]
+
+
 def get_shared_sem_types() -> Sequence[GenTuStruct]:
     return [
+        org_struct(
+            t_nest_shared("DocumentExportConfig", []),
+            methods=[
+                eq_method(t_nest_shared("DocumentExportConfig", [])),
+            ],
+            fields=[
+                opt_field(t_bool(), "inlinetasks"),
+                opt_field(t_bool(), "footnotes"),
+                opt_field(t_bool(), "clock"),
+                opt_field(t_bool(), "author"),
+                opt_field(t_bool(), "emphasis"),
+                opt_field(t_bool(), "specialStrings"),
+                opt_field(t_bool(), "propertyDrawers"),
+                opt_field(t_bool(), "statisticsCookies"),
+                opt_field(t_bool(), "todoText", "Include todo keywords in export"),
+                org_field(
+                    t_nest("BrokenLinks", ["DocumentExportConfig"]),
+                    "brokenLinks",
+                ),
+                org_field(
+                    t_nest("TocExport", ["DocumentExportConfig"]),
+                    "tocExport",
+                ),
+                org_field(
+                    t_nest("TagExport", ["DocumentExportConfig"]),
+                    "tagExport",
+                ),
+            ],
+            nested=[
+                org_struct(
+                    t_nest_shared("TaskExport", ["DocumentExportConfig"]),
+                    org_doc(),
+                    fields=[
+                        vec_field(t_str(), "taskWhitelist")
+                    ],
+                    methods=[eq_method(t_nest_shared("TaskExport", ["DocumentExportConfig"]))],
+                ),
+                d_simple_enum(
+                    t_nest("TagExport", ["DocumentExportConfig"]),
+                    org_doc(""),
+                    "None",
+                    "All",
+                    efield(
+                        "NotInToc",
+                        "Expot tags in subtree titles but not in the table of content",
+                    ),
+                ),
+                d_simple_enum(
+                    t_nest("TaskFiltering", ["DocumentExportConfig"]),
+                    GenTuDoc(""),
+                    efield("Whitelist", "Include tasks from the whitelist"),
+                    efield("Done", "Include tasks marked as done"),
+                    efield("None", "Exclude all task subtrees from export"),
+                    efield("All", "Add all task subtrees to export"),
+                ),
+                d_simple_enum(
+                    t_nest("BrokenLinks", ["DocumentExportConfig"]),
+                    GenTuDoc(""),
+                    "Mark",
+                    "Raise",
+                    "Ignore",
+                ),
+                GenTuTypeGroup(
+                    [
+                        org_struct(
+                            t_nest_shared("DoExport", ["DocumentExportConfig"]),
+                            fields=[org_field(t_bool(), "exportToc")],
+                            methods=[eq_method(t_nest_shared("DoExport", ["DocumentExportConfig"]))],
+                        ),
+                        org_struct(
+                            t_nest_shared("ExportFixed", ["DocumentExportConfig"]),
+                            fields=[org_field(t_int(), "exportLevels")],
+                            methods=[eq_method(t_nest_shared("ExportFixed", ["DocumentExportConfig"]))],
+                        ),
+                    ],
+                    variantName=t_nest("TocExport", ["DocumentExportConfig"]),
+                    enumName=t_nest("TocExportKind", ["DocumentExportConfig"]),
+                    kindGetter="getTocExportKind",
+                ),
+            ]),
         GenTuStruct(
             t_nest_shared("SubtreePeriod", []),
             GenTuDoc("Type of the subtree associated time periods"),
@@ -1847,107 +1946,14 @@ def get_types() -> Sequence[GenTuStruct]:
                     ],
                 ),
             ],
-            nested=[
-                org_struct(
-                    t_nest("ExportConfig", ["DocumentOptions"]),
-                    fields=[
-                        opt_field(t_bool(), "inlinetasks"),
-                        opt_field(t_bool(), "footnotes"),
-                        opt_field(t_bool(), "clock"),
-                        opt_field(t_bool(), "author"),
-                        opt_field(t_bool(), "emphasis"),
-                        opt_field(t_bool(), "specialStrings"),
-                        opt_field(t_bool(), "propertyDrawers"),
-                        opt_field(t_bool(), "statisticsCookies"),
-                        opt_field(t_bool(), "todoText",
-                                  "Include todo keywords in export"),
-                        org_field(
-                            t_nest("BrokenLinks", ["DocumentOptions", "ExportConfig"]),
-                            "brokenLinks",
-                        ),
-                        org_field(
-                            t_nest("TocExport", ["DocumentOptions", "ExportConfig"]),
-                            "tocExport",
-                        ),
-                        org_field(
-                            t_nest("TagExport", ["DocumentOptions", "ExportConfig"]),
-                            "tagExport",
-                        ),
-                    ],
-                    nested=[
-                        org_struct(
-                            t_nest("TaskExport", ["DocumentOptions", "ExportConfig"]),
-                            org_doc(),
-                            [
-                                vec_field(t_str(), "taskWhitelist"),
-                            ],
-                        ),
-                        d_simple_enum(
-                            t_nest("TagExport", ["DocumentOptions", "ExportConfig"]),
-                            org_doc(""),
-                            "None",
-                            "All",
-                            efield(
-                                "NotInToc",
-                                "Expot tags in subtree titles but not in the table of content",
-                            ),
-                        ),
-                        d_simple_enum(
-                            t_nest("TaskFiltering", ["DocumentOptions", "ExportConfig"]),
-                            GenTuDoc(""),
-                            efield("Whitelist", "Include tasks from the whitelist"),
-                            efield("Done", "Include tasks marked as done"),
-                            efield("None", "Exclude all task subtrees from export"),
-                            efield("All", "Add all task subtrees to export"),
-                        ),
-                        d_simple_enum(
-                            t_nest("BrokenLinks", ["DocumentOptions", "ExportConfig"]),
-                            GenTuDoc(""),
-                            "Mark",
-                            "Raise",
-                            "Ignore",
-                        ),
-                        GenTuTypeGroup(
-                            [
-                                org_struct(
-                                    t_nest("DoExport",
-                                           ["DocumentOptions", "ExportConfig"]),
-                                    fields=[org_field(t_bool(), "exportToc")],
-                                ),
-                                org_struct(
-                                    t_nest("ExportFixed",
-                                           ["DocumentOptions", "ExportConfig"]),
-                                    fields=[org_field(t_int(), "exportLevels")],
-                                ),
-                            ],
-                            variantName=t_nest("TocExport",
-                                               ["DocumentOptions", "ExportConfig"]),
-                            enumName=t_nest("TocExportKind",
-                                            ["DocumentOptions", "ExportConfig"]),
-                            kindGetter="getTocExportKind",
-                        ),
-                    ]),
-                d_simple_enum(
-                    t_nest("Visibility", ["DocumentOptions"]),
-                    GenTuDoc(""),
-                    "Overview",
-                    "Content",
-                    "ShowAll",
-                    "Show2Levels",
-                    "Show3Levels",
-                    "Show4Levels",
-                    "Show5Levels",
-                    "ShowEverything",
-                ),
-            ],
             fields=[
                 org_field(
-                    t_nest("Visibility", ["DocumentOptions"]),
+                    t("InitialSubtreeVisibility"),
                     "initialVisibility",
-                    value="Visibility::ShowEverything",
+                    value="InitialSubtreeVisibility::ShowEverything",
                 ),
                 vec_field(t_nest_shared("NamedProperty", []), "properties", GenTuDoc("")),
-                org_field(t_nest("ExportConfig", ["DocumentOptions"]), "exportConfig"),
+                org_field(t_nest_shared("DocumentExportConfig", []), "exportConfig"),
                 opt_field(t_bool(), "fixedWidthSections"),
                 opt_field(t_bool(), "startupIndented"),
                 opt_field(t_str(), "category"),

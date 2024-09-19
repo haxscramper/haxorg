@@ -1,6 +1,126 @@
 /* clang-format off */
 #include <haxorg/sem/SemOrgSerde.hpp>
 #include <haxorg/sem/SemOrgSerdeDeclarations.hpp>
+void proto_serde<::orgproto::DocumentExportConfig::TaskExport, sem::DocumentExportConfig::TaskExport>::write(::orgproto::DocumentExportConfig::TaskExport* out, sem::DocumentExportConfig::TaskExport const& in) {
+  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::write(out->mutable_taskwhitelist(), in.taskWhitelist);
+}
+
+void proto_serde<::orgproto::DocumentExportConfig::TaskExport, sem::DocumentExportConfig::TaskExport>::read(::orgproto::DocumentExportConfig::TaskExport const& out, proto_write_accessor<sem::DocumentExportConfig::TaskExport> in) {
+  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::read(out.taskwhitelist(), in.for_field(&sem::DocumentExportConfig::TaskExport::taskWhitelist));
+}
+
+void proto_serde<::orgproto::DocumentExportConfig::DoExport, sem::DocumentExportConfig::DoExport>::write(::orgproto::DocumentExportConfig::DoExport* out, sem::DocumentExportConfig::DoExport const& in) {
+  out->set_exporttoc(in.exportToc);
+}
+
+void proto_serde<::orgproto::DocumentExportConfig::DoExport, sem::DocumentExportConfig::DoExport>::read(::orgproto::DocumentExportConfig::DoExport const& out, proto_write_accessor<sem::DocumentExportConfig::DoExport> in) {
+  in.for_field(&sem::DocumentExportConfig::DoExport::exportToc).get() = out.exporttoc();
+}
+
+void proto_serde<::orgproto::DocumentExportConfig::ExportFixed, sem::DocumentExportConfig::ExportFixed>::write(::orgproto::DocumentExportConfig::ExportFixed* out, sem::DocumentExportConfig::ExportFixed const& in) {
+  out->set_exportlevels(in.exportLevels);
+}
+
+void proto_serde<::orgproto::DocumentExportConfig::ExportFixed, sem::DocumentExportConfig::ExportFixed>::read(::orgproto::DocumentExportConfig::ExportFixed const& out, proto_write_accessor<sem::DocumentExportConfig::ExportFixed> in) {
+  in.for_field(&sem::DocumentExportConfig::ExportFixed::exportLevels).get() = out.exportlevels();
+}
+
+void proto_serde<::orgproto::DocumentExportConfig, sem::DocumentExportConfig>::write(::orgproto::DocumentExportConfig* out, sem::DocumentExportConfig const& in) {
+  if (in.inlinetasks) {
+    out->set_inlinetasks(*in.inlinetasks);
+  }
+  if (in.footnotes) {
+    out->set_footnotes(*in.footnotes);
+  }
+  if (in.clock) {
+    out->set_clock(*in.clock);
+  }
+  if (in.author) {
+    out->set_author(*in.author);
+  }
+  if (in.emphasis) {
+    out->set_emphasis(*in.emphasis);
+  }
+  if (in.specialStrings) {
+    out->set_specialstrings(*in.specialStrings);
+  }
+  if (in.propertyDrawers) {
+    out->set_propertydrawers(*in.propertyDrawers);
+  }
+  if (in.statisticsCookies) {
+    out->set_statisticscookies(*in.statisticsCookies);
+  }
+  if (in.todoText) {
+    out->set_todotext(*in.todoText);
+  }
+  out->set_brokenlinks(static_cast<orgproto::DocumentExportConfig_BrokenLinks>(in.brokenLinks));
+  switch (in.tocExport.index()) {
+    case 0:
+      proto_serde<orgproto::DocumentExportConfig::DoExport, sem::DocumentExportConfig::DoExport>::write(out->mutable_tocexport()->mutable_doexport(), std::get<0>(in.tocExport));
+      break;
+    case 1:
+      proto_serde<orgproto::DocumentExportConfig::ExportFixed, sem::DocumentExportConfig::ExportFixed>::write(out->mutable_tocexport()->mutable_exportfixed(), std::get<1>(in.tocExport));
+      break;
+  }
+  out->set_tagexport(static_cast<orgproto::DocumentExportConfig_TagExport>(in.tagExport));
+  switch (in.data.index()) {
+    case 0:
+      proto_serde<orgproto::DocumentExportConfig::DoExport, sem::DocumentExportConfig::DoExport>::write(out->mutable_data()->mutable_doexport(), std::get<0>(in.data));
+      break;
+    case 1:
+      proto_serde<orgproto::DocumentExportConfig::ExportFixed, sem::DocumentExportConfig::ExportFixed>::write(out->mutable_data()->mutable_exportfixed(), std::get<1>(in.data));
+      break;
+  }
+}
+
+void proto_serde<::orgproto::DocumentExportConfig, sem::DocumentExportConfig>::read(::orgproto::DocumentExportConfig const& out, proto_write_accessor<sem::DocumentExportConfig> in) {
+  if (out.has_inlinetasks()) {
+    proto_serde<Opt<bool>, Opt<bool>>::read(out.inlinetasks(), in.for_field(&sem::DocumentExportConfig::inlinetasks));
+  }
+  if (out.has_footnotes()) {
+    proto_serde<Opt<bool>, Opt<bool>>::read(out.footnotes(), in.for_field(&sem::DocumentExportConfig::footnotes));
+  }
+  if (out.has_clock()) {
+    proto_serde<Opt<bool>, Opt<bool>>::read(out.clock(), in.for_field(&sem::DocumentExportConfig::clock));
+  }
+  if (out.has_author()) {
+    proto_serde<Opt<bool>, Opt<bool>>::read(out.author(), in.for_field(&sem::DocumentExportConfig::author));
+  }
+  if (out.has_emphasis()) {
+    proto_serde<Opt<bool>, Opt<bool>>::read(out.emphasis(), in.for_field(&sem::DocumentExportConfig::emphasis));
+  }
+  if (out.has_specialstrings()) {
+    proto_serde<Opt<bool>, Opt<bool>>::read(out.specialstrings(), in.for_field(&sem::DocumentExportConfig::specialStrings));
+  }
+  if (out.has_propertydrawers()) {
+    proto_serde<Opt<bool>, Opt<bool>>::read(out.propertydrawers(), in.for_field(&sem::DocumentExportConfig::propertyDrawers));
+  }
+  if (out.has_statisticscookies()) {
+    proto_serde<Opt<bool>, Opt<bool>>::read(out.statisticscookies(), in.for_field(&sem::DocumentExportConfig::statisticsCookies));
+  }
+  if (out.has_todotext()) {
+    proto_serde<Opt<bool>, Opt<bool>>::read(out.todotext(), in.for_field(&sem::DocumentExportConfig::todoText));
+  }
+  in.for_field(&sem::DocumentExportConfig::brokenLinks).get() = static_cast<sem::DocumentExportConfig::BrokenLinks>(out.brokenlinks());
+  switch (out.tocexport().kind_case()) {
+    case ::orgproto::DocumentExportConfig::TocExport::kDoexport:
+      proto_serde<orgproto::DocumentExportConfig::DoExport, sem::DocumentExportConfig::DoExport>::read(out.tocexport().doexport(), in.for_field_variant<0>(&sem::DocumentExportConfig::tocExport));
+      break;
+    case ::orgproto::DocumentExportConfig::TocExport::kExportfixed:
+      proto_serde<orgproto::DocumentExportConfig::ExportFixed, sem::DocumentExportConfig::ExportFixed>::read(out.tocexport().exportfixed(), in.for_field_variant<1>(&sem::DocumentExportConfig::tocExport));
+      break;
+  }
+  in.for_field(&sem::DocumentExportConfig::tagExport).get() = static_cast<sem::DocumentExportConfig::TagExport>(out.tagexport());
+  switch (out.data().kind_case()) {
+    case ::orgproto::DocumentExportConfig::TocExport::kDoexport:
+      proto_serde<orgproto::DocumentExportConfig::DoExport, sem::DocumentExportConfig::DoExport>::read(out.data().doexport(), in.for_field_variant<0>(&sem::DocumentExportConfig::data));
+      break;
+    case ::orgproto::DocumentExportConfig::TocExport::kExportfixed:
+      proto_serde<orgproto::DocumentExportConfig::ExportFixed, sem::DocumentExportConfig::ExportFixed>::read(out.data().exportfixed(), in.for_field_variant<1>(&sem::DocumentExportConfig::data));
+      break;
+  }
+}
+
 void proto_serde<::orgproto::SubtreePeriod, sem::SubtreePeriod>::write(::orgproto::SubtreePeriod* out, sem::SubtreePeriod const& in) {
   out->set_kind(static_cast<orgproto::SubtreePeriod_Kind>(in.kind));
   proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_from(), in.from);
@@ -1747,131 +1867,11 @@ void proto_serde<::orgproto::ListItem, sem::ListItem>::read(::orgproto::ListItem
   }
 }
 
-void proto_serde<::orgproto::DocumentOptions::ExportConfig::TaskExport, sem::DocumentOptions::ExportConfig::TaskExport>::write(::orgproto::DocumentOptions::ExportConfig::TaskExport* out, sem::DocumentOptions::ExportConfig::TaskExport const& in) {
-  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::write(out->mutable_taskwhitelist(), in.taskWhitelist);
-}
-
-void proto_serde<::orgproto::DocumentOptions::ExportConfig::TaskExport, sem::DocumentOptions::ExportConfig::TaskExport>::read(::orgproto::DocumentOptions::ExportConfig::TaskExport const& out, proto_write_accessor<sem::DocumentOptions::ExportConfig::TaskExport> in) {
-  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::read(out.taskwhitelist(), in.for_field(&sem::DocumentOptions::ExportConfig::TaskExport::taskWhitelist));
-}
-
-void proto_serde<::orgproto::DocumentOptions::ExportConfig::DoExport, sem::DocumentOptions::ExportConfig::DoExport>::write(::orgproto::DocumentOptions::ExportConfig::DoExport* out, sem::DocumentOptions::ExportConfig::DoExport const& in) {
-  out->set_exporttoc(in.exportToc);
-}
-
-void proto_serde<::orgproto::DocumentOptions::ExportConfig::DoExport, sem::DocumentOptions::ExportConfig::DoExport>::read(::orgproto::DocumentOptions::ExportConfig::DoExport const& out, proto_write_accessor<sem::DocumentOptions::ExportConfig::DoExport> in) {
-  in.for_field(&sem::DocumentOptions::ExportConfig::DoExport::exportToc).get() = out.exporttoc();
-}
-
-void proto_serde<::orgproto::DocumentOptions::ExportConfig::ExportFixed, sem::DocumentOptions::ExportConfig::ExportFixed>::write(::orgproto::DocumentOptions::ExportConfig::ExportFixed* out, sem::DocumentOptions::ExportConfig::ExportFixed const& in) {
-  out->set_exportlevels(in.exportLevels);
-}
-
-void proto_serde<::orgproto::DocumentOptions::ExportConfig::ExportFixed, sem::DocumentOptions::ExportConfig::ExportFixed>::read(::orgproto::DocumentOptions::ExportConfig::ExportFixed const& out, proto_write_accessor<sem::DocumentOptions::ExportConfig::ExportFixed> in) {
-  in.for_field(&sem::DocumentOptions::ExportConfig::ExportFixed::exportLevels).get() = out.exportlevels();
-}
-
-void proto_serde<::orgproto::DocumentOptions::ExportConfig, sem::DocumentOptions::ExportConfig>::write(::orgproto::DocumentOptions::ExportConfig* out, sem::DocumentOptions::ExportConfig const& in) {
-  if (in.inlinetasks) {
-    out->set_inlinetasks(*in.inlinetasks);
-  }
-  if (in.footnotes) {
-    out->set_footnotes(*in.footnotes);
-  }
-  if (in.clock) {
-    out->set_clock(*in.clock);
-  }
-  if (in.author) {
-    out->set_author(*in.author);
-  }
-  if (in.emphasis) {
-    out->set_emphasis(*in.emphasis);
-  }
-  if (in.specialStrings) {
-    out->set_specialstrings(*in.specialStrings);
-  }
-  if (in.propertyDrawers) {
-    out->set_propertydrawers(*in.propertyDrawers);
-  }
-  if (in.statisticsCookies) {
-    out->set_statisticscookies(*in.statisticsCookies);
-  }
-  if (in.todoText) {
-    out->set_todotext(*in.todoText);
-  }
-  out->set_brokenlinks(static_cast<orgproto::DocumentOptions_ExportConfig_BrokenLinks>(in.brokenLinks));
-  switch (in.tocExport.index()) {
-    case 0:
-      proto_serde<orgproto::DocumentOptions::ExportConfig::DoExport, sem::DocumentOptions::ExportConfig::DoExport>::write(out->mutable_tocexport()->mutable_doexport(), std::get<0>(in.tocExport));
-      break;
-    case 1:
-      proto_serde<orgproto::DocumentOptions::ExportConfig::ExportFixed, sem::DocumentOptions::ExportConfig::ExportFixed>::write(out->mutable_tocexport()->mutable_exportfixed(), std::get<1>(in.tocExport));
-      break;
-  }
-  out->set_tagexport(static_cast<orgproto::DocumentOptions_ExportConfig_TagExport>(in.tagExport));
-  switch (in.data.index()) {
-    case 0:
-      proto_serde<orgproto::DocumentOptions::ExportConfig::DoExport, sem::DocumentOptions::ExportConfig::DoExport>::write(out->mutable_data()->mutable_doexport(), std::get<0>(in.data));
-      break;
-    case 1:
-      proto_serde<orgproto::DocumentOptions::ExportConfig::ExportFixed, sem::DocumentOptions::ExportConfig::ExportFixed>::write(out->mutable_data()->mutable_exportfixed(), std::get<1>(in.data));
-      break;
-  }
-}
-
-void proto_serde<::orgproto::DocumentOptions::ExportConfig, sem::DocumentOptions::ExportConfig>::read(::orgproto::DocumentOptions::ExportConfig const& out, proto_write_accessor<sem::DocumentOptions::ExportConfig> in) {
-  if (out.has_inlinetasks()) {
-    proto_serde<Opt<bool>, Opt<bool>>::read(out.inlinetasks(), in.for_field(&sem::DocumentOptions::ExportConfig::inlinetasks));
-  }
-  if (out.has_footnotes()) {
-    proto_serde<Opt<bool>, Opt<bool>>::read(out.footnotes(), in.for_field(&sem::DocumentOptions::ExportConfig::footnotes));
-  }
-  if (out.has_clock()) {
-    proto_serde<Opt<bool>, Opt<bool>>::read(out.clock(), in.for_field(&sem::DocumentOptions::ExportConfig::clock));
-  }
-  if (out.has_author()) {
-    proto_serde<Opt<bool>, Opt<bool>>::read(out.author(), in.for_field(&sem::DocumentOptions::ExportConfig::author));
-  }
-  if (out.has_emphasis()) {
-    proto_serde<Opt<bool>, Opt<bool>>::read(out.emphasis(), in.for_field(&sem::DocumentOptions::ExportConfig::emphasis));
-  }
-  if (out.has_specialstrings()) {
-    proto_serde<Opt<bool>, Opt<bool>>::read(out.specialstrings(), in.for_field(&sem::DocumentOptions::ExportConfig::specialStrings));
-  }
-  if (out.has_propertydrawers()) {
-    proto_serde<Opt<bool>, Opt<bool>>::read(out.propertydrawers(), in.for_field(&sem::DocumentOptions::ExportConfig::propertyDrawers));
-  }
-  if (out.has_statisticscookies()) {
-    proto_serde<Opt<bool>, Opt<bool>>::read(out.statisticscookies(), in.for_field(&sem::DocumentOptions::ExportConfig::statisticsCookies));
-  }
-  if (out.has_todotext()) {
-    proto_serde<Opt<bool>, Opt<bool>>::read(out.todotext(), in.for_field(&sem::DocumentOptions::ExportConfig::todoText));
-  }
-  in.for_field(&sem::DocumentOptions::ExportConfig::brokenLinks).get() = static_cast<sem::DocumentOptions::ExportConfig::BrokenLinks>(out.brokenlinks());
-  switch (out.tocexport().kind_case()) {
-    case ::orgproto::DocumentOptions::ExportConfig::TocExport::kDoexport:
-      proto_serde<orgproto::DocumentOptions::ExportConfig::DoExport, sem::DocumentOptions::ExportConfig::DoExport>::read(out.tocexport().doexport(), in.for_field_variant<0>(&sem::DocumentOptions::ExportConfig::tocExport));
-      break;
-    case ::orgproto::DocumentOptions::ExportConfig::TocExport::kExportfixed:
-      proto_serde<orgproto::DocumentOptions::ExportConfig::ExportFixed, sem::DocumentOptions::ExportConfig::ExportFixed>::read(out.tocexport().exportfixed(), in.for_field_variant<1>(&sem::DocumentOptions::ExportConfig::tocExport));
-      break;
-  }
-  in.for_field(&sem::DocumentOptions::ExportConfig::tagExport).get() = static_cast<sem::DocumentOptions::ExportConfig::TagExport>(out.tagexport());
-  switch (out.data().kind_case()) {
-    case ::orgproto::DocumentOptions::ExportConfig::TocExport::kDoexport:
-      proto_serde<orgproto::DocumentOptions::ExportConfig::DoExport, sem::DocumentOptions::ExportConfig::DoExport>::read(out.data().doexport(), in.for_field_variant<0>(&sem::DocumentOptions::ExportConfig::data));
-      break;
-    case ::orgproto::DocumentOptions::ExportConfig::TocExport::kExportfixed:
-      proto_serde<orgproto::DocumentOptions::ExportConfig::ExportFixed, sem::DocumentOptions::ExportConfig::ExportFixed>::read(out.data().exportfixed(), in.for_field_variant<1>(&sem::DocumentOptions::ExportConfig::data));
-      break;
-  }
-}
-
 void proto_serde<::orgproto::DocumentOptions, sem::DocumentOptions>::write(::orgproto::DocumentOptions* out, sem::DocumentOptions const& in) {
   proto_serde<::orgproto::DocumentOptions, sem::Org>::write(out, in);
-  out->set_initialvisibility(static_cast<orgproto::DocumentOptions_Visibility>(in.initialVisibility));
+  out->set_initialvisibility(static_cast<orgproto::InitialSubtreeVisibility>(in.initialVisibility));
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::NamedProperty>, Vec<sem::NamedProperty>>::write(out->mutable_properties(), in.properties);
-  proto_serde<orgproto::DocumentOptions::ExportConfig, sem::DocumentOptions::ExportConfig>::write(out->mutable_exportconfig(), in.exportConfig);
+  proto_serde<orgproto::DocumentExportConfig, sem::DocumentExportConfig>::write(out->mutable_exportconfig(), in.exportConfig);
   if (in.fixedWidthSections) {
     out->set_fixedwidthsections(*in.fixedWidthSections);
   }
@@ -1891,9 +1891,9 @@ void proto_serde<::orgproto::DocumentOptions, sem::DocumentOptions>::write(::org
 
 void proto_serde<::orgproto::DocumentOptions, sem::DocumentOptions>::read(::orgproto::DocumentOptions const& out, proto_write_accessor<sem::DocumentOptions> in) {
   proto_serde<::orgproto::DocumentOptions, sem::Org>::read(out, in.as<sem::Org>());
-  in.for_field(&sem::DocumentOptions::initialVisibility).get() = static_cast<sem::DocumentOptions::Visibility>(out.initialvisibility());
+  in.for_field(&sem::DocumentOptions::initialVisibility).get() = static_cast<InitialSubtreeVisibility>(out.initialvisibility());
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::NamedProperty>, Vec<sem::NamedProperty>>::read(out.properties(), in.for_field(&sem::DocumentOptions::properties));
-  proto_serde<orgproto::DocumentOptions::ExportConfig, sem::DocumentOptions::ExportConfig>::read(out.exportconfig(), in.for_field(&sem::DocumentOptions::exportConfig));
+  proto_serde<orgproto::DocumentExportConfig, sem::DocumentExportConfig>::read(out.exportconfig(), in.for_field(&sem::DocumentOptions::exportConfig));
   if (out.has_fixedwidthsections()) {
     proto_serde<Opt<bool>, Opt<bool>>::read(out.fixedwidthsections(), in.for_field(&sem::DocumentOptions::fixedWidthSections));
   }

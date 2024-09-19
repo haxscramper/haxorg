@@ -2,6 +2,17 @@
 syntax = "proto3";
 package orgproto;
 import "SemOrgProtoManual.proto";
+enum InitialSubtreeVisibility {
+  InitialSubtreeVisibility_Overview_f                                               = 0;
+  InitialSubtreeVisibility_Content_f                                                = 1;
+  InitialSubtreeVisibility_ShowAll_f                                                = 2;
+  InitialSubtreeVisibility_Show2Levels_f                                            = 3;
+  InitialSubtreeVisibility_Show3Levels_f                                            = 4;
+  InitialSubtreeVisibility_Show4Levels_f                                            = 5;
+  InitialSubtreeVisibility_Show5Levels_f                                            = 6;
+  InitialSubtreeVisibility_ShowEverything_f                                         = 7;
+}
+
 enum OrgSpecName {
   OrgSpecName_Unnamed_f                                                             = 0;
   OrgSpecName_Result_f                                                              = 1;
@@ -260,6 +271,61 @@ enum OrgSemKind {
   OrgSemKind_TextSeparator_f                                                        = 66;
   OrgSemKind_Include_f                                                              = 67;
   OrgSemKind_DocumentGroup_f                                                        = 68;
+}
+
+message DocumentExportConfig {
+  message TaskExport {
+    repeated string                                taskWhitelist                    = 1;
+    string                                         debug                            = 1000;
+  }
+  enum TagExport {
+    TagExport_None_f                                                                = 0;
+    TagExport_All_f                                                                 = 1;
+    TagExport_NotInToc_f                                                            = 2;
+  }
+  enum TaskFiltering {
+    TaskFiltering_Whitelist_f                                                       = 0;
+    TaskFiltering_Done_f                                                            = 1;
+    TaskFiltering_None_f                                                            = 2;
+    TaskFiltering_All_f                                                             = 3;
+  }
+  enum BrokenLinks {
+    BrokenLinks_Mark_f                                                              = 0;
+    BrokenLinks_Raise_f                                                             = 1;
+    BrokenLinks_Ignore_f                                                            = 2;
+  }
+  message DoExport {
+    bool                                           exportToc                        = 1;
+    string                                         debug                            = 1000;
+  }
+  message ExportFixed {
+    int32                                          exportLevels                     = 1;
+    string                                         debug                            = 1000;
+  }
+  message TocExport {
+    oneof kind {
+      DocumentExportConfig.DoExport                doexport                         = 1;
+      DocumentExportConfig.ExportFixed             exportfixed                      = 2;
+    }
+  }
+  enum TocExportKind {
+    TocExportKind_DoExport_f                                                        = 0;
+    TocExportKind_ExportFixed_f                                                     = 1;
+  }
+  optional bool                                    inlinetasks                      = 1;
+  optional bool                                    footnotes                        = 2;
+  optional bool                                    clock                            = 3;
+  optional bool                                    author                           = 4;
+  optional bool                                    emphasis                         = 5;
+  optional bool                                    specialStrings                   = 6;
+  optional bool                                    propertyDrawers                  = 7;
+  optional bool                                    statisticsCookies                = 8;
+  optional bool                                    todoText                         = 9;
+  DocumentExportConfig.BrokenLinks                 brokenLinks                      = 10;
+  DocumentExportConfig.TocExport                   tocExport                        = 11;
+  DocumentExportConfig.TagExport                   tagExport                        = 12;
+  DocumentExportConfig.TocExport                   data                             = 13;
+  string                                           debug                            = 1000;
 }
 
 message SubtreePeriod {
@@ -1289,75 +1355,11 @@ message ListItem {
 }
 
 message DocumentOptions {
-  message ExportConfig {
-    message TaskExport {
-      repeated string                              taskWhitelist                    = 1;
-      string                                       debug                            = 1000;
-    }
-    enum TagExport {
-      TagExport_None_f                                                              = 0;
-      TagExport_All_f                                                               = 1;
-      TagExport_NotInToc_f                                                          = 2;
-    }
-    enum TaskFiltering {
-      TaskFiltering_Whitelist_f                                                     = 0;
-      TaskFiltering_Done_f                                                          = 1;
-      TaskFiltering_None_f                                                          = 2;
-      TaskFiltering_All_f                                                           = 3;
-    }
-    enum BrokenLinks {
-      BrokenLinks_Mark_f                                                            = 0;
-      BrokenLinks_Raise_f                                                           = 1;
-      BrokenLinks_Ignore_f                                                          = 2;
-    }
-    message DoExport {
-      bool                                         exportToc                        = 1;
-      string                                       debug                            = 1000;
-    }
-    message ExportFixed {
-      int32                                        exportLevels                     = 1;
-      string                                       debug                            = 1000;
-    }
-    message TocExport {
-      oneof kind {
-        DocumentOptions.ExportConfig.DoExport      doexport                         = 1;
-        DocumentOptions.ExportConfig.ExportFixed   exportfixed                      = 2;
-      }
-    }
-    enum TocExportKind {
-      TocExportKind_DoExport_f                                                      = 0;
-      TocExportKind_ExportFixed_f                                                   = 1;
-    }
-    optional bool                                  inlinetasks                      = 1;
-    optional bool                                  footnotes                        = 2;
-    optional bool                                  clock                            = 3;
-    optional bool                                  author                           = 4;
-    optional bool                                  emphasis                         = 5;
-    optional bool                                  specialStrings                   = 6;
-    optional bool                                  propertyDrawers                  = 7;
-    optional bool                                  statisticsCookies                = 8;
-    optional bool                                  todoText                         = 9;
-    DocumentOptions.ExportConfig.BrokenLinks       brokenLinks                      = 10;
-    DocumentOptions.ExportConfig.TocExport         tocExport                        = 11;
-    DocumentOptions.ExportConfig.TagExport         tagExport                        = 12;
-    DocumentOptions.ExportConfig.TocExport         data                             = 13;
-    string                                         debug                            = 1000;
-  }
-  enum Visibility {
-    Visibility_Overview_f                                                           = 0;
-    Visibility_Content_f                                                            = 1;
-    Visibility_ShowAll_f                                                            = 2;
-    Visibility_Show2Levels_f                                                        = 3;
-    Visibility_Show3Levels_f                                                        = 4;
-    Visibility_Show4Levels_f                                                        = 5;
-    Visibility_Show5Levels_f                                                        = 6;
-    Visibility_ShowEverything_f                                                     = 7;
-  }
   repeated AnyNode                                 subnodes                         = 1;
   OrgSemKind                                       staticKind                       = 2;
-  DocumentOptions.Visibility                       initialVisibility                = 3;
+  InitialSubtreeVisibility                         initialVisibility                = 3;
   repeated NamedProperty                           properties                       = 4;
-  DocumentOptions.ExportConfig                     exportConfig                     = 5;
+  DocumentExportConfig                             exportConfig                     = 5;
   optional bool                                    fixedWidthSections               = 6;
   optional bool                                    startupIndented                  = 7;
   optional string                                  category                         = 8;

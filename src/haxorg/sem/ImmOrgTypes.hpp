@@ -1823,104 +1823,6 @@ struct ImmListItem : public org::ImmOrg {
 struct ImmDocumentOptions : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmDocumentOptions() = default;
-  struct ExportConfig {
-    struct TaskExport {
-      BOOST_DESCRIBE_CLASS(TaskExport,
-                           (),
-                           (),
-                           (),
-                           (taskWhitelist))
-      ImmVec<Str> taskWhitelist = {};
-      bool operator==(org::ImmDocumentOptions::ExportConfig::TaskExport const& other) const;
-    };
-
-    enum class TagExport : short int {
-      None,
-      All,
-      /// \brief Expot tags in subtree titles but not in the table of content
-      NotInToc,
-    };
-    BOOST_DESCRIBE_NESTED_ENUM(TagExport, None, All, NotInToc)
-    enum class TaskFiltering : short int {
-      /// \brief Include tasks from the whitelist
-      Whitelist,
-      /// \brief Include tasks marked as done
-      Done,
-      /// \brief Exclude all task subtrees from export
-      None,
-      /// \brief Add all task subtrees to export
-      All,
-    };
-    BOOST_DESCRIBE_NESTED_ENUM(TaskFiltering, Whitelist, Done, None, All)
-    enum class BrokenLinks : short int { Mark, Raise, Ignore, };
-    BOOST_DESCRIBE_NESTED_ENUM(BrokenLinks, Mark, Raise, Ignore)
-    struct DoExport {
-      BOOST_DESCRIBE_CLASS(DoExport,
-                           (),
-                           (),
-                           (),
-                           (exportToc))
-      bool exportToc;
-      bool operator==(org::ImmDocumentOptions::ExportConfig::DoExport const& other) const;
-    };
-
-    struct ExportFixed {
-      BOOST_DESCRIBE_CLASS(ExportFixed,
-                           (),
-                           (),
-                           (),
-                           (exportLevels))
-      int exportLevels;
-      bool operator==(org::ImmDocumentOptions::ExportConfig::ExportFixed const& other) const;
-    };
-
-    using TocExport = std::variant<org::ImmDocumentOptions::ExportConfig::DoExport, org::ImmDocumentOptions::ExportConfig::ExportFixed>;
-    enum class TocExportKind : short int { DoExport, ExportFixed, };
-    BOOST_DESCRIBE_NESTED_ENUM(TocExportKind, DoExport, ExportFixed)
-    using variant_enum_type = org::ImmDocumentOptions::ExportConfig::TocExportKind;
-    using variant_data_type = org::ImmDocumentOptions::ExportConfig::TocExport;
-    BOOST_DESCRIBE_CLASS(ExportConfig,
-                         (),
-                         (),
-                         (),
-                         (inlinetasks,
-                          footnotes,
-                          clock,
-                          author,
-                          emphasis,
-                          specialStrings,
-                          propertyDrawers,
-                          statisticsCookies,
-                          todoText,
-                          brokenLinks,
-                          tocExport,
-                          tagExport,
-                          data))
-    ImmBox<Opt<bool>> inlinetasks = std::nullopt;
-    ImmBox<Opt<bool>> footnotes = std::nullopt;
-    ImmBox<Opt<bool>> clock = std::nullopt;
-    ImmBox<Opt<bool>> author = std::nullopt;
-    ImmBox<Opt<bool>> emphasis = std::nullopt;
-    ImmBox<Opt<bool>> specialStrings = std::nullopt;
-    ImmBox<Opt<bool>> propertyDrawers = std::nullopt;
-    ImmBox<Opt<bool>> statisticsCookies = std::nullopt;
-    /// \brief Include todo keywords in export
-    ImmBox<Opt<bool>> todoText = std::nullopt;
-    org::ImmDocumentOptions::ExportConfig::BrokenLinks brokenLinks;
-    org::ImmDocumentOptions::ExportConfig::TocExport tocExport;
-    org::ImmDocumentOptions::ExportConfig::TagExport tagExport;
-    org::ImmDocumentOptions::ExportConfig::TocExport data;
-    bool operator==(org::ImmDocumentOptions::ExportConfig const& other) const;
-    org::ImmDocumentOptions::ExportConfig::DoExport const& getDoExport() const { return std::get<0>(data); }
-    org::ImmDocumentOptions::ExportConfig::DoExport& getDoExport() { return std::get<0>(data); }
-    org::ImmDocumentOptions::ExportConfig::ExportFixed const& getExportFixed() const { return std::get<1>(data); }
-    org::ImmDocumentOptions::ExportConfig::ExportFixed& getExportFixed() { return std::get<1>(data); }
-    static org::ImmDocumentOptions::ExportConfig::TocExportKind getTocExportKind(org::ImmDocumentOptions::ExportConfig::TocExport const& __input) { return static_cast<org::ImmDocumentOptions::ExportConfig::TocExportKind>(__input.index()); }
-    org::ImmDocumentOptions::ExportConfig::TocExportKind getTocExportKind() const { return getTocExportKind(data); }
-  };
-
-  enum class Visibility : short int { Overview, Content, ShowAll, Show2Levels, Show3Levels, Show4Levels, Show5Levels, ShowEverything, };
-  BOOST_DESCRIBE_NESTED_ENUM(Visibility, Overview, Content, ShowAll, Show2Levels, Show3Levels, Show4Levels, Show5Levels, ShowEverything)
   BOOST_DESCRIBE_CLASS(ImmDocumentOptions,
                        (ImmOrg),
                        (),
@@ -1935,9 +1837,9 @@ struct ImmDocumentOptions : public org::ImmOrg {
                         setupfile,
                         maxSubtreeLevelExport))
   static OrgSemKind const staticKind;
-  org::ImmDocumentOptions::Visibility initialVisibility = Visibility::ShowEverything;
+  InitialSubtreeVisibility initialVisibility = InitialSubtreeVisibility::ShowEverything;
   ImmVec<sem::NamedProperty> properties = {};
-  org::ImmDocumentOptions::ExportConfig exportConfig;
+  sem::DocumentExportConfig exportConfig;
   ImmBox<Opt<bool>> fixedWidthSections = std::nullopt;
   ImmBox<Opt<bool>> startupIndented = std::nullopt;
   ImmBox<Opt<Str>> category = std::nullopt;

@@ -143,7 +143,7 @@ auto Formatter::toString(SemId<Document> id, CR<Context> ctx) -> Res {
         hadDocumentProperties = true;
     }
 
-    using Visibility = DocumentOptions::Visibility;
+    using Visibility = InitialSubtreeVisibility;
     if (id->options
         && id->options->initialVisibility != Visibility::ShowEverything) {
         Str res = "";

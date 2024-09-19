@@ -4,6 +4,9 @@
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #define EACH_SHARED_ORG_RECORD_NESTED(__IMPL) \
+    __IMPL(DocumentExportConfig, TaskExport, (TaskExport)) \
+    __IMPL(DocumentExportConfig, DoExport, (DoExport)) \
+    __IMPL(DocumentExportConfig, ExportFixed, (ExportFixed)) \
     __IMPL(NamedProperty, Nonblocking, (Nonblocking)) \
     __IMPL(NamedProperty, Trigger, (Trigger)) \
     __IMPL(NamedProperty, ExportLatexClass, (ExportLatexClass)) \
@@ -20,12 +23,20 @@
     __IMPL(NamedProperty, CustomArgs, (CustomArgs)) \
     __IMPL(NamedProperty, CustomRaw, (CustomRaw))
 #define EACH_SHARED_ORG_ENUM_NESTED(__IMPL) \
+    __IMPL(DocumentExportConfig, TagExport, (TagExport)) \
+    __IMPL(DocumentExportConfig, TaskFiltering, (TaskFiltering)) \
+    __IMPL(DocumentExportConfig, BrokenLinks, (BrokenLinks)) \
+    __IMPL(DocumentExportConfig, TocExportKind, (TocExportKind)) \
     __IMPL(SubtreePeriod, Kind, (Kind)) \
     __IMPL(NamedProperty, SetMode, (SetMode)) \
     __IMPL(NamedProperty, InheritanceMode, (InheritanceMode)) \
     __IMPL(NamedProperty, Visibility::Level, (Visibility, Level)) \
     __IMPL(NamedProperty, Kind, (Kind))
 #define EACH_SHARED_ORG_RECORD(__IMPL) \
+    __IMPL(DocumentExportConfig, (DocumentExportConfig)) \
+    __IMPL(DocumentExportConfig::TaskExport, (DocumentExportConfig, TaskExport)) \
+    __IMPL(DocumentExportConfig::DoExport, (DocumentExportConfig, DoExport)) \
+    __IMPL(DocumentExportConfig::ExportFixed, (DocumentExportConfig, ExportFixed)) \
     __IMPL(SubtreePeriod, (SubtreePeriod)) \
     __IMPL(NamedProperty, (NamedProperty)) \
     __IMPL(NamedProperty::Nonblocking, (NamedProperty, Nonblocking)) \
@@ -84,10 +95,6 @@
     __IMPL(AnnotatedParagraph, Footnote, (Footnote)) \
     __IMPL(AnnotatedParagraph, Admonition, (Admonition)) \
     __IMPL(AnnotatedParagraph, Timestamp, (Timestamp)) \
-    __IMPL(DocumentOptions, ExportConfig, (ExportConfig)) \
-    __IMPL(DocumentOptions, ExportConfig::TaskExport, (ExportConfig, TaskExport)) \
-    __IMPL(DocumentOptions, ExportConfig::DoExport, (ExportConfig, DoExport)) \
-    __IMPL(DocumentOptions, ExportConfig::ExportFixed, (ExportConfig, ExportFixed)) \
     __IMPL(Include, Example, (Example)) \
     __IMPL(Include, Export, (Export)) \
     __IMPL(Include, Src, (Src)) \
@@ -107,11 +114,6 @@
     __IMPL(SubtreeLog, Kind, (Kind)) \
     __IMPL(AnnotatedParagraph, AnnotationKind, (AnnotationKind)) \
     __IMPL(ListItem, Checkbox, (Checkbox)) \
-    __IMPL(DocumentOptions, ExportConfig::TagExport, (ExportConfig, TagExport)) \
-    __IMPL(DocumentOptions, ExportConfig::TaskFiltering, (ExportConfig, TaskFiltering)) \
-    __IMPL(DocumentOptions, ExportConfig::BrokenLinks, (ExportConfig, BrokenLinks)) \
-    __IMPL(DocumentOptions, ExportConfig::TocExportKind, (ExportConfig, TocExportKind)) \
-    __IMPL(DocumentOptions, Visibility, (Visibility)) \
     __IMPL(Include, Kind, (Kind))
 #define EACH_SEM_ORG_RECORD(__IMPL) \
     __IMPL(None, (None)) \
@@ -226,10 +228,6 @@
     __IMPL(List, (List)) \
     __IMPL(ListItem, (ListItem)) \
     __IMPL(DocumentOptions, (DocumentOptions)) \
-    __IMPL(DocumentOptions::ExportConfig, (DocumentOptions, ExportConfig)) \
-    __IMPL(DocumentOptions::ExportConfig::TaskExport, (DocumentOptions, ExportConfig, TaskExport)) \
-    __IMPL(DocumentOptions::ExportConfig::DoExport, (DocumentOptions, ExportConfig, DoExport)) \
-    __IMPL(DocumentOptions::ExportConfig::ExportFixed, (DocumentOptions, ExportConfig, ExportFixed)) \
     __IMPL(Document, (Document)) \
     __IMPL(FileTarget, (FileTarget)) \
     __IMPL(TextSeparator, (TextSeparator)) \
@@ -309,6 +307,18 @@
     __IMPL(TextSeparator) \
     __IMPL(Include) \
     __IMPL(DocumentGroup)
+enum class InitialSubtreeVisibility : short int { Overview, Content, ShowAll, Show2Levels, Show3Levels, Show4Levels, Show5Levels, ShowEverything, };
+template <>
+struct enum_serde<InitialSubtreeVisibility> {
+  static Opt<InitialSubtreeVisibility> from_string(std::string value);
+  static std::string to_string(InitialSubtreeVisibility value);
+};
+
+template <>
+struct value_domain<InitialSubtreeVisibility> : public value_domain_ungapped<InitialSubtreeVisibility,
+                                                                             InitialSubtreeVisibility::Overview,
+                                                                             InitialSubtreeVisibility::ShowEverything> {};
+
 enum class OrgSpecName : short int { Unnamed, Result, Year, Day, Clock, Repeater, Zone, Link, Tags, Tag, State, Protocol, Desc, Times, Drawer, Args, Name, Definition, Body, HeaderArgs, File, Kind, Lang, Prefix, Text, Todo, Importance, Title, Completion, Head, Subnodes, Properties, Logbook, Description, Logs, Newstate, Oldstate, Time, From, EndArgs, Flags, Value, Assoc, Main, Hash, Bullet, Counter, Checkbox, Header, To, Diff, Property, Subname, Values, Cells, Rows, Lines, Chunks, InheritanceMode, MainSetRule, SubSetRule, };
 template <>
 struct enum_serde<OrgSpecName> {

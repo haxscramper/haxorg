@@ -73,6 +73,34 @@
         __MAP(kDocumentgroup, documentgroup, DocumentGroup)  \
 
 template <>
+struct proto_serde<::orgproto::DocumentExportConfig::TaskExport, sem::DocumentExportConfig::TaskExport> {
+  static void write(::orgproto::DocumentExportConfig::TaskExport* out, sem::DocumentExportConfig::TaskExport const& in);
+  static void read(::orgproto::DocumentExportConfig::TaskExport const& out, proto_write_accessor<sem::DocumentExportConfig::TaskExport> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::DocumentExportConfig::DoExport, sem::DocumentExportConfig::DoExport> {
+  static void write(::orgproto::DocumentExportConfig::DoExport* out, sem::DocumentExportConfig::DoExport const& in);
+  static void read(::orgproto::DocumentExportConfig::DoExport const& out, proto_write_accessor<sem::DocumentExportConfig::DoExport> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::DocumentExportConfig::ExportFixed, sem::DocumentExportConfig::ExportFixed> {
+  static void write(::orgproto::DocumentExportConfig::ExportFixed* out, sem::DocumentExportConfig::ExportFixed const& in);
+  static void read(::orgproto::DocumentExportConfig::ExportFixed const& out, proto_write_accessor<sem::DocumentExportConfig::ExportFixed> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::DocumentExportConfig, sem::DocumentExportConfig> {
+  static void write(::orgproto::DocumentExportConfig* out, sem::DocumentExportConfig const& in);
+  static void read(::orgproto::DocumentExportConfig const& out, proto_write_accessor<sem::DocumentExportConfig> in);
+};
+
+
+template <>
 struct proto_serde<::orgproto::SubtreePeriod, sem::SubtreePeriod> {
   static void write(::orgproto::SubtreePeriod* out, sem::SubtreePeriod const& in);
   static void read(::orgproto::SubtreePeriod const& out, proto_write_accessor<sem::SubtreePeriod> in);
@@ -909,34 +937,6 @@ template <>
 struct proto_serde<::orgproto::ListItem, sem::ListItem> {
   static void write(::orgproto::ListItem* out, sem::ListItem const& in);
   static void read(::orgproto::ListItem const& out, proto_write_accessor<sem::ListItem> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::DocumentOptions::ExportConfig::TaskExport, sem::DocumentOptions::ExportConfig::TaskExport> {
-  static void write(::orgproto::DocumentOptions::ExportConfig::TaskExport* out, sem::DocumentOptions::ExportConfig::TaskExport const& in);
-  static void read(::orgproto::DocumentOptions::ExportConfig::TaskExport const& out, proto_write_accessor<sem::DocumentOptions::ExportConfig::TaskExport> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::DocumentOptions::ExportConfig::DoExport, sem::DocumentOptions::ExportConfig::DoExport> {
-  static void write(::orgproto::DocumentOptions::ExportConfig::DoExport* out, sem::DocumentOptions::ExportConfig::DoExport const& in);
-  static void read(::orgproto::DocumentOptions::ExportConfig::DoExport const& out, proto_write_accessor<sem::DocumentOptions::ExportConfig::DoExport> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::DocumentOptions::ExportConfig::ExportFixed, sem::DocumentOptions::ExportConfig::ExportFixed> {
-  static void write(::orgproto::DocumentOptions::ExportConfig::ExportFixed* out, sem::DocumentOptions::ExportConfig::ExportFixed const& in);
-  static void read(::orgproto::DocumentOptions::ExportConfig::ExportFixed const& out, proto_write_accessor<sem::DocumentOptions::ExportConfig::ExportFixed> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::DocumentOptions::ExportConfig, sem::DocumentOptions::ExportConfig> {
-  static void write(::orgproto::DocumentOptions::ExportConfig* out, sem::DocumentOptions::ExportConfig const& in);
-  static void read(::orgproto::DocumentOptions::ExportConfig const& out, proto_write_accessor<sem::DocumentOptions::ExportConfig> in);
 };
 
 
