@@ -824,19 +824,22 @@ struct ImmAdapterTBase : ImmAdapter {
     ImmAdapterT<F> getField(org::ImmIdT<F> T::*fieldPtr) const;
 };
 
+#define USE_IMM_ADAPTER_BASE(T)                                           \
+    using ImmAdapterTBase<T>::at;                                         \
+    using ImmAdapterTBase<T>::ImmAdapterTBase;                            \
+    using ImmAdapterTBase<T>::pass;                                       \
+    using ImmAdapterTBase<T>::get;                                        \
+    using ImmAdapterTBase<T>::operator->;
 
 template <typename T>
 struct ImmAdapterT : ImmAdapterTBase<T> {
-    using ImmAdapterTBase<T>::at;
-    using ImmAdapterTBase<T>::ImmAdapterTBase;
-    using ImmAdapterTBase<T>::pass;
-    using ImmAdapterTBase<T>::get;
-    using ImmAdapterTBase<T>::operator->;
+    USE_IMM_ADAPTER_BASE(T);
 };
 
 
 template <>
 struct ImmAdapterT<ImmSubtree> : ImmAdapterTBase<ImmSubtree> {
+    USE_IMM_ADAPTER_BASE(org::ImmSubtree);
     Vec<sem::SubtreePeriod> getTimePeriods(
         IntSet<sem::SubtreePeriod::Kind> kinds) const;
     Vec<sem::NamedProperty> getProperties(

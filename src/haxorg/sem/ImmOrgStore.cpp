@@ -409,23 +409,7 @@ ImmAstVersion ImmAstContext::init(sem::SemId<sem::Org> root) {
 }
 
 
-template <typename Mut>
-struct imm_to_sem_map {};
 
-template <typename Mut>
-struct sem_to_imm_map {};
-
-#define _gen_map(__Kind)                                                  \
-    template <>                                                           \
-    struct imm_to_sem_map<org::Imm##__Kind> {                             \
-        using sem_type = sem::__Kind;                                     \
-    };                                                                    \
-    template <>                                                           \
-    struct sem_to_imm_map<sem::__Kind> {                                  \
-        using imm_type = org::Imm##__Kind;                                \
-    };
-EACH_SEM_ORG_KIND(_gen_map)
-#undef _gen_map
 
 
 struct AddContext {

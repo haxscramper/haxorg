@@ -131,12 +131,47 @@ Opt<sem::SemId<T>> toHandle(Opt<sem::SemId<T>> id, Handle const& handle) {
     return id;
 }
 
+template <typename T>
+struct get_ast_type {};
+
+template <typename T>
+struct get_ast_type<org::ImmAdapterT<T>> {
+    using ast_type = T;
+};
+
+template <typename T>
+struct get_ast_type<sem::SemId<T>> {
+    using ast_type = T;
+};
+
+template <typename T>
+struct get_ast_type<T*> {
+    using ast_type = T;
+};
+template <typename T, typename SemType, typename ImmType>
+struct SemOrImmType {};
+
+
+template <sem::IsOrg T, sem::IsOrg SemType, org::IsImmOrgValueType ImmType>
+struct SemOrImmType<T, SemType, ImmType> {
+    using result = SemType;
+};
+
+template <
+    org::IsImmOrgValueType T,
+    sem::IsOrg             SemType,
+    org::IsImmOrgValueType ImmType>
+struct SemOrImmType<T, SemType, ImmType> {
+    using result = ImmType;
+};
+
 template <typename Handle>
 Vec<sem::SubtreePeriod> subtreeGetTimePeriodsImpl(
     Handle                           handle,
     IntSet<sem::SubtreePeriod::Kind> kinds) {
     Vec<sem::SubtreePeriod> res;
     auto                    h = getConstHandle(handle);
+    using HandleBase          = get_ast_type<Handle>::ast_type;
     using sem::SubtreePeriod;
     for (const auto& it : getSubnodes(toHandle(h->title, handle))) {
         if (it->getKind() == OrgSemKind::Time) {
@@ -192,13 +227,24 @@ Vec<sem::SubtreePeriod> subtreeGetTimePeriodsImpl(
     }
 
     if (kinds.contains(SubtreePeriod::Kind::Clocked)) {
-        for (auto const& log : h->logbook) {
-            if (log->getLogKind() == SubtreeLog::Kind::Clock) {
+        using LogType = SemOrImmType<
+            HandleBase,
+            sem::SubtreeLog,
+            org::ImmSubtreeLog>::result;
+
+        for (auto const& logIt : h->logbook) {
+            auto const log = toHandle(logIt, handle);
+            if (log->getLogKind() == LogType::Kind::Clock) {
                 SubtreePeriod period{};
-                period.from = log->getClock().from->getStatic().time;
-                if (log->getClock().to) {
+                period.from = toHandle(log->getClock().from, handle)
+                                  ->getStatic()
+                                  .time;
+                if (isBoolFalse(log->getClock().to)) {
                     period.to = //
-                        log->getClock().to.value()->getStatic().time;
+                        toHandle(log->getClock().to, handle)
+                            .value()
+                            ->getStatic()
+                            .time;
                 }
                 period.kind = SubtreePeriod::Kind::Clocked;
                 res.push_back(period);
@@ -206,7 +252,7 @@ Vec<sem::SubtreePeriod> subtreeGetTimePeriodsImpl(
         }
     }
 
-    for (const auto& prop : properties) {
+    for (const auto& prop : h->properties) {
         std::visit(
             overloaded{
                 [&](sem::NamedProperty::Created const& cr) {
