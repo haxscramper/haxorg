@@ -819,7 +819,11 @@ struct ImmAdapterTBase : ImmAdapter {
     using ImmAdapter::pass;
     T const* get() const { return ctx->at_t<T>(id); }
     T const* operator->() const { return get(); }
+
+    template <typename F>
+    ImmAdapterT<F> getField(org::ImmIdT<F> T::*fieldPtr) const;
 };
+
 
 template <typename T>
 struct ImmAdapterT : ImmAdapterTBase<T> {
@@ -842,6 +846,14 @@ struct ImmAdapterT<ImmSubtree> : ImmAdapterTBase<ImmSubtree> {
         Str const&      kind,
         Opt<Str> const& subkind = std::nullopt) const;
 };
+
+
+template <typename T>
+template <typename F>
+inline ImmAdapterT<F> ImmAdapterTBase<T>::getField(
+    org::ImmIdT<F> T::*fieldPtr) const {
+    return ImmAdapterT<F>{(get()->*fieldPtr).asOrg(), ctx, {}};
+}
 
 
 template <typename T>
@@ -878,6 +890,23 @@ concept IsImmOrg = std::
 using SubnodeVisitor = Func<void(ImmAdapter)>;
 void eachSubnodeRec(org::ImmAdapter id, SubnodeVisitor cb);
 
+template <typename Mut>
+struct imm_to_sem_map {};
+
+template <typename Mut>
+struct sem_to_imm_map {};
+
+#define _gen_map(__Kind)                                                  \
+    template <>                                                           \
+    struct imm_to_sem_map<org::Imm##__Kind> {                             \
+        using sem_type = sem::__Kind;                                     \
+    };                                                                    \
+    template <>                                                           \
+    struct sem_to_imm_map<sem::__Kind> {                                  \
+        using imm_type = org::Imm##__Kind;                                \
+    };
+EACH_SEM_ORG_KIND(_gen_map)
+#undef _gen_map
 
 } // namespace org
 

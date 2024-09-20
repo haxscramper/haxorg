@@ -27,7 +27,7 @@ T const* getConstHandle(T* ptr) {
 }
 
 template <sem::IsOrg T>
-T const* getConstHandle(sem::SemId<sem::Org> ptr) {
+T const* getConstHandle(sem::SemId<T> ptr) {
     return ptr.get();
 }
 
@@ -66,6 +66,50 @@ Opt<sem::NamedProperty> subtreeGetPropertyImpl(
     }
 }
 
+#define WRAP_FIELD(InType, CapsField, LowField, ResType)                  \
+    sem::SemId<sem::ResType> get##InType##CapsField(                      \
+        sem::SemId<sem::InType> const& t) {                               \
+        return t->LowField;                                               \
+    }                                                                     \
+    sem::SemId<sem::ResType> get##InType##CapsField(                      \
+        sem::InType const* t) {                                           \
+        return t->LowField;                                               \
+    }                                                                     \
+    org::ImmAdapterT<org::Imm##ResType> get##InType##CapsField(           \
+        org::ImmAdapterT<org::Imm##InType> const& t) {                    \
+        return t.getField(&org::Imm##InType::LowField);                   \
+    }
+
+WRAP_FIELD(Subtree, Title, title, Paragraph)
+WRAP_FIELD(TimeRange, From, from, Time)
+WRAP_FIELD(TimeRange, To, to, Time)
+
+// clang-format off
+Vec<org::ImmAdapter> getSubnodes(org::ImmAdapter const& t) { return t.sub(); }
+template <typename T>
+Vec<org::ImmAdapter> getSubnodes(org::ImmAdapterT<T> const& t) { return t.sub(); }
+template <sem::IsOrg T>
+Vec<sem::SemId<sem::Org>> getSubnodes(sem::SemId<T> const& t) { return t->subnodes; }
+template <sem::IsOrg T>
+Vec<sem::SemId<sem::Org>> getSubnodes(T const* t) { return t->subnodes; }
+// clang-format on
+
+template <sem::IsOrg Out, sem::IsOrg In>
+sem::SemId<Out> org_cast(sem::SemId<In> arg) {
+    return arg.template as<Out>();
+}
+
+template <sem::IsOrg Out, org::IsImmOrgValueType In>
+org::ImmAdapterT<Out> org_cast(org::ImmAdapterT<In> arg) {
+    return arg.template as<typename org::sem_to_imm_map<Out>::imm_type>();
+}
+
+template <sem::IsOrg Out>
+org::ImmAdapterT<typename org::sem_to_imm_map<Out>::imm_type> org_cast(
+    org::ImmAdapter arg) {
+    return arg.template as<typename org::sem_to_imm_map<Out>::imm_type>();
+}
+
 template <typename Handle>
 Vec<sem::SubtreePeriod> subtreeGetTimePeriodsImpl(
     Handle                           handle,
@@ -73,16 +117,18 @@ Vec<sem::SubtreePeriod> subtreeGetTimePeriodsImpl(
     Vec<sem::SubtreePeriod> res;
     auto                    h = getConstHandle(handle);
     using sem::SubtreePeriod;
-    for (const auto& it : h->title->subnodes) {
+    for (const auto& it : getSubnodes(getSubtreeTitle(handle))) {
         if (it->getKind() == OrgSemKind::Time) {
             SubtreePeriod period{};
-            period.from = h->it.as<Time>()->getStatic().time;
+            period.from = org_cast<sem::Time>(it)->getStatic().time;
             period.kind = SubtreePeriod::Kind::Titled;
             res.push_back(period);
         } else if (it->getKind() == OrgSemKind::TimeRange) {
             SubtreePeriod period{};
-            period.from = h->it.as<TimeRange>()->from->getStatic().time;
-            period.to   = h->it.as<TimeRange>()->to->getStatic().time;
+            period.from = getTimeRangeFrom(org_cast<sem::TimeRange>(it))
+                              ->getStatic()
+                              .time;
+            period.to = org_cast<sem::TimeRange>(it)->to->getStatic().time;
             period.kind = SubtreePeriod::Kind::Titled;
             res.push_back(period);
         }
@@ -95,8 +141,7 @@ Vec<sem::SubtreePeriod> subtreeGetTimePeriodsImpl(
         res.push_back(period);
     }
 
-    if (kinds.contains(SubtreePeriod::Kind::Scheduled)
-        && h->scheduled) {
+    if (kinds.contains(SubtreePeriod::Kind::Scheduled) && h->scheduled) {
         SubtreePeriod period{};
         period.from = h->scheduled.value()->getStatic().time;
         period.kind = SubtreePeriod::Kind::Scheduled;
