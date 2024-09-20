@@ -66,23 +66,6 @@ Opt<sem::NamedProperty> subtreeGetPropertyImpl(
     }
 }
 
-#define WRAP_FIELD(InType, CapsField, LowField, ResType)                  \
-    sem::SemId<sem::ResType> get##InType##CapsField(                      \
-        sem::SemId<sem::InType> const& t) {                               \
-        return t->LowField;                                               \
-    }                                                                     \
-    sem::SemId<sem::ResType> get##InType##CapsField(                      \
-        sem::InType const* t) {                                           \
-        return t->LowField;                                               \
-    }                                                                     \
-    org::ImmAdapterT<org::Imm##ResType> get##InType##CapsField(           \
-        org::ImmAdapterT<org::Imm##InType> const& t) {                    \
-        return t.getField(&org::Imm##InType::LowField);                   \
-    }
-
-WRAP_FIELD(Subtree, Title, title, Paragraph)
-WRAP_FIELD(TimeRange, From, from, Time)
-WRAP_FIELD(TimeRange, To, to, Time)
 
 // clang-format off
 Vec<org::ImmAdapter> getSubnodes(org::ImmAdapter const& t) { return t.sub(); }
@@ -110,6 +93,44 @@ org::ImmAdapterT<typename org::sem_to_imm_map<Out>::imm_type> org_cast(
     return arg.template as<typename org::sem_to_imm_map<Out>::imm_type>();
 }
 
+template <typename T>
+bool isBoolFalse(T const& t) {
+    return value_metadata<T>::isEmpty(t);
+}
+
+template <org::IsImmOrgValueType T, typename Handle>
+org::ImmAdapterT<T> toHandle(org::ImmIdT<T> id, Handle const& handle) {
+    return org::ImmAdapterT<T>{id, handle.ctx, {}};
+}
+
+template <sem::IsOrg T, typename Handle>
+sem::SemId<T> toHandle(sem::SemId<T> id, Handle const& handle) {
+    return id;
+}
+
+template <org::IsImmOrgValueType T, typename Handle>
+Opt<org::ImmAdapterT<T>> toHandle(
+    Opt<org::ImmIdT<T>> id,
+    Handle const&       handle) {
+    if (id) {
+        return toHandle(id.value(), handle);
+    } else {
+        return std::nullopt;
+    }
+}
+
+template <org::IsImmOrgValueType T, typename Handle>
+Opt<org::ImmAdapterT<T>> toHandle(
+    ImmBox<Opt<org::ImmIdT<T>>> id,
+    Handle const&               handle) {
+    return toHandle(id.get(), handle);
+}
+
+template <sem::IsOrg T, typename Handle>
+Opt<sem::SemId<T>> toHandle(Opt<sem::SemId<T>> id, Handle const& handle) {
+    return id;
+}
+
 template <typename Handle>
 Vec<sem::SubtreePeriod> subtreeGetTimePeriodsImpl(
     Handle                           handle,
@@ -117,7 +138,7 @@ Vec<sem::SubtreePeriod> subtreeGetTimePeriodsImpl(
     Vec<sem::SubtreePeriod> res;
     auto                    h = getConstHandle(handle);
     using sem::SubtreePeriod;
-    for (const auto& it : getSubnodes(getSubtreeTitle(handle))) {
+    for (const auto& it : getSubnodes(toHandle(h->title, handle))) {
         if (it->getKind() == OrgSemKind::Time) {
             SubtreePeriod period{};
             period.from = org_cast<sem::Time>(it)->getStatic().time;
@@ -125,32 +146,47 @@ Vec<sem::SubtreePeriod> subtreeGetTimePeriodsImpl(
             res.push_back(period);
         } else if (it->getKind() == OrgSemKind::TimeRange) {
             SubtreePeriod period{};
-            period.from = getTimeRangeFrom(org_cast<sem::TimeRange>(it))
+            period.from = toHandle(
+                              org_cast<sem::TimeRange>(it)->from, handle)
                               ->getStatic()
                               .time;
-            period.to = org_cast<sem::TimeRange>(it)->to->getStatic().time;
+            period.to = toHandle(org_cast<sem::TimeRange>(it)->to, handle)
+                            ->getStatic()
+                            .time;
             period.kind = SubtreePeriod::Kind::Titled;
             res.push_back(period);
         }
     }
 
-    if (kinds.contains(SubtreePeriod::Kind::Deadline) && h->deadline) {
+    if (kinds.contains(SubtreePeriod::Kind::Deadline)
+        && isBoolFalse(h->deadline)) {
         SubtreePeriod period{};
-        period.from = h->deadline.value()->getStatic().time;
+        period.from = toHandle(h->deadline, handle)
+                          .value()
+                          ->getStatic()
+                          .time;
         period.kind = SubtreePeriod::Kind::Deadline;
         res.push_back(period);
     }
 
-    if (kinds.contains(SubtreePeriod::Kind::Scheduled) && h->scheduled) {
+    if (kinds.contains(SubtreePeriod::Kind::Scheduled)
+        && isBoolFalse(h->scheduled)) {
         SubtreePeriod period{};
-        period.from = h->scheduled.value()->getStatic().time;
+        period.from = toHandle(h->scheduled, handle)
+                          .value()
+                          ->getStatic()
+                          .time;
         period.kind = SubtreePeriod::Kind::Scheduled;
         res.push_back(period);
     }
 
-    if (kinds.contains(SubtreePeriod::Kind::Closed) && h->closed) {
+    if (kinds.contains(SubtreePeriod::Kind::Closed)
+        && isBoolFalse(h->closed)) {
         SubtreePeriod period{};
-        period.from = h->closed.value()->getStatic().time;
+        period.from = toHandle(h->closed, handle)
+                          .value()
+                          ->getStatic()
+                          .time;
         period.kind = SubtreePeriod::Kind::Closed;
         res.push_back(period);
     }
