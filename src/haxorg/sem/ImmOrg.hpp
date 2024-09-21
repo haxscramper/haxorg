@@ -1046,10 +1046,34 @@ struct ImmAdapterAnnotatedParagraphAPI : ImmAdapterStmtAPI {};
 struct ImmAdapterColonExampleAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterCmdAttrAPI : ImmAdapterAttachedAPI {};
 struct ImmAdapterCallAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterListAPI : ImmAdapterStmtAPI {};
-struct ImmAdapterListItemAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterDocumentOptionsAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterDocumentAPI : ImmAdapterOrgAPI {};
+
+struct ImmAdapterListAPI : ImmAdapterStmtAPI {
+    bool isDescriptionList() const;
+    bool isNumberedList() const;
+};
+
+struct ImmAdapterListItemAPI : ImmAdapterOrgAPI {
+    bool isDescriptionItem() const;
+};
+
+struct ImmAdapterDocumentOptionsAPI : ImmAdapterOrgAPI {
+    Vec<sem::NamedProperty> getProperties(
+        Str const&   kind,
+        CR<Opt<Str>> subkind = std::nullopt) const;
+    Opt<sem::NamedProperty> getProperty(
+        CR<Str>      kind,
+        CR<Opt<Str>> subkind = std::nullopt) const;
+};
+
+struct ImmAdapterDocumentAPI : ImmAdapterOrgAPI {
+    Vec<sem::NamedProperty> getProperties(
+        CR<Str>      kind,
+        CR<Opt<Str>> subkind = std::nullopt) const;
+    Opt<sem::NamedProperty> getProperty(
+        CR<Str>      kind,
+        CR<Opt<Str>> subkind = std::nullopt) const;
+};
+
 struct ImmAdapterFileTargetAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterTextSeparatorAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterIncludeAPI : ImmAdapterOrgAPI {};

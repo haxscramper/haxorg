@@ -184,6 +184,10 @@ struct SemOrImmType<T, SemType, ImmType> {
     using result = ImmType;
 };
 
+template <typename Handle>
+concept IsSemOrgInstance = sem::IsOrg<
+    typename get_ast_type<Handle>::ast_type>;
+
 /// \brief Generic implementation of the subtree period collection --
 /// subtree period type is a shared data type, so in this function only
 /// parametrizing on the handle parameter.
@@ -447,6 +451,96 @@ auto Stmt_getAttached(Handle handle, CR<Opt<Str>> kind) {
     return result;
 }
 
+template <typename Handle>
+Vec<sem::NamedProperty> DocumentOptions_getProperties(
+    Handle       handle,
+    Str const&   kind,
+    CR<Opt<Str>> subkind) {
+    auto                    h = getConstHandle(handle);
+    Vec<sem::NamedProperty> result;
+    for (const auto& prop : h->properties) {
+        if (prop.isMatching(kind, subkind)) { result.push_back(prop); }
+    }
+    return result;
+}
+
+template <typename Handle>
+Opt<sem::NamedProperty> DocumentOptions_getProperty(
+    Handle       handle,
+    CR<Str>      kind,
+    CR<Opt<Str>> subkind) {
+    auto h     = getConstHandle(handle);
+    auto props = DocumentOptions_getProperties(handle, kind, subkind);
+    if (props.empty()) {
+        return std::nullopt;
+    } else {
+        return props[0];
+    }
+}
+
+template <typename Handle>
+Vec<sem::NamedProperty> Document_getProperties(
+    Handle       handle,
+    CR<Str>      kind,
+    CR<Opt<Str>> subkind) {
+    auto h = getConstHandle(handle);
+    if (h->options.isNil()) {
+        return {};
+    } else {
+        return DocumentOptions_getProperties(
+            toHandle(h->options, handle), kind, subkind);
+    }
+}
+
+template <typename Handle>
+Opt<sem::NamedProperty> Document_getProperty(
+    Handle       handle,
+    CR<Str>      kind,
+    CR<Opt<Str>> subkind) {
+    auto h = getConstHandle(handle);
+    if (h->options.isNil()) {
+        return std::nullopt;
+    } else {
+        return DocumentOptions_getProperty(
+            toHandle(h->options, handle), kind, subkind);
+    }
+}
+
+template <typename Handle>
+bool ListItem_isDescriptionItem(Handle handle) {
+    return toHandle(getConstHandle(handle)->header, handle).has_value();
+}
+
+template <typename Handle>
+bool List_isDescriptionList(Handle handle) {
+    auto h = getConstHandle(handle);
+    for (const auto& sub : getSubnodes(handle)) {
+        if (sub->is(OrgSemKind::ListItem)) {
+            if (ListItem_isDescriptionItem(org_cast<sem::ListItem>(sub))) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+template <typename Handle>
+bool List_isNumberedList(Handle handle) {
+    auto h = getConstHandle(handle);
+    for (const auto& sub : getSubnodes(handle)) {
+        if (sub->is(OrgSemKind::ListItem)) {
+            auto sub_as = org_cast<sem::ListItem>(sub);
+            if constexpr (IsSemOrgInstance<Handle>) {
+                if (sub_as->bullet.has_value()) { return true; }
+            } else {
+                if (sub_as->bullet.get().has_value()) { return true; }
+            }
+        }
+    }
+
+    return false;
+}
+
 
 } // namespace
 
@@ -490,6 +584,12 @@ Vec<org::ImmAdapter> org::ImmAdapterStmtAPI::getAttached(Opt<Str> const& kind) c
     return result;
 }
 
+Opt<sem::CmdArgumentValue> org::ImmAdapterStmtAPI::getFirstArgument(Str const& param) const {
+  Opt<sem::CmdArgumentValue> result;
+  CallDynamicOrgMethod<org::ImmStmt>(getThis(), [&](auto const &a1, auto const &a2) { result = Stmt_getFirstArgument(a1, a2); }, param);
+  return result;
+}
+
 Vec<sem::CmdArgumentValue> org::ImmAdapterStmtAPI::getArguments(CR<Opt<Str>> param) const {
   Vec<sem::CmdArgumentValue> result;
   CallDynamicOrgMethod<org::ImmStmt>(getThis(), [&](auto const &a1, auto const &a2) { result = Stmt_getArguments(a1, a2); }, param);
@@ -499,12 +599,6 @@ Vec<sem::CmdArgumentValue> org::ImmAdapterStmtAPI::getArguments(CR<Opt<Str>> par
 Vec<sem::CmdArgumentValue> org::ImmAdapterCmdAPI::getArguments(CR<Opt<Str>> param) const {
   Vec<sem::CmdArgumentValue> result;
   CallDynamicOrgMethod<org::ImmCmd>(getThis(), [&](auto const &a1, auto const &a2) { result = Cmd_getArguments(a1, a2); }, param);
-  return result;
-}
-
-Opt<sem::CmdArgumentValue> org::ImmAdapterStmtAPI::getFirstArgument(Str const& param) const {
-  Opt<sem::CmdArgumentValue> result;
-  CallDynamicOrgMethod<org::ImmStmt>(getThis(), [&](auto const &a1, auto const &a2) { result = Stmt_getFirstArgument(a1, a2); }, param);
   return result;
 }
 
@@ -518,6 +612,17 @@ Opt<sem::NamedProperty> org::ImmAdapterSubtreeAPI::getProperty(Str const &kind, 
 Vec<sem::NamedProperty> org::ImmAdapterSubtreeAPI::getProperties(const Str &kind, const Opt<Str> &subkind) const { return subtreeGetPropertiesImpl(getThis()->as<org::ImmSubtree>(), kind, subkind); }
 Vec<sem::SubtreePeriod> org::ImmAdapterSubtreeAPI::getTimePeriods(IntSet<sem::SubtreePeriod::Kind> kinds) const { return subtreeGetTimePeriodsImpl(getThis()->as<org::ImmSubtree>(), kinds); }
 
+Vec<sem::NamedProperty> org::ImmAdapterDocumentOptionsAPI::getProperties(Str const &kind, CR<Opt<Str>> subkind) const { return DocumentOptions_getProperties(getThis()->as<org::ImmDocumentOptions>(), kind, subkind); }
+Opt<sem::NamedProperty> org::ImmAdapterDocumentOptionsAPI::getProperty(CR<Str> kind, CR<Opt<Str>> subkind) const { return DocumentOptions_getProperty(getThis()->as<org::ImmDocumentOptions>(), kind, subkind); }
+Vec<sem::NamedProperty> org::ImmAdapterDocumentAPI::getProperties(CR<Str> kind, CR<Opt<Str>> subkind) const { return Document_getProperties(getThis()->as<org::ImmDocument>(), kind, subkind); }
+Opt<sem::NamedProperty> org::ImmAdapterDocumentAPI::getProperty(CR<Str> kind, CR<Opt<Str>> subkind) const { return Document_getProperty(getThis()->as<org::ImmDocument>(), kind, subkind); }
+
+bool org::ImmAdapterListAPI::isDescriptionList() const { return List_isDescriptionList(getThis()->as<org::ImmList>()); }
+bool org::ImmAdapterListAPI::isNumberedList() const { return List_isNumberedList(getThis()->as<org::ImmList>()); }
+bool org::ImmAdapterListItemAPI::isDescriptionItem() const { return ListItem_isDescriptionItem(getThis()->as<org::ImmListItem>()); }
+
+
+// sem type API implementation
 
 Opt<sem::NamedProperty> sem::Subtree::getProperty(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertyImpl(this, kind, subkind); }
 Vec<sem::NamedProperty> sem::Subtree::getProperties(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertiesImpl(this, kind, subkind); }
@@ -533,6 +638,15 @@ Opt<sem::CmdArgumentValue> sem::Cmd::getFirstArgument(CR<Str> kind) const { retu
 Vec<sem::CmdArgumentValue> sem::CmdArguments::getArguments(CR<Opt<Str>> param) const { return CmdArguments_getArguments(this, param); }
 Vec<sem::CmdArgumentValue> sem::Cmd::getArguments(CR<Opt<Str>> param) const { return Cmd_getArguments(this, param); }
 
+
+Vec<sem::NamedProperty> sem::DocumentOptions::getProperties(Str const &kind, CR<Opt<Str>> subkind) const { return DocumentOptions_getProperties(this, kind, subkind); }
+Opt<sem::NamedProperty> sem::DocumentOptions::getProperty(CR<Str> kind, CR<Opt<Str>> subkind) const { return DocumentOptions_getProperty(this, kind, subkind); }
+Vec<sem::NamedProperty> sem::Document::getProperties(CR<Str> kind, CR<Opt<Str>> subkind) const { return Document_getProperties(this, kind, subkind); }
+Opt<sem::NamedProperty> sem::Document::getProperty(CR<Str> kind, CR<Opt<Str>> subkind) const { return Document_getProperty(this, kind, subkind); }
+
+bool sem::List::isDescriptionList() const { return List_isDescriptionList(this); }
+bool sem::List::isNumberedList() const { return List_isNumberedList(this); }
+bool sem::ListItem::isDescriptionItem() const { return ListItem_isDescriptionItem(this); }
 
 
 // Opt<org::ImmAdapterT<org::ImmCmdArgumentList>> org::ImmAdapterT<org::ImmCell>::getArguments(CR<Opt<Str>> param) const { return cmdGetArgumentsImpl(*this, param); }

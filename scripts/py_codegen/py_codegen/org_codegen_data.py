@@ -1925,7 +1925,6 @@ def get_types() -> Sequence[GenTuStruct]:
                     "isDescriptionItem",
                     GenTuDoc(""),
                     isConst=True,
-                    impl="return header.has_value();",
                 )
             ],
         ),

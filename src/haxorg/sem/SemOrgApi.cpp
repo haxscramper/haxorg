@@ -127,63 +127,6 @@ bool NamedProperty::isMatching(Str const& kind, CR<Opt<Str>> subkind)
     }
 }
 
-Vec<NamedProperty> DocumentOptions::getProperties(
-    Str const&   kind,
-    CR<Opt<Str>> subkind) const {
-    Vec<NamedProperty> result;
-    for (const auto& prop : properties) {
-        if (prop.isMatching(kind, subkind)) { result.push_back(prop); }
-    }
-    return result;
-}
-
-Opt<NamedProperty> DocumentOptions::getProperty(
-    CR<Str>      kind,
-    CR<Opt<Str>> subkind) const {
-    auto props = getProperties(kind, subkind);
-    if (props.empty()) {
-        return std::nullopt;
-    } else {
-        return props[0];
-    }
-}
-
-Vec<NamedProperty> Document::getProperties(
-    CR<Str>      kind,
-    CR<Opt<Str>> subkind) const {
-    if (options.isNil()) {
-        return {};
-    } else {
-        return options->getProperties(kind, subkind);
-    }
-}
-
-Opt<NamedProperty> Document::getProperty(
-    CR<Str>      kind,
-    CR<Opt<Str>> subkind) const {
-    if (options.isNil()) {
-        return std::nullopt;
-    } else {
-        return options->getProperty(kind, subkind);
-    }
-}
-
-bool List::isDescriptionList() const {
-    for (const auto& sub : subnodes) {
-        if (sub->is(osk::ListItem)) {
-            if (sub.as<ListItem>()->isDescriptionItem()) { return true; }
-        }
-    }
-    return false;
-}
-
-bool List::isNumberedList() const {
-    for (const auto& sub : subAs<sem::ListItem>()) {
-        if (sub->bullet.has_value()) { return true; }
-    }
-
-    return false;
-}
 
 
 

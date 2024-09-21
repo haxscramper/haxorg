@@ -1990,7 +1990,7 @@ struct ListItem : public sem::Org {
   /// \brief Full text of the numbered list item, e.g. `a)`, `a.`
   Opt<Str> bullet = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::ListItem; }
-  bool isDescriptionItem() const { return header.has_value(); }
+  bool isDescriptionItem() const;
 };
 
 struct DocumentOptions : public sem::Org {
