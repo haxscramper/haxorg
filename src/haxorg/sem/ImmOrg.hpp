@@ -715,6 +715,16 @@ struct ImmAdapter {
     ImmOrg const* get() const { return ctx->at(id); }
     ImmOrg const* operator->() const { return get(); }
 
+    template <typename T>
+    T const* dyn_cast() const {
+        return dynamic_cast<T const*>(get());
+    }
+
+    template <typename T>
+    T* dyn_cast() {
+        return dynamic_cast<T*>(get());
+    }
+
     ImmAdapter at(ImmId id, ImmPathStep idx) const {
         return ImmAdapter{id, ctx, path.add(idx)};
     }
@@ -794,6 +804,29 @@ struct ImmAdapter {
             return std::nullopt;
         }
     }
+
+    template <typename Func>
+    void visitNodeKind(Func const& cb) const {
+        switch_node_kind(id, cb);
+    }
+
+    template <typename Func>
+    void visitNodeAdapter(Func const& cb) const {
+        switch_node_kind(
+            id, [&]<typename Kind>(org::ImmIdT<Kind> const& id) {
+                cb(this->as<Kind>());
+            });
+    }
+
+    template <typename Func>
+    void visitNodeValue(Func const& cb) const {
+        swtich_node_value(id, *ctx, cb);
+    }
+
+    template <typename Func>
+    void visitNodeFields(Func const& cb) const {
+        switch_node_fields(id, *ctx, cb);
+    }
 };
 
 template <org::IsImmOrgValueType T, typename Func>
@@ -829,24 +862,35 @@ struct ImmAdapterTBase : ImmAdapter {
     using ImmAdapterTBase<T>::ImmAdapterTBase;                            \
     using ImmAdapterTBase<T>::pass;                                       \
     using ImmAdapterTBase<T>::get;                                        \
-    using ImmAdapterTBase<T>::operator->;
+    using ImmAdapterTBase<T>::operator->;                                 \
+    ImmAdapter*       getThis() { return this; }                          \
+    ImmAdapter const* getThis() const { return this; }
+
 
 template <typename T>
 struct ImmAdapterT : ImmAdapterTBase<T> {
     USE_IMM_ADAPTER_BASE(T);
 };
 
-// struct ImmAdapterCmdAPI {
-//     virtual Opt<org::ImmAdapterT<org::ImmCmdArgumentList>> getArguments(CR<Opt<Str>> param) const = 0;
-// };
+struct ImmAdapterVirtualBase {
+    virtual ImmAdapter const* getThis() const = 0;
+    virtual ImmAdapter*       getThis()       = 0;
+};
 
-// template <>
-// struct ImmAdapterT<org::ImmCell>
-//     : ImmAdapterTBase<ImmCell>
-//     , ImmAdapterCmdAPI {
-//     USE_IMM_ADAPTER_BASE(org::ImmCell);
-//     Opt<org::ImmAdapterT<org::ImmCmdArgumentList>> getArguments(CR<Opt<Str>> param) const;
-// };
+
+struct ImmAdapterStmtAPI : ImmAdapterVirtualBase {
+    virtual Vec<sem::CmdArgumentValue> getArguments(
+        CR<Opt<Str>> param) const;
+};
+
+struct ImmAdapterCmdAPI : ImmAdapterStmtAPI {};
+
+template <>
+struct ImmAdapterT<org::ImmCell>
+    : ImmAdapterTBase<ImmCell>
+    , ImmAdapterCmdAPI {
+    USE_IMM_ADAPTER_BASE(org::ImmCell);
+};
 
 
 template <>

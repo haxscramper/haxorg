@@ -316,6 +316,37 @@ Vec<sem::SubtreePeriod> subtreeGetTimePeriodsImpl(
 }
 
 template <typename Handle>
+Vec<sem::CmdArgumentValue> Cmd_getArguments(
+    Handle const& handle,
+    CR<Opt<Str>>  param) {
+    auto h           = getConstHandle(handle);
+    using HandleBase = get_ast_type<Handle>::ast_type;
+    Vec<sem::CmdArgumentValue> res;
+    if (param) {
+        auto norm = normalize(*param);
+        if (h->named.contains(norm)) {
+            for (auto const& it :
+                 toHandle(h->named.at(norm), handle)->args) {
+                res.push_back(toHandle(it, handle)->arg);
+            }
+        }
+    } else {
+        for (auto const& it : toHandle(h->positional, handle)->args) {
+            res.push_back(toHandle(it, handle)->arg);
+        }
+
+        for (auto const& [it, _1] : h->named) {
+            for (auto const& val :
+                 toHandle(h->named.at(it), handle)->args) {
+                res.push_back(toHandle(val, handle)->arg);
+            }
+        }
+    }
+
+    return res;
+}
+
+template <typename Handle>
 Vec<sem::CmdArgumentValue> Stmt_getArguments(
     Handle          handle,
     const Opt<Str>& kind) {
@@ -327,9 +358,13 @@ Vec<sem::CmdArgumentValue> Stmt_getArguments(
     for (auto const& sub : h->attached) {
         if (toHandle(sub, handle)->getKind() == OrgSemKind::CmdAttr) {
             result.append( //
-                org_cast<sem::CmdAttr>(sub)
-                    ->parameters.value()
-                    ->getArguments(kind));
+                Cmd_getArguments(
+                    toHandle(
+                        org_cast<sem::CmdAttr>(toHandle(sub, handle))
+                            ->parameters,
+                        handle)
+                        .value(),
+                    kind));
         }
     }
 
@@ -352,25 +387,7 @@ Opt<sem::CmdArgumentValue> sem::Stmt::getFirstArgument(
 
 Vec<sem::CmdArgumentValue> sem::CmdArguments::getArguments(
     CR<Opt<Str>> param) const {
-    Vec<sem::CmdArgumentValue> res;
-    if (param) {
-        auto norm = normalize(*param);
-        if (named.contains(norm)) {
-            for (auto const& it : named.at(norm)->args) {
-                res.push_back(it->arg);
-            }
-        }
-    } else {
-        for (auto const& it : positional->args) { res.push_back(it->arg); }
-
-        for (auto const& it : named.keys()) {
-            for (auto const& val : named.at(it)->args) {
-                res.push_back(val->arg);
-            }
-        }
-    }
-
-    return res;
+    return Cmd_getArguments(this, param);
 }
 
 Vec<sem::CmdArgumentValue> sem::Cmd::getArguments(
@@ -394,7 +411,35 @@ Opt<sem::CmdArgumentValue> sem::Cmd::getFirstArgument(CR<Str> kind) const {
     }
 }
 
+Vec<sem::CmdArgumentValue> org::ImmAdapterStmtAPI::getArguments(
+    CR<Opt<Str>> param) const {
+    Vec<sem::CmdArgumentValue> result;
+    getThis()->visitNodeAdapter(overloaded{
+        [&]<typename Kind>(org::ImmAdapterT<Kind> const& cast)
+            requires std::derived_from<Kind, org::ImmStmt>
+        {
+            auto dyn = cast.template dyn_cast<org::ImmStmt>();
+            LOGIC_ASSERTION_CHECK(
+                dyn != nullptr,
+                "Statement adapter must hold an ID for the value type "
+                "derived from `org::ImmStmt`, but got {}",
+                *getThis());
+            result = Stmt_getArguments(cast, param);
+        },
+        [&]<typename Kind>(org::ImmAdapterT<Kind> const& cast) {
+            LOGIC_ASSERTION_CHECK(
+                false,
+                "Statement adapter must hold an ID for the value type "
+                "derived from `org::ImmStmt`, but got {}",
+                *getThis());
+        },
+    });
+
+    return result;
+}
+
 // clang-format off
+
 
 Vec<sem::CmdArgumentValue> sem::Stmt::getArguments(const Opt<Str>& kind) const { return Stmt_getArguments(this, kind); }
 
