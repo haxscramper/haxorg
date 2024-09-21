@@ -958,6 +958,8 @@ struct ImmAdapterStmtAPI : ImmAdapterOrgAPI {
         CR<Opt<Str>> param) const;
     virtual Opt<sem::CmdArgumentValue> getFirstArgument(
         Str const& kind) const;
+
+    Vec<ImmAdapter> getAttached(Opt<Str> const& kind = std::nullopt) const;
 };
 
 struct ImmAdapterCmdAPI : ImmAdapterStmtAPI {

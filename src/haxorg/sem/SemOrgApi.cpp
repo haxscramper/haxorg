@@ -185,26 +185,6 @@ bool List::isNumberedList() const {
     return false;
 }
 
-Vec<sem::SemId<sem::Org>> Stmt::getAttached(CR<Opt<Str>> kind) const {
-    Vec<SemId<Org>> result;
-    for (const auto& sub : attached) {
-        if (kind) {
-            auto k = *kind;
-            if (auto attr = sub.getAs<sem::CmdAttr>()) {
-                if (normalize("attr_" + attr->target) == k) {
-                    result.push_back(sub);
-                }
-            } else if (auto cap = sub.getAs<sem::CmdCaption>();
-                       cap && normalize(k) == "caption") {
-                result.push_back(sub);
-            }
-        } else {
-            result.push_back(sub);
-        }
-    }
-
-    return result;
-}
 
 
 

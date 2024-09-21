@@ -169,19 +169,17 @@ struct get_ast_type<T*> {
 /// If `T` is a sem type, define nested `result = SemType`, otherwise
 /// define `result = ImmType`.
 template <typename T, typename SemType, typename ImmType>
+    requires sem::IsOrg<T> || org::IsImmOrgValueType<T>
 struct SemOrImmType {};
 
 /// \brief Org type selector specialization to select sem type
-template <sem::IsOrg T, sem::IsOrg SemType, org::IsImmOrgValueType ImmType>
+template <sem::IsOrg T, typename SemType, typename ImmType>
 struct SemOrImmType<T, SemType, ImmType> {
     using result = SemType;
 };
 
 /// \brief Org type selector specialization to select immer type
-template <
-    org::IsImmOrgValueType T,
-    sem::IsOrg             SemType,
-    org::IsImmOrgValueType ImmType>
+template <org::IsImmOrgValueType T, typename SemType, typename ImmType>
 struct SemOrImmType<T, SemType, ImmType> {
     using result = ImmType;
 };
@@ -417,6 +415,39 @@ Opt<sem::CmdArgumentValue> Cmd_getFirstArgument(
     }
 }
 
+template <typename Handle>
+auto Stmt_getAttached(Handle handle, CR<Opt<Str>> kind) {
+    using Select = SemOrImmType<
+        typename get_ast_type<Handle>::ast_type,
+        sem::SemId<sem::Org>,
+        org::ImmAdapter>;
+
+    Vec<typename Select::result> result;
+    auto                         h = getConstHandle(handle);
+    for (const auto& sub : h->attached) {
+        auto sub_h = toHandle(sub, handle);
+        if (kind) {
+            auto k = *kind;
+            if (sub_h->is(OrgSemKind::CmdAttr)) {
+                auto attr = org_cast<sem::CmdAttr>(sub_h);
+                if (normalize("attr_" + attr->target) == k) {
+                    result.push_back(sub_h);
+                }
+            } else if (
+                sub_h->is(OrgSemKind::CmdCaption)
+                && normalize(k) == "caption") {
+                auto cap = org_cast<sem::CmdCaption>(sub_h);
+                result.push_back(sub_h);
+            }
+        } else {
+            result.push_back(sub_h);
+        }
+    }
+
+    return result;
+}
+
+
 } // namespace
 
 
@@ -435,7 +466,7 @@ void CallDynamicOrgMethod(ThisType thisType, Func func, Args&&... args) {
                 dyn != nullptr,
                 "Statement adapter must hold an ID for the value type "
                 "derived from `{}`, but got {}",
-                typeid(CastType).name(),
+                demangle(typeid(CastType).name()),
                 *thisType);
             std::invoke(func, cast, std::forward<Args>(args)...);
         },
@@ -444,7 +475,7 @@ void CallDynamicOrgMethod(ThisType thisType, Func func, Args&&... args) {
                 false,
                 "Statement adapter must hold an ID for the value type "
                 "derived from `{}`, but got {}",
-                typeid(CastType).name(),
+                demangle(typeid(CastType).name()),
                 *thisType);
         },
     });
@@ -453,6 +484,11 @@ void CallDynamicOrgMethod(ThisType thisType, Func func, Args&&... args) {
 
 // clang-format off
 
+Vec<org::ImmAdapter> org::ImmAdapterStmtAPI::getAttached(Opt<Str> const& kind) const {
+    Vec<org::ImmAdapter> result;
+    CallDynamicOrgMethod<org::ImmStmt>(getThis(), [&](auto const &a1, auto const &a2) { result = Stmt_getAttached(a1, a2); }, kind);
+    return result;
+}
 
 Vec<sem::CmdArgumentValue> org::ImmAdapterStmtAPI::getArguments(CR<Opt<Str>> param) const {
   Vec<sem::CmdArgumentValue> result;
