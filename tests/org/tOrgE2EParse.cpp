@@ -757,11 +757,10 @@ TEST(OrgApi, LinkAttachedGet1) {
     ASSERT_TRUE(link1 != nullptr);
 
     auto args = link1->getArguments("attach-on-export");
-    EXPECT_TRUE(args.has_value());
-    EXPECT_EQ(args.value()->args.size(), 1);
-    auto arg0 = args.value()->args.at(0);
-    EXPECT_EQ(arg0->getBool(), true);
-    EXPECT_EQ(arg0->getString(), "t");
+    EXPECT_EQ(args.size(), 1);
+    auto arg0 = args.at(0);
+    EXPECT_EQ(arg0.getBool(), true);
+    EXPECT_EQ(arg0.getString(), "t");
 }
 
 TEST(OrgApi, TracerOperations1) {

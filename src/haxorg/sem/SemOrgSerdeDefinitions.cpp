@@ -1,6 +1,26 @@
 /* clang-format off */
 #include <haxorg/sem/SemOrgSerde.hpp>
 #include <haxorg/sem/SemOrgSerdeDeclarations.hpp>
+void proto_serde<::orgproto::CmdArgumentValue, sem::CmdArgumentValue>::write(::orgproto::CmdArgumentValue* out, sem::CmdArgumentValue const& in) {
+  if (in.name) {
+    proto_serde<std::string, Str>::write(out->mutable_name(), *in.name);
+  }
+  if (in.varname) {
+    proto_serde<std::string, Str>::write(out->mutable_varname(), *in.varname);
+  }
+  proto_serde<std::string, Str>::write(out->mutable_value(), in.value);
+}
+
+void proto_serde<::orgproto::CmdArgumentValue, sem::CmdArgumentValue>::read(::orgproto::CmdArgumentValue const& out, proto_write_accessor<sem::CmdArgumentValue> in) {
+  if (out.has_name()) {
+    proto_serde<Opt<std::string>, Opt<Str>>::read(out.name(), in.for_field(&sem::CmdArgumentValue::name));
+  }
+  if (out.has_varname()) {
+    proto_serde<Opt<std::string>, Opt<Str>>::read(out.varname(), in.for_field(&sem::CmdArgumentValue::varname));
+  }
+  proto_serde<std::string, Str>::read(out.value(), in.for_field(&sem::CmdArgumentValue::value));
+}
+
 void proto_serde<::orgproto::BlockCodeLine::Part::Raw, sem::BlockCodeLine::Part::Raw>::write(::orgproto::BlockCodeLine::Part::Raw* out, sem::BlockCodeLine::Part::Raw const& in) {
   proto_serde<std::string, Str>::write(out->mutable_code(), in.code);
 }
@@ -595,24 +615,12 @@ void proto_serde<::orgproto::None, sem::None>::read(::orgproto::None const& out,
 
 void proto_serde<::orgproto::CmdArgument, sem::CmdArgument>::write(::orgproto::CmdArgument* out, sem::CmdArgument const& in) {
   proto_serde<::orgproto::CmdArgument, sem::Org>::write(out, in);
-  if (in.key) {
-    proto_serde<std::string, Str>::write(out->mutable_key(), *in.key);
-  }
-  if (in.varname) {
-    proto_serde<std::string, Str>::write(out->mutable_varname(), *in.varname);
-  }
-  proto_serde<std::string, Str>::write(out->mutable_value(), in.value);
+  proto_serde<orgproto::CmdArgumentValue, sem::CmdArgumentValue>::write(out->mutable_arg(), in.arg);
 }
 
 void proto_serde<::orgproto::CmdArgument, sem::CmdArgument>::read(::orgproto::CmdArgument const& out, proto_write_accessor<sem::CmdArgument> in) {
   proto_serde<::orgproto::CmdArgument, sem::Org>::read(out, in.as<sem::Org>());
-  if (out.has_key()) {
-    proto_serde<Opt<std::string>, Opt<Str>>::read(out.key(), in.for_field(&sem::CmdArgument::key));
-  }
-  if (out.has_varname()) {
-    proto_serde<Opt<std::string>, Opt<Str>>::read(out.varname(), in.for_field(&sem::CmdArgument::varname));
-  }
-  proto_serde<std::string, Str>::read(out.value(), in.for_field(&sem::CmdArgument::value));
+  proto_serde<orgproto::CmdArgumentValue, sem::CmdArgumentValue>::read(out.arg(), in.for_field(&sem::CmdArgument::arg));
 }
 
 void proto_serde<::orgproto::CmdArgumentList, sem::CmdArgumentList>::write(::orgproto::CmdArgumentList* out, sem::CmdArgumentList const& in) {

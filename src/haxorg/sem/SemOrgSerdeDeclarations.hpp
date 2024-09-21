@@ -73,6 +73,13 @@
         __MAP(kDocumentgroup, documentgroup, DocumentGroup)  \
 
 template <>
+struct proto_serde<::orgproto::CmdArgumentValue, sem::CmdArgumentValue> {
+  static void write(::orgproto::CmdArgumentValue* out, sem::CmdArgumentValue const& in);
+  static void read(::orgproto::CmdArgumentValue const& out, proto_write_accessor<sem::CmdArgumentValue> in);
+};
+
+
+template <>
 struct proto_serde<::orgproto::BlockCodeLine::Part::Raw, sem::BlockCodeLine::Part::Raw> {
   static void write(::orgproto::BlockCodeLine::Part::Raw* out, sem::BlockCodeLine::Part::Raw const& in);
   static void read(::orgproto::BlockCodeLine::Part::Raw const& out, proto_write_accessor<sem::BlockCodeLine::Part::Raw> in);

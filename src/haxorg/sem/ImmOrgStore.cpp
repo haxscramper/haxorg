@@ -409,9 +409,6 @@ ImmAstVersion ImmAstContext::init(sem::SemId<sem::Org> root) {
 }
 
 
-
-
-
 struct AddContext {
     ImmAstContext* store;
 };
@@ -622,6 +619,7 @@ __same_type(sem::DocumentExportConfig);
 __same_type(sem::BlockCodeSwitch);
 __same_type(sem::BlockCodeEvalResult);
 __same_type(sem::BlockCodeLine);
+__same_type(sem::CmdArgumentValue);
 
 
 template <typename SemType, typename ImmType>

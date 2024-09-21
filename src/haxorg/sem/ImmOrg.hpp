@@ -836,6 +836,18 @@ struct ImmAdapterT : ImmAdapterTBase<T> {
     USE_IMM_ADAPTER_BASE(T);
 };
 
+// struct ImmAdapterCmdAPI {
+//     virtual Opt<org::ImmAdapterT<org::ImmCmdArgumentList>> getArguments(CR<Opt<Str>> param) const = 0;
+// };
+
+// template <>
+// struct ImmAdapterT<org::ImmCell>
+//     : ImmAdapterTBase<ImmCell>
+//     , ImmAdapterCmdAPI {
+//     USE_IMM_ADAPTER_BASE(org::ImmCell);
+//     Opt<org::ImmAdapterT<org::ImmCmdArgumentList>> getArguments(CR<Opt<Str>> param) const;
+// };
+
 
 template <>
 struct ImmAdapterT<ImmSubtree> : ImmAdapterTBase<ImmSubtree> {

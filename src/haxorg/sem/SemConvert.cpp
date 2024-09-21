@@ -680,8 +680,8 @@ OrgConverter::ConvResult<TimeRange> OrgConverter::convertTimeRange(
 }
 
 void addArgument(SemId<CmdArguments>& result, SemId<CmdArgument> arg) {
-    if (arg->key) {
-        auto key = normalize(*arg->key);
+    if (arg->arg.name) {
+        auto key = normalize(arg->getName());
         if (result->named.contains(key)) {
             result->named[key]->args.push_back(arg);
         } else {
@@ -1108,8 +1108,8 @@ OrgConverter::ConvResult<BlockExport> OrgConverter::convertBlockExport(
     }
 
     auto values = convertCmdArguments(one(a, N::Args)).value();
-    if (auto place = values->getArguments("placement"); place) {
-        eexport->placement = place->value->args.at(0)->getString();
+    if (auto place = values->getArguments("placement"); !place.empty()) {
+        eexport->placement = place.at(0).getString();
         values->named.erase("placement");
     }
 
@@ -1174,10 +1174,10 @@ OrgConverter::ConvResult<Latex> OrgConverter::convertMath(__args) {
 OrgConverter::ConvResult<Include> OrgConverter::convertInclude(__args) {
     SemId<Include> include = Sem<Include>(a);
     auto           args    = convertCmdArguments(one(a, N::Args)).value();
-    include->path          = args->positional->args.at(0)->getString();
+    include->path          = args->positional->args.at(0)->arg.getString();
 
     if (auto kind = args->positional->args.get(1)) {
-        Str ks = kind.value().get()->value;
+        Str ks = kind.value().get()->arg.value;
         if (ks == "src"_ss) {
             auto src      = sem::Include::Src{};
             include->data = src;
@@ -1191,14 +1191,13 @@ OrgConverter::ConvResult<Include> OrgConverter::convertInclude(__args) {
     }
 
     if (args->named.contains("minlevel")) {
-        include->getOrgDocument().minLevel = args->named.at("minlevel")
-                                                 ->args.at(0)
-                                                 ->getInt();
+        include->getOrgDocument().minLevel //
+            = args->named.at("minlevel")->args.at(0)->arg.getInt();
     }
 
     if (args->named.contains("lines")) {
         Str lines = strip(
-            (**args->getArguments("lines")).args.at(0)->getString(),
+            args->getArguments("lines").at(0).getString(),
             CharSet{'"'},
             CharSet{'"'});
         Vec<Str> split = lines.split("-");
@@ -1231,12 +1230,12 @@ OrgConverter::ConvResult<CmdArgument> OrgConverter::convertCmdArgument(
     auto               __trace = trace(a);
     SemId<CmdArgument> result  = Sem<CmdArgument>(a);
     Str                key     = get_text(one(a, N::Name));
-    result->value              = get_text(one(a, N::Value));
+    result->arg.value          = get_text(one(a, N::Value));
 
-    if (!key.empty()) { result->key = key.substr(1); }
+    if (!key.empty()) { result->arg.name = key.substr(1); }
 
     if (TraceState) {
-        print(fmt("key:{} value:{}", result->key, result->value));
+        print(fmt("key:{} value:{}", result->arg.name, result->arg.value));
     }
 
     return result;
@@ -1272,13 +1271,13 @@ OrgConverter::ConvResult<CmdArguments> OrgConverter::convertCallArguments(
     for (auto const& arg : args) {
         auto conv = Sem<CmdArgument>(arg);
         if (2 < arg.size() && get_text(arg.at(1)) == "=") {
-            conv->key = get_text(arg.at(0));
+            conv->arg.name = get_text(arg.at(0));
             for (int i = 2; i < arg.size(); ++i) {
-                conv->value += get_text(arg.at(i));
+                conv->arg.value += get_text(arg.at(i));
             }
         } else {
             for (int i = 0; i < arg.size(); ++i) {
-                conv->value += get_text(arg.at(i));
+                conv->arg.value += get_text(arg.at(i));
             }
         }
 
@@ -1303,7 +1302,7 @@ OrgConverter::ConvResult<CmdName> OrgConverter::convertCmdName(__args) {
     auto           args    = convertCmdArgument(a.at(0).at(0));
 
     if (auto name = args.optNode()) {
-        result->name = name->value->getString();
+        result->name = name->value->getName();
     } else {
         result->push_back(args.optError().value());
     }

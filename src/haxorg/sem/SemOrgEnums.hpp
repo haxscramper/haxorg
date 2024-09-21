@@ -49,6 +49,7 @@
     __IMPL(NamedProperty, Visibility::Level, (Visibility, Level)) \
     __IMPL(NamedProperty, Kind, (Kind))
 #define EACH_SHARED_ORG_RECORD(__IMPL) \
+    __IMPL(CmdArgumentValue, (CmdArgumentValue)) \
     __IMPL(BlockCodeLine, (BlockCodeLine)) \
     __IMPL(BlockCodeLine::Part, (BlockCodeLine, Part)) \
     __IMPL(BlockCodeLine::Part::Raw, (BlockCodeLine, Part, Raw)) \

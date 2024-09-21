@@ -12,6 +12,23 @@
 #include <haxorg/sem/SemOrgBase.hpp>
 #include <haxorg/sem/SemOrgEnums.hpp>
 namespace sem{
+struct CmdArgumentValue {
+  BOOST_DESCRIBE_CLASS(CmdArgumentValue,
+                       (),
+                       (),
+                       (),
+                       (name,
+                        varname,
+                        value))
+  Opt<Str> name = std::nullopt;
+  Opt<Str> varname = std::nullopt;
+  Str value = "";
+  Opt<bool> getBool() const;
+  Opt<int> getInt() const;
+  Str getString() const;
+  bool operator==(sem::CmdArgumentValue const& other) const;
+};
+
 struct BlockCodeLine {
   struct Part {
     struct Raw {
@@ -630,23 +647,13 @@ struct CmdArgument : public sem::Org {
                        (),
                        (),
                        (staticKind,
-                        key,
-                        varname,
-                        value))
+                        arg))
   static OrgSemKind const staticKind;
-  /// \brief Key
-  Opt<Str> key = std::nullopt;
-  /// \brief When used in the `:var` assignment, this stores variable name
-  Opt<Str> varname = std::nullopt;
-  /// \brief Value
-  Str value;
+  sem::CmdArgumentValue arg;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdArgument; }
-  /// \brief Parse argument as integer value
-  Opt<int> getInt() const;
-  /// \brief Get argument as bool
-  Opt<bool> getBool() const;
-  /// \brief Get original string
-  Str getString() const;
+  Str getName() const;
+  Str getValue() const;
+  Str getVarname() const;
 };
 
 /// \brief Data type to wrap list of identical command arguments
@@ -681,7 +688,7 @@ struct CmdArguments : public sem::Org {
   /// \brief Stored key-value mapping
   UnorderedMap<Str, sem::SemId<sem::CmdArgumentList>> named;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdArguments; }
-  Opt<sem::SemId<sem::CmdArgumentList>> getArguments(Opt<Str> const& key = std::nullopt) const;
+  Vec<sem::CmdArgumentValue> getArguments(Opt<Str> const& key = std::nullopt) const;
 };
 
 struct ErrorItem : public sem::Org {
@@ -734,9 +741,9 @@ struct Stmt : public sem::Org {
   /// \brief Return attached nodes of a specific kinds or all attached (if kind is nullopt)
   Vec<sem::SemId<sem::Org>> getAttached(Opt<Str> const& kind = std::nullopt) const;
   /// \brief Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.
-  virtual Opt<sem::SemId<sem::CmdArgumentList>> getArguments(Opt<Str> const& kind = std::nullopt) const;
+  virtual Vec<sem::CmdArgumentValue> getArguments(Opt<Str> const& kind = std::nullopt) const;
   /// \brief Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities
-  virtual Opt<sem::SemId<sem::CmdArgument>> getFirstArgument(Str const& kind) const;
+  virtual Opt<sem::CmdArgumentValue> getFirstArgument(Str const& kind) const;
 };
 
 /// \brief Base class for all inline elements
@@ -784,9 +791,9 @@ struct Cmd : public sem::Stmt {
   /// \brief Additional parameters aside from 'exporter',
   Opt<sem::SemId<sem::CmdArguments>> parameters = std::nullopt;
   /// \brief Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.
-  virtual Opt<sem::SemId<sem::CmdArgumentList>> getArguments(Opt<Str> const& key = std::nullopt) const override;
+  virtual Vec<sem::CmdArgumentValue> getArguments(Opt<Str> const& key = std::nullopt) const override;
   /// \brief Override of the base statement argument get, prioritizing the explicit command parameters
-  virtual Opt<sem::SemId<sem::CmdArgument>> getFirstArgument(Str const& kind) const override;
+  virtual Opt<sem::CmdArgumentValue> getFirstArgument(Str const& kind) const override;
 };
 
 /// \brief Block command type

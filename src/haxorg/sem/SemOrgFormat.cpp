@@ -82,14 +82,14 @@ auto Formatter::toString(SemId<Macro> id, CR<Context> ctx) -> Res {
     if (id->parameters) {
         if (id->parameters->positional) {
             for (auto const& it : id->parameters->positional->args) {
-                parameters.push_back(str(it->value));
+                parameters.push_back(str(it->getValue()));
             }
         }
 
         for (auto const& key : sorted(id->parameters->named.keys())) {
             for (auto const& it : id->parameters->named.at(key)->args) {
                 parameters.push_back(
-                    str(fmt("{}={}", it->key.value(), it->value)));
+                    str(fmt("{}={}", it->getName(), it->getValue())));
             }
         }
     }
@@ -264,10 +264,10 @@ auto Formatter::toString(SemId<Footnote> id, CR<Context> ctx) -> Res {
 
 auto Formatter::toString(SemId<CmdArgument> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    if (id->key) {
-        return str(fmt(":{} {}", id->key.value(), id->value));
+    if (id->arg.name) {
+        return str(fmt(":{} {}", id->getName(), id->getValue()));
     } else {
-        return str(id->value);
+        return str(id->getValue());
     }
 }
 
@@ -558,10 +558,10 @@ auto Formatter::toString(SemId<Call> id, CR<Context> ctx) -> Res {
 
     if (id->parameters->positional) {
         for (auto const& it : id->parameters->positional->args) {
-            if (it->value.contains(",")) {
-                parameters.push_back(str(fmt("={}=", it->value)));
+            if (it->getValue().contains(",")) {
+                parameters.push_back(str(fmt("={}=", it->getValue())));
             } else {
-                parameters.push_back(str(it->value));
+                parameters.push_back(str(it->getValue()));
             }
         }
     }
@@ -569,7 +569,7 @@ auto Formatter::toString(SemId<Call> id, CR<Context> ctx) -> Res {
     for (auto const& key : sorted(id->parameters->named.keys())) {
         for (auto const& it : id->parameters->named.at(key)->args) {
             parameters.push_back(
-                str(fmt("{}={}", it->key.value(), it->value)));
+                str(fmt("{}={}", it->getName(), it->getValue())));
         }
     }
 

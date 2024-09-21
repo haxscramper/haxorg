@@ -284,6 +284,13 @@ enum OrgSemKind {
   OrgSemKind_DocumentGroup_f                                                        = 68;
 }
 
+message CmdArgumentValue {
+  optional string                                  name                             = 1;
+  optional string                                  varname                          = 2;
+  string                                           value                            = 3;
+  string                                           debug                            = 1000;
+}
+
 message BlockCodeLine {
   message Part {
     message Raw {
@@ -596,9 +603,7 @@ message None {
 message CmdArgument {
   repeated AnyNode                                 subnodes                         = 1;
   OrgSemKind                                       staticKind                       = 2;
-  optional string                                  key                              = 3;
-  optional string                                  varname                          = 4;
-  string                                           value                            = 5;
+  CmdArgumentValue                                 arg                              = 3;
   string                                           debug                            = 1000;
 }
 

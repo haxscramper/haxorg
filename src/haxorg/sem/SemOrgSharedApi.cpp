@@ -318,6 +318,75 @@ Vec<sem::SubtreePeriod> subtreeGetTimePeriodsImpl(
 
 } // namespace
 
+Opt<sem::CmdArgumentValue> sem::Stmt::getFirstArgument(
+    CR<Str> kind) const {
+    auto res = getArguments(kind);
+
+    if (res.empty()) {
+        return std::nullopt;
+    } else {
+        return res.front();
+    }
+}
+
+
+Vec<sem::CmdArgumentValue> sem::Stmt::getArguments(
+    const Opt<Str>& kind) const {
+    Vec<sem::CmdArgumentValue> result;
+
+    for (auto const& sub : attached) {
+        if (auto attr = sub.getAs<sem::CmdAttr>()) {
+            result.append(attr->parameters.value()->getArguments(kind));
+        }
+    }
+
+    return result;
+}
+
+Vec<sem::CmdArgumentValue> sem::CmdArguments::getArguments(
+    CR<Opt<Str>> param) const {
+    Vec<sem::CmdArgumentValue> res;
+    if (param) {
+        auto norm = normalize(*param);
+        if (named.contains(norm)) {
+            for (auto const& it : named.at(norm)->args) {
+                res.push_back(it->arg);
+            }
+        }
+    } else {
+        for (auto const& it : positional->args) { res.push_back(it->arg); }
+
+        for (auto const& it : named.keys()) {
+            for (auto const& val : named.at(it)->args) {
+                res.push_back(val->arg);
+            }
+        }
+    }
+
+    return res;
+}
+
+Vec<sem::CmdArgumentValue> sem::Cmd::getArguments(
+    CR<Opt<Str>> param) const {
+    Vec<sem::CmdArgumentValue> res;
+    if (parameters) { res = parameters.value()->getArguments(param); }
+    res.append(Stmt::getArguments(param));
+    return res;
+}
+
+Opt<sem::CmdArgumentValue> sem::Cmd::getFirstArgument(CR<Str> kind) const {
+    if (parameters) {
+        auto res = parameters.value()->getArguments(kind);
+        if (res.empty()) {
+            return std::nullopt;
+        } else {
+            return res.front();
+        }
+    } else {
+        return Stmt::getFirstArgument(kind);
+    }
+}
+
 // clang-format off
 Opt<sem::NamedProperty> sem::Subtree::getProperty(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertyImpl(this, kind, subkind); }
 Opt<sem::NamedProperty> org::ImmAdapterT<org::ImmSubtree>::getProperty(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertyImpl(*this, kind, subkind); }
@@ -325,4 +394,10 @@ Vec<sem::NamedProperty> sem::Subtree::getProperties(Str const &kind, CR<Opt<Str>
 Vec<sem::NamedProperty> org::ImmAdapterT<org::ImmSubtree>::getProperties(const Str &kind, const Opt<Str> &subkind) const { return subtreeGetPropertiesImpl(*this, kind, subkind); }
 Vec<sem::SubtreePeriod> sem::Subtree::getTimePeriods(IntSet<sem::SubtreePeriod::Kind> kinds) const { return subtreeGetTimePeriodsImpl(this, kinds); }
 Vec<sem::SubtreePeriod> org::ImmAdapterT<org::ImmSubtree>::getTimePeriods(IntSet<sem::SubtreePeriod::Kind> kinds) const { return subtreeGetTimePeriodsImpl(*this, kinds); }
+// Opt<org::ImmAdapterT<org::ImmCmdArgumentList>> org::ImmAdapterT<org::ImmCell>::getArguments(CR<Opt<Str>> param) const { return cmdGetArgumentsImpl(*this, param); }
+
+Str sem::CmdArgument::getValue() const { return arg.value; }
+Str sem::CmdArgument::getName() const { return arg.name.value(); }
+Str sem::CmdArgument::getVarname() const { return arg.varname.value(); }
+
 // clang-format on

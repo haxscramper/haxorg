@@ -50,62 +50,6 @@ Org::Org(OrgAdapter original) : original(original), subnodes({}) {}
 Org::Org(CVec<SemId<Org>> subnodes) : subnodes(subnodes) {}
 
 
-Opt<SemId<CmdArgumentList>> CmdArguments::getArguments(
-    CR<Opt<Str>> param) const {
-    if (param) {
-        auto norm = normalize(*param);
-        if (named.contains(norm)) {
-            return named.at(norm);
-        } else {
-            return std::nullopt;
-        }
-    } else {
-        auto result = SemId<CmdArgumentList>::New();
-        for (auto const& it : positional->args) {
-            result->args.push_back(it);
-        }
-
-        for (auto const& it : named.keys()) {
-            for (auto const& val : named.at(it)->args) {
-                result->args.push_back(val);
-            }
-        }
-
-        return result;
-    }
-}
-
-Opt<SemId<CmdArgumentList>> Cmd::getArguments(CR<Opt<Str>> param) const {
-    Opt<SemId<CmdArgumentList>> paramArguments;
-    if (parameters) {
-        paramArguments = parameters.value()->getArguments(param);
-    }
-
-    auto stmtArguments = Stmt::getArguments(param);
-
-    auto res = SemId<CmdArgumentList>::New();
-    if (paramArguments) { res->args.append((**paramArguments).args); }
-    if (stmtArguments) { res->args.append((**stmtArguments).args); }
-
-    if (res->args.empty()) {
-        return std::nullopt;
-    } else {
-        return res;
-    }
-}
-
-Opt<sem::SemId<CmdArgument>> Cmd::getFirstArgument(CR<Str> kind) const {
-    if (parameters) {
-        auto res = parameters.value()->getArguments(kind);
-        if (res) { return (**res).args.front(); }
-    }
-
-    return Stmt::getFirstArgument(kind);
-}
-
-
-
-
 bool HashTag::prefixMatch(CR<Vec<Str>> prefix) const {
     if (prefix.empty() || (prefix.size() == 1 && prefix[0] == head)) {
         return true;
@@ -141,7 +85,6 @@ void Subtree::setProperty(Property const& value) {
     removeProperty(value.getName(), value.getSubKind());
     properties.push_back(value);
 }
-
 
 
 void Subtree::removeProperty(const Str& kind, const Opt<Str>& subkind) {
@@ -263,41 +206,8 @@ Vec<sem::SemId<sem::Org>> Stmt::getAttached(CR<Opt<Str>> kind) const {
     return result;
 }
 
-Opt<sem::SemId<CmdArgumentList>> Stmt::getArguments(
-    const Opt<Str>& kind) const {
-    auto result      = SemId<CmdArgumentList>::New();
-    auto expect_kind = [&](CR<Str> key) -> bool {
-        return !kind || normalize(*kind) == key;
-    };
 
-    for (auto const& sub : attached) {
-        if (auto cap = sub.getAs<CmdCaption>(); expect_kind("caption")) {
-            // pass
-        } else if (auto attr = sub.getAs<sem::CmdAttr>()) {
-            if (auto arguments = (**attr->parameters).getArguments(kind)) {
-                for (auto const& arg : (**arguments).args) {
-                    result->args.push_back(arg);
-                }
-            }
-        }
-    }
 
-    if (result->args.empty()) {
-        return std::nullopt;
-    } else {
-        return result;
-    }
-}
-
-Opt<sem::SemId<CmdArgument>> Stmt::getFirstArgument(CR<Str> kind) const {
-    auto res = getArguments(kind);
-
-    if (res) {
-        return (**res).args.front();
-    } else {
-        return std::nullopt;
-    }
-}
 
 void Org::push_back(SemId<Org> sub) {
     auto dat = subnodes.data();
@@ -305,9 +215,9 @@ void Org::push_back(SemId<Org> sub) {
 }
 
 
-Str CmdArgument::getString() const { return value; }
+Str CmdArgumentValue::getString() const { return value; }
 
-Opt<bool> CmdArgument::getBool() const {
+Opt<bool> CmdArgumentValue::getBool() const {
     if (value == "yes" || value == "true" || value == "on"
         || value == "t") {
         return true;
@@ -320,7 +230,7 @@ Opt<bool> CmdArgument::getBool() const {
     }
 }
 
-Opt<int> CmdArgument::getInt() const {
+Opt<int> CmdArgumentValue::getInt() const {
     bool isOk   = false;
     int  result = value.toInt();
     if (isOk) {

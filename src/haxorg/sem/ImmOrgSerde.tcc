@@ -17,17 +17,13 @@ template <>
 struct ImmSemSerde<sem::CmdArgument, org::ImmCmdArgument> {
   static org::ImmCmdArgument to_immer(sem::CmdArgument const& value, ImmAstEditContext& ctx) {
     org::ImmCmdArgument result = SerdeDefaultProvider<org::ImmCmdArgument>::get();
-    assign_immer_field(result.key, value.key, ctx);
-    assign_immer_field(result.varname, value.varname, ctx);
-    assign_immer_field(result.value, value.value, ctx);
+    assign_immer_field(result.arg, value.arg, ctx);
     assign_immer_field(result.subnodes, value.subnodes, ctx);
     return result;
   }
   static sem::CmdArgument from_immer(org::ImmCmdArgument const& value, ImmAstContext const& ctx) {
     sem::CmdArgument result = SerdeDefaultProvider<sem::CmdArgument>::get();
-    assign_sem_field(result.key, value.key, ctx);
-    assign_sem_field(result.varname, value.varname, ctx);
-    assign_sem_field(result.value, value.value, ctx);
+    assign_sem_field(result.arg, value.arg, ctx);
     assign_sem_field(result.subnodes, value.subnodes, ctx);
     return result;
   }

@@ -93,8 +93,6 @@ EACH_SEM_ORG_KIND(_define_static)
 #undef _define_static
 
 
-
-
 using namespace org;
 
 
@@ -139,6 +137,7 @@ placeholder_visitor(UserTime);
 placeholder_visitor(std::string);
 placeholder_visitor(sem::BigIdent);
 placeholder_visitor(org::ImmIdT<sem::BigIdent>);
+placeholder_visitor(sem::CmdArgumentValue);
 placeholder_visitor(Vec<sem::SemId<sem::Org>>);
 
 #undef placeholder_visitor

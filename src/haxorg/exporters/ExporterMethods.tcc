@@ -1,4 +1,5 @@
 /* clang-format off */
+void visit(R& res, sem::CmdArgumentValue const& object);
 void visit(R& res, sem::BlockCodeLine const& object);
 void visit(R& res, sem::BlockCodeLine::Part::Data const& object);
 void visit(R& res, sem::BlockCodeLine::Part const& object);

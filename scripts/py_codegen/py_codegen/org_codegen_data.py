@@ -407,33 +407,13 @@ def get_sem_misc():
             GenTuDoc("Single key-value (or positional)"),
             bases=[t_org("Org")],
             fields=[
-                opt_field(t_str(), "key", GenTuDoc("Key")),
-                opt_field(
-                    t_str(), "varname",
-                    GenTuDoc(
-                        "When used in the `:var` assignment, this stores variable name")),
-                GenTuField(t_str(), "value", GenTuDoc("Value")),
+                GenTuField(t_nest_shared("CmdArgumentValue"), "arg"),
             ],
             methods=[
-                GenTuFunction(
-                    t_opt(t_int()),
-                    "getInt",
-                    GenTuDoc("Parse argument as integer value"),
-                    isConst=True,
-                ),
-                GenTuFunction(
-                    t_opt(t_bool()),
-                    "getBool",
-                    GenTuDoc("Get argument as bool"),
-                    isConst=True,
-                ),
-                GenTuFunction(
-                    t_str(),
-                    "getString",
-                    GenTuDoc("Get original string"),
-                    isConst=True,
-                ),
-            ],
+                GenTuFunction(t_str(), "getName", isConst=True),
+                GenTuFunction(t_str(), "getValue", isConst=True),
+                GenTuFunction(t_str(), "getVarname", isConst=True),
+            ]
         ),
         d_org(
             "CmdArgumentList",
@@ -453,7 +433,7 @@ def get_sem_misc():
             bases=[t_org("Org")],
             methods=[
                 GenTuFunction(
-                    t_opt(t_id("CmdArgumentList")),
+                    t_vec(t_nest_shared("CmdArgumentValue")),
                     "getArguments",
                     GenTuDoc(""),
                     arguments=[opt_ident(t_str(), "key", GenTuDoc(""))],
@@ -530,7 +510,7 @@ def get_sem_bases():
                     isConst=True,
                 ),
                 GenTuFunction(
-                    t_opt(t_id("CmdArgumentList")),
+                    t_vec(t_nest_shared("CmdArgumentValue")),
                     "getArguments",
                     GenTuDoc(
                         "Get all named arguments for the command, across all attached properties. "
@@ -541,7 +521,7 @@ def get_sem_bases():
                     isVirtual=True,
                 ),
                 GenTuFunction(
-                    t_opt(t_id("CmdArgument")),
+                    t_opt(t_nest_shared("CmdArgumentValue")),
                     "getFirstArgument",
                     GenTuDoc(
                         "Get the first parameter for the statement. "
@@ -589,7 +569,7 @@ def get_sem_bases():
             ],
             methods=[
                 GenTuFunction(
-                    t_opt(t_id("CmdArgumentList")),
+                    t_vec(t_nest_shared("CmdArgumentValue")),
                     "getArguments",
                     GenTuDoc(
                         "Return all parameters with keys matching name. "
@@ -601,7 +581,7 @@ def get_sem_bases():
                     isOverride=True,
                 ),
                 GenTuFunction(
-                    t_opt(t_id("CmdArgument")),
+                    t_opt(t_nest_shared("CmdArgumentValue")),
                     "getFirstArgument",
                     GenTuDoc(
                         "Override of the base statement argument get, prioritizing the explicit command parameters"
@@ -1387,6 +1367,20 @@ def get_shared_sem_enums() -> Sequence[GenTuEnum]:
 
 def get_shared_sem_types() -> Sequence[GenTuStruct]:
     return [
+        GenTuStruct(
+            t_nest_shared("CmdArgumentValue"),
+            fields=[
+                opt_field(t_str(), "name"),
+                opt_field(t_str(), "varname"),
+                str_field("value"),
+            ],
+            methods=[
+                GenTuFunction(t_opt(t_bool()), "getBool", isConst=True),
+                GenTuFunction(t_opt(t_int()), "getInt", isConst=True),
+                GenTuFunction(t_str(), "getString", isConst=True),
+                eq_method(t_nest_shared("CmdArgumentValue")),
+            ]
+        ),
         GenTuStruct(
             t_nest_shared("BlockCodeLine"),
             methods=[eq_method(t_nest_shared("BlockCodeLine"))],

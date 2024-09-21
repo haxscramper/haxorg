@@ -25,16 +25,9 @@ struct ImmCmdArgument : public org::ImmOrg {
                        (),
                        (),
                        (staticKind,
-                        key,
-                        varname,
-                        value))
+                        arg))
   static OrgSemKind const staticKind;
-  /// \brief Key
-  ImmBox<Opt<Str>> key = std::nullopt;
-  /// \brief When used in the `:var` assignment, this stores variable name
-  ImmBox<Opt<Str>> varname = std::nullopt;
-  /// \brief Value
-  ImmBox<Str> value;
+  sem::CmdArgumentValue arg;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdArgument; }
   bool operator==(org::ImmCmdArgument const& other) const;
 };
