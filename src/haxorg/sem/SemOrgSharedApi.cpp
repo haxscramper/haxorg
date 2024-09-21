@@ -316,7 +316,7 @@ Vec<sem::SubtreePeriod> subtreeGetTimePeriodsImpl(
 }
 
 template <typename Handle>
-Vec<sem::CmdArgumentValue> Cmd_getArguments(
+Vec<sem::CmdArgumentValue> CmdArguments_getArguments(
     Handle const& handle,
     CR<Opt<Str>>  param) {
     auto h           = getConstHandle(handle);
@@ -358,7 +358,7 @@ Vec<sem::CmdArgumentValue> Stmt_getArguments(
     for (auto const& sub : h->attached) {
         if (toHandle(sub, handle)->getKind() == OrgSemKind::CmdAttr) {
             result.append( //
-                Cmd_getArguments(
+                CmdArguments_getArguments(
                     toHandle(
                         org_cast<sem::CmdAttr>(toHandle(sub, handle))
                             ->parameters,
@@ -387,7 +387,7 @@ Opt<sem::CmdArgumentValue> sem::Stmt::getFirstArgument(
 
 Vec<sem::CmdArgumentValue> sem::CmdArguments::getArguments(
     CR<Opt<Str>> param) const {
-    return Cmd_getArguments(this, param);
+    return CmdArguments_getArguments(this, param);
 }
 
 Vec<sem::CmdArgumentValue> sem::Cmd::getArguments(
@@ -411,32 +411,49 @@ Opt<sem::CmdArgumentValue> sem::Cmd::getFirstArgument(CR<Str> kind) const {
     }
 }
 
-Vec<sem::CmdArgumentValue> org::ImmAdapterStmtAPI::getArguments(
-    CR<Opt<Str>> param) const {
-    Vec<sem::CmdArgumentValue> result;
-    getThis()->visitNodeAdapter(overloaded{
+template <
+    typename CastType,
+    typename ThisType,
+    typename Func,
+    typename... Args>
+void CallDynamicOrgMethod(ThisType thisType, Func func, Args&&... args) {
+
+    thisType->visitNodeAdapter(overloaded{
         [&]<typename Kind>(org::ImmAdapterT<Kind> const& cast)
-            requires std::derived_from<Kind, org::ImmStmt>
+            requires std::derived_from<Kind, CastType>
         {
-            auto dyn = cast.template dyn_cast<org::ImmStmt>();
+            auto dyn = cast.template dyn_cast<CastType>();
             LOGIC_ASSERTION_CHECK(
                 dyn != nullptr,
                 "Statement adapter must hold an ID for the value type "
-                "derived from `org::ImmStmt`, but got {}",
-                *getThis());
-            result = Stmt_getArguments(cast, param);
+                "derived from `{}`, but got {}",
+                typeid(CastType).name(),
+                *thisType);
+            std::invoke(func, cast, std::forward<Args>(args)...);
         },
         [&]<typename Kind>(org::ImmAdapterT<Kind> const& cast) {
             LOGIC_ASSERTION_CHECK(
                 false,
                 "Statement adapter must hold an ID for the value type "
-                "derived from `org::ImmStmt`, but got {}",
-                *getThis());
+                "derived from `{}`, but got {}",
+                typeid(CastType).name(),
+                *thisType);
         },
     });
+}
 
+Vec<sem::CmdArgumentValue> org::ImmAdapterStmtAPI::getArguments(
+    CR<Opt<Str>> param) const {
+    Vec<sem::CmdArgumentValue> result;
+    CallDynamicOrgMethod<org::ImmStmt>(
+        getThis(),
+        [&](auto const& a1, auto const& a2) {
+            result = Stmt_getArguments(a1, a2);
+        },
+        param);
     return result;
 }
+
 
 // clang-format off
 
