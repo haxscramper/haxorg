@@ -315,6 +315,26 @@ Vec<sem::SubtreePeriod> subtreeGetTimePeriodsImpl(
     return res;
 }
 
+template <typename Handle>
+Vec<sem::CmdArgumentValue> Stmt_getArguments(
+    Handle          handle,
+    const Opt<Str>& kind) {
+    auto h           = getConstHandle(handle);
+    using HandleBase = get_ast_type<Handle>::ast_type;
+
+    Vec<sem::CmdArgumentValue> result;
+
+    for (auto const& sub : h->attached) {
+        if (toHandle(sub, handle)->getKind() == OrgSemKind::CmdAttr) {
+            result.append( //
+                org_cast<sem::CmdAttr>(sub)
+                    ->parameters.value()
+                    ->getArguments(kind));
+        }
+    }
+
+    return result;
+}
 
 } // namespace
 
@@ -329,19 +349,6 @@ Opt<sem::CmdArgumentValue> sem::Stmt::getFirstArgument(
     }
 }
 
-
-Vec<sem::CmdArgumentValue> sem::Stmt::getArguments(
-    const Opt<Str>& kind) const {
-    Vec<sem::CmdArgumentValue> result;
-
-    for (auto const& sub : attached) {
-        if (auto attr = sub.getAs<sem::CmdAttr>()) {
-            result.append(attr->parameters.value()->getArguments(kind));
-        }
-    }
-
-    return result;
-}
 
 Vec<sem::CmdArgumentValue> sem::CmdArguments::getArguments(
     CR<Opt<Str>> param) const {
@@ -388,6 +395,9 @@ Opt<sem::CmdArgumentValue> sem::Cmd::getFirstArgument(CR<Str> kind) const {
 }
 
 // clang-format off
+
+Vec<sem::CmdArgumentValue> sem::Stmt::getArguments(const Opt<Str>& kind) const { return Stmt_getArguments(this, kind); }
+
 Opt<sem::NamedProperty> sem::Subtree::getProperty(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertyImpl(this, kind, subkind); }
 Opt<sem::NamedProperty> org::ImmAdapterT<org::ImmSubtree>::getProperty(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertyImpl(*this, kind, subkind); }
 Vec<sem::NamedProperty> sem::Subtree::getProperties(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertiesImpl(this, kind, subkind); }
