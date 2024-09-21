@@ -68,6 +68,23 @@ using ImmAstParentMapType = ImmMap<org::ImmId, org::ImmId>;
 struct ImmAstTrackingMap;
 
 
+/// \brief Single jump from one node in the AST to another node.
+///
+/// The path is targeting only node elements in the structure --
+/// regular fields like vectors, key-value maps are not targetable. For
+/// example, if the node `Paragraph_1` has 3 subnodes for `Word_1`,
+/// `Space_1` and, `Word_2`, the full set of paths for them is going to be
+///
+/// - `Paragraph_1` -- targeting the root node itself
+/// - `Paragraph_1` >> .subnodes.[0] >> `Word_1` -- targeting the first
+/// word
+/// - `Paragraph_1` >> .subnodes.[1] >> `Space_1` -- targeting space
+/// - `Paragraph_1` >> .subnodes.[2] >> `Word_2` -- targeting the second
+/// word
+///
+/// `.subnodes` field of the root paragraph can be targeted with the
+/// general reflection visitor, but for the immutable AST this is not
+/// necessary, as the path should transition between AST *nodes*.
 struct ImmPathStep {
     /// \brief path from the root of the immer node to the next ImmId
     /// element.
@@ -78,27 +95,53 @@ struct ImmPathStep {
     }
 };
 
+/// \brief Full path from the root of the document to a specific node.
 struct ImmPath {
-    ImmId            root;
+    /// \brief Root ID node
+    ImmId root;
+    /// \brief Sequence of jumps from the root of the document down to the
+    /// specified target node. For the path iteration structure see \see
+    /// ImmPathStep documentation.
     Vec<ImmPathStep> path;
 
 
     DESC_FIELDS(ImmPath, (root, path));
 
+    /// \brief Empty path refers to the root of the document
     bool empty() const { return path.empty(); }
 
+    /// \brief Construct default path that refers to a `Nil` root
     ImmPath() : root{ImmId::Nil()} {}
+    /// \brief Path referring to the root directly
     ImmPath(ImmId root) : root{root} {};
+    /// \brief Path referring to a direct sub-element of the root (one jump
+    /// from the root node)
     ImmPath(ImmId root, ReflPath const& step0)
         : root{root}, path{ImmPathStep{step0}} {}
+    /// \brief Path referring to a direct sub-element (one jump from the
+    /// root)
     ImmPath(ImmId root, ImmPathStep const& step0)
         : root{root}, path{{step0}} {}
+    /// \brief Path referring to some nested element in the tree (any
+    /// number of jumps)
     ImmPath(ImmId root, Vec<ImmPathStep> const& path)
         : root{root}, path{path} {}
+    /// \brief Path referring to some nested element in the tree (any
+    /// number of jumps)
     ImmPath(ImmId root, Span<ImmPathStep> const& span)
         : root{root}, path{span.begin(), span.end()} {}
 
-    generator<Span<ImmPathStep>> pathSpans(bool leafStart = true) const {
+    /// \brief Generate sequence of spans for each jump step, starting from
+    /// the leaf up, or from root down.
+    ///
+    /// \note Spans will not include the empty span (targeting the root
+    /// node itself)
+    generator<Span<ImmPathStep>> pathSpans(
+        /// \brief Starting from the leaf will generate the largest path
+        /// span first, and then will decrease it in steps. Starting from
+        /// the root will go from the span of size 1 and increase it until
+        /// it reaches the target.
+        bool leafStart = true) const {
         if (leafStart) {
             for (int i = path.high(); 0 <= i; --i) {
                 co_yield path.at(slice(0, i));
@@ -110,12 +153,14 @@ struct ImmPath {
         }
     }
 
+    /// \brief Remove one jump from the path and return a new version
     ImmPath pop() const {
         auto res = *this;
         res.path.pop_back();
         return res;
     }
 
+    /// \brief Add one jump step from the path and return a new version.
     ImmPath add(ImmPathStep const& it) const {
         auto res = *this;
         res.path.push_back(it);
@@ -132,11 +177,26 @@ struct ImmPath {
     }
 };
 
+/// \brief ID uniquely identifying specific position in the AST
+///
+/// `ImmId` refers to an interned value, so the same ID can appear in the
+/// AST in hundreds and thousands of different places (e.g. `Space_1` is
+/// the most likely ID for the regular one-character space, and it will be
+/// all over the document). This deduplication is perfect for the general
+/// API operations and is the backbone of the whole data model for
+/// immutable AST, but makes it impossible to correctly represent tree edit
+/// operations -- if `ImmId` were to be used, replacing `Space_1` in one
+/// location with `Space_2` would've changed the entire document.
+///
+/// Unique ID solves this problem by tracking the origin node (root of the
+/// document), and the full path from the document root to the final target
+/// node `id`. The type is comparable and hash-able.
 struct ImmUniqId {
     ImmId   id;
     ImmPath path;
     DESC_FIELDS(ImmUniqId, (id, path));
 
+    /// \brief Create a new unique ID with different final target.
     ImmUniqId update(ImmId id) const {
         auto res = *this;
         res.id   = id;
@@ -845,18 +905,28 @@ ImmAstReplace setSubnodes(
     ImmVec<org::ImmId> subnodes,
     ImmAstEditContext& ctx);
 
+/// \brief Common adapter specialization methods to inject in the final
+/// specializations.
 template <typename T>
 struct ImmAdapterTBase : ImmAdapter {
     using ImmAdapter::at;
+    /// \brief Pass the constructor implementation unchanged
     using ImmAdapter::ImmAdapter;
     using ImmAdapter::pass;
     T const* get() const { return ctx->at_t<T>(id); }
     T const* operator->() const { return get(); }
 
+    /// \brief Get sub-field value wrapped as adapter.
+    ///
+    /// \warning resulting path is empty, use this only for regular field
+    /// access, not for something that would have to be marked as 'edited'
+    /// later on.
     template <typename F>
     ImmAdapterT<F> getField(org::ImmIdT<F> T::*fieldPtr) const;
 };
 
+/// \brief Implement `getThis()` for final specialization and introduce all
+/// the adapter base types into the specialization namespace. `
 #define USE_IMM_ADAPTER_BASE(T)                                           \
     using ImmAdapterTBase<T>::at;                                         \
     using ImmAdapterTBase<T>::ImmAdapterTBase;                            \
@@ -867,16 +937,20 @@ struct ImmAdapterTBase : ImmAdapter {
     ImmAdapter const* getThis() const { return this; }
 
 
+/// \brief Generic adapter implementation, with no direct specialization.
 template <typename T>
 struct ImmAdapterT : ImmAdapterTBase<T> {
     USE_IMM_ADAPTER_BASE(T);
 };
 
+/// \brief Base interface for accessing the final adapter specialization
 struct ImmAdapterVirtualBase {
     virtual ImmAdapter const* getThis() const = 0;
     virtual ImmAdapter*       getThis()       = 0;
 };
 
+/// \brief Root for the full org API specialization hierarchy, mirros the
+/// `sem::Org` API implementation.
 struct ImmAdapterOrgAPI : ImmAdapterVirtualBase {};
 
 struct ImmAdapterStmtAPI : ImmAdapterOrgAPI {
@@ -975,6 +1049,7 @@ struct ImmAdapterTextSeparatorAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterIncludeAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterDocumentGroupAPI : ImmAdapterOrgAPI {};
 
+// Define specializations for all final (non-abstract) org-mode types.
 #define __define_adapter(Derived, Base)                                   \
     template <>                                                           \
     struct ImmAdapterT<org::Imm##Derived>                                 \
@@ -1029,9 +1104,13 @@ concept IsImmOrg = std::
 using SubnodeVisitor = Func<void(ImmAdapter)>;
 void eachSubnodeRec(org::ImmAdapter id, SubnodeVisitor cb);
 
-template <typename Mut>
+/// \brief Map immutable AST type to the sem type, defines inner type
+/// `sem_type`
+template <typename Imm>
 struct imm_to_sem_map {};
 
+/// \brief Map sem AST type to the immer type, defines inner type
+/// `imm_type`
 template <typename Mut>
 struct sem_to_imm_map {};
 
