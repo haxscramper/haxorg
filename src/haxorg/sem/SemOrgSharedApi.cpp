@@ -385,11 +385,12 @@ Vec<sem::CmdArgumentValue> Cmd_getArguments(
     return res;
 }
 
-} // namespace
-
-Opt<sem::CmdArgumentValue> sem::Stmt::getFirstArgument(
-    CR<Str> kind) const {
-    auto res = getArguments(kind);
+template <typename Handle>
+Opt<sem::CmdArgumentValue> Stmt_getFirstArgument(
+    Handle  handle,
+    CR<Str> kind) {
+    auto h   = getConstHandle(handle);
+    auto res = Stmt_getArguments(handle, kind);
 
     if (res.empty()) {
         return std::nullopt;
@@ -398,29 +399,26 @@ Opt<sem::CmdArgumentValue> sem::Stmt::getFirstArgument(
     }
 }
 
-
-Vec<sem::CmdArgumentValue> sem::CmdArguments::getArguments(
-    CR<Opt<Str>> param) const {
-    return CmdArguments_getArguments(this, param);
-}
-
-Vec<sem::CmdArgumentValue> sem::Cmd::getArguments(
-    CR<Opt<Str>> param) const {
-    return Cmd_getArguments(this, param);
-}
-
-Opt<sem::CmdArgumentValue> sem::Cmd::getFirstArgument(CR<Str> kind) const {
-    if (parameters) {
-        auto res = parameters.value()->getArguments(kind);
+template <typename Handle>
+Opt<sem::CmdArgumentValue> Cmd_getFirstArgument(
+    Handle     handle,
+    Str const& kind) {
+    auto h = getConstHandle(handle);
+    if (isBoolFalse(h->parameters)) {
+        auto res = CmdArguments_getArguments(
+            toHandle(h->parameters, handle).value(), kind);
         if (res.empty()) {
             return std::nullopt;
         } else {
             return res.front();
         }
     } else {
-        return Stmt::getFirstArgument(kind);
+        return Stmt_getFirstArgument(handle, kind);
     }
 }
+
+} // namespace
+
 
 template <
     typename CastType,
@@ -428,7 +426,6 @@ template <
     typename Func,
     typename... Args>
 void CallDynamicOrgMethod(ThisType thisType, Func func, Args&&... args) {
-
     thisType->visitNodeAdapter(overloaded{
         [&]<typename Kind>(org::ImmAdapterT<Kind> const& cast)
             requires std::derived_from<Kind, CastType>
@@ -469,21 +466,40 @@ Vec<sem::CmdArgumentValue> org::ImmAdapterCmdAPI::getArguments(CR<Opt<Str>> para
   return result;
 }
 
+Opt<sem::CmdArgumentValue> org::ImmAdapterStmtAPI::getFirstArgument(Str const& param) const {
+  Opt<sem::CmdArgumentValue> result;
+  CallDynamicOrgMethod<org::ImmStmt>(getThis(), [&](auto const &a1, auto const &a2) { result = Stmt_getFirstArgument(a1, a2); }, param);
+  return result;
+}
+
+Opt<sem::CmdArgumentValue> org::ImmAdapterCmdAPI::getFirstArgument(Str const& param) const {
+  Opt<sem::CmdArgumentValue> result;
+  CallDynamicOrgMethod<org::ImmCmd>(getThis(), [&](auto const &a1, auto const &a2) { result = Cmd_getFirstArgument(a1, a2); }, param);
+  return result;
+}
+
 Opt<sem::NamedProperty> org::ImmAdapterSubtreeAPI::getProperty(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertyImpl(getThis()->as<org::ImmSubtree>(), kind, subkind); }
 Vec<sem::NamedProperty> org::ImmAdapterSubtreeAPI::getProperties(const Str &kind, const Opt<Str> &subkind) const { return subtreeGetPropertiesImpl(getThis()->as<org::ImmSubtree>(), kind, subkind); }
 Vec<sem::SubtreePeriod> org::ImmAdapterSubtreeAPI::getTimePeriods(IntSet<sem::SubtreePeriod::Kind> kinds) const { return subtreeGetTimePeriodsImpl(getThis()->as<org::ImmSubtree>(), kinds); }
 
-Vec<sem::CmdArgumentValue> sem::Stmt::getArguments(const Opt<Str>& kind) const { return Stmt_getArguments(this, kind); }
 
 Opt<sem::NamedProperty> sem::Subtree::getProperty(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertyImpl(this, kind, subkind); }
 Vec<sem::NamedProperty> sem::Subtree::getProperties(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertiesImpl(this, kind, subkind); }
 Vec<sem::SubtreePeriod> sem::Subtree::getTimePeriods(IntSet<sem::SubtreePeriod::Kind> kinds) const { return subtreeGetTimePeriodsImpl(this, kinds); }
+Str sem::CmdArgument::getValue() const { return arg.value; }
+Str sem::CmdArgument::getName() const { return arg.name.value(); }
+Str sem::CmdArgument::getVarname() const { return arg.varname.value(); }
+
+Vec<sem::CmdArgumentValue> sem::Stmt::getArguments(const Opt<Str>& kind) const { return Stmt_getArguments(this, kind); }
+Opt<sem::CmdArgumentValue> sem::Stmt::getFirstArgument(const Str& kind) const { return Stmt_getFirstArgument(this, kind); }
+
+Opt<sem::CmdArgumentValue> sem::Cmd::getFirstArgument(CR<Str> kind) const { return Cmd_getFirstArgument(this, kind); }
+Vec<sem::CmdArgumentValue> sem::CmdArguments::getArguments(CR<Opt<Str>> param) const { return CmdArguments_getArguments(this, param); }
+Vec<sem::CmdArgumentValue> sem::Cmd::getArguments(CR<Opt<Str>> param) const { return Cmd_getArguments(this, param); }
+
 
 
 // Opt<org::ImmAdapterT<org::ImmCmdArgumentList>> org::ImmAdapterT<org::ImmCell>::getArguments(CR<Opt<Str>> param) const { return cmdGetArgumentsImpl(*this, param); }
 
-Str sem::CmdArgument::getValue() const { return arg.value; }
-Str sem::CmdArgument::getName() const { return arg.name.value(); }
-Str sem::CmdArgument::getVarname() const { return arg.varname.value(); }
 
 // clang-format on

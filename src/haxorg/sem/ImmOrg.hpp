@@ -956,11 +956,15 @@ struct ImmAdapterOrgAPI : ImmAdapterVirtualBase {};
 struct ImmAdapterStmtAPI : ImmAdapterOrgAPI {
     virtual Vec<sem::CmdArgumentValue> getArguments(
         CR<Opt<Str>> param) const;
+    virtual Opt<sem::CmdArgumentValue> getFirstArgument(
+        Str const& kind) const;
 };
 
 struct ImmAdapterCmdAPI : ImmAdapterStmtAPI {
     virtual Vec<sem::CmdArgumentValue> getArguments(
         CR<Opt<Str>> param) const override;
+    virtual Opt<sem::CmdArgumentValue> getFirstArgument(
+        Str const& kind) const override;
 };
 
 struct ImmAdapterSubtreeAPI : ImmAdapterOrgAPI {
