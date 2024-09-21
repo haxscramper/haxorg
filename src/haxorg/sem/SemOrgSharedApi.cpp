@@ -371,6 +371,20 @@ Vec<sem::CmdArgumentValue> Stmt_getArguments(
     return result;
 }
 
+template <typename Handle>
+Vec<sem::CmdArgumentValue> Cmd_getArguments(
+    Handle const& handle,
+    CR<Opt<Str>>  param) {
+    auto                       h = getConstHandle(handle);
+    Vec<sem::CmdArgumentValue> res;
+    if (isBoolFalse(h->parameters)) {
+        res = CmdArguments_getArguments(
+            toHandle(h->parameters, handle).value(), param);
+    }
+    res.append(Stmt_getArguments(handle, param));
+    return res;
+}
+
 } // namespace
 
 Opt<sem::CmdArgumentValue> sem::Stmt::getFirstArgument(
@@ -392,10 +406,7 @@ Vec<sem::CmdArgumentValue> sem::CmdArguments::getArguments(
 
 Vec<sem::CmdArgumentValue> sem::Cmd::getArguments(
     CR<Opt<Str>> param) const {
-    Vec<sem::CmdArgumentValue> res;
-    if (parameters) { res = parameters.value()->getArguments(param); }
-    res.append(Stmt::getArguments(param));
-    return res;
+    return Cmd_getArguments(this, param);
 }
 
 Opt<sem::CmdArgumentValue> sem::Cmd::getFirstArgument(CR<Str> kind) const {
@@ -442,30 +453,33 @@ void CallDynamicOrgMethod(ThisType thisType, Func func, Args&&... args) {
     });
 }
 
-Vec<sem::CmdArgumentValue> org::ImmAdapterStmtAPI::getArguments(
-    CR<Opt<Str>> param) const {
-    Vec<sem::CmdArgumentValue> result;
-    CallDynamicOrgMethod<org::ImmStmt>(
-        getThis(),
-        [&](auto const& a1, auto const& a2) {
-            result = Stmt_getArguments(a1, a2);
-        },
-        param);
-    return result;
-}
-
 
 // clang-format off
 
 
+Vec<sem::CmdArgumentValue> org::ImmAdapterStmtAPI::getArguments(CR<Opt<Str>> param) const {
+  Vec<sem::CmdArgumentValue> result;
+  CallDynamicOrgMethod<org::ImmStmt>(getThis(), [&](auto const &a1, auto const &a2) { result = Stmt_getArguments(a1, a2); }, param);
+  return result;
+}
+
+Vec<sem::CmdArgumentValue> org::ImmAdapterCmdAPI::getArguments(CR<Opt<Str>> param) const {
+  Vec<sem::CmdArgumentValue> result;
+  CallDynamicOrgMethod<org::ImmCmd>(getThis(), [&](auto const &a1, auto const &a2) { result = Cmd_getArguments(a1, a2); }, param);
+  return result;
+}
+
+Opt<sem::NamedProperty> org::ImmAdapterSubtreeAPI::getProperty(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertyImpl(getThis()->as<org::ImmSubtree>(), kind, subkind); }
+Vec<sem::NamedProperty> org::ImmAdapterSubtreeAPI::getProperties(const Str &kind, const Opt<Str> &subkind) const { return subtreeGetPropertiesImpl(getThis()->as<org::ImmSubtree>(), kind, subkind); }
+Vec<sem::SubtreePeriod> org::ImmAdapterSubtreeAPI::getTimePeriods(IntSet<sem::SubtreePeriod::Kind> kinds) const { return subtreeGetTimePeriodsImpl(getThis()->as<org::ImmSubtree>(), kinds); }
+
 Vec<sem::CmdArgumentValue> sem::Stmt::getArguments(const Opt<Str>& kind) const { return Stmt_getArguments(this, kind); }
 
 Opt<sem::NamedProperty> sem::Subtree::getProperty(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertyImpl(this, kind, subkind); }
-Opt<sem::NamedProperty> org::ImmAdapterT<org::ImmSubtree>::getProperty(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertyImpl(*this, kind, subkind); }
 Vec<sem::NamedProperty> sem::Subtree::getProperties(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertiesImpl(this, kind, subkind); }
-Vec<sem::NamedProperty> org::ImmAdapterT<org::ImmSubtree>::getProperties(const Str &kind, const Opt<Str> &subkind) const { return subtreeGetPropertiesImpl(*this, kind, subkind); }
 Vec<sem::SubtreePeriod> sem::Subtree::getTimePeriods(IntSet<sem::SubtreePeriod::Kind> kinds) const { return subtreeGetTimePeriodsImpl(this, kinds); }
-Vec<sem::SubtreePeriod> org::ImmAdapterT<org::ImmSubtree>::getTimePeriods(IntSet<sem::SubtreePeriod::Kind> kinds) const { return subtreeGetTimePeriodsImpl(*this, kinds); }
+
+
 // Opt<org::ImmAdapterT<org::ImmCmdArgumentList>> org::ImmAdapterT<org::ImmCell>::getArguments(CR<Opt<Str>> param) const { return cmdGetArgumentsImpl(*this, param); }
 
 Str sem::CmdArgument::getValue() const { return arg.value; }

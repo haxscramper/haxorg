@@ -966,6 +966,17 @@ def gen_pyhaxorg_iteration_macros(types: List[GenTuStruct]) -> List[GenTuPass]:
             [f"    __IMPL({struct.name.name})"
              for struct in get_concrete_types(types)]))))
 
+    result.append(
+        GenTuPass("#define EACH_SEM_ORG_FINAL_TYPE_BASE(__IMPL) \\\n" + (" \\\n".join([
+            f"    __IMPL({struct.name.name}, {struct.bases[0].name})"
+            for struct in get_concrete_types(types)
+        ]))))
+
+    result.append(
+        GenTuPass("#define EACH_SEM_ORG_TYPE_BASE(__IMPL) \\\n" + (" \\\n".join([
+            f"    __IMPL({struct.name.name}, {struct.bases[0].name})" for struct in types
+        ]))))
+
     return result
 
 
@@ -979,7 +990,8 @@ def gen_pyhaxorg_wrappers(
     expanded = expand_type_groups(ast, get_types())
     immutable = expand_type_groups(ast, rewrite_to_immutable(get_types()))
     proto = pb.ProtoBuilder(
-        get_shared_sem_enums() + get_enums() + [get_osk_enum(expanded)] + shared_types + expanded, ast)
+        get_shared_sem_enums() + get_enums() + [get_osk_enum(expanded)] + shared_types +
+        expanded, ast)
     t = ast.b
 
     protobuf = proto.build_protobuf()

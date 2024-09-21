@@ -877,25 +877,19 @@ struct ImmAdapterVirtualBase {
     virtual ImmAdapter*       getThis()       = 0;
 };
 
+struct ImmAdapterOrgAPI : ImmAdapterVirtualBase {};
 
-struct ImmAdapterStmtAPI : ImmAdapterVirtualBase {
+struct ImmAdapterStmtAPI : ImmAdapterOrgAPI {
     virtual Vec<sem::CmdArgumentValue> getArguments(
         CR<Opt<Str>> param) const;
 };
 
-struct ImmAdapterCmdAPI : ImmAdapterStmtAPI {};
-
-template <>
-struct ImmAdapterT<org::ImmCell>
-    : ImmAdapterTBase<ImmCell>
-    , ImmAdapterCmdAPI {
-    USE_IMM_ADAPTER_BASE(org::ImmCell);
+struct ImmAdapterCmdAPI : ImmAdapterStmtAPI {
+    virtual Vec<sem::CmdArgumentValue> getArguments(
+        CR<Opt<Str>> param) const override;
 };
 
-
-template <>
-struct ImmAdapterT<ImmSubtree> : ImmAdapterTBase<ImmSubtree> {
-    USE_IMM_ADAPTER_BASE(org::ImmSubtree);
+struct ImmAdapterSubtreeAPI : ImmAdapterOrgAPI {
     Vec<sem::SubtreePeriod> getTimePeriods(
         IntSet<sem::SubtreePeriod::Kind> kinds) const;
     Vec<sem::NamedProperty> getProperties(
@@ -905,6 +899,92 @@ struct ImmAdapterT<ImmSubtree> : ImmAdapterTBase<ImmSubtree> {
         Str const&      kind,
         Opt<Str> const& subkind = std::nullopt) const;
 };
+
+struct ImmAdapterNoneAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterCmdArgumentAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterCmdArgumentListAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterCmdArgumentsAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterErrorItemAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterErrorGroupAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterStmtListAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterEmptyAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterLineCommandAPI : ImmAdapterCmdAPI {};
+struct ImmAdapterAttachedAPI : ImmAdapterLineCommandAPI {};
+struct ImmAdapterCmdCaptionAPI : ImmAdapterAttachedAPI {};
+struct ImmAdapterCmdNameAPI : ImmAdapterAttachedAPI {};
+struct ImmAdapterCmdCustomArgsAPI : ImmAdapterCmdAPI {};
+struct ImmAdapterCmdCustomRawAPI : ImmAdapterStmtAPI {};
+struct ImmAdapterCmdCustomTextAPI : ImmAdapterStmtAPI {};
+struct ImmAdapterCmdResultsAPI : ImmAdapterAttachedAPI {};
+struct ImmAdapterCmdTblfmAPI : ImmAdapterCmdAPI {};
+struct ImmAdapterInlineAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterHashTagAPI : ImmAdapterInlineAPI {};
+struct ImmAdapterFootnoteAPI : ImmAdapterInlineAPI {};
+struct ImmAdapterTimeAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterTimeRangeAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterMacroAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterSymbolAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterLeafAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterEscapedAPI : ImmAdapterLeafAPI {};
+struct ImmAdapterNewlineAPI : ImmAdapterLeafAPI {};
+struct ImmAdapterSpaceAPI : ImmAdapterLeafAPI {};
+struct ImmAdapterWordAPI : ImmAdapterLeafAPI {};
+struct ImmAdapterAtMentionAPI : ImmAdapterLeafAPI {};
+struct ImmAdapterRawTextAPI : ImmAdapterLeafAPI {};
+struct ImmAdapterPunctuationAPI : ImmAdapterLeafAPI {};
+struct ImmAdapterPlaceholderAPI : ImmAdapterLeafAPI {};
+struct ImmAdapterBigIdentAPI : ImmAdapterLeafAPI {};
+struct ImmAdapterRadioTargetAPI : ImmAdapterLeafAPI {};
+struct ImmAdapterTextTargetAPI : ImmAdapterLeafAPI {};
+struct ImmAdapterMarkupAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterBoldAPI : ImmAdapterMarkupAPI {};
+struct ImmAdapterUnderlineAPI : ImmAdapterMarkupAPI {};
+struct ImmAdapterMonospaceAPI : ImmAdapterMarkupAPI {};
+struct ImmAdapterMarkQuoteAPI : ImmAdapterMarkupAPI {};
+struct ImmAdapterVerbatimAPI : ImmAdapterMarkupAPI {};
+struct ImmAdapterItalicAPI : ImmAdapterMarkupAPI {};
+struct ImmAdapterStrikeAPI : ImmAdapterMarkupAPI {};
+struct ImmAdapterParAPI : ImmAdapterMarkupAPI {};
+struct ImmAdapterLatexAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterLinkAPI : ImmAdapterStmtAPI {};
+struct ImmAdapterBlockAPI : ImmAdapterCmdAPI {};
+struct ImmAdapterBlockCenterAPI : ImmAdapterBlockAPI {};
+struct ImmAdapterBlockQuoteAPI : ImmAdapterBlockAPI {};
+struct ImmAdapterBlockCommentAPI : ImmAdapterStmtAPI {};
+struct ImmAdapterBlockVerseAPI : ImmAdapterBlockAPI {};
+struct ImmAdapterBlockExampleAPI : ImmAdapterBlockAPI {};
+struct ImmAdapterBlockExportAPI : ImmAdapterBlockAPI {};
+struct ImmAdapterBlockAdmonitionAPI : ImmAdapterBlockAPI {};
+struct ImmAdapterBlockCodeAPI : ImmAdapterBlockAPI {};
+struct ImmAdapterSubtreeLogAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterSubtreeCompletionAPI : ImmAdapterInlineAPI {};
+struct ImmAdapterCellAPI : ImmAdapterCmdAPI {};
+struct ImmAdapterRowAPI : ImmAdapterCmdAPI {};
+struct ImmAdapterTableAPI : ImmAdapterBlockAPI {};
+struct ImmAdapterParagraphAPI : ImmAdapterStmtAPI {};
+struct ImmAdapterAnnotatedParagraphAPI : ImmAdapterStmtAPI {};
+struct ImmAdapterColonExampleAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterCmdAttrAPI : ImmAdapterAttachedAPI {};
+struct ImmAdapterCallAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterListAPI : ImmAdapterStmtAPI {};
+struct ImmAdapterListItemAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterDocumentOptionsAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterDocumentAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterFileTargetAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterTextSeparatorAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterIncludeAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterDocumentGroupAPI : ImmAdapterOrgAPI {};
+
+#define __define_adapter(Derived, Base)                                   \
+    template <>                                                           \
+    struct ImmAdapterT<org::Imm##Derived>                                 \
+        : ImmAdapterTBase<Imm##Derived>                                   \
+        , ImmAdapter##Derived##API {                                      \
+        USE_IMM_ADAPTER_BASE(org::Imm##Derived);                          \
+    };
+
+EACH_SEM_ORG_FINAL_TYPE_BASE(__define_adapter)
+#undef __define_adapter
 
 
 template <typename T>
