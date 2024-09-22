@@ -109,6 +109,7 @@ const ImmOrg* ImmAstStore::at(ImmId index) const {
     return res;
 }
 
+
 namespace {
 void eachSubnodeRecImpl(
     CR<org::SubnodeVisitor> visitor,
@@ -337,6 +338,8 @@ void treeReprRec(
             os << " " << fmt1(node);
         });
     }
+
+    os << "\n";
 
     int idx = 0;
     for (auto const& it : id.sub()) {
@@ -772,5 +775,3 @@ Vec<ImmId> ImmAstReplaceGroup::newSubnodes(Vec<ImmId> oldSubnodes) const {
         ImmVec<ImmId>{oldSubnodes.begin(), oldSubnodes.end()});
     return Vec<ImmId>{tmp.begin(), tmp.end()};
 }
-
-

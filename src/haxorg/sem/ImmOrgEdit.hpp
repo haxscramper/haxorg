@@ -36,6 +36,9 @@ enum class SubtreeMove
     EnsureLevels,
 };
 
+
+
+ImmAstReplace replaceNode(const ImmAdapter &target, const ImmId &value, ImmAstEditContext &ctx);
 ImmAstReplaceGroup demoteSubtree(CR<ImmAdapter> node, SubtreeMove move, ImmAstEditContext& ctx);
 Vec<ImmAstReplace> promoteSubtree(CR<ImmAdapter> node, SubtreeMove move, ImmAstEditContext& ctx);
 ImmAstReplace setSubnode(CR<ImmAdapter> node, org::ImmId newSubnode, int position, ImmAstEditContext& ctx);

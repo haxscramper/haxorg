@@ -293,6 +293,18 @@ Opt<ImmAstReplace> org::moveSubnodeStructural(
     }
 }
 
+ImmAstReplace org::replaceNode(
+    const ImmAdapter&  target,
+    const ImmId&       value,
+    ImmAstEditContext& ctx) {
+    AST_EDIT_MSG(fmt("Replace adapter {} -> {}", target, value));
+    return ImmAstReplace{
+        .original = target.uniq(),
+        .replaced = target.uniq().update(value),
+    };
+}
+
+
 namespace {
 using PathIter = Vec<OrgSelectorCondition>::const_iterator;
 

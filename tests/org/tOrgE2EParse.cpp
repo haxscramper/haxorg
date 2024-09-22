@@ -460,7 +460,7 @@ struct ImmOrgApiTestBase : public ::testing::Test {
         org::ImmAdapter               n,
         Str const                     suffix,
         org::ImmAdapter::TreeReprConf conf = org::ImmAdapter::TreeReprConf{
-            .withAuxFields = false,
+            .withAuxFields = true,
         }) {
         writeFile(getDebugFile(suffix), n.treeRepr(conf).toString(false));
     }
@@ -1357,6 +1357,58 @@ TEST_F(ImmOrgApiAppModel, CreateModel) {
     EXPECT_EQ(rows.at(0).name, "Entry 1");
     EXPECT_EQ(rows.at(0).nested.at(0).name, "Subtree 2");
     EXPECT_EQ(rows.at(0).nested.at(0).storyEvent, "Description");
+}
+
+TEST_F(ImmOrgApiAppModel, EditModel) {
+    setTraceFile(getDebugFile("trace.txt"));
+    org::ImmAstVersion v1 = getInitialVersion(R"(
+* Entry 1
+** Subtree 2
+- =story_event= :: Description
+)");
+
+    Vec<Row> rows1 = buildRows(v1.getRootAdapter());
+    writeTreeRepr(v1.getRootAdapter(), "v1.txt");
+    {
+        EXPECT_EQ(rows1.size(), 1);
+        EXPECT_EQ(rows1.at(0).nested.size(), 1);
+        EXPECT_EQ(rows1.at(0).name, "Entry 1");
+        EXPECT_EQ(rows1.at(0).nested.at(0).name, "Subtree 2");
+        EXPECT_EQ(rows1.at(0).nested.at(0).storyEvent, "Description");
+    }
+
+    org::ImmAstVersion v2 = v1.getEditVersion(
+        [&](org::ImmAstContext&     ast,
+            org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
+            auto                    t2 = rows1.at(0).nested.at(0);
+            org::ImmAstReplaceGroup result;
+            result.incl(org::replaceNode(
+                t2.nameOrigin,
+                ast.add(
+                    sem::asOneNode(sem::parseString("New title")), ctx),
+                ctx));
+            result.incl(org::replaceNode(
+                t2.storyEventOrigin,
+                ast.add(
+                    sem::asOneNode(
+                        sem::parseString("New story event description")),
+                    ctx),
+                ctx));
+            return result;
+        });
+
+    writeTreeRepr(v2.getRootAdapter(), "v2.txt");
+    writeGvHistory({v1, v2}, "graph.png");
+    {
+        Vec<Row> rows2 = buildRows(v2.getRootAdapter());
+        EXPECT_EQ(rows2.size(), 1);
+        EXPECT_EQ(rows2.at(0).nested.size(), 1);
+        EXPECT_EQ(rows2.at(0).name, "Entry 1");
+        EXPECT_EQ(rows2.at(0).nested.at(0).name, "New title");
+        EXPECT_EQ(
+            rows2.at(0).nested.at(0).storyEvent,
+            "New story event description");
+    }
 }
 
 
