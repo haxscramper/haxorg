@@ -331,7 +331,7 @@ Opt<MapNodeProp> org::graph::getUnresolvedNodeInsert(
                     = link->description.get()
                         ? Vec{arg.at(
                               link->description.get().value().toId(),
-                              "description")}
+                              ImmPathStep::FieldDeref("description"))}
                         : Vec<org::ImmAdapter>{},
                 });
             }

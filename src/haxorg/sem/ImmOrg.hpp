@@ -812,26 +812,13 @@ struct ImmAdapter {
     ImmAdapter at(Str const& field) const {
         return at(
             ctx->at(id, ImmPathStep{{ReflPathItem::FromFieldName(field)}}),
-            field);
+            ImmPathStep::Field(field));
     }
-
-    ImmAdapter at(ImmId id, Str field) const {
-        return ImmAdapter{
-            id,
-            ctx,
-            path.add(ImmPathStep{{ReflPathItem::FromFieldName(field)}})};
-    }
-
-    ImmAdapter at(ImmId id, int idx) const {
-        return ImmAdapter{
-            id,
-            ctx,
-            path.add(ImmPathStep{{ReflPathItem::FromIndex(idx)}})};
-    }
-
 
     ImmAdapter at(int idx) const {
-        return at(ctx->at(id)->subnodes.at(idx), idx);
+        return at(
+            ctx->at(id)->subnodes.at(idx),
+            ImmPathStep::FieldIdx("subnodes", idx));
     }
 
     ImmAdapter at(Vec<int> const& path) const {
