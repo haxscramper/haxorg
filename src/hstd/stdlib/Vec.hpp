@@ -80,6 +80,22 @@ class Vec : public std::vector<T> {
         }
     }
 
+    template <typename Indexable>
+    bool operator<(CR<Indexable> other) const {
+        return lessThan(other, std::less<T>{});
+    }
+
+    template <typename Indexable, typename Cmp>
+    bool lessThan(CR<Indexable> other, Cmp const& cmp) const {
+        for (int i = 0;
+             i < std::min(
+                 static_cast<int>(size()), static_cast<int>(other.size()));
+             ++i) {
+            if (cmp(at(i), other.at(i))) { return true; }
+        }
+        return size() < other.size();
+    }
+
     Vec<T> operator+(CR<T> other) const {
         auto result = *this;
         result.push_back(other);

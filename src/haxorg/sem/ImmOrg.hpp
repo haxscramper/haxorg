@@ -113,6 +113,10 @@ struct ImmPathStep {
             ReflPathItem::FromDeref(),
         }}};
     }
+
+    bool operator<(ImmPathStep const& other) const {
+        return path.lessThan(other.path, ReflPathComparator<Str>{});
+    }
 };
 
 /// \brief Full path from the root of the document to a specific node.
@@ -192,8 +196,7 @@ struct ImmPath {
     }
 
     bool operator<(ImmPath const& other) const {
-        logic_todo_impl();
-        return root < other.root;
+        return root < other.root && path < other.path;
     }
 };
 
@@ -352,7 +355,7 @@ struct ImmAstReplaceGroup {
     Vec<ImmId>    newSubnodes(Vec<ImmId> oldSubnodes) const;
 
     generator<ImmAstReplace> allReplacements() const {
-        for (auto const& key : sorted(this->map.keys())) {
+        for (auto const& key : this->map.keys()) {
             co_yield ImmAstReplace{
                 .original = key,
                 .replaced = this->map.at(key),

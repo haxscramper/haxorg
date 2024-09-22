@@ -104,17 +104,14 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
     AST_EDIT_MSG("Start cascade update");
     auto __scope = ctx.debug.scopeLevel();
 
-    UnorderedMap<ImmUniqId, Vec<ImmUniqId>> editDependencies;
-    UnorderedSet<ImmUniqId>                 editParents;
+    UnorderedSet<ImmUniqId> editParents;
 
     for (auto const& act : replace.allReplacements()) {
+        AST_EDIT_MSG(fmt("Parent chain for", act.original));
         for (auto const& parent :
              ctx->adapt(act.original.value()).getParentChain(false)) {
+            AST_EDIT_MSG(fmt("> ", parent.uniq()));
             editParents.incl(parent.uniq());
-            if (replace.map.contains(parent.uniq())) {
-                editDependencies[parent.uniq()].push_back(
-                    act.original.value());
-            }
         }
     }
 
@@ -128,14 +125,6 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
         for (auto const& key : sorted(replace.nodeReplaceMap.keys())) {
             AST_EDIT_MSG(
                 fmt("[{}] -> {}", key, replace.nodeReplaceMap.at(key)));
-        }
-    }
-
-    AST_EDIT_MSG("Edit dependencies");
-    {
-        auto __scope = ctx.debug.scopeLevel();
-        for (auto const& key : sorted(editDependencies.keys())) {
-            AST_EDIT_MSG(fmt("[{}] -> {}", key, editDependencies.at(key)));
         }
     }
 
@@ -184,8 +173,8 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
                         || replaced->subnodes == updatedSubnodes,
                     "Node {0} was replaced with {1} and the list of "
                     "subnodes differs: (replaced != original) {2} != {3} "
-                    "and (replaced != updated) {2} != {5}. The node {0} "
-                    "is a parent for edits {4} in this batch, meaning it "
+                    "and (replaced != updated) {2} != {4}. The node {0} "
+                    "is a parent for edits in this batch, meaning it "
                     "will have the subnodes replaced, and the original "
                     "subnode changes will be lost. To avoid this issue, "
                     "separate the `.subnode` field update and nested node "
@@ -194,8 +183,7 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
                     /*1*/ *edit,
                     /*2*/ original->subnodes,
                     /*3*/ replaced->subnodes,
-                    /*4*/ editDependencies.at(node.uniq()),
-                    /*5*/ updatedSubnodes);
+                    /*4*/ updatedSubnodes);
 
                 result.replaced.incl({node.uniq(), *edit});
             }

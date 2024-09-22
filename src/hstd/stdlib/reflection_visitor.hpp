@@ -304,15 +304,13 @@ struct ReflPath {
         return path == other.path;
     }
 
+    template <typename Cmp>
+    bool lessThan(ReflPath const& other, Cmp const& cmp) const {
+        return path.lessThan(other.path, cmp);
+    }
+
     bool operator<(ReflPath const& other) const {
-        if (path.size() == other.path.size()) {
-            for (int i = 0; i < path.size(); ++i) {
-                if (path.at(i) < other.path.at(i)) { return true; }
-            }
-            return false;
-        } else {
-            return path.size() < other.path.size();
-        }
+        return path < other.path;
     }
 };
 
