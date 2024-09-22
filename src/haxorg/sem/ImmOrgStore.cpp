@@ -110,7 +110,7 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
         AST_EDIT_MSG(fmt("Parent chain for", act.original));
         for (auto const& parent :
              ctx->adapt(act.original.value()).getParentChain(false)) {
-            AST_EDIT_MSG(fmt("> ", parent.uniq()));
+            AST_EDIT_MSG(fmt("> {}", parent.uniq()));
             editParents.incl(parent.uniq());
         }
     }
@@ -154,7 +154,8 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
             ImmAdapter updateTarget = edit ? ImmAdapter{*edit, ctx.ctx}
                                            : node;
 
-            for (auto const& sub : updateTarget.sub()) {
+            for (auto const& sub :
+                 updateTarget.getAllSubnodes(updateTarget.path)) {
                 updatedSubnodes.push_back(aux(sub));
             }
 

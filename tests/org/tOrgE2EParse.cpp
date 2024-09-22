@@ -1398,7 +1398,13 @@ TEST_F(ImmOrgApiAppModel, EditModel) {
         });
 
     writeTreeRepr(v2.getRootAdapter(), "v2.txt");
-    writeGvHistory({v1, v2}, "graph.png");
+    writeGvHistory(
+        {v1, v2},
+        "graph.png",
+        org::ImmAstGraphvizConf{
+            .withAuxNodes    = true,
+            .withEditHistory = false,
+        });
     {
         Vec<Row> rows2 = buildRows(v2.getRootAdapter());
         EXPECT_EQ(rows2.size(), 1);
