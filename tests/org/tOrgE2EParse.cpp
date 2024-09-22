@@ -1293,6 +1293,72 @@ TEST_F(ImmOrgApiEdit, MoveSubnodes) {
         (Vec<Str>{"one", "zero", " ", " ", "two", " ", "three"}));
 }
 
+struct ImmOrgApiAppModel : ImmOrgApiTestBase {
+    struct Row {
+        org::ImmAdapter nameOrigin;
+        std::string     name;
+        org::ImmAdapter storyEventOrigin;
+        std::string     storyEvent;
+        Vec<Row>        nested;
+        DESC_FIELDS(
+            Row,
+            (nameOrigin, name, storyEventOrigin, storyEvent, nested));
+    };
+
+    Row buildRow(org::ImmAdapterT<org::ImmSubtree> tree) {
+        Row result;
+        result.name       = join(" ", flatWords(tree.getTitle()));
+        result.nameOrigin = tree.getTitle();
+        for (auto const& sub : tree.subAs<org::ImmList>()) {
+            if (sub.isDescriptionList()) {
+                for (auto const& item : sub.subAs<org::ImmListItem>()) {
+                    auto flat = flatWords(item.getHeader().value());
+                    for (auto const& word : flat) {
+                        if (word == "story_event") {
+                            result.storyEventOrigin = item.at(0);
+                            result.storyEvent       = join(
+                                " ", flatWords(item.at(0)));
+                        }
+                    }
+                }
+            }
+        }
+
+        for (auto const& sub : tree.subAs<org::ImmSubtree>()) {
+            result.nested.push_back(buildRow(sub));
+        }
+
+        return result;
+    }
+
+    Vec<Row> buildRows(org::ImmAdapter root) {
+        Vec<Row> result;
+        for (auto const& tree : root.subAs<org::ImmSubtree>()) {
+            result.push_back(buildRow(tree));
+        }
+
+        return result;
+    }
+};
+
+TEST_F(ImmOrgApiAppModel, CreateModel) {
+    org::ImmAstVersion v1 = getInitialVersion(R"(
+* Entry 1
+** Subtree 2
+
+- =story_event= :: Description
+
+** Subtree 3
+)");
+
+    Vec<Row> rows = buildRows(v1.getRootAdapter());
+    EXPECT_EQ(rows.size(), 1);
+    EXPECT_EQ(rows.at(0).nested.size(), 2);
+    EXPECT_EQ(rows.at(0).name, "Entry 1");
+    EXPECT_EQ(rows.at(0).nested.at(0).name, "Subtree 2");
+    EXPECT_EQ(rows.at(0).nested.at(0).storyEvent, "Description");
+}
+
 
 TEST(ImmMapApi, AddNode) {
     auto n1 = parseNode("* subtree");

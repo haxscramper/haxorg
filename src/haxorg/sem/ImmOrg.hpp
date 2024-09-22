@@ -93,6 +93,26 @@ struct ImmPathStep {
     bool operator==(ImmPathStep const& other) const {
         return path == other.path;
     }
+
+    static ImmPathStep FieldIdx(std::string const& field, int idx) {
+        return ImmPathStep{ReflPath{{
+            ReflPathItem::FromFieldName(field),
+            ReflPathItem::FromIndex(idx),
+        }}};
+    }
+
+    static ImmPathStep Field(std::string const& field) {
+        return ImmPathStep{ReflPath{{
+            ReflPathItem::FromFieldName(field),
+        }}};
+    }
+
+    static ImmPathStep FieldDeref(std::string const& field) {
+        return ImmPathStep{ReflPath{{
+            ReflPathItem::FromFieldName(field),
+            ReflPathItem::FromDeref(),
+        }}};
+    }
 };
 
 /// \brief Full path from the root of the document to a specific node.
@@ -923,6 +943,11 @@ struct ImmAdapterTBase : ImmAdapter {
     /// later on.
     template <typename F>
     ImmAdapterT<F> getField(org::ImmIdT<F> T::*fieldPtr) const;
+
+    template <typename F>
+    ImmAdapterT<F> getField(
+        org::ImmIdT<F> T::*fieldPtr,
+        ImmPathStep const& step) const;
 };
 
 /// \brief Implement `getThis()` for final specialization and introduce all
@@ -943,10 +968,29 @@ struct ImmAdapterT : ImmAdapterTBase<T> {
     USE_IMM_ADAPTER_BASE(T);
 };
 
+#define __declare_adapter(Derived, Base)                                  \
+    template <>                                                           \
+    struct ImmAdapterT<org::Imm##Derived>;
+
+EACH_SEM_ORG_FINAL_TYPE_BASE(__declare_adapter)
+#undef __declare_adapter
+
 /// \brief Base interface for accessing the final adapter specialization
 struct ImmAdapterVirtualBase {
     virtual ImmAdapter const* getThis() const = 0;
     virtual ImmAdapter*       getThis()       = 0;
+
+    template <typename T>
+    ImmAdapterT<T> getThisT() const {
+        return getThis()->as<T>();
+    }
+
+    template <typename T>
+    ImmAdapterT<T> pass(org::ImmIdT<T> const& id, ImmPathStep const& step)
+        const {
+        return ImmAdapterT<T>{
+            id, getThis()->ctx, getThis()->path.add(step)};
+    }
 };
 
 /// \brief Root for the full org API specialization hierarchy, mirros the
@@ -978,6 +1022,8 @@ struct ImmAdapterSubtreeAPI : ImmAdapterOrgAPI {
     Opt<sem::NamedProperty> getProperty(
         Str const&      kind,
         Opt<Str> const& subkind = std::nullopt) const;
+
+    org::ImmAdapterT<org::ImmParagraph> getTitle() const;
 };
 
 struct ImmAdapterNoneAPI : ImmAdapterOrgAPI {};
@@ -1054,6 +1100,8 @@ struct ImmAdapterListAPI : ImmAdapterStmtAPI {
 
 struct ImmAdapterListItemAPI : ImmAdapterOrgAPI {
     bool isDescriptionItem() const;
+
+    Opt<ImmAdapter> getHeader() const;
 };
 
 struct ImmAdapterDocumentOptionsAPI : ImmAdapterOrgAPI {
@@ -1099,6 +1147,13 @@ inline ImmAdapterT<F> ImmAdapterTBase<T>::getField(
     return ImmAdapterT<F>{(get()->*fieldPtr).asOrg(), ctx, {}};
 }
 
+template <typename T>
+template <typename F>
+ImmAdapterT<F> ImmAdapterTBase<T>::getField(
+    org::ImmIdT<F> T::*fieldPtr,
+    ImmPathStep const& step) const {
+    return ImmAdapterT<F>{(get()->*fieldPtr).asOrg(), ctx, path.add(step)};
+}
 
 template <typename T>
 struct remove_sem_org {

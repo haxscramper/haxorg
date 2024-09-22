@@ -653,3 +653,19 @@ bool sem::ListItem::isDescriptionItem() const { return ListItem_isDescriptionIte
 
 
 // clang-format on
+
+Opt<org::ImmAdapter> org::ImmAdapterListItemAPI::getHeader() const {
+    auto it = getThisT<org::ImmListItem>();
+    if (isBoolFalse(it->header)) {
+        return std::nullopt;
+    } else {
+        return pass(
+            it->header->value(), ImmPathStep::FieldDeref("header"));
+    }
+}
+
+org::ImmAdapterT<org::ImmParagraph> org::ImmAdapterSubtreeAPI::getTitle()
+    const {
+    return pass(
+        getThisT<org::ImmSubtree>()->title, ImmPathStep::Field("title"));
+}
