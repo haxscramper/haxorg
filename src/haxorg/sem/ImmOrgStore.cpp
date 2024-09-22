@@ -136,29 +136,40 @@ ImmAstReplace updateFieldMutations(
         for (SubnodeAssignPair const& fieldGroup : grouped) {
             auto field = fieldGroup.first.first();
             LOGIC_ASSERTION_CHECK(field.isFieldName(), "");
+            auto fail_field =
+                [&](int         line     = __builtin_LINE(),
+                    char const* function = __builtin_FUNCTION()) {
+                    throw logic_unreachable_error::init(
+                        fmt("Field path {} refers to a non-ID field and "
+                            "cannot assigned",
+                            field),
+                        line,
+                        function);
+                };
+
             ReflVisitor<K>::visit(
                 node,
                 field,
                 overloaded{
                     // clang-format off
-                    []<IsVariant V>(V const& field) { throw logic_unreachable_error::init(""); },
-                    []<IsEnum E>(E const& field) { throw logic_unreachable_error::init(""); },
-                    [](ImmBox<Opt<int>> const& field) { throw logic_unreachable_error::init(""); },
-                    [](ImmBox<int> const& field) { throw logic_unreachable_error::init(""); },
-                    [](ImmBox<Opt<bool>> const& field) { throw logic_unreachable_error::init(""); },
-                    [](ImmBox<bool> const& field) { throw logic_unreachable_error::init(""); },
-                    [](bool const& field) { throw logic_unreachable_error::init(""); },
-                    [](ImmBox<Opt<sem::BlockCodeEvalResult>> const& field) { throw logic_unreachable_error::init(""); },
-                    [](ImmBox<sem::BlockCodeEvalResult> const& field) { throw logic_unreachable_error::init(""); },
-                    [](ImmBox<Opt<Str>> const& field) { throw logic_unreachable_error::init(""); },
-                    [](ImmBox<Str> const& field) { throw logic_unreachable_error::init(""); },
-                    [](ImmVec<Str> const& field) { throw logic_unreachable_error::init(""); },
-                    [](ImmVec<org::ImmSymbol::Param> const& field) { throw logic_unreachable_error::init(""); },
-                    [](ImmVec<sem::BlockCodeSwitch> const& field) { throw logic_unreachable_error::init(""); },
-                    [](ImmVec<sem::NamedProperty> const& field) { throw logic_unreachable_error::init(""); },
-                    [](ImmVec<sem::BlockCodeLine> const& field) { throw logic_unreachable_error::init(""); },
-                    [](sem::DocumentExportConfig const& field) { throw logic_unreachable_error::init(""); },
-                    [](sem::CmdArgumentValue const& field) { throw logic_unreachable_error::init(""); },
+                    [&]<IsVariant V>(V const& field) { fail_field(); },
+                    [&]<IsEnum E>(E const& field) { fail_field(); },
+                    [&](ImmBox<Opt<int>> const& field) { fail_field(); },
+                    [&](ImmBox<int> const& field) { fail_field(); },
+                    [&](ImmBox<Opt<bool>> const& field) { fail_field(); },
+                    [&](ImmBox<bool> const& field) { fail_field(); },
+                    [&](bool const& field) { fail_field(); },
+                    [&](ImmBox<Opt<sem::BlockCodeEvalResult>> const& field) { fail_field(); },
+                    [&](ImmBox<sem::BlockCodeEvalResult> const& field) { fail_field(); },
+                    [&](ImmBox<Opt<Str>> const& field) { fail_field(); },
+                    [&](ImmBox<Str> const& field) { fail_field(); },
+                    [&](ImmVec<Str> const& field) { fail_field(); },
+                    [&](ImmVec<org::ImmSymbol::Param> const& field) { fail_field(); },
+                    [&](ImmVec<sem::BlockCodeSwitch> const& field) { fail_field(); },
+                    [&](ImmVec<sem::NamedProperty> const& field) { fail_field(); },
+                    [&](ImmVec<sem::BlockCodeLine> const& field) { fail_field(); },
+                    [&](sem::DocumentExportConfig const& field) { fail_field(); },
+                    [&](sem::CmdArgumentValue const& field) { fail_field(); },
                     // clang-format on
                     [&]<typename FK>(
                         ImmBox<Opt<org::ImmIdT<FK>>> const& field) {
