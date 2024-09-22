@@ -181,14 +181,9 @@ ImmAdapter getUpdateTarget(
     return updateTarget;
 }
 
-
-ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
-    ImmAdapter const&         root,
+UnorderedSet<ImmUniqId> getEditParents(
     ImmAstReplaceGroup const& replace,
     ImmAstEditContext&        ctx) {
-    AST_EDIT_MSG("Start cascade update");
-    auto __scope = ctx.debug.scopeLevel();
-
     UnorderedSet<ImmUniqId> editParents;
 
     for (auto const& act : replace.allReplacements()) {
@@ -220,75 +215,105 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
             AST_EDIT_MSG(fmt("[{}]", key));
         }
     }
-
-    Func<ImmId(ImmAdapter node)> aux;
-    ImmAstReplaceEpoch           result;
-
-    aux = [&](ImmAdapter node) -> ImmId {
-        auto __scope = ctx.debug.scopeLevel();
-        if (editParents.contains(node.uniq())) {
-            // The node is a parent subnode for some edit.
-            auto updateTarget = getUpdateTarget(node, replace, ctx);
-
-            auto flatTargetPath = updateTarget.flatPath();
-            Vec<Pair<ReflPath, ImmId>> updatedSubnodes;
-            Vec<ImmId>                 flatUpdatedSubnodes;
-            for (auto const& sub :
-                 updateTarget.getAllSubnodes(updateTarget.path)) {
-                auto relativePath = sub.flatPath().dropPrefix(
-                    flatTargetPath);
-                LOGIC_ASSERTION_CHECK(
-                    relativePath.first().isFieldName(),
-                    "relative path for subnode update must target a field "
-                    "of the node");
-                ImmId updated = aux(sub);
-                flatUpdatedSubnodes.push_back(updated);
-                updatedSubnodes.push_back({relativePath, updated});
-            }
+    return editParents;
+}
 
 
-            // List of subnodes can be updated together with the original
-            // edits. In this case there is no need to insert the same list
-            // of subnodes.
-            auto targetSubnodes //
-                = own_view(updateTarget.getAllSubnodes(std::nullopt))
-                | rv::transform([](org::ImmAdapter const& it) -> ImmId {
-                      return it.id;
-                  })
-                | rs::to<Vec>();
-            if (flatUpdatedSubnodes != targetSubnodes) {
-                AST_EDIT_MSG(
-                    fmt("Updated subnodes changed: updated:{} != "
-                        "target({}):{}",
-                        updatedSubnodes,
-                        updateTarget,
-                        updateTarget->subnodes),
-                    "aux");
+ImmId recurseUpdateSubnodes(
+    ImmAdapter                    node,
+    const ImmAstReplaceGroup&     replace,
+    ImmAstEditContext&            ctx,
+    UnorderedSet<ImmUniqId> const editParents,
+    ImmAstReplaceEpoch&           result);
 
-                auto grouped = groupUpdatedSubnodes(updatedSubnodes);
-                auto act     = updateFieldMutations(
-                    updateTarget, grouped, ctx);
-                result.replaced.set(act);
-                return act.replaced.id;
-            } else {
-                return updateTarget.id;
-            }
+Pair<Vec<Pair<ReflPath, ImmId>>, Vec<ImmId>> getUpdatedSubnodes(
+    ImmAdapter const&              updateTarget,
+    ImmAstReplaceGroup const&      replace,
+    ImmAstEditContext&             ctx,
+    UnorderedSet<ImmUniqId> const& editParents,
+    ImmAstReplaceEpoch&            result) {
+    auto                       flatTargetPath = updateTarget.flatPath();
+    Vec<Pair<ReflPath, ImmId>> updatedSubnodes;
+    Vec<ImmId>                 flatUpdatedSubnodes;
+    for (auto const& sub :
+         updateTarget.getAllSubnodes(updateTarget.path)) {
+        auto relativePath = sub.flatPath().dropPrefix(flatTargetPath);
+        LOGIC_ASSERTION_CHECK(
+            relativePath.first().isFieldName(),
+            "relative path for subnode update must target a field "
+            "of the node");
+        ImmId updated = recurseUpdateSubnodes(
+            sub, replace, ctx, editParents, result);
+        flatUpdatedSubnodes.push_back(updated);
+        updatedSubnodes.push_back({relativePath, updated});
+    }
+
+    return {updatedSubnodes, flatUpdatedSubnodes};
+}
+
+ImmId recurseUpdateSubnodes(
+    ImmAdapter                    node,
+    ImmAstReplaceGroup const&     replace,
+    ImmAstEditContext&            ctx,
+    const UnorderedSet<ImmUniqId> editParents,
+    ImmAstReplaceEpoch&           result) {
+    auto __scope = ctx.debug.scopeLevel();
+    if (editParents.contains(node.uniq())) {
+        // The node is a parent subnode for some edit.
+        auto updateTarget = getUpdateTarget(node, replace, ctx);
+        auto [updatedSubnodes, flatUpdatedSubnodes] = getUpdatedSubnodes(
+            updateTarget, replace, ctx, editParents, result);
+
+        // List of subnodes can be updated together with the original
+        // edits. In this case there is no need to insert the same list
+        // of subnodes.
+        auto targetSubnodes //
+            = own_view(updateTarget.getAllSubnodes(std::nullopt))
+            | rv::transform(
+                  [](org::ImmAdapter const& it) -> ImmId { return it.id; })
+            | rs::to<Vec>();
+        if (flatUpdatedSubnodes != targetSubnodes) {
+            AST_EDIT_MSG(
+                fmt("Updated subnodes changed: updated:{} != "
+                    "target({}):{}",
+                    updatedSubnodes,
+                    updateTarget,
+                    updateTarget->subnodes),
+                "aux");
+
+            auto grouped = groupUpdatedSubnodes(updatedSubnodes);
+            auto act = updateFieldMutations(updateTarget, grouped, ctx);
+            result.replaced.set(act);
+            return act.replaced.id;
         } else {
-            // The node is not a parent for any other replacement. If it
-            // was updated, return a new version, otherwise return the same
-            // node.
-            if (auto edit = replace.map.get(node.uniq()); edit) {
-                result.replaced.incl({node.uniq(), *edit});
-                return edit->id;
-            } else {
-                AST_EDIT_MSG(fmt("No changes in {}", node), "aux");
-                return node.id;
-            }
+            return updateTarget.id;
         }
-    };
+    } else {
+        // The node is not a parent for any other replacement. If it
+        // was updated, return a new version, otherwise return the same
+        // node.
+        if (auto edit = replace.map.get(node.uniq()); edit) {
+            result.replaced.incl({node.uniq(), *edit});
+            return edit->id;
+        } else {
+            AST_EDIT_MSG(fmt("No changes in {}", node), "aux");
+            return node.id;
+        }
+    }
+}
 
+ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
+    ImmAdapter const&         root,
+    ImmAstReplaceGroup const& replace,
+    ImmAstEditContext&        ctx) {
+    AST_EDIT_MSG("Start cascade update");
+    auto                    __scope     = ctx.debug.scopeLevel();
+    UnorderedSet<ImmUniqId> editParents = getEditParents(replace, ctx);
+
+    ImmAstReplaceEpoch result;
     AST_EDIT_MSG(fmt("Main root {}", root));
-    result.root = aux(root);
+    result.root = recurseUpdateSubnodes(
+        root, replace, ctx, editParents, result);
     return result;
 }
 
