@@ -127,100 +127,102 @@ SubnodeAssignGroup groupUpdatedSubnodes(
     return grouped;
 }
 
+template <typename Const>
+Const& mut_cast(Const const& value) {
+    return const_cast<Const&>(value);
+};
+
 ImmAstReplace updateFieldMutations(
     ImmAdapter                updateTarget,
     SubnodeAssignGroup const& grouped,
     ImmAstEditContext&        ctx) {
     ImmAstReplace act;
-    switch_node_value(updateTarget.id, *updateTarget.ctx, [&]<typename K>(K node) {
-        for (SubnodeAssignPair const& fieldGroup : grouped) {
-            auto field = fieldGroup.first.first();
-            LOGIC_ASSERTION_CHECK(field.isFieldName(), "");
-            auto fail_field =
-                [&](int         line     = __builtin_LINE(),
-                    char const* function = __builtin_FUNCTION()) {
-                    throw logic_unreachable_error::init(
-                        fmt("Field path {} refers to a non-ID field and "
-                            "cannot assigned",
-                            field),
-                        line,
-                        function);
-                };
+    switch_node_value(
+        updateTarget.id, *updateTarget.ctx, [&]<typename K>(K node) {
+            for (SubnodeAssignPair const& fieldGroup : grouped) {
+                auto field = fieldGroup.first.first();
+                LOGIC_ASSERTION_CHECK(field.isFieldName(), "");
+                auto fail_field =
+                    [&](int         line     = __builtin_LINE(),
+                        char const* function = __builtin_FUNCTION()) {
+                        throw logic_unreachable_error::init(
+                            fmt("Field path {} refers to a non-ID field "
+                                "and "
+                                "cannot assigned",
+                                field),
+                            line,
+                            function);
+                    };
 
-            ReflVisitor<K>::visit(
-                node,
-                field,
-                overloaded{
-                    // clang-format off
-                    [&]<IsVariant V>(V const& field) { fail_field(); },
-                    [&]<IsEnum E>(E const& field) { fail_field(); },
-                    [&](ImmBox<Opt<int>> const& field) { fail_field(); },
-                    [&](ImmBox<int> const& field) { fail_field(); },
-                    [&](ImmBox<Opt<bool>> const& field) { fail_field(); },
-                    [&](ImmBox<bool> const& field) { fail_field(); },
-                    [&](bool const& field) { fail_field(); },
-                    [&](ImmBox<Opt<sem::BlockCodeEvalResult>> const& field) { fail_field(); },
-                    [&](ImmBox<sem::BlockCodeEvalResult> const& field) { fail_field(); },
-                    [&](ImmBox<Opt<Str>> const& field) { fail_field(); },
-                    [&](ImmBox<Str> const& field) { fail_field(); },
-                    [&](ImmVec<Str> const& field) { fail_field(); },
-                    [&](ImmVec<org::ImmSymbol::Param> const& field) { fail_field(); },
-                    [&](ImmVec<sem::BlockCodeSwitch> const& field) { fail_field(); },
-                    [&](ImmVec<sem::NamedProperty> const& field) { fail_field(); },
-                    [&](ImmVec<sem::BlockCodeLine> const& field) { fail_field(); },
-                    [&](sem::DocumentExportConfig const& field) { fail_field(); },
-                    [&](sem::CmdArgumentValue const& field) { fail_field(); },
-                    // clang-format on
-                    [&]<typename FK>(
-                        ImmBox<Opt<org::ImmIdT<FK>>> const& field) {
-                        LOGIC_ASSERTION_CHECK(
-                            fieldGroup.second.size() == 1, "");
-                        const_cast<ImmBox<Opt<org::ImmIdT<FK>>>&>(field) //
-                            = fieldGroup.second.at(0).second;
-                    },
-                    [&]<typename FK>(org::ImmIdT<FK> const& field) {
-                        LOGIC_ASSERTION_CHECK(
-                            fieldGroup.second.size() == 1, "");
-                        const_cast<org::ImmIdT<FK>&>(field) //
-                            = fieldGroup.second.at(0).second;
-                    },
-                    [&]<typename FK>(
-                        ImmVec<ImmIdT<FK>> const& targetIdField) {
-                        Vec<ImmIdT<FK>> convKinds;
-                        for (auto const& it : fieldGroup.second) {
-                            convKinds.push_back(it.second.as<FK>());
-                        }
-                        const_cast<ImmVec<ImmIdT<FK>>&>(targetIdField) = ImmVec<
-                            ImmIdT<FK>>{
-                            convKinds.begin(), convKinds.end()};
-                    },
-                    [&](ImmVec<ImmId> const& targetIdField) {
-                        Vec<ImmId> convKinds;
-                        for (auto const& it : fieldGroup.second) {
-                            convKinds.push_back(it.second);
-                        }
-                        const_cast<ImmVec<ImmId>&>(targetIdField) = ImmVec<
-                            ImmId>{
-                            convKinds.begin(),
-                            convKinds.end(),
-                        };
-                    },
-                    [&]<typename FK>(ImmMap<Str, org::ImmIdT<FK>> const&
-                                         targetIdField) {
-                        auto transient = targetIdField.transient();
-                        for (auto const& key : fieldGroup.second) {
-                            transient.set(
-                                key.first.at(1).getAnyKey().get<Str>(),
-                                key.second.as<FK>());
-                        }
-                        const_cast<ImmMap<Str, org::ImmIdT<FK>>&>(targetIdField) = transient
-                                                                                       .persistent();
-                    },
-                });
-        }
+                ReflVisitor<K>::visit(
+                    node,
+                    field,
+                    overloaded{
+                        // clang-format off
+                        [&]<IsVariant V>(V const&) { fail_field(); },
+                        [&]<IsEnum E>(E const&) { fail_field(); },
+                        [&](ImmBox<Opt<int>> const&) { fail_field(); },
+                        [&](ImmBox<int> const&) { fail_field(); },
+                        [&](ImmBox<Opt<bool>> const&) { fail_field(); },
+                        [&](ImmBox<bool> const&) { fail_field(); },
+                        [&](bool const&) { fail_field(); },
+                        [&](ImmBox<Opt<sem::BlockCodeEvalResult>> const&) { fail_field(); },
+                        [&](ImmBox<sem::BlockCodeEvalResult> const&) { fail_field(); },
+                        [&](ImmBox<Opt<Str>> const&) { fail_field(); },
+                        [&](ImmBox<Str> const&) { fail_field(); },
+                        [&](ImmVec<Str> const&) { fail_field(); },
+                        [&](ImmVec<org::ImmSymbol::Param> const&) { fail_field(); },
+                        [&](ImmVec<sem::BlockCodeSwitch> const&) { fail_field(); },
+                        [&](ImmVec<sem::NamedProperty> const&) { fail_field(); },
+                        [&](ImmVec<sem::BlockCodeLine> const&) { fail_field(); },
+                        [&](sem::DocumentExportConfig const&) { fail_field(); },
+                        [&](sem::CmdArgumentValue const&) { fail_field(); },
+                        // clang-format on
+                        [&]<typename FK>(
+                            ImmBox<Opt<org::ImmIdT<FK>>> const& f) {
+                            LOGIC_ASSERTION_CHECK(
+                                fieldGroup.second.size() == 1, "");
+                            mut_cast(f) = fieldGroup.second.at(0).second;
+                        },
+                        [&]<typename FK>(org::ImmIdT<FK> const& f) {
+                            LOGIC_ASSERTION_CHECK(
+                                fieldGroup.second.size() == 1, "");
+                            mut_cast(f) = fieldGroup.second.at(0).second;
+                        },
+                        [&]<typename FK>(ImmVec<ImmIdT<FK>> const& f) {
+                            Vec<ImmIdT<FK>> convKinds;
+                            for (auto const& it : fieldGroup.second) {
+                                convKinds.push_back(it.second.as<FK>());
+                            }
+                            mut_cast(f) = ImmVec<ImmIdT<FK>>{
+                                convKinds.begin(), convKinds.end()};
+                        },
+                        [&](ImmVec<ImmId> const& f) {
+                            Vec<ImmId> convKinds;
+                            for (auto const& it : fieldGroup.second) {
+                                convKinds.push_back(it.second);
+                            }
+                            mut_cast(f) = ImmVec<ImmId>{
+                                convKinds.begin(),
+                                convKinds.end(),
+                            };
+                        },
+                        [&]<typename FK>(
+                            ImmMap<Str, org::ImmIdT<FK>> const& f) {
+                            auto transient = f.transient();
+                            for (auto const& key : fieldGroup.second) {
+                                transient.set(
+                                    key.first.at(1).getAnyKey().get<Str>(),
+                                    key.second.as<FK>());
+                            }
+                            mut_cast(f) = transient.persistent();
+                        },
+                    });
+            }
 
-        act = updateTarget.ctx->store->setNode(updateTarget, node, ctx);
-    });
+            act = updateTarget.ctx->store->setNode(
+                updateTarget, node, ctx);
+        });
     return act;
 }
 
