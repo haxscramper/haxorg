@@ -144,19 +144,50 @@ ImmAstReplace updateFieldMutations(
                     node,
                     field,
                     overloaded{
-                        [&]<typename FieldKind>(
-                            immer::box<std::optional<
-                                org::ImmIdT<FieldKind>>> const& field) {
+                        // clang-format off
+                        []<IsVariant V>(V const& field) { throw logic_unreachable_error::init(""); },
+                        []<IsEnum E>(E const& field) { throw logic_unreachable_error::init(""); },
+                        [](ImmBox<Opt<int>> const& field) { throw logic_unreachable_error::init(""); },
+                        [](ImmBox<int> const& field) { throw logic_unreachable_error::init(""); },
+                        [](ImmBox<Opt<Str>> const& field) { throw logic_unreachable_error::init(""); },
+                        [](ImmBox<Str> const& field) { throw logic_unreachable_error::init(""); },
+                        [](ImmVec<Str> const& field) { throw logic_unreachable_error::init(""); },
+                        [](ImmVec<org::ImmSymbol::Param> const& field) { throw logic_unreachable_error::init(""); },
+                        [](ImmVec<sem::BlockCodeSwitch> const& field) { throw logic_unreachable_error::init(""); },
+                        [](ImmVec<sem::NamedProperty> const& field) { throw logic_unreachable_error::init(""); },
+                        [](sem::DocumentExportConfig const& field) { throw logic_unreachable_error::init(""); },
+                        [](sem::CmdArgumentValue const& field) { throw logic_unreachable_error::init(""); },
+                        // clang-format on
+                        [&]<typename FK>(
+                            ImmBox<Opt<org::ImmIdT<FK>>> const& field) {
                             LOGIC_ASSERTION_CHECK(
                                 fieldGroup.second.size() == 1, "");
-                            const_cast<immer::box<
-                                std::optional<org::ImmIdT<FieldKind>>>&>(
-                                field)
+                            const_cast<ImmBox<Opt<org::ImmIdT<FK>>>&>(
+                                field) //
                                 = fieldGroup.second.at(0);
                         },
-                        [&](Vec<ImmId> const& targetIdField) {
-                            const_cast<Vec<ImmId>&>(targetIdField) = fieldGroup
-                                                                         .second;
+                        [&]<typename FK>(org::ImmIdT<FK> const& field) {
+                            LOGIC_ASSERTION_CHECK(
+                                fieldGroup.second.size() == 1, "");
+                            const_cast<org::ImmIdT<FK>&>(field) //
+                                = fieldGroup.second.at(0);
+                        },
+                        [&]<typename FK>(
+                            ImmVec<ImmIdT<FK>> const& targetIdField) {
+                            Vec<ImmIdT<FK>> convKinds;
+                            for (auto const& it : fieldGroup.second) {
+                                convKinds.push_back(it.as<FK>());
+                            }
+                            const_cast<ImmVec<ImmIdT<FK>>&>(targetIdField) = ImmVec<
+                                ImmIdT<FK>>{
+                                convKinds.begin(), convKinds.end()};
+                        },
+                        [&](ImmVec<ImmId> const& targetIdField) {
+                            const_cast<ImmVec<ImmId>&>(targetIdField) = ImmVec<
+                                ImmId>{
+                                fieldGroup.second.begin(),
+                                fieldGroup.second.end(),
+                            };
                         },
                     });
             }
