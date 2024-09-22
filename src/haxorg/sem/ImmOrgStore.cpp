@@ -96,6 +96,91 @@ ImmAstReplace ImmAstStore::setNode(
     };
 }
 
+Vec<Pair<ReflPath, Vec<ImmId>>> groupUpdatedSubnodes(
+    Vec<Pair<ReflPath, ImmId>> const& updatedSubnodes) {
+    Vec<Pair<ReflPath, ImmId>> sortedUpdatedSubnodes = sorted(
+        updatedSubnodes,
+        [](const Pair<ReflPath, ImmId>& a,
+           const Pair<ReflPath, ImmId>& b) {
+            return a.first.first().getFieldName().name
+                 < b.first.first().getFieldName().name;
+        });
+
+    Vec<Pair<ReflPath, Vec<ImmId>>> grouped //
+        = sortedUpdatedSubnodes
+        | rv::group_by(
+              [](const Pair<ReflPath, ImmId>& a,
+                 const Pair<ReflPath, ImmId>& b) -> bool {
+                  return a.first.first().getFieldName().name
+                      == b.first.first().getFieldName().name;
+              })
+        | rv::transform([](auto group) -> Pair<ReflPath, Vec<ImmId>> {
+              ReflPath   path = group.front().first;
+              Vec<ImmId> ids //
+                  = group
+                  | rv::transform(
+                        [](const Pair<ReflPath, ImmId>& p) -> ImmId {
+                            return p.second;
+                        })
+                  | rs::to<Vec<ImmId>>;
+              return std::make_pair(path, ids);
+          })
+        | rs::to<Vec<Pair<ReflPath, Vec<ImmId>>>>();
+
+    return grouped;
+}
+
+ImmAstReplace updateFieldMutations(
+    ImmAdapter                             updateTarget,
+    Vec<Pair<ReflPath, Vec<ImmId>>> const& grouped,
+    ImmAstEditContext&                     ctx) {
+    ImmAstReplace act;
+    switch_node_value(
+        updateTarget.id, *updateTarget.ctx, [&]<typename K>(K node) {
+            for (Pair<ReflPath, Vec<ImmId>> const& fieldGroup : grouped) {
+                auto field = fieldGroup.first.first();
+                LOGIC_ASSERTION_CHECK(field.isFieldName(), "");
+                ReflVisitor<K>::visit(
+                    node,
+                    field,
+                    overloaded{
+                        [&]<typename FieldKind>(
+                            immer::box<std::optional<
+                                org::ImmIdT<FieldKind>>> const& field) {
+                            LOGIC_ASSERTION_CHECK(
+                                fieldGroup.second.size() == 1, "");
+                            const_cast<immer::box<
+                                std::optional<org::ImmIdT<FieldKind>>>&>(
+                                field)
+                                = fieldGroup.second.at(0);
+                        },
+                        [&](Vec<ImmId> const& targetIdField) {
+                            const_cast<Vec<ImmId>&>(targetIdField) = fieldGroup
+                                                                         .second;
+                        },
+                    });
+            }
+
+            act = updateTarget.ctx->store->setNode(
+                updateTarget, node, ctx);
+        });
+    return act;
+}
+
+ImmAdapter getUpdateTarget(
+    ImmAdapter const&         node,
+    ImmAstReplaceGroup const& replace,
+    ImmAstEditContext&        ctx) {
+    Opt<ImmUniqId> edit = replace.map.get(node.uniq());
+    AST_EDIT_MSG(fmt("Node {} direct edit:{}", node.id, edit), "aux");
+
+    // If there were no modifications to the original node, use its
+    // direct subnodes. Otherwise, take a newer version of the node
+    // and map its subnodes instead.
+    ImmAdapter updateTarget = edit ? ImmAdapter{*edit, ctx.ctx} : node;
+    return updateTarget;
+}
+
 
 ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
     ImmAdapter const&         root,
@@ -143,57 +228,35 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
         auto __scope = ctx.debug.scopeLevel();
         if (editParents.contains(node.uniq())) {
             // The node is a parent subnode for some edit.
-            Opt<ImmUniqId> edit = replace.map.get(node.uniq());
-            AST_EDIT_MSG(
-                fmt("Node {} direct edit:{}", node.id, edit), "aux");
+            auto updateTarget = getUpdateTarget(node, replace, ctx);
 
-            Vec<ImmId> updatedSubnodes;
-            // If there were no modifications to the original node, use its
-            // direct subnodes. Otherwise, take a newer version of the node
-            // and map its subnodes instead.
-            ImmAdapter updateTarget = edit ? ImmAdapter{*edit, ctx.ctx}
-                                           : node;
-
+            auto flatTargetPath = updateTarget.flatPath();
+            Vec<Pair<ReflPath, ImmId>> updatedSubnodes;
+            Vec<ImmId>                 flatUpdatedSubnodes;
             for (auto const& sub :
                  updateTarget.getAllSubnodes(updateTarget.path)) {
-                updatedSubnodes.push_back(aux(sub));
-            }
-
-
-            if (false) { // FIXME Temporarily commented out -- the
-                         // assertion check is very conservative and did
-                         // not account for all the valid edge cases. I
-                         // will either remove it, or re-enable it later on
-                         // once there is a better understanding of what
-                         // tree editing edge cases are actually not
-                         // allowed.
-                auto replaced = ImmAdapter{*edit, ctx.ctx};
-                auto original = node;
+                auto relativePath = sub.flatPath().dropPrefix(
+                    flatTargetPath);
                 LOGIC_ASSERTION_CHECK(
-                    replaced->subnodes == original->subnodes
-                        || replaced->subnodes == updatedSubnodes,
-                    "Node {0} was replaced with {1} and the list of "
-                    "subnodes differs: (replaced != original) {2} != {3} "
-                    "and (replaced != updated) {2} != {4}. The node {0} "
-                    "is a parent for edits in this batch, meaning it "
-                    "will have the subnodes replaced, and the original "
-                    "subnode changes will be lost. To avoid this issue, "
-                    "separate the `.subnode` field update and nested node "
-                    "edits into two different batches of updates.",
-                    /*0*/ node,
-                    /*1*/ *edit,
-                    /*2*/ original->subnodes,
-                    /*3*/ replaced->subnodes,
-                    /*4*/ updatedSubnodes);
-
-                result.replaced.incl({node.uniq(), *edit});
+                    relativePath.first().isFieldName(),
+                    "relative path for subnode update must target a field "
+                    "of the node");
+                ImmId updated = aux(sub);
+                flatUpdatedSubnodes.push_back(updated);
+                updatedSubnodes.push_back({relativePath, updated});
             }
 
 
             // List of subnodes can be updated together with the original
             // edits. In this case there is no need to insert the same list
             // of subnodes.
-            if (updatedSubnodes != updateTarget->subnodes) {
+            auto targetSubnodes //
+                = own_view(updateTarget.getAllSubnodes(std::nullopt))
+                | rv::transform([](org::ImmAdapter const& it) -> ImmId {
+                      return it.id;
+                  })
+                | rs::to<Vec>();
+            if (flatUpdatedSubnodes != targetSubnodes) {
                 AST_EDIT_MSG(
                     fmt("Updated subnodes changed: updated:{} != "
                         "target({}):{}",
@@ -202,16 +265,10 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
                         updateTarget->subnodes),
                     "aux");
 
-                ImmAstReplace act = setSubnodes(
-                    updateTarget,
-                    ImmVec<ImmId>{
-                        updatedSubnodes.begin(),
-                        updatedSubnodes.end(),
-                    },
-                    ctx);
-
+                auto grouped = groupUpdatedSubnodes(updatedSubnodes);
+                auto act     = updateFieldMutations(
+                    updateTarget, grouped, ctx);
                 result.replaced.set(act);
-
                 return act.replaced.id;
             } else {
                 return updateTarget.id;
