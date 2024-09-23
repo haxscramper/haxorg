@@ -1,9 +1,33 @@
 #include "story_grid.hpp"
 
 #include <haxorg/sem/ImmOrgEdit.hpp>
+#include "imgui_utils.hpp"
+
+Vec<GridAction> render_story_grid(
+    GridDocument const& doc,
+    GridConfig const&   conf) {
+    Vec<GridAction> result;
+
+    return result;
+}
 
 void story_grid_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
+    GridModel          model;
+    org::ImmAstContext start;
+    model.history.push_back(GridState{
+        .ast = start.init(node),
+    });
 
+    while (!glfwWindowShouldClose(window)) {
+        frame_start();
+        Vec<GridAction> updates = render_story_grid(
+            model.document, model.conf);
+        frame_end(window);
+        if (!updates.empty()) {
+            for (auto const& update : updates) { model.apply(update); }
+            model.updateDocument();
+        }
+    }
 }
 
 
@@ -53,4 +77,34 @@ GridCell buildCell(org::ImmAdapter adapter, int width) {
     result.value  = join(" ", flatWords(adapter));
     result.origin = adapter;
     return result;
+}
+
+void GridModel::updateDocument() {
+    document.rows = buildRows(
+        getCurrentState().ast.getRootAdapter(), conf);
+}
+
+void GridModel::apply(const GridAction& act) {
+    switch (act.getKind()) {
+        case GridAction::Kind::EditCell: {
+            auto edit = act.getEditCell();
+            org::ImmAstVersion vNext = getCurrentState().ast.getEditVersion(
+                [&](org::ImmAstContext& ast, org::ImmAstEditContext& ctx)
+                    -> org::ImmAstReplaceGroup {
+                    org::ImmAstReplaceGroup result;
+                    result.incl(org::replaceNode(
+                        edit.cell.origin,
+                        ast.add(
+                            sem::asOneNode(
+                                sem::parseString(edit.cell.value)),
+                            ctx),
+                        ctx));
+                    return result;
+                });
+            history.push_back(GridState{
+                .ast = vNext,
+            });
+            break;
+        }
+    }
 }

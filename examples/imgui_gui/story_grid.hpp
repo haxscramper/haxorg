@@ -1,4 +1,5 @@
 #pragma once
+#define IMMER_TAGGED_NODE 0
 
 #include <GLFW/glfw3.h>
 #include <haxorg/sem/SemBaseApi.hpp>
@@ -26,6 +27,12 @@ struct GridRow {
     DESC_FIELDS(GridRow, (title, columns, nested));
 };
 
+struct GridDocument {
+    Vec<GridRow> rows;
+
+    DESC_FIELDS(GridDocument, (rows));
+};
+
 struct GridConfig {
     struct Widths {
         int event;
@@ -45,6 +52,19 @@ struct GridAction {
 
     SUB_VARIANTS(Kind, Data, data, getKind, EditCell);
     Data data;
+};
+
+struct GridState {
+    org::ImmAstVersion ast;
+};
+
+struct GridModel {
+    Vec<GridState> history;
+    GridDocument   document;
+    GridConfig     conf;
+    void           updateDocument();
+    GridState&     getCurrentState() { return history.back(); }
+    void           apply(GridAction const& act);
 };
 
 GridCell buildCell(org::ImmAdapter adapter, int width);
