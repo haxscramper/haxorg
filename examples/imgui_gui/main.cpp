@@ -8,10 +8,11 @@
 #include <hstd/stdlib/Set.hpp>
 
 #include "sem_tree_render.hpp"
+#include "story_grid.hpp"
 
 
 struct Config {
-    DECL_DESCRIBED_ENUM(Mode, SemTree, Outline);
+    DECL_DESCRIBED_ENUM(Mode, SemTree, Outline, StoryGrid);
 
     Str  file;
     Mode mode = Mode::SemTree;
@@ -423,6 +424,10 @@ int main(int argc, char** argv) {
         }
         case Config::Mode::Outline: {
             outline_tree_loop(window, node);
+            break;
+        }
+        case Config::Mode::StoryGrid: {
+            story_grid_loop(window, node);
             break;
         }
     }

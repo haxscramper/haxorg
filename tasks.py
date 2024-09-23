@@ -978,7 +978,7 @@ def cmake_install_dev(ctx: Context, perfetto: bool = False):
     install_dir = get_build_root().joinpath("install")
     if install_dir.exists():
         shutil.rmtree(install_dir)
-
+        
     run_command(
         ctx,
         "cmake",
