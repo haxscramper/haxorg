@@ -1427,7 +1427,7 @@ TEST(ImmMapApi, AddNode) {
     conf.setTraceFile("/tmp/ImmMapApi_AddNode.txt");
     EXPECT_EQ(s1.graph.nodeCount(), 0);
     auto [store2, root] = store.addRoot(n1);
-    auto s2 = org::graph::addNode(s1, org::ImmAdapter{root, &store}, conf);
+    auto s2 = org::graph::addNode(s1, org::ImmAdapter{root, store}, conf);
     EXPECT_EQ(s2.graph.nodeCount(), 1);
 
     writeFile("/tmp/MapS2.json", to_json_eval(s2).dump(2));
@@ -1453,7 +1453,7 @@ Paragraph [[id:subtree-id]]
     org::graph::MapOpsConfig conf;
     conf.setTraceFile("/tmp/AddNodeWithLinks_log.txt");
     auto [store2, root_node] = store.addRoot(n1);
-    org::ImmAdapter root{root_node, &store};
+    org::ImmAdapter root{root_node, store};
 
     ColStream os;
     store.format(os);
@@ -1523,8 +1523,8 @@ TEST(ImmMapApi, SubtreeBacklinks) {
     auto [store2, root_1] = store.addRoot(n1);
     auto [store3, root_2] = store2.addRoot(n2);
 
-    org::ImmAdapter file1{root_1, &store};
-    org::ImmAdapter file2{root_2, &store};
+    org::ImmAdapter file1{root_1, store};
+    org::ImmAdapter file2{root_2, store};
 
     ColStream os;
     store.format(os);
@@ -1657,7 +1657,7 @@ TEST(ImmMapApi, SubtreeFullMap) {
     org::ImmAstContext       store;
     org::graph::MapOpsConfig conf;
     auto [store2, root1] = store.addRoot(n);
-    org::ImmAdapter           file{root1, &store};
+    org::ImmAdapter           file{root1, store};
     org::graph::MapGraphState s1{};
 
     ColStream os;
@@ -1824,7 +1824,7 @@ TEST(ImmMapApi, BoostPropertyWriter) {
     org::ImmAstContext       store;
     org::graph::MapOpsConfig conf;
     auto [store2, root1] = store.addRoot(n);
-    org::ImmAdapter           file{root1, &store};
+    org::ImmAdapter           file{root1, store};
     org::graph::MapGraphState s1{};
     auto                      s2 = org::graph::addNodeRec(s1, file, conf);
 

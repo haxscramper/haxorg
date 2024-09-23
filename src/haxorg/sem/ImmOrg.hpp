@@ -457,9 +457,9 @@ struct ImmAstVersion;
 struct ImmAdapter;
 
 struct [[nodiscard]] ImmAstContext {
-    SPtr<OperationsTracer> debug;
-    SPtr<ImmAstStore>      store;
-    ImmAstTrackingMap      parents;
+    SPtr<OperationsTracer>  debug;
+    SPtr<ImmAstStore>       store;
+    SPtr<ImmAstTrackingMap> parents;
 
     void message(
         std::string const& value,
@@ -478,7 +478,7 @@ struct [[nodiscard]] ImmAstContext {
 
     ImmAstEditContext getEditContext() {
         return ImmAstEditContext{
-            .track = parents.transient(),
+            .track = parents->transient(),
             .ctx   = this,
             .debug = OperationsScope{
                 .TraceState  = &debug->TraceState,
@@ -529,6 +529,7 @@ struct [[nodiscard]] ImmAstContext {
 
     ImmAstContext()
         : store{std::make_shared<ImmAstStore>()}
+        , parents{std::make_shared<ImmAstTrackingMap>()}
         , debug{std::make_shared<OperationsTracer>()} //
     {}
 };
@@ -547,7 +548,7 @@ struct ImmAstVersion {
     DESC_FIELDS(ImmAstVersion, (context, epoch));
 
     ImmId      getRoot() const { return epoch.getRoot(); }
-    ImmAdapter getRootAdapter();
+    ImmAdapter getRootAdapter() const;
 
     ImmAstVersion getEditVersion(
         Func<ImmAstReplaceGroup(ImmAstContext& ast, ImmAstEditContext&)>
@@ -639,9 +640,9 @@ template <typename T>
 struct ImmAdapterT;
 
 struct ImmAdapter {
-    ImmId          id;
-    ImmAstContext* ctx;
-    ImmPath        path;
+    ImmId         id;
+    ImmAstContext ctx;
+    ImmPath       path;
 
     class iterator {
       public:
@@ -678,7 +679,7 @@ struct ImmAdapter {
         }
     };
 
-    int      size() const { return ctx->at(id)->subnodes.size(); }
+    int      size() const { return ctx.at(id)->subnodes.size(); }
     iterator begin() const { return iterator(this); }
     iterator end() const { return iterator(this, size()); }
     bool     isNil() const { return id.isNil(); }
@@ -699,16 +700,16 @@ struct ImmAdapter {
         return path.path.front().path.first();
     }
 
-    ImmAdapter(ImmPath const& path, ImmAstContext* ctx)
-        : id{ctx->at(path)}, ctx{ctx}, path{path} {}
+    ImmAdapter(ImmPath const& path, ImmAstContext const& ctx)
+        : id{ctx.at(path)}, ctx{ctx}, path{path} {}
 
-    ImmAdapter(ImmUniqId id, ImmAstContext* ctx)
+    ImmAdapter(ImmUniqId id, ImmAstContext const& ctx)
         : id{id.id}, ctx{ctx}, path{id.path} {}
 
-    ImmAdapter(ImmId id, ImmAstContext* ctx, ImmPath const& path)
+    ImmAdapter(ImmId id, ImmAstContext const& ctx, ImmPath const& path)
         : id{id}, ctx{ctx}, path{path} {}
 
-    ImmAdapter() : id{ImmId::Nil()}, ctx{nullptr}, path{ImmId::Nil()} {}
+    ImmAdapter() : id{ImmId::Nil()}, ctx{}, path{ImmId::Nil()} {}
 
     ImmAdapter pass(ImmId id, ImmPath const& path) const {
         return ImmAdapter(id, ctx, path);
@@ -761,7 +762,7 @@ struct ImmAdapter {
             return std::nullopt;
         } else {
             auto newPath = path.pop();
-            return ImmAdapter{ctx->at(newPath), ctx, newPath};
+            return ImmAdapter{ctx.at(newPath), ctx, newPath};
         }
     }
 
@@ -795,7 +796,7 @@ struct ImmAdapter {
         return this->id == id.id;
     }
 
-    ImmOrg const* get() const { return ctx->at(id); }
+    ImmOrg const* get() const { return ctx.at(id); }
     ImmOrg const* operator->() const { return get(); }
 
     template <typename T>
@@ -814,13 +815,13 @@ struct ImmAdapter {
 
     ImmAdapter at(Str const& field) const {
         return at(
-            ctx->at(id, ImmPathStep{{ReflPathItem::FromFieldName(field)}}),
+            ctx.at(id, ImmPathStep{{ReflPathItem::FromFieldName(field)}}),
             ImmPathStep::Field(field));
     }
 
     ImmAdapter at(int idx) const {
         return at(
-            ctx->at(id)->subnodes.at(idx),
+            ctx.at(id)->subnodes.at(idx),
             ImmPathStep::FieldIdx("subnodes", idx));
     }
 
@@ -890,12 +891,12 @@ struct ImmAdapter {
 
     template <typename Func>
     void visitNodeValue(Func const& cb) const {
-        swtich_node_value(id, *ctx, cb);
+        swtich_node_value(id, ctx, cb);
     }
 
     template <typename Func>
     void visitNodeFields(Func const& cb) const {
-        switch_node_fields(id, *ctx, cb);
+        switch_node_fields(id, ctx, cb);
     }
 };
 
@@ -923,7 +924,7 @@ struct ImmAdapterTBase : ImmAdapter {
     /// \brief Pass the constructor implementation unchanged
     using ImmAdapter::ImmAdapter;
     using ImmAdapter::pass;
-    T const* get() const { return ctx->at_t<T>(id); }
+    T const* get() const { return ctx.at_t<T>(id); }
     T const* operator->() const { return get(); }
 
     /// \brief Get sub-field value wrapped as adapter.

@@ -112,10 +112,10 @@ const ImmOrg* ImmAstStore::at(ImmId index) const {
 
 namespace {
 void eachSubnodeRecImpl(
-    CR<org::SubnodeVisitor> visitor,
-    ImmId                   org,
-    bool                    originalBase,
-    org::ImmAstContext*     ctx);
+    CR<org::SubnodeVisitor>   visitor,
+    ImmId                     org,
+    bool                      originalBase,
+    org::ImmAstContext const& ctx);
 
 template <typename T>
 struct SubnodeRecVisitor {};
@@ -125,9 +125,9 @@ struct SubnodeRecVisitor {};
     template <>                                                           \
     struct SubnodeRecVisitor<__Type> {                                    \
         static void visitField(                                           \
-            CR<org::SubnodeVisitor> visitor,                              \
-            __Type const&           tmp,                                  \
-            org::ImmAstContext*     ctx) {}                                   \
+            CR<org::SubnodeVisitor>   visitor,                            \
+            __Type const&             tmp,                                \
+            org::ImmAstContext const& ctx) {}                             \
     };
 
 placeholder_visitor(Str);
@@ -147,25 +147,25 @@ placeholder_visitor(Vec<sem::SemId<sem::Org>>);
 template <IsEnum T>
 struct SubnodeRecVisitor<T> {
     static void visitField(
-        CR<org::SubnodeVisitor> visitor,
-        T const&                tree,
-        org::ImmAstContext*     ctx) {}
+        CR<org::SubnodeVisitor>   visitor,
+        T const&                  tree,
+        org::ImmAstContext const& ctx) {}
 };
 
 template <typename T>
 struct SubnodeRecVisitor<ImmIdT<T>> {
     static void visitField(
-        CR<org::SubnodeVisitor> visitor,
-        ImmIdT<T>               tree,
-        org::ImmAstContext*     ctx) {
+        CR<org::SubnodeVisitor>   visitor,
+        ImmIdT<T>                 tree,
+        org::ImmAstContext const& ctx) {
 
         if (tree.isNil()) { return; }
         visitor(ImmAdapter{tree.toId(), ctx, org::ImmPath{tree.toId()}});
 
         for_each_field_with_bases<T>([&](auto const& field) {
             SubnodeRecVisitor<std::remove_cvref_t<
-                decltype(ctx->at(tree)->*field.pointer)>>::
-                visitField(visitor, ctx->at(tree)->*field.pointer, ctx);
+                decltype(ctx.at(tree)->*field.pointer)>>::
+                visitField(visitor, ctx.at(tree)->*field.pointer, ctx);
         });
     }
 };
@@ -173,9 +173,9 @@ struct SubnodeRecVisitor<ImmIdT<T>> {
 template <DescribedRecord T>
 struct SubnodeRecVisitor<T> {
     static void visitField(
-        CR<org::SubnodeVisitor> visitor,
-        T const&                obj,
-        org::ImmAstContext*     ctx) {
+        CR<org::SubnodeVisitor>   visitor,
+        T const&                  obj,
+        org::ImmAstContext const& ctx) {
         for_each_field_with_bases<T>([&](auto const& field) {
             SubnodeRecVisitor<
                 std::remove_cvref_t<decltype(obj.*field.pointer)>>::
@@ -188,10 +188,10 @@ struct SubnodeRecVisitor<T> {
 template <>
 struct SubnodeRecVisitor<ImmId> {
     static void visitField(
-        CR<org::SubnodeVisitor> visitor,
-        ImmId                   org,
-        org::ImmAstContext*     ctx) {
-        switch_node_value(org, *ctx, [&]<typename N>(N const& value) {
+        CR<org::SubnodeVisitor>   visitor,
+        ImmId                     org,
+        org::ImmAstContext const& ctx) {
+        switch_node_value(org, ctx, [&]<typename N>(N const& value) {
             SubnodeRecVisitor<org::ImmIdT<N>>::visitField(
                 visitor, org.as<N>(), ctx);
         });
@@ -202,9 +202,9 @@ struct SubnodeRecVisitor<ImmId> {
 template <sem::IsOrg T>
 struct SubnodeRecVisitor<T> {
     static void visitField(
-        CR<org::SubnodeVisitor> visitor,
-        CR<T>                   node,
-        org::ImmAstContext*     ctx) {
+        CR<org::SubnodeVisitor>   visitor,
+        CR<T>                     node,
+        org::ImmAstContext const& ctx) {
         SubnodeRecVisitor<ImmId>::visitField(visitor, node.asOrg(), ctx);
     }
 };
@@ -212,9 +212,9 @@ struct SubnodeRecVisitor<T> {
 template <IsVariant T>
 struct SubnodeRecVisitor<T> {
     static void visitField(
-        CR<org::SubnodeVisitor> visitor,
-        CR<T>                   node,
-        org::ImmAstContext*     ctx) {
+        CR<org::SubnodeVisitor>   visitor,
+        CR<T>                     node,
+        org::ImmAstContext const& ctx) {
         std::visit(
             [&](auto const& it) {
                 SubnodeRecVisitor<std::remove_cvref_t<decltype(it)>>::
@@ -227,9 +227,9 @@ struct SubnodeRecVisitor<T> {
 template <typename T>
 struct SubnodeRecVisitor<Vec<T>> {
     static void visitField(
-        CR<org::SubnodeVisitor> visitor,
-        Vec<T> const&           value,
-        org::ImmAstContext*     ctx) {
+        CR<org::SubnodeVisitor>   visitor,
+        Vec<T> const&             value,
+        org::ImmAstContext const& ctx) {
         for (const auto& it : value) {
             SubnodeRecVisitor<T>::visitField(visitor, it, ctx);
         }
@@ -240,9 +240,9 @@ struct SubnodeRecVisitor<Vec<T>> {
 template <typename T>
 struct SubnodeRecVisitor<ImmVec<T>> {
     static void visitField(
-        CR<org::SubnodeVisitor> visitor,
-        ImmVec<T> const&        value,
-        org::ImmAstContext*     ctx) {
+        CR<org::SubnodeVisitor>   visitor,
+        ImmVec<T> const&          value,
+        org::ImmAstContext const& ctx) {
         for (const auto& it : value) {
             SubnodeRecVisitor<T>::visitField(visitor, it, ctx);
         }
@@ -254,7 +254,7 @@ struct SubnodeRecVisitor<UnorderedMap<K, V>> {
     static void visitField(
         CR<org::SubnodeVisitor>   visitor,
         UnorderedMap<K, V> const& value,
-        org::ImmAstContext*       ctx) {
+        org::ImmAstContext const& ctx) {
         for (const auto& [key, value] : value) {
             SubnodeRecVisitor<V>::visitField(visitor, value, ctx);
         }
@@ -265,9 +265,9 @@ struct SubnodeRecVisitor<UnorderedMap<K, V>> {
 template <typename K, typename V>
 struct SubnodeRecVisitor<ImmMap<K, V>> {
     static void visitField(
-        CR<org::SubnodeVisitor> visitor,
-        ImmMap<K, V> const&     value,
-        org::ImmAstContext*     ctx) {
+        CR<org::SubnodeVisitor>   visitor,
+        ImmMap<K, V> const&       value,
+        org::ImmAstContext const& ctx) {
         for (const auto& [key, value] : value) {
             SubnodeRecVisitor<V>::visitField(visitor, value, ctx);
         }
@@ -278,9 +278,9 @@ struct SubnodeRecVisitor<ImmMap<K, V>> {
 template <typename T>
 struct SubnodeRecVisitor<ImmBox<T>> {
     static void visitField(
-        CR<org::SubnodeVisitor> visitor,
-        CR<ImmBox<T>>           value,
-        org::ImmAstContext*     ctx) {
+        CR<org::SubnodeVisitor>   visitor,
+        CR<ImmBox<T>>             value,
+        org::ImmAstContext const& ctx) {
         SubnodeRecVisitor<T>::visitField(visitor, value.get(), ctx);
     }
 };
@@ -288,9 +288,9 @@ struct SubnodeRecVisitor<ImmBox<T>> {
 template <typename T>
 struct SubnodeRecVisitor<Opt<T>> {
     static void visitField(
-        CR<org::SubnodeVisitor> visitor,
-        CR<Opt<T>>              value,
-        org::ImmAstContext*     ctx) {
+        CR<org::SubnodeVisitor>   visitor,
+        CR<Opt<T>>                value,
+        org::ImmAstContext const& ctx) {
         if (value) {
             SubnodeRecVisitor<T>::visitField(visitor, *value, ctx);
         }
@@ -310,7 +310,7 @@ struct ImmTreeReprContext {
     int                           level;
     Vec<int>                      path;
     org::ImmAdapter::TreeReprConf conf;
-    ImmAstContext*                ctx;
+    ImmAstContext const&          ctx;
 
     ImmTreeReprContext addPath(int diff) const {
         ImmTreeReprContext result = *this;
@@ -334,7 +334,7 @@ void treeReprRec(
         "{} {} PATH:{}", id->getKind(), id.id.getReadableId(), ctx.path);
 
     if (ctx.conf.withAuxFields) {
-        switch_node_value(id.id, *id.ctx, [&]<typename N>(N const& node) {
+        switch_node_value(id.id, id.ctx, [&]<typename N>(N const& node) {
             os << " " << fmt1(node);
         });
     }
@@ -402,7 +402,7 @@ Vec<ImmAdapter> ImmAdapter::getAllSubnodes(Opt<ImmPath> rootPath) const {
         result.push_back(root.pass(id, path));
     };
 
-    switch_node_value(id, *ctx, [&]<typename T>(T const& value) {
+    switch_node_value(id, ctx, [&]<typename T>(T const& value) {
         reflVisitAll<T>(
             value,
             {},
@@ -715,10 +715,10 @@ Vec<ImmId> org::allSubnodes(const ImmId& value, const ImmAstContext& ctx) {
 }
 
 
-ImmAdapter ImmAstVersion::getRootAdapter() {
+ImmAdapter ImmAstVersion::getRootAdapter() const {
     return org::ImmAdapter{
         epoch.getRoot(),
-        &context,
+        context,
         ImmPath{epoch.getRoot()},
     };
 }
