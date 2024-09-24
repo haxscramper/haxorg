@@ -20,15 +20,8 @@ struct GridCell {
 struct GridRow {
     GridCell                          title;
     org::ImmAdapterT<org::ImmSubtree> origin;
-
-    struct Columns {
-        Opt<GridCell> event;
-        Opt<GridCell> location;
-        DESC_FIELDS(Columns, (event, location));
-    };
-
-    Columns      columns;
-    Vec<GridRow> nested;
+    UnorderedMap<Str, GridCell>       columns;
+    Vec<GridRow>                      nested;
     DESC_FIELDS(GridRow, (title, columns, nested));
 };
 
@@ -41,13 +34,9 @@ struct GridDocument {
 struct GridContext
     : OperationsTracer
     , OperationsScope {
-    struct Widths {
-        int event;
-        int location;
-        int title;
-        DESC_FIELDS(Widths, (event, location, title));
-    };
-    Widths widths;
+
+    Vec<Str>               columnNames;
+    UnorderedMap<Str, int> widths;
     DESC_FIELDS(GridContext, (widths));
 
     void message(
@@ -74,7 +63,7 @@ struct GridState {
 struct GridModel {
     Vec<GridState> history;
     GridDocument   document;
-    GridContext     conf;
+    GridContext    conf;
     void           updateDocument();
     GridState&     getCurrentState() { return history.back(); }
     void           apply(GridAction const& act);
@@ -83,7 +72,7 @@ struct GridModel {
 GridCell buildCell(org::ImmAdapter adapter, int width);
 GridRow  buildRow(
      org::ImmAdapterT<org::ImmSubtree> tree,
-     GridContext const&                 conf);
+     GridContext const&                conf);
 Vec<GridRow> buildRows(org::ImmAdapter root, GridContext const& conf);
 
 void story_grid_loop(GLFWwindow* window, sem::SemId<sem::Org> node);

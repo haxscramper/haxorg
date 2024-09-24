@@ -3,6 +3,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include <hstd/system/Formatter.hpp>
 
 void frame_start() {
     glfwPollEvents();
@@ -39,4 +40,8 @@ void fullscreen_window_begin() {
         ImGuiWindowFlags_NoDecoration
             | ImGuiWindowFlags_NoBringToFrontOnFocus
             | ImGuiWindowFlags_NoNav);
+}
+
+void push_ptr_id(void* id) {
+    ImGui::PushID(fmt("{:p}", static_cast<const void*>(id)).c_str());
 }
