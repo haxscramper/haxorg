@@ -15,6 +15,8 @@ struct GridCell {
     int             wrapcount;
     std::string     value;
     org::ImmAdapter origin;
+    bool            is_editing = false;
+    std::string     edit_buffer;
     DESC_FIELDS(GridCell, (height, width, value, origin));
 };
 

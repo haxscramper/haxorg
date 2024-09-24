@@ -9,17 +9,16 @@
     if (ctx.OperationsTracer::TraceState) { ctx.message(__VA_ARGS__); }
 
 bool render_editable_cell(GridCell& cell) {
-    static bool        is_editing = false;
-    static std::string edit_buffer;
-    ImVec2             size(cell.width, cell.height);
 
-    if (is_editing) {
-        // fmt("{:p}_multiline", static_cast<const void*>(&cell.value[0]))
-        // .c_str(),
+    ImVec2 size(cell.width, cell.height);
 
-        ImGui::BeginChild("##edit_cell", size, false);
+    auto cell_prefix = fmt("{:p}", static_cast<const void*>(&cell));
+
+    if (cell.is_editing) {
+        ImGui::BeginChild(
+            fmt("{}_edit", cell_prefix).c_str(), size, false);
         std::vector<std::string> lines;
-        const char*              text = edit_buffer.c_str();
+        const char*              text = cell.edit_buffer.c_str();
         while (*text) {
             const char* line_start = text;
             float       line_width = 0.0f;
@@ -34,23 +33,23 @@ bool render_editable_cell(GridCell& cell) {
             lines.emplace_back(line_start, text - line_start);
         }
         bool enter_pressed = false;
-        edit_buffer.clear();
+        cell.edit_buffer.clear();
         for (size_t i = 0; i < lines.size(); ++i) {
             char buffer[256];
             strncpy(buffer, lines[i].c_str(), sizeof(buffer));
             if (ImGui::InputText(
-                    ("##line" + std::to_string(i)).c_str(),
+                    fmt("{}_line_{}", cell_prefix, i).c_str(),
                     buffer,
                     sizeof(buffer),
                     ImGuiInputTextFlags_EnterReturnsTrue)) {
                 enter_pressed = true;
             }
-            edit_buffer += buffer;
+            cell.edit_buffer += buffer;
         }
         ImGui::EndChild();
         if (enter_pressed || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
-            cell.value = edit_buffer;
-            is_editing = false;
+            cell.value      = cell.edit_buffer;
+            cell.is_editing = false;
             return true;
         } else {
             return false;
@@ -58,11 +57,13 @@ bool render_editable_cell(GridCell& cell) {
 
     } else {
         ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + cell.width);
+        ImGui::PushID(fmt("{}_view", cell_prefix).c_str());
         ImGui::TextWrapped("%s", cell.value.c_str());
+        ImGui::PopID();
         ImGui::PopTextWrapPos();
         if (ImGui::IsItemClicked()) {
-            is_editing  = true;
-            edit_buffer = cell.value;
+            cell.is_editing  = true;
+            cell.edit_buffer = cell.value;
         }
         return false;
     }
