@@ -42,6 +42,7 @@ void fullscreen_window_begin() {
             | ImGuiWindowFlags_NoNav);
 }
 
-void push_ptr_id(void* id) {
-    ImGui::PushID(fmt("{:p}", static_cast<const void*>(id)).c_str());
+void push_ptr_id(void* id, const std::string& suffix) {
+    ImGui::PushID(
+        fmt("{:p}{}", static_cast<const void*>(id), suffix).c_str());
 }

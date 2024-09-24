@@ -12,17 +12,17 @@
 struct GridCell {
     int             height;
     int             width;
+    int             wrapcount;
     std::string     value;
     org::ImmAdapter origin;
     DESC_FIELDS(GridCell, (height, width, value, origin));
 };
 
 struct GridRow {
-    GridCell                          title;
     org::ImmAdapterT<org::ImmSubtree> origin;
     UnorderedMap<Str, GridCell>       columns;
     Vec<GridRow>                      nested;
-    DESC_FIELDS(GridRow, (title, columns, nested));
+    DESC_FIELDS(GridRow, (columns, nested));
 };
 
 struct GridDocument {
@@ -69,10 +69,5 @@ struct GridModel {
     void           apply(GridAction const& act);
 };
 
-GridCell buildCell(org::ImmAdapter adapter, int width);
-GridRow  buildRow(
-     org::ImmAdapterT<org::ImmSubtree> tree,
-     GridContext const&                conf);
-Vec<GridRow> buildRows(org::ImmAdapter root, GridContext const& conf);
 
 void story_grid_loop(GLFWwindow* window, sem::SemId<sem::Org> node);

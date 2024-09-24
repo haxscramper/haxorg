@@ -8,31 +8,78 @@
 #define CTX_MSG(...)                                                      \
     if (ctx.OperationsTracer::TraceState) { ctx.message(__VA_ARGS__); }
 
+bool render_editable_cell(GridCell& cell) {
+    static bool        is_editing = false;
+    static std::string edit_buffer;
+    ImVec2             size(cell.width, cell.height);
+
+    if (is_editing) {
+        // fmt("{:p}_multiline", static_cast<const void*>(&cell.value[0]))
+        // .c_str(),
+
+        ImGui::BeginChild("##edit_cell", size, false);
+        std::vector<std::string> lines;
+        const char*              text = edit_buffer.c_str();
+        while (*text) {
+            const char* line_start = text;
+            float       line_width = 0.0f;
+            while (*text && line_width < cell.width) {
+                uint        __out_char = 0;
+                const char* next //
+                    = text + ImTextCharFromUtf8(&__out_char, text, NULL);
+                if (next == text) { break; }
+                line_width += ImGui::CalcTextSize(text, next).x;
+                text = next;
+            }
+            lines.emplace_back(line_start, text - line_start);
+        }
+        bool enter_pressed = false;
+        edit_buffer.clear();
+        for (size_t i = 0; i < lines.size(); ++i) {
+            char buffer[256];
+            strncpy(buffer, lines[i].c_str(), sizeof(buffer));
+            if (ImGui::InputText(
+                    ("##line" + std::to_string(i)).c_str(),
+                    buffer,
+                    sizeof(buffer),
+                    ImGuiInputTextFlags_EnterReturnsTrue)) {
+                enter_pressed = true;
+            }
+            edit_buffer += buffer;
+        }
+        ImGui::EndChild();
+        if (enter_pressed || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+            cell.value = edit_buffer;
+            is_editing = false;
+            return true;
+        } else {
+            return false;
+        }
+
+    } else {
+        ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + cell.width);
+        ImGui::TextWrapped("%s", cell.value.c_str());
+        ImGui::PopTextWrapPos();
+        if (ImGui::IsItemClicked()) {
+            is_editing  = true;
+            edit_buffer = cell.value;
+        }
+        return false;
+    }
+}
+
 
 Opt<GridAction> render_cell(GridCell& cell, GridContext& ctx) {
-    // ImGui::PushTextWrapPos();
-    // ImGui::BeginChild(
-    //     "##editable_text", ImVec2(cell.width, cell.height), true);
     Opt<GridAction> result;
-    push_ptr_id((void*)&cell.value[0]);
-    ImGui::Text("%s", cell.value.c_str());
 
+    if (render_editable_cell(cell)) {
+        cell.value.resize(strlen(cell.value.c_str()));
+        result = GridAction{GridAction::EditCell{
+            .cell    = cell,
+            .updated = cell.value,
+        }};
+    }
 
-    // if (ImGui::InputTextMultiline(
-    //         "##input",
-    //         &cell.value[0],
-    //         cell.value.capacity() + 1,
-    //         ImVec2(-FLT_MIN, -FLT_MIN),
-    //         ImGuiInputTextFlags_AllowTabInput)) {
-    //     cell.value.resize(strlen(cell.value.c_str()));
-    //     result = GridAction{GridAction::EditCell{
-    //         .cell    = cell,
-    //         .updated = cell.value,
-    //     }};
-    // }
-    ImGui::PopID();
-    // ImGui::EndChild();
-    // ImGui::PopTextWrapPos();
     return result;
 }
 
@@ -40,11 +87,13 @@ void render_tree_columns(
     GridRow&         row,
     Vec<GridAction>& result,
     GridContext&     ctx) {
-    int colIdx = 1;
+    auto __scope = ctx.scopeLevel();
+    int  colIdx  = 1;
     for (auto const& col : ctx.columnNames) {
         if (row.columns.contains(col)) {
             ImGui::TableSetColumnIndex(colIdx);
             render_cell(row.columns.at(col), ctx);
+            CTX_MSG(fmt("{} = {}", col, row.columns.at(col)));
         }
         ++colIdx;
     }
@@ -55,7 +104,7 @@ void render_tree_row(
     Vec<GridAction>& result,
     GridContext&     ctx) {
     bool skipped = false;
-    CTX_MSG(fmt("row {}", row.title));
+    CTX_MSG(fmt("row {}", row.columns.at("title")));
 
     if (!skipped || !row.nested.empty()) {
         ImGui::TableNextRow();
@@ -156,11 +205,17 @@ void story_grid_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
 }
 
 
+GridCell buildCell(
+    org::ImmAdapter    adapter,
+    int                width,
+    GridContext const& ctx);
+
 GridRow buildRow(
     org::ImmAdapterT<org::ImmSubtree> tree,
     const GridContext&                conf) {
     GridRow result;
-    result.title  = buildCell(tree.getTitle(), conf.widths.at("title"));
+    result.columns["title"] = buildCell(
+        tree.getTitle(), conf.widths.at("title"), conf);
     result.origin = tree;
     for (auto const& sub : tree.subAs<org::ImmList>()) {
         if (sub.isDescriptionList()) {
@@ -170,7 +225,7 @@ GridRow buildRow(
                     if (word.starts_with("story_")) {
                         auto column            = word.dropPrefix("story_");
                         result.columns[column] = buildCell(
-                            item.at(0), conf.widths.at(column));
+                            item.at(0), conf.widths.at(column), conf);
                     }
                 }
             }
@@ -193,21 +248,30 @@ Vec<GridRow> buildRows(org::ImmAdapter root, const GridContext& conf) {
     return result;
 }
 
-GridCell buildCell(org::ImmAdapter adapter, int width) {
+GridCell buildCell(
+    org::ImmAdapter    adapter,
+    int                width,
+    GridContext const& ctx) {
     GridCell result;
-    result.value  = join(" ", flatWords(adapter));
-    result.origin = adapter;
-    result.width  = width;
+    result.value           = join(" ", flatWords(adapter));
+    result.origin          = adapter;
+    result.width           = width;
+    char const* text_begin = result.value.c_str();
+    char const* text_end   = text_begin + result.value.length();
 
-    ImGuiContext& g          = *ImGui::GetCurrentContext();
-    ImFont*       font       = g.Font;
-    const char*   text_begin = result.value.c_str();
-    const char*   text_end   = text_begin + result.value.length();
+    ImVec2 text_size = ImGui::CalcTextSize(
+        text_begin, text_end, false, width);
 
-    ImVec2 text_size = font->CalcTextSizeA(
-        font->FontSize, width, 0.0f, text_begin, text_end, nullptr);
+    result.height = text_size.y;
+    result.wrapcount //
+        = result.height
+        / ImGui::CalcTextSize(text_begin, text_begin, false, width).y;
 
-    result.height = text_size.y + 2;
+    CTX_MSG(
+        fmt("width:{} height:{} text:{}",
+            width,
+            text_size.y,
+            escape_literal(result.value)));
 
     return result;
 }
