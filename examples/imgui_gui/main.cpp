@@ -229,18 +229,7 @@ void render_outline(
 
 
 
-void fullscreen_window_begin() {
-    const ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImGui::SetNextWindowPos(viewport->WorkPos);
-    ImGui::SetNextWindowSize(viewport->WorkSize);
 
-    ImGui::Begin(
-        "Fullscreen Window",
-        nullptr,
-        ImGuiWindowFlags_NoDecoration
-            | ImGuiWindowFlags_NoBringToFrontOnFocus
-            | ImGuiWindowFlags_NoNav);
-}
 
 void fps_window_begin() {
 
