@@ -3,6 +3,7 @@
 #include <haxorg/sem/ImmOrgEdit.hpp>
 #include "imgui_internal.h"
 #include "imgui_utils.hpp"
+#include "misc/cpp/imgui_stdlib.h"
 #include "imgui.h"
 
 #define CTX_MSG(...)                                                      \
@@ -13,42 +14,22 @@ bool render_editable_cell(GridCell& cell) {
     ImVec2 size(cell.width, cell.height);
 
     auto cell_prefix = fmt("{:p}", static_cast<const void*>(&cell));
-
     if (cell.is_editing) {
-        ImGui::BeginChild(
-            fmt("{}_edit", cell_prefix).c_str(), size, false);
-        std::vector<std::string> lines;
-        const char*              text = cell.edit_buffer.c_str();
-        while (*text) {
-            const char* line_start = text;
-            float       line_width = 0.0f;
-            while (*text && line_width < cell.width) {
-                uint        __out_char = 0;
-                const char* next //
-                    = text + ImTextCharFromUtf8(&__out_char, text, NULL);
-                if (next == text) { break; }
-                line_width += ImGui::CalcTextSize(text, next).x;
-                text = next;
-            }
-            lines.emplace_back(line_start, text - line_start);
-        }
-        bool enter_pressed = false;
-        cell.edit_buffer.clear();
-        for (size_t i = 0; i < lines.size(); ++i) {
-            char buffer[256];
-            strncpy(buffer, lines[i].c_str(), sizeof(buffer));
-            if (ImGui::InputText(
-                    fmt("{}_line_{}", cell_prefix, i).c_str(),
-                    buffer,
-                    sizeof(buffer),
-                    ImGuiInputTextFlags_EnterReturnsTrue)) {
-                enter_pressed = true;
-            }
-            cell.edit_buffer += buffer;
-        }
-        ImGui::EndChild();
-        if (enter_pressed || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
-            cell.value      = cell.edit_buffer;
+        ImGui::InputTextMultiline(
+            fmt("{}_edit", cell_prefix).c_str(),
+            &cell.edit_buffer,
+            ImVec2(cell.width, cell.height),
+            ImGuiInputTextFlags_EnterReturnsTrue);
+
+        if (ImGui::IsKeyDown(ImGuiKey_Enter)
+            && (ImGui::IsKeyDown(ImGuiKey_LeftCtrl)
+                || ImGui::IsKeyDown(ImGuiKey_RightCtrl))) {
+            cell.value             //
+                = cell.edit_buffer //
+                | rv::remove_if(
+                      [](char c) { return c == '\n' || c == '\r'; })
+                | rs::to<std::string>;
+            LOG(INFO) << "sad;fkajsdf";
             cell.is_editing = false;
             return true;
         } else {
@@ -57,13 +38,37 @@ bool render_editable_cell(GridCell& cell) {
 
     } else {
         ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + cell.width);
+        // NOTE: Using ID with runtime formatting here because there is
+        // more than one cell that might potentially be edited.
         ImGui::PushID(fmt("{}_view", cell_prefix).c_str());
         ImGui::TextWrapped("%s", cell.value.c_str());
         ImGui::PopID();
         ImGui::PopTextWrapPos();
         if (ImGui::IsItemClicked()) {
-            cell.is_editing  = true;
-            cell.edit_buffer = cell.value;
+            cell.is_editing = true;
+            cell.edit_buffer.clear();
+            const char* text  = cell.edit_buffer.c_str();
+            bool        first = true;
+            std::string new_buffer;
+            while (*text) {
+                const char* line_start = text;
+                float       line_width = 0.0f;
+                while (*text && line_width < cell.width) {
+                    uint        __out_char = 0;
+                    const char* next //
+                        = text
+                        + ImTextCharFromUtf8(&__out_char, text, NULL);
+                    if (next == text) { break; }
+                    line_width += ImGui::CalcTextSize(text, next).x;
+                    text = next;
+                }
+                if (first) {
+                    first = false;
+                    new_buffer.push_back('\n');
+                }
+                new_buffer.append(line_start, text - line_start);
+            }
+            cell.edit_buffer = new_buffer;
         }
         return false;
     }

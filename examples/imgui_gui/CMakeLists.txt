@@ -46,8 +46,12 @@ add_executable(
 set(BASE "${CMAKE_SOURCE_DIR}")
 
 file(GLOB IMGUI_SOURCES "${BASE}/imgui/*.cpp")
-add_library(imgui STATIC ${IMGUI_SOURCES} "${BASE}/imgui/backends/imgui_impl_glfw.cpp"
-                         "${BASE}/imgui/backends/imgui_impl_opengl3.cpp")
+add_library(
+  imgui STATIC
+  ${IMGUI_SOURCES} "${BASE}/imgui/backends/imgui_impl_glfw.cpp"
+  "${BASE}/imgui/misc/cpp/imgui_stdlib.cpp" #
+  "${BASE}/imgui/backends/imgui_impl_opengl3.cpp")
+
 target_link_libraries(imgui PUBLIC SDL2)
 target_include_directories(imgui PUBLIC "${BASE}/imgui" "${BASE}/imgui/backends")
 
