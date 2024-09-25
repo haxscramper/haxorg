@@ -9,27 +9,24 @@
 #define CTX_MSG(...)                                                      \
     if (ctx.OperationsTracer::TraceState) { ctx.message(__VA_ARGS__); }
 
-bool render_editable_cell(GridCell& cell) {
+#define CTX_MSG_ALL(...) ctx.message(__VA_ARGS__);
 
-    ImVec2 size(cell.width, cell.height);
 
+bool render_editable_cell(GridCell& cell, GridContext& ctx) {
     auto cell_prefix = fmt("{:p}", static_cast<const void*>(&cell));
     if (cell.is_editing) {
         ImGui::InputTextMultiline(
             fmt("{}_edit", cell_prefix).c_str(),
             &cell.edit_buffer,
-            ImVec2(cell.width, cell.height),
-            ImGuiInputTextFlags_EnterReturnsTrue);
+            ImVec2(cell.width, cell.height + 10),
+            ImGuiInputTextFlags_None);
 
-        if (ImGui::IsKeyDown(ImGuiKey_Enter)
-            && (ImGui::IsKeyDown(ImGuiKey_LeftCtrl)
-                || ImGui::IsKeyDown(ImGuiKey_RightCtrl))) {
+        if (ImGui::Button("done")) {
             cell.value             //
                 = cell.edit_buffer //
                 | rv::remove_if(
                       [](char c) { return c == '\n' || c == '\r'; })
                 | rs::to<std::string>;
-            LOG(INFO) << "sad;fkajsdf";
             cell.is_editing = false;
             return true;
         } else {
@@ -47,7 +44,7 @@ bool render_editable_cell(GridCell& cell) {
         if (ImGui::IsItemClicked()) {
             cell.is_editing = true;
             cell.edit_buffer.clear();
-            const char* text  = cell.edit_buffer.c_str();
+            const char* text  = cell.value.c_str();
             bool        first = true;
             std::string new_buffer;
             while (*text) {
@@ -64,11 +61,11 @@ bool render_editable_cell(GridCell& cell) {
                 }
                 if (first) {
                     first = false;
-                    new_buffer.push_back('\n');
+                } else {
+                    cell.edit_buffer.push_back('\n');
                 }
-                new_buffer.append(line_start, text - line_start);
+                cell.edit_buffer.append(line_start, text - line_start);
             }
-            cell.edit_buffer = new_buffer;
         }
         return false;
     }
@@ -78,7 +75,7 @@ bool render_editable_cell(GridCell& cell) {
 Opt<GridAction> render_cell(GridCell& cell, GridContext& ctx) {
     Opt<GridAction> result;
 
-    if (render_editable_cell(cell)) {
+    if (render_editable_cell(cell, ctx)) {
         cell.value.resize(strlen(cell.value.c_str()));
         result = GridAction{GridAction::EditCell{
             .cell    = cell,
@@ -183,7 +180,7 @@ void story_grid_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
 
     model.conf.widths["title"]    = 120;
     model.conf.widths["location"] = 120;
-    model.conf.widths["event"]    = 120;
+    model.conf.widths["event"]    = 400;
     model.conf.widths["time"]     = 120;
     model.conf.widths["note"]     = 120;
 

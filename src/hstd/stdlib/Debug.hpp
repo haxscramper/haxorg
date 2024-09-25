@@ -13,7 +13,7 @@ void setMessageStream(std::ostream& stream);
 
 #define _dbg(expr)                                                        \
     ([](auto const& it, char const* __base_function) {                    \
-        DLOG(INFO) << fmt("@{} {} = ⦃{}⦄", __base_function, #expr, it);   \
+        LOG(INFO) << fmt("@{} {} = ⦃{}⦄", __base_function, #expr, it);   \
         return it;                                                        \
     }((expr), __FUNCTION__))
 
