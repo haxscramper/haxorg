@@ -35,13 +35,24 @@ bool render_editable_cell(GridCell& cell, GridContext& ctx) {
         }
 
     } else {
-        ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + cell.width);
-        // NOTE: Using ID with runtime formatting here because there is
-        // more than one cell that might potentially be edited.
-        ImGui::PushID(fmt("{}_view", cell_prefix).c_str());
-        ImGui::TextWrapped("%s", val.value.c_str());
-        ImGui::PopID();
-        ImGui::PopTextWrapPos();
+        {
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
+            ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0);
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+            ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + cell.width);
+            // NOTE: Using ID with runtime formatting here because there is
+            // more than one cell that might potentially be edited.
+            ImGui::BeginChild(
+                fmt("{}_wrap", cell_prefix).c_str(),
+                ImVec2(cell.width, cell.height + 10),
+                true);
+            ImGui::PushID(fmt("{}_view", cell_prefix).c_str());
+            ImGui::TextWrapped("%s", val.value.c_str());
+            ImGui::PopID();
+            ImGui::EndChild();
+            ImGui::PopTextWrapPos();
+            ImGui::PopStyleVar(3);
+        }
         if (ImGui::IsItemClicked()) {
             val.is_editing = true;
             val.edit_buffer.clear();
