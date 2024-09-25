@@ -33,6 +33,9 @@ find_package(glfw3 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(Haxorg CONFIG REQUIRED)
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(FONTCONFIG REQUIRED fontconfig)
+
 add_executable(
   main
   main.cpp
@@ -52,8 +55,9 @@ add_library(
   "${BASE}/imgui/misc/cpp/imgui_stdlib.cpp" #
   "${BASE}/imgui/backends/imgui_impl_opengl3.cpp")
 
-target_link_libraries(imgui PUBLIC SDL2)
-target_include_directories(imgui PUBLIC "${BASE}/imgui" "${BASE}/imgui/backends")
+target_link_libraries(imgui PUBLIC "${FONTCONFIG_LIBRARIES}")
+target_include_directories(imgui PUBLIC "${BASE}/imgui" "${BASE}/imgui/backends"
+                                        "${FONTCONFIG_INCLUDE_DIRS}")
 
 target_link_libraries(
   main

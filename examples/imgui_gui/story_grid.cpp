@@ -6,6 +6,27 @@
 #include "misc/cpp/imgui_stdlib.h"
 #include "imgui.h"
 
+#include <fontconfig/fontconfig.h>
+
+Opt<Str> get_fontconfig_path(std::string const& fontname) {
+    FcInit();
+    FcPattern* pattern = FcNameParse((const FcChar8*)fontname.c_str());
+    FcConfigSubstitute(nullptr, pattern, FcMatchPattern);
+    FcDefaultSubstitute(pattern);
+
+    FcResult   result;
+    FcPattern* match = FcFontMatch(nullptr, pattern, &result);
+
+    FcChar8* font_path = nullptr;
+    if (match) { FcPatternGetString(match, FC_FILE, 0, &font_path); }
+    Opt<Str> opt_result;
+    if (font_path != nullptr) { opt_result = (char const*)font_path; }
+    FcPatternDestroy(pattern);
+    FcPatternDestroy(match);
+    FcFini();
+    return opt_result;
+}
+
 #define CTX_MSG(...)                                                      \
     if (ctx.OperationsTracer::TraceState) { ctx.message(__VA_ARGS__); }
 
@@ -153,7 +174,7 @@ Vec<GridAction> render_story_grid(GridDocument& doc, GridContext& ctx) {
             "TreeTable",
             1 + ctx.columnNames.size(),
             ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg
-                | ImGuiTableFlags_SizingFixedFit)) {
+                | ImGuiTableFlags_Resizable)) {
 
         ImGui::TableSetupColumn(
             "Tree", ImGuiTableColumnFlags_WidthFixed, 120.0f);
@@ -174,6 +195,8 @@ Vec<GridAction> render_story_grid(GridDocument& doc, GridContext& ctx) {
 }
 
 void story_grid_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
+
+
     GridModel          model;
     org::ImmAstContext start;
     model.history.push_back(GridState{
@@ -198,6 +221,15 @@ void story_grid_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
     model.conf.widths["note"]     = 120;
 
     bool first = true;
+
+    auto font_path = get_fontconfig_path("Iosevka");
+    if (font_path) {
+        LOG(INFO) << fmt("Using font file {}", *font_path);
+        ImGuiIO& io = ImGui::GetIO();
+        io.Fonts->AddFontFromFileTTF(font_path->c_str(), 14);
+    } else {
+        LOG(ERROR) << "Could not load font path";
+    }
 
     while (!glfwWindowShouldClose(window)) {
         frame_start();
