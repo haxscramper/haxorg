@@ -13,21 +13,22 @@
 
 
 bool render_editable_cell(GridCell& cell, GridContext& ctx) {
-    auto cell_prefix = fmt("{:p}", static_cast<const void*>(&cell));
-    if (cell.is_editing) {
+    auto  cell_prefix = fmt("{:p}", static_cast<const void*>(&cell));
+    auto& val         = cell.getValue();
+    if (val.is_editing) {
         ImGui::InputTextMultiline(
             fmt("{}_edit", cell_prefix).c_str(),
-            &cell.edit_buffer,
+            &val.edit_buffer,
             ImVec2(cell.width, cell.height + 10),
             ImGuiInputTextFlags_None);
 
         if (ImGui::Button("done")) {
-            cell.value             //
-                = cell.edit_buffer //
+            val.value             //
+                = val.edit_buffer //
                 | rv::remove_if(
                       [](char c) { return c == '\n' || c == '\r'; })
                 | rs::to<std::string>;
-            cell.is_editing = false;
+            val.is_editing = false;
             return true;
         } else {
             return false;
@@ -38,13 +39,13 @@ bool render_editable_cell(GridCell& cell, GridContext& ctx) {
         // NOTE: Using ID with runtime formatting here because there is
         // more than one cell that might potentially be edited.
         ImGui::PushID(fmt("{}_view", cell_prefix).c_str());
-        ImGui::TextWrapped("%s", cell.value.c_str());
+        ImGui::TextWrapped("%s", val.value.c_str());
         ImGui::PopID();
         ImGui::PopTextWrapPos();
         if (ImGui::IsItemClicked()) {
-            cell.is_editing = true;
-            cell.edit_buffer.clear();
-            const char* text  = cell.value.c_str();
+            val.is_editing = true;
+            val.edit_buffer.clear();
+            const char* text  = val.value.c_str();
             bool        first = true;
             std::string new_buffer;
             while (*text) {
@@ -62,9 +63,9 @@ bool render_editable_cell(GridCell& cell, GridContext& ctx) {
                 if (first) {
                     first = false;
                 } else {
-                    cell.edit_buffer.push_back('\n');
+                    val.edit_buffer.push_back('\n');
                 }
-                cell.edit_buffer.append(line_start, text - line_start);
+                val.edit_buffer.append(line_start, text - line_start);
             }
         }
         return false;
@@ -76,10 +77,9 @@ Opt<GridAction> render_cell(GridCell& cell, GridContext& ctx) {
     Opt<GridAction> result;
 
     if (render_editable_cell(cell, ctx)) {
-        cell.value.resize(strlen(cell.value.c_str()));
         result = GridAction{GridAction::EditCell{
             .cell    = cell,
-            .updated = cell.value,
+            .updated = cell.getValue().value,
         }};
     }
 
@@ -173,12 +173,14 @@ void story_grid_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
     model.conf.setTraceFile("/tmp/story_grid_trace.txt");
     model.conf.columnNames = {
         "title",
-        "event",
         "location",
-        "time",
+        "value",
+        "note",
+        "event",
+        "turning_point",
     };
 
-    model.conf.widths["title"]    = 120;
+    model.conf.widths["title"]    = 300;
     model.conf.widths["location"] = 120;
     model.conf.widths["event"]    = 400;
     model.conf.widths["time"]     = 120;
@@ -208,16 +210,16 @@ void story_grid_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
 }
 
 
-GridCell buildCell(
+GridCell build_editable_cell(
     org::ImmAdapter    adapter,
     int                width,
     GridContext const& ctx);
 
 GridRow buildRow(
     org::ImmAdapterT<org::ImmSubtree> tree,
-    const GridContext&                conf) {
+    GridContext&                      conf) {
     GridRow result;
-    result.columns["title"] = buildCell(
+    result.columns["title"] = build_editable_cell(
         tree.getTitle(), conf.widths.at("title"), conf);
     result.origin = tree;
     for (auto const& sub : tree.subAs<org::ImmList>()) {
@@ -226,8 +228,11 @@ GridRow buildRow(
                 auto flat = flatWords(item.getHeader().value());
                 for (auto const& word : flat) {
                     if (word.starts_with("story_")) {
-                        auto column            = word.dropPrefix("story_");
-                        result.columns[column] = buildCell(
+                        auto column = word.dropPrefix("story_");
+                        if (!conf.widths.contains(column)) {
+                            conf.widths[column] = 120;
+                        }
+                        result.columns[column] = build_editable_cell(
                             item.at(0), conf.widths.at(column), conf);
                     }
                 }
@@ -242,7 +247,7 @@ GridRow buildRow(
     return result;
 }
 
-Vec<GridRow> buildRows(org::ImmAdapter root, const GridContext& conf) {
+Vec<GridRow> buildRows(org::ImmAdapter root, GridContext& conf) {
     Vec<GridRow> result;
     for (auto const& tree : root.subAs<org::ImmSubtree>()) {
         result.push_back(buildRow(tree, conf));
@@ -251,22 +256,23 @@ Vec<GridRow> buildRows(org::ImmAdapter root, const GridContext& conf) {
     return result;
 }
 
-GridCell buildCell(
+GridCell build_editable_cell(
     org::ImmAdapter    adapter,
     int                width,
     GridContext const& ctx) {
-    GridCell result;
-    result.value           = join(" ", flatWords(adapter));
-    result.origin          = adapter;
+    GridCell result{GridCell::Value{}};
+    auto&    v             = result.getValue();
+    v.value                = join(" ", flatWords(adapter));
+    v.origin               = adapter;
     result.width           = width;
-    char const* text_begin = result.value.c_str();
-    char const* text_end   = text_begin + result.value.length();
+    char const* text_begin = v.value.c_str();
+    char const* text_end   = text_begin + v.value.length();
 
     ImVec2 text_size = ImGui::CalcTextSize(
         text_begin, text_end, false, width);
 
     result.height = text_size.y;
-    result.wrapcount //
+    v.wrapcount //
         = result.height
         / ImGui::CalcTextSize(text_begin, text_begin, false, width).y;
 
@@ -274,7 +280,7 @@ GridCell buildCell(
         fmt("width:{} height:{} text:{}",
             width,
             text_size.y,
-            escape_literal(result.value)));
+            escape_literal(v.value)));
 
     return result;
 }
@@ -293,10 +299,9 @@ void GridModel::apply(const GridAction& act) {
                     -> org::ImmAstReplaceGroup {
                     org::ImmAstReplaceGroup result;
                     result.incl(org::replaceNode(
-                        edit.cell.origin,
+                        edit.cell.getValue().origin,
                         ast.add(
-                            sem::asOneNode(
-                                sem::parseString(edit.cell.value)),
+                            sem::asOneNode(sem::parseString(edit.updated)),
                             ctx),
                         ctx));
                     return result;
