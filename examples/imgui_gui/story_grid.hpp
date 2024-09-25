@@ -14,14 +14,11 @@ struct GridCell {
         DESC_FIELDS(None, ());
     };
     struct Value {
-        int             wrapcount   = 0;
         std::string     value       = std::string{};
         org::ImmAdapter origin      = org::ImmAdapter{};
         bool            is_editing  = false;
         std::string     edit_buffer = std::string{};
-        DESC_FIELDS(
-            Value,
-            (wrapcount, value, origin, is_editing, edit_buffer));
+        DESC_FIELDS(Value, (value, origin, is_editing, edit_buffer));
     };
 
     SUB_VARIANTS(Kind, Data, data, getKind, None, Value);

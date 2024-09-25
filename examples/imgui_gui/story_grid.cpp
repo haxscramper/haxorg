@@ -8,6 +8,7 @@
 
 #include <fontconfig/fontconfig.h>
 
+
 Opt<Str> get_fontconfig_path(std::string const& fontname) {
     FcInit();
     FcPattern* pattern = FcNameParse((const FcChar8*)fontname.c_str());
@@ -38,7 +39,7 @@ bool render_editable_cell(GridCell& cell, GridContext& ctx) {
     auto& val         = cell.getValue();
     if (val.is_editing) {
         ImGui::InputTextMultiline(
-            fmt("{}_edit", cell_prefix).c_str(),
+            fmt("##{}_edit", cell_prefix).c_str(),
             &val.edit_buffer,
             ImVec2(cell.width, cell.height + 10),
             ImGuiInputTextFlags_None);
@@ -64,10 +65,10 @@ bool render_editable_cell(GridCell& cell, GridContext& ctx) {
             // NOTE: Using ID with runtime formatting here because there is
             // more than one cell that might potentially be edited.
             ImGui::BeginChild(
-                fmt("{}_wrap", cell_prefix).c_str(),
+                fmt("##{}_wrap", cell_prefix).c_str(),
                 ImVec2(cell.width, cell.height + 10),
                 true);
-            ImGui::PushID(fmt("{}_view", cell_prefix).c_str());
+            ImGui::PushID(fmt("##{}_view", cell_prefix).c_str());
             ImGui::TextWrapped("%s", val.value.c_str());
             ImGui::PopID();
             ImGui::EndChild();
@@ -77,19 +78,26 @@ bool render_editable_cell(GridCell& cell, GridContext& ctx) {
         if (ImGui::IsItemClicked()) {
             val.is_editing = true;
             val.edit_buffer.clear();
-            const char* text  = val.value.c_str();
-            bool        first = true;
-            std::string new_buffer;
+            CTX_MSG(fmt("Value:{}", val.value));
+            auto        __scope = ctx.scopeLevel();
+            bool        first   = true;
+            const char* text    = val.value.c_str();
             while (*text) {
                 const char* line_start = text;
                 float       line_width = 0.0f;
                 while (*text && line_width < cell.width) {
-                    uint        __out_char = 0;
-                    const char* next //
-                        = text
-                        + ImTextCharFromUtf8(&__out_char, text, NULL);
+                    uint __out_char = 0;
+                    auto size       = ImTextCharFromUtf8(
+                        &__out_char, text, NULL);
+                    const char* next = text + size;
                     if (next == text) { break; }
-                    line_width += ImGui::CalcTextSize(text, next).x;
+                    auto width = ImGui::CalcTextSize(text, next).x;
+                    CTX_MSG(
+                        fmt("Text:{} size:{} width:{}",
+                            escape_literal(std::string{text, next}),
+                            size,
+                            width));
+                    line_width += width;
                     text = next;
                 }
                 if (first) {
@@ -173,8 +181,8 @@ Vec<GridAction> render_story_grid(GridDocument& doc, GridContext& ctx) {
     if (ImGui::BeginTable(
             "TreeTable",
             1 + ctx.columnNames.size(),
-            ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg
-                | ImGuiTableFlags_Resizable)) {
+            ImGuiTableFlags_ScrollY | ImGuiTableFlags_Borders
+                | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable)) {
 
         ImGui::TableSetupColumn(
             "Tree", ImGuiTableColumnFlags_WidthFixed, 120.0f);
@@ -182,7 +190,7 @@ Vec<GridAction> render_story_grid(GridDocument& doc, GridContext& ctx) {
             ImGui::TableSetupColumn(
                 col.c_str(),
                 ImGuiTableColumnFlags_WidthFixed,
-                ctx.widths.at(col));
+                ctx.widths.get(col).value_or(120));
         }
         ImGui::TableHeadersRow();
 
@@ -226,7 +234,7 @@ void story_grid_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
     if (font_path) {
         LOG(INFO) << fmt("Using font file {}", *font_path);
         ImGuiIO& io = ImGui::GetIO();
-        io.Fonts->AddFontFromFileTTF(font_path->c_str(), 14);
+        io.Fonts->AddFontFromFileTTF(font_path->c_str(), 16);
     } else {
         LOG(ERROR) << "Could not load font path";
     }
@@ -258,7 +266,7 @@ GridCell build_editable_cell(
     int                width,
     GridContext const& ctx);
 
-GridRow buildRow(
+GridRow build_row(
     org::ImmAdapterT<org::ImmSubtree> tree,
     GridContext&                      conf) {
     GridRow result;
@@ -284,16 +292,16 @@ GridRow buildRow(
     }
 
     for (auto const& sub : tree.subAs<org::ImmSubtree>()) {
-        result.nested.push_back(buildRow(sub, conf));
+        result.nested.push_back(build_row(sub, conf));
     }
 
     return result;
 }
 
-Vec<GridRow> buildRows(org::ImmAdapter root, GridContext& conf) {
+Vec<GridRow> build_rows(org::ImmAdapter root, GridContext& conf) {
     Vec<GridRow> result;
     for (auto const& tree : root.subAs<org::ImmSubtree>()) {
-        result.push_back(buildRow(tree, conf));
+        result.push_back(build_row(tree, conf));
     }
 
     return result;
@@ -315,9 +323,6 @@ GridCell build_editable_cell(
         text_begin, text_end, false, width);
 
     result.height = text_size.y;
-    v.wrapcount //
-        = result.height
-        / ImGui::CalcTextSize(text_begin, text_begin, false, width).y;
 
     CTX_MSG(
         fmt("width:{} height:{} text:{}",
@@ -329,7 +334,7 @@ GridCell build_editable_cell(
 }
 
 void GridModel::updateDocument() {
-    document.rows = buildRows(
+    document.rows = build_rows(
         getCurrentState().ast.getRootAdapter(), conf);
 }
 
