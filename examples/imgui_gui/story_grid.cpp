@@ -28,11 +28,42 @@ Opt<Str> get_fontconfig_path(std::string const& fontname) {
     return opt_result;
 }
 
+Vec<Str> split_wrap_text(std::string const& unwrapped, int width) {
+    Vec<Str>    result;
+    const char* text = unwrapped.c_str();
+    while (*text) {
+        const char* line_start = text;
+        float       line_width = 0.0f;
+        while (*text && line_width < width) {
+            uint        __out_char = 0;
+            auto        size = ImTextCharFromUtf8(&__out_char, text, NULL);
+            const char* next = text + size;
+            if (next == text) { break; }
+            auto width = ImGui::CalcTextSize(text, next).x;
+            line_width += width;
+            text = next;
+        }
+        result.emplace_back(line_start, text - line_start);
+    }
+
+    return result;
+}
+
 #define CTX_MSG(...)                                                      \
     if (ctx.OperationsTracer::TraceState) { ctx.message(__VA_ARGS__); }
 
 #define CTX_MSG_ALL(...) ctx.message(__VA_ARGS__);
 
+
+void render_debug_rect(ImVec2 const& size, int border = 2) {
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() - border);
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY() - border);
+    ImVec2 p0 = ImGui::GetCursorScreenPos();
+    ImVec2 p1 = ImVec2(
+        p0.x + size.x + (2 * border), p0.y + size.y + (2 * border));
+    ImGui::GetWindowDrawList()->AddRect(
+        p0, p1, IM_COL32(255, 255, 255, 255));
+}
 
 bool render_editable_cell(GridCell& cell, GridContext& ctx) {
     auto  cell_prefix = fmt("{:p}", static_cast<const void*>(&cell));
@@ -79,34 +110,9 @@ bool render_editable_cell(GridCell& cell, GridContext& ctx) {
             val.is_editing = true;
             val.edit_buffer.clear();
             CTX_MSG(fmt("Value:{}", val.value));
-            auto        __scope = ctx.scopeLevel();
-            bool        first   = true;
-            const char* text    = val.value.c_str();
-            while (*text) {
-                const char* line_start = text;
-                float       line_width = 0.0f;
-                while (*text && line_width < cell.width) {
-                    uint __out_char = 0;
-                    auto size       = ImTextCharFromUtf8(
-                        &__out_char, text, NULL);
-                    const char* next = text + size;
-                    if (next == text) { break; }
-                    auto width = ImGui::CalcTextSize(text, next).x;
-                    CTX_MSG(
-                        fmt("Text:{} size:{} width:{}",
-                            escape_literal(std::string{text, next}),
-                            size,
-                            width));
-                    line_width += width;
-                    text = next;
-                }
-                if (first) {
-                    first = false;
-                } else {
-                    val.edit_buffer.push_back('\n');
-                }
-                val.edit_buffer.append(line_start, text - line_start);
-            }
+            auto __scope    = ctx.scopeLevel();
+            val.edit_buffer = join(
+                "\n", split_wrap_text(val.value, cell.width));
         }
         return false;
     }
@@ -182,7 +188,8 @@ Vec<GridAction> render_story_grid(GridDocument& doc, GridContext& ctx) {
             "TreeTable",
             1 + ctx.columnNames.size(),
             ImGuiTableFlags_ScrollY | ImGuiTableFlags_Borders
-                | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable)) {
+                | ImGuiTableFlags_RowBg
+                | ImGuiTableFlags_SizingFixedFit)) {
 
         ImGui::TableSetupColumn(
             "Tree", ImGuiTableColumnFlags_WidthFixed, 120.0f);
@@ -312,23 +319,30 @@ GridCell build_editable_cell(
     int                width,
     GridContext const& ctx) {
     GridCell result{GridCell::Value{}};
-    auto&    v             = result.getValue();
-    v.value                = join(" ", flatWords(adapter));
-    v.origin               = adapter;
-    result.width           = width;
-    char const* text_begin = v.value.c_str();
-    char const* text_end   = text_begin + v.value.length();
+    auto&    v   = result.getValue();
+    v.value      = join(" ", flatWords(adapter));
+    v.origin     = adapter;
+    result.width = width;
 
-    ImVec2 text_size = ImGui::CalcTextSize(
-        text_begin, text_end, false, width);
 
-    result.height = text_size.y;
+    Vec<Str> wrapped = split_wrap_text(v.value, width);
+
+    {
+        std::string _tmp{"Tt"};
+        char const* _tmp_begin = _tmp.c_str();
+        char const* _tmp_end   = _tmp_begin + _tmp.length();
+        ImVec2      text_size  = ImGui::CalcTextSize(
+            _tmp_begin, _tmp_end, false, width);
+
+        result.height = text_size.y * wrapped.size();
+    }
 
     CTX_MSG(
-        fmt("width:{} height:{} text:{}",
+        fmt("width:{} height:{} text:{} wrapped:{}",
             width,
-            text_size.y,
-            escape_literal(v.value)));
+            result.height,
+            escape_literal(v.value),
+            wrapped));
 
     return result;
 }
