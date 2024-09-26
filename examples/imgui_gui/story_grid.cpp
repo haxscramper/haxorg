@@ -193,8 +193,9 @@ Vec<GridAction> render_story_grid(GridDocument& doc, GridContext& ctx) {
     if (ImGui::BeginTable(
             "TreeTable",
             1 + ctx.columnNames.size(),
-            ImGuiTableFlags_ScrollY | ImGuiTableFlags_Borders
-                | ImGuiTableFlags_RowBg
+            ImGuiTableFlags_ScrollY       //
+                | ImGuiTableFlags_Borders //
+                | ImGuiTableFlags_RowBg   //
                 | ImGuiTableFlags_SizingFixedFit)) {
 
         ImGui::TableSetupColumn(
@@ -205,6 +206,7 @@ Vec<GridAction> render_story_grid(GridDocument& doc, GridContext& ctx) {
                 ImGuiTableColumnFlags_WidthFixed,
                 ctx.widths.get(col).value_or(120));
         }
+        ImGui::TableSetupScrollFreeze(0, 1);
         ImGui::TableHeadersRow();
 
         for (auto& sub : doc.rows) { render_tree_row(sub, result, ctx); }
