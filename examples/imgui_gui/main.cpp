@@ -228,9 +228,6 @@ void render_outline(
 }
 
 
-
-
-
 void fps_window_begin() {
 
     ImGuiIO& io = ImGui::GetIO();
@@ -352,7 +349,7 @@ int main(int argc, char** argv) {
     GLFWmonitor*       monitor = glfwGetPrimaryMonitor();
     const GLFWvidmode* mode    = glfwGetVideoMode(monitor);
 
-    bool fullscreen = false;
+    bool fullscreen = true;
 
     GLFWwindow* window = glfwCreateWindow(
         fullscreen ? mode->width : 1280,

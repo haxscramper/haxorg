@@ -75,6 +75,7 @@ bool render_editable_cell(GridCell& cell, GridContext& ctx) {
             ImVec2(cell.width, cell.height + 10),
             ImGuiInputTextFlags_None);
 
+
         if (ImGui::Button("done")) {
             val.value             //
                 = val.edit_buffer //
@@ -83,9 +84,13 @@ bool render_editable_cell(GridCell& cell, GridContext& ctx) {
                 | rs::to<std::string>;
             val.is_editing = false;
             return true;
+        } else if (ImGui::SameLine(); ImGui::Button("cancel")) {
+            val.is_editing = false;
+            return false;
         } else {
             return false;
         }
+
 
     } else {
         {
@@ -97,8 +102,9 @@ bool render_editable_cell(GridCell& cell, GridContext& ctx) {
             // more than one cell that might potentially be edited.
             ImGui::BeginChild(
                 fmt("##{}_wrap", cell_prefix).c_str(),
-                ImVec2(cell.width, cell.height + 10),
-                true);
+                ImVec2(cell.width, cell.height),
+                false,
+                ImGuiWindowFlags_NoScrollbar);
             ImGui::PushID(fmt("##{}_view", cell_prefix).c_str());
             ImGui::TextWrapped("%s", val.value.c_str());
             ImGui::PopID();
@@ -230,7 +236,7 @@ void story_grid_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
     };
 
     model.conf.widths["title"]    = 300;
-    model.conf.widths["location"] = 120;
+    model.conf.widths["location"] = 240;
     model.conf.widths["event"]    = 400;
     model.conf.widths["time"]     = 120;
     model.conf.widths["note"]     = 120;
@@ -292,6 +298,10 @@ GridRow build_row(
                         }
                         result.columns[column] = build_editable_cell(
                             item.at(0), conf.widths.at(column), conf);
+
+                        if (!conf.columnNames.contains(column)) {
+                            conf.columnNames.push_back(column);
+                        }
                     }
                 }
             }
@@ -334,7 +344,8 @@ GridCell build_editable_cell(
         ImVec2      text_size  = ImGui::CalcTextSize(
             _tmp_begin, _tmp_end, false, width);
 
-        result.height = text_size.y * wrapped.size();
+        result.height = 0 < wrapped.size() ? text_size.y * wrapped.size()
+                                           : text_size.y;
     }
 
     CTX_MSG(
