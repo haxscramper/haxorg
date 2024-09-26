@@ -198,6 +198,11 @@ void render_tree_row(
 
     if (!skipped || !row.nested.empty()) {
         ImGui::TableNextRow();
+        ctx.rowPositions[row.flatIdx] = ImGui::GetCursorScreenPos();
+        if (row.origin->level < 2) {
+            ImGui::TableSetBgColor(
+                ImGuiTableBgTarget_RowBg0, IM_COL32(255, 200, 200, 128));
+        }
         ImGui::TableSetColumnIndex(0);
     }
 
@@ -311,11 +316,14 @@ GridCell build_editable_cell(
 
 GridRow build_row(
     org::ImmAdapterT<org::ImmSubtree> tree,
-    GridContext&                      conf) {
+    GridContext&                      conf,
+    int&                              flatIdx) {
     GridRow result;
     result.columns["title"] = build_editable_cell(
         tree.getTitle(), conf.getColumn("title"), conf);
-    result.origin = tree;
+    result.origin  = tree;
+    result.flatIdx = flatIdx;
+    ++flatIdx;
     for (auto const& sub : tree.subAs<org::ImmList>()) {
         if (sub.isDescriptionList()) {
             for (auto const& item : sub.subAs<org::ImmListItem>()) {
@@ -332,7 +340,9 @@ GridRow build_row(
     }
 
     for (auto const& sub : tree.subAs<org::ImmSubtree>()) {
-        result.nested.push_back(build_row(sub, conf));
+        if (!sub->isComment && !sub->isArchived) {
+            result.nested.push_back(build_row(sub, conf, flatIdx));
+        }
     }
 
     return result;
@@ -340,9 +350,12 @@ GridRow build_row(
 
 Vec<GridRow> build_rows(org::ImmAdapter root, GridContext& conf) {
     Vec<GridRow> result;
+    int          idx = 0;
     for (auto const& tree : root.subAs<org::ImmSubtree>()) {
-        result.push_back(build_row(tree, conf));
+        result.push_back(build_row(tree, conf, idx));
     }
+
+    conf.rowPositions.resize(idx);
 
     return result;
 }

@@ -8,6 +8,7 @@
 #include <GLFW/glfw3.h>
 #include <haxorg/sem/SemBaseApi.hpp>
 #include <haxorg/sem/ImmOrg.hpp>
+#include "imgui.h"
 
 struct GridCell {
     struct None {
@@ -37,10 +38,11 @@ struct GridColumn {
 };
 
 struct GridRow {
+    int                               flatIdx;
     org::ImmAdapterT<org::ImmSubtree> origin;
     UnorderedMap<Str, GridCell>       columns;
     Vec<GridRow>                      nested;
-    DESC_FIELDS(GridRow, (columns, nested));
+    DESC_FIELDS(GridRow, (columns, origin, flatIdx, nested));
 };
 
 struct GridDocument {
@@ -52,6 +54,8 @@ struct GridDocument {
 struct GridContext
     : OperationsTracer
     , OperationsScope {
+
+    Vec<ImVec2> rowPositions;
 
     Vec<GridColumn> columns;
     DESC_FIELDS(GridContext, (columns));
