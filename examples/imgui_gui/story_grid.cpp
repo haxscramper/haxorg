@@ -65,70 +65,105 @@ void render_debug_rect(ImVec2 const& size, int border = 2) {
         p0, p1, IM_COL32(255, 255, 255, 255));
 }
 
-bool render_editable_cell(GridCell& cell, GridContext& ctx) {
+bool render_editable_cell(
+    GridCell&         cell,
+    GridContext&      ctx,
+    GridColumn const& col) {
     auto  cell_prefix = fmt("{:p}", static_cast<const void*>(&cell));
     auto& val         = cell.getValue();
-    if (val.is_editing) {
-        ImGui::InputTextMultiline(
-            fmt("##{}_edit", cell_prefix).c_str(),
-            &val.edit_buffer,
-            ImVec2(cell.width, cell.height + 10),
-            ImGuiInputTextFlags_None);
+    if (col.edit == GridColumn::EditMode::Multiline) {
+        if (val.is_editing) {
+            ImGui::InputTextMultiline(
+                fmt("##{}_edit", cell_prefix).c_str(),
+                &val.edit_buffer,
+                ImVec2(cell.width, cell.height + 10),
+                ImGuiInputTextFlags_None);
 
 
-        if (ImGui::Button("done")) {
-            val.value             //
-                = val.edit_buffer //
-                | rv::remove_if(
-                      [](char c) { return c == '\n' || c == '\r'; })
-                | rs::to<std::string>;
-            val.is_editing = false;
-            return true;
-        } else if (ImGui::SameLine(); ImGui::Button("cancel")) {
-            val.is_editing = false;
-            return false;
+            if (ImGui::Button("done")) {
+                val.value             //
+                    = val.edit_buffer //
+                    | rv::remove_if(
+                          [](char c) { return c == '\n' || c == '\r'; })
+                    | rs::to<std::string>;
+                val.is_editing = false;
+                return true;
+            } else if (ImGui::SameLine(); ImGui::Button("cancel")) {
+                val.is_editing = false;
+                return false;
+            } else {
+                return false;
+            }
+
+
         } else {
+            {
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
+                ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0);
+                ImGui::PushStyleVar(
+                    ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+                ImGui::PushTextWrapPos(
+                    ImGui::GetCursorPos().x + cell.width);
+                // NOTE: Using ID with runtime formatting here because
+                // there is more than one cell that might potentially be
+                // edited.
+                ImGui::BeginChild(
+                    fmt("##{}_wrap", cell_prefix).c_str(),
+                    ImVec2(cell.width, cell.height),
+                    false,
+                    ImGuiWindowFlags_NoScrollbar);
+                ImGui::PushID(fmt("##{}_view", cell_prefix).c_str());
+                ImGui::TextWrapped("%s", val.value.c_str());
+                ImGui::PopID();
+                ImGui::EndChild();
+                ImGui::PopTextWrapPos();
+                ImGui::PopStyleVar(3);
+            }
+            if (ImGui::IsItemClicked()) {
+                val.is_editing = true;
+                val.edit_buffer.clear();
+                CTX_MSG(fmt("Value:{}", val.value));
+                auto __scope    = ctx.scopeLevel();
+                val.edit_buffer = join(
+                    "\n", split_wrap_text(val.value, cell.width));
+            }
             return false;
         }
-
-
     } else {
-        {
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
-            ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0);
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-            ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + cell.width);
-            // NOTE: Using ID with runtime formatting here because there is
-            // more than one cell that might potentially be edited.
-            ImGui::BeginChild(
-                fmt("##{}_wrap", cell_prefix).c_str(),
-                ImVec2(cell.width, cell.height),
-                false,
-                ImGuiWindowFlags_NoScrollbar);
-            ImGui::PushID(fmt("##{}_view", cell_prefix).c_str());
-            ImGui::TextWrapped("%s", val.value.c_str());
-            ImGui::PopID();
-            ImGui::EndChild();
-            ImGui::PopTextWrapPos();
-            ImGui::PopStyleVar(3);
+        if (val.is_editing) {
+            if (ImGui::Button("OK")) {
+                val.value      = val.edit_buffer;
+                val.is_editing = false;
+                return true;
+            } else if (ImGui::SameLine(0.0f, 0.0f); ImGui::Button("X")) {
+                val.is_editing = false;
+                return false;
+            }
+            ImGui::SameLine(0.0f, 0.0f);
+            ImGui::SetNextItemWidth(cell.width);
+            ImGui::InputText(
+                fmt("##{}_edit", cell_prefix).c_str(), &val.edit_buffer);
+            return false;
+
+        } else {
+            ImGui::Text("%s", val.value.c_str());
+            if (ImGui::IsItemClicked()) {
+                val.is_editing  = true;
+                val.edit_buffer = val.value;
+            }
+            return false;
         }
-        if (ImGui::IsItemClicked()) {
-            val.is_editing = true;
-            val.edit_buffer.clear();
-            CTX_MSG(fmt("Value:{}", val.value));
-            auto __scope    = ctx.scopeLevel();
-            val.edit_buffer = join(
-                "\n", split_wrap_text(val.value, cell.width));
-        }
-        return false;
     }
 }
 
 
-Opt<GridAction> render_cell(GridCell& cell, GridContext& ctx) {
+Opt<GridAction> render_cell(
+    GridCell&         cell,
+    GridContext&      ctx,
+    GridColumn const& col) {
     Opt<GridAction> result;
 
-    if (render_editable_cell(cell, ctx)) {
+    if (render_editable_cell(cell, ctx, col)) {
         result = GridAction{GridAction::EditCell{
             .cell    = cell,
             .updated = cell.getValue().value,
@@ -144,11 +179,11 @@ void render_tree_columns(
     GridContext&     ctx) {
     auto __scope = ctx.scopeLevel();
     int  colIdx  = 1;
-    for (auto const& col : ctx.columnNames) {
-        if (row.columns.contains(col)) {
+    for (auto const& col : ctx.columns) {
+        if (row.columns.contains(col.name)) {
             ImGui::TableSetColumnIndex(colIdx);
-            render_cell(row.columns.at(col), ctx);
-            CTX_MSG(fmt("{} = {}", col, row.columns.at(col)));
+            render_cell(row.columns.at(col.name), ctx, col);
+            CTX_MSG(fmt("{} = {}", col, row.columns.at(col.name)));
         }
         ++colIdx;
     }
@@ -192,7 +227,7 @@ Vec<GridAction> render_story_grid(GridDocument& doc, GridContext& ctx) {
 
     if (ImGui::BeginTable(
             "TreeTable",
-            1 + ctx.columnNames.size(),
+            1 + ctx.columns.size(),
             ImGuiTableFlags_ScrollY       //
                 | ImGuiTableFlags_Borders //
                 | ImGuiTableFlags_RowBg   //
@@ -200,11 +235,11 @@ Vec<GridAction> render_story_grid(GridDocument& doc, GridContext& ctx) {
 
         ImGui::TableSetupColumn(
             "Tree", ImGuiTableColumnFlags_WidthFixed, 120.0f);
-        for (auto const& col : ctx.columnNames) {
+        for (auto const& col : ctx.columns) {
             ImGui::TableSetupColumn(
-                col.c_str(),
+                col.name.c_str(),
                 ImGuiTableColumnFlags_WidthFixed,
-                ctx.widths.get(col).value_or(120));
+                col.width);
         }
         ImGui::TableSetupScrollFreeze(0, 1);
         ImGui::TableHeadersRow();
@@ -228,20 +263,13 @@ void story_grid_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
 
 
     model.conf.setTraceFile("/tmp/story_grid_trace.txt");
-    model.conf.columnNames = {
-        "title",
-        "location",
-        "value",
-        "note",
-        "event",
-        "turning_point",
-    };
-
-    model.conf.widths["title"]    = 300;
-    model.conf.widths["location"] = 240;
-    model.conf.widths["event"]    = 400;
-    model.conf.widths["time"]     = 120;
-    model.conf.widths["note"]     = 120;
+    model.conf.getColumn("title").width    = 300;
+    model.conf.getColumn("location").width = 240;
+    model.conf.getColumn("location").edit  = GridColumn::EditMode::
+        SingleLine;
+    model.conf.getColumn("event").width = 400;
+    model.conf.getColumn("time").width  = 120;
+    model.conf.getColumn("note").width  = 120;
 
     bool first = true;
 
@@ -278,7 +306,7 @@ void story_grid_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
 
 GridCell build_editable_cell(
     org::ImmAdapter    adapter,
-    int                width,
+    GridColumn const&  col,
     GridContext const& ctx);
 
 GridRow build_row(
@@ -286,7 +314,7 @@ GridRow build_row(
     GridContext&                      conf) {
     GridRow result;
     result.columns["title"] = build_editable_cell(
-        tree.getTitle(), conf.widths.at("title"), conf);
+        tree.getTitle(), conf.getColumn("title"), conf);
     result.origin = tree;
     for (auto const& sub : tree.subAs<org::ImmList>()) {
         if (sub.isDescriptionList()) {
@@ -294,16 +322,9 @@ GridRow build_row(
                 auto flat = flatWords(item.getHeader().value());
                 for (auto const& word : flat) {
                     if (word.starts_with("story_")) {
-                        auto column = word.dropPrefix("story_");
-                        if (!conf.widths.contains(column)) {
-                            conf.widths[column] = 120;
-                        }
+                        auto column            = word.dropPrefix("story_");
                         result.columns[column] = build_editable_cell(
-                            item.at(0), conf.widths.at(column), conf);
-
-                        if (!conf.columnNames.contains(column)) {
-                            conf.columnNames.push_back(column);
-                        }
+                            item.at(0), conf.getColumn(column), conf);
                     }
                 }
             }
@@ -328,31 +349,36 @@ Vec<GridRow> build_rows(org::ImmAdapter root, GridContext& conf) {
 
 GridCell build_editable_cell(
     org::ImmAdapter    adapter,
-    int                width,
+    const GridColumn&  col,
     GridContext const& ctx) {
     GridCell result{GridCell::Value{}};
     auto&    v   = result.getValue();
     v.value      = join(" ", flatWords(adapter));
     v.origin     = adapter;
-    result.width = width;
+    result.width = col.width;
 
 
-    Vec<Str> wrapped = split_wrap_text(v.value, width);
+    Vec<Str> wrapped = split_wrap_text(v.value, col.width);
 
     {
         std::string _tmp{"Tt"};
         char const* _tmp_begin = _tmp.c_str();
         char const* _tmp_end   = _tmp_begin + _tmp.length();
         ImVec2      text_size  = ImGui::CalcTextSize(
-            _tmp_begin, _tmp_end, false, width);
+            _tmp_begin, _tmp_end, false, col.width);
 
-        result.height = 0 < wrapped.size() ? text_size.y * wrapped.size()
-                                           : text_size.y;
+        if (col.edit == GridColumn::EditMode::SingleLine) {
+            result.height = text_size.y;
+        } else {
+            result.height = 0 < wrapped.size()
+                              ? text_size.y * wrapped.size()
+                              : text_size.y;
+        }
     }
 
     CTX_MSG(
         fmt("width:{} height:{} text:{} wrapped:{}",
-            width,
+            col,
             result.height,
             escape_literal(v.value),
             wrapped));

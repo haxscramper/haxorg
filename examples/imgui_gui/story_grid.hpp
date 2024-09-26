@@ -28,6 +28,14 @@ struct GridCell {
     DESC_FIELDS(GridCell, (height, width, data));
 };
 
+struct GridColumn {
+    std::string name;
+    int         width = 120;
+    DECL_DESCRIBED_ENUM(EditMode, Multiline, SingleLine);
+    EditMode edit = EditMode::Multiline;
+    DESC_FIELDS(GridColumn, (name, width, edit));
+};
+
 struct GridRow {
     org::ImmAdapterT<org::ImmSubtree> origin;
     UnorderedMap<Str, GridCell>       columns;
@@ -45,9 +53,21 @@ struct GridContext
     : OperationsTracer
     , OperationsScope {
 
-    Vec<Str>               columnNames;
-    UnorderedMap<Str, int> widths;
-    DESC_FIELDS(GridContext, (widths));
+    Vec<GridColumn> columns;
+    DESC_FIELDS(GridContext, (columns));
+
+    GridColumn& getColumn(CR<Str> name) {
+        auto iter = rs::find_if(
+            columns, [&](GridColumn const& col) -> bool {
+                return col.name == name;
+            });
+        if (iter == columns.end()) {
+            columns.push_back(GridColumn{.name = name});
+            return columns.back();
+        } else {
+            return *iter;
+        }
+    }
 
     void message(
         std::string const& value,
