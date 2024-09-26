@@ -379,20 +379,21 @@ int main(int argc, char** argv) {
     auto conf_json = json::parse(conf_text);
     auto conf      = from_json_eval<Config>(conf_json);
 
-    auto file = readFile(fs::path{conf.file.toBase()});
-    auto node = sem::parseString(file);
+    auto text = readFile(fs::path{conf.file.toBase()});
 
     switch (conf.mode) {
         case Config::Mode::SemTree: {
+            auto node = sem::parseString(text);
             sem_tree_loop(window, node);
             break;
         }
         case Config::Mode::Outline: {
+            auto node = sem::parseString(text);
             outline_tree_loop(window, node);
             break;
         }
         case Config::Mode::StoryGrid: {
-            story_grid_loop(window, node);
+            story_grid_loop(window, conf.file);
             break;
         }
     }

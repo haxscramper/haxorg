@@ -5,6 +5,8 @@
 #include "imgui_utils.hpp"
 #include "misc/cpp/imgui_stdlib.h"
 #include "imgui.h"
+#include <sys/inotify.h>
+#include <haxorg/sem/SemBaseApi.hpp>
 
 #include <fontconfig/fontconfig.h>
 
@@ -257,13 +259,30 @@ Vec<GridAction> render_story_grid(GridDocument& doc, GridContext& ctx) {
     return result;
 }
 
-void story_grid_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
+void story_grid_loop(GLFWwindow* window, std::string const& file) {
+    int inotify_fd = inotify_init1(IN_NONBLOCK);
+    if (inotify_fd < 0) {
+        throw std::system_error(
+            errno,
+            std::generic_category(),
+            "Failed to initialize inotify");
+    }
 
+    int watch_descriptor = inotify_add_watch(
+        inotify_fd, file.c_str(), IN_MODIFY);
+    if (watch_descriptor < 0) {
+        throw std::system_error(
+            errno, std::generic_category(), "Failed to add inotify watch");
+    }
+
+    std::string buffer(1024, '\0');
+
+    sem::SemId<sem::Org> node;
 
     GridModel          model;
     org::ImmAstContext start;
     model.history.push_back(GridState{
-        .ast = start.init(node),
+        .ast = start.init(sem::parseString(readFile(file))),
     });
 
 
@@ -288,6 +307,16 @@ void story_grid_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
     }
 
     while (!glfwWindowShouldClose(window)) {
+        int inotify_change = read(inotify_fd, &buffer[0], buffer.size());
+        if (0 < inotify_change) {
+            LOG(INFO) << "File change, reloading the model";
+            model.history.clear();
+            model.history.push_back(GridState{
+                .ast = start.init(sem::parseString(readFile(file))),
+            });
+            model.updateDocument();
+        }
+
         frame_start();
         fullscreen_window_begin();
         if (first) {
@@ -306,6 +335,9 @@ void story_grid_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
 
         model.conf.OperationsTracer::TraceState = false;
     }
+
+    inotify_rm_watch(inotify_fd, watch_descriptor);
+    close(inotify_fd);
 }
 
 

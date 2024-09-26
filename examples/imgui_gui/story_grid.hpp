@@ -104,4 +104,4 @@ struct GridModel {
 };
 
 
-void story_grid_loop(GLFWwindow* window, sem::SemId<sem::Org> node);
+void story_grid_loop(GLFWwindow* window, std::string const& file);
