@@ -10,6 +10,13 @@
 
 #include <fontconfig/fontconfig.h>
 
+ImVec2 operator+(const ImVec2& lhs, const ImVec2& rhs) {
+    return ImVec2(lhs.x + rhs.x, lhs.y + rhs.y);
+}
+
+ImVec2 operator-(const ImVec2& lhs, const ImVec2& rhs) {
+    return ImVec2(lhs.x - rhs.x, lhs.y - rhs.y);
+}
 
 Opt<Str> get_fontconfig_path(std::string const& fontname) {
     FcInit();
@@ -185,28 +192,51 @@ void render_tree_columns(
         if (row.columns.contains(col.name)) {
             ImGui::TableSetColumnIndex(colIdx);
             render_cell(row.columns.at(col.name), ctx, col);
-            CTX_MSG(fmt("{} = {}", col, row.columns.at(col.name)));
+            // CTX_MSG(fmt("{} = {}", col, row.columns.at(col.name)));
         }
         ++colIdx;
     }
 }
+
+float tree_fold_column = 120.0f;
 
 void render_tree_row(
     GridRow&         row,
     Vec<GridAction>& result,
     GridContext&     ctx) {
     bool skipped = false;
-    CTX_MSG(fmt("row {}", row.columns.at("title")));
+    auto __scope = ctx.scopeLevel();
 
-    if (!skipped || !row.nested.empty()) {
-        ImGui::TableNextRow();
-        ctx.rowPositions[row.flatIdx] = ImGui::GetCursorScreenPos();
-        if (row.origin->level < 2) {
-            ImGui::TableSetBgColor(
-                ImGuiTableBgTarget_RowBg0, IM_COL32(255, 200, 200, 128));
+    if (skipped && row.nested.empty()) { return; };
+
+    ImGui::TableNextRow();
+    CTX_MSG(fmt(
+        "row {} {}", ImGui::TableGetRowIndex(), row.columns.at("title")));
+    ctx.rowPositions[row.flatIdx] = ImGui::GetCursorScreenPos();
+    if (!row.nested.empty()) {
+        switch (row.origin->level) {
+            case 1:
+                ImGui::TableSetBgColor(
+                    ImGuiTableBgTarget_RowBg0,
+                    IM_COL32(255, 200, 200, 128));
+                break;
+            case 2:
+                ImGui::TableSetBgColor(
+                    ImGuiTableBgTarget_RowBg0,
+                    IM_COL32(200, 255, 200, 128));
+                break;
+            case 3:
+                ImGui::TableSetBgColor(
+                    ImGuiTableBgTarget_RowBg0,
+                    IM_COL32(200, 200, 255, 128));
+                break;
+            default: {
+            }
         }
-        ImGui::TableSetColumnIndex(0);
     }
+
+    ImGui::TableSetColumnIndex(0);
+    int this_index = ImGui::TableGetRowIndex();
 
     if (!row.nested.empty()) {
         ImGui::PushID(fmt("{}", row.origin.id).c_str());
@@ -226,6 +256,33 @@ void render_tree_row(
     } else if (!skipped) {
         render_tree_columns(row, result, ctx);
     }
+
+    ImGui::TableSetColumnIndex(0);
+    if (ImGui::TableGetRowIndex() == this_index) {
+        ImRect cell_rect = ImGui::TableGetCellBgRect(
+            ImGui::GetCurrentTable(), 0);
+        ImVec2 cell_max  = cell_rect.Max;
+        ImVec2 rect_size = ImVec2(
+            std::ceil(
+                ((6 - row.origin->level) / 6.0f)
+                * (cell_rect.Max.x - cell_rect.Min.x)),
+            cell_rect.Max.y - cell_rect.Min.y);
+        float  pad      = 2.0f;
+        ImVec2 rect_min = cell_max - rect_size + ImVec2(pad, pad);
+        ImVec2 rect_max = cell_max - ImVec2(pad, pad);
+
+        ImGui::GetWindowDrawList()->AddRectFilled(
+            rect_min, rect_max, IM_COL32(255, 0, 0, 128));
+        if (false) {
+            ImGui::GetWindowDrawList()->AddRect(
+                rect_min,
+                rect_max,
+                IM_COL32(0, 255, 255, 255),
+                0.0f,
+                0,
+                1.0f);
+        }
+    }
 }
 
 Vec<GridAction> render_story_grid(GridDocument& doc, GridContext& ctx) {
@@ -241,7 +298,7 @@ Vec<GridAction> render_story_grid(GridDocument& doc, GridContext& ctx) {
                 | ImGuiTableFlags_SizingFixedFit)) {
 
         ImGui::TableSetupColumn(
-            "Tree", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+            "Tree", ImGuiTableColumnFlags_WidthFixed, tree_fold_column);
         for (auto const& col : ctx.columns) {
             ImGui::TableSetupColumn(
                 col.name.c_str(),
@@ -252,6 +309,9 @@ Vec<GridAction> render_story_grid(GridDocument& doc, GridContext& ctx) {
         ImGui::TableHeadersRow();
 
         for (auto& sub : doc.rows) { render_tree_row(sub, result, ctx); }
+
+        ImGui::TableNextRow(ImGuiTableRowFlags_None, 800.0f);
+        ImGui::TableNextColumn();
 
         ImGui::EndTable();
     }
@@ -287,13 +347,14 @@ void story_grid_loop(GLFWwindow* window, std::string const& file) {
 
 
     model.conf.setTraceFile("/tmp/story_grid_trace.txt");
-    model.conf.getColumn("title").width    = 300;
-    model.conf.getColumn("location").width = 240;
-    model.conf.getColumn("location").edit  = GridColumn::EditMode::
+    model.conf.getColumn("title").width         = 300;
+    model.conf.getColumn("event").width         = 400;
+    model.conf.getColumn("note").width          = 300;
+    model.conf.getColumn("turning_point").width = 300;
+    model.conf.getColumn("value").width         = 200;
+    model.conf.getColumn("location").width      = 240;
+    model.conf.getColumn("location").edit       = GridColumn::EditMode::
         SingleLine;
-    model.conf.getColumn("event").width = 400;
-    model.conf.getColumn("time").width  = 120;
-    model.conf.getColumn("note").width  = 120;
 
     bool first = true;
 
