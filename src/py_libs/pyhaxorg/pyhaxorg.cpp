@@ -981,7 +981,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("name", &sem::NamedProperty::CustomArgs::name, R"RAW(Original name of the property)RAW")
     .def_readwrite("sub", &sem::NamedProperty::CustomArgs::sub, R"RAW(Property target specialization)RAW")
-    .def_readwrite("parameters", &sem::NamedProperty::CustomArgs::parameters, R"RAW(Property parameters)RAW")
+    .def_readwrite("attrs", &sem::NamedProperty::CustomArgs::attrs, R"RAW(Property parameters)RAW")
     .def("operator==",
          static_cast<bool(sem::NamedProperty::CustomArgs::*)(sem::NamedProperty::CustomArgs const&) const>(&sem::NamedProperty::CustomArgs::operator==),
          pybind11::arg("other"))
@@ -1239,7 +1239,7 @@ node can have subnodes.)RAW")
          pybind11::arg("name"))
     ;
   pybind11::class_<sem::Cmd, sem::SemId<sem::Cmd>, sem::Stmt>(m, "Cmd")
-    .def_readwrite("parameters", &sem::Cmd::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attrs", &sem::Cmd::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("attached", &sem::Cmd::attached)
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::Cmd::*)(Opt<Str> const&) const>(&sem::Cmd::getAttrs),
@@ -1263,7 +1263,7 @@ node can have subnodes.)RAW")
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     ;
   pybind11::class_<sem::Block, sem::SemId<sem::Block>, sem::Cmd>(m, "Block")
-    .def_readwrite("parameters", &sem::Block::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attrs", &sem::Block::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("attached", &sem::Block::attached)
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::Block::*)(Opt<Str> const&) const>(&sem::Block::getAttrs),
@@ -1287,7 +1287,7 @@ node can have subnodes.)RAW")
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     ;
   pybind11::class_<sem::LineCommand, sem::SemId<sem::LineCommand>, sem::Cmd>(m, "LineCommand")
-    .def_readwrite("parameters", &sem::LineCommand::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attrs", &sem::LineCommand::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("attached", &sem::LineCommand::attached)
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::LineCommand::*)(Opt<Str> const&) const>(&sem::LineCommand::getAttrs),
@@ -1311,7 +1311,7 @@ node can have subnodes.)RAW")
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     ;
   pybind11::class_<sem::Attached, sem::SemId<sem::Attached>, sem::LineCommand>(m, "Attached")
-    .def_readwrite("parameters", &sem::Attached::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attrs", &sem::Attached::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("attached", &sem::Attached::attached)
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::Attached::*)(Opt<Str> const&) const>(&sem::Attached::getAttrs),
@@ -1344,7 +1344,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("text", &sem::CmdCaption::text, R"RAW(Content description)RAW")
-    .def_readwrite("parameters", &sem::CmdCaption::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attrs", &sem::CmdCaption::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("attached", &sem::CmdCaption::attached)
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::CmdCaption::*)(Opt<Str> const&) const>(&sem::CmdCaption::getAttrs),
@@ -1382,7 +1382,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("name", &sem::CmdName::name)
-    .def_readwrite("parameters", &sem::CmdName::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attrs", &sem::CmdName::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("attached", &sem::CmdName::attached)
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::CmdName::*)(Opt<Str> const&) const>(&sem::CmdName::getAttrs),
@@ -1421,7 +1421,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("name", &sem::CmdCustomArgs::name)
     .def_readwrite("isAttached", &sem::CmdCustomArgs::isAttached)
-    .def_readwrite("parameters", &sem::CmdCustomArgs::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attrs", &sem::CmdCustomArgs::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("attached", &sem::CmdCustomArgs::attached)
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::CmdCustomArgs::*)(Opt<Str> const&) const>(&sem::CmdCustomArgs::getAttrs),
@@ -1520,7 +1520,7 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("parameters", &sem::CmdResults::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attrs", &sem::CmdResults::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("attached", &sem::CmdResults::attached)
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::CmdResults::*)(Opt<Str> const&) const>(&sem::CmdResults::getAttrs),
@@ -1557,7 +1557,7 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("parameters", &sem::CmdTblfm::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attrs", &sem::CmdTblfm::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("attached", &sem::CmdTblfm::attached)
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::CmdTblfm::*)(Opt<Str> const&) const>(&sem::CmdTblfm::getAttrs),
@@ -1760,7 +1760,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("name", &sem::Macro::name, R"RAW(Macro name)RAW")
-    .def_readwrite("parameters", &sem::Macro::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attrs", &sem::Macro::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def("__repr__", [](sem::Macro _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -2311,7 +2311,7 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("parameters", &sem::BlockCenter::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attrs", &sem::BlockCenter::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("attached", &sem::BlockCenter::attached)
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::BlockCenter::*)(Opt<Str> const&) const>(&sem::BlockCenter::getAttrs),
@@ -2348,7 +2348,7 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("parameters", &sem::BlockQuote::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attrs", &sem::BlockQuote::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("attached", &sem::BlockQuote::attached)
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::BlockQuote::*)(Opt<Str> const&) const>(&sem::BlockQuote::getAttrs),
@@ -2413,7 +2413,7 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("parameters", &sem::BlockVerse::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attrs", &sem::BlockVerse::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("attached", &sem::BlockVerse::attached)
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::BlockVerse::*)(Opt<Str> const&) const>(&sem::BlockVerse::getAttrs),
@@ -2451,7 +2451,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("name", &sem::BlockDynamicFallback::name)
-    .def_readwrite("parameters", &sem::BlockDynamicFallback::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attrs", &sem::BlockDynamicFallback::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("attached", &sem::BlockDynamicFallback::attached)
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::BlockDynamicFallback::*)(Opt<Str> const&) const>(&sem::BlockDynamicFallback::getAttrs),
@@ -2488,7 +2488,7 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("parameters", &sem::BlockExample::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attrs", &sem::BlockExample::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("attached", &sem::BlockExample::attached)
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::BlockExample::*)(Opt<Str> const&) const>(&sem::BlockExample::getAttrs),
@@ -2540,7 +2540,7 @@ node can have subnodes.)RAW")
     .def_readwrite("exporter", &sem::BlockExport::exporter, R"RAW(Exporter backend name)RAW")
     .def_readwrite("placement", &sem::BlockExport::placement, R"RAW(Customized position of the text in the final exporting document.)RAW")
     .def_readwrite("content", &sem::BlockExport::content, R"RAW(Raw exporter content string)RAW")
-    .def_readwrite("parameters", &sem::BlockExport::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attrs", &sem::BlockExport::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("attached", &sem::BlockExport::attached)
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::BlockExport::*)(Opt<Str> const&) const>(&sem::BlockExport::getAttrs),
@@ -2577,7 +2577,7 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("parameters", &sem::BlockAdmonition::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attrs", &sem::BlockAdmonition::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("attached", &sem::BlockAdmonition::attached)
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::BlockAdmonition::*)(Opt<Str> const&) const>(&sem::BlockAdmonition::getAttrs),
@@ -2624,7 +2624,7 @@ node can have subnodes.)RAW")
     .def_readwrite("noweb", &sem::BlockCode::noweb, R"RAW(Web-tangle code on export/run)RAW")
     .def_readwrite("hlines", &sem::BlockCode::hlines, R"RAW(?)RAW")
     .def_readwrite("tangle", &sem::BlockCode::tangle, R"RAW(?)RAW")
-    .def_readwrite("parameters", &sem::BlockCode::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attrs", &sem::BlockCode::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("attached", &sem::BlockCode::attached)
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::BlockCode::*)(Opt<Str> const&) const>(&sem::BlockCode::getAttrs),
@@ -2928,7 +2928,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("isBlock", &sem::Cell::isBlock, R"RAW(Single-line pipe cell or `#+cell:` command)RAW")
-    .def_readwrite("parameters", &sem::Cell::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attrs", &sem::Cell::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("attached", &sem::Cell::attached)
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::Cell::*)(Opt<Str> const&) const>(&sem::Cell::getAttrs),
@@ -2967,7 +2967,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("cells", &sem::Row::cells, R"RAW(List of cells on the row)RAW")
     .def_readwrite("isBlock", &sem::Row::isBlock, R"RAW(Single-line pipe cell or `#+cell:` command)RAW")
-    .def_readwrite("parameters", &sem::Row::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attrs", &sem::Row::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("attached", &sem::Row::attached)
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::Row::*)(Opt<Str> const&) const>(&sem::Row::getAttrs),
@@ -3006,7 +3006,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("rows", &sem::Table::rows, R"RAW(List of rows for the table)RAW")
     .def_readwrite("isBlock", &sem::Table::isBlock, R"RAW(Single-line pipe cell or `#+cell:` command)RAW")
-    .def_readwrite("parameters", &sem::Table::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attrs", &sem::Table::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("attached", &sem::Table::attached)
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::Table::*)(Opt<Str> const&) const>(&sem::Table::getAttrs),
@@ -3199,7 +3199,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("target", &sem::CmdAttr::target)
-    .def_readwrite("parameters", &sem::CmdAttr::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attrs", &sem::CmdAttr::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("attached", &sem::CmdAttr::attached)
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::CmdAttr::*)(Opt<Str> const&) const>(&sem::CmdAttr::getAttrs),
@@ -3237,7 +3237,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("name", &sem::Call::name, R"RAW(Call target name)RAW")
-    .def_readwrite("parameters", &sem::Call::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attrs", &sem::Call::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("isCommand", &sem::Call::isCommand)
     .def("__repr__", [](sem::Call _self) -> std::string {
                      return py_repr_impl(_self);

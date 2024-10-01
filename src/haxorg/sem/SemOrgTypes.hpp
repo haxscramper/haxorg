@@ -541,13 +541,13 @@ struct NamedProperty {
                          (),
                          (),
                          (),
-                         (name, sub, parameters))
+                         (name, sub, attrs))
     /// \brief Original name of the property
     Str name = "";
     /// \brief Property target specialization
     Opt<Str> sub = std::nullopt;
     /// \brief Property parameters
-    Vec<Str> parameters = {};
+    Vec<Str> attrs = {};
     bool operator==(sem::NamedProperty::CustomArgs const& other) const;
   };
 
@@ -787,9 +787,9 @@ struct Cmd : public sem::Stmt {
                        (Stmt),
                        (),
                        (),
-                       (parameters))
+                       (attrs))
   /// \brief Additional parameters aside from 'exporter',
-  Opt<sem::SemId<sem::Attrs>> parameters = std::nullopt;
+  Opt<sem::SemId<sem::Attrs>> attrs = std::nullopt;
   /// \brief Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.
   virtual Vec<sem::AttrValue> getAttrs(Opt<Str> const& key = std::nullopt) const override;
   /// \brief Override of the base statement argument get, prioritizing the explicit command parameters
@@ -1059,12 +1059,12 @@ struct Macro : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind, name, parameters))
+                       (staticKind, name, attrs))
   static OrgSemKind const staticKind;
   /// \brief Macro name
   Str name = "";
   /// \brief Additional parameters aside from 'exporter',
-  sem::SemId<sem::Attrs> parameters = sem::SemId<sem::Attrs>::Nil();
+  sem::SemId<sem::Attrs> attrs = sem::SemId<sem::Attrs>::Nil();
   virtual OrgSemKind getKind() const { return OrgSemKind::Macro; }
 };
 
@@ -1957,12 +1957,12 @@ struct Call : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind, name, parameters, isCommand))
+                       (staticKind, name, attrs, isCommand))
   static OrgSemKind const staticKind;
   /// \brief Call target name
   Str name;
   /// \brief Additional parameters aside from 'exporter',
-  sem::SemId<sem::Attrs> parameters = sem::SemId<sem::Attrs>::Nil();
+  sem::SemId<sem::Attrs> attrs = sem::SemId<sem::Attrs>::Nil();
   bool isCommand = false;
   virtual OrgSemKind getKind() const { return OrgSemKind::Call; }
 };

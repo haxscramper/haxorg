@@ -478,7 +478,7 @@ void proto_serde<::orgproto::NamedProperty::CustomArgs, sem::NamedProperty::Cust
   if (in.sub) {
     proto_serde<std::string, Str>::write(out->mutable_sub(), *in.sub);
   }
-  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::write(out->mutable_parameters(), in.parameters);
+  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::write(out->mutable_attrs(), in.attrs);
 }
 
 void proto_serde<::orgproto::NamedProperty::CustomArgs, sem::NamedProperty::CustomArgs>::read(::orgproto::NamedProperty::CustomArgs const& out, proto_write_accessor<sem::NamedProperty::CustomArgs> in) {
@@ -486,7 +486,7 @@ void proto_serde<::orgproto::NamedProperty::CustomArgs, sem::NamedProperty::Cust
   if (out.has_sub()) {
     proto_serde<Opt<std::string>, Opt<Str>>::read(out.sub(), in.for_field(&sem::NamedProperty::CustomArgs::sub));
   }
-  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::read(out.parameters(), in.for_field(&sem::NamedProperty::CustomArgs::parameters));
+  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::read(out.attrs(), in.for_field(&sem::NamedProperty::CustomArgs::attrs));
 }
 
 void proto_serde<::orgproto::NamedProperty::CustomRaw, sem::NamedProperty::CustomRaw>::write(::orgproto::NamedProperty::CustomRaw* out, sem::NamedProperty::CustomRaw const& in) {
@@ -918,15 +918,15 @@ void proto_serde<::orgproto::TimeRange, sem::TimeRange>::read(::orgproto::TimeRa
 void proto_serde<::orgproto::Macro, sem::Macro>::write(::orgproto::Macro* out, sem::Macro const& in) {
   proto_serde<::orgproto::Macro, sem::Org>::write(out, in);
   proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
-  if (!in.parameters.isNil()) {
-    proto_serde<orgproto::Attrs, sem::SemId<sem::Attrs>>::write(out->mutable_parameters(), in.parameters);
+  if (!in.attrs.isNil()) {
+    proto_serde<orgproto::Attrs, sem::SemId<sem::Attrs>>::write(out->mutable_attrs(), in.attrs);
   }
 }
 
 void proto_serde<::orgproto::Macro, sem::Macro>::read(::orgproto::Macro const& out, proto_write_accessor<sem::Macro> in) {
   proto_serde<::orgproto::Macro, sem::Org>::read(out, in.as<sem::Org>());
   proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::Macro::name));
-  proto_serde<orgproto::Attrs, sem::SemId<sem::Attrs>>::read(out.parameters(), in.for_field(&sem::Macro::parameters));
+  proto_serde<orgproto::Attrs, sem::SemId<sem::Attrs>>::read(out.attrs(), in.for_field(&sem::Macro::attrs));
 }
 
 void proto_serde<::orgproto::Symbol::Param, sem::Symbol::Param>::write(::orgproto::Symbol::Param* out, sem::Symbol::Param const& in) {
@@ -1842,8 +1842,8 @@ void proto_serde<::orgproto::CmdAttr, sem::CmdAttr>::read(::orgproto::CmdAttr co
 void proto_serde<::orgproto::Call, sem::Call>::write(::orgproto::Call* out, sem::Call const& in) {
   proto_serde<::orgproto::Call, sem::Org>::write(out, in);
   proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
-  if (!in.parameters.isNil()) {
-    proto_serde<orgproto::Attrs, sem::SemId<sem::Attrs>>::write(out->mutable_parameters(), in.parameters);
+  if (!in.attrs.isNil()) {
+    proto_serde<orgproto::Attrs, sem::SemId<sem::Attrs>>::write(out->mutable_attrs(), in.attrs);
   }
   out->set_iscommand(in.isCommand);
 }
@@ -1851,7 +1851,7 @@ void proto_serde<::orgproto::Call, sem::Call>::write(::orgproto::Call* out, sem:
 void proto_serde<::orgproto::Call, sem::Call>::read(::orgproto::Call const& out, proto_write_accessor<sem::Call> in) {
   proto_serde<::orgproto::Call, sem::Org>::read(out, in.as<sem::Org>());
   proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::Call::name));
-  proto_serde<orgproto::Attrs, sem::SemId<sem::Attrs>>::read(out.parameters(), in.for_field(&sem::Call::parameters));
+  proto_serde<orgproto::Attrs, sem::SemId<sem::Attrs>>::read(out.attrs(), in.for_field(&sem::Call::attrs));
   in.for_field(&sem::Call::isCommand).get() = out.iscommand();
 }
 

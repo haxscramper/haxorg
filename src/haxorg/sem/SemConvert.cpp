@@ -96,24 +96,24 @@ OrgConverter::ConvResult<Table> OrgConverter::convertTable(__args) {
 
     if (auto args = one(a, N::Args);
         args.getKind() == onk::InlineStmtList) {
-        result->isBlock    = true;
-        result->parameters = convertAttrs(args).value();
+        result->isBlock = true;
+        result->attrs   = convertAttrs(args).value();
     }
 
     for (auto const& in_row : many(a, N::Rows)) {
         SemId<Row> row = Sem<Row>(in_row);
         if (auto args = one(in_row, N::Args);
             args.getKind() == onk::InlineStmtList) {
-            row->isBlock    = true;
-            row->parameters = convertAttrs(args).value();
+            row->isBlock = true;
+            row->attrs   = convertAttrs(args).value();
         }
 
         for (auto const& in_cell : one(in_row, N::Body)) {
             SemId<Cell> cell = Sem<Cell>(in_cell);
             if (auto args = one(in_cell, N::Args);
                 args.getKind() == onk::InlineStmtList) {
-                cell->isBlock    = true;
-                cell->parameters = convertAttrs(args).value();
+                cell->isBlock = true;
+                cell->attrs   = convertAttrs(args).value();
             }
 
             for (auto const& sub : one(in_cell, N::Body)) {
@@ -697,10 +697,10 @@ void addArgument(SemId<Attrs>& result, SemId<Attr> arg) {
 
 OrgConverter::ConvResult<Macro> OrgConverter::convertMacro(__args) {
     __perf_trace("convert", "convertMacro");
-    auto __trace      = trace(a);
-    auto macro        = Sem<Macro>(a);
-    macro->name       = get_text(one(a, N::Name));
-    macro->parameters = convertCallArguments(many(a, N::Args), a).value();
+    auto __trace = trace(a);
+    auto macro   = Sem<Macro>(a);
+    macro->name  = get_text(one(a, N::Name));
+    macro->attrs = convertCallArguments(many(a, N::Args), a).value();
     return macro;
 }
 
@@ -1087,7 +1087,7 @@ OrgConverter::ConvResult<BlockExample> OrgConverter::convertBlockExample(
 OrgConverter::ConvResult<BlockDynamicFallback> OrgConverter::
     convertBlockDynamicFallback(__args) {
     SemId<BlockDynamicFallback> result = Sem<BlockDynamicFallback>(a);
-    result->parameters = convertAttrs(one(a, N::Args)).optNode();
+    result->attrs = convertAttrs(one(a, N::Args)).optNode();
 
     result->name = normalize(get_text(one(a, N::Name)));
     boost::replace_all(result->name, "begin", "");
@@ -1129,8 +1129,8 @@ OrgConverter::ConvResult<BlockExport> OrgConverter::convertBlockExport(
     }
 
 
-    eexport->exporter   = get_text(one(a, N::Name));
-    eexport->parameters = values;
+    eexport->exporter = get_text(one(a, N::Name));
+    eexport->attrs    = values;
     {
         auto lines = one(a, N::Body);
         int  idx   = 0;
@@ -1159,7 +1159,7 @@ OrgConverter::ConvResult<BlockQuote> OrgConverter::convertBlockQuote(
     SemId<BlockQuote> quote = Sem<BlockQuote>(a);
 
     if (auto args = one(a, N::Args); args.kind() != onk::Empty) {
-        quote->parameters = convertAttrs(args).value();
+        quote->attrs = convertAttrs(args).value();
     }
 
     for (const auto& sub : flatConvertAttached(many(a, N::Body))) {
@@ -1304,7 +1304,7 @@ OrgConverter::ConvResult<CmdAttr> OrgConverter::convertCmdAttr(__args) {
     auto           __trace = trace(a);
     SemId<CmdAttr> result  = Sem<CmdAttr>(a);
     result->target         = normalize(get_text(one(a, N::Name)));
-    result->parameters     = convertAttrs(one(a, N::Args)).value();
+    result->attrs          = convertAttrs(one(a, N::Args)).value();
 
     return result;
 }
@@ -1373,7 +1373,7 @@ OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(
 
     if (one(a, N::HeaderArgs).kind() != onk::Empty) {
         auto args = convertAttrs(one(a, N::HeaderArgs)).optNode().value();
-        result->parameters = args;
+        result->attrs = args;
     }
 
     if (a.kind() == onk::SrcInlineCode) {
@@ -1417,11 +1417,10 @@ OrgConverter::ConvResult<Call> OrgConverter::convertCall(__args) {
     __perf_trace("convert", "convertCall");
     auto __trace = trace(a);
     if (a.kind() == onk::CmdCallCode) {
-        auto call        = Sem<Call>(a);
-        call->name       = get_text(one(a, N::Name));
-        call->isCommand  = true;
-        call->parameters = convertCallArguments(many(a, N::Args), a)
-                               .value();
+        auto call       = Sem<Call>(a);
+        call->name      = get_text(one(a, N::Name));
+        call->isCommand = true;
+        call->attrs = convertCallArguments(many(a, N::Args), a).value();
         return call;
     } else {
         return SemError(a, "TODO Convert inline call");

@@ -381,7 +381,7 @@ def get_subtree_property_types():
             fields=[
                 str_field("name", GenTuDoc("Original name of the property")),
                 opt_field(t_str(), "sub", GenTuDoc("Property target specialization")),
-                vec_field(t_str(), "parameters", GenTuDoc("Property parameters")),
+                vec_field(t_str(), "attrs", GenTuDoc("Property parameters")),
             ],
         ),
         GenTuStruct(
@@ -561,7 +561,7 @@ def get_sem_bases():
             fields=[
                 opt_field(
                     t_id("Attrs"),
-                    "parameters",
+                    "attrs",
                     GenTuDoc("Additional parameters aside from 'exporter',"),
                 ),
             ],
@@ -942,7 +942,7 @@ def get_sem_text():
                 GenTuField(t_str(), "name", GenTuDoc("Macro name"), value='""'),
                 id_field(
                     "Attrs",
-                    "parameters",
+                    "attrs",
                     GenTuDoc("Additional parameters aside from 'exporter',"),
                 ),
             ],
@@ -1903,7 +1903,7 @@ def get_types() -> Sequence[GenTuStruct]:
                 ),
                 id_field(
                     "Attrs",
-                    "parameters",
+                    "attrs",
                     GenTuDoc("Additional parameters aside from 'exporter',"),
                 ),
                 bool_field("isCommand"),

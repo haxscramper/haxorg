@@ -557,7 +557,7 @@ message NamedProperty {
   message CustomArgs {
     string                                         name                             = 1;
     optional string                                sub                              = 2;
-    repeated string                                parameters                       = 3;
+    repeated string                                attrs                            = 3;
     string                                         debug                            = 1000;
   }
   message CustomRaw {
@@ -680,26 +680,26 @@ message Empty {
 message Cmd {
   repeated AnyNode                                 attached                         = 1;
   repeated AnyNode                                 subnodes                         = 2;
-  optional Attrs                                   parameters                       = 3;
+  optional Attrs                                   attrs                            = 3;
   string                                           debug                            = 1000;
 }
 
 message Block {
-  optional Attrs                                   parameters                       = 1;
+  optional Attrs                                   attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
   string                                           debug                            = 1000;
 }
 
 message LineCommand {
-  optional Attrs                                   parameters                       = 1;
+  optional Attrs                                   attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
   string                                           debug                            = 1000;
 }
 
 message Attached {
-  optional Attrs                                   parameters                       = 1;
+  optional Attrs                                   attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
   string                                           debug                            = 1000;
@@ -712,7 +712,7 @@ message Leaf {
 }
 
 message CmdCaption {
-  optional Attrs                                   parameters                       = 1;
+  optional Attrs                                   attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
@@ -721,7 +721,7 @@ message CmdCaption {
 }
 
 message CmdName {
-  optional Attrs                                   parameters                       = 1;
+  optional Attrs                                   attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
@@ -730,7 +730,7 @@ message CmdName {
 }
 
 message CmdCustomArgs {
-  optional Attrs                                   parameters                       = 1;
+  optional Attrs                                   attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
@@ -760,7 +760,7 @@ message CmdCustomText {
 }
 
 message CmdResults {
-  optional Attrs                                   parameters                       = 1;
+  optional Attrs                                   attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
@@ -768,7 +768,7 @@ message CmdResults {
 }
 
 message CmdTblfm {
-  optional Attrs                                   parameters                       = 1;
+  optional Attrs                                   attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
@@ -850,7 +850,7 @@ message Macro {
   repeated AnyNode                                 subnodes                         = 1;
   OrgSemKind                                       staticKind                       = 2;
   string                                           name                             = 3;
-  Attrs                                            parameters                       = 4;
+  Attrs                                            attrs                            = 4;
   string                                           debug                            = 1000;
 }
 
@@ -1069,7 +1069,7 @@ message Link {
 }
 
 message BlockCenter {
-  optional Attrs                                   parameters                       = 1;
+  optional Attrs                                   attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
@@ -1077,7 +1077,7 @@ message BlockCenter {
 }
 
 message BlockQuote {
-  optional Attrs                                   parameters                       = 1;
+  optional Attrs                                   attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
@@ -1092,7 +1092,7 @@ message BlockComment {
 }
 
 message BlockVerse {
-  optional Attrs                                   parameters                       = 1;
+  optional Attrs                                   attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
@@ -1100,7 +1100,7 @@ message BlockVerse {
 }
 
 message BlockDynamicFallback {
-  optional Attrs                                   parameters                       = 1;
+  optional Attrs                                   attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
@@ -1109,7 +1109,7 @@ message BlockDynamicFallback {
 }
 
 message BlockExample {
-  optional Attrs                                   parameters                       = 1;
+  optional Attrs                                   attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
@@ -1122,7 +1122,7 @@ message BlockExport {
     Format_Line_f                                                                   = 1;
     Format_Block_f                                                                  = 2;
   }
-  optional Attrs                                   parameters                       = 1;
+  optional Attrs                                   attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
@@ -1134,7 +1134,7 @@ message BlockExport {
 }
 
 message BlockAdmonition {
-  optional Attrs                                   parameters                       = 1;
+  optional Attrs                                   attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
@@ -1142,7 +1142,7 @@ message BlockAdmonition {
 }
 
 message BlockCode {
-  optional Attrs                                   parameters                       = 1;
+  optional Attrs                                   attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
@@ -1269,7 +1269,7 @@ message SubtreeCompletion {
 }
 
 message Cell {
-  optional Attrs                                   parameters                       = 1;
+  optional Attrs                                   attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
@@ -1278,7 +1278,7 @@ message Cell {
 }
 
 message Row {
-  optional Attrs                                   parameters                       = 1;
+  optional Attrs                                   attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
@@ -1288,7 +1288,7 @@ message Row {
 }
 
 message Table {
-  optional Attrs                                   parameters                       = 1;
+  optional Attrs                                   attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
@@ -1348,7 +1348,7 @@ message ColonExample {
 }
 
 message CmdAttr {
-  optional Attrs                                   parameters                       = 1;
+  optional Attrs                                   attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
@@ -1360,7 +1360,7 @@ message Call {
   repeated AnyNode                                 subnodes                         = 1;
   OrgSemKind                                       staticKind                       = 2;
   string                                           name                             = 3;
-  Attrs                                            parameters                       = 4;
+  Attrs                                            attrs                            = 4;
   bool                                             isCommand                        = 5;
   string                                           debug                            = 1000;
 }

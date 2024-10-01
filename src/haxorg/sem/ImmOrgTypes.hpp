@@ -173,9 +173,9 @@ struct ImmCmd : public org::ImmStmt {
                        (ImmStmt),
                        (),
                        (),
-                       (parameters))
+                       (attrs))
   /// \brief Additional parameters aside from 'exporter',
-  ImmBox<Opt<org::ImmIdT<org::ImmAttrs>>> parameters = std::nullopt;
+  ImmBox<Opt<org::ImmIdT<org::ImmAttrs>>> attrs = std::nullopt;
   bool operator==(org::ImmCmd const& other) const;
 };
 
@@ -501,12 +501,12 @@ struct ImmMacro : public org::ImmOrg {
                        (),
                        (staticKind,
                         name,
-                        parameters))
+                        attrs))
   static OrgSemKind const staticKind;
   /// \brief Macro name
   ImmBox<Str> name = "";
   /// \brief Additional parameters aside from 'exporter',
-  org::ImmIdT<org::ImmAttrs> parameters = org::ImmIdT<org::ImmAttrs>::Nil();
+  org::ImmIdT<org::ImmAttrs> attrs = org::ImmIdT<org::ImmAttrs>::Nil();
   virtual OrgSemKind getKind() const { return OrgSemKind::Macro; }
   bool operator==(org::ImmMacro const& other) const;
 };
@@ -1546,13 +1546,13 @@ struct ImmCall : public org::ImmOrg {
                        (),
                        (staticKind,
                         name,
-                        parameters,
+                        attrs,
                         isCommand))
   static OrgSemKind const staticKind;
   /// \brief Call target name
   ImmBox<Str> name;
   /// \brief Additional parameters aside from 'exporter',
-  org::ImmIdT<org::ImmAttrs> parameters = org::ImmIdT<org::ImmAttrs>::Nil();
+  org::ImmIdT<org::ImmAttrs> attrs = org::ImmIdT<org::ImmAttrs>::Nil();
   bool isCommand = false;
   virtual OrgSemKind getKind() const { return OrgSemKind::Call; }
   bool operator==(org::ImmCall const& other) const;

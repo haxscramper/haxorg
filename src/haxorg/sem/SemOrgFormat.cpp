@@ -79,15 +79,15 @@ auto Formatter::toString(SemId<Macro> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Vec<Res> parameters;
 
-    if (id->parameters) {
-        if (id->parameters->positional) {
-            for (auto const& it : id->parameters->positional->args) {
+    if (id->attrs) {
+        if (id->attrs->positional) {
+            for (auto const& it : id->attrs->positional->args) {
                 parameters.push_back(str(it->getValue()));
             }
         }
 
-        for (auto const& key : sorted(id->parameters->named.keys())) {
-            for (auto const& it : id->parameters->named.at(key)->args) {
+        for (auto const& key : sorted(id->attrs->named.keys())) {
+            for (auto const& it : id->attrs->named.at(key)->args) {
                 parameters.push_back(
                     str(fmt("{}={}", it->getName(), it->getValue())));
             }
@@ -194,8 +194,7 @@ auto Formatter::toString(SemId<Document> id, CR<Context> ctx) -> Res {
                     Vec<Res> tmp;
                     tmp.push_back(str("#+property: "));
                     tmp.push_back(str(prop.getCustomArgs().name));
-                    for (auto const& it :
-                         prop.getCustomArgs().parameters) {
+                    for (auto const& it : prop.getCustomArgs().attrs) {
                         tmp.push_back(str(" "));
                         tmp.push_back(str(it));
                     }
@@ -277,8 +276,8 @@ auto Formatter::toString(SemId<BlockCode> id, CR<Context> ctx) -> Res {
 
     auto     result = isInline ? b.line() : b.stack();
     Vec<Res> parameters;
-    if (id->parameters) {
-        parameters.push_back(toString(id->parameters.value(), ctx));
+    if (id->attrs) {
+        parameters.push_back(toString(id->attrs.value(), ctx));
     }
 
     auto head = isInline ? b.line({str("src_")})
@@ -518,8 +517,7 @@ auto Formatter::toString(SemId<CmdCustomRaw> id, CR<Context> ctx) -> Res {
 
 auto Formatter::toString(SemId<CmdCustomArgs> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    return b.line(
-        {str(fmt("#+{}:", id->name)), toString(id->parameters, ctx)});
+    return b.line({str(fmt("#+{}:", id->name)), toString(id->attrs, ctx)});
 }
 
 auto Formatter::toString(SemId<CmdCustomText> id, CR<Context> ctx) -> Res {
@@ -556,8 +554,8 @@ auto Formatter::toString(SemId<Call> id, CR<Context> ctx) -> Res {
     Vec<Res> parameters;
 
 
-    if (id->parameters->positional) {
-        for (auto const& it : id->parameters->positional->args) {
+    if (id->attrs->positional) {
+        for (auto const& it : id->attrs->positional->args) {
             if (it->getValue().contains(",")) {
                 parameters.push_back(str(fmt("={}=", it->getValue())));
             } else {
@@ -566,8 +564,8 @@ auto Formatter::toString(SemId<Call> id, CR<Context> ctx) -> Res {
         }
     }
 
-    for (auto const& key : sorted(id->parameters->named.keys())) {
-        for (auto const& it : id->parameters->named.at(key)->args) {
+    for (auto const& key : sorted(id->attrs->named.keys())) {
+        for (auto const& it : id->attrs->named.at(key)->args) {
             parameters.push_back(
                 str(fmt("{}={}", it->getName(), it->getValue())));
         }
@@ -739,7 +737,7 @@ auto Formatter::toString(SemId<Table> id, CR<Context> ctx) -> Res {
         add(result,
             b.line({
                 str("#+begin_table"),
-                toString(id->parameters, ctx),
+                toString(id->attrs, ctx),
             }));
     }
 
@@ -747,14 +745,14 @@ auto Formatter::toString(SemId<Table> id, CR<Context> ctx) -> Res {
         if (in_row->isBlock) {
             Res row = b.stack({b.line({
                 str("#+row:"),
-                toString(in_row->parameters, ctx),
+                toString(in_row->attrs, ctx),
             })});
 
             for (auto const& in_cell : in_row->cells) {
                 if (in_cell->isBlock) {
                     Res cell = b.stack({b.line({
                         str("#+cell:"),
-                        toString(in_cell->parameters, ctx),
+                        toString(in_cell->attrs, ctx),
                     })});
                     for (auto const& item : in_cell) {
                         add(cell, toString(item, ctx));
@@ -803,7 +801,7 @@ auto Formatter::toString(SemId<CmdAttr> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line({
         str("#+attr_"_ss + id->target + ":"_ss),
-        toString(id->parameters, ctx),
+        toString(id->attrs, ctx),
     });
 }
 
@@ -1143,7 +1141,7 @@ auto Formatter::toString(SemId<BlockQuote> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return stackAttached(
         b.stack(Vec<Res>::Splice(
-            b.line({str("#+begin_quote"), toString(id->parameters, ctx)}),
+            b.line({str("#+begin_quote"), toString(id->attrs, ctx)}),
             toSubnodes(id, ctx),
             str("#+end_quote"))),
         id.as<sem::Stmt>(),
@@ -1193,9 +1191,9 @@ auto Formatter::toString(SemId<BlockExport> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Res head = b.line();
     add(head, str("#+begin_export " + id->exporter));
-    if (id->parameters) {
+    if (id->attrs) {
         add(head, str(" "));
-        add(head, toString(id->parameters.value(), ctx));
+        add(head, toString(id->attrs.value(), ctx));
     }
 
     if (id->placement) {

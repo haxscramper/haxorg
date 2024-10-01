@@ -379,7 +379,7 @@ Vec<sem::AttrValue> Stmt_getAttrs(Handle handle, const Opt<Str>& kind) {
                 Attrs_getAttrs(
                     toHandle(
                         org_cast<sem::CmdAttr>(toHandle(sub, handle))
-                            ->parameters,
+                            ->attrs,
                         handle)
                         .value(),
                     kind));
@@ -395,9 +395,8 @@ Vec<sem::AttrValue> Cmd_getAttrs(
     CR<Opt<Str>>  param) {
     auto                h = getConstHandle(handle);
     Vec<sem::AttrValue> res;
-    if (isBoolFalse(h->parameters)) {
-        res = Attrs_getAttrs(
-            toHandle(h->parameters, handle).value(), param);
+    if (isBoolFalse(h->attrs)) {
+        res = Attrs_getAttrs(toHandle(h->attrs, handle).value(), param);
     }
     res.append(Stmt_getAttrs(handle, param));
     return res;
@@ -418,9 +417,9 @@ Opt<sem::AttrValue> Stmt_getFirstAttr(Handle handle, CR<Str> kind) {
 template <typename Handle>
 Opt<sem::AttrValue> Cmd_getFirstAttr(Handle handle, Str const& kind) {
     auto h = getConstHandle(handle);
-    if (isBoolFalse(h->parameters)) {
+    if (isBoolFalse(h->attrs)) {
         auto res = Attrs_getAttrs(
-            toHandle(h->parameters, handle).value(), kind);
+            toHandle(h->attrs, handle).value(), kind);
         if (res.empty()) {
             return std::nullopt;
         } else {
