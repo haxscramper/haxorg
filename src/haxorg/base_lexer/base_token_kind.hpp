@@ -40,6 +40,8 @@ enum class OrgTokenKind : unsigned short int {
   CmdDescription,
   CmdDrawersRaw,
   CmdDynamicBegin,
+  CmdDynamicBlockBegin,
+  CmdDynamicBlockEnd,
   CmdDynamicEnd,
   CmdEmailRaw,
   CmdExampleBegin,

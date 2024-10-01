@@ -194,6 +194,7 @@
     __IMPL(BlockQuote, (BlockQuote)) \
     __IMPL(BlockComment, (BlockComment)) \
     __IMPL(BlockVerse, (BlockVerse)) \
+    __IMPL(BlockDynamicFallback, (BlockDynamicFallback)) \
     __IMPL(BlockExample, (BlockExample)) \
     __IMPL(BlockExport, (BlockExport)) \
     __IMPL(BlockAdmonition, (BlockAdmonition)) \
@@ -280,6 +281,7 @@
     __IMPL(BlockQuote) \
     __IMPL(BlockComment) \
     __IMPL(BlockVerse) \
+    __IMPL(BlockDynamicFallback) \
     __IMPL(BlockExample) \
     __IMPL(BlockExport) \
     __IMPL(BlockAdmonition) \
@@ -350,6 +352,7 @@
     __IMPL(BlockQuote, Block) \
     __IMPL(BlockComment, Stmt) \
     __IMPL(BlockVerse, Block) \
+    __IMPL(BlockDynamicFallback, Block) \
     __IMPL(BlockExample, Block) \
     __IMPL(BlockExport, Block) \
     __IMPL(BlockAdmonition, Block) \
@@ -428,6 +431,7 @@
     __IMPL(BlockQuote, Block) \
     __IMPL(BlockComment, Stmt) \
     __IMPL(BlockVerse, Block) \
+    __IMPL(BlockDynamicFallback, Block) \
     __IMPL(BlockExample, Block) \
     __IMPL(BlockExport, Block) \
     __IMPL(BlockAdmonition, Block) \
@@ -451,6 +455,30 @@
     __IMPL(TextSeparator, Org) \
     __IMPL(Include, Org) \
     __IMPL(DocumentGroup, Org)
+enum class ListFormattingMode : short int { None, Table1D1Col, Table1D2Col, Table2DColFirst, };
+template <>
+struct enum_serde<ListFormattingMode> {
+  static Opt<ListFormattingMode> from_string(std::string value);
+  static std::string to_string(ListFormattingMode value);
+};
+
+template <>
+struct value_domain<ListFormattingMode> : public value_domain_ungapped<ListFormattingMode,
+                                                                       ListFormattingMode::None,
+                                                                       ListFormattingMode::Table2DColFirst> {};
+
+enum class NodeAttachMode : short int { None, Subtree, };
+template <>
+struct enum_serde<NodeAttachMode> {
+  static Opt<NodeAttachMode> from_string(std::string value);
+  static std::string to_string(NodeAttachMode value);
+};
+
+template <>
+struct value_domain<NodeAttachMode> : public value_domain_ungapped<NodeAttachMode,
+                                                                   NodeAttachMode::None,
+                                                                   NodeAttachMode::Subtree> {};
+
 enum class InitialSubtreeVisibility : short int { Overview, Content, ShowAll, Show2Levels, Show3Levels, Show4Levels, Show5Levels, ShowEverything, };
 template <>
 struct enum_serde<InitialSubtreeVisibility> {
@@ -635,6 +663,8 @@ enum class OrgNodeKind : short int {
   BlockDetails,
   /// \brief `#+begin_summary` section
   BlockSummary,
+  /// \brief #+begin_<any> section
+  BlockDynamicFallback,
   /// \brief regular identifier - `alnum + [-_]` characters for punctuation. Identifiers are compared and parsed in style-insensetive manner, meaning `CODE_BLOCK`, `code-block` and `codeblock` are identical.
   Ident,
   /// \brief full-uppsercase identifier such as `MUST` or `TODO`
@@ -747,7 +777,7 @@ struct value_domain<OrgNodeKind> : public value_domain_ungapped<OrgNodeKind,
                                                                 OrgNodeKind::None,
                                                                 OrgNodeKind::SubtreeImportance> {};
 
-enum class OrgSemKind : short int { None, Attr, AttrList, Attrs, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdResults, CmdTblfm, HashTag, Footnote, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, RadioTarget, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockExample, BlockExport, BlockAdmonition, BlockCode, SubtreeLog, Subtree, SubtreeCompletion, Cell, Row, Table, Paragraph, AnnotatedParagraph, ColonExample, CmdAttr, Call, List, ListItem, DocumentOptions, Document, FileTarget, TextSeparator, Include, DocumentGroup, };
+enum class OrgSemKind : short int { None, Attr, AttrList, Attrs, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdResults, CmdTblfm, HashTag, Footnote, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, RadioTarget, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCode, SubtreeLog, Subtree, SubtreeCompletion, Cell, Row, Table, Paragraph, AnnotatedParagraph, ColonExample, CmdAttr, Call, List, ListItem, DocumentOptions, Document, FileTarget, TextSeparator, Include, DocumentGroup, };
 template <>
 struct enum_serde<OrgSemKind> {
   static Opt<OrgSemKind> from_string(std::string value);

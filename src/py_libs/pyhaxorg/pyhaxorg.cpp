@@ -2444,6 +2444,44 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<sem::BlockDynamicFallback, sem::SemId<sem::BlockDynamicFallback>, sem::Block>(m, "BlockDynamicFallback")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockDynamicFallback {
+                        sem::BlockDynamicFallback result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("name", &sem::BlockDynamicFallback::name)
+    .def_readwrite("parameters", &sem::BlockDynamicFallback::parameters, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &sem::BlockDynamicFallback::attached)
+    .def("getAttrs",
+         static_cast<Vec<sem::AttrValue>(sem::BlockDynamicFallback::*)(Opt<Str> const&) const>(&sem::BlockDynamicFallback::getAttrs),
+         pybind11::arg_v("key", std::nullopt),
+         R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
+    .def("getFirstAttr",
+         static_cast<Opt<sem::AttrValue>(sem::BlockDynamicFallback::*)(Str const&) const>(&sem::BlockDynamicFallback::getFirstAttr),
+         pybind11::arg("kind"),
+         R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
+    .def("getAttached",
+         static_cast<Vec<sem::SemId<sem::Org>>(sem::BlockDynamicFallback::*)(Opt<Str> const&) const>(&sem::BlockDynamicFallback::getAttached),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getAttrs",
+         static_cast<Vec<sem::AttrValue>(sem::BlockDynamicFallback::*)(Opt<Str> const&) const>(&sem::BlockDynamicFallback::getAttrs),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstAttr",
+         static_cast<Opt<sem::AttrValue>(sem::BlockDynamicFallback::*)(Str const&) const>(&sem::BlockDynamicFallback::getFirstAttr),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
+    .def("__repr__", [](sem::BlockDynamicFallback _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::BlockDynamicFallback _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<sem::BlockExample, sem::SemId<sem::BlockExample>, sem::Block>(m, "BlockExample")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockExample {
                         sem::BlockExample result{};
@@ -3487,6 +3525,28 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  bind_enum_iterator<ListFormattingMode>(m, "ListFormattingMode", type_registry_guard);
+  pybind11::enum_<ListFormattingMode>(m, "ListFormattingMode")
+    .value("None", ListFormattingMode::None)
+    .value("Table1D1Col", ListFormattingMode::Table1D1Col)
+    .value("Table1D2Col", ListFormattingMode::Table1D2Col)
+    .value("Table2DColFirst", ListFormattingMode::Table2DColFirst)
+    .def("__iter__", [](ListFormattingMode _self) -> PyEnumIterator<ListFormattingMode> {
+                     return
+                     PyEnumIterator<ListFormattingMode>
+                     ();
+                     })
+    ;
+  bind_enum_iterator<NodeAttachMode>(m, "NodeAttachMode", type_registry_guard);
+  pybind11::enum_<NodeAttachMode>(m, "NodeAttachMode")
+    .value("None", NodeAttachMode::None)
+    .value("Subtree", NodeAttachMode::Subtree)
+    .def("__iter__", [](NodeAttachMode _self) -> PyEnumIterator<NodeAttachMode> {
+                     return
+                     PyEnumIterator<NodeAttachMode>
+                     ();
+                     })
+    ;
   bind_enum_iterator<InitialSubtreeVisibility>(m, "InitialSubtreeVisibility", type_registry_guard);
   pybind11::enum_<InitialSubtreeVisibility>(m, "InitialSubtreeVisibility")
     .value("Overview", InitialSubtreeVisibility::Overview)
@@ -3664,6 +3724,7 @@ node can have subnodes.)RAW")
     .value("BlockExport", OrgNodeKind::BlockExport)
     .value("BlockDetails", OrgNodeKind::BlockDetails, R"RAW(`#+begin_details`  section)RAW")
     .value("BlockSummary", OrgNodeKind::BlockSummary, R"RAW(`#+begin_summary` section)RAW")
+    .value("BlockDynamicFallback", OrgNodeKind::BlockDynamicFallback, R"RAW(#+begin_<any> section)RAW")
     .value("Ident", OrgNodeKind::Ident, R"RAW(regular identifier - `alnum + [-_]` characters for punctuation. Identifiers are compared and parsed in style-insensetive manner, meaning `CODE_BLOCK`, `code-block` and `codeblock` are identical.)RAW")
     .value("BigIdent", OrgNodeKind::BigIdent, R"RAW(full-uppsercase identifier such as `MUST` or `TODO`)RAW")
     .value("Bold", OrgNodeKind::Bold, R"RAW(Region of text with formatting, which contains standalone words -
@@ -3787,6 +3848,7 @@ node can have subnodes.)RAW")
     .value("BlockQuote", OrgSemKind::BlockQuote)
     .value("BlockComment", OrgSemKind::BlockComment)
     .value("BlockVerse", OrgSemKind::BlockVerse)
+    .value("BlockDynamicFallback", OrgSemKind::BlockDynamicFallback)
     .value("BlockExample", OrgSemKind::BlockExample)
     .value("BlockExport", OrgSemKind::BlockExport)
     .value("BlockAdmonition", OrgSemKind::BlockAdmonition)

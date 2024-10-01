@@ -979,6 +979,19 @@ class BlockVerse(Block):
     parameters: Optional[Attrs]
     attached: List[Org]
 
+class BlockDynamicFallback(Block):
+    def __init__(self, name: str, parameters: Optional[Attrs], attached: List[Org]) -> None: ...
+    def getAttrs(self, key: Optional[str]) -> List[AttrValue]: ...
+    def getFirstAttr(self, kind: str) -> Optional[AttrValue]: ...
+    def getAttached(self, kind: Optional[str]) -> List[Org]: ...
+    def getAttrs(self, kind: Optional[str]) -> List[AttrValue]: ...
+    def getFirstAttr(self, kind: str) -> Optional[AttrValue]: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    name: str
+    parameters: Optional[Attrs]
+    attached: List[Org]
+
 class BlockExample(Block):
     def __init__(self, parameters: Optional[Attrs], attached: List[Org]) -> None: ...
     def getAttrs(self, key: Optional[str]) -> List[AttrValue]: ...
@@ -1413,6 +1426,16 @@ class DocumentGroup(Org):
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
 
+class ListFormattingMode(Enum):
+    _None = 1
+    Table1D1Col = 2
+    Table1D2Col = 3
+    Table2DColFirst = 4
+
+class NodeAttachMode(Enum):
+    _None = 1
+    Subtree = 2
+
 class InitialSubtreeVisibility(Enum):
     Overview = 1
     Content = 2
@@ -1565,58 +1588,59 @@ class OrgNodeKind(Enum):
     BlockExport = 67
     BlockDetails = 68
     BlockSummary = 69
-    Ident = 70
-    BigIdent = 71
-    Bold = 72
-    Italic = 73
-    Verbatim = 74
-    Backtick = 75
-    Underline = 76
-    Strike = 77
-    Quote = 78
-    Angle = 79
-    Monospace = 80
-    Par = 81
-    InlineMath = 82
-    DisplayMath = 83
-    Space = 84
-    Punctuation = 85
-    Colon = 86
-    Word = 87
-    Escaped = 88
-    Newline = 89
-    RawLink = 90
-    Link = 91
-    Macro = 92
-    Symbol = 93
-    StaticActiveTime = 94
-    StaticInactiveTime = 95
-    DynamicActiveTime = 96
-    DynamicInactiveTime = 97
-    TimeRange = 98
-    SimpleTime = 99
-    HashTag = 100
-    MetaSymbol = 101
-    AtMention = 102
-    Placeholder = 103
-    RadioTarget = 104
-    Target = 105
-    SrcInlineCode = 106
-    InlineCallCode = 107
-    InlineExport = 108
-    InlineComment = 109
-    RawText = 110
-    SubtreeDescription = 111
-    SubtreeUrgency = 112
-    DrawerLogbook = 113
-    Drawer = 114
-    DrawerPropertyList = 115
-    DrawerProperty = 116
-    Subtree = 117
-    SubtreeTimes = 118
-    SubtreeStars = 119
-    SubtreeCompletion = 120
-    SubtreeImportance = 121
+    BlockDynamicFallback = 70
+    Ident = 71
+    BigIdent = 72
+    Bold = 73
+    Italic = 74
+    Verbatim = 75
+    Backtick = 76
+    Underline = 77
+    Strike = 78
+    Quote = 79
+    Angle = 80
+    Monospace = 81
+    Par = 82
+    InlineMath = 83
+    DisplayMath = 84
+    Space = 85
+    Punctuation = 86
+    Colon = 87
+    Word = 88
+    Escaped = 89
+    Newline = 90
+    RawLink = 91
+    Link = 92
+    Macro = 93
+    Symbol = 94
+    StaticActiveTime = 95
+    StaticInactiveTime = 96
+    DynamicActiveTime = 97
+    DynamicInactiveTime = 98
+    TimeRange = 99
+    SimpleTime = 100
+    HashTag = 101
+    MetaSymbol = 102
+    AtMention = 103
+    Placeholder = 104
+    RadioTarget = 105
+    Target = 106
+    SrcInlineCode = 107
+    InlineCallCode = 108
+    InlineExport = 109
+    InlineComment = 110
+    RawText = 111
+    SubtreeDescription = 112
+    SubtreeUrgency = 113
+    DrawerLogbook = 114
+    Drawer = 115
+    DrawerPropertyList = 116
+    DrawerProperty = 117
+    Subtree = 118
+    SubtreeTimes = 119
+    SubtreeStars = 120
+    SubtreeCompletion = 121
+    SubtreeImportance = 122
 
 class OrgSemKind(Enum):
     _None = 1
@@ -1665,29 +1689,30 @@ class OrgSemKind(Enum):
     BlockQuote = 44
     BlockComment = 45
     BlockVerse = 46
-    BlockExample = 47
-    BlockExport = 48
-    BlockAdmonition = 49
-    BlockCode = 50
-    SubtreeLog = 51
-    Subtree = 52
-    SubtreeCompletion = 53
-    Cell = 54
-    Row = 55
-    Table = 56
-    Paragraph = 57
-    AnnotatedParagraph = 58
-    ColonExample = 59
-    CmdAttr = 60
-    Call = 61
-    List = 62
-    ListItem = 63
-    DocumentOptions = 64
-    Document = 65
-    FileTarget = 66
-    TextSeparator = 67
-    Include = 68
-    DocumentGroup = 69
+    BlockDynamicFallback = 47
+    BlockExample = 48
+    BlockExport = 49
+    BlockAdmonition = 50
+    BlockCode = 51
+    SubtreeLog = 52
+    Subtree = 53
+    SubtreeCompletion = 54
+    Cell = 55
+    Row = 56
+    Table = 57
+    Paragraph = 58
+    AnnotatedParagraph = 59
+    ColonExample = 60
+    CmdAttr = 61
+    Call = 62
+    List = 63
+    ListItem = 64
+    DocumentOptions = 65
+    Document = 66
+    FileTarget = 67
+    TextSeparator = 68
+    Include = 69
+    DocumentGroup = 70
 
 class UserTimeBreakdown:
     def __init__(self, year: Optional[int], month: Optional[int], day: Optional[int], hour: Optional[int], minute: Optional[int], second: Optional[int], zone: Optional[str]) -> None: ...

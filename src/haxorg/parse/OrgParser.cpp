@@ -4,6 +4,7 @@
 #include <absl/log/log.h>
 #include <absl/log/check.h>
 #include <haxorg/sem/perfetto_org.hpp>
+#include <boost/algorithm/string/replace.hpp>
 
 
 using otk = OrgTokenKind;
@@ -1164,6 +1165,8 @@ OrgId OrgParser::parseTextWrapCommand(OrgLexer& lex) {
     skip(lex, otk::CmdPrefix);
     auto __trace = trace(lex);
 
+    bool isDynamic = lex.kind() == otk::CmdDynamicBlockBegin;
+
     OrgTokenKind endTok;
     switch (lex.kind()) {
         case otk::CmdVerseBegin:
@@ -1182,6 +1185,11 @@ OrgId OrgParser::parseTextWrapCommand(OrgLexer& lex) {
             start(onk::BlockComment);
             endTok = otk::CmdCommentEnd;
             break;
+        case otk::CmdDynamicBlockBegin:
+            start(onk::BlockDynamicFallback);
+            token(onk::Ident, lex.get());
+            endTok = otk::CmdDynamicBlockEnd;
+            break;
         default: throw fatalError(lex, "unhandled token");
     }
 
@@ -1197,10 +1205,23 @@ OrgId OrgParser::parseTextWrapCommand(OrgLexer& lex) {
 
     skip(lex, Newline);
 
-
-    while (lex.can_search(Vec<otk>{otk::CmdPrefix, endTok})) {
-        subParse(StmtListItem, lex);
-        if (lex.at(BlockTerminator)) { break; }
+    if (isDynamic) {
+        std::string tmp = lex.val(1).text;
+        boost::replace_all(tmp, "begin", "end");
+        Str endName = normalize(tmp);
+        print(
+            fmt("Dynamic block, name {} -> {}", lex.val().text, endName));
+        while (lex.can_search(Vec<otk>{otk::CmdPrefix, endTok})
+               && lex.hasNext(2)
+               && normalize(lex.val(2).text) != endName) {
+            subParse(StmtListItem, lex);
+            if (lex.at(BlockTerminator)) { break; }
+        }
+    } else {
+        while (lex.can_search(Vec<otk>{otk::CmdPrefix, endTok})) {
+            subParse(StmtListItem, lex);
+            if (lex.at(BlockTerminator)) { break; }
+        }
     }
 
     skip(lex, otk::CmdPrefix);
@@ -2061,6 +2082,7 @@ OrgId OrgParser::parseStmtListItem(OrgLexer& lex) {
                 case otk::CmdVerseBegin:
                 case otk::CmdCenterBegin:
                 case otk::CmdCommentBegin:
+                case otk::CmdDynamicBlockBegin:
                 case otk::CmdQuoteBegin:
                     return subParse(TextWrapCommand, lex);
                 case otk::CmdTableBegin: return subParse(Table, lex);

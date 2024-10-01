@@ -1482,6 +1482,19 @@ struct BlockVerse : public sem::Block {
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockVerse; }
 };
 
+struct BlockDynamicFallback : public sem::Block {
+  using Block::Block;
+  virtual ~BlockDynamicFallback() = default;
+  BOOST_DESCRIBE_CLASS(BlockDynamicFallback,
+                       (Block),
+                       (),
+                       (),
+                       (staticKind, name))
+  static OrgSemKind const staticKind;
+  Str name = "";
+  virtual OrgSemKind getKind() const { return OrgSemKind::BlockDynamicFallback; }
+};
+
 /// \brief Example block
 struct BlockExample : public sem::Block {
   using Block::Block;

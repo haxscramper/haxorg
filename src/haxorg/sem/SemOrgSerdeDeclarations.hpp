@@ -48,6 +48,7 @@
         __MAP(kBlockquote, blockquote, BlockQuote)  \
         __MAP(kBlockcomment, blockcomment, BlockComment)  \
         __MAP(kBlockverse, blockverse, BlockVerse)  \
+        __MAP(kBlockdynamicfallback, blockdynamicfallback, BlockDynamicFallback)  \
         __MAP(kBlockexample, blockexample, BlockExample)  \
         __MAP(kBlockexport, blockexport, BlockExport)  \
         __MAP(kBlockadmonition, blockadmonition, BlockAdmonition)  \
@@ -741,6 +742,13 @@ template <>
 struct proto_serde<::orgproto::BlockVerse, sem::BlockVerse> {
   static void write(::orgproto::BlockVerse* out, sem::BlockVerse const& in);
   static void read(::orgproto::BlockVerse const& out, proto_write_accessor<sem::BlockVerse> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::BlockDynamicFallback, sem::BlockDynamicFallback> {
+  static void write(::orgproto::BlockDynamicFallback* out, sem::BlockDynamicFallback const& in);
+  static void read(::orgproto::BlockDynamicFallback const& out, proto_write_accessor<sem::BlockDynamicFallback> in);
 };
 
 

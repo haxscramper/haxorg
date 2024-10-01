@@ -310,6 +310,18 @@ rules:
   - { re: ".+", states: [BODY_SRC], token: SrcContent }
   - { re: "\\n", states: [BODY_SRC], token: Newline }
   #endregion
+
+  - re: "begin_\\w+"
+    states: [COMMAND]
+    token: CmdDynamicBlockBegin
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+  - re: "end_\\w+"
+    states: [COMMAND]
+    token: CmdDynamicBlockEnd
+    actions: [{ do: pop, to: INITIAL, from: COMMAND }]
+
+
   #endregion
 
   #region Command-parameters

@@ -1069,6 +1069,7 @@ struct ImmAdapterBlockCommentAPI : ImmAdapterStmtAPI {};
 struct ImmAdapterBlockVerseAPI : ImmAdapterBlockAPI {};
 struct ImmAdapterBlockExampleAPI : ImmAdapterBlockAPI {};
 struct ImmAdapterBlockExportAPI : ImmAdapterBlockAPI {};
+struct ImmAdapterBlockDynamicFallbackAPI : ImmAdapterBlockAPI {};
 struct ImmAdapterBlockAdmonitionAPI : ImmAdapterBlockAPI {};
 struct ImmAdapterBlockCodeAPI : ImmAdapterBlockAPI {};
 struct ImmAdapterSubtreeLogAPI : ImmAdapterOrgAPI {};

@@ -8,6 +8,7 @@
 #include <boost/preprocessor/facilities/empty.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <haxorg/exporters/exportertree.hpp>
+#include <boost/algorithm/string/replace.hpp>
 #include <absl/log/log.h>
 
 
@@ -1083,6 +1084,20 @@ OrgConverter::ConvResult<BlockExample> OrgConverter::convertBlockExample(
     return result;
 }
 
+OrgConverter::ConvResult<BlockDynamicFallback> OrgConverter::
+    convertBlockDynamicFallback(__args) {
+    SemId<BlockDynamicFallback> result = Sem<BlockDynamicFallback>(a);
+    result->parameters = convertAttrs(one(a, N::Args)).optNode();
+
+    result->name = normalize(get_text(one(a, N::Name)));
+    boost::replace_all(result->name, "begin", "");
+    for (auto const& it : many(a, N::Body)) {
+        result->subnodes.push_back(convert(it));
+    }
+
+    return result;
+}
+
 OrgConverter::ConvResult<ColonExample> OrgConverter::convertColonExample(
     __args) {
     SemId<ColonExample> result = Sem<ColonExample>(a);
@@ -1543,6 +1558,8 @@ SemId<Org> OrgConverter::convert(__args) {
         case onk::CmdCaption: return convertCmdCaption(a).unwrap();
         case onk::CmdName: return convertCmdName(a).unwrap();
         case onk::CmdCallCode: return convertCall(a).unwrap();
+        case onk::BlockDynamicFallback:
+            return convertBlockDynamicFallback(a).unwrap();
         case onk::Paragraph: {
             if (2 < a.size()
                 && AnnotatedParagraphStarts.contains(a.at(0).kind())) {

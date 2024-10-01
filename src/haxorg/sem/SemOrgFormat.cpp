@@ -46,7 +46,7 @@ void Formatter::add(Res id, Res other) {
 
 Formatter::Res Formatter::toString(
     Opt<SemId<Attrs>> args,
-    CR<Context>              ctx) {
+    CR<Context>       ctx) {
     if (args) {
         return b.line({str(" "), toString(args.value(), ctx)});
     } else {
@@ -813,8 +813,7 @@ auto Formatter::toString(SemId<Strike> id, CR<Context> ctx) -> Res {
         Vec<Res>::Splice(str("+"), toSubnodes(id, ctx), str("+")));
 }
 
-auto Formatter::toString(SemId<AttrList> id, CR<Context> ctx)
-    -> Res {
+auto Formatter::toString(SemId<AttrList> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
 
     Vec<Res> result;
@@ -1213,6 +1212,15 @@ auto Formatter::toString(SemId<BlockExample> id, CR<Context> ctx) -> Res {
         str("#+begin_example"),
         toSubnodes(id, ctx),
         str("#+end_example")));
+}
+
+auto Formatter::toString(SemId<BlockDynamicFallback> id, CR<Context> ctx)
+    -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    return b.stack(Vec<Res>::Splice(
+        str("#+begin_" + id->name),
+        toSubnodes(id, ctx),
+        str("#+end_" + id->name)));
 }
 
 auto Formatter::toString(SemId<ColonExample> id, CR<Context> ctx) -> Res {

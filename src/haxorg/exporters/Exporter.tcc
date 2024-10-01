@@ -627,6 +627,15 @@ void Exporter<V, R>::visitBlockVerse(R& res, In<sem::BlockVerse> object) {
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visitBlockDynamicFallback(R& res, In<sem::BlockDynamicFallback> object) {
+  auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
+  __org_field(res, object, name);
+  __org_field(res, object, parameters);
+  __org_field(res, object, attached);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visitBlockExample(R& res, In<sem::BlockExample> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, parameters);

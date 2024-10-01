@@ -110,6 +110,7 @@ void visitBlockCenter(R& res, In<sem::BlockCenter> object);
 void visitBlockQuote(R& res, In<sem::BlockQuote> object);
 void visitBlockComment(R& res, In<sem::BlockComment> object);
 void visitBlockVerse(R& res, In<sem::BlockVerse> object);
+void visitBlockDynamicFallback(R& res, In<sem::BlockDynamicFallback> object);
 void visitBlockExample(R& res, In<sem::BlockExample> object);
 void visitBlockExport(R& res, In<sem::BlockExport> object);
 void visitBlockAdmonition(R& res, In<sem::BlockAdmonition> object);

@@ -402,19 +402,17 @@ def get_subtree_property_types():
 
 def get_sem_misc():
     return [
-        d_org(
-            "Attr",
-            GenTuDoc("Single key-value (or positional)"),
-            bases=[t_org("Org")],
-            fields=[
-                GenTuField(t_nest_shared("AttrValue"), "arg"),
-            ],
-            methods=[
-                GenTuFunction(t_str(), "getName", isConst=True),
-                GenTuFunction(t_str(), "getValue", isConst=True),
-                GenTuFunction(t_str(), "getVarname", isConst=True),
-            ]
-        ),
+        d_org("Attr",
+              GenTuDoc("Single key-value (or positional)"),
+              bases=[t_org("Org")],
+              fields=[
+                  GenTuField(t_nest_shared("AttrValue"), "arg"),
+              ],
+              methods=[
+                  GenTuFunction(t_str(), "getName", isConst=True),
+                  GenTuFunction(t_str(), "getValue", isConst=True),
+                  GenTuFunction(t_str(), "getVarname", isConst=True),
+              ]),
         d_org(
             "AttrList",
             GenTuDoc("Data type to wrap list of identical command arguments"),
@@ -700,6 +698,14 @@ def get_sem_block():
             "BlockVerse",
             GenTuDoc("Verse quotation block"),
             bases=[t_org("Block")],
+        ),
+        d_org(
+            "BlockDynamicFallback",
+            GenTuDoc(""),
+            bases=[t_org("Block")],
+            fields=[
+                str_field("name"),
+            ],
         ),
         d_org("BlockExample", GenTuDoc("Example block"), bases=[t_org("Block")]),
         d_org(
@@ -1332,6 +1338,20 @@ def get_sem_subtree():
 def get_shared_sem_enums() -> Sequence[GenTuEnum]:
     return [
         d_simple_enum(
+            t("ListFormattingMode"),
+            GenTuDoc(""),
+            "None",
+            "Table1D1Col",
+            "Table1D2Col",
+            "Table2DColFirst",
+        ),
+        d_simple_enum(
+            t("NodeAttachMode"),
+            GenTuDoc(""),
+            "None",
+            "Subtree",
+        ),
+        d_simple_enum(
             t("InitialSubtreeVisibility"),
             GenTuDoc(""),
             "Overview",
@@ -1367,20 +1387,18 @@ def get_shared_sem_enums() -> Sequence[GenTuEnum]:
 
 def get_shared_sem_types() -> Sequence[GenTuStruct]:
     return [
-        GenTuStruct(
-            t_nest_shared("AttrValue"),
-            fields=[
-                opt_field(t_str(), "name"),
-                opt_field(t_str(), "varname"),
-                str_field("value"),
-            ],
-            methods=[
-                GenTuFunction(t_opt(t_bool()), "getBool", isConst=True),
-                GenTuFunction(t_opt(t_int()), "getInt", isConst=True),
-                GenTuFunction(t_str(), "getString", isConst=True),
-                eq_method(t_nest_shared("AttrValue")),
-            ]
-        ),
+        GenTuStruct(t_nest_shared("AttrValue"),
+                    fields=[
+                        opt_field(t_str(), "name"),
+                        opt_field(t_str(), "varname"),
+                        str_field("value"),
+                    ],
+                    methods=[
+                        GenTuFunction(t_opt(t_bool()), "getBool", isConst=True),
+                        GenTuFunction(t_opt(t_int()), "getInt", isConst=True),
+                        GenTuFunction(t_str(), "getString", isConst=True),
+                        eq_method(t_nest_shared("AttrValue")),
+                    ]),
         GenTuStruct(
             t_nest_shared("BlockCodeLine"),
             methods=[eq_method(t_nest_shared("BlockCodeLine"))],
@@ -1461,7 +1479,9 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                                 ),
                             ],
                             nested=[GenTuPass("LineStart() {}")],
-                            methods=[eq_method(t_nest_shared("LineStart", ["BlockCodeSwitch"]))],
+                            methods=[
+                                eq_method(t_nest_shared("LineStart", ["BlockCodeSwitch"]))
+                            ],
                         ),
                         GenTuStruct(
                             t_nest_shared("CalloutFormat", ["BlockCodeSwitch"]),
@@ -1470,7 +1490,10 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                                 GenTuField(t_str(), "format", GenTuDoc(""), value='""')
                             ],
                             nested=[GenTuPass("CalloutFormat() {}")],
-                            methods=[eq_method(t_nest_shared("CalloutFormat", ["BlockCodeSwitch"]))],
+                            methods=[
+                                eq_method(
+                                    t_nest_shared("CalloutFormat", ["BlockCodeSwitch"]))
+                            ],
                         ),
                         GenTuStruct(
                             t_nest_shared("RemoveCallout", ["BlockCodeSwitch"]),
@@ -1479,7 +1502,10 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                                 GenTuField(t_bool(), "remove", GenTuDoc(""), value="true")
                             ],
                             nested=[GenTuPass("RemoveCallout() {}")],
-                            methods=[eq_method(t_nest_shared("RemoveCallout", ["BlockCodeSwitch"]))],
+                            methods=[
+                                eq_method(
+                                    t_nest_shared("RemoveCallout", ["BlockCodeSwitch"]))
+                            ],
                         ),
                         GenTuStruct(
                             t_nest_shared("EmphasizeLine", ["BlockCodeSwitch"]),
@@ -1491,7 +1517,10 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                                     t_vec(t_int()), "line", GenTuDoc(""), value="{}")
                             ],
                             nested=[GenTuPass("EmphasizeLine() {}")],
-                            methods=[eq_method(t_nest_shared("EmphasizeLine", ["BlockCodeSwitch"]))],
+                            methods=[
+                                eq_method(
+                                    t_nest_shared("EmphasizeLine", ["BlockCodeSwitch"]))
+                            ],
                         ),
                         GenTuStruct(
                             t_nest_shared("Dedent", ["BlockCodeSwitch"]),
@@ -1500,7 +1529,9 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                                 GenTuField(t_int(), "value", GenTuDoc(""), value="0")
                             ],
                             nested=[GenTuPass("Dedent() {}")],
-                            methods=[eq_method(t_nest_shared("Dedent", ["BlockCodeSwitch"]))],
+                            methods=[
+                                eq_method(t_nest_shared("Dedent", ["BlockCodeSwitch"]))
+                            ],
                         ),
                     ],
                     enumName=t_nest_shared("Kind", ["BlockCodeSwitch"]),
@@ -1517,7 +1548,9 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                         GenTuStruct(
                             t_nest_shared("None", ["BlockCodeEvalResult"]),
                             GenTuDoc("Default value"),
-                            methods=[eq_method(t_nest_shared("None", ["BlockCodeEvalResult"]))],
+                            methods=[
+                                eq_method(t_nest_shared("None", ["BlockCodeEvalResult"]))
+                            ],
                         ),
                         GenTuStruct(
                             t_nest_shared("OrgValue", ["BlockCodeEvalResult"]),
@@ -1525,19 +1558,26 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                                 "Source code block evaluated to an org-mode node element"
                             ),
                             fields=[str_field("value", GenTuDoc("Evaluation result"))],
-                            methods=[eq_method(t_nest_shared("OrgValue", ["BlockCodeEvalResult"]))],
+                            methods=[
+                                eq_method(
+                                    t_nest_shared("OrgValue", ["BlockCodeEvalResult"]))
+                            ],
                         ),
                         GenTuStruct(
                             t_nest_shared("File", ["BlockCodeEvalResult"]),
                             GenTuDoc("Output evaluation results to a file"),
                             fields=[GenTuField(t_str(), "path")],
-                            methods=[eq_method(t_nest_shared("File", ["BlockCodeEvalResult"]))],
+                            methods=[
+                                eq_method(t_nest_shared("File", ["BlockCodeEvalResult"]))
+                            ],
                         ),
                         GenTuStruct(
                             t_nest_shared("Raw", ["BlockCodeEvalResult"]),
                             GenTuDoc("Evaluation output is a raw text"),
                             fields=[GenTuField(t_str(), "text")],
-                            methods=[eq_method(t_nest_shared("Raw", ["BlockCodeEvalResult"]))],
+                            methods=[
+                                eq_method(t_nest_shared("Raw", ["BlockCodeEvalResult"]))
+                            ],
                         ),
                     ],
                     enumName=t_nest_shared("Kind", ["BlockCodeEvalResult"]),
@@ -2206,6 +2246,7 @@ def get_org_node_kind_blocks():
         efield("BlockExport"),
         efield("BlockDetails", "`#+begin_details`  section"),
         efield("BlockSummary", "`#+begin_summary` section"),
+        efield("BlockDynamicFallback", "#+begin_<any> section"),
     ]
 
 

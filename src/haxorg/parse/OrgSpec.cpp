@@ -193,6 +193,13 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                 fieldN(slice(1, 1_B), N::Body, {org::RawText, org::Empty}),
             })},
         SpecPair{
+            org::BlockDynamicFallback,
+            OrgPattern({
+                fieldN(0, N::Name, {org::Ident}),
+                fieldN(1, N::Args, {org::Attrs, org::Empty}),
+                fieldN(slice(1, 1_B), N::Body, {org::RawText, org::Empty}),
+            })},
+        SpecPair{
             org::ColonExample,
             OrgPattern({
                 fieldN(slice(0, 1_B), N::Body, {org::RawText, org::Empty}),

@@ -1004,6 +1004,21 @@ struct ImmBlockVerse : public org::ImmBlock {
   bool operator==(org::ImmBlockVerse const& other) const;
 };
 
+struct ImmBlockDynamicFallback : public org::ImmBlock {
+  using ImmBlock::ImmBlock;
+  virtual ~ImmBlockDynamicFallback() = default;
+  BOOST_DESCRIBE_CLASS(ImmBlockDynamicFallback,
+                       (ImmBlock),
+                       (),
+                       (),
+                       (staticKind,
+                        name))
+  static OrgSemKind const staticKind;
+  ImmBox<Str> name = "";
+  virtual OrgSemKind getKind() const { return OrgSemKind::BlockDynamicFallback; }
+  bool operator==(org::ImmBlockDynamicFallback const& other) const;
+};
+
 /// \brief Example block
 struct ImmBlockExample : public org::ImmBlock {
   using ImmBlock::ImmBlock;

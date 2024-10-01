@@ -1319,6 +1319,20 @@ void proto_serde<::orgproto::BlockVerse, sem::BlockVerse>::read(::orgproto::Bloc
   proto_serde<::orgproto::BlockVerse, sem::Org>::read(out, in.as<sem::Org>());
 }
 
+void proto_serde<::orgproto::BlockDynamicFallback, sem::BlockDynamicFallback>::write(::orgproto::BlockDynamicFallback* out, sem::BlockDynamicFallback const& in) {
+  proto_serde<::orgproto::BlockDynamicFallback, sem::Cmd>::write(out, in);
+  proto_serde<::orgproto::BlockDynamicFallback, sem::Stmt>::write(out, in);
+  proto_serde<::orgproto::BlockDynamicFallback, sem::Org>::write(out, in);
+  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
+}
+
+void proto_serde<::orgproto::BlockDynamicFallback, sem::BlockDynamicFallback>::read(::orgproto::BlockDynamicFallback const& out, proto_write_accessor<sem::BlockDynamicFallback> in) {
+  proto_serde<::orgproto::BlockDynamicFallback, sem::Cmd>::read(out, in.as<sem::Cmd>());
+  proto_serde<::orgproto::BlockDynamicFallback, sem::Stmt>::read(out, in.as<sem::Stmt>());
+  proto_serde<::orgproto::BlockDynamicFallback, sem::Org>::read(out, in.as<sem::Org>());
+  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::BlockDynamicFallback::name));
+}
+
 void proto_serde<::orgproto::BlockExample, sem::BlockExample>::write(::orgproto::BlockExample* out, sem::BlockExample const& in) {
   proto_serde<::orgproto::BlockExample, sem::Cmd>::write(out, in);
   proto_serde<::orgproto::BlockExample, sem::Stmt>::write(out, in);

@@ -583,6 +583,7 @@ struct LineToken {
         otk::CmdTableEnd,
         otk::CmdRowEnd,
         otk::CmdCellEnd,
+        otk::CmdDynamicBlockEnd,
     };
 
     IntSet<OrgTokenKind> CmdBlockOpen{
@@ -596,6 +597,7 @@ struct LineToken {
         otk::CmdTableBegin,
         otk::CmdRowBegin,
         otk::CmdCellBegin,
+        otk::CmdDynamicBlockBegin,
     };
 
     IntSet<OrgTokenKind> CmdBlockLine{

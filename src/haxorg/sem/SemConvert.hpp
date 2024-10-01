@@ -156,7 +156,8 @@ struct OrgConverter : public OperationsTracer {
     Vec<ConvResult<Org>>   flatConvertAttached(Vec<In> items);
     Vec<ConvResult<Org>>   flatConvertAttachedSubnodes(In item);
 
-    ConvResult<AnnotatedParagraph> convertAnnotatedParagraph(In);
+    ConvResult<AnnotatedParagraph>   convertAnnotatedParagraph(In);
+    ConvResult<BlockDynamicFallback> convertBlockDynamicFallback(In);
     void convertDocumentOptions(SemId<DocumentOptions> opts, OrgAdapter a);
 
     ConvResult<Table>           convertTable(In);
@@ -204,9 +205,9 @@ struct OrgConverter : public OperationsTracer {
     ConvResult<Symbol>          convertSymbol(In);
     ConvResult<Macro>           convertMacro(In);
     ConvResult<BlockExport>     convertBlockExport(In);
-    ConvResult<Attr>     convertAttr(In);
-    ConvResult<Attrs>    convertAttrs(In);
-    ConvResult<Attrs>    convertCallArguments(CVec<In>, In source);
+    ConvResult<Attr>            convertAttr(In);
+    ConvResult<Attrs>           convertAttrs(In);
+    ConvResult<Attrs>           convertCallArguments(CVec<In>, In source);
     ConvResult<BlockCode>       convertBlockCode(In);
     ConvResult<Call>            convertCall(In);
     ConvResult<CmdAttr>         convertCmdAttr(In);

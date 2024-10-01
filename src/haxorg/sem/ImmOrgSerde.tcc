@@ -954,6 +954,26 @@ struct ImmSemSerde<sem::BlockVerse, org::ImmBlockVerse> {
 };
 
 template <>
+struct ImmSemSerde<sem::BlockDynamicFallback, org::ImmBlockDynamicFallback> {
+  static org::ImmBlockDynamicFallback to_immer(sem::BlockDynamicFallback const& value, ImmAstEditContext& ctx) {
+    org::ImmBlockDynamicFallback result = SerdeDefaultProvider<org::ImmBlockDynamicFallback>::get();
+    assign_immer_field(result.name, value.name, ctx);
+    assign_immer_field(result.parameters, value.parameters, ctx);
+    assign_immer_field(result.attached, value.attached, ctx);
+    assign_immer_field(result.subnodes, value.subnodes, ctx);
+    return result;
+  }
+  static sem::BlockDynamicFallback from_immer(org::ImmBlockDynamicFallback const& value, ImmAstContext const& ctx) {
+    sem::BlockDynamicFallback result = SerdeDefaultProvider<sem::BlockDynamicFallback>::get();
+    assign_sem_field(result.name, value.name, ctx);
+    assign_sem_field(result.parameters, value.parameters, ctx);
+    assign_sem_field(result.attached, value.attached, ctx);
+    assign_sem_field(result.subnodes, value.subnodes, ctx);
+    return result;
+  }
+};
+
+template <>
 struct ImmSemSerde<sem::BlockExample, org::ImmBlockExample> {
   static org::ImmBlockExample to_immer(sem::BlockExample const& value, ImmAstEditContext& ctx) {
     org::ImmBlockExample result = SerdeDefaultProvider<org::ImmBlockExample>::get();
