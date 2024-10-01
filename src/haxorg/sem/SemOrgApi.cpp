@@ -138,9 +138,9 @@ void Org::push_back(SemId<Org> sub) {
 }
 
 
-Str CmdArgumentValue::getString() const { return value; }
+Str AttrValue::getString() const { return value; }
 
-Opt<bool> CmdArgumentValue::getBool() const {
+Opt<bool> AttrValue::getBool() const {
     if (value == "yes" || value == "true" || value == "on"
         || value == "t") {
         return true;
@@ -153,7 +153,7 @@ Opt<bool> CmdArgumentValue::getBool() const {
     }
 }
 
-Opt<int> CmdArgumentValue::getInt() const {
+Opt<int> AttrValue::getInt() const {
     bool isOk   = false;
     int  result = value.toInt();
     if (isOk) {

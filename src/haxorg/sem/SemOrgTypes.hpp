@@ -12,8 +12,8 @@
 #include <haxorg/sem/SemOrgBase.hpp>
 #include <haxorg/sem/SemOrgEnums.hpp>
 namespace sem{
-struct CmdArgumentValue {
-  BOOST_DESCRIBE_CLASS(CmdArgumentValue,
+struct AttrValue {
+  BOOST_DESCRIBE_CLASS(AttrValue,
                        (),
                        (),
                        (),
@@ -26,7 +26,7 @@ struct CmdArgumentValue {
   Opt<bool> getBool() const;
   Opt<int> getInt() const;
   Str getString() const;
-  bool operator==(sem::CmdArgumentValue const& other) const;
+  bool operator==(sem::AttrValue const& other) const;
 };
 
 struct BlockCodeLine {
@@ -639,43 +639,43 @@ struct None : public sem::Org {
 };
 
 /// \brief Single key-value (or positional)
-struct CmdArgument : public sem::Org {
+struct Attr : public sem::Org {
   using Org::Org;
-  virtual ~CmdArgument() = default;
-  BOOST_DESCRIBE_CLASS(CmdArgument,
+  virtual ~Attr() = default;
+  BOOST_DESCRIBE_CLASS(Attr,
                        (Org),
                        (),
                        (),
                        (staticKind,
                         arg))
   static OrgSemKind const staticKind;
-  sem::CmdArgumentValue arg;
-  virtual OrgSemKind getKind() const { return OrgSemKind::CmdArgument; }
+  sem::AttrValue arg;
+  virtual OrgSemKind getKind() const { return OrgSemKind::Attr; }
   Str getName() const;
   Str getValue() const;
   Str getVarname() const;
 };
 
 /// \brief Data type to wrap list of identical command arguments
-struct CmdArgumentList : public sem::Org {
+struct AttrList : public sem::Org {
   using Org::Org;
-  virtual ~CmdArgumentList() = default;
-  BOOST_DESCRIBE_CLASS(CmdArgumentList,
+  virtual ~AttrList() = default;
+  BOOST_DESCRIBE_CLASS(AttrList,
                        (Org),
                        (),
                        (),
                        (staticKind, args))
   static OrgSemKind const staticKind;
   /// \brief List of arguments
-  Vec<sem::SemId<sem::CmdArgument>> args = {};
-  virtual OrgSemKind getKind() const { return OrgSemKind::CmdArgumentList; }
+  Vec<sem::SemId<sem::Attr>> args = {};
+  virtual OrgSemKind getKind() const { return OrgSemKind::AttrList; }
 };
 
 /// \brief Additional arguments for command blocks
-struct CmdArguments : public sem::Org {
+struct Attrs : public sem::Org {
   using Org::Org;
-  virtual ~CmdArguments() = default;
-  BOOST_DESCRIBE_CLASS(CmdArguments,
+  virtual ~Attrs() = default;
+  BOOST_DESCRIBE_CLASS(Attrs,
                        (Org),
                        (),
                        (),
@@ -684,11 +684,11 @@ struct CmdArguments : public sem::Org {
                         named))
   static OrgSemKind const staticKind;
   /// \brief Positional arguments with no keys
-  sem::SemId<sem::CmdArgumentList> positional = sem::SemId<sem::CmdArgumentList>::Nil();
+  sem::SemId<sem::AttrList> positional = sem::SemId<sem::AttrList>::Nil();
   /// \brief Stored key-value mapping
-  UnorderedMap<Str, sem::SemId<sem::CmdArgumentList>> named;
-  virtual OrgSemKind getKind() const { return OrgSemKind::CmdArguments; }
-  Vec<sem::CmdArgumentValue> getArguments(Opt<Str> const& key = std::nullopt) const;
+  UnorderedMap<Str, sem::SemId<sem::AttrList>> named;
+  virtual OrgSemKind getKind() const { return OrgSemKind::Attrs; }
+  Vec<sem::AttrValue> getAttrs(Opt<Str> const& key = std::nullopt) const;
 };
 
 struct ErrorItem : public sem::Org {
@@ -741,9 +741,9 @@ struct Stmt : public sem::Org {
   /// \brief Return attached nodes of a specific kinds or all attached (if kind is nullopt)
   Vec<sem::SemId<sem::Org>> getAttached(Opt<Str> const& kind = std::nullopt) const;
   /// \brief Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.
-  virtual Vec<sem::CmdArgumentValue> getArguments(Opt<Str> const& kind = std::nullopt) const;
+  virtual Vec<sem::AttrValue> getAttrs(Opt<Str> const& kind = std::nullopt) const;
   /// \brief Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities
-  virtual Opt<sem::CmdArgumentValue> getFirstArgument(Str const& kind) const;
+  virtual Opt<sem::AttrValue> getFirstAttr(Str const& kind) const;
 };
 
 /// \brief Base class for all inline elements
@@ -789,11 +789,11 @@ struct Cmd : public sem::Stmt {
                        (),
                        (parameters))
   /// \brief Additional parameters aside from 'exporter',
-  Opt<sem::SemId<sem::CmdArguments>> parameters = std::nullopt;
+  Opt<sem::SemId<sem::Attrs>> parameters = std::nullopt;
   /// \brief Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.
-  virtual Vec<sem::CmdArgumentValue> getArguments(Opt<Str> const& key = std::nullopt) const override;
+  virtual Vec<sem::AttrValue> getAttrs(Opt<Str> const& key = std::nullopt) const override;
   /// \brief Override of the base statement argument get, prioritizing the explicit command parameters
-  virtual Opt<sem::CmdArgumentValue> getFirstArgument(Str const& kind) const override;
+  virtual Opt<sem::AttrValue> getFirstAttr(Str const& kind) const override;
 };
 
 /// \brief Block command type
@@ -1064,7 +1064,7 @@ struct Macro : public sem::Org {
   /// \brief Macro name
   Str name = "";
   /// \brief Additional parameters aside from 'exporter',
-  sem::SemId<sem::CmdArguments> parameters = sem::SemId<sem::CmdArguments>::Nil();
+  sem::SemId<sem::Attrs> parameters = sem::SemId<sem::Attrs>::Nil();
   virtual OrgSemKind getKind() const { return OrgSemKind::Macro; }
 };
 
@@ -1949,7 +1949,7 @@ struct Call : public sem::Org {
   /// \brief Call target name
   Str name;
   /// \brief Additional parameters aside from 'exporter',
-  sem::SemId<sem::CmdArguments> parameters = sem::SemId<sem::CmdArguments>::Nil();
+  sem::SemId<sem::Attrs> parameters = sem::SemId<sem::Attrs>::Nil();
   bool isCommand = false;
   virtual OrgSemKind getKind() const { return OrgSemKind::Call; }
 };

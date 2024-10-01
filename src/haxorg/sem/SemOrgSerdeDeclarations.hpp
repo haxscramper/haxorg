@@ -3,9 +3,9 @@
 #include <haxorg/sem/SemOrgSerde.hpp>
 #define EACH_ANY_NODE_PROTO_FIELD(__MAP) \
         __MAP(kNone, none, None)  \
-        __MAP(kCmdargument, cmdargument, CmdArgument)  \
-        __MAP(kCmdargumentlist, cmdargumentlist, CmdArgumentList)  \
-        __MAP(kCmdarguments, cmdarguments, CmdArguments)  \
+        __MAP(kAttr, attr, Attr)  \
+        __MAP(kAttrlist, attrlist, AttrList)  \
+        __MAP(kAttrs, attrs, Attrs)  \
         __MAP(kErroritem, erroritem, ErrorItem)  \
         __MAP(kErrorgroup, errorgroup, ErrorGroup)  \
         __MAP(kStmtlist, stmtlist, StmtList)  \
@@ -73,9 +73,9 @@
         __MAP(kDocumentgroup, documentgroup, DocumentGroup)  \
 
 template <>
-struct proto_serde<::orgproto::CmdArgumentValue, sem::CmdArgumentValue> {
-  static void write(::orgproto::CmdArgumentValue* out, sem::CmdArgumentValue const& in);
-  static void read(::orgproto::CmdArgumentValue const& out, proto_write_accessor<sem::CmdArgumentValue> in);
+struct proto_serde<::orgproto::AttrValue, sem::AttrValue> {
+  static void write(::orgproto::AttrValue* out, sem::AttrValue const& in);
+  static void read(::orgproto::AttrValue const& out, proto_write_accessor<sem::AttrValue> in);
 };
 
 
@@ -346,23 +346,23 @@ struct proto_serde<::orgproto::None, sem::None> {
 
 
 template <>
-struct proto_serde<::orgproto::CmdArgument, sem::CmdArgument> {
-  static void write(::orgproto::CmdArgument* out, sem::CmdArgument const& in);
-  static void read(::orgproto::CmdArgument const& out, proto_write_accessor<sem::CmdArgument> in);
+struct proto_serde<::orgproto::Attr, sem::Attr> {
+  static void write(::orgproto::Attr* out, sem::Attr const& in);
+  static void read(::orgproto::Attr const& out, proto_write_accessor<sem::Attr> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::CmdArgumentList, sem::CmdArgumentList> {
-  static void write(::orgproto::CmdArgumentList* out, sem::CmdArgumentList const& in);
-  static void read(::orgproto::CmdArgumentList const& out, proto_write_accessor<sem::CmdArgumentList> in);
+struct proto_serde<::orgproto::AttrList, sem::AttrList> {
+  static void write(::orgproto::AttrList* out, sem::AttrList const& in);
+  static void read(::orgproto::AttrList const& out, proto_write_accessor<sem::AttrList> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::CmdArguments, sem::CmdArguments> {
-  static void write(::orgproto::CmdArguments* out, sem::CmdArguments const& in);
-  static void read(::orgproto::CmdArguments const& out, proto_write_accessor<sem::CmdArguments> in);
+struct proto_serde<::orgproto::Attrs, sem::Attrs> {
+  static void write(::orgproto::Attrs* out, sem::Attrs const& in);
+  static void read(::orgproto::Attrs const& out, proto_write_accessor<sem::Attrs> in);
 };
 
 

@@ -14,15 +14,15 @@ struct ImmSemSerde<sem::None, org::ImmNone> {
 };
 
 template <>
-struct ImmSemSerde<sem::CmdArgument, org::ImmCmdArgument> {
-  static org::ImmCmdArgument to_immer(sem::CmdArgument const& value, ImmAstEditContext& ctx) {
-    org::ImmCmdArgument result = SerdeDefaultProvider<org::ImmCmdArgument>::get();
+struct ImmSemSerde<sem::Attr, org::ImmAttr> {
+  static org::ImmAttr to_immer(sem::Attr const& value, ImmAstEditContext& ctx) {
+    org::ImmAttr result = SerdeDefaultProvider<org::ImmAttr>::get();
     assign_immer_field(result.arg, value.arg, ctx);
     assign_immer_field(result.subnodes, value.subnodes, ctx);
     return result;
   }
-  static sem::CmdArgument from_immer(org::ImmCmdArgument const& value, ImmAstContext const& ctx) {
-    sem::CmdArgument result = SerdeDefaultProvider<sem::CmdArgument>::get();
+  static sem::Attr from_immer(org::ImmAttr const& value, ImmAstContext const& ctx) {
+    sem::Attr result = SerdeDefaultProvider<sem::Attr>::get();
     assign_sem_field(result.arg, value.arg, ctx);
     assign_sem_field(result.subnodes, value.subnodes, ctx);
     return result;
@@ -30,15 +30,15 @@ struct ImmSemSerde<sem::CmdArgument, org::ImmCmdArgument> {
 };
 
 template <>
-struct ImmSemSerde<sem::CmdArgumentList, org::ImmCmdArgumentList> {
-  static org::ImmCmdArgumentList to_immer(sem::CmdArgumentList const& value, ImmAstEditContext& ctx) {
-    org::ImmCmdArgumentList result = SerdeDefaultProvider<org::ImmCmdArgumentList>::get();
+struct ImmSemSerde<sem::AttrList, org::ImmAttrList> {
+  static org::ImmAttrList to_immer(sem::AttrList const& value, ImmAstEditContext& ctx) {
+    org::ImmAttrList result = SerdeDefaultProvider<org::ImmAttrList>::get();
     assign_immer_field(result.args, value.args, ctx);
     assign_immer_field(result.subnodes, value.subnodes, ctx);
     return result;
   }
-  static sem::CmdArgumentList from_immer(org::ImmCmdArgumentList const& value, ImmAstContext const& ctx) {
-    sem::CmdArgumentList result = SerdeDefaultProvider<sem::CmdArgumentList>::get();
+  static sem::AttrList from_immer(org::ImmAttrList const& value, ImmAstContext const& ctx) {
+    sem::AttrList result = SerdeDefaultProvider<sem::AttrList>::get();
     assign_sem_field(result.args, value.args, ctx);
     assign_sem_field(result.subnodes, value.subnodes, ctx);
     return result;
@@ -46,16 +46,16 @@ struct ImmSemSerde<sem::CmdArgumentList, org::ImmCmdArgumentList> {
 };
 
 template <>
-struct ImmSemSerde<sem::CmdArguments, org::ImmCmdArguments> {
-  static org::ImmCmdArguments to_immer(sem::CmdArguments const& value, ImmAstEditContext& ctx) {
-    org::ImmCmdArguments result = SerdeDefaultProvider<org::ImmCmdArguments>::get();
+struct ImmSemSerde<sem::Attrs, org::ImmAttrs> {
+  static org::ImmAttrs to_immer(sem::Attrs const& value, ImmAstEditContext& ctx) {
+    org::ImmAttrs result = SerdeDefaultProvider<org::ImmAttrs>::get();
     assign_immer_field(result.positional, value.positional, ctx);
     assign_immer_field(result.named, value.named, ctx);
     assign_immer_field(result.subnodes, value.subnodes, ctx);
     return result;
   }
-  static sem::CmdArguments from_immer(org::ImmCmdArguments const& value, ImmAstContext const& ctx) {
-    sem::CmdArguments result = SerdeDefaultProvider<sem::CmdArguments>::get();
+  static sem::Attrs from_immer(org::ImmAttrs const& value, ImmAstContext const& ctx) {
+    sem::Attrs result = SerdeDefaultProvider<sem::Attrs>::get();
     assign_sem_field(result.positional, value.positional, ctx);
     assign_sem_field(result.named, value.named, ctx);
     assign_sem_field(result.subnodes, value.subnodes, ctx);

@@ -403,11 +403,11 @@ def get_subtree_property_types():
 def get_sem_misc():
     return [
         d_org(
-            "CmdArgument",
+            "Attr",
             GenTuDoc("Single key-value (or positional)"),
             bases=[t_org("Org")],
             fields=[
-                GenTuField(t_nest_shared("CmdArgumentValue"), "arg"),
+                GenTuField(t_nest_shared("AttrValue"), "arg"),
             ],
             methods=[
                 GenTuFunction(t_str(), "getName", isConst=True),
@@ -416,35 +416,35 @@ def get_sem_misc():
             ]
         ),
         d_org(
-            "CmdArgumentList",
+            "AttrList",
             GenTuDoc("Data type to wrap list of identical command arguments"),
             bases=[t_org("Org")],
             fields=[
                 vec_field(
-                    t_id("CmdArgument"),
+                    t_id("Attr"),
                     "args",
                     GenTuDoc("List of arguments"),
                 ),
             ],
         ),
         d_org(
-            "CmdArguments",
+            "Attrs",
             GenTuDoc("Additional arguments for command blocks"),
             bases=[t_org("Org")],
             methods=[
                 GenTuFunction(
-                    t_vec(t_nest_shared("CmdArgumentValue")),
-                    "getArguments",
+                    t_vec(t_nest_shared("AttrValue")),
+                    "getAttrs",
                     GenTuDoc(""),
                     arguments=[opt_ident(t_str(), "key", GenTuDoc(""))],
                     isConst=True,
                 )
             ],
             fields=[
-                id_field("CmdArgumentList", "positional",
+                id_field("AttrList", "positional",
                          GenTuDoc("Positional arguments with no keys")),
                 GenTuField(
-                    t_map(t_str(), t_id("CmdArgumentList")),
+                    t_map(t_str(), t_id("AttrList")),
                     "named",
                     GenTuDoc("Stored key-value mapping"),
                 ),
@@ -510,8 +510,8 @@ def get_sem_bases():
                     isConst=True,
                 ),
                 GenTuFunction(
-                    t_vec(t_nest_shared("CmdArgumentValue")),
-                    "getArguments",
+                    t_vec(t_nest_shared("AttrValue")),
+                    "getAttrs",
                     GenTuDoc(
                         "Get all named arguments for the command, across all attached properties. "
                         "If kind is nullopt returns all attached arguments for all properties."
@@ -521,8 +521,8 @@ def get_sem_bases():
                     isVirtual=True,
                 ),
                 GenTuFunction(
-                    t_opt(t_nest_shared("CmdArgumentValue")),
-                    "getFirstArgument",
+                    t_opt(t_nest_shared("AttrValue")),
+                    "getFirstAttr",
                     GenTuDoc(
                         "Get the first parameter for the statement. "
                         "In case there is a longer list of values matching given kind"
@@ -562,15 +562,15 @@ def get_sem_bases():
             concreteKind=False,
             fields=[
                 opt_field(
-                    t_id("CmdArguments"),
+                    t_id("Attrs"),
                     "parameters",
                     GenTuDoc("Additional parameters aside from 'exporter',"),
                 ),
             ],
             methods=[
                 GenTuFunction(
-                    t_vec(t_nest_shared("CmdArgumentValue")),
-                    "getArguments",
+                    t_vec(t_nest_shared("AttrValue")),
+                    "getAttrs",
                     GenTuDoc(
                         "Return all parameters with keys matching name. "
                         "This is an override implementation that accounts for the explicit command parameters if any."
@@ -581,8 +581,8 @@ def get_sem_bases():
                     isOverride=True,
                 ),
                 GenTuFunction(
-                    t_opt(t_nest_shared("CmdArgumentValue")),
-                    "getFirstArgument",
+                    t_opt(t_nest_shared("AttrValue")),
+                    "getFirstAttr",
                     GenTuDoc(
                         "Override of the base statement argument get, prioritizing the explicit command parameters"
                     ),
@@ -935,7 +935,7 @@ def get_sem_text():
             fields=[
                 GenTuField(t_str(), "name", GenTuDoc("Macro name"), value='""'),
                 id_field(
-                    "CmdArguments",
+                    "Attrs",
                     "parameters",
                     GenTuDoc("Additional parameters aside from 'exporter',"),
                 ),
@@ -1368,7 +1368,7 @@ def get_shared_sem_enums() -> Sequence[GenTuEnum]:
 def get_shared_sem_types() -> Sequence[GenTuStruct]:
     return [
         GenTuStruct(
-            t_nest_shared("CmdArgumentValue"),
+            t_nest_shared("AttrValue"),
             fields=[
                 opt_field(t_str(), "name"),
                 opt_field(t_str(), "varname"),
@@ -1378,7 +1378,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 GenTuFunction(t_opt(t_bool()), "getBool", isConst=True),
                 GenTuFunction(t_opt(t_int()), "getInt", isConst=True),
                 GenTuFunction(t_str(), "getString", isConst=True),
-                eq_method(t_nest_shared("CmdArgumentValue")),
+                eq_method(t_nest_shared("AttrValue")),
             ]
         ),
         GenTuStruct(
@@ -1862,7 +1862,7 @@ def get_types() -> Sequence[GenTuStruct]:
                     GenTuDoc("Call target name"),
                 ),
                 id_field(
-                    "CmdArguments",
+                    "Attrs",
                     "parameters",
                     GenTuDoc("Additional parameters aside from 'exporter',"),
                 ),
@@ -2208,7 +2208,7 @@ def get_org_node_kind_commands():
             "Cmd",
             "Undefined single-line command -- most likely custom user-provided oe",
         ),
-        efield("CmdArguments", "Arguments for the command block"),
+        efield("Attrs", "Arguments for the command block"),
         efield("CmdTitle", "`#+title:` - full document title"),
         efield("CmdAuthor", "`#+author:` Document author"),
         efield("CmdCreator", "`#+creator:` Document creator"),

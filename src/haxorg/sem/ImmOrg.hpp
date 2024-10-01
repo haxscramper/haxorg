@@ -989,18 +989,16 @@ struct ImmAdapterVirtualBase {
 struct ImmAdapterOrgAPI : ImmAdapterVirtualBase {};
 
 struct ImmAdapterStmtAPI : ImmAdapterOrgAPI {
-    virtual Vec<sem::CmdArgumentValue> getArguments(
-        CR<Opt<Str>> param) const;
-    virtual Opt<sem::CmdArgumentValue> getFirstArgument(
-        Str const& kind) const;
+    virtual Vec<sem::AttrValue> getAttrs(CR<Opt<Str>> param) const;
+    virtual Opt<sem::AttrValue> getFirstAttr(Str const& kind) const;
 
     Vec<ImmAdapter> getAttached(Opt<Str> const& kind = std::nullopt) const;
 };
 
 struct ImmAdapterCmdAPI : ImmAdapterStmtAPI {
-    virtual Vec<sem::CmdArgumentValue> getArguments(
+    virtual Vec<sem::AttrValue> getAttrs(
         CR<Opt<Str>> param) const override;
-    virtual Opt<sem::CmdArgumentValue> getFirstArgument(
+    virtual Opt<sem::AttrValue> getFirstAttr(
         Str const& kind) const override;
 };
 
@@ -1018,9 +1016,9 @@ struct ImmAdapterSubtreeAPI : ImmAdapterOrgAPI {
 };
 
 struct ImmAdapterNoneAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterCmdArgumentAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterCmdArgumentListAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterCmdArgumentsAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterAttrAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterAttrListAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterAttrsAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterErrorItemAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterErrorGroupAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterStmtListAPI : ImmAdapterOrgAPI {};

@@ -756,7 +756,7 @@ TEST(OrgApi, LinkAttachedGet1) {
     auto link1 = link.getAs<sem::Link>();
     ASSERT_TRUE(link1 != nullptr);
 
-    auto args = link1->getArguments("attach-on-export");
+    auto args = link1->getAttrs("attach-on-export");
     EXPECT_EQ(args.size(), 1);
     auto arg0 = args.at(0);
     EXPECT_EQ(arg0.getBool(), true);

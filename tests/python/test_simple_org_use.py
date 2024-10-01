@@ -44,7 +44,7 @@ def test_attached_property_list():
 
     l: org.List = node[0]
     assert l.getKind() == org.OrgSemKind.List
-    exp: org.CmdArgumentList = l.getArguments("export")
+    exp: org.AttrList = l.getArguments("export")
     assert exp
     exp0 = exp.args[0]
     assert exp0
@@ -62,7 +62,7 @@ def test_attached_property_link():
     l: org.Link = p[0]
     assert l.getKind() == org.OrgSemKind.Link
     # log(CAT).info(org.treeRepr(l))
-    onExport: org.CmdArgumentList = l.getArguments("attach-on-export")
+    onExport: org.AttrList = l.getArguments("attach-on-export")
     assert onExport
     onExport0 = onExport.args[0]
     assert onExport0

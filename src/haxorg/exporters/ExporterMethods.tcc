@@ -1,5 +1,5 @@
 /* clang-format off */
-void visit(R& res, sem::CmdArgumentValue const& object);
+void visit(R& res, sem::AttrValue const& object);
 void visit(R& res, sem::BlockCodeLine const& object);
 void visit(R& res, sem::BlockCodeLine::Part::Data const& object);
 void visit(R& res, sem::BlockCodeLine::Part const& object);
@@ -43,9 +43,9 @@ void visit(R& res, sem::NamedProperty::Created const& object);
 void visit(R& res, sem::NamedProperty::CustomArgs const& object);
 void visit(R& res, sem::NamedProperty::CustomRaw const& object);
 void visitNone(R& res, In<sem::None> object);
-void visitCmdArgument(R& res, In<sem::CmdArgument> object);
-void visitCmdArgumentList(R& res, In<sem::CmdArgumentList> object);
-void visitCmdArguments(R& res, In<sem::CmdArguments> object);
+void visitAttr(R& res, In<sem::Attr> object);
+void visitAttrList(R& res, In<sem::AttrList> object);
+void visitAttrs(R& res, In<sem::Attrs> object);
 void visitErrorItem(R& res, In<sem::ErrorItem> object);
 void visitErrorGroup(R& res, In<sem::ErrorGroup> object);
 void visitStmt(R& res, In<sem::Stmt> object);

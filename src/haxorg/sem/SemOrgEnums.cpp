@@ -208,7 +208,7 @@ Opt<OrgNodeKind> enum_serde<OrgNodeKind>::from_string(std::string value) {
   if (value == "InlineFootnote") { return OrgNodeKind::InlineFootnote; } else
   if (value == "Footnote") { return OrgNodeKind::Footnote; } else
   if (value == "Cmd") { return OrgNodeKind::Cmd; } else
-  if (value == "CmdArguments") { return OrgNodeKind::CmdArguments; } else
+  if (value == "Attrs") { return OrgNodeKind::Attrs; } else
   if (value == "CmdTitle") { return OrgNodeKind::CmdTitle; } else
   if (value == "CmdAuthor") { return OrgNodeKind::CmdAuthor; } else
   if (value == "CmdCreator") { return OrgNodeKind::CmdCreator; } else
@@ -333,7 +333,7 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     case OrgNodeKind::InlineFootnote: return "InlineFootnote";
     case OrgNodeKind::Footnote: return "Footnote";
     case OrgNodeKind::Cmd: return "Cmd";
-    case OrgNodeKind::CmdArguments: return "CmdArguments";
+    case OrgNodeKind::Attrs: return "Attrs";
     case OrgNodeKind::CmdTitle: return "CmdTitle";
     case OrgNodeKind::CmdAuthor: return "CmdAuthor";
     case OrgNodeKind::CmdCreator: return "CmdCreator";
@@ -438,9 +438,9 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
 
 Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "None") { return OrgSemKind::None; } else
-  if (value == "CmdArgument") { return OrgSemKind::CmdArgument; } else
-  if (value == "CmdArgumentList") { return OrgSemKind::CmdArgumentList; } else
-  if (value == "CmdArguments") { return OrgSemKind::CmdArguments; } else
+  if (value == "Attr") { return OrgSemKind::Attr; } else
+  if (value == "AttrList") { return OrgSemKind::AttrList; } else
+  if (value == "Attrs") { return OrgSemKind::Attrs; } else
   if (value == "ErrorItem") { return OrgSemKind::ErrorItem; } else
   if (value == "ErrorGroup") { return OrgSemKind::ErrorGroup; } else
   if (value == "StmtList") { return OrgSemKind::StmtList; } else
@@ -511,9 +511,9 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
 std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
   switch (value) {
     case OrgSemKind::None: return "None";
-    case OrgSemKind::CmdArgument: return "CmdArgument";
-    case OrgSemKind::CmdArgumentList: return "CmdArgumentList";
-    case OrgSemKind::CmdArguments: return "CmdArguments";
+    case OrgSemKind::Attr: return "Attr";
+    case OrgSemKind::AttrList: return "AttrList";
+    case OrgSemKind::Attrs: return "Attrs";
     case OrgSemKind::ErrorItem: return "ErrorItem";
     case OrgSemKind::ErrorGroup: return "ErrorGroup";
     case OrgSemKind::StmtList: return "StmtList";

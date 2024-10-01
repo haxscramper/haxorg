@@ -318,12 +318,12 @@ Vec<sem::SubtreePeriod> subtreeGetTimePeriodsImpl(
 }
 
 template <typename Handle>
-Vec<sem::CmdArgumentValue> CmdArguments_getArguments(
+Vec<sem::AttrValue> Attrs_getAttrs(
     Handle const& handle,
     CR<Opt<Str>>  param) {
     auto h           = getConstHandle(handle);
     using HandleBase = get_ast_type<Handle>::ast_type;
-    Vec<sem::CmdArgumentValue> res;
+    Vec<sem::AttrValue> res;
     if (param) {
         auto norm = normalize(*param);
         if (h->named.contains(norm)) {
@@ -349,18 +349,18 @@ Vec<sem::CmdArgumentValue> CmdArguments_getArguments(
 }
 
 template <typename Handle>
-Vec<sem::CmdArgumentValue> Stmt_getArguments(
+Vec<sem::AttrValue> Stmt_getAttrs(
     Handle          handle,
     const Opt<Str>& kind) {
     auto h           = getConstHandle(handle);
     using HandleBase = get_ast_type<Handle>::ast_type;
 
-    Vec<sem::CmdArgumentValue> result;
+    Vec<sem::AttrValue> result;
 
     for (auto const& sub : h->attached) {
         if (toHandle(sub, handle)->getKind() == OrgSemKind::CmdAttr) {
             result.append( //
-                CmdArguments_getArguments(
+                Attrs_getAttrs(
                     toHandle(
                         org_cast<sem::CmdAttr>(toHandle(sub, handle))
                             ->parameters,
@@ -374,25 +374,25 @@ Vec<sem::CmdArgumentValue> Stmt_getArguments(
 }
 
 template <typename Handle>
-Vec<sem::CmdArgumentValue> Cmd_getArguments(
+Vec<sem::AttrValue> Cmd_getAttrs(
     Handle const& handle,
     CR<Opt<Str>>  param) {
     auto                       h = getConstHandle(handle);
-    Vec<sem::CmdArgumentValue> res;
+    Vec<sem::AttrValue> res;
     if (isBoolFalse(h->parameters)) {
-        res = CmdArguments_getArguments(
+        res = Attrs_getAttrs(
             toHandle(h->parameters, handle).value(), param);
     }
-    res.append(Stmt_getArguments(handle, param));
+    res.append(Stmt_getAttrs(handle, param));
     return res;
 }
 
 template <typename Handle>
-Opt<sem::CmdArgumentValue> Stmt_getFirstArgument(
+Opt<sem::AttrValue> Stmt_getFirstAttr(
     Handle  handle,
     CR<Str> kind) {
     auto h   = getConstHandle(handle);
-    auto res = Stmt_getArguments(handle, kind);
+    auto res = Stmt_getAttrs(handle, kind);
 
     if (res.empty()) {
         return std::nullopt;
@@ -402,12 +402,12 @@ Opt<sem::CmdArgumentValue> Stmt_getFirstArgument(
 }
 
 template <typename Handle>
-Opt<sem::CmdArgumentValue> Cmd_getFirstArgument(
+Opt<sem::AttrValue> Cmd_getFirstAttr(
     Handle     handle,
     Str const& kind) {
     auto h = getConstHandle(handle);
     if (isBoolFalse(h->parameters)) {
-        auto res = CmdArguments_getArguments(
+        auto res = Attrs_getAttrs(
             toHandle(h->parameters, handle).value(), kind);
         if (res.empty()) {
             return std::nullopt;
@@ -415,7 +415,7 @@ Opt<sem::CmdArgumentValue> Cmd_getFirstArgument(
             return res.front();
         }
     } else {
-        return Stmt_getFirstArgument(handle, kind);
+        return Stmt_getFirstAttr(handle, kind);
     }
 }
 
@@ -584,27 +584,27 @@ Vec<org::ImmAdapter> org::ImmAdapterStmtAPI::getAttached(Opt<Str> const& kind) c
     return result;
 }
 
-Opt<sem::CmdArgumentValue> org::ImmAdapterStmtAPI::getFirstArgument(Str const& param) const {
-  Opt<sem::CmdArgumentValue> result;
-  CallDynamicOrgMethod<org::ImmStmt>(getThis(), [&](auto const &a1, auto const &a2) { result = Stmt_getFirstArgument(a1, a2); }, param);
+Opt<sem::AttrValue> org::ImmAdapterStmtAPI::getFirstAttr(Str const& param) const {
+  Opt<sem::AttrValue> result;
+  CallDynamicOrgMethod<org::ImmStmt>(getThis(), [&](auto const &a1, auto const &a2) { result = Stmt_getFirstAttr(a1, a2); }, param);
   return result;
 }
 
-Vec<sem::CmdArgumentValue> org::ImmAdapterStmtAPI::getArguments(CR<Opt<Str>> param) const {
-  Vec<sem::CmdArgumentValue> result;
-  CallDynamicOrgMethod<org::ImmStmt>(getThis(), [&](auto const &a1, auto const &a2) { result = Stmt_getArguments(a1, a2); }, param);
+Vec<sem::AttrValue> org::ImmAdapterStmtAPI::getAttrs(CR<Opt<Str>> param) const {
+  Vec<sem::AttrValue> result;
+  CallDynamicOrgMethod<org::ImmStmt>(getThis(), [&](auto const &a1, auto const &a2) { result = Stmt_getAttrs(a1, a2); }, param);
   return result;
 }
 
-Vec<sem::CmdArgumentValue> org::ImmAdapterCmdAPI::getArguments(CR<Opt<Str>> param) const {
-  Vec<sem::CmdArgumentValue> result;
-  CallDynamicOrgMethod<org::ImmCmd>(getThis(), [&](auto const &a1, auto const &a2) { result = Cmd_getArguments(a1, a2); }, param);
+Vec<sem::AttrValue> org::ImmAdapterCmdAPI::getAttrs(CR<Opt<Str>> param) const {
+  Vec<sem::AttrValue> result;
+  CallDynamicOrgMethod<org::ImmCmd>(getThis(), [&](auto const &a1, auto const &a2) { result = Cmd_getAttrs(a1, a2); }, param);
   return result;
 }
 
-Opt<sem::CmdArgumentValue> org::ImmAdapterCmdAPI::getFirstArgument(Str const& param) const {
-  Opt<sem::CmdArgumentValue> result;
-  CallDynamicOrgMethod<org::ImmCmd>(getThis(), [&](auto const &a1, auto const &a2) { result = Cmd_getFirstArgument(a1, a2); }, param);
+Opt<sem::AttrValue> org::ImmAdapterCmdAPI::getFirstAttr(Str const& param) const {
+  Opt<sem::AttrValue> result;
+  CallDynamicOrgMethod<org::ImmCmd>(getThis(), [&](auto const &a1, auto const &a2) { result = Cmd_getFirstAttr(a1, a2); }, param);
   return result;
 }
 
@@ -627,16 +627,16 @@ bool org::ImmAdapterListItemAPI::isDescriptionItem() const { return ListItem_isD
 Opt<sem::NamedProperty> sem::Subtree::getProperty(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertyImpl(this, kind, subkind); }
 Vec<sem::NamedProperty> sem::Subtree::getProperties(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertiesImpl(this, kind, subkind); }
 Vec<sem::SubtreePeriod> sem::Subtree::getTimePeriods(IntSet<sem::SubtreePeriod::Kind> kinds) const { return subtreeGetTimePeriodsImpl(this, kinds); }
-Str sem::CmdArgument::getValue() const { return arg.value; }
-Str sem::CmdArgument::getName() const { return arg.name.value(); }
-Str sem::CmdArgument::getVarname() const { return arg.varname.value(); }
+Str sem::Attr::getValue() const { return arg.value; }
+Str sem::Attr::getName() const { return arg.name.value(); }
+Str sem::Attr::getVarname() const { return arg.varname.value(); }
 
-Vec<sem::CmdArgumentValue> sem::Stmt::getArguments(const Opt<Str>& kind) const { return Stmt_getArguments(this, kind); }
-Opt<sem::CmdArgumentValue> sem::Stmt::getFirstArgument(const Str& kind) const { return Stmt_getFirstArgument(this, kind); }
+Vec<sem::AttrValue> sem::Stmt::getAttrs(const Opt<Str>& kind) const { return Stmt_getAttrs(this, kind); }
+Opt<sem::AttrValue> sem::Stmt::getFirstAttr(const Str& kind) const { return Stmt_getFirstAttr(this, kind); }
 
-Opt<sem::CmdArgumentValue> sem::Cmd::getFirstArgument(CR<Str> kind) const { return Cmd_getFirstArgument(this, kind); }
-Vec<sem::CmdArgumentValue> sem::CmdArguments::getArguments(CR<Opt<Str>> param) const { return CmdArguments_getArguments(this, param); }
-Vec<sem::CmdArgumentValue> sem::Cmd::getArguments(CR<Opt<Str>> param) const { return Cmd_getArguments(this, param); }
+Opt<sem::AttrValue> sem::Cmd::getFirstAttr(CR<Str> kind) const { return Cmd_getFirstAttr(this, kind); }
+Vec<sem::AttrValue> sem::Attrs::getAttrs(CR<Opt<Str>> param) const { return Attrs_getAttrs(this, param); }
+Vec<sem::AttrValue> sem::Cmd::getAttrs(CR<Opt<Str>> param) const { return Cmd_getAttrs(this, param); }
 
 
 Vec<sem::NamedProperty> sem::DocumentOptions::getProperties(Str const &kind, CR<Opt<Str>> subkind) const { return DocumentOptions_getProperties(this, kind, subkind); }
@@ -649,7 +649,7 @@ bool sem::List::isNumberedList() const { return List_isNumberedList(this); }
 bool sem::ListItem::isDescriptionItem() const { return ListItem_isDescriptionItem(this); }
 
 
-// Opt<org::ImmAdapterT<org::ImmCmdArgumentList>> org::ImmAdapterT<org::ImmCell>::getArguments(CR<Opt<Str>> param) const { return cmdGetArgumentsImpl(*this, param); }
+// Opt<org::ImmAdapterT<org::ImmAttrList>> org::ImmAdapterT<org::ImmCell>::getAttrs(CR<Opt<Str>> param) const { return cmdgetAttrsImpl(*this, param); }
 
 
 // clang-format on

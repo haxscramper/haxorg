@@ -1,6 +1,6 @@
 /* clang-format off */
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::CmdArgumentValue const& object) {
+void Exporter<V, R>::visit(R& res, sem::AttrValue const& object) {
   __obj_field(res, object, name);
   __obj_field(res, object, varname);
   __obj_field(res, object, value);
@@ -178,21 +178,21 @@ void Exporter<V, R>::visitNone(R& res, In<sem::None> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visitCmdArgument(R& res, In<sem::CmdArgument> object) {
+void Exporter<V, R>::visitAttr(R& res, In<sem::Attr> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, arg);
   __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visitCmdArgumentList(R& res, In<sem::CmdArgumentList> object) {
+void Exporter<V, R>::visitAttrList(R& res, In<sem::AttrList> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, args);
   __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visitCmdArguments(R& res, In<sem::CmdArguments> object) {
+void Exporter<V, R>::visitAttrs(R& res, In<sem::Attrs> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, positional);
   __org_field(res, object, named);

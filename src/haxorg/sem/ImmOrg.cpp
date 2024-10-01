@@ -138,7 +138,7 @@ placeholder_visitor(UserTime);
 placeholder_visitor(std::string);
 placeholder_visitor(sem::BigIdent);
 placeholder_visitor(org::ImmIdT<sem::BigIdent>);
-placeholder_visitor(sem::CmdArgumentValue);
+placeholder_visitor(sem::AttrValue);
 placeholder_visitor(Vec<sem::SemId<sem::Org>>);
 
 #undef placeholder_visitor

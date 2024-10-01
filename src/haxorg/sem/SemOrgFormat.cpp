@@ -45,7 +45,7 @@ void Formatter::add(Res id, Res other) {
 }
 
 Formatter::Res Formatter::toString(
-    Opt<SemId<CmdArguments>> args,
+    Opt<SemId<Attrs>> args,
     CR<Context>              ctx) {
     if (args) {
         return b.line({str(" "), toString(args.value(), ctx)});
@@ -262,7 +262,7 @@ auto Formatter::toString(SemId<Footnote> id, CR<Context> ctx) -> Res {
     }
 }
 
-auto Formatter::toString(SemId<CmdArgument> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Attr> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     if (id->arg.name) {
         return str(fmt(":{} {}", id->getName(), id->getValue()));
@@ -813,7 +813,7 @@ auto Formatter::toString(SemId<Strike> id, CR<Context> ctx) -> Res {
         Vec<Res>::Splice(str("+"), toSubnodes(id, ctx), str("+")));
 }
 
-auto Formatter::toString(SemId<CmdArgumentList> id, CR<Context> ctx)
+auto Formatter::toString(SemId<AttrList> id, CR<Context> ctx)
     -> Res {
     if (id.isNil()) { return str("<nil>"); }
 
@@ -826,7 +826,7 @@ auto Formatter::toString(SemId<CmdArgumentList> id, CR<Context> ctx)
 }
 
 
-auto Formatter::toString(SemId<CmdArguments> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<Attrs> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Vec<Res> result;
     if (!id->positional.isNil()) {

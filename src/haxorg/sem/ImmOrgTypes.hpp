@@ -17,26 +17,26 @@ struct ImmNone : public org::ImmOrg {
 };
 
 /// \brief Single key-value (or positional)
-struct ImmCmdArgument : public org::ImmOrg {
+struct ImmAttr : public org::ImmOrg {
   using ImmOrg::ImmOrg;
-  virtual ~ImmCmdArgument() = default;
-  BOOST_DESCRIBE_CLASS(ImmCmdArgument,
+  virtual ~ImmAttr() = default;
+  BOOST_DESCRIBE_CLASS(ImmAttr,
                        (ImmOrg),
                        (),
                        (),
                        (staticKind,
                         arg))
   static OrgSemKind const staticKind;
-  sem::CmdArgumentValue arg;
-  virtual OrgSemKind getKind() const { return OrgSemKind::CmdArgument; }
-  bool operator==(org::ImmCmdArgument const& other) const;
+  sem::AttrValue arg;
+  virtual OrgSemKind getKind() const { return OrgSemKind::Attr; }
+  bool operator==(org::ImmAttr const& other) const;
 };
 
 /// \brief Data type to wrap list of identical command arguments
-struct ImmCmdArgumentList : public org::ImmOrg {
+struct ImmAttrList : public org::ImmOrg {
   using ImmOrg::ImmOrg;
-  virtual ~ImmCmdArgumentList() = default;
-  BOOST_DESCRIBE_CLASS(ImmCmdArgumentList,
+  virtual ~ImmAttrList() = default;
+  BOOST_DESCRIBE_CLASS(ImmAttrList,
                        (ImmOrg),
                        (),
                        (),
@@ -44,16 +44,16 @@ struct ImmCmdArgumentList : public org::ImmOrg {
                         args))
   static OrgSemKind const staticKind;
   /// \brief List of arguments
-  ImmVec<org::ImmIdT<org::ImmCmdArgument>> args = {};
-  virtual OrgSemKind getKind() const { return OrgSemKind::CmdArgumentList; }
-  bool operator==(org::ImmCmdArgumentList const& other) const;
+  ImmVec<org::ImmIdT<org::ImmAttr>> args = {};
+  virtual OrgSemKind getKind() const { return OrgSemKind::AttrList; }
+  bool operator==(org::ImmAttrList const& other) const;
 };
 
 /// \brief Additional arguments for command blocks
-struct ImmCmdArguments : public org::ImmOrg {
+struct ImmAttrs : public org::ImmOrg {
   using ImmOrg::ImmOrg;
-  virtual ~ImmCmdArguments() = default;
-  BOOST_DESCRIBE_CLASS(ImmCmdArguments,
+  virtual ~ImmAttrs() = default;
+  BOOST_DESCRIBE_CLASS(ImmAttrs,
                        (ImmOrg),
                        (),
                        (),
@@ -62,11 +62,11 @@ struct ImmCmdArguments : public org::ImmOrg {
                         named))
   static OrgSemKind const staticKind;
   /// \brief Positional arguments with no keys
-  org::ImmIdT<org::ImmCmdArgumentList> positional = org::ImmIdT<org::ImmCmdArgumentList>::Nil();
+  org::ImmIdT<org::ImmAttrList> positional = org::ImmIdT<org::ImmAttrList>::Nil();
   /// \brief Stored key-value mapping
-  ImmMap<Str, org::ImmIdT<org::ImmCmdArgumentList>> named;
-  virtual OrgSemKind getKind() const { return OrgSemKind::CmdArguments; }
-  bool operator==(org::ImmCmdArguments const& other) const;
+  ImmMap<Str, org::ImmIdT<org::ImmAttrList>> named;
+  virtual OrgSemKind getKind() const { return OrgSemKind::Attrs; }
+  bool operator==(org::ImmAttrs const& other) const;
 };
 
 struct ImmErrorItem : public org::ImmOrg {
@@ -175,7 +175,7 @@ struct ImmCmd : public org::ImmStmt {
                        (),
                        (parameters))
   /// \brief Additional parameters aside from 'exporter',
-  ImmBox<Opt<org::ImmIdT<org::ImmCmdArguments>>> parameters = std::nullopt;
+  ImmBox<Opt<org::ImmIdT<org::ImmAttrs>>> parameters = std::nullopt;
   bool operator==(org::ImmCmd const& other) const;
 };
 
@@ -506,7 +506,7 @@ struct ImmMacro : public org::ImmOrg {
   /// \brief Macro name
   ImmBox<Str> name = "";
   /// \brief Additional parameters aside from 'exporter',
-  org::ImmIdT<org::ImmCmdArguments> parameters = org::ImmIdT<org::ImmCmdArguments>::Nil();
+  org::ImmIdT<org::ImmAttrs> parameters = org::ImmIdT<org::ImmAttrs>::Nil();
   virtual OrgSemKind getKind() const { return OrgSemKind::Macro; }
   bool operator==(org::ImmMacro const& other) const;
 };
@@ -1537,7 +1537,7 @@ struct ImmCall : public org::ImmOrg {
   /// \brief Call target name
   ImmBox<Str> name;
   /// \brief Additional parameters aside from 'exporter',
-  org::ImmIdT<org::ImmCmdArguments> parameters = org::ImmIdT<org::ImmCmdArguments>::Nil();
+  org::ImmIdT<org::ImmAttrs> parameters = org::ImmIdT<org::ImmAttrs>::Nil();
   bool isCommand = false;
   virtual OrgSemKind getKind() const { return OrgSemKind::Call; }
   bool operator==(org::ImmCall const& other) const;

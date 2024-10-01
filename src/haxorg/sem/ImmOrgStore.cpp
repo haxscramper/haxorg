@@ -176,7 +176,7 @@ ImmAstReplace updateFieldMutations(
                         [&](ImmVec<sem::NamedProperty> const&) { fail_field(); },
                         [&](ImmVec<sem::BlockCodeLine> const&) { fail_field(); },
                         [&](sem::DocumentExportConfig const&) { fail_field(); },
-                        [&](sem::CmdArgumentValue const&) { fail_field(); },
+                        [&](sem::AttrValue const&) { fail_field(); },
                         // clang-format on
                         [&]<typename FK>(
                             ImmBox<Opt<org::ImmIdT<FK>>> const& f) {
@@ -748,7 +748,7 @@ __same_type(sem::DocumentExportConfig);
 __same_type(sem::BlockCodeSwitch);
 __same_type(sem::BlockCodeEvalResult);
 __same_type(sem::BlockCodeLine);
-__same_type(sem::CmdArgumentValue);
+__same_type(sem::AttrValue);
 
 
 template <typename SemType, typename ImmType>

@@ -1145,7 +1145,7 @@ OrgId OrgParser::parseSrcArguments(OrgLexer& lex) {
         empty();
         return empty();
     } else {
-        start(onk::CmdArguments);
+        start(onk::Attrs);
         start(onk::InlineStmtList);
         {
             while (lex.at(otk::CmdFlag)) {
@@ -1804,7 +1804,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             skip(lex, otk::CmdPrefix);
             start(onk::CmdCustomTextCommand);
             token(onk::RawText, pop(lex));
-            start(onk::CmdArguments);
+            start(onk::Attrs);
             auto sub = subToEol(
                 lex, ParagraphTerminator + OrgTokSet{otk::Newline});
             if (sub.empty()) {
@@ -1842,7 +1842,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             } else {
                 start(onk::CmdCaption);
             }
-            start(onk::CmdArguments);
+            start(onk::Attrs);
             auto sub = subToEol(
                 lex, ParagraphTerminator + OrgTokSet{otk::Newline});
             if (sub.empty()) {

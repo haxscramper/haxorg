@@ -96,7 +96,7 @@ OrgConverter::ConvResult<Table> OrgConverter::convertTable(__args) {
     if (auto args = one(a, N::Args);
         args.getKind() == onk::InlineStmtList) {
         result->isBlock    = true;
-        result->parameters = convertCmdArguments(args).value();
+        result->parameters = convertAttrs(args).value();
     }
 
     for (auto const& in_row : many(a, N::Rows)) {
@@ -104,7 +104,7 @@ OrgConverter::ConvResult<Table> OrgConverter::convertTable(__args) {
         if (auto args = one(in_row, N::Args);
             args.getKind() == onk::InlineStmtList) {
             row->isBlock    = true;
-            row->parameters = convertCmdArguments(args).value();
+            row->parameters = convertAttrs(args).value();
         }
 
         for (auto const& in_cell : one(in_row, N::Body)) {
@@ -112,7 +112,7 @@ OrgConverter::ConvResult<Table> OrgConverter::convertTable(__args) {
             if (auto args = one(in_cell, N::Args);
                 args.getKind() == onk::InlineStmtList) {
                 cell->isBlock    = true;
-                cell->parameters = convertCmdArguments(args).value();
+                cell->parameters = convertAttrs(args).value();
             }
 
             for (auto const& sub : one(in_cell, N::Body)) {
@@ -679,13 +679,13 @@ OrgConverter::ConvResult<TimeRange> OrgConverter::convertTimeRange(
     return range;
 }
 
-void addArgument(SemId<CmdArguments>& result, SemId<CmdArgument> arg) {
+void addArgument(SemId<Attrs>& result, SemId<Attr> arg) {
     if (arg->arg.name) {
         auto key = normalize(arg->getName());
         if (result->named.contains(key)) {
             result->named[key]->args.push_back(arg);
         } else {
-            auto args = SemId<CmdArgumentList>::New();
+            auto args = SemId<AttrList>::New();
             args->args.push_back(arg);
             result->named.insert({key, args});
         }
@@ -1107,8 +1107,8 @@ OrgConverter::ConvResult<BlockExport> OrgConverter::convertBlockExport(
         }
     }
 
-    auto values = convertCmdArguments(one(a, N::Args)).value();
-    if (auto place = values->getArguments("placement"); !place.empty()) {
+    auto values = convertAttrs(one(a, N::Args)).value();
+    if (auto place = values->getAttrs("placement"); !place.empty()) {
         eexport->placement = place.at(0).getString();
         values->named.erase("placement");
     }
@@ -1144,7 +1144,7 @@ OrgConverter::ConvResult<BlockQuote> OrgConverter::convertBlockQuote(
     SemId<BlockQuote> quote = Sem<BlockQuote>(a);
 
     if (auto args = one(a, N::Args); args.kind() != onk::Empty) {
-        quote->parameters = convertCmdArguments(args).value();
+        quote->parameters = convertAttrs(args).value();
     }
 
     for (const auto& sub : flatConvertAttached(many(a, N::Body))) {
@@ -1173,7 +1173,7 @@ OrgConverter::ConvResult<Latex> OrgConverter::convertMath(__args) {
 
 OrgConverter::ConvResult<Include> OrgConverter::convertInclude(__args) {
     SemId<Include> include = Sem<Include>(a);
-    auto           args    = convertCmdArguments(one(a, N::Args)).value();
+    auto           args    = convertAttrs(one(a, N::Args)).value();
     include->path          = args->positional->args.at(0)->arg.getString();
 
     if (auto kind = args->positional->args.get(1)) {
@@ -1197,7 +1197,7 @@ OrgConverter::ConvResult<Include> OrgConverter::convertInclude(__args) {
 
     if (args->named.contains("lines")) {
         Str lines = strip(
-            args->getArguments("lines").at(0).getString(),
+            args->getAttrs("lines").at(0).getString(),
             CharSet{'"'},
             CharSet{'"'});
         Vec<Str> split = lines.split("-");
@@ -1225,12 +1225,11 @@ OrgConverter::ConvResult<AtMention> OrgConverter::convertAtMention(
     return SemLeaf<AtMention>(a);
 }
 
-OrgConverter::ConvResult<CmdArgument> OrgConverter::convertCmdArgument(
-    __args) {
-    auto               __trace = trace(a);
-    SemId<CmdArgument> result  = Sem<CmdArgument>(a);
-    Str                key     = get_text(one(a, N::Name));
-    result->arg.value          = get_text(one(a, N::Value));
+OrgConverter::ConvResult<Attr> OrgConverter::convertAttr(__args) {
+    auto        __trace = trace(a);
+    SemId<Attr> result  = Sem<Attr>(a);
+    Str         key     = get_text(one(a, N::Name));
+    result->arg.value   = get_text(one(a, N::Value));
 
     if (!key.empty()) { result->arg.name = key.substr(1); }
 
@@ -1241,19 +1240,18 @@ OrgConverter::ConvResult<CmdArgument> OrgConverter::convertCmdArgument(
     return result;
 }
 
-OrgConverter::ConvResult<CmdArguments> OrgConverter::convertCmdArguments(
-    __args) {
-    auto                __trace = trace(a);
-    SemId<CmdArguments> result  = Sem<CmdArguments>(a);
-    result->positional          = SemId<CmdArgumentList>::New();
+OrgConverter::ConvResult<Attrs> OrgConverter::convertAttrs(__args) {
+    auto         __trace = trace(a);
+    SemId<Attrs> result  = Sem<Attrs>(a);
+    result->positional   = SemId<AttrList>::New();
 
-    if (a.getKind() == onk::CmdArguments) {
+    if (a.getKind() == onk::Attrs) {
         for (auto const& item : one(a, N::Values)) {
-            addArgument(result, convertCmdArgument(item).value());
+            addArgument(result, convertAttr(item).value());
         }
     } else if (a.getKind() == onk::InlineStmtList) {
         for (auto const& it : a) {
-            addArgument(result, convertCmdArgument(it).value());
+            addArgument(result, convertAttr(it).value());
         }
     } else {
         CHECK(a.getKind() == onk::Empty) << a.treeRepr();
@@ -1262,14 +1260,14 @@ OrgConverter::ConvResult<CmdArguments> OrgConverter::convertCmdArguments(
     return result;
 }
 
-OrgConverter::ConvResult<CmdArguments> OrgConverter::convertCallArguments(
+OrgConverter::ConvResult<Attrs> OrgConverter::convertCallArguments(
     CVec<In> args,
     In       source) {
-    auto result        = Sem<CmdArguments>(source);
-    result->positional = SemId<CmdArgumentList>::New();
+    auto result        = Sem<Attrs>(source);
+    result->positional = SemId<AttrList>::New();
 
     for (auto const& arg : args) {
-        auto conv = Sem<CmdArgument>(arg);
+        auto conv = Sem<Attr>(arg);
         if (2 < arg.size() && get_text(arg.at(1)) == "=") {
             conv->arg.name = get_text(arg.at(0));
             for (int i = 2; i < arg.size(); ++i) {
@@ -1291,7 +1289,7 @@ OrgConverter::ConvResult<CmdAttr> OrgConverter::convertCmdAttr(__args) {
     auto           __trace = trace(a);
     SemId<CmdAttr> result  = Sem<CmdAttr>(a);
     result->target         = normalize(get_text(one(a, N::Name)));
-    result->parameters     = convertCmdArguments(one(a, N::Args)).value();
+    result->parameters     = convertAttrs(one(a, N::Args)).value();
 
     return result;
 }
@@ -1299,7 +1297,7 @@ OrgConverter::ConvResult<CmdAttr> OrgConverter::convertCmdAttr(__args) {
 OrgConverter::ConvResult<CmdName> OrgConverter::convertCmdName(__args) {
     auto           __trace = trace(a);
     SemId<CmdName> result  = Sem<CmdName>(a);
-    auto           args    = convertCmdArgument(a.at(0).at(0));
+    auto           args    = convertAttr(a.at(0).at(0));
 
     if (auto name = args.optNode()) {
         result->name = name->value->getName();
@@ -1359,9 +1357,7 @@ OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(
     }
 
     if (one(a, N::HeaderArgs).kind() != onk::Empty) {
-        auto args = convertCmdArguments(one(a, N::HeaderArgs))
-                        .optNode()
-                        .value();
+        auto args = convertAttrs(one(a, N::HeaderArgs)).optNode().value();
         result->parameters = args;
     }
 
@@ -1665,7 +1661,7 @@ SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
                     Prop::CustomArgs prop;
                     prop.name = get_text(one(sub, N::Name));
                     for (auto const& it :
-                         convertCmdArguments(one(sub, N::Args)).value()) {
+                         convertAttrs(one(sub, N::Args)).value()) {
                         logic_todo_impl();
                         // prop.parameters.push_back(it);
                     }
