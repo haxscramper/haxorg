@@ -130,6 +130,13 @@ Opt<org::ImmAdapterT<T>> toHandle(
     }
 }
 
+template <org::IsImmOrgValueType T, typename Handle>
+org::ImmAdapterT<T> toHandle(
+    org::ImmAdapterT<T> id,
+    Handle const&       handle) {
+    return id;
+}
+
 /// \brief Convert boxed optional imm ID to optional adapter
 template <org::IsImmOrgValueType T, typename Handle>
 Opt<org::ImmAdapterT<T>> toHandle(
@@ -141,6 +148,17 @@ Opt<org::ImmAdapterT<T>> toHandle(
 template <sem::IsOrg T, typename Handle>
 Opt<sem::SemId<T>> toHandle(Opt<sem::SemId<T>> id, Handle const& handle) {
     return id;
+}
+
+/// \brief return object that supports `.apiCall()` for org-mode API
+template <sem::IsOrg T>
+T const& to_api(sem::SemId<T> it) {
+    return *it.get();
+}
+
+template <org::IsImmOrgValueType T>
+org::ImmAdapterT<T> to_api(org::ImmAdapterT<T> it) {
+    return it;
 }
 
 /// \brief Unwrap type `T` and get underlying sem/imm type, define nested
@@ -349,9 +367,7 @@ Vec<sem::AttrValue> Attrs_getAttrs(
 }
 
 template <typename Handle>
-Vec<sem::AttrValue> Stmt_getAttrs(
-    Handle          handle,
-    const Opt<Str>& kind) {
+Vec<sem::AttrValue> Stmt_getAttrs(Handle handle, const Opt<Str>& kind) {
     auto h           = getConstHandle(handle);
     using HandleBase = get_ast_type<Handle>::ast_type;
 
@@ -377,7 +393,7 @@ template <typename Handle>
 Vec<sem::AttrValue> Cmd_getAttrs(
     Handle const& handle,
     CR<Opt<Str>>  param) {
-    auto                       h = getConstHandle(handle);
+    auto                h = getConstHandle(handle);
     Vec<sem::AttrValue> res;
     if (isBoolFalse(h->parameters)) {
         res = Attrs_getAttrs(
@@ -388,9 +404,7 @@ Vec<sem::AttrValue> Cmd_getAttrs(
 }
 
 template <typename Handle>
-Opt<sem::AttrValue> Stmt_getFirstAttr(
-    Handle  handle,
-    CR<Str> kind) {
+Opt<sem::AttrValue> Stmt_getFirstAttr(Handle handle, CR<Str> kind) {
     auto h   = getConstHandle(handle);
     auto res = Stmt_getAttrs(handle, kind);
 
@@ -402,9 +416,7 @@ Opt<sem::AttrValue> Stmt_getFirstAttr(
 }
 
 template <typename Handle>
-Opt<sem::AttrValue> Cmd_getFirstAttr(
-    Handle     handle,
-    Str const& kind) {
+Opt<sem::AttrValue> Cmd_getFirstAttr(Handle handle, Str const& kind) {
     auto h = getConstHandle(handle);
     if (isBoolFalse(h->parameters)) {
         auto res = Attrs_getAttrs(
@@ -446,6 +458,18 @@ auto Stmt_getAttached(Handle handle, CR<Opt<Str>> kind) {
         } else {
             result.push_back(sub_h);
         }
+    }
+
+    return result;
+}
+
+template <typename Handle>
+Vec<sem::AttrValue> List_getListAttrs(Handle handle, CR<Str> kind) {
+    Vec<sem::AttrValue> result;
+    auto                attached = Stmt_getAttached(handle, "attr_list");
+    for (auto const& it : attached) {
+        auto const& attrs = to_api(org_cast<sem::CmdAttr>(it));
+        result.append(attrs.getAttrs(kind));
     }
 
     return result;
@@ -619,8 +643,8 @@ Opt<sem::NamedProperty> org::ImmAdapterDocumentAPI::getProperty(CR<Str> kind, CR
 
 bool org::ImmAdapterListAPI::isDescriptionList() const { return List_isDescriptionList(getThis()->as<org::ImmList>()); }
 bool org::ImmAdapterListAPI::isNumberedList() const { return List_isNumberedList(getThis()->as<org::ImmList>()); }
+Vec<sem::AttrValue> org::ImmAdapterListAPI::getListAttrs(CR<Str> param) const { return List_getListAttrs(getThis()->as<org::ImmList>(), param); }
 bool org::ImmAdapterListItemAPI::isDescriptionItem() const { return ListItem_isDescriptionItem(getThis()->as<org::ImmListItem>()); }
-
 
 // sem type API implementation
 
@@ -639,6 +663,7 @@ Vec<sem::AttrValue> sem::Attrs::getAttrs(CR<Opt<Str>> param) const { return Attr
 Vec<sem::AttrValue> sem::Cmd::getAttrs(CR<Opt<Str>> param) const { return Cmd_getAttrs(this, param); }
 
 
+
 Vec<sem::NamedProperty> sem::DocumentOptions::getProperties(Str const &kind, CR<Opt<Str>> subkind) const { return DocumentOptions_getProperties(this, kind, subkind); }
 Opt<sem::NamedProperty> sem::DocumentOptions::getProperty(CR<Str> kind, CR<Opt<Str>> subkind) const { return DocumentOptions_getProperty(this, kind, subkind); }
 Vec<sem::NamedProperty> sem::Document::getProperties(CR<Str> kind, CR<Opt<Str>> subkind) const { return Document_getProperties(this, kind, subkind); }
@@ -646,8 +671,8 @@ Opt<sem::NamedProperty> sem::Document::getProperty(CR<Str> kind, CR<Opt<Str>> su
 
 bool sem::List::isDescriptionList() const { return List_isDescriptionList(this); }
 bool sem::List::isNumberedList() const { return List_isNumberedList(this); }
+Vec<sem::AttrValue> sem::List::getListAttrs(CR<Str> param) const { return List_getListAttrs(this, param); }
 bool sem::ListItem::isDescriptionItem() const { return ListItem_isDescriptionItem(this); }
-
 
 // Opt<org::ImmAdapterT<org::ImmAttrList>> org::ImmAdapterT<org::ImmCell>::getAttrs(CR<Opt<Str>> param) const { return cmdgetAttrsImpl(*this, param); }
 

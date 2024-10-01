@@ -1875,6 +1875,13 @@ def get_types() -> Sequence[GenTuStruct]:
             bases=[t_org("Stmt")],
             methods=[
                 GenTuFunction(
+                    t_vec(t_nest_shared("AttrValue")),
+                    "getListAttrs",
+                    GenTuDoc(""),
+                    arguments=[GenTuIdent(t_str().asConstRef(), "key")],
+                    isConst=True,
+                ),
+                GenTuFunction(
                     t_bool(),
                     "isDescriptionList",
                     GenTuDoc(

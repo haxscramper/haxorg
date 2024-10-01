@@ -1083,8 +1083,9 @@ struct ImmAdapterCmdAttrAPI : ImmAdapterAttachedAPI {};
 struct ImmAdapterCallAPI : ImmAdapterOrgAPI {};
 
 struct ImmAdapterListAPI : ImmAdapterStmtAPI {
-    bool isDescriptionList() const;
-    bool isNumberedList() const;
+    bool                isDescriptionList() const;
+    bool                isNumberedList() const;
+    Vec<sem::AttrValue> getListAttrs(CR<Str> kind) const;
 };
 
 struct ImmAdapterListItemAPI : ImmAdapterOrgAPI {

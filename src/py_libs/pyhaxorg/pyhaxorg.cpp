@@ -3217,6 +3217,9 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("attached", &sem::List::attached)
+    .def("getListAttrs",
+         static_cast<Vec<sem::AttrValue>(sem::List::*)(Str const&) const>(&sem::List::getListAttrs),
+         pybind11::arg("key"))
     .def("isDescriptionList", static_cast<bool(sem::List::*)() const>(&sem::List::isDescriptionList), R"RAW(List is marked as description if any list item has a header)RAW")
     .def("isNumberedList", static_cast<bool(sem::List::*)() const>(&sem::List::isNumberedList), R"RAW(List is marked as numbered if any list item has bullet text set)RAW")
     .def("getAttached",
