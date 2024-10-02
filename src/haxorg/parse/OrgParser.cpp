@@ -1193,6 +1193,7 @@ OrgId OrgParser::parseTextWrapCommand(OrgLexer& lex) {
         default: throw fatalError(lex, "unhandled token");
     }
 
+    std::string tmp = lex.val().text;
     skip(lex);
 
     if (lex.at(Newline)) {
@@ -1206,21 +1207,25 @@ OrgId OrgParser::parseTextWrapCommand(OrgLexer& lex) {
     skip(lex, Newline);
 
     if (isDynamic) {
-        std::string tmp = lex.val(1).text;
         boost::replace_all(tmp, "begin", "end");
         Str endName = normalize(tmp);
-        print(
-            fmt("Dynamic block, name {} -> {}", lex.val().text, endName));
+        print(fmt("Dynamic block, name {}", endName));
         while (lex.can_search(Vec<otk>{otk::CmdPrefix, endTok})
                && lex.hasNext(2)
-               && normalize(lex.val(2).text) != endName) {
+               && normalize(lex.val(1).text) != endName) {
             subParse(StmtListItem, lex);
-            if (lex.at(BlockTerminator)) { break; }
+            if (lex.at(BlockTerminator)) {
+                print(fmt("block terminator {}", lex));
+                break;
+            }
         }
     } else {
         while (lex.can_search(Vec<otk>{otk::CmdPrefix, endTok})) {
             subParse(StmtListItem, lex);
-            if (lex.at(BlockTerminator)) { break; }
+            if (lex.at(BlockTerminator)) {
+                print(fmt("block terminator {}", lex));
+                break;
+            }
         }
     }
 
