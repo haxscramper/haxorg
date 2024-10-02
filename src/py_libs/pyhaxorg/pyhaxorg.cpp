@@ -1197,6 +1197,8 @@ node can have subnodes.)RAW")
          static_cast<Vec<sem::SemId<sem::Org>>(sem::Stmt::*)(Opt<Str> const&) const>(&sem::Stmt::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getCaption", static_cast<Vec<sem::SemId<sem::Org>>(sem::Stmt::*)() const>(&sem::Stmt::getCaption))
+    .def("getName", static_cast<Vec<Str>(sem::Stmt::*)() const>(&sem::Stmt::getName))
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::Stmt::*)(Opt<Str> const&) const>(&sem::Stmt::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
@@ -1253,6 +1255,8 @@ node can have subnodes.)RAW")
          static_cast<Vec<sem::SemId<sem::Org>>(sem::Cmd::*)(Opt<Str> const&) const>(&sem::Cmd::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getCaption", static_cast<Vec<sem::SemId<sem::Org>>(sem::Cmd::*)() const>(&sem::Cmd::getCaption))
+    .def("getName", static_cast<Vec<Str>(sem::Cmd::*)() const>(&sem::Cmd::getName))
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::Cmd::*)(Opt<Str> const&) const>(&sem::Cmd::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
@@ -1277,6 +1281,8 @@ node can have subnodes.)RAW")
          static_cast<Vec<sem::SemId<sem::Org>>(sem::Block::*)(Opt<Str> const&) const>(&sem::Block::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getCaption", static_cast<Vec<sem::SemId<sem::Org>>(sem::Block::*)() const>(&sem::Block::getCaption))
+    .def("getName", static_cast<Vec<Str>(sem::Block::*)() const>(&sem::Block::getName))
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::Block::*)(Opt<Str> const&) const>(&sem::Block::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
@@ -1301,6 +1307,8 @@ node can have subnodes.)RAW")
          static_cast<Vec<sem::SemId<sem::Org>>(sem::LineCommand::*)(Opt<Str> const&) const>(&sem::LineCommand::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getCaption", static_cast<Vec<sem::SemId<sem::Org>>(sem::LineCommand::*)() const>(&sem::LineCommand::getCaption))
+    .def("getName", static_cast<Vec<Str>(sem::LineCommand::*)() const>(&sem::LineCommand::getName))
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::LineCommand::*)(Opt<Str> const&) const>(&sem::LineCommand::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
@@ -1325,6 +1333,8 @@ node can have subnodes.)RAW")
          static_cast<Vec<sem::SemId<sem::Org>>(sem::Attached::*)(Opt<Str> const&) const>(&sem::Attached::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getCaption", static_cast<Vec<sem::SemId<sem::Org>>(sem::Attached::*)() const>(&sem::Attached::getCaption))
+    .def("getName", static_cast<Vec<Str>(sem::Attached::*)() const>(&sem::Attached::getName))
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::Attached::*)(Opt<Str> const&) const>(&sem::Attached::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
@@ -1358,6 +1368,8 @@ node can have subnodes.)RAW")
          static_cast<Vec<sem::SemId<sem::Org>>(sem::CmdCaption::*)(Opt<Str> const&) const>(&sem::CmdCaption::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getCaption", static_cast<Vec<sem::SemId<sem::Org>>(sem::CmdCaption::*)() const>(&sem::CmdCaption::getCaption))
+    .def("getName", static_cast<Vec<Str>(sem::CmdCaption::*)() const>(&sem::CmdCaption::getName))
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::CmdCaption::*)(Opt<Str> const&) const>(&sem::CmdCaption::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
@@ -1396,6 +1408,8 @@ node can have subnodes.)RAW")
          static_cast<Vec<sem::SemId<sem::Org>>(sem::CmdName::*)(Opt<Str> const&) const>(&sem::CmdName::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getCaption", static_cast<Vec<sem::SemId<sem::Org>>(sem::CmdName::*)() const>(&sem::CmdName::getCaption))
+    .def("getName", static_cast<Vec<Str>(sem::CmdName::*)() const>(&sem::CmdName::getName))
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::CmdName::*)(Opt<Str> const&) const>(&sem::CmdName::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
@@ -1435,6 +1449,8 @@ node can have subnodes.)RAW")
          static_cast<Vec<sem::SemId<sem::Org>>(sem::CmdCustomArgs::*)(Opt<Str> const&) const>(&sem::CmdCustomArgs::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getCaption", static_cast<Vec<sem::SemId<sem::Org>>(sem::CmdCustomArgs::*)() const>(&sem::CmdCustomArgs::getCaption))
+    .def("getName", static_cast<Vec<Str>(sem::CmdCustomArgs::*)() const>(&sem::CmdCustomArgs::getName))
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::CmdCustomArgs::*)(Opt<Str> const&) const>(&sem::CmdCustomArgs::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
@@ -1466,6 +1482,8 @@ node can have subnodes.)RAW")
          static_cast<Vec<sem::SemId<sem::Org>>(sem::CmdCustomRaw::*)(Opt<Str> const&) const>(&sem::CmdCustomRaw::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getCaption", static_cast<Vec<sem::SemId<sem::Org>>(sem::CmdCustomRaw::*)() const>(&sem::CmdCustomRaw::getCaption))
+    .def("getName", static_cast<Vec<Str>(sem::CmdCustomRaw::*)() const>(&sem::CmdCustomRaw::getName))
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::CmdCustomRaw::*)(Opt<Str> const&) const>(&sem::CmdCustomRaw::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
@@ -1497,6 +1515,8 @@ node can have subnodes.)RAW")
          static_cast<Vec<sem::SemId<sem::Org>>(sem::CmdCustomText::*)(Opt<Str> const&) const>(&sem::CmdCustomText::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getCaption", static_cast<Vec<sem::SemId<sem::Org>>(sem::CmdCustomText::*)() const>(&sem::CmdCustomText::getCaption))
+    .def("getName", static_cast<Vec<Str>(sem::CmdCustomText::*)() const>(&sem::CmdCustomText::getName))
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::CmdCustomText::*)(Opt<Str> const&) const>(&sem::CmdCustomText::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
@@ -1534,6 +1554,8 @@ node can have subnodes.)RAW")
          static_cast<Vec<sem::SemId<sem::Org>>(sem::CmdResults::*)(Opt<Str> const&) const>(&sem::CmdResults::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getCaption", static_cast<Vec<sem::SemId<sem::Org>>(sem::CmdResults::*)() const>(&sem::CmdResults::getCaption))
+    .def("getName", static_cast<Vec<Str>(sem::CmdResults::*)() const>(&sem::CmdResults::getName))
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::CmdResults::*)(Opt<Str> const&) const>(&sem::CmdResults::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
@@ -1571,6 +1593,8 @@ node can have subnodes.)RAW")
          static_cast<Vec<sem::SemId<sem::Org>>(sem::CmdTblfm::*)(Opt<Str> const&) const>(&sem::CmdTblfm::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getCaption", static_cast<Vec<sem::SemId<sem::Org>>(sem::CmdTblfm::*)() const>(&sem::CmdTblfm::getCaption))
+    .def("getName", static_cast<Vec<Str>(sem::CmdTblfm::*)() const>(&sem::CmdTblfm::getName))
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::CmdTblfm::*)(Opt<Str> const&) const>(&sem::CmdTblfm::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
@@ -2288,6 +2312,8 @@ node can have subnodes.)RAW")
          static_cast<Vec<sem::SemId<sem::Org>>(sem::Link::*)(Opt<Str> const&) const>(&sem::Link::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getCaption", static_cast<Vec<sem::SemId<sem::Org>>(sem::Link::*)() const>(&sem::Link::getCaption))
+    .def("getName", static_cast<Vec<Str>(sem::Link::*)() const>(&sem::Link::getName))
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::Link::*)(Opt<Str> const&) const>(&sem::Link::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
@@ -2325,6 +2351,8 @@ node can have subnodes.)RAW")
          static_cast<Vec<sem::SemId<sem::Org>>(sem::BlockCenter::*)(Opt<Str> const&) const>(&sem::BlockCenter::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getCaption", static_cast<Vec<sem::SemId<sem::Org>>(sem::BlockCenter::*)() const>(&sem::BlockCenter::getCaption))
+    .def("getName", static_cast<Vec<Str>(sem::BlockCenter::*)() const>(&sem::BlockCenter::getName))
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::BlockCenter::*)(Opt<Str> const&) const>(&sem::BlockCenter::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
@@ -2362,6 +2390,8 @@ node can have subnodes.)RAW")
          static_cast<Vec<sem::SemId<sem::Org>>(sem::BlockQuote::*)(Opt<Str> const&) const>(&sem::BlockQuote::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getCaption", static_cast<Vec<sem::SemId<sem::Org>>(sem::BlockQuote::*)() const>(&sem::BlockQuote::getCaption))
+    .def("getName", static_cast<Vec<Str>(sem::BlockQuote::*)() const>(&sem::BlockQuote::getName))
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::BlockQuote::*)(Opt<Str> const&) const>(&sem::BlockQuote::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
@@ -2390,6 +2420,8 @@ node can have subnodes.)RAW")
          static_cast<Vec<sem::SemId<sem::Org>>(sem::BlockComment::*)(Opt<Str> const&) const>(&sem::BlockComment::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getCaption", static_cast<Vec<sem::SemId<sem::Org>>(sem::BlockComment::*)() const>(&sem::BlockComment::getCaption))
+    .def("getName", static_cast<Vec<Str>(sem::BlockComment::*)() const>(&sem::BlockComment::getName))
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::BlockComment::*)(Opt<Str> const&) const>(&sem::BlockComment::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
@@ -2427,6 +2459,8 @@ node can have subnodes.)RAW")
          static_cast<Vec<sem::SemId<sem::Org>>(sem::BlockVerse::*)(Opt<Str> const&) const>(&sem::BlockVerse::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getCaption", static_cast<Vec<sem::SemId<sem::Org>>(sem::BlockVerse::*)() const>(&sem::BlockVerse::getCaption))
+    .def("getName", static_cast<Vec<Str>(sem::BlockVerse::*)() const>(&sem::BlockVerse::getName))
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::BlockVerse::*)(Opt<Str> const&) const>(&sem::BlockVerse::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
@@ -2465,6 +2499,8 @@ node can have subnodes.)RAW")
          static_cast<Vec<sem::SemId<sem::Org>>(sem::BlockDynamicFallback::*)(Opt<Str> const&) const>(&sem::BlockDynamicFallback::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getCaption", static_cast<Vec<sem::SemId<sem::Org>>(sem::BlockDynamicFallback::*)() const>(&sem::BlockDynamicFallback::getCaption))
+    .def("getName", static_cast<Vec<Str>(sem::BlockDynamicFallback::*)() const>(&sem::BlockDynamicFallback::getName))
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::BlockDynamicFallback::*)(Opt<Str> const&) const>(&sem::BlockDynamicFallback::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
@@ -2502,6 +2538,8 @@ node can have subnodes.)RAW")
          static_cast<Vec<sem::SemId<sem::Org>>(sem::BlockExample::*)(Opt<Str> const&) const>(&sem::BlockExample::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getCaption", static_cast<Vec<sem::SemId<sem::Org>>(sem::BlockExample::*)() const>(&sem::BlockExample::getCaption))
+    .def("getName", static_cast<Vec<Str>(sem::BlockExample::*)() const>(&sem::BlockExample::getName))
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::BlockExample::*)(Opt<Str> const&) const>(&sem::BlockExample::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
@@ -2554,6 +2592,8 @@ node can have subnodes.)RAW")
          static_cast<Vec<sem::SemId<sem::Org>>(sem::BlockExport::*)(Opt<Str> const&) const>(&sem::BlockExport::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getCaption", static_cast<Vec<sem::SemId<sem::Org>>(sem::BlockExport::*)() const>(&sem::BlockExport::getCaption))
+    .def("getName", static_cast<Vec<Str>(sem::BlockExport::*)() const>(&sem::BlockExport::getName))
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::BlockExport::*)(Opt<Str> const&) const>(&sem::BlockExport::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
@@ -2591,6 +2631,8 @@ node can have subnodes.)RAW")
          static_cast<Vec<sem::SemId<sem::Org>>(sem::BlockAdmonition::*)(Opt<Str> const&) const>(&sem::BlockAdmonition::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getCaption", static_cast<Vec<sem::SemId<sem::Org>>(sem::BlockAdmonition::*)() const>(&sem::BlockAdmonition::getCaption))
+    .def("getName", static_cast<Vec<Str>(sem::BlockAdmonition::*)() const>(&sem::BlockAdmonition::getName))
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::BlockAdmonition::*)(Opt<Str> const&) const>(&sem::BlockAdmonition::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
@@ -2638,6 +2680,8 @@ node can have subnodes.)RAW")
          static_cast<Vec<sem::SemId<sem::Org>>(sem::BlockCode::*)(Opt<Str> const&) const>(&sem::BlockCode::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getCaption", static_cast<Vec<sem::SemId<sem::Org>>(sem::BlockCode::*)() const>(&sem::BlockCode::getCaption))
+    .def("getName", static_cast<Vec<Str>(sem::BlockCode::*)() const>(&sem::BlockCode::getName))
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::BlockCode::*)(Opt<Str> const&) const>(&sem::BlockCode::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
@@ -2942,6 +2986,8 @@ node can have subnodes.)RAW")
          static_cast<Vec<sem::SemId<sem::Org>>(sem::Cell::*)(Opt<Str> const&) const>(&sem::Cell::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getCaption", static_cast<Vec<sem::SemId<sem::Org>>(sem::Cell::*)() const>(&sem::Cell::getCaption))
+    .def("getName", static_cast<Vec<Str>(sem::Cell::*)() const>(&sem::Cell::getName))
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::Cell::*)(Opt<Str> const&) const>(&sem::Cell::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
@@ -2981,6 +3027,8 @@ node can have subnodes.)RAW")
          static_cast<Vec<sem::SemId<sem::Org>>(sem::Row::*)(Opt<Str> const&) const>(&sem::Row::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getCaption", static_cast<Vec<sem::SemId<sem::Org>>(sem::Row::*)() const>(&sem::Row::getCaption))
+    .def("getName", static_cast<Vec<Str>(sem::Row::*)() const>(&sem::Row::getName))
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::Row::*)(Opt<Str> const&) const>(&sem::Row::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
@@ -3020,6 +3068,8 @@ node can have subnodes.)RAW")
          static_cast<Vec<sem::SemId<sem::Org>>(sem::Table::*)(Opt<Str> const&) const>(&sem::Table::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getCaption", static_cast<Vec<sem::SemId<sem::Org>>(sem::Table::*)() const>(&sem::Table::getCaption))
+    .def("getName", static_cast<Vec<Str>(sem::Table::*)() const>(&sem::Table::getName))
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::Table::*)(Opt<Str> const&) const>(&sem::Table::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
@@ -3048,6 +3098,8 @@ node can have subnodes.)RAW")
          static_cast<Vec<sem::SemId<sem::Org>>(sem::Paragraph::*)(Opt<Str> const&) const>(&sem::Paragraph::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getCaption", static_cast<Vec<sem::SemId<sem::Org>>(sem::Paragraph::*)() const>(&sem::Paragraph::getCaption))
+    .def("getName", static_cast<Vec<Str>(sem::Paragraph::*)() const>(&sem::Paragraph::getName))
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::Paragraph::*)(Opt<Str> const&) const>(&sem::Paragraph::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
@@ -3160,6 +3212,8 @@ node can have subnodes.)RAW")
          static_cast<Vec<sem::SemId<sem::Org>>(sem::AnnotatedParagraph::*)(Opt<Str> const&) const>(&sem::AnnotatedParagraph::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getCaption", static_cast<Vec<sem::SemId<sem::Org>>(sem::AnnotatedParagraph::*)() const>(&sem::AnnotatedParagraph::getCaption))
+    .def("getName", static_cast<Vec<Str>(sem::AnnotatedParagraph::*)() const>(&sem::AnnotatedParagraph::getName))
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::AnnotatedParagraph::*)(Opt<Str> const&) const>(&sem::AnnotatedParagraph::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
@@ -3213,6 +3267,8 @@ node can have subnodes.)RAW")
          static_cast<Vec<sem::SemId<sem::Org>>(sem::CmdAttr::*)(Opt<Str> const&) const>(&sem::CmdAttr::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getCaption", static_cast<Vec<sem::SemId<sem::Org>>(sem::CmdAttr::*)() const>(&sem::CmdAttr::getCaption))
+    .def("getName", static_cast<Vec<Str>(sem::CmdAttr::*)() const>(&sem::CmdAttr::getName))
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::CmdAttr::*)(Opt<Str> const&) const>(&sem::CmdAttr::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
@@ -3264,6 +3320,8 @@ node can have subnodes.)RAW")
          static_cast<Vec<sem::SemId<sem::Org>>(sem::List::*)(Opt<Str> const&) const>(&sem::List::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getCaption", static_cast<Vec<sem::SemId<sem::Org>>(sem::List::*)() const>(&sem::List::getCaption))
+    .def("getName", static_cast<Vec<Str>(sem::List::*)() const>(&sem::List::getName))
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::List::*)(Opt<Str> const&) const>(&sem::List::getAttrs),
          pybind11::arg_v("kind", std::nullopt),

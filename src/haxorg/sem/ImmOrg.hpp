@@ -992,6 +992,8 @@ struct ImmAdapterStmtAPI : ImmAdapterOrgAPI {
     virtual Vec<sem::AttrValue> getAttrs(CR<Opt<Str>> param) const;
     virtual Opt<sem::AttrValue> getFirstAttr(Str const& kind) const;
 
+    Vec<ImmAdapter> getCaption() const;
+    Vec<Str>        getName() const;
     Vec<ImmAdapter> getAttached(Opt<Str> const& kind = std::nullopt) const;
 };
 
@@ -1025,7 +1027,9 @@ struct ImmAdapterStmtListAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterEmptyAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterLineCommandAPI : ImmAdapterCmdAPI {};
 struct ImmAdapterAttachedAPI : ImmAdapterLineCommandAPI {};
-struct ImmAdapterCmdCaptionAPI : ImmAdapterAttachedAPI {};
+struct ImmAdapterCmdCaptionAPI : ImmAdapterAttachedAPI {
+    org::ImmAdapterT<org::ImmParagraph> getText() const;
+};
 struct ImmAdapterCmdNameAPI : ImmAdapterAttachedAPI {};
 struct ImmAdapterCmdCustomArgsAPI : ImmAdapterCmdAPI {};
 struct ImmAdapterCmdCustomRawAPI : ImmAdapterStmtAPI {};

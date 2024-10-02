@@ -508,6 +508,16 @@ def get_sem_bases():
                     isConst=True,
                 ),
                 GenTuFunction(
+                    t_vec(t_id()),
+                    "getCaption",
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_vec(t_str()),
+                    "getName",
+                    isConst=True,
+                ),
+                GenTuFunction(
                     t_vec(t_nest_shared("AttrValue")),
                     "getAttrs",
                     GenTuDoc(

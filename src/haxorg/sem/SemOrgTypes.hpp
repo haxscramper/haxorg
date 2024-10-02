@@ -740,6 +740,8 @@ struct Stmt : public sem::Org {
   Vec<sem::SemId<sem::Org>> attached;
   /// \brief Return attached nodes of a specific kinds or all attached (if kind is nullopt)
   Vec<sem::SemId<sem::Org>> getAttached(Opt<Str> const& kind = std::nullopt) const;
+  Vec<sem::SemId<sem::Org>> getCaption() const;
+  Vec<Str> getName() const;
   /// \brief Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.
   virtual Vec<sem::AttrValue> getAttrs(Opt<Str> const& kind = std::nullopt) const;
   /// \brief Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities

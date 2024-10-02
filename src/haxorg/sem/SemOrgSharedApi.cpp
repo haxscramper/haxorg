@@ -137,6 +137,11 @@ org::ImmAdapterT<T> toHandle(
     return id;
 }
 
+template <typename Handle>
+org::ImmAdapter toHandle(org::ImmAdapter id, Handle const& handle) {
+    return id;
+}
+
 /// \brief Convert boxed optional imm ID to optional adapter
 template <org::IsImmOrgValueType T, typename Handle>
 Opt<org::ImmAdapterT<T>> toHandle(
@@ -201,6 +206,12 @@ template <org::IsImmOrgValueType T, typename SemType, typename ImmType>
 struct SemOrImmType<T, SemType, ImmType> {
     using result = ImmType;
 };
+
+template <typename T>
+using SemIdOrImmId = SemOrImmType<
+    typename get_ast_type<T>::ast_type,
+    sem::SemId<sem::Org>,
+    org::ImmAdapter>::result;
 
 template <typename Handle>
 concept IsSemOrgInstance = sem::IsOrg<
@@ -451,12 +462,39 @@ auto Stmt_getAttached(Handle handle, CR<Opt<Str>> kind) {
             } else if (
                 sub_h->is(OrgSemKind::CmdCaption)
                 && normalize(k) == "caption") {
-                auto cap = org_cast<sem::CmdCaption>(sub_h);
+
                 result.push_back(sub_h);
             }
         } else {
             result.push_back(sub_h);
         }
+    }
+
+    return result;
+}
+
+template <typename Handle>
+auto Stmt_getCaption(Handle handle) {
+    using Select = SemIdOrImmId<Handle>;
+    Vec<Select> result;
+    for (auto const& it : Stmt_getAttached(handle, "caption")) {
+        auto cap = org_cast<sem::CmdCaption>(toHandle(it, handle));
+        if constexpr (IsSemOrgInstance<Handle>) {
+            result.push_back(toHandle(to_api(cap).text));
+        } else {
+            result.push_back(toHandle(to_api(cap).getText(), handle));
+        }
+    }
+
+    return result;
+}
+
+template <typename Handle>
+Vec<Str> Stmt_getName(Handle handle) {
+    Vec<Str> result;
+    for (auto const& it : Stmt_getAttached(handle, "name")) {
+        auto cap = org_cast<sem::CmdName>(toHandle(it, handle));
+        result.push_back(to_api(cap)->name);
     }
 
     return result;
@@ -567,7 +605,10 @@ bool List_isNumberedList(Handle handle) {
 
 } // namespace
 
-
+/// \brief Invoke callback `func` on the concrete type of the input
+/// adapter. Adapter cannot correctly hold an ID that refers to the
+/// abstract base class, so every adapter object must use a concrete type
+/// of the node.
 template <
     typename CastType,
     typename ThisType,
@@ -600,6 +641,18 @@ void CallDynamicOrgMethod(ThisType thisType, Func func, Args&&... args) {
 
 
 // clang-format off
+
+Vec<org::ImmAdapter> org::ImmAdapterStmtAPI::getCaption() const {
+    Vec<org::ImmAdapter> result;
+    CallDynamicOrgMethod<org::ImmStmt>(getThis(), [&](auto const &a1) { result = Stmt_getCaption(a1); });
+    return result;
+}
+
+Vec<Str> org::ImmAdapterStmtAPI::getName() const {
+    Vec<Str> result;
+    CallDynamicOrgMethod<org::ImmStmt>(getThis(), [&](auto const &a1) { result = Stmt_getName(a1); });
+    return result;
+}
 
 Vec<org::ImmAdapter> org::ImmAdapterStmtAPI::getAttached(Opt<Str> const& kind) const {
     Vec<org::ImmAdapter> result;
@@ -656,6 +709,7 @@ Str sem::Attr::getVarname() const { return arg.varname.value(); }
 
 Vec<sem::AttrValue> sem::Stmt::getAttrs(const Opt<Str>& kind) const { return Stmt_getAttrs(this, kind); }
 Opt<sem::AttrValue> sem::Stmt::getFirstAttr(const Str& kind) const { return Stmt_getFirstAttr(this, kind); }
+Vec<sem::SemId<sem::Org>> sem::Stmt::getAttached(Opt<Str> const& kind) const { return Stmt_getAttached(this, kind); }
 
 Opt<sem::AttrValue> sem::Cmd::getFirstAttr(CR<Str> kind) const { return Cmd_getFirstAttr(this, kind); }
 Vec<sem::AttrValue> sem::Attrs::getAttrs(CR<Opt<Str>> param) const { return Attrs_getAttrs(this, param); }
@@ -675,6 +729,8 @@ bool sem::ListItem::isDescriptionItem() const { return ListItem_isDescriptionIte
 
 // Opt<org::ImmAdapterT<org::ImmAttrList>> org::ImmAdapterT<org::ImmCell>::getAttrs(CR<Opt<Str>> param) const { return cmdgetAttrsImpl(*this, param); }
 
+org::ImmAdapterT<org::ImmParagraph> org::ImmAdapterSubtreeAPI::getTitle() const { return pass(getThisT<org::ImmSubtree>()->title, ImmPathStep::Field("title")); }
+org::ImmAdapterT<org::ImmParagraph> org::ImmAdapterCmdCaptionAPI::getText() const { return pass(getThisT<org::ImmCmdCaption>()->text, ImmPathStep::Field("text")); }
 
 // clang-format on
 
@@ -686,10 +742,4 @@ Opt<org::ImmAdapter> org::ImmAdapterListItemAPI::getHeader() const {
         return pass(
             it->header->value(), ImmPathStep::FieldDeref("header"));
     }
-}
-
-org::ImmAdapterT<org::ImmParagraph> org::ImmAdapterSubtreeAPI::getTitle()
-    const {
-    return pass(
-        getThisT<org::ImmSubtree>()->title, ImmPathStep::Field("title"));
 }
