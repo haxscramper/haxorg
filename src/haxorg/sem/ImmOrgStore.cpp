@@ -98,15 +98,25 @@ ImmAstReplace ImmAstStore::setNode(
     };
 }
 
-using SubnodeAssignPair  = Pair<ReflPath, Vec<Pair<ReflPath, ImmId>>>;
-using SubnodeAssignGroup = Vec<SubnodeAssignPair>;
+/// \brief Reflection path in the parent node, and the subnode that needs
+/// to be assigned to the specified place.
+using SubnodeAssignTarget = Pair<ReflPath, ImmId>;
+/// \brief Group of subnode values to assign to the given path in the
+/// parent node.
+using SubnodeVecAssignPair = Pair<ReflPath, Vec<SubnodeAssignTarget>>;
+using SubnodeAssignGroup   = Vec<SubnodeVecAssignPair>;
 
+/// \brief Group a flat list of subnode updates into assignment group so
+/// that changes on the same field would be grouped together.
+///
+/// This is made in order to allow for [[vector_field_assignment]] to work
+/// in one go, since inserting subnode one by one might've overrode the
+/// indexing or other elements.
 SubnodeAssignGroup groupUpdatedSubnodes(
-    Vec<Pair<ReflPath, ImmId>> const& updatedSubnodes) {
-    Vec<Pair<ReflPath, ImmId>> sortedUpdatedSubnodes = sorted(
+    Vec<SubnodeAssignTarget> const& updatedSubnodes) {
+    Vec<SubnodeAssignTarget> sortedUpdatedSubnodes = sorted(
         updatedSubnodes,
-        [](const Pair<ReflPath, ImmId>& a,
-           const Pair<ReflPath, ImmId>& b) {
+        [](const SubnodeAssignTarget& a, const SubnodeAssignTarget& b) {
             return a.first.first().getFieldName().name
                  < b.first.first().getFieldName().name;
         });
@@ -114,12 +124,12 @@ SubnodeAssignGroup groupUpdatedSubnodes(
     SubnodeAssignGroup grouped //
         = sortedUpdatedSubnodes
         | rv::group_by(
-              [](const Pair<ReflPath, ImmId>& a,
-                 const Pair<ReflPath, ImmId>& b) -> bool {
+              [](const SubnodeAssignTarget& a,
+                 const SubnodeAssignTarget& b) -> bool {
                   return a.first.first().getFieldName().name
                       == b.first.first().getFieldName().name;
               })
-        | rv::transform([](auto const& group) -> SubnodeAssignPair {
+        | rv::transform([](auto const& group) -> SubnodeVecAssignPair {
               ReflPath path = group.front().first;
               return std::make_pair(
                   path, group | rs::to<Vec<Pair<ReflPath, ImmId>>>());
@@ -129,19 +139,28 @@ SubnodeAssignGroup groupUpdatedSubnodes(
     return grouped;
 }
 
+/// \brief Const cast hack to allow value mutation -- reflection visitor
+/// provides a const reference to the target object, but the origianl
+/// [[input_node_for_mut_cast]] is a copy of the original node value, not a
+/// reference in the store, so it is safe to mutate.
 template <typename Const>
 Const& mut_cast(Const const& value) {
     return const_cast<Const&>(value);
 };
 
-ImmAstReplace updateFieldMutations(
+/// \brief Apply all subnode updates on the current value of the
+/// `updateTarget` and set a new node value. Inserts a new node value into
+/// the store.
+ImmAstReplace setNewSubnodes(
     ImmAdapter                updateTarget,
     SubnodeAssignGroup const& grouped,
     ImmAstEditContext&        ctx) {
     ImmAstReplace act;
     switch_node_value(
-        updateTarget.id, updateTarget.ctx, [&]<typename K>(K node) {
-            for (SubnodeAssignPair const& fieldGroup : grouped) {
+        updateTarget.id,
+        updateTarget.ctx,
+        [&]<typename K>(K node /* <<input_node_for_mut_cast>> */) {
+            for (SubnodeVecAssignPair const& fieldGroup : grouped) {
                 auto field = fieldGroup.first.first();
                 LOGIC_ASSERTION_CHECK(field.isFieldName(), "");
                 auto fail_field =
@@ -159,7 +178,12 @@ ImmAstReplace updateFieldMutations(
                 ReflVisitor<K>::visit(
                     node,
                     field,
+                    // All field types are explicitly handled in the
+                    // overload to avoid unexpected fallbacks if new types
+                    // are used in the node fields.
                     overloaded{
+                        // assignment to subnodes only works for fields
+                        // that contain IDs.
                         // clang-format off
                         [&]<IsVariant V>(V const&) { fail_field(); },
                         [&]<IsEnum E>(E const&) { fail_field(); },
@@ -183,15 +207,21 @@ ImmAstReplace updateFieldMutations(
                         [&]<typename FK>(
                             ImmBox<Opt<org::ImmIdT<FK>>> const& f) {
                             LOGIC_ASSERTION_CHECK(
-                                fieldGroup.second.size() == 1, "");
+                                fieldGroup.second.size() == 1,
+                                "Assignment to single field cannot have "
+                                "multiple values");
                             mut_cast(f) = fieldGroup.second.at(0).second;
                         },
                         [&]<typename FK>(org::ImmIdT<FK> const& f) {
                             LOGIC_ASSERTION_CHECK(
-                                fieldGroup.second.size() == 1, "");
+                                fieldGroup.second.size() == 1,
+                                "Assignment to single field cannot have "
+                                "multiple values");
                             mut_cast(f) = fieldGroup.second.at(0).second;
                         },
                         [&]<typename FK>(ImmVec<ImmIdT<FK>> const& f) {
+                            // <<vector_field_assignment>> overwrite the
+                            // node fields with a new value.
                             Vec<ImmIdT<FK>> convKinds;
                             for (auto const& it : fieldGroup.second) {
                                 convKinds.push_back(it.second.as<FK>());
@@ -286,15 +316,15 @@ ImmId recurseUpdateSubnodes(
     UnorderedSet<ImmUniqId> const editParents,
     ImmAstReplaceEpoch&           result);
 
-Pair<Vec<Pair<ReflPath, ImmId>>, Vec<ImmId>> getUpdatedSubnodes(
+Pair<Vec<SubnodeAssignTarget>, Vec<ImmId>> getUpdatedSubnodes(
     ImmAdapter const&              updateTarget,
     ImmAstReplaceGroup const&      replace,
     ImmAstEditContext&             ctx,
     UnorderedSet<ImmUniqId> const& editParents,
     ImmAstReplaceEpoch&            result) {
-    auto                       flatTargetPath = updateTarget.flatPath();
-    Vec<Pair<ReflPath, ImmId>> updatedSubnodes;
-    Vec<ImmId>                 flatUpdatedSubnodes;
+    auto                     flatTargetPath = updateTarget.flatPath();
+    Vec<SubnodeAssignTarget> updatedSubnodes;
+    Vec<ImmId>               flatUpdatedSubnodes;
     for (auto const& sub :
          updateTarget.getAllSubnodes(updateTarget.path)) {
         auto relativePath = sub.flatPath().dropPrefix(flatTargetPath);
@@ -342,7 +372,7 @@ ImmId recurseUpdateSubnodes(
                 "aux");
 
             auto grouped = groupUpdatedSubnodes(updatedSubnodes);
-            auto act = updateFieldMutations(updateTarget, grouped, ctx);
+            auto act     = setNewSubnodes(updateTarget, grouped, ctx);
             result.replaced.set(act);
             return act.replaced.id;
         } else {
@@ -353,6 +383,7 @@ ImmId recurseUpdateSubnodes(
         // was updated, return a new version, otherwise return the same
         // node.
         if (auto edit = replace.map.get(node.uniq()); edit) {
+            AST_EDIT_MSG(fmt("Replace {} -> {}", node.uniq(), *edit));
             result.replaced.incl({node.uniq(), *edit});
             return edit->id;
         } else {
@@ -374,6 +405,7 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
     AST_EDIT_MSG(fmt("Main root {}", root));
     result.root = recurseUpdateSubnodes(
         root, replace, ctx, editParents, result);
+    AST_EDIT_MSG(fmt("Replace {}", result.replaced));
     return result;
 }
 

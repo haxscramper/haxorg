@@ -830,8 +830,10 @@ TEST(SimpleNodeConversion, MyersDiffCompile) {
     // You may want to add test conditions to check the results.
 }
 
+struct ImmOrgApi : ImmOrgApiTestBase {};
 
-TEST(ImmOrgApi, StoreNode) {
+
+TEST_F(ImmOrgApi, StoreNode) {
     auto node          = parseNode(R"(
 ** ~pyhaxorg~
     CLOSED: [2024-06-22 Sat 22:00:27 +04]
@@ -847,7 +849,7 @@ TEST(ImmOrgApi, StoreNode) {
     writeFile("/tmp/StoreNode.txt", os.getBuffer().toString(false));
 }
 
-TEST(ImmOrgApi, RountripImmutableAst) {
+TEST_F(ImmOrgApi, RountripImmutableAst) {
     std::string file   = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
     std::string source = readFile(fs::path(file));
     org::ImmAstContext store;
@@ -862,7 +864,7 @@ TEST(ImmOrgApi, RountripImmutableAst) {
     show_compare_reports(out);
 }
 
-TEST(ImmOrgApi, ImmAstFieldIteration) {
+TEST_F(ImmOrgApi, ImmAstFieldIteration) {
     org::ImmAstContext store;
     for (auto const& k : sliceT<OrgSemKind>()) {
         if (k != OrgSemKind::None) {
@@ -882,20 +884,16 @@ TEST(ImmOrgApi, ImmAstFieldIteration) {
     }
 }
 
-TEST(ImmOrgApi, ReplaceSubnodeAtPath) {
+TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {
+    setTraceFile(getDebugFile("trace.txt"));
     auto start_node   = parseNode("word0 word2 word4");
     auto replace_node = parseNode("wordXX").at(0).at(0);
-    // Document[0].Paragraph[0]
-
-    org::ImmAstContext start;
-
-    auto version1  = start.init(start_node);
-    auto store     = version1.context;
-    auto paragraph = version1.getRootAdapter().at(0);
-
-    auto ctx      = store.getEditContext();
-    auto word_xx  = store.add(replace_node, ctx);
-    auto version2 = store.finishEdit(
+    auto version1     = start.init(start_node);
+    auto store        = version1.context;
+    auto paragraph    = version1.getRootAdapter().at(0);
+    auto ctx          = store.getEditContext();
+    auto word_xx      = store.add(replace_node, ctx);
+    auto version2     = store.finishEdit(
         ctx,
         ctx.store().cascadeUpdate(
             version1.getRootAdapter(),
