@@ -264,7 +264,7 @@ struct ImmAstTrackingMapTransient {
     ImmStrIdMap::transient_type  radioTargets;
     ImmStrIdMap::transient_type  anchorTargets;
     ImmParentMap::transient_type parents;
-    ImmPanentTrackFilter const&  isTrackingParent;
+    ImmPanentTrackFilter const&  isTrackingParentImpl;
 
     void setAsParentOf(
         ImmId const&       parent,
@@ -273,6 +273,10 @@ struct ImmAstTrackingMapTransient {
 
     void removeAllSubnodesOf(ImmAdapter const& parent);
     void insertAllSubnodesOf(ImmAdapter const& parent);
+
+    bool isTrackingParent(ImmAdapter const& it) const {
+        return isTrackingParentImpl && isTrackingParentImpl(it);
+    }
 
     ImmAstTrackingMap persistent();
     DESC_FIELDS(
@@ -294,12 +298,12 @@ struct ImmAstTrackingMap {
         (footnotes, subtrees, radioTargets, anchorTargets, parents));
     ImmAstTrackingMapTransient transient() {
         return {
-            .footnotes        = footnotes.transient(),
-            .subtrees         = subtrees.transient(),
-            .radioTargets     = radioTargets.transient(),
-            .anchorTargets    = anchorTargets.transient(),
-            .parents          = parents.transient(),
-            .isTrackingParent = isTrackingParent,
+            .footnotes            = footnotes.transient(),
+            .subtrees             = subtrees.transient(),
+            .radioTargets         = radioTargets.transient(),
+            .anchorTargets        = anchorTargets.transient(),
+            .parents              = parents.transient(),
+            .isTrackingParentImpl = isTrackingParent,
         };
     }
 };

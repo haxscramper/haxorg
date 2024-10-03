@@ -89,6 +89,8 @@ ImmAstReplace ImmAstStore::setNode(
 
     visit_node(target.value<T>(), target.id, false);
     visit_node(value, result_node, true);
+    ctx.track.removeAllSubnodesOf(target);
+    ctx.track.insertAllSubnodesOf(ctx->adapt(replaced));
 
     return ImmAstReplace{
         .replaced = replaced,
