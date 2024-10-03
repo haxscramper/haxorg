@@ -435,12 +435,47 @@ Vec<ImmAdapter> ImmAdapter::getAllSubnodesDFS(
     return result;
 }
 
+void ImmAstTrackingMapTransient::setAsParentOf(
+    const ImmId&       parent,
+    const ImmId&       target,
+    const ImmPathStep& step) {
+    if (ParentPathMapPtr const* it = parents.find(target); it == nullptr) {
+        parents.set(target, std::make_shared<ParentPathMap>());
+    }
+
+    if (!parents.at(target)->contains(parent)) {
+        parents.at(target)->insert_or_assign(parent, Vec<ImmPathStep>{});
+    }
+
+    parents.at(target)->at(parent).push_back(step);
+}
+
+void ImmAstTrackingMapTransient::removeAllSubnodesOf(
+    const ImmAdapter& parent) {
+    for (auto const& sub : parent.getAllSubnodes(std::nullopt)) {
+        if (isTrackingParent(sub) && parents.find(sub.id) != nullptr) {
+            ParentPathMapPtr ptr = parents.at(sub.id);
+            ptr->erase(parent.id);
+        }
+    }
+}
+
+void ImmAstTrackingMapTransient::insertAllSubnodesOf(
+    const ImmAdapter& parent) {
+    for (auto const& sub : parent.getAllSubnodes(std::nullopt)) {
+        if (isTrackingParent(sub)) {
+            setAsParentOf(parent.id, sub.id, sub.lastStep());
+        }
+    }
+}
+
 ImmAstTrackingMap ImmAstTrackingMapTransient::persistent() {
     return ImmAstTrackingMap{
         .footnotes     = footnotes.persistent(),
         .subtrees      = subtrees.persistent(),
         .radioTargets  = radioTargets.persistent(),
         .anchorTargets = anchorTargets.persistent(),
+        .parents       = parents.persistent(),
     };
 }
 

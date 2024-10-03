@@ -251,33 +251,55 @@ struct std::hash<org::ImmUniqId> {
 
 namespace org {
 
+struct ImmAdapter;
+using ImmStrIdMap          = ImmMap<Str, ImmId>;
+using ParentPathMap        = UnorderedMap<ImmId, Vec<ImmPathStep>>;
+using ParentPathMapPtr     = SPtr<ParentPathMap>;
+using ImmParentMap         = ImmMap<ImmId, ParentPathMapPtr>;
+using ImmPanentTrackFilter = Func<bool(ImmAdapter const&)>;
+
 struct ImmAstTrackingMapTransient {
-    ImmMap<Str, ImmId>::transient_type footnotes;
-    ImmMap<Str, ImmId>::transient_type subtrees;
-    ImmMap<Str, ImmId>::transient_type radioTargets;
-    ImmMap<Str, ImmId>::transient_type anchorTargets;
+    ImmStrIdMap::transient_type  footnotes;
+    ImmStrIdMap::transient_type  subtrees;
+    ImmStrIdMap::transient_type  radioTargets;
+    ImmStrIdMap::transient_type  anchorTargets;
+    ImmParentMap::transient_type parents;
+    ImmPanentTrackFilter const&  isTrackingParent;
+
+    void setAsParentOf(
+        ImmId const&       parent,
+        ImmId const&       target,
+        ImmPathStep const& step);
+
+    void removeAllSubnodesOf(ImmAdapter const& parent);
+    void insertAllSubnodesOf(ImmAdapter const& parent);
 
     ImmAstTrackingMap persistent();
     DESC_FIELDS(
         ImmAstTrackingMapTransient,
-        (footnotes, subtrees, radioTargets, anchorTargets));
+        (footnotes, subtrees, radioTargets, anchorTargets, parents));
 };
 
 struct ImmAstTrackingMap {
-    ImmMap<Str, ImmId> footnotes;
-    ImmMap<Str, ImmId> subtrees;
-    ImmMap<Str, ImmId> radioTargets;
-    ImmMap<Str, ImmId> anchorTargets;
+    ImmStrIdMap  footnotes;
+    ImmStrIdMap  subtrees;
+    ImmStrIdMap  radioTargets;
+    ImmStrIdMap  anchorTargets;
+    ImmParentMap parents;
+
+    ImmPanentTrackFilter isTrackingParent;
 
     DESC_FIELDS(
         ImmAstTrackingMap,
-        (footnotes, subtrees, radioTargets, anchorTargets));
+        (footnotes, subtrees, radioTargets, anchorTargets, parents));
     ImmAstTrackingMapTransient transient() {
         return {
-            .footnotes     = footnotes.transient(),
-            .subtrees      = subtrees.transient(),
-            .radioTargets  = radioTargets.transient(),
-            .anchorTargets = anchorTargets.transient(),
+            .footnotes        = footnotes.transient(),
+            .subtrees         = subtrees.transient(),
+            .radioTargets     = radioTargets.transient(),
+            .anchorTargets    = anchorTargets.transient(),
+            .parents          = parents.transient(),
+            .isTrackingParent = isTrackingParent,
         };
     }
 };
@@ -311,10 +333,7 @@ struct ImmAstKindStore {
     int size() const { return values.size(); }
 
     ImmAstKindStore() {}
-    void format(
-        ColStream&                                  os,
-        UnorderedMap<org::ImmId, org::ImmId> const& parents,
-        std::string const&                          linePrefix = "") const;
+    void format(ColStream& os, std::string const& linePrefix = "") const;
 
     bool     empty() const { return values.empty(); }
     T const* at(org::ImmId id) const { return &values.at(id); }
@@ -376,8 +395,6 @@ struct ImmAstReplaceEpoch {
 struct ImmAdapter;
 
 struct ImmAstStore {
-    UnorderedMap<org::ImmId, org::ImmId> parents;
-
     template <org::IsImmOrgValueType T>
     ImmAstKindStore<T> const* getStoreImpl() const;
 
@@ -695,6 +712,8 @@ struct ImmAdapter {
     ReflPathItem const& lastPath() const {
         return path.path.back().path.last();
     }
+
+    ImmPathStep const& lastStep() const { return path.path.back(); }
 
     ReflPathItem const& firstPath() const {
         return path.path.front().path.first();

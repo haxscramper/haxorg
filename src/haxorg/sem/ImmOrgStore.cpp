@@ -441,9 +441,8 @@ ImmId ImmAstContext::at(const ImmPath& item) const {
 
 template <org::IsImmOrgValueType T>
 void ImmAstKindStore<T>::format(
-    ColStream&                        os,
-    const UnorderedMap<ImmId, ImmId>& parents,
-    const std::string&                linePrefix) const {
+    ColStream&         os,
+    const std::string& linePrefix) const {
     bool       isFirst = true;
     Vec<ImmId> ids;
     for (auto const& it : values.id_map) { ids.push_back(it.second); }
@@ -454,11 +453,7 @@ void ImmAstKindStore<T>::format(
         if (!isFirst) { os << "\n"; }
         isFirst = false;
         os << fmt(
-            "{}[{}] (parent {}): {}",
-            linePrefix,
-            id.getReadableId(),
-            parents.get(id),
-            values.at(id));
+            "{}[{}]: {}", linePrefix, id.getReadableId(), values.at(id));
     }
 }
 
@@ -471,7 +466,7 @@ void ImmAstStore::format(ColStream& os, const std::string& prefix) const {
             prefix,                                                       \
             #__Kind,                                                      \
             u64(OrgSemKind::__Kind));                                     \
-        store##__Kind.format(os, parents, prefix + "  ");                 \
+        store##__Kind.format(os, prefix + "  ");                          \
     }
 
     EACH_SEM_ORG_KIND(_kind)
