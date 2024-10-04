@@ -84,14 +84,7 @@ inline std::ostream& operator<<(
 
 #define __xxloc() std::cout << __FILE__ << ":" << __LINE__ << "\n";
 
-template <typename T, typename = void>
-struct is_formattable : std::false_type {};
-
 template <typename T>
-struct is_formattable<
-    T,
-    std::void_t<decltype(std::format("{}", std::declval<T>()))>>
-    : std::true_type {};
-
-template <typename T>
-concept StdFormattable = is_formattable<T>::value;
+concept StdFormattable = requires(T& v, std::format_context ctx) {
+    std::formatter<std::remove_cvref_t<T>>().format(v, ctx);
+};

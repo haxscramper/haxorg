@@ -24,6 +24,24 @@
 #include <boost/graph/graphviz.hpp>
 #include <fstream>
 
+
+// adl-based customization points is the most disgusting degenerate idea
+// you can possible have. The shit doesn't work reliably, you need to do
+// some fucking magic with namespaces and whatever the fuck else, it does
+// not work again, and with functions you need to specify the concrete type
+// for every type. If this was a structure I could've used `std::format`
+// with some form of concept here, if the library was actually written with
+// this in mind.
+#define GTEST_ADL_PRINT_TYPE(__type)                                      \
+    namespace testing {                                                   \
+    template <>                                                           \
+    std::string PrintToString(__type const& value) {                      \
+        return fmt1(value);                                               \
+    }                                                                     \
+    } // namespace testing
+
+GTEST_ADL_PRINT_TYPE(OrgSemKind);
+
 struct compare_context {
     std::string type;
     std::string field;
@@ -909,7 +927,33 @@ TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {
     auto const& par1_id = ctx->adapt(c.at(0).original.value());
     auto const& par2_id = ctx->adapt(c.at(0).replaced);
 
-    EXPECT_EQ(doc1_id->getKind(), OrgSemKind::Document);
+    switch (0)
+    case 0:
+    default:
+        if (const ::testing ::AssertionResult gtest_ar = (::testing ::internal ::
+                                                              EqHelper ::Compare(
+                                                                  "doc1_"
+                                                                  "id->"
+                                                                  "getKind"
+                                                                  "()",
+                                                                  "OrgSemK"
+                                                                  "ind::"
+                                                                  "Documen"
+                                                                  "t",
+                                                                  doc1_id
+                                                                      ->getKind(),
+                                                                  OrgSemKind ::
+                                                                      Document)))
+            ;
+        else {
+            ::testing ::internal ::AssertHelper(
+                ::testing ::TestPartResult ::kNonFatalFailure,
+                "/home/haxscramper/workspace/haxorg/tests/org/"
+                "tOrgE2EParse.cpp",
+                921,
+                gtest_ar.failure_message())
+                = ::testing ::Message();
+        }
     EXPECT_EQ(doc2_id->getKind(), OrgSemKind::Document);
 
     EXPECT_EQ(doc1_id.id.getNodeIndex(), 1);
