@@ -471,11 +471,12 @@ void ImmAstTrackingMapTransient::insertAllSubnodesOf(
 
 ImmAstTrackingMap ImmAstTrackingMapTransient::persistent() {
     return ImmAstTrackingMap{
-        .footnotes     = footnotes.persistent(),
-        .subtrees      = subtrees.persistent(),
-        .radioTargets  = radioTargets.persistent(),
-        .anchorTargets = anchorTargets.persistent(),
-        .parents       = parents.persistent(),
+        .footnotes        = footnotes.persistent(),
+        .subtrees         = subtrees.persistent(),
+        .radioTargets     = radioTargets.persistent(),
+        .anchorTargets    = anchorTargets.persistent(),
+        .parents          = parents.persistent(),
+        .isTrackingParent = isTrackingParentImpl,
     };
 }
 

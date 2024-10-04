@@ -41,6 +41,10 @@
     } // namespace testing
 
 GTEST_ADL_PRINT_TYPE(OrgSemKind);
+GTEST_ADL_PRINT_TYPE(org::ImmId);
+GTEST_ADL_PRINT_TYPE(org::ImmAdapter);
+GTEST_ADL_PRINT_TYPE(org::ImmUniqId);
+
 
 struct compare_context {
     std::string type;
@@ -954,9 +958,30 @@ TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {
     EXPECT_EQ(doc2.indexOf(par2_id.id), 0);
 
 
+    auto space_id = par1_id.at(1);
     auto word0_id = par1_id.at(0);
     auto word2_id = par1_id.at(2);
     auto word4_id = par1_id.at(4);
+
+    EXPECT_EQ(space_id, par1_id.at(3));
+    EXPECT_EQ(space_id, par2_id.at(1));
+    EXPECT_EQ(space_id, par2_id.at(3));
+
+    _dbg(store.track->getParentIds(space_id.id));
+    _dbg(store2.track->getParentIds(space_id.id));
+    EXPECT_TRUE(store2.track->isParentOf(par2_id.id, space_id.id));
+    {
+        auto parents = store.track->getParentIds(space_id.id);
+        EXPECT_EQ(parents.size(), 1);
+        EXPECT_EQ(parents.at(0), par1_id.id);
+    }
+
+    {
+        auto parents = store2.track->getParentIds(space_id.id);
+        EXPECT_EQ(parents.size(), 1);
+        EXPECT_EQ(parents.at(0), par2_id.id);
+    }
+
 
     EXPECT_EQ(word0_id->getKind(), OrgSemKind::Word);
     EXPECT_EQ(word2_id->getKind(), OrgSemKind::Word);

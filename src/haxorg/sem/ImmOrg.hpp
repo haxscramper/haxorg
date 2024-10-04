@@ -271,7 +271,12 @@ struct ImmAstTrackingMapTransient {
         ImmId const&       target,
         ImmPathStep const& step);
 
+    /// \brief Remove all direct subnodes of the adapter.
     void removeAllSubnodesOf(ImmAdapter const& parent);
+    /// \brief Insert all direct subnodes of the adapter. The adapter does
+    /// not need to have a fully correct context path -- only relative
+    /// subnode steps are reused, and they can be computed from the node
+    /// value alone.
     void insertAllSubnodesOf(ImmAdapter const& parent);
 
     bool isTrackingParent(ImmAdapter const& it) const {
@@ -296,6 +301,27 @@ struct ImmAstTrackingMap {
     DESC_FIELDS(
         ImmAstTrackingMap,
         (footnotes, subtrees, radioTargets, anchorTargets, parents));
+
+    bool isParentTracked(ImmId const& item) const {
+        return parents.contains(item);
+    }
+
+    bool isParentOf(ImmId const& parent, ImmId const& item) const {
+        return parents.contains(item)
+            && parents.at(item)->contains(parent);
+    }
+
+    /// \brief Get a list of all nodes that specified ID is used in. Due to
+    /// value interning, each specific ID can be used in multiple places at
+    /// once.
+    Vec<ImmId> getParentIds(ImmId const& it) const {
+        if (parents.contains(it)) {
+            return sorted(parents.at(it)->keys());
+        } else {
+            return {};
+        }
+    }
+
     ImmAstTrackingMapTransient transient() {
         return {
             .footnotes            = footnotes.transient(),

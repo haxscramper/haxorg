@@ -4,6 +4,9 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/system/reflection.hpp>
+#include <absl/log/log.h>
+#include <absl/log/initialize.h>
+#include <absl/log/internal/globals.h>
 
 struct OperationsMsg {
     Opt<std::string> msg;
@@ -23,6 +26,14 @@ struct OperationsScope {
     finally scopeTrace(bool state);
 };
 
+struct OperationsTracer;
+
+struct OperationsTracerSink : public absl::LogSink {
+    OperationsTracer const* tracer;
+
+    void Send(const absl::LogEntry& entry) override;
+};
+
 struct OperationsTracer {
     bool        TraceState      = false;
     bool        traceToFile     = false;
@@ -40,6 +51,7 @@ struct OperationsTracer {
     ColStream getStream() const;
     void      endStream(ColStream& stream) const;
     void      message(OperationsMsg const& value) const;
+    finally   collectAbslLogs() const;
 
     void message(
         std::string const& value,
