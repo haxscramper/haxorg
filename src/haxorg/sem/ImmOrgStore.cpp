@@ -433,6 +433,9 @@ ImmId ImmAstStore::add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx) {
         [&]<typename K>(org::ImmIdT<K> id) {
             result = getStore<K>()->add(data, ctx);
         });
+    auto adapter = ctx->adapt(ImmUniqId{result});
+    ctx.track.removeAllSubnodesOf(adapter);
+    ctx.track.insertAllSubnodesOf(adapter);
     return result;
 }
 
@@ -544,7 +547,7 @@ ImmAstVersion ImmAstContext::getEditVersion(
 
 ImmAstContext ImmAstContext::finishEdit(ImmAstEditContext& ctx) {
     ImmAstContext result = *this;
-    *result.track      = ctx.track.persistent();
+    *result.track        = ctx.track.persistent();
     return result;
 }
 

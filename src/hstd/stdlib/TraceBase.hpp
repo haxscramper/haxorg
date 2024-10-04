@@ -30,16 +30,18 @@ struct OperationsTracer;
 
 struct OperationsTracerSink : public absl::LogSink {
     OperationsTracer const* tracer;
+    OperationsScope const*  scope;
 
     void Send(const absl::LogEntry& entry) override;
 };
 
 struct OperationsTracer {
-    bool        TraceState      = false;
-    bool        traceToFile     = false;
-    bool        traceToBuffer   = false;
-    bool        traceStructured = false;
-    bool        traceColored    = true;
+    bool        TraceState       = false;
+    bool        traceToFile      = false;
+    bool        traceToBuffer    = false;
+    bool        traceStructured  = false;
+    bool        traceColored     = true;
+    bool        collectingAbseil = false;
     std::string traceBuffer;
 
     OperationsTracer() {}
@@ -51,7 +53,7 @@ struct OperationsTracer {
     ColStream getStream() const;
     void      endStream(ColStream& stream) const;
     void      message(OperationsMsg const& value) const;
-    finally   collectAbslLogs() const;
+    finally collectAbslLogs(OperationsScope const* scope = nullptr) const;
 
     void message(
         std::string const& value,

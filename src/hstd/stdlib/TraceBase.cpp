@@ -1,3 +1,4 @@
+#include <absl/log/log_sink_registry.h>
 #include <hstd/stdlib/TraceBase.hpp>
 #include <hstd/stdlib/Json.hpp>
 #include <fstream>
@@ -110,4 +111,32 @@ finally OperationsScope::scopeTrace(bool state) {
     bool initialTrace = TraceState;
     *TraceState       = state;
     return finally{[initialTrace, this]() { *TraceState = initialTrace; }};
+}
+
+void OperationsTracerSink::Send(const absl::LogEntry& entry) {
+    tracer->message(
+        entry.text_message().data(),
+        scope ? scope->activeLevel : 0,
+        entry.source_line(),
+        "",
+        entry.source_filename().data());
+}
+
+
+finally OperationsTracer::collectAbslLogs(
+    const OperationsScope* scope) const {
+    auto cthis = const_cast<OperationsTracer*>(this);
+    if (cthis->collectingAbseil) {
+        return finally::nop();
+    } else {
+        auto sink               = std::make_shared<OperationsTracerSink>();
+        cthis->collectingAbseil = true;
+        sink->tracer            = this;
+        sink->scope             = scope;
+        absl::AddLogSink(sink.get());
+        return finally{[sink, cthis]() {
+            absl::RemoveLogSink(sink.get());
+            cthis->collectingAbseil = false;
+        }};
+    }
 }

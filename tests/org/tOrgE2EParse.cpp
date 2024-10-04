@@ -967,8 +967,11 @@ TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {
     EXPECT_EQ(space_id, par2_id.at(1));
     EXPECT_EQ(space_id, par2_id.at(3));
 
-    _dbg(store.track->getParentIds(space_id.id));
-    _dbg(store2.track->getParentIds(space_id.id));
+    {
+        auto __scope = start.debug->collectAbslLogs();
+        _dbg(store.track->getParentIds(space_id.id));
+        _dbg(store2.track->getParentIds(space_id.id));
+    }
     EXPECT_TRUE(store2.track->isParentOf(par2_id.id, space_id.id));
     {
         auto parents = store.track->getParentIds(space_id.id);
