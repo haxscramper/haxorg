@@ -286,12 +286,16 @@ UnorderedSet<ImmUniqId> getEditParents(
     }
 
     AST_EDIT_MSG("Edit replaces");
-    {
+    if (AST_EDIT_TRACE()) {
         auto __scope = ctx.debug.scopeLevel();
         for (auto const& key : replace.allReplacements()) {
             AST_EDIT_MSG(fmt("[{}] -> {}", key.original, key.replaced));
         }
+    }
 
+    AST_EDIT_MSG("Node replace map");
+    if (AST_EDIT_TRACE()) {
+        auto __scope = ctx.debug.scopeLevel();
         for (auto const& key : sorted(replace.nodeReplaceMap.keys())) {
             AST_EDIT_MSG(
                 fmt("[{}] -> {}", key, replace.nodeReplaceMap.at(key)));
@@ -299,12 +303,13 @@ UnorderedSet<ImmUniqId> getEditParents(
     }
 
     AST_EDIT_MSG("Edit parents");
-    {
+    if (AST_EDIT_TRACE()) {
         auto __scope = ctx.debug.scopeLevel();
         for (auto const& key : sorted(editParents | rs::to<Vec>())) {
             AST_EDIT_MSG(fmt("[{}]", key));
         }
     }
+
     return editParents;
 }
 
@@ -362,7 +367,14 @@ ImmId recurseUpdateSubnodes(
             | rv::transform(
                   [](org::ImmAdapter const& it) -> ImmId { return it.id; })
             | rs::to<Vec>();
-        if (flatUpdatedSubnodes != targetSubnodes) {
+        if (flatUpdatedSubnodes == targetSubnodes) {
+            AST_EDIT_MSG(
+                fmt("Updated subnodes for {} are the same as target {}",
+                    node,
+                    updateTarget));
+
+            return updateTarget.id;
+        } else {
             AST_EDIT_MSG(
                 fmt("Updated subnodes changed: updated:{} != "
                     "target({}):{}",
@@ -375,8 +387,6 @@ ImmId recurseUpdateSubnodes(
             auto act     = setNewSubnodes(updateTarget, grouped, ctx);
             result.replaced.set(act);
             return act.replaced.id;
-        } else {
-            return updateTarget.id;
         }
     } else {
         // The node is not a parent for any other replacement. If it

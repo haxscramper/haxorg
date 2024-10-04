@@ -326,8 +326,10 @@ struct ImmAstEditContext {
     ImmAstContext* operator->() { return ctx; }
 };
 
+#define AST_EDIT_TRACE() ctx.ctx->debug->TraceState
+
 #define AST_EDIT_MSG(...)                                                 \
-    if (ctx.ctx->debug->TraceState) { ctx.message(__VA_ARGS__); }
+    if (AST_EDIT_TRACE()) { ctx.message(__VA_ARGS__); }
 
 template <org::IsImmOrgValueType T>
 struct ImmAstKindStore {
@@ -1310,19 +1312,7 @@ template <>
 struct std::formatter<org::ImmPathStep> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const org::ImmPathStep& p, FormatContext& ctx) const {
-        Vec<Str>          result;
-        AnyFormatter<Str> anyFmt;
-        for (ReflPathItem const& step : p.path.path) {
-            if (step.isAnyKey()) {
-                result.push_back(anyFmt(step.getAnyKey().key));
-            } else {
-                std::visit(
-                    [&](auto const& it) { result.push_back(fmt1(it)); },
-                    step.data);
-            }
-        }
-
-        return fmt_ctx(join(">>", result), ctx);
+        return ReflPathFormatter<Str>{}.format(p.path, ctx);
     }
 };
 

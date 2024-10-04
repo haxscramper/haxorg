@@ -166,6 +166,7 @@ struct ReflPathItem {
     }
 };
 
+
 template <>
 struct std::hash<ReflPathItem::Deref> {
     std::size_t operator()(ReflPathItem::Deref const& it) const noexcept {
@@ -228,6 +229,22 @@ struct std::hash<ReflPathItem::AnyKey> {
         std::size_t result = 0;
         // hax_hash_combine(result, it.key);
         return result;
+    }
+};
+
+template <typename... Args>
+struct ReflPathItemFormatter : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const ReflPathItem& step, FormatContext& ctx) const {
+        AnyFormatter<Str> anyFmt;
+        if (step.isAnyKey()) {
+            fmt_ctx(anyFmt(step.getAnyKey().key), ctx);
+        } else {
+            std::visit(
+                [&](auto const& it) { fmt_ctx(it, ctx); }, step.data);
+        }
+
+        return fmt_ctx("", ctx);
     }
 };
 
@@ -366,6 +383,26 @@ struct ReflPathComparator {
         } else {
             return false;
         }
+    }
+};
+
+template <typename... Args>
+struct ReflPathFormatter : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const ReflPath& step, FormatContext& ctx) const {
+        ReflPathFormatter<Args...> fmt{};
+
+        bool is_first = false;
+
+        for (auto const& it : step.path) {
+            if (is_first) {
+                is_first = false;
+            } else {
+                fmt_ctx(">>", ctx);
+            }
+            fmt.format(it, ctx);
+        }
+        return fmt_ctx("", ctx);
     }
 };
 

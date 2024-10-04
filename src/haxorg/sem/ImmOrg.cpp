@@ -765,6 +765,21 @@ ImmAstVersion ImmAstVersion::getEditVersion(
 
 void ImmAstReplaceGroup::set(const ImmAstReplace& replace) {
     LOGIC_ASSERTION_CHECK(replace.original.has_value(), "");
+    for (auto const& it :
+         Vec<ImmUniqId>{replace.original.value(), replace.replaced}) {
+        bool check = it.id.is(OrgSemKind::Document)
+                  || it.id.is(OrgSemKind::DocumentGroup)
+                  || !it.path.empty();
+        LOGIC_ASSERTION_CHECK(
+            check,
+            "Replace group origina/replaced ID must either be a tree root "
+            "-- document or a document group -- or have a non-empty path, "
+            "but {} does not match the requirement. Kind is {}, path is "
+            "{}",
+            replace,
+            it.id.getKind(),
+            it.path);
+    }
     LOGIC_ASSERTION_CHECK(
         replace.original != replace.replaced,
         "Identical original and replaced node: {}",
