@@ -380,7 +380,7 @@ struct ImmAstReplaceGroup {
     Vec<ImmId>    newSubnodes(Vec<ImmId> oldSubnodes) const;
 
     generator<ImmAstReplace> allReplacements() const {
-        for (auto const& key : this->map.keys()) {
+        for (auto const& key : sorted(this->map.keys())) {
             co_yield ImmAstReplace{
                 .original = key,
                 .replaced = this->map.at(key),
@@ -482,7 +482,7 @@ struct ImmAdapter;
 struct [[nodiscard]] ImmAstContext {
     SPtr<OperationsTracer>  debug;
     SPtr<ImmAstStore>       store;
-    SPtr<ImmAstTrackingMap> parents;
+    SPtr<ImmAstTrackingMap> track;
 
     void message(
         std::string const& value,
@@ -493,7 +493,7 @@ struct [[nodiscard]] ImmAstContext {
         if (debug) { debug->message(value, level, line, function, file); }
     }
 
-    DESC_FIELDS(ImmAstContext, (store, parents));
+    DESC_FIELDS(ImmAstContext, (store, track));
 
     ImmAstVersion getEditVersion(
         ImmAdapter const&                                            root,
@@ -501,7 +501,7 @@ struct [[nodiscard]] ImmAstContext {
 
     ImmAstEditContext getEditContext() {
         return ImmAstEditContext{
-            .track = parents->transient(),
+            .track = track->transient(),
             .ctx   = this,
             .debug = OperationsScope{
                 .TraceState  = &debug->TraceState,
@@ -552,7 +552,7 @@ struct [[nodiscard]] ImmAstContext {
 
     ImmAstContext()
         : store{std::make_shared<ImmAstStore>()}
-        , parents{std::make_shared<ImmAstTrackingMap>()}
+        , track{std::make_shared<ImmAstTrackingMap>()}
         , debug{std::make_shared<OperationsTracer>()} //
     {}
 };

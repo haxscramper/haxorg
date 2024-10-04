@@ -904,6 +904,9 @@ TEST_F(ImmOrgApi, ImmAstFieldIteration) {
 
 TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {
     setTraceFile(getDebugFile("trace.txt"));
+    start.track->isTrackingParent = [](org::ImmAdapter const&) {
+        return true;
+    };
     auto start_node   = parseNode("word0 word2 word4");
     auto replace_node = parseNode("wordXX").at(0).at(0);
     auto version1     = start.init(start_node);
@@ -922,38 +925,12 @@ TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {
     auto const& c = gen_view(version2.epoch.replaced.allReplacements())
                   | rs::to<Vec>();
 
-    auto const& doc1_id = ctx->adapt(c.at(1).original.value());
-    auto const& doc2_id = ctx->adapt(c.at(1).replaced);
-    auto const& par1_id = ctx->adapt(c.at(0).original.value());
-    auto const& par2_id = ctx->adapt(c.at(0).replaced);
+    auto const& doc1_id = ctx->adapt(c.at(0).original.value());
+    auto const& doc2_id = ctx->adapt(c.at(0).replaced);
+    auto const& par1_id = ctx->adapt(c.at(1).original.value());
+    auto const& par2_id = ctx->adapt(c.at(1).replaced);
 
-    switch (0)
-    case 0:
-    default:
-        if (const ::testing ::AssertionResult gtest_ar = (::testing ::internal ::
-                                                              EqHelper ::Compare(
-                                                                  "doc1_"
-                                                                  "id->"
-                                                                  "getKind"
-                                                                  "()",
-                                                                  "OrgSemK"
-                                                                  "ind::"
-                                                                  "Documen"
-                                                                  "t",
-                                                                  doc1_id
-                                                                      ->getKind(),
-                                                                  OrgSemKind ::
-                                                                      Document)))
-            ;
-        else {
-            ::testing ::internal ::AssertHelper(
-                ::testing ::TestPartResult ::kNonFatalFailure,
-                "/home/haxscramper/workspace/haxorg/tests/org/"
-                "tOrgE2EParse.cpp",
-                921,
-                gtest_ar.failure_message())
-                = ::testing ::Message();
-        }
+    EXPECT_EQ(doc1_id->getKind(), OrgSemKind::Document);
     EXPECT_EQ(doc2_id->getKind(), OrgSemKind::Document);
 
     EXPECT_EQ(doc1_id.id.getNodeIndex(), 1);

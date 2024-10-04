@@ -544,7 +544,7 @@ ImmAstVersion ImmAstContext::getEditVersion(
 
 ImmAstContext ImmAstContext::finishEdit(ImmAstEditContext& ctx) {
     ImmAstContext result = *this;
-    *result.parents      = ctx.track.persistent();
+    *result.track      = ctx.track.persistent();
     return result;
 }
 
