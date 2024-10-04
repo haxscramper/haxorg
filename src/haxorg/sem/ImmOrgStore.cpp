@@ -1,3 +1,4 @@
+#include <hstd/stdlib/reflection_visitor.hpp>
 #include "hstd/stdlib/Set.hpp"
 #include "hstd/stdlib/algorithms.hpp"
 #include <haxorg/sem/ImmOrg.hpp>

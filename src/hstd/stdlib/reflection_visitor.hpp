@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hstd/stdlib/Enumerate.hpp"
 #include "hstd/stdlib/Set.hpp"
 #include <hstd/system/aux_utils.hpp>
 #include <hstd/system/reflection.hpp>
@@ -224,6 +225,15 @@ struct std::formatter<ReflPathItem::FieldName>
 };
 
 template <>
+struct std::formatter<ReflPathItem::AnyKey> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const ReflPathItem::AnyKey& p, FormatContext& ctx) const {
+        fmt_ctx("?", ctx);
+        return fmt_ctx(demangle(p.key.type().name()), ctx);
+    }
+};
+
+template <>
 struct std::hash<ReflPathItem::AnyKey> {
     std::size_t operator()(ReflPathItem::AnyKey const& it) const noexcept {
         std::size_t result = 0;
@@ -244,6 +254,16 @@ struct ReflPathItemFormatter : std::formatter<std::string> {
                 [&](auto const& it) { fmt_ctx(it, ctx); }, step.data);
         }
 
+        return fmt_ctx("", ctx);
+    }
+};
+
+
+template <>
+struct std::formatter<ReflPathItem> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const ReflPathItem& step, FormatContext& ctx) const {
+        std::visit([&](auto const& it) { fmt_ctx(it, ctx); }, step.data);
         return fmt_ctx("", ctx);
     }
 };
@@ -390,22 +410,26 @@ template <typename... Args>
 struct ReflPathFormatter : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const ReflPath& step, FormatContext& ctx) const {
-        ReflPathFormatter<Args...> fmt{};
-
-        bool is_first = false;
-
-        for (auto const& it : step.path) {
-            if (is_first) {
-                is_first = false;
-            } else {
-                fmt_ctx(">>", ctx);
-            }
-            fmt.format(it, ctx);
+        ReflPathItemFormatter<Args...> fmt{};
+        for (auto const& it : enumerator(step.path)) {
+            if (!it.is_first()) { fmt_ctx(">>", ctx); }
+            fmt.format(it.value(), ctx);
         }
         return fmt_ctx("", ctx);
     }
 };
 
+template <>
+struct std::formatter<ReflPath> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const ReflPath& step, FormatContext& ctx) const {
+        for (auto const& it : enumerator(step.path)) {
+            if (!it.is_first()) { fmt_ctx(">>", ctx); }
+            fmt_ctx(it.value(), ctx);
+        }
+        return fmt_ctx("", ctx);
+    }
+};
 
 template <typename T>
 struct ReflVisitor {};
