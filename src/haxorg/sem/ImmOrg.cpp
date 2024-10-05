@@ -439,11 +439,10 @@ void ImmAstTrackingMapTransient::setAsParentOf(
     const ImmId&       parent,
     const ImmId&       target,
     const ImmPathStep& step) {
+    useNewParentTrack(target);
     auto const* newParent = parents.find(target);
     if (newParent == nullptr) {
         parents.set(target, std::make_shared<ParentPathMap>());
-    } else {
-        useNewParentTrack(target);
     }
 
     if (!parents.at(target)->contains(parent)) {
@@ -456,7 +455,10 @@ void ImmAstTrackingMapTransient::setAsParentOf(
 void ImmAstTrackingMapTransient::useNewParentTrack(const ImmId& target) {
     auto const* newParent = parents.find(target);
     auto const* oldParent = oldCtx->track->parents.find(target);
-    if (oldParent == newParent) {
+    if (oldParent == newParent  //
+        && oldParent != nullptr //
+        && newParent != nullptr //
+        && oldParent->get() != nullptr) {
         parents.set(
             target, std::make_shared<ParentPathMap>(*oldParent->get()));
     }

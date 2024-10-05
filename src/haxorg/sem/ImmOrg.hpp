@@ -1281,7 +1281,7 @@ struct std::formatter<org::ImmAstContext*>
 
 template <>
 struct std::formatter<org::ParentPathMap*>
-    : std_format_ptr_as_value<org::ParentPathMap> {};
+    : std_format_ptr_as_hex_and_value<org::ParentPathMap> {};
 
 template <>
 struct std::formatter<org::ImmPath> : std::formatter<std::string> {

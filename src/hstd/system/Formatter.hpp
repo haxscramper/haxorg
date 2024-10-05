@@ -69,6 +69,21 @@ struct std_format_ptr_as_hex : std::formatter<std::string> {
     }
 };
 
+template <typename T>
+struct std_format_ptr_as_hex_and_value : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(T const* p, FormatContext& ctx) const {
+        if (p == nullptr) {
+            return fmt_ctx("nullptr", ctx);
+        } else {
+            fmt_ctx(
+                std::format("{:p}->", static_cast<const void*>(p)), ctx);
+            return fmt_ctx(*p, ctx);
+        }
+    }
+};
+
+
 template <>
 struct std::formatter<int const*> : std_format_ptr_as_value<int> {};
 
