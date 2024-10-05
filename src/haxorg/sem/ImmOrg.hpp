@@ -253,7 +253,8 @@ namespace org {
 
 struct ImmAdapter;
 using ImmStrIdMap          = ImmMap<Str, ImmId>;
-using ParentPathMap        = UnorderedMap<ImmId, Vec<ImmPathStep>>;
+using ImmParentPathVec     = SmallVec<ImmPathStep, 4>;
+using ParentPathMap        = UnorderedMap<ImmId, ImmParentPathVec>;
 using ParentPathMapPtr     = SPtr<ParentPathMap>;
 using ImmParentMap         = ImmMap<ImmId, ParentPathMapPtr>;
 using ImmPanentTrackFilter = Func<bool(ImmAdapter const&)>;

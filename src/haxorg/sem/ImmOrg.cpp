@@ -446,7 +446,7 @@ void ImmAstTrackingMapTransient::setAsParentOf(
     }
 
     if (!parents.at(target)->contains(parent)) {
-        parents.at(target)->insert_or_assign(parent, Vec<ImmPathStep>{});
+        parents.at(target)->insert_or_assign(parent, ImmParentPathVec{});
     }
 
     parents.at(target)->at(parent).push_back(step);

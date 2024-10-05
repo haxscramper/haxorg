@@ -678,7 +678,7 @@ TEST_F(ImmOrgDocumentSelector, NonLeafSubtrees) {
                   })
                 | rs::to<Vec>();
 
-    rs::sort(titles);
+    std::sort(titles.begin(), titles.end());
     EXPECT_EQ(titles.at(0), Vec<Str>{"s1"});
     EXPECT_EQ(titles.at(1), Vec<Str>{"s3"});
     EXPECT_EQ(titles.at(2), Vec<Str>{"s6"});
