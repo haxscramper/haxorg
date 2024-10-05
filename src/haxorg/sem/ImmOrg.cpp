@@ -455,10 +455,11 @@ void ImmAstTrackingMapTransient::setAsParentOf(
 void ImmAstTrackingMapTransient::useNewParentTrack(const ImmId& target) {
     auto const* newParent = parents.find(target);
     auto const* oldParent = oldCtx->track->parents.find(target);
-    if (oldParent == newParent  //
-        && oldParent != nullptr //
-        && newParent != nullptr //
-        && oldParent->get() != nullptr) {
+    if (oldParent != nullptr                    //
+        && newParent != nullptr                 //
+        && oldParent->get() != nullptr          //
+        && oldParent->get() == newParent->get() //
+    ) {
         parents.set(
             target, std::make_shared<ParentPathMap>(*oldParent->get()));
     }

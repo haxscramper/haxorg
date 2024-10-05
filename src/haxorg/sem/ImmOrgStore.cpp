@@ -91,14 +91,32 @@ ImmAstReplace ImmAstStore::setNode(
     visit_node(target.value<T>(), target.id, false);
     visit_node(value, result_node, true);
 
-    AST_EDIT_MSG(fmt("imm parents: {}", ctx.ctx->track->parents));
-    AST_EDIT_MSG(fmt("mut parents: {}", ctx.track.parents));
+    auto __absl_scope = ctx.collectAbslLogs();
+    auto dbg          = [&](std::string section) {
+        AST_EDIT_MSG(fmt("{}", section));
+        auto        __scope = ctx.debug.scopeLevel();
+        auto const& imm     = ctx.ctx->track->parents;
+        auto const& mut     = ctx.track.parents;
+
+        UnorderedSet<ImmId> keys;
+        for (auto const& [key, value] : imm) { keys.incl(key); }
+        for (auto const& [key, value] : mut) { keys.incl(key); }
+        for (auto const& key : sorted(keys | rs::to<Vec>())) {
+            AST_EDIT_MSG(
+                fmt("key {:<24} imm {:<32} mut {:<32}",
+                    fmt1(key),
+                    imm.find(key) == nullptr ? "" : fmt1(imm.at(key)),
+                    mut.find(key) == nullptr ? "" : fmt1(mut.at(key))));
+        }
+    };
+
+    bool verboseSubnodeSet = false;
+
+    if (verboseSubnodeSet) { dbg("Pre remove"); }
     ctx.track.removeAllSubnodesOf(target);
-    AST_EDIT_MSG(fmt("imm parents: {}", ctx.ctx->track->parents));
-    AST_EDIT_MSG(fmt("mut parents: {}", ctx.track.parents));
+    if (verboseSubnodeSet) { dbg("After remove"); }
     ctx.track.insertAllSubnodesOf(ctx->adapt(replaced));
-    AST_EDIT_MSG(fmt("imm parents: {}", ctx.ctx->track->parents));
-    AST_EDIT_MSG(fmt("mut parents: {}", ctx.track.parents));
+    if (verboseSubnodeSet) { dbg("After insert remove"); }
 
     return ImmAstReplace{
         .replaced = replaced,
