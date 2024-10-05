@@ -134,13 +134,17 @@ Str Graphviz::alignText(const Str& text, TextAlign direction) {
     Str res = text;
     switch (direction) {
         case TextAlign::Left: {
-            res = res.replaceAll("\n", "\\l");
-            res += "\\l";
+            if (res.contains('\n')) {
+                res = res.replaceAll("\n", "\\l");
+                res += "\\l";
+            }
             break;
         }
         case TextAlign::Right: {
-            res = res.replaceAll("\n", "\\r");
-            res += "\\r";
+            if (res.contains('\n')) {
+                res = res.replaceAll("\n", "\\r");
+                res += "\\r";
+            }
             break;
         }
         case TextAlign::Center: break;

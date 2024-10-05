@@ -376,46 +376,6 @@ Opt<MapNodeProp> org::graph::getUnresolvedNodeInsert(
         org::eachSubnodeRec(node, register_used_links);
     }
 
-    switch (node->getKind()) {
-        case osk::Subtree: {
-            result.kind = MapNodeProp::Kind::Subtree;
-            break;
-        }
-
-        case osk::AnnotatedParagraph: {
-            if (node.as<org::ImmAnnotatedParagraph>()->getAnnotationKind()
-                == org::ImmAnnotatedParagraph::AnnotationKind::Footnote) {
-                result.kind = MapNodeProp::Kind::Footnote;
-            } else {
-                result.kind = MapNodeProp::Kind::Paragraph;
-            }
-            break;
-        }
-
-        case osk::Paragraph: {
-            result.kind = MapNodeProp::Kind::Paragraph;
-            break;
-        }
-
-        case osk::Document: {
-            result.kind = MapNodeProp::Kind::Document;
-            break;
-        }
-
-        case osk::List: {
-            result.kind = MapNodeProp::Kind::List;
-            break;
-        }
-
-        case osk::ListItem: {
-            result.kind = MapNodeProp::Kind::ListItem;
-            break;
-        }
-
-        default: {
-        }
-    }
-
     if (conf.TraceState) {
         conf.message(
             fmt("box:{} unresolved:{}", node, result.unresolved),
@@ -631,24 +591,12 @@ Graphviz::Graph MapGraph::toGraphviz(org::ImmAstContext const& ctx) const {
             Record{fmt1(it.id)},
         }});
 
-        add_field(Record{{
-            Record{left_aligned("Kind", 16)},
-            Record{fmt1(prop.kind)},
-        }});
 
         for (auto const& [idx, unresolved] : enumerate(prop.unresolved)) {
             add_field(Record{{
                 Record{left_aligned(fmt("Unresolved [{}]", idx), 16)},
                 Record{fmt1(unresolved.link)},
             }});
-        }
-
-        switch (prop.kind) {
-            case MapNodeProp::Kind::Subtree: {
-                break;
-            }
-            default: {
-            }
         }
 
         node.finishRecord();
