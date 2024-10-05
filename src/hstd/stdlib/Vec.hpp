@@ -32,6 +32,11 @@ struct IndexedBase : public CRTP_this_method<Container> {
         if (idx < 0) {
             throw std::out_of_range(
                 "Operation does not support negative indices");
+        } else if (!(idx < _this()->size())) {
+            throw std::out_of_range(
+                std::string("Value out of range. idx < size(): ")
+                + std::to_string(idx) + std::string(" !< ")
+                + std::to_string(_this()->size()));
         }
     }
 
@@ -195,6 +200,38 @@ struct IndexedBase : public CRTP_this_method<Container> {
         result.append(other);
         return result;
     }
+
+    /// \brief Get last value and pop it out of the vector itself
+    T pop_back_v() {
+        // QUESTION use `std::move` and rvalue to eject elements?
+        _this()->failEmpty();
+        auto result = _this()->back();
+        _this()->pop_back();
+        return result;
+    }
+
+
+    /// \brief Return the mutable reference to element at index, if the
+    /// vector does not have enough elements, resize it to fit.
+    T& resize_at(int idx) {
+        if (_this()->high() < idx) { _this()->resize(idx + 1); }
+        return _this()->at(idx);
+    }
+
+    /// \brief resize_at overload with default value to fill in
+    T& resize_at(int idx, T const& value) {
+        if (_this()->high() < idx) { _this()->resize(idx + 1, value); }
+        return _this()->at(idx);
+    }
+
+
+    /// \brief Find item in the vector using default `==` check
+    int indexOf(CR<T> item) const { return index_of(*_this(), item); }
+    /// \brief Check if vector contains item, using `==`. \note \(O(n)\)
+    /// operation, so better used only on small vectors.
+    bool contains(CR<T> item) const {
+        return _this()->indexOf(item) != -1;
+    }
 };
 
 /// \brief Derivation of the standard vector with better API for quick
@@ -225,12 +262,15 @@ class Vec
     using API::lessThan;
     using API::operator<;
     using API::checkIdx;
+    using API::contains;
     using API::empty;
     using API::failEmpty;
     using API::get;
     using API::get_copy;
     using API::has;
     using API::high;
+    using API::indexOf;
+    using API::pop_back_v;
     using Base::Base;
     using Base::begin;
     using Base::end;
@@ -239,14 +279,14 @@ class Vec
 
     Vec(std::initializer_list<T> init) : std::vector<T>(init) {}
     Vec(Vec<T> const& init) : std::vector<T>(init) {}
+    Vec(int size, const T& value) : std::vector<T>(size, value) {}
+    Vec() {}
+    explicit Vec(int size) : std::vector<T>(size) {}
 
     static Vec<T> FromValue(CR<Vec<T>> values) { return values; }
     int           size() const { return static_cast<int>(Base::size()); }
 
 
-    Vec() {}
-    explicit Vec(int size) : std::vector<T>(size) {}
-    Vec(int size, const T& value) : std::vector<T>(size, value) {}
     /// \brief Construct vector from the span of elements.
     ///
     /// \note Made explicit to make it harder to do accidental
@@ -306,21 +346,6 @@ class Vec
             const_cast<T*>(this->data() + start), end - start + 1);
     }
 
-
-    /// \brief Return the mutable reference to element at index, if the
-    /// vector does not have enough elements, resize it to fit.
-    T& resize_at(int idx) {
-        if (high() < idx) { this->resize(idx + 1); }
-        return at(idx);
-    }
-
-    /// \brief resize_at overload with default value to fill in
-    T& resize_at(int idx, T const& value) {
-        if (high() < idx) { this->resize(idx + 1, value); }
-        return at(idx);
-    }
-
-
     /// \brief Reference to the last element. Checks for proper array size
     T& back() {
         // It will cause segfault anyway, just in a way that you least
@@ -344,21 +369,6 @@ class Vec
         Base::pop_back();
     }
 
-    /// \brief Get last value and pop it out of the vector itself
-    T pop_back_v() {
-        // QUESTION use `std::move` and rvalue to eject elements?
-        failEmpty();
-        auto result = back();
-        pop_back();
-        return result;
-    }
-
-
-    /// \brief Find item in the vector using default `==` check
-    int indexOf(CR<T> item) const { return index_of(*this, item); }
-    /// \brief Check if vector contains item, using `==`. \note \(O(n)\)
-    /// operation, so better used only on small vectors.
-    bool contains(CR<T> item) const { return indexOf(item) != -1; }
 
     /// \brief Get span that extents for the whole vector content
     Span<T> toSpan() const {
@@ -425,8 +435,8 @@ template <typename T, int StartSize>
 struct SmallVec
     : public boost::container::small_vector<T, StartSize>
     , public IndexedBase<T, SmallVec<T, StartSize>> {
-    using Base = std::vector<T>;
-    using API  = IndexedBase<T, Vec<T>>;
+    using Base = boost::container::small_vector<T, StartSize>;
+    using API  = IndexedBase<T, SmallVec<T, StartSize>>;
 
     using API::operator[];
     using API::append;
@@ -435,17 +445,77 @@ struct SmallVec
     using API::lessThan;
     using API::operator<;
     using API::checkIdx;
+    using API::contains;
     using API::empty;
     using API::failEmpty;
     using API::get;
     using API::get_copy;
     using API::has;
     using API::high;
+    using API::indexOf;
+    using API::pop_back_v;
     using Base::Base;
     using Base::begin;
     using Base::end;
     using Base::insert;
     using Base::push_back;
+
+    SmallVec(std::initializer_list<T> init) : Base(init) {}
+    SmallVec(SmallVec<T, StartSize> const& init) : Base(init) {}
+    SmallVec(int size, const T& value) : Base(size, value) {}
+    SmallVec() {}
+    explicit SmallVec(int size) : Base(size) {}
+
+    T const& operator[](int idx) const {
+        checkIdx(idx);
+        return Base::operator[](idx);
+    }
+
+    T& operator[](int idx) {
+        checkIdx(idx);
+        return Base::operator[](idx);
+    }
+
+    T const& at(int idx) const {
+        checkIdx(idx);
+        return Base::at(idx);
+    }
+
+    T& at(int idx) {
+        checkIdx(idx);
+        return Base::at(idx);
+    }
+
+    /// \brief constant reference to the last element, checks for vector
+    /// size
+    T const& back() const {
+        failEmpty();
+        return Base::back();
+    }
+
+    /// \brief Override of the 'back' accessor of the standard vector, but
+    /// with check for proper size
+    void pop_back() {
+        failEmpty();
+        Base::pop_back();
+    }
+
+    int size() const { return static_cast<int>(Base::size()); }
+
+    /// \brief Access span of elements in mutable vector
+    template <typename A, typename B>
+    Span<T> at(CR<HSlice<A, B>> s, bool checkRange = true) {
+        const auto [start, end] = getSpan(size(), s, checkRange);
+        return Span<T>(this->data() + start, end - start + 1);
+    }
+
+    /// \brief  Access span of elements in immutable vector
+    template <typename A, typename B>
+    Span<T> at(CR<HSlice<A, B>> s, bool checkRange = true) const {
+        const auto [start, end] = getSpan(size(), s, checkRange);
+        return Span<T>(
+            const_cast<T*>(this->data() + start), end - start + 1);
+    }
 };
 
 static_assert(
