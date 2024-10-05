@@ -259,6 +259,7 @@ using ImmParentMap         = ImmMap<ImmId, ParentPathMapPtr>;
 using ImmPanentTrackFilter = Func<bool(ImmAdapter const&)>;
 
 struct ImmAstTrackingMapTransient {
+    ImmAstContext*               oldCtx;
     ImmStrIdMap::transient_type  footnotes;
     ImmStrIdMap::transient_type  subtrees;
     ImmStrIdMap::transient_type  radioTargets;
@@ -270,6 +271,13 @@ struct ImmAstTrackingMapTransient {
         ImmId const&       parent,
         ImmId const&       target,
         ImmPathStep const& step);
+
+    /// \brief Copy existing parent track for the node `target` into a new
+    /// shared pointer. Parent tracking map uses shared pointers to avoid
+    /// copying the whole structure on each immutable/transient change.
+    /// This method effectively implements copy on write for the parent
+    /// map.
+    void useNewParentTrack(ImmId const& target);
 
     /// \brief Remove all direct subnodes of the adapter.
     void removeAllSubnodesOf(ImmAdapter const& parent);
@@ -322,8 +330,9 @@ struct ImmAstTrackingMap {
         }
     }
 
-    ImmAstTrackingMapTransient transient() {
+    ImmAstTrackingMapTransient transient(ImmAstContext* oldCtx) {
         return {
+            .oldCtx               = oldCtx,
             .footnotes            = footnotes.transient(),
             .subtrees             = subtrees.transient(),
             .radioTargets         = radioTargets.transient(),
@@ -350,6 +359,8 @@ struct ImmAstEditContext {
         char const*        file     = __builtin_FILE());
 
     ImmAstContext* operator->() { return ctx; }
+
+    finally collectAbslLogs();
 };
 
 #define AST_EDIT_TRACE() ctx.ctx->debug->TraceState
@@ -527,7 +538,7 @@ struct [[nodiscard]] ImmAstContext {
 
     ImmAstEditContext getEditContext() {
         return ImmAstEditContext{
-            .track = track->transient(),
+            .track = track->transient(this),
             .ctx   = this,
             .debug = OperationsScope{
                 .TraceState  = &debug->TraceState,

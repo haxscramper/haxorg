@@ -439,8 +439,11 @@ void ImmAstTrackingMapTransient::setAsParentOf(
     const ImmId&       parent,
     const ImmId&       target,
     const ImmPathStep& step) {
-    if (ParentPathMapPtr const* it = parents.find(target); it == nullptr) {
+    auto const* newParent = parents.find(target);
+    if (newParent == nullptr) {
         parents.set(target, std::make_shared<ParentPathMap>());
+    } else {
+        useNewParentTrack(target);
     }
 
     if (!parents.at(target)->contains(parent)) {
@@ -450,10 +453,20 @@ void ImmAstTrackingMapTransient::setAsParentOf(
     parents.at(target)->at(parent).push_back(step);
 }
 
+void ImmAstTrackingMapTransient::useNewParentTrack(const ImmId& target) {
+    auto const* newParent = parents.find(target);
+    auto const* oldParent = oldCtx->track->parents.find(target);
+    if (oldParent == newParent) {
+        parents.set(
+            target, std::make_shared<ParentPathMap>(*oldParent->get()));
+    }
+}
+
 void ImmAstTrackingMapTransient::removeAllSubnodesOf(
     const ImmAdapter& parent) {
     for (auto const& sub : parent.getAllSubnodes(std::nullopt)) {
         if (isTrackingParent(sub) && parents.find(sub.id) != nullptr) {
+            useNewParentTrack(sub.id);
             ParentPathMapPtr ptr = parents.at(sub.id);
             ptr->erase(parent.id);
         }
@@ -492,6 +505,10 @@ void ImmAstEditContext::message(
     int                line,
     const char*        file) {
     ctx->message(value, debug.activeLevel, function, line, file);
+}
+
+finally ImmAstEditContext::collectAbslLogs() {
+    return ctx->debug->collectAbslLogs(&debug);
 }
 
 

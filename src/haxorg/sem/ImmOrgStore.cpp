@@ -90,8 +90,15 @@ ImmAstReplace ImmAstStore::setNode(
 
     visit_node(target.value<T>(), target.id, false);
     visit_node(value, result_node, true);
+
+    AST_EDIT_MSG(fmt("imm parents: {}", ctx.ctx->track->parents));
+    AST_EDIT_MSG(fmt("mut parents: {}", ctx.track.parents));
     ctx.track.removeAllSubnodesOf(target);
+    AST_EDIT_MSG(fmt("imm parents: {}", ctx.ctx->track->parents));
+    AST_EDIT_MSG(fmt("mut parents: {}", ctx.track.parents));
     ctx.track.insertAllSubnodesOf(ctx->adapt(replaced));
+    AST_EDIT_MSG(fmt("imm parents: {}", ctx.ctx->track->parents));
+    AST_EDIT_MSG(fmt("mut parents: {}", ctx.track.parents));
 
     return ImmAstReplace{
         .replaced = replaced,
@@ -547,6 +554,7 @@ ImmAstVersion ImmAstContext::getEditVersion(
 
 ImmAstContext ImmAstContext::finishEdit(ImmAstEditContext& ctx) {
     ImmAstContext result = *this;
+    result.track         = std::make_shared<ImmAstTrackingMap>();
     *result.track        = ctx.track.persistent();
     return result;
 }
@@ -566,8 +574,9 @@ ImmId ImmAstContext::add(
 }
 
 ImmRootAddResult ImmAstContext::addRoot(sem::SemId<sem::Org> data) {
-    auto edit = getEditContext();
-    auto root = add(data, edit);
+    auto edit         = getEditContext();
+    auto __absl_scope = edit.collectAbslLogs();
+    auto root         = add(data, edit);
     return ImmRootAddResult{.root = root, .context = edit.finish()};
 }
 

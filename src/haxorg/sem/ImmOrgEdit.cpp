@@ -10,8 +10,9 @@ ImmAstReplace org::setSubnode(
     int                position,
     ImmAstEditContext& ctx) {
     AST_EDIT_MSG(fmt("Set {}[{}] = {}", node, position, newSubnode));
-    return setSubnodes(
+    auto res = setSubnodes(
         node, node->subnodes.set(position, newSubnode), ctx);
+    return res;
 }
 
 ImmAstReplace org::insertSubnode(
