@@ -9,13 +9,12 @@ using namespace org::graph;
 using osk = OrgSemKind;
 using slk = org::ImmLink::Kind;
 
-namespace {
 
-bool isDescriptionItem(org::ImmAdapter node) {
+bool org::graph::isDescriptionItem(org::ImmAdapter node) {
     return node.as<org::ImmListItem>()->header->has_value();
 }
 
-bool isLinkedDescriptionItemNode(org::ImmAdapter n) {
+bool org::graph::isLinkedDescriptionItemNode(org::ImmAdapter n) {
     return n.is(osk::ListItem)  //
         && isDescriptionItem(n) //
         && rs::any_of(
@@ -26,7 +25,7 @@ bool isLinkedDescriptionItemNode(org::ImmAdapter n) {
                });
 }
 
-bool isLinkedDescriptionItem(org::ImmAdapter n) {
+bool org::graph::isLinkedDescriptionItem(org::ImmAdapter n) {
     // If any of the parent nodes for this box is a linked description
     // item, ignore the entry as it has already been added as a part of the
     // link descripion.
@@ -37,35 +36,29 @@ bool isLinkedDescriptionItem(org::ImmAdapter n) {
         });
 }
 
-/// \brief Check if getBoxedNode is a description list. By design, having
-/// at least one description list item in the description list makes the
-/// whole list into a linked description as well.
-bool isLinkedDescriptionList(org::ImmAdapter n) {
+bool org::graph::isLinkedDescriptionList(org::ImmAdapter n) {
     return n.is(osk::List)
         && rs::any_of(n.sub(), [&](org::ImmAdapter arg) -> bool {
                return isLinkedDescriptionItem(arg);
            });
 }
 
-/// \brief Check if a node is placed in the description list item or *is* a
-/// description list item.
-bool isInLinkedDescriptionList(org::ImmAdapter n) {
+bool org::graph::isInLinkedDescriptionList(org::ImmAdapter n) {
     return rs::any_of(n.getParentChain(), [](org::ImmAdapter tree) {
         return isLinkedDescriptionItem(tree);
     });
 }
 
-bool isMmapIgnored(org::ImmAdapter n) {
+bool org::graph::isMmapIgnored(org::ImmAdapter n) {
     return isInLinkedDescriptionList(n) || isLinkedDescriptionList(n);
 }
-} // namespace
 
 void removeUnresolvedNodeProps(
     NodeProps&                   props,
     MapNodeResolveResult const&  resolved_node,
     MapNode const&               newNode,
     UnorderedSet<MapNode> const& existingUnresolved,
-    MapOpsConfig&                conf) {
+    MapConfig&                   conf) {
     for (auto const& op : resolved_node.resolved) {
         auto remove_resolved = [&](MapNode node) {
             MapNodeProp prop = props[node];
@@ -90,7 +83,7 @@ void updateUnresolvedNodeTracking(
     NodeProps&                  props,
     MapNodeResolveResult const& resolved_node,
     MapNode const&              newNode,
-    MapOpsConfig&               conf) {
+    MapConfig&                  conf) {
     conf.message(
         fmt("New node {}, resolution result {}", newNode, resolved_node),
         conf.activeLevel);
@@ -132,7 +125,7 @@ void updateUnresolvedNodeTracking(
 void updateResolvedEdges(
     MapGraph&                   graph,
     MapNodeResolveResult const& resolved_node,
-    MapOpsConfig&               conf) {
+    MapConfig&                  conf) {
     for (auto const& op : resolved_node.resolved) {
         for (auto const& target : graph.adjList.at(op.source)) {
             LOGIC_ASSERTION_CHECK(
@@ -162,7 +155,7 @@ void updateResolvedEdges(
 void updateTrackingTables(
     MapGraphState&     state,
     MapNodeProp const& unresolved_node,
-    MapOpsConfig&      conf) {
+    MapConfig&         conf) {
 
     MapNode mapNode{unresolved_node.id.id};
 
@@ -184,7 +177,7 @@ void updateTrackingTables(
 void traceNodeResolve(
     MapGraphState const&        outputState,
     MapNodeResolveResult const& resolved_node,
-    MapOpsConfig&               conf,
+    MapConfig&                  conf,
     MapNode const&              mapNode) {
     if (conf.TraceState) {
         conf.message(
@@ -228,7 +221,7 @@ void traceNodeResolve(
 void org::graph::addNode(
     MapGraphState&     state,
     MapNodeProp const& unresolved_node,
-    MapOpsConfig&      conf) {
+    MapConfig&         conf) {
 
     // Update ID tracking tables so the newly added node could be found by
     // the ID resolution.
@@ -277,10 +270,69 @@ static const SemSet NestedNodes{
 };
 
 
-Opt<MapNodeProp> org::graph::getUnresolvedNodeInsert(
+Opt<MapLink> org::graph::getUnresolvedLink(
+    const MapGraphState& s,
+    ImmAdapterT<ImmLink> link,
+    MapConfig&           conf) {
+    if (link->getLinkKind() != slk::Raw) {
+        return MapLink{
+            .link = link,
+            .description //
+            = link->description.get()
+                ? Vec{link.at(
+                      link->description.get().value().toId(),
+                      ImmPathStep::FieldDeref("description"))}
+                : Vec<org::ImmAdapter>{},
+        };
+    } else {
+        return std::nullopt;
+    }
+}
+
+
+Vec<MapLink> org::graph::getUnresolvedSubtreeLinks(
+    const MapGraphState&         s,
+    ImmAdapterT<org::ImmSubtree> tree,
+    MapConfig&                   conf) {
+    Vec<MapLink> unresolved;
+    // Description lists with links in header are attached as the
+    // outgoing link to the parent subtree. It is the only supported
+    // way to provide an extensive label between subtree nodes.
+    for (auto const& list : tree.subAs<org::ImmList>()) {
+        conf.message("Subtree has list", conf.activeLevel);
+        for (auto const& item : list.subAs<org::ImmListItem>()) {
+            conf.message(fmt("{}", item.id), conf.activeLevel);
+            if (isLinkedDescriptionItemNode(item)) {
+                conf.message(
+                    "List has description item", conf.activeLevel);
+                for (auto const& link : item.pass(item->header->value())
+                                            .subAs<org::ImmLink>()) {
+                    conf.message(
+                        fmt("List item contains link {}", link),
+                        conf.activeLevel);
+                    // Description list header might contain
+                    // non-link elements. These are ignored in the
+                    // mind map.
+                    if (link->getLinkKind() != slk::Raw) {
+                        MapLink map_link{.link = link};
+                        for (auto const& sub : item.sub()) {
+                            map_link.description.push_back(sub);
+                        }
+                        unresolved.push_back(map_link);
+                    }
+                }
+            }
+        }
+    }
+
+    return unresolved;
+}
+
+
+Opt<MapNodeProp> org::graph::getUnresolvedNodeInsertDefault(
     MapGraphState const& s,
     org::ImmAdapter      node,
-    MapOpsConfig&        conf) {
+    MapConfig&           conf) {
     // `- [[link-to-something]] :: Description` is stored as a description
     // field and is collected from the list item. So all boxes with
     // individual list items are dropped here.
@@ -305,53 +357,15 @@ Opt<MapNodeProp> org::graph::getUnresolvedNodeInsert(
         conf.message(fmt("Node {}", arg), conf.activeLevel);
         // Unconditionally register all links as unresolved -- some of
         // them will be converted to edges later on.
-        if (arg.is(osk::Link)) {
-            auto link = arg.as<org::ImmLink>();
-            if (link->getLinkKind() != slk::Raw) {
-                result.unresolved.push_back(MapLink{
-                    .link = arg.as<org::ImmLink>(),
-                    .description //
-                    = link->description.get()
-                        ? Vec{arg.at(
-                              link->description.get().value().toId(),
-                              ImmPathStep::FieldDeref("description"))}
-                        : Vec<org::ImmAdapter>{},
-                });
-            }
+        if (auto link = node.asOpt<org::ImmLink>()) {
+            auto target = getUnresolvedLink(s, link.value(), conf);
+            if (target) { result.unresolved.push_back(target.value()); }
         }
     };
 
     if (auto tree = node.asOpt<org::ImmSubtree>()) {
-        // Description lists with links in header are attached as the
-        // outgoing link to the parent subtree. It is the only supported
-        // way to provide an extensive label between subtree nodes.
-        for (auto const& list : tree->subAs<org::ImmList>()) {
-            conf.message("Subtree has list", conf.activeLevel);
-            for (auto const& item : list.subAs<org::ImmListItem>()) {
-                conf.message(fmt("{}", item.id), conf.activeLevel);
-                if (isLinkedDescriptionItemNode(item)) {
-                    conf.message(
-                        "List has description item", conf.activeLevel);
-                    for (auto const& link :
-                         item.pass(item->header->value())
-                             .subAs<org::ImmLink>()) {
-                        conf.message(
-                            fmt("List item contains link {}", link),
-                            conf.activeLevel);
-                        // Description list header might contain
-                        // non-link elements. These are ignored in the
-                        // mind map.
-                        if (link->getLinkKind() != slk::Raw) {
-                            MapLink map_link{.link = link};
-                            for (auto const& sub : item.sub()) {
-                                map_link.description.push_back(sub);
-                            }
-                            result.unresolved.push_back(map_link);
-                        }
-                    }
-                }
-            }
-        }
+        result.unresolved.append(
+            getUnresolvedSubtreeLinks(s, tree.value(), conf));
     } else if (!NestedNodes.contains(node->getKind())) {
         conf.message(
             "registering nested outgoing links", conf.activeLevel);
@@ -372,7 +386,7 @@ Opt<MapLinkResolveResult> org::graph::getResolveTarget(
     const MapGraphState& s,
     MapNode const&       source,
     MapLink const&       link,
-    MapOpsConfig&        conf) {
+    MapConfig&           conf) {
 
     Opt<MapLinkResolveResult> result;
 
@@ -422,7 +436,7 @@ Opt<MapLinkResolveResult> org::graph::getResolveTarget(
 MapNodeResolveResult org::graph::getResolvedNodeInsert(
     const MapGraphState& s,
     const MapNodeProp&   node,
-    MapOpsConfig&        conf) {
+    MapConfig&           conf) {
     MapNodeResolveResult result;
     result.node = node;
     result.node.unresolved.clear();
@@ -510,11 +524,11 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
 void org::graph::addNode(
     MapGraphState&         g,
     org::ImmAdapter const& node,
-    MapOpsConfig&          conf) {
+    MapConfig&             conf) {
     if (conf.TraceState) {
         conf.message(Str("- ").repeated(32), conf.activeLevel);
     }
-    auto prop = getUnresolvedNodeInsert(g, node, conf);
+    auto prop = conf.getUnresolvedNodeInsert(g, node);
     if (prop) {
         if (conf.TraceState) {
             conf.message("ID maps to graph node", conf.activeLevel);
@@ -569,7 +583,7 @@ Graphviz::Graph MapGraph::toGraphviz(org::ImmAstContext const& ctx) const {
 void org::graph::addNodeRec(
     MapGraphState&         g,
     org::ImmAdapter const& node,
-    MapOpsConfig&          conf) {
+    MapConfig&             conf) {
     Func<void(org::ImmAdapter const&)> aux;
     aux = [&](org::ImmAdapter const& node) {
         conf.message(fmt("recursive add {}", node), conf.activeLevel);
@@ -602,4 +616,8 @@ void org::graph::addNodeRec(
     };
 
     aux(node);
+}
+
+MapConfig::MapConfig() {
+    this->getUnresolvedNodeInsertImpl = getUnresolvedNodeInsertDefault;
 }

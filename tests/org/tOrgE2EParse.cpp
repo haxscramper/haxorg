@@ -1519,7 +1519,7 @@ TEST(ImmMapApi, AddNode) {
 
     org::ImmAstContext        store;
     org::graph::MapGraphState s1{};
-    org::graph::MapOpsConfig  conf;
+    org::graph::MapConfig  conf;
     conf.setTraceFile("/tmp/ImmMapApi_AddNode.txt");
     EXPECT_EQ(s1.graph.nodeCount(), 0);
     auto [store2, root] = store.addRoot(n1);
@@ -1544,7 +1544,7 @@ Paragraph [[id:subtree-id]]
     auto n1 = parseNode(text);
 
     org::ImmAstContext       store;
-    org::graph::MapOpsConfig conf;
+    org::graph::MapConfig conf;
     conf.setTraceFile("/tmp/AddNodeWithLinks_log.txt");
     auto [store2, root_node] = store.addRoot(n1);
     org::ImmAdapter root{root_node, store};
@@ -1602,7 +1602,7 @@ TEST(ImmMapApi, SubtreeBacklinks) {
     auto n2 = parseNode(text2);
 
     org::ImmAstContext       store;
-    org::graph::MapOpsConfig conf;
+    org::graph::MapConfig conf;
     conf.setTraceFile("/tmp/SubtreeBacklinks_log.txt");
 
     auto [store2, root_1] = store.addRoot(n1);
@@ -1731,7 +1731,7 @@ TEST(ImmMapApi, SubtreeFullMap) {
     auto n = parseNode(getFullMindMapText());
 
     org::ImmAstContext       store;
-    org::graph::MapOpsConfig conf;
+    org::graph::MapConfig conf;
     auto [store2, root1] = store.addRoot(n);
     org::ImmAdapter           file{root1, store};
     org::graph::MapGraphState s1{};
@@ -1898,7 +1898,7 @@ TEST(ImmMapApi, BoostPropertyWriter) {
     auto n = parseNode(getFullMindMapText());
 
     org::ImmAstContext       store;
-    org::graph::MapOpsConfig conf;
+    org::graph::MapConfig conf;
     auto [store2, root1] = store.addRoot(n);
     org::ImmAdapter           file{root1, store};
     org::graph::MapGraphState s1{};

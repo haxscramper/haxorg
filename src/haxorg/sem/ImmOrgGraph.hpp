@@ -160,8 +160,10 @@ struct MapGraph {
     DESC_FIELDS(MapGraph, (nodeProps, edgeProps, adjList));
 };
 
+struct MapGraphState;
 
-struct MapOpsConfig : OperationsTracer {
+struct MapConfig : OperationsTracer {
+    MapConfig();
     int  activeLevel = 0;
     auto scopeLevel() {
         ++activeLevel;
@@ -174,6 +176,18 @@ struct MapOpsConfig : OperationsTracer {
         return finally{
             [initialTrace, this]() { TraceState = initialTrace; }};
     }
+
+    Func<Opt<MapNodeProp>(
+        MapGraphState const& s,
+        org::ImmAdapter      node,
+        MapConfig&           conf)>
+        getUnresolvedNodeInsertImpl;
+
+    Opt<MapNodeProp> getUnresolvedNodeInsert(
+        MapGraphState const& s,
+        org::ImmAdapter      node) {
+        return getUnresolvedNodeInsertImpl(s, node, *this);
+    }
 };
 
 struct MapGraphState {
@@ -185,33 +199,40 @@ struct MapGraphState {
     UnorderedMap<Str, MapNode> subtreeTargets;
     MapGraph                   graph;
 
-    MapGraphState() {}
+    MapGraphState() {};
 
     DESC_FIELDS(
         MapGraphState,
         (unresolved, footnoteTargets, subtreeTargets, graph));
 };
 
-void addNode(
-    MapGraphState&     g,
-    MapNodeProp const& node,
-    MapOpsConfig&      conf);
+void addNode(MapGraphState& g, MapNodeProp const& node, MapConfig& conf);
 
 void addNode(
     MapGraphState&         g,
     org::ImmAdapter const& node,
-    MapOpsConfig&          conf);
+    MapConfig&             conf);
 
 void addNodeRec(
     MapGraphState&         g,
     org::ImmAdapter const& node,
-    MapOpsConfig&          conf);
+    MapConfig&             conf);
+
+Vec<MapLink> getUnresolvedSubtreeLinks(
+    MapGraphState const&    s,
+    ImmAdapterT<ImmSubtree> node,
+    MapConfig&              conf);
+
+Opt<MapLink> getUnresolvedLink(
+    MapGraphState const& s,
+    ImmAdapterT<ImmLink> node,
+    MapConfig&           conf);
 
 /// \brief Get node properties without resolving the target links.
-Opt<MapNodeProp> getUnresolvedNodeInsert(
+Opt<MapNodeProp> getUnresolvedNodeInsertDefault(
     MapGraphState const& s,
     org::ImmAdapter      node,
-    MapOpsConfig&        conf);
+    MapConfig&           conf);
 
 
 struct MapLinkResolveResult {
@@ -228,7 +249,7 @@ Opt<MapLinkResolveResult> getResolveTarget(
     MapGraphState const& s,
     MapNode const&       source,
     MapLink const&       link,
-    MapOpsConfig&        conf);
+    MapConfig&           conf);
 
 struct MapNodeResolveResult {
     MapNodeProp               node = MapNodeProp{};
@@ -242,7 +263,22 @@ struct MapNodeResolveResult {
 MapNodeResolveResult getResolvedNodeInsert(
     MapGraphState const& s,
     MapNodeProp const&   node,
-    MapOpsConfig&        conf);
+    MapConfig&           conf);
 
+
+bool isDescriptionItem(org::ImmAdapter node);
+bool isLinkedDescriptionItemNode(org::ImmAdapter n);
+
+bool isLinkedDescriptionItem(org::ImmAdapter n);
+/// \brief Check if getBoxedNode is a description list. By design, having
+/// at least one description list item in the description list makes the
+/// whole list into a linked description as well.
+bool isLinkedDescriptionList(org::ImmAdapter n);
+
+/// \brief Check if a node is placed in the description list item or *is* a
+/// description list item.
+bool isInLinkedDescriptionList(org::ImmAdapter n);
+
+bool isMmapIgnored(org::ImmAdapter n);
 
 } // namespace org::graph

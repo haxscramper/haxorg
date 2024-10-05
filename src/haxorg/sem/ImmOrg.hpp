@@ -1006,6 +1006,7 @@ struct ImmAdapterTBase : ImmAdapter {
     /// \brief Pass the constructor implementation unchanged
     using ImmAdapter::ImmAdapter;
     using ImmAdapter::pass;
+    using ImmAdapter::subAs;
     T const* get() const { return ctx.at_t<T>(id); }
     T const* operator->() const { return get(); }
 
@@ -1031,6 +1032,7 @@ struct ImmAdapterTBase : ImmAdapter {
     using ImmAdapterTBase<T>::pass;                                       \
     using ImmAdapterTBase<T>::get;                                        \
     using ImmAdapterTBase<T>::operator->;                                 \
+    using ImmAdapterTBase<T>::subAs;                                      \
     ImmAdapter*       getThis() { return this; }                          \
     ImmAdapter const* getThis() const { return this; }
 
