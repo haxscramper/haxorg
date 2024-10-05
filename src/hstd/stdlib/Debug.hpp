@@ -13,7 +13,7 @@ void setMessageStream(std::ostream& stream);
 
 #define _dbg(expr)                                                        \
     ([](auto const& it, char const* __base_function) {                    \
-        LOG(INFO) << fmt("@{} {} = ⦃{}⦄", __base_function, #expr, it);   \
+        LOG(INFO) << fmt("@{} {} = ⦃{}⦄", __base_function, #expr, it);    \
         return it;                                                        \
     }((expr), __FUNCTION__))
 
@@ -21,6 +21,8 @@ void setMessageStream(std::ostream& stream);
     << " " << BOOST_PP_STRINGIZE(arg) << fmt(" = ⦃{}⦄", arg)
 
 
+/// \brief Print values to string `<expr1> = ⦃<value1>⦄ <expr2> =
+/// ⦃<value2>⦄ ...`
 #define _dfmt(...)                                                        \
     DLOG(INFO) << "]" BOOST_PP_SEQ_FOR_EACH(                              \
         _dfmt_impl, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__));
@@ -29,6 +31,8 @@ void setMessageStream(std::ostream& stream);
     +std::string{" "} + BOOST_PP_STRINGIZE(arg) + fmt(" = ⦃{}⦄", arg)
 
 
+/// \brief Format all values to string `<expr1> = ⦃<value1>⦄ <expr2> =
+/// ⦃<value2>⦄ ...`
 #define _dfmt_expr(...)                                                   \
     (std::string{""} BOOST_PP_SEQ_FOR_EACH(                               \
         _dfmt_expr_impl, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__)))

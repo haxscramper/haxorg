@@ -331,6 +331,13 @@ struct ImmAstTrackingMap {
         }
     }
 
+    /// \brief Get map of parents for the ID
+    ParentPathMap const& getParentsFor(ImmId const& it) const;
+    /// \brief Get full list of all paths that can be used to reach the
+    /// target node. Resulting paths are not guaranteed to converge to a
+    /// single root.
+    Vec<ImmUniqId> getPathsFor(ImmId const& it) const;
+
     ImmAstTrackingMapTransient transient(ImmAstContext* oldCtx) {
         return {
             .oldCtx               = oldCtx,
@@ -532,6 +539,18 @@ struct [[nodiscard]] ImmAstContext {
     }
 
     DESC_FIELDS(ImmAstContext, (store, track));
+
+    Vec<ImmId> getParentIds(ImmId const& it) const {
+        return track->getParentIds(it);
+    }
+
+    ParentPathMap const& getParentsFor(ImmId const& it) const {
+        return track->getParentsFor(it);
+    }
+
+    Vec<ImmUniqId> getPathsFor(ImmId const& it) const {
+        return track->getPathsFor(it);
+    }
 
     ImmAstVersion getEditVersion(
         ImmAdapter const&                                            root,

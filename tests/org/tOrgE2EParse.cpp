@@ -906,6 +906,57 @@ TEST_F(ImmOrgApi, ImmAstFieldIteration) {
     }
 }
 
+
+TEST_F(ImmOrgApi, ItearteParentNodes) {
+    setTraceFile(getDebugFile("trace.txt"));
+    start.track->isTrackingParent = [](org::ImmAdapter const&) {
+        return true;
+    };
+
+
+    auto start_node   = parseNode("word0 word2 word4");
+    auto replace_node = parseNode("wordXX").at(0).at(0);
+    auto v1           = start.init(start_node);
+    auto r            = v1.getRootAdapter();
+    auto doc_id       = r;
+    auto par_id       = doc_id.at(0);
+    auto space_id     = par_id.at(1);
+
+    EXPECT_EQ(space_id->getKind(), OrgSemKind::Space);
+    {
+        Vec<org::ImmId> parents = v1.context.getParentIds(space_id.id);
+        EXPECT_EQ(parents.size(), 1);
+        EXPECT_TRUE(parents.contains(par_id.id));
+        EXPECT_EQ(parents.size(), 1);
+    }
+
+    {
+        org::ParentPathMap parents = v1.context.getParentsFor(space_id.id);
+        EXPECT_EQ(parents.size(), 1);
+        EXPECT_TRUE(parents.contains(par_id.id));
+        EXPECT_EQ(parents.at(par_id.id).size(), 2);
+        EXPECT_EQ(
+            parents.at(par_id.id).at(0).path.at(0).getFieldName().name,
+            "subnodes");
+        EXPECT_EQ(
+            parents.at(par_id.id).at(0).path.at(1).getIndex().index, 1);
+        EXPECT_EQ(
+            parents.at(par_id.id).at(1).path.at(0).getFieldName().name,
+            "subnodes");
+        EXPECT_EQ(
+            parents.at(par_id.id).at(1).path.at(1).getIndex().index, 3);
+    }
+
+    {
+        Vec<org::ImmUniqId> paths = v1.context.getPathsFor(space_id.id);
+        EXPECT_EQ(paths.size(), 2);
+        auto const& p0 = paths.at(0);
+        auto const& p1 = paths.at(1);
+        EXPECT_EQ(p0.path.root, doc_id.id);
+        EXPECT_EQ(p1.path.root, doc_id.id);
+    }
+}
+
 TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {
     setTraceFile(getDebugFile("trace.txt"));
     start.track->isTrackingParent = [](org::ImmAdapter const&) {

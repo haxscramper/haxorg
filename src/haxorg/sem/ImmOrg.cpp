@@ -14,6 +14,8 @@ const u64 org::ImmId::NodeIdxOffset  = 0;
 const u64 org::ImmId::NodeKindMask   = 0x000FFF0000000000; // >>10*4=40
 const u64 org::ImmId::NodeKindOffset = 40;
 
+const org::ParentPathMap EmptyParentPathMap;
+
 org::ImmId::IdType org::ImmId::combineMask(OrgSemKind kind) {
     auto res = (u64(kind) << NodeKindOffset) & NodeKindMask;
 
@@ -848,4 +850,48 @@ Vec<ImmId> ImmAstReplaceGroup::newSubnodes(Vec<ImmId> oldSubnodes) const {
     auto tmp = newSubnodes(
         ImmVec<ImmId>{oldSubnodes.begin(), oldSubnodes.end()});
     return Vec<ImmId>{tmp.begin(), tmp.end()};
+}
+
+const ParentPathMap& ImmAstTrackingMap::getParentsFor(
+    const ImmId& it) const {
+    if (parents.contains(it)) {
+        return *parents.at(it).get();
+    } else {
+        return EmptyParentPathMap;
+    }
+}
+
+Vec<ImmUniqId> ImmAstTrackingMap::getPathsFor(const ImmId& it) const {
+    Func<Vec<ImmPath>(ImmId const& id)> aux;
+    aux = [&](ImmId const& id) -> Vec<ImmPath> {
+        Vec<ImmPath> result;
+        for (auto const& [parentId, parentPaths] : getParentsFor(id)) {
+            auto auxRes = aux(parentId);
+            if (auxRes.empty()) {
+                for (auto const& full : parentPaths) {
+                    ImmPath path;
+                    path.root = parentId;
+                    path.path.push_back(full);
+                    result.push_back(path);
+                }
+            } else {
+                for (auto const& added : auxRes) {
+                    for (auto const& full : parentPaths) {
+                        ImmPath path = added;
+                        path.path.push_back(full);
+                        result.push_back(path);
+                    }
+                }
+            }
+        }
+        return result;
+    };
+
+    Vec<ImmUniqId> result;
+    for (auto const& path : aux(it)) {
+        result.push_back(ImmUniqId{.path = path, .id = it});
+    }
+
+    std::sort(result.begin(), result.end());
+    return result;
 }
