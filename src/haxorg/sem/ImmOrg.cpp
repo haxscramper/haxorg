@@ -460,6 +460,9 @@ void ImmAstTrackingMapTransient::useNewParentTrack(const ImmId& target) {
         && oldParent->get() != nullptr          //
         && oldParent->get() == newParent->get() //
     ) {
+        // Copy old underlying value from the shared pointer to ensure that
+        // all modifications in the ast edit context are not reflected to
+        // the original immutable context.
         parents.set(
             target, std::make_shared<ParentPathMap>(*oldParent->get()));
     }

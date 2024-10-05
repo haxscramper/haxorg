@@ -4,6 +4,8 @@
 #include <hstd/stdlib/Slice.hpp>
 #include <hstd/stdlib/Span.hpp>
 #include <hstd/stdlib/sequtils.hpp>
+#include <boost/container/small_vector.hpp>
+
 
 #include <vector>
 #include <span>
@@ -12,6 +14,187 @@ template <typename T>
 concept IsIterableRange = requires(T t) {
     { std::begin(t) } -> std::input_or_output_iterator;
     { std::end(t) } -> std::input_or_output_iterator;
+};
+
+template <typename T, typename Container>
+struct IndexedBase : public CRTP_this_method<Container> {
+    using CRTP_this_method<Container>::_this;
+
+    /// \brief helper assertion to fail if the vector is empty.
+    void failEmpty() const {
+        if (_this()->empty()) {
+            throw std::out_of_range(
+                "Operation does not work with an empty vector");
+        }
+    }
+
+    void checkIdx(int idx) const {
+        if (idx < 0) {
+            throw std::out_of_range(
+                "Operation does not support negative indices");
+        }
+    }
+
+    /// \brief Last accessible index of the vector, useful for slicing etc.
+    int high() const { return _this()->size() - 1; }
+
+    bool empty() const { return _this()->size() == 0; }
+
+    /// \brief  Pointwise comparison between vector and any other indexable
+    /// container.
+    template <typename Indexable>
+    bool operator==(CR<Indexable> other) const {
+        if (_this()->size() == other.size()) {
+            for (int i = 0; i < _this()->size(); ++i) {
+                if (_this()->at(i) != other.at(i)) { return false; }
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /// \brief Check if vector has enough elements to access index \arg idx
+    bool has(int idx) const { return 0 <= idx && idx < _this()->size(); }
+    bool has(BackwardsIndex idx) const {
+        return _this()->has(_this()->size() - idx.value);
+    }
+
+
+    /// \brief Get reference wrapper to a value at specified index or empty
+    /// option if the index is out of range
+    std::optional<Rw<T>> get(int index) {
+        if (_this()->has(index)) {
+            return _this()->at(index);
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    /// \brief Overload for constant vector
+    std::optional<CRw<T>> get(int index) const {
+        if (_this()->has(index)) {
+            return _this()->at(index);
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    std::optional<T> get_copy(int index) const {
+        if (_this()->has(index)) {
+            return _this()->at(index);
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    /// \brief Get reference wrapper to a value at specified index or empty
+    /// option if the index is out of range
+    std::optional<Rw<T>> get(BackwardsIndex idx) {
+        return _this()->get(_this()->index(idx));
+    }
+
+    /// \brief Overload for constant vector
+    std::optional<CRw<T>> get(BackwardsIndex idx) const {
+        return _this()->get(_this()->index(idx));
+    }
+
+    std::optional<T> get_copy(BackwardsIndex idx) const {
+        return _this()->get_copy(_this()->index(idx));
+    }
+
+    template <typename A, typename B>
+    Span<T> operator[](CR<HSlice<A, B>> s) {
+#ifdef DEBUG
+        return _this()->at(s, true);
+#else
+        return _this()->at(s, false);
+#endif
+    }
+
+    template <typename A, typename B>
+    Span<T> operator[](CR<HSlice<A, B>> s) const {
+#ifdef DEBUG
+        return _this()->at(s, true);
+#else
+        return _this()->at(s, false);
+#endif
+    }
+
+    int index(BackwardsIndex idx) const {
+        return _this()->size() - idx.value;
+    }
+
+    /// \brief Access vector value using backwards index, identical to
+    /// `size() - <index value>`
+    T& operator[](BackwardsIndex idx) { return (*_this())[index(idx)]; }
+
+    /// \brief 'at' operation for accessing value using backwards indexing,
+    /// recommended for use as it unconiditionally does the bound checking
+    T& at(BackwardsIndex idx) { return _this()->at(_this()->index(idx)); }
+
+    T const& at(BackwardsIndex idx) const {
+        return _this()->at(index(idx));
+    }
+
+    T const& at_or(int idx, T const& fallback) const {
+        if (_this()->has(idx)) {
+            return _this()->at(idx);
+        } else {
+            return fallback;
+        }
+    }
+
+
+    /// \brief Append elements from \arg other vector
+    void append(CR<Container> other) {
+        _this()->append(other.begin(), other.end());
+    }
+
+    /// \brief copy multiple elements referred to by span to the fector
+    void append(CR<std::span<T>> other) {
+        _this()->append(other.begin(), other.end());
+    }
+
+
+    T const& at_or(BackwardsIndex idx, T const& fallback) const {
+        return _this()->at_or(_this()->index(idx), fallback);
+    }
+
+    template <typename Indexable>
+    bool operator<(CR<Indexable> other) const {
+        return lessThan(other, std::less<T>{});
+    }
+
+    template <typename Indexable, typename Cmp>
+    bool lessThan(CR<Indexable> other, Cmp const& cmp) const {
+        for (int i = 0; i < std::min(
+                            static_cast<int>(_this()->size()),
+                            static_cast<int>(other.size()) //
+                        );
+             ++i) {
+            if (cmp(_this()->at(i), other.at(i))) { return true; }
+        }
+        return _this()->size() < other.size();
+    }
+
+    Container operator+(CR<T> other) const {
+        auto result = *_this();
+        result.push_back(other);
+        return result;
+    }
+
+    Container operator+(CR<std::span<T>> other) const {
+        auto result = *_this();
+        result.append(other);
+        return result;
+    }
+
+    Container operator+(CR<Container> other) const {
+        auto result = *_this();
+        result.append(other);
+        return result;
+    }
 };
 
 /// \brief Derivation of the standard vector with better API for quick
@@ -28,23 +211,38 @@ concept IsIterableRange = requires(T t) {
 /// append two vectors, check if it `contains()` someting and so on, even
 /// though these operations are \(O(n)\)
 template <typename T>
-class Vec : public std::vector<T> {
+class Vec
+    : public std::vector<T>
+    , public IndexedBase<T, Vec<T>> {
   public:
     using Base = std::vector<T>;
-    using Base::Base;
-    Vec(std::initializer_list<T> init) : std::vector<T>(init) {}
-    Vec(Vec<T> const& init) : std::vector<T>(init) {}
+    using API  = IndexedBase<T, Vec<T>>;
 
+    using API::operator[];
+    using API::append;
+    using API::at;
+    using API::at_or;
+    using API::lessThan;
+    using API::operator<;
+    using API::checkIdx;
+    using API::empty;
+    using API::failEmpty;
+    using API::get;
+    using API::get_copy;
+    using API::has;
+    using API::high;
+    using Base::Base;
     using Base::begin;
     using Base::end;
     using Base::insert;
     using Base::push_back;
 
+    Vec(std::initializer_list<T> init) : std::vector<T>(init) {}
+    Vec(Vec<T> const& init) : std::vector<T>(init) {}
+
     static Vec<T> FromValue(CR<Vec<T>> values) { return values; }
+    int           size() const { return static_cast<int>(Base::size()); }
 
-
-    int  size() const { return static_cast<int>(Base::size()); }
-    bool empty() const { return size() == 0; }
 
     Vec() {}
     explicit Vec(int size) : std::vector<T>(size) {}
@@ -56,64 +254,6 @@ class Vec : public std::vector<T> {
     explicit Vec(CR<Span<T>> values)
         : std::vector<T>(values.begin(), values.end()) {}
 
-    /// \brief Append elements from \arg other vector
-    void append(CR<Vec<T>> other) {
-        insert(end(), other.begin(), other.end());
-    }
-
-    /// \brief copy multiple elements referred to by span to the fector
-    void append(CR<std::span<T>> other) {
-        insert(end(), other.begin(), other.end());
-    }
-
-    /// \brief  Pointwise comparison between vector and any other indexable
-    /// container.
-    template <typename Indexable>
-    bool operator==(CR<Indexable> other) const {
-        if (this->size() == other.size()) {
-            for (int i = 0; i < size(); ++i) {
-                if (at(i) != other.at(i)) { return false; }
-            }
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    template <typename Indexable>
-    bool operator<(CR<Indexable> other) const {
-        return lessThan(other, std::less<T>{});
-    }
-
-    template <typename Indexable, typename Cmp>
-    bool lessThan(CR<Indexable> other, Cmp const& cmp) const {
-        for (int i = 0;
-             i < std::min(
-                 static_cast<int>(size()), static_cast<int>(other.size()));
-             ++i) {
-            if (cmp(at(i), other.at(i))) { return true; }
-        }
-        return size() < other.size();
-    }
-
-    Vec<T> operator+(CR<T> other) const {
-        auto result = *this;
-        result.push_back(other);
-        return result;
-    }
-
-    Vec<T> operator+(CR<std::span<T>> other) const {
-        auto result = *this;
-        result.append(other);
-        return result;
-    }
-
-    Vec<T> operator+(CR<Vec<T>> other) const {
-        auto result = *this;
-        result.append(other);
-        return result;
-    }
-
     /// \brief Implicit conversion to the base class
     operator Ref<std::vector<T>>() {
         return static_cast<std::vector<T>>(*this);
@@ -124,9 +264,11 @@ class Vec : public std::vector<T> {
         return static_cast<std::vector<T>>(*this);
     }
 
-    /// \brief Check if vector has enough elements to access index \arg idx
-    bool has(int idx) const { return 0 <= idx && idx < size(); }
-    bool has(BackwardsIndex idx) const { return has(size() - idx.value); }
+    template <typename Iter>
+    void append(Iter begin, Iter end) {
+        insert(this->end(), begin, end);
+    }
+
 
     T const& at(int idx) const {
         checkIdx(idx);
@@ -164,91 +306,6 @@ class Vec : public std::vector<T> {
             const_cast<T*>(this->data() + start), end - start + 1);
     }
 
-    /// \brief Get reference wrapper to a value at specified index or empty
-    /// option if the index is out of range
-    std::optional<Rw<T>> get(int index) {
-        if (has(index)) {
-            return at(index);
-        } else {
-            return std::nullopt;
-        }
-    }
-
-    /// \brief Overload for constant vector
-    std::optional<CRw<T>> get(int index) const {
-        if (has(index)) {
-            return at(index);
-        } else {
-            return std::nullopt;
-        }
-    }
-
-    std::optional<T> get_copy(int index) const {
-        if (has(index)) {
-            return at(index);
-        } else {
-            return std::nullopt;
-        }
-    }
-
-    /// \brief Get reference wrapper to a value at specified index or empty
-    /// option if the index is out of range
-    std::optional<Rw<T>> get(BackwardsIndex idx) {
-        return get(index(idx));
-    }
-
-    /// \brief Overload for constant vector
-    std::optional<CRw<T>> get(BackwardsIndex idx) const {
-        return get(index(idx));
-    }
-
-    std::optional<T> get_copy(BackwardsIndex idx) const {
-        return get_copy(index(idx));
-    }
-
-    template <typename A, typename B>
-    Span<T> operator[](CR<HSlice<A, B>> s) {
-#ifdef DEBUG
-        return at(s, true);
-#else
-        return at(s, false);
-#endif
-    }
-
-    template <typename A, typename B>
-    Span<T> operator[](CR<HSlice<A, B>> s) const {
-#ifdef DEBUG
-        return at(s, true);
-#else
-        return at(s, false);
-#endif
-    }
-
-    int index(BackwardsIndex idx) const {
-        return this->size() - idx.value;
-    }
-
-    /// \brief Access vector value using backwards index, identical to
-    /// `size() - <index value>`
-    T& operator[](BackwardsIndex idx) { return (*this)[index(idx)]; }
-
-    /// \brief 'at' operation for accessing value using backwards indexing,
-    /// recommended for use as it unconiditionally does the bound checking
-    T& at(BackwardsIndex idx) { return this->at(index(idx)); }
-
-    T const& at(BackwardsIndex idx) const { return this->at(index(idx)); }
-
-    T const& at_or(int idx, T const& fallback) const {
-        if (has(idx)) {
-            return at(idx);
-        } else {
-            return fallback;
-        }
-    }
-
-    T const& at_or(BackwardsIndex idx, T const& fallback) const {
-        return at_or(index(idx), fallback);
-    }
 
     /// \brief Return the mutable reference to element at index, if the
     /// vector does not have enough elements, resize it to fit.
@@ -263,20 +320,6 @@ class Vec : public std::vector<T> {
         return at(idx);
     }
 
-    /// \brief helper assertion to fail if the vector is empty.
-    void failEmpty() const {
-        if (empty()) {
-            throw std::out_of_range(
-                "Operation does not work with an empty vector");
-        }
-    }
-
-    void checkIdx(int idx) const {
-        if (idx < 0) {
-            throw std::out_of_range(
-                "Operation does not support negative indices");
-        }
-    }
 
     /// \brief Reference to the last element. Checks for proper array size
     T& back() {
@@ -310,8 +353,6 @@ class Vec : public std::vector<T> {
         return result;
     }
 
-    /// \brief Last accessible index of the vector, useful for slicing etc.
-    int high() const { return size() - 1; }
 
     /// \brief Find item in the vector using default `==` check
     int indexOf(CR<T> item) const { return index_of(*this, item); }
@@ -380,36 +421,64 @@ class Vec : public std::vector<T> {
     }
 };
 
+template <typename T, int StartSize>
+struct SmallVec
+    : public boost::container::small_vector<T, StartSize>
+    , public IndexedBase<T, SmallVec<T, StartSize>> {
+    using Base = std::vector<T>;
+    using API  = IndexedBase<T, Vec<T>>;
+
+    using API::operator[];
+    using API::append;
+    using API::at;
+    using API::at_or;
+    using API::lessThan;
+    using API::operator<;
+    using API::checkIdx;
+    using API::empty;
+    using API::failEmpty;
+    using API::get;
+    using API::get_copy;
+    using API::has;
+    using API::high;
+    using Base::Base;
+    using Base::begin;
+    using Base::end;
+    using Base::insert;
+    using Base::push_back;
+};
+
 static_assert(
     sizeof(Vec<int>) == sizeof(std::vector<int>),
     "Vector size must be identical");
 
-/// \brief Vector formatting operator
-template <typename T>
-struct std::formatter<Vec<T>> : std::formatter<std::string> {
-    using FmtType = Vec<T>;
+template <typename T, typename Container>
+struct std_item_iterator_formatter : std::formatter<std::string> {
     template <typename FormatContext>
-    FormatContext::iterator format(FmtType const& p, FormatContext& ctx)
+    FormatContext::iterator format(Container const& p, FormatContext& ctx)
         const {
-        std::formatter<std::string> fmt;
-        fmt.format("[", ctx);
-        fmt.format(join(", ", p), ctx);
-        return fmt.format("]", ctx);
+        fmt_ctx("[", ctx);
+        bool first = true;
+        for (const auto& value : p) {
+            if (!first) { fmt_ctx(", ", ctx); }
+            first = false;
+            fmt_ctx(value, ctx);
+        }
+        return fmt_ctx("]", ctx);
     }
 };
 
+/// \brief Vector formatting operator
 template <typename T>
-struct std::formatter<std::vector<T>> : std::formatter<std::string> {
-    using FmtType = std::vector<T>;
-    template <typename FormatContext>
-    FormatContext::iterator format(FmtType const& p, FormatContext& ctx)
-        const {
-        std::formatter<std::string> fmt;
-        fmt.format("[", ctx);
-        fmt.format(join(", ", p), ctx);
-        return fmt.format("]", ctx);
-    }
-};
+struct std::formatter<Vec<T>> : std_item_iterator_formatter<T, Vec<T>> {};
+
+template <typename T>
+struct std::formatter<std::vector<T>>
+    : std_item_iterator_formatter<T, std::vector<T>> {};
+
+template <typename T, int Size>
+struct std::formatter<SmallVec<T, Size>>
+    : std_item_iterator_formatter<T, SmallVec<T, Size>> {};
 
 template <typename T>
 struct std::hash<Vec<T>> {
