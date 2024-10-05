@@ -121,26 +121,17 @@ struct StructureUpdate {
         (removed_edges, removed_node, added_edges, added_node));
 };
 
-using NodeProps    = immer::map<MapNode, MapNodeProp>;
-using EdgeProps    = immer::map<MapEdge, MapEdgeProp>;
-using AdjNodesList = ImmVec<MapNode>;
-using AdjList      = immer::map<MapNode, AdjNodesList>;
+using NodeProps    = UnorderedMap<MapNode, MapNodeProp>;
+using EdgeProps    = UnorderedMap<MapEdge, MapEdgeProp>;
+using AdjNodesList = Vec<MapNode>;
+using AdjList      = UnorderedMap<MapNode, AdjNodesList>;
 
 struct MapGraph;
-
-struct MapGraphTransient {
-    NodeProps::transient_type nodeProps;
-    EdgeProps::transient_type edgeProps;
-    AdjList::transient_type   adjList;
-    MapGraph                  persistent();
-};
 
 struct MapGraph {
     NodeProps nodeProps;
     EdgeProps edgeProps;
     AdjList   adjList;
-
-    MapGraphTransient transient() const;
 
     int nodeCount() const { return nodeProps.size(); }
     int edgeCount() const { return edgeProps.size(); }
@@ -187,12 +178,12 @@ struct MapOpsConfig : OperationsTracer {
 
 struct MapGraphState {
     /// \brief List of nodes with unresolved outgoing links.
-    ImmSet<MapNode> unresolved;
+    UnorderedSet<MapNode> unresolved;
     /// \brief Lookup of the nodes by the footnote IDs
-    ImmMap<Str, MapNode> footnoteTargets;
+    UnorderedMap<Str, MapNode> footnoteTargets;
     /// \brief Loopup of the subtree targets by the subtree IDs
-    ImmMap<Str, MapNode> subtreeTargets;
-    MapGraph             graph;
+    UnorderedMap<Str, MapNode> subtreeTargets;
+    MapGraph                   graph;
 
     MapGraphState() {}
 
@@ -201,18 +192,18 @@ struct MapGraphState {
         (unresolved, footnoteTargets, subtreeTargets, graph));
 };
 
-MapGraphState addNode(
-    MapGraphState const& g,
-    MapNodeProp const&   node,
-    MapOpsConfig&        conf);
+void addNode(
+    MapGraphState&     g,
+    MapNodeProp const& node,
+    MapOpsConfig&      conf);
 
-MapGraphState addNode(
-    MapGraphState const&   g,
+void addNode(
+    MapGraphState&         g,
     org::ImmAdapter const& node,
     MapOpsConfig&          conf);
 
-MapGraphState addNodeRec(
-    MapGraphState const&   g,
+void addNodeRec(
+    MapGraphState&         g,
     org::ImmAdapter const& node,
     MapOpsConfig&          conf);
 

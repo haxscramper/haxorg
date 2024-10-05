@@ -233,8 +233,8 @@ inline std::pair<map_graph_adjacent_vertices_iterator, map_graph_adjacent_vertic
     auto it = g.adjList.find(v);
     if (it != nullptr) {
         return {
-            map_graph_adjacent_vertices_iterator(it->begin()),
-            map_graph_adjacent_vertices_iterator(it->end()),
+            map_graph_adjacent_vertices_iterator(it->second.begin()),
+            map_graph_adjacent_vertices_iterator(it->second.end()),
         };
     } else {
         return {
@@ -270,7 +270,7 @@ inline int out_degree(
     org::graph::MapNode const&  v,
     org::graph::MapGraph const& g) {
     auto it = g.adjList.find(v);
-    return it != nullptr ? it->size() : 0;
+    return it != nullptr ? it->second.size() : 0;
 }
 
 inline std::pair<map_graph_out_edges_iterator, map_graph_out_edges_iterator> out_edges(
@@ -285,8 +285,8 @@ inline std::pair<map_graph_out_edges_iterator, map_graph_out_edges_iterator> out
         };
     } else {
         return {
-            map_graph_out_edges_iterator{v, it->begin()},
-            map_graph_out_edges_iterator{v, it->end()},
+            map_graph_out_edges_iterator{v, it->second.begin()},
+            map_graph_out_edges_iterator{v, it->second.end()},
         };
     }
 }
@@ -304,15 +304,15 @@ inline org::graph::MapNode target(
 }
 
 template <typename Key, typename Value>
-struct immer_map_property_map {
+struct unordered_map_property_map {
     using key_type   = Key;
     using value_type = Value;
     using reference  = const Value&;
     using category   = boost::readable_property_map_tag;
 
-    const immer::map<Key, Value>& map_ref;
+    const UnorderedMap<Key, Value>& map_ref;
 
-    immer_map_property_map(const immer::map<Key, Value>& map)
+    unordered_map_property_map(const UnorderedMap<Key, Value>& map)
         : map_ref(map) {}
 
     reference operator[](const key_type& key) const {
@@ -321,20 +321,22 @@ struct immer_map_property_map {
 };
 
 template <typename Key, typename Value>
-immer_map_property_map<Key, Value> make_immer_map_property_map(
-    const immer::map<Key, Value>& map) {
-    return immer_map_property_map<Key, Value>(map);
+unordered_map_property_map<Key, Value> make_unordered_map_property_map(
+    const UnorderedMap<Key, Value>& map) {
+    return unordered_map_property_map<Key, Value>(map);
 }
 
 template <typename Key, typename Value>
-Value get(immer_map_property_map<Key, Value> const& map, Key const& key) {
+Value get(
+    unordered_map_property_map<Key, Value> const& map,
+    Key const&                                    key) {
     return map[key];
 }
 
 
 template <>
 struct property_map<org::graph::MapGraph, vertex_index_t> {
-    using const_type = immer_map_property_map<
+    using const_type = unordered_map_property_map<
         org::graph::MapNode,
         org::graph::MapNodeProp>;
     using type = const_type;
@@ -343,12 +345,12 @@ struct property_map<org::graph::MapGraph, vertex_index_t> {
 inline property_map<org::graph::MapGraph, vertex_index_t>::const_type get(
     vertex_index_t,
     org::graph::MapGraph const& g) {
-    return make_immer_map_property_map(g.nodeProps);
+    return make_unordered_map_property_map(g.nodeProps);
 }
 
 template <>
 struct property_map<org::graph::MapGraph, vertex_bundle_t> {
-    using const_type = immer_map_property_map<
+    using const_type = unordered_map_property_map<
         org::graph::MapNode,
         org::graph::MapNodeProp>;
     using type = const_type;
@@ -357,7 +359,7 @@ struct property_map<org::graph::MapGraph, vertex_bundle_t> {
 inline property_map<org::graph::MapGraph, vertex_bundle_t>::const_type get(
     vertex_bundle_t,
     org::graph::MapGraph const& g) {
-    return make_immer_map_property_map(g.nodeProps);
+    return make_unordered_map_property_map(g.nodeProps);
 }
 
 

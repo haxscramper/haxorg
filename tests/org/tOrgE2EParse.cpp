@@ -1523,13 +1523,11 @@ TEST(ImmMapApi, AddNode) {
     conf.setTraceFile("/tmp/ImmMapApi_AddNode.txt");
     EXPECT_EQ(s1.graph.nodeCount(), 0);
     auto [store2, root] = store.addRoot(n1);
-    auto s2 = org::graph::addNode(s1, org::ImmAdapter{root, store}, conf);
-    EXPECT_EQ(s2.graph.nodeCount(), 1);
-
-    writeFile("/tmp/MapS2.json", to_json_eval(s2).dump(2));
+    org::graph::addNode(s1, org::ImmAdapter{root, store}, conf);
+    EXPECT_EQ(s1.graph.nodeCount(), 1);
 
     Graphviz gvc;
-    auto     gv = s2.graph.toGraphviz(store2);
+    auto     gv = s1.graph.toGraphviz(store2);
     gvc.renderToFile("/tmp/MapS2.png", gv);
 }
 
@@ -1560,32 +1558,23 @@ Paragraph [[id:subtree-id]]
             os.getBuffer().toString(false)));
 
     org::graph::MapGraphState s1{};
-    auto s2 = org::graph::addNode(s1, root.at(1), conf);
-    auto s3 = org::graph::addNode(s2, root.at(3), conf);
 
     EXPECT_EQ(s1.graph.nodeCount(), 0);
     EXPECT_EQ(s1.graph.edgeCount(), 0);
     EXPECT_EQ(s1.unresolved.size(), 0);
 
-    EXPECT_EQ(s2.graph.nodeCount(), 1);
-    EXPECT_EQ(s2.graph.edgeCount(), 0);
-    EXPECT_EQ(s2.unresolved.size(), 1);
+    org::graph::addNode(s1, root.at(1), conf);
+    EXPECT_EQ(s1.graph.nodeCount(), 1);
+    EXPECT_EQ(s1.graph.edgeCount(), 0);
+    EXPECT_EQ(s1.unresolved.size(), 1);
 
-    EXPECT_EQ(s3.graph.nodeCount(), 2);
-    EXPECT_EQ(s3.graph.edgeCount(), 1);
-    EXPECT_EQ(s3.unresolved.size(), 0);
-
-    writeFile(
-        "/tmp/AddNodeWithLinks.json",
-        to_json_eval(Vec<org::graph::MapGraphState>{
-                         s1,
-                         s2,
-                         s3,
-                     })
-            .dump(2));
+    org::graph::addNode(s1, root.at(3), conf);
+    EXPECT_EQ(s1.graph.nodeCount(), 2);
+    EXPECT_EQ(s1.graph.edgeCount(), 1);
+    EXPECT_EQ(s1.unresolved.size(), 0);
 
     Graphviz gvc;
-    auto     gv = s3.graph.toGraphviz(store2);
+    auto     gv = s1.graph.toGraphviz(store2);
     gvc.renderToFile("/tmp/AddNodeWithLinks.png", gv);
 }
 
@@ -1632,32 +1621,23 @@ TEST(ImmMapApi, SubtreeBacklinks) {
             os.getBuffer().toString(false)));
 
     org::graph::MapGraphState s1{};
-    auto s2 = org::graph::addNode(s1, file1.at(1), conf);
-    auto s3 = org::graph::addNode(s2, file2.at(1), conf);
 
     EXPECT_EQ(s1.graph.nodeCount(), 0);
     EXPECT_EQ(s1.graph.edgeCount(), 0);
     EXPECT_EQ(s1.unresolved.size(), 0);
 
-    EXPECT_EQ(s2.graph.nodeCount(), 1);
-    EXPECT_EQ(s2.graph.edgeCount(), 0);
-    EXPECT_EQ(s2.unresolved.size(), 1);
+    org::graph::addNode(s1, file1.at(1), conf);
+    EXPECT_EQ(s1.graph.nodeCount(), 1);
+    EXPECT_EQ(s1.graph.edgeCount(), 0);
+    EXPECT_EQ(s1.unresolved.size(), 1);
 
-    EXPECT_EQ(s3.graph.nodeCount(), 2);
-    EXPECT_EQ(s3.graph.edgeCount(), 2);
-    EXPECT_EQ(s3.unresolved.size(), 0);
-
-    writeFile(
-        "/tmp/SubtreeBacklinks.json",
-        to_json_eval(Vec<org::graph::MapGraphState>{
-                         s1,
-                         s2,
-                         s3,
-                     })
-            .dump(2));
+    org::graph::addNode(s1, file2.at(1), conf);
+    EXPECT_EQ(s1.graph.nodeCount(), 2);
+    EXPECT_EQ(s1.graph.edgeCount(), 2);
+    EXPECT_EQ(s1.unresolved.size(), 0);
 
     Graphviz gvc;
-    auto     gv = s3.graph.toGraphviz(store3);
+    auto     gv = s1.graph.toGraphviz(store3);
     gvc.renderToFile("/tmp/SubtreeBacklinks.png", gv);
 }
 
@@ -1782,13 +1762,13 @@ TEST(ImmMapApi, SubtreeFullMap) {
 
     conf.setTraceFile("/tmp/SubtreeFullMap_log.txt");
 
-    auto s2 = org::graph::addNodeRec(s1, file, conf);
+    org::graph::addNodeRec(s1, file, conf);
 
-    EXPECT_TRUE(s2.graph.hasEdge(node_p110, node_s12));
-    EXPECT_TRUE(s2.graph.hasEdge(node_p110, node_s10));
+    EXPECT_TRUE(s1.graph.hasEdge(node_p110, node_s12));
+    EXPECT_TRUE(s1.graph.hasEdge(node_p110, node_s10));
 
     Graphviz gvc;
-    auto     gv = s2.graph.toGraphviz(store2);
+    auto     gv = s1.graph.toGraphviz(store2);
     gv.setRankDirection(Graphviz::Graph::RankDirection::LR);
     gvc.writeFile("/tmp/SubtreeFullMap.dot", gv);
     gvc.renderToFile("/tmp/SubtreeFullMap.png", gv);
@@ -1812,13 +1792,13 @@ TestGraph create_test_graph() {
         {n2, {n0}},
     };
 
-    g.nodeProps = g.nodeProps.set(n0, org::graph::MapNodeProp{});
-    g.nodeProps = g.nodeProps.set(n1, org::graph::MapNodeProp{});
-    g.nodeProps = g.nodeProps.set(n2, org::graph::MapNodeProp{});
+    g.nodeProps.insert_or_assign(n0, org::graph::MapNodeProp{});
+    g.nodeProps.insert_or_assign(n1, org::graph::MapNodeProp{});
+    g.nodeProps.insert_or_assign(n2, org::graph::MapNodeProp{});
 
-    g.edgeProps = g.edgeProps.set({n0, n1}, org::graph::MapEdgeProp{});
-    g.edgeProps = g.edgeProps.set({n1, n2}, org::graph::MapEdgeProp{});
-    g.edgeProps = g.edgeProps.set({n2, n0}, org::graph::MapEdgeProp{});
+    g.edgeProps.insert_or_assign({n0, n1}, org::graph::MapEdgeProp{});
+    g.edgeProps.insert_or_assign({n1, n2}, org::graph::MapEdgeProp{});
+    g.edgeProps.insert_or_assign({n2, n0}, org::graph::MapEdgeProp{});
 
     return TestGraph{
         .g     = g,
@@ -1922,13 +1902,13 @@ TEST(ImmMapApi, BoostPropertyWriter) {
     auto [store2, root1] = store.addRoot(n);
     org::ImmAdapter           file{root1, store};
     org::graph::MapGraphState s1{};
-    auto                      s2 = org::graph::addNodeRec(s1, file, conf);
+    org::graph::addNodeRec(s1, file, conf);
 
     std::stringstream os;
 
-    auto dp = org::graph::toGraphvizDynamicProperties(s2.graph);
+    auto dp = org::graph::toGraphvizDynamicProperties(s1.graph);
 
-    write_graphviz_dp(os, s2.graph, dp);
+    write_graphviz_dp(os, s1.graph, dp);
 
     writeFile("/tmp/BoostPropertyWriter.dot", os.str());
 }
