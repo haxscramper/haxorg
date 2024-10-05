@@ -1259,6 +1259,7 @@ EACH_SEM_ORG_KIND(_gen_map)
 
 } // namespace org
 
+
 template <>
 struct std::formatter<org::ImmAstStore*>
     : std_format_ptr_as_hex<org::ImmAstStore> {};
@@ -1267,6 +1268,9 @@ template <>
 struct std::formatter<org::ImmAstContext*>
     : std_format_ptr_as_hex<org::ImmAstContext> {};
 
+template <>
+struct std::formatter<org::ParentPathMap*>
+    : std_format_ptr_as_value<org::ParentPathMap> {};
 
 template <>
 struct std::formatter<org::ImmPath> : std::formatter<std::string> {

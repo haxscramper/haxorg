@@ -118,7 +118,7 @@ void OperationsTracerSink::Send(const absl::LogEntry& entry) {
         entry.text_message().data(),
         scope ? scope->activeLevel : 0,
         entry.source_line(),
-        "",
+        LogSeverityName(entry.log_severity()),
         entry.source_filename().data());
 }
 

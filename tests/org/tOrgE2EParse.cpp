@@ -969,6 +969,8 @@ TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {
 
     {
         auto __scope = start.debug->collectAbslLogs();
+        _dbg(store.track->parents);
+        _dbg(store2.track->parents);
         _dbg(store.track->getParentIds(space_id.id));
         _dbg(store2.track->getParentIds(space_id.id));
     }
