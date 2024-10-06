@@ -895,3 +895,19 @@ Vec<ImmUniqId> ImmAstTrackingMap::getPathsFor(const ImmId& it) const {
     std::sort(result.begin(), result.end());
     return result;
 }
+
+Vec<ImmAdapter> ImmAstContext::getAdaptersFor(const ImmId& it) const {
+    Vec<ImmAdapter> result;
+    for (auto const& id : getPathsFor(it)) { result.push_back(adapt(id)); }
+    return result;
+}
+
+ImmAstEditContext ImmAstContext::getEditContext() {
+    return ImmAstEditContext{
+        .track = track->transient(this),
+        .ctx   = this,
+        .debug = OperationsScope{
+            .TraceState  = &debug->TraceState,
+            .activeLevel = 0,
+        }};
+}

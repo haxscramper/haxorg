@@ -82,7 +82,7 @@ struct map_graph_out_edges_iterator {
     org::graph::MapNode                               source;
     typename org::graph::AdjNodesList::const_iterator iter;
 
-    map_graph_out_edges_iterator() : source{org::ImmId::Nil()} {};
+    map_graph_out_edges_iterator() : source{org::ImmUniqId{}} {};
     map_graph_out_edges_iterator(
         org::graph::MapNode const&                        source,
         typename org::graph::AdjNodesList::const_iterator it)

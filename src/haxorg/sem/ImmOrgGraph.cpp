@@ -141,34 +141,12 @@ void updateResolvedEdges(
         GRAPH_MSG(fmt("add edge {}-{}", op.source, op.target));
 
 
-        MapEdge edge{op.source, op.target};
+        MapEdge edge{op.source, op.target.value()};
 
-        graph.adjList.at(op.source).push_back(op.target);
+        graph.adjList.at(op.source).push_back(op.target.value());
 
         graph.edgeProps.insert_or_assign(
             edge, MapEdgeProp{.link = op.link});
-    }
-}
-
-void updateTrackingTables(
-    MapGraphState&     state,
-    MapNodeProp const& unresolved_node,
-    MapConfig&         conf) {
-
-    MapNode mapNode{unresolved_node.id.id};
-
-    if (auto footnote = unresolved_node.getFootnoteName()) {
-        LOGIC_ASSERTION_CHECK(
-            state.footnoteTargets.find(*footnote) == nullptr,
-            "Duplicate footnote");
-        state.footnoteTargets.insert_or_assign(*footnote, mapNode);
-    }
-
-    if (auto id = unresolved_node.getSubtreeId()) {
-        LOGIC_ASSERTION_CHECK(
-            state.subtreeTargets.find(*id) == nullptr,
-            "Duplicate subtree ID");
-        state.subtreeTargets.insert_or_assign(*id, mapNode);
     }
 }
 
@@ -213,12 +191,8 @@ void org::graph::addNode(
     MapNodeProp const& unresolved_node,
     MapConfig&         conf) {
 
-    // Update ID tracking tables so the newly added node could be found by
-    // the ID resolution.
-    updateTrackingTables(state, unresolved_node, conf);
-
     auto&   graph = state.graph;
-    MapNode mapNode{unresolved_node.id.id};
+    MapNode mapNode{unresolved_node.id.uniq()};
 
     graph.adjList.insert_or_assign(mapNode, Vec<MapNode>{});
 
@@ -362,33 +336,31 @@ Opt<MapNodeProp> org::graph::getUnresolvedNodeInsertDefault(
     return result;
 }
 
-Opt<MapLinkResolveResult> org::graph::getResolveTarget(
+Vec<MapLinkResolveResult> org::graph::getResolveTarget(
     const MapGraphState& s,
     MapNode const&       source,
     MapLink const&       link,
     MapConfig&           conf) {
 
-    Opt<MapLinkResolveResult> result;
+    Vec<MapLinkResolveResult> result;
 
-    GRAPH_MSG(
-        fmt("subtreeIds:{} footnoteTargets:{} link:{}",
-            s.subtreeTargets,
-            s.footnoteTargets,
-            link));
+    auto add_edge = [&](MapEdgeProp::Kind kind, org::ImmId const& target) {
+        for (auto const& full : s.ast.getAdaptersFor(target)) {
+            Opt<MapNode> resolved;
 
 
-    auto add_edge = [&](MapEdgeProp::Kind kind, MapNode target) {
-        result = MapLinkResolveResult{
-            .link   = link,
-            .target = target,
-            .source = source,
-            .kind   = kind,
-        };
+            result.push_back(MapLinkResolveResult{
+                .link   = link,
+                .target = resolved,
+                .source = source,
+                .kind   = kind,
+            });
+        }
     };
 
     switch (link.link->getLinkKind()) {
         case slk::Id: {
-            if (auto target = s.subtreeTargets.get(
+            if (auto target = s.ast.track->subtrees.get(
                     link.link->getId().text)) {
                 add_edge(MapEdgeProp::Kind::SubtreeId, *target);
             }
@@ -396,7 +368,7 @@ Opt<MapLinkResolveResult> org::graph::getResolveTarget(
         }
 
         case slk::Footnote: {
-            if (auto target = s.footnoteTargets.get(
+            if (auto target = s.ast.track->footnotes.get(
                     link.link->getFootnote().target)) {
                 add_edge(MapEdgeProp::Kind::Footnote, *target);
             }
@@ -420,7 +392,7 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
     result.node.unresolved.clear();
 
     LOGIC_ASSERTION_CHECK(
-        s.unresolved.find(MapNode{node.id.id}) == nullptr,
+        s.unresolved.find(MapNode{node.id.uniq()}) == nullptr,
         "Node edit with unresolved elements is already listed as "
         "unresolved node: box is {}",
         node);
@@ -430,39 +402,40 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
 
 
     for (auto const& unresolvedLink : node.unresolved) {
-        Opt<MapLinkResolveResult> resolved_edit = getResolveTarget(
-            s, MapNode{node.id.id}, unresolvedLink, conf);
-        if (resolved_edit) {
-            GRAPH_MSG(fmt("resolved:{}", *resolved_edit));
-
-            result.resolved.push_back(*resolved_edit);
-        } else {
+        Vec<MapLinkResolveResult> resolved_edit = getResolveTarget(
+            s, MapNode{node.id.uniq()}, unresolvedLink, conf);
+        if (resolved_edit.empty()) {
             result.node.unresolved.push_back(unresolvedLink);
+        } else {
+            for (auto const& resolved : resolved_edit) {
+                GRAPH_MSG(fmt("resolved:{}", resolved));
+                result.resolved.push_back(resolved);
+            }
         }
     }
 
-    for (auto const& nodeWithUnresolved : s.unresolved) {
+    for (MapNode const& nodeWithUnresolved : s.unresolved) {
         LOGIC_ASSERTION_CHECK(
-            nodeWithUnresolved.id != node.id.id,
+            nodeWithUnresolved.id != node.id.uniq(),
             "cannot resolve already inserted node {} == {} ({}) is "
             "recorded in "
             "s.unresolved",
             nodeWithUnresolved.id,
             node.id.id,
-            nodeWithUnresolved.id != node.id.id);
+            nodeWithUnresolved.id != node.id.uniq());
 
         for (auto const& link :
              s.graph.at(nodeWithUnresolved).unresolved) {
-            Opt<MapLinkResolveResult> resolved_edit = getResolveTarget(
+            Vec<MapLinkResolveResult> resolved_edit = getResolveTarget(
                 s, nodeWithUnresolved, link, conf);
-            if (resolved_edit) {
+            for (auto const resolved : resolved_edit) {
                 GRAPH_MSG(
                     fmt("resolved:{} it:{} edit:{}",
-                        *resolved_edit,
+                        resolved,
                         nodeWithUnresolved,
                         node));
 
-                result.resolved.push_back(*resolved_edit);
+                result.resolved.push_back(resolved);
             }
         }
     }
@@ -509,7 +482,7 @@ Graphviz::Graph MapGraph::toGraphviz(org::ImmAstContext const& ctx) const {
     UnorderedMap<MapNode, Graphviz::Node> gvNodes;
     UnorderedMap<MapEdge, Graphviz::Edge> gvEdges;
     for (auto const& [it, props] : nodeProps) {
-        gvNodes.insert_or_assign(it, res.node(it.id.getReadableId()));
+        gvNodes.insert_or_assign(it, res.node(it.id.id.getReadableId()));
     }
 
     for (auto const& [source, targets] : adjList) {

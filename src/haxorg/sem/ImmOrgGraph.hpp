@@ -61,11 +61,10 @@ struct MapEdgeProp {
 
 
 struct MapNode {
-    org::ImmId id;
+    org::ImmUniqId id;
 
-    MapNode() : id{org::ImmId::Nil()} {}
-    MapNode(org::ImmId id) : id{id} {}
-    MapNode(org::ImmAdapter id) : id{id.id} {}
+    MapNode() : id{org::ImmUniqId()} {}
+    MapNode(org::ImmUniqId id) : id{id} {}
 
     bool operator==(MapNode const& other) const {
         return this->id == other.id;
@@ -192,17 +191,12 @@ struct MapConfig
 struct MapGraphState {
     /// \brief List of nodes with unresolved outgoing links.
     UnorderedSet<MapNode> unresolved;
-    /// \brief Lookup of the nodes by the footnote IDs
-    UnorderedMap<Str, MapNode> footnoteTargets;
-    /// \brief Loopup of the subtree targets by the subtree IDs
-    UnorderedMap<Str, MapNode> subtreeTargets;
-    MapGraph                   graph;
+    MapGraph              graph;
+    ImmAstContext         ast;
 
     MapGraphState() {};
 
-    DESC_FIELDS(
-        MapGraphState,
-        (unresolved, footnoteTargets, subtreeTargets, graph));
+    DESC_FIELDS(MapGraphState, (unresolved, graph));
 };
 
 void addNode(MapGraphState& g, MapNodeProp const& node, MapConfig& conf);
@@ -235,8 +229,10 @@ Opt<MapNodeProp> getUnresolvedNodeInsertDefault(
 
 
 struct MapLinkResolveResult {
-    MapLink           link;
-    MapNode           target;
+    MapLink link;
+    /// \brief Target node for link resolution. If resolution fails the
+    /// link is set to nullopt.
+    Opt<MapNode>      target;
     MapNode           source;
     MapEdgeProp::Kind kind;
     DESC_FIELDS(MapLinkResolveResult, (link, target, source, kind));
@@ -244,7 +240,7 @@ struct MapLinkResolveResult {
 
 /// \brief Resolve a single link with the state `s` and return the edge.
 /// Use `source` as an edge origin.
-Opt<MapLinkResolveResult> getResolveTarget(
+Vec<MapLinkResolveResult> getResolveTarget(
     MapGraphState const& s,
     MapNode const&       source,
     MapLink const&       link,

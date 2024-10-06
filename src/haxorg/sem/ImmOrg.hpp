@@ -552,19 +552,13 @@ struct [[nodiscard]] ImmAstContext {
         return track->getPathsFor(it);
     }
 
+    Vec<ImmAdapter> getAdaptersFor(ImmId const& it) const;
+
     ImmAstVersion getEditVersion(
         ImmAdapter const&                                            root,
         Func<ImmAstReplaceGroup(ImmAstContext&, ImmAstEditContext&)> cb);
 
-    ImmAstEditContext getEditContext() {
-        return ImmAstEditContext{
-            .track = track->transient(this),
-            .ctx   = this,
-            .debug = OperationsScope{
-                .TraceState  = &debug->TraceState,
-                .activeLevel = 0,
-            }};
-    }
+    ImmAstEditContext getEditContext();
 
     ImmAstContext finishEdit(ImmAstEditContext& ctx);
 
@@ -604,7 +598,7 @@ struct [[nodiscard]] ImmAstContext {
 
     void format(ColStream& os, std::string const& prefix = "") const;
 
-    ImmAdapter adapt(ImmUniqId const& id);
+    ImmAdapter adapt(ImmUniqId const& id) const;
 
 
     ImmAstContext()

@@ -557,7 +557,7 @@ void ImmAstContext::format(ColStream& os, const std::string& prefix)
     store->format(os, prefix + "  ");
 }
 
-ImmAdapter ImmAstContext::adapt(const ImmUniqId& id) {
+ImmAdapter ImmAstContext::adapt(const ImmUniqId& id) const {
     return org::ImmAdapter{id, *this};
 }
 

@@ -57,6 +57,8 @@ GTEST_ADL_PRINT_TYPE(OrgSemKind);
 GTEST_ADL_PRINT_TYPE(org::ImmId);
 GTEST_ADL_PRINT_TYPE(org::ImmAdapter);
 GTEST_ADL_PRINT_TYPE(org::ImmUniqId);
+GTEST_ADL_PRINT_TYPE(org::graph::MapNode);
+GTEST_ADL_PRINT_TYPE(org::graph::MapEdge);
 
 
 struct compare_context {
@@ -1761,8 +1763,8 @@ TEST(ImmMapApi, SubtreeFullMap) {
     conf.setTraceFile(getDebugFile("conf"));
     org::graph::addNodeRec(s1, file, conf);
 
-    EXPECT_TRUE(s1.graph.hasEdge(node_p110, node_s12));
-    EXPECT_TRUE(s1.graph.hasEdge(node_p110, node_s10));
+    EXPECT_TRUE(s1.graph.hasEdge(node_p110.uniq(), node_s12.uniq()));
+    EXPECT_TRUE(s1.graph.hasEdge(node_p110.uniq(), node_s10.uniq()));
 
     Graphviz gvc;
     auto     gv = s1.graph.toGraphviz(store2);
@@ -1779,9 +1781,9 @@ struct TestGraph {
 TestGraph create_test_graph() {
     org::graph::MapGraph g{};
 
-    auto n0 = org::ImmId::FromValue(0);
-    auto n1 = org::ImmId::FromValue(1);
-    auto n2 = org::ImmId::FromValue(2);
+    auto n0 = org::ImmUniqId{org::ImmId::FromValue(0)};
+    auto n1 = org::ImmUniqId{org::ImmId::FromValue(1)};
+    auto n2 = org::ImmUniqId{org::ImmId::FromValue(2)};
 
     g.adjList = {
         {n0, {n1}},
