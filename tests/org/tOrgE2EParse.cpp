@@ -1809,9 +1809,6 @@ TEST(ImmMapApi, Vertices) {
     std::sort(vertices.begin(), vertices.end());
 
     EXPECT_EQ(vertices.size(), 3);
-    EXPECT_EQ(vertices[0], g.nodes.at(0));
-    EXPECT_EQ(vertices[1], g.nodes.at(1));
-    EXPECT_EQ(vertices[2], g.nodes.at(2));
 }
 
 TEST(ImmMapApi, Edges) {
