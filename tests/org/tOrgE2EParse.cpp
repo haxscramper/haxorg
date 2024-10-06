@@ -38,6 +38,15 @@ Str getDebugFile(Str const& suffix) {
         suffix);
 }
 
+void writeTreeRepr(
+    org::ImmAdapter               n,
+    Str const                     suffix,
+    org::ImmAdapter::TreeReprConf conf = org::ImmAdapter::TreeReprConf{
+        .withAuxFields = true,
+    }) {
+    writeFile(getDebugFile(suffix), n.treeRepr(conf).toString(false));
+}
+
 // adl-based customization points is the most disgusting degenerate idea
 // you can possible have. The shit doesn't work reliably, you need to do
 // some fucking magic with namespaces and whatever the fuck else, it does
@@ -475,15 +484,6 @@ struct ImmOrgApiTestBase : public ::testing::Test {
 
     org::ImmAstVersion getInitialVersion(Str const& text) {
         return start.init(parseNode(text));
-    }
-
-    void writeTreeRepr(
-        org::ImmAdapter               n,
-        Str const                     suffix,
-        org::ImmAdapter::TreeReprConf conf = org::ImmAdapter::TreeReprConf{
-            .withAuxFields = true,
-        }) {
-        writeFile(getDebugFile(suffix), n.treeRepr(conf).toString(false));
     }
 
     void writeGvHistory(
@@ -1824,8 +1824,9 @@ DocBlock fromAst(org::ImmAdapter const& id) {
         default: {
             if (auto list = id.asOpt<org::ImmList>();
                 list.has_value() && list->isDescriptionList()) {
-                if (list->getListAttrs("attached").at(0).value
-                    != "subtree") {
+                if (auto attached = list->getListAttrs("attached");
+                    attached.has(0) && //
+                    attached.at(0).value != "subtree") {
                     result.items.push_back(DocItem{.id = id});
                 }
             } else {
@@ -1851,11 +1852,20 @@ void addAll(
 }
 
 TEST(ImmMapApi, SubtreeBlockMap) {
-    auto                      n = parseNode(getSubtreeBlockText());
-    org::ImmAstContext        store;
-    org::ImmAstVersion        v    = store.addRoot(n);
-    org::ImmAdapter           root = v.getRootAdapter();
-    org::graph::MapConfig     conf;
+    auto n = parseNode(getSubtreeBlockText());
+    sem::exportToTreeFile(
+        n,
+        getDebugFile("sem_tree.txt"),
+        sem::OrgTreeExportOpts{
+            .withColor = false,
+        });
+
+    org::ImmAstContext store;
+    store.debug->setTraceFile(getDebugFile("store"));
+    org::ImmAstVersion    v    = store.addRoot(n);
+    org::ImmAdapter       root = v.getRootAdapter();
+    org::graph::MapConfig conf;
+    conf.setTraceFile(getDebugFile("graph"));
     org::graph::MapGraphState state{v.context};
     DocBlock                  doc = fromAst(root);
     addAll(state, doc, conf);

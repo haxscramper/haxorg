@@ -390,10 +390,25 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
         }
 
         case slk::Footnote: {
-            auto text = link.link->getFootnote().target;
+            CR<Str> text = link.link->getFootnote().target.get();
             if (auto target = s.ast.track->footnotes.get(text)) {
                 GRAPH_MSG(
                     fmt("Footnote name {} on {} resolved to {}",
+                        text,
+                        source,
+                        *target));
+                add_edge(MapEdgeProp::Kind::Footnote, *target);
+            } else {
+                GRAPH_MSG(fmt("No footnote with ID {}", text));
+            }
+            break;
+        }
+
+        case slk::Internal: {
+            CR<Str> text = link.link->getInternal().target.get();
+            if (auto target = s.ast.track->radioTargets.get(text)) {
+                GRAPH_MSG(
+                    fmt("Internal link name {} on {} resolved to {}",
                         text,
                         source,
                         *target));

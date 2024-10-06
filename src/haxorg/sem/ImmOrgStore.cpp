@@ -537,6 +537,10 @@ ImmAdapter ImmAstContext::adapt(const ImmUniqId& id) const {
     return org::ImmAdapter{id, *this};
 }
 
+ImmAdapter ImmAstContext::adaptUnrooted(const ImmId& id) const {
+    return org::ImmAdapter{org::ImmUniqId{id, {}}, *this};
+}
+
 
 ImmAstVersion ImmAstContext::getEditVersion(
     const org::ImmAdapter&                                           root,

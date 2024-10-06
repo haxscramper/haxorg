@@ -602,6 +602,7 @@ struct [[nodiscard]] ImmAstContext {
     void format(ColStream& os, std::string const& prefix = "") const;
 
     ImmAdapter adapt(ImmUniqId const& id) const;
+    ImmAdapter adaptUnrooted(ImmId const& id) const;
 
 
     ImmAstContext()
@@ -1117,7 +1118,9 @@ struct ImmAdapterTimeAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterTimeRangeAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterMacroAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterSymbolAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterLeafAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterLeafAPI : ImmAdapterOrgAPI {
+    Str const& getText() const;
+};
 struct ImmAdapterEscapedAPI : ImmAdapterLeafAPI {};
 struct ImmAdapterNewlineAPI : ImmAdapterLeafAPI {};
 struct ImmAdapterSpaceAPI : ImmAdapterLeafAPI {};

@@ -660,6 +660,12 @@ Vec<org::ImmAdapter> org::ImmAdapterStmtAPI::getAttached(Opt<Str> const& kind) c
     return result;
 }
 
+Str const& org::ImmAdapterLeafAPI::getText() const {
+    Str const* result;
+    CallDynamicOrgMethod<org::ImmLeaf>(getThis(), [&](auto const &a1) { result = &a1->text.get(); });
+    return *result;
+}
+
 Opt<sem::AttrValue> org::ImmAdapterStmtAPI::getFirstAttr(Str const& param) const {
   Opt<sem::AttrValue> result;
   CallDynamicOrgMethod<org::ImmStmt>(getThis(), [&](auto const &a1, auto const &a2) { result = Stmt_getFirstAttr(a1, a2); }, param);
@@ -731,6 +737,8 @@ bool sem::ListItem::isDescriptionItem() const { return ListItem_isDescriptionIte
 
 org::ImmAdapterT<org::ImmParagraph> org::ImmAdapterSubtreeAPI::getTitle() const { return pass(getThisT<org::ImmSubtree>()->title, ImmPathStep::Field("title")); }
 org::ImmAdapterT<org::ImmParagraph> org::ImmAdapterCmdCaptionAPI::getText() const { return pass(getThisT<org::ImmCmdCaption>()->text, ImmPathStep::Field("text")); }
+
+
 
 // clang-format on
 

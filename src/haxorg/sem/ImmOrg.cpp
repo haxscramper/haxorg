@@ -509,6 +509,21 @@ ImmAstStore& ImmAstEditContext::store() { return *ctx->store; }
 
 void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
     message(fmt("Tracking {} add:{}", node, add));
+
+    auto search_radio_targets = [&](org::ImmAdapter const& id) {
+        for (auto const& target : id.subAs<org::ImmRadioTarget>()) {
+            message(
+                fmt("Node {} contains radio target {}",
+                    node,
+                    target.getText()));
+            if (add) {
+                track.radioTargets.set(target.getText(), node);
+            } else {
+                track.radioTargets.erase(target.getText());
+            }
+        }
+    };
+
     switch_node_value(
         node,
         *ctx,
@@ -524,9 +539,7 @@ void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
                 }
             },
             [&](org::ImmAnnotatedParagraph const& par) {
-                if (par.getAnnotationKind()
-                    == org::ImmAnnotatedParagraph::AnnotationKind::
-                        Footnote) {
+                if (par.isFootnote()) {
                     auto id = par.getFootnote().name.get();
                     message(fmt("Footnote ID {}", id));
                     if (add) {
@@ -535,6 +548,10 @@ void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
                         track.footnotes.erase(id);
                     }
                 }
+                search_radio_targets(ctx->adaptUnrooted(node));
+            },
+            [&](org::ImmParagraph const& target) {
+                search_radio_targets(ctx->adaptUnrooted(node));
             },
             [&](auto const& nodeValue) {},
 
