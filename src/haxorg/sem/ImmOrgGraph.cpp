@@ -403,42 +403,48 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
 
     GRAPH_MSG(fmt("unresolved:{}", s.unresolved));
 
-
-    for (auto const& unresolvedLink : node.unresolved) {
-        Vec<MapLinkResolveResult> resolved_edit = getResolveTarget(
-            s, MapNode{node.id.uniq()}, unresolvedLink, conf);
-        if (resolved_edit.empty()) {
-            result.node.unresolved.push_back(unresolvedLink);
-        } else {
-            for (auto const& resolved : resolved_edit) {
-                GRAPH_MSG(fmt("resolved:{}", resolved));
-                result.resolved.push_back(resolved);
+    GRAPH_MSG(fmt("Process unresolved for node {}", node));
+    {
+        auto __scope = conf.scopeLevel();
+        for (auto const& unresolvedLink : node.unresolved) {
+            Vec<MapLinkResolveResult> resolved_edit = getResolveTarget(
+                s, MapNode{node.id.uniq()}, unresolvedLink, conf);
+            if (resolved_edit.empty()) {
+                result.node.unresolved.push_back(unresolvedLink);
+            } else {
+                for (auto const& resolved : resolved_edit) {
+                    GRAPH_MSG(fmt("resolved:{}", resolved));
+                    result.resolved.push_back(resolved);
+                }
             }
         }
     }
 
-    for (MapNode const& nodeWithUnresolved : s.unresolved) {
-        LOGIC_ASSERTION_CHECK(
-            nodeWithUnresolved.id != node.id.uniq(),
-            "cannot resolve already inserted node {} == {} ({}) is "
-            "recorded in "
-            "s.unresolved",
-            nodeWithUnresolved.id,
-            node.id.id,
-            nodeWithUnresolved.id != node.id.uniq());
+    GRAPH_MSG(fmt("Process unresolved for state"));
+    {
+        auto __scope = conf.scopeLevel();
+        for (MapNode const& nodeWithUnresolved : s.unresolved) {
+            LOGIC_ASSERTION_CHECK(
+                nodeWithUnresolved.id != node.id.uniq(),
+                "cannot resolve already inserted node {} == {} ({}) is "
+                "recorded in s.unresolved",
+                nodeWithUnresolved.id,
+                node.id.id,
+                nodeWithUnresolved.id != node.id.uniq());
 
-        for (auto const& link :
-             s.graph.at(nodeWithUnresolved).unresolved) {
-            Vec<MapLinkResolveResult> resolved_edit = getResolveTarget(
-                s, nodeWithUnresolved, link, conf);
-            for (auto const resolved : resolved_edit) {
-                GRAPH_MSG(
-                    fmt("resolved:{} it:{} edit:{}",
-                        resolved,
-                        nodeWithUnresolved,
-                        node));
+            for (auto const& link :
+                 s.graph.at(nodeWithUnresolved).unresolved) {
+                Vec<MapLinkResolveResult> resolved_edit = getResolveTarget(
+                    s, nodeWithUnresolved, link, conf);
+                for (auto const& resolved : resolved_edit) {
+                    GRAPH_MSG(
+                        fmt("resolved:{} it:{} edit:{}",
+                            resolved,
+                            nodeWithUnresolved,
+                            node));
 
-                result.resolved.push_back(resolved);
+                    result.resolved.push_back(resolved);
+                }
             }
         }
     }

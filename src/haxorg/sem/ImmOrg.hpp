@@ -522,8 +522,6 @@ struct ImmAstStore {
     sem::SemId<sem::Org> get(org::ImmId id, ImmAstContext const& ctx);
 };
 
-
-struct ImmRootAddResult;
 struct ImmAstVersion;
 struct ImmAdapter;
 
@@ -573,7 +571,7 @@ struct [[nodiscard]] ImmAstContext {
     /// with `index`
     ImmId add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx);
 
-    ImmRootAddResult     addRoot(sem::SemId<sem::Org> data);
+    ImmAstVersion        addRoot(sem::SemId<sem::Org> data);
     ImmAstVersion        init(sem::SemId<sem::Org> root);
     sem::SemId<sem::Org> get(org::ImmId id);
 
@@ -609,13 +607,6 @@ struct [[nodiscard]] ImmAstContext {
         , track{std::make_shared<ImmAstTrackingMap>()}
         , debug{std::make_shared<OperationsTracer>()} //
     {}
-};
-
-
-struct ImmRootAddResult {
-    ImmAstContext context;
-    org::ImmId    root;
-    DESC_FIELDS(ImmRootAddResult, (context, root));
 };
 
 /// \brief Specific version of the document.

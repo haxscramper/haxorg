@@ -875,8 +875,8 @@ TEST_F(ImmOrgApi, RountripImmutableAst) {
     std::string source = readFile(fs::path(file));
     org::ImmAstContext store;
     sem::SemId         write_node = parseNode(source);
-    auto [store2, immer_root]     = store.addRoot(write_node);
-    sem::SemId read_node          = store2.get(immer_root);
+    org::ImmAstVersion v1         = store.addRoot(write_node);
+    sem::SemId         read_node  = v1.context.get(v1.getRoot());
 
     Vec<compare_report> out;
 
@@ -1516,17 +1516,17 @@ TEST_F(ImmOrgApiAppModel, EditModel) {
 TEST(ImmMapApi, AddNode) {
     auto n1 = parseNode("* subtree");
 
-    org::ImmAstContext        store;
-    org::graph::MapGraphState s1{};
-    org::graph::MapConfig     conf;
+    org::ImmAstContext    store;
+    org::graph::MapConfig conf;
     conf.setTraceFile("/tmp/ImmMapApi_AddNode.txt");
+    org::ImmAstVersion        v1 = store.addRoot(n1);
+    org::graph::MapGraphState s1{v1.context};
     EXPECT_EQ(s1.graph.nodeCount(), 0);
-    auto [store2, root] = store.addRoot(n1);
-    org::graph::addNode(s1, org::ImmAdapter{root, store}, conf);
+    org::graph::addNode(s1, v1.getRootAdapter(), conf);
     EXPECT_EQ(s1.graph.nodeCount(), 1);
 
     Graphviz gvc;
-    auto     gv = s1.graph.toGraphviz(store2);
+    auto     gv = s1.graph.toGraphviz(v1.context);
     gvc.renderToFile("/tmp/MapS2.png", gv);
 }
 
@@ -1546,35 +1546,35 @@ Paragraph [[id:subtree-id]]
     org::graph::MapConfig conf;
     conf.setTraceFile(getDebugFile("log"));
     store.debug->setTraceFile(conf.getTraceFile());
-    auto [store2, root_node] = store.addRoot(n1);
-    org::ImmAdapter root{root_node, store};
+    org::ImmAstVersion v1   = store.addRoot(n1);
+    auto               root = v1.getRootAdapter();
 
-    ColStream os;
-    store.format(os);
-    writeFile(
-        "/tmp/AddNodeWithLinks_treerepr.txt",
-        fmt("tree:\n{}\nbuffer:\n{}",
-            root.treeRepr().toString(false),
-            os.getBuffer().toString(false)));
-
-    org::graph::MapGraphState s1{};
+    org::graph::MapGraphState s1{v1.context};
 
     EXPECT_EQ(s1.graph.nodeCount(), 0);
     EXPECT_EQ(s1.graph.edgeCount(), 0);
     EXPECT_EQ(s1.unresolved.size(), 0);
 
-    org::graph::addNode(s1, root.at(1), conf);
-    EXPECT_EQ(s1.graph.nodeCount(), 1);
-    EXPECT_EQ(s1.graph.edgeCount(), 0);
-    EXPECT_EQ(s1.unresolved.size(), 1);
+    conf.message("add first node");
+    {
+        auto __scope = conf.scopeLevel();
+        org::graph::addNode(s1, root.at(1), conf);
+        EXPECT_EQ(s1.graph.nodeCount(), 1);
+        EXPECT_EQ(s1.graph.edgeCount(), 0);
+        EXPECT_EQ(s1.unresolved.size(), 1);
+    }
 
-    org::graph::addNode(s1, root.at(3), conf);
-    EXPECT_EQ(s1.graph.nodeCount(), 2);
-    EXPECT_EQ(s1.graph.edgeCount(), 1);
-    EXPECT_EQ(s1.unresolved.size(), 0);
+    conf.message("add second node");
+    {
+        auto __scope = conf.scopeLevel();
+        org::graph::addNode(s1, root.at(3), conf);
+        EXPECT_EQ(s1.graph.nodeCount(), 2);
+        EXPECT_EQ(s1.graph.edgeCount(), 1);
+        EXPECT_EQ(s1.unresolved.size(), 0);
+    }
 
     Graphviz gvc;
-    auto     gv = s1.graph.toGraphviz(store2);
+    auto     gv = s1.graph.toGraphviz(v1.context);
     gvc.renderToFile("/tmp/AddNodeWithLinks.png", gv);
 }
 
@@ -1605,39 +1605,28 @@ TEST(ImmMapApi, SubtreeBacklinks) {
     org::graph::MapConfig conf;
     conf.setTraceFile("/tmp/SubtreeBacklinks_log.txt");
 
-    auto [store2, root_1] = store.addRoot(n1);
-    auto [store3, root_2] = store2.addRoot(n2);
+    org::ImmAstVersion v2 = store.addRoot(n1);
+    org::ImmAstVersion v3 = v2.context.addRoot(n2);
 
-    org::ImmAdapter file1{root_1, store};
-    org::ImmAdapter file2{root_2, store};
 
-    ColStream os;
-    store.format(os);
-    writeFile(
-        "/tmp/SubtreeBacklinks_treerepr.txt",
-        fmt("tree1:\n{}\ntree1:\n{}\nbuffer:\n{}",
-            file1.treeRepr().toString(false),
-            file2.treeRepr().toString(false),
-            os.getBuffer().toString(false)));
-
-    org::graph::MapGraphState s1{};
+    org::graph::MapGraphState s1{v3.context};
 
     EXPECT_EQ(s1.graph.nodeCount(), 0);
     EXPECT_EQ(s1.graph.edgeCount(), 0);
     EXPECT_EQ(s1.unresolved.size(), 0);
 
-    org::graph::addNode(s1, file1.at(1), conf);
+    org::graph::addNode(s1, v2.getRootAdapter().at(1), conf);
     EXPECT_EQ(s1.graph.nodeCount(), 1);
     EXPECT_EQ(s1.graph.edgeCount(), 0);
     EXPECT_EQ(s1.unresolved.size(), 1);
 
-    org::graph::addNode(s1, file2.at(1), conf);
+    org::graph::addNode(s1, v3.getRootAdapter().at(1), conf);
     EXPECT_EQ(s1.graph.nodeCount(), 2);
     EXPECT_EQ(s1.graph.edgeCount(), 2);
     EXPECT_EQ(s1.unresolved.size(), 0);
 
     Graphviz gvc;
-    auto     gv = s1.graph.toGraphviz(store3);
+    auto     gv = s1.graph.toGraphviz(v3.context);
     gvc.renderToFile("/tmp/SubtreeBacklinks.png", gv);
 }
 
@@ -1732,18 +1721,9 @@ TEST(ImmMapApi, SubtreeFullMap) {
 
     org::ImmAstContext store;
 
-    auto [store2, root1] = store.addRoot(n);
-    org::ImmAdapter           file{root1, store};
-    org::graph::MapGraphState s1{};
-
-    ColStream os;
-    store.format(os);
-    writeFile(
-        "/tmp/SubtreeFullMap_repr.txt",
-        fmt("tree:\n{}\nbuffer:\n{}",
-            file.treeRepr().toString(false),
-            os.getBuffer().toString(false)));
-
+    org::ImmAstVersion        v2 = store.addRoot(n);
+    org::graph::MapGraphState s1{v2.context};
+    org::ImmAdapter           file = v2.getRootAdapter();
 
     EXPECT_EQ(file.at(1)->getKind(), osk::Subtree);
     auto node_s10  = file.at(Vec{1, 0});
@@ -1762,13 +1742,13 @@ TEST(ImmMapApi, SubtreeFullMap) {
 
     org::graph::MapConfig conf;
     conf.setTraceFile(getDebugFile("conf"));
-    org::graph::addNodeRec(s1, file, conf);
+    org::graph::addNodeRec(s1, v2.getRootAdapter(), conf);
 
     EXPECT_TRUE(s1.graph.hasEdge(node_p110.uniq(), node_s12.uniq()));
     EXPECT_TRUE(s1.graph.hasEdge(node_p110.uniq(), node_s10.uniq()));
 
     Graphviz gvc;
-    auto     gv = s1.graph.toGraphviz(store2);
+    auto     gv = s1.graph.toGraphviz(v2.context);
     gv.setRankDirection(Graphviz::Graph::RankDirection::LR);
     gvc.writeFile("/tmp/SubtreeFullMap.dot", gv);
     gvc.renderToFile("/tmp/SubtreeFullMap.png", gv);
@@ -1897,11 +1877,11 @@ TEST(ImmMapApi, SourceAndTarget) {
 TEST(ImmMapApi, BoostPropertyWriter) {
     auto n = parseNode(getFullMindMapText());
 
-    org::ImmAstContext    store;
-    org::graph::MapConfig conf;
-    auto [store2, root1] = store.addRoot(n);
-    org::ImmAdapter           file{root1, store};
-    org::graph::MapGraphState s1{};
+    org::ImmAstContext        store;
+    org::graph::MapConfig     conf;
+    org::ImmAstVersion        v2   = store.addRoot(n);
+    org::ImmAdapter           file = v2.getRootAdapter();
+    org::graph::MapGraphState s1{v2.context};
     org::graph::addNodeRec(s1, file, conf);
 
     std::stringstream os;

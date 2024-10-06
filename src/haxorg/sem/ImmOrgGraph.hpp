@@ -194,7 +194,7 @@ struct MapGraphState {
     MapGraph              graph;
     ImmAstContext         ast;
 
-    MapGraphState() {};
+    MapGraphState(ImmAstContext const& ast) : ast{ast} {};
 
     DESC_FIELDS(MapGraphState, (unresolved, graph));
 };

@@ -567,24 +567,17 @@ ImmId ImmAstContext::add(
     return store->add(data, ctx);
 }
 
-ImmRootAddResult ImmAstContext::addRoot(sem::SemId<sem::Org> data) {
+ImmAstVersion ImmAstContext::addRoot(sem::SemId<sem::Org> data) {
     auto edit = getEditContext();
     auto root = add(data, edit);
-    return ImmRootAddResult{.root = root, .context = edit.finish()};
+    return ImmAstVersion{
+        .epoch   = ImmAstReplaceEpoch{.root = root},
+        .context = edit.finish(),
+    };
 }
 
 ImmAstVersion ImmAstContext::init(sem::SemId<sem::Org> root) {
-    auto [store, imm_root] = addRoot(root);
-    ImmAstReplace replace{
-        .original = std::nullopt,
-        .replaced = imm_root,
-    };
-
-    ImmAstVersion result{
-        .context = store,
-        .epoch   = ImmAstReplaceEpoch{.root = imm_root},
-    };
-    return result;
+    return addRoot(root);
 }
 
 
