@@ -507,6 +507,40 @@ ImmAstContext ImmAstEditContext::finish() {
 
 ImmAstStore& ImmAstEditContext::store() { return *ctx->store; }
 
+void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
+    message(fmt("Tracking {} add:{}", node, add));
+    switch_node_value(
+        node,
+        *ctx,
+        overloaded{
+            [&](org::ImmSubtree const& subtree) {
+                if (auto id = subtree.treeId.get(); id) {
+                    message(fmt("Subtree ID {}", id.value()));
+                    if (add) {
+                        track.subtrees.set(*id, node);
+                    } else {
+                        track.subtrees.erase(*id);
+                    }
+                }
+            },
+            [&](org::ImmAnnotatedParagraph const& par) {
+                if (par.getAnnotationKind()
+                    == org::ImmAnnotatedParagraph::AnnotationKind::
+                        Footnote) {
+                    auto id = par.getFootnote().name.get();
+                    message(fmt("Footnote ID {}", id));
+                    if (add) {
+                        track.footnotes.set(id, node);
+                    } else {
+                        track.footnotes.erase(id);
+                    }
+                }
+            },
+            [&](auto const& nodeValue) {},
+
+        });
+}
+
 void ImmAstEditContext::message(
     const std::string& value,
     const char*        function,

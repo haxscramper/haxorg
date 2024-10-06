@@ -1545,6 +1545,7 @@ Paragraph [[id:subtree-id]]
     org::ImmAstContext    store;
     org::graph::MapConfig conf;
     conf.setTraceFile(getDebugFile("log"));
+    store.debug->setTraceFile(getDebugFile("store"));
     auto [store2, root_node] = store.addRoot(n1);
     org::ImmAdapter root{root_node, store};
 

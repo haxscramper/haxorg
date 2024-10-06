@@ -342,12 +342,15 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
     MapLink const&       link,
     MapConfig&           conf) {
 
+    GRAPH_MSG(fmt("Get resolve targets {} {}", source, link));
+    GRAPH_MSG(fmt("footnotes {}", s.ast.track->footnotes));
+    GRAPH_MSG(fmt("subtrees {}", s.ast.track->subtrees));
+
     Vec<MapLinkResolveResult> result;
 
     auto add_edge = [&](MapEdgeProp::Kind kind, org::ImmId const& target) {
         for (auto const& full : s.ast.getAdaptersFor(target)) {
             Opt<MapNode> resolved;
-
 
             result.push_back(MapLinkResolveResult{
                 .link   = link,

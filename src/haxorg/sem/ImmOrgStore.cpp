@@ -46,31 +46,6 @@ ImmAstReplace ImmAstStore::setNode(
     const T&           value,
     ImmAstEditContext& ctx) {
 
-    auto visit_node = overloaded{
-        [&](org::ImmSubtree const& subtree, ImmId node, bool add) {
-            if (auto id = subtree.treeId.get(); id) {
-                if (add) {
-                    ctx.track.subtrees.set(*id, node);
-                } else {
-                    ctx.track.subtrees.erase(*id);
-                }
-            }
-        },
-        [&](org::ImmAnnotatedParagraph const& par, ImmId node, bool add) {
-            if (par.getAnnotationKind()
-                == org::ImmAnnotatedParagraph::AnnotationKind::Footnote) {
-                auto id = par.getFootnote().name.get();
-                if (add) {
-                    ctx.track.footnotes.set(id, node);
-                } else {
-                    ctx.track.footnotes.erase(id);
-                }
-            }
-        },
-        [&](auto const& nodeValue, ImmId node, bool add) {},
-
-    };
-
     for (auto const& it : allSubnodes<T>(value, *ctx.ctx)) {
         it.assertValid();
     }
@@ -88,8 +63,8 @@ ImmAstReplace ImmAstStore::setNode(
     AST_EDIT_MSG(fmt("| Original ID:{:<{}} {}", ft, w, target.value<T>()));
     AST_EDIT_MSG(fmt("| Replaced ID:{:<{}} {}", fr, w, value));
 
-    visit_node(target.value<T>(), target.id, false);
-    visit_node(value, result_node, true);
+    ctx.updateTracking(target.id, false);
+    ctx.updateTracking(result_node, true);
 
     auto __absl_scope = ctx.collectAbslLogs();
     auto dbg          = [&](std::string section) {
@@ -461,6 +436,7 @@ ImmId ImmAstStore::add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx) {
     auto adapter = ctx->adapt(ImmUniqId{result});
     ctx.track.removeAllSubnodesOf(adapter);
     ctx.track.insertAllSubnodesOf(adapter);
+    ctx.updateTracking(result, true);
     return result;
 }
 
@@ -592,9 +568,8 @@ ImmId ImmAstContext::add(
 }
 
 ImmRootAddResult ImmAstContext::addRoot(sem::SemId<sem::Org> data) {
-    auto edit         = getEditContext();
-    auto __absl_scope = edit.collectAbslLogs();
-    auto root         = add(data, edit);
+    auto edit = getEditContext();
+    auto root = add(data, edit);
     return ImmRootAddResult{.root = root, .context = edit.finish()};
 }
 

@@ -360,6 +360,10 @@ struct ImmAstEditContext {
     ImmAstStore&               store();
     OperationsScope            debug;
 
+    /// \brief Add or remove tracking data associated with the value for
+    /// the node
+    void updateTracking(org::ImmId const& node, bool add);
+
     void message(
         std::string const& value,
         char const*        function = __builtin_FUNCTION(),
@@ -501,7 +505,6 @@ struct ImmAstStore {
         ImmAdapter         id,
         ImmAstEditContext& ctx,
         Func               cb);
-
 
     /// \brief Generate new set of parent nodes for the node update.
     ImmAstReplaceEpoch cascadeUpdate(
