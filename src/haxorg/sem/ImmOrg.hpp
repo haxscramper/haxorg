@@ -298,6 +298,8 @@ struct ImmAstTrackingMapTransient {
         (footnotes, subtrees, radioTargets, anchorTargets, parents));
 };
 
+bool isTrackingParentDefault(ImmAdapter const&);
+
 struct ImmAstTrackingMap {
     ImmStrIdMap  footnotes;
     ImmStrIdMap  subtrees;
@@ -305,7 +307,7 @@ struct ImmAstTrackingMap {
     ImmStrIdMap  anchorTargets;
     ImmParentMap parents;
 
-    ImmPanentTrackFilter isTrackingParent;
+    ImmPanentTrackFilter isTrackingParent = isTrackingParentDefault;
 
     DESC_FIELDS(
         ImmAstTrackingMap,

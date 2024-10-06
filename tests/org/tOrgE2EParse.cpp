@@ -1558,10 +1558,13 @@ Paragraph [[id:subtree-id]]
     conf.message("add first node");
     {
         auto __scope = conf.scopeLevel();
-        org::graph::addNode(s1, root.at(1), conf);
+        auto par     = root.at(1);
+        org::graph::addNode(s1, par, conf);
+        EXPECT_EQ(par->getKind(), OrgSemKind::Paragraph);
         EXPECT_EQ(s1.graph.nodeCount(), 1);
         EXPECT_EQ(s1.graph.edgeCount(), 0);
-        EXPECT_EQ(s1.unresolved.size(), 1);
+        ASSERT_EQ(s1.unresolved.size(), 1);
+        EXPECT_EQ(*s1.unresolved.begin(), par.uniq());
     }
 
     conf.message("add second node");

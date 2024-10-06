@@ -141,9 +141,9 @@ void updateResolvedEdges(
         GRAPH_MSG(fmt("add edge {}-{}", op.source, op.target));
 
 
-        MapEdge edge{op.source, op.target.value()};
+        MapEdge edge{op.source, op.target};
 
-        graph.adjList.at(op.source).push_back(op.target.value());
+        graph.adjList.at(op.source).push_back(op.target);
 
         graph.edgeProps.insert_or_assign(
             edge, MapEdgeProp{.link = op.link});
@@ -349,12 +349,16 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
     Vec<MapLinkResolveResult> result;
 
     auto add_edge = [&](MapEdgeProp::Kind kind, org::ImmId const& target) {
-        for (auto const& full : s.ast.getAdaptersFor(target)) {
-            Opt<MapNode> resolved;
+        auto adapters = s.ast.getAdaptersFor(target);
+        LOGIC_ASSERTION_CHECK(
+            !adapters.empty(),
+            "Target node {} does not have any parent adapters tracked",
+            target);
 
+        for (auto const& full : adapters) {
             result.push_back(MapLinkResolveResult{
                 .link   = link,
-                .target = resolved,
+                .target = MapNode{full.uniq()},
                 .source = source,
                 .kind   = kind,
             });
@@ -363,22 +367,38 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
 
     switch (link.link->getLinkKind()) {
         case slk::Id: {
-            if (auto target = s.ast.track->subtrees.get(
-                    link.link->getId().text)) {
+            auto text = link.link->getId().text;
+            if (auto target = s.ast.track->subtrees.get(text)) {
+                GRAPH_MSG(
+                    fmt("Subtree ID {} on {} resolved to {}",
+                        text,
+                        source,
+                        *target));
                 add_edge(MapEdgeProp::Kind::SubtreeId, *target);
+            } else {
+                GRAPH_MSG(fmt("Not subtree with ID {}", text));
             }
             break;
         }
 
         case slk::Footnote: {
-            if (auto target = s.ast.track->footnotes.get(
-                    link.link->getFootnote().target)) {
+            auto text = link.link->getFootnote().target;
+            if (auto target = s.ast.track->footnotes.get(text)) {
+                GRAPH_MSG(
+                    fmt("Footnote name {} on {} resolved to {}",
+                        text,
+                        source,
+                        *target));
                 add_edge(MapEdgeProp::Kind::Footnote, *target);
+            } else {
+                GRAPH_MSG(fmt("No footnote with ID {}", text));
             }
             break;
         }
 
         default: {
+            throw logic_unreachable_error::init(
+                fmt("Unhandled link kind {}", link.link->getLinkKind()));
         }
     }
 
@@ -436,14 +456,19 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
                  s.graph.at(nodeWithUnresolved).unresolved) {
                 Vec<MapLinkResolveResult> resolved_edit = getResolveTarget(
                     s, nodeWithUnresolved, link, conf);
-                for (auto const& resolved : resolved_edit) {
-                    GRAPH_MSG(
-                        fmt("resolved:{} it:{} edit:{}",
-                            resolved,
-                            nodeWithUnresolved,
-                            node));
+                if (resolved_edit.empty()) {
+                    GRAPH_MSG(fmt(
+                        "No resolve target for {}", nodeWithUnresolved));
+                } else {
+                    for (auto const& resolved : resolved_edit) {
+                        GRAPH_MSG(
+                            fmt("resolved:{} it:{} edit:{}",
+                                resolved,
+                                nodeWithUnresolved,
+                                node));
 
-                    result.resolved.push_back(resolved);
+                        result.resolved.push_back(resolved);
+                    }
                 }
             }
         }

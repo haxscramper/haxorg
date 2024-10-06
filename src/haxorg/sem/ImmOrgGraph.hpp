@@ -230,9 +230,11 @@ Opt<MapNodeProp> getUnresolvedNodeInsertDefault(
 
 struct MapLinkResolveResult {
     MapLink link;
-    /// \brief Target node for link resolution. If resolution fails the
-    /// link is set to nullopt.
-    Opt<MapNode>      target;
+    /// \brief Target node for link resolution. Nodes are uniquely
+    /// associated with the ImmUniqId, so the 'target' is always filled,
+    /// but the node might not exist in the graph yet. If it does not
+    /// exist, the node is added to 'unresolved' in the graph state.
+    MapNode           target;
     MapNode           source;
     MapEdgeProp::Kind kind;
     DESC_FIELDS(MapLinkResolveResult, (link, target, source, kind));

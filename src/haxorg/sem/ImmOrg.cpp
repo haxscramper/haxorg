@@ -945,3 +945,8 @@ ImmAstEditContext ImmAstContext::getEditContext() {
             .activeLevel = 0,
         }};
 }
+
+bool org::isTrackingParentDefault(const ImmAdapter& node) {
+    return !SemSet{OrgSemKind::Space, OrgSemKind::Word}.contains(
+        node->getKind());
+}
