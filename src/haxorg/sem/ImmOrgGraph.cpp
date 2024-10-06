@@ -437,17 +437,14 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
     auto                 __scope = conf.scopeLevel();
     result.node                  = node;
     result.node.unresolved.clear();
+    GRAPH_MSG(fmt("Get unresolved for node {}", node.id));
 
     LOGIC_ASSERTION_CHECK(
         s.unresolved.find(MapNode{node.id.uniq()}) == nullptr,
-        "Node edit with unresolved elements is already listed as "
-        "unresolved node: box is {}",
-        node);
+        "Node {} is already marked as unresolved in the graph",
+        node.id);
 
 
-    GRAPH_MSG(fmt("unresolved:{}", s.unresolved));
-
-    GRAPH_MSG(fmt("Process unresolved for node {}", node));
     {
         auto __scope = conf.scopeLevel();
         for (auto const& unresolvedLink : node.unresolved) {
@@ -604,17 +601,11 @@ void org::graph::addNodeRec(
                 break;
             }
             case osk::Paragraph: {
-                {
-                    auto __add = conf.scopeTrace(false);
-                    addNode(g, node, conf);
-                }
+                addNode(g, node, conf);
                 break;
             }
             case osk::Subtree: {
-                {
-                    auto __add = conf.scopeTrace(false);
-                    addNode(g, node, conf);
-                }
+                addNode(g, node, conf);
                 for (auto const& it : node) { aux(it); }
                 break;
             }

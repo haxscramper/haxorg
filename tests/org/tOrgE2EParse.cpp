@@ -1845,7 +1845,7 @@ void addAll(
     DocBlock const&            block,
     org::graph::MapConfig&     conf) {
     for (auto const& it : block.items) {
-        org::graph::addNodeRec(state, it.id, conf);
+        org::graph::addNode(state, it.id, conf);
     }
 
     for (auto const& it : block.nested) { addAll(state, it, conf); }

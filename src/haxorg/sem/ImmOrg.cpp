@@ -508,8 +508,6 @@ ImmAstContext ImmAstEditContext::finish() {
 ImmAstStore& ImmAstEditContext::store() { return *ctx->store; }
 
 void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
-    message(fmt("Tracking {} add:{}", node, add));
-
     auto search_radio_targets = [&](org::ImmAdapter const& id) {
         for (auto const& target : id.subAs<org::ImmRadioTarget>()) {
             message(
