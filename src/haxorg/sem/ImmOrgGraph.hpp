@@ -135,6 +135,14 @@ struct MapGraph {
     int nodeCount() const { return nodeProps.size(); }
     int edgeCount() const { return edgeProps.size(); }
 
+    bool isRegisteredNode(MapNode const& id) const {
+        return adjList.contains(id);
+    }
+
+    bool isRegisteredNode(org::ImmUniqId const& id) const {
+        return adjList.contains(MapNode{id});
+    }
+
     MapNodeProp const& at(MapNode const& node) const {
         return nodeProps.at(node);
     }

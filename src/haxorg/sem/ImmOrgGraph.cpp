@@ -156,6 +156,7 @@ void traceNodeResolve(
     MapConfig&                  conf,
     MapNode const&              mapNode) {
     if (GRAPH_TRACE()) {
+        auto __scope = conf.scopeLevel();
         GRAPH_MSG(
             fmt("v:{} original unresolved state:{} resolved:{} still "
                 "unresolved:{}",
@@ -411,7 +412,8 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
     const MapNodeProp&   node,
     MapConfig&           conf) {
     MapNodeResolveResult result;
-    result.node = node;
+    auto                 __scope = conf.scopeLevel();
+    result.node                  = node;
     result.node.unresolved.clear();
 
     LOGIC_ASSERTION_CHECK(
@@ -430,11 +432,20 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
             Vec<MapLinkResolveResult> resolved_edit = getResolveTarget(
                 s, MapNode{node.id.uniq()}, unresolvedLink, conf);
             if (resolved_edit.empty()) {
+                GRAPH_MSG(
+                    fmt("No resolved links from {}", unresolvedLink));
                 result.node.unresolved.push_back(unresolvedLink);
             } else {
                 for (auto const& resolved : resolved_edit) {
-                    GRAPH_MSG(fmt("resolved:{}", resolved));
-                    result.resolved.push_back(resolved);
+                    if (s.graph.isRegisteredNode(resolved.target)) {
+                        GRAPH_MSG(
+                            fmt("resolved to known node:{}", resolved));
+                        result.resolved.push_back(resolved);
+                    } else {
+                        GRAPH_MSG(fmt(
+                            "resolved to unregistered node:{}", resolved));
+                        result.node.unresolved.push_back(unresolvedLink);
+                    }
                 }
             }
         }
@@ -461,13 +472,15 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
                         "No resolve target for {}", nodeWithUnresolved));
                 } else {
                     for (auto const& resolved : resolved_edit) {
-                        GRAPH_MSG(
-                            fmt("resolved:{} it:{} edit:{}",
-                                resolved,
-                                nodeWithUnresolved,
-                                node));
-
-                        result.resolved.push_back(resolved);
+                        if (s.graph.isRegisteredNode(resolved.target)) {
+                            GRAPH_MSG(
+                                fmt("resolved to registered node:{} it:{} "
+                                    "edit:{}",
+                                    resolved,
+                                    nodeWithUnresolved,
+                                    node));
+                            result.resolved.push_back(resolved);
+                        }
                     }
                 }
             }
@@ -502,7 +515,7 @@ void org::graph::addNode(
     MapGraphState&         g,
     org::ImmAdapter const& node,
     MapConfig&             conf) {
-    GRAPH_MSG(Str("- ").repeated(32));
+    GRAPH_MSG(fmt("{} {}", node, Str("- ").repeated(32)));
     auto prop = conf.getUnresolvedNodeInsert(g, node);
     if (prop) {
         GRAPH_MSG("ID maps to graph node");
