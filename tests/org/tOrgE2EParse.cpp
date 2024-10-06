@@ -1872,7 +1872,7 @@ TEST(ImmMapApi, SubtreeBlockMap) {
 
     Graphviz gvc;
     auto     gv = state.graph.toGraphviz(v.context);
-    gv.setRankDirection(Graphviz::Graph::RankDirection::LR);
+    // gv.setRankDirection(Graphviz::Graph::RankDirection::LR);
     gvc.writeFile(getDebugFile("map.dot"), gv);
     gvc.renderToFile(getDebugFile("map.png"), gv);
 }

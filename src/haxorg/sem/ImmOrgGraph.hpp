@@ -38,12 +38,8 @@ struct MapNodeProp {
 
     Opt<Str> getFootnoteName() const {
         if (auto par = id.asOpt<org::ImmAnnotatedParagraph>();
-            par
-            && par->get()->getAnnotationKind()
-                   == org::ImmAnnotatedParagraph::AnnotationKind::
-                       Footnote) {
-            // return par->getFootnote().name;
-            logic_todo_impl();
+            par && par->get()->isFootnote()) {
+            return par->get()->getFootnote().name;
         } else {
             return std::nullopt;
         }
@@ -53,10 +49,8 @@ struct MapNodeProp {
 };
 
 struct MapEdgeProp {
-    DECL_DESCRIBED_ENUM(Kind, SubtreeId, Footnote);
-    Kind    kind;
     MapLink link;
-    DESC_FIELDS(MapEdgeProp, (link, kind));
+    DESC_FIELDS(MapEdgeProp, (link));
 };
 
 
@@ -249,10 +243,9 @@ struct MapLinkResolveResult {
     /// associated with the ImmUniqId, so the 'target' is always filled,
     /// but the node might not exist in the graph yet. If it does not
     /// exist, the node is added to 'unresolved' in the graph state.
-    MapNode           target;
-    MapNode           source;
-    MapEdgeProp::Kind kind;
-    DESC_FIELDS(MapLinkResolveResult, (link, target, source, kind));
+    MapNode target;
+    MapNode source;
+    DESC_FIELDS(MapLinkResolveResult, (link, target, source));
 };
 
 /// \brief Resolve a single link with the state `s` and return the edge.

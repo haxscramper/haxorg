@@ -356,7 +356,7 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
 
     Vec<MapLinkResolveResult> result;
 
-    auto add_edge = [&](MapEdgeProp::Kind kind, org::ImmId const& target) {
+    auto add_edge = [&](org::ImmId const& target) {
         auto adapters = s.ast.getAdaptersFor(target);
         LOGIC_ASSERTION_CHECK(
             !adapters.empty(),
@@ -368,7 +368,6 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
                 .link   = link,
                 .target = MapNode{full.uniq()},
                 .source = source,
-                .kind   = kind,
             });
         }
     };
@@ -382,7 +381,7 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
                         text,
                         source,
                         *target));
-                add_edge(MapEdgeProp::Kind::SubtreeId, *target);
+                add_edge(*target);
             } else {
                 GRAPH_MSG(fmt("Not subtree with ID {}", text));
             }
@@ -397,7 +396,7 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
                         text,
                         source,
                         *target));
-                add_edge(MapEdgeProp::Kind::Footnote, *target);
+                add_edge(*target);
             } else {
                 GRAPH_MSG(fmt("No footnote with ID {}", text));
             }
@@ -412,7 +411,7 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
                         text,
                         source,
                         *target));
-                add_edge(MapEdgeProp::Kind::Footnote, *target);
+                add_edge(*target);
             } else {
                 GRAPH_MSG(fmt("No footnote with ID {}", text));
             }
