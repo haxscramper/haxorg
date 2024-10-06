@@ -597,11 +597,25 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
                 ))
 
             for idx, T in enumerate(typeNames):
+                kindName = T.name[0].upper() + T.name[1:]
+                result.append(
+                    GenTuFunction(
+                        doc=GenTuDoc(""),
+                        name="is" +kindName,
+                        result=QualType.ForName("bool"),
+                        isConst=True,
+                        impl=ast.Return(
+                            ast.XCall("==", [
+                                ast.XCall(record.kindGetter, []),
+                                ast.string(f"{enum_type.name}::{kindName}"),
+                            ])),
+                    ))
+
                 for isConst in [True, False]:
                     result.append(
                         GenTuFunction(
                             doc=GenTuDoc(""),
-                            name="get" + (T.name[0].upper() + T.name[1:]),
+                            name="get" +kindName,
                             result=T.model_copy(update=dict(
                                 RefKind=ReferenceKind.LValue,
                                 isConst=isConst,

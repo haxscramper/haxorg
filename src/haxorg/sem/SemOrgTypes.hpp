@@ -73,10 +73,13 @@ struct BlockCodeLine {
                          (data))
     sem::BlockCodeLine::Part::Data data;
     bool operator==(sem::BlockCodeLine::Part const& other) const;
+    bool isRaw() const { return getKind() == Kind::Raw; }
     sem::BlockCodeLine::Part::Raw const& getRaw() const { return std::get<0>(data); }
     sem::BlockCodeLine::Part::Raw& getRaw() { return std::get<0>(data); }
+    bool isCallout() const { return getKind() == Kind::Callout; }
     sem::BlockCodeLine::Part::Callout const& getCallout() const { return std::get<1>(data); }
     sem::BlockCodeLine::Part::Callout& getCallout() { return std::get<1>(data); }
+    bool isTangle() const { return getKind() == Kind::Tangle; }
     sem::BlockCodeLine::Part::Tangle const& getTangle() const { return std::get<2>(data); }
     sem::BlockCodeLine::Part::Tangle& getTangle() { return std::get<2>(data); }
     static sem::BlockCodeLine::Part::Kind getKind(sem::BlockCodeLine::Part::Data const& __input) { return static_cast<sem::BlockCodeLine::Part::Kind>(__input.index()); }
@@ -168,14 +171,19 @@ struct BlockCodeSwitch {
                        (data))
   sem::BlockCodeSwitch::Data data;
   bool operator==(sem::BlockCodeSwitch const& other) const;
+  bool isLineStart() const { return getKind() == Kind::LineStart; }
   sem::BlockCodeSwitch::LineStart const& getLineStart() const { return std::get<0>(data); }
   sem::BlockCodeSwitch::LineStart& getLineStart() { return std::get<0>(data); }
+  bool isCalloutFormat() const { return getKind() == Kind::CalloutFormat; }
   sem::BlockCodeSwitch::CalloutFormat const& getCalloutFormat() const { return std::get<1>(data); }
   sem::BlockCodeSwitch::CalloutFormat& getCalloutFormat() { return std::get<1>(data); }
+  bool isRemoveCallout() const { return getKind() == Kind::RemoveCallout; }
   sem::BlockCodeSwitch::RemoveCallout const& getRemoveCallout() const { return std::get<2>(data); }
   sem::BlockCodeSwitch::RemoveCallout& getRemoveCallout() { return std::get<2>(data); }
+  bool isEmphasizeLine() const { return getKind() == Kind::EmphasizeLine; }
   sem::BlockCodeSwitch::EmphasizeLine const& getEmphasizeLine() const { return std::get<3>(data); }
   sem::BlockCodeSwitch::EmphasizeLine& getEmphasizeLine() { return std::get<3>(data); }
+  bool isDedent() const { return getKind() == Kind::Dedent; }
   sem::BlockCodeSwitch::Dedent const& getDedent() const { return std::get<4>(data); }
   sem::BlockCodeSwitch::Dedent& getDedent() { return std::get<4>(data); }
   static sem::BlockCodeSwitch::Kind getKind(sem::BlockCodeSwitch::Data const& __input) { return static_cast<sem::BlockCodeSwitch::Kind>(__input.index()); }
@@ -239,12 +247,16 @@ struct BlockCodeEvalResult {
                        (data))
   sem::BlockCodeEvalResult::Data data;
   bool operator==(sem::BlockCodeEvalResult const& other) const;
+  bool isNone() const { return getKind() == Kind::None; }
   sem::BlockCodeEvalResult::None const& getNone() const { return std::get<0>(data); }
   sem::BlockCodeEvalResult::None& getNone() { return std::get<0>(data); }
+  bool isOrgValue() const { return getKind() == Kind::OrgValue; }
   sem::BlockCodeEvalResult::OrgValue const& getOrgValue() const { return std::get<1>(data); }
   sem::BlockCodeEvalResult::OrgValue& getOrgValue() { return std::get<1>(data); }
+  bool isFile() const { return getKind() == Kind::File; }
   sem::BlockCodeEvalResult::File const& getFile() const { return std::get<2>(data); }
   sem::BlockCodeEvalResult::File& getFile() { return std::get<2>(data); }
+  bool isRaw() const { return getKind() == Kind::Raw; }
   sem::BlockCodeEvalResult::Raw const& getRaw() const { return std::get<3>(data); }
   sem::BlockCodeEvalResult::Raw& getRaw() { return std::get<3>(data); }
   static sem::BlockCodeEvalResult::Kind getKind(sem::BlockCodeEvalResult::Data const& __input) { return static_cast<sem::BlockCodeEvalResult::Kind>(__input.index()); }
@@ -339,8 +351,10 @@ struct DocumentExportConfig {
   sem::DocumentExportConfig::TagExport tagExport;
   sem::DocumentExportConfig::TocExport data;
   bool operator==(sem::DocumentExportConfig const& other) const;
+  bool isDoExport() const { return getTocExportKind() == TocExportKind::DoExport; }
   sem::DocumentExportConfig::DoExport const& getDoExport() const { return std::get<0>(data); }
   sem::DocumentExportConfig::DoExport& getDoExport() { return std::get<0>(data); }
+  bool isExportFixed() const { return getTocExportKind() == TocExportKind::ExportFixed; }
   sem::DocumentExportConfig::ExportFixed const& getExportFixed() const { return std::get<1>(data); }
   sem::DocumentExportConfig::ExportFixed& getExportFixed() { return std::get<1>(data); }
   static sem::DocumentExportConfig::TocExportKind getTocExportKind(sem::DocumentExportConfig::TocExport const& __input) { return static_cast<sem::DocumentExportConfig::TocExportKind>(__input.index()); }
@@ -591,34 +605,49 @@ struct NamedProperty {
   /// \brief Get non-normalized sub-kind for the property.
   Opt<Str> getSubKind() const;
   bool operator==(sem::NamedProperty const& other) const;
+  bool isNonblocking() const { return getKind() == Kind::Nonblocking; }
   sem::NamedProperty::Nonblocking const& getNonblocking() const { return std::get<0>(data); }
   sem::NamedProperty::Nonblocking& getNonblocking() { return std::get<0>(data); }
+  bool isTrigger() const { return getKind() == Kind::Trigger; }
   sem::NamedProperty::Trigger const& getTrigger() const { return std::get<1>(data); }
   sem::NamedProperty::Trigger& getTrigger() { return std::get<1>(data); }
+  bool isExportLatexClass() const { return getKind() == Kind::ExportLatexClass; }
   sem::NamedProperty::ExportLatexClass const& getExportLatexClass() const { return std::get<2>(data); }
   sem::NamedProperty::ExportLatexClass& getExportLatexClass() { return std::get<2>(data); }
+  bool isExportLatexClassOptions() const { return getKind() == Kind::ExportLatexClassOptions; }
   sem::NamedProperty::ExportLatexClassOptions const& getExportLatexClassOptions() const { return std::get<3>(data); }
   sem::NamedProperty::ExportLatexClassOptions& getExportLatexClassOptions() { return std::get<3>(data); }
+  bool isExportLatexHeader() const { return getKind() == Kind::ExportLatexHeader; }
   sem::NamedProperty::ExportLatexHeader const& getExportLatexHeader() const { return std::get<4>(data); }
   sem::NamedProperty::ExportLatexHeader& getExportLatexHeader() { return std::get<4>(data); }
+  bool isExportLatexCompiler() const { return getKind() == Kind::ExportLatexCompiler; }
   sem::NamedProperty::ExportLatexCompiler const& getExportLatexCompiler() const { return std::get<5>(data); }
   sem::NamedProperty::ExportLatexCompiler& getExportLatexCompiler() { return std::get<5>(data); }
+  bool isOrdered() const { return getKind() == Kind::Ordered; }
   sem::NamedProperty::Ordered const& getOrdered() const { return std::get<6>(data); }
   sem::NamedProperty::Ordered& getOrdered() { return std::get<6>(data); }
+  bool isEffort() const { return getKind() == Kind::Effort; }
   sem::NamedProperty::Effort const& getEffort() const { return std::get<7>(data); }
   sem::NamedProperty::Effort& getEffort() { return std::get<7>(data); }
+  bool isVisibility() const { return getKind() == Kind::Visibility; }
   sem::NamedProperty::Visibility const& getVisibility() const { return std::get<8>(data); }
   sem::NamedProperty::Visibility& getVisibility() { return std::get<8>(data); }
+  bool isExportOptions() const { return getKind() == Kind::ExportOptions; }
   sem::NamedProperty::ExportOptions const& getExportOptions() const { return std::get<9>(data); }
   sem::NamedProperty::ExportOptions& getExportOptions() { return std::get<9>(data); }
+  bool isBlocker() const { return getKind() == Kind::Blocker; }
   sem::NamedProperty::Blocker const& getBlocker() const { return std::get<10>(data); }
   sem::NamedProperty::Blocker& getBlocker() { return std::get<10>(data); }
+  bool isUnnumbered() const { return getKind() == Kind::Unnumbered; }
   sem::NamedProperty::Unnumbered const& getUnnumbered() const { return std::get<11>(data); }
   sem::NamedProperty::Unnumbered& getUnnumbered() { return std::get<11>(data); }
+  bool isCreated() const { return getKind() == Kind::Created; }
   sem::NamedProperty::Created const& getCreated() const { return std::get<12>(data); }
   sem::NamedProperty::Created& getCreated() { return std::get<12>(data); }
+  bool isCustomArgs() const { return getKind() == Kind::CustomArgs; }
   sem::NamedProperty::CustomArgs const& getCustomArgs() const { return std::get<13>(data); }
   sem::NamedProperty::CustomArgs& getCustomArgs() { return std::get<13>(data); }
+  bool isCustomRaw() const { return getKind() == Kind::CustomRaw; }
   sem::NamedProperty::CustomRaw const& getCustomRaw() const { return std::get<14>(data); }
   sem::NamedProperty::CustomRaw& getCustomRaw() { return std::get<14>(data); }
   static sem::NamedProperty::Kind getKind(sem::NamedProperty::Data const& __input) { return static_cast<sem::NamedProperty::Kind>(__input.index()); }
@@ -1028,8 +1057,10 @@ struct Time : public sem::Org {
   bool isActive = false;
   sem::Time::TimeVariant time;
   virtual OrgSemKind getKind() const { return OrgSemKind::Time; }
+  bool isStatic() const { return getTimeKind() == TimeKind::Static; }
   sem::Time::Static const& getStatic() const { return std::get<0>(time); }
   sem::Time::Static& getStatic() { return std::get<0>(time); }
+  bool isDynamic() const { return getTimeKind() == TimeKind::Dynamic; }
   sem::Time::Dynamic const& getDynamic() const { return std::get<1>(time); }
   sem::Time::Dynamic& getDynamic() { return std::get<1>(time); }
   static sem::Time::TimeKind getTimeKind(sem::Time::TimeVariant const& __input) { return static_cast<sem::Time::TimeKind>(__input.index()); }
@@ -1412,20 +1443,28 @@ struct Link : public sem::Stmt {
   Opt<sem::SemId<sem::Paragraph>> description = std::nullopt;
   sem::Link::Data data;
   virtual OrgSemKind getKind() const { return OrgSemKind::Link; }
+  bool isRaw() const { return getLinkKind() == Kind::Raw; }
   sem::Link::Raw const& getRaw() const { return std::get<0>(data); }
   sem::Link::Raw& getRaw() { return std::get<0>(data); }
+  bool isId() const { return getLinkKind() == Kind::Id; }
   sem::Link::Id const& getId() const { return std::get<1>(data); }
   sem::Link::Id& getId() { return std::get<1>(data); }
+  bool isPerson() const { return getLinkKind() == Kind::Person; }
   sem::Link::Person const& getPerson() const { return std::get<2>(data); }
   sem::Link::Person& getPerson() { return std::get<2>(data); }
+  bool isUserProtocol() const { return getLinkKind() == Kind::UserProtocol; }
   sem::Link::UserProtocol const& getUserProtocol() const { return std::get<3>(data); }
   sem::Link::UserProtocol& getUserProtocol() { return std::get<3>(data); }
+  bool isInternal() const { return getLinkKind() == Kind::Internal; }
   sem::Link::Internal const& getInternal() const { return std::get<4>(data); }
   sem::Link::Internal& getInternal() { return std::get<4>(data); }
+  bool isFootnote() const { return getLinkKind() == Kind::Footnote; }
   sem::Link::Footnote const& getFootnote() const { return std::get<5>(data); }
   sem::Link::Footnote& getFootnote() { return std::get<5>(data); }
+  bool isFile() const { return getLinkKind() == Kind::File; }
   sem::Link::File const& getFile() const { return std::get<6>(data); }
   sem::Link::File& getFile() { return std::get<6>(data); }
+  bool isAttachment() const { return getLinkKind() == Kind::Attachment; }
   sem::Link::Attachment const& getAttachment() const { return std::get<7>(data); }
   sem::Link::Attachment& getAttachment() { return std::get<7>(data); }
   static sem::Link::Kind getLinkKind(sem::Link::Data const& __input) { return static_cast<sem::Link::Kind>(__input.index()); }
@@ -1707,18 +1746,25 @@ struct SubtreeLog : public sem::Org {
   sem::SubtreeLog::LogEntry log = Note{};
   virtual OrgSemKind getKind() const { return OrgSemKind::SubtreeLog; }
   void setDescription(sem::SemId<sem::StmtList> desc);
+  bool isPriority() const { return getLogKind() == Kind::Priority; }
   sem::SubtreeLog::Priority const& getPriority() const { return std::get<0>(log); }
   sem::SubtreeLog::Priority& getPriority() { return std::get<0>(log); }
+  bool isNote() const { return getLogKind() == Kind::Note; }
   sem::SubtreeLog::Note const& getNote() const { return std::get<1>(log); }
   sem::SubtreeLog::Note& getNote() { return std::get<1>(log); }
+  bool isRefile() const { return getLogKind() == Kind::Refile; }
   sem::SubtreeLog::Refile const& getRefile() const { return std::get<2>(log); }
   sem::SubtreeLog::Refile& getRefile() { return std::get<2>(log); }
+  bool isClock() const { return getLogKind() == Kind::Clock; }
   sem::SubtreeLog::Clock const& getClock() const { return std::get<3>(log); }
   sem::SubtreeLog::Clock& getClock() { return std::get<3>(log); }
+  bool isState() const { return getLogKind() == Kind::State; }
   sem::SubtreeLog::State const& getState() const { return std::get<4>(log); }
   sem::SubtreeLog::State& getState() { return std::get<4>(log); }
+  bool isTag() const { return getLogKind() == Kind::Tag; }
   sem::SubtreeLog::Tag const& getTag() const { return std::get<5>(log); }
   sem::SubtreeLog::Tag& getTag() { return std::get<5>(log); }
+  bool isUnknown() const { return getLogKind() == Kind::Unknown; }
   sem::SubtreeLog::Unknown const& getUnknown() const { return std::get<6>(log); }
   sem::SubtreeLog::Unknown& getUnknown() { return std::get<6>(log); }
   static sem::SubtreeLog::Kind getLogKind(sem::SubtreeLog::LogEntry const& __input) { return static_cast<sem::SubtreeLog::Kind>(__input.index()); }
@@ -1912,12 +1958,16 @@ struct AnnotatedParagraph : public sem::Stmt {
   static OrgSemKind const staticKind;
   sem::AnnotatedParagraph::Data data;
   virtual OrgSemKind getKind() const { return OrgSemKind::AnnotatedParagraph; }
+  bool isNone() const { return getAnnotationKind() == AnnotationKind::None; }
   sem::AnnotatedParagraph::None const& getNone() const { return std::get<0>(data); }
   sem::AnnotatedParagraph::None& getNone() { return std::get<0>(data); }
+  bool isFootnote() const { return getAnnotationKind() == AnnotationKind::Footnote; }
   sem::AnnotatedParagraph::Footnote const& getFootnote() const { return std::get<1>(data); }
   sem::AnnotatedParagraph::Footnote& getFootnote() { return std::get<1>(data); }
+  bool isAdmonition() const { return getAnnotationKind() == AnnotationKind::Admonition; }
   sem::AnnotatedParagraph::Admonition const& getAdmonition() const { return std::get<2>(data); }
   sem::AnnotatedParagraph::Admonition& getAdmonition() { return std::get<2>(data); }
+  bool isTimestamp() const { return getAnnotationKind() == AnnotationKind::Timestamp; }
   sem::AnnotatedParagraph::Timestamp const& getTimestamp() const { return std::get<3>(data); }
   sem::AnnotatedParagraph::Timestamp& getTimestamp() { return std::get<3>(data); }
   static sem::AnnotatedParagraph::AnnotationKind getAnnotationKind(sem::AnnotatedParagraph::Data const& __input) { return static_cast<sem::AnnotatedParagraph::AnnotationKind>(__input.index()); }
@@ -2149,12 +2199,16 @@ struct Include : public sem::Org {
   Opt<int> lastLine = std::nullopt;
   sem::Include::Data data;
   virtual OrgSemKind getKind() const { return OrgSemKind::Include; }
+  bool isExample() const { return getIncludeKind() == Kind::Example; }
   sem::Include::Example const& getExample() const { return std::get<0>(data); }
   sem::Include::Example& getExample() { return std::get<0>(data); }
+  bool isExport() const { return getIncludeKind() == Kind::Export; }
   sem::Include::Export const& getExport() const { return std::get<1>(data); }
   sem::Include::Export& getExport() { return std::get<1>(data); }
+  bool isSrc() const { return getIncludeKind() == Kind::Src; }
   sem::Include::Src const& getSrc() const { return std::get<2>(data); }
   sem::Include::Src& getSrc() { return std::get<2>(data); }
+  bool isOrgDocument() const { return getIncludeKind() == Kind::OrgDocument; }
   sem::Include::OrgDocument const& getOrgDocument() const { return std::get<3>(data); }
   sem::Include::OrgDocument& getOrgDocument() { return std::get<3>(data); }
   static sem::Include::Kind getIncludeKind(sem::Include::Data const& __input) { return static_cast<sem::Include::Kind>(__input.index()); }

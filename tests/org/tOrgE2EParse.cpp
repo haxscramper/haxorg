@@ -1757,6 +1757,83 @@ TEST(ImmMapApi, SubtreeFullMap) {
     gvc.renderToFile("/tmp/SubtreeFullMap.png", gv);
 }
 
+Str getSubtreeBlockText() {
+    return Str{R"str(
+* Subtree 1
+  :properties:
+  :id: subtree_1
+  :end:
+
+#+attr_list: :attached subtree
+- [[id:subtree_2]] :: Describe link to subtree 2
+- [[internal_1]] :: Describe link to internal
+
+<<internal_1>> Internal paragraph [fn:footnote_1]
+
+#+begin_comment :attach above
+Comment for the paragraph content above
+#+end_comment
+
+[fn:footnote_1] Definition of the footnote 1
+
+Second paragraph [fn:footnote_2]
+
+[fn:footnote_2] Footnote 2 [fn:recursive_1]
+
+[fn:recursive_1] Recursive footnote 1 [fn:recursive_2]
+
+[fn:recursive_2] Recursive footnote 2
+
+* Subtree 2
+  :properties:
+  :id: subtree_2
+  :end:
+
+- [[id:subtree_2]] :: Standalone description list targeting subtree
+- [[id:subtree_1]] :: Targeting subtree one
+- [[internal_1]] :: Targeting standalone paragraph 1
+)str"};
+}
+
+struct DocItem {
+    org::ImmAdapter id;
+};
+
+struct DocBlock {
+    Vec<DocItem>  items;
+    Vec<DocBlock> nested;
+};
+
+DocBlock fromAst(org::ImmAdapter const& id) {
+    DocBlock result;
+    switch (id->getKind()) {
+        case OrgSemKind::Document: {
+            for (auto const& sub : id.sub()) {
+                result.nested.push_back(fromAst(sub));
+            }
+            break;
+        }
+        case OrgSemKind::Subtree: {
+            result.items.push_back(DocItem{.id = id});
+            for (auto const& sub : id.sub()) {
+                result.nested.push_back(fromAst(sub));
+            }
+            break;
+        }
+
+        default: {
+            result.items.push_back(DocItem{.id = id});
+            break;
+        }
+    }
+
+    return result;
+}
+
+TEST(ImmMapApi, SubtreeBlockMap) {
+    auto n = parseNode(getSubtreeBlockText());
+}
+
 struct TestGraph {
     org::graph::MapGraph     g;
     Vec<org::graph::MapNode> nodes;

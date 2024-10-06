@@ -463,8 +463,10 @@ struct ImmTime : public org::ImmOrg {
   org::ImmTime::TimeVariant time;
   virtual OrgSemKind getKind() const { return OrgSemKind::Time; }
   bool operator==(org::ImmTime const& other) const;
+  bool isStatic() const { return getTimeKind() == TimeKind::Static; }
   org::ImmTime::Static const& getStatic() const { return std::get<0>(time); }
   org::ImmTime::Static& getStatic() { return std::get<0>(time); }
+  bool isDynamic() const { return getTimeKind() == TimeKind::Dynamic; }
   org::ImmTime::Dynamic const& getDynamic() const { return std::get<1>(time); }
   org::ImmTime::Dynamic& getDynamic() { return std::get<1>(time); }
   static org::ImmTime::TimeKind getTimeKind(org::ImmTime::TimeVariant const& __input) { return static_cast<org::ImmTime::TimeKind>(__input.index()); }
@@ -928,20 +930,28 @@ struct ImmLink : public org::ImmStmt {
   org::ImmLink::Data data;
   virtual OrgSemKind getKind() const { return OrgSemKind::Link; }
   bool operator==(org::ImmLink const& other) const;
+  bool isRaw() const { return getLinkKind() == Kind::Raw; }
   org::ImmLink::Raw const& getRaw() const { return std::get<0>(data); }
   org::ImmLink::Raw& getRaw() { return std::get<0>(data); }
+  bool isId() const { return getLinkKind() == Kind::Id; }
   org::ImmLink::Id const& getId() const { return std::get<1>(data); }
   org::ImmLink::Id& getId() { return std::get<1>(data); }
+  bool isPerson() const { return getLinkKind() == Kind::Person; }
   org::ImmLink::Person const& getPerson() const { return std::get<2>(data); }
   org::ImmLink::Person& getPerson() { return std::get<2>(data); }
+  bool isUserProtocol() const { return getLinkKind() == Kind::UserProtocol; }
   org::ImmLink::UserProtocol const& getUserProtocol() const { return std::get<3>(data); }
   org::ImmLink::UserProtocol& getUserProtocol() { return std::get<3>(data); }
+  bool isInternal() const { return getLinkKind() == Kind::Internal; }
   org::ImmLink::Internal const& getInternal() const { return std::get<4>(data); }
   org::ImmLink::Internal& getInternal() { return std::get<4>(data); }
+  bool isFootnote() const { return getLinkKind() == Kind::Footnote; }
   org::ImmLink::Footnote const& getFootnote() const { return std::get<5>(data); }
   org::ImmLink::Footnote& getFootnote() { return std::get<5>(data); }
+  bool isFile() const { return getLinkKind() == Kind::File; }
   org::ImmLink::File const& getFile() const { return std::get<6>(data); }
   org::ImmLink::File& getFile() { return std::get<6>(data); }
+  bool isAttachment() const { return getLinkKind() == Kind::Attachment; }
   org::ImmLink::Attachment const& getAttachment() const { return std::get<7>(data); }
   org::ImmLink::Attachment& getAttachment() { return std::get<7>(data); }
   static org::ImmLink::Kind getLinkKind(org::ImmLink::Data const& __input) { return static_cast<org::ImmLink::Kind>(__input.index()); }
@@ -1265,18 +1275,25 @@ struct ImmSubtreeLog : public org::ImmOrg {
   org::ImmSubtreeLog::LogEntry log = Note{};
   virtual OrgSemKind getKind() const { return OrgSemKind::SubtreeLog; }
   bool operator==(org::ImmSubtreeLog const& other) const;
+  bool isPriority() const { return getLogKind() == Kind::Priority; }
   org::ImmSubtreeLog::Priority const& getPriority() const { return std::get<0>(log); }
   org::ImmSubtreeLog::Priority& getPriority() { return std::get<0>(log); }
+  bool isNote() const { return getLogKind() == Kind::Note; }
   org::ImmSubtreeLog::Note const& getNote() const { return std::get<1>(log); }
   org::ImmSubtreeLog::Note& getNote() { return std::get<1>(log); }
+  bool isRefile() const { return getLogKind() == Kind::Refile; }
   org::ImmSubtreeLog::Refile const& getRefile() const { return std::get<2>(log); }
   org::ImmSubtreeLog::Refile& getRefile() { return std::get<2>(log); }
+  bool isClock() const { return getLogKind() == Kind::Clock; }
   org::ImmSubtreeLog::Clock const& getClock() const { return std::get<3>(log); }
   org::ImmSubtreeLog::Clock& getClock() { return std::get<3>(log); }
+  bool isState() const { return getLogKind() == Kind::State; }
   org::ImmSubtreeLog::State const& getState() const { return std::get<4>(log); }
   org::ImmSubtreeLog::State& getState() { return std::get<4>(log); }
+  bool isTag() const { return getLogKind() == Kind::Tag; }
   org::ImmSubtreeLog::Tag const& getTag() const { return std::get<5>(log); }
   org::ImmSubtreeLog::Tag& getTag() { return std::get<5>(log); }
+  bool isUnknown() const { return getLogKind() == Kind::Unknown; }
   org::ImmSubtreeLog::Unknown const& getUnknown() const { return std::get<6>(log); }
   org::ImmSubtreeLog::Unknown& getUnknown() { return std::get<6>(log); }
   static org::ImmSubtreeLog::Kind getLogKind(org::ImmSubtreeLog::LogEntry const& __input) { return static_cast<org::ImmSubtreeLog::Kind>(__input.index()); }
@@ -1494,12 +1511,16 @@ struct ImmAnnotatedParagraph : public org::ImmStmt {
   org::ImmAnnotatedParagraph::Data data;
   virtual OrgSemKind getKind() const { return OrgSemKind::AnnotatedParagraph; }
   bool operator==(org::ImmAnnotatedParagraph const& other) const;
+  bool isNone() const { return getAnnotationKind() == AnnotationKind::None; }
   org::ImmAnnotatedParagraph::None const& getNone() const { return std::get<0>(data); }
   org::ImmAnnotatedParagraph::None& getNone() { return std::get<0>(data); }
+  bool isFootnote() const { return getAnnotationKind() == AnnotationKind::Footnote; }
   org::ImmAnnotatedParagraph::Footnote const& getFootnote() const { return std::get<1>(data); }
   org::ImmAnnotatedParagraph::Footnote& getFootnote() { return std::get<1>(data); }
+  bool isAdmonition() const { return getAnnotationKind() == AnnotationKind::Admonition; }
   org::ImmAnnotatedParagraph::Admonition const& getAdmonition() const { return std::get<2>(data); }
   org::ImmAnnotatedParagraph::Admonition& getAdmonition() { return std::get<2>(data); }
+  bool isTimestamp() const { return getAnnotationKind() == AnnotationKind::Timestamp; }
   org::ImmAnnotatedParagraph::Timestamp const& getTimestamp() const { return std::get<3>(data); }
   org::ImmAnnotatedParagraph::Timestamp& getTimestamp() { return std::get<3>(data); }
   static org::ImmAnnotatedParagraph::AnnotationKind getAnnotationKind(org::ImmAnnotatedParagraph::Data const& __input) { return static_cast<org::ImmAnnotatedParagraph::AnnotationKind>(__input.index()); }
@@ -1755,12 +1776,16 @@ struct ImmInclude : public org::ImmOrg {
   org::ImmInclude::Data data;
   virtual OrgSemKind getKind() const { return OrgSemKind::Include; }
   bool operator==(org::ImmInclude const& other) const;
+  bool isExample() const { return getIncludeKind() == Kind::Example; }
   org::ImmInclude::Example const& getExample() const { return std::get<0>(data); }
   org::ImmInclude::Example& getExample() { return std::get<0>(data); }
+  bool isExport() const { return getIncludeKind() == Kind::Export; }
   org::ImmInclude::Export const& getExport() const { return std::get<1>(data); }
   org::ImmInclude::Export& getExport() { return std::get<1>(data); }
+  bool isSrc() const { return getIncludeKind() == Kind::Src; }
   org::ImmInclude::Src const& getSrc() const { return std::get<2>(data); }
   org::ImmInclude::Src& getSrc() { return std::get<2>(data); }
+  bool isOrgDocument() const { return getIncludeKind() == Kind::OrgDocument; }
   org::ImmInclude::OrgDocument const& getOrgDocument() const { return std::get<3>(data); }
   org::ImmInclude::OrgDocument& getOrgDocument() { return std::get<3>(data); }
   static org::ImmInclude::Kind getIncludeKind(org::ImmInclude::Data const& __input) { return static_cast<org::ImmInclude::Kind>(__input.index()); }
