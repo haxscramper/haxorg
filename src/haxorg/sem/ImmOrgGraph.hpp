@@ -284,6 +284,8 @@ bool isLinkedDescriptionList(org::ImmAdapter n);
 /// description list item.
 bool isInLinkedDescriptionList(org::ImmAdapter n);
 
+bool isAttachedDescriptionList(org::ImmAdapter n);
+
 bool isMmapIgnored(org::ImmAdapter n);
 
 } // namespace org::graph

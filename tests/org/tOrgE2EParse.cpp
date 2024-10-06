@@ -1797,38 +1797,41 @@ Second paragraph [fn:footnote_2]
 
 struct DocItem {
     org::ImmAdapter id;
+    DESC_FIELDS(DocItem, (id));
 };
 
 struct DocBlock {
     Vec<DocItem>  items;
     Vec<DocBlock> nested;
+    DESC_FIELDS(DocBlock, (items, nested));
 };
 
 DocBlock fromAst(org::ImmAdapter const& id) {
+    SemSet Skip{OrgSemKind::Newline};
+
     DocBlock result;
     switch (id->getKind()) {
         case OrgSemKind::Document: {
             for (auto const& sub : id.sub()) {
-                result.nested.push_back(fromAst(sub));
+                if (!Skip.contains(sub->getKind())) {
+                    result.nested.push_back(fromAst(sub));
+                }
             }
             break;
         }
         case OrgSemKind::Subtree: {
             result.items.push_back(DocItem{.id = id});
             for (auto const& sub : id.sub()) {
-                result.nested.push_back(fromAst(sub));
+                if (!Skip.contains(sub->getKind())) {
+                    result.nested.push_back(fromAst(sub));
+                }
             }
             break;
         }
 
         default: {
-            if (auto list = id.asOpt<org::ImmList>();
-                list.has_value() && list->isDescriptionList()) {
-                if (auto attached = list->getListAttrs("attached");
-                    attached.has(0) && //
-                    attached.at(0).value != "subtree") {
-                    result.items.push_back(DocItem{.id = id});
-                }
+            if (org::graph::isAttachedDescriptionList(id)) {
+                ///
             } else {
                 result.items.push_back(DocItem{.id = id});
             }
@@ -1845,6 +1848,7 @@ void addAll(
     DocBlock const&            block,
     org::graph::MapConfig&     conf) {
     for (auto const& it : block.items) {
+        _dbg(it);
         org::graph::addNode(state, it.id, conf);
     }
 

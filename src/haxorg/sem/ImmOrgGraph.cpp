@@ -25,7 +25,7 @@ bool org::graph::isLinkedDescriptionItemNode(org::ImmAdapter n) {
                n.pass(n.as<org::ImmListItem>()->header.get().value())
                    .subAs<org::ImmLink>(),
                [](org::ImmAdapterT<org::ImmLink> head) -> bool {
-                   return head->getLinkKind() != slk::Raw;
+                   return !head->isRaw();
                });
 }
 
@@ -49,9 +49,21 @@ bool org::graph::isLinkedDescriptionList(org::ImmAdapter n) {
 
 bool org::graph::isInLinkedDescriptionList(org::ImmAdapter n) {
     return rs::any_of(n.getParentChain(), [](org::ImmAdapter tree) {
-        return isLinkedDescriptionItem(tree);
+        return isAttachedDescriptionList(tree);
     });
 }
+
+
+bool org::graph::isAttachedDescriptionList(ImmAdapter n) {
+    if (auto list = n.asOpt<org::ImmList>();
+        list && list->isDescriptionList()) {
+        auto attached = list->getListAttrs("attached");
+        return attached.has(0) && attached.at(0).value == "subtree";
+    } else {
+        return false;
+    }
+}
+
 
 bool org::graph::isMmapIgnored(org::ImmAdapter n) {
     return isInLinkedDescriptionList(n) || isLinkedDescriptionList(n);
@@ -270,23 +282,27 @@ Vec<MapLink> org::graph::getUnresolvedSubtreeLinks(
     // outgoing link to the parent subtree. It is the only supported
     // way to provide an extensive label between subtree nodes.
     for (auto const& list : tree.subAs<org::ImmList>()) {
-        GRAPH_MSG("Subtree has list");
-        for (auto const& item : list.subAs<org::ImmListItem>()) {
-            GRAPH_MSG(fmt("{}", item.id));
-            if (isLinkedDescriptionItemNode(item)) {
-                GRAPH_MSG("List has description item");
-                for (auto const& link : item.pass(item->header->value())
-                                            .subAs<org::ImmLink>()) {
-                    GRAPH_MSG(fmt("List item contains link {}", link));
-                    // Description list header might contain
-                    // non-link elements. These are ignored in the
-                    // mind map.
-                    if (link->getLinkKind() != slk::Raw) {
-                        MapLink map_link{.link = link};
-                        for (auto const& sub : item.sub()) {
-                            map_link.description.push_back(sub);
+        if (auto attached = list.getListAttrs("attached");
+            attached.has(0) && attached.at(0).value == "subtree") {
+            GRAPH_MSG("Subtree has list");
+            for (auto const& item : list.subAs<org::ImmListItem>()) {
+                GRAPH_MSG(fmt("{}", item.id));
+                if (isLinkedDescriptionItemNode(item)) {
+                    GRAPH_MSG("List has description item");
+                    for (auto const& link :
+                         item.pass(item->header->value())
+                             .subAs<org::ImmLink>()) {
+                        GRAPH_MSG(fmt("List item contains link {}", link));
+                        // Description list header might contain
+                        // non-link elements. These are ignored in the
+                        // mind map.
+                        if (link->getLinkKind() != slk::Raw) {
+                            MapLink map_link{.link = link};
+                            for (auto const& sub : item.sub()) {
+                                map_link.description.push_back(sub);
+                            }
+                            unresolved.push_back(map_link);
                         }
-                        unresolved.push_back(map_link);
                     }
                 }
             }
