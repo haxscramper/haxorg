@@ -49,10 +49,12 @@ struct OperationsTracer {
 
     SPtr<std::ostream> stream;
 
-    void      setTraceFile(fs::path const& outfile);
-    ColStream getStream() const;
-    void      endStream(ColStream& stream) const;
-    void      message(OperationsMsg const& value) const;
+    SPtr<std::ostream> getTraceFile();
+    void               setTraceFile(SPtr<std::ostream> stream);
+    void               setTraceFile(fs::path const& outfile);
+    ColStream          getStream() const;
+    void               endStream(ColStream& stream) const;
+    void               message(OperationsMsg const& value) const;
     finally collectAbslLogs(OperationsScope const* scope = nullptr) const;
 
     void message(

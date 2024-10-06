@@ -5,6 +5,14 @@
 #include <hstd/stdlib/Exception.hpp>
 #include <hstd/stdlib/strutils.hpp>
 
+SPtr<std::ostream> OperationsTracer::getTraceFile() { return stream; }
+
+void OperationsTracer::setTraceFile(SPtr<std::ostream> stream) {
+    TraceState   = true;
+    traceToFile  = true;
+    this->stream = stream;
+}
+
 void OperationsTracer::setTraceFile(const fs::path& outfile) {
     CHECK(outfile.native().size() != 0)
         << "setTraceFile" << "Expected non-empty filename for the output";
