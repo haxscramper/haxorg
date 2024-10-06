@@ -24,6 +24,19 @@
 #include <boost/graph/graphviz.hpp>
 #include <fstream>
 
+Str getDebugFile(Str const& suffix) {
+    auto dir = fs::path{
+        fmt("/tmp/haxorg_tests/{}",
+            ::testing::UnitTest::GetInstance()
+                ->current_test_info()
+                ->test_suite_name())};
+    if (!fs::is_directory(dir)) { createDirectory(dir); }
+    return fmt(
+        "{}/{}_{}",
+        dir.native(),
+        ::testing::UnitTest::GetInstance()->current_test_info()->name(),
+        suffix);
+}
 
 // adl-based customization points is the most disgusting degenerate idea
 // you can possible have. The shit doesn't work reliably, you need to do
@@ -34,10 +47,10 @@
 // this in mind.
 #define GTEST_ADL_PRINT_TYPE(__type)                                      \
     namespace testing {                                                   \
-    template <>                                                           \
-    std::string PrintToString(__type const& value) {                      \
-        return fmt1(value);                                               \
-    }                                                                     \
+        template <>                                                       \
+        std::string PrintToString(__type const& value) {                  \
+            return fmt1(value);                                           \
+        }                                                                 \
     } // namespace testing
 
 GTEST_ADL_PRINT_TYPE(OrgSemKind);
@@ -453,22 +466,6 @@ TEST(OrgApi, LinkResolution) {
 
 struct ImmOrgApiTestBase : public ::testing::Test {
     org::ImmAstContext start;
-
-    Str getDebugFile(Str const& suffix) {
-        auto dir = fs::path{
-            fmt("/tmp/haxorg_tests/{}",
-                ::testing::UnitTest::GetInstance()
-                    ->current_test_info()
-                    ->test_suite_name())};
-        if (!fs::is_directory(dir)) { createDirectory(dir); }
-        return fmt(
-            "{}/{}_{}",
-            dir.native(),
-            ::testing::UnitTest::GetInstance()
-                ->current_test_info()
-                ->name(),
-            suffix);
-    }
 
     void setTraceFile(std::string const& path) {
         start.debug->setTraceFile(path);
@@ -1519,7 +1516,7 @@ TEST(ImmMapApi, AddNode) {
 
     org::ImmAstContext        store;
     org::graph::MapGraphState s1{};
-    org::graph::MapConfig  conf;
+    org::graph::MapConfig     conf;
     conf.setTraceFile("/tmp/ImmMapApi_AddNode.txt");
     EXPECT_EQ(s1.graph.nodeCount(), 0);
     auto [store2, root] = store.addRoot(n1);
@@ -1543,9 +1540,9 @@ Paragraph [[id:subtree-id]]
 
     auto n1 = parseNode(text);
 
-    org::ImmAstContext       store;
+    org::ImmAstContext    store;
     org::graph::MapConfig conf;
-    conf.setTraceFile("/tmp/AddNodeWithLinks_log.txt");
+    conf.setTraceFile(getDebugFile("log"));
     auto [store2, root_node] = store.addRoot(n1);
     org::ImmAdapter root{root_node, store};
 
@@ -1601,7 +1598,7 @@ TEST(ImmMapApi, SubtreeBacklinks) {
     auto n1 = parseNode(text1);
     auto n2 = parseNode(text2);
 
-    org::ImmAstContext       store;
+    org::ImmAstContext    store;
     org::graph::MapConfig conf;
     conf.setTraceFile("/tmp/SubtreeBacklinks_log.txt");
 
@@ -1730,8 +1727,8 @@ using osk = OrgSemKind;
 TEST(ImmMapApi, SubtreeFullMap) {
     auto n = parseNode(getFullMindMapText());
 
-    org::ImmAstContext       store;
-    org::graph::MapConfig conf;
+    org::ImmAstContext store;
+
     auto [store2, root1] = store.addRoot(n);
     org::ImmAdapter           file{root1, store};
     org::graph::MapGraphState s1{};
@@ -1760,8 +1757,8 @@ TEST(ImmMapApi, SubtreeFullMap) {
         "6d6d6689-d9da-418d-9f91-1c8c4428e5af");
 
 
-    conf.setTraceFile("/tmp/SubtreeFullMap_log.txt");
-
+    org::graph::MapConfig conf;
+    conf.setTraceFile(getDebugFile("conf"));
     org::graph::addNodeRec(s1, file, conf);
 
     EXPECT_TRUE(s1.graph.hasEdge(node_p110, node_s12));
@@ -1897,7 +1894,7 @@ TEST(ImmMapApi, SourceAndTarget) {
 TEST(ImmMapApi, BoostPropertyWriter) {
     auto n = parseNode(getFullMindMapText());
 
-    org::ImmAstContext       store;
+    org::ImmAstContext    store;
     org::graph::MapConfig conf;
     auto [store2, root1] = store.addRoot(n);
     org::ImmAdapter           file{root1, store};

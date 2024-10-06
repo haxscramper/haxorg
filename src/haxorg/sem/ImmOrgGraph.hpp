@@ -162,20 +162,10 @@ struct MapGraph {
 
 struct MapGraphState;
 
-struct MapConfig : OperationsTracer {
+struct MapConfig
+    : OperationsTracer
+    , OperationsScope {
     MapConfig();
-    int  activeLevel = 0;
-    auto scopeLevel() {
-        ++activeLevel;
-        return finally{[&]() { --activeLevel; }};
-    }
-
-    auto scopeTrace(bool state) {
-        bool initialTrace = TraceState;
-        TraceState        = state;
-        return finally{
-            [initialTrace, this]() { TraceState = initialTrace; }};
-    }
 
     Func<Opt<MapNodeProp>(
         MapGraphState const& s,
@@ -187,6 +177,15 @@ struct MapConfig : OperationsTracer {
         MapGraphState const& s,
         org::ImmAdapter      node) {
         return getUnresolvedNodeInsertImpl(s, node, *this);
+    }
+
+    void message(
+        std::string const& value,
+        char const*        function = __builtin_FUNCTION(),
+        int                line     = __builtin_LINE(),
+        char const*        file     = __builtin_FILE()) {
+        OperationsTracer::message(
+            value, activeLevel, line, function, file);
     }
 };
 

@@ -19,7 +19,7 @@ struct OperationsMsg {
 };
 
 struct OperationsScope {
-    bool* TraceState;
+    bool* TraceState  = nullptr;
     int   activeLevel = 0;
 
     finally scopeLevel() const;

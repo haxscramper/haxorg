@@ -108,7 +108,7 @@ finally OperationsScope::scopeTrace(bool state) {
     LOGIC_ASSERTION_CHECK(
         TraceState != nullptr,
         "use operations tracer `.TraceState` field as a pointer base");
-    bool initialTrace = TraceState;
+    bool initialTrace = *TraceState;
     *TraceState       = state;
     return finally{[initialTrace, this]() { *TraceState = initialTrace; }};
 }
