@@ -14,11 +14,11 @@ using slk = org::ImmLink::Kind;
 #define GRAPH_MSG(...)                                                    \
     if (GRAPH_TRACE()) { conf.message(__VA_ARGS__); }
 
-bool org::graph::isDescriptionItem(org::ImmAdapter node) {
+bool org::graph::isDescriptionItem(org::ImmAdapter const& node) {
     return node.as<org::ImmListItem>()->header->has_value();
 }
 
-bool org::graph::isLinkedDescriptionItemNode(org::ImmAdapter n) {
+bool org::graph::isLinkedDescriptionItemNode(org::ImmAdapter const& n) {
     return n.is(osk::ListItem)  //
         && isDescriptionItem(n) //
         && rs::any_of(
@@ -29,7 +29,7 @@ bool org::graph::isLinkedDescriptionItemNode(org::ImmAdapter n) {
                });
 }
 
-bool org::graph::isLinkedDescriptionItem(org::ImmAdapter n) {
+bool org::graph::isLinkedDescriptionItem(org::ImmAdapter const& n) {
     // If any of the parent nodes for this box is a linked description
     // item, ignore the entry as it has already been added as a part of the
     // link descripion.
@@ -40,21 +40,21 @@ bool org::graph::isLinkedDescriptionItem(org::ImmAdapter n) {
         });
 }
 
-bool org::graph::isLinkedDescriptionList(org::ImmAdapter n) {
+bool org::graph::isLinkedDescriptionList(org::ImmAdapter const& n) {
     return n.is(osk::List)
         && rs::any_of(n.sub(), [&](org::ImmAdapter arg) -> bool {
                return isLinkedDescriptionItem(arg);
            });
 }
 
-bool org::graph::isInLinkedDescriptionList(org::ImmAdapter n) {
+bool org::graph::isInLinkedDescriptionList(org::ImmAdapter const& n) {
     return rs::any_of(n.getParentChain(), [](org::ImmAdapter tree) {
         return isAttachedDescriptionList(tree);
     });
 }
 
 
-bool org::graph::isAttachedDescriptionList(ImmAdapter n) {
+bool org::graph::isAttachedDescriptionList(ImmAdapter const& n) {
     if (auto list = n.asOpt<org::ImmList>();
         list && list->isDescriptionList()) {
         auto attached = list->getListAttrs("attached");
@@ -65,7 +65,7 @@ bool org::graph::isAttachedDescriptionList(ImmAdapter n) {
 }
 
 
-bool org::graph::isMmapIgnored(org::ImmAdapter n) {
+bool org::graph::isMmapIgnored(org::ImmAdapter const& n) {
     return isInLinkedDescriptionList(n) || isLinkedDescriptionList(n);
 }
 
