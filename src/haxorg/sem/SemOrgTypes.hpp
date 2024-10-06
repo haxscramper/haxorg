@@ -1002,7 +1002,6 @@ struct Footnote : public sem::Inline {
 struct Time : public sem::Org {
   using Org::Org;
   virtual ~Time() = default;
-  bool isStatic() const { return std::holds_alternative<Static>(time); }
   /// \brief Repetition information for static time
   struct Repeat {
     /// \brief Timestamp repetition mode

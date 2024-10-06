@@ -207,6 +207,13 @@ struct MapGraphState {
     DESC_FIELDS(MapGraphState, (unresolved, graph));
 };
 
+/// \brief Add node to the graph, without registering any outgoing or
+/// ingoing elements.
+void addNodeBase(
+    MapGraphState&         g,
+    org::ImmAdapter const& node,
+    MapConfig&             conf);
+
 void addNode(MapGraphState& g, MapNodeProp const& node, MapConfig& conf);
 
 void addNode(

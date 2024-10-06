@@ -855,9 +855,6 @@ def get_sem_text():
                            value="false")
             ],
             nested=[
-                GenTuPass(
-                    "bool isStatic() const { return std::holds_alternative<Static>(time); }"
-                ),
                 GenTuStruct(
                     t_nest("Repeat", ["Time"]),
                     GenTuDoc("Repetition information for static time"),

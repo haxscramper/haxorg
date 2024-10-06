@@ -1822,7 +1822,16 @@ DocBlock fromAst(org::ImmAdapter const& id) {
         }
 
         default: {
-            result.items.push_back(DocItem{.id = id});
+            if (auto list = id.asOpt<org::ImmList>();
+                list.has_value() && list->isDescriptionList()) {
+                if (list->getListAttrs("attached").at(0).value
+                    != "subtree") {
+                    result.items.push_back(DocItem{.id = id});
+                }
+            } else {
+                result.items.push_back(DocItem{.id = id});
+            }
+
             break;
         }
     }
@@ -1830,8 +1839,32 @@ DocBlock fromAst(org::ImmAdapter const& id) {
     return result;
 }
 
+void addAll(
+    org::graph::MapGraphState& state,
+    DocBlock const&            block,
+    org::graph::MapConfig&     conf) {
+    for (auto const& it : block.items) {
+        org::graph::addNodeRec(state, it.id, conf);
+    }
+
+    for (auto const& it : block.nested) { addAll(state, it, conf); }
+}
+
 TEST(ImmMapApi, SubtreeBlockMap) {
-    auto n = parseNode(getSubtreeBlockText());
+    auto                      n = parseNode(getSubtreeBlockText());
+    org::ImmAstContext        store;
+    org::ImmAstVersion        v    = store.addRoot(n);
+    org::ImmAdapter           root = v.getRootAdapter();
+    org::graph::MapConfig     conf;
+    org::graph::MapGraphState state{v.context};
+    DocBlock                  doc = fromAst(root);
+    addAll(state, doc, conf);
+
+    Graphviz gvc;
+    auto     gv = state.graph.toGraphviz(v.context);
+    gv.setRankDirection(Graphviz::Graph::RankDirection::LR);
+    gvc.writeFile(getDebugFile("map.dot"), gv);
+    gvc.renderToFile(getDebugFile("map.png"), gv);
 }
 
 struct TestGraph {

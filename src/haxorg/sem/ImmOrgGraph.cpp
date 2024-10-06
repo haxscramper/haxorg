@@ -187,41 +187,48 @@ void traceNodeResolve(
     }
 }
 
+void org::graph::addNodeBase(
+    MapGraphState&         g,
+    const org::ImmAdapter& node,
+    MapConfig&             conf) {
+    g.graph.adjList.insert_or_assign(MapNode{node.uniq()}, Vec<MapNode>{});
+}
+
+
 void org::graph::addNode(
     MapGraphState&     state,
-    MapNodeProp const& unresolved_node,
+    MapNodeProp const& node,
     MapConfig&         conf) {
 
     auto&   graph = state.graph;
-    MapNode mapNode{unresolved_node.id.uniq()};
+    MapNode mapNode{node.id.uniq()};
 
-    graph.adjList.insert_or_assign(mapNode, Vec<MapNode>{});
+    addNodeBase(state, node.id, conf);
 
     GRAPH_MSG(fmt("unresolved:{}", state.unresolved));
 
 
-    MapNodeResolveResult resolved_node = getResolvedNodeInsert(
-        state, unresolved_node, conf);
-
+    MapNodeResolveResult resolved = getResolvedNodeInsert(
+        state, node, conf);
 
     // debug-print node resolution state
-    traceNodeResolve(state, resolved_node, conf, mapNode);
+    traceNodeResolve(state, resolved, conf, mapNode);
 
     // Assign node resolution result to node properties, all links have
     // been finalized.
-    graph.nodeProps.insert_or_assign(mapNode, resolved_node.node);
+    graph.nodeProps.insert_or_assign(mapNode, resolved.node);
 
     // Iterate over all known unresolved nodes and adjust node property
     // values in the graph to account for new property changes.
     removeUnresolvedNodeProps(
-        graph.nodeProps, resolved_node, mapNode, state.unresolved, conf);
+        graph.nodeProps, resolved, mapNode, state.unresolved, conf);
 
     // Collect new list of unresolved nodes for the changes.
     updateUnresolvedNodeTracking(
-        state, graph.nodeProps, resolved_node, mapNode, conf);
+        state, graph.nodeProps, resolved, mapNode, conf);
 
     // Add all resolved edges to the graph
-    updateResolvedEdges(graph, resolved_node, conf);
+    updateResolvedEdges(graph, resolved, conf);
 }
 
 
