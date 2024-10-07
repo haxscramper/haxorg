@@ -265,6 +265,7 @@ struct ImmAstTrackingMapTransient {
     ImmStrIdMap::transient_type  subtrees;
     ImmStrIdMap::transient_type  radioTargets;
     ImmStrIdMap::transient_type  anchorTargets;
+    ImmStrIdMap::transient_type  names;
     ImmParentMap::transient_type parents;
     ImmPanentTrackFilter const&  isTrackingParentImpl;
 
@@ -305,6 +306,7 @@ struct ImmAstTrackingMap {
     ImmStrIdMap  subtrees;
     ImmStrIdMap  radioTargets;
     ImmStrIdMap  anchorTargets;
+    ImmStrIdMap  names;
     ImmParentMap parents;
 
     ImmPanentTrackFilter isTrackingParent = isTrackingParentDefault;
@@ -343,6 +345,7 @@ struct ImmAstTrackingMap {
     ImmAstTrackingMapTransient transient(ImmAstContext* oldCtx) {
         return {
             .oldCtx               = oldCtx,
+            .names                = names.transient(),
             .footnotes            = footnotes.transient(),
             .subtrees             = subtrees.transient(),
             .radioTargets         = radioTargets.transient(),
@@ -1206,6 +1209,7 @@ struct ImmAdapterDocumentGroupAPI : ImmAdapterOrgAPI {};
     struct ImmAdapterT<org::Imm##Derived>                                 \
         : ImmAdapterTBase<Imm##Derived>                                   \
         , ImmAdapter##Derived##API {                                      \
+        using api_type = ImmAdapter##Derived##API;                        \
         USE_IMM_ADAPTER_BASE(org::Imm##Derived);                          \
     };
 

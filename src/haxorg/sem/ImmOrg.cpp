@@ -9,6 +9,10 @@
 #include <boost/preprocessor.hpp>
 #include <haxorg/sem/ImmOrgHash.hpp>
 
+#include <boost/mp11/list.hpp>
+#include <boost/mp11/algorithm.hpp>
+#include <type_traits>
+
 const u64 org::ImmId::NodeIdxMask    = 0x000000FFFFFFFFFF; // >>0*0=0,
 const u64 org::ImmId::NodeIdxOffset  = 0;
 const u64 org::ImmId::NodeKindMask   = 0x000FFF0000000000; // >>10*4=40
@@ -524,6 +528,16 @@ ImmAstContext ImmAstEditContext::finish() {
 
 ImmAstStore& ImmAstEditContext::store() { return *ctx->store; }
 
+template <org::IsImmOrgValueType T>
+struct imm_api_type {
+    using api_type = typename org::ImmAdapterT<T>::api_type;
+};
+
+template <typename T, typename API>
+concept ProvidesImmApi //
+    = std::is_base_of_v<API, typename imm_api_type<T>::api_type>
+   || std::is_same_v<API, typename imm_api_type<T>::api_type>;
+
 void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
     auto search_radio_targets = [&](org::ImmAdapter const& id) {
         for (auto const& target : id.subAs<org::ImmRadioTarget>()) {
@@ -538,6 +552,30 @@ void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
             }
         }
     };
+
+    switch_node_value(
+        node,
+        *ctx,
+        overloaded{
+            [&]<typename N>(N const& nodeValue)
+                requires(ProvidesImmApi<N, ImmAdapterStmtAPI>)
+                        {
+                            _dfmt(node, nodeValue);
+                            auto adapter = ctx->adaptUnrooted(node)
+                                               .as<N>();
+                            for (auto const& name : adapter.getName()) {
+                                _dbg(name);
+                                if (add) {
+                                    track.names.set(name, node);
+                                } else {
+                                    track.names.erase(name);
+                                }
+                            }
+                        },
+                        [&]<typename N>(N const& nodeValue)
+                            requires(!ProvidesImmApi<N, ImmAdapterStmtAPI>)
+            { /*_dfmt(node, nodeValue); */ },
+        });
 
     switch_node_value(
         node,
@@ -569,7 +607,6 @@ void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
                 search_radio_targets(ctx->adaptUnrooted(node));
             },
             [&](auto const& nodeValue) {},
-
         });
 }
 

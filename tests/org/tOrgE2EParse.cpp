@@ -1792,6 +1792,9 @@ Second paragraph [fn:footnote_2]
 - [[id:subtree_2]] :: Standalone description list targeting subtree
 - [[id:subtree_1]] :: Targeting subtree one
 - [[internal_1]] :: Targeting standalone paragraph 1
+
+#+name: named-paragraph-one
+Paragraph with name annotations
 )str"};
 }
 
