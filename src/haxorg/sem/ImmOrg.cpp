@@ -336,6 +336,12 @@ void treeReprRec(
     if (!ctx.path.empty()) { os << fmt(" PATH:{}", ctx.path); }
 
     if (ctx.conf.withReflFields) {
+        if (ctx.conf.withAuxFields) {
+            switch_node_value(
+                id.id, id.ctx, [&]<typename N>(N const& node) {
+                    os << " " << fmt1(node);
+                });
+        }
         os << "\n";
         for (auto const& sub : id.getAllSubnodes(std::nullopt)) {
             os.indent((ctx.level + 1) * 2);

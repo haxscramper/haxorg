@@ -1830,8 +1830,8 @@ DocBlock fromAst(org::ImmAdapter const& id) {
         }
 
         default: {
+            _dbg(id);
             if (org::graph::isAttachedDescriptionList(id)) {
-                ///
             } else {
                 result.items.push_back(DocItem{.id = id});
             }
@@ -1848,7 +1848,6 @@ void addAll(
     DocBlock const&            block,
     org::graph::MapConfig&     conf) {
     for (auto const& it : block.items) {
-        _dbg(it);
         org::graph::addNode(state, it.id, conf);
     }
 
@@ -1875,6 +1874,7 @@ TEST(ImmMapApi, SubtreeBlockMap) {
         "imm_tree.txt",
         org::ImmAdapter::TreeReprConf{
             .withReflFields = true,
+            .withAuxFields  = true,
         });
 
 

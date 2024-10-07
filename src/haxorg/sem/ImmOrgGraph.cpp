@@ -58,7 +58,17 @@ bool org::graph::isAttachedDescriptionList(ImmAdapter const& n) {
     if (auto list = n.asOpt<org::ImmList>();
         list && list->isDescriptionList()) {
         auto attached = list->getListAttrs("attached");
-        _dfmt(attached, list);
+        if (attached.has(0)) {
+            _dfmt(
+                attached,
+                attached.has(0),
+                attached.at(0).value == "subtree",
+                n,
+                list,
+                list->getAttrs(std::nullopt));
+        } else {
+            _dfmt(n, attached);
+        }
         return attached.has(0) && attached.at(0).value == "subtree";
     } else {
         return false;

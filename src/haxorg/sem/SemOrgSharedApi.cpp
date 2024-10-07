@@ -217,6 +217,10 @@ template <typename Handle>
 concept IsSemOrgInstance = sem::IsOrg<
     typename get_ast_type<Handle>::ast_type>;
 
+template <typename Handle>
+concept IsImmOrgInstance = org::IsImmOrgValueType<
+    typename get_ast_type<Handle>::ast_type>;
+
 /// \brief Generic implementation of the subtree period collection --
 /// subtree period type is a shared data type, so in this function only
 /// parametrizing on the handle parameter.
@@ -404,9 +408,10 @@ template <typename Handle>
 Vec<sem::AttrValue> Cmd_getAttrs(
     Handle const& handle,
     CR<Opt<Str>>  param) {
+    _dbg(param);
     auto                h = getConstHandle(handle);
     Vec<sem::AttrValue> res;
-    if (isBoolFalse(h->attrs)) {
+    if (!isBoolFalse(h->attrs)) {
         res = Attrs_getAttrs(toHandle(h->attrs, handle).value(), param);
     }
     res.append(Stmt_getAttrs(handle, param));
@@ -453,10 +458,11 @@ auto Stmt_getAttached(Handle handle, CR<Opt<Str>> kind) {
     for (const auto& sub : h->attached) {
         auto sub_h = toHandle(sub, handle);
         if (kind) {
-            auto k = *kind;
+            auto k = normalize(*kind);
             if (sub_h->is(OrgSemKind::CmdAttr)) {
                 auto attr = org_cast<sem::CmdAttr>(sub_h);
-                if (normalize("attr_" + attr->target) == k) {
+                if ((k.starts_with("attr") && normalize(attr->target) == k)
+                    || (normalize("attr_" + attr->target) == k)) {
                     result.push_back(sub_h);
                 }
             } else if (
@@ -506,6 +512,10 @@ Vec<sem::AttrValue> List_getListAttrs(Handle handle, CR<Str> kind) {
     auto                attached = Stmt_getAttached(handle, "attr_list");
     for (auto const& it : attached) {
         auto const& attrs = to_api(org_cast<sem::CmdAttr>(it));
+        if constexpr (IsImmOrgInstance<Handle>) {
+            _dfmt(kind, attrs, handle);
+        }
+
         result.append(attrs.getAttrs(kind));
     }
 
@@ -737,7 +747,6 @@ bool sem::ListItem::isDescriptionItem() const { return ListItem_isDescriptionIte
 
 org::ImmAdapterT<org::ImmParagraph> org::ImmAdapterSubtreeAPI::getTitle() const { return pass(getThisT<org::ImmSubtree>()->title, ImmPathStep::Field("title")); }
 org::ImmAdapterT<org::ImmParagraph> org::ImmAdapterCmdCaptionAPI::getText() const { return pass(getThisT<org::ImmCmdCaption>()->text, ImmPathStep::Field("text")); }
-
 
 
 // clang-format on
