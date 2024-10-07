@@ -19,7 +19,7 @@ struct Str : public std::string {
     Str(const char* conv) : std::string(conv) {}
     Str(const char* conv, int size) : std::string(conv, size) {}
     Str(CR<std::string> it) : std::string(it.data(), it.size()) {}
-    Str(int count, char c) : std::string(count, c) {}
+    explicit Str(int count, char c) : std::string(count, c) {}
     Str(char c) : std::string(1, c) {}
     Str()                 = default;
     Str(Str const& other) = default;

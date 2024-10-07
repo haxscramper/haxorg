@@ -408,7 +408,6 @@ template <typename Handle>
 Vec<sem::AttrValue> Cmd_getAttrs(
     Handle const& handle,
     CR<Opt<Str>>  param) {
-    _dbg(param);
     auto                h = getConstHandle(handle);
     Vec<sem::AttrValue> res;
     if (!isBoolFalse(h->attrs)) {
@@ -512,10 +511,6 @@ Vec<sem::AttrValue> List_getListAttrs(Handle handle, CR<Str> kind) {
     auto                attached = Stmt_getAttached(handle, "attr_list");
     for (auto const& it : attached) {
         auto const& attrs = to_api(org_cast<sem::CmdAttr>(it));
-        if constexpr (IsImmOrgInstance<Handle>) {
-            _dfmt(kind, attrs, handle);
-        }
-
         result.append(attrs.getAttrs(kind));
     }
 

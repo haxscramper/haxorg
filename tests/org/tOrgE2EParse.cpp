@@ -1830,9 +1830,7 @@ DocBlock fromAst(org::ImmAdapter const& id) {
         }
 
         default: {
-            _dbg(id);
-            if (org::graph::isAttachedDescriptionList(id)) {
-            } else {
+            if (!org::graph::isAttachedDescriptionList(id)) {
                 result.items.push_back(DocItem{.id = id});
             }
 
@@ -1871,6 +1869,14 @@ TEST(ImmMapApi, SubtreeBlockMap) {
 
     writeTreeRepr(
         root,
+        "imm_path.txt",
+        org::ImmAdapter::TreeReprConf{
+            .withAuxFields = true,
+        });
+
+
+    writeTreeRepr(
+        root,
         "imm_tree.txt",
         org::ImmAdapter::TreeReprConf{
             .withReflFields = true,
@@ -1883,6 +1889,19 @@ TEST(ImmMapApi, SubtreeBlockMap) {
     org::graph::MapGraphState state{v.context};
     DocBlock                  doc = fromAst(root);
     addAll(state, doc, conf);
+
+    org::ImmAdapter comment   = root.at({1, 3});
+    org::ImmAdapter par_above = root.at({1, 1});
+    EXPECT_EQ(comment->getKind(), OrgSemKind::BlockComment);
+    EXPECT_EQ(par_above->getKind(), OrgSemKind::Paragraph);
+
+    org::graph::addEdge(
+        state,
+        org::graph::MapEdge{
+            .source = org::graph::MapNode{par_above.uniq()},
+            .target = org::graph::MapNode{comment.uniq()}},
+        org::graph::MapEdgeProp{},
+        conf);
 
     Graphviz gvc;
     auto     gv = state.graph.toGraphviz(v.context);

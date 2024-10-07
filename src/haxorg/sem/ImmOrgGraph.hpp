@@ -208,7 +208,13 @@ void addNodeBase(
     org::ImmAdapter const& node,
     MapConfig&             conf);
 
-void addNode(MapGraphState& g, MapNodeProp const& node, MapConfig& conf);
+void addEdge(
+    MapGraphState&     g,
+    MapEdge const&     edge,
+    MapEdgeProp const& prop,
+    MapConfig&         conf);
+
+void addNode(MapGraphState& s, MapNodeProp const& node, MapConfig& conf);
 
 void addNode(
     MapGraphState&         g,

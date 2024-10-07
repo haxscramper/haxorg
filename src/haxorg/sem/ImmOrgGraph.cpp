@@ -58,17 +58,6 @@ bool org::graph::isAttachedDescriptionList(ImmAdapter const& n) {
     if (auto list = n.asOpt<org::ImmList>();
         list && list->isDescriptionList()) {
         auto attached = list->getListAttrs("attached");
-        if (attached.has(0)) {
-            _dfmt(
-                attached,
-                attached.has(0),
-                attached.at(0).value == "subtree",
-                n,
-                list,
-                list->getAttrs(std::nullopt));
-        } else {
-            _dfmt(n, attached);
-        }
         return attached.has(0) && attached.at(0).value == "subtree";
     } else {
         return false;
@@ -147,11 +136,11 @@ void updateUnresolvedNodeTracking(
 }
 
 void updateResolvedEdges(
-    MapGraph&                   graph,
+    MapGraphState&              s,
     MapNodeResolveResult const& resolved_node,
     MapConfig&                  conf) {
     for (auto const& op : resolved_node.resolved) {
-        for (auto const& target : graph.adjList.at(op.source)) {
+        for (auto const& target : s.graph.adjList.at(op.source)) {
             LOGIC_ASSERTION_CHECK(
                 op.target != target,
                 "There is already a link between {} and {}, graph cannot "
@@ -163,14 +152,11 @@ void updateResolvedEdges(
 
 
         GRAPH_MSG(fmt("add edge {}-{}", op.source, op.target));
-
-
-        MapEdge edge{op.source, op.target};
-
-        graph.adjList.at(op.source).push_back(op.target);
-
-        graph.edgeProps.insert_or_assign(
-            edge, MapEdgeProp{.link = op.link});
+        addEdge(
+            s,
+            MapEdge{op.source, op.target},
+            MapEdgeProp{.link = op.link},
+            conf);
     }
 }
 
@@ -219,24 +205,33 @@ void org::graph::addNodeBase(
 }
 
 
+void org::graph::addEdge(
+    MapGraphState&     g,
+    const MapEdge&     edge,
+    const MapEdgeProp& prop,
+    MapConfig&         conf) {
+    g.graph.adjList.at(edge.source).push_back(edge.target);
+    g.graph.edgeProps.insert_or_assign(edge, prop);
+}
+
+
 void org::graph::addNode(
-    MapGraphState&     state,
+    MapGraphState&     s,
     MapNodeProp const& node,
     MapConfig&         conf) {
 
-    auto&   graph = state.graph;
+    auto&   graph = s.graph;
     MapNode mapNode{node.id.uniq()};
 
-    addNodeBase(state, node.id, conf);
+    addNodeBase(s, node.id, conf);
 
-    GRAPH_MSG(fmt("unresolved:{}", state.unresolved));
+    GRAPH_MSG(fmt("unresolved:{}", s.unresolved));
 
 
-    MapNodeResolveResult resolved = getResolvedNodeInsert(
-        state, node, conf);
+    MapNodeResolveResult resolved = getResolvedNodeInsert(s, node, conf);
 
     // debug-print node resolution state
-    traceNodeResolve(state, resolved, conf, mapNode);
+    traceNodeResolve(s, resolved, conf, mapNode);
 
     // Assign node resolution result to node properties, all links have
     // been finalized.
@@ -245,14 +240,14 @@ void org::graph::addNode(
     // Iterate over all known unresolved nodes and adjust node property
     // values in the graph to account for new property changes.
     removeUnresolvedNodeProps(
-        graph.nodeProps, resolved, mapNode, state.unresolved, conf);
+        graph.nodeProps, resolved, mapNode, s.unresolved, conf);
 
     // Collect new list of unresolved nodes for the changes.
     updateUnresolvedNodeTracking(
-        state, graph.nodeProps, resolved, mapNode, conf);
+        s, graph.nodeProps, resolved, mapNode, conf);
 
     // Add all resolved edges to the graph
-    updateResolvedEdges(graph, resolved, conf);
+    updateResolvedEdges(s, resolved, conf);
 }
 
 
