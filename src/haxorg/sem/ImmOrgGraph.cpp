@@ -47,7 +47,7 @@ bool org::graph::isLinkedDescriptionList(org::ImmAdapter const& n) {
            });
 }
 
-bool org::graph::isInLinkedDescriptionList(org::ImmAdapter const& n) {
+bool org::graph::isInSubtreeDescriptionList(org::ImmAdapter const& n) {
     return rs::any_of(n.getParentChain(), [](org::ImmAdapter tree) {
         return isAttachedDescriptionList(tree);
     });
@@ -58,6 +58,7 @@ bool org::graph::isAttachedDescriptionList(ImmAdapter const& n) {
     if (auto list = n.asOpt<org::ImmList>();
         list && list->isDescriptionList()) {
         auto attached = list->getListAttrs("attached");
+        _dfmt(attached, list);
         return attached.has(0) && attached.at(0).value == "subtree";
     } else {
         return false;
@@ -66,7 +67,8 @@ bool org::graph::isAttachedDescriptionList(ImmAdapter const& n) {
 
 
 bool org::graph::isMmapIgnored(org::ImmAdapter const& n) {
-    return isInLinkedDescriptionList(n) || isLinkedDescriptionList(n);
+    return isInSubtreeDescriptionList(n)
+        || (isLinkedDescriptionList(n) && isAttachedDescriptionList(n));
 }
 
 void removeUnresolvedNodeProps(

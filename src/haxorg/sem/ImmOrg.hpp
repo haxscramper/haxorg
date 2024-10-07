@@ -791,8 +791,9 @@ struct ImmAdapter {
     ImmUniqId uniq() const { return ImmUniqId{.id = id, .path = path}; }
 
     struct TreeReprConf {
-        int  maxDepth      = 40;
-        bool withAuxFields = false;
+        int  maxDepth       = 40;
+        bool withAuxFields  = false;
+        bool withReflFields = false;
 
         static TreeReprConf getDefault() { return TreeReprConf{}; }
     };

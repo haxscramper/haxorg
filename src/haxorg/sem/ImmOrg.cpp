@@ -332,21 +332,32 @@ void treeReprRec(
     ColStream&                os,
     ImmTreeReprContext const& ctx) {
     os.indent(ctx.level * 2);
-    os << fmt(
-        "{} {} PATH:{}", id->getKind(), id.id.getReadableId(), ctx.path);
+    os << fmt("{} {}", id->getKind(), id.id.getReadableId());
+    if (!ctx.path.empty()) { os << fmt(" PATH:{}", ctx.path); }
 
-    if (ctx.conf.withAuxFields) {
-        switch_node_value(id.id, id.ctx, [&]<typename N>(N const& node) {
-            os << " " << fmt1(node);
-        });
-    }
+    if (ctx.conf.withReflFields) {
+        os << "\n";
+        for (auto const& sub : id.getAllSubnodes(std::nullopt)) {
+            os.indent((ctx.level + 1) * 2);
+            os << fmt("{}", sub.path);
+            os << "\n";
+            treeReprRec(sub, os, ctx.addLevel(2));
+        }
+    } else {
+        if (ctx.conf.withAuxFields) {
+            switch_node_value(
+                id.id, id.ctx, [&]<typename N>(N const& node) {
+                    os << " " << fmt1(node);
+                });
+        }
 
-    os << "\n";
+        os << "\n";
 
-    int idx = 0;
-    for (auto const& it : id.sub()) {
-        treeReprRec(it, os, ctx.addLevel(1).addPath(idx));
-        ++idx;
+        int idx = 0;
+        for (auto const& it : id.sub()) {
+            treeReprRec(it, os, ctx.addLevel(1).addPath(idx));
+            ++idx;
+        }
     }
 }
 } // namespace

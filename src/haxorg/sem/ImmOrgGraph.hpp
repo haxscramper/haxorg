@@ -282,7 +282,7 @@ bool isLinkedDescriptionList(org::ImmAdapter const& n);
 
 /// \brief Check if a node is placed in the description list item or *is* a
 /// description list item.
-bool isInLinkedDescriptionList(ImmAdapter const& n);
+bool isInSubtreeDescriptionList(ImmAdapter const& n);
 
 bool isAttachedDescriptionList(ImmAdapter const& n);
 

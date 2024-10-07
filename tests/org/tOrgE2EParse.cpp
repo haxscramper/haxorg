@@ -1864,10 +1864,20 @@ TEST(ImmMapApi, SubtreeBlockMap) {
             .withColor = false,
         });
 
+
     org::ImmAstContext store;
     store.debug->setTraceFile(getDebugFile("store"));
-    org::ImmAstVersion    v    = store.addRoot(n);
-    org::ImmAdapter       root = v.getRootAdapter();
+    org::ImmAstVersion v    = store.addRoot(n);
+    org::ImmAdapter    root = v.getRootAdapter();
+
+    writeTreeRepr(
+        root,
+        "imm_tree.txt",
+        org::ImmAdapter::TreeReprConf{
+            .withReflFields = true,
+        });
+
+
     org::graph::MapConfig conf;
     conf.setTraceFile(getDebugFile("graph"));
     org::graph::MapGraphState state{v.context};
