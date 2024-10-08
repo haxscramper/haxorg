@@ -1315,7 +1315,7 @@ OrgConverter::ConvResult<CmdName> OrgConverter::convertCmdName(__args) {
     auto           args    = convertAttr(a.at(0).at(0));
 
     if (auto name = args.optNode()) {
-        result->name = name->value->getName();
+        result->name = name->value->arg.value;
     } else {
         result->push_back(args.optError().value());
     }

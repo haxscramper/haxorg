@@ -1,4 +1,5 @@
 #include "ImmOrgGraph.hpp"
+#include "haxorg/sem/ImmOrgEdit.hpp"
 #include "haxorg/sem/SemBaseApi.hpp"
 #include <hstd/stdlib/Ranges.hpp>
 #include <immer/set_transient.hpp>
@@ -430,7 +431,16 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
             CR<Str> text = link.link->getInternal().target.get();
             if (auto target = s.ast.track->radioTargets.get(text)) {
                 GRAPH_MSG(
-                    fmt("Internal link name {} on {} resolved to {}",
+                    fmt("Internal link name {} on {} resolved to radio "
+                        "target {}",
+                        text,
+                        source,
+                        *target));
+                add_edge(*target);
+            } else if (auto target = s.ast.track->names.get(text)) {
+                GRAPH_MSG(
+                    fmt("Internal link name {} on {} resolved to named "
+                        "node {}",
                         text,
                         source,
                         *target));
@@ -593,6 +603,26 @@ Graphviz::Graph MapGraph::toGraphviz(org::ImmAstContext const& ctx) const {
             Record{fmt1(it.id)},
         }});
 
+
+        switch_node_value(
+            it.id.id,
+            ctx,
+            overloaded{
+                [&](org::ImmSubtree const& tree) {
+                    add_field(Record{{
+                        Record{"Title"},
+                        Record{join(
+                            " ",
+                            flatWords(ctx.adaptUnrooted(tree.title)))},
+                    }});
+                },
+                [&]<typename K>(K const& value) {
+                    add_field(Record{{
+                        Record{"Type"},
+                        Record{TypeName<K>::get()},
+                    }});
+                },
+            });
 
         for (auto const& [idx, unresolved] : enumerate(prop.unresolved)) {
             add_field(Record{{

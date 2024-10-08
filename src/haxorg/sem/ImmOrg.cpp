@@ -1,3 +1,5 @@
+#include "haxorg/exporters/Exporter.hpp"
+#include "haxorg/sem/ImmOrgEdit.hpp"
 #include "hstd/stdlib/Set.hpp"
 #include <haxorg/sem/ImmOrg.hpp>
 #include <hstd/stdlib/Exception.hpp>
@@ -560,11 +562,9 @@ void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
             [&]<typename N>(N const& nodeValue)
                 requires(ProvidesImmApi<N, ImmAdapterStmtAPI>)
                         {
-                            _dfmt(node, nodeValue);
                             auto adapter = ctx->adaptUnrooted(node)
                                                .as<N>();
                             for (auto const& name : adapter.getName()) {
-                                _dbg(name);
                                 if (add) {
                                     track.names.set(name, node);
                                 } else {
