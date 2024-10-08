@@ -85,7 +85,7 @@ sub_lexers:
     - re: "\\]\\]"
       token: LinkEnd
 
-    - re: "\\w+"
+    - re: "(\\w|-|_)+"
       token: LinkProtocolInternal
 
   timestamp_repeater:
@@ -686,7 +686,7 @@ rules:
   - re: "\\[\\[(\\/|\\.){any_non_brace_link}+"
     sub: no_protocol_file_link
 
-  - re: "\\[\\[\\w+(\\]\\]|\\]\\[)"
+  - re: "\\[\\[(\\w|-|_)+(\\]\\]|\\]\\[)"
     sub: link_protocol_internal
 
   - re: "\\[\\[\\w+:"

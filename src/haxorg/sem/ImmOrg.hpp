@@ -1004,6 +1004,7 @@ struct ImmAdapterTBase : ImmAdapter {
     using ImmAdapter::subAs;
     T const* get() const { return ctx.at_t<T>(id); }
     T const* operator->() const { return get(); }
+    T const& value() const { return ImmAdapter::value<T>(); }
 
     /// \brief Get sub-field value wrapped as adapter.
     ///
@@ -1028,6 +1029,7 @@ struct ImmAdapterTBase : ImmAdapter {
     using ImmAdapterTBase<T>::get;                                        \
     using ImmAdapterTBase<T>::operator->;                                 \
     using ImmAdapterTBase<T>::subAs;                                      \
+    using ImmAdapterTBase<T>::value;                                      \
     ImmAdapter*       getThis() { return this; }                          \
     ImmAdapter const* getThis() const { return this; }
 

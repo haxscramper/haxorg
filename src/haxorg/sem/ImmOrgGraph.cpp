@@ -255,7 +255,6 @@ void org::graph::addNode(
 static const SemSet NestedNodes{
     OrgSemKind::Subtree,
     OrgSemKind::Document,
-    OrgSemKind::List,
     OrgSemKind::ListItem,
     OrgSemKind::StmtList,
 };
@@ -347,6 +346,10 @@ Opt<MapNodeProp> org::graph::MapInterface::getInitialNodeProp(
         // them will be converted to edges later on.
         if (auto link = arg.asOpt<org::ImmLink>()) {
             if (auto target = getUnresolvedLink(s, link.value(), conf)) {
+                GRAPH_MSG(
+                    fmt("Got unresolved link for adapter {} under {}",
+                        arg,
+                        node))
                 result.unresolved.push_back(target.value());
             }
         }
@@ -377,6 +380,7 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
     GRAPH_MSG(fmt("Get resolve targets {} {}", source, link));
     GRAPH_MSG(fmt("footnotes {}", s.ast.track->footnotes));
     GRAPH_MSG(fmt("subtrees {}", s.ast.track->subtrees));
+    GRAPH_MSG(fmt("names {}", s.ast.track->names));
 
     Vec<MapLinkResolveResult> result;
 
@@ -430,30 +434,30 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
         case slk::Internal: {
             CR<Str> text = link.link->getInternal().target.get();
             if (auto target = s.ast.track->radioTargets.get(text)) {
-                GRAPH_MSG(
-                    fmt("Internal link name {} on {} resolved to radio "
-                        "target {}",
-                        text,
-                        source,
-                        *target));
+                GRAPH_MSG(fmt(
+                    "Internal link name '{}' on '{}' resolved to radio "
+                    "target '{}'",
+                    text,
+                    source,
+                    *target));
                 add_edge(*target);
             } else if (auto target = s.ast.track->names.get(text)) {
-                GRAPH_MSG(
-                    fmt("Internal link name {} on {} resolved to named "
-                        "node {}",
-                        text,
-                        source,
-                        *target));
+                GRAPH_MSG(fmt(
+                    "Internal link name '{}' on '{}' resolved to named "
+                    "node '{}'",
+                    text,
+                    source,
+                    *target));
                 add_edge(*target);
             } else {
-                GRAPH_MSG(fmt("No footnote with ID {}", text));
+                GRAPH_MSG(fmt("No internal link with ID '{}'", text));
             }
             break;
         }
 
         default: {
             throw logic_unreachable_error::init(
-                fmt("Unhandled link kind {}", link.link->getLinkKind()));
+                fmt("Unhandled link kind '{}'", link.link->getLinkKind()));
         }
     }
 
@@ -638,8 +642,9 @@ Graphviz::Graph MapGraph::toGraphviz(org::ImmAstContext const& ctx) const {
 
         for (auto const& [idx, unresolved] : enumerate(prop.unresolved)) {
             add_field(Record{{
-                Record{left_aligned(fmt("Unresolved [{}]", idx), 16)},
-                Record{fmt1(unresolved.link)},
+                Record{left_aligned(
+                    fmt("Unresolved []", unresolved.link), 16)},
+                Record{fmt1(unresolved.link.value())},
             }});
         }
 

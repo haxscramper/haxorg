@@ -118,198 +118,11 @@ const ImmOrg* ImmAstStore::at(ImmId index) const {
 }
 
 
-namespace {
-void eachSubnodeRecImpl(
-    CR<org::SubnodeVisitor>   visitor,
-    ImmId                     org,
-    bool                      originalBase,
-    org::ImmAstContext const& ctx);
-
-template <typename T>
-struct SubnodeRecVisitor {};
-
-
-#define placeholder_visitor(__Type)                                       \
-    template <>                                                           \
-    struct SubnodeRecVisitor<__Type> {                                    \
-        static void visitField(                                           \
-            CR<org::SubnodeVisitor>   visitor,                            \
-            __Type const&             tmp,                                \
-            org::ImmAstContext const& ctx) {}                             \
-    };
-
-placeholder_visitor(Str);
-placeholder_visitor(int);
-placeholder_visitor(bool);
-placeholder_visitor(absl::Time);
-placeholder_visitor(UserTime);
-placeholder_visitor(std::string);
-placeholder_visitor(sem::BigIdent);
-placeholder_visitor(org::ImmIdT<sem::BigIdent>);
-placeholder_visitor(sem::AttrValue);
-placeholder_visitor(Vec<sem::SemId<sem::Org>>);
-
-#undef placeholder_visitor
-
-
-template <IsEnum T>
-struct SubnodeRecVisitor<T> {
-    static void visitField(
-        CR<org::SubnodeVisitor>   visitor,
-        T const&                  tree,
-        org::ImmAstContext const& ctx) {}
-};
-
-template <typename T>
-struct SubnodeRecVisitor<ImmIdT<T>> {
-    static void visitField(
-        CR<org::SubnodeVisitor>   visitor,
-        ImmIdT<T>                 tree,
-        org::ImmAstContext const& ctx) {
-
-        if (tree.isNil()) { return; }
-        visitor(ImmAdapter{tree.toId(), ctx, org::ImmPath{tree.toId()}});
-
-        for_each_field_with_bases<T>([&](auto const& field) {
-            SubnodeRecVisitor<std::remove_cvref_t<
-                decltype(ctx.at(tree)->*field.pointer)>>::
-                visitField(visitor, ctx.at(tree)->*field.pointer, ctx);
-        });
-    }
-};
-
-template <DescribedRecord T>
-struct SubnodeRecVisitor<T> {
-    static void visitField(
-        CR<org::SubnodeVisitor>   visitor,
-        T const&                  obj,
-        org::ImmAstContext const& ctx) {
-        for_each_field_with_bases<T>([&](auto const& field) {
-            SubnodeRecVisitor<
-                std::remove_cvref_t<decltype(obj.*field.pointer)>>::
-                visitField(visitor, obj.*field.pointer, ctx);
-        });
-    }
-};
-
-
-template <>
-struct SubnodeRecVisitor<ImmId> {
-    static void visitField(
-        CR<org::SubnodeVisitor>   visitor,
-        ImmId                     org,
-        org::ImmAstContext const& ctx) {
-        switch_node_value(org, ctx, [&]<typename N>(N const& value) {
-            SubnodeRecVisitor<org::ImmIdT<N>>::visitField(
-                visitor, org.as<N>(), ctx);
-        });
-    }
-};
-
-
-template <sem::IsOrg T>
-struct SubnodeRecVisitor<T> {
-    static void visitField(
-        CR<org::SubnodeVisitor>   visitor,
-        CR<T>                     node,
-        org::ImmAstContext const& ctx) {
-        SubnodeRecVisitor<ImmId>::visitField(visitor, node.asOrg(), ctx);
-    }
-};
-
-template <IsVariant T>
-struct SubnodeRecVisitor<T> {
-    static void visitField(
-        CR<org::SubnodeVisitor>   visitor,
-        CR<T>                     node,
-        org::ImmAstContext const& ctx) {
-        std::visit(
-            [&](auto const& it) {
-                SubnodeRecVisitor<std::remove_cvref_t<decltype(it)>>::
-                    visitField(visitor, it, ctx);
-            },
-            node);
-    }
-};
-
-template <typename T>
-struct SubnodeRecVisitor<Vec<T>> {
-    static void visitField(
-        CR<org::SubnodeVisitor>   visitor,
-        Vec<T> const&             value,
-        org::ImmAstContext const& ctx) {
-        for (const auto& it : value) {
-            SubnodeRecVisitor<T>::visitField(visitor, it, ctx);
-        }
-    }
-};
-
-
-template <typename T>
-struct SubnodeRecVisitor<ImmVec<T>> {
-    static void visitField(
-        CR<org::SubnodeVisitor>   visitor,
-        ImmVec<T> const&          value,
-        org::ImmAstContext const& ctx) {
-        for (const auto& it : value) {
-            SubnodeRecVisitor<T>::visitField(visitor, it, ctx);
-        }
-    }
-};
-
-template <typename K, typename V>
-struct SubnodeRecVisitor<UnorderedMap<K, V>> {
-    static void visitField(
-        CR<org::SubnodeVisitor>   visitor,
-        UnorderedMap<K, V> const& value,
-        org::ImmAstContext const& ctx) {
-        for (const auto& [key, value] : value) {
-            SubnodeRecVisitor<V>::visitField(visitor, value, ctx);
-        }
-    }
-};
-
-
-template <typename K, typename V>
-struct SubnodeRecVisitor<ImmMap<K, V>> {
-    static void visitField(
-        CR<org::SubnodeVisitor>   visitor,
-        ImmMap<K, V> const&       value,
-        org::ImmAstContext const& ctx) {
-        for (const auto& [key, value] : value) {
-            SubnodeRecVisitor<V>::visitField(visitor, value, ctx);
-        }
-    }
-};
-
-
-template <typename T>
-struct SubnodeRecVisitor<ImmBox<T>> {
-    static void visitField(
-        CR<org::SubnodeVisitor>   visitor,
-        CR<ImmBox<T>>             value,
-        org::ImmAstContext const& ctx) {
-        SubnodeRecVisitor<T>::visitField(visitor, value.get(), ctx);
-    }
-};
-
-template <typename T>
-struct SubnodeRecVisitor<Opt<T>> {
-    static void visitField(
-        CR<org::SubnodeVisitor>   visitor,
-        CR<Opt<T>>                value,
-        org::ImmAstContext const& ctx) {
-        if (value) {
-            SubnodeRecVisitor<T>::visitField(visitor, *value, ctx);
-        }
-    }
-};
-
-} // namespace
-
-
 void org::eachSubnodeRec(ImmAdapter id, SubnodeVisitor cb) {
-    SubnodeRecVisitor<ImmId>::visitField(cb, id.id, id.ctx);
+    cb(id);
+    for (auto const& sub : id.getAllSubnodes(id.path)) {
+        eachSubnodeRec(sub, cb);
+    }
 }
 
 
@@ -520,6 +333,7 @@ ImmAstTrackingMap ImmAstTrackingMapTransient::persistent() {
         .radioTargets     = radioTargets.persistent(),
         .anchorTargets    = anchorTargets.persistent(),
         .parents          = parents.persistent(),
+        .names            = names.persistent(),
         .isTrackingParent = isTrackingParentImpl,
     };
 }
@@ -565,6 +379,10 @@ void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
                             auto adapter = ctx->adaptUnrooted(node)
                                                .as<N>();
                             for (auto const& name : adapter.getName()) {
+                                message(
+                                    fmt("Tracking name '{}' for node {}",
+                                        name,
+                                        node));
                                 if (add) {
                                     track.names.set(name, node);
                                 } else {

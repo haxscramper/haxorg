@@ -7,6 +7,7 @@
 #include <absl/log/log.h>
 #include <absl/log/initialize.h>
 #include <absl/log/internal/globals.h>
+#include <hstd/stdlib/Json.hpp>
 
 struct OperationsMsg {
     Opt<std::string> msg;
@@ -15,7 +16,10 @@ struct OperationsMsg {
     int              line     = 0;
     int              column   = 0;
     int              level    = 0;
-    DESC_FIELDS(OperationsMsg, (msg, file, function, line, column));
+    json             metadata = json{};
+    DESC_FIELDS(
+        OperationsMsg,
+        (msg, file, function, line, column, metadata));
 };
 
 struct OperationsScope {

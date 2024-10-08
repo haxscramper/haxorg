@@ -87,11 +87,23 @@ void OperationsTracer::message(const OperationsMsg& value) const {
             if (value.msg) {
                 if (value.msg.value().find('\n') == -1) {
                     os << " " << value.msg.value();
+                    if (!value.metadata.is_null()) {
+                        os << " " << value.metadata.dump();
+                    }
                 } else {
                     bool isFirst = true;
                     for (auto const& line : split(*value.msg, '\n')) {
                         if (isFirst) {
-                            os << " " << line;
+                            if (value.metadata.is_null()) {
+                                os << " " << line;
+                            } else {
+                                os << " "                              //
+                                   << value.metadata.dump()            //
+                                   << "\n"                             //
+                                   << Str(" ").repeated(prefix.size()) //
+                                   << " "                              //
+                                   << line;
+                            }
                             isFirst = false;
                         } else {
                             os << "\n"

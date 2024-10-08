@@ -269,7 +269,7 @@ Vec<sem::SubtreePeriod> subtreeGetTimePeriodsImpl(
     }
 
     if (kinds.contains(SubtreePeriod::Kind::Deadline)
-        && isBoolFalse(h->deadline)) {
+        && !isBoolFalse(h->deadline)) {
         SubtreePeriod period{};
         period.from = toHandle(h->deadline, handle)
                           .value()
@@ -280,7 +280,7 @@ Vec<sem::SubtreePeriod> subtreeGetTimePeriodsImpl(
     }
 
     if (kinds.contains(SubtreePeriod::Kind::Scheduled)
-        && isBoolFalse(h->scheduled)) {
+        && !isBoolFalse(h->scheduled)) {
         SubtreePeriod period{};
         period.from = toHandle(h->scheduled, handle)
                           .value()
@@ -291,7 +291,7 @@ Vec<sem::SubtreePeriod> subtreeGetTimePeriodsImpl(
     }
 
     if (kinds.contains(SubtreePeriod::Kind::Closed)
-        && isBoolFalse(h->closed)) {
+        && !isBoolFalse(h->closed)) {
         SubtreePeriod period{};
         period.from = toHandle(h->closed, handle)
                           .value()
@@ -320,7 +320,7 @@ Vec<sem::SubtreePeriod> subtreeGetTimePeriodsImpl(
                 period.from = toHandle(log->getClock().from, handle)
                                   ->getStatic()
                                   .time;
-                if (isBoolFalse(log->getClock().to)) {
+                if (!isBoolFalse(log->getClock().to)) {
                     period.to = //
                         toHandle(log->getClock().to, handle)
                             .value()
@@ -432,7 +432,7 @@ Opt<sem::AttrValue> Stmt_getFirstAttr(Handle handle, CR<Str> kind) {
 template <typename Handle>
 Opt<sem::AttrValue> Cmd_getFirstAttr(Handle handle, Str const& kind) {
     auto h = getConstHandle(handle);
-    if (isBoolFalse(h->attrs)) {
+    if (!isBoolFalse(h->attrs)) {
         auto res = Attrs_getAttrs(
             toHandle(h->attrs, handle).value(), kind);
         if (res.empty()) {
@@ -468,6 +468,9 @@ auto Stmt_getAttached(Handle handle, CR<Opt<Str>> kind) {
                 sub_h->is(OrgSemKind::CmdCaption)
                 && normalize(k) == "caption") {
 
+                result.push_back(sub_h);
+            } else if (
+                sub_h->is(OrgSemKind::CmdName) && normalize(k) == "name") {
                 result.push_back(sub_h);
             }
         } else {

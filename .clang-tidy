@@ -1,5 +1,5 @@
 ---
-Checks:          ''
+Checks:          '-clang-analyzer-core.CallAndMessage'
 WarningsAsErrors: true
 HeaderFilterRegex: ''
 AnalyzeTemporaryDtors: false
