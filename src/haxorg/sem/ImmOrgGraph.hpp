@@ -162,23 +162,29 @@ struct MapGraph {
 };
 
 struct MapGraphState;
+struct MapConfig;
+
+struct MapInterface {
+    /// \brief Get node properties without resolving the target links.
+    virtual Opt<MapNodeProp> getInitialNodeProp(
+        MapGraphState const& s,
+        org::ImmAdapter      node,
+        MapConfig&           conf);
+};
 
 struct MapConfig
     : OperationsTracer
     , OperationsScope {
+    SPtr<MapInterface> impl;
+    MapConfig(SPtr<MapInterface> impl);
     MapConfig();
 
-    Func<Opt<MapNodeProp>(
-        MapGraphState const& s,
-        org::ImmAdapter      node,
-        MapConfig&           conf)>
-        getUnresolvedNodeInsertImpl;
-
-    Opt<MapNodeProp> getUnresolvedNodeInsert(
+    Opt<MapNodeProp> getInitialNodeProp(
         MapGraphState const& s,
         org::ImmAdapter      node) {
-        return getUnresolvedNodeInsertImpl(s, node, *this);
+        return impl->getInitialNodeProp(s, node, *this);
     }
+
 
     void message(
         std::string const& value,
@@ -235,13 +241,6 @@ Opt<MapLink> getUnresolvedLink(
     MapGraphState const& s,
     ImmAdapterT<ImmLink> node,
     MapConfig&           conf);
-
-/// \brief Get node properties without resolving the target links.
-Opt<MapNodeProp> getUnresolvedNodeInsertDefault(
-    MapGraphState const& s,
-    org::ImmAdapter      node,
-    MapConfig&           conf);
-
 
 struct MapLinkResolveResult {
     MapLink link;

@@ -321,7 +321,7 @@ Vec<MapLink> org::graph::getUnresolvedSubtreeLinks(
 }
 
 
-Opt<MapNodeProp> org::graph::getUnresolvedNodeInsertDefault(
+Opt<MapNodeProp> org::graph::MapInterface::getInitialNodeProp(
     MapGraphState const& s,
     org::ImmAdapter      node,
     MapConfig&           conf) {
@@ -567,7 +567,7 @@ void org::graph::addNode(
     org::ImmAdapter const& node,
     MapConfig&             conf) {
     GRAPH_MSG(fmt("{} {}", node, Str("- ").repeated(32)));
-    auto prop = conf.getUnresolvedNodeInsert(g, node);
+    auto prop = conf.getInitialNodeProp(g, node);
     if (prop) {
         GRAPH_MSG("ID maps to graph node");
         auto __init = conf.scopeLevel();
@@ -603,6 +603,12 @@ Graphviz::Graph MapGraph::toGraphviz(org::ImmAstContext const& ctx) const {
             Record{fmt1(it.id)},
         }});
 
+        auto add_field_text = [&](Str const& name, org::ImmId id) {
+            add_field(Record{{
+                Record{name},
+                Record{join(" ", flatWords(ctx.adaptUnrooted(id)))},
+            }});
+        };
 
         switch_node_value(
             it.id.id,
@@ -615,6 +621,12 @@ Graphviz::Graph MapGraph::toGraphviz(org::ImmAstContext const& ctx) const {
                             " ",
                             flatWords(ctx.adaptUnrooted(tree.title)))},
                     }});
+                },
+                [&](org::ImmParagraph const& tree) {
+                    add_field_text("Text", it.id.id);
+                },
+                [&](org::ImmAnnotatedParagraph const& tree) {
+                    add_field_text("Text", it.id.id);
                 },
                 [&]<typename K>(K const& value) {
                     add_field(Record{{
@@ -669,8 +681,12 @@ void org::graph::addNodeRec(
     aux(node);
 }
 
-MapConfig::MapConfig() {
-    this->getUnresolvedNodeInsertImpl = getUnresolvedNodeInsertDefault;
-    this->OperationsScope::TraceState = &this->OperationsTracer::
-                                             TraceState;
+MapConfig::MapConfig(SPtr<MapInterface> impl) : impl{impl} {
+    this->OperationsScope::TraceState //
+        = &this->OperationsTracer::TraceState;
+}
+
+MapConfig::MapConfig() : impl{std::make_shared<MapInterface>()} {
+    this->OperationsScope::TraceState //
+        = &this->OperationsTracer::TraceState;
 }
