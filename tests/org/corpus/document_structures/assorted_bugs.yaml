@@ -896,3 +896,15 @@ items:
       #+begin_raw: user-block
       
       #+end_raw:
+
+  - name: "Nested custom environments"
+    source: |
+      #+begin_details
+      #+begin_something
+      Content inside
+      #+begin_quote
+      Other content
+      #+end_quote
+      #+end_something
+      #+end_details
+

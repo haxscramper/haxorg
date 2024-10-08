@@ -118,7 +118,6 @@ add_subdirectory(src/py_libs)
 
 add_subdirectory(scripts/cxx_repository)
 add_subdirectory(scripts/cxx_codegen)
-add_subdirectory("${BASE}/src/editor")
 
 install(
   TARGETS haxorg hstd

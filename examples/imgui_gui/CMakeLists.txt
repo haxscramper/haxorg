@@ -17,7 +17,11 @@ list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/describe/lib/cmake/BoostDescrib
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/mp11/lib/cmake/boost_mp11-1.85.0")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/range-v3/lib/cmake/range-v3")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/json/share/cmake/nlohmann_json")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/lager/lib/cmake/Lager")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/immer/lib/cmake/Immer")
 
+find_package(Immer CONFIG REQUIRED)
+find_package(Lager CONFIG REQUIRED)
 find_package(Reflex CONFIG REQUIRED)
 find_package(absl CONFIG REQUIRED)
 find_package(protobuf CONFIG REQUIRED)
@@ -29,15 +33,31 @@ find_package(glfw3 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(Haxorg CONFIG REQUIRED)
 
-add_executable(main main.cpp sem_tree_render.hpp sem_tree_render.cpp)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(FONTCONFIG REQUIRED fontconfig)
+
+add_executable(
+  main
+  main.cpp
+  sem_tree_render.hpp
+  sem_tree_render.cpp
+  story_grid.hpp
+  story_grid.cpp
+  imgui_utils.cpp
+  imgui_utils.hpp)
 
 set(BASE "${CMAKE_SOURCE_DIR}")
 
 file(GLOB IMGUI_SOURCES "${BASE}/imgui/*.cpp")
-add_library(imgui STATIC ${IMGUI_SOURCES} "${BASE}/imgui/backends/imgui_impl_glfw.cpp"
-                         "${BASE}/imgui/backends/imgui_impl_opengl3.cpp")
-target_link_libraries(imgui PUBLIC SDL2)
-target_include_directories(imgui PUBLIC "${BASE}/imgui" "${BASE}/imgui/backends")
+add_library(
+  imgui STATIC
+  ${IMGUI_SOURCES} "${BASE}/imgui/backends/imgui_impl_glfw.cpp"
+  "${BASE}/imgui/misc/cpp/imgui_stdlib.cpp" #
+  "${BASE}/imgui/backends/imgui_impl_opengl3.cpp")
+
+target_link_libraries(imgui PUBLIC "${FONTCONFIG_LIBRARIES}")
+target_include_directories(imgui PUBLIC "${BASE}/imgui" "${BASE}/imgui/backends"
+                                        "${FONTCONFIG_INCLUDE_DIRS}")
 
 target_link_libraries(
   main

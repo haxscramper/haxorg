@@ -28,6 +28,10 @@ struct IoContext {
 };
 
 void writeFile(fs::path const& target, std::string const& content);
+void createDirectory(
+    fs::path const& target,
+    bool            parents  = true,
+    bool            existsOk = true);
 
 void writeDebugFile(
     std::string const& content,

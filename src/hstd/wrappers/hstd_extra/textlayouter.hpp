@@ -299,13 +299,6 @@ struct Block {
     void add(CR<BlockId> other);
     void add(CVec<BlockId> others);
 
-    bool isLine() const { return getKind() == Kind::Line; }
-    bool isStack() const { return getKind() == Kind::Stack; }
-    bool isWrap() const { return getKind() == Kind::Wrap; }
-    bool isVerb() const { return getKind() == Kind::Verb; }
-    bool isChoice() const { return getKind() == Kind::Choice; }
-    bool isEmpty() const { return getKind() == Kind::Empty; }
-
     struct SolutionHash {
         template <typename T>
         std::size_t operator()(CR<Opt<T>> opt) const {

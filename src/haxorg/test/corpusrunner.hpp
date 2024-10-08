@@ -95,8 +95,6 @@ class CorpusRunner {
         RunResult(CR<Data> data) : data(data) {}
         Data data;
 
-        bool isSkip() const { return std::holds_alternative<Skip>(data); }
-
         bool isOk() const {
             return std::visit(
                 overloaded{
