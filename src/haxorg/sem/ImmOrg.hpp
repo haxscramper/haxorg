@@ -1172,11 +1172,10 @@ struct ImmAdapterParagraphAPI : ImmAdapterStmtAPI {
     bool          hasTimestamp() const;
     Vec<UserTime> getTimestamps() const;
     bool          hasLeadHashtags() const;
-    Vec<Str>      getLeadHashtags() const;
 
     Vec<org::ImmAdapterT<org::ImmBigIdent>> getAdmonitionNodes() const;
     Vec<org::ImmAdapterT<org::ImmTime>>     getTimestampNodes() const;
-    Vec<org::ImmAdapterT<org::ImmHashTag>>  getLeadHashtagsNodes() const;
+    Vec<org::ImmAdapterT<org::ImmHashTag>>  getLeadHashtags() const;
 };
 struct ImmAdapterColonExampleAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterCmdAttrAPI : ImmAdapterAttachedAPI {};

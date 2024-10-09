@@ -1867,10 +1867,7 @@ def get_types() -> Sequence[GenTuStruct]:
                   GenTuFunction(t_vec(t("UserTime")), "getTimestamps", isConst=True),
                   GenTuFunction(t_vec(t_id("Time")), "getTimestampNodes", isConst=True),
                   GenTuFunction(t_bool(), "hasLeadHashtags", isConst=True),
-                  GenTuFunction(t_vec(t_str()), "getLeadHashtags", isConst=True),
-                  GenTuFunction(t_vec(t_id("HashTag")),
-                                "getLeadHashtagsNodes",
-                                isConst=True),
+                  GenTuFunction(t_vec(t_id("HashTag")), "getLeadHashtags", isConst=True),
               ]),
         d_org(
             "ColonExample",
