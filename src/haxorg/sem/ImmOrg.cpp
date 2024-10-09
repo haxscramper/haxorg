@@ -187,6 +187,29 @@ void treeReprRec(
 }
 } // namespace
 
+Str ImmAdapter::selfSelect() const {
+    Str result;
+    for (ImmPathStep const& step : path.path) {
+        auto const& i = step.path.path;
+        if (i.has(0) && i.has(1) && i.at(0).isFieldName()
+            && i.at(1).isIndex()
+            && i.at(0).getFieldName().name == "subnodes") {
+            result += fmt(".at({})", i.at(1).getIndex().index);
+        } else if (
+            i.has(0) && i.has(1) && i.at(0).isFieldName()
+            && i.at(1).isAnyKey()) {
+            result += fmt(
+                R"(.{}.at("{}"))",
+                i.at(0).getFieldName().name,
+                i.at(1).getAnyKey().get<Str>());
+        } else {
+            result += fmt1(i);
+        }
+    }
+
+    return result;
+}
+
 void ImmAdapter::treeRepr(ColStream& os, const TreeReprConf& conf) const {
     treeReprRec(
         *this,

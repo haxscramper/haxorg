@@ -766,6 +766,11 @@ struct ImmAdapter {
         return result;
     }
 
+    /// \brief Return code to get from the document root to the specified
+    /// adapter. Mainly used for writint tests -- print the 'self select'
+    /// for the node and then use the expression in the test itself.
+    Str selfSelect() const;
+
     ReflPathItem const& lastPath() const {
         return path.path.back().path.last();
     }

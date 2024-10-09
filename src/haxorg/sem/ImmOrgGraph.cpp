@@ -360,7 +360,8 @@ Opt<MapNodeProp> org::graph::MapInterface::getInitialNodeProp(
             getUnresolvedSubtreeLinks(s, tree.value(), conf));
     } else if (auto par = node.asOpt<org::ImmParagraph>();
                par && par->isFootnoteDefinition()) {
-        for (auto const& it : enumerator(par->sub())) {
+        auto sub = par->sub();
+        for (auto const& it : enumerator(sub)) {
             if (!it.is_first()) {
                 org::eachSubnodeRec(it.value(), register_used_links);
             }
@@ -620,6 +621,11 @@ Graphviz::Graph MapGraph::toGraphviz(org::ImmAstContext const& ctx) const {
                 Record{join(" ", flatWords(ctx.adaptUnrooted(id)))},
             }});
         };
+
+        add_field(Record{{
+            Record{"Select"},
+            Record{ctx.adapt(it.id).selfSelect()},
+        }});
 
         switch_node_value(
             it.id.id,
