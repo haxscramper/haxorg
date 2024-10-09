@@ -242,7 +242,7 @@ enum OrgSemKind {
   OrgSemKind_CmdResults_f                                                           = 13;
   OrgSemKind_CmdTblfm_f                                                             = 14;
   OrgSemKind_HashTag_f                                                              = 15;
-  OrgSemKind_Footnote_f                                                             = 16;
+  OrgSemKind_InlineFootnote_f                                                       = 16;
   OrgSemKind_Time_f                                                                 = 17;
   OrgSemKind_TimeRange_f                                                            = 18;
   OrgSemKind_Macro_f                                                                = 19;
@@ -782,7 +782,7 @@ message HashTag {
   string                                           debug                            = 1000;
 }
 
-message Footnote {
+message InlineFootnote {
   repeated AnyNode                                 subnodes                         = 1;
   OrgSemKind                                       staticKind                       = 2;
   string                                           tag                              = 3;
@@ -1456,7 +1456,7 @@ message AnyNode {
     CmdResults                                       cmdresults                       = 14;
     CmdTblfm                                         cmdtblfm                         = 15;
     HashTag                                          hashtag                          = 16;
-    Footnote                                         footnote                         = 17;
+    InlineFootnote                                   inlinefootnote                   = 17;
     Time                                             time                             = 18;
     TimeRange                                        timerange                        = 19;
     Macro                                            macro                            = 20;

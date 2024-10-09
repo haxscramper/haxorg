@@ -824,9 +824,9 @@ def get_sem_text():
             ],
         ),
         d_org(
-            "Footnote",
+            "InlineFootnote",
             GenTuDoc(
-                "Inline and regular footnote definition",
+                "Inline footnote definition",
                 full=
                 "\\note in-text link to the footnotes are implemented using `Link` nodes",
             ),

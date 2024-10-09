@@ -485,7 +485,7 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "CmdResults") { return OrgSemKind::CmdResults; } else
   if (value == "CmdTblfm") { return OrgSemKind::CmdTblfm; } else
   if (value == "HashTag") { return OrgSemKind::HashTag; } else
-  if (value == "Footnote") { return OrgSemKind::Footnote; } else
+  if (value == "InlineFootnote") { return OrgSemKind::InlineFootnote; } else
   if (value == "Time") { return OrgSemKind::Time; } else
   if (value == "TimeRange") { return OrgSemKind::TimeRange; } else
   if (value == "Macro") { return OrgSemKind::Macro; } else
@@ -558,7 +558,7 @@ std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::CmdResults: return "CmdResults";
     case OrgSemKind::CmdTblfm: return "CmdTblfm";
     case OrgSemKind::HashTag: return "HashTag";
-    case OrgSemKind::Footnote: return "Footnote";
+    case OrgSemKind::InlineFootnote: return "InlineFootnote";
     case OrgSemKind::Time: return "Time";
     case OrgSemKind::TimeRange: return "TimeRange";
     case OrgSemKind::Macro: return "Macro";

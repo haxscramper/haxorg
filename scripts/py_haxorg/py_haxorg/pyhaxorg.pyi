@@ -703,7 +703,7 @@ class HashTag(Inline):
     head: str
     subtags: List[HashTag]
 
-class Footnote(Inline):
+class InlineFootnote(Inline):
     def __init__(self, tag: str, definition: Optional[Org]) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
@@ -1728,7 +1728,7 @@ class OrgSemKind(Enum):
     CmdResults = 14
     CmdTblfm = 15
     HashTag = 16
-    Footnote = 17
+    InlineFootnote = 17
     Time = 18
     TimeRange = 19
     Macro = 20

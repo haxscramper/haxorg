@@ -354,7 +354,7 @@ void Exporter<V, R>::visitHashTag(R& res, In<sem::HashTag> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visitFootnote(R& res, In<sem::Footnote> object) {
+void Exporter<V, R>::visitInlineFootnote(R& res, In<sem::InlineFootnote> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, tag);
   __org_field(res, object, definition);

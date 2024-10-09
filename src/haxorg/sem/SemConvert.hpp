@@ -190,7 +190,7 @@ struct OrgConverter : public OperationsTracer {
     ConvResult<BlockComment>    convertBlockComment(In);
     ConvResult<Placeholder>     convertPlaceholder(In);
     ConvResult<Latex>           convertMath(In);
-    ConvResult<Footnote>        convertFootnote(In);
+    ConvResult<InlineFootnote>  convertInlineFootnote(In);
     ConvResult<Include>         convertInclude(In);
     ConvResult<Escaped>         convertEscaped(In);
     ConvResult<TextSeparator>   convertTextSeparator(In);

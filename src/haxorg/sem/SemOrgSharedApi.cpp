@@ -773,6 +773,15 @@ SemSet LeadParagraphNodes{
 };
 
 
+bool org::ImmAdapterParagraphAPI::isFootnoteDefinition() const { return getFootnoteName().has_value(); }
+bool org::ImmAdapterParagraphAPI::hasAdmonition() const { return !getAdmonitionNodes().empty(); }
+Vec<Str> org::ImmAdapterParagraphAPI::getAdmonitions() const { return own_view(getAdmonitionNodes()) | rv::transform([](org::ImmAdapterT<org::ImmBigIdent> const &id) { return id->text.get(); }) | rs::to<Vec>(); }
+Vec<org::ImmAdapterT<org::ImmBigIdent>> org::ImmAdapterParagraphAPI::getAdmonitionNodes() const { return mapNodes<org::ImmBigIdent>(Org_getLeadNodes(*getThis(), OrgSemKind::BigIdent, LeadParagraphNodes)); }
+bool org::ImmAdapterParagraphAPI::hasTimestamp() const { return !getTimestampNodes().empty(); }
+Vec<UserTime> org::ImmAdapterParagraphAPI::getTimestamps() const { return own_view(getTimestampNodes()) | rv::transform([](org::ImmAdapterT<org::ImmTime> const &id) { return id->getStatic().time; }) | rs::to<Vec>(); }
+Vec<org::ImmAdapterT<org::ImmTime>> org::ImmAdapterParagraphAPI::getTimestampNodes() const { return mapNodes<org::ImmTime>(Org_getLeadNodes(*getThis(), OrgSemKind::Time, LeadParagraphNodes)); }
+bool org::ImmAdapterParagraphAPI::hasLeadHashtags() const { return !getLeadHashtags().empty(); }
+Vec<org::ImmAdapterT<org::ImmHashTag>> org::ImmAdapterParagraphAPI::getLeadHashtags() const { return mapNodes<org::ImmHashTag>(Org_getLeadNodes(*getThis(), OrgSemKind::HashTag, LeadParagraphNodes)); }
 
 // sem type API implementation
 
@@ -802,6 +811,17 @@ bool sem::List::isNumberedList() const { return List_isNumberedList(this); }
 Vec<sem::AttrValue> sem::List::getListAttrs(CR<Str> param) const { return List_getListAttrs(this, param); }
 bool sem::ListItem::isDescriptionItem() const { return ListItem_isDescriptionItem(this); }
 
+bool sem::Paragraph::isFootnoteDefinition() const { return getFootnoteName().has_value(); }
+bool sem::Paragraph::hasAdmonition() const { return !getAdmonitionNodes().empty(); }
+Vec<Str> sem::Paragraph::getAdmonitions() const { return own_view(getAdmonitionNodes()) | rv::transform([](sem::SemId<sem::BigIdent> const &id) { return id->text; }) | rs::to<Vec>(); }
+Vec<sem::SemId<sem::BigIdent>> sem::Paragraph::getAdmonitionNodes() const { return mapNodes<sem::BigIdent>(Org_getLeadNodes(this, OrgSemKind::BigIdent, LeadParagraphNodes)); }
+bool sem::Paragraph::hasTimestamp() const { return !getTimestampNodes().empty(); }
+Vec<UserTime> sem::Paragraph::getTimestamps() const { return own_view(getTimestampNodes()) | rv::transform([](sem::SemId<sem::Time> const &id) { return id->getStatic().time; }) | rs::to<Vec>(); }
+Vec<sem::SemId<sem::Time>> sem::Paragraph::getTimestampNodes() const { return mapNodes<sem::Time>(Org_getLeadNodes(this, OrgSemKind::Time, LeadParagraphNodes)); }
+bool sem::Paragraph::hasLeadHashtags() const { return !getLeadHashtags().empty(); }
+Vec<sem::SemId<sem::HashTag>> sem::Paragraph::getLeadHashtags() const { return mapNodes<sem::HashTag>(Org_getLeadNodes(this, OrgSemKind::HashTag, LeadParagraphNodes)); }
+
+
 // Opt<org::ImmAdapterT<org::ImmAttrList>> org::ImmAdapterT<org::ImmCell>::getAttrs(CR<Opt<Str>> param) const { return cmdgetAttrsImpl(*this, param); }
 
 org::ImmAdapterT<org::ImmParagraph> org::ImmAdapterSubtreeAPI::getTitle() const { return pass(getThisT<org::ImmSubtree>()->title, ImmPathStep::Field("title")); }
@@ -820,103 +840,21 @@ Opt<org::ImmAdapter> org::ImmAdapterListItemAPI::getHeader() const {
     }
 }
 
-
-bool org::ImmAdapterParagraphAPI::isFootnoteDefinition() const {
-    return getFootnoteName().has_value();
-}
-Opt<Str> org::ImmAdapterParagraphAPI::getFootnoteName() const {
-    if (getThis()->sub().has(0)
-        && getThis()->at(0)->is(OrgSemKind::Footnote)) {
-        return getThis()->at(0).as<sem::Footnote>()->tag;
-    } else {
-        return std::nullopt;
-    }
-}
-bool org::ImmAdapterParagraphAPI::hasAdmonition() const {
-    return !getAdmonitionNodes().empty();
-}
-Vec<Str> org::ImmAdapterParagraphAPI::getAdmonitions() const {
-    return own_view(getAdmonitionNodes())
-         | rv::transform([](org::ImmAdapterT<org::ImmBigIdent> const& id) {
-               return id->text.get();
-           })
-         | rs::to<Vec>();
-}
-
-Vec<org::ImmAdapterT<org::ImmBigIdent>> org::ImmAdapterParagraphAPI::
-    getAdmonitionNodes() const {
-    return mapNodes<org::ImmBigIdent>(Org_getLeadNodes(
-        *getThis(), OrgSemKind::BigIdent, LeadParagraphNodes));
-}
-bool org::ImmAdapterParagraphAPI::hasTimestamp() const {
-    return !getTimestampNodes().empty();
-}
-Vec<UserTime> org::ImmAdapterParagraphAPI::getTimestamps() const {
-    return own_view(getTimestampNodes())
-         | rv::transform([](org::ImmAdapterT<org::ImmTime> const& id) {
-               return id->getStatic().time;
-           })
-         | rs::to<Vec>();
-}
-Vec<org::ImmAdapterT<org::ImmTime>> org::ImmAdapterParagraphAPI::
-    getTimestampNodes() const {
-    return mapNodes<org::ImmTime>(Org_getLeadNodes(
-        *getThis(), OrgSemKind::Time, LeadParagraphNodes));
-}
-
-bool org::ImmAdapterParagraphAPI::hasLeadHashtags() const {
-    return !getLeadHashtags().empty();
-}
-
-Vec<org::ImmAdapterT<org::ImmHashTag>> org::ImmAdapterParagraphAPI::
-    getLeadHashtags() const {
-    return mapNodes<org::ImmHashTag>(Org_getLeadNodes(
-        *getThis(), OrgSemKind::HashTag, LeadParagraphNodes));
-}
-
-bool sem::Paragraph::isFootnoteDefinition() const {
-    return getFootnoteName().has_value();
-}
 Opt<Str> sem::Paragraph::getFootnoteName() const {
-    if (subnodes.has(0) && at(0)->is(OrgSemKind::Footnote)) {
-        return at(0).as<sem::Footnote>()->tag;
+    if (!subnodes.has(0)) { return std::nullopt; }
+    if (auto link = at(0).asOpt<sem::Link>(); link && link->isFootnote()) {
+        return link->getFootnote().target;
     } else {
         return std::nullopt;
     }
 }
 
-bool sem::Paragraph::hasAdmonition() const {
-    return !getAdmonitionNodes().empty();
-}
-Vec<Str> sem::Paragraph::getAdmonitions() const {
-    return own_view(getAdmonitionNodes())
-         | rv::transform([](sem::SemId<sem::BigIdent> const& id) {
-               return id->text;
-           })
-         | rs::to<Vec>();
-}
-Vec<sem::SemId<sem::BigIdent>> sem::Paragraph::getAdmonitionNodes() const {
-    return mapNodes<sem::BigIdent>(
-        Org_getLeadNodes(this, OrgSemKind::BigIdent, LeadParagraphNodes));
-}
-bool sem::Paragraph::hasTimestamp() const {
-    return !getTimestampNodes().empty();
-}
-Vec<UserTime> sem::Paragraph::getTimestamps() const {
-    return own_view(getTimestampNodes())
-         | rv::transform([](sem::SemId<sem::Time> const& id) {
-               return id->getStatic().time;
-           })
-         | rs::to<Vec>();
-}
-Vec<sem::SemId<sem::Time>> sem::Paragraph::getTimestampNodes() const {
-    return mapNodes<sem::Time>(
-        Org_getLeadNodes(this, OrgSemKind::Time, LeadParagraphNodes));
-}
-bool sem::Paragraph::hasLeadHashtags() const {
-    return !getLeadHashtags().empty();
-}
-Vec<sem::SemId<sem::HashTag>> sem::Paragraph::getLeadHashtags() const {
-    return mapNodes<sem::HashTag>(
-        Org_getLeadNodes(this, OrgSemKind::HashTag, LeadParagraphNodes));
+Opt<Str> org::ImmAdapterParagraphAPI::getFootnoteName() const {
+    if (!getThis()->sub().has(0)) { return std::nullopt; }
+    if (auto link = getThis()->at(0).asOpt<org::ImmLink>();
+        link && link.value()->isFootnote()) {
+        return link.value()->getFootnote().target;
+    } else {
+        return std::nullopt;
+    }
 }

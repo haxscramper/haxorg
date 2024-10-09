@@ -65,7 +65,7 @@ void visitCmdCustomText(R& res, In<sem::CmdCustomText> object);
 void visitCmdResults(R& res, In<sem::CmdResults> object);
 void visitCmdTblfm(R& res, In<sem::CmdTblfm> object);
 void visitHashTag(R& res, In<sem::HashTag> object);
-void visitFootnote(R& res, In<sem::Footnote> object);
+void visitInlineFootnote(R& res, In<sem::InlineFootnote> object);
 void visit(R& res, sem::Time::TimeVariant const& object);
 void visitTime(R& res, In<sem::Time> object);
 void visit(R& res, sem::Time::Repeat const& object);

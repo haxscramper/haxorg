@@ -248,7 +248,8 @@ auto Formatter::toString(SemId<RawText> id, CR<Context> ctx) -> Res {
     return str(id->text);
 }
 
-auto Formatter::toString(SemId<Footnote> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<InlineFootnote> id, CR<Context> ctx)
+    -> Res {
     if (id.isNil()) { return str("<nil>"); }
     if (id->definition) {
         return b.line({

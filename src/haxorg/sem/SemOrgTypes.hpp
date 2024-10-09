@@ -982,10 +982,10 @@ struct HashTag : public sem::Inline {
 /// \brief Inline and regular footnote definition
 ///
 /// \note in-text link to the footnotes are implemented using `Link` nodes
-struct Footnote : public sem::Inline {
+struct InlineFootnote : public sem::Inline {
   using Inline::Inline;
-  virtual ~Footnote() = default;
-  BOOST_DESCRIBE_CLASS(Footnote,
+  virtual ~InlineFootnote() = default;
+  BOOST_DESCRIBE_CLASS(InlineFootnote,
                        (Inline),
                        (),
                        (),
@@ -995,7 +995,7 @@ struct Footnote : public sem::Inline {
   Str tag = "";
   /// \brief Link to possibly resolved definition
   Opt<sem::SemId<sem::Org>> definition = std::nullopt;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Footnote; }
+  virtual OrgSemKind getKind() const { return OrgSemKind::InlineFootnote; }
 };
 
 /// \brief Single static or dynamic timestamp (active or inactive)

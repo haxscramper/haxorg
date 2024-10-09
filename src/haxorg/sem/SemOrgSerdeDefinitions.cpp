@@ -823,19 +823,19 @@ void proto_serde<::orgproto::HashTag, sem::HashTag>::read(::orgproto::HashTag co
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::HashTag>, Vec<sem::SemId<sem::HashTag>>>::read(out.subtags(), in.for_field(&sem::HashTag::subtags));
 }
 
-void proto_serde<::orgproto::Footnote, sem::Footnote>::write(::orgproto::Footnote* out, sem::Footnote const& in) {
-  proto_serde<::orgproto::Footnote, sem::Org>::write(out, in);
+void proto_serde<::orgproto::InlineFootnote, sem::InlineFootnote>::write(::orgproto::InlineFootnote* out, sem::InlineFootnote const& in) {
+  proto_serde<::orgproto::InlineFootnote, sem::Org>::write(out, in);
   proto_serde<std::string, Str>::write(out->mutable_tag(), in.tag);
   if (in.definition) {
     proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(out->mutable_definition(), *in.definition);
   }
 }
 
-void proto_serde<::orgproto::Footnote, sem::Footnote>::read(::orgproto::Footnote const& out, proto_write_accessor<sem::Footnote> in) {
-  proto_serde<::orgproto::Footnote, sem::Org>::read(out, in.as<sem::Org>());
-  proto_serde<std::string, Str>::read(out.tag(), in.for_field(&sem::Footnote::tag));
+void proto_serde<::orgproto::InlineFootnote, sem::InlineFootnote>::read(::orgproto::InlineFootnote const& out, proto_write_accessor<sem::InlineFootnote> in) {
+  proto_serde<::orgproto::InlineFootnote, sem::Org>::read(out, in.as<sem::Org>());
+  proto_serde<std::string, Str>::read(out.tag(), in.for_field(&sem::InlineFootnote::tag));
   if (out.has_definition()) {
-    proto_serde<Opt<orgproto::AnyNode>, Opt<sem::SemId<sem::Org>>>::read(out.definition(), in.for_field(&sem::Footnote::definition));
+    proto_serde<Opt<orgproto::AnyNode>, Opt<sem::SemId<sem::Org>>>::read(out.definition(), in.for_field(&sem::InlineFootnote::definition));
   }
 }
 

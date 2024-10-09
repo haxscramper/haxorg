@@ -18,7 +18,7 @@
         __MAP(kCmdresults, cmdresults, CmdResults)  \
         __MAP(kCmdtblfm, cmdtblfm, CmdTblfm)  \
         __MAP(kHashtag, hashtag, HashTag)  \
-        __MAP(kFootnote, footnote, Footnote)  \
+        __MAP(kInlinefootnote, inlinefootnote, InlineFootnote)  \
         __MAP(kTime, time, Time)  \
         __MAP(kTimerange, timerange, TimeRange)  \
         __MAP(kMacro, macro, Macro)  \
@@ -451,9 +451,9 @@ struct proto_serde<::orgproto::HashTag, sem::HashTag> {
 
 
 template <>
-struct proto_serde<::orgproto::Footnote, sem::Footnote> {
-  static void write(::orgproto::Footnote* out, sem::Footnote const& in);
-  static void read(::orgproto::Footnote const& out, proto_write_accessor<sem::Footnote> in);
+struct proto_serde<::orgproto::InlineFootnote, sem::InlineFootnote> {
+  static void write(::orgproto::InlineFootnote* out, sem::InlineFootnote const& in);
+  static void read(::orgproto::InlineFootnote const& out, proto_write_accessor<sem::InlineFootnote> in);
 };
 
 

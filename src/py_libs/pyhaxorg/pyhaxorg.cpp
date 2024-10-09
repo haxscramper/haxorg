@@ -1671,19 +1671,19 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Footnote, sem::SemId<sem::Footnote>, sem::Inline>(m, "Footnote")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Footnote {
-                        sem::Footnote result{};
+  pybind11::class_<sem::InlineFootnote, sem::SemId<sem::InlineFootnote>, sem::Inline>(m, "InlineFootnote")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::InlineFootnote {
+                        sem::InlineFootnote result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("tag", &sem::Footnote::tag, R"RAW(Footnote text target name)RAW")
-    .def_readwrite("definition", &sem::Footnote::definition, R"RAW(Link to possibly resolved definition)RAW")
-    .def("__repr__", [](sem::Footnote _self) -> std::string {
+    .def_readwrite("tag", &sem::InlineFootnote::tag, R"RAW(Footnote text target name)RAW")
+    .def_readwrite("definition", &sem::InlineFootnote::definition, R"RAW(Link to possibly resolved definition)RAW")
+    .def("__repr__", [](sem::InlineFootnote _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::Footnote _self, std::string name) -> pybind11::object {
+         [](sem::InlineFootnote _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -3831,7 +3831,7 @@ node can have subnodes.)RAW")
     .value("CmdResults", OrgSemKind::CmdResults)
     .value("CmdTblfm", OrgSemKind::CmdTblfm)
     .value("HashTag", OrgSemKind::HashTag)
-    .value("Footnote", OrgSemKind::Footnote)
+    .value("InlineFootnote", OrgSemKind::InlineFootnote)
     .value("Time", OrgSemKind::Time)
     .value("TimeRange", OrgSemKind::TimeRange)
     .value("Macro", OrgSemKind::Macro)

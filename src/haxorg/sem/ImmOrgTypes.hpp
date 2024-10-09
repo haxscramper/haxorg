@@ -370,10 +370,10 @@ struct ImmHashTag : public org::ImmInline {
 /// \brief Inline and regular footnote definition
 ///
 /// \note in-text link to the footnotes are implemented using `Link` nodes
-struct ImmFootnote : public org::ImmInline {
+struct ImmInlineFootnote : public org::ImmInline {
   using ImmInline::ImmInline;
-  virtual ~ImmFootnote() = default;
-  BOOST_DESCRIBE_CLASS(ImmFootnote,
+  virtual ~ImmInlineFootnote() = default;
+  BOOST_DESCRIBE_CLASS(ImmInlineFootnote,
                        (ImmInline),
                        (),
                        (),
@@ -385,8 +385,8 @@ struct ImmFootnote : public org::ImmInline {
   ImmBox<Str> tag = "";
   /// \brief Link to possibly resolved definition
   ImmBox<Opt<org::ImmIdT<org::ImmOrg>>> definition = std::nullopt;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Footnote; }
-  bool operator==(org::ImmFootnote const& other) const;
+  virtual OrgSemKind getKind() const { return OrgSemKind::InlineFootnote; }
+  bool operator==(org::ImmInlineFootnote const& other) const;
 };
 
 /// \brief Single static or dynamic timestamp (active or inactive)

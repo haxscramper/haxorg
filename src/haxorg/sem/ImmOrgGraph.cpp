@@ -358,6 +358,13 @@ Opt<MapNodeProp> org::graph::MapInterface::getInitialNodeProp(
     if (auto tree = node.asOpt<org::ImmSubtree>()) {
         result.unresolved.append(
             getUnresolvedSubtreeLinks(s, tree.value(), conf));
+    } else if (auto par = node.asOpt<org::ImmParagraph>();
+               par && par->isFootnoteDefinition()) {
+        for (auto const& it : enumerator(par->sub())) {
+            if (!it.is_first()) {
+                org::eachSubnodeRec(it.value(), register_used_links);
+            }
+        }
     } else if (!NestedNodes.contains(node->getKind())) {
         GRAPH_MSG("registering nested outgoing links");
         auto __tmp = conf.scopeLevel();

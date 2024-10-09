@@ -292,16 +292,16 @@ struct ImmSemSerde<sem::HashTag, org::ImmHashTag> {
 };
 
 template <>
-struct ImmSemSerde<sem::Footnote, org::ImmFootnote> {
-  static org::ImmFootnote to_immer(sem::Footnote const& value, ImmAstEditContext& ctx) {
-    org::ImmFootnote result = SerdeDefaultProvider<org::ImmFootnote>::get();
+struct ImmSemSerde<sem::InlineFootnote, org::ImmInlineFootnote> {
+  static org::ImmInlineFootnote to_immer(sem::InlineFootnote const& value, ImmAstEditContext& ctx) {
+    org::ImmInlineFootnote result = SerdeDefaultProvider<org::ImmInlineFootnote>::get();
     assign_immer_field(result.tag, value.tag, ctx);
     assign_immer_field(result.definition, value.definition, ctx);
     assign_immer_field(result.subnodes, value.subnodes, ctx);
     return result;
   }
-  static sem::Footnote from_immer(org::ImmFootnote const& value, ImmAstContext const& ctx) {
-    sem::Footnote result = SerdeDefaultProvider<sem::Footnote>::get();
+  static sem::InlineFootnote from_immer(org::ImmInlineFootnote const& value, ImmAstContext const& ctx) {
+    sem::InlineFootnote result = SerdeDefaultProvider<sem::InlineFootnote>::get();
     assign_sem_field(result.tag, value.tag, ctx);
     assign_sem_field(result.definition, value.definition, ctx);
     assign_sem_field(result.subnodes, value.subnodes, ctx);

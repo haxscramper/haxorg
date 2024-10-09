@@ -760,18 +760,13 @@ OrgConverter::ConvResult<StmtList> OrgConverter::convertStmtList(__args) {
 }
 
 
-OrgConverter::ConvResult<Footnote> OrgConverter::convertFootnote(__args) {
-    __perf_trace("convert", "convertFootnote");
-    auto __trace = trace(a);
-    if (a.kind() == onk::InlineFootnote) {
-        auto note        = Sem<Footnote>(a);
-        note->definition = convert(one(a, N::Definition));
-        return note;
-    } else {
-        auto link = Sem<Footnote>(a);
-        link->tag = get_text(one(a, N::Definition));
-        return link;
-    }
+OrgConverter::ConvResult<InlineFootnote> OrgConverter::
+    convertInlineFootnote(__args) {
+    __perf_trace("convert", "convertInlineFootnote");
+    auto __trace     = trace(a);
+    auto note        = Sem<InlineFootnote>(a);
+    note->definition = convert(one(a, N::Definition));
+    return note;
 }
 
 OrgConverter::ConvResult<Link> OrgConverter::convertLink(__args) {
@@ -1461,7 +1456,7 @@ SemId<Org> OrgConverter::convert(__args) {
         case onk::InlineStmtList: return convertStmtList(a).unwrap();
         case onk::SrcInlineCode:
         case onk::BlockCode: return convertBlockCode(a).unwrap();
-        case onk::InlineFootnote: return convertFootnote(a).unwrap();
+        case onk::InlineFootnote: return convertInlineFootnote(a).unwrap();
         case onk::BlockExport: return convertBlockExport(a).unwrap();
         case onk::Macro: return convertMacro(a).unwrap();
         case onk::Monospace: return convertMonospace(a).unwrap();

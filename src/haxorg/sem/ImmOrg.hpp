@@ -1119,7 +1119,7 @@ struct ImmAdapterCmdResultsAPI : ImmAdapterAttachedAPI {};
 struct ImmAdapterCmdTblfmAPI : ImmAdapterCmdAPI {};
 struct ImmAdapterInlineAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterHashTagAPI : ImmAdapterInlineAPI {};
-struct ImmAdapterFootnoteAPI : ImmAdapterInlineAPI {};
+struct ImmAdapterInlineFootnoteAPI : ImmAdapterInlineAPI {};
 struct ImmAdapterTimeAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterTimeRangeAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterMacroAPI : ImmAdapterOrgAPI {};
