@@ -188,20 +188,26 @@ void treeReprRec(
 } // namespace
 
 Str ImmAdapter::selfSelect() const {
-    Str result;
+    Str result = "root";
     for (ImmPathStep const& step : path.path) {
         auto const& i = step.path.path;
-        if (i.has(0) && i.has(1) && i.at(0).isFieldName()
-            && i.at(1).isIndex()
+        if (i.size() == 2 && i.at(0).isFieldName() && i.at(1).isIndex()
             && i.at(0).getFieldName().name == "subnodes") {
             result += fmt(".at({})", i.at(1).getIndex().index);
         } else if (
-            i.has(0) && i.has(1) && i.at(0).isFieldName()
-            && i.at(1).isAnyKey()) {
+            i.size() == 2 && i.at(0).isFieldName() && i.at(1).isAnyKey()) {
             result += fmt(
                 R"(.{}.at("{}"))",
                 i.at(0).getFieldName().name,
                 i.at(1).getAnyKey().get<Str>());
+        } else if (i.size() == 1 && i.at(0).isFieldName()) {
+            return fmt(".{}", i.at(0).getFieldName().name);
+        } else if (
+            i.size() == 2 && i.at(0).isFieldName() && i.at(1).isIndex()) {
+            result += fmt(
+                ".{}.at({})",
+                i.at(0).getFieldName().name,
+                i.at(1).getIndex().index);
         } else {
             result += fmt1(i);
         }

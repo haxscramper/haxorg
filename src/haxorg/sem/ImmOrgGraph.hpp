@@ -145,7 +145,7 @@ struct MapGraph {
         return edgeProps.at(edge);
     }
 
-    bool hasEdge(MapNode const& source, MapNode const& target) {
+    bool hasEdge(MapNode const& source, MapNode const& target) const {
         if (adjList.find(source) != nullptr) {
             for (auto const& it : adjList.at(source)) {
                 if (it == target) { return true; }
@@ -153,6 +153,12 @@ struct MapGraph {
         }
 
         return false;
+    }
+
+    bool hasEdge(
+        org::ImmAdapter const& source,
+        org::ImmAdapter const& target) const {
+        return hasEdge(MapNode{source.uniq()}, MapNode{target.uniq()});
     }
 
 

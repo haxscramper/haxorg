@@ -68,7 +68,18 @@ GTEST_ADL_PRINT_TYPE(org::ImmAdapter);
 GTEST_ADL_PRINT_TYPE(org::ImmUniqId);
 GTEST_ADL_PRINT_TYPE(org::graph::MapNode);
 GTEST_ADL_PRINT_TYPE(org::graph::MapEdge);
+GTEST_ADL_PRINT_TYPE(Vec<Str>);
 
+Str getSelfTest(org::ImmAdapter const& it) {
+    return fmt(
+        R"(
+auto {0} = {1};
+EXPECT_EQ({0}->getKind(), OrgSemKind::{2});
+)",
+        it.id,
+        it.selfSelect(),
+        it->getKind());
+}
 
 struct compare_context {
     std::string type;
@@ -1912,6 +1923,62 @@ TEST(ImmMapApi, SubtreeBlockMap) {
     // gv.setRankDirection(Graphviz::Graph::RankDirection::LR);
     gvc.writeFile(getDebugFile("map.dot"), gv);
     gvc.renderToFile(getDebugFile("map.png"), gv);
+
+    // org::eachSubnodeRec(root, [](org::ImmAdapter const& it) {
+    //     if (SemSet{
+    //             OrgSemKind::Subtree,
+    //             OrgSemKind::Paragraph,
+    //             OrgSemKind::List}
+    //             .contains(it->getKind())) {
+    //         std::cout << getSelfTest(it).toBase() << std::endl;
+    //     }
+    // });
+
+    auto List_1       = root.at(1).at(0);
+    auto List_2       = root.at(2).at(0);
+    auto Paragraph_10 = root.at(1).at(9);
+    auto Paragraph_11 = root.at(1).at(11);
+    auto Paragraph_12 = root.at(1).at(13);
+    auto Paragraph_14 = root.at(2).at(0).at(0).at(0);
+    auto Paragraph_16 = root.at(2).at(0).at(1).at(0);
+    auto Paragraph_17 = root.at(2).at(0).at(2).at(0);
+    auto Paragraph_19 = root.at(2).at(0).at(3).at(0);
+    auto Paragraph_20 = root.at(2).at(1);
+    auto Paragraph_3  = root.at(1).at(0).at(0).at(0);
+    auto Paragraph_5  = root.at(1).at(0).at(1).at(0);
+    auto Paragraph_6  = root.at(1).at(1);
+    auto Paragraph_7  = root.at(1).at(3).at(0);
+    auto Paragraph_8  = root.at(1).at(5);
+    auto Paragraph_9  = root.at(1).at(7);
+    auto Subtree_1    = root.at(1);
+    auto Subtree_2    = root.at(2);
+
+    EXPECT_EQ(List_1->getKind(), OrgSemKind::List);
+    EXPECT_EQ(List_2->getKind(), OrgSemKind::List);
+    EXPECT_EQ(Paragraph_10->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_11->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_12->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_14->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_16->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_17->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_19->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_20->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_3->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_5->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_6->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_7->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_8->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_9->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(Subtree_1->getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(Subtree_2->getKind(), OrgSemKind::Subtree);
+
+    EXPECT_EQ(List_2->getKind(), OrgSemKind::List);
+    EXPECT_EQ(Paragraph_20->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(
+        (org::flatWords(Paragraph_20)),
+        (Vec<Str>{"Paragraph", "with", "name", "annotations"}));
+
+    state.graph.hasEdge(List_2, Paragraph_20);
 }
 
 struct TestGraph {
