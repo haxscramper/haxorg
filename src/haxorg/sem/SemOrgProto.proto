@@ -284,18 +284,17 @@ enum OrgSemKind {
   OrgSemKind_Row_f                                                                  = 55;
   OrgSemKind_Table_f                                                                = 56;
   OrgSemKind_Paragraph_f                                                            = 57;
-  OrgSemKind_AnnotatedParagraph_f                                                   = 58;
-  OrgSemKind_ColonExample_f                                                         = 59;
-  OrgSemKind_CmdAttr_f                                                              = 60;
-  OrgSemKind_Call_f                                                                 = 61;
-  OrgSemKind_List_f                                                                 = 62;
-  OrgSemKind_ListItem_f                                                             = 63;
-  OrgSemKind_DocumentOptions_f                                                      = 64;
-  OrgSemKind_Document_f                                                             = 65;
-  OrgSemKind_FileTarget_f                                                           = 66;
-  OrgSemKind_TextSeparator_f                                                        = 67;
-  OrgSemKind_Include_f                                                              = 68;
-  OrgSemKind_DocumentGroup_f                                                        = 69;
+  OrgSemKind_ColonExample_f                                                         = 58;
+  OrgSemKind_CmdAttr_f                                                              = 59;
+  OrgSemKind_Call_f                                                                 = 60;
+  OrgSemKind_List_f                                                                 = 61;
+  OrgSemKind_ListItem_f                                                             = 62;
+  OrgSemKind_DocumentOptions_f                                                      = 63;
+  OrgSemKind_Document_f                                                             = 64;
+  OrgSemKind_FileTarget_f                                                           = 65;
+  OrgSemKind_TextSeparator_f                                                        = 66;
+  OrgSemKind_Include_f                                                              = 67;
+  OrgSemKind_DocumentGroup_f                                                        = 68;
 }
 
 message AttrValue {
@@ -1304,43 +1303,6 @@ message Paragraph {
   string                                           debug                            = 1000;
 }
 
-message AnnotatedParagraph {
-  message None {
-    string                                         debug                            = 1000;
-  }
-  message Footnote {
-    string                                         name                             = 1;
-    string                                         debug                            = 1000;
-  }
-  message Admonition {
-    BigIdent                                       name                             = 1;
-    string                                         debug                            = 1000;
-  }
-  message Timestamp {
-    Time                                           time                             = 1;
-    string                                         debug                            = 1000;
-  }
-  message Data {
-    oneof kind {
-      AnnotatedParagraph.None                      none                             = 1;
-      AnnotatedParagraph.Footnote                  footnote                         = 2;
-      AnnotatedParagraph.Admonition                admonition                       = 3;
-      AnnotatedParagraph.Timestamp                 timestamp                        = 4;
-    }
-  }
-  enum AnnotationKind {
-    AnnotationKind_None_f                                                           = 0;
-    AnnotationKind_Footnote_f                                                       = 1;
-    AnnotationKind_Admonition_f                                                     = 2;
-    AnnotationKind_Timestamp_f                                                      = 3;
-  }
-  repeated AnyNode                                 attached                         = 1;
-  repeated AnyNode                                 subnodes                         = 2;
-  OrgSemKind                                       staticKind                       = 3;
-  AnnotatedParagraph.Data                          data                             = 4;
-  string                                           debug                            = 1000;
-}
-
 message ColonExample {
   repeated AnyNode                                 subnodes                         = 1;
   OrgSemKind                                       staticKind                       = 2;
@@ -1536,18 +1498,17 @@ message AnyNode {
     Row                                              row                              = 56;
     Table                                            table                            = 57;
     Paragraph                                        paragraph                        = 58;
-    AnnotatedParagraph                               annotatedparagraph               = 59;
-    ColonExample                                     colonexample                     = 60;
-    CmdAttr                                          cmdattr                          = 61;
-    Call                                             call                             = 62;
-    List                                             list                             = 63;
-    ListItem                                         listitem                         = 64;
-    DocumentOptions                                  documentoptions                  = 65;
-    Document                                         document                         = 66;
-    FileTarget                                       filetarget                       = 67;
-    TextSeparator                                    textseparator                    = 68;
-    Include                                          include                          = 69;
-    DocumentGroup                                    documentgroup                    = 70;
+    ColonExample                                     colonexample                     = 59;
+    CmdAttr                                          cmdattr                          = 60;
+    Call                                             call                             = 61;
+    List                                             list                             = 62;
+    ListItem                                         listitem                         = 63;
+    DocumentOptions                                  documentoptions                  = 64;
+    Document                                         document                         = 65;
+    FileTarget                                       filetarget                       = 66;
+    TextSeparator                                    textseparator                    = 67;
+    Include                                          include                          = 68;
+    DocumentGroup                                    documentgroup                    = 69;
   }
 }
 /* clang-format on */

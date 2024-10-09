@@ -1852,39 +1852,26 @@ def get_types() -> Sequence[GenTuStruct]:
                 ),
             ],
         ),
-        d_org(
-            "Paragraph",
-            GenTuDoc("Top-level or inline paragraph"),
-            bases=[t_org("Stmt")],
-        ),
-        d_org(
-            "AnnotatedParagraph",
-            GenTuDoc("Top-level or inline paragraph with prefix annotation"),
-            bases=[t_org("Stmt")],
-            nested=[
-                GenTuTypeGroup(
-                    [
-                        GenTuStruct(t_nest("None", ["AnnotatedParagraph"])),
-                        GenTuStruct(t_nest("Footnote", ["AnnotatedParagraph"]),
-                                    fields=[GenTuField(t_str(), "name")]),
-                        GenTuStruct(
-                            t_nest("Admonition", ["AnnotatedParagraph"]),
-                            fields=[
-                                id_field("BigIdent", "name",
-                                         GenTuDoc("Prefix admonition for the paragraph"))
-                            ]),
-                        GenTuStruct(
-                            t_nest("Timestamp", ["AnnotatedParagraph"]),
-                            fields=[
-                                id_field("Time", "time",
-                                         GenTuDoc("Leading timestamp for the paragraph"))
-                            ]),
-                    ],
-                    kindGetter="getAnnotationKind",
-                    enumName=t_nest("AnnotationKind", ["AnnotatedParagraph"]),
-                    variantName=t_nest("Data", ["AnnotatedParagraph"]),
-                )
-            ]),
+        d_org("Paragraph",
+              GenTuDoc("Top-level or inline paragraph"),
+              bases=[t_org("Stmt")],
+              methods=[
+                  GenTuFunction(t_bool(), "isFootnoteDefinition", isConst=True),
+                  GenTuFunction(t_opt(t_str()), "getFootnoteName", isConst=True),
+                  GenTuFunction(t_bool(), "hasAdmonition", isConst=True),
+                  GenTuFunction(t_vec(t_str()), "getAdmonitions", isConst=True),
+                  GenTuFunction(t_vec(t_id("BigIdent")),
+                                "getAdmonitionNodes",
+                                isConst=True),
+                  GenTuFunction(t_bool(), "hasTimestamp", isConst=True),
+                  GenTuFunction(t_vec(t("UserTime")), "getTimestamps", isConst=True),
+                  GenTuFunction(t_vec(t_id("Time")), "getTimestampNodes", isConst=True),
+                  GenTuFunction(t_bool(), "hasLeadHashtags", isConst=True),
+                  GenTuFunction(t_vec(t_str()), "getLeadHashtags", isConst=True),
+                  GenTuFunction(t_vec(t_id("HashTag")),
+                                "getLeadHashtagsNodes",
+                                isConst=True),
+              ]),
         d_org(
             "ColonExample",
             GenTuDoc("Shortened colon example block"),

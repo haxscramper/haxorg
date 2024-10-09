@@ -749,72 +749,6 @@ OrgConverter::ConvResult<Paragraph> OrgConverter::convertParagraph(
     return par;
 }
 
-namespace {
-OrgSet AnnotatedParagraphStarts{
-    onk::BigIdent,
-    onk::Footnote,
-    onk::StaticActiveTime,
-    onk::StaticInactiveTime};
-}
-
-OrgConverter::ConvResult<AnnotatedParagraph> OrgConverter::
-    convertAnnotatedParagraph(__args) {
-    auto __trace = trace(a);
-    auto par     = Sem<AnnotatedParagraph>(a);
-    auto it      = a.begin();
-    switch ((*it).getKind()) {
-        case onk::Footnote: {
-            auto footnote = convertFootnote(*it).value();
-            ++it;
-            par->data = AnnotatedParagraph::Footnote{
-                .name = footnote->tag,
-            };
-            break;
-        }
-
-        case onk::BigIdent: {
-            auto ident = convertBigIdent(*it).value();
-            ++it;
-            if ((*it).getKind() == onk::Colon) { ++it; }
-            par->data = AnnotatedParagraph::Admonition{.name = ident};
-            break;
-        }
-
-        case onk::StaticActiveTime:
-        case onk::StaticInactiveTime: {
-            auto time = convertTime(*it).value();
-            ++it;
-            par->data = AnnotatedParagraph::Timestamp{.time = time};
-            break;
-        }
-
-        default: {
-            return SemError(
-                a,
-                fmt("Unhanled annotated paragraph start node {}",
-                    a.at(0).getKind()));
-        }
-    }
-
-
-    auto end = a.end();
-
-    while (it != end && (*it).getKind() == onk::Space) { ++it; }
-
-    while (it != end) {
-        par->push_back(convert(*it));
-        ++it;
-    }
-
-    while (!par->subnodes.empty()
-           && SemSet{osk::Newline, osk::Space}.contains(
-               par->subnodes.back()->getKind())) {
-        par->subnodes.pop_back();
-    }
-
-    return par;
-}
-
 OrgConverter::ConvResult<StmtList> OrgConverter::convertStmtList(__args) {
     __perf_trace("convert", "convertStmtList");
     auto __trace = trace(a);
@@ -1557,26 +1491,9 @@ SemId<Org> OrgConverter::convert(__args) {
         case onk::CmdCaption: return convertCmdCaption(a).unwrap();
         case onk::CmdName: return convertCmdName(a).unwrap();
         case onk::CmdCallCode: return convertCall(a).unwrap();
+        case onk::Paragraph: return convertParagraph(a).unwrap();
         case onk::BlockDynamicFallback:
             return convertBlockDynamicFallback(a).unwrap();
-        case onk::Paragraph: {
-            if (2 < a.size()
-                && AnnotatedParagraphStarts.contains(a.at(0).kind())) {
-                if (a.at(0).kind() == onk::BigIdent) {
-                    // NOTE: ....
-                    if (2 < a.size() && a.at(1).kind() == onk::Colon) {
-                        return convertAnnotatedParagraph(a).unwrap();
-                    } else {
-                        return convertParagraph(a).unwrap();
-                    }
-                } else {
-                    return convertAnnotatedParagraph(a).unwrap();
-                }
-            } else {
-                return convertParagraph(a).unwrap();
-            }
-        }
-
         default: {
             return SemError(a, fmt("ERR Unknown content {}", a.getKind()));
         }

@@ -108,10 +108,6 @@
     __IMPL(SubtreeLog, State, (State)) \
     __IMPL(SubtreeLog, Tag, (Tag)) \
     __IMPL(SubtreeLog, Unknown, (Unknown)) \
-    __IMPL(AnnotatedParagraph, None, (None)) \
-    __IMPL(AnnotatedParagraph, Footnote, (Footnote)) \
-    __IMPL(AnnotatedParagraph, Admonition, (Admonition)) \
-    __IMPL(AnnotatedParagraph, Timestamp, (Timestamp)) \
     __IMPL(Include, Example, (Example)) \
     __IMPL(Include, Export, (Export)) \
     __IMPL(Include, Src, (Src)) \
@@ -124,7 +120,6 @@
     __IMPL(BlockExport, Format, (Format)) \
     __IMPL(SubtreeLog, Priority::Action, (Priority, Action)) \
     __IMPL(SubtreeLog, Kind, (Kind)) \
-    __IMPL(AnnotatedParagraph, AnnotationKind, (AnnotationKind)) \
     __IMPL(ListItem, Checkbox, (Checkbox)) \
     __IMPL(Include, Kind, (Kind))
 #define EACH_SEM_ORG_RECORD(__IMPL) \
@@ -214,11 +209,6 @@
     __IMPL(Row, (Row)) \
     __IMPL(Table, (Table)) \
     __IMPL(Paragraph, (Paragraph)) \
-    __IMPL(AnnotatedParagraph, (AnnotatedParagraph)) \
-    __IMPL(AnnotatedParagraph::None, (AnnotatedParagraph, None)) \
-    __IMPL(AnnotatedParagraph::Footnote, (AnnotatedParagraph, Footnote)) \
-    __IMPL(AnnotatedParagraph::Admonition, (AnnotatedParagraph, Admonition)) \
-    __IMPL(AnnotatedParagraph::Timestamp, (AnnotatedParagraph, Timestamp)) \
     __IMPL(ColonExample, (ColonExample)) \
     __IMPL(CmdAttr, (CmdAttr)) \
     __IMPL(Call, (Call)) \
@@ -293,7 +283,6 @@
     __IMPL(Row) \
     __IMPL(Table) \
     __IMPL(Paragraph) \
-    __IMPL(AnnotatedParagraph) \
     __IMPL(ColonExample) \
     __IMPL(CmdAttr) \
     __IMPL(Call) \
@@ -364,7 +353,6 @@
     __IMPL(Row, Cmd) \
     __IMPL(Table, Block) \
     __IMPL(Paragraph, Stmt) \
-    __IMPL(AnnotatedParagraph, Stmt) \
     __IMPL(ColonExample, Org) \
     __IMPL(CmdAttr, Attached) \
     __IMPL(Call, Org) \
@@ -443,7 +431,6 @@
     __IMPL(Row, Cmd) \
     __IMPL(Table, Block) \
     __IMPL(Paragraph, Stmt) \
-    __IMPL(AnnotatedParagraph, Stmt) \
     __IMPL(ColonExample, Org) \
     __IMPL(CmdAttr, Attached) \
     __IMPL(Call, Org) \
@@ -777,7 +764,7 @@ struct value_domain<OrgNodeKind> : public value_domain_ungapped<OrgNodeKind,
                                                                 OrgNodeKind::None,
                                                                 OrgNodeKind::SubtreeImportance> {};
 
-enum class OrgSemKind : short int { None, Attr, AttrList, Attrs, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdResults, CmdTblfm, HashTag, Footnote, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, RadioTarget, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCode, SubtreeLog, Subtree, SubtreeCompletion, Cell, Row, Table, Paragraph, AnnotatedParagraph, ColonExample, CmdAttr, Call, List, ListItem, DocumentOptions, Document, FileTarget, TextSeparator, Include, DocumentGroup, };
+enum class OrgSemKind : short int { None, Attr, AttrList, Attrs, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdResults, CmdTblfm, HashTag, Footnote, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, RadioTarget, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCode, SubtreeLog, Subtree, SubtreeCompletion, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, Call, List, ListItem, DocumentOptions, Document, FileTarget, TextSeparator, Include, DocumentGroup, };
 template <>
 struct enum_serde<OrgSemKind> {
   static Opt<OrgSemKind> from_string(std::string value);

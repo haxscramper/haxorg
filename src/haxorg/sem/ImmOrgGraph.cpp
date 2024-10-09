@@ -629,9 +629,6 @@ Graphviz::Graph MapGraph::toGraphviz(org::ImmAstContext const& ctx) const {
                 [&](org::ImmParagraph const& tree) {
                     add_field_text("Text", it.id.id);
                 },
-                [&](org::ImmAnnotatedParagraph const& tree) {
-                    add_field_text("Text", it.id.id);
-                },
                 [&]<typename K>(K const& value) {
                     add_field(Record{{
                         Record{"Type"},

@@ -198,10 +198,10 @@ struct Link;
 /// the callsite. Order of elements in the returned links depends on the
 /// order of node registration.
 struct [[refl]] OrgDocumentContext {
-    UnorderedMap<Str, Vec<SemId<Subtree>>>            subtreeIds;
-    UnorderedMap<Str, Vec<SemId<Subtree>>>            subtreeCustomIds;
-    UnorderedMap<Str, Vec<SemId<Org>>>                radioTargets;
-    UnorderedMap<Str, Vec<SemId<AnnotatedParagraph>>> footnoteTargets;
+    UnorderedMap<Str, Vec<SemId<Subtree>>>   subtreeIds;
+    UnorderedMap<Str, Vec<SemId<Subtree>>>   subtreeCustomIds;
+    UnorderedMap<Str, Vec<SemId<Org>>>       radioTargets;
+    UnorderedMap<Str, Vec<SemId<Paragraph>>> footnoteTargets;
 
 
     [[refl]] Vec<SemId<Subtree>> getSubtreeById(Str const& id) const;

@@ -156,7 +156,6 @@ struct OrgConverter : public OperationsTracer {
     Vec<ConvResult<Org>>   flatConvertAttached(Vec<In> items);
     Vec<ConvResult<Org>>   flatConvertAttachedSubnodes(In item);
 
-    ConvResult<AnnotatedParagraph>   convertAnnotatedParagraph(In);
     ConvResult<BlockDynamicFallback> convertBlockDynamicFallback(In);
     void convertDocumentOptions(SemId<DocumentOptions> opts, OrgAdapter a);
 

@@ -1164,8 +1164,20 @@ struct ImmAdapterSubtreeCompletionAPI : ImmAdapterInlineAPI {};
 struct ImmAdapterCellAPI : ImmAdapterCmdAPI {};
 struct ImmAdapterRowAPI : ImmAdapterCmdAPI {};
 struct ImmAdapterTableAPI : ImmAdapterBlockAPI {};
-struct ImmAdapterParagraphAPI : ImmAdapterStmtAPI {};
-struct ImmAdapterAnnotatedParagraphAPI : ImmAdapterStmtAPI {};
+struct ImmAdapterParagraphAPI : ImmAdapterStmtAPI {
+    bool          isFootnoteDefinition() const;
+    Opt<Str>      getFootnoteName() const;
+    bool          hasAdmonition() const;
+    Vec<Str>      getAdmonitions() const;
+    bool          hasTimestamp() const;
+    Vec<UserTime> getTimestamps() const;
+    bool          hasLeadHashtags() const;
+    Vec<Str>      getLeadHashtags() const;
+
+    Vec<org::ImmAdapterT<org::ImmBigIdent>> getAdmonitionNodes() const;
+    Vec<org::ImmAdapterT<org::ImmTime>>     getTimestampNodes() const;
+    Vec<org::ImmAdapterT<org::ImmHashTag>>  getLeadHashtagsNodes() const;
+};
 struct ImmAdapterColonExampleAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterCmdAttrAPI : ImmAdapterAttachedAPI {};
 struct ImmAdapterCallAPI : ImmAdapterOrgAPI {};

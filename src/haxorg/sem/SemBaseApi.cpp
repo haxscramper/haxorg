@@ -369,12 +369,11 @@ void OrgDocumentContext::addNodes(const sem::SemId<sem::Org>& node) {
             if (tree->treeId) {
                 this->subtreeIds[tree->treeId.value()].push_back(tree);
             }
-        } else if (arg->is(osk::AnnotatedParagraph)) {
-            SemId<AnnotatedParagraph> par = arg.as<AnnotatedParagraph>();
-            if (par->getAnnotationKind()
-                == AnnotatedParagraph::AnnotationKind::Footnote) {
-                this->footnoteTargets[par->getFootnote().name].push_back(
-                    par);
+        } else if (arg->is(osk::Paragraph)) {
+            SemId<Paragraph> par = arg.as<Paragraph>();
+            if (par->isFootnoteDefinition()) {
+                this->footnoteTargets[par->getFootnoteName().value()]
+                    .push_back(par);
             }
         }
     });
@@ -427,12 +426,9 @@ Vec<SemId<Org>> OrgDocumentContext::getLinkTarget(
 }
 
 Opt<UserTime> getCreationTime(const SemId<Org>& node) {
-    if (node->is(osk::AnnotatedParagraph)) {
-        auto const& par = node.as<AnnotatedParagraph>();
-        if (par->getAnnotationKind()
-            == AnnotatedParagraph::AnnotationKind::Timestamp) {
-            return par->getTimestamp().time->getStatic().time;
-        }
+    if (node->is(osk::Paragraph)) {
+        auto time = node.as<sem::Paragraph>()->getTimestamps();
+        return time.get(0);
     } else if (node->is(osk::Subtree)) {
         auto const& tree = node.as<Subtree>();
         for (auto const& period :

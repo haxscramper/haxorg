@@ -37,9 +37,9 @@ struct MapNodeProp {
     }
 
     Opt<Str> getFootnoteName() const {
-        if (auto par = id.asOpt<org::ImmAnnotatedParagraph>();
-            par && par->get()->isFootnote()) {
-            return par->get()->getFootnote().name;
+        if (auto par = id.asOpt<org::ImmParagraph>();
+            par && par->isFootnoteDefinition()) {
+            return par->getFootnoteName();
         } else {
             return std::nullopt;
         }

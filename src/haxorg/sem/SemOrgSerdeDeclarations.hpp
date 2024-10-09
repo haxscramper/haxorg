@@ -60,7 +60,6 @@
         __MAP(kRow, row, Row)  \
         __MAP(kTable, table, Table)  \
         __MAP(kParagraph, paragraph, Paragraph)  \
-        __MAP(kAnnotatedparagraph, annotatedparagraph, AnnotatedParagraph)  \
         __MAP(kColonexample, colonexample, ColonExample)  \
         __MAP(kCmdattr, cmdattr, CmdAttr)  \
         __MAP(kCall, call, Call)  \
@@ -882,41 +881,6 @@ template <>
 struct proto_serde<::orgproto::Paragraph, sem::Paragraph> {
   static void write(::orgproto::Paragraph* out, sem::Paragraph const& in);
   static void read(::orgproto::Paragraph const& out, proto_write_accessor<sem::Paragraph> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::AnnotatedParagraph::None, sem::AnnotatedParagraph::None> {
-  static void write(::orgproto::AnnotatedParagraph::None* out, sem::AnnotatedParagraph::None const& in);
-  static void read(::orgproto::AnnotatedParagraph::None const& out, proto_write_accessor<sem::AnnotatedParagraph::None> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::AnnotatedParagraph::Footnote, sem::AnnotatedParagraph::Footnote> {
-  static void write(::orgproto::AnnotatedParagraph::Footnote* out, sem::AnnotatedParagraph::Footnote const& in);
-  static void read(::orgproto::AnnotatedParagraph::Footnote const& out, proto_write_accessor<sem::AnnotatedParagraph::Footnote> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::AnnotatedParagraph::Admonition, sem::AnnotatedParagraph::Admonition> {
-  static void write(::orgproto::AnnotatedParagraph::Admonition* out, sem::AnnotatedParagraph::Admonition const& in);
-  static void read(::orgproto::AnnotatedParagraph::Admonition const& out, proto_write_accessor<sem::AnnotatedParagraph::Admonition> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::AnnotatedParagraph::Timestamp, sem::AnnotatedParagraph::Timestamp> {
-  static void write(::orgproto::AnnotatedParagraph::Timestamp* out, sem::AnnotatedParagraph::Timestamp const& in);
-  static void read(::orgproto::AnnotatedParagraph::Timestamp const& out, proto_write_accessor<sem::AnnotatedParagraph::Timestamp> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::AnnotatedParagraph, sem::AnnotatedParagraph> {
-  static void write(::orgproto::AnnotatedParagraph* out, sem::AnnotatedParagraph const& in);
-  static void read(::orgproto::AnnotatedParagraph const& out, proto_write_accessor<sem::AnnotatedParagraph> in);
 };
 
 

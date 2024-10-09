@@ -42,6 +42,12 @@ PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Cell>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Cell>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Row>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Row>>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::BigIdent>>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::BigIdent>>)
+PYBIND11_MAKE_OPAQUE(std::vector<UserTime>)
+PYBIND11_MAKE_OPAQUE(Vec<UserTime>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Time>>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Time>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Subtree>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Subtree>>)
 PYBIND11_MAKE_OPAQUE(std::vector<SequenceSegment>)
@@ -73,6 +79,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_int_set<sem::SubtreePeriod::Kind>(m, "IntSetOfSubtreePeriodKind", type_registry_guard);
   bind_vector<sem::SemId<sem::Cell>>(m, "VecOfSemIdOfCell", type_registry_guard);
   bind_vector<sem::SemId<sem::Row>>(m, "VecOfSemIdOfRow", type_registry_guard);
+  bind_vector<sem::SemId<sem::BigIdent>>(m, "VecOfSemIdOfBigIdent", type_registry_guard);
+  bind_vector<UserTime>(m, "VecOfUserTime", type_registry_guard);
+  bind_vector<sem::SemId<sem::Time>>(m, "VecOfSemIdOfTime", type_registry_guard);
   bind_vector<sem::SemId<sem::Subtree>>(m, "VecOfSemIdOfSubtree", type_registry_guard);
   bind_vector<SequenceSegment>(m, "VecOfSequenceSegment", type_registry_guard);
   bind_vector<SequenceAnnotationTag>(m, "VecOfSequenceAnnotationTag", type_registry_guard);
@@ -3140,6 +3149,17 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("attached", &sem::Paragraph::attached)
+    .def("isFootnoteDefinition", static_cast<bool(sem::Paragraph::*)() const>(&sem::Paragraph::isFootnoteDefinition))
+    .def("getFootnoteName", static_cast<Opt<Str>(sem::Paragraph::*)() const>(&sem::Paragraph::getFootnoteName))
+    .def("hasAdmonition", static_cast<bool(sem::Paragraph::*)() const>(&sem::Paragraph::hasAdmonition))
+    .def("getAdmonitions", static_cast<Vec<Str>(sem::Paragraph::*)() const>(&sem::Paragraph::getAdmonitions))
+    .def("getAdmonitionNodes", static_cast<Vec<sem::SemId<sem::BigIdent>>(sem::Paragraph::*)() const>(&sem::Paragraph::getAdmonitionNodes))
+    .def("hasTimestamp", static_cast<bool(sem::Paragraph::*)() const>(&sem::Paragraph::hasTimestamp))
+    .def("getTimestamps", static_cast<Vec<UserTime>(sem::Paragraph::*)() const>(&sem::Paragraph::getTimestamps))
+    .def("getTimestampNodes", static_cast<Vec<sem::SemId<sem::Time>>(sem::Paragraph::*)() const>(&sem::Paragraph::getTimestampNodes))
+    .def("hasLeadHashtags", static_cast<bool(sem::Paragraph::*)() const>(&sem::Paragraph::hasLeadHashtags))
+    .def("getLeadHashtags", static_cast<Vec<Str>(sem::Paragraph::*)() const>(&sem::Paragraph::getLeadHashtags))
+    .def("getLeadHashtagsNodes", static_cast<Vec<sem::SemId<sem::HashTag>>(sem::Paragraph::*)() const>(&sem::Paragraph::getLeadHashtagsNodes))
     .def("getAttached",
          static_cast<Vec<sem::SemId<sem::Org>>(sem::Paragraph::*)(Opt<Str> const&) const>(&sem::Paragraph::getAttached),
          pybind11::arg_v("kind", std::nullopt),
@@ -3159,124 +3179,6 @@ node can have subnodes.)RAW")
                      })
     .def("__getattr__",
          [](sem::Paragraph _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::AnnotatedParagraph::None>(m, "AnnotatedParagraphNone")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AnnotatedParagraph::None {
-                        sem::AnnotatedParagraph::None result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](sem::AnnotatedParagraph::None _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::AnnotatedParagraph::None _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::AnnotatedParagraph::Footnote>(m, "AnnotatedParagraphFootnote")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AnnotatedParagraph::Footnote {
-                        sem::AnnotatedParagraph::Footnote result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("name", &sem::AnnotatedParagraph::Footnote::name)
-    .def("__repr__", [](sem::AnnotatedParagraph::Footnote _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::AnnotatedParagraph::Footnote _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::AnnotatedParagraph::Admonition>(m, "AnnotatedParagraphAdmonition")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AnnotatedParagraph::Admonition {
-                        sem::AnnotatedParagraph::Admonition result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("name", &sem::AnnotatedParagraph::Admonition::name, R"RAW(Prefix admonition for the paragraph)RAW")
-    .def("__repr__", [](sem::AnnotatedParagraph::Admonition _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::AnnotatedParagraph::Admonition _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::AnnotatedParagraph::Timestamp>(m, "AnnotatedParagraphTimestamp")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AnnotatedParagraph::Timestamp {
-                        sem::AnnotatedParagraph::Timestamp result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("time", &sem::AnnotatedParagraph::Timestamp::time, R"RAW(Leading timestamp for the paragraph)RAW")
-    .def("__repr__", [](sem::AnnotatedParagraph::Timestamp _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::AnnotatedParagraph::Timestamp _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  bind_enum_iterator<sem::AnnotatedParagraph::AnnotationKind>(m, "AnnotatedParagraphAnnotationKind", type_registry_guard);
-  pybind11::enum_<sem::AnnotatedParagraph::AnnotationKind>(m, "AnnotatedParagraphAnnotationKind")
-    .value("None", sem::AnnotatedParagraph::AnnotationKind::None)
-    .value("Footnote", sem::AnnotatedParagraph::AnnotationKind::Footnote)
-    .value("Admonition", sem::AnnotatedParagraph::AnnotationKind::Admonition)
-    .value("Timestamp", sem::AnnotatedParagraph::AnnotationKind::Timestamp)
-    .def("__iter__", [](sem::AnnotatedParagraph::AnnotationKind _self) -> PyEnumIterator<sem::AnnotatedParagraph::AnnotationKind> {
-                     return
-                     PyEnumIterator<sem::AnnotatedParagraph::AnnotationKind>
-                     ();
-                     })
-    ;
-  pybind11::class_<sem::AnnotatedParagraph, sem::SemId<sem::AnnotatedParagraph>, sem::Stmt>(m, "AnnotatedParagraph")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AnnotatedParagraph {
-                        sem::AnnotatedParagraph result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("data", &sem::AnnotatedParagraph::data)
-    .def_readwrite("attached", &sem::AnnotatedParagraph::attached)
-    .def("isNone", static_cast<bool(sem::AnnotatedParagraph::*)() const>(&sem::AnnotatedParagraph::isNone))
-    .def("getNone", static_cast<sem::AnnotatedParagraph::None&(sem::AnnotatedParagraph::*)()>(&sem::AnnotatedParagraph::getNone))
-    .def("isFootnote", static_cast<bool(sem::AnnotatedParagraph::*)() const>(&sem::AnnotatedParagraph::isFootnote))
-    .def("getFootnote", static_cast<sem::AnnotatedParagraph::Footnote&(sem::AnnotatedParagraph::*)()>(&sem::AnnotatedParagraph::getFootnote))
-    .def("isAdmonition", static_cast<bool(sem::AnnotatedParagraph::*)() const>(&sem::AnnotatedParagraph::isAdmonition))
-    .def("getAdmonition", static_cast<sem::AnnotatedParagraph::Admonition&(sem::AnnotatedParagraph::*)()>(&sem::AnnotatedParagraph::getAdmonition))
-    .def("isTimestamp", static_cast<bool(sem::AnnotatedParagraph::*)() const>(&sem::AnnotatedParagraph::isTimestamp))
-    .def("getTimestamp", static_cast<sem::AnnotatedParagraph::Timestamp&(sem::AnnotatedParagraph::*)()>(&sem::AnnotatedParagraph::getTimestamp))
-    .def_static("getAnnotationKindStatic",
-                static_cast<sem::AnnotatedParagraph::AnnotationKind(*)(sem::AnnotatedParagraph::Data const&)>(&sem::AnnotatedParagraph::getAnnotationKind),
-                pybind11::arg("__input"))
-    .def("getAnnotationKind", static_cast<sem::AnnotatedParagraph::AnnotationKind(sem::AnnotatedParagraph::*)() const>(&sem::AnnotatedParagraph::getAnnotationKind))
-    .def("getAttached",
-         static_cast<Vec<sem::SemId<sem::Org>>(sem::AnnotatedParagraph::*)(Opt<Str> const&) const>(&sem::AnnotatedParagraph::getAttached),
-         pybind11::arg_v("kind", std::nullopt),
-         R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
-    .def("getCaption", static_cast<Vec<sem::SemId<sem::Org>>(sem::AnnotatedParagraph::*)() const>(&sem::AnnotatedParagraph::getCaption))
-    .def("getName", static_cast<Vec<Str>(sem::AnnotatedParagraph::*)() const>(&sem::AnnotatedParagraph::getName))
-    .def("getAttrs",
-         static_cast<Vec<sem::AttrValue>(sem::AnnotatedParagraph::*)(Opt<Str> const&) const>(&sem::AnnotatedParagraph::getAttrs),
-         pybind11::arg_v("kind", std::nullopt),
-         R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
-    .def("getFirstAttr",
-         static_cast<Opt<sem::AttrValue>(sem::AnnotatedParagraph::*)(Str const&) const>(&sem::AnnotatedParagraph::getFirstAttr),
-         pybind11::arg("kind"),
-         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
-    .def("__repr__", [](sem::AnnotatedParagraph _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::AnnotatedParagraph _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -3972,7 +3874,6 @@ node can have subnodes.)RAW")
     .value("Row", OrgSemKind::Row)
     .value("Table", OrgSemKind::Table)
     .value("Paragraph", OrgSemKind::Paragraph)
-    .value("AnnotatedParagraph", OrgSemKind::AnnotatedParagraph)
     .value("ColonExample", OrgSemKind::ColonExample)
     .value("CmdAttr", OrgSemKind::CmdAttr)
     .value("Call", OrgSemKind::Call)

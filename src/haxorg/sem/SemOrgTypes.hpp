@@ -1916,61 +1916,17 @@ struct Paragraph : public sem::Stmt {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Paragraph; }
-};
-
-/// \brief Top-level or inline paragraph with prefix annotation
-struct AnnotatedParagraph : public sem::Stmt {
-  using Stmt::Stmt;
-  virtual ~AnnotatedParagraph() = default;
-  struct None {
-    BOOST_DESCRIBE_CLASS(None, (), (), (), ())
-  };
-
-  struct Footnote {
-    BOOST_DESCRIBE_CLASS(Footnote, (), (), (), (name))
-    Str name;
-  };
-
-  struct Admonition {
-    BOOST_DESCRIBE_CLASS(Admonition, (), (), (), (name))
-    /// \brief Prefix admonition for the paragraph
-    sem::SemId<sem::BigIdent> name = sem::SemId<sem::BigIdent>::Nil();
-  };
-
-  struct Timestamp {
-    BOOST_DESCRIBE_CLASS(Timestamp, (), (), (), (time))
-    /// \brief Leading timestamp for the paragraph
-    sem::SemId<sem::Time> time = sem::SemId<sem::Time>::Nil();
-  };
-
-  using Data = std::variant<sem::AnnotatedParagraph::None, sem::AnnotatedParagraph::Footnote, sem::AnnotatedParagraph::Admonition, sem::AnnotatedParagraph::Timestamp>;
-  enum class AnnotationKind : short int { None, Footnote, Admonition, Timestamp, };
-  BOOST_DESCRIBE_NESTED_ENUM(AnnotationKind, None, Footnote, Admonition, Timestamp)
-  using variant_enum_type = sem::AnnotatedParagraph::AnnotationKind;
-  using variant_data_type = sem::AnnotatedParagraph::Data;
-  BOOST_DESCRIBE_CLASS(AnnotatedParagraph,
-                       (Stmt),
-                       (),
-                       (),
-                       (staticKind,
-                        data))
-  static OrgSemKind const staticKind;
-  sem::AnnotatedParagraph::Data data;
-  virtual OrgSemKind getKind() const { return OrgSemKind::AnnotatedParagraph; }
-  bool isNone() const { return getAnnotationKind() == AnnotationKind::None; }
-  sem::AnnotatedParagraph::None const& getNone() const { return std::get<0>(data); }
-  sem::AnnotatedParagraph::None& getNone() { return std::get<0>(data); }
-  bool isFootnote() const { return getAnnotationKind() == AnnotationKind::Footnote; }
-  sem::AnnotatedParagraph::Footnote const& getFootnote() const { return std::get<1>(data); }
-  sem::AnnotatedParagraph::Footnote& getFootnote() { return std::get<1>(data); }
-  bool isAdmonition() const { return getAnnotationKind() == AnnotationKind::Admonition; }
-  sem::AnnotatedParagraph::Admonition const& getAdmonition() const { return std::get<2>(data); }
-  sem::AnnotatedParagraph::Admonition& getAdmonition() { return std::get<2>(data); }
-  bool isTimestamp() const { return getAnnotationKind() == AnnotationKind::Timestamp; }
-  sem::AnnotatedParagraph::Timestamp const& getTimestamp() const { return std::get<3>(data); }
-  sem::AnnotatedParagraph::Timestamp& getTimestamp() { return std::get<3>(data); }
-  static sem::AnnotatedParagraph::AnnotationKind getAnnotationKind(sem::AnnotatedParagraph::Data const& __input) { return static_cast<sem::AnnotatedParagraph::AnnotationKind>(__input.index()); }
-  sem::AnnotatedParagraph::AnnotationKind getAnnotationKind() const { return getAnnotationKind(data); }
+  bool isFootnoteDefinition() const;
+  Opt<Str> getFootnoteName() const;
+  bool hasAdmonition() const;
+  Vec<Str> getAdmonitions() const;
+  Vec<sem::SemId<sem::BigIdent>> getAdmonitionNodes() const;
+  bool hasTimestamp() const;
+  Vec<UserTime> getTimestamps() const;
+  Vec<sem::SemId<sem::Time>> getTimestampNodes() const;
+  bool hasLeadHashtags() const;
+  Vec<Str> getLeadHashtags() const;
+  Vec<sem::SemId<sem::HashTag>> getLeadHashtagsNodes() const;
 };
 
 /// \brief Shortened colon example block

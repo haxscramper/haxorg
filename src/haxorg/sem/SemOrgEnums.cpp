@@ -527,7 +527,6 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "Row") { return OrgSemKind::Row; } else
   if (value == "Table") { return OrgSemKind::Table; } else
   if (value == "Paragraph") { return OrgSemKind::Paragraph; } else
-  if (value == "AnnotatedParagraph") { return OrgSemKind::AnnotatedParagraph; } else
   if (value == "ColonExample") { return OrgSemKind::ColonExample; } else
   if (value == "CmdAttr") { return OrgSemKind::CmdAttr; } else
   if (value == "Call") { return OrgSemKind::Call; } else
@@ -601,7 +600,6 @@ std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::Row: return "Row";
     case OrgSemKind::Table: return "Table";
     case OrgSemKind::Paragraph: return "Paragraph";
-    case OrgSemKind::AnnotatedParagraph: return "AnnotatedParagraph";
     case OrgSemKind::ColonExample: return "ColonExample";
     case OrgSemKind::CmdAttr: return "CmdAttr";
     case OrgSemKind::Call: return "Call";

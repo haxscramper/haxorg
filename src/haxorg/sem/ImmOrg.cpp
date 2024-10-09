@@ -409,9 +409,11 @@ void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
                     }
                 }
             },
-            [&](org::ImmAnnotatedParagraph const& par) {
-                if (par.isFootnote()) {
-                    auto id = par.getFootnote().name.get();
+            [&](org::ImmParagraph const&) {
+                auto par = ctx->adaptUnrooted(node)
+                               .as<org::ImmParagraph>();
+                if (par.isFootnoteDefinition()) {
+                    auto id = par.getFootnoteName().value();
                     message(fmt("Footnote ID {}", id));
                     if (add) {
                         track.footnotes.set(id, node);
@@ -419,9 +421,6 @@ void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
                         track.footnotes.erase(id);
                     }
                 }
-                search_radio_targets(ctx->adaptUnrooted(node));
-            },
-            [&](org::ImmParagraph const& target) {
                 search_radio_targets(ctx->adaptUnrooted(node));
             },
             [&](auto const& nodeValue) {},
