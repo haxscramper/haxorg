@@ -1934,24 +1934,25 @@ TEST(ImmMapApi, SubtreeBlockMap) {
     //     }
     // });
 
-    auto List_1       = root.at(1).at(0);
-    auto List_2       = root.at(2).at(0);
-    auto Paragraph_10 = root.at(1).at(9);
-    auto Paragraph_11 = root.at(1).at(11);
-    auto Paragraph_12 = root.at(1).at(13);
-    auto Paragraph_14 = root.at(2).at(0).at(0).at(0);
-    auto Paragraph_16 = root.at(2).at(0).at(1).at(0);
-    auto Paragraph_17 = root.at(2).at(0).at(2).at(0);
-    auto Paragraph_19 = root.at(2).at(0).at(3).at(0);
-    auto Paragraph_20 = root.at(2).at(1);
-    auto Paragraph_3  = root.at(1).at(0).at(0).at(0);
-    auto Paragraph_5  = root.at(1).at(0).at(1).at(0);
-    auto Paragraph_6  = root.at(1).at(1);
-    auto Paragraph_7  = root.at(1).at(3).at(0);
-    auto Paragraph_8  = root.at(1).at(5);
-    auto Paragraph_9  = root.at(1).at(7);
-    auto Subtree_1    = root.at(1);
-    auto Subtree_2    = root.at(2);
+    auto List_1         = root.at(1).at(0);
+    auto List_2         = root.at(2).at(0);
+    auto Paragraph_10   = root.at(1).at(9);
+    auto Paragraph_11   = root.at(1).at(11);
+    auto Paragraph_12   = root.at(1).at(13);
+    auto Paragraph_14   = root.at(2).at(0).at(0).at(0);
+    auto Paragraph_16   = root.at(2).at(0).at(1).at(0);
+    auto Paragraph_17   = root.at(2).at(0).at(2).at(0);
+    auto Paragraph_19   = root.at(2).at(0).at(3).at(0);
+    auto Paragraph_20   = root.at(2).at(1);
+    auto Paragraph_3    = root.at(1).at(0).at(0).at(0);
+    auto Paragraph_5    = root.at(1).at(0).at(1).at(0);
+    auto Paragraph_6    = root.at(1).at(1);
+    auto Paragraph_7    = root.at(1).at(3).at(0);
+    auto Paragraph_8    = root.at(1).at(5);
+    auto Paragraph_9    = root.at(1).at(7);
+    auto Subtree_1      = root.at(1);
+    auto Subtree_2      = root.at(2);
+    auto BlockComment_1 = root.at(1).at(3);
 
     EXPECT_EQ(List_1->getKind(), OrgSemKind::List);
     EXPECT_EQ(List_2->getKind(), OrgSemKind::List);
@@ -1971,14 +1972,51 @@ TEST(ImmMapApi, SubtreeBlockMap) {
     EXPECT_EQ(Paragraph_9->getKind(), OrgSemKind::Paragraph);
     EXPECT_EQ(Subtree_1->getKind(), OrgSemKind::Subtree);
     EXPECT_EQ(Subtree_2->getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(BlockComment_1->getKind(), OrgSemKind::BlockComment);
 
-    EXPECT_EQ(List_2->getKind(), OrgSemKind::List);
-    EXPECT_EQ(Paragraph_20->getKind(), OrgSemKind::Paragraph);
     EXPECT_EQ(
         (org::flatWords(Paragraph_20)),
         (Vec<Str>{"Paragraph", "with", "name", "annotations"}));
 
-    state.graph.hasEdge(List_2, Paragraph_20);
+    EXPECT_EQ(
+        (org::flatWords(Paragraph_6)),
+        (Vec<Str>{"Internal", "paragraph"}));
+
+
+    EXPECT_EQ(
+        (org::flatWords(Paragraph_9)), (Vec<Str>{"Second", "paragraph"}));
+
+    EXPECT_EQ((org::flatWords(Paragraph_10)), (Vec<Str>{"Footnote", "2"}));
+
+    EXPECT_EQ(
+        (org::flatWords(Paragraph_11)),
+        (Vec<Str>{"Recursive", "footnote", "1"}));
+
+    EXPECT_EQ(
+        (org::flatWords(Paragraph_12)),
+        (Vec<Str>{"Recursive", "footnote", "2"}));
+
+
+    EXPECT_EQ(
+        (org::flatWords(Subtree_1.as<org::ImmSubtree>().getTitle())),
+        (Vec<Str>{"Subtree", "1"}));
+
+    EXPECT_EQ(
+        (org::flatWords(Subtree_2.as<org::ImmSubtree>().getTitle())),
+        (Vec<Str>{"Subtree", "2"}));
+
+    auto& g = state.graph;
+
+    g.hasEdge(List_2, Paragraph_20);
+    g.hasEdge(List_2, Subtree_1);
+    g.hasEdge(List_2, Subtree_2);
+    g.hasEdge(List_2, Paragraph_6);
+    g.hasEdge(Subtree_1, Subtree_2);
+    g.hasEdge(Subtree_1, Paragraph_6);
+    g.hasEdge(Paragraph_6, BlockComment_1);
+    g.hasEdge(Paragraph_9, Paragraph_10);
+    g.hasEdge(Paragraph_10, Paragraph_11);
+    g.hasEdge(Paragraph_11, Paragraph_12);
 }
 
 struct TestGraph {
