@@ -10,6 +10,7 @@
 #include <boost/mp11.hpp>
 #include <boost/preprocessor.hpp>
 #include <haxorg/sem/ImmOrgHash.hpp>
+#include <haxorg/sem/perfetto_org.hpp>
 
 #include <boost/mp11/list.hpp>
 #include <boost/mp11/algorithm.hpp>
@@ -306,6 +307,7 @@ void ImmAstTrackingMapTransient::setAsParentOf(
     const ImmId&       parent,
     const ImmId&       target,
     const ImmPathStep& step) {
+    __perf_trace("imm", "setAsParentOf");
     useNewParentTrack(target);
     auto const* newParent = parents.find(target);
     if (newParent == nullptr) {
@@ -320,6 +322,7 @@ void ImmAstTrackingMapTransient::setAsParentOf(
 }
 
 void ImmAstTrackingMapTransient::useNewParentTrack(const ImmId& target) {
+    __perf_trace("imm", "useNewParentTrack");
     auto const* newParent = parents.find(target);
     auto const* oldParent = oldCtx->track->parents.find(target);
     if (oldParent != nullptr                    //
@@ -335,8 +338,17 @@ void ImmAstTrackingMapTransient::useNewParentTrack(const ImmId& target) {
     }
 }
 
+SemSet FastTrackNodes{
+    OrgSemKind::Word,
+    OrgSemKind::Space,
+    OrgSemKind::Punctuation,
+    OrgSemKind::Time,
+};
+
 void ImmAstTrackingMapTransient::removeAllSubnodesOf(
     const ImmAdapter& parent) {
+    __perf_trace("imm", "removeAllSubnodesOf");
+    if (FastTrackNodes.contains(parent->getKind())) { return; }
     for (auto const& sub : parent.getAllSubnodes(std::nullopt)) {
         if (isTrackingParent(sub) && parents.find(sub.id) != nullptr) {
             useNewParentTrack(sub.id);
@@ -348,6 +360,8 @@ void ImmAstTrackingMapTransient::removeAllSubnodesOf(
 
 void ImmAstTrackingMapTransient::insertAllSubnodesOf(
     const ImmAdapter& parent) {
+    __perf_trace("imm", "insertAllSubnodesOf");
+    if (FastTrackNodes.contains(parent->getKind())) { return; }
     for (auto const& sub : parent.getAllSubnodes(std::nullopt)) {
         if (isTrackingParent(sub)) {
             setAsParentOf(parent.id, sub.id, sub.lastStep());
@@ -384,12 +398,15 @@ concept ProvidesImmApi //
    || std::is_same_v<API, typename imm_api_type<T>::api_type>;
 
 void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
+    __perf_trace("imm", "updateTracking");
     auto search_radio_targets = [&](org::ImmAdapter const& id) {
         for (auto const& target : id.subAs<org::ImmRadioTarget>()) {
-            message(
-                fmt("Node {} contains radio target {}",
-                    node,
-                    target.getText()));
+            if (ctx->debug->TraceState) {
+                message(
+                    fmt("Node {} contains radio target {}",
+                        node,
+                        target.getText()));
+            }
             if (add) {
                 track.radioTargets.set(target.getText(), node);
             } else {
@@ -407,11 +424,14 @@ void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
                         {
                             auto adapter = ctx->adaptUnrooted(node)
                                                .as<N>();
+                            __perf_trace("imm", "track names");
                             for (auto const& name : adapter.getName()) {
-                                message(
-                                    fmt("Tracking name '{}' for node {}",
+                                if (ctx->debug->TraceState) {
+                                    message(fmt(
+                                        "Tracking name '{}' for node {}",
                                         name,
                                         node));
+                                }
                                 if (add) {
                                     track.names.set(name, node);
                                 } else {
@@ -424,13 +444,20 @@ void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
             { /*_dfmt(node, nodeValue); */ },
         });
 
+    if (!SemSet{OrgSemKind::Subtree, OrgSemKind::Paragraph}.contains(
+            node.getKind())) {
+        return;
+    }
+
     switch_node_value(
         node,
         *ctx,
         overloaded{
             [&](org::ImmSubtree const& subtree) {
                 if (auto id = subtree.treeId.get(); id) {
-                    message(fmt("Subtree ID {}", id.value()));
+                    if (ctx->debug->TraceState) {
+                        message(fmt("Subtree ID {}", id.value()));
+                    }
                     if (add) {
                         track.subtrees.set(*id, node);
                     } else {
@@ -443,7 +470,9 @@ void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
                                .as<org::ImmParagraph>();
                 if (par.isFootnoteDefinition()) {
                     auto id = par.getFootnoteName().value();
-                    message(fmt("Footnote ID {}", id));
+                    if (ctx->debug->TraceState) {
+                        message(fmt("Footnote ID {}", id));
+                    }
                     if (add) {
                         track.footnotes.set(id, node);
                     } else {

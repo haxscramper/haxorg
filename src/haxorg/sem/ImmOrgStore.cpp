@@ -9,6 +9,7 @@
 #include <immer/map_transient.hpp>
 #include <immer/flex_vector_transient.hpp>
 #include <immer/flex_vector.hpp>
+#include <haxorg/sem/perfetto_org.hpp>
 
 using namespace org;
 
@@ -353,6 +354,7 @@ ImmId recurseUpdateSubnodes(
     ImmAstEditContext&            ctx,
     const UnorderedSet<ImmUniqId> editParents,
     ImmAstReplaceEpoch&           result) {
+    __perf_trace("imm", "recurseUpdateSubnodes");
     auto __scope = ctx.debug.scopeLevel();
     if (editParents.contains(node.uniq())) {
         // The node is a parent subnode for some edit.
@@ -413,6 +415,7 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
     ImmAdapter const&         root,
     ImmAstReplaceGroup const& replace,
     ImmAstEditContext&        ctx) {
+    __perf_trace("imm", "cascadeUpdate");
     AST_EDIT_MSG("Start cascade update");
     auto                    __scope     = ctx.debug.scopeLevel();
     UnorderedSet<ImmUniqId> editParents = getEditParents(replace, ctx);
@@ -427,6 +430,7 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
 
 
 ImmId ImmAstStore::add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx) {
+    __perf_trace("imm", "ImmAstStore::Add", "kind", fmt1(data->getKind()));
     org::ImmId result = org::ImmId::Nil();
     switch_node_kind(
         org::ImmId{data->getKind(), 0},
@@ -572,6 +576,7 @@ ImmId ImmAstContext::add(
 }
 
 ImmAstVersion ImmAstContext::addRoot(sem::SemId<sem::Org> data) {
+    __perf_trace("imm", "addRoot");
     auto edit = getEditContext();
     auto root = add(data, edit);
     return ImmAstVersion{
@@ -749,13 +754,17 @@ struct ImmSemSerde<Vec<SemType>, ImmVec<ImmType>> {
     static ImmVec<ImmType> to_immer(
         Vec<SemType> const& value,
         ImmAstEditContext&  ctx) {
-        ImmVec<ImmType> base{};
-        auto            tmp = base.transient();
-        for (auto const& sub : value) {
-            tmp.push_back(
-                ImmSemSerde<SemType, ImmType>::to_immer(sub, ctx));
+        if (value.empty()) {
+            return ImmVec<ImmType>{};
+        } else {
+            ImmVec<ImmType> base{};
+            auto            tmp = base.transient();
+            for (auto const& sub : value) {
+                tmp.push_back(
+                    ImmSemSerde<SemType, ImmType>::to_immer(sub, ctx));
+            }
+            return tmp.persistent();
         }
-        return tmp.persistent();
     }
 
     static Vec<SemType> from_immer(
