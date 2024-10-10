@@ -24,6 +24,45 @@
 #include <boost/graph/graphviz.hpp>
 #include <fstream>
 
+
+void addNodeRec(
+    org::graph::MapGraphState& g,
+    org::ImmAdapter const&     node,
+    org::graph::MapConfig&     conf) {
+    Func<void(org::ImmAdapter const&)> aux;
+    aux = [&](org::ImmAdapter const& node) {
+        conf.message(fmt("recursive add {}", node), "addNodeRec");
+        auto __tmp = conf.scopeLevel();
+        switch (node->getKind()) {
+            case OrgSemKind::Document:
+            case OrgSemKind::ListItem:
+            case OrgSemKind::List: {
+                for (auto const& it : node) { aux(it); }
+                break;
+            }
+            case OrgSemKind::Paragraph: {
+                if (auto par = node.as<org::ImmParagraph>();
+                    org::graph::hasGraphAnnotations(par)) {
+                    addNode(g, node, conf);
+                }
+                break;
+            }
+            case OrgSemKind::Subtree: {
+                if (auto tree = node.as<org::ImmSubtree>();
+                    org::graph::hasGraphAnnotations(tree)) {
+                    addNode(g, node, conf);
+                }
+
+                for (auto const& it : node) { aux(it); }
+                break;
+            }
+            default: {
+            }
+        }
+    };
+
+    aux(node);
+}
 Str getDebugFile(Str const& suffix) {
     auto dir = fs::path{
         fmt("/tmp/haxorg_tests/{}",
@@ -1756,7 +1795,7 @@ TEST(ImmMapApi, SubtreeFullMap) {
 
     org::graph::MapConfig conf;
     conf.setTraceFile(getDebugFile("conf"));
-    org::graph::addNodeRec(s1, v2.getRootAdapter(), conf);
+    addNodeRec(s1, v2.getRootAdapter(), conf);
 
     EXPECT_TRUE(s1.graph.hasEdge(node_p110.uniq(), node_s12.uniq()));
     EXPECT_TRUE(s1.graph.hasEdge(node_p110.uniq(), node_s10.uniq()));
@@ -2019,6 +2058,31 @@ TEST(ImmMapApi, SubtreeBlockMap) {
     g.hasEdge(Paragraph_11, Paragraph_12);
 }
 
+TEST(ImmMapApi, Doc1Graph) {
+    fs::path file = fs::path{std::getenv("HOME")}
+                  / std::string{"tmp/doc1.org"};
+
+    if (!fs::exists(file)) { return; }
+    auto n = parseNode(readFile(file));
+
+    org::ImmAstContext store;
+    org::ImmAstVersion v    = store.addRoot(n);
+    org::ImmAdapter    root = v.getRootAdapter();
+
+    org::graph::MapConfig     conf;
+    org::graph::MapGraphState state{v.context};
+    addNodeRec(state, root, conf);
+
+    Graphviz gvc;
+    auto     gv = state.graph.toGraphviz(v.context);
+    gvc.writeFile(getDebugFile("map.dot"), gv);
+    gvc.renderToFile(
+        getDebugFile("map.png"),
+        gv,
+        Graphviz::RenderFormat::PNG,
+        Graphviz::LayoutType::Sfdp);
+}
+
 struct TestGraph {
     org::graph::MapGraph     g;
     Vec<org::graph::MapNode> nodes;
@@ -2144,7 +2208,7 @@ TEST(ImmMapApi, BoostPropertyWriter) {
     org::ImmAstVersion        v2   = store.addRoot(n);
     org::ImmAdapter           file = v2.getRootAdapter();
     org::graph::MapGraphState s1{v2.context};
-    org::graph::addNodeRec(s1, file, conf);
+    addNodeRec(s1, file, conf);
 
     std::stringstream os;
 

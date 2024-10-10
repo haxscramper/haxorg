@@ -71,6 +71,31 @@ bool org::graph::isMmapIgnored(org::ImmAdapter const& n) {
         || (isLinkedDescriptionList(n) && isAttachedDescriptionList(n));
 }
 
+static const IntSet<slk> SkipLinks{
+    slk::Raw,
+    slk::Attachment,
+};
+
+bool org::graph::hasGraphAnnotations(const ImmAdapterT<ImmSubtree>& par) {
+    return par->treeId->has_value();
+}
+
+bool org::graph::hasGraphAnnotations(
+    const ImmAdapterT<ImmParagraph>& par) {
+    for (auto const& node : par.sub()) {
+        if (node.is(OrgSemKind::RadioTarget)) {
+            return true;
+        } else if (auto link = node.asOpt<org::ImmLink>();
+                   link
+                   && !SkipLinks.contains(link.value()->getLinkKind())) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
 void removeUnresolvedNodeProps(
     NodeProps&                   props,
     MapNodeResolveResult const&  resolved_node,
@@ -213,6 +238,7 @@ void org::graph::addEdge(
     MapConfig&         conf) {
     g.graph.adjList.at(edge.source).push_back(edge.target);
     g.graph.edgeProps.insert_or_assign(edge, prop);
+    g.graph.inNodes.at(edge.target).push_back(edge.source);
 }
 
 
@@ -264,7 +290,7 @@ Opt<MapLink> org::graph::getUnresolvedLink(
     const MapGraphState& s,
     ImmAdapterT<ImmLink> link,
     MapConfig&           conf) {
-    if (link->getLinkKind() == slk::Raw) {
+    if (SkipLinks.contains(link->getLinkKind())) {
         return std::nullopt;
     } else {
         return MapLink{
@@ -303,7 +329,7 @@ Vec<MapLink> org::graph::getUnresolvedSubtreeLinks(
                         // Description list header might contain
                         // non-link elements. These are ignored in the
                         // mind map.
-                        if (link->getLinkKind() != slk::Raw) {
+                        if (!SkipLinks.contains(link->getLinkKind())) {
                             MapLink map_link{.link = link};
                             for (auto const& sub : item.sub()) {
                                 map_link.description.push_back(sub);
@@ -664,37 +690,6 @@ Graphviz::Graph MapGraph::toGraphviz(org::ImmAstContext const& ctx) const {
     return res;
 }
 
-void org::graph::addNodeRec(
-    MapGraphState&         g,
-    org::ImmAdapter const& node,
-    MapConfig&             conf) {
-    Func<void(org::ImmAdapter const&)> aux;
-    aux = [&](org::ImmAdapter const& node) {
-        conf.message(fmt("recursive add {}", node), "addNodeRec");
-        auto __tmp = conf.scopeLevel();
-        switch (node->getKind()) {
-            case osk::Document:
-            case osk::ListItem:
-            case osk::List: {
-                for (auto const& it : node) { aux(it); }
-                break;
-            }
-            case osk::Paragraph: {
-                addNode(g, node, conf);
-                break;
-            }
-            case osk::Subtree: {
-                addNode(g, node, conf);
-                for (auto const& it : node) { aux(it); }
-                break;
-            }
-            default: {
-            }
-        }
-    };
-
-    aux(node);
-}
 
 MapConfig::MapConfig(SPtr<MapInterface> impl) : impl{impl} {
     this->OperationsScope::TraceState //

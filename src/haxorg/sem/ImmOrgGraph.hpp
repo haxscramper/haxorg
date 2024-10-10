@@ -125,9 +125,18 @@ struct MapGraph {
     NodeProps nodeProps;
     EdgeProps edgeProps;
     AdjList   adjList;
+    AdjList   inNodes;
 
     int nodeCount() const { return nodeProps.size(); }
     int edgeCount() const { return edgeProps.size(); }
+
+    int outDegree(MapNode const& node) const {
+        return adjList.at(node).size();
+    }
+
+    int inDegree(MapNode const& node) const {
+        return inNodes.at(node).size();
+    }
 
     bool isRegisteredNode(MapNode const& id) const {
         return adjList.contains(id);
@@ -233,11 +242,6 @@ void addNode(
     org::ImmAdapter const& node,
     MapConfig&             conf);
 
-void addNodeRec(
-    MapGraphState&         g,
-    org::ImmAdapter const& node,
-    MapConfig&             conf);
-
 Vec<MapLink> getUnresolvedSubtreeLinks(
     MapGraphState const&    s,
     ImmAdapterT<ImmSubtree> node,
@@ -296,6 +300,9 @@ bool isLinkedDescriptionList(org::ImmAdapter const& n);
 bool isInSubtreeDescriptionList(ImmAdapter const& n);
 
 bool isAttachedDescriptionList(ImmAdapter const& n);
+
+bool hasGraphAnnotations(ImmAdapterT<ImmParagraph> const& par);
+bool hasGraphAnnotations(ImmAdapterT<ImmSubtree> const& par);
 
 bool isMmapIgnored(ImmAdapter const& n);
 
