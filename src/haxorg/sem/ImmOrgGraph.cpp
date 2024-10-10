@@ -178,11 +178,8 @@ void updateResolvedEdges(
 
 
         GRAPH_MSG(fmt("add edge {}-{}", op.source, op.target));
-        addEdge(
-            s,
-            MapEdge{op.source, op.target},
-            MapEdgeProp{.link = op.link},
-            conf);
+        s.graph.addEdge(
+            MapEdge{op.source, op.target}, MapEdgeProp{.link = op.link});
     }
 }
 
@@ -223,26 +220,7 @@ void traceNodeResolve(
     }
 }
 
-void org::graph::addNodeBase(
-    MapGraphState&         g,
-    const org::ImmAdapter& node,
-    MapConfig&             conf) {
-    g.graph.adjList.insert_or_assign(MapNode{node.uniq()}, Vec<MapNode>{});
-}
-
-
-void org::graph::addEdge(
-    MapGraphState&     g,
-    const MapEdge&     edge,
-    const MapEdgeProp& prop,
-    MapConfig&         conf) {
-    g.graph.adjList.at(edge.source).push_back(edge.target);
-    g.graph.edgeProps.insert_or_assign(edge, prop);
-    g.graph.inNodes.at(edge.target).push_back(edge.source);
-}
-
-
-void org::graph::addNode(
+void org::graph::registerNode(
     MapGraphState&     s,
     MapNodeProp const& node,
     MapConfig&         conf) {
@@ -250,7 +228,7 @@ void org::graph::addNode(
     auto&   graph = s.graph;
     MapNode mapNode{node.id.uniq()};
 
-    addNodeBase(s, node.id, conf);
+    s.graph.addNode(node.id.uniq());
 
     GRAPH_MSG(fmt("unresolved:{}", s.unresolved));
 
@@ -609,27 +587,63 @@ void org::graph::addNode(
     if (prop) {
         GRAPH_MSG("ID maps to graph node");
         auto __init = conf.scopeLevel();
-        addNode(g, *prop, conf);
+        registerNode(g, *prop, conf);
     }
 }
 
-Graphviz::Graph MapGraph::toGraphviz(org::ImmAstContext const& ctx) const {
+void MapGraph::addEdge(const MapEdge& edge, const MapEdgeProp& prop) {
+    if (!adjList.contains(edge.source)) {
+        adjList.insert_or_assign(MapNode{edge.source}, Vec<MapNode>{});
+    }
+
+    if (!inNodes.contains(edge.target)) {
+        inNodes.insert_or_assign(MapNode{edge.target}, Vec<MapNode>{});
+    }
+
+    adjList.at(edge.source).push_back(edge.target);
+    inNodes.at(edge.target).push_back(edge.source);
+    edgeProps.insert_or_assign(edge, prop);
+}
+
+void MapGraph::addNode(const MapNode& node) {
+    adjList.insert_or_assign(MapNode{node}, Vec<MapNode>{});
+}
+
+Graphviz::Graph MapGraph::toGraphviz(
+    org::ImmAstContext const& ctx,
+    GvConfig const&           conf) const {
     Graphviz::Graph                       res{"g"_ss};
     UnorderedMap<MapNode, Graphviz::Node> gvNodes;
     UnorderedMap<MapEdge, Graphviz::Edge> gvEdges;
+
+    auto edgeOk = [&](MapEdge const& edge) {
+        return !conf.acceptEdge || conf.acceptEdge(edge);
+    };
+
+    auto nodeOk = [&](MapNode const& node) {
+        return !conf.acceptNode || conf.acceptNode(node);
+    };
+
     for (auto const& [it, props] : nodeProps) {
-        gvNodes.insert_or_assign(it, res.node(it.id.id.getReadableId()));
+        if (nodeOk(it)) {
+            gvNodes.insert_or_assign(
+                it, res.node(it.id.id.getReadableId()));
+        }
     }
 
     for (auto const& [source, targets] : adjList) {
         for (auto const& target : targets) {
-            gvEdges.insert_or_assign(
-                {source, target},
-                res.edge(gvNodes.at(source), gvNodes.at(target)));
+            if (nodeOk(source) && nodeOk(target)
+                && edgeOk({source, target})) {
+                gvEdges.insert_or_assign(
+                    {source, target},
+                    res.edge(gvNodes.at(source), gvNodes.at(target)));
+            }
         }
     }
 
     for (auto const& [it, prop] : nodeProps) {
+        if (!nodeOk(it)) { continue; }
         using Record = Graphviz::Node::Record;
         auto& node   = gvNodes.at(it);
         node.startRecord();

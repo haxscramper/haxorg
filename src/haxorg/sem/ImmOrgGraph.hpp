@@ -131,11 +131,11 @@ struct MapGraph {
     int edgeCount() const { return edgeProps.size(); }
 
     int outDegree(MapNode const& node) const {
-        return adjList.at(node).size();
+        return adjList.contains(node) ? adjList.at(node).size() : 0;
     }
 
     int inDegree(MapNode const& node) const {
-        return inNodes.at(node).size();
+        return inNodes.contains(node) ? inNodes.at(node).size() : 0;
     }
 
     bool isRegisteredNode(MapNode const& id) const {
@@ -154,6 +154,11 @@ struct MapGraph {
         return edgeProps.at(edge);
     }
 
+    void addEdge(MapEdge const& edge, MapEdgeProp const& prop);
+    /// \brief Add node to the graph, without registering any outgoing or
+    /// ingoing elements.
+    void addNode(MapNode const& node);
+
     bool hasEdge(MapNode const& source, MapNode const& target) const {
         if (adjList.find(source) != nullptr) {
             for (auto const& it : adjList.at(source)) {
@@ -170,8 +175,18 @@ struct MapGraph {
         return hasEdge(MapNode{source.uniq()}, MapNode{target.uniq()});
     }
 
+    struct GvConfig {
+        Func<bool(MapNode const& node)> acceptNode;
+        Func<bool(MapEdge const& edge)> acceptEdge;
+    };
 
-    Graphviz::Graph toGraphviz(const ImmAstContext& ctx) const;
+    Graphviz::Graph toGraphviz(const ImmAstContext& ctx) const {
+        return toGraphviz(ctx, GvConfig{});
+    }
+
+    Graphviz::Graph toGraphviz(
+        const ImmAstContext& ctx,
+        GvConfig const&      conf) const;
 
     DESC_FIELDS(MapGraph, (nodeProps, edgeProps, adjList));
 };
@@ -222,20 +237,10 @@ struct MapGraphState {
     DESC_FIELDS(MapGraphState, (unresolved, graph));
 };
 
-/// \brief Add node to the graph, without registering any outgoing or
-/// ingoing elements.
-void addNodeBase(
-    MapGraphState&         g,
-    org::ImmAdapter const& node,
-    MapConfig&             conf);
-
-void addEdge(
-    MapGraphState&     g,
-    MapEdge const&     edge,
-    MapEdgeProp const& prop,
+void registerNode(
+    MapGraphState&     s,
+    MapNodeProp const& node,
     MapConfig&         conf);
-
-void addNode(MapGraphState& s, MapNodeProp const& node, MapConfig& conf);
 
 void addNode(
     MapGraphState&         g,

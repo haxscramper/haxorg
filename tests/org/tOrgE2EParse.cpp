@@ -1949,13 +1949,11 @@ TEST(ImmMapApi, SubtreeBlockMap) {
     EXPECT_EQ(comment->getKind(), OrgSemKind::BlockComment);
     EXPECT_EQ(par_above->getKind(), OrgSemKind::Paragraph);
 
-    org::graph::addEdge(
-        state,
+    state.graph.addEdge(
         org::graph::MapEdge{
             .source = org::graph::MapNode{par_above.uniq()},
             .target = org::graph::MapNode{comment.uniq()}},
-        org::graph::MapEdgeProp{},
-        conf);
+        org::graph::MapEdgeProp{});
 
     Graphviz gvc;
     auto     gv = state.graph.toGraphviz(v.context);
@@ -2073,8 +2071,13 @@ TEST(ImmMapApi, Doc1Graph) {
     org::graph::MapGraphState state{v.context};
     addNodeRec(state, root, conf);
 
-    Graphviz gvc;
-    auto     gv = state.graph.toGraphviz(v.context);
+    Graphviz                       gvc;
+    org::graph::MapGraph::GvConfig gvConf;
+    gvConf.acceptNode = [&](org::graph::MapNode const& node) {
+        return 0 < state.graph.inDegree(node)
+            || 0 < state.graph.outDegree(node);
+    };
+    auto gv = state.graph.toGraphviz(v.context, gvConf);
     gvc.writeFile(getDebugFile("map.dot"), gv);
     gvc.renderToFile(
         getDebugFile("map.png"),
