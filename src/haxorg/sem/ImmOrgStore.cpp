@@ -757,13 +757,13 @@ struct ImmSemSerde<Vec<SemType>, ImmVec<ImmType>> {
         if (value.empty()) {
             return ImmVec<ImmType>{};
         } else {
-            ImmVec<ImmType> base{};
-            auto            tmp = base.transient();
+            Vec<ImmType> tmp;
+            tmp.reserve(value.size());
             for (auto const& sub : value) {
                 tmp.push_back(
                     ImmSemSerde<SemType, ImmType>::to_immer(sub, ctx));
             }
-            return tmp.persistent();
+            return ImmVec<ImmType>{tmp.begin(), tmp.end()};
         }
     }
 
