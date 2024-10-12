@@ -132,7 +132,7 @@ struct ImmTreeReprContext {
     int                           level;
     Vec<int>                      path;
     org::ImmAdapter::TreeReprConf conf;
-    ImmAstContext const&          ctx;
+    ImmAstContext const*          ctx;
 
     ImmTreeReprContext addPath(int diff) const {
         ImmTreeReprContext result = *this;
@@ -158,7 +158,7 @@ void treeReprRec(
     if (ctx.conf.withReflFields) {
         if (ctx.conf.withAuxFields) {
             switch_node_value(
-                id.id, id.ctx, [&]<typename N>(N const& node) {
+                id.id, *id.ctx, [&]<typename N>(N const& node) {
                     os << " " << fmt1(node);
                 });
         }
@@ -172,7 +172,7 @@ void treeReprRec(
     } else {
         if (ctx.conf.withAuxFields) {
             switch_node_value(
-                id.id, id.ctx, [&]<typename N>(N const& node) {
+                id.id, *id.ctx, [&]<typename N>(N const& node) {
                     os << " " << fmt1(node);
                 });
         }
@@ -272,11 +272,11 @@ Vec<ImmAdapter> ImmAdapter::getAllSubnodes(
             path.path.push_back(ImmPathStep{parent});
             result.push_back(root.pass(id, path));
         } else {
-            result.push_back(root.ctx.adaptUnrooted(id));
+            result.push_back(root.ctx->adaptUnrooted(id));
         }
     };
 
-    switch_node_value(id, ctx, [&]<typename T>(T const& value) {
+    switch_node_value(id, *ctx, [&]<typename T>(T const& value) {
         reflVisitAll<T>(
             value,
             {},
@@ -760,7 +760,7 @@ Vec<ImmId> org::allSubnodes(const ImmId& value, const ImmAstContext& ctx) {
 ImmAdapter ImmAstVersion::getRootAdapter() const {
     return org::ImmAdapter{
         epoch.getRoot(),
-        context,
+        &context,
         ImmPath{epoch.getRoot()},
     };
 }

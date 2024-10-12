@@ -32,9 +32,9 @@ ImmAstReplace org::setSubnodes(
     LOGIC_ASSERTION_CHECK(
         !target.isNil(), "cannot set subnodes to nil node");
     Opt<ImmAstReplace> result;
-    switch_node_value(target.id, target.ctx, [&]<typename N>(N node) {
+    switch_node_value(target.id, *target.ctx, [&]<typename N>(N node) {
         node.subnodes = subnodes;
-        result        = target.ctx.store->setNode(target, node, ctx);
+        result        = target.ctx->store->setNode(target, node, ctx);
     });
 
     return result.value();
@@ -160,7 +160,7 @@ ImmAstReplace setNewSubnodes(
     ImmAstReplace act;
     switch_node_value(
         updateTarget.id,
-        updateTarget.ctx,
+        *updateTarget.ctx,
         [&]<typename K>(K node /* <<input_node_for_mut_cast>> */) {
             for (SubnodeVecAssignPair const& fieldGroup : grouped) {
                 auto field = fieldGroup.first.first();
@@ -254,7 +254,8 @@ ImmAstReplace setNewSubnodes(
                     });
             }
 
-            act = updateTarget.ctx.store->setNode(updateTarget, node, ctx);
+            act = updateTarget.ctx->store->setNode(
+                updateTarget, node, ctx);
         });
     return act;
 }
@@ -269,7 +270,7 @@ ImmAdapter getUpdateTarget(
     // If there were no modifications to the original node, use its
     // direct subnodes. Otherwise, take a newer version of the node
     // and map its subnodes instead.
-    ImmAdapter updateTarget = edit ? ImmAdapter{*edit, *ctx.ctx} : node;
+    ImmAdapter updateTarget = edit ? ImmAdapter{*edit, ctx.ctx} : node;
     return updateTarget;
 }
 
@@ -538,11 +539,11 @@ void ImmAstContext::format(ColStream& os, const std::string& prefix)
 }
 
 ImmAdapter ImmAstContext::adapt(const ImmUniqId& id) const {
-    return org::ImmAdapter{id, *this};
+    return org::ImmAdapter{id, this};
 }
 
 ImmAdapter ImmAstContext::adaptUnrooted(const ImmId& id) const {
-    return org::ImmAdapter{org::ImmUniqId{id, {}}, *this};
+    return org::ImmAdapter{org::ImmUniqId{id, {}}, this};
 }
 
 
