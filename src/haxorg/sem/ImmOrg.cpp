@@ -457,6 +457,7 @@ void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
         *ctx,
         overloaded{
             [&](org::ImmSubtree const& subtree) {
+                __perf_trace("imm", "track subtree");
                 if (auto id = subtree.treeId.get(); id) {
                     if (ctx->debug->TraceState) {
                         message(fmt("Subtree ID {}", id.value()));
@@ -469,6 +470,7 @@ void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
                 }
             },
             [&](org::ImmParagraph const&) {
+                __perf_trace("imm", "track paragraph");
                 auto par = ctx->adaptUnrooted(node)
                                .as<org::ImmParagraph>();
                 if (par.isFootnoteDefinition()) {

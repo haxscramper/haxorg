@@ -1090,7 +1090,8 @@ struct ImmAdapterCmdAPI : ImmAdapterStmtAPI {
 
 struct ImmAdapterSubtreeAPI : ImmAdapterOrgAPI {
     Vec<sem::SubtreePeriod> getTimePeriods(
-        IntSet<sem::SubtreePeriod::Kind> kinds) const;
+        IntSet<sem::SubtreePeriod::Kind> kinds,
+        bool                             withPath = true) const;
     Vec<sem::NamedProperty> getProperties(
         Str const&      kind,
         Opt<Str> const& subkind = std::nullopt) const;

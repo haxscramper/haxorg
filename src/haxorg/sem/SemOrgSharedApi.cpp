@@ -69,13 +69,13 @@ Opt<sem::NamedProperty> subtreeGetPropertyImpl(
 
 
 // clang-format off
-Vec<org::ImmAdapter> getSubnodes(org::ImmAdapter const& t) { return t.sub(); }
+Vec<org::ImmAdapter> getSubnodes(org::ImmAdapter const& t, bool withPath) { return t.sub(withPath); }
 template <typename T>
-Vec<org::ImmAdapter> getSubnodes(org::ImmAdapterT<T> const& t) { return t.sub(); }
+Vec<org::ImmAdapter> getSubnodes(org::ImmAdapterT<T> const& t, bool withPath) { return t.sub(withPath); }
 template <sem::IsOrg T>
-Vec<sem::SemId<sem::Org>> getSubnodes(sem::SemId<T> const& t) { return t->subnodes; }
+Vec<sem::SemId<sem::Org>> getSubnodes(sem::SemId<T> const& t, bool withPath) { return t->subnodes; }
 template <sem::IsOrg T>
-Vec<sem::SemId<sem::Org>> getSubnodes(T const* t) { return t->subnodes; }
+Vec<sem::SemId<sem::Org>> getSubnodes(T const* t, bool withPath) { return t->subnodes; }
 // clang-format on
 
 /// \brief Cast sem ID type to target
@@ -226,9 +226,10 @@ concept IsImmOrgInstance = org::IsImmOrgValueType<
 /// subtree period type is a shared data type, so in this function only
 /// parametrizing on the handle parameter.
 template <typename Handle>
-Vec<sem::SubtreePeriod> subtreeGetTimePeriodsImpl(
+Vec<sem::SubtreePeriod> Subtree_getTimePeriodsImpl(
     Handle                           handle,
-    IntSet<sem::SubtreePeriod::Kind> kinds) {
+    IntSet<sem::SubtreePeriod::Kind> kinds,
+    bool                             withPath) {
     Vec<sem::SubtreePeriod> res;
     // Get final handle version that can access fields down the line
     auto h = getConstHandle(handle);
@@ -246,7 +247,8 @@ Vec<sem::SubtreePeriod> subtreeGetTimePeriodsImpl(
     // For sem IDs this is an identity function that returns the ID
     // directly.
 
-    for (const auto& it : getSubnodes(toHandle(h->title, handle))) {
+    for (const auto& it :
+         getSubnodes(toHandle(h->title, handle), withPath)) {
         if (it->getKind() == OrgSemKind::Time) {
             SubtreePeriod period{};
             // Specifying `sem::Time` in the cast, but returned type also
@@ -636,7 +638,7 @@ bool ListItem_isDescriptionItem(Handle handle) {
 template <typename Handle>
 bool List_isDescriptionList(Handle handle) {
     auto h = getConstHandle(handle);
-    for (const auto& sub : getSubnodes(handle)) {
+    for (const auto& sub : getSubnodes(handle, false)) {
         if (sub->is(OrgSemKind::ListItem)) {
             if (ListItem_isDescriptionItem(org_cast<sem::ListItem>(sub))) {
                 return true;
@@ -649,7 +651,7 @@ bool List_isDescriptionList(Handle handle) {
 template <typename Handle>
 bool List_isNumberedList(Handle handle) {
     auto h = getConstHandle(handle);
-    for (const auto& sub : getSubnodes(handle)) {
+    for (const auto& sub : getSubnodes(handle, false)) {
         if (sub->is(OrgSemKind::ListItem)) {
             auto sub_as = org_cast<sem::ListItem>(sub);
             if constexpr (IsSemOrgInstance<Handle>) {
@@ -753,7 +755,7 @@ Opt<sem::AttrValue> org::ImmAdapterCmdAPI::getFirstAttr(Str const& param) const 
 
 Opt<sem::NamedProperty> org::ImmAdapterSubtreeAPI::getProperty(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertyImpl(getThis()->as<org::ImmSubtree>(), kind, subkind); }
 Vec<sem::NamedProperty> org::ImmAdapterSubtreeAPI::getProperties(const Str &kind, const Opt<Str> &subkind) const { return subtreeGetPropertiesImpl(getThis()->as<org::ImmSubtree>(), kind, subkind); }
-Vec<sem::SubtreePeriod> org::ImmAdapterSubtreeAPI::getTimePeriods(IntSet<sem::SubtreePeriod::Kind> kinds) const { return subtreeGetTimePeriodsImpl(getThis()->as<org::ImmSubtree>(), kinds); }
+Vec<sem::SubtreePeriod> org::ImmAdapterSubtreeAPI::getTimePeriods(IntSet<sem::SubtreePeriod::Kind> kinds, bool withPath) const { return Subtree_getTimePeriodsImpl(getThis()->as<org::ImmSubtree>(), kinds, withPath); }
 
 Vec<sem::NamedProperty> org::ImmAdapterDocumentOptionsAPI::getProperties(Str const &kind, CR<Opt<Str>> subkind) const { return DocumentOptions_getProperties(getThis()->as<org::ImmDocumentOptions>(), kind, subkind); }
 Opt<sem::NamedProperty> org::ImmAdapterDocumentOptionsAPI::getProperty(CR<Str> kind, CR<Opt<Str>> subkind) const { return DocumentOptions_getProperty(getThis()->as<org::ImmDocumentOptions>(), kind, subkind); }
@@ -787,7 +789,7 @@ Vec<org::ImmAdapterT<org::ImmHashTag>> org::ImmAdapterParagraphAPI::getLeadHasht
 
 Opt<sem::NamedProperty> sem::Subtree::getProperty(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertyImpl(this, kind, subkind); }
 Vec<sem::NamedProperty> sem::Subtree::getProperties(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertiesImpl(this, kind, subkind); }
-Vec<sem::SubtreePeriod> sem::Subtree::getTimePeriods(IntSet<sem::SubtreePeriod::Kind> kinds) const { return subtreeGetTimePeriodsImpl(this, kinds); }
+Vec<sem::SubtreePeriod> sem::Subtree::getTimePeriods(IntSet<sem::SubtreePeriod::Kind> kinds) const { return Subtree_getTimePeriodsImpl(this, kinds, false); }
 Str sem::Attr::getValue() const { return arg.value; }
 Str sem::Attr::getName() const { return arg.name.value(); }
 Str sem::Attr::getVarname() const { return arg.varname.value(); }
@@ -850,8 +852,8 @@ Opt<Str> sem::Paragraph::getFootnoteName() const {
 }
 
 Opt<Str> org::ImmAdapterParagraphAPI::getFootnoteName() const {
-    if (!getThis()->sub().has(0)) { return std::nullopt; }
-    if (auto link = getThis()->at(0).asOpt<org::ImmLink>();
+    if (getThis()->get()->subnodes.empty()) { return std::nullopt; }
+    if (auto link = getThis()->at(0, false).asOpt<org::ImmLink>();
         link && link.value()->isFootnote()) {
         return link.value()->getFootnote().target;
     } else {
