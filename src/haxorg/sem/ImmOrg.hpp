@@ -893,13 +893,17 @@ struct ImmAdapter {
             ImmPathStep::Field(field));
     }
 
-    ImmAdapter at(int idx) const {
-        return at(
-            ctx.at(id)->subnodes.at(idx),
-            ImmPathStep::FieldIdx("subnodes", idx));
+    ImmAdapter at(int idx, bool withPath = true) const {
+        if (withPath) {
+            return at(
+                ctx.at(id)->subnodes.at(idx),
+                ImmPathStep::FieldIdx("subnodes", idx));
+        } else {
+            return ImmAdapter{ctx.at(id)->subnodes.at(idx), ctx, {}};
+        }
     }
 
-    ImmAdapter at(Vec<int> const& path) const {
+    ImmAdapter at(Vec<int> const& path, bool withPath = true) const {
         auto res = *this;
         for (int idx : path) { res = res.at(idx); }
         return res;
@@ -907,16 +911,18 @@ struct ImmAdapter {
 
     bool is(OrgSemKind kind) const { return get()->is(kind); }
 
-    Vec<ImmAdapter> sub() const {
+    Vec<ImmAdapter> sub(bool withPath = true) const {
         Vec<ImmAdapter> result;
-        for (int i = 0; i < size(); ++i) { result.push_back(at(i)); }
+        for (int i = 0; i < size(); ++i) {
+            result.push_back(at(i, withPath));
+        }
         return result;
     }
 
     template <typename T>
-    Vec<ImmAdapterT<T>> subAs() const {
+    Vec<ImmAdapterT<T>> subAs(bool withPath = true) const {
         Vec<ImmAdapterT<T>> result;
-        for (auto const& it : sub()) {
+        for (auto const& it : sub(withPath)) {
             if (it.is(T::staticKind)) { result.push_back(it.as<T>()); }
         }
         return result;

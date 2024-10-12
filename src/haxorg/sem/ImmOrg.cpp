@@ -402,7 +402,8 @@ concept ProvidesImmApi //
 void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
     __perf_trace("imm", "updateTracking");
     auto search_radio_targets = [&](org::ImmAdapter const& id) {
-        for (auto const& target : id.subAs<org::ImmRadioTarget>()) {
+        __perf_trace("imm", "search radio targets");
+        for (auto const& target : id.subAs<org::ImmRadioTarget>(false)) {
             if (ctx->debug->TraceState) {
                 message(
                     fmt("Node {} contains radio target {}",
