@@ -23,7 +23,7 @@
 #include <boost/graph/graphml.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <fstream>
-
+#include <haxorg/sem/perfetto_org.hpp>
 
 void addNodeRec(
     org::graph::MapGraphState& g,
@@ -2057,6 +2057,7 @@ TEST(ImmMapApi, SubtreeBlockMap) {
 }
 
 TEST(ImmMapApi, Doc1Graph) {
+    __perf_trace("imm", "run test");
     fs::path file = fs::path{std::getenv("HOME")}
                   / std::string{"tmp/doc1.org"};
 
@@ -2064,8 +2065,45 @@ TEST(ImmMapApi, Doc1Graph) {
     auto n = parseNode(readFile(file));
 
     org::ImmAstContext store;
-    org::ImmAstVersion v    = store.addRoot(n);
-    org::ImmAdapter    root = v.getRootAdapter();
+    org::ImmAstVersion v = store.addRoot(n);
+    // return;
+
+    writeTreeRepr(
+        v.getRootAdapter(),
+        "imm.txt",
+        org::ImmAdapter::TreeReprConf{
+            .withReflFields = true,
+            .withAuxFields  = true,
+        });
+
+    {
+        int count = 0;
+        __perf_trace("imm", "iterate each sem node");
+        sem::eachSubnodeRec(n, [&](sem::OrgArg) { ++count; });
+        _dbg(count);
+    }
+
+    {
+        int count = 0;
+        __perf_trace("imm", "iterate each node with path");
+        org::eachSubnodeRec(
+            v.getRootAdapter(), true, [&](org::ImmAdapter const&) {
+                ++count;
+            });
+        _dbg(count);
+    }
+
+    {
+        int count = 0;
+        __perf_trace("imm", "iterate each node without path");
+        org::eachSubnodeRec(
+            v.getRootAdapter(), false, [&](org::ImmAdapter const&) {
+                ++count;
+            });
+        _dbg(count);
+    }
+
+    org::ImmAdapter root = v.getRootAdapter();
 
     org::graph::MapConfig     conf;
     org::graph::MapGraphState state{v.context};

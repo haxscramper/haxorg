@@ -130,6 +130,7 @@ struct ReflPathItem {
         return ReflPathItem{AnyKey{.key = std::any(name)}};
     }
 
+
     SUB_VARIANTS(
         Kind,
         Data,
@@ -280,7 +281,8 @@ struct std::hash<ReflPathItem> {
 
 
 struct ReflPath {
-    Vec<ReflPathItem> path;
+    using Store = SmallVec<ReflPathItem, 2>;
+    Store path;
     DESC_FIELDS(ReflPath, (path));
     ReflPathItem const& at(int idx) const { return path.at(idx); }
 
@@ -288,7 +290,7 @@ struct ReflPath {
 
     ReflPath() {}
     ReflPath(iterator begin, iterator end) : path{begin, end} {}
-    ReflPath(Vec<ReflPathItem> path) : path{path} {}
+    ReflPath(Store path) : path{path} {}
     ReflPath(ReflPathItem const& single) : path{{single}} {}
 
     bool isSingle() const { return path.size() == 1; }
@@ -314,8 +316,7 @@ struct ReflPath {
         } else {
             auto span = path.at(slice(1, 1_B));
             return Pair<ReflPathItem, ReflPath>{
-                path.front(),
-                ReflPath{Vec<ReflPathItem>{span.begin(), span.end()}}};
+                path.front(), ReflPath{Store{span.begin(), span.end()}}};
         }
     }
 
@@ -338,7 +339,7 @@ struct ReflPath {
     bool empty() const { return path.empty(); }
 
     bool operator==(ReflPath const& other) const {
-        return path == other.path;
+        return path.operator==(other.path);
     }
 
     template <typename Cmp>

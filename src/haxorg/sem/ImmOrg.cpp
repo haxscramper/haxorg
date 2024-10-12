@@ -119,10 +119,10 @@ const ImmOrg* ImmAstStore::at(ImmId index) const {
 }
 
 
-void org::eachSubnodeRec(ImmAdapter id, SubnodeVisitor cb) {
+void org::eachSubnodeRec(ImmAdapter id, bool withPath, SubnodeVisitor cb) {
     cb(id);
-    for (auto const& sub : id.getAllSubnodes(id.path)) {
-        eachSubnodeRec(sub, cb);
+    for (auto const& sub : id.getAllSubnodes(id.path, withPath)) {
+        eachSubnodeRec(sub, withPath, cb);
     }
 }
 
@@ -254,20 +254,26 @@ Opt<ImmAdapter> ImmAdapter::getParentSubtree() const {
     return std::nullopt;
 }
 
-Vec<ImmAdapter> ImmAdapter::getAllSubnodes(Opt<ImmPath> rootPath) const {
+Vec<ImmAdapter> ImmAdapter::getAllSubnodes(
+    Opt<ImmPath> rootPath,
+    bool         withPath) const {
     Vec<ImmAdapter>           result;
     auto                      root = *this;
     ReflRecursiveVisitContext visitCtx;
 
     auto add_id = [&](ReflPath const& parent, ImmId const& id) {
-        ImmPath path;
-        if (rootPath) {
-            path = *rootPath;
+        if (withPath) {
+            ImmPath path;
+            if (rootPath) {
+                path = *rootPath;
+            } else {
+                path.root = this->id;
+            }
+            path.path.push_back(ImmPathStep{parent});
+            result.push_back(root.pass(id, path));
         } else {
-            path.root = this->id;
+            result.push_back(root.ctx.adaptUnrooted(id));
         }
-        path.path.push_back(ImmPathStep{parent});
-        result.push_back(root.pass(id, path));
     };
 
     switch_node_value(id, ctx, [&]<typename T>(T const& value) {
@@ -290,16 +296,19 @@ Vec<ImmAdapter> ImmAdapter::getAllSubnodes(Opt<ImmPath> rootPath) const {
 }
 
 Vec<ImmAdapter> ImmAdapter::getAllSubnodesDFS(
-    Opt<ImmPath> rootPath) const {
+    Opt<ImmPath> rootPath,
+    bool         withPath) const {
     Vec<ImmAdapter>                                    result;
     Func<void(ImmAdapter const&, ImmPath const& root)> aux;
     aux = [&](ImmAdapter const& it, ImmPath const& root) {
         result.push_back(it);
-        for (auto const& sub : it.getAllSubnodes(root)) {
+        for (auto const& sub : it.getAllSubnodes(root, withPath)) {
             aux(sub, sub.path);
         }
     };
-    for (auto const& it : getAllSubnodes(rootPath)) { aux(it, it.path); }
+    for (auto const& it : getAllSubnodes(rootPath, withPath)) {
+        aux(it, it.path);
+    }
     return result;
 }
 
@@ -347,8 +356,8 @@ SemSet FastTrackNodes{
 
 void ImmAstTrackingMapTransient::removeAllSubnodesOf(
     const ImmAdapter& parent) {
+    if (!isTrackingParent(parent)) { return; }
     __perf_trace("imm", "removeAllSubnodesOf");
-    if (FastTrackNodes.contains(parent->getKind())) { return; }
     for (auto const& sub : parent.getAllSubnodes(std::nullopt)) {
         if (isTrackingParent(sub) && parents.find(sub.id) != nullptr) {
             useNewParentTrack(sub.id);
@@ -360,8 +369,8 @@ void ImmAstTrackingMapTransient::removeAllSubnodesOf(
 
 void ImmAstTrackingMapTransient::insertAllSubnodesOf(
     const ImmAdapter& parent) {
+    if (!isTrackingParent(parent)) { return; }
     __perf_trace("imm", "insertAllSubnodesOf");
-    if (FastTrackNodes.contains(parent->getKind())) { return; }
     for (auto const& sub : parent.getAllSubnodes(std::nullopt)) {
         if (isTrackingParent(sub)) {
             setAsParentOf(parent.id, sub.id, sub.lastStep());

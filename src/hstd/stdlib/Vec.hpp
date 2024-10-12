@@ -500,6 +500,11 @@ struct SmallVec
         Base::pop_back();
     }
 
+    template <typename Iter>
+    void append(Iter begin, Iter end) {
+        insert(this->end(), begin, end);
+    }
+
     int size() const { return static_cast<int>(Base::size()); }
 
     /// \brief Access span of elements in mutable vector
@@ -553,6 +558,18 @@ struct std::formatter<SmallVec<T, Size>>
 template <typename T>
 struct std::hash<Vec<T>> {
     std::size_t operator()(Vec<T> const& it) const noexcept {
+        std::size_t result = 0;
+        for (int i = 0; i < it.size(); ++i) {
+            hax_hash_combine(result, i);
+            hax_hash_combine(result, it.at(i));
+        }
+        return result;
+    }
+};
+
+template <typename T, int Size>
+struct std::hash<SmallVec<T, Size>> {
+    std::size_t operator()(SmallVec<T, Size> const& it) const noexcept {
         std::size_t result = 0;
         for (int i = 0; i < it.size(); ++i) {
             hax_hash_combine(result, i);

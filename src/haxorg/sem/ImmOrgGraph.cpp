@@ -367,13 +367,13 @@ Opt<MapNodeProp> org::graph::MapInterface::getInitialNodeProp(
         auto sub = par->sub();
         for (auto const& it : enumerator(sub)) {
             if (!it.is_first()) {
-                org::eachSubnodeRec(it.value(), register_used_links);
+                org::eachSubnodeRec(it.value(), true, register_used_links);
             }
         }
     } else if (!NestedNodes.contains(node->getKind())) {
         GRAPH_MSG("registering nested outgoing links");
         auto __tmp = conf.scopeLevel();
-        org::eachSubnodeRec(node, register_used_links);
+        org::eachSubnodeRec(node, true, register_used_links);
     }
 
 

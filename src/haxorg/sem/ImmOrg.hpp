@@ -121,12 +121,13 @@ struct ImmPathStep {
 
 /// \brief Full path from the root of the document to a specific node.
 struct ImmPath {
+    using Store = SmallVec<ImmPathStep, 4>;
     /// \brief Root ID node
     ImmId root;
     /// \brief Sequence of jumps from the root of the document down to the
     /// specified target node. For the path iteration structure see \see
     /// ImmPathStep documentation.
-    Vec<ImmPathStep> path;
+    Store path;
 
 
     DESC_FIELDS(ImmPath, (root, path));
@@ -148,8 +149,7 @@ struct ImmPath {
         : root{root}, path{{step0}} {}
     /// \brief Path referring to some nested element in the tree (any
     /// number of jumps)
-    ImmPath(ImmId root, Vec<ImmPathStep> const& path)
-        : root{root}, path{path} {}
+    ImmPath(ImmId root, Store const& path) : root{root}, path{path} {}
     /// \brief Path referring to some nested element in the tree (any
     /// number of jumps)
     ImmPath(ImmId root, Span<ImmPathStep> const& span)
@@ -192,7 +192,7 @@ struct ImmPath {
     }
 
     bool operator==(ImmPath const& other) const {
-        return root == other.root && path == other.path;
+        return root == other.root && path.operator==(other.path);
     }
 
     bool operator<(ImmPath const& other) const {
@@ -859,8 +859,12 @@ struct ImmAdapter {
 
     Opt<ImmAdapter> getAdjacentNode(int offset) const;
     Opt<ImmAdapter> getParentSubtree() const;
-    Vec<ImmAdapter> getAllSubnodes(Opt<ImmPath> rootPath) const;
-    Vec<ImmAdapter> getAllSubnodesDFS(Opt<ImmPath> rootPath) const;
+    Vec<ImmAdapter> getAllSubnodes(
+        Opt<ImmPath> rootPath,
+        bool         withPath = true) const;
+    Vec<ImmAdapter> getAllSubnodesDFS(
+        Opt<ImmPath> rootPath,
+        bool         withPath = true) const;
 
     Vec<ImmAdapter> getParentChain(bool withSelf = true) const {
         Vec<ImmAdapter> result;
@@ -1282,7 +1286,7 @@ concept IsImmOrg = std::
 
 
 using SubnodeVisitor = Func<void(ImmAdapter)>;
-void eachSubnodeRec(org::ImmAdapter id, SubnodeVisitor cb);
+void eachSubnodeRec(org::ImmAdapter id, bool withPath, SubnodeVisitor cb);
 
 /// \brief Map immutable AST type to the sem type, defines inner type
 /// `sem_type`
