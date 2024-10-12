@@ -7,6 +7,7 @@ function(set_target_flags_impl)
   add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-macro-redefined")
   add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-unused-command-line-argument")
   add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-defaulted-function-deleted")
+  add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-ambiguous-reversed-operator")
   add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Qunused-arguments")
   add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Werror=implicit-fallthrough")
 

@@ -973,7 +973,7 @@ TEST_F(ImmOrgApi, ItearteParentNodes) {
 
     EXPECT_EQ(space_id->getKind(), OrgSemKind::Space);
     {
-        Vec<org::ImmId> parents = v1.context.getParentIds(space_id.id);
+        org::ImmParentIdVec parents = v1.context.getParentIds(space_id.id);
         EXPECT_EQ(parents.size(), 1);
         EXPECT_TRUE(parents.contains(par_id.id));
         EXPECT_EQ(parents.size(), 1);
@@ -2068,13 +2068,13 @@ TEST(ImmMapApi, Doc1Graph) {
     org::ImmAstVersion v = store.addRoot(n);
     // return;
 
-    writeTreeRepr(
-        v.getRootAdapter(),
-        "imm.txt",
-        org::ImmAdapter::TreeReprConf{
-            .withReflFields = true,
-            .withAuxFields  = true,
-        });
+    // writeTreeRepr(
+    //     v.getRootAdapter(),
+    //     "imm.txt",
+    //     org::ImmAdapter::TreeReprConf{
+    //         .withReflFields = true,
+    //         .withAuxFields  = true,
+    //     });
 
     {
         int count = 0;

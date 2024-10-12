@@ -254,10 +254,11 @@ namespace org {
 struct ImmAdapter;
 using ImmStrIdMap          = ImmMap<Str, ImmId>;
 using ImmParentPathVec     = SmallVec<ImmPathStep, 4>;
+using ImmParentIdVec       = SmallVec<ImmId, 4>;
 using ParentPathMap        = UnorderedMap<ImmId, ImmParentPathVec>;
-using ParentPathMapPtr     = SPtr<ParentPathMap>;
-using ImmParentMap         = ImmMap<ImmId, ParentPathMapPtr>;
+using ImmParentMap         = ImmMap<ImmId, ImmParentIdVec>;
 using ImmPanentTrackFilter = Func<bool(ImmAdapter const&)>;
+
 
 struct ImmAstTrackingMapTransient {
     ImmAstContext*               oldCtx;
@@ -269,17 +270,7 @@ struct ImmAstTrackingMapTransient {
     ImmParentMap::transient_type parents;
     ImmPanentTrackFilter const&  isTrackingParentImpl;
 
-    void setAsParentOf(
-        ImmId const&       parent,
-        ImmId const&       target,
-        ImmPathStep const& step);
-
-    /// \brief Copy existing parent track for the node `target` into a new
-    /// shared pointer. Parent tracking map uses shared pointers to avoid
-    /// copying the whole structure on each immutable/transient change.
-    /// This method effectively implements copy on write for the parent
-    /// map.
-    void useNewParentTrack(ImmId const& target);
+    void setAsParentOf(ImmId const& parent, ImmId const& target);
 
     /// \brief Remove all direct subnodes of the adapter.
     void removeAllSubnodesOf(ImmAdapter const& parent);
@@ -320,27 +311,22 @@ struct ImmAstTrackingMap {
     }
 
     bool isParentOf(ImmId const& parent, ImmId const& item) const {
-        return parents.contains(item)
-            && parents.at(item)->contains(parent);
+        return parents.contains(item) && parents.at(item).contains(parent);
     }
 
     /// \brief Get a list of all nodes that specified ID is used in. Due to
     /// value interning, each specific ID can be used in multiple places at
     /// once.
-    Vec<ImmId> getParentIds(ImmId const& it) const {
-        if (parents.contains(it)) {
-            return sorted(parents.at(it)->keys());
-        } else {
-            return {};
-        }
-    }
+    ImmParentIdVec const& getParentIds(ImmId const& it) const;
 
     /// \brief Get map of parents for the ID
-    ParentPathMap const& getParentsFor(ImmId const& it) const;
+    ParentPathMap getParentsFor(ImmId const& it, const ImmAstContext* ctx)
+        const;
     /// \brief Get full list of all paths that can be used to reach the
     /// target node. Resulting paths are not guaranteed to converge to a
     /// single root.
-    Vec<ImmUniqId> getPathsFor(ImmId const& it) const;
+    Vec<ImmUniqId> getPathsFor(ImmId const& it, ImmAstContext const* ctx)
+        const;
 
     ImmAstTrackingMapTransient transient(ImmAstContext* oldCtx) {
         return {
@@ -546,16 +532,16 @@ struct [[nodiscard]] ImmAstContext {
 
     DESC_FIELDS(ImmAstContext, (store, track));
 
-    Vec<ImmId> getParentIds(ImmId const& it) const {
+    ImmParentIdVec const& getParentIds(ImmId const& it) const {
         return track->getParentIds(it);
     }
 
-    ParentPathMap const& getParentsFor(ImmId const& it) const {
-        return track->getParentsFor(it);
+    ParentPathMap getParentsFor(ImmId const& it) const {
+        return track->getParentsFor(it, this);
     }
 
     Vec<ImmUniqId> getPathsFor(ImmId const& it) const {
-        return track->getPathsFor(it);
+        return track->getPathsFor(it, this);
     }
 
     Vec<ImmAdapter> getAdaptersFor(ImmId const& it) const;
@@ -865,6 +851,8 @@ struct ImmAdapter {
     Vec<ImmAdapter> getAllSubnodesDFS(
         Opt<ImmPath> rootPath,
         bool         withPath = true) const;
+
+    Vec<ImmPathStep> getRelativeSubnodePaths(ImmId const& subnode) const;
 
     Vec<ImmAdapter> getParentChain(bool withSelf = true) const {
         Vec<ImmAdapter> result;

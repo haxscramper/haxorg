@@ -312,38 +312,29 @@ Vec<ImmAdapter> ImmAdapter::getAllSubnodesDFS(
     return result;
 }
 
-void ImmAstTrackingMapTransient::setAsParentOf(
-    const ImmId&       parent,
-    const ImmId&       target,
-    const ImmPathStep& step) {
-    __perf_trace("imm", "setAsParentOf");
-    useNewParentTrack(target);
-    auto const* newParent = parents.find(target);
-    if (newParent == nullptr) {
-        parents.set(target, std::make_shared<ParentPathMap>());
+Vec<ImmPathStep> ImmAdapter::getRelativeSubnodePaths(
+    const ImmId& subnode) const {
+    Vec<ImmPathStep> result;
+    for (auto const& sub : getAllSubnodes(std::nullopt)) {
+        LOGIC_ASSERTION_CHECK(sub.path.path.size() == 1, "");
+        if (sub.id == subnode) { result.push_back(sub.path.path.at(0)); }
     }
 
-    if (!parents.at(target)->contains(parent)) {
-        parents.at(target)->insert_or_assign(parent, ImmParentPathVec{});
-    }
-
-    parents.at(target)->at(parent).push_back(step);
+    return result;
 }
 
-void ImmAstTrackingMapTransient::useNewParentTrack(const ImmId& target) {
-    __perf_trace("imm", "useNewParentTrack");
+void ImmAstTrackingMapTransient::setAsParentOf(
+    const ImmId& parent,
+    const ImmId& target) {
+    __perf_trace("imm", "setAsParentOf");
     auto const* newParent = parents.find(target);
-    auto const* oldParent = oldCtx->track->parents.find(target);
-    if (oldParent != nullptr                    //
-        && newParent != nullptr                 //
-        && oldParent->get() != nullptr          //
-        && oldParent->get() == newParent->get() //
-    ) {
-        // Copy old underlying value from the shared pointer to ensure that
-        // all modifications in the ast edit context are not reflected to
-        // the original immutable context.
-        parents.set(
-            target, std::make_shared<ParentPathMap>(*oldParent->get()));
+    if (newParent == nullptr) { parents.set(target, ImmParentIdVec{}); }
+
+    if (!parents.at(target).contains(parent)) {
+        parents.update(target, [&](ImmParentIdVec value) {
+            value.push_back(parent);
+            return value;
+        });
     }
 }
 
@@ -358,11 +349,15 @@ void ImmAstTrackingMapTransient::removeAllSubnodesOf(
     const ImmAdapter& parent) {
     if (!isTrackingParent(parent)) { return; }
     __perf_trace("imm", "removeAllSubnodesOf");
-    for (auto const& sub : parent.getAllSubnodes(std::nullopt)) {
-        if (isTrackingParent(sub) && parents.find(sub.id) != nullptr) {
-            useNewParentTrack(sub.id);
-            ParentPathMapPtr ptr = parents.at(sub.id);
-            ptr->erase(parent.id);
+    for (auto const& sub : parent.getAllSubnodes(std::nullopt, false)) {
+        auto subParents = parents.find(sub.id);
+        if (isTrackingParent(sub) && subParents != nullptr) {
+            if (subParents->contains(parent.id)) {
+                parents.update(sub.id, [&](ImmParentIdVec value) {
+                    value.erase(value.begin() + value.indexOf(parent.id));
+                    return value;
+                });
+            }
         }
     }
 }
@@ -371,10 +366,8 @@ void ImmAstTrackingMapTransient::insertAllSubnodesOf(
     const ImmAdapter& parent) {
     if (!isTrackingParent(parent)) { return; }
     __perf_trace("imm", "insertAllSubnodesOf");
-    for (auto const& sub : parent.getAllSubnodes(std::nullopt)) {
-        if (isTrackingParent(sub)) {
-            setAsParentOf(parent.id, sub.id, sub.lastStep());
-        }
+    for (auto const& sub : parent.getAllSubnodes(std::nullopt, false)) {
+        if (isTrackingParent(sub)) { setAsParentOf(parent.id, sub.id); }
     }
 }
 
@@ -839,20 +832,47 @@ Vec<ImmId> ImmAstReplaceGroup::newSubnodes(Vec<ImmId> oldSubnodes) const {
     return Vec<ImmId>{tmp.begin(), tmp.end()};
 }
 
-const ParentPathMap& ImmAstTrackingMap::getParentsFor(
+ImmParentIdVec EmptyImmParentIdVec;
+
+const ImmParentIdVec& ImmAstTrackingMap::getParentIds(
     const ImmId& it) const {
     if (parents.contains(it)) {
-        return *parents.at(it).get();
+        return parents.at(it);
+    } else {
+        return EmptyImmParentIdVec;
+    }
+}
+
+ParentPathMap ImmAstTrackingMap::getParentsFor(
+    const ImmId&         it,
+    ImmAstContext const* ctx) const {
+    if (parents.contains(it)) {
+        ParentPathMap result;
+        for (auto const& parent : parents.at(it)) {
+            for (auto const& relative :
+                 ctx->adaptUnrooted(parent).getRelativeSubnodePaths(it)) {
+                if (!result.contains(parent)) {
+                    result.insert_or_assign(parent, ImmParentPathVec{});
+                }
+
+                result.at(parent).push_back(relative);
+            }
+        }
+
+        return result;
     } else {
         return EmptyParentPathMap;
     }
 }
 
-Vec<ImmUniqId> ImmAstTrackingMap::getPathsFor(const ImmId& it) const {
+Vec<ImmUniqId> ImmAstTrackingMap::getPathsFor(
+    const ImmId&         it,
+    const ImmAstContext* ctx) const {
     Func<Vec<ImmPath>(ImmId const& id)> aux;
     aux = [&](ImmId const& id) -> Vec<ImmPath> {
         Vec<ImmPath> result;
-        for (auto const& [parentId, parentPaths] : getParentsFor(id)) {
+        for (auto const& [parentId, parentPaths] :
+             getParentsFor(id, ctx)) {
             auto auxRes = aux(parentId);
             if (auxRes.empty()) {
                 for (auto const& full : parentPaths) {
