@@ -228,6 +228,22 @@ void ImmAdapter::treeRepr(ColStream& os, const TreeReprConf& conf) const {
         });
 }
 
+bool ImmAdapter::isDirectParentOf(const ImmAdapter& other) const {
+    if (auto parent = other.getParent(); parent) {
+        return parent->id == this->id;
+    } else {
+        return false;
+    }
+}
+
+bool ImmAdapter::isIndirectParentOf(const ImmAdapter& other) const {
+    for (auto const& parent : other.getParentChain(false)) {
+        if (parent.id == this->id) { return true; }
+    }
+
+    return false;
+}
+
 Opt<ImmAdapter> ImmAdapter::getAdjacentNode(int offset) const {
     auto parent = getParent();
     if (parent) {
@@ -323,6 +339,34 @@ Vec<ImmPathStep> ImmAdapter::getRelativeSubnodePaths(
     return result;
 }
 
+Vec<ImmAdapter> ImmAdapter::getParentChain(bool withSelf) const {
+    Vec<ImmAdapter> result;
+    for (auto const& span : path.pathSpans()) {
+        result.push_back(ImmAdapter{
+            ImmPath{path.root, span},
+            ctx,
+        });
+    }
+    result.push_back(ImmAdapter{ImmPath{path.root}, ctx});
+    return result;
+}
+
+ImmAdapter ImmAdapter::at(int idx, bool withPath) const {
+    if (withPath) {
+        return at(
+            ctx->at(id)->subnodes.at(idx),
+            ImmPathStep::FieldIdx("subnodes", idx));
+    } else {
+        return ImmAdapter{ctx->at(id)->subnodes.at(idx), ctx, {}};
+    }
+}
+
+Vec<ImmAdapter> ImmAdapter::sub(bool withPath) const {
+    Vec<ImmAdapter> result;
+    for (int i = 0; i < size(); ++i) { result.push_back(at(i, withPath)); }
+    return result;
+}
+
 void ImmAstTrackingMapTransient::setAsParentOf(
     const ImmId& parent,
     const ImmId& target) {
@@ -331,6 +375,7 @@ void ImmAstTrackingMapTransient::setAsParentOf(
     if (newParent == nullptr) { parents.set(target, ImmParentIdVec{}); }
 
     if (!parents.at(target).contains(parent)) {
+        __perf_trace("imm", "update list of parents");
         parents.update(target, [&](ImmParentIdVec value) {
             value.push_back(parent);
             return value;
@@ -353,6 +398,7 @@ void ImmAstTrackingMapTransient::removeAllSubnodesOf(
         auto subParents = parents.find(sub.id);
         if (isTrackingParent(sub) && subParents != nullptr) {
             if (subParents->contains(parent.id)) {
+                __perf_trace("imm", "update list of parents");
                 parents.update(sub.id, [&](ImmParentIdVec value) {
                     value.erase(value.begin() + value.indexOf(parent.id));
                     return value;
@@ -923,6 +969,13 @@ ImmAstEditContext ImmAstContext::getEditContext() {
 }
 
 bool org::isTrackingParentDefault(const ImmAdapter& node) {
-    return !SemSet{OrgSemKind::Space, OrgSemKind::Word}.contains(
-        node->getKind());
+    return !SemSet{
+        OrgSemKind::Space,
+        OrgSemKind::Word,
+        OrgSemKind::BigIdent,
+        OrgSemKind::Time,
+        OrgSemKind::Punctuation,
+        OrgSemKind::Newline,
+    }
+                .contains(node.getKind());
 }

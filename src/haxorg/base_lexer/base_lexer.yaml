@@ -661,7 +661,7 @@ rules:
       - { do: pop, from: PROPERTY_LITERAL, to: INITIAL }
 
   # Properties with text content
-  - re: "{lead_space}:(created|origin|blocker):"
+  - re: "{lead_space}:(created):"
     token: ColonPropertyText
   - re: "{lead_space}:\\w+:"
     token: ColonPropertyName

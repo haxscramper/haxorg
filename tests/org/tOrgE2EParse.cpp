@@ -503,8 +503,14 @@ TEST(TestFiles, AllNodeCoverage) {
 
 sem::SemId<sem::Org> parseNode(CR<Str> source) {
     MockFull p{false, false};
-    p.run(source);
-    return p.toNode();
+    {
+        __perf_trace("parsing", "parse node");
+        p.run(source);
+    }
+    {
+        __perf_trace("convert", "convert");
+        return p.toNode();
+    }
 }
 
 TEST(OrgApi, LinkResolution) {
@@ -2059,14 +2065,14 @@ TEST(ImmMapApi, SubtreeBlockMap) {
 TEST(ImmMapApi, Doc1Graph) {
     __perf_trace("imm", "run test");
     fs::path file = fs::path{std::getenv("HOME")}
-                  / std::string{"tmp/doc1.org"};
+                  / std::string{"tmp/doc_graph.org"};
 
     if (!fs::exists(file)) { return; }
     auto n = parseNode(readFile(file));
 
     org::ImmAstContext store;
     org::ImmAstVersion v = store.addRoot(n);
-    // return;
+    return;
 
     // writeTreeRepr(
     //     v.getRootAdapter(),

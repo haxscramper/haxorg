@@ -78,6 +78,15 @@ template <sem::IsOrg T>
 Vec<sem::SemId<sem::Org>> getSubnodes(T const* t, bool withPath) { return t->subnodes; }
 // clang-format on
 
+bool is_kind(org::ImmAdapter const& ad, OrgSemKind kind) {
+    return ad.getKind() == kind;
+}
+
+template <sem::IsOrg T>
+bool is_kind(sem::SemId<T> const& ad, OrgSemKind kind) {
+    return ad->getKind() == kind;
+}
+
 /// \brief Cast sem ID type to target
 template <sem::IsOrg Out, sem::IsOrg In>
 sem::SemId<Out> org_cast(sem::SemId<In> arg) {
@@ -513,19 +522,20 @@ auto Stmt_getAttached(Handle handle, CR<Opt<Str>> kind) {
         auto sub_h = toHandle(sub, handle);
         if (kind) {
             auto k = normalize(*kind);
-            if (sub_h->is(OrgSemKind::CmdAttr)) {
+            if (is_kind(sub_h, OrgSemKind::CmdAttr)) {
                 auto attr = org_cast<sem::CmdAttr>(sub_h);
                 if ((k.starts_with("attr") && normalize(attr->target) == k)
                     || (normalize("attr_" + attr->target) == k)) {
                     result.push_back(sub_h);
                 }
             } else if (
-                sub_h->is(OrgSemKind::CmdCaption)
+                is_kind(sub_h, OrgSemKind::CmdCaption)
                 && normalize(k) == "caption") {
 
                 result.push_back(sub_h);
             } else if (
-                sub_h->is(OrgSemKind::CmdName) && normalize(k) == "name") {
+                is_kind(sub_h, OrgSemKind::CmdName)
+                && normalize(k) == "name") {
                 result.push_back(sub_h);
             }
         } else {
@@ -639,7 +649,7 @@ template <typename Handle>
 bool List_isDescriptionList(Handle handle) {
     auto h = getConstHandle(handle);
     for (const auto& sub : getSubnodes(handle, false)) {
-        if (sub->is(OrgSemKind::ListItem)) {
+        if (is_kind(sub, OrgSemKind::ListItem)) {
             if (ListItem_isDescriptionItem(org_cast<sem::ListItem>(sub))) {
                 return true;
             }
@@ -652,7 +662,7 @@ template <typename Handle>
 bool List_isNumberedList(Handle handle) {
     auto h = getConstHandle(handle);
     for (const auto& sub : getSubnodes(handle, false)) {
-        if (sub->is(OrgSemKind::ListItem)) {
+        if (is_kind(sub, OrgSemKind::ListItem)) {
             auto sub_as = org_cast<sem::ListItem>(sub);
             if constexpr (IsSemOrgInstance<Handle>) {
                 if (sub_as->bullet.has_value()) { return true; }

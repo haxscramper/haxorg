@@ -1385,6 +1385,33 @@ Vec<OrgConverter::ConvResult<Org>> OrgConverter::flatConvertAttached(
                 } else {
                     res_stmt->attached = buffer;
                 }
+
+
+                int offset = 0;
+
+                Opt<CRw<OrgAdapter>> next_opt = items.get(i + offset + 1);
+                while (next_opt) {
+                    if (next_opt->get().getKind() == onk::CmdTblfm) {
+                        print(
+                            fmt("tblfm attached {} + {} {}",
+                                i,
+                                offset,
+                                next_opt->get().id));
+                        auto tblfm = convertCmdTblfm(next_opt->get());
+                        res_stmt->attached.push_back(tblfm.unwrap());
+                        ++offset;
+                    } else {
+                        print(
+                            fmt("next node is not post-attached {}",
+                                next_opt->get().getKind()));
+                        break;
+                    }
+
+                    next_opt = items.get(i + offset + 1);
+                }
+
+                i += offset;
+
             } else {
                 print(
                     fmt("{} is not a statement, releasing attached",
@@ -1392,19 +1419,10 @@ Vec<OrgConverter::ConvResult<Org>> OrgConverter::flatConvertAttached(
                 for (auto const& buf : buffer) { result.push_back(buf); }
             }
             buffer.clear();
+
+
             result.push_back(res);
         }
-
-        int offset = 0;
-        for (auto next_opt = items.get(i + offset + 1);
-             next_opt && next_opt->get().getKind() == onk::CmdTblfm;
-             ++offset) {
-
-            auto tblfm = convertCmdTblfm(next_opt->get());
-            throw convert_logic_error::init("TODO");
-        }
-
-        i += offset;
     }
 
     for (auto const& buf : buffer) { result.push_back(buf); }

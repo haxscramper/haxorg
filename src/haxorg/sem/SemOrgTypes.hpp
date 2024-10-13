@@ -565,7 +565,7 @@ struct NamedProperty {
     bool operator==(sem::NamedProperty::CustomArgs const& other) const;
   };
 
-  /// \brief Custop property with unparsed arguments
+  /// \brief Custom property with unparsed arguments
   struct CustomRaw {
     CustomRaw() {}
     BOOST_DESCRIBE_CLASS(CustomRaw,
@@ -979,7 +979,7 @@ struct HashTag : public sem::Inline {
   bool prefixMatch(Vec<Str> const& prefix) const;
 };
 
-/// \brief Inline and regular footnote definition
+/// \brief Inline footnote definition
 ///
 /// \note in-text link to the footnotes are implemented using `Link` nodes
 struct InlineFootnote : public sem::Inline {

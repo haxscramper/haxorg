@@ -367,7 +367,7 @@ struct ImmHashTag : public org::ImmInline {
   bool operator==(org::ImmHashTag const& other) const;
 };
 
-/// \brief Inline and regular footnote definition
+/// \brief Inline footnote definition
 ///
 /// \note in-text link to the footnotes are implemented using `Link` nodes
 struct ImmInlineFootnote : public org::ImmInline {

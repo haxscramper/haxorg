@@ -757,6 +757,8 @@ struct ImmAdapter {
     /// for the node and then use the expression in the test itself.
     Str selfSelect() const;
 
+    OrgSemKind getKind() const { return id.getKind(); }
+
     ReflPathItem const& lastPath() const {
         return path.path.back().path.last();
     }
@@ -805,21 +807,9 @@ struct ImmAdapter {
         return ImmAdapter(id, ctx);
     }
 
-    bool isDirectParentOf(ImmAdapter const& other) const {
-        if (auto parent = other.getParent(); parent) {
-            return parent->id == this->id;
-        } else {
-            return false;
-        }
-    }
+    bool isDirectParentOf(ImmAdapter const& other) const;
 
-    bool isIndirectParentOf(ImmAdapter const& other) const {
-        for (auto const& parent : other.getParentChain(false)) {
-            if (parent.id == this->id) { return true; }
-        }
-
-        return false;
-    }
+    bool isIndirectParentOf(ImmAdapter const& other) const;
 
     bool isSubnodeOf(ImmAdapter const& other) const {
         return other->indexOf(this->id) != -1;
@@ -854,17 +844,7 @@ struct ImmAdapter {
 
     Vec<ImmPathStep> getRelativeSubnodePaths(ImmId const& subnode) const;
 
-    Vec<ImmAdapter> getParentChain(bool withSelf = true) const {
-        Vec<ImmAdapter> result;
-        for (auto const& span : path.pathSpans()) {
-            result.push_back(ImmAdapter{
-                ImmPath{path.root, span},
-                ctx,
-            });
-        }
-        result.push_back(ImmAdapter{ImmPath{path.root}, ctx});
-        return result;
-    }
+    Vec<ImmAdapter> getParentChain(bool withSelf = true) const;
 
     bool operator==(ImmAdapter const& id) const {
         return this->id == id.id;
@@ -893,15 +873,7 @@ struct ImmAdapter {
             ImmPathStep::Field(field));
     }
 
-    ImmAdapter at(int idx, bool withPath = true) const {
-        if (withPath) {
-            return at(
-                ctx->at(id)->subnodes.at(idx),
-                ImmPathStep::FieldIdx("subnodes", idx));
-        } else {
-            return ImmAdapter{ctx->at(id)->subnodes.at(idx), ctx, {}};
-        }
-    }
+    ImmAdapter at(int idx, bool withPath = true) const;
 
     ImmAdapter at(Vec<int> const& path, bool withPath = true) const {
         auto res = *this;
@@ -911,13 +883,7 @@ struct ImmAdapter {
 
     bool is(OrgSemKind kind) const { return get()->is(kind); }
 
-    Vec<ImmAdapter> sub(bool withPath = true) const {
-        Vec<ImmAdapter> result;
-        for (int i = 0; i < size(); ++i) {
-            result.push_back(at(i, withPath));
-        }
-        return result;
-    }
+    Vec<ImmAdapter> sub(bool withPath = true) const;
 
     template <typename T>
     Vec<ImmAdapterT<T>> subAs(bool withPath = true) const {

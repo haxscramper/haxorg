@@ -386,7 +386,7 @@ def get_subtree_property_types():
         ),
         GenTuStruct(
             t_nest_shared("CustomRaw", ["NamedProperty"]),
-            GenTuDoc("Custop property with unparsed arguments"),
+            GenTuDoc("Custom property with unparsed arguments"),
             nested=[GenTuPass("CustomRaw() {}")],
             methods=[eq_method(t_nest_shared("CustomRaw", ["NamedProperty"]))],
             fields=[
