@@ -3,6 +3,7 @@
 #include <hstd/stdlib/Enumerate.hpp>
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/stdlib/Ranges.hpp>
+#include <hstd/stdlib/Debug.hpp>
 
 struct DocLayout {
     GraphLayoutIR              ir;
@@ -185,6 +186,7 @@ DocLayout to_layout(DocGraph const& g) {
                     lyt.rectMap.at(target),
                 };
                 lyt.ir.edges.push_back(edge);
+                _dbg(edge);
                 lyt.ir.edgeConstraints.insert_or_assign(
                     edge,
                     GraphEdgeConstraint{
@@ -261,5 +263,8 @@ void run_block_graph_test() {
     auto col      = lyt.ir.doColaLayout();
     writeFile("/tmp/run_block_graph_test.json", to_json_eval(g).dump(2));
     writeFile("/tmp/layout_ir.json", to_json_eval(lyt.ir).dump(2));
+    writeFile(
+        "/tmp/layout_edgeConstraints.json",
+        to_json_eval(lyt.ir.edgeConstraints).dump(2));
     col.writeSvg("/tmp/run_block_graph_test.svg");
 }

@@ -369,6 +369,7 @@ struct [[refl]] GraphLayoutIR {
         (rectangles,
          edges,
          nodeConstraints,
+         edgeConstraints,
          subgraphs,
          edgeLabels,
          width,
