@@ -10,10 +10,11 @@
 #include "sem_tree_render.hpp"
 #include "story_grid.hpp"
 #include "imgui_utils.hpp"
+#include "block_graph.hpp"
 
 
 struct Config {
-    DECL_DESCRIBED_ENUM(Mode, SemTree, Outline, StoryGrid);
+    DECL_DESCRIBED_ENUM(Mode, SemTree, Outline, StoryGrid, Test);
 
     Str  file;
     Mode mode = Mode::SemTree;
@@ -343,6 +344,17 @@ void outline_tree_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
 }
 
 int main(int argc, char** argv) {
+    auto conf_file = fs::path{argv[1]};
+    CHECK(fs::is_regular_file(conf_file)) << conf_file;
+    auto conf_text = readFile(conf_file);
+    auto conf_json = json::parse(conf_text);
+    auto conf      = from_json_eval<Config>(conf_json);
+
+    if (conf.mode == Config::Mode::Test) {
+        run_block_graph_test();
+        return 0;
+    }
+
     if (!glfwInit()) { return 1; }
 
 
@@ -373,12 +385,6 @@ int main(int argc, char** argv) {
     ImGui_ImplOpenGL3_Init("#version 130");
 
 
-    auto conf_file = fs::path{argv[1]};
-    CHECK(fs::is_regular_file(conf_file)) << conf_file;
-    auto conf_text = readFile(conf_file);
-    auto conf_json = json::parse(conf_text);
-    auto conf      = from_json_eval<Config>(conf_json);
-
     auto text = readFile(fs::path{conf.file.toBase()});
 
     switch (conf.mode) {
@@ -394,6 +400,10 @@ int main(int argc, char** argv) {
         }
         case Config::Mode::StoryGrid: {
             story_grid_loop(window, conf.file);
+            break;
+        }
+        case Config::Mode::Test: {
+
             break;
         }
     }

@@ -19,6 +19,7 @@ list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/range-v3/lib/cmake/range-v3")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/json/share/cmake/nlohmann_json")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/lager/lib/cmake/Lager")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/immer/lib/cmake/Immer")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/adaptagrams/lib/cmake/Adaptagrams")
 
 find_package(Immer CONFIG REQUIRED)
 find_package(Lager CONFIG REQUIRED)
@@ -32,6 +33,7 @@ find_package(nlohmann_json CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(Haxorg CONFIG REQUIRED)
+find_package(Adaptagrams CONFIG REQUIRED)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(FONTCONFIG REQUIRED fontconfig)
@@ -44,7 +46,9 @@ add_executable(
   story_grid.hpp
   story_grid.cpp
   imgui_utils.cpp
-  imgui_utils.hpp)
+  imgui_utils.hpp
+  block_graph.cpp
+  block_graph.hpp)
 
 set(BASE "${CMAKE_SOURCE_DIR}")
 
@@ -67,6 +71,7 @@ target_link_libraries(
           absl::log
           absl::base
           absl::flags
+          haxorg::adaptagrams
           haxorg::haxorg
           haxorg::hstd
           range-v3::range-v3)
