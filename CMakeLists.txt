@@ -120,7 +120,7 @@ add_subdirectory(scripts/cxx_repository)
 add_subdirectory(scripts/cxx_codegen)
 
 install(
-  TARGETS haxorg hstd
+  TARGETS haxorg hstd adaptagrams
   EXPORT HaxorgTargets
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib

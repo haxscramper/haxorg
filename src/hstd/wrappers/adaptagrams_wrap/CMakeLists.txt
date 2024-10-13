@@ -14,7 +14,14 @@ target_link_libraries(
          absl::log
          absl::base)
 
-target_include_directories(adaptagrams PUBLIC "${COLA_DIR}")
+target_include_directories(adaptagrams PUBLIC $<BUILD_INTERFACE:${COLA_DIR}>
+                                              $<INSTALL_INTERFACE:include>)
+
+install(
+  DIRECTORY ${COLA_DIR}/
+  DESTINATION include
+  FILES_MATCHING
+  PATTERN "*.h")
 
 glob_add_sources2(
   TARGET
@@ -37,5 +44,3 @@ target_link_libraries(py_adaptagrams PRIVATE hstd ${PYTHON_LIBRARIES} ubsan haxo
 if(${ORG_USE_PERFETTO})
   target_link_libraries(py_adaptagrams PRIVATE Perfetto::perfetto)
 endif()
-
-
