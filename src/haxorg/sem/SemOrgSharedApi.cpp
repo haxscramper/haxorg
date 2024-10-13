@@ -553,7 +553,7 @@ auto Stmt_getCaption(Handle handle) {
     for (auto const& it : Stmt_getAttached(handle, "caption")) {
         auto cap = org_cast<sem::CmdCaption>(toHandle(it, handle));
         if constexpr (IsSemOrgInstance<Handle>) {
-            result.push_back(toHandle(to_api(cap).text));
+            result.push_back(toHandle(to_api(cap).text, handle));
         } else {
             result.push_back(toHandle(to_api(cap).getText(), handle));
         }
@@ -567,7 +567,11 @@ Vec<Str> Stmt_getName(Handle handle) {
     Vec<Str> result;
     for (auto const& it : Stmt_getAttached(handle, "name")) {
         auto cap = org_cast<sem::CmdName>(toHandle(it, handle));
-        result.push_back(to_api(cap)->name);
+        if constexpr (IsSemOrgInstance<Handle>) {
+            result.push_back(to_api(cap).name);
+        } else {
+            result.push_back(to_api(cap)->name);
+        }
     }
 
     return result;
@@ -807,6 +811,8 @@ Str sem::Attr::getVarname() const { return arg.varname.value(); }
 Vec<sem::AttrValue> sem::Stmt::getAttrs(const Opt<Str>& kind) const { return Stmt_getAttrs(this, kind); }
 Opt<sem::AttrValue> sem::Stmt::getFirstAttr(const Str& kind) const { return Stmt_getFirstAttr(this, kind); }
 Vec<sem::SemId<sem::Org>> sem::Stmt::getAttached(Opt<Str> const& kind) const { return Stmt_getAttached(this, kind); }
+Vec<sem::SemId<sem::Org>> sem::Stmt::getCaption() const { return Stmt_getCaption(this); }
+Vec<Str> sem::Stmt::getName() const { return Stmt_getName(this); }
 
 Opt<sem::AttrValue> sem::Cmd::getFirstAttr(CR<Str> kind) const { return Cmd_getFirstAttr(this, kind); }
 Vec<sem::AttrValue> sem::Attrs::getAttrs(CR<Opt<Str>> param) const { return Attrs_getAttrs(this, param); }

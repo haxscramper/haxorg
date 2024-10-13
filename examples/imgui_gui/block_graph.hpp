@@ -38,6 +38,7 @@ struct std::hash<DocNode> {
 
 struct DocGraph {
     Vec<DocBlockStack> lanes;
+    DESC_FIELDS(DocGraph, (lanes));
 
     DocBlock const& at(DocNode const& node) const {
         return lanes.at(node.lane).blocks.at(node.row);

@@ -1,27 +1,103 @@
 #include "block_graph.hpp"
 #include <hstd/wrappers/adaptagrams_wrap/adaptagrams_ir.hpp>
 #include <hstd/stdlib/Enumerate.hpp>
+#include <hstd/stdlib/Json.hpp>
+#include <hstd/stdlib/Ranges.hpp>
 
 struct DocLayout {
     GraphLayoutIR              ir;
     UnorderedMap<DocNode, int> rectMap;
 };
 
+template <typename T>
+struct JsonSerde<Slice<T>> {
+    static T from_json(json const& j) {
+        return slice<T>(
+            JsonSerde<T>::from_json(j["first"]),
+            JsonSerde<T>::from_json(j["last"]));
+    }
+
+    static json to_json(Slice<T> const& value) {
+        return json::object({
+            {"first", JsonSerde<T>::to_json(value.first)},
+            {"last", JsonSerde<T>::to_json(value.last)},
+        });
+    }
+};
+
+GraphNodeConstraint::Align::Spec spec(int rect) {
+    return GraphNodeConstraint::Align::Spec{.node = rect};
+}
+
 DocLayout to_layout(DocGraph const& g) {
     DocLayout lyt;
 
-    for (auto const& lane : enumerator(g.lanes)) {
-        for (auto const& row : lane.value().visibleRange) {
-            DocNode node{.lane = lane.index(), .row = row};
+    Vec<GraphNodeConstraint::Align> laneAlignments;
+    for (auto const& [lane_idx, lane] : enumerate(g.lanes)) {
+        for (auto const& row : lane.visibleRange) {
+            DocNode node{.lane = lane_idx, .row = row};
             lyt.ir.rectangles.push_back(GraphSize{
-                .w = static_cast<double>(
-                    lane.value().blocks.at(row).width),
-                .h = static_cast<double>(
-                    lane.value().blocks.at(row).height),
+                .w = static_cast<double>(lane.blocks.at(row).width),
+                .h = static_cast<double>(lane.blocks.at(row).height),
             });
 
             int idx = lyt.ir.rectangles.high();
             lyt.rectMap.insert_or_assign(node, idx);
+        }
+
+        GraphNodeConstraint::Align align;
+
+        for (auto const& row : lane.visibleRange) {
+            DocNode node{.lane = lane_idx, .row = row};
+            align.nodes.push_back(GraphNodeConstraint::Align::Spec{
+                .node = lyt.rectMap.at(node)});
+
+            auto next_row = row + 1;
+            if (lane.visibleRange.contains(next_row)) {
+                DocNode next{.lane = lane_idx, .row = next_row};
+                lyt.ir.nodeConstraints.push_back(
+                    GraphNodeConstraint{GraphNodeConstraint::Separate{
+                        .left  = {Vec{spec(lyt.rectMap.at(node))}},
+                        .right = {Vec{spec(lyt.rectMap.at(next))}},
+                        .separationDistance //
+                        = float(
+                              lane.blocks.at(row).height
+                              + lane.blocks.at(next_row).height + 100)
+                        / 2.0f,
+                        .isExactSeparation = true,
+                    }});
+            }
+        }
+
+        align.dimension = GraphDimension::XDIM;
+        laneAlignments.push_back(align);
+    }
+
+    for (auto const& [lane_idx, lane] : enumerate(g.lanes)) {
+        if (lane_idx < g.lanes.high()) {
+            int         next_idx = lane_idx + 1;
+            auto const& next     = g.lanes.at(next_idx);
+
+            float lane_width //
+                = rs::max(
+                    lane.blocks | rv::transform([](DocBlock const& b) {
+                        return float(b.width);
+                    }));
+
+            float next_width //
+                = rs::max(
+                    next.blocks | rv::transform([](DocBlock const& b) {
+                        return float(b.width);
+                    }));
+
+            lyt.ir.nodeConstraints.push_back(
+                GraphNodeConstraint{GraphNodeConstraint::Separate{
+                    .left  = laneAlignments.at(lane_idx),
+                    .right = laneAlignments.at(next_idx),
+                    .separationDistance //
+                    = float(lane_width + next_width + 100) / 2.0f,
+                    .isExactSeparation = true,
+                }});
         }
     }
 
@@ -107,5 +183,6 @@ void run_block_graph_test() {
 
     auto lyt = to_layout(g);
     auto col = lyt.ir.doColaLayout();
+    writeFile("/tmp/run_block_graph_test.json", to_json_eval(g).dump(2));
     col.writeSvg("/tmp/run_block_graph_test.svg");
 }

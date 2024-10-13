@@ -71,6 +71,11 @@ target_link_libraries(
           absl::log
           absl::base
           absl::flags
+          Adaptagrams::dialect
+          Adaptagrams::cola
+          Adaptagrams::avoid
+          Adaptagrams::topology
+          Adaptagrams::vpsc
           haxorg::adaptagrams
           haxorg::haxorg
           haxorg::hstd
