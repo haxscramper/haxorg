@@ -834,9 +834,10 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
         ir.rectPointers, ccs, &rootCluster, idMap};
 
     if (!edges.empty()) {
-        // ir.router->setTopologyAddon(&topologyAddon);
+        // ir.router->setRoutingParameter(Avoid::segmentPenalty, 50);
+        ir.router->setRoutingOption(
+            Avoid::nudgeOrthogonalSegmentsConnectedToShapes, true);
         ir.router->processTransaction();
-        // ir.router->outputInstanceToSVG("adaptagrams_debug");
     }
 
     return ir;
