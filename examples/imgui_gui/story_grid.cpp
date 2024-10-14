@@ -10,13 +10,6 @@
 
 #include <fontconfig/fontconfig.h>
 
-ImVec2 operator+(const ImVec2& lhs, const ImVec2& rhs) {
-    return ImVec2(lhs.x + rhs.x, lhs.y + rhs.y);
-}
-
-ImVec2 operator-(const ImVec2& lhs, const ImVec2& rhs) {
-    return ImVec2(lhs.x - rhs.x, lhs.y - rhs.y);
-}
 
 Opt<Str> get_fontconfig_path(std::string const& fontname) {
     FcInit();
@@ -209,7 +202,7 @@ void render_tree_row(
 
     if (skipped && row.nested.empty()) { return; };
 
-    ImGui::TableNextRow();
+    ImGui::TableNextRow(ImGuiTableRowFlags_None, row.getHeight());
     CTX_MSG(fmt(
         "row {} {}", ImGui::TableGetRowIndex(), row.columns.at("title")));
     ctx.rowPositions[row.flatIdx] = ImGui::GetCursorScreenPos();
@@ -285,35 +278,56 @@ void render_tree_row(
     }
 }
 
-Vec<GridAction> render_story_grid(GridDocument& doc, GridContext& ctx) {
+Vec<GridAction> render_story_grid(GridModel& model) {
     Vec<GridAction> result;
-    CTX_MSG(fmt("doc rows {}", doc.rows.size()));
+    auto&           ctx = model.conf;
+    CTX_MSG(fmt("doc rows {}", model.document.rows.size()));
 
-    if (ImGui::BeginTable(
-            "TreeTable",
-            1 + ctx.columns.size(),
-            ImGuiTableFlags_ScrollY       //
-                | ImGuiTableFlags_Borders //
-                | ImGuiTableFlags_RowBg   //
-                | ImGuiTableFlags_SizingFixedFit)) {
+    int tableWidth = 0;
+    for (auto const& col : ctx.columns) { tableWidth += col.width; }
 
-        ImGui::TableSetupColumn(
-            "Tree", ImGuiTableColumnFlags_WidthFixed, tree_fold_column);
-        for (auto const& col : ctx.columns) {
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    ImGui::SetNextWindowSize(
+        ImVec2(tableWidth, model.document.getHeight()));
+    if (ImGui::Begin(
+            "Standalone Table Window",
+            nullptr,
+            ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize)) {
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+        if (ImGui::BeginTable(
+                "TreeTable",
+                1 + ctx.columns.size(),
+                ImGuiTableFlags_ScrollY              //
+                    | ImGuiTableFlags_Borders        //
+                    | ImGuiTableFlags_RowBg          //
+                    | ImGuiTableFlags_SizingFixedFit //
+                    | ImGuiTableFlags_NoHostExtendX)) {
+
             ImGui::TableSetupColumn(
-                col.name.c_str(),
+                "Tree",
                 ImGuiTableColumnFlags_WidthFixed,
-                col.width);
+                tree_fold_column);
+            for (auto const& col : ctx.columns) {
+                ImGui::TableSetupColumn(
+                    col.name.c_str(),
+                    ImGuiTableColumnFlags_WidthFixed,
+                    col.width);
+            }
+            ImGui::TableSetupScrollFreeze(0, 1);
+            ImGui::TableHeadersRow();
+
+            for (auto& sub : model.document.rows) {
+                render_tree_row(sub, result, ctx);
+            }
+
+            ImGui::TableNextRow(ImGuiTableRowFlags_None, 800.0f);
+            ImGui::TableNextColumn();
+
+            ImGui::EndTable();
         }
-        ImGui::TableSetupScrollFreeze(0, 1);
-        ImGui::TableHeadersRow();
 
-        for (auto& sub : doc.rows) { render_tree_row(sub, result, ctx); }
-
-        ImGui::TableNextRow(ImGuiTableRowFlags_None, 800.0f);
-        ImGui::TableNextColumn();
-
-        ImGui::EndTable();
+        ImGui::PopStyleVar();
+        ImGui::End();
     }
 
     return result;
@@ -347,13 +361,13 @@ void story_grid_loop(GLFWwindow* window, std::string const& file) {
 
 
     model.conf.setTraceFile("/tmp/story_grid_trace.txt");
-    model.conf.getColumn("title").width         = 300;
-    model.conf.getColumn("event").width         = 400;
-    model.conf.getColumn("note").width          = 300;
-    model.conf.getColumn("turning_point").width = 300;
-    model.conf.getColumn("value").width         = 200;
-    model.conf.getColumn("location").width      = 240;
-    model.conf.getColumn("location").edit       = GridColumn::EditMode::
+    model.conf.getColumn("title").width = 300;
+    model.conf.getColumn("event").width = 400;
+    model.conf.getColumn("note").width  = 300;
+    // model.conf.getColumn("turning_point").width = 300;
+    // model.conf.getColumn("value").width         = 200;
+    model.conf.getColumn("location").width = 240;
+    model.conf.getColumn("location").edit  = GridColumn::EditMode::
         SingleLine;
 
     bool first = true;
@@ -385,8 +399,7 @@ void story_grid_loop(GLFWwindow* window, std::string const& file) {
             model.updateDocument();
         }
 
-        Vec<GridAction> updates = render_story_grid(
-            model.document, model.conf);
+        Vec<GridAction> updates = render_story_grid(model);
         ImGui::End();
         frame_end(window);
         if (!updates.empty()) {

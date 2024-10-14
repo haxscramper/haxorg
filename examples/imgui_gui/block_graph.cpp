@@ -142,46 +142,62 @@ DocLayout to_layout(DocGraph const& g) {
 
 DocNode n(int lane, int row) { return DocNode{.lane = lane, .row = row}; }
 
-void render_point(const GraphPoint& point) {
+void render_point(const GraphPoint& point, ImVec2 const& shift) {
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     draw_list->AddCircleFilled(
-        ImVec2(point.x, point.y), 3.0f, IM_COL32(255, 0, 0, 255));
+        ImVec2(point.x, point.y) + shift, 3.0f, IM_COL32(255, 0, 0, 255));
 }
 
-void render_path(const GraphPath& path) {
+void render_path(const GraphPath& path, ImVec2 const& shift) {
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     for (size_t i = 0; i < path.points.size() - 1; ++i) {
         const GraphPoint& p1 = path.points[i];
         const GraphPoint& p2 = path.points[i + 1];
         draw_list->AddLine(
-            ImVec2(p1.x, p1.y),
-            ImVec2(p2.x, p2.y),
+            ImVec2(p1.x, p1.y) + shift,
+            ImVec2(p2.x, p2.y) + shift,
             IM_COL32(0, 255, 0, 255),
             2.0f);
     }
 }
 
-void render_rect(const GraphRect& rect) {
+void render_rect(const GraphRect& rect, ImVec2 const& shift) {
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     draw_list->AddRect(
-        ImVec2(rect.left, rect.top),
-        ImVec2(rect.left + rect.width, rect.top + rect.height),
+        ImVec2(rect.left, rect.top) + shift,
+        ImVec2(rect.left + rect.width, rect.top + rect.height) + shift,
         IM_COL32(0, 0, 255, 255),
         0.0f,
         0,
         2.0f);
 }
 
-void render_edge(const GraphLayoutIR::Edge& edge) {
-    for (const auto& path : edge.paths) { render_path(path); }
+void render_edge(const GraphLayoutIR::Edge& edge, ImVec2 const& shift) {
+    for (const auto& path : edge.paths) { render_path(path, shift); }
     if (edge.labelRect.has_value()) {
-        render_rect(edge.labelRect.value());
+        render_rect(edge.labelRect.value(), shift);
     }
 }
 
-void render_result(GraphLayoutIR::Result const& res) {
-    for (auto const& rect : res.fixed) { render_rect(rect); }
-    for (auto const& [key, path] : res.lines) { render_edge(path); }
+void render_result(GraphLayoutIR::Result const& res, ImVec2 const& shift) {
+    for (auto const& rect : res.fixed) { render_rect(rect, shift); }
+    for (auto const& [key, path] : res.lines) { render_edge(path, shift); }
+}
+
+void graph_render_loop(DocGraph const& g, GLFWwindow* window) {
+    auto lyt  = to_layout(g);
+    auto col  = lyt.ir.doColaLayout();
+    auto conv = col.convert();
+
+    ImVec2 shift{20, 20};
+
+    while (!glfwWindowShouldClose(window)) {
+        frame_start();
+        fullscreen_window_begin();
+        render_result(conv, shift);
+        ImGui::End();
+        frame_end(window);
+    }
 }
 
 void run_block_graph_test(GLFWwindow* window) {
@@ -253,15 +269,7 @@ void run_block_graph_test(GLFWwindow* window) {
             fmt("/tmp/run_block_graph_test_{}", i));
     }
 
-    auto lyt  = to_layout(g);
-    auto col  = lyt.ir.doColaLayout();
-    auto conv = col.convert();
-
-    while (!glfwWindowShouldClose(window)) {
-        frame_start();
-        render_result(conv);
-        frame_end(window);
-    }
+    graph_render_loop(g, window);
 }
 
 int DocBlockStack::getBlockHeightStart(int blockIdx) const {

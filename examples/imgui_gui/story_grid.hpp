@@ -43,10 +43,32 @@ struct GridRow {
     UnorderedMap<Str, GridCell>       columns;
     Vec<GridRow>                      nested;
     DESC_FIELDS(GridRow, (columns, origin, flatIdx, nested));
+
+    int getHeight() const {
+        return rs::max(
+            own_view(columns.keys()) | rv::transform([&](Str const& col) {
+                return columns.at(col).height;
+            }));
+    }
+
+    int getHeightRec() const {
+        return getHeight()
+             + rs::fold_left(
+                   nested | rv::transform([](GridRow const& r) {
+                       return r.getHeightRec();
+                   }),
+                   0,
+                   [](int lhs, int rhs) { return lhs + rhs; });
+    }
 };
 
 struct GridDocument {
     Vec<GridRow> rows;
+    int          getHeight() const {
+        int res = 0;
+        for (auto const& row : rows) { res += row.getHeightRec(); }
+        return res;
+    }
 
     DESC_FIELDS(GridDocument, (rows));
 };
