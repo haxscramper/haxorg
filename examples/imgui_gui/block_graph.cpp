@@ -10,17 +10,21 @@ struct DocLayout {
     UnorderedMap<DocNode, int> rectMap;
 };
 
+using GC = GraphNodeConstraint;
 
-GraphNodeConstraint::Align::Spec spec(int rect) {
-    return GraphNodeConstraint::Align::Spec{.node = rect};
-}
+GC::Align::Spec spec(int rect) { return GC::Align::Spec{.node = rect}; }
 
 DocLayout to_layout(DocGraph const& g) {
     DocLayout lyt;
 
-    Vec<GraphNodeConstraint::Align> laneAlignments;
+    Vec<GC::Align>       laneAlignments;
+    Vec<GC::Align::Spec> topLaneAlign;
     for (auto const& [lane_idx, lane] : enumerate(g.lanes)) {
-        for (auto const& row : lane.visibleRange) {
+        Slice<int> visibleBlocks = lane.getVisibleBlocks(
+            slice<int>(0, int(g.visible.height())));
+
+        Opt<GC::Align::Spec> first;
+        for (int row : visibleBlocks) {
             DocNode node{.lane = lane_idx, .row = row};
             lyt.ir.rectangles.push_back(GraphSize{
                 .w = static_cast<double>(lane.blocks.at(row).width),
@@ -29,38 +33,55 @@ DocLayout to_layout(DocGraph const& g) {
 
             int idx = lyt.ir.rectangles.high();
             lyt.rectMap.insert_or_assign(node, idx);
+            if (!first) {
+                first = GC::Align::Spec{
+                    .node   = idx,
+                    .offset = static_cast<double>(
+                        lane.getBlockHeightStart(row)),
+                };
+            }
         }
 
-        GraphNodeConstraint::Align align;
+        if (first) { topLaneAlign.push_back(first.value()); }
 
-        for (auto const& row : lane.visibleRange) {
+        GC::Align align;
+
+        for (auto const& row : visibleBlocks) {
             DocNode node{.lane = lane_idx, .row = row};
-            align.nodes.push_back(GraphNodeConstraint::Align::Spec{
-                .node = lyt.rectMap.at(node)});
+            align.nodes.push_back(
+                GC::Align::Spec{.node = lyt.rectMap.at(node)});
 
             auto next_row = row + 1;
-            if (lane.visibleRange.contains(next_row)) {
+            if (visibleBlocks.contains(next_row)) {
                 DocNode next{.lane = lane_idx, .row = next_row};
-                lyt.ir.nodeConstraints.push_back(
-                    GraphNodeConstraint{GraphNodeConstraint::Separate{
-                        .left = GraphNodeConstraint::
-                            Align{.nodes = Vec{spec(lyt.rectMap.at(node))}, .dimension = GraphDimension::YDIM},
-                        .right = GraphNodeConstraint::
-                            Align{.nodes = Vec{spec(lyt.rectMap.at(next))}, .dimension = GraphDimension::YDIM},
-                        .separationDistance //
-                        = float(
-                              lane.blocks.at(row).height
-                              + lane.blocks.at(next_row).height + 100)
-                        / 2.0f,
-                        .isExactSeparation = true,
-                        .dimension         = GraphDimension::YDIM,
-                    }});
+                lyt.ir.nodeConstraints.push_back(GraphNodeConstraint{GC::Separate{
+                    .left = GC::
+                        Align{.nodes = Vec{spec(lyt.rectMap.at(node))}, .dimension = GraphDimension::YDIM},
+                    .right = GC::
+                        Align{.nodes = Vec{spec(lyt.rectMap.at(next))}, .dimension = GraphDimension::YDIM},
+                    .separationDistance //
+                    = float(
+                        float(
+                            lane.blocks.at(row).height
+                            + lane.blocks.at(next_row).height)
+                            / 2.0f
+                        + lane.blocks.at(row).bottomMargin
+                        + lane.blocks.at(next_row).topMargin),
+                    .isExactSeparation = true,
+                    .dimension         = GraphDimension::YDIM,
+                }});
             }
         }
 
         align.dimension = GraphDimension::XDIM;
         laneAlignments.push_back(align);
     }
+
+    _dbg(topLaneAlign);
+    lyt.ir.nodeConstraints.push_back(GraphNodeConstraint{GC::Align{
+        .nodes     = topLaneAlign,
+        .dimension = GraphDimension::YDIM,
+    }});
 
     for (auto const& [lane_idx, lane] : enumerate(g.lanes)) {
         if (lane_idx < g.lanes.high()) {
@@ -80,11 +101,13 @@ DocLayout to_layout(DocGraph const& g) {
                     }));
 
             lyt.ir.nodeConstraints.push_back(
-                GraphNodeConstraint{GraphNodeConstraint::Separate{
+                GraphNodeConstraint{GC::Separate{
                     .left  = laneAlignments.at(lane_idx),
                     .right = laneAlignments.at(next_idx),
                     .separationDistance //
-                    = float(lane_width + next_width + 100) / 2.0f,
+                    = float(
+                        float(lane_width + next_width) / 2.0f
+                        + lane.rightMargin + next.leftMargin),
                     .isExactSeparation = true,
                     .dimension         = GraphDimension::XDIM,
                 }});
@@ -95,18 +118,20 @@ DocLayout to_layout(DocGraph const& g) {
         for (auto const& row : lane.value().visibleRange) {
             DocNode source{.lane = lane.index(), .row = row};
             for (auto const& target : g.at(source).outEdges) {
-                GraphEdge edge{
-                    lyt.rectMap.at(source),
-                    lyt.rectMap.at(target),
-                };
-                lyt.ir.edges.push_back(edge);
-                _dbg(edge);
-                lyt.ir.edgeConstraints.insert_or_assign(
-                    edge,
-                    GraphEdgeConstraint{
-                        .sourcePort = GraphEdgeConstraint::Port::East,
-                        .targetPort = GraphEdgeConstraint::Port::West,
-                    });
+                if (lyt.rectMap.contains(source)
+                    && lyt.rectMap.contains(target)) {
+                    GraphEdge edge{
+                        lyt.rectMap.at(source),
+                        lyt.rectMap.at(target),
+                    };
+                    lyt.ir.edges.push_back(edge);
+                    lyt.ir.edgeConstraints.insert_or_assign(
+                        edge,
+                        GraphEdgeConstraint{
+                            .sourcePort = GraphEdgeConstraint::Port::East,
+                            .targetPort = GraphEdgeConstraint::Port::West,
+                        });
+                }
             }
         }
     }
@@ -118,7 +143,7 @@ DocNode n(int lane, int row) { return DocNode{.lane = lane, .row = row}; }
 
 void run_block_graph_test() {
     int  w     = 75;
-    int  h     = 25;
+    int  h     = 50;
     auto lane0 = Vec<DocBlock>{
         // 0.0
         DocBlock{.width = w, .height = h, .outEdges = {n(1, 0)}},
@@ -156,29 +181,69 @@ void run_block_graph_test() {
     };
 
     DocGraph g{
-        .lanes = {
-            DocBlockStack{
-                .blocks       = lane0,
-                .visibleRange = slice(0, 2),
-            },
-            DocBlockStack{
-                .blocks       = lane1,
-                .visibleRange = slice(0, 4),
-            },
-            DocBlockStack{
-                .blocks       = lane2,
-                .visibleRange = slice(0, 3),
-            },
+        .lanes
+        = {DocBlockStack{
+               .blocks       = lane0,
+               .visibleRange = slice(0, 2),
+           },
+           DocBlockStack{
+               .blocks       = lane1,
+               .visibleRange = slice(0, 4),
+           },
+           DocBlockStack{
+               .blocks       = lane2,
+               .visibleRange = slice(0, 3),
+           }},
+        .visible = GraphSize{
+            .w = 1200,
+            .h = 1200,
         }};
 
-    auto lyt      = to_layout(g);
-    lyt.ir.height = 10000;
-    lyt.ir.width  = 10000;
-    auto col      = lyt.ir.doColaLayout();
-    writeFile("/tmp/run_block_graph_test.json", to_json_eval(g).dump(2));
-    writeFile("/tmp/layout_ir.json", to_json_eval(lyt.ir).dump(2));
-    writeFile(
-        "/tmp/layout_edgeConstraints.json",
-        to_json_eval(lyt.ir.edgeConstraints).dump(2));
-    col.writeSvg("/tmp/run_block_graph_test.svg");
+    g.lanes.at(1).scrollOffset -= 100;
+    for (int i = 0; i < 5; ++i) {
+        auto lyt = to_layout(g);
+        g.lanes.at(1).scrollOffset += 100;
+        lyt.ir.height = 10000;
+        lyt.ir.width  = 10000;
+        auto col      = lyt.ir.doColaLayout();
+        col.router->outputInstanceToSVG(
+            fmt("/tmp/run_block_graph_test_{}", i));
+    }
+}
+
+int DocBlockStack::getBlockHeightStart(int blockIdx) const {
+    int start = scrollOffset;
+    for (int i = 0; i < blockIdx; ++i) {
+        start += blocks.at(i).fullHeight();
+    }
+    return start;
+}
+
+bool DocBlockStack::inSpan(int blockIdx, Slice<int> heightRange) const {
+    auto span = blocks.at(blockIdx).heightSpan(
+        getBlockHeightStart(blockIdx));
+    return heightRange.overlap(span).has_value();
+}
+
+Slice<int> DocBlockStack::getVisibleBlocks(Slice<int> heightRange) const {
+    Slice<int> res;
+    res.first = -1;
+    res.last  = -1;
+    for (int block : visibleRange) {
+        if (inSpan(block, heightRange)) {
+            if (res.last == -1) {
+                res.last = block;
+            } else {
+                res.last = std::max(block, res.last);
+            }
+
+            if (res.first == -1) {
+                res.first = block;
+            } else {
+                res.first = std::min(block, res.first);
+            }
+        }
+    }
+
+    return res;
 }

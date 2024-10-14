@@ -1,6 +1,7 @@
 #pragma once
 
 #include <hstd/stdlib/Vec.hpp>
+#include <hstd/wrappers/adaptagrams_wrap/adaptagrams_ir.hpp>
 
 struct DocNode {
     int  lane;
@@ -15,14 +16,32 @@ struct DocBlock {
     int          width;
     int          height;
     Vec<DocNode> outEdges;
+    int          topMargin    = 5;
+    int          bottomMargin = 5;
 
-    DESC_FIELDS(DocBlock, (width, height, outEdges));
+    int fullHeight() const { return height + topMargin + bottomMargin; }
+
+    Slice<int> heightSpan(int start) const {
+        return slice(start, start + fullHeight());
+    }
+
+    DESC_FIELDS(
+        DocBlock,
+        (width, height, outEdges, topMargin, bottomMargin));
 };
 
 struct DocBlockStack {
     Vec<DocBlock> blocks;
+    int           scrollOffset;
     Slice<int>    visibleRange;
-    DESC_FIELDS(DocBlockStack, (blocks, visibleRange));
+    int           leftMargin  = 50;
+    int           rightMargin = 50;
+    DESC_FIELDS(
+        DocBlockStack,
+        (blocks, visibleRange, scrollOffset, leftMargin, rightMargin));
+    int        getBlockHeightStart(int blockIdx) const;
+    bool       inSpan(int blockIdx, Slice<int> heightRange) const;
+    Slice<int> getVisibleBlocks(Slice<int> heightRange) const;
 };
 
 template <>
@@ -38,7 +57,8 @@ struct std::hash<DocNode> {
 
 struct DocGraph {
     Vec<DocBlockStack> lanes;
-    DESC_FIELDS(DocGraph, (lanes));
+    GraphSize          visible;
+    DESC_FIELDS(DocGraph, (lanes, visible));
 
     DocBlock const& at(DocNode const& node) const {
         return lanes.at(node.lane).blocks.at(node.row);
