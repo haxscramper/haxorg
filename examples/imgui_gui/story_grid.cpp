@@ -75,6 +75,10 @@ bool render_editable_cell(
     GridColumn const& col) {
     auto  cell_prefix = fmt("{:p}", static_cast<const void*>(&cell));
     auto& val         = cell.getValue();
+    render_debug_rect(ImVec2{
+        static_cast<float>(cell.width),
+        static_cast<float>(cell.height),
+    });
     if (col.edit == GridColumn::EditMode::Multiline) {
         if (val.is_editing) {
             ImGui::InputTextMultiline(
@@ -473,6 +477,25 @@ Vec<GridRow> build_rows(org::ImmAdapter root, GridNode& doc) {
     return result;
 }
 
+int get_text_height(
+    std::string const&   text,
+    int                  width,
+    GridColumn::EditMode edit) {
+    Vec<Str>    wrapped = split_wrap_text(text, width);
+    std::string _tmp{"Tt"};
+    char const* _tmp_begin = _tmp.c_str();
+    char const* _tmp_end   = _tmp_begin + _tmp.length();
+    ImVec2      text_size  = ImGui::CalcTextSize(
+        _tmp_begin, _tmp_end, false, width);
+
+    if (edit == GridColumn::EditMode::SingleLine) {
+        return text_size.y;
+    } else {
+        return 0 < wrapped.size() ? text_size.y * wrapped.size()
+                                  : text_size.y;
+    }
+}
+
 GridCell build_editable_cell(
     org::ImmAdapter   adapter,
     const GridColumn& col) {
@@ -483,23 +506,8 @@ GridCell build_editable_cell(
     result.width = col.width;
 
 
-    Vec<Str> wrapped = split_wrap_text(v.value, col.width);
+    result.height = get_text_height(v.value, col.width, col.edit);
 
-    {
-        std::string _tmp{"Tt"};
-        char const* _tmp_begin = _tmp.c_str();
-        char const* _tmp_end   = _tmp_begin + _tmp.length();
-        ImVec2      text_size  = ImGui::CalcTextSize(
-            _tmp_begin, _tmp_end, false, col.width);
-
-        if (col.edit == GridColumn::EditMode::SingleLine) {
-            result.height = text_size.y;
-        } else {
-            result.height = 0 < wrapped.size()
-                              ? text_size.y * wrapped.size()
-                              : text_size.y;
-        }
-    }
 
     return result;
 }
@@ -537,6 +545,8 @@ void GridModel::updateDocument() {
         }
     }
 
+    UnorderedMap<int, DocNode> gridNodeToNode;
+
     DocumentNode::Grid grid{
         .pos  = ImVec2(0, 0),
         .size = ImVec2(doc.getWidth(), doc.getHeight()),
@@ -546,13 +556,34 @@ void GridModel::updateDocument() {
 
     DocGraph ir;
     auto     root = ir.addNode(0, grid.size);
+    gridNodeToNode.insert_or_assign(document.nodes.high(), root);
     for (auto const& row : doc.flatRows()) {
         for (auto [begin, end] = boost::out_edges(
                  org::graph::MapNode{row->origin.uniq()}, graph);
              begin != end;
              ++begin) {
-            auto annotation = ir.addNode(1, ImVec2(200, 200));
-            ir.addEdge(root, annotation);
+
+            auto node = getCurrentState().ast.context.adapt(
+                (*begin).target.id);
+
+            if (auto comment = node.asOpt<org::ImmBlockComment>();
+                comment) {
+                DocumentNode::Text text{
+                    .node = node,
+                    .text = join(" ", flatWords(node)),
+                };
+
+                document.nodes.push_back(DocumentNode{text});
+                int width  = 200;
+                int height = get_text_height(
+                    text.text, width, GridColumn::EditMode::Multiline);
+
+                auto annotation = ir.addNode(1, ImVec2(width, height));
+                ir.addEdge(root, annotation);
+
+                gridNodeToNode.insert_or_assign(
+                    document.nodes.high(), annotation);
+            }
         }
     }
 
@@ -563,6 +594,17 @@ void GridModel::updateDocument() {
     lyt.ir.width  = 10000;
     auto cola     = lyt.ir.doColaLayout();
     this->layout  = cola.convert();
+
+    for (auto const& [idx, rec] : enumerate(this->layout.fixed)) {
+        auto& node = document.nodes.at(idx);
+        if (node.isGrid()) {
+            node.getGrid().pos.x = rec.left;
+            node.getGrid().pos.y = rec.top;
+        } else if (node.isText()) {
+            node.getText().pos.x = rec.left;
+            node.getText().pos.y = rec.top;
+        }
+    }
 }
 
 void GridModel::apply(const GridAction& act) {

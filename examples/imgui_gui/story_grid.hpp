@@ -132,8 +132,9 @@ struct DocumentNode {
     struct Text {
         ImVec2          pos;
         ImVec2          size;
-        org::ImmAdapter text;
-        DESC_FIELDS(Text, (text, pos, size));
+        org::ImmAdapter node;
+        std::string     text;
+        DESC_FIELDS(Text, (node, pos, size));
     };
 
 
