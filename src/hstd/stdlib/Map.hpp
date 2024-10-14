@@ -8,6 +8,7 @@
 #include <hstd/system/generator.hpp>
 #include <hstd/system/all.hpp>
 #include <hstd/stdlib/Vec.hpp>
+#include <hstd/stdlib/Json.hpp>
 
 template <typename Map, typename K, typename V>
 struct MapBase : public CRTP_this_method<Map> {
@@ -129,3 +130,28 @@ struct std::hash<UnorderedMap<K, V>>
 template <typename K, typename V>
 struct std::hash<SortedMap<K, V>>
     : std_kv_tuple_iterator_hash<K, V, SortedMap<K, V>> {};
+
+template <typename K, typename V>
+struct JsonSerde<UnorderedMap<K, V>> {
+    static json to_json(UnorderedMap<K, V> const& it) {
+        auto result = json::array();
+        for (auto const& [key, val] : it) {
+            result.push_back(json::object({
+                {"key", JsonSerde<K>::to_json(key)},
+                {"value", JsonSerde<V>::to_json(val)},
+            }));
+        }
+
+        return result;
+    }
+    static UnorderedMap<K, V> from_json(json const& j) {
+        UnorderedMap<K, V> result;
+        auto               tmp = result.transient();
+        for (auto const& i : j) {
+            result.insert(
+                JsonSerde<K>::from_json(i["key"]),
+                JsonSerde<V>::from_json(i["value"]));
+        }
+        return tmp.persistent();
+    }
+};

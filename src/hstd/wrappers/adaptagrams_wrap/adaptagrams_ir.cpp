@@ -471,13 +471,16 @@ Vec<SPtr<cola::CompoundConstraint>> GraphLayoutIR::ColaResult::
 }
 
 struct PortData {
-    uint                      pinId;
-    float                     xOffset;
-    float                     yOffset;
-    GraphEdgeConstraint::Port port;
+    uint        pinId;
+    float       xOffset;
+    float       yOffset;
+    Opt<double> checkpoint;
 
+    GraphEdgeConstraint::Port  port;
     Avoid::ShapeConnectionPin* pin = nullptr;
-    DESC_FIELDS(PortData, (pinId, pin, xOffset, yOffset, port));
+    DESC_FIELDS(
+        PortData,
+        (pinId, pin, xOffset, yOffset, port, checkpoint));
 };
 
 template <>
@@ -579,6 +582,16 @@ auto getPortDirections(GraphLayoutIR* ir, GraphEdge const& edge)
     };
 }
 
+auto getPortCheckpoints(GraphLayoutIR* ir, GraphEdge const& edge)
+    -> Pair<Opt<double>, Opt<double>> {
+    auto c = ir->edgeConstraints.get(edge);
+
+    return {
+        c ? c->sourceCheckpoint : Opt<double>{},
+        c ? c->targetCheckpoint : Opt<double>{},
+    };
+}
+
 std::tuple<float, float, Avoid::ConnDirFlags> get_port_offsets(
     GraphEdgeConstraint::Port portDirection,
     int                       portIdx,
@@ -665,18 +678,21 @@ UnorderedMap<int, ShapePorts> init_shape_ports(
     {
         uint connectionPinClassID = 1;
         for (auto const& edge : edges) {
-            uint sourceClass              = ++connectionPinClassID;
-            uint targetClass              = ++connectionPinClassID;
-            auto [sourcePort, targetPort] = getPortDirections(ir, edge);
+            uint sourceClass                = ++connectionPinClassID;
+            uint targetClass                = ++connectionPinClassID;
+            auto [sourcePort, targetPort]   = getPortDirections(ir, edge);
+            auto [sourceCheck, targetCheck] = getPortCheckpoints(ir, edge);
 
             shapePorts[edge.source].ports[sourcePort][edge.target] = PortData{
-                .pinId = sourceClass,
-                .port  = sourcePort,
+                .pinId      = sourceClass,
+                .port       = sourcePort,
+                .checkpoint = sourceCheck,
             };
 
             shapePorts[edge.target].ports[targetPort][edge.source] = PortData{
-                .pinId = targetClass,
-                .port  = targetPort,
+                .pinId      = targetClass,
+                .port       = targetPort,
+                .checkpoint = targetCheck,
             };
         }
     }
@@ -744,6 +760,7 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
 
     auto edge_checkpoint = [](Avoid::ShapeRef* shape,
                               PortData const&  port) -> Opt<Avoid::Point> {
+        if (!port.checkpoint) { return std::nullopt; }
         auto box = shape->routingBox();
 
         Avoid::Point result{
@@ -751,7 +768,7 @@ GraphLayoutIR::ColaResult GraphLayoutIR::doColaLayout() {
             box.min.y + box.height() * port.yOffset,
         };
 
-        float offset = 10.0f;
+        double offset = port.checkpoint.value();
 
         switch (port.port) {
             case GraphEdgeConstraint::Port::West: {

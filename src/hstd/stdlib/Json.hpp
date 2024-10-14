@@ -19,11 +19,67 @@ extern template class nlohmann::basic_json<>;
 template <typename T>
 struct JsonSerde;
 
+template <typename T>
+struct JsonSerde<Slice<T>> {
+    static Slice<T> from_json(json const& j) {
+        return slice<T>(
+            JsonSerde<T>::from_json(j["first"]),
+            JsonSerde<T>::from_json(j["last"]));
+    }
+
+    static json to_json(Slice<T> const& value) {
+        return json::object({
+            {"first", JsonSerde<T>::to_json(value.first)},
+            {"last", JsonSerde<T>::to_json(value.last)},
+        });
+    }
+};
+
+template <typename A, typename B>
+struct JsonSerde<HSlice<A, B>> {
+    static HSlice<A, B> from_json(json const& j) {
+        return HSlice<A, B>{
+            JsonSerde<A>::from_json(j["first"]),
+            JsonSerde<B>::from_json(j["last"])};
+    }
+
+    static json to_json(HSlice<A, B> const& value) {
+        return json::object({
+            {"first", JsonSerde<A>::to_json(value.first)},
+            {"last", JsonSerde<B>::to_json(value.last)},
+        });
+    }
+};
+
+template <typename A, typename B>
+struct JsonSerde<Pair<A, B>> {
+    static Pair<A, B> from_json(json const& j) {
+        return std::make_pair<A, B>(
+            JsonSerde<A>::from_json(j["first"]),
+            JsonSerde<B>::from_json(j["second"]));
+    }
+
+    static json to_json(Pair<A, B> const& value) {
+        return json::object({
+            {"first", JsonSerde<A>::to_json(value.first)},
+            {"second", JsonSerde<B>::to_json(value.second)},
+        });
+    }
+};
+
+
 template <>
 struct JsonSerde<int> {
     static json to_json(int const& it) { return json(it); }
     static int  from_json(json const& j) { return j.get<int>(); }
 };
+
+template <>
+struct JsonSerde<double> {
+    static json   to_json(double const& it) { return json(it); }
+    static double from_json(json const& j) { return j.get<double>(); }
+};
+
 
 template <>
 struct JsonSerde<unsigned int> {
