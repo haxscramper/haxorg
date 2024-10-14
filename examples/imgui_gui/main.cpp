@@ -350,11 +350,6 @@ int main(int argc, char** argv) {
     auto conf_json = json::parse(conf_text);
     auto conf      = from_json_eval<Config>(conf_json);
 
-    if (conf.mode == Config::Mode::Test) {
-        run_block_graph_test();
-        return 0;
-    }
-
     if (!glfwInit()) { return 1; }
 
 
@@ -403,7 +398,7 @@ int main(int argc, char** argv) {
             break;
         }
         case Config::Mode::Test: {
-
+            run_block_graph_test(window);
             break;
         }
     }

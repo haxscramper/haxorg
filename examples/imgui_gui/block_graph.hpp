@@ -1,5 +1,6 @@
 #pragma once
 
+#include <GLFW/glfw3.h>
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/wrappers/adaptagrams_wrap/adaptagrams_ir.hpp>
 
@@ -65,4 +66,4 @@ struct DocGraph {
     }
 };
 
-void run_block_graph_test();
+void run_block_graph_test(GLFWwindow* window);
