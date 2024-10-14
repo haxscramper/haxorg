@@ -557,7 +557,10 @@ TEST(GraphUtils, LibcolaIr3) {
     ec[{.source = 5, .target = 9}] = GraphEdgeConstraint{
         .sourcePort = P::East, .targetPort = P::West};
     ec[{.source = 0, .target = 3}] = GraphEdgeConstraint{
-        .sourcePort = P::East, .targetPort = P::West};
+        .sourcePort       = P::East,
+        .targetPort       = P::West,
+        .targetCheckpoint = 20,
+    };
 
 
     using C   = GraphNodeConstraint;
