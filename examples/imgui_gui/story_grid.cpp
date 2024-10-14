@@ -178,10 +178,11 @@ Opt<GridAction> render_cell(
 void render_tree_columns(
     GridRow&         row,
     Vec<GridAction>& result,
+    GridNode&        doc,
     GridContext&     ctx) {
     auto __scope = ctx.scopeLevel();
     int  colIdx  = 1;
-    for (auto const& col : ctx.columns) {
+    for (auto const& col : doc.columns) {
         if (row.columns.contains(col.name)) {
             ImGui::TableSetColumnIndex(colIdx);
             render_cell(row.columns.at(col.name), ctx, col);
@@ -196,6 +197,7 @@ float tree_fold_column = 120.0f;
 void render_tree_row(
     GridRow&         row,
     Vec<GridAction>& result,
+    GridNode&        doc,
     GridContext&     ctx) {
     bool skipped = false;
     auto __scope = ctx.scopeLevel();
@@ -205,7 +207,6 @@ void render_tree_row(
     ImGui::TableNextRow(ImGuiTableRowFlags_None, row.getHeight());
     CTX_MSG(fmt(
         "row {} {}", ImGui::TableGetRowIndex(), row.columns.at("title")));
-    ctx.rowPositions[row.flatIdx] = ImGui::GetCursorScreenPos();
     if (!row.nested.empty()) {
         switch (row.origin->level) {
             case 1:
@@ -238,16 +239,16 @@ void render_tree_row(
             fmt("[{}]", row.origin->level).c_str(),
             ImGuiTreeNodeFlags_SpanFullWidth);
         ImGui::PopID();
-        render_tree_columns(row, result, ctx);
+        render_tree_columns(row, result, doc, ctx);
         if (node_open) {
             for (auto& sub : row.nested) {
-                render_tree_row(sub, result, ctx);
+                render_tree_row(sub, result, doc, ctx);
             }
 
             ImGui::TreePop();
         }
     } else if (!skipped) {
-        render_tree_columns(row, result, ctx);
+        render_tree_columns(row, result, doc, ctx);
     }
 
     ImGui::TableSetColumnIndex(0);
@@ -278,17 +279,16 @@ void render_tree_row(
     }
 }
 
-Vec<GridAction> render_story_grid(GridModel& model) {
+Vec<GridAction> render_story_grid(GridModel& model, GridNode& doc) {
     Vec<GridAction> result;
     auto&           ctx = model.conf;
-    CTX_MSG(fmt("doc rows {}", model.document.rows.size()));
+    CTX_MSG(fmt("doc rows {}", doc.rows.size()));
 
     int tableWidth = 0;
-    for (auto const& col : ctx.columns) { tableWidth += col.width; }
+    for (auto const& col : doc.columns) { tableWidth += col.width; }
 
     ImGui::SetNextWindowPos(ImVec2(0, 0));
-    ImGui::SetNextWindowSize(
-        ImVec2(tableWidth, model.document.getHeight()));
+    ImGui::SetNextWindowSize(ImVec2(tableWidth, doc.getHeight()));
     if (ImGui::Begin(
             "Standalone Table Window",
             nullptr,
@@ -296,7 +296,7 @@ Vec<GridAction> render_story_grid(GridModel& model) {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
         if (ImGui::BeginTable(
                 "TreeTable",
-                1 + ctx.columns.size(),
+                1 + doc.columns.size(),
                 ImGuiTableFlags_ScrollY              //
                     | ImGuiTableFlags_Borders        //
                     | ImGuiTableFlags_RowBg          //
@@ -307,7 +307,7 @@ Vec<GridAction> render_story_grid(GridModel& model) {
                 "Tree",
                 ImGuiTableColumnFlags_WidthFixed,
                 tree_fold_column);
-            for (auto const& col : ctx.columns) {
+            for (auto const& col : doc.columns) {
                 ImGui::TableSetupColumn(
                     col.name.c_str(),
                     ImGuiTableColumnFlags_WidthFixed,
@@ -316,12 +316,12 @@ Vec<GridAction> render_story_grid(GridModel& model) {
             ImGui::TableSetupScrollFreeze(0, 1);
             ImGui::TableHeadersRow();
 
-            for (auto& sub : model.document.rows) {
-                render_tree_row(sub, result, ctx);
+            for (auto& sub : doc.rows) {
+                render_tree_row(sub, result, doc, ctx);
             }
 
-            ImGui::TableNextRow(ImGuiTableRowFlags_None, 800.0f);
-            ImGui::TableNextColumn();
+            // ImGui::TableNextRow(ImGuiTableRowFlags_None, 800.0f);
+            // ImGui::TableNextColumn();
 
             ImGui::EndTable();
         }
@@ -330,6 +330,16 @@ Vec<GridAction> render_story_grid(GridModel& model) {
         ImGui::End();
     }
 
+    return result;
+}
+
+Vec<GridAction> render_story_grid(GridModel& model) {
+    Vec<GridAction> result;
+    for (auto& node : model.document.nodes) {
+        if (node.isGrid()) {
+            result.append(render_story_grid(model, node.getGrid().node));
+        }
+    }
     return result;
 }
 
@@ -361,14 +371,7 @@ void story_grid_loop(GLFWwindow* window, std::string const& file) {
 
 
     model.conf.setTraceFile("/tmp/story_grid_trace.txt");
-    model.conf.getColumn("title").width = 300;
-    model.conf.getColumn("event").width = 400;
-    model.conf.getColumn("note").width  = 300;
-    // model.conf.getColumn("turning_point").width = 300;
-    // model.conf.getColumn("value").width         = 200;
-    model.conf.getColumn("location").width = 240;
-    model.conf.getColumn("location").edit  = GridColumn::EditMode::
-        SingleLine;
+
 
     bool first = true;
 
@@ -416,17 +419,16 @@ void story_grid_loop(GLFWwindow* window, std::string const& file) {
 
 
 GridCell build_editable_cell(
-    org::ImmAdapter    adapter,
-    GridColumn const&  col,
-    GridContext const& ctx);
+    org::ImmAdapter   adapter,
+    GridColumn const& col);
 
 GridRow build_row(
     org::ImmAdapterT<org::ImmSubtree> tree,
-    GridContext&                      conf,
+    GridNode&                         doc,
     int&                              flatIdx) {
     GridRow result;
     result.columns["title"] = build_editable_cell(
-        tree.getTitle(), conf.getColumn("title"), conf);
+        tree.getTitle(), doc.getColumn("title"));
     result.origin  = tree;
     result.flatIdx = flatIdx;
     ++flatIdx;
@@ -438,7 +440,7 @@ GridRow build_row(
                     if (word.starts_with("story_")) {
                         auto column            = word.dropPrefix("story_");
                         result.columns[column] = build_editable_cell(
-                            item.at(0), conf.getColumn(column), conf);
+                            item.at(0), doc.getColumn(column));
                     }
                 }
             }
@@ -447,29 +449,26 @@ GridRow build_row(
 
     for (auto const& sub : tree.subAs<org::ImmSubtree>()) {
         if (!sub->isComment && !sub->isArchived) {
-            result.nested.push_back(build_row(sub, conf, flatIdx));
+            result.nested.push_back(build_row(sub, doc, flatIdx));
         }
     }
 
     return result;
 }
 
-Vec<GridRow> build_rows(org::ImmAdapter root, GridContext& conf) {
+Vec<GridRow> build_rows(org::ImmAdapter root, GridNode& doc) {
     Vec<GridRow> result;
     int          idx = 0;
     for (auto const& tree : root.subAs<org::ImmSubtree>()) {
-        result.push_back(build_row(tree, conf, idx));
+        result.push_back(build_row(tree, doc, idx));
     }
-
-    conf.rowPositions.resize(idx);
 
     return result;
 }
 
 GridCell build_editable_cell(
-    org::ImmAdapter    adapter,
-    const GridColumn&  col,
-    GridContext const& ctx) {
+    org::ImmAdapter   adapter,
+    const GridColumn& col) {
     GridCell result{GridCell::Value{}};
     auto&    v   = result.getValue();
     v.value      = join(" ", flatWords(adapter));
@@ -495,19 +494,44 @@ GridCell build_editable_cell(
         }
     }
 
-    CTX_MSG(
-        fmt("width:{} height:{} text:{} wrapped:{}",
-            col,
-            result.height,
-            escape_literal(v.value),
-            wrapped));
-
     return result;
 }
 
 void GridModel::updateDocument() {
-    document.rows = build_rows(
-        getCurrentState().ast.getRootAdapter(), conf);
+    GridNode doc;
+    doc.rows = build_rows(getCurrentState().ast.getRootAdapter(), doc);
+
+    doc.getColumn("title").width = 300;
+    doc.getColumn("event").width = 400;
+    doc.getColumn("note").width  = 300;
+    // doc.getColumn("turning_point").width = 300;
+    // doc.getColumn("value").width         = 200;
+    doc.getColumn("location").width = 240;
+    doc.getColumn("location").edit  = GridColumn::EditMode::SingleLine;
+
+    int height;
+    for (auto const& row : doc.flatRows()) {
+        doc.rowPositions.resize_at(row->flatIdx) = height;
+        doc.rowOrigins.insert_or_assign(row->origin.uniq(), row->flatIdx);
+        height += row->getHeight();
+
+        org::graph::MapNode subtreeNode{row->origin.uniq()};
+        graph.addNode(subtreeNode);
+        for (auto const& nested :
+             row->origin.subAs<org::ImmBlockComment>()) {
+            org::graph::MapNode commentNode{nested.uniq()};
+            graph.addEdge(
+                org::graph::MapEdge{
+                    .source = subtreeNode, .target = commentNode},
+                org::graph::MapEdgeProp{});
+        }
+    }
+
+    document.nodes.clear();
+    document.nodes.push_back(DocumentNode{DocumentNode::Grid{
+        .pos  = ImVec2(0, 0),
+        .node = doc,
+    }});
 }
 
 void GridModel::apply(const GridAction& act) {

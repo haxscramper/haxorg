@@ -9,6 +9,7 @@
 #include <haxorg/sem/SemBaseApi.hpp>
 #include <haxorg/sem/ImmOrg.hpp>
 #include "imgui.h"
+#include <haxorg/sem/ImmOrgGraph.hpp>
 
 struct GridCell {
     struct None {
@@ -44,6 +45,14 @@ struct GridRow {
     Vec<GridRow>                      nested;
     DESC_FIELDS(GridRow, (columns, origin, flatIdx, nested));
 
+    Vec<GridRow*> flatThisNested() {
+        Vec<GridRow*> result;
+        result.push_back(this);
+        for (auto& sub : nested) { result.append(sub.flatThisNested()); }
+
+        return result;
+    }
+
     int getHeight() const {
         return rs::max(
             own_view(columns.keys()) | rv::transform([&](Str const& col) {
@@ -62,25 +71,12 @@ struct GridRow {
     }
 };
 
-struct GridDocument {
-    Vec<GridRow> rows;
-    int          getHeight() const {
-        int res = 0;
-        for (auto const& row : rows) { res += row.getHeightRec(); }
-        return res;
-    }
-
-    DESC_FIELDS(GridDocument, (rows));
-};
-
-struct GridContext
-    : OperationsTracer
-    , OperationsScope {
-
-    Vec<ImVec2> rowPositions;
-
+struct GridNode {
+    Vec<GridRow>    rows;
+    Vec<int>        rowPositions;
     Vec<GridColumn> columns;
-    DESC_FIELDS(GridContext, (columns));
+
+    UnorderedMap<org::ImmUniqId, int> rowOrigins;
 
     GridColumn& getColumn(CR<Str> name) {
         auto iter = rs::find_if(
@@ -94,6 +90,53 @@ struct GridContext
             return *iter;
         }
     }
+
+    Vec<GridRow*> flatRows() {
+        Vec<GridRow*> result;
+        for (auto& row : rows) { result.append(row.flatThisNested()); }
+        return result;
+    }
+
+    Opt<int> getRow(org::ImmUniqId const& id) const {
+        return rowOrigins.get(id);
+    }
+
+    int getHeight() const {
+        int res = 0;
+        for (auto const& row : rows) { res += row.getHeightRec(); }
+        return res;
+    }
+
+    DESC_FIELDS(GridNode, (rows, rowPositions, columns));
+};
+
+struct DocumentNode {
+    struct Grid {
+        ImVec2   pos;
+        GridNode node;
+        DESC_FIELDS(Grid, (node, pos));
+    };
+
+    struct Text {
+        ImVec2          pos;
+        ImVec2          size;
+        org::ImmAdapter text;
+    };
+
+    SUB_VARIANTS(Kind, Data, data, getKind, Grid, Text);
+    Data data;
+};
+
+struct DocumentGraph {
+    Vec<DocumentNode> nodes;
+    DESC_FIELDS(DocumentGraph, (nodes));
+};
+
+struct GridContext
+    : OperationsTracer
+    , OperationsScope {
+
+    DESC_FIELDS(GridContext, ());
 
     void message(
         std::string const& value,
@@ -117,12 +160,13 @@ struct GridState {
 };
 
 struct GridModel {
-    Vec<GridState> history;
-    GridDocument   document;
-    GridContext    conf;
-    void           updateDocument();
-    GridState&     getCurrentState() { return history.back(); }
-    void           apply(GridAction const& act);
+    Vec<GridState>       history;
+    DocumentGraph        document;
+    GridContext          conf;
+    org::graph::MapGraph graph;
+    void                 updateDocument();
+    GridState&           getCurrentState() { return history.back(); }
+    void                 apply(GridAction const& act);
 };
 
 
