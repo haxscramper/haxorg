@@ -10,6 +10,7 @@
 #include <haxorg/sem/ImmOrg.hpp>
 #include "imgui.h"
 #include <haxorg/sem/ImmOrgGraph.hpp>
+#include <hstd/wrappers/adaptagrams_wrap/adaptagrams_ir.hpp>
 
 struct GridCell {
     struct None {
@@ -101,10 +102,20 @@ struct GridNode {
         return rowOrigins.get(id);
     }
 
+    int getNodeOffset(org::ImmUniqId const& id) const {
+        return rowPositions.at(rowOrigins.at(id));
+    }
+
     int getHeight() const {
         int res = 0;
         for (auto const& row : rows) { res += row.getHeightRec(); }
         return res;
+    }
+
+    int getWidth() const {
+        int tableWidth = 0;
+        for (auto const& col : columns) { tableWidth += col.width; }
+        return tableWidth;
     }
 
     DESC_FIELDS(GridNode, (rows, rowPositions, columns));
@@ -113,18 +124,22 @@ struct GridNode {
 struct DocumentNode {
     struct Grid {
         ImVec2   pos;
+        ImVec2   size;
         GridNode node;
-        DESC_FIELDS(Grid, (node, pos));
+        DESC_FIELDS(Grid, (node, pos, size));
     };
 
     struct Text {
         ImVec2          pos;
         ImVec2          size;
         org::ImmAdapter text;
+        DESC_FIELDS(Text, (text, pos, size));
     };
+
 
     SUB_VARIANTS(Kind, Data, data, getKind, Grid, Text);
     Data data;
+    DESC_FIELDS(DocumentNode, (data));
 };
 
 struct DocumentGraph {
@@ -160,13 +175,14 @@ struct GridState {
 };
 
 struct GridModel {
-    Vec<GridState>       history;
-    DocumentGraph        document;
-    GridContext          conf;
-    org::graph::MapGraph graph;
-    void                 updateDocument();
-    GridState&           getCurrentState() { return history.back(); }
-    void                 apply(GridAction const& act);
+    Vec<GridState>        history;
+    DocumentGraph         document;
+    GridContext           conf;
+    org::graph::MapGraph  graph;
+    GraphLayoutIR::Result layout;
+    void                  updateDocument();
+    GridState&            getCurrentState() { return history.back(); }
+    void                  apply(GridAction const& act);
 };
 
 

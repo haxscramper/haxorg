@@ -6,11 +6,6 @@
 #include <hstd/stdlib/Debug.hpp>
 #include "imgui_utils.hpp"
 
-struct DocLayout {
-    GraphLayoutIR              ir;
-    UnorderedMap<DocNode, int> rectMap;
-};
-
 using GC = GraphNodeConstraint;
 
 GC::Align::Spec spec(int rect) { return GC::Align::Spec{.node = rect}; }
@@ -23,6 +18,10 @@ DocLayout to_layout(DocGraph const& g) {
     for (auto const& [lane_idx, lane] : enumerate(g.lanes)) {
         Slice<int> visibleBlocks = lane.getVisibleBlocks(
             slice<int>(0, int(g.visible.height())));
+        if (visibleBlocks.first == visibleBlocks.last
+            && visibleBlocks.first == -1) {
+            continue;
+        }
 
         Opt<GC::Align::Spec> first;
         for (int row : visibleBlocks) {

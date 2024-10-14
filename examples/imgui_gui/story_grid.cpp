@@ -1,6 +1,7 @@
 #include "story_grid.hpp"
 
 #include <haxorg/sem/ImmOrgEdit.hpp>
+#include "block_graph.hpp"
 #include "imgui_internal.h"
 #include "imgui_utils.hpp"
 #include "misc/cpp/imgui_stdlib.h"
@@ -9,6 +10,7 @@
 #include <haxorg/sem/SemBaseApi.hpp>
 
 #include <fontconfig/fontconfig.h>
+#include <haxorg/sem/ImmOrgGraphBoost.hpp>
 
 
 Opt<Str> get_fontconfig_path(std::string const& fontname) {
@@ -279,16 +281,18 @@ void render_tree_row(
     }
 }
 
-Vec<GridAction> render_story_grid(GridModel& model, GridNode& doc) {
+Vec<GridAction> render_story_grid(
+    GridModel&          model,
+    DocumentNode::Grid& grid) {
     Vec<GridAction> result;
     auto&           ctx = model.conf;
+    auto&           doc = grid.node;
     CTX_MSG(fmt("doc rows {}", doc.rows.size()));
 
-    int tableWidth = 0;
-    for (auto const& col : doc.columns) { tableWidth += col.width; }
 
-    ImGui::SetNextWindowPos(ImVec2(0, 0));
-    ImGui::SetNextWindowSize(ImVec2(tableWidth, doc.getHeight()));
+    ImVec2 shift{20, 20};
+    ImGui::SetNextWindowPos(grid.pos + shift);
+    ImGui::SetNextWindowSize(grid.size);
     if (ImGui::Begin(
             "Standalone Table Window",
             nullptr,
@@ -330,6 +334,9 @@ Vec<GridAction> render_story_grid(GridModel& model, GridNode& doc) {
         ImGui::End();
     }
 
+
+    render_result(model.layout, shift);
+
     return result;
 }
 
@@ -337,7 +344,7 @@ Vec<GridAction> render_story_grid(GridModel& model) {
     Vec<GridAction> result;
     for (auto& node : model.document.nodes) {
         if (node.isGrid()) {
-            result.append(render_story_grid(model, node.getGrid().node));
+            result.append(render_story_grid(model, node.getGrid()));
         }
     }
     return result;
@@ -508,6 +515,7 @@ void GridModel::updateDocument() {
     // doc.getColumn("value").width         = 200;
     doc.getColumn("location").width = 240;
     doc.getColumn("location").edit  = GridColumn::EditMode::SingleLine;
+    document.nodes.clear();
 
     int height;
     for (auto const& row : doc.flatRows()) {
@@ -522,16 +530,39 @@ void GridModel::updateDocument() {
             org::graph::MapNode commentNode{nested.uniq()};
             graph.addEdge(
                 org::graph::MapEdge{
-                    .source = subtreeNode, .target = commentNode},
+                    .source = subtreeNode,
+                    .target = commentNode,
+                },
                 org::graph::MapEdgeProp{});
         }
     }
 
-    document.nodes.clear();
-    document.nodes.push_back(DocumentNode{DocumentNode::Grid{
+    DocumentNode::Grid grid{
         .pos  = ImVec2(0, 0),
+        .size = ImVec2(doc.getWidth(), doc.getHeight()),
         .node = doc,
-    }});
+    };
+    document.nodes.push_back(DocumentNode{.data = grid});
+
+    DocGraph ir;
+    auto     root = ir.addNode(0, grid.size);
+    for (auto const& row : doc.flatRows()) {
+        for (auto [begin, end] = boost::out_edges(
+                 org::graph::MapNode{row->origin.uniq()}, graph);
+             begin != end;
+             ++begin) {
+            auto annotation = ir.addNode(1, ImVec2(200, 200));
+            ir.addEdge(root, annotation);
+        }
+    }
+
+    ir.visible.h  = 1000;
+    ir.visible.w  = 1000;
+    DocLayout lyt = to_layout(ir);
+    lyt.ir.height = 10000;
+    lyt.ir.width  = 10000;
+    auto cola     = lyt.ir.doColaLayout();
+    this->layout  = cola.convert();
 }
 
 void GridModel::apply(const GridAction& act) {

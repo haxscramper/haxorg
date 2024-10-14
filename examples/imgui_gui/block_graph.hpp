@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/wrappers/adaptagrams_wrap/adaptagrams_ir.hpp>
+#include "imgui.h"
 
 struct DocNode {
     int  lane;
@@ -43,6 +44,17 @@ struct DocBlockStack {
     int        getBlockHeightStart(int blockIdx) const;
     bool       inSpan(int blockIdx, Slice<int> heightRange) const;
     Slice<int> getVisibleBlocks(Slice<int> heightRange) const;
+    int        addBlock(ImVec2 const& size) {
+        blocks.push_back(DocBlock{
+                   .width  = static_cast<int>(size.x),
+                   .height = static_cast<int>(size.y),
+        });
+        return blocks.high();
+    }
+
+    void addEdge(int row, DocNode const& target) {
+        return blocks.at(row).outEdges.push_back(target);
+    }
 };
 
 template <>
@@ -60,10 +72,40 @@ struct DocGraph {
     Vec<DocBlockStack> lanes;
     GraphSize          visible;
     DESC_FIELDS(DocGraph, (lanes, visible));
+    DocNode addNode(int lane, ImVec2 const& size) {
+        return DocNode{
+            .lane = lane,
+            .row  = this->lane(lane).addBlock(size),
+        };
+    }
+
+    void addEdge(DocNode const& source, DocNode const& target) {
+        return lane(source.lane).addEdge(source.row, target);
+    }
+
+    DocBlockStack& lane(int lane) { return lanes.resize_at(lane); }
+
+    DocBlock& at(DocNode const& node) {
+        return lanes.at(node.lane).blocks.at(node.row);
+    }
 
     DocBlock const& at(DocNode const& node) const {
         return lanes.at(node.lane).blocks.at(node.row);
     }
 };
 
-void run_block_graph_test(GLFWwindow* window);
+
+struct DocLayout {
+    GraphLayoutIR              ir;
+    UnorderedMap<DocNode, int> rectMap;
+};
+
+void render_point(const GraphPoint& point, ImVec2 const& shift);
+void render_path(const GraphPath& path, ImVec2 const& shift);
+void render_path(const GraphPath& path, ImVec2 const& shift);
+void render_rect(const GraphRect& rect, ImVec2 const& shift);
+void render_edge(const GraphLayoutIR::Edge& edge, ImVec2 const& shift);
+void render_result(GraphLayoutIR::Result const& res, ImVec2 const& shift);
+
+DocLayout to_layout(DocGraph const& g);
+void      run_block_graph_test(GLFWwindow* window);
