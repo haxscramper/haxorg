@@ -141,6 +141,8 @@ DocLayout to_layout(DocGraph const& g) {
 
 DocNode n(int lane, int row) { return DocNode{.lane = lane, .row = row}; }
 
+float line_width = 4.0f;
+
 void render_point(const GraphPoint& point, ImVec2 const& shift) {
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     draw_list->AddCircleFilled(
@@ -156,7 +158,7 @@ void render_path(const GraphPath& path, ImVec2 const& shift) {
             ImVec2(p1.x, p1.y) + shift,
             ImVec2(p2.x, p2.y) + shift,
             IM_COL32(0, 255, 0, 255),
-            2.0f);
+            line_width);
     }
 }
 
@@ -168,7 +170,7 @@ void render_rect(const GraphRect& rect, ImVec2 const& shift) {
         IM_COL32(0, 0, 255, 255),
         0.0f,
         0,
-        2.0f);
+        line_width);
 }
 
 void render_edge(const GraphLayoutIR::Edge& edge, ImVec2 const& shift) {

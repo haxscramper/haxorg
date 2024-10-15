@@ -54,22 +54,9 @@ struct GridRow {
         return result;
     }
 
-    int getHeight() const {
-        return rs::max(
-            own_view(columns.keys()) | rv::transform([&](Str const& col) {
-                return columns.at(col).height;
-            }));
-    }
+    int getHeight(int padding = 0) const;
 
-    int getHeightRec() const {
-        return getHeight()
-             + rs::fold_left(
-                   nested | rv::transform([](GridRow const& r) {
-                       return r.getHeightRec();
-                   }),
-                   0,
-                   [](int lhs, int rhs) { return lhs + rhs; });
-    }
+    int getHeightRec(int padding = 0) const;
 };
 
 struct GridNode {
@@ -106,9 +93,9 @@ struct GridNode {
         return rowPositions.at(rowOrigins.at(id));
     }
 
-    int getHeight() const {
+    int getHeight(int padding = 0) const {
         int res = 0;
-        for (auto const& row : rows) { res += row.getHeightRec(); }
+        for (auto const& row : rows) { res += row.getHeightRec(padding); }
         return res;
     }
 

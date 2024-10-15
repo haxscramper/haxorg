@@ -292,7 +292,7 @@ Vec<GridAction> render_story_grid(
 
     ImVec2 shift{20, 20};
     ImGui::SetNextWindowPos(grid.pos + shift);
-    ImGui::SetNextWindowSize(grid.size + ImVec2(0, 120));
+    ImGui::SetNextWindowSize(grid.size);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
     ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
@@ -522,10 +522,11 @@ void GridModel::updateDocument() {
     document.nodes.clear();
 
     int height;
+    int rowPadding = 5;
     for (auto const& row : doc.flatRows()) {
         doc.rowPositions.resize_at(row->flatIdx) = height;
         doc.rowOrigins.insert_or_assign(row->origin.uniq(), row->flatIdx);
-        height += row->getHeight();
+        height += row->getHeight(rowPadding);
 
         org::graph::MapNode subtreeNode{row->origin.uniq()};
         graph.addNode(subtreeNode);
@@ -545,7 +546,7 @@ void GridModel::updateDocument() {
 
     DocumentNode::Grid grid{
         .pos  = ImVec2(0, 0),
-        .size = ImVec2(doc.getWidth(), doc.getHeight()),
+        .size = ImVec2(doc.getWidth(), doc.getHeight(rowPadding)),
         .node = doc,
     };
     document.nodes.push_back(DocumentNode{.data = grid});
@@ -633,4 +634,22 @@ void GridContext::message(
     const char*        function,
     const char*        file) const {
     OperationsTracer::message(value, activeLevel, line, function, file);
+}
+
+int GridRow::getHeight(int padding) const {
+    return rs::max(
+               own_view(columns.keys())
+               | rv::transform(
+                   [&](Str const& col) { return columns.at(col).height; }))
+         + padding;
+}
+
+int GridRow::getHeightRec(int padding) const {
+    return getHeight(padding)
+         + rs::fold_left(
+               nested | rv::transform([&](GridRow const& r) {
+                   return r.getHeightRec(padding);
+               }),
+               0,
+               [](int lhs, int rhs) { return lhs + rhs; });
 }
