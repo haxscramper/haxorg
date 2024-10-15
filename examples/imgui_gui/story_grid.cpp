@@ -75,10 +75,6 @@ bool render_editable_cell(
     GridColumn const& col) {
     auto  cell_prefix = fmt("{:p}", static_cast<const void*>(&cell));
     auto& val         = cell.getValue();
-    render_debug_rect(ImVec2{
-        static_cast<float>(cell.width),
-        static_cast<float>(cell.height),
-    });
     if (col.edit == GridColumn::EditMode::Multiline) {
         if (val.is_editing) {
             ImGui::InputTextMultiline(
@@ -191,8 +187,9 @@ void render_tree_columns(
     for (auto const& col : doc.columns) {
         if (row.columns.contains(col.name)) {
             ImGui::TableSetColumnIndex(colIdx);
+            CTX_MSG(fmt("{}", col.name));
+            auto __scope = ctx.scopeLevel();
             render_cell(row.columns.at(col.name), ctx, col);
-            // CTX_MSG(fmt("{} = {}", col, row.columns.at(col.name)));
         }
         ++colIdx;
     }
@@ -211,8 +208,7 @@ void render_tree_row(
     if (skipped && row.nested.empty()) { return; };
 
     ImGui::TableNextRow(ImGuiTableRowFlags_None, row.getHeight());
-    CTX_MSG(fmt(
-        "row {} {}", ImGui::TableGetRowIndex(), row.columns.at("title")));
+    CTX_MSG(fmt("row {}", ImGui::TableGetRowIndex()));
     if (!row.nested.empty()) {
         switch (row.origin->level) {
             case 1:
@@ -296,17 +292,18 @@ Vec<GridAction> render_story_grid(
 
     ImVec2 shift{20, 20};
     ImGui::SetNextWindowPos(grid.pos + shift);
-    ImGui::SetNextWindowSize(grid.size);
+    ImGui::SetNextWindowSize(grid.size + ImVec2(0, 120));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
+    ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
     if (ImGui::Begin(
             "Standalone Table Window",
             nullptr,
             ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize)) {
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
         if (ImGui::BeginTable(
                 "TreeTable",
                 1 + doc.columns.size(),
-                ImGuiTableFlags_ScrollY              //
-                    | ImGuiTableFlags_Borders        //
+                ImGuiTableFlags_Borders              //
                     | ImGuiTableFlags_RowBg          //
                     | ImGuiTableFlags_SizingFixedFit //
                     | ImGuiTableFlags_NoHostExtendX)) {
@@ -316,6 +313,7 @@ Vec<GridAction> render_story_grid(
                 ImGuiTableColumnFlags_WidthFixed,
                 tree_fold_column);
             for (auto const& col : doc.columns) {
+                CTX_MSG(fmt("{} {}", col.name, col.width));
                 ImGui::TableSetupColumn(
                     col.name.c_str(),
                     ImGuiTableColumnFlags_WidthFixed,
@@ -334,9 +332,9 @@ Vec<GridAction> render_story_grid(
             ImGui::EndTable();
         }
 
-        ImGui::PopStyleVar();
         ImGui::End();
     }
+    ImGui::PopStyleVar(3);
 
 
     render_result(model.layout, shift);
@@ -498,14 +496,12 @@ int get_text_height(
 
 GridCell build_editable_cell(
     org::ImmAdapter   adapter,
-    const GridColumn& col) {
+    GridColumn const& col) {
     GridCell result{GridCell::Value{}};
-    auto&    v   = result.getValue();
-    v.value      = join(" ", flatWords(adapter));
-    v.origin     = adapter;
-    result.width = col.width;
-
-
+    auto&    v    = result.getValue();
+    v.value       = join(" ", flatWords(adapter));
+    v.origin      = adapter;
+    result.width  = col.width;
     result.height = get_text_height(v.value, col.width, col.edit);
 
 
@@ -514,7 +510,6 @@ GridCell build_editable_cell(
 
 void GridModel::updateDocument() {
     GridNode doc;
-    doc.rows = build_rows(getCurrentState().ast.getRootAdapter(), doc);
 
     doc.getColumn("title").width = 300;
     doc.getColumn("event").width = 400;
@@ -523,6 +518,7 @@ void GridModel::updateDocument() {
     // doc.getColumn("value").width         = 200;
     doc.getColumn("location").width = 240;
     doc.getColumn("location").edit  = GridColumn::EditMode::SingleLine;
+    doc.rows = build_rows(getCurrentState().ast.getRootAdapter(), doc);
     document.nodes.clear();
 
     int height;
