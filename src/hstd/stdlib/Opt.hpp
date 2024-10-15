@@ -24,6 +24,16 @@ struct std::formatter<Opt<T>> : std::formatter<std::string> {
     }
 };
 
+template <>
+struct std::formatter<std::nullopt_t> : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(
+        std::nullopt_t const& p,
+        FormatContext&        ctx) const {
+        return fmt_ctx("nullopt", ctx);
+    }
+};
+
 
 struct nullopt_optional_err : CRTP_hexception<nullopt_optional_err> {};
 

@@ -128,8 +128,6 @@ struct OrgConverter : public OperationsTracer {
 
         SUB_VARIANTS(Kind, Data, data, getKind, Node, Error);
         Data data;
-        bool isNode() const { return getKind() == Kind::Node; }
-        bool isError() const { return getKind() == Kind::Error; }
 
         Opt<SemId<ErrorGroup>> optError() const {
             return isError() ? std::make_optional(error()) : std::nullopt;
@@ -158,7 +156,7 @@ struct OrgConverter : public OperationsTracer {
     Vec<ConvResult<Org>>   flatConvertAttached(Vec<In> items);
     Vec<ConvResult<Org>>   flatConvertAttachedSubnodes(In item);
 
-    ConvResult<AnnotatedParagraph> convertAnnotatedParagraph(In);
+    ConvResult<BlockDynamicFallback> convertBlockDynamicFallback(In);
     void convertDocumentOptions(SemId<DocumentOptions> opts, OrgAdapter a);
 
     ConvResult<Table>           convertTable(In);
@@ -192,7 +190,7 @@ struct OrgConverter : public OperationsTracer {
     ConvResult<BlockComment>    convertBlockComment(In);
     ConvResult<Placeholder>     convertPlaceholder(In);
     ConvResult<Latex>           convertMath(In);
-    ConvResult<Footnote>        convertFootnote(In);
+    ConvResult<InlineFootnote>  convertInlineFootnote(In);
     ConvResult<Include>         convertInclude(In);
     ConvResult<Escaped>         convertEscaped(In);
     ConvResult<TextSeparator>   convertTextSeparator(In);
@@ -206,9 +204,9 @@ struct OrgConverter : public OperationsTracer {
     ConvResult<Symbol>          convertSymbol(In);
     ConvResult<Macro>           convertMacro(In);
     ConvResult<BlockExport>     convertBlockExport(In);
-    ConvResult<CmdArgument>     convertCmdArgument(In);
-    ConvResult<CmdArguments>    convertCmdArguments(In);
-    ConvResult<CmdArguments>    convertCallArguments(CVec<In>, In source);
+    ConvResult<Attr>            convertAttr(In);
+    ConvResult<Attrs>           convertAttrs(In);
+    ConvResult<Attrs>           convertCallArguments(CVec<In>, In source);
     ConvResult<BlockCode>       convertBlockCode(In);
     ConvResult<Call>            convertCall(In);
     ConvResult<CmdAttr>         convertCmdAttr(In);

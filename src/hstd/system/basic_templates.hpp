@@ -47,6 +47,13 @@ struct value_domain<T> {
     }
 };
 
+template <typename T>
+struct value_metadata {
+    static bool isEmpty(T const& value) { return false; }
+    static bool isNil(T const& value) { return false; }
+};
+
+
 
 template <typename E, E Low, E High>
 struct value_domain_ungapped {

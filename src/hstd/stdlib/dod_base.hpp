@@ -44,6 +44,7 @@ template <
 struct [[nodiscard]] Id {
     /// \brief Base type used to store value
     using id_base_type = IdType;
+    using id_mask_type = MaskType;
     /// Create new ID value from the stored ID index.
     explicit Id(IdType in) : value(in + 1) {}
 
@@ -58,15 +59,17 @@ struct [[nodiscard]] Id {
 
     /// \brief Start position of the least significant bit of the mask
     static const inline int mask_offset = (8 * sizeof(IdType))
-                                        - MaskSizeT::value - 1;
+                                        - MaskSizeT::value;
 
     /// \brief Number of bits allotted for the mask value
     static const inline int mask_size = MaskSizeT::value;
 
+    static Id FromIndex(IdType id) { return Id{id}; }
+
     /// \brief Create ID value from provided mask and underlying ID base
-    static auto FromMasked(MaskType mask, IdType id) -> Id {
-        Id res{IdType{}};
-        res.value = id | (mask << mask_offset);
+    static auto FromMaskedIdx(IdType id, MaskType mask) -> Id {
+        Id res = FromIndex(id);
+        res.setMask(mask);
         return res;
     }
 
@@ -93,11 +96,24 @@ struct [[nodiscard]] Id {
 
     /// \brief Set mask for the ID
     inline void setMask(MaskType mask) {
-        value = getUnmasked() | (mask << mask_offset);
+        uint64_t mask_check = (1ULL << mask_size) - 1;
+        if ((mask & ~mask_check) != 0) {
+            throw std::logic_error(fmt(
+                R"(ID Mask must have bits set in range [{0}..0], but provided value {1:016X} {1:064b} has higher bits set:
+mask:  {1:064b}
+check: {2:064b}
+)",
+                mask_size,
+                mask,
+                mask_check));
+        }
+
+        auto shift = mask << mask_offset;
+        value      = getUnmasked() | shift;
     }
 
     /// \brief Check whether provided value is nil or not
-    auto isNil() const noexcept -> bool { return value == IdType{}; }
+    auto isNil() const noexcept -> bool { return getUnmasked() == 0; }
     /// Get value stored in the ID  - this one should be used in cases
     /// where ID is converted in some different format (for example printed
     /// out or stored in the database)
@@ -149,7 +165,7 @@ struct [[nodiscard]] Id {
 
     /// \brief  Compare full ID value for inequality
     bool operator!=(Id other) const noexcept {
-        return getValue() == other.getValue();
+        return getValue() != other.getValue();
     }
 
     /// \brief Write strig representation of the ID into output stream
@@ -183,26 +199,27 @@ struct [[nodiscard]] Id {
 
 #define DECL_ID_TYPE_MASKED(__value, __name, __type, __mask)              \
     struct __value;                                                       \
-    struct [[nodiscard]] __name                                           \
-        : dod::Id<                                                        \
-              __type,                                                     \
-              __type,                                                     \
-              std::integral_constant<__type, __mask>> {                   \
+    using __name##BaseId = dod::                                          \
+        Id<__type, __type, std::integral_constant<__type, __mask>>;       \
+    struct [[nodiscard]] __name : __name##BaseId {                        \
+                                                                          \
         using value_type = __value;                                       \
+                                                                          \
         static auto Nil() -> __name { return FromValue(0); };             \
+                                                                          \
         static auto FromValue(__type arg) -> __name {                     \
             __name res{__type{}};                                         \
             res.setValue(arg);                                            \
             return res;                                                   \
         }                                                                 \
+                                                                          \
         auto operator==(__name other) const -> bool {                     \
             return getValue() == other.getValue();                        \
         }                                                                 \
-        explicit __name(__type arg)                                       \
-            : dod::Id<                                                    \
-                  __type,                                                 \
-                  __type,                                                 \
-                  std::integral_constant<__type, __mask>>(arg) {}         \
+                                                                          \
+        __name(__name##BaseId const& arg) : __name##BaseId(arg) {}        \
+                                                                          \
+        explicit __name(__type arg) : __name##BaseId(arg) {}              \
     };
 
 
@@ -335,17 +352,33 @@ struct Store {
     }
 
     /// Add value to the storage and return newly created ID
+    [[nodiscard]] auto add(const T& value, Id::id_mask_type mask) -> Id {
+        int index = content.size();
+        content.push_back(value);
+        auto result = Id::FromMaskedIdx(index, mask);
+        CHECK(!result.isNil());
+        return result;
+    }
+
+    /// \brief Add new item to the store and return newly created ID
+    [[nodiscard]] auto add(const T&& value, Id::id_mask_type mask) -> Id {
+        int index = content.size();
+        content.push_back(value);
+        return Id::FromMaskedIdx(index, mask);
+    }
+
+    /// Add value to the storage and return newly created ID
     [[nodiscard]] auto add(const T& value) -> Id {
         int index = content.size();
         content.push_back(value);
-        return Id(index);
+        return Id::FromIndex(index);
     }
 
     /// \brief Add new item to the store and return newly created ID
     [[nodiscard]] auto add(const T&& value) -> Id {
         int index = content.size();
         content.push_back(value);
-        return Id(index);
+        return Id::FromIndex(index);
     }
 
     /// \brief Last element stored in the store (by index)
@@ -375,13 +408,14 @@ struct Store {
     /// \arg id
     auto at(Id id) const -> CR<T> { return content.at(id.getIndex()); }
     /// \brief Get a total number of the stored objects int the store
-    auto size() const -> std::size_t { return content.size(); }
+    auto size() const -> int { return content.size(); }
+    bool empty() const { return size() == 0; }
 
-    /// \brief Get genetator for all stored indices and pairs
+    /// \brief Get generator for all stored indices and pairs
     auto pairs() const -> generator<std::pair<Id, CP<T>>> {
         const int size = content.size();
         for (int i = 0; i < size; ++i) {
-            co_yield {Id(i), &content.at(i)};
+            co_yield {Id::FromIndex(i), &content.at(i)};
         }
     }
 
@@ -427,12 +461,15 @@ struct InternStore {
 
     /// Add value to the store - if the value is already contained can
     /// return previous ID
-    [[nodiscard]] auto add(CR<Val> in) -> Id {
+    [[nodiscard]] auto add(
+        CR<Val>                                  in,
+        std::optional<typename Id::id_mask_type> mask = std::nullopt)
+        -> Id {
         auto found = id_map.find(in);
         if (found != id_map.end()) {
             return found->second;
         } else {
-            auto result = content.add(in);
+            auto result = mask ? content.add(in, *mask) : content.add(in);
             id_map.insert({in, result});
             return result;
         }
@@ -443,8 +480,10 @@ struct InternStore {
         return id_map.find(in) != id_map.end();
     }
 
+    bool empty() const { return size() == 0; }
+
     /// \brief Number of elements
-    auto size() const -> std::size_t { return content.size(); }
+    auto size() const -> int { return content.size(); }
     /// \brief Get mutable reference at the content pointed at by the ID
     auto at(Id id) -> Val& { return content.at(id); }
     /// \brief Get immutable references at the content pointed at by the ID

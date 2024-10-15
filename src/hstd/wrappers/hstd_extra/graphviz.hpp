@@ -61,16 +61,7 @@ class Graphviz {
         Right
     };
 
-    static Str alignText(Str const& text, TextAlign direction) {
-        Str res = text;
-        switch (direction) {
-            case TextAlign::Left: res.replaceAll("\n", "\\l"); break;
-            case TextAlign::Right: res.replaceAll("\n", "\\r"); break;
-            case TextAlign::Center: break;
-        }
-
-        return res;
-    }
+    static Str alignText(Str const& text, TextAlign direction);
 
     template <typename T>
     struct GraphvizObjBase : CRTP_this_method<T> {
@@ -260,11 +251,14 @@ class Graphviz {
         void startRecord() {
             setShape(Shape::record);
             bindRecord<Record>("record");
+            getNodeRecord()->content = Vec<Record>{};
         }
 
         Record* getNodeRecord() { return getRecord<Record>("record"); }
 
-        void finishRecord() { setLabel(getNodeRecord()->toString()); }
+        void finishRecord(int braceCount = 1) {
+            setLabel(getNodeRecord()->toString(braceCount));
+        }
 
         Node(Agraph_t* graph, Str const& name, Record const& record);
 
@@ -450,6 +444,7 @@ class Graphviz {
         Node head() { return Node(graph, AGHEAD(edge_)); }
         Node tail() { return Node(graph, AGTAIL(edge_)); }
 
+        _attr(Constraint, constraint, bool);
         /// \brief Color of the edge
         _attr(Color, color, Str /*Str*/);
         /// \brief Font color of the edge's label
@@ -512,7 +507,7 @@ class Graphviz {
 
 
         Graph newSubgraph(Str const& name) {
-            return Graph(agsubg(graph, strdup(name), 1));
+            return Graph(agsubg(graph, strdup("cluster_" + name), 1));
         }
 
         void setSplines(Splines splines);

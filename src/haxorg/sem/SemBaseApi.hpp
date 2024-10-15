@@ -32,6 +32,14 @@ struct [[refl]] OrgParseParameters {
     OrgParseParameters const& opts);
 
 
+/// \brief Remove outer wrapper containers from a node and return its
+/// single subnode.
+///
+/// Intended to be used for `asOneNode(parseString("some paragraph"))` --
+/// remove the outer `Document` node and get to the actual paragraph entry
+/// at hand.
+[[refl]] sem::SemId<sem::Org> asOneNode(sem::OrgArg arg);
+
 [[refl]] std::string formatToString(sem::SemId<sem::Org> arg);
 
 struct [[refl]] OrgYamlExportOpts {
@@ -190,10 +198,10 @@ struct Link;
 /// the callsite. Order of elements in the returned links depends on the
 /// order of node registration.
 struct [[refl]] OrgDocumentContext {
-    UnorderedMap<Str, Vec<SemId<Subtree>>>            subtreeIds;
-    UnorderedMap<Str, Vec<SemId<Subtree>>>            subtreeCustomIds;
-    UnorderedMap<Str, Vec<SemId<Org>>>                radioTargets;
-    UnorderedMap<Str, Vec<SemId<AnnotatedParagraph>>> footnoteTargets;
+    UnorderedMap<Str, Vec<SemId<Subtree>>>   subtreeIds;
+    UnorderedMap<Str, Vec<SemId<Subtree>>>   subtreeCustomIds;
+    UnorderedMap<Str, Vec<SemId<Org>>>       radioTargets;
+    UnorderedMap<Str, Vec<SemId<Paragraph>>> footnoteTargets;
 
 
     [[refl]] Vec<SemId<Subtree>> getSubtreeById(Str const& id) const;
@@ -208,110 +216,5 @@ struct [[refl]] OrgDocumentContext {
 
 Opt<UserTime> getCreationTime(SemId<Org> const& node);
 
-
-struct [[refl]] OrgSelectorLink {
-    enum class [[refl]] Kind
-    {
-        DirectSubnode   = 0,
-        IndirectSubnode = 1,
-        FieldName       = 2,
-    };
-
-    BOOST_DESCRIBE_NESTED_ENUM(
-        Kind,
-        DirectSubnode,
-        IndirectSubnode,
-        FieldName);
-
-
-    // 0
-    struct DirectSubnode {};
-    // 1
-    struct IndirectSubnode {};
-    // 2
-    struct FieldName {
-        Str name;
-    };
-
-    using Data = Variant<DirectSubnode, IndirectSubnode, FieldName>;
-    Data data;
-
-    Kind getKind() const { return static_cast<Kind>(data.index()); }
-
-    BOOST_DESCRIBE_CLASS(OrgSelectorLink, (), (), (), ());
-};
-
-struct [[refl]] OrgSelectorResult {
-    bool isMatching     = false;
-    bool tryNestedNodes = true;
-    BOOST_DESCRIBE_CLASS(
-        OrgSelectorResult,
-        (),
-        (isMatching, tryNestedNodes),
-        (),
-        ());
-};
-
-struct [[refl]] OrgSelectorCondition {
-    using Predicate = Func<OrgSelectorResult(SemId<Org> const&)>;
-    Predicate check;
-
-    /// \brief Matched node should be added to the full match set
-    [[refl]] bool                 isTarget = false;
-    [[refl]] Opt<Str>             debug;
-    [[refl]] Opt<OrgSelectorLink> link;
-
-    BOOST_DESCRIBE_CLASS(OrgSelectorCondition, (), (), (), ());
-};
-
-struct [[refl]] OrgDocumentSelector {
-    [[refl]] Vec<OrgSelectorCondition> path;
-    [[refl]] bool                      debug = false;
-
-    [[refl]] Vec<SemId<Org>> getMatches(SemId<Org> const& node) const;
-
-    [[refl]] OrgSelectorLink linkDirectSubnode() const {
-        return OrgSelectorLink{.data = OrgSelectorLink::DirectSubnode{}};
-    }
-
-    [[refl]] OrgSelectorLink linkIndirectSubnode() const {
-        return OrgSelectorLink{.data = OrgSelectorLink::IndirectSubnode{}};
-    }
-
-    [[refl]] OrgSelectorLink linkField(Str const& name) const {
-        return OrgSelectorLink{
-            .data = OrgSelectorLink::FieldName{.name = name}};
-    }
-
-    [[refl]] void searchSubtreePlaintextTitle(
-        Str const&           title,
-        bool                 isTarget,
-        Opt<OrgSelectorLink> link = std::nullopt);
-
-    [[refl]] void searchSubtreeId(
-        Str const&           id,
-        bool                 isTarget,
-        Opt<int>             maxLevel = std::nullopt,
-        Opt<OrgSelectorLink> link     = std::nullopt);
-
-    [[refl]] void searchAnyKind(
-        const IntSet<OrgSemKind>& kinds,
-        bool                      isTarget,
-        Opt<OrgSelectorLink>      link = std::nullopt);
-
-    [[refl]] void searchPredicate(
-        sem::OrgSelectorCondition::Predicate const& predicate,
-        bool                                        isTarget,
-        Opt<OrgSelectorLink>                        link = std::nullopt);
-
-    void dbg(Str const& msg, int depth, int line = __builtin_LINE()) const;
-
-
-    BOOST_DESCRIBE_CLASS(OrgDocumentSelector, (), (path), (), ());
-};
-
-Vec<SemId<Org>> getAllMatching(
-    SemId<Org> const&          node,
-    OrgDocumentSelector const& selector);
 
 } // namespace sem

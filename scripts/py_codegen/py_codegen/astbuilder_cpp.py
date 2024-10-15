@@ -8,9 +8,11 @@ import os
 import py_codegen.astbuilder_base as base
 from typing import TYPE_CHECKING
 from pydantic import BaseModel, Field
+import itertools
 
 from py_textlayout.py_textlayout_wrap import BlockId, TextLayout
 
+DEBUG_TYPE_ORIGIN = False
 
 class QualTypeKind(str, Enum):
     RegularType = "RegularTyp0e"
@@ -19,11 +21,16 @@ class QualTypeKind(str, Enum):
     Array = "Array"
     TypeExpr = "TypeExpr"
 
+    def __rich_repr__(self):
+        yield self.name
 
 class ReferenceKind(str, Enum):
     NotRef = "NotRef"
     LValue = "LValue"
     RValue = "RValue"
+
+    def __rich_repr__(self):
+        yield self.name
 
 
 @beartype
@@ -48,11 +55,19 @@ class QualType(BaseModel, extra="forbid"):
 
     meta: Dict[str, Any] = Field(default={})
 
-    def par0(self):
-        return self.Parameters[0]
+    def par0(self) -> Optional["QualType"]:
+        if 0 < len(self.Parameters):
+            return self.Parameters[0]
 
-    def par1(self):
-        return self.Parameters[1]
+    def par1(self) -> Optional["QualType"]:
+        if 1 < len(self.Parameters):
+            return self.Parameters[1]
+
+    def test(self, met: bool) -> bool:
+        return self.meta.get(met, False)
+
+    def isOrgType(self) -> bool:
+        return self.meta.get("isOrgType", False)
 
     @staticmethod
     def ForName(name: str, **args) -> 'QualType':
@@ -62,11 +77,23 @@ class QualType(BaseModel, extra="forbid"):
     def ForExpr(expr: str, **args) -> 'QualType':
         return QualType(expr=expr, Kind=QualTypeKind.TypeExpr, **args)
 
+    def flatten(self) -> "QualType":
+        return self.model_copy(update=dict(Spaces=self.flatQualSpaces()))
+
+    def withDbgOrigin(self, msg: str) -> "QualType":
+        return self.model_copy(update=dict(dbg_origin=self.dbg_origin + msg))
+
     def asConstRef(self) -> 'QualType':
         return self.model_copy(update=dict(isConst=True, RefKind=ReferenceKind.LValue))
 
     def asRef(self) -> 'QualType':
         return self.model_copy(update=dict(isConst=False, RefKind=ReferenceKind.LValue))
+
+    def flatQualSpaces(self) -> List["QualType"]:
+        def aux(it: QualType) -> List[QualType]:
+            return list(itertools.chain(*(aux(s) for s in it.Spaces))) + [it.withoutAllSpaces()]
+
+        return list(itertools.chain(*(aux(s) for s in self.Spaces)))
 
     def asPtr(self, ptrCount: int = 1) -> 'QualType':
         return self.model_copy(update=dict(ptrCount=ptrCount))
@@ -90,14 +117,19 @@ class QualType(BaseModel, extra="forbid"):
             isGlobalNamespace=self.isGlobalNamespace,
         ))
 
+    def withWrapperType(self, name: str) -> "QualType":
+        return QualType(name=name, Parameters=[self])
+
     def withExtraSpace(self, name: Union['QualType', str]) -> 'QualType':
+        flat = self.flatten()
         added: QualType = QualType(name=name) if isinstance(name, str) else name
         assert isinstance(added, QualType), type(added)
-        return self.model_copy(update=dict(Spaces=[added] + self.Spaces))
+        return flat.model_copy(update=dict(Spaces=[added] + flat.Spaces))
 
     def withoutSpace(self, name: str) -> 'QualType':
-        return self.model_copy(update=dict(
-            Spaces=[S for S in self.Spaces if S.name != name]))
+        flat = self.flatten()
+        return flat.model_copy(update=dict(
+            Spaces=[S for S in flat.Spaces if S.name != name]))
 
     def withoutAllSpaces(self) -> 'QualType':
         return self.model_copy(update=dict(Spaces=[]))
@@ -107,7 +139,7 @@ class QualType(BaseModel, extra="forbid"):
         Resulting type will have only [name] as the space"""
         added: QualType = QualType(name=name) if isinstance(name, str) else name
         assert isinstance(added, QualType), type(added)
-        return self.model_copy(update=dict(Spaces=[added]))
+        return self.flatten().model_copy(update=dict(Spaces=[added]))
 
     def isArray(self) -> bool:
         return self.Kind == QualTypeKind.Array
@@ -140,6 +172,12 @@ class QualType(BaseModel, extra="forbid"):
             (self.name, self.isConst, self.ptrCount, self.RefKind, self.isNamespace,
              tuple([hash(T) for T in self.Spaces]),
              tuple([hash(T) for T in self.Parameters])))
+
+    def __repr__(self) -> str:
+        return self.format()
+
+    def __str__(self) -> str:
+        return self.format()
 
     def format(self, dbgOrigin: bool = False) -> str:
         cvref = "{const}{ptr}{ref}".format(
@@ -263,7 +301,7 @@ class ParmVarParams:
 @dataclass
 class FunctionParams:
     Name: str
-    doc: DocParams
+    doc: DocParams = field(default_factory=lambda: DocParams(""))
     Template: TemplateParams = field(default_factory=TemplateParams)
     ResultTy: Optional[QualType] = field(default_factory=lambda: QualType.ForName("void"))
     Args: List[ParmVarParams] = field(default_factory=list)
@@ -418,7 +456,7 @@ RecordNested = Union[EnumParams, 'RecordParams', BlockId]
 @dataclass
 class RecordParams:
     name: str
-    doc: DocParams
+    doc: DocParams = field(default_factory=lambda: DocParams(""))
     NameParams: List[QualType] = field(default_factory=list)
     bases: List[QualType] = field(default_factory=list)
     members: List[RecordMember] = field(default_factory=list)
@@ -1184,6 +1222,16 @@ class ASTBuilder(base.AstbuilderBase):
                 case ReferenceKind.RValue:
                     qualifiers += "&&"
 
+        def get_dbg_str() -> str:
+            if DEBUG_TYPE_ORIGIN and type_.dbg_origin:
+                return f" /* {type_.dbg_origin} */"
+
+            else:
+                return ""
+
+        def get_dbg() -> BlockId:
+            return self.string(get_dbg_str())
+
         match type_.Kind:
             case QualTypeKind.FunctionPtr:
                 pointer_type = [self.Type(type_.func.Class),
@@ -1194,10 +1242,11 @@ class ASTBuilder(base.AstbuilderBase):
                     self.pars(self.b.line(pointer_type + [self.string("*")])),
                     self.pars(self.csv([self.Type(T) for T in type_.func.Args])),
                     self.string(" const" if type_.func.IsConst else ""),
+                    get_dbg(),
                 ])
 
             case QualTypeKind.TypeExpr:
-                return self.string(type_.expr)
+                return self.string(type_.expr + get_dbg_str())
 
             case QualTypeKind.Array:
                 return self.b.line([
@@ -1205,7 +1254,8 @@ class ASTBuilder(base.AstbuilderBase):
                     self.string("["),
                     self.Type(type_.Parameters[1]),
                     self.string("]"),
-                    self.string(qualifiers)
+                    self.string(qualifiers),
+                    get_dbg(),
                 ])
 
             case QualTypeKind.RegularType:
@@ -1240,6 +1290,7 @@ class ASTBuilder(base.AstbuilderBase):
                     self.b.join(type_scopes, self.string("::")),
                     template_parameters,
                     self.string(qualifiers),
+                    get_dbg(),
                 ])
 
     def Dot(self, lhs: BlockId, rhs: BlockId) -> BlockId:

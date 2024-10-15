@@ -28,6 +28,8 @@ template <
     typename MaskType = IdBase>
 struct [[nodiscard]] NodeId
     : dod::Id<IdBase, MaskType, std::integral_constant<MaskType, 16>> {
+    using base_type = dod::
+        Id<IdBase, MaskType, std::integral_constant<MaskType, 16>>;
     using value_type = Node<N, K, V>;
     static auto Nil() -> NodeId { return FromValue(0); };
     static auto FromValue(IdBase arg) -> NodeId {
@@ -42,9 +44,8 @@ struct [[nodiscard]] NodeId
 
     MaskType getStoreIdx() const { return this->getMask(); }
 
-    explicit NodeId(IdBase arg)
-        : dod::Id<IdBase, MaskType, std::integral_constant<MaskType, 16>>(
-              arg) {}
+    explicit NodeId(IdBase arg) : base_type(arg) {}
+    NodeId(base_type arg) : base_type(arg) {}
 };
 
 
@@ -233,7 +234,7 @@ struct NodeGroup {
         int offset = 0 /// Offset for extending closed subnode
     );
 
-    Id   failTree(Node<N, K, V> replacement);
+    Id failTree(Node<N, K, V> replacement);
     /// \brief Remove all nodes starting from a position `id`
     void removeTail(Id id);
 

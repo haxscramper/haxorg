@@ -1,0 +1,118 @@
+#pragma once
+
+#include <GLFW/glfw3.h>
+#include <hstd/stdlib/Vec.hpp>
+#include <hstd/wrappers/adaptagrams_wrap/adaptagrams_ir.hpp>
+#include "imgui.h"
+
+struct DocNode {
+    int  lane;
+    int  row;
+    bool operator==(DocNode const& other) const {
+        return lane == other.lane && row == other.row;
+    }
+    DESC_FIELDS(DocNode, (lane, row));
+};
+
+struct DocOutEdge {
+    DocNode  target;
+    Opt<int> heightOffset;
+};
+
+struct DocBlock {
+    int             width;
+    int             height;
+    Vec<DocOutEdge> outEdges;
+    int             topMargin    = 5;
+    int             bottomMargin = 5;
+
+    /// \brief Get full vertical space occupied by the doc block, including
+    /// top and bottom margins.
+    int fullHeight() const { return height + topMargin + bottomMargin; }
+
+    Slice<int> heightSpan(int start) const {
+        return slice(start, start + fullHeight());
+    }
+
+    DESC_FIELDS(
+        DocBlock,
+        (width, height, outEdges, topMargin, bottomMargin));
+};
+
+struct DocBlockStack {
+    Vec<DocBlock> blocks;
+    int           scrollOffset;
+    Slice<int>    visibleRange;
+    int           leftMargin  = 50;
+    int           rightMargin = 50;
+    DESC_FIELDS(
+        DocBlockStack,
+        (blocks, visibleRange, scrollOffset, leftMargin, rightMargin));
+    int        getBlockHeightStart(int blockIdx) const;
+    bool       inSpan(int blockIdx, Slice<int> heightRange) const;
+    Slice<int> getVisibleBlocks(Slice<int> heightRange) const;
+    int        addBlock(ImVec2 const& size) {
+        blocks.push_back(DocBlock{
+                   .width  = static_cast<int>(size.x),
+                   .height = static_cast<int>(size.y),
+        });
+        return blocks.high();
+    }
+
+    void addEdge(int row, DocOutEdge const& target) {
+        return blocks.at(row).outEdges.push_back(target);
+    }
+};
+
+template <>
+struct std::hash<DocNode> {
+    std::size_t operator()(DocNode const& it) const noexcept {
+        std::size_t result = 0;
+        hax_hash_combine(result, it.lane);
+        hax_hash_combine(result, it.row);
+        return result;
+    }
+};
+
+
+struct DocGraph {
+    Vec<DocBlockStack> lanes;
+    GraphSize          visible;
+    DESC_FIELDS(DocGraph, (lanes, visible));
+    DocNode addNode(int lane, ImVec2 const& size) {
+        return DocNode{
+            .lane = lane,
+            .row  = this->lane(lane).addBlock(size),
+        };
+    }
+
+    void addEdge(DocNode const& source, DocOutEdge const& target) {
+        return lane(source.lane).addEdge(source.row, target);
+    }
+
+    DocBlockStack& lane(int lane) { return lanes.resize_at(lane); }
+
+    DocBlock& at(DocNode const& node) {
+        return lanes.at(node.lane).blocks.at(node.row);
+    }
+
+    DocBlock const& at(DocNode const& node) const {
+        return lanes.at(node.lane).blocks.at(node.row);
+    }
+};
+
+
+struct DocLayout {
+    GraphLayoutIR              ir;
+    UnorderedMap<DocNode, int> rectMap;
+};
+
+void render_point(const GraphPoint& point, ImVec2 const& shift);
+void render_path(const GraphPath& path, ImVec2 const& shift);
+void render_path(const GraphPath& path, ImVec2 const& shift);
+void render_rect(const GraphRect& rect, ImVec2 const& shift);
+void render_edge(const GraphLayoutIR::Edge& edge, ImVec2 const& shift);
+void render_result(GraphLayoutIR::Result const& res, ImVec2 const& shift);
+
+DocLayout to_layout(DocGraph const& g);
+void      run_block_graph_test(GLFWwindow* window);

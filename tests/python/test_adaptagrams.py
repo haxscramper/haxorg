@@ -389,7 +389,7 @@ def test_node_pin_connections():
 
     ir.ir.width = 100 * mult
     ir.ir.height = 100 * mult
-    ir.ir.doColaSvgWrite("/tmp/result.svg")
+    ir.ir.doColaSvgWrite("/tmp/test_node_pin_connections.svg")
 
     t = ConvTest(ir)
     t.debug()
