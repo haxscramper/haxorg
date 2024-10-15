@@ -170,6 +170,7 @@ struct GridModel {
     GridContext           conf;
     org::graph::MapGraph  graph;
     GraphLayoutIR::Result layout;
+      ImVec2 shift{20, 20};
     void                  updateDocument();
     GridState&            getCurrentState() { return history.back(); }
     void                  apply(GridAction const& act);
