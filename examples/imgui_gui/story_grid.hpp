@@ -99,9 +99,11 @@ struct GridNode {
         return res;
     }
 
-    int getWidth() const {
+    int getWidth(int padding = 0) const {
         int tableWidth = 0;
-        for (auto const& col : columns) { tableWidth += col.width; }
+        for (auto const& col : columns) {
+            tableWidth += col.width + padding;
+        }
         return tableWidth;
     }
 

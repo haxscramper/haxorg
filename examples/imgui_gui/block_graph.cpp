@@ -119,18 +119,26 @@ DocLayout to_layout(DocGraph const& g) {
             DocNode source{.lane = lane.index(), .row = row};
             for (auto const& target : g.at(source).outEdges) {
                 if (lyt.rectMap.contains(source)
-                    && lyt.rectMap.contains(target)) {
+                    && lyt.rectMap.contains(target.target)) {
                     GraphEdge edge{
                         lyt.rectMap.at(source),
-                        lyt.rectMap.at(target),
+                        lyt.rectMap.at(target.target),
                     };
                     lyt.ir.edges.push_back(edge);
-                    lyt.ir.edgeConstraints.insert_or_assign(
-                        edge,
-                        GraphEdgeConstraint{
-                            .sourcePort = GraphEdgeConstraint::Port::East,
-                            .targetPort = GraphEdgeConstraint::Port::West,
-                        });
+                    GraphEdgeConstraint ec{
+                        .sourcePort = GraphEdgeConstraint::Port::East,
+                        .targetPort = GraphEdgeConstraint::Port::West,
+                    };
+                    if (target.heightOffset) {
+                        auto offset = target.heightOffset.value();
+                        auto full   = g.at(source).height;
+                        LOGIC_ASSERTION_CHECK(
+                            offset <= full, "{} !<= {}", offset, full);
+                        ec.sourceOffset //
+                            = float(offset) / float(full);
+                    }
+
+                    lyt.ir.edgeConstraints.insert_or_assign(edge, ec);
                 }
             }
         }
@@ -139,7 +147,6 @@ DocLayout to_layout(DocGraph const& g) {
     return lyt;
 }
 
-DocNode n(int lane, int row) { return DocNode{.lane = lane, .row = row}; }
 
 float line_width = 4.0f;
 
@@ -199,6 +206,11 @@ void graph_render_loop(DocGraph const& g, GLFWwindow* window) {
         ImGui::End();
         frame_end(window);
     }
+}
+
+
+DocOutEdge n(int lane, int row) {
+    return DocOutEdge{.target = DocNode{.lane = lane, .row = row}};
 }
 
 void run_block_graph_test(GLFWwindow* window) {

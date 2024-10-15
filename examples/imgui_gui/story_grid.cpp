@@ -521,12 +521,12 @@ void GridModel::updateDocument() {
     doc.rows = build_rows(getCurrentState().ast.getRootAdapter(), doc);
     document.nodes.clear();
 
-    int height;
+    int offset     = 0;
     int rowPadding = 5;
     for (auto const& row : doc.flatRows()) {
-        doc.rowPositions.resize_at(row->flatIdx) = height;
+        doc.rowPositions.resize_at(row->flatIdx) = offset;
         doc.rowOrigins.insert_or_assign(row->origin.uniq(), row->flatIdx);
-        height += row->getHeight(rowPadding);
+        offset += row->getHeight(rowPadding);
 
         org::graph::MapNode subtreeNode{row->origin.uniq()};
         graph.addNode(subtreeNode);
@@ -546,7 +546,8 @@ void GridModel::updateDocument() {
 
     DocumentNode::Grid grid{
         .pos  = ImVec2(0, 0),
-        .size = ImVec2(doc.getWidth(), doc.getHeight(rowPadding)),
+        .size = ImVec2(
+            doc.getWidth(rowPadding), doc.getHeight(rowPadding)),
         .node = doc,
     };
     document.nodes.push_back(DocumentNode{.data = grid});
@@ -576,7 +577,14 @@ void GridModel::updateDocument() {
                     text.text, width, GridColumn::EditMode::Multiline);
 
                 auto annotation = ir.addNode(1, ImVec2(width, height));
-                ir.addEdge(root, annotation);
+                ir.addEdge(
+                    root,
+                    DocOutEdge{
+                        .target       = annotation,
+                        .heightOffset = float(doc.rowPositions.at(
+                                            row->flatIdx))
+                                      + float(row->getHeight()) / 2,
+                    });
 
                 gridNodeToNode.insert_or_assign(
                     document.nodes.high(), annotation);

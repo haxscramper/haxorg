@@ -14,13 +14,20 @@ struct DocNode {
     DESC_FIELDS(DocNode, (lane, row));
 };
 
-struct DocBlock {
-    int          width;
-    int          height;
-    Vec<DocNode> outEdges;
-    int          topMargin    = 5;
-    int          bottomMargin = 5;
+struct DocOutEdge {
+    DocNode  target;
+    Opt<int> heightOffset;
+};
 
+struct DocBlock {
+    int             width;
+    int             height;
+    Vec<DocOutEdge> outEdges;
+    int             topMargin    = 5;
+    int             bottomMargin = 5;
+
+    /// \brief Get full vertical space occupied by the doc block, including
+    /// top and bottom margins.
     int fullHeight() const { return height + topMargin + bottomMargin; }
 
     Slice<int> heightSpan(int start) const {
@@ -52,7 +59,7 @@ struct DocBlockStack {
         return blocks.high();
     }
 
-    void addEdge(int row, DocNode const& target) {
+    void addEdge(int row, DocOutEdge const& target) {
         return blocks.at(row).outEdges.push_back(target);
     }
 };
@@ -79,7 +86,7 @@ struct DocGraph {
         };
     }
 
-    void addEdge(DocNode const& source, DocNode const& target) {
+    void addEdge(DocNode const& source, DocOutEdge const& target) {
         return lane(source.lane).addEdge(source.row, target);
     }
 
