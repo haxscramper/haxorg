@@ -18,7 +18,6 @@ DocLayout to_layout(DocGraph const& g) {
     for (auto const& [lane_idx, lane] : enumerate(g.lanes)) {
         Slice<int> visibleBlocks = lane.getVisibleBlocks(
             slice<int>(0, int(g.visible.height())));
-        _dfmt(lane_idx, visibleBlocks, g.visible.height());
         if (visibleBlocks.first == visibleBlocks.last
             && visibleBlocks.first == -1) {
             continue;
@@ -137,6 +136,11 @@ DocLayout to_layout(DocGraph const& g) {
                             offset <= full, "{} !<= {}", offset, full);
                         ec.sourceOffset //
                             = float(offset) / float(full);
+                        int step = 6;
+                        ec.targetCheckpoint //
+                            = (g.lanes.at(target.target.lane).blocks.size()
+                               * step)
+                            - (target.target.row * step);
                     }
 
                     lyt.ir.edgeConstraints.insert_or_assign(edge, ec);
@@ -297,7 +301,6 @@ int DocBlockStack::getBlockHeightStart(int blockIdx) const {
 bool DocBlockStack::inSpan(int blockIdx, Slice<int> heightRange) const {
     auto span = blocks.at(blockIdx).heightSpan(
         getBlockHeightStart(blockIdx));
-    _dfmt(blockIdx, heightRange, span);
     return heightRange.overlap(span).has_value();
 }
 
@@ -322,4 +325,76 @@ Slice<int> DocBlockStack::getVisibleBlocks(Slice<int> heightRange) const {
     }
 
     return res;
+}
+
+ImVec2 get_center(const GraphRect& rect) {
+    return ImVec2(
+        rect.left + rect.width / 2.0, rect.top + rect.height / 2.0);
+}
+
+DocConstraintDebug to_constraints(
+    const DocLayout&             lyt,
+    const DocGraph&              g,
+    GraphLayoutIR::Result const& final) {
+    DocConstraintDebug res;
+
+    auto add_align_line = [&](GraphNodeConstraint::Align const& a) {
+        bool        x = a.dimension == GraphDimension::XDIM;
+        Vec<ImVec2> centers;
+        for (auto const& rect : a.nodes) {
+            centers.push_back(
+                get_center(final.fixed.at(rect.node))
+                + (x ? ImVec2(rect.offset, 0) : ImVec2(0, rect.offset)));
+        }
+        std::sort(
+            centers.begin(),
+            centers.end(),
+            [&](ImVec2 const& lhs, ImVec2 const& rhs) {
+                return x ? (lhs.y < rhs.y) : (lhs.x < rhs.x);
+            });
+
+        ImVec2 start = centers.at(0);
+        ImVec2 end   = centers.at(1_B);
+
+        res.constraints.push_back(DocConstraintDebug::Constraint{
+            DocConstraintDebug::Constraint::Align{
+                .start = start,
+                .end   = end,
+            }});
+    };
+
+
+    for (auto const& c : lyt.ir.nodeConstraints) {
+        switch (c.getKind()) {
+            case GraphNodeConstraint::Kind::Align: {
+                add_align_line(c.getAlign());
+                break;
+            }
+            default: {
+                _dbg(c.getKind());
+            }
+        }
+    }
+
+    return res;
+}
+
+void render_debug(const DocConstraintDebug& debug, ImVec2 const& shift) {
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    using C               = DocConstraintDebug::Constraint;
+    for (auto const& c : debug.constraints) {
+        switch (c.getKind()) {
+            case C::Kind::Align: {
+                auto const& a = c.getAlign();
+                render_point(GraphPoint{a.start.x, a.start.y}, shift);
+                render_point(GraphPoint{a.end.x, a.end.y}, shift);
+                draw_list->AddLine(
+                    ImVec2(a.start.x, a.start.y) + shift,
+                    ImVec2(a.end.x, a.end.y) + shift,
+                    IM_COL32(0, 255, 0, 255),
+                    line_width);
+                break;
+            }
+        }
+    }
 }

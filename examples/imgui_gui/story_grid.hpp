@@ -3,6 +3,7 @@
 // checks, but building imgui application in debug mode causes a new series
 // of instantiations and overwrites the symbols with debug enabled, causing
 // constant assertion failures.
+#include "block_graph.hpp"
 #define NDEBUG 0
 
 #include <GLFW/glfw3.h>
@@ -165,15 +166,16 @@ struct GridState {
 };
 
 struct GridModel {
-    Vec<GridState>        history;
-    DocumentGraph         document;
-    GridContext           conf;
-    org::graph::MapGraph  graph;
-    GraphLayoutIR::Result layout;
-      ImVec2 shift{20, 20};
-    void                  updateDocument();
-    GridState&            getCurrentState() { return history.back(); }
-    void                  apply(GridAction const& act);
+    Vec<GridState>          history;
+    DocumentGraph           document;
+    GridContext             conf;
+    org::graph::MapGraph    graph;
+    GraphLayoutIR::Result   layout;
+    ImVec2                  shift{20, 20};
+    Opt<DocConstraintDebug> debug;
+    void                    updateDocument();
+    GridState&              getCurrentState() { return history.back(); }
+    void                    apply(GridAction const& act);
 };
 
 

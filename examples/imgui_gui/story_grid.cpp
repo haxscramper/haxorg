@@ -398,6 +398,8 @@ Vec<GridAction> render_story_grid(GridModel& model) {
         render_edge(edge, model.shift);
     }
 
+    if (model.debug) { render_debug(model.debug.value(), model.shift); }
+
     return result;
 }
 
@@ -620,7 +622,7 @@ void GridModel::updateDocument() {
                     .text = join(" ", flatWords(node)),
                 };
 
-                int width  = 200;
+                int width  = 300;
                 int height = get_text_height(
                     text.text, width, GridColumn::EditMode::Multiline);
                 text.size.x = width;
@@ -645,8 +647,10 @@ void GridModel::updateDocument() {
 
     writeFile("/tmp/ir_dump.json", to_json_eval(ir).dump(2));
 
-    ir.visible.h = 1000;
-    ir.visible.w = 1000;
+    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+
+    ir.visible.h = viewport->WorkSize.y;
+    ir.visible.w = viewport->WorkSize.x;
     for (auto& stack : ir.lanes) { stack.resetVisibleRange(); }
     DocLayout lyt = to_layout(ir);
     writeFile("/tmp/tmp_dump.json", to_json_eval(lyt).dump(2));
@@ -667,6 +671,9 @@ void GridModel::updateDocument() {
             node.getText().pos.y = rec.top;
         }
     }
+
+    this->debug = to_constraints(lyt, ir, this->layout);
+    writeFile("/tmp/debug_dump.json", to_json_eval(this->debug).dump(2));
 }
 
 void GridModel::apply(const GridAction& act) {

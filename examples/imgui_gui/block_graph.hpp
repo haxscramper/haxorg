@@ -110,12 +110,35 @@ struct DocLayout {
     DESC_FIELDS(DocLayout, (ir, rectMap));
 };
 
+struct DocConstraintDebug {
+    struct Constraint {
+        struct Align {
+            ImVec2 start;
+            ImVec2 end;
+            DESC_FIELDS(Align, (start, end));
+        };
+
+        SUB_VARIANTS(Kind, Data, data, getKind, Align);
+        Data data;
+        DESC_FIELDS(Constraint, (data));
+    };
+
+    Vec<Constraint> constraints;
+    DESC_FIELDS(DocConstraintDebug, (constraints));
+};
+
+DocConstraintDebug to_constraints(
+    DocLayout const&             lyt,
+    DocGraph const&              g,
+    const GraphLayoutIR::Result& final);
+
 void render_point(const GraphPoint& point, ImVec2 const& shift);
 void render_path(const GraphPath& path, ImVec2 const& shift);
 void render_path(const GraphPath& path, ImVec2 const& shift);
 void render_rect(const GraphRect& rect, ImVec2 const& shift);
 void render_edge(const GraphLayoutIR::Edge& edge, ImVec2 const& shift);
 void render_result(GraphLayoutIR::Result const& res, ImVec2 const& shift);
+void render_debug(DocConstraintDebug const& debug, const ImVec2& shift);
 
 DocLayout to_layout(DocGraph const& g);
 void      run_block_graph_test(GLFWwindow* window);
