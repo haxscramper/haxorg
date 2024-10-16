@@ -17,6 +17,7 @@ struct DocNode {
 struct DocOutEdge {
     DocNode  target;
     Opt<int> heightOffset;
+    DESC_FIELDS(DocOutEdge, (target, heightOffset));
 };
 
 struct DocBlock {
@@ -48,8 +49,9 @@ struct DocBlockStack {
     DESC_FIELDS(
         DocBlockStack,
         (blocks, visibleRange, scrollOffset, leftMargin, rightMargin));
-    int        getBlockHeightStart(int blockIdx) const;
-    bool       inSpan(int blockIdx, Slice<int> heightRange) const;
+    int  getBlockHeightStart(int blockIdx) const;
+    void resetVisibleRange() { visibleRange = slice(0, blocks.high()); }
+    bool inSpan(int blockIdx, Slice<int> heightRange) const;
     Slice<int> getVisibleBlocks(Slice<int> heightRange) const;
     int        addBlock(ImVec2 const& size) {
         blocks.push_back(DocBlock{
@@ -105,6 +107,7 @@ struct DocGraph {
 struct DocLayout {
     GraphLayoutIR              ir;
     UnorderedMap<DocNode, int> rectMap;
+    DESC_FIELDS(DocLayout, (ir, rectMap));
 };
 
 void render_point(const GraphPoint& point, ImVec2 const& shift);

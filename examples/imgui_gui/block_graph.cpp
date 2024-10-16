@@ -18,6 +18,7 @@ DocLayout to_layout(DocGraph const& g) {
     for (auto const& [lane_idx, lane] : enumerate(g.lanes)) {
         Slice<int> visibleBlocks = lane.getVisibleBlocks(
             slice<int>(0, int(g.visible.height())));
+        _dfmt(lane_idx, visibleBlocks, g.visible.height());
         if (visibleBlocks.first == visibleBlocks.last
             && visibleBlocks.first == -1) {
             continue;
@@ -296,6 +297,7 @@ int DocBlockStack::getBlockHeightStart(int blockIdx) const {
 bool DocBlockStack::inSpan(int blockIdx, Slice<int> heightRange) const {
     auto span = blocks.at(blockIdx).heightSpan(
         getBlockHeightStart(blockIdx));
+    _dfmt(blockIdx, heightRange, span);
     return heightRange.overlap(span).has_value();
 }
 

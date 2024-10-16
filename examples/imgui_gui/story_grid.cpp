@@ -301,11 +301,16 @@ Vec<GridAction> render_text_node(
     Vec<GridAction> result;
     auto&           ctx = model.conf;
 
-    ImGui::SetNextWindowPos(grid.pos + model.shift);
-    ImGui::SetNextWindowSize(grid.size);
+
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
     ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+    ImGui::SetNextWindowPos(grid.pos + model.shift);
+    ImGui::SetNextWindowSize(grid.size);
+    ImGui::Begin(
+        fmt("##{:p}", static_cast<const void*>(grid.text.data())).c_str(),
+        nullptr,
+        ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize);
 
     bool edit = false;
     render_editable_text(
@@ -315,6 +320,8 @@ Vec<GridAction> render_text_node(
         grid.size.y,
         grid.size.x,
         GridColumn::EditMode::Multiline);
+
+    ImGui::End();
 
     ImGui::PopStyleVar(3);
 
@@ -613,11 +620,13 @@ void GridModel::updateDocument() {
                     .text = join(" ", flatWords(node)),
                 };
 
-                document.nodes.push_back(DocumentNode{text});
                 int width  = 200;
                 int height = get_text_height(
                     text.text, width, GridColumn::EditMode::Multiline);
+                text.size.x = width;
+                text.size.y = height;
 
+                document.nodes.push_back(DocumentNode{text});
                 auto annotation = ir.addNode(1, ImVec2(width, height));
                 ir.addEdge(
                     root,
@@ -634,13 +643,19 @@ void GridModel::updateDocument() {
         }
     }
 
-    ir.visible.h  = 1000;
-    ir.visible.w  = 1000;
+    writeFile("/tmp/ir_dump.json", to_json_eval(ir).dump(2));
+
+    ir.visible.h = 1000;
+    ir.visible.w = 1000;
+    for (auto& stack : ir.lanes) { stack.resetVisibleRange(); }
     DocLayout lyt = to_layout(ir);
+    writeFile("/tmp/tmp_dump.json", to_json_eval(lyt).dump(2));
     lyt.ir.height = 10000;
     lyt.ir.width  = 10000;
     auto cola     = lyt.ir.doColaLayout();
     this->layout  = cola.convert();
+
+    writeFile("/tmp/lyt_dump.json", to_json_eval(this->layout).dump(2));
 
     for (auto const& [idx, rec] : enumerate(this->layout.fixed)) {
         auto& node = document.nodes.at(idx);
