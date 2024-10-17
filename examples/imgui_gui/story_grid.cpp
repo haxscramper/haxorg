@@ -398,7 +398,6 @@ Vec<GridAction> render_story_grid(GridModel& model) {
         render_edge(edge, model.shift);
     }
 
-    if (model.debug) { render_debug(model.debug.value(), model.shift); }
 
     return result;
 }
@@ -456,14 +455,21 @@ void story_grid_loop(GLFWwindow* window, std::string const& file) {
         }
 
         frame_start();
+
         fullscreen_window_begin();
+
         if (first) {
             first = false;
             model.updateDocument();
         }
 
+        if (model.debug) {
+            render_debug(model.debug.value(), model.shift);
+        }
+
         Vec<GridAction> updates = render_story_grid(model);
         ImGui::End();
+
         frame_end(window);
         if (!updates.empty()) {
             for (auto const& update : updates) { model.apply(update); }
@@ -639,6 +645,7 @@ void GridModel::updateDocument() {
                                       + float(row->getHeight()) / 2,
                     });
 
+
                 gridNodeToNode.insert_or_assign(
                     document.nodes.high(), annotation);
             }
@@ -672,7 +679,8 @@ void GridModel::updateDocument() {
         }
     }
 
-    this->debug = to_constraints(lyt, ir, this->layout);
+    this->debug     = to_constraints(lyt, ir, this->layout);
+    this->debug->ir = &this->layout;
     writeFile("/tmp/debug_dump.json", to_json_eval(this->debug).dump(2));
 }
 

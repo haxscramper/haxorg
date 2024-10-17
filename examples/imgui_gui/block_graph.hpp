@@ -123,7 +123,8 @@ struct DocConstraintDebug {
         DESC_FIELDS(Constraint, (data));
     };
 
-    Vec<Constraint> constraints;
+    GraphLayoutIR::Result const* ir;
+    Vec<Constraint>              constraints;
     DESC_FIELDS(DocConstraintDebug, (constraints));
 };
 

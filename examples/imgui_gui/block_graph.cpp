@@ -8,7 +8,12 @@
 
 using GC = GraphNodeConstraint;
 
-GC::Align::Spec spec(int rect) { return GC::Align::Spec{.node = rect}; }
+GC::Align::Spec spec(int rect, int offset = 0) {
+    return GC::Align::Spec{
+        .node   = rect,
+        .offset = static_cast<double>(offset),
+    };
+}
 
 DocLayout to_layout(DocGraph const& g) {
     DocLayout lyt;
@@ -36,8 +41,8 @@ DocLayout to_layout(DocGraph const& g) {
             if (!first) {
                 first = GC::Align::Spec{
                     .node   = idx,
-                    .offset = static_cast<double>(
-                        lane.getBlockHeightStart(row)),
+                    .offset = lane.blocks.at(row).fullHeight() / 2.0f
+                            + lane.scrollOffset,
                 };
             }
         }
@@ -48,8 +53,7 @@ DocLayout to_layout(DocGraph const& g) {
 
         for (auto const& row : visibleBlocks) {
             DocNode node{.lane = lane_idx, .row = row};
-            align.nodes.push_back(
-                GC::Align::Spec{.node = lyt.rectMap.at(node)});
+            align.nodes.push_back(spec(lyt.rectMap.at(node)));
 
             auto next_row = row + 1;
             if (visibleBlocks.contains(next_row)) {
@@ -87,6 +91,8 @@ DocLayout to_layout(DocGraph const& g) {
         if (lane_idx < g.lanes.high()) {
             int         next_idx = lane_idx + 1;
             auto const& next     = g.lanes.at(next_idx);
+
+            if (!laneAlignments.has(next_idx)) { continue; }
 
             float lane_width //
                 = rs::max(
@@ -259,22 +265,10 @@ void run_block_graph_test(GLFWwindow* window) {
 
     DocGraph g{
         .lanes
-        = {DocBlockStack{
-               .blocks       = lane0,
-               .visibleRange = slice(0, 2),
-           },
-           DocBlockStack{
-               .blocks       = lane1,
-               .visibleRange = slice(0, 4),
-           },
-           DocBlockStack{
-               .blocks       = lane2,
-               .visibleRange = slice(0, 3),
-           }},
-        .visible = GraphSize{
-            .w = 1200,
-            .h = 1200,
-        }};
+        = {DocBlockStack{.blocks = lane0, .visibleRange = slice(0, 2)},
+           DocBlockStack{.blocks = lane1, .visibleRange = slice(0, 4)},
+           DocBlockStack{.blocks = lane2, .visibleRange = slice(0, 3)}},
+        .visible = GraphSize{.w = 1200, .h = 1200}};
 
     g.lanes.at(1).scrollOffset -= 100;
     for (int i = 0; i < 5; ++i) {
@@ -301,7 +295,9 @@ int DocBlockStack::getBlockHeightStart(int blockIdx) const {
 bool DocBlockStack::inSpan(int blockIdx, Slice<int> heightRange) const {
     auto span = blocks.at(blockIdx).heightSpan(
         getBlockHeightStart(blockIdx));
-    return heightRange.overlap(span).has_value();
+    bool result = heightRange.overlap(span).has_value();
+    _dfmt(span, heightRange, blockIdx, result, scrollOffset);
+    return result;
 }
 
 Slice<int> DocBlockStack::getVisibleBlocks(Slice<int> heightRange) const {
@@ -344,7 +340,7 @@ DocConstraintDebug to_constraints(
         for (auto const& rect : a.nodes) {
             centers.push_back(
                 get_center(final.fixed.at(rect.node))
-                + (x ? ImVec2(rect.offset, 0) : ImVec2(0, rect.offset)));
+                - (x ? ImVec2(rect.offset, 0) : ImVec2(0, rect.offset)));
         }
         std::sort(
             centers.begin(),
@@ -370,6 +366,11 @@ DocConstraintDebug to_constraints(
                 add_align_line(c.getAlign());
                 break;
             }
+            case GraphNodeConstraint::Kind::Separate: {
+                add_align_line(c.getSeparate().left);
+                add_align_line(c.getSeparate().right);
+                break;
+            }
             default: {
                 _dbg(c.getKind());
             }
@@ -380,19 +381,37 @@ DocConstraintDebug to_constraints(
 }
 
 void render_debug(const DocConstraintDebug& debug, ImVec2 const& shift) {
-    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    ImDrawList* draw_list = ImGui::GetForegroundDrawList();
     using C               = DocConstraintDebug::Constraint;
+
+    auto color = IM_COL32(255, 0, 0, 255);
+
+    auto point = [&](const GraphPoint& point) {
+        draw_list->AddCircleFilled(
+            ImVec2(point.x, point.y) + shift, 3.0f, color);
+    };
+
+    for (auto const& r : debug.ir->fixed) {
+        draw_list->AddRect(
+            ImVec2(r.left, r.top) + shift,
+            ImVec2(r.left + r.width, r.top + r.height) + shift,
+            color,
+            0.0f,
+            0,
+            line_width);
+    }
+
     for (auto const& c : debug.constraints) {
         switch (c.getKind()) {
             case C::Kind::Align: {
                 auto const& a = c.getAlign();
-                render_point(GraphPoint{a.start.x, a.start.y}, shift);
-                render_point(GraphPoint{a.end.x, a.end.y}, shift);
+                point(GraphPoint{a.start.x, a.start.y});
+                point(GraphPoint{a.end.x, a.end.y});
                 draw_list->AddLine(
                     ImVec2(a.start.x, a.start.y) + shift,
                     ImVec2(a.end.x, a.end.y) + shift,
-                    IM_COL32(0, 255, 0, 255),
-                    line_width);
+                    color,
+                    2.0f);
                 break;
             }
         }
