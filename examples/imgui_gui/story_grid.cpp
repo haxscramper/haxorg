@@ -615,9 +615,9 @@ Vec<Vec<DocAnnotation>> partition_graph_by_distance(
 void GridModel::updateDocument() {
     GridNode doc;
 
-    doc.getColumn("title").width = 300;
-    doc.getColumn("event").width = 400;
-    doc.getColumn("note").width  = 300;
+    doc.getColumn("title").width = 200;
+    doc.getColumn("event").width = 200;
+    doc.getColumn("note").width  = 200;
     // doc.getColumn("turning_point").width = 300;
     // doc.getColumn("value").width         = 200;
     doc.getColumn("location").width = 240;
@@ -634,6 +634,8 @@ void GridModel::updateDocument() {
 
         org::graph::MapNode subtreeNode{row->origin.uniq()};
         graph.addNode(subtreeNode);
+
+
         for (auto const& nested :
              row->origin.subAs<org::ImmBlockComment>()) {
             org::graph::MapNode commentNode{nested.uniq()};
@@ -643,6 +645,51 @@ void GridModel::updateDocument() {
                     .target = commentNode,
                 },
                 org::graph::MapEdgeProp{});
+
+            Func<void(
+                org::ImmUniqId const& origin, org::ImmAdapter const& node)>
+                                         trackFootnotes;
+            UnorderedSet<org::ImmUniqId> visited;
+            trackFootnotes = [&](org::ImmUniqId const&  origin,
+                                 org::ImmAdapter const& node) {
+                if (visited.contains(node.uniq())) {
+                    return;
+                } else {
+                    visited.incl(node.uniq());
+                }
+                for (auto const& recSub :
+                     node.getAllSubnodesDFS(node.path)) {
+                    if (Opt<org::ImmAdapterT<org::ImmLink>> link = recSub.asOpt<
+                                                                   org::
+                                                                       ImmLink>();
+                        link) {
+                        if (link.value()->isFootnote()) {
+                            if (auto target = link->ctx->track->footnotes
+                                                  .get(link.value()
+                                                           ->getFootnote()
+                                                           .target)) {
+                                for (auto const& path :
+                                     link->ctx->getPathsFor(
+                                         target.value())) {
+                                    graph.addNode(path);
+                                    graph.addEdge(
+                                        org::graph::MapEdge{
+                                            .source = origin,
+                                            .target = org::graph::
+                                                MapNode{path},
+                                        },
+                                        org::graph::MapEdgeProp{});
+
+                                    trackFootnotes(
+                                        path, link->ctx->adapt(path));
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            trackFootnotes(commentNode.id, nested);
         }
     }
 
@@ -676,6 +723,7 @@ void GridModel::updateDocument() {
     Vec<Vec<DocAnnotation>> partition = partition_graph_by_distance(
         docNodes, graph);
 
+    UnorderedMap<org::ImmUniqId, DocNode> orgToId;
     for (auto const& [group_idx, group] : enumerate(partition)) {
         _dfmt(group_idx, group.size(), group);
         for (auto const& node : group) {
@@ -683,40 +731,41 @@ void GridModel::updateDocument() {
                 node.source.id);
             org::ImmAdapter target = getCurrentState().ast.context.adapt(
                 node.target.id);
-            if (auto comment = target.asOpt<org::ImmBlockComment>();
-                comment) {
-                DocumentNode::Text text{
-                    .node = target,
-                    .text = join(" ", flatWords(target)),
-                };
+            DocumentNode::Text text{
+                .node = target,
+                .text = join(" ", flatWords(target)),
+            };
 
-                int width  = 300;
-                int height = get_text_height(
-                    text.text, width, GridColumn::EditMode::Multiline);
-                text.size.x = width;
-                text.size.y = height;
+            int width  = 200;
+            int height = get_text_height(
+                text.text, width, GridColumn::EditMode::Multiline);
+            text.size.x = width;
+            text.size.y = height;
 
-                document.nodes.push_back(DocumentNode{text});
-                auto annotation = ir.addNode(
-                    group_idx + 1, ImVec2(width, height));
-                if (Opt<int> row_idx = doc.rowOrigins.get(source.uniq());
-                    row_idx) {
-                    ir.addEdge(
-                        root,
-                        DocOutEdge{
-                            .target = annotation,
-                            .heightOffset //
-                            = float(doc.rowPositions.at(row_idx.value()))
-                            + float(
-                                  doc.getRow(row_idx.value())->getHeight())
-                                  / 2,
-                        });
-                }
-
-
-                gridNodeToNode.insert_or_assign(
-                    document.nodes.high(), annotation);
+            document.nodes.push_back(DocumentNode{text});
+            DocNode annotation = ir.addNode(
+                group_idx + 1, ImVec2(width, height));
+            orgToId.insert_or_assign(target.uniq(), annotation);
+            if (Opt<int> row_idx = doc.rowOrigins.get(source.uniq());
+                row_idx) {
+                ir.addEdge(
+                    root,
+                    DocOutEdge{
+                        .target = annotation,
+                        .heightOffset //
+                        = float(doc.rowPositions.at(row_idx.value()))
+                        + float(doc.getRow(row_idx.value())->getHeight())
+                              / 2,
+                    });
+            } else {
+                ir.addEdge(
+                    orgToId.at(source.uniq()),
+                    DocOutEdge{.target = annotation});
             }
+
+
+            gridNodeToNode.insert_or_assign(
+                document.nodes.high(), annotation);
         }
     }
 
