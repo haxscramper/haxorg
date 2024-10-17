@@ -86,6 +86,14 @@ struct GridNode {
         return result;
     }
 
+    GridRow* getRow(int pos) {
+        // TODO Optimize, this is a O(n^2) code.
+        for (auto it : flatRows()) {
+            if (it->flatIdx == pos) { return it; }
+        }
+        return nullptr;
+    }
+
     Opt<int> getRow(org::ImmUniqId const& id) const {
         return rowOrigins.get(id);
     }

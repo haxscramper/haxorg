@@ -6,6 +6,7 @@
 #include "imgui_utils.hpp"
 #include "misc/cpp/imgui_stdlib.h"
 #include "imgui.h"
+#include <queue>
 #include <sys/inotify.h>
 #include <haxorg/sem/SemBaseApi.hpp>
 
@@ -565,6 +566,52 @@ GridCell build_editable_cell(
     return result;
 }
 
+struct DocAnnotation {
+    org::graph::MapNode source;
+    org::graph::MapNode target;
+    DESC_FIELDS(DocAnnotation, (source, target));
+};
+
+Vec<Vec<DocAnnotation>> partition_graph_by_distance(
+    const Vec<org::graph::MapNode>& initial_nodes,
+    const org::graph::MapGraph&     graph) {
+
+    Vec<Vec<DocAnnotation>>                result;
+    UnorderedMap<org::graph::MapNode, int> distances;
+    std::queue<org::graph::MapNode>        q;
+
+    for (const auto& node : initial_nodes) {
+        distances[node] = 0;
+        q.push(node);
+    }
+
+    while (!q.empty()) {
+        org::graph::MapNode current = q.front();
+        q.pop();
+        int current_distance = distances[current];
+
+        if (current_distance >= result.size()) {
+            result.resize(current_distance + 1);
+        }
+
+        using AdjIt = boost::graph_traits<
+            org::graph::MapGraph>::adjacency_iterator;
+        std::pair<AdjIt, AdjIt> neighbors = boost::adjacent_vertices(
+            current, graph);
+
+        for (AdjIt it = neighbors.first; it != neighbors.second; ++it) {
+            org::graph::MapNode neighbor = *it;
+            if (!distances.contains(neighbor)) {
+                distances[neighbor] = current_distance + 1;
+                q.push(neighbor);
+                result[current_distance].push_back({current, neighbor});
+            }
+        }
+    }
+
+    return result;
+}
+
 void GridModel::updateDocument() {
     GridNode doc;
 
@@ -612,20 +659,35 @@ void GridModel::updateDocument() {
     DocGraph ir;
     auto     root = ir.addNode(0, grid.size);
     gridNodeToNode.insert_or_assign(document.nodes.high(), root);
+
+    Vec<org::graph::MapNode> docNodes;
     for (auto const& row : doc.flatRows()) {
         for (auto [begin, end] = boost::out_edges(
                  org::graph::MapNode{row->origin.uniq()}, graph);
              begin != end;
              ++begin) {
+            docNodes.push_back((*begin).source);
 
             auto node = getCurrentState().ast.context.adapt(
                 (*begin).target.id);
+        }
+    }
 
-            if (auto comment = node.asOpt<org::ImmBlockComment>();
+    Vec<Vec<DocAnnotation>> partition = partition_graph_by_distance(
+        docNodes, graph);
+
+    for (auto const& [group_idx, group] : enumerate(partition)) {
+        _dfmt(group_idx, group.size(), group);
+        for (auto const& node : group) {
+            org::ImmAdapter source = getCurrentState().ast.context.adapt(
+                node.source.id);
+            org::ImmAdapter target = getCurrentState().ast.context.adapt(
+                node.target.id);
+            if (auto comment = target.asOpt<org::ImmBlockComment>();
                 comment) {
                 DocumentNode::Text text{
-                    .node = node,
-                    .text = join(" ", flatWords(node)),
+                    .node = target,
+                    .text = join(" ", flatWords(target)),
                 };
 
                 int width  = 300;
@@ -635,15 +697,21 @@ void GridModel::updateDocument() {
                 text.size.y = height;
 
                 document.nodes.push_back(DocumentNode{text});
-                auto annotation = ir.addNode(1, ImVec2(width, height));
-                ir.addEdge(
-                    root,
-                    DocOutEdge{
-                        .target       = annotation,
-                        .heightOffset = float(doc.rowPositions.at(
-                                            row->flatIdx))
-                                      + float(row->getHeight()) / 2,
-                    });
+                auto annotation = ir.addNode(
+                    group_idx + 1, ImVec2(width, height));
+                if (Opt<int> row_idx = doc.rowOrigins.get(source.uniq());
+                    row_idx) {
+                    ir.addEdge(
+                        root,
+                        DocOutEdge{
+                            .target = annotation,
+                            .heightOffset //
+                            = float(doc.rowPositions.at(row_idx.value()))
+                            + float(
+                                  doc.getRow(row_idx.value())->getHeight())
+                                  / 2,
+                        });
+                }
 
 
                 gridNodeToNode.insert_or_assign(
@@ -651,6 +719,7 @@ void GridModel::updateDocument() {
             }
         }
     }
+
 
     writeFile("/tmp/ir_dump.json", to_json_eval(ir).dump(2));
 
