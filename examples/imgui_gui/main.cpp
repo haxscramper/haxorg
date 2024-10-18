@@ -12,6 +12,9 @@
 #include "imgui_utils.hpp"
 #include "block_graph.hpp"
 
+#include "gui_perfetto.hpp"
+#include <hstd/wrappers/hstd_extra/perfetto_aux_impl_template.hpp>
+
 
 struct Config {
     DECL_DESCRIBED_ENUM(Mode, SemTree, Outline, StoryGrid, Test);
@@ -349,6 +352,15 @@ int main(int argc, char** argv) {
     auto conf_text = readFile(conf_file);
     auto conf_json = json::parse(conf_text);
     auto conf      = from_json_eval<Config>(conf_json);
+
+#ifdef ORG_USE_PERFETTO
+    std::unique_ptr<perfetto::TracingSession>
+        tracing_session = StartProcessTracing("Perfetto track example");
+
+    finally end_trace{[&]() {
+        StopTracing(std::move(tracing_session), "/tmp/story_grid.pftrace");
+    }};
+#endif
 
     if (!glfwInit()) { return 1; }
 

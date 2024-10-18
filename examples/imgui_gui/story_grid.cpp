@@ -6,6 +6,7 @@
 #include "imgui_utils.hpp"
 #include "misc/cpp/imgui_stdlib.h"
 #include "imgui.h"
+#include "gui_perfetto.hpp"
 #include <queue>
 #include <sys/inotify.h>
 #include <haxorg/sem/SemBaseApi.hpp>
@@ -386,6 +387,7 @@ Vec<GridAction> render_table_node(
 }
 
 Vec<GridAction> render_story_grid(GridModel& model) {
+    __perf_trace("gui", "grid model render");
     Vec<GridAction> result;
     for (auto& node : model.document.nodes) {
         if (node.isGrid()) {
@@ -624,6 +626,7 @@ Vec<Vec<DocAnnotation>> partition_graph_by_distance(
 }
 
 void GridModel::updateDocument() {
+    __perf_trace("gui", "update grid model");
     GridNode doc;
     auto&    ctx = conf;
 
@@ -782,7 +785,7 @@ void GridModel::updateDocument() {
     }
 
 
-    writeFile("/tmp/ir_dump.json", to_json_eval(ir).dump(2));
+    // writeFile("/tmp/ir_dump.json", to_json_eval(ir).dump(2));
 
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
 
@@ -803,14 +806,20 @@ void GridModel::updateDocument() {
         laneStartX += lane.getFullWidth();
     }
 
+    __perf_trace_begin("gui", "to doc layout");
     DocLayout lyt = to_layout(ir);
-    writeFile("/tmp/tmp_dump.json", to_json_eval(lyt).dump(2));
+    __perf_trace_end("gui");
+    // writeFile("/tmp/tmp_dump.json", to_json_eval(lyt).dump(2));
     lyt.ir.height = 10000;
     lyt.ir.width  = 10000;
-    auto cola     = lyt.ir.doColaLayout();
-    this->layout  = cola.convert();
+    __perf_trace_begin("gui", "do cola layout");
+    auto cola = lyt.ir.doColaLayout();
+    __perf_trace_end("gui");
+    __perf_trace_begin("gui", "do cola convert");
+    this->layout = cola.convert();
+    __perf_trace_end("gui");
 
-    writeFile("/tmp/lyt_dump.json", to_json_eval(this->layout).dump(2));
+    // writeFile("/tmp/lyt_dump.json", to_json_eval(this->layout).dump(2));
 
     for (auto const& [idx, rec] : enumerate(this->layout.fixed)) {
         auto& node = document.nodes.at(idx);
@@ -825,7 +834,8 @@ void GridModel::updateDocument() {
 
     this->debug     = to_constraints(lyt, ir, this->layout);
     this->debug->ir = &this->layout;
-    writeFile("/tmp/debug_dump.json", to_json_eval(this->debug).dump(2));
+    // writeFile("/tmp/debug_dump.json",
+    // to_json_eval(this->debug).dump(2));
 }
 
 void GridModel::apply(const GridAction& act) {

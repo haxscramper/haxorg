@@ -8,6 +8,8 @@ set(CXX_STANDARD 23)
 set(BASE "${CMAKE_CURRENT_SOURCE_DIR}/../..")
 set(DEPS_INSTALL "${BASE}/build/deps_install")
 
+option(ORG_USE_PERFETTO "Enable perfetto profiling" OFF)
+
 list(INSERT CMAKE_PREFIX_PATH 0 "${BASE}/build/install")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/reflex/lib/cmake/reflex")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/protobuf/lib/cmake/protobuf")
@@ -32,6 +34,7 @@ find_package(range-v3 CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
+find_package(Perfetto CONFIG REQUIRED)
 find_package(Haxorg CONFIG REQUIRED)
 find_package(Adaptagrams CONFIG REQUIRED)
 
@@ -47,6 +50,8 @@ add_executable(
   story_grid.cpp
   imgui_utils.cpp
   imgui_utils.hpp
+  gui_perfetto.cpp
+  gui_perfetto.hpp
   block_graph.cpp
   block_graph.hpp)
 
@@ -62,6 +67,14 @@ add_library(
 target_link_libraries(imgui PUBLIC "${FONTCONFIG_LIBRARIES}")
 target_include_directories(imgui PUBLIC "${BASE}/imgui" "${BASE}/imgui/backends"
                                         "${FONTCONFIG_INCLUDE_DIRS}")
+
+if(${ORG_USE_PERFETTO})
+  target_link_libraries(main PUBLIC Perfetto::perfetto)
+endif()
+
+if(${ORG_USE_PERFETTO})
+  target_compile_definitions(main PUBLIC ORG_USE_PERFETTO)
+endif()
 
 target_link_libraries(
   main
