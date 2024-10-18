@@ -163,10 +163,18 @@ struct GridAction {
     struct EditCell {
         GridCell    cell;
         std::string updated;
+        DESC_FIELDS(EditCell, (cell, updated));
     };
 
-    SUB_VARIANTS(Kind, Data, data, getKind, EditCell);
+    struct Scroll {
+        ImVec2 pos;
+        float  direction;
+        DESC_FIELDS(Scroll, (pos, direction));
+    };
+
+    SUB_VARIANTS(Kind, Data, data, getKind, EditCell, Scroll);
     Data data;
+    DESC_FIELDS(GridAction, (data));
 };
 
 struct GridState {
@@ -182,6 +190,8 @@ struct GridModel {
     ImVec2                  shift{20, 20};
     Opt<DocConstraintDebug> debug;
     void                    updateDocument();
+    Vec<Slice<int>>         laneSpans;
+    Vec<float>              laneOffsets;
     GridState&              getCurrentState() { return history.back(); }
     void                    apply(GridAction const& act);
 };

@@ -81,7 +81,7 @@ DocLayout to_layout(DocGraph const& g) {
         laneAlignments.push_back(align);
     }
 
-    _dbg(topLaneAlign);
+    // _dbg(topLaneAlign);
     lyt.ir.nodeConstraints.push_back(GraphNodeConstraint{GC::Align{
         .nodes     = topLaneAlign,
         .dimension = GraphDimension::YDIM,
@@ -94,17 +94,8 @@ DocLayout to_layout(DocGraph const& g) {
 
             if (!laneAlignments.has(next_idx)) { continue; }
 
-            float lane_width //
-                = rs::max(
-                    lane.blocks | rv::transform([](DocBlock const& b) {
-                        return float(b.width);
-                    }));
-
-            float next_width //
-                = rs::max(
-                    next.blocks | rv::transform([](DocBlock const& b) {
-                        return float(b.width);
-                    }));
+            float lane_width = lane.getWidth();
+            float next_width = next.getWidth();
 
             lyt.ir.nodeConstraints.push_back(
                 GraphNodeConstraint{GC::Separate{
@@ -296,7 +287,7 @@ bool DocBlockStack::inSpan(int blockIdx, Slice<int> heightRange) const {
     auto span = blocks.at(blockIdx).heightSpan(
         getBlockHeightStart(blockIdx));
     bool result = heightRange.overlap(span).has_value();
-    _dfmt(span, heightRange, blockIdx, result, scrollOffset);
+    // _dfmt(span, heightRange, blockIdx, result, scrollOffset);
     return result;
 }
 

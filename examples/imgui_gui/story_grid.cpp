@@ -202,7 +202,7 @@ void render_tree_columns(
     for (auto const& col : doc.columns) {
         if (row.columns.contains(col.name)) {
             ImGui::TableSetColumnIndex(colIdx);
-            CTX_MSG(fmt("{}", col.name));
+            // CTX_MSG(fmt("{}", col.name));
             auto __scope = ctx.scopeLevel();
             render_cell(row.columns.at(col.name), ctx, col);
         }
@@ -223,7 +223,7 @@ void render_tree_row(
     if (skipped && row.nested.empty()) { return; };
 
     ImGui::TableNextRow(ImGuiTableRowFlags_None, row.getHeight());
-    CTX_MSG(fmt("row {}", ImGui::TableGetRowIndex()));
+    // CTX_MSG(fmt("row {}", ImGui::TableGetRowIndex()));
     if (!row.nested.empty()) {
         switch (row.origin->level) {
             case 1:
@@ -359,7 +359,7 @@ Vec<GridAction> render_table_node(
                 ImGuiTableColumnFlags_WidthFixed,
                 tree_fold_column);
             for (auto const& col : doc.columns) {
-                CTX_MSG(fmt("{} {}", col.name, col.width));
+                // CTX_MSG(fmt("{} {}", col.name, col.width));
                 ImGui::TableSetupColumn(
                     col.name.c_str(),
                     ImGuiTableColumnFlags_WidthFixed,
@@ -469,10 +469,21 @@ void story_grid_loop(GLFWwindow* window, std::string const& file) {
         }
 
         Vec<GridAction> updates = render_story_grid(model);
+
+        ImGuiIO& io            = ImGui::GetIO();
+        float    scroll_amount = io.MouseWheel;
+        if (scroll_amount != 0.0f) {
+            updates.push_back(GridAction{GridAction::Scroll{
+                .pos       = io.MousePos,
+                .direction = scroll_amount,
+            }});
+        }
+
         ImGui::End();
 
         frame_end(window);
         if (!updates.empty()) {
+            model.conf.OperationsTracer::TraceState = true;
             for (auto const& update : updates) { model.apply(update); }
             model.updateDocument();
         }
@@ -614,6 +625,7 @@ Vec<Vec<DocAnnotation>> partition_graph_by_distance(
 
 void GridModel::updateDocument() {
     GridNode doc;
+    auto&    ctx = conf;
 
     doc.getColumn("title").width = 200;
     doc.getColumn("event").width = 200;
@@ -657,34 +669,35 @@ void GridModel::updateDocument() {
                 } else {
                     visited.incl(node.uniq());
                 }
+                CTX_MSG(fmt("Origin {} node {}", origin, node));
+                auto __scope = ctx.scopeLevel();
                 for (auto const& recSub :
                      node.getAllSubnodesDFS(node.path)) {
-                    if (Opt<org::ImmAdapterT<org::ImmLink>> link = recSub.asOpt<
-                                                                   org::
-                                                                       ImmLink>();
-                        link) {
-                        if (link.value()->isFootnote()) {
-                            if (auto target = link->ctx->track->footnotes
-                                                  .get(link.value()
-                                                           ->getFootnote()
-                                                           .target)) {
-                                for (auto const& path :
-                                     link->ctx->getPathsFor(
-                                         target.value())) {
-                                    graph.addNode(path);
-                                    graph.addEdge(
-                                        org::graph::MapEdge{
-                                            .source = origin,
-                                            .target = org::graph::
-                                                MapNode{path},
-                                        },
-                                        org::graph::MapEdgeProp{});
+                    Opt<org::ImmAdapterT<org::ImmLink>>
+                        link = recSub.asOpt<org::ImmLink>();
 
-                                    trackFootnotes(
-                                        path, link->ctx->adapt(path));
-                                }
-                            }
-                        }
+                    if (!(link && link.value()->isFootnote())) {
+                        continue;
+                    }
+
+                    auto target = link->ctx->track->footnotes.get(
+                        link.value()->getFootnote().target);
+
+                    if (!target) { continue; }
+
+                    for (auto const& targetPath :
+                         link->ctx->getPathsFor(target.value())) {
+                        CTX_MSG(fmt("{} ->  {}", origin, targetPath));
+                        graph.addNode(targetPath);
+                        graph.addEdge(
+                            org::graph::MapEdge{
+                                .source = origin,
+                                .target = org::graph::MapNode{targetPath},
+                            },
+                            org::graph::MapEdgeProp{});
+
+                        trackFootnotes(
+                            targetPath, link->ctx->adapt(targetPath));
                     }
                 }
             };
@@ -725,7 +738,6 @@ void GridModel::updateDocument() {
 
     UnorderedMap<org::ImmUniqId, DocNode> orgToId;
     for (auto const& [group_idx, group] : enumerate(partition)) {
-        _dfmt(group_idx, group.size(), group);
         for (auto const& node : group) {
             org::ImmAdapter source = getCurrentState().ast.context.adapt(
                 node.source.id);
@@ -777,6 +789,20 @@ void GridModel::updateDocument() {
     ir.visible.h = viewport->WorkSize.y;
     ir.visible.w = viewport->WorkSize.x;
     for (auto& stack : ir.lanes) { stack.resetVisibleRange(); }
+    for (auto const& [lane_idx, offset] : enumerate(laneOffsets)) {
+        if (ir.lanes.has(lane_idx)) {
+            ir.lanes.at(lane_idx).scrollOffset = offset;
+        }
+    }
+
+    int laneStartX = 0;
+    for (auto const& [lane_idx, lane] : enumerate(ir.lanes)) {
+        laneSpans.resize_at(lane_idx) = slice(
+            laneStartX + lane.leftMargin,
+            laneStartX + lane.leftMargin + lane.getWidth());
+        laneStartX += lane.getFullWidth();
+    }
+
     DocLayout lyt = to_layout(ir);
     writeFile("/tmp/tmp_dump.json", to_json_eval(lyt).dump(2));
     lyt.ir.height = 10000;
@@ -821,6 +847,17 @@ void GridModel::apply(const GridAction& act) {
             history.push_back(GridState{
                 .ast = vNext,
             });
+            break;
+        }
+
+        case GridAction::Kind::Scroll: {
+            auto const& scroll = act.getScroll();
+            for (auto const& [lane_idx, span] : enumerate(laneSpans)) {
+                if (span.contains(scroll.pos.x)) {
+                    laneOffsets.resize_at(lane_idx, 0.0f) //
+                        += scroll.direction * 10;
+                }
+            }
             break;
         }
     }

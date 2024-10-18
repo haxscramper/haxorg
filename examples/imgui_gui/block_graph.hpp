@@ -4,6 +4,7 @@
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/wrappers/adaptagrams_wrap/adaptagrams_ir.hpp>
 #include "imgui.h"
+#include <hstd/stdlib/Ranges.hpp>
 
 struct DocNode {
     int  lane;
@@ -61,7 +62,17 @@ struct DocBlockStack {
         return blocks.high();
     }
 
-    void addEdge(int row, DocOutEdge const& target) {
+    int getWidth() const {
+        return rs::max(blocks | rv::transform([](DocBlock const& b) {
+                           return float(b.width);
+                       }));
+    }
+
+    int getFullWidth() const {
+        return getWidth() + leftMargin + rightMargin;
+    }
+
+    void addEdge(int row, DocOutEdge const& target)  {
         return blocks.at(row).outEdges.push_back(target);
     }
 };
