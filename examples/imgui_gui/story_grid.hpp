@@ -94,6 +94,15 @@ struct GridNode {
         return nullptr;
     }
 
+    GridRow const* getRow(int pos) const {
+        // TODO Optimize, this is a O(n^2) code.
+        for (auto it : const_cast<GridNode*>(this)->flatRows()) {
+            if (it->flatIdx == pos) { return it; }
+        }
+        return nullptr;
+    }
+
+
     Opt<int> getRow(org::ImmUniqId const& id) const {
         return rowOrigins.get(id);
     }
@@ -114,6 +123,11 @@ struct GridNode {
             tableWidth += col.width + padding;
         }
         return tableWidth;
+    }
+
+    int getRowCenterOffset(int rowIdx) const {
+        return float(rowPositions.at(rowIdx))
+             + float(getRow(rowIdx)->getHeight()) / 2;
     }
 
     DESC_FIELDS(GridNode, (rows, rowPositions, columns));
