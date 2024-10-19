@@ -625,31 +625,66 @@ Vec<Vec<DocAnnotation>> partition_graph_by_distance(
     return result;
 }
 
-void GridModel::updateDocument() {
-    __perf_trace("gui", "update grid model");
-    GridNode doc;
-    auto&    ctx = conf;
-
-    doc.getColumn("title").width = 200;
-    doc.getColumn("event").width = 200;
-    doc.getColumn("note").width  = 200;
-    // doc.getColumn("turning_point").width = 300;
-    // doc.getColumn("value").width         = 200;
-    doc.getColumn("location").width = 240;
-    doc.getColumn("location").edit  = GridColumn::EditMode::SingleLine;
-    doc.rows = build_rows(getCurrentState().ast.getRootAdapter(), doc);
-    document.nodes.clear();
-
-    int offset     = 0;
-    int rowPadding = 5;
+void updateRowPositions(int rowPadding, GridNode& doc) {
+    int offset = 0;
     for (auto const& row : doc.flatRows()) {
         doc.rowPositions.resize_at(row->flatIdx) = offset;
         doc.rowOrigins.insert_or_assign(row->origin.uniq(), row->flatIdx);
         offset += row->getHeight(rowPadding);
+    }
+}
 
+void addFootnotes(
+    UnorderedSet<org::ImmUniqId> visited,
+    org::ImmUniqId const&        origin,
+    org::ImmAdapter const&       node,
+    org::graph::MapGraph&        graph,
+    GridContext&                 ctx) {
+    if (visited.contains(node.uniq())) {
+        return;
+    } else {
+        visited.incl(node.uniq());
+    }
+    auto __scope = ctx.scopeLevel();
+    for (auto const& recSub : node.getAllSubnodesDFS(node.path)) {
+        Opt<org::ImmAdapterT<org::ImmLink>>
+            link = recSub.asOpt<org::ImmLink>();
+
+        if (!(link && link.value()->isFootnote())) { continue; }
+
+        auto target = link->ctx->track->footnotes.get(
+            link.value()->getFootnote().target);
+
+        if (!target) { continue; }
+
+        for (auto const& targetPath :
+             link->ctx->getPathsFor(target.value())) {
+            graph.addNode(targetPath);
+            graph.addEdge(
+                org::graph::MapEdge{
+                    .source = origin,
+                    .target = org::graph::MapNode{targetPath},
+                },
+                org::graph::MapEdgeProp{});
+
+            addFootnotes(
+                visited,
+                targetPath,
+                link->ctx->adapt(targetPath),
+                graph,
+                ctx);
+        }
+    }
+};
+
+void addGridNodes(
+    GridNode&             doc,
+    org::graph::MapGraph& graph,
+    GridContext&          ctx) {
+
+    for (auto const& row : doc.flatRows()) {
         org::graph::MapNode subtreeNode{row->origin.uniq()};
         graph.addNode(subtreeNode);
-
 
         for (auto const& nested :
              row->origin.subAs<org::ImmBlockComment>()) {
@@ -665,51 +700,29 @@ void GridModel::updateDocument() {
                 org::ImmUniqId const& origin, org::ImmAdapter const& node)>
                                          trackFootnotes;
             UnorderedSet<org::ImmUniqId> visited;
-            trackFootnotes = [&](org::ImmUniqId const&  origin,
-                                 org::ImmAdapter const& node) {
-                if (visited.contains(node.uniq())) {
-                    return;
-                } else {
-                    visited.incl(node.uniq());
-                }
-                CTX_MSG(fmt("Origin {} node {}", origin, node));
-                auto __scope = ctx.scopeLevel();
-                for (auto const& recSub :
-                     node.getAllSubnodesDFS(node.path)) {
-                    Opt<org::ImmAdapterT<org::ImmLink>>
-                        link = recSub.asOpt<org::ImmLink>();
 
-                    if (!(link && link.value()->isFootnote())) {
-                        continue;
-                    }
-
-                    auto target = link->ctx->track->footnotes.get(
-                        link.value()->getFootnote().target);
-
-                    if (!target) { continue; }
-
-                    for (auto const& targetPath :
-                         link->ctx->getPathsFor(target.value())) {
-                        CTX_MSG(fmt("{} ->  {}", origin, targetPath));
-                        graph.addNode(targetPath);
-                        graph.addEdge(
-                            org::graph::MapEdge{
-                                .source = origin,
-                                .target = org::graph::MapNode{targetPath},
-                            },
-                            org::graph::MapEdgeProp{});
-
-                        trackFootnotes(
-                            targetPath, link->ctx->adapt(targetPath));
-                    }
-                }
-            };
-
-            trackFootnotes(commentNode.id, nested);
+            addFootnotes(visited, commentNode.id, nested, graph, ctx);
         }
     }
+}
 
+struct GraphPartitionIR {
+    DocGraph                   ir;
     UnorderedMap<int, DocNode> gridNodeToNode;
+};
+
+GraphPartitionIR addGraphPartitions(
+    int                                    rowPadding,
+    GridNode&                              doc,
+    DocumentGraph&                         document,
+    Vec<Vec<DocAnnotation>> const&         partition,
+    UnorderedMap<org::ImmUniqId, DocNode>& orgToId,
+    GridState&                             state,
+    ImVec2 const&                          viewport,
+    Vec<Slice<int>>&                       laneSpans,
+    Vec<float>&                            laneOffsets) {
+
+    GraphPartitionIR res;
 
     DocumentNode::Grid grid{
         .pos  = ImVec2(0, 0),
@@ -717,34 +730,17 @@ void GridModel::updateDocument() {
             doc.getWidth(rowPadding), doc.getHeight(rowPadding)),
         .node = doc,
     };
+    document.nodes.clear();
     document.nodes.push_back(DocumentNode{.data = grid});
 
-    DocGraph ir;
-    auto     root = ir.addNode(0, grid.size);
-    gridNodeToNode.insert_or_assign(document.nodes.high(), root);
+    auto root = res.ir.addNode(0, grid.size);
+    res.gridNodeToNode.insert_or_assign(document.nodes.high(), root);
 
-    Vec<org::graph::MapNode> docNodes;
-    for (auto const& row : doc.flatRows()) {
-        for (auto [begin, end] = boost::out_edges(
-                 org::graph::MapNode{row->origin.uniq()}, graph);
-             begin != end;
-             ++begin) {
-            docNodes.push_back((*begin).source);
-
-            auto node = getCurrentState().ast.context.adapt(
-                (*begin).target.id);
-        }
-    }
-
-    Vec<Vec<DocAnnotation>> partition = partition_graph_by_distance(
-        docNodes, graph);
-
-    UnorderedMap<org::ImmUniqId, DocNode> orgToId;
     for (auto const& [group_idx, group] : enumerate(partition)) {
         for (auto const& node : group) {
-            org::ImmAdapter source = getCurrentState().ast.context.adapt(
+            org::ImmAdapter source = state.ast.context.adapt(
                 node.source.id);
-            org::ImmAdapter target = getCurrentState().ast.context.adapt(
+            org::ImmAdapter target = state.ast.context.adapt(
                 node.target.id);
             DocumentNode::Text text{
                 .node = target,
@@ -758,12 +754,12 @@ void GridModel::updateDocument() {
             text.size.y = height;
 
             document.nodes.push_back(DocumentNode{text});
-            DocNode annotation = ir.addNode(
+            DocNode annotation = res.ir.addNode(
                 group_idx + 1, ImVec2(width, height));
             orgToId.insert_or_assign(target.uniq(), annotation);
             if (Opt<int> row_idx = doc.rowOrigins.get(source.uniq());
                 row_idx) {
-                ir.addEdge(
+                res.ir.addEdge(
                     root,
                     DocOutEdge{
                         .target = annotation,
@@ -773,41 +769,96 @@ void GridModel::updateDocument() {
                               / 2,
                     });
             } else {
-                ir.addEdge(
+                res.ir.addEdge(
                     orgToId.at(source.uniq()),
                     DocOutEdge{.target = annotation});
             }
 
 
-            gridNodeToNode.insert_or_assign(
+            res.gridNodeToNode.insert_or_assign(
                 document.nodes.high(), annotation);
         }
     }
 
-
-    // writeFile("/tmp/ir_dump.json", to_json_eval(ir).dump(2));
-
-    const ImGuiViewport* viewport = ImGui::GetMainViewport();
-
-    ir.visible.h = viewport->WorkSize.y;
-    ir.visible.w = viewport->WorkSize.x;
-    for (auto& stack : ir.lanes) { stack.resetVisibleRange(); }
+    res.ir.visible.h = viewport.y;
+    res.ir.visible.w = viewport.x;
+    for (auto& stack : res.ir.lanes) { stack.resetVisibleRange(); }
     for (auto const& [lane_idx, offset] : enumerate(laneOffsets)) {
-        if (ir.lanes.has(lane_idx)) {
-            ir.lanes.at(lane_idx).scrollOffset = offset;
+        if (res.ir.lanes.has(lane_idx)) {
+            res.ir.lanes.at(lane_idx).scrollOffset = offset;
         }
     }
 
     int laneStartX = 0;
-    for (auto const& [lane_idx, lane] : enumerate(ir.lanes)) {
+    for (auto const& [lane_idx, lane] : enumerate(res.ir.lanes)) {
         laneSpans.resize_at(lane_idx) = slice(
             laneStartX + lane.leftMargin,
             laneStartX + lane.leftMargin + lane.getWidth());
         laneStartX += lane.getFullWidth();
     }
 
+    return res;
+}
+
+void GridModel::updateDocument() {
+    __perf_trace("gui", "update grid model");
+    GridNode doc;
+    auto&    ctx = conf;
+
+    doc.getColumn("title").width = 200;
+    doc.getColumn("event").width = 200;
+    doc.getColumn("note").width  = 200;
+    // doc.getColumn("turning_point").width = 300;
+    // doc.getColumn("value").width         = 200;
+    doc.getColumn("location").width = 240;
+    doc.getColumn("location").edit  = GridColumn::EditMode::SingleLine;
+    doc.rows = build_rows(getCurrentState().ast.getRootAdapter(), doc);
+    document.nodes.clear();
+
+    int rowPadding = 5;
+
+    graph.adjList.clear();
+    graph.nodeProps.clear();
+    graph.edgeProps.clear();
+    graph.inNodes.clear();
+
+    updateRowPositions(rowPadding, doc);
+    addGridNodes(doc, graph, ctx);
+
+
+    Vec<org::graph::MapNode> docNodes;
+    for (auto const& row : doc.flatRows()) {
+        for (auto [begin, end] = boost::out_edges(
+                 org::graph::MapNode{row->origin.uniq()}, graph);
+             begin != end;
+             ++begin) {
+            docNodes.push_back((*begin).source);
+        }
+    }
+
+    Vec<Vec<DocAnnotation>> partition = partition_graph_by_distance(
+        docNodes, graph);
+    ;
+
+    UnorderedMap<org::ImmUniqId, DocNode> orgToId;
+    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+    GraphPartitionIR     ir       = addGraphPartitions(
+        rowPadding,
+        doc,
+        document,
+        partition,
+        orgToId,
+        getCurrentState(),
+        viewport->WorkSize,
+        laneSpans,
+        laneOffsets);
+
+
+    // writeFile("/tmp/ir_dump.json", to_json_eval(ir).dump(2));
+
+
     __perf_trace_begin("gui", "to doc layout");
-    DocLayout lyt = to_layout(ir);
+    DocLayout lyt = to_layout(ir.ir);
     __perf_trace_end("gui");
     // writeFile("/tmp/tmp_dump.json", to_json_eval(lyt).dump(2));
     lyt.ir.height = 10000;
@@ -832,7 +883,7 @@ void GridModel::updateDocument() {
         }
     }
 
-    this->debug     = to_constraints(lyt, ir, this->layout);
+    this->debug     = to_constraints(lyt, ir.ir, this->layout);
     this->debug->ir = &this->layout;
     // writeFile("/tmp/debug_dump.json",
     // to_json_eval(this->debug).dump(2));
