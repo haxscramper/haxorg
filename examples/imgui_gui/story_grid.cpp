@@ -634,6 +634,31 @@ void updateRowPositions(int rowPadding, GridNode& doc) {
     }
 }
 
+void addLinkedDescriptionList(
+    org::ImmAdapterT<org::ImmList> const& list,
+    org::graph::MapGraph&                 graph,
+    GridContext&                          ctx) {
+    org::graph::MapNode listNode{list.uniq()};
+    graph.addNode(listNode);
+    for (auto const& item : list.subAs<org::ImmListItem>()) {
+        for (auto const& link : item.getHeader()->subAs<org::ImmLink>()) {
+            if (link->isId()) {
+                auto target = link.ctx->track->subtrees.get(
+                    link.value().getId().text);
+                for (auto const& targetPath :
+                     link.ctx->getPathsFor(target.value())) {
+                    graph.addEdge(
+                        org::graph::MapEdge{
+                            .source = listNode,
+                            .target = org::graph::MapNode{targetPath},
+                        },
+                        org::graph::MapEdgeProp{});
+                }
+            }
+        }
+    }
+}
+
 void addFootnotes(
     UnorderedSet<org::ImmUniqId> visited,
     org::ImmUniqId const&        origin,
@@ -696,12 +721,15 @@ void addGridNodes(
                 },
                 org::graph::MapEdgeProp{});
 
-            Func<void(
-                org::ImmUniqId const& origin, org::ImmAdapter const& node)>
-                                         trackFootnotes;
             UnorderedSet<org::ImmUniqId> visited;
-
             addFootnotes(visited, commentNode.id, nested, graph, ctx);
+        }
+
+        for (auto const& list : row->origin.subAs<org::ImmList>()) {
+            if (list.isDescriptionList()
+                && org::graph::isLinkedDescriptionList(list)) {
+                addLinkedDescriptionList(list, graph, ctx);
+            }
         }
     }
 }
@@ -825,6 +853,8 @@ void GridModel::updateDocument() {
     updateRowPositions(rowPadding, doc);
     addGridNodes(doc, graph, ctx);
 
+    graph.toGraphviz(
+        getCurrentState().ast.context, org::graph::MapGraph::GvConfig{});
 
     Vec<org::graph::MapNode> docNodes;
     for (auto const& row : doc.flatRows()) {
@@ -838,7 +868,6 @@ void GridModel::updateDocument() {
 
     Vec<Vec<DocAnnotation>> partition = partition_graph_by_distance(
         docNodes, graph);
-    ;
 
     UnorderedMap<org::ImmUniqId, DocNode> orgToId;
     const ImGuiViewport* viewport = ImGui::GetMainViewport();

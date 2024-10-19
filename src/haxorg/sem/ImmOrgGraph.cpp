@@ -592,9 +592,15 @@ void org::graph::addNode(
 }
 
 void MapGraph::addEdge(const MapEdge& edge, const MapEdgeProp& prop) {
-    if (!adjList.contains(edge.source)) {
-        adjList.insert_or_assign(MapNode{edge.source}, Vec<MapNode>{});
-    }
+    LOGIC_ASSERTION_CHECK(
+        adjList.contains(edge.target),
+        "Edge target {} is missing from the graph definition",
+        edge.target);
+
+    LOGIC_ASSERTION_CHECK(
+        adjList.contains(edge.source),
+        "Edge source {} is missing from the graph definition",
+        edge.source);
 
     if (!inNodes.contains(edge.target)) {
         inNodes.insert_or_assign(MapNode{edge.target}, Vec<MapNode>{});
@@ -606,7 +612,9 @@ void MapGraph::addEdge(const MapEdge& edge, const MapEdgeProp& prop) {
 }
 
 void MapGraph::addNode(const MapNode& node) {
-    adjList.insert_or_assign(MapNode{node}, Vec<MapNode>{});
+    if (!adjList.contains(MapNode{node})) {
+        adjList.insert_or_assign(MapNode{node}, Vec<MapNode>{});
+    }
 }
 
 Graphviz::Graph MapGraph::toGraphviz(
