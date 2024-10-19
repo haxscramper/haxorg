@@ -594,17 +594,15 @@ void org::graph::addNode(
 void MapGraph::addEdge(const MapEdge& edge, const MapEdgeProp& prop) {
     LOGIC_ASSERTION_CHECK(
         adjList.contains(edge.target),
-        "Edge target {} is missing from the graph definition",
-        edge.target);
+        "Edge target {} is missing from the graph definition (source {})",
+        edge.target,
+        edge.source);
 
     LOGIC_ASSERTION_CHECK(
         adjList.contains(edge.source),
-        "Edge source {} is missing from the graph definition",
-        edge.source);
-
-    if (!inNodes.contains(edge.target)) {
-        inNodes.insert_or_assign(MapNode{edge.target}, Vec<MapNode>{});
-    }
+        "Edge source {} is missing from the graph definition (target {})",
+        edge.source,
+        edge.target);
 
     adjList.at(edge.source).push_back(edge.target);
     inNodes.at(edge.target).push_back(edge.source);
@@ -614,6 +612,8 @@ void MapGraph::addEdge(const MapEdge& edge, const MapEdgeProp& prop) {
 void MapGraph::addNode(const MapNode& node) {
     if (!adjList.contains(MapNode{node})) {
         adjList.insert_or_assign(MapNode{node}, Vec<MapNode>{});
+        nodeProps.insert_or_assign(MapNode{node}, MapNodeProp{});
+        inNodes.insert_or_assign(MapNode{node}, Vec<MapNode>{});
     }
 }
 

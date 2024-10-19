@@ -710,10 +710,14 @@ void addGridNodes(
     for (auto const& row : doc.flatRows()) {
         org::graph::MapNode subtreeNode{row->origin.uniq()};
         graph.addNode(subtreeNode);
+    }
 
+    for (auto const& row : doc.flatRows()) {
         for (auto const& nested :
              row->origin.subAs<org::ImmBlockComment>()) {
+            org::graph::MapNode subtreeNode{row->origin.uniq()};
             org::graph::MapNode commentNode{nested.uniq()};
+            graph.addNode(commentNode);
             graph.addEdge(
                 org::graph::MapEdge{
                     .source = subtreeNode,
@@ -770,41 +774,46 @@ GraphPartitionIR addGraphPartitions(
                 node.source.id);
             org::ImmAdapter target = state.ast.context.adapt(
                 node.target.id);
-            DocumentNode::Text text{
-                .node = target,
-                .text = join(" ", flatWords(target)),
-            };
 
-            int width  = 200;
-            int height = get_text_height(
-                text.text, width, GridColumn::EditMode::Multiline);
-            text.size.x = width;
-            text.size.y = height;
-
-            document.nodes.push_back(DocumentNode{text});
-            DocNode annotation = res.ir.addNode(
-                group_idx + 1, ImVec2(width, height));
-            orgToId.insert_or_assign(target.uniq(), annotation);
-            if (Opt<int> row_idx = doc.rowOrigins.get(source.uniq());
-                row_idx) {
-                res.ir.addEdge(
-                    root,
-                    DocOutEdge{
-                        .target = annotation,
-                        .heightOffset //
-                        = float(doc.rowPositions.at(row_idx.value()))
-                        + float(doc.getRow(row_idx.value())->getHeight())
-                              / 2,
-                    });
+            if (source.is(OrgSemKind::List)) {
             } else {
-                res.ir.addEdge(
-                    orgToId.at(source.uniq()),
-                    DocOutEdge{.target = annotation});
+                DocumentNode::Text text{
+                    .node = target,
+                    .text = join(" ", flatWords(target)),
+                };
+
+                int width  = 200;
+                int height = get_text_height(
+                    text.text, width, GridColumn::EditMode::Multiline);
+                text.size.x = width;
+                text.size.y = height;
+
+                document.nodes.push_back(DocumentNode{text});
+                DocNode annotation = res.ir.addNode(
+                    group_idx + 1, ImVec2(width, height));
+                orgToId.insert_or_assign(target.uniq(), annotation);
+                if (Opt<int> row_idx = doc.rowOrigins.get(source.uniq());
+                    row_idx) {
+                    res.ir.addEdge(
+                        root,
+                        DocOutEdge{
+                            .target = annotation,
+                            .heightOffset //
+                            = float(doc.rowPositions.at(row_idx.value()))
+                            + float(
+                                  doc.getRow(row_idx.value())->getHeight())
+                                  / 2,
+                        });
+                } else {
+                    res.ir.addEdge(
+                        orgToId.at(source.uniq()),
+                        DocOutEdge{.target = annotation});
+                }
+
+
+                res.gridNodeToNode.insert_or_assign(
+                    document.nodes.high(), annotation);
             }
-
-
-            res.gridNodeToNode.insert_or_assign(
-                document.nodes.high(), annotation);
         }
     }
 
@@ -853,16 +862,22 @@ void GridModel::updateDocument() {
     updateRowPositions(rowPadding, doc);
     addGridNodes(doc, graph, ctx);
 
-    graph.toGraphviz(
-        getCurrentState().ast.context, org::graph::MapGraph::GvConfig{});
+
+    // auto gv = graph.toGraphviz(
+    //     getCurrentState().ast.context,
+    //     org::graph::MapGraph::GvConfig{});
+
+    // Graphviz gvc;
+    // gv.setRankDirection(Graphviz::Graph::RankDirection::LR);
+    // gvc.renderToFile("/tmp/ReplaceSubnodeAtPath.png", gv);
+    // gvc.writeFile("/tmp/ReplaceSubnodeAtPath.dot", gv);
 
     Vec<org::graph::MapNode> docNodes;
     for (auto const& row : doc.flatRows()) {
-        for (auto [begin, end] = boost::out_edges(
-                 org::graph::MapNode{row->origin.uniq()}, graph);
-             begin != end;
-             ++begin) {
-            docNodes.push_back((*begin).source);
+        auto tree = row->origin.uniq();
+        if (!graph.adjList.at(tree).empty()
+            || !graph.inNodes.at(tree).empty()) {
+            docNodes.push_back(tree);
         }
     }
 
