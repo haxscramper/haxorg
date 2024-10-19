@@ -330,6 +330,48 @@ Vec<GridAction> render_text_node(
     return result;
 }
 
+Vec<GridAction> render_list_node(
+    GridModel&          model,
+    DocumentNode::List& list) {
+    Vec<GridAction> result;
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
+    ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+    ImGui::SetNextWindowPos(list.pos + model.shift);
+    ImGui::SetNextWindowSize(list.size);
+    if (ImGui::Begin(
+            fmt("##{:p}", static_cast<const void*>(&list)).c_str(),
+            nullptr,
+            ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize)) {
+        if (ImGui::BeginTable(
+                fmt("##{:p}", static_cast<const void*>(&list)).c_str(),
+                1,
+                ImGuiTableFlags_Borders              //
+                    | ImGuiTableFlags_RowBg          //
+                    | ImGuiTableFlags_SizingFixedFit //
+                    | ImGuiTableFlags_NoHostExtendX)) {
+
+            for (auto& item : list.items) {
+                ImGui::TableNextRow(ImGuiTableRowFlags_None, item.height);
+                bool edit = false;
+                render_editable_text(
+                    item.text,
+                    item.text,
+                    edit,
+                    item.height,
+                    item.width,
+                    GridColumn::EditMode::Multiline);
+            }
+            ImGui::EndTable();
+        }
+        ImGui::End();
+    }
+
+    ImGui::PopStyleVar(3);
+
+    return result;
+}
+
 Vec<GridAction> render_table_node(
     GridModel&          model,
     DocumentNode::Grid& grid) {
@@ -390,10 +432,18 @@ Vec<GridAction> render_story_grid(GridModel& model) {
     __perf_trace("gui", "grid model render");
     Vec<GridAction> result;
     for (auto& node : model.document.nodes) {
-        if (node.isGrid()) {
-            result.append(render_table_node(model, node.getGrid()));
-        } else {
-            result.append(render_text_node(model, node.getText()));
+        switch (node.getKind()) {
+            case DocumentNode::Kind::Grid: {
+                result.append(render_table_node(model, node.getGrid()));
+                break;
+            }
+            case DocumentNode::Kind::Text: {
+                result.append(render_text_node(model, node.getText()));
+                break;
+            }
+            case DocumentNode::Kind::List: {
+                result.append(render_list_node(model, node.getList()));
+            }
         }
     }
 
@@ -811,6 +861,40 @@ GraphPartitionIR addGraphPartitions(
     auto get_node = [&](int lane, org::ImmAdapter const& node) -> DocNode {
         if (orgToId.contains(node.uniq())) {
             return orgToId.at(node.uniq());
+        } else if (auto list = node.asOpt<org::ImmList>();
+                   list && list->isDescriptionList()
+                   && org::graph::isLinkedDescriptionList(node)) {
+            DocumentNode::List text{};
+
+            int width = 200;
+            for (auto const& item : list->subAs<org::ImmListItem>()) {
+                DocumentNode::List::Item listItem;
+                listItem.node   = item;
+                listItem.width  = width;
+                listItem.text   = join(" ", org::flatWords(item));
+                listItem.height = get_text_height(
+                    listItem.text,
+                    listItem.width,
+                    GridColumn::EditMode::Multiline);
+                text.items.push_back(listItem);
+            }
+
+            DocNode annotation = res.ir.addNode(
+                lane,
+                ImVec2{
+                    static_cast<float>(text.getWidth()),
+                    static_cast<float>(text.getHeight(rowPadding)),
+                });
+
+            for (auto const& item : text.items) {
+                orgToId.insert_or_assign(item.node.uniq(), annotation);
+            }
+
+            document.nodes.push_back(DocumentNode{text});
+            res.addIrNode(document.nodes.high(), annotation);
+
+            return annotation;
+
         } else {
             DocumentNode::Text text{
                 .node = node,

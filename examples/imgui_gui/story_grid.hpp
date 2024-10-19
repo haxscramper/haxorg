@@ -141,6 +141,43 @@ struct DocumentNode {
         DESC_FIELDS(Grid, (node, pos, size));
     };
 
+    struct List {
+        struct Item {
+            std::string     text;
+            int             width;
+            int             height;
+            org::ImmAdapter node;
+            DESC_FIELDS(Item, (text, width, height, node));
+        };
+        Vec<Item> items;
+        ImVec2    pos;
+        ImVec2    size;
+        DESC_FIELDS(List, (items, pos, size));
+
+
+        int getRowOffset(int row) const {
+            int offset = 0;
+            for (auto const& [row_idx, item] : enumerate(items)) {
+                if (row_idx < row) { offset += item.height; }
+            }
+            return offset;
+        }
+
+        int getHeight(int rowPadding) const {
+            int result = 0;
+            for (auto const& item : items) {
+                result += rowPadding + item.height;
+            }
+            return result;
+        }
+
+        int getWidth() const {
+            return rs::max(items | rv::transform([&](Item const& col) {
+                               return col.width;
+                           }));
+        }
+    };
+
     struct Text {
         ImVec2          pos;
         ImVec2          size;
@@ -150,7 +187,7 @@ struct DocumentNode {
     };
 
 
-    SUB_VARIANTS(Kind, Data, data, getKind, Grid, Text);
+    SUB_VARIANTS(Kind, Data, data, getKind, Grid, Text, List);
     Data data;
     DESC_FIELDS(DocumentNode, (data));
 };
