@@ -351,6 +351,9 @@ Vec<GridAction> render_list_node(
                     | ImGuiTableFlags_SizingFixedFit //
                     | ImGuiTableFlags_NoHostExtendX)) {
 
+            ImGui::TableSetupColumn(
+                "List", ImGuiTableColumnFlags_WidthFixed, list.getWidth());
+
             for (auto& item : list.items) {
                 ImGui::TableNextRow(ImGuiTableRowFlags_None, item.height);
                 bool edit = false;
@@ -701,17 +704,19 @@ void addLinkedDescriptionList(
     org::graph::MapGraph&                 graph,
     GridContext&                          ctx) {
     org::graph::MapNode listNode{list.uniq()};
-    graph.addNode(listNode);
     for (auto const& item : list.subAs<org::ImmListItem>()) {
+        graph.addNode(item.uniq());
         for (auto const& link : item.getHeader()->subAs<org::ImmLink>()) {
             if (link->isId()) {
                 auto target = link.ctx->track->subtrees.get(
                     link.value().getId().text);
                 for (auto const& targetPath :
                      link.ctx->getPathsFor(target.value())) {
+                    CTX_MSG(fmt(
+                        "List link {} -> {}", item.uniq(), targetPath));
                     graph.addEdge(
                         org::graph::MapEdge{
-                            .source = listNode,
+                            .source = item.uniq(),
                             .target = org::graph::MapNode{targetPath},
                         },
                         org::graph::MapEdgeProp{});
@@ -882,7 +887,7 @@ GraphPartitionIR addGraphPartitions(
             DocNode annotation = res.ir.addNode(
                 lane,
                 ImVec2{
-                    static_cast<float>(text.getWidth()),
+                    static_cast<float>(text.getWidth() + rowPadding * 2),
                     static_cast<float>(text.getHeight(rowPadding)),
                 });
 
@@ -930,20 +935,33 @@ GraphPartitionIR addGraphPartitions(
             DocumentNode const& source_flat = res.getDocNode(source_node);
             DocumentNode const& target_flat = res.getDocNode(target_node);
 
-            if (source_flat.isGrid()) {
-                res.ir.addEdge(
-                    source_node,
-                    DocOutEdge{
-                        .target = target_node,
-                        .heightOffset //
-                        = source_flat.getGrid().node.getRowCenterOffset(
-                            source_flat.getGrid().node.rowOrigins.at(
-                                source.uniq())),
-                    });
+            using GEC = GraphEdgeConstraint;
+
+            DocOutEdge edge;
+            edge.target = target_node;
+            if (source_node.lane == target_node.lane) {
+                edge.targetPort = GEC::Port::West;
+                edge.sourcePort = GEC::Port::West;
+            } else if (source_node.lane < target_node.lane) {
+                edge.sourcePort = GEC::Port::East;
+                edge.targetPort = GEC::Port::West;
             } else {
-                res.ir.addEdge(
-                    source_node, DocOutEdge{.target = target_node});
+                edge.sourcePort = GEC::Port::West;
+                edge.targetPort = GEC::Port::East;
             }
+
+            if (source_flat.isGrid()) {
+                edge.heightOffset = //
+                    source_flat.getGrid().node.getRowCenterOffset(
+                        source_flat.getGrid().node.rowOrigins.at(
+                            source.uniq()));
+            } else if (source_flat.isList()) {
+                _dfmt(source);
+                edge.heightOffset = source_flat.getList().getRowOffset(
+                    source.uniq());
+            }
+
+            res.ir.addEdge(source_node, edge);
         }
     }
 
@@ -1047,12 +1065,22 @@ void GridModel::updateDocument() {
 
     for (auto const& [idx, rec] : enumerate(this->layout.fixed)) {
         auto& node = document.nodes.at(idx);
-        if (node.isGrid()) {
-            node.getGrid().pos.x = rec.left;
-            node.getGrid().pos.y = rec.top;
-        } else if (node.isText()) {
-            node.getText().pos.x = rec.left;
-            node.getText().pos.y = rec.top;
+        switch (node.getKind()) {
+            case DocumentNode::Kind::Grid: {
+                node.getGrid().pos.x = rec.left;
+                node.getGrid().pos.y = rec.top;
+                break;
+            }
+            case DocumentNode::Kind::Text: {
+                node.getText().pos.x = rec.left;
+                node.getText().pos.y = rec.top;
+                break;
+            }
+            case DocumentNode::Kind::List: {
+                node.getList().pos.x = rec.left;
+                node.getList().pos.y = rec.top;
+                break;
+            }
         }
     }
 

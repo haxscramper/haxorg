@@ -154,6 +154,13 @@ struct DocumentNode {
         ImVec2    size;
         DESC_FIELDS(List, (items, pos, size));
 
+        int getRowOffset(org::ImmUniqId const& row) const {
+            auto iter = rs::find_if(items, [&](Item const& i) {
+                return i.node.uniq() == row;
+            });
+            LOGIC_ASSERTION_CHECK(iter != items.end(), "{}", row);
+            return getRowOffset(std::distance(items.begin(), iter));
+        }
 
         int getRowOffset(int row) const {
             int offset = 0;

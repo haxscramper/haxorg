@@ -123,8 +123,8 @@ DocLayout to_layout(DocGraph const& g) {
                     };
                     lyt.ir.edges.push_back(edge);
                     GraphEdgeConstraint ec{
-                        .sourcePort = GraphEdgeConstraint::Port::East,
-                        .targetPort = GraphEdgeConstraint::Port::West,
+                        .sourcePort = target.sourcePort,
+                        .targetPort = target.targetPort,
                     };
                     if (target.heightOffset) {
                         auto offset = target.heightOffset.value();

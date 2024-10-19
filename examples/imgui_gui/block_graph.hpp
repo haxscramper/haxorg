@@ -16,9 +16,13 @@ struct DocNode {
 };
 
 struct DocOutEdge {
-    DocNode  target;
-    Opt<int> heightOffset;
-    DESC_FIELDS(DocOutEdge, (target, heightOffset));
+    DocNode                   target;
+    Opt<int>                  heightOffset;
+    GraphEdgeConstraint::Port targetPort = GraphEdgeConstraint::Port::East;
+    GraphEdgeConstraint::Port sourcePort = GraphEdgeConstraint::Port::West;
+    DESC_FIELDS(
+        DocOutEdge,
+        (target, heightOffset, targetPort, sourcePort));
 };
 
 struct DocBlock {
@@ -72,7 +76,7 @@ struct DocBlockStack {
         return getWidth() + leftMargin + rightMargin;
     }
 
-    void addEdge(int row, DocOutEdge const& target)  {
+    void addEdge(int row, DocOutEdge const& target) {
         return blocks.at(row).outEdges.push_back(target);
     }
 };
