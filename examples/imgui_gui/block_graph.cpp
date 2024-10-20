@@ -111,6 +111,7 @@ DocLayout to_layout(DocGraph const& g) {
         }
     }
 
+    int edgeId = 0;
     for (auto const& lane : enumerator(g.lanes)) {
         for (auto const& row : lane.value().visibleRange) {
             DocNode source{.lane = lane.index(), .row = row};
@@ -118,8 +119,9 @@ DocLayout to_layout(DocGraph const& g) {
                 if (lyt.rectMap.contains(source)
                     && lyt.rectMap.contains(target.target)) {
                     GraphEdge edge{
-                        lyt.rectMap.at(source),
-                        lyt.rectMap.at(target.target),
+                        .source = lyt.rectMap.at(source),
+                        .target = lyt.rectMap.at(target.target),
+                        .bundle = ++edgeId,
                     };
                     lyt.ir.edges.push_back(edge);
                     GraphEdgeConstraint ec{
