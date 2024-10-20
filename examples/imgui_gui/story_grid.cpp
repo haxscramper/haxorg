@@ -434,7 +434,7 @@ Vec<GridAction> render_table_node(
 Vec<GridAction> render_story_grid(GridModel& model) {
     __perf_trace("gui", "grid model render");
     Vec<GridAction> result;
-    for (auto& node : model.document.nodes) {
+    for (auto& node : model.rectGraph.nodes) {
         switch (node.getKind()) {
             case DocumentNode::Kind::Grid: {
                 result.append(render_table_node(model, node.getGrid()));
@@ -507,6 +507,8 @@ void story_grid_loop(GLFWwindow* window, std::string const& file) {
             model.history.push_back(GridState{
                 .ast = start.init(sem::parseString(readFile(file))),
             });
+            model.updateNeeded.incl(GridModel::UpdateNeeded::Graph);
+            model.updateNeeded.incl(GridModel::UpdateNeeded::Scroll);
             model.updateDocument();
         }
 
@@ -516,6 +518,8 @@ void story_grid_loop(GLFWwindow* window, std::string const& file) {
 
         if (first) {
             first = false;
+            model.updateNeeded.incl(GridModel::UpdateNeeded::Graph);
+            model.updateNeeded.incl(GridModel::UpdateNeeded::Scroll);
             model.updateDocument();
         }
 
@@ -641,6 +645,7 @@ struct DocAnnotation {
 Vec<Vec<DocAnnotation>> partition_graph_by_distance(
     const Vec<org::graph::MapNode>& initial_nodes,
     const org::graph::MapGraph&     graph) {
+    __perf_trace("gui", "partition graph by distance");
 
     Vec<Vec<DocAnnotation>>                result;
     UnorderedMap<org::graph::MapNode, int> distances;
@@ -691,6 +696,7 @@ Vec<Vec<DocAnnotation>> partition_graph_by_distance(
 }
 
 void updateRowPositions(int rowPadding, DocumentGrid& doc) {
+    __perf_trace("gui", "update row positions");
     int offset = 0;
     for (auto const& row : doc.flatRows()) {
         doc.rowPositions.resize_at(row->flatIdx) = offset;
@@ -773,7 +779,7 @@ void addFootnotes(
     }
 };
 
-void addGridNodes(
+void rebuild_grid_nodes(
     DocumentGrid&         doc,
     org::graph::MapGraph& graph,
     GridContext&          ctx) {
@@ -809,34 +815,6 @@ void addGridNodes(
     }
 }
 
-struct GraphPartitionIR {
-    DocGraph                   ir;
-    UnorderedMap<int, DocNode> gridNodeToNode;
-    UnorderedMap<DocNode, int> nodeToGridNode;
-    DocumentGraph*             graph;
-    DESC_FIELDS(GraphPartitionIR, (ir, gridNodeToNode, nodeToGridNode));
-
-    void addIrNode(int flatIdx, DocNode const& irNode) {
-        gridNodeToNode.insert_or_assign(flatIdx, irNode);
-        nodeToGridNode.insert_or_assign(irNode, flatIdx);
-    }
-
-    DocumentNode const& getDocNode(int idx) const {
-        return graph->nodes.at(idx);
-    }
-
-    DocumentNode const& getDocNode(DocNode const& idx) const {
-        return getDocNode(getFlatIdx(idx));
-    }
-
-    DocNode const& getIrNode(int idx) const {
-        return gridNodeToNode.at(idx);
-    }
-
-    int const& getFlatIdx(DocNode const& node) const {
-        return nodeToGridNode.at(node);
-    }
-};
 
 GraphPartitionIR addGraphPartitions(
     int                            rowPadding,
@@ -844,10 +822,8 @@ GraphPartitionIR addGraphPartitions(
     DocumentGraph&                 document,
     Vec<Vec<DocAnnotation>> const& partition,
     GridState&                     state,
-    ImVec2 const&                  viewport,
-    Vec<Slice<int>>&               laneSpans,
-    Vec<float>&                    laneOffsets,
     GridContext&                   ctx) {
+    __perf_trace("gui", "add graph partitions");
 
     UnorderedMap<org::ImmUniqId, DocNode> orgToId;
     GraphPartitionIR                      res;
@@ -998,24 +974,30 @@ GraphPartitionIR addGraphPartitions(
         }
     }
 
-    res.ir.visible.h = viewport.y;
-    res.ir.visible.w = viewport.x;
-    for (auto& stack : res.ir.lanes) { stack.resetVisibleRange(); }
+    return res;
+}
+
+void update_lane_offsets(
+    DocGraph&        ir,
+    ImVec2 const&    viewport,
+    Vec<Slice<int>>& laneSpans,
+    Vec<float>&      laneOffsets) {
+    ir.visible.h = viewport.y;
+    ir.visible.w = viewport.x;
+    for (auto& stack : ir.lanes) { stack.resetVisibleRange(); }
     for (auto const& [lane_idx, offset] : enumerate(laneOffsets)) {
-        if (res.ir.lanes.has(lane_idx)) {
-            res.ir.lanes.at(lane_idx).scrollOffset = offset;
+        if (ir.lanes.has(lane_idx)) {
+            ir.lanes.at(lane_idx).scrollOffset = offset;
         }
     }
 
     int laneStartX = 0;
-    for (auto const& [lane_idx, lane] : enumerate(res.ir.lanes)) {
+    for (auto const& [lane_idx, lane] : enumerate(ir.lanes)) {
         laneSpans.resize_at(lane_idx) = slice(
             laneStartX + lane.leftMargin,
             laneStartX + lane.leftMargin + lane.getWidth());
         laneStartX += lane.getFullWidth();
     }
-
-    return res;
 }
 
 void GridModel::updateDocument() {
@@ -1030,103 +1012,97 @@ void GridModel::updateDocument() {
     // doc.getColumn("value").width         = 200;
     doc.getColumn("location").width = 240;
     doc.getColumn("location").edit  = GridColumn::EditMode::SingleLine;
+    __perf_trace_begin("gui", "build doc rows");
     doc.rows = build_rows(getCurrentState().ast.getRootAdapter(), doc);
-    document.nodes.clear();
-
+    __perf_trace_end("gui");
     int rowPadding = 5;
-
-    graph.adjList.clear();
-    graph.nodeProps.clear();
-    graph.edgeProps.clear();
-    graph.inNodes.clear();
-
     updateRowPositions(rowPadding, doc);
-    addGridNodes(doc, graph, ctx);
-    CTX_MSG(fmt("{}", doc.annotationParents));
 
+    if (updateNeeded.contains(UpdateNeeded::Graph)) {
+        __perf_trace("gui", "add grid nodes");
+        rectGraph.nodes.clear();
+        graph.adjList.clear();
+        graph.nodeProps.clear();
+        graph.edgeProps.clear();
+        graph.inNodes.clear();
+        rebuild_grid_nodes(doc, graph, ctx);
 
-    // auto gv = graph.toGraphviz(
-    //     getCurrentState().ast.context,
-    //     org::graph::MapGraph::GvConfig{});
-
-    // Graphviz gvc;
-    // gv.setRankDirection(Graphviz::Graph::RankDirection::LR);
-    // gvc.renderToFile("/tmp/ReplaceSubnodeAtPath.png", gv);
-    // gvc.writeFile("/tmp/ReplaceSubnodeAtPath.dot", gv);
-
-    Vec<org::graph::MapNode> docNodes;
-    for (auto const& row : doc.flatRows()) {
-        auto tree = row->origin.uniq();
-        if (!graph.adjList.at(tree).empty()
-            || !graph.inNodes.at(tree).empty()) {
-            docNodes.push_back(tree);
-        }
-    }
-
-    Vec<Vec<DocAnnotation>> partition = partition_graph_by_distance(
-        docNodes, graph);
-
-    const ImGuiViewport* viewport = ImGui::GetMainViewport();
-    GraphPartitionIR     ir       = addGraphPartitions(
-        rowPadding,
-        doc,
-        document,
-        partition,
-        getCurrentState(),
-        viewport->WorkSize,
-        laneSpans,
-        laneOffsets,
-        ctx);
-
-
-    writeFile("/tmp/ir_dump.json", to_json_eval(ir).dump(2));
-
-
-    __perf_trace_begin("gui", "to doc layout");
-    DocLayout lyt = to_layout(ir.ir);
-    __perf_trace_end("gui");
-    writeFile("/tmp/tmp_dump.json", to_json_eval(lyt).dump(2));
-    lyt.ir.height = 10000;
-    lyt.ir.width  = 10000;
-    __perf_trace_begin("gui", "do cola layout");
-    auto cola = lyt.ir.doColaLayout();
-    __perf_trace_end("gui");
-    __perf_trace_begin("gui", "do cola convert");
-    this->layout = cola.convert();
-    __perf_trace_end("gui");
-
-    // writeFile("/tmp/lyt_dump.json", to_json_eval(this->layout).dump(2));
-
-    for (auto const& [idx, rec] : enumerate(this->layout.fixed)) {
-        auto& node = document.nodes.at(idx);
-        switch (node.getKind()) {
-            case DocumentNode::Kind::Grid: {
-                node.getGrid().pos.x = rec.left;
-                node.getGrid().pos.y = rec.top;
-                break;
-            }
-            case DocumentNode::Kind::Text: {
-                node.getText().pos.x = rec.left;
-                node.getText().pos.y = rec.top;
-                break;
-            }
-            case DocumentNode::Kind::List: {
-                node.getList().pos.x = rec.left;
-                node.getList().pos.y = rec.top;
-                break;
+        Vec<org::graph::MapNode> docNodes;
+        for (auto const& row : doc.flatRows()) {
+            auto tree = row->origin.uniq();
+            if (!graph.adjList.at(tree).empty()
+                || !graph.inNodes.at(tree).empty()) {
+                docNodes.push_back(tree);
             }
         }
+
+        Vec<Vec<DocAnnotation>> partition = partition_graph_by_distance(
+            docNodes, graph);
+
+        graphPartition = addGraphPartitions(
+            rowPadding, doc, rectGraph, partition, getCurrentState(), ctx);
     }
 
-    this->debug     = to_constraints(lyt, ir.ir, this->layout);
-    this->debug->ir = &this->layout;
+
+    if (updateNeeded.contains(UpdateNeeded::Scroll)) {
+        const ImGuiViewport* viewport = ImGui::GetMainViewport();
+
+        update_lane_offsets(
+            graphPartition.ir, viewport->WorkSize, laneSpans, laneOffsets);
+
+
+        // writeFile("/tmp/ir_dump.json", to_json_eval(ir).dump(2));
+
+        __perf_trace_begin("gui", "to doc layout");
+        DocLayout lyt = to_layout(graphPartition.ir);
+        __perf_trace_end("gui");
+        // writeFile("/tmp/tmp_dump.json", to_json_eval(lyt).dump(2));
+        lyt.ir.height = 10000;
+        lyt.ir.width  = 10000;
+        __perf_trace_begin("gui", "do cola layout");
+        auto cola = lyt.ir.doColaLayout();
+        __perf_trace_end("gui");
+        __perf_trace_begin("gui", "do cola convert");
+        this->layout = cola.convert();
+        __perf_trace_end("gui");
+
+        // writeFile("/tmp/lyt_dump.json",
+        // to_json_eval(this->layout).dump(2));
+
+        for (auto const& [idx, rec] : enumerate(this->layout.fixed)) {
+            auto& node = rectGraph.nodes.at(idx);
+            switch (node.getKind()) {
+                case DocumentNode::Kind::Grid: {
+                    node.getGrid().pos.x = rec.left;
+                    node.getGrid().pos.y = rec.top;
+                    break;
+                }
+                case DocumentNode::Kind::Text: {
+                    node.getText().pos.x = rec.left;
+                    node.getText().pos.y = rec.top;
+                    break;
+                }
+                case DocumentNode::Kind::List: {
+                    node.getList().pos.x = rec.left;
+                    node.getList().pos.y = rec.top;
+                    break;
+                }
+            }
+        }
+
+        this->debug = to_constraints(lyt, graphPartition.ir, this->layout);
+        this->debug->ir = &this->layout;
+    }
     // writeFile("/tmp/debug_dump.json",
     // to_json_eval(this->debug).dump(2));
+    updateNeeded.clear();
 }
 
 void GridModel::apply(const GridAction& act) {
     switch (act.getKind()) {
         case GridAction::Kind::EditCell: {
+            updateNeeded.incl(UpdateNeeded::Graph);
+            updateNeeded.incl(UpdateNeeded::Scroll);
             auto edit = act.getEditCell();
             org::ImmAstVersion vNext = getCurrentState().ast.getEditVersion(
                 [&](org::ImmAstContext& ast, org::ImmAstEditContext& ctx)
@@ -1147,6 +1123,7 @@ void GridModel::apply(const GridAction& act) {
         }
 
         case GridAction::Kind::Scroll: {
+            updateNeeded.incl(UpdateNeeded::Scroll);
             auto const& scroll = act.getScroll();
             for (auto const& [lane_idx, span] : enumerate(laneSpans)) {
                 if (span.contains(scroll.pos.x)) {

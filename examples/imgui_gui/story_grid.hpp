@@ -65,7 +65,7 @@ struct DocumentGrid {
     Vec<int>        rowPositions;
     Vec<GridColumn> columns;
 
-    UnorderedMap<org::ImmUniqId, int> rowOrigins;
+    UnorderedMap<org::ImmUniqId, int>            rowOrigins;
     UnorderedMap<org::ImmUniqId, org::ImmUniqId> annotationParents;
 
     GridColumn& getColumn(CR<Str> name) {
@@ -240,19 +240,52 @@ struct GridState {
     org::ImmAstVersion ast;
 };
 
+
+struct GraphPartitionIR {
+    DocGraph                   ir;
+    UnorderedMap<int, DocNode> gridNodeToNode;
+    UnorderedMap<DocNode, int> nodeToGridNode;
+    DocumentGraph*             graph;
+    DESC_FIELDS(GraphPartitionIR, (ir, gridNodeToNode, nodeToGridNode));
+
+    void addIrNode(int flatIdx, DocNode const& irNode) {
+        gridNodeToNode.insert_or_assign(flatIdx, irNode);
+        nodeToGridNode.insert_or_assign(irNode, flatIdx);
+    }
+
+    DocumentNode const& getDocNode(int idx) const {
+        return graph->nodes.at(idx);
+    }
+
+    DocumentNode const& getDocNode(DocNode const& idx) const {
+        return getDocNode(getFlatIdx(idx));
+    }
+
+    DocNode const& getIrNode(int idx) const {
+        return gridNodeToNode.at(idx);
+    }
+
+    int const& getFlatIdx(DocNode const& node) const {
+        return nodeToGridNode.at(node);
+    }
+};
+
 struct GridModel {
-    Vec<GridState>          history;
-    DocumentGraph           document;
-    GridContext             conf;
-    org::graph::MapGraph    graph;
-    GraphLayoutIR::Result   layout;
-    ImVec2                  shift{20, 20};
-    Opt<DocConstraintDebug> debug;
-    void                    updateDocument();
-    Vec<Slice<int>>         laneSpans;
-    Vec<float>              laneOffsets;
-    GridState&              getCurrentState() { return history.back(); }
-    void                    apply(GridAction const& act);
+    DECL_DESCRIBED_ENUM(UpdateNeeded, Scroll, Graph);
+    Vec<GridState>             history;
+    DocumentGraph              rectGraph;
+    GridContext                conf;
+    GraphPartitionIR           graphPartition;
+    org::graph::MapGraph       graph;
+    GraphLayoutIR::Result      layout;
+    ImVec2                     shift{20, 20};
+    Opt<DocConstraintDebug>    debug;
+    void                       updateDocument();
+    Vec<Slice<int>>            laneSpans;
+    Vec<float>                 laneOffsets;
+    GridState&                 getCurrentState() { return history.back(); }
+    void                       apply(GridAction const& act);
+    UnorderedSet<UpdateNeeded> updateNeeded;
 };
 
 
