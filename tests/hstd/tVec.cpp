@@ -2,18 +2,35 @@
 #include <gtest/gtest.h>
 #include <hstd/stdlib/Ranges.hpp>
 
+template <typename T>
+class IntVecTypedTest : public ::testing::Test {};
+using IntVecTestTypes = ::testing::Types<Vec<int>, SmallVec<int, 10>>;
+TYPED_TEST_SUITE(IntVecTypedTest, IntVecTestTypes);
+
+template <typename T>
+class StrVecTypedTest : public ::testing::Test {};
+using StrVecTestTypes = ::testing::
+    Types<Vec<std::string>, SmallVec<std::string, 10>>;
+TYPED_TEST_SUITE(StrVecTypedTest, StrVecTestTypes);
+
 TEST(BackwardsIndexTest, BackwardsIndexFormat) {
     std::string f1 = std::format("{}", 1_B);
     ASSERT_EQ(f1, "^1");
 }
 
-TEST(VectorTest, Formatter) {
-    EXPECT_EQ((std::format("{}", Vec<int>{})), "[]");
-    EXPECT_EQ((std::format("{}", Vec<int>{1})), "[1]");
-    EXPECT_EQ((std::format("{}", Vec<int>{1, 2})), "[1, 2]");
-    EXPECT_EQ(
-        (std::format("{}", Vec<std::string>{"first", "second"})),
-        "[first, second]");
+TYPED_TEST(IntVecTypedTest, Formatter) {
+    EXPECT_EQ((std::format("{}", TypeParam{})), "[]");
+    EXPECT_EQ((std::format("{}", TypeParam{1})), "[1]");
+    EXPECT_EQ((std::format("{}", TypeParam{1, 2})), "[1, 2]");
+}
+
+TYPED_TEST(StrVecTypedTest, Formatter) {
+    TypeParam v{
+        std::string{"first"},
+        std::string{"second"},
+    };
+    std::string fmt = std::format("{}", v);
+    EXPECT_EQ(fmt, "[first, second]");
 }
 
 TEST(VectorTest, ContainsFind) {
@@ -22,8 +39,8 @@ TEST(VectorTest, ContainsFind) {
     EXPECT_EQ((Vec<int>{0, 1}.indexOf(2)), -1);
 }
 
-TEST(VectorTest, SliceAndIndexingOperators) {
-    Vec<int> v{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+TYPED_TEST(IntVecTypedTest, SliceAndIndexingOperators) {
+    TypeParam v{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 
     // Test slice operator with positive indices
     std::span<int> slice1 = v[slice(3, 5)];
@@ -51,28 +68,28 @@ TEST(VectorTest, SliceAndIndexingOperators) {
     EXPECT_THROW(v.at(11_B), std::out_of_range);
 }
 
-TEST(VectorTest, VectorAlloc) {
+TYPED_TEST(IntVecTypedTest, VectorAlloc) {
     {
         std::vector<int> v{0, 0, 0, 0, 0};
         CHECK(v.data() != nullptr);
         EXPECT_EQ(v[0], 0);
     }
     {
-        Vec<int> v{0, 0, 0, 0, 0};
+        TypeParam v{0, 0, 0, 0, 0};
         CHECK(v.data() != nullptr);
         EXPECT_EQ(v[0], 0);
     }
 }
 
-TEST(VectorTest, SpanViews) {
+TYPED_TEST(IntVecTypedTest, SpanViews) {
     {
-        const Vec<int> v{0, 1, 2, 3, 4};
-        std::span<int> span = v.at(slice(1, 1));
+        const TypeParam v{0, 1, 2, 3, 4};
+        std::span<int>  span = v.at(slice(1, 1));
         EXPECT_EQ(span[0], 1);
         EXPECT_EQ(span[1], 2);
     }
     {
-        Vec<int> v{0, 0, 0, 0, 0};
+        TypeParam v{0, 0, 0, 0, 0};
         // Test modification using slice operator
         std::span<int> span = v[slice(1, 3)];
         CHECK(span.data() != nullptr);
@@ -95,15 +112,15 @@ TEST(VectorTest, SpanViews) {
     }
 }
 
-TEST(VectorTest, Indexing) {
-    using V = Vec<int>;
+TYPED_TEST(IntVecTypedTest, Indexing) {
+    using V = TypeParam;
     {
-        EXPECT_THROW(Vec<int>{}.back(), std::out_of_range);
-        EXPECT_EQ(Vec<int>{1}.back(), 1);
-        EXPECT_EQ((Vec<int>{2, 1}.back()), 1);
+        EXPECT_THROW(TypeParam{}.back(), std::out_of_range);
+        EXPECT_EQ(TypeParam{1}.back(), 1);
+        EXPECT_EQ((TypeParam{2, 1}.back()), 1);
 
-        EXPECT_THROW(Vec<int>{}.pop_back(), std::out_of_range);
-        EXPECT_THROW(Vec<int>{}.pop_back_v(), std::out_of_range);
+        EXPECT_THROW(TypeParam{}.pop_back(), std::out_of_range);
+        EXPECT_THROW(TypeParam{}.pop_back_v(), std::out_of_range);
     }
 
     auto v = V{1, 2};
@@ -124,8 +141,8 @@ TEST(VectorTest, Indexing) {
     EXPECT_EQ(v.index(2_B), 0);
 }
 
-TEST(VectorTest, ResizeAt) {
-    Vec<int> vec;
+TYPED_TEST(IntVecTypedTest, ResizeAt) {
+    TypeParam vec;
     EXPECT_EQ(vec.size(), 0);
     vec.resize_at(0) = 12;
     EXPECT_EQ(vec.size(), 1);
@@ -150,26 +167,24 @@ TEST(VectorTest, ResizeAt) {
     EXPECT_EQ(vec.at(8), 189);
 }
 
-TEST(VectorTest, FindElement) {
-    {
-        Vec<int> vec{0, 1, 2, 3, 9};
-        EXPECT_EQ(vec.indexOf(0), 0);
-        EXPECT_EQ(vec.indexOf(90), -1);
-        EXPECT_EQ(vec.indexOf(9), 4);
-        EXPECT_TRUE(vec.contains(0));
-        EXPECT_TRUE(vec.contains(1));
-        EXPECT_FALSE(vec.contains(99));
-    }
+TYPED_TEST(IntVecTypedTest, FindElement) {
+    TypeParam vec{0, 1, 2, 3, 9};
+    EXPECT_EQ(vec.indexOf(0), 0);
+    EXPECT_EQ(vec.indexOf(90), -1);
+    EXPECT_EQ(vec.indexOf(9), 4);
+    EXPECT_TRUE(vec.contains(0));
+    EXPECT_TRUE(vec.contains(1));
+    EXPECT_FALSE(vec.contains(99));
+}
 
-    {
-        Vec<std::string> vec{"zero", "one", "two", "three", "nine"};
-        EXPECT_EQ(vec.indexOf("zero"), 0);
-        EXPECT_EQ(vec.indexOf("one"), 1);
-        EXPECT_EQ(vec.indexOf("missing"), -1);
-        EXPECT_TRUE(vec.contains("zero"));
-        EXPECT_TRUE(vec.contains("nine"));
-        EXPECT_FALSE(vec.contains("missing"));
-    }
+TYPED_TEST(StrVecTypedTest, FindElement) {
+    Vec<std::string> vec{"zero", "one", "two", "three", "nine"};
+    EXPECT_EQ(vec.indexOf("zero"), 0);
+    EXPECT_EQ(vec.indexOf("one"), 1);
+    EXPECT_EQ(vec.indexOf("missing"), -1);
+    EXPECT_TRUE(vec.contains("zero"));
+    EXPECT_TRUE(vec.contains("nine"));
+    EXPECT_FALSE(vec.contains("missing"));
 }
 
 TEST(VectorTest, VectorSplicing) {
@@ -204,17 +219,17 @@ TEST(VectorTest, VectorSplicing) {
 }
 
 
-TEST(VectorTest, VectorCompare) {
-    using V = Vec<int>;
+TYPED_TEST(IntVecTypedTest, VectorCompare) {
+    using V = TypeParam;
     EXPECT_EQ((V{1, 2}), (V{1, 2}));
     EXPECT_NE((V{1, 2}), (V{1, 4}));
     EXPECT_NE((V{1, 2}), (V{1}));
     EXPECT_EQ((Vec<char>{'1', '2'}), std::string{"12"});
 }
 
-TEST(VectorTest, VectorFormatting) {
-    EXPECT_EQ(fmt1(Vec<int>{1, 2}), std::string{"[1, 2]"});
-    EXPECT_EQ(fmt1(Vec<int>{}), std::string{"[]"});
+TYPED_TEST(IntVecTypedTest, VectorFormatting) {
+    EXPECT_EQ(fmt1(TypeParam{1, 2}), std::string{"[1, 2]"});
+    EXPECT_EQ(fmt1(TypeParam{}), std::string{"[]"});
     EXPECT_EQ(fmt1(std::vector<int>{1, 2}), std::string{"[1, 2]"});
     EXPECT_EQ(fmt1(std::vector<int>{}), std::string{"[]"});
 }

@@ -2,9 +2,10 @@
 #pragma once
 #include <haxorg/sem/SemOrgSerde.hpp>
 #define EACH_ANY_NODE_PROTO_FIELD(__MAP) \
-        __MAP(kCmdargument, cmdargument, CmdArgument)  \
-        __MAP(kCmdargumentlist, cmdargumentlist, CmdArgumentList)  \
-        __MAP(kCmdarguments, cmdarguments, CmdArguments)  \
+        __MAP(kNone, none, None)  \
+        __MAP(kAttr, attr, Attr)  \
+        __MAP(kAttrlist, attrlist, AttrList)  \
+        __MAP(kAttrs, attrs, Attrs)  \
         __MAP(kErroritem, erroritem, ErrorItem)  \
         __MAP(kErrorgroup, errorgroup, ErrorGroup)  \
         __MAP(kStmtlist, stmtlist, StmtList)  \
@@ -17,7 +18,7 @@
         __MAP(kCmdresults, cmdresults, CmdResults)  \
         __MAP(kCmdtblfm, cmdtblfm, CmdTblfm)  \
         __MAP(kHashtag, hashtag, HashTag)  \
-        __MAP(kFootnote, footnote, Footnote)  \
+        __MAP(kInlinefootnote, inlinefootnote, InlineFootnote)  \
         __MAP(kTime, time, Time)  \
         __MAP(kTimerange, timerange, TimeRange)  \
         __MAP(kMacro, macro, Macro)  \
@@ -47,6 +48,7 @@
         __MAP(kBlockquote, blockquote, BlockQuote)  \
         __MAP(kBlockcomment, blockcomment, BlockComment)  \
         __MAP(kBlockverse, blockverse, BlockVerse)  \
+        __MAP(kBlockdynamicfallback, blockdynamicfallback, BlockDynamicFallback)  \
         __MAP(kBlockexample, blockexample, BlockExample)  \
         __MAP(kBlockexport, blockexport, BlockExport)  \
         __MAP(kBlockadmonition, blockadmonition, BlockAdmonition)  \
@@ -58,7 +60,6 @@
         __MAP(kRow, row, Row)  \
         __MAP(kTable, table, Table)  \
         __MAP(kParagraph, paragraph, Paragraph)  \
-        __MAP(kAnnotatedparagraph, annotatedparagraph, AnnotatedParagraph)  \
         __MAP(kColonexample, colonexample, ColonExample)  \
         __MAP(kCmdattr, cmdattr, CmdAttr)  \
         __MAP(kCall, call, Call)  \
@@ -72,23 +73,296 @@
         __MAP(kDocumentgroup, documentgroup, DocumentGroup)  \
 
 template <>
-struct proto_serde<::orgproto::CmdArgument, sem::CmdArgument> {
-  static void write(::orgproto::CmdArgument* out, sem::CmdArgument const& in);
-  static void read(::orgproto::CmdArgument const& out, proto_write_accessor<sem::CmdArgument> in);
+struct proto_serde<::orgproto::AttrValue, sem::AttrValue> {
+  static void write(::orgproto::AttrValue* out, sem::AttrValue const& in);
+  static void read(::orgproto::AttrValue const& out, proto_write_accessor<sem::AttrValue> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::CmdArgumentList, sem::CmdArgumentList> {
-  static void write(::orgproto::CmdArgumentList* out, sem::CmdArgumentList const& in);
-  static void read(::orgproto::CmdArgumentList const& out, proto_write_accessor<sem::CmdArgumentList> in);
+struct proto_serde<::orgproto::BlockCodeLine::Part::Raw, sem::BlockCodeLine::Part::Raw> {
+  static void write(::orgproto::BlockCodeLine::Part::Raw* out, sem::BlockCodeLine::Part::Raw const& in);
+  static void read(::orgproto::BlockCodeLine::Part::Raw const& out, proto_write_accessor<sem::BlockCodeLine::Part::Raw> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::CmdArguments, sem::CmdArguments> {
-  static void write(::orgproto::CmdArguments* out, sem::CmdArguments const& in);
-  static void read(::orgproto::CmdArguments const& out, proto_write_accessor<sem::CmdArguments> in);
+struct proto_serde<::orgproto::BlockCodeLine::Part::Callout, sem::BlockCodeLine::Part::Callout> {
+  static void write(::orgproto::BlockCodeLine::Part::Callout* out, sem::BlockCodeLine::Part::Callout const& in);
+  static void read(::orgproto::BlockCodeLine::Part::Callout const& out, proto_write_accessor<sem::BlockCodeLine::Part::Callout> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::BlockCodeLine::Part::Tangle, sem::BlockCodeLine::Part::Tangle> {
+  static void write(::orgproto::BlockCodeLine::Part::Tangle* out, sem::BlockCodeLine::Part::Tangle const& in);
+  static void read(::orgproto::BlockCodeLine::Part::Tangle const& out, proto_write_accessor<sem::BlockCodeLine::Part::Tangle> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::BlockCodeLine::Part, sem::BlockCodeLine::Part> {
+  static void write(::orgproto::BlockCodeLine::Part* out, sem::BlockCodeLine::Part const& in);
+  static void read(::orgproto::BlockCodeLine::Part const& out, proto_write_accessor<sem::BlockCodeLine::Part> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::BlockCodeLine, sem::BlockCodeLine> {
+  static void write(::orgproto::BlockCodeLine* out, sem::BlockCodeLine const& in);
+  static void read(::orgproto::BlockCodeLine const& out, proto_write_accessor<sem::BlockCodeLine> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::BlockCodeSwitch::LineStart, sem::BlockCodeSwitch::LineStart> {
+  static void write(::orgproto::BlockCodeSwitch::LineStart* out, sem::BlockCodeSwitch::LineStart const& in);
+  static void read(::orgproto::BlockCodeSwitch::LineStart const& out, proto_write_accessor<sem::BlockCodeSwitch::LineStart> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::BlockCodeSwitch::CalloutFormat, sem::BlockCodeSwitch::CalloutFormat> {
+  static void write(::orgproto::BlockCodeSwitch::CalloutFormat* out, sem::BlockCodeSwitch::CalloutFormat const& in);
+  static void read(::orgproto::BlockCodeSwitch::CalloutFormat const& out, proto_write_accessor<sem::BlockCodeSwitch::CalloutFormat> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::BlockCodeSwitch::RemoveCallout, sem::BlockCodeSwitch::RemoveCallout> {
+  static void write(::orgproto::BlockCodeSwitch::RemoveCallout* out, sem::BlockCodeSwitch::RemoveCallout const& in);
+  static void read(::orgproto::BlockCodeSwitch::RemoveCallout const& out, proto_write_accessor<sem::BlockCodeSwitch::RemoveCallout> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::BlockCodeSwitch::EmphasizeLine, sem::BlockCodeSwitch::EmphasizeLine> {
+  static void write(::orgproto::BlockCodeSwitch::EmphasizeLine* out, sem::BlockCodeSwitch::EmphasizeLine const& in);
+  static void read(::orgproto::BlockCodeSwitch::EmphasizeLine const& out, proto_write_accessor<sem::BlockCodeSwitch::EmphasizeLine> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::BlockCodeSwitch::Dedent, sem::BlockCodeSwitch::Dedent> {
+  static void write(::orgproto::BlockCodeSwitch::Dedent* out, sem::BlockCodeSwitch::Dedent const& in);
+  static void read(::orgproto::BlockCodeSwitch::Dedent const& out, proto_write_accessor<sem::BlockCodeSwitch::Dedent> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::BlockCodeSwitch, sem::BlockCodeSwitch> {
+  static void write(::orgproto::BlockCodeSwitch* out, sem::BlockCodeSwitch const& in);
+  static void read(::orgproto::BlockCodeSwitch const& out, proto_write_accessor<sem::BlockCodeSwitch> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::BlockCodeEvalResult::None, sem::BlockCodeEvalResult::None> {
+  static void write(::orgproto::BlockCodeEvalResult::None* out, sem::BlockCodeEvalResult::None const& in);
+  static void read(::orgproto::BlockCodeEvalResult::None const& out, proto_write_accessor<sem::BlockCodeEvalResult::None> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::BlockCodeEvalResult::OrgValue, sem::BlockCodeEvalResult::OrgValue> {
+  static void write(::orgproto::BlockCodeEvalResult::OrgValue* out, sem::BlockCodeEvalResult::OrgValue const& in);
+  static void read(::orgproto::BlockCodeEvalResult::OrgValue const& out, proto_write_accessor<sem::BlockCodeEvalResult::OrgValue> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::BlockCodeEvalResult::File, sem::BlockCodeEvalResult::File> {
+  static void write(::orgproto::BlockCodeEvalResult::File* out, sem::BlockCodeEvalResult::File const& in);
+  static void read(::orgproto::BlockCodeEvalResult::File const& out, proto_write_accessor<sem::BlockCodeEvalResult::File> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::BlockCodeEvalResult::Raw, sem::BlockCodeEvalResult::Raw> {
+  static void write(::orgproto::BlockCodeEvalResult::Raw* out, sem::BlockCodeEvalResult::Raw const& in);
+  static void read(::orgproto::BlockCodeEvalResult::Raw const& out, proto_write_accessor<sem::BlockCodeEvalResult::Raw> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::BlockCodeEvalResult, sem::BlockCodeEvalResult> {
+  static void write(::orgproto::BlockCodeEvalResult* out, sem::BlockCodeEvalResult const& in);
+  static void read(::orgproto::BlockCodeEvalResult const& out, proto_write_accessor<sem::BlockCodeEvalResult> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::DocumentExportConfig::TaskExport, sem::DocumentExportConfig::TaskExport> {
+  static void write(::orgproto::DocumentExportConfig::TaskExport* out, sem::DocumentExportConfig::TaskExport const& in);
+  static void read(::orgproto::DocumentExportConfig::TaskExport const& out, proto_write_accessor<sem::DocumentExportConfig::TaskExport> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::DocumentExportConfig::DoExport, sem::DocumentExportConfig::DoExport> {
+  static void write(::orgproto::DocumentExportConfig::DoExport* out, sem::DocumentExportConfig::DoExport const& in);
+  static void read(::orgproto::DocumentExportConfig::DoExport const& out, proto_write_accessor<sem::DocumentExportConfig::DoExport> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::DocumentExportConfig::ExportFixed, sem::DocumentExportConfig::ExportFixed> {
+  static void write(::orgproto::DocumentExportConfig::ExportFixed* out, sem::DocumentExportConfig::ExportFixed const& in);
+  static void read(::orgproto::DocumentExportConfig::ExportFixed const& out, proto_write_accessor<sem::DocumentExportConfig::ExportFixed> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::DocumentExportConfig, sem::DocumentExportConfig> {
+  static void write(::orgproto::DocumentExportConfig* out, sem::DocumentExportConfig const& in);
+  static void read(::orgproto::DocumentExportConfig const& out, proto_write_accessor<sem::DocumentExportConfig> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::SubtreePeriod, sem::SubtreePeriod> {
+  static void write(::orgproto::SubtreePeriod* out, sem::SubtreePeriod const& in);
+  static void read(::orgproto::SubtreePeriod const& out, proto_write_accessor<sem::SubtreePeriod> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::NamedProperty::Nonblocking, sem::NamedProperty::Nonblocking> {
+  static void write(::orgproto::NamedProperty::Nonblocking* out, sem::NamedProperty::Nonblocking const& in);
+  static void read(::orgproto::NamedProperty::Nonblocking const& out, proto_write_accessor<sem::NamedProperty::Nonblocking> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::NamedProperty::Trigger, sem::NamedProperty::Trigger> {
+  static void write(::orgproto::NamedProperty::Trigger* out, sem::NamedProperty::Trigger const& in);
+  static void read(::orgproto::NamedProperty::Trigger const& out, proto_write_accessor<sem::NamedProperty::Trigger> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::NamedProperty::ExportLatexClass, sem::NamedProperty::ExportLatexClass> {
+  static void write(::orgproto::NamedProperty::ExportLatexClass* out, sem::NamedProperty::ExportLatexClass const& in);
+  static void read(::orgproto::NamedProperty::ExportLatexClass const& out, proto_write_accessor<sem::NamedProperty::ExportLatexClass> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::NamedProperty::ExportLatexClassOptions, sem::NamedProperty::ExportLatexClassOptions> {
+  static void write(::orgproto::NamedProperty::ExportLatexClassOptions* out, sem::NamedProperty::ExportLatexClassOptions const& in);
+  static void read(::orgproto::NamedProperty::ExportLatexClassOptions const& out, proto_write_accessor<sem::NamedProperty::ExportLatexClassOptions> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::NamedProperty::ExportLatexHeader, sem::NamedProperty::ExportLatexHeader> {
+  static void write(::orgproto::NamedProperty::ExportLatexHeader* out, sem::NamedProperty::ExportLatexHeader const& in);
+  static void read(::orgproto::NamedProperty::ExportLatexHeader const& out, proto_write_accessor<sem::NamedProperty::ExportLatexHeader> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::NamedProperty::ExportLatexCompiler, sem::NamedProperty::ExportLatexCompiler> {
+  static void write(::orgproto::NamedProperty::ExportLatexCompiler* out, sem::NamedProperty::ExportLatexCompiler const& in);
+  static void read(::orgproto::NamedProperty::ExportLatexCompiler const& out, proto_write_accessor<sem::NamedProperty::ExportLatexCompiler> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::NamedProperty::Ordered, sem::NamedProperty::Ordered> {
+  static void write(::orgproto::NamedProperty::Ordered* out, sem::NamedProperty::Ordered const& in);
+  static void read(::orgproto::NamedProperty::Ordered const& out, proto_write_accessor<sem::NamedProperty::Ordered> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::NamedProperty::Effort, sem::NamedProperty::Effort> {
+  static void write(::orgproto::NamedProperty::Effort* out, sem::NamedProperty::Effort const& in);
+  static void read(::orgproto::NamedProperty::Effort const& out, proto_write_accessor<sem::NamedProperty::Effort> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::NamedProperty::Visibility, sem::NamedProperty::Visibility> {
+  static void write(::orgproto::NamedProperty::Visibility* out, sem::NamedProperty::Visibility const& in);
+  static void read(::orgproto::NamedProperty::Visibility const& out, proto_write_accessor<sem::NamedProperty::Visibility> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::NamedProperty::ExportOptions, sem::NamedProperty::ExportOptions> {
+  static void write(::orgproto::NamedProperty::ExportOptions* out, sem::NamedProperty::ExportOptions const& in);
+  static void read(::orgproto::NamedProperty::ExportOptions const& out, proto_write_accessor<sem::NamedProperty::ExportOptions> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::NamedProperty::Blocker, sem::NamedProperty::Blocker> {
+  static void write(::orgproto::NamedProperty::Blocker* out, sem::NamedProperty::Blocker const& in);
+  static void read(::orgproto::NamedProperty::Blocker const& out, proto_write_accessor<sem::NamedProperty::Blocker> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::NamedProperty::Unnumbered, sem::NamedProperty::Unnumbered> {
+  static void write(::orgproto::NamedProperty::Unnumbered* out, sem::NamedProperty::Unnumbered const& in);
+  static void read(::orgproto::NamedProperty::Unnumbered const& out, proto_write_accessor<sem::NamedProperty::Unnumbered> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::NamedProperty::Created, sem::NamedProperty::Created> {
+  static void write(::orgproto::NamedProperty::Created* out, sem::NamedProperty::Created const& in);
+  static void read(::orgproto::NamedProperty::Created const& out, proto_write_accessor<sem::NamedProperty::Created> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::NamedProperty::CustomArgs, sem::NamedProperty::CustomArgs> {
+  static void write(::orgproto::NamedProperty::CustomArgs* out, sem::NamedProperty::CustomArgs const& in);
+  static void read(::orgproto::NamedProperty::CustomArgs const& out, proto_write_accessor<sem::NamedProperty::CustomArgs> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::NamedProperty::CustomRaw, sem::NamedProperty::CustomRaw> {
+  static void write(::orgproto::NamedProperty::CustomRaw* out, sem::NamedProperty::CustomRaw const& in);
+  static void read(::orgproto::NamedProperty::CustomRaw const& out, proto_write_accessor<sem::NamedProperty::CustomRaw> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::NamedProperty, sem::NamedProperty> {
+  static void write(::orgproto::NamedProperty* out, sem::NamedProperty const& in);
+  static void read(::orgproto::NamedProperty const& out, proto_write_accessor<sem::NamedProperty> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::None, sem::None> {
+  static void write(::orgproto::None* out, sem::None const& in);
+  static void read(::orgproto::None const& out, proto_write_accessor<sem::None> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::Attr, sem::Attr> {
+  static void write(::orgproto::Attr* out, sem::Attr const& in);
+  static void read(::orgproto::Attr const& out, proto_write_accessor<sem::Attr> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::AttrList, sem::AttrList> {
+  static void write(::orgproto::AttrList* out, sem::AttrList const& in);
+  static void read(::orgproto::AttrList const& out, proto_write_accessor<sem::AttrList> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::Attrs, sem::Attrs> {
+  static void write(::orgproto::Attrs* out, sem::Attrs const& in);
+  static void read(::orgproto::Attrs const& out, proto_write_accessor<sem::Attrs> in);
 };
 
 
@@ -177,9 +451,9 @@ struct proto_serde<::orgproto::HashTag, sem::HashTag> {
 
 
 template <>
-struct proto_serde<::orgproto::Footnote, sem::Footnote> {
-  static void write(::orgproto::Footnote* out, sem::Footnote const& in);
-  static void read(::orgproto::Footnote const& out, proto_write_accessor<sem::Footnote> in);
+struct proto_serde<::orgproto::InlineFootnote, sem::InlineFootnote> {
+  static void write(::orgproto::InlineFootnote* out, sem::InlineFootnote const& in);
+  static void read(::orgproto::InlineFootnote const& out, proto_write_accessor<sem::InlineFootnote> in);
 };
 
 
@@ -471,6 +745,13 @@ struct proto_serde<::orgproto::BlockVerse, sem::BlockVerse> {
 
 
 template <>
+struct proto_serde<::orgproto::BlockDynamicFallback, sem::BlockDynamicFallback> {
+  static void write(::orgproto::BlockDynamicFallback* out, sem::BlockDynamicFallback const& in);
+  static void read(::orgproto::BlockDynamicFallback const& out, proto_write_accessor<sem::BlockDynamicFallback> in);
+};
+
+
+template <>
 struct proto_serde<::orgproto::BlockExample, sem::BlockExample> {
   static void write(::orgproto::BlockExample* out, sem::BlockExample const& in);
   static void read(::orgproto::BlockExample const& out, proto_write_accessor<sem::BlockExample> in);
@@ -488,118 +769,6 @@ template <>
 struct proto_serde<::orgproto::BlockAdmonition, sem::BlockAdmonition> {
   static void write(::orgproto::BlockAdmonition* out, sem::BlockAdmonition const& in);
   static void read(::orgproto::BlockAdmonition const& out, proto_write_accessor<sem::BlockAdmonition> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::BlockCode::Line::Part::Raw, sem::BlockCode::Line::Part::Raw> {
-  static void write(::orgproto::BlockCode::Line::Part::Raw* out, sem::BlockCode::Line::Part::Raw const& in);
-  static void read(::orgproto::BlockCode::Line::Part::Raw const& out, proto_write_accessor<sem::BlockCode::Line::Part::Raw> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::BlockCode::Line::Part::Callout, sem::BlockCode::Line::Part::Callout> {
-  static void write(::orgproto::BlockCode::Line::Part::Callout* out, sem::BlockCode::Line::Part::Callout const& in);
-  static void read(::orgproto::BlockCode::Line::Part::Callout const& out, proto_write_accessor<sem::BlockCode::Line::Part::Callout> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::BlockCode::Line::Part::Tangle, sem::BlockCode::Line::Part::Tangle> {
-  static void write(::orgproto::BlockCode::Line::Part::Tangle* out, sem::BlockCode::Line::Part::Tangle const& in);
-  static void read(::orgproto::BlockCode::Line::Part::Tangle const& out, proto_write_accessor<sem::BlockCode::Line::Part::Tangle> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::BlockCode::Line::Part, sem::BlockCode::Line::Part> {
-  static void write(::orgproto::BlockCode::Line::Part* out, sem::BlockCode::Line::Part const& in);
-  static void read(::orgproto::BlockCode::Line::Part const& out, proto_write_accessor<sem::BlockCode::Line::Part> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::BlockCode::Line, sem::BlockCode::Line> {
-  static void write(::orgproto::BlockCode::Line* out, sem::BlockCode::Line const& in);
-  static void read(::orgproto::BlockCode::Line const& out, proto_write_accessor<sem::BlockCode::Line> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::BlockCode::Switch::LineStart, sem::BlockCode::Switch::LineStart> {
-  static void write(::orgproto::BlockCode::Switch::LineStart* out, sem::BlockCode::Switch::LineStart const& in);
-  static void read(::orgproto::BlockCode::Switch::LineStart const& out, proto_write_accessor<sem::BlockCode::Switch::LineStart> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::BlockCode::Switch::CalloutFormat, sem::BlockCode::Switch::CalloutFormat> {
-  static void write(::orgproto::BlockCode::Switch::CalloutFormat* out, sem::BlockCode::Switch::CalloutFormat const& in);
-  static void read(::orgproto::BlockCode::Switch::CalloutFormat const& out, proto_write_accessor<sem::BlockCode::Switch::CalloutFormat> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::BlockCode::Switch::RemoveCallout, sem::BlockCode::Switch::RemoveCallout> {
-  static void write(::orgproto::BlockCode::Switch::RemoveCallout* out, sem::BlockCode::Switch::RemoveCallout const& in);
-  static void read(::orgproto::BlockCode::Switch::RemoveCallout const& out, proto_write_accessor<sem::BlockCode::Switch::RemoveCallout> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::BlockCode::Switch::EmphasizeLine, sem::BlockCode::Switch::EmphasizeLine> {
-  static void write(::orgproto::BlockCode::Switch::EmphasizeLine* out, sem::BlockCode::Switch::EmphasizeLine const& in);
-  static void read(::orgproto::BlockCode::Switch::EmphasizeLine const& out, proto_write_accessor<sem::BlockCode::Switch::EmphasizeLine> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::BlockCode::Switch::Dedent, sem::BlockCode::Switch::Dedent> {
-  static void write(::orgproto::BlockCode::Switch::Dedent* out, sem::BlockCode::Switch::Dedent const& in);
-  static void read(::orgproto::BlockCode::Switch::Dedent const& out, proto_write_accessor<sem::BlockCode::Switch::Dedent> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::BlockCode::Switch, sem::BlockCode::Switch> {
-  static void write(::orgproto::BlockCode::Switch* out, sem::BlockCode::Switch const& in);
-  static void read(::orgproto::BlockCode::Switch const& out, proto_write_accessor<sem::BlockCode::Switch> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::BlockCode::EvalResult::None, sem::BlockCode::EvalResult::None> {
-  static void write(::orgproto::BlockCode::EvalResult::None* out, sem::BlockCode::EvalResult::None const& in);
-  static void read(::orgproto::BlockCode::EvalResult::None const& out, proto_write_accessor<sem::BlockCode::EvalResult::None> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::BlockCode::EvalResult::OrgValue, sem::BlockCode::EvalResult::OrgValue> {
-  static void write(::orgproto::BlockCode::EvalResult::OrgValue* out, sem::BlockCode::EvalResult::OrgValue const& in);
-  static void read(::orgproto::BlockCode::EvalResult::OrgValue const& out, proto_write_accessor<sem::BlockCode::EvalResult::OrgValue> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::BlockCode::EvalResult::File, sem::BlockCode::EvalResult::File> {
-  static void write(::orgproto::BlockCode::EvalResult::File* out, sem::BlockCode::EvalResult::File const& in);
-  static void read(::orgproto::BlockCode::EvalResult::File const& out, proto_write_accessor<sem::BlockCode::EvalResult::File> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::BlockCode::EvalResult::Raw, sem::BlockCode::EvalResult::Raw> {
-  static void write(::orgproto::BlockCode::EvalResult::Raw* out, sem::BlockCode::EvalResult::Raw const& in);
-  static void read(::orgproto::BlockCode::EvalResult::Raw const& out, proto_write_accessor<sem::BlockCode::EvalResult::Raw> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::BlockCode::EvalResult, sem::BlockCode::EvalResult> {
-  static void write(::orgproto::BlockCode::EvalResult* out, sem::BlockCode::EvalResult const& in);
-  static void read(::orgproto::BlockCode::EvalResult const& out, proto_write_accessor<sem::BlockCode::EvalResult> in);
 };
 
 
@@ -674,132 +843,6 @@ struct proto_serde<::orgproto::SubtreeLog, sem::SubtreeLog> {
 
 
 template <>
-struct proto_serde<::orgproto::Subtree::Period, sem::Subtree::Period> {
-  static void write(::orgproto::Subtree::Period* out, sem::Subtree::Period const& in);
-  static void read(::orgproto::Subtree::Period const& out, proto_write_accessor<sem::Subtree::Period> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property::Nonblocking, sem::Subtree::Property::Nonblocking> {
-  static void write(::orgproto::Subtree::Property::Nonblocking* out, sem::Subtree::Property::Nonblocking const& in);
-  static void read(::orgproto::Subtree::Property::Nonblocking const& out, proto_write_accessor<sem::Subtree::Property::Nonblocking> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property::Trigger, sem::Subtree::Property::Trigger> {
-  static void write(::orgproto::Subtree::Property::Trigger* out, sem::Subtree::Property::Trigger const& in);
-  static void read(::orgproto::Subtree::Property::Trigger const& out, proto_write_accessor<sem::Subtree::Property::Trigger> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property::Origin, sem::Subtree::Property::Origin> {
-  static void write(::orgproto::Subtree::Property::Origin* out, sem::Subtree::Property::Origin const& in);
-  static void read(::orgproto::Subtree::Property::Origin const& out, proto_write_accessor<sem::Subtree::Property::Origin> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property::ExportLatexClass, sem::Subtree::Property::ExportLatexClass> {
-  static void write(::orgproto::Subtree::Property::ExportLatexClass* out, sem::Subtree::Property::ExportLatexClass const& in);
-  static void read(::orgproto::Subtree::Property::ExportLatexClass const& out, proto_write_accessor<sem::Subtree::Property::ExportLatexClass> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property::ExportLatexClassOptions, sem::Subtree::Property::ExportLatexClassOptions> {
-  static void write(::orgproto::Subtree::Property::ExportLatexClassOptions* out, sem::Subtree::Property::ExportLatexClassOptions const& in);
-  static void read(::orgproto::Subtree::Property::ExportLatexClassOptions const& out, proto_write_accessor<sem::Subtree::Property::ExportLatexClassOptions> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property::ExportLatexHeader, sem::Subtree::Property::ExportLatexHeader> {
-  static void write(::orgproto::Subtree::Property::ExportLatexHeader* out, sem::Subtree::Property::ExportLatexHeader const& in);
-  static void read(::orgproto::Subtree::Property::ExportLatexHeader const& out, proto_write_accessor<sem::Subtree::Property::ExportLatexHeader> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property::ExportLatexCompiler, sem::Subtree::Property::ExportLatexCompiler> {
-  static void write(::orgproto::Subtree::Property::ExportLatexCompiler* out, sem::Subtree::Property::ExportLatexCompiler const& in);
-  static void read(::orgproto::Subtree::Property::ExportLatexCompiler const& out, proto_write_accessor<sem::Subtree::Property::ExportLatexCompiler> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property::Ordered, sem::Subtree::Property::Ordered> {
-  static void write(::orgproto::Subtree::Property::Ordered* out, sem::Subtree::Property::Ordered const& in);
-  static void read(::orgproto::Subtree::Property::Ordered const& out, proto_write_accessor<sem::Subtree::Property::Ordered> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property::Effort, sem::Subtree::Property::Effort> {
-  static void write(::orgproto::Subtree::Property::Effort* out, sem::Subtree::Property::Effort const& in);
-  static void read(::orgproto::Subtree::Property::Effort const& out, proto_write_accessor<sem::Subtree::Property::Effort> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property::Visibility, sem::Subtree::Property::Visibility> {
-  static void write(::orgproto::Subtree::Property::Visibility* out, sem::Subtree::Property::Visibility const& in);
-  static void read(::orgproto::Subtree::Property::Visibility const& out, proto_write_accessor<sem::Subtree::Property::Visibility> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property::ExportOptions, sem::Subtree::Property::ExportOptions> {
-  static void write(::orgproto::Subtree::Property::ExportOptions* out, sem::Subtree::Property::ExportOptions const& in);
-  static void read(::orgproto::Subtree::Property::ExportOptions const& out, proto_write_accessor<sem::Subtree::Property::ExportOptions> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property::Blocker, sem::Subtree::Property::Blocker> {
-  static void write(::orgproto::Subtree::Property::Blocker* out, sem::Subtree::Property::Blocker const& in);
-  static void read(::orgproto::Subtree::Property::Blocker const& out, proto_write_accessor<sem::Subtree::Property::Blocker> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property::Unnumbered, sem::Subtree::Property::Unnumbered> {
-  static void write(::orgproto::Subtree::Property::Unnumbered* out, sem::Subtree::Property::Unnumbered const& in);
-  static void read(::orgproto::Subtree::Property::Unnumbered const& out, proto_write_accessor<sem::Subtree::Property::Unnumbered> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property::Created, sem::Subtree::Property::Created> {
-  static void write(::orgproto::Subtree::Property::Created* out, sem::Subtree::Property::Created const& in);
-  static void read(::orgproto::Subtree::Property::Created const& out, proto_write_accessor<sem::Subtree::Property::Created> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property::CustomArgs, sem::Subtree::Property::CustomArgs> {
-  static void write(::orgproto::Subtree::Property::CustomArgs* out, sem::Subtree::Property::CustomArgs const& in);
-  static void read(::orgproto::Subtree::Property::CustomArgs const& out, proto_write_accessor<sem::Subtree::Property::CustomArgs> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property::CustomRaw, sem::Subtree::Property::CustomRaw> {
-  static void write(::orgproto::Subtree::Property::CustomRaw* out, sem::Subtree::Property::CustomRaw const& in);
-  static void read(::orgproto::Subtree::Property::CustomRaw const& out, proto_write_accessor<sem::Subtree::Property::CustomRaw> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Subtree::Property, sem::Subtree::Property> {
-  static void write(::orgproto::Subtree::Property* out, sem::Subtree::Property const& in);
-  static void read(::orgproto::Subtree::Property const& out, proto_write_accessor<sem::Subtree::Property> in);
-};
-
-
-template <>
 struct proto_serde<::orgproto::Subtree, sem::Subtree> {
   static void write(::orgproto::Subtree* out, sem::Subtree const& in);
   static void read(::orgproto::Subtree const& out, proto_write_accessor<sem::Subtree> in);
@@ -842,41 +885,6 @@ struct proto_serde<::orgproto::Paragraph, sem::Paragraph> {
 
 
 template <>
-struct proto_serde<::orgproto::AnnotatedParagraph::None, sem::AnnotatedParagraph::None> {
-  static void write(::orgproto::AnnotatedParagraph::None* out, sem::AnnotatedParagraph::None const& in);
-  static void read(::orgproto::AnnotatedParagraph::None const& out, proto_write_accessor<sem::AnnotatedParagraph::None> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::AnnotatedParagraph::Footnote, sem::AnnotatedParagraph::Footnote> {
-  static void write(::orgproto::AnnotatedParagraph::Footnote* out, sem::AnnotatedParagraph::Footnote const& in);
-  static void read(::orgproto::AnnotatedParagraph::Footnote const& out, proto_write_accessor<sem::AnnotatedParagraph::Footnote> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::AnnotatedParagraph::Admonition, sem::AnnotatedParagraph::Admonition> {
-  static void write(::orgproto::AnnotatedParagraph::Admonition* out, sem::AnnotatedParagraph::Admonition const& in);
-  static void read(::orgproto::AnnotatedParagraph::Admonition const& out, proto_write_accessor<sem::AnnotatedParagraph::Admonition> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::AnnotatedParagraph::Timestamp, sem::AnnotatedParagraph::Timestamp> {
-  static void write(::orgproto::AnnotatedParagraph::Timestamp* out, sem::AnnotatedParagraph::Timestamp const& in);
-  static void read(::orgproto::AnnotatedParagraph::Timestamp const& out, proto_write_accessor<sem::AnnotatedParagraph::Timestamp> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::AnnotatedParagraph, sem::AnnotatedParagraph> {
-  static void write(::orgproto::AnnotatedParagraph* out, sem::AnnotatedParagraph const& in);
-  static void read(::orgproto::AnnotatedParagraph const& out, proto_write_accessor<sem::AnnotatedParagraph> in);
-};
-
-
-template <>
 struct proto_serde<::orgproto::ColonExample, sem::ColonExample> {
   static void write(::orgproto::ColonExample* out, sem::ColonExample const& in);
   static void read(::orgproto::ColonExample const& out, proto_write_accessor<sem::ColonExample> in);
@@ -908,34 +916,6 @@ template <>
 struct proto_serde<::orgproto::ListItem, sem::ListItem> {
   static void write(::orgproto::ListItem* out, sem::ListItem const& in);
   static void read(::orgproto::ListItem const& out, proto_write_accessor<sem::ListItem> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::DocumentOptions::ExportConfig::TaskExport, sem::DocumentOptions::ExportConfig::TaskExport> {
-  static void write(::orgproto::DocumentOptions::ExportConfig::TaskExport* out, sem::DocumentOptions::ExportConfig::TaskExport const& in);
-  static void read(::orgproto::DocumentOptions::ExportConfig::TaskExport const& out, proto_write_accessor<sem::DocumentOptions::ExportConfig::TaskExport> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::DocumentOptions::ExportConfig::DoExport, sem::DocumentOptions::ExportConfig::DoExport> {
-  static void write(::orgproto::DocumentOptions::ExportConfig::DoExport* out, sem::DocumentOptions::ExportConfig::DoExport const& in);
-  static void read(::orgproto::DocumentOptions::ExportConfig::DoExport const& out, proto_write_accessor<sem::DocumentOptions::ExportConfig::DoExport> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::DocumentOptions::ExportConfig::ExportFixed, sem::DocumentOptions::ExportConfig::ExportFixed> {
-  static void write(::orgproto::DocumentOptions::ExportConfig::ExportFixed* out, sem::DocumentOptions::ExportConfig::ExportFixed const& in);
-  static void read(::orgproto::DocumentOptions::ExportConfig::ExportFixed const& out, proto_write_accessor<sem::DocumentOptions::ExportConfig::ExportFixed> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::DocumentOptions::ExportConfig, sem::DocumentOptions::ExportConfig> {
-  static void write(::orgproto::DocumentOptions::ExportConfig* out, sem::DocumentOptions::ExportConfig const& in);
-  static void read(::orgproto::DocumentOptions::ExportConfig const& out, proto_write_accessor<sem::DocumentOptions::ExportConfig> in);
 };
 
 

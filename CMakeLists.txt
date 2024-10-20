@@ -118,10 +118,9 @@ add_subdirectory(src/py_libs)
 
 add_subdirectory(scripts/cxx_repository)
 add_subdirectory(scripts/cxx_codegen)
-add_subdirectory("${BASE}/src/editor")
 
 install(
-  TARGETS haxorg hstd
+  TARGETS haxorg hstd adaptagrams
   EXPORT HaxorgTargets
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib

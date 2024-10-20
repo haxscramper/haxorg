@@ -369,12 +369,11 @@ void OrgDocumentContext::addNodes(const sem::SemId<sem::Org>& node) {
             if (tree->treeId) {
                 this->subtreeIds[tree->treeId.value()].push_back(tree);
             }
-        } else if (arg->is(osk::AnnotatedParagraph)) {
-            SemId<AnnotatedParagraph> par = arg.as<AnnotatedParagraph>();
-            if (par->getAnnotationKind()
-                == AnnotatedParagraph::AnnotationKind::Footnote) {
-                this->footnoteTargets[par->getFootnote().name].push_back(
-                    par);
+        } else if (arg->is(osk::Paragraph)) {
+            SemId<Paragraph> par = arg.as<Paragraph>();
+            if (par->isFootnoteDefinition()) {
+                this->footnoteTargets[par->getFootnoteName().value()]
+                    .push_back(par);
             }
         }
     });
@@ -427,22 +426,19 @@ Vec<SemId<Org>> OrgDocumentContext::getLinkTarget(
 }
 
 Opt<UserTime> getCreationTime(const SemId<Org>& node) {
-    if (node->is(osk::AnnotatedParagraph)) {
-        auto const& par = node.as<AnnotatedParagraph>();
-        if (par->getAnnotationKind()
-            == AnnotatedParagraph::AnnotationKind::Timestamp) {
-            return par->getTimestamp().time->getStatic().time;
-        }
+    if (node->is(osk::Paragraph)) {
+        auto time = node.as<sem::Paragraph>()->getTimestamps();
+        return time.get(0);
     } else if (node->is(osk::Subtree)) {
         auto const& tree = node.as<Subtree>();
         for (auto const& period :
-             tree->getTimePeriods({Subtree::Period::Kind::Created})) {
-            return period.from->getStatic().time;
+             tree->getTimePeriods({SubtreePeriod::Kind::Created})) {
+            return period.from;
         }
 
         for (auto const& period :
-             tree->getTimePeriods({Subtree::Period::Kind::Titled})) {
-            return period.from->getStatic().time;
+             tree->getTimePeriods({SubtreePeriod::Kind::Titled})) {
+            return period.from;
         }
     }
 
@@ -531,223 +527,6 @@ Vec<SemId<Org>> getDirectSubnodes(
 
 } // namespace
 
-Vec<SemId<Org>> OrgDocumentSelector::getMatches(
-    const SemId<Org>& node) const {
-    Vec<SemId<Org>> result;
-
-    using PathIter = Vec<OrgSelectorCondition>::const_iterator;
-    struct Ctx {
-        Opt<int> maxDepth = std::nullopt;
-    };
-
-    Func<bool(
-        PathIter condition, SemId<Org> node, int depth, Ctx const& ctx)>
-        aux;
-
-    aux = [&](PathIter   condition,
-              SemId<Org> node,
-              int        depth,
-              Ctx const& ctx) -> bool {
-        if (debug) {
-            dbg(fmt("condition={} (@{}/{}) node={}",
-                    condition->debug,
-                    std::distance(path.begin(), condition),
-                    path.high(),
-                    node->getKind()),
-                depth);
-        }
-
-        if (ctx.maxDepth && ctx.maxDepth.value() < depth) {
-            dbg(fmt("maxDepth {} < depth {}", ctx.maxDepth.value(), depth),
-                depth);
-
-            return false;
-        }
-
-        OrgSelectorResult matchResult = condition->check(node);
-        if (matchResult.isMatching) {
-            bool isMatch = false;
-
-            if (condition == this->path.end() - 1) {
-                dbg("last condition in path, match ok", depth);
-                isMatch = true;
-            } else {
-                CHECK(condition->link)
-                    << "Selector path element is not the last in the "
-                       "list, but does not have the subnode search link "
-                       "condition";
-
-                switch (condition->link->getKind()) {
-                    case OrgSelectorLink::Kind::DirectSubnode: {
-                        dbg("link direct subnode", depth);
-                        for (auto const& sub : getDirectSubnodes(node)) {
-                            if (aux(condition + 1,
-                                    sub,
-                                    depth + 1,
-                                    Ctx{.maxDepth = depth + 1})) {
-                                dbg("got match on the direct subnode",
-                                    depth);
-                                isMatch = true;
-                            }
-                        }
-                        break;
-                    }
-
-                    case OrgSelectorLink::Kind::IndirectSubnode: {
-                        dbg("link indirect subnode", depth);
-                        for (auto const& sub : getDirectSubnodes(node)) {
-                            if (aux(condition + 1, sub, depth + 1, ctx)) {
-                                dbg("got match on indirect subnode",
-                                    depth);
-                                isMatch = true;
-                            }
-                        }
-                        break;
-                    }
-
-                    case OrgSelectorLink::Kind::FieldName: {
-                        auto const& name = std::get<
-                            OrgSelectorLink::FieldName>(
-                            condition->link->data);
-                        dbg(fmt("link field name '{}'", name.name), depth);
-
-                        for (auto const& sub :
-                             getDirectSubnodes(node, name.name)) {
-                            if (aux(condition + 1, sub, depth + 1, ctx)) {
-                                dbg("got match on field subnode", depth);
-                                isMatch = true;
-                            }
-                        }
-                        break;
-                    }
-                }
-            }
-
-            if (isMatch && condition->isTarget) {
-                dbg("node is matched and marked as target", depth);
-                result.push_back(node);
-            }
-
-            return isMatch;
-        } else {
-            bool isMatch = false;
-            if (matchResult.tryNestedNodes) {
-                for (auto const& sub : getDirectSubnodes(node)) {
-                    if (aux(condition, sub, depth + 1, ctx)) {
-                        isMatch = true;
-                    }
-                }
-            }
-
-            return isMatch;
-        }
-    };
-
-    aux(path.begin(), node, 0, Ctx{});
-
-    return result;
-}
-
-void OrgDocumentSelector::searchSubtreePlaintextTitle(
-    const Str&           title,
-    bool                 isTarget,
-    Opt<OrgSelectorLink> link) {
-    path.push_back(OrgSelectorCondition{
-        .check = [title,
-                  this](SemId<Org> const& node) -> OrgSelectorResult {
-            if (node->is(osk::Subtree)) {
-                Str plaintext = ExporterUltraplain::toStr(
-                    node.as<Subtree>()->title);
-                this->dbg(
-                    fmt("{} == {} -> {}",
-                        escape_literal(plaintext),
-                        escape_literal(title),
-                        plaintext == title),
-                    0);
-
-                return OrgSelectorResult{
-                    .isMatching = title == plaintext,
-                };
-
-            } else {
-                return OrgSelectorResult{
-                    .isMatching = false,
-                };
-            }
-        },
-        .debug    = fmt("HasSubtreePlaintextTitle:{}", title),
-        .link     = link,
-        .isTarget = isTarget,
-    });
-}
-
-void OrgDocumentSelector::searchSubtreeId(
-    const Str&           id,
-    bool                 isTarget,
-    Opt<int>             maxLevel,
-    Opt<OrgSelectorLink> link) {
-    path.push_back(OrgSelectorCondition{
-        .check = [id,
-                  maxLevel](SemId<Org> const& node) -> OrgSelectorResult {
-            if (node->is(osk::Subtree)) {
-                auto const& tree = node.as<Subtree>();
-                if (maxLevel) {
-                    return OrgSelectorResult{
-                        .isMatching = tree->treeId == id,
-                    };
-                } else {
-                    return OrgSelectorResult{
-                        .isMatching = tree->treeId == id
-                                   && (tree->level <= maxLevel.value()),
-                        .tryNestedNodes = tree->level < maxLevel.value(),
-                    };
-                }
-
-
-            } else {
-                return OrgSelectorResult{.isMatching = false};
-            }
-        },
-        .debug    = fmt("HasSubtreeId:{}", id),
-        .link     = link,
-        .isTarget = isTarget,
-    });
-}
-
-void OrgDocumentSelector::searchAnyKind(
-    IntSet<OrgSemKind> const& kinds,
-    bool                      isTarget,
-    Opt<OrgSelectorLink>      link) {
-    path.push_back(OrgSelectorCondition{
-        .check = [kinds](SemId<Org> const& node) -> OrgSelectorResult {
-            return OrgSelectorResult{
-                .isMatching = kinds.contains(node->getKind()),
-            };
-        },
-        .debug    = fmt("HasKind:{}", kinds),
-        .link     = link,
-        .isTarget = isTarget,
-    });
-}
-
-void OrgDocumentSelector::searchPredicate(
-    const OrgSelectorCondition::Predicate& predicate,
-    bool                                   isTarget,
-    Opt<OrgSelectorLink>                   link) {
-    path.push_back(OrgSelectorCondition{
-        .check    = predicate,
-        .debug    = "Predicate",
-        .link     = link,
-        .isTarget = isTarget,
-    });
-}
-
-void OrgDocumentSelector::dbg(const Str& msg, int depth, int line) const {
-    if (debug) {
-        LOG(INFO) << fmt(
-            "{}[{}] {}", Str("  ").repeated(depth), line, msg);
-    }
-}
 
 absl::TimeZone LoadTimeZone(CR<Str> name) {
     absl::TimeZone result;
@@ -798,4 +577,16 @@ sem::SemId<Time> sem::newSemTimeStatic(
     result->time = Time::Static{.time = userTime};
 
     return result;
+}
+
+sem::SemId<Org> sem::asOneNode(OrgArg arg) {
+    switch (arg->getKind()) {
+        case osk::StmtList:
+        case osk::Document:
+            LOGIC_ASSERTION_CHECK(
+                arg.size() == 1,
+                "`asOneNode` expects a node with a single nested element");
+            return sem::asOneNode(arg->at(0));
+        default: return arg;
+    }
 }
