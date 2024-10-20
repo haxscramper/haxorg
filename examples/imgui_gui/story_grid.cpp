@@ -543,6 +543,20 @@ void story_grid_loop(GLFWwindow* window, std::string const& file) {
             }});
         }
 
+        if (ImGui::IsKeyPressed(ImGuiKey_PageUp)) {
+            updates.push_back(GridAction{GridAction::Scroll{
+                .pos       = io.MousePos,
+                .direction = 20,
+            }});
+        }
+
+        if (ImGui::IsKeyPressed(ImGuiKey_PageDown)) {
+            updates.push_back(GridAction{GridAction::Scroll{
+                .pos       = io.MousePos,
+                .direction = -20,
+            }});
+        }
+
         ImGui::End();
 
         frame_end(window);
@@ -1058,6 +1072,7 @@ void StoryGridModel::updateDocument() {
         update_lane_offsets(
             rectGraph.ir, viewport->WorkSize, laneSpans, laneOffsets);
 
+        if (laneOffsets.has(0)) { shift.y = 20 + laneOffsets.at(0); }
 
         // writeFile("/tmp/ir_dump.json", to_json_eval(ir).dump(2));
 
