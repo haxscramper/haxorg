@@ -201,8 +201,36 @@ struct DocumentNode {
 };
 
 struct DocumentGraph {
-    Vec<DocumentNode> nodes;
-    DESC_FIELDS(DocumentGraph, (nodes));
+    Vec<DocumentNode>          nodes;
+    DocGraph                   ir;
+    UnorderedMap<int, DocNode> gridNodeToNode;
+    UnorderedMap<DocNode, int> nodeToGridNode;
+    org::graph::MapGraph       graph;
+
+    UnorderedMap<org::ImmUniqId, DocNode> orgToId;
+
+    DESC_FIELDS(
+        DocumentGraph,
+        (nodes, ir, gridNodeToNode, nodeToGridNode));
+
+    void addIrNode(int flatIdx, DocNode const& irNode) {
+        gridNodeToNode.insert_or_assign(flatIdx, irNode);
+        nodeToGridNode.insert_or_assign(irNode, flatIdx);
+    }
+
+    DocumentNode const& getDocNode(int idx) const { return nodes.at(idx); }
+
+    DocumentNode const& getDocNode(DocNode const& idx) const {
+        return getDocNode(getFlatIdx(idx));
+    }
+
+    DocNode const& getIrNode(int idx) const {
+        return gridNodeToNode.at(idx);
+    }
+
+    int const& getFlatIdx(DocNode const& node) const {
+        return nodeToGridNode.at(node);
+    }
 };
 
 struct GridContext
@@ -241,42 +269,11 @@ struct GridState {
 };
 
 
-struct GraphPartitionIR {
-    DocGraph                   ir;
-    UnorderedMap<int, DocNode> gridNodeToNode;
-    UnorderedMap<DocNode, int> nodeToGridNode;
-    DocumentGraph*             graph;
-    DESC_FIELDS(GraphPartitionIR, (ir, gridNodeToNode, nodeToGridNode));
-
-    void addIrNode(int flatIdx, DocNode const& irNode) {
-        gridNodeToNode.insert_or_assign(flatIdx, irNode);
-        nodeToGridNode.insert_or_assign(irNode, flatIdx);
-    }
-
-    DocumentNode const& getDocNode(int idx) const {
-        return graph->nodes.at(idx);
-    }
-
-    DocumentNode const& getDocNode(DocNode const& idx) const {
-        return getDocNode(getFlatIdx(idx));
-    }
-
-    DocNode const& getIrNode(int idx) const {
-        return gridNodeToNode.at(idx);
-    }
-
-    int const& getFlatIdx(DocNode const& node) const {
-        return nodeToGridNode.at(node);
-    }
-};
-
 struct GridModel {
     DECL_DESCRIBED_ENUM(UpdateNeeded, Scroll, Graph);
     Vec<GridState>             history;
     DocumentGraph              rectGraph;
     GridContext                conf;
-    GraphPartitionIR           graphPartition;
-    org::graph::MapGraph       graph;
     GraphLayoutIR::Result      layout;
     ImVec2                     shift{20, 20};
     Opt<DocConstraintDebug>    debug;

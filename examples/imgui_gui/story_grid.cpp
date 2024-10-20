@@ -642,7 +642,7 @@ struct DocAnnotation {
     DESC_FIELDS(DocAnnotation, (source, target));
 };
 
-Vec<Vec<DocAnnotation>> partition_graph_by_distance(
+Vec<Vec<DocAnnotation>> partition_graph_nodes(
     const Vec<org::graph::MapNode>& initial_nodes,
     const org::graph::MapGraph&     graph) {
     __perf_trace("gui", "partition graph by distance");
@@ -815,113 +815,93 @@ void rebuild_grid_nodes(
     }
 }
 
+int rowPadding = 5;
 
-GraphPartitionIR addGraphPartitions(
-    int                            rowPadding,
-    DocumentGrid&                  doc,
-    DocumentGraph&                 document,
-    Vec<Vec<DocAnnotation>> const& partition,
-    GridState&                     state,
-    GridContext&                   ctx) {
-    __perf_trace("gui", "add graph partitions");
+DocNode get_partition_node(
+    DocumentGraph&         res,
+    int                    lane,
+    org::ImmAdapter const& node) {
+    if (res.orgToId.contains(node.uniq())) {
+        return res.orgToId.at(node.uniq());
+    } else if (auto list = node.asOpt<org::ImmList>();
+               list && list->isDescriptionList()
+               && org::graph::isLinkedDescriptionList(node)) {
+        DocumentNode::List text{};
 
-    UnorderedMap<org::ImmUniqId, DocNode> orgToId;
-    GraphPartitionIR                      res;
-    res.graph = &document;
-
-
-    DocumentNode::Grid grid{
-        .pos  = ImVec2(0, 0),
-        .size = ImVec2(
-            doc.getWidth(rowPadding), doc.getHeight(rowPadding)),
-        .node = doc,
-    };
-    document.nodes.clear();
-    document.nodes.push_back(DocumentNode{.data = grid});
-    auto root = res.ir.addNode(0, grid.size);
-    res.addIrNode(document.nodes.high(), root);
-
-    for (auto const& row : doc.flatRows()) {
-        orgToId.insert_or_assign(row->origin.uniq(), root);
-    }
-
-    auto get_node = [&](int lane, org::ImmAdapter const& node) -> DocNode {
-        if (orgToId.contains(node.uniq())) {
-            return orgToId.at(node.uniq());
-        } else if (auto list = node.asOpt<org::ImmList>();
-                   list && list->isDescriptionList()
-                   && org::graph::isLinkedDescriptionList(node)) {
-            DocumentNode::List text{};
-
-            int width = 200;
-            for (auto const& item : list->subAs<org::ImmListItem>()) {
-                DocumentNode::List::Item listItem;
-                listItem.node   = item;
-                listItem.width  = width;
-                listItem.text   = join(" ", org::flatWords(item));
-                listItem.height = get_text_height(
-                    listItem.text,
-                    listItem.width,
-                    GridColumn::EditMode::Multiline);
-                text.items.push_back(listItem);
-            }
-
-            DocNode annotation = res.ir.addNode(
-                lane,
-                ImVec2{
-                    static_cast<float>(text.getWidth() + rowPadding * 2),
-                    static_cast<float>(text.getHeight(rowPadding)),
-                });
-
-            for (auto const& item : text.items) {
-                orgToId.insert_or_assign(item.node.uniq(), annotation);
-            }
-
-            orgToId.insert_or_assign(node.uniq(), annotation);
-            document.nodes.push_back(DocumentNode{text});
-            res.addIrNode(document.nodes.high(), annotation);
-
-            return annotation;
-
-        } else {
-            DocumentNode::Text text{
-                .node = node,
-                .text = join(" ", flatWords(node)),
-            };
-
-            int width  = 200;
-            int height = get_text_height(
-                text.text, width, GridColumn::EditMode::Multiline);
-            text.size.x = width;
-            text.size.y = height;
-
-            document.nodes.push_back(DocumentNode{text});
-            DocNode annotation = res.ir.addNode(
-                lane, ImVec2(width, height));
-            orgToId.insert_or_assign(node.uniq(), annotation);
-
-            res.addIrNode(document.nodes.high(), annotation);
-
-            return annotation;
+        int width = 200;
+        for (auto const& item : list->subAs<org::ImmListItem>()) {
+            DocumentNode::List::Item listItem;
+            listItem.node   = item;
+            listItem.width  = width;
+            listItem.text   = join(" ", org::flatWords(item));
+            listItem.height = get_text_height(
+                listItem.text,
+                listItem.width,
+                GridColumn::EditMode::Multiline);
+            text.items.push_back(listItem);
         }
-    };
 
+        DocNode annotation = res.ir.addNode(
+            lane,
+            ImVec2{
+                static_cast<float>(text.getWidth() + rowPadding * 2),
+                static_cast<float>(text.getHeight(rowPadding)),
+            });
+
+        for (auto const& item : text.items) {
+            res.orgToId.insert_or_assign(item.node.uniq(), annotation);
+        }
+
+        res.orgToId.insert_or_assign(node.uniq(), annotation);
+        res.nodes.push_back(DocumentNode{text});
+        res.addIrNode(res.nodes.high(), annotation);
+
+        return annotation;
+
+    } else {
+        DocumentNode::Text text{
+            .node = node,
+            .text = join(" ", flatWords(node)),
+        };
+
+        int width  = 200;
+        int height = get_text_height(
+            text.text, width, GridColumn::EditMode::Multiline);
+        text.size.x = width;
+        text.size.y = height;
+
+        res.nodes.push_back(DocumentNode{text});
+        DocNode annotation = res.ir.addNode(lane, ImVec2(width, height));
+        res.orgToId.insert_or_assign(node.uniq(), annotation);
+
+        res.addIrNode(res.nodes.high(), annotation);
+
+        return annotation;
+    }
+};
+
+void connect_partition_edges(
+    DocumentGraph&                 res,
+    DocumentGrid&                  doc,
+    GridState&                     state,
+    Vec<Vec<DocAnnotation>> const& partition,
+    GridContext&                   ctx) {
     for (auto const& [group_idx, group] : enumerate(partition)) {
         for (auto const& node : group) {
-
-
             org::ImmAdapter source = state.ast.context.adapt(
                 node.source.id);
             org::ImmAdapter target = state.ast.context.adapt(
                 node.target.id);
 
-            DocNode source_node = get_node(
+            DocNode source_node = get_partition_node(
+                res,
                 group_idx + 1,
                 state.ast.context.adapt(
                     doc.annotationParents.get(node.source.id)
                         .value_or(node.source.id)));
 
-            DocNode target_node = get_node(group_idx + 1, target);
+            DocNode target_node = get_partition_node(
+                res, group_idx + 1, target);
 
             DocumentNode const& source_flat = res.getDocNode(source_node);
             DocumentNode const& target_flat = res.getDocNode(target_node);
@@ -973,8 +953,31 @@ GraphPartitionIR addGraphPartitions(
             res.ir.addEdge(source_node, edge);
         }
     }
+}
 
-    return res;
+void partition_graph_layout(
+    int                            rowPadding,
+    DocumentGrid&                  root,
+    DocumentGraph&                 res,
+    Vec<Vec<DocAnnotation>> const& partition,
+    GridState&                     state,
+    GridContext&                   ctx) {
+    __perf_trace("gui", "add graph partitions");
+    DocumentNode::Grid grid{
+        .pos  = ImVec2(0, 0),
+        .size = ImVec2(
+            root.getWidth(rowPadding), root.getHeight(rowPadding)),
+        .node = root,
+    };
+    res.nodes.push_back(DocumentNode{.data = grid});
+    auto rootRect = res.ir.addNode(0, grid.size);
+    res.addIrNode(res.nodes.high(), rootRect);
+
+    for (auto const& row : root.flatRows()) {
+        res.orgToId.insert_or_assign(row->origin.uniq(), rootRect);
+    }
+
+    connect_partition_edges(res, root, state, partition, ctx);
 }
 
 void update_lane_offsets(
@@ -1002,45 +1005,43 @@ void update_lane_offsets(
 
 void GridModel::updateDocument() {
     __perf_trace("gui", "update grid model");
-    DocumentGrid doc;
-    auto&        ctx = conf;
+    auto& ctx = conf;
 
-    doc.getColumn("title").width = 200;
-    doc.getColumn("event").width = 200;
-    doc.getColumn("note").width  = 200;
-    // doc.getColumn("turning_point").width = 300;
-    // doc.getColumn("value").width         = 200;
-    doc.getColumn("location").width = 240;
-    doc.getColumn("location").edit  = GridColumn::EditMode::SingleLine;
-    __perf_trace_begin("gui", "build doc rows");
-    doc.rows = build_rows(getCurrentState().ast.getRootAdapter(), doc);
-    __perf_trace_end("gui");
-    int rowPadding = 5;
-    updateRowPositions(rowPadding, doc);
 
     if (updateNeeded.contains(UpdateNeeded::Graph)) {
         __perf_trace("gui", "add grid nodes");
-        rectGraph.nodes.clear();
-        graph.adjList.clear();
-        graph.nodeProps.clear();
-        graph.edgeProps.clear();
-        graph.inNodes.clear();
-        rebuild_grid_nodes(doc, graph, ctx);
+        DocumentGraph graph;
+        DocumentGrid  doc;
+        doc.getColumn("title").width = 200;
+        doc.getColumn("event").width = 200;
+        doc.getColumn("note").width  = 200;
+        // doc.getColumn("turning_point").width = 300;
+        // doc.getColumn("value").width         = 200;
+        doc.getColumn("location").width = 240;
+        doc.getColumn("location").edit  = GridColumn::EditMode::SingleLine;
+        __perf_trace_begin("gui", "build doc rows");
+        doc.rows = build_rows(getCurrentState().ast.getRootAdapter(), doc);
+        __perf_trace_end("gui");
+        updateRowPositions(rowPadding, doc);
+
+        rebuild_grid_nodes(doc, graph.graph, ctx);
 
         Vec<org::graph::MapNode> docNodes;
         for (auto const& row : doc.flatRows()) {
             auto tree = row->origin.uniq();
-            if (!graph.adjList.at(tree).empty()
-                || !graph.inNodes.at(tree).empty()) {
+            if (!graph.graph.adjList.at(tree).empty()
+                || !graph.graph.inNodes.at(tree).empty()) {
                 docNodes.push_back(tree);
             }
         }
 
-        Vec<Vec<DocAnnotation>> partition = partition_graph_by_distance(
-            docNodes, graph);
+        Vec<Vec<DocAnnotation>> partition = partition_graph_nodes(
+            docNodes, graph.graph);
 
-        graphPartition = addGraphPartitions(
-            rowPadding, doc, rectGraph, partition, getCurrentState(), ctx);
+        partition_graph_layout(
+            rowPadding, doc, graph, partition, getCurrentState(), ctx);
+
+        this->rectGraph = graph;
     }
 
 
@@ -1048,13 +1049,13 @@ void GridModel::updateDocument() {
         const ImGuiViewport* viewport = ImGui::GetMainViewport();
 
         update_lane_offsets(
-            graphPartition.ir, viewport->WorkSize, laneSpans, laneOffsets);
+            rectGraph.ir, viewport->WorkSize, laneSpans, laneOffsets);
 
 
         // writeFile("/tmp/ir_dump.json", to_json_eval(ir).dump(2));
 
         __perf_trace_begin("gui", "to doc layout");
-        DocLayout lyt = to_layout(graphPartition.ir);
+        DocLayout lyt = to_layout(rectGraph.ir);
         __perf_trace_end("gui");
         // writeFile("/tmp/tmp_dump.json", to_json_eval(lyt).dump(2));
         lyt.ir.height = 10000;
@@ -1090,7 +1091,7 @@ void GridModel::updateDocument() {
             }
         }
 
-        this->debug = to_constraints(lyt, graphPartition.ir, this->layout);
+        this->debug     = to_constraints(lyt, rectGraph.ir, this->layout);
         this->debug->ir = &this->layout;
     }
     // writeFile("/tmp/debug_dump.json",
