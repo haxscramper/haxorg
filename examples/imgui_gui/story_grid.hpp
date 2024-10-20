@@ -197,7 +197,8 @@ struct DocumentNode {
 
     SUB_VARIANTS(Kind, Data, data, getKind, Grid, Text, List);
     Data data;
-    DESC_FIELDS(DocumentNode, (data));
+    bool isVisible = true;
+    DESC_FIELDS(DocumentNode, (data, isVisible));
 };
 
 struct DocumentGraph {

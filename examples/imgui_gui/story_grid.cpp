@@ -435,17 +435,21 @@ Vec<GridAction> render_story_grid(GridModel& model) {
     __perf_trace("gui", "grid model render");
     Vec<GridAction> result;
     for (auto& node : model.rectGraph.nodes) {
-        switch (node.getKind()) {
-            case DocumentNode::Kind::Grid: {
-                result.append(render_table_node(model, node.getGrid()));
-                break;
-            }
-            case DocumentNode::Kind::Text: {
-                result.append(render_text_node(model, node.getText()));
-                break;
-            }
-            case DocumentNode::Kind::List: {
-                result.append(render_list_node(model, node.getList()));
+        if (node.isVisible) {
+            switch (node.getKind()) {
+                case DocumentNode::Kind::Grid: {
+                    result.append(
+                        render_table_node(model, node.getGrid()));
+                    break;
+                }
+                case DocumentNode::Kind::Text: {
+                    result.append(render_text_node(model, node.getText()));
+                    break;
+                }
+                case DocumentNode::Kind::List: {
+                    result.append(render_list_node(model, node.getList()));
+                    break;
+                }
             }
         }
     }
@@ -1069,26 +1073,35 @@ void GridModel::updateDocument() {
         // writeFile("/tmp/lyt_dump.json",
         // to_json_eval(this->layout).dump(2));
 
-        for (auto const& [idx, rec] : enumerate(this->layout.fixed)) {
-            auto& node = rectGraph.nodes.at(idx);
-            switch (node.getKind()) {
-                case DocumentNode::Kind::Grid: {
-                    node.getGrid().pos.x = rec.left;
-                    node.getGrid().pos.y = rec.top;
-                    break;
+        for (int i = 0; i < rectGraph.nodes.size(); ++i) {
+            DocumentNode&  node = rectGraph.nodes.at(i);
+            DocNode const& pos  = rectGraph.getIrNode(i);
+            if (lyt.rectMap.contains(pos)) {
+                node.isVisible  = true;
+                auto const& rec = this->layout.fixed.at(
+                    lyt.rectMap.at(pos));
+                switch (node.getKind()) {
+                    case DocumentNode::Kind::Grid: {
+                        node.getGrid().pos.x = rec.left;
+                        node.getGrid().pos.y = rec.top;
+                        break;
+                    }
+                    case DocumentNode::Kind::Text: {
+                        node.getText().pos.x = rec.left;
+                        node.getText().pos.y = rec.top;
+                        break;
+                    }
+                    case DocumentNode::Kind::List: {
+                        node.getList().pos.x = rec.left;
+                        node.getList().pos.y = rec.top;
+                        break;
+                    }
                 }
-                case DocumentNode::Kind::Text: {
-                    node.getText().pos.x = rec.left;
-                    node.getText().pos.y = rec.top;
-                    break;
-                }
-                case DocumentNode::Kind::List: {
-                    node.getList().pos.x = rec.left;
-                    node.getList().pos.y = rec.top;
-                    break;
-                }
+            } else {
+                node.isVisible = false;
             }
         }
+
 
         this->debug     = to_constraints(lyt, rectGraph.ir, this->layout);
         this->debug->ir = &this->layout;
