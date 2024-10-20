@@ -60,12 +60,13 @@ struct GridRow {
     int getHeightRec(int padding = 0) const;
 };
 
-struct GridNode {
+struct DocumentGrid {
     Vec<GridRow>    rows;
     Vec<int>        rowPositions;
     Vec<GridColumn> columns;
 
     UnorderedMap<org::ImmUniqId, int> rowOrigins;
+    UnorderedMap<org::ImmUniqId, org::ImmUniqId> annotationParents;
 
     GridColumn& getColumn(CR<Str> name) {
         auto iter = rs::find_if(
@@ -96,7 +97,7 @@ struct GridNode {
 
     GridRow const* getRow(int pos) const {
         // TODO Optimize, this is a O(n^2) code.
-        for (auto it : const_cast<GridNode*>(this)->flatRows()) {
+        for (auto it : const_cast<DocumentGrid*>(this)->flatRows()) {
             if (it->flatIdx == pos) { return it; }
         }
         return nullptr;
@@ -130,14 +131,14 @@ struct GridNode {
              + float(getRow(rowIdx)->getHeight()) / 2;
     }
 
-    DESC_FIELDS(GridNode, (rows, rowPositions, columns));
+    DESC_FIELDS(DocumentGrid, (rows, rowPositions, columns));
 };
 
 struct DocumentNode {
     struct Grid {
-        ImVec2   pos;
-        ImVec2   size;
-        GridNode node;
+        ImVec2       pos;
+        ImVec2       size;
+        DocumentGrid node;
         DESC_FIELDS(Grid, (node, pos, size));
     };
 

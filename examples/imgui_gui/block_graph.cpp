@@ -126,15 +126,29 @@ DocLayout to_layout(DocGraph const& g) {
                         .sourcePort = target.sourcePort,
                         .targetPort = target.targetPort,
                     };
-                    if (target.heightOffset) {
-                        auto offset = target.heightOffset.value();
-                        auto full   = g.at(source).height;
+
+
+                    if (target.targetOffset) {
+                        auto full   = g.at(target.target).height;
+                        auto offset = target.targetOffset.value();
                         LOGIC_ASSERTION_CHECK(
                             offset <= full, "{} !<= {}", offset, full);
-                        ec.sourceOffset //
-                            = float(offset) / float(full);
-                        int step = 6;
+                        ec.sourceOffset = float(offset) / float(full);
+                        int step        = 6;
                         ec.targetCheckpoint //
+                            = (g.lanes.at(target.target.lane).blocks.size()
+                               * step)
+                            - (target.target.row * step);
+                    }
+
+                    if (target.sourceOffset) {
+                        auto full   = g.at(source).height;
+                        auto offset = target.sourceOffset.value();
+                        LOGIC_ASSERTION_CHECK(
+                            offset <= full, "{} !<= {}", offset, full);
+                        ec.sourceOffset = float(offset) / float(full);
+                        int step        = 6;
+                        ec.sourceCheckpoint //
                             = (g.lanes.at(target.target.lane).blocks.size()
                                * step)
                             - (target.target.row * step);

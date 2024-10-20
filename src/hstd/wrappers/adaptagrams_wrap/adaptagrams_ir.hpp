@@ -69,7 +69,7 @@ struct [[refl]] GraphRect {
 
     bool contains(GraphPoint const& p) const {
         return (left <= p.x && p.x <= (left + width))
-        && (top <= p.y && p.y <= (top + height));
+            && (top <= p.y && p.y <= (top + height));
     }
 
     void extend(GraphPoint const& point);
@@ -84,8 +84,8 @@ struct [[refl]] GraphNodeConstraint {
         DESC_FIELDS(Empty, ());
     };
 
-           /// \brief Listed nodes must be positioned on the same X/Y dimension in
-           /// the layout
+    /// \brief Listed nodes must be positioned on the same X/Y dimension in
+    /// the layout
     struct [[refl]] Align {
         struct [[refl]] Spec {
             [[refl]] int         node; ///< Rectangle index
@@ -98,7 +98,7 @@ struct [[refl]] GraphNodeConstraint {
         [[refl]] GraphDimension dimension; ///< Which axist to align on
         DESC_FIELDS(Align, (nodes, dimension));
 
-               /// \brief Map to cola layout constraint object
+        /// \brief Map to cola layout constraint object
         Res                  toCola() const;
         [[refl]] std::string toColaString() const {
             return toCola()->toString();
@@ -268,12 +268,15 @@ struct [[refl]] GraphNodeConstraint {
 struct [[refl]] GraphEdge {
     [[refl]] int source;
     [[refl]] int target;
+    [[refl]] int bundle = 0;
 
     bool operator==(GraphEdge const& other) const {
-        return source == other.source && target == other.target;
+        return source == other.source //
+            && target == other.target //
+            && bundle == other.bundle;
     }
 
-    DESC_FIELDS(GraphEdge, (source, target));
+    DESC_FIELDS(GraphEdge, (source, target, bundle));
 };
 
 
@@ -283,6 +286,7 @@ struct std::hash<GraphEdge> {
         std::size_t result = 0;
         boost::hash_combine(result, it.source);
         boost::hash_combine(result, it.target);
+        boost::hash_combine(result, it.bundle);
         return result;
     }
 };
@@ -333,9 +337,9 @@ struct [[refl]] GraphLayoutIR {
     struct [[refl]] Subgraph {
         Str graphName; ///< Graphviz graph name
 
-               /// \brief Which nodes go directly in this cluster level (subgraphs
-               /// will have their own sub-nodes, there should be no overlap or
-               /// duplication)
+        /// \brief Which nodes go directly in this cluster level (subgraphs
+        /// will have their own sub-nodes, there should be no overlap or
+        /// duplication)
         Vec<int> nodes;
         /// \brief List of nested subgraphs
         Vec<Subgraph> subgraphs;
@@ -350,9 +354,9 @@ struct [[refl]] GraphLayoutIR {
         bool isEmpty() const;
     };
 
-           /// \brief Nodes for the graph. Node is identified by the index in the
-           /// array of sizes. In the result value each original qsize is mapped
-           /// to the rectangle.
+    /// \brief Nodes for the graph. Node is identified by the index in the
+    /// array of sizes. In the result value each original qsize is mapped
+    /// to the rectangle.
     [[refl]] Vec<GraphSize> rectangles;
     /// \brief List of source-target pairs. Edge source/target IDs refer to
     /// the size rectangles.
@@ -385,15 +389,15 @@ struct [[refl]] GraphLayoutIR {
          height,
          graphName));
 
-           /// \brief Which DPI to use when converting to and from graphviz sizes.
-           /// Backend-specific, 72 is the default used by graphviz.
+    /// \brief Which DPI to use when converting to and from graphviz sizes.
+    /// Backend-specific, 72 is the default used by graphviz.
     [[refl]] int graphviz_size_scaling = 72;
 
-           /// \brief validate the edge/rectangle structure for debugging. Throws
-           /// assert failure if the structure is incorrect.
+    /// \brief validate the edge/rectangle structure for debugging. Throws
+    /// assert failure if the structure is incorrect.
     [[refl]] void validate();
 
-           /// \brief Graph edge layout
+    /// \brief Graph edge layout
     struct [[refl]] Edge {
         /// \brief Sequence of painter paths going from source to target
         /// node. If the node has a label rectangle specified, the paths
@@ -404,7 +408,7 @@ struct [[refl]] GraphLayoutIR {
         DESC_FIELDS(Edge, (paths, labelRect));
     };
 
-           /// \brief Full layout result from the conversion
+    /// \brief Full layout result from the conversion
     struct [[refl]] Result {
         /// \brief Recursive subgraph layout. Nodes and edges inside of the
         /// subgraph are stored in a flat layout result.
@@ -415,7 +419,7 @@ struct [[refl]] GraphLayoutIR {
 
             DESC_FIELDS(Subgraph, (bbox, subgraphs));
 
-                   /// \brief Get reference to subgraph specified at path
+            /// \brief Get reference to subgraph specified at path
             Subgraph const& getSubgraph(Span<int> path) const {
                 switch (path.size()) {
                     case 0: return *this;
@@ -427,9 +431,9 @@ struct [[refl]] GraphLayoutIR {
             }
         };
 
-               /// \brief Fixed node layout rectangles with absolute coordinates.
-               /// Subgraph nodes are also included. Edge label nodes are not
-               /// included.
+        /// \brief Fixed node layout rectangles with absolute coordinates.
+        /// Subgraph nodes are also included. Edge label nodes are not
+        /// included.
         [[refl]] Vec<GraphRect> fixed;
         /// \brief Mapping from the source-target edge pair to the edge
         /// layout spec
@@ -445,7 +449,7 @@ struct [[refl]] GraphLayoutIR {
             Result,
             (fixed, lines, bbox, subgraphs, subgraphPaths));
 
-               /// \brief Get subgraph at path
+        /// \brief Get subgraph at path
         Subgraph const& getSubgraph(Vec<int> const& path) {
             switch (path.size()) {
                 case 0:
@@ -460,7 +464,7 @@ struct [[refl]] GraphLayoutIR {
         }
     };
 
-           /// \brief Backend-specific layout results for graphviz graph
+    /// \brief Backend-specific layout results for graphviz graph
     struct GraphvizResult {
         Graphviz::Graph graph;
         Graphviz        gvc;
@@ -497,7 +501,7 @@ struct [[refl]] GraphLayoutIR {
     HolaResult      doHolaLayout();
     [[refl]] Result doHolaConvert() { return doHolaLayout().convert(); }
 
-           /// \brief Backend-specific layout results for cola graph layout
+    /// \brief Backend-specific layout results for cola graph layout
     struct ColaResult {
         GraphLayoutIR*        baseIr;
         Vec<vpsc::Rectangle>  baseRectangles;
@@ -519,7 +523,7 @@ struct [[refl]] GraphLayoutIR {
 
         Result convert();
 
-               /// \brief write graph layout result into the SVG svg file
+        /// \brief write graph layout result into the SVG svg file
         void writeSvg(CR<Str> path);
 
         Vec<SPtr<cola::CompoundConstraint>> setupConstraints(

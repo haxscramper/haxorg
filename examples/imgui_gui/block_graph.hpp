@@ -17,12 +17,13 @@ struct DocNode {
 
 struct DocOutEdge {
     DocNode                   target;
-    Opt<int>                  heightOffset;
+    Opt<int>                  targetOffset;
+    Opt<int>                  sourceOffset;
     GraphEdgeConstraint::Port targetPort = GraphEdgeConstraint::Port::East;
     GraphEdgeConstraint::Port sourcePort = GraphEdgeConstraint::Port::West;
     DESC_FIELDS(
         DocOutEdge,
-        (target, heightOffset, targetPort, sourcePort));
+        (target, targetOffset, sourceOffset, targetPort, sourcePort));
 };
 
 struct DocBlock {

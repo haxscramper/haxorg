@@ -302,9 +302,9 @@ TEST(GraphUtils, LibcolaRaw3) {
         {2, 3},
     };
 
-    double                        mult   = 10;
-    double                        width  = 100 * mult;
-    double                        height = 100 * mult;
+    double mult  = 10;
+    double width = 100 * mult;
+
     std::vector<vpsc::Rectangle*> rectangles;
 
     for (unsigned i = 0; i < 4; i++) {
@@ -698,6 +698,96 @@ TEST(GraphUtils, LibcolaIr3) {
 
     lyt.router->outputInstanceToSVG("/tmp/testLibcolaIr3_router");
     lyt.router->outputDiagramText("/tmp/testLibcolaIr3_router");
+}
+
+TEST(GraphUtils, LibcolaIrMultiEdge) {
+    GraphLayoutIR ir;
+
+    ir.edges = {
+        GraphEdge{.source = 0, .target = 1, .bundle = 0},
+        GraphEdge{.source = 0, .target = 1, .bundle = 1},
+        GraphEdge{.source = 0, .target = 1, .bundle = 2},
+        GraphEdge{.source = 0, .target = 1, .bundle = 3},
+    };
+
+    auto& ec    = ir.edgeConstraints;
+    using P     = GraphEdgeConstraint::Port;
+    float shift = 0.2f;
+    // ec[GraphEdge{.source = }]
+
+
+    ec[GraphEdge{
+        .source = 0,
+        .target = 1,
+        .bundle = 0,
+    }] = GraphEdgeConstraint{
+        .sourcePort   = P::East,
+        .targetPort   = P::West,
+        .sourceOffset = 0.1f + shift * 0,
+        .targetOffset = 0.9f - shift * 0,
+    };
+
+    ec[GraphEdge{
+        .source = 0,
+        .target = 1,
+        .bundle = 1,
+    }] = GraphEdgeConstraint{
+        .sourcePort   = P::East,
+        .targetPort   = P::West,
+        .sourceOffset = 0.1f + shift * 1,
+        .targetOffset = 0.9f - shift * 1,
+    };
+
+    ec[GraphEdge{
+        .source = 0,
+        .target = 1,
+        .bundle = 2,
+    }] = GraphEdgeConstraint{
+        .sourcePort   = P::East,
+        .targetPort   = P::West,
+        .sourceOffset = 0.1f + shift * 2,
+        .targetOffset = 0.9f - shift * 2,
+    };
+
+    ec[GraphEdge{
+        .source = 0,
+        .target = 1,
+        .bundle = 3,
+    }] = GraphEdgeConstraint{
+        .sourcePort   = P::East,
+        .targetPort   = P::West,
+        .sourceOffset = 0.1f + shift * 3,
+        .targetOffset = 0.9f - shift * 3,
+    };
+
+
+    using C   = GraphNodeConstraint;
+    auto ydim = GraphDimension::YDIM;
+    auto xdim = GraphDimension::XDIM;
+
+    ir.nodeConstraints = {
+        C{C::Separate{
+            .dimension         = xdim,
+            .isExactSeparation = true,
+            .left = {.dimension = xdim, .nodes = {C::Align::Spec{.node = 0}}},
+            .right = {.dimension = xdim, .nodes = {C::Align::Spec{.node = 1}}},
+            .separationDistance = 200.0}},
+    };
+
+    ir.rectangles = {
+        GraphSize{.h = 100.0, .w = 25.0},
+        GraphSize{.h = 100.0, .w = 25.0},
+    };
+
+    ir.height = 10000;
+    ir.width  = 10000;
+
+    auto lyt = ir.doColaLayout();
+    lyt.writeSvg("/tmp/LibcolaIrMultiEdge.svg");
+    auto conv = lyt.convert();
+
+    lyt.router->outputInstanceToSVG("/tmp/LibcolaIrMultiEdge_router");
+    lyt.router->outputDiagramText("/tmp/LibcolaIrMultiEdge_router");
 }
 
 TEST(GraphUtils, tHolaIr1) {
