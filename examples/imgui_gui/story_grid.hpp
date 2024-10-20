@@ -13,7 +13,7 @@
 #include <haxorg/sem/ImmOrgGraph.hpp>
 #include <hstd/wrappers/adaptagrams_wrap/adaptagrams_ir.hpp>
 
-struct GridCell {
+struct TreeGridCell {
     struct None {
         DESC_FIELDS(None, ());
     };
@@ -29,26 +29,26 @@ struct GridCell {
     Data data;
     int  height;
     int  width;
-    DESC_FIELDS(GridCell, (height, width, data));
+    DESC_FIELDS(TreeGridCell, (height, width, data));
 };
 
-struct GridColumn {
+struct TreeGridColumn {
     std::string name;
     int         width = 120;
     DECL_DESCRIBED_ENUM(EditMode, Multiline, SingleLine);
     EditMode edit = EditMode::Multiline;
-    DESC_FIELDS(GridColumn, (name, width, edit));
+    DESC_FIELDS(TreeGridColumn, (name, width, edit));
 };
 
-struct GridRow {
+struct TreeGridRow {
     int                               flatIdx;
     org::ImmAdapterT<org::ImmSubtree> origin;
-    UnorderedMap<Str, GridCell>       columns;
-    Vec<GridRow>                      nested;
-    DESC_FIELDS(GridRow, (columns, origin, flatIdx, nested));
+    UnorderedMap<Str, TreeGridCell>   columns;
+    Vec<TreeGridRow>                  nested;
+    DESC_FIELDS(TreeGridRow, (columns, origin, flatIdx, nested));
 
-    Vec<GridRow*> flatThisNested() {
-        Vec<GridRow*> result;
+    Vec<TreeGridRow*> flatThisNested() {
+        Vec<TreeGridRow*> result;
         result.push_back(this);
         for (auto& sub : nested) { result.append(sub.flatThisNested()); }
 
@@ -60,34 +60,34 @@ struct GridRow {
     int getHeightRec(int padding = 0) const;
 };
 
-struct DocumentGrid {
-    Vec<GridRow>    rows;
-    Vec<int>        rowPositions;
-    Vec<GridColumn> columns;
+struct TreeGridDocument {
+    Vec<TreeGridRow>    rows;
+    Vec<int>            rowPositions;
+    Vec<TreeGridColumn> columns;
 
     UnorderedMap<org::ImmUniqId, int> rowOrigins;
 
 
-    GridColumn& getColumn(CR<Str> name) {
+    TreeGridColumn& getColumn(CR<Str> name) {
         auto iter = rs::find_if(
-            columns, [&](GridColumn const& col) -> bool {
+            columns, [&](TreeGridColumn const& col) -> bool {
                 return col.name == name;
             });
         if (iter == columns.end()) {
-            columns.push_back(GridColumn{.name = name});
+            columns.push_back(TreeGridColumn{.name = name});
             return columns.back();
         } else {
             return *iter;
         }
     }
 
-    Vec<GridRow*> flatRows() {
-        Vec<GridRow*> result;
+    Vec<TreeGridRow*> flatRows() {
+        Vec<TreeGridRow*> result;
         for (auto& row : rows) { result.append(row.flatThisNested()); }
         return result;
     }
 
-    GridRow* getRow(int pos) {
+    TreeGridRow* getRow(int pos) {
         // TODO Optimize, this is a O(n^2) code.
         for (auto it : flatRows()) {
             if (it->flatIdx == pos) { return it; }
@@ -95,9 +95,9 @@ struct DocumentGrid {
         return nullptr;
     }
 
-    GridRow const* getRow(int pos) const {
+    TreeGridRow const* getRow(int pos) const {
         // TODO Optimize, this is a O(n^2) code.
-        for (auto it : const_cast<DocumentGrid*>(this)->flatRows()) {
+        for (auto it : const_cast<TreeGridDocument*>(this)->flatRows()) {
             if (it->flatIdx == pos) { return it; }
         }
         return nullptr;
@@ -131,18 +131,18 @@ struct DocumentGrid {
              + float(getRow(rowIdx)->getHeight()) / 2;
     }
 
-    DESC_FIELDS(DocumentGrid, (rows, rowPositions, columns));
+    DESC_FIELDS(TreeGridDocument, (rows, rowPositions, columns));
 };
 
-struct DocumentNode {
-    struct Grid {
-        ImVec2       pos;
-        ImVec2       size;
-        DocumentGrid node;
-        DESC_FIELDS(Grid, (node, pos, size));
+struct StoryGridNode {
+    struct TreeGrid {
+        ImVec2           pos;
+        ImVec2           size;
+        TreeGridDocument node;
+        DESC_FIELDS(TreeGrid, (node, pos, size));
     };
 
-    struct List {
+    struct LinkList {
         struct Item {
             std::string     text;
             int             width;
@@ -153,7 +153,7 @@ struct DocumentNode {
         Vec<Item> items;
         ImVec2    pos;
         ImVec2    size;
-        DESC_FIELDS(List, (items, pos, size));
+        DESC_FIELDS(LinkList, (items, pos, size));
 
         int getRowOffset(org::ImmUniqId const& row) const {
             auto iter = rs::find_if(items, [&](Item const& i) {
@@ -195,46 +195,48 @@ struct DocumentNode {
     };
 
 
-    SUB_VARIANTS(Kind, Data, data, getKind, Grid, Text, List);
+    SUB_VARIANTS(Kind, Data, data, getKind, TreeGrid, Text, LinkList);
     Data data;
     bool isVisible = true;
-    DESC_FIELDS(DocumentNode, (data, isVisible));
+    DESC_FIELDS(StoryGridNode, (data, isVisible));
 };
 
-struct DocumentGraph {
-    Vec<DocumentNode>          nodes;
-    DocGraph                   ir;
-    UnorderedMap<int, DocNode> gridNodeToNode;
-    UnorderedMap<DocNode, int> nodeToGridNode;
-    org::graph::MapGraph       graph;
+struct StoryGridGraph {
+    Vec<StoryGridNode>             nodes;
+    LaneBlockGraph                 ir;
+    UnorderedMap<int, LaneNodePos> gridNodeToNode;
+    UnorderedMap<LaneNodePos, int> nodeToGridNode;
+    org::graph::MapGraph           graph;
 
     UnorderedMap<org::ImmUniqId, org::ImmUniqId> annotationParents;
-    UnorderedMap<org::ImmUniqId, DocNode>        orgToId;
+    UnorderedMap<org::ImmUniqId, LaneNodePos>    orgToId;
 
     DESC_FIELDS(
-        DocumentGraph,
+        StoryGridGraph,
         (nodes, ir, gridNodeToNode, nodeToGridNode));
 
-    void addIrNode(int flatIdx, DocNode const& irNode) {
+    void addIrNode(int flatIdx, LaneNodePos const& irNode) {
         gridNodeToNode.insert_or_assign(flatIdx, irNode);
         nodeToGridNode.insert_or_assign(irNode, flatIdx);
     }
 
-    DocumentNode const& getDocNode(int idx) const { return nodes.at(idx); }
+    StoryGridNode const& getDocNode(int idx) const {
+        return nodes.at(idx);
+    }
 
-    DocumentNode const& getDocNode(DocNode const& idx) const {
+    StoryGridNode const& getDocNode(LaneNodePos const& idx) const {
         return getDocNode(getFlatIdx(idx));
     }
 
-    DocNode const& getIrNode(int idx) const {
+    LaneNodePos const& getIrNode(int idx) const {
         return gridNodeToNode.at(idx);
     }
 
-    int const& getFlatIdx(DocNode const& node) const {
+    int const& getFlatIdx(LaneNodePos const& node) const {
         return nodeToGridNode.at(node);
     }
 
-    int addNode(int lane, ImVec2 const& size, DocumentNode const& node) {
+    int addNode(int lane, ImVec2 const& size, StoryGridNode const& node) {
         nodes.push_back(node);
         auto rootRect = ir.addNode(0, size);
         addIrNode(nodes.high(), rootRect);
@@ -242,11 +244,11 @@ struct DocumentGraph {
     }
 };
 
-struct GridContext
+struct StoryGridContext
     : OperationsTracer
     , OperationsScope {
 
-    DESC_FIELDS(GridContext, ());
+    DESC_FIELDS(StoryGridContext, ());
 
     void message(
         std::string const& value,
@@ -257,8 +259,8 @@ struct GridContext
 
 struct GridAction {
     struct EditCell {
-        GridCell    cell;
-        std::string updated;
+        TreeGridCell cell;
+        std::string  updated;
         DESC_FIELDS(EditCell, (cell, updated));
     };
 
@@ -273,23 +275,23 @@ struct GridAction {
     DESC_FIELDS(GridAction, (data));
 };
 
-struct GridState {
+struct StoryGridState {
     org::ImmAstVersion ast;
 };
 
 
-struct GridModel {
+struct StoryGridModel {
     DECL_DESCRIBED_ENUM(UpdateNeeded, Scroll, Graph);
-    Vec<GridState>             history;
-    DocumentGraph              rectGraph;
-    GridContext                conf;
+    Vec<StoryGridState>        history;
+    StoryGridGraph             rectGraph;
+    StoryGridContext           conf;
     GraphLayoutIR::Result      layout;
     ImVec2                     shift{20, 20};
-    Opt<DocConstraintDebug>    debug;
+    Opt<ColaConstraintDebug>   debug;
     void                       updateDocument();
     Vec<Slice<int>>            laneSpans;
     Vec<float>                 laneOffsets;
-    GridState&                 getCurrentState() { return history.back(); }
+    StoryGridState&            getCurrentState() { return history.back(); }
     void                       apply(GridAction const& act);
     UnorderedSet<UpdateNeeded> updateNeeded;
 };

@@ -15,8 +15,8 @@ GC::Align::Spec spec(int rect, int offset = 0) {
     };
 }
 
-DocLayout to_layout(DocGraph const& g) {
-    DocLayout lyt;
+LaneBlockLayout to_layout(LaneBlockGraph const& g) {
+    LaneBlockLayout lyt;
 
     Vec<GC::Align>       laneAlignments;
     Vec<GC::Align::Spec> topLaneAlign;
@@ -30,7 +30,7 @@ DocLayout to_layout(DocGraph const& g) {
 
         Opt<GC::Align::Spec> first;
         for (int row : visibleBlocks) {
-            DocNode node{.lane = lane_idx, .row = row};
+            LaneNodePos node{.lane = lane_idx, .row = row};
             lyt.ir.rectangles.push_back(GraphSize{
                 .w = static_cast<double>(lane.blocks.at(row).width),
                 .h = static_cast<double>(lane.blocks.at(row).height),
@@ -52,12 +52,12 @@ DocLayout to_layout(DocGraph const& g) {
         GC::Align align;
 
         for (auto const& row : visibleBlocks) {
-            DocNode node{.lane = lane_idx, .row = row};
+            LaneNodePos node{.lane = lane_idx, .row = row};
             align.nodes.push_back(spec(lyt.rectMap.at(node)));
 
             auto next_row = row + 1;
             if (visibleBlocks.contains(next_row)) {
-                DocNode next{.lane = lane_idx, .row = next_row};
+                LaneNodePos next{.lane = lane_idx, .row = next_row};
                 lyt.ir.nodeConstraints.push_back(GraphNodeConstraint{GC::Separate{
                     .left = GC::
                         Align{.nodes = Vec{spec(lyt.rectMap.at(node))}, .dimension = GraphDimension::YDIM},
@@ -114,7 +114,7 @@ DocLayout to_layout(DocGraph const& g) {
     int edgeId = 0;
     for (auto const& lane : enumerator(g.lanes)) {
         for (auto const& row : lane.value().visibleRange) {
-            DocNode source{.lane = lane.index(), .row = row};
+            LaneNodePos source{.lane = lane.index(), .row = row};
             for (auto const& target : g.at(source).outEdges) {
                 if (lyt.rectMap.contains(source)
                     && lyt.rectMap.contains(target.target)) {
@@ -210,7 +210,7 @@ void render_result(GraphLayoutIR::Result const& res, ImVec2 const& shift) {
     for (auto const& [key, path] : res.lines) { render_edge(path, shift); }
 }
 
-void graph_render_loop(DocGraph const& g, GLFWwindow* window) {
+void graph_render_loop(LaneBlockGraph const& g, GLFWwindow* window) {
     auto lyt  = to_layout(g);
     auto col  = lyt.ir.doColaLayout();
     auto conv = col.convert();
@@ -228,53 +228,53 @@ void graph_render_loop(DocGraph const& g, GLFWwindow* window) {
 
 
 DocOutEdge n(int lane, int row) {
-    return DocOutEdge{.target = DocNode{.lane = lane, .row = row}};
+    return DocOutEdge{.target = LaneNodePos{.lane = lane, .row = row}};
 }
 
 void run_block_graph_test(GLFWwindow* window) {
     int  w     = 75;
     int  h     = 50;
-    auto lane0 = Vec<DocBlock>{
+    auto lane0 = Vec<LaneBlockNode>{
         // 0.0
-        DocBlock{.width = w, .height = h, .outEdges = {n(1, 0)}},
+        LaneBlockNode{.width = w, .height = h, .outEdges = {n(1, 0)}},
         // 0.1
-        DocBlock{
+        LaneBlockNode{
             .width    = w,
             .height   = h,
             .outEdges = {n(1, 1), n(1, 2), n(1, 3)}},
         // 0.2
-        DocBlock{.width = w, .height = h, .outEdges = {n(1, 4)}},
+        LaneBlockNode{.width = w, .height = h, .outEdges = {n(1, 4)}},
     };
 
-    auto lane1 = Vec<DocBlock>{
+    auto lane1 = Vec<LaneBlockNode>{
         // 1.0
-        DocBlock{.width = w, .height = h, .outEdges = {n(2, 0)}},
+        LaneBlockNode{.width = w, .height = h, .outEdges = {n(2, 0)}},
         // 1.1
-        DocBlock{.width = w, .height = h, .outEdges = {n(2, 0), n(2, 1)}},
+        LaneBlockNode{.width = w, .height = h, .outEdges = {n(2, 0), n(2, 1)}},
         // 1.2
-        DocBlock{.width = w, .height = h, .outEdges = {n(2, 1)}},
+        LaneBlockNode{.width = w, .height = h, .outEdges = {n(2, 1)}},
         // 1.3
-        DocBlock{.width = w, .height = h, .outEdges = {n(2, 1), n(2, 2)}},
+        LaneBlockNode{.width = w, .height = h, .outEdges = {n(2, 1), n(2, 2)}},
         // 1.4
-        DocBlock{.width = w, .height = h, .outEdges = {n(2, 1), n(2, 3)}},
+        LaneBlockNode{.width = w, .height = h, .outEdges = {n(2, 1), n(2, 3)}},
     };
 
-    auto lane2 = Vec<DocBlock>{
+    auto lane2 = Vec<LaneBlockNode>{
         // 2.0
-        DocBlock{.width = w, .height = h},
+        LaneBlockNode{.width = w, .height = h},
         // 2.1
-        DocBlock{.width = w, .height = h},
+        LaneBlockNode{.width = w, .height = h},
         // 2.2
-        DocBlock{.width = w, .height = h},
+        LaneBlockNode{.width = w, .height = h},
         // 2.3
-        DocBlock{.width = w, .height = h},
+        LaneBlockNode{.width = w, .height = h},
     };
 
-    DocGraph g{
+    LaneBlockGraph g{
         .lanes
-        = {DocBlockStack{.blocks = lane0, .visibleRange = slice(0, 2)},
-           DocBlockStack{.blocks = lane1, .visibleRange = slice(0, 4)},
-           DocBlockStack{.blocks = lane2, .visibleRange = slice(0, 3)}},
+        = {LaneBlockStack{.blocks = lane0, .visibleRange = slice(0, 2)},
+           LaneBlockStack{.blocks = lane1, .visibleRange = slice(0, 4)},
+           LaneBlockStack{.blocks = lane2, .visibleRange = slice(0, 3)}},
         .visible = GraphSize{.w = 1200, .h = 1200}};
 
     g.lanes.at(1).scrollOffset -= 100;
@@ -291,7 +291,7 @@ void run_block_graph_test(GLFWwindow* window) {
     graph_render_loop(g, window);
 }
 
-int DocBlockStack::getBlockHeightStart(int blockIdx) const {
+int LaneBlockStack::getBlockHeightStart(int blockIdx) const {
     int start = scrollOffset;
     for (int i = 0; i < blockIdx; ++i) {
         start += blocks.at(i).fullHeight();
@@ -299,7 +299,7 @@ int DocBlockStack::getBlockHeightStart(int blockIdx) const {
     return start;
 }
 
-bool DocBlockStack::inSpan(int blockIdx, Slice<int> heightRange) const {
+bool LaneBlockStack::inSpan(int blockIdx, Slice<int> heightRange) const {
     auto span = blocks.at(blockIdx).heightSpan(
         getBlockHeightStart(blockIdx));
     bool result = heightRange.overlap(span).has_value();
@@ -307,7 +307,7 @@ bool DocBlockStack::inSpan(int blockIdx, Slice<int> heightRange) const {
     return result;
 }
 
-Slice<int> DocBlockStack::getVisibleBlocks(Slice<int> heightRange) const {
+Slice<int> LaneBlockStack::getVisibleBlocks(Slice<int> heightRange) const {
     Slice<int> res;
     res.first = -1;
     res.last  = -1;
@@ -335,11 +335,11 @@ ImVec2 get_center(const GraphRect& rect) {
         rect.left + rect.width / 2.0, rect.top + rect.height / 2.0);
 }
 
-DocConstraintDebug to_constraints(
-    const DocLayout&             lyt,
-    const DocGraph&              g,
+ColaConstraintDebug to_constraints(
+    const LaneBlockLayout&             lyt,
+    const LaneBlockGraph&              g,
     GraphLayoutIR::Result const& final) {
-    DocConstraintDebug res;
+    ColaConstraintDebug res;
 
     auto add_align_line = [&](GraphNodeConstraint::Align const& a) {
         bool        x = a.dimension == GraphDimension::XDIM;
@@ -359,8 +359,8 @@ DocConstraintDebug to_constraints(
         ImVec2 start = centers.at(0);
         ImVec2 end   = centers.at(1_B);
 
-        res.constraints.push_back(DocConstraintDebug::Constraint{
-            DocConstraintDebug::Constraint::Align{
+        res.constraints.push_back(ColaConstraintDebug::Constraint{
+            ColaConstraintDebug::Constraint::Align{
                 .start = start,
                 .end   = end,
             }});
@@ -387,9 +387,9 @@ DocConstraintDebug to_constraints(
     return res;
 }
 
-void render_debug(const DocConstraintDebug& debug, ImVec2 const& shift) {
+void render_debug(const ColaConstraintDebug& debug, ImVec2 const& shift) {
     ImDrawList* draw_list = ImGui::GetForegroundDrawList();
-    using C               = DocConstraintDebug::Constraint;
+    using C               = ColaConstraintDebug::Constraint;
 
     auto color = IM_COL32(255, 0, 0, 255);
 

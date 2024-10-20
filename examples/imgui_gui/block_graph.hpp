@@ -6,17 +6,17 @@
 #include "imgui.h"
 #include <hstd/stdlib/Ranges.hpp>
 
-struct DocNode {
+struct LaneNodePos {
     int  lane;
     int  row;
-    bool operator==(DocNode const& other) const {
+    bool operator==(LaneNodePos const& other) const {
         return lane == other.lane && row == other.row;
     }
-    DESC_FIELDS(DocNode, (lane, row));
+    DESC_FIELDS(LaneNodePos, (lane, row));
 };
 
 struct DocOutEdge {
-    DocNode                   target;
+    LaneNodePos               target;
     Opt<int>                  targetOffset;
     Opt<int>                  sourceOffset;
     GraphEdgeConstraint::Port targetPort = GraphEdgeConstraint::Port::East;
@@ -26,7 +26,7 @@ struct DocOutEdge {
         (target, targetOffset, sourceOffset, targetPort, sourcePort));
 };
 
-struct DocBlock {
+struct LaneBlockNode {
     int             width;
     int             height;
     Vec<DocOutEdge> outEdges;
@@ -42,25 +42,25 @@ struct DocBlock {
     }
 
     DESC_FIELDS(
-        DocBlock,
+        LaneBlockNode,
         (width, height, outEdges, topMargin, bottomMargin));
 };
 
-struct DocBlockStack {
-    Vec<DocBlock> blocks;
-    int           scrollOffset;
-    Slice<int>    visibleRange;
-    int           leftMargin  = 50;
-    int           rightMargin = 50;
+struct LaneBlockStack {
+    Vec<LaneBlockNode> blocks;
+    int                scrollOffset;
+    Slice<int>         visibleRange;
+    int                leftMargin  = 50;
+    int                rightMargin = 50;
     DESC_FIELDS(
-        DocBlockStack,
+        LaneBlockStack,
         (blocks, visibleRange, scrollOffset, leftMargin, rightMargin));
     int  getBlockHeightStart(int blockIdx) const;
     void resetVisibleRange() { visibleRange = slice(0, blocks.high()); }
     bool inSpan(int blockIdx, Slice<int> heightRange) const;
     Slice<int> getVisibleBlocks(Slice<int> heightRange) const;
     int        addBlock(ImVec2 const& size) {
-        blocks.push_back(DocBlock{
+        blocks.push_back(LaneBlockNode{
                    .width  = static_cast<int>(size.x),
                    .height = static_cast<int>(size.y),
         });
@@ -68,7 +68,7 @@ struct DocBlockStack {
     }
 
     int getWidth() const {
-        return rs::max(blocks | rv::transform([](DocBlock const& b) {
+        return rs::max(blocks | rv::transform([](LaneBlockNode const& b) {
                            return float(b.width);
                        }));
     }
@@ -83,8 +83,8 @@ struct DocBlockStack {
 };
 
 template <>
-struct std::hash<DocNode> {
-    std::size_t operator()(DocNode const& it) const noexcept {
+struct std::hash<LaneNodePos> {
+    std::size_t operator()(LaneNodePos const& it) const noexcept {
         std::size_t result = 0;
         hax_hash_combine(result, it.lane);
         hax_hash_combine(result, it.row);
@@ -93,40 +93,40 @@ struct std::hash<DocNode> {
 };
 
 
-struct DocGraph {
-    Vec<DocBlockStack> lanes;
-    GraphSize          visible;
-    DESC_FIELDS(DocGraph, (lanes, visible));
-    DocNode addNode(int lane, ImVec2 const& size) {
-        return DocNode{
+struct LaneBlockGraph {
+    Vec<LaneBlockStack> lanes;
+    GraphSize           visible;
+    DESC_FIELDS(LaneBlockGraph, (lanes, visible));
+    LaneNodePos addNode(int lane, ImVec2 const& size) {
+        return LaneNodePos{
             .lane = lane,
             .row  = this->lane(lane).addBlock(size),
         };
     }
 
-    void addEdge(DocNode const& source, DocOutEdge const& target) {
+    void addEdge(LaneNodePos const& source, DocOutEdge const& target) {
         return lane(source.lane).addEdge(source.row, target);
     }
 
-    DocBlockStack& lane(int lane) { return lanes.resize_at(lane); }
+    LaneBlockStack& lane(int lane) { return lanes.resize_at(lane); }
 
-    DocBlock& at(DocNode const& node) {
+    LaneBlockNode& at(LaneNodePos const& node) {
         return lanes.at(node.lane).blocks.at(node.row);
     }
 
-    DocBlock const& at(DocNode const& node) const {
+    LaneBlockNode const& at(LaneNodePos const& node) const {
         return lanes.at(node.lane).blocks.at(node.row);
     }
 };
 
 
-struct DocLayout {
-    GraphLayoutIR              ir;
-    UnorderedMap<DocNode, int> rectMap;
-    DESC_FIELDS(DocLayout, (ir, rectMap));
+struct LaneBlockLayout {
+    GraphLayoutIR                  ir;
+    UnorderedMap<LaneNodePos, int> rectMap;
+    DESC_FIELDS(LaneBlockLayout, (ir, rectMap));
 };
 
-struct DocConstraintDebug {
+struct ColaConstraintDebug {
     struct Constraint {
         struct Align {
             ImVec2 start;
@@ -141,12 +141,12 @@ struct DocConstraintDebug {
 
     GraphLayoutIR::Result const* ir;
     Vec<Constraint>              constraints;
-    DESC_FIELDS(DocConstraintDebug, (constraints));
+    DESC_FIELDS(ColaConstraintDebug, (constraints));
 };
 
-DocConstraintDebug to_constraints(
-    DocLayout const&             lyt,
-    DocGraph const&              g,
+ColaConstraintDebug to_constraints(
+    LaneBlockLayout const&       lyt,
+    LaneBlockGraph const&        g,
     const GraphLayoutIR::Result& final);
 
 void render_point(const GraphPoint& point, ImVec2 const& shift);
@@ -155,7 +155,7 @@ void render_path(const GraphPath& path, ImVec2 const& shift);
 void render_rect(const GraphRect& rect, ImVec2 const& shift);
 void render_edge(const GraphLayoutIR::Edge& edge, ImVec2 const& shift);
 void render_result(GraphLayoutIR::Result const& res, ImVec2 const& shift);
-void render_debug(DocConstraintDebug const& debug, const ImVec2& shift);
+void render_debug(ColaConstraintDebug const& debug, const ImVec2& shift);
 
-DocLayout to_layout(DocGraph const& g);
-void      run_block_graph_test(GLFWwindow* window);
+LaneBlockLayout to_layout(LaneBlockGraph const& g);
+void            run_block_graph_test(GLFWwindow* window);

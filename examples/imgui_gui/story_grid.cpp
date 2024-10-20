@@ -73,15 +73,15 @@ void render_debug_rect(ImVec2 const& size, int border = 2) {
 
 
 bool render_editable_text(
-    std::string&         value,
-    std::string&         edit_buffer,
-    bool&                is_editing,
-    int                  height,
-    int                  width,
-    GridColumn::EditMode edit) {
+    std::string&             value,
+    std::string&             edit_buffer,
+    bool&                    is_editing,
+    int                      height,
+    int                      width,
+    TreeGridColumn::EditMode edit) {
     auto cell_prefix = fmt("{:p}", static_cast<const void*>(value.data()));
 
-    if (edit == GridColumn::EditMode::Multiline) {
+    if (edit == TreeGridColumn::EditMode::Multiline) {
         if (is_editing) {
             ImGui::InputTextMultiline(
                 fmt("##{}_edit", cell_prefix).c_str(),
@@ -163,9 +163,9 @@ bool render_editable_text(
 }
 
 bool render_editable_cell(
-    GridCell&         cell,
-    GridContext&      ctx,
-    GridColumn const& col) {
+    TreeGridCell&         cell,
+    StoryGridContext&     ctx,
+    TreeGridColumn const& col) {
     auto& val = cell.getValue();
     return render_editable_text(
         val.value,
@@ -178,9 +178,9 @@ bool render_editable_cell(
 
 
 Opt<GridAction> render_cell(
-    GridCell&         cell,
-    GridContext&      ctx,
-    GridColumn const& col) {
+    TreeGridCell&         cell,
+    StoryGridContext&     ctx,
+    TreeGridColumn const& col) {
     Opt<GridAction> result;
 
     if (render_editable_cell(cell, ctx, col)) {
@@ -194,10 +194,10 @@ Opt<GridAction> render_cell(
 }
 
 void render_tree_columns(
-    GridRow&         row,
-    Vec<GridAction>& result,
-    DocumentGrid&    doc,
-    GridContext&     ctx) {
+    TreeGridRow&      row,
+    Vec<GridAction>&  result,
+    TreeGridDocument& doc,
+    StoryGridContext& ctx) {
     auto __scope = ctx.scopeLevel();
     int  colIdx  = 1;
     for (auto const& col : doc.columns) {
@@ -214,10 +214,10 @@ void render_tree_columns(
 float tree_fold_column = 120.0f;
 
 void render_tree_row(
-    GridRow&         row,
-    Vec<GridAction>& result,
-    DocumentGrid&    doc,
-    GridContext&     ctx) {
+    TreeGridRow&      row,
+    Vec<GridAction>&  result,
+    TreeGridDocument& doc,
+    StoryGridContext& ctx) {
     bool skipped = false;
     auto __scope = ctx.scopeLevel();
 
@@ -298,8 +298,8 @@ void render_tree_row(
 }
 
 Vec<GridAction> render_text_node(
-    GridModel&          model,
-    DocumentNode::Text& grid) {
+    StoryGridModel&      model,
+    StoryGridNode::Text& grid) {
     Vec<GridAction> result;
     auto&           ctx = model.conf;
 
@@ -321,7 +321,7 @@ Vec<GridAction> render_text_node(
         edit,
         grid.size.y,
         grid.size.x,
-        GridColumn::EditMode::Multiline);
+        TreeGridColumn::EditMode::Multiline);
 
     ImGui::End();
 
@@ -331,8 +331,8 @@ Vec<GridAction> render_text_node(
 }
 
 Vec<GridAction> render_list_node(
-    GridModel&          model,
-    DocumentNode::List& list) {
+    StoryGridModel&          model,
+    StoryGridNode::LinkList& list) {
     Vec<GridAction> result;
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
     ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0);
@@ -363,7 +363,7 @@ Vec<GridAction> render_list_node(
                     edit,
                     item.height,
                     item.width,
-                    GridColumn::EditMode::Multiline);
+                    TreeGridColumn::EditMode::Multiline);
             }
             ImGui::EndTable();
         }
@@ -376,8 +376,8 @@ Vec<GridAction> render_list_node(
 }
 
 Vec<GridAction> render_table_node(
-    GridModel&          model,
-    DocumentNode::Grid& grid) {
+    StoryGridModel&          model,
+    StoryGridNode::TreeGrid& grid) {
     Vec<GridAction> result;
     auto&           ctx = model.conf;
     auto&           doc = grid.node;
@@ -431,23 +431,24 @@ Vec<GridAction> render_table_node(
     return result;
 }
 
-Vec<GridAction> render_story_grid(GridModel& model) {
+Vec<GridAction> render_story_grid(StoryGridModel& model) {
     __perf_trace("gui", "grid model render");
     Vec<GridAction> result;
     for (auto& node : model.rectGraph.nodes) {
         if (node.isVisible) {
             switch (node.getKind()) {
-                case DocumentNode::Kind::Grid: {
+                case StoryGridNode::Kind::TreeGrid: {
                     result.append(
-                        render_table_node(model, node.getGrid()));
+                        render_table_node(model, node.getTreeGrid()));
                     break;
                 }
-                case DocumentNode::Kind::Text: {
+                case StoryGridNode::Kind::Text: {
                     result.append(render_text_node(model, node.getText()));
                     break;
                 }
-                case DocumentNode::Kind::List: {
-                    result.append(render_list_node(model, node.getList()));
+                case StoryGridNode::Kind::LinkList: {
+                    result.append(
+                        render_list_node(model, node.getLinkList()));
                     break;
                 }
             }
@@ -482,9 +483,9 @@ void story_grid_loop(GLFWwindow* window, std::string const& file) {
 
     sem::SemId<sem::Org> node;
 
-    GridModel          model;
+    StoryGridModel     model;
     org::ImmAstContext start;
-    model.history.push_back(GridState{
+    model.history.push_back(StoryGridState{
         .ast = start.init(sem::parseString(readFile(file))),
     });
 
@@ -508,11 +509,11 @@ void story_grid_loop(GLFWwindow* window, std::string const& file) {
         if (0 < inotify_change) {
             LOG(INFO) << "File change, reloading the model";
             model.history.clear();
-            model.history.push_back(GridState{
+            model.history.push_back(StoryGridState{
                 .ast = start.init(sem::parseString(readFile(file))),
             });
-            model.updateNeeded.incl(GridModel::UpdateNeeded::Graph);
-            model.updateNeeded.incl(GridModel::UpdateNeeded::Scroll);
+            model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Graph);
+            model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Scroll);
             model.updateDocument();
         }
 
@@ -522,8 +523,8 @@ void story_grid_loop(GLFWwindow* window, std::string const& file) {
 
         if (first) {
             first = false;
-            model.updateNeeded.incl(GridModel::UpdateNeeded::Graph);
-            model.updateNeeded.incl(GridModel::UpdateNeeded::Scroll);
+            model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Graph);
+            model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Scroll);
             model.updateDocument();
         }
 
@@ -559,15 +560,15 @@ void story_grid_loop(GLFWwindow* window, std::string const& file) {
 }
 
 
-GridCell build_editable_cell(
-    org::ImmAdapter   adapter,
-    GridColumn const& col);
+TreeGridCell build_editable_cell(
+    org::ImmAdapter       adapter,
+    TreeGridColumn const& col);
 
-GridRow build_row(
+TreeGridRow build_row(
     org::ImmAdapterT<org::ImmSubtree> tree,
-    DocumentGrid&                     doc,
+    TreeGridDocument&                 doc,
     int&                              flatIdx) {
-    GridRow result;
+    TreeGridRow result;
     result.columns["title"] = build_editable_cell(
         tree.getTitle(), doc.getColumn("title"));
     result.origin  = tree;
@@ -597,9 +598,9 @@ GridRow build_row(
     return result;
 }
 
-Vec<GridRow> build_rows(org::ImmAdapter root, DocumentGrid& doc) {
-    Vec<GridRow> result;
-    int          idx = 0;
+Vec<TreeGridRow> build_rows(org::ImmAdapter root, TreeGridDocument& doc) {
+    Vec<TreeGridRow> result;
+    int              idx = 0;
     for (auto const& tree : root.subAs<org::ImmSubtree>()) {
         result.push_back(build_row(tree, doc, idx));
     }
@@ -608,9 +609,9 @@ Vec<GridRow> build_rows(org::ImmAdapter root, DocumentGrid& doc) {
 }
 
 int get_text_height(
-    std::string const&   text,
-    int                  width,
-    GridColumn::EditMode edit) {
+    std::string const&       text,
+    int                      width,
+    TreeGridColumn::EditMode edit) {
     Vec<Str>    wrapped = split_wrap_text(text, width);
     std::string _tmp{"Tt"};
     char const* _tmp_begin = _tmp.c_str();
@@ -618,25 +619,23 @@ int get_text_height(
     ImVec2      text_size  = ImGui::CalcTextSize(
         _tmp_begin, _tmp_end, false, width);
 
-    if (edit == GridColumn::EditMode::SingleLine) {
+    if (edit == TreeGridColumn::EditMode::SingleLine) {
         return text_size.y;
     } else {
-        return 0 < wrapped.size() ? text_size.y * wrapped.size()
+        return 0 < wrapped.size() ? text_size.y * (wrapped.size() + 1)
                                   : text_size.y;
     }
 }
 
-GridCell build_editable_cell(
-    org::ImmAdapter   adapter,
-    GridColumn const& col) {
-    GridCell result{GridCell::Value{}};
-    auto&    v    = result.getValue();
-    v.value       = join(" ", flatWords(adapter));
-    v.origin      = adapter;
-    result.width  = col.width;
-    result.height = get_text_height(v.value, col.width, col.edit);
-
-
+TreeGridCell build_editable_cell(
+    org::ImmAdapter       adapter,
+    TreeGridColumn const& col) {
+    TreeGridCell result{TreeGridCell::Value{}};
+    auto&        v = result.getValue();
+    v.value        = join(" ", flatWords(adapter));
+    v.origin       = adapter;
+    result.width   = col.width;
+    result.height  = get_text_height(v.value, col.width, col.edit);
     return result;
 }
 
@@ -699,7 +698,7 @@ Vec<Vec<DocAnnotation>> partition_graph_nodes(
     return result;
 }
 
-void updateRowPositions(int rowPadding, DocumentGrid& doc) {
+void updateRowPositions(int rowPadding, TreeGridDocument& doc) {
     __perf_trace("gui", "update row positions");
     int offset = 0;
     for (auto const& row : doc.flatRows()) {
@@ -710,11 +709,11 @@ void updateRowPositions(int rowPadding, DocumentGrid& doc) {
 }
 
 void add_description_list_node(
-    DocumentGraph&                        res,
-    DocumentGrid&                         doc,
+    StoryGridGraph&                       res,
+    TreeGridDocument&                     doc,
     org::ImmAdapterT<org::ImmList> const& list,
     org::graph::MapGraph&                 graph,
-    GridContext&                          ctx) {
+    StoryGridContext&                     ctx) {
     org::graph::MapNode listNode{list.uniq()};
     for (auto const& item : list.subAs<org::ImmListItem>()) {
         graph.addNode(item.uniq());
@@ -746,7 +745,7 @@ void addFootnotes(
     org::ImmUniqId const&        origin,
     org::ImmAdapter const&       node,
     org::graph::MapGraph&        graph,
-    GridContext&                 ctx) {
+    StoryGridContext&            ctx) {
     if (visited.contains(node.uniq())) {
         return;
     } else {
@@ -785,10 +784,10 @@ void addFootnotes(
 };
 
 void add_annotation_nodes(
-    DocumentGraph&        res,
-    DocumentGrid&         doc,
+    StoryGridGraph&       res,
+    TreeGridDocument&     doc,
     org::graph::MapGraph& graph,
-    GridContext&          ctx) {
+    StoryGridContext&     ctx) {
 
     for (auto const& row : doc.flatRows()) {
         org::graph::MapNode subtreeNode{row->origin.uniq()};
@@ -823,28 +822,28 @@ void add_annotation_nodes(
 
 int rowPadding = 5;
 
-int add_root_grid_node(DocumentGraph& res, org::ImmAdapter const& node) {
-    DocumentGrid doc;
+int add_root_grid_node(StoryGridGraph& res, org::ImmAdapter const& node) {
+    TreeGridDocument doc;
     doc.getColumn("title").width = 200;
     doc.getColumn("event").width = 200;
     doc.getColumn("note").width  = 200;
     // doc.getColumn("turning_point").width = 300;
     // doc.getColumn("value").width         = 200;
     doc.getColumn("location").width = 240;
-    doc.getColumn("location").edit  = GridColumn::EditMode::SingleLine;
+    doc.getColumn("location").edit  = TreeGridColumn::EditMode::SingleLine;
     __perf_trace_begin("gui", "build doc rows");
     doc.rows = build_rows(node, doc);
     __perf_trace_end("gui");
     updateRowPositions(rowPadding, doc);
 
-    DocumentNode::Grid grid{
+    StoryGridNode::TreeGrid grid{
         .pos  = ImVec2(0, 0),
         .size = ImVec2(
             doc.getWidth(rowPadding), doc.getHeight(rowPadding)),
         .node = doc,
     };
 
-    int flatIdx = res.addNode(0, grid.size, DocumentNode{.data = grid});
+    int flatIdx = res.addNode(0, grid.size, StoryGridNode{.data = grid});
 
     for (auto const& row : doc.flatRows()) {
         res.orgToId.insert_or_assign(
@@ -854,8 +853,8 @@ int add_root_grid_node(DocumentGraph& res, org::ImmAdapter const& node) {
     return flatIdx;
 }
 
-DocNode get_partition_node(
-    DocumentGraph&         res,
+LaneNodePos get_partition_node(
+    StoryGridGraph&        res,
     int                    lane,
     org::ImmAdapter const& node) {
     if (res.orgToId.contains(node.uniq())) {
@@ -863,22 +862,22 @@ DocNode get_partition_node(
     } else if (auto list = node.asOpt<org::ImmList>();
                list && list->isDescriptionList()
                && org::graph::isLinkedDescriptionList(node)) {
-        DocumentNode::List text{};
+        StoryGridNode::LinkList text{};
 
         int width = 200;
         for (auto const& item : list->subAs<org::ImmListItem>()) {
-            DocumentNode::List::Item listItem;
+            StoryGridNode::LinkList::Item listItem;
             listItem.node   = item;
             listItem.width  = width;
             listItem.text   = join(" ", org::flatWords(item));
             listItem.height = get_text_height(
                 listItem.text,
                 listItem.width,
-                GridColumn::EditMode::Multiline);
+                TreeGridColumn::EditMode::Multiline);
             text.items.push_back(listItem);
         }
 
-        DocNode annotation = res.ir.addNode(
+        LaneNodePos annotation = res.ir.addNode(
             lane,
             ImVec2{
                 static_cast<float>(text.getWidth() + rowPadding * 2),
@@ -890,25 +889,26 @@ DocNode get_partition_node(
         }
 
         res.orgToId.insert_or_assign(node.uniq(), annotation);
-        res.nodes.push_back(DocumentNode{text});
+        res.nodes.push_back(StoryGridNode{text});
         res.addIrNode(res.nodes.high(), annotation);
 
         return annotation;
 
     } else {
-        DocumentNode::Text text{
+        StoryGridNode::Text text{
             .node = node,
             .text = join(" ", flatWords(node)),
         };
 
         int width  = 200;
         int height = get_text_height(
-            text.text, width, GridColumn::EditMode::Multiline);
+            text.text, width, TreeGridColumn::EditMode::Multiline);
         text.size.x = width;
         text.size.y = height;
 
-        res.nodes.push_back(DocumentNode{text});
-        DocNode annotation = res.ir.addNode(lane, ImVec2(width, height));
+        res.nodes.push_back(StoryGridNode{text});
+        LaneNodePos annotation = res.ir.addNode(
+            lane, ImVec2(width, height));
         res.orgToId.insert_or_assign(node.uniq(), annotation);
 
         res.addIrNode(res.nodes.high(), annotation);
@@ -918,10 +918,10 @@ DocNode get_partition_node(
 };
 
 void connect_partition_edges(
-    DocumentGraph&                 res,
-    GridState&                     state,
+    StoryGridGraph&                res,
+    StoryGridState&                state,
     Vec<Vec<DocAnnotation>> const& partition,
-    GridContext&                   ctx) {
+    StoryGridContext&              ctx) {
     for (auto const& [group_idx, group] : enumerate(partition)) {
         for (auto const& node : group) {
             org::ImmAdapter source = state.ast.context.adapt(
@@ -929,18 +929,18 @@ void connect_partition_edges(
             org::ImmAdapter target = state.ast.context.adapt(
                 node.target.id);
 
-            DocNode source_node = get_partition_node(
+            LaneNodePos source_node = get_partition_node(
                 res,
                 group_idx + 1,
                 state.ast.context.adapt(
                     res.annotationParents.get(node.source.id)
                         .value_or(node.source.id)));
 
-            DocNode target_node = get_partition_node(
+            LaneNodePos target_node = get_partition_node(
                 res, group_idx + 1, target);
 
-            DocumentNode const& source_flat = res.getDocNode(source_node);
-            DocumentNode const& target_flat = res.getDocNode(target_node);
+            StoryGridNode const& source_flat = res.getDocNode(source_node);
+            StoryGridNode const& target_flat = res.getDocNode(target_node);
 
             using GEC = GraphEdgeConstraint;
 
@@ -959,18 +959,19 @@ void connect_partition_edges(
 
             auto get_connector_offset =
                 [&ctx](
-                    DocumentNode const&    flat,
+                    StoryGridNode const&   flat,
                     org::ImmAdapter const& node) -> Opt<int> {
-                if (flat.isGrid()) {
-                    return flat.getGrid().node.getRowCenterOffset(
-                        flat.getGrid().node.rowOrigins.at(node.uniq()));
-                } else if (flat.isList()) {
+                if (flat.isTreeGrid()) {
+                    return flat.getTreeGrid().node.getRowCenterOffset(
+                        flat.getTreeGrid().node.rowOrigins.at(
+                            node.uniq()));
+                } else if (flat.isLinkList()) {
                     // CTX_MSG(
                     //     fmt("node {} source parent {} target parent {}",
                     //         node,
                     //         doc.annotationParents.get(node.source.id),
                     //         doc.annotationParents.get(node.target.id)));
-                    return flat.getList().getRowOffset(node.uniq());
+                    return flat.getLinkList().getRowOffset(node.uniq());
 
                     // CTX_MSG(fmt("edge {} -> {}", source_node, edge));
                 } else {
@@ -982,7 +983,7 @@ void connect_partition_edges(
             edge.sourceOffset = get_connector_offset(source_flat, source);
             edge.targetOffset = get_connector_offset(target_flat, target);
 
-            if (source_flat.isList() || target_flat.isList()) {
+            if (source_flat.isLinkList() || target_flat.isLinkList()) {
                 CTX_MSG(fmt("{}", edge));
             }
 
@@ -992,7 +993,7 @@ void connect_partition_edges(
 }
 
 void update_lane_offsets(
-    DocGraph&        ir,
+    LaneBlockGraph&  ir,
     ImVec2 const&    viewport,
     Vec<Slice<int>>& laneSpans,
     Vec<float>&      laneOffsets) {
@@ -1014,24 +1015,27 @@ void update_lane_offsets(
     }
 }
 
-void GridModel::updateDocument() {
+void StoryGridModel::updateDocument() {
     __perf_trace("gui", "update grid model");
     auto& ctx = conf;
 
 
     if (updateNeeded.contains(UpdateNeeded::Graph)) {
         __perf_trace("gui", "add grid nodes");
-        DocumentGraph graph;
+        StoryGridGraph graph;
 
         int flat = add_root_grid_node(
             graph, getCurrentState().ast.getRootAdapter());
 
         add_annotation_nodes(
-            graph, graph.nodes.at(flat).getGrid().node, graph.graph, ctx);
+            graph,
+            graph.nodes.at(flat).getTreeGrid().node,
+            graph.graph,
+            ctx);
 
         Vec<org::graph::MapNode> docNodes;
         for (auto const& row :
-             graph.nodes.at(flat).getGrid().node.flatRows()) {
+             graph.nodes.at(flat).getTreeGrid().node.flatRows()) {
             auto tree = row->origin.uniq();
             if (!graph.graph.adjList.at(tree).empty()
                 || !graph.graph.inNodes.at(tree).empty()) {
@@ -1058,7 +1062,7 @@ void GridModel::updateDocument() {
         // writeFile("/tmp/ir_dump.json", to_json_eval(ir).dump(2));
 
         __perf_trace_begin("gui", "to doc layout");
-        DocLayout lyt = to_layout(rectGraph.ir);
+        LaneBlockLayout lyt = to_layout(rectGraph.ir);
         __perf_trace_end("gui");
         // writeFile("/tmp/tmp_dump.json", to_json_eval(lyt).dump(2));
         lyt.ir.height = 10000;
@@ -1074,26 +1078,26 @@ void GridModel::updateDocument() {
         // to_json_eval(this->layout).dump(2));
 
         for (int i = 0; i < rectGraph.nodes.size(); ++i) {
-            DocumentNode&  node = rectGraph.nodes.at(i);
-            DocNode const& pos  = rectGraph.getIrNode(i);
+            StoryGridNode&     node = rectGraph.nodes.at(i);
+            LaneNodePos const& pos  = rectGraph.getIrNode(i);
             if (lyt.rectMap.contains(pos)) {
                 node.isVisible  = true;
                 auto const& rec = this->layout.fixed.at(
                     lyt.rectMap.at(pos));
                 switch (node.getKind()) {
-                    case DocumentNode::Kind::Grid: {
-                        node.getGrid().pos.x = rec.left;
-                        node.getGrid().pos.y = rec.top;
+                    case StoryGridNode::Kind::TreeGrid: {
+                        node.getTreeGrid().pos.x = rec.left;
+                        node.getTreeGrid().pos.y = rec.top;
                         break;
                     }
-                    case DocumentNode::Kind::Text: {
+                    case StoryGridNode::Kind::Text: {
                         node.getText().pos.x = rec.left;
                         node.getText().pos.y = rec.top;
                         break;
                     }
-                    case DocumentNode::Kind::List: {
-                        node.getList().pos.x = rec.left;
-                        node.getList().pos.y = rec.top;
+                    case StoryGridNode::Kind::LinkList: {
+                        node.getLinkList().pos.x = rec.left;
+                        node.getLinkList().pos.y = rec.top;
                         break;
                     }
                 }
@@ -1111,7 +1115,7 @@ void GridModel::updateDocument() {
     updateNeeded.clear();
 }
 
-void GridModel::apply(const GridAction& act) {
+void StoryGridModel::apply(const GridAction& act) {
     switch (act.getKind()) {
         case GridAction::Kind::EditCell: {
             updateNeeded.incl(UpdateNeeded::Graph);
@@ -1129,7 +1133,7 @@ void GridModel::apply(const GridAction& act) {
                         ctx));
                     return result;
                 });
-            history.push_back(GridState{
+            history.push_back(StoryGridState{
                 .ast = vNext,
             });
             break;
@@ -1149,7 +1153,7 @@ void GridModel::apply(const GridAction& act) {
     }
 }
 
-void GridContext::message(
+void StoryGridContext::message(
     const std::string& value,
     int                line,
     const char*        function,
@@ -1157,7 +1161,7 @@ void GridContext::message(
     OperationsTracer::message(value, activeLevel, line, function, file);
 }
 
-int GridRow::getHeight(int padding) const {
+int TreeGridRow::getHeight(int padding) const {
     return rs::max(
                own_view(columns.keys())
                | rv::transform(
@@ -1165,10 +1169,10 @@ int GridRow::getHeight(int padding) const {
          + padding;
 }
 
-int GridRow::getHeightRec(int padding) const {
+int TreeGridRow::getHeightRec(int padding) const {
     return getHeight(padding)
          + rs::fold_left(
-               nested | rv::transform([&](GridRow const& r) {
+               nested | rv::transform([&](TreeGridRow const& r) {
                    return r.getHeightRec(padding);
                }),
                0,
