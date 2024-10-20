@@ -705,7 +705,8 @@ void updateRowPositions(int rowPadding, DocumentGrid& doc) {
     }
 }
 
-void addLinkedDescriptionList(
+void add_description_list_node(
+    DocumentGraph&                        res,
     DocumentGrid&                         doc,
     org::ImmAdapterT<org::ImmList> const& list,
     org::graph::MapGraph&                 graph,
@@ -722,7 +723,7 @@ void addLinkedDescriptionList(
                     CTX_MSG(fmt(
                         "List link {} -> {}", item.uniq(), targetPath));
 
-                    doc.annotationParents.insert_or_assign(
+                    res.annotationParents.insert_or_assign(
                         item.uniq(), list.uniq());
                     graph.addEdge(
                         org::graph::MapEdge{
@@ -779,7 +780,8 @@ void addFootnotes(
     }
 };
 
-void rebuild_grid_nodes(
+void add_annotation_nodes(
+    DocumentGraph&        res,
     DocumentGrid&         doc,
     org::graph::MapGraph& graph,
     GridContext&          ctx) {
@@ -809,13 +811,44 @@ void rebuild_grid_nodes(
         for (auto const& list : row->origin.subAs<org::ImmList>()) {
             if (list.isDescriptionList()
                 && org::graph::isLinkedDescriptionList(list)) {
-                addLinkedDescriptionList(doc, list, graph, ctx);
+                add_description_list_node(res, doc, list, graph, ctx);
             }
         }
     }
 }
 
 int rowPadding = 5;
+
+int add_root_grid_node(DocumentGraph& res, org::ImmAdapter const& node) {
+    DocumentGrid doc;
+    doc.getColumn("title").width = 200;
+    doc.getColumn("event").width = 200;
+    doc.getColumn("note").width  = 200;
+    // doc.getColumn("turning_point").width = 300;
+    // doc.getColumn("value").width         = 200;
+    doc.getColumn("location").width = 240;
+    doc.getColumn("location").edit  = GridColumn::EditMode::SingleLine;
+    __perf_trace_begin("gui", "build doc rows");
+    doc.rows = build_rows(node, doc);
+    __perf_trace_end("gui");
+    updateRowPositions(rowPadding, doc);
+
+    DocumentNode::Grid grid{
+        .pos  = ImVec2(0, 0),
+        .size = ImVec2(
+            doc.getWidth(rowPadding), doc.getHeight(rowPadding)),
+        .node = doc,
+    };
+
+    int flatIdx = res.addNode(0, grid.size, DocumentNode{.data = grid});
+
+    for (auto const& row : doc.flatRows()) {
+        res.orgToId.insert_or_assign(
+            row->origin.uniq(), res.getIrNode(flatIdx));
+    }
+
+    return flatIdx;
+}
 
 DocNode get_partition_node(
     DocumentGraph&         res,
@@ -882,7 +915,6 @@ DocNode get_partition_node(
 
 void connect_partition_edges(
     DocumentGraph&                 res,
-    DocumentGrid&                  doc,
     GridState&                     state,
     Vec<Vec<DocAnnotation>> const& partition,
     GridContext&                   ctx) {
@@ -897,7 +929,7 @@ void connect_partition_edges(
                 res,
                 group_idx + 1,
                 state.ast.context.adapt(
-                    doc.annotationParents.get(node.source.id)
+                    res.annotationParents.get(node.source.id)
                         .value_or(node.source.id)));
 
             DocNode target_node = get_partition_node(
@@ -955,31 +987,6 @@ void connect_partition_edges(
     }
 }
 
-void partition_graph_layout(
-    int                            rowPadding,
-    DocumentGrid&                  root,
-    DocumentGraph&                 res,
-    Vec<Vec<DocAnnotation>> const& partition,
-    GridState&                     state,
-    GridContext&                   ctx) {
-    __perf_trace("gui", "add graph partitions");
-    DocumentNode::Grid grid{
-        .pos  = ImVec2(0, 0),
-        .size = ImVec2(
-            root.getWidth(rowPadding), root.getHeight(rowPadding)),
-        .node = root,
-    };
-    res.nodes.push_back(DocumentNode{.data = grid});
-    auto rootRect = res.ir.addNode(0, grid.size);
-    res.addIrNode(res.nodes.high(), rootRect);
-
-    for (auto const& row : root.flatRows()) {
-        res.orgToId.insert_or_assign(row->origin.uniq(), rootRect);
-    }
-
-    connect_partition_edges(res, root, state, partition, ctx);
-}
-
 void update_lane_offsets(
     DocGraph&        ir,
     ImVec2 const&    viewport,
@@ -1011,23 +1018,16 @@ void GridModel::updateDocument() {
     if (updateNeeded.contains(UpdateNeeded::Graph)) {
         __perf_trace("gui", "add grid nodes");
         DocumentGraph graph;
-        DocumentGrid  doc;
-        doc.getColumn("title").width = 200;
-        doc.getColumn("event").width = 200;
-        doc.getColumn("note").width  = 200;
-        // doc.getColumn("turning_point").width = 300;
-        // doc.getColumn("value").width         = 200;
-        doc.getColumn("location").width = 240;
-        doc.getColumn("location").edit  = GridColumn::EditMode::SingleLine;
-        __perf_trace_begin("gui", "build doc rows");
-        doc.rows = build_rows(getCurrentState().ast.getRootAdapter(), doc);
-        __perf_trace_end("gui");
-        updateRowPositions(rowPadding, doc);
 
-        rebuild_grid_nodes(doc, graph.graph, ctx);
+        int flat = add_root_grid_node(
+            graph, getCurrentState().ast.getRootAdapter());
+
+        add_annotation_nodes(
+            graph, graph.nodes.at(flat).getGrid().node, graph.graph, ctx);
 
         Vec<org::graph::MapNode> docNodes;
-        for (auto const& row : doc.flatRows()) {
+        for (auto const& row :
+             graph.nodes.at(flat).getGrid().node.flatRows()) {
             auto tree = row->origin.uniq();
             if (!graph.graph.adjList.at(tree).empty()
                 || !graph.graph.inNodes.at(tree).empty()) {
@@ -1038,8 +1038,7 @@ void GridModel::updateDocument() {
         Vec<Vec<DocAnnotation>> partition = partition_graph_nodes(
             docNodes, graph.graph);
 
-        partition_graph_layout(
-            rowPadding, doc, graph, partition, getCurrentState(), ctx);
+        connect_partition_edges(graph, getCurrentState(), partition, ctx);
 
         this->rectGraph = graph;
     }

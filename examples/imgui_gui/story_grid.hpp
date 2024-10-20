@@ -65,8 +65,8 @@ struct DocumentGrid {
     Vec<int>        rowPositions;
     Vec<GridColumn> columns;
 
-    UnorderedMap<org::ImmUniqId, int>            rowOrigins;
-    UnorderedMap<org::ImmUniqId, org::ImmUniqId> annotationParents;
+    UnorderedMap<org::ImmUniqId, int> rowOrigins;
+
 
     GridColumn& getColumn(CR<Str> name) {
         auto iter = rs::find_if(
@@ -207,7 +207,8 @@ struct DocumentGraph {
     UnorderedMap<DocNode, int> nodeToGridNode;
     org::graph::MapGraph       graph;
 
-    UnorderedMap<org::ImmUniqId, DocNode> orgToId;
+    UnorderedMap<org::ImmUniqId, org::ImmUniqId> annotationParents;
+    UnorderedMap<org::ImmUniqId, DocNode>        orgToId;
 
     DESC_FIELDS(
         DocumentGraph,
@@ -230,6 +231,13 @@ struct DocumentGraph {
 
     int const& getFlatIdx(DocNode const& node) const {
         return nodeToGridNode.at(node);
+    }
+
+    int addNode(int lane, ImVec2 const& size, DocumentNode const& node) {
+        nodes.push_back(node);
+        auto rootRect = ir.addNode(0, size);
+        addIrNode(nodes.high(), rootRect);
+        return nodes.high();
     }
 };
 
