@@ -1029,6 +1029,59 @@ void update_lane_offsets(
     }
 }
 
+void update_graph_layout(
+    StoryGridGraph&           rectGraph,
+    GraphLayoutIR::Result&    thisLayout,
+    Opt<ColaConstraintDebug>& debug) {
+    __perf_trace_begin("gui", "to doc layout");
+    LaneBlockLayout lyt = to_layout(rectGraph.ir);
+    __perf_trace_end("gui");
+    // writeFile("/tmp/tmp_dump.json", to_json_eval(lyt).dump(2));
+    lyt.ir.height = 10000;
+    lyt.ir.width  = 10000;
+    __perf_trace_begin("gui", "do cola layout");
+    auto cola = lyt.ir.doColaLayout();
+    __perf_trace_end("gui");
+    __perf_trace_begin("gui", "do cola convert");
+    thisLayout = cola.convert();
+    __perf_trace_end("gui");
+
+    // writeFile("/tmp/lyt_dump.json",
+    // to_json_eval(this->layout).dump(2));
+
+    for (int i = 0; i < rectGraph.nodes.size(); ++i) {
+        StoryGridNode&     node = rectGraph.nodes.at(i);
+        LaneNodePos const& pos  = rectGraph.getIrNode(i);
+        if (lyt.rectMap.contains(pos)) {
+            node.isVisible  = true;
+            auto const& rec = thisLayout.fixed.at(lyt.rectMap.at(pos));
+            switch (node.getKind()) {
+                case StoryGridNode::Kind::TreeGrid: {
+                    node.getTreeGrid().pos.x = rec.left;
+                    node.getTreeGrid().pos.y = rec.top;
+                    break;
+                }
+                case StoryGridNode::Kind::Text: {
+                    node.getText().pos.x = rec.left;
+                    node.getText().pos.y = rec.top;
+                    break;
+                }
+                case StoryGridNode::Kind::LinkList: {
+                    node.getLinkList().pos.x = rec.left;
+                    node.getLinkList().pos.y = rec.top;
+                    break;
+                }
+            }
+        } else {
+            node.isVisible = false;
+        }
+    }
+
+
+    debug     = to_constraints(lyt, rectGraph.ir, thisLayout);
+    debug->ir = &thisLayout;
+}
+
 void StoryGridModel::updateDocument() {
     __perf_trace("gui", "update grid model");
     auto& ctx = conf;
@@ -1074,57 +1127,32 @@ void StoryGridModel::updateDocument() {
 
         if (laneOffsets.has(0)) { shift.y = 20 + laneOffsets.at(0); }
 
-        // writeFile("/tmp/ir_dump.json", to_json_eval(ir).dump(2));
+        update_graph_layout(rectGraph, this->layout, this->debug);
 
-        __perf_trace_begin("gui", "to doc layout");
-        LaneBlockLayout lyt = to_layout(rectGraph.ir);
-        __perf_trace_end("gui");
-        // writeFile("/tmp/tmp_dump.json", to_json_eval(lyt).dump(2));
-        lyt.ir.height = 10000;
-        lyt.ir.width  = 10000;
-        __perf_trace_begin("gui", "do cola layout");
-        auto cola = lyt.ir.doColaLayout();
-        __perf_trace_end("gui");
-        __perf_trace_begin("gui", "do cola convert");
-        this->layout = cola.convert();
-        __perf_trace_end("gui");
-
-        // writeFile("/tmp/lyt_dump.json",
-        // to_json_eval(this->layout).dump(2));
-
-        for (int i = 0; i < rectGraph.nodes.size(); ++i) {
-            StoryGridNode&     node = rectGraph.nodes.at(i);
-            LaneNodePos const& pos  = rectGraph.getIrNode(i);
-            if (lyt.rectMap.contains(pos)) {
-                node.isVisible  = true;
-                auto const& rec = this->layout.fixed.at(
-                    lyt.rectMap.at(pos));
-                switch (node.getKind()) {
-                    case StoryGridNode::Kind::TreeGrid: {
-                        node.getTreeGrid().pos.x = rec.left;
-                        node.getTreeGrid().pos.y = rec.top;
-                        break;
-                    }
-                    case StoryGridNode::Kind::Text: {
-                        node.getText().pos.x = rec.left;
-                        node.getText().pos.y = rec.top;
-                        break;
-                    }
-                    case StoryGridNode::Kind::LinkList: {
-                        node.getLinkList().pos.x = rec.left;
-                        node.getLinkList().pos.y = rec.top;
-                        break;
+        Slice<int> viewportRange = slice1<int>(0, viewport->WorkSize.y);
+        for (auto const& [lane_idx, lane] :
+             enumerate(rectGraph.ir.lanes)) {
+            for (auto const& [block_idx, block] : enumerate(lane.blocks)) {
+                LaneNodePos   lanePos{.lane = lane_idx, .row = block_idx};
+                StoryGridNode storyNode = rectGraph.getDocNode(lanePos);
+                if (storyNode.isTreeGrid()) {
+                    TreeGridDocument treeDoc = storyNode.getTreeGrid()
+                                                   .node;
+                    for (auto const& row : treeDoc.flatRows()) {
+                        Slice<int> rowRange = slice1<int>(
+                            treeDoc.rowPositions.at(row->flatIdx),
+                            treeDoc.rowPositions.at(row->flatIdx)
+                                + row->getHeight());
+                        if (auto overlap = rowRange.overlap(
+                                viewportRange)) {
+                            //
+                        }
                     }
                 }
-            } else {
-                node.isVisible = false;
             }
         }
-
-
-        this->debug     = to_constraints(lyt, rectGraph.ir, this->layout);
-        this->debug->ir = &this->layout;
     }
+
     // writeFile("/tmp/debug_dump.json",
     // to_json_eval(this->debug).dump(2));
     updateNeeded.clear();
