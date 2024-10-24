@@ -21,12 +21,10 @@ LaneBlockLayout to_layout(LaneBlockGraph const& g) {
     Vec<GC::Align>       laneAlignments;
     Vec<GC::Align::Spec> topLaneAlign;
     for (auto const& [lane_idx, lane] : enumerate(g.lanes)) {
-        Slice<int> visibleBlocks = lane.getVisibleBlocks(
+        Vec<int> visibleBlocks = lane.getVisibleBlocks(
             slice<int>(0, int(g.visible.height())));
-        if (visibleBlocks.first == visibleBlocks.last
-            && visibleBlocks.first == -1) {
-            continue;
-        }
+        // _dfmt(lane_idx, visibleBlocks);
+        if (visibleBlocks.empty()) { continue; }
 
         Opt<GC::Align::Spec> first;
         for (int row : visibleBlocks) {
@@ -309,32 +307,24 @@ int LaneBlockStack::getBlockHeightStart(int blockIdx) const {
 }
 
 bool LaneBlockStack::inSpan(int blockIdx, Slice<int> heightRange) const {
-    auto span = blocks.at(blockIdx).heightSpan(
-        getBlockHeightStart(blockIdx));
-    bool result = heightRange.overlap(span).has_value();
-    // _dfmt(span, heightRange, blockIdx, result, scrollOffset);
-    return result;
+    if (blocks.at(blockIdx).isVisible) {
+        auto span = blocks.at(blockIdx).heightSpan(
+            getBlockHeightStart(blockIdx));
+        bool result = heightRange.overlap(span).has_value();
+        // _dfmt(span, heightRange, blockIdx, result, scrollOffset);
+        return result;
+    } else {
+        return false;
+    }
 }
 
-Slice<int> LaneBlockStack::getVisibleBlocks(Slice<int> heightRange) const {
-    Slice<int> res;
-    res.first = -1;
-    res.last  = -1;
+Vec<int> LaneBlockStack::getVisibleBlocks(Slice<int> heightRange) const {
+    Vec<int> res;
     for (int block : visibleRange) {
-        if (inSpan(block, heightRange)) {
-            if (res.last == -1) {
-                res.last = block;
-            } else {
-                res.last = std::max(block, res.last);
-            }
-
-            if (res.first == -1) {
-                res.first = block;
-            } else {
-                res.first = std::min(block, res.first);
-            }
-        }
+        if (inSpan(block, heightRange)) { res.push_back(block); }
     }
+
+    std::sort(res.begin(), res.end());
 
     return res;
 }

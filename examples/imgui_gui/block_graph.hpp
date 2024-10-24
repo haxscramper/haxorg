@@ -27,10 +27,11 @@ struct LaneNodeEdge {
 };
 
 struct LaneBlockNode {
-    int width;
-    int height;
-    int topMargin    = 5;
-    int bottomMargin = 5;
+    int  width;
+    int  height;
+    int  topMargin    = 5;
+    int  bottomMargin = 5;
+    bool isVisible    = true;
 
     /// \brief Get full vertical space occupied by the doc block, including
     /// top and bottom margins.
@@ -40,7 +41,9 @@ struct LaneBlockNode {
         return slice(start, start + fullHeight());
     }
 
-    DESC_FIELDS(LaneBlockNode, (width, height, topMargin, bottomMargin));
+    DESC_FIELDS(
+        LaneBlockNode,
+        (width, height, topMargin, bottomMargin, isVisible));
 };
 
 struct LaneBlockStack {
@@ -55,11 +58,11 @@ struct LaneBlockStack {
     int  getBlockHeightStart(int blockIdx) const;
     void resetVisibleRange() { visibleRange = slice(0, blocks.high()); }
     bool inSpan(int blockIdx, Slice<int> heightRange) const;
-    Slice<int> getVisibleBlocks(Slice<int> heightRange) const;
-    int        addBlock(ImVec2 const& size) {
+    Vec<int> getVisibleBlocks(Slice<int> heightRange) const;
+    int      addBlock(ImVec2 const& size) {
         blocks.push_back(LaneBlockNode{
-                   .width  = static_cast<int>(size.x),
-                   .height = static_cast<int>(size.y),
+                 .width  = static_cast<int>(size.x),
+                 .height = static_cast<int>(size.y),
         });
         return blocks.high();
     }

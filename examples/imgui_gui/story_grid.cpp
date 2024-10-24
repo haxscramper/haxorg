@@ -1122,6 +1122,10 @@ void StoryGridModel::updateDocument() {
     if (updateNeeded.contains(UpdateNeeded::Scroll)) {
         const ImGuiViewport* viewport = ImGui::GetMainViewport();
 
+        for (auto& lane : rectGraph.ir.lanes) {
+            for (auto& rect : lane.blocks) { rect.isVisible = true; }
+        }
+
         update_lane_offsets(
             rectGraph.ir, viewport->WorkSize, laneSpans, laneOffsets);
 
@@ -1140,18 +1144,57 @@ void StoryGridModel::updateDocument() {
                                                    .node;
                     for (auto const& row : treeDoc.flatRows()) {
                         Slice<int> rowRange = slice1<int>(
-                            treeDoc.rowPositions.at(row->flatIdx),
                             treeDoc.rowPositions.at(row->flatIdx)
+                                + (laneOffsets.has(lane_idx)
+                                       ? laneOffsets.at(lane_idx)
+                                       : 0),
+                            treeDoc.rowPositions.at(row->flatIdx)
+                                + (laneOffsets.has(lane_idx)
+                                       ? laneOffsets.at(lane_idx)
+                                       : 0)
                                 + row->getHeight());
-                        if (auto overlap = rowRange.overlap(
-                                viewportRange)) {
-                            CTX_MSG(
-                                fmt("Row {} is visible", row->flatIdx));
+                        org::ImmUniqId rowId = row->origin.uniq();
+                        UnorderedSet<org::graph::MapNode> adjacent;
+                        for (auto const& n :
+                             rectGraph.graph.inNodes.at(rowId)) {
+                            adjacent.incl(n);
+                        }
+
+                        for (auto const& n :
+                             rectGraph.graph.adjList.at(rowId)) {
+                            adjacent.incl(n);
+                        }
+
+                        auto overlap = rowRange.overlap(viewportRange);
+
+                        for (auto const& n : adjacent) {
+                            Opt<LaneNodePos>
+                                targetNodePos = rectGraph.orgToId.get(
+                                    n.id);
+
+                            if (targetNodePos) {
+                                auto const& t = targetNodePos.value();
+
+                                CTX_MSG(
+                                    fmt("{} overlap {} [{}/{}]",
+                                        t,
+                                        overlap,
+                                        rowRange,
+                                        viewportRange));
+
+                                if (overlap) {
+                                    rectGraph.ir.at(t).isVisible = true;
+                                } else {
+                                    rectGraph.ir.at(t).isVisible = false;
+                                }
+                            }
                         }
                     }
                 }
             }
         }
+
+        update_graph_layout(rectGraph, this->layout, this->debug);
     }
 
     // writeFile("/tmp/debug_dump.json",
