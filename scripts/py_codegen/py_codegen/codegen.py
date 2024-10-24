@@ -11,6 +11,7 @@ from py_codegen.refl_read import conv_proto_file, ConvTu, open_proto_file
 from py_scriptutils.script_logging import log
 import py_codegen.astbuilder_proto as pb
 from py_scriptutils.algorithm import cond
+from py_scriptutils.script_logging import pprint_to_file
 from py_codegen.astbuilder_pybind11 import (
     Py11Method,
     Py11Module,
@@ -93,7 +94,7 @@ def get_exporter_methods(forward: bool,
                             f"visitVariants(res, sem::{'::'.join(full_scoped_name)}::{kindGetter}(object), object);",
                         ))
 
-            if len(scope_full) == 0:
+            if value.name.isOrgType() and len(scope_full) == 0:
                 method = GenTuFunction(
                     QualType.ForName("void"),
                     f"{decl_scope}visit{name}",
@@ -139,6 +140,134 @@ def get_exporter_methods(forward: bool,
 
 
 @beartype
+def get_imm_serde(types: List[GenTuStruct], ast: ASTBuilder) -> List[GenTuPass]:
+    serde: List[GenTuStruct] = []
+
+    base_map = get_base_map(types)
+
+    def aux(it):
+        match it:
+            case GenTuStruct():
+                if not it.concreteKind:
+                    return
+
+                sem_type = it.name
+                respace = it.name.flatQualSpaces()[1:] + [it.name.withoutAllSpaces()]
+                respace[0].name = "Imm" + respace[0].name
+                respace = [QualType(name="org")] + respace
+                imm_type = respace[-1].model_copy(update=dict(Spaces=respace[:-1]))
+
+                writer_body: List[BlockId] = [
+                    ast.line(
+                        ast.Type(imm_type),
+                        ast.string(" result = "),
+                        ast.CallStatic(
+                            typ=QualType(name="SerdeDefaultProvider",
+                                         Parameters=[imm_type]),
+                            opc="get",
+                        ),
+                        ast.string(";"),
+                    )
+                ]
+
+                reader_body: List[BlockId] = [
+                    ast.line(
+                        ast.Type(sem_type),
+                        ast.string(" result = "),
+                        ast.CallStatic(
+                            typ=QualType(name="SerdeDefaultProvider",
+                                         Parameters=[sem_type]),
+                            opc="get",
+                        ),
+                        ast.string(";"),
+                    )
+                ]
+
+                def field_aux(sub: GenTuStruct):
+                    for field in sub.fields:
+                        if not field.isStatic:
+                            writer_body.append(
+                                ast.Call(
+                                    func=ast.string("assign_immer_field"),
+                                    Args=[
+                                        ast.string(f"result.{field.name}"),
+                                        ast.string(f"value.{field.name}"),
+                                        ast.string("ctx"),
+                                    ],
+                                    Stmt=True,
+                                ))
+
+                            reader_body.append(
+                                ast.Call(
+                                    func=ast.string("assign_sem_field"),
+                                    Args=[
+                                        ast.string(f"result.{field.name}"),
+                                        ast.string(f"value.{field.name}"),
+                                        ast.string("ctx"),
+                                    ],
+                                    Stmt=True,
+                                ))
+
+                    for base in sub.bases:
+                        assert sub.name.name != base.name, f"{sub.name} ->>>> {base}"
+                        if base.name in base_map:
+                            it_base = base_map[base.name]
+                            assert it_base.name.name != sub.name.name
+                            field_aux(it_base)
+
+                # sys.setrecursionlimit(32)
+                field_aux(it)
+
+                writer_body.append(ast.Return(ast.string("result")))
+                reader_body.append(ast.Return(ast.string("result")))
+
+                writer = MethodDeclParams(
+                    Params=FunctionParams(
+                        Name="to_immer",
+                        ResultTy=imm_type,
+                        Args=[
+                            ParmVarParams(name="value", type=sem_type.asConstRef()),
+                            ParmVarParams(
+                                name="ctx",
+                                type=QualType(name="ImmAstEditContext").asRef()),
+                        ],
+                        Body=writer_body,
+                        AllowOneLine=False,
+                    ),
+                    isStatic=True,
+                )
+
+                reader = MethodDeclParams(
+                    Params=FunctionParams(
+                        Name="from_immer",
+                        ResultTy=sem_type,
+                        Args=[
+                            ParmVarParams(name="value", type=imm_type.asConstRef()),
+                            ParmVarParams(
+                                name="ctx",
+                                type=QualType(name="ImmAstContext").asConstRef()),
+                        ],
+                        Body=reader_body,
+                        AllowOneLine=False,
+                    ),
+                    isStatic=True,
+                )
+
+                rec = RecordParams(
+                    name="ImmSemSerde",
+                    NameParams=[sem_type, imm_type],
+                    Template=TemplateParams(Stacks=[TemplateGroup(Params=[])]),
+                    members=[writer, reader],
+                )
+
+                serde.append(GenTuPass(ast.Record(rec)))
+
+    iterate_object_tree(types, [], pre_visit=aux)
+
+    return serde
+
+
+@beartype
 def get_concrete_types(expanded: List[GenTuStruct]) -> Sequence[GenTuStruct]:
     return [struct for struct in expanded if struct.concreteKind]
 
@@ -146,17 +275,6 @@ def get_concrete_types(expanded: List[GenTuStruct]) -> Sequence[GenTuStruct]:
 org_type_names: List[str] = []
 
 from copy import deepcopy, copy
-
-
-@beartype
-def in_sem(typ: QualType) -> QualType:
-    typ = deepcopy(typ)
-    if typ.name in ["SemId", "Param"] + org_type_names:
-        typ.Spaces.insert(0, QualType.ForName("sem"))
-
-    typ.Parameters = [in_sem(P) for P in typ.Parameters]
-
-    return typ
 
 
 def filter_init_fields(Fields: List[Py11Field]) -> List[Py11Field]:
@@ -436,15 +554,12 @@ def add_type_specializations(res: Py11Module, ast: ASTBuilder):
 def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuStruct]:
 
     @beartype
-    def rec_expand_group(
-        record: GenTuTypeGroup,
-        context: List[QualType],
-    ) -> List[GenTuEntry | GenTuField]:
+    def rec_expand_group(record: GenTuTypeGroup,) -> List[GenTuEntry | GenTuField]:
         result = []
         typeNames: List[QualType] = []
 
         for item in record.types:
-            expanded = rec_expand_type(item, context)
+            expanded = rec_expand_type(item)
             result.append(expanded)
             if item.concreteKind:
                 typeNames.append(expanded.name)
@@ -462,8 +577,8 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
             result.append(GenTuPass(ast.Macro(iteratorMacro)))
 
         if record.variantName and record.enumName:
-            enum_type = QualType.ForName(record.enumName, Spaces=context)
-            variant_type = QualType.ForName(record.variantName, Spaces=context)
+            enum_type = record.enumName
+            variant_type = record.variantName
             result.append(
                 GenTuTypedef(
                     name=variant_type,
@@ -482,15 +597,28 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
                 ))
 
             for idx, T in enumerate(typeNames):
+                kindName = T.name[0].upper() + T.name[1:]
+                result.append(
+                    GenTuFunction(
+                        doc=GenTuDoc(""),
+                        name="is" +kindName,
+                        result=QualType.ForName("bool"),
+                        isConst=True,
+                        impl=ast.Return(
+                            ast.XCall("==", [
+                                ast.XCall(record.kindGetter, []),
+                                ast.string(f"{enum_type.name}::{kindName}"),
+                            ])),
+                    ))
+
                 for isConst in [True, False]:
                     result.append(
                         GenTuFunction(
                             doc=GenTuDoc(""),
-                            name="get" + (T.name[0].upper() + T.name[1:]),
+                            name="get" +kindName,
                             result=T.model_copy(update=dict(
                                 RefKind=ReferenceKind.LValue,
                                 isConst=isConst,
-                                Spaces=context,
                             )),
                             isConst=isConst,
                             impl=ast.Return(
@@ -551,17 +679,17 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
         return result
 
     @beartype
-    def rec_expand_type(typ: GenTuStruct, context: List[QualType]) -> GenTuStruct:
+    def rec_expand_type(typ: GenTuStruct) -> GenTuStruct:
         converted = []
         methods: List[GenTuFunction] = []
         fields: List[GenTuField] = []
         for item in typ.nested:
             match item:
                 case GenTuStruct():
-                    converted.append(rec_expand_type(item, context + [typ.name]))
+                    converted.append(rec_expand_type(item))
 
                 case GenTuTypeGroup():
-                    for res in rec_expand_group(item, context + [typ.name]):
+                    for res in rec_expand_group(item):
                         if isinstance(res, GenTuField):
                             fields.append(res)
 
@@ -572,10 +700,7 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
                             converted.append(res)
 
                 case GenTuEnum():
-                    converted.append(
-                        replace(item,
-                                name=item.name.model_copy(update=dict(Spaces=context +
-                                                                      [typ.name]))))
+                    converted.append(replace(item, name=item.name))
 
                 case GenTuPass():
                     converted.append(item)
@@ -585,7 +710,7 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
 
         result = replace(
             typ,
-            name=typ.name.model_copy(update=dict(Spaces=context)),
+            # name=typ.name.model_copy(update=dict(Spaces=context)),
             nested=converted,
             methods=typ.methods + methods,
             fields=typ.fields + fields,
@@ -596,7 +721,110 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
 
         return result
 
-    return [rec_expand_type(T, [QualType.ForName("sem")]) for T in types]
+    return [rec_expand_type(T) for T in types]
+
+
+@beartype
+def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
+    result = deepcopy(recs)
+
+    IMM_BOX = "ImmBox"
+    ORG_SPACE = QualType.ForName("org")
+
+    def conv_type(obj: QualType):
+        match obj:
+            case QualType(name="SemId", parameters=[]):
+                obj.name = "ImmId"
+                obj.Spaces = [ORG_SPACE]
+
+            case QualType(name="SemId"):
+                obj.name = "ImmIdT"
+                obj.Spaces = [ORG_SPACE]
+
+            case QualType(meta={"isOrgType": True}):
+                if len(obj.Spaces) == 0:
+                    obj.name = "Imm" + obj.name
+
+                elif len(obj.Spaces) == 1:
+                    obj.name = "Imm" + obj.name
+                    obj.Spaces = [ORG_SPACE]
+
+                else:
+                    spaces = obj.flatQualSpaces() + [obj.withoutAllSpaces()]
+                    # obj.dbg_origin = "{} - - > {}".format(obj.format(),
+                    #                                       [s.format() for s in spaces])
+                    obj.Spaces = [
+                        ORG_SPACE,
+                        spaces[1].model_copy(update=dict(name="Imm" + spaces[1].name)),
+                        *(spaces[2:-1] if 1 < len(spaces) else []),
+                    ]
+
+            case QualType(name=TypeName,
+                          Spaces=[QualType(name="sem")]) if "Id" not in TypeName:
+                match obj:
+                    case QualType(meta={"isOrgType": False}):
+                        pass
+
+                    case _:
+                        obj.name = "Imm" + obj.name
+                        obj.Spaces = [ORG_SPACE]
+
+            case QualType(name="Vec"):
+                obj.name = "ImmVec"
+                obj.Spaces = []
+
+            case QualType(name="UnorderedMap"):
+                obj.name = "ImmMap"
+                obj.Spaces = []
+
+    def impl(obj: Any):
+        match obj:
+            case QualType():
+                conv_type(obj)
+
+            case GenTuField(type=QualType(name="SemId", parameters=[])):
+                conv_type(obj.type)
+                obj.value = "org::ImmId::Nil()"
+
+            case GenTuField(type=QualType(name="SemId")):
+                conv_type(obj.type)
+                obj.value = f"org::ImmIdT<org::Imm{obj.type.par0().name}>::Nil()"
+
+            case GenTuField(type=QualType(name="Opt")):
+                obj.type.Parameters = [obj.type.par0().withWrapperType("Opt")]
+                obj.type.name = IMM_BOX
+
+            case GenTuField(type=QualType(name="Str")):
+                obj.type = QualType.ForName(IMM_BOX, Parameters=[obj.type])
+
+            case GenTuStruct():
+                obj.methods = [it for it in obj.methods if it.name in ["getKind"]]
+                obj.GenDescribeMethods = False
+                obj.nested = [it for it in obj.nested if not isinstance(it, GenTuPass)]
+                self_arg = obj.name.asConstRef()
+                # conv_type(self_arg)
+                obj.methods.append(
+                    GenTuFunction(
+                        result=QualType.ForName("bool"),
+                        name="operator==",
+                        isConst=True,
+                        arguments=[GenTuIdent(type=self_arg, name="other")],
+                    ))
+
+                if hasattr(obj, "isOrgType"):
+
+                    # conv_type(obj.name)
+                    # obj.name.name = "Imm" + obj.name.name
+                    # obj.name.Spaces = [ORG_SPACE]
+                    obj.nested = [
+                        GenTuPass(
+                            f"using Imm{obj.bases[0].name}::Imm{obj.bases[0].name};"),
+                        GenTuPass(f"virtual ~Imm{obj.name.name}() = default;"),
+                    ] + obj.nested
+
+    iterate_object_tree(result, [], pre_visit=impl)
+
+    return result
 
 
 def to_base_types(obj):
@@ -673,13 +901,111 @@ def gen_adaptagrams_wrappers(
 
 
 @beartype
+@dataclass
+class PyhaxorgTypenameGroups:
+    nested_records: List[Tuple[str, str, str]] = field(default_factory=list)
+    nested_enums: List[Tuple[str, str, str]] = field(default_factory=list)
+    all_records: List[Tuple[str, str]] = field(default_factory=list)
+
+
+@beartype
+def collect_pyhaxorg_typename_groups(types: List[GenTuStruct]) -> PyhaxorgTypenameGroups:
+    res = PyhaxorgTypenameGroups()
+
+    def aux(it):
+        match it:
+            case GenTuStruct() | GenTuEnum():
+                flat = it.name.flatQualSpaces() + [it.name.withoutAllSpaces()]
+                if 2 < len(flat):
+                    parent = flat[1]
+                    nested = flat[2:]
+                    value = (
+                        parent.name,
+                        "::".join(it.name for it in nested),
+                        "({})".format(", ".join(it.name for it in nested)),
+                    )
+                    if isinstance(it, GenTuStruct):
+                        res.nested_records.append(value)
+
+                    else:
+                        res.nested_enums.append(value)
+
+                if isinstance(it, GenTuStruct):
+                    res.all_records.append((
+                        "::".join(it.name for it in flat[1:]),
+                        "({})".format(", ".join(it.name for it in flat[1:])),
+                    ))
+
+    iterate_object_tree(types, [], pre_visit=aux)
+
+    return res
+
+
+@beartype
+def gen_iteration_macros(res: PyhaxorgTypenameGroups,
+                         macro_group: str) -> List[GenTuPass]:
+    result: List[GenTuPass] = []
+
+    result.append(
+        GenTuPass(f"#define EACH_{macro_group}_ORG_RECORD_NESTED(__IMPL) \\\n" +
+                  (" \\\n".join(
+                      ["    __IMPL({}, {}, {})".format(*it)
+                       for it in res.nested_records]))))
+
+    result.append(
+        GenTuPass(f"#define EACH_{macro_group}_ORG_ENUM_NESTED(__IMPL) \\\n" +
+                  (" \\\n".join(
+                      ["    __IMPL({}, {}, {})".format(*it)
+                       for it in res.nested_enums]))))
+
+    result.append(
+        GenTuPass(f"#define EACH_{macro_group}_ORG_RECORD(__IMPL) \\\n" + (
+            " \\\n".join(["    __IMPL({}, {})".format(*it) for it in res.all_records]))))
+
+    return result
+
+
+@beartype
+def gen_pyhaxorg_shared_iteration_macros(types: List[GenTuStruct]) -> List[GenTuPass]:
+    return gen_iteration_macros(collect_pyhaxorg_typename_groups(types), "SHARED")
+
+
+@beartype
+def gen_pyhaxorg_iteration_macros(types: List[GenTuStruct]) -> List[GenTuPass]:
+    res = collect_pyhaxorg_typename_groups(types)
+
+    result: List[GenTuPass] = gen_iteration_macros(res, "SEM")
+    result.append(
+        GenTuPass("#define EACH_SEM_ORG_KIND(__IMPL) \\\n" + (" \\\n".join(
+            [f"    __IMPL({struct.name.name})"
+             for struct in get_concrete_types(types)]))))
+
+    result.append(
+        GenTuPass("#define EACH_SEM_ORG_FINAL_TYPE_BASE(__IMPL) \\\n" + (" \\\n".join([
+            f"    __IMPL({struct.name.name}, {struct.bases[0].name})"
+            for struct in get_concrete_types(types)
+        ]))))
+
+    result.append(
+        GenTuPass("#define EACH_SEM_ORG_TYPE_BASE(__IMPL) \\\n" + (" \\\n".join([
+            f"    __IMPL({struct.name.name}, {struct.bases[0].name})" for struct in types
+        ]))))
+
+    return result
+
+
+@beartype
 def gen_pyhaxorg_wrappers(
     ast: ASTBuilder,
     pyast: pya.ASTBuilder,
     reflection_path: Path,
 ) -> GenFiles:
+    shared_types = expand_type_groups(ast, get_shared_sem_types())
     expanded = expand_type_groups(ast, get_types())
-    proto = pb.ProtoBuilder(get_enums() + [get_osk_enum(expanded)] + expanded, ast)
+    immutable = expand_type_groups(ast, rewrite_to_immutable(get_types()))
+    proto = pb.ProtoBuilder(
+        get_shared_sem_enums() + get_enums() + [get_osk_enum(expanded)] + shared_types +
+        expanded, ast)
     t = ast.b
 
     protobuf = proto.build_protobuf()
@@ -688,7 +1014,7 @@ def gen_pyhaxorg_wrappers(
 
     import yaml
 
-    full_enums = get_enums() + [get_osk_enum(expanded)]
+    full_enums = get_shared_sem_enums() + get_enums() + [get_osk_enum(expanded)]
     tu: ConvTu = conv_proto_file(reflection_path)
 
     with open("/tmp/reflection_data.yaml", "w") as file:
@@ -702,8 +1028,9 @@ def gen_pyhaxorg_wrappers(
     org_type_names = [Typ.name for Typ in expanded]
 
     res = Py11Module("pyhaxorg")
+    add_structures(res, ast, shared_types)
     add_structures(res, ast, expanded)
-    add_enums(res, ast, get_enums() + [get_osk_enum(expanded)])
+    add_enums(res, ast, get_shared_sem_enums() + get_enums() + [get_osk_enum(expanded)])
     add_translation_unit(res, ast, tu)
     add_type_specializations(res, ast)
     res.Decls.append(ast.Include("pyhaxorg_manual_wrap.hpp"))
@@ -748,11 +1075,19 @@ def gen_pyhaxorg_wrappers(
         GenUnit(
             GenTu(
                 "{base}/exporters/Exporter.tcc",
+                get_exporter_methods(False, shared_types) +
                 get_exporter_methods(False, expanded),
             ),),
         GenUnit(
-            GenTu("{base}/exporters/ExporterMethods.tcc",
-                  get_exporter_methods(True, expanded))),
+            GenTu(
+                "{base}/sem/ImmOrgSerde.tcc",
+                get_imm_serde(types=expanded, ast=ast),
+            ),),
+        GenUnit(
+            GenTu(
+                "{base}/exporters/ExporterMethods.tcc",
+                get_exporter_methods(True, shared_types) +
+                get_exporter_methods(True, expanded))),
         GenUnit(
             GenTu(
                 "{root}/src/py_libs/pyhaxorg/pyhaxorg.cpp",
@@ -769,13 +1104,10 @@ def gen_pyhaxorg_wrappers(
         GenUnit(
             GenTu(
                 "{base}/sem/SemOrgEnums.hpp",
-                with_enum_reflection_api([
-                    GenTuPass("#define EACH_SEM_ORG_KIND(__IMPL) \\\n" + (" \\\n".join([
-                        f"    __IMPL({struct.name.name})"
-                        for struct in get_concrete_types(expanded)
-                    ])))
-                ]) + full_enums + ([
-                    GenTuPass("""
+                with_enum_reflection_api(
+                    gen_pyhaxorg_shared_iteration_macros(shared_types) +
+                    gen_pyhaxorg_iteration_macros(expanded)) + full_enums + ([
+                        GenTuPass("""
 template <>
 struct std::formatter<OrgSemKind> : std::formatter<std::string> {
     template <typename FormatContext>
@@ -786,7 +1118,7 @@ struct std::formatter<OrgSemKind> : std::formatter<std::string> {
     }
 };
                     """)
-                ]),
+                    ]),
             ),
             GenTu(
                 "{base}/sem/SemOrgEnums.cpp",
@@ -807,10 +1139,18 @@ struct std::formatter<OrgSemKind> : std::formatter<std::string> {
                     GenTuInclude("haxorg/parse/OrgTypes.hpp", True),
                     GenTuInclude("boost/describe.hpp", True),
                     GenTuInclude("hstd/system/macros.hpp", True),
-                    GenTuInclude("functional", True),
                     GenTuInclude("haxorg/sem/SemOrgBase.hpp", True),
                     GenTuInclude("haxorg/sem/SemOrgEnums.hpp", True),
-                    GenTuNamespace("sem", [GenTuTypeGroup(expanded, enumName="")]),
+                    GenTuNamespace("sem", shared_types + expanded),
+                ],
+            )),
+        GenUnit(
+            GenTu(
+                "{base}/sem/ImmOrgTypes.hpp",
+                [
+                    GenTuPass("#pragma once"),
+                    GenTuInclude("haxorg/sem/ImmOrgBase.hpp", True),
+                    GenTuNamespace("org", immutable),
                 ],
             )),
     ])
@@ -820,6 +1160,7 @@ def gen_description_files(
     description: GenFiles,
     builder: ASTBuilder,
     t: TextLayout,
+    tmp: bool,
 ):
     for tu in description.files:
         for i in range(2):
@@ -831,10 +1172,9 @@ def gen_description_files(
             if not define:
                 continue
 
-            path = define.path.format(
-                base=get_haxorg_repo_root_path().joinpath("src/haxorg"),
-                root=get_haxorg_repo_root_path(),
-            )
+            out_root = Path("/tmp") if tmp else get_haxorg_repo_root_path()
+
+            path = define.path.format(base=out_root.joinpath("src/haxorg"), root=out_root)
 
             result = builder.TranslationUnit([
                 GenConverter(
@@ -876,6 +1216,7 @@ import rich_click as click
 class CodegenOptions(BaseModel):
     reflection_path: str
     codegen_task: Literal["pyhaxorg", "adaptagrams"]
+    tmp: bool = False
 
 
 def codegen_options(f):
@@ -909,6 +1250,7 @@ def impl(ctx: click.Context, config: Optional[str] = None, **kwargs):
         description=description,
         builder=builder,
         t=t,
+        tmp=opts.tmp,
     )
 
 

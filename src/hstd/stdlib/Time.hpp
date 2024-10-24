@@ -7,6 +7,7 @@
 #include <absl/time/time.h>
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Opt.hpp>
+#include <hstd/stdlib/reflection_visitor.hpp>
 
 struct [[refl]] UserTimeBreakdown {
     [[refl]] Opt<int>         year;
@@ -37,6 +38,13 @@ struct [[refl]] UserTime {
     [[refl]] UserTimeBreakdown getBreakdown() const;
     [[refl]] std::string       format() const;
     std::string                format(Format kind) const;
+
+    bool operator==(UserTime const& it) const;
+};
+
+template <>
+struct std::hash<UserTime> {
+    std::size_t operator()(UserTime const& it) const noexcept;
 };
 
 
@@ -57,3 +65,11 @@ struct std::formatter<absl::TimeZone> : std::formatter<std::string> {
         return fmt_ctx(absl::FormatTime("%z", absl::Now(), p), ctx);
     }
 };
+
+
+template <>
+struct ReflVisitor<absl::Time> : ReflVisitorLeafType<absl::Time> {};
+
+template <>
+struct ReflVisitor<absl::TimeZone>
+    : ReflVisitorLeafType<absl::TimeZone> {};

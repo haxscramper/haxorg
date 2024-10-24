@@ -1,3 +1,0 @@
-#include <editor/editor_test/@TEST_FILE_NAME@.hpp>
-#include <hstd/wrappers/hstd_extra/perfetto_aux_impl_template.hpp>
-QTEST_MAIN(@TEST_CLASS_NAME@)

@@ -59,3 +59,34 @@ void writeDebugFile(
             "{}:{}:{} wrote to {}", filename, function, line, full_path);
     }
 }
+
+void createDirectory(const fs::path& target, bool parents, bool existsOk) {
+    if (fs::is_regular_file(target)) {
+        throw FilesystemError(
+            fmt("Cannot create directory {} -- the file with this name "
+                "already exists",
+                target));
+    }
+
+    if (fs::is_directory(target) && !existsOk) {
+        throw FilesystemError(
+            fmt("Cannot create directory {} -- the path already exists",
+                target));
+    }
+
+    if (!fs::is_directory(target.parent_path()) && !parents) {
+        throw FilesystemError(
+            fmt("Cannot create directory {} -- parent path does not exist",
+                target));
+    }
+
+    std::function<void(fs::path const& target)> aux;
+    aux = [&](fs::path const& target) {
+        if (fs::is_directory(target.parent_path())) {
+            fs::create_directory(target);
+        } else {
+            aux(target.parent_path());
+        }
+    };
+    aux(target);
+}

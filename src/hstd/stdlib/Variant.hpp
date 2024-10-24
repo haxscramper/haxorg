@@ -4,6 +4,7 @@
 #include <hstd/system/string_convert.hpp>
 #include <hstd/system/basic_templates.hpp>
 #include <hstd/system/Formatter.hpp>
+#include <hstd/stdlib/Json.hpp>
 
 template <typename... Types>
 using Variant = std::variant<Types...>;
@@ -35,6 +36,18 @@ struct std::formatter<V> : std::formatter<std::string> {
 
 
 template <IsVariant V>
+struct std::hash<V> {
+    std::size_t operator()(V const& it) const noexcept {
+        std::size_t result = 0;
+        hax_hash_combine(result, it.index());
+        std::visit(
+            [&](auto const& var) { hax_hash_combine(result, var); }, it);
+        return result;
+    }
+};
+
+
+template <IsVariant V>
 auto variant_from_index(size_t index) -> V {
     return boost::mp11::mp_with_index<
         boost::mp11::mp_size<V>>(index, [](auto I) {
@@ -46,3 +59,26 @@ auto variant_from_index(size_t index) -> V {
 
 template <IsVariant V>
 struct resolve_variant_index {};
+
+template <IsVariant V>
+struct JsonSerde<V> {
+    static json to_json(V const& it) {
+        auto result     = json::object();
+        result["index"] = JsonSerde<int>::to_json(it.index());
+        std::visit(
+            [&]<typename T>(T const& value) {
+                result["value"] = JsonSerde<T>::to_json(value);
+            },
+            it);
+
+        return result;
+    }
+    static V from_json(json const& j) {
+        V result = variant_from_index<V>(j["index"].get<int>());
+        std::visit(
+            [&]<typename T>(T& value) {
+                value = JsonSerde<T>::from_json(j["value"]);
+            },
+            result);
+    }
+};

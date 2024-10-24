@@ -291,7 +291,7 @@ def test_bookmark_import_1():
         assert bookmark
 
         def get_property_str(name: str) -> str:
-            prop: org.SubtreeProperty = bookmark.getProperty(name)
+            prop: org.NamedProperty = bookmark.getProperty(name)
             assert prop
             return prop.getCustomRaw().value
 

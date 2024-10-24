@@ -80,17 +80,6 @@ OrgFill fill(OrgLexer& lex) {
 }
 
 template <typename T>
-struct std::formatter<std::reference_wrapper<T>>
-    : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(
-        std::reference_wrapper<T> const& p,
-        FormatContext&                   ctx) const {
-        return fmt_ctx(p.get(), ctx);
-    }
-};
-
-template <typename T>
 struct std::formatter<rs::subrange<T>> : std::formatter<std::string> {
     template <typename FormatContext>
     FormatContext::iterator format(
@@ -594,6 +583,7 @@ struct LineToken {
         otk::CmdTableEnd,
         otk::CmdRowEnd,
         otk::CmdCellEnd,
+        otk::CmdDynamicBlockEnd,
     };
 
     IntSet<OrgTokenKind> CmdBlockOpen{
@@ -607,6 +597,7 @@ struct LineToken {
         otk::CmdTableBegin,
         otk::CmdRowBegin,
         otk::CmdCellBegin,
+        otk::CmdDynamicBlockBegin,
     };
 
     IntSet<OrgTokenKind> CmdBlockLine{
@@ -798,8 +789,6 @@ struct GroupToken {
     Kind kind;
     Data data;
 
-    bool isLeaf() const { return getDataKind() == DataKind::Leaf; }
-    bool isNested() const { return getDataKind() == DataKind::Nested; }
     bool isSrc() const {
         if (!(isNested() && getNested().subgroups.has(0))) {
             return false;

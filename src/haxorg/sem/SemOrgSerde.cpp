@@ -55,12 +55,10 @@ void proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::read(
 
 template <typename Proto>
 void proto_serde<Proto, sem::Cmd>::write(Proto* out, const sem::Cmd& in) {
-    if (in.parameters) {
-        if (in.parameters) {
-            proto_serde<
-                orgproto::CmdArguments,
-                sem::SemId<sem::CmdArguments>>::
-                write(out->mutable_parameters(), *in.parameters);
+    if (in.attrs) {
+        if (in.attrs) {
+            proto_serde<orgproto::Attrs, sem::SemId<sem::Attrs>>::write(
+                out->mutable_attrs(), *in.attrs);
         }
     }
 }
@@ -69,13 +67,9 @@ template <typename Proto>
 void proto_serde<Proto, sem::Cmd>::read(
     const Proto&                   out,
     proto_write_accessor<sem::Cmd> in) {
-    if (out.has_parameters()) {
-        proto_serde<
-            Opt<orgproto::CmdArguments>,
-            Opt<sem::SemId<sem::CmdArguments>>>::
-            read(
-                out.parameters(),
-                in.for_field(&sem::BlockExport::parameters));
+    if (out.has_attrs()) {
+        proto_serde<Opt<orgproto::Attrs>, Opt<sem::SemId<sem::Attrs>>>::
+            read(out.attrs(), in.for_field(&sem::BlockExport::attrs));
     }
 }
 
@@ -95,6 +89,7 @@ template class proto_serde<::orgproto::BlockExport, sem::Block>;
 template class proto_serde<::orgproto::BlockAdmonition, sem::Block>;
 template class proto_serde<::orgproto::BlockCode, sem::Block>;
 template class proto_serde<::orgproto::BlockExample, sem::Block>;
+template class proto_serde<::orgproto::BlockDynamicFallback, sem::Block>;
 
 template class proto_serde<::orgproto::BlockAdmonition, sem::Cmd>;
 template class proto_serde<::orgproto::CmdCaption, sem::Cmd>;
@@ -106,6 +101,7 @@ template class proto_serde<::orgproto::BlockCode, sem::Cmd>;
 template class proto_serde<::orgproto::BlockExample, sem::Cmd>;
 template class proto_serde<::orgproto::BlockCenter, sem::Cmd>;
 template class proto_serde<::orgproto::BlockExport, sem::Cmd>;
+template class proto_serde<::orgproto::BlockDynamicFallback, sem::Cmd>;
 template class proto_serde<::orgproto::Row, sem::Cmd>;
 template class proto_serde<::orgproto::Table, sem::Cmd>;
 template class proto_serde<::orgproto::CmdTblfm, sem::Cmd>;

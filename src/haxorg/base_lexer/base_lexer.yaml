@@ -85,7 +85,7 @@ sub_lexers:
     - re: "\\]\\]"
       token: LinkEnd
 
-    - re: "\\w+"
+    - re: "(\\w|-|_)+"
       token: LinkProtocolInternal
 
   timestamp_repeater:
@@ -310,6 +310,18 @@ rules:
   - { re: ".+", states: [BODY_SRC], token: SrcContent }
   - { re: "\\n", states: [BODY_SRC], token: Newline }
   #endregion
+
+  - re: "begin_\\w+"
+    states: [COMMAND]
+    token: CmdDynamicBlockBegin
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+  - re: "end_\\w+"
+    states: [COMMAND]
+    token: CmdDynamicBlockEnd
+    actions: [{ do: pop, to: INITIAL, from: COMMAND }]
+
+
   #endregion
 
   #region Command-parameters
@@ -649,7 +661,7 @@ rules:
       - { do: pop, from: PROPERTY_LITERAL, to: INITIAL }
 
   # Properties with text content
-  - re: "{lead_space}:(created|origin|blocker):"
+  - re: "{lead_space}:(created):"
     token: ColonPropertyText
   - re: "{lead_space}:\\w+:"
     token: ColonPropertyName
@@ -674,7 +686,7 @@ rules:
   - re: "\\[\\[(\\/|\\.){any_non_brace_link}+"
     sub: no_protocol_file_link
 
-  - re: "\\[\\[\\w+(\\]\\]|\\]\\[)"
+  - re: "\\[\\[(\\w|-|_)+(\\]\\]|\\]\\[)"
     sub: link_protocol_internal
 
   - re: "\\[\\[\\w+:"
