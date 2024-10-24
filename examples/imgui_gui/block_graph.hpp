@@ -15,23 +15,22 @@ struct LaneNodePos {
     DESC_FIELDS(LaneNodePos, (lane, row));
 };
 
-struct DocOutEdge {
+struct LaneNodeEdge {
     LaneNodePos               target;
     Opt<int>                  targetOffset;
     Opt<int>                  sourceOffset;
     GraphEdgeConstraint::Port targetPort = GraphEdgeConstraint::Port::East;
     GraphEdgeConstraint::Port sourcePort = GraphEdgeConstraint::Port::West;
     DESC_FIELDS(
-        DocOutEdge,
+        LaneNodeEdge,
         (target, targetOffset, sourceOffset, targetPort, sourcePort));
 };
 
 struct LaneBlockNode {
-    int             width;
-    int             height;
-    Vec<DocOutEdge> outEdges;
-    int             topMargin    = 5;
-    int             bottomMargin = 5;
+    int width;
+    int height;
+    int topMargin    = 5;
+    int bottomMargin = 5;
 
     /// \brief Get full vertical space occupied by the doc block, including
     /// top and bottom margins.
@@ -41,9 +40,7 @@ struct LaneBlockNode {
         return slice(start, start + fullHeight());
     }
 
-    DESC_FIELDS(
-        LaneBlockNode,
-        (width, height, outEdges, topMargin, bottomMargin));
+    DESC_FIELDS(LaneBlockNode, (width, height, topMargin, bottomMargin));
 };
 
 struct LaneBlockStack {
@@ -76,10 +73,6 @@ struct LaneBlockStack {
     int getFullWidth() const {
         return getWidth() + leftMargin + rightMargin;
     }
-
-    void addEdge(int row, DocOutEdge const& target) {
-        return blocks.at(row).outEdges.push_back(target);
-    }
 };
 
 template <>
@@ -94,8 +87,9 @@ struct std::hash<LaneNodePos> {
 
 
 struct LaneBlockGraph {
-    Vec<LaneBlockStack> lanes;
-    GraphSize           visible;
+    Vec<LaneBlockStack>                          lanes;
+    UnorderedMap<LaneNodePos, Vec<LaneNodeEdge>> edges;
+    GraphSize                                    visible;
     DESC_FIELDS(LaneBlockGraph, (lanes, visible));
     LaneNodePos addNode(int lane, ImVec2 const& size) {
         return LaneNodePos{
@@ -104,8 +98,8 @@ struct LaneBlockGraph {
         };
     }
 
-    void addEdge(LaneNodePos const& source, DocOutEdge const& target) {
-        return lane(source.lane).addEdge(source.row, target);
+    void addEdge(LaneNodePos const& source, LaneNodeEdge const& target) {
+        edges[source].push_back(target);
     }
 
     LaneBlockStack& lane(int lane) { return lanes.resize_at(lane); }

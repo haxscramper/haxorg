@@ -115,7 +115,8 @@ LaneBlockLayout to_layout(LaneBlockGraph const& g) {
     for (auto const& lane : enumerator(g.lanes)) {
         for (auto const& row : lane.value().visibleRange) {
             LaneNodePos source{.lane = lane.index(), .row = row};
-            for (auto const& target : g.at(source).outEdges) {
+            if (!g.edges.contains(source)) { continue; }
+            for (LaneNodeEdge const& target : g.edges.at(source)) {
                 if (lyt.rectMap.contains(source)
                     && lyt.rectMap.contains(target.target)) {
                     GraphEdge edge{
@@ -227,47 +228,36 @@ void graph_render_loop(LaneBlockGraph const& g, GLFWwindow* window) {
 }
 
 
-DocOutEdge n(int lane, int row) {
-    return DocOutEdge{.target = LaneNodePos{.lane = lane, .row = row}};
+LaneNodeEdge e(int lane, int row) {
+    return LaneNodeEdge{.target = LaneNodePos{.lane = lane, .row = row}};
+}
+
+LaneNodePos n(int lane, int row) {
+    return LaneNodePos{.lane = lane, .row = row};
 }
 
 void run_block_graph_test(GLFWwindow* window) {
     int  w     = 75;
     int  h     = 50;
     auto lane0 = Vec<LaneBlockNode>{
-        // 0.0
-        LaneBlockNode{.width = w, .height = h, .outEdges = {n(1, 0)}},
-        // 0.1
-        LaneBlockNode{
-            .width    = w,
-            .height   = h,
-            .outEdges = {n(1, 1), n(1, 2), n(1, 3)}},
-        // 0.2
-        LaneBlockNode{.width = w, .height = h, .outEdges = {n(1, 4)}},
+        LaneBlockNode{.width = w, .height = h}, // 0.0
+        LaneBlockNode{.width = w, .height = h}, // 0.1
+        LaneBlockNode{.width = w, .height = h}, // 0.2
     };
 
     auto lane1 = Vec<LaneBlockNode>{
-        // 1.0
-        LaneBlockNode{.width = w, .height = h, .outEdges = {n(2, 0)}},
-        // 1.1
-        LaneBlockNode{.width = w, .height = h, .outEdges = {n(2, 0), n(2, 1)}},
-        // 1.2
-        LaneBlockNode{.width = w, .height = h, .outEdges = {n(2, 1)}},
-        // 1.3
-        LaneBlockNode{.width = w, .height = h, .outEdges = {n(2, 1), n(2, 2)}},
-        // 1.4
-        LaneBlockNode{.width = w, .height = h, .outEdges = {n(2, 1), n(2, 3)}},
+        LaneBlockNode{.width = w, .height = h}, // 1.0
+        LaneBlockNode{.width = w, .height = h}, // 1.1
+        LaneBlockNode{.width = w, .height = h}, // 1.2
+        LaneBlockNode{.width = w, .height = h}, // 1.3
+        LaneBlockNode{.width = w, .height = h}, // 1.4
     };
 
     auto lane2 = Vec<LaneBlockNode>{
-        // 2.0
-        LaneBlockNode{.width = w, .height = h},
-        // 2.1
-        LaneBlockNode{.width = w, .height = h},
-        // 2.2
-        LaneBlockNode{.width = w, .height = h},
-        // 2.3
-        LaneBlockNode{.width = w, .height = h},
+        LaneBlockNode{.width = w, .height = h}, // 2.0
+        LaneBlockNode{.width = w, .height = h}, // 2.1
+        LaneBlockNode{.width = w, .height = h}, // 2.2
+        LaneBlockNode{.width = w, .height = h}, // 2.3
     };
 
     LaneBlockGraph g{
@@ -276,6 +266,25 @@ void run_block_graph_test(GLFWwindow* window) {
            LaneBlockStack{.blocks = lane1, .visibleRange = slice(0, 4)},
            LaneBlockStack{.blocks = lane2, .visibleRange = slice(0, 3)}},
         .visible = GraphSize{.w = 1200, .h = 1200}};
+
+    g.addEdge(n(0, 0), e(1, 0));
+
+    g.addEdge(n(0, 1), e(1, 1));
+    g.addEdge(n(0, 1), e(1, 2));
+    g.addEdge(n(0, 1), e(1, 3));
+
+    g.addEdge(n(0, 2), e(1, 4));
+
+    g.addEdge(n(1, 0), e(2, 0));
+    g.addEdge(n(1, 1), e(2, 0));
+    g.addEdge(n(1, 1), e(2, 1));
+
+    g.addEdge(n(1, 2), e(2, 1));
+
+    g.addEdge(n(1, 3), e(2, 1));
+    g.addEdge(n(1, 3), e(2, 2));
+    g.addEdge(n(1, 4), e(2, 1));
+    g.addEdge(n(1, 4), e(2, 3));
 
     g.lanes.at(1).scrollOffset -= 100;
     for (int i = 0; i < 5; ++i) {
@@ -336,8 +345,8 @@ ImVec2 get_center(const GraphRect& rect) {
 }
 
 ColaConstraintDebug to_constraints(
-    const LaneBlockLayout&             lyt,
-    const LaneBlockGraph&              g,
+    const LaneBlockLayout&       lyt,
+    const LaneBlockGraph&        g,
     GraphLayoutIR::Result const& final) {
     ColaConstraintDebug res;
 

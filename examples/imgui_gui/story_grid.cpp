@@ -958,7 +958,7 @@ void connect_partition_edges(
 
             using GEC = GraphEdgeConstraint;
 
-            DocOutEdge edge;
+            LaneNodeEdge edge;
             edge.target = target_node;
             if (source_node.lane == target_node.lane) {
                 edge.targetPort = GEC::Port::West;
@@ -1145,7 +1145,8 @@ void StoryGridModel::updateDocument() {
                                 + row->getHeight());
                         if (auto overlap = rowRange.overlap(
                                 viewportRange)) {
-                            //
+                            CTX_MSG(
+                                fmt("Row {} is visible", row->flatIdx));
                         }
                     }
                 }
