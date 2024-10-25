@@ -834,17 +834,17 @@ void add_annotation_nodes(
     }
 }
 
-int rowPadding = 5;
+int rowPadding = 6;
 
 int add_root_grid_node(StoryGridGraph& res, org::ImmAdapter const& node) {
     TreeGridDocument doc;
-    doc.getColumn("title").width = 200;
-    doc.getColumn("event").width = 200;
-    doc.getColumn("note").width  = 200;
-    // doc.getColumn("turning_point").width = 300;
-    // doc.getColumn("value").width         = 200;
-    doc.getColumn("location").width = 240;
-    doc.getColumn("location").edit  = TreeGridColumn::EditMode::SingleLine;
+    doc.getColumn("title").width         = 200;
+    doc.getColumn("event").width         = 400;
+    doc.getColumn("note").width          = 200;
+    doc.getColumn("turning_point").width = 300;
+    doc.getColumn("value").width         = 200;
+    doc.getColumn("location").width      = 240;
+    doc.getColumn("location").edit = TreeGridColumn::EditMode::SingleLine;
     __perf_trace_begin("gui", "build doc rows");
     doc.rows = build_rows(node, doc);
     __perf_trace_end("gui");
@@ -1078,8 +1078,8 @@ void update_graph_layout(
     }
 
 
-    debug     = to_constraints(lyt, rectGraph.ir, thisLayout);
-    debug->ir = &thisLayout;
+    // debug     = to_constraints(lyt, rectGraph.ir, thisLayout);
+    // debug->ir = &thisLayout;
 }
 
 void StoryGridModel::updateDocument() {

@@ -174,16 +174,64 @@ void render_point(const GraphPoint& point, ImVec2 const& shift) {
 }
 
 void render_path(const GraphPath& path, ImVec2 const& shift) {
+    if (path.points.size() < 2) { return; }
+
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    for (size_t i = 0; i < path.points.size() - 1; ++i) {
-        const GraphPoint& p1 = path.points[i];
-        const GraphPoint& p2 = path.points[i + 1];
-        draw_list->AddLine(
-            ImVec2(p1.x, p1.y) + shift,
-            ImVec2(p2.x, p2.y) + shift,
-            IM_COL32(0, 255, 0, 255),
-            line_width);
+
+    std::vector<ImVec2> base_points;
+    base_points.reserve(path.points.size());
+    for (const auto& p : path.points) {
+        base_points.push_back(ImVec2(p.x, p.y));
     }
+
+    ImVec2 bezier_start_offset = ImVec2(120, 0);
+    ImVec2 bezier_end_offset   = ImVec2(-120, 0);
+
+
+    auto draw_offset_curve =
+        [&](float y_offset, ImU32 color, float thickness) {
+            std::vector<ImVec2> offset_points = base_points;
+            for (auto& p : offset_points) {
+                p.y += y_offset;
+                p += shift;
+            }
+
+            if (offset_points.size() == 4) {
+                draw_list->AddBezierCubic(
+                    offset_points[0],
+                    offset_points[1] + bezier_start_offset,
+                    offset_points[2] + bezier_end_offset,
+                    offset_points[3],
+                    color,
+                    thickness);
+            } else {
+                draw_list->AddBezierCubic(
+                    offset_points[0],
+                    offset_points[1],
+                    offset_points[2],
+                    offset_points[3],
+                    color,
+                    thickness);
+
+                for (size_t i = 3; i < offset_points.size(); i += 3) {
+                    size_t remaining = offset_points.size() - i;
+                    if (4 <= remaining) {
+                        draw_list->AddBezierCubic(
+                            offset_points[i],
+                            offset_points[i + 1],
+                            offset_points[i + 2],
+                            offset_points[i + 3],
+                            color,
+                            thickness);
+                    }
+                }
+            }
+        };
+
+    const float width = 4.0f;
+    draw_offset_curve(-width + 1.0f, IM_COL32(255, 255, 255, 200), 1.0f);
+    draw_offset_curve(0, IM_COL32(128, 128, 128, 128), width - 2.0f);
+    draw_offset_curve(+width - 1.0f, IM_COL32(255, 255, 255, 200), 1.0f);
 }
 
 void render_rect(const GraphRect& rect, ImVec2 const& shift) {

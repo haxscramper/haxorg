@@ -18,6 +18,13 @@ inline ImVec2 operator+(const ImVec2& lhs, const ImVec2& rhs) {
     return ImVec2(lhs.x + rhs.x, lhs.y + rhs.y);
 }
 
+inline void operator+=(ImVec2& lhs, const ImVec2& rhs) { lhs = lhs + rhs; }
+
 inline ImVec2 operator-(const ImVec2& lhs, const ImVec2& rhs) {
     return ImVec2(lhs.x - rhs.x, lhs.y - rhs.y);
+}
+
+
+inline ImVec2 operator*(const ImVec2& lhs, float mult) {
+    return ImVec2(lhs.x * mult, lhs.y * mult);
 }
