@@ -48,12 +48,12 @@ struct TreeGridRow {
     bool                              isVisible = true;
     DESC_FIELDS(TreeGridRow, (columns, origin, flatIdx, nested));
 
-    Vec<TreeGridRow*> flatThisNested() {
+    Vec<TreeGridRow*> flatThisNested(bool withInvisible) {
         Vec<TreeGridRow*> result;
-        if (isVisible) {
+        if (withInvisible || isVisible) {
             result.push_back(this);
             for (auto& sub : nested) {
-                result.append(sub.flatThisNested());
+                result.append(sub.flatThisNested(withInvisible));
             }
         }
 
@@ -86,15 +86,17 @@ struct TreeGridDocument {
         }
     }
 
-    Vec<TreeGridRow*> flatRows() {
+    Vec<TreeGridRow*> flatRows(bool withInvisible) {
         Vec<TreeGridRow*> result;
-        for (auto& row : rows) { result.append(row.flatThisNested()); }
+        for (auto& row : rows) {
+            result.append(row.flatThisNested(withInvisible));
+        }
         return result;
     }
 
     TreeGridRow* getRow(int pos) {
         // TODO Optimize, this is a O(n^2) code.
-        for (auto it : flatRows()) {
+        for (auto it : flatRows(true)) {
             if (it->flatIdx == pos) { return it; }
         }
         return nullptr;
@@ -102,7 +104,8 @@ struct TreeGridDocument {
 
     TreeGridRow const* getRow(int pos) const {
         // TODO Optimize, this is a O(n^2) code.
-        for (auto it : const_cast<TreeGridDocument*>(this)->flatRows()) {
+        for (auto it :
+             const_cast<TreeGridDocument*>(this)->flatRows(true)) {
             if (it->flatIdx == pos) { return it; }
         }
         return nullptr;
@@ -213,15 +216,39 @@ struct StoryGridNode {
     DESC_FIELDS(StoryGridNode, (data, isVisible));
 };
 
+
+struct DocAnnotation {
+    org::graph::MapNode source;
+    org::graph::MapNode target;
+    DESC_FIELDS(DocAnnotation, (source, target));
+};
+
 struct StoryGridGraph {
     Vec<StoryGridNode>             nodes;
     LaneBlockGraph                 ir;
     UnorderedMap<int, LaneNodePos> gridNodeToNode;
     UnorderedMap<LaneNodePos, int> nodeToGridNode;
     org::graph::MapGraph           graph;
+    Vec<Vec<DocAnnotation>>        partition;
 
     UnorderedMap<org::ImmUniqId, org::ImmUniqId> annotationParents;
     UnorderedMap<org::ImmUniqId, LaneNodePos>    orgToId;
+
+    bool isVisible(org::ImmUniqId const& id) const {
+        auto lane_pos = orgToId.get(id);
+        if (!lane_pos) { return false; }
+        auto node = nodeToGridNode.get(lane_pos.value());
+        if (!node) { return false; }
+        if (!nodes.at(node.value()).isTreeGrid()) { return false; }
+        auto origin = nodes.at(node.value())
+                          .getTreeGrid()
+                          .node.rowOrigins.get(id);
+        if (!origin) { return false; }
+        return nodes.at(node.value())
+            .getTreeGrid()
+            .node.getRow(origin.value())
+            ->isVisible;
+    }
 
     DESC_FIELDS(
         StoryGridGraph,

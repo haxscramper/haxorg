@@ -225,7 +225,8 @@ void render_tree_row(
 
     if (skipped && row.nested.empty()) { return; };
 
-    ImGui::TableNextRow(ImGuiTableRowFlags_None, row.getHeight().value());
+    ImGui::TableNextRow(
+        ImGuiTableRowFlags_None, row.getHeight().value_or(20));
     // CTX_MSG(fmt("row {}", ImGui::TableGetRowIndex()));
     if (!row.nested.empty()) {
         switch (row.origin->level) {
@@ -350,9 +351,8 @@ Vec<GridAction> render_list_node(
                 ImGuiHoveredFlags_RootAndChildWindows
                 | ImGuiHoveredFlags_AllowWhenBlockedByPopup
                 | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)
-            && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+            && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
             list.isSelected = !list.isSelected;
-            _dbg(list.isSelected);
             result.push_back(GridAction{GridAction::LinkListClick{}});
         }
 
@@ -470,7 +470,7 @@ Vec<GridAction> render_story_grid(StoryGridModel& model) {
     }
 
     for (auto const& [key, edge] : model.layout.lines) {
-        render_edge(edge, model.shift);
+        render_edge(edge, model.shift, false);
     }
 
 
@@ -667,11 +667,6 @@ TreeGridCell build_editable_cell(
     return result;
 }
 
-struct DocAnnotation {
-    org::graph::MapNode source;
-    org::graph::MapNode target;
-    DESC_FIELDS(DocAnnotation, (source, target));
-};
 
 Vec<Vec<DocAnnotation>> partition_graph_nodes(
     const Vec<org::graph::MapNode>& initial_nodes,
@@ -731,10 +726,10 @@ int rowPadding = 6;
 void update_row_positions(TreeGridDocument& doc) {
     __perf_trace("gui", "update row positions");
     int offset = 0;
-    for (auto const& row : doc.flatRows()) {
+    for (auto const& row : doc.flatRows(true)) {
         doc.rowPositions.resize_at(row->flatIdx) = offset;
         doc.rowOrigins.insert_or_assign(row->origin.uniq(), row->flatIdx);
-        offset += row->getHeight(rowPadding).value();
+        offset += row->getHeight(rowPadding).value_or(0);
     }
 }
 
@@ -819,12 +814,12 @@ void add_annotation_nodes(
     org::graph::MapGraph& graph,
     StoryGridContext&     ctx) {
 
-    for (auto const& row : doc.flatRows()) {
+    for (auto const& row : doc.flatRows(true)) {
         org::graph::MapNode subtreeNode{row->origin.uniq()};
         graph.addNode(subtreeNode);
     }
 
-    for (auto const& row : doc.flatRows()) {
+    for (auto const& row : doc.flatRows(true)) {
         for (auto const& nested :
              row->origin.subAs<org::ImmBlockComment>()) {
             org::graph::MapNode subtreeNode{row->origin.uniq()};
@@ -874,7 +869,7 @@ int add_root_grid_node(StoryGridGraph& res, org::ImmAdapter const& node) {
 
     int flatIdx = res.addNode(0, grid.size, StoryGridNode{.data = grid});
 
-    for (auto const& row : doc.flatRows()) {
+    for (auto const& row : doc.flatRows(true)) {
         res.orgToId.insert_or_assign(
             row->origin.uniq(), res.getIrNode(flatIdx));
     }
@@ -951,6 +946,7 @@ void connect_partition_edges(
     StoryGridState&                state,
     Vec<Vec<DocAnnotation>> const& partition,
     StoryGridContext&              ctx) {
+    res.ir.edges.clear();
     for (auto const& [group_idx, group] : enumerate(partition)) {
         for (auto const& node : group) {
             org::ImmAdapter source = state.ast.context.adapt(
@@ -1016,7 +1012,12 @@ void connect_partition_edges(
                 CTX_MSG(fmt("{}", edge));
             }
 
-            res.ir.addEdge(source_node, edge);
+            if (source_flat.isTreeGrid()
+                && !res.isVisible(source.uniq())) {
+                // pass
+            } else {
+                res.ir.addEdge(source_node, edge);
+            }
         }
     }
 }
@@ -1060,25 +1061,18 @@ void update_link_list_target_rows(StoryGridGraph& rectGraph) {
             }
         }
 
-        _dbg(targets);
-
         Func<bool(TreeGridRow&)> aux;
         aux = [&](TreeGridRow& row) -> bool {
             if (targets.contains(row.origin.uniq())) {
-                _dbg(row.origin);
                 row.isVisible = true;
                 return true;
             } else {
                 bool hasVisibleNested = false;
                 for (auto& sub : row.nested) {
-                    if (aux(sub)) {
-                        hasVisibleNested = true;
-                        row.isVisible    = true;
-                    } else {
-                        row.isVisible = false;
-                    }
+                    if (aux(sub)) { hasVisibleNested = true; }
                 }
 
+                row.isVisible = hasVisibleNested;
                 return hasVisibleNested;
             }
         };
@@ -1169,37 +1163,38 @@ void StoryGridModel::updateDocument() {
 
     if (updateNeeded.contains(UpdateNeeded::Graph)) {
         __perf_trace("gui", "add grid nodes");
-        StoryGridGraph graph;
+        rectGraph = StoryGridGraph{};
 
         int flat = add_root_grid_node(
-            graph, getCurrentState().ast.getRootAdapter());
+            rectGraph, getCurrentState().ast.getRootAdapter());
 
         add_annotation_nodes(
-            graph,
-            graph.nodes.at(flat).getTreeGrid().node,
-            graph.graph,
+            rectGraph,
+            rectGraph.nodes.at(flat).getTreeGrid().node,
+            rectGraph.graph,
             ctx);
 
         Vec<org::graph::MapNode> docNodes;
         for (auto const& row :
-             graph.nodes.at(flat).getTreeGrid().node.flatRows()) {
+             rectGraph.nodes.at(flat).getTreeGrid().node.flatRows(true)) {
             auto tree = row->origin.uniq();
-            if (!graph.graph.adjList.at(tree).empty()
-                || !graph.graph.inNodes.at(tree).empty()) {
+            if (!rectGraph.graph.adjList.at(tree).empty()
+                || !rectGraph.graph.inNodes.at(tree).empty()) {
                 docNodes.push_back(tree);
             }
         }
 
-        Vec<Vec<DocAnnotation>> partition = partition_graph_nodes(
-            docNodes, graph.graph);
+        rectGraph.partition = partition_graph_nodes(
+            docNodes, rectGraph.graph);
 
-        connect_partition_edges(graph, getCurrentState(), partition, ctx);
-
-        this->rectGraph = graph;
+        connect_partition_edges(
+            rectGraph, getCurrentState(), rectGraph.partition, ctx);
     }
 
     if (updateNeeded.contains(UpdateNeeded::LinkListClick)) {
         update_link_list_target_rows(rectGraph);
+        connect_partition_edges(
+            rectGraph, getCurrentState(), rectGraph.partition, ctx);
     }
 
     if (updateNeeded.contains(UpdateNeeded::Scroll)) {
@@ -1227,7 +1222,7 @@ void StoryGridModel::updateDocument() {
                 if (storyNode.isTreeGrid()) {
                     TreeGridDocument treeDoc = storyNode.getTreeGrid()
                                                    .node;
-                    for (auto const& row : treeDoc.flatRows()) {
+                    for (auto const& row : treeDoc.flatRows(false)) {
                         Slice<int> rowRange = slice1<int>(
                             treeDoc.rowPositions.at(row->flatIdx)
                                 + (laneOffsets.has(lane_idx)
@@ -1259,13 +1254,6 @@ void StoryGridModel::updateDocument() {
 
                             if (targetNodePos) {
                                 auto const& t = targetNodePos.value();
-
-                                CTX_MSG(
-                                    fmt("{} overlap {} [{}/{}]",
-                                        t,
-                                        overlap,
-                                        rowRange,
-                                        viewportRange));
 
                                 if (overlap) {
                                     rectGraph.ir.at(t).isVisible = true;

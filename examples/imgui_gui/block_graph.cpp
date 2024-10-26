@@ -174,6 +174,20 @@ void render_point(const GraphPoint& point, ImVec2 const& shift) {
 }
 
 void render_path(const GraphPath& path, ImVec2 const& shift) {
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    for (size_t i = 0; i < path.points.size() - 1; ++i) {
+        const GraphPoint& p1 = path.points[i];
+        const GraphPoint& p2 = path.points[i + 1];
+        draw_list->AddLine(
+            ImVec2(p1.x, p1.y) + shift,
+            ImVec2(p2.x, p2.y) + shift,
+            IM_COL32(0, 255, 0, 255),
+            line_width);
+    }
+}
+
+
+void render_bezier_path(const GraphPath& path, ImVec2 const& shift) {
     if (path.points.size() < 2) { return; }
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -245,8 +259,17 @@ void render_rect(const GraphRect& rect, ImVec2 const& shift) {
         line_width);
 }
 
-void render_edge(const GraphLayoutIR::Edge& edge, ImVec2 const& shift) {
-    for (const auto& path : edge.paths) { render_path(path, shift); }
+void render_edge(
+    const GraphLayoutIR::Edge& edge,
+    ImVec2 const&              shift,
+    bool                       bezier) {
+    for (const auto& path : edge.paths) {
+        if (bezier) {
+            render_bezier_path(path, shift);
+        } else {
+            render_path(path, shift);
+        }
+    }
     if (edge.labelRect.has_value()) {
         render_rect(edge.labelRect.value(), shift);
     }
@@ -254,7 +277,9 @@ void render_edge(const GraphLayoutIR::Edge& edge, ImVec2 const& shift) {
 
 void render_result(GraphLayoutIR::Result const& res, ImVec2 const& shift) {
     for (auto const& rect : res.fixed) { render_rect(rect, shift); }
-    for (auto const& [key, path] : res.lines) { render_edge(path, shift); }
+    for (auto const& [key, path] : res.lines) {
+        render_edge(path, shift, true);
+    }
 }
 
 void graph_render_loop(LaneBlockGraph const& g, GLFWwindow* window) {

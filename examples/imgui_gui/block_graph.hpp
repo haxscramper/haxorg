@@ -148,9 +148,12 @@ ColaConstraintDebug to_constraints(
 
 void render_point(const GraphPoint& point, ImVec2 const& shift);
 void render_path(const GraphPath& path, ImVec2 const& shift);
-void render_path(const GraphPath& path, ImVec2 const& shift);
+void render_bezier_path(const GraphPath& path, ImVec2 const& shift);
 void render_rect(const GraphRect& rect, ImVec2 const& shift);
-void render_edge(const GraphLayoutIR::Edge& edge, ImVec2 const& shift);
+void render_edge(
+    const GraphLayoutIR::Edge& edge,
+    ImVec2 const&              shift,
+    bool                       bezier);
 void render_result(GraphLayoutIR::Result const& res, ImVec2 const& shift);
 void render_debug(ColaConstraintDebug const& debug, const ImVec2& shift);
 
