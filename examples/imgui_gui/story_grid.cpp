@@ -987,9 +987,12 @@ void connect_partition_edges(
                     StoryGridNode const&   flat,
                     org::ImmAdapter const& node) -> Opt<int> {
                 if (flat.isTreeGrid()) {
-                    return flat.getTreeGrid().node.getRowCenterOffset(
-                        flat.getTreeGrid().node.rowOrigins.at(
-                            node.uniq()));
+                    int row_idx = flat.getTreeGrid()
+                                      .node.getRow(node.uniq())
+                                      .value();
+                    auto offset = flat.getTreeGrid()
+                                      .node.getRowCenterOffset(row_idx);
+                    return offset;
                 } else if (flat.isLinkList()) {
                     // CTX_MSG(
                     //     fmt("node {} source parent {} target parent {}",
@@ -1042,6 +1045,23 @@ void update_lane_offsets(
             laneStartX + lane.leftMargin,
             laneStartX + lane.leftMargin + lane.getWidth());
         laneStartX += lane.getFullWidth();
+    }
+}
+
+void update_node_sizes(StoryGridGraph& rectGraph) {
+    for (int i = 0; i < rectGraph.nodes.size(); ++i) {
+        auto& node = rectGraph.nodes.at(i);
+        if (node.isTreeGrid()) {
+            int height = node.getTreeGrid().node.getHeight(rowPadding);
+            int width  = node.getTreeGrid().node.getWidth(rowPadding);
+            LaneNodePos pos             = rectGraph.getIrNode(i);
+            rectGraph.ir.at(pos).height = height;
+            rectGraph.ir.at(pos).width  = width;
+            node.getTreeGrid().size     = ImVec2{
+                static_cast<float>(width),
+                static_cast<float>(height),
+            };
+        }
     }
 }
 
@@ -1120,6 +1140,8 @@ void update_graph_layout(
     thisLayout = cola.convert();
     __perf_trace_end("gui");
 
+    cola.router->outputInstanceToSVG("/tmp/update_graph_layout");
+
     // writeFile("/tmp/lyt_dump.json",
     // to_json_eval(this->layout).dump(2));
 
@@ -1195,6 +1217,7 @@ void StoryGridModel::updateDocument() {
         update_link_list_target_rows(rectGraph);
         connect_partition_edges(
             rectGraph, getCurrentState(), rectGraph.partition, ctx);
+        update_node_sizes(rectGraph);
     }
 
     if (updateNeeded.contains(UpdateNeeded::Scroll)) {

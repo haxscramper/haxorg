@@ -72,8 +72,7 @@ struct TreeGridDocument {
 
     UnorderedMap<org::ImmUniqId, int> rowOrigins;
 
-
-    TreeGridColumn& getColumn(CR<Str> name) {
+     TreeGridColumn& getColumn(CR<Str> name) {
         auto iter = rs::find_if(
             columns, [&](TreeGridColumn const& col) -> bool {
                 return col.name == name;

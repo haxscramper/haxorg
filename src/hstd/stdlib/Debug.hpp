@@ -24,7 +24,7 @@ void setMessageStream(std::ostream& stream);
 /// \brief Print values to string `<expr1> = ⦃<value1>⦄ <expr2> =
 /// ⦃<value2>⦄ ...`
 #define _dfmt(...)                                                        \
-    DLOG(INFO) << "]" BOOST_PP_SEQ_FOR_EACH(                              \
+    LOG(INFO) << "]" BOOST_PP_SEQ_FOR_EACH(                               \
         _dfmt_impl, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__));
 
 #define _dfmt_expr_impl(_1, _2, arg)                                      \

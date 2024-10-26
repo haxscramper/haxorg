@@ -134,7 +134,7 @@ LaneBlockLayout to_layout(LaneBlockGraph const& g) {
                         auto offset = target.targetOffset.value();
                         LOGIC_ASSERTION_CHECK(
                             offset <= full, "{} !<= {}", offset, full);
-                        ec.sourceOffset = float(offset) / float(full);
+                        ec.targetOffset = float(offset) / float(full);
                         int step        = 6;
                         ec.targetCheckpoint //
                             = (g.lanes.at(target.target.lane).blocks.size()
