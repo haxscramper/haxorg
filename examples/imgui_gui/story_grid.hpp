@@ -45,19 +45,24 @@ struct TreeGridRow {
     org::ImmAdapterT<org::ImmSubtree> origin;
     UnorderedMap<Str, TreeGridCell>   columns;
     Vec<TreeGridRow>                  nested;
+    bool                              isVisible = true;
     DESC_FIELDS(TreeGridRow, (columns, origin, flatIdx, nested));
 
     Vec<TreeGridRow*> flatThisNested() {
         Vec<TreeGridRow*> result;
-        result.push_back(this);
-        for (auto& sub : nested) { result.append(sub.flatThisNested()); }
+        if (isVisible) {
+            result.push_back(this);
+            for (auto& sub : nested) {
+                result.append(sub.flatThisNested());
+            }
+        }
 
         return result;
     }
 
-    int getHeight(int padding = 0) const;
+    Opt<int> getHeight(int padding = 0) const;
 
-    int getHeightRec(int padding = 0) const;
+    Opt<int> getHeightRec(int padding = 0) const;
 };
 
 struct TreeGridDocument {
@@ -114,7 +119,9 @@ struct TreeGridDocument {
 
     int getHeight(int padding = 0) const {
         int res = 0;
-        for (auto const& row : rows) { res += row.getHeightRec(padding); }
+        for (auto const& row : rows) {
+            res += row.getHeightRec(padding).value_or(0);
+        }
         return res;
     }
 
@@ -126,9 +133,13 @@ struct TreeGridDocument {
         return tableWidth;
     }
 
-    int getRowCenterOffset(int rowIdx) const {
-        return float(rowPositions.at(rowIdx))
-             + float(getRow(rowIdx)->getHeight()) / 2;
+    Opt<int> getRowCenterOffset(int rowIdx) const {
+        if (getRow(rowIdx)->isVisible) {
+            return float(rowPositions.at(rowIdx))
+                 + float(getRow(rowIdx)->getHeight().value()) / 2;
+        } else {
+            return std::nullopt;
+        }
     }
 
     DESC_FIELDS(TreeGridDocument, (rows, rowPositions, columns));
@@ -153,7 +164,8 @@ struct StoryGridNode {
         Vec<Item> items;
         ImVec2    pos;
         ImVec2    size;
-        DESC_FIELDS(LinkList, (items, pos, size));
+        bool      isSelected = false;
+        DESC_FIELDS(LinkList, (items, pos, size, isSelected));
 
         int getRowOffset(org::ImmUniqId const& row) const {
             auto iter = rs::find_if(items, [&](Item const& i) {
@@ -270,7 +282,18 @@ struct GridAction {
         DESC_FIELDS(Scroll, (pos, direction));
     };
 
-    SUB_VARIANTS(Kind, Data, data, getKind, EditCell, Scroll);
+    struct LinkListClick {
+        DESC_FIELDS(LinkListClick, ());
+    };
+
+    SUB_VARIANTS(
+        Kind,
+        Data,
+        data,
+        getKind,
+        EditCell,
+        Scroll,
+        LinkListClick);
     Data data;
     DESC_FIELDS(GridAction, (data));
 };
@@ -281,7 +304,7 @@ struct StoryGridState {
 
 
 struct StoryGridModel {
-    DECL_DESCRIBED_ENUM(UpdateNeeded, Scroll, Graph);
+    DECL_DESCRIBED_ENUM(UpdateNeeded, LinkListClick, Scroll, Graph);
     Vec<StoryGridState>        history;
     StoryGridGraph             rectGraph;
     StoryGridContext           conf;

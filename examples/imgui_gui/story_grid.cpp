@@ -218,12 +218,14 @@ void render_tree_row(
     Vec<GridAction>&  result,
     TreeGridDocument& doc,
     StoryGridContext& ctx) {
+    // row is completely invisible, including its nested sub-rows
+    if (!row.isVisible) { return; }
     bool skipped = false;
     auto __scope = ctx.scopeLevel();
 
     if (skipped && row.nested.empty()) { return; };
 
-    ImGui::TableNextRow(ImGuiTableRowFlags_None, row.getHeight());
+    ImGui::TableNextRow(ImGuiTableRowFlags_None, row.getHeight().value());
     // CTX_MSG(fmt("row {}", ImGui::TableGetRowIndex()));
     if (!row.nested.empty()) {
         switch (row.origin->level) {
@@ -343,6 +345,17 @@ Vec<GridAction> render_list_node(
             fmt("##{:p}", static_cast<const void*>(&list)).c_str(),
             nullptr,
             ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize)) {
+
+        if (ImGui::IsWindowHovered(
+                ImGuiHoveredFlags_RootAndChildWindows
+                | ImGuiHoveredFlags_AllowWhenBlockedByPopup
+                | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)
+            && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+            list.isSelected = !list.isSelected;
+            _dbg(list.isSelected);
+            result.push_back(GridAction{GridAction::LinkListClick{}});
+        }
+
         if (ImGui::BeginTable(
                 fmt("##{:p}", static_cast<const void*>(&list)).c_str(),
                 1,
@@ -434,7 +447,8 @@ Vec<GridAction> render_table_node(
 Vec<GridAction> render_story_grid(StoryGridModel& model) {
     __perf_trace("gui", "grid model render");
     Vec<GridAction> result;
-    for (auto& node : model.rectGraph.nodes) {
+    for (int i = 0; i < model.rectGraph.nodes.size(); ++i) {
+        auto& node = model.rectGraph.nodes.at(i);
         if (node.isVisible) {
             switch (node.getKind()) {
                 case StoryGridNode::Kind::TreeGrid: {
@@ -712,13 +726,15 @@ Vec<Vec<DocAnnotation>> partition_graph_nodes(
     return result;
 }
 
-void updateRowPositions(int rowPadding, TreeGridDocument& doc) {
+int rowPadding = 6;
+
+void update_row_positions(TreeGridDocument& doc) {
     __perf_trace("gui", "update row positions");
     int offset = 0;
     for (auto const& row : doc.flatRows()) {
         doc.rowPositions.resize_at(row->flatIdx) = offset;
         doc.rowOrigins.insert_or_assign(row->origin.uniq(), row->flatIdx);
-        offset += row->getHeight(rowPadding);
+        offset += row->getHeight(rowPadding).value();
     }
 }
 
@@ -834,7 +850,6 @@ void add_annotation_nodes(
     }
 }
 
-int rowPadding = 6;
 
 int add_root_grid_node(StoryGridGraph& res, org::ImmAdapter const& node) {
     TreeGridDocument doc;
@@ -848,7 +863,7 @@ int add_root_grid_node(StoryGridGraph& res, org::ImmAdapter const& node) {
     __perf_trace_begin("gui", "build doc rows");
     doc.rows = build_rows(node, doc);
     __perf_trace_end("gui");
-    updateRowPositions(rowPadding, doc);
+    update_row_positions(doc);
 
     StoryGridNode::TreeGrid grid{
         .pos  = ImVec2(0, 0),
@@ -1029,6 +1044,71 @@ void update_lane_offsets(
     }
 }
 
+void update_link_list_target_rows(StoryGridGraph& rectGraph) {
+    if (rs::any_of(rectGraph.nodes, [](CR<StoryGridNode> n) {
+            return n.isLinkList() && n.getLinkList().isSelected;
+        })) {
+        UnorderedSet<org::ImmUniqId> targets;
+        for (auto const& node : rectGraph.nodes) {
+            if (node.isLinkList() && node.getLinkList().isSelected) {
+                for (auto const& item : node.getLinkList().items) {
+                    for (auto const& target :
+                         rectGraph.graph.adjList.at(item.node.uniq())) {
+                        targets.incl(target.id);
+                    }
+                }
+            }
+        }
+
+        _dbg(targets);
+
+        Func<bool(TreeGridRow&)> aux;
+        aux = [&](TreeGridRow& row) -> bool {
+            if (targets.contains(row.origin.uniq())) {
+                _dbg(row.origin);
+                row.isVisible = true;
+                return true;
+            } else {
+                bool hasVisibleNested = false;
+                for (auto& sub : row.nested) {
+                    if (aux(sub)) {
+                        hasVisibleNested = true;
+                        row.isVisible    = true;
+                    } else {
+                        row.isVisible = false;
+                    }
+                }
+
+                return hasVisibleNested;
+            }
+        };
+
+        for (auto& node : rectGraph.nodes) {
+            if (node.isTreeGrid()) {
+                for (auto& row : node.getTreeGrid().node.rows) {
+                    aux(row);
+                }
+                update_row_positions(node.getTreeGrid().node);
+            }
+        }
+    } else {
+        Func<void(TreeGridRow&)> aux;
+        aux = [&](TreeGridRow& row) {
+            row.isVisible = true;
+            for (auto& sub : row.nested) { aux(sub); }
+        };
+
+        for (auto& node : rectGraph.nodes) {
+            if (node.isTreeGrid()) {
+                for (auto& row : node.getTreeGrid().node.rows) {
+                    aux(row);
+                }
+                update_row_positions(node.getTreeGrid().node);
+            }
+        }
+    }
+}
+
 void update_graph_layout(
     StoryGridGraph&           rectGraph,
     GraphLayoutIR::Result&    thisLayout,
@@ -1118,13 +1198,18 @@ void StoryGridModel::updateDocument() {
         this->rectGraph = graph;
     }
 
+    if (updateNeeded.contains(UpdateNeeded::LinkListClick)) {
+        update_link_list_target_rows(rectGraph);
+    }
 
     if (updateNeeded.contains(UpdateNeeded::Scroll)) {
         const ImGuiViewport* viewport = ImGui::GetMainViewport();
 
+
         for (auto& lane : rectGraph.ir.lanes) {
             for (auto& rect : lane.blocks) { rect.isVisible = true; }
         }
+
 
         update_lane_offsets(
             rectGraph.ir, viewport->WorkSize, laneSpans, laneOffsets);
@@ -1152,7 +1237,7 @@ void StoryGridModel::updateDocument() {
                                 + (laneOffsets.has(lane_idx)
                                        ? laneOffsets.at(lane_idx)
                                        : 0)
-                                + row->getHeight());
+                                + row->getHeight().value());
                         org::ImmUniqId rowId = row->origin.uniq();
                         UnorderedSet<org::graph::MapNode> adjacent;
                         for (auto const& n :
@@ -1237,6 +1322,12 @@ void StoryGridModel::apply(const GridAction& act) {
             }
             break;
         }
+
+        case GridAction::Kind::LinkListClick: {
+            updateNeeded.incl(UpdateNeeded::LinkListClick);
+            updateNeeded.incl(UpdateNeeded::Scroll);
+            break;
+        }
     }
 }
 
@@ -1248,20 +1339,29 @@ void StoryGridContext::message(
     OperationsTracer::message(value, activeLevel, line, function, file);
 }
 
-int TreeGridRow::getHeight(int padding) const {
-    return rs::max(
-               own_view(columns.keys())
-               | rv::transform(
-                   [&](Str const& col) { return columns.at(col).height; }))
-         + padding;
+Opt<int> TreeGridRow::getHeight(int padding) const {
+    if (isVisible) {
+        return rs::max(
+                   own_view(columns.keys())
+                   | rv::transform([&](Str const& col) {
+                         return columns.at(col).height;
+                     }))
+             + padding;
+    } else {
+        return std::nullopt;
+    }
 }
 
-int TreeGridRow::getHeightRec(int padding) const {
-    return getHeight(padding)
-         + rs::fold_left(
-               nested | rv::transform([&](TreeGridRow const& r) {
-                   return r.getHeightRec(padding);
-               }),
-               0,
-               [](int lhs, int rhs) { return lhs + rhs; });
+Opt<int> TreeGridRow::getHeightRec(int padding) const {
+    if (isVisible) {
+        return getHeight(padding).value()
+             + rs::fold_left(
+                   nested | rv::transform([&](TreeGridRow const& r) {
+                       return r.getHeightRec(padding).value_or(0);
+                   }),
+                   0,
+                   [](int lhs, int rhs) { return lhs + rhs; });
+    } else {
+        return std::nullopt;
+    }
 }
