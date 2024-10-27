@@ -476,7 +476,7 @@ Vec<GridAction> render_story_grid(StoryGridModel& model) {
     }
 
     for (auto const& [key, edge] : model.layout.lines) {
-        render_edge(edge, model.shift, false);
+        render_edge(edge, model.shift, true);
     }
 
 
@@ -1090,18 +1090,16 @@ void update_link_list_target_rows(StoryGridGraph& rectGraph) {
 
         Func<bool(TreeGridRow&)> aux;
         aux = [&](TreeGridRow& row) -> bool {
+            row.isVisible = false;
             if (targets.contains(row.origin.uniq())) {
                 row.isVisible = true;
-                return true;
-            } else {
-                bool hasVisibleNested = false;
-                for (auto& sub : row.nested) {
-                    if (aux(sub)) { hasVisibleNested = true; }
-                }
-
-                row.isVisible = hasVisibleNested;
-                return hasVisibleNested;
             }
+
+            for (auto& sub : row.nested) {
+                if (aux(sub)) { row.isVisible = true; }
+            }
+
+            return row.isVisible;
         };
 
         for (auto& node : rectGraph.nodes) {

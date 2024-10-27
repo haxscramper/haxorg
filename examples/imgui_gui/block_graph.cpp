@@ -203,10 +203,6 @@ void render_bezier_path(const GraphPath& path, ImVec2 const& shift) {
         base_points.push_back(ImVec2(p.x, p.y));
     }
 
-    ImVec2 bezier_start_offset = ImVec2(120, 0);
-    ImVec2 bezier_end_offset   = ImVec2(-120, 0);
-
-
     auto draw_offset_curve =
         [&](float y_offset, ImU32 color, float thickness) {
             std::vector<ImVec2> offset_points = base_points;
@@ -216,6 +212,10 @@ void render_bezier_path(const GraphPath& path, ImVec2 const& shift) {
             }
 
             if (offset_points.size() == 4) {
+                float dist = (offset_points[0].x - offset_points[3].x);
+                ImVec2 bezier_start_offset = ImVec2(-dist, 0);
+                ImVec2 bezier_end_offset   = ImVec2(dist, 0);
+
                 draw_list->AddBezierCubic(
                     offset_points[0],
                     offset_points[1] + bezier_start_offset,
