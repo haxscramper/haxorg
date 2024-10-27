@@ -271,10 +271,8 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
                                       org.SubtreePeriodKind.Created) or getSubtreeTime(
                                           node, org.SubtreePeriodKind.Titled)
 
-            case org.AnnotatedParagraph():
-                if node.getAnnotationKind(
-                ) == org.AnnotatedParagraphAnnotationKind.Timestamp:
-                    return evalDateTime(node.getTimestamp().time.getStatic().time)
+            case org.Paragraph() if node.hasTimestamp():
+                return evalDateTime(node.getTimestamps()[0])
 
     @beartype
     def aux(node: org.Org, parent: Optional[int] = None):
@@ -339,7 +337,7 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
                 for sub in node:
                     aux(sub)
 
-            case org.Paragraph() | org.AnnotatedParagraph():
+            case org.Paragraph():
                 subnodes: List[org.Org] = [n for n in node]
                 wordcount = 0
                 if 0 < len(subnodes):

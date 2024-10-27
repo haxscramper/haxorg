@@ -68,9 +68,6 @@ class ExporterPandoc(ExporterBase):
 
         return result
 
-    def evalAnnotatedParagraph(self, node: org.AnnotatedParagraph) -> PandocRes:
-        return PandocRes.Node("Para", self.content(node))
-
     def evalParagraph(self, node: org.Paragraph) -> PandocRes:
         return PandocRes.Node("Para", self.content(node))
 
@@ -110,7 +107,7 @@ class ExporterPandoc(ExporterBase):
     def evalBlockExport(self, node: org.BlockExport) -> PandocRes:
         return PandocRes()
 
-    def evalFootnote(self, node: org.Footnote) -> PandocRes:
+    def evalFootnote(self, node: org.InlineFootnote) -> PandocRes:
         return PandocRes()
 
     def evalListItem(self, node: org.ListItem) -> PandocRes:

@@ -554,8 +554,6 @@ enum class OrgNodeKind : short int {
   TextSeparator,
   /// \brief Single 'paragraph' of text. Used as generic container for any place in AST where unordered sentence might be encountered (e.g. caption, link description) - not limited to actual paragraph
   Paragraph,
-  /// \brief Annotated paragraph -- a wrapper around a regular paragraph kind with added admonition, footnote, list tag prefix and similar types. `[fn:ID] Some Text` is an annotated paragraph, just like `NOTE: Text` or `- Prefix :: Body` (in this case list header is an annotated paragraph)
-  AnnotatedParagraph,
   /// \brief Horizontal table row
   TableRow,
   /// \brief Single cell in row. Might contain anyting, including other tables, simple text paragraph etc.

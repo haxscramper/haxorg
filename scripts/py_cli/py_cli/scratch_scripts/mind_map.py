@@ -157,8 +157,7 @@ class MindMapCollector():
                         content=sub,
                     )
 
-                    if isinstance(sub, org.AnnotatedParagraph) and sub.getAnnotationKind(
-                    ) == org.AnnotatedParagraphAnnotationKind.Footnote:
+                    if isinstance(sub, org.Paragraph) and sub.isFootnoteDefinition():
                         res.unordered.append(entry)
 
                     else:

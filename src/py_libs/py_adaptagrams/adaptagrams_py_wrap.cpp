@@ -317,6 +317,7 @@ nodes)RAW")
                         }))
     .def_readwrite("source", &GraphEdge::source)
     .def_readwrite("target", &GraphEdge::target)
+    .def_readwrite("bundle", &GraphEdge::bundle)
     .def("__repr__", [](GraphEdge _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -334,6 +335,15 @@ nodes)RAW")
                         }))
     .def_readwrite("sourcePort", &GraphEdgeConstraint::sourcePort)
     .def_readwrite("targetPort", &GraphEdgeConstraint::targetPort)
+    .def_readwrite("sourceOffset", &GraphEdgeConstraint::sourceOffset, R"RAW(\brief Offset the port position on the side of the shape. Value in
+range [0, 1] used as a relative position along the edge of the
+shape. For vertical edges (west/east) the port movement would be
+vertical, and for horizontal (north/south) it would be horizontal.
+If the value is not provided the nodes are placed in the center
+with the ratio computed automatically.)RAW")
+    .def_readwrite("targetOffset", &GraphEdgeConstraint::targetOffset)
+    .def_readwrite("sourceCheckpoint", &GraphEdgeConstraint::sourceCheckpoint)
+    .def_readwrite("targetCheckpoint", &GraphEdgeConstraint::targetCheckpoint)
     .def("__repr__", [](GraphEdgeConstraint _self) -> std::string {
                      return py_repr_impl(_self);
                      })

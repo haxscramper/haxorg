@@ -231,7 +231,6 @@ Opt<OrgNodeKind> enum_serde<OrgNodeKind>::from_string(std::string value) {
   if (value == "ColonExample") { return OrgNodeKind::ColonExample; } else
   if (value == "TextSeparator") { return OrgNodeKind::TextSeparator; } else
   if (value == "Paragraph") { return OrgNodeKind::Paragraph; } else
-  if (value == "AnnotatedParagraph") { return OrgNodeKind::AnnotatedParagraph; } else
   if (value == "TableRow") { return OrgNodeKind::TableRow; } else
   if (value == "TableCell") { return OrgNodeKind::TableCell; } else
   if (value == "Table") { return OrgNodeKind::Table; } else
@@ -357,7 +356,6 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     case OrgNodeKind::ColonExample: return "ColonExample";
     case OrgNodeKind::TextSeparator: return "TextSeparator";
     case OrgNodeKind::Paragraph: return "Paragraph";
-    case OrgNodeKind::AnnotatedParagraph: return "AnnotatedParagraph";
     case OrgNodeKind::TableRow: return "TableRow";
     case OrgNodeKind::TableCell: return "TableCell";
     case OrgNodeKind::Table: return "Table";

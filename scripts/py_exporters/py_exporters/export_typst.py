@@ -117,7 +117,28 @@ class ExporterTypst(ExporterBase):
         return self.t.stack([self.exp.eval(it) for it in node])
 
     def evalParagraph(self, node: org.Paragraph) -> BlockId:
-        if len(node.subnodes) == 1 and isinstance(
+        if node.isFootnoteDefinition() or node.hasTimestamp() or node.hasAdmonition():
+            result = self.lineSubnodes(self.trimSub(node))
+            args = dict()
+            if node.isFootnoteDefinition():
+                args["kind"] = "footnote"
+                args["footnote"] = node.getFootnoteName()
+
+            elif node.hasAdmonition():
+                args["kind"] = "admonition"
+                args["admonition"] = node.getAdmonitions()[0]
+
+            else:
+                args["kind"] = "timestamp"
+                args["timestamp"] = formatDateTime(node.getTimestamps()[0])
+
+            result = self.t.call(self.c.tags.paragraph,
+                                 args=args,
+                                 body=[result],
+                                 isLine=True)
+            return result
+
+        elif len(node.subnodes) == 1 and isinstance(
                 node[0], org.Link) and node[0].getLinkKind() in [org.LinkKind.Attachment]:
             return self.t.string("")
 
@@ -130,26 +151,6 @@ class ExporterTypst(ExporterBase):
                 body=[self.lineSubnodes(self.trimSub(node))],
                 isLine=True,
             )
-
-    def evalAnnotatedParagraph(self, node: org.AnnotatedParagraph) -> BlockId:
-        result = self.lineSubnodes(self.trimSub(node))
-        args = dict()
-        match node.getAnnotationKind():
-            case org.AnnotatedParagraphAnnotationKind.Footnote:
-                args["kind"] = "footnote"
-                args["footnote"] = node.getFootnote().name
-
-            case org.AnnotatedParagraphAnnotationKind.Admonition:
-                args["kind"] = "admonition"
-                args["admonition"] = node.getAdmonition().name.text
-
-            case org.AnnotatedParagraphAnnotationKind.Timestamp:
-                args["kind"] = "timestamp"
-                args["timestamp"] = formatDateTime(
-                    node.getTimestamp().time.getStatic().time)
-
-        result = self.t.call(self.c.tags.paragraph, args=args, body=[result], isLine=True)
-        return result
 
     def evalBlockCenter(self, node: org.BlockCenter) -> BlockId:
         return self.t.call(self.c.tags.center, body=[self.stackSubnodes(node)])

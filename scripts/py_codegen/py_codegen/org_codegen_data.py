@@ -1609,6 +1609,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 org_field(
                     t_nest("BrokenLinks", ["DocumentExportConfig"]),
                     "brokenLinks",
+                    value="sem::DocumentExportConfig::BrokenLinks::Mark"
                 ),
                 org_field(
                     t_nest("TocExport", ["DocumentExportConfig"]),
@@ -2353,10 +2354,6 @@ def get_org_node_kind():
         efield(
             "Paragraph",
             "Single 'paragraph' of text. Used as generic container for any place in AST where unordered sentence might be encountered (e.g. caption, link description) - not limited to actual paragraph",
-        ),
-        efield(
-            "AnnotatedParagraph",
-            "Annotated paragraph -- a wrapper around a regular paragraph kind with added admonition, footnote, list tag prefix and similar types. `[fn:ID] Some Text` is an annotated paragraph, just like `NOTE: Text` or `- Prefix :: Body` (in this case list header is an annotated paragraph)",
         ),
         efield("TableRow", "Horizontal table row"),
         efield(

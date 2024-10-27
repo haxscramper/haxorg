@@ -1202,6 +1202,7 @@ TEST_F(ImmOrgApiEdit, LeafSubtreeDemote) {
 TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_OneNested) {
     setTraceFile(getDebugFile("trace.txt"));
     org::ImmAstVersion v1 = getInitialVersion(getSubtreeDash());
+    writeTreeRepr(v1.getRootAdapter(), "repr_v1.txt");
 
     org::ImmAstVersion v2 = v1.getEditVersion(
         [&](org::ImmAstContext&     ast,
@@ -1215,11 +1216,12 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_OneNested) {
 
     writeGvHistory({v1, v2}, "v1_v2");
 
-    auto r    = v2.getRootAdapter();
-    auto s201 = r.at(Vec{0, 1});
+    auto r = v2.getRootAdapter();
+    writeTreeRepr(r, "repr_v2.txt");
+    auto s201 = r.at(Vec{0, 0, 2});
     EXPECT_EQ(s201->getKind(), OrgSemKind::Subtree);
     EXPECT_EQ(s201->as<org::ImmSubtree>()->level, 3);
-    auto s3010 = r.at({0, 1, 0});
+    auto s3010 = r.at({0, 0, 2, 0});
     EXPECT_EQ(s3010->getKind(), OrgSemKind::Subtree);
     EXPECT_EQ(s3010->as<org::ImmSubtree>()->level, 4);
     auto levels = getDfsSubtreeLevels(r);

@@ -346,7 +346,7 @@ struct DocumentExportConfig {
   Opt<bool> statisticsCookies = std::nullopt;
   /// \brief Include todo keywords in export
   Opt<bool> todoText = std::nullopt;
-  sem::DocumentExportConfig::BrokenLinks brokenLinks;
+  sem::DocumentExportConfig::BrokenLinks brokenLinks = sem::DocumentExportConfig::BrokenLinks::Mark;
   sem::DocumentExportConfig::TocExport tocExport;
   sem::DocumentExportConfig::TagExport tagExport;
   sem::DocumentExportConfig::TocExport data;

@@ -78,6 +78,7 @@ class GTestClassMethod(BaseModel, extra="forbid"):
     name: str
     file: str
     line: int
+    type_param: Optional[str] = None
     value_param: Optional[str] = None
 
 

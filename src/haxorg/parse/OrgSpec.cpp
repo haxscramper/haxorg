@@ -204,16 +204,6 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             OrgPattern({
                 fieldN(slice(0, 1_B), N::Body, {org::RawText, org::Empty}),
             })},
-        SpecPair{
-            org::AnnotatedParagraph,
-            OrgPattern({
-                fieldN(
-                    0,
-                    N::Prefix,
-                    {org::ListTag, org::Footnote, org::BigIdent}),
-                fieldN(1, N::Body, {org::Paragraph, org::Empty}),
-            })},
-
         SpecPair{org::StmtList, anySubnodePattern},
         SpecPair{org::Paragraph, anySubnodePattern},
         SpecPair{org::InlineStmtList, anySubnodePattern},
@@ -293,7 +283,6 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                     Range(3, N::Header).doc("Header part of the list"),
                     OrgPattern(
                         {org::Paragraph,
-                         org::AnnotatedParagraph,
                          org::Empty})),
                 Field(
                     Range(4, N::Body)
