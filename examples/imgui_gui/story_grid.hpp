@@ -72,7 +72,7 @@ struct TreeGridDocument {
 
     UnorderedMap<org::ImmUniqId, int> rowOrigins;
 
-     TreeGridColumn& getColumn(CR<Str> name) {
+    TreeGridColumn& getColumn(CR<Str> name) {
         auto iter = rs::find_if(
             columns, [&](TreeGridColumn const& col) -> bool {
                 return col.name == name;
@@ -169,12 +169,16 @@ struct StoryGridNode {
         bool      isSelected = false;
         DESC_FIELDS(LinkList, (items, pos, size, isSelected));
 
-        int getRowOffset(org::ImmUniqId const& row) const {
+        int getRow(org::ImmUniqId const& row) const {
             auto iter = rs::find_if(items, [&](Item const& i) {
                 return i.node.uniq() == row;
             });
             LOGIC_ASSERTION_CHECK(iter != items.end(), "{}", row);
-            return getRowOffset(std::distance(items.begin(), iter));
+            return std::distance(items.begin(), iter);
+        }
+
+        int getRowOffset(org::ImmUniqId const& row) const {
+            return getRowOffset(getRow(row));
         }
 
         int getRowOffset(int row) const {
@@ -183,6 +187,10 @@ struct StoryGridNode {
                 if (row_idx < row) { offset += item.height; }
             }
             return offset;
+        }
+
+        int getRowCenterOffset(int row) const {
+            return getRowOffset(row) + items.at(row).height / 2.0f;
         }
 
         int getHeight(int rowPadding) const {

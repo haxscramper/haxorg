@@ -11,6 +11,23 @@
 #include <libdialect/hola.h>
 #include <libdialect/opts.h>
 
+template <>
+struct std::formatter<Avoid::Point> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const Avoid::Point& p, FormatContext& ctx) const {
+        return fmt_ctx(fmt("({:.2f}, {:.2f})", p.x, p.y), ctx);
+    }
+};
+
+template <>
+struct std::formatter<Avoid::Box> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const Avoid::Box& p, FormatContext& ctx) const {
+        return fmt_ctx(
+            fmt("[{}+{:.2f}/{:.2f}]", p.min, p.width(), p.height()), ctx);
+    }
+};
+
 namespace {
 
 vpsc::Dim toVpsc(GraphDimension dim) {

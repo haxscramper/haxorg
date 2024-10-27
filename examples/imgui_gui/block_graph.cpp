@@ -109,7 +109,8 @@ LaneBlockLayout to_layout(LaneBlockGraph const& g) {
         }
     }
 
-    int edgeId = 0;
+    int                               edgeId = 0;
+    UnorderedMap<Pair<int, int>, int> inLaneCheckpoints;
     for (auto const& lane : enumerator(g.lanes)) {
         for (auto const& row : lane.value().visibleRange) {
             LaneNodePos source{.lane = lane.index(), .row = row};
@@ -128,18 +129,26 @@ LaneBlockLayout to_layout(LaneBlockGraph const& g) {
                         .targetPort = target.targetPort,
                     };
 
+                    int step = 12;
+                    int base = 6;
+
+                    auto pairing = std::make_pair(
+                        source.lane, target.target.lane);
+                    if (inLaneCheckpoints.contains(pairing)) {
+                        ++inLaneCheckpoints.at(pairing);
+                    } else {
+                        inLaneCheckpoints.insert_or_assign(pairing, 0);
+                    }
+
+                    int inLaneEdge = inLaneCheckpoints.at(pairing);
 
                     if (target.targetOffset) {
                         auto full   = g.at(target.target).height;
                         auto offset = target.targetOffset.value();
                         LOGIC_ASSERTION_CHECK(
                             offset <= full, "{} !<= {}", offset, full);
-                        ec.targetOffset = float(offset) / float(full);
-                        int step        = 6;
-                        ec.targetCheckpoint //
-                            = (g.lanes.at(target.target.lane).blocks.size()
-                               * step)
-                            - (target.target.row * step);
+                        ec.targetOffset     = float(offset) / float(full);
+                        ec.targetCheckpoint = base + step * inLaneEdge;
                     }
 
                     if (target.sourceOffset) {
@@ -147,12 +156,8 @@ LaneBlockLayout to_layout(LaneBlockGraph const& g) {
                         auto offset = target.sourceOffset.value();
                         LOGIC_ASSERTION_CHECK(
                             offset <= full, "{} !<= {}", offset, full);
-                        ec.sourceOffset = float(offset) / float(full);
-                        int step        = 6;
-                        ec.sourceCheckpoint //
-                            = (g.lanes.at(target.target.lane).blocks.size()
-                               * step)
-                            - (target.target.row * step);
+                        ec.sourceOffset     = float(offset) / float(full);
+                        ec.sourceCheckpoint = base + step * inLaneEdge;
                     }
 
                     lyt.ir.edgeConstraints.insert_or_assign(edge, ec);

@@ -388,6 +388,8 @@ Vec<GridAction> render_list_node(
     return result;
 }
 
+float tableHeaderHeight = 16.0f;
+
 Vec<GridAction> render_table_node(
     StoryGridModel&          model,
     StoryGridNode::TreeGrid& grid) {
@@ -413,6 +415,9 @@ Vec<GridAction> render_table_node(
                     | ImGuiTableFlags_SizingFixedFit //
                     | ImGuiTableFlags_NoHostExtendX)) {
 
+            ImGui::PushStyleVar(
+                ImGuiStyleVar_FramePadding,
+                ImVec2(0, tableHeaderHeight / 2));
             ImGui::TableSetupColumn(
                 "Tree",
                 ImGuiTableColumnFlags_WidthFixed,
@@ -426,6 +431,7 @@ Vec<GridAction> render_table_node(
             }
             ImGui::TableSetupScrollFreeze(0, 1);
             ImGui::TableHeadersRow();
+            ImGui::PopStyleVar();
 
             for (auto& sub : doc.rows) {
                 render_tree_row(sub, result, doc, ctx);
@@ -725,7 +731,7 @@ int rowPadding = 6;
 
 void update_row_positions(TreeGridDocument& doc) {
     __perf_trace("gui", "update row positions");
-    int offset = 0;
+    int offset = tableHeaderHeight;
     for (auto const& row : doc.flatRows(true)) {
         doc.rowPositions.resize_at(row->flatIdx) = offset;
         doc.rowOrigins.insert_or_assign(row->origin.uniq(), row->flatIdx);
@@ -999,7 +1005,8 @@ void connect_partition_edges(
                     //         node,
                     //         doc.annotationParents.get(node.source.id),
                     //         doc.annotationParents.get(node.target.id)));
-                    return flat.getLinkList().getRowOffset(node.uniq());
+                    return flat.getLinkList().getRowCenterOffset(
+                        flat.getLinkList().getRow(node.uniq()));
 
                     // CTX_MSG(fmt("edge {} -> {}", source_node, edge));
                 } else {
@@ -1139,8 +1146,6 @@ void update_graph_layout(
     __perf_trace_begin("gui", "do cola convert");
     thisLayout = cola.convert();
     __perf_trace_end("gui");
-
-    cola.router->outputInstanceToSVG("/tmp/update_graph_layout");
 
     // writeFile("/tmp/lyt_dump.json",
     // to_json_eval(this->layout).dump(2));

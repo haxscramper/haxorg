@@ -721,10 +721,12 @@ TEST(GraphUtils, LibcolaIrMultiEdge) {
         .target = 1,
         .bundle = 0,
     }] = GraphEdgeConstraint{
-        .sourcePort   = P::East,
-        .targetPort   = P::West,
-        .sourceOffset = 0.1f + shift * 0,
-        .targetOffset = 0.9f - shift * 0,
+        .sourcePort       = P::East,
+        .targetPort       = P::West,
+        .sourceOffset     = 0.1f + shift * 0,
+        .targetOffset     = 0.9f - shift * 0,
+        .sourceCheckpoint = 30,
+        .targetCheckpoint = 30,
     };
 
     ec[GraphEdge{
