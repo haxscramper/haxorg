@@ -228,7 +228,10 @@ void render_tree_row(
     ImGui::TableNextRow(
         ImGuiTableRowFlags_None, row.getHeight().value_or(20));
     // CTX_MSG(fmt("row {}", ImGui::TableGetRowIndex()));
-    if (!row.nested.empty()) {
+    if (!row.nested.empty()
+        && rs::any_of(row.nested, [](TreeGridRow const& r) {
+               return r.isVisible;
+           })) {
         switch (row.origin->level) {
             case 1:
                 ImGui::TableSetBgColor(
@@ -250,7 +253,9 @@ void render_tree_row(
         }
     }
 
+
     ImGui::TableSetColumnIndex(0);
+
     int this_index = ImGui::TableGetRowIndex();
 
     if (!row.nested.empty()) {
@@ -273,9 +278,30 @@ void render_tree_row(
     }
 
     ImGui::TableSetColumnIndex(0);
+    ImRect cell_rect = ImGui::TableGetCellBgRect(
+        ImGui::GetCurrentTable(), 0);
+
+    if (cell_rect.Contains(ImGui::GetMousePos())) {
+        ImGui::TableSetBgColor(
+            ImGuiTableBgTarget_CellBg, IM_COL32(128, 128, 128, 64));
+
+        if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+            ImGui::OpenPopup(fmt("ctx_{}", row.origin.id).c_str());
+        }
+    }
+
+    if (ImGui::BeginPopup(fmt("ctx_{}", row.origin.id).c_str())) {
+        if (ImGui::MenuItem("Copy")) {
+            if (row.origin->treeId.get().has_value()) {
+                ImGui::SetClipboardText(
+                    row.origin->treeId->value().c_str());
+            }
+        }
+        ImGui::EndPopup();
+    }
+
     if (ImGui::TableGetRowIndex() == this_index) {
-        ImRect cell_rect = ImGui::TableGetCellBgRect(
-            ImGui::GetCurrentTable(), 0);
+
         ImVec2 cell_max  = cell_rect.Max;
         ImVec2 rect_size = ImVec2(
             std::ceil(
