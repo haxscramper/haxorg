@@ -405,9 +405,12 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
             created.time = par0.as<sem::Time>()->getStatic().time;
             result       = Property(created);
         } else {
-            throw convert_logic_error::init(
-                fmt("Could not extract time from 'created' property\n{}",
-                    a.treeRepr(false)));
+            return SemError(
+                a,
+                fmt("Could not parse property 'created' of the subtree -- "
+                    "expected time node, but found {} at {}",
+                    par0->getKind(),
+                    getLocMsg(a)));
         }
 
     } else if (name == "visibility") {

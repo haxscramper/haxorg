@@ -918,10 +918,12 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
             switch (prop.getKind()) {
                 case P::Kind::Created: {
                     add(head,
-                        b.line(
-                            {str(":CREATED: "),
-                             str(prop.getCreated().time.format(
-                                 UserTime::Format::OrgFormat))}));
+                        b.line({
+                            str(":CREATED: ["),
+                            str(prop.getCreated().time.format(
+                                UserTime::Format::OrgFormat)),
+                            str("]"),
+                        }));
                     break;
                 }
                 case P::Kind::CustomRaw: {
@@ -936,7 +938,7 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
                 case P::Kind::Effort: {
                     add(head,
                         b.line(
-                            {str(":CREATED: "),
+                            {str(":EFFORT: "),
                              str(
                                  fmt("{}:{}",
                                      prop.getEffort().hours,
