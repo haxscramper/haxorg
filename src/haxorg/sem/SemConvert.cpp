@@ -10,6 +10,7 @@
 #include <haxorg/exporters/exportertree.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <absl/log/log.h>
+#include <haxorg/sem/SemOrgFormat.hpp>
 
 
 struct convert_logic_error : CRTP_hexception<convert_logic_error> {};
@@ -1334,9 +1335,17 @@ OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(
     }
 
     if (auto res = one(a, N::Result); res.kind() != onk::Empty) {
-        auto body      = one(res, N::Body);
-        result->result = sem::BlockCodeEvalResult{
-            sem::BlockCodeEvalResult::OrgValue{.value = get_text(body)}};
+        auto body = one(res, N::Body);
+        auto conv = convert(body);
+        if (auto link = conv.asOpt<sem::Link>(); link && link->isFile()) {
+            result->result = sem::BlockCodeEvalResult{
+                sem::BlockCodeEvalResult::File{
+                    .path = link->getFile().file}};
+        } else {
+            result->result = sem::BlockCodeEvalResult{
+                sem::BlockCodeEvalResult::Raw{
+                    .text = sem::Formatter::format(conv)}};
+        }
     }
 
     return result;
