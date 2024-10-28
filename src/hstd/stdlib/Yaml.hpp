@@ -9,6 +9,7 @@
 #include <hstd/stdlib/strformat.hpp>
 #include <hstd/stdlib/Variant.hpp>
 #include <boost/mp11.hpp>
+#include <hstd/system/Formatter.hpp>
 
 struct BadTypeConversion : public YAML::RepresentationException {
     explicit BadTypeConversion(YAML::Mark mark, const std::string& message)
@@ -17,6 +18,22 @@ struct BadTypeConversion : public YAML::RepresentationException {
 
 
 using yaml = YAML::Node;
+
+template <>
+struct std::formatter<YAML::Mark> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const YAML::Mark& p, FormatContext& ctx) const {
+        if (p.is_null()) {
+            return fmt_ctx("null", ctx);
+        } else {
+            fmt_ctx(p.pos, ctx);
+            fmt_ctx(":", ctx);
+            fmt_ctx(p.line, ctx);
+            fmt_ctx(":", ctx);
+            return fmt_ctx(p.column, ctx);
+        }
+    }
+};
 
 template <typename E>
 inline E to_enum(yaml const& in, E fallback) {

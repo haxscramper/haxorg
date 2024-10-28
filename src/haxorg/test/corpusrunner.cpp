@@ -907,11 +907,11 @@ ${split}
     // but it *is* skipping parts of the check, so the example is
     // considered skipped.
     if (spec.debug.doFlatParseCompare) {
-        message("no flat reparse compare, skip test");
-        return skip;
-    } else {
         message("run result ok");
         return RunResult();
+    } else {
+        message("no flat reparse compare, skip test");
+        return skip;
     }
 }
 
@@ -1219,20 +1219,18 @@ TestResult gtest_run_spec(CR<TestParams> params) {
     } else if (result.isOk()) {
         test.data = TestResult::Success{};
     } else {
-        spec.debug = ParseSpec::Dbg{
-            .debugOutDir      = "/tmp/corpus_runs/" + params.testName(),
-            .traceLex         = true,
-            .traceParse       = true,
-            .traceSem         = true,
-            .printLexed       = true,
-            .printBaseLexed   = true,
-            .printParsed      = true,
-            .printSource      = true,
-            .printLexedToFile = true,
-            .printBaseLexedToFile = true,
-            .printParsedToFile    = true,
-            .printSemToFile       = true,
-        };
+        spec.debug.debugOutDir = "/tmp/corpus_runs/" + params.testName();
+        spec.debug.traceLex    = true;
+        spec.debug.traceParse  = true;
+        spec.debug.traceSem    = true;
+        spec.debug.printLexed  = true;
+        spec.debug.printBaseLexed       = true;
+        spec.debug.printParsed          = true;
+        spec.debug.printSource          = true;
+        spec.debug.printLexedToFile     = true;
+        spec.debug.printBaseLexedToFile = true;
+        spec.debug.printParsedToFile    = true;
+        spec.debug.printSemToFile       = true;
 
 
         RunResult fail = runner.runSpec(
