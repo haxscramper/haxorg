@@ -555,7 +555,7 @@ message NamedProperty {
   message CustomArgs {
     string                                         name                             = 1;
     optional string                                sub                              = 2;
-    repeated string                                attrs                            = 3;
+    repeated AttrValue                             attrs                            = 3;
     string                                         debug                            = 1000;
   }
   message CustomRaw {

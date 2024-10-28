@@ -15,12 +15,12 @@ PYBIND11_MAKE_OPAQUE(std::vector<Str>)
 PYBIND11_MAKE_OPAQUE(Vec<Str>)
 PYBIND11_MAKE_OPAQUE(std::unordered_map<Str, Str>)
 PYBIND11_MAKE_OPAQUE(UnorderedMap<Str, Str>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::AttrValue>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::AttrValue>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Attr>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Attr>>)
 PYBIND11_MAKE_OPAQUE(std::unordered_map<Str, sem::SemId<sem::AttrList>>)
 PYBIND11_MAKE_OPAQUE(UnorderedMap<Str, sem::SemId<sem::AttrList>>)
-PYBIND11_MAKE_OPAQUE(std::vector<sem::AttrValue>)
-PYBIND11_MAKE_OPAQUE(Vec<sem::AttrValue>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::ErrorItem>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::ErrorItem>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::HashTag>>)
@@ -65,9 +65,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<int>(m, "VecOfint", type_registry_guard);
   bind_vector<Str>(m, "VecOfStr", type_registry_guard);
   bind_unordered_map<Str, Str>(m, "UnorderedMapOfStrStr", type_registry_guard);
+  bind_vector<sem::AttrValue>(m, "VecOfAttrValue", type_registry_guard);
   bind_vector<sem::SemId<sem::Attr>>(m, "VecOfSemIdOfAttr", type_registry_guard);
   bind_unordered_map<Str, sem::SemId<sem::AttrList>>(m, "UnorderedMapOfStrSemIdOfAttrList", type_registry_guard);
-  bind_vector<sem::AttrValue>(m, "VecOfAttrValue", type_registry_guard);
   bind_vector<sem::SemId<sem::ErrorItem>>(m, "VecOfSemIdOfErrorItem", type_registry_guard);
   bind_vector<sem::SemId<sem::HashTag>>(m, "VecOfSemIdOfHashTag", type_registry_guard);
   bind_vector<sem::Symbol::Param>(m, "VecOfSymbolParam", type_registry_guard);

@@ -478,7 +478,7 @@ void proto_serde<::orgproto::NamedProperty::CustomArgs, sem::NamedProperty::Cust
   if (in.sub) {
     proto_serde<std::string, Str>::write(out->mutable_sub(), *in.sub);
   }
-  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::write(out->mutable_attrs(), in.attrs);
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::AttrValue>, Vec<sem::AttrValue>>::write(out->mutable_attrs(), in.attrs);
 }
 
 void proto_serde<::orgproto::NamedProperty::CustomArgs, sem::NamedProperty::CustomArgs>::read(::orgproto::NamedProperty::CustomArgs const& out, proto_write_accessor<sem::NamedProperty::CustomArgs> in) {
@@ -486,7 +486,7 @@ void proto_serde<::orgproto::NamedProperty::CustomArgs, sem::NamedProperty::Cust
   if (out.has_sub()) {
     proto_serde<Opt<std::string>, Opt<Str>>::read(out.sub(), in.for_field(&sem::NamedProperty::CustomArgs::sub));
   }
-  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::read(out.attrs(), in.for_field(&sem::NamedProperty::CustomArgs::attrs));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::AttrValue>, Vec<sem::AttrValue>>::read(out.attrs(), in.for_field(&sem::NamedProperty::CustomArgs::attrs));
 }
 
 void proto_serde<::orgproto::NamedProperty::CustomRaw, sem::NamedProperty::CustomRaw>::write(::orgproto::NamedProperty::CustomRaw* out, sem::NamedProperty::CustomRaw const& in) {

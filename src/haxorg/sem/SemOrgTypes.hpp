@@ -348,7 +348,7 @@ struct DocumentExportConfig {
   Opt<bool> todoText = std::nullopt;
   sem::DocumentExportConfig::BrokenLinks brokenLinks = sem::DocumentExportConfig::BrokenLinks::Mark;
   sem::DocumentExportConfig::TocExport tocExport;
-  sem::DocumentExportConfig::TagExport tagExport;
+  sem::DocumentExportConfig::TagExport tagExport = sem::DocumentExportConfig::TagExport::NotInToc;
   sem::DocumentExportConfig::TocExport data;
   bool operator==(sem::DocumentExportConfig const& other) const;
   bool isDoExport() const { return getTocExportKind() == TocExportKind::DoExport; }
@@ -561,7 +561,7 @@ struct NamedProperty {
     /// \brief Property target specialization
     Opt<Str> sub = std::nullopt;
     /// \brief Property parameters
-    Vec<Str> attrs = {};
+    Vec<sem::AttrValue> attrs = {};
     bool operator==(sem::NamedProperty::CustomArgs const& other) const;
   };
 

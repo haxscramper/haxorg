@@ -195,8 +195,16 @@ auto Formatter::toString(SemId<Document> id, CR<Context> ctx) -> Res {
                     tmp.push_back(str("#+property: "));
                     tmp.push_back(str(prop.getCustomArgs().name));
                     for (auto const& it : prop.getCustomArgs().attrs) {
-                        tmp.push_back(str(" "));
-                        tmp.push_back(str(it));
+                        if (it.name) {
+                            tmp.push_back(
+                                str(fmt(" :{}", it.name.value())));
+                        }
+                        if (it.varname) {
+                            tmp.push_back(str(fmt(
+                                " {}={}", it.varname.value(), it.value)));
+                        } else {
+                            tmp.push_back(str(fmt(" {}", it.value)));
+                        }
                     }
                     add(result, b.line(tmp));
                     break;
@@ -296,6 +304,26 @@ auto Formatter::toString(SemId<BlockCode> id, CR<Context> ctx) -> Res {
         add(head, b.join(parameters, str(" ")));
 
         if (isInline) { add(head, str("]")); }
+    }
+
+    if (id->exports != BlockCodeExports::None) {
+        add(head, str(":exports"));
+        switch (id->exports) {
+            case BlockCodeExports::Both: {
+                add(head, str("both"));
+                break;
+            }
+            case BlockCodeExports::Code: {
+                add(head, str("code"));
+                break;
+            }
+            case BlockCodeExports::Results: {
+                add(head, str("results"));
+                break;
+            }
+            case BlockCodeExports::None: {
+            }
+        }
     }
 
     add(result, head);

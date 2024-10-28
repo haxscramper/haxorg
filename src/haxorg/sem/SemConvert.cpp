@@ -1618,10 +1618,14 @@ SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
                 case onk::CmdPropertyArgs: {
                     Prop::CustomArgs prop;
                     prop.name = get_text(one(sub, N::Name));
-                    for (auto const& it :
-                         convertAttrs(one(sub, N::Args)).value()) {
-                        logic_todo_impl();
-                        // prop.parameters.push_back(it);
+                    auto conv = convertAttrs(one(sub, N::Args));
+                    for (auto const& [key, list] : conv.value()->named) {
+                        for (auto const& it : list->args) {
+                            prop.attrs.push_back(it->arg);
+                        }
+                    }
+                    for (auto const& it : conv.value()->positional->args) {
+                        prop.attrs.push_back(it->arg);
                     }
                     doc->options->properties.push_back(Prop(prop));
                     break;

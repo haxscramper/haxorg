@@ -381,7 +381,7 @@ def get_subtree_property_types():
             fields=[
                 str_field("name", GenTuDoc("Original name of the property")),
                 opt_field(t_str(), "sub", GenTuDoc("Property target specialization")),
-                vec_field(t_str(), "attrs", GenTuDoc("Property parameters")),
+                vec_field(t_nest_shared("AttrValue"), "attrs", GenTuDoc("Property parameters")),
             ],
         ),
         GenTuStruct(
@@ -1613,11 +1613,12 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 ),
                 org_field(
                     t_nest("TocExport", ["DocumentExportConfig"]),
-                    "tocExport",
+                    "tocExport"
                 ),
                 org_field(
                     t_nest("TagExport", ["DocumentExportConfig"]),
                     "tagExport",
+                    value="sem::DocumentExportConfig::TagExport::NotInToc"
                 ),
             ],
             nested=[
