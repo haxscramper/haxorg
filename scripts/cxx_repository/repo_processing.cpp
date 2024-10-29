@@ -841,6 +841,8 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
              // a file in this particular commit -- list of events that
              // state machine will respond to.
              | rv::transform([&state](CR<CommitTask> task) {
+                   LOGIC_ASSERTION_CHECK(
+                       !task.id.isNil(), "commit task ID cannot be nil");
                    return get_commit_actions(state, task);
                })) {
 

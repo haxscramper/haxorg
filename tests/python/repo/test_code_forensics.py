@@ -707,7 +707,7 @@ def test_repo_operations_example_1():
         GitOperation(operation=GitOperationKind.FORK_BRANCH, branch_to_checkout='00001'),
         GitOperation(operation=GitOperationKind.JOIN_BRANCH, branch_to_checkout='00002', branch_to_merge='00001'),
         GitOperation(operation=GitOperationKind.JOIN_BRANCH, branch_to_checkout='master', branch_to_merge='00002')
-    ])
+    ], fixed_dir="/tmp/test_repo_operations_example_1")
     # yapf:enable
 
 

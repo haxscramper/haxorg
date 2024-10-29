@@ -5,6 +5,7 @@
 
 #include <hstd/system/all.hpp>
 #include <hstd/system/generator.hpp>
+#include <hstd/stdlib/Exception.hpp>
 
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Slice.hpp>
@@ -108,6 +109,9 @@ check: {2:064b}
                 mask_check));
         }
 
+        LOGIC_ASSERTION_CHECK(
+            mask_offset < sizeof(decltype(mask)) * 8,
+            "Shift count exceeds type width");
         auto shift = mask << mask_offset;
         value      = getUnmasked() | shift;
     }
@@ -356,7 +360,9 @@ struct Store {
         int index = content.size();
         content.push_back(value);
         auto result = Id::FromMaskedIdx(index, mask);
-        CHECK(!result.isNil());
+        LOGIC_ASSERTION_CHECK(
+            !result.isNil(),
+            "Implementation error, added ID cannot be nil");
         return result;
     }
 
@@ -364,21 +370,33 @@ struct Store {
     [[nodiscard]] auto add(const T&& value, Id::id_mask_type mask) -> Id {
         int index = content.size();
         content.push_back(value);
-        return Id::FromMaskedIdx(index, mask);
+        auto result = Id::FromMaskedIdx(index, mask);
+        LOGIC_ASSERTION_CHECK(
+            !result.isNil(),
+            "Implementation error, added ID cannot be nil");
+        return result;
     }
 
     /// Add value to the storage and return newly created ID
     [[nodiscard]] auto add(const T& value) -> Id {
         int index = content.size();
         content.push_back(value);
-        return Id::FromIndex(index);
+        auto result = Id::FromIndex(index);
+        LOGIC_ASSERTION_CHECK(
+            !result.isNil(),
+            "Implementation error, added ID cannot be nil");
+        return result;
     }
 
     /// \brief Add new item to the store and return newly created ID
     [[nodiscard]] auto add(const T&& value) -> Id {
         int index = content.size();
         content.push_back(value);
-        return Id::FromIndex(index);
+        auto result = Id::FromIndex(index);
+        LOGIC_ASSERTION_CHECK(
+            !result.isNil(),
+            "Implementation error, added ID cannot be nil");
+        return result;
     }
 
     /// \brief Last element stored in the store (by index)
@@ -467,10 +485,16 @@ struct InternStore {
         -> Id {
         auto found = id_map.find(in);
         if (found != id_map.end()) {
+            LOGIC_ASSERTION_CHECK(
+                !found->second.isNil(),
+                "Implementation error, added ID cannot be nil");
             return found->second;
         } else {
             auto result = mask ? content.add(in, *mask) : content.add(in);
             id_map.insert({in, result});
+            LOGIC_ASSERTION_CHECK(
+                !result.isNil(),
+                "Implementation error, added ID cannot be nil");
             return result;
         }
     }
@@ -495,6 +519,8 @@ struct InternStore {
     /// \copydoc Store::insert
     void insert(Id id, CR<Val> value) {
         if (!contains(value)) {
+            LOGIC_ASSERTION_CHECK(
+                !id.isNil(), "cannot use nil ID for interned store key");
             content.insert(id, value);
             id_map.insert({value, id});
         }
