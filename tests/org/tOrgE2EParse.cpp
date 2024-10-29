@@ -1576,7 +1576,7 @@ TEST(ImmMapApi, AddNode) {
 
     org::ImmAstContext    store;
     org::graph::MapConfig conf;
-    conf.setTraceFile("/tmp/ImmMapApi_AddNode.txt");
+    conf.setTraceFile(getDebugFile("ImmMapApi_AddNode.txt"));
     org::ImmAstVersion        v1 = store.addRoot(n1);
     org::graph::MapGraphState s1{v1.context};
     EXPECT_EQ(s1.graph.nodeCount(), 0);
@@ -1585,7 +1585,7 @@ TEST(ImmMapApi, AddNode) {
 
     Graphviz gvc;
     auto     gv = s1.graph.toGraphviz(v1.context);
-    gvc.renderToFile("/tmp/MapS2.png", gv);
+    gvc.renderToFile(getDebugFile("MapS2.png"), gv);
 }
 
 TEST(ImmMapApi, AddNodeWithLinks) {
@@ -1636,7 +1636,7 @@ Paragraph [[id:subtree-id]]
 
     Graphviz gvc;
     auto     gv = s1.graph.toGraphviz(v1.context);
-    gvc.renderToFile("/tmp/AddNodeWithLinks.png", gv);
+    gvc.renderToFile(getDebugFile("AddNodeWithLinks.png"), gv);
 }
 
 
@@ -1647,6 +1647,7 @@ TEST(ImmMapApi, SubtreeBacklinks) {
   :id: subtree-1
   :end:
 
+#+attr_list: :attached subtree
 - [[id:subtree-2]] :: Forward link
 )"_ss};
 
@@ -1656,6 +1657,7 @@ TEST(ImmMapApi, SubtreeBacklinks) {
   :id: subtree-2
   :end:
 
+#+attr_list: :attached subtree
 - [[id:subtree-1]] :: Backlink
 )"_ss};
 
@@ -1664,7 +1666,7 @@ TEST(ImmMapApi, SubtreeBacklinks) {
 
     org::ImmAstContext    store;
     org::graph::MapConfig conf;
-    conf.setTraceFile("/tmp/SubtreeBacklinks_log.txt");
+    conf.setTraceFile(getDebugFile("SubtreeBacklinks_log.txt"));
 
     org::ImmAstVersion v2 = store.addRoot(n1);
     org::ImmAstVersion v3 = v2.context.addRoot(n2);
@@ -1688,7 +1690,7 @@ TEST(ImmMapApi, SubtreeBacklinks) {
 
     Graphviz gvc;
     auto     gv = s1.graph.toGraphviz(v3.context);
-    gvc.renderToFile("/tmp/SubtreeBacklinks.png", gv);
+    gvc.renderToFile(getDebugFile("SubtreeBacklinks.png"), gv);
 }
 
 Str getFullMindMapText() {

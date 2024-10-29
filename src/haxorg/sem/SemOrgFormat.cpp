@@ -306,8 +306,8 @@ auto Formatter::toString(SemId<BlockCode> id, CR<Context> ctx) -> Res {
         if (isInline) { add(head, str("]")); }
     }
 
-    if (id->exports != BlockCodeExports::None) {
-        add(head, str(":exports"));
+    if (id->exports != BlockCodeExports::Both) { // 'both' is the default
+        add(head, str(":exports "));
         switch (id->exports) {
             case BlockCodeExports::Both: {
                 add(head, str("both"));
@@ -322,6 +322,8 @@ auto Formatter::toString(SemId<BlockCode> id, CR<Context> ctx) -> Res {
                 break;
             }
             case BlockCodeExports::None: {
+                add(head, str("results"));
+                break;
             }
         }
     }
