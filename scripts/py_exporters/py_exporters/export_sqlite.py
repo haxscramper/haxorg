@@ -257,9 +257,7 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
         result: Optional[datetime] = None
         time: org.SubtreePeriod
         for time in node.getTimePeriods(org.IntSetOfSubtreePeriodKind([kind])):
-
-            if time.from_.getTimeKind() == org.TimeTimeKind.Static:
-                result = evalDateTime(time.from_.getStatic().time)
+            result = evalDateTime(time.from_)
 
         return result
 

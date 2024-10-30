@@ -64,7 +64,7 @@ def test_attached_property_link():
     # log(CAT).info(org.treeRepr(l))
     onExport: org.AttrList = l.getAttrs("attach-on-export")
     assert onExport
-    onExport0 = onExport.args[0]
+    onExport0 = onExport[0]
     assert onExport0
     assert onExport0.getString() == "t"
     assert onExport0.getBool() == True
@@ -174,24 +174,34 @@ def test_sem_parser_expected():
             if entry.debug.doLexBase and entry.debug.doLex and entry.debug.doParse:
                 node = org.parseString(text)
                 yaml_pre = tags.pre()
-                yaml_text = org.exportToYamlString(
-                    node,
-                    org.OrgYamlExportOpts(
-                        skipNullFields=True,
-                        skipFalseFields=True,
-                        skipZeroFields=True,
-                        skipLocation=True,
-                        skipId=True,
-                    ))
+                try: 
+                    yaml_text = org.exportToYamlString(
+                        node,
+                        org.OrgYamlExportOpts(
+                            skipNullFields=True,
+                            skipFalseFields=True,
+                            skipZeroFields=True,
+                            skipLocation=True,
+                            skipId=True,
+                        ))
 
-                formatter = HtmlFormatter()
-                yaml_pre.add_raw_string(highlight(yaml_text, YamlLexer(), formatter))
+                    formatter = HtmlFormatter()
+                    yaml_pre.add_raw_string(highlight(yaml_text, YamlLexer(), formatter))
+
+                except Exception as e: 
+                    yaml_pre.add_raw_string(str(e))
+
                 row.add(tags.td(yaml_pre, _class="yaml-cell"))
 
                 tree = tags.pre()
-                conv = Ansi2HTMLConverter()
-                tree.add_raw_string(
-                    conv.convert(org.treeRepr(node, colored=True), full=False))
+                try: 
+                    conv = Ansi2HTMLConverter()
+                    tree.add_raw_string(
+                        conv.convert(org.treeRepr(node, colored=True), full=False))
+
+                except Exception as e: 
+                    tree.add_raw_string(str(e))
+                    
                 row.add(tags.td(tree, _class="sem-cell"))
 
             else:

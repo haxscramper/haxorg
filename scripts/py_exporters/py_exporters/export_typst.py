@@ -236,8 +236,8 @@ class ExporterTypst(ExporterBase):
     def evalBlockExport(self, node: org.BlockExport) -> BlockId:
         if node.exporter == "typst":
             edit_config = node.getAttrs("edit-config")
-            if edit_config and 0 < len(edit_config.args):
-                match edit_config.args[0].getString():
+            if edit_config and 0 < len(edit_config):
+                match edit_config[0].getString():
                     case "pre-visit":
                         return self.t.string("")
 
@@ -293,8 +293,8 @@ class ExporterTypst(ExporterBase):
         for it in node:
             if isinstance(it, org.BlockExport):
                 edit_config = it.getAttrs("edit-config")
-                if edit_config and 0 < len(edit_config.args):
-                    if edit_config.args[0].getString() == "pre-visit":
+                if edit_config and 0 < len(edit_config):
+                    if edit_config[0].getString() == "pre-visit":
                         self.applyExportConfig(it)
 
         for it in node:

@@ -57,8 +57,8 @@ def getSubtreeInfo(node: org.Org) -> List[SubtreeInfo]:
                 org.IntSetOfSubtreePeriodKind([org.SubtreePeriodKind.Clocked])):
             if time.to and time.from_:
                 clocks.append((
-                    evalDateTime(time.from_.getStatic().time),
-                    evalDateTime(time.to.getStatic().time),
+                    evalDateTime(time.from_),
+                    evalDateTime(time.to),
                 ))
 
         # log(CAT).info(org.treeRepr(node))
