@@ -240,7 +240,7 @@ class ExporterLatex(ExporterBase):
                 continue
 
             elif isinstance(it, org.Stmt):
-                prop = it.getArguments("export")
+                prop = it.getAttrs("export")
                 if prop and 0 < len(prop.args) and prop.args[0] and prop.args[0].getBool() == False:
                     continue
 

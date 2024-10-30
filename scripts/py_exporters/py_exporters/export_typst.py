@@ -99,7 +99,7 @@ class ExporterTypst(ExporterBase):
                 return self.t.expr(value=value, isLine=isLine)
 
     def wrapStmt(self, node: org.Stmt, result: BlockId) -> BlockId:
-        args = node.getArguments("export")
+        args = node.getAttrs("export")
         if args and 0 < len(args.args) and args.args[0].getBool() == False:
             return self.t.string("")
 
@@ -235,7 +235,7 @@ class ExporterTypst(ExporterBase):
 
     def evalBlockExport(self, node: org.BlockExport) -> BlockId:
         if node.exporter == "typst":
-            edit_config = node.getArguments("edit-config")
+            edit_config = node.getAttrs("edit-config")
             if edit_config and 0 < len(edit_config.args):
                 match edit_config.args[0].getString():
                     case "pre-visit":
@@ -292,7 +292,7 @@ class ExporterTypst(ExporterBase):
 
         for it in node:
             if isinstance(it, org.BlockExport):
-                edit_config = it.getArguments("edit-config")
+                edit_config = it.getAttrs("edit-config")
                 if edit_config and 0 < len(edit_config.args):
                     if edit_config.args[0].getString() == "pre-visit":
                         self.applyExportConfig(it)

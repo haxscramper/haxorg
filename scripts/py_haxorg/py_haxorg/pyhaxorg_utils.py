@@ -129,13 +129,13 @@ def doExportAttachments(
     assert destination.exists() and destination.is_dir(), destination
     for item in attachments:
         path = item.getAttachment().file
-        do_attach = item.getArguments("attach-on-export")
+        do_attach = item.getAttrs("attach-on-export")
         if do_attach and 0 < len(
-                do_attach.args) and (do_attach.args[0].getString() == "t" or normalize(
-                    do_attach.args[0].getString()) in [normalize(it) for it in backends]):
+                do_attach) and (do_attach[0].getString() == "t" or normalize(
+                    do_attach[0].getString()) in [normalize(it) for it in backends]):
 
-            method = item.getArguments("attach-method")
-            op = method.args[0].getString()
+            method = item.getAttrs("attach-method")
+            op = method[0].getString()
             with ExceptionContextNote(
                     "Attachment operation {}, for base path '{}', destination '{}', relative '{}'"
                     .format(

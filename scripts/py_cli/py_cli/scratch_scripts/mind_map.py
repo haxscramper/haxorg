@@ -597,7 +597,7 @@ class MindMapGraph():
 
                         case org.NamedPropertyKind.Created:
                             value["created"] = evalDateTime(
-                                prop.getCreated().time.getStatic().time)
+                                prop.getCreated().time)
 
                         case org.NamedPropertyKind.Visibility:
                             value["level"] = str(prop.getVisibility().level)

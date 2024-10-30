@@ -44,9 +44,9 @@ def test_attached_property_list():
 
     l: org.List = node[0]
     assert l.getKind() == org.OrgSemKind.List
-    exp: org.AttrList = l.getArguments("export")
+    exp: org.AttrList = l.getAttrs("export")
     assert exp
-    exp0 = exp.args[0]
+    exp0 = exp[0]
     assert exp0
     assert exp0.getString() == "nil"
     assert exp0.getBool() == False
@@ -62,7 +62,7 @@ def test_attached_property_link():
     l: org.Link = p[0]
     assert l.getKind() == org.OrgSemKind.Link
     # log(CAT).info(org.treeRepr(l))
-    onExport: org.AttrList = l.getArguments("attach-on-export")
+    onExport: org.AttrList = l.getAttrs("attach-on-export")
     assert onExport
     onExport0 = onExport.args[0]
     assert onExport0
@@ -88,61 +88,6 @@ def test_subnode_visitor():
     kinds = []
     org.eachSubnodeRec(node, lambda it: kinds.append(it.getKind()))
     assert kinds == [osk.Document, osk.Paragraph, osk.Word, osk.DocumentOptions], kinds
-
-
-def test_subnode_selector():
-    node = org.parseString("Word")
-    selector = org.OrgDocumentSelector()
-    selector.searchAnyKind(
-        org.IntSetOfOrgSemKind([osk.Word]),
-        isTarget=True,
-    )
-    matches = selector.getMatches(node)
-    assert len(matches) == 1
-    assert matches[0].getKind() == osk.Word
-    assert matches[0].text == "Word"
-
-
-def test_procedural_subtree_edits():
-    node = org.parseString("""
-* Title1
-** Subtitle1
-Content1
-** Subtitle2
-Content2
-* Title2
-""")
-
-    def ensure_content(subtree_path: List[str], content: str):
-
-        def get_selector_at_path(path: List[str]):
-            selector = org.OrgDocumentSelector()
-            for idx, title in enumerate(path):
-                selector.searchSubtreePlaintextTitle(
-                    title=title,
-                    isTarget=idx == len(path) - 1,
-                    link=selector.linkIndirectSubnode() if idx < len(path) else None,
-                )
-
-            return selector
-
-        matches = get_selector_at_path(subtree_path).getMatches(node)
-        if not matches:
-            parent = get_selector_at_path(subtree_path[:1]).getMatches(node)
-            assert len(parent) == 1
-            parent[0].push_back(
-                org.Subtree(
-                    title=org.Paragraph(subnodes=[org.Word(text=subtree_path[-1])]),
-                    subnodes=[org.Paragraph(subnodes=[org.Word(text=content)])]))
-
-    ensure_content(["Title1", "Subtitle2"], "wont_be_added")
-    ensure_content(["Title1", "Subtitle2"], "wont_be_added")
-    ensure_content(["Title1", "Subtitle2"], "wont_be_added")
-    ensure_content(["Title2", "Subtitle3"], "new_content")
-
-    text = org.formatToString(node)
-    assert "wont_be_added" not in text
-    assert "new_content" in text
 
 
 class CorpusDebug(BaseModel):

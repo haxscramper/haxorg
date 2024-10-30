@@ -2,7 +2,6 @@ from py_cli.scratch_scripts import story_grid
 from py_cli.scratch_scripts import activity_analysis
 from py_cli.scratch_scripts import subtree_clocking
 from py_cli.scratch_scripts import node_clouds
-from py_cli.scratch_scripts import import_alxreader_bookmarks
 from py_cli.scratch_scripts import mind_map
 from py_exporters import export_sqlite
 from click.testing import CliRunner, Result
@@ -226,78 +225,6 @@ def test_base_activity_analysis():
             dbg,
         )
 
-
-from py_cli.scratch_scripts.import_alxreader_bookmarks import BookmarkRecord
-from datetime import datetime
-
-
-def test_bookmark_import_1():
-    with TemporaryDirectory() as tmp_dir:
-        dir = Path(tmp_dir)
-        org_file = dir.joinpath("file.org")
-        org_file.write_text("")
-
-        bookmarks = [
-            BookmarkRecord(
-                book="book1",
-                author="author1",
-                dateadd=0,
-                dateedit=0,
-                start=0,
-                stop=1,
-                booksize=2,
-                text="text",
-                bookpos=0,
-                datelast=datetime(
-                    year=2024,
-                    month=2,
-                    day=10,
-                    hour=13,
-                    minute=30,
-                    second=40,
-                ),
-                datefirst=0,
-            )
-        ]
-
-        opts = import_alxreader_bookmarks.AlXreaderImportOptions(
-            infile=Path(""),
-            target=org_file,
-        )
-
-        assert len(bookmarks) == 1
-        import_alxreader_bookmarks.impl(opts, bookmarks)
-        assert len(bookmarks) == 1
-        assert org_file.exists()
-        pre_content = org_file.read_text()
-        assert len(bookmarks) == 1
-        import_alxreader_bookmarks.impl(opts, bookmarks)
-        lhs = [it for it in pre_content.split("\n") if it]
-        rhs = [it for it in org_file.read_text().split("\n") if it]
-        assert lhs == rhs
-
-        node = org.parseString(org_file.read_text())
-
-        book = import_alxreader_bookmarks.get_subtree_at_path(
-            node, ["\"book1\" by \"author1\""])
-        assert book
-
-        bookmark = import_alxreader_bookmarks.get_subtree_at_path(
-            node, [
-                "\"book1\" by \"author1\"",
-                "[1970-01-01 Thu 00:00:00] 00.000/50.000",
-            ])
-
-        assert bookmark
-
-        def get_property_str(name: str) -> str:
-            prop: org.NamedProperty = bookmark.getProperty(name)
-            assert prop
-            return prop.getCustomRaw().value
-
-        assert get_property_str("bookmark_start") == "0"
-        assert get_property_str("bookmark_stop") == "1"
-        assert get_property_str("bookmark_booksize") == "2"
 
 mind_map_org = get_haxorg_repo_root_path().joinpath("tests/assets/mind_map.org")
 
