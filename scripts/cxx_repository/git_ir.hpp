@@ -45,7 +45,7 @@ struct id_type<Str> {
 
 namespace ir {
 
-DECL_ID_TYPE(Author, AuthorId, int);
+DECL_ID_TYPE(Author, AuthorId, std::size_t);
 
 /// \defgroup db_mapped Mapped to the database
 

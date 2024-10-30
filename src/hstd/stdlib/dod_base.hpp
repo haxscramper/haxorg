@@ -9,6 +9,7 @@
 
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Slice.hpp>
+#include <hstd/stdlib/Debug.hpp>
 
 
 /// \brief Data-oriented design primitives
@@ -78,7 +79,11 @@ struct [[nodiscard]] Id {
     consteval int getMaskSize() const { return mask_size; }
     /// \brief Get unmasked *value* (do not confuse with index)
     inline IdType getUnmasked() const {
-        return value & ~(~IdType(0) << mask_offset);
+        if (mask_size == 0) {
+            return value;
+        } else {
+            return value & ~(~IdType(0) << mask_offset);
+        }
     }
 
     /// \brief Get mask value
@@ -490,7 +495,8 @@ struct InternStore {
                 "Implementation error, added ID cannot be nil");
             return found->second;
         } else {
-            auto result = mask ? content.add(in, *mask) : content.add(in);
+            auto result = mask.has_value() ? content.add(in, mask.value())
+                                           : content.add(in);
             id_map.insert({in, result});
             LOGIC_ASSERTION_CHECK(
                 !result.isNil(),
