@@ -1627,6 +1627,7 @@ NO_COVERAGE std::shared_ptr<CoverageMapping> get_coverage_mapping(
         }
     }
 
+    LOGIC_ASSERTION_CHECK(fs::exists(tmp_path), "{}", tmp_path);
 
     {
         __perf_trace("llvm", "Load coverage profile data");
@@ -1671,8 +1672,123 @@ struct ProfdataFullProfile {
     DESC_FIELDS(ProfdataFullProfile, (runs));
 };
 
+struct ProfdataRun {
+    int            index;
+    ProfdataCookie run;
+    DESC_FIELDS(ProfdataRun, (index, run));
+};
+
 
 const char* __asan_default_options() { return "detect_leaks=0"; }
+
+void process_runs(
+    Vec<ProfdataRun> const&  runs,
+    ProfdataCLIConfig const& config,
+    int                      full_run_size,
+    std::function<void()>    flush_debug,
+    db_build_ctx&            ctx,
+    queries&                 q,
+    json&                    debug,
+    SQLite::Database&        db) {
+
+    UnorderedMap<
+        std::pair<std::string, std::string>,
+        std::shared_ptr<CoverageMapping>,
+        llvm::pair_hash<std::string, std::string>>
+        coverage_map;
+
+    {
+        __perf_trace("llvm", "Parallel convert of coverage data");
+        std::vector<std::pair<std::string, std::string>> paths{};
+
+        for (auto const& run : runs) {
+            paths.push_back({run.run.test_profile, run.run.test_binary});
+        }
+
+        std::mutex coverage_mutex;
+
+        std::for_each(
+            std::execution::par,
+            paths.begin(),
+            paths.end(),
+            [&](const std::pair<std::string, std::string>& p) {
+                __perf_trace("llvm", "Get coverage mapping task");
+                auto coverage = get_coverage_mapping(p.first, p.second);
+                std::scoped_lock lock{coverage_mutex};
+                coverage_map.emplace(p, std::move(coverage));
+            });
+    }
+
+
+    if (config.coverage_mapping_dump) {
+        LOG(INFO) << fmt(
+            "Coverage mapping dump to {}",
+            config.coverage_mapping_dump.value());
+    }
+
+    for (auto const& run : runs) {
+        __perf_trace("main", "Insert run data");
+        finally{flush_debug};
+        LOG(INFO) << fmt(
+            "[{}/{}] Insert run data profile={} binary={}",
+            run.index,
+            full_run_size,
+            run.run.test_profile,
+            run.run.test_binary);
+
+        add_context(run.run, q, ctx);
+
+        std::shared_ptr<CoverageMapping> mapping = coverage_map.at(
+            {run.run.test_profile, run.run.test_binary});
+
+
+        if (mapping.get() == nullptr) {
+            throw std::logic_error(
+                fmt("Failed to load coverage mapping profile={} binary={}",
+                    run.run.test_profile,
+                    run.run.test_binary));
+        }
+
+        if (config.coverage_mapping_dump) {
+            auto j = to_json_eval(*mapping);
+            auto path //
+                = fs::path{*config.coverage_mapping_dump}
+                / fmt("coverage_mapping_{}.json", run.index);
+
+            LOG(INFO) << fmt("coverage-mapping-dump={}", path);
+            writeFile(path, j.dump(2));
+        }
+
+        json j_run = json::object();
+        {
+            __perf_trace("sql", "Full coverage run info");
+            SQLite::Transaction transaction{db};
+            {
+                __perf_trace("sql", "Covered files");
+                json j_files = json::object();
+                for (auto const& file : mapping->getUniqueSourceFiles()) {
+                    std::string debug;
+                    if (!ctx.file_matches(file.str(), debug)) {
+                        j_files["skipped"].push_back(json::object({
+                            {"file", file.str()},
+                            {"reason", debug},
+                        }));
+                        continue;
+                    }
+                    __perf_trace("sql", "Add file", "File", file.str());
+                    add_file(mapping.get(), file, q, ctx);
+                }
+
+                j_run["covered_files"] = j_files;
+            }
+
+            transaction.commit();
+        }
+
+
+        debug["runs"].push_back(j_run);
+    }
+}
 
 NO_COVERAGE int main(int argc, char** argv) {
     json debug = json::object();
@@ -1728,8 +1844,8 @@ NO_COVERAGE int main(int argc, char** argv) {
 
     if (fs::exists(db_file)) { fs::remove(db_file); }
 
-    SQLite::Database db(
-        db_file.native(), SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+    SQLite::Database db{
+        db_file.native(), SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE};
     CreateTables(db);
     queries q{db};
 
@@ -1759,105 +1875,28 @@ NO_COVERAGE int main(int argc, char** argv) {
     ctx.file_blacklist = get_regex_list(config.file_blacklist);
     ctx.file_whitelist = get_regex_list(config.file_whitelist);
 
-
-    UnorderedMap<
-        std::pair<std::string, std::string>,
-        std::shared_ptr<CoverageMapping>,
-        llvm::pair_hash<std::string, std::string>>
-        coverage_map;
-
-    {
-        __perf_trace("llvm", "Parallel convert of coverage data");
-        std::vector<std::pair<std::string, std::string>> paths{};
-
-        for (auto const& run : summary.runs) {
-            paths.push_back({run.test_profile, run.test_binary});
-        }
-
-        std::mutex coverage_mutex;
-
-        std::for_each(
-            std::execution::par,
-            paths.begin(),
-            paths.end(),
-            [&](const std::pair<std::string, std::string>& p) {
-                __perf_trace("llvm", "Get coverage mapping task");
-                auto coverage = get_coverage_mapping(p.first, p.second);
-                std::scoped_lock lock{coverage_mutex};
-                coverage_map.emplace(p, std::move(coverage));
-            });
-    }
-
-
-    if (config.coverage_mapping_dump) {
-        LOG(INFO) << fmt(
-            "Coverage mapping dump to {}",
-            config.coverage_mapping_dump.value());
-    }
-
+    Vec<Vec<ProfdataRun>> runGroups;
+    int                   group = 2;
     for (auto const& [run_idx, run] : enumerate(summary.runs)) {
-        __perf_trace("main", "Insert run data");
-        finally{flush_debug};
-        LOG(INFO) << fmt(
-            "[{}/{}] Insert run data profile={} binary={}",
-            run_idx,
-            summary.runs.size(),
-            run.test_profile,
-            run.test_binary);
+        if (run_idx % group == 0) { runGroups.push_back({}); }
 
-        add_context(run, q, ctx);
-
-        std::shared_ptr<CoverageMapping> mapping = coverage_map.at(
-            {run.test_profile, run.test_binary});
-
-
-        if (mapping.get() == nullptr) {
-            throw std::logic_error(
-                fmt("Failed to load coverage mapping profile={} binary={}",
-                    run.test_profile,
-                    run.test_binary));
-        }
-
-        if (config.coverage_mapping_dump) {
-            auto j = to_json_eval(*mapping);
-            auto path //
-                = fs::path{*config.coverage_mapping_dump}
-                / fmt("coverage_mapping_{}.json", run_idx);
-
-            LOG(INFO) << fmt("coverage-mapping-dump={}", path);
-            writeFile(path, j.dump(2));
-        }
-
-        json j_run = json::object();
-        {
-            __perf_trace("sql", "Full coverage run info");
-            SQLite::Transaction transaction(db);
-            {
-                __perf_trace("sql", "Covered files");
-                json j_files = json::object();
-                for (auto const& file : mapping->getUniqueSourceFiles()) {
-                    std::string debug;
-                    if (!ctx.file_matches(file.str(), debug)) {
-                        j_files["skipped"].push_back(json::object({
-                            {"file", file.str()},
-                            {"reason", debug},
-                        }));
-                        continue;
-                    }
-                    __perf_trace("sql", "Add file", "File", file.str());
-                    add_file(mapping.get(), file, q, ctx);
-                }
-
-                j_run["covered_files"] = j_files;
-            }
-
-            transaction.commit();
-        }
-
-
-        debug["runs"].push_back(j_run);
+        runGroups.back().push_back(ProfdataRun{
+            .index = run_idx,
+            .run   = run,
+        });
     }
 
+    for (auto const& group : runGroups) {
+        process_runs(
+            group,
+            config,
+            summary.runs.size(),
+            flush_debug,
+            ctx,
+            q,
+            debug,
+            db);
+    }
 
     if (config.perf_trace) {
         fs::path out_path{config.perf_trace.value()};
