@@ -171,8 +171,8 @@ class OrgGenCtx():
 
         result = result - set([
             osk.FileTarget,
-            osk.CmdArgument,
-            osk.CmdArguments,
+            osk.Attr,
+            osk.Attrs,
             osk.DocumentOptions,
             osk.Empty,
             osk.SubtreeLog,
@@ -197,7 +197,7 @@ class OrgGenCtx():
 
         if self.isAtRecursionLimit():
             result = result - set(
-                osk.Footnote,
+                osk.InlineFootnote,
                 osk.Link,
                 osk.Symbol,
                 osk.TimeRange,
@@ -304,11 +304,11 @@ def build_HashTag(draw: st.DrawFn, ctx: OrgGenCtx):
 
 
 @st.composite
-def build_Footnote(draw: st.DrawFn, ctx: OrgGenCtx):
+def build_InlineFootnote(draw: st.DrawFn, ctx: OrgGenCtx):
     return draw(
-        st.builds(org.Footnote,
+        st.builds(org.InlineFootnote,
                   head=st.from_regex("[a-zA-Z]+", fullmatch=True),
-                  definition=st.one_of(None, build_Paragraph(ctx.rec(osk.Footnote)))))
+                  definition=st.one_of(None, build_Paragraph(ctx.rec(osk.InlineFootnote)))))
 
 
 @st.composite
@@ -392,8 +392,8 @@ def build_BlockVerse(draw: st.DrawFn, ctx: OrgGenCtx):
 
 
 @st.composite
-def build_CmdArguments(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.CmdArguments))
+def build_Attrs(draw: st.DrawFn, ctx: OrgGenCtx):
+    return draw(st.builds(org.Attrs))
 
 
 @st.composite
@@ -402,8 +402,8 @@ def build_CmdAttr(draw: st.DrawFn, ctx: OrgGenCtx):
 
 
 @st.composite
-def build_CmdArgument(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.CmdArgument))
+def build_Attr(draw: st.DrawFn, ctx: OrgGenCtx):
+    return draw(st.builds(org.Attr))
 
 
 def build_raw_text_block(ctx: OrgGenCtx):
@@ -636,8 +636,8 @@ def node_strategy(draw, ctx: OrgGenCtx):
             return draw(build_Table(ctx=ctx))
         case osk.HashTag:
             return draw(build_HashTag(ctx=ctx))
-        case osk.Footnote:
-            return draw(build_Footnote(ctx=ctx))
+        case osk.InlineFootnote:
+            return draw(build_InlineFootnote(ctx=ctx))
         case osk.SubtreeCompletion:
             return draw(build_SubtreeCompletion(ctx=ctx))
         case osk.Paragraph:
@@ -658,12 +658,12 @@ def node_strategy(draw, ctx: OrgGenCtx):
             return draw(build_BlockVerse(ctx=ctx))
         case osk.BlockExample:
             return draw(build_BlockExample(ctx=ctx))
-        case osk.CmdArguments:
-            return draw(build_CmdArguments(ctx=ctx))
+        case osk.Attrs:
+            return draw(build_Attrs(ctx=ctx))
         case osk.CmdAttr:
             return draw(build_CmdAttr(ctx=ctx))
-        case osk.CmdArgument:
-            return draw(build_CmdArgument(ctx=ctx))
+        case osk.Attr:
+            return draw(build_Attr(ctx=ctx))
         case osk.BlockExport:
             return draw(build_BlockExport(ctx=ctx))
         case osk.BlockAdmonition:

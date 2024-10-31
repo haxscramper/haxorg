@@ -87,7 +87,7 @@ class ExporterHtml(ExporterBase):
     def evalAtMention(self, node: org.AtMention) -> text:
         return text("@" + node.text)
 
-    def evalFootnote(self, node: org.Footnote) -> text:
+    def evalInlineFootnote(self, node: org.InlineFootnote) -> text:
         return text("Footnote")
 
     def evalBold(self, node: org.Bold) -> tags.b:
@@ -117,14 +117,6 @@ class ExporterHtml(ExporterBase):
             add_html(par, self.eval(sub))
 
         return par
-    
-    def evalAnnotatedParagraph(self, node: org.AnnotatedParagraph):
-        par = []
-        for sub in node:
-            add_html(par, self.eval(sub))
-
-        return par
-
 
     def evalSubtree(self, node: org.Subtree):
         tree = None

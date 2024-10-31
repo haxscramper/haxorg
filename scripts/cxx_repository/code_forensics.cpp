@@ -61,7 +61,7 @@ void InsertCommits(
 
     for (const auto& [id, item] : commits.pairs()) {
         query.bind(1, idcast(id.getValue()));
-        query.bind(2, item->author.getValue());
+        query.bind(2, static_cast<i64>(item->author.getValue()));
         query.bind(3, static_cast<i64>(item->time));
         query.bind(4, item->timezone);
         query.bind(5, item->hash.toBase());
@@ -164,7 +164,7 @@ void InsertAuthors(
     SQLite::Statement query(db, "INSERT INTO Author VALUES (?, ?, ?)");
 
     for (const auto& [id, item] : authors.pairs()) {
-        query.bind(1, id.getValue());
+        query.bind(1, static_cast<i64>(id.getValue()));
         query.bind(2, item->name.toBase());
         query.bind(3, item->email.toBase());
 

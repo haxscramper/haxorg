@@ -778,11 +778,8 @@ FuzzyMatcher::ScoreFunc FuzzyMatcher::getLinearScore(
 
             if (0 == currIdx) {
                 outScore += conf.first_letter_bonus;
-            } else {
-                if (conf.isSeparator
-                    && conf.isSeparator(matches[currIdx - 1])) {
-                    outScore += conf.separator_bonus;
-                }
+            } else if (conf.isSeparator && conf.isSeparator(currIdx)) {
+                outScore += conf.separator_bonus;
             }
         }
         return outScore;

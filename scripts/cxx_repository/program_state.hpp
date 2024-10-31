@@ -153,6 +153,7 @@ struct walker_state {
     }
 
     void add_id_mapping(CR<git_oid> oid, ir::CommitId id) {
+        LOGIC_ASSERTION_CHECK(!id.isNil(), "commit ID cannot be nil");
         commit_ids.insert({oid, id});
     }
 

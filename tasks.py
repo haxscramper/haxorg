@@ -304,6 +304,7 @@ def org_task(
         task_name: Optional[str] = None,
         pre: List[Callable] = [],
         force_notify: bool = False,
+        pre_optional: List[Callable] = [],
         help=dict(),
         **kwargs,
 ) -> Callable:
@@ -960,7 +961,7 @@ def cmake_haxorg(
                     "--build",
                     build_dir,
                     "--target",
-                    *target,
+                    *cond(0 < len(target), target, ["all"]),
                     "--parallel",
                     *(["--", *ninja_flag] if 0 < len(ninja_flag) else []),
                 ],
@@ -977,7 +978,7 @@ def cmake_install_dev(ctx: Context, perfetto: bool = False):
     install_dir = get_build_root().joinpath("install")
     if install_dir.exists():
         shutil.rmtree(install_dir)
-
+        
     run_command(
         ctx,
         "cmake",
@@ -1142,17 +1143,22 @@ def update_py_haxorg_reflection(
 
 
 # TODO Make compiled reflection generation build optional
-@org_task(pre=[
+@org_task(pre_optional=[
     cmake_haxorg,
     update_py_haxorg_reflection,
     symlink_build,
 ])
-def haxorg_codegen(ctx: Context, as_diff: bool = False):
+def haxorg_codegen(ctx: Context, tmp: bool = False, standalone: bool = False):
     """Update auto-generated source files"""
     # TODO source file generation should optionally overwrite the target OR
     # compare the new and old source code (to avoid breaking the subsequent
     # compilation of the source)
     log(CAT).info("Executing haxorg code generation step.")
+    if not standalone:
+        run_self(ctx, ["cmake-haxorg"])
+        run_self(ctx, ["update-py-haxorg-reflection"])
+        run_self(ctx, ["symlink-build"])
+
     for task in CODEGEN_TASKS:
         run_command(
             ctx,
@@ -1162,6 +1168,7 @@ def haxorg_codegen(ctx: Context, as_diff: bool = False):
                 get_script_root("scripts/py_codegen/py_codegen/codegen.py"),
                 "--reflection_path={}".format(get_build_root().joinpath(f"{task}.pb")),
                 f"--codegen_task={task}",
+                f"--tmp={tmp}",
             ],
             env=get_py_env(ctx),
         )

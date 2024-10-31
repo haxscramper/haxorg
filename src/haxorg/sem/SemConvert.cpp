@@ -8,7 +8,9 @@
 #include <boost/preprocessor/facilities/empty.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <haxorg/exporters/exportertree.hpp>
+#include <boost/algorithm/string/replace.hpp>
 #include <absl/log/log.h>
+#include <haxorg/sem/SemOrgFormat.hpp>
 
 
 struct convert_logic_error : CRTP_hexception<convert_logic_error> {};
@@ -18,7 +20,7 @@ using namespace sem;
 using onk      = OrgNodeKind;
 using otk      = OrgTokenKind;
 using Err      = OrgConverter::Errors;
-using Property = sem::Subtree::Property;
+using Property = sem::NamedProperty;
 
 namespace {
 bool org_streq(CR<Str> str1, CR<Str> str2) {
@@ -95,24 +97,24 @@ OrgConverter::ConvResult<Table> OrgConverter::convertTable(__args) {
 
     if (auto args = one(a, N::Args);
         args.getKind() == onk::InlineStmtList) {
-        result->isBlock    = true;
-        result->parameters = convertCmdArguments(args).value();
+        result->isBlock = true;
+        result->attrs   = convertAttrs(args).value();
     }
 
     for (auto const& in_row : many(a, N::Rows)) {
         SemId<Row> row = Sem<Row>(in_row);
         if (auto args = one(in_row, N::Args);
             args.getKind() == onk::InlineStmtList) {
-            row->isBlock    = true;
-            row->parameters = convertCmdArguments(args).value();
+            row->isBlock = true;
+            row->attrs   = convertAttrs(args).value();
         }
 
         for (auto const& in_cell : one(in_row, N::Body)) {
             SemId<Cell> cell = Sem<Cell>(in_cell);
             if (auto args = one(in_cell, N::Args);
                 args.getKind() == onk::InlineStmtList) {
-                cell->isBlock    = true;
-                cell->parameters = convertCmdArguments(args).value();
+                cell->isBlock = true;
+                cell->attrs   = convertAttrs(args).value();
             }
 
             for (auto const& sub : one(in_cell, N::Body)) {
@@ -400,22 +402,20 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         auto par0 = par->at(0);
 
         if (par0->is(osk::Time)) {
-            created.time = par0.as<sem::Time>();
+            created.time = par0.as<sem::Time>()->getStatic().time;
             result       = Property(created);
         } else {
-            throw convert_logic_error::init(
-                fmt("Could not extract time from 'created' property\n{}",
-                    a.treeRepr(false)));
+            return SemError(
+                a,
+                fmt("Could not parse property 'created' of the subtree -- "
+                    "expected time node, but found {} at {}",
+                    par0->getKind(),
+                    getLocMsg(a)));
         }
-
-    } else if (name == "origin") {
-        Property::Origin origin;
-        origin.text = convert(one(a, N::Values)).as<sem::Paragraph>();
-        result      = Property(origin);
 
     } else if (name == "visibility") {
         if (auto visibility = parseOrgEnum<
-                sem::Subtree::Property::Visibility::Level>(
+                sem::NamedProperty::Visibility::Level>(
                 get_text(one(a, N::Values).at(0)));
             visibility) {
             Property::Visibility prop;
@@ -426,9 +426,9 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         }
 
     } else if (name == "effort") {
-        Str const&       value    = get_text(one(a, N::Values));
-        Vec<Str>         duration = value.split(":");
-        Property::Effort prop;
+        Str const&            value    = get_text(one(a, N::Values));
+        Vec<Str>              duration = value.split(":");
+        NamedProperty::Effort prop;
 
         if (duration.size() == 1) {
             prop.minutes = duration[0].toInt();
@@ -437,10 +437,10 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
             prop.hours   = duration[0].toInt();
         }
 
-        result = Property(prop);
+        result = NamedProperty(prop);
 
     } else {
-        Property::CustomRaw prop;
+        NamedProperty::CustomRaw prop;
         prop.name = basename;
         if (one(a, N::Values).kind() == onk::RawText) {
             prop.value = get_text(one(a, N::Values));
@@ -449,29 +449,31 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
                 prop.value += get_text(arg);
             }
         }
-        result = Property(prop);
+        result = NamedProperty(prop);
     }
 
     if (false && result) {
         const auto inh = get_text(one(a, N::InheritanceMode));
         if (inh == "!!") {
-            result->inheritanceMode = Property::InheritanceMode::OnlyThis;
+            result->inheritanceMode = NamedProperty::InheritanceMode::
+                OnlyThis;
         } else if (inh == "!") {
-            result->inheritanceMode = Property::InheritanceMode::OnlySub;
+            result->inheritanceMode = NamedProperty::InheritanceMode::
+                OnlySub;
         }
 
         const auto sub = get_text(one(a, N::SubSetRule));
         if (sub == "+") {
-            result->subSetRule = Property::SetMode::Add;
+            result->subSetRule = NamedProperty::SetMode::Add;
         } else if (sub == "-") {
-            result->subSetRule = Property::SetMode::Subtract;
+            result->subSetRule = NamedProperty::SetMode::Subtract;
         }
 
         const auto main = get_text(one(a, N::MainSetRule));
         if (main == "+") {
-            result->subSetRule = Property::SetMode::Add;
+            result->subSetRule = NamedProperty::SetMode::Add;
         } else if (main == "-") {
-            result->subSetRule = Property::SetMode::Subtract;
+            result->subSetRule = NamedProperty::SetMode::Subtract;
         }
     }
 
@@ -682,13 +684,13 @@ OrgConverter::ConvResult<TimeRange> OrgConverter::convertTimeRange(
     return range;
 }
 
-void addArgument(SemId<CmdArguments>& result, SemId<CmdArgument> arg) {
-    if (arg->key) {
-        auto key = normalize(*arg->key);
+void addArgument(SemId<Attrs>& result, SemId<Attr> arg) {
+    if (arg->arg.name) {
+        auto key = normalize(arg->getName());
         if (result->named.contains(key)) {
             result->named[key]->args.push_back(arg);
         } else {
-            auto args = SemId<CmdArgumentList>::New();
+            auto args = SemId<AttrList>::New();
             args->args.push_back(arg);
             result->named.insert({key, args});
         }
@@ -699,10 +701,10 @@ void addArgument(SemId<CmdArguments>& result, SemId<CmdArgument> arg) {
 
 OrgConverter::ConvResult<Macro> OrgConverter::convertMacro(__args) {
     __perf_trace("convert", "convertMacro");
-    auto __trace      = trace(a);
-    auto macro        = Sem<Macro>(a);
-    macro->name       = get_text(one(a, N::Name));
-    macro->parameters = convertCallArguments(many(a, N::Args), a).value();
+    auto __trace = trace(a);
+    auto macro   = Sem<Macro>(a);
+    macro->name  = get_text(one(a, N::Name));
+    macro->attrs = convertCallArguments(many(a, N::Args), a).value();
     return macro;
 }
 
@@ -751,72 +753,6 @@ OrgConverter::ConvResult<Paragraph> OrgConverter::convertParagraph(
     return par;
 }
 
-namespace {
-OrgSet AnnotatedParagraphStarts{
-    onk::BigIdent,
-    onk::Footnote,
-    onk::StaticActiveTime,
-    onk::StaticInactiveTime};
-}
-
-OrgConverter::ConvResult<AnnotatedParagraph> OrgConverter::
-    convertAnnotatedParagraph(__args) {
-    auto __trace = trace(a);
-    auto par     = Sem<AnnotatedParagraph>(a);
-    auto it      = a.begin();
-    switch ((*it).getKind()) {
-        case onk::Footnote: {
-            auto footnote = convertFootnote(*it).value();
-            ++it;
-            par->data = AnnotatedParagraph::Footnote{
-                .name = footnote->tag,
-            };
-            break;
-        }
-
-        case onk::BigIdent: {
-            auto ident = convertBigIdent(*it).value();
-            ++it;
-            if ((*it).getKind() == onk::Colon) { ++it; }
-            par->data = AnnotatedParagraph::Admonition{.name = ident};
-            break;
-        }
-
-        case onk::StaticActiveTime:
-        case onk::StaticInactiveTime: {
-            auto time = convertTime(*it).value();
-            ++it;
-            par->data = AnnotatedParagraph::Timestamp{.time = time};
-            break;
-        }
-
-        default: {
-            return SemError(
-                a,
-                fmt("Unhanled annotated paragraph start node {}",
-                    a.at(0).getKind()));
-        }
-    }
-
-
-    auto end = a.end();
-
-    while (it != end && (*it).getKind() == onk::Space) { ++it; }
-
-    while (it != end) {
-        par->push_back(convert(*it));
-        ++it;
-    }
-
-    while (!par->subnodes.empty()
-           && SemSet{osk::Newline, osk::Space}.contains(
-               par->subnodes.back()->getKind())) {
-        par->subnodes.pop_back();
-    }
-
-    return par;
-}
-
 OrgConverter::ConvResult<StmtList> OrgConverter::convertStmtList(__args) {
     __perf_trace("convert", "convertStmtList");
     auto __trace = trace(a);
@@ -828,18 +764,13 @@ OrgConverter::ConvResult<StmtList> OrgConverter::convertStmtList(__args) {
 }
 
 
-OrgConverter::ConvResult<Footnote> OrgConverter::convertFootnote(__args) {
-    __perf_trace("convert", "convertFootnote");
-    auto __trace = trace(a);
-    if (a.kind() == onk::InlineFootnote) {
-        auto note        = Sem<Footnote>(a);
-        note->definition = convert(one(a, N::Definition));
-        return note;
-    } else {
-        auto link = Sem<Footnote>(a);
-        link->tag = get_text(one(a, N::Definition));
-        return link;
-    }
+OrgConverter::ConvResult<InlineFootnote> OrgConverter::
+    convertInlineFootnote(__args) {
+    __perf_trace("convert", "convertInlineFootnote");
+    auto __trace     = trace(a);
+    auto note        = Sem<InlineFootnote>(a);
+    note->definition = convert(one(a, N::Definition));
+    return note;
 }
 
 OrgConverter::ConvResult<Link> OrgConverter::convertLink(__args) {
@@ -1086,6 +1017,20 @@ OrgConverter::ConvResult<BlockExample> OrgConverter::convertBlockExample(
     return result;
 }
 
+OrgConverter::ConvResult<BlockDynamicFallback> OrgConverter::
+    convertBlockDynamicFallback(__args) {
+    SemId<BlockDynamicFallback> result = Sem<BlockDynamicFallback>(a);
+    result->attrs = convertAttrs(one(a, N::Args)).optNode();
+
+    result->name = normalize(get_text(one(a, N::Name)));
+    boost::replace_all(result->name, "begin", "");
+    for (auto const& it : many(a, N::Body)) {
+        result->subnodes.push_back(convert(it));
+    }
+
+    return result;
+}
+
 OrgConverter::ConvResult<ColonExample> OrgConverter::convertColonExample(
     __args) {
     SemId<ColonExample> result = Sem<ColonExample>(a);
@@ -1110,15 +1055,15 @@ OrgConverter::ConvResult<BlockExport> OrgConverter::convertBlockExport(
         }
     }
 
-    auto values = convertCmdArguments(one(a, N::Args)).value();
-    if (auto place = values->getArguments("placement"); place) {
-        eexport->placement = place->value->args.at(0)->getString();
+    auto values = convertAttrs(one(a, N::Args)).value();
+    if (auto place = values->getAttrs("placement"); !place.empty()) {
+        eexport->placement = place.at(0).getString();
         values->named.erase("placement");
     }
 
 
-    eexport->exporter   = get_text(one(a, N::Name));
-    eexport->parameters = values;
+    eexport->exporter = get_text(one(a, N::Name));
+    eexport->attrs    = values;
     {
         auto lines = one(a, N::Body);
         int  idx   = 0;
@@ -1147,7 +1092,7 @@ OrgConverter::ConvResult<BlockQuote> OrgConverter::convertBlockQuote(
     SemId<BlockQuote> quote = Sem<BlockQuote>(a);
 
     if (auto args = one(a, N::Args); args.kind() != onk::Empty) {
-        quote->parameters = convertCmdArguments(args).value();
+        quote->attrs = convertAttrs(args).value();
     }
 
     for (const auto& sub : flatConvertAttached(many(a, N::Body))) {
@@ -1176,11 +1121,11 @@ OrgConverter::ConvResult<Latex> OrgConverter::convertMath(__args) {
 
 OrgConverter::ConvResult<Include> OrgConverter::convertInclude(__args) {
     SemId<Include> include = Sem<Include>(a);
-    auto           args    = convertCmdArguments(one(a, N::Args)).value();
-    include->path          = args->positional->args.at(0)->getString();
+    auto           args    = convertAttrs(one(a, N::Args)).value();
+    include->path          = args->positional->args.at(0)->arg.getString();
 
     if (auto kind = args->positional->args.get(1)) {
-        Str ks = kind.value().get()->value;
+        Str ks = kind.value().get()->arg.value;
         if (ks == "src"_ss) {
             auto src      = sem::Include::Src{};
             include->data = src;
@@ -1194,14 +1139,13 @@ OrgConverter::ConvResult<Include> OrgConverter::convertInclude(__args) {
     }
 
     if (args->named.contains("minlevel")) {
-        include->getOrgDocument().minLevel = args->named.at("minlevel")
-                                                 ->args.at(0)
-                                                 ->getInt();
+        include->getOrgDocument().minLevel //
+            = args->named.at("minlevel")->args.at(0)->arg.getInt();
     }
 
     if (args->named.contains("lines")) {
         Str lines = strip(
-            (**args->getArguments("lines")).args.at(0)->getString(),
+            args->getAttrs("lines").at(0).getString(),
             CharSet{'"'},
             CharSet{'"'});
         Vec<Str> split = lines.split("-");
@@ -1229,35 +1173,33 @@ OrgConverter::ConvResult<AtMention> OrgConverter::convertAtMention(
     return SemLeaf<AtMention>(a);
 }
 
-OrgConverter::ConvResult<CmdArgument> OrgConverter::convertCmdArgument(
-    __args) {
-    auto               __trace = trace(a);
-    SemId<CmdArgument> result  = Sem<CmdArgument>(a);
-    Str                key     = get_text(one(a, N::Name));
-    result->value              = get_text(one(a, N::Value));
+OrgConverter::ConvResult<Attr> OrgConverter::convertAttr(__args) {
+    auto        __trace = trace(a);
+    SemId<Attr> result  = Sem<Attr>(a);
+    Str         key     = get_text(one(a, N::Name));
+    result->arg.value   = get_text(one(a, N::Value));
 
-    if (!key.empty()) { result->key = key.substr(1); }
+    if (!key.empty()) { result->arg.name = key.substr(1); }
 
     if (TraceState) {
-        print(fmt("key:{} value:{}", result->key, result->value));
+        print(fmt("key:{} value:{}", result->arg.name, result->arg.value));
     }
 
     return result;
 }
 
-OrgConverter::ConvResult<CmdArguments> OrgConverter::convertCmdArguments(
-    __args) {
-    auto                __trace = trace(a);
-    SemId<CmdArguments> result  = Sem<CmdArguments>(a);
-    result->positional          = SemId<CmdArgumentList>::New();
+OrgConverter::ConvResult<Attrs> OrgConverter::convertAttrs(__args) {
+    auto         __trace = trace(a);
+    SemId<Attrs> result  = Sem<Attrs>(a);
+    result->positional   = SemId<AttrList>::New();
 
-    if (a.getKind() == onk::CmdArguments) {
+    if (a.getKind() == onk::Attrs) {
         for (auto const& item : one(a, N::Values)) {
-            addArgument(result, convertCmdArgument(item).value());
+            addArgument(result, convertAttr(item).value());
         }
     } else if (a.getKind() == onk::InlineStmtList) {
         for (auto const& it : a) {
-            addArgument(result, convertCmdArgument(it).value());
+            addArgument(result, convertAttr(it).value());
         }
     } else {
         CHECK(a.getKind() == onk::Empty) << a.treeRepr();
@@ -1266,22 +1208,22 @@ OrgConverter::ConvResult<CmdArguments> OrgConverter::convertCmdArguments(
     return result;
 }
 
-OrgConverter::ConvResult<CmdArguments> OrgConverter::convertCallArguments(
+OrgConverter::ConvResult<Attrs> OrgConverter::convertCallArguments(
     CVec<In> args,
     In       source) {
-    auto result        = Sem<CmdArguments>(source);
-    result->positional = SemId<CmdArgumentList>::New();
+    auto result        = Sem<Attrs>(source);
+    result->positional = SemId<AttrList>::New();
 
     for (auto const& arg : args) {
-        auto conv = Sem<CmdArgument>(arg);
+        auto conv = Sem<Attr>(arg);
         if (2 < arg.size() && get_text(arg.at(1)) == "=") {
-            conv->key = get_text(arg.at(0));
+            conv->arg.name = get_text(arg.at(0));
             for (int i = 2; i < arg.size(); ++i) {
-                conv->value += get_text(arg.at(i));
+                conv->arg.value += get_text(arg.at(i));
             }
         } else {
             for (int i = 0; i < arg.size(); ++i) {
-                conv->value += get_text(arg.at(i));
+                conv->arg.value += get_text(arg.at(i));
             }
         }
 
@@ -1295,7 +1237,7 @@ OrgConverter::ConvResult<CmdAttr> OrgConverter::convertCmdAttr(__args) {
     auto           __trace = trace(a);
     SemId<CmdAttr> result  = Sem<CmdAttr>(a);
     result->target         = normalize(get_text(one(a, N::Name)));
-    result->parameters     = convertCmdArguments(one(a, N::Args)).value();
+    result->attrs          = convertAttrs(one(a, N::Args)).value();
 
     return result;
 }
@@ -1303,10 +1245,10 @@ OrgConverter::ConvResult<CmdAttr> OrgConverter::convertCmdAttr(__args) {
 OrgConverter::ConvResult<CmdName> OrgConverter::convertCmdName(__args) {
     auto           __trace = trace(a);
     SemId<CmdName> result  = Sem<CmdName>(a);
-    auto           args    = convertCmdArgument(a.at(0).at(0));
+    auto           args    = convertAttr(a.at(0).at(0));
 
     if (auto name = args.optNode()) {
-        result->name = name->value->getString();
+        result->name = name->value->arg.value;
     } else {
         result->push_back(args.optError().value());
     }
@@ -1363,28 +1305,26 @@ OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(
     }
 
     if (one(a, N::HeaderArgs).kind() != onk::Empty) {
-        auto args = convertCmdArguments(one(a, N::HeaderArgs))
-                        .optNode()
-                        .value();
-        result->parameters = args;
+        auto args = convertAttrs(one(a, N::HeaderArgs)).optNode().value();
+        result->attrs = args;
     }
 
     if (a.kind() == onk::SrcInlineCode) {
-        BlockCode::Line& line = result->lines.emplace_back();
+        BlockCodeLine& line = result->lines.emplace_back();
         for (auto const& it : one(a, N::Body)) {
             line.parts.push_back(
-                BlockCode::Line::Part(BlockCode::Line::Part::Raw{
+                BlockCodeLine::Part(BlockCodeLine::Part::Raw{
                     .code = get_text(it),
                 }));
         }
     } else {
         for (auto const& it : one(a, N::Body)) {
-            BlockCode::Line& line = result->lines.emplace_back();
+            BlockCodeLine& line = result->lines.emplace_back();
             for (auto const& part : it) {
                 switch (part.kind()) {
                     case onk::CodeText: {
-                        line.parts.push_back(BlockCode::Line::Part(
-                            BlockCode::Line::Part::Raw{
+                        line.parts.push_back(
+                            BlockCodeLine::Part(BlockCodeLine::Part::Raw{
                                 .code = get_text(part),
                             }));
                         break;
@@ -1398,9 +1338,17 @@ OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(
     }
 
     if (auto res = one(a, N::Result); res.kind() != onk::Empty) {
-        auto body      = one(res, N::Body);
-        result->result = sem::BlockCode::EvalResult{
-            sem::BlockCode::EvalResult::OrgValue{.value = convert(body)}};
+        auto body = one(res, N::Body);
+        auto conv = convert(body);
+        if (auto link = conv.asOpt<sem::Link>(); link && link->isFile()) {
+            result->result = sem::BlockCodeEvalResult{
+                sem::BlockCodeEvalResult::File{
+                    .path = link->getFile().file}};
+        } else {
+            result->result = sem::BlockCodeEvalResult{
+                sem::BlockCodeEvalResult::Raw{
+                    .text = sem::Formatter::format(conv)}};
+        }
     }
 
     return result;
@@ -1410,11 +1358,10 @@ OrgConverter::ConvResult<Call> OrgConverter::convertCall(__args) {
     __perf_trace("convert", "convertCall");
     auto __trace = trace(a);
     if (a.kind() == onk::CmdCallCode) {
-        auto call        = Sem<Call>(a);
-        call->name       = get_text(one(a, N::Name));
-        call->isCommand  = true;
-        call->parameters = convertCallArguments(many(a, N::Args), a)
-                               .value();
+        auto call       = Sem<Call>(a);
+        call->name      = get_text(one(a, N::Name));
+        call->isCommand = true;
+        call->attrs = convertCallArguments(many(a, N::Args), a).value();
         return call;
     } else {
         return SemError(a, "TODO Convert inline call");
@@ -1450,6 +1397,33 @@ Vec<OrgConverter::ConvResult<Org>> OrgConverter::flatConvertAttached(
                 } else {
                     res_stmt->attached = buffer;
                 }
+
+
+                int offset = 0;
+
+                Opt<CRw<OrgAdapter>> next_opt = items.get(i + offset + 1);
+                while (next_opt) {
+                    if (next_opt->get().getKind() == onk::CmdTblfm) {
+                        print(
+                            fmt("tblfm attached {} + {} {}",
+                                i,
+                                offset,
+                                next_opt->get().id));
+                        auto tblfm = convertCmdTblfm(next_opt->get());
+                        res_stmt->attached.push_back(tblfm.unwrap());
+                        ++offset;
+                    } else {
+                        print(
+                            fmt("next node is not post-attached {}",
+                                next_opt->get().getKind()));
+                        break;
+                    }
+
+                    next_opt = items.get(i + offset + 1);
+                }
+
+                i += offset;
+
             } else {
                 print(
                     fmt("{} is not a statement, releasing attached",
@@ -1457,19 +1431,10 @@ Vec<OrgConverter::ConvResult<Org>> OrgConverter::flatConvertAttached(
                 for (auto const& buf : buffer) { result.push_back(buf); }
             }
             buffer.clear();
+
+
             result.push_back(res);
         }
-
-        int offset = 0;
-        for (auto next_opt = items.get(i + offset + 1);
-             next_opt && next_opt->get().getKind() == onk::CmdTblfm;
-             ++offset) {
-
-            auto tblfm = convertCmdTblfm(next_opt->get());
-            throw convert_logic_error::init("TODO");
-        }
-
-        i += offset;
     }
 
     for (auto const& buf : buffer) { result.push_back(buf); }
@@ -1521,7 +1486,7 @@ SemId<Org> OrgConverter::convert(__args) {
         case onk::InlineStmtList: return convertStmtList(a).unwrap();
         case onk::SrcInlineCode:
         case onk::BlockCode: return convertBlockCode(a).unwrap();
-        case onk::InlineFootnote: return convertFootnote(a).unwrap();
+        case onk::InlineFootnote: return convertInlineFootnote(a).unwrap();
         case onk::BlockExport: return convertBlockExport(a).unwrap();
         case onk::Macro: return convertMacro(a).unwrap();
         case onk::Monospace: return convertMonospace(a).unwrap();
@@ -1551,24 +1516,9 @@ SemId<Org> OrgConverter::convert(__args) {
         case onk::CmdCaption: return convertCmdCaption(a).unwrap();
         case onk::CmdName: return convertCmdName(a).unwrap();
         case onk::CmdCallCode: return convertCall(a).unwrap();
-        case onk::Paragraph: {
-            if (2 < a.size()
-                && AnnotatedParagraphStarts.contains(a.at(0).kind())) {
-                if (a.at(0).kind() == onk::BigIdent) {
-                    // NOTE: ....
-                    if (2 < a.size() && a.at(1).kind() == onk::Colon) {
-                        return convertAnnotatedParagraph(a).unwrap();
-                    } else {
-                        return convertParagraph(a).unwrap();
-                    }
-                } else {
-                    return convertAnnotatedParagraph(a).unwrap();
-                }
-            } else {
-                return convertParagraph(a).unwrap();
-            }
-        }
-
+        case onk::Paragraph: return convertParagraph(a).unwrap();
+        case onk::BlockDynamicFallback:
+            return convertBlockDynamicFallback(a).unwrap();
         default: {
             return SemError(a, fmt("ERR Unknown content {}", a.getKind()));
         }
@@ -1591,22 +1541,22 @@ void OrgConverter::convertDocumentOptions(
             auto tail  = split[1];
             if (org_streq(head, "broken-links")) {
                 if (org_streq(tail, "mark")) {
-                    opts->exportConfig.brokenLinks = DocumentOptions::
-                        ExportConfig::BrokenLinks::Mark;
+                    opts->exportConfig.brokenLinks = DocumentExportConfig::
+                        BrokenLinks::Mark;
                 } else if (org_streq(tail, "t")) {
-                    opts->exportConfig.brokenLinks = DocumentOptions::
-                        ExportConfig::BrokenLinks::Ignore;
+                    opts->exportConfig.brokenLinks = DocumentExportConfig::
+                        BrokenLinks::Ignore;
                 }
             } else if (org_streq(head, "toc")) {
                 if (org_streq(tail, "t")) {
-                    opts->exportConfig.tocExport = DocumentOptions::
-                        ExportConfig::DoExport{true};
+                    opts->exportConfig.tocExport = DocumentExportConfig::
+                        DoExport{true};
                 } else if (org_streq(tail, "nil")) {
-                    opts->exportConfig.tocExport = DocumentOptions::
-                        ExportConfig::DoExport{false};
+                    opts->exportConfig.tocExport = DocumentExportConfig::
+                        DoExport{false};
                 } else if ('0' <= tail[0] && tail[0] <= '9') {
-                    opts->exportConfig.tocExport = DocumentOptions::
-                        ExportConfig::ExportFixed{tail.toInt()};
+                    opts->exportConfig.tocExport = DocumentExportConfig::
+                        ExportFixed{tail.toInt()};
                 }
             } else if (org_streq(head, "<")) {
                 opts->exportConfig.inlinetasks = parseBool(tail);
@@ -1646,7 +1596,7 @@ SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
 
     SemId<Document> doc = Sem<Document>(adapter);
     doc->options        = Sem<DocumentOptions>(adapter);
-    using Prop          = Subtree::Property;
+    using Prop          = NamedProperty;
     Vec<OrgAdapter> buffer;
 
     if (adapter.kind() == onk::StmtList) {
@@ -1667,10 +1617,16 @@ SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
 
                 case onk::CmdPropertyArgs: {
                     Prop::CustomArgs prop;
-                    prop.name       = get_text(one(sub, N::Name));
-                    prop.parameters = convertCmdArguments(
-                                          one(sub, N::Args))
-                                          .value();
+                    prop.name = get_text(one(sub, N::Name));
+                    auto conv = convertAttrs(one(sub, N::Args));
+                    for (auto const& [key, list] : conv.value()->named) {
+                        for (auto const& it : list->args) {
+                            prop.attrs.push_back(it->arg);
+                        }
+                    }
+                    for (auto const& it : conv.value()->positional->args) {
+                        prop.attrs.push_back(it->arg);
+                    }
                     doc->options->properties.push_back(Prop(prop));
                     break;
                 }
@@ -1678,7 +1634,7 @@ SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
                 case onk::CmdStartup: {
                     Vec<Str> args = get_text(sub.at(0)).split(" ");
                     Str      text = normalize(args.at(0));
-                    using K       = DocumentOptions::Visibility;
+                    using K       = InitialSubtreeVisibility;
                     if (text == "content") {
                         doc->options->initialVisibility = K::Content;
                     } else if (text == "overview") {

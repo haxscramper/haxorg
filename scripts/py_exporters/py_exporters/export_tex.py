@@ -184,7 +184,7 @@ class ExporterLatex(ExporterBase):
         ])
 
     def getLatexClassOptions(self, node: org.Document) -> List[BlockId]:
-        property: org.SubtreeProperty = node.getProperty("ExportLatexClassOptions")
+        property: org.NamedProperty = node.getProperty("ExportLatexClassOptions")
         if property:
             values: str = property.getExportLatexClassOptions().options[0]
             return [self.string(values.strip("[]"))]
@@ -193,7 +193,7 @@ class ExporterLatex(ExporterBase):
             return []
 
     def getLatexClass(self, node: org.Document) -> str:
-        property: org.SubtreeProperty = node.getProperty("ExportLatexClass")
+        property: org.NamedProperty = node.getProperty("ExportLatexClass")
         if property:
             return property.getExportLatexClass().latexClass
 
@@ -240,7 +240,7 @@ class ExporterLatex(ExporterBase):
                 continue
 
             elif isinstance(it, org.Stmt):
-                prop = it.getArguments("export")
+                prop = it.getAttrs("export")
                 if prop and 0 < len(prop.args) and prop.args[0] and prop.args[0].getBool() == False:
                     continue
 

@@ -705,25 +705,54 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
         writeFile(spec, "source.org", spec.source, relDebug);
     }
 
+    message("running spec");
+
     auto skip = RunResult{RunResult::Skip{}};
 
-    if (!spec.debug.doLexBase) { return skip; }
+    if (!spec.debug.doLexBase) {
+        message("no base lex for spec, skipping");
+        return skip;
+    }
     auto base_lex_result = runSpecBaseLex(p, spec, relDebug);
-    if (!base_lex_result.isOk) { return RunResult{base_lex_result}; }
+    if (!base_lex_result.isOk) {
+        message("base lex fail -> test fail");
+        return RunResult{base_lex_result};
+    }
 
-    if (!spec.debug.doLex) { return skip; }
+    if (!spec.debug.doLex) {
+        message("no lex for spec, skipping");
+        return skip;
+    }
     auto lex_result = runSpecLex(p, spec, relDebug);
-    if (!lex_result.isOk) { return RunResult{lex_result}; }
+    if (!lex_result.isOk) {
+        message("lex fail -> test fail");
+        return RunResult{lex_result};
+    }
 
-    if (!spec.debug.doParse) { return skip; }
+    if (!spec.debug.doParse) {
+        message("no parse for spec, skipping");
+        return skip;
+    }
     auto parse_result = runSpecParse(p, spec, relDebug);
-    if (!parse_result.isOk) { return RunResult{parse_result}; }
+    if (!parse_result.isOk) {
+        message("parse fail -> test fail");
+        return RunResult{parse_result};
+    }
 
-    if (!spec.debug.doSem) { return skip; }
+    if (!spec.debug.doSem) {
+        message("no sem for spec, skipping");
+        return skip;
+    }
     auto sem_result = runSpecSem(p, spec, relDebug);
-    if (!parse_result.isOk) { return RunResult{sem_result}; }
+    if (!parse_result.isOk) {
+        message("sem fail -> test fail");
+        return RunResult{sem_result};
+    }
 
-    if (!spec.debug.doFormatReparse) { return skip; }
+    if (!spec.debug.doFormatReparse) {
+        message("no format reparse, skip test");
+        return skip;
+    }
 
     inRerun              = true;
     ParseSpec      rerun = spec;
@@ -787,11 +816,15 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
         auto flat_reparse_compare = compareNodes(
             reparsedNodes, originalNodes);
         if (!flat_reparse_compare.isOk) {
+            message("flat reparse compare fail");
             return RunResult{flat_reparse_compare};
         }
     }
 
-    if (!spec.debug.doFormatReparse) { return skip; }
+    if (!spec.debug.doFormatReparse) {
+        message("no format reparse, skip test");
+        return skip;
+    }
 
     auto reformat_result = runSpecSem(p2, rerun, dbg);
     if (!reformat_result.isOk || spec.debug.traceAll
@@ -863,15 +896,22 @@ ${split}
         writeFile(rerun, "sem2_reformat_fail.txt", reformatFail, dbg);
     }
 
-    if (!reformat_result.isOk) { return RunResult{reformat_result}; }
+    if (!reformat_result.isOk) {
+        message(
+            fmt("reformat fail {}",
+                reformat_result.failDescribe.toString(false)));
+        return RunResult{reformat_result};
+    }
 
     // flat reparse and compare does not prevent the full test execution,
     // but it *is* skipping parts of the check, so the example is
     // considered skipped.
     if (spec.debug.doFlatParseCompare) {
-        return skip;
-    } else {
+        message("run result ok");
         return RunResult();
+    } else {
+        message("no flat reparse compare, skip test");
+        return skip;
     }
 }
 
@@ -1155,9 +1195,14 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
 }
 
 TestResult gtest_run_spec(CR<TestParams> params) {
+
+
     auto spec              = params.spec;
     spec.debug.debugOutDir = "/tmp/corpus_runs/" + params.testName();
     CorpusRunner runner;
+    runner.setTraceFile(
+        "/tmp/runner_log/" + params.testName() + "/exec_trace.txt");
+
     using RunResult  = CorpusRunner::RunResult;
     RunResult result = runner.runSpec(
         spec, params.file.native(), "initial");
@@ -1174,20 +1219,19 @@ TestResult gtest_run_spec(CR<TestParams> params) {
     } else if (result.isOk()) {
         test.data = TestResult::Success{};
     } else {
-        spec.debug = ParseSpec::Dbg{
-            .debugOutDir      = "/tmp/corpus_runs/" + params.testName(),
-            .traceLex         = true,
-            .traceParse       = true,
-            .traceSem         = true,
-            .printLexed       = true,
-            .printBaseLexed   = true,
-            .printParsed      = true,
-            .printSource      = true,
-            .printLexedToFile = true,
-            .printBaseLexedToFile = true,
-            .printParsedToFile    = true,
-            .printSemToFile       = true,
-        };
+        spec.debug.debugOutDir = "/tmp/corpus_runs/" + params.testName();
+        spec.debug.traceLex    = true;
+        spec.debug.traceParse  = true;
+        spec.debug.traceSem    = true;
+        spec.debug.printLexed  = true;
+        spec.debug.printBaseLexed       = true;
+        spec.debug.printParsed          = true;
+        spec.debug.printSource          = true;
+        spec.debug.printLexedToFile     = true;
+        spec.debug.printBaseLexedToFile = true;
+        spec.debug.printParsedToFile    = true;
+        spec.debug.printSemToFile       = true;
+
 
         RunResult fail = runner.runSpec(
             spec, params.file.native(), "fail");

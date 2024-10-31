@@ -42,13 +42,24 @@ struct TestResult {
 struct RunContext {};
 
 
-class CorpusRunner {
+class CorpusRunner
+    : public OperationsTracer
+    , public OperationsScope {
   public:
     // Define environment variable in the QT app run environment to get
     // better-formatted test diff output.
 
     Vec<TestResult::File> files;
     bool                  inRerun = false;
+
+    void message(
+        std::string const& value,
+        char const*        function = __builtin_FUNCTION(),
+        int                line     = __builtin_LINE(),
+        char const*        file     = __builtin_FILE()) {
+        OperationsTracer::message(
+            value, activeLevel, line, function, file);
+    }
 
     void writeFile(
         CR<ParseSpec> spec,
@@ -94,8 +105,6 @@ class CorpusRunner {
         RunResult() {}
         RunResult(CR<Data> data) : data(data) {}
         Data data;
-
-        bool isSkip() const { return std::holds_alternative<Skip>(data); }
 
         bool isOk() const {
             return std::visit(

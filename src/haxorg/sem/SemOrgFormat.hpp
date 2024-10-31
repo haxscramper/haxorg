@@ -22,7 +22,7 @@ struct Formatter {
     void add(Res id, Res other);
 
 
-    Res toString(Opt<SemId<CmdArguments>> args, CR<Context> ctx);
+    Res toString(Opt<SemId<Attrs>> args, CR<Context> ctx);
 
     Res stackAttached(Res prev, SemId<sem::Stmt> stmt, CR<Context> ctx);
 

@@ -130,6 +130,29 @@ void Graphviz::Graph::eachSubgraph(Func<void(Graph)> cb) const {
     }
 }
 
+Str Graphviz::alignText(const Str& text, TextAlign direction) {
+    Str res = text;
+    switch (direction) {
+        case TextAlign::Left: {
+            if (res.contains('\n')) {
+                res = res.replaceAll("\n", "\\l");
+                res += "\\l";
+            }
+            break;
+        }
+        case TextAlign::Right: {
+            if (res.contains('\n')) {
+                res = res.replaceAll("\n", "\\r");
+                res += "\\r";
+            }
+            break;
+        }
+        case TextAlign::Center: break;
+    }
+
+    return res;
+}
+
 Str Graphviz::layoutTypeToString(LayoutType layoutType) const {
     switch (layoutType) {
         case LayoutType::Dot: return "dot";

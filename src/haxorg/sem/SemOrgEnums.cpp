@@ -1,6 +1,89 @@
 /* clang-format off */
 #include "SemOrgEnums.hpp"
 
+Opt<ListFormattingMode> enum_serde<ListFormattingMode>::from_string(std::string value) {
+  if (value == "None") { return ListFormattingMode::None; } else
+  if (value == "Table1D1Col") { return ListFormattingMode::Table1D1Col; } else
+  if (value == "Table1D2Col") { return ListFormattingMode::Table1D2Col; } else
+  if (value == "Table2DColFirst") { return ListFormattingMode::Table2DColFirst; } else
+  { return std::nullopt; }
+}
+std::string enum_serde<ListFormattingMode>::to_string(ListFormattingMode value) {
+  switch (value) {
+    case ListFormattingMode::None: return "None";
+    case ListFormattingMode::Table1D1Col: return "Table1D1Col";
+    case ListFormattingMode::Table1D2Col: return "Table1D2Col";
+    case ListFormattingMode::Table2DColFirst: return "Table2DColFirst";
+    default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
+  }
+}
+
+Opt<NodeAttachMode> enum_serde<NodeAttachMode>::from_string(std::string value) {
+  if (value == "None") { return NodeAttachMode::None; } else
+  if (value == "Subtree") { return NodeAttachMode::Subtree; } else
+  { return std::nullopt; }
+}
+std::string enum_serde<NodeAttachMode>::to_string(NodeAttachMode value) {
+  switch (value) {
+    case NodeAttachMode::None: return "None";
+    case NodeAttachMode::Subtree: return "Subtree";
+    default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
+  }
+}
+
+Opt<InitialSubtreeVisibility> enum_serde<InitialSubtreeVisibility>::from_string(std::string value) {
+  if (value == "Overview") { return InitialSubtreeVisibility::Overview; } else
+  if (value == "Content") { return InitialSubtreeVisibility::Content; } else
+  if (value == "ShowAll") { return InitialSubtreeVisibility::ShowAll; } else
+  if (value == "Show2Levels") { return InitialSubtreeVisibility::Show2Levels; } else
+  if (value == "Show3Levels") { return InitialSubtreeVisibility::Show3Levels; } else
+  if (value == "Show4Levels") { return InitialSubtreeVisibility::Show4Levels; } else
+  if (value == "Show5Levels") { return InitialSubtreeVisibility::Show5Levels; } else
+  if (value == "ShowEverything") { return InitialSubtreeVisibility::ShowEverything; } else
+  { return std::nullopt; }
+}
+std::string enum_serde<InitialSubtreeVisibility>::to_string(InitialSubtreeVisibility value) {
+  switch (value) {
+    case InitialSubtreeVisibility::Overview: return "Overview";
+    case InitialSubtreeVisibility::Content: return "Content";
+    case InitialSubtreeVisibility::ShowAll: return "ShowAll";
+    case InitialSubtreeVisibility::Show2Levels: return "Show2Levels";
+    case InitialSubtreeVisibility::Show3Levels: return "Show3Levels";
+    case InitialSubtreeVisibility::Show4Levels: return "Show4Levels";
+    case InitialSubtreeVisibility::Show5Levels: return "Show5Levels";
+    case InitialSubtreeVisibility::ShowEverything: return "ShowEverything";
+    default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
+  }
+}
+
+Opt<BlockCodeResults> enum_serde<BlockCodeResults>::from_string(std::string value) {
+  if (value == "Replace") { return BlockCodeResults::Replace; } else
+  { return std::nullopt; }
+}
+std::string enum_serde<BlockCodeResults>::to_string(BlockCodeResults value) {
+  switch (value) {
+    case BlockCodeResults::Replace: return "Replace";
+    default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
+  }
+}
+
+Opt<BlockCodeExports> enum_serde<BlockCodeExports>::from_string(std::string value) {
+  if (value == "None") { return BlockCodeExports::None; } else
+  if (value == "Both") { return BlockCodeExports::Both; } else
+  if (value == "Code") { return BlockCodeExports::Code; } else
+  if (value == "Results") { return BlockCodeExports::Results; } else
+  { return std::nullopt; }
+}
+std::string enum_serde<BlockCodeExports>::to_string(BlockCodeExports value) {
+  switch (value) {
+    case BlockCodeExports::None: return "None";
+    case BlockCodeExports::Both: return "Both";
+    case BlockCodeExports::Code: return "Code";
+    case BlockCodeExports::Results: return "Results";
+    default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
+  }
+}
+
 Opt<OrgSpecName> enum_serde<OrgSpecName>::from_string(std::string value) {
   if (value == "Unnamed") { return OrgSpecName::Unnamed; } else
   if (value == "Result") { return OrgSpecName::Result; } else
@@ -148,14 +231,13 @@ Opt<OrgNodeKind> enum_serde<OrgNodeKind>::from_string(std::string value) {
   if (value == "ColonExample") { return OrgNodeKind::ColonExample; } else
   if (value == "TextSeparator") { return OrgNodeKind::TextSeparator; } else
   if (value == "Paragraph") { return OrgNodeKind::Paragraph; } else
-  if (value == "AnnotatedParagraph") { return OrgNodeKind::AnnotatedParagraph; } else
   if (value == "TableRow") { return OrgNodeKind::TableRow; } else
   if (value == "TableCell") { return OrgNodeKind::TableCell; } else
   if (value == "Table") { return OrgNodeKind::Table; } else
   if (value == "InlineFootnote") { return OrgNodeKind::InlineFootnote; } else
   if (value == "Footnote") { return OrgNodeKind::Footnote; } else
   if (value == "Cmd") { return OrgNodeKind::Cmd; } else
-  if (value == "CmdArguments") { return OrgNodeKind::CmdArguments; } else
+  if (value == "Attrs") { return OrgNodeKind::Attrs; } else
   if (value == "CmdTitle") { return OrgNodeKind::CmdTitle; } else
   if (value == "CmdAuthor") { return OrgNodeKind::CmdAuthor; } else
   if (value == "CmdCreator") { return OrgNodeKind::CmdCreator; } else
@@ -202,6 +284,7 @@ Opt<OrgNodeKind> enum_serde<OrgNodeKind>::from_string(std::string value) {
   if (value == "BlockExport") { return OrgNodeKind::BlockExport; } else
   if (value == "BlockDetails") { return OrgNodeKind::BlockDetails; } else
   if (value == "BlockSummary") { return OrgNodeKind::BlockSummary; } else
+  if (value == "BlockDynamicFallback") { return OrgNodeKind::BlockDynamicFallback; } else
   if (value == "Ident") { return OrgNodeKind::Ident; } else
   if (value == "BigIdent") { return OrgNodeKind::BigIdent; } else
   if (value == "Bold") { return OrgNodeKind::Bold; } else
@@ -273,14 +356,13 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     case OrgNodeKind::ColonExample: return "ColonExample";
     case OrgNodeKind::TextSeparator: return "TextSeparator";
     case OrgNodeKind::Paragraph: return "Paragraph";
-    case OrgNodeKind::AnnotatedParagraph: return "AnnotatedParagraph";
     case OrgNodeKind::TableRow: return "TableRow";
     case OrgNodeKind::TableCell: return "TableCell";
     case OrgNodeKind::Table: return "Table";
     case OrgNodeKind::InlineFootnote: return "InlineFootnote";
     case OrgNodeKind::Footnote: return "Footnote";
     case OrgNodeKind::Cmd: return "Cmd";
-    case OrgNodeKind::CmdArguments: return "CmdArguments";
+    case OrgNodeKind::Attrs: return "Attrs";
     case OrgNodeKind::CmdTitle: return "CmdTitle";
     case OrgNodeKind::CmdAuthor: return "CmdAuthor";
     case OrgNodeKind::CmdCreator: return "CmdCreator";
@@ -327,6 +409,7 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     case OrgNodeKind::BlockExport: return "BlockExport";
     case OrgNodeKind::BlockDetails: return "BlockDetails";
     case OrgNodeKind::BlockSummary: return "BlockSummary";
+    case OrgNodeKind::BlockDynamicFallback: return "BlockDynamicFallback";
     case OrgNodeKind::Ident: return "Ident";
     case OrgNodeKind::BigIdent: return "BigIdent";
     case OrgNodeKind::Bold: return "Bold";
@@ -384,9 +467,10 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
 }
 
 Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
-  if (value == "CmdArgument") { return OrgSemKind::CmdArgument; } else
-  if (value == "CmdArgumentList") { return OrgSemKind::CmdArgumentList; } else
-  if (value == "CmdArguments") { return OrgSemKind::CmdArguments; } else
+  if (value == "None") { return OrgSemKind::None; } else
+  if (value == "Attr") { return OrgSemKind::Attr; } else
+  if (value == "AttrList") { return OrgSemKind::AttrList; } else
+  if (value == "Attrs") { return OrgSemKind::Attrs; } else
   if (value == "ErrorItem") { return OrgSemKind::ErrorItem; } else
   if (value == "ErrorGroup") { return OrgSemKind::ErrorGroup; } else
   if (value == "StmtList") { return OrgSemKind::StmtList; } else
@@ -399,7 +483,7 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "CmdResults") { return OrgSemKind::CmdResults; } else
   if (value == "CmdTblfm") { return OrgSemKind::CmdTblfm; } else
   if (value == "HashTag") { return OrgSemKind::HashTag; } else
-  if (value == "Footnote") { return OrgSemKind::Footnote; } else
+  if (value == "InlineFootnote") { return OrgSemKind::InlineFootnote; } else
   if (value == "Time") { return OrgSemKind::Time; } else
   if (value == "TimeRange") { return OrgSemKind::TimeRange; } else
   if (value == "Macro") { return OrgSemKind::Macro; } else
@@ -429,6 +513,7 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "BlockQuote") { return OrgSemKind::BlockQuote; } else
   if (value == "BlockComment") { return OrgSemKind::BlockComment; } else
   if (value == "BlockVerse") { return OrgSemKind::BlockVerse; } else
+  if (value == "BlockDynamicFallback") { return OrgSemKind::BlockDynamicFallback; } else
   if (value == "BlockExample") { return OrgSemKind::BlockExample; } else
   if (value == "BlockExport") { return OrgSemKind::BlockExport; } else
   if (value == "BlockAdmonition") { return OrgSemKind::BlockAdmonition; } else
@@ -440,7 +525,6 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "Row") { return OrgSemKind::Row; } else
   if (value == "Table") { return OrgSemKind::Table; } else
   if (value == "Paragraph") { return OrgSemKind::Paragraph; } else
-  if (value == "AnnotatedParagraph") { return OrgSemKind::AnnotatedParagraph; } else
   if (value == "ColonExample") { return OrgSemKind::ColonExample; } else
   if (value == "CmdAttr") { return OrgSemKind::CmdAttr; } else
   if (value == "Call") { return OrgSemKind::Call; } else
@@ -456,9 +540,10 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
 }
 std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
   switch (value) {
-    case OrgSemKind::CmdArgument: return "CmdArgument";
-    case OrgSemKind::CmdArgumentList: return "CmdArgumentList";
-    case OrgSemKind::CmdArguments: return "CmdArguments";
+    case OrgSemKind::None: return "None";
+    case OrgSemKind::Attr: return "Attr";
+    case OrgSemKind::AttrList: return "AttrList";
+    case OrgSemKind::Attrs: return "Attrs";
     case OrgSemKind::ErrorItem: return "ErrorItem";
     case OrgSemKind::ErrorGroup: return "ErrorGroup";
     case OrgSemKind::StmtList: return "StmtList";
@@ -471,7 +556,7 @@ std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::CmdResults: return "CmdResults";
     case OrgSemKind::CmdTblfm: return "CmdTblfm";
     case OrgSemKind::HashTag: return "HashTag";
-    case OrgSemKind::Footnote: return "Footnote";
+    case OrgSemKind::InlineFootnote: return "InlineFootnote";
     case OrgSemKind::Time: return "Time";
     case OrgSemKind::TimeRange: return "TimeRange";
     case OrgSemKind::Macro: return "Macro";
@@ -501,6 +586,7 @@ std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::BlockQuote: return "BlockQuote";
     case OrgSemKind::BlockComment: return "BlockComment";
     case OrgSemKind::BlockVerse: return "BlockVerse";
+    case OrgSemKind::BlockDynamicFallback: return "BlockDynamicFallback";
     case OrgSemKind::BlockExample: return "BlockExample";
     case OrgSemKind::BlockExport: return "BlockExport";
     case OrgSemKind::BlockAdmonition: return "BlockAdmonition";
@@ -512,7 +598,6 @@ std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::Row: return "Row";
     case OrgSemKind::Table: return "Table";
     case OrgSemKind::Paragraph: return "Paragraph";
-    case OrgSemKind::AnnotatedParagraph: return "AnnotatedParagraph";
     case OrgSemKind::ColonExample: return "ColonExample";
     case OrgSemKind::CmdAttr: return "CmdAttr";
     case OrgSemKind::Call: return "Call";

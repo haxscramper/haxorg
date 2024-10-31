@@ -7,6 +7,8 @@
 #include <haxorg/sem/SemConvert.hpp>
 #include <haxorg/exporters/exporteryaml.hpp>
 #include <haxorg/test/corpusrunner.hpp>
+#include <haxorg/sem/ImmOrg.hpp>
+#include <haxorg/sem/SemBaseApi.hpp>
 
 TEST(ManualFileRun, TestDoc1) {
     {
@@ -20,6 +22,26 @@ TEST(ManualFileRun, TestDoc1) {
                 .spec = spec,
                 .file = "doc1",
             });
+
+            org::ImmAstContext start;
+            auto               n = start.init(sem::parseString(content));
+
+            writeFile(
+                "/tmp/TestDoc1_clean.txt",
+                n.getRootAdapter()
+                    .treeRepr(org::ImmAdapter::TreeReprConf{
+                        .withAuxFields = true,
+                    })
+                    .toString(false));
+
+            writeFile(
+                "/tmp/TestDoc1_refl.txt",
+                n.getRootAdapter()
+                    .treeRepr(org::ImmAdapter::TreeReprConf{
+                        .withAuxFields  = true,
+                        .withReflFields = true,
+                    })
+                    .toString(false));
         }
     }
     LOG(INFO) << "doc1.org ok";

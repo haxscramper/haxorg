@@ -99,7 +99,7 @@ class ExporterTypst(ExporterBase):
                 return self.t.expr(value=value, isLine=isLine)
 
     def wrapStmt(self, node: org.Stmt, result: BlockId) -> BlockId:
-        args = node.getArguments("export")
+        args = node.getAttrs("export")
         if args and 0 < len(args.args) and args.args[0].getBool() == False:
             return self.t.string("")
 
@@ -117,7 +117,28 @@ class ExporterTypst(ExporterBase):
         return self.t.stack([self.exp.eval(it) for it in node])
 
     def evalParagraph(self, node: org.Paragraph) -> BlockId:
-        if len(node.subnodes) == 1 and isinstance(
+        if node.isFootnoteDefinition() or node.hasTimestamp() or node.hasAdmonition():
+            result = self.lineSubnodes(self.trimSub(node))
+            args = dict()
+            if node.isFootnoteDefinition():
+                args["kind"] = "footnote"
+                args["footnote"] = node.getFootnoteName()
+
+            elif node.hasAdmonition():
+                args["kind"] = "admonition"
+                args["admonition"] = node.getAdmonitions()[0]
+
+            else:
+                args["kind"] = "timestamp"
+                args["timestamp"] = formatDateTime(node.getTimestamps()[0])
+
+            result = self.t.call(self.c.tags.paragraph,
+                                 args=args,
+                                 body=[result],
+                                 isLine=True)
+            return result
+
+        elif len(node.subnodes) == 1 and isinstance(
                 node[0], org.Link) and node[0].getLinkKind() in [org.LinkKind.Attachment]:
             return self.t.string("")
 
@@ -130,26 +151,6 @@ class ExporterTypst(ExporterBase):
                 body=[self.lineSubnodes(self.trimSub(node))],
                 isLine=True,
             )
-
-    def evalAnnotatedParagraph(self, node: org.AnnotatedParagraph) -> BlockId:
-        result = self.lineSubnodes(self.trimSub(node))
-        args = dict()
-        match node.getAnnotationKind():
-            case org.AnnotatedParagraphAnnotationKind.Footnote:
-                args["kind"] = "footnote"
-                args["footnote"] = node.getFootnote().name
-
-            case org.AnnotatedParagraphAnnotationKind.Admonition:
-                args["kind"] = "admonition"
-                args["admonition"] = node.getAdmonition().name.text
-
-            case org.AnnotatedParagraphAnnotationKind.Timestamp:
-                args["kind"] = "timestamp"
-                args["timestamp"] = formatDateTime(
-                    node.getTimestamp().time.getStatic().time)
-
-        result = self.t.call(self.c.tags.paragraph, args=args, body=[result], isLine=True)
-        return result
 
     def evalBlockCenter(self, node: org.BlockCenter) -> BlockId:
         return self.t.call(self.c.tags.center, body=[self.stackSubnodes(node)])
@@ -234,9 +235,9 @@ class ExporterTypst(ExporterBase):
 
     def evalBlockExport(self, node: org.BlockExport) -> BlockId:
         if node.exporter == "typst":
-            edit_config = node.getArguments("edit-config")
-            if edit_config and 0 < len(edit_config.args):
-                match edit_config.args[0].getString():
+            edit_config = node.getAttrs("edit-config")
+            if edit_config and 0 < len(edit_config):
+                match edit_config[0].getString():
                     case "pre-visit":
                         return self.t.string("")
 
@@ -291,9 +292,9 @@ class ExporterTypst(ExporterBase):
 
         for it in node:
             if isinstance(it, org.BlockExport):
-                edit_config = it.getArguments("edit-config")
-                if edit_config and 0 < len(edit_config.args):
-                    if edit_config.args[0].getString() == "pre-visit":
+                edit_config = it.getAttrs("edit-config")
+                if edit_config and 0 < len(edit_config):
+                    if edit_config[0].getString() == "pre-visit":
                         self.applyExportConfig(it)
 
         for it in node:

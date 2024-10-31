@@ -8,10 +8,16 @@
 #include <hstd/stdlib/Set.hpp>
 
 #include "sem_tree_render.hpp"
+#include "story_grid.hpp"
+#include "imgui_utils.hpp"
+#include "block_graph.hpp"
+
+#include "gui_perfetto.hpp"
+#include <hstd/wrappers/hstd_extra/perfetto_aux_impl_template.hpp>
 
 
 struct Config {
-    DECL_DESCRIBED_ENUM(Mode, SemTree, Outline);
+    DECL_DESCRIBED_ENUM(Mode, SemTree, Outline, StoryGrid, Test);
 
     Str  file;
     Mode mode = Mode::SemTree;
@@ -225,42 +231,6 @@ void render_outline(
     }
 }
 
-void frame_start() {
-    glfwPollEvents();
-
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-}
-
-void frame_end(GLFWwindow* window) {
-    ImGui::Render();
-    int display_w, display_h;
-    glfwGetFramebufferSize(window, &display_w, &display_h);
-    glViewport(0, 0, display_w, display_h);
-    glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
-    glClear(GL_COLOR_BUFFER_BIT);
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-    glfwSwapBuffers(window);
-
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
-    }
-}
-
-void fullscreen_window_begin() {
-    const ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImGui::SetNextWindowPos(viewport->WorkPos);
-    ImGui::SetNextWindowSize(viewport->WorkSize);
-
-    ImGui::Begin(
-        "Fullscreen Window",
-        nullptr,
-        ImGuiWindowFlags_NoDecoration
-            | ImGuiWindowFlags_NoBringToFrontOnFocus
-            | ImGuiWindowFlags_NoNav);
-}
 
 void fps_window_begin() {
 
@@ -377,13 +347,28 @@ void outline_tree_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
 }
 
 int main(int argc, char** argv) {
+    auto conf_file = fs::path{argv[1]};
+    CHECK(fs::is_regular_file(conf_file)) << conf_file;
+    auto conf_text = readFile(conf_file);
+    auto conf_json = json::parse(conf_text);
+    auto conf      = from_json_eval<Config>(conf_json);
+
+#ifdef ORG_USE_PERFETTO
+    std::unique_ptr<perfetto::TracingSession>
+        tracing_session = StartProcessTracing("Perfetto track example");
+
+    finally end_trace{[&]() {
+        StopTracing(std::move(tracing_session), "/tmp/story_grid.pftrace");
+    }};
+#endif
+
     if (!glfwInit()) { return 1; }
 
 
     GLFWmonitor*       monitor = glfwGetPrimaryMonitor();
     const GLFWvidmode* mode    = glfwGetVideoMode(monitor);
 
-    bool fullscreen = false;
+    bool fullscreen = true;
 
     GLFWwindow* window = glfwCreateWindow(
         fullscreen ? mode->width : 1280,
@@ -407,22 +392,25 @@ int main(int argc, char** argv) {
     ImGui_ImplOpenGL3_Init("#version 130");
 
 
-    auto conf_file = fs::path{argv[1]};
-    CHECK(fs::is_regular_file(conf_file)) << conf_file;
-    auto conf_text = readFile(conf_file);
-    auto conf_json = json::parse(conf_text);
-    auto conf      = from_json_eval<Config>(conf_json);
-
-    auto file = readFile(fs::path{conf.file.toBase()});
-    auto node = sem::parseString(file);
+    auto text = readFile(fs::path{conf.file.toBase()});
 
     switch (conf.mode) {
         case Config::Mode::SemTree: {
+            auto node = sem::parseString(text);
             sem_tree_loop(window, node);
             break;
         }
         case Config::Mode::Outline: {
+            auto node = sem::parseString(text);
             outline_tree_loop(window, node);
+            break;
+        }
+        case Config::Mode::StoryGrid: {
+            story_grid_loop(window, conf.file);
+            break;
+        }
+        case Config::Mode::Test: {
+            run_block_graph_test(window);
             break;
         }
     }

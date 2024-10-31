@@ -14,6 +14,51 @@
 #include <format>
 #include <type_traits>
 
+
+template <typename T>
+inline void hax_hash_combine(std::size_t& seed, const T& v) {
+    std::hash<T> hasher;
+    seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+}
+
+
+template <typename T>
+struct value_metadata<std::vector<T>> {
+    static bool isEmpty(std::vector<T> const& value) {
+        return value.empty();
+    }
+};
+
+template <typename T>
+struct value_metadata<std::optional<T>> {
+    static bool isEmpty(std::optional<T> const& value) {
+        return !value.has_value() || value_metadata<T>::isEmpty(*value);
+    }
+
+    static bool isNil(std::optional<T> const& value) {
+        return !value.has_value();
+    }
+};
+
+template <typename T>
+struct value_metadata<T*> {
+    static bool isEmpty(T* const& value) { return value == nullptr; }
+    static bool isNil(T* const& value) { return value == nullptr; }
+};
+
+template <typename T>
+struct value_metadata<T const*> {
+    static bool isEmpty(T const* const& value) { return value == nullptr; }
+    static bool isNil(T const* const& value) { return value == nullptr; }
+};
+
+
+template <>
+struct value_metadata<std::string> {
+    static bool isEmpty(std::string const& value) { return value.empty(); }
+};
+
+
 template <typename T>
 concept IsEnum = std::is_enum<T>::value;
 
@@ -247,6 +292,14 @@ void for_each_field_with_bases(Func cb, bool pre_bases = true) {
     }
 }
 
+
+template <typename T, typename Func>
+void for_each_field_value_with_bases(T const& value, Func const& cb) {
+    for_each_field_with_bases<T>(
+        [&](auto const& field) { cb(field.name, value.*field.pointer); });
+}
+
+
 template <typename T>
 bool equal_on_all_fields(CR<T> lhs, CR<T> rhs) {
     bool equal = true;
@@ -270,6 +323,24 @@ bool equal_on_all_fields(CR<T> lhs, CR<T> rhs) {
             return fmt.format(described_class_printer(value), ctx);       \
         }                                                                 \
     };
+
+
+template <typename T>
+struct __DescFieldTypeHelper {};
+
+/// \brief Get type of the boost::describe field descriptor.
+#define DESC_FIELD_TYPE(__field)                                          \
+    __DescFieldTypeHelper<decltype(__field.pointer)>::Type
+
+template <typename StructType, typename FieldType>
+struct __DescFieldTypeHelper<FieldType StructType::*> {
+    using Type = std::remove_cvref_t<FieldType>;
+};
+
+template <typename StructType, typename FieldType>
+struct __DescFieldTypeHelper<FieldType StructType::*const> {
+    using Type = std::remove_cvref_t<FieldType>;
+};
 
 
 // clang-format off

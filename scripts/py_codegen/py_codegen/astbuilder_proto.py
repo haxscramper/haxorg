@@ -168,7 +168,7 @@ class ProtoBuilder():
     @beartype
     def get_all_concrete_types(self) -> Iterable[tu.GenTuStruct]:
         return (rec for rec in self.types_list
-                if isinstance(rec, tu.GenTuStruct) and rec.concreteKind)
+                if isinstance(rec, tu.GenTuStruct) and rec.concreteKind and rec.name.isOrgType())
 
     @beartype
     def get_any_node_field_mapping(self) -> cpp.MacroParams:
@@ -602,7 +602,7 @@ class ProtoBuilder():
                 org_cleaned = it.name.withoutSpace("sem").withExtraSpace("orgproto")
                 proto_param_type = org_cleaned.withGlobalSpace()
                 org_param_type = it.name
-
+                
                 writer_body: List[BlockId] = []
                 reader_body: List[BlockId] = []
                 for base in tu.get_base_list(it, self.base_map):

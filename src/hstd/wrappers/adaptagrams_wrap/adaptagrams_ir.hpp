@@ -268,12 +268,15 @@ struct [[refl]] GraphNodeConstraint {
 struct [[refl]] GraphEdge {
     [[refl]] int source;
     [[refl]] int target;
+    [[refl]] int bundle = 0;
 
     bool operator==(GraphEdge const& other) const {
-        return source == other.source && target == other.target;
+        return source == other.source //
+            && target == other.target //
+            && bundle == other.bundle;
     }
 
-    DESC_FIELDS(GraphEdge, (source, target));
+    DESC_FIELDS(GraphEdge, (source, target, bundle));
 };
 
 
@@ -283,6 +286,7 @@ struct std::hash<GraphEdge> {
         std::size_t result = 0;
         boost::hash_combine(result, it.source);
         boost::hash_combine(result, it.target);
+        boost::hash_combine(result, it.bundle);
         return result;
     }
 };
@@ -309,6 +313,16 @@ struct [[refl]] GraphEdgeConstraint {
 
     [[refl]] Port sourcePort;
     [[refl]] Port targetPort;
+    /// \brief Offset the port position on the side of the shape. Value in
+    /// range [0, 1] used as a relative position along the edge of the
+    /// shape. For vertical edges (west/east) the port movement would be
+    /// vertical, and for horizontal (north/south) it would be horizontal.
+    /// If the value is not provided the nodes are placed in the center
+    /// with the ratio computed automatically.
+    [[refl]] Opt<double> sourceOffset     = std::nullopt;
+    [[refl]] Opt<double> targetOffset     = std::nullopt;
+    [[refl]] Opt<double> sourceCheckpoint = 10.0;
+    [[refl]] Opt<double> targetCheckpoint = 10.0;
 
     DESC_FIELDS(GraphEdgeConstraint, (sourcePort, targetPort));
 };

@@ -16,7 +16,109 @@
 #include <google/protobuf/util/json_util.h>
 #include <haxorg/exporters/ExporterJson.hpp>
 #include <haxorg/sem/SemBaseApi.hpp>
+#include <haxorg/sem/ImmOrg.hpp>
+#include <haxorg/sem/ImmOrgEdit.hpp>
+#include <haxorg/sem/ImmOrgGraph.hpp>
+#include <haxorg/sem/ImmOrgGraphBoost.hpp>
+#include <boost/graph/graphml.hpp>
+#include <boost/graph/graphviz.hpp>
 #include <fstream>
+#include <haxorg/sem/perfetto_org.hpp>
+
+void addNodeRec(
+    org::graph::MapGraphState& g,
+    org::ImmAdapter const&     node,
+    org::graph::MapConfig&     conf) {
+    Func<void(org::ImmAdapter const&)> aux;
+    aux = [&](org::ImmAdapter const& node) {
+        conf.message(fmt("recursive add {}", node), "addNodeRec");
+        auto __tmp = conf.scopeLevel();
+        switch (node->getKind()) {
+            case OrgSemKind::Document:
+            case OrgSemKind::ListItem:
+            case OrgSemKind::List: {
+                for (auto const& it : node) { aux(it); }
+                break;
+            }
+            case OrgSemKind::Paragraph: {
+                if (auto par = node.as<org::ImmParagraph>();
+                    org::graph::hasGraphAnnotations(par)) {
+                    addNode(g, node, conf);
+                }
+                break;
+            }
+            case OrgSemKind::Subtree: {
+                if (auto tree = node.as<org::ImmSubtree>();
+                    org::graph::hasGraphAnnotations(tree)) {
+                    addNode(g, node, conf);
+                }
+
+                for (auto const& it : node) { aux(it); }
+                break;
+            }
+            default: {
+            }
+        }
+    };
+
+    aux(node);
+}
+Str getDebugFile(Str const& suffix) {
+    auto dir = fs::path{
+        fmt("/tmp/haxorg_tests/{}",
+            ::testing::UnitTest::GetInstance()
+                ->current_test_info()
+                ->test_suite_name())};
+    if (!fs::is_directory(dir)) { createDirectory(dir); }
+    return fmt(
+        "{}/{}_{}",
+        dir.native(),
+        ::testing::UnitTest::GetInstance()->current_test_info()->name(),
+        suffix);
+}
+
+void writeTreeRepr(
+    org::ImmAdapter               n,
+    Str const                     suffix,
+    org::ImmAdapter::TreeReprConf conf = org::ImmAdapter::TreeReprConf{
+        .withAuxFields = true,
+    }) {
+    writeFile(getDebugFile(suffix), n.treeRepr(conf).toString(false));
+}
+
+// adl-based customization points is the most disgusting degenerate idea
+// you can possible have. The shit doesn't work reliably, you need to do
+// some fucking magic with namespaces and whatever the fuck else, it does
+// not work again, and with functions you need to specify the concrete type
+// for every type. If this was a structure I could've used `std::format`
+// with some form of concept here, if the library was actually written with
+// this in mind.
+#define GTEST_ADL_PRINT_TYPE(__type)                                      \
+    namespace testing {                                                   \
+        template <>                                                       \
+        std::string PrintToString(__type const& value) {                  \
+            return fmt1(value);                                           \
+        }                                                                 \
+    } // namespace testing
+
+GTEST_ADL_PRINT_TYPE(OrgSemKind);
+GTEST_ADL_PRINT_TYPE(org::ImmId);
+GTEST_ADL_PRINT_TYPE(org::ImmAdapter);
+GTEST_ADL_PRINT_TYPE(org::ImmUniqId);
+GTEST_ADL_PRINT_TYPE(org::graph::MapNode);
+GTEST_ADL_PRINT_TYPE(org::graph::MapEdge);
+GTEST_ADL_PRINT_TYPE(Vec<Str>);
+
+Str getSelfTest(org::ImmAdapter const& it) {
+    return fmt(
+        R"(
+auto {0} = {1};
+EXPECT_EQ({0}->getKind(), OrgSemKind::{2});
+)",
+        it.id,
+        it.selfSelect(),
+        it->getKind());
+}
 
 struct compare_context {
     std::string type;
@@ -275,6 +377,21 @@ compare_report cmp_field_value(CR<T> lhs, CR<T> rhs, Field T::*fieldPtr) {
         lhs.*fieldPtr, rhs.*fieldPtr);
 };
 
+void show_compare_reports(Vec<compare_report> const& out) {
+    for (auto const& it : out) {
+        std::string ctx = it.context
+                        | rv::transform(
+                              [](compare_context const& c) -> std::string {
+                                  return fmt("{}.{}", c.type, c.field);
+                              })
+                        | rv::intersperse("->") //
+                        | rv::join              //
+                        | rs::to<std::string>();
+
+        ADD_FAILURE() << fmt(
+            "{} failed: original != parsed {}", ctx, it.message);
+    }
+}
 
 TEST(TestFiles, AllNodeSerde) {
     std::string file = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
@@ -327,19 +444,7 @@ TEST(TestFiles, AllNodeSerde) {
     reporting_comparator<sem::SemId<sem::Org>>::compare(
         write_node, read_node, out, {});
 
-    for (auto const& it : out) {
-        std::string ctx = it.context
-                        | rv::transform(
-                              [](compare_context const& c) -> std::string {
-                                  return fmt("{}.{}", c.type, c.field);
-                              })
-                        | rv::intersperse("->") //
-                        | rv::join              //
-                        | rs::to<std::string>();
-
-        ADD_FAILURE() << fmt(
-            "{} failed: original != parsed {}", ctx, it.message);
-    }
+    show_compare_reports(out);
 }
 
 TEST(TestFiles, AllNodeCoverage) {
@@ -398,8 +503,14 @@ TEST(TestFiles, AllNodeCoverage) {
 
 sem::SemId<sem::Org> parseNode(CR<Str> source) {
     MockFull p{false, false};
-    p.run(source);
-    return p.toNode();
+    {
+        __perf_trace("parsing", "parse node");
+        p.run(source);
+    }
+    {
+        __perf_trace("convert", "convert");
+        return p.toNode();
+    }
 }
 
 TEST(OrgApi, LinkResolution) {
@@ -420,46 +531,73 @@ TEST(OrgApi, LinkResolution) {
     EXPECT_EQ(subtree_result.size(), 1);
 }
 
-TEST(OrgDocumentSelector, GetMatchingNodeByKind) {
-    auto                     node = parseNode("bold");
-    sem::OrgDocumentSelector selector;
+struct ImmOrgApiTestBase : public ::testing::Test {
+    org::ImmAstContext start;
+
+    void setTraceFile(std::string const& path) {
+        start.debug->setTraceFile(path);
+    }
+
+    org::ImmAstVersion getInitialVersion(Str const& text) {
+        return start.init(parseNode(text));
+    }
+
+    void writeGvHistory(
+        const Vec<org::ImmAstVersion>& history,
+        std::string                    suffix,
+        org::ImmAstGraphvizConf const& conf = org::ImmAstGraphvizConf{
+            .withAuxNodes    = true,
+            .withEditHistory = true,
+        }) {
+        Graphviz gvc;
+        auto     gv = org::toGraphviz(history, conf);
+        gvc.writeFile(getDebugFile(suffix + ".dot"), gv);
+        gvc.renderToFile(getDebugFile(suffix + ".png"), gv);
+    }
+};
+
+struct ImmOrgDocumentSelector : public ImmOrgApiTestBase {};
+
+TEST_F(ImmOrgDocumentSelector, GetMatchingNodeByKind) {
+    auto                     node = getInitialVersion("bold");
+    org::OrgDocumentSelector selector;
     selector.searchAnyKind({OrgSemKind::Word}, true);
 
-    auto words = selector.getMatches(node);
+    auto words = selector.getMatches(node.getRootAdapter());
 
     EXPECT_EQ(words.size(), 1);
     EXPECT_EQ(words.at(0)->getKind(), OrgSemKind::Word);
-    EXPECT_EQ(words.at(0).as<sem::Word>()->text, "bold");
+    EXPECT_EQ(words.at(0).as<org::ImmWord>()->text, "bold");
 }
 
-TEST(OrgDocumentSelector, GetMultipleMatchingNodesByKind) {
-    auto                     node = parseNode("word *bold*");
-    sem::OrgDocumentSelector selector;
+TEST_F(ImmOrgDocumentSelector, GetMultipleMatchingNodesByKind) {
+    auto                     node = getInitialVersion("word *bold*");
+    org::OrgDocumentSelector selector;
     selector.searchAnyKind({OrgSemKind::Word}, true);
 
-    auto words = selector.getMatches(node);
+    auto words = selector.getMatches(node.getRootAdapter());
 
     EXPECT_EQ(words.size(), 2);
-    EXPECT_EQ(words.at(0).as<sem::Word>()->text, "word");
-    EXPECT_EQ(words.at(1).as<sem::Word>()->text, "bold");
+    EXPECT_EQ(words.at(0).as<org::ImmWord>()->text, "word");
+    EXPECT_EQ(words.at(1).as<org::ImmWord>()->text, "bold");
 }
 
-TEST(OrgDocumentSelector, GetDirectlyNestedNode) {
-    auto                     node = parseNode("word *bold*");
-    sem::OrgDocumentSelector selector;
+TEST_F(ImmOrgDocumentSelector, GetDirectlyNestedNode) {
+    auto                     node = getInitialVersion("word *bold*");
+    org::OrgDocumentSelector selector;
     selector.searchAnyKind(
         {OrgSemKind::Bold}, false, selector.linkDirectSubnode());
     selector.searchAnyKind({OrgSemKind::Word}, true);
 
-    auto words = selector.getMatches(node);
+    auto words = selector.getMatches(node.getRootAdapter());
 
     EXPECT_EQ(words.size(), 1);
     EXPECT_EQ(words.at(0)->getKind(), OrgSemKind::Word);
-    EXPECT_EQ(words.at(0).as<sem::Word>()->text, "bold");
+    EXPECT_EQ(words.at(0).as<org::ImmWord>()->text, "bold");
 }
 
-TEST(OrgDocumentSelector, GetSubtreeByTitle) {
-    auto doc = parseNode(R"(
+TEST_F(ImmOrgDocumentSelector, GetSubtreeByTitle) {
+    auto doc = getInitialVersion(R"(
 * Title1
 ** Subtitle1
 ** Subtitle2
@@ -469,56 +607,60 @@ Paragraph under subtitle 2
 * Multi-part title
 )");
 
-    {
-        sem::OrgDocumentSelector selector;
-        selector.searchSubtreePlaintextTitle("Title1", true);
+    if (true) {
+        org::OrgDocumentSelector selector;
+        selector.setTraceFile(getDebugFile("title_search_1"));
+        selector.searchSubtreePlaintextTitle({"Title1"}, true);
 
-        auto title1 = selector.getMatches(doc);
+        auto title1 = selector.getMatches(doc.getRootAdapter());
         EXPECT_EQ(title1.size(), 1);
         EXPECT_EQ(title1.at(0)->getKind(), OrgSemKind::Subtree);
     }
 
-    {
-        sem::OrgDocumentSelector selector;
+    if (true) {
+        org::OrgDocumentSelector selector;
+        selector.setTraceFile(getDebugFile("title_search_2"));
         selector.searchSubtreePlaintextTitle(
-            "Subtitle2", false, selector.linkIndirectSubnode());
+            {"Subtitle2"}, false, selector.linkIndirectSubnode());
         selector.searchAnyKind({OrgSemKind::Word}, true);
 
-        auto words = selector.getMatches(doc);
-        EXPECT_EQ(words.size(), 5);
+        auto words = selector.getMatches(doc.getRootAdapter());
+        EXPECT_EQ(words.size(), 5) << fmt1(words);
         // Subtree nodes are added as targets in the post-order DFS
         // traversal over all 'nested' elements. First the words in subtree
         // are collected.
-        EXPECT_EQ(words.at(0).as<sem::Word>()->text, "Paragraph");
-        EXPECT_EQ(words.at(1).as<sem::Word>()->text, "under");
-        EXPECT_EQ(words.at(2).as<sem::Word>()->text, "subtitle");
-        EXPECT_EQ(words.at(3).as<sem::Word>()->text, "2");
+        EXPECT_EQ(words.at(0).as<org::ImmWord>()->text, "Paragraph");
+        EXPECT_EQ(words.at(1).as<org::ImmWord>()->text, "under");
+        EXPECT_EQ(words.at(2).as<org::ImmWord>()->text, "subtitle");
+        EXPECT_EQ(words.at(3).as<org::ImmWord>()->text, "2");
         // Then visitation gets to the subtree title itself. Nested fields
         // for each node are iterated starting from the base's fields and
         // then to the concrete type -- also in the DFS order.
-        EXPECT_EQ(words.at(4).as<sem::Word>()->text, "Subtitle2");
+        EXPECT_EQ(
+            words.at(4).as<org::ImmWord>()->text->toBase(), "Subtitle2");
     }
 
-    {
-        sem::OrgDocumentSelector selector;
+    if (true) {
+        org::OrgDocumentSelector selector;
+        selector.setTraceFile(getDebugFile("title_search_3"));
         selector.searchSubtreePlaintextTitle(
-            "Subtitle2", false, selector.linkField("subnodes"));
+            {"Subtitle2"}, false, selector.linkField("subnodes"));
         selector.searchAnyKind({OrgSemKind::Word}, true);
 
-        auto words = selector.getMatches(doc);
+        auto words = selector.getMatches(doc.getRootAdapter());
         EXPECT_EQ(words.size(), 4);
         // Subtree nodes are added as targets in the post-order DFS
         // traversal over all 'nested' elements. First the words in subtree
         // are collected.
-        EXPECT_EQ(words.at(0).as<sem::Word>()->text, "Paragraph");
-        EXPECT_EQ(words.at(1).as<sem::Word>()->text, "under");
-        EXPECT_EQ(words.at(2).as<sem::Word>()->text, "subtitle");
-        EXPECT_EQ(words.at(3).as<sem::Word>()->text, "2");
+        EXPECT_EQ(words.at(0).as<org::ImmWord>()->text, "Paragraph");
+        EXPECT_EQ(words.at(1).as<org::ImmWord>()->text, "under");
+        EXPECT_EQ(words.at(2).as<org::ImmWord>()->text, "subtitle");
+        EXPECT_EQ(words.at(3).as<org::ImmWord>()->text, "2");
     }
 }
 
-TEST(OrgDocumentSelector, GetSubtreeAtPath) {
-    auto node = parseNode(R"(
+TEST_F(ImmOrgDocumentSelector, GetSubtreeAtPath) {
+    auto node = getInitialVersion(R"(
 * Title1
 ** Subtitle1
 Content1
@@ -527,16 +669,16 @@ Content2
 * Title2
 )");
 
-    sem::OrgDocumentSelector selector;
+    org::OrgDocumentSelector selector;
     selector.searchSubtreePlaintextTitle(
-        "Title1", false, selector.linkIndirectSubnode());
-    selector.searchSubtreePlaintextTitle("Subtitle1", true);
-    auto matches = selector.getMatches(node);
+        {"Title1"}, false, selector.linkIndirectSubnode());
+    selector.searchSubtreePlaintextTitle({"Subtitle1"}, true);
+    auto matches = selector.getMatches(node.getRootAdapter());
     EXPECT_EQ(matches.size(), 1);
 }
 
-TEST(OrgDocumentSelector, EarlyVisitExit) {
-    auto node = parseNode(R"(
+TEST_F(ImmOrgDocumentSelector, EarlyVisitExit) {
+    auto node = getInitialVersion(R"(
 *** Content
 Subnode
 ** Other content
@@ -544,28 +686,28 @@ First
 *** Nested subtree
 )");
 
-    sem::OrgDocumentSelector      selector;
+    org::OrgDocumentSelector      selector;
     UnorderedMap<OrgSemKind, int> counts;
 
     selector.searchPredicate(
-        [&](sem::SemId<sem::Org> const& node) -> sem::OrgSelectorResult {
+        [&](org::ImmAdapter const& node) -> org::OrgSelectorResult {
             ++counts[node->getKind()];
-            return sem::OrgSelectorResult{
+            return org::OrgSelectorResult{
                 .isMatching     = node->is(OrgSemKind::Subtree),
                 .tryNestedNodes = !node->is(OrgSemKind::Subtree),
             };
         },
         false);
 
-    selector.getMatches(node);
+    selector.getMatches(node.getRootAdapter());
 
     EXPECT_EQ(counts.at(OrgSemKind::Subtree), 2);
     EXPECT_EQ(counts.at(OrgSemKind::Document), 1);
     EXPECT_EQ(counts.get(OrgSemKind::Word), std::nullopt);
 }
 
-TEST(OrgDocumentSelector, NonLeafSubtrees) {
-    auto doc = parseNode(R"(
+TEST_F(ImmOrgDocumentSelector, NonLeafSubtrees) {
+    auto doc = getInitialVersion(R"(
 * s1
 ** s2
 * s3
@@ -575,50 +717,50 @@ TEST(OrgDocumentSelector, NonLeafSubtrees) {
 ** s7
 )");
 
-    sem::OrgDocumentSelector selector;
+    org::OrgDocumentSelector selector;
     selector.searchAnyKind(
         {OrgSemKind::Subtree}, true, selector.linkIndirectSubnode());
 
     selector.searchAnyKind({OrgSemKind::Subtree}, false);
 
-    Vec<sem::SemId<sem::Org>> subtrees = selector.getMatches(doc);
+    Vec<org::ImmAdapter> subtrees = selector.getMatches(
+        doc.getRootAdapter());
 
     EXPECT_EQ(subtrees.size(), 3);
     auto titles = subtrees
-                | rv::transform([](sem::SemId<sem::Org> const& id) -> Str {
-                      return sem::formatToString(
-                          id.as<sem::Subtree>()->title);
+                | rv::transform([](org::ImmAdapter const& id) -> Vec<Str> {
+                      return flatWords(id.at("title"));
                   })
                 | rs::to<Vec>();
 
-    rs::sort(titles);
-    EXPECT_EQ(titles.at(0), "s1");
-    EXPECT_EQ(titles.at(1), "s3");
-    EXPECT_EQ(titles.at(2), "s6");
+    std::sort(titles.begin(), titles.end());
+    EXPECT_EQ(titles.at(0), Vec<Str>{"s1"});
+    EXPECT_EQ(titles.at(1), Vec<Str>{"s3"});
+    EXPECT_EQ(titles.at(2), Vec<Str>{"s6"});
 }
 
-TEST(OrgDocumentSelector, SubtreesWithDateInTitleAndBody) {
-    auto doc = parseNode(R"(
+TEST_F(ImmOrgDocumentSelector, SubtreesWithDateInTitleAndBody) {
+    auto doc = getInitialVersion(R"(
 * [2024-02-12] In title
 * In description
 [2024-02-12]
 )");
 
     {
-        sem::OrgDocumentSelector selector;
+        org::OrgDocumentSelector selector;
         selector.searchAnyKind(
             {OrgSemKind::Subtree}, true, selector.linkField("title"));
         selector.searchAnyKind({OrgSemKind::Time}, false);
-        auto subtrees = selector.getMatches(doc);
+        auto subtrees = selector.getMatches(doc.getRootAdapter());
         EXPECT_EQ(subtrees.size(), 1);
     }
 
     {
-        sem::OrgDocumentSelector selector;
+        org::OrgDocumentSelector selector;
         selector.searchAnyKind(
             {OrgSemKind::Subtree}, true, selector.linkIndirectSubnode());
         selector.searchAnyKind({OrgSemKind::Time}, false);
-        auto subtrees = selector.getMatches(doc);
+        auto subtrees = selector.getMatches(doc.getRootAdapter());
         EXPECT_EQ(subtrees.size(), 2);
     }
 }
@@ -646,13 +788,6 @@ TEST(OrgApi, EachSubnodeWithContext) {
     EXPECT_EQ(ctx.at(1).second.at(1).index.value(), 0);
 }
 
-template <typename T>
-sem::SemId<T> getFirstNode(sem::SemId<sem::Org> node) {
-    sem::OrgDocumentSelector selector;
-    selector.searchAnyKind({T::staticKind}, true);
-    return selector.getMatches(node).at(0).as<T>();
-}
-
 #define EXPECT_EQ2(lhs, rhs)                                              \
     {                                                                     \
         auto lhs_val = lhs;                                               \
@@ -669,12 +804,10 @@ sem::SemId<T> getFirstNode(sem::SemId<sem::Org> node) {
         }                                                                 \
     }
 
-TEST(OrgApi, SubtreePropertyModification) {
-    auto doc = parseNode(R"(
-* Subtree
-)");
+TEST(OrgApi, NamedPropertyModification) {
+    auto doc = parseNode(R"(* Subtree)");
 
-    auto tree = getFirstNode<sem::Subtree>(doc);
+    auto tree = doc.at(0).as<sem::Subtree>();
     tree->setPropertyStrValue("123", "bookmark_pos");
 
     Str formatted = sem::formatToString(doc);
@@ -700,12 +833,11 @@ TEST(OrgApi, LinkAttachedGet1) {
     auto link1 = link.getAs<sem::Link>();
     ASSERT_TRUE(link1 != nullptr);
 
-    auto args = link1->getArguments("attach-on-export");
-    EXPECT_TRUE(args.has_value());
-    EXPECT_EQ(args.value()->args.size(), 1);
-    auto arg0 = args.value()->args.at(0);
-    EXPECT_EQ(arg0->getBool(), true);
-    EXPECT_EQ(arg0->getString(), "t");
+    auto args = link1->getAttrs("attach-on-export");
+    EXPECT_EQ(args.size(), 1);
+    auto arg0 = args.at(0);
+    EXPECT_EQ(arg0.getBool(), true);
+    EXPECT_EQ(arg0.getString(), "t");
 }
 
 TEST(OrgApi, TracerOperations1) {
@@ -773,4 +905,1367 @@ TEST(SimpleNodeConversion, MyersDiffCompile) {
         return lhs == rhs;
     });
     // You may want to add test conditions to check the results.
+}
+
+struct ImmOrgApi : ImmOrgApiTestBase {};
+
+
+TEST_F(ImmOrgApi, StoreNode) {
+    auto node          = parseNode(R"(
+** ~pyhaxorg~
+    CLOSED: [2024-06-22 Sat 22:00:27 +04]
+    :PROPERTIES:
+    :CREATED:  [2023-07-30 Sun 20:51:39 +04]
+    :END:
+
+=pybind11= python module exposing the org-mode AST for scripting. intern intern intern intern
+)");
+    auto [store, root] = org::ImmAstContext{}.addRoot(node);
+    ColStream os;
+    store.format(os);
+    writeFile("/tmp/StoreNode.txt", os.getBuffer().toString(false));
+}
+
+TEST_F(ImmOrgApi, RountripImmutableAst) {
+    std::string file   = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
+    std::string source = readFile(fs::path(file));
+    org::ImmAstContext store;
+    sem::SemId         write_node = parseNode(source);
+    org::ImmAstVersion v1         = store.addRoot(write_node);
+    sem::SemId         read_node  = v1.context.get(v1.getRoot());
+
+    Vec<compare_report> out;
+
+    reporting_comparator<sem::SemId<sem::Org>>::compare(
+        write_node, read_node, out, {});
+    show_compare_reports(out);
+}
+
+TEST_F(ImmOrgApi, ImmAstFieldIteration) {
+    org::ImmAstContext store;
+    for (auto const& k : sliceT<OrgSemKind>()) {
+        if (k != OrgSemKind::None) {
+            switch_node_nullptr(k, [&]<typename N>(N*) {
+                N                         tmp{};
+                ReflRecursiveVisitContext ctx;
+                Vec<ReflPath>             paths;
+                reflVisitAll<N>(
+                    tmp,
+                    ReflPath{},
+                    ctx,
+                    [&]<typename T>(ReflPath const& path, T const& value) {
+                        paths.push_back(path);
+                    });
+            });
+        }
+    }
+}
+
+
+TEST_F(ImmOrgApi, ItearteParentNodes) {
+    setTraceFile(getDebugFile("trace.txt"));
+    start.track->isTrackingParent = [](org::ImmAdapter const&) {
+        return true;
+    };
+
+
+    auto start_node   = parseNode("word0 word2 word4");
+    auto replace_node = parseNode("wordXX").at(0).at(0);
+    auto v1           = start.init(start_node);
+    auto r            = v1.getRootAdapter();
+    auto doc_id       = r;
+    auto par_id       = doc_id.at(0);
+    auto space_id     = par_id.at(1);
+
+    EXPECT_EQ(space_id->getKind(), OrgSemKind::Space);
+    {
+        org::ImmParentIdVec parents = v1.context.getParentIds(space_id.id);
+        EXPECT_EQ(parents.size(), 1);
+        EXPECT_TRUE(parents.contains(par_id.id));
+        EXPECT_EQ(parents.size(), 1);
+    }
+
+    {
+        org::ParentPathMap parents = v1.context.getParentsFor(space_id.id);
+        EXPECT_EQ(parents.size(), 1);
+        EXPECT_TRUE(parents.contains(par_id.id));
+        EXPECT_EQ(parents.at(par_id.id).size(), 2);
+        EXPECT_EQ(
+            parents.at(par_id.id).at(0).path.at(0).getFieldName().name,
+            "subnodes");
+        EXPECT_EQ(
+            parents.at(par_id.id).at(0).path.at(1).getIndex().index, 1);
+        EXPECT_EQ(
+            parents.at(par_id.id).at(1).path.at(0).getFieldName().name,
+            "subnodes");
+        EXPECT_EQ(
+            parents.at(par_id.id).at(1).path.at(1).getIndex().index, 3);
+    }
+
+    {
+        Vec<org::ImmUniqId> paths = v1.context.getPathsFor(space_id.id);
+        EXPECT_EQ(paths.size(), 2);
+        auto const& p0 = paths.at(0);
+        auto const& p1 = paths.at(1);
+        EXPECT_EQ(p0.path.root, doc_id.id);
+        EXPECT_EQ(p1.path.root, doc_id.id);
+    }
+}
+
+TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {
+    setTraceFile(getDebugFile("trace.txt"));
+    start.track->isTrackingParent = [](org::ImmAdapter const&) {
+        return true;
+    };
+
+
+    auto start_node   = parseNode("word0 word2 word4");
+    auto replace_node = parseNode("wordXX").at(0).at(0);
+    auto version1     = start.init(start_node);
+    auto store        = version1.context;
+    auto paragraph    = version1.getRootAdapter().at(0);
+    auto ctx          = store.getEditContext();
+    auto __absl_scope = ctx.collectAbslLogs();
+    auto word_xx      = store.add(replace_node, ctx);
+    auto version2     = store.finishEdit(
+        ctx,
+        ctx.store().cascadeUpdate(
+            version1.getRootAdapter(),
+            setSubnode(paragraph, word_xx, 2, ctx),
+            ctx));
+
+    auto        store2 = version2.context;
+    auto const& c = gen_view(version2.epoch.replaced.allReplacements())
+                  | rs::to<Vec>();
+
+    auto const& doc1_id = ctx->adapt(c.at(0).original.value());
+    auto const& doc2_id = ctx->adapt(c.at(0).replaced);
+    auto const& par1_id = ctx->adapt(c.at(1).original.value());
+    auto const& par2_id = ctx->adapt(c.at(1).replaced);
+
+    EXPECT_EQ(doc1_id->getKind(), OrgSemKind::Document);
+    EXPECT_EQ(doc2_id->getKind(), OrgSemKind::Document);
+
+    EXPECT_EQ(doc1_id.id.getNodeIndex(), 1);
+    EXPECT_EQ(doc2_id.id.getNodeIndex(), 2);
+
+    EXPECT_EQ(par1_id->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(par2_id->getKind(), OrgSemKind::Paragraph);
+
+    EXPECT_EQ(par1_id.id.getNodeIndex(), 1);
+    EXPECT_EQ(par2_id.id.getNodeIndex(), 2);
+
+    auto const& doc1 = doc1_id.value<org::ImmDocument>();
+    auto const& doc2 = doc2_id.value<org::ImmDocument>();
+    auto const& par1 = par1_id.value<org::ImmParagraph>();
+    auto const& par2 = par2_id.value<org::ImmParagraph>();
+
+    EXPECT_EQ(doc1.subnodes.size(), 1);
+    EXPECT_EQ(doc1.indexOf(par1_id.id), 0);
+
+    EXPECT_EQ(doc2.subnodes.size(), 1);
+    EXPECT_EQ(doc2.indexOf(par2_id.id), 0);
+
+
+    auto space_id = par1_id.at(1);
+    auto word0_id = par1_id.at(0);
+    auto word2_id = par1_id.at(2);
+    auto word4_id = par1_id.at(4);
+
+    EXPECT_EQ(space_id, par1_id.at(3));
+    EXPECT_EQ(space_id, par2_id.at(1));
+    EXPECT_EQ(space_id, par2_id.at(3));
+
+    EXPECT_TRUE(store2.track->isParentOf(par2_id.id, space_id.id));
+    {
+        auto parents = store.track->getParentIds(space_id.id);
+        EXPECT_EQ(parents.size(), 1);
+        EXPECT_EQ(parents.at(0), par1_id.id);
+    }
+
+    {
+        auto parents = store2.track->getParentIds(space_id.id);
+        EXPECT_EQ(parents.size(), 1);
+        EXPECT_EQ(parents.at(0), par2_id.id);
+    }
+
+
+    EXPECT_EQ(word0_id->getKind(), OrgSemKind::Word);
+    EXPECT_EQ(word2_id->getKind(), OrgSemKind::Word);
+    EXPECT_EQ(word4_id->getKind(), OrgSemKind::Word);
+
+    EXPECT_EQ(word0_id.value<org::ImmWord>().text, "word0");
+    EXPECT_EQ(word2_id.value<org::ImmWord>().text, "word2");
+    EXPECT_EQ(word4_id.value<org::ImmWord>().text, "word4");
+
+    auto gv = org::toGraphviz(
+        {version1, version2},
+        org::ImmAstGraphvizConf{
+            .skippedKinds = SemSet{OrgSemKind::Space},
+        });
+
+    Graphviz gvc;
+    gvc.renderToFile("/tmp/ReplaceSubnodeAtPath.png", gv);
+    gvc.writeFile("/tmp/ReplaceSubnodeAtPath.dot", gv);
+}
+
+
+struct ImmOrgApiEdit : ImmOrgApiTestBase {};
+
+Vec<int> getDfsSubtreeLevels(org::ImmAdapter n) {
+    Vec<int>                    result;
+    Func<void(org::ImmAdapter)> aux;
+    aux = [&](org::ImmAdapter n) {
+        if (auto tree = n.asOpt<org::ImmSubtree>()) {
+            result.push_back(tree.value()->level);
+        }
+        for (auto const& it : n.sub()) { aux(it); }
+    };
+    aux(n);
+    return result;
+}
+
+Str getSubtreeDash() {
+    // 0     * s1
+    // 0.0   ** s200
+    // 0.0.0 *** s3000
+    // 0.0.1 *** s3001
+    // 0.1   ** s201
+    // 0.1.0 *** s3010
+    return R"(* s1
+** s200
+*** s3000
+*** s3001
+** s201
+*** s3010
+)";
+}
+
+TEST_F(ImmOrgApiEdit, LeafSubtreeDemote) {
+    setTraceFile(getDebugFile("trace.txt"));
+    org::ImmAstVersion v1 = getInitialVersion(getSubtreeDash());
+
+    {
+        auto root = v1.getRootAdapter();
+        writeFile(
+            "/tmp/SubtreePromotion_repr.txt",
+            root.treeRepr().toString(false));
+    }
+
+    Vec<int> path{0, 1, 0};
+
+    org::ImmAstVersion v2 = v1.getEditVersion(
+        [&](org::ImmAstContext&     ast,
+            org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
+            auto root  = v1.getRootAdapter();
+            auto s3010 = root.at(path);
+            EXPECT_EQ(s3010->getKind(), OrgSemKind::Subtree);
+            EXPECT_EQ(s3010->as<org::ImmSubtree>()->level, 3);
+            return demoteSubtree(
+                s3010, org::SubtreeMove::ForceLevels, ctx);
+        });
+
+    org::ImmAdapter::TreeReprConf conf{.withAuxFields = true};
+
+    writeFile(
+        getDebugFile("repr_v1.txt"),
+        v1.getRootAdapter().treeRepr(conf).toString(false));
+
+    writeFile(
+        getDebugFile("repr_v2.txt"),
+        v2.getRootAdapter().treeRepr(conf).toString(false));
+
+    ColStream os;
+    start.format(os);
+    writeFile(getDebugFile("store.txt"), os.getBuffer().toString(false));
+    writeGvHistory({v1, v2}, "v1_v2");
+
+    {
+        auto r     = v1.getRootAdapter();
+        auto s3010 = r.at(path);
+        EXPECT_EQ(s3010->getKind(), OrgSemKind::Subtree);
+        EXPECT_EQ(s3010->as<org::ImmSubtree>()->level, 3);
+        auto levels = getDfsSubtreeLevels(r);
+        EXPECT_EQ(levels, (Vec<int>{1, 2, 3, 3, 2, 3}));
+    }
+
+    {
+        auto r     = v2.getRootAdapter();
+        auto s3010 = r.at(path);
+        EXPECT_EQ(s3010->getKind(), OrgSemKind::Subtree);
+        EXPECT_EQ(s3010->as<org::ImmSubtree>()->level, 4);
+        auto levels = getDfsSubtreeLevels(r);
+        EXPECT_EQ(levels, (Vec<int>{1, 2, 3, 3, 2, 4}));
+    }
+}
+
+TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_OneNested) {
+    setTraceFile(getDebugFile("trace.txt"));
+    org::ImmAstVersion v1 = getInitialVersion(getSubtreeDash());
+    writeTreeRepr(v1.getRootAdapter(), "repr_v1.txt");
+
+    org::ImmAstVersion v2 = v1.getEditVersion(
+        [&](org::ImmAstContext&     ast,
+            org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
+            auto root = v1.getRootAdapter();
+            auto s201 = root.at(Vec{0, 1});
+            EXPECT_EQ(s201->getKind(), OrgSemKind::Subtree);
+            EXPECT_EQ(s201->as<org::ImmSubtree>()->level, 2);
+            return demoteSubtree(s201, org::SubtreeMove::ForceLevels, ctx);
+        });
+
+    writeGvHistory({v1, v2}, "v1_v2");
+
+    auto r = v2.getRootAdapter();
+    writeTreeRepr(r, "repr_v2.txt");
+    auto s201 = r.at(Vec{0, 0, 2});
+    EXPECT_EQ(s201->getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(s201->as<org::ImmSubtree>()->level, 3);
+    auto s3010 = r.at({0, 0, 2, 0});
+    EXPECT_EQ(s3010->getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(s3010->as<org::ImmSubtree>()->level, 4);
+    auto levels = getDfsSubtreeLevels(r);
+    EXPECT_EQ(levels, (Vec<int>{1, 2, 3, 3, 3, 4}));
+}
+
+TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_All) {
+    setTraceFile(getDebugFile("trace.txt"));
+    org::ImmAstVersion v1 = getInitialVersion(getSubtreeDash());
+
+    org::ImmAstVersion v2 = v1.getEditVersion(
+        [&](org::ImmAstContext&     ast,
+            org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
+            auto root = v1.getRootAdapter();
+            auto s1   = root.at(0);
+            return demoteSubtree(s1, org::SubtreeMove::ForceLevels, ctx);
+        });
+
+    writeGvHistory({v1, v2}, "v1_v2");
+
+    EXPECT_EQ(
+        getDfsSubtreeLevels(v1.getRootAdapter()),
+        (Vec<int>{1, 2, 3, 3, 2, 3}));
+
+    EXPECT_EQ(
+        getDfsSubtreeLevels(v2.getRootAdapter()),
+        (Vec<int>{2, 3, 4, 4, 3, 4}));
+}
+
+TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_WithParentChange) {
+    setTraceFile(getDebugFile("trace.txt"));
+    org::ImmAstVersion v1 = getInitialVersion(getSubtreeDash());
+
+    auto demotePath = [&](org::ImmAstVersion v,
+                          CVec<int>          path) -> org::ImmAstVersion {
+        return v.getEditVersion(
+            [&](org::ImmAstContext&     ast,
+                org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
+                auto root = v.getRootAdapter();
+                auto s1   = root.at(path);
+                return demoteSubtree(
+                    s1, org::SubtreeMove::ForceLevels, ctx);
+            });
+    };
+
+    org::ImmAstVersion v2 = demotePath(v1, {0, 0, 1});
+
+    {
+        auto r = v2.getRootAdapter();
+
+        writeTreeRepr(v1.getRootAdapter(), "repr_v1.txt");
+        writeTreeRepr(v2.getRootAdapter(), "repr_v2.txt");
+        writeGvHistory({v1, v2}, "v1_v2");
+
+        EXPECT_EQ(getDfsSubtreeLevels(r), (Vec<int>{1, 2, 3, 4, 2, 3}));
+
+        Vec<int> p0000 = {0, 0, 0, 0};
+        Vec<int> p000  = {0, 0, 0};
+        Vec<int> p00   = {0, 0};
+        Vec<int> p0    = {0};
+
+
+        EXPECT_TRUE(r.at(p0000).is(OrgSemKind::Subtree));
+        EXPECT_EQ(r.at(p0000).as<org::ImmSubtree>()->level, 4);
+        EXPECT_EQ(r.at(p0000).getParent().value().id, r.at(p000).id);
+        EXPECT_EQ(r.at(p000).at(0).id, r.at(p0000).id);
+
+        EXPECT_EQ(r.at(p000).as<org::ImmSubtree>()->level, 3);
+        EXPECT_EQ(r.at(p000).getParent().value().id, r.at(p00).id);
+        EXPECT_EQ(r.at(p00).at(0).id, r.at(p000).id);
+
+        EXPECT_EQ(r.at(p00).as<org::ImmSubtree>()->level, 2);
+        EXPECT_EQ(r.at(p0).at(0).id, r.at(p00).id);
+    }
+
+    org::ImmAstVersion v3 = demotePath(v2, {0, 1});
+    writeTreeRepr(v3.getRootAdapter(), "repr_v3.txt");
+    org::ImmAstVersion v4 = demotePath(v3, {0, 0, 1});
+    writeTreeRepr(v4.getRootAdapter(), "repr_v4.txt");
+    org::ImmAstVersion v5 = demotePath(v4, {0, 0, 0, 1});
+    writeTreeRepr(v5.getRootAdapter(), "repr_v5.txt");
+    writeGvHistory(
+        {v1, v2, v3, v4, v5},
+        "v_final",
+        org::ImmAstGraphvizConf{
+            .withAuxNodes      = true,
+            .withEditHistory   = false,
+            .withEpochClusters = false,
+        });
+
+    {
+        auto r = v5.getRootAdapter();
+        EXPECT_TRUE(
+            r.at({0, 0, 0, 0, 0, 0}).isSubnodeOf(r.at({0, 0, 0, 0, 0})));
+        EXPECT_EQ(
+            r.at({0, 0, 0, 0, 0, 0}).as<org::ImmSubtree>()->level, 6);
+        EXPECT_EQ(
+            r.at({0, 0, 0, 0, 0, 0}).as<org::ImmSubtree>()->level, 6);
+        EXPECT_EQ(r.at({0, 0, 0, 0, 0}).as<org::ImmSubtree>()->level, 5);
+        EXPECT_EQ(r.at({0, 0, 0, 0}).as<org::ImmSubtree>()->level, 4);
+        EXPECT_EQ(r.at({0, 0, 0}).as<org::ImmSubtree>()->level, 3);
+    }
+}
+
+TEST_F(ImmOrgApiEdit, PhysicalDemote) {
+    setTraceFile(getDebugFile("trace.txt"));
+    org::ImmAstVersion v1 = getInitialVersion(getSubtreeDash());
+    writeTreeRepr(v1.getRootAdapter(), "repr_v1.txt");
+
+    org::ImmAstVersion v2 = v1.getEditVersion(
+        [&](org::ImmAstContext&     ast,
+            org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
+            auto root = v1.getRootAdapter();
+            auto s1   = root.at(Vec{0, 0});
+            return demoteSubtree(s1, org::SubtreeMove::Physical, ctx);
+        });
+
+    writeGvHistory({v1, v2}, "v1_v2");
+    writeTreeRepr(v2.getRootAdapter(), "repr_v2.txt");
+
+    EXPECT_EQ(
+        getDfsSubtreeLevels(v1.getRootAdapter()),
+        (Vec<int>{1, 2, 3, 3, 2, 3}));
+
+    EXPECT_EQ(
+        getDfsSubtreeLevels(v2.getRootAdapter()),
+        (Vec<int>{1, 3, 3, 3, 2, 3}));
+}
+
+TEST_F(ImmOrgApiEdit, ResetTitle) {
+    setTraceFile(getDebugFile("trace.txt"));
+    org::ImmAstVersion v1 = getInitialVersion("* subtree");
+    writeTreeRepr(v1.getRootAdapter(), "repr_v1.txt");
+
+    org::ImmAstVersion v2 = v1.getEditVersion(
+        [&](org::ImmAstContext&     ast,
+            org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
+            return ctx.store().updateNode<org::ImmSubtree>(
+                v1.getRootAdapter().at(0), ctx, [&](org::ImmSubtree tree) {
+                    tree.title = ctx->add(
+                                        sem::asOneNode(
+                                            sem::parseString("replaced")),
+                                        ctx)
+                                     .as<org::ImmParagraph>();
+                    return tree;
+                });
+        });
+
+    writeGvHistory({v1, v2}, "v1_v2");
+    writeTreeRepr(v2.getRootAdapter(), "repr_v2.txt");
+
+    {
+        auto tree = v1.getRootAdapter().at(0).as<org::ImmSubtree>();
+        EXPECT_EQ(
+            tree.pass(tree->title).at(0).as<org::ImmWord>()->text,
+            "subtree");
+    }
+
+    {
+        auto tree = v2.getRootAdapter().at(0).as<org::ImmSubtree>();
+        EXPECT_EQ(
+            tree.pass(tree->title).at(0).as<org::ImmWord>()->text,
+            "replaced");
+    }
+}
+
+TEST_F(ImmOrgApiEdit, MoveSubnodes) {
+    setTraceFile(getDebugFile("trace.txt"));
+    org::ImmAstVersion v1 = getInitialVersion("zero one two three");
+
+    auto move =
+        [&](int position, int offset, bool bounded) -> org::ImmAstVersion {
+        return v1.getEditVersion(
+            [&](org::ImmAstContext&     ast,
+                org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
+                auto update = moveSubnode(
+                    v1.getRootAdapter().at(0),
+                    position,
+                    offset,
+                    ctx,
+                    bounded);
+                if (update) {
+                    return *update;
+                } else {
+                    return {};
+                }
+            });
+    };
+
+    Func<Vec<Str>(org::ImmAdapter const&)> flat;
+    flat = [&](org::ImmAdapter const& it) -> Vec<Str> {
+        Vec<Str> result;
+        if (auto i = it.asOpt<org::ImmWord>(); i) {
+            result.push_back(i.value()->text);
+        } else if (auto i = it.asOpt<org::ImmSpace>(); i) {
+            result.push_back(i.value()->text);
+        } else {
+            for (auto const& sub : it.sub()) { result.append(flat(sub)); }
+        }
+
+        return result;
+    };
+
+    writeGvHistory({v1}, "graph_v1");
+
+    org::ImmAstVersion v2 = move(0, 2, true);
+    org::ImmAstVersion v3 = move(0, 4, true);
+    org::ImmAstVersion v4 = move(2, -2, true);
+
+    writeGvHistory({v1, v2, v3, v4}, "graph");
+    EXPECT_EQ(
+        flat(v1.getRootAdapter()),
+        (Vec<Str>{"zero", " ", "one", " ", "two", " ", "three"}));
+    EXPECT_EQ(
+        flat(v2.getRootAdapter()),
+        (Vec<Str>{" ", "one", "zero", " ", "two", " ", "three"}));
+    EXPECT_EQ(
+        flat(v3.getRootAdapter()),
+        (Vec<Str>{" ", "one", " ", "two", "zero", " ", "three"}));
+    EXPECT_EQ(
+        flat(v4.getRootAdapter()),
+        (Vec<Str>{"one", "zero", " ", " ", "two", " ", "three"}));
+}
+
+struct ImmOrgApiAppModel : ImmOrgApiTestBase {
+    struct Row {
+        org::ImmAdapter nameOrigin;
+        std::string     name;
+        org::ImmAdapter storyEventOrigin;
+        std::string     storyEvent;
+        Vec<Row>        nested;
+        DESC_FIELDS(
+            Row,
+            (nameOrigin, name, storyEventOrigin, storyEvent, nested));
+    };
+
+    Row buildRow(org::ImmAdapterT<org::ImmSubtree> tree) {
+        Row result;
+        result.name       = join(" ", flatWords(tree.getTitle()));
+        result.nameOrigin = tree.getTitle();
+        for (auto const& sub : tree.subAs<org::ImmList>()) {
+            if (sub.isDescriptionList()) {
+                for (auto const& item : sub.subAs<org::ImmListItem>()) {
+                    auto flat = flatWords(item.getHeader().value());
+                    for (auto const& word : flat) {
+                        if (word == "story_event") {
+                            result.storyEventOrigin = item.at(0);
+                            result.storyEvent       = join(
+                                " ", flatWords(item.at(0)));
+                        }
+                    }
+                }
+            }
+        }
+
+        for (auto const& sub : tree.subAs<org::ImmSubtree>()) {
+            result.nested.push_back(buildRow(sub));
+        }
+
+        return result;
+    }
+
+    Vec<Row> buildRows(org::ImmAdapter root) {
+        Vec<Row> result;
+        for (auto const& tree : root.subAs<org::ImmSubtree>()) {
+            result.push_back(buildRow(tree));
+        }
+
+        return result;
+    }
+};
+
+TEST_F(ImmOrgApiAppModel, CreateModel) {
+    org::ImmAstVersion v1 = getInitialVersion(R"(
+* Entry 1
+** Subtree 2
+
+- =story_event= :: Description
+
+** Subtree 3
+)");
+
+    Vec<Row> rows = buildRows(v1.getRootAdapter());
+    EXPECT_EQ(rows.size(), 1);
+    EXPECT_EQ(rows.at(0).nested.size(), 2);
+    EXPECT_EQ(rows.at(0).name, "Entry 1");
+    EXPECT_EQ(rows.at(0).nested.at(0).name, "Subtree 2");
+    EXPECT_EQ(rows.at(0).nested.at(0).storyEvent, "Description");
+}
+
+TEST_F(ImmOrgApiAppModel, EditModel) {
+    setTraceFile(getDebugFile("trace.txt"));
+    org::ImmAstVersion v1 = getInitialVersion(R"(
+* Entry 1
+** Subtree 2
+- =story_event= :: Description
+)");
+
+    Vec<Row> rows1 = buildRows(v1.getRootAdapter());
+    writeTreeRepr(v1.getRootAdapter(), "v1.txt");
+    {
+        EXPECT_EQ(rows1.size(), 1);
+        EXPECT_EQ(rows1.at(0).nested.size(), 1);
+        EXPECT_EQ(rows1.at(0).name, "Entry 1");
+        EXPECT_EQ(rows1.at(0).nested.at(0).name, "Subtree 2");
+        EXPECT_EQ(rows1.at(0).nested.at(0).storyEvent, "Description");
+    }
+
+    org::ImmAstVersion v2 = v1.getEditVersion(
+        [&](org::ImmAstContext&     ast,
+            org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
+            auto                    t2 = rows1.at(0).nested.at(0);
+            org::ImmAstReplaceGroup result;
+            result.incl(org::replaceNode(
+                t2.nameOrigin,
+                ast.add(
+                    sem::asOneNode(sem::parseString("New title")), ctx),
+                ctx));
+            result.incl(org::replaceNode(
+                t2.storyEventOrigin,
+                ast.add(
+                    sem::asOneNode(
+                        sem::parseString("New story event description")),
+                    ctx),
+                ctx));
+            return result;
+        });
+
+    writeTreeRepr(v2.getRootAdapter(), "v2.txt");
+    writeGvHistory(
+        {v1, v2},
+        "graph.png",
+        org::ImmAstGraphvizConf{
+            .withAuxNodes    = true,
+            .withEditHistory = false,
+        });
+    {
+        Vec<Row> rows2 = buildRows(v2.getRootAdapter());
+        EXPECT_EQ(rows2.size(), 1);
+        EXPECT_EQ(rows2.at(0).nested.size(), 1);
+        EXPECT_EQ(rows2.at(0).name, "Entry 1");
+        EXPECT_EQ(rows2.at(0).nested.at(0).name, "New title");
+        EXPECT_EQ(
+            rows2.at(0).nested.at(0).storyEvent,
+            "New story event description");
+    }
+}
+
+
+TEST(ImmMapApi, AddNode) {
+    auto n1 = parseNode("* subtree");
+
+    org::ImmAstContext    store;
+    org::graph::MapConfig conf;
+    conf.setTraceFile(getDebugFile("ImmMapApi_AddNode.txt"));
+    org::ImmAstVersion        v1 = store.addRoot(n1);
+    org::graph::MapGraphState s1{v1.context};
+    EXPECT_EQ(s1.graph.nodeCount(), 0);
+    org::graph::addNode(s1, v1.getRootAdapter(), conf);
+    EXPECT_EQ(s1.graph.nodeCount(), 1);
+
+    Graphviz gvc;
+    auto     gv = s1.graph.toGraphviz(v1.context);
+    gvc.renderToFile(getDebugFile("MapS2.png"), gv);
+}
+
+TEST(ImmMapApi, AddNodeWithLinks) {
+    Str text{R"(
+Paragraph [[id:subtree-id]]
+
+* Subtree
+  :properties:
+  :id: subtree-id
+  :end:
+)"_ss};
+
+    auto n1 = parseNode(text);
+
+    org::ImmAstContext    store;
+    org::graph::MapConfig conf;
+    conf.setTraceFile(getDebugFile("log"));
+    store.debug->setTraceFile(conf.getTraceFile());
+    org::ImmAstVersion v1   = store.addRoot(n1);
+    auto               root = v1.getRootAdapter();
+
+    org::graph::MapGraphState s1{v1.context};
+
+    EXPECT_EQ(s1.graph.nodeCount(), 0);
+    EXPECT_EQ(s1.graph.edgeCount(), 0);
+    EXPECT_EQ(s1.unresolved.size(), 0);
+
+    conf.message("add first node");
+    {
+        auto __scope = conf.scopeLevel();
+        auto par     = root.at(1);
+        org::graph::addNode(s1, par, conf);
+        EXPECT_EQ(par->getKind(), OrgSemKind::Paragraph);
+        EXPECT_EQ(s1.graph.nodeCount(), 1);
+        EXPECT_EQ(s1.graph.edgeCount(), 0);
+        ASSERT_EQ(s1.unresolved.size(), 1);
+        EXPECT_EQ(*s1.unresolved.begin(), par.uniq());
+    }
+
+    conf.message("add second node");
+    {
+        auto __scope = conf.scopeLevel();
+        org::graph::addNode(s1, root.at(3), conf);
+        EXPECT_EQ(s1.graph.nodeCount(), 2);
+        EXPECT_EQ(s1.graph.edgeCount(), 1);
+        EXPECT_EQ(s1.unresolved.size(), 0);
+    }
+
+    Graphviz gvc;
+    auto     gv = s1.graph.toGraphviz(v1.context);
+    gvc.renderToFile(getDebugFile("AddNodeWithLinks.png"), gv);
+}
+
+
+TEST(ImmMapApi, SubtreeBacklinks) {
+    Str text1{R"(
+* Subtree1
+  :properties:
+  :id: subtree-1
+  :end:
+
+#+attr_list: :attached subtree
+- [[id:subtree-2]] :: Forward link
+)"_ss};
+
+    Str text2{R"(
+* Subtree2
+  :properties:
+  :id: subtree-2
+  :end:
+
+#+attr_list: :attached subtree
+- [[id:subtree-1]] :: Backlink
+)"_ss};
+
+    auto n1 = parseNode(text1);
+    auto n2 = parseNode(text2);
+
+    org::ImmAstContext    store;
+    org::graph::MapConfig conf;
+    conf.setTraceFile(getDebugFile("SubtreeBacklinks_log.txt"));
+
+    org::ImmAstVersion v2 = store.addRoot(n1);
+    org::ImmAstVersion v3 = v2.context.addRoot(n2);
+
+
+    org::graph::MapGraphState s1{v3.context};
+
+    EXPECT_EQ(s1.graph.nodeCount(), 0);
+    EXPECT_EQ(s1.graph.edgeCount(), 0);
+    EXPECT_EQ(s1.unresolved.size(), 0);
+
+    org::graph::addNode(s1, v2.getRootAdapter().at(1), conf);
+    EXPECT_EQ(s1.graph.nodeCount(), 1);
+    EXPECT_EQ(s1.graph.edgeCount(), 0);
+    EXPECT_EQ(s1.unresolved.size(), 1);
+
+    org::graph::addNode(s1, v3.getRootAdapter().at(1), conf);
+    EXPECT_EQ(s1.graph.nodeCount(), 2);
+    EXPECT_EQ(s1.graph.edgeCount(), 2);
+    EXPECT_EQ(s1.unresolved.size(), 0);
+
+    Graphviz gvc;
+    auto     gv = s1.graph.toGraphviz(v3.context);
+    gvc.renderToFile(getDebugFile("SubtreeBacklinks.png"), gv);
+}
+
+Str getFullMindMapText() {
+    Vec<Str> text{
+        R"(
+* Mind map nodes are made from subtrees
+)",
+        R"(
+** Subtrees can be nested for clustering
+   :PROPERTIES:
+   :ID:       c468e9c7-7422-4b17-8ccb-53575f186fe0
+   :END:
+)",
+        R"(
+** More than one subtree can exist in cluster
+)",
+        R"(
+Tree  description, maybe  on multiple  lines.
+Can include  [[id:c468e9c7-7422-4b17-8ccb-53575f186fe0][links]] to  other trees.
+Links are attached to specific [[id:6d6d6689-d9da-418d-9f91-1c8c4428e5af][rows]] in the text
+so it is easier to track which part of the
+description refers to the [[id:9879fed7-f0a4-44bd-bf56-983279afc622][other]] tree
+)",
+        R"(- )",
+        R"(when [[id:c468e9c7-7422-4b17-8ccb-53575f186fe0][link]] :: Description lists can be used for annotated links
+
+)",
+        R"(  Multiple paragraphs attached to link
+)",
+        R"(
+used in description list it's placed as annotation to the graph node.
+Description can take multiple lines[fn:lines-20].
+)",
+        R"(
+[fn:lines-20]  Footnotes  are placed  into  separate  nodes. You  can  have
+nested[fn:nested-23]
+)",
+        R"(
+[fn:nested-23] footnotes
+)",
+        R"(
+** Extra entries
+   :PROPERTIES:
+   :ID:       6d6d6689-d9da-418d-9f91-1c8c4428e5af
+   :END:
+)",
+        R"(
+Parent subtrees can contain some things.
+)",
+        R"(
+* Several clusters can exist
+)",
+        R"(
+Nested subtrees
+Multiline [[id:6d6d6689-d9da-418d-9f91-1c8c4428e5af][Extra entries]]
+)",
+        R"(
+** With multiple nodes
+   :PROPERTIES:
+   :ID:       9879fed7-f0a4-44bd-bf56-983279afc622
+   :END:
+)",
+        R"(
+** And even nested
+)",
+        R"(
+*** Clusters
+)",
+        R"(
+*** And nodes
+)",
+        R"(
+*** Intercluster links are possible
+)",
+        R"(
+[[id:c468e9c7-7422-4b17-8ccb-53575f186fe0][Annotation for the target subtree]]
+[[id:XXSDASD][Unresolved subtree]]
+)",
+        "- ",
+        "Regular list element\n",
+        "- ",
+        "Two items in a list\n",
+    };
+    return join("", text);
+}
+
+using osk = OrgSemKind;
+
+TEST(ImmMapApi, SubtreeFullMap) {
+    auto n = parseNode(getFullMindMapText());
+
+    org::ImmAstContext store;
+
+    org::ImmAstVersion        v2 = store.addRoot(n);
+    org::graph::MapGraphState s1{v2.context};
+    org::ImmAdapter           file = v2.getRootAdapter();
+
+    EXPECT_EQ(file.at(1)->getKind(), osk::Subtree);
+    auto node_s10  = file.at(Vec{1, 0});
+    auto node_p110 = file.at({1, 1, 0});
+    auto node_s12  = file.at(Vec{1, 2});
+    EXPECT_EQ(node_s10->getKind(), osk::Subtree);
+    EXPECT_EQ(
+        node_s10.as<org::ImmSubtree>()->treeId->value(),
+        "c468e9c7-7422-4b17-8ccb-53575f186fe0");
+
+    EXPECT_EQ(node_s12->getKind(), osk::Subtree);
+    EXPECT_EQ(
+        node_s12.as<org::ImmSubtree>()->treeId->value(),
+        "6d6d6689-d9da-418d-9f91-1c8c4428e5af");
+
+
+    org::graph::MapConfig conf;
+    conf.setTraceFile(getDebugFile("conf"));
+    addNodeRec(s1, v2.getRootAdapter(), conf);
+
+    EXPECT_TRUE(s1.graph.hasEdge(node_p110.uniq(), node_s12.uniq()));
+    EXPECT_TRUE(s1.graph.hasEdge(node_p110.uniq(), node_s10.uniq()));
+
+    Graphviz gvc;
+    auto     gv = s1.graph.toGraphviz(v2.context);
+    gv.setRankDirection(Graphviz::Graph::RankDirection::LR);
+    gvc.writeFile("/tmp/SubtreeFullMap.dot", gv);
+    gvc.renderToFile("/tmp/SubtreeFullMap.png", gv);
+}
+
+Str getSubtreeBlockText() {
+    return Str{R"str(
+* Subtree 1
+  :properties:
+  :id: subtree_1
+  :end:
+
+#+attr_list: :attached subtree
+- [[id:subtree_2]] :: Describe link to subtree 2
+- [[internal_1]] :: Describe link to internal
+
+<<internal_1>> Internal paragraph [fn:footnote_1]
+
+#+begin_comment :attach above
+Comment for the paragraph content above
+#+end_comment
+
+[fn:footnote_1] Definition of the footnote 1
+
+Second paragraph [fn:footnote_2]
+
+[fn:footnote_2] Footnote 2 [fn:recursive_1]
+
+[fn:recursive_1] Recursive footnote 1 [fn:recursive_2]
+
+[fn:recursive_2] Recursive footnote 2
+
+* Subtree 2
+  :properties:
+  :id: subtree_2
+  :end:
+
+- [[id:subtree_2]] :: Standalone description list targeting subtree
+- [[id:subtree_1]] :: Targeting subtree one
+- [[internal_1]] :: Targeting standalone paragraph 1
+- [[named-paragraph-one]] :: Targeting named paragraph
+
+#+name: named-paragraph-one
+Paragraph with name annotations
+)str"};
+}
+
+struct DocItem {
+    org::ImmAdapter id;
+    DESC_FIELDS(DocItem, (id));
+};
+
+struct DocBlock {
+    Vec<DocItem>  items;
+    Vec<DocBlock> nested;
+    DESC_FIELDS(DocBlock, (items, nested));
+};
+
+DocBlock fromAst(org::ImmAdapter const& id) {
+    SemSet Skip{OrgSemKind::Newline};
+
+    DocBlock result;
+    switch (id->getKind()) {
+        case OrgSemKind::Document: {
+            for (auto const& sub : id.sub()) {
+                if (!Skip.contains(sub->getKind())) {
+                    result.nested.push_back(fromAst(sub));
+                }
+            }
+            break;
+        }
+        case OrgSemKind::Subtree: {
+            result.items.push_back(DocItem{.id = id});
+            for (auto const& sub : id.sub()) {
+                if (!Skip.contains(sub->getKind())) {
+                    result.nested.push_back(fromAst(sub));
+                }
+            }
+            break;
+        }
+
+        default: {
+            if (!org::graph::isAttachedDescriptionList(id)) {
+                result.items.push_back(DocItem{.id = id});
+            }
+
+            break;
+        }
+    }
+
+    return result;
+}
+
+void addAll(
+    org::graph::MapGraphState& state,
+    DocBlock const&            block,
+    org::graph::MapConfig&     conf) {
+    for (auto const& it : block.items) {
+        org::graph::addNode(state, it.id, conf);
+    }
+
+    for (auto const& it : block.nested) { addAll(state, it, conf); }
+}
+
+TEST(ImmMapApi, SubtreeBlockMap) {
+    auto n = parseNode(getSubtreeBlockText());
+    sem::exportToTreeFile(
+        n,
+        getDebugFile("sem_tree.txt"),
+        sem::OrgTreeExportOpts{
+            .withColor = false,
+        });
+
+
+    org::ImmAstContext store;
+    store.debug->setTraceFile(getDebugFile("store"));
+    org::ImmAstVersion v    = store.addRoot(n);
+    org::ImmAdapter    root = v.getRootAdapter();
+
+    writeTreeRepr(
+        root,
+        "imm_path.txt",
+        org::ImmAdapter::TreeReprConf{
+            .withAuxFields = true,
+        });
+
+
+    writeTreeRepr(
+        root,
+        "imm_tree.txt",
+        org::ImmAdapter::TreeReprConf{
+            .withReflFields = true,
+            .withAuxFields  = true,
+        });
+
+
+    org::graph::MapConfig conf;
+    conf.setTraceFile(getDebugFile("graph"));
+    org::graph::MapGraphState state{v.context};
+    DocBlock                  doc = fromAst(root);
+    addAll(state, doc, conf);
+
+    org::ImmAdapter comment   = root.at({1, 3});
+    org::ImmAdapter par_above = root.at({1, 1});
+    EXPECT_EQ(comment->getKind(), OrgSemKind::BlockComment);
+    EXPECT_EQ(par_above->getKind(), OrgSemKind::Paragraph);
+
+    state.graph.addEdge(
+        org::graph::MapEdge{
+            .source = org::graph::MapNode{par_above.uniq()},
+            .target = org::graph::MapNode{comment.uniq()}},
+        org::graph::MapEdgeProp{});
+
+    Graphviz gvc;
+    auto     gv = state.graph.toGraphviz(v.context);
+    // gv.setRankDirection(Graphviz::Graph::RankDirection::LR);
+    gvc.writeFile(getDebugFile("map.dot"), gv);
+    gvc.renderToFile(getDebugFile("map.png"), gv);
+
+    // org::eachSubnodeRec(root, [](org::ImmAdapter const& it) {
+    //     if (SemSet{
+    //             OrgSemKind::Subtree,
+    //             OrgSemKind::Paragraph,
+    //             OrgSemKind::List}
+    //             .contains(it->getKind())) {
+    //         std::cout << getSelfTest(it).toBase() << std::endl;
+    //     }
+    // });
+
+    auto List_1         = root.at(1).at(0);
+    auto List_2         = root.at(2).at(0);
+    auto Paragraph_10   = root.at(1).at(9);
+    auto Paragraph_11   = root.at(1).at(11);
+    auto Paragraph_12   = root.at(1).at(13);
+    auto Paragraph_14   = root.at(2).at(0).at(0).at(0);
+    auto Paragraph_16   = root.at(2).at(0).at(1).at(0);
+    auto Paragraph_17   = root.at(2).at(0).at(2).at(0);
+    auto Paragraph_19   = root.at(2).at(0).at(3).at(0);
+    auto Paragraph_20   = root.at(2).at(1);
+    auto Paragraph_3    = root.at(1).at(0).at(0).at(0);
+    auto Paragraph_5    = root.at(1).at(0).at(1).at(0);
+    auto Paragraph_6    = root.at(1).at(1);
+    auto Paragraph_7    = root.at(1).at(3).at(0);
+    auto Paragraph_8    = root.at(1).at(5);
+    auto Paragraph_9    = root.at(1).at(7);
+    auto Subtree_1      = root.at(1);
+    auto Subtree_2      = root.at(2);
+    auto BlockComment_1 = root.at(1).at(3);
+
+    EXPECT_EQ(List_1->getKind(), OrgSemKind::List);
+    EXPECT_EQ(List_2->getKind(), OrgSemKind::List);
+    EXPECT_EQ(Paragraph_10->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_11->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_12->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_14->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_16->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_17->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_19->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_20->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_3->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_5->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_6->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_7->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_8->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_9->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(Subtree_1->getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(Subtree_2->getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(BlockComment_1->getKind(), OrgSemKind::BlockComment);
+
+    EXPECT_EQ(
+        (org::flatWords(Paragraph_20)),
+        (Vec<Str>{"Paragraph", "with", "name", "annotations"}));
+
+    EXPECT_EQ(
+        (org::flatWords(Paragraph_6)),
+        (Vec<Str>{"Internal", "paragraph"}));
+
+
+    EXPECT_EQ(
+        (org::flatWords(Paragraph_9)), (Vec<Str>{"Second", "paragraph"}));
+
+    EXPECT_EQ((org::flatWords(Paragraph_10)), (Vec<Str>{"Footnote", "2"}));
+
+    EXPECT_EQ(
+        (org::flatWords(Paragraph_11)),
+        (Vec<Str>{"Recursive", "footnote", "1"}));
+
+    EXPECT_EQ(
+        (org::flatWords(Paragraph_12)),
+        (Vec<Str>{"Recursive", "footnote", "2"}));
+
+
+    EXPECT_EQ(
+        (org::flatWords(Subtree_1.as<org::ImmSubtree>().getTitle())),
+        (Vec<Str>{"Subtree", "1"}));
+
+    EXPECT_EQ(
+        (org::flatWords(Subtree_2.as<org::ImmSubtree>().getTitle())),
+        (Vec<Str>{"Subtree", "2"}));
+
+    auto& g = state.graph;
+
+    g.hasEdge(List_2, Paragraph_20);
+    g.hasEdge(List_2, Subtree_1);
+    g.hasEdge(List_2, Subtree_2);
+    g.hasEdge(List_2, Paragraph_6);
+    g.hasEdge(Subtree_1, Subtree_2);
+    g.hasEdge(Subtree_1, Paragraph_6);
+    g.hasEdge(Paragraph_6, BlockComment_1);
+    g.hasEdge(Paragraph_9, Paragraph_10);
+    g.hasEdge(Paragraph_10, Paragraph_11);
+    g.hasEdge(Paragraph_11, Paragraph_12);
+}
+
+TEST(ImmMapApi, Doc1Graph) {
+    __perf_trace("imm", "run test");
+    fs::path file = fs::path{std::getenv("HOME")}
+                  / std::string{"tmp/doc_graph.org"};
+
+    if (!fs::exists(file)) { return; }
+    auto n = parseNode(readFile(file));
+
+    org::ImmAstContext store;
+    org::ImmAstVersion v = store.addRoot(n);
+    return;
+
+    // writeTreeRepr(
+    //     v.getRootAdapter(),
+    //     "imm.txt",
+    //     org::ImmAdapter::TreeReprConf{
+    //         .withReflFields = true,
+    //         .withAuxFields  = true,
+    //     });
+
+    {
+        int count = 0;
+        __perf_trace("imm", "iterate each sem node");
+        sem::eachSubnodeRec(n, [&](sem::OrgArg) { ++count; });
+        _dbg(count);
+    }
+
+    {
+        int count = 0;
+        __perf_trace("imm", "iterate each node with path");
+        org::eachSubnodeRec(
+            v.getRootAdapter(), true, [&](org::ImmAdapter const&) {
+                ++count;
+            });
+        _dbg(count);
+    }
+
+    {
+        int count = 0;
+        __perf_trace("imm", "iterate each node without path");
+        org::eachSubnodeRec(
+            v.getRootAdapter(), false, [&](org::ImmAdapter const&) {
+                ++count;
+            });
+        _dbg(count);
+    }
+
+    org::ImmAdapter root = v.getRootAdapter();
+
+    org::graph::MapConfig     conf;
+    org::graph::MapGraphState state{v.context};
+    addNodeRec(state, root, conf);
+
+    Graphviz                       gvc;
+    org::graph::MapGraph::GvConfig gvConf;
+    gvConf.acceptNode = [&](org::graph::MapNode const& node) {
+        return 0 < state.graph.inDegree(node)
+            || 0 < state.graph.outDegree(node);
+    };
+    auto gv = state.graph.toGraphviz(v.context, gvConf);
+    gvc.writeFile(getDebugFile("map.dot"), gv);
+    gvc.renderToFile(
+        getDebugFile("map.png"),
+        gv,
+        Graphviz::RenderFormat::PNG,
+        Graphviz::LayoutType::Sfdp);
+}
+
+struct TestGraph {
+    org::graph::MapGraph     g;
+    Vec<org::graph::MapNode> nodes;
+};
+
+TestGraph create_test_graph() {
+    org::graph::MapGraph g{};
+
+    auto n0 = org::ImmUniqId{org::ImmId::FromValue(0)};
+    auto n1 = org::ImmUniqId{org::ImmId::FromValue(1)};
+    auto n2 = org::ImmUniqId{org::ImmId::FromValue(2)};
+
+    g.adjList = {
+        {n0, {n1}},
+        {n1, {n2}},
+        {n2, {n0}},
+    };
+
+    g.nodeProps.insert_or_assign(n0, org::graph::MapNodeProp{});
+    g.nodeProps.insert_or_assign(n1, org::graph::MapNodeProp{});
+    g.nodeProps.insert_or_assign(n2, org::graph::MapNodeProp{});
+
+    g.edgeProps.insert_or_assign({n0, n1}, org::graph::MapEdgeProp{});
+    g.edgeProps.insert_or_assign({n1, n2}, org::graph::MapEdgeProp{});
+    g.edgeProps.insert_or_assign({n2, n0}, org::graph::MapEdgeProp{});
+
+    return TestGraph{
+        .g     = g,
+        .nodes = {n0, n1, n2},
+    };
+}
+
+
+TEST(ImmMapApi, VertexCount) {
+    auto g            = create_test_graph();
+    auto num_vertices = boost::num_vertices(g.g);
+    EXPECT_EQ(num_vertices, 3);
+}
+
+TEST(ImmMapApi, EdgeCount) {
+    auto g         = create_test_graph();
+    auto num_edges = boost::num_edges(g.g);
+    EXPECT_EQ(num_edges, 3);
+}
+
+TEST(ImmMapApi, Vertices) {
+    auto g                = create_test_graph();
+    auto [v_begin, v_end] = boost::vertices(g.g);
+    std::vector<org::graph::MapNode> vertices(v_begin, v_end);
+    std::sort(vertices.begin(), vertices.end());
+
+    EXPECT_EQ(vertices.size(), 3);
+}
+
+TEST(ImmMapApi, Edges) {
+    auto g                = create_test_graph();
+    auto [e_begin, e_end] = boost::edges(g.g);
+    std::vector<org::graph::MapEdge> edges(e_begin, e_end);
+
+    EXPECT_EQ(edges.size(), 3);
+    EXPECT_NE(
+        std::find(
+            edges.begin(),
+            edges.end(),
+            org::graph::MapEdge{g.nodes.at(0), g.nodes.at(1)}),
+        edges.end());
+    EXPECT_NE(
+        std::find(
+            edges.begin(),
+            edges.end(),
+            org::graph::MapEdge{g.nodes.at(1), g.nodes.at(2)}),
+        edges.end());
+    EXPECT_NE(
+        std::find(
+            edges.begin(),
+            edges.end(),
+            org::graph::MapEdge{g.nodes.at(2), g.nodes.at(0)}),
+        edges.end());
+}
+
+TEST(ImmMapApi, AdjacentVertices) {
+    auto g                    = create_test_graph();
+    auto [adj_begin, adj_end] = boost::adjacent_vertices(
+        g.nodes.at(0), g.g);
+
+    std::vector<org::graph::MapNode> adjacent_vertices(adj_begin, adj_end);
+
+    EXPECT_EQ(adjacent_vertices.size(), 1);
+    EXPECT_EQ(adjacent_vertices[0], g.nodes.at(1));
+}
+
+TEST(ImmMapApi, OutDegree) {
+    auto g          = create_test_graph();
+    auto out_degree = boost::out_degree(g.nodes.at(0), g.g);
+    EXPECT_EQ(out_degree, 1);
+}
+
+TEST(ImmMapApi, OutEdges) {
+    auto g                  = create_test_graph();
+    auto [oe_begin, oe_end] = boost::out_edges(g.nodes.at(0), g.g);
+    std::vector<org::graph::MapEdge> out_edges(oe_begin, oe_end);
+
+    EXPECT_EQ(out_edges.size(), 1);
+    EXPECT_EQ(
+        out_edges[0], (org::graph::MapEdge{g.nodes.at(0), g.nodes.at(1)}));
+}
+
+TEST(ImmMapApi, SourceAndTarget) {
+    auto                g = create_test_graph();
+    org::graph::MapEdge e{g.nodes.at(0), g.nodes.at(1)};
+    auto                src = boost::source(e, g.g);
+    auto                tgt = boost::target(e, g.g);
+
+    EXPECT_EQ(src, g.nodes.at(0));
+    EXPECT_EQ(tgt, g.nodes.at(1));
+}
+
+TEST(ImmMapApi, BoostPropertyWriter) {
+    auto n = parseNode(getFullMindMapText());
+
+    org::ImmAstContext        store;
+    org::graph::MapConfig     conf;
+    org::ImmAstVersion        v2   = store.addRoot(n);
+    org::ImmAdapter           file = v2.getRootAdapter();
+    org::graph::MapGraphState s1{v2.context};
+    addNodeRec(s1, file, conf);
+
+    std::stringstream os;
+
+    auto dp = org::graph::toGraphvizDynamicProperties(s1.graph);
+
+    write_graphviz_dp(os, s1.graph, dp);
+
+    writeFile("/tmp/BoostPropertyWriter.dot", os.str());
 }

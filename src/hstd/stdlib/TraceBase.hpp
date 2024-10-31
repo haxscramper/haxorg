@@ -4,6 +4,10 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/system/reflection.hpp>
+#include <absl/log/log.h>
+#include <absl/log/initialize.h>
+#include <absl/log/internal/globals.h>
+#include <hstd/stdlib/Json.hpp>
 
 struct OperationsMsg {
     Opt<std::string> msg;
@@ -11,27 +15,58 @@ struct OperationsMsg {
     char const*      function = nullptr;
     int              line     = 0;
     int              column   = 0;
-    DESC_FIELDS(OperationsMsg, (msg, file, function, line, column));
+    int              level    = 0;
+    json             metadata = json{};
+    DESC_FIELDS(
+        OperationsMsg,
+        (msg, file, function, line, column, metadata));
 };
 
+struct OperationsScope {
+    bool* TraceState  = nullptr;
+    int   activeLevel = 0;
+
+    finally scopeLevel() const;
+    finally scopeTrace(bool state);
+};
+
+struct OperationsTracer;
+
+struct OperationsTracerSink : public absl::LogSink {
+    OperationsTracer const* tracer;
+    OperationsScope const*  scope;
+
+    void Send(const absl::LogEntry& entry) override;
+};
 
 struct OperationsTracer {
-    bool        TraceState      = false;
-    bool        traceToFile     = false;
-    bool        traceToBuffer   = false;
-    bool        traceStructured = false;
-    bool        traceColored    = true;
+    bool        TraceState       = false;
+    bool        traceToFile      = false;
+    bool        traceToBuffer    = false;
+    bool        traceStructured  = false;
+    bool        traceColored     = true;
+    bool        collectingAbseil = false;
     std::string traceBuffer;
 
     OperationsTracer() {}
     OperationsTracer(fs::path const& info) { setTraceFile(info); }
 
     SPtr<std::ostream> stream;
+
+    SPtr<std::ostream> getTraceFile();
+    void               setTraceFile(SPtr<std::ostream> stream);
     void               setTraceFile(fs::path const& outfile);
-    ColStream          getStream();
-    void               endStream(ColStream& stream);
-    void               message(std::string const& value);
-    void               message(OperationsMsg const& value);
+    ColStream          getStream() const;
+    void               endStream(ColStream& stream) const;
+    void               message(OperationsMsg const& value) const;
+    finally collectAbslLogs(OperationsScope const* scope = nullptr) const;
+
+    void message(
+        std::string const& value,
+        int                level    = 0,
+        int                line     = __builtin_LINE(),
+        char const*        function = __builtin_FUNCTION(),
+        char const*        file     = __builtin_FILE()) const;
 };
 
 

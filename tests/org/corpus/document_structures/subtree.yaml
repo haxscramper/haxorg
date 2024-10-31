@@ -77,6 +77,7 @@ items:
   - name: "Lorem ipsum subtree"
     debug:
       doFlatParseCompare: false
+      traceAll: true
     file: org/lorem_ipsum_subtree.org
 
   - name: "Nested lists in the subtree notes"

@@ -302,9 +302,9 @@ TEST(GraphUtils, LibcolaRaw3) {
         {2, 3},
     };
 
-    double                        mult   = 10;
-    double                        width  = 100 * mult;
-    double                        height = 100 * mult;
+    double mult  = 10;
+    double width = 100 * mult;
+
     std::vector<vpsc::Rectangle*> rectangles;
 
     for (unsigned i = 0; i < 4; i++) {
@@ -465,12 +465,16 @@ TEST(GraphUtils, LibcolaIr1) {
 
 
     ir.nodeConstraints.push_back(C{C::Align{
-        .nodes = {C::Align::Spec{.node = 0}, C::Align::Spec{.node = 1}},
+        .nodes
+        = {GraphNodeConstraint::Align::Spec{.node = 0},
+           GraphNodeConstraint::Align::Spec{.node = 1}},
         .dimension = GraphDimension::XDIM,
     }});
 
     ir.nodeConstraints.push_back(C{C::Align{
-        .nodes = {C::Align::Spec{.node = 1}, C::Align::Spec{.node = 3}},
+        .nodes
+        = {GraphNodeConstraint::Align::Spec{.node = 1},
+           GraphNodeConstraint::Align::Spec{.node = 3}},
         .dimension = GraphDimension::YDIM,
     }});
 
@@ -503,6 +507,289 @@ TEST(GraphUtils, LibcolaIr2) {
     lyt.router->outputInstanceToSVG("/tmp/testLibcolaIr2_router");
     lyt.router->outputDiagramText("/tmp/testLibcolaIr2_router");
     EXPECT_TRUE(!conv.lines.at({0, 1}).paths.at(0).points.empty());
+}
+
+TEST(GraphUtils, LibcolaIr3) {
+    GraphLayoutIR ir;
+
+    ir.edges = {
+        GraphEdge{.source = 0, .target = 3},
+        GraphEdge{.source = 1, .target = 4},
+        GraphEdge{.source = 1, .target = 5},
+        GraphEdge{.source = 1, .target = 6},
+        GraphEdge{.source = 2, .target = 7},
+        GraphEdge{.source = 3, .target = 8},
+        GraphEdge{.source = 4, .target = 8},
+        GraphEdge{.source = 4, .target = 9},
+        GraphEdge{.source = 5, .target = 9},
+        GraphEdge{.source = 6, .target = 9},
+        GraphEdge{.source = 6, .target = 10},
+        GraphEdge{.source = 7, .target = 9},
+        GraphEdge{.source = 7, .target = 11},
+    };
+
+    auto& ec = ir.edgeConstraints;
+    using P  = GraphEdgeConstraint::Port;
+    // ec[GraphEdge{.source = }]
+
+    ec[{.source = 7, .target = 9}] = GraphEdgeConstraint{
+        .sourcePort = P::East, .targetPort = P::West};
+    ec[{.source = 6, .target = 10}] = GraphEdgeConstraint{
+        .sourcePort = P::East, .targetPort = P::West};
+    ec[{.source = 6, .target = 9}] = GraphEdgeConstraint{
+        .sourcePort = P::East, .targetPort = P::West};
+    ec[{.source = 4, .target = 9}] = GraphEdgeConstraint{
+        .sourcePort = P::East, .targetPort = P::West};
+    ec[{.source = 1, .target = 6}] = GraphEdgeConstraint{
+        .sourcePort = P::East, .targetPort = P::West};
+    ec[{.source = 3, .target = 8}] = GraphEdgeConstraint{
+        .sourcePort = P::East, .targetPort = P::West};
+    ec[{.source = 1, .target = 5}] = GraphEdgeConstraint{
+        .sourcePort = P::East, .targetPort = P::West};
+    ec[{.source = 7, .target = 11}] = GraphEdgeConstraint{
+        .sourcePort = P::East, .targetPort = P::West};
+    ec[{.source = 4, .target = 8}] = GraphEdgeConstraint{
+        .sourcePort = P::East, .targetPort = P::West};
+    ec[{.source = 2, .target = 7}] = GraphEdgeConstraint{
+        .sourcePort = P::East, .targetPort = P::West};
+    ec[{.source = 1, .target = 4}] = GraphEdgeConstraint{
+        .sourcePort = P::East, .targetPort = P::West};
+    ec[{.source = 5, .target = 9}] = GraphEdgeConstraint{
+        .sourcePort = P::East, .targetPort = P::West};
+    ec[{.source = 0, .target = 3}] = GraphEdgeConstraint{
+        .sourcePort       = P::East,
+        .targetPort       = P::West,
+        .targetCheckpoint = 20,
+    };
+
+
+    using C   = GraphNodeConstraint;
+    auto ydim = GraphDimension::YDIM;
+    auto xdim = GraphDimension::XDIM;
+
+    ir.nodeConstraints = {
+        C{C::Separate{
+            .dimension         = ydim,
+            .isExactSeparation = true,
+            .left = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 0}}},
+            .right = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 1}}},
+            .separationDistance = 75.0}},
+        C{C::Separate{
+            .dimension         = ydim,
+            .isExactSeparation = true,
+            .left = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 1}}},
+            .right = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 2}}},
+            .separationDistance = 75.0}},
+        C{C::Separate{
+            .dimension         = ydim,
+            .isExactSeparation = true,
+            .left = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 3}}},
+            .right = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 4}}},
+            .separationDistance = 75.0}},
+        C{C::Separate{
+            .dimension         = ydim,
+            .isExactSeparation = true,
+            .left = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 4}}},
+            .right = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 5}}},
+            .separationDistance = 75.0}},
+        C{C::Separate{
+            .dimension         = ydim,
+            .isExactSeparation = true,
+            .left = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 5}}},
+            .right = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 6}}},
+            .separationDistance = 75.0}},
+        C{C::Separate{
+            .dimension         = ydim,
+            .isExactSeparation = true,
+            .left = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 6}}},
+            .right = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 7}}},
+            .separationDistance = 75.0}},
+        C{C::Separate{
+            .dimension         = ydim,
+            .isExactSeparation = true,
+            .left = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 8}}},
+            .right = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 9}}},
+            .separationDistance = 75.0}},
+        C{C::Separate{
+            .dimension         = ydim,
+            .isExactSeparation = true,
+            .left              = C::
+                Align{.dimension = ydim, .nodes = {C::Align::Spec{.node = 9}}},
+            .right = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 10}}},
+            .separationDistance = 75.0}},
+        C{C::Separate{
+            .dimension         = ydim,
+            .isExactSeparation = true,
+            .left = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 10}}},
+            .right = {.dimension = ydim, .nodes = {C::Align::Spec{.node = 11}}},
+            .separationDistance = 75.0}},
+        C{C::Separate{
+            .dimension         = xdim,
+            .isExactSeparation = true,
+            .left
+            = {.dimension = xdim,
+               .nodes
+               = {C::Align::Spec{.node = 0},
+                  C::Align::
+                      Spec{.node = 1},
+                  C::Align::
+                      Spec{.node = 2}}},
+            .right
+            = {.dimension = xdim,
+               .nodes
+               = {C::Align::Spec{.node = 3},
+                  C::Align::
+                      Spec{.node = 4},
+                  C::Align::
+                      Spec{.node = 5},
+                  C::Align::
+                      Spec{.node = 6},
+                  C::Align::
+                      Spec{.node = 7}}},
+            .separationDistance = 125.0}},
+        C{C::Separate{
+            .dimension         = xdim,
+            .isExactSeparation = true,
+            .left
+            = {.dimension = xdim,
+               .nodes
+               = {C::Align::Spec{.node = 3},
+                  C::Align::
+                      Spec{.node = 4},
+                  C::Align::
+                      Spec{.node = 5},
+                  C::Align::
+                      Spec{.node = 6},
+                  C::Align::
+                      Spec{.node = 7}}},
+            .right
+            = {.dimension = xdim,
+               .nodes
+               = {C::Align::Spec{.node = 8},
+                  C::Align::
+                      Spec{.node = 9},
+                  C::Align::
+                      Spec{.node = 10},
+                  C::Align::
+                      Spec{.node = 11}}},
+            .separationDistance = 125.0}}};
+
+    ir.rectangles = {
+        GraphSize{.h = 25.0, .w = 75.0},
+        GraphSize{.h = 25.0, .w = 75.0},
+        GraphSize{.h = 25.0, .w = 75.0},
+        GraphSize{.h = 25.0, .w = 75.0},
+        GraphSize{.h = 25.0, .w = 75.0},
+        GraphSize{.h = 25.0, .w = 75.0},
+        GraphSize{.h = 25.0, .w = 75.0},
+        GraphSize{.h = 25.0, .w = 75.0},
+        GraphSize{.h = 25.0, .w = 75.0},
+        GraphSize{.h = 25.0, .w = 75.0},
+        GraphSize{.h = 25.0, .w = 75.0},
+        GraphSize{.h = 25.0, .w = 75.0},
+    };
+
+    ir.height = 10000;
+    ir.width  = 10000;
+
+    auto lyt = ir.doColaLayout();
+    lyt.writeSvg("/tmp/testLibcolaIr3.svg");
+    auto conv = lyt.convert();
+
+    lyt.router->outputInstanceToSVG("/tmp/testLibcolaIr3_router");
+    lyt.router->outputDiagramText("/tmp/testLibcolaIr3_router");
+}
+
+TEST(GraphUtils, LibcolaIrMultiEdge) {
+    GraphLayoutIR ir;
+
+    ir.edges = {
+        GraphEdge{.source = 0, .target = 1, .bundle = 0},
+        GraphEdge{.source = 0, .target = 1, .bundle = 1},
+        GraphEdge{.source = 0, .target = 1, .bundle = 2},
+        GraphEdge{.source = 0, .target = 1, .bundle = 3},
+    };
+
+    auto& ec    = ir.edgeConstraints;
+    using P     = GraphEdgeConstraint::Port;
+    float shift = 0.2f;
+    // ec[GraphEdge{.source = }]
+
+
+    ec[GraphEdge{
+        .source = 0,
+        .target = 1,
+        .bundle = 0,
+    }] = GraphEdgeConstraint{
+        .sourcePort       = P::East,
+        .targetPort       = P::West,
+        .sourceOffset     = 0.1f + shift * 0,
+        .targetOffset     = 0.9f - shift * 0,
+        .sourceCheckpoint = 30,
+        .targetCheckpoint = 30,
+    };
+
+    ec[GraphEdge{
+        .source = 0,
+        .target = 1,
+        .bundle = 1,
+    }] = GraphEdgeConstraint{
+        .sourcePort   = P::East,
+        .targetPort   = P::West,
+        .sourceOffset = 0.1f + shift * 1,
+        .targetOffset = 0.9f - shift * 1,
+    };
+
+    ec[GraphEdge{
+        .source = 0,
+        .target = 1,
+        .bundle = 2,
+    }] = GraphEdgeConstraint{
+        .sourcePort   = P::East,
+        .targetPort   = P::West,
+        .sourceOffset = 0.1f + shift * 2,
+        .targetOffset = 0.9f - shift * 2,
+    };
+
+    ec[GraphEdge{
+        .source = 0,
+        .target = 1,
+        .bundle = 3,
+    }] = GraphEdgeConstraint{
+        .sourcePort   = P::East,
+        .targetPort   = P::West,
+        .sourceOffset = 0.1f + shift * 3,
+        .targetOffset = 0.9f - shift * 3,
+    };
+
+
+    using C   = GraphNodeConstraint;
+    auto ydim = GraphDimension::YDIM;
+    auto xdim = GraphDimension::XDIM;
+
+    ir.nodeConstraints = {
+        C{C::Separate{
+            .dimension         = xdim,
+            .isExactSeparation = true,
+            .left = {.dimension = xdim, .nodes = {C::Align::Spec{.node = 0}}},
+            .right = {.dimension = xdim, .nodes = {C::Align::Spec{.node = 1}}},
+            .separationDistance = 200.0}},
+    };
+
+    ir.rectangles = {
+        GraphSize{.h = 100.0, .w = 25.0},
+        GraphSize{.h = 100.0, .w = 25.0},
+    };
+
+    ir.height = 10000;
+    ir.width  = 10000;
+
+    auto lyt = ir.doColaLayout();
+    lyt.writeSvg("/tmp/LibcolaIrMultiEdge.svg");
+    auto conv = lyt.convert();
+
+    lyt.router->outputInstanceToSVG("/tmp/LibcolaIrMultiEdge_router");
+    lyt.router->outputDiagramText("/tmp/LibcolaIrMultiEdge_router");
 }
 
 TEST(GraphUtils, tHolaIr1) {
