@@ -1638,7 +1638,9 @@ NO_COVERAGE std::shared_ptr<CoverageMapping> get_coverage_mapping(
 
         if (llvm::Error E = mapping_or_err.takeError()) {
             throw std::domain_error(std::format(
-                "Failed to load profdata {}", toString(std::move(E))));
+                "Failed to load profdata {} from {}",
+                toString(std::move(E)),
+                tmp_path));
         }
 
         fs::remove(tmp_path);
@@ -1876,7 +1878,7 @@ NO_COVERAGE int main(int argc, char** argv) {
     ctx.file_whitelist = get_regex_list(config.file_whitelist);
 
     Vec<Vec<ProfdataRun>> runGroups;
-    int                   group = 2;
+    int                   group = 16;
     for (auto const& [run_idx, run] : enumerate(summary.runs)) {
         if (run_idx % group == 0) { runGroups.push_back({}); }
 
