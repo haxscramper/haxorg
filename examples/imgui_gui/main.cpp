@@ -17,7 +17,13 @@
 
 
 struct Config {
-    DECL_DESCRIBED_ENUM(Mode, SemTree, Outline, StoryGrid, Test);
+    DECL_DESCRIBED_ENUM(
+        Mode,
+        SemTree,
+        Outline,
+        StoryGrid,
+        Test,
+        StoryGridAnnotated);
 
     Str  file;
     Mode mode = Mode::SemTree;
@@ -405,8 +411,12 @@ int main(int argc, char** argv) {
             outline_tree_loop(window, node);
             break;
         }
+        case Config::Mode::StoryGridAnnotated:
         case Config::Mode::StoryGrid: {
-            story_grid_loop(window, conf.file);
+            story_grid_loop(
+                window,
+                conf.file,
+                conf.mode == Config::Mode::StoryGridAnnotated);
             break;
         }
         case Config::Mode::Test: {

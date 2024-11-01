@@ -351,7 +351,11 @@ struct StoryGridModel {
     StoryGridState&            getCurrentState() { return history.back(); }
     void                       apply(GridAction const& act);
     UnorderedSet<UpdateNeeded> updateNeeded;
+    bool                       annotated = false;
 };
 
 
-void story_grid_loop(GLFWwindow* window, std::string const& file);
+void story_grid_loop(
+    GLFWwindow*        window,
+    std::string const& file,
+    bool               annotated);

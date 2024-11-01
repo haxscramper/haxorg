@@ -416,6 +416,54 @@ Vec<GridAction> render_list_node(
 
 float tableHeaderHeight = 16.0f;
 
+Vec<GridAction> render_table(
+    StoryGridModel&          model,
+    StoryGridNode::TreeGrid& grid) {
+    auto& doc = grid.node;
+    auto& ctx = model.conf;
+
+    ImGuiTableFlags tableFlags                                 //
+        = model.annotated ? (ImGuiTableFlags_ScrollY           //
+                             | ImGuiTableFlags_Borders         //
+                             | ImGuiTableFlags_RowBg           //
+                             | ImGuiTableFlags_SizingFixedFit) //
+                          : (ImGuiTableFlags_Borders           //
+                             | ImGuiTableFlags_RowBg           //
+                             | ImGuiTableFlags_SizingFixedFit  //
+                             | ImGuiTableFlags_NoHostExtendX);
+
+    Vec<GridAction> result;
+    if (ImGui::BeginTable(
+            "TreeTable", 1 + doc.columns.size(), tableFlags)) {
+
+        ImGui::PushStyleVar(
+            ImGuiStyleVar_FramePadding, ImVec2(0, tableHeaderHeight / 2));
+        ImGui::TableSetupColumn(
+            "Tree", ImGuiTableColumnFlags_WidthFixed, tree_fold_column);
+        for (auto const& col : doc.columns) {
+            // CTX_MSG(fmt("{} {}", col.name, col.width));
+            ImGui::TableSetupColumn(
+                col.name.c_str(),
+                ImGuiTableColumnFlags_WidthFixed,
+                col.width);
+        }
+        ImGui::TableSetupScrollFreeze(0, 1);
+        ImGui::TableHeadersRow();
+        ImGui::PopStyleVar();
+
+        for (auto& sub : doc.rows) {
+            render_tree_row(sub, result, doc, ctx);
+        }
+
+        // ImGui::TableNextRow(ImGuiTableRowFlags_None, 800.0f);
+        // ImGui::TableNextColumn();
+
+        ImGui::EndTable();
+    }
+
+    return result;
+}
+
 Vec<GridAction> render_table_node(
     StoryGridModel&          model,
     StoryGridNode::TreeGrid& grid) {
@@ -433,41 +481,7 @@ Vec<GridAction> render_table_node(
             "Standalone Table Window",
             nullptr,
             ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize)) {
-        if (ImGui::BeginTable(
-                "TreeTable",
-                1 + doc.columns.size(),
-                ImGuiTableFlags_Borders              //
-                    | ImGuiTableFlags_RowBg          //
-                    | ImGuiTableFlags_SizingFixedFit //
-                    | ImGuiTableFlags_NoHostExtendX)) {
-
-            ImGui::PushStyleVar(
-                ImGuiStyleVar_FramePadding,
-                ImVec2(0, tableHeaderHeight / 2));
-            ImGui::TableSetupColumn(
-                "Tree",
-                ImGuiTableColumnFlags_WidthFixed,
-                tree_fold_column);
-            for (auto const& col : doc.columns) {
-                // CTX_MSG(fmt("{} {}", col.name, col.width));
-                ImGui::TableSetupColumn(
-                    col.name.c_str(),
-                    ImGuiTableColumnFlags_WidthFixed,
-                    col.width);
-            }
-            ImGui::TableSetupScrollFreeze(0, 1);
-            ImGui::TableHeadersRow();
-            ImGui::PopStyleVar();
-
-            for (auto& sub : doc.rows) {
-                render_tree_row(sub, result, doc, ctx);
-            }
-
-            // ImGui::TableNextRow(ImGuiTableRowFlags_None, 800.0f);
-            // ImGui::TableNextColumn();
-
-            ImGui::EndTable();
-        }
+        result = render_table(model, grid);
 
         ImGui::End();
     }
@@ -509,7 +523,10 @@ Vec<GridAction> render_story_grid(StoryGridModel& model) {
     return result;
 }
 
-void story_grid_loop(GLFWwindow* window, std::string const& file) {
+void story_grid_loop(
+    GLFWwindow*        window,
+    std::string const& file,
+    bool               annotated) {
     int inotify_fd = inotify_init1(IN_NONBLOCK);
     if (inotify_fd < 0) {
         throw std::system_error(
@@ -535,7 +552,7 @@ void story_grid_loop(GLFWwindow* window, std::string const& file) {
         .ast = start.init(sem::parseString(readFile(file))),
     });
 
-
+    model.annotated = annotated;
     model.conf.setTraceFile("/tmp/story_grid_trace.txt");
 
 
@@ -578,30 +595,37 @@ void story_grid_loop(GLFWwindow* window, std::string const& file) {
             render_debug(model.debug.value(), model.shift);
         }
 
-        Vec<GridAction> updates = render_story_grid(model);
+        Vec<GridAction> updates;
+        if (model.annotated) {
+            updates = render_story_grid(model);
 
-        ImGuiIO& io            = ImGui::GetIO();
-        float    scroll_amount = io.MouseWheel;
-        if (scroll_amount != 0.0f) {
-            updates.push_back(GridAction{GridAction::Scroll{
-                .pos       = io.MousePos,
-                .direction = scroll_amount,
-            }});
+            ImGuiIO& io            = ImGui::GetIO();
+            float    scroll_amount = io.MouseWheel;
+            if (scroll_amount != 0.0f) {
+                updates.push_back(GridAction{GridAction::Scroll{
+                    .pos       = io.MousePos,
+                    .direction = scroll_amount,
+                }});
+            }
+
+            if (ImGui::IsKeyPressed(ImGuiKey_PageUp)) {
+                updates.push_back(GridAction{GridAction::Scroll{
+                    .pos       = io.MousePos,
+                    .direction = 20,
+                }});
+            }
+
+            if (ImGui::IsKeyPressed(ImGuiKey_PageDown)) {
+                updates.push_back(GridAction{GridAction::Scroll{
+                    .pos       = io.MousePos,
+                    .direction = -20,
+                }});
+            }
+        } else {
+            updates = render_table(
+                model, model.rectGraph.nodes.at(0).getTreeGrid());
         }
 
-        if (ImGui::IsKeyPressed(ImGuiKey_PageUp)) {
-            updates.push_back(GridAction{GridAction::Scroll{
-                .pos       = io.MousePos,
-                .direction = 20,
-            }});
-        }
-
-        if (ImGui::IsKeyPressed(ImGuiKey_PageDown)) {
-            updates.push_back(GridAction{GridAction::Scroll{
-                .pos       = io.MousePos,
-                .direction = -20,
-            }});
-        }
 
         ImGui::End();
 
