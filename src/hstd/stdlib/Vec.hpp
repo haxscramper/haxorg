@@ -232,6 +232,12 @@ struct IndexedBase : public CRTP_this_method<Container> {
     bool contains(CR<T> item) const {
         return _this()->indexOf(item) != -1;
     }
+
+    int push_back_idx(CR<T> item) {
+        int result = _this()->size() - 1;
+        _this()->push_back(item);
+        return result;
+    }
 };
 
 /// \brief Derivation of the standard vector with better API for quick

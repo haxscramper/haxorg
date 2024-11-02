@@ -47,7 +47,19 @@ struct Slice : public HSlice<T, T> {
         );
     }
 
-    Slice<T> widen(Slice<T> const& other) {
+    bool isBefore(T const& value) const { return value < first; }
+
+    bool isAfter(T const& value) const { return last < value; }
+
+    void expand(T const& other) {
+        if (isBefore(other)) {
+            first = other;
+        } else if (isAfter(other)) {
+            last = other;
+        }
+    }
+
+    Slice<T> expanded(Slice<T> const& other) const {
         return slice(
             // Leftmost of two boundaries -- extend left
             std::min(other.first, first),

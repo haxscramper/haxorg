@@ -964,7 +964,7 @@ int add_root_grid_node(StoryGridGraph& res, org::ImmAdapter const& node) {
     TreeGridDocument doc;
     doc.getColumn("title").width         = 200;
     doc.getColumn("event").width         = 400;
-    doc.getColumn("note").width          = 200;
+    doc.getColumn("note").width          = 400;
     doc.getColumn("turning_point").width = 300;
     doc.getColumn("value").width         = 200;
     doc.getColumn("location").width      = 240;
