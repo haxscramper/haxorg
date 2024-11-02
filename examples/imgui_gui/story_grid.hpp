@@ -46,7 +46,18 @@ struct TreeGridRow {
     UnorderedMap<Str, TreeGridCell>   columns;
     Vec<TreeGridRow>                  nested;
     bool                              isVisible = true;
-    DESC_FIELDS(TreeGridRow, (columns, origin, flatIdx, nested));
+    bool                              isOpen    = true;
+    DESC_FIELDS(
+        TreeGridRow,
+        (columns, origin, flatIdx, nested, isVisible, isOpen));
+
+    Vec<int> getOriginPath() const {
+        Vec<int> idx;
+        for (auto const& step : origin.flatPath().path) {
+            if (step.isIndex()) { idx.push_back(step.getIndex().index); }
+        }
+        return idx;
+    }
 
     Vec<TreeGridRow*> flatThisNested(bool withInvisible) {
         Vec<TreeGridRow*> result;
@@ -321,6 +332,13 @@ struct GridAction {
         DESC_FIELDS(LinkListClick, ());
     };
 
+    struct RowFolding {
+        bool isOpen;
+        int  flatIdx;
+        int  documentNodeIdx;
+        DESC_FIELDS(RowFolding, (isOpen, flatIdx, documentNodeIdx));
+    };
+
     SUB_VARIANTS(
         Kind,
         Data,
@@ -328,19 +346,26 @@ struct GridAction {
         getKind,
         EditCell,
         Scroll,
-        LinkListClick);
+        LinkListClick,
+        RowFolding);
+
     Data data;
     DESC_FIELDS(GridAction, (data));
 };
 
-struct StoryGridState {
+struct StoryGridHistory {
     org::ImmAstVersion ast;
+};
+
+struct StoryGridState {
+    UnorderedMap<int, UnorderedMap<Vec<int>, bool>> folded;
+    DESC_FIELDS(StoryGridState, (folded));
 };
 
 
 struct StoryGridModel {
     DECL_DESCRIBED_ENUM(UpdateNeeded, LinkListClick, Scroll, Graph);
-    Vec<StoryGridState>        history;
+    Vec<StoryGridHistory>      history;
     StoryGridGraph             rectGraph;
     StoryGridContext           conf;
     GraphLayoutIR::Result      layout;
@@ -349,13 +374,15 @@ struct StoryGridModel {
     void                       updateDocument();
     Vec<Slice<int>>            laneSpans;
     Vec<float>                 laneOffsets;
-    StoryGridState&            getCurrentState() { return history.back(); }
+    StoryGridHistory&          getLastHistory() { return history.back(); }
     void                       apply(GridAction const& act);
     UnorderedSet<UpdateNeeded> updateNeeded;
+    StoryGridState             state;
 };
 
 
-void story_grid_loop(
+Opt<json> story_grid_loop(
     GLFWwindow*        window,
     std::string const& file,
-    bool               annotated);
+    bool               annotated,
+    Opt<json> const&   in_state);

@@ -25,10 +25,11 @@ struct Config {
         Test,
         StoryGridAnnotated);
 
-    Str  file;
-    Mode mode = Mode::SemTree;
+    Str      file;
+    Mode     mode = Mode::SemTree;
+    Opt<Str> appstate;
 
-    DESC_FIELDS(Config, (file, mode));
+    DESC_FIELDS(Config, (file, mode, appstate));
 };
 
 struct OutlineConfig {
@@ -400,6 +401,13 @@ int main(int argc, char** argv) {
 
     auto text = readFile(fs::path{conf.file.toBase()});
 
+    Opt<json> appstate;
+    if (conf.appstate.has_value()
+        && fs::is_regular_file(conf.appstate.value().toBase())) {
+        appstate = json::parse(
+            readFile(fs::path{conf.appstate.value().toBase()}));
+    }
+
     switch (conf.mode) {
         case Config::Mode::SemTree: {
             auto node = sem::parseString(text);
@@ -413,16 +421,23 @@ int main(int argc, char** argv) {
         }
         case Config::Mode::StoryGridAnnotated:
         case Config::Mode::StoryGrid: {
-            story_grid_loop(
+            appstate = story_grid_loop(
                 window,
                 conf.file,
-                conf.mode == Config::Mode::StoryGridAnnotated);
+                conf.mode == Config::Mode::StoryGridAnnotated,
+                appstate);
             break;
         }
         case Config::Mode::Test: {
             run_block_graph_test(window);
             break;
         }
+    }
+
+    if (appstate && conf.appstate.has_value()) {
+        writeFile(
+            fs::path{conf.appstate.value().toBase()},
+            appstate.value().dump(2));
     }
 
     ImGui_ImplOpenGL3_Shutdown();
