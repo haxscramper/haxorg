@@ -468,11 +468,4 @@ struct SerdeDefaultProvider<layout::BlockId> {
     static layout::BlockId get() { return layout::BlockId::Nil(); }
 };
 
-REFL_DEFINE_DESCRIBED_FORMATTER(layout::LytStr);
-REFL_DEFINE_DESCRIBED_FORMATTER(layout::LytStrSpan);
-REFL_DEFINE_DESCRIBED_FORMATTER(layout::Event::Text);
-REFL_DEFINE_DESCRIBED_FORMATTER(layout::Event::Spaces);
-REFL_DEFINE_DESCRIBED_FORMATTER(layout::Event::Newline);
-
-
 #endif // TEXTLAYOUTER_HPP

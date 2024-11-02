@@ -224,49 +224,6 @@ struct value_domain<E> {
     }
 };
 
-
-template <
-    class T,
-    class Bd = boost::describe::
-        describe_bases<T, boost::describe::mod_any_access>,
-    class Md = boost::describe::
-        describe_members<T, boost::describe::mod_any_access>,
-    class En = std::enable_if_t<!std::is_union<T>::value>>
-std::string described_class_printer(T const& t) {
-    std::string result;
-    result += "{";
-
-    bool first = true;
-
-    boost::mp11::mp_for_each<Bd>([&](auto D) {
-        if (!first) { result += ", "; }
-        first = false;
-
-        using B = typename decltype(D)::type;
-        result += described_class_printer((B const&)t);
-    });
-
-    boost::mp11::mp_for_each<Md>([&](auto D) {
-        if (!first) { result += ", "; }
-        first = false;
-
-        result += std::format(".{} = {}", D.name, t.*D.pointer);
-    });
-
-    result += "}";
-    return result;
-}
-
-template <DescribedRecord R>
-struct std::formatter<R> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(R const& p, FormatContext& ctx) const {
-        std::formatter<std::string> fmt;
-        return fmt.format(described_class_printer(p), ctx);
-    }
-};
-
-
 template <typename T, typename Func>
 void for_each_field_with_bases(Func cb, bool pre_bases = true) {
     if (pre_bases) {
@@ -292,6 +249,13 @@ void for_each_field_with_bases(Func cb, bool pre_bases = true) {
     }
 }
 
+template <typename T, typename Func>
+void for_each_field_no_base(Func cb, bool pre_bases = true) {
+    boost::mp11::mp_for_each<boost::describe::describe_members<
+        T,
+        boost::describe::mod_any_access>>(cb);
+}
+
 
 template <typename T, typename Func>
 void for_each_field_value_with_bases(T const& value, Func const& cb) {
@@ -310,20 +274,6 @@ bool equal_on_all_fields(CR<T> lhs, CR<T> rhs) {
 
     return equal;
 }
-
-
-#define REFL_DEFINE_DESCRIBED_FORMATTER(__TypeName)                       \
-    template <>                                                           \
-    struct std::formatter<__TypeName> : std::formatter<std::string> {     \
-        template <typename FormatContext>                                 \
-        FormatContext::iterator format(                                   \
-            const __TypeName& value,                                      \
-            FormatContext&    ctx) const {                                   \
-            std::formatter<std::string> fmt;                              \
-            return fmt.format(described_class_printer(value), ctx);       \
-        }                                                                 \
-    };
-
 
 template <typename T>
 struct __DescFieldTypeHelper {};

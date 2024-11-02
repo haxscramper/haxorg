@@ -17,10 +17,8 @@ using std::operator""s;
 struct BacktrackRes {
     Vec<int> lhsIndex = {};
     Vec<int> rhsIndex = {};
+    DESC_FIELDS(BacktrackRes, (lhsIndex, rhsIndex));
 };
-
-BOOST_DESCRIBE_STRUCT(BacktrackRes, (), (lhsIndex, rhsIndex));
-REFL_DEFINE_DESCRIBED_FORMATTER(BacktrackRes);
 
 enum class SeqEditKind : u8
 {

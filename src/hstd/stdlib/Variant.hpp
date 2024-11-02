@@ -5,6 +5,7 @@
 #include <hstd/system/basic_templates.hpp>
 #include <hstd/system/Formatter.hpp>
 #include <hstd/stdlib/Json.hpp>
+#include <hstd/system/macros.hpp>
 
 template <typename... Types>
 using Variant = std::variant<Types...>;
@@ -30,6 +31,32 @@ struct std::formatter<V> : std::formatter<std::string> {
         fmt_ctx(p.index(), ctx);
         fmt_ctx(": ", ctx);
         std::visit([&ctx](const auto& value) { fmt_ctx(value, ctx); }, p);
+        return fmt_ctx(")", ctx);
+    }
+};
+
+template <IsSubVariantType V>
+struct std::formatter<V> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const V& p, FormatContext& ctx) const {
+        int field_count = 0;
+        for_each_field_with_bases<V>([&]() { ++field_count; });
+        fmt_ctx(p.sub_variant_get_kind(), ctx);
+        fmt_ctx("(", ctx);
+        std::visit(
+            [&](auto const& t) { fmt_ctx(t, ctx); },
+            p.sub_variant_get_data());
+        for_each_field_value_with_bases(
+            p, [&](char const* name, auto const& value) {
+                if (std::string{name}
+                    != std::string{p.sub_variant_get_name()}) {
+                    fmt_ctx(", ", ctx);
+                    fmt_ctx(".", ctx);
+                    fmt_ctx(name, ctx);
+                    fmt_ctx(" = ", ctx);
+                    fmt_ctx(value);
+                }
+            });
         return fmt_ctx(")", ctx);
     }
 };

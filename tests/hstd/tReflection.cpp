@@ -111,7 +111,7 @@ BOOST_DESCRIBE_STRUCT(TestClass_DescribedClassPrinter, (), (a, b));
 TEST(Reflection, DescribedClassPrinter) {
     TestClass_DescribedClassPrinter obj{1, {2, 3}};
 
-    std::string result   = described_class_printer(obj);
+    std::string result   = fmt1(obj);
     std::string expected = std::string{"{.a = 1, .b = {.a = 2, .b = 3}}"};
     ASSERT_EQ(result, expected);
 }

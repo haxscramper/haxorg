@@ -85,8 +85,10 @@
     }                                                                     \
     EnumName kindGetterName() const { return kindGetterName(fieldName); } \
     using variant_enum_type = EnumName;                                   \
-    using variant_data_type = VariantName;
-
+    using variant_data_type = VariantName;                                \
+    EnumName sub_variant_get_kind() const { return kindGetterName(); }    \
+    VariantName const& sub_variant_get_data() const { fieldName; }        \
+    char const*        sub_variant_get_name() const { #fieldName; }
 
 template <typename T>
 concept IsSubVariantType = requires() {
