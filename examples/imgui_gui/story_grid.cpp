@@ -257,17 +257,18 @@ void render_tree_row(
 
     ImGui::TableSetColumnIndex(0);
 
-    int this_index = ImGui::TableGetRowIndex();
+    int  this_index = ImGui::TableGetRowIndex();
+    bool this_open  = true;
 
     if (!row.nested.empty()) {
         ImGui::PushID(fmt("{}", row.origin.id).c_str());
         ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-        bool node_open = ImGui::TreeNodeEx(
+        this_open = ImGui::TreeNodeEx(
             fmt("[{}]", row.origin->level).c_str(),
             ImGuiTreeNodeFlags_SpanFullWidth);
         ImGui::PopID();
         render_tree_columns(row, result, doc, ctx);
-        if (node_open) {
+        if (this_open) {
             for (auto& sub : row.nested) {
                 render_tree_row(sub, result, doc, ctx);
             }
@@ -301,8 +302,7 @@ void render_tree_row(
         ImGui::EndPopup();
     }
 
-    if (ImGui::TableGetRowIndex() == this_index) {
-
+    if (ImGui::TableGetRowIndex() == this_index && this_open) {
         ImVec2 cell_max  = cell_rect.Max;
         ImVec2 rect_size = ImVec2(
             std::ceil(
