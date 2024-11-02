@@ -107,27 +107,23 @@ bool render_editable_text(
 
 
         } else {
-            {
-                ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
-                ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0);
-                ImGui::PushStyleVar(
-                    ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-                ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + width);
-                // NOTE: Using ID with runtime formatting here because
-                // there is more than one cell that might potentially be
-                // edited.
-                ImGui::BeginChild(
-                    fmt("##{}_wrap", cell_prefix).c_str(),
-                    ImVec2(width, height),
-                    false,
-                    ImGuiWindowFlags_NoScrollbar);
-                ImGui::PushID(fmt("##{}_view", cell_prefix).c_str());
-                ImGui::TextWrapped("%s", value.c_str());
-                ImGui::PopID();
-                ImGui::EndChild();
-                ImGui::PopTextWrapPos();
-                ImGui::PopStyleVar(3);
-            }
+            auto frameless_vars = push_frameless_window_vars();
+            ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + width);
+            // NOTE: Using ID with runtime formatting here because
+            // there is more than one cell that might potentially be
+            // edited.
+            ImGui::BeginChild(
+                fmt("##{}_wrap", cell_prefix).c_str(),
+                ImVec2(width, height),
+                false,
+                ImGuiWindowFlags_NoScrollbar);
+            ImGui::PushID(fmt("##{}_view", cell_prefix).c_str());
+            ImGui::TextWrapped("%s", value.c_str());
+            ImGui::PopID();
+            ImGui::EndChild();
+            ImGui::PopTextWrapPos();
+            ImGui::PopStyleVar(frameless_vars);
+
             if (ImGui::IsItemClicked()) {
                 is_editing = true;
                 edit_buffer.clear();
@@ -225,8 +221,13 @@ void render_tree_row(
 
     if (skipped && row.nested.empty()) { return; };
 
-    ImGui::TableNextRow(
-        ImGuiTableRowFlags_None, row.getHeight().value_or(20));
+    if (ctx.annotated) {
+        ImGui::TableNextRow(
+            ImGuiTableRowFlags_None, row.getHeight().value_or(20));
+    } else {
+        ImGui::TableNextRow();
+    }
+
     // CTX_MSG(fmt("row {}", ImGui::TableGetRowIndex()));
     if (!row.nested.empty()
         && rs::any_of(row.nested, [](TreeGridRow const& r) {
@@ -333,9 +334,7 @@ Vec<GridAction> render_text_node(
     auto&           ctx = model.conf;
 
 
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
-    ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+    auto frameless_vars = push_frameless_window_vars();
     ImGui::SetNextWindowPos(grid.pos + model.shift);
     ImGui::SetNextWindowSize(grid.size);
     ImGui::Begin(
@@ -354,7 +353,7 @@ Vec<GridAction> render_text_node(
 
     ImGui::End();
 
-    ImGui::PopStyleVar(3);
+    ImGui::PopStyleVar(frameless_vars);
 
     return result;
 }
@@ -363,9 +362,7 @@ Vec<GridAction> render_list_node(
     StoryGridModel&          model,
     StoryGridNode::LinkList& list) {
     Vec<GridAction> result;
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
-    ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+    auto            frameless_vars = push_frameless_window_vars();
     ImGui::SetNextWindowPos(list.pos + model.shift);
     ImGui::SetNextWindowSize(list.size);
     if (ImGui::Begin(
@@ -409,8 +406,7 @@ Vec<GridAction> render_list_node(
         ImGui::End();
     }
 
-    ImGui::PopStyleVar(3);
-
+    ImGui::PopStyleVar(frameless_vars);
     return result;
 }
 
@@ -422,22 +418,65 @@ Vec<GridAction> render_table(
     auto& doc = grid.node;
     auto& ctx = model.conf;
 
-    ImGuiTableFlags tableFlags                                 //
-        = model.annotated ? (ImGuiTableFlags_ScrollY           //
-                             | ImGuiTableFlags_Borders         //
-                             | ImGuiTableFlags_RowBg           //
-                             | ImGuiTableFlags_SizingFixedFit) //
-                          : (ImGuiTableFlags_Borders           //
-                             | ImGuiTableFlags_RowBg           //
-                             | ImGuiTableFlags_SizingFixedFit  //
-                             | ImGuiTableFlags_NoHostExtendX);
+    ImGuiTableFlags tableFlags                  //
+        = model.conf.annotated                  //
+            ? (ImGuiTableFlags_ScrollY          //
+               | ImGuiTableFlags_Borders        //
+               | ImGuiTableFlags_RowBg          //
+               | ImGuiTableFlags_Resizable)     //
+            : (ImGuiTableFlags_Borders          //
+               | ImGuiTableFlags_RowBg          //
+               | ImGuiTableFlags_SizingFixedFit //
+               | ImGuiTableFlags_NoHostExtendX);
 
     Vec<GridAction> result;
+
+
+    ImGui::SetNextWindowPos(ImVec2(grid.pos));
+    ImGui::SetNextWindowSize(ImVec2(grid.size.x, 20));
+    auto frameless_vars = push_frameless_window_vars();
+    if (ImGui::Begin(
+            "HeaderOverlay",
+            nullptr,
+            ImGuiWindowFlags_NoDecoration
+                | ImGuiWindowFlags_AlwaysAutoResize
+                | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize
+                | ImGuiWindowFlags_NoScrollbar
+                | ImGuiWindowFlags_NoScrollWithMouse)) {
+        if (ImGui::BeginTable(
+                "HeaderTable",
+                1 + doc.columns.size(),
+                ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Borders
+                    | ImGuiTableFlags_RowBg)) {
+            ImGui::TableSetupColumn(
+                "Tree",
+                ImGuiTableColumnFlags_WidthFixed,
+                tree_fold_column);
+
+            for (auto const& col : doc.columns) {
+                ImGui::TableSetupColumn(
+                    col.name.c_str(),
+                    ImGuiTableColumnFlags_WidthFixed,
+                    col.width);
+            }
+
+            ImGui::TableHeadersRow();
+
+            ImGui::EndTable();
+        }
+        ImGui::End();
+    }
+    ImGui::PopStyleVar(frameless_vars);
+
     if (ImGui::BeginTable(
             "TreeTable", 1 + doc.columns.size(), tableFlags)) {
 
-        ImGui::PushStyleVar(
-            ImGuiStyleVar_FramePadding, ImVec2(0, tableHeaderHeight / 2));
+        if (model.conf.annotated) {
+            ImGui::PushStyleVar(
+                ImGuiStyleVar_FramePadding,
+                ImVec2(0, tableHeaderHeight / 2));
+        }
+        ImGui::TableSetupScrollFreeze(0, 1);
         ImGui::TableSetupColumn(
             "Tree", ImGuiTableColumnFlags_WidthFixed, tree_fold_column);
         for (auto const& col : doc.columns) {
@@ -447,13 +486,14 @@ Vec<GridAction> render_table(
                 ImGuiTableColumnFlags_WidthFixed,
                 col.width);
         }
-        ImGui::TableSetupScrollFreeze(0, 1);
         ImGui::TableHeadersRow();
-        ImGui::PopStyleVar();
+
+        if (model.conf.annotated) { ImGui::PopStyleVar(); }
 
         for (auto& sub : doc.rows) {
             render_tree_row(sub, result, doc, ctx);
         }
+
 
         // ImGui::TableNextRow(ImGuiTableRowFlags_None, 800.0f);
         // ImGui::TableNextColumn();
@@ -474,9 +514,7 @@ Vec<GridAction> render_table_node(
 
     ImGui::SetNextWindowPos(grid.pos + model.shift);
     ImGui::SetNextWindowSize(grid.size);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
-    ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+    auto frameless_vars = push_frameless_window_vars();
     if (ImGui::Begin(
             "Standalone Table Window",
             nullptr,
@@ -485,7 +523,7 @@ Vec<GridAction> render_table_node(
 
         ImGui::End();
     }
-    ImGui::PopStyleVar(3);
+    ImGui::PopStyleVar(frameless_vars);
 
     return result;
 }
@@ -552,7 +590,7 @@ void story_grid_loop(
         .ast = start.init(sem::parseString(readFile(file))),
     });
 
-    model.annotated = annotated;
+    model.conf.annotated = annotated;
     model.conf.setTraceFile("/tmp/story_grid_trace.txt");
 
 
@@ -582,6 +620,7 @@ void story_grid_loop(
 
         frame_start();
 
+        auto frameless_vars = push_frameless_window_vars();
         fullscreen_window_begin();
 
         if (first) {
@@ -596,7 +635,7 @@ void story_grid_loop(
         }
 
         Vec<GridAction> updates;
-        if (model.annotated) {
+        if (model.conf.annotated) {
             updates = render_story_grid(model);
 
             ImGuiIO& io            = ImGui::GetIO();
@@ -622,12 +661,44 @@ void story_grid_loop(
                 }});
             }
         } else {
-            updates = render_table(
-                model, model.rectGraph.nodes.at(0).getTreeGrid());
+            // static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY //
+            //                              | ImGuiTableFlags_Borders //
+            //                              | ImGuiTableFlags_RowBg   //
+            //                              | ImGuiTableFlags_Resizable;
+            // if (ImGui::BeginTable("table_scrolly", 3, flags)) {
+            //     ImGui::TableSetupScrollFreeze(0, 1);
+            //     ImGui::TableSetupColumn(
+            //         "One",
+            //         ImGuiTableColumnFlags_WidthFixed,
+            //         tree_fold_column);
+            //     ImGui::TableSetupColumn(
+            //         "Two",
+            //         ImGuiTableColumnFlags_WidthFixed,
+            //         tree_fold_column);
+            //     ImGui::TableSetupColumn(
+            //         "Three",
+            //         ImGuiTableColumnFlags_WidthFixed,
+            //         tree_fold_column);
+            //     ImGui::TableHeadersRow();
+
+            //     for (int row = 0; row < 100; row++) {
+            //         ImGui::TableNextRow();
+            //         for (int column = 0; column < 3; column++) {
+            //             ImGui::TableSetColumnIndex(column);
+            //             ImGui::Text("Hello %d,%d", column, row);
+            //         }
+            //     }
+            //     ImGui::EndTable();
+            // }
+
+            auto& g = model.rectGraph.nodes.at(0).getTreeGrid();
+            const ImGuiViewport* viewport = ImGui::GetMainViewport();
+            g.size.x                      = viewport->Size.x;
+            updates                       = render_table(model, g);
         }
 
-
         ImGui::End();
+        ImGui::PopStyleVar(frameless_vars);
 
         frame_end(window);
         if (!updates.empty()) {
@@ -912,7 +983,8 @@ int add_root_grid_node(StoryGridGraph& res, org::ImmAdapter const& node) {
     doc.getColumn("location").width      = 240;
     doc.getColumn("location").edit = TreeGridColumn::EditMode::SingleLine;
     __perf_trace_begin("gui", "build doc rows");
-    doc.rows = build_rows(node, doc);
+    doc.getColumn("pov").width = 100;
+    doc.rows                   = build_rows(node, doc);
     __perf_trace_end("gui");
     update_row_positions(doc);
 

@@ -295,6 +295,7 @@ struct StoryGridContext
     , OperationsScope {
 
     DESC_FIELDS(StoryGridContext, ());
+    bool annotated;
 
     void message(
         std::string const& value,
@@ -351,7 +352,6 @@ struct StoryGridModel {
     StoryGridState&            getCurrentState() { return history.back(); }
     void                       apply(GridAction const& act);
     UnorderedSet<UpdateNeeded> updateNeeded;
-    bool                       annotated = false;
 };
 
 

@@ -8,6 +8,7 @@
 void frame_start();
 void frame_end(GLFWwindow* window);
 void fullscreen_window_begin();
+int  push_frameless_window_vars();
 
 BOOST_DESCRIBE_STRUCT(ImVec2, (), (x, y));
 BOOST_DESCRIBE_STRUCT(ImVec4, (), (x, y, z, w));
