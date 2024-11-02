@@ -181,15 +181,19 @@ TEST(Reflection, FieldIterator) {
 struct Type_SubVariants {
     struct First {
         int f;
+        DESC_FIELDS(First, (f));
     };
     struct Second {
         int f;
+        DESC_FIELDS(Second, (f));
     };
     struct Third {
         int f;
+        DESC_FIELDS(Third, (f));
     };
     SUB_VARIANTS(Kind, Data, data, getKind, First, Second, Third);
     Data data;
+    DESC_FIELDS(Type_SubVariants, (data));
 };
 
 TEST(Reflection, SubVariants) {
@@ -199,6 +203,7 @@ TEST(Reflection, SubVariants) {
         EXPECT_EQ(it.getKind(), T::Kind::First);
         EXPECT_EQ(it.getFirst().f, T::First{}.f);
         EXPECT_THROW(it.getSecond(), std::bad_variant_access);
+        EXPECT_EQ(fmt1(it), "First({.f = 0})");
     }
 
     {
@@ -230,8 +235,19 @@ struct ReflData {
     DESC_FIELDS(ReflData, (f1, f2, f3));
 };
 
+struct ReflTag1 {
+    using field_name_type = std::string;
+};
+
+template <>
+struct ReflTypeTraits<ReflTag1> {
+    using AnyFormatterType = AnyFormatter<Str, std::string>;
+    using AnyHasherType    = AnyHasher<Str, std::string>;
+    using AnyEqualType     = AnyEqual<Str, std::string>;
+};
+
 TEST(ReflectionVisitor, FieldNames) {
-    auto items = reflSubItems(ReflData{});
+    auto items = reflSubItems<ReflData, ReflTag1>(ReflData{});
     EXPECT_EQ(items.size(), 3);
     EXPECT_EQ(items.at(0).getFieldName().name, "f1");
     EXPECT_EQ(items.at(1).getFieldName().name, "f2");
@@ -239,21 +255,21 @@ TEST(ReflectionVisitor, FieldNames) {
 
     std::vector<std::string>  visitNames;
     ReflRecursiveVisitContext ctx;
-    reflVisitAll(
+    reflVisitAll<ReflData, ReflTag1>(
         ReflData{},
         {},
         ctx,
         overloaded{
-            [&](ReflPath const& path, ReflData const& field) {
+            [&](ReflPath<ReflTag1> const& path, ReflData const& field) {
                 visitNames.push_back("ReflData");
             },
-            [&](ReflPath const& path, std::string const& field) {
+            [&](ReflPath<ReflTag1> const& path, std::string const& field) {
                 visitNames.push_back("std::string");
             },
-            [&](ReflPath const& path, int const& field) {
+            [&](ReflPath<ReflTag1> const& path, int const& field) {
                 visitNames.push_back("int");
             },
-            [&](ReflPath const& path, char const& field) {
+            [&](ReflPath<ReflTag1> const& path, char const& field) {
                 visitNames.push_back("char");
             },
         });
@@ -270,12 +286,13 @@ TEST(ReflectionVisitor, FieldNames) {
 
 
 TEST(ReflectionVisitor, UnorderedMap) {
-    UnorderedMap<std::string, int> map;
+    using Type = UnorderedMap<std::string, int>;
+    Type map;
     map["f1"] = 2;
     map["f2"] = 3;
     map["f3"] = 4;
 
-    auto items = reflSubItems(map);
+    auto items = reflSubItems<Type, ReflTag1>(map);
     EXPECT_EQ(items.size(), 3);
     EXPECT_EQ(items.at(0).getAnyKey().get<std::string>(), "f1");
     EXPECT_EQ(items.at(1).getAnyKey().get<std::string>(), "f2");
@@ -283,16 +300,16 @@ TEST(ReflectionVisitor, UnorderedMap) {
 
     std::vector<std::string>  visitNames;
     ReflRecursiveVisitContext ctx;
-    reflVisitAll(
+    reflVisitAll<Type, ReflTag1>(
         map,
         {},
         ctx,
         overloaded{
-            [&](ReflPath const&                       path,
+            [&](ReflPath<ReflTag1> const&             path,
                 UnorderedMap<std::string, int> const& field) {
                 visitNames.push_back("map");
             },
-            [&](ReflPath const& path, int const& field) {
+            [&](ReflPath<ReflTag1> const& path, int const& field) {
                 visitNames.push_back("int");
             },
         });
@@ -308,9 +325,10 @@ TEST(ReflectionVisitor, UnorderedMap) {
 }
 
 TEST(ReflectionVisitor, Vector) {
-    Vec<std::string> map{"f1", "f2", "f3"};
+    using Type = Vec<std::string>;
+    Type map{"f1", "f2", "f3"};
 
-    auto items = reflSubItems(map);
+    auto items = reflSubItems<Type, ReflTag1>(map);
     EXPECT_EQ(items.size(), 3);
     EXPECT_EQ(items.at(0).getIndex().index, 0);
     EXPECT_EQ(items.at(1).getIndex().index, 1);
@@ -318,15 +336,16 @@ TEST(ReflectionVisitor, Vector) {
 
     std::vector<std::string>  visitNames;
     ReflRecursiveVisitContext ctx;
-    reflVisitAll(
+    reflVisitAll<Type, ReflTag1>(
         map,
         {},
         ctx,
         overloaded{
-            [&](ReflPath const& path, Vec<std::string> const& field) {
+            [&](ReflPath<ReflTag1> const& path,
+                Vec<std::string> const&   field) {
                 visitNames.push_back("vec");
             },
-            [&](ReflPath const& path, std::string const& field) {
+            [&](ReflPath<ReflTag1> const& path, std::string const& field) {
                 visitNames.push_back("std::string");
             },
         });
@@ -383,60 +402,65 @@ struct DataStructure {
 TEST(ReflectionVisitor, ComplexDataStructure) {
 
     DataStructure data;
-    ReflVisitor<DataStructure>::subitems(data);
+    ReflVisitor<DataStructure, ReflTag1>::subitems(data);
 
     std::vector<std::string>  visitNames;
     ReflRecursiveVisitContext ctx;
-    reflVisitAll(
+    reflVisitAll<DataStructure, ReflTag1>(
         data,
         {},
         ctx,
         overloaded{
-            [&](ReflPath const& path, DataStructure const& field) {
+            [&](ReflPath<ReflTag1> const& path,
+                DataStructure const&      field) {
                 visitNames.push_back("DataStructure");
             },
-            [&](ReflPath const&                path,
+            [&](ReflPath<ReflTag1> const&      path,
                 std::unordered_set<int> const& field) {
                 visitNames.push_back("std::unordered_set<int>");
             },
-            [&](ReflPath const&                             path,
+            [&](ReflPath<ReflTag1> const&                   path,
                 std::unordered_map<std::string, int> const& field) {
                 visitNames.push_back(
                     "std::unordered_map<std::string, int>");
             },
-            [&](ReflPath const&                 path,
+            [&](ReflPath<ReflTag1> const&       path,
                 std::vector<std::string> const& field) {
                 visitNames.push_back("std::vector<std::string>");
             },
-            [&](ReflPath const& path, std::string const& field) {
+            [&](ReflPath<ReflTag1> const& path, std::string const& field) {
                 visitNames.push_back("std::string");
             },
-            [&](ReflPath const& path, CustomData const& field) {
+            [&](ReflPath<ReflTag1> const& path, CustomData const& field) {
                 visitNames.push_back("CustomData");
             },
-            [&](ReflPath const& path, VariantType const& field) {
+            [&](ReflPath<ReflTag1> const& path, VariantType const& field) {
                 visitNames.push_back("VariantType");
             },
-            [&](ReflPath const&                    path,
+            [&](ReflPath<ReflTag1> const&          path,
                 std::pair<int, std::string> const& field) {
                 visitNames.push_back("std::pair<int, std::string>");
             },
-            [&](ReflPath const& path, TupleType const& field) {
+            [&](ReflPath<ReflTag1> const& path, TupleType const& field) {
                 visitNames.push_back("TupleType");
             },
-            [&](ReflPath const& path, std::nullptr_t const& field) {
+            [&](ReflPath<ReflTag1> const& path,
+                std::nullptr_t const&     field) {
                 visitNames.push_back("std::nullptr_t");
             },
-            [&](ReflPath const& path, std::optional<int> const& field) {
+            [&](ReflPath<ReflTag1> const& path,
+                std::optional<int> const& field) {
                 visitNames.push_back("std::optional<int>");
             },
-            [&](ReflPath const& path, int const& field) {
+            [&](ReflPath<ReflTag1> const& path, int const& field) {
                 visitNames.push_back("int");
             },
-            [&](ReflPath const& path, std::shared_ptr<int> const& field) {
+            [&](ReflPath<ReflTag1> const&   path,
+                std::shared_ptr<int> const& field) {
                 visitNames.push_back("std::shared_ptr<int>");
             },
-            [&](ReflPath const& path, std::unique_ptr<int> const& field) {
+            [&](ReflPath<ReflTag1> const&   path,
+                std::unique_ptr<int> const& field) {
                 visitNames.push_back("std::unique_ptr<int>");
             },
         });
@@ -486,182 +510,203 @@ TEST(ReflectionVisitor, PopulatedDataStructure) {
     data.uniquePtr    = std::make_unique<int>(400);
 
     std::unordered_map<
-        ReflPath,
+        ReflPath<ReflTag1>,
         std::string,
-        ReflPathHasher<int, std::string>,
-        ReflPathComparator<int, std::string>>
+        ReflPathHasher<ReflTag1>,
+        ReflPathComparator<ReflTag1>>
                               visitedValues;
     ReflRecursiveVisitContext ctx;
-    reflVisitAll(
+    reflVisitAll<DataStructure, ReflTag1>(
         data,
         {},
         ctx,
-        overloaded{[&](ReflPath const& path, auto const& field) {
+        overloaded{[&](ReflPath<ReflTag1> const& path, auto const& field) {
             std::stringstream ss;
             ss << fmt1(field);
             visitedValues[path] = ss.str();
         }});
 
     std::unordered_map<
-        ReflPath,
+        ReflPath<ReflTag1>,
         Opt<std::string>,
-        ReflPathHasher<int, std::string>,
-        ReflPathComparator<int, std::string>>
+        ReflPathHasher<ReflTag1>,
+        ReflPathComparator<ReflTag1>>
         expectedValues;
 
     { // root item
-        ReflPath path;
+        ReflPath<ReflTag1> path;
         expectedValues[path] = std::nullopt;
     }
 
     {
-        ReflPath path;
-        path.path.push_back(ReflPathItem::FromFieldName("pair"));
+        ReflPath<ReflTag1> path;
+        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("pair"));
         expectedValues[path] = std::nullopt;
     }
     {
-        ReflPath path;
-        path.path.push_back(ReflPathItem::FromFieldName("uset"));
+        ReflPath<ReflTag1> path;
+        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("uset"));
         expectedValues[path] = std::nullopt;
     }
 
     {
-        ReflPath path;
-        path.path.push_back(ReflPathItem::FromFieldName("tuple"));
+        ReflPath<ReflTag1> path;
+        path.path.push_back(
+            ReflPathItem<ReflTag1>::FromFieldName("tuple"));
         expectedValues[path] = std::nullopt;
     }
     {
-        ReflPath path;
-        path.path.push_back(ReflPathItem::FromFieldName("vec"));
+        ReflPath<ReflTag1> path;
+        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("vec"));
         expectedValues[path] = std::nullopt;
     }
     {
-        ReflPath path;
-        path.path.push_back(ReflPathItem::FromFieldName("sharedPtr"));
+        ReflPath<ReflTag1> path;
+        path.path.push_back(
+            ReflPathItem<ReflTag1>::FromFieldName("sharedPtr"));
         expectedValues[path] = std::nullopt;
     }
     {
-        ReflPath path;
-        path.path.push_back(ReflPathItem::FromFieldName("umap"));
+        ReflPath<ReflTag1> path;
+        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("umap"));
         expectedValues[path] = std::nullopt;
     }
     {
-        ReflPath path;
-        path.path.push_back(ReflPathItem::FromFieldName("opt"));
+        ReflPath<ReflTag1> path;
+        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("opt"));
         expectedValues[path] = std::nullopt;
     }
     {
-        ReflPath path;
-        path.path.push_back(ReflPathItem::FromFieldName("uniquePtr"));
+        ReflPath<ReflTag1> path;
+        path.path.push_back(
+            ReflPathItem<ReflTag1>::FromFieldName("uniquePtr"));
         expectedValues[path] = std::nullopt;
     }
     {
-        ReflPath path;
-        path.path.push_back(ReflPathItem::FromFieldName("custom"));
+        ReflPath<ReflTag1> path;
+        path.path.push_back(
+            ReflPathItem<ReflTag1>::FromFieldName("custom"));
         expectedValues[path] = std::nullopt;
     }
     {
-        ReflPath path;
-        path.path.push_back(ReflPathItem::FromFieldName("str"));
+        ReflPath<ReflTag1> path;
+        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("str"));
         expectedValues[path] = "test string";
     }
     {
-        ReflPath path;
-        path.path.push_back(ReflPathItem::FromFieldName("regularField"));
+        ReflPath<ReflTag1> path;
+        path.path.push_back(
+            ReflPathItem<ReflTag1>::FromFieldName("regularField"));
         expectedValues[path] = "200";
     }
     {
-        ReflPath path;
-        path.path.push_back(ReflPathItem::FromFieldName("custom"));
-        path.path.push_back(ReflPathItem::FromFieldName("value"));
+        ReflPath<ReflTag1> path;
+        path.path.push_back(
+            ReflPathItem<ReflTag1>::FromFieldName("custom"));
+        path.path.push_back(
+            ReflPathItem<ReflTag1>::FromFieldName("value"));
         expectedValues[path] = "42";
     }
     {
         Vec<int> sorted_uset = sorted(data.uset | rs::to<Vec>());
         for (int i = 0; i < data.uset.size(); ++i) {
-            ReflPath path;
-            path.path.push_back(ReflPathItem::FromFieldName("uset"));
-            path.path.push_back(ReflPathItem::FromIndex(i));
+            ReflPath<ReflTag1> path;
+            path.path.push_back(
+                ReflPathItem<ReflTag1>::FromFieldName("uset"));
+            path.path.push_back(ReflPathItem<ReflTag1>::FromIndex(i));
             expectedValues[path] = fmt1(sorted_uset.at(i));
         }
     }
     for (auto const& [key, val] : data.umap) {
-        ReflPath path;
-        path.path.push_back(ReflPathItem::FromFieldName("umap"));
-        path.path.push_back(ReflPathItem::FromAnyKey(key));
+        ReflPath<ReflTag1> path;
+        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("umap"));
+        path.path.push_back(ReflPathItem<ReflTag1>::FromAnyKey(key));
         expectedValues[path] = std::to_string(val);
     }
     for (size_t i = 0; i < data.vec.size(); ++i) {
-        ReflPath path;
-        path.path.push_back(ReflPathItem::FromFieldName("vec"));
-        path.path.push_back(ReflPathItem::FromIndex(static_cast<int>(i)));
+        ReflPath<ReflTag1> path;
+        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("vec"));
+        path.path.push_back(
+            ReflPathItem<ReflTag1>::FromIndex(static_cast<int>(i)));
         expectedValues[path] = data.vec[i];
     }
     {
-        ReflPath path;
-        path.path.push_back(ReflPathItem::FromFieldName("variant"));
-        path.path.push_back(ReflPathItem::FromIndex(1));
+        ReflPath<ReflTag1> path;
+        path.path.push_back(
+            ReflPathItem<ReflTag1>::FromFieldName("variant"));
+        path.path.push_back(ReflPathItem<ReflTag1>::FromIndex(1));
         expectedValues[path] = std::get<std::string>(data.variant);
     }
     {
-        ReflPath path;
-        path.path.push_back(ReflPathItem::FromFieldName("variant"));
+        ReflPath<ReflTag1> path;
+        path.path.push_back(
+            ReflPathItem<ReflTag1>::FromFieldName("variant"));
         expectedValues[path] = std::nullopt;
     }
     {
-        ReflPath path;
-        path.path.push_back(ReflPathItem::FromFieldName("opt"));
-        path.path.push_back(ReflPathItem::FromDeref());
+        ReflPath<ReflTag1> path;
+        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("opt"));
+        path.path.push_back(ReflPathItem<ReflTag1>::FromDeref());
         expectedValues[path] = "100";
     }
     {
-        ReflPath path;
-        path.path.push_back(ReflPathItem::FromFieldName("sharedPtr"));
-        path.path.push_back(ReflPathItem::FromDeref());
+        ReflPath<ReflTag1> path;
+        path.path.push_back(
+            ReflPathItem<ReflTag1>::FromFieldName("sharedPtr"));
+        path.path.push_back(ReflPathItem<ReflTag1>::FromDeref());
         expectedValues[path] = "300";
     }
     {
-        ReflPath path;
-        path.path.push_back(ReflPathItem::FromFieldName("uniquePtr"));
-        path.path.push_back(ReflPathItem::FromDeref());
+        ReflPath<ReflTag1> path;
+        path.path.push_back(
+            ReflPathItem<ReflTag1>::FromFieldName("uniquePtr"));
+        path.path.push_back(ReflPathItem<ReflTag1>::FromDeref());
         expectedValues[path] = "400";
     }
     { // `data.pair`
-        ReflPath path_first;
-        path_first.path.push_back(ReflPathItem::FromFieldName("pair"));
-        path_first.path.push_back(ReflPathItem::FromIndex(0));
+        ReflPath<ReflTag1> path_first;
+        path_first.path.push_back(
+            ReflPathItem<ReflTag1>::FromFieldName("pair"));
+        path_first.path.push_back(ReflPathItem<ReflTag1>::FromIndex(0));
         expectedValues[path_first] = "10";
 
-        ReflPath path_second;
-        path_second.path.push_back(ReflPathItem::FromFieldName("pair"));
-        path_second.path.push_back(ReflPathItem::FromIndex(1));
+        ReflPath<ReflTag1> path_second;
+        path_second.path.push_back(
+            ReflPathItem<ReflTag1>::FromFieldName("pair"));
+        path_second.path.push_back(ReflPathItem<ReflTag1>::FromIndex(1));
         expectedValues[path_second] = "pair string";
     }
     {
-        ReflPath path0;
-        path0.path.push_back(ReflPathItem::FromFieldName("tuple"));
-        path0.path.push_back(ReflPathItem::FromIndex(0));
+        ReflPath<ReflTag1> path0;
+        path0.path.push_back(
+            ReflPathItem<ReflTag1>::FromFieldName("tuple"));
+        path0.path.push_back(ReflPathItem<ReflTag1>::FromIndex(0));
         expectedValues[path0] = "20";
 
-        ReflPath path1;
-        path1.path.push_back(ReflPathItem::FromFieldName("tuple"));
-        path1.path.push_back(ReflPathItem::FromIndex(1));
+        ReflPath<ReflTag1> path1;
+        path1.path.push_back(
+            ReflPathItem<ReflTag1>::FromFieldName("tuple"));
+        path1.path.push_back(ReflPathItem<ReflTag1>::FromIndex(1));
         expectedValues[path1] = "tuple string";
 
-        ReflPath path2;
-        path2.path.push_back(ReflPathItem::FromFieldName("tuple"));
-        path2.path.push_back(ReflPathItem::FromIndex(2));
-        path2.path.push_back(ReflPathItem::FromFieldName("value"));
+        ReflPath<ReflTag1> path2;
+        path2.path.push_back(
+            ReflPathItem<ReflTag1>::FromFieldName("tuple"));
+        path2.path.push_back(ReflPathItem<ReflTag1>::FromIndex(2));
+        path2.path.push_back(
+            ReflPathItem<ReflTag1>::FromFieldName("value"));
         expectedValues[path2] = "84";
 
-        ReflPath path3;
-        path3.path.push_back(ReflPathItem::FromFieldName("tuple"));
-        path3.path.push_back(ReflPathItem::FromIndex(2));
+        ReflPath<ReflTag1> path3;
+        path3.path.push_back(
+            ReflPathItem<ReflTag1>::FromFieldName("tuple"));
+        path3.path.push_back(ReflPathItem<ReflTag1>::FromIndex(2));
         expectedValues[path3] = std::nullopt;
     }
     {
-        ReflPath path;
-        path.path.push_back(ReflPathItem::FromFieldName("nullp"));
+        ReflPath<ReflTag1> path;
+        path.path.push_back(
+            ReflPathItem<ReflTag1>::FromFieldName("nullp"));
         expectedValues[path] = "0x0";
     }
 

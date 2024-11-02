@@ -36,6 +36,7 @@ struct Slice : public HSlice<T, T> {
 
     bool     contains(T val) const { return first <= val && val <= last; }
     bool     isValid() const { return first <= last; }
+    bool     isPoint() const { return first == last; }
     Slice<T> narrow(Slice<T> const& other) {
         return slice(
             // If the other boundary is in the range then move ot to the

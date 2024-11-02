@@ -35,12 +35,14 @@ struct std::formatter<V> : std::formatter<std::string> {
     }
 };
 
-template <IsSubVariantType V>
+template <typename T>
+concept DescribedSubVariantType = IsSubVariantType<T>
+                               && DescribedRecord<T>;
+
+template <DescribedSubVariantType V>
 struct std::formatter<V> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const V& p, FormatContext& ctx) const {
-        int field_count = 0;
-        for_each_field_with_bases<V>([&]() { ++field_count; });
         fmt_ctx(p.sub_variant_get_kind(), ctx);
         fmt_ctx("(", ctx);
         std::visit(
@@ -54,7 +56,7 @@ struct std::formatter<V> : std::formatter<std::string> {
                     fmt_ctx(".", ctx);
                     fmt_ctx(name, ctx);
                     fmt_ctx(" = ", ctx);
-                    fmt_ctx(value);
+                    fmt_ctx(value, ctx);
                 }
             });
         return fmt_ctx(")", ctx);

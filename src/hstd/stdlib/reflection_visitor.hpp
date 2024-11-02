@@ -78,7 +78,16 @@ struct AnyEqual {
     }
 };
 
+template <typename Tag>
+struct ReflTypeTraits {
+    using AnyFormatterType = AnyFormatter<Str>;
+    using AnyHasherType    = AnyHasher<Str>;
+    using AnyEqualType     = AnyEqual<Str>;
+    // using ReflPathFormatter = ReflPathItemFormatter<Tag>;
+};
 
+
+template <typename Tag>
 struct ReflPathItem {
     /// \brief Target field is a vector.
     struct Index {
@@ -102,7 +111,7 @@ struct ReflPathItem {
     };
 
     struct FieldName {
-        std::string name;
+        Tag::field_name_type name;
         DESC_FIELDS(FieldName, (name));
 
         bool operator==(FieldName const& other) const {
@@ -115,7 +124,7 @@ struct ReflPathItem {
         bool operator==(Deref const& other) const { return true; }
     };
 
-    static ReflPathItem FromFieldName(std::string const& name) {
+    static ReflPathItem FromFieldName(Tag::field_name_type const& name) {
         return ReflPathItem{FieldName{.name = name}};
     }
 
@@ -169,85 +178,11 @@ struct ReflPathItem {
 };
 
 
-template <>
-struct std::hash<ReflPathItem::Deref> {
-    std::size_t operator()(ReflPathItem::Deref const& it) const noexcept {
-        std::size_t result = 0;
-        return result;
-    }
-};
-
-template <>
-struct std::formatter<ReflPathItem::Deref> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(const ReflPathItem::Deref& p, FormatContext& ctx) const {
-        return fmt_ctx("*()", ctx);
-    }
-};
-
-template <>
-struct std::formatter<ReflPathItem::Index> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(const ReflPathItem::Index& p, FormatContext& ctx) const {
-        fmt_ctx("[", ctx);
-        fmt_ctx(p.index, ctx);
-        return fmt_ctx("]", ctx);
-    }
-};
-
-template <>
-struct std::hash<ReflPathItem::Index> {
-    std::size_t operator()(ReflPathItem::Index const& it) const noexcept {
-        std::size_t result = 0;
-        hax_hash_combine(result, it.index);
-        return result;
-    }
-};
-
-template <>
-struct std::hash<ReflPathItem::FieldName> {
-    std::size_t operator()(
-        ReflPathItem::FieldName const& it) const noexcept {
-        std::size_t result = 0;
-        hax_hash_combine(result, it.name);
-        return result;
-    }
-};
-
-template <>
-struct std::formatter<ReflPathItem::FieldName>
-    : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(const ReflPathItem::FieldName& p, FormatContext& ctx)
-        const {
-        fmt_ctx(".", ctx);
-        return fmt_ctx(p.name, ctx);
-    }
-};
-
-template <>
-struct std::formatter<ReflPathItem::AnyKey> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(const ReflPathItem::AnyKey& p, FormatContext& ctx) const {
-        fmt_ctx("?", ctx);
-        return fmt_ctx(demangle(p.key.type().name()), ctx);
-    }
-};
-
-template <>
-struct std::hash<ReflPathItem::AnyKey> {
-    std::size_t operator()(ReflPathItem::AnyKey const& it) const noexcept {
-        std::size_t result = 0;
-        // hax_hash_combine(result, it.key);
-        return result;
-    }
-};
-
-template <typename... Args>
+template <typename Tag>
 struct ReflPathItemFormatter : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const ReflPathItem& step, FormatContext& ctx) const {
-        AnyFormatter<Str> anyFmt;
+    auto format(const ReflPathItem<Tag>& step, FormatContext& ctx) const {
+        typename ReflTypeTraits<Tag>::AnyFormatter anyFmt;
         if (step.isAnyKey()) {
             fmt_ctx(anyFmt(step.getAnyKey().key), ctx);
         } else {
@@ -260,43 +195,58 @@ struct ReflPathItemFormatter : std::formatter<std::string> {
 };
 
 
-template <>
-struct std::formatter<ReflPathItem> : std::formatter<std::string> {
+template <typename Tag>
+struct std::formatter<ReflPathItem<Tag>> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const ReflPathItem& step, FormatContext& ctx) const {
+    auto format(const ReflPathItem<Tag>& step, FormatContext& ctx) const {
         std::visit([&](auto const& it) { fmt_ctx(it, ctx); }, step.data);
         return fmt_ctx("", ctx);
     }
 };
 
 
-template <>
-struct std::hash<ReflPathItem> {
-    std::size_t operator()(ReflPathItem const& it) const noexcept {
+template <typename Tag>
+struct std::hash<ReflPathItem<Tag>> {
+    std::size_t operator()(ReflPathItem<Tag> const& it) const noexcept {
         std::size_t result = 0;
-        hax_hash_combine(result, it.data);
+        std::visit(
+            overloaded{
+                [&](ReflPathItem<Tag>::Deref) {},
+                [&](ReflPathItem<Tag>::AnyKey value) {
+                    typename ReflTypeTraits<Tag>::AnyHasherType h;
+                    result = h(value.key);
+                },
+                [&](ReflPathItem<Tag>::Index value) {
+                    hax_hash_combine(result, value.index);
+                },
+                [&](ReflPathItem<Tag>::FieldName value) {
+                    hax_hash_combine(result, value.name);
+                },
+            },
+            it.data);
         return result;
     }
 };
 
 
+template <typename Tag>
 struct ReflPath {
-    using Store = SmallVec<ReflPathItem, 2>;
+    using Store = SmallVec<ReflPathItem<Tag>, 2>;
     Store path;
     DESC_FIELDS(ReflPath, (path));
-    ReflPathItem const& at(int idx) const { return path.at(idx); }
+    ReflPathItem<Tag> const& at(int idx) const { return path.at(idx); }
 
-    using iterator = Vec<ReflPathItem>::iterator;
+    using iterator = Vec<ReflPathItem<Tag>>::iterator;
 
     ReflPath() {}
     ReflPath(iterator begin, iterator end) : path{begin, end} {}
     ReflPath(Store path) : path{path} {}
-    ReflPath(ReflPathItem const& single) : path{{single}} {}
+    ReflPath(ReflPathItem<Tag> const& single) : path{{single}} {}
 
     bool isSingle() const { return path.size() == 1; }
 
-    ReflPathItem const& first() const { return path.at(0); }
-    ReflPathItem const& last() const { return path.back(); }
+    ReflPathItem<Tag> const& first() const { return path.at(0); }
+    ReflPathItem<Tag> const& last() const { return path.back(); }
 
     ReflPath dropPrefix(ReflPath const& other) {
         ReflPath result;
@@ -310,18 +260,19 @@ struct ReflPath {
         return result;
     }
 
-    Pair<ReflPathItem, ReflPath> split() const {
+    Pair<ReflPathItem<Tag>, ReflPath> split() const {
         if (path.size() == 1) {
             return {path.front(), {}};
         } else {
             auto span = path.at(slice(1, 1_B));
-            return Pair<ReflPathItem, ReflPath>{
+            return Pair<ReflPathItem<Tag>, ReflPath>{
                 path.front(), ReflPath{Store{span.begin(), span.end()}}};
         }
     }
 
-    ReflPath addFieldName(std::string const& name) const {
-        return add(ReflPathItem{ReflPathItem::FieldName{name}});
+    ReflPath addFieldName(Tag::field_name_type const& name) const {
+        return add(ReflPathItem<Tag>{
+            typename ReflPathItem<Tag>::FieldName{name}});
     }
 
     ReflPath add(ReflPath const& item) const {
@@ -330,7 +281,7 @@ struct ReflPath {
         return res;
     }
 
-    ReflPath add(ReflPathItem const& item) const {
+    ReflPath add(ReflPathItem<Tag> const& item) const {
         auto res = *this;
         res.path.push_back(item);
         return res;
@@ -353,20 +304,20 @@ struct ReflPath {
 };
 
 
-template <>
-struct std::hash<ReflPath> {
-    std::size_t operator()(ReflPath const& it) const noexcept {
+template <typename Tag>
+struct std::hash<ReflPath<Tag>> {
+    std::size_t operator()(ReflPath<Tag> const& it) const noexcept {
         std::size_t result = 0;
         hax_hash_combine(result, it.path);
         return result;
     }
 };
 
-template <typename... AnyKeyTypes>
+template <typename Tag>
 struct ReflPathHasher {
-    std::size_t operator()(ReflPath const& it) const noexcept {
-        std::size_t               result = 0;
-        AnyHasher<AnyKeyTypes...> anyHasher;
+    std::size_t operator()(ReflPath<Tag> const& it) const noexcept {
+        std::size_t                                 result = 0;
+        typename ReflTypeTraits<Tag>::AnyHasherType anyHasher;
         for (auto const& it : it.path) {
             if (it.isAnyKey()) {
                 hax_hash_combine(result, anyHasher(it.getAnyKey().key));
@@ -378,12 +329,14 @@ struct ReflPathHasher {
     }
 };
 
-template <typename... AnyKeyTypes>
+template <typename Tag>
 struct ReflPathComparator {
-    std::size_t operator()(ReflPath const& lhs, ReflPath const& rhs)
-        const noexcept {
-        std::size_t              result = 0;
-        AnyEqual<AnyKeyTypes...> anyEq;
+    std::size_t operator()(
+        ReflPath<Tag> const& lhs,
+        ReflPath<Tag> const& rhs) const noexcept {
+        std::size_t result = 0;
+
+        typename ReflTypeTraits<Tag>::AnyEqualType anyEq;
         if (lhs.path.size() == rhs.path.size()) {
             for (int i = 0; i < lhs.path.size(); ++i) {
                 if (lhs.at(i).getKind() == rhs.at(i).getKind()) {
@@ -407,11 +360,11 @@ struct ReflPathComparator {
     }
 };
 
-template <typename... Args>
+template <typename Tag>
 struct ReflPathFormatter : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const ReflPath& step, FormatContext& ctx) const {
-        ReflPathItemFormatter<Args...> fmt{};
+    auto format(const ReflPath<Tag>& step, FormatContext& ctx) const {
+        typename ReflTypeTraits<Tag>::ReflPathFormatter fmt{};
         for (auto const& it : enumerator(step.path)) {
             if (!it.is_first()) { fmt_ctx(">>", ctx); }
             fmt.format(it.value(), ctx);
@@ -420,10 +373,10 @@ struct ReflPathFormatter : std::formatter<std::string> {
     }
 };
 
-template <>
-struct std::formatter<ReflPath> : std::formatter<std::string> {
+template <typename Tag>
+struct std::formatter<ReflPath<Tag>> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const ReflPath& step, FormatContext& ctx) const {
+    auto format(const ReflPath<Tag>& step, FormatContext& ctx) const {
         for (auto const& it : enumerator(step.path)) {
             if (!it.is_first()) { fmt_ctx(">>", ctx); }
             fmt_ctx(it.value(), ctx);
@@ -432,7 +385,7 @@ struct std::formatter<ReflPath> : std::formatter<std::string> {
     }
 };
 
-template <typename T>
+template <typename T, typename Tag>
 struct ReflVisitor {};
 
 
@@ -463,15 +416,15 @@ struct ReflPointer<std::unique_ptr<T>> {
 
 struct refl_invalid_visit : CRTP_hexception<refl_invalid_visit> {};
 
-template <DescribedRecord T>
-struct ReflVisitor<T> {
+template <DescribedRecord T, typename Tag>
+struct ReflVisitor<T, Tag> {
     /// \brief Apply callback to passed value if the path points to it,
     /// otherwise follow the path down the data structure.
     template <typename Func>
     static void visit(
-        T const&            value,
-        ReflPathItem const& step,
-        Func const&         cb) {
+        T const&                 value,
+        ReflPathItem<Tag> const& step,
+        Func const&              cb) {
         LOGIC_ASSERTION_CHECK(step.isFieldName(), "{}", step.getKind());
         for_each_field_value_with_bases<T>(
             value, [&]<typename F>(char const* name, F const& value) {
@@ -480,44 +433,44 @@ struct ReflVisitor<T> {
     }
 
 
-    static Vec<ReflPathItem> subitems(T const& value) {
-        Vec<ReflPathItem> result;
+    static Vec<ReflPathItem<Tag>> subitems(T const& value) {
+        Vec<ReflPathItem<Tag>> result;
         for_each_field_value_with_bases(
             value, [&]<typename F>(char const* name, F const& value) {
-                result.push_back(ReflPathItem::FromFieldName(name));
+                result.push_back(ReflPathItem<Tag>::FromFieldName(name));
             });
 
         return result;
     }
 };
 
-template <typename K, typename V, typename Map>
+template <typename K, typename V, typename Map, typename Tag>
 struct ReflVisitorKeyValue {
     /// \brief Apply callback to passed value if the path points to it,
     /// otherwise follow the path down the data structure.
     template <typename Func>
     static void visit(
-        Map const&          value,
-        ReflPathItem const& step,
-        Func const&         cb) {
+        Map const&               value,
+        ReflPathItem<Tag> const& step,
+        Func const&              cb) {
         LOGIC_ASSERTION_CHECK(step.isAnyKey(), "{}", step.getKind());
-        cb(value.at(step.getAnyKey().get<K>()));
+        cb(value.at(step.getAnyKey().template get<K>()));
     }
 
 
-    static Vec<ReflPathItem> subitems(Map const& value) {
-        Vec<ReflPathItem> result;
+    static Vec<ReflPathItem<Tag>> subitems(Map const& value) {
+        Vec<ReflPathItem<Tag>> result;
         if constexpr (requires(K a, K b) {
                           { a < b } -> std::convertible_to<bool>;
                       }) {
             Vec<K> keys;
             for (auto const& [key, _] : value) { keys.push_back(key); }
             for (auto const& key : sorted(keys)) {
-                result.push_back(ReflPathItem::FromAnyKey(key));
+                result.push_back(ReflPathItem<Tag>::FromAnyKey(key));
             }
         } else {
             for (auto const& key : value.keys()) {
-                result.push_back(ReflPathItem::FromAnyKey(key));
+                result.push_back(ReflPathItem<Tag>::FromAnyKey(key));
             }
         }
 
@@ -526,24 +479,24 @@ struct ReflVisitorKeyValue {
     }
 };
 
-template <typename T, typename Indexed>
+template <typename T, typename Indexed, typename Tag>
 struct ReflVisitorIndexed {
     /// \brief Apply callback to passed value if the path points to it,
     /// otherwise follow the path down the data structure.
     template <typename Func>
     static void visit(
-        Indexed const&      value,
-        ReflPathItem const& step,
-        Func const&         cb) {
+        Indexed const&           value,
+        ReflPathItem<Tag> const& step,
+        Func const&              cb) {
         LOGIC_ASSERTION_CHECK(step.isIndex(), "{}", step.getKind());
         cb(value.at(step.getIndex().index));
     }
 
 
-    static Vec<ReflPathItem> subitems(Indexed const& value) {
-        Vec<ReflPathItem> result;
+    static Vec<ReflPathItem<Tag>> subitems(Indexed const& value) {
+        Vec<ReflPathItem<Tag>> result;
         for (int i = 0; i < value.size(); ++i) {
-            result.push_back(ReflPathItem::FromIndex(i));
+            result.push_back(ReflPathItem<Tag>::FromIndex(i));
         }
 
         return result;
@@ -551,7 +504,7 @@ struct ReflVisitorIndexed {
 };
 
 
-template <typename T, typename Unordered>
+template <typename T, typename Unordered, typename Tag>
 struct ReflVisitorUnorderedIndexed {
     static Vec<CRw<T>> getSorted(Unordered const& it) {
         Vec<CRw<T>> items;
@@ -562,18 +515,18 @@ struct ReflVisitorUnorderedIndexed {
 
     template <typename Func>
     static void visit(
-        Unordered const&    value,
-        ReflPathItem const& step,
-        Func const&         cb) {
+        Unordered const&         value,
+        ReflPathItem<Tag> const& step,
+        Func const&              cb) {
         LOGIC_ASSERTION_CHECK(step.isIndex(), "{}", step.getKind());
         cb(getSorted(value).at(step.getIndex().index).get());
     }
 
 
-    static Vec<ReflPathItem> subitems(Unordered const& value) {
-        Vec<ReflPathItem> result;
+    static Vec<ReflPathItem<Tag>> subitems(Unordered const& value) {
+        Vec<ReflPathItem<Tag>> result;
         for (int i = 0; i < value.size(); ++i) {
-            result.push_back(ReflPathItem::FromIndex(i));
+            result.push_back(ReflPathItem<Tag>::FromIndex(i));
         }
 
         return result;
@@ -581,38 +534,38 @@ struct ReflVisitorUnorderedIndexed {
 };
 
 
-template <typename T>
-struct ReflVisitor<Opt<T>> {
+template <typename T, typename Tag>
+struct ReflVisitor<Opt<T>, Tag> {
     /// \brief Apply callback to passed value if the path points to it,
     /// otherwise follow the path down the data structure.
     template <typename Func>
     static void visit(
-        Opt<T> const&       value,
-        ReflPathItem const& step,
-        Func const&         cb) {
+        Opt<T> const&            value,
+        ReflPathItem<Tag> const& step,
+        Func const&              cb) {
         LOGIC_ASSERTION_CHECK(step.isDeref(), "{}", step.getKind());
         cb(value.value());
     }
 
 
-    static Vec<ReflPathItem> subitems(Opt<T> const& value) {
-        Vec<ReflPathItem> result;
+    static Vec<ReflPathItem<Tag>> subitems(Opt<T> const& value) {
+        Vec<ReflPathItem<Tag>> result;
         if (value.has_value()) {
-            result.push_back(ReflPathItem::FromDeref());
+            result.push_back(ReflPathItem<Tag>::FromDeref());
         }
 
         return result;
     }
 };
 
-template <typename T>
-struct ReflVisitor<std::shared_ptr<T>> {
+template <typename T, typename Tag>
+struct ReflVisitor<std::shared_ptr<T>, Tag> {
     /// \brief Apply callback to passed value if the path points to it,
     /// otherwise follow the path down the data structure.
     template <typename Func>
     static void visit(
         std::shared_ptr<T> const& value,
-        ReflPathItem const&       step,
+        ReflPathItem<Tag> const&  step,
         Func const&               cb) {
         LOGIC_ASSERTION_CHECK(step.isDeref(), "{}", step.getKind());
         LOGIC_ASSERTION_CHECK(value.get() != nullptr, "");
@@ -620,24 +573,25 @@ struct ReflVisitor<std::shared_ptr<T>> {
     }
 
 
-    static Vec<ReflPathItem> subitems(std::shared_ptr<T> const& value) {
-        Vec<ReflPathItem> result;
+    static Vec<ReflPathItem<Tag>> subitems(
+        std::shared_ptr<T> const& value) {
+        Vec<ReflPathItem<Tag>> result;
         if (value.get() != nullptr) {
-            result.push_back(ReflPathItem::FromDeref());
+            result.push_back(ReflPathItem<Tag>::FromDeref());
         }
 
         return result;
     }
 };
 
-template <typename T>
-struct ReflVisitor<std::unique_ptr<T>> {
+template <typename T, typename Tag>
+struct ReflVisitor<std::unique_ptr<T>, Tag> {
     /// \brief Apply callback to passed value if the path points to it,
     /// otherwise follow the path down the data structure.
     template <typename Func>
     static void visit(
         std::unique_ptr<T> const& value,
-        ReflPathItem const&       step,
+        ReflPathItem<Tag> const&  step,
         Func const&               cb) {
         LOGIC_ASSERTION_CHECK(step.isDeref(), "{}", step.getKind());
         LOGIC_ASSERTION_CHECK(value.get() != nullptr, "");
@@ -645,10 +599,11 @@ struct ReflVisitor<std::unique_ptr<T>> {
     }
 
 
-    static Vec<ReflPathItem> subitems(std::unique_ptr<T> const& value) {
-        Vec<ReflPathItem> result;
+    static Vec<ReflPathItem<Tag>> subitems(
+        std::unique_ptr<T> const& value) {
+        Vec<ReflPathItem<Tag>> result;
         if (value.get() != nullptr) {
-            result.push_back(ReflPathItem::FromDeref());
+            result.push_back(ReflPathItem<Tag>::FromDeref());
         }
 
         return result;
@@ -675,38 +630,39 @@ void apply_to_tuple(Tuple&& t, std::size_t index, Func&& func) {
         std::make_index_sequence<size>{});
 }
 
-template <typename... Args>
-struct ReflVisitor<std::tuple<Args...>> {
+template <typename... Args, typename Tag>
+struct ReflVisitor<std::tuple<Args...>, Tag> {
     /// \brief Apply callback to passed value if the path points to it,
     /// otherwise follow the path down the data structure.
     template <typename Func>
     static void visit(
         std::tuple<Args...> const& value,
-        ReflPathItem const&        step,
+        ReflPathItem<Tag> const&   step,
         Func const&                cb) {
         LOGIC_ASSERTION_CHECK(step.isIndex(), "{}", step.getKind());
         apply_to_tuple(value, step.getIndex().index, cb);
     }
 
 
-    static Vec<ReflPathItem> subitems(std::tuple<Args...> const& value) {
-        Vec<ReflPathItem> result;
+    static Vec<ReflPathItem<Tag>> subitems(
+        std::tuple<Args...> const& value) {
+        Vec<ReflPathItem<Tag>> result;
         for (int i = 0; i < std::tuple_size_v<std::tuple<Args...>>; ++i) {
-            result.push_back(ReflPathItem::FromIndex(i));
+            result.push_back(ReflPathItem<Tag>::FromIndex(i));
         }
         return result;
     }
 };
 
-template <typename T1, typename T2>
-struct ReflVisitor<Pair<T1, T2>> {
+template <typename T1, typename T2, typename Tag>
+struct ReflVisitor<Pair<T1, T2>, Tag> {
     /// \brief Apply callback to passed value if the path points to it,
     /// otherwise follow the path down the data structure.
     template <typename Func>
     static void visit(
-        Pair<T1, T2> const& value,
-        ReflPathItem const& step,
-        Func const&         cb) {
+        Pair<T1, T2> const&      value,
+        ReflPathItem<Tag> const& step,
+        Func const&              cb) {
         LOGIC_ASSERTION_CHECK(step.isIndex(), "{}", step.getKind());
         LOGIC_ASSERTION_CHECK(
             (0 <= step.getIndex().index && step.getIndex().index <= 1),
@@ -719,24 +675,24 @@ struct ReflVisitor<Pair<T1, T2>> {
         }
     }
 
-    static Vec<ReflPathItem> subitems(Pair<T1, T2> const& value) {
-        Vec<ReflPathItem> result;
+    static Vec<ReflPathItem<Tag>> subitems(Pair<T1, T2> const& value) {
+        Vec<ReflPathItem<Tag>> result;
         for (int i = 0; i < std::tuple_size_v<Pair<T1, T2>>; ++i) {
-            result.push_back(ReflPathItem::FromIndex(i));
+            result.push_back(ReflPathItem<Tag>::FromIndex(i));
         }
         return result;
     }
 };
 
-template <IsVariant T>
-struct ReflVisitor<T> {
+template <IsVariant T, typename Tag>
+struct ReflVisitor<T, Tag> {
     /// \brief Apply callback to passed value if the path points to it,
     /// otherwise follow the path down the data structure.
     template <typename Func>
     static void visit(
-        T const&            value,
-        ReflPathItem const& step,
-        Func const&         cb) {
+        T const&                 value,
+        ReflPathItem<Tag> const& step,
+        Func const&              cb) {
         LOGIC_ASSERTION_CHECK(step.isIndex(), "{}", step.getKind());
         LOGIC_ASSERTION_CHECK(
             value.index() == step.getIndex().index, "{}", value.index());
@@ -744,56 +700,56 @@ struct ReflVisitor<T> {
     }
 
 
-    static Vec<ReflPathItem> subitems(T const& value) {
-        Vec<ReflPathItem> result;
-        result.push_back(ReflPathItem::FromIndex(value.index()));
+    static Vec<ReflPathItem<Tag>> subitems(T const& value) {
+        Vec<ReflPathItem<Tag>> result;
+        result.push_back(ReflPathItem<Tag>::FromIndex(value.index()));
         return result;
     }
 };
 
-template <typename T>
-struct ReflVisitor<Vec<T>> : ReflVisitorIndexed<T, Vec<T>> {};
+template <typename T, typename Tag>
+struct ReflVisitor<Vec<T>, Tag> : ReflVisitorIndexed<T, Vec<T>, Tag> {};
 
-template <typename T>
-struct ReflVisitor<std::vector<T>>
-    : ReflVisitorIndexed<T, std::vector<T>> {};
+template <typename T, typename Tag>
+struct ReflVisitor<std::vector<T>, Tag>
+    : ReflVisitorIndexed<T, std::vector<T>, Tag> {};
 
-template <typename K, typename V>
-struct ReflVisitor<UnorderedMap<K, V>>
-    : ReflVisitorKeyValue<K, V, UnorderedMap<K, V>> {};
+template <typename K, typename V, typename Tag>
+struct ReflVisitor<UnorderedMap<K, V>, Tag>
+    : ReflVisitorKeyValue<K, V, UnorderedMap<K, V>, Tag> {};
 
-template <typename K, typename V>
-struct ReflVisitor<SortedMap<K, V>>
-    : ReflVisitorKeyValue<K, V, SortedMap<K, V>> {};
+template <typename K, typename V, typename Tag>
+struct ReflVisitor<SortedMap<K, V>, Tag>
+    : ReflVisitorKeyValue<K, V, SortedMap<K, V>, Tag> {};
 
-template <typename K, typename V>
-struct ReflVisitor<std::unordered_map<K, V>>
-    : ReflVisitorKeyValue<K, V, std::unordered_map<K, V>> {};
+template <typename K, typename V, typename Tag>
+struct ReflVisitor<std::unordered_map<K, V>, Tag>
+    : ReflVisitorKeyValue<K, V, std::unordered_map<K, V>, Tag> {};
 
-template <typename K, typename V>
-struct ReflVisitor<std::map<K, V>>
-    : ReflVisitorKeyValue<K, V, std::map<K, V>> {};
+template <typename K, typename V, typename Tag>
+struct ReflVisitor<std::map<K, V>, Tag>
+    : ReflVisitorKeyValue<K, V, std::map<K, V>, Tag> {};
 
-template <typename T>
-struct ReflVisitor<std::set<T>>
-    : ReflVisitorUnorderedIndexed<T, std::set<T>> {};
+template <typename T, typename Tag>
+struct ReflVisitor<std::set<T>, Tag>
+    : ReflVisitorUnorderedIndexed<T, std::set<T>, Tag> {};
 
-template <typename T>
-struct ReflVisitor<std::unordered_set<T>>
-    : ReflVisitorUnorderedIndexed<T, std::unordered_set<T>> {};
+template <typename T, typename Tag>
+struct ReflVisitor<std::unordered_set<T>, Tag>
+    : ReflVisitorUnorderedIndexed<T, std::unordered_set<T>, Tag> {};
 
-template <typename T>
-struct ReflVisitor<UnorderedSet<T>>
-    : ReflVisitorUnorderedIndexed<T, UnorderedSet<T>> {};
+template <typename T, typename Tag>
+struct ReflVisitor<UnorderedSet<T>, Tag>
+    : ReflVisitorUnorderedIndexed<T, UnorderedSet<T>, Tag> {};
 
 
-template <typename T>
+template <typename T, typename Tag>
 struct ReflVisitorLeafType {
     template <typename Func>
     static void visit(
-        T const&            value,
-        ReflPathItem const& step,
-        Func const&         cb) {
+        T const&                 value,
+        ReflPathItem<Tag> const& step,
+        Func const&              cb) {
         throw refl_invalid_visit::init(
             fmt("Type {} cannot be indexed into using path step {}",
                 demangle(typeid(T).name()),
@@ -801,43 +757,45 @@ struct ReflVisitorLeafType {
     }
 
 
-    static Vec<ReflPathItem> subitems(T const& value) { return {}; }
+    static Vec<ReflPathItem<Tag>> subitems(T const& value) { return {}; }
 };
 
-template <>
-struct ReflVisitor<int> : ReflVisitorLeafType<int> {};
+template <typename Tag>
+struct ReflVisitor<int, Tag> : ReflVisitorLeafType<int, Tag> {};
 
-template <>
-struct ReflVisitor<char> : ReflVisitorLeafType<char> {};
+template <typename Tag>
+struct ReflVisitor<char, Tag> : ReflVisitorLeafType<char, Tag> {};
 
-template <>
-struct ReflVisitor<float> : ReflVisitorLeafType<float> {};
+template <typename Tag>
+struct ReflVisitor<float, Tag> : ReflVisitorLeafType<float, Tag> {};
 
-template <>
-struct ReflVisitor<double> : ReflVisitorLeafType<double> {};
+template <typename Tag>
+struct ReflVisitor<double, Tag> : ReflVisitorLeafType<double, Tag> {};
 
-template <>
-struct ReflVisitor<bool> : ReflVisitorLeafType<bool> {};
+template <typename Tag>
+struct ReflVisitor<bool, Tag> : ReflVisitorLeafType<bool, Tag> {};
 
-template <IsEnum E>
-struct ReflVisitor<E> : ReflVisitorLeafType<E> {};
+template <IsEnum E, typename Tag>
+struct ReflVisitor<E, Tag> : ReflVisitorLeafType<E, Tag> {};
 
-template <>
-struct ReflVisitor<char const*> : ReflVisitorLeafType<char const*> {};
+template <typename Tag>
+struct ReflVisitor<char const*, Tag>
+    : ReflVisitorLeafType<char const*, Tag> {};
 
-template <>
-struct ReflVisitor<std::string> : ReflVisitorLeafType<std::string> {};
+template <typename Tag>
+struct ReflVisitor<std::string, Tag>
+    : ReflVisitorLeafType<std::string, Tag> {};
 
-template <>
-struct ReflVisitor<Str> : ReflVisitorLeafType<Str> {};
+template <typename Tag>
+struct ReflVisitor<Str, Tag> : ReflVisitorLeafType<Str, Tag> {};
 
-template <>
-struct ReflVisitor<std::nullptr_t>
-    : ReflVisitorLeafType<std::nullptr_t> {};
+template <typename Tag>
+struct ReflVisitor<std::nullptr_t, Tag>
+    : ReflVisitorLeafType<std::nullptr_t, Tag> {};
 
-template <typename T>
-Vec<ReflPathItem> reflSubItems(T const& item) {
-    return ReflVisitor<T>::subitems(item);
+template <typename T, typename Tag>
+Vec<ReflPathItem<Tag>> reflSubItems(T const& item) {
+    return ReflVisitor<T, Tag>::subitems(item);
 }
 
 struct ReflRecursiveVisitContext {
@@ -855,17 +813,17 @@ struct ReflRecursiveVisitContext {
     }
 };
 
-template <typename T, typename Func>
+template <typename T, typename Tag, typename Func>
 void reflVisitAll(
     T const&                   value,
-    ReflPath const&            path,
+    ReflPath<Tag> const&       path,
     ReflRecursiveVisitContext& ctx,
     Func const&                cb) {
     cb(path, value);
     if (ctx.canRecurse(value)) {
         ctx.visit(value);
-        for (auto const& step : ReflVisitor<T>::subitems(value)) {
-            ReflVisitor<T>::visit(
+        for (auto const& step : ReflVisitor<T, Tag>::subitems(value)) {
+            ReflVisitor<T, Tag>::visit(
                 value, step, [&]<typename F>(F const& fieldValue) {
                     reflVisitAll<F>(fieldValue, path.add(step), ctx, cb);
                 });
@@ -873,23 +831,26 @@ void reflVisitAll(
     }
 }
 
-template <typename T, typename Func>
+template <typename T, typename Func, typename Tag>
 void reflVisitDirectItems(T const& value, Func const& cb) {
-    for (auto const& step : ReflVisitor<T>::subitems(value)) {
-        ReflVisitor<T>::visit(
+    for (auto const& step : ReflVisitor<T, Tag>::subitems(value)) {
+        ReflVisitor<T, Tag>::visit(
             value, step, [&]<typename F>(F const& fieldValue) {
                 cb(step, fieldValue);
             });
     }
 }
 
-template <typename T, typename Func>
-void reflVisitPath(T const& value, ReflPath const& path, Func const& cb) {
+template <typename T, typename Func, typename Tag>
+void reflVisitPath(
+    T const&             value,
+    ReflPath<Tag> const& path,
+    Func const&          cb) {
     if (path.empty()) {
         cb(value);
     } else {
         auto [head, tail] = path.split();
-        ReflVisitor<T>::visit(
+        ReflVisitor<T, Tag>::visit(
             value, head, [&]<typename F>(F const& fieldValue) {
                 reflVisitPath<F>(fieldValue, tail, cb);
             });
