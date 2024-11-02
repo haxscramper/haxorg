@@ -244,6 +244,11 @@ struct ReflTypeTraits<ReflTag1> {
     using AnyFormatterType = AnyFormatter<Str, std::string>;
     using AnyHasherType    = AnyHasher<Str, std::string>;
     using AnyEqualType     = AnyEqual<Str, std::string>;
+
+    template <typename T>
+    static Str InitFieldName(T const& value, auto const& field) {
+        return field.name;
+    }
 };
 
 TEST(ReflectionVisitor, FieldNames) {

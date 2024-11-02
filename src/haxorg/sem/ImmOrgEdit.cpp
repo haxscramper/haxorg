@@ -439,7 +439,7 @@ bool recMatches(PathIter condition, ImmAdapter node, int depth, Ctx ctx) {
                                 drop),
                             ctx.sel->activeLevel);
                         if (!drop.empty() && drop.first().isFieldName()
-                            && drop.first().getFieldName().name
+                            && drop.first().getFieldName().name.getName()
                                    == name.name) {
                             if (recMatches(
                                     condition + 1, sub, depth + 1, ctx)) {
@@ -521,7 +521,9 @@ void OrgDocumentSelector::searchSubtreePlaintextTitle(
         .check = [title,
                   this](ImmAdapter const& node) -> OrgSelectorResult {
             if (auto tree = node.asOpt<org::ImmSubtree>(); tree) {
-                Vec<Str> plaintext = flatWords(tree.value().at("title"));
+                Vec<Str> plaintext = flatWords(tree.value().at(
+                    org::ImmReflFieldId::FromTypeField<org::ImmSubtree>(
+                        &org::ImmSubtree::title)));
                 message(
                     fmt("{} == {} -> {}",
                         plaintext,

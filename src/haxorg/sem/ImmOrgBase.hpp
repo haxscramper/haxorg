@@ -15,20 +15,74 @@
 #include <haxorg/sem/SemOrgTypes.hpp>
 
 namespace org {
+struct ImmReflFieldId;
+}
+
+template <>
+struct std::hash<org::ImmReflFieldId> {
+    std::size_t operator()(org::ImmReflFieldId const& it) const noexcept;
+};
+
+
+namespace org {
+
+struct ImmReflFieldId {
+    std::type_index type;
+    u64             field;
+
+    static UnorderedMap<ImmReflFieldId, Str> fieldNames;
+
+    Str getName() const {
+        return fieldNames.get(*this).value_or("<none>");
+    }
+
+    template <typename T, typename F>
+    static ImmReflFieldId FromTypeField(F T::*fieldPtr) {
+        ImmReflFieldId result{
+            .type  = std::type_index(typeid(T)),
+            .field = std::reinterpret_pointer_cast<u64>(fieldPtr),
+        };
+
+        return result;
+    }
+
+    bool operator==(ImmReflFieldId const& other) const {
+        return type == other.type && field == other.field;
+    }
+};
+
 
 struct ImmReflPathTag {
-    using field_name_type = Str;
+    using field_name_type = ImmReflFieldId;
 };
+
 using ImmReflPathItemBase = ReflPathItem<ImmReflPathTag>;
 using ImmReflPathBase     = ReflPath<ImmReflPathTag>;
 
 } // namespace org
 
 template <>
+struct std::formatter<org::ImmReflFieldId> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const org::ImmReflFieldId& p, FormatContext& ctx) const {
+        return fmt_ctx(p.getName(), ctx);
+    }
+};
+
+
+template <>
 struct ReflTypeTraits<org::ImmReflPathTag> {
     using AnyFormatterType = AnyFormatter<Str>;
     using AnyHasherType    = AnyHasher<Str>;
     using AnyEqualType     = AnyEqual<Str>;
+
+
+    template <typename T>
+    static org::ImmReflPathTag::field_name_type InitFieldName(
+        T const&    value,
+        auto const& field) {
+        return FromTypeField<T>(field.pointer);
+    }
 };
 
 

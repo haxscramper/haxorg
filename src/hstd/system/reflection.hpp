@@ -250,6 +250,35 @@ void for_each_field_with_bases(Func cb, bool pre_bases = true) {
 }
 
 template <typename T, typename Func>
+void for_each_field_with_base_value(
+    T const& value,
+    Func     cb,
+    bool     pre_bases = true) {
+    if (pre_bases) {
+        boost::mp11::mp_for_each<boost::describe::describe_bases<
+            T,
+            boost::describe::mod_any_access>>([&](auto Base) {
+            for_each_field_with_base_value<typename decltype(Base)::type>(
+                value, cb, pre_bases);
+        });
+    }
+
+    boost::mp11::mp_for_each<boost::describe::describe_members<
+        T,
+        boost::describe::mod_any_access>>(
+        [&](auto const& field) { cb(value, field); });
+
+    if (!pre_bases) {
+        boost::mp11::mp_for_each<boost::describe::describe_bases<
+            T,
+            boost::describe::mod_any_access>>([&](auto Base) {
+            for_each_field_with_base_value<typename decltype(Base)::type>(
+                value, cb, pre_bases);
+        });
+    }
+}
+
+template <typename T, typename Func>
 void for_each_field_no_base(Func cb, bool pre_bases = true) {
     boost::mp11::mp_for_each<boost::describe::describe_members<
         T,

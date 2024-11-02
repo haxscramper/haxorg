@@ -95,20 +95,20 @@ struct ImmPathStep {
         return path == other.path;
     }
 
-    static ImmPathStep FieldIdx(std::string const& field, int idx) {
+    static ImmPathStep FieldIdx(ImmReflFieldId const& field, int idx) {
         return ImmPathStep{ImmReflPathBase{{
             ImmReflPathItemBase::FromFieldName(field),
             ImmReflPathItemBase::FromIndex(idx),
         }}};
     }
 
-    static ImmPathStep Field(std::string const& field) {
+    static ImmPathStep Field(ImmReflFieldId const& field) {
         return ImmPathStep{ImmReflPathBase{{
             ImmReflPathItemBase::FromFieldName(field),
         }}};
     }
 
-    static ImmPathStep FieldDeref(std::string const& field) {
+    static ImmPathStep FieldDeref(ImmReflFieldId const& field) {
         return ImmPathStep{ImmReflPathBase{{
             ImmReflPathItemBase::FromFieldName(field),
             ImmReflPathItemBase::FromDeref(),
@@ -869,7 +869,7 @@ struct ImmAdapter {
         return ImmAdapter{id, ctx, path.add(idx)};
     }
 
-    ImmAdapter at(Str const& field) const {
+    ImmAdapter at(ImmReflFieldId const& field) const {
         return at(
             ctx->at(
                 id,

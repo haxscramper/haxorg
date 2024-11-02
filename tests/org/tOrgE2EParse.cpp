@@ -729,7 +729,9 @@ TEST_F(ImmOrgDocumentSelector, NonLeafSubtrees) {
     EXPECT_EQ(subtrees.size(), 3);
     auto titles = subtrees
                 | rv::transform([](org::ImmAdapter const& id) -> Vec<Str> {
-                      return flatWords(id.at("title"));
+                      return flatWords(id.at(
+                          org::ImmReflFieldId::FromTypeField<
+                              org::ImmSubtree>(&org::ImmSubtree::title)));
                   })
                 | rs::to<Vec>();
 

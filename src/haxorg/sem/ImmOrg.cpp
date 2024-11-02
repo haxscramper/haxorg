@@ -23,6 +23,14 @@ const u64 org::ImmId::NodeKindOffset = 40;
 
 const org::ParentPathMap EmptyParentPathMap;
 
+std::size_t std::hash<org::ImmReflFieldId>::operator()(
+    org::ImmReflFieldId const& it) const noexcept {
+    std::size_t result = 0;
+    hax_hash_combine(result, it.field);
+    hax_hash_combine(result, it.type);
+    return result;
+}
+
 org::ImmId::IdType org::ImmId::combineMask(OrgSemKind kind) {
     auto res = (u64(kind) << NodeKindOffset) & NodeKindMask;
 
@@ -193,21 +201,21 @@ Str ImmAdapter::selfSelect() const {
     for (ImmPathStep const& step : path.path) {
         auto const& i = step.path.path;
         if (i.size() == 2 && i.at(0).isFieldName() && i.at(1).isIndex()
-            && i.at(0).getFieldName().name == "subnodes") {
+            && i.at(0).getFieldName().name.getName() == "subnodes") {
             result += fmt(".at({})", i.at(1).getIndex().index);
         } else if (
             i.size() == 2 && i.at(0).isFieldName() && i.at(1).isAnyKey()) {
             result += fmt(
                 R"(.{}.at("{}"))",
-                i.at(0).getFieldName().name,
+                i.at(0).getFieldName().name.getName(),
                 i.at(1).getAnyKey().get<Str>());
         } else if (i.size() == 1 && i.at(0).isFieldName()) {
-            return fmt(".{}", i.at(0).getFieldName().name);
+            return fmt(".{}", i.at(0).getFieldName().name.getName());
         } else if (
             i.size() == 2 && i.at(0).isFieldName() && i.at(1).isIndex()) {
             result += fmt(
                 ".{}.at({})",
-                i.at(0).getFieldName().name,
+                i.at(0).getFieldName().name.getName(),
                 i.at(1).getIndex().index);
         } else {
             result += fmt1(i);
@@ -356,7 +364,10 @@ ImmAdapter ImmAdapter::at(int idx, bool withPath) const {
     if (withPath) {
         return at(
             ctx->at(id)->subnodes.at(idx),
-            ImmPathStep::FieldIdx("subnodes", idx));
+            ImmPathStep::FieldIdx(
+                org::ImmReflFieldId::FromTypeField<org::ImmOrg>(
+                    &org::ImmOrg::subnodes),
+                idx));
     } else {
         return ImmAdapter{ctx->at(id)->subnodes.at(idx), ctx, {}};
     }

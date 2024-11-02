@@ -426,18 +426,24 @@ struct ReflVisitor<T, Tag> {
         ReflPathItem<Tag> const& step,
         Func const&              cb) {
         LOGIC_ASSERTION_CHECK(step.isFieldName(), "{}", step.getKind());
-        for_each_field_value_with_bases<T>(
-            value, [&]<typename F>(char const* name, F const& value) {
-                if (Str{name} == step.getFieldName().name) { cb(value); }
+        for_each_field_with_base_value<T>(
+            value,
+            [&]<typename B, typename F>(B const& base, auto const& ptr) {
+                if (ReflTypeTraits<Tag>::InitFieldName(base, ptr)
+                    == step.getFieldName().name) {
+                    cb(value);
+                }
             });
     }
 
 
     static Vec<ReflPathItem<Tag>> subitems(T const& value) {
         Vec<ReflPathItem<Tag>> result;
-        for_each_field_value_with_bases(
-            value, [&]<typename F>(char const* name, F const& value) {
-                result.push_back(ReflPathItem<Tag>::FromFieldName(name));
+        for_each_field_with_base_value(
+            value,
+            [&]<typename B, typename F>(B const& base, auto const& ptr) {
+                result.push_back(
+                    ReflTypeTraits<Tag>::InitFieldName(base, ptr));
             });
 
         return result;
