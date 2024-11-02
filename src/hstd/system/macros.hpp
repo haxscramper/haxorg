@@ -1,5 +1,6 @@
 #pragma once
 
+#include <concepts>
 #define PARENS ()
 
 #define EXPAND(...) EXPAND4(EXPAND4(EXPAND4(EXPAND4(__VA_ARGS__))))
@@ -91,9 +92,10 @@
     char const*        sub_variant_get_name() const { return #fieldName; }
 
 template <typename T>
-concept IsSubVariantType = requires() {
+concept IsSubVariantType = requires(T t) {
     typename T::variant_enum_type;
     typename T::variant_data_type;
+    { t.sub_variant_get_name() } -> std::same_as<char const*>;
 };
 
 

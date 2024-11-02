@@ -14,6 +14,24 @@
 #include <hstd/stdlib/reflection_visitor.hpp>
 #include <haxorg/sem/SemOrgTypes.hpp>
 
+namespace org {
+
+struct ImmReflPathTag {
+    using field_name_type = Str;
+};
+using ImmReflPathItemBase = ReflPathItem<ImmReflPathTag>;
+using ImmReflPathBase     = ReflPath<ImmReflPathTag>;
+
+} // namespace org
+
+template <>
+struct ReflTypeTraits<org::ImmReflPathTag> {
+    using AnyFormatterType = AnyFormatter<Str>;
+    using AnyHasherType    = AnyHasher<Str>;
+    using AnyEqualType     = AnyEqual<Str>;
+};
+
+
 template <typename T>
 using ImmVec = immer::flex_vector<T>;
 
@@ -43,41 +61,41 @@ struct ImmMap : immer::map<K, V> {
 template <typename T>
 using ImmSet = immer::set<T>;
 
-template <typename K, typename V>
-struct ReflVisitor<immer::map<K, V>>
-    : ReflVisitorKeyValue<K, V, immer::map<K, V>> {};
+template <typename K, typename V, typename Tag>
+struct ReflVisitor<immer::map<K, V>, Tag>
+    : ReflVisitorKeyValue<K, V, immer::map<K, V>, Tag> {};
 
 
-template <typename K, typename V>
-struct ReflVisitor<ImmMap<K, V>>
-    : ReflVisitorKeyValue<K, V, ImmMap<K, V>> {};
+template <typename K, typename V, typename Tag>
+struct ReflVisitor<ImmMap<K, V>, Tag>
+    : ReflVisitorKeyValue<K, V, ImmMap<K, V>, Tag> {};
 
-template <typename T>
-struct ReflVisitor<immer::set<T>>
-    : ReflVisitorUnorderedIndexed<T, immer::set<T>> {};
+template <typename T, typename Tag>
+struct ReflVisitor<immer::set<T>, Tag>
+    : ReflVisitorUnorderedIndexed<T, immer::set<T>, Tag> {};
 
-template <typename T>
-struct ReflVisitor<immer::flex_vector<T>>
-    : ReflVisitorIndexed<T, immer::flex_vector<T>> {};
+template <typename T, typename Tag>
+struct ReflVisitor<immer::flex_vector<T>, Tag>
+    : ReflVisitorIndexed<T, immer::flex_vector<T>, Tag> {};
 
 
-template <typename T>
-struct ReflVisitor<ImmBox<T>> {
+template <typename T, typename Tag>
+struct ReflVisitor<ImmBox<T>, Tag> {
     /// \brief Apply callback to passed value if the path points to it,
     /// otherwise follow the path down the data structure.
     template <typename Func>
     static void visit(
-        ImmBox<T> const&    value,
-        ReflPathItem const& step,
-        Func const&         cb) {
+        ImmBox<T> const&         value,
+        ReflPathItem<Tag> const& step,
+        Func const&              cb) {
         LOGIC_ASSERTION_CHECK(step.isDeref(), "{}", step.getKind());
         cb(value.get());
     }
 
 
-    static Vec<ReflPathItem> subitems(ImmBox<T> const& value) {
-        Vec<ReflPathItem> result;
-        result.push_back(ReflPathItem::FromDeref());
+    static Vec<ReflPathItem<Tag>> subitems(ImmBox<T> const& value) {
+        Vec<ReflPathItem<Tag>> result;
+        result.push_back(ReflPathItem<Tag>::FromDeref());
         return result;
     }
 };
@@ -393,8 +411,9 @@ struct JsonSerde<org::ImmId> {
 };
 
 template <>
-struct ReflVisitor<org::ImmId> : ReflVisitorLeafType<org::ImmId> {};
+struct ReflVisitor<org::ImmId, org::ImmReflPathTag>
+    : ReflVisitorLeafType<org::ImmId, org::ImmReflPathTag> {};
 
 template <typename T>
-struct ReflVisitor<org::ImmIdT<T>>
-    : ReflVisitorLeafType<org::ImmIdT<T>> {};
+struct ReflVisitor<org::ImmIdT<T>, org::ImmReflPathTag>
+    : ReflVisitorLeafType<org::ImmIdT<T>, org::ImmReflPathTag> {};

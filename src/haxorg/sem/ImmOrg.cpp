@@ -277,7 +277,8 @@ Vec<ImmAdapter> ImmAdapter::getAllSubnodes(
     auto                      root = *this;
     ReflRecursiveVisitContext visitCtx;
 
-    auto add_id = [&](ReflPath const& parent, ImmId const& id) {
+    auto add_id = [&](org::ImmReflPathBase const& parent,
+                      ImmId const&                id) {
         if (withPath) {
             ImmPath path;
             if (rootPath) {
@@ -293,19 +294,19 @@ Vec<ImmAdapter> ImmAdapter::getAllSubnodes(
     };
 
     switch_node_value(id, *ctx, [&]<typename T>(T const& value) {
-        reflVisitAll<T>(
+        reflVisitAll<T, org::ImmReflPathTag>(
             value,
             {},
             visitCtx,
             overloaded{
-                [&](ReflPath const& parent, ImmId const& id) {
+                [&](org::ImmReflPathBase const& parent, ImmId const& id) {
                     add_id(parent, id);
                 },
                 [&]<typename K>(
-                    ReflPath const& parent, ImmIdT<K> const& id) {
-                    add_id(parent, id.toId());
-                },
-                [&](ReflPath const& parent, auto const& other) {},
+                    org::ImmReflPathBase const& parent,
+                    ImmIdT<K> const& id) { add_id(parent, id.toId()); },
+                [&](org::ImmReflPathBase const& parent,
+                    auto const&                 other) {},
             });
     });
     return result;

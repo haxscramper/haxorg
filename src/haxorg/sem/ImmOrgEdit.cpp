@@ -29,7 +29,7 @@ ImmAstReplace org::insertSubnodes(
     Vec<ImmId>         add,
     int                position,
     ImmAstEditContext& ctx) {
-    AST_EDIT_MSG(fmt("Insert {} at {} in {}", add, position, node));
+    AST_EDIT_MSG(fmt("Insert {} at {} in {}b", add, position, node));
     Vec<ImmId> u;
     LOGIC_ASSERTION_CHECK(0 <= position, "{}", position);
 

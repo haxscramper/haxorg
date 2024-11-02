@@ -58,6 +58,7 @@ void switch_node_nullptr(OrgSemKind kind, Func const& cb) {
     }
 }
 
+
 namespace org {
 
 template <typename T>
@@ -88,34 +89,35 @@ struct ImmAstTrackingMap;
 struct ImmPathStep {
     /// \brief path from the root of the immer node to the next ImmId
     /// element.
-    ReflPath path;
+    ImmReflPathBase path;
     DESC_FIELDS(ImmPathStep, (path));
     bool operator==(ImmPathStep const& other) const {
         return path == other.path;
     }
 
     static ImmPathStep FieldIdx(std::string const& field, int idx) {
-        return ImmPathStep{ReflPath{{
-            ReflPathItem::FromFieldName(field),
-            ReflPathItem::FromIndex(idx),
+        return ImmPathStep{ImmReflPathBase{{
+            ImmReflPathItemBase::FromFieldName(field),
+            ImmReflPathItemBase::FromIndex(idx),
         }}};
     }
 
     static ImmPathStep Field(std::string const& field) {
-        return ImmPathStep{ReflPath{{
-            ReflPathItem::FromFieldName(field),
+        return ImmPathStep{ImmReflPathBase{{
+            ImmReflPathItemBase::FromFieldName(field),
         }}};
     }
 
     static ImmPathStep FieldDeref(std::string const& field) {
-        return ImmPathStep{ReflPath{{
-            ReflPathItem::FromFieldName(field),
-            ReflPathItem::FromDeref(),
+        return ImmPathStep{ImmReflPathBase{{
+            ImmReflPathItemBase::FromFieldName(field),
+            ImmReflPathItemBase::FromDeref(),
         }}};
     }
 
     bool operator<(ImmPathStep const& other) const {
-        return path.lessThan(other.path, ReflPathComparator<Str>{});
+        return path.lessThan(
+            other.path, ReflPathComparator<org::ImmReflPathTag>{});
     }
 };
 
@@ -141,7 +143,7 @@ struct ImmPath {
     ImmPath(ImmId root) : root{root} {};
     /// \brief Path referring to a direct sub-element of the root (one jump
     /// from the root node)
-    ImmPath(ImmId root, ReflPath const& step0)
+    ImmPath(ImmId root, org::ImmReflPathBase const& step0)
         : root{root}, path{ImmPathStep{step0}} {}
     /// \brief Path referring to a direct sub-element (one jump from the
     /// root)
@@ -744,8 +746,8 @@ struct ImmAdapter {
     iterator end() const { return iterator(this, size()); }
     bool     isNil() const { return id.isNil(); }
     bool     isRoot() const { return path.empty(); }
-    ReflPath flatPath() const {
-        ReflPath result;
+    org::ImmReflPathBase flatPath() const {
+        org::ImmReflPathBase result;
         for (auto const& it : path.path) {
             result.path.append(it.path.path);
         }
@@ -759,13 +761,13 @@ struct ImmAdapter {
 
     OrgSemKind getKind() const { return id.getKind(); }
 
-    ReflPathItem const& lastPath() const {
+    org::ImmReflPathItemBase const& lastPath() const {
         return path.path.back().path.last();
     }
 
     ImmPathStep const& lastStep() const { return path.path.back(); }
 
-    ReflPathItem const& firstPath() const {
+    org::ImmReflPathItemBase const& firstPath() const {
         return path.path.front().path.first();
     }
 
@@ -869,7 +871,10 @@ struct ImmAdapter {
 
     ImmAdapter at(Str const& field) const {
         return at(
-            ctx->at(id, ImmPathStep{{ReflPathItem::FromFieldName(field)}}),
+            ctx->at(
+                id,
+                ImmPathStep{
+                    {org::ImmReflPathItemBase::FromFieldName(field)}}),
             ImmPathStep::Field(field));
     }
 
@@ -1356,7 +1361,8 @@ template <>
 struct std::formatter<org::ImmPathStep> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const org::ImmPathStep& p, FormatContext& ctx) const {
-        return ReflPathFormatter<Str>{}.format(p.path, ctx);
+        return ReflPathFormatter<org::ImmReflPathTag>{}.format(
+            p.path, ctx);
     }
 };
 
@@ -1366,7 +1372,7 @@ struct std::hash<org::ImmPathStep> {
         AnyHasher<Str> hasher;
         std::size_t    result = 0;
         for (int i = 0; i < step.path.path.size(); ++i) {
-            ReflPathItem const& it = step.path.path.at(i);
+            org::ImmReflPathItemBase const& it = step.path.path.at(i);
             hax_hash_combine(result, i);
             if (it.isAnyKey()) {
                 hax_hash_combine(result, hasher(it.getAnyKey().key));

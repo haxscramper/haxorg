@@ -182,7 +182,7 @@ template <typename Tag>
 struct ReflPathItemFormatter : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const ReflPathItem<Tag>& step, FormatContext& ctx) const {
-        typename ReflTypeTraits<Tag>::AnyFormatter anyFmt;
+        typename ReflTypeTraits<Tag>::AnyFormatterType anyFmt;
         if (step.isAnyKey()) {
             fmt_ctx(anyFmt(step.getAnyKey().key), ctx);
         } else {
@@ -364,7 +364,7 @@ template <typename Tag>
 struct ReflPathFormatter : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const ReflPath<Tag>& step, FormatContext& ctx) const {
-        typename ReflTypeTraits<Tag>::ReflPathFormatter fmt{};
+        ReflPathItemFormatter<Tag> fmt{};
         for (auto const& it : enumerator(step.path)) {
             if (!it.is_first()) { fmt_ctx(">>", ctx); }
             fmt.format(it.value(), ctx);
