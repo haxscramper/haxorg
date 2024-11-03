@@ -153,18 +153,11 @@ struct ReflPathItem {
         }
     }
 
-    ReflPathItem(const Index& idx) : kind(Kind::Index) {
-        data.index = idx;
-    }
-    ReflPathItem(const FieldName& field) : kind(Kind::FieldName) {
-        data.fieldName = field;
-    }
-    ReflPathItem(const AnyKey& key) : kind(Kind::AnyKey) {
-        data.anyKey = key;
-    }
-    ReflPathItem(const Deref& ref) : kind(Kind::Deref) {
-        data.deref = ref;
-    }
+    ReflPathItem(const Index& idx) : kind(Kind::Index), data(idx) {}
+    ReflPathItem(const FieldName& field)
+        : kind(Kind::FieldName), data(field) {}
+    ReflPathItem(const AnyKey& key) : kind(Kind::AnyKey), data(key) {}
+    ReflPathItem(const Deref& ref) : kind(Kind::Deref), data(ref) {}
 
     static ReflPathItem FromFieldName(Tag::field_name_type const& name) {
         return ReflPathItem{FieldName{.name = name}};
@@ -186,6 +179,10 @@ struct ReflPathItem {
         FieldName fieldName;
         AnyKey    anyKey;
         Deref     deref;
+        DataUnion(Index const& d) : index{d} {}
+        DataUnion(FieldName const& f) : fieldName{f} {}
+        DataUnion(AnyKey const& k) : anyKey{k} {}
+        DataUnion(Deref const& d) : deref{d} {}
         DataUnion() : index{Index{}} {}
         ~DataUnion() {}
     };
