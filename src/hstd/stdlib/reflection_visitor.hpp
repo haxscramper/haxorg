@@ -124,6 +124,48 @@ struct ReflPathItem {
         bool operator==(Deref const& other) const { return true; }
     };
 
+    ReflPathItem(const ReflPathItem& other) : kind(other.kind) {
+        switch (kind) {
+            case Kind::Index:
+                new (&data.index) Index(other.data.index);
+                break;
+            case Kind::FieldName:
+                new (&data.fieldName) FieldName(other.data.fieldName);
+                break;
+            case Kind::AnyKey:
+                new (&data.anyKey) AnyKey(other.data.anyKey);
+                break;
+            case Kind::Deref:
+                new (&data.deref) Deref(other.data.deref);
+                break;
+        }
+    }
+
+    void operator=(ReflPathItem const& other) {
+        kind = other.kind;
+        switch (kind) {
+            case Kind::Index: data.index = other.data.index; break;
+            case Kind::FieldName:
+                data.fieldName = other.data.fieldName;
+                break;
+            case Kind::AnyKey: data.anyKey = other.data.anyKey; break;
+            case Kind::Deref: data.deref = other.data.deref; break;
+        }
+    }
+
+    ReflPathItem(const Index& idx) : kind(Kind::Index) {
+        data.index = idx;
+    }
+    ReflPathItem(const FieldName& field) : kind(Kind::FieldName) {
+        data.fieldName = field;
+    }
+    ReflPathItem(const AnyKey& key) : kind(Kind::AnyKey) {
+        data.anyKey = key;
+    }
+    ReflPathItem(const Deref& ref) : kind(Kind::Deref) {
+        data.deref = ref;
+    }
+
     static ReflPathItem FromFieldName(Tag::field_name_type const& name) {
         return ReflPathItem{FieldName{.name = name}};
     }
@@ -139,20 +181,127 @@ struct ReflPathItem {
         return ReflPathItem{AnyKey{.key = std::any(name)}};
     }
 
+    union DataUnion {
+        Index     index;
+        FieldName fieldName;
+        AnyKey    anyKey;
+        Deref     deref;
+        DataUnion() : index{Index{}} {}
+        ~DataUnion() {}
+    };
 
-    SUB_VARIANTS(
-        Kind,
-        Data,
-        data,
-        getKind,
-        Index,
-        FieldName,
-        AnyKey,
-        Deref);
-    Data data;
-    DESC_FIELDS(ReflPathItem, (data));
+    ~ReflPathItem() {
+        switch (kind) {
+            case Kind::Index: data.index.~Index(); break;
+            case Kind::FieldName: data.fieldName.~FieldName(); break;
+            case Kind::AnyKey: data.anyKey.~AnyKey(); break;
+            case Kind::Deref: data.deref.~Deref(); break;
+        }
+    }
+
+    template <typename Func>
+    void visit(Func cb) {
+        switch (kind) {
+            case Kind::Index: cb(getIndex()); break;
+            case Kind::FieldName: cb(getFieldName()); break;
+            case Kind::Deref: cb(getDeref()); break;
+            case Kind::AnyKey: cb(getAnyKey()); break;
+        }
+    }
+
+    template <typename Func>
+    void visit(Func cb) const {
+        switch (kind) {
+            case Kind::Index: cb(getIndex()); break;
+            case Kind::FieldName: cb(getFieldName()); break;
+            case Kind::Deref: cb(getDeref()); break;
+            case Kind::AnyKey: cb(getAnyKey()); break;
+        }
+    }
+
+
+    DECL_DESCRIBED_ENUM(Kind, Index, FieldName, AnyKey, Deref);
+    DESC_FIELDS(ReflPathItem, (data, kind));
+
+    Kind      getKind() const { return kind; }
+    Kind      kind;
+    DataUnion data;
+
+    using variant_enum_type = Kind;
+    using variant_data_type = std::
+        variant<Index, FieldName, AnyKey, Deref>;
+    Kind                     sub_variant_get_kind() const { return kind; }
+    variant_data_type const& sub_variant_get_data() const {
+        switch (kind) {
+            case Kind::Index: return getIndex();
+            case Kind::FieldName: return getFieldName();
+            case Kind::AnyKey: return getAnyKey();
+            case Kind::Deref: return getDeref();
+        }
+    }
+    char const* sub_variant_get_name() const { return "data"; }
+
+    void expectKind(Kind k) const {
+        LOGIC_ASSERTION_CHECK(
+            kind == k, "Expected kind {} but got {}", k, kind);
+    }
+
+    Index& getIndex() {
+        expectKind(Kind::Index);
+        return data.index;
+    }
+
+    Index const& getIndex() const {
+        expectKind(Kind::Index);
+        return data.index;
+    }
+
+    bool isIndex() const { return kind == Kind::Index; }
+    bool isFieldName() const { return kind == Kind::FieldName; }
+    bool isDeref() const { return kind == Kind::Deref; }
+    bool isAnyKey() const { return kind == Kind::AnyKey; }
+
+    FieldName& getFieldName() { return data.fieldName; }
+
+    FieldName const& getFieldName() const {
+        expectKind(Kind::FieldName);
+        return data.fieldName;
+    }
+
+    AnyKey& getAnyKey() {
+        expectKind(Kind::AnyKey);
+        return data.anyKey;
+    }
+
+    AnyKey const& getAnyKey() const {
+        expectKind(Kind::AnyKey);
+        return data.anyKey;
+    }
+
+
+    Deref& getDeref() {
+        expectKind(Kind::Deref);
+        return data.deref;
+    }
+
+    Deref const& getDeref() const {
+        expectKind(Kind::Deref);
+        return data.deref;
+    }
+
+
     bool operator==(ReflPathItem const& it) const {
-        return data == it.data;
+        if (it.getKind() == getKind()) {
+            switch (kind) {
+                case Kind::AnyKey: return data.anyKey == it.data.anyKey;
+                case Kind::FieldName:
+                    return data.fieldName == it.data.fieldName;
+                case Kind::Deref: return data.deref == it.data.deref;
+                case Kind::Index: return data.index == it.data.index;
+            }
+        } else {
+            return false;
+        }
     }
 
     bool operator<(ReflPathItem const& it) const {
@@ -186,8 +335,7 @@ struct ReflPathItemFormatter : std::formatter<std::string> {
         if (step.isAnyKey()) {
             fmt_ctx(anyFmt(step.getAnyKey().key), ctx);
         } else {
-            std::visit(
-                [&](auto const& it) { fmt_ctx(it, ctx); }, step.data);
+            step.visit([&](auto const& it) { fmt_ctx(it, ctx); });
         }
 
         return fmt_ctx("", ctx);
@@ -199,7 +347,7 @@ template <typename Tag>
 struct std::formatter<ReflPathItem<Tag>> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const ReflPathItem<Tag>& step, FormatContext& ctx) const {
-        std::visit([&](auto const& it) { fmt_ctx(it, ctx); }, step.data);
+        step.visit([&](auto const& it) { fmt_ctx(it, ctx); });
         return fmt_ctx("", ctx);
     }
 };
@@ -209,21 +357,19 @@ template <typename Tag>
 struct std::hash<ReflPathItem<Tag>> {
     std::size_t operator()(ReflPathItem<Tag> const& it) const noexcept {
         std::size_t result = 0;
-        std::visit(
-            overloaded{
-                [&](ReflPathItem<Tag>::Deref) {},
-                [&](ReflPathItem<Tag>::AnyKey value) {
-                    typename ReflTypeTraits<Tag>::AnyHasherType h;
-                    result = h(value.key);
-                },
-                [&](ReflPathItem<Tag>::Index value) {
-                    hax_hash_combine(result, value.index);
-                },
-                [&](ReflPathItem<Tag>::FieldName value) {
-                    hax_hash_combine(result, value.name);
-                },
+        it.visit(overloaded{
+            [&](ReflPathItem<Tag>::Deref) {},
+            [&](ReflPathItem<Tag>::AnyKey value) {
+                typename ReflTypeTraits<Tag>::AnyHasherType h;
+                result = h(value.key);
             },
-            it.data);
+            [&](ReflPathItem<Tag>::Index value) {
+                hax_hash_combine(result, value.index);
+            },
+            [&](ReflPathItem<Tag>::FieldName value) {
+                hax_hash_combine(result, value.name);
+            },
+        });
         return result;
     }
 };
