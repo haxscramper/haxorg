@@ -35,9 +35,11 @@ using ImmReflPathItemBase = ReflPathItem<ImmReflPathTag>;
 using ImmReflPathBase     = ReflPath<ImmReflPathTag>;
 
 struct ImmReflFieldId {
-    std::type_index type;
+    struct R {
+        int f;
+    };
 
-    static const int member_ptr_size = sizeof(&ImmReflFieldId::type);
+    static const int member_ptr_size = sizeof(&R::f);
     using member_ptr_store           = Array<u8, member_ptr_size>;
     member_ptr_store field;
 
@@ -49,23 +51,32 @@ struct ImmReflFieldId {
 
     template <typename T, typename F>
     static ImmReflFieldId FromTypeField(F T::*fieldPtr) {
-        ImmReflFieldId result{.type = std::type_index(typeid(T))};
+        ImmReflFieldId result{};
         std::memcpy(result.field.data(), &fieldPtr, member_ptr_size);
         return result;
     }
 
+    template <typename T, typename F>
+    static ImmReflFieldId FromTypeFieldName(
+        char const* name,
+        F T::*fieldPtr) {
+        auto result = FromTypeField(fieldPtr);
+        if (!fieldNames.contains(result)) {
+            fieldNames.insert_or_assign(result, name);
+        }
+        return result;
+    }
+
     bool operator==(ImmReflFieldId const& other) const {
-        return type == other.type
-            && std::memcmp(
+        return std::memcmp(
                    other.field.data(), field.data(), member_ptr_size)
-                   == 0;
+            == 0;
     }
 
     bool operator<(ImmReflFieldId const& other) const {
-        return type < other.type
-            && std::memcmp(
+        return std::memcmp(
                    other.field.data(), field.data(), member_ptr_size)
-                   < 0;
+             < 0;
     }
 };
 
@@ -102,7 +113,8 @@ struct ReflTypeTraits<org::ImmReflPathTag> {
     static org::ImmReflPathTag::field_name_type InitFieldName(
         T const&    value,
         auto const& field) {
-        return org::ImmReflFieldId::FromTypeField<T>(field.pointer);
+        return org::ImmReflFieldId::FromTypeFieldName<T>(
+            field.name, field.pointer);
     }
 };
 

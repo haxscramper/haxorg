@@ -28,7 +28,6 @@ std::size_t std::hash<org::ImmReflFieldId>::operator()(
     org::ImmReflFieldId const& it) const noexcept {
     std::size_t result = 0;
     hax_hash_combine(result, it.field);
-    hax_hash_combine(result, it.type);
     return result;
 }
 
