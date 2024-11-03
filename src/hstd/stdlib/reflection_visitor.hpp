@@ -174,6 +174,9 @@ struct ReflPathItem {
         return ReflPathItem{AnyKey{.key = std::any(name)}};
     }
 
+    // Using union instead of std::variant because the former one is at
+    // least 30% faster for the immutable AST iteration -- running full
+    // tree walk on test document goes from 350ms to under 200ms.
     union DataUnion {
         Index     index;
         FieldName fieldName;
@@ -374,7 +377,7 @@ struct std::hash<ReflPathItem<Tag>> {
 
 template <typename Tag>
 struct ReflPath {
-    using Store = SmallVec<ReflPathItem<Tag>, 2>;
+    using Store = ReflTypeTraits<Tag>::ReflPathStoreType;
     Store path;
     DESC_FIELDS(ReflPath, (path));
     ReflPathItem<Tag> const& at(int idx) const { return path.at(idx); }
@@ -392,24 +395,23 @@ struct ReflPath {
     ReflPathItem<Tag> const& last() const { return path.back(); }
 
     ReflPath dropPrefix(ReflPath const& other) {
-        ReflPath result;
+        auto begin = path.begin();
         for (int i = 0; i < path.size(); ++i) {
             if (i < other.path.size()) {
                 LOGIC_ASSERTION_CHECK(other.path.at(i) == path.at(i), "");
-            } else {
-                result.path.push_back(path.at(i));
+                ++begin;
             }
         }
-        return result;
+        return ReflPath{Store{begin, path.end()}};
     }
 
     Pair<ReflPathItem<Tag>, ReflPath> split() const {
         if (path.size() == 1) {
             return {path.front(), {}};
         } else {
-            auto span = path.at(slice(1, 1_B));
             return Pair<ReflPathItem<Tag>, ReflPath>{
-                path.front(), ReflPath{Store{span.begin(), span.end()}}};
+                path.front(),
+                ReflPath{Store{path.begin() + 1, path.end()}}};
         }
     }
 
@@ -425,9 +427,7 @@ struct ReflPath {
     }
 
     ReflPath add(ReflPathItem<Tag> const& item) const {
-        auto res = *this;
-        res.path.push_back(item);
-        return res;
+        return ReflTypeTraits<Tag>::AddPathItem(*this, item);
     }
 
     bool empty() const { return path.empty(); }
@@ -438,7 +438,7 @@ struct ReflPath {
 
     template <typename Cmp>
     bool lessThan(ReflPath const& other, Cmp const& cmp) const {
-        return path.lessThan(other.path, cmp);
+        return itemwise_less_than(path, other.path, cmp);
     }
 
     bool operator<(ReflPath const& other) const {

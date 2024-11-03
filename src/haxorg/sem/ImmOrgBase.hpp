@@ -24,6 +24,52 @@ struct std::hash<org::ImmReflFieldId> {
 };
 
 
+template <typename T>
+using ImmVec = immer::flex_vector<T>;
+
+template <typename T>
+using ImmBox = immer::box<T>;
+
+template <typename T>
+struct std::hash<ImmVec<T>> : std_indexable_hash<ImmVec<T>> {};
+
+template <typename T>
+struct std::hash<immer::vector<T>>
+    : std_indexable_hash<immer::vector<T>> {};
+
+template <typename T>
+struct std::formatter<immer::vector<T>>
+    : std_item_iterator_formatter<T, immer::vector<T>> {};
+
+template <typename T>
+struct std::formatter<ImmVec<T>>
+    : std_item_iterator_formatter<T, ImmVec<T>> {};
+
+
+template <typename K, typename V>
+struct ImmMap : immer::map<K, V> {
+    using base = immer::map<K, V>;
+    using base::at;
+    using base::base;
+    using base::find;
+
+    ImmMap(base const& val) : base{val} {}
+
+    Opt<V> get(K const& key) const {
+        if (auto val = find(key)) {
+            return *val;
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    bool contains(K const& key) const { return find(key) != nullptr; }
+};
+
+template <typename T>
+using ImmSet = immer::set<T>;
+
+
 namespace org {
 
 
@@ -108,6 +154,8 @@ struct ReflTypeTraits<org::ImmReflPathTag> {
     using AnyHasherType    = AnyHasher<Str>;
     using AnyEqualType     = AnyEqual<Str>;
 
+    using ReflPathStoreType = immer::vector<
+        ReflPathItem<org::ImmReflPathTag>>;
 
     template <typename T>
     static org::ImmReflPathTag::field_name_type InitFieldName(
@@ -116,37 +164,14 @@ struct ReflTypeTraits<org::ImmReflPathTag> {
         return org::ImmReflFieldId::FromTypeFieldName<T>(
             field.name, field.pointer);
     }
-};
 
-
-template <typename T>
-using ImmVec = immer::flex_vector<T>;
-
-template <typename T>
-using ImmBox = immer::box<T>;
-
-template <typename K, typename V>
-struct ImmMap : immer::map<K, V> {
-    using base = immer::map<K, V>;
-    using base::at;
-    using base::base;
-    using base::find;
-
-    ImmMap(base const& val) : base{val} {}
-
-    Opt<V> get(K const& key) const {
-        if (auto val = find(key)) {
-            return *val;
-        } else {
-            return std::nullopt;
-        }
+    static ReflPath<org::ImmReflPathTag> AddPathItem(
+        ReflPath<org::ImmReflPathTag>     res,
+        ReflPathItem<org::ImmReflPathTag> item) {
+        return ReflPath<org::ImmReflPathTag>{res.path.push_back(item)};
     }
-
-    bool contains(K const& key) const { return find(key) != nullptr; }
 };
 
-template <typename T>
-using ImmSet = immer::set<T>;
 
 template <typename K, typename V, typename Tag>
 struct ReflVisitor<immer::map<K, V>, Tag>
@@ -214,19 +239,6 @@ struct std::formatter<ImmBox<Str>> : std::formatter<std::string> {
         fmt_ctx("Box{", ctx);
         fmt_ctx(escape_literal(p.get()), ctx);
         return fmt_ctx("}", ctx);
-    }
-};
-
-
-template <typename T>
-struct std::formatter<ImmVec<T>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(ImmVec<T> const& p, FormatContext& ctx)
-        const {
-        std::formatter<std::string> fmt;
-        fmt.format("[", ctx);
-        fmt.format(join(", ", p), ctx);
-        return fmt.format("]", ctx);
     }
 };
 

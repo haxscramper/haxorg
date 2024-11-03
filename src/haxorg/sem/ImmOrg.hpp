@@ -11,6 +11,8 @@
 #include <hstd/wrappers/hstd_extra/graphviz.hpp>
 #include <boost/preprocessor.hpp>
 #include <hstd/stdlib/reflection_visitor.hpp>
+#include <immer/flex_vector_transient.hpp>
+#include <immer/vector_transient.hpp>
 
 
 #define _declare_hash(__kind)                                             \
@@ -123,7 +125,7 @@ struct ImmPathStep {
 
 /// \brief Full path from the root of the document to a specific node.
 struct ImmPath {
-    using Store = SmallVec<ImmPathStep, 4>;
+    using Store = immer::flex_vector<ImmPathStep>;
     /// \brief Root ID node
     ImmId root;
     /// \brief Sequence of jumps from the root of the document down to the
@@ -162,35 +164,31 @@ struct ImmPath {
     ///
     /// \note Spans will not include the empty span (targeting the root
     /// node itself)
-    generator<Span<ImmPathStep>> pathSpans(
+    generator<immer::flex_vector<ImmPathStep>> pathSpans(
         /// \brief Starting from the leaf will generate the largest path
         /// span first, and then will decrease it in steps. Starting from
         /// the root will go from the span of size 1 and increase it until
         /// it reaches the target.
         bool leafStart = true) const {
         if (leafStart) {
-            for (int i = path.high(); 0 <= i; --i) {
-                co_yield path.at(slice(0, i));
+            for (int i = path.size() - 1; 0 <= i; --i) {
+                co_yield path.take(i);
             }
         } else {
             for (int i = 0; i < path.size(); ++i) {
-                co_yield path.at(slice(0, i));
+                co_yield path.take(i);
             }
         }
     }
 
     /// \brief Remove one jump from the path and return a new version
     ImmPath pop() const {
-        auto res = *this;
-        res.path.pop_back();
-        return res;
+        return ImmPath{root, path.erase(path.size() - 1)};
     }
 
     /// \brief Add one jump step from the path and return a new version.
     ImmPath add(ImmPathStep const& it) const {
-        auto res = *this;
-        res.path.push_back(it);
-        return res;
+        return ImmPath{root, path.push_back(it)};
     }
 
     bool operator==(ImmPath const& other) const {
@@ -198,7 +196,9 @@ struct ImmPath {
     }
 
     bool operator<(ImmPath const& other) const {
-        return root < other.root && path < other.path;
+        return root < other.root
+            && itemwise_less_than(
+                   path, other.path, std::less<ImmPathStep>{});
     }
 };
 
@@ -748,9 +748,11 @@ struct ImmAdapter {
     bool     isRoot() const { return path.empty(); }
     org::ImmReflPathBase flatPath() const {
         org::ImmReflPathBase result;
+        auto                 tmp = result.path.transient();
         for (auto const& it : path.path) {
-            result.path.append(it.path.path);
+            for (auto const& item : it.path.path) { tmp.push_back(item); }
         }
+        result.path = tmp.persistent();
         return result;
     }
 

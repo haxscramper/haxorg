@@ -294,7 +294,7 @@ Vec<ImmAdapter> ImmAdapter::getAllSubnodes(
             } else {
                 path.root = this->id;
             }
-            path.path.push_back(ImmPathStep{parent});
+            path.path = path.path.push_back(ImmPathStep{parent});
             result.push_back(root.pass(id, path));
         } else {
             result.push_back(root.ctx->adaptUnrooted(id));
@@ -939,14 +939,14 @@ Vec<ImmUniqId> ImmAstTrackingMap::getPathsFor(
                 for (auto const& full : parentPaths) {
                     ImmPath path;
                     path.root = parentId;
-                    path.path.push_back(full);
+                    path.path = path.path.push_back(full);
                     result.push_back(path);
                 }
             } else {
                 for (auto const& added : auxRes) {
                     for (auto const& full : parentPaths) {
                         ImmPath path = added;
-                        path.path.push_back(full);
+                        path.path    = path.path.push_back(full);
                         result.push_back(path);
                     }
                 }

@@ -245,9 +245,18 @@ struct ReflTypeTraits<ReflTag1> {
     using AnyHasherType    = AnyHasher<Str, std::string>;
     using AnyEqualType     = AnyEqual<Str, std::string>;
 
+    using ReflPathStoreType = SmallVec<ReflPathItem<ReflTag1>, 2>;
+
     template <typename T>
     static Str InitFieldName(T const& value, auto const& field) {
         return field.name;
+    }
+
+    static ReflPath<ReflTag1> AddPathItem(
+        ReflPath<ReflTag1>     res,
+        ReflPathItem<ReflTag1> item) {
+        res.path.push_back(item);
+        return res;
     }
 };
 
