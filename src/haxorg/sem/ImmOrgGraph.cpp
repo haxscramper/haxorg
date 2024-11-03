@@ -607,7 +607,7 @@ void MapGraph::addEdge(const MapEdge& edge, const MapEdgeProp& prop) {
         edge.target);
 
     adjList.at(edge.source).push_back(edge.target);
-    inNodes.at(edge.target).push_back(edge.source);
+    adjListIn.at(edge.target).push_back(edge.source);
     edgeProps.insert_or_assign(edge, prop);
 }
 
@@ -615,7 +615,7 @@ void MapGraph::addNode(const MapNode& node) {
     if (!adjList.contains(MapNode{node})) {
         adjList.insert_or_assign(MapNode{node}, Vec<MapNode>{});
         nodeProps.insert_or_assign(MapNode{node}, MapNodeProp{});
-        inNodes.insert_or_assign(MapNode{node}, Vec<MapNode>{});
+        adjListIn.insert_or_assign(MapNode{node}, Vec<MapNode>{});
     }
 }
 
@@ -636,8 +636,9 @@ Graphviz::Graph MapGraph::toGraphviz(
 
     for (auto const& [it, props] : nodeProps) {
         if (nodeOk(it)) {
-            gvNodes.insert_or_assign(
-                it, res.node(it.id.id.getReadableId()));
+            auto node = res.node(it.id.id.getReadableId());
+            node.setAttr("org_id", it.id.id.getReadableId());
+            gvNodes.insert_or_assign(it, node);
         }
     }
 
