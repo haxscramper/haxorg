@@ -279,8 +279,8 @@ Opt<ImmAdapter> ImmAdapter::getParentSubtree() const {
 }
 
 Vec<ImmAdapter> ImmAdapter::getAllSubnodes(
-    Opt<ImmPath> rootPath,
-    bool         withPath) const {
+    Opt<ImmPath> const& rootPath,
+    bool                withPath) const {
     Vec<ImmAdapter>           result;
     auto                      root = *this;
     ReflRecursiveVisitContext visitCtx;
@@ -321,8 +321,8 @@ Vec<ImmAdapter> ImmAdapter::getAllSubnodes(
 }
 
 Vec<ImmAdapter> ImmAdapter::getAllSubnodesDFS(
-    Opt<ImmPath> rootPath,
-    bool         withPath) const {
+    Opt<ImmPath> const& rootPath,
+    bool                withPath) const {
     Vec<ImmAdapter>                                    result;
     Func<void(ImmAdapter const&, ImmPath const& root)> aux;
     aux = [&](ImmAdapter const& it, ImmPath const& root) {

@@ -2086,7 +2086,7 @@ TEST(ImmMapApi, Doc1Graph) {
 
     org::ImmAstContext store;
     org::ImmAstVersion v = store.addRoot(n);
-    return;
+    // return;
 
     // writeTreeRepr(
     //     v.getRootAdapter(),

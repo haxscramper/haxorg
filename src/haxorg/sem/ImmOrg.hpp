@@ -838,11 +838,11 @@ struct ImmAdapter {
     Opt<ImmAdapter> getAdjacentNode(int offset) const;
     Opt<ImmAdapter> getParentSubtree() const;
     Vec<ImmAdapter> getAllSubnodes(
-        Opt<ImmPath> rootPath,
-        bool         withPath = true) const;
+        const Opt<ImmPath>& rootPath,
+        bool                withPath = true) const;
     Vec<ImmAdapter> getAllSubnodesDFS(
-        Opt<ImmPath> rootPath,
-        bool         withPath = true) const;
+        const Opt<ImmPath>& rootPath,
+        bool                withPath = true) const;
 
     Vec<ImmPathStep> getRelativeSubnodePaths(ImmId const& subnode) const;
 
