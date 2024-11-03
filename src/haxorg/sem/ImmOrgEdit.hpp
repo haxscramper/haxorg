@@ -79,7 +79,7 @@ struct OrgSelectorLink {
     struct IndirectSubnode {};
     // 2
     struct FieldName {
-        Str name;
+        ImmReflFieldId name;
     };
 
     using Data = Variant<DirectSubnode, IndirectSubnode, FieldName>;
@@ -133,7 +133,7 @@ struct OrgDocumentSelector
         return OrgSelectorLink{.data = OrgSelectorLink::IndirectSubnode{}};
     }
 
-    OrgSelectorLink linkField(Str const& name) const {
+    OrgSelectorLink linkField(ImmReflFieldId const& name) const {
         return OrgSelectorLink{
             .data = OrgSelectorLink::FieldName{.name = name}};
     }

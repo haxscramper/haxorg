@@ -644,7 +644,10 @@ Paragraph under subtitle 2
         org::OrgDocumentSelector selector;
         selector.setTraceFile(getDebugFile("title_search_3"));
         selector.searchSubtreePlaintextTitle(
-            {"Subtitle2"}, false, selector.linkField("subnodes"));
+            {"Subtitle2"},
+            false,
+            selector.linkField(org::ImmReflFieldId::FromTypeField(
+                &org::ImmOrg::subnodes)));
         selector.searchAnyKind({OrgSemKind::Word}, true);
 
         auto words = selector.getMatches(doc.getRootAdapter());
@@ -751,7 +754,10 @@ TEST_F(ImmOrgDocumentSelector, SubtreesWithDateInTitleAndBody) {
     {
         org::OrgDocumentSelector selector;
         selector.searchAnyKind(
-            {OrgSemKind::Subtree}, true, selector.linkField("title"));
+            {OrgSemKind::Subtree},
+            true,
+            selector.linkField(org::ImmReflFieldId::FromTypeField(
+                &org::ImmSubtree::title)));
         selector.searchAnyKind({OrgSemKind::Time}, false);
         auto subtrees = selector.getMatches(doc.getRootAdapter());
         EXPECT_EQ(subtrees.size(), 1);

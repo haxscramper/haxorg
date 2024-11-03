@@ -439,7 +439,7 @@ bool recMatches(PathIter condition, ImmAdapter node, int depth, Ctx ctx) {
                                 drop),
                             ctx.sel->activeLevel);
                         if (!drop.empty() && drop.first().isFieldName()
-                            && drop.first().getFieldName().name.getName()
+                            && drop.first().getFieldName().name
                                    == name.name) {
                             if (recMatches(
                                     condition + 1, sub, depth + 1, ctx)) {
