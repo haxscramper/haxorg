@@ -842,11 +842,24 @@ Vec<sem::SemId<sem::HashTag>> sem::Paragraph::getLeadHashtags() const { return m
 
 // Opt<org::ImmAdapterT<org::ImmAttrList>> org::ImmAdapterT<org::ImmCell>::getAttrs(CR<Opt<Str>> param) const { return cmdgetAttrsImpl(*this, param); }
 
-org::ImmAdapterT<org::ImmParagraph> org::ImmAdapterSubtreeAPI::getTitle() const { return pass(getThisT<org::ImmSubtree>()->title, ImmPathStep::Field("title")); }
-org::ImmAdapterT<org::ImmParagraph> org::ImmAdapterCmdCaptionAPI::getText() const { return pass(getThisT<org::ImmCmdCaption>()->text, ImmPathStep::Field("text")); }
-
 
 // clang-format on
+
+org::ImmAdapterT<org::ImmParagraph> org::ImmAdapterSubtreeAPI::getTitle()
+    const {
+    return pass(
+        getThisT<org::ImmSubtree>()->title,
+        ImmPathStep::Field(
+            org::ImmReflFieldId::FromTypeField(&org::ImmSubtree::title)));
+}
+org::ImmAdapterT<org::ImmParagraph> org::ImmAdapterCmdCaptionAPI::getText()
+    const {
+    return pass(
+        getThisT<org::ImmCmdCaption>()->text,
+        ImmPathStep::Field(org::ImmReflFieldId::FromTypeField(
+            &org::ImmCmdCaption::text)));
+}
+
 
 Opt<org::ImmAdapter> org::ImmAdapterListItemAPI::getHeader() const {
     auto it = getThisT<org::ImmListItem>();
@@ -854,7 +867,9 @@ Opt<org::ImmAdapter> org::ImmAdapterListItemAPI::getHeader() const {
         return std::nullopt;
     } else {
         return pass(
-            it->header->value(), ImmPathStep::FieldDeref("header"));
+            it->header->value(),
+            ImmPathStep::FieldDeref(org::ImmReflFieldId::FromTypeField(
+                &org::ImmListItem::header)));
     }
 }
 

@@ -26,9 +26,20 @@ struct std::hash<org::ImmReflFieldId> {
 
 namespace org {
 
+
+struct ImmReflPathTag {
+    using field_name_type = ImmReflFieldId;
+};
+
+using ImmReflPathItemBase = ReflPathItem<ImmReflPathTag>;
+using ImmReflPathBase     = ReflPath<ImmReflPathTag>;
+
 struct ImmReflFieldId {
     std::type_index type;
-    u64             field;
+
+    static const int member_ptr_size = sizeof(&ImmReflFieldId::type);
+    using member_ptr_store           = Array<u8, member_ptr_size>;
+    member_ptr_store field;
 
     static UnorderedMap<ImmReflFieldId, Str> fieldNames;
 
@@ -38,26 +49,26 @@ struct ImmReflFieldId {
 
     template <typename T, typename F>
     static ImmReflFieldId FromTypeField(F T::*fieldPtr) {
-        ImmReflFieldId result{
-            .type  = std::type_index(typeid(T)),
-            .field = std::reinterpret_pointer_cast<u64>(fieldPtr),
-        };
-
+        ImmReflFieldId result{.type = std::type_index(typeid(T))};
+        std::memcpy(result.field.data(), &fieldPtr, member_ptr_size);
         return result;
     }
 
     bool operator==(ImmReflFieldId const& other) const {
-        return type == other.type && field == other.field;
+        return type == other.type
+            && std::memcmp(
+                   other.field.data(), field.data(), member_ptr_size)
+                   == 0;
+    }
+
+    bool operator<(ImmReflFieldId const& other) const {
+        return type < other.type
+            && std::memcmp(
+                   other.field.data(), field.data(), member_ptr_size)
+                   < 0;
     }
 };
 
-
-struct ImmReflPathTag {
-    using field_name_type = ImmReflFieldId;
-};
-
-using ImmReflPathItemBase = ReflPathItem<ImmReflPathTag>;
-using ImmReflPathBase     = ReflPath<ImmReflPathTag>;
 
 } // namespace org
 
@@ -66,6 +77,16 @@ struct std::formatter<org::ImmReflFieldId> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const org::ImmReflFieldId& p, FormatContext& ctx) const {
         return fmt_ctx(p.getName(), ctx);
+    }
+};
+
+template <>
+struct std::hash<org::ImmReflFieldId::member_ptr_store> {
+    size_t operator()(
+        const org::ImmReflFieldId::member_ptr_store& arr) const noexcept {
+        size_t result = 0;
+        for (const auto& byte : arr) { hax_hash_combine(result, byte); }
+        return result;
     }
 };
 
@@ -81,7 +102,7 @@ struct ReflTypeTraits<org::ImmReflPathTag> {
     static org::ImmReflPathTag::field_name_type InitFieldName(
         T const&    value,
         auto const& field) {
-        return FromTypeField<T>(field.pointer);
+        return org::ImmReflFieldId::FromTypeField<T>(field.pointer);
     }
 };
 

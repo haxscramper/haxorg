@@ -21,7 +21,8 @@ const u64 org::ImmId::NodeIdxOffset  = 0;
 const u64 org::ImmId::NodeKindMask   = 0x000FFF0000000000; // >>10*4=40
 const u64 org::ImmId::NodeKindOffset = 40;
 
-const org::ParentPathMap EmptyParentPathMap;
+const org::ParentPathMap               EmptyParentPathMap;
+UnorderedMap<org::ImmReflFieldId, Str> org::ImmReflFieldId::fieldNames;
 
 std::size_t std::hash<org::ImmReflFieldId>::operator()(
     org::ImmReflFieldId const& it) const noexcept {

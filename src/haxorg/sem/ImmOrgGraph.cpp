@@ -277,7 +277,9 @@ Opt<MapLink> org::graph::getUnresolvedLink(
             = link->description.get()
                 ? Vec{link.at(
                       link->description.get().value().toId(),
-                      ImmPathStep::FieldDeref("description"))}
+                      ImmPathStep::FieldDeref(
+                          org::ImmReflFieldId::FromTypeField(
+                              &org::ImmLink::description)))}
                 : Vec<org::ImmAdapter>{},
         };
     }

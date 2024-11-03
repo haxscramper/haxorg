@@ -995,15 +995,16 @@ TEST_F(ImmOrgApi, ItearteParentNodes) {
         EXPECT_EQ(parents.at(par_id.id).size(), 2);
         EXPECT_EQ(
             parents.at(par_id.id).at(0).path.at(0).getFieldName().name,
-            "subnodes");
+            org::ImmReflFieldId::FromTypeField(&org::ImmOrg::subnodes));
         EXPECT_EQ(
             parents.at(par_id.id).at(0).path.at(1).getIndex().index, 1);
         EXPECT_EQ(
             parents.at(par_id.id).at(1).path.at(0).getFieldName().name,
-            "subnodes");
+            org::ImmReflFieldId::FromTypeField(&org::ImmOrg::subnodes));
         EXPECT_EQ(
             parents.at(par_id.id).at(1).path.at(1).getIndex().index, 3);
     }
+
 
     {
         Vec<org::ImmUniqId> paths = v1.context.getPathsFor(space_id.id);
