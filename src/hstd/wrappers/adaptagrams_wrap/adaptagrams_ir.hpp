@@ -329,7 +329,14 @@ struct [[refl]] GraphEdgeConstraint {
     [[refl]] Opt<double> sourceCheckpoint = 10.0;
     [[refl]] Opt<double> targetCheckpoint = 10.0;
 
-    DESC_FIELDS(GraphEdgeConstraint, (sourcePort, targetPort));
+    DESC_FIELDS(
+        GraphEdgeConstraint,
+        (sourcePort,
+         targetPort,
+         sourceOffset,
+         targetOffset,
+         sourceCheckpoint,
+         targetCheckpoint));
 };
 
 
@@ -390,9 +397,15 @@ struct [[refl]] GraphLayoutIR {
          nodeConstraints,
          subgraphs,
          edgeLabels,
+         edgeConstraints,
          width,
          height,
-         graphName));
+         leftBBoxMargin,
+         rightBBoxMargin,
+         topBBoxMargin,
+         bottomBBoxMargin,
+         graphName,
+         graphviz_size_scaling));
 
     /// \brief Which DPI to use when converting to and from graphviz sizes.
     /// Backend-specific, 72 is the default used by graphviz.
