@@ -947,6 +947,23 @@ sem::SemId<T> parseOne(
     return sem::asOneNode(testParseString(text, debug)).as<T>();
 }
 
+template <typename T>
+struct ImmTestResult {
+    org::ImmAstContext  context;
+    org::ImmAstVersion  version;
+    org::ImmAdapterT<T> node;
+};
+
+template <
+    sem::IsOrg Sem,
+    typename Imm = org::sem_to_imm_map<Sem>::imm_type>
+ImmTestResult<Imm> immConv(sem::SemId<Sem> const& id) {
+    ImmTestResult<Imm> res;
+    res.version = res.context.init(id.asOrg());
+    res.node    = res.version.getRootAdapter().template as<Imm>();
+    return res;
+}
+
 TEST(OrgApi, ParagraphBody) {
     {
         auto par = parseOne<sem::Paragraph>("NOTE: content");
@@ -961,6 +978,13 @@ TEST(OrgApi, ParagraphBody) {
         EXPECT_FALSE(par.isNil());
         auto body = par->getBody();
         EXPECT_EQ(body.size(), 0);
+    }
+
+    {
+        auto par  = immConv(parseOne<sem::Paragraph>("NOTE: content"));
+        auto body = par.node.getBody();
+        EXPECT_EQ(body.size(), 1);
+        EXPECT_TRUE(body.at(0)->is(OrgSemKind::Word));
     }
 }
 
