@@ -967,6 +967,8 @@ ImmTestResult<Imm> immConv(sem::SemId<Sem> const& id) {
 TEST(OrgApi, ParagraphBody) {
     {
         auto par = parseOne<sem::Paragraph>("NOTE: content");
+        EXPECT_TRUE(par->hasAdmonition());
+        EXPECT_EQ(par->getAdmonitions().at(0), "NOTE");
         EXPECT_FALSE(par.isNil());
         auto body = par->getBody();
         EXPECT_EQ(body.size(), 1);
@@ -986,7 +988,26 @@ TEST(OrgApi, ParagraphBody) {
         EXPECT_EQ(body.size(), 1);
         EXPECT_TRUE(body.at(0)->is(OrgSemKind::Word));
     }
+
+    {
+        auto par = parseOne<sem::Paragraph>("[fn:footnote] content");
+        EXPECT_FALSE(par.isNil());
+        auto body = par->getBody();
+        EXPECT_EQ(body.size(), 1);
+        EXPECT_TRUE(body.at(0)->is(OrgSemKind::Word));
+    }
+
+    {
+        auto par = parseOne<sem::Paragraph>(
+            "[fn::inline footnote] content");
+        EXPECT_FALSE(par.isNil());
+        auto body = par->getBody();
+        EXPECT_EQ(body.size(), 3);
+        EXPECT_TRUE(body.at(0)->is(OrgSemKind::InlineFootnote));
+        EXPECT_TRUE(body.at(2)->is(OrgSemKind::Word));
+    }
 }
+
 
 TEST(SimpleNodeConversion, LCSCompile) {
     Vec<int> first{1, 2, 3};

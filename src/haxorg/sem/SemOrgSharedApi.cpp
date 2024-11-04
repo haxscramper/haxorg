@@ -479,6 +479,18 @@ Vec<Select> Paragraph_dropAdmonitionNodes(Handle handle, bool withPath) {
                         ++i;
                     }
                 }
+            } else if (sub->getKind() == OrgSemKind::Link) {
+                bool isFootnote = false;
+                if constexpr (IsSemOrgInstance<Handle>) {
+                    isFootnote = sub.template as<sem::Link>()
+                                     ->isFootnote();
+                } else {
+                    isFootnote = sub.template as<org::ImmLink>()
+                                     ->isFootnote();
+                }
+
+                if (!isFootnote) { lead = false; }
+
             } else if (!SemSet{
                            OrgSemKind::HashTag,
                            OrgSemKind::BigIdent,
