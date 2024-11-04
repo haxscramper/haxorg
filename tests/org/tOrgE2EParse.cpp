@@ -1021,6 +1021,37 @@ body of the random
     EXPECT_EQ(body.at(0).as<sem::Word>()->text, "body");
 }
 
+TEST(OrgApi, BlockAttachment) {
+    {
+        auto block = parseOne<sem::BlockExample>(
+            R"(#+caption: example *caption*
+#+begin_example
+content
+#+end_example)");
+
+        auto caption = block->getCaption();
+        // dbgString(caption);
+        EXPECT_EQ(caption.size(), 1);
+        auto cap0 = caption.at(0);
+        EXPECT_EQ(cap0->getKind(), OrgSemKind::Paragraph);
+        EXPECT_EQ(cap0.size(), 3);
+        EXPECT_EQ(cap0.at(0)->getKind(), OrgSemKind::Word);
+        EXPECT_EQ(cap0.at(2)->getKind(), OrgSemKind::Bold);
+    }
+
+    {
+        auto block = parseOne<sem::BlockExample>(
+            R"(#+name: example-block-one
+#+begin_example
+content
+#+end_example)");
+
+        auto name = block->getName();
+        EXPECT_EQ(name.size(), 1);
+        EXPECT_EQ(name.at(0), "example-block-one");
+    }
+}
+
 TEST(SimpleNodeConversion, LCSCompile) {
     Vec<int> first{1, 2, 3};
     Vec<int> second{1, 2, 3};
