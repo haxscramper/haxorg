@@ -1926,6 +1926,8 @@ struct Paragraph : public sem::Stmt {
   Vec<sem::SemId<sem::Time>> getTimestampNodes() const;
   bool hasLeadHashtags() const;
   Vec<sem::SemId<sem::HashTag>> getLeadHashtags() const;
+  /// \brief Return content of the paragraph, without prefix idents, hashtags, footnotes etc.
+  Vec<sem::SemId<sem::Org>> getBody() const;
 };
 
 /// \brief Shortened colon example block

@@ -843,8 +843,10 @@ struct ImmAdapter {
         const Opt<ImmPath>& rootPath,
         bool                withPath = true) const;
     Vec<ImmAdapter> getAllSubnodesDFS(
-        const Opt<ImmPath>& rootPath,
-        bool                withPath = true) const;
+        const Opt<ImmPath>&                     rootPath,
+        bool                                    withPath     = true,
+        const Opt<Func<bool(org::ImmAdapter)>>& acceptFilter = std::
+            nullopt) const;
 
     Vec<ImmPathStep> getRelativeSubnodePaths(ImmId const& subnode) const;
 
@@ -1153,6 +1155,7 @@ struct ImmAdapterParagraphAPI : ImmAdapterStmtAPI {
     Vec<org::ImmAdapterT<org::ImmBigIdent>> getAdmonitionNodes() const;
     Vec<org::ImmAdapterT<org::ImmTime>>     getTimestampNodes() const;
     Vec<org::ImmAdapterT<org::ImmHashTag>>  getLeadHashtags() const;
+    Vec<org::ImmAdapter>                    getBody(bool withPath = true) const;
 };
 struct ImmAdapterColonExampleAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterCmdAttrAPI : ImmAdapterAttachedAPI {};

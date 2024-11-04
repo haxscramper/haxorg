@@ -186,6 +186,12 @@ struct get_ast_type<org::ImmAdapterT<T>> {
     using ast_type = T;
 };
 
+template <>
+struct get_ast_type<org::ImmAdapter> {
+    using ast_type = org::ImmOrg;
+};
+
+
 template <typename T>
 struct get_ast_type<sem::SemId<T>> {
     using ast_type = T;
@@ -449,6 +455,26 @@ Vec<sem::SemId<sem::Org>> Org_getLeadNodes(
         }
     }
 
+    return result;
+}
+
+template <typename Handle, typename Select = SemIdOrImmId<Handle>>
+Vec<Select> Org_getDropLeadNodes(
+    Handle        it,
+    SemSet const& drop,
+    bool          withPath) {
+    Vec<Select> result;
+    bool        lead = true;
+    for (auto const& sub : getSubnodes(it, withPath)) {
+        if (lead) {
+            if (!drop.contains(sub->getKind())) {
+                lead = false;
+                result.push_back(sub);
+            }
+        } else {
+            result.push_back(sub);
+        }
+    }
     return result;
 }
 
@@ -798,6 +824,7 @@ Vec<UserTime> org::ImmAdapterParagraphAPI::getTimestamps() const { return own_vi
 Vec<org::ImmAdapterT<org::ImmTime>> org::ImmAdapterParagraphAPI::getTimestampNodes() const { return mapNodes<org::ImmTime>(Org_getLeadNodes(*getThis(), OrgSemKind::Time, LeadParagraphNodes)); }
 bool org::ImmAdapterParagraphAPI::hasLeadHashtags() const { return !getLeadHashtags().empty(); }
 Vec<org::ImmAdapterT<org::ImmHashTag>> org::ImmAdapterParagraphAPI::getLeadHashtags() const { return mapNodes<org::ImmHashTag>(Org_getLeadNodes(*getThis(), OrgSemKind::HashTag, LeadParagraphNodes)); }
+Vec<org::ImmAdapter> org::ImmAdapterParagraphAPI::getBody(bool withPath) const { return Org_getDropLeadNodes(*getThis(), LeadParagraphNodes, withPath); }
 
 // sem type API implementation
 
@@ -838,6 +865,7 @@ Vec<UserTime> sem::Paragraph::getTimestamps() const { return own_view(getTimesta
 Vec<sem::SemId<sem::Time>> sem::Paragraph::getTimestampNodes() const { return mapNodes<sem::Time>(Org_getLeadNodes(this, OrgSemKind::Time, LeadParagraphNodes)); }
 bool sem::Paragraph::hasLeadHashtags() const { return !getLeadHashtags().empty(); }
 Vec<sem::SemId<sem::HashTag>> sem::Paragraph::getLeadHashtags() const { return mapNodes<sem::HashTag>(Org_getLeadNodes(this, OrgSemKind::HashTag, LeadParagraphNodes)); }
+Vec<sem::SemId<sem::Org>> sem::Paragraph::getBody() const { return Org_getDropLeadNodes(this, LeadParagraphNodes, false); }
 
 
 // Opt<org::ImmAdapterT<org::ImmAttrList>> org::ImmAdapterT<org::ImmCell>::getAttrs(CR<Opt<Str>> param) const { return cmdgetAttrsImpl(*this, param); }

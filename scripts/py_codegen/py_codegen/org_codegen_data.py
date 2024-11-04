@@ -381,7 +381,8 @@ def get_subtree_property_types():
             fields=[
                 str_field("name", GenTuDoc("Original name of the property")),
                 opt_field(t_str(), "sub", GenTuDoc("Property target specialization")),
-                vec_field(t_nest_shared("AttrValue"), "attrs", GenTuDoc("Property parameters")),
+                vec_field(t_nest_shared("AttrValue"), "attrs",
+                          GenTuDoc("Property parameters")),
             ],
         ),
         GenTuStruct(
@@ -1606,20 +1607,13 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 opt_field(t_bool(), "propertyDrawers"),
                 opt_field(t_bool(), "statisticsCookies"),
                 opt_field(t_bool(), "todoText", "Include todo keywords in export"),
-                org_field(
-                    t_nest("BrokenLinks", ["DocumentExportConfig"]),
-                    "brokenLinks",
-                    value="sem::DocumentExportConfig::BrokenLinks::Mark"
-                ),
-                org_field(
-                    t_nest("TocExport", ["DocumentExportConfig"]),
-                    "tocExport"
-                ),
-                org_field(
-                    t_nest("TagExport", ["DocumentExportConfig"]),
-                    "tagExport",
-                    value="sem::DocumentExportConfig::TagExport::NotInToc"
-                ),
+                org_field(t_nest("BrokenLinks", ["DocumentExportConfig"]),
+                          "brokenLinks",
+                          value="sem::DocumentExportConfig::BrokenLinks::Mark"),
+                org_field(t_nest("TocExport", ["DocumentExportConfig"]), "tocExport"),
+                org_field(t_nest("TagExport", ["DocumentExportConfig"]),
+                          "tagExport",
+                          value="sem::DocumentExportConfig::TagExport::NotInToc"),
             ],
             nested=[
                 org_struct(
@@ -1854,23 +1848,30 @@ def get_types() -> Sequence[GenTuStruct]:
                 ),
             ],
         ),
-        d_org("Paragraph",
-              GenTuDoc("Top-level or inline paragraph"),
-              bases=[t_org("Stmt")],
-              methods=[
-                  GenTuFunction(t_bool(), "isFootnoteDefinition", isConst=True),
-                  GenTuFunction(t_opt(t_str()), "getFootnoteName", isConst=True),
-                  GenTuFunction(t_bool(), "hasAdmonition", isConst=True),
-                  GenTuFunction(t_vec(t_str()), "getAdmonitions", isConst=True),
-                  GenTuFunction(t_vec(t_id("BigIdent")),
-                                "getAdmonitionNodes",
-                                isConst=True),
-                  GenTuFunction(t_bool(), "hasTimestamp", isConst=True),
-                  GenTuFunction(t_vec(t("UserTime")), "getTimestamps", isConst=True),
-                  GenTuFunction(t_vec(t_id("Time")), "getTimestampNodes", isConst=True),
-                  GenTuFunction(t_bool(), "hasLeadHashtags", isConst=True),
-                  GenTuFunction(t_vec(t_id("HashTag")), "getLeadHashtags", isConst=True),
-              ]),
+        d_org(
+            "Paragraph",
+            GenTuDoc("Top-level or inline paragraph"),
+            bases=[t_org("Stmt")],
+            methods=[
+                GenTuFunction(t_bool(), "isFootnoteDefinition", isConst=True),
+                GenTuFunction(t_opt(t_str()), "getFootnoteName", isConst=True),
+                GenTuFunction(t_bool(), "hasAdmonition", isConst=True),
+                GenTuFunction(t_vec(t_str()), "getAdmonitions", isConst=True),
+                GenTuFunction(t_vec(t_id("BigIdent")), "getAdmonitionNodes",
+                              isConst=True),
+                GenTuFunction(t_bool(), "hasTimestamp", isConst=True),
+                GenTuFunction(t_vec(t("UserTime")), "getTimestamps", isConst=True),
+                GenTuFunction(t_vec(t_id("Time")), "getTimestampNodes", isConst=True),
+                GenTuFunction(t_bool(), "hasLeadHashtags", isConst=True),
+                GenTuFunction(t_vec(t_id("HashTag")), "getLeadHashtags", isConst=True),
+                GenTuFunction(
+                    t_vec(t_id()),
+                    "getBody",
+                    isConst=True,
+                    doc=org_doc(
+                        "Return content of the paragraph, without prefix idents, hashtags, footnotes etc. "
+                    )),
+            ]),
         d_org(
             "ColonExample",
             GenTuDoc("Shortened colon example block"),

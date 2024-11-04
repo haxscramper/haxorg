@@ -67,6 +67,11 @@ struct [[refl]] GraphRect {
 
     DESC_FIELDS(GraphRect, (left, top, width, height));
 
+    GraphPoint topLeft() const { return GraphPoint{left, top}; }
+    GraphPoint bottomRight() const {
+        return GraphPoint{left + width, top + height};
+    }
+
     bool contains(GraphPoint const& p) const {
         return (left <= p.x && p.x <= (left + width))
             && (top <= p.y && p.y <= (top + height));

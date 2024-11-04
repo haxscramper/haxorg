@@ -321,14 +321,17 @@ Vec<ImmAdapter> ImmAdapter::getAllSubnodes(
 }
 
 Vec<ImmAdapter> ImmAdapter::getAllSubnodesDFS(
-    Opt<ImmPath> const& rootPath,
-    bool                withPath) const {
+    Opt<ImmPath> const&                     rootPath,
+    bool                                    withPath,
+    const Opt<Func<bool(org::ImmAdapter)>>& acceptFilter) const {
     Vec<ImmAdapter>                                    result;
     Func<void(ImmAdapter const&, ImmPath const& root)> aux;
     aux = [&](ImmAdapter const& it, ImmPath const& root) {
-        result.push_back(it);
-        for (auto const& sub : it.getAllSubnodes(root, withPath)) {
-            aux(sub, sub.path);
+        if (!acceptFilter.has_value() || acceptFilter.value()(it)) {
+            result.push_back(it);
+            for (auto const& sub : it.getAllSubnodes(root, withPath)) {
+                aux(sub, sub.path);
+            }
         }
     };
     for (auto const& it : getAllSubnodes(rootPath, withPath)) {

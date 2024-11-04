@@ -3159,6 +3159,7 @@ node can have subnodes.)RAW")
     .def("getTimestampNodes", static_cast<Vec<sem::SemId<sem::Time>>(sem::Paragraph::*)() const>(&sem::Paragraph::getTimestampNodes))
     .def("hasLeadHashtags", static_cast<bool(sem::Paragraph::*)() const>(&sem::Paragraph::hasLeadHashtags))
     .def("getLeadHashtags", static_cast<Vec<sem::SemId<sem::HashTag>>(sem::Paragraph::*)() const>(&sem::Paragraph::getLeadHashtags))
+    .def("getBody", static_cast<Vec<sem::SemId<sem::Org>>(sem::Paragraph::*)() const>(&sem::Paragraph::getBody), R"RAW(Return content of the paragraph, without prefix idents, hashtags, footnotes etc. )RAW")
     .def("getAttached",
          static_cast<Vec<sem::SemId<sem::Org>>(sem::Paragraph::*)(Opt<Str> const&) const>(&sem::Paragraph::getAttached),
          pybind11::arg_v("kind", std::nullopt),
