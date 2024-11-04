@@ -459,15 +459,34 @@ Vec<sem::SemId<sem::Org>> Org_getLeadNodes(
 }
 
 template <typename Handle, typename Select = SemIdOrImmId<Handle>>
-Vec<Select> Org_getDropLeadNodes(
-    Handle        it,
-    SemSet const& drop,
-    bool          withPath) {
+Vec<Select> Paragraph_dropAdmonitionNodes(Handle handle, bool withPath) {
     Vec<Select> result;
-    bool        lead = true;
-    for (auto const& sub : getSubnodes(it, withPath)) {
+    bool        lead     = true;
+    auto        subnodes = getSubnodes(handle, withPath);
+    for (int i = 0; i < subnodes.size(); ++i) {
+        auto const& sub = subnodes.at(i);
         if (lead) {
-            if (!drop.contains(sub->getKind())) {
+            if (sub->getKind() == OrgSemKind::BigIdent) {
+                if (auto next = subnodes.get(i + 1); next) {
+                    SemIdOrImmId<Handle> colon = next.value().get();
+                    if (sub->getKind() == OrgSemKind::BigIdent
+                        && colon->getKind() == OrgSemKind::Punctuation
+                        && to_api(toHandle(
+                                      org_cast<sem::Punctuation>(colon),
+                                      handle))
+                                   .getText()
+                               == ":") {
+                        ++i;
+                    }
+                }
+            } else if (!SemSet{
+                           OrgSemKind::HashTag,
+                           OrgSemKind::BigIdent,
+                           OrgSemKind::Time,
+                           OrgSemKind::RadioTarget,
+                           OrgSemKind::Space,
+                       }
+                            .contains(sub->getKind())) {
                 lead = false;
                 result.push_back(sub);
             }
@@ -824,7 +843,7 @@ Vec<UserTime> org::ImmAdapterParagraphAPI::getTimestamps() const { return own_vi
 Vec<org::ImmAdapterT<org::ImmTime>> org::ImmAdapterParagraphAPI::getTimestampNodes() const { return mapNodes<org::ImmTime>(Org_getLeadNodes(*getThis(), OrgSemKind::Time, LeadParagraphNodes)); }
 bool org::ImmAdapterParagraphAPI::hasLeadHashtags() const { return !getLeadHashtags().empty(); }
 Vec<org::ImmAdapterT<org::ImmHashTag>> org::ImmAdapterParagraphAPI::getLeadHashtags() const { return mapNodes<org::ImmHashTag>(Org_getLeadNodes(*getThis(), OrgSemKind::HashTag, LeadParagraphNodes)); }
-Vec<org::ImmAdapter> org::ImmAdapterParagraphAPI::getBody(bool withPath) const { return Org_getDropLeadNodes(*getThis(), LeadParagraphNodes, withPath); }
+Vec<org::ImmAdapter> org::ImmAdapterParagraphAPI::getBody(bool withPath) const { return Paragraph_dropAdmonitionNodes(*getThis(), withPath); }
 
 // sem type API implementation
 
@@ -865,7 +884,7 @@ Vec<UserTime> sem::Paragraph::getTimestamps() const { return own_view(getTimesta
 Vec<sem::SemId<sem::Time>> sem::Paragraph::getTimestampNodes() const { return mapNodes<sem::Time>(Org_getLeadNodes(this, OrgSemKind::Time, LeadParagraphNodes)); }
 bool sem::Paragraph::hasLeadHashtags() const { return !getLeadHashtags().empty(); }
 Vec<sem::SemId<sem::HashTag>> sem::Paragraph::getLeadHashtags() const { return mapNodes<sem::HashTag>(Org_getLeadNodes(this, OrgSemKind::HashTag, LeadParagraphNodes)); }
-Vec<sem::SemId<sem::Org>> sem::Paragraph::getBody() const { return Org_getDropLeadNodes(this, LeadParagraphNodes, false); }
+Vec<sem::SemId<sem::Org>> sem::Paragraph::getBody() const { return Paragraph_dropAdmonitionNodes(this, false); }
 
 
 // Opt<org::ImmAdapterT<org::ImmAttrList>> org::ImmAdapterT<org::ImmCell>::getAttrs(CR<Opt<Str>> param) const { return cmdgetAttrsImpl(*this, param); }

@@ -1384,6 +1384,7 @@ node can have subnodes.)RAW")
     ;
   pybind11::class_<sem::Leaf, sem::SemId<sem::Leaf>, sem::Org>(m, "Leaf")
     .def_readwrite("text", &sem::Leaf::text, R"RAW(Final leaf value)RAW")
+    .def("getText", static_cast<Str(sem::Leaf::*)() const>(&sem::Leaf::getText))
     ;
   pybind11::class_<sem::CmdCaption, sem::SemId<sem::CmdCaption>, sem::Attached>(m, "CmdCaption")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdCaption {
@@ -1876,6 +1877,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("text", &sem::Escaped::text, R"RAW(Final leaf value)RAW")
+    .def("getText", static_cast<Str(sem::Escaped::*)() const>(&sem::Escaped::getText))
     .def("__repr__", [](sem::Escaped _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -1892,6 +1894,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("text", &sem::Newline::text, R"RAW(Final leaf value)RAW")
+    .def("getText", static_cast<Str(sem::Newline::*)() const>(&sem::Newline::getText))
     .def("__repr__", [](sem::Newline _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -1908,6 +1911,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("text", &sem::Space::text, R"RAW(Final leaf value)RAW")
+    .def("getText", static_cast<Str(sem::Space::*)() const>(&sem::Space::getText))
     .def("__repr__", [](sem::Space _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -1924,6 +1928,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("text", &sem::Word::text, R"RAW(Final leaf value)RAW")
+    .def("getText", static_cast<Str(sem::Word::*)() const>(&sem::Word::getText))
     .def("__repr__", [](sem::Word _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -1940,6 +1945,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("text", &sem::AtMention::text, R"RAW(Final leaf value)RAW")
+    .def("getText", static_cast<Str(sem::AtMention::*)() const>(&sem::AtMention::getText))
     .def("__repr__", [](sem::AtMention _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -1956,6 +1962,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("text", &sem::RawText::text, R"RAW(Final leaf value)RAW")
+    .def("getText", static_cast<Str(sem::RawText::*)() const>(&sem::RawText::getText))
     .def("__repr__", [](sem::RawText _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -1972,6 +1979,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("text", &sem::Punctuation::text, R"RAW(Final leaf value)RAW")
+    .def("getText", static_cast<Str(sem::Punctuation::*)() const>(&sem::Punctuation::getText))
     .def("__repr__", [](sem::Punctuation _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -1988,6 +1996,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("text", &sem::Placeholder::text, R"RAW(Final leaf value)RAW")
+    .def("getText", static_cast<Str(sem::Placeholder::*)() const>(&sem::Placeholder::getText))
     .def("__repr__", [](sem::Placeholder _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -2004,6 +2013,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("text", &sem::BigIdent::text, R"RAW(Final leaf value)RAW")
+    .def("getText", static_cast<Str(sem::BigIdent::*)() const>(&sem::BigIdent::getText))
     .def("__repr__", [](sem::BigIdent _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -2020,6 +2030,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("text", &sem::RadioTarget::text, R"RAW(Final leaf value)RAW")
+    .def("getText", static_cast<Str(sem::RadioTarget::*)() const>(&sem::RadioTarget::getText))
     .def("__repr__", [](sem::RadioTarget _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -2036,6 +2047,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("text", &sem::TextTarget::text, R"RAW(Final leaf value)RAW")
+    .def("getText", static_cast<Str(sem::TextTarget::*)() const>(&sem::TextTarget::getText))
     .def("__repr__", [](sem::TextTarget _self) -> std::string {
                      return py_repr_impl(_self);
                      })

@@ -852,9 +852,14 @@ struct Attached : public sem::LineCommand {
 struct Leaf : public sem::Org {
   using Org::Org;
   virtual ~Leaf() = default;
-  BOOST_DESCRIBE_CLASS(Leaf, (Org), (), (), (text))
+  BOOST_DESCRIBE_CLASS(Leaf,
+                       (Org),
+                       (),
+                       (),
+                       (text))
   /// \brief Final leaf value
   Str text = "";
+  Str getText() const { return text; }
 };
 
 /// \brief Caption annotation for any subsequent node

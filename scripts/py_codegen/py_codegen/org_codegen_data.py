@@ -628,6 +628,9 @@ def get_sem_bases():
             fields=[
                 GenTuField(t_str(), "text", GenTuDoc("Final leaf value"), value='""')
             ],
+            methods=[
+                GenTuFunction(t_str(), "getText", isConst=True, impl="return text;"),
+            ],
         ),
     ]
 

@@ -889,6 +889,81 @@ TEST(OrgApi, TracerOperations1) {
     exp.evalTop(document);
 }
 
+sem::SemId<sem::Org> testParseString(
+    std::string const&         text,
+    std::optional<std::string> debug = std::nullopt) {
+    MockFull          p{debug.has_value(), debug.has_value()};
+    sem::OrgConverter converter{};
+    LexerParams       params;
+    params.maxUnknown = 1;
+    if (debug) {
+        fs::path tokenizer_trace{debug.value() + "_tokenizer_trace.txt"};
+        fs::path parser_trace{debug.value() + "_parser_trace.txt"};
+        fs::path sem_trace{debug.value() + "_sem_trace.txt"};
+        fs::path lex_trace{debug.value() + "_lex_trace.txt"};
+        p.tokenizer->setTraceFile(tokenizer_trace);
+        p.parser->setTraceFile(parser_trace);
+        converter.setTraceFile(sem_trace);
+        std::ofstream fileTrace{lex_trace.c_str()};
+
+        params.traceStream = &fileTrace;
+        p.tokenizeBase(text, params);
+    } else {
+        p.tokenizeBase(text, params);
+    }
+
+    p.tokenizeConvert();
+    p.parse();
+
+    return converter.toDocument(OrgAdapter(&p.nodes, OrgId(0)));
+}
+
+template <typename T>
+void dbgString(
+    sem::SemId<T> const& id,
+    char const*          function = __builtin_FUNCTION(),
+    int                  line     = __builtin_LINE(),
+    char const*          file     = __builtin_FILE()) {
+    LOG(INFO) << fmt(
+        "{}:{}\n{}",
+        function,
+        line,
+        sem::exportToTreeString(id.asOrg(), sem::OrgTreeExportOpts{}));
+}
+
+template <typename T>
+void dbgString(
+    Vec<sem::SemId<T>> const& id,
+    char const*               function = __builtin_FUNCTION(),
+    int                       line     = __builtin_LINE(),
+    char const*               file     = __builtin_FILE()) {
+    for (auto const& i : id) { dbgString(i, function, line, file); }
+}
+
+template <typename T>
+sem::SemId<T> parseOne(
+    std::string const&         text,
+    std::optional<std::string> debug = std::nullopt) {
+    return sem::asOneNode(testParseString(text, debug)).as<T>();
+}
+
+TEST(OrgApi, ParagraphBody) {
+    {
+        auto par = parseOne<sem::Paragraph>("NOTE: content");
+        EXPECT_FALSE(par.isNil());
+        auto body = par->getBody();
+        EXPECT_EQ(body.size(), 1);
+        EXPECT_TRUE(body.at(0)->is(OrgSemKind::Word));
+    }
+
+    {
+        auto par = parseOne<sem::Paragraph>("NOTE:");
+        EXPECT_FALSE(par.isNil());
+        auto body = par->getBody();
+        EXPECT_EQ(body.size(), 0);
+    }
+}
+
 TEST(SimpleNodeConversion, LCSCompile) {
     Vec<int> first{1, 2, 3};
     Vec<int> second{1, 2, 3};
