@@ -1008,6 +1008,18 @@ TEST(OrgApi, ParagraphBody) {
     }
 }
 
+TEST(OrgApi, CustomBlocks) {
+    auto block = parseOne<sem::BlockDynamicFallback>(
+        R"(#+begin_random_content
+body of the random
+#+end_random_content)");
+
+    EXPECT_EQ(block->name, "randomcontent");
+    auto body = block.at(0);
+    EXPECT_EQ(body->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(body.at(0)->getKind(), OrgSemKind::Word);
+    EXPECT_EQ(body.at(0).as<sem::Word>()->text, "body");
+}
 
 TEST(SimpleNodeConversion, LCSCompile) {
     Vec<int> first{1, 2, 3};

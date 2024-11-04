@@ -197,7 +197,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             OrgPattern({
                 fieldN(0, N::Name, {org::Ident}),
                 fieldN(1, N::Args, {org::Attrs, org::Empty}),
-                fieldN(slice(1, 1_B), N::Body, {org::RawText, org::Empty}),
+                fieldN(slice(2, 1_B), N::Body, {org::RawText, org::Empty}),
             })},
         SpecPair{
             org::ColonExample,
@@ -281,9 +281,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                     OrgPattern({org::Checkbox, org::Empty})),
                 Field(
                     Range(3, N::Header).doc("Header part of the list"),
-                    OrgPattern(
-                        {org::Paragraph,
-                         org::Empty})),
+                    OrgPattern({org::Paragraph, org::Empty})),
                 Field(
                     Range(4, N::Body)
                         .doc("Additional list items - more sublists, "
