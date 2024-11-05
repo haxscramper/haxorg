@@ -1,5 +1,6 @@
 /* clang-format off */
 void visit(R& res, sem::AttrValue const& object);
+void visit(R& res, sem::SubtreePath const& object);
 void visit(R& res, sem::BlockCodeLine const& object);
 void visit(R& res, sem::BlockCodeLine::Part::Data const& object);
 void visit(R& res, sem::BlockCodeLine::Part const& object);
@@ -28,6 +29,11 @@ void visit(R& res, sem::SubtreePeriod const& object);
 void visit(R& res, sem::NamedProperty::Data const& object);
 void visit(R& res, sem::NamedProperty const& object);
 void visit(R& res, sem::NamedProperty::Nonblocking const& object);
+void visit(R& res, sem::NamedProperty::ArchiveTime const& object);
+void visit(R& res, sem::NamedProperty::ArchiveFile const& object);
+void visit(R& res, sem::NamedProperty::ArchiveOlpath const& object);
+void visit(R& res, sem::NamedProperty::ArchiveCategory const& object);
+void visit(R& res, sem::NamedProperty::ArchiveTodo const& object);
 void visit(R& res, sem::NamedProperty::Trigger const& object);
 void visit(R& res, sem::NamedProperty::ExportLatexClass const& object);
 void visit(R& res, sem::NamedProperty::ExportLatexClassOptions const& object);

@@ -1052,6 +1052,25 @@ content
     }
 }
 
+TEST(OrgApi, SubtreeArchiveProperties) {
+    auto tree = parseOne<sem::Subtree>(
+        R"(** COMPLETED Usable code coverage output generator
+     CLOSED: [2024-11-01 Fri 20:59:49 +04]
+     :PROPERTIES:
+     :CREATED:  [2024-05-31 Fri 23:38:18 +04]
+     :ID:       5ab53c80-6d65-4768-84c6-d881ce47cf0e
+     :ARCHIVE_TIME: 2024-11-01 Fri 21:00:18 +04
+     :ARCHIVE_FILE: ~/defaultdirs/notes/personal/indexed/projects.org
+     :ARCHIVE_OLPATH: Haxorg/Infrastructure/Code coverage
+     :ARCHIVE_CATEGORY: projects
+     :ARCHIVE_TODO: COMPLETED
+     :END:
+)",
+        getDebugFile("trace"));
+
+    dbgString(tree);
+}
+
 TEST(SimpleNodeConversion, LCSCompile) {
     Vec<int> first{1, 2, 3};
     Vec<int> second{1, 2, 3};

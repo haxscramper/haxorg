@@ -7,6 +7,9 @@ void Exporter<V, R>::visit(R& res, sem::AttrValue const& object) {
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::SubtreePath const& object) { __obj_field(res, object, path); }
+
+template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::BlockCodeLine const& object) { __obj_field(res, object, parts); }
 
 template <typename V, typename R>
@@ -115,6 +118,21 @@ void Exporter<V, R>::visit(R& res, sem::NamedProperty const& object) {
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::NamedProperty::Nonblocking const& object) { __obj_field(res, object, isBlocking); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::NamedProperty::ArchiveTime const& object) { __obj_field(res, object, time); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::NamedProperty::ArchiveFile const& object) { __obj_field(res, object, file); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::NamedProperty::ArchiveOlpath const& object) { __obj_field(res, object, path); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::NamedProperty::ArchiveCategory const& object) { __obj_field(res, object, category); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::NamedProperty::ArchiveTodo const& object) { __obj_field(res, object, todo); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::NamedProperty::Trigger const& object) {  }

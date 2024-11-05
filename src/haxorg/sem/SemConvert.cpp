@@ -380,7 +380,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         get_text(one(a, N::Name)), CharSet{' ', ':'}, CharSet{':'});
     std::string name = normalize(basename);
 
-    auto __trace = trace(a, fmt("property-{}", name));
+    auto __trace = trace(a, fmt("property-'{}'", name));
 
     Opt<Property> result;
     if (name == "exportoptions") {
@@ -438,7 +438,18 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         }
 
         result = NamedProperty(prop);
-
+    } else if (name == "archivefile") {
+        NamedProperty::ArchiveFile file{};
+        file.file = get_text(one(a, N::Values));
+        result    = NamedProperty{file};
+    } else if (name == "archiveolpath") {
+        NamedProperty::ArchiveOlpath path{};
+        Vec<Str> const&              items //
+            = strip(
+                  get_text(one(a, N::Values)), CharSet{' '}, CharSet{' '})
+                  .split("/");
+        path.path = sem::SubtreePath{.path = items};
+        result    = NamedProperty{path};
     } else {
         NamedProperty::CustomRaw prop;
         prop.name = basename;

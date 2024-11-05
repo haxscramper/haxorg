@@ -303,6 +303,11 @@ message AttrValue {
   string                                           debug                            = 1000;
 }
 
+message SubtreePath {
+  repeated string                                  path                             = 1;
+  string                                           debug                            = 1000;
+}
+
 message BlockCodeLine {
   message Part {
     message Raw {
@@ -498,6 +503,26 @@ message NamedProperty {
     bool                                           isBlocking                       = 1;
     string                                         debug                            = 1000;
   }
+  message ArchiveTime {
+    UserTime                                       time                             = 1;
+    string                                         debug                            = 1000;
+  }
+  message ArchiveFile {
+    string                                         file                             = 1;
+    string                                         debug                            = 1000;
+  }
+  message ArchiveOlpath {
+    SubtreePath                                    path                             = 1;
+    string                                         debug                            = 1000;
+  }
+  message ArchiveCategory {
+    string                                         category                         = 1;
+    string                                         debug                            = 1000;
+  }
+  message ArchiveTodo {
+    string                                         todo                             = 1;
+    string                                         debug                            = 1000;
+  }
   message Trigger {
     string                                         debug                            = 1000;
   }
@@ -566,38 +591,48 @@ message NamedProperty {
   message Data {
     oneof kind {
       NamedProperty.Nonblocking                    nonblocking                      = 1;
-      NamedProperty.Trigger                        trigger                          = 2;
-      NamedProperty.ExportLatexClass               exportlatexclass                 = 3;
-      NamedProperty.ExportLatexClassOptions        exportlatexclassoptions          = 4;
-      NamedProperty.ExportLatexHeader              exportlatexheader                = 5;
-      NamedProperty.ExportLatexCompiler            exportlatexcompiler              = 6;
-      NamedProperty.Ordered                        ordered                          = 7;
-      NamedProperty.Effort                         effort                           = 8;
-      NamedProperty.Visibility                     visibility                       = 9;
-      NamedProperty.ExportOptions                  exportoptions                    = 10;
-      NamedProperty.Blocker                        blocker                          = 11;
-      NamedProperty.Unnumbered                     unnumbered                       = 12;
-      NamedProperty.Created                        created                          = 13;
-      NamedProperty.CustomArgs                     customargs                       = 14;
-      NamedProperty.CustomRaw                      customraw                        = 15;
+      NamedProperty.ArchiveTime                    archivetime                      = 2;
+      NamedProperty.ArchiveFile                    archivefile                      = 3;
+      NamedProperty.ArchiveOlpath                  archiveolpath                    = 4;
+      NamedProperty.ArchiveCategory                archivecategory                  = 5;
+      NamedProperty.ArchiveTodo                    archivetodo                      = 6;
+      NamedProperty.Trigger                        trigger                          = 7;
+      NamedProperty.ExportLatexClass               exportlatexclass                 = 8;
+      NamedProperty.ExportLatexClassOptions        exportlatexclassoptions          = 9;
+      NamedProperty.ExportLatexHeader              exportlatexheader                = 10;
+      NamedProperty.ExportLatexCompiler            exportlatexcompiler              = 11;
+      NamedProperty.Ordered                        ordered                          = 12;
+      NamedProperty.Effort                         effort                           = 13;
+      NamedProperty.Visibility                     visibility                       = 14;
+      NamedProperty.ExportOptions                  exportoptions                    = 15;
+      NamedProperty.Blocker                        blocker                          = 16;
+      NamedProperty.Unnumbered                     unnumbered                       = 17;
+      NamedProperty.Created                        created                          = 18;
+      NamedProperty.CustomArgs                     customargs                       = 19;
+      NamedProperty.CustomRaw                      customraw                        = 20;
     }
   }
   enum Kind {
     Kind_Nonblocking_f                                                              = 0;
-    Kind_Trigger_f                                                                  = 1;
-    Kind_ExportLatexClass_f                                                         = 2;
-    Kind_ExportLatexClassOptions_f                                                  = 3;
-    Kind_ExportLatexHeader_f                                                        = 4;
-    Kind_ExportLatexCompiler_f                                                      = 5;
-    Kind_Ordered_f                                                                  = 6;
-    Kind_Effort_f                                                                   = 7;
-    Kind_Visibility_f                                                               = 8;
-    Kind_ExportOptions_f                                                            = 9;
-    Kind_Blocker_f                                                                  = 10;
-    Kind_Unnumbered_f                                                               = 11;
-    Kind_Created_f                                                                  = 12;
-    Kind_CustomArgs_f                                                               = 13;
-    Kind_CustomRaw_f                                                                = 14;
+    Kind_ArchiveTime_f                                                              = 1;
+    Kind_ArchiveFile_f                                                              = 2;
+    Kind_ArchiveOlpath_f                                                            = 3;
+    Kind_ArchiveCategory_f                                                          = 4;
+    Kind_ArchiveTodo_f                                                              = 5;
+    Kind_Trigger_f                                                                  = 6;
+    Kind_ExportLatexClass_f                                                         = 7;
+    Kind_ExportLatexClassOptions_f                                                  = 8;
+    Kind_ExportLatexHeader_f                                                        = 9;
+    Kind_ExportLatexCompiler_f                                                      = 10;
+    Kind_Ordered_f                                                                  = 11;
+    Kind_Effort_f                                                                   = 12;
+    Kind_Visibility_f                                                               = 13;
+    Kind_ExportOptions_f                                                            = 14;
+    Kind_Blocker_f                                                                  = 15;
+    Kind_Unnumbered_f                                                               = 16;
+    Kind_Created_f                                                                  = 17;
+    Kind_CustomArgs_f                                                               = 18;
+    Kind_CustomRaw_f                                                                = 19;
   }
   NamedProperty.SetMode                            mainSetRule                      = 1;
   NamedProperty.SetMode                            subSetRule                       = 2;

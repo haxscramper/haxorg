@@ -268,6 +268,41 @@ def get_subtree_property_types():
             methods=[eq_method(t_nest_shared("Nonblocking", ["NamedProperty"]))],
         ),
         GenTuStruct(
+            t_nest_shared("ArchiveTime", ["NamedProperty"]),
+            GenTuDoc(""),
+            nested=[GenTuPass("ArchiveTime() {}")],
+            methods=[eq_method(t_nest_shared("ArchiveTime", ["NamedProperty"]))],
+            fields=[GenTuField(t("UserTime"), "time")],
+        ),
+        GenTuStruct(
+            t_nest_shared("ArchiveFile", ["NamedProperty"]),
+            GenTuDoc(""),
+            nested=[GenTuPass("ArchiveFile() {}")],
+            methods=[eq_method(t_nest_shared("ArchiveFile", ["NamedProperty"]))],
+            fields=[GenTuField(t_str(), "file")],
+        ),
+        GenTuStruct(
+            t_nest_shared("ArchiveOlpath", ["NamedProperty"]),
+            GenTuDoc(""),
+            nested=[GenTuPass("ArchiveOlpath() {}")],
+            methods=[eq_method(t_nest_shared("ArchiveOlpath", ["NamedProperty"]))],
+            fields=[GenTuField(t_nest_shared("SubtreePath"), "path")],
+        ),
+        GenTuStruct(
+            t_nest_shared("ArchiveCategory", ["NamedProperty"]),
+            GenTuDoc(""),
+            nested=[GenTuPass("ArchiveCategory() {}")],
+            methods=[eq_method(t_nest_shared("ArchiveCategory", ["NamedProperty"]))],
+            fields=[GenTuField(t_str(), "category")],
+        ),
+        GenTuStruct(
+            t_nest_shared("ArchiveTodo", ["NamedProperty"]),
+            GenTuDoc(""),
+            nested=[GenTuPass("ArchiveTodo() {}")],
+            methods=[eq_method(t_nest_shared("ArchiveTodo", ["NamedProperty"]))],
+            fields=[GenTuField(t_str(), "todo")],
+        ),
+        GenTuStruct(
             t_nest_shared("Trigger", ["NamedProperty"]),
             GenTuDoc(""),
             nested=[GenTuPass("Trigger() {}")],
@@ -1398,18 +1433,29 @@ def get_shared_sem_enums() -> Sequence[GenTuEnum]:
 
 def get_shared_sem_types() -> Sequence[GenTuStruct]:
     return [
-        GenTuStruct(t_nest_shared("AttrValue"),
-                    fields=[
-                        opt_field(t_str(), "name"),
-                        opt_field(t_str(), "varname"),
-                        str_field("value"),
-                    ],
-                    methods=[
-                        GenTuFunction(t_opt(t_bool()), "getBool", isConst=True),
-                        GenTuFunction(t_opt(t_int()), "getInt", isConst=True),
-                        GenTuFunction(t_str(), "getString", isConst=True),
-                        eq_method(t_nest_shared("AttrValue")),
-                    ]),
+        GenTuStruct(
+            t_nest_shared("AttrValue"),
+            fields=[
+                opt_field(t_str(), "name"),
+                opt_field(t_str(), "varname"),
+                str_field("value"),
+            ],
+            methods=[
+                GenTuFunction(t_opt(t_bool()), "getBool", isConst=True),
+                GenTuFunction(t_opt(t_int()), "getInt", isConst=True),
+                GenTuFunction(t_str(), "getString", isConst=True),
+                eq_method(t_nest_shared("AttrValue")),
+            ],
+        ),
+        GenTuStruct(
+            t_nest_shared("SubtreePath"),
+            fields=[
+                vec_field(t_str(), "path"),
+            ],
+            methods=[
+                eq_method(t_nest_shared("SubtreePath")),
+            ],
+        ),
         GenTuStruct(
             t_nest_shared("BlockCodeLine"),
             methods=[eq_method(t_nest_shared("BlockCodeLine"))],

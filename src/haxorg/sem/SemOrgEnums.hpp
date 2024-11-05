@@ -21,6 +21,11 @@
     __IMPL(DocumentExportConfig, DoExport, (DoExport)) \
     __IMPL(DocumentExportConfig, ExportFixed, (ExportFixed)) \
     __IMPL(NamedProperty, Nonblocking, (Nonblocking)) \
+    __IMPL(NamedProperty, ArchiveTime, (ArchiveTime)) \
+    __IMPL(NamedProperty, ArchiveFile, (ArchiveFile)) \
+    __IMPL(NamedProperty, ArchiveOlpath, (ArchiveOlpath)) \
+    __IMPL(NamedProperty, ArchiveCategory, (ArchiveCategory)) \
+    __IMPL(NamedProperty, ArchiveTodo, (ArchiveTodo)) \
     __IMPL(NamedProperty, Trigger, (Trigger)) \
     __IMPL(NamedProperty, ExportLatexClass, (ExportLatexClass)) \
     __IMPL(NamedProperty, ExportLatexClassOptions, (ExportLatexClassOptions)) \
@@ -50,6 +55,7 @@
     __IMPL(NamedProperty, Kind, (Kind))
 #define EACH_SHARED_ORG_RECORD(__IMPL) \
     __IMPL(AttrValue, (AttrValue)) \
+    __IMPL(SubtreePath, (SubtreePath)) \
     __IMPL(BlockCodeLine, (BlockCodeLine)) \
     __IMPL(BlockCodeLine::Part, (BlockCodeLine, Part)) \
     __IMPL(BlockCodeLine::Part::Raw, (BlockCodeLine, Part, Raw)) \
@@ -73,6 +79,11 @@
     __IMPL(SubtreePeriod, (SubtreePeriod)) \
     __IMPL(NamedProperty, (NamedProperty)) \
     __IMPL(NamedProperty::Nonblocking, (NamedProperty, Nonblocking)) \
+    __IMPL(NamedProperty::ArchiveTime, (NamedProperty, ArchiveTime)) \
+    __IMPL(NamedProperty::ArchiveFile, (NamedProperty, ArchiveFile)) \
+    __IMPL(NamedProperty::ArchiveOlpath, (NamedProperty, ArchiveOlpath)) \
+    __IMPL(NamedProperty::ArchiveCategory, (NamedProperty, ArchiveCategory)) \
+    __IMPL(NamedProperty::ArchiveTodo, (NamedProperty, ArchiveTodo)) \
     __IMPL(NamedProperty::Trigger, (NamedProperty, Trigger)) \
     __IMPL(NamedProperty::ExportLatexClass, (NamedProperty, ExportLatexClass)) \
     __IMPL(NamedProperty::ExportLatexClassOptions, (NamedProperty, ExportLatexClassOptions)) \
