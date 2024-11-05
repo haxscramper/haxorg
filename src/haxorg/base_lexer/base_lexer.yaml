@@ -22,7 +22,7 @@ rx_macros:
   # and lexed to corresponding tokens. All unknown properties and directives
   # will be converted to raw string literals and processed at later
   # stages, mostly in sem layer
-  - { name: literal_properties, value: "id|effort|(archive_(olpath|file|time|category|todo))" }
+  - { name: literal_properties, value: "id|effort|(archive_(olpath|file|time|category|todo))|archive" }
   - { name: argument_properties, value: "header-args" }
   - { name: text_properties, value: "description" }
   - { name: dsl_links, value: "file|attachment|id" }

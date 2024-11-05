@@ -129,6 +129,12 @@ template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::NamedProperty::ArchiveOlpath const& object) { __obj_field(res, object, path); }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::NamedProperty::ArchiveTarget const& object) {
+  __obj_field(res, object, path);
+  __obj_field(res, object, pattern);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::NamedProperty::ArchiveCategory const& object) { __obj_field(res, object, category); }
 
 template <typename V, typename R>

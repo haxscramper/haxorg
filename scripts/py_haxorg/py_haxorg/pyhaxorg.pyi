@@ -332,6 +332,14 @@ class NamedPropertyArchiveOlpath:
     def __getattr__(self, name: str) -> object: ...
     path: SubtreePath
 
+class NamedPropertyArchiveTarget:
+    def __init__(self, path: SubtreePath, pattern: str) -> None: ...
+    def operator==(self, other: NamedPropertyArchiveTarget) -> bool: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    path: SubtreePath
+    pattern: str
+
 class NamedPropertyArchiveCategory:
     def __init__(self, category: str) -> None: ...
     def operator==(self, other: NamedPropertyArchiveCategory) -> bool: ...
@@ -453,28 +461,29 @@ class NamedPropertyCustomRaw:
     name: str
     value: str
 
-NamedPropertyData = Union[NamedPropertyNonblocking, NamedPropertyArchiveTime, NamedPropertyArchiveFile, NamedPropertyArchiveOlpath, NamedPropertyArchiveCategory, NamedPropertyArchiveTodo, NamedPropertyTrigger, NamedPropertyExportLatexClass, NamedPropertyExportLatexClassOptions, NamedPropertyExportLatexHeader, NamedPropertyExportLatexCompiler, NamedPropertyOrdered, NamedPropertyEffort, NamedPropertyVisibility, NamedPropertyExportOptions, NamedPropertyBlocker, NamedPropertyUnnumbered, NamedPropertyCreated, NamedPropertyCustomArgs, NamedPropertyCustomRaw]
+NamedPropertyData = Union[NamedPropertyNonblocking, NamedPropertyArchiveTime, NamedPropertyArchiveFile, NamedPropertyArchiveOlpath, NamedPropertyArchiveTarget, NamedPropertyArchiveCategory, NamedPropertyArchiveTodo, NamedPropertyTrigger, NamedPropertyExportLatexClass, NamedPropertyExportLatexClassOptions, NamedPropertyExportLatexHeader, NamedPropertyExportLatexCompiler, NamedPropertyOrdered, NamedPropertyEffort, NamedPropertyVisibility, NamedPropertyExportOptions, NamedPropertyBlocker, NamedPropertyUnnumbered, NamedPropertyCreated, NamedPropertyCustomArgs, NamedPropertyCustomRaw]
 class NamedPropertyKind(Enum):
     Nonblocking = 1
     ArchiveTime = 2
     ArchiveFile = 3
     ArchiveOlpath = 4
-    ArchiveCategory = 5
-    ArchiveTodo = 6
-    Trigger = 7
-    ExportLatexClass = 8
-    ExportLatexClassOptions = 9
-    ExportLatexHeader = 10
-    ExportLatexCompiler = 11
-    Ordered = 12
-    Effort = 13
-    Visibility = 14
-    ExportOptions = 15
-    Blocker = 16
-    Unnumbered = 17
-    Created = 18
-    CustomArgs = 19
-    CustomRaw = 20
+    ArchiveTarget = 5
+    ArchiveCategory = 6
+    ArchiveTodo = 7
+    Trigger = 8
+    ExportLatexClass = 9
+    ExportLatexClassOptions = 10
+    ExportLatexHeader = 11
+    ExportLatexCompiler = 12
+    Ordered = 13
+    Effort = 14
+    Visibility = 15
+    ExportOptions = 16
+    Blocker = 17
+    Unnumbered = 18
+    Created = 19
+    CustomArgs = 20
+    CustomRaw = 21
 
 class NamedProperty:
     def __init__(self, mainSetRule: NamedPropertySetMode, subSetRule: NamedPropertySetMode, inheritanceMode: NamedPropertyInheritanceMode, data: NamedPropertyData) -> None: ...
@@ -490,6 +499,8 @@ class NamedProperty:
     def getArchiveFile(self) -> NamedPropertyArchiveFile: ...
     def isArchiveOlpath(self) -> bool: ...
     def getArchiveOlpath(self) -> NamedPropertyArchiveOlpath: ...
+    def isArchiveTarget(self) -> bool: ...
+    def getArchiveTarget(self) -> NamedPropertyArchiveTarget: ...
     def isArchiveCategory(self) -> bool: ...
     def getArchiveCategory(self) -> NamedPropertyArchiveCategory: ...
     def isArchiveTodo(self) -> bool: ...

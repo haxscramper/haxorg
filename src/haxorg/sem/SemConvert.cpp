@@ -529,6 +529,12 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         NamedProperty::ArchiveTodo file{};
         file.todo = strip_space(get_text(one(a, N::Values)));
         result    = NamedProperty{file};
+    } else if (name == "archive") {
+        NamedProperty::ArchiveTarget file{};
+        auto dsl = strip_space(get_text(one(a, N::Values))).split("::");
+        file.pattern = dsl.at(0);
+        file.path.path = lstrip(dsl.at(1), CharSet{'*', ' '}).split("/");
+        result         = NamedProperty{file};
     } else if (name == "archiveolpath") {
         NamedProperty::ArchiveOlpath path{};
         Vec<Str> const&              items //

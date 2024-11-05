@@ -515,6 +515,11 @@ message NamedProperty {
     SubtreePath                                    path                             = 1;
     string                                         debug                            = 1000;
   }
+  message ArchiveTarget {
+    SubtreePath                                    path                             = 1;
+    string                                         pattern                          = 2;
+    string                                         debug                            = 1000;
+  }
   message ArchiveCategory {
     string                                         category                         = 1;
     string                                         debug                            = 1000;
@@ -594,22 +599,23 @@ message NamedProperty {
       NamedProperty.ArchiveTime                    archivetime                      = 2;
       NamedProperty.ArchiveFile                    archivefile                      = 3;
       NamedProperty.ArchiveOlpath                  archiveolpath                    = 4;
-      NamedProperty.ArchiveCategory                archivecategory                  = 5;
-      NamedProperty.ArchiveTodo                    archivetodo                      = 6;
-      NamedProperty.Trigger                        trigger                          = 7;
-      NamedProperty.ExportLatexClass               exportlatexclass                 = 8;
-      NamedProperty.ExportLatexClassOptions        exportlatexclassoptions          = 9;
-      NamedProperty.ExportLatexHeader              exportlatexheader                = 10;
-      NamedProperty.ExportLatexCompiler            exportlatexcompiler              = 11;
-      NamedProperty.Ordered                        ordered                          = 12;
-      NamedProperty.Effort                         effort                           = 13;
-      NamedProperty.Visibility                     visibility                       = 14;
-      NamedProperty.ExportOptions                  exportoptions                    = 15;
-      NamedProperty.Blocker                        blocker                          = 16;
-      NamedProperty.Unnumbered                     unnumbered                       = 17;
-      NamedProperty.Created                        created                          = 18;
-      NamedProperty.CustomArgs                     customargs                       = 19;
-      NamedProperty.CustomRaw                      customraw                        = 20;
+      NamedProperty.ArchiveTarget                  archivetarget                    = 5;
+      NamedProperty.ArchiveCategory                archivecategory                  = 6;
+      NamedProperty.ArchiveTodo                    archivetodo                      = 7;
+      NamedProperty.Trigger                        trigger                          = 8;
+      NamedProperty.ExportLatexClass               exportlatexclass                 = 9;
+      NamedProperty.ExportLatexClassOptions        exportlatexclassoptions          = 10;
+      NamedProperty.ExportLatexHeader              exportlatexheader                = 11;
+      NamedProperty.ExportLatexCompiler            exportlatexcompiler              = 12;
+      NamedProperty.Ordered                        ordered                          = 13;
+      NamedProperty.Effort                         effort                           = 14;
+      NamedProperty.Visibility                     visibility                       = 15;
+      NamedProperty.ExportOptions                  exportoptions                    = 16;
+      NamedProperty.Blocker                        blocker                          = 17;
+      NamedProperty.Unnumbered                     unnumbered                       = 18;
+      NamedProperty.Created                        created                          = 19;
+      NamedProperty.CustomArgs                     customargs                       = 20;
+      NamedProperty.CustomRaw                      customraw                        = 21;
     }
   }
   enum Kind {
@@ -617,22 +623,23 @@ message NamedProperty {
     Kind_ArchiveTime_f                                                              = 1;
     Kind_ArchiveFile_f                                                              = 2;
     Kind_ArchiveOlpath_f                                                            = 3;
-    Kind_ArchiveCategory_f                                                          = 4;
-    Kind_ArchiveTodo_f                                                              = 5;
-    Kind_Trigger_f                                                                  = 6;
-    Kind_ExportLatexClass_f                                                         = 7;
-    Kind_ExportLatexClassOptions_f                                                  = 8;
-    Kind_ExportLatexHeader_f                                                        = 9;
-    Kind_ExportLatexCompiler_f                                                      = 10;
-    Kind_Ordered_f                                                                  = 11;
-    Kind_Effort_f                                                                   = 12;
-    Kind_Visibility_f                                                               = 13;
-    Kind_ExportOptions_f                                                            = 14;
-    Kind_Blocker_f                                                                  = 15;
-    Kind_Unnumbered_f                                                               = 16;
-    Kind_Created_f                                                                  = 17;
-    Kind_CustomArgs_f                                                               = 18;
-    Kind_CustomRaw_f                                                                = 19;
+    Kind_ArchiveTarget_f                                                            = 4;
+    Kind_ArchiveCategory_f                                                          = 5;
+    Kind_ArchiveTodo_f                                                              = 6;
+    Kind_Trigger_f                                                                  = 7;
+    Kind_ExportLatexClass_f                                                         = 8;
+    Kind_ExportLatexClassOptions_f                                                  = 9;
+    Kind_ExportLatexHeader_f                                                        = 10;
+    Kind_ExportLatexCompiler_f                                                      = 11;
+    Kind_Ordered_f                                                                  = 12;
+    Kind_Effort_f                                                                   = 13;
+    Kind_Visibility_f                                                               = 14;
+    Kind_ExportOptions_f                                                            = 15;
+    Kind_Blocker_f                                                                  = 16;
+    Kind_Unnumbered_f                                                               = 17;
+    Kind_Created_f                                                                  = 18;
+    Kind_CustomArgs_f                                                               = 19;
+    Kind_CustomRaw_f                                                                = 20;
   }
   NamedProperty.SetMode                            mainSetRule                      = 1;
   NamedProperty.SetMode                            subSetRule                       = 2;

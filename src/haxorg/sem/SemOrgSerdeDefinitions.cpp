@@ -405,6 +405,16 @@ void proto_serde<::orgproto::NamedProperty::ArchiveOlpath, sem::NamedProperty::A
   proto_serde<orgproto::SubtreePath, sem::SubtreePath>::read(out.path(), in.for_field(&sem::NamedProperty::ArchiveOlpath::path));
 }
 
+void proto_serde<::orgproto::NamedProperty::ArchiveTarget, sem::NamedProperty::ArchiveTarget>::write(::orgproto::NamedProperty::ArchiveTarget* out, sem::NamedProperty::ArchiveTarget const& in) {
+  proto_serde<orgproto::SubtreePath, sem::SubtreePath>::write(out->mutable_path(), in.path);
+  proto_serde<std::string, Str>::write(out->mutable_pattern(), in.pattern);
+}
+
+void proto_serde<::orgproto::NamedProperty::ArchiveTarget, sem::NamedProperty::ArchiveTarget>::read(::orgproto::NamedProperty::ArchiveTarget const& out, proto_write_accessor<sem::NamedProperty::ArchiveTarget> in) {
+  proto_serde<orgproto::SubtreePath, sem::SubtreePath>::read(out.path(), in.for_field(&sem::NamedProperty::ArchiveTarget::path));
+  proto_serde<std::string, Str>::read(out.pattern(), in.for_field(&sem::NamedProperty::ArchiveTarget::pattern));
+}
+
 void proto_serde<::orgproto::NamedProperty::ArchiveCategory, sem::NamedProperty::ArchiveCategory>::write(::orgproto::NamedProperty::ArchiveCategory* out, sem::NamedProperty::ArchiveCategory const& in) {
   proto_serde<std::string, Str>::write(out->mutable_category(), in.category);
 }
@@ -565,52 +575,55 @@ void proto_serde<::orgproto::NamedProperty, sem::NamedProperty>::write(::orgprot
       proto_serde<orgproto::NamedProperty::ArchiveOlpath, sem::NamedProperty::ArchiveOlpath>::write(out->mutable_data()->mutable_archiveolpath(), std::get<3>(in.data));
       break;
     case 4:
-      proto_serde<orgproto::NamedProperty::ArchiveCategory, sem::NamedProperty::ArchiveCategory>::write(out->mutable_data()->mutable_archivecategory(), std::get<4>(in.data));
+      proto_serde<orgproto::NamedProperty::ArchiveTarget, sem::NamedProperty::ArchiveTarget>::write(out->mutable_data()->mutable_archivetarget(), std::get<4>(in.data));
       break;
     case 5:
-      proto_serde<orgproto::NamedProperty::ArchiveTodo, sem::NamedProperty::ArchiveTodo>::write(out->mutable_data()->mutable_archivetodo(), std::get<5>(in.data));
+      proto_serde<orgproto::NamedProperty::ArchiveCategory, sem::NamedProperty::ArchiveCategory>::write(out->mutable_data()->mutable_archivecategory(), std::get<5>(in.data));
       break;
     case 6:
-      proto_serde<orgproto::NamedProperty::Trigger, sem::NamedProperty::Trigger>::write(out->mutable_data()->mutable_trigger(), std::get<6>(in.data));
+      proto_serde<orgproto::NamedProperty::ArchiveTodo, sem::NamedProperty::ArchiveTodo>::write(out->mutable_data()->mutable_archivetodo(), std::get<6>(in.data));
       break;
     case 7:
-      proto_serde<orgproto::NamedProperty::ExportLatexClass, sem::NamedProperty::ExportLatexClass>::write(out->mutable_data()->mutable_exportlatexclass(), std::get<7>(in.data));
+      proto_serde<orgproto::NamedProperty::Trigger, sem::NamedProperty::Trigger>::write(out->mutable_data()->mutable_trigger(), std::get<7>(in.data));
       break;
     case 8:
-      proto_serde<orgproto::NamedProperty::ExportLatexClassOptions, sem::NamedProperty::ExportLatexClassOptions>::write(out->mutable_data()->mutable_exportlatexclassoptions(), std::get<8>(in.data));
+      proto_serde<orgproto::NamedProperty::ExportLatexClass, sem::NamedProperty::ExportLatexClass>::write(out->mutable_data()->mutable_exportlatexclass(), std::get<8>(in.data));
       break;
     case 9:
-      proto_serde<orgproto::NamedProperty::ExportLatexHeader, sem::NamedProperty::ExportLatexHeader>::write(out->mutable_data()->mutable_exportlatexheader(), std::get<9>(in.data));
+      proto_serde<orgproto::NamedProperty::ExportLatexClassOptions, sem::NamedProperty::ExportLatexClassOptions>::write(out->mutable_data()->mutable_exportlatexclassoptions(), std::get<9>(in.data));
       break;
     case 10:
-      proto_serde<orgproto::NamedProperty::ExportLatexCompiler, sem::NamedProperty::ExportLatexCompiler>::write(out->mutable_data()->mutable_exportlatexcompiler(), std::get<10>(in.data));
+      proto_serde<orgproto::NamedProperty::ExportLatexHeader, sem::NamedProperty::ExportLatexHeader>::write(out->mutable_data()->mutable_exportlatexheader(), std::get<10>(in.data));
       break;
     case 11:
-      proto_serde<orgproto::NamedProperty::Ordered, sem::NamedProperty::Ordered>::write(out->mutable_data()->mutable_ordered(), std::get<11>(in.data));
+      proto_serde<orgproto::NamedProperty::ExportLatexCompiler, sem::NamedProperty::ExportLatexCompiler>::write(out->mutable_data()->mutable_exportlatexcompiler(), std::get<11>(in.data));
       break;
     case 12:
-      proto_serde<orgproto::NamedProperty::Effort, sem::NamedProperty::Effort>::write(out->mutable_data()->mutable_effort(), std::get<12>(in.data));
+      proto_serde<orgproto::NamedProperty::Ordered, sem::NamedProperty::Ordered>::write(out->mutable_data()->mutable_ordered(), std::get<12>(in.data));
       break;
     case 13:
-      proto_serde<orgproto::NamedProperty::Visibility, sem::NamedProperty::Visibility>::write(out->mutable_data()->mutable_visibility(), std::get<13>(in.data));
+      proto_serde<orgproto::NamedProperty::Effort, sem::NamedProperty::Effort>::write(out->mutable_data()->mutable_effort(), std::get<13>(in.data));
       break;
     case 14:
-      proto_serde<orgproto::NamedProperty::ExportOptions, sem::NamedProperty::ExportOptions>::write(out->mutable_data()->mutable_exportoptions(), std::get<14>(in.data));
+      proto_serde<orgproto::NamedProperty::Visibility, sem::NamedProperty::Visibility>::write(out->mutable_data()->mutable_visibility(), std::get<14>(in.data));
       break;
     case 15:
-      proto_serde<orgproto::NamedProperty::Blocker, sem::NamedProperty::Blocker>::write(out->mutable_data()->mutable_blocker(), std::get<15>(in.data));
+      proto_serde<orgproto::NamedProperty::ExportOptions, sem::NamedProperty::ExportOptions>::write(out->mutable_data()->mutable_exportoptions(), std::get<15>(in.data));
       break;
     case 16:
-      proto_serde<orgproto::NamedProperty::Unnumbered, sem::NamedProperty::Unnumbered>::write(out->mutable_data()->mutable_unnumbered(), std::get<16>(in.data));
+      proto_serde<orgproto::NamedProperty::Blocker, sem::NamedProperty::Blocker>::write(out->mutable_data()->mutable_blocker(), std::get<16>(in.data));
       break;
     case 17:
-      proto_serde<orgproto::NamedProperty::Created, sem::NamedProperty::Created>::write(out->mutable_data()->mutable_created(), std::get<17>(in.data));
+      proto_serde<orgproto::NamedProperty::Unnumbered, sem::NamedProperty::Unnumbered>::write(out->mutable_data()->mutable_unnumbered(), std::get<17>(in.data));
       break;
     case 18:
-      proto_serde<orgproto::NamedProperty::CustomArgs, sem::NamedProperty::CustomArgs>::write(out->mutable_data()->mutable_customargs(), std::get<18>(in.data));
+      proto_serde<orgproto::NamedProperty::Created, sem::NamedProperty::Created>::write(out->mutable_data()->mutable_created(), std::get<18>(in.data));
       break;
     case 19:
-      proto_serde<orgproto::NamedProperty::CustomRaw, sem::NamedProperty::CustomRaw>::write(out->mutable_data()->mutable_customraw(), std::get<19>(in.data));
+      proto_serde<orgproto::NamedProperty::CustomArgs, sem::NamedProperty::CustomArgs>::write(out->mutable_data()->mutable_customargs(), std::get<19>(in.data));
+      break;
+    case 20:
+      proto_serde<orgproto::NamedProperty::CustomRaw, sem::NamedProperty::CustomRaw>::write(out->mutable_data()->mutable_customraw(), std::get<20>(in.data));
       break;
   }
 }
@@ -632,53 +645,56 @@ void proto_serde<::orgproto::NamedProperty, sem::NamedProperty>::read(::orgproto
     case ::orgproto::NamedProperty::Data::kArchiveolpath:
       proto_serde<orgproto::NamedProperty::ArchiveOlpath, sem::NamedProperty::ArchiveOlpath>::read(out.data().archiveolpath(), in.for_field_variant<3>(&sem::NamedProperty::data));
       break;
+    case ::orgproto::NamedProperty::Data::kArchivetarget:
+      proto_serde<orgproto::NamedProperty::ArchiveTarget, sem::NamedProperty::ArchiveTarget>::read(out.data().archivetarget(), in.for_field_variant<4>(&sem::NamedProperty::data));
+      break;
     case ::orgproto::NamedProperty::Data::kArchivecategory:
-      proto_serde<orgproto::NamedProperty::ArchiveCategory, sem::NamedProperty::ArchiveCategory>::read(out.data().archivecategory(), in.for_field_variant<4>(&sem::NamedProperty::data));
+      proto_serde<orgproto::NamedProperty::ArchiveCategory, sem::NamedProperty::ArchiveCategory>::read(out.data().archivecategory(), in.for_field_variant<5>(&sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kArchivetodo:
-      proto_serde<orgproto::NamedProperty::ArchiveTodo, sem::NamedProperty::ArchiveTodo>::read(out.data().archivetodo(), in.for_field_variant<5>(&sem::NamedProperty::data));
+      proto_serde<orgproto::NamedProperty::ArchiveTodo, sem::NamedProperty::ArchiveTodo>::read(out.data().archivetodo(), in.for_field_variant<6>(&sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kTrigger:
-      proto_serde<orgproto::NamedProperty::Trigger, sem::NamedProperty::Trigger>::read(out.data().trigger(), in.for_field_variant<6>(&sem::NamedProperty::data));
+      proto_serde<orgproto::NamedProperty::Trigger, sem::NamedProperty::Trigger>::read(out.data().trigger(), in.for_field_variant<7>(&sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kExportlatexclass:
-      proto_serde<orgproto::NamedProperty::ExportLatexClass, sem::NamedProperty::ExportLatexClass>::read(out.data().exportlatexclass(), in.for_field_variant<7>(&sem::NamedProperty::data));
+      proto_serde<orgproto::NamedProperty::ExportLatexClass, sem::NamedProperty::ExportLatexClass>::read(out.data().exportlatexclass(), in.for_field_variant<8>(&sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kExportlatexclassoptions:
-      proto_serde<orgproto::NamedProperty::ExportLatexClassOptions, sem::NamedProperty::ExportLatexClassOptions>::read(out.data().exportlatexclassoptions(), in.for_field_variant<8>(&sem::NamedProperty::data));
+      proto_serde<orgproto::NamedProperty::ExportLatexClassOptions, sem::NamedProperty::ExportLatexClassOptions>::read(out.data().exportlatexclassoptions(), in.for_field_variant<9>(&sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kExportlatexheader:
-      proto_serde<orgproto::NamedProperty::ExportLatexHeader, sem::NamedProperty::ExportLatexHeader>::read(out.data().exportlatexheader(), in.for_field_variant<9>(&sem::NamedProperty::data));
+      proto_serde<orgproto::NamedProperty::ExportLatexHeader, sem::NamedProperty::ExportLatexHeader>::read(out.data().exportlatexheader(), in.for_field_variant<10>(&sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kExportlatexcompiler:
-      proto_serde<orgproto::NamedProperty::ExportLatexCompiler, sem::NamedProperty::ExportLatexCompiler>::read(out.data().exportlatexcompiler(), in.for_field_variant<10>(&sem::NamedProperty::data));
+      proto_serde<orgproto::NamedProperty::ExportLatexCompiler, sem::NamedProperty::ExportLatexCompiler>::read(out.data().exportlatexcompiler(), in.for_field_variant<11>(&sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kOrdered:
-      proto_serde<orgproto::NamedProperty::Ordered, sem::NamedProperty::Ordered>::read(out.data().ordered(), in.for_field_variant<11>(&sem::NamedProperty::data));
+      proto_serde<orgproto::NamedProperty::Ordered, sem::NamedProperty::Ordered>::read(out.data().ordered(), in.for_field_variant<12>(&sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kEffort:
-      proto_serde<orgproto::NamedProperty::Effort, sem::NamedProperty::Effort>::read(out.data().effort(), in.for_field_variant<12>(&sem::NamedProperty::data));
+      proto_serde<orgproto::NamedProperty::Effort, sem::NamedProperty::Effort>::read(out.data().effort(), in.for_field_variant<13>(&sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kVisibility:
-      proto_serde<orgproto::NamedProperty::Visibility, sem::NamedProperty::Visibility>::read(out.data().visibility(), in.for_field_variant<13>(&sem::NamedProperty::data));
+      proto_serde<orgproto::NamedProperty::Visibility, sem::NamedProperty::Visibility>::read(out.data().visibility(), in.for_field_variant<14>(&sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kExportoptions:
-      proto_serde<orgproto::NamedProperty::ExportOptions, sem::NamedProperty::ExportOptions>::read(out.data().exportoptions(), in.for_field_variant<14>(&sem::NamedProperty::data));
+      proto_serde<orgproto::NamedProperty::ExportOptions, sem::NamedProperty::ExportOptions>::read(out.data().exportoptions(), in.for_field_variant<15>(&sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kBlocker:
-      proto_serde<orgproto::NamedProperty::Blocker, sem::NamedProperty::Blocker>::read(out.data().blocker(), in.for_field_variant<15>(&sem::NamedProperty::data));
+      proto_serde<orgproto::NamedProperty::Blocker, sem::NamedProperty::Blocker>::read(out.data().blocker(), in.for_field_variant<16>(&sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kUnnumbered:
-      proto_serde<orgproto::NamedProperty::Unnumbered, sem::NamedProperty::Unnumbered>::read(out.data().unnumbered(), in.for_field_variant<16>(&sem::NamedProperty::data));
+      proto_serde<orgproto::NamedProperty::Unnumbered, sem::NamedProperty::Unnumbered>::read(out.data().unnumbered(), in.for_field_variant<17>(&sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kCreated:
-      proto_serde<orgproto::NamedProperty::Created, sem::NamedProperty::Created>::read(out.data().created(), in.for_field_variant<17>(&sem::NamedProperty::data));
+      proto_serde<orgproto::NamedProperty::Created, sem::NamedProperty::Created>::read(out.data().created(), in.for_field_variant<18>(&sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kCustomargs:
-      proto_serde<orgproto::NamedProperty::CustomArgs, sem::NamedProperty::CustomArgs>::read(out.data().customargs(), in.for_field_variant<18>(&sem::NamedProperty::data));
+      proto_serde<orgproto::NamedProperty::CustomArgs, sem::NamedProperty::CustomArgs>::read(out.data().customargs(), in.for_field_variant<19>(&sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kCustomraw:
-      proto_serde<orgproto::NamedProperty::CustomRaw, sem::NamedProperty::CustomRaw>::read(out.data().customraw(), in.for_field_variant<19>(&sem::NamedProperty::data));
+      proto_serde<orgproto::NamedProperty::CustomRaw, sem::NamedProperty::CustomRaw>::read(out.data().customraw(), in.for_field_variant<20>(&sem::NamedProperty::data));
       break;
   }
 }

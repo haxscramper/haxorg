@@ -24,6 +24,7 @@
     __IMPL(NamedProperty, ArchiveTime, (ArchiveTime)) \
     __IMPL(NamedProperty, ArchiveFile, (ArchiveFile)) \
     __IMPL(NamedProperty, ArchiveOlpath, (ArchiveOlpath)) \
+    __IMPL(NamedProperty, ArchiveTarget, (ArchiveTarget)) \
     __IMPL(NamedProperty, ArchiveCategory, (ArchiveCategory)) \
     __IMPL(NamedProperty, ArchiveTodo, (ArchiveTodo)) \
     __IMPL(NamedProperty, Trigger, (Trigger)) \
@@ -82,6 +83,7 @@
     __IMPL(NamedProperty::ArchiveTime, (NamedProperty, ArchiveTime)) \
     __IMPL(NamedProperty::ArchiveFile, (NamedProperty, ArchiveFile)) \
     __IMPL(NamedProperty::ArchiveOlpath, (NamedProperty, ArchiveOlpath)) \
+    __IMPL(NamedProperty::ArchiveTarget, (NamedProperty, ArchiveTarget)) \
     __IMPL(NamedProperty::ArchiveCategory, (NamedProperty, ArchiveCategory)) \
     __IMPL(NamedProperty::ArchiveTodo, (NamedProperty, ArchiveTodo)) \
     __IMPL(NamedProperty::Trigger, (NamedProperty, Trigger)) \

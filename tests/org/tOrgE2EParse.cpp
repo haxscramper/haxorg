@@ -1065,6 +1065,7 @@ TEST(OrgApi, SubtreeArchiveProperties) {
      :ARCHIVE_OLPATH: Haxorg/Infrastructure/Code coverage
      :ARCHIVE_CATEGORY: projects
      :ARCHIVE_TODO: COMPLETED
+     :ARCHIVE:  %s_archive::* Misc
      :END:
 )",
         getDebugFile("trace"));
@@ -1100,6 +1101,15 @@ TEST(OrgApi, SubtreeArchiveProperties) {
             sem::NamedProperty::ArchiveTodo>(tree);
         EXPECT_EQ(p.size(), 1);
         EXPECT_EQ(p.at(0).todo, "COMPLETED");
+    }
+
+    {
+        auto p = sem::getSubtreeProperties<
+            sem::NamedProperty::ArchiveTarget>(tree);
+        EXPECT_EQ(p.size(), 1);
+        EXPECT_EQ(p.at(0).pattern, "%s_archive");
+        EXPECT_EQ(p.at(0).path.path.size(), 1);
+        EXPECT_EQ(p.at(0).path.path.at(0), "Misc");
     }
 }
 

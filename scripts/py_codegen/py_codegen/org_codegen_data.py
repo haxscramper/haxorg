@@ -289,6 +289,16 @@ def get_subtree_property_types():
             fields=[GenTuField(t_nest_shared("SubtreePath"), "path")],
         ),
         GenTuStruct(
+            t_nest_shared("ArchiveTarget", ["NamedProperty"]),
+            GenTuDoc(""),
+            nested=[GenTuPass("ArchiveTarget() {}")],
+            methods=[eq_method(t_nest_shared("ArchiveTarget", ["NamedProperty"]))],
+            fields=[
+                GenTuField(t_nest_shared("SubtreePath"), "path"),
+                GenTuField(t_str(), "pattern"),
+            ],
+        ),
+        GenTuStruct(
             t_nest_shared("ArchiveCategory", ["NamedProperty"]),
             GenTuDoc(""),
             nested=[GenTuPass("ArchiveCategory() {}")],

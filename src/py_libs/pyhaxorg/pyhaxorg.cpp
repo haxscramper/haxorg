@@ -832,6 +832,26 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<sem::NamedProperty::ArchiveTarget>(m, "NamedPropertyArchiveTarget")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::NamedProperty::ArchiveTarget {
+                        sem::NamedProperty::ArchiveTarget result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("path", &sem::NamedProperty::ArchiveTarget::path)
+    .def_readwrite("pattern", &sem::NamedProperty::ArchiveTarget::pattern)
+    .def("operator==",
+         static_cast<bool(sem::NamedProperty::ArchiveTarget::*)(sem::NamedProperty::ArchiveTarget const&) const>(&sem::NamedProperty::ArchiveTarget::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::NamedProperty::ArchiveTarget _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::NamedProperty::ArchiveTarget _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<sem::NamedProperty::ArchiveCategory>(m, "NamedPropertyArchiveCategory")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::NamedProperty::ArchiveCategory {
                         sem::NamedProperty::ArchiveCategory result{};
@@ -1157,6 +1177,7 @@ node can have subnodes.)RAW")
     .value("ArchiveTime", sem::NamedProperty::Kind::ArchiveTime)
     .value("ArchiveFile", sem::NamedProperty::Kind::ArchiveFile)
     .value("ArchiveOlpath", sem::NamedProperty::Kind::ArchiveOlpath)
+    .value("ArchiveTarget", sem::NamedProperty::Kind::ArchiveTarget)
     .value("ArchiveCategory", sem::NamedProperty::Kind::ArchiveCategory)
     .value("ArchiveTodo", sem::NamedProperty::Kind::ArchiveTodo)
     .value("Trigger", sem::NamedProperty::Kind::Trigger)
@@ -1207,6 +1228,8 @@ node can have subnodes.)RAW")
     .def("getArchiveFile", static_cast<sem::NamedProperty::ArchiveFile&(sem::NamedProperty::*)()>(&sem::NamedProperty::getArchiveFile))
     .def("isArchiveOlpath", static_cast<bool(sem::NamedProperty::*)() const>(&sem::NamedProperty::isArchiveOlpath))
     .def("getArchiveOlpath", static_cast<sem::NamedProperty::ArchiveOlpath&(sem::NamedProperty::*)()>(&sem::NamedProperty::getArchiveOlpath))
+    .def("isArchiveTarget", static_cast<bool(sem::NamedProperty::*)() const>(&sem::NamedProperty::isArchiveTarget))
+    .def("getArchiveTarget", static_cast<sem::NamedProperty::ArchiveTarget&(sem::NamedProperty::*)()>(&sem::NamedProperty::getArchiveTarget))
     .def("isArchiveCategory", static_cast<bool(sem::NamedProperty::*)() const>(&sem::NamedProperty::isArchiveCategory))
     .def("getArchiveCategory", static_cast<sem::NamedProperty::ArchiveCategory&(sem::NamedProperty::*)()>(&sem::NamedProperty::getArchiveCategory))
     .def("isArchiveTodo", static_cast<bool(sem::NamedProperty::*)() const>(&sem::NamedProperty::isArchiveTodo))

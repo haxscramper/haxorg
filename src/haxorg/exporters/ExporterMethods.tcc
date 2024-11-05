@@ -32,6 +32,7 @@ void visit(R& res, sem::NamedProperty::Nonblocking const& object);
 void visit(R& res, sem::NamedProperty::ArchiveTime const& object);
 void visit(R& res, sem::NamedProperty::ArchiveFile const& object);
 void visit(R& res, sem::NamedProperty::ArchiveOlpath const& object);
+void visit(R& res, sem::NamedProperty::ArchiveTarget const& object);
 void visit(R& res, sem::NamedProperty::ArchiveCategory const& object);
 void visit(R& res, sem::NamedProperty::ArchiveTodo const& object);
 void visit(R& res, sem::NamedProperty::Trigger const& object);
