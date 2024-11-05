@@ -904,6 +904,7 @@ sem::SemId<sem::Org> testParseString(
         p.tokenizer->setTraceFile(tokenizer_trace);
         p.parser->setTraceFile(parser_trace);
         converter.setTraceFile(sem_trace);
+        p.parser->traceColored = false;
         std::ofstream fileTrace{lex_trace.c_str()};
 
         params.traceStream = &fileTrace;
@@ -1060,7 +1061,7 @@ TEST(OrgApi, SubtreeArchiveProperties) {
      :CREATED:  [2024-05-31 Fri 23:38:18 +04]
      :ID:       5ab53c80-6d65-4768-84c6-d881ce47cf0e
      :ARCHIVE_TIME: 2024-11-01 Fri 21:00:18 +04
-     :ARCHIVE_FILE: ~/defaultdirs/notes/personal/indexed/projects.org
+     :ARCHIVE_FILE: ~/projects.org
      :ARCHIVE_OLPATH: Haxorg/Infrastructure/Code coverage
      :ARCHIVE_CATEGORY: projects
      :ARCHIVE_TODO: COMPLETED
@@ -1068,7 +1069,38 @@ TEST(OrgApi, SubtreeArchiveProperties) {
 )",
         getDebugFile("trace"));
 
-    dbgString(tree);
+    // dbgString(tree);
+
+    {
+        auto olpath = sem::getSubtreeProperties<
+            sem::NamedProperty::ArchiveOlpath>(tree);
+        EXPECT_EQ(olpath.size(), 1);
+        auto const& p = olpath.at(0).path.path;
+        EXPECT_EQ(p.at(0), "Haxorg");
+        EXPECT_EQ(p.at(1), "Infrastructure");
+        EXPECT_EQ(p.at(2), "Code coverage");
+    }
+
+    {
+        auto p = sem::getSubtreeProperties<
+            sem::NamedProperty::ArchiveFile>(tree);
+        EXPECT_EQ(p.size(), 1);
+        EXPECT_EQ(p.at(0).file, "~/projects.org");
+    }
+
+
+    {
+        auto p = sem::getSubtreeProperties<
+            sem::NamedProperty::ArchiveCategory>(tree);
+        EXPECT_EQ(p.size(), 1);
+        EXPECT_EQ(p.at(0).category, "projects");
+    }
+    {
+        auto p = sem::getSubtreeProperties<
+            sem::NamedProperty::ArchiveTodo>(tree);
+        EXPECT_EQ(p.size(), 1);
+        EXPECT_EQ(p.at(0).todo, "COMPLETED");
+    }
 }
 
 TEST(SimpleNodeConversion, LCSCompile) {

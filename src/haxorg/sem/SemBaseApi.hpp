@@ -119,6 +119,18 @@ using SubnodeVisitor = Func<void(SemId<Org>)>;
 /// provided callback
 void eachSubnodeRec(SemId<Org> id, SubnodeVisitor cb);
 
+template <typename T>
+Vec<T> getSubtreeProperties(sem::SemId<sem::Subtree> const& tree) {
+    Vec<T> result;
+    for (auto const& prop : tree->properties) {
+        if (std::holds_alternative<T>(prop.data)) {
+            result.push_back(std::get<T>(prop.data));
+        }
+    }
+
+    return result;
+}
+
 
 /// \brief Part of the parent node context path. When visiting a node this
 /// path will contain an ordered list of all *parent* elements.
