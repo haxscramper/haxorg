@@ -3,6 +3,30 @@
 
 struct BackwardsIndex {
     int value;
+
+    bool operator==(BackwardsIndex const& i) const {
+        return value == i.value;
+    }
+
+    bool operator!=(BackwardsIndex const& i) const {
+        return value != i.value;
+    }
+
+    bool operator<(BackwardsIndex const& i) const {
+        return i.value < value;
+    }
+
+    bool operator<=(BackwardsIndex const& i) const {
+        return i.value <= value;
+    }
+
+    bool operator>(BackwardsIndex const& i) const {
+        return i.value > value;
+    }
+
+    bool operator>=(BackwardsIndex const& i) const {
+        return i.value >= value;
+    }
 };
 
 inline BackwardsIndex backIndex(int value) {

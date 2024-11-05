@@ -224,15 +224,22 @@ struct std::hash<Slice<T>> {
 
 
 template <typename A, typename B>
-Pair<A, A> getSpan(
+Pair<int, int> getSpan(
     int          containerSize, /// Size of the container to get span over
     HSlice<A, B> s,             /// Span slice
     bool         checkRange = true /// Ensure that slice does not go out of
                                    /// container bounds9
 ) {
-    const A    startPos = s.first;
-    A          endPos;
+    int        startPos{};
+    int        endPos{};
     const auto size = containerSize;
+
+    if constexpr (std::is_same_v<A, BackwardsIndex>) {
+        startPos = size - s.first.value;
+    } else {
+        startPos = s.first;
+    }
+
     if constexpr (std::is_same_v<B, BackwardsIndex>) {
         endPos = size - s.last.value;
     } else {

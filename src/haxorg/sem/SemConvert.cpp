@@ -27,6 +27,10 @@ bool org_streq(CR<Str> str1, CR<Str> str2) {
     return normalize(str1) == normalize(str2);
 }
 
+Str strip_space(Str const& space) {
+    return strip(space, CharSet{' '}, CharSet{' '});
+}
+
 absl::TimeZone ConvertToTimeZone(std::string z) {
     int  hours    = 0;
     int  minutes  = 0;
@@ -49,6 +53,51 @@ absl::TimeZone ConvertToTimeZone(std::string z) {
 
     return absl::FixedTimeZone(offset);
 }
+
+Opt<UserTime> ParseUserTime(
+    std::string                datetime,
+    Opt<absl::TimeZone> const& zone) {
+    struct Spec {
+        std::string         pattern;
+        UserTime::Alignment align = UserTime::Alignment::Second;
+    };
+
+    Vec<Spec> formats = {
+        Spec{.pattern = "%Y-%m-%d %H:%M:%S"},
+        Spec{.pattern = "%Y/%m/%d %H:%M:%S"},
+        Spec{.pattern = "%d-%m-%Y %H:%M:%S"},
+        Spec{.pattern = "%d/%m/%Y %H:%M:%S"},
+        Spec{.pattern = "%Y-%m-%d %a %H:%M:%S"},
+        Spec{
+            .pattern = "%Y-%m-%d %H:%M",
+            .align   = UserTime::Alignment::Minute,
+        },
+        Spec{.pattern = "%Y-%m-%d", .align = UserTime::Alignment::Day},
+        // Add other formats as needed
+    };
+
+    absl::Time parsedDateTime;
+    for (const auto& format : formats) {
+        std::string error;
+        if (absl::ParseTime(
+                format.pattern,
+                datetime,
+                zone ? zone.value() : absl::TimeZone(),
+                &parsedDateTime,
+                &error)) {
+
+            return UserTime{
+                .time  = parsedDateTime,
+                .align = format.align,
+                .zone  = zone,
+            };
+        }
+    }
+
+    return std::nullopt;
+}
+
+
 } // namespace
 
 Str get_text(
@@ -440,14 +489,50 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         result = NamedProperty(prop);
     } else if (name == "archivefile") {
         NamedProperty::ArchiveFile file{};
-        file.file = get_text(one(a, N::Values));
+        file.file = strip_space(get_text(one(a, N::Values)));
+        result    = NamedProperty{file};
+    } else if (name == "archivetime") {
+        NamedProperty::ArchiveTime prop{};
+        Str        time = strip_space(get_text(one(a, N::Values)));
+        Slice<int> span = slice(0, time.size() - 1);
+        Opt<absl::TimeZone> zone;
+        if (time.at(3_B) == '+' || time.at(3_B) == '-') {
+            span.last -= 3;
+            zone = ConvertToTimeZone(
+                Str{time.at(slice(2_B, 1_B))}.toBase());
+        } else if (time.at(5_B) == '+' || time.at(5_B) == '-') {
+            span.last -= 5;
+            zone = ConvertToTimeZone(
+                Str{time.at(slice(4_B, 1_B))}.toBase());
+        }
+
+        auto          datetime = Str{time.at(span)}.toBase();
+        Opt<UserTime> parsed   = ParseUserTime(datetime, zone);
+
+        if (parsed.has_value()) {
+            prop.time = parsed.value();
+            result    = NamedProperty{prop};
+        } else {
+            throw convert_logic_error::init(
+                fmt("broken datetime or broken zone from value {} "
+                    "(datetime: '{}', zone: '{}')",
+                    time,
+                    datetime,
+                    zone));
+        }
+
+    } else if (name == "archivecategory") {
+        NamedProperty::ArchiveCategory file{};
+        file.category = strip_space(get_text(one(a, N::Values)));
+        result        = NamedProperty{file};
+    } else if (name == "archivetodo") {
+        NamedProperty::ArchiveTodo file{};
+        file.todo = strip_space(get_text(one(a, N::Values)));
         result    = NamedProperty{file};
     } else if (name == "archiveolpath") {
         NamedProperty::ArchiveOlpath path{};
         Vec<Str> const&              items //
-            = strip(
-                  get_text(one(a, N::Values)), CharSet{' '}, CharSet{' '})
-                  .split("/");
+            = strip_space(get_text(one(a, N::Values))).split("/");
         path.path = sem::SubtreePath{.path = items};
         result    = NamedProperty{path};
     } else {
@@ -615,24 +700,6 @@ OrgConverter::ConvResult<Time> OrgConverter::convertTime(__args) {
             datetime += get_text(one(a, N::Clock));
         }
 
-        struct Spec {
-            std::string         pattern;
-            UserTime::Alignment align = UserTime::Alignment::Second;
-        };
-
-        Vec<Spec> formats = {
-            Spec{.pattern = "%Y-%m-%d %H:%M:%S"},
-            Spec{.pattern = "%Y/%m/%d %H:%M:%S"},
-            Spec{.pattern = "%d-%m-%Y %H:%M:%S"},
-            Spec{.pattern = "%d/%m/%Y %H:%M:%S"},
-            Spec{
-                .pattern = "%Y-%m-%d %H:%M",
-                .align   = UserTime::Alignment::Minute,
-            },
-            Spec{.pattern = "%Y-%m-%d", .align = UserTime::Alignment::Day},
-            // Add other formats as needed
-        };
-
 
         Opt<absl::TimeZone> zone;
 
@@ -640,24 +707,12 @@ OrgConverter::ConvResult<Time> OrgConverter::convertTime(__args) {
             zone = ConvertToTimeZone(get_text(z));
         }
 
-        absl::Time parsedDateTime;
-        bool       foundTime = false;
-        Spec       matching;
-        for (const auto& format : formats) {
-            std::string error;
-            if (absl::ParseTime(
-                    format.pattern,
-                    datetime,
-                    zone ? zone.value() : absl::TimeZone(),
-                    &parsedDateTime,
-                    &error)) {
-                matching  = format;
-                foundTime = true;
-                break;
-            }
-        }
+        auto parsed = ParseUserTime(datetime, zone);
 
-        if (!foundTime) {
+        if (parsed.has_value()) {
+            time->time = Time::Static{.time = parsed.value()};
+
+        } else {
             return SemError(
                 a,
                 fmt("Could not parse date time entry in format: '{}' at "
@@ -665,14 +720,6 @@ OrgConverter::ConvResult<Time> OrgConverter::convertTime(__args) {
                     datetime,
                     getLocMsg(a)));
         }
-
-
-        time->time = Time::Static{
-            .time = UserTime{
-                .time  = parsedDateTime,
-                .align = matching.align,
-                .zone  = zone,
-            }};
     }
 
     print_json(time);
