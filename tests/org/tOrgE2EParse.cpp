@@ -1092,6 +1092,30 @@ TEST(OrgApi, HashtagParse) {
         EXPECT_EQ(flat.at(0), Vec<Str>{"hashtag"});
         EXPECT_EQ(flat.at(1), (Vec<Str>{"hashtag", "sub"}));
     }
+
+    {
+        auto h = parseOne<sem::HashTag>("#one##[two##[three,four,five]]");
+        EXPECT_EQ(h->head, "one");
+        EXPECT_EQ(h->subtags.size(), 1);
+        auto flat = h->getFlatHashes();
+        EXPECT_EQ(flat.size(), 5);
+        EXPECT_EQ(flat.at(0), Vec<Str>{"one"});
+        EXPECT_EQ(flat.at(1), (Vec<Str>{"one", "two"}));
+        EXPECT_EQ(flat.at(2), (Vec<Str>{"one", "two", "three"}));
+        EXPECT_EQ(flat.at(3), (Vec<Str>{"one", "two", "four"}));
+        EXPECT_EQ(flat.at(4), (Vec<Str>{"one", "two", "five"}));
+    }
+
+    {
+        auto par = immConv(parseOne<sem::HashTag>("#hashtag##[sub]"));
+        auto h   = par.node;
+        EXPECT_EQ(h->head, "hashtag");
+        EXPECT_EQ(h->subtags.size(), 1);
+        auto flat = h.getFlatHashes();
+        EXPECT_EQ(flat.size(), 2);
+        EXPECT_EQ(flat.at(0), Vec<Str>{"hashtag"});
+        EXPECT_EQ(flat.at(1), (Vec<Str>{"hashtag", "sub"}));
+    }
 }
 
 TEST(SimpleNodeConversion, LCSCompile) {
