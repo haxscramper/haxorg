@@ -904,7 +904,10 @@ template <typename T>
 sem::SemId<T> parseOne(
     std::string const&         text,
     std::optional<std::string> debug = std::nullopt) {
-    return sem::asOneNode(testParseString(text, debug)).as<T>();
+    auto one = sem::asOneNode(testParseString(text, debug));
+
+    while (T::staticKind != one->getKind()) { one = one.at(0); }
+    return one.as<T>();
 }
 
 template <typename T>
@@ -1069,6 +1072,25 @@ TEST(OrgApi, SubtreeArchiveProperties) {
         EXPECT_EQ(p.at(0).pattern, "%s_archive");
         EXPECT_EQ(p.at(0).path.path.size(), 1);
         EXPECT_EQ(p.at(0).path.path.at(0), "Misc");
+    }
+}
+
+TEST(OrgApi, HashtagParse) {
+    using V = Vec<Vec<Str>>;
+    {
+        auto h = parseOne<sem::HashTag>("#hashtag");
+        EXPECT_EQ(h->head, "hashtag");
+        EXPECT_EQ(h->subtags.size(), 0);
+        EXPECT_EQ(h->getFlatHashes(), V{{"hashtag"}});
+    }
+    {
+        auto h = parseOne<sem::HashTag>("#hashtag##[sub]");
+        EXPECT_EQ(h->head, "hashtag");
+        EXPECT_EQ(h->subtags.size(), 1);
+        auto flat = h->getFlatHashes();
+        EXPECT_EQ(flat.size(), 2);
+        EXPECT_EQ(flat.at(0), Vec<Str>{"hashtag"});
+        EXPECT_EQ(flat.at(1), (Vec<Str>{"hashtag", "sub"}));
     }
 }
 

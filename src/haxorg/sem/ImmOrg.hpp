@@ -864,11 +864,6 @@ struct ImmAdapter {
         return dynamic_cast<T const*>(get());
     }
 
-    template <typename T>
-    T* dyn_cast() {
-        return dynamic_cast<T*>(get());
-    }
-
     ImmAdapter at(ImmId id, ImmPathStep idx) const {
         return ImmAdapter{id, ctx, path.add(idx)};
     }
@@ -1097,7 +1092,9 @@ struct ImmAdapterCmdCustomTextAPI : ImmAdapterStmtAPI {};
 struct ImmAdapterCmdResultsAPI : ImmAdapterAttachedAPI {};
 struct ImmAdapterCmdTblfmAPI : ImmAdapterCmdAPI {};
 struct ImmAdapterInlineAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterHashTagAPI : ImmAdapterInlineAPI {};
+struct ImmAdapterHashTagAPI : ImmAdapterInlineAPI {
+    Vec<Vec<Str>> getFlatHashes(bool withIntermediate = true) const;
+};
 struct ImmAdapterInlineFootnoteAPI : ImmAdapterInlineAPI {};
 struct ImmAdapterTimeAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterTimeRangeAPI : ImmAdapterOrgAPI {};
@@ -1155,7 +1152,7 @@ struct ImmAdapterParagraphAPI : ImmAdapterStmtAPI {
     Vec<org::ImmAdapterT<org::ImmBigIdent>> getAdmonitionNodes() const;
     Vec<org::ImmAdapterT<org::ImmTime>>     getTimestampNodes() const;
     Vec<org::ImmAdapterT<org::ImmHashTag>>  getLeadHashtags() const;
-    Vec<org::ImmAdapter>                    getBody(bool withPath = true) const;
+    Vec<org::ImmAdapter> getBody(bool withPath = true) const;
 };
 struct ImmAdapterColonExampleAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterCmdAttrAPI : ImmAdapterAttachedAPI {};

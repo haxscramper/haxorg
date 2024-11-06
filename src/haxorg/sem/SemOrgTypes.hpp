@@ -1077,6 +1077,8 @@ struct HashTag : public sem::Inline {
   virtual OrgSemKind getKind() const { return OrgSemKind::HashTag; }
   /// \brief Check if list of tag names is a prefix for either of the nested hash tags in this one
   bool prefixMatch(Vec<Str> const& prefix) const;
+  /// \brief Get flat list of expanded hashtags
+  Vec<Vec<Str>> getFlatHashes(bool withIntermediate = true) const;
 };
 
 /// \brief Inline footnote definition

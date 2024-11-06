@@ -869,7 +869,14 @@ def get_sem_text():
                     ),
                     isConst=True,
                     arguments=[GenTuIdent(t_cr(t_vec(t_str())), "prefix")],
-                )
+                ),
+                GenTuFunction(
+                    t_vec(t_vec(t_str())),
+                    "getFlatHashes",
+                    arguments=[GenTuIdent(t_bool(), "withIntermediate", value="true")],
+                    isConst=True,
+                    doc=org_doc("Get flat list of expanded hashtags"),
+                ),
             ],
         ),
         d_org(

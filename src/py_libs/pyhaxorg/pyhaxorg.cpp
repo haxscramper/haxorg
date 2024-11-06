@@ -25,6 +25,8 @@ PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::ErrorItem>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::ErrorItem>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::HashTag>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::HashTag>>)
+PYBIND11_MAKE_OPAQUE(std::vector<Vec<Str>>)
+PYBIND11_MAKE_OPAQUE(Vec<Vec<Str>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::Symbol::Param>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Symbol::Param>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::BlockCodeSwitch>)
@@ -68,6 +70,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_unordered_map<Str, sem::SemId<sem::AttrList>>(m, "UnorderedMapOfStrSemIdOfAttrList", type_registry_guard);
   bind_vector<sem::SemId<sem::ErrorItem>>(m, "VecOfSemIdOfErrorItem", type_registry_guard);
   bind_vector<sem::SemId<sem::HashTag>>(m, "VecOfSemIdOfHashTag", type_registry_guard);
+  bind_vector<Vec<Str>>(m, "VecOfVecOfStr", type_registry_guard);
   bind_vector<sem::Symbol::Param>(m, "VecOfSymbolParam", type_registry_guard);
   bind_vector<sem::BlockCodeSwitch>(m, "VecOfBlockCodeSwitch", type_registry_guard);
   bind_vector<sem::BlockCodeLine>(m, "VecOfBlockCodeLine", type_registry_guard);
@@ -1812,6 +1815,10 @@ node can have subnodes.)RAW")
          static_cast<bool(sem::HashTag::*)(Vec<Str> const&) const>(&sem::HashTag::prefixMatch),
          pybind11::arg("prefix"),
          R"RAW(Check if list of tag names is a prefix for either of the nested hash tags in this one)RAW")
+    .def("getFlatHashes",
+         static_cast<Vec<Vec<Str>>(sem::HashTag::*)(bool) const>(&sem::HashTag::getFlatHashes),
+         pybind11::arg_v("withIntermediate", true),
+         R"RAW(Get flat list of expanded hashtags)RAW")
     .def("__repr__", [](sem::HashTag _self) -> std::string {
                      return py_repr_impl(_self);
                      })

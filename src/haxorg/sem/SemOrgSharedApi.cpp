@@ -171,9 +171,29 @@ T const& to_api(sem::SemId<T> it) {
     return *it.get();
 }
 
+template <sem::IsOrg T>
+T const& to_api(T const* it) {
+    return *it;
+}
+
 template <org::IsImmOrgValueType T>
 org::ImmAdapterT<T> to_api(org::ImmAdapterT<T> it) {
     return it;
+}
+
+template <sem::IsOrg T>
+T const& to_value(sem::SemId<T> const& it) {
+    return *it.get();
+}
+
+template <sem::IsOrg T>
+T const& to_value(T const* it) {
+    return *it;
+}
+
+template <org::IsImmOrgValueType T>
+T const& to_value(org::ImmAdapterT<T> it) {
+    return *it.template dyn_cast<T>();
 }
 
 /// \brief Unwrap type `T` and get underlying sem/imm type, define nested
@@ -420,6 +440,40 @@ Vec<sem::AttrValue> Stmt_getAttrs(Handle handle, const Opt<Str>& kind) {
     }
 
     return result;
+}
+
+template <typename Handle>
+Vec<Vec<Str>> HashTag_getFlatHashes(Handle handle, bool withIntermediate) {
+    using Res = Vec<Vec<Str>>;
+    Func<Res(Vec<Str> const& parents, Handle const& tag)> aux;
+    UnorderedSet<Vec<Str>>                                visited;
+    aux = [&](Vec<Str> const& parents, Handle const& tag) -> Res {
+        auto const& t = to_value(tag);
+        Res         result;
+        if (withIntermediate && !parents.empty()
+            && !visited.contains(parents)) {
+            result.push_back(parents);
+            visited.incl(parents);
+        }
+        if (t.subtags.empty()) {
+            result.push_back(parents);
+            result.back().push_back(t.head);
+        } else {
+            for (auto const& subtag : t.subtags) {
+                if constexpr (IsSemOrgInstance<Handle>) {
+                    result.append(
+                        aux(parents + Vec<Str>{t.head}, subtag.get()));
+                } else {
+                    result.append(
+                        aux(parents + Vec<Str>{t.head},
+                            toHandle(subtag, handle)));
+                }
+            }
+        }
+        return result;
+    };
+
+    return aux({}, handle);
 }
 
 Vec<org::ImmAdapter> Org_getLeadNodes(
@@ -824,6 +878,8 @@ Opt<sem::AttrValue> org::ImmAdapterCmdAPI::getFirstAttr(Str const& param) const 
   return result;
 }
 
+Vec<Vec<Str>> org::ImmAdapterHashTagAPI::getFlatHashes(bool withIntermediate) const { return HashTag_getFlatHashes(getThis()->as<org::ImmHashTag>(), withIntermediate); }
+
 Opt<sem::NamedProperty> org::ImmAdapterSubtreeAPI::getProperty(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertyImpl(getThis()->as<org::ImmSubtree>(), kind, subkind); }
 Vec<sem::NamedProperty> org::ImmAdapterSubtreeAPI::getProperties(const Str &kind, const Opt<Str> &subkind) const { return subtreeGetPropertiesImpl(getThis()->as<org::ImmSubtree>(), kind, subkind); }
 Vec<sem::SubtreePeriod> org::ImmAdapterSubtreeAPI::getTimePeriods(IntSet<sem::SubtreePeriod::Kind> kinds, bool withPath) const { return Subtree_getTimePeriodsImpl(getThis()->as<org::ImmSubtree>(), kinds, withPath); }
@@ -858,6 +914,8 @@ Vec<org::ImmAdapterT<org::ImmHashTag>> org::ImmAdapterParagraphAPI::getLeadHasht
 Vec<org::ImmAdapter> org::ImmAdapterParagraphAPI::getBody(bool withPath) const { return Paragraph_dropAdmonitionNodes(*getThis(), withPath); }
 
 // sem type API implementation
+
+Vec<Vec<Str>> sem::HashTag::getFlatHashes(bool withIntermediate) const { return HashTag_getFlatHashes(this, withIntermediate); }
 
 Opt<sem::NamedProperty> sem::Subtree::getProperty(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertyImpl(this, kind, subkind); }
 Vec<sem::NamedProperty> sem::Subtree::getProperties(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertiesImpl(this, kind, subkind); }
