@@ -513,24 +513,6 @@ sem::SemId<sem::Org> parseNode(CR<Str> source) {
     }
 }
 
-TEST(OrgApi, LinkResolution) {
-    MockFull    p{false, false};
-    std::string source = R"(
-* Subtree
-  :properties:
-  :id: id-name
-  :end:
-)";
-
-    p.run(source);
-    sem::OrgDocumentContext ctx;
-    auto                    node = p.toNode();
-    ctx.addNodes(node);
-
-    auto subtree_result = ctx.getSubtreeById("id-name");
-    EXPECT_EQ(subtree_result.size(), 1);
-}
-
 struct ImmOrgApiTestBase : public ::testing::Test {
     org::ImmAstContext start;
 
@@ -771,29 +753,6 @@ TEST_F(ImmOrgDocumentSelector, SubtreesWithDateInTitleAndBody) {
         auto subtrees = selector.getMatches(doc.getRootAdapter());
         EXPECT_EQ(subtrees.size(), 2);
     }
-}
-
-TEST(OrgApi, EachSubnodeWithContext) {
-    auto node = parseNode(R"(*bold*)");
-    Vec<Pair<sem::SemId<sem::Org>, Vec<sem::SubnodeVisitorCtxPart>>> ctx;
-
-    sem::eachSubnodeRecWithContext(
-        node,
-        [&](sem::SemId<sem::Org> id, CVec<sem::SubnodeVisitorCtxPart> part)
-            -> sem::SubnodeVisitorResult {
-            ctx.push_back({id, part});
-            return sem::SubnodeVisitorResult{};
-        });
-
-    EXPECT_EQ(ctx.at(0).first->getKind(), OrgSemKind::Document);
-    EXPECT_EQ(ctx.at(1).first->getKind(), OrgSemKind::Paragraph);
-    EXPECT_EQ(ctx.at(2).first->getKind(), OrgSemKind::Bold);
-    EXPECT_EQ(ctx.at(3).first->getKind(), OrgSemKind::Word);
-
-    EXPECT_EQ(ctx.at(0).second.size(), 0);
-    EXPECT_EQ(ctx.at(1).second.size(), 2);
-    EXPECT_EQ(ctx.at(1).second.at(0).field.value(), "subnodes");
-    EXPECT_EQ(ctx.at(1).second.at(1).index.value(), 0);
 }
 
 #define EXPECT_EQ2(lhs, rhs)                                              \

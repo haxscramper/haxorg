@@ -48,8 +48,6 @@ PYBIND11_MAKE_OPAQUE(std::vector<UserTime>)
 PYBIND11_MAKE_OPAQUE(Vec<UserTime>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Time>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Time>>)
-PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Subtree>>)
-PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Subtree>>)
 PYBIND11_MAKE_OPAQUE(std::vector<SequenceSegment>)
 PYBIND11_MAKE_OPAQUE(Vec<SequenceSegment>)
 PYBIND11_MAKE_OPAQUE(std::vector<SequenceAnnotationTag>)
@@ -82,7 +80,6 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::SemId<sem::BigIdent>>(m, "VecOfSemIdOfBigIdent", type_registry_guard);
   bind_vector<UserTime>(m, "VecOfUserTime", type_registry_guard);
   bind_vector<sem::SemId<sem::Time>>(m, "VecOfSemIdOfTime", type_registry_guard);
-  bind_vector<sem::SemId<sem::Subtree>>(m, "VecOfSemIdOfSubtree", type_registry_guard);
   bind_vector<SequenceSegment>(m, "VecOfSequenceSegment", type_registry_guard);
   bind_vector<SequenceAnnotationTag>(m, "VecOfSequenceAnnotationTag", type_registry_guard);
   bind_vector<SequenceAnnotation>(m, "VecOfSequenceAnnotation", type_registry_guard);
@@ -4154,96 +4151,6 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::SubnodeVisitorCtxPart>(m, "SubnodeVisitorCtxPart")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubnodeVisitorCtxPart {
-                        sem::SubnodeVisitorCtxPart result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("node", &sem::SubnodeVisitorCtxPart::node, R"RAW(\brief Parent node for the currently visited one. Each node is
-encountered exactly once in the visitor context path, but when
-visiting multi-layered fields (vector field) the node is not,
-present.
-
-For vector fields the path will have two parts:
-`[node+field-name]+[index]` -- the first element from the actual
-field visit and the second is from accessing each particular index.)RAW")
-    .def_readwrite("index", &sem::SubnodeVisitorCtxPart::index, R"RAW(\brief If the current visit is in vector field -- index of
-the node in parent list.)RAW")
-    .def_readwrite("field", &sem::SubnodeVisitorCtxPart::field, R"RAW(\brief If the current visit is in the dedicated field (`.title` for
-example),)RAW")
-    .def_readwrite("kind", &sem::SubnodeVisitorCtxPart::kind)
-    .def("__repr__", [](sem::SubnodeVisitorCtxPart _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::SubnodeVisitorCtxPart _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::SubnodeVisitorOpts>(m, "SubnodeVisitorOpts")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubnodeVisitorOpts {
-                        sem::SubnodeVisitorOpts result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](sem::SubnodeVisitorOpts _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::SubnodeVisitorOpts _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::SubnodeVisitorResult>(m, "SubnodeVisitorResult")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubnodeVisitorResult {
-                        sem::SubnodeVisitorResult result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("visitNextFields", &sem::SubnodeVisitorResult::visitNextFields, R"RAW(\brief After visting the current node, descend into it's node
-fields)RAW")
-    .def_readwrite("visitNextSubnodes", &sem::SubnodeVisitorResult::visitNextSubnodes, R"RAW(\brief)RAW")
-    .def_readwrite("visitNextBases", &sem::SubnodeVisitorResult::visitNextBases)
-    .def("__repr__", [](sem::SubnodeVisitorResult _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::SubnodeVisitorResult _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::OrgDocumentContext>(m, "OrgDocumentContext")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgDocumentContext {
-                        sem::OrgDocumentContext result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("getSubtreeById",
-         static_cast<Vec<sem::SemId<sem::Subtree>>(sem::OrgDocumentContext::*)(Str const&) const>(&sem::OrgDocumentContext::getSubtreeById),
-         pybind11::arg("id"))
-    .def("getLinkTarget",
-         static_cast<Vec<sem::SemId<sem::Org>>(sem::OrgDocumentContext::*)(sem::SemId<sem::Link> const&) const>(&sem::OrgDocumentContext::getLinkTarget),
-         pybind11::arg("link"))
-    .def("getRadioTarget",
-         static_cast<Vec<sem::SemId<sem::Org>>(sem::OrgDocumentContext::*)(Str const&) const>(&sem::OrgDocumentContext::getRadioTarget),
-         pybind11::arg("name"))
-    .def("addNodes",
-         static_cast<void(sem::OrgDocumentContext::*)(sem::SemId<sem::Org> const&)>(&sem::OrgDocumentContext::addNodes),
-         pybind11::arg("node"),
-         R"RAW(\brief Recursively register all availble targets from the nodes.)RAW")
-    .def("__repr__", [](sem::OrgDocumentContext _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::OrgDocumentContext _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
   pybind11::class_<SequenceSegment>(m, "SequenceSegment")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> SequenceSegment {
                         SequenceSegment result{};
@@ -4449,17 +4356,6 @@ and a segment kind.)RAW")
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
-    ;
-  bind_enum_iterator<sem::SubnodeVisitorCtxPart::Kind>(m, "SubnodeVisitorCtxPartKind", type_registry_guard);
-  pybind11::enum_<sem::SubnodeVisitorCtxPart::Kind>(m, "SubnodeVisitorCtxPartKind")
-    .value("Field", sem::SubnodeVisitorCtxPart::Kind::Field)
-    .value("Index", sem::SubnodeVisitorCtxPart::Kind::Index)
-    .value("Key", sem::SubnodeVisitorCtxPart::Kind::Key)
-    .def("__iter__", [](sem::SubnodeVisitorCtxPart::Kind _self) -> PyEnumIterator<sem::SubnodeVisitorCtxPart::Kind> {
-                     return
-                     PyEnumIterator<sem::SubnodeVisitorCtxPart::Kind>
-                     ();
-                     })
     ;
   bind_enum_iterator<LeafFieldType>(m, "LeafFieldType", type_registry_guard);
   pybind11::enum_<LeafFieldType>(m, "LeafFieldType")
