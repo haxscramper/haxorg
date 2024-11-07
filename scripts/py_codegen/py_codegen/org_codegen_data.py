@@ -910,6 +910,15 @@ def get_sem_text():
                            GenTuDoc("<active> vs [inactive]"),
                            value="false")
             ],
+            methods=[
+                GenTuFunction(t_opt(t_int()), "getYear", isConst=True),
+                GenTuFunction(t_opt(t_int()), "getMonth", isConst=True),
+                GenTuFunction(t_opt(t_int()), "getDay", isConst=True),
+                GenTuFunction(t_opt(t_int()), "getHour", isConst=True),
+                GenTuFunction(t_opt(t_int()), "getMinute", isConst=True),
+                GenTuFunction(t_opt(t_int()), "getSecond", isConst=True),
+                GenTuFunction(t("UserTime"), "getStaticTime", isConst=True),
+            ],
             nested=[
                 GenTuStruct(
                     t_nest("Repeat", ["Time"]),

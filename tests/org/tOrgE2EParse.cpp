@@ -1118,6 +1118,31 @@ TEST(OrgApi, HashtagParse) {
     }
 }
 
+TEST(OrgApi, SubtreeLogParsing) {
+    {
+        auto s = parseOne<sem::Subtree>(R"(**** COMPLETED Subtree
+     CLOSED: [2000-01-03 Wed 10:43:40 +04]
+     :PROPERTIES:
+     :CREATED:  [2000-01-03 Wed 09:51:41 +04]
+     :END:
+     :LOGBOOK:
+     - Tag "#work##xasd" Added on [2000-01-03 Wed 09:52:00 +04]
+     CLOCK: [2000-01-03 Wed 09:51:50 +04]--[2000-01-03 Wed 10:43:40 +04] =>  0:52
+     - State "WIP"        from "TODO"       [2000-01-03 Wed 09:51:50 +04]
+     - State "COMPLETED"  from "WIP"        [2000-01-03 Wed 10:43:40 +04]
+     :END:)");
+
+        EXPECT_EQ(s->logbook.size(), 4);
+        auto const& l = s->logbook;
+        EXPECT_TRUE(l.at(0)->isTag());
+        EXPECT_TRUE(l.at(1)->isClock());
+        EXPECT_TRUE(l.at(2)->isState());
+        EXPECT_TRUE(l.at(3)->isState());
+        EXPECT_EQ(l.at(0)->getTag().on->getYear(), 2000);
+        EXPECT_EQ(l.at(0)->getTag().on->getMinute(), 52);
+    }
+}
+
 TEST(SimpleNodeConversion, LCSCompile) {
     Vec<int> first{1, 2, 3};
     Vec<int> second{1, 2, 3};

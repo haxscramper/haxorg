@@ -1158,6 +1158,13 @@ struct Time : public sem::Org {
   bool isActive = false;
   sem::Time::TimeVariant time;
   virtual OrgSemKind getKind() const { return OrgSemKind::Time; }
+  Opt<int> getYear() const;
+  Opt<int> getMonth() const;
+  Opt<int> getDay() const;
+  Opt<int> getHour() const;
+  Opt<int> getMinute() const;
+  Opt<int> getSecond() const;
+  UserTime getStaticTime() const;
   bool isStatic() const { return getTimeKind() == TimeKind::Static; }
   sem::Time::Static const& getStatic() const { return std::get<0>(time); }
   sem::Time::Static& getStatic() { return std::get<0>(time); }

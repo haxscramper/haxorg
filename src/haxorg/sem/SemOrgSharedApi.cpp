@@ -917,6 +917,14 @@ Vec<org::ImmAdapter> org::ImmAdapterParagraphAPI::getBody(bool withPath) const {
 
 Vec<Vec<Str>> sem::HashTag::getFlatHashes(bool withIntermediate) const { return HashTag_getFlatHashes(this, withIntermediate); }
 
+UserTime sem::Time::getStaticTime() const  { return getStatic().time; }
+Opt<int> sem::Time::getYear() const { return getStaticTime().getBreakdown().year; }
+Opt<int> sem::Time::getMonth() const { return getStaticTime().getBreakdown().month; }
+Opt<int> sem::Time::getDay() const { return getStaticTime().getBreakdown().day; }
+Opt<int> sem::Time::getSecond() const { return getStaticTime().getBreakdown().second; }
+Opt<int> sem::Time::getHour() const { return getStaticTime().getBreakdown().hour; }
+Opt<int> sem::Time::getMinute() const { return getStaticTime().getBreakdown().minute; }
+
 Opt<sem::NamedProperty> sem::Subtree::getProperty(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertyImpl(this, kind, subkind); }
 Vec<sem::NamedProperty> sem::Subtree::getProperties(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertiesImpl(this, kind, subkind); }
 Vec<sem::SubtreePeriod> sem::Subtree::getTimePeriods(IntSet<sem::SubtreePeriod::Kind> kinds) const { return Subtree_getTimePeriodsImpl(this, kinds, false); }
