@@ -1140,6 +1140,12 @@ TEST(OrgApi, SubtreeLogParsing) {
         EXPECT_TRUE(l.at(3)->isState());
         EXPECT_EQ(l.at(0)->getTag().on->getYear(), 2000);
         EXPECT_EQ(l.at(0)->getTag().on->getMinute(), 52);
+        EXPECT_EQ(l.at(1)->getClock().from->getMinute(), 51);
+        EXPECT_EQ(l.at(1)->getClock().to.value()->getMinute(), 43);
+        EXPECT_EQ(l.at(2)->getState().from, "TODO"_ss);
+        EXPECT_EQ(l.at(2)->getState().to, "WIP"_ss);
+        EXPECT_EQ(l.at(3)->getState().to, "COMPLETED"_ss);
+        EXPECT_EQ(l.at(3)->getState().from, "WIP"_ss);
     }
 }
 

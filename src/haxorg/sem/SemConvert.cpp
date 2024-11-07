@@ -289,8 +289,8 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
 
             auto states = Log::State{};
             CHECK(!big_idents.empty()) << a.treeRepr();
-            states.from = big_idents.at(0);
-            if (1 < big_idents.size()) { states.to = big_idents.at(1); }
+            states.to = big_idents.at(0);
+            if (1 < big_idents.size()) { states.from = big_idents.at(1); }
             states.on = times.at(0);
             log->log  = states;
 
@@ -532,7 +532,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
     } else if (name == "archive") {
         NamedProperty::ArchiveTarget file{};
         auto dsl = strip_space(get_text(one(a, N::Values))).split("::");
-        file.pattern = dsl.at(0);
+        file.pattern   = dsl.at(0);
         file.path.path = lstrip(dsl.at(1), CharSet{'*', ' '}).split("/");
         result         = NamedProperty{file};
     } else if (name == "archiveolpath") {
