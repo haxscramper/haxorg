@@ -2187,10 +2187,6 @@ def get_types() -> Sequence[GenTuStruct]:
 #region OrgNodeKind
 def get_org_node_kind_text():
     return [
-        efield(
-            "Ident",
-            "regular identifier - `alnum + [-_]` characters for punctuation. Identifiers are compared and parsed in style-insensetive manner, meaning `CODE_BLOCK`, `code-block` and `codeblock` are identical.",
-        ),
         efield("BigIdent", "full-uppsercase identifier such as `MUST` or `TODO`"),
         efield(
             "Bold",

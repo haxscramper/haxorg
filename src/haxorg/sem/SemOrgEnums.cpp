@@ -285,7 +285,6 @@ Opt<OrgNodeKind> enum_serde<OrgNodeKind>::from_string(std::string value) {
   if (value == "BlockDetails") { return OrgNodeKind::BlockDetails; } else
   if (value == "BlockSummary") { return OrgNodeKind::BlockSummary; } else
   if (value == "BlockDynamicFallback") { return OrgNodeKind::BlockDynamicFallback; } else
-  if (value == "Ident") { return OrgNodeKind::Ident; } else
   if (value == "BigIdent") { return OrgNodeKind::BigIdent; } else
   if (value == "Bold") { return OrgNodeKind::Bold; } else
   if (value == "Italic") { return OrgNodeKind::Italic; } else
@@ -410,7 +409,6 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     case OrgNodeKind::BlockDetails: return "BlockDetails";
     case OrgNodeKind::BlockSummary: return "BlockSummary";
     case OrgNodeKind::BlockDynamicFallback: return "BlockDynamicFallback";
-    case OrgNodeKind::Ident: return "Ident";
     case OrgNodeKind::BigIdent: return "BigIdent";
     case OrgNodeKind::Bold: return "Bold";
     case OrgNodeKind::Italic: return "Italic";

@@ -1149,6 +1149,21 @@ TEST(OrgApi, SubtreeLogParsing) {
     }
 }
 
+TEST(OrgApi, WordParsing) {
+    {
+        auto w = parseOne<sem::Word>("test");
+        EXPECT_EQ(w->text, "test"_ss);
+    }
+    {
+        auto w = parseOne<sem::Word>("test-one");
+        EXPECT_EQ(w->text, "test-one"_ss);
+    }
+    {
+        auto w = parseOne<sem::Word>("don't");
+        EXPECT_EQ(w->text, "don't"_ss);
+    }
+}
+
 TEST(SimpleNodeConversion, LCSCompile) {
     Vec<int> first{1, 2, 3};
     Vec<int> second{1, 2, 3};

@@ -663,8 +663,6 @@ enum class OrgNodeKind : short int {
   BlockSummary,
   /// \brief #+begin_<any> section
   BlockDynamicFallback,
-  /// \brief regular identifier - `alnum + [-_]` characters for punctuation. Identifiers are compared and parsed in style-insensetive manner, meaning `CODE_BLOCK`, `code-block` and `codeblock` are identical.
-  Ident,
   /// \brief full-uppsercase identifier such as `MUST` or `TODO`
   BigIdent,
   /// \brief Region of text with formatting, which contains standalone words -
