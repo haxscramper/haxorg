@@ -929,6 +929,8 @@ def cmake_build_deps(
         ],
     )
 
+    dep(build_name="lexy", deps_name="lexy")
+
 
 @org_task(pre=[cmake_configure_haxorg], iterable=["target", "ninja_flag"])
 def cmake_haxorg(

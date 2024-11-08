@@ -44,6 +44,7 @@ target_link_libraries(
          absl::base
          absl::log
          nlohmann_json::nlohmann_json
+         foonathan::lexy
          immer)
 
 if(${ORG_USE_PERFETTO})

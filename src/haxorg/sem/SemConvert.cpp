@@ -12,7 +12,6 @@
 #include <absl/log/log.h>
 #include <haxorg/sem/SemOrgFormat.hpp>
 
-
 struct convert_logic_error : CRTP_hexception<convert_logic_error> {};
 
 using namespace sem;
