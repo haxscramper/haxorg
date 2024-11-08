@@ -11,6 +11,15 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <absl/log/log.h>
 #include <haxorg/sem/SemOrgFormat.hpp>
+#include <lexy_ext/report_error.hpp>
+#include <lexy/input/string_input.hpp>
+
+#include <lexy/callback.hpp>
+#include <lexy/dsl.hpp>
+#include <lexy/input/string_input.hpp>
+#include <lexy/action/parse.hpp>
+#include <lexy/callback.hpp>
+#include <lexy/callback/container.hpp>
 
 struct convert_logic_error : CRTP_hexception<convert_logic_error> {};
 
@@ -953,13 +962,80 @@ OrgConverter::ConvResult<CmdCaption> OrgConverter::convertCmdCaption(
     return caption;
 }
 
+namespace dsl = lexy::dsl;
+
+namespace tblfmt_grammar {
+
+struct axis_direction {
+    static constexpr auto rule //
+        = (dsl::peek(dsl::lit_c<'>'>)
+           >> dsl::capture(dsl::token(dsl::while_one(dsl::lit_c<'>'>))))
+        | (dsl::peek(dsl::lit_c<'<'>)
+           >> dsl::capture(dsl::token(dsl::while_one(dsl::lit_c<'<'>))))
+        //
+        ;
+
+    static constexpr auto value = lexy::as_string<std::string>;
+};
+
+struct axis_spec {
+    static constexpr auto rule =                 //
+        (dsl::ascii::alnum >> dsl::integer<int>) //
+        +dsl::opt(dsl::p<axis_direction>);
+
+    using type = Pair<int, bool>;
+
+    static type impl(int position, Opt<std::string> const& convert) {
+        axis_spec::type result;
+        return result;
+    }
+
+    static constexpr auto value = lexy::callback<axis_spec::type>(
+        [](int position, std::string const& base) {
+            return impl(position, base);
+        },
+        [](int position, lexy::nullopt const& base) {
+            return impl(position, std::nullopt);
+        });
+};
+
+struct axis_ref {
+    static constexpr auto rule //
+        = dsl::opt(dsl::lit_c<'$'> >> dsl::p<axis_spec>)
+        + dsl::opt(dsl::lit_c<'@'> >> dsl::p<axis_spec>);
+
+    static constexpr auto value = lexy::callback<
+        sem::Tblfm::Expr::AxisRef>(
+        [](std::optional<axis_spec::type> colIndex,
+           std::optional<axis_spec::type> rowIndex) {
+            sem::Tblfm::Expr::AxisRef ref;
+            return ref;
+        });
+};
+
+struct assign {};
+
+struct tblfmt {
+    static constexpr auto value = lexy::as_list<std::vector<assign>>;
+};
+
+}; // namespace tblfmt_grammar
 
 OrgConverter::ConvResult<CmdTblfm> OrgConverter::convertCmdTblfm(__args) {
     __perf_trace("convert", "convertCmdTblfm");
     auto __trace = trace(a);
-    auto tblfm   = Sem<CmdTblfm>(a);
+    auto res     = Sem<CmdTblfm>(a);
 
-    return tblfm;
+
+    Str fmt = "$12<"; // get_text(one(a, N::Values));
+
+    auto result = lexy::parse<tblfmt_grammar::axis_ref>(
+        lexy::string_input{fmt.data(), fmt.data() + fmt.size()},
+        lexy_ext::report_error);
+
+    print(fmt);
+
+    return res;
 }
 
 

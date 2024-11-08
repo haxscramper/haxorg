@@ -265,6 +265,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
         SpecPair{
             org::CmdValue,
             OrgPattern({fieldN(0, N::Name), fieldN(1, N::Value)})},
+        SpecPair{org::CmdTblfm, OrgPattern({fieldN(0, N::Values)})},
         SpecPair{
             org::CmdResult,
             OrgPattern({fieldN(0, N::Hash), fieldN(1, N::Body)})},
