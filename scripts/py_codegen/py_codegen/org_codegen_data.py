@@ -1537,8 +1537,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                                         str_field("value"),
                                     ],
                                     methods=[
-                                        eq_method(t_nest_shared(
-                                            "Call", ["Tblfm", "Expr"])),
+                                        eq_method(t_nest_shared("Elisp", ["Tblfm", "Expr"])),
                                     ],
                                 ),
                                 GenTuStruct(

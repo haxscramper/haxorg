@@ -200,6 +200,8 @@ ImmAstReplace setNewSubnodes(
                         [&](bool const&) { fail_field(); },
                         [&](ImmBox<Opt<sem::BlockCodeEvalResult>> const&) { fail_field(); },
                         [&](ImmBox<sem::BlockCodeEvalResult> const&) { fail_field(); },
+                        [&](ImmBox<sem::Tblfm> const&) { fail_field(); },
+                        [&](ImmBox<sem::Tblfm::Expr::Assign::Flag> const&) { fail_field(); },
                         [&](ImmBox<Opt<Str>> const&) { fail_field(); },
                         [&](ImmBox<Str> const&) { fail_field(); },
                         [&](ImmVec<Str> const&) { fail_field(); },
@@ -810,6 +812,7 @@ __same_type(sem::BlockCodeSwitch);
 __same_type(sem::BlockCodeEvalResult);
 __same_type(sem::BlockCodeLine);
 __same_type(sem::AttrValue);
+__same_type(sem::Tblfm);
 
 
 template <typename SemType, typename ImmType>

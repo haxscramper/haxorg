@@ -56,7 +56,7 @@ struct Tblfm {
                            (),
                            (value))
       Str value = "";
-      bool operator==(sem::Tblfm::Expr::Call const& other) const;
+      bool operator==(sem::Tblfm::Expr::Elisp const& other) const;
     };
 
     struct Assign {

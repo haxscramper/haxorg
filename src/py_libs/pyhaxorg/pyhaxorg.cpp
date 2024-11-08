@@ -215,7 +215,7 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("value", &sem::Tblfm::Expr::Elisp::value)
     .def("operator==",
-         static_cast<bool(sem::Tblfm::Expr::Elisp::*)(sem::Tblfm::Expr::Call const&) const>(&sem::Tblfm::Expr::Elisp::operator==),
+         static_cast<bool(sem::Tblfm::Expr::Elisp::*)(sem::Tblfm::Expr::Elisp const&) const>(&sem::Tblfm::Expr::Elisp::operator==),
          pybind11::arg("other"))
     .def("__repr__", [](sem::Tblfm::Expr::Elisp _self) -> std::string {
                      return py_repr_impl(_self);
