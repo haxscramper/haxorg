@@ -12,6 +12,139 @@
 #include <haxorg/sem/SemOrgBase.hpp>
 #include <haxorg/sem/SemOrgEnums.hpp>
 namespace sem{
+struct Tblfm {
+  struct Expr {
+    struct AxisRef {
+      BOOST_DESCRIBE_CLASS(AxisRef,
+                           (),
+                           (),
+                           (),
+                           (colIndex, rowIndex, colFromTop, rowFromTop))
+      Opt<int> colIndex = std::nullopt;
+      Opt<int> rowIndex = std::nullopt;
+      bool colFromTop = true;
+      bool rowFromTop = true;
+      bool operator==(sem::Tblfm::Expr::AxisRef const& other) const;
+    };
+
+    struct RangeRef {
+      BOOST_DESCRIBE_CLASS(RangeRef,
+                           (),
+                           (),
+                           (),
+                           (first, last))
+      Opt<sem::Tblfm::Expr::AxisRef> first = std::nullopt;
+      Opt<sem::Tblfm::Expr::AxisRef> last = std::nullopt;
+      bool operator==(sem::Tblfm::Expr::RangeRef const& other) const;
+    };
+
+    struct Call {
+      BOOST_DESCRIBE_CLASS(Call,
+                           (),
+                           (),
+                           (),
+                           (name, args))
+      Str name = "";
+      Vec<sem::Tblfm::Expr> args = {};
+      bool operator==(sem::Tblfm::Expr::Call const& other) const;
+    };
+
+    struct Elisp {
+      BOOST_DESCRIBE_CLASS(Elisp,
+                           (),
+                           (),
+                           (),
+                           (value))
+      Str value = "";
+      bool operator==(sem::Tblfm::Expr::Call const& other) const;
+    };
+
+    struct Assign {
+      /// \brief Flags for table format expression cell formulas
+      enum class Flag : short int {
+        /// \brief Left-align the result
+        CellLeftAlign,
+        /// \brief Right-align the result
+        CellRightAlign,
+        /// \brief Center-align the result
+        CellCenterAlign,
+        /// \brief Convert result to number/currency format
+        CellNumber,
+        /// \brief Use exponential notation for numbers
+        CellExponential,
+        /// \brief Use floating point format
+        CellFloating,
+        /// \brief Unformat values before calculating
+        CellUnformat,
+        /// \brief Convert result to text
+        CellText,
+        /// \brief Display boolean values as t/nil
+        CellBool,
+        /// \brief Fixed format with specified decimal places (e.g., ;D2)
+        CellDecimal,
+        /// \brief Percentage format
+        CellPercentage,
+        /// \brief Convert to hours/minutes (HH:MM)
+        CellHours,
+        /// \brief Display zero as empty cell
+        CellZero,
+        /// \brief Mark field as invalid if conversion fails
+        CellMarkInvalid,
+        /// \brief Quote field contents
+        CellQuote,
+      };
+      BOOST_DESCRIBE_NESTED_ENUM(Flag, CellLeftAlign, CellRightAlign, CellCenterAlign, CellNumber, CellExponential, CellFloating, CellUnformat, CellText, CellBool, CellDecimal, CellPercentage, CellHours, CellZero, CellMarkInvalid, CellQuote)
+      BOOST_DESCRIBE_CLASS(Assign,
+                           (),
+                           (),
+                           (),
+                           (target, expr, flags))
+      sem::Tblfm::Expr::AxisRef target;
+      Vec<sem::Tblfm::Expr> expr = {};
+      Vec<sem::Tblfm::Expr::Assign::Flag> flags = {};
+      bool operator==(sem::Tblfm::Expr::Assign const& other) const;
+    };
+
+    using Data = std::variant<sem::Tblfm::Expr::AxisRef, sem::Tblfm::Expr::RangeRef, sem::Tblfm::Expr::Call, sem::Tblfm::Expr::Elisp, sem::Tblfm::Expr::Assign>;
+    enum class Kind : short int { AxisRef, RangeRef, Call, Elisp, Assign, };
+    BOOST_DESCRIBE_NESTED_ENUM(Kind, AxisRef, RangeRef, Call, Elisp, Assign)
+    using variant_enum_type = sem::Tblfm::Expr::Kind;
+    using variant_data_type = sem::Tblfm::Expr::Data;
+    BOOST_DESCRIBE_CLASS(Expr,
+                         (),
+                         (),
+                         (),
+                         (data))
+    sem::Tblfm::Expr::Data data;
+    bool operator==(sem::Tblfm::Expr const& other) const;
+    bool isAxisRef() const { return getKind() == Kind::AxisRef; }
+    sem::Tblfm::Expr::AxisRef const& getAxisRef() const { return std::get<0>(data); }
+    sem::Tblfm::Expr::AxisRef& getAxisRef() { return std::get<0>(data); }
+    bool isRangeRef() const { return getKind() == Kind::RangeRef; }
+    sem::Tblfm::Expr::RangeRef const& getRangeRef() const { return std::get<1>(data); }
+    sem::Tblfm::Expr::RangeRef& getRangeRef() { return std::get<1>(data); }
+    bool isCall() const { return getKind() == Kind::Call; }
+    sem::Tblfm::Expr::Call const& getCall() const { return std::get<2>(data); }
+    sem::Tblfm::Expr::Call& getCall() { return std::get<2>(data); }
+    bool isElisp() const { return getKind() == Kind::Elisp; }
+    sem::Tblfm::Expr::Elisp const& getElisp() const { return std::get<3>(data); }
+    sem::Tblfm::Expr::Elisp& getElisp() { return std::get<3>(data); }
+    bool isAssign() const { return getKind() == Kind::Assign; }
+    sem::Tblfm::Expr::Assign const& getAssign() const { return std::get<4>(data); }
+    sem::Tblfm::Expr::Assign& getAssign() { return std::get<4>(data); }
+    static sem::Tblfm::Expr::Kind getKind(sem::Tblfm::Expr::Data const& __input) { return static_cast<sem::Tblfm::Expr::Kind>(__input.index()); }
+    sem::Tblfm::Expr::Kind getKind() const { return getKind(data); }
+  };
+
+  BOOST_DESCRIBE_CLASS(Tblfm,
+                       (),
+                       (),
+                       (),
+                       (exprs))
+  Vec<sem::Tblfm::Expr> exprs = {};
+  bool operator==(sem::Tblfm const& other) const;
+};
+
 struct AttrValue {
   BOOST_DESCRIBE_CLASS(AttrValue,
                        (),
@@ -1053,8 +1186,9 @@ struct CmdTblfm : public sem::Cmd {
                        (Cmd),
                        (),
                        (),
-                       (staticKind))
+                       (staticKind, expr))
   static OrgSemKind const staticKind;
+  sem::Tblfm expr;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdTblfm; }
 };
 

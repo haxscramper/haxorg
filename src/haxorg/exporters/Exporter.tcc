@@ -1,5 +1,44 @@
 /* clang-format off */
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::Tblfm const& object) { __obj_field(res, object, exprs); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::Tblfm::Expr::Data const& object) { visitVariants(res, sem::Tblfm::Expr::getKind(object), object); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::Tblfm::Expr const& object) { __obj_field(res, object, data); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::Tblfm::Expr::AxisRef const& object) {
+  __obj_field(res, object, colIndex);
+  __obj_field(res, object, rowIndex);
+  __obj_field(res, object, colFromTop);
+  __obj_field(res, object, rowFromTop);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::Tblfm::Expr::RangeRef const& object) {
+  __obj_field(res, object, first);
+  __obj_field(res, object, last);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::Tblfm::Expr::Call const& object) {
+  __obj_field(res, object, name);
+  __obj_field(res, object, args);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::Tblfm::Expr::Elisp const& object) { __obj_field(res, object, value); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::Tblfm::Expr::Assign const& object) {
+  __obj_field(res, object, target);
+  __obj_field(res, object, expr);
+  __obj_field(res, object, flags);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::AttrValue const& object) {
   __obj_field(res, object, name);
   __obj_field(res, object, varname);
@@ -364,6 +403,7 @@ void Exporter<V, R>::visitCmdResults(R& res, In<sem::CmdResults> object) {
 template <typename V, typename R>
 void Exporter<V, R>::visitCmdTblfm(R& res, In<sem::CmdTblfm> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
+  __org_field(res, object, expr);
   __org_field(res, object, attrs);
   __org_field(res, object, attached);
   __org_field(res, object, subnodes);

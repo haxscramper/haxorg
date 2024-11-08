@@ -1164,6 +1164,13 @@ TEST(OrgApi, WordParsing) {
     }
 }
 
+TEST(OrgApi, TblfmExpression) {
+    {
+        auto t = parseOne<sem::CmdTblfm>(
+            R"(#+TBLFM: $6=vsum($P1..$P3)::$7=10*$Tot/$max;%.1f::$at=vmean(@-II..@-I);%.1f)");
+    }
+}
+
 TEST(SimpleNodeConversion, LCSCompile) {
     Vec<int> first{1, 2, 3};
     Vec<int> second{1, 2, 3};

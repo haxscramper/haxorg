@@ -341,8 +341,10 @@ struct ImmCmdTblfm : public org::ImmCmd {
                        (ImmCmd),
                        (),
                        (),
-                       (staticKind))
+                       (staticKind,
+                        expr))
   static OrgSemKind const staticKind;
+  sem::Tblfm expr;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdTblfm; }
   bool operator==(org::ImmCmdTblfm const& other) const;
 };

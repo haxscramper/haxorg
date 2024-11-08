@@ -7,6 +7,10 @@
 #include "pyhaxorg_manual_impl.hpp"
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Org>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Org>>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::Tblfm::Expr>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::Tblfm::Expr>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::Tblfm::Expr::Assign::Flag>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::Tblfm::Expr::Assign::Flag>)
 PYBIND11_MAKE_OPAQUE(std::vector<Str>)
 PYBIND11_MAKE_OPAQUE(Vec<Str>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::BlockCodeLine::Part>)
@@ -61,6 +65,8 @@ PYBIND11_MAKE_OPAQUE(Vec<SequenceSegmentGroup>)
 PYBIND11_MODULE(pyhaxorg, m) {
   PyTypeRegistryGuard type_registry_guard{};
   bind_vector<sem::SemId<sem::Org>>(m, "VecOfSemIdOfOrg", type_registry_guard);
+  bind_vector<sem::Tblfm::Expr>(m, "VecOfTblfmExpr", type_registry_guard);
+  bind_vector<sem::Tblfm::Expr::Assign::Flag>(m, "VecOfTblfmExprAssignFlag", type_registry_guard);
   bind_vector<Str>(m, "VecOfStr", type_registry_guard);
   bind_vector<sem::BlockCodeLine::Part>(m, "VecOfBlockCodeLinePart", type_registry_guard);
   bind_vector<int>(m, "VecOfint", type_registry_guard);
@@ -135,6 +141,196 @@ node can have subnodes.)RAW")
                      })
     .def("__getattr__",
          [](LineCol _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::Tblfm::Expr::AxisRef>(m, "TblfmExprAxisRef")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Tblfm::Expr::AxisRef {
+                        sem::Tblfm::Expr::AxisRef result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("colIndex", &sem::Tblfm::Expr::AxisRef::colIndex)
+    .def_readwrite("rowIndex", &sem::Tblfm::Expr::AxisRef::rowIndex)
+    .def_readwrite("colFromTop", &sem::Tblfm::Expr::AxisRef::colFromTop)
+    .def_readwrite("rowFromTop", &sem::Tblfm::Expr::AxisRef::rowFromTop)
+    .def("operator==",
+         static_cast<bool(sem::Tblfm::Expr::AxisRef::*)(sem::Tblfm::Expr::AxisRef const&) const>(&sem::Tblfm::Expr::AxisRef::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::Tblfm::Expr::AxisRef _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Tblfm::Expr::AxisRef _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::Tblfm::Expr::RangeRef>(m, "TblfmExprRangeRef")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Tblfm::Expr::RangeRef {
+                        sem::Tblfm::Expr::RangeRef result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("first", &sem::Tblfm::Expr::RangeRef::first)
+    .def_readwrite("last", &sem::Tblfm::Expr::RangeRef::last)
+    .def("operator==",
+         static_cast<bool(sem::Tblfm::Expr::RangeRef::*)(sem::Tblfm::Expr::RangeRef const&) const>(&sem::Tblfm::Expr::RangeRef::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::Tblfm::Expr::RangeRef _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Tblfm::Expr::RangeRef _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::Tblfm::Expr::Call>(m, "TblfmExprCall")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Tblfm::Expr::Call {
+                        sem::Tblfm::Expr::Call result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("name", &sem::Tblfm::Expr::Call::name)
+    .def_readwrite("args", &sem::Tblfm::Expr::Call::args)
+    .def("operator==",
+         static_cast<bool(sem::Tblfm::Expr::Call::*)(sem::Tblfm::Expr::Call const&) const>(&sem::Tblfm::Expr::Call::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::Tblfm::Expr::Call _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Tblfm::Expr::Call _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::Tblfm::Expr::Elisp>(m, "TblfmExprElisp")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Tblfm::Expr::Elisp {
+                        sem::Tblfm::Expr::Elisp result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("value", &sem::Tblfm::Expr::Elisp::value)
+    .def("operator==",
+         static_cast<bool(sem::Tblfm::Expr::Elisp::*)(sem::Tblfm::Expr::Call const&) const>(&sem::Tblfm::Expr::Elisp::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::Tblfm::Expr::Elisp _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Tblfm::Expr::Elisp _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<sem::Tblfm::Expr::Assign::Flag>(m, "TblfmExprAssignFlag", type_registry_guard);
+  pybind11::enum_<sem::Tblfm::Expr::Assign::Flag>(m, "TblfmExprAssignFlag")
+    .value("CellLeftAlign", sem::Tblfm::Expr::Assign::Flag::CellLeftAlign, R"RAW(Left-align the result)RAW")
+    .value("CellRightAlign", sem::Tblfm::Expr::Assign::Flag::CellRightAlign, R"RAW(Right-align the result)RAW")
+    .value("CellCenterAlign", sem::Tblfm::Expr::Assign::Flag::CellCenterAlign, R"RAW(Center-align the result)RAW")
+    .value("CellNumber", sem::Tblfm::Expr::Assign::Flag::CellNumber, R"RAW(Convert result to number/currency format)RAW")
+    .value("CellExponential", sem::Tblfm::Expr::Assign::Flag::CellExponential, R"RAW(Use exponential notation for numbers)RAW")
+    .value("CellFloating", sem::Tblfm::Expr::Assign::Flag::CellFloating, R"RAW(Use floating point format)RAW")
+    .value("CellUnformat", sem::Tblfm::Expr::Assign::Flag::CellUnformat, R"RAW(Unformat values before calculating)RAW")
+    .value("CellText", sem::Tblfm::Expr::Assign::Flag::CellText, R"RAW(Convert result to text)RAW")
+    .value("CellBool", sem::Tblfm::Expr::Assign::Flag::CellBool, R"RAW(Display boolean values as t/nil)RAW")
+    .value("CellDecimal", sem::Tblfm::Expr::Assign::Flag::CellDecimal, R"RAW(Fixed format with specified decimal places (e.g., ;D2))RAW")
+    .value("CellPercentage", sem::Tblfm::Expr::Assign::Flag::CellPercentage, R"RAW(Percentage format)RAW")
+    .value("CellHours", sem::Tblfm::Expr::Assign::Flag::CellHours, R"RAW(Convert to hours/minutes (HH:MM))RAW")
+    .value("CellZero", sem::Tblfm::Expr::Assign::Flag::CellZero, R"RAW(Display zero as empty cell)RAW")
+    .value("CellMarkInvalid", sem::Tblfm::Expr::Assign::Flag::CellMarkInvalid, R"RAW(Mark field as invalid if conversion fails)RAW")
+    .value("CellQuote", sem::Tblfm::Expr::Assign::Flag::CellQuote, R"RAW(Quote field contents)RAW")
+    .def("__iter__", [](sem::Tblfm::Expr::Assign::Flag _self) -> PyEnumIterator<sem::Tblfm::Expr::Assign::Flag> {
+                     return
+                     PyEnumIterator<sem::Tblfm::Expr::Assign::Flag>
+                     ();
+                     })
+    ;
+  pybind11::class_<sem::Tblfm::Expr::Assign>(m, "TblfmExprAssign")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Tblfm::Expr::Assign {
+                        sem::Tblfm::Expr::Assign result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("target", &sem::Tblfm::Expr::Assign::target)
+    .def_readwrite("expr", &sem::Tblfm::Expr::Assign::expr)
+    .def_readwrite("flags", &sem::Tblfm::Expr::Assign::flags)
+    .def("operator==",
+         static_cast<bool(sem::Tblfm::Expr::Assign::*)(sem::Tblfm::Expr::Assign const&) const>(&sem::Tblfm::Expr::Assign::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::Tblfm::Expr::Assign _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Tblfm::Expr::Assign _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<sem::Tblfm::Expr::Kind>(m, "TblfmExprKind", type_registry_guard);
+  pybind11::enum_<sem::Tblfm::Expr::Kind>(m, "TblfmExprKind")
+    .value("AxisRef", sem::Tblfm::Expr::Kind::AxisRef)
+    .value("RangeRef", sem::Tblfm::Expr::Kind::RangeRef)
+    .value("Call", sem::Tblfm::Expr::Kind::Call)
+    .value("Elisp", sem::Tblfm::Expr::Kind::Elisp)
+    .value("Assign", sem::Tblfm::Expr::Kind::Assign)
+    .def("__iter__", [](sem::Tblfm::Expr::Kind _self) -> PyEnumIterator<sem::Tblfm::Expr::Kind> {
+                     return
+                     PyEnumIterator<sem::Tblfm::Expr::Kind>
+                     ();
+                     })
+    ;
+  pybind11::class_<sem::Tblfm::Expr>(m, "TblfmExpr")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Tblfm::Expr {
+                        sem::Tblfm::Expr result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("data", &sem::Tblfm::Expr::data)
+    .def("operator==",
+         static_cast<bool(sem::Tblfm::Expr::*)(sem::Tblfm::Expr const&) const>(&sem::Tblfm::Expr::operator==),
+         pybind11::arg("other"))
+    .def("isAxisRef", static_cast<bool(sem::Tblfm::Expr::*)() const>(&sem::Tblfm::Expr::isAxisRef))
+    .def("getAxisRef", static_cast<sem::Tblfm::Expr::AxisRef&(sem::Tblfm::Expr::*)()>(&sem::Tblfm::Expr::getAxisRef))
+    .def("isRangeRef", static_cast<bool(sem::Tblfm::Expr::*)() const>(&sem::Tblfm::Expr::isRangeRef))
+    .def("getRangeRef", static_cast<sem::Tblfm::Expr::RangeRef&(sem::Tblfm::Expr::*)()>(&sem::Tblfm::Expr::getRangeRef))
+    .def("isCall", static_cast<bool(sem::Tblfm::Expr::*)() const>(&sem::Tblfm::Expr::isCall))
+    .def("getCall", static_cast<sem::Tblfm::Expr::Call&(sem::Tblfm::Expr::*)()>(&sem::Tblfm::Expr::getCall))
+    .def("isElisp", static_cast<bool(sem::Tblfm::Expr::*)() const>(&sem::Tblfm::Expr::isElisp))
+    .def("getElisp", static_cast<sem::Tblfm::Expr::Elisp&(sem::Tblfm::Expr::*)()>(&sem::Tblfm::Expr::getElisp))
+    .def("isAssign", static_cast<bool(sem::Tblfm::Expr::*)() const>(&sem::Tblfm::Expr::isAssign))
+    .def("getAssign", static_cast<sem::Tblfm::Expr::Assign&(sem::Tblfm::Expr::*)()>(&sem::Tblfm::Expr::getAssign))
+    .def_static("getKindStatic",
+                static_cast<sem::Tblfm::Expr::Kind(*)(sem::Tblfm::Expr::Data const&)>(&sem::Tblfm::Expr::getKind),
+                pybind11::arg("__input"))
+    .def("getKind", static_cast<sem::Tblfm::Expr::Kind(sem::Tblfm::Expr::*)() const>(&sem::Tblfm::Expr::getKind))
+    .def("__repr__", [](sem::Tblfm::Expr _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Tblfm::Expr _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::Tblfm>(m, "Tblfm")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Tblfm {
+                        sem::Tblfm result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("exprs", &sem::Tblfm::exprs)
+    .def("operator==",
+         static_cast<bool(sem::Tblfm::*)(sem::Tblfm const&) const>(&sem::Tblfm::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::Tblfm _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Tblfm _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -1770,6 +1966,7 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def_readwrite("expr", &sem::CmdTblfm::expr)
     .def_readwrite("attrs", &sem::CmdTblfm::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("attached", &sem::CmdTblfm::attached)
     .def("getAttrs",

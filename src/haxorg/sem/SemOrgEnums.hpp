@@ -4,6 +4,12 @@
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #define EACH_SHARED_ORG_RECORD_NESTED(__IMPL) \
+    __IMPL(Tblfm, Expr, (Expr)) \
+    __IMPL(Tblfm, Expr::AxisRef, (Expr, AxisRef)) \
+    __IMPL(Tblfm, Expr::RangeRef, (Expr, RangeRef)) \
+    __IMPL(Tblfm, Expr::Call, (Expr, Call)) \
+    __IMPL(Tblfm, Expr::Elisp, (Expr, Elisp)) \
+    __IMPL(Tblfm, Expr::Assign, (Expr, Assign)) \
     __IMPL(BlockCodeLine, Part, (Part)) \
     __IMPL(BlockCodeLine, Part::Raw, (Part, Raw)) \
     __IMPL(BlockCodeLine, Part::Callout, (Part, Callout)) \
@@ -42,6 +48,8 @@
     __IMPL(NamedProperty, CustomArgs, (CustomArgs)) \
     __IMPL(NamedProperty, CustomRaw, (CustomRaw))
 #define EACH_SHARED_ORG_ENUM_NESTED(__IMPL) \
+    __IMPL(Tblfm, Expr::Assign::Flag, (Expr, Assign, Flag)) \
+    __IMPL(Tblfm, Expr::Kind, (Expr, Kind)) \
     __IMPL(BlockCodeLine, Part::Kind, (Part, Kind)) \
     __IMPL(BlockCodeSwitch, Kind, (Kind)) \
     __IMPL(BlockCodeEvalResult, Kind, (Kind)) \
@@ -55,6 +63,13 @@
     __IMPL(NamedProperty, Visibility::Level, (Visibility, Level)) \
     __IMPL(NamedProperty, Kind, (Kind))
 #define EACH_SHARED_ORG_RECORD(__IMPL) \
+    __IMPL(Tblfm, (Tblfm)) \
+    __IMPL(Tblfm::Expr, (Tblfm, Expr)) \
+    __IMPL(Tblfm::Expr::AxisRef, (Tblfm, Expr, AxisRef)) \
+    __IMPL(Tblfm::Expr::RangeRef, (Tblfm, Expr, RangeRef)) \
+    __IMPL(Tblfm::Expr::Call, (Tblfm, Expr, Call)) \
+    __IMPL(Tblfm::Expr::Elisp, (Tblfm, Expr, Elisp)) \
+    __IMPL(Tblfm::Expr::Assign, (Tblfm, Expr, Assign)) \
     __IMPL(AttrValue, (AttrValue)) \
     __IMPL(SubtreePath, (SubtreePath)) \
     __IMPL(BlockCodeLine, (BlockCodeLine)) \

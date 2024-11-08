@@ -1,4 +1,12 @@
 /* clang-format off */
+void visit(R& res, sem::Tblfm const& object);
+void visit(R& res, sem::Tblfm::Expr::Data const& object);
+void visit(R& res, sem::Tblfm::Expr const& object);
+void visit(R& res, sem::Tblfm::Expr::AxisRef const& object);
+void visit(R& res, sem::Tblfm::Expr::RangeRef const& object);
+void visit(R& res, sem::Tblfm::Expr::Call const& object);
+void visit(R& res, sem::Tblfm::Expr::Elisp const& object);
+void visit(R& res, sem::Tblfm::Expr::Assign const& object);
 void visit(R& res, sem::AttrValue const& object);
 void visit(R& res, sem::SubtreePath const& object);
 void visit(R& res, sem::BlockCodeLine const& object);

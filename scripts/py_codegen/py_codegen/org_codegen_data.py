@@ -730,11 +730,10 @@ def get_sem_commands():
             GenTuDoc(""),
             bases=[t_org("Attached")],
         ),
-        d_org(
-            "CmdTblfm",
-            GenTuDoc("Tblfm command type"),
-            bases=[t_org("Cmd")],
-        ),
+        d_org("CmdTblfm",
+              GenTuDoc("Tblfm command type"),
+              bases=[t_org("Cmd")],
+              fields=[org_field(t_nest_shared("Tblfm"), "expr")]),
     ]
 
 
@@ -1458,7 +1457,121 @@ def get_shared_sem_enums() -> Sequence[GenTuEnum]:
 
 
 def get_shared_sem_types() -> Sequence[GenTuStruct]:
+    cell_format_enum = GenTuEnum(
+        t_nest_shared("Flag", ["Tblfm", "Expr", "Assign"]),
+        org_doc("Flags for table format expression cell formulas"),
+        fields=[
+            efield("CellLeftAlign", "Left-align the result"),
+            efield("CellRightAlign", "Right-align the result"),
+            efield("CellCenterAlign", "Center-align the result"),
+            efield("CellNumber", "Convert result to number/currency format"),
+            efield("CellExponential", "Use exponential notation for numbers"),
+            efield("CellFloating", "Use floating point format"),
+            efield("CellUnformat", "Unformat values before calculating"),
+            efield("CellText", "Convert result to text"),
+            efield("CellBool", "Display boolean values as t/nil"),
+            efield("CellDecimal",
+                   "Fixed format with specified decimal places (e.g., ;D2)"),
+            efield("CellPercentage", "Percentage format"),
+            efield("CellHours", "Convert to hours/minutes (HH:MM)"),
+            efield("CellZero", "Display zero as empty cell"),
+            efield("CellMarkInvalid", "Mark field as invalid if conversion fails"),
+            efield("CellQuote", "Quote field contents"),
+        ])
+
     return [
+        GenTuStruct(
+            t_nest_shared("Tblfm"),
+            fields=[
+                vec_field(t_nest_shared("Expr", ["Tblfm"]), "exprs"),
+            ],
+            nested=[
+                GenTuStruct(
+                    t_nest_shared("Expr", ["Tblfm"]),
+                    nested=[
+                        GenTuTypeGroup(
+                            [
+                                GenTuStruct(
+                                    t_nest_shared("AxisRef", ["Tblfm", "Expr"]),
+                                    fields=[
+                                        opt_field(t_int(), "colIndex"),
+                                        opt_field(t_int(), "rowIndex"),
+                                        bool_field("colFromTop", default="true"),
+                                        bool_field("rowFromTop", default="true"),
+                                    ],
+                                    methods=[
+                                        eq_method(
+                                            t_nest_shared("AxisRef", ["Tblfm", "Expr"])),
+                                    ],
+                                ),
+                                GenTuStruct(
+                                    t_nest_shared("RangeRef", ["Tblfm", "Expr"]),
+                                    fields=[
+                                        opt_field(
+                                            t_nest_shared("AxisRef", ["Tblfm", "Expr"]),
+                                            "first"),
+                                        opt_field(
+                                            t_nest_shared("AxisRef", ["Tblfm", "Expr"]),
+                                            "last"),
+                                    ],
+                                    methods=[
+                                        eq_method(
+                                            t_nest_shared("RangeRef", ["Tblfm", "Expr"])),
+                                    ],
+                                ),
+                                GenTuStruct(
+                                    t_nest_shared("Call", ["Tblfm", "Expr"]),
+                                    fields=[
+                                        str_field("name"),
+                                        vec_field(t_nest_shared("Expr", ["Tblfm"]),
+                                                  "args"),
+                                    ],
+                                    methods=[
+                                        eq_method(t_nest_shared(
+                                            "Call", ["Tblfm", "Expr"])),
+                                    ],
+                                ),
+                                GenTuStruct(
+                                    t_nest_shared("Elisp", ["Tblfm", "Expr"]),
+                                    fields=[
+                                        str_field("value"),
+                                    ],
+                                    methods=[
+                                        eq_method(t_nest_shared(
+                                            "Call", ["Tblfm", "Expr"])),
+                                    ],
+                                ),
+                                GenTuStruct(
+                                    t_nest_shared("Assign", ["Tblfm", "Expr"]),
+                                    nested=[cell_format_enum],
+                                    fields=[
+                                        org_field(
+                                            t_nest_shared("AxisRef", ["Tblfm", "Expr"]),
+                                            "target"),
+                                        vec_field(t_nest_shared("Expr", ["Tblfm"]),
+                                                  "expr"),
+                                        vec_field(
+                                            t_nest_shared("Flag",
+                                                          ["Tblfm", "Expr", "Assign"]),
+                                            "flags"),
+                                    ],
+                                    methods=[
+                                        eq_method(
+                                            t_nest_shared("Assign", ["Tblfm", "Expr"])),
+                                    ]),
+                            ],
+                            enumName=t_nest_shared("Kind", ["Tblfm", "Expr"]),
+                            variantName=t_nest_shared("Data", ["Tblfm", "Expr"]),
+                        )
+                    ],
+                    methods=[
+                        eq_method(t_nest_shared("Expr", ["Tblfm"])),
+                    ],
+                )
+            ],
+            methods=[
+                eq_method(t_nest_shared("Tblfm")),
+            ]),
         GenTuStruct(
             t_nest_shared("AttrValue"),
             fields=[

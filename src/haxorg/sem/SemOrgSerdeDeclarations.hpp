@@ -73,6 +73,55 @@
         __MAP(kDocumentgroup, documentgroup, DocumentGroup)  \
 
 template <>
+struct proto_serde<::orgproto::Tblfm::Expr::AxisRef, sem::Tblfm::Expr::AxisRef> {
+  static void write(::orgproto::Tblfm::Expr::AxisRef* out, sem::Tblfm::Expr::AxisRef const& in);
+  static void read(::orgproto::Tblfm::Expr::AxisRef const& out, proto_write_accessor<sem::Tblfm::Expr::AxisRef> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::Tblfm::Expr::RangeRef, sem::Tblfm::Expr::RangeRef> {
+  static void write(::orgproto::Tblfm::Expr::RangeRef* out, sem::Tblfm::Expr::RangeRef const& in);
+  static void read(::orgproto::Tblfm::Expr::RangeRef const& out, proto_write_accessor<sem::Tblfm::Expr::RangeRef> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::Tblfm::Expr::Call, sem::Tblfm::Expr::Call> {
+  static void write(::orgproto::Tblfm::Expr::Call* out, sem::Tblfm::Expr::Call const& in);
+  static void read(::orgproto::Tblfm::Expr::Call const& out, proto_write_accessor<sem::Tblfm::Expr::Call> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::Tblfm::Expr::Elisp, sem::Tblfm::Expr::Elisp> {
+  static void write(::orgproto::Tblfm::Expr::Elisp* out, sem::Tblfm::Expr::Elisp const& in);
+  static void read(::orgproto::Tblfm::Expr::Elisp const& out, proto_write_accessor<sem::Tblfm::Expr::Elisp> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::Tblfm::Expr::Assign, sem::Tblfm::Expr::Assign> {
+  static void write(::orgproto::Tblfm::Expr::Assign* out, sem::Tblfm::Expr::Assign const& in);
+  static void read(::orgproto::Tblfm::Expr::Assign const& out, proto_write_accessor<sem::Tblfm::Expr::Assign> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::Tblfm::Expr, sem::Tblfm::Expr> {
+  static void write(::orgproto::Tblfm::Expr* out, sem::Tblfm::Expr const& in);
+  static void read(::orgproto::Tblfm::Expr const& out, proto_write_accessor<sem::Tblfm::Expr> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::Tblfm, sem::Tblfm> {
+  static void write(::orgproto::Tblfm* out, sem::Tblfm const& in);
+  static void read(::orgproto::Tblfm const& out, proto_write_accessor<sem::Tblfm> in);
+};
+
+
+template <>
 struct proto_serde<::orgproto::AttrValue, sem::AttrValue> {
   static void write(::orgproto::AttrValue* out, sem::AttrValue const& in);
   static void read(::orgproto::AttrValue const& out, proto_write_accessor<sem::AttrValue> in);

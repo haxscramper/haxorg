@@ -259,6 +259,7 @@ template <>
 struct ImmSemSerde<sem::CmdTblfm, org::ImmCmdTblfm> {
   static org::ImmCmdTblfm to_immer(sem::CmdTblfm const& value, ImmAstEditContext& ctx) {
     org::ImmCmdTblfm result = SerdeDefaultProvider<org::ImmCmdTblfm>::get();
+    assign_immer_field(result.expr, value.expr, ctx);
     assign_immer_field(result.attrs, value.attrs, ctx);
     assign_immer_field(result.attached, value.attached, ctx);
     assign_immer_field(result.subnodes, value.subnodes, ctx);
@@ -266,6 +267,7 @@ struct ImmSemSerde<sem::CmdTblfm, org::ImmCmdTblfm> {
   }
   static sem::CmdTblfm from_immer(org::ImmCmdTblfm const& value, ImmAstContext const& ctx) {
     sem::CmdTblfm result = SerdeDefaultProvider<sem::CmdTblfm>::get();
+    assign_sem_field(result.expr, value.expr, ctx);
     assign_sem_field(result.attrs, value.attrs, ctx);
     assign_sem_field(result.attached, value.attached, ctx);
     assign_sem_field(result.subnodes, value.subnodes, ctx);

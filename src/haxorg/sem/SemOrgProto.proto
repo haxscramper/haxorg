@@ -295,6 +295,75 @@ enum OrgSemKind {
   OrgSemKind_DocumentGroup_f                                                        = 68;
 }
 
+message Tblfm {
+  message Expr {
+    message AxisRef {
+      optional int32                               colIndex                         = 1;
+      optional int32                               rowIndex                         = 2;
+      bool                                         colFromTop                       = 3;
+      bool                                         rowFromTop                       = 4;
+      string                                       debug                            = 1000;
+    }
+    message RangeRef {
+      optional Tblfm.Expr.AxisRef                  first                            = 1;
+      optional Tblfm.Expr.AxisRef                  last                             = 2;
+      string                                       debug                            = 1000;
+    }
+    message Call {
+      string                                       name                             = 1;
+      repeated Tblfm.Expr                          args                             = 2;
+      string                                       debug                            = 1000;
+    }
+    message Elisp {
+      string                                       value                            = 1;
+      string                                       debug                            = 1000;
+    }
+    message Assign {
+      enum Flag {
+        Flag_CellLeftAlign_f                                                        = 0;
+        Flag_CellRightAlign_f                                                       = 1;
+        Flag_CellCenterAlign_f                                                      = 2;
+        Flag_CellNumber_f                                                           = 3;
+        Flag_CellExponential_f                                                      = 4;
+        Flag_CellFloating_f                                                         = 5;
+        Flag_CellUnformat_f                                                         = 6;
+        Flag_CellText_f                                                             = 7;
+        Flag_CellBool_f                                                             = 8;
+        Flag_CellDecimal_f                                                          = 9;
+        Flag_CellPercentage_f                                                       = 10;
+        Flag_CellHours_f                                                            = 11;
+        Flag_CellZero_f                                                             = 12;
+        Flag_CellMarkInvalid_f                                                      = 13;
+        Flag_CellQuote_f                                                            = 14;
+      }
+      Tblfm.Expr.AxisRef                           target                           = 1;
+      repeated Tblfm.Expr                          expr                             = 2;
+      repeated Tblfm.Expr.Assign.Flag              flags                            = 3;
+      string                                       debug                            = 1000;
+    }
+    message Data {
+      oneof kind {
+        Tblfm.Expr.AxisRef                         axisref                          = 1;
+        Tblfm.Expr.RangeRef                        rangeref                         = 2;
+        Tblfm.Expr.Call                            call                             = 3;
+        Tblfm.Expr.Elisp                           elisp                            = 4;
+        Tblfm.Expr.Assign                          assign                           = 5;
+      }
+    }
+    enum Kind {
+      Kind_AxisRef_f                                                                = 0;
+      Kind_RangeRef_f                                                               = 1;
+      Kind_Call_f                                                                   = 2;
+      Kind_Elisp_f                                                                  = 3;
+      Kind_Assign_f                                                                 = 4;
+    }
+    Tblfm.Expr.Data                                data                             = 1;
+    string                                         debug                            = 1000;
+  }
+  repeated Tblfm.Expr                              exprs                            = 1;
+  string                                           debug                            = 1000;
+}
+
 message AttrValue {
   optional string                                  name                             = 1;
   optional string                                  varname                          = 2;
@@ -811,6 +880,7 @@ message CmdTblfm {
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
+  Tblfm                                            expr                             = 5;
   string                                           debug                            = 1000;
 }
 
