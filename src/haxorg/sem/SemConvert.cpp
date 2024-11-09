@@ -1006,9 +1006,10 @@ struct axis_spec {
 };
 
 struct axis_name {
-    using type    = sem::Tblfm::Expr::AxisRef::Position::Name;
-    sc_char name  = "axis_name";
-    sc auto rule  = dsl::identifier(dsl::ascii::alpha);
+    using type   = sem::Tblfm::Expr::AxisRef::Position::Name;
+    sc_char name = "axis_name";
+    sc auto rule = dsl::identifier(
+        dsl::ascii::alpha_digit_underscore / dsl::lit_c<'-'>);
     sc auto value = lexy::callback<type>(
         [](lexy::string_lexeme<> const& name) {
             type res;
@@ -1080,13 +1081,23 @@ struct call {
 };
 
 struct expr {
-    sc_char name  = "expr";
-    using type    = sem::Tblfm::Expr;
-    sc auto rule  = dsl::ascii::character >> dsl::p<call>;
-    sc auto value = lexy::callback<type>([](call::type const& c) {
-        type res;
-        res.data = c;
-        return res;
+    sc_char name = "expr";
+    using type   = sem::Tblfm::Expr;
+    sc auto rule = (dsl::peek(dsl::ascii::alpha) >> dsl::p<call>)
+                 | (dsl::peek(dsl::lit_c<'$'> | dsl::lit_c<'@'>)
+                    >> dsl::p<axis_ref>);
+
+    sc auto value = lexy::callback<type>(overloaded{
+        [](call::type const& c) {
+            type res;
+            res.data = c;
+            return res;
+        },
+        [](axis_ref::type const& c) {
+            type res;
+            res.data = c;
+            return res;
+        },
     });
 };
 
