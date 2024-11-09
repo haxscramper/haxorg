@@ -1458,7 +1458,7 @@ def get_shared_sem_enums() -> Sequence[GenTuEnum]:
 
 def get_shared_sem_types() -> Sequence[GenTuStruct]:
     cell_format_enum = GenTuEnum(
-        t_nest_shared("Flag", ["Tblfm", "Expr", "Assign"]),
+        t_nest_shared("Flag", ["Tblfm", "Assign"]),
         org_doc("Flags for table format expression cell formulas"),
         fields=[
             efield("CellLeftAlign", "Left-align the result"),
@@ -1483,7 +1483,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
         GenTuStruct(
             t_nest_shared("Tblfm"),
             fields=[
-                vec_field(t_nest_shared("Expr", ["Tblfm"]), "exprs"),
+                vec_field(t_nest_shared("Assign", ["Tblfm"]), "exprs"),
             ],
             nested=[
                 GenTuStruct(
@@ -1537,27 +1537,10 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                                         str_field("value"),
                                     ],
                                     methods=[
-                                        eq_method(t_nest_shared("Elisp", ["Tblfm", "Expr"])),
+                                        eq_method(
+                                            t_nest_shared("Elisp", ["Tblfm", "Expr"])),
                                     ],
                                 ),
-                                GenTuStruct(
-                                    t_nest_shared("Assign", ["Tblfm", "Expr"]),
-                                    nested=[cell_format_enum],
-                                    fields=[
-                                        org_field(
-                                            t_nest_shared("AxisRef", ["Tblfm", "Expr"]),
-                                            "target"),
-                                        vec_field(t_nest_shared("Expr", ["Tblfm"]),
-                                                  "expr"),
-                                        vec_field(
-                                            t_nest_shared("Flag",
-                                                          ["Tblfm", "Expr", "Assign"]),
-                                            "flags"),
-                                    ],
-                                    methods=[
-                                        eq_method(
-                                            t_nest_shared("Assign", ["Tblfm", "Expr"])),
-                                    ]),
                             ],
                             enumName=t_nest_shared("Kind", ["Tblfm", "Expr"]),
                             variantName=t_nest_shared("Data", ["Tblfm", "Expr"]),
@@ -1566,7 +1549,19 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     methods=[
                         eq_method(t_nest_shared("Expr", ["Tblfm"])),
                     ],
-                )
+                ),
+                GenTuStruct(t_nest_shared("Assign", ["Tblfm"]),
+                            nested=[cell_format_enum],
+                            fields=[
+                                org_field(t_nest_shared("AxisRef", ["Tblfm", "Expr"]),
+                                          "target"),
+                                vec_field(t_nest_shared("Expr", ["Tblfm"]), "expr"),
+                                vec_field(t_nest_shared("Flag", ["Tblfm", "Assign"]),
+                                          "flags"),
+                            ],
+                            methods=[
+                                eq_method(t_nest_shared("Assign", ["Tblfm"])),
+                            ]),
             ],
             methods=[
                 eq_method(t_nest_shared("Tblfm")),

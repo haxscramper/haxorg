@@ -180,10 +180,10 @@ struct proto_serde<Opt<Proto>, Opt<T>> {
 
 template <>
 struct proto_serde<
-    gpb::RepeatedPtrField<orgproto::Tblfm_Expr_Assign_Flag>,
-    Vec<sem::Tblfm::Expr::Assign::Flag>> {
-    using Proto = orgproto::Tblfm_Expr_Assign_Flag;
-    using T     = sem::Tblfm::Expr::Assign::Flag;
+    gpb::RepeatedPtrField<orgproto::Tblfm_Assign_Flag>,
+    Vec<sem::Tblfm::Assign::Flag>> {
+    using Proto = orgproto::Tblfm_Assign_Flag;
+    using T     = sem::Tblfm::Assign::Flag;
     static void write(
         gpb::RepeatedPtrField<Proto>* out,
         Vec<T> const&                 in) {

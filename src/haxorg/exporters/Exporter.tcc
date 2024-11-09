@@ -32,7 +32,7 @@ template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::Tblfm::Expr::Elisp const& object) { __obj_field(res, object, value); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Tblfm::Expr::Assign const& object) {
+void Exporter<V, R>::visit(R& res, sem::Tblfm::Assign const& object) {
   __obj_field(res, object, target);
   __obj_field(res, object, expr);
   __obj_field(res, object, flags);

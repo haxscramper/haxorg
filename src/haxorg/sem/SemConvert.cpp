@@ -967,9 +967,12 @@ namespace dsl = lexy::dsl;
 
 namespace tblfmt_grammar {
 
+#define sc static constexpr
+#define sc_char static constexpr const char*
+
 struct axis_direction {
-    static constexpr const char* name = "axis_direction";
-    static constexpr auto        rule //
+    sc_char name = "axis_direction";
+    sc auto rule //
         = (dsl::peek(dsl::lit_c<'>'>)
            >> dsl::capture(dsl::token(dsl::while_one(dsl::lit_c<'>'>))))
         | (dsl::peek(dsl::lit_c<'<'>)
@@ -977,23 +980,23 @@ struct axis_direction {
         //
         ;
 
-    static constexpr auto value = lexy::as_string<std::string>;
+    sc auto value = lexy::as_string<std::string>;
 };
 
 struct axis_spec {
-    static constexpr const char* name = "axis_spec";
-    static constexpr auto        rule =          //
+    using type   = Pair<int, bool>;
+    sc_char name = "axis_spec";
+    sc auto rule =                               //
         (dsl::ascii::alnum >> dsl::integer<int>) //
         +dsl::opt(dsl::p<axis_direction>);
 
-    using type = Pair<int, bool>;
 
     static type impl(int position, Opt<std::string> const& convert) {
         axis_spec::type result;
         return result;
     }
 
-    static constexpr auto value = lexy::callback<axis_spec::type>(
+    sc auto value = lexy::callback<axis_spec::type>(
         [](int position, std::string const& base) {
             return impl(position, base);
         },
@@ -1003,13 +1006,12 @@ struct axis_spec {
 };
 
 struct axis_ref {
-    static constexpr const char* name = "axis_ref";
-    static constexpr auto        rule //
+    sc_char name = "axis_ref";
+    sc auto rule //
         = dsl::opt(dsl::lit_c<'$'> >> dsl::p<axis_spec>)
         + dsl::opt(dsl::lit_c<'@'> >> dsl::p<axis_spec>);
 
-    static constexpr auto value = lexy::callback<
-        sem::Tblfm::Expr::AxisRef>(
+    sc auto value = lexy::callback<sem::Tblfm::Expr::AxisRef>(
         [](std::optional<axis_spec::type> colIndex,
            std::optional<axis_spec::type> rowIndex) {
             sem::Tblfm::Expr::AxisRef ref;
@@ -1017,10 +1019,35 @@ struct axis_ref {
         });
 };
 
-struct assign {};
+struct expr;
+
+struct call {
+    sc_char name = "call";
+    sc auto rule                                              //
+        = dsl::identifier(dsl::ascii::character)              //
+        + dsl::lit_c<'('>                                     //
+        + dsl::list(dsl::recurse<expr>, dsl::sep(dsl::comma)) //
+        + dsl::lit_c<'c'>;
+
+    sc auto value = lexy::callback<sem::Tblfm::Expr::Call>([]() {});
+};
+
+struct expr {
+    sc_char name  = "expr";
+    sc auto rule  = dsl::ascii::character >> dsl::p<call>;
+    sc auto value = lexy::callback<sem::Tblfm::Expr>([]() {});
+};
+
+struct assign {
+    sc_char name  = "assign";
+    sc auto rule  = dsl::p<axis_spec> + dsl::lit_c<'='> + dsl::p<expr>;
+    sc auto value = lexy::callback<sem::Tblfm::Assign>([]() {});
+};
 
 struct tblfmt {
-    static constexpr auto value = lexy::as_list<std::vector<assign>>;
+    sc_char name  = "tblfmt";
+    sc auto rule  = dsl::list(dsl::p<assign>, dsl::sep(LEXY_LIT("::")));
+    sc auto value = lexy::as_list<std::vector<sem::Tblfm::Assign>>;
 };
 
 }; // namespace tblfmt_grammar
@@ -1031,7 +1058,8 @@ OrgConverter::ConvResult<CmdTblfm> OrgConverter::convertCmdTblfm(__args) {
     auto res     = Sem<CmdTblfm>(a);
 
 
-    Str fmt = "$12<"; // get_text(one(a, N::Values));
+    Str fmt = get_text(one(a, N::Values));
+    print(fmt);
 
     std::string        str;
     lexy::string_input input{fmt.data(), fmt.data() + fmt.size()};
@@ -1040,18 +1068,19 @@ OrgConverter::ConvResult<CmdTblfm> OrgConverter::convertCmdTblfm(__args) {
     opts.flags = lexy::visualize_use_unicode | lexy::visualize_use_symbols
                | lexy::visualize_space;
 
-    auto trace = lexy::trace_to<tblfmt_grammar::axis_ref>(
+    auto trace = lexy::trace_to<tblfmt_grammar::tblfmt>(
         std::back_insert_iterator(str),
         lexy::zstring_input(input.data()),
         opts);
 
     print(str);
 
-    auto result = lexy::parse<tblfmt_grammar::axis_ref>(
+    auto result = lexy::parse<tblfmt_grammar::tblfmt>(
         lexy::string_input{fmt.data(), fmt.data() + fmt.size()},
         lexy_ext::report_error);
 
-    print(fmt);
+
+    res->expr = result.value();
 
     return res;
 }

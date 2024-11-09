@@ -9,8 +9,10 @@ PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Org>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Org>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::Tblfm::Expr>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Tblfm::Expr>)
-PYBIND11_MAKE_OPAQUE(std::vector<sem::Tblfm::Expr::Assign::Flag>)
-PYBIND11_MAKE_OPAQUE(Vec<sem::Tblfm::Expr::Assign::Flag>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::Tblfm::Assign::Flag>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::Tblfm::Assign::Flag>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::Tblfm::Assign>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::Tblfm::Assign>)
 PYBIND11_MAKE_OPAQUE(std::vector<Str>)
 PYBIND11_MAKE_OPAQUE(Vec<Str>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::BlockCodeLine::Part>)
@@ -66,7 +68,8 @@ PYBIND11_MODULE(pyhaxorg, m) {
   PyTypeRegistryGuard type_registry_guard{};
   bind_vector<sem::SemId<sem::Org>>(m, "VecOfSemIdOfOrg", type_registry_guard);
   bind_vector<sem::Tblfm::Expr>(m, "VecOfTblfmExpr", type_registry_guard);
-  bind_vector<sem::Tblfm::Expr::Assign::Flag>(m, "VecOfTblfmExprAssignFlag", type_registry_guard);
+  bind_vector<sem::Tblfm::Assign::Flag>(m, "VecOfTblfmAssignFlag", type_registry_guard);
+  bind_vector<sem::Tblfm::Assign>(m, "VecOfTblfmAssign", type_registry_guard);
   bind_vector<Str>(m, "VecOfStr", type_registry_guard);
   bind_vector<sem::BlockCodeLine::Part>(m, "VecOfBlockCodeLinePart", type_registry_guard);
   bind_vector<int>(m, "VecOfint", type_registry_guard);
@@ -226,57 +229,12 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  bind_enum_iterator<sem::Tblfm::Expr::Assign::Flag>(m, "TblfmExprAssignFlag", type_registry_guard);
-  pybind11::enum_<sem::Tblfm::Expr::Assign::Flag>(m, "TblfmExprAssignFlag")
-    .value("CellLeftAlign", sem::Tblfm::Expr::Assign::Flag::CellLeftAlign, R"RAW(Left-align the result)RAW")
-    .value("CellRightAlign", sem::Tblfm::Expr::Assign::Flag::CellRightAlign, R"RAW(Right-align the result)RAW")
-    .value("CellCenterAlign", sem::Tblfm::Expr::Assign::Flag::CellCenterAlign, R"RAW(Center-align the result)RAW")
-    .value("CellNumber", sem::Tblfm::Expr::Assign::Flag::CellNumber, R"RAW(Convert result to number/currency format)RAW")
-    .value("CellExponential", sem::Tblfm::Expr::Assign::Flag::CellExponential, R"RAW(Use exponential notation for numbers)RAW")
-    .value("CellFloating", sem::Tblfm::Expr::Assign::Flag::CellFloating, R"RAW(Use floating point format)RAW")
-    .value("CellUnformat", sem::Tblfm::Expr::Assign::Flag::CellUnformat, R"RAW(Unformat values before calculating)RAW")
-    .value("CellText", sem::Tblfm::Expr::Assign::Flag::CellText, R"RAW(Convert result to text)RAW")
-    .value("CellBool", sem::Tblfm::Expr::Assign::Flag::CellBool, R"RAW(Display boolean values as t/nil)RAW")
-    .value("CellDecimal", sem::Tblfm::Expr::Assign::Flag::CellDecimal, R"RAW(Fixed format with specified decimal places (e.g., ;D2))RAW")
-    .value("CellPercentage", sem::Tblfm::Expr::Assign::Flag::CellPercentage, R"RAW(Percentage format)RAW")
-    .value("CellHours", sem::Tblfm::Expr::Assign::Flag::CellHours, R"RAW(Convert to hours/minutes (HH:MM))RAW")
-    .value("CellZero", sem::Tblfm::Expr::Assign::Flag::CellZero, R"RAW(Display zero as empty cell)RAW")
-    .value("CellMarkInvalid", sem::Tblfm::Expr::Assign::Flag::CellMarkInvalid, R"RAW(Mark field as invalid if conversion fails)RAW")
-    .value("CellQuote", sem::Tblfm::Expr::Assign::Flag::CellQuote, R"RAW(Quote field contents)RAW")
-    .def("__iter__", [](sem::Tblfm::Expr::Assign::Flag _self) -> PyEnumIterator<sem::Tblfm::Expr::Assign::Flag> {
-                     return
-                     PyEnumIterator<sem::Tblfm::Expr::Assign::Flag>
-                     ();
-                     })
-    ;
-  pybind11::class_<sem::Tblfm::Expr::Assign>(m, "TblfmExprAssign")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Tblfm::Expr::Assign {
-                        sem::Tblfm::Expr::Assign result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("target", &sem::Tblfm::Expr::Assign::target)
-    .def_readwrite("expr", &sem::Tblfm::Expr::Assign::expr)
-    .def_readwrite("flags", &sem::Tblfm::Expr::Assign::flags)
-    .def("operator==",
-         static_cast<bool(sem::Tblfm::Expr::Assign::*)(sem::Tblfm::Expr::Assign const&) const>(&sem::Tblfm::Expr::Assign::operator==),
-         pybind11::arg("other"))
-    .def("__repr__", [](sem::Tblfm::Expr::Assign _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Tblfm::Expr::Assign _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
   bind_enum_iterator<sem::Tblfm::Expr::Kind>(m, "TblfmExprKind", type_registry_guard);
   pybind11::enum_<sem::Tblfm::Expr::Kind>(m, "TblfmExprKind")
     .value("AxisRef", sem::Tblfm::Expr::Kind::AxisRef)
     .value("RangeRef", sem::Tblfm::Expr::Kind::RangeRef)
     .value("Call", sem::Tblfm::Expr::Kind::Call)
     .value("Elisp", sem::Tblfm::Expr::Kind::Elisp)
-    .value("Assign", sem::Tblfm::Expr::Kind::Assign)
     .def("__iter__", [](sem::Tblfm::Expr::Kind _self) -> PyEnumIterator<sem::Tblfm::Expr::Kind> {
                      return
                      PyEnumIterator<sem::Tblfm::Expr::Kind>
@@ -301,8 +259,6 @@ node can have subnodes.)RAW")
     .def("getCall", static_cast<sem::Tblfm::Expr::Call&(sem::Tblfm::Expr::*)()>(&sem::Tblfm::Expr::getCall))
     .def("isElisp", static_cast<bool(sem::Tblfm::Expr::*)() const>(&sem::Tblfm::Expr::isElisp))
     .def("getElisp", static_cast<sem::Tblfm::Expr::Elisp&(sem::Tblfm::Expr::*)()>(&sem::Tblfm::Expr::getElisp))
-    .def("isAssign", static_cast<bool(sem::Tblfm::Expr::*)() const>(&sem::Tblfm::Expr::isAssign))
-    .def("getAssign", static_cast<sem::Tblfm::Expr::Assign&(sem::Tblfm::Expr::*)()>(&sem::Tblfm::Expr::getAssign))
     .def_static("getKindStatic",
                 static_cast<sem::Tblfm::Expr::Kind(*)(sem::Tblfm::Expr::Data const&)>(&sem::Tblfm::Expr::getKind),
                 pybind11::arg("__input"))
@@ -312,6 +268,50 @@ node can have subnodes.)RAW")
                      })
     .def("__getattr__",
          [](sem::Tblfm::Expr _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<sem::Tblfm::Assign::Flag>(m, "TblfmAssignFlag", type_registry_guard);
+  pybind11::enum_<sem::Tblfm::Assign::Flag>(m, "TblfmAssignFlag")
+    .value("CellLeftAlign", sem::Tblfm::Assign::Flag::CellLeftAlign, R"RAW(Left-align the result)RAW")
+    .value("CellRightAlign", sem::Tblfm::Assign::Flag::CellRightAlign, R"RAW(Right-align the result)RAW")
+    .value("CellCenterAlign", sem::Tblfm::Assign::Flag::CellCenterAlign, R"RAW(Center-align the result)RAW")
+    .value("CellNumber", sem::Tblfm::Assign::Flag::CellNumber, R"RAW(Convert result to number/currency format)RAW")
+    .value("CellExponential", sem::Tblfm::Assign::Flag::CellExponential, R"RAW(Use exponential notation for numbers)RAW")
+    .value("CellFloating", sem::Tblfm::Assign::Flag::CellFloating, R"RAW(Use floating point format)RAW")
+    .value("CellUnformat", sem::Tblfm::Assign::Flag::CellUnformat, R"RAW(Unformat values before calculating)RAW")
+    .value("CellText", sem::Tblfm::Assign::Flag::CellText, R"RAW(Convert result to text)RAW")
+    .value("CellBool", sem::Tblfm::Assign::Flag::CellBool, R"RAW(Display boolean values as t/nil)RAW")
+    .value("CellDecimal", sem::Tblfm::Assign::Flag::CellDecimal, R"RAW(Fixed format with specified decimal places (e.g., ;D2))RAW")
+    .value("CellPercentage", sem::Tblfm::Assign::Flag::CellPercentage, R"RAW(Percentage format)RAW")
+    .value("CellHours", sem::Tblfm::Assign::Flag::CellHours, R"RAW(Convert to hours/minutes (HH:MM))RAW")
+    .value("CellZero", sem::Tblfm::Assign::Flag::CellZero, R"RAW(Display zero as empty cell)RAW")
+    .value("CellMarkInvalid", sem::Tblfm::Assign::Flag::CellMarkInvalid, R"RAW(Mark field as invalid if conversion fails)RAW")
+    .value("CellQuote", sem::Tblfm::Assign::Flag::CellQuote, R"RAW(Quote field contents)RAW")
+    .def("__iter__", [](sem::Tblfm::Assign::Flag _self) -> PyEnumIterator<sem::Tblfm::Assign::Flag> {
+                     return
+                     PyEnumIterator<sem::Tblfm::Assign::Flag>
+                     ();
+                     })
+    ;
+  pybind11::class_<sem::Tblfm::Assign>(m, "TblfmAssign")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Tblfm::Assign {
+                        sem::Tblfm::Assign result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("target", &sem::Tblfm::Assign::target)
+    .def_readwrite("expr", &sem::Tblfm::Assign::expr)
+    .def_readwrite("flags", &sem::Tblfm::Assign::flags)
+    .def("operator==",
+         static_cast<bool(sem::Tblfm::Assign::*)(sem::Tblfm::Assign const&) const>(&sem::Tblfm::Assign::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::Tblfm::Assign _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Tblfm::Assign _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))

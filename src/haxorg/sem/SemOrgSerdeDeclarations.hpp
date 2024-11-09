@@ -101,16 +101,16 @@ struct proto_serde<::orgproto::Tblfm::Expr::Elisp, sem::Tblfm::Expr::Elisp> {
 
 
 template <>
-struct proto_serde<::orgproto::Tblfm::Expr::Assign, sem::Tblfm::Expr::Assign> {
-  static void write(::orgproto::Tblfm::Expr::Assign* out, sem::Tblfm::Expr::Assign const& in);
-  static void read(::orgproto::Tblfm::Expr::Assign const& out, proto_write_accessor<sem::Tblfm::Expr::Assign> in);
+struct proto_serde<::orgproto::Tblfm::Expr, sem::Tblfm::Expr> {
+  static void write(::orgproto::Tblfm::Expr* out, sem::Tblfm::Expr const& in);
+  static void read(::orgproto::Tblfm::Expr const& out, proto_write_accessor<sem::Tblfm::Expr> in);
 };
 
 
 template <>
-struct proto_serde<::orgproto::Tblfm::Expr, sem::Tblfm::Expr> {
-  static void write(::orgproto::Tblfm::Expr* out, sem::Tblfm::Expr const& in);
-  static void read(::orgproto::Tblfm::Expr const& out, proto_write_accessor<sem::Tblfm::Expr> in);
+struct proto_serde<::orgproto::Tblfm::Assign, sem::Tblfm::Assign> {
+  static void write(::orgproto::Tblfm::Assign* out, sem::Tblfm::Assign const& in);
+  static void read(::orgproto::Tblfm::Assign const& out, proto_write_accessor<sem::Tblfm::Assign> in);
 };
 
 

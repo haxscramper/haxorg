@@ -59,18 +59,6 @@ void proto_serde<::orgproto::Tblfm::Expr::Elisp, sem::Tblfm::Expr::Elisp>::read(
   proto_serde<std::string, Str>::read(out.value(), in.for_field(&sem::Tblfm::Expr::Elisp::value));
 }
 
-void proto_serde<::orgproto::Tblfm::Expr::Assign, sem::Tblfm::Expr::Assign>::write(::orgproto::Tblfm::Expr::Assign* out, sem::Tblfm::Expr::Assign const& in) {
-  proto_serde<orgproto::Tblfm::Expr::AxisRef, sem::Tblfm::Expr::AxisRef>::write(out->mutable_target(), in.target);
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Tblfm::Expr>, Vec<sem::Tblfm::Expr>>::write(out->mutable_expr(), in.expr);
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Tblfm_Expr_Assign_Flag>, Vec<sem::Tblfm::Expr::Assign::Flag>>::write(out->mutable_flags(), in.flags);
-}
-
-void proto_serde<::orgproto::Tblfm::Expr::Assign, sem::Tblfm::Expr::Assign>::read(::orgproto::Tblfm::Expr::Assign const& out, proto_write_accessor<sem::Tblfm::Expr::Assign> in) {
-  proto_serde<orgproto::Tblfm::Expr::AxisRef, sem::Tblfm::Expr::AxisRef>::read(out.target(), in.for_field(&sem::Tblfm::Expr::Assign::target));
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Tblfm::Expr>, Vec<sem::Tblfm::Expr>>::read(out.expr(), in.for_field(&sem::Tblfm::Expr::Assign::expr));
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Tblfm_Expr_Assign_Flag>, Vec<sem::Tblfm::Expr::Assign::Flag>>::read(out.flags(), in.for_field(&sem::Tblfm::Expr::Assign::flags));
-}
-
 void proto_serde<::orgproto::Tblfm::Expr, sem::Tblfm::Expr>::write(::orgproto::Tblfm::Expr* out, sem::Tblfm::Expr const& in) {
   switch (in.data.index()) {
     case 0:
@@ -84,9 +72,6 @@ void proto_serde<::orgproto::Tblfm::Expr, sem::Tblfm::Expr>::write(::orgproto::T
       break;
     case 3:
       proto_serde<orgproto::Tblfm::Expr::Elisp, sem::Tblfm::Expr::Elisp>::write(out->mutable_data()->mutable_elisp(), std::get<3>(in.data));
-      break;
-    case 4:
-      proto_serde<orgproto::Tblfm::Expr::Assign, sem::Tblfm::Expr::Assign>::write(out->mutable_data()->mutable_assign(), std::get<4>(in.data));
       break;
   }
 }
@@ -105,18 +90,27 @@ void proto_serde<::orgproto::Tblfm::Expr, sem::Tblfm::Expr>::read(::orgproto::Tb
     case ::orgproto::Tblfm::Expr::Data::kElisp:
       proto_serde<orgproto::Tblfm::Expr::Elisp, sem::Tblfm::Expr::Elisp>::read(out.data().elisp(), in.for_field_variant<3>(&sem::Tblfm::Expr::data));
       break;
-    case ::orgproto::Tblfm::Expr::Data::kAssign:
-      proto_serde<orgproto::Tblfm::Expr::Assign, sem::Tblfm::Expr::Assign>::read(out.data().assign(), in.for_field_variant<4>(&sem::Tblfm::Expr::data));
-      break;
   }
 }
 
+void proto_serde<::orgproto::Tblfm::Assign, sem::Tblfm::Assign>::write(::orgproto::Tblfm::Assign* out, sem::Tblfm::Assign const& in) {
+  proto_serde<orgproto::Tblfm::Expr::AxisRef, sem::Tblfm::Expr::AxisRef>::write(out->mutable_target(), in.target);
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Tblfm::Expr>, Vec<sem::Tblfm::Expr>>::write(out->mutable_expr(), in.expr);
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Tblfm_Assign_Flag>, Vec<sem::Tblfm::Assign::Flag>>::write(out->mutable_flags(), in.flags);
+}
+
+void proto_serde<::orgproto::Tblfm::Assign, sem::Tblfm::Assign>::read(::orgproto::Tblfm::Assign const& out, proto_write_accessor<sem::Tblfm::Assign> in) {
+  proto_serde<orgproto::Tblfm::Expr::AxisRef, sem::Tblfm::Expr::AxisRef>::read(out.target(), in.for_field(&sem::Tblfm::Assign::target));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Tblfm::Expr>, Vec<sem::Tblfm::Expr>>::read(out.expr(), in.for_field(&sem::Tblfm::Assign::expr));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Tblfm_Assign_Flag>, Vec<sem::Tblfm::Assign::Flag>>::read(out.flags(), in.for_field(&sem::Tblfm::Assign::flags));
+}
+
 void proto_serde<::orgproto::Tblfm, sem::Tblfm>::write(::orgproto::Tblfm* out, sem::Tblfm const& in) {
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Tblfm::Expr>, Vec<sem::Tblfm::Expr>>::write(out->mutable_exprs(), in.exprs);
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Tblfm::Assign>, Vec<sem::Tblfm::Assign>>::write(out->mutable_exprs(), in.exprs);
 }
 
 void proto_serde<::orgproto::Tblfm, sem::Tblfm>::read(::orgproto::Tblfm const& out, proto_write_accessor<sem::Tblfm> in) {
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Tblfm::Expr>, Vec<sem::Tblfm::Expr>>::read(out.exprs(), in.for_field(&sem::Tblfm::exprs));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Tblfm::Assign>, Vec<sem::Tblfm::Assign>>::read(out.exprs(), in.for_field(&sem::Tblfm::exprs));
 }
 
 void proto_serde<::orgproto::AttrValue, sem::AttrValue>::write(::orgproto::AttrValue* out, sem::AttrValue const& in) {

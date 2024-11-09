@@ -59,55 +59,9 @@ struct Tblfm {
       bool operator==(sem::Tblfm::Expr::Elisp const& other) const;
     };
 
-    struct Assign {
-      /// \brief Flags for table format expression cell formulas
-      enum class Flag : short int {
-        /// \brief Left-align the result
-        CellLeftAlign,
-        /// \brief Right-align the result
-        CellRightAlign,
-        /// \brief Center-align the result
-        CellCenterAlign,
-        /// \brief Convert result to number/currency format
-        CellNumber,
-        /// \brief Use exponential notation for numbers
-        CellExponential,
-        /// \brief Use floating point format
-        CellFloating,
-        /// \brief Unformat values before calculating
-        CellUnformat,
-        /// \brief Convert result to text
-        CellText,
-        /// \brief Display boolean values as t/nil
-        CellBool,
-        /// \brief Fixed format with specified decimal places (e.g., ;D2)
-        CellDecimal,
-        /// \brief Percentage format
-        CellPercentage,
-        /// \brief Convert to hours/minutes (HH:MM)
-        CellHours,
-        /// \brief Display zero as empty cell
-        CellZero,
-        /// \brief Mark field as invalid if conversion fails
-        CellMarkInvalid,
-        /// \brief Quote field contents
-        CellQuote,
-      };
-      BOOST_DESCRIBE_NESTED_ENUM(Flag, CellLeftAlign, CellRightAlign, CellCenterAlign, CellNumber, CellExponential, CellFloating, CellUnformat, CellText, CellBool, CellDecimal, CellPercentage, CellHours, CellZero, CellMarkInvalid, CellQuote)
-      BOOST_DESCRIBE_CLASS(Assign,
-                           (),
-                           (),
-                           (),
-                           (target, expr, flags))
-      sem::Tblfm::Expr::AxisRef target;
-      Vec<sem::Tblfm::Expr> expr = {};
-      Vec<sem::Tblfm::Expr::Assign::Flag> flags = {};
-      bool operator==(sem::Tblfm::Expr::Assign const& other) const;
-    };
-
-    using Data = std::variant<sem::Tblfm::Expr::AxisRef, sem::Tblfm::Expr::RangeRef, sem::Tblfm::Expr::Call, sem::Tblfm::Expr::Elisp, sem::Tblfm::Expr::Assign>;
-    enum class Kind : short int { AxisRef, RangeRef, Call, Elisp, Assign, };
-    BOOST_DESCRIBE_NESTED_ENUM(Kind, AxisRef, RangeRef, Call, Elisp, Assign)
+    using Data = std::variant<sem::Tblfm::Expr::AxisRef, sem::Tblfm::Expr::RangeRef, sem::Tblfm::Expr::Call, sem::Tblfm::Expr::Elisp>;
+    enum class Kind : short int { AxisRef, RangeRef, Call, Elisp, };
+    BOOST_DESCRIBE_NESTED_ENUM(Kind, AxisRef, RangeRef, Call, Elisp)
     using variant_enum_type = sem::Tblfm::Expr::Kind;
     using variant_data_type = sem::Tblfm::Expr::Data;
     BOOST_DESCRIBE_CLASS(Expr,
@@ -129,11 +83,54 @@ struct Tblfm {
     bool isElisp() const { return getKind() == Kind::Elisp; }
     sem::Tblfm::Expr::Elisp const& getElisp() const { return std::get<3>(data); }
     sem::Tblfm::Expr::Elisp& getElisp() { return std::get<3>(data); }
-    bool isAssign() const { return getKind() == Kind::Assign; }
-    sem::Tblfm::Expr::Assign const& getAssign() const { return std::get<4>(data); }
-    sem::Tblfm::Expr::Assign& getAssign() { return std::get<4>(data); }
     static sem::Tblfm::Expr::Kind getKind(sem::Tblfm::Expr::Data const& __input) { return static_cast<sem::Tblfm::Expr::Kind>(__input.index()); }
     sem::Tblfm::Expr::Kind getKind() const { return getKind(data); }
+  };
+
+  struct Assign {
+    /// \brief Flags for table format expression cell formulas
+    enum class Flag : short int {
+      /// \brief Left-align the result
+      CellLeftAlign,
+      /// \brief Right-align the result
+      CellRightAlign,
+      /// \brief Center-align the result
+      CellCenterAlign,
+      /// \brief Convert result to number/currency format
+      CellNumber,
+      /// \brief Use exponential notation for numbers
+      CellExponential,
+      /// \brief Use floating point format
+      CellFloating,
+      /// \brief Unformat values before calculating
+      CellUnformat,
+      /// \brief Convert result to text
+      CellText,
+      /// \brief Display boolean values as t/nil
+      CellBool,
+      /// \brief Fixed format with specified decimal places (e.g., ;D2)
+      CellDecimal,
+      /// \brief Percentage format
+      CellPercentage,
+      /// \brief Convert to hours/minutes (HH:MM)
+      CellHours,
+      /// \brief Display zero as empty cell
+      CellZero,
+      /// \brief Mark field as invalid if conversion fails
+      CellMarkInvalid,
+      /// \brief Quote field contents
+      CellQuote,
+    };
+    BOOST_DESCRIBE_NESTED_ENUM(Flag, CellLeftAlign, CellRightAlign, CellCenterAlign, CellNumber, CellExponential, CellFloating, CellUnformat, CellText, CellBool, CellDecimal, CellPercentage, CellHours, CellZero, CellMarkInvalid, CellQuote)
+    BOOST_DESCRIBE_CLASS(Assign,
+                         (),
+                         (),
+                         (),
+                         (target, expr, flags))
+    sem::Tblfm::Expr::AxisRef target;
+    Vec<sem::Tblfm::Expr> expr = {};
+    Vec<sem::Tblfm::Assign::Flag> flags = {};
+    bool operator==(sem::Tblfm::Assign const& other) const;
   };
 
   BOOST_DESCRIBE_CLASS(Tblfm,
@@ -141,7 +138,7 @@ struct Tblfm {
                        (),
                        (),
                        (exprs))
-  Vec<sem::Tblfm::Expr> exprs = {};
+  Vec<sem::Tblfm::Assign> exprs = {};
   bool operator==(sem::Tblfm const& other) const;
 };
 
