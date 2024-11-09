@@ -986,8 +986,8 @@ struct axis_direction {
 struct axis_spec {
     using type   = Pair<int, bool>;
     sc_char name = "axis_spec";
-    sc auto rule =                               //
-        (dsl::ascii::alnum >> dsl::integer<int>) //
+    sc auto rule =                                          //
+        (dsl::peek(dsl::ascii::alnum) >> dsl::integer<int>) //
         +dsl::opt(dsl::p<axis_direction>);
 
 
@@ -1007,14 +1007,15 @@ struct axis_spec {
 
 struct axis_ref {
     sc_char name = "axis_ref";
+    using type   = sem::Tblfm::Expr::AxisRef;
     sc auto rule //
         = dsl::opt(dsl::lit_c<'$'> >> dsl::p<axis_spec>)
         + dsl::opt(dsl::lit_c<'@'> >> dsl::p<axis_spec>);
 
-    sc auto value = lexy::callback<sem::Tblfm::Expr::AxisRef>(
+    sc auto value = lexy::callback<type>(
         [](std::optional<axis_spec::type> colIndex,
            std::optional<axis_spec::type> rowIndex) {
-            sem::Tblfm::Expr::AxisRef ref;
+            type ref;
             return ref;
         });
 };
@@ -1031,10 +1032,10 @@ struct call_args {
 struct call {
     sc_char name = "call";
     using type   = sem::Tblfm::Expr::Call;
-    sc auto rule                                 //
-        = dsl::identifier(dsl::ascii::character) //
-        + dsl::lit_c<'('>                        //
-        + dsl::p<call_args>                      //
+    sc auto rule                             //
+        = dsl::identifier(dsl::ascii::alpha) //
+        + dsl::lit_c<'('>                    //
+        + dsl::p<call_args>                  //
         + dsl::lit_c<')'>;
 
     sc auto value = lexy::bind(
@@ -1063,9 +1064,9 @@ struct expr {
 struct assign {
     sc_char name  = "assign";
     using type    = sem::Tblfm::Assign;
-    sc auto rule  = dsl::p<axis_spec> + dsl::lit_c<'='> + dsl::p<expr>;
+    sc auto rule  = dsl::p<axis_ref> + dsl::lit_c<'='> + dsl::p<expr>;
     sc auto value = lexy::callback<type>(
-        [](axis_spec::type const& axis, expr::type const& expr) {
+        [](axis_ref::type const& axis, expr::type const& expr) {
             type res;
             // res.target = axis;
             // res.expr   = expr;
@@ -1138,7 +1139,9 @@ OrgConverter::ConvResult<CmdTblfm> OrgConverter::convertCmdTblfm(__args) {
         return res;
     } else {
         return SemError(
-            a, fmt("Table format expression failed {}", result.errors()));
+            a,
+            fmt("Table format expression failed\n{}",
+                join("\n", result.errors())));
     }
 }
 
