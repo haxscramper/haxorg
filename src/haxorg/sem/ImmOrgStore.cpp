@@ -201,7 +201,7 @@ ImmAstReplace setNewSubnodes(
                         [&](ImmBox<Opt<sem::BlockCodeEvalResult>> const&) { fail_field(); },
                         [&](ImmBox<sem::BlockCodeEvalResult> const&) { fail_field(); },
                         [&](ImmBox<sem::Tblfm> const&) { fail_field(); },
-                        [&](ImmBox<sem::Tblfm::Expr::Assign::Flag> const&) { fail_field(); },
+                        [&](ImmBox<sem::Tblfm::Assign::Flag> const&) { fail_field(); },
                         [&](ImmBox<Opt<Str>> const&) { fail_field(); },
                         [&](ImmBox<Str> const&) { fail_field(); },
                         [&](ImmVec<Str> const&) { fail_field(); },

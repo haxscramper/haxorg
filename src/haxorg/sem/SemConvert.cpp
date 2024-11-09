@@ -1021,27 +1021,56 @@ struct axis_ref {
 
 struct expr;
 
+struct call_args {
+    sc_char name  = "call_args";
+    using type    = std::vector<sem::Tblfm::Expr>;
+    sc auto rule  = dsl::list(dsl::recurse<expr>, dsl::sep(dsl::comma));
+    sc auto value = lexy::as_list<type>;
+};
+
 struct call {
     sc_char name = "call";
-    sc auto rule                                              //
-        = dsl::identifier(dsl::ascii::character)              //
-        + dsl::lit_c<'('>                                     //
-        + dsl::list(dsl::recurse<expr>, dsl::sep(dsl::comma)) //
-        + dsl::lit_c<'c'>;
+    using type   = sem::Tblfm::Expr::Call;
+    sc auto rule                                 //
+        = dsl::identifier(dsl::ascii::character) //
+        + dsl::lit_c<'('>                        //
+        + dsl::p<call_args>                      //
+        + dsl::lit_c<')'>;
 
-    sc auto value = lexy::callback<sem::Tblfm::Expr::Call>([]() {});
+    sc auto value = lexy::bind(
+        lexy::callback<type>([](lexy::string_lexeme<> const& name,
+                                call_args::type const&       args) {
+            type result;
+            result.name = Str{std::string{name.begin(), name.end()}};
+            result.args = Vec<sem::Tblfm::Expr>{args.begin(), args.end()};
+            return result;
+        }),
+        lexy::_1,
+        lexy::_2);
 };
 
 struct expr {
     sc_char name  = "expr";
+    using type    = sem::Tblfm::Expr;
     sc auto rule  = dsl::ascii::character >> dsl::p<call>;
-    sc auto value = lexy::callback<sem::Tblfm::Expr>([]() {});
+    sc auto value = lexy::callback<type>([](call::type const& c) {
+        type res;
+        res.data = c;
+        return res;
+    });
 };
 
 struct assign {
     sc_char name  = "assign";
+    using type    = sem::Tblfm::Assign;
     sc auto rule  = dsl::p<axis_spec> + dsl::lit_c<'='> + dsl::p<expr>;
-    sc auto value = lexy::callback<sem::Tblfm::Assign>([]() {});
+    sc auto value = lexy::callback<type>(
+        [](axis_spec::type const& axis, expr::type const& expr) {
+            type res;
+            // res.target = axis;
+            // res.expr   = expr;
+            return res;
+        });
 };
 
 struct tblfmt {
@@ -1080,7 +1109,9 @@ OrgConverter::ConvResult<CmdTblfm> OrgConverter::convertCmdTblfm(__args) {
         lexy_ext::report_error);
 
 
-    res->expr = result.value();
+    auto v = result.value();
+
+    res->expr.exprs = Vec<sem::Tblfm::Assign>{v.begin(), v.end()};
 
     return res;
 }
