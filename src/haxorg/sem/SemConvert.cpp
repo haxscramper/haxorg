@@ -976,8 +976,7 @@ struct axis_direction {
         = (dsl::peek(dsl::lit_c<'>'>)
            >> dsl::capture(dsl::token(dsl::while_one(dsl::lit_c<'>'>))))
         | (dsl::peek(dsl::lit_c<'<'>)
-           >> dsl::capture(dsl::token(dsl::while_one(dsl::lit_c<'<'>))))
-        //
+           >> dsl::capture(dsl::token(dsl::while_one(dsl::lit_c<'<'>)))) //
         ;
 
     sc auto value = lexy::as_string<std::string>;
@@ -986,30 +985,53 @@ struct axis_direction {
 struct axis_spec {
     using type   = sem::Tblfm::Expr::AxisRef::Position::Index;
     sc_char name = "axis_spec";
-    sc auto rule =                                          //
-        (dsl::peek(dsl::ascii::alnum) >> dsl::integer<int>) //
-        +dsl::opt(dsl::p<axis_direction>);
+    sc auto rule                                              //
+        = dsl::opt(dsl::capture(dsl::token(dsl::lit_c<'-'>))) //
+        + dsl::integer<int>                                   //
+        + dsl::opt(dsl::p<axis_direction>)                    //
+        ;
 
 
-    static type impl(int position, Opt<std::string> const& convert) {
+    static type impl(
+        Opt<std::string>        sign,
+        int                     position,
+        Opt<std::string> const& convert) {
         axis_spec::type result;
         return result;
     }
 
-    sc auto value = lexy::callback<axis_spec::type>(
-        [](int position, std::string const& base) {
-            return impl(position, base);
+    sc auto value = lexy::callback<axis_spec::type>(overloaded{
+        [](lexy::string_lexeme<> const& sgn,
+           int                          position,
+           std::string const&           base) {
+            return impl(
+                std::string{sgn.begin(), sgn.end()}, position, base);
         },
-        [](int position, lexy::nullopt const& base) {
-            return impl(position, std::nullopt);
-        });
+        [](lexy::string_lexeme<> const& sgn,
+           int                          position,
+           lexy::nullopt const&         base) {
+            return impl(
+                std::string{sgn.begin(), sgn.end()},
+                position,
+                std::nullopt);
+        },
+        [](lexy::nullopt const& sgb,
+           int                  position,
+           std::string const&   base) {
+            return impl(std::nullopt, position, base);
+        },
+        [](lexy::nullopt const& sgn,
+           int                  position,
+           lexy::nullopt const& base) {
+            return impl(std::nullopt, position, std::nullopt);
+        },
+    });
 };
 
 struct axis_name {
-    using type   = sem::Tblfm::Expr::AxisRef::Position::Name;
-    sc_char name = "axis_name";
-    sc auto rule = dsl::identifier(
-        dsl::ascii::alpha_digit_underscore / dsl::lit_c<'-'>);
+    using type    = sem::Tblfm::Expr::AxisRef::Position::Name;
+    sc_char name  = "axis_name";
+    sc auto rule  = dsl::identifier(dsl::ascii::alpha_digit_underscore);
     sc auto value = lexy::callback<type>(
         [](lexy::string_lexeme<> const& name) {
             type res;
@@ -1020,7 +1042,8 @@ struct axis_name {
 
 struct axis_pos {
     using type   = sem::Tblfm::Expr::AxisRef::Position;
-    sc auto rule = (dsl::peek(dsl::ascii::digit) >> dsl::p<axis_spec>)
+    sc auto rule = (dsl::peek(dsl::ascii::digit / dsl::lit_c<'-'>)
+                    >> dsl::p<axis_spec>)
                  | (dsl::peek(dsl::ascii::alpha) >> dsl::p<axis_name>);
     sc auto value = lexy::callback<type>(
         [](axis_spec::type const& t) {
@@ -1064,6 +1087,60 @@ struct axis_range {
 };
 
 struct expr;
+
+std::unordered_map<std::string, int> operator_precedence = {
+    {"+", 1},
+    {"-", 1},
+    {"*", 2},
+    {"/", 2}};
+
+sem::Tblfm::Expr fold_expression_stack(
+    std::vector<sem::Tblfm::Expr> const& exprs) {
+    std::stack<sem::Tblfm::Expr> output;
+    std::stack<std::string>      operators;
+
+    auto precedence = [](const std::string& op) {
+        return operator_precedence.contains(op) ? operator_precedence[op]
+                                                : -1;
+    };
+
+    auto apply_operator = [&]() {
+        sem::Tblfm::Expr::Call call;
+        call.name = operators.top();
+        operators.pop();
+        for (int i = 0; i < 2 && !output.empty(); ++i) {
+            call.args.push_back(std::move(output.top()));
+            output.pop();
+        }
+        std::reverse(call.args.begin(), call.args.end());
+        output.push(
+            sem::Tblfm::Expr{sem::Tblfm::Expr::Call{std::move(call)}});
+    };
+
+    for (auto const& expr : exprs) {
+        if (expr.isCall()) {
+            auto const& call = expr.getCall();
+            if (operator_precedence.contains(call.name)) {
+                while (!operators.empty()
+                       && precedence(operators.top())
+                              >= precedence(call.name)) {
+                    apply_operator();
+                }
+                operators.push(call.name);
+            } else {
+                output.push(
+                    sem::Tblfm::Expr{sem::Tblfm::Expr::Call{call}});
+            }
+        } else {
+            output.push(expr);
+        }
+    }
+
+    while (!operators.empty()) { apply_operator(); }
+
+    return output.top();
+}
+
 
 struct call_args {
     sc_char name  = "call_args";
@@ -1166,7 +1243,7 @@ struct assign_flag {
 
     sc auto value = lexy::callback<type>(
         [](lexy::string_lexeme<> const& op) {
-            type res;
+            type res = type::CellBool;
 
             return res;
         });
@@ -1185,6 +1262,8 @@ struct assign {
         axis_ref::type const&         axis,
         expr_list::type const&        expr,
         Opt<assign_flag::type> const& flag) {
+
+        sem::Tblfm::Expr fold = fold_expression_stack(expr);
 
         type res;
 
