@@ -333,7 +333,8 @@ struct StreamState {
 struct ColStream : public ColText {
     std::ostream* ostream = nullptr;
     bool          buffered;
-    bool          colored = true;
+    bool          colored  = true;
+    int           position = 0;
 
 
     CR<ColText> getBuffer() const {
@@ -360,6 +361,9 @@ struct ColStream : public ColText {
     void        flush();
     void        write(ColRune const& text);
     void        write(ColText const& text);
+    /// \brief Split text into lines, write first one without indentation,
+    /// write others with the indentation
+    void write_indented_after_first(Str const& text, int indent);
 };
 
 

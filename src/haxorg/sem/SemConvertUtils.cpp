@@ -116,6 +116,7 @@ void OrgConverter::report(CR<OrgConverter::Report> in) {
 
         os << to_json_eval(res).dump();
     } else {
+        int start_pos = os.position;
         os << repeat("  ", depth);
 
 
@@ -161,7 +162,12 @@ void OrgConverter::report(CR<OrgConverter::Report> in) {
             case ReportKind::Print: {
                 os << "  " << (in.function ? in.function : "")
                    << fmt(" @{}", in.line);
-                if (in.msg) { os << " " << *in.msg; }
+                if (in.msg) {
+                    os << " ";
+                    int prefix_end = os.position;
+                    os.write_indented_after_first(
+                        *in.msg, prefix_end - start_pos);
+                }
             }
         }
     }
