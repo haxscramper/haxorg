@@ -984,7 +984,7 @@ struct axis_direction {
 };
 
 struct axis_spec {
-    using type   = Pair<int, bool>;
+    using type   = sem::Tblfm::Expr::AxisRef::Position::Index;
     sc_char name = "axis_spec";
     sc auto rule =                                          //
         (dsl::peek(dsl::ascii::alnum) >> dsl::integer<int>) //
@@ -1005,16 +1005,45 @@ struct axis_spec {
         });
 };
 
+struct axis_name {
+    using type    = sem::Tblfm::Expr::AxisRef::Position::Name;
+    sc_char name  = "axis_name";
+    sc auto rule  = dsl::identifier(dsl::ascii::alpha);
+    sc auto value = lexy::callback<type>(
+        [](lexy::string_lexeme<> const& name) {
+            type res;
+            res.name = std::string{name.begin(), name.end()};
+            return res;
+        });
+};
+
+struct axis_pos {
+    using type   = sem::Tblfm::Expr::AxisRef::Position;
+    sc auto rule = (dsl::peek(dsl::ascii::digit) >> dsl::p<axis_spec>)
+                 | (dsl::peek(dsl::ascii::alpha) >> dsl::p<axis_name>);
+    sc auto value = lexy::callback<type>(
+        [](axis_spec::type const& t) {
+            type res;
+            res.data = t;
+            return res;
+        },
+        [](axis_name::type const& t) {
+            type res;
+            res.data = t;
+            return res;
+        });
+};
+
 struct axis_ref {
     sc_char name = "axis_ref";
     using type   = sem::Tblfm::Expr::AxisRef;
     sc auto rule //
-        = dsl::opt(dsl::lit_c<'$'> >> dsl::p<axis_spec>)
-        + dsl::opt(dsl::lit_c<'@'> >> dsl::p<axis_spec>);
+        = dsl::opt(dsl::lit_c<'$'> >> dsl::p<axis_pos>)
+        + dsl::opt(dsl::lit_c<'@'> >> dsl::p<axis_pos>);
 
     sc auto value = lexy::callback<type>(
-        [](std::optional<axis_spec::type> colIndex,
-           std::optional<axis_spec::type> rowIndex) {
+        [](std::optional<axis_pos::type> col,
+           std::optional<axis_pos::type> row) {
             type ref;
             return ref;
         });

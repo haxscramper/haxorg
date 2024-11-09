@@ -1,26 +1,64 @@
 /* clang-format off */
 #include <haxorg/sem/SemOrgSerde.hpp>
 #include <haxorg/sem/SemOrgSerdeDeclarations.hpp>
+void proto_serde<::orgproto::Tblfm::Expr::AxisRef::Position::Index, sem::Tblfm::Expr::AxisRef::Position::Index>::write(::orgproto::Tblfm::Expr::AxisRef::Position::Index* out, sem::Tblfm::Expr::AxisRef::Position::Index const& in) {
+  out->set_index(in.index);
+}
+
+void proto_serde<::orgproto::Tblfm::Expr::AxisRef::Position::Index, sem::Tblfm::Expr::AxisRef::Position::Index>::read(::orgproto::Tblfm::Expr::AxisRef::Position::Index const& out, proto_write_accessor<sem::Tblfm::Expr::AxisRef::Position::Index> in) {
+  in.for_field(&sem::Tblfm::Expr::AxisRef::Position::Index::index).get() = out.index();
+}
+
+void proto_serde<::orgproto::Tblfm::Expr::AxisRef::Position::Name, sem::Tblfm::Expr::AxisRef::Position::Name>::write(::orgproto::Tblfm::Expr::AxisRef::Position::Name* out, sem::Tblfm::Expr::AxisRef::Position::Name const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
+}
+
+void proto_serde<::orgproto::Tblfm::Expr::AxisRef::Position::Name, sem::Tblfm::Expr::AxisRef::Position::Name>::read(::orgproto::Tblfm::Expr::AxisRef::Position::Name const& out, proto_write_accessor<sem::Tblfm::Expr::AxisRef::Position::Name> in) {
+  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::Tblfm::Expr::AxisRef::Position::Name::name));
+}
+
+void proto_serde<::orgproto::Tblfm::Expr::AxisRef::Position, sem::Tblfm::Expr::AxisRef::Position>::write(::orgproto::Tblfm::Expr::AxisRef::Position* out, sem::Tblfm::Expr::AxisRef::Position const& in) {
+  switch (in.data.index()) {
+    case 0:
+      proto_serde<orgproto::Tblfm::Expr::AxisRef::Position::Index, sem::Tblfm::Expr::AxisRef::Position::Index>::write(out->mutable_data()->mutable_index(), std::get<0>(in.data));
+      break;
+    case 1:
+      proto_serde<orgproto::Tblfm::Expr::AxisRef::Position::Name, sem::Tblfm::Expr::AxisRef::Position::Name>::write(out->mutable_data()->mutable_name(), std::get<1>(in.data));
+      break;
+  }
+}
+
+void proto_serde<::orgproto::Tblfm::Expr::AxisRef::Position, sem::Tblfm::Expr::AxisRef::Position>::read(::orgproto::Tblfm::Expr::AxisRef::Position const& out, proto_write_accessor<sem::Tblfm::Expr::AxisRef::Position> in) {
+  switch (out.data().kind_case()) {
+    case ::orgproto::Tblfm::Expr::AxisRef::Position::Data::kIndex:
+      proto_serde<orgproto::Tblfm::Expr::AxisRef::Position::Index, sem::Tblfm::Expr::AxisRef::Position::Index>::read(out.data().index(), in.for_field_variant<0>(&sem::Tblfm::Expr::AxisRef::Position::data));
+      break;
+    case ::orgproto::Tblfm::Expr::AxisRef::Position::Data::kName:
+      proto_serde<orgproto::Tblfm::Expr::AxisRef::Position::Name, sem::Tblfm::Expr::AxisRef::Position::Name>::read(out.data().name(), in.for_field_variant<1>(&sem::Tblfm::Expr::AxisRef::Position::data));
+      break;
+  }
+}
+
 void proto_serde<::orgproto::Tblfm::Expr::AxisRef, sem::Tblfm::Expr::AxisRef>::write(::orgproto::Tblfm::Expr::AxisRef* out, sem::Tblfm::Expr::AxisRef const& in) {
-  if (in.colIndex) {
-    out->set_colindex(*in.colIndex);
+  proto_serde<orgproto::Tblfm::Expr::AxisRef::Position, sem::Tblfm::Expr::AxisRef::Position>::write(out->mutable_col(), in.col);
+  if (in.row) {
+    proto_serde<orgproto::Tblfm::Expr::AxisRef::Position, sem::Tblfm::Expr::AxisRef::Position>::write(out->mutable_row(), *in.row);
   }
-  if (in.rowIndex) {
-    out->set_rowindex(*in.rowIndex);
-  }
-  out->set_colfromtop(in.colFromTop);
-  out->set_rowfromtop(in.rowFromTop);
 }
 
 void proto_serde<::orgproto::Tblfm::Expr::AxisRef, sem::Tblfm::Expr::AxisRef>::read(::orgproto::Tblfm::Expr::AxisRef const& out, proto_write_accessor<sem::Tblfm::Expr::AxisRef> in) {
-  if (out.has_colindex()) {
-    proto_serde<Opt<::int32_t>, Opt<int>>::read(out.colindex(), in.for_field(&sem::Tblfm::Expr::AxisRef::colIndex));
+  proto_serde<orgproto::Tblfm::Expr::AxisRef::Position, sem::Tblfm::Expr::AxisRef::Position>::read(out.col(), in.for_field(&sem::Tblfm::Expr::AxisRef::col));
+  if (out.has_row()) {
+    proto_serde<Opt<orgproto::Tblfm::Expr::AxisRef::Position>, Opt<sem::Tblfm::Expr::AxisRef::Position>>::read(out.row(), in.for_field(&sem::Tblfm::Expr::AxisRef::row));
   }
-  if (out.has_rowindex()) {
-    proto_serde<Opt<::int32_t>, Opt<int>>::read(out.rowindex(), in.for_field(&sem::Tblfm::Expr::AxisRef::rowIndex));
-  }
-  in.for_field(&sem::Tblfm::Expr::AxisRef::colFromTop).get() = out.colfromtop();
-  in.for_field(&sem::Tblfm::Expr::AxisRef::rowFromTop).get() = out.rowfromtop();
+}
+
+void proto_serde<::orgproto::Tblfm::Expr::AxisName, sem::Tblfm::Expr::AxisName>::write(::orgproto::Tblfm::Expr::AxisName* out, sem::Tblfm::Expr::AxisName const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
+}
+
+void proto_serde<::orgproto::Tblfm::Expr::AxisName, sem::Tblfm::Expr::AxisName>::read(::orgproto::Tblfm::Expr::AxisName const& out, proto_write_accessor<sem::Tblfm::Expr::AxisName> in) {
+  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::Tblfm::Expr::AxisName::name));
 }
 
 void proto_serde<::orgproto::Tblfm::Expr::RangeRef, sem::Tblfm::Expr::RangeRef>::write(::orgproto::Tblfm::Expr::RangeRef* out, sem::Tblfm::Expr::RangeRef const& in) {
@@ -65,13 +103,16 @@ void proto_serde<::orgproto::Tblfm::Expr, sem::Tblfm::Expr>::write(::orgproto::T
       proto_serde<orgproto::Tblfm::Expr::AxisRef, sem::Tblfm::Expr::AxisRef>::write(out->mutable_data()->mutable_axisref(), std::get<0>(in.data));
       break;
     case 1:
-      proto_serde<orgproto::Tblfm::Expr::RangeRef, sem::Tblfm::Expr::RangeRef>::write(out->mutable_data()->mutable_rangeref(), std::get<1>(in.data));
+      proto_serde<orgproto::Tblfm::Expr::AxisName, sem::Tblfm::Expr::AxisName>::write(out->mutable_data()->mutable_axisname(), std::get<1>(in.data));
       break;
     case 2:
-      proto_serde<orgproto::Tblfm::Expr::Call, sem::Tblfm::Expr::Call>::write(out->mutable_data()->mutable_call(), std::get<2>(in.data));
+      proto_serde<orgproto::Tblfm::Expr::RangeRef, sem::Tblfm::Expr::RangeRef>::write(out->mutable_data()->mutable_rangeref(), std::get<2>(in.data));
       break;
     case 3:
-      proto_serde<orgproto::Tblfm::Expr::Elisp, sem::Tblfm::Expr::Elisp>::write(out->mutable_data()->mutable_elisp(), std::get<3>(in.data));
+      proto_serde<orgproto::Tblfm::Expr::Call, sem::Tblfm::Expr::Call>::write(out->mutable_data()->mutable_call(), std::get<3>(in.data));
+      break;
+    case 4:
+      proto_serde<orgproto::Tblfm::Expr::Elisp, sem::Tblfm::Expr::Elisp>::write(out->mutable_data()->mutable_elisp(), std::get<4>(in.data));
       break;
   }
 }
@@ -81,14 +122,17 @@ void proto_serde<::orgproto::Tblfm::Expr, sem::Tblfm::Expr>::read(::orgproto::Tb
     case ::orgproto::Tblfm::Expr::Data::kAxisref:
       proto_serde<orgproto::Tblfm::Expr::AxisRef, sem::Tblfm::Expr::AxisRef>::read(out.data().axisref(), in.for_field_variant<0>(&sem::Tblfm::Expr::data));
       break;
+    case ::orgproto::Tblfm::Expr::Data::kAxisname:
+      proto_serde<orgproto::Tblfm::Expr::AxisName, sem::Tblfm::Expr::AxisName>::read(out.data().axisname(), in.for_field_variant<1>(&sem::Tblfm::Expr::data));
+      break;
     case ::orgproto::Tblfm::Expr::Data::kRangeref:
-      proto_serde<orgproto::Tblfm::Expr::RangeRef, sem::Tblfm::Expr::RangeRef>::read(out.data().rangeref(), in.for_field_variant<1>(&sem::Tblfm::Expr::data));
+      proto_serde<orgproto::Tblfm::Expr::RangeRef, sem::Tblfm::Expr::RangeRef>::read(out.data().rangeref(), in.for_field_variant<2>(&sem::Tblfm::Expr::data));
       break;
     case ::orgproto::Tblfm::Expr::Data::kCall:
-      proto_serde<orgproto::Tblfm::Expr::Call, sem::Tblfm::Expr::Call>::read(out.data().call(), in.for_field_variant<2>(&sem::Tblfm::Expr::data));
+      proto_serde<orgproto::Tblfm::Expr::Call, sem::Tblfm::Expr::Call>::read(out.data().call(), in.for_field_variant<3>(&sem::Tblfm::Expr::data));
       break;
     case ::orgproto::Tblfm::Expr::Data::kElisp:
-      proto_serde<orgproto::Tblfm::Expr::Elisp, sem::Tblfm::Expr::Elisp>::read(out.data().elisp(), in.for_field_variant<3>(&sem::Tblfm::Expr::data));
+      proto_serde<orgproto::Tblfm::Expr::Elisp, sem::Tblfm::Expr::Elisp>::read(out.data().elisp(), in.for_field_variant<4>(&sem::Tblfm::Expr::data));
       break;
   }
 }

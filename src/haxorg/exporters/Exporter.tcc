@@ -10,11 +10,24 @@ void Exporter<V, R>::visit(R& res, sem::Tblfm::Expr const& object) { __obj_field
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::Tblfm::Expr::AxisRef const& object) {
-  __obj_field(res, object, colIndex);
-  __obj_field(res, object, rowIndex);
-  __obj_field(res, object, colFromTop);
-  __obj_field(res, object, rowFromTop);
+  __obj_field(res, object, col);
+  __obj_field(res, object, row);
 }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::Tblfm::Expr::AxisRef::Position::Data const& object) { visitVariants(res, sem::Tblfm::Expr::AxisRef::Position::getKind(object), object); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::Tblfm::Expr::AxisRef::Position const& object) { __obj_field(res, object, data); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::Tblfm::Expr::AxisRef::Position::Index const& object) { __obj_field(res, object, index); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::Tblfm::Expr::AxisRef::Position::Name const& object) { __obj_field(res, object, name); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::Tblfm::Expr::AxisName const& object) { __obj_field(res, object, name); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::Tblfm::Expr::RangeRef const& object) {

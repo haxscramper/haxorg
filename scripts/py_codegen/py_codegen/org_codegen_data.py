@@ -198,6 +198,9 @@ def eq_method(name: QualType) -> GenTuFunction:
         isConst=True,
     )
 
+@beartype
+def default_constructor(name: str) -> GenTuPass:
+    return GenTuPass(f"{name} () {{}}")
 
 #endregion
 
@@ -1479,6 +1482,32 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
             efield("CellQuote", "Quote field contents"),
         ])
 
+    axis_ref_types = GenTuStruct(
+        t_nest_shared("Position", ["Tblfm", "Expr", "AxisRef"]),
+        methods=[eq_method(t_nest_shared("Position", ["Tblfm", "Expr", "AxisRef"]))],
+        nested=[
+            GenTuTypeGroup(
+                [
+                    GenTuStruct(
+                        t_nest_shared("Index", ["Tblfm", "Expr", "AxisRef", "Position"]),
+                        fields=[org_field(t_int(), "index")],
+                        methods=[eq_method(t_nest_shared("Index", ["Tblfm", "Expr", "AxisRef", "Position"]))],
+                        nested=[default_constructor("Index")],
+                    ),
+                    GenTuStruct(
+                        t_nest_shared("Name", ["Tblfm", "Expr", "AxisRef", "Position"]),
+                        fields=[str_field("name")],
+                        methods=[eq_method(t_nest_shared("Name", ["Tblfm", "Expr", "AxisRef", "Position"]))],
+                        nested=[default_constructor("Name")],
+                    ),
+                ],
+                enumName=t_nest_shared("Kind", ["Tblfm", "Expr", "AxisRef", "Position"]),
+                variantName=t_nest_shared("Data", ["Tblfm", "Expr", "AxisRef", "Position"]),
+            ),
+            default_constructor("Position"),
+        ],
+    )
+
     return [
         GenTuStruct(
             t_nest_shared("Tblfm"),
@@ -1493,15 +1522,28 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                             [
                                 GenTuStruct(
                                     t_nest_shared("AxisRef", ["Tblfm", "Expr"]),
+                                    nested=[axis_ref_types],
                                     fields=[
-                                        opt_field(t_int(), "colIndex"),
-                                        opt_field(t_int(), "rowIndex"),
-                                        bool_field("colFromTop", default="true"),
-                                        bool_field("rowFromTop", default="true"),
+                                        org_field(
+                                            t_nest_shared("Position",
+                                                          ["Tblfm", "Expr", "AxisRef"]),
+                                            "col"),
+                                        opt_field(
+                                            t_nest_shared("Position",
+                                                          ["Tblfm", "Expr", "AxisRef"]),
+                                            "row"),
                                     ],
                                     methods=[
                                         eq_method(
                                             t_nest_shared("AxisRef", ["Tblfm", "Expr"])),
+                                    ],
+                                ),
+                                GenTuStruct(
+                                    t_nest_shared("AxisName", ["Tblfm", "Expr"]),
+                                    fields=[str_field("name")],
+                                    methods=[
+                                        eq_method(
+                                            t_nest_shared("AxisName", ["Tblfm", "Expr"]))
                                     ],
                                 ),
                                 GenTuStruct(

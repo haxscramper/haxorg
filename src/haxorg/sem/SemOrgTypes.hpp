@@ -15,16 +15,70 @@ namespace sem{
 struct Tblfm {
   struct Expr {
     struct AxisRef {
+      struct Position {
+        struct Index {
+          Index () {}
+          BOOST_DESCRIBE_CLASS(Index,
+                               (),
+                               (),
+                               (),
+                               (index))
+          int index;
+          bool operator==(sem::Tblfm::Expr::AxisRef::Position::Index const& other) const;
+        };
+
+        struct Name {
+          Name () {}
+          BOOST_DESCRIBE_CLASS(Name,
+                               (),
+                               (),
+                               (),
+                               (name))
+          Str name = "";
+          bool operator==(sem::Tblfm::Expr::AxisRef::Position::Name const& other) const;
+        };
+
+        using Data = std::variant<sem::Tblfm::Expr::AxisRef::Position::Index, sem::Tblfm::Expr::AxisRef::Position::Name>;
+        enum class Kind : short int { Index, Name, };
+        BOOST_DESCRIBE_NESTED_ENUM(Kind, Index, Name)
+        using variant_enum_type = sem::Tblfm::Expr::AxisRef::Position::Kind;
+        using variant_data_type = sem::Tblfm::Expr::AxisRef::Position::Data;
+        Position () {}
+        BOOST_DESCRIBE_CLASS(Position,
+                             (),
+                             (),
+                             (),
+                             (data))
+        sem::Tblfm::Expr::AxisRef::Position::Data data;
+        bool operator==(sem::Tblfm::Expr::AxisRef::Position const& other) const;
+        bool isIndex() const { return getKind() == Kind::Index; }
+        sem::Tblfm::Expr::AxisRef::Position::Index const& getIndex() const { return std::get<0>(data); }
+        sem::Tblfm::Expr::AxisRef::Position::Index& getIndex() { return std::get<0>(data); }
+        bool isName() const { return getKind() == Kind::Name; }
+        sem::Tblfm::Expr::AxisRef::Position::Name const& getName() const { return std::get<1>(data); }
+        sem::Tblfm::Expr::AxisRef::Position::Name& getName() { return std::get<1>(data); }
+        static sem::Tblfm::Expr::AxisRef::Position::Kind getKind(sem::Tblfm::Expr::AxisRef::Position::Data const& __input) { return static_cast<sem::Tblfm::Expr::AxisRef::Position::Kind>(__input.index()); }
+        sem::Tblfm::Expr::AxisRef::Position::Kind getKind() const { return getKind(data); }
+      };
+
       BOOST_DESCRIBE_CLASS(AxisRef,
                            (),
                            (),
                            (),
-                           (colIndex, rowIndex, colFromTop, rowFromTop))
-      Opt<int> colIndex = std::nullopt;
-      Opt<int> rowIndex = std::nullopt;
-      bool colFromTop = true;
-      bool rowFromTop = true;
+                           (col, row))
+      sem::Tblfm::Expr::AxisRef::Position col;
+      Opt<sem::Tblfm::Expr::AxisRef::Position> row = std::nullopt;
       bool operator==(sem::Tblfm::Expr::AxisRef const& other) const;
+    };
+
+    struct AxisName {
+      BOOST_DESCRIBE_CLASS(AxisName,
+                           (),
+                           (),
+                           (),
+                           (name))
+      Str name = "";
+      bool operator==(sem::Tblfm::Expr::AxisName const& other) const;
     };
 
     struct RangeRef {
@@ -59,9 +113,9 @@ struct Tblfm {
       bool operator==(sem::Tblfm::Expr::Elisp const& other) const;
     };
 
-    using Data = std::variant<sem::Tblfm::Expr::AxisRef, sem::Tblfm::Expr::RangeRef, sem::Tblfm::Expr::Call, sem::Tblfm::Expr::Elisp>;
-    enum class Kind : short int { AxisRef, RangeRef, Call, Elisp, };
-    BOOST_DESCRIBE_NESTED_ENUM(Kind, AxisRef, RangeRef, Call, Elisp)
+    using Data = std::variant<sem::Tblfm::Expr::AxisRef, sem::Tblfm::Expr::AxisName, sem::Tblfm::Expr::RangeRef, sem::Tblfm::Expr::Call, sem::Tblfm::Expr::Elisp>;
+    enum class Kind : short int { AxisRef, AxisName, RangeRef, Call, Elisp, };
+    BOOST_DESCRIBE_NESTED_ENUM(Kind, AxisRef, AxisName, RangeRef, Call, Elisp)
     using variant_enum_type = sem::Tblfm::Expr::Kind;
     using variant_data_type = sem::Tblfm::Expr::Data;
     BOOST_DESCRIBE_CLASS(Expr,
@@ -74,15 +128,18 @@ struct Tblfm {
     bool isAxisRef() const { return getKind() == Kind::AxisRef; }
     sem::Tblfm::Expr::AxisRef const& getAxisRef() const { return std::get<0>(data); }
     sem::Tblfm::Expr::AxisRef& getAxisRef() { return std::get<0>(data); }
+    bool isAxisName() const { return getKind() == Kind::AxisName; }
+    sem::Tblfm::Expr::AxisName const& getAxisName() const { return std::get<1>(data); }
+    sem::Tblfm::Expr::AxisName& getAxisName() { return std::get<1>(data); }
     bool isRangeRef() const { return getKind() == Kind::RangeRef; }
-    sem::Tblfm::Expr::RangeRef const& getRangeRef() const { return std::get<1>(data); }
-    sem::Tblfm::Expr::RangeRef& getRangeRef() { return std::get<1>(data); }
+    sem::Tblfm::Expr::RangeRef const& getRangeRef() const { return std::get<2>(data); }
+    sem::Tblfm::Expr::RangeRef& getRangeRef() { return std::get<2>(data); }
     bool isCall() const { return getKind() == Kind::Call; }
-    sem::Tblfm::Expr::Call const& getCall() const { return std::get<2>(data); }
-    sem::Tblfm::Expr::Call& getCall() { return std::get<2>(data); }
+    sem::Tblfm::Expr::Call const& getCall() const { return std::get<3>(data); }
+    sem::Tblfm::Expr::Call& getCall() { return std::get<3>(data); }
     bool isElisp() const { return getKind() == Kind::Elisp; }
-    sem::Tblfm::Expr::Elisp const& getElisp() const { return std::get<3>(data); }
-    sem::Tblfm::Expr::Elisp& getElisp() { return std::get<3>(data); }
+    sem::Tblfm::Expr::Elisp const& getElisp() const { return std::get<4>(data); }
+    sem::Tblfm::Expr::Elisp& getElisp() { return std::get<4>(data); }
     static sem::Tblfm::Expr::Kind getKind(sem::Tblfm::Expr::Data const& __input) { return static_cast<sem::Tblfm::Expr::Kind>(__input.index()); }
     sem::Tblfm::Expr::Kind getKind() const { return getKind(data); }
   };

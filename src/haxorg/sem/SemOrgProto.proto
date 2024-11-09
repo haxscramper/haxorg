@@ -298,10 +298,34 @@ enum OrgSemKind {
 message Tblfm {
   message Expr {
     message AxisRef {
-      optional int32                               colIndex                         = 1;
-      optional int32                               rowIndex                         = 2;
-      bool                                         colFromTop                       = 3;
-      bool                                         rowFromTop                       = 4;
+      message Position {
+        message Index {
+          int32                                    index                            = 1;
+          string                                   debug                            = 1000;
+        }
+        message Name {
+          string                                   name                             = 1;
+          string                                   debug                            = 1000;
+        }
+        message Data {
+          oneof kind {
+            Tblfm.Expr.AxisRef.Position.Index      index                            = 1;
+            Tblfm.Expr.AxisRef.Position.Name       name                             = 2;
+          }
+        }
+        enum Kind {
+          Kind_Index_f                                                              = 0;
+          Kind_Name_f                                                               = 1;
+        }
+        Tblfm.Expr.AxisRef.Position.Data           data                             = 1;
+        string                                     debug                            = 1000;
+      }
+      Tblfm.Expr.AxisRef.Position                  col                              = 1;
+      optional Tblfm.Expr.AxisRef.Position         row                              = 2;
+      string                                       debug                            = 1000;
+    }
+    message AxisName {
+      string                                       name                             = 1;
       string                                       debug                            = 1000;
     }
     message RangeRef {
@@ -321,16 +345,18 @@ message Tblfm {
     message Data {
       oneof kind {
         Tblfm.Expr.AxisRef                         axisref                          = 1;
-        Tblfm.Expr.RangeRef                        rangeref                         = 2;
-        Tblfm.Expr.Call                            call                             = 3;
-        Tblfm.Expr.Elisp                           elisp                            = 4;
+        Tblfm.Expr.AxisName                        axisname                         = 2;
+        Tblfm.Expr.RangeRef                        rangeref                         = 3;
+        Tblfm.Expr.Call                            call                             = 4;
+        Tblfm.Expr.Elisp                           elisp                            = 5;
       }
     }
     enum Kind {
       Kind_AxisRef_f                                                                = 0;
-      Kind_RangeRef_f                                                               = 1;
-      Kind_Call_f                                                                   = 2;
-      Kind_Elisp_f                                                                  = 3;
+      Kind_AxisName_f                                                               = 1;
+      Kind_RangeRef_f                                                               = 2;
+      Kind_Call_f                                                                   = 3;
+      Kind_Elisp_f                                                                  = 4;
     }
     Tblfm.Expr.Data                                data                             = 1;
     string                                         debug                            = 1000;

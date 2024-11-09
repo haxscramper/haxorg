@@ -148,16 +148,89 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<sem::Tblfm::Expr::AxisRef::Position::Index>(m, "TblfmExprAxisRefPositionIndex")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Tblfm::Expr::AxisRef::Position::Index {
+                        sem::Tblfm::Expr::AxisRef::Position::Index result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("index", &sem::Tblfm::Expr::AxisRef::Position::Index::index)
+    .def("operator==",
+         static_cast<bool(sem::Tblfm::Expr::AxisRef::Position::Index::*)(sem::Tblfm::Expr::AxisRef::Position::Index const&) const>(&sem::Tblfm::Expr::AxisRef::Position::Index::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::Tblfm::Expr::AxisRef::Position::Index _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Tblfm::Expr::AxisRef::Position::Index _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::Tblfm::Expr::AxisRef::Position::Name>(m, "TblfmExprAxisRefPositionName")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Tblfm::Expr::AxisRef::Position::Name {
+                        sem::Tblfm::Expr::AxisRef::Position::Name result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("name", &sem::Tblfm::Expr::AxisRef::Position::Name::name)
+    .def("operator==",
+         static_cast<bool(sem::Tblfm::Expr::AxisRef::Position::Name::*)(sem::Tblfm::Expr::AxisRef::Position::Name const&) const>(&sem::Tblfm::Expr::AxisRef::Position::Name::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::Tblfm::Expr::AxisRef::Position::Name _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Tblfm::Expr::AxisRef::Position::Name _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<sem::Tblfm::Expr::AxisRef::Position::Kind>(m, "TblfmExprAxisRefPositionKind", type_registry_guard);
+  pybind11::enum_<sem::Tblfm::Expr::AxisRef::Position::Kind>(m, "TblfmExprAxisRefPositionKind")
+    .value("Index", sem::Tblfm::Expr::AxisRef::Position::Kind::Index)
+    .value("Name", sem::Tblfm::Expr::AxisRef::Position::Kind::Name)
+    .def("__iter__", [](sem::Tblfm::Expr::AxisRef::Position::Kind _self) -> PyEnumIterator<sem::Tblfm::Expr::AxisRef::Position::Kind> {
+                     return
+                     PyEnumIterator<sem::Tblfm::Expr::AxisRef::Position::Kind>
+                     ();
+                     })
+    ;
+  pybind11::class_<sem::Tblfm::Expr::AxisRef::Position>(m, "TblfmExprAxisRefPosition")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Tblfm::Expr::AxisRef::Position {
+                        sem::Tblfm::Expr::AxisRef::Position result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("data", &sem::Tblfm::Expr::AxisRef::Position::data)
+    .def("operator==",
+         static_cast<bool(sem::Tblfm::Expr::AxisRef::Position::*)(sem::Tblfm::Expr::AxisRef::Position const&) const>(&sem::Tblfm::Expr::AxisRef::Position::operator==),
+         pybind11::arg("other"))
+    .def("isIndex", static_cast<bool(sem::Tblfm::Expr::AxisRef::Position::*)() const>(&sem::Tblfm::Expr::AxisRef::Position::isIndex))
+    .def("getIndex", static_cast<sem::Tblfm::Expr::AxisRef::Position::Index&(sem::Tblfm::Expr::AxisRef::Position::*)()>(&sem::Tblfm::Expr::AxisRef::Position::getIndex))
+    .def("isName", static_cast<bool(sem::Tblfm::Expr::AxisRef::Position::*)() const>(&sem::Tblfm::Expr::AxisRef::Position::isName))
+    .def("getName", static_cast<sem::Tblfm::Expr::AxisRef::Position::Name&(sem::Tblfm::Expr::AxisRef::Position::*)()>(&sem::Tblfm::Expr::AxisRef::Position::getName))
+    .def_static("getKindStatic",
+                static_cast<sem::Tblfm::Expr::AxisRef::Position::Kind(*)(sem::Tblfm::Expr::AxisRef::Position::Data const&)>(&sem::Tblfm::Expr::AxisRef::Position::getKind),
+                pybind11::arg("__input"))
+    .def("getKind", static_cast<sem::Tblfm::Expr::AxisRef::Position::Kind(sem::Tblfm::Expr::AxisRef::Position::*)() const>(&sem::Tblfm::Expr::AxisRef::Position::getKind))
+    .def("__repr__", [](sem::Tblfm::Expr::AxisRef::Position _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Tblfm::Expr::AxisRef::Position _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<sem::Tblfm::Expr::AxisRef>(m, "TblfmExprAxisRef")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Tblfm::Expr::AxisRef {
                         sem::Tblfm::Expr::AxisRef result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("colIndex", &sem::Tblfm::Expr::AxisRef::colIndex)
-    .def_readwrite("rowIndex", &sem::Tblfm::Expr::AxisRef::rowIndex)
-    .def_readwrite("colFromTop", &sem::Tblfm::Expr::AxisRef::colFromTop)
-    .def_readwrite("rowFromTop", &sem::Tblfm::Expr::AxisRef::rowFromTop)
+    .def_readwrite("col", &sem::Tblfm::Expr::AxisRef::col)
+    .def_readwrite("row", &sem::Tblfm::Expr::AxisRef::row)
     .def("operator==",
          static_cast<bool(sem::Tblfm::Expr::AxisRef::*)(sem::Tblfm::Expr::AxisRef const&) const>(&sem::Tblfm::Expr::AxisRef::operator==),
          pybind11::arg("other"))
@@ -166,6 +239,25 @@ node can have subnodes.)RAW")
                      })
     .def("__getattr__",
          [](sem::Tblfm::Expr::AxisRef _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::Tblfm::Expr::AxisName>(m, "TblfmExprAxisName")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Tblfm::Expr::AxisName {
+                        sem::Tblfm::Expr::AxisName result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("name", &sem::Tblfm::Expr::AxisName::name)
+    .def("operator==",
+         static_cast<bool(sem::Tblfm::Expr::AxisName::*)(sem::Tblfm::Expr::AxisName const&) const>(&sem::Tblfm::Expr::AxisName::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::Tblfm::Expr::AxisName _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Tblfm::Expr::AxisName _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -232,6 +324,7 @@ node can have subnodes.)RAW")
   bind_enum_iterator<sem::Tblfm::Expr::Kind>(m, "TblfmExprKind", type_registry_guard);
   pybind11::enum_<sem::Tblfm::Expr::Kind>(m, "TblfmExprKind")
     .value("AxisRef", sem::Tblfm::Expr::Kind::AxisRef)
+    .value("AxisName", sem::Tblfm::Expr::Kind::AxisName)
     .value("RangeRef", sem::Tblfm::Expr::Kind::RangeRef)
     .value("Call", sem::Tblfm::Expr::Kind::Call)
     .value("Elisp", sem::Tblfm::Expr::Kind::Elisp)
@@ -253,6 +346,8 @@ node can have subnodes.)RAW")
          pybind11::arg("other"))
     .def("isAxisRef", static_cast<bool(sem::Tblfm::Expr::*)() const>(&sem::Tblfm::Expr::isAxisRef))
     .def("getAxisRef", static_cast<sem::Tblfm::Expr::AxisRef&(sem::Tblfm::Expr::*)()>(&sem::Tblfm::Expr::getAxisRef))
+    .def("isAxisName", static_cast<bool(sem::Tblfm::Expr::*)() const>(&sem::Tblfm::Expr::isAxisName))
+    .def("getAxisName", static_cast<sem::Tblfm::Expr::AxisName&(sem::Tblfm::Expr::*)()>(&sem::Tblfm::Expr::getAxisName))
     .def("isRangeRef", static_cast<bool(sem::Tblfm::Expr::*)() const>(&sem::Tblfm::Expr::isRangeRef))
     .def("getRangeRef", static_cast<sem::Tblfm::Expr::RangeRef&(sem::Tblfm::Expr::*)()>(&sem::Tblfm::Expr::getRangeRef))
     .def("isCall", static_cast<bool(sem::Tblfm::Expr::*)() const>(&sem::Tblfm::Expr::isCall))

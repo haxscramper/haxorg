@@ -6,6 +6,10 @@
 #define EACH_SHARED_ORG_RECORD_NESTED(__IMPL) \
     __IMPL(Tblfm, Expr, (Expr)) \
     __IMPL(Tblfm, Expr::AxisRef, (Expr, AxisRef)) \
+    __IMPL(Tblfm, Expr::AxisRef::Position, (Expr, AxisRef, Position)) \
+    __IMPL(Tblfm, Expr::AxisRef::Position::Index, (Expr, AxisRef, Position, Index)) \
+    __IMPL(Tblfm, Expr::AxisRef::Position::Name, (Expr, AxisRef, Position, Name)) \
+    __IMPL(Tblfm, Expr::AxisName, (Expr, AxisName)) \
     __IMPL(Tblfm, Expr::RangeRef, (Expr, RangeRef)) \
     __IMPL(Tblfm, Expr::Call, (Expr, Call)) \
     __IMPL(Tblfm, Expr::Elisp, (Expr, Elisp)) \
@@ -48,6 +52,7 @@
     __IMPL(NamedProperty, CustomArgs, (CustomArgs)) \
     __IMPL(NamedProperty, CustomRaw, (CustomRaw))
 #define EACH_SHARED_ORG_ENUM_NESTED(__IMPL) \
+    __IMPL(Tblfm, Expr::AxisRef::Position::Kind, (Expr, AxisRef, Position, Kind)) \
     __IMPL(Tblfm, Expr::Kind, (Expr, Kind)) \
     __IMPL(Tblfm, Assign::Flag, (Assign, Flag)) \
     __IMPL(BlockCodeLine, Part::Kind, (Part, Kind)) \
@@ -66,6 +71,10 @@
     __IMPL(Tblfm, (Tblfm)) \
     __IMPL(Tblfm::Expr, (Tblfm, Expr)) \
     __IMPL(Tblfm::Expr::AxisRef, (Tblfm, Expr, AxisRef)) \
+    __IMPL(Tblfm::Expr::AxisRef::Position, (Tblfm, Expr, AxisRef, Position)) \
+    __IMPL(Tblfm::Expr::AxisRef::Position::Index, (Tblfm, Expr, AxisRef, Position, Index)) \
+    __IMPL(Tblfm::Expr::AxisRef::Position::Name, (Tblfm, Expr, AxisRef, Position, Name)) \
+    __IMPL(Tblfm::Expr::AxisName, (Tblfm, Expr, AxisName)) \
     __IMPL(Tblfm::Expr::RangeRef, (Tblfm, Expr, RangeRef)) \
     __IMPL(Tblfm::Expr::Call, (Tblfm, Expr, Call)) \
     __IMPL(Tblfm::Expr::Elisp, (Tblfm, Expr, Elisp)) \
