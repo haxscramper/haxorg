@@ -555,6 +555,15 @@ struct proto_serde<int, int> {
     }
 };
 
+template <>
+struct proto_serde<float, float> {
+    static void write(float* out, float const& in) { *out = in; }
+    static void read(float const& out, proto_write_accessor<float> in) {
+        in.get() = out;
+    }
+};
+
+
 template <typename Proto>
 struct proto_serde<Proto, sem::SubtreeLog::DescribedLog> {
     static void write(

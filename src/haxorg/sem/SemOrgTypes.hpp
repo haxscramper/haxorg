@@ -81,6 +81,26 @@ struct Tblfm {
       bool operator==(sem::Tblfm::Expr::AxisName const& other) const;
     };
 
+    struct IntLiteral {
+      BOOST_DESCRIBE_CLASS(IntLiteral,
+                           (),
+                           (),
+                           (),
+                           (value))
+      int value;
+      bool operator==(sem::Tblfm::Expr::IntLiteral const& other) const;
+    };
+
+    struct FloatLiteral {
+      BOOST_DESCRIBE_CLASS(FloatLiteral,
+                           (),
+                           (),
+                           (),
+                           (value))
+      float value;
+      bool operator==(sem::Tblfm::Expr::FloatLiteral const& other) const;
+    };
+
     struct RangeRef {
       BOOST_DESCRIBE_CLASS(RangeRef,
                            (),
@@ -113,9 +133,9 @@ struct Tblfm {
       bool operator==(sem::Tblfm::Expr::Elisp const& other) const;
     };
 
-    using Data = std::variant<sem::Tblfm::Expr::AxisRef, sem::Tblfm::Expr::AxisName, sem::Tblfm::Expr::RangeRef, sem::Tblfm::Expr::Call, sem::Tblfm::Expr::Elisp>;
-    enum class Kind : short int { AxisRef, AxisName, RangeRef, Call, Elisp, };
-    BOOST_DESCRIBE_NESTED_ENUM(Kind, AxisRef, AxisName, RangeRef, Call, Elisp)
+    using Data = std::variant<sem::Tblfm::Expr::AxisRef, sem::Tblfm::Expr::AxisName, sem::Tblfm::Expr::IntLiteral, sem::Tblfm::Expr::FloatLiteral, sem::Tblfm::Expr::RangeRef, sem::Tblfm::Expr::Call, sem::Tblfm::Expr::Elisp>;
+    enum class Kind : short int { AxisRef, AxisName, IntLiteral, FloatLiteral, RangeRef, Call, Elisp, };
+    BOOST_DESCRIBE_NESTED_ENUM(Kind, AxisRef, AxisName, IntLiteral, FloatLiteral, RangeRef, Call, Elisp)
     using variant_enum_type = sem::Tblfm::Expr::Kind;
     using variant_data_type = sem::Tblfm::Expr::Data;
     BOOST_DESCRIBE_CLASS(Expr,
@@ -131,15 +151,21 @@ struct Tblfm {
     bool isAxisName() const { return getKind() == Kind::AxisName; }
     sem::Tblfm::Expr::AxisName const& getAxisName() const { return std::get<1>(data); }
     sem::Tblfm::Expr::AxisName& getAxisName() { return std::get<1>(data); }
+    bool isIntLiteral() const { return getKind() == Kind::IntLiteral; }
+    sem::Tblfm::Expr::IntLiteral const& getIntLiteral() const { return std::get<2>(data); }
+    sem::Tblfm::Expr::IntLiteral& getIntLiteral() { return std::get<2>(data); }
+    bool isFloatLiteral() const { return getKind() == Kind::FloatLiteral; }
+    sem::Tblfm::Expr::FloatLiteral const& getFloatLiteral() const { return std::get<3>(data); }
+    sem::Tblfm::Expr::FloatLiteral& getFloatLiteral() { return std::get<3>(data); }
     bool isRangeRef() const { return getKind() == Kind::RangeRef; }
-    sem::Tblfm::Expr::RangeRef const& getRangeRef() const { return std::get<2>(data); }
-    sem::Tblfm::Expr::RangeRef& getRangeRef() { return std::get<2>(data); }
+    sem::Tblfm::Expr::RangeRef const& getRangeRef() const { return std::get<4>(data); }
+    sem::Tblfm::Expr::RangeRef& getRangeRef() { return std::get<4>(data); }
     bool isCall() const { return getKind() == Kind::Call; }
-    sem::Tblfm::Expr::Call const& getCall() const { return std::get<3>(data); }
-    sem::Tblfm::Expr::Call& getCall() { return std::get<3>(data); }
+    sem::Tblfm::Expr::Call const& getCall() const { return std::get<5>(data); }
+    sem::Tblfm::Expr::Call& getCall() { return std::get<5>(data); }
     bool isElisp() const { return getKind() == Kind::Elisp; }
-    sem::Tblfm::Expr::Elisp const& getElisp() const { return std::get<4>(data); }
-    sem::Tblfm::Expr::Elisp& getElisp() { return std::get<4>(data); }
+    sem::Tblfm::Expr::Elisp const& getElisp() const { return std::get<6>(data); }
+    sem::Tblfm::Expr::Elisp& getElisp() { return std::get<6>(data); }
     static sem::Tblfm::Expr::Kind getKind(sem::Tblfm::Expr::Data const& __input) { return static_cast<sem::Tblfm::Expr::Kind>(__input.index()); }
     sem::Tblfm::Expr::Kind getKind() const { return getKind(data); }
   };

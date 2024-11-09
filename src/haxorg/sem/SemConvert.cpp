@@ -1050,6 +1050,19 @@ struct axis_ref {
         });
 };
 
+struct axis_range {
+    sc_char name  = "axis_range";
+    using type    = sem::Tblfm::Expr::RangeRef;
+    sc auto rule  = dsl::p<axis_ref> + LEXY_LIT("..") + dsl::p<axis_ref>;
+    sc auto value = lexy::callback<type>(
+        [](axis_ref::type const& first, axis_ref::type const& last) {
+            type res;
+            res.first = first;
+            res.last  = last;
+            return res;
+        });
+};
+
 struct expr;
 
 struct call_args {
@@ -1058,6 +1071,7 @@ struct call_args {
     sc auto rule  = dsl::list(dsl::recurse<expr>, dsl::sep(dsl::comma));
     sc auto value = lexy::as_list<type>;
 };
+
 
 struct call {
     sc_char name = "call";
@@ -1083,13 +1097,37 @@ struct call {
 struct expr {
     sc_char name = "expr";
     using type   = sem::Tblfm::Expr;
-    sc auto rule = (dsl::peek(dsl::ascii::alpha) >> dsl::p<call>)
-                 | (dsl::peek(dsl::lit_c<'$'> | dsl::lit_c<'@'>)
-                    >> dsl::p<axis_ref>);
+    sc auto rule //
+        = (dsl::peek(dsl::ascii::alpha) >> dsl::p<call>)
+        | (dsl::capture(dsl::token(LEXY_LITERAL_SET(
+            LEXY_LIT("*"),
+            LEXY_LIT("+"),
+            LEXY_LIT("+"),
+            LEXY_LIT("/"),
+            LEXY_LIT("-")))))
+        | (dsl::peek(dsl::p<axis_ref> + LEXY_LIT(".."))
+           >> dsl::p<axis_range>)
+        | (dsl::peek(dsl::lit_c<'$'> | dsl::lit_c<'@'>)
+           >> dsl::p<axis_ref>)
+        | (dsl::integer<int>);
 
     sc auto value = lexy::callback<type>(overloaded{
         [](call::type const& c) {
             type res;
+            res.data = c;
+            return res;
+        },
+        [](lexy::string_lexeme<> const& op) {
+            type                   res;
+            sem::Tblfm::Expr::Call c{};
+            c.name   = Str{std::string{op.begin(), op.end()}};
+            res.data = c;
+            return res;
+        },
+        [](int const& op) {
+            type                         res;
+            sem::Tblfm::Expr::IntLiteral c{};
+            c.value  = op;
             res.data = c;
             return res;
         },
@@ -1098,20 +1136,73 @@ struct expr {
             res.data = c;
             return res;
         },
+        [](axis_range::type const& c) {
+            type res;
+            res.data = c;
+            return res;
+        },
     });
 };
 
-struct assign {
-    sc_char name  = "assign";
-    using type    = sem::Tblfm::Assign;
-    sc auto rule  = dsl::p<axis_ref> + dsl::lit_c<'='> + dsl::p<expr>;
+struct expr_list {
+    sc_char name  = "expr_list";
+    using type    = std::vector<sem::Tblfm::Expr>;
+    sc auto rule  = dsl::list(dsl::p<expr>);
+    sc auto value = lexy::as_list<type>;
+};
+
+struct assign_flag {
+    sc_char name = "assign_flag";
+    using type   = sem::Tblfm::Assign::Flag;
+    sc auto rule //
+        = dsl::lit_c<';'>
+        + dsl::capture(dsl::token(
+            (dsl::peek(dsl::lit_c<'%'>)
+             >> (dsl::lit_c<'%'>                  //
+                 + dsl::while_(dsl::ascii::digit) //
+                 + dsl::lit_c<'.'>                //
+                 + dsl::while_(dsl::ascii::digit) //
+                 + dsl::lit_c<'f'>))));
+
     sc auto value = lexy::callback<type>(
-        [](axis_ref::type const& axis, expr::type const& expr) {
+        [](lexy::string_lexeme<> const& op) {
             type res;
-            // res.target = axis;
-            // res.expr   = expr;
+
             return res;
         });
+};
+
+struct assign {
+    sc_char name = "assign";
+    using type   = sem::Tblfm::Assign;
+    sc auto rule           //
+        = dsl::p<axis_ref> //
+        + dsl::lit_c<'='>  //
+        + dsl::p<expr_list>
+        + dsl::opt(dsl::peek(dsl::lit_c<';'>) >> dsl::p<assign_flag>);
+
+    static type impl(
+        axis_ref::type const&         axis,
+        expr_list::type const&        expr,
+        Opt<assign_flag::type> const& flag) {
+
+        type res;
+
+        return res;
+    }
+
+    sc auto value = lexy::callback<type>(overloaded{
+        [](axis_ref::type const&  axis,
+           expr_list::type const& expr,
+           lexy::nullopt const&) {
+            return impl(axis, expr, std::nullopt);
+        },
+        [](axis_ref::type const&    axis,
+           expr_list::type const&   expr,
+           assign_flag::type const& flag) {
+            return impl(axis, expr, flag);
+        },
+    });
 };
 
 struct tblfmt {

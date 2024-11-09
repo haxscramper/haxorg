@@ -10,6 +10,8 @@
     __IMPL(Tblfm, Expr::AxisRef::Position::Index, (Expr, AxisRef, Position, Index)) \
     __IMPL(Tblfm, Expr::AxisRef::Position::Name, (Expr, AxisRef, Position, Name)) \
     __IMPL(Tblfm, Expr::AxisName, (Expr, AxisName)) \
+    __IMPL(Tblfm, Expr::IntLiteral, (Expr, IntLiteral)) \
+    __IMPL(Tblfm, Expr::FloatLiteral, (Expr, FloatLiteral)) \
     __IMPL(Tblfm, Expr::RangeRef, (Expr, RangeRef)) \
     __IMPL(Tblfm, Expr::Call, (Expr, Call)) \
     __IMPL(Tblfm, Expr::Elisp, (Expr, Elisp)) \
@@ -75,6 +77,8 @@
     __IMPL(Tblfm::Expr::AxisRef::Position::Index, (Tblfm, Expr, AxisRef, Position, Index)) \
     __IMPL(Tblfm::Expr::AxisRef::Position::Name, (Tblfm, Expr, AxisRef, Position, Name)) \
     __IMPL(Tblfm::Expr::AxisName, (Tblfm, Expr, AxisName)) \
+    __IMPL(Tblfm::Expr::IntLiteral, (Tblfm, Expr, IntLiteral)) \
+    __IMPL(Tblfm::Expr::FloatLiteral, (Tblfm, Expr, FloatLiteral)) \
     __IMPL(Tblfm::Expr::RangeRef, (Tblfm, Expr, RangeRef)) \
     __IMPL(Tblfm::Expr::Call, (Tblfm, Expr, Call)) \
     __IMPL(Tblfm::Expr::Elisp, (Tblfm, Expr, Elisp)) \

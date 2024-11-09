@@ -30,6 +30,12 @@ template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::Tblfm::Expr::AxisName const& object) { __obj_field(res, object, name); }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::Tblfm::Expr::IntLiteral const& object) { __obj_field(res, object, value); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::Tblfm::Expr::FloatLiteral const& object) { __obj_field(res, object, value); }
+
+template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::Tblfm::Expr::RangeRef const& object) {
   __obj_field(res, object, first);
   __obj_field(res, object, last);

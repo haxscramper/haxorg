@@ -198,9 +198,11 @@ def eq_method(name: QualType) -> GenTuFunction:
         isConst=True,
     )
 
+
 @beartype
 def default_constructor(name: str) -> GenTuPass:
     return GenTuPass(f"{name} () {{}}")
+
 
 #endregion
 
@@ -1491,18 +1493,27 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     GenTuStruct(
                         t_nest_shared("Index", ["Tblfm", "Expr", "AxisRef", "Position"]),
                         fields=[org_field(t_int(), "index")],
-                        methods=[eq_method(t_nest_shared("Index", ["Tblfm", "Expr", "AxisRef", "Position"]))],
+                        methods=[
+                            eq_method(
+                                t_nest_shared("Index",
+                                              ["Tblfm", "Expr", "AxisRef", "Position"]))
+                        ],
                         nested=[default_constructor("Index")],
                     ),
                     GenTuStruct(
                         t_nest_shared("Name", ["Tblfm", "Expr", "AxisRef", "Position"]),
                         fields=[str_field("name")],
-                        methods=[eq_method(t_nest_shared("Name", ["Tblfm", "Expr", "AxisRef", "Position"]))],
+                        methods=[
+                            eq_method(
+                                t_nest_shared("Name",
+                                              ["Tblfm", "Expr", "AxisRef", "Position"]))
+                        ],
                         nested=[default_constructor("Name")],
                     ),
                 ],
                 enumName=t_nest_shared("Kind", ["Tblfm", "Expr", "AxisRef", "Position"]),
-                variantName=t_nest_shared("Data", ["Tblfm", "Expr", "AxisRef", "Position"]),
+                variantName=t_nest_shared("Data",
+                                          ["Tblfm", "Expr", "AxisRef", "Position"]),
             ),
             default_constructor("Position"),
         ],
@@ -1544,6 +1555,24 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                                     methods=[
                                         eq_method(
                                             t_nest_shared("AxisName", ["Tblfm", "Expr"]))
+                                    ],
+                                ),
+                                GenTuStruct(
+                                    t_nest_shared("IntLiteral", ["Tblfm", "Expr"]),
+                                    fields=[org_field(t_int(), "value")],
+                                    methods=[
+                                        eq_method(
+                                            t_nest_shared("IntLiteral",
+                                                          ["Tblfm", "Expr"]))
+                                    ],
+                                ),
+                                GenTuStruct(
+                                    t_nest_shared("FloatLiteral", ["Tblfm", "Expr"]),
+                                    fields=[org_field(t("float"), "value")],
+                                    methods=[
+                                        eq_method(
+                                            t_nest_shared("FloatLiteral",
+                                                          ["Tblfm", "Expr"]))
                                     ],
                                 ),
                                 GenTuStruct(

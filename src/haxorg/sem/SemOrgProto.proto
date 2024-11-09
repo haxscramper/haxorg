@@ -328,6 +328,14 @@ message Tblfm {
       string                                       name                             = 1;
       string                                       debug                            = 1000;
     }
+    message IntLiteral {
+      int32                                        value                            = 1;
+      string                                       debug                            = 1000;
+    }
+    message FloatLiteral {
+      float                                        value                            = 1;
+      string                                       debug                            = 1000;
+    }
     message RangeRef {
       optional Tblfm.Expr.AxisRef                  first                            = 1;
       optional Tblfm.Expr.AxisRef                  last                             = 2;
@@ -346,17 +354,21 @@ message Tblfm {
       oneof kind {
         Tblfm.Expr.AxisRef                         axisref                          = 1;
         Tblfm.Expr.AxisName                        axisname                         = 2;
-        Tblfm.Expr.RangeRef                        rangeref                         = 3;
-        Tblfm.Expr.Call                            call                             = 4;
-        Tblfm.Expr.Elisp                           elisp                            = 5;
+        Tblfm.Expr.IntLiteral                      intliteral                       = 3;
+        Tblfm.Expr.FloatLiteral                    floatliteral                     = 4;
+        Tblfm.Expr.RangeRef                        rangeref                         = 5;
+        Tblfm.Expr.Call                            call                             = 6;
+        Tblfm.Expr.Elisp                           elisp                            = 7;
       }
     }
     enum Kind {
       Kind_AxisRef_f                                                                = 0;
       Kind_AxisName_f                                                               = 1;
-      Kind_RangeRef_f                                                               = 2;
-      Kind_Call_f                                                                   = 3;
-      Kind_Elisp_f                                                                  = 4;
+      Kind_IntLiteral_f                                                             = 2;
+      Kind_FloatLiteral_f                                                           = 3;
+      Kind_RangeRef_f                                                               = 4;
+      Kind_Call_f                                                                   = 5;
+      Kind_Elisp_f                                                                  = 6;
     }
     Tblfm.Expr.Data                                data                             = 1;
     string                                         debug                            = 1000;

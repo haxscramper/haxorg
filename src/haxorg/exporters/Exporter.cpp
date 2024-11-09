@@ -31,5 +31,7 @@ void Exporter<V, R>::visit(R& res, CR<UserTime> time) {
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, CR<LineCol> time) {}
 
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, float const& time) {}
 
 #include "Exporter.tcc"

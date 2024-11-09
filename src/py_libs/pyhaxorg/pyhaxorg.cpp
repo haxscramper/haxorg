@@ -262,6 +262,44 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<sem::Tblfm::Expr::IntLiteral>(m, "TblfmExprIntLiteral")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Tblfm::Expr::IntLiteral {
+                        sem::Tblfm::Expr::IntLiteral result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("value", &sem::Tblfm::Expr::IntLiteral::value)
+    .def("operator==",
+         static_cast<bool(sem::Tblfm::Expr::IntLiteral::*)(sem::Tblfm::Expr::IntLiteral const&) const>(&sem::Tblfm::Expr::IntLiteral::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::Tblfm::Expr::IntLiteral _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Tblfm::Expr::IntLiteral _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::Tblfm::Expr::FloatLiteral>(m, "TblfmExprFloatLiteral")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Tblfm::Expr::FloatLiteral {
+                        sem::Tblfm::Expr::FloatLiteral result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("value", &sem::Tblfm::Expr::FloatLiteral::value)
+    .def("operator==",
+         static_cast<bool(sem::Tblfm::Expr::FloatLiteral::*)(sem::Tblfm::Expr::FloatLiteral const&) const>(&sem::Tblfm::Expr::FloatLiteral::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::Tblfm::Expr::FloatLiteral _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Tblfm::Expr::FloatLiteral _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<sem::Tblfm::Expr::RangeRef>(m, "TblfmExprRangeRef")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Tblfm::Expr::RangeRef {
                         sem::Tblfm::Expr::RangeRef result{};
@@ -325,6 +363,8 @@ node can have subnodes.)RAW")
   pybind11::enum_<sem::Tblfm::Expr::Kind>(m, "TblfmExprKind")
     .value("AxisRef", sem::Tblfm::Expr::Kind::AxisRef)
     .value("AxisName", sem::Tblfm::Expr::Kind::AxisName)
+    .value("IntLiteral", sem::Tblfm::Expr::Kind::IntLiteral)
+    .value("FloatLiteral", sem::Tblfm::Expr::Kind::FloatLiteral)
     .value("RangeRef", sem::Tblfm::Expr::Kind::RangeRef)
     .value("Call", sem::Tblfm::Expr::Kind::Call)
     .value("Elisp", sem::Tblfm::Expr::Kind::Elisp)
@@ -348,6 +388,10 @@ node can have subnodes.)RAW")
     .def("getAxisRef", static_cast<sem::Tblfm::Expr::AxisRef&(sem::Tblfm::Expr::*)()>(&sem::Tblfm::Expr::getAxisRef))
     .def("isAxisName", static_cast<bool(sem::Tblfm::Expr::*)() const>(&sem::Tblfm::Expr::isAxisName))
     .def("getAxisName", static_cast<sem::Tblfm::Expr::AxisName&(sem::Tblfm::Expr::*)()>(&sem::Tblfm::Expr::getAxisName))
+    .def("isIntLiteral", static_cast<bool(sem::Tblfm::Expr::*)() const>(&sem::Tblfm::Expr::isIntLiteral))
+    .def("getIntLiteral", static_cast<sem::Tblfm::Expr::IntLiteral&(sem::Tblfm::Expr::*)()>(&sem::Tblfm::Expr::getIntLiteral))
+    .def("isFloatLiteral", static_cast<bool(sem::Tblfm::Expr::*)() const>(&sem::Tblfm::Expr::isFloatLiteral))
+    .def("getFloatLiteral", static_cast<sem::Tblfm::Expr::FloatLiteral&(sem::Tblfm::Expr::*)()>(&sem::Tblfm::Expr::getFloatLiteral))
     .def("isRangeRef", static_cast<bool(sem::Tblfm::Expr::*)() const>(&sem::Tblfm::Expr::isRangeRef))
     .def("getRangeRef", static_cast<sem::Tblfm::Expr::RangeRef&(sem::Tblfm::Expr::*)()>(&sem::Tblfm::Expr::getRangeRef))
     .def("isCall", static_cast<bool(sem::Tblfm::Expr::*)() const>(&sem::Tblfm::Expr::isCall))

@@ -326,7 +326,7 @@ class ProtoBuilder():
         return tu.in_type_list(typ, self.enum_type_list)
 
     def is_direct_set_type(self, typ: tu.QualType) -> bool:
-        return typ.name in ["int", "string", "bool"] or self.is_enum_type(typ)
+        return typ.name in ["int", "string", "bool", "float"] or self.is_enum_type(typ)
 
     def get_field_read_op(
         self,

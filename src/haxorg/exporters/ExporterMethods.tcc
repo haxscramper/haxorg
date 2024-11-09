@@ -8,6 +8,8 @@ void visit(R& res, sem::Tblfm::Expr::AxisRef::Position const& object);
 void visit(R& res, sem::Tblfm::Expr::AxisRef::Position::Index const& object);
 void visit(R& res, sem::Tblfm::Expr::AxisRef::Position::Name const& object);
 void visit(R& res, sem::Tblfm::Expr::AxisName const& object);
+void visit(R& res, sem::Tblfm::Expr::IntLiteral const& object);
+void visit(R& res, sem::Tblfm::Expr::FloatLiteral const& object);
 void visit(R& res, sem::Tblfm::Expr::RangeRef const& object);
 void visit(R& res, sem::Tblfm::Expr::Call const& object);
 void visit(R& res, sem::Tblfm::Expr::Elisp const& object);
