@@ -20,6 +20,7 @@
 #include <lexy/action/parse.hpp>
 #include <lexy/callback.hpp>
 #include <lexy/callback/container.hpp>
+#include <lexy/action/trace.hpp>
 
 struct convert_logic_error : CRTP_hexception<convert_logic_error> {};
 
@@ -967,7 +968,8 @@ namespace dsl = lexy::dsl;
 namespace tblfmt_grammar {
 
 struct axis_direction {
-    static constexpr auto rule //
+    static constexpr const char* name = "axis_direction";
+    static constexpr auto        rule //
         = (dsl::peek(dsl::lit_c<'>'>)
            >> dsl::capture(dsl::token(dsl::while_one(dsl::lit_c<'>'>))))
         | (dsl::peek(dsl::lit_c<'<'>)
@@ -979,7 +981,8 @@ struct axis_direction {
 };
 
 struct axis_spec {
-    static constexpr auto rule =                 //
+    static constexpr const char* name = "axis_spec";
+    static constexpr auto        rule =          //
         (dsl::ascii::alnum >> dsl::integer<int>) //
         +dsl::opt(dsl::p<axis_direction>);
 
@@ -1000,7 +1003,8 @@ struct axis_spec {
 };
 
 struct axis_ref {
-    static constexpr auto rule //
+    static constexpr const char* name = "axis_ref";
+    static constexpr auto        rule //
         = dsl::opt(dsl::lit_c<'$'> >> dsl::p<axis_spec>)
         + dsl::opt(dsl::lit_c<'@'> >> dsl::p<axis_spec>);
 
@@ -1028,6 +1032,20 @@ OrgConverter::ConvResult<CmdTblfm> OrgConverter::convertCmdTblfm(__args) {
 
 
     Str fmt = "$12<"; // get_text(one(a, N::Values));
+
+    std::string        str;
+    lexy::string_input input{fmt.data(), fmt.data() + fmt.size()};
+
+    lexy::visualization_options opts{};
+    opts.flags = lexy::visualize_use_unicode | lexy::visualize_use_symbols
+               | lexy::visualize_space;
+
+    auto trace = lexy::trace_to<tblfmt_grammar::axis_ref>(
+        std::back_insert_iterator(str),
+        lexy::zstring_input(input.data()),
+        opts);
+
+    print(str);
 
     auto result = lexy::parse<tblfmt_grammar::axis_ref>(
         lexy::string_input{fmt.data(), fmt.data() + fmt.size()},
