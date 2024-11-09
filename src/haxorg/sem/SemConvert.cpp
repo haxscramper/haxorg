@@ -1081,39 +1081,65 @@ struct tblfmt {
 
 }; // namespace tblfmt_grammar
 
+struct CollectErrors {
+    struct _sink {
+        using return_type = std::vector<std::string>;
+
+        template <typename Input, typename Reader, typename Tag>
+        void operator()(
+            const lexy::error_context<Input>& context,
+            const lexy::error<Reader, Tag>&   error) {
+            std::string out;
+            lexy_ext::_detail::write_error(
+                std::back_inserter(out), context, error, {}, nullptr);
+            errors.push_back(out);
+        }
+
+        std::vector<std::string> finish() && { return errors; }
+
+        std::vector<std::string> errors;
+    };
+
+    constexpr auto sink() const { return _sink{}; }
+};
+
 OrgConverter::ConvResult<CmdTblfm> OrgConverter::convertCmdTblfm(__args) {
     __perf_trace("convert", "convertCmdTblfm");
     auto __trace = trace(a);
     auto res     = Sem<CmdTblfm>(a);
 
 
-    Str fmt = get_text(one(a, N::Values));
-    print(fmt);
+    Str expr = get_text(one(a, N::Values));
+    print(expr);
 
-    std::string        str;
-    lexy::string_input input{fmt.data(), fmt.data() + fmt.size()};
 
-    lexy::visualization_options opts{};
-    opts.flags = lexy::visualize_use_unicode | lexy::visualize_use_symbols
-               | lexy::visualize_space;
+    if (TraceState) {
+        std::string        str;
+        lexy::string_input input{expr.data(), expr.data() + expr.size()};
 
-    auto trace = lexy::trace_to<tblfmt_grammar::tblfmt>(
-        std::back_insert_iterator(str),
-        lexy::zstring_input(input.data()),
-        opts);
+        lexy::visualization_options opts{};
+        opts.flags = lexy::visualize_use_unicode
+                   | lexy::visualize_use_symbols | lexy::visualize_space;
+        lexy::trace_to<tblfmt_grammar::tblfmt>(
+            std::back_insert_iterator(str),
+            lexy::zstring_input(input.data()),
+            opts);
 
-    print(str);
+        print(str);
+    }
 
     auto result = lexy::parse<tblfmt_grammar::tblfmt>(
-        lexy::string_input{fmt.data(), fmt.data() + fmt.size()},
-        lexy_ext::report_error);
+        lexy::string_input{expr.data(), expr.data() + expr.size()},
+        CollectErrors{});
 
-
-    auto v = result.value();
-
-    res->expr.exprs = Vec<sem::Tblfm::Assign>{v.begin(), v.end()};
-
-    return res;
+    if (result.has_value()) {
+        auto v          = result.value();
+        res->expr.exprs = Vec<sem::Tblfm::Assign>{v.begin(), v.end()};
+        return res;
+    } else {
+        return SemError(
+            a, fmt("Table format expression failed {}", result.errors()));
+    }
 }
 
 
