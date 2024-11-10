@@ -4107,6 +4107,7 @@ node can have subnodes.)RAW")
     .def_readwrite("category", &sem::DocumentOptions::category)
     .def_readwrite("setupfile", &sem::DocumentOptions::setupfile)
     .def_readwrite("maxSubtreeLevelExport", &sem::DocumentOptions::maxSubtreeLevelExport)
+    .def_readwrite("columns", &sem::DocumentOptions::columns)
     .def("getProperties",
          static_cast<Vec<sem::NamedProperty>(sem::DocumentOptions::*)(Str const&, Opt<Str> const&) const>(&sem::DocumentOptions::getProperties),
          pybind11::arg("kind"),

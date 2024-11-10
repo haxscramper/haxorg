@@ -2253,6 +2253,9 @@ void proto_serde<::orgproto::DocumentOptions, sem::DocumentOptions>::write(::org
   if (in.maxSubtreeLevelExport) {
     out->set_maxsubtreelevelexport(*in.maxSubtreeLevelExport);
   }
+  if (in.columns) {
+    proto_serde<orgproto::ColumnView, sem::ColumnView>::write(out->mutable_columns(), *in.columns);
+  }
 }
 
 void proto_serde<::orgproto::DocumentOptions, sem::DocumentOptions>::read(::orgproto::DocumentOptions const& out, proto_write_accessor<sem::DocumentOptions> in) {
@@ -2274,6 +2277,9 @@ void proto_serde<::orgproto::DocumentOptions, sem::DocumentOptions>::read(::orgp
   }
   if (out.has_maxsubtreelevelexport()) {
     proto_serde<Opt<::int32_t>, Opt<int>>::read(out.maxsubtreelevelexport(), in.for_field(&sem::DocumentOptions::maxSubtreeLevelExport));
+  }
+  if (out.has_columns()) {
+    proto_serde<Opt<orgproto::ColumnView>, Opt<sem::ColumnView>>::read(out.columns(), in.for_field(&sem::DocumentOptions::columns));
   }
 }
 

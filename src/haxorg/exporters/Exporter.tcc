@@ -990,6 +990,7 @@ void Exporter<V, R>::visitDocumentOptions(R& res, In<sem::DocumentOptions> objec
   __org_field(res, object, category);
   __org_field(res, object, setupfile);
   __org_field(res, object, maxSubtreeLevelExport);
+  __org_field(res, object, columns);
   __org_field(res, object, subnodes);
 }
 

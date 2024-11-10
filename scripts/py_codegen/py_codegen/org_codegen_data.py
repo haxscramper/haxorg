@@ -1618,9 +1618,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
         GenTuStruct(
             t_nest_shared("ColumnView"),
             methods=[eq_method(t_nest_shared("ColumnView"))],
-            fields=[
-                vec_field(t_nest_shared("Column", ["ColumnView"]), "columns")
-            ],
+            fields=[vec_field(t_nest_shared("Column", ["ColumnView"]), "columns")],
             nested=[
                 GenTuStruct(
                     t_nest_shared("Summary", ["ColumnView"]),
@@ -2375,6 +2373,7 @@ def get_types() -> Sequence[GenTuStruct]:
                 opt_field(t_str(), "category"),
                 opt_field(t_str(), "setupfile"),
                 opt_field(t_int(), "maxSubtreeLevelExport"),
+                opt_field(t_nest_shared("ColumnView"), "columns"),
             ],
         ),
         d_org(

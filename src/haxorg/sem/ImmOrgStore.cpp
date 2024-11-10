@@ -211,6 +211,7 @@ ImmAstReplace setNewSubnodes(
                         [&](ImmVec<sem::NamedProperty> const&) { fail_field(); },
                         [&](sem::LinkTarget const&) { fail_field(); },
                         [&](sem::ColumnView const&) { fail_field(); },
+                        [&](ImmBox<Opt<sem::ColumnView>> const&) { fail_field(); },
                         [&](sem::DocumentExportConfig const&) { fail_field(); },
                         [&](sem::AttrValue const&) { fail_field(); },
                         // clang-format on

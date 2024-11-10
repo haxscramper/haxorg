@@ -1798,7 +1798,7 @@ OrgConverter::ConvResult<CmdColumns> OrgConverter::convertCmdColumns(
     auto              __trace = trace(a);
     SemId<CmdColumns> result  = Sem<CmdColumns>(a);
 
-    Str expr = get_text(one(a, N::Values));
+    Str expr = get_text(one(a, N::Args));
 
     auto spec = run_lexy_parse<columns_grammar::columns>(expr, this);
 
@@ -2181,6 +2181,8 @@ SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
             auto __trace = trace(adapter, fmt1(sub.getKind()));
             switch (sub.kind()) {
                 case onk::CmdColumns: {
+                    auto cols             = convertCmdColumns(sub).value();
+                    doc->options->columns = cols->view;
                     break;
                 }
                 case onk::CmdTitle: {

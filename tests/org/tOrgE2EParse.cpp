@@ -1215,9 +1215,10 @@ TEST(OrgApi, LinkTarget) {
 
 TEST(OrgApi, ColumnView) {
     {
-        auto c = parseOne<sem::CmdColumns>(
+        auto doc = parseOne<sem::Document>(
             R"(#+columns: %20ITEM %9Approved(Approved?){X} %Owner %11Status %10Time_Spent{:})",
-            getDebugFile("subtree_title"));
+            getDebugFile("column_view"));
+        sem::ColumnView const& v = doc->options->columns.value();
     }
 }
 

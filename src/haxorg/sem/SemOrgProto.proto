@@ -1575,6 +1575,7 @@ message DocumentOptions {
   optional string                                  category                         = 8;
   optional string                                  setupfile                        = 9;
   optional int32                                   maxSubtreeLevelExport            = 10;
+  optional ColumnView                              columns                          = 11;
   string                                           debug                            = 1000;
 }
 

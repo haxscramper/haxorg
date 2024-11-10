@@ -2511,7 +2511,8 @@ struct DocumentOptions : public sem::Org {
                         startupIndented,
                         category,
                         setupfile,
-                        maxSubtreeLevelExport))
+                        maxSubtreeLevelExport,
+                        columns))
   static OrgSemKind const staticKind;
   InitialSubtreeVisibility initialVisibility = InitialSubtreeVisibility::ShowEverything;
   Vec<sem::NamedProperty> properties = {};
@@ -2521,6 +2522,7 @@ struct DocumentOptions : public sem::Org {
   Opt<Str> category = std::nullopt;
   Opt<Str> setupfile = std::nullopt;
   Opt<int> maxSubtreeLevelExport = std::nullopt;
+  Opt<sem::ColumnView> columns = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::DocumentOptions; }
   Vec<sem::NamedProperty> getProperties(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;
   Opt<sem::NamedProperty> getProperty(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;

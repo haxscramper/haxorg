@@ -1385,6 +1385,7 @@ struct ImmSemSerde<sem::DocumentOptions, org::ImmDocumentOptions> {
     assign_immer_field(result.category, value.category, ctx);
     assign_immer_field(result.setupfile, value.setupfile, ctx);
     assign_immer_field(result.maxSubtreeLevelExport, value.maxSubtreeLevelExport, ctx);
+    assign_immer_field(result.columns, value.columns, ctx);
     assign_immer_field(result.subnodes, value.subnodes, ctx);
     return result;
   }
@@ -1398,6 +1399,7 @@ struct ImmSemSerde<sem::DocumentOptions, org::ImmDocumentOptions> {
     assign_sem_field(result.category, value.category, ctx);
     assign_sem_field(result.setupfile, value.setupfile, ctx);
     assign_sem_field(result.maxSubtreeLevelExport, value.maxSubtreeLevelExport, ctx);
+    assign_sem_field(result.columns, value.columns, ctx);
     assign_sem_field(result.subnodes, value.subnodes, ctx);
     return result;
   }

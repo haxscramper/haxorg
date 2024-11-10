@@ -355,6 +355,11 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
         SpecPair{org::CmdTitle, parTextCmdPattern},
         SpecPair{org::CmdCaption, parTextCmdPattern},
         SpecPair{
+            org::CmdColumns,
+            OrgPattern({
+                fieldN(0, N::Args, {org::Attrs, org::Empty}),
+            })},
+        SpecPair{
             org::CmdPropertyText,
             OrgPattern({
                 field1(0, N::Name, org::RawText),
