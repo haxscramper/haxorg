@@ -239,10 +239,12 @@ void proto_serde<::orgproto::LinkTarget::CustomId, sem::LinkTarget::CustomId>::r
 
 void proto_serde<::orgproto::LinkTarget::SubtreeTitle, sem::LinkTarget::SubtreeTitle>::write(::orgproto::LinkTarget::SubtreeTitle* out, sem::LinkTarget::SubtreeTitle const& in) {
   proto_serde<orgproto::SubtreePath, sem::SubtreePath>::write(out->mutable_title(), in.title);
+  out->set_level(in.level);
 }
 
 void proto_serde<::orgproto::LinkTarget::SubtreeTitle, sem::LinkTarget::SubtreeTitle>::read(::orgproto::LinkTarget::SubtreeTitle const& out, proto_write_accessor<sem::LinkTarget::SubtreeTitle> in) {
   proto_serde<orgproto::SubtreePath, sem::SubtreePath>::read(out.title(), in.for_field(&sem::LinkTarget::SubtreeTitle::title));
+  in.for_field(&sem::LinkTarget::SubtreeTitle::level).get() = out.level();
 }
 
 void proto_serde<::orgproto::LinkTarget::Person, sem::LinkTarget::Person>::write(::orgproto::LinkTarget::Person* out, sem::LinkTarget::Person const& in) {

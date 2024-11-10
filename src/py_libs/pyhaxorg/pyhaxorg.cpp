@@ -581,6 +581,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("title", &sem::LinkTarget::SubtreeTitle::title)
+    .def_readwrite("level", &sem::LinkTarget::SubtreeTitle::level)
     .def("operator==",
          static_cast<bool(sem::LinkTarget::SubtreeTitle::*)(sem::LinkTarget::SubtreeTitle const&) const>(&sem::LinkTarget::SubtreeTitle::operator==),
          pybind11::arg("other"))

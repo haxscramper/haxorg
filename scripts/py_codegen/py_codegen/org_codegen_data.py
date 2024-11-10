@@ -1632,7 +1632,10 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                         ),
                         GenTuStruct(
                             t_nest_shared("SubtreeTitle", ["LinkTarget"]),
-                            fields=[org_field(t_nest_shared("SubtreePath"), "title")],
+                            fields=[
+                                org_field(t_nest_shared("SubtreePath"), "title"),
+                                org_field(t_int(), "level"),
+                            ],
                             methods=[eq_method(t_nest("SubtreeTitle", ["LinkTarget"]))],
                         ),
                         GenTuStruct(

@@ -288,8 +288,9 @@ struct LinkTarget {
                          (),
                          (),
                          (),
-                         (title))
+                         (title, level))
     sem::SubtreePath title;
+    int level;
     bool operator==(sem::LinkTarget::SubtreeTitle const& other) const;
   };
 

@@ -1178,8 +1178,19 @@ TEST(OrgApi, LinkTarget) {
             R"([[* Title]])", getDebugFile("subtree_title"));
         auto const& t = l->target;
         EXPECT_EQ(t.getKind(), sem::LinkTarget::Kind::SubtreeTitle);
+        EXPECT_EQ(t.getSubtreeTitle().level, 1);
         EXPECT_EQ(t.getSubtreeTitle().title.path.size(), 1);
         EXPECT_EQ(t.getSubtreeTitle().title.path.at(0), "Title");
+    }
+    {
+        auto l = parseOne<sem::Link>(
+            R"([[** Title/Sub]])", getDebugFile("subtree_title"));
+        auto const& t = l->target;
+        EXPECT_EQ(t.getKind(), sem::LinkTarget::Kind::SubtreeTitle);
+        EXPECT_EQ(t.getSubtreeTitle().level, 2);
+        EXPECT_EQ(t.getSubtreeTitle().title.path.size(), 2);
+        EXPECT_EQ(t.getSubtreeTitle().title.path.at(0), "Title");
+        EXPECT_EQ(t.getSubtreeTitle().title.path.at(1), "Sub");
     }
 }
 

@@ -427,6 +427,7 @@ message LinkTarget {
   }
   message SubtreeTitle {
     SubtreePath                                    title                            = 1;
+    int32                                          level                            = 2;
     string                                         debug                            = 1000;
   }
   message Person {

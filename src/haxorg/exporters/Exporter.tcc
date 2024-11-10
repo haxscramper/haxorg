@@ -83,7 +83,10 @@ template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::LinkTarget::CustomId const& object) { __obj_field(res, object, text); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::LinkTarget::SubtreeTitle const& object) { __obj_field(res, object, title); }
+void Exporter<V, R>::visit(R& res, sem::LinkTarget::SubtreeTitle const& object) {
+  __obj_field(res, object, title);
+  __obj_field(res, object, level);
+}
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::LinkTarget::Person const& object) { __obj_field(res, object, name); }

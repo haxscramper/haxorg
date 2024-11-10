@@ -864,8 +864,19 @@ OrgConverter::ConvResult<Link> OrgConverter::convertLink(__args) {
         if (target.starts_with(".") || target.starts_with("/")) {
             link->target = LinkTarget{LinkTarget::File{.file = target}};
         } else if (target.starts_with("*")) {
+            int level = 0;
+            for (auto const& c : target) {
+                if (c == '*') {
+                    ++level;
+                } else {
+                    break;
+                }
+            }
             link->target = LinkTarget{LinkTarget::SubtreeTitle{
-                .title = lstrip(target, CharSet{'*', ' '}).split("/")}};
+                .level = level,
+                .title = lstrip(target, CharSet{'*', ' '}).split("/"),
+            }};
+
         } else {
             link->target = LinkTarget{
                 LinkTarget::Internal{.target = target}};
