@@ -1172,6 +1172,17 @@ TEST(OrgApi, TblfmExpression) {
     }
 }
 
+TEST(OrgApi, LinkTarget) {
+    {
+        auto l = parseOne<sem::Link>(
+            R"([[* Title]])", getDebugFile("subtree_title"));
+        auto const& t = l->target;
+        EXPECT_EQ(t.getKind(), sem::LinkTarget::Kind::SubtreeTitle);
+        EXPECT_EQ(t.getSubtreeTitle().title.path.size(), 1);
+        EXPECT_EQ(t.getSubtreeTitle().title.path.at(0), "Title");
+    }
+}
+
 TEST(SimpleNodeConversion, LCSCompile) {
     Vec<int> first{1, 2, 3};
     Vec<int> second{1, 2, 3};

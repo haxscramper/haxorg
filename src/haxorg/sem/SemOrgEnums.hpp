@@ -18,6 +18,8 @@
     __IMPL(Tblfm, Assign, (Assign)) \
     __IMPL(LinkTarget, Raw, (Raw)) \
     __IMPL(LinkTarget, Id, (Id)) \
+    __IMPL(LinkTarget, CustomId, (CustomId)) \
+    __IMPL(LinkTarget, SubtreeTitle, (SubtreeTitle)) \
     __IMPL(LinkTarget, Person, (Person)) \
     __IMPL(LinkTarget, UserProtocol, (UserProtocol)) \
     __IMPL(LinkTarget, Internal, (Internal)) \
@@ -93,16 +95,18 @@
     __IMPL(Tblfm::Expr::Elisp, (Tblfm, Expr, Elisp)) \
     __IMPL(Tblfm::Assign, (Tblfm, Assign)) \
     __IMPL(AttrValue, (AttrValue)) \
+    __IMPL(SubtreePath, (SubtreePath)) \
     __IMPL(LinkTarget, (LinkTarget)) \
     __IMPL(LinkTarget::Raw, (LinkTarget, Raw)) \
     __IMPL(LinkTarget::Id, (LinkTarget, Id)) \
+    __IMPL(LinkTarget::CustomId, (LinkTarget, CustomId)) \
+    __IMPL(LinkTarget::SubtreeTitle, (LinkTarget, SubtreeTitle)) \
     __IMPL(LinkTarget::Person, (LinkTarget, Person)) \
     __IMPL(LinkTarget::UserProtocol, (LinkTarget, UserProtocol)) \
     __IMPL(LinkTarget::Internal, (LinkTarget, Internal)) \
     __IMPL(LinkTarget::Footnote, (LinkTarget, Footnote)) \
     __IMPL(LinkTarget::File, (LinkTarget, File)) \
     __IMPL(LinkTarget::Attachment, (LinkTarget, Attachment)) \
-    __IMPL(SubtreePath, (SubtreePath)) \
     __IMPL(BlockCodeLine, (BlockCodeLine)) \
     __IMPL(BlockCodeLine::Part, (BlockCodeLine, Part)) \
     __IMPL(BlockCodeLine::Part::Raw, (BlockCodeLine, Part, Raw)) \

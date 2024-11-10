@@ -407,6 +407,11 @@ message AttrValue {
   string                                           debug                            = 1000;
 }
 
+message SubtreePath {
+  repeated string                                  path                             = 1;
+  string                                           debug                            = 1000;
+}
+
 message LinkTarget {
   message Raw {
     string                                         text                             = 1;
@@ -414,6 +419,14 @@ message LinkTarget {
   }
   message Id {
     string                                         text                             = 1;
+    string                                         debug                            = 1000;
+  }
+  message CustomId {
+    string                                         text                             = 1;
+    string                                         debug                            = 1000;
+  }
+  message SubtreeTitle {
+    SubtreePath                                    title                            = 1;
     string                                         debug                            = 1000;
   }
   message Person {
@@ -445,30 +458,29 @@ message LinkTarget {
     oneof kind {
       LinkTarget.Raw                               raw                              = 1;
       LinkTarget.Id                                id                               = 2;
-      LinkTarget.Person                            person                           = 3;
-      LinkTarget.UserProtocol                      userprotocol                     = 4;
-      LinkTarget.Internal                          internal                         = 5;
-      LinkTarget.Footnote                          footnote                         = 6;
-      LinkTarget.File                              file                             = 7;
-      LinkTarget.Attachment                        attachment                       = 8;
+      LinkTarget.CustomId                          customid                         = 3;
+      LinkTarget.SubtreeTitle                      subtreetitle                     = 4;
+      LinkTarget.Person                            person                           = 5;
+      LinkTarget.UserProtocol                      userprotocol                     = 6;
+      LinkTarget.Internal                          internal                         = 7;
+      LinkTarget.Footnote                          footnote                         = 8;
+      LinkTarget.File                              file                             = 9;
+      LinkTarget.Attachment                        attachment                       = 10;
     }
   }
   enum Kind {
     Kind_Raw_f                                                                      = 0;
     Kind_Id_f                                                                       = 1;
-    Kind_Person_f                                                                   = 2;
-    Kind_UserProtocol_f                                                             = 3;
-    Kind_Internal_f                                                                 = 4;
-    Kind_Footnote_f                                                                 = 5;
-    Kind_File_f                                                                     = 6;
-    Kind_Attachment_f                                                               = 7;
+    Kind_CustomId_f                                                                 = 2;
+    Kind_SubtreeTitle_f                                                             = 3;
+    Kind_Person_f                                                                   = 4;
+    Kind_UserProtocol_f                                                             = 5;
+    Kind_Internal_f                                                                 = 6;
+    Kind_Footnote_f                                                                 = 7;
+    Kind_File_f                                                                     = 8;
+    Kind_Attachment_f                                                               = 9;
   }
   LinkTarget.Data                                  data                             = 1;
-  string                                           debug                            = 1000;
-}
-
-message SubtreePath {
-  repeated string                                  path                             = 1;
   string                                           debug                            = 1000;
 }
 

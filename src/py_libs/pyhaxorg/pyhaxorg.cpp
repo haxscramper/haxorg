@@ -498,6 +498,25 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<sem::SubtreePath>(m, "SubtreePath")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreePath {
+                        sem::SubtreePath result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("path", &sem::SubtreePath::path)
+    .def("operator==",
+         static_cast<bool(sem::SubtreePath::*)(sem::SubtreePath const&) const>(&sem::SubtreePath::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::SubtreePath _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreePath _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<sem::LinkTarget::Raw>(m, "LinkTargetRaw")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::LinkTarget::Raw {
                         sem::LinkTarget::Raw result{};
@@ -532,6 +551,44 @@ node can have subnodes.)RAW")
                      })
     .def("__getattr__",
          [](sem::LinkTarget::Id _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::LinkTarget::CustomId>(m, "LinkTargetCustomId")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::LinkTarget::CustomId {
+                        sem::LinkTarget::CustomId result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("text", &sem::LinkTarget::CustomId::text)
+    .def("operator==",
+         static_cast<bool(sem::LinkTarget::CustomId::*)(sem::LinkTarget::CustomId const&) const>(&sem::LinkTarget::CustomId::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::LinkTarget::CustomId _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::LinkTarget::CustomId _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::LinkTarget::SubtreeTitle>(m, "LinkTargetSubtreeTitle")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::LinkTarget::SubtreeTitle {
+                        sem::LinkTarget::SubtreeTitle result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("title", &sem::LinkTarget::SubtreeTitle::title)
+    .def("operator==",
+         static_cast<bool(sem::LinkTarget::SubtreeTitle::*)(sem::LinkTarget::SubtreeTitle const&) const>(&sem::LinkTarget::SubtreeTitle::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::LinkTarget::SubtreeTitle _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::LinkTarget::SubtreeTitle _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -655,6 +712,8 @@ node can have subnodes.)RAW")
   pybind11::enum_<sem::LinkTarget::Kind>(m, "LinkTargetKind")
     .value("Raw", sem::LinkTarget::Kind::Raw)
     .value("Id", sem::LinkTarget::Kind::Id)
+    .value("CustomId", sem::LinkTarget::Kind::CustomId)
+    .value("SubtreeTitle", sem::LinkTarget::Kind::SubtreeTitle)
     .value("Person", sem::LinkTarget::Kind::Person)
     .value("UserProtocol", sem::LinkTarget::Kind::UserProtocol)
     .value("Internal", sem::LinkTarget::Kind::Internal)
@@ -681,6 +740,10 @@ node can have subnodes.)RAW")
     .def("getRaw", static_cast<sem::LinkTarget::Raw&(sem::LinkTarget::*)()>(&sem::LinkTarget::getRaw))
     .def("isId", static_cast<bool(sem::LinkTarget::*)() const>(&sem::LinkTarget::isId))
     .def("getId", static_cast<sem::LinkTarget::Id&(sem::LinkTarget::*)()>(&sem::LinkTarget::getId))
+    .def("isCustomId", static_cast<bool(sem::LinkTarget::*)() const>(&sem::LinkTarget::isCustomId))
+    .def("getCustomId", static_cast<sem::LinkTarget::CustomId&(sem::LinkTarget::*)()>(&sem::LinkTarget::getCustomId))
+    .def("isSubtreeTitle", static_cast<bool(sem::LinkTarget::*)() const>(&sem::LinkTarget::isSubtreeTitle))
+    .def("getSubtreeTitle", static_cast<sem::LinkTarget::SubtreeTitle&(sem::LinkTarget::*)()>(&sem::LinkTarget::getSubtreeTitle))
     .def("isPerson", static_cast<bool(sem::LinkTarget::*)() const>(&sem::LinkTarget::isPerson))
     .def("getPerson", static_cast<sem::LinkTarget::Person&(sem::LinkTarget::*)()>(&sem::LinkTarget::getPerson))
     .def("isUserProtocol", static_cast<bool(sem::LinkTarget::*)() const>(&sem::LinkTarget::isUserProtocol))
@@ -702,25 +765,6 @@ node can have subnodes.)RAW")
                      })
     .def("__getattr__",
          [](sem::LinkTarget _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::SubtreePath>(m, "SubtreePath")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreePath {
-                        sem::SubtreePath result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("path", &sem::SubtreePath::path)
-    .def("operator==",
-         static_cast<bool(sem::SubtreePath::*)(sem::SubtreePath const&) const>(&sem::SubtreePath::operator==),
-         pybind11::arg("other"))
-    .def("__repr__", [](sem::SubtreePath _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::SubtreePath _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))

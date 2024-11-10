@@ -171,6 +171,13 @@ struct proto_serde<::orgproto::AttrValue, sem::AttrValue> {
 
 
 template <>
+struct proto_serde<::orgproto::SubtreePath, sem::SubtreePath> {
+  static void write(::orgproto::SubtreePath* out, sem::SubtreePath const& in);
+  static void read(::orgproto::SubtreePath const& out, proto_write_accessor<sem::SubtreePath> in);
+};
+
+
+template <>
 struct proto_serde<::orgproto::LinkTarget::Raw, sem::LinkTarget::Raw> {
   static void write(::orgproto::LinkTarget::Raw* out, sem::LinkTarget::Raw const& in);
   static void read(::orgproto::LinkTarget::Raw const& out, proto_write_accessor<sem::LinkTarget::Raw> in);
@@ -181,6 +188,20 @@ template <>
 struct proto_serde<::orgproto::LinkTarget::Id, sem::LinkTarget::Id> {
   static void write(::orgproto::LinkTarget::Id* out, sem::LinkTarget::Id const& in);
   static void read(::orgproto::LinkTarget::Id const& out, proto_write_accessor<sem::LinkTarget::Id> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::LinkTarget::CustomId, sem::LinkTarget::CustomId> {
+  static void write(::orgproto::LinkTarget::CustomId* out, sem::LinkTarget::CustomId const& in);
+  static void read(::orgproto::LinkTarget::CustomId const& out, proto_write_accessor<sem::LinkTarget::CustomId> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::LinkTarget::SubtreeTitle, sem::LinkTarget::SubtreeTitle> {
+  static void write(::orgproto::LinkTarget::SubtreeTitle* out, sem::LinkTarget::SubtreeTitle const& in);
+  static void read(::orgproto::LinkTarget::SubtreeTitle const& out, proto_write_accessor<sem::LinkTarget::SubtreeTitle> in);
 };
 
 
@@ -230,13 +251,6 @@ template <>
 struct proto_serde<::orgproto::LinkTarget, sem::LinkTarget> {
   static void write(::orgproto::LinkTarget* out, sem::LinkTarget const& in);
   static void read(::orgproto::LinkTarget const& out, proto_write_accessor<sem::LinkTarget> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::SubtreePath, sem::SubtreePath> {
-  static void write(::orgproto::SubtreePath* out, sem::SubtreePath const& in);
-  static void read(::orgproto::SubtreePath const& out, proto_write_accessor<sem::SubtreePath> in);
 };
 
 

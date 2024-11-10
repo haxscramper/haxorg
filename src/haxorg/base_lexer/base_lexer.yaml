@@ -88,6 +88,12 @@ sub_lexers:
     - re: "(\\w|-|_)+"
       token: LinkProtocolInternal
 
+    - re: "#"
+      token: LinkProtocolCustomId
+
+    - re: "\\*+[^\\]]+"
+      token: LinkProtocolTitle
+
   timestamp_repeater:
     - re: "(\\.|\\+)?\\+"
       token: "TimeRepeaterSpec"
@@ -686,7 +692,10 @@ rules:
   - re: "\\[\\[(\\/|\\.){any_non_brace_link}+"
     sub: no_protocol_file_link
 
-  - re: "\\[\\[(\\w|-|_)+(\\]\\]|\\]\\[)"
+  - re: "\\[\\[(\\w|-|_|#)+(\\]\\]|\\]\\[)"
+    sub: link_protocol_internal
+
+  - re: "\\[\\[\\*+.+(\\]\\]|\\]\\[)"
     sub: link_protocol_internal
 
   - re: "\\[\\[\\w+:"

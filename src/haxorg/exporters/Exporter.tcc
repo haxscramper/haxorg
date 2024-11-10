@@ -65,6 +65,9 @@ void Exporter<V, R>::visit(R& res, sem::AttrValue const& object) {
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::SubtreePath const& object) { __obj_field(res, object, path); }
+
+template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::LinkTarget::Data const& object) { visitVariants(res, sem::LinkTarget::getKind(object), object); }
 
 template <typename V, typename R>
@@ -75,6 +78,12 @@ void Exporter<V, R>::visit(R& res, sem::LinkTarget::Raw const& object) { __obj_f
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::LinkTarget::Id const& object) { __obj_field(res, object, text); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::LinkTarget::CustomId const& object) { __obj_field(res, object, text); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::LinkTarget::SubtreeTitle const& object) { __obj_field(res, object, title); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::LinkTarget::Person const& object) { __obj_field(res, object, name); }
@@ -96,9 +105,6 @@ void Exporter<V, R>::visit(R& res, sem::LinkTarget::File const& object) { __obj_
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::LinkTarget::Attachment const& object) { __obj_field(res, object, file); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::SubtreePath const& object) { __obj_field(res, object, path); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::BlockCodeLine const& object) { __obj_field(res, object, parts); }

@@ -242,6 +242,16 @@ struct AttrValue {
   bool operator==(sem::AttrValue const& other) const;
 };
 
+struct SubtreePath {
+  BOOST_DESCRIBE_CLASS(SubtreePath,
+                       (),
+                       (),
+                       (),
+                       (path))
+  Vec<Str> path = {};
+  bool operator==(sem::SubtreePath const& other) const;
+};
+
 struct LinkTarget {
   struct Raw {
     BOOST_DESCRIBE_CLASS(Raw,
@@ -261,6 +271,26 @@ struct LinkTarget {
                          (text))
     Str text;
     bool operator==(sem::LinkTarget::Id const& other) const;
+  };
+
+  struct CustomId {
+    BOOST_DESCRIBE_CLASS(CustomId,
+                         (),
+                         (),
+                         (),
+                         (text))
+    Str text;
+    bool operator==(sem::LinkTarget::CustomId const& other) const;
+  };
+
+  struct SubtreeTitle {
+    BOOST_DESCRIBE_CLASS(SubtreeTitle,
+                         (),
+                         (),
+                         (),
+                         (title))
+    sem::SubtreePath title;
+    bool operator==(sem::LinkTarget::SubtreeTitle const& other) const;
   };
 
   struct Person {
@@ -324,9 +354,9 @@ struct LinkTarget {
     bool operator==(sem::LinkTarget::Attachment const& other) const;
   };
 
-  using Data = std::variant<sem::LinkTarget::Raw, sem::LinkTarget::Id, sem::LinkTarget::Person, sem::LinkTarget::UserProtocol, sem::LinkTarget::Internal, sem::LinkTarget::Footnote, sem::LinkTarget::File, sem::LinkTarget::Attachment>;
-  enum class Kind : short int { Raw, Id, Person, UserProtocol, Internal, Footnote, File, Attachment, };
-  BOOST_DESCRIBE_NESTED_ENUM(Kind, Raw, Id, Person, UserProtocol, Internal, Footnote, File, Attachment)
+  using Data = std::variant<sem::LinkTarget::Raw, sem::LinkTarget::Id, sem::LinkTarget::CustomId, sem::LinkTarget::SubtreeTitle, sem::LinkTarget::Person, sem::LinkTarget::UserProtocol, sem::LinkTarget::Internal, sem::LinkTarget::Footnote, sem::LinkTarget::File, sem::LinkTarget::Attachment>;
+  enum class Kind : short int { Raw, Id, CustomId, SubtreeTitle, Person, UserProtocol, Internal, Footnote, File, Attachment, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, Raw, Id, CustomId, SubtreeTitle, Person, UserProtocol, Internal, Footnote, File, Attachment)
   using variant_enum_type = sem::LinkTarget::Kind;
   using variant_data_type = sem::LinkTarget::Data;
   BOOST_DESCRIBE_CLASS(LinkTarget,
@@ -342,36 +372,32 @@ struct LinkTarget {
   bool isId() const { return getKind() == Kind::Id; }
   sem::LinkTarget::Id const& getId() const { return std::get<1>(data); }
   sem::LinkTarget::Id& getId() { return std::get<1>(data); }
+  bool isCustomId() const { return getKind() == Kind::CustomId; }
+  sem::LinkTarget::CustomId const& getCustomId() const { return std::get<2>(data); }
+  sem::LinkTarget::CustomId& getCustomId() { return std::get<2>(data); }
+  bool isSubtreeTitle() const { return getKind() == Kind::SubtreeTitle; }
+  sem::LinkTarget::SubtreeTitle const& getSubtreeTitle() const { return std::get<3>(data); }
+  sem::LinkTarget::SubtreeTitle& getSubtreeTitle() { return std::get<3>(data); }
   bool isPerson() const { return getKind() == Kind::Person; }
-  sem::LinkTarget::Person const& getPerson() const { return std::get<2>(data); }
-  sem::LinkTarget::Person& getPerson() { return std::get<2>(data); }
+  sem::LinkTarget::Person const& getPerson() const { return std::get<4>(data); }
+  sem::LinkTarget::Person& getPerson() { return std::get<4>(data); }
   bool isUserProtocol() const { return getKind() == Kind::UserProtocol; }
-  sem::LinkTarget::UserProtocol const& getUserProtocol() const { return std::get<3>(data); }
-  sem::LinkTarget::UserProtocol& getUserProtocol() { return std::get<3>(data); }
+  sem::LinkTarget::UserProtocol const& getUserProtocol() const { return std::get<5>(data); }
+  sem::LinkTarget::UserProtocol& getUserProtocol() { return std::get<5>(data); }
   bool isInternal() const { return getKind() == Kind::Internal; }
-  sem::LinkTarget::Internal const& getInternal() const { return std::get<4>(data); }
-  sem::LinkTarget::Internal& getInternal() { return std::get<4>(data); }
+  sem::LinkTarget::Internal const& getInternal() const { return std::get<6>(data); }
+  sem::LinkTarget::Internal& getInternal() { return std::get<6>(data); }
   bool isFootnote() const { return getKind() == Kind::Footnote; }
-  sem::LinkTarget::Footnote const& getFootnote() const { return std::get<5>(data); }
-  sem::LinkTarget::Footnote& getFootnote() { return std::get<5>(data); }
+  sem::LinkTarget::Footnote const& getFootnote() const { return std::get<7>(data); }
+  sem::LinkTarget::Footnote& getFootnote() { return std::get<7>(data); }
   bool isFile() const { return getKind() == Kind::File; }
-  sem::LinkTarget::File const& getFile() const { return std::get<6>(data); }
-  sem::LinkTarget::File& getFile() { return std::get<6>(data); }
+  sem::LinkTarget::File const& getFile() const { return std::get<8>(data); }
+  sem::LinkTarget::File& getFile() { return std::get<8>(data); }
   bool isAttachment() const { return getKind() == Kind::Attachment; }
-  sem::LinkTarget::Attachment const& getAttachment() const { return std::get<7>(data); }
-  sem::LinkTarget::Attachment& getAttachment() { return std::get<7>(data); }
+  sem::LinkTarget::Attachment const& getAttachment() const { return std::get<9>(data); }
+  sem::LinkTarget::Attachment& getAttachment() { return std::get<9>(data); }
   static sem::LinkTarget::Kind getKind(sem::LinkTarget::Data const& __input) { return static_cast<sem::LinkTarget::Kind>(__input.index()); }
   sem::LinkTarget::Kind getKind() const { return getKind(data); }
-};
-
-struct SubtreePath {
-  BOOST_DESCRIBE_CLASS(SubtreePath,
-                       (),
-                       (),
-                       (),
-                       (path))
-  Vec<Str> path = {};
-  bool operator==(sem::SubtreePath const& other) const;
 };
 
 struct BlockCodeLine {

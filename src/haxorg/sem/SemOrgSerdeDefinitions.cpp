@@ -205,6 +205,14 @@ void proto_serde<::orgproto::AttrValue, sem::AttrValue>::read(::orgproto::AttrVa
   proto_serde<std::string, Str>::read(out.value(), in.for_field(&sem::AttrValue::value));
 }
 
+void proto_serde<::orgproto::SubtreePath, sem::SubtreePath>::write(::orgproto::SubtreePath* out, sem::SubtreePath const& in) {
+  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::write(out->mutable_path(), in.path);
+}
+
+void proto_serde<::orgproto::SubtreePath, sem::SubtreePath>::read(::orgproto::SubtreePath const& out, proto_write_accessor<sem::SubtreePath> in) {
+  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::read(out.path(), in.for_field(&sem::SubtreePath::path));
+}
+
 void proto_serde<::orgproto::LinkTarget::Raw, sem::LinkTarget::Raw>::write(::orgproto::LinkTarget::Raw* out, sem::LinkTarget::Raw const& in) {
   proto_serde<std::string, Str>::write(out->mutable_text(), in.text);
 }
@@ -219,6 +227,22 @@ void proto_serde<::orgproto::LinkTarget::Id, sem::LinkTarget::Id>::write(::orgpr
 
 void proto_serde<::orgproto::LinkTarget::Id, sem::LinkTarget::Id>::read(::orgproto::LinkTarget::Id const& out, proto_write_accessor<sem::LinkTarget::Id> in) {
   proto_serde<std::string, Str>::read(out.text(), in.for_field(&sem::LinkTarget::Id::text));
+}
+
+void proto_serde<::orgproto::LinkTarget::CustomId, sem::LinkTarget::CustomId>::write(::orgproto::LinkTarget::CustomId* out, sem::LinkTarget::CustomId const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_text(), in.text);
+}
+
+void proto_serde<::orgproto::LinkTarget::CustomId, sem::LinkTarget::CustomId>::read(::orgproto::LinkTarget::CustomId const& out, proto_write_accessor<sem::LinkTarget::CustomId> in) {
+  proto_serde<std::string, Str>::read(out.text(), in.for_field(&sem::LinkTarget::CustomId::text));
+}
+
+void proto_serde<::orgproto::LinkTarget::SubtreeTitle, sem::LinkTarget::SubtreeTitle>::write(::orgproto::LinkTarget::SubtreeTitle* out, sem::LinkTarget::SubtreeTitle const& in) {
+  proto_serde<orgproto::SubtreePath, sem::SubtreePath>::write(out->mutable_title(), in.title);
+}
+
+void proto_serde<::orgproto::LinkTarget::SubtreeTitle, sem::LinkTarget::SubtreeTitle>::read(::orgproto::LinkTarget::SubtreeTitle const& out, proto_write_accessor<sem::LinkTarget::SubtreeTitle> in) {
+  proto_serde<orgproto::SubtreePath, sem::SubtreePath>::read(out.title(), in.for_field(&sem::LinkTarget::SubtreeTitle::title));
 }
 
 void proto_serde<::orgproto::LinkTarget::Person, sem::LinkTarget::Person>::write(::orgproto::LinkTarget::Person* out, sem::LinkTarget::Person const& in) {
@@ -280,22 +304,28 @@ void proto_serde<::orgproto::LinkTarget, sem::LinkTarget>::write(::orgproto::Lin
       proto_serde<orgproto::LinkTarget::Id, sem::LinkTarget::Id>::write(out->mutable_data()->mutable_id(), std::get<1>(in.data));
       break;
     case 2:
-      proto_serde<orgproto::LinkTarget::Person, sem::LinkTarget::Person>::write(out->mutable_data()->mutable_person(), std::get<2>(in.data));
+      proto_serde<orgproto::LinkTarget::CustomId, sem::LinkTarget::CustomId>::write(out->mutable_data()->mutable_customid(), std::get<2>(in.data));
       break;
     case 3:
-      proto_serde<orgproto::LinkTarget::UserProtocol, sem::LinkTarget::UserProtocol>::write(out->mutable_data()->mutable_userprotocol(), std::get<3>(in.data));
+      proto_serde<orgproto::LinkTarget::SubtreeTitle, sem::LinkTarget::SubtreeTitle>::write(out->mutable_data()->mutable_subtreetitle(), std::get<3>(in.data));
       break;
     case 4:
-      proto_serde<orgproto::LinkTarget::Internal, sem::LinkTarget::Internal>::write(out->mutable_data()->mutable_internal(), std::get<4>(in.data));
+      proto_serde<orgproto::LinkTarget::Person, sem::LinkTarget::Person>::write(out->mutable_data()->mutable_person(), std::get<4>(in.data));
       break;
     case 5:
-      proto_serde<orgproto::LinkTarget::Footnote, sem::LinkTarget::Footnote>::write(out->mutable_data()->mutable_footnote(), std::get<5>(in.data));
+      proto_serde<orgproto::LinkTarget::UserProtocol, sem::LinkTarget::UserProtocol>::write(out->mutable_data()->mutable_userprotocol(), std::get<5>(in.data));
       break;
     case 6:
-      proto_serde<orgproto::LinkTarget::File, sem::LinkTarget::File>::write(out->mutable_data()->mutable_file(), std::get<6>(in.data));
+      proto_serde<orgproto::LinkTarget::Internal, sem::LinkTarget::Internal>::write(out->mutable_data()->mutable_internal(), std::get<6>(in.data));
       break;
     case 7:
-      proto_serde<orgproto::LinkTarget::Attachment, sem::LinkTarget::Attachment>::write(out->mutable_data()->mutable_attachment(), std::get<7>(in.data));
+      proto_serde<orgproto::LinkTarget::Footnote, sem::LinkTarget::Footnote>::write(out->mutable_data()->mutable_footnote(), std::get<7>(in.data));
+      break;
+    case 8:
+      proto_serde<orgproto::LinkTarget::File, sem::LinkTarget::File>::write(out->mutable_data()->mutable_file(), std::get<8>(in.data));
+      break;
+    case 9:
+      proto_serde<orgproto::LinkTarget::Attachment, sem::LinkTarget::Attachment>::write(out->mutable_data()->mutable_attachment(), std::get<9>(in.data));
       break;
   }
 }
@@ -308,33 +338,31 @@ void proto_serde<::orgproto::LinkTarget, sem::LinkTarget>::read(::orgproto::Link
     case ::orgproto::LinkTarget::Data::kId:
       proto_serde<orgproto::LinkTarget::Id, sem::LinkTarget::Id>::read(out.data().id(), in.for_field_variant<1>(&sem::LinkTarget::data));
       break;
+    case ::orgproto::LinkTarget::Data::kCustomid:
+      proto_serde<orgproto::LinkTarget::CustomId, sem::LinkTarget::CustomId>::read(out.data().customid(), in.for_field_variant<2>(&sem::LinkTarget::data));
+      break;
+    case ::orgproto::LinkTarget::Data::kSubtreetitle:
+      proto_serde<orgproto::LinkTarget::SubtreeTitle, sem::LinkTarget::SubtreeTitle>::read(out.data().subtreetitle(), in.for_field_variant<3>(&sem::LinkTarget::data));
+      break;
     case ::orgproto::LinkTarget::Data::kPerson:
-      proto_serde<orgproto::LinkTarget::Person, sem::LinkTarget::Person>::read(out.data().person(), in.for_field_variant<2>(&sem::LinkTarget::data));
+      proto_serde<orgproto::LinkTarget::Person, sem::LinkTarget::Person>::read(out.data().person(), in.for_field_variant<4>(&sem::LinkTarget::data));
       break;
     case ::orgproto::LinkTarget::Data::kUserprotocol:
-      proto_serde<orgproto::LinkTarget::UserProtocol, sem::LinkTarget::UserProtocol>::read(out.data().userprotocol(), in.for_field_variant<3>(&sem::LinkTarget::data));
+      proto_serde<orgproto::LinkTarget::UserProtocol, sem::LinkTarget::UserProtocol>::read(out.data().userprotocol(), in.for_field_variant<5>(&sem::LinkTarget::data));
       break;
     case ::orgproto::LinkTarget::Data::kInternal:
-      proto_serde<orgproto::LinkTarget::Internal, sem::LinkTarget::Internal>::read(out.data().internal(), in.for_field_variant<4>(&sem::LinkTarget::data));
+      proto_serde<orgproto::LinkTarget::Internal, sem::LinkTarget::Internal>::read(out.data().internal(), in.for_field_variant<6>(&sem::LinkTarget::data));
       break;
     case ::orgproto::LinkTarget::Data::kFootnote:
-      proto_serde<orgproto::LinkTarget::Footnote, sem::LinkTarget::Footnote>::read(out.data().footnote(), in.for_field_variant<5>(&sem::LinkTarget::data));
+      proto_serde<orgproto::LinkTarget::Footnote, sem::LinkTarget::Footnote>::read(out.data().footnote(), in.for_field_variant<7>(&sem::LinkTarget::data));
       break;
     case ::orgproto::LinkTarget::Data::kFile:
-      proto_serde<orgproto::LinkTarget::File, sem::LinkTarget::File>::read(out.data().file(), in.for_field_variant<6>(&sem::LinkTarget::data));
+      proto_serde<orgproto::LinkTarget::File, sem::LinkTarget::File>::read(out.data().file(), in.for_field_variant<8>(&sem::LinkTarget::data));
       break;
     case ::orgproto::LinkTarget::Data::kAttachment:
-      proto_serde<orgproto::LinkTarget::Attachment, sem::LinkTarget::Attachment>::read(out.data().attachment(), in.for_field_variant<7>(&sem::LinkTarget::data));
+      proto_serde<orgproto::LinkTarget::Attachment, sem::LinkTarget::Attachment>::read(out.data().attachment(), in.for_field_variant<9>(&sem::LinkTarget::data));
       break;
   }
-}
-
-void proto_serde<::orgproto::SubtreePath, sem::SubtreePath>::write(::orgproto::SubtreePath* out, sem::SubtreePath const& in) {
-  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::write(out->mutable_path(), in.path);
-}
-
-void proto_serde<::orgproto::SubtreePath, sem::SubtreePath>::read(::orgproto::SubtreePath const& out, proto_write_accessor<sem::SubtreePath> in) {
-  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::read(out.path(), in.for_field(&sem::SubtreePath::path));
 }
 
 void proto_serde<::orgproto::BlockCodeLine::Part::Raw, sem::BlockCodeLine::Part::Raw>::write(::orgproto::BlockCodeLine::Part::Raw* out, sem::BlockCodeLine::Part::Raw const& in) {

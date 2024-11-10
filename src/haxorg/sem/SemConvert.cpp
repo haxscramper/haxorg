@@ -859,11 +859,13 @@ OrgConverter::ConvResult<Link> OrgConverter::convertLink(__args) {
     } else if (a.kind() == onk::Footnote) {
         link->target = LinkTarget{LinkTarget::Footnote{
             .target = get_text(one(a, N::Definition))}};
-
     } else if (one(a, N::Protocol).kind() == onk::Empty) {
         Str target = getTarget();
         if (target.starts_with(".") || target.starts_with("/")) {
             link->target = LinkTarget{LinkTarget::File{.file = target}};
+        } else if (target.starts_with("*")) {
+            link->target = LinkTarget{LinkTarget::SubtreeTitle{
+                .title = lstrip(target, CharSet{'*', ' '}).split("/")}};
         } else {
             link->target = LinkTarget{
                 LinkTarget::Internal{.target = target}};

@@ -1596,6 +1596,15 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
             ],
         ),
         GenTuStruct(
+            t_nest_shared("SubtreePath"),
+            fields=[
+                vec_field(t_str(), "path"),
+            ],
+            methods=[
+                eq_method(t_nest_shared("SubtreePath")),
+            ],
+        ),
+        GenTuStruct(
             t_nest_shared("LinkTarget"),
             methods=[eq_method(t_nest_shared("LinkTarget"))],
             nested=[
@@ -1612,6 +1621,19 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                             GenTuDoc(""),
                             fields=[(GenTuField(t_str(), "text", GenTuDoc("")))],
                             methods=[eq_method(t_nest_shared("Id", ["LinkTarget"]))],
+                        ),
+                        GenTuStruct(
+                            t_nest_shared("CustomId", ["LinkTarget"]),
+                            GenTuDoc(""),
+                            fields=[(GenTuField(t_str(), "text", GenTuDoc("")))],
+                            methods=[
+                                eq_method(t_nest_shared("CustomId", ["LinkTarget"]))
+                            ],
+                        ),
+                        GenTuStruct(
+                            t_nest_shared("SubtreeTitle", ["LinkTarget"]),
+                            fields=[org_field(t_nest_shared("SubtreePath"), "title")],
+                            methods=[eq_method(t_nest("SubtreeTitle", ["LinkTarget"]))],
                         ),
                         GenTuStruct(
                             t_nest_shared("Person", ["LinkTarget"]),
@@ -1668,15 +1690,6 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     enumName=t_nest_shared("Kind", ["LinkTarget"]),
                 )
             ]),
-        GenTuStruct(
-            t_nest_shared("SubtreePath"),
-            fields=[
-                vec_field(t_str(), "path"),
-            ],
-            methods=[
-                eq_method(t_nest_shared("SubtreePath")),
-            ],
-        ),
         GenTuStruct(
             t_nest_shared("BlockCodeLine"),
             methods=[eq_method(t_nest_shared("BlockCodeLine"))],
