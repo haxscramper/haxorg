@@ -213,6 +213,94 @@ void proto_serde<::orgproto::SubtreePath, sem::SubtreePath>::read(::orgproto::Su
   proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::read(out.path(), in.for_field(&sem::SubtreePath::path));
 }
 
+void proto_serde<::orgproto::ColumnView::Summary::CheckboxAggregate, sem::ColumnView::Summary::CheckboxAggregate>::write(::orgproto::ColumnView::Summary::CheckboxAggregate* out, sem::ColumnView::Summary::CheckboxAggregate const& in) {
+
+}
+
+void proto_serde<::orgproto::ColumnView::Summary::CheckboxAggregate, sem::ColumnView::Summary::CheckboxAggregate>::read(::orgproto::ColumnView::Summary::CheckboxAggregate const& out, proto_write_accessor<sem::ColumnView::Summary::CheckboxAggregate> in) {
+
+}
+
+void proto_serde<::orgproto::ColumnView::Summary::MathAggregate, sem::ColumnView::Summary::MathAggregate>::write(::orgproto::ColumnView::Summary::MathAggregate* out, sem::ColumnView::Summary::MathAggregate const& in) {
+  out->set_kind(static_cast<orgproto::ColumnView_Summary_MathAggregate_Kind>(in.kind));
+  if (in.formatDigits) {
+    out->set_formatdigits(*in.formatDigits);
+  }
+  if (in.formatPrecision) {
+    out->set_formatprecision(*in.formatPrecision);
+  }
+}
+
+void proto_serde<::orgproto::ColumnView::Summary::MathAggregate, sem::ColumnView::Summary::MathAggregate>::read(::orgproto::ColumnView::Summary::MathAggregate const& out, proto_write_accessor<sem::ColumnView::Summary::MathAggregate> in) {
+  in.for_field(&sem::ColumnView::Summary::MathAggregate::kind).get() = static_cast<sem::ColumnView::Summary::MathAggregate::Kind>(out.kind());
+  if (out.has_formatdigits()) {
+    proto_serde<Opt<::int32_t>, Opt<int>>::read(out.formatdigits(), in.for_field(&sem::ColumnView::Summary::MathAggregate::formatDigits));
+  }
+  if (out.has_formatprecision()) {
+    proto_serde<Opt<::int32_t>, Opt<int>>::read(out.formatprecision(), in.for_field(&sem::ColumnView::Summary::MathAggregate::formatPrecision));
+  }
+}
+
+void proto_serde<::orgproto::ColumnView::Summary, sem::ColumnView::Summary>::write(::orgproto::ColumnView::Summary* out, sem::ColumnView::Summary const& in) {
+  switch (in.data.index()) {
+    case 0:
+      proto_serde<orgproto::ColumnView::Summary::CheckboxAggregate, sem::ColumnView::Summary::CheckboxAggregate>::write(out->mutable_data()->mutable_checkboxaggregate(), std::get<0>(in.data));
+      break;
+    case 1:
+      proto_serde<orgproto::ColumnView::Summary::MathAggregate, sem::ColumnView::Summary::MathAggregate>::write(out->mutable_data()->mutable_mathaggregate(), std::get<1>(in.data));
+      break;
+  }
+}
+
+void proto_serde<::orgproto::ColumnView::Summary, sem::ColumnView::Summary>::read(::orgproto::ColumnView::Summary const& out, proto_write_accessor<sem::ColumnView::Summary> in) {
+  switch (out.data().kind_case()) {
+    case ::orgproto::ColumnView::Summary::Data::kCheckboxaggregate:
+      proto_serde<orgproto::ColumnView::Summary::CheckboxAggregate, sem::ColumnView::Summary::CheckboxAggregate>::read(out.data().checkboxaggregate(), in.for_field_variant<0>(&sem::ColumnView::Summary::data));
+      break;
+    case ::orgproto::ColumnView::Summary::Data::kMathaggregate:
+      proto_serde<orgproto::ColumnView::Summary::MathAggregate, sem::ColumnView::Summary::MathAggregate>::read(out.data().mathaggregate(), in.for_field_variant<1>(&sem::ColumnView::Summary::data));
+      break;
+  }
+}
+
+void proto_serde<::orgproto::ColumnView::Column, sem::ColumnView::Column>::write(::orgproto::ColumnView::Column* out, sem::ColumnView::Column const& in) {
+  if (in.summary) {
+    proto_serde<orgproto::ColumnView::Summary, sem::ColumnView::Summary>::write(out->mutable_summary(), *in.summary);
+  }
+  if (in.width) {
+    out->set_width(*in.width);
+  }
+  if (in.property) {
+    proto_serde<std::string, Str>::write(out->mutable_property(), *in.property);
+  }
+  if (in.propertyTitle) {
+    proto_serde<std::string, Str>::write(out->mutable_propertytitle(), *in.propertyTitle);
+  }
+}
+
+void proto_serde<::orgproto::ColumnView::Column, sem::ColumnView::Column>::read(::orgproto::ColumnView::Column const& out, proto_write_accessor<sem::ColumnView::Column> in) {
+  if (out.has_summary()) {
+    proto_serde<Opt<orgproto::ColumnView::Summary>, Opt<sem::ColumnView::Summary>>::read(out.summary(), in.for_field(&sem::ColumnView::Column::summary));
+  }
+  if (out.has_width()) {
+    proto_serde<Opt<::int32_t>, Opt<int>>::read(out.width(), in.for_field(&sem::ColumnView::Column::width));
+  }
+  if (out.has_property()) {
+    proto_serde<Opt<std::string>, Opt<Str>>::read(out.property(), in.for_field(&sem::ColumnView::Column::property));
+  }
+  if (out.has_propertytitle()) {
+    proto_serde<Opt<std::string>, Opt<Str>>::read(out.propertytitle(), in.for_field(&sem::ColumnView::Column::propertyTitle));
+  }
+}
+
+void proto_serde<::orgproto::ColumnView, sem::ColumnView>::write(::orgproto::ColumnView* out, sem::ColumnView const& in) {
+
+}
+
+void proto_serde<::orgproto::ColumnView, sem::ColumnView>::read(::orgproto::ColumnView const& out, proto_write_accessor<sem::ColumnView> in) {
+
+}
+
 void proto_serde<::orgproto::LinkTarget::Raw, sem::LinkTarget::Raw>::write(::orgproto::LinkTarget::Raw* out, sem::LinkTarget::Raw const& in) {
   proto_serde<std::string, Str>::write(out->mutable_text(), in.text);
 }
@@ -1153,6 +1241,20 @@ void proto_serde<::orgproto::CmdCaption, sem::CmdCaption>::read(::orgproto::CmdC
   proto_serde<::orgproto::CmdCaption, sem::Stmt>::read(out, in.as<sem::Stmt>());
   proto_serde<::orgproto::CmdCaption, sem::Org>::read(out, in.as<sem::Org>());
   proto_serde<orgproto::Paragraph, sem::SemId<sem::Paragraph>>::read(out.text(), in.for_field(&sem::CmdCaption::text));
+}
+
+void proto_serde<::orgproto::CmdColumns, sem::CmdColumns>::write(::orgproto::CmdColumns* out, sem::CmdColumns const& in) {
+  proto_serde<::orgproto::CmdColumns, sem::Cmd>::write(out, in);
+  proto_serde<::orgproto::CmdColumns, sem::Stmt>::write(out, in);
+  proto_serde<::orgproto::CmdColumns, sem::Org>::write(out, in);
+  proto_serde<orgproto::ColumnView, sem::ColumnView>::write(out->mutable_view(), in.view);
+}
+
+void proto_serde<::orgproto::CmdColumns, sem::CmdColumns>::read(::orgproto::CmdColumns const& out, proto_write_accessor<sem::CmdColumns> in) {
+  proto_serde<::orgproto::CmdColumns, sem::Cmd>::read(out, in.as<sem::Cmd>());
+  proto_serde<::orgproto::CmdColumns, sem::Stmt>::read(out, in.as<sem::Stmt>());
+  proto_serde<::orgproto::CmdColumns, sem::Org>::read(out, in.as<sem::Org>());
+  proto_serde<orgproto::ColumnView, sem::ColumnView>::read(out.view(), in.for_field(&sem::CmdColumns::view));
 }
 
 void proto_serde<::orgproto::CmdName, sem::CmdName>::write(::orgproto::CmdName* out, sem::CmdName const& in) {

@@ -152,6 +152,26 @@ struct ImmSemSerde<sem::CmdCaption, org::ImmCmdCaption> {
 };
 
 template <>
+struct ImmSemSerde<sem::CmdColumns, org::ImmCmdColumns> {
+  static org::ImmCmdColumns to_immer(sem::CmdColumns const& value, ImmAstEditContext& ctx) {
+    org::ImmCmdColumns result = SerdeDefaultProvider<org::ImmCmdColumns>::get();
+    assign_immer_field(result.view, value.view, ctx);
+    assign_immer_field(result.attrs, value.attrs, ctx);
+    assign_immer_field(result.attached, value.attached, ctx);
+    assign_immer_field(result.subnodes, value.subnodes, ctx);
+    return result;
+  }
+  static sem::CmdColumns from_immer(org::ImmCmdColumns const& value, ImmAstContext const& ctx) {
+    sem::CmdColumns result = SerdeDefaultProvider<sem::CmdColumns>::get();
+    assign_sem_field(result.view, value.view, ctx);
+    assign_sem_field(result.attrs, value.attrs, ctx);
+    assign_sem_field(result.attached, value.attached, ctx);
+    assign_sem_field(result.subnodes, value.subnodes, ctx);
+    return result;
+  }
+};
+
+template <>
 struct ImmSemSerde<sem::CmdName, org::ImmCmdName> {
   static org::ImmCmdName to_immer(sem::CmdName const& value, ImmAstEditContext& ctx) {
     org::ImmCmdName result = SerdeDefaultProvider<org::ImmCmdName>::get();

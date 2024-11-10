@@ -16,6 +16,10 @@
     __IMPL(Tblfm, Expr::Call, (Expr, Call)) \
     __IMPL(Tblfm, Expr::Elisp, (Expr, Elisp)) \
     __IMPL(Tblfm, Assign, (Assign)) \
+    __IMPL(ColumnView, Summary, (Summary)) \
+    __IMPL(ColumnView, Summary::CheckboxAggregate, (Summary, CheckboxAggregate)) \
+    __IMPL(ColumnView, Summary::MathAggregate, (Summary, MathAggregate)) \
+    __IMPL(ColumnView, Column, (Column)) \
     __IMPL(LinkTarget, Raw, (Raw)) \
     __IMPL(LinkTarget, Id, (Id)) \
     __IMPL(LinkTarget, CustomId, (CustomId)) \
@@ -67,6 +71,8 @@
     __IMPL(Tblfm, Expr::AxisRef::Position::Kind, (Expr, AxisRef, Position, Kind)) \
     __IMPL(Tblfm, Expr::Kind, (Expr, Kind)) \
     __IMPL(Tblfm, Assign::Flag, (Assign, Flag)) \
+    __IMPL(ColumnView, Summary::MathAggregate::Kind, (Summary, MathAggregate, Kind)) \
+    __IMPL(ColumnView, Summary::Kind, (Summary, Kind)) \
     __IMPL(LinkTarget, Kind, (Kind)) \
     __IMPL(BlockCodeLine, Part::Kind, (Part, Kind)) \
     __IMPL(BlockCodeSwitch, Kind, (Kind)) \
@@ -96,6 +102,11 @@
     __IMPL(Tblfm::Assign, (Tblfm, Assign)) \
     __IMPL(AttrValue, (AttrValue)) \
     __IMPL(SubtreePath, (SubtreePath)) \
+    __IMPL(ColumnView, (ColumnView)) \
+    __IMPL(ColumnView::Summary, (ColumnView, Summary)) \
+    __IMPL(ColumnView::Summary::CheckboxAggregate, (ColumnView, Summary, CheckboxAggregate)) \
+    __IMPL(ColumnView::Summary::MathAggregate, (ColumnView, Summary, MathAggregate)) \
+    __IMPL(ColumnView::Column, (ColumnView, Column)) \
     __IMPL(LinkTarget, (LinkTarget)) \
     __IMPL(LinkTarget::Raw, (LinkTarget, Raw)) \
     __IMPL(LinkTarget::Id, (LinkTarget, Id)) \
@@ -193,6 +204,7 @@
     __IMPL(Attached, (Attached)) \
     __IMPL(Leaf, (Leaf)) \
     __IMPL(CmdCaption, (CmdCaption)) \
+    __IMPL(CmdColumns, (CmdColumns)) \
     __IMPL(CmdName, (CmdName)) \
     __IMPL(CmdCustomArgs, (CmdCustomArgs)) \
     __IMPL(CmdCustomRaw, (CmdCustomRaw)) \
@@ -280,6 +292,7 @@
     __IMPL(StmtList) \
     __IMPL(Empty) \
     __IMPL(CmdCaption) \
+    __IMPL(CmdColumns) \
     __IMPL(CmdName) \
     __IMPL(CmdCustomArgs) \
     __IMPL(CmdCustomRaw) \
@@ -350,6 +363,7 @@
     __IMPL(StmtList, Org) \
     __IMPL(Empty, Org) \
     __IMPL(CmdCaption, Attached) \
+    __IMPL(CmdColumns, Attached) \
     __IMPL(CmdName, Attached) \
     __IMPL(CmdCustomArgs, Cmd) \
     __IMPL(CmdCustomRaw, Stmt) \
@@ -427,6 +441,7 @@
     __IMPL(Attached, LineCommand) \
     __IMPL(Leaf, Org) \
     __IMPL(CmdCaption, Attached) \
+    __IMPL(CmdColumns, Attached) \
     __IMPL(CmdName, Attached) \
     __IMPL(CmdCustomArgs, Cmd) \
     __IMPL(CmdCustomRaw, Stmt) \
@@ -806,7 +821,7 @@ struct value_domain<OrgNodeKind> : public value_domain_ungapped<OrgNodeKind,
                                                                 OrgNodeKind::None,
                                                                 OrgNodeKind::SubtreeImportance> {};
 
-enum class OrgSemKind : short int { None, Attr, AttrList, Attrs, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdResults, CmdTblfm, HashTag, InlineFootnote, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, RadioTarget, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCode, SubtreeLog, Subtree, SubtreeCompletion, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, Call, List, ListItem, DocumentOptions, Document, FileTarget, TextSeparator, Include, DocumentGroup, };
+enum class OrgSemKind : short int { None, Attr, AttrList, Attrs, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdResults, CmdTblfm, HashTag, InlineFootnote, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, RadioTarget, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCode, SubtreeLog, Subtree, SubtreeCompletion, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, Call, List, ListItem, DocumentOptions, Document, FileTarget, TextSeparator, Include, DocumentGroup, };
 template <>
 struct enum_serde<OrgSemKind> {
   static Opt<OrgSemKind> from_string(std::string value);

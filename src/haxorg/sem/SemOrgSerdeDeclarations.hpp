@@ -11,6 +11,7 @@
         __MAP(kStmtlist, stmtlist, StmtList)  \
         __MAP(kEmpty, empty, Empty)  \
         __MAP(kCmdcaption, cmdcaption, CmdCaption)  \
+        __MAP(kCmdcolumns, cmdcolumns, CmdColumns)  \
         __MAP(kCmdname, cmdname, CmdName)  \
         __MAP(kCmdcustomargs, cmdcustomargs, CmdCustomArgs)  \
         __MAP(kCmdcustomraw, cmdcustomraw, CmdCustomRaw)  \
@@ -174,6 +175,41 @@ template <>
 struct proto_serde<::orgproto::SubtreePath, sem::SubtreePath> {
   static void write(::orgproto::SubtreePath* out, sem::SubtreePath const& in);
   static void read(::orgproto::SubtreePath const& out, proto_write_accessor<sem::SubtreePath> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::ColumnView::Summary::CheckboxAggregate, sem::ColumnView::Summary::CheckboxAggregate> {
+  static void write(::orgproto::ColumnView::Summary::CheckboxAggregate* out, sem::ColumnView::Summary::CheckboxAggregate const& in);
+  static void read(::orgproto::ColumnView::Summary::CheckboxAggregate const& out, proto_write_accessor<sem::ColumnView::Summary::CheckboxAggregate> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::ColumnView::Summary::MathAggregate, sem::ColumnView::Summary::MathAggregate> {
+  static void write(::orgproto::ColumnView::Summary::MathAggregate* out, sem::ColumnView::Summary::MathAggregate const& in);
+  static void read(::orgproto::ColumnView::Summary::MathAggregate const& out, proto_write_accessor<sem::ColumnView::Summary::MathAggregate> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::ColumnView::Summary, sem::ColumnView::Summary> {
+  static void write(::orgproto::ColumnView::Summary* out, sem::ColumnView::Summary const& in);
+  static void read(::orgproto::ColumnView::Summary const& out, proto_write_accessor<sem::ColumnView::Summary> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::ColumnView::Column, sem::ColumnView::Column> {
+  static void write(::orgproto::ColumnView::Column* out, sem::ColumnView::Column const& in);
+  static void read(::orgproto::ColumnView::Column const& out, proto_write_accessor<sem::ColumnView::Column> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::ColumnView, sem::ColumnView> {
+  static void write(::orgproto::ColumnView* out, sem::ColumnView const& in);
+  static void read(::orgproto::ColumnView const& out, proto_write_accessor<sem::ColumnView> in);
 };
 
 
@@ -615,6 +651,13 @@ template <>
 struct proto_serde<::orgproto::CmdCaption, sem::CmdCaption> {
   static void write(::orgproto::CmdCaption* out, sem::CmdCaption const& in);
   static void read(::orgproto::CmdCaption const& out, proto_write_accessor<sem::CmdCaption> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::CmdColumns, sem::CmdColumns> {
+  static void write(::orgproto::CmdColumns* out, sem::CmdColumns const& in);
+  static void read(::orgproto::CmdColumns const& out, proto_write_accessor<sem::CmdColumns> in);
 };
 
 

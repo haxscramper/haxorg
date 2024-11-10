@@ -246,6 +246,22 @@ struct ImmCmdCaption : public org::ImmAttached {
   bool operator==(org::ImmCmdCaption const& other) const;
 };
 
+/// \brief Caption annotation for any subsequent node
+struct ImmCmdColumns : public org::ImmAttached {
+  using ImmAttached::ImmAttached;
+  virtual ~ImmCmdColumns() = default;
+  BOOST_DESCRIBE_CLASS(ImmCmdColumns,
+                       (ImmAttached),
+                       (),
+                       (),
+                       (staticKind,
+                        view))
+  static OrgSemKind const staticKind;
+  sem::ColumnView view;
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdColumns; }
+  bool operator==(org::ImmCmdColumns const& other) const;
+};
+
 /// \brief Name identifier for the statement elements.
 struct ImmCmdName : public org::ImmAttached {
   using ImmAttached::ImmAttached;

@@ -517,6 +517,134 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<sem::ColumnView::Summary::CheckboxAggregate>(m, "ColumnViewSummaryCheckboxAggregate")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::ColumnView::Summary::CheckboxAggregate {
+                        sem::ColumnView::Summary::CheckboxAggregate result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("operator==",
+         static_cast<bool(sem::ColumnView::Summary::CheckboxAggregate::*)(sem::ColumnView::Summary::CheckboxAggregate const&) const>(&sem::ColumnView::Summary::CheckboxAggregate::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::ColumnView::Summary::CheckboxAggregate _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::ColumnView::Summary::CheckboxAggregate _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<sem::ColumnView::Summary::MathAggregate::Kind>(m, "ColumnViewSummaryMathAggregateKind", type_registry_guard);
+  pybind11::enum_<sem::ColumnView::Summary::MathAggregate::Kind>(m, "ColumnViewSummaryMathAggregateKind")
+    .value("Min", sem::ColumnView::Summary::MathAggregate::Kind::Min)
+    .value("Max", sem::ColumnView::Summary::MathAggregate::Kind::Max)
+    .value("Mean", sem::ColumnView::Summary::MathAggregate::Kind::Mean)
+    .value("LowHighEst", sem::ColumnView::Summary::MathAggregate::Kind::LowHighEst)
+    .def("__iter__", [](sem::ColumnView::Summary::MathAggregate::Kind _self) -> PyEnumIterator<sem::ColumnView::Summary::MathAggregate::Kind> {
+                     return
+                     PyEnumIterator<sem::ColumnView::Summary::MathAggregate::Kind>
+                     ();
+                     })
+    ;
+  pybind11::class_<sem::ColumnView::Summary::MathAggregate>(m, "ColumnViewSummaryMathAggregate")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::ColumnView::Summary::MathAggregate {
+                        sem::ColumnView::Summary::MathAggregate result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("kind", &sem::ColumnView::Summary::MathAggregate::kind)
+    .def_readwrite("formatDigits", &sem::ColumnView::Summary::MathAggregate::formatDigits)
+    .def_readwrite("formatPrecision", &sem::ColumnView::Summary::MathAggregate::formatPrecision)
+    .def("operator==",
+         static_cast<bool(sem::ColumnView::Summary::MathAggregate::*)(sem::ColumnView::Summary::MathAggregate const&) const>(&sem::ColumnView::Summary::MathAggregate::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::ColumnView::Summary::MathAggregate _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::ColumnView::Summary::MathAggregate _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<sem::ColumnView::Summary::Kind>(m, "ColumnViewSummaryKind", type_registry_guard);
+  pybind11::enum_<sem::ColumnView::Summary::Kind>(m, "ColumnViewSummaryKind")
+    .value("CheckboxAggregate", sem::ColumnView::Summary::Kind::CheckboxAggregate)
+    .value("MathAggregate", sem::ColumnView::Summary::Kind::MathAggregate)
+    .def("__iter__", [](sem::ColumnView::Summary::Kind _self) -> PyEnumIterator<sem::ColumnView::Summary::Kind> {
+                     return
+                     PyEnumIterator<sem::ColumnView::Summary::Kind>
+                     ();
+                     })
+    ;
+  pybind11::class_<sem::ColumnView::Summary>(m, "ColumnViewSummary")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::ColumnView::Summary {
+                        sem::ColumnView::Summary result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("data", &sem::ColumnView::Summary::data)
+    .def("operator==",
+         static_cast<bool(sem::ColumnView::Summary::*)(sem::ColumnView::Summary const&) const>(&sem::ColumnView::Summary::operator==),
+         pybind11::arg("other"))
+    .def("isCheckboxAggregate", static_cast<bool(sem::ColumnView::Summary::*)() const>(&sem::ColumnView::Summary::isCheckboxAggregate))
+    .def("getCheckboxAggregate", static_cast<sem::ColumnView::Summary::CheckboxAggregate&(sem::ColumnView::Summary::*)()>(&sem::ColumnView::Summary::getCheckboxAggregate))
+    .def("isMathAggregate", static_cast<bool(sem::ColumnView::Summary::*)() const>(&sem::ColumnView::Summary::isMathAggregate))
+    .def("getMathAggregate", static_cast<sem::ColumnView::Summary::MathAggregate&(sem::ColumnView::Summary::*)()>(&sem::ColumnView::Summary::getMathAggregate))
+    .def_static("getKindStatic",
+                static_cast<sem::ColumnView::Summary::Kind(*)(sem::ColumnView::Summary::Data const&)>(&sem::ColumnView::Summary::getKind),
+                pybind11::arg("__input"))
+    .def("getKind", static_cast<sem::ColumnView::Summary::Kind(sem::ColumnView::Summary::*)() const>(&sem::ColumnView::Summary::getKind))
+    .def("__repr__", [](sem::ColumnView::Summary _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::ColumnView::Summary _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::ColumnView::Column>(m, "ColumnViewColumn")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::ColumnView::Column {
+                        sem::ColumnView::Column result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("summary", &sem::ColumnView::Column::summary)
+    .def_readwrite("width", &sem::ColumnView::Column::width)
+    .def_readwrite("property", &sem::ColumnView::Column::property)
+    .def_readwrite("propertyTitle", &sem::ColumnView::Column::propertyTitle)
+    .def("operator==",
+         static_cast<bool(sem::ColumnView::Column::*)(sem::ColumnView::Column const&) const>(&sem::ColumnView::Column::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::ColumnView::Column _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::ColumnView::Column _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::ColumnView>(m, "ColumnView")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::ColumnView {
+                        sem::ColumnView result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("operator==",
+         static_cast<bool(sem::ColumnView::*)(sem::ColumnView const&) const>(&sem::ColumnView::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::ColumnView _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::ColumnView _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<sem::LinkTarget::Raw>(m, "LinkTargetRaw")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::LinkTarget::Raw {
                         sem::LinkTarget::Raw result{};
@@ -2162,6 +2290,46 @@ node can have subnodes.)RAW")
                      })
     .def("__getattr__",
          [](sem::CmdCaption _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::CmdColumns, sem::SemId<sem::CmdColumns>, sem::Attached>(m, "CmdColumns")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdColumns {
+                        sem::CmdColumns result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("view", &sem::CmdColumns::view)
+    .def_readwrite("attrs", &sem::CmdColumns::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &sem::CmdColumns::attached)
+    .def("getAttrs",
+         static_cast<Vec<sem::AttrValue>(sem::CmdColumns::*)(Opt<Str> const&) const>(&sem::CmdColumns::getAttrs),
+         pybind11::arg_v("key", std::nullopt),
+         R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
+    .def("getFirstAttr",
+         static_cast<Opt<sem::AttrValue>(sem::CmdColumns::*)(Str const&) const>(&sem::CmdColumns::getFirstAttr),
+         pybind11::arg("kind"),
+         R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
+    .def("getAttached",
+         static_cast<Vec<sem::SemId<sem::Org>>(sem::CmdColumns::*)(Opt<Str> const&) const>(&sem::CmdColumns::getAttached),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getCaption", static_cast<Vec<sem::SemId<sem::Org>>(sem::CmdColumns::*)() const>(&sem::CmdColumns::getCaption))
+    .def("getName", static_cast<Vec<Str>(sem::CmdColumns::*)() const>(&sem::CmdColumns::getName))
+    .def("getAttrs",
+         static_cast<Vec<sem::AttrValue>(sem::CmdColumns::*)(Opt<Str> const&) const>(&sem::CmdColumns::getAttrs),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstAttr",
+         static_cast<Opt<sem::AttrValue>(sem::CmdColumns::*)(Str const&) const>(&sem::CmdColumns::getFirstAttr),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
+    .def("__repr__", [](sem::CmdColumns _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::CmdColumns _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -4422,6 +4590,7 @@ node can have subnodes.)RAW")
     .value("StmtList", OrgSemKind::StmtList)
     .value("Empty", OrgSemKind::Empty)
     .value("CmdCaption", OrgSemKind::CmdCaption)
+    .value("CmdColumns", OrgSemKind::CmdColumns)
     .value("CmdName", OrgSemKind::CmdName)
     .value("CmdCustomArgs", OrgSemKind::CmdCustomArgs)
     .value("CmdCustomRaw", OrgSemKind::CmdCustomRaw)

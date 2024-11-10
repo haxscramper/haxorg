@@ -252,6 +252,74 @@ struct SubtreePath {
   bool operator==(sem::SubtreePath const& other) const;
 };
 
+struct ColumnView {
+  struct Summary {
+    struct CheckboxAggregate {
+      BOOST_DESCRIBE_CLASS(CheckboxAggregate,
+                           (),
+                           (),
+                           (),
+                           ())
+      bool operator==(sem::ColumnView::Summary::CheckboxAggregate const& other) const;
+    };
+
+    struct MathAggregate {
+      enum class Kind : short int { Min, Max, Mean, LowHighEst, };
+      BOOST_DESCRIBE_NESTED_ENUM(Kind, Min, Max, Mean, LowHighEst)
+      BOOST_DESCRIBE_CLASS(MathAggregate,
+                           (),
+                           (),
+                           (),
+                           (kind, formatDigits, formatPrecision))
+      sem::ColumnView::Summary::MathAggregate::Kind kind;
+      Opt<int> formatDigits = std::nullopt;
+      Opt<int> formatPrecision = std::nullopt;
+      bool operator==(sem::ColumnView::Summary::MathAggregate const& other) const;
+    };
+
+    using Data = std::variant<sem::ColumnView::Summary::CheckboxAggregate, sem::ColumnView::Summary::MathAggregate>;
+    enum class Kind : short int { CheckboxAggregate, MathAggregate, };
+    BOOST_DESCRIBE_NESTED_ENUM(Kind, CheckboxAggregate, MathAggregate)
+    using variant_enum_type = sem::ColumnView::Summary::Kind;
+    using variant_data_type = sem::ColumnView::Summary::Data;
+    BOOST_DESCRIBE_CLASS(Summary,
+                         (),
+                         (),
+                         (),
+                         (data))
+    sem::ColumnView::Summary::Data data;
+    bool operator==(sem::ColumnView::Summary const& other) const;
+    bool isCheckboxAggregate() const { return getKind() == Kind::CheckboxAggregate; }
+    sem::ColumnView::Summary::CheckboxAggregate const& getCheckboxAggregate() const { return std::get<0>(data); }
+    sem::ColumnView::Summary::CheckboxAggregate& getCheckboxAggregate() { return std::get<0>(data); }
+    bool isMathAggregate() const { return getKind() == Kind::MathAggregate; }
+    sem::ColumnView::Summary::MathAggregate const& getMathAggregate() const { return std::get<1>(data); }
+    sem::ColumnView::Summary::MathAggregate& getMathAggregate() { return std::get<1>(data); }
+    static sem::ColumnView::Summary::Kind getKind(sem::ColumnView::Summary::Data const& __input) { return static_cast<sem::ColumnView::Summary::Kind>(__input.index()); }
+    sem::ColumnView::Summary::Kind getKind() const { return getKind(data); }
+  };
+
+  struct Column {
+    BOOST_DESCRIBE_CLASS(Column,
+                         (),
+                         (),
+                         (),
+                         (summary, width, property, propertyTitle))
+    Opt<sem::ColumnView::Summary> summary = std::nullopt;
+    Opt<int> width = std::nullopt;
+    Opt<Str> property = std::nullopt;
+    Opt<Str> propertyTitle = std::nullopt;
+    bool operator==(sem::ColumnView::Column const& other) const;
+  };
+
+  BOOST_DESCRIBE_CLASS(ColumnView,
+                       (),
+                       (),
+                       (),
+                       ())
+  bool operator==(sem::ColumnView const& other) const;
+};
+
 struct LinkTarget {
   struct Raw {
     BOOST_DESCRIBE_CLASS(Raw,
@@ -1332,6 +1400,20 @@ struct CmdCaption : public sem::Attached {
   /// \brief Content description
   sem::SemId<sem::Paragraph> text = sem::SemId<sem::Paragraph>::Nil();
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdCaption; }
+};
+
+/// \brief Caption annotation for any subsequent node
+struct CmdColumns : public sem::Attached {
+  using Attached::Attached;
+  virtual ~CmdColumns() = default;
+  BOOST_DESCRIBE_CLASS(CmdColumns,
+                       (Attached),
+                       (),
+                       (),
+                       (staticKind, view))
+  static OrgSemKind const staticKind;
+  sem::ColumnView view;
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdColumns; }
 };
 
 /// \brief Name identifier for the statement elements.

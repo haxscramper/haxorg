@@ -68,6 +68,33 @@ template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::SubtreePath const& object) { __obj_field(res, object, path); }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::ColumnView const& object) {  }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::ColumnView::Summary::Data const& object) { visitVariants(res, sem::ColumnView::Summary::getKind(object), object); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::ColumnView::Summary const& object) { __obj_field(res, object, data); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::ColumnView::Summary::CheckboxAggregate const& object) {  }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::ColumnView::Summary::MathAggregate const& object) {
+  __obj_field(res, object, kind);
+  __obj_field(res, object, formatDigits);
+  __obj_field(res, object, formatPrecision);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::ColumnView::Column const& object) {
+  __obj_field(res, object, summary);
+  __obj_field(res, object, width);
+  __obj_field(res, object, property);
+  __obj_field(res, object, propertyTitle);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::LinkTarget::Data const& object) { visitVariants(res, sem::LinkTarget::getKind(object), object); }
 
 template <typename V, typename R>
@@ -409,6 +436,15 @@ template <typename V, typename R>
 void Exporter<V, R>::visitCmdCaption(R& res, In<sem::CmdCaption> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, text);
+  __org_field(res, object, attrs);
+  __org_field(res, object, attached);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visitCmdColumns(R& res, In<sem::CmdColumns> object) {
+  auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
+  __org_field(res, object, view);
   __org_field(res, object, attrs);
   __org_field(res, object, attached);
   __org_field(res, object, subnodes);

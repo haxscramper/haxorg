@@ -537,6 +537,11 @@ auto Formatter::toString(SemId<CmdCaption> id, CR<Context> ctx) -> Res {
     return b.line({str("#+caption: "), toString(id->text, ctx)});
 }
 
+auto Formatter::toString(SemId<CmdColumns> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    return b.line({str("#+columns: ")});
+}
+
 auto Formatter::toString(SemId<CmdResults> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line({str("#+results: ")});

@@ -194,6 +194,62 @@ class SubtreePath:
     def __getattr__(self, name: str) -> object: ...
     path: List[str]
 
+class ColumnViewSummaryCheckboxAggregate:
+    def __init__(self) -> None: ...
+    def operator==(self, other: ColumnViewSummaryCheckboxAggregate) -> bool: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+
+class ColumnViewSummaryMathAggregateKind(Enum):
+    Min = 1
+    Max = 2
+    Mean = 3
+    LowHighEst = 4
+
+class ColumnViewSummaryMathAggregate:
+    def __init__(self, kind: ColumnViewSummaryMathAggregateKind, formatDigits: Optional[int], formatPrecision: Optional[int]) -> None: ...
+    def operator==(self, other: ColumnViewSummaryMathAggregate) -> bool: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    kind: ColumnViewSummaryMathAggregateKind
+    formatDigits: Optional[int]
+    formatPrecision: Optional[int]
+
+ColumnViewSummaryData = Union[ColumnViewSummaryCheckboxAggregate, ColumnViewSummaryMathAggregate]
+class ColumnViewSummaryKind(Enum):
+    CheckboxAggregate = 1
+    MathAggregate = 2
+
+class ColumnViewSummary:
+    def __init__(self, data: ColumnViewSummaryData) -> None: ...
+    def operator==(self, other: ColumnViewSummary) -> bool: ...
+    def isCheckboxAggregate(self) -> bool: ...
+    def getCheckboxAggregate(self) -> ColumnViewSummaryCheckboxAggregate: ...
+    def isMathAggregate(self) -> bool: ...
+    def getMathAggregate(self) -> ColumnViewSummaryMathAggregate: ...
+    @staticmethod
+    def getKindStatic(self, __input: ColumnViewSummaryData) -> ColumnViewSummaryKind: ...
+    def getKind(self) -> ColumnViewSummaryKind: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    data: ColumnViewSummaryData
+
+class ColumnViewColumn:
+    def __init__(self, summary: Optional[ColumnViewSummary], width: Optional[int], property: Optional[str], propertyTitle: Optional[str]) -> None: ...
+    def operator==(self, other: ColumnViewColumn) -> bool: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    summary: Optional[ColumnViewSummary]
+    width: Optional[int]
+    property: Optional[str]
+    propertyTitle: Optional[str]
+
+class ColumnView:
+    def __init__(self) -> None: ...
+    def operator==(self, other: ColumnView) -> bool: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+
 class LinkTargetRaw:
     def __init__(self, text: str) -> None: ...
     def operator==(self, other: LinkTargetRaw) -> bool: ...
@@ -941,6 +997,21 @@ class CmdCaption(Attached):
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     text: Paragraph
+    attrs: Optional[Attrs]
+    attached: List[Org]
+
+class CmdColumns(Attached):
+    def __init__(self, view: ColumnView, attrs: Optional[Attrs], attached: List[Org]) -> None: ...
+    def getAttrs(self, key: Optional[str]) -> List[AttrValue]: ...
+    def getFirstAttr(self, kind: str) -> Optional[AttrValue]: ...
+    def getAttached(self, kind: Optional[str]) -> List[Org]: ...
+    def getCaption(self) -> List[Org]: ...
+    def getName(self) -> List[str]: ...
+    def getAttrs(self, kind: Optional[str]) -> List[AttrValue]: ...
+    def getFirstAttr(self, kind: str) -> Optional[AttrValue]: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    view: ColumnView
     attrs: Optional[Attrs]
     attached: List[Org]
 
@@ -1997,66 +2068,67 @@ class OrgSemKind(Enum):
     StmtList = 7
     Empty = 8
     CmdCaption = 9
-    CmdName = 10
-    CmdCustomArgs = 11
-    CmdCustomRaw = 12
-    CmdCustomText = 13
-    CmdResults = 14
-    CmdTblfm = 15
-    HashTag = 16
-    InlineFootnote = 17
-    Time = 18
-    TimeRange = 19
-    Macro = 20
-    Symbol = 21
-    Escaped = 22
-    Newline = 23
-    Space = 24
-    Word = 25
-    AtMention = 26
-    RawText = 27
-    Punctuation = 28
-    Placeholder = 29
-    BigIdent = 30
-    RadioTarget = 31
-    TextTarget = 32
-    Bold = 33
-    Underline = 34
-    Monospace = 35
-    MarkQuote = 36
-    Verbatim = 37
-    Italic = 38
-    Strike = 39
-    Par = 40
-    Latex = 41
-    Link = 42
-    BlockCenter = 43
-    BlockQuote = 44
-    BlockComment = 45
-    BlockVerse = 46
-    BlockDynamicFallback = 47
-    BlockExample = 48
-    BlockExport = 49
-    BlockAdmonition = 50
-    BlockCode = 51
-    SubtreeLog = 52
-    Subtree = 53
-    SubtreeCompletion = 54
-    Cell = 55
-    Row = 56
-    Table = 57
-    Paragraph = 58
-    ColonExample = 59
-    CmdAttr = 60
-    Call = 61
-    List = 62
-    ListItem = 63
-    DocumentOptions = 64
-    Document = 65
-    FileTarget = 66
-    TextSeparator = 67
-    Include = 68
-    DocumentGroup = 69
+    CmdColumns = 10
+    CmdName = 11
+    CmdCustomArgs = 12
+    CmdCustomRaw = 13
+    CmdCustomText = 14
+    CmdResults = 15
+    CmdTblfm = 16
+    HashTag = 17
+    InlineFootnote = 18
+    Time = 19
+    TimeRange = 20
+    Macro = 21
+    Symbol = 22
+    Escaped = 23
+    Newline = 24
+    Space = 25
+    Word = 26
+    AtMention = 27
+    RawText = 28
+    Punctuation = 29
+    Placeholder = 30
+    BigIdent = 31
+    RadioTarget = 32
+    TextTarget = 33
+    Bold = 34
+    Underline = 35
+    Monospace = 36
+    MarkQuote = 37
+    Verbatim = 38
+    Italic = 39
+    Strike = 40
+    Par = 41
+    Latex = 42
+    Link = 43
+    BlockCenter = 44
+    BlockQuote = 45
+    BlockComment = 46
+    BlockVerse = 47
+    BlockDynamicFallback = 48
+    BlockExample = 49
+    BlockExport = 50
+    BlockAdmonition = 51
+    BlockCode = 52
+    SubtreeLog = 53
+    Subtree = 54
+    SubtreeCompletion = 55
+    Cell = 56
+    Row = 57
+    Table = 58
+    Paragraph = 59
+    ColonExample = 60
+    CmdAttr = 61
+    Call = 62
+    List = 63
+    ListItem = 64
+    DocumentOptions = 65
+    Document = 66
+    FileTarget = 67
+    TextSeparator = 68
+    Include = 69
+    DocumentGroup = 70
 
 class UserTimeBreakdown:
     def __init__(self, year: Optional[int], month: Optional[int], day: Optional[int], hour: Optional[int], minute: Optional[int], second: Optional[int], zone: Optional[str]) -> None: ...

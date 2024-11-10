@@ -1085,6 +1085,7 @@ struct ImmAdapterAttachedAPI : ImmAdapterLineCommandAPI {};
 struct ImmAdapterCmdCaptionAPI : ImmAdapterAttachedAPI {
     org::ImmAdapterT<org::ImmParagraph> getText() const;
 };
+struct ImmAdapterCmdColumnsAPI : ImmAdapterAttachedAPI {};
 struct ImmAdapterCmdNameAPI : ImmAdapterAttachedAPI {};
 struct ImmAdapterCmdCustomArgsAPI : ImmAdapterCmdAPI {};
 struct ImmAdapterCmdCustomRawAPI : ImmAdapterStmtAPI {};

@@ -190,6 +190,11 @@ def str_field(name: str, doc: AnyDoc = GenTuDoc(""), default: str = '""') -> Gen
 
 
 @beartype
+def int_field(name: str, doc: AnyDoc = GenTuDoc(""), default: str = '""') -> GenTuField:
+    return org_field(t_int(), name, doc, default)
+
+
+@beartype
 def eq_method(name: QualType) -> GenTuFunction:
     return GenTuFunction(
         result=t_bool(),
@@ -692,6 +697,12 @@ def get_sem_commands():
             GenTuDoc("Caption annotation for any subsequent node"),
             bases=[t_org("Attached")],
             fields=[id_field("Paragraph", "text", GenTuDoc("Content description"))],
+        ),
+        d_org(
+            "CmdColumns",
+            GenTuDoc("Caption annotation for any subsequent node"),
+            bases=[t_org("Attached")],
+            fields=[org_field(t_nest_shared("ColumnView"), "view")],
         ),
         d_org(
             "CmdName",
@@ -1602,6 +1613,73 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
             ],
             methods=[
                 eq_method(t_nest_shared("SubtreePath")),
+            ],
+        ),
+        GenTuStruct(
+            t_nest_shared("ColumnView"),
+            methods=[eq_method(t_nest_shared("ColumnView"))],
+            nested=[
+                GenTuStruct(
+                    t_nest_shared("Summary", ["ColumnView"]),
+                    methods=[eq_method(t_nest_shared("Summary", ["ColumnView"]))],
+                    nested=[
+                        GenTuTypeGroup(
+                            [
+                                GenTuStruct(
+                                    t_nest_shared("CheckboxAggregate",
+                                                  ["ColumnView", "Summary"]),
+                                    methods=[
+                                        eq_method(
+                                            t_nest_shared("CheckboxAggregate",
+                                                          ["ColumnView", "Summary"]))
+                                    ],
+                                ),
+                                GenTuStruct(
+                                    t_nest_shared("MathAggregate",
+                                                  ["ColumnView", "Summary"]),
+                                    nested=[
+                                        GenTuEnum(
+                                            t_nest_shared("Kind", [
+                                                "ColumnView", "Summary", "MathAggregate"
+                                            ]),
+                                            GenTuDoc(""),
+                                            fields=[
+                                                efield("Min"),
+                                                efield("Max"),
+                                                efield("Mean"),
+                                                efield("LowHighEst"),
+                                            ],
+                                        ),
+                                    ],
+                                    fields=[
+                                        org_field(
+                                            t_nest_shared("Kind", [
+                                                "ColumnView", "Summary", "MathAggregate"
+                                            ]), "kind"),
+                                        opt_field(t_int(), "formatDigits"),
+                                        opt_field(t_int(), "formatPrecision"),
+                                    ],
+                                    methods=[
+                                        eq_method(
+                                            t_nest_shared("MathAggregate",
+                                                          ["ColumnView", "Summary"])),
+                                    ])
+                            ],
+                            enumName=t_nest_shared("Kind", ["ColumnView", "Summary"]),
+                            variantName=t_nest_shared("Data", ["ColumnView", "Summary"]),
+                        ),
+                    ],
+                ),
+                GenTuStruct(
+                    t_nest_shared("Column", ["ColumnView"]),
+                    fields=[
+                        opt_field(t_nest_shared("Summary", ["ColumnView"]), "summary"),
+                        opt_field(t_int(), "width"),
+                        opt_field(t_str(), "property"),
+                        opt_field(t_str(), "propertyTitle"),
+                    ],
+                    methods=[eq_method(t_nest_shared("Column", ["ColumnView"]))],
+                ),
             ],
         ),
         GenTuStruct(

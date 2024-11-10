@@ -474,6 +474,7 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "StmtList") { return OrgSemKind::StmtList; } else
   if (value == "Empty") { return OrgSemKind::Empty; } else
   if (value == "CmdCaption") { return OrgSemKind::CmdCaption; } else
+  if (value == "CmdColumns") { return OrgSemKind::CmdColumns; } else
   if (value == "CmdName") { return OrgSemKind::CmdName; } else
   if (value == "CmdCustomArgs") { return OrgSemKind::CmdCustomArgs; } else
   if (value == "CmdCustomRaw") { return OrgSemKind::CmdCustomRaw; } else
@@ -547,6 +548,7 @@ std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::StmtList: return "StmtList";
     case OrgSemKind::Empty: return "Empty";
     case OrgSemKind::CmdCaption: return "CmdCaption";
+    case OrgSemKind::CmdColumns: return "CmdColumns";
     case OrgSemKind::CmdName: return "CmdName";
     case OrgSemKind::CmdCustomArgs: return "CmdCustomArgs";
     case OrgSemKind::CmdCustomRaw: return "CmdCustomRaw";

@@ -1213,6 +1213,12 @@ TEST(OrgApi, LinkTarget) {
     }
 }
 
+TEST(OrgApi, ColumnView) {
+    {
+        // auto c = parseOne<sem::Cmd
+    }
+}
+
 TEST(SimpleNodeConversion, LCSCompile) {
     Vec<int> first{1, 2, 3};
     Vec<int> second{1, 2, 3};
