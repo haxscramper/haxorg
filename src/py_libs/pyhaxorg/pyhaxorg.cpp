@@ -520,12 +520,24 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  bind_enum_iterator<sem::ColumnView::Summary::CheckboxAggregate::Kind>(m, "ColumnViewSummaryCheckboxAggregateKind", type_registry_guard);
+  pybind11::enum_<sem::ColumnView::Summary::CheckboxAggregate::Kind>(m, "ColumnViewSummaryCheckboxAggregateKind")
+    .value("IfAllNested", sem::ColumnView::Summary::CheckboxAggregate::Kind::IfAllNested)
+    .value("AggregateFractionRec", sem::ColumnView::Summary::CheckboxAggregate::Kind::AggregateFractionRec)
+    .value("AggregatePercentRec", sem::ColumnView::Summary::CheckboxAggregate::Kind::AggregatePercentRec)
+    .def("__iter__", [](sem::ColumnView::Summary::CheckboxAggregate::Kind _self) -> PyEnumIterator<sem::ColumnView::Summary::CheckboxAggregate::Kind> {
+                     return
+                     PyEnumIterator<sem::ColumnView::Summary::CheckboxAggregate::Kind>
+                     ();
+                     })
+    ;
   pybind11::class_<sem::ColumnView::Summary::CheckboxAggregate>(m, "ColumnViewSummaryCheckboxAggregate")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::ColumnView::Summary::CheckboxAggregate {
                         sem::ColumnView::Summary::CheckboxAggregate result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def_readwrite("kind", &sem::ColumnView::Summary::CheckboxAggregate::kind)
     .def("operator==",
          static_cast<bool(sem::ColumnView::Summary::CheckboxAggregate::*)(sem::ColumnView::Summary::CheckboxAggregate const&) const>(&sem::ColumnView::Summary::CheckboxAggregate::operator==),
          pybind11::arg("other"))
@@ -543,6 +555,7 @@ node can have subnodes.)RAW")
     .value("Min", sem::ColumnView::Summary::MathAggregate::Kind::Min)
     .value("Max", sem::ColumnView::Summary::MathAggregate::Kind::Max)
     .value("Mean", sem::ColumnView::Summary::MathAggregate::Kind::Mean)
+    .value("Sum", sem::ColumnView::Summary::MathAggregate::Kind::Sum)
     .value("LowHighEst", sem::ColumnView::Summary::MathAggregate::Kind::LowHighEst)
     .def("__iter__", [](sem::ColumnView::Summary::MathAggregate::Kind _self) -> PyEnumIterator<sem::ColumnView::Summary::MathAggregate::Kind> {
                      return

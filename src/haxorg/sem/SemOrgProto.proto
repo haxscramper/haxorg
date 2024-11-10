@@ -416,6 +416,12 @@ message SubtreePath {
 message ColumnView {
   message Summary {
     message CheckboxAggregate {
+      enum Kind {
+        Kind_IfAllNested_f                                                          = 0;
+        Kind_AggregateFractionRec_f                                                 = 1;
+        Kind_AggregatePercentRec_f                                                  = 2;
+      }
+      ColumnView.Summary.CheckboxAggregate.Kind    kind                             = 1;
       string                                       debug                            = 1000;
     }
     message MathAggregate {
@@ -423,7 +429,8 @@ message ColumnView {
         Kind_Min_f                                                                  = 0;
         Kind_Max_f                                                                  = 1;
         Kind_Mean_f                                                                 = 2;
-        Kind_LowHighEst_f                                                           = 3;
+        Kind_Sum_f                                                                  = 3;
+        Kind_LowHighEst_f                                                           = 4;
       }
       ColumnView.Summary.MathAggregate.Kind        kind                             = 1;
       optional int32                               formatDigits                     = 2;

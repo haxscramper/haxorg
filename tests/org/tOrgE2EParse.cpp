@@ -916,10 +916,14 @@ template <typename T>
 sem::SemId<T> parseOne(
     std::string const&         text,
     std::optional<std::string> debug = std::nullopt) {
-    auto one = sem::asOneNode(testParseString(text, debug));
-
-    while (T::staticKind != one->getKind()) { one = one.at(0); }
-    return one.as<T>();
+    auto node = testParseString(text, debug);
+    if (T::staticKind == node->getKind()) {
+        return node.as<T>();
+    } else {
+        auto one = sem::asOneNode(node);
+        while (T::staticKind != one->getKind()) { one = one.at(0); }
+        return one.as<T>();
+    }
 }
 
 template <typename T>
@@ -1219,6 +1223,18 @@ TEST(OrgApi, ColumnView) {
             R"(#+columns: %20ITEM %9Approved(Approved?){X} %Owner %11Status %10Time_Spent{:})",
             getDebugFile("column_view"));
         sem::ColumnView const& v = doc->options->columns.value();
+        EXPECT_EQ(v.columns.size(), 5);
+        auto const& c0 = v.columns.at(0);
+        EXPECT_EQ(c0.width.value(), 20);
+        EXPECT_EQ(c0.property.value(), "ITEM"_ss);
+        auto const& c1 = v.columns.at(1);
+        EXPECT_EQ(c1.width.value(), 9);
+        EXPECT_EQ(c1.propertyTitle.value(), "Approved?"_ss);
+        EXPECT_TRUE(c1.summary.value().isCheckboxAggregate());
+        EXPECT_EQ(
+            c1.summary.value().getCheckboxAggregate().kind,
+            sem::ColumnView::Summary::CheckboxAggregate::Kind::
+                IfAllNested);
     }
 }
 

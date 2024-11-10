@@ -255,17 +255,20 @@ struct SubtreePath {
 struct ColumnView {
   struct Summary {
     struct CheckboxAggregate {
+      enum class Kind : short int { IfAllNested, AggregateFractionRec, AggregatePercentRec, };
+      BOOST_DESCRIBE_NESTED_ENUM(Kind, IfAllNested, AggregateFractionRec, AggregatePercentRec)
       BOOST_DESCRIBE_CLASS(CheckboxAggregate,
                            (),
                            (),
                            (),
-                           ())
+                           (kind))
+      sem::ColumnView::Summary::CheckboxAggregate::Kind kind;
       bool operator==(sem::ColumnView::Summary::CheckboxAggregate const& other) const;
     };
 
     struct MathAggregate {
-      enum class Kind : short int { Min, Max, Mean, LowHighEst, };
-      BOOST_DESCRIBE_NESTED_ENUM(Kind, Min, Max, Mean, LowHighEst)
+      enum class Kind : short int { Min, Max, Mean, Sum, LowHighEst, };
+      BOOST_DESCRIBE_NESTED_ENUM(Kind, Min, Max, Mean, Sum, LowHighEst)
       BOOST_DESCRIBE_CLASS(MathAggregate,
                            (),
                            (),

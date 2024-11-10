@@ -214,11 +214,11 @@ void proto_serde<::orgproto::SubtreePath, sem::SubtreePath>::read(::orgproto::Su
 }
 
 void proto_serde<::orgproto::ColumnView::Summary::CheckboxAggregate, sem::ColumnView::Summary::CheckboxAggregate>::write(::orgproto::ColumnView::Summary::CheckboxAggregate* out, sem::ColumnView::Summary::CheckboxAggregate const& in) {
-
+  out->set_kind(static_cast<orgproto::ColumnView_Summary_CheckboxAggregate_Kind>(in.kind));
 }
 
 void proto_serde<::orgproto::ColumnView::Summary::CheckboxAggregate, sem::ColumnView::Summary::CheckboxAggregate>::read(::orgproto::ColumnView::Summary::CheckboxAggregate const& out, proto_write_accessor<sem::ColumnView::Summary::CheckboxAggregate> in) {
-
+  in.for_field(&sem::ColumnView::Summary::CheckboxAggregate::kind).get() = static_cast<sem::ColumnView::Summary::CheckboxAggregate::Kind>(out.kind());
 }
 
 void proto_serde<::orgproto::ColumnView::Summary::MathAggregate, sem::ColumnView::Summary::MathAggregate>::write(::orgproto::ColumnView::Summary::MathAggregate* out, sem::ColumnView::Summary::MathAggregate const& in) {

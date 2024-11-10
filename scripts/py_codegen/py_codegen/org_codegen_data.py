@@ -1629,6 +1629,27 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                                 GenTuStruct(
                                     t_nest_shared("CheckboxAggregate",
                                                   ["ColumnView", "Summary"]),
+                                    nested=[
+                                        GenTuEnum(
+                                            t_nest_shared("Kind", [
+                                                "ColumnView", "Summary",
+                                                "CheckboxAggregate"
+                                            ]),
+                                            GenTuDoc(""),
+                                            fields=[
+                                                efield("IfAllNested"),
+                                                efield("AggregateFractionRec"),
+                                                efield("AggregatePercentRec"),
+                                            ],
+                                        )
+                                    ],
+                                    fields=[
+                                        org_field(
+                                            t_nest_shared("Kind", [
+                                                "ColumnView", "Summary",
+                                                "CheckboxAggregate"
+                                            ]), "kind"),
+                                    ],
                                     methods=[
                                         eq_method(
                                             t_nest_shared("CheckboxAggregate",
@@ -1648,6 +1669,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                                                 efield("Min"),
                                                 efield("Max"),
                                                 efield("Mean"),
+                                                efield("Sum"),
                                                 efield("LowHighEst"),
                                             ],
                                         ),

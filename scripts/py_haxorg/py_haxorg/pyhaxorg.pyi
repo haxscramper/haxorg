@@ -194,17 +194,24 @@ class SubtreePath:
     def __getattr__(self, name: str) -> object: ...
     path: List[str]
 
+class ColumnViewSummaryCheckboxAggregateKind(Enum):
+    IfAllNested = 1
+    AggregateFractionRec = 2
+    AggregatePercentRec = 3
+
 class ColumnViewSummaryCheckboxAggregate:
-    def __init__(self) -> None: ...
+    def __init__(self, kind: ColumnViewSummaryCheckboxAggregateKind) -> None: ...
     def operator==(self, other: ColumnViewSummaryCheckboxAggregate) -> bool: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
+    kind: ColumnViewSummaryCheckboxAggregateKind
 
 class ColumnViewSummaryMathAggregateKind(Enum):
     Min = 1
     Max = 2
     Mean = 3
-    LowHighEst = 4
+    Sum = 4
+    LowHighEst = 5
 
 class ColumnViewSummaryMathAggregate:
     def __init__(self, kind: ColumnViewSummaryMathAggregateKind, formatDigits: Optional[int], formatPrecision: Optional[int]) -> None: ...

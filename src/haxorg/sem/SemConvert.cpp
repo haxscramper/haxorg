@@ -989,6 +989,10 @@ OrgConverter::ConvResult<CmdCaption> OrgConverter::convertCmdCaption(
 
 namespace dsl  = lexy::dsl;
 using lexy_tok = lexy::string_lexeme<>;
+Str lexy_str(lexy_tok const& t) {
+    return Str{std::string{t.begin(), t.end()}};
+}
+
 
 namespace tblfmt_grammar {
 
@@ -1736,6 +1740,28 @@ struct aggregate {
         dsl::identifier(dsl::ascii::character - dsl::lit_c<'}'>));
     sc auto value = lexy::callback<type>([](lexy_tok const& tok) {
         type res;
+        Str  agg = lexy_str(tok);
+        if (agg == ":min" || agg == "min" || agg == "@min") {
+            res.data = type::MathAggregate{
+                .kind = type::MathAggregate::Kind::Min};
+        } else if (agg == ":max" || agg == "max" || agg == "@max") {
+            res.data = type::MathAggregate{
+                .kind = type::MathAggregate::Kind::Max};
+        } else if (agg == "est+") {
+            res.data = type::MathAggregate{
+                .kind = type::MathAggregate::Kind::LowHighEst};
+        } else if (agg == "x" || agg == "X") {
+            res.data = type::CheckboxAggregate{
+                .kind = type::CheckboxAggregate::Kind::IfAllNested};
+        } else if (agg == "x/" || agg == "X/") {
+            res.data = type::CheckboxAggregate{
+                .kind = type::CheckboxAggregate::Kind::
+                    AggregateFractionRec};
+        } else if (agg == "x%" || agg == "X%") {
+            res.data = type::CheckboxAggregate{
+                .kind = type::CheckboxAggregate::Kind::
+                    AggregatePercentRec};
+        }
 
         return res;
     });
@@ -1747,15 +1773,17 @@ struct field {
     sc auto rule                                              //
         = dsl::identifier(dsl::ascii::alpha_digit_underscore) //
         + dsl::opt(
-              dsl::peek(dsl::lit_c<'('>) >> dsl::round_bracketed(
-                  dsl::identifier(dsl::ascii::alpha))) //
+              dsl::peek(dsl::lit_c<'('>)
+              >> dsl::round_bracketed(dsl::identifier(
+                  dsl::ascii::character - dsl::lit_c<')'>))) //
         ;
 
     sc auto value = lexy::bind(
         lexy::callback<type>(
             [](lexy_tok const& prop, Opt<lexy_tok> const& title) {
                 type res;
-
+                res.first = lexy_str(prop);
+                if (title) { res.second = lexy_str(title.value()); }
                 return res;
             }),
         lexy::_1,
@@ -1778,7 +1806,12 @@ struct column {
                                     Opt<field::type> const&     fld,
                                     Opt<aggregate::type> const& agg) {
                 type res;
-
+                res.width = width;
+                if (fld) {
+                    res.property      = fld.value().first;
+                    res.propertyTitle = fld.value().second;
+                }
+                res.summary = agg;
                 return res;
             }),
             lexy::_1 or Opt<int>{},

@@ -77,7 +77,7 @@ template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::ColumnView::Summary const& object) { __obj_field(res, object, data); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::ColumnView::Summary::CheckboxAggregate const& object) {  }
+void Exporter<V, R>::visit(R& res, sem::ColumnView::Summary::CheckboxAggregate const& object) { __obj_field(res, object, kind); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::ColumnView::Summary::MathAggregate const& object) {
