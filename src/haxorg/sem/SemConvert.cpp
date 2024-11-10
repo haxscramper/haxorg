@@ -883,7 +883,10 @@ OrgConverter::ConvResult<Link> OrgConverter::convertLink(__args) {
         }
 
     } else {
-        Str protocol = normalize(get_text(one(a, N::Protocol)));
+        Str protocol_raw = get_text(one(a, N::Protocol));
+        Str protocol     = normalize(get_text(one(a, N::Protocol)));
+        print(fmt(
+            "Protocol is '{}', normalized {}", protocol_raw, protocol));
         if (protocol == "http" || protocol == "https") {
             link->target = LinkTarget{
                 LinkTarget::Raw{.text = protocol + ":"_ss + getTarget()}};
@@ -904,6 +907,9 @@ OrgConverter::ConvResult<Link> OrgConverter::convertLink(__args) {
         } else if (protocol == "attachment") {
             link->target = LinkTarget{
                 LinkTarget::Attachment{.file = getTarget()}};
+        } else if (protocol_raw == "#") {
+            link->target = LinkTarget{
+                LinkTarget::CustomId{.text = getTarget()}};
 
         } else {
             link->target = LinkTarget{

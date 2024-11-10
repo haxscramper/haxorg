@@ -863,7 +863,8 @@ sem::SemId<sem::Org> testParseString(
         p.tokenizer->setTraceFile(tokenizer_trace);
         p.parser->setTraceFile(parser_trace);
         converter.setTraceFile(sem_trace);
-        p.parser->traceColored = false;
+        p.parser->traceColored    = false;
+        p.tokenizer->traceColored = false;
         std::ofstream fileTrace{lex_trace.c_str()};
 
         params.traceStream = &fileTrace;
@@ -874,6 +875,17 @@ sem::SemId<sem::Org> testParseString(
 
     p.tokenizeConvert();
     p.parse();
+
+    if (debug) {
+        std::stringstream buffer;
+        ColStream         os{buffer};
+        os.colored = false;
+        OrgAdapter(&p.nodes, OrgId(0))
+            .treeRepr(os, 0, OrgNodeGroup::TreeReprConf{});
+
+        writeFile(
+            fs::path{debug.value() + "_parse_tree.txt"}, buffer.str());
+    }
 
     return converter.toDocument(OrgAdapter(&p.nodes, OrgId(0)));
 }
@@ -1191,6 +1203,13 @@ TEST(OrgApi, LinkTarget) {
         EXPECT_EQ(t.getSubtreeTitle().title.path.size(), 2);
         EXPECT_EQ(t.getSubtreeTitle().title.path.at(0), "Title");
         EXPECT_EQ(t.getSubtreeTitle().title.path.at(1), "Sub");
+    }
+    {
+        auto l = parseOne<sem::Link>(
+            R"([[#custom-id]])", getDebugFile("custom_id"));
+        auto const& t = l->target;
+        EXPECT_EQ(t.getKind(), sem::LinkTarget::Kind::CustomId);
+        EXPECT_EQ(t.getCustomId().text, "custom-id");
     }
 }
 
