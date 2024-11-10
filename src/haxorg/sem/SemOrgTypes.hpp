@@ -316,7 +316,8 @@ struct ColumnView {
                        (),
                        (),
                        (),
-                       ())
+                       (columns))
+  Vec<sem::ColumnView::Column> columns = {};
   bool operator==(sem::ColumnView const& other) const;
 };
 

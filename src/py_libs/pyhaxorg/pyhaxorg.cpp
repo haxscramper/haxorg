@@ -15,6 +15,8 @@ PYBIND11_MAKE_OPAQUE(std::vector<sem::Tblfm::Assign>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Tblfm::Assign>)
 PYBIND11_MAKE_OPAQUE(std::vector<Str>)
 PYBIND11_MAKE_OPAQUE(Vec<Str>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::ColumnView::Column>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::ColumnView::Column>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::BlockCodeLine::Part>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::BlockCodeLine::Part>)
 PYBIND11_MAKE_OPAQUE(std::vector<int>)
@@ -71,6 +73,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::Tblfm::Assign::Flag>(m, "VecOfTblfmAssignFlag", type_registry_guard);
   bind_vector<sem::Tblfm::Assign>(m, "VecOfTblfmAssign", type_registry_guard);
   bind_vector<Str>(m, "VecOfStr", type_registry_guard);
+  bind_vector<sem::ColumnView::Column>(m, "VecOfColumnViewColumn", type_registry_guard);
   bind_vector<sem::BlockCodeLine::Part>(m, "VecOfBlockCodeLinePart", type_registry_guard);
   bind_vector<int>(m, "VecOfint", type_registry_guard);
   bind_unordered_map<Str, Str>(m, "UnorderedMapOfStrStr", type_registry_guard);
@@ -633,6 +636,7 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def_readwrite("columns", &sem::ColumnView::columns)
     .def("operator==",
          static_cast<bool(sem::ColumnView::*)(sem::ColumnView const&) const>(&sem::ColumnView::operator==),
          pybind11::arg("other"))

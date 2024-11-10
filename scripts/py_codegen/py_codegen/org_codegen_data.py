@@ -1619,7 +1619,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
             t_nest_shared("ColumnView"),
             methods=[eq_method(t_nest_shared("ColumnView"))],
             fields=[
-                vec_field(t_nest_shared("Summary", ["ColumnView"]), "columns")
+                vec_field(t_nest_shared("Column", ["ColumnView"]), "columns")
             ],
             nested=[
                 GenTuStruct(

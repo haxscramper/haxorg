@@ -294,11 +294,11 @@ void proto_serde<::orgproto::ColumnView::Column, sem::ColumnView::Column>::read(
 }
 
 void proto_serde<::orgproto::ColumnView, sem::ColumnView>::write(::orgproto::ColumnView* out, sem::ColumnView const& in) {
-
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::ColumnView::Column>, Vec<sem::ColumnView::Column>>::write(out->mutable_columns(), in.columns);
 }
 
 void proto_serde<::orgproto::ColumnView, sem::ColumnView>::read(::orgproto::ColumnView const& out, proto_write_accessor<sem::ColumnView> in) {
-
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::ColumnView::Column>, Vec<sem::ColumnView::Column>>::read(out.columns(), in.for_field(&sem::ColumnView::columns));
 }
 
 void proto_serde<::orgproto::LinkTarget::Raw, sem::LinkTarget::Raw>::write(::orgproto::LinkTarget::Raw* out, sem::LinkTarget::Raw const& in) {

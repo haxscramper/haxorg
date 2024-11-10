@@ -68,7 +68,7 @@ template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::SubtreePath const& object) { __obj_field(res, object, path); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::ColumnView const& object) {  }
+void Exporter<V, R>::visit(R& res, sem::ColumnView const& object) { __obj_field(res, object, columns); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::ColumnView::Summary::Data const& object) { visitVariants(res, sem::ColumnView::Summary::getKind(object), object); }

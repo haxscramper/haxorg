@@ -987,7 +987,8 @@ OrgConverter::ConvResult<CmdCaption> OrgConverter::convertCmdCaption(
     return caption;
 }
 
-namespace dsl = lexy::dsl;
+namespace dsl  = lexy::dsl;
+using lexy_tok = lexy::string_lexeme<>;
 
 namespace tblfmt_grammar {
 
@@ -1733,12 +1734,11 @@ struct aggregate {
     using type   = sem::ColumnView::Summary;
     sc auto rule = dsl::curly_bracketed(
         dsl::identifier(dsl::ascii::character - dsl::lit_c<'}'>));
-    sc auto value = lexy::callback<type>(
-        [](lexy::string_lexeme<> const& tok) {
-            type res;
+    sc auto value = lexy::callback<type>([](lexy_tok const& tok) {
+        type res;
 
-            return res;
-        });
+        return res;
+    });
 };
 
 struct field {
@@ -1750,6 +1750,16 @@ struct field {
               dsl::peek(dsl::lit_c<'('>) >> dsl::round_bracketed(
                   dsl::identifier(dsl::ascii::alpha))) //
         ;
+
+    sc auto value = lexy::bind(
+        lexy::callback<type>(
+            [](lexy_tok const& prop, Opt<lexy_tok> const& title) {
+                type res;
+
+                return res;
+            }),
+        lexy::_1,
+        lexy::_2 or Opt<lexy_tok>{});
 };
 
 struct column {

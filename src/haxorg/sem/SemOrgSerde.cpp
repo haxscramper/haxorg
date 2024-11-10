@@ -108,3 +108,4 @@ template class proto_serde<::orgproto::CmdTblfm, sem::Cmd>;
 template class proto_serde<::orgproto::BlockVerse, sem::Cmd>;
 template class proto_serde<::orgproto::BlockQuote, sem::Cmd>;
 template class proto_serde<::orgproto::CmdCustomArgs, sem::Cmd>;
+template class proto_serde<::orgproto::CmdColumns, sem::Cmd>;
