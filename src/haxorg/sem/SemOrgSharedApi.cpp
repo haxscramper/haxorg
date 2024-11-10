@@ -537,10 +537,10 @@ Vec<Select> Paragraph_dropAdmonitionNodes(Handle handle, bool withPath) {
                 bool isFootnote = false;
                 if constexpr (IsSemOrgInstance<Handle>) {
                     isFootnote = sub.template as<sem::Link>()
-                                     ->isFootnote();
+                                     ->target.isFootnote();
                 } else {
                     isFootnote = sub.template as<org::ImmLink>()
-                                     ->isFootnote();
+                                     ->target.isFootnote();
                 }
 
                 if (!isFootnote) { lead = false; }
@@ -1000,8 +1000,9 @@ Opt<org::ImmAdapter> org::ImmAdapterListItemAPI::getHeader() const {
 
 Opt<Str> sem::Paragraph::getFootnoteName() const {
     if (!subnodes.has(0)) { return std::nullopt; }
-    if (auto link = at(0).asOpt<sem::Link>(); link && link->isFootnote()) {
-        return link->getFootnote().target;
+    if (auto link = at(0).asOpt<sem::Link>();
+        link && link->target.isFootnote()) {
+        return link->target.getFootnote().target;
     } else {
         return std::nullopt;
     }
@@ -1010,8 +1011,8 @@ Opt<Str> sem::Paragraph::getFootnoteName() const {
 Opt<Str> org::ImmAdapterParagraphAPI::getFootnoteName() const {
     if (getThis()->get()->subnodes.empty()) { return std::nullopt; }
     if (auto link = getThis()->at(0, false).asOpt<org::ImmLink>();
-        link && link.value()->isFootnote()) {
-        return link.value()->getFootnote().target;
+        link && link.value()->target.isFootnote()) {
+        return link.value()->target.getFootnote().target;
     } else {
         return std::nullopt;
     }

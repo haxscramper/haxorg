@@ -407,6 +407,66 @@ message AttrValue {
   string                                           debug                            = 1000;
 }
 
+message LinkTarget {
+  message Raw {
+    string                                         text                             = 1;
+    string                                         debug                            = 1000;
+  }
+  message Id {
+    string                                         text                             = 1;
+    string                                         debug                            = 1000;
+  }
+  message Person {
+    string                                         name                             = 1;
+    string                                         debug                            = 1000;
+  }
+  message UserProtocol {
+    string                                         protocol                         = 1;
+    string                                         target                           = 2;
+    string                                         debug                            = 1000;
+  }
+  message Internal {
+    string                                         target                           = 1;
+    string                                         debug                            = 1000;
+  }
+  message Footnote {
+    string                                         target                           = 1;
+    string                                         debug                            = 1000;
+  }
+  message File {
+    string                                         file                             = 1;
+    string                                         debug                            = 1000;
+  }
+  message Attachment {
+    string                                         file                             = 1;
+    string                                         debug                            = 1000;
+  }
+  message Data {
+    oneof kind {
+      LinkTarget.Raw                               raw                              = 1;
+      LinkTarget.Id                                id                               = 2;
+      LinkTarget.Person                            person                           = 3;
+      LinkTarget.UserProtocol                      userprotocol                     = 4;
+      LinkTarget.Internal                          internal                         = 5;
+      LinkTarget.Footnote                          footnote                         = 6;
+      LinkTarget.File                              file                             = 7;
+      LinkTarget.Attachment                        attachment                       = 8;
+    }
+  }
+  enum Kind {
+    Kind_Raw_f                                                                      = 0;
+    Kind_Id_f                                                                       = 1;
+    Kind_Person_f                                                                   = 2;
+    Kind_UserProtocol_f                                                             = 3;
+    Kind_Internal_f                                                                 = 4;
+    Kind_Footnote_f                                                                 = 5;
+    Kind_File_f                                                                     = 6;
+    Kind_Attachment_f                                                               = 7;
+  }
+  LinkTarget.Data                                  data                             = 1;
+  string                                           debug                            = 1000;
+}
+
 message SubtreePath {
   repeated string                                  path                             = 1;
   string                                           debug                            = 1000;
@@ -1150,66 +1210,11 @@ message Latex {
 }
 
 message Link {
-  message Raw {
-    string                                         text                             = 1;
-    string                                         debug                            = 1000;
-  }
-  message Id {
-    string                                         text                             = 1;
-    string                                         debug                            = 1000;
-  }
-  message Person {
-    string                                         name                             = 1;
-    string                                         debug                            = 1000;
-  }
-  message UserProtocol {
-    string                                         protocol                         = 1;
-    string                                         target                           = 2;
-    string                                         debug                            = 1000;
-  }
-  message Internal {
-    string                                         target                           = 1;
-    string                                         debug                            = 1000;
-  }
-  message Footnote {
-    string                                         target                           = 1;
-    string                                         debug                            = 1000;
-  }
-  message File {
-    string                                         file                             = 1;
-    string                                         debug                            = 1000;
-  }
-  message Attachment {
-    string                                         file                             = 1;
-    string                                         debug                            = 1000;
-  }
-  message Data {
-    oneof kind {
-      Link.Raw                                     raw                              = 1;
-      Link.Id                                      id                               = 2;
-      Link.Person                                  person                           = 3;
-      Link.UserProtocol                            userprotocol                     = 4;
-      Link.Internal                                internal                         = 5;
-      Link.Footnote                                footnote                         = 6;
-      Link.File                                    file                             = 7;
-      Link.Attachment                              attachment                       = 8;
-    }
-  }
-  enum Kind {
-    Kind_Raw_f                                                                      = 0;
-    Kind_Id_f                                                                       = 1;
-    Kind_Person_f                                                                   = 2;
-    Kind_UserProtocol_f                                                             = 3;
-    Kind_Internal_f                                                                 = 4;
-    Kind_Footnote_f                                                                 = 5;
-    Kind_File_f                                                                     = 6;
-    Kind_Attachment_f                                                               = 7;
-  }
   repeated AnyNode                                 attached                         = 1;
   repeated AnyNode                                 subnodes                         = 2;
   OrgSemKind                                       staticKind                       = 3;
   optional Paragraph                               description                      = 4;
-  Link.Data                                        data                             = 5;
+  LinkTarget                                       target                           = 5;
   string                                           debug                            = 1000;
 }
 

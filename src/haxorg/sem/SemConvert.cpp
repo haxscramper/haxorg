@@ -854,43 +854,47 @@ OrgConverter::ConvResult<Link> OrgConverter::convertLink(__args) {
         return lstrip(get_text(one(a, N::Link)), CharSet{':'});
     };
     if (a.kind() == onk::RawLink) {
-        link->data = Link::Raw{.text = get_text(a)};
+        link->target = LinkTarget{LinkTarget::Raw{.text = get_text(a)}};
 
     } else if (a.kind() == onk::Footnote) {
-        link->data = Link::Footnote{
-            .target = get_text(one(a, N::Definition))};
+        link->target = LinkTarget{LinkTarget::Footnote{
+            .target = get_text(one(a, N::Definition))}};
 
     } else if (one(a, N::Protocol).kind() == onk::Empty) {
         Str target = getTarget();
         if (target.starts_with(".") || target.starts_with("/")) {
-            link->data = Link::File{.file = target};
+            link->target = LinkTarget{LinkTarget::File{.file = target}};
         } else {
-            link->data = Link::Internal{.target = target};
+            link->target = LinkTarget{
+                LinkTarget::Internal{.target = target}};
         }
 
     } else {
         Str protocol = normalize(get_text(one(a, N::Protocol)));
         if (protocol == "http" || protocol == "https") {
-            link->data = Link::Raw{
-                .text = protocol + ":"_ss + getTarget()};
+            link->target = LinkTarget{
+                LinkTarget::Raw{.text = protocol + ":"_ss + getTarget()}};
         } else if (protocol == "id") {
-            link->data = Link::Id{
-                .text = strip(getTarget(), {' '}, {' '})};
+            link->target = LinkTarget{
+                LinkTarget::Id{.text = strip(getTarget(), {' '}, {' '})}};
 
         } else if (protocol == "person") {
-            link->data = Link::Person{};
+            link->target = LinkTarget{LinkTarget::Person{}};
             for (auto const& it : one(a, N::Link)) {
-                link->getPerson().name += get_text(it);
+                link->target.getPerson().name += get_text(it);
             }
 
         } else if (protocol == "file") {
-            link->data = Link::File{.file = getTarget()};
+            link->target = LinkTarget{
+                LinkTarget::File{.file = getTarget()}};
 
         } else if (protocol == "attachment") {
-            link->data = Link::Attachment{.file = getTarget()};
+            link->target = LinkTarget{
+                LinkTarget::Attachment{.file = getTarget()}};
 
         } else {
-            link->data = Link::UserProtocol{.protocol = protocol};
+            link->target = LinkTarget{
+                LinkTarget::UserProtocol{.protocol = protocol}};
         }
     }
 
@@ -1796,10 +1800,11 @@ OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(
     if (auto res = one(a, N::Result); res.kind() != onk::Empty) {
         auto body = one(res, N::Body);
         auto conv = convert(body);
-        if (auto link = conv.asOpt<sem::Link>(); link && link->isFile()) {
+        if (auto link = conv.asOpt<sem::Link>();
+            link && link->target.isFile()) {
             result->result = sem::BlockCodeEvalResult{
                 sem::BlockCodeEvalResult::File{
-                    .path = link->getFile().file}};
+                    .path = link->target.getFile().file}};
         } else {
             result->result = sem::BlockCodeEvalResult{
                 sem::BlockCodeEvalResult::Raw{

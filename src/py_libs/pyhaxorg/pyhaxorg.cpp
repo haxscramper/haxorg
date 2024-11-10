@@ -498,6 +498,214 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<sem::LinkTarget::Raw>(m, "LinkTargetRaw")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::LinkTarget::Raw {
+                        sem::LinkTarget::Raw result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("text", &sem::LinkTarget::Raw::text)
+    .def("operator==",
+         static_cast<bool(sem::LinkTarget::Raw::*)(sem::LinkTarget::Raw const&) const>(&sem::LinkTarget::Raw::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::LinkTarget::Raw _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::LinkTarget::Raw _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::LinkTarget::Id>(m, "LinkTargetId")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::LinkTarget::Id {
+                        sem::LinkTarget::Id result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("text", &sem::LinkTarget::Id::text)
+    .def("operator==",
+         static_cast<bool(sem::LinkTarget::Id::*)(sem::LinkTarget::Id const&) const>(&sem::LinkTarget::Id::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::LinkTarget::Id _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::LinkTarget::Id _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::LinkTarget::Person>(m, "LinkTargetPerson")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::LinkTarget::Person {
+                        sem::LinkTarget::Person result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("name", &sem::LinkTarget::Person::name)
+    .def("operator==",
+         static_cast<bool(sem::LinkTarget::Person::*)(sem::LinkTarget::Person const&) const>(&sem::LinkTarget::Person::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::LinkTarget::Person _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::LinkTarget::Person _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::LinkTarget::UserProtocol>(m, "LinkTargetUserProtocol")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::LinkTarget::UserProtocol {
+                        sem::LinkTarget::UserProtocol result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("protocol", &sem::LinkTarget::UserProtocol::protocol)
+    .def_readwrite("target", &sem::LinkTarget::UserProtocol::target)
+    .def("operator==",
+         static_cast<bool(sem::LinkTarget::UserProtocol::*)(sem::LinkTarget::UserProtocol const&) const>(&sem::LinkTarget::UserProtocol::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::LinkTarget::UserProtocol _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::LinkTarget::UserProtocol _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::LinkTarget::Internal>(m, "LinkTargetInternal")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::LinkTarget::Internal {
+                        sem::LinkTarget::Internal result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("target", &sem::LinkTarget::Internal::target)
+    .def("operator==",
+         static_cast<bool(sem::LinkTarget::Internal::*)(sem::LinkTarget::Internal const&) const>(&sem::LinkTarget::Internal::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::LinkTarget::Internal _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::LinkTarget::Internal _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::LinkTarget::Footnote>(m, "LinkTargetFootnote")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::LinkTarget::Footnote {
+                        sem::LinkTarget::Footnote result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("target", &sem::LinkTarget::Footnote::target)
+    .def("operator==",
+         static_cast<bool(sem::LinkTarget::Footnote::*)(sem::LinkTarget::Footnote const&) const>(&sem::LinkTarget::Footnote::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::LinkTarget::Footnote _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::LinkTarget::Footnote _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::LinkTarget::File>(m, "LinkTargetFile")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::LinkTarget::File {
+                        sem::LinkTarget::File result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("file", &sem::LinkTarget::File::file)
+    .def("operator==",
+         static_cast<bool(sem::LinkTarget::File::*)(sem::LinkTarget::File const&) const>(&sem::LinkTarget::File::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::LinkTarget::File _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::LinkTarget::File _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::LinkTarget::Attachment>(m, "LinkTargetAttachment")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::LinkTarget::Attachment {
+                        sem::LinkTarget::Attachment result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("file", &sem::LinkTarget::Attachment::file)
+    .def("operator==",
+         static_cast<bool(sem::LinkTarget::Attachment::*)(sem::LinkTarget::Attachment const&) const>(&sem::LinkTarget::Attachment::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::LinkTarget::Attachment _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::LinkTarget::Attachment _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<sem::LinkTarget::Kind>(m, "LinkTargetKind", type_registry_guard);
+  pybind11::enum_<sem::LinkTarget::Kind>(m, "LinkTargetKind")
+    .value("Raw", sem::LinkTarget::Kind::Raw)
+    .value("Id", sem::LinkTarget::Kind::Id)
+    .value("Person", sem::LinkTarget::Kind::Person)
+    .value("UserProtocol", sem::LinkTarget::Kind::UserProtocol)
+    .value("Internal", sem::LinkTarget::Kind::Internal)
+    .value("Footnote", sem::LinkTarget::Kind::Footnote)
+    .value("File", sem::LinkTarget::Kind::File)
+    .value("Attachment", sem::LinkTarget::Kind::Attachment)
+    .def("__iter__", [](sem::LinkTarget::Kind _self) -> PyEnumIterator<sem::LinkTarget::Kind> {
+                     return
+                     PyEnumIterator<sem::LinkTarget::Kind>
+                     ();
+                     })
+    ;
+  pybind11::class_<sem::LinkTarget>(m, "LinkTarget")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::LinkTarget {
+                        sem::LinkTarget result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("data", &sem::LinkTarget::data)
+    .def("operator==",
+         static_cast<bool(sem::LinkTarget::*)(sem::LinkTarget const&) const>(&sem::LinkTarget::operator==),
+         pybind11::arg("other"))
+    .def("isRaw", static_cast<bool(sem::LinkTarget::*)() const>(&sem::LinkTarget::isRaw))
+    .def("getRaw", static_cast<sem::LinkTarget::Raw&(sem::LinkTarget::*)()>(&sem::LinkTarget::getRaw))
+    .def("isId", static_cast<bool(sem::LinkTarget::*)() const>(&sem::LinkTarget::isId))
+    .def("getId", static_cast<sem::LinkTarget::Id&(sem::LinkTarget::*)()>(&sem::LinkTarget::getId))
+    .def("isPerson", static_cast<bool(sem::LinkTarget::*)() const>(&sem::LinkTarget::isPerson))
+    .def("getPerson", static_cast<sem::LinkTarget::Person&(sem::LinkTarget::*)()>(&sem::LinkTarget::getPerson))
+    .def("isUserProtocol", static_cast<bool(sem::LinkTarget::*)() const>(&sem::LinkTarget::isUserProtocol))
+    .def("getUserProtocol", static_cast<sem::LinkTarget::UserProtocol&(sem::LinkTarget::*)()>(&sem::LinkTarget::getUserProtocol))
+    .def("isInternal", static_cast<bool(sem::LinkTarget::*)() const>(&sem::LinkTarget::isInternal))
+    .def("getInternal", static_cast<sem::LinkTarget::Internal&(sem::LinkTarget::*)()>(&sem::LinkTarget::getInternal))
+    .def("isFootnote", static_cast<bool(sem::LinkTarget::*)() const>(&sem::LinkTarget::isFootnote))
+    .def("getFootnote", static_cast<sem::LinkTarget::Footnote&(sem::LinkTarget::*)()>(&sem::LinkTarget::getFootnote))
+    .def("isFile", static_cast<bool(sem::LinkTarget::*)() const>(&sem::LinkTarget::isFile))
+    .def("getFile", static_cast<sem::LinkTarget::File&(sem::LinkTarget::*)()>(&sem::LinkTarget::getFile))
+    .def("isAttachment", static_cast<bool(sem::LinkTarget::*)() const>(&sem::LinkTarget::isAttachment))
+    .def("getAttachment", static_cast<sem::LinkTarget::Attachment&(sem::LinkTarget::*)()>(&sem::LinkTarget::getAttachment))
+    .def_static("getKindStatic",
+                static_cast<sem::LinkTarget::Kind(*)(sem::LinkTarget::Data const&)>(&sem::LinkTarget::getKind),
+                pybind11::arg("__input"))
+    .def("getKind", static_cast<sem::LinkTarget::Kind(sem::LinkTarget::*)() const>(&sem::LinkTarget::getKind))
+    .def("__repr__", [](sem::LinkTarget _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::LinkTarget _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<sem::SubtreePath>(m, "SubtreePath")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreePath {
                         sem::SubtreePath result{};
@@ -2693,151 +2901,6 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Link::Raw>(m, "LinkRaw")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Link::Raw {
-                        sem::Link::Raw result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("text", &sem::Link::Raw::text)
-    .def("__repr__", [](sem::Link::Raw _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Link::Raw _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::Link::Id>(m, "LinkId")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Link::Id {
-                        sem::Link::Id result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("text", &sem::Link::Id::text)
-    .def("__repr__", [](sem::Link::Id _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Link::Id _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::Link::Person>(m, "LinkPerson")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Link::Person {
-                        sem::Link::Person result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("name", &sem::Link::Person::name)
-    .def("__repr__", [](sem::Link::Person _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Link::Person _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::Link::UserProtocol>(m, "LinkUserProtocol")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Link::UserProtocol {
-                        sem::Link::UserProtocol result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("protocol", &sem::Link::UserProtocol::protocol)
-    .def_readwrite("target", &sem::Link::UserProtocol::target)
-    .def("__repr__", [](sem::Link::UserProtocol _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Link::UserProtocol _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::Link::Internal>(m, "LinkInternal")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Link::Internal {
-                        sem::Link::Internal result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("target", &sem::Link::Internal::target)
-    .def("__repr__", [](sem::Link::Internal _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Link::Internal _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::Link::Footnote>(m, "LinkFootnote")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Link::Footnote {
-                        sem::Link::Footnote result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("target", &sem::Link::Footnote::target)
-    .def("__repr__", [](sem::Link::Footnote _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Link::Footnote _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::Link::File>(m, "LinkFile")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Link::File {
-                        sem::Link::File result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("file", &sem::Link::File::file)
-    .def("__repr__", [](sem::Link::File _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Link::File _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::Link::Attachment>(m, "LinkAttachment")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Link::Attachment {
-                        sem::Link::Attachment result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("file", &sem::Link::Attachment::file)
-    .def("__repr__", [](sem::Link::Attachment _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Link::Attachment _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  bind_enum_iterator<sem::Link::Kind>(m, "LinkKind", type_registry_guard);
-  pybind11::enum_<sem::Link::Kind>(m, "LinkKind")
-    .value("Raw", sem::Link::Kind::Raw)
-    .value("Id", sem::Link::Kind::Id)
-    .value("Person", sem::Link::Kind::Person)
-    .value("UserProtocol", sem::Link::Kind::UserProtocol)
-    .value("Internal", sem::Link::Kind::Internal)
-    .value("Footnote", sem::Link::Kind::Footnote)
-    .value("File", sem::Link::Kind::File)
-    .value("Attachment", sem::Link::Kind::Attachment)
-    .def("__iter__", [](sem::Link::Kind _self) -> PyEnumIterator<sem::Link::Kind> {
-                     return
-                     PyEnumIterator<sem::Link::Kind>
-                     ();
-                     })
-    ;
   pybind11::class_<sem::Link, sem::SemId<sem::Link>, sem::Stmt>(m, "Link")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Link {
                         sem::Link result{};
@@ -2845,28 +2908,8 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("description", &sem::Link::description)
-    .def_readwrite("data", &sem::Link::data)
+    .def_readwrite("target", &sem::Link::target)
     .def_readwrite("attached", &sem::Link::attached)
-    .def("isRaw", static_cast<bool(sem::Link::*)() const>(&sem::Link::isRaw))
-    .def("getRaw", static_cast<sem::Link::Raw&(sem::Link::*)()>(&sem::Link::getRaw))
-    .def("isId", static_cast<bool(sem::Link::*)() const>(&sem::Link::isId))
-    .def("getId", static_cast<sem::Link::Id&(sem::Link::*)()>(&sem::Link::getId))
-    .def("isPerson", static_cast<bool(sem::Link::*)() const>(&sem::Link::isPerson))
-    .def("getPerson", static_cast<sem::Link::Person&(sem::Link::*)()>(&sem::Link::getPerson))
-    .def("isUserProtocol", static_cast<bool(sem::Link::*)() const>(&sem::Link::isUserProtocol))
-    .def("getUserProtocol", static_cast<sem::Link::UserProtocol&(sem::Link::*)()>(&sem::Link::getUserProtocol))
-    .def("isInternal", static_cast<bool(sem::Link::*)() const>(&sem::Link::isInternal))
-    .def("getInternal", static_cast<sem::Link::Internal&(sem::Link::*)()>(&sem::Link::getInternal))
-    .def("isFootnote", static_cast<bool(sem::Link::*)() const>(&sem::Link::isFootnote))
-    .def("getFootnote", static_cast<sem::Link::Footnote&(sem::Link::*)()>(&sem::Link::getFootnote))
-    .def("isFile", static_cast<bool(sem::Link::*)() const>(&sem::Link::isFile))
-    .def("getFile", static_cast<sem::Link::File&(sem::Link::*)()>(&sem::Link::getFile))
-    .def("isAttachment", static_cast<bool(sem::Link::*)() const>(&sem::Link::isAttachment))
-    .def("getAttachment", static_cast<sem::Link::Attachment&(sem::Link::*)()>(&sem::Link::getAttachment))
-    .def_static("getLinkKindStatic",
-                static_cast<sem::Link::Kind(*)(sem::Link::Data const&)>(&sem::Link::getLinkKind),
-                pybind11::arg("__input"))
-    .def("getLinkKind", static_cast<sem::Link::Kind(sem::Link::*)() const>(&sem::Link::getLinkKind))
     .def("getAttached",
          static_cast<Vec<sem::SemId<sem::Org>>(sem::Link::*)(Opt<Str> const&) const>(&sem::Link::getAttached),
          pybind11::arg_v("kind", std::nullopt),

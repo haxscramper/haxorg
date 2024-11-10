@@ -15,17 +15,18 @@ void ExporterUltraplain::visitLink(std::string& res, In<sem::Link> link) {
     if (link->description) {
         visitDispatch(res, *link->description);
     } else {
-        switch (link->getLinkKind()) {
-            case sem::Link::Kind::Id: {
-                res += link->getId().text;
+        auto const& t = link->target;
+        switch (t.getKind()) {
+            case sem::LinkTarget::Kind::Id: {
+                res += t.getId().text;
                 break;
             }
-            case sem::Link::Kind::Footnote: {
-                res += link->getFootnote().target;
+            case sem::LinkTarget::Kind::Footnote: {
+                res += t.getFootnote().target;
                 break;
             }
-            case sem::Link::Kind::Raw: {
-                res += link->getRaw().text;
+            case sem::LinkTarget::Kind::Raw: {
+                res += t.getRaw().text;
                 break;
             }
             default: {

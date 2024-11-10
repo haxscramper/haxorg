@@ -16,6 +16,14 @@
     __IMPL(Tblfm, Expr::Call, (Expr, Call)) \
     __IMPL(Tblfm, Expr::Elisp, (Expr, Elisp)) \
     __IMPL(Tblfm, Assign, (Assign)) \
+    __IMPL(LinkTarget, Raw, (Raw)) \
+    __IMPL(LinkTarget, Id, (Id)) \
+    __IMPL(LinkTarget, Person, (Person)) \
+    __IMPL(LinkTarget, UserProtocol, (UserProtocol)) \
+    __IMPL(LinkTarget, Internal, (Internal)) \
+    __IMPL(LinkTarget, Footnote, (Footnote)) \
+    __IMPL(LinkTarget, File, (File)) \
+    __IMPL(LinkTarget, Attachment, (Attachment)) \
     __IMPL(BlockCodeLine, Part, (Part)) \
     __IMPL(BlockCodeLine, Part::Raw, (Part, Raw)) \
     __IMPL(BlockCodeLine, Part::Callout, (Part, Callout)) \
@@ -57,6 +65,7 @@
     __IMPL(Tblfm, Expr::AxisRef::Position::Kind, (Expr, AxisRef, Position, Kind)) \
     __IMPL(Tblfm, Expr::Kind, (Expr, Kind)) \
     __IMPL(Tblfm, Assign::Flag, (Assign, Flag)) \
+    __IMPL(LinkTarget, Kind, (Kind)) \
     __IMPL(BlockCodeLine, Part::Kind, (Part, Kind)) \
     __IMPL(BlockCodeSwitch, Kind, (Kind)) \
     __IMPL(BlockCodeEvalResult, Kind, (Kind)) \
@@ -84,6 +93,15 @@
     __IMPL(Tblfm::Expr::Elisp, (Tblfm, Expr, Elisp)) \
     __IMPL(Tblfm::Assign, (Tblfm, Assign)) \
     __IMPL(AttrValue, (AttrValue)) \
+    __IMPL(LinkTarget, (LinkTarget)) \
+    __IMPL(LinkTarget::Raw, (LinkTarget, Raw)) \
+    __IMPL(LinkTarget::Id, (LinkTarget, Id)) \
+    __IMPL(LinkTarget::Person, (LinkTarget, Person)) \
+    __IMPL(LinkTarget::UserProtocol, (LinkTarget, UserProtocol)) \
+    __IMPL(LinkTarget::Internal, (LinkTarget, Internal)) \
+    __IMPL(LinkTarget::Footnote, (LinkTarget, Footnote)) \
+    __IMPL(LinkTarget::File, (LinkTarget, File)) \
+    __IMPL(LinkTarget::Attachment, (LinkTarget, Attachment)) \
     __IMPL(SubtreePath, (SubtreePath)) \
     __IMPL(BlockCodeLine, (BlockCodeLine)) \
     __IMPL(BlockCodeLine::Part, (BlockCodeLine, Part)) \
@@ -133,14 +151,6 @@
     __IMPL(Time, Static, (Static)) \
     __IMPL(Time, Dynamic, (Dynamic)) \
     __IMPL(Symbol, Param, (Param)) \
-    __IMPL(Link, Raw, (Raw)) \
-    __IMPL(Link, Id, (Id)) \
-    __IMPL(Link, Person, (Person)) \
-    __IMPL(Link, UserProtocol, (UserProtocol)) \
-    __IMPL(Link, Internal, (Internal)) \
-    __IMPL(Link, Footnote, (Footnote)) \
-    __IMPL(Link, File, (File)) \
-    __IMPL(Link, Attachment, (Attachment)) \
     __IMPL(SubtreeLog, DescribedLog, (DescribedLog)) \
     __IMPL(SubtreeLog, Priority, (Priority)) \
     __IMPL(SubtreeLog, Note, (Note)) \
@@ -157,7 +167,6 @@
     __IMPL(Time, Repeat::Mode, (Repeat, Mode)) \
     __IMPL(Time, Repeat::Period, (Repeat, Period)) \
     __IMPL(Time, TimeKind, (TimeKind)) \
-    __IMPL(Link, Kind, (Kind)) \
     __IMPL(BlockExport, Format, (Format)) \
     __IMPL(SubtreeLog, Priority::Action, (Priority, Action)) \
     __IMPL(SubtreeLog, Kind, (Kind)) \
@@ -218,14 +227,6 @@
     __IMPL(Par, (Par)) \
     __IMPL(Latex, (Latex)) \
     __IMPL(Link, (Link)) \
-    __IMPL(Link::Raw, (Link, Raw)) \
-    __IMPL(Link::Id, (Link, Id)) \
-    __IMPL(Link::Person, (Link, Person)) \
-    __IMPL(Link::UserProtocol, (Link, UserProtocol)) \
-    __IMPL(Link::Internal, (Link, Internal)) \
-    __IMPL(Link::Footnote, (Link, Footnote)) \
-    __IMPL(Link::File, (Link, File)) \
-    __IMPL(Link::Attachment, (Link, Attachment)) \
     __IMPL(BlockCenter, (BlockCenter)) \
     __IMPL(BlockQuote, (BlockQuote)) \
     __IMPL(BlockComment, (BlockComment)) \

@@ -436,53 +436,54 @@ auto Formatter::toString(SemId<Monospace> id, CR<Context> ctx) -> Res {
 
 auto Formatter::toString(SemId<Link> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    if (id->getLinkKind() == Link::Kind::Raw && !id->description) {
-        return str(id->getRaw().text);
+    auto const& t = id->target;
+    if (t.getKind() == LinkTarget::Kind::Raw && !id->description) {
+        return str(t.getRaw().text);
     }
 
     Res head = str("");
-    switch (id->getLinkKind()) {
-        case Link::Kind::Person: {
-            head = str("person:" + id->getPerson().name);
+    switch (t.getKind()) {
+        case LinkTarget::Kind::Person: {
+            head = str("person:" + t.getPerson().name);
             break;
         }
 
-        case Link::Kind::Attachment: {
-            head = str("attachment:" + id->getAttachment().file);
+        case LinkTarget::Kind::Attachment: {
+            head = str("attachment:" + t.getAttachment().file);
             break;
         }
 
-        case Link::Kind::File: {
-            head = str("file:" + id->getFile().file);
+        case LinkTarget::Kind::File: {
+            head = str("file:" + t.getFile().file);
             break;
         }
 
-        case Link::Kind::Id: {
-            head = str("id:" + id->getId().text);
+        case LinkTarget::Kind::Id: {
+            head = str("id:" + t.getId().text);
             break;
         }
 
-        case Link::Kind::Internal: {
-            head = str(id->getInternal().target);
+        case LinkTarget::Kind::Internal: {
+            head = str(t.getInternal().target);
             break;
         }
 
-        case Link::Kind::Raw: {
-            head = str(id->getRaw().text);
+        case LinkTarget::Kind::Raw: {
+            head = str(t.getRaw().text);
             break;
         }
 
-        case Link::Kind::Footnote: {
-            head = str("fn:"_ss + id->getFootnote().target);
+        case LinkTarget::Kind::Footnote: {
+            head = str("fn:"_ss + t.getFootnote().target);
             break;
         }
 
         default: {
-            LOG(FATAL) << fmt1(id->getLinkKind());
+            LOG(FATAL) << fmt1(t.getKind());
         }
     }
 
-    if (id->getLinkKind() == Link::Kind::Footnote
+    if (t.getKind() == LinkTarget::Kind::Footnote
         && !id->description.has_value()) {
         return b.line({
             str("["),

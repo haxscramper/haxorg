@@ -1077,64 +1077,8 @@ def get_sem_text():
             GenTuDoc(""),
             bases=[t_org("Stmt")],
             fields=[
-                GenTuField(t_opt(t_id("Paragraph")),
-                           "description",
-                           GenTuDoc(""),
-                           value="std::nullopt")
-            ],
-            nested=[
-                GenTuTypeGroup(
-                    [
-                        GenTuStruct(
-                            t_nest("Raw", ["Link"]),
-                            GenTuDoc(""),
-                            fields=[(GenTuField(t_str(), "text", GenTuDoc("")))],
-                        ),
-                        GenTuStruct(
-                            t_nest("Id", ["Link"]),
-                            GenTuDoc(""),
-                            fields=[(GenTuField(t_str(), "text", GenTuDoc("")))],
-                        ),
-                        GenTuStruct(
-                            t_nest("Person", ["Link"]),
-                            GenTuDoc(""),
-                            fields=[(GenTuField(t_str(), "name", GenTuDoc("")))],
-                        ),
-                        GenTuStruct(
-                            t_nest("UserProtocol", ["Link"]),
-                            GenTuDoc(""),
-                            fields=[
-                                GenTuField(t_str(), "protocol", GenTuDoc("")),
-                                GenTuField(t_str(), "target", GenTuDoc("")),
-                            ],
-                        ),
-                        GenTuStruct(
-                            t_nest("Internal", ["Link"]),
-                            GenTuDoc(""),
-                            fields=[
-                                GenTuField(t_str(), "target", GenTuDoc("")),
-                            ],
-                        ),
-                        GenTuStruct(
-                            t_nest("Footnote", ["Link"]),
-                            GenTuDoc(""),
-                            fields=[(GenTuField(t_str(), "target", GenTuDoc("")))],
-                        ),
-                        GenTuStruct(
-                            t_nest("File", ["Link"]),
-                            GenTuDoc(""),
-                            fields=[(GenTuField(t_str(), "file", GenTuDoc("")))],
-                        ),
-                        GenTuStruct(
-                            t_nest("Attachment", ["Link"]),
-                            GenTuDoc(""),
-                            fields=[(GenTuField(t_str(), "file", GenTuDoc("")))],
-                        ),
-                    ],
-                    kindGetter="getLinkKind",
-                    variantName=t_nest("Data", ["Link"]),
-                    enumName=t_nest("Kind", ["Link"]),
-                )
+                opt_field(t_id("Paragraph"), "description"),
+                org_field(t_nest_shared("LinkTarget"), "target"),
             ],
         ),
     ]
@@ -1651,6 +1595,79 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 eq_method(t_nest_shared("AttrValue")),
             ],
         ),
+        GenTuStruct(
+            t_nest_shared("LinkTarget"),
+            methods=[eq_method(t_nest_shared("LinkTarget"))],
+            nested=[
+                GenTuTypeGroup(
+                    [
+                        GenTuStruct(
+                            t_nest_shared("Raw", ["LinkTarget"]),
+                            GenTuDoc(""),
+                            fields=[(GenTuField(t_str(), "text", GenTuDoc("")))],
+                            methods=[eq_method(t_nest_shared("Raw", ["LinkTarget"]))],
+                        ),
+                        GenTuStruct(
+                            t_nest_shared("Id", ["LinkTarget"]),
+                            GenTuDoc(""),
+                            fields=[(GenTuField(t_str(), "text", GenTuDoc("")))],
+                            methods=[eq_method(t_nest_shared("Id", ["LinkTarget"]))],
+                        ),
+                        GenTuStruct(
+                            t_nest_shared("Person", ["LinkTarget"]),
+                            GenTuDoc(""),
+                            fields=[(GenTuField(t_str(), "name", GenTuDoc("")))],
+                            methods=[eq_method(t_nest_shared("Person", ["LinkTarget"]))],
+                        ),
+                        GenTuStruct(
+                            t_nest_shared("UserProtocol", ["LinkTarget"]),
+                            GenTuDoc(""),
+                            fields=[
+                                GenTuField(t_str(), "protocol", GenTuDoc("")),
+                                GenTuField(t_str(), "target", GenTuDoc("")),
+                            ],
+                            methods=[
+                                eq_method(t_nest_shared("UserProtocol", ["LinkTarget"]))
+                            ],
+                        ),
+                        GenTuStruct(
+                            t_nest_shared("Internal", ["LinkTarget"]),
+                            GenTuDoc(""),
+                            fields=[
+                                GenTuField(t_str(), "target", GenTuDoc("")),
+                            ],
+                            methods=[
+                                eq_method(t_nest_shared("Internal", ["LinkTarget"]))
+                            ],
+                        ),
+                        GenTuStruct(
+                            t_nest_shared("Footnote", ["LinkTarget"]),
+                            GenTuDoc(""),
+                            fields=[(GenTuField(t_str(), "target", GenTuDoc("")))],
+                            methods=[
+                                eq_method(t_nest_shared("Footnote", ["LinkTarget"]))
+                            ],
+                        ),
+                        GenTuStruct(
+                            t_nest_shared("File", ["LinkTarget"]),
+                            GenTuDoc(""),
+                            fields=[(GenTuField(t_str(), "file", GenTuDoc("")))],
+                            methods=[eq_method(t_nest_shared("File", ["LinkTarget"]))],
+                        ),
+                        GenTuStruct(
+                            t_nest_shared("Attachment", ["LinkTarget"]),
+                            GenTuDoc(""),
+                            fields=[(GenTuField(t_str(), "file", GenTuDoc("")))],
+                            methods=[
+                                eq_method(t_nest_shared("Attachment", ["LinkTarget"]))
+                            ],
+                        ),
+                    ],
+                    kindGetter="getKind",
+                    variantName=t_nest_shared("Data", ["LinkTarget"]),
+                    enumName=t_nest_shared("Kind", ["LinkTarget"]),
+                )
+            ]),
         GenTuStruct(
             t_nest_shared("SubtreePath"),
             fields=[

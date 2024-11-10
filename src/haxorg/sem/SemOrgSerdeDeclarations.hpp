@@ -171,6 +171,69 @@ struct proto_serde<::orgproto::AttrValue, sem::AttrValue> {
 
 
 template <>
+struct proto_serde<::orgproto::LinkTarget::Raw, sem::LinkTarget::Raw> {
+  static void write(::orgproto::LinkTarget::Raw* out, sem::LinkTarget::Raw const& in);
+  static void read(::orgproto::LinkTarget::Raw const& out, proto_write_accessor<sem::LinkTarget::Raw> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::LinkTarget::Id, sem::LinkTarget::Id> {
+  static void write(::orgproto::LinkTarget::Id* out, sem::LinkTarget::Id const& in);
+  static void read(::orgproto::LinkTarget::Id const& out, proto_write_accessor<sem::LinkTarget::Id> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::LinkTarget::Person, sem::LinkTarget::Person> {
+  static void write(::orgproto::LinkTarget::Person* out, sem::LinkTarget::Person const& in);
+  static void read(::orgproto::LinkTarget::Person const& out, proto_write_accessor<sem::LinkTarget::Person> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::LinkTarget::UserProtocol, sem::LinkTarget::UserProtocol> {
+  static void write(::orgproto::LinkTarget::UserProtocol* out, sem::LinkTarget::UserProtocol const& in);
+  static void read(::orgproto::LinkTarget::UserProtocol const& out, proto_write_accessor<sem::LinkTarget::UserProtocol> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::LinkTarget::Internal, sem::LinkTarget::Internal> {
+  static void write(::orgproto::LinkTarget::Internal* out, sem::LinkTarget::Internal const& in);
+  static void read(::orgproto::LinkTarget::Internal const& out, proto_write_accessor<sem::LinkTarget::Internal> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::LinkTarget::Footnote, sem::LinkTarget::Footnote> {
+  static void write(::orgproto::LinkTarget::Footnote* out, sem::LinkTarget::Footnote const& in);
+  static void read(::orgproto::LinkTarget::Footnote const& out, proto_write_accessor<sem::LinkTarget::Footnote> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::LinkTarget::File, sem::LinkTarget::File> {
+  static void write(::orgproto::LinkTarget::File* out, sem::LinkTarget::File const& in);
+  static void read(::orgproto::LinkTarget::File const& out, proto_write_accessor<sem::LinkTarget::File> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::LinkTarget::Attachment, sem::LinkTarget::Attachment> {
+  static void write(::orgproto::LinkTarget::Attachment* out, sem::LinkTarget::Attachment const& in);
+  static void read(::orgproto::LinkTarget::Attachment const& out, proto_write_accessor<sem::LinkTarget::Attachment> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::LinkTarget, sem::LinkTarget> {
+  static void write(::orgproto::LinkTarget* out, sem::LinkTarget const& in);
+  static void read(::orgproto::LinkTarget const& out, proto_write_accessor<sem::LinkTarget> in);
+};
+
+
+template <>
 struct proto_serde<::orgproto::SubtreePath, sem::SubtreePath> {
   static void write(::orgproto::SubtreePath* out, sem::SubtreePath const& in);
   static void read(::orgproto::SubtreePath const& out, proto_write_accessor<sem::SubtreePath> in);
@@ -790,62 +853,6 @@ template <>
 struct proto_serde<::orgproto::Latex, sem::Latex> {
   static void write(::orgproto::Latex* out, sem::Latex const& in);
   static void read(::orgproto::Latex const& out, proto_write_accessor<sem::Latex> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Link::Raw, sem::Link::Raw> {
-  static void write(::orgproto::Link::Raw* out, sem::Link::Raw const& in);
-  static void read(::orgproto::Link::Raw const& out, proto_write_accessor<sem::Link::Raw> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Link::Id, sem::Link::Id> {
-  static void write(::orgproto::Link::Id* out, sem::Link::Id const& in);
-  static void read(::orgproto::Link::Id const& out, proto_write_accessor<sem::Link::Id> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Link::Person, sem::Link::Person> {
-  static void write(::orgproto::Link::Person* out, sem::Link::Person const& in);
-  static void read(::orgproto::Link::Person const& out, proto_write_accessor<sem::Link::Person> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Link::UserProtocol, sem::Link::UserProtocol> {
-  static void write(::orgproto::Link::UserProtocol* out, sem::Link::UserProtocol const& in);
-  static void read(::orgproto::Link::UserProtocol const& out, proto_write_accessor<sem::Link::UserProtocol> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Link::Internal, sem::Link::Internal> {
-  static void write(::orgproto::Link::Internal* out, sem::Link::Internal const& in);
-  static void read(::orgproto::Link::Internal const& out, proto_write_accessor<sem::Link::Internal> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Link::Footnote, sem::Link::Footnote> {
-  static void write(::orgproto::Link::Footnote* out, sem::Link::Footnote const& in);
-  static void read(::orgproto::Link::Footnote const& out, proto_write_accessor<sem::Link::Footnote> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Link::File, sem::Link::File> {
-  static void write(::orgproto::Link::File* out, sem::Link::File const& in);
-  static void read(::orgproto::Link::File const& out, proto_write_accessor<sem::Link::File> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Link::Attachment, sem::Link::Attachment> {
-  static void write(::orgproto::Link::Attachment* out, sem::Link::Attachment const& in);
-  static void read(::orgproto::Link::Attachment const& out, proto_write_accessor<sem::Link::Attachment> in);
 };
 
 

@@ -834,130 +834,18 @@ struct ImmLatex : public org::ImmOrg {
 struct ImmLink : public org::ImmStmt {
   using ImmStmt::ImmStmt;
   virtual ~ImmLink() = default;
-  struct Raw {
-    BOOST_DESCRIBE_CLASS(Raw,
-                         (),
-                         (),
-                         (),
-                         (text))
-    ImmBox<Str> text;
-    bool operator==(org::ImmLink::Raw const& other) const;
-  };
-
-  struct Id {
-    BOOST_DESCRIBE_CLASS(Id,
-                         (),
-                         (),
-                         (),
-                         (text))
-    ImmBox<Str> text;
-    bool operator==(org::ImmLink::Id const& other) const;
-  };
-
-  struct Person {
-    BOOST_DESCRIBE_CLASS(Person,
-                         (),
-                         (),
-                         (),
-                         (name))
-    ImmBox<Str> name;
-    bool operator==(org::ImmLink::Person const& other) const;
-  };
-
-  struct UserProtocol {
-    BOOST_DESCRIBE_CLASS(UserProtocol,
-                         (),
-                         (),
-                         (),
-                         (protocol, target))
-    ImmBox<Str> protocol;
-    ImmBox<Str> target;
-    bool operator==(org::ImmLink::UserProtocol const& other) const;
-  };
-
-  struct Internal {
-    BOOST_DESCRIBE_CLASS(Internal,
-                         (),
-                         (),
-                         (),
-                         (target))
-    ImmBox<Str> target;
-    bool operator==(org::ImmLink::Internal const& other) const;
-  };
-
-  struct Footnote {
-    BOOST_DESCRIBE_CLASS(Footnote,
-                         (),
-                         (),
-                         (),
-                         (target))
-    ImmBox<Str> target;
-    bool operator==(org::ImmLink::Footnote const& other) const;
-  };
-
-  struct File {
-    BOOST_DESCRIBE_CLASS(File,
-                         (),
-                         (),
-                         (),
-                         (file))
-    ImmBox<Str> file;
-    bool operator==(org::ImmLink::File const& other) const;
-  };
-
-  struct Attachment {
-    BOOST_DESCRIBE_CLASS(Attachment,
-                         (),
-                         (),
-                         (),
-                         (file))
-    ImmBox<Str> file;
-    bool operator==(org::ImmLink::Attachment const& other) const;
-  };
-
-  using Data = std::variant<org::ImmLink::Raw, org::ImmLink::Id, org::ImmLink::Person, org::ImmLink::UserProtocol, org::ImmLink::Internal, org::ImmLink::Footnote, org::ImmLink::File, org::ImmLink::Attachment>;
-  enum class Kind : short int { Raw, Id, Person, UserProtocol, Internal, Footnote, File, Attachment, };
-  BOOST_DESCRIBE_NESTED_ENUM(Kind, Raw, Id, Person, UserProtocol, Internal, Footnote, File, Attachment)
-  using variant_enum_type = org::ImmLink::Kind;
-  using variant_data_type = org::ImmLink::Data;
   BOOST_DESCRIBE_CLASS(ImmLink,
                        (ImmStmt),
                        (),
                        (),
                        (staticKind,
                         description,
-                        data))
+                        target))
   static OrgSemKind const staticKind;
   ImmBox<Opt<org::ImmIdT<org::ImmParagraph>>> description = std::nullopt;
-  org::ImmLink::Data data;
+  sem::LinkTarget target;
   virtual OrgSemKind getKind() const { return OrgSemKind::Link; }
   bool operator==(org::ImmLink const& other) const;
-  bool isRaw() const { return getLinkKind() == Kind::Raw; }
-  org::ImmLink::Raw const& getRaw() const { return std::get<0>(data); }
-  org::ImmLink::Raw& getRaw() { return std::get<0>(data); }
-  bool isId() const { return getLinkKind() == Kind::Id; }
-  org::ImmLink::Id const& getId() const { return std::get<1>(data); }
-  org::ImmLink::Id& getId() { return std::get<1>(data); }
-  bool isPerson() const { return getLinkKind() == Kind::Person; }
-  org::ImmLink::Person const& getPerson() const { return std::get<2>(data); }
-  org::ImmLink::Person& getPerson() { return std::get<2>(data); }
-  bool isUserProtocol() const { return getLinkKind() == Kind::UserProtocol; }
-  org::ImmLink::UserProtocol const& getUserProtocol() const { return std::get<3>(data); }
-  org::ImmLink::UserProtocol& getUserProtocol() { return std::get<3>(data); }
-  bool isInternal() const { return getLinkKind() == Kind::Internal; }
-  org::ImmLink::Internal const& getInternal() const { return std::get<4>(data); }
-  org::ImmLink::Internal& getInternal() { return std::get<4>(data); }
-  bool isFootnote() const { return getLinkKind() == Kind::Footnote; }
-  org::ImmLink::Footnote const& getFootnote() const { return std::get<5>(data); }
-  org::ImmLink::Footnote& getFootnote() { return std::get<5>(data); }
-  bool isFile() const { return getLinkKind() == Kind::File; }
-  org::ImmLink::File const& getFile() const { return std::get<6>(data); }
-  org::ImmLink::File& getFile() { return std::get<6>(data); }
-  bool isAttachment() const { return getLinkKind() == Kind::Attachment; }
-  org::ImmLink::Attachment const& getAttachment() const { return std::get<7>(data); }
-  org::ImmLink::Attachment& getAttachment() { return std::get<7>(data); }
-  static org::ImmLink::Kind getLinkKind(org::ImmLink::Data const& __input) { return static_cast<org::ImmLink::Kind>(__input.index()); }
-  org::ImmLink::Kind getLinkKind() const { return getLinkKind(data); }
 };
 
 /// \brief Center nested content in export

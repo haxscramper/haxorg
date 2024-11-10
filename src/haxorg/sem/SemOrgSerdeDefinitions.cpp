@@ -205,6 +205,130 @@ void proto_serde<::orgproto::AttrValue, sem::AttrValue>::read(::orgproto::AttrVa
   proto_serde<std::string, Str>::read(out.value(), in.for_field(&sem::AttrValue::value));
 }
 
+void proto_serde<::orgproto::LinkTarget::Raw, sem::LinkTarget::Raw>::write(::orgproto::LinkTarget::Raw* out, sem::LinkTarget::Raw const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_text(), in.text);
+}
+
+void proto_serde<::orgproto::LinkTarget::Raw, sem::LinkTarget::Raw>::read(::orgproto::LinkTarget::Raw const& out, proto_write_accessor<sem::LinkTarget::Raw> in) {
+  proto_serde<std::string, Str>::read(out.text(), in.for_field(&sem::LinkTarget::Raw::text));
+}
+
+void proto_serde<::orgproto::LinkTarget::Id, sem::LinkTarget::Id>::write(::orgproto::LinkTarget::Id* out, sem::LinkTarget::Id const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_text(), in.text);
+}
+
+void proto_serde<::orgproto::LinkTarget::Id, sem::LinkTarget::Id>::read(::orgproto::LinkTarget::Id const& out, proto_write_accessor<sem::LinkTarget::Id> in) {
+  proto_serde<std::string, Str>::read(out.text(), in.for_field(&sem::LinkTarget::Id::text));
+}
+
+void proto_serde<::orgproto::LinkTarget::Person, sem::LinkTarget::Person>::write(::orgproto::LinkTarget::Person* out, sem::LinkTarget::Person const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
+}
+
+void proto_serde<::orgproto::LinkTarget::Person, sem::LinkTarget::Person>::read(::orgproto::LinkTarget::Person const& out, proto_write_accessor<sem::LinkTarget::Person> in) {
+  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::LinkTarget::Person::name));
+}
+
+void proto_serde<::orgproto::LinkTarget::UserProtocol, sem::LinkTarget::UserProtocol>::write(::orgproto::LinkTarget::UserProtocol* out, sem::LinkTarget::UserProtocol const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_protocol(), in.protocol);
+  proto_serde<std::string, Str>::write(out->mutable_target(), in.target);
+}
+
+void proto_serde<::orgproto::LinkTarget::UserProtocol, sem::LinkTarget::UserProtocol>::read(::orgproto::LinkTarget::UserProtocol const& out, proto_write_accessor<sem::LinkTarget::UserProtocol> in) {
+  proto_serde<std::string, Str>::read(out.protocol(), in.for_field(&sem::LinkTarget::UserProtocol::protocol));
+  proto_serde<std::string, Str>::read(out.target(), in.for_field(&sem::LinkTarget::UserProtocol::target));
+}
+
+void proto_serde<::orgproto::LinkTarget::Internal, sem::LinkTarget::Internal>::write(::orgproto::LinkTarget::Internal* out, sem::LinkTarget::Internal const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_target(), in.target);
+}
+
+void proto_serde<::orgproto::LinkTarget::Internal, sem::LinkTarget::Internal>::read(::orgproto::LinkTarget::Internal const& out, proto_write_accessor<sem::LinkTarget::Internal> in) {
+  proto_serde<std::string, Str>::read(out.target(), in.for_field(&sem::LinkTarget::Internal::target));
+}
+
+void proto_serde<::orgproto::LinkTarget::Footnote, sem::LinkTarget::Footnote>::write(::orgproto::LinkTarget::Footnote* out, sem::LinkTarget::Footnote const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_target(), in.target);
+}
+
+void proto_serde<::orgproto::LinkTarget::Footnote, sem::LinkTarget::Footnote>::read(::orgproto::LinkTarget::Footnote const& out, proto_write_accessor<sem::LinkTarget::Footnote> in) {
+  proto_serde<std::string, Str>::read(out.target(), in.for_field(&sem::LinkTarget::Footnote::target));
+}
+
+void proto_serde<::orgproto::LinkTarget::File, sem::LinkTarget::File>::write(::orgproto::LinkTarget::File* out, sem::LinkTarget::File const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_file(), in.file);
+}
+
+void proto_serde<::orgproto::LinkTarget::File, sem::LinkTarget::File>::read(::orgproto::LinkTarget::File const& out, proto_write_accessor<sem::LinkTarget::File> in) {
+  proto_serde<std::string, Str>::read(out.file(), in.for_field(&sem::LinkTarget::File::file));
+}
+
+void proto_serde<::orgproto::LinkTarget::Attachment, sem::LinkTarget::Attachment>::write(::orgproto::LinkTarget::Attachment* out, sem::LinkTarget::Attachment const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_file(), in.file);
+}
+
+void proto_serde<::orgproto::LinkTarget::Attachment, sem::LinkTarget::Attachment>::read(::orgproto::LinkTarget::Attachment const& out, proto_write_accessor<sem::LinkTarget::Attachment> in) {
+  proto_serde<std::string, Str>::read(out.file(), in.for_field(&sem::LinkTarget::Attachment::file));
+}
+
+void proto_serde<::orgproto::LinkTarget, sem::LinkTarget>::write(::orgproto::LinkTarget* out, sem::LinkTarget const& in) {
+  switch (in.data.index()) {
+    case 0:
+      proto_serde<orgproto::LinkTarget::Raw, sem::LinkTarget::Raw>::write(out->mutable_data()->mutable_raw(), std::get<0>(in.data));
+      break;
+    case 1:
+      proto_serde<orgproto::LinkTarget::Id, sem::LinkTarget::Id>::write(out->mutable_data()->mutable_id(), std::get<1>(in.data));
+      break;
+    case 2:
+      proto_serde<orgproto::LinkTarget::Person, sem::LinkTarget::Person>::write(out->mutable_data()->mutable_person(), std::get<2>(in.data));
+      break;
+    case 3:
+      proto_serde<orgproto::LinkTarget::UserProtocol, sem::LinkTarget::UserProtocol>::write(out->mutable_data()->mutable_userprotocol(), std::get<3>(in.data));
+      break;
+    case 4:
+      proto_serde<orgproto::LinkTarget::Internal, sem::LinkTarget::Internal>::write(out->mutable_data()->mutable_internal(), std::get<4>(in.data));
+      break;
+    case 5:
+      proto_serde<orgproto::LinkTarget::Footnote, sem::LinkTarget::Footnote>::write(out->mutable_data()->mutable_footnote(), std::get<5>(in.data));
+      break;
+    case 6:
+      proto_serde<orgproto::LinkTarget::File, sem::LinkTarget::File>::write(out->mutable_data()->mutable_file(), std::get<6>(in.data));
+      break;
+    case 7:
+      proto_serde<orgproto::LinkTarget::Attachment, sem::LinkTarget::Attachment>::write(out->mutable_data()->mutable_attachment(), std::get<7>(in.data));
+      break;
+  }
+}
+
+void proto_serde<::orgproto::LinkTarget, sem::LinkTarget>::read(::orgproto::LinkTarget const& out, proto_write_accessor<sem::LinkTarget> in) {
+  switch (out.data().kind_case()) {
+    case ::orgproto::LinkTarget::Data::kRaw:
+      proto_serde<orgproto::LinkTarget::Raw, sem::LinkTarget::Raw>::read(out.data().raw(), in.for_field_variant<0>(&sem::LinkTarget::data));
+      break;
+    case ::orgproto::LinkTarget::Data::kId:
+      proto_serde<orgproto::LinkTarget::Id, sem::LinkTarget::Id>::read(out.data().id(), in.for_field_variant<1>(&sem::LinkTarget::data));
+      break;
+    case ::orgproto::LinkTarget::Data::kPerson:
+      proto_serde<orgproto::LinkTarget::Person, sem::LinkTarget::Person>::read(out.data().person(), in.for_field_variant<2>(&sem::LinkTarget::data));
+      break;
+    case ::orgproto::LinkTarget::Data::kUserprotocol:
+      proto_serde<orgproto::LinkTarget::UserProtocol, sem::LinkTarget::UserProtocol>::read(out.data().userprotocol(), in.for_field_variant<3>(&sem::LinkTarget::data));
+      break;
+    case ::orgproto::LinkTarget::Data::kInternal:
+      proto_serde<orgproto::LinkTarget::Internal, sem::LinkTarget::Internal>::read(out.data().internal(), in.for_field_variant<4>(&sem::LinkTarget::data));
+      break;
+    case ::orgproto::LinkTarget::Data::kFootnote:
+      proto_serde<orgproto::LinkTarget::Footnote, sem::LinkTarget::Footnote>::read(out.data().footnote(), in.for_field_variant<5>(&sem::LinkTarget::data));
+      break;
+    case ::orgproto::LinkTarget::Data::kFile:
+      proto_serde<orgproto::LinkTarget::File, sem::LinkTarget::File>::read(out.data().file(), in.for_field_variant<6>(&sem::LinkTarget::data));
+      break;
+    case ::orgproto::LinkTarget::Data::kAttachment:
+      proto_serde<orgproto::LinkTarget::Attachment, sem::LinkTarget::Attachment>::read(out.data().attachment(), in.for_field_variant<7>(&sem::LinkTarget::data));
+      break;
+  }
+}
+
 void proto_serde<::orgproto::SubtreePath, sem::SubtreePath>::write(::orgproto::SubtreePath* out, sem::SubtreePath const& in) {
   proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::write(out->mutable_path(), in.path);
 }
@@ -1419,104 +1543,13 @@ void proto_serde<::orgproto::Latex, sem::Latex>::read(::orgproto::Latex const& o
   proto_serde<::orgproto::Latex, sem::Org>::read(out, in.as<sem::Org>());
 }
 
-void proto_serde<::orgproto::Link::Raw, sem::Link::Raw>::write(::orgproto::Link::Raw* out, sem::Link::Raw const& in) {
-  proto_serde<std::string, Str>::write(out->mutable_text(), in.text);
-}
-
-void proto_serde<::orgproto::Link::Raw, sem::Link::Raw>::read(::orgproto::Link::Raw const& out, proto_write_accessor<sem::Link::Raw> in) {
-  proto_serde<std::string, Str>::read(out.text(), in.for_field(&sem::Link::Raw::text));
-}
-
-void proto_serde<::orgproto::Link::Id, sem::Link::Id>::write(::orgproto::Link::Id* out, sem::Link::Id const& in) {
-  proto_serde<std::string, Str>::write(out->mutable_text(), in.text);
-}
-
-void proto_serde<::orgproto::Link::Id, sem::Link::Id>::read(::orgproto::Link::Id const& out, proto_write_accessor<sem::Link::Id> in) {
-  proto_serde<std::string, Str>::read(out.text(), in.for_field(&sem::Link::Id::text));
-}
-
-void proto_serde<::orgproto::Link::Person, sem::Link::Person>::write(::orgproto::Link::Person* out, sem::Link::Person const& in) {
-  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
-}
-
-void proto_serde<::orgproto::Link::Person, sem::Link::Person>::read(::orgproto::Link::Person const& out, proto_write_accessor<sem::Link::Person> in) {
-  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::Link::Person::name));
-}
-
-void proto_serde<::orgproto::Link::UserProtocol, sem::Link::UserProtocol>::write(::orgproto::Link::UserProtocol* out, sem::Link::UserProtocol const& in) {
-  proto_serde<std::string, Str>::write(out->mutable_protocol(), in.protocol);
-  proto_serde<std::string, Str>::write(out->mutable_target(), in.target);
-}
-
-void proto_serde<::orgproto::Link::UserProtocol, sem::Link::UserProtocol>::read(::orgproto::Link::UserProtocol const& out, proto_write_accessor<sem::Link::UserProtocol> in) {
-  proto_serde<std::string, Str>::read(out.protocol(), in.for_field(&sem::Link::UserProtocol::protocol));
-  proto_serde<std::string, Str>::read(out.target(), in.for_field(&sem::Link::UserProtocol::target));
-}
-
-void proto_serde<::orgproto::Link::Internal, sem::Link::Internal>::write(::orgproto::Link::Internal* out, sem::Link::Internal const& in) {
-  proto_serde<std::string, Str>::write(out->mutable_target(), in.target);
-}
-
-void proto_serde<::orgproto::Link::Internal, sem::Link::Internal>::read(::orgproto::Link::Internal const& out, proto_write_accessor<sem::Link::Internal> in) {
-  proto_serde<std::string, Str>::read(out.target(), in.for_field(&sem::Link::Internal::target));
-}
-
-void proto_serde<::orgproto::Link::Footnote, sem::Link::Footnote>::write(::orgproto::Link::Footnote* out, sem::Link::Footnote const& in) {
-  proto_serde<std::string, Str>::write(out->mutable_target(), in.target);
-}
-
-void proto_serde<::orgproto::Link::Footnote, sem::Link::Footnote>::read(::orgproto::Link::Footnote const& out, proto_write_accessor<sem::Link::Footnote> in) {
-  proto_serde<std::string, Str>::read(out.target(), in.for_field(&sem::Link::Footnote::target));
-}
-
-void proto_serde<::orgproto::Link::File, sem::Link::File>::write(::orgproto::Link::File* out, sem::Link::File const& in) {
-  proto_serde<std::string, Str>::write(out->mutable_file(), in.file);
-}
-
-void proto_serde<::orgproto::Link::File, sem::Link::File>::read(::orgproto::Link::File const& out, proto_write_accessor<sem::Link::File> in) {
-  proto_serde<std::string, Str>::read(out.file(), in.for_field(&sem::Link::File::file));
-}
-
-void proto_serde<::orgproto::Link::Attachment, sem::Link::Attachment>::write(::orgproto::Link::Attachment* out, sem::Link::Attachment const& in) {
-  proto_serde<std::string, Str>::write(out->mutable_file(), in.file);
-}
-
-void proto_serde<::orgproto::Link::Attachment, sem::Link::Attachment>::read(::orgproto::Link::Attachment const& out, proto_write_accessor<sem::Link::Attachment> in) {
-  proto_serde<std::string, Str>::read(out.file(), in.for_field(&sem::Link::Attachment::file));
-}
-
 void proto_serde<::orgproto::Link, sem::Link>::write(::orgproto::Link* out, sem::Link const& in) {
   proto_serde<::orgproto::Link, sem::Stmt>::write(out, in);
   proto_serde<::orgproto::Link, sem::Org>::write(out, in);
   if (in.description) {
     proto_serde<orgproto::Paragraph, sem::SemId<sem::Paragraph>>::write(out->mutable_description(), *in.description);
   }
-  switch (in.data.index()) {
-    case 0:
-      proto_serde<orgproto::Link::Raw, sem::Link::Raw>::write(out->mutable_data()->mutable_raw(), std::get<0>(in.data));
-      break;
-    case 1:
-      proto_serde<orgproto::Link::Id, sem::Link::Id>::write(out->mutable_data()->mutable_id(), std::get<1>(in.data));
-      break;
-    case 2:
-      proto_serde<orgproto::Link::Person, sem::Link::Person>::write(out->mutable_data()->mutable_person(), std::get<2>(in.data));
-      break;
-    case 3:
-      proto_serde<orgproto::Link::UserProtocol, sem::Link::UserProtocol>::write(out->mutable_data()->mutable_userprotocol(), std::get<3>(in.data));
-      break;
-    case 4:
-      proto_serde<orgproto::Link::Internal, sem::Link::Internal>::write(out->mutable_data()->mutable_internal(), std::get<4>(in.data));
-      break;
-    case 5:
-      proto_serde<orgproto::Link::Footnote, sem::Link::Footnote>::write(out->mutable_data()->mutable_footnote(), std::get<5>(in.data));
-      break;
-    case 6:
-      proto_serde<orgproto::Link::File, sem::Link::File>::write(out->mutable_data()->mutable_file(), std::get<6>(in.data));
-      break;
-    case 7:
-      proto_serde<orgproto::Link::Attachment, sem::Link::Attachment>::write(out->mutable_data()->mutable_attachment(), std::get<7>(in.data));
-      break;
-  }
+  proto_serde<orgproto::LinkTarget, sem::LinkTarget>::write(out->mutable_target(), in.target);
 }
 
 void proto_serde<::orgproto::Link, sem::Link>::read(::orgproto::Link const& out, proto_write_accessor<sem::Link> in) {
@@ -1525,32 +1558,7 @@ void proto_serde<::orgproto::Link, sem::Link>::read(::orgproto::Link const& out,
   if (out.has_description()) {
     proto_serde<Opt<orgproto::Paragraph>, Opt<sem::SemId<sem::Paragraph>>>::read(out.description(), in.for_field(&sem::Link::description));
   }
-  switch (out.data().kind_case()) {
-    case ::orgproto::Link::Data::kRaw:
-      proto_serde<orgproto::Link::Raw, sem::Link::Raw>::read(out.data().raw(), in.for_field_variant<0>(&sem::Link::data));
-      break;
-    case ::orgproto::Link::Data::kId:
-      proto_serde<orgproto::Link::Id, sem::Link::Id>::read(out.data().id(), in.for_field_variant<1>(&sem::Link::data));
-      break;
-    case ::orgproto::Link::Data::kPerson:
-      proto_serde<orgproto::Link::Person, sem::Link::Person>::read(out.data().person(), in.for_field_variant<2>(&sem::Link::data));
-      break;
-    case ::orgproto::Link::Data::kUserprotocol:
-      proto_serde<orgproto::Link::UserProtocol, sem::Link::UserProtocol>::read(out.data().userprotocol(), in.for_field_variant<3>(&sem::Link::data));
-      break;
-    case ::orgproto::Link::Data::kInternal:
-      proto_serde<orgproto::Link::Internal, sem::Link::Internal>::read(out.data().internal(), in.for_field_variant<4>(&sem::Link::data));
-      break;
-    case ::orgproto::Link::Data::kFootnote:
-      proto_serde<orgproto::Link::Footnote, sem::Link::Footnote>::read(out.data().footnote(), in.for_field_variant<5>(&sem::Link::data));
-      break;
-    case ::orgproto::Link::Data::kFile:
-      proto_serde<orgproto::Link::File, sem::Link::File>::read(out.data().file(), in.for_field_variant<6>(&sem::Link::data));
-      break;
-    case ::orgproto::Link::Data::kAttachment:
-      proto_serde<orgproto::Link::Attachment, sem::Link::Attachment>::read(out.data().attachment(), in.for_field_variant<7>(&sem::Link::data));
-      break;
-  }
+  proto_serde<orgproto::LinkTarget, sem::LinkTarget>::read(out.target(), in.for_field(&sem::Link::target));
 }
 
 void proto_serde<::orgproto::BlockCenter, sem::BlockCenter>::write(::orgproto::BlockCenter* out, sem::BlockCenter const& in) {

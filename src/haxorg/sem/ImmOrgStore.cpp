@@ -207,8 +207,9 @@ ImmAstReplace setNewSubnodes(
                         [&](ImmVec<Str> const&) { fail_field(); },
                         [&](ImmVec<org::ImmSymbol::Param> const&) { fail_field(); },
                         [&](ImmVec<sem::BlockCodeSwitch> const&) { fail_field(); },
-                        [&](ImmVec<sem::NamedProperty> const&) { fail_field(); },
                         [&](ImmVec<sem::BlockCodeLine> const&) { fail_field(); },
+                        [&](ImmVec<sem::NamedProperty> const&) { fail_field(); },
+                        [&](sem::LinkTarget const&) { fail_field(); },
                         [&](sem::DocumentExportConfig const&) { fail_field(); },
                         [&](sem::AttrValue const&) { fail_field(); },
                         // clang-format on
@@ -813,6 +814,7 @@ __same_type(sem::BlockCodeEvalResult);
 __same_type(sem::BlockCodeLine);
 __same_type(sem::AttrValue);
 __same_type(sem::Tblfm);
+__same_type(sem::LinkTarget);
 
 
 template <typename SemType, typename ImmType>

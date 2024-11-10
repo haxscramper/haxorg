@@ -65,6 +65,39 @@ void Exporter<V, R>::visit(R& res, sem::AttrValue const& object) {
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::LinkTarget::Data const& object) { visitVariants(res, sem::LinkTarget::getKind(object), object); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::LinkTarget const& object) { __obj_field(res, object, data); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::LinkTarget::Raw const& object) { __obj_field(res, object, text); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::LinkTarget::Id const& object) { __obj_field(res, object, text); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::LinkTarget::Person const& object) { __obj_field(res, object, name); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::LinkTarget::UserProtocol const& object) {
+  __obj_field(res, object, protocol);
+  __obj_field(res, object, target);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::LinkTarget::Internal const& object) { __obj_field(res, object, target); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::LinkTarget::Footnote const& object) { __obj_field(res, object, target); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::LinkTarget::File const& object) { __obj_field(res, object, file); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::LinkTarget::Attachment const& object) { __obj_field(res, object, file); }
+
+template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::SubtreePath const& object) { __obj_field(res, object, path); }
 
 template <typename V, typename R>
@@ -640,43 +673,13 @@ void Exporter<V, R>::visitLatex(R& res, In<sem::Latex> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Link::Data const& object) { visitVariants(res, sem::Link::getLinkKind(object), object); }
-
-template <typename V, typename R>
 void Exporter<V, R>::visitLink(R& res, In<sem::Link> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, description);
-  __org_field(res, object, data);
+  __org_field(res, object, target);
   __org_field(res, object, attached);
   __org_field(res, object, subnodes);
 }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Link::Raw const& object) { __obj_field(res, object, text); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Link::Id const& object) { __obj_field(res, object, text); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Link::Person const& object) { __obj_field(res, object, name); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Link::UserProtocol const& object) {
-  __obj_field(res, object, protocol);
-  __obj_field(res, object, target);
-}
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Link::Internal const& object) { __obj_field(res, object, target); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Link::Footnote const& object) { __obj_field(res, object, target); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Link::File const& object) { __obj_field(res, object, file); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Link::Attachment const& object) { __obj_field(res, object, file); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitBlockCenter(R& res, In<sem::BlockCenter> object) {
