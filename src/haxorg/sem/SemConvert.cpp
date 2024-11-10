@@ -11,6 +11,7 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <absl/log/log.h>
 #include <haxorg/sem/SemOrgFormat.hpp>
+#include <lexy/dsl/identifier.hpp>
 #include <lexy_ext/report_error.hpp>
 #include <lexy/input/string_input.hpp>
 
@@ -1337,6 +1338,30 @@ struct CollectErrors {
     constexpr auto sink() const { return _sink{}; }
 };
 
+template <typename Rule>
+auto run_lexy_parse(Str const& expr, OrgConverter* conv) {
+    conv->print(expr);
+
+    if (conv->TraceState) {
+        std::string        str;
+        lexy::string_input input{expr.data(), expr.data() + expr.size()};
+
+        lexy::visualization_options opts{};
+        opts.flags = lexy::visualize_use_unicode
+                   | lexy::visualize_use_symbols | lexy::visualize_space;
+        lexy::trace_to<Rule>(
+            std::back_insert_iterator(str),
+            lexy::zstring_input(input.data()),
+            opts);
+
+        conv->print(str);
+    }
+
+    return lexy::parse<Rule>(
+        lexy::string_input{expr.data(), expr.data() + expr.size()},
+        CollectErrors{});
+}
+
 OrgConverter::ConvResult<CmdTblfm> OrgConverter::convertCmdTblfm(__args) {
     __perf_trace("convert", "convertCmdTblfm");
     auto __trace = trace(a);
@@ -1344,27 +1369,8 @@ OrgConverter::ConvResult<CmdTblfm> OrgConverter::convertCmdTblfm(__args) {
 
 
     Str expr = get_text(one(a, N::Values));
-    print(expr);
 
-
-    if (TraceState) {
-        std::string        str;
-        lexy::string_input input{expr.data(), expr.data() + expr.size()};
-
-        lexy::visualization_options opts{};
-        opts.flags = lexy::visualize_use_unicode
-                   | lexy::visualize_use_symbols | lexy::visualize_space;
-        lexy::trace_to<tblfmt_grammar::tblfmt>(
-            std::back_insert_iterator(str),
-            lexy::zstring_input(input.data()),
-            opts);
-
-        print(str);
-    }
-
-    auto result = lexy::parse<tblfmt_grammar::tblfmt>(
-        lexy::string_input{expr.data(), expr.data() + expr.size()},
-        CollectErrors{});
+    auto result = run_lexy_parse<tblfmt_grammar::tblfmt>(expr, this);
 
     if (result.has_value()) {
         auto v          = result.value();
@@ -1721,6 +1727,86 @@ OrgConverter::ConvResult<CmdAttr> OrgConverter::convertCmdAttr(__args) {
     return result;
 }
 
+namespace columns_grammar {
+
+struct aggregate {
+    using type   = sem::ColumnView::Summary;
+    sc auto rule = dsl::curly_bracketed(
+        dsl::identifier(dsl::ascii::character - dsl::lit_c<'}'>));
+    sc auto value = lexy::callback<type>(
+        [](lexy::string_lexeme<> const& tok) {
+            type res;
+
+            return res;
+        });
+};
+
+struct field {
+    using type   = Pair<Str, Opt<Str>>;
+    sc_char name = "field";
+    sc auto rule                                              //
+        = dsl::identifier(dsl::ascii::alpha_digit_underscore) //
+        + dsl::opt(
+              dsl::peek(dsl::lit_c<'('>) >> dsl::round_bracketed(
+                  dsl::identifier(dsl::ascii::alpha))) //
+        ;
+};
+
+struct column {
+    sc_char name = "column";
+    using type   = sem::ColumnView::Column;
+    sc auto rule                                                      //
+        = dsl::lit_c<'%'>                                             //
+        + dsl::opt(dsl::peek(dsl::ascii::digit) >> dsl::integer<int>) //
+        + dsl::opt(dsl::peek(dsl::ascii::alpha) >> dsl::p<field>)     //
+        + dsl::opt(dsl::peek(dsl::lit_c<'{'>) >> dsl::p<aggregate>)   //
+        ;
+
+    sc auto value = //
+        lexy::bind(
+            lexy::callback<type>([](Opt<int> const&             width,
+                                    Opt<field::type> const&     fld,
+                                    Opt<aggregate::type> const& agg) {
+                type res;
+
+                return res;
+            }),
+            lexy::_1 or Opt<int>{},
+            lexy::_2 or Opt<field::type>{},
+            lexy::_3 or Opt<aggregate::type>{});
+};
+
+struct columns {
+    sc_char name  = "columns";
+    sc auto rule  = dsl::list(dsl::p<column>, dsl::sep(dsl::ascii::space));
+    sc auto value = lexy::as_list<std::vector<column::type>>;
+};
+} // namespace columns_grammar
+
+OrgConverter::ConvResult<CmdColumns> OrgConverter::convertCmdColumns(
+    __args) {
+    auto              __trace = trace(a);
+    SemId<CmdColumns> result  = Sem<CmdColumns>(a);
+
+    Str expr = get_text(one(a, N::Values));
+
+    auto spec = run_lexy_parse<columns_grammar::columns>(expr, this);
+
+    if (spec.has_value()) {
+        auto v               = spec.value();
+        result->view.columns = Vec<sem::ColumnView::Column>{
+            v.begin(), v.end()};
+        return result;
+    } else {
+        return SemError(
+            a,
+            fmt("Table format expression failed\n{}",
+                join("\n", spec.errors())));
+    }
+
+    return result;
+}
+
 OrgConverter::ConvResult<CmdName> OrgConverter::convertCmdName(__args) {
     auto           __trace = trace(a);
     SemId<CmdName> result  = Sem<CmdName>(a);
@@ -1992,6 +2078,7 @@ SemId<Org> OrgConverter::convert(__args) {
         case onk::Footnote: return convertLink(a).unwrap();
         case onk::CmdTblfm: return convertCmdTblfm(a).unwrap();
         case onk::CmdAttr: return convertCmdAttr(a).unwrap();
+        case onk::CmdColumns: return convertCmdColumns(a).unwrap();
         case onk::ColonExample: return convertColonExample(a).unwrap();
         case onk::CmdCaption: return convertCmdCaption(a).unwrap();
         case onk::CmdName: return convertCmdName(a).unwrap();

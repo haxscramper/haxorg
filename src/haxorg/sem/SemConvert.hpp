@@ -204,6 +204,7 @@ struct OrgConverter : public OperationsTracer {
     ConvResult<Symbol>          convertSymbol(In);
     ConvResult<Macro>           convertMacro(In);
     ConvResult<BlockExport>     convertBlockExport(In);
+    ConvResult<CmdColumns>      convertCmdColumns(In);
     ConvResult<Attr>            convertAttr(In);
     ConvResult<Attrs>           convertAttrs(In);
     ConvResult<Attrs>           convertCallArguments(CVec<In>, In source);

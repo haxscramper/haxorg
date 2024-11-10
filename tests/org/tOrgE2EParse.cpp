@@ -1215,7 +1215,9 @@ TEST(OrgApi, LinkTarget) {
 
 TEST(OrgApi, ColumnView) {
     {
-        // auto c = parseOne<sem::Cmd
+        auto c = parseOne<sem::CmdColumns>(
+            R"(#+columns: %20ITEM %9Approved(Approved?){X} %Owner %11Status %10Time_Spent{:})",
+            getDebugFile("subtree_title"));
     }
 }
 
