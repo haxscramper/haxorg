@@ -436,7 +436,7 @@ def get_subtree_property_types():
             fields=[
                 str_field("name", GenTuDoc("Original name of the property")),
                 opt_field(t_str(), "sub", GenTuDoc("Property target specialization")),
-                vec_field(t_nest_shared("AttrValue"), "attrs",
+                org_field(t_nest_shared("AttrGroup"), "attrs",
                           GenTuDoc("Property parameters")),
             ],
         ),
@@ -454,58 +454,6 @@ def get_subtree_property_types():
 
 
 #region org-types
-
-
-def get_sem_misc():
-    return [
-        d_org("Attr",
-              GenTuDoc("Single key-value (or positional)"),
-              bases=[t_org("Org")],
-              fields=[
-                  GenTuField(t_nest_shared("AttrValue"), "arg"),
-              ],
-              methods=[
-                  GenTuFunction(t_str(), "getName", isConst=True),
-                  GenTuFunction(t_str(), "getValue", isConst=True),
-                  GenTuFunction(t_str(), "getVarname", isConst=True),
-              ]),
-        d_org(
-            "AttrList",
-            GenTuDoc("Data type to wrap list of identical command arguments"),
-            bases=[t_org("Org")],
-            fields=[
-                vec_field(
-                    t_id("Attr"),
-                    "args",
-                    GenTuDoc("List of arguments"),
-                ),
-            ],
-        ),
-        d_org(
-            "Attrs",
-            GenTuDoc("Additional arguments for command blocks"),
-            bases=[t_org("Org")],
-            methods=[
-                GenTuFunction(
-                    t_vec(t_nest_shared("AttrValue")),
-                    "getAttrs",
-                    GenTuDoc(""),
-                    arguments=[opt_ident(t_str(), "key", GenTuDoc(""))],
-                    isConst=True,
-                )
-            ],
-            fields=[
-                id_field("AttrList", "positional",
-                         GenTuDoc("Positional arguments with no keys")),
-                GenTuField(
-                    t_map(t_str(), t_id("AttrList")),
-                    "named",
-                    GenTuDoc("Stored key-value mapping"),
-                ),
-            ],
-        ),
-    ]
-
 
 def get_sem_bases():
     return [
@@ -626,7 +574,7 @@ def get_sem_bases():
             concreteKind=False,
             fields=[
                 opt_field(
-                    t_id("Attrs"),
+                    t_nest_shared("AttrGroup"),
                     "attrs",
                     GenTuDoc("Additional parameters aside from 'exporter',"),
                 ),
@@ -1027,8 +975,8 @@ def get_sem_text():
             bases=[t_org("Org")],
             fields=[
                 GenTuField(t_str(), "name", GenTuDoc("Macro name"), value='""'),
-                id_field(
-                    "Attrs",
+                org_field(
+                    t_nest_shared("AttrGroup"),
                     "attrs",
                     GenTuDoc("Additional parameters aside from 'exporter',"),
                 ),
@@ -1607,6 +1555,45 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
             ],
         ),
         GenTuStruct(
+            t_nest_shared("AttrList"),
+            fields=[
+                vec_field(t_nest_shared("AttrValue"), "items"),
+            ],
+            methods=[
+                eq_method(t_nest_shared("AttrList"))
+            ]
+        ),
+        GenTuStruct(
+            t_nest_shared("AttrGroup"),
+            fields=[
+                org_field(
+                    t_nest_shared("AttrList"),
+                    "positional",
+                    GenTuDoc("Positional arguments with no keys"),
+                ),
+                org_field(
+                    t_map(t_str(), t_nest_shared("AttrList")),
+                    "named",
+                    GenTuDoc("Stored key-value mapping"),
+                ),
+            ],
+            methods=[
+                GenTuFunction(
+                    t_vec(t_nest_shared("AttrValue")),
+                    "getFlatArgs",
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_vec(t_nest_shared("AttrValue")),
+                    "getAttrs",
+                    GenTuDoc(""),
+                    arguments=[opt_ident(t_str(), "key", GenTuDoc(""))],
+                    isConst=True,
+                ),
+                eq_method(t_nest_shared("AttrGroup")),
+            ],
+        ),
+        GenTuStruct(
             t_nest_shared("SubtreePath"),
             fields=[
                 vec_field(t_str(), "path"),
@@ -2181,7 +2168,6 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
 def get_types() -> Sequence[GenTuStruct]:
     return [
         d_org("None", GenTuDoc("No node"), bases=[t_org("Org")]),
-        *get_sem_misc(),
         *get_sem_bases(),
         *get_sem_commands(),
         *get_sem_text(),
@@ -2269,8 +2255,8 @@ def get_types() -> Sequence[GenTuStruct]:
                     "name",
                     GenTuDoc("Call target name"),
                 ),
-                id_field(
-                    "Attrs",
+                org_field(
+                    t_nest_shared("AttrGroup"),
                     "attrs",
                     GenTuDoc("Additional parameters aside from 'exporter',"),
                 ),

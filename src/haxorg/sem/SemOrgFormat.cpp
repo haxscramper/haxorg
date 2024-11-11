@@ -44,17 +44,6 @@ void Formatter::add(Res id, Res other) {
     }
 }
 
-Formatter::Res Formatter::toString(
-    Opt<SemId<Attrs>> args,
-    CR<Context>       ctx) {
-    if (args) {
-        return b.line({str(" "), toString(args.value(), ctx)});
-    } else {
-        return str("");
-    }
-}
-
-
 void Formatter::add_subnodes(Res result, SemId<Org> id, CR<Context> ctx) {
     for (auto const& it : id->subnodes) { add(result, toString(it, ctx)); }
 }
@@ -80,14 +69,14 @@ auto Formatter::toString(SemId<Macro> id, CR<Context> ctx) -> Res {
     Vec<Res> parameters;
 
     if (id->attrs) {
-        if (id->attrs->positional) {
-            for (auto const& it : id->attrs->positional->args) {
+        if (id->attrs->group.positional) {
+            for (auto const& it : id->attrs->group.positional->args) {
                 parameters.push_back(str(it->getValue()));
             }
         }
 
-        for (auto const& key : sorted(id->attrs->named.keys())) {
-            for (auto const& it : id->attrs->named.at(key)->args) {
+        for (auto const& key : sorted(id->attrs->group.named.keys())) {
+            for (auto const& it : id->attrs->group.named.at(key)->args) {
                 parameters.push_back(
                     str(fmt("{}={}", it->getName(), it->getValue())));
             }
@@ -270,12 +259,12 @@ auto Formatter::toString(SemId<InlineFootnote> id, CR<Context> ctx)
     }
 }
 
-auto Formatter::toString(SemId<Attr> id, CR<Context> ctx) -> Res {
-    if (id.isNil()) { return str("<nil>"); }
-    if (id->arg.name) {
-        return str(fmt(":{} {}", id->getName(), id->getValue()));
+auto Formatter::toString(sem::AttrValue const& id, CR<Context> ctx)
+    -> Res {
+    if (id.name) {
+        return str(fmt(":{} {}", id.name, id.value));
     } else {
-        return str(id->getValue());
+        return str(id.name.value());
     }
 }
 
@@ -591,8 +580,8 @@ auto Formatter::toString(SemId<Call> id, CR<Context> ctx) -> Res {
     Vec<Res> parameters;
 
 
-    if (id->attrs->positional) {
-        for (auto const& it : id->attrs->positional->args) {
+    if (id->attrs->group.positional) {
+        for (auto const& it : id->attrs->group.positional->args) {
             if (it->getValue().contains(",")) {
                 parameters.push_back(str(fmt("={}=", it->getValue())));
             } else {
@@ -601,8 +590,8 @@ auto Formatter::toString(SemId<Call> id, CR<Context> ctx) -> Res {
         }
     }
 
-    for (auto const& key : sorted(id->attrs->named.keys())) {
-        for (auto const& it : id->attrs->named.at(key)->args) {
+    for (auto const& key : sorted(id->attrs->group.named.keys())) {
+        for (auto const& it : id->attrs->group.named.at(key)->args) {
             parameters.push_back(
                 str(fmt("{}={}", it->getName(), it->getValue())));
         }
@@ -848,36 +837,24 @@ auto Formatter::toString(SemId<Strike> id, CR<Context> ctx) -> Res {
         Vec<Res>::Splice(str("+"), toSubnodes(id, ctx), str("+")));
 }
 
-auto Formatter::toString(SemId<AttrList> id, CR<Context> ctx) -> Res {
-    if (id.isNil()) { return str("<nil>"); }
 
+auto Formatter::toString(sem::AttrGroup id, CR<Context> ctx) -> Res {
     Vec<Res> result;
-    for (auto const& it : id->args) {
-        result.push_back(toString(it, ctx));
-    }
-
-    return b.join(result, str(" "));
-}
-
-
-auto Formatter::toString(SemId<Attrs> id, CR<Context> ctx) -> Res {
-    if (id.isNil()) { return str("<nil>"); }
-    Vec<Res> result;
-    if (!id->positional.isNil()) {
-        for (auto const& pos : id->positional->args) {
+    if (!id.positional.isNil()) {
+        for (auto const& pos : id.positional->args) {
             result.push_back(toString(pos, ctx));
         }
     }
 
     Vec<Str> its;
-    for (auto const& k : id->named.keys()) { its.push_back(k); }
+    for (auto const& k : id.named.keys()) { its.push_back(k); }
 
     rs::sort(its, [](CR<Str> lhs, CR<Str> rhs) -> bool {
         return lhs.toBase() < rhs.toBase();
     });
 
     for (auto const& key : its) {
-        result.push_back(toString(id->named.at(key), ctx));
+        result.push_back(toString(id.named.at(key), ctx));
     }
 
     if (result.empty()) {

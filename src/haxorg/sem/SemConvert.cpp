@@ -558,8 +558,8 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
                 return a.getKind() == onk::CmdValue;
             })) {
         NamedProperty::CustomArgs prop;
-        // auto                      attrs = convertAttrs(one(a, N::Values));
-        // prop.attrs                      = attrs;
+        // auto                      attrs = convertAttrs(one(a,
+        // N::Values)); prop.attrs                      = attrs;
 
         result = NamedProperty{prop};
 
@@ -745,18 +745,18 @@ OrgConverter::ConvResult<TimeRange> OrgConverter::convertTimeRange(
     return range;
 }
 
-void addArgument(SemId<Attrs>& result, SemId<Attr> arg) {
-    if (arg->arg.name) {
-        auto key = normalize(arg->getName());
-        if (result->named.contains(key)) {
-            result->named[key]->args.push_back(arg);
+void addArgument(sem::AttrGroup& result, sem::AttrValue const& arg) {
+    if (arg.name) {
+        auto key = normalize(arg.name.value());
+        if (result.named.contains(key)) {
+            result.named[key].items.push_back(arg);
         } else {
-            auto args = SemId<AttrList>::New();
-            args->args.push_back(arg);
-            result->named.insert({key, args});
+            sem::AttrList args;
+            args.items.push_back(arg);
+            result.named.insert({key, args});
         }
     } else {
-        result->positional->args.push_back(arg);
+        result.positional.items.push_back(arg);
     }
 }
 
@@ -1650,25 +1650,24 @@ OrgConverter::ConvResult<AtMention> OrgConverter::convertAtMention(
     return SemLeaf<AtMention>(a);
 }
 
-OrgConverter::ConvResult<Attr> OrgConverter::convertAttr(__args) {
-    auto        __trace = trace(a);
-    SemId<Attr> result  = Sem<Attr>(a);
-    Str         key     = get_text(one(a, N::Name));
-    result->arg.value   = get_text(one(a, N::Value));
+sem::AttrValue OrgConverter::convertAttr(__args) {
+    auto           __trace = trace(a);
+    sem::AttrValue result;
+    Str            key = get_text(one(a, N::Name));
+    result.value       = get_text(one(a, N::Value));
 
-    if (!key.empty()) { result->arg.name = key.substr(1); }
+    if (!key.empty()) { result.name = key.substr(1); }
 
     if (TraceState) {
-        print(fmt("key:{} value:{}", result->arg.name, result->arg.value));
+        print(fmt("key:{} value:{}", result.name, result.value));
     }
 
     return result;
 }
 
-OrgConverter::ConvResult<Attrs> OrgConverter::convertAttrs(__args) {
-    auto         __trace = trace(a);
-    SemId<Attrs> result  = Sem<Attrs>(a);
-    result->positional   = SemId<AttrList>::New();
+sem::AttrGroup OrgConverter::convertAttrs(__args) {
+    auto           __trace = trace(a);
+    sem::AttrGroup result;
 
     if (a.getKind() == onk::Attrs) {
         for (auto const& item : one(a, N::Values)) {

@@ -205,14 +205,14 @@ struct OrgConverter : public OperationsTracer {
     ConvResult<Macro>           convertMacro(In);
     ConvResult<BlockExport>     convertBlockExport(In);
     ConvResult<CmdColumns>      convertCmdColumns(In);
-    ConvResult<Attr>            convertAttr(In);
-    ConvResult<Attrs>           convertAttrs(In);
-    ConvResult<Attrs>           convertCallArguments(CVec<In>, In source);
     ConvResult<BlockCode>       convertBlockCode(In);
     ConvResult<Call>            convertCall(In);
     ConvResult<CmdAttr>         convertCmdAttr(In);
     ConvResult<CmdName>         convertCmdName(In);
 
+    ConvResult<AttrGroup> convertCallArguments(CVec<In>, In source);
+    sem::AttrValue        convertAttr(In);
+    sem::AttrGroup        convertAttrs(In);
 
     template <typename T>
     SemId<T> convertAllSubnodes(In a) {

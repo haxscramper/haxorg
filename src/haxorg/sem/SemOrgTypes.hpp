@@ -242,6 +242,32 @@ struct AttrValue {
   bool operator==(sem::AttrValue const& other) const;
 };
 
+struct AttrList {
+  BOOST_DESCRIBE_CLASS(AttrList,
+                       (),
+                       (),
+                       (),
+                       (items))
+  Vec<sem::AttrValue> items = {};
+  bool operator==(sem::AttrList const& other) const;
+};
+
+struct AttrGroup {
+  BOOST_DESCRIBE_CLASS(AttrGroup,
+                       (),
+                       (),
+                       (),
+                       (positional,
+                        named))
+  /// \brief Positional arguments with no keys
+  sem::AttrList positional;
+  /// \brief Stored key-value mapping
+  UnorderedMap<Str, sem::AttrList> named;
+  Vec<sem::AttrValue> getFlatArgs() const;
+  Vec<sem::AttrValue> getAttrs(Opt<Str> const& key = std::nullopt) const;
+  bool operator==(sem::AttrGroup const& other) const;
+};
+
 struct SubtreePath {
   BOOST_DESCRIBE_CLASS(SubtreePath,
                        (),
@@ -1070,7 +1096,7 @@ struct NamedProperty {
     /// \brief Property target specialization
     Opt<Str> sub = std::nullopt;
     /// \brief Property parameters
-    Vec<sem::AttrValue> attrs = {};
+    sem::AttrGroup attrs;
     bool operator==(sem::NamedProperty::CustomArgs const& other) const;
   };
 
@@ -1192,59 +1218,6 @@ struct None : public sem::Org {
   virtual OrgSemKind getKind() const { return OrgSemKind::None; }
 };
 
-/// \brief Single key-value (or positional)
-struct Attr : public sem::Org {
-  using Org::Org;
-  virtual ~Attr() = default;
-  BOOST_DESCRIBE_CLASS(Attr,
-                       (Org),
-                       (),
-                       (),
-                       (staticKind,
-                        arg))
-  static OrgSemKind const staticKind;
-  sem::AttrValue arg;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Attr; }
-  Str getName() const;
-  Str getValue() const;
-  Str getVarname() const;
-};
-
-/// \brief Data type to wrap list of identical command arguments
-struct AttrList : public sem::Org {
-  using Org::Org;
-  virtual ~AttrList() = default;
-  BOOST_DESCRIBE_CLASS(AttrList,
-                       (Org),
-                       (),
-                       (),
-                       (staticKind, args))
-  static OrgSemKind const staticKind;
-  /// \brief List of arguments
-  Vec<sem::SemId<sem::Attr>> args = {};
-  virtual OrgSemKind getKind() const { return OrgSemKind::AttrList; }
-};
-
-/// \brief Additional arguments for command blocks
-struct Attrs : public sem::Org {
-  using Org::Org;
-  virtual ~Attrs() = default;
-  BOOST_DESCRIBE_CLASS(Attrs,
-                       (Org),
-                       (),
-                       (),
-                       (staticKind,
-                        positional,
-                        named))
-  static OrgSemKind const staticKind;
-  /// \brief Positional arguments with no keys
-  sem::SemId<sem::AttrList> positional = sem::SemId<sem::AttrList>::Nil();
-  /// \brief Stored key-value mapping
-  UnorderedMap<Str, sem::SemId<sem::AttrList>> named;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Attrs; }
-  Vec<sem::AttrValue> getAttrs(Opt<Str> const& key = std::nullopt) const;
-};
-
 struct ErrorItem : public sem::Org {
   using Org::Org;
   virtual ~ErrorItem() = default;
@@ -1345,7 +1318,7 @@ struct Cmd : public sem::Stmt {
                        (),
                        (attrs))
   /// \brief Additional parameters aside from 'exporter',
-  Opt<sem::SemId<sem::Attrs>> attrs = std::nullopt;
+  Opt<sem::AttrGroup> attrs = std::nullopt;
   /// \brief Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.
   virtual Vec<sem::AttrValue> getAttrs(Opt<Str> const& key = std::nullopt) const override;
   /// \brief Override of the base statement argument get, prioritizing the explicit command parameters
@@ -1650,7 +1623,7 @@ struct Macro : public sem::Org {
   /// \brief Macro name
   Str name = "";
   /// \brief Additional parameters aside from 'exporter',
-  sem::SemId<sem::Attrs> attrs = sem::SemId<sem::Attrs>::Nil();
+  sem::AttrGroup attrs;
   virtual OrgSemKind getKind() const { return OrgSemKind::Macro; }
 };
 
@@ -2450,7 +2423,7 @@ struct Call : public sem::Org {
   /// \brief Call target name
   Str name;
   /// \brief Additional parameters aside from 'exporter',
-  sem::SemId<sem::Attrs> attrs = sem::SemId<sem::Attrs>::Nil();
+  sem::AttrGroup attrs;
   bool isCommand = false;
   virtual OrgSemKind getKind() const { return OrgSemKind::Call; }
 };

@@ -16,59 +16,6 @@ struct ImmNone : public org::ImmOrg {
   bool operator==(org::ImmNone const& other) const;
 };
 
-/// \brief Single key-value (or positional)
-struct ImmAttr : public org::ImmOrg {
-  using ImmOrg::ImmOrg;
-  virtual ~ImmAttr() = default;
-  BOOST_DESCRIBE_CLASS(ImmAttr,
-                       (ImmOrg),
-                       (),
-                       (),
-                       (staticKind,
-                        arg))
-  static OrgSemKind const staticKind;
-  sem::AttrValue arg;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Attr; }
-  bool operator==(org::ImmAttr const& other) const;
-};
-
-/// \brief Data type to wrap list of identical command arguments
-struct ImmAttrList : public org::ImmOrg {
-  using ImmOrg::ImmOrg;
-  virtual ~ImmAttrList() = default;
-  BOOST_DESCRIBE_CLASS(ImmAttrList,
-                       (ImmOrg),
-                       (),
-                       (),
-                       (staticKind,
-                        args))
-  static OrgSemKind const staticKind;
-  /// \brief List of arguments
-  ImmVec<org::ImmIdT<org::ImmAttr>> args = {};
-  virtual OrgSemKind getKind() const { return OrgSemKind::AttrList; }
-  bool operator==(org::ImmAttrList const& other) const;
-};
-
-/// \brief Additional arguments for command blocks
-struct ImmAttrs : public org::ImmOrg {
-  using ImmOrg::ImmOrg;
-  virtual ~ImmAttrs() = default;
-  BOOST_DESCRIBE_CLASS(ImmAttrs,
-                       (ImmOrg),
-                       (),
-                       (),
-                       (staticKind,
-                        positional,
-                        named))
-  static OrgSemKind const staticKind;
-  /// \brief Positional arguments with no keys
-  org::ImmIdT<org::ImmAttrList> positional = org::ImmIdT<org::ImmAttrList>::Nil();
-  /// \brief Stored key-value mapping
-  ImmMap<Str, org::ImmIdT<org::ImmAttrList>> named;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Attrs; }
-  bool operator==(org::ImmAttrs const& other) const;
-};
-
 struct ImmErrorItem : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmErrorItem() = default;
@@ -175,7 +122,7 @@ struct ImmCmd : public org::ImmStmt {
                        (),
                        (attrs))
   /// \brief Additional parameters aside from 'exporter',
-  ImmBox<Opt<org::ImmIdT<org::ImmAttrs>>> attrs = std::nullopt;
+  ImmBox<Opt<sem::AttrGroup>> attrs = std::nullopt;
   bool operator==(org::ImmCmd const& other) const;
 };
 
@@ -526,7 +473,7 @@ struct ImmMacro : public org::ImmOrg {
   /// \brief Macro name
   ImmBox<Str> name = "";
   /// \brief Additional parameters aside from 'exporter',
-  org::ImmIdT<org::ImmAttrs> attrs = org::ImmIdT<org::ImmAttrs>::Nil();
+  sem::AttrGroup attrs;
   virtual OrgSemKind getKind() const { return OrgSemKind::Macro; }
   bool operator==(org::ImmMacro const& other) const;
 };
@@ -1403,7 +1350,7 @@ struct ImmCall : public org::ImmOrg {
   /// \brief Call target name
   ImmBox<Str> name;
   /// \brief Additional parameters aside from 'exporter',
-  org::ImmIdT<org::ImmAttrs> attrs = org::ImmIdT<org::ImmAttrs>::Nil();
+  sem::AttrGroup attrs;
   bool isCommand = false;
   virtual OrgSemKind getKind() const { return OrgSemKind::Call; }
   bool operator==(org::ImmCall const& other) const;

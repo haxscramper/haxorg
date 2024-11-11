@@ -13,6 +13,10 @@ PYBIND11_MAKE_OPAQUE(std::vector<sem::Tblfm::Assign::Flag>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Tblfm::Assign::Flag>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::Tblfm::Assign>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Tblfm::Assign>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::AttrValue>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::AttrValue>)
+PYBIND11_MAKE_OPAQUE(std::unordered_map<Str, sem::AttrList>)
+PYBIND11_MAKE_OPAQUE(UnorderedMap<Str, sem::AttrList>)
 PYBIND11_MAKE_OPAQUE(std::vector<Str>)
 PYBIND11_MAKE_OPAQUE(Vec<Str>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::ColumnView::Column>)
@@ -23,12 +27,6 @@ PYBIND11_MAKE_OPAQUE(std::vector<int>)
 PYBIND11_MAKE_OPAQUE(Vec<int>)
 PYBIND11_MAKE_OPAQUE(std::unordered_map<Str, Str>)
 PYBIND11_MAKE_OPAQUE(UnorderedMap<Str, Str>)
-PYBIND11_MAKE_OPAQUE(std::vector<sem::AttrValue>)
-PYBIND11_MAKE_OPAQUE(Vec<sem::AttrValue>)
-PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Attr>>)
-PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Attr>>)
-PYBIND11_MAKE_OPAQUE(std::unordered_map<Str, sem::SemId<sem::AttrList>>)
-PYBIND11_MAKE_OPAQUE(UnorderedMap<Str, sem::SemId<sem::AttrList>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::ErrorItem>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::ErrorItem>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::HashTag>>)
@@ -72,14 +70,13 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::Tblfm::Expr>(m, "VecOfTblfmExpr", type_registry_guard);
   bind_vector<sem::Tblfm::Assign::Flag>(m, "VecOfTblfmAssignFlag", type_registry_guard);
   bind_vector<sem::Tblfm::Assign>(m, "VecOfTblfmAssign", type_registry_guard);
+  bind_vector<sem::AttrValue>(m, "VecOfAttrValue", type_registry_guard);
+  bind_unordered_map<Str, sem::AttrList>(m, "UnorderedMapOfStrAttrList", type_registry_guard);
   bind_vector<Str>(m, "VecOfStr", type_registry_guard);
   bind_vector<sem::ColumnView::Column>(m, "VecOfColumnViewColumn", type_registry_guard);
   bind_vector<sem::BlockCodeLine::Part>(m, "VecOfBlockCodeLinePart", type_registry_guard);
   bind_vector<int>(m, "VecOfint", type_registry_guard);
   bind_unordered_map<Str, Str>(m, "UnorderedMapOfStrStr", type_registry_guard);
-  bind_vector<sem::AttrValue>(m, "VecOfAttrValue", type_registry_guard);
-  bind_vector<sem::SemId<sem::Attr>>(m, "VecOfSemIdOfAttr", type_registry_guard);
-  bind_unordered_map<Str, sem::SemId<sem::AttrList>>(m, "UnorderedMapOfStrSemIdOfAttrList", type_registry_guard);
   bind_vector<sem::SemId<sem::ErrorItem>>(m, "VecOfSemIdOfErrorItem", type_registry_guard);
   bind_vector<sem::SemId<sem::HashTag>>(m, "VecOfSemIdOfHashTag", type_registry_guard);
   bind_vector<Vec<Str>>(m, "VecOfVecOfStr", type_registry_guard);
@@ -497,6 +494,49 @@ node can have subnodes.)RAW")
                      })
     .def("__getattr__",
          [](sem::AttrValue _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::AttrList>(m, "AttrList")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AttrList {
+                        sem::AttrList result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("items", &sem::AttrList::items)
+    .def("operator==",
+         static_cast<bool(sem::AttrList::*)(sem::AttrList const&) const>(&sem::AttrList::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::AttrList _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::AttrList _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::AttrGroup>(m, "AttrGroup")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AttrGroup {
+                        sem::AttrGroup result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("positional", &sem::AttrGroup::positional, R"RAW(Positional arguments with no keys)RAW")
+    .def_readwrite("named", &sem::AttrGroup::named, R"RAW(Stored key-value mapping)RAW")
+    .def("getFlatArgs", static_cast<Vec<sem::AttrValue>(sem::AttrGroup::*)() const>(&sem::AttrGroup::getFlatArgs))
+    .def("getAttrs",
+         static_cast<Vec<sem::AttrValue>(sem::AttrGroup::*)(Opt<Str> const&) const>(&sem::AttrGroup::getAttrs),
+         pybind11::arg_v("key", std::nullopt))
+    .def("operator==",
+         static_cast<bool(sem::AttrGroup::*)(sem::AttrGroup const&) const>(&sem::AttrGroup::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::AttrGroup _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::AttrGroup _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -2007,61 +2047,6 @@ node can have subnodes.)RAW")
                      })
     .def("__getattr__",
          [](sem::None _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::Attr, sem::SemId<sem::Attr>, sem::Org>(m, "Attr")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Attr {
-                        sem::Attr result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("arg", &sem::Attr::arg)
-    .def("getName", static_cast<Str(sem::Attr::*)() const>(&sem::Attr::getName))
-    .def("getValue", static_cast<Str(sem::Attr::*)() const>(&sem::Attr::getValue))
-    .def("getVarname", static_cast<Str(sem::Attr::*)() const>(&sem::Attr::getVarname))
-    .def("__repr__", [](sem::Attr _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Attr _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::AttrList, sem::SemId<sem::AttrList>, sem::Org>(m, "AttrList")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AttrList {
-                        sem::AttrList result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("args", &sem::AttrList::args, R"RAW(List of arguments)RAW")
-    .def("__repr__", [](sem::AttrList _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::AttrList _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::Attrs, sem::SemId<sem::Attrs>, sem::Org>(m, "Attrs")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Attrs {
-                        sem::Attrs result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("positional", &sem::Attrs::positional, R"RAW(Positional arguments with no keys)RAW")
-    .def_readwrite("named", &sem::Attrs::named, R"RAW(Stored key-value mapping)RAW")
-    .def("getAttrs",
-         static_cast<Vec<sem::AttrValue>(sem::Attrs::*)(Opt<Str> const&) const>(&sem::Attrs::getAttrs),
-         pybind11::arg_v("key", std::nullopt))
-    .def("__repr__", [](sem::Attrs _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Attrs _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -4588,9 +4573,6 @@ node can have subnodes.)RAW")
   bind_enum_iterator<OrgSemKind>(m, "OrgSemKind", type_registry_guard);
   pybind11::enum_<OrgSemKind>(m, "OrgSemKind")
     .value("None", OrgSemKind::None)
-    .value("Attr", OrgSemKind::Attr)
-    .value("AttrList", OrgSemKind::AttrList)
-    .value("Attrs", OrgSemKind::Attrs)
     .value("ErrorItem", OrgSemKind::ErrorItem)
     .value("ErrorGroup", OrgSemKind::ErrorGroup)
     .value("StmtList", OrgSemKind::StmtList)

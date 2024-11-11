@@ -3,9 +3,6 @@
 #include <haxorg/sem/SemOrgSerde.hpp>
 #define EACH_ANY_NODE_PROTO_FIELD(__MAP) \
         __MAP(kNone, none, None)  \
-        __MAP(kAttr, attr, Attr)  \
-        __MAP(kAttrlist, attrlist, AttrList)  \
-        __MAP(kAttrs, attrs, Attrs)  \
         __MAP(kErroritem, erroritem, ErrorItem)  \
         __MAP(kErrorgroup, errorgroup, ErrorGroup)  \
         __MAP(kStmtlist, stmtlist, StmtList)  \
@@ -168,6 +165,20 @@ template <>
 struct proto_serde<::orgproto::AttrValue, sem::AttrValue> {
   static void write(::orgproto::AttrValue* out, sem::AttrValue const& in);
   static void read(::orgproto::AttrValue const& out, proto_write_accessor<sem::AttrValue> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::AttrList, sem::AttrList> {
+  static void write(::orgproto::AttrList* out, sem::AttrList const& in);
+  static void read(::orgproto::AttrList const& out, proto_write_accessor<sem::AttrList> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::AttrGroup, sem::AttrGroup> {
+  static void write(::orgproto::AttrGroup* out, sem::AttrGroup const& in);
+  static void read(::orgproto::AttrGroup const& out, proto_write_accessor<sem::AttrGroup> in);
 };
 
 
@@ -595,27 +606,6 @@ template <>
 struct proto_serde<::orgproto::None, sem::None> {
   static void write(::orgproto::None* out, sem::None const& in);
   static void read(::orgproto::None const& out, proto_write_accessor<sem::None> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Attr, sem::Attr> {
-  static void write(::orgproto::Attr* out, sem::Attr const& in);
-  static void read(::orgproto::Attr const& out, proto_write_accessor<sem::Attr> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::AttrList, sem::AttrList> {
-  static void write(::orgproto::AttrList* out, sem::AttrList const& in);
-  static void read(::orgproto::AttrList const& out, proto_write_accessor<sem::AttrList> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Attrs, sem::Attrs> {
-  static void write(::orgproto::Attrs* out, sem::Attrs const& in);
-  static void read(::orgproto::Attrs const& out, proto_write_accessor<sem::Attrs> in);
 };
 
 

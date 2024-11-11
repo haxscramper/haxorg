@@ -466,9 +466,6 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
 
 Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "None") { return OrgSemKind::None; } else
-  if (value == "Attr") { return OrgSemKind::Attr; } else
-  if (value == "AttrList") { return OrgSemKind::AttrList; } else
-  if (value == "Attrs") { return OrgSemKind::Attrs; } else
   if (value == "ErrorItem") { return OrgSemKind::ErrorItem; } else
   if (value == "ErrorGroup") { return OrgSemKind::ErrorGroup; } else
   if (value == "StmtList") { return OrgSemKind::StmtList; } else
@@ -540,9 +537,6 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
 std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
   switch (value) {
     case OrgSemKind::None: return "None";
-    case OrgSemKind::Attr: return "Attr";
-    case OrgSemKind::AttrList: return "AttrList";
-    case OrgSemKind::Attrs: return "Attrs";
     case OrgSemKind::ErrorItem: return "ErrorItem";
     case OrgSemKind::ErrorGroup: return "ErrorGroup";
     case OrgSemKind::StmtList: return "StmtList";

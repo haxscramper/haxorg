@@ -14,56 +14,6 @@ struct ImmSemSerde<sem::None, org::ImmNone> {
 };
 
 template <>
-struct ImmSemSerde<sem::Attr, org::ImmAttr> {
-  static org::ImmAttr to_immer(sem::Attr const& value, ImmAstEditContext& ctx) {
-    org::ImmAttr result = SerdeDefaultProvider<org::ImmAttr>::get();
-    assign_immer_field(result.arg, value.arg, ctx);
-    assign_immer_field(result.subnodes, value.subnodes, ctx);
-    return result;
-  }
-  static sem::Attr from_immer(org::ImmAttr const& value, ImmAstContext const& ctx) {
-    sem::Attr result = SerdeDefaultProvider<sem::Attr>::get();
-    assign_sem_field(result.arg, value.arg, ctx);
-    assign_sem_field(result.subnodes, value.subnodes, ctx);
-    return result;
-  }
-};
-
-template <>
-struct ImmSemSerde<sem::AttrList, org::ImmAttrList> {
-  static org::ImmAttrList to_immer(sem::AttrList const& value, ImmAstEditContext& ctx) {
-    org::ImmAttrList result = SerdeDefaultProvider<org::ImmAttrList>::get();
-    assign_immer_field(result.args, value.args, ctx);
-    assign_immer_field(result.subnodes, value.subnodes, ctx);
-    return result;
-  }
-  static sem::AttrList from_immer(org::ImmAttrList const& value, ImmAstContext const& ctx) {
-    sem::AttrList result = SerdeDefaultProvider<sem::AttrList>::get();
-    assign_sem_field(result.args, value.args, ctx);
-    assign_sem_field(result.subnodes, value.subnodes, ctx);
-    return result;
-  }
-};
-
-template <>
-struct ImmSemSerde<sem::Attrs, org::ImmAttrs> {
-  static org::ImmAttrs to_immer(sem::Attrs const& value, ImmAstEditContext& ctx) {
-    org::ImmAttrs result = SerdeDefaultProvider<org::ImmAttrs>::get();
-    assign_immer_field(result.positional, value.positional, ctx);
-    assign_immer_field(result.named, value.named, ctx);
-    assign_immer_field(result.subnodes, value.subnodes, ctx);
-    return result;
-  }
-  static sem::Attrs from_immer(org::ImmAttrs const& value, ImmAstContext const& ctx) {
-    sem::Attrs result = SerdeDefaultProvider<sem::Attrs>::get();
-    assign_sem_field(result.positional, value.positional, ctx);
-    assign_sem_field(result.named, value.named, ctx);
-    assign_sem_field(result.subnodes, value.subnodes, ctx);
-    return result;
-  }
-};
-
-template <>
 struct ImmSemSerde<sem::ErrorItem, org::ImmErrorItem> {
   static org::ImmErrorItem to_immer(sem::ErrorItem const& value, ImmAstEditContext& ctx) {
     org::ImmErrorItem result = SerdeDefaultProvider<org::ImmErrorItem>::get();

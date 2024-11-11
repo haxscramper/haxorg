@@ -65,6 +65,15 @@ void Exporter<V, R>::visit(R& res, sem::AttrValue const& object) {
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::AttrList const& object) { __obj_field(res, object, items); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::AttrGroup const& object) {
+  __obj_field(res, object, positional);
+  __obj_field(res, object, named);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::SubtreePath const& object) { __obj_field(res, object, path); }
 
 template <typename V, typename R>
@@ -324,28 +333,6 @@ void Exporter<V, R>::visit(R& res, sem::NamedProperty::CustomRaw const& object) 
 template <typename V, typename R>
 void Exporter<V, R>::visitNone(R& res, In<sem::None> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
-  __org_field(res, object, subnodes);
-}
-
-template <typename V, typename R>
-void Exporter<V, R>::visitAttr(R& res, In<sem::Attr> object) {
-  auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
-  __org_field(res, object, arg);
-  __org_field(res, object, subnodes);
-}
-
-template <typename V, typename R>
-void Exporter<V, R>::visitAttrList(R& res, In<sem::AttrList> object) {
-  auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
-  __org_field(res, object, args);
-  __org_field(res, object, subnodes);
-}
-
-template <typename V, typename R>
-void Exporter<V, R>::visitAttrs(R& res, In<sem::Attrs> object) {
-  auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
-  __org_field(res, object, positional);
-  __org_field(res, object, named);
   __org_field(res, object, subnodes);
 }
 
