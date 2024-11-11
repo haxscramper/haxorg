@@ -551,6 +551,18 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
             = strip_space(get_text(one(a, N::Values))).split("/");
         path.path = sem::SubtreePath{.path = items};
         result    = NamedProperty{path};
+    } else if (
+        one(a, N::Values).kind() == onk::InlineStmtList
+        && rs::all_of(
+            gen_view(one(a, N::Values).items()), [](OrgAdapter const& a) {
+                return a.getKind() == onk::CmdValue;
+            })) {
+        NamedProperty::CustomArgs prop;
+        // auto                      attrs = convertAttrs(one(a, N::Values));
+        // prop.attrs                      = attrs;
+
+        result = NamedProperty{prop};
+
     } else {
         NamedProperty::CustomRaw prop;
         prop.name = basename;

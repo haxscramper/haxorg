@@ -1558,6 +1558,11 @@ OrgId OrgParser::parseSubtreeProperties(OrgLexer& lex) {
                 break;
             }
 
+            case otk::ColonArgumentsProperty: {
+                subParse(CommandArguments, lex);
+                break;
+            }
+
             case otk::ColonPropertyText: {
                 space(lex);
                 SubLexer sub{lex};

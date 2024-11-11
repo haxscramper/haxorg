@@ -29,7 +29,7 @@ rx_macros:
   - { name: argument_properties, value: "header-args|property-set|property-set-sub" }
   - { name: text_properties, value: "description" }
   - { name: dsl_links, value: "file|attachment|id" }
-  - { name: "property_sub_kind", "value": "[^:]+:"}
+  - { name: "property_sub_kind", "value": ":[^:]+:"}
   # Property colon with optional text extension pattern an any number of
   # following spaces. Used both in line command directives and subtree
   # properties
@@ -647,7 +647,7 @@ rules:
     token: ColonProperties
   - re: "{lead_space}:END:"
     token: ColonEnd
-  - re: "{lead_space}:({literal_properties}):({property_sub_kind})?"
+  - re: "{lead_space}:({literal_properties})({property_sub_kind})?"
     token: ColonLiteralProperty
     actions:
       - { do: push, from: INITIAL, to: PROPERTY_LITERAL }
@@ -670,17 +670,13 @@ rules:
     actions:
       - { do: pop, from: PROPERTY_LITERAL, to: INITIAL }
 
-  - re: "{lead_space}:({argument_properties}):({property_sub_kind})?"
+  - re: "{lead_space}:({argument_properties})({property_sub_kind})?"
     token: ColonArgumentsProperty
     actions:
       - { do: push, from: INITIAL, to: PROPERTY_ARGUMENT }
 
   - re: "{space}+"
     token: Whitespace
-    states: [PROPERTY_ARGUMENT]
-
-  - re: "\\n"
-    token: Newline
     states: [PROPERTY_ARGUMENT]
 
   - re: "\\n"
