@@ -1478,17 +1478,6 @@ node can have subnodes.)RAW")
                      ();
                      })
     ;
-  bind_enum_iterator<sem::NamedProperty::InheritanceMode>(m, "NamedPropertyInheritanceMode", type_registry_guard);
-  pybind11::enum_<sem::NamedProperty::InheritanceMode>(m, "NamedPropertyInheritanceMode")
-    .value("ThisAndSub", sem::NamedProperty::InheritanceMode::ThisAndSub)
-    .value("OnlyThis", sem::NamedProperty::InheritanceMode::OnlyThis)
-    .value("OnlySub", sem::NamedProperty::InheritanceMode::OnlySub)
-    .def("__iter__", [](sem::NamedProperty::InheritanceMode _self) -> PyEnumIterator<sem::NamedProperty::InheritanceMode> {
-                     return
-                     PyEnumIterator<sem::NamedProperty::InheritanceMode>
-                     ();
-                     })
-    ;
   pybind11::class_<sem::NamedProperty::Nonblocking>(m, "NamedPropertyNonblocking")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::NamedProperty::Nonblocking {
                         sem::NamedProperty::Nonblocking result{};
@@ -1941,7 +1930,6 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("mainSetRule", &sem::NamedProperty::mainSetRule)
     .def_readwrite("subSetRule", &sem::NamedProperty::subSetRule)
-    .def_readwrite("inheritanceMode", &sem::NamedProperty::inheritanceMode)
     .def_readwrite("data", &sem::NamedProperty::data)
     .def("isMatching",
          static_cast<bool(sem::NamedProperty::*)(Str const&, Opt<Str> const&) const>(&sem::NamedProperty::isMatching),

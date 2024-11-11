@@ -845,8 +845,6 @@ struct NamedProperty {
   NamedProperty() {}
   enum class SetMode : short int { Override, Add, Subtract, };
   BOOST_DESCRIBE_NESTED_ENUM(SetMode, Override, Add, Subtract)
-  enum class InheritanceMode : short int { ThisAndSub, OnlyThis, OnlySub, };
-  BOOST_DESCRIBE_NESTED_ENUM(InheritanceMode, ThisAndSub, OnlyThis, OnlySub)
   struct Nonblocking {
     Nonblocking() {}
     BOOST_DESCRIBE_CLASS(Nonblocking,
@@ -1103,11 +1101,9 @@ struct NamedProperty {
                        (),
                        (mainSetRule,
                         subSetRule,
-                        inheritanceMode,
                         data))
   sem::NamedProperty::SetMode mainSetRule = NamedProperty::SetMode::Override;
   sem::NamedProperty::SetMode subSetRule = NamedProperty::SetMode::Override;
-  sem::NamedProperty::InheritanceMode inheritanceMode = NamedProperty::InheritanceMode::ThisAndSub;
   sem::NamedProperty::Data data;
   /// \brief Check if property matches specified kind and optional subkind. Built-in property checking is also done with this function -- 'created' etc.
   bool isMatching(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;

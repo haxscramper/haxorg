@@ -239,7 +239,6 @@ template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::NamedProperty const& object) {
   __obj_field(res, object, mainSetRule);
   __obj_field(res, object, subSetRule);
-  __obj_field(res, object, inheritanceMode);
   __obj_field(res, object, data);
 }
 

@@ -110,7 +110,7 @@ def getAttachments(node: org.Org) -> List[org.Link]:
     result = []
 
     def visit(it: org.Org):
-        if isinstance(it, org.Link) and it.getLinkKind() == org.LinkKind.Attachment:
+        if isinstance(it, org.Link) and it.target.isAttachment():
             result.append(it)
 
     org.eachSubnodeRec(node, visit)
@@ -128,7 +128,7 @@ def doExportAttachments(
     assert base.exists() and base.is_file(), base
     assert destination.exists() and destination.is_dir(), destination
     for item in attachments:
-        path = item.getAttachment().file
+        path = item.target.getAttachment().file
         do_attach = item.getAttrs("attach-on-export")
         if do_attach and 0 < len(
                 do_attach) and (do_attach[0].getString() == "t" or normalize(

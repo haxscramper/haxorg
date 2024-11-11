@@ -2157,12 +2157,6 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                            "subSetRule",
                            GenTuDoc(""),
                            value="NamedProperty::SetMode::Override"),
-                GenTuField(
-                    t_nest_shared("InheritanceMode", ["NamedProperty"]),
-                    "inheritanceMode",
-                    GenTuDoc(""),
-                    value="NamedProperty::InheritanceMode::ThisAndSub",
-                ),
             ],
             nested=[
                 GenTuPass("NamedProperty() {}"),
@@ -2172,13 +2166,6 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     "Override",
                     "Add",
                     "Subtract",
-                ),
-                d_simple_enum(
-                    t_nest_shared("InheritanceMode", ["NamedProperty"]),
-                    GenTuDoc(""),
-                    "ThisAndSub",
-                    "OnlyThis",
-                    "OnlySub",
                 ),
                 GenTuTypeGroup(
                     get_subtree_property_types(),

@@ -1238,6 +1238,25 @@ TEST(OrgApi, ColumnView) {
     }
 }
 
+TEST(OrgApi, SubtreePropertyContext) {
+    {
+        auto doc = parseOne<sem::Subtree>(
+            R"(* Subtree
+:properties:
+:header-args:nim: :cache yes
+:end:
+
+** Subtree 2
+:properties:
+:header-args:nim: :results silent
+:property-set: :header-args:nim add :header-args override
+:property-set-sub: :header-args:nim
+:end:
+)",
+            getDebugFile("subtree_property"));
+    }
+}
+
 TEST(SimpleNodeConversion, LCSCompile) {
     Vec<int> first{1, 2, 3};
     Vec<int> second{1, 2, 3};

@@ -16,12 +16,13 @@ std::string OrgLexerImpl::state_name(int state) {
         case 12: return "BODY_EXPORT";
         case 13: return "PROPERTIES";
         case 14: return "PROPERTY_LITERAL";
-        case 15: return "sub_state_http_link";
-        case 16: return "sub_state_link_protocol_split";
-        case 17: return "sub_state_raw_dsl_link";
-        case 18: return "sub_state_no_protocol_file_link";
-        case 19: return "sub_state_link_protocol_internal";
-        case 20: return "sub_state_timestamp_repeater";
+        case 15: return "PROPERTY_ARGUMENT";
+        case 16: return "sub_state_http_link";
+        case 17: return "sub_state_link_protocol_split";
+        case 18: return "sub_state_raw_dsl_link";
+        case 19: return "sub_state_no_protocol_file_link";
+        case 20: return "sub_state_link_protocol_internal";
+        case 21: return "sub_state_timestamp_repeater";
         default: return std::to_string(state);
     }
 }
@@ -120,6 +121,7 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::CmdVerseBegin: return "CmdVerseBegin";
         case OrgTokenKind::CmdVerseEnd: return "CmdVerseEnd";
         case OrgTokenKind::Colon: return "Colon";
+        case OrgTokenKind::ColonArgumentsProperty: return "ColonArgumentsProperty";
         case OrgTokenKind::ColonEnd: return "ColonEnd";
         case OrgTokenKind::ColonExampleLine: return "ColonExampleLine";
         case OrgTokenKind::ColonLiteralProperty: return "ColonLiteralProperty";
@@ -337,6 +339,7 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "CmdVerseBegin") { return OrgTokenKind::CmdVerseBegin; } else
   if (value == "CmdVerseEnd") { return OrgTokenKind::CmdVerseEnd; } else
   if (value == "Colon") { return OrgTokenKind::Colon; } else
+  if (value == "ColonArgumentsProperty") { return OrgTokenKind::ColonArgumentsProperty; } else
   if (value == "ColonEnd") { return OrgTokenKind::ColonEnd; } else
   if (value == "ColonExampleLine") { return OrgTokenKind::ColonExampleLine; } else
   if (value == "ColonLiteralProperty") { return OrgTokenKind::ColonLiteralProperty; } else

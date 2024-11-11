@@ -92,6 +92,7 @@ enum class OrgTokenKind : unsigned short int {
   CmdVerseBegin,
   CmdVerseEnd,
   Colon,
+  ColonArgumentsProperty,
   ColonEnd,
   ColonExampleLine,
   ColonLiteralProperty,

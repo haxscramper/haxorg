@@ -564,31 +564,6 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         result = NamedProperty(prop);
     }
 
-    if (false && result) {
-        const auto inh = get_text(one(a, N::InheritanceMode));
-        if (inh == "!!") {
-            result->inheritanceMode = NamedProperty::InheritanceMode::
-                OnlyThis;
-        } else if (inh == "!") {
-            result->inheritanceMode = NamedProperty::InheritanceMode::
-                OnlySub;
-        }
-
-        const auto sub = get_text(one(a, N::SubSetRule));
-        if (sub == "+") {
-            result->subSetRule = NamedProperty::SetMode::Add;
-        } else if (sub == "-") {
-            result->subSetRule = NamedProperty::SetMode::Subtract;
-        }
-
-        const auto main = get_text(one(a, N::MainSetRule));
-        if (main == "+") {
-            result->subSetRule = NamedProperty::SetMode::Add;
-        } else if (main == "-") {
-            result->subSetRule = NamedProperty::SetMode::Subtract;
-        }
-    }
-
     if (result) { tree->properties.push_back(*result); }
 
     return std::nullopt;

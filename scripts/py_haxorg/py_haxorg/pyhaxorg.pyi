@@ -630,11 +630,6 @@ class NamedPropertySetMode(Enum):
     Add = 2
     Subtract = 3
 
-class NamedPropertyInheritanceMode(Enum):
-    ThisAndSub = 1
-    OnlyThis = 2
-    OnlySub = 3
-
 class NamedPropertyNonblocking:
     def __init__(self, isBlocking: bool) -> None: ...
     def operator==(self, other: NamedPropertyNonblocking) -> bool: ...
@@ -817,7 +812,7 @@ class NamedPropertyKind(Enum):
     CustomRaw = 21
 
 class NamedProperty:
-    def __init__(self, mainSetRule: NamedPropertySetMode, subSetRule: NamedPropertySetMode, inheritanceMode: NamedPropertyInheritanceMode, data: NamedPropertyData) -> None: ...
+    def __init__(self, mainSetRule: NamedPropertySetMode, subSetRule: NamedPropertySetMode, data: NamedPropertyData) -> None: ...
     def isMatching(self, kind: str, subKind: Optional[str]) -> bool: ...
     def getName(self) -> str: ...
     def getSubKind(self) -> Optional[str]: ...
@@ -871,7 +866,6 @@ class NamedProperty:
     def __getattr__(self, name: str) -> object: ...
     mainSetRule: NamedPropertySetMode
     subSetRule: NamedPropertySetMode
-    inheritanceMode: NamedPropertyInheritanceMode
     data: NamedPropertyData
 
 class None(Org):

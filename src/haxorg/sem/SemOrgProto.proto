@@ -720,11 +720,6 @@ message NamedProperty {
     SetMode_Add_f                                                                   = 1;
     SetMode_Subtract_f                                                              = 2;
   }
-  enum InheritanceMode {
-    InheritanceMode_ThisAndSub_f                                                    = 0;
-    InheritanceMode_OnlyThis_f                                                      = 1;
-    InheritanceMode_OnlySub_f                                                       = 2;
-  }
   message Nonblocking {
     bool                                           isBlocking                       = 1;
     string                                         debug                            = 1000;
@@ -869,8 +864,7 @@ message NamedProperty {
   }
   NamedProperty.SetMode                            mainSetRule                      = 1;
   NamedProperty.SetMode                            subSetRule                       = 2;
-  NamedProperty.InheritanceMode                    inheritanceMode                  = 3;
-  NamedProperty.Data                               data                             = 4;
+  NamedProperty.Data                               data                             = 3;
   string                                           debug                            = 1000;
 }
 
