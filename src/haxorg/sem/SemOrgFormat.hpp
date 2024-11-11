@@ -22,7 +22,23 @@ struct Formatter {
     void add(Res id, Res other);
 
     Res toString(sem::AttrValue const& id, CR<Context> ctx);
-    Res toString(sem::AttrGroup args, CR<Context> ctx);
+    Res toString(sem::AttrGroup const& args, CR<Context> ctx);
+    Res toString(sem::AttrList const& args, CR<Context> ctx) {
+        Res res = b.stack();
+        for (auto const& it : enumerator(args.items)) {
+            if (!it.is_first()) { b.add_at(res, str(" ")); }
+            b.add_at(res, toString(it.value(), ctx));
+        }
+        return res;
+    }
+
+    Res toString(Opt<sem::AttrGroup> const& args, CR<Context> ctx) {
+        if (args) {
+            return toString(args, ctx);
+        } else {
+            return str("");
+        }
+    }
 
     Res stackAttached(Res prev, SemId<sem::Stmt> stmt, CR<Context> ctx);
 

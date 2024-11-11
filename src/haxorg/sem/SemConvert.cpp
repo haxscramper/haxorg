@@ -157,7 +157,7 @@ OrgConverter::ConvResult<Table> OrgConverter::convertTable(__args) {
     if (auto args = one(a, N::Args);
         args.getKind() == onk::InlineStmtList) {
         result->isBlock = true;
-        result->attrs   = convertAttrs(args).value();
+        result->attrs   = convertAttrs(args);
     }
 
     for (auto const& in_row : many(a, N::Rows)) {
@@ -165,7 +165,7 @@ OrgConverter::ConvResult<Table> OrgConverter::convertTable(__args) {
         if (auto args = one(in_row, N::Args);
             args.getKind() == onk::InlineStmtList) {
             row->isBlock = true;
-            row->attrs   = convertAttrs(args).value();
+            row->attrs   = convertAttrs(args);
         }
 
         for (auto const& in_cell : one(in_row, N::Body)) {
@@ -173,7 +173,7 @@ OrgConverter::ConvResult<Table> OrgConverter::convertTable(__args) {
             if (auto args = one(in_cell, N::Args);
                 args.getKind() == onk::InlineStmtList) {
                 cell->isBlock = true;
-                cell->attrs   = convertAttrs(args).value();
+                cell->attrs   = convertAttrs(args);
             }
 
             for (auto const& sub : one(in_cell, N::Body)) {
@@ -765,7 +765,7 @@ OrgConverter::ConvResult<Macro> OrgConverter::convertMacro(__args) {
     auto __trace = trace(a);
     auto macro   = Sem<Macro>(a);
     macro->name  = get_text(one(a, N::Name));
-    macro->attrs = convertCallArguments(many(a, N::Args), a).value();
+    macro->attrs = convertCallArguments(many(a, N::Args), a);
     return macro;
 }
 
@@ -1497,7 +1497,7 @@ OrgConverter::ConvResult<BlockExample> OrgConverter::convertBlockExample(
 OrgConverter::ConvResult<BlockDynamicFallback> OrgConverter::
     convertBlockDynamicFallback(__args) {
     SemId<BlockDynamicFallback> result = Sem<BlockDynamicFallback>(a);
-    result->attrs = convertAttrs(one(a, N::Args)).optNode();
+    result->attrs                      = convertAttrs(one(a, N::Args));
 
     result->name = normalize(get_text(one(a, N::Name)));
     boost::replace_all(result->name, "begin", "");
@@ -1532,10 +1532,10 @@ OrgConverter::ConvResult<BlockExport> OrgConverter::convertBlockExport(
         }
     }
 
-    auto values = convertAttrs(one(a, N::Args)).value();
-    if (auto place = values->getAttrs("placement"); !place.empty()) {
+    auto values = convertAttrs(one(a, N::Args));
+    if (auto place = values.getAttrs("placement"); !place.empty()) {
         eexport->placement = place.at(0).getString();
-        values->named.erase("placement");
+        values.named.erase("placement");
     }
 
 
@@ -1569,7 +1569,7 @@ OrgConverter::ConvResult<BlockQuote> OrgConverter::convertBlockQuote(
     SemId<BlockQuote> quote = Sem<BlockQuote>(a);
 
     if (auto args = one(a, N::Args); args.kind() != onk::Empty) {
-        quote->attrs = convertAttrs(args).value();
+        quote->attrs = convertAttrs(args);
     }
 
     for (const auto& sub : flatConvertAttached(many(a, N::Body))) {
@@ -1598,11 +1598,11 @@ OrgConverter::ConvResult<Latex> OrgConverter::convertMath(__args) {
 
 OrgConverter::ConvResult<Include> OrgConverter::convertInclude(__args) {
     SemId<Include> include = Sem<Include>(a);
-    auto           args    = convertAttrs(one(a, N::Args)).value();
-    include->path          = args->positional->args.at(0)->arg.getString();
+    auto           args    = convertAttrs(one(a, N::Args));
+    include->path          = args.positional.items.at(0).getString();
 
-    if (auto kind = args->positional->args.get(1)) {
-        Str ks = kind.value().get()->arg.value;
+    if (auto kind = args.positional.items.get(1)) {
+        Str ks = kind.value().get().value;
         if (ks == "src"_ss) {
             auto src      = sem::Include::Src{};
             include->data = src;
@@ -1615,7 +1615,7 @@ OrgConverter::ConvResult<Include> OrgConverter::convertInclude(__args) {
         include->data = sem::Include::OrgDocument{};
     }
 
-    if (args->named.contains("minlevel")) {
+    if (args.named.contains("minlevel")) {
         include->getOrgDocument().minLevel //
             = args->named.at("minlevel")->args.at(0)->arg.getInt();
     }
@@ -1671,12 +1671,10 @@ sem::AttrGroup OrgConverter::convertAttrs(__args) {
 
     if (a.getKind() == onk::Attrs) {
         for (auto const& item : one(a, N::Values)) {
-            addArgument(result, convertAttr(item).value());
+            addArgument(result, convertAttr(item));
         }
     } else if (a.getKind() == onk::InlineStmtList) {
-        for (auto const& it : a) {
-            addArgument(result, convertAttr(it).value());
-        }
+        for (auto const& it : a) { addArgument(result, convertAttr(it)); }
     } else {
         CHECK(a.getKind() == onk::Empty) << a.treeRepr();
     }
@@ -1684,22 +1682,20 @@ sem::AttrGroup OrgConverter::convertAttrs(__args) {
     return result;
 }
 
-OrgConverter::ConvResult<Attrs> OrgConverter::convertCallArguments(
+sem::AttrGroup OrgConverter::convertCallArguments(
     CVec<In> args,
     In       source) {
-    auto result        = Sem<Attrs>(source);
-    result->positional = SemId<AttrList>::New();
-
+    sem::AttrGroup result;
     for (auto const& arg : args) {
-        auto conv = Sem<Attr>(arg);
+        sem::AttrValue conv;
         if (2 < arg.size() && get_text(arg.at(1)) == "=") {
-            conv->arg.name = get_text(arg.at(0));
+            conv.name = get_text(arg.at(0));
             for (int i = 2; i < arg.size(); ++i) {
-                conv->arg.value += get_text(arg.at(i));
+                conv.value += get_text(arg.at(i));
             }
         } else {
             for (int i = 0; i < arg.size(); ++i) {
-                conv->arg.value += get_text(arg.at(i));
+                conv.value += get_text(arg.at(i));
             }
         }
 
@@ -1713,7 +1709,7 @@ OrgConverter::ConvResult<CmdAttr> OrgConverter::convertCmdAttr(__args) {
     auto           __trace = trace(a);
     SemId<CmdAttr> result  = Sem<CmdAttr>(a);
     result->target         = normalize(get_text(one(a, N::Name)));
-    result->attrs          = convertAttrs(one(a, N::Args)).value();
+    result->attrs          = convertAttrs(one(a, N::Args));
 
     return result;
 }

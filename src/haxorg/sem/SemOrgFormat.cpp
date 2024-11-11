@@ -68,18 +68,14 @@ auto Formatter::toString(SemId<Macro> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Vec<Res> parameters;
 
-    if (id->attrs) {
-        if (id->attrs->group.positional) {
-            for (auto const& it : id->attrs->group.positional->args) {
-                parameters.push_back(str(it->getValue()));
-            }
-        }
+    for (auto const& it : id->attrs.positional.items) {
+        parameters.push_back(str(it.value));
+    }
 
-        for (auto const& key : sorted(id->attrs->group.named.keys())) {
-            for (auto const& it : id->attrs->group.named.at(key)->args) {
-                parameters.push_back(
-                    str(fmt("{}={}", it->getName(), it->getValue())));
-            }
+    for (auto const& key : sorted(id->attrs.named.keys())) {
+        for (auto const& it : id->attrs.named.at(key).items) {
+            parameters.push_back(
+                str(fmt("{}={}", it.name.value(), it.value)));
         }
     }
 
@@ -183,17 +179,10 @@ auto Formatter::toString(SemId<Document> id, CR<Context> ctx) -> Res {
                     Vec<Res> tmp;
                     tmp.push_back(str("#+property: "));
                     tmp.push_back(str(prop.getCustomArgs().name));
-                    for (auto const& it : prop.getCustomArgs().attrs) {
-                        if (it.name) {
-                            tmp.push_back(
-                                str(fmt(" :{}", it.name.value())));
-                        }
-                        if (it.varname) {
-                            tmp.push_back(str(fmt(
-                                " {}={}", it.varname.value(), it.value)));
-                        } else {
-                            tmp.push_back(str(fmt(" {}", it.value)));
-                        }
+                    for (auto const& it :
+                         prop.getCustomArgs().attrs.getFlatArgs()) {
+                        tmp.push_back(str(" "));
+                        tmp.push_back(toString(it, ctx));
                     }
                     add(result, b.line(tmp));
                     break;
@@ -580,20 +569,18 @@ auto Formatter::toString(SemId<Call> id, CR<Context> ctx) -> Res {
     Vec<Res> parameters;
 
 
-    if (id->attrs->group.positional) {
-        for (auto const& it : id->attrs->group.positional->args) {
-            if (it->getValue().contains(",")) {
-                parameters.push_back(str(fmt("={}=", it->getValue())));
-            } else {
-                parameters.push_back(str(it->getValue()));
-            }
+    for (auto const& it : id->attrs.positional.items) {
+        if (it.value.contains(",")) {
+            parameters.push_back(str(fmt("={}=", it.value)));
+        } else {
+            parameters.push_back(str(it.value));
         }
     }
 
-    for (auto const& key : sorted(id->attrs->group.named.keys())) {
-        for (auto const& it : id->attrs->group.named.at(key)->args) {
+    for (auto const& key : sorted(id->attrs.named.keys())) {
+        for (auto const& it : id->attrs.named.at(key).items) {
             parameters.push_back(
-                str(fmt("{}={}", it->getName(), it->getValue())));
+                str(fmt("{}={}", it.name.value(), it.value)));
         }
     }
 
@@ -838,12 +825,10 @@ auto Formatter::toString(SemId<Strike> id, CR<Context> ctx) -> Res {
 }
 
 
-auto Formatter::toString(sem::AttrGroup id, CR<Context> ctx) -> Res {
+auto Formatter::toString(const AttrGroup& id, CR<Context> ctx) -> Res {
     Vec<Res> result;
-    if (!id.positional.isNil()) {
-        for (auto const& pos : id.positional->args) {
-            result.push_back(toString(pos, ctx));
-        }
+    for (auto const& pos : id.positional.items) {
+        result.push_back(toString(pos, ctx));
     }
 
     Vec<Str> its;
