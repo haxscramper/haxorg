@@ -558,10 +558,16 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
                 return a.getKind() == onk::CmdValue;
             })) {
         NamedProperty::CustomArgs prop;
-        // auto                      attrs = convertAttrs(one(a,
-        // N::Values)); prop.attrs                      = attrs;
+        auto                      name = strip(
+                        get_text(one(a, N::Name)),
+                        CharSet{':'},
+                        CharSet{':'})
+                        .split(':');
 
-        result = NamedProperty{prop};
+        prop.name = name.at(0);
+        if (name.has(1)) { prop.sub = name.at(1); }
+        prop.attrs = convertAttrs(one(a, N::Values));
+        result     = NamedProperty{prop};
 
     } else {
         NamedProperty::CustomRaw prop;

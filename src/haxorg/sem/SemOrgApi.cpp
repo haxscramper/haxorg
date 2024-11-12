@@ -138,6 +138,8 @@ bool NamedProperty::isMatching(Str const& kind, CR<Opt<Str>> subkind)
     const {
     if (getKind() == Property::Kind::CustomRaw) {
         return normalize(getCustomRaw().name) == normalize(kind);
+    } else if (getKind() == Property::Kind::CustomArgs) {
+        return normalize(getCustomArgs().name) == normalize(kind);
     } else if (normalize(fmt1(getKind())) == normalize(kind)) {
         return true;
     } else if (
@@ -150,10 +152,7 @@ bool NamedProperty::isMatching(Str const& kind, CR<Opt<Str>> subkind)
 }
 
 
-void Org::push_back(SemId<Org> sub) {
-    auto dat = subnodes.data();
-    subnodes.push_back(sub);
-}
+void Org::push_back(SemId<Org> sub) { subnodes.push_back(sub); }
 
 
 Str AttrValue::getString() const { return value; }

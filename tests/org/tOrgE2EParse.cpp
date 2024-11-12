@@ -24,6 +24,7 @@
 #include <boost/graph/graphviz.hpp>
 #include <fstream>
 #include <haxorg/sem/perfetto_org.hpp>
+#include <haxorg/exporters/exportertree.hpp>
 
 void addNodeRec(
     org::graph::MapGraphState& g,
@@ -887,7 +888,21 @@ sem::SemId<sem::Org> testParseString(
             fs::path{debug.value() + "_parse_tree.txt"}, buffer.str());
     }
 
-    return converter.toDocument(OrgAdapter(&p.nodes, OrgId(0)));
+    auto res = converter.toDocument(OrgAdapter(&p.nodes, OrgId(0)));
+
+    if (debug) {
+        ColStream    os;
+        ExporterTree tree{os};
+        tree.conf.withLineCol     = true;
+        tree.conf.withOriginalId  = true;
+        tree.conf.skipEmptyFields = false;
+        tree.evalTop(res);
+
+        writeFile(
+            fs::path{debug.value()} + "_sem_tree.txt", os.toString(false));
+    }
+
+    return res;
 }
 
 template <typename T>
@@ -1240,7 +1255,7 @@ TEST(OrgApi, ColumnView) {
 
 TEST(OrgApi, SubtreePropertyContext) {
     {
-        auto doc = parseOne<sem::Subtree>(
+        auto t1 = parseOne<sem::Subtree>(
             R"(* Subtree
 :properties:
 :header-args:nim: :cache yes
@@ -1254,6 +1269,17 @@ TEST(OrgApi, SubtreePropertyContext) {
 :end:
 )",
             getDebugFile("subtree_property"));
+
+        auto t2 = t1.at(0).as<sem::Subtree>();
+        auto h1 = t1->getProperty("header-args");
+        EXPECT_TRUE(h1.has_value());
+        EXPECT_EQ(
+            h1.value().getKind(), sem::NamedProperty::Kind::CustomArgs);
+        auto attrs1 = h1.value().getCustomArgs().attrs;
+        EXPECT_EQ(attrs1.getAttrs("cache").size(), 1);
+        EXPECT_EQ(attrs1.getAttrs("cache").at(0).name.value(), "cache");
+        EXPECT_EQ(attrs1.getAttrs("cache").at(0).value, "yes");
+        EXPECT_EQ(attrs1.getAttrs("cache").at(0).getBool(), true);
     }
 }
 
