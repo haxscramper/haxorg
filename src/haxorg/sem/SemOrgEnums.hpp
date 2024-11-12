@@ -83,7 +83,6 @@
     __IMPL(DocumentExportConfig, BrokenLinks, (BrokenLinks)) \
     __IMPL(DocumentExportConfig, TocExportKind, (TocExportKind)) \
     __IMPL(SubtreePeriod, Kind, (Kind)) \
-    __IMPL(NamedProperty, SetMode, (SetMode)) \
     __IMPL(NamedProperty, Visibility::Level, (Visibility, Level)) \
     __IMPL(NamedProperty, Kind, (Kind))
 #define EACH_SHARED_ORG_RECORD(__IMPL) \

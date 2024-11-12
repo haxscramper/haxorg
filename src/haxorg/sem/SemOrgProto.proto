@@ -720,11 +720,6 @@ message SubtreePeriod {
 }
 
 message NamedProperty {
-  enum SetMode {
-    SetMode_Override_f                                                              = 0;
-    SetMode_Add_f                                                                   = 1;
-    SetMode_Subtract_f                                                              = 2;
-  }
   message Nonblocking {
     bool                                           isBlocking                       = 1;
     string                                         debug                            = 1000;

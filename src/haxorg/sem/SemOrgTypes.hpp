@@ -265,6 +265,8 @@ struct AttrGroup {
   UnorderedMap<Str, sem::AttrList> named;
   Vec<sem::AttrValue> getFlatArgs() const;
   Vec<sem::AttrValue> getAttrs(Opt<Str> const& key = std::nullopt) const;
+  void setNamedAttr(Str const& key, Vec<sem::AttrValue> const& attrs);
+  void setPositionalAttr(Vec<sem::AttrValue> const& items);
   bool operator==(sem::AttrGroup const& other) const;
 };
 
@@ -869,8 +871,6 @@ struct SubtreePeriod {
 /// \brief Single subtree property
 struct NamedProperty {
   NamedProperty() {}
-  enum class SetMode : short int { Override, Add, Subtract, };
-  BOOST_DESCRIBE_NESTED_ENUM(SetMode, Override, Add, Subtract)
   struct Nonblocking {
     Nonblocking() {}
     BOOST_DESCRIBE_CLASS(Nonblocking,

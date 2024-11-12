@@ -1278,6 +1278,15 @@ TEST(OrgApi, SubtreePropertyContext) {
         EXPECT_EQ(attrs1.getAttrs("cache").at(0).name.value(), "cache");
         EXPECT_EQ(attrs1.getAttrs("cache").at(0).value, "yes");
         EXPECT_EQ(attrs1.getAttrs("cache").at(0).getBool(), true);
+
+        auto h2 = t2->getProperty("header-args");
+        EXPECT_TRUE(h2.has_value());
+        EXPECT_EQ(attrs1.getAttrs("results").size(), 1);
+        EXPECT_EQ(
+            attrs1.getAttrs("results").at(0).name.value(), "results");
+        EXPECT_EQ(attrs1.getAttrs("results").at(0).value, "silent");
+
+        auto stacked = sem::getFinalProperty({t1, t2}, "header-args");
     }
 }
 

@@ -455,6 +455,7 @@ def get_subtree_property_types():
 
 #region org-types
 
+
 def get_sem_bases():
     return [
         d_org(
@@ -1554,15 +1555,11 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 eq_method(t_nest_shared("AttrValue")),
             ],
         ),
-        GenTuStruct(
-            t_nest_shared("AttrList"),
-            fields=[
-                vec_field(t_nest_shared("AttrValue"), "items"),
-            ],
-            methods=[
-                eq_method(t_nest_shared("AttrList"))
-            ]
-        ),
+        GenTuStruct(t_nest_shared("AttrList"),
+                    fields=[
+                        vec_field(t_nest_shared("AttrValue"), "items"),
+                    ],
+                    methods=[eq_method(t_nest_shared("AttrList"))]),
         GenTuStruct(
             t_nest_shared("AttrGroup"),
             fields=[
@@ -1589,6 +1586,23 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     GenTuDoc(""),
                     arguments=[opt_ident(t_str(), "key", GenTuDoc(""))],
                     isConst=True,
+                ),
+                GenTuFunction(
+                    t("void"),
+                    "setNamedAttr",
+                    GenTuDoc(""),
+                    arguments=[
+                        GenTuIdent(t_cr(t_str()), "key"),
+                        GenTuIdent(t_cr(t_vec(t_nest_shared("AttrValue"))), "attrs"),
+                    ],
+                ),
+                GenTuFunction(
+                    t("void"),
+                    "setPositionalAttr",
+                    GenTuDoc(""),
+                    arguments=[
+                        GenTuIdent(t_cr(t_vec(t_nest_shared("AttrValue"))), "items"),
+                    ],
                 ),
                 eq_method(t_nest_shared("AttrGroup")),
             ],
@@ -2135,13 +2149,6 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
             ],
             nested=[
                 GenTuPass("NamedProperty() {}"),
-                d_simple_enum(
-                    t_nest_shared("SetMode", ["NamedProperty"]),
-                    GenTuDoc(""),
-                    "Override",
-                    "Add",
-                    "Subtract",
-                ),
                 GenTuTypeGroup(
                     get_subtree_property_types(),
                     enumName=t_nest_shared("Kind", ["NamedProperty"]),

@@ -1,5 +1,6 @@
 #pragma once
 #include <haxorg/sem/SemOrg.hpp>
+#include <haxorg/sem/ImmOrg.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Json.hpp>
 
@@ -132,5 +133,15 @@ Vec<T> getSubtreeProperties(sem::SemId<sem::Subtree> const& tree) {
 }
 
 Opt<UserTime> getCreationTime(SemId<Org> const& node);
+
+Opt<sem::NamedProperty> getFinalProperty(
+    CR<Vec<sem::SemId<sem::Org>>> nodes,
+    CR<Str>                       kind,
+    CR<Opt<Str>>                  subKind = std::nullopt);
+
+Opt<sem::NamedProperty> getFinalProperty(
+    CR<Vec<org::ImmAdapter>> nodes,
+    CR<Str>                  kind,
+    CR<Opt<Str>>             subKind = std::nullopt);
 
 } // namespace sem

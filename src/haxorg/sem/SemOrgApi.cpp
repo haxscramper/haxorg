@@ -72,6 +72,16 @@ Vec<sem::AttrValue> sem::AttrGroup::getAttrs(CR<Opt<Str>> param) const {
     }
 }
 
+void sem::AttrGroup::setNamedAttr(
+    Str const&                 key,
+    Vec<sem::AttrValue> const& attr) {
+    named.insert_or_assign(normalize(key), sem::AttrList{.items = attr});
+}
+
+void sem::AttrGroup::setPositionalAttr(Vec<sem::AttrValue> const& attr) {
+    positional.items = attr;
+}
+
 bool HashTag::prefixMatch(CR<Vec<Str>> prefix) const {
     if (prefix.empty() || (prefix.size() == 1 && prefix[0] == head)) {
         return true;

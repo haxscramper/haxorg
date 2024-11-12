@@ -529,6 +529,13 @@ node can have subnodes.)RAW")
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::AttrGroup::*)(Opt<Str> const&) const>(&sem::AttrGroup::getAttrs),
          pybind11::arg_v("key", std::nullopt))
+    .def("setNamedAttr",
+         static_cast<void(sem::AttrGroup::*)(Str const&, Vec<sem::AttrValue> const&)>(&sem::AttrGroup::setNamedAttr),
+         pybind11::arg("key"),
+         pybind11::arg("attrs"))
+    .def("setPositionalAttr",
+         static_cast<void(sem::AttrGroup::*)(Vec<sem::AttrValue> const&)>(&sem::AttrGroup::setPositionalAttr),
+         pybind11::arg("items"))
     .def("operator==",
          static_cast<bool(sem::AttrGroup::*)(sem::AttrGroup const&) const>(&sem::AttrGroup::operator==),
          pybind11::arg("other"))
@@ -1506,17 +1513,6 @@ node can have subnodes.)RAW")
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
-    ;
-  bind_enum_iterator<sem::NamedProperty::SetMode>(m, "NamedPropertySetMode", type_registry_guard);
-  pybind11::enum_<sem::NamedProperty::SetMode>(m, "NamedPropertySetMode")
-    .value("Override", sem::NamedProperty::SetMode::Override)
-    .value("Add", sem::NamedProperty::SetMode::Add)
-    .value("Subtract", sem::NamedProperty::SetMode::Subtract)
-    .def("__iter__", [](sem::NamedProperty::SetMode _self) -> PyEnumIterator<sem::NamedProperty::SetMode> {
-                     return
-                     PyEnumIterator<sem::NamedProperty::SetMode>
-                     ();
-                     })
     ;
   pybind11::class_<sem::NamedProperty::Nonblocking>(m, "NamedPropertyNonblocking")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::NamedProperty::Nonblocking {

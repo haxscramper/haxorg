@@ -4,6 +4,7 @@
 #include <haxorg/sem/ImmOrg.hpp>
 #include <haxorg/sem/SemOrg.hpp>
 #include <hstd/stdlib/Ranges.hpp>
+#include <haxorg/sem/SemBaseApi.hpp>
 
 namespace {
 template <sem::IsOrg T>
@@ -991,4 +992,114 @@ Opt<Str> org::ImmAdapterParagraphAPI::getFootnoteName() const {
     } else {
         return std::nullopt;
     }
+}
+
+Opt<sem::NamedProperty> Org_combinePropertyStack(
+    Vec<sem::NamedProperty> const& stack,
+    CR<Str>                        kind,
+    CR<Opt<Str>>                   subKind) {
+    if (stack.empty()) {
+        return std::nullopt;
+    } else if (stack.size() == 1) {
+        return stack.at(0);
+    } else {
+        sem::NamedProperty res = stack.at(0);
+        using NP               = sem::NamedProperty;
+        using K                = NP::Kind;
+
+        for (auto const& prop : stack.at(slice(1, 1_B))) {
+            LOGIC_ASSERTION_CHECK(
+                res.getKind() == prop.getKind(),
+                "Property combine expects items of the same kind, "
+                "but got properties with two different kinds {} "
+                "!= {}",
+                res.getKind(),
+                prop.getKind());
+            switch (prop.getKind()) {
+                case K::CustomArgs: {
+                    auto&       res_args = res.getCustomArgs();
+                    auto const& in_args  = res.getCustomArgs();
+                    LOGIC_ASSERTION_CHECK(
+                        res_args.name == prop.getCustomArgs().name,
+                        "expected identical property name for custom args "
+                        "property, {} != {}",
+                        res_args.name,
+                        prop.getCustomArgs().name);
+
+
+                    if (!in_args.attrs.positional.items.empty()) {
+                        res_args.attrs.setPositionalAttr(
+                            in_args.attrs.positional.items);
+                    }
+
+                    for (auto const& [key, items] : in_args.attrs.named) {
+                        res_args.attrs.setNamedAttr(key, items.items);
+                    }
+
+                    break;
+                }
+                default: {
+                    res = prop;
+                    break;
+                }
+            }
+        }
+
+        return res;
+    }
+}
+
+Opt<sem::NamedProperty> getPropertyValue(
+    sem::SemId<sem::Org> const& org,
+    CR<Str>                     kind,
+    CR<Opt<Str>>                sub) {
+    if (auto tree = org.asOpt<sem::Subtree>()) {
+        return tree->getProperty(kind, sub);
+    } else if (auto doc = org.asOpt<sem::Document>()) {
+        return doc->getProperty(kind, sub);
+    } else {
+        return std::nullopt;
+    }
+}
+
+Opt<sem::NamedProperty> getPropertyValue(
+    org::ImmAdapter const& org,
+    CR<Str>                kind,
+    CR<Opt<Str>>           sub) {
+    if (auto tree = org.asOpt<org::ImmSubtree>()) {
+        return tree->getProperty(kind, sub);
+    } else if (auto doc = org.asOpt<org::ImmDocument>()) {
+        return doc->getProperty(kind, sub);
+    } else {
+        return std::nullopt;
+    }
+}
+
+template <typename Handle>
+Opt<sem::NamedProperty> Org_getFinalProperty(
+    Vec<Handle> const& handles,
+    CR<Str>            kind,
+    CR<Opt<Str>>       subKind) {
+    Vec<sem::NamedProperty> propertyStack;
+
+    for (auto const& handle : handles) {
+        auto prop = getPropertyValue(handle, kind, subKind);
+        if (prop.has_value()) { propertyStack.push_back(prop.value()); }
+    }
+
+    return Org_combinePropertyStack(propertyStack, kind, subKind);
+}
+
+Opt<sem::NamedProperty> sem::getFinalProperty(
+    CR<Vec<org::ImmAdapter>> nodes,
+    CR<Str>                  kind,
+    CR<Opt<Str>>             subKind) {
+    return Org_getFinalProperty(nodes, kind, subKind);
+}
+
+Opt<sem::NamedProperty> sem::getFinalProperty(
+    CR<Vec<sem::SemId<sem::Org>>> nodes,
+    CR<Str>                       kind,
+    CR<Opt<Str>>                  subKind) {
+    return Org_getFinalProperty(nodes, kind, subKind);
 }
