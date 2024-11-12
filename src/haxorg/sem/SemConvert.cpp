@@ -1617,12 +1617,12 @@ OrgConverter::ConvResult<Include> OrgConverter::convertInclude(__args) {
 
     if (args.named.contains("minlevel")) {
         include->getOrgDocument().minLevel //
-            = args->named.at("minlevel")->args.at(0)->arg.getInt();
+            = args.named.at("minlevel").items.at(0).getInt();
     }
 
-    if (args->named.contains("lines")) {
+    if (args.named.contains("lines")) {
         Str lines = strip(
-            args->getAttrs("lines").at(0).getString(),
+            args.getAttrs("lines").at(0).getString(),
             CharSet{'"'},
             CharSet{'"'});
         Vec<Str> split = lines.split("-");
@@ -1835,14 +1835,7 @@ OrgConverter::ConvResult<CmdColumns> OrgConverter::convertCmdColumns(
 OrgConverter::ConvResult<CmdName> OrgConverter::convertCmdName(__args) {
     auto           __trace = trace(a);
     SemId<CmdName> result  = Sem<CmdName>(a);
-    auto           args    = convertAttr(a.at(0).at(0));
-
-    if (auto name = args.optNode()) {
-        result->name = name->value->arg.value;
-    } else {
-        result->push_back(args.optError().value());
-    }
-
+    result->name           = convertAttr(a.at(0).at(0)).value;
     return result;
 }
 
@@ -1895,8 +1888,7 @@ OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(
     }
 
     if (one(a, N::HeaderArgs).kind() != onk::Empty) {
-        auto args = convertAttrs(one(a, N::HeaderArgs)).optNode().value();
-        result->attrs = args;
+        result->attrs = convertAttrs(one(a, N::HeaderArgs));
     }
 
     if (a.kind() == onk::SrcInlineCode) {
@@ -1952,7 +1944,7 @@ OrgConverter::ConvResult<Call> OrgConverter::convertCall(__args) {
         auto call       = Sem<Call>(a);
         call->name      = get_text(one(a, N::Name));
         call->isCommand = true;
-        call->attrs = convertCallArguments(many(a, N::Args), a).value();
+        call->attrs     = convertCallArguments(many(a, N::Args), a);
         return call;
     } else {
         return SemError(a, "TODO Convert inline call");
@@ -2211,16 +2203,8 @@ SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
 
                 case onk::CmdPropertyArgs: {
                     Prop::CustomArgs prop;
-                    prop.name = get_text(one(sub, N::Name));
-                    auto conv = convertAttrs(one(sub, N::Args));
-                    for (auto const& [key, list] : conv.value()->named) {
-                        for (auto const& it : list->args) {
-                            prop.attrs.push_back(it->arg);
-                        }
-                    }
-                    for (auto const& it : conv.value()->positional->args) {
-                        prop.attrs.push_back(it->arg);
-                    }
+                    prop.name  = get_text(one(sub, N::Name));
+                    prop.attrs = convertAttrs(one(sub, N::Args));
                     doc->options->properties.push_back(Prop(prop));
                     break;
                 }

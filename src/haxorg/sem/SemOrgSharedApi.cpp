@@ -388,35 +388,20 @@ Vec<sem::SubtreePeriod> Subtree_getTimePeriodsImpl(
     return res;
 }
 
-template <typename Handle>
 Vec<sem::AttrValue> Attrs_getAttrs(
-    Handle const& handle,
-    CR<Opt<Str>>  param) {
-    auto h           = getConstHandle(handle);
-    using HandleBase = get_ast_type<Handle>::ast_type;
-    Vec<sem::AttrValue> res;
-    if (param) {
-        auto norm = normalize(*param);
-        if (h->named.contains(norm)) {
-            for (auto const& it :
-                 toHandle(h->named.at(norm), handle)->args) {
-                res.push_back(toHandle(it, handle)->arg);
-            }
-        }
+    sem::AttrGroup const& attrs,
+    CR<Opt<Str>>          param) {
+    return attrs.getAttrs(param);
+}
+
+Vec<sem::AttrValue> Attrs_getAttrs(
+    Opt<sem::AttrGroup> const& attrs,
+    CR<Opt<Str>>               param) {
+    if (attrs) {
+        return Attrs_getAttrs(attrs.value(), param);
     } else {
-        for (auto const& it : toHandle(h->positional, handle)->args) {
-            res.push_back(toHandle(it, handle)->arg);
-        }
-
-        for (auto const& [it, _1] : h->named) {
-            for (auto const& val :
-                 toHandle(h->named.at(it), handle)->args) {
-                res.push_back(toHandle(val, handle)->arg);
-            }
-        }
+        return {};
     }
-
-    return res;
 }
 
 template <typename Handle>
@@ -430,11 +415,7 @@ Vec<sem::AttrValue> Stmt_getAttrs(Handle handle, const Opt<Str>& kind) {
         if (toHandle(sub, handle)->getKind() == OrgSemKind::CmdAttr) {
             result.append( //
                 Attrs_getAttrs(
-                    toHandle(
-                        org_cast<sem::CmdAttr>(toHandle(sub, handle))
-                            ->attrs,
-                        handle)
-                        .value(),
+                    org_cast<sem::CmdAttr>(toHandle(sub, handle))->attrs,
                     kind));
         }
     }
@@ -585,9 +566,7 @@ Vec<sem::AttrValue> Cmd_getAttrs(
     CR<Opt<Str>>  param) {
     auto                h = getConstHandle(handle);
     Vec<sem::AttrValue> res;
-    if (!isBoolFalse(h->attrs)) {
-        res = Attrs_getAttrs(toHandle(h->attrs, handle).value(), param);
-    }
+    if (!isBoolFalse(h->attrs)) { res = Attrs_getAttrs(h->attrs, param); }
     res.append(Stmt_getAttrs(handle, param));
     return res;
 }
@@ -608,8 +587,7 @@ template <typename Handle>
 Opt<sem::AttrValue> Cmd_getFirstAttr(Handle handle, Str const& kind) {
     auto h = getConstHandle(handle);
     if (!isBoolFalse(h->attrs)) {
-        auto res = Attrs_getAttrs(
-            toHandle(h->attrs, handle).value(), kind);
+        auto res = Attrs_getAttrs(h->attrs, kind);
         if (res.empty()) {
             return std::nullopt;
         } else {
@@ -928,9 +906,7 @@ Opt<int> sem::Time::getMinute() const { return getStaticTime().getBreakdown().mi
 Opt<sem::NamedProperty> sem::Subtree::getProperty(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertyImpl(this, kind, subkind); }
 Vec<sem::NamedProperty> sem::Subtree::getProperties(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertiesImpl(this, kind, subkind); }
 Vec<sem::SubtreePeriod> sem::Subtree::getTimePeriods(IntSet<sem::SubtreePeriod::Kind> kinds) const { return Subtree_getTimePeriodsImpl(this, kinds, false); }
-Str sem::Attr::getValue() const { return arg.value; }
-Str sem::Attr::getName() const { return arg.name.value(); }
-Str sem::Attr::getVarname() const { return arg.varname.value(); }
+
 
 Vec<sem::AttrValue> sem::Stmt::getAttrs(const Opt<Str>& kind) const { return Stmt_getAttrs(this, kind); }
 Opt<sem::AttrValue> sem::Stmt::getFirstAttr(const Str& kind) const { return Stmt_getFirstAttr(this, kind); }
@@ -939,7 +915,6 @@ Vec<sem::SemId<sem::Org>> sem::Stmt::getCaption() const { return Stmt_getCaption
 Vec<Str> sem::Stmt::getName() const { return Stmt_getName(this); }
 
 Opt<sem::AttrValue> sem::Cmd::getFirstAttr(CR<Str> kind) const { return Cmd_getFirstAttr(this, kind); }
-Vec<sem::AttrValue> sem::Attrs::getAttrs(CR<Opt<Str>> param) const { return Attrs_getAttrs(this, param); }
 Vec<sem::AttrValue> sem::Cmd::getAttrs(CR<Opt<Str>> param) const { return Cmd_getAttrs(this, param); }
 
 

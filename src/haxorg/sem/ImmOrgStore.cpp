@@ -199,6 +199,7 @@ ImmAstReplace setNewSubnodes(
                         [&](ImmBox<bool> const&) { fail_field(); },
                         [&](bool const&) { fail_field(); },
                         [&](ImmBox<Opt<sem::BlockCodeEvalResult>> const&) { fail_field(); },
+                        [&](ImmBox<Opt<sem::AttrGroup>> const&) { fail_field(); },
                         [&](ImmBox<sem::BlockCodeEvalResult> const&) { fail_field(); },
                         [&](ImmBox<sem::Tblfm> const&) { fail_field(); },
                         [&](ImmBox<sem::Tblfm::Assign::Flag> const&) { fail_field(); },
@@ -814,10 +815,12 @@ __same_type(sem::DocumentExportConfig);
 __same_type(sem::BlockCodeSwitch);
 __same_type(sem::BlockCodeEvalResult);
 __same_type(sem::BlockCodeLine);
-__same_type(sem::AttrValue);
 __same_type(sem::Tblfm);
 __same_type(sem::LinkTarget);
 __same_type(sem::ColumnView);
+__same_type(sem::AttrGroup);
+__same_type(sem::AttrList);
+__same_type(sem::AttrValue);
 
 
 template <typename SemType, typename ImmType>

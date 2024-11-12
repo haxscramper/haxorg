@@ -49,6 +49,28 @@ Org::Org() : subnodes({}) {}
 Org::Org(OrgAdapter original) : original(original), subnodes({}) {}
 Org::Org(CVec<SemId<Org>> subnodes) : subnodes(subnodes) {}
 
+Vec<sem::AttrValue> sem::AttrGroup::getFlatArgs() const {
+    Vec<sem::AttrValue> res = positional.items;
+    for (auto const& key : sorted(named.keys())) {
+        res.append(named.at(key).items);
+    }
+    return res;
+}
+
+Vec<sem::AttrValue> sem::AttrGroup::getAttrs(CR<Opt<Str>> param) const {
+    if (param) {
+        Vec<sem::AttrValue> res;
+        auto                norm = normalize(*param);
+        if (named.contains(norm)) {
+            for (auto const& it : named.at(norm).items) {
+                res.push_back(it);
+            }
+        }
+        return res;
+    } else {
+        return getFlatArgs();
+    }
+}
 
 bool HashTag::prefixMatch(CR<Vec<Str>> prefix) const {
     if (prefix.empty() || (prefix.size() == 1 && prefix[0] == head)) {
@@ -126,10 +148,6 @@ bool NamedProperty::isMatching(Str const& kind, CR<Opt<Str>> subkind)
         return false;
     }
 }
-
-
-
-
 
 
 void Org::push_back(SemId<Org> sub) {
