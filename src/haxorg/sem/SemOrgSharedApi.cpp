@@ -1018,13 +1018,13 @@ Opt<sem::NamedProperty> Org_combinePropertyStack(
             switch (prop.getKind()) {
                 case K::CustomArgs: {
                     auto&       res_args = res.getCustomArgs();
-                    auto const& in_args  = res.getCustomArgs();
+                    auto const& in_args  = prop.getCustomArgs();
                     LOGIC_ASSERTION_CHECK(
-                        res_args.name == prop.getCustomArgs().name,
+                        res_args.name == in_args.name,
                         "expected identical property name for custom args "
                         "property, {} != {}",
                         res_args.name,
-                        prop.getCustomArgs().name);
+                        in_args.name);
 
 
                     if (!in_args.attrs.positional.items.empty()) {
