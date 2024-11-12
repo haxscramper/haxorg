@@ -1125,11 +1125,7 @@ struct NamedProperty {
                        (),
                        (),
                        (),
-                       (mainSetRule,
-                        subSetRule,
-                        data))
-  sem::NamedProperty::SetMode mainSetRule = NamedProperty::SetMode::Override;
-  sem::NamedProperty::SetMode subSetRule = NamedProperty::SetMode::Override;
+                       (data))
   sem::NamedProperty::Data data;
   /// \brief Check if property matches specified kind and optional subkind. Built-in property checking is also done with this function -- 'created' etc.
   bool isMatching(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;

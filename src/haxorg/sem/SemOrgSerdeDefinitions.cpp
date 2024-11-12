@@ -1002,8 +1002,6 @@ void proto_serde<::orgproto::NamedProperty::CustomRaw, sem::NamedProperty::Custo
 }
 
 void proto_serde<::orgproto::NamedProperty, sem::NamedProperty>::write(::orgproto::NamedProperty* out, sem::NamedProperty const& in) {
-  out->set_mainsetrule(static_cast<orgproto::NamedProperty_SetMode>(in.mainSetRule));
-  out->set_subsetrule(static_cast<orgproto::NamedProperty_SetMode>(in.subSetRule));
   switch (in.data.index()) {
     case 0:
       proto_serde<orgproto::NamedProperty::Nonblocking, sem::NamedProperty::Nonblocking>::write(out->mutable_data()->mutable_nonblocking(), std::get<0>(in.data));
@@ -1072,8 +1070,6 @@ void proto_serde<::orgproto::NamedProperty, sem::NamedProperty>::write(::orgprot
 }
 
 void proto_serde<::orgproto::NamedProperty, sem::NamedProperty>::read(::orgproto::NamedProperty const& out, proto_write_accessor<sem::NamedProperty> in) {
-  in.for_field(&sem::NamedProperty::mainSetRule).get() = static_cast<sem::NamedProperty::SetMode>(out.mainsetrule());
-  in.for_field(&sem::NamedProperty::subSetRule).get() = static_cast<sem::NamedProperty::SetMode>(out.subsetrule());
   switch (out.data().kind_case()) {
     case ::orgproto::NamedProperty::Data::kNonblocking:
       proto_serde<orgproto::NamedProperty::Nonblocking, sem::NamedProperty::Nonblocking>::read(out.data().nonblocking(), in.for_field_variant<0>(&sem::NamedProperty::data));

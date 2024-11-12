@@ -1264,8 +1264,6 @@ TEST(OrgApi, SubtreePropertyContext) {
 ** Subtree 2
 :properties:
 :header-args:nim: :results silent
-:property-set: :header-args:nim add :header-args override
-:property-set-sub: :header-args:nim
 :end:
 )",
             getDebugFile("subtree_property"));

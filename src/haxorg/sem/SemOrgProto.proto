@@ -95,9 +95,6 @@ enum OrgSpecName {
   OrgSpecName_Rows_f                                                                = 55;
   OrgSpecName_Lines_f                                                               = 56;
   OrgSpecName_Chunks_f                                                              = 57;
-  OrgSpecName_InheritanceMode_f                                                     = 58;
-  OrgSpecName_MainSetRule_f                                                         = 59;
-  OrgSpecName_SubSetRule_f                                                          = 60;
 }
 
 enum OrgNodeKind {
@@ -870,9 +867,7 @@ message NamedProperty {
     Kind_CustomArgs_f                                                               = 19;
     Kind_CustomRaw_f                                                                = 20;
   }
-  NamedProperty.SetMode                            mainSetRule                      = 1;
-  NamedProperty.SetMode                            subSetRule                       = 2;
-  NamedProperty.Data                               data                             = 3;
+  NamedProperty.Data                               data                             = 1;
   string                                           debug                            = 1000;
 }
 

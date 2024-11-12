@@ -26,7 +26,7 @@ rx_macros:
   - { name: literal_properties, value: "id|effort|(archive_(olpath|file|time|category|todo))|archive" }
   # `:header-args` property for setting the parameters of the code blocks
   # `:property-set` and `:property-set-sub` for configuring how individual properties are computed
-  - { name: argument_properties, value: "header-args|property-set|property-set-sub" }
+  - { name: argument_properties, value: "header-args" }
   - { name: text_properties, value: "description" }
   - { name: dsl_links, value: "file|attachment|id" }
   - { name: "property_sub_kind", "value": ":[^:]+:"}

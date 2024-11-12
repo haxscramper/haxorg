@@ -1968,8 +1968,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("mainSetRule", &sem::NamedProperty::mainSetRule)
-    .def_readwrite("subSetRule", &sem::NamedProperty::subSetRule)
     .def_readwrite("data", &sem::NamedProperty::data)
     .def("isMatching",
          static_cast<bool(sem::NamedProperty::*)(Str const&, Opt<Str> const&) const>(&sem::NamedProperty::isMatching),
@@ -4416,9 +4414,6 @@ node can have subnodes.)RAW")
     .value("Rows", OrgSpecName::Rows)
     .value("Lines", OrgSpecName::Lines)
     .value("Chunks", OrgSpecName::Chunks)
-    .value("InheritanceMode", OrgSpecName::InheritanceMode)
-    .value("MainSetRule", OrgSpecName::MainSetRule)
-    .value("SubSetRule", OrgSpecName::SubSetRule)
     .def("__iter__", [](OrgSpecName _self) -> PyEnumIterator<OrgSpecName> {
                      return
                      PyEnumIterator<OrgSpecName>

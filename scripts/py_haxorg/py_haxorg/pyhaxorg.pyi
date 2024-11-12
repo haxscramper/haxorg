@@ -829,7 +829,7 @@ class NamedPropertyKind(Enum):
     CustomRaw = 21
 
 class NamedProperty:
-    def __init__(self, mainSetRule: NamedPropertySetMode, subSetRule: NamedPropertySetMode, data: NamedPropertyData) -> None: ...
+    def __init__(self, data: NamedPropertyData) -> None: ...
     def isMatching(self, kind: str, subKind: Optional[str]) -> bool: ...
     def getName(self) -> str: ...
     def getSubKind(self) -> Optional[str]: ...
@@ -881,8 +881,6 @@ class NamedProperty:
     def getKind(self) -> NamedPropertyKind: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
-    mainSetRule: NamedPropertySetMode
-    subSetRule: NamedPropertySetMode
     data: NamedPropertyData
 
 class None(Org):
@@ -1929,9 +1927,6 @@ class OrgSpecName(Enum):
     Rows = 56
     Lines = 57
     Chunks = 58
-    InheritanceMode = 59
-    MainSetRule = 60
-    SubSetRule = 61
 
 class OrgNodeKind(Enum):
     _None = 1

@@ -567,7 +567,7 @@ struct value_domain<BlockCodeExports> : public value_domain_ungapped<BlockCodeEx
                                                                      BlockCodeExports::None,
                                                                      BlockCodeExports::Results> {};
 
-enum class OrgSpecName : short int { Unnamed, Result, Year, Day, Clock, Repeater, Zone, Link, Tags, Tag, State, Protocol, Desc, Times, Drawer, Args, Name, Definition, Body, HeaderArgs, File, Kind, Lang, Prefix, Text, Todo, Importance, Title, Completion, Head, Subnodes, Properties, Logbook, Description, Logs, Newstate, Oldstate, Time, From, EndArgs, Flags, Value, Assoc, Main, Hash, Bullet, Counter, Checkbox, Header, To, Diff, Property, Subname, Values, Cells, Rows, Lines, Chunks, InheritanceMode, MainSetRule, SubSetRule, };
+enum class OrgSpecName : short int { Unnamed, Result, Year, Day, Clock, Repeater, Zone, Link, Tags, Tag, State, Protocol, Desc, Times, Drawer, Args, Name, Definition, Body, HeaderArgs, File, Kind, Lang, Prefix, Text, Todo, Importance, Title, Completion, Head, Subnodes, Properties, Logbook, Description, Logs, Newstate, Oldstate, Time, From, EndArgs, Flags, Value, Assoc, Main, Hash, Bullet, Counter, Checkbox, Header, To, Diff, Property, Subname, Values, Cells, Rows, Lines, Chunks, };
 template <>
 struct enum_serde<OrgSpecName> {
   static Opt<OrgSpecName> from_string(std::string value);
@@ -577,7 +577,7 @@ struct enum_serde<OrgSpecName> {
 template <>
 struct value_domain<OrgSpecName> : public value_domain_ungapped<OrgSpecName,
                                                                 OrgSpecName::Unnamed,
-                                                                OrgSpecName::SubSetRule> {};
+                                                                OrgSpecName::Chunks> {};
 
 enum class OrgNodeKind : short int {
   /// \brief Default valye for node - invalid state

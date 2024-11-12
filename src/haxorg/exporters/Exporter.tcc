@@ -245,11 +245,7 @@ template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::NamedProperty::Data const& object) { visitVariants(res, sem::NamedProperty::getKind(object), object); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::NamedProperty const& object) {
-  __obj_field(res, object, mainSetRule);
-  __obj_field(res, object, subSetRule);
-  __obj_field(res, object, data);
-}
+void Exporter<V, R>::visit(R& res, sem::NamedProperty const& object) { __obj_field(res, object, data); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::NamedProperty::Nonblocking const& object) { __obj_field(res, object, isBlocking); }

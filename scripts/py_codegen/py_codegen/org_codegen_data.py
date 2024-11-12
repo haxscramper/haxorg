@@ -2133,18 +2133,6 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 ),
                 eq_method(t_nest_shared("NamedProperty", [])),
             ],
-            fields=[
-                GenTuField(
-                    t_nest_shared("SetMode", ["NamedProperty"]),
-                    "mainSetRule",
-                    GenTuDoc(""),
-                    value="NamedProperty::SetMode::Override",
-                ),
-                GenTuField(t_nest_shared("SetMode", ["NamedProperty"]),
-                           "subSetRule",
-                           GenTuDoc(""),
-                           value="NamedProperty::SetMode::Override"),
-            ],
             nested=[
                 GenTuPass("NamedProperty() {}"),
                 d_simple_enum(
@@ -2803,9 +2791,6 @@ def get_enums():
                 efield("Rows"),
                 efield("Lines"),
                 efield("Chunks"),
-                efield("InheritanceMode"),
-                efield("MainSetRule"),
-                efield("SubSetRule"),
             ],
         ),
         GenTuEnum(

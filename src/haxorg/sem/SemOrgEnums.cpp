@@ -143,9 +143,6 @@ Opt<OrgSpecName> enum_serde<OrgSpecName>::from_string(std::string value) {
   if (value == "Rows") { return OrgSpecName::Rows; } else
   if (value == "Lines") { return OrgSpecName::Lines; } else
   if (value == "Chunks") { return OrgSpecName::Chunks; } else
-  if (value == "InheritanceMode") { return OrgSpecName::InheritanceMode; } else
-  if (value == "MainSetRule") { return OrgSpecName::MainSetRule; } else
-  if (value == "SubSetRule") { return OrgSpecName::SubSetRule; } else
   { return std::nullopt; }
 }
 std::string enum_serde<OrgSpecName>::to_string(OrgSpecName value) {
@@ -208,9 +205,6 @@ std::string enum_serde<OrgSpecName>::to_string(OrgSpecName value) {
     case OrgSpecName::Rows: return "Rows";
     case OrgSpecName::Lines: return "Lines";
     case OrgSpecName::Chunks: return "Chunks";
-    case OrgSpecName::InheritanceMode: return "InheritanceMode";
-    case OrgSpecName::MainSetRule: return "MainSetRule";
-    case OrgSpecName::SubSetRule: return "SubSetRule";
     default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
   }
 }
