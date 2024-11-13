@@ -2019,13 +2019,13 @@ void proto_serde<::orgproto::Subtree, sem::Subtree>::write(::orgproto::Subtree* 
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::SubtreeLog>, Vec<sem::SemId<sem::SubtreeLog>>>::write(out->mutable_logbook(), in.logbook);
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::NamedProperty>, Vec<sem::NamedProperty>>::write(out->mutable_properties(), in.properties);
   if (in.closed) {
-    proto_serde<orgproto::Time, sem::SemId<sem::Time>>::write(out->mutable_closed(), *in.closed);
+    proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_closed(), *in.closed);
   }
   if (in.deadline) {
-    proto_serde<orgproto::Time, sem::SemId<sem::Time>>::write(out->mutable_deadline(), *in.deadline);
+    proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_deadline(), *in.deadline);
   }
   if (in.scheduled) {
-    proto_serde<orgproto::Time, sem::SemId<sem::Time>>::write(out->mutable_scheduled(), *in.scheduled);
+    proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_scheduled(), *in.scheduled);
   }
   out->set_iscomment(in.isComment);
   out->set_isarchived(in.isArchived);
@@ -2054,13 +2054,13 @@ void proto_serde<::orgproto::Subtree, sem::Subtree>::read(::orgproto::Subtree co
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::SubtreeLog>, Vec<sem::SemId<sem::SubtreeLog>>>::read(out.logbook(), in.for_field(&sem::Subtree::logbook));
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::NamedProperty>, Vec<sem::NamedProperty>>::read(out.properties(), in.for_field(&sem::Subtree::properties));
   if (out.has_closed()) {
-    proto_serde<Opt<orgproto::Time>, Opt<sem::SemId<sem::Time>>>::read(out.closed(), in.for_field(&sem::Subtree::closed));
+    proto_serde<Opt<orgproto::UserTime>, Opt<UserTime>>::read(out.closed(), in.for_field(&sem::Subtree::closed));
   }
   if (out.has_deadline()) {
-    proto_serde<Opt<orgproto::Time>, Opt<sem::SemId<sem::Time>>>::read(out.deadline(), in.for_field(&sem::Subtree::deadline));
+    proto_serde<Opt<orgproto::UserTime>, Opt<UserTime>>::read(out.deadline(), in.for_field(&sem::Subtree::deadline));
   }
   if (out.has_scheduled()) {
-    proto_serde<Opt<orgproto::Time>, Opt<sem::SemId<sem::Time>>>::read(out.scheduled(), in.for_field(&sem::Subtree::scheduled));
+    proto_serde<Opt<orgproto::UserTime>, Opt<UserTime>>::read(out.scheduled(), in.for_field(&sem::Subtree::scheduled));
   }
   in.for_field(&sem::Subtree::isComment).get() = out.iscomment();
   in.for_field(&sem::Subtree::isArchived).get() = out.isarchived();

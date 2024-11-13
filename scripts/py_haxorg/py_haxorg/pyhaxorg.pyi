@@ -1577,7 +1577,7 @@ class SubtreeLog(Org):
     log: SubtreeLogLogEntry
 
 class Subtree(Org):
-    def __init__(self, level: int, treeId: Optional[str], todo: Optional[str], completion: Optional[SubtreeCompletion], description: Optional[Paragraph], tags: List[HashTag], title: Paragraph, logbook: List[SubtreeLog], properties: List[NamedProperty], closed: Optional[Time], deadline: Optional[Time], scheduled: Optional[Time], isComment: bool, isArchived: bool, priority: Optional[str]) -> None: ...
+    def __init__(self, level: int, treeId: Optional[str], todo: Optional[str], completion: Optional[SubtreeCompletion], description: Optional[Paragraph], tags: List[HashTag], title: Paragraph, logbook: List[SubtreeLog], properties: List[NamedProperty], closed: Optional[UserTime], deadline: Optional[UserTime], scheduled: Optional[UserTime], isComment: bool, isArchived: bool, priority: Optional[str]) -> None: ...
     def getTimePeriods(self, kinds: IntSet[SubtreePeriodKind]) -> List[SubtreePeriod]: ...
     def getProperties(self, kind: str, subkind: Optional[str]) -> List[NamedProperty]: ...
     def getProperty(self, kind: str, subkind: Optional[str]) -> Optional[NamedProperty]: ...
@@ -1595,9 +1595,9 @@ class Subtree(Org):
     title: Paragraph
     logbook: List[SubtreeLog]
     properties: List[NamedProperty]
-    closed: Optional[Time]
-    deadline: Optional[Time]
-    scheduled: Optional[Time]
+    closed: Optional[UserTime]
+    deadline: Optional[UserTime]
+    scheduled: Optional[UserTime]
     isComment: bool
     isArchived: bool
     priority: Optional[str]

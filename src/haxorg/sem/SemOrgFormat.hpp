@@ -22,6 +22,9 @@ struct Formatter {
     void add(Res id, Res other);
 
     Res toString(sem::AttrValue const& id, CR<Context> ctx);
+    Res toString(UserTime const& id, CR<Context> ctx) {
+        return str(id.format(UserTime::Format::OrgFormat));
+    }
     Res toString(sem::AttrGroup const& args, CR<Context> ctx);
     Res toString(sem::AttrList const& args, CR<Context> ctx) {
         Res res = b.stack();

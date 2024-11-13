@@ -1441,9 +1441,9 @@ message Subtree {
   Paragraph                                        title                            = 9;
   repeated SubtreeLog                              logbook                          = 10;
   repeated NamedProperty                           properties                       = 11;
-  optional Time                                    closed                           = 12;
-  optional Time                                    deadline                         = 13;
-  optional Time                                    scheduled                        = 14;
+  optional UserTime                                closed                           = 12;
+  optional UserTime                                deadline                         = 13;
+  optional UserTime                                scheduled                        = 14;
   bool                                             isComment                        = 15;
   bool                                             isArchived                       = 16;
   optional string                                  priority                         = 17;

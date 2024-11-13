@@ -2262,11 +2262,11 @@ struct Subtree : public sem::Org {
   /// \brief Immediate properties
   Vec<sem::NamedProperty> properties = {};
   /// \brief When subtree was marked as closed
-  Opt<sem::SemId<sem::Time>> closed = std::nullopt;
+  Opt<UserTime> closed = std::nullopt;
   /// \brief When is the deadline
-  Opt<sem::SemId<sem::Time>> deadline = std::nullopt;
+  Opt<UserTime> deadline = std::nullopt;
   /// \brief When the event is scheduled
-  Opt<sem::SemId<sem::Time>> scheduled = std::nullopt;
+  Opt<UserTime> scheduled = std::nullopt;
   /// \brief Subtree is annotated with the COMMENT keyword
   bool isComment = false;
   /// \brief Subtree is tagged with `:ARCHIVE:` tag

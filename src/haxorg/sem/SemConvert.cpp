@@ -648,12 +648,26 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
         for (auto const& it : one(a, N::Times)) {
             auto kind = convertWord(it.at(0)).value();
             auto time = convertTime(it.at(1)).value();
+
+            if (!time->isStatic()) {
+                return SemError(
+                    a,
+                    fmt("Subtree times are expected to have static time, "
+                        "provided value is not static."));
+            }
+
             if (org_streq(kind->text, "closed")) {
-                tree->closed = time;
+                tree->closed = time->getStaticTime();
             } else if (org_streq(kind->text, "deadline")) {
-                tree->deadline = time;
+                tree->deadline = time->getStaticTime();
             } else if (org_streq(kind->text, "scheduled")) {
-                tree->deadline = time;
+                tree->deadline = time->getStaticTime();
+            } else {
+                return SemError(
+                    a,
+                    fmt("Accepted subtree time kinds are 'closed', "
+                        "'deadline', 'scheduled', but the value was '{}'",
+                        kind));
             }
         }
     }

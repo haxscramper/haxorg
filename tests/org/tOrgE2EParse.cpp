@@ -1299,6 +1299,24 @@ TEST(OrgApi, SubtreePropertyContext) {
     }
 }
 
+TEST(OrgApi, SubtreeTimes) {
+    {
+        auto t = parseOne<sem::Subtree>(
+            R"(* COMPLETED Prolog homework [60%]
+  CLOSED: [2019-11-07 Thu 19:35] DEADLINE: <2019-12-15 Sun>
+  :LOGBOOK:
+  - State "COMPLETED"  from "TODO"       [2019-11-07 Thu 19:35]
+  - New deadline from "[2019-10-01 Tue]" on [2019-10-11 Fri 13:50] \\
+    Updated whatever
+  - New deadline from "[2019-09-26 Thu]" on [2019-09-27 Fri 22:36] \\
+    New week deadline
+  :END:
+)");
+        EXPECT_TRUE(t->deadline.has_value());
+        // EXPECT_EQ(t->deadline.value().)
+    }
+}
+
 TEST(SimpleNodeConversion, LCSCompile) {
     Vec<int> first{1, 2, 3};
     Vec<int> second{1, 2, 3};
