@@ -1179,6 +1179,80 @@ TEST(OrgApi, SubtreeLogParsing) {
         EXPECT_EQ(l.at(3)->getState().to, "COMPLETED"_ss);
         EXPECT_EQ(l.at(3)->getState().from, "WIP"_ss);
     }
+    {
+        auto t = parseOne<sem::Subtree>(
+            R"(* COMPLETED Prolog homework [60%]
+  CLOSED: [2019-11-07 Thu 19:35] DEADLINE: <2019-12-15 Sun>
+  :LOGBOOK:
+  - State "COMPLETED"  from "TODO"       [2019-11-07 Thu 19:35]
+  - New deadline from "[2019-10-01 Tue]" on [2019-10-11 Fri 13:50] \\
+    Updated whatever
+  - New deadline from "[2019-09-26 Thu]" on [2019-09-27 Fri 22:36] \\
+    New week deadline
+  :END:
+)");
+        EXPECT_TRUE(t->deadline.has_value());
+        auto d = t->deadline->getBreakdown();
+        EXPECT_EQ(d.day, 15);
+        EXPECT_EQ(d.year, 2019);
+        EXPECT_EQ(d.month, 12);
+
+        EXPECT_TRUE(t->closed.has_value());
+        auto c = t->closed->getBreakdown();
+        EXPECT_EQ(c.year, 2019);
+        EXPECT_EQ(c.day, 07);
+        EXPECT_EQ(c.month, 11);
+        EXPECT_EQ(c.minute, 35);
+
+        auto log = t->logbook;
+
+        auto state = log.at(0);
+        auto dead1 = log.at(1);
+        auto dead2 = log.at(2);
+        EXPECT_TRUE(state->isState());
+        EXPECT_TRUE(dead1->isDeadline());
+        EXPECT_TRUE(dead2->isDeadline());
+    }
+    {
+        auto t = parseOne<sem::Subtree>(
+            R"(** COMPLETED Elisp improvements [0/2]
+   :LOGBOOK:
+   - Refiled on [2020-05-02 Sat 14:40] from [[id:e2de69d4-4073-477f-af6b-cc2cd8d5a122][Quick latex input [17/26]]]
+   :END:
+)");
+
+        EXPECT_TRUE(t->logbook.at(0)->isRefile());
+        auto l = t->logbook.at(0)->getRefile();
+        EXPECT_EQ(l.on.getBreakdown().year, 2020);
+        EXPECT_EQ(l.on.getBreakdown().minute, 40);
+    }
+
+    {
+        auto const t = parseOne<sem::Subtree>(
+            R"(**** COMPLETED [#A] Priority
+  :LOGBOOK:
+  - Priority "B" Added at [2023-07-20 Thu 13:43:21 +04]
+  - Priority "A" Changed From "B" at [2023-07-20 Thu 13:43:21 +04]
+  - Priority "A" Changed From "S" at [2023-07-20 Thu 13:43:23 +04]
+  :END:)",
+            getDebugFile("priority"));
+
+        auto const& l = t->logbook;
+        EXPECT_TRUE(l.at(0)->isPriority());
+        EXPECT_TRUE(l.at(1)->isPriority());
+        EXPECT_TRUE(l.at(2)->isPriority());
+        auto p0 = l.at(0)->getPriority();
+        EXPECT_FALSE(p0.oldPriority.has_value());
+        EXPECT_TRUE(p0.newPriority.has_value());
+        EXPECT_EQ(p0.newPriority.value(), "B");
+
+        auto p1 = l.at(1)->getPriority();
+        EXPECT_TRUE(p1.oldPriority.has_value());
+        EXPECT_TRUE(p1.newPriority.has_value());
+        EXPECT_EQ(p1.oldPriority.value(), "B");
+        EXPECT_EQ(p1.newPriority.value(), "A");
+        EXPECT_EQ(p1.on.getBreakdown().second, 21);
+    }
 }
 
 TEST(OrgApi, WordParsing) {
@@ -1297,43 +1371,6 @@ TEST(OrgApi, SubtreePropertyContext) {
 
         EXPECT_EQ(
             s.getCustomArgs().attrs.getAttrs("cache").at(0).value, "yes");
-    }
-}
-
-TEST(OrgApi, SubtreeTimes) {
-    {
-        auto t = parseOne<sem::Subtree>(
-            R"(* COMPLETED Prolog homework [60%]
-  CLOSED: [2019-11-07 Thu 19:35] DEADLINE: <2019-12-15 Sun>
-  :LOGBOOK:
-  - State "COMPLETED"  from "TODO"       [2019-11-07 Thu 19:35]
-  - New deadline from "[2019-10-01 Tue]" on [2019-10-11 Fri 13:50] \\
-    Updated whatever
-  - New deadline from "[2019-09-26 Thu]" on [2019-09-27 Fri 22:36] \\
-    New week deadline
-  :END:
-)");
-        EXPECT_TRUE(t->deadline.has_value());
-        auto d = t->deadline->getBreakdown();
-        EXPECT_EQ(d.day, 15);
-        EXPECT_EQ(d.year, 2019);
-        EXPECT_EQ(d.month, 12);
-
-        EXPECT_TRUE(t->closed.has_value());
-        auto c = t->closed->getBreakdown();
-        EXPECT_EQ(c.year, 2019);
-        EXPECT_EQ(c.day, 07);
-        EXPECT_EQ(c.month, 11);
-        EXPECT_EQ(c.minute, 35);
-
-        auto log = t->logbook;
-
-        auto state = log.at(0);
-        auto dead1 = log.at(1);
-        auto dead2 = log.at(2);
-        EXPECT_TRUE(state->isState());
-        EXPECT_TRUE(dead1->isDeadline());
-        EXPECT_TRUE(dead2->isDeadline());
     }
 }
 

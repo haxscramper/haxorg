@@ -254,13 +254,19 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
 
     auto node_after = [&](CR<Str>    word,
                           CR<SemSet> target) -> Opt<sem::SemId<sem::Org>> {
+        print(
+            fmt("Searching for '{}' after '{}' in {}",
+                target,
+                word,
+                par0->subnodes));
         for (int i = 0; i < par0.size(); ++i) {
-            if (auto w = par0.at(0).asOpt<sem::Word>();
-                !w.isNil() && normalize(w->text) == "word") {
-                auto offset = i;
+            if (auto w = par0.at(i)->dyn_cast<sem::Leaf>();
+                w != nullptr && normalize(w->text) == word) {
+                auto offset = i + 1;
                 while (offset < par0.size()) {
                     auto t = par0.at(offset);
-                    if (SemSet{osk::Word}.contains(t->getKind())) {
+                    if ((SemSet{osk::Word} - target)
+                            .contains(t->getKind())) {
                         goto found_search_limit;
                     } else if (target.contains(t->getKind())) {
                         return t;
@@ -323,6 +329,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
             log->log = tag;
 
         } else if (words.at(0) == "state") {
+            auto     __trace    = trace(a, "state");
             Vec<Str> big_idents = //
                 own_view(filter_subnodes<BigIdent>(par0, limit))
                 | rv::transform(
@@ -337,9 +344,10 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
             log->log  = states;
 
         } else if (words.at(0) == "refiled") {
-            Vec<SemId<Time>> times  = filter_subnodes<Time>(par0, limit);
-            Vec<SemId<Link>> link   = filter_subnodes<Link>(par0, limit);
-            auto             refile = Log::Refile{};
+            auto             __trace = trace(a, "refiled");
+            Vec<SemId<Time>> times   = filter_subnodes<Time>(par0, limit);
+            Vec<SemId<Link>> link    = filter_subnodes<Link>(par0, limit);
+            auto             refile  = Log::Refile{};
             CHECK(!times.empty())
                 << a.treeRepr() << ExporterTree::treeRepr(item).toString();
 
@@ -348,13 +356,16 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
             log->log = refile;
 
         } else if (words.at(1) == "deadline") {
-            Vec<SemId<Time>> times = filter_subnodes<Time>(par0, limit);
-            auto             dead  = Log::Deadline{};
-            auto             on    = time_after("on");
-            auto             from  = time_after("from");
-            log->log               = dead;
+            auto             __trace = trace(a, "deadline");
+            Vec<SemId<Time>> times   = filter_subnodes<Time>(par0, limit);
+            auto             dead    = Log::Deadline{};
+            auto             on      = time_after("on");
+            auto             from    = time_after("from");
+            log->log                 = dead;
 
         } else if (words.at(0) == "priority") {
+            auto __trace = trace(a, "priority");
+            print(fmt("words {}", words));
             Vec<SemId<Time>> times = filter_subnodes<Time>(par0, limit);
             Vec<SemId<BigIdent>> priorities = filter_subnodes<BigIdent>(
                 par0, limit);
@@ -364,9 +375,15 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
                 priority.newPriority = priorities.at(0)->text;
                 priority.action      = Log::Priority::Action::Added;
             } else if (words.contains("changed")) {
-                priority.newPriority = priorities.at(0)->text;
-                priority.oldPriority = priorities.at(0)->text;
-                priority.action      = Log::Priority::Action::Changed;
+                if (auto new_ = node_after("priority", {osk::Word})) {
+                    priority.newPriority = new_->as<sem::Word>()->text;
+                }
+
+                if (auto old_ = node_after("from", {osk::Word})) {
+                    priority.oldPriority = old_->as<sem::Word>()->text;
+                }
+
+                priority.action = Log::Priority::Action::Changed;
             } else if (words.contains("removed")) {
                 priority.oldPriority = priorities.at(0)->text;
                 priority.action      = Log::Priority::Action::Removed;
@@ -380,11 +397,13 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
             log->log    = priority;
 
         } else if (words.at(0) == "note" && !times.empty()) {
-            auto note = Log::Note{};
-            note.on   = times.at(0)->getStaticTime();
-            log->log  = note;
+            auto __trace = trace(a, "note");
+            auto note    = Log::Note{};
+            note.on      = times.at(0)->getStaticTime();
+            log->log     = note;
 
         } else {
+            auto __trace = trace(a, "unknown");
             auto unknown = Log::Unknown{};
             auto stmt    = SemId<StmtList>::New();
             for (auto const& sub : item->subnodes) {
