@@ -1837,9 +1837,7 @@ void proto_serde<::orgproto::SubtreeLog::Priority, sem::SubtreeLog::Priority>::w
   if (in.newPriority) {
     out->set_newpriority(*in.newPriority);
   }
-  if (!in.on.isNil()) {
-    proto_serde<orgproto::Time, sem::SemId<sem::Time>>::write(out->mutable_on(), in.on);
-  }
+  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_on(), in.on);
   out->set_action(static_cast<orgproto::SubtreeLog_Priority_Action>(in.action));
 }
 
@@ -1851,27 +1849,23 @@ void proto_serde<::orgproto::SubtreeLog::Priority, sem::SubtreeLog::Priority>::r
   if (out.has_newpriority()) {
     proto_serde<Opt<std::string>, Opt<std::string>>::read(out.newpriority(), in.for_field(&sem::SubtreeLog::Priority::newPriority));
   }
-  proto_serde<orgproto::Time, sem::SemId<sem::Time>>::read(out.on(), in.for_field(&sem::SubtreeLog::Priority::on));
+  proto_serde<orgproto::UserTime, UserTime>::read(out.on(), in.for_field(&sem::SubtreeLog::Priority::on));
   in.for_field(&sem::SubtreeLog::Priority::action).get() = static_cast<sem::SubtreeLog::Priority::Action>(out.action());
 }
 
 void proto_serde<::orgproto::SubtreeLog::Note, sem::SubtreeLog::Note>::write(::orgproto::SubtreeLog::Note* out, sem::SubtreeLog::Note const& in) {
   proto_serde<::orgproto::SubtreeLog::Note, sem::SubtreeLog::DescribedLog>::write(out, in);
-  if (!in.on.isNil()) {
-    proto_serde<orgproto::Time, sem::SemId<sem::Time>>::write(out->mutable_on(), in.on);
-  }
+  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_on(), in.on);
 }
 
 void proto_serde<::orgproto::SubtreeLog::Note, sem::SubtreeLog::Note>::read(::orgproto::SubtreeLog::Note const& out, proto_write_accessor<sem::SubtreeLog::Note> in) {
   proto_serde<::orgproto::SubtreeLog::Note, sem::SubtreeLog::DescribedLog>::read(out, in.as<sem::SubtreeLog::DescribedLog>());
-  proto_serde<orgproto::Time, sem::SemId<sem::Time>>::read(out.on(), in.for_field(&sem::SubtreeLog::Note::on));
+  proto_serde<orgproto::UserTime, UserTime>::read(out.on(), in.for_field(&sem::SubtreeLog::Note::on));
 }
 
 void proto_serde<::orgproto::SubtreeLog::Refile, sem::SubtreeLog::Refile>::write(::orgproto::SubtreeLog::Refile* out, sem::SubtreeLog::Refile const& in) {
   proto_serde<::orgproto::SubtreeLog::Refile, sem::SubtreeLog::DescribedLog>::write(out, in);
-  if (!in.on.isNil()) {
-    proto_serde<orgproto::Time, sem::SemId<sem::Time>>::write(out->mutable_on(), in.on);
-  }
+  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_on(), in.on);
   if (!in.from.isNil()) {
     proto_serde<orgproto::Link, sem::SemId<sem::Link>>::write(out->mutable_from(), in.from);
   }
@@ -1879,25 +1873,23 @@ void proto_serde<::orgproto::SubtreeLog::Refile, sem::SubtreeLog::Refile>::write
 
 void proto_serde<::orgproto::SubtreeLog::Refile, sem::SubtreeLog::Refile>::read(::orgproto::SubtreeLog::Refile const& out, proto_write_accessor<sem::SubtreeLog::Refile> in) {
   proto_serde<::orgproto::SubtreeLog::Refile, sem::SubtreeLog::DescribedLog>::read(out, in.as<sem::SubtreeLog::DescribedLog>());
-  proto_serde<orgproto::Time, sem::SemId<sem::Time>>::read(out.on(), in.for_field(&sem::SubtreeLog::Refile::on));
+  proto_serde<orgproto::UserTime, UserTime>::read(out.on(), in.for_field(&sem::SubtreeLog::Refile::on));
   proto_serde<orgproto::Link, sem::SemId<sem::Link>>::read(out.from(), in.for_field(&sem::SubtreeLog::Refile::from));
 }
 
 void proto_serde<::orgproto::SubtreeLog::Clock, sem::SubtreeLog::Clock>::write(::orgproto::SubtreeLog::Clock* out, sem::SubtreeLog::Clock const& in) {
   proto_serde<::orgproto::SubtreeLog::Clock, sem::SubtreeLog::DescribedLog>::write(out, in);
-  if (!in.from.isNil()) {
-    proto_serde<orgproto::Time, sem::SemId<sem::Time>>::write(out->mutable_from(), in.from);
-  }
+  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_from(), in.from);
   if (in.to) {
-    proto_serde<orgproto::Time, sem::SemId<sem::Time>>::write(out->mutable_to(), *in.to);
+    proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_to(), *in.to);
   }
 }
 
 void proto_serde<::orgproto::SubtreeLog::Clock, sem::SubtreeLog::Clock>::read(::orgproto::SubtreeLog::Clock const& out, proto_write_accessor<sem::SubtreeLog::Clock> in) {
   proto_serde<::orgproto::SubtreeLog::Clock, sem::SubtreeLog::DescribedLog>::read(out, in.as<sem::SubtreeLog::DescribedLog>());
-  proto_serde<orgproto::Time, sem::SemId<sem::Time>>::read(out.from(), in.for_field(&sem::SubtreeLog::Clock::from));
+  proto_serde<orgproto::UserTime, UserTime>::read(out.from(), in.for_field(&sem::SubtreeLog::Clock::from));
   if (out.has_to()) {
-    proto_serde<Opt<orgproto::Time>, Opt<sem::SemId<sem::Time>>>::read(out.to(), in.for_field(&sem::SubtreeLog::Clock::to));
+    proto_serde<Opt<orgproto::UserTime>, Opt<UserTime>>::read(out.to(), in.for_field(&sem::SubtreeLog::Clock::to));
   }
 }
 
@@ -1905,55 +1897,55 @@ void proto_serde<::orgproto::SubtreeLog::State, sem::SubtreeLog::State>::write(:
   proto_serde<::orgproto::SubtreeLog::State, sem::SubtreeLog::DescribedLog>::write(out, in);
   proto_serde<std::string, Str>::write(out->mutable_from(), in.from);
   proto_serde<std::string, Str>::write(out->mutable_to(), in.to);
-  if (!in.on.isNil()) {
-    proto_serde<orgproto::Time, sem::SemId<sem::Time>>::write(out->mutable_on(), in.on);
-  }
+  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_on(), in.on);
 }
 
 void proto_serde<::orgproto::SubtreeLog::State, sem::SubtreeLog::State>::read(::orgproto::SubtreeLog::State const& out, proto_write_accessor<sem::SubtreeLog::State> in) {
   proto_serde<::orgproto::SubtreeLog::State, sem::SubtreeLog::DescribedLog>::read(out, in.as<sem::SubtreeLog::DescribedLog>());
   proto_serde<std::string, Str>::read(out.from(), in.for_field(&sem::SubtreeLog::State::from));
   proto_serde<std::string, Str>::read(out.to(), in.for_field(&sem::SubtreeLog::State::to));
-  proto_serde<orgproto::Time, sem::SemId<sem::Time>>::read(out.on(), in.for_field(&sem::SubtreeLog::State::on));
+  proto_serde<orgproto::UserTime, UserTime>::read(out.on(), in.for_field(&sem::SubtreeLog::State::on));
 }
 
 void proto_serde<::orgproto::SubtreeLog::Deadline, sem::SubtreeLog::Deadline>::write(::orgproto::SubtreeLog::Deadline* out, sem::SubtreeLog::Deadline const& in) {
   proto_serde<::orgproto::SubtreeLog::Deadline, sem::SubtreeLog::DescribedLog>::write(out, in);
-  proto_serde<std::string, Str>::write(out->mutable_from(), in.from);
-  proto_serde<std::string, Str>::write(out->mutable_to(), in.to);
-  if (!in.on.isNil()) {
-    proto_serde<orgproto::Time, sem::SemId<sem::Time>>::write(out->mutable_on(), in.on);
+  if (in.from) {
+    proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_from(), *in.from);
   }
+  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_to(), in.to);
+  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_on(), in.on);
 }
 
 void proto_serde<::orgproto::SubtreeLog::Deadline, sem::SubtreeLog::Deadline>::read(::orgproto::SubtreeLog::Deadline const& out, proto_write_accessor<sem::SubtreeLog::Deadline> in) {
   proto_serde<::orgproto::SubtreeLog::Deadline, sem::SubtreeLog::DescribedLog>::read(out, in.as<sem::SubtreeLog::DescribedLog>());
-  proto_serde<std::string, Str>::read(out.from(), in.for_field(&sem::SubtreeLog::Deadline::from));
-  proto_serde<std::string, Str>::read(out.to(), in.for_field(&sem::SubtreeLog::Deadline::to));
-  proto_serde<orgproto::Time, sem::SemId<sem::Time>>::read(out.on(), in.for_field(&sem::SubtreeLog::Deadline::on));
+  if (out.has_from()) {
+    proto_serde<Opt<orgproto::UserTime>, Opt<UserTime>>::read(out.from(), in.for_field(&sem::SubtreeLog::Deadline::from));
+  }
+  proto_serde<orgproto::UserTime, UserTime>::read(out.to(), in.for_field(&sem::SubtreeLog::Deadline::to));
+  proto_serde<orgproto::UserTime, UserTime>::read(out.on(), in.for_field(&sem::SubtreeLog::Deadline::on));
 }
 
 void proto_serde<::orgproto::SubtreeLog::Schedule, sem::SubtreeLog::Schedule>::write(::orgproto::SubtreeLog::Schedule* out, sem::SubtreeLog::Schedule const& in) {
   proto_serde<::orgproto::SubtreeLog::Schedule, sem::SubtreeLog::DescribedLog>::write(out, in);
-  proto_serde<std::string, Str>::write(out->mutable_from(), in.from);
-  proto_serde<std::string, Str>::write(out->mutable_to(), in.to);
-  if (!in.on.isNil()) {
-    proto_serde<orgproto::Time, sem::SemId<sem::Time>>::write(out->mutable_on(), in.on);
+  if (in.from) {
+    proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_from(), *in.from);
   }
+  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_to(), in.to);
+  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_on(), in.on);
 }
 
 void proto_serde<::orgproto::SubtreeLog::Schedule, sem::SubtreeLog::Schedule>::read(::orgproto::SubtreeLog::Schedule const& out, proto_write_accessor<sem::SubtreeLog::Schedule> in) {
   proto_serde<::orgproto::SubtreeLog::Schedule, sem::SubtreeLog::DescribedLog>::read(out, in.as<sem::SubtreeLog::DescribedLog>());
-  proto_serde<std::string, Str>::read(out.from(), in.for_field(&sem::SubtreeLog::Schedule::from));
-  proto_serde<std::string, Str>::read(out.to(), in.for_field(&sem::SubtreeLog::Schedule::to));
-  proto_serde<orgproto::Time, sem::SemId<sem::Time>>::read(out.on(), in.for_field(&sem::SubtreeLog::Schedule::on));
+  if (out.has_from()) {
+    proto_serde<Opt<orgproto::UserTime>, Opt<UserTime>>::read(out.from(), in.for_field(&sem::SubtreeLog::Schedule::from));
+  }
+  proto_serde<orgproto::UserTime, UserTime>::read(out.to(), in.for_field(&sem::SubtreeLog::Schedule::to));
+  proto_serde<orgproto::UserTime, UserTime>::read(out.on(), in.for_field(&sem::SubtreeLog::Schedule::on));
 }
 
 void proto_serde<::orgproto::SubtreeLog::Tag, sem::SubtreeLog::Tag>::write(::orgproto::SubtreeLog::Tag* out, sem::SubtreeLog::Tag const& in) {
   proto_serde<::orgproto::SubtreeLog::Tag, sem::SubtreeLog::DescribedLog>::write(out, in);
-  if (!in.on.isNil()) {
-    proto_serde<orgproto::Time, sem::SemId<sem::Time>>::write(out->mutable_on(), in.on);
-  }
+  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_on(), in.on);
   if (!in.tag.isNil()) {
     proto_serde<orgproto::HashTag, sem::SemId<sem::HashTag>>::write(out->mutable_tag(), in.tag);
   }
@@ -1962,7 +1954,7 @@ void proto_serde<::orgproto::SubtreeLog::Tag, sem::SubtreeLog::Tag>::write(::org
 
 void proto_serde<::orgproto::SubtreeLog::Tag, sem::SubtreeLog::Tag>::read(::orgproto::SubtreeLog::Tag const& out, proto_write_accessor<sem::SubtreeLog::Tag> in) {
   proto_serde<::orgproto::SubtreeLog::Tag, sem::SubtreeLog::DescribedLog>::read(out, in.as<sem::SubtreeLog::DescribedLog>());
-  proto_serde<orgproto::Time, sem::SemId<sem::Time>>::read(out.on(), in.for_field(&sem::SubtreeLog::Tag::on));
+  proto_serde<orgproto::UserTime, UserTime>::read(out.on(), in.for_field(&sem::SubtreeLog::Tag::on));
   proto_serde<orgproto::HashTag, sem::SemId<sem::HashTag>>::read(out.tag(), in.for_field(&sem::SubtreeLog::Tag::tag));
   in.for_field(&sem::SubtreeLog::Tag::added).get() = out.added();
 }

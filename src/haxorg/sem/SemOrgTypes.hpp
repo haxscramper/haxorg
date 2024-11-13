@@ -2119,7 +2119,7 @@ struct SubtreeLog : public sem::Org {
     /// \brief New priority for change and addition
     Opt<std::string> newPriority = std::nullopt;
     /// \brief When priority was changed
-    sem::SemId<sem::Time> on = sem::SemId<sem::Time>::Nil();
+    UserTime on;
     /// \brief Which action taken
     sem::SubtreeLog::Priority::Action action;
   };
@@ -2129,7 +2129,7 @@ struct SubtreeLog : public sem::Org {
     Note() {}
     BOOST_DESCRIBE_CLASS(Note, (DescribedLog), (), (), (on))
     /// \brief Where log was taken
-    sem::SemId<sem::Time> on = sem::SemId<sem::Time>::Nil();
+    UserTime on;
   };
 
   /// \brief Refiling action
@@ -2137,7 +2137,7 @@ struct SubtreeLog : public sem::Org {
     Refile() {}
     BOOST_DESCRIBE_CLASS(Refile, (DescribedLog), (), (), (on, from))
     /// \brief When the refiling happened
-    sem::SemId<sem::Time> on = sem::SemId<sem::Time>::Nil();
+    UserTime on;
     /// \brief Link to the original subtree
     sem::SemId<sem::Link> from = sem::SemId<sem::Link>::Nil();
   };
@@ -2147,9 +2147,9 @@ struct SubtreeLog : public sem::Org {
     Clock() {}
     BOOST_DESCRIBE_CLASS(Clock, (DescribedLog), (), (), (from, to))
     /// \brief Clock start time
-    sem::SemId<sem::Time> from = sem::SemId<sem::Time>::Nil();
+    UserTime from;
     /// \brief Optional end of the clock
-    Opt<sem::SemId<sem::Time>> to = std::nullopt;
+    Opt<UserTime> to = std::nullopt;
   };
 
   /// \brief Change of the subtree state -- `- State "WIP" from "TODO" [2023-04-30 Sun 13:29:04]`
@@ -2158,25 +2158,25 @@ struct SubtreeLog : public sem::Org {
     BOOST_DESCRIBE_CLASS(State, (DescribedLog), (), (), (from, to, on))
     Str from;
     Str to;
-    sem::SemId<sem::Time> on = sem::SemId<sem::Time>::Nil();
+    UserTime on;
   };
 
   /// \brief Change of the subtree deadline
   struct Deadline : public sem::SubtreeLog::DescribedLog {
     Deadline() {}
     BOOST_DESCRIBE_CLASS(Deadline, (DescribedLog), (), (), (from, to, on))
-    Str from;
-    Str to;
-    sem::SemId<sem::Time> on = sem::SemId<sem::Time>::Nil();
+    Opt<UserTime> from = std::nullopt;
+    UserTime to;
+    UserTime on;
   };
 
   /// \brief Change of the subtree Schedule
   struct Schedule : public sem::SubtreeLog::DescribedLog {
     Schedule() {}
     BOOST_DESCRIBE_CLASS(Schedule, (DescribedLog), (), (), (from, to, on))
-    Str from;
-    Str to;
-    sem::SemId<sem::Time> on = sem::SemId<sem::Time>::Nil();
+    Opt<UserTime> from = std::nullopt;
+    UserTime to;
+    UserTime on;
   };
 
   /// \brief Assign tag to the subtree `- Tag "project##haxorg" Added on [2023-04-30 Sun 13:29:06]`
@@ -2184,7 +2184,7 @@ struct SubtreeLog : public sem::Org {
     Tag() {}
     BOOST_DESCRIBE_CLASS(Tag, (DescribedLog), (), (), (on, tag, added))
     /// \brief When the log was assigned
-    sem::SemId<sem::Time> on = sem::SemId<sem::Time>::Nil();
+    UserTime on;
     /// \brief Tag in question
     sem::SemId<sem::HashTag> tag = sem::SemId<sem::HashTag>::Nil();
     /// \brief Added/removed?

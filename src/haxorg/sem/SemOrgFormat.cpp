@@ -1038,11 +1038,10 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
                             toString(clock.from, ctx),
                             str("--"),
                             toString(clock.to.value(), ctx),
-                            str(fmt(
-                                " => {}",
-                                FormatTimeDelta(GetTimeDelta(
-                                    clock.from->getStatic().time,
-                                    clock.to.value()->getStatic().time)))),
+                            str(
+                                fmt(" => {}",
+                                    FormatTimeDelta(GetTimeDelta(
+                                        clock.from, clock.to.value())))),
                         });
                     } else {
                         log_head = b.line({

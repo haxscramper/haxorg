@@ -1028,7 +1028,7 @@ struct ImmSubtreeLog : public org::ImmOrg {
     /// \brief New priority for change and addition
     ImmBox<Opt<std::string>> newPriority = std::nullopt;
     /// \brief When priority was changed
-    org::ImmIdT<org::ImmTime> on = org::ImmIdT<org::ImmTime>::Nil();
+    UserTime on;
     /// \brief Which action taken
     org::ImmSubtreeLog::Priority::Action action;
     bool operator==(org::ImmSubtreeLog::Priority const& other) const;
@@ -1042,7 +1042,7 @@ struct ImmSubtreeLog : public org::ImmOrg {
                          (),
                          (on))
     /// \brief Where log was taken
-    org::ImmIdT<org::ImmTime> on = org::ImmIdT<org::ImmTime>::Nil();
+    UserTime on;
     bool operator==(org::ImmSubtreeLog::Note const& other) const;
   };
 
@@ -1054,7 +1054,7 @@ struct ImmSubtreeLog : public org::ImmOrg {
                          (),
                          (on, from))
     /// \brief When the refiling happened
-    org::ImmIdT<org::ImmTime> on = org::ImmIdT<org::ImmTime>::Nil();
+    UserTime on;
     /// \brief Link to the original subtree
     org::ImmIdT<org::ImmLink> from = org::ImmIdT<org::ImmLink>::Nil();
     bool operator==(org::ImmSubtreeLog::Refile const& other) const;
@@ -1068,9 +1068,9 @@ struct ImmSubtreeLog : public org::ImmOrg {
                          (),
                          (from, to))
     /// \brief Clock start time
-    org::ImmIdT<org::ImmTime> from = org::ImmIdT<org::ImmTime>::Nil();
+    UserTime from;
     /// \brief Optional end of the clock
-    ImmBox<Opt<org::ImmIdT<org::ImmTime>>> to = std::nullopt;
+    ImmBox<Opt<UserTime>> to = std::nullopt;
     bool operator==(org::ImmSubtreeLog::Clock const& other) const;
   };
 
@@ -1083,7 +1083,7 @@ struct ImmSubtreeLog : public org::ImmOrg {
                          (from, to, on))
     ImmBox<Str> from;
     ImmBox<Str> to;
-    org::ImmIdT<org::ImmTime> on = org::ImmIdT<org::ImmTime>::Nil();
+    UserTime on;
     bool operator==(org::ImmSubtreeLog::State const& other) const;
   };
 
@@ -1094,9 +1094,9 @@ struct ImmSubtreeLog : public org::ImmOrg {
                          (),
                          (),
                          (from, to, on))
-    ImmBox<Str> from;
-    ImmBox<Str> to;
-    org::ImmIdT<org::ImmTime> on = org::ImmIdT<org::ImmTime>::Nil();
+    ImmBox<Opt<UserTime>> from = std::nullopt;
+    UserTime to;
+    UserTime on;
     bool operator==(org::ImmSubtreeLog::Deadline const& other) const;
   };
 
@@ -1107,9 +1107,9 @@ struct ImmSubtreeLog : public org::ImmOrg {
                          (),
                          (),
                          (from, to, on))
-    ImmBox<Str> from;
-    ImmBox<Str> to;
-    org::ImmIdT<org::ImmTime> on = org::ImmIdT<org::ImmTime>::Nil();
+    ImmBox<Opt<UserTime>> from = std::nullopt;
+    UserTime to;
+    UserTime on;
     bool operator==(org::ImmSubtreeLog::Schedule const& other) const;
   };
 
@@ -1121,7 +1121,7 @@ struct ImmSubtreeLog : public org::ImmOrg {
                          (),
                          (on, tag, added))
     /// \brief When the log was assigned
-    org::ImmIdT<org::ImmTime> on = org::ImmIdT<org::ImmTime>::Nil();
+    UserTime on;
     /// \brief Tag in question
     org::ImmIdT<org::ImmHashTag> tag = org::ImmIdT<org::ImmHashTag>::Nil();
     /// \brief Added/removed?

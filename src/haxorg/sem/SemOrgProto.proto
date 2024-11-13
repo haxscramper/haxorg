@@ -1364,51 +1364,51 @@ message SubtreeLog {
     optional StmtList                              desc                             = 1;
     optional string                                oldPriority                      = 2;
     optional string                                newPriority                      = 3;
-    Time                                           on                               = 4;
+    UserTime                                       on                               = 4;
     SubtreeLog.Priority.Action                     action                           = 5;
     string                                         debug                            = 1000;
   }
   message Note {
     optional StmtList                              desc                             = 1;
-    Time                                           on                               = 2;
+    UserTime                                       on                               = 2;
     string                                         debug                            = 1000;
   }
   message Refile {
     optional StmtList                              desc                             = 1;
-    Time                                           on                               = 2;
+    UserTime                                       on                               = 2;
     Link                                           from                             = 3;
     string                                         debug                            = 1000;
   }
   message Clock {
     optional StmtList                              desc                             = 1;
-    Time                                           from                             = 2;
-    optional Time                                  to                               = 3;
+    UserTime                                       from                             = 2;
+    optional UserTime                              to                               = 3;
     string                                         debug                            = 1000;
   }
   message State {
     optional StmtList                              desc                             = 1;
     string                                         from                             = 2;
     string                                         to                               = 3;
-    Time                                           on                               = 4;
+    UserTime                                       on                               = 4;
     string                                         debug                            = 1000;
   }
   message Deadline {
     optional StmtList                              desc                             = 1;
-    string                                         from                             = 2;
-    string                                         to                               = 3;
-    Time                                           on                               = 4;
+    optional UserTime                              from                             = 2;
+    UserTime                                       to                               = 3;
+    UserTime                                       on                               = 4;
     string                                         debug                            = 1000;
   }
   message Schedule {
     optional StmtList                              desc                             = 1;
-    string                                         from                             = 2;
-    string                                         to                               = 3;
-    Time                                           on                               = 4;
+    optional UserTime                              from                             = 2;
+    UserTime                                       to                               = 3;
+    UserTime                                       on                               = 4;
     string                                         debug                            = 1000;
   }
   message Tag {
     optional StmtList                              desc                             = 1;
-    Time                                           on                               = 2;
+    UserTime                                       on                               = 2;
     HashTag                                        tag                              = 3;
     bool                                           added                            = 4;
     string                                         debug                            = 1000;

@@ -362,15 +362,9 @@ Vec<sem::SubtreePeriod> Subtree_getTimePeriodsImpl(
             auto const log = toHandle(logIt, handle);
             if (log->getLogKind() == LogType::Kind::Clock) {
                 SubtreePeriod period{};
-                period.from = toHandle(log->getClock().from, handle)
-                                  ->getStatic()
-                                  .time;
+                period.from = log->getClock().from;
                 if (!isBoolFalse(log->getClock().to)) {
-                    period.to = //
-                        toHandle(log->getClock().to, handle)
-                            .value()
-                            ->getStatic()
-                            .time;
+                    period.to = log->getClock().to;
                 }
                 period.kind = SubtreePeriod::Kind::Clocked;
                 res.push_back(period);

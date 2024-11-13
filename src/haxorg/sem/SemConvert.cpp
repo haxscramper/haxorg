@@ -252,7 +252,8 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
             [](OrgArg arg) { return normalize(arg.as<Word>()->text); })
         | rs::to<Vec>();
 
-    auto time_after = [&](CR<Str> word) -> Opt<sem::SemId<sem::Time>> {
+    auto node_after = [&](CR<Str>    word,
+                          CR<SemSet> target) -> Opt<sem::SemId<sem::Org>> {
         for (int i = 0; i < par0.size(); ++i) {
             if (auto w = par0.at(0).asOpt<sem::Word>();
                 !w.isNil() && normalize(w->text) == "word") {
@@ -261,8 +262,8 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
                     auto t = par0.at(offset);
                     if (SemSet{osk::Word}.contains(t->getKind())) {
                         goto found_search_limit;
-                    } else if (t->getKind() == osk::Time) {
-                        return t.asOpt<sem::Time>();
+                    } else if (target.contains(t->getKind())) {
+                        return t;
                     } else {
                         ++offset;
                     }
@@ -272,6 +273,15 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
             }
         }
         return std::nullopt;
+    };
+
+    auto time_after = [&](CR<Str> word) -> Opt<sem::SemId<sem::Time>> {
+        auto t = node_after(word, SemSet{osk::Time});
+        if (t) {
+            return t.value().as<sem::Time>();
+        } else {
+            return std::nullopt;
+        }
     };
 
     if (words.empty()) {
@@ -286,11 +296,11 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
         CHECK(!times.empty())
             << a.treeRepr() << ExporterTree::treeRepr(item).toString();
         if (times.at(0)->is(osk::Time)) {
-            clock.from = times.at(0).as<Time>();
+            clock.from = times.at(0).as<Time>()->getStaticTime();
         } else {
             auto range = times.at(0).as<TimeRange>();
-            clock.from = range->from;
-            clock.to   = range->to;
+            clock.from = range->from->getStaticTime();
+            clock.to   = range->to->getStaticTime();
         }
 
         log->log = clock;
@@ -303,7 +313,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
                 par0, limit);
             CHECK(!tags.empty() && !times.empty()) << a.treeRepr();
             tag.tag = tags.at(0);
-            tag.on  = times.at(0);
+            tag.on  = times.at(0)->getStaticTime();
             if (words.at(1) == "added") {
                 tag.added = true;
             } else {
@@ -323,7 +333,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
             CHECK(!big_idents.empty()) << a.treeRepr();
             states.to = big_idents.at(0);
             if (1 < big_idents.size()) { states.from = big_idents.at(1); }
-            states.on = times.at(0);
+            states.on = times.at(0)->getStaticTime();
             log->log  = states;
 
         } else if (words.at(0) == "refiled") {
@@ -333,7 +343,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
             CHECK(!times.empty())
                 << a.treeRepr() << ExporterTree::treeRepr(item).toString();
 
-            refile.on = times.at(0);
+            refile.on = times.at(0)->getStaticTime();
             if (!link.empty()) { refile.from = link.at(0); }
             log->log = refile;
 
@@ -342,7 +352,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
             auto             dead  = Log::Deadline{};
             auto             on    = time_after("on");
             auto             from  = time_after("from");
-            // dead.
+            log->log               = dead;
 
         } else if (words.at(0) == "priority") {
             Vec<SemId<Time>> times = filter_subnodes<Time>(par0, limit);
@@ -366,12 +376,12 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
                         words));
             }
 
-            priority.on = times.at(0);
+            priority.on = times.at(0)->getStaticTime();
             log->log    = priority;
 
         } else if (words.at(0) == "note" && !times.empty()) {
             auto note = Log::Note{};
-            note.on   = times.at(0);
+            note.on   = times.at(0)->getStaticTime();
             log->log  = note;
 
         } else {
