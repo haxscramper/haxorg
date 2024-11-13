@@ -1087,6 +1087,32 @@ struct ImmSubtreeLog : public org::ImmOrg {
     bool operator==(org::ImmSubtreeLog::State const& other) const;
   };
 
+  /// \brief Change of the subtree deadline
+  struct Deadline : public org::ImmSubtreeLog::DescribedLog {
+    BOOST_DESCRIBE_CLASS(Deadline,
+                         (DescribedLog),
+                         (),
+                         (),
+                         (from, to, on))
+    ImmBox<Str> from;
+    ImmBox<Str> to;
+    org::ImmIdT<org::ImmTime> on = org::ImmIdT<org::ImmTime>::Nil();
+    bool operator==(org::ImmSubtreeLog::Deadline const& other) const;
+  };
+
+  /// \brief Change of the subtree Schedule
+  struct Schedule : public org::ImmSubtreeLog::DescribedLog {
+    BOOST_DESCRIBE_CLASS(Schedule,
+                         (DescribedLog),
+                         (),
+                         (),
+                         (from, to, on))
+    ImmBox<Str> from;
+    ImmBox<Str> to;
+    org::ImmIdT<org::ImmTime> on = org::ImmIdT<org::ImmTime>::Nil();
+    bool operator==(org::ImmSubtreeLog::Schedule const& other) const;
+  };
+
   /// \brief Assign tag to the subtree `- Tag "project##haxorg" Added on [2023-04-30 Sun 13:29:06]`
   struct Tag : public org::ImmSubtreeLog::DescribedLog {
     BOOST_DESCRIBE_CLASS(Tag,
@@ -1113,9 +1139,9 @@ struct ImmSubtreeLog : public org::ImmOrg {
     bool operator==(org::ImmSubtreeLog::Unknown const& other) const;
   };
 
-  using LogEntry = std::variant<org::ImmSubtreeLog::Priority, org::ImmSubtreeLog::Note, org::ImmSubtreeLog::Refile, org::ImmSubtreeLog::Clock, org::ImmSubtreeLog::State, org::ImmSubtreeLog::Tag, org::ImmSubtreeLog::Unknown>;
-  enum class Kind : short int { Priority, Note, Refile, Clock, State, Tag, Unknown, };
-  BOOST_DESCRIBE_NESTED_ENUM(Kind, Priority, Note, Refile, Clock, State, Tag, Unknown)
+  using LogEntry = std::variant<org::ImmSubtreeLog::Priority, org::ImmSubtreeLog::Note, org::ImmSubtreeLog::Refile, org::ImmSubtreeLog::Clock, org::ImmSubtreeLog::State, org::ImmSubtreeLog::Deadline, org::ImmSubtreeLog::Schedule, org::ImmSubtreeLog::Tag, org::ImmSubtreeLog::Unknown>;
+  enum class Kind : short int { Priority, Note, Refile, Clock, State, Deadline, Schedule, Tag, Unknown, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, Priority, Note, Refile, Clock, State, Deadline, Schedule, Tag, Unknown)
   using variant_enum_type = org::ImmSubtreeLog::Kind;
   using variant_data_type = org::ImmSubtreeLog::LogEntry;
   BOOST_DESCRIBE_CLASS(ImmSubtreeLog,
@@ -1143,12 +1169,18 @@ struct ImmSubtreeLog : public org::ImmOrg {
   bool isState() const { return getLogKind() == Kind::State; }
   org::ImmSubtreeLog::State const& getState() const { return std::get<4>(log); }
   org::ImmSubtreeLog::State& getState() { return std::get<4>(log); }
+  bool isDeadline() const { return getLogKind() == Kind::Deadline; }
+  org::ImmSubtreeLog::Deadline const& getDeadline() const { return std::get<5>(log); }
+  org::ImmSubtreeLog::Deadline& getDeadline() { return std::get<5>(log); }
+  bool isSchedule() const { return getLogKind() == Kind::Schedule; }
+  org::ImmSubtreeLog::Schedule const& getSchedule() const { return std::get<6>(log); }
+  org::ImmSubtreeLog::Schedule& getSchedule() { return std::get<6>(log); }
   bool isTag() const { return getLogKind() == Kind::Tag; }
-  org::ImmSubtreeLog::Tag const& getTag() const { return std::get<5>(log); }
-  org::ImmSubtreeLog::Tag& getTag() { return std::get<5>(log); }
+  org::ImmSubtreeLog::Tag const& getTag() const { return std::get<7>(log); }
+  org::ImmSubtreeLog::Tag& getTag() { return std::get<7>(log); }
   bool isUnknown() const { return getLogKind() == Kind::Unknown; }
-  org::ImmSubtreeLog::Unknown const& getUnknown() const { return std::get<6>(log); }
-  org::ImmSubtreeLog::Unknown& getUnknown() { return std::get<6>(log); }
+  org::ImmSubtreeLog::Unknown const& getUnknown() const { return std::get<8>(log); }
+  org::ImmSubtreeLog::Unknown& getUnknown() { return std::get<8>(log); }
   static org::ImmSubtreeLog::Kind getLogKind(org::ImmSubtreeLog::LogEntry const& __input) { return static_cast<org::ImmSubtreeLog::Kind>(__input.index()); }
   org::ImmSubtreeLog::Kind getLogKind() const { return getLogKind(log); }
 };

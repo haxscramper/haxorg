@@ -173,6 +173,8 @@
     __IMPL(SubtreeLog, Refile, (Refile)) \
     __IMPL(SubtreeLog, Clock, (Clock)) \
     __IMPL(SubtreeLog, State, (State)) \
+    __IMPL(SubtreeLog, Deadline, (Deadline)) \
+    __IMPL(SubtreeLog, Schedule, (Schedule)) \
     __IMPL(SubtreeLog, Tag, (Tag)) \
     __IMPL(SubtreeLog, Unknown, (Unknown)) \
     __IMPL(Include, Example, (Example)) \
@@ -257,6 +259,8 @@
     __IMPL(SubtreeLog::Refile, (SubtreeLog, Refile)) \
     __IMPL(SubtreeLog::Clock, (SubtreeLog, Clock)) \
     __IMPL(SubtreeLog::State, (SubtreeLog, State)) \
+    __IMPL(SubtreeLog::Deadline, (SubtreeLog, Deadline)) \
+    __IMPL(SubtreeLog::Schedule, (SubtreeLog, Schedule)) \
     __IMPL(SubtreeLog::Tag, (SubtreeLog, Tag)) \
     __IMPL(SubtreeLog::Unknown, (SubtreeLog, Unknown)) \
     __IMPL(Subtree, (Subtree)) \

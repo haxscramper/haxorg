@@ -1056,6 +1056,46 @@ struct ImmSemSerde<sem::SubtreeLog::State, org::ImmSubtreeLog::State> {
 };
 
 template <>
+struct ImmSemSerde<sem::SubtreeLog::Deadline, org::ImmSubtreeLog::Deadline> {
+  static org::ImmSubtreeLog::Deadline to_immer(sem::SubtreeLog::Deadline const& value, ImmAstEditContext& ctx) {
+    org::ImmSubtreeLog::Deadline result = SerdeDefaultProvider<org::ImmSubtreeLog::Deadline>::get();
+    assign_immer_field(result.from, value.from, ctx);
+    assign_immer_field(result.to, value.to, ctx);
+    assign_immer_field(result.on, value.on, ctx);
+    assign_immer_field(result.desc, value.desc, ctx);
+    return result;
+  }
+  static sem::SubtreeLog::Deadline from_immer(org::ImmSubtreeLog::Deadline const& value, ImmAstContext const& ctx) {
+    sem::SubtreeLog::Deadline result = SerdeDefaultProvider<sem::SubtreeLog::Deadline>::get();
+    assign_sem_field(result.from, value.from, ctx);
+    assign_sem_field(result.to, value.to, ctx);
+    assign_sem_field(result.on, value.on, ctx);
+    assign_sem_field(result.desc, value.desc, ctx);
+    return result;
+  }
+};
+
+template <>
+struct ImmSemSerde<sem::SubtreeLog::Schedule, org::ImmSubtreeLog::Schedule> {
+  static org::ImmSubtreeLog::Schedule to_immer(sem::SubtreeLog::Schedule const& value, ImmAstEditContext& ctx) {
+    org::ImmSubtreeLog::Schedule result = SerdeDefaultProvider<org::ImmSubtreeLog::Schedule>::get();
+    assign_immer_field(result.from, value.from, ctx);
+    assign_immer_field(result.to, value.to, ctx);
+    assign_immer_field(result.on, value.on, ctx);
+    assign_immer_field(result.desc, value.desc, ctx);
+    return result;
+  }
+  static sem::SubtreeLog::Schedule from_immer(org::ImmSubtreeLog::Schedule const& value, ImmAstContext const& ctx) {
+    sem::SubtreeLog::Schedule result = SerdeDefaultProvider<sem::SubtreeLog::Schedule>::get();
+    assign_sem_field(result.from, value.from, ctx);
+    assign_sem_field(result.to, value.to, ctx);
+    assign_sem_field(result.on, value.on, ctx);
+    assign_sem_field(result.desc, value.desc, ctx);
+    return result;
+  }
+};
+
+template <>
 struct ImmSemSerde<sem::SubtreeLog::Tag, org::ImmSubtreeLog::Tag> {
   static org::ImmSubtreeLog::Tag to_immer(sem::SubtreeLog::Tag const& value, ImmAstEditContext& ctx) {
     org::ImmSubtreeLog::Tag result = SerdeDefaultProvider<org::ImmSubtreeLog::Tag>::get();

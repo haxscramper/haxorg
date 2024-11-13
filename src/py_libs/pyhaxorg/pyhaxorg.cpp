@@ -3612,6 +3612,42 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<sem::SubtreeLog::Deadline, sem::SubtreeLog::DescribedLog>(m, "SubtreeLogDeadline")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLog::Deadline {
+                        sem::SubtreeLog::Deadline result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("from_", &sem::SubtreeLog::Deadline::from)
+    .def_readwrite("to", &sem::SubtreeLog::Deadline::to)
+    .def_readwrite("on", &sem::SubtreeLog::Deadline::on)
+    .def("__repr__", [](sem::SubtreeLog::Deadline _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeLog::Deadline _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::SubtreeLog::Schedule, sem::SubtreeLog::DescribedLog>(m, "SubtreeLogSchedule")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLog::Schedule {
+                        sem::SubtreeLog::Schedule result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("from_", &sem::SubtreeLog::Schedule::from)
+    .def_readwrite("to", &sem::SubtreeLog::Schedule::to)
+    .def_readwrite("on", &sem::SubtreeLog::Schedule::on)
+    .def("__repr__", [](sem::SubtreeLog::Schedule _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeLog::Schedule _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<sem::SubtreeLog::Tag, sem::SubtreeLog::DescribedLog>(m, "SubtreeLogTag")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLog::Tag {
                         sem::SubtreeLog::Tag result{};
@@ -3652,6 +3688,8 @@ node can have subnodes.)RAW")
     .value("Refile", sem::SubtreeLog::Kind::Refile)
     .value("Clock", sem::SubtreeLog::Kind::Clock)
     .value("State", sem::SubtreeLog::Kind::State)
+    .value("Deadline", sem::SubtreeLog::Kind::Deadline)
+    .value("Schedule", sem::SubtreeLog::Kind::Schedule)
     .value("Tag", sem::SubtreeLog::Kind::Tag)
     .value("Unknown", sem::SubtreeLog::Kind::Unknown)
     .def("__iter__", [](sem::SubtreeLog::Kind _self) -> PyEnumIterator<sem::SubtreeLog::Kind> {
@@ -3680,6 +3718,10 @@ node can have subnodes.)RAW")
     .def("getClock", static_cast<sem::SubtreeLog::Clock&(sem::SubtreeLog::*)()>(&sem::SubtreeLog::getClock))
     .def("isState", static_cast<bool(sem::SubtreeLog::*)() const>(&sem::SubtreeLog::isState))
     .def("getState", static_cast<sem::SubtreeLog::State&(sem::SubtreeLog::*)()>(&sem::SubtreeLog::getState))
+    .def("isDeadline", static_cast<bool(sem::SubtreeLog::*)() const>(&sem::SubtreeLog::isDeadline))
+    .def("getDeadline", static_cast<sem::SubtreeLog::Deadline&(sem::SubtreeLog::*)()>(&sem::SubtreeLog::getDeadline))
+    .def("isSchedule", static_cast<bool(sem::SubtreeLog::*)() const>(&sem::SubtreeLog::isSchedule))
+    .def("getSchedule", static_cast<sem::SubtreeLog::Schedule&(sem::SubtreeLog::*)()>(&sem::SubtreeLog::getSchedule))
     .def("isTag", static_cast<bool(sem::SubtreeLog::*)() const>(&sem::SubtreeLog::isTag))
     .def("getTag", static_cast<sem::SubtreeLog::Tag&(sem::SubtreeLog::*)()>(&sem::SubtreeLog::getTag))
     .def("isUnknown", static_cast<bool(sem::SubtreeLog::*)() const>(&sem::SubtreeLog::isUnknown))

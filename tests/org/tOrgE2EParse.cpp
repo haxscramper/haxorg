@@ -1313,7 +1313,26 @@ TEST(OrgApi, SubtreeTimes) {
   :END:
 )");
         EXPECT_TRUE(t->deadline.has_value());
-        // EXPECT_EQ(t->deadline.value().)
+        auto d = t->deadline->getBreakdown();
+        EXPECT_EQ(d.day, 15);
+        EXPECT_EQ(d.year, 2019);
+        EXPECT_EQ(d.month, 12);
+
+        EXPECT_TRUE(t->closed.has_value());
+        auto c = t->closed->getBreakdown();
+        EXPECT_EQ(c.year, 2019);
+        EXPECT_EQ(c.day, 07);
+        EXPECT_EQ(c.month, 11);
+        EXPECT_EQ(c.minute, 35);
+
+        auto log = t->logbook;
+
+        auto state = log.at(0);
+        auto dead1 = log.at(1);
+        auto dead2 = log.at(2);
+        EXPECT_TRUE(state->isState());
+        EXPECT_TRUE(dead1->isDeadline());
+        EXPECT_TRUE(dead2->isDeadline());
     }
 }
 

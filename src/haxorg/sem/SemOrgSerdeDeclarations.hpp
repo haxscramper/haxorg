@@ -1016,6 +1016,20 @@ struct proto_serde<::orgproto::SubtreeLog::State, sem::SubtreeLog::State> {
 
 
 template <>
+struct proto_serde<::orgproto::SubtreeLog::Deadline, sem::SubtreeLog::Deadline> {
+  static void write(::orgproto::SubtreeLog::Deadline* out, sem::SubtreeLog::Deadline const& in);
+  static void read(::orgproto::SubtreeLog::Deadline const& out, proto_write_accessor<sem::SubtreeLog::Deadline> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::SubtreeLog::Schedule, sem::SubtreeLog::Schedule> {
+  static void write(::orgproto::SubtreeLog::Schedule* out, sem::SubtreeLog::Schedule const& in);
+  static void read(::orgproto::SubtreeLog::Schedule const& out, proto_write_accessor<sem::SubtreeLog::Schedule> in);
+};
+
+
+template <>
 struct proto_serde<::orgproto::SubtreeLog::Tag, sem::SubtreeLog::Tag> {
   static void write(::orgproto::SubtreeLog::Tag* out, sem::SubtreeLog::Tag const& in);
   static void read(::orgproto::SubtreeLog::Tag const& out, proto_write_accessor<sem::SubtreeLog::Tag> in);

@@ -2161,6 +2161,24 @@ struct SubtreeLog : public sem::Org {
     sem::SemId<sem::Time> on = sem::SemId<sem::Time>::Nil();
   };
 
+  /// \brief Change of the subtree deadline
+  struct Deadline : public sem::SubtreeLog::DescribedLog {
+    Deadline() {}
+    BOOST_DESCRIBE_CLASS(Deadline, (DescribedLog), (), (), (from, to, on))
+    Str from;
+    Str to;
+    sem::SemId<sem::Time> on = sem::SemId<sem::Time>::Nil();
+  };
+
+  /// \brief Change of the subtree Schedule
+  struct Schedule : public sem::SubtreeLog::DescribedLog {
+    Schedule() {}
+    BOOST_DESCRIBE_CLASS(Schedule, (DescribedLog), (), (), (from, to, on))
+    Str from;
+    Str to;
+    sem::SemId<sem::Time> on = sem::SemId<sem::Time>::Nil();
+  };
+
   /// \brief Assign tag to the subtree `- Tag "project##haxorg" Added on [2023-04-30 Sun 13:29:06]`
   struct Tag : public sem::SubtreeLog::DescribedLog {
     Tag() {}
@@ -2179,9 +2197,9 @@ struct SubtreeLog : public sem::Org {
     BOOST_DESCRIBE_CLASS(Unknown, (DescribedLog), (), (), ())
   };
 
-  using LogEntry = std::variant<sem::SubtreeLog::Priority, sem::SubtreeLog::Note, sem::SubtreeLog::Refile, sem::SubtreeLog::Clock, sem::SubtreeLog::State, sem::SubtreeLog::Tag, sem::SubtreeLog::Unknown>;
-  enum class Kind : short int { Priority, Note, Refile, Clock, State, Tag, Unknown, };
-  BOOST_DESCRIBE_NESTED_ENUM(Kind, Priority, Note, Refile, Clock, State, Tag, Unknown)
+  using LogEntry = std::variant<sem::SubtreeLog::Priority, sem::SubtreeLog::Note, sem::SubtreeLog::Refile, sem::SubtreeLog::Clock, sem::SubtreeLog::State, sem::SubtreeLog::Deadline, sem::SubtreeLog::Schedule, sem::SubtreeLog::Tag, sem::SubtreeLog::Unknown>;
+  enum class Kind : short int { Priority, Note, Refile, Clock, State, Deadline, Schedule, Tag, Unknown, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, Priority, Note, Refile, Clock, State, Deadline, Schedule, Tag, Unknown)
   using variant_enum_type = sem::SubtreeLog::Kind;
   using variant_data_type = sem::SubtreeLog::LogEntry;
   BOOST_DESCRIBE_CLASS(SubtreeLog,
@@ -2209,12 +2227,18 @@ struct SubtreeLog : public sem::Org {
   bool isState() const { return getLogKind() == Kind::State; }
   sem::SubtreeLog::State const& getState() const { return std::get<4>(log); }
   sem::SubtreeLog::State& getState() { return std::get<4>(log); }
+  bool isDeadline() const { return getLogKind() == Kind::Deadline; }
+  sem::SubtreeLog::Deadline const& getDeadline() const { return std::get<5>(log); }
+  sem::SubtreeLog::Deadline& getDeadline() { return std::get<5>(log); }
+  bool isSchedule() const { return getLogKind() == Kind::Schedule; }
+  sem::SubtreeLog::Schedule const& getSchedule() const { return std::get<6>(log); }
+  sem::SubtreeLog::Schedule& getSchedule() { return std::get<6>(log); }
   bool isTag() const { return getLogKind() == Kind::Tag; }
-  sem::SubtreeLog::Tag const& getTag() const { return std::get<5>(log); }
-  sem::SubtreeLog::Tag& getTag() { return std::get<5>(log); }
+  sem::SubtreeLog::Tag const& getTag() const { return std::get<7>(log); }
+  sem::SubtreeLog::Tag& getTag() { return std::get<7>(log); }
   bool isUnknown() const { return getLogKind() == Kind::Unknown; }
-  sem::SubtreeLog::Unknown const& getUnknown() const { return std::get<6>(log); }
-  sem::SubtreeLog::Unknown& getUnknown() { return std::get<6>(log); }
+  sem::SubtreeLog::Unknown const& getUnknown() const { return std::get<8>(log); }
+  sem::SubtreeLog::Unknown& getUnknown() { return std::get<8>(log); }
   static sem::SubtreeLog::Kind getLogKind(sem::SubtreeLog::LogEntry const& __input) { return static_cast<sem::SubtreeLog::Kind>(__input.index()); }
   sem::SubtreeLog::Kind getLogKind() const { return getLogKind(log); }
 };

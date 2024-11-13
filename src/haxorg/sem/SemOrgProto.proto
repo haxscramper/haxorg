@@ -1392,6 +1392,20 @@ message SubtreeLog {
     Time                                           on                               = 4;
     string                                         debug                            = 1000;
   }
+  message Deadline {
+    optional StmtList                              desc                             = 1;
+    string                                         from                             = 2;
+    string                                         to                               = 3;
+    Time                                           on                               = 4;
+    string                                         debug                            = 1000;
+  }
+  message Schedule {
+    optional StmtList                              desc                             = 1;
+    string                                         from                             = 2;
+    string                                         to                               = 3;
+    Time                                           on                               = 4;
+    string                                         debug                            = 1000;
+  }
   message Tag {
     optional StmtList                              desc                             = 1;
     Time                                           on                               = 2;
@@ -1410,8 +1424,10 @@ message SubtreeLog {
       SubtreeLog.Refile                            refile                           = 3;
       SubtreeLog.Clock                             clock                            = 4;
       SubtreeLog.State                             state                            = 5;
-      SubtreeLog.Tag                               tag                              = 6;
-      SubtreeLog.Unknown                           unknown                          = 7;
+      SubtreeLog.Deadline                          deadline                         = 6;
+      SubtreeLog.Schedule                          schedule                         = 7;
+      SubtreeLog.Tag                               tag                              = 8;
+      SubtreeLog.Unknown                           unknown                          = 9;
     }
   }
   enum Kind {
@@ -1420,8 +1436,10 @@ message SubtreeLog {
     Kind_Refile_f                                                                   = 2;
     Kind_Clock_f                                                                    = 3;
     Kind_State_f                                                                    = 4;
-    Kind_Tag_f                                                                      = 5;
-    Kind_Unknown_f                                                                  = 6;
+    Kind_Deadline_f                                                                 = 5;
+    Kind_Schedule_f                                                                 = 6;
+    Kind_Tag_f                                                                      = 7;
+    Kind_Unknown_f                                                                  = 8;
   }
   repeated AnyNode                                 subnodes                         = 1;
   OrgSemKind                                       staticKind                       = 2;

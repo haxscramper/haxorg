@@ -1163,6 +1163,28 @@ def get_sem_subtree():
                             nested=[GenTuPass("State() {}")],
                         ),
                         GenTuStruct(
+                            t_nest("Deadline", ["SubtreeLog"]),
+                            GenTuDoc('Change of the subtree deadline'),
+                            bases=[t_org("DescribedLog", [t("SubtreeLog")])],
+                            fields=[
+                                GenTuField(t_str(), "from", GenTuDoc("")),
+                                GenTuField(t_str(), "to", GenTuDoc("")),
+                                id_field("Time", "on", GenTuDoc("")),
+                            ],
+                            nested=[GenTuPass("Deadline() {}")],
+                        ),
+                        GenTuStruct(
+                            t_nest("Schedule", ["SubtreeLog"]),
+                            GenTuDoc('Change of the subtree Schedule'),
+                            bases=[t_org("DescribedLog", [t("SubtreeLog")])],
+                            fields=[
+                                GenTuField(t_str(), "from", GenTuDoc("")),
+                                GenTuField(t_str(), "to", GenTuDoc("")),
+                                id_field("Time", "on", GenTuDoc("")),
+                            ],
+                            nested=[GenTuPass("Schedule() {}")],
+                        ),
+                        GenTuStruct(
                             t_nest("Tag", ["SubtreeLog"]),
                             GenTuDoc(
                                 'Assign tag to the subtree `- Tag "project##haxorg" Added on [2023-04-30 Sun 13:29:06]`'

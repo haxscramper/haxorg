@@ -252,6 +252,28 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
             [](OrgArg arg) { return normalize(arg.as<Word>()->text); })
         | rs::to<Vec>();
 
+    auto time_after = [&](CR<Str> word) -> Opt<sem::SemId<sem::Time>> {
+        for (int i = 0; i < par0.size(); ++i) {
+            if (auto w = par0.at(0).asOpt<sem::Word>();
+                !w.isNil() && normalize(w->text) == "word") {
+                auto offset = i;
+                while (offset < par0.size()) {
+                    auto t = par0.at(offset);
+                    if (SemSet{osk::Word}.contains(t->getKind())) {
+                        goto found_search_limit;
+                    } else if (t->getKind() == osk::Time) {
+                        return t.asOpt<sem::Time>();
+                    } else {
+                        ++offset;
+                    }
+                }
+
+            found_search_limit:
+            }
+        }
+        return std::nullopt;
+    };
+
     if (words.empty()) {
         Vec<SemId<Org>> times =   //
             item->at(0)->subnodes //
@@ -314,6 +336,13 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
             refile.on = times.at(0);
             if (!link.empty()) { refile.from = link.at(0); }
             log->log = refile;
+
+        } else if (words.at(1) == "deadline") {
+            Vec<SemId<Time>> times = filter_subnodes<Time>(par0, limit);
+            auto             dead  = Log::Deadline{};
+            auto             on    = time_after("on");
+            auto             from  = time_after("from");
+            // dead.
 
         } else if (words.at(0) == "priority") {
             Vec<SemId<Time>> times = filter_subnodes<Time>(par0, limit);

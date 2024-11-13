@@ -845,6 +845,22 @@ void Exporter<V, R>::visit(R& res, sem::SubtreeLog::State const& object) {
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::SubtreeLog::Deadline const& object) {
+  __obj_field(res, object, from);
+  __obj_field(res, object, to);
+  __obj_field(res, object, on);
+  __obj_field(res, object, desc);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::SubtreeLog::Schedule const& object) {
+  __obj_field(res, object, from);
+  __obj_field(res, object, to);
+  __obj_field(res, object, on);
+  __obj_field(res, object, desc);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::SubtreeLog::Tag const& object) {
   __obj_field(res, object, on);
   __obj_field(res, object, tag);
