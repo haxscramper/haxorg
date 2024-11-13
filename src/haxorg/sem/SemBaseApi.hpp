@@ -115,10 +115,33 @@ struct [[refl]] OrgTreeExportOpts {
     OrgTreeExportOpts const&    opts);
 
 
-using SubnodeVisitor = Func<void(SemId<Org>)>;
+using SubnodeVisitor = Func<void(SemId<Org> const&)>;
 /// \brief Recursively visit each subnode in the tree and apply the
 /// provided callback
 void eachSubnodeRec(SemId<Org> id, SubnodeVisitor cb);
+
+template <typename T, typename Func>
+Vec<T> getDfsFuncEval(SemId<Org> id, Func const& cb) {
+    Vec<T> dfs;
+    eachSubnodeRec(id, [&](SemId<Org> const& sub) {
+        Opt<T> res = cb(sub);
+        if (res.has_value()) { dfs.push_back(res.value()); }
+    });
+    return dfs;
+}
+
+template <typename T, typename Func>
+Vec<T> getDfsFuncEval(org::ImmAdapter id, bool withPath, Func const& cb) {
+    Vec<T> dfs;
+    org::eachSubnodeRec(id, withPath, [&](org::ImmAdapter const& sub) {
+        Opt<T> res = cb(sub);
+        if (res.has_value()) { dfs.push_back(res.value()); }
+    });
+    return dfs;
+}
+
+Vec<Str> getDfsLeafText(SemId<Org> id, SemSet const& filter);
+Vec<Str> getDfsLeafText(org::ImmAdapter const& id, SemSet const& filter);
 
 template <typename T>
 Vec<T> getSubtreeProperties(sem::SemId<sem::Subtree> const& tree) {
@@ -143,5 +166,6 @@ Opt<sem::NamedProperty> getFinalProperty(
     CR<Vec<org::ImmAdapter>> nodes,
     CR<Str>                  kind,
     CR<Opt<Str>>             subKind = std::nullopt);
+
 
 } // namespace sem

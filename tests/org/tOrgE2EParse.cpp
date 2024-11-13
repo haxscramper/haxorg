@@ -1253,6 +1253,25 @@ TEST(OrgApi, SubtreeLogParsing) {
         EXPECT_EQ(p1.newPriority.value(), "A");
         EXPECT_EQ(p1.on.getBreakdown().second, 21);
     }
+
+    {
+        auto        t = parseOne<sem::Subtree>(R"(**** Notes
+  :LOGBOOK:
+  - Note taken on [2023-07-14 Fri 14:34:03 +04] \\
+    Increasing complexity  ranking because this  is already spread  to multiple
+    people and a set of non-trivial tasks.
+  :END:)");
+        auto const& l = t->logbook;
+        EXPECT_TRUE(l.at(0)->isNote());
+        auto const& n = l.at(0)->getNote();
+        EXPECT_EQ(n.on.getBreakdown().year, 2023);
+        EXPECT_EQ(n.on.getBreakdown().second, 03);
+        EXPECT_TRUE(n.desc.has_value());
+        Vec<Str> desc = sem::getDfsLeafText(
+            n.desc.value().asOrg(), {OrgSemKind::Word});
+        EXPECT_EQ(desc.at(0), "Increasing");
+        EXPECT_NE(desc.indexOf("tasks"), -1);
+    }
 }
 
 TEST(OrgApi, WordParsing) {

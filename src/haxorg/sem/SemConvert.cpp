@@ -254,6 +254,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
 
     auto node_after = [&](CR<Str>    word,
                           CR<SemSet> target) -> Opt<sem::SemId<sem::Org>> {
+        auto __trace = trace(a, "node_after");
         print(
             fmt("Searching for '{}' after '{}' in {}",
                 target,
@@ -262,9 +263,11 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
         for (int i = 0; i < par0.size(); ++i) {
             if (auto w = par0.at(i)->dyn_cast<sem::Leaf>();
                 w != nullptr && normalize(w->text) == word) {
+                print(fmt("[{}] = {}({})", i, w->getKind(), w->text));
                 auto offset = i + 1;
                 while (offset < par0.size()) {
                     auto t = par0.at(offset);
+                    print(fmt("[{}] = {}", offset, t->getKind()));
                     if ((SemSet{osk::Word} - target)
                             .contains(t->getKind())) {
                         goto found_search_limit;
@@ -372,21 +375,26 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
             auto priority = Log::Priority{};
 
             if (words.contains("added")) {
-                priority.newPriority = priorities.at(0)->text;
-                priority.action      = Log::Priority::Action::Added;
-            } else if (words.contains("changed")) {
-                if (auto new_ = node_after("priority", {osk::Word})) {
-                    priority.newPriority = new_->as<sem::Word>()->text;
+                if (auto new_ = node_after("priority", {osk::BigIdent})) {
+                    priority.newPriority = new_->as<sem::BigIdent>()->text;
                 }
 
-                if (auto old_ = node_after("from", {osk::Word})) {
-                    priority.oldPriority = old_->as<sem::Word>()->text;
+                priority.action = Log::Priority::Action::Added;
+            } else if (words.contains("changed")) {
+                if (auto new_ = node_after("priority", {osk::BigIdent})) {
+                    priority.newPriority = new_->as<sem::BigIdent>()->text;
+                }
+
+                if (auto old_ = node_after("from", {osk::BigIdent})) {
+                    priority.oldPriority = old_->as<sem::BigIdent>()->text;
                 }
 
                 priority.action = Log::Priority::Action::Changed;
             } else if (words.contains("removed")) {
-                priority.oldPriority = priorities.at(0)->text;
-                priority.action      = Log::Priority::Action::Removed;
+                if (auto old_ = node_after("from", {osk::BigIdent})) {
+                    priority.oldPriority = old_->as<sem::BigIdent>()->text;
+                }
+                priority.action = Log::Priority::Action::Removed;
             } else {
                 throw convert_logic_error::init(
                     fmt("{} Unexpected priority log message structure",

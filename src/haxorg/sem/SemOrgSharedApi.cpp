@@ -458,6 +458,15 @@ Vec<Vec<Str>> HashTag_getFlatHashes(Handle handle, bool withIntermediate) {
     return aux({}, handle);
 }
 
+template <typename Handle>
+Opt<Str> Org_getString(Handle const& id) {
+    if (auto w = id->template dyn_cast<sem::Leaf>()) {
+        return w->text;
+    } else {
+        return std::nullopt;
+    }
+}
+
 Vec<org::ImmAdapter> Org_getLeadNodes(
     org::ImmAdapter const& it,
     OrgSemKind             kind,
@@ -1102,4 +1111,27 @@ Opt<sem::NamedProperty> sem::getFinalProperty(
     CR<Str>                       kind,
     CR<Opt<Str>>                  subKind) {
     return Org_getFinalProperty(nodes, kind, subKind);
+}
+
+Vec<Str> sem::getDfsLeafText(SemId<Org> id, const SemSet& filter) {
+    return getDfsFuncEval<Str>(id, [&](SemId<Org> const& id) -> Opt<Str> {
+        if (!filter.contains(id->getKind())) {
+            return std::nullopt;
+        } else {
+            return Org_getString(id);
+        }
+    });
+}
+
+Vec<Str> sem::getDfsLeafText(
+    const org::ImmAdapter& id,
+    const SemSet&          filter) {
+    return getDfsFuncEval<Str>(
+        id, false, [&](org::ImmAdapter const& id) -> Opt<Str> {
+            if (!filter.contains(id->getKind())) {
+                return std::nullopt;
+            } else {
+                return Org_getString(id);
+            }
+        });
 }
