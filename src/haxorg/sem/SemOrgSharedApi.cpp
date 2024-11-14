@@ -466,7 +466,11 @@ Opt<Str> Org_getString(Handle const& id) {
                        .getStaticTime()
                        .format(UserTime::Format::OrgFormat)}
              + "]"_ss;
-    } else if (auto w = id->template dyn_cast<sem::Leaf>()) {
+    } else if (
+        auto w = id->template dyn_cast<typename SemOrImmType<
+                     typename get_ast_type<Handle>::ast_type,
+                     sem::Leaf,
+                     org::ImmLeaf>::result>()) {
         return w->text;
     } else {
         return std::nullopt;
@@ -1169,8 +1173,6 @@ Str org::ImmAdapterSubtreeAPI::getCleanTitle() const {
         "",
         sem::getDfsFuncEval<Str>(
             *getThis(), false, [](org::ImmAdapter const& a) -> Opt<Str> {
-                _dbg(a);
-                a.visitNodeValue([](auto const& v) { _dbg(v); });
                 if (auto space = a.dyn_cast<org::ImmSpace>()) {
                     return " ";
                 } else {
