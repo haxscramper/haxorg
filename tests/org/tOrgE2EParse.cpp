@@ -1231,9 +1231,9 @@ TEST(OrgApi, SubtreeLogParsing) {
         auto const t = parseOne<sem::Subtree>(
             R"(**** COMPLETED [#A] Priority
   :LOGBOOK:
-  - Priority "B" Added at [2023-07-20 Thu 13:43:21 +04]
-  - Priority "A" Changed From "B" at [2023-07-20 Thu 13:43:21 +04]
-  - Priority "A" Changed From "S" at [2023-07-20 Thu 13:43:23 +04]
+  - Priority "B" Added on [2023-07-20 Thu 13:43:21 +04]
+  - Priority "A" Changed From "B" on [2023-07-20 Thu 13:43:21 +04]
+  - Priority "A" Changed From "S" on [2023-07-20 Thu 13:43:23 +04]
   :END:)",
             getDebugFile("priority"));
 

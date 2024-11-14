@@ -317,34 +317,46 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
         Vec<SemId<Time>> times = filter_subnodes<Time>(par0, limit);
 
         if (words.at(0) == "tag") {
-            auto                tag  = Log::Tag{};
-            Vec<SemId<HashTag>> tags = filter_subnodes<HashTag>(
-                par0, limit);
-            CHECK(!tags.empty() && !times.empty()) << a.treeRepr();
-            tag.tag = tags.at(0);
-            tag.on  = times.at(0)->getStaticTime();
-            if (words.at(1) == "added") {
-                tag.added = true;
+            auto res = Log::Tag{};
+            if (auto tag = node_after("tag", {osk::HashTag})) {
+                res.tag = tag->as<sem::HashTag>();
             } else {
-                tag.added = false;
+                return SemError(
+                    a, "No hashtag provided for the 'tag' value");
             }
 
-            log->log = tag;
+            if (auto on = time_after("on")) {
+                res.on = on.value()->getStaticTime();
+            }
+
+            if (words.at(1) == "added") {
+                res.added = true;
+            } else {
+                res.added = false;
+            }
+
+            log->log = res;
 
         } else if (words.at(0) == "state") {
-            auto     __trace    = trace(a, "state");
-            Vec<Str> big_idents = //
-                own_view(filter_subnodes<BigIdent>(par0, limit))
-                | rv::transform(
-                    [](SemId<BigIdent> arg) { return arg->text; })
-                | rs::to<Vec>();
+            auto __trace = trace(a, "state");
+            auto states  = Log::State{};
+            if (auto state = node_after("state", {osk::BigIdent})) {
+                states.to = state.value().as<sem::BigIdent>()->text;
+            } else {
+                return SemError(
+                    a,
+                    "No current state provided for the subtree state log "
+                    "change");
+            }
+            if (auto from = node_after("from", {osk::BigIdent})) {
+                states.from = from.value().as<sem::BigIdent>()->text;
+            }
 
-            auto states = Log::State{};
-            CHECK(!big_idents.empty()) << a.treeRepr();
-            states.to = big_idents.at(0);
-            if (1 < big_idents.size()) { states.from = big_idents.at(1); }
-            states.on = times.at(0)->getStaticTime();
-            log->log  = states;
+            if (auto from = time_after("on")) {
+                states.on = from.value()->getStaticTime();
+            }
+
+            log->log = states;
 
         } else if (words.at(0) == "refiled") {
             auto             __trace = trace(a, "refiled");
@@ -354,7 +366,13 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
             CHECK(!times.empty())
                 << a.treeRepr() << ExporterTree::treeRepr(item).toString();
 
-            refile.on = times.at(0)->getStaticTime();
+            if (auto time = time_after("on")) {
+                refile.on = time.value()->getStaticTime();
+            } else {
+                return SemError(
+                    a, "No 'on' time for the refiled subtree log");
+            }
+
             if (!link.empty()) { refile.from = link.at(0); }
             log->log = refile;
 
@@ -401,14 +419,21 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
                         words));
             }
 
-            priority.on = times.at(0)->getStaticTime();
-            log->log    = priority;
+            if (auto on = time_after("on")) {
+                priority.on = on.value()->getStaticTime();
+            }
+
+            log->log = priority;
 
         } else if (words.at(0) == "note" && !times.empty()) {
             auto __trace = trace(a, "note");
             auto note    = Log::Note{};
-            note.on      = times.at(0)->getStaticTime();
-            log->log     = note;
+
+            if (auto on = time_after("on")) {
+                note.on = on.value()->getStaticTime();
+            }
+
+            log->log = note;
 
         } else {
             auto __trace = trace(a, "unknown");
