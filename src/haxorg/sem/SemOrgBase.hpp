@@ -242,6 +242,8 @@ struct [[refl]] Org {
         return subnodes.at(idx);
     }
 
+    SemId<Org> as_unref_shared() const;
+
     SemId<Org> at(BackwardsIndex idx) const { return subnodes.at(idx); }
     Opt<SemId<Org>> get(int idx) const { return subnodes.get(idx); }
     Opt<SemId<Org>> get(BackwardsIndex idx) const {

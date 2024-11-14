@@ -1110,7 +1110,7 @@ def get_sem_subtree():
                                     GenTuDoc("New priority for change and addition"),
                                 ),
                                 org_field(t("UserTime"), "on",
-                                         GenTuDoc("When priority was changed")),
+                                          GenTuDoc("When priority was changed")),
                                 GenTuField(t_nest("Action", ["SubtreeLog", "Priority"]),
                                            "action", GenTuDoc("Which action taken")),
                             ],
@@ -1120,7 +1120,8 @@ def get_sem_subtree():
                             GenTuDoc("Timestamped note"),
                             bases=[t_org("DescribedLog", [t("SubtreeLog")])],
                             fields=[
-                                org_field(t("UserTime"), "on", GenTuDoc("Where log was taken"))
+                                org_field(t("UserTime"), "on",
+                                          GenTuDoc("Where log was taken"))
                             ],
                             nested=[GenTuPass("Note() {}")],
                         ),
@@ -1130,7 +1131,7 @@ def get_sem_subtree():
                             bases=[t_org("DescribedLog", [t("SubtreeLog")])],
                             fields=[
                                 org_field(t("UserTime"), "on",
-                                         GenTuDoc("When the refiling happened")),
+                                          GenTuDoc("When the refiling happened")),
                                 id_field("Link", "from",
                                          GenTuDoc("Link to the original subtree")),
                             ],
@@ -1143,7 +1144,8 @@ def get_sem_subtree():
                             ),
                             bases=[t_org("DescribedLog", [t("SubtreeLog")])],
                             fields=[
-                                org_field(t("UserTime"), "from", GenTuDoc("Clock start time")),
+                                org_field(t("UserTime"), "from",
+                                          GenTuDoc("Clock start time")),
                                 opt_field(t("UserTime"), "to",
                                           GenTuDoc("Optional end of the clock")),
                             ],
@@ -1192,7 +1194,7 @@ def get_sem_subtree():
                             bases=[t_org("DescribedLog", [t("SubtreeLog")])],
                             fields=[
                                 org_field(t("UserTime"), "on",
-                                         GenTuDoc("When the log was assigned")),
+                                          GenTuDoc("When the log was assigned")),
                                 id_field("HashTag", "tag", GenTuDoc("Tag in question")),
                                 GenTuField(t_bool(),
                                            "added",
@@ -1313,6 +1315,14 @@ def get_sem_subtree():
                         GenTuIdent(t_cr(t_str()), "kind"),
                         GenTuIdent(t_cr(t_opt(t_str())), "subkind", value="std::nullopt"),
                     ],
+                ),
+                GenTuFunction(
+                    t_str(),
+                    "getCleanTitle",
+                    GenTuDoc(
+                        "Get subtree title as a flat string, without markup nodes, but with all left strings"
+                    ),
+                    isConst=True,
                 ),
             ],
         ),

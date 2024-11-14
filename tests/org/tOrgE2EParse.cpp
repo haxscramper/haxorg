@@ -1393,6 +1393,25 @@ TEST(OrgApi, SubtreePropertyContext) {
     }
 }
 
+TEST(OrgApi, SubtreeTitle) {
+    {
+        auto t    = parseOne<sem::Subtree>(R"(* Subtree)");
+        auto conv = immConv(t);
+        auto i    = conv.node;
+        EXPECT_EQ(t->getCleanTitle(), "Subtree"_ss);
+        EXPECT_EQ(i->getKind(), OrgSemKind::Subtree);
+        EXPECT_EQ(i.getCleanTitle(), "Subtree"_ss);
+    }
+
+    {
+        auto t    = parseOne<sem::Subtree>(R"(* Time [2020-04-20])");
+        auto conv = immConv(t);
+        auto i    = conv.node;
+        EXPECT_EQ(t->getCleanTitle(), "Time [2020-04-20]"_ss);
+        EXPECT_EQ(i.getCleanTitle(), "Time [2020-04-20]"_ss);
+    }
+}
+
 TEST(SimpleNodeConversion, LCSCompile) {
     Vec<int> first{1, 2, 3};
     Vec<int> second{1, 2, 3};

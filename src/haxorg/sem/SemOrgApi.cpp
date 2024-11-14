@@ -164,6 +164,12 @@ bool NamedProperty::isMatching(Str const& kind, CR<Opt<Str>> subkind)
 
 void Org::push_back(SemId<Org> sub) { subnodes.push_back(sub); }
 
+SemId<Org> Org::as_unref_shared() const {
+    SemId<Org> res;
+    res.value = std::shared_ptr<Org>(const_cast<Org*>(this), [](Org*) {});
+    return res;
+}
+
 
 Str AttrValue::getString() const { return value; }
 

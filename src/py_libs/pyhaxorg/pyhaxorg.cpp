@@ -3786,6 +3786,7 @@ node can have subnodes.)RAW")
          pybind11::arg("kind"),
          pybind11::arg_v("subkind", std::nullopt),
          R"RAW(Assign a raw string literal to a property.)RAW")
+    .def("getCleanTitle", static_cast<Str(sem::Subtree::*)() const>(&sem::Subtree::getCleanTitle), R"RAW(Get subtree title as a flat string, without markup nodes, but with all left strings)RAW")
     .def("__repr__", [](sem::Subtree _self) -> std::string {
                      return py_repr_impl(_self);
                      })

@@ -115,7 +115,7 @@ using namespace org;
 
 const ImmOrg* ImmAstStore::at(ImmId index) const {
     ImmOrg const* res;
-    switch_node_kind(index, [&]<typename K>(org::ImmIdT<K> id) {
+    switch_node_kind(index, [&, index]<typename K>(org::ImmIdT<K> id) {
         res = getStore<K>()->at(index);
         LOGIC_ASSERTION_CHECK(
             res->getKind() == index.getKind(),

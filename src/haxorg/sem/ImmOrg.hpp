@@ -941,12 +941,12 @@ struct ImmAdapter {
 
     template <typename Func>
     void visitNodeValue(Func const& cb) const {
-        swtich_node_value(id, ctx, cb);
+        ::org::switch_node_value(id, *ctx, cb);
     }
 
     template <typename Func>
     void visitNodeFields(Func const& cb) const {
-        switch_node_fields(id, ctx, cb);
+        ::org::switch_node_fields(id, *ctx, cb);
     }
 };
 
@@ -1070,6 +1070,8 @@ struct ImmAdapterSubtreeAPI : ImmAdapterOrgAPI {
         Opt<Str> const& subkind = std::nullopt) const;
 
     org::ImmAdapterT<org::ImmParagraph> getTitle() const;
+
+    Str getCleanTitle() const;
 };
 
 struct ImmAdapterNoneAPI : ImmAdapterOrgAPI {};
@@ -1097,7 +1099,15 @@ struct ImmAdapterHashTagAPI : ImmAdapterInlineAPI {
     Vec<Vec<Str>> getFlatHashes(bool withIntermediate = true) const;
 };
 struct ImmAdapterInlineFootnoteAPI : ImmAdapterInlineAPI {};
-struct ImmAdapterTimeAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterTimeAPI : ImmAdapterOrgAPI {
+    UserTime getStaticTime() const;
+    Opt<int> getYear() const;
+    Opt<int> getMonth() const;
+    Opt<int> getDay() const;
+    Opt<int> getHour() const;
+    Opt<int> getMinute() const;
+    Opt<int> getSecond() const;
+};
 struct ImmAdapterTimeRangeAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterMacroAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterSymbolAPI : ImmAdapterOrgAPI {};

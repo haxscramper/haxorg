@@ -2308,6 +2308,8 @@ struct Subtree : public sem::Org {
   ///
   /// This function will not do the conversion or parsing of the assigned value, so if it is a 'created' or some other property with a typed value, it will still remain as string until the file is written and then parsed back from scratch.
   void setPropertyStrValue(Str const& value, Str const& kind, Opt<Str> const& subkind = std::nullopt);
+  /// \brief Get subtree title as a flat string, without markup nodes, but with all left strings
+  Str getCleanTitle() const;
 };
 
 /// \brief Completion status of the subtree list element

@@ -460,7 +460,13 @@ Vec<Vec<Str>> HashTag_getFlatHashes(Handle handle, bool withIntermediate) {
 
 template <typename Handle>
 Opt<Str> Org_getString(Handle const& id) {
-    if (auto w = id->template dyn_cast<sem::Leaf>()) {
+    if (id->getKind() == OrgSemKind::Time) {
+        return "["_ss
+             + Str{to_api(toHandle(org_cast<sem::Time>(id), id))
+                       .getStaticTime()
+                       .format(UserTime::Format::OrgFormat)}
+             + "]"_ss;
+    } else if (auto w = id->template dyn_cast<sem::Leaf>()) {
         return w->text;
     } else {
         return std::nullopt;
@@ -868,6 +874,14 @@ Opt<sem::AttrValue> org::ImmAdapterCmdAPI::getFirstAttr(Str const& param) const 
 
 Vec<Vec<Str>> org::ImmAdapterHashTagAPI::getFlatHashes(bool withIntermediate) const { return HashTag_getFlatHashes(getThis()->as<org::ImmHashTag>(), withIntermediate); }
 
+UserTime org::ImmAdapterTimeAPI::getStaticTime() const  { return getThis()->as<org::ImmTime>()->getStatic().time; }
+Opt<int> org::ImmAdapterTimeAPI::getYear() const { return getStaticTime().getBreakdown().year; }
+Opt<int> org::ImmAdapterTimeAPI::getMonth() const { return getStaticTime().getBreakdown().month; }
+Opt<int> org::ImmAdapterTimeAPI::getDay() const { return getStaticTime().getBreakdown().day; }
+Opt<int> org::ImmAdapterTimeAPI::getSecond() const { return getStaticTime().getBreakdown().second; }
+Opt<int> org::ImmAdapterTimeAPI::getHour() const { return getStaticTime().getBreakdown().hour; }
+Opt<int> org::ImmAdapterTimeAPI::getMinute() const { return getStaticTime().getBreakdown().minute; }
+
 Opt<sem::NamedProperty> org::ImmAdapterSubtreeAPI::getProperty(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertyImpl(getThis()->as<org::ImmSubtree>(), kind, subkind); }
 Vec<sem::NamedProperty> org::ImmAdapterSubtreeAPI::getProperties(const Str &kind, const Opt<Str> &subkind) const { return subtreeGetPropertiesImpl(getThis()->as<org::ImmSubtree>(), kind, subkind); }
 Vec<sem::SubtreePeriod> org::ImmAdapterSubtreeAPI::getTimePeriods(IntSet<sem::SubtreePeriod::Kind> kinds, bool withPath) const { return Subtree_getTimePeriodsImpl(getThis()->as<org::ImmSubtree>(), kinds, withPath); }
@@ -1134,4 +1148,33 @@ Vec<Str> sem::getDfsLeafText(
                 return Org_getString(id);
             }
         });
+}
+
+
+Str sem::Subtree::getCleanTitle() const {
+    return join(
+        "",
+        sem::getDfsFuncEval<Str>(
+            as_unref_shared(), [](SemId<Org> const& id) -> Opt<Str> {
+                if (auto space = id.asOpt<sem::Space>()) {
+                    return " ";
+                } else {
+                    return Org_getString(id);
+                }
+            }));
+}
+
+Str org::ImmAdapterSubtreeAPI::getCleanTitle() const {
+    return join(
+        "",
+        sem::getDfsFuncEval<Str>(
+            *getThis(), false, [](org::ImmAdapter const& a) -> Opt<Str> {
+                _dbg(a);
+                a.visitNodeValue([](auto const& v) { _dbg(v); });
+                if (auto space = a.dyn_cast<org::ImmSpace>()) {
+                    return " ";
+                } else {
+                    return Org_getString(a);
+                }
+            }));
 }
