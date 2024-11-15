@@ -2488,6 +2488,8 @@ struct ListItem : public sem::Org {
   Opt<Str> bullet = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::ListItem; }
   bool isDescriptionItem() const;
+  /// \brief Return flat text for the description list header
+  Opt<Str> getCleanHeader() const;
 };
 
 struct DocumentOptions : public sem::Org {

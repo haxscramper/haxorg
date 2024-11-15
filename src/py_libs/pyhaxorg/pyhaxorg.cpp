@@ -4107,6 +4107,7 @@ node can have subnodes.)RAW")
     .def_readwrite("header", &sem::ListItem::header, R"RAW(Description list item header)RAW")
     .def_readwrite("bullet", &sem::ListItem::bullet, R"RAW(Full text of the numbered list item, e.g. `a)`, `a.`)RAW")
     .def("isDescriptionItem", static_cast<bool(sem::ListItem::*)() const>(&sem::ListItem::isDescriptionItem))
+    .def("getCleanHeader", static_cast<Opt<Str>(sem::ListItem::*)() const>(&sem::ListItem::getCleanHeader), R"RAW(Return flat text for the description list header)RAW")
     .def("__repr__", [](sem::ListItem _self) -> std::string {
                      return py_repr_impl(_self);
                      })

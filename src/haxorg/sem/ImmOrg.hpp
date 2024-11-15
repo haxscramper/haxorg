@@ -1179,6 +1179,7 @@ struct ImmAdapterListItemAPI : ImmAdapterOrgAPI {
     bool isDescriptionItem() const;
 
     Opt<ImmAdapter> getHeader() const;
+    Opt<Str>        getCleanHeader() const;
 };
 
 struct ImmAdapterDocumentOptionsAPI : ImmAdapterOrgAPI {

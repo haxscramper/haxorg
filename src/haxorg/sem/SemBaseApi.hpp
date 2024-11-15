@@ -142,6 +142,8 @@ Vec<T> getDfsFuncEval(org::ImmAdapter id, bool withPath, Func const& cb) {
 
 Vec<Str> getDfsLeafText(SemId<Org> id, SemSet const& filter);
 Vec<Str> getDfsLeafText(org::ImmAdapter const& id, SemSet const& filter);
+Str      getCleanText(sem::SemId<sem::Org> const& id);
+Str      getCleanText(org::ImmAdapter const& id);
 
 template <typename T>
 Vec<T> getSubtreeProperties(sem::SemId<sem::Subtree> const& tree) {

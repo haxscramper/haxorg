@@ -2353,6 +2353,12 @@ def get_types() -> Sequence[GenTuStruct]:
                     "isDescriptionItem",
                     GenTuDoc(""),
                     isConst=True,
+                ),
+                GenTuFunction(
+                    t_opt(t_str()),
+                    "getCleanHeader",
+                    GenTuDoc("Return flat text for the description list header"),
+                    isConst=True,
                 )
             ],
         ),

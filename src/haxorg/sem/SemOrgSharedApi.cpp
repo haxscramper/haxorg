@@ -886,6 +886,7 @@ Opt<int> org::ImmAdapterTimeAPI::getSecond() const { return getStaticTime().getB
 Opt<int> org::ImmAdapterTimeAPI::getHour() const { return getStaticTime().getBreakdown().hour; }
 Opt<int> org::ImmAdapterTimeAPI::getMinute() const { return getStaticTime().getBreakdown().minute; }
 
+Str org::ImmAdapterSubtreeAPI::getCleanTitle() const { return sem::getCleanText(getThis()->as<org::ImmSubtree>().getTitle()); }
 Opt<sem::NamedProperty> org::ImmAdapterSubtreeAPI::getProperty(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertyImpl(getThis()->as<org::ImmSubtree>(), kind, subkind); }
 Vec<sem::NamedProperty> org::ImmAdapterSubtreeAPI::getProperties(const Str &kind, const Opt<Str> &subkind) const { return subtreeGetPropertiesImpl(getThis()->as<org::ImmSubtree>(), kind, subkind); }
 Vec<sem::SubtreePeriod> org::ImmAdapterSubtreeAPI::getTimePeriods(IntSet<sem::SubtreePeriod::Kind> kinds, bool withPath) const { return Subtree_getTimePeriodsImpl(getThis()->as<org::ImmSubtree>(), kinds, withPath); }
@@ -898,7 +899,9 @@ Opt<sem::NamedProperty> org::ImmAdapterDocumentAPI::getProperty(CR<Str> kind, CR
 bool org::ImmAdapterListAPI::isDescriptionList() const { return List_isDescriptionList(getThis()->as<org::ImmList>()); }
 bool org::ImmAdapterListAPI::isNumberedList() const { return List_isNumberedList(getThis()->as<org::ImmList>()); }
 Vec<sem::AttrValue> org::ImmAdapterListAPI::getListAttrs(CR<Str> param) const { return List_getListAttrs(getThis()->as<org::ImmList>(), param); }
+
 bool org::ImmAdapterListItemAPI::isDescriptionItem() const { return ListItem_isDescriptionItem(getThis()->as<org::ImmListItem>()); }
+Opt<Str> org::ImmAdapterListItemAPI::getCleanHeader() const { return isDescriptionItem() ? std::make_optional(sem::getCleanText(getHeader().value())) : std::nullopt; }
 
 SemSet LeadParagraphNodes{
     OrgSemKind::HashTag,
@@ -931,6 +934,7 @@ Opt<int> sem::Time::getSecond() const { return getStaticTime().getBreakdown().se
 Opt<int> sem::Time::getHour() const { return getStaticTime().getBreakdown().hour; }
 Opt<int> sem::Time::getMinute() const { return getStaticTime().getBreakdown().minute; }
 
+Str sem::Subtree::getCleanTitle() const { return sem::getCleanText(title.asOrg()); }
 Opt<sem::NamedProperty> sem::Subtree::getProperty(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertyImpl(this, kind, subkind); }
 Vec<sem::NamedProperty> sem::Subtree::getProperties(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertiesImpl(this, kind, subkind); }
 Vec<sem::SubtreePeriod> sem::Subtree::getTimePeriods(IntSet<sem::SubtreePeriod::Kind> kinds) const { return Subtree_getTimePeriodsImpl(this, kinds, false); }
@@ -955,6 +959,7 @@ bool sem::List::isDescriptionList() const { return List_isDescriptionList(this);
 bool sem::List::isNumberedList() const { return List_isNumberedList(this); }
 Vec<sem::AttrValue> sem::List::getListAttrs(CR<Str> param) const { return List_getListAttrs(this, param); }
 bool sem::ListItem::isDescriptionItem() const { return ListItem_isDescriptionItem(this); }
+Opt<Str> sem::ListItem::getCleanHeader() const { return isDescriptionItem() ? std::make_optional(sem::getCleanText(header.value().asOrg())) : std::nullopt; }
 
 bool sem::Paragraph::isFootnoteDefinition() const { return getFootnoteName().has_value(); }
 bool sem::Paragraph::hasAdmonition() const { return !getAdmonitionNodes().empty(); }
@@ -1154,25 +1159,23 @@ Vec<Str> sem::getDfsLeafText(
         });
 }
 
-
-Str sem::Subtree::getCleanTitle() const {
+Str sem::getCleanText(sem::SemId<sem::Org> const& id) {
     return join(
         "",
-        sem::getDfsFuncEval<Str>(
-            as_unref_shared(), [](SemId<Org> const& id) -> Opt<Str> {
-                if (auto space = id.asOpt<sem::Space>()) {
-                    return " ";
-                } else {
-                    return Org_getString(id);
-                }
-            }));
+        sem::getDfsFuncEval<Str>(id, [](SemId<Org> const& id) -> Opt<Str> {
+            if (auto space = id.asOpt<sem::Space>()) {
+                return " ";
+            } else {
+                return Org_getString(id);
+            }
+        }));
 }
 
-Str org::ImmAdapterSubtreeAPI::getCleanTitle() const {
+Str sem::getCleanText(org::ImmAdapter const& id) {
     return join(
         "",
         sem::getDfsFuncEval<Str>(
-            *getThis(), false, [](org::ImmAdapter const& a) -> Opt<Str> {
+            id, false, [](org::ImmAdapter const& a) -> Opt<Str> {
                 if (auto space = a.dyn_cast<org::ImmSpace>()) {
                     return " ";
                 } else {

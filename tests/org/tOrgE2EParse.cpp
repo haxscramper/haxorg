@@ -1347,6 +1347,20 @@ TEST(OrgApi, ColumnView) {
     }
 }
 
+TEST(OrgApi, List) {
+    {
+        auto l = parseOne<sem::List>("- Desc :: value");
+        EXPECT_EQ(l.size(), 1);
+        auto it = l.at(0).as<sem::ListItem>();
+        EXPECT_EQ(it->getCleanHeader().value(), "Desc");
+
+        auto conv = immConv(l);
+        EXPECT_EQ(
+            conv.node.at(0).as<org::ImmListItem>().getCleanHeader(),
+            "Desc");
+    }
+}
+
 TEST(OrgApi, SubtreePropertyContext) {
     {
         auto t1 = parseOne<sem::Subtree>(
