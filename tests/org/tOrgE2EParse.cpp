@@ -1272,6 +1272,35 @@ TEST(OrgApi, SubtreeLogParsing) {
         EXPECT_EQ(desc.at(0), "Increasing");
         EXPECT_NE(desc.indexOf("tasks"), -1);
     }
+
+    {
+        auto t = parseOne<sem::Subtree>(
+            R"(* Note
+  :LOGBOOK:
+  - Note taken on [2023-07-14 Fri 14:34:03 +04] \\
+    - Nested list in logbook
+    - Two items in log
+      - More nesting1
+      - More nesting2
+  :END:)",
+            getDebugFile("nested_log"));
+
+        auto const& l    = t->logbook;
+        auto const& d    = l.at(0)->getNote().desc.value();
+        auto const& nest = d->at(0);
+        EXPECT_EQ(nest->getKind(), OrgSemKind::List);
+        EXPECT_EQ(nest.size(), 2);
+        auto const& it1 = nest->at(1);
+        EXPECT_EQ(it1->getKind(), OrgSemKind::ListItem);
+        EXPECT_EQ(it1->at(0)->getKind(), OrgSemKind::Paragraph);
+        EXPECT_EQ(it1->at(1)->getKind(), OrgSemKind::List);
+        EXPECT_EQ(it1->at(1)->at(0)->getKind(), OrgSemKind::ListItem);
+        EXPECT_EQ(it1->at(1)->at(1)->getKind(), OrgSemKind::ListItem);
+        EXPECT_EQ(
+            sem::getCleanText(it1->at(1)->at(0)), "More nesting1"_ss);
+        EXPECT_EQ(
+            sem::getCleanText(it1->at(1)->at(1)), "More nesting2"_ss);
+    }
 }
 
 TEST(OrgApi, WordParsing) {
