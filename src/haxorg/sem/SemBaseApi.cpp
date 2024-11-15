@@ -395,3 +395,48 @@ sem::SemId<Org> sem::asOneNode(OrgArg arg) {
 }
 
 
+int sem::getListHeaderIndex(const sem::SemId<List>& it, CR<Str> text) {
+    for (auto const& [idx, sub] : enumerate(it->subnodes)) {
+        if (auto it = sub.asOpt<sem::ListItem>();
+            it && it->isDescriptionItem()
+            && it->getCleanHeader() == text) {
+            return idx;
+        }
+    }
+
+    return -1;
+}
+
+void sem::setListItemBody(
+    sem::SemId<sem::List> list,
+    int                   index,
+    Vec<sem::SemId<Org>>  value) {
+    list->subnodes.at(index).as<sem::ListItem>()->subnodes = value;
+}
+
+
+void sem::insertDescriptionListItem(
+    sem::SemId<List>           id,
+    int                        index,
+    sem::SemId<sem::Paragraph> paragraph,
+    Vec<sem::SemId<sem::Org>>  value) {
+    auto item      = sem::SemId<sem::ListItem>::New();
+    item->subnodes = value;
+    item->header   = paragraph;
+    id->subnodes.insert(id->subnodes.begin() + index, item);
+}
+
+void sem::setDescriptionListItemBody(
+    sem::SemId<List>     list,
+    CR<Str>              text,
+    Vec<sem::SemId<Org>> value) {
+    int idx = getListHeaderIndex(list, text);
+    if (idx == -1) {
+        auto key = parseString(text);
+        auto par = asOneNode(key);
+        insertDescriptionListItem(
+            list, list.size(), par.as<sem::Paragraph>(), value);
+    } else {
+        setListItemBody(list, idx, value);
+    }
+}

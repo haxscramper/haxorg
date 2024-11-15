@@ -1359,6 +1359,17 @@ TEST(OrgApi, List) {
             conv.node.at(0).as<org::ImmListItem>().getCleanHeader(),
             "Desc");
     }
+    {
+        auto l = parseOne<sem::List>("- Desc :: value");
+        EXPECT_EQ(l.size(), 1);
+        sem::setDescriptionListItemBody(
+            l, "Desc", {parseOne<sem::Paragraph>("value")});
+
+        EXPECT_EQ(l.size(), 1);
+        sem::setDescriptionListItemBody(
+            l, "Desc2", {parseOne<sem::Paragraph>("value")});
+        EXPECT_EQ(l.size(), 2);
+    }
 }
 
 TEST(OrgApi, SubtreePropertyContext) {

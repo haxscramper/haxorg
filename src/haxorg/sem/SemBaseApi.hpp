@@ -145,6 +145,32 @@ Vec<Str> getDfsLeafText(org::ImmAdapter const& id, SemSet const& filter);
 Str      getCleanText(sem::SemId<sem::Org> const& id);
 Str      getCleanText(org::ImmAdapter const& id);
 
+/// \brief Get index of the list item with given text
+int getListHeaderIndex(sem::SemId<sem::List> const& it, CR<Str> text);
+/// \brief Assign body to the list item at the given position.
+void setListItemBody(
+    sem::SemId<sem::List>     id,
+    int                       index,
+    Vec<sem::SemId<sem::Org>> value);
+
+void setDescriptionListItemBody(
+    sem::SemId<sem::List>     list,
+    CR<Str>                   text,
+    Vec<sem::SemId<sem::Org>> value);
+
+/// \brief Insert the list item at the specified position
+void insertListItemBody(
+    sem::SemId<sem::List>     id,
+    int                       index,
+    Vec<sem::SemId<sem::Org>> value);
+
+void insertDescriptionListItem(
+    sem::SemId<sem::List>      id,
+    int                        index,
+    sem::SemId<sem::Paragraph> paragraph,
+    Vec<sem::SemId<sem::Org>>  value);
+
+
 template <typename T>
 Vec<T> getSubtreeProperties(sem::SemId<sem::Subtree> const& tree) {
     Vec<T> result;
