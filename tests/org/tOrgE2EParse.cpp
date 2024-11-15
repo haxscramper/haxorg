@@ -1370,6 +1370,14 @@ TEST(OrgApi, List) {
             l, "Desc2", {parseOne<sem::Paragraph>("value")});
         EXPECT_EQ(l.size(), 2);
     }
+    {
+        auto l = parseOne<sem::List>("- Item");
+        EXPECT_EQ(l.size(), 1);
+        sem::insertListItemBody(l, 0, {parseOne<sem::Paragraph>("Item2")});
+        EXPECT_EQ(l.size(), 2);
+        EXPECT_EQ(sem::getCleanText(l.at(0)), "Item2"_ss);
+        EXPECT_EQ(sem::getCleanText(l.at(1)), "Item"_ss);
+    }
 }
 
 TEST(OrgApi, SubtreePropertyContext) {

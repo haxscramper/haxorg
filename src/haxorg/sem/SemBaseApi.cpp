@@ -440,3 +440,12 @@ void sem::setDescriptionListItemBody(
         setListItemBody(list, idx, value);
     }
 }
+
+void sem::insertListItemBody(
+    sem::SemId<List>     id,
+    int                  index,
+    Vec<sem::SemId<Org>> value) {
+    auto item      = sem::SemId<sem::ListItem>::New();
+    item->subnodes = value;
+    id->subnodes.insert(id->subnodes.begin() + index, item);
+}
