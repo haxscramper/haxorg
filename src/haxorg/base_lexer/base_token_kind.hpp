@@ -187,6 +187,7 @@ enum class OrgTokenKind : unsigned short int {
   StrikeBegin,
   StrikeEnd,
   StrikeUnknown,
+  SubtreeCompletion,
   SubtreePriority,
   SubtreeStars,
   Symbol,

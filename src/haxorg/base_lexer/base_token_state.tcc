@@ -216,6 +216,7 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::StrikeBegin: return "StrikeBegin";
         case OrgTokenKind::StrikeEnd: return "StrikeEnd";
         case OrgTokenKind::StrikeUnknown: return "StrikeUnknown";
+        case OrgTokenKind::SubtreeCompletion: return "SubtreeCompletion";
         case OrgTokenKind::SubtreePriority: return "SubtreePriority";
         case OrgTokenKind::SubtreeStars: return "SubtreeStars";
         case OrgTokenKind::Symbol: return "Symbol";
@@ -434,6 +435,7 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "StrikeBegin") { return OrgTokenKind::StrikeBegin; } else
   if (value == "StrikeEnd") { return OrgTokenKind::StrikeEnd; } else
   if (value == "StrikeUnknown") { return OrgTokenKind::StrikeUnknown; } else
+  if (value == "SubtreeCompletion") { return OrgTokenKind::SubtreeCompletion; } else
   if (value == "SubtreePriority") { return OrgTokenKind::SubtreePriority; } else
   if (value == "SubtreeStars") { return OrgTokenKind::SubtreeStars; } else
   if (value == "Symbol") { return OrgTokenKind::Symbol; } else

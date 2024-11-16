@@ -1620,12 +1620,12 @@ void tokenFormat(ColStream& os, OrgToken const& t) { os << t->text; }
 OrgId OrgParser::parseSubtreeCompletion(OrgLexer& lex) {
     __perf_trace("parsing", "parseSubtreeCompletion");
     auto __trace = trace(lex);
-    if (lex.finished() || lex.at(Newline) || lex.at(otk::Colon)) {
-        return empty();
-
+    space(lex);
+    if (lex.at(otk::SubtreeCompletion)) {
+        return token(
+            onk::SubtreeCompletion, pop(lex, otk::SubtreeCompletion));
     } else {
-        start(onk::SubtreeCompletion);
-        return end();
+        return empty();
     }
 }
 
@@ -1683,7 +1683,9 @@ OrgId OrgParser::parseSubtreeTitle(OrgLexer& lex) {
             || Newline.contains(tag_end->kind);
     };
 
-    while (lex.can_search(Newline) && !is_at_subtree_tags(lex)) {
+    while (lex.can_search(Newline)     //
+           && !is_at_subtree_tags(lex) //
+           && !lex.at(otk::SubtreeCompletion)) {
         sub.add(pop(lex, lex.kind()));
     }
 

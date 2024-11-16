@@ -713,6 +713,28 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
     }
 
     {
+        auto __field    = field(N::Completion, a);
+        auto completion = one(a, N::Completion);
+        if (completion.kind() != onk::Empty) {
+            auto text = strip(
+                get_text(completion), CharSet{'['}, CharSet{']'});
+            auto res = Sem<sem::SubtreeCompletion>(a);
+            if (text.ends_with("%")) {
+                res->isPercent = true;
+                res->done      = rstrip(text, CharSet{'%'}).toInt();
+                res->full      = 100;
+            } else {
+                res->isPercent = false;
+                auto split     = text.split("/");
+                res->done      = split.at(0).toInt();
+                res->full      = split.at(1).toInt();
+            }
+
+            tree->completion = res;
+        }
+    }
+
+    {
         auto __field = field(N::Todo, a);
         auto todo    = one(a, N::Todo);
         if (todo.getKind() != onk::Empty) { tree->todo = get_text(todo); }

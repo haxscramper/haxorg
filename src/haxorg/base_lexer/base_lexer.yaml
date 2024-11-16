@@ -720,6 +720,12 @@ rules:
   - re: "\\[\\[\\w+:"
     sub: link_protocol_split
 
+  - re: "\\[\\d+\\/\\d+\\]"
+    token: SubtreeCompletion
+
+  - re: "\\[\\d+%\\]"
+    token: SubtreeCompletion
+
   - { re: "\\]\\]", token: LinkEnd }
   - { re: "\\]\\[", token: LinkSplit }
   #endregion
