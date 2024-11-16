@@ -1217,7 +1217,7 @@ struct ImmSubtree : public org::ImmOrg {
   /// \brief Todo state of the tree
   ImmBox<Opt<Str>> todo = std::nullopt;
   /// \brief Task completion state
-  ImmBox<Opt<org::ImmIdT<org::ImmSubtreeCompletion>>> completion = std::nullopt;
+  ImmBox<Opt<sem::SubtreeCompletion>> completion = std::nullopt;
   ImmBox<Opt<org::ImmIdT<org::ImmParagraph>>> description = std::nullopt;
   /// \brief Trailing tags
   ImmVec<org::ImmIdT<org::ImmHashTag>> tags = {};
@@ -1240,29 +1240,6 @@ struct ImmSubtree : public org::ImmOrg {
   ImmBox<Opt<Str>> priority = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::Subtree; }
   bool operator==(org::ImmSubtree const& other) const;
-};
-
-/// \brief Completion status of the subtree list element
-struct ImmSubtreeCompletion : public org::ImmInline {
-  using ImmInline::ImmInline;
-  virtual ~ImmSubtreeCompletion() = default;
-  BOOST_DESCRIBE_CLASS(ImmSubtreeCompletion,
-                       (ImmInline),
-                       (),
-                       (),
-                       (staticKind,
-                        done,
-                        full,
-                        isPercent))
-  static OrgSemKind const staticKind;
-  /// \brief Number of completed tasks
-  int done = 0;
-  /// \brief Full number of tasks
-  int full = 0;
-  /// \brief Use fraction or percent to display completion
-  bool isPercent = false;
-  virtual OrgSemKind getKind() const { return OrgSemKind::SubtreeCompletion; }
-  bool operator==(org::ImmSubtreeCompletion const& other) const;
 };
 
 /// \brief Table cell

@@ -498,6 +498,27 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<sem::SubtreeCompletion>(m, "SubtreeCompletion")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeCompletion {
+                        sem::SubtreeCompletion result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("done", &sem::SubtreeCompletion::done, R"RAW(Number of completed tasks)RAW")
+    .def_readwrite("full", &sem::SubtreeCompletion::full, R"RAW(Full number of tasks)RAW")
+    .def_readwrite("isPercent", &sem::SubtreeCompletion::isPercent, R"RAW(Use fraction or percent to display completion)RAW")
+    .def("operator==",
+         static_cast<bool(sem::SubtreeCompletion::*)(sem::SubtreeCompletion const&) const>(&sem::SubtreeCompletion::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::SubtreeCompletion _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeCompletion _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<sem::AttrList>(m, "AttrList")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AttrList {
                         sem::AttrList result{};
@@ -3796,24 +3817,6 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::SubtreeCompletion, sem::SemId<sem::SubtreeCompletion>, sem::Inline>(m, "SubtreeCompletion")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeCompletion {
-                        sem::SubtreeCompletion result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("done", &sem::SubtreeCompletion::done, R"RAW(Number of completed tasks)RAW")
-    .def_readwrite("full", &sem::SubtreeCompletion::full, R"RAW(Full number of tasks)RAW")
-    .def_readwrite("isPercent", &sem::SubtreeCompletion::isPercent, R"RAW(Use fraction or percent to display completion)RAW")
-    .def("__repr__", [](sem::SubtreeCompletion _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::SubtreeCompletion _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
   pybind11::class_<sem::Cell, sem::SemId<sem::Cell>, sem::Cmd>(m, "Cell")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Cell {
                         sem::Cell result{};
@@ -4658,7 +4661,6 @@ node can have subnodes.)RAW")
     .value("BlockCode", OrgSemKind::BlockCode)
     .value("SubtreeLog", OrgSemKind::SubtreeLog)
     .value("Subtree", OrgSemKind::Subtree)
-    .value("SubtreeCompletion", OrgSemKind::SubtreeCompletion)
     .value("Cell", OrgSemKind::Cell)
     .value("Row", OrgSemKind::Row)
     .value("Table", OrgSemKind::Table)

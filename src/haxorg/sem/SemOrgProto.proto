@@ -272,22 +272,21 @@ enum OrgSemKind {
   OrgSemKind_BlockCode_f                                                            = 48;
   OrgSemKind_SubtreeLog_f                                                           = 49;
   OrgSemKind_Subtree_f                                                              = 50;
-  OrgSemKind_SubtreeCompletion_f                                                    = 51;
-  OrgSemKind_Cell_f                                                                 = 52;
-  OrgSemKind_Row_f                                                                  = 53;
-  OrgSemKind_Table_f                                                                = 54;
-  OrgSemKind_Paragraph_f                                                            = 55;
-  OrgSemKind_ColonExample_f                                                         = 56;
-  OrgSemKind_CmdAttr_f                                                              = 57;
-  OrgSemKind_Call_f                                                                 = 58;
-  OrgSemKind_List_f                                                                 = 59;
-  OrgSemKind_ListItem_f                                                             = 60;
-  OrgSemKind_DocumentOptions_f                                                      = 61;
-  OrgSemKind_Document_f                                                             = 62;
-  OrgSemKind_FileTarget_f                                                           = 63;
-  OrgSemKind_TextSeparator_f                                                        = 64;
-  OrgSemKind_Include_f                                                              = 65;
-  OrgSemKind_DocumentGroup_f                                                        = 66;
+  OrgSemKind_Cell_f                                                                 = 51;
+  OrgSemKind_Row_f                                                                  = 52;
+  OrgSemKind_Table_f                                                                = 53;
+  OrgSemKind_Paragraph_f                                                            = 54;
+  OrgSemKind_ColonExample_f                                                         = 55;
+  OrgSemKind_CmdAttr_f                                                              = 56;
+  OrgSemKind_Call_f                                                                 = 57;
+  OrgSemKind_List_f                                                                 = 58;
+  OrgSemKind_ListItem_f                                                             = 59;
+  OrgSemKind_DocumentOptions_f                                                      = 60;
+  OrgSemKind_Document_f                                                             = 61;
+  OrgSemKind_FileTarget_f                                                           = 62;
+  OrgSemKind_TextSeparator_f                                                        = 63;
+  OrgSemKind_Include_f                                                              = 64;
+  OrgSemKind_DocumentGroup_f                                                        = 65;
 }
 
 message Tblfm {
@@ -399,6 +398,13 @@ message AttrValue {
   optional string                                  name                             = 1;
   optional string                                  varname                          = 2;
   string                                           value                            = 3;
+  string                                           debug                            = 1000;
+}
+
+message SubtreeCompletion {
+  int32                                            done                             = 1;
+  int32                                            full                             = 2;
+  bool                                             isPercent                        = 3;
   string                                           debug                            = 1000;
 }
 
@@ -1468,15 +1474,6 @@ message Subtree {
   string                                           debug                            = 1000;
 }
 
-message SubtreeCompletion {
-  repeated AnyNode                                 subnodes                         = 1;
-  OrgSemKind                                       staticKind                       = 2;
-  int32                                            done                             = 3;
-  int32                                            full                             = 4;
-  bool                                             isPercent                        = 5;
-  string                                           debug                            = 1000;
-}
-
 message Cell {
   optional AttrGroup                               attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
@@ -1702,22 +1699,21 @@ message AnyNode {
     BlockCode                                        blockcode                        = 49;
     SubtreeLog                                       subtreelog                       = 50;
     Subtree                                          subtree                          = 51;
-    SubtreeCompletion                                subtreecompletion                = 52;
-    Cell                                             cell                             = 53;
-    Row                                              row                              = 54;
-    Table                                            table                            = 55;
-    Paragraph                                        paragraph                        = 56;
-    ColonExample                                     colonexample                     = 57;
-    CmdAttr                                          cmdattr                          = 58;
-    Call                                             call                             = 59;
-    List                                             list                             = 60;
-    ListItem                                         listitem                         = 61;
-    DocumentOptions                                  documentoptions                  = 62;
-    Document                                         document                         = 63;
-    FileTarget                                       filetarget                       = 64;
-    TextSeparator                                    textseparator                    = 65;
-    Include                                          include                          = 66;
-    DocumentGroup                                    documentgroup                    = 67;
+    Cell                                             cell                             = 52;
+    Row                                              row                              = 53;
+    Table                                            table                            = 54;
+    Paragraph                                        paragraph                        = 55;
+    ColonExample                                     colonexample                     = 56;
+    CmdAttr                                          cmdattr                          = 57;
+    Call                                             call                             = 58;
+    List                                             list                             = 59;
+    ListItem                                         listitem                         = 60;
+    DocumentOptions                                  documentoptions                  = 61;
+    Document                                         document                         = 62;
+    FileTarget                                       filetarget                       = 63;
+    TextSeparator                                    textseparator                    = 64;
+    Include                                          include                          = 65;
+    DocumentGroup                                    documentgroup                    = 66;
   }
 }
 /* clang-format on */

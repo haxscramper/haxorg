@@ -510,7 +510,6 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "BlockCode") { return OrgSemKind::BlockCode; } else
   if (value == "SubtreeLog") { return OrgSemKind::SubtreeLog; } else
   if (value == "Subtree") { return OrgSemKind::Subtree; } else
-  if (value == "SubtreeCompletion") { return OrgSemKind::SubtreeCompletion; } else
   if (value == "Cell") { return OrgSemKind::Cell; } else
   if (value == "Row") { return OrgSemKind::Row; } else
   if (value == "Table") { return OrgSemKind::Table; } else
@@ -581,7 +580,6 @@ std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::BlockCode: return "BlockCode";
     case OrgSemKind::SubtreeLog: return "SubtreeLog";
     case OrgSemKind::Subtree: return "Subtree";
-    case OrgSemKind::SubtreeCompletion: return "SubtreeCompletion";
     case OrgSemKind::Cell: return "Cell";
     case OrgSemKind::Row: return "Row";
     case OrgSemKind::Table: return "Table";

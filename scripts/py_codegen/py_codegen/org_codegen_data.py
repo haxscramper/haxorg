@@ -1227,7 +1227,7 @@ def get_sem_subtree():
                 GenTuField(t_int(), "level", GenTuDoc("Subtree level"), value="0"),
                 opt_field(t_str(), "treeId", GenTuDoc(":ID: property")),
                 opt_field(t_str(), "todo", GenTuDoc("Todo state of the tree")),
-                opt_field(t_id("SubtreeCompletion"), "completion",
+                opt_field(t_nest_shared("SubtreeCompletion"), "completion",
                           GenTuDoc("Task completion state")),
                 opt_field(t_id("Paragraph"), "description", GenTuDoc("")),
                 vec_field(t_id("HashTag"), "tags", GenTuDoc("Trailing tags")),
@@ -1325,25 +1325,7 @@ def get_sem_subtree():
                     isConst=True,
                 ),
             ],
-        ),
-        d_org(
-            "SubtreeCompletion",
-            GenTuDoc("Completion status of the subtree list element"),
-            bases=[t_org("Inline")],
-            fields=[
-                GenTuField(t_int(),
-                           "done",
-                           GenTuDoc("Number of completed tasks"),
-                           value="0"),
-                GenTuField(t_int(), "full", GenTuDoc("Full number of tasks"), value="0"),
-                GenTuField(
-                    t_bool(),
-                    "isPercent",
-                    GenTuDoc("Use fraction or percent to display completion"),
-                    value="false",
-                ),
-            ],
-        ),
+        )
     ]
 
 
@@ -1587,11 +1569,38 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 eq_method(t_nest_shared("AttrValue")),
             ],
         ),
-        GenTuStruct(t_nest_shared("AttrList"),
-                    fields=[
-                        vec_field(t_nest_shared("AttrValue"), "items"),
-                    ],
-                    methods=[eq_method(t_nest_shared("AttrList"))]),
+        GenTuStruct(
+            t_nest_shared("SubtreeCompletion"),
+            GenTuDoc("Completion status of the subtree list element"),
+            fields=[
+                GenTuField(
+                    t_int(),
+                    "done",
+                    GenTuDoc("Number of completed tasks"),
+                    value="0",
+                ),
+                GenTuField(
+                    t_int(),
+                    "full",
+                    GenTuDoc("Full number of tasks"),
+                    value="0",
+                ),
+                GenTuField(
+                    t_bool(),
+                    "isPercent",
+                    GenTuDoc("Use fraction or percent to display completion"),
+                    value="false",
+                ),
+            ],
+            methods=[eq_method(t_nest_shared("SubtreeCompletion"))],
+        ),
+        GenTuStruct(
+            t_nest_shared("AttrList"),
+            fields=[
+                vec_field(t_nest_shared("AttrValue"), "items"),
+            ],
+            methods=[eq_method(t_nest_shared("AttrList"))],
+        ),
         GenTuStruct(
             t_nest_shared("AttrGroup"),
             fields=[

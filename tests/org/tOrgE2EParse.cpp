@@ -467,7 +467,6 @@ TEST(TestFiles, AllNodeCoverage) {
         osk::Empty,
         osk::Row,
         osk::Table,
-        osk::SubtreeCompletion,
         osk::BlockQuote,
         osk::MarkQuote,
         osk::StmtList,
@@ -1415,16 +1414,16 @@ TEST(OrgApi, SubtreeTitleParsing) {
     {
         auto t = parseOne<sem::Subtree>(R"(* Title [0/1])");
         auto c = t->completion.value();
-        EXPECT_EQ(c->full, 1);
-        EXPECT_EQ(c->done, 0);
-        EXPECT_EQ(c->isPercent, false);
+        EXPECT_EQ(c.full, 1);
+        EXPECT_EQ(c.done, 0);
+        EXPECT_EQ(c.isPercent, false);
     }
     {
         auto t = parseOne<sem::Subtree>(R"(* Title [33%])");
         auto c = t->completion.value();
-        EXPECT_EQ(c->full, 100);
-        EXPECT_EQ(c->done, 33);
-        EXPECT_EQ(c->isPercent, true);
+        EXPECT_EQ(c.full, 100);
+        EXPECT_EQ(c.done, 33);
+        EXPECT_EQ(c.isPercent, true);
     }
 }
 

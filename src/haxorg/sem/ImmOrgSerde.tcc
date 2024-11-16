@@ -1174,26 +1174,6 @@ struct ImmSemSerde<sem::Subtree, org::ImmSubtree> {
 };
 
 template <>
-struct ImmSemSerde<sem::SubtreeCompletion, org::ImmSubtreeCompletion> {
-  static org::ImmSubtreeCompletion to_immer(sem::SubtreeCompletion const& value, ImmAstEditContext& ctx) {
-    org::ImmSubtreeCompletion result = SerdeDefaultProvider<org::ImmSubtreeCompletion>::get();
-    assign_immer_field(result.done, value.done, ctx);
-    assign_immer_field(result.full, value.full, ctx);
-    assign_immer_field(result.isPercent, value.isPercent, ctx);
-    assign_immer_field(result.subnodes, value.subnodes, ctx);
-    return result;
-  }
-  static sem::SubtreeCompletion from_immer(org::ImmSubtreeCompletion const& value, ImmAstContext const& ctx) {
-    sem::SubtreeCompletion result = SerdeDefaultProvider<sem::SubtreeCompletion>::get();
-    assign_sem_field(result.done, value.done, ctx);
-    assign_sem_field(result.full, value.full, ctx);
-    assign_sem_field(result.isPercent, value.isPercent, ctx);
-    assign_sem_field(result.subnodes, value.subnodes, ctx);
-    return result;
-  }
-};
-
-template <>
 struct ImmSemSerde<sem::Cell, org::ImmCell> {
   static org::ImmCell to_immer(sem::Cell const& value, ImmAstEditContext& ctx) {
     org::ImmCell result = SerdeDefaultProvider<org::ImmCell>::get();

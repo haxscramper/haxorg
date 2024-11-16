@@ -718,16 +718,16 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
         if (completion.kind() != onk::Empty) {
             auto text = strip(
                 get_text(completion), CharSet{'['}, CharSet{']'});
-            auto res = Sem<sem::SubtreeCompletion>(a);
+            sem::SubtreeCompletion res;
             if (text.ends_with("%")) {
-                res->isPercent = true;
-                res->done      = rstrip(text, CharSet{'%'}).toInt();
-                res->full      = 100;
+                res.isPercent = true;
+                res.done      = rstrip(text, CharSet{'%'}).toInt();
+                res.full      = 100;
             } else {
-                res->isPercent = false;
-                auto split     = text.split("/");
-                res->done      = split.at(0).toInt();
-                res->full      = split.at(1).toInt();
+                res.isPercent = false;
+                auto split    = text.split("/");
+                res.done      = split.at(0).toInt();
+                res.full      = split.at(1).toInt();
             }
 
             tree->completion = res;

@@ -205,6 +205,18 @@ void proto_serde<::orgproto::AttrValue, sem::AttrValue>::read(::orgproto::AttrVa
   proto_serde<std::string, Str>::read(out.value(), in.for_field(&sem::AttrValue::value));
 }
 
+void proto_serde<::orgproto::SubtreeCompletion, sem::SubtreeCompletion>::write(::orgproto::SubtreeCompletion* out, sem::SubtreeCompletion const& in) {
+  out->set_done(in.done);
+  out->set_full(in.full);
+  out->set_ispercent(in.isPercent);
+}
+
+void proto_serde<::orgproto::SubtreeCompletion, sem::SubtreeCompletion>::read(::orgproto::SubtreeCompletion const& out, proto_write_accessor<sem::SubtreeCompletion> in) {
+  in.for_field(&sem::SubtreeCompletion::done).get() = out.done();
+  in.for_field(&sem::SubtreeCompletion::full).get() = out.full();
+  in.for_field(&sem::SubtreeCompletion::isPercent).get() = out.ispercent();
+}
+
 void proto_serde<::orgproto::AttrList, sem::AttrList>::write(::orgproto::AttrList* out, sem::AttrList const& in) {
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::AttrValue>, Vec<sem::AttrValue>>::write(out->mutable_items(), in.items);
 }
@@ -2043,7 +2055,7 @@ void proto_serde<::orgproto::Subtree, sem::Subtree>::write(::orgproto::Subtree* 
     proto_serde<std::string, Str>::write(out->mutable_todo(), *in.todo);
   }
   if (in.completion) {
-    proto_serde<orgproto::SubtreeCompletion, sem::SemId<sem::SubtreeCompletion>>::write(out->mutable_completion(), *in.completion);
+    proto_serde<orgproto::SubtreeCompletion, sem::SubtreeCompletion>::write(out->mutable_completion(), *in.completion);
   }
   if (in.description) {
     proto_serde<orgproto::Paragraph, sem::SemId<sem::Paragraph>>::write(out->mutable_description(), *in.description);
@@ -2080,7 +2092,7 @@ void proto_serde<::orgproto::Subtree, sem::Subtree>::read(::orgproto::Subtree co
     proto_serde<Opt<std::string>, Opt<Str>>::read(out.todo(), in.for_field(&sem::Subtree::todo));
   }
   if (out.has_completion()) {
-    proto_serde<Opt<orgproto::SubtreeCompletion>, Opt<sem::SemId<sem::SubtreeCompletion>>>::read(out.completion(), in.for_field(&sem::Subtree::completion));
+    proto_serde<Opt<orgproto::SubtreeCompletion>, Opt<sem::SubtreeCompletion>>::read(out.completion(), in.for_field(&sem::Subtree::completion));
   }
   if (out.has_description()) {
     proto_serde<Opt<orgproto::Paragraph>, Opt<sem::SemId<sem::Paragraph>>>::read(out.description(), in.for_field(&sem::Subtree::description));
@@ -2103,20 +2115,6 @@ void proto_serde<::orgproto::Subtree, sem::Subtree>::read(::orgproto::Subtree co
   if (out.has_priority()) {
     proto_serde<Opt<std::string>, Opt<Str>>::read(out.priority(), in.for_field(&sem::Subtree::priority));
   }
-}
-
-void proto_serde<::orgproto::SubtreeCompletion, sem::SubtreeCompletion>::write(::orgproto::SubtreeCompletion* out, sem::SubtreeCompletion const& in) {
-  proto_serde<::orgproto::SubtreeCompletion, sem::Org>::write(out, in);
-  out->set_done(in.done);
-  out->set_full(in.full);
-  out->set_ispercent(in.isPercent);
-}
-
-void proto_serde<::orgproto::SubtreeCompletion, sem::SubtreeCompletion>::read(::orgproto::SubtreeCompletion const& out, proto_write_accessor<sem::SubtreeCompletion> in) {
-  proto_serde<::orgproto::SubtreeCompletion, sem::Org>::read(out, in.as<sem::Org>());
-  in.for_field(&sem::SubtreeCompletion::done).get() = out.done();
-  in.for_field(&sem::SubtreeCompletion::full).get() = out.full();
-  in.for_field(&sem::SubtreeCompletion::isPercent).get() = out.ispercent();
 }
 
 void proto_serde<::orgproto::Cell, sem::Cell>::write(::orgproto::Cell* out, sem::Cell const& in) {

@@ -187,6 +187,15 @@ class AttrValue:
     varname: Optional[str]
     value: str
 
+class SubtreeCompletion:
+    def __init__(self, done: int, full: int, isPercent: bool) -> None: ...
+    def operator==(self, other: SubtreeCompletion) -> bool: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    done: int
+    full: int
+    isPercent: bool
+
 class AttrList:
     def __init__(self, items: List[AttrValue]) -> None: ...
     def operator==(self, other: AttrList) -> bool: ...
@@ -1625,14 +1634,6 @@ class Subtree(Org):
     isArchived: bool
     priority: Optional[str]
 
-class SubtreeCompletion(Inline):
-    def __init__(self, done: int, full: int, isPercent: bool) -> None: ...
-    def __repr__(self) -> str: ...
-    def __getattr__(self, name: str) -> object: ...
-    done: int
-    full: int
-    isPercent: bool
-
 class Cell(Cmd):
     def __init__(self, isBlock: bool, attrs: Optional[AttrGroup], attached: List[Org]) -> None: ...
     def getAttrs(self, key: Optional[str]) -> List[AttrValue]: ...
@@ -2123,22 +2124,21 @@ class OrgSemKind(Enum):
     BlockCode = 49
     SubtreeLog = 50
     Subtree = 51
-    SubtreeCompletion = 52
-    Cell = 53
-    Row = 54
-    Table = 55
-    Paragraph = 56
-    ColonExample = 57
-    CmdAttr = 58
-    Call = 59
-    List = 60
-    ListItem = 61
-    DocumentOptions = 62
-    Document = 63
-    FileTarget = 64
-    TextSeparator = 65
-    Include = 66
-    DocumentGroup = 67
+    Cell = 52
+    Row = 53
+    Table = 54
+    Paragraph = 55
+    ColonExample = 56
+    CmdAttr = 57
+    Call = 58
+    List = 59
+    ListItem = 60
+    DocumentOptions = 61
+    Document = 62
+    FileTarget = 63
+    TextSeparator = 64
+    Include = 65
+    DocumentGroup = 66
 
 class UserTimeBreakdown:
     def __init__(self, year: Optional[int], month: Optional[int], day: Optional[int], hour: Optional[int], minute: Optional[int], second: Optional[int], zone: Optional[str]) -> None: ...

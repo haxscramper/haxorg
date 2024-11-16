@@ -65,6 +65,13 @@ void Exporter<V, R>::visit(R& res, sem::AttrValue const& object) {
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::SubtreeCompletion const& object) {
+  __obj_field(res, object, done);
+  __obj_field(res, object, full);
+  __obj_field(res, object, isPercent);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::AttrList const& object) { __obj_field(res, object, items); }
 
 template <typename V, typename R>
@@ -889,15 +896,6 @@ void Exporter<V, R>::visitSubtree(R& res, In<sem::Subtree> object) {
   __org_field(res, object, isComment);
   __org_field(res, object, isArchived);
   __org_field(res, object, priority);
-  __org_field(res, object, subnodes);
-}
-
-template <typename V, typename R>
-void Exporter<V, R>::visitSubtreeCompletion(R& res, In<sem::SubtreeCompletion> object) {
-  auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
-  __org_field(res, object, done);
-  __org_field(res, object, full);
-  __org_field(res, object, isPercent);
   __org_field(res, object, subnodes);
 }
 

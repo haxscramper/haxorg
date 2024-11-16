@@ -242,6 +242,22 @@ struct AttrValue {
   bool operator==(sem::AttrValue const& other) const;
 };
 
+/// \brief Completion status of the subtree list element
+struct SubtreeCompletion {
+  BOOST_DESCRIBE_CLASS(SubtreeCompletion,
+                       (),
+                       (),
+                       (),
+                       (done, full, isPercent))
+  /// \brief Number of completed tasks
+  int done = 0;
+  /// \brief Full number of tasks
+  int full = 0;
+  /// \brief Use fraction or percent to display completion
+  bool isPercent = false;
+  bool operator==(sem::SubtreeCompletion const& other) const;
+};
+
 struct AttrList {
   BOOST_DESCRIBE_CLASS(AttrList,
                        (),
@@ -2275,7 +2291,7 @@ struct Subtree : public sem::Org {
   /// \brief Todo state of the tree
   Opt<Str> todo = std::nullopt;
   /// \brief Task completion state
-  Opt<sem::SemId<sem::SubtreeCompletion>> completion = std::nullopt;
+  Opt<sem::SubtreeCompletion> completion = std::nullopt;
   Opt<sem::SemId<sem::Paragraph>> description = std::nullopt;
   /// \brief Trailing tags
   Vec<sem::SemId<sem::HashTag>> tags = {};
@@ -2310,25 +2326,6 @@ struct Subtree : public sem::Org {
   void setPropertyStrValue(Str const& value, Str const& kind, Opt<Str> const& subkind = std::nullopt);
   /// \brief Get subtree title as a flat string, without markup nodes, but with all left strings
   Str getCleanTitle() const;
-};
-
-/// \brief Completion status of the subtree list element
-struct SubtreeCompletion : public sem::Inline {
-  using Inline::Inline;
-  virtual ~SubtreeCompletion() = default;
-  BOOST_DESCRIBE_CLASS(SubtreeCompletion,
-                       (Inline),
-                       (),
-                       (),
-                       (staticKind, done, full, isPercent))
-  static OrgSemKind const staticKind;
-  /// \brief Number of completed tasks
-  int done = 0;
-  /// \brief Full number of tasks
-  int full = 0;
-  /// \brief Use fraction or percent to display completion
-  bool isPercent = false;
-  virtual OrgSemKind getKind() const { return OrgSemKind::SubtreeCompletion; }
 };
 
 /// \brief Table cell

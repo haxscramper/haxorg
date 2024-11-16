@@ -200,6 +200,7 @@ ImmAstReplace setNewSubnodes(
                         [&](bool const&) { fail_field(); },
                         [&](ImmBox<Opt<sem::BlockCodeEvalResult>> const&) { fail_field(); },
                         [&](ImmBox<Opt<sem::AttrGroup>> const&) { fail_field(); },
+                        [&](ImmBox<Opt<sem::SubtreeCompletion>> const&) { fail_field(); },
                         [&](ImmBox<Opt<UserTime>> const&) { fail_field(); },
                         [&](ImmBox<sem::BlockCodeEvalResult> const&) { fail_field(); },
                         [&](ImmBox<sem::Tblfm> const&) { fail_field(); },
@@ -822,6 +823,7 @@ __same_type(sem::ColumnView);
 __same_type(sem::AttrGroup);
 __same_type(sem::AttrList);
 __same_type(sem::AttrValue);
+__same_type(sem::SubtreeCompletion);
 
 
 template <typename SemType, typename ImmType>

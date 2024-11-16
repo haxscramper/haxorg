@@ -53,7 +53,6 @@
         __MAP(kBlockcode, blockcode, BlockCode)  \
         __MAP(kSubtreelog, subtreelog, SubtreeLog)  \
         __MAP(kSubtree, subtree, Subtree)  \
-        __MAP(kSubtreecompletion, subtreecompletion, SubtreeCompletion)  \
         __MAP(kCell, cell, Cell)  \
         __MAP(kRow, row, Row)  \
         __MAP(kTable, table, Table)  \
@@ -165,6 +164,13 @@ template <>
 struct proto_serde<::orgproto::AttrValue, sem::AttrValue> {
   static void write(::orgproto::AttrValue* out, sem::AttrValue const& in);
   static void read(::orgproto::AttrValue const& out, proto_write_accessor<sem::AttrValue> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::SubtreeCompletion, sem::SubtreeCompletion> {
+  static void write(::orgproto::SubtreeCompletion* out, sem::SubtreeCompletion const& in);
+  static void read(::orgproto::SubtreeCompletion const& out, proto_write_accessor<sem::SubtreeCompletion> in);
 };
 
 
@@ -1054,13 +1060,6 @@ template <>
 struct proto_serde<::orgproto::Subtree, sem::Subtree> {
   static void write(::orgproto::Subtree* out, sem::Subtree const& in);
   static void read(::orgproto::Subtree const& out, proto_write_accessor<sem::Subtree> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::SubtreeCompletion, sem::SubtreeCompletion> {
-  static void write(::orgproto::SubtreeCompletion* out, sem::SubtreeCompletion const& in);
-  static void read(::orgproto::SubtreeCompletion const& out, proto_write_accessor<sem::SubtreeCompletion> in);
 };
 
 

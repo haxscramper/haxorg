@@ -672,10 +672,13 @@ auto Formatter::toString(SemId<Cell> id, CR<Context> ctx) -> Res {
 }
 
 
-auto Formatter::toString(SemId<SubtreeCompletion> id, CR<Context> ctx)
+auto Formatter::toString(sem::SubtreeCompletion const& id, CR<Context> ctx)
     -> Res {
-    if (id.isNil()) { return str("<nil>"); }
-    return str(fmt("[{}/{}]", id->done, id->full));
+    if (id.isPercent) {
+        return str(fmt("[{}%]", id.done));
+    } else {
+        return str(fmt("[{}/{}]", id.done, id.full));
+    }
 }
 
 auto Formatter::toString(SemId<BlockCenter> id, CR<Context> ctx) -> Res {
