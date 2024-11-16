@@ -109,6 +109,8 @@ GTEST_ADL_PRINT_TYPE(org::ImmUniqId);
 GTEST_ADL_PRINT_TYPE(org::graph::MapNode);
 GTEST_ADL_PRINT_TYPE(org::graph::MapEdge);
 GTEST_ADL_PRINT_TYPE(Vec<Str>);
+GTEST_ADL_PRINT_TYPE(Str);
+GTEST_ADL_PRINT_TYPE(Vec<Vec<Str>>);
 GTEST_ADL_PRINT_TYPE(UserTimeBreakdown);
 
 Str getSelfTest(org::ImmAdapter const& it) {
@@ -1110,9 +1112,9 @@ TEST(OrgApi, HashtagParse) {
     using V = Vec<Vec<Str>>;
     {
         auto h = parseOne<sem::HashTag>("#hashtag");
-        EXPECT_EQ(h->text.head, "hashtag");
+        EXPECT_EQ(h->text.head, "hashtag"_ss);
         EXPECT_EQ(h->text.subtags.size(), 0);
-        EXPECT_EQ(h->text.getFlatHashes(), V{{"hashtag"}});
+        EXPECT_EQ(h->text.getFlatHashes(), V{{"hashtag"_ss}});
     }
     {
         auto h = parseOne<sem::HashTag>("#hashtag##[sub]");

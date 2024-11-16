@@ -193,15 +193,12 @@ OrgConverter::ConvResult<Table> OrgConverter::convertTable(__args) {
 
 OrgConverter::ConvResult<HashTag> OrgConverter::convertHashTag(__args) {
     __perf_trace("convert", "convertHashTag");
-    auto             __trace = trace(a);
-    auto             result  = Sem<HashTag>(a);
-    sem::HashTagText text;
-    text.head = strip(get_text(a.at(0)), CharSet{'#'}, CharSet{});
-
+    auto __trace = trace(a);
+    auto result  = Sem<HashTag>(a);
 
     Func<sem::HashTagText(OrgAdapter)> aux;
-    aux = [&aux, &text, this](OrgAdapter a) -> sem::HashTagText {
-        sem::HashTagText result;
+    aux = [&aux, this](OrgAdapter a) -> sem::HashTagText {
+        sem::HashTagText text;
         text.head = strip(get_text(a.at(0)), CharSet{'#'}, CharSet{});
         if (1 < a.size()) {
             for (auto& node : a.at(slice(1, 1_B))) {
@@ -209,15 +206,19 @@ OrgConverter::ConvResult<HashTag> OrgConverter::convertHashTag(__args) {
                 text.subtags.push_back(conv);
             }
         }
-        return result;
+        return text;
     };
 
+    sem::HashTagText text;
+    text.head = strip(get_text(a.at(0)), CharSet{'#'}, CharSet{});
     if (1 < a.size()) {
         for (auto& node : a.at(slice(1, 1_B))) {
             auto conv = aux(node);
             text.subtags.push_back(conv);
         }
     }
+
+    result->text = text;
 
     return result;
 };
