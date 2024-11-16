@@ -1204,12 +1204,16 @@ auto Formatter::toString(SemId<BlockExport> id, CR<Context> ctx) -> Res {
         add(head, toString(id->attrs.value(), ctx));
     }
 
-    if (id->placement) {
-        add(head, str(":placement " + id->placement.value()));
-    }
-
     return b.stack(
         Vec<Res>::Splice(head, str(id->content), str("#+end_export")));
+}
+
+auto Formatter::toString(SemId<InlineExport> id, CR<Context> ctx) -> Res {
+    return str(fmt("@@{}:{}@@", id->exporter, id->content));
+}
+
+auto Formatter::toString(SemId<CmdExport> id, CR<Context> ctx) -> Res {
+    return str(fmt("#+export_{}: {}", id->exporter, id->content));
 }
 
 auto Formatter::toString(SemId<BlockExample> id, CR<Context> ctx) -> Res {

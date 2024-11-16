@@ -1684,21 +1684,8 @@ OrgConverter::ConvResult<ColonExample> OrgConverter::convertColonExample(
 OrgConverter::ConvResult<BlockExport> OrgConverter::convertBlockExport(
     __args) {
     auto eexport = Sem<BlockExport>(a);
-    switch (a.kind()) {
-        case onk::BlockExport:
-            eexport->format = BlockExport::Format::Block;
-            break;
-        default: {
-        }
-    }
 
-    auto values = convertAttrs(one(a, N::Args));
-    if (auto place = values.getAttrs("placement"); !place.empty()) {
-        eexport->placement = place.at(0).getString();
-        values.named.erase("placement");
-    }
-
-
+    auto values       = convertAttrs(one(a, N::Args));
     eexport->exporter = get_text(one(a, N::Name));
     eexport->attrs    = values;
     {

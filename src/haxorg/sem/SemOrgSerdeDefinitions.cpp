@@ -1571,6 +1571,18 @@ void proto_serde<::orgproto::InlineFootnote, sem::InlineFootnote>::read(::orgpro
   }
 }
 
+void proto_serde<::orgproto::InlineExport, sem::InlineExport>::write(::orgproto::InlineExport* out, sem::InlineExport const& in) {
+  proto_serde<::orgproto::InlineExport, sem::Org>::write(out, in);
+  proto_serde<std::string, Str>::write(out->mutable_exporter(), in.exporter);
+  proto_serde<std::string, Str>::write(out->mutable_content(), in.content);
+}
+
+void proto_serde<::orgproto::InlineExport, sem::InlineExport>::read(::orgproto::InlineExport const& out, proto_write_accessor<sem::InlineExport> in) {
+  proto_serde<::orgproto::InlineExport, sem::Org>::read(out, in.as<sem::Org>());
+  proto_serde<std::string, Str>::read(out.exporter(), in.for_field(&sem::InlineExport::exporter));
+  proto_serde<std::string, Str>::read(out.content(), in.for_field(&sem::InlineExport::content));
+}
+
 void proto_serde<::orgproto::Time::Repeat, sem::Time::Repeat>::write(::orgproto::Time::Repeat* out, sem::Time::Repeat const& in) {
   out->set_mode(static_cast<orgproto::Time_Repeat_Mode>(in.mode));
   out->set_period(static_cast<orgproto::Time_Repeat_Period>(in.period));
@@ -1963,11 +1975,7 @@ void proto_serde<::orgproto::BlockExport, sem::BlockExport>::write(::orgproto::B
   proto_serde<::orgproto::BlockExport, sem::Cmd>::write(out, in);
   proto_serde<::orgproto::BlockExport, sem::Stmt>::write(out, in);
   proto_serde<::orgproto::BlockExport, sem::Org>::write(out, in);
-  out->set_format(static_cast<orgproto::BlockExport_Format>(in.format));
   proto_serde<std::string, Str>::write(out->mutable_exporter(), in.exporter);
-  if (in.placement) {
-    proto_serde<std::string, Str>::write(out->mutable_placement(), *in.placement);
-  }
   proto_serde<std::string, Str>::write(out->mutable_content(), in.content);
 }
 
@@ -1975,11 +1983,7 @@ void proto_serde<::orgproto::BlockExport, sem::BlockExport>::read(::orgproto::Bl
   proto_serde<::orgproto::BlockExport, sem::Cmd>::read(out, in.as<sem::Cmd>());
   proto_serde<::orgproto::BlockExport, sem::Stmt>::read(out, in.as<sem::Stmt>());
   proto_serde<::orgproto::BlockExport, sem::Org>::read(out, in.as<sem::Org>());
-  in.for_field(&sem::BlockExport::format).get() = static_cast<sem::BlockExport::Format>(out.format());
   proto_serde<std::string, Str>::read(out.exporter(), in.for_field(&sem::BlockExport::exporter));
-  if (out.has_placement()) {
-    proto_serde<Opt<std::string>, Opt<Str>>::read(out.placement(), in.for_field(&sem::BlockExport::placement));
-  }
   proto_serde<std::string, Str>::read(out.content(), in.for_field(&sem::BlockExport::content));
 }
 
@@ -2199,6 +2203,22 @@ void proto_serde<::orgproto::CmdAttr, sem::CmdAttr>::read(::orgproto::CmdAttr co
   proto_serde<::orgproto::CmdAttr, sem::Stmt>::read(out, in.as<sem::Stmt>());
   proto_serde<::orgproto::CmdAttr, sem::Org>::read(out, in.as<sem::Org>());
   proto_serde<std::string, Str>::read(out.target(), in.for_field(&sem::CmdAttr::target));
+}
+
+void proto_serde<::orgproto::CmdExport, sem::CmdExport>::write(::orgproto::CmdExport* out, sem::CmdExport const& in) {
+  proto_serde<::orgproto::CmdExport, sem::Cmd>::write(out, in);
+  proto_serde<::orgproto::CmdExport, sem::Stmt>::write(out, in);
+  proto_serde<::orgproto::CmdExport, sem::Org>::write(out, in);
+  proto_serde<std::string, Str>::write(out->mutable_exporter(), in.exporter);
+  proto_serde<std::string, Str>::write(out->mutable_content(), in.content);
+}
+
+void proto_serde<::orgproto::CmdExport, sem::CmdExport>::read(::orgproto::CmdExport const& out, proto_write_accessor<sem::CmdExport> in) {
+  proto_serde<::orgproto::CmdExport, sem::Cmd>::read(out, in.as<sem::Cmd>());
+  proto_serde<::orgproto::CmdExport, sem::Stmt>::read(out, in.as<sem::Stmt>());
+  proto_serde<::orgproto::CmdExport, sem::Org>::read(out, in.as<sem::Org>());
+  proto_serde<std::string, Str>::read(out.exporter(), in.for_field(&sem::CmdExport::exporter));
+  proto_serde<std::string, Str>::read(out.content(), in.for_field(&sem::CmdExport::content));
 }
 
 void proto_serde<::orgproto::Call, sem::Call>::write(::orgproto::Call* out, sem::Call const& in) {

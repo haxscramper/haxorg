@@ -1140,7 +1140,11 @@ struct ImmAdapterBlockQuoteAPI : ImmAdapterBlockAPI {};
 struct ImmAdapterBlockCommentAPI : ImmAdapterStmtAPI {};
 struct ImmAdapterBlockVerseAPI : ImmAdapterBlockAPI {};
 struct ImmAdapterBlockExampleAPI : ImmAdapterBlockAPI {};
-struct ImmAdapterBlockExportAPI : ImmAdapterBlockAPI {};
+struct ImmAdapterInlineExportAPI : ImmAdapterBlockAPI {};
+struct ImmAdapterCmdExportAPI : ImmAdapterBlockAPI {};
+struct ImmAdapterBlockExportAPI : ImmAdapterBlockAPI {
+    Opt<Str> getPlacement() const;
+};
 struct ImmAdapterBlockDynamicFallbackAPI : ImmAdapterBlockAPI {};
 struct ImmAdapterBlockAdmonitionAPI : ImmAdapterBlockAPI {};
 struct ImmAdapterBlockCodeAPI : ImmAdapterBlockAPI {};

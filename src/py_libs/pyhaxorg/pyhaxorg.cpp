@@ -2915,6 +2915,23 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<sem::InlineExport, sem::SemId<sem::InlineExport>, sem::Inline>(m, "InlineExport")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::InlineExport {
+                        sem::InlineExport result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("exporter", &sem::InlineExport::exporter)
+    .def_readwrite("content", &sem::InlineExport::content)
+    .def("__repr__", [](sem::InlineExport _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::InlineExport _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   bind_enum_iterator<sem::Time::Repeat::Mode>(m, "TimeRepeatMode", type_registry_guard);
   pybind11::enum_<sem::Time::Repeat::Mode>(m, "TimeRepeatMode")
     .value("None", sem::Time::Repeat::Mode::None, R"RAW(Do not repeat task on completion)RAW")
@@ -3685,29 +3702,17 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  bind_enum_iterator<sem::BlockExport::Format>(m, "BlockExportFormat", type_registry_guard);
-  pybind11::enum_<sem::BlockExport::Format>(m, "BlockExportFormat")
-    .value("Inline", sem::BlockExport::Format::Inline, R"RAW(Export directly in the paragraph)RAW")
-    .value("Line", sem::BlockExport::Format::Line, R"RAW(Single line of export)RAW")
-    .value("Block", sem::BlockExport::Format::Block, R"RAW(Multiple lines of export)RAW")
-    .def("__iter__", [](sem::BlockExport::Format _self) -> PyEnumIterator<sem::BlockExport::Format> {
-                     return
-                     PyEnumIterator<sem::BlockExport::Format>
-                     ();
-                     })
-    ;
   pybind11::class_<sem::BlockExport, sem::SemId<sem::BlockExport>, sem::Block>(m, "BlockExport")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockExport {
                         sem::BlockExport result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("format", &sem::BlockExport::format, R"RAW(Export block type)RAW")
-    .def_readwrite("exporter", &sem::BlockExport::exporter, R"RAW(Exporter backend name)RAW")
-    .def_readwrite("placement", &sem::BlockExport::placement, R"RAW(Customized position of the text in the final exporting document.)RAW")
-    .def_readwrite("content", &sem::BlockExport::content, R"RAW(Raw exporter content string)RAW")
+    .def_readwrite("exporter", &sem::BlockExport::exporter)
+    .def_readwrite("content", &sem::BlockExport::content)
     .def_readwrite("attrs", &sem::BlockExport::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("attached", &sem::BlockExport::attached)
+    .def("getPlacement", static_cast<Opt<Str>(sem::BlockExport::*)() const>(&sem::BlockExport::getPlacement), R"RAW(Return value of the :placement attribute if present)RAW")
     .def("getAttrs",
          static_cast<Vec<sem::AttrValue>(sem::BlockExport::*)(Opt<Str> const&) const>(&sem::BlockExport::getAttrs),
          pybind11::arg_v("key", std::nullopt),
@@ -4118,6 +4123,47 @@ node can have subnodes.)RAW")
                      })
     .def("__getattr__",
          [](sem::CmdAttr _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::CmdExport, sem::SemId<sem::CmdExport>, sem::Attached>(m, "CmdExport")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdExport {
+                        sem::CmdExport result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("exporter", &sem::CmdExport::exporter)
+    .def_readwrite("content", &sem::CmdExport::content)
+    .def_readwrite("attrs", &sem::CmdExport::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &sem::CmdExport::attached)
+    .def("getAttrs",
+         static_cast<Vec<sem::AttrValue>(sem::CmdExport::*)(Opt<Str> const&) const>(&sem::CmdExport::getAttrs),
+         pybind11::arg_v("key", std::nullopt),
+         R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
+    .def("getFirstAttr",
+         static_cast<Opt<sem::AttrValue>(sem::CmdExport::*)(Str const&) const>(&sem::CmdExport::getFirstAttr),
+         pybind11::arg("kind"),
+         R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
+    .def("getAttached",
+         static_cast<Vec<sem::SemId<sem::Org>>(sem::CmdExport::*)(Opt<Str> const&) const>(&sem::CmdExport::getAttached),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getCaption", static_cast<Vec<sem::SemId<sem::Org>>(sem::CmdExport::*)() const>(&sem::CmdExport::getCaption))
+    .def("getName", static_cast<Vec<Str>(sem::CmdExport::*)() const>(&sem::CmdExport::getName))
+    .def("getAttrs",
+         static_cast<Vec<sem::AttrValue>(sem::CmdExport::*)(Opt<Str> const&) const>(&sem::CmdExport::getAttrs),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstAttr",
+         static_cast<Opt<sem::AttrValue>(sem::CmdExport::*)(Str const&) const>(&sem::CmdExport::getFirstAttr),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
+    .def("__repr__", [](sem::CmdExport _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::CmdExport _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -4712,6 +4758,7 @@ node can have subnodes.)RAW")
     .value("CmdTblfm", OrgSemKind::CmdTblfm)
     .value("HashTag", OrgSemKind::HashTag)
     .value("InlineFootnote", OrgSemKind::InlineFootnote)
+    .value("InlineExport", OrgSemKind::InlineExport)
     .value("Time", OrgSemKind::Time)
     .value("TimeRange", OrgSemKind::TimeRange)
     .value("Macro", OrgSemKind::Macro)
@@ -4754,6 +4801,7 @@ node can have subnodes.)RAW")
     .value("Paragraph", OrgSemKind::Paragraph)
     .value("ColonExample", OrgSemKind::ColonExample)
     .value("CmdAttr", OrgSemKind::CmdAttr)
+    .value("CmdExport", OrgSemKind::CmdExport)
     .value("Call", OrgSemKind::Call)
     .value("List", OrgSemKind::List)
     .value("ListItem", OrgSemKind::ListItem)

@@ -201,7 +201,6 @@
     __IMPL(Time, Repeat::Mode, (Repeat, Mode)) \
     __IMPL(Time, Repeat::Period, (Repeat, Period)) \
     __IMPL(Time, TimeKind, (TimeKind)) \
-    __IMPL(BlockExport, Format, (Format)) \
     __IMPL(ListItem, Checkbox, (Checkbox)) \
     __IMPL(Include, Kind, (Kind))
 #define EACH_SEM_ORG_RECORD(__IMPL) \
@@ -227,6 +226,7 @@
     __IMPL(CmdTblfm, (CmdTblfm)) \
     __IMPL(HashTag, (HashTag)) \
     __IMPL(InlineFootnote, (InlineFootnote)) \
+    __IMPL(InlineExport, (InlineExport)) \
     __IMPL(Time, (Time)) \
     __IMPL(Time::Repeat, (Time, Repeat)) \
     __IMPL(Time::Static, (Time, Static)) \
@@ -274,6 +274,7 @@
     __IMPL(Paragraph, (Paragraph)) \
     __IMPL(ColonExample, (ColonExample)) \
     __IMPL(CmdAttr, (CmdAttr)) \
+    __IMPL(CmdExport, (CmdExport)) \
     __IMPL(Call, (Call)) \
     __IMPL(List, (List)) \
     __IMPL(ListItem, (ListItem)) \
@@ -303,6 +304,7 @@
     __IMPL(CmdTblfm) \
     __IMPL(HashTag) \
     __IMPL(InlineFootnote) \
+    __IMPL(InlineExport) \
     __IMPL(Time) \
     __IMPL(TimeRange) \
     __IMPL(Macro) \
@@ -345,6 +347,7 @@
     __IMPL(Paragraph) \
     __IMPL(ColonExample) \
     __IMPL(CmdAttr) \
+    __IMPL(CmdExport) \
     __IMPL(Call) \
     __IMPL(List) \
     __IMPL(ListItem) \
@@ -370,6 +373,7 @@
     __IMPL(CmdTblfm, Cmd) \
     __IMPL(HashTag, Inline) \
     __IMPL(InlineFootnote, Inline) \
+    __IMPL(InlineExport, Inline) \
     __IMPL(Time, Org) \
     __IMPL(TimeRange, Org) \
     __IMPL(Macro, Org) \
@@ -412,6 +416,7 @@
     __IMPL(Paragraph, Stmt) \
     __IMPL(ColonExample, Org) \
     __IMPL(CmdAttr, Attached) \
+    __IMPL(CmdExport, Attached) \
     __IMPL(Call, Org) \
     __IMPL(List, Stmt) \
     __IMPL(ListItem, Org) \
@@ -444,6 +449,7 @@
     __IMPL(CmdTblfm, Cmd) \
     __IMPL(HashTag, Inline) \
     __IMPL(InlineFootnote, Inline) \
+    __IMPL(InlineExport, Inline) \
     __IMPL(Time, Org) \
     __IMPL(TimeRange, Org) \
     __IMPL(Macro, Org) \
@@ -487,6 +493,7 @@
     __IMPL(Paragraph, Stmt) \
     __IMPL(ColonExample, Org) \
     __IMPL(CmdAttr, Attached) \
+    __IMPL(CmdExport, Attached) \
     __IMPL(Call, Org) \
     __IMPL(List, Stmt) \
     __IMPL(ListItem, Org) \
@@ -814,7 +821,7 @@ struct value_domain<OrgNodeKind> : public value_domain_ungapped<OrgNodeKind,
                                                                 OrgNodeKind::None,
                                                                 OrgNodeKind::SubtreeImportance> {};
 
-enum class OrgSemKind : short int { None, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdResults, CmdTblfm, HashTag, InlineFootnote, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, RadioTarget, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCode, SubtreeLog, Subtree, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, Call, List, ListItem, DocumentOptions, Document, FileTarget, TextSeparator, Include, DocumentGroup, };
+enum class OrgSemKind : short int { None, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdResults, CmdTblfm, HashTag, InlineFootnote, InlineExport, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, RadioTarget, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCode, SubtreeLog, Subtree, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, CmdExport, Call, List, ListItem, DocumentOptions, Document, FileTarget, TextSeparator, Include, DocumentGroup, };
 template <>
 struct enum_serde<OrgSemKind> {
   static Opt<OrgSemKind> from_string(std::string value);

@@ -236,57 +236,59 @@ enum OrgSemKind {
   OrgSemKind_CmdTblfm_f                                                             = 12;
   OrgSemKind_HashTag_f                                                              = 13;
   OrgSemKind_InlineFootnote_f                                                       = 14;
-  OrgSemKind_Time_f                                                                 = 15;
-  OrgSemKind_TimeRange_f                                                            = 16;
-  OrgSemKind_Macro_f                                                                = 17;
-  OrgSemKind_Symbol_f                                                               = 18;
-  OrgSemKind_Escaped_f                                                              = 19;
-  OrgSemKind_Newline_f                                                              = 20;
-  OrgSemKind_Space_f                                                                = 21;
-  OrgSemKind_Word_f                                                                 = 22;
-  OrgSemKind_AtMention_f                                                            = 23;
-  OrgSemKind_RawText_f                                                              = 24;
-  OrgSemKind_Punctuation_f                                                          = 25;
-  OrgSemKind_Placeholder_f                                                          = 26;
-  OrgSemKind_BigIdent_f                                                             = 27;
-  OrgSemKind_RadioTarget_f                                                          = 28;
-  OrgSemKind_TextTarget_f                                                           = 29;
-  OrgSemKind_Bold_f                                                                 = 30;
-  OrgSemKind_Underline_f                                                            = 31;
-  OrgSemKind_Monospace_f                                                            = 32;
-  OrgSemKind_MarkQuote_f                                                            = 33;
-  OrgSemKind_Verbatim_f                                                             = 34;
-  OrgSemKind_Italic_f                                                               = 35;
-  OrgSemKind_Strike_f                                                               = 36;
-  OrgSemKind_Par_f                                                                  = 37;
-  OrgSemKind_Latex_f                                                                = 38;
-  OrgSemKind_Link_f                                                                 = 39;
-  OrgSemKind_BlockCenter_f                                                          = 40;
-  OrgSemKind_BlockQuote_f                                                           = 41;
-  OrgSemKind_BlockComment_f                                                         = 42;
-  OrgSemKind_BlockVerse_f                                                           = 43;
-  OrgSemKind_BlockDynamicFallback_f                                                 = 44;
-  OrgSemKind_BlockExample_f                                                         = 45;
-  OrgSemKind_BlockExport_f                                                          = 46;
-  OrgSemKind_BlockAdmonition_f                                                      = 47;
-  OrgSemKind_BlockCode_f                                                            = 48;
-  OrgSemKind_SubtreeLog_f                                                           = 49;
-  OrgSemKind_Subtree_f                                                              = 50;
-  OrgSemKind_Cell_f                                                                 = 51;
-  OrgSemKind_Row_f                                                                  = 52;
-  OrgSemKind_Table_f                                                                = 53;
-  OrgSemKind_Paragraph_f                                                            = 54;
-  OrgSemKind_ColonExample_f                                                         = 55;
-  OrgSemKind_CmdAttr_f                                                              = 56;
-  OrgSemKind_Call_f                                                                 = 57;
-  OrgSemKind_List_f                                                                 = 58;
-  OrgSemKind_ListItem_f                                                             = 59;
-  OrgSemKind_DocumentOptions_f                                                      = 60;
-  OrgSemKind_Document_f                                                             = 61;
-  OrgSemKind_FileTarget_f                                                           = 62;
-  OrgSemKind_TextSeparator_f                                                        = 63;
-  OrgSemKind_Include_f                                                              = 64;
-  OrgSemKind_DocumentGroup_f                                                        = 65;
+  OrgSemKind_InlineExport_f                                                         = 15;
+  OrgSemKind_Time_f                                                                 = 16;
+  OrgSemKind_TimeRange_f                                                            = 17;
+  OrgSemKind_Macro_f                                                                = 18;
+  OrgSemKind_Symbol_f                                                               = 19;
+  OrgSemKind_Escaped_f                                                              = 20;
+  OrgSemKind_Newline_f                                                              = 21;
+  OrgSemKind_Space_f                                                                = 22;
+  OrgSemKind_Word_f                                                                 = 23;
+  OrgSemKind_AtMention_f                                                            = 24;
+  OrgSemKind_RawText_f                                                              = 25;
+  OrgSemKind_Punctuation_f                                                          = 26;
+  OrgSemKind_Placeholder_f                                                          = 27;
+  OrgSemKind_BigIdent_f                                                             = 28;
+  OrgSemKind_RadioTarget_f                                                          = 29;
+  OrgSemKind_TextTarget_f                                                           = 30;
+  OrgSemKind_Bold_f                                                                 = 31;
+  OrgSemKind_Underline_f                                                            = 32;
+  OrgSemKind_Monospace_f                                                            = 33;
+  OrgSemKind_MarkQuote_f                                                            = 34;
+  OrgSemKind_Verbatim_f                                                             = 35;
+  OrgSemKind_Italic_f                                                               = 36;
+  OrgSemKind_Strike_f                                                               = 37;
+  OrgSemKind_Par_f                                                                  = 38;
+  OrgSemKind_Latex_f                                                                = 39;
+  OrgSemKind_Link_f                                                                 = 40;
+  OrgSemKind_BlockCenter_f                                                          = 41;
+  OrgSemKind_BlockQuote_f                                                           = 42;
+  OrgSemKind_BlockComment_f                                                         = 43;
+  OrgSemKind_BlockVerse_f                                                           = 44;
+  OrgSemKind_BlockDynamicFallback_f                                                 = 45;
+  OrgSemKind_BlockExample_f                                                         = 46;
+  OrgSemKind_BlockExport_f                                                          = 47;
+  OrgSemKind_BlockAdmonition_f                                                      = 48;
+  OrgSemKind_BlockCode_f                                                            = 49;
+  OrgSemKind_SubtreeLog_f                                                           = 50;
+  OrgSemKind_Subtree_f                                                              = 51;
+  OrgSemKind_Cell_f                                                                 = 52;
+  OrgSemKind_Row_f                                                                  = 53;
+  OrgSemKind_Table_f                                                                = 54;
+  OrgSemKind_Paragraph_f                                                            = 55;
+  OrgSemKind_ColonExample_f                                                         = 56;
+  OrgSemKind_CmdAttr_f                                                              = 57;
+  OrgSemKind_CmdExport_f                                                            = 58;
+  OrgSemKind_Call_f                                                                 = 59;
+  OrgSemKind_List_f                                                                 = 60;
+  OrgSemKind_ListItem_f                                                             = 61;
+  OrgSemKind_DocumentOptions_f                                                      = 62;
+  OrgSemKind_Document_f                                                             = 63;
+  OrgSemKind_FileTarget_f                                                           = 64;
+  OrgSemKind_TextSeparator_f                                                        = 65;
+  OrgSemKind_Include_f                                                              = 66;
+  OrgSemKind_DocumentGroup_f                                                        = 67;
 }
 
 message Tblfm {
@@ -1142,6 +1144,14 @@ message InlineFootnote {
   string                                           debug                            = 1000;
 }
 
+message InlineExport {
+  repeated AnyNode                                 subnodes                         = 1;
+  OrgSemKind                                       staticKind                       = 2;
+  string                                           exporter                         = 3;
+  string                                           content                          = 4;
+  string                                           debug                            = 1000;
+}
+
 message Time {
   message Repeat {
     enum Mode {
@@ -1413,19 +1423,12 @@ message BlockExample {
 }
 
 message BlockExport {
-  enum Format {
-    Format_Inline_f                                                                 = 0;
-    Format_Line_f                                                                   = 1;
-    Format_Block_f                                                                  = 2;
-  }
   optional AttrGroup                               attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
-  BlockExport.Format                               format                           = 5;
-  string                                           exporter                         = 6;
-  optional string                                  placement                        = 7;
-  string                                           content                          = 8;
+  string                                           exporter                         = 5;
+  string                                           content                          = 6;
   string                                           debug                            = 1000;
 }
 
@@ -1532,6 +1535,16 @@ message CmdAttr {
   repeated AnyNode                                 subnodes                         = 3;
   OrgSemKind                                       staticKind                       = 4;
   string                                           target                           = 5;
+  string                                           debug                            = 1000;
+}
+
+message CmdExport {
+  optional AttrGroup                               attrs                            = 1;
+  repeated AnyNode                                 attached                         = 2;
+  repeated AnyNode                                 subnodes                         = 3;
+  OrgSemKind                                       staticKind                       = 4;
+  string                                           exporter                         = 5;
+  string                                           content                          = 6;
   string                                           debug                            = 1000;
 }
 
@@ -1673,57 +1686,59 @@ message AnyNode {
     CmdTblfm                                         cmdtblfm                         = 13;
     HashTag                                          hashtag                          = 14;
     InlineFootnote                                   inlinefootnote                   = 15;
-    Time                                             time                             = 16;
-    TimeRange                                        timerange                        = 17;
-    Macro                                            macro                            = 18;
-    Symbol                                           symbol                           = 19;
-    Escaped                                          escaped                          = 20;
-    Newline                                          newline                          = 21;
-    Space                                            space                            = 22;
-    Word                                             word                             = 23;
-    AtMention                                        atmention                        = 24;
-    RawText                                          rawtext                          = 25;
-    Punctuation                                      punctuation                      = 26;
-    Placeholder                                      placeholder                      = 27;
-    BigIdent                                         bigident                         = 28;
-    RadioTarget                                      radiotarget                      = 29;
-    TextTarget                                       texttarget                       = 30;
-    Bold                                             bold                             = 31;
-    Underline                                        underline                        = 32;
-    Monospace                                        monospace                        = 33;
-    MarkQuote                                        markquote                        = 34;
-    Verbatim                                         verbatim                         = 35;
-    Italic                                           italic                           = 36;
-    Strike                                           strike                           = 37;
-    Par                                              par                              = 38;
-    Latex                                            latex                            = 39;
-    Link                                             link                             = 40;
-    BlockCenter                                      blockcenter                      = 41;
-    BlockQuote                                       blockquote                       = 42;
-    BlockComment                                     blockcomment                     = 43;
-    BlockVerse                                       blockverse                       = 44;
-    BlockDynamicFallback                             blockdynamicfallback             = 45;
-    BlockExample                                     blockexample                     = 46;
-    BlockExport                                      blockexport                      = 47;
-    BlockAdmonition                                  blockadmonition                  = 48;
-    BlockCode                                        blockcode                        = 49;
-    SubtreeLog                                       subtreelog                       = 50;
-    Subtree                                          subtree                          = 51;
-    Cell                                             cell                             = 52;
-    Row                                              row                              = 53;
-    Table                                            table                            = 54;
-    Paragraph                                        paragraph                        = 55;
-    ColonExample                                     colonexample                     = 56;
-    CmdAttr                                          cmdattr                          = 57;
-    Call                                             call                             = 58;
-    List                                             list                             = 59;
-    ListItem                                         listitem                         = 60;
-    DocumentOptions                                  documentoptions                  = 61;
-    Document                                         document                         = 62;
-    FileTarget                                       filetarget                       = 63;
-    TextSeparator                                    textseparator                    = 64;
-    Include                                          include                          = 65;
-    DocumentGroup                                    documentgroup                    = 66;
+    InlineExport                                     inlineexport                     = 16;
+    Time                                             time                             = 17;
+    TimeRange                                        timerange                        = 18;
+    Macro                                            macro                            = 19;
+    Symbol                                           symbol                           = 20;
+    Escaped                                          escaped                          = 21;
+    Newline                                          newline                          = 22;
+    Space                                            space                            = 23;
+    Word                                             word                             = 24;
+    AtMention                                        atmention                        = 25;
+    RawText                                          rawtext                          = 26;
+    Punctuation                                      punctuation                      = 27;
+    Placeholder                                      placeholder                      = 28;
+    BigIdent                                         bigident                         = 29;
+    RadioTarget                                      radiotarget                      = 30;
+    TextTarget                                       texttarget                       = 31;
+    Bold                                             bold                             = 32;
+    Underline                                        underline                        = 33;
+    Monospace                                        monospace                        = 34;
+    MarkQuote                                        markquote                        = 35;
+    Verbatim                                         verbatim                         = 36;
+    Italic                                           italic                           = 37;
+    Strike                                           strike                           = 38;
+    Par                                              par                              = 39;
+    Latex                                            latex                            = 40;
+    Link                                             link                             = 41;
+    BlockCenter                                      blockcenter                      = 42;
+    BlockQuote                                       blockquote                       = 43;
+    BlockComment                                     blockcomment                     = 44;
+    BlockVerse                                       blockverse                       = 45;
+    BlockDynamicFallback                             blockdynamicfallback             = 46;
+    BlockExample                                     blockexample                     = 47;
+    BlockExport                                      blockexport                      = 48;
+    BlockAdmonition                                  blockadmonition                  = 49;
+    BlockCode                                        blockcode                        = 50;
+    SubtreeLog                                       subtreelog                       = 51;
+    Subtree                                          subtree                          = 52;
+    Cell                                             cell                             = 53;
+    Row                                              row                              = 54;
+    Table                                            table                            = 55;
+    Paragraph                                        paragraph                        = 56;
+    ColonExample                                     colonexample                     = 57;
+    CmdAttr                                          cmdattr                          = 58;
+    CmdExport                                        cmdexport                        = 59;
+    Call                                             call                             = 60;
+    List                                             list                             = 61;
+    ListItem                                         listitem                         = 62;
+    DocumentOptions                                  documentoptions                  = 63;
+    Document                                         document                         = 64;
+    FileTarget                                       filetarget                       = 65;
+    TextSeparator                                    textseparator                    = 66;
+    Include                                          include                          = 67;
+    DocumentGroup                                    documentgroup                    = 68;
   }
 }
 /* clang-format on */

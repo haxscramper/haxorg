@@ -1750,6 +1750,21 @@ struct InlineFootnote : public sem::Inline {
   virtual OrgSemKind getKind() const { return OrgSemKind::InlineFootnote; }
 };
 
+/// \brief Inline export
+struct InlineExport : public sem::Inline {
+  using Inline::Inline;
+  virtual ~InlineExport() = default;
+  BOOST_DESCRIBE_CLASS(InlineExport,
+                       (Inline),
+                       (),
+                       (),
+                       (staticKind, exporter, content))
+  static OrgSemKind const staticKind;
+  Str exporter = "";
+  Str content = "";
+  virtual OrgSemKind getKind() const { return OrgSemKind::InlineExport; }
+};
+
 /// \brief Single static or dynamic timestamp (active or inactive)
 struct Time : public sem::Org {
   using Org::Org;
@@ -2237,31 +2252,19 @@ struct BlockExample : public sem::Block {
 struct BlockExport : public sem::Block {
   using Block::Block;
   virtual ~BlockExport() = default;
-  /// \brief Export block format type
-  enum class Format : short int {
-    /// \brief Export directly in the paragraph
-    Inline,
-    /// \brief Single line of export
-    Line,
-    /// \brief Multiple lines of export
-    Block,
-  };
-  BOOST_DESCRIBE_NESTED_ENUM(Format, Inline, Line, Block)
   BOOST_DESCRIBE_CLASS(BlockExport,
                        (Block),
                        (),
                        (),
-                       (staticKind, format, exporter, placement, content))
+                       (staticKind,
+                        exporter,
+                        content))
   static OrgSemKind const staticKind;
-  /// \brief Export block type
-  sem::BlockExport::Format format = Format::Inline;
-  /// \brief Exporter backend name
-  Str exporter;
-  /// \brief Customized position of the text in the final exporting document.
-  Opt<Str> placement = std::nullopt;
-  /// \brief Raw exporter content string
-  Str content;
+  Str exporter = "";
+  Str content = "";
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockExport; }
+  /// \brief Return value of the :placement attribute if present
+  Opt<Str> getPlacement() const;
 };
 
 /// \brief Block of text with admonition tag: 'note',', 'warning','
@@ -2507,6 +2510,21 @@ struct CmdAttr : public sem::Attached {
   static OrgSemKind const staticKind;
   Str target;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdAttr; }
+};
+
+/// \brief Single line of passthrough code
+struct CmdExport : public sem::Attached {
+  using Attached::Attached;
+  virtual ~CmdExport() = default;
+  BOOST_DESCRIBE_CLASS(CmdExport,
+                       (Attached),
+                       (),
+                       (),
+                       (staticKind, exporter, content))
+  static OrgSemKind const staticKind;
+  Str exporter = "";
+  Str content = "";
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdExport; }
 };
 
 /// \brief Inline, statement or block call

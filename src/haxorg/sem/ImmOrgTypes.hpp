@@ -349,6 +349,24 @@ struct ImmInlineFootnote : public org::ImmInline {
   bool operator==(org::ImmInlineFootnote const& other) const;
 };
 
+/// \brief Inline export
+struct ImmInlineExport : public org::ImmInline {
+  using ImmInline::ImmInline;
+  virtual ~ImmInlineExport() = default;
+  BOOST_DESCRIBE_CLASS(ImmInlineExport,
+                       (ImmInline),
+                       (),
+                       (),
+                       (staticKind,
+                        exporter,
+                        content))
+  static OrgSemKind const staticKind;
+  ImmBox<Str> exporter = "";
+  ImmBox<Str> content = "";
+  virtual OrgSemKind getKind() const { return OrgSemKind::InlineExport; }
+  bool operator==(org::ImmInlineExport const& other) const;
+};
+
 /// \brief Single static or dynamic timestamp (active or inactive)
 struct ImmTime : public org::ImmOrg {
   using ImmOrg::ImmOrg;
@@ -895,34 +913,16 @@ struct ImmBlockExample : public org::ImmBlock {
 struct ImmBlockExport : public org::ImmBlock {
   using ImmBlock::ImmBlock;
   virtual ~ImmBlockExport() = default;
-  /// \brief Export block format type
-  enum class Format : short int {
-    /// \brief Export directly in the paragraph
-    Inline,
-    /// \brief Single line of export
-    Line,
-    /// \brief Multiple lines of export
-    Block,
-  };
-  BOOST_DESCRIBE_NESTED_ENUM(Format, Inline, Line, Block)
   BOOST_DESCRIBE_CLASS(ImmBlockExport,
                        (ImmBlock),
                        (),
                        (),
                        (staticKind,
-                        format,
                         exporter,
-                        placement,
                         content))
   static OrgSemKind const staticKind;
-  /// \brief Export block type
-  org::ImmBlockExport::Format format = Format::Inline;
-  /// \brief Exporter backend name
-  ImmBox<Str> exporter;
-  /// \brief Customized position of the text in the final exporting document.
-  ImmBox<Opt<Str>> placement = std::nullopt;
-  /// \brief Raw exporter content string
-  ImmBox<Str> content;
+  ImmBox<Str> exporter = "";
+  ImmBox<Str> content = "";
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockExport; }
   bool operator==(org::ImmBlockExport const& other) const;
 };
@@ -1160,6 +1160,24 @@ struct ImmCmdAttr : public org::ImmAttached {
   ImmBox<Str> target;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdAttr; }
   bool operator==(org::ImmCmdAttr const& other) const;
+};
+
+/// \brief Single line of passthrough code
+struct ImmCmdExport : public org::ImmAttached {
+  using ImmAttached::ImmAttached;
+  virtual ~ImmCmdExport() = default;
+  BOOST_DESCRIBE_CLASS(ImmCmdExport,
+                       (ImmAttached),
+                       (),
+                       (),
+                       (staticKind,
+                        exporter,
+                        content))
+  static OrgSemKind const staticKind;
+  ImmBox<Str> exporter = "";
+  ImmBox<Str> content = "";
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdExport; }
+  bool operator==(org::ImmCmdExport const& other) const;
 };
 
 /// \brief Inline, statement or block call

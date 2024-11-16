@@ -1447,7 +1447,7 @@ TEST(OrgApi, SubtreeTitleParsing) {
     }
 }
 
-TEST(OrgApi, WordParsing) {
+TEST(OrgApi, TextParsing) {
     {
         auto w = parseOne<sem::Word>("test");
         EXPECT_EQ(w->text, "test"_ss);
@@ -1459,6 +1459,17 @@ TEST(OrgApi, WordParsing) {
     {
         auto w = parseOne<sem::Word>("don't");
         EXPECT_EQ(w->text, "don't"_ss);
+    }
+    {
+        auto par = parseOne<sem::Paragraph>(
+            R"(@@html:<b>@@bold text@@html:</b>@@)",
+            getDebugFile("inline_export"));
+        EXPECT_EQ(par.size(), 5);
+        EXPECT_EQ(par.at(0)->getKind(), OrgSemKind::InlineExport);
+        EXPECT_EQ(par.at(1)->getKind(), OrgSemKind::Word);
+        EXPECT_EQ(par.at(2)->getKind(), OrgSemKind::Space);
+        EXPECT_EQ(par.at(3)->getKind(), OrgSemKind::Word);
+        EXPECT_EQ(par.at(4)->getKind(), OrgSemKind::InlineExport);
     }
 }
 

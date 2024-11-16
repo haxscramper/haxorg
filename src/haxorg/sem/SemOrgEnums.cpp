@@ -474,6 +474,7 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "CmdTblfm") { return OrgSemKind::CmdTblfm; } else
   if (value == "HashTag") { return OrgSemKind::HashTag; } else
   if (value == "InlineFootnote") { return OrgSemKind::InlineFootnote; } else
+  if (value == "InlineExport") { return OrgSemKind::InlineExport; } else
   if (value == "Time") { return OrgSemKind::Time; } else
   if (value == "TimeRange") { return OrgSemKind::TimeRange; } else
   if (value == "Macro") { return OrgSemKind::Macro; } else
@@ -516,6 +517,7 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "Paragraph") { return OrgSemKind::Paragraph; } else
   if (value == "ColonExample") { return OrgSemKind::ColonExample; } else
   if (value == "CmdAttr") { return OrgSemKind::CmdAttr; } else
+  if (value == "CmdExport") { return OrgSemKind::CmdExport; } else
   if (value == "Call") { return OrgSemKind::Call; } else
   if (value == "List") { return OrgSemKind::List; } else
   if (value == "ListItem") { return OrgSemKind::ListItem; } else
@@ -544,6 +546,7 @@ std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::CmdTblfm: return "CmdTblfm";
     case OrgSemKind::HashTag: return "HashTag";
     case OrgSemKind::InlineFootnote: return "InlineFootnote";
+    case OrgSemKind::InlineExport: return "InlineExport";
     case OrgSemKind::Time: return "Time";
     case OrgSemKind::TimeRange: return "TimeRange";
     case OrgSemKind::Macro: return "Macro";
@@ -586,6 +589,7 @@ std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::Paragraph: return "Paragraph";
     case OrgSemKind::ColonExample: return "ColonExample";
     case OrgSemKind::CmdAttr: return "CmdAttr";
+    case OrgSemKind::CmdExport: return "CmdExport";
     case OrgSemKind::Call: return "Call";
     case OrgSemKind::List: return "List";
     case OrgSemKind::ListItem: return "ListItem";

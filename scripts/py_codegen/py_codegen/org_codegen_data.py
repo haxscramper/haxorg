@@ -350,7 +350,8 @@ def get_subtree_property_types():
             ],
             fields=[
                 org_field(t_bool(), "isRecursive"),
-                org_field(t_nest_shared("TodoSource", ["NamedProperty", "CookieData"]), "source"),
+                org_field(t_nest_shared("TodoSource", ["NamedProperty", "CookieData"]),
+                          "source"),
             ],
             methods=[eq_method(t_nest_shared("CookieData", ["NamedProperty"]))],
         ),
@@ -754,34 +755,17 @@ def get_sem_block():
             "BlockExport",
             GenTuDoc("Direct export passthrough"),
             bases=[t_org("Block")],
-            nested=[
-                GenTuEnum(
-                    t_nest("Format", ["BlockExport"]),
-                    GenTuDoc("Export block format type"),
-                    [
-                        GenTuEnumField("Inline",
-                                       GenTuDoc("Export directly in the paragraph")),
-                        GenTuEnumField("Line", GenTuDoc("Single line of export")),
-                        GenTuEnumField("Block", GenTuDoc("Multiple lines of export")),
-                    ],
-                )
-            ],
             fields=[
-                GenTuField(
-                    t_nest("Format", ["BlockExport"]),
-                    "format",
-                    GenTuDoc("Export block type"),
-                    value="Format::Inline",
-                ),
-                GenTuField(t_str(), "exporter", GenTuDoc("Exporter backend name")),
-                opt_field(
-                    t_str(),
-                    "placement",
-                    GenTuDoc(
-                        "Customized position of the text in the final exporting document."
-                    ),
-                ),
-                GenTuField(t_str(), "content", GenTuDoc("Raw exporter content string")),
+                str_field("exporter"),
+                str_field("content"),
+            ],
+            methods=[
+                GenTuFunction(
+                    t_opt(t_str()),
+                    "getPlacement",
+                    org_doc("Return value of the :placement attribute if present"),
+                    isConst=True,
+                )
             ],
         ),
         d_org(
@@ -856,6 +840,13 @@ def get_sem_text():
                 ),
             ],
         ),
+        d_org("InlineExport",
+              GenTuDoc("Inline export"),
+              bases=[t_org("Inline")],
+              fields=[
+                  str_field("exporter"),
+                  str_field("content"),
+              ]),
         d_org(
             "Time",
             GenTuDoc("Single static or dynamic timestamp (active or inactive)"),
@@ -2322,6 +2313,13 @@ def get_types() -> Sequence[GenTuStruct]:
                 GenTuField(t_str(), "target", GenTuDoc("")),
             ],
         ),
+        d_org("CmdExport",
+              GenTuDoc("Single line of passthrough code"),
+              bases=[t_org("Attached")],
+              fields=[
+                  str_field("exporter"),
+                  str_field("content"),
+              ]),
         d_org(
             "Call",
             GenTuDoc("Inline, statement or block call"),

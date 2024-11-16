@@ -1262,6 +1262,13 @@ class InlineFootnote(Inline):
     tag: str
     definition: Optional[Org]
 
+class InlineExport(Inline):
+    def __init__(self, exporter: str, content: str) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    exporter: str
+    content: str
+
 class TimeRepeatMode(Enum):
     _None = 1
     Exact = 2
@@ -1572,13 +1579,9 @@ class BlockExample(Block):
     attrs: Optional[AttrGroup]
     attached: List[Org]
 
-class BlockExportFormat(Enum):
-    Inline = 1
-    Line = 2
-    Block = 3
-
 class BlockExport(Block):
-    def __init__(self, format: BlockExportFormat, exporter: str, placement: Optional[str], content: str, attrs: Optional[AttrGroup], attached: List[Org]) -> None: ...
+    def __init__(self, exporter: str, content: str, attrs: Optional[AttrGroup], attached: List[Org]) -> None: ...
+    def getPlacement(self) -> Optional[str]: ...
     def getAttrs(self, key: Optional[str]) -> List[AttrValue]: ...
     def getFirstAttr(self, kind: str) -> Optional[AttrValue]: ...
     def getAttached(self, kind: Optional[str]) -> List[Org]: ...
@@ -1588,9 +1591,7 @@ class BlockExport(Block):
     def getFirstAttr(self, kind: str) -> Optional[AttrValue]: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
-    format: BlockExportFormat
     exporter: str
-    placement: Optional[str]
     content: str
     attrs: Optional[AttrGroup]
     attached: List[Org]
@@ -1754,6 +1755,22 @@ class CmdAttr(Attached):
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     target: str
+    attrs: Optional[AttrGroup]
+    attached: List[Org]
+
+class CmdExport(Attached):
+    def __init__(self, exporter: str, content: str, attrs: Optional[AttrGroup], attached: List[Org]) -> None: ...
+    def getAttrs(self, key: Optional[str]) -> List[AttrValue]: ...
+    def getFirstAttr(self, kind: str) -> Optional[AttrValue]: ...
+    def getAttached(self, kind: Optional[str]) -> List[Org]: ...
+    def getCaption(self) -> List[Org]: ...
+    def getName(self) -> List[str]: ...
+    def getAttrs(self, kind: Optional[str]) -> List[AttrValue]: ...
+    def getFirstAttr(self, kind: str) -> Optional[AttrValue]: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    exporter: str
+    content: str
     attrs: Optional[AttrGroup]
     attached: List[Org]
 
@@ -2122,57 +2139,59 @@ class OrgSemKind(Enum):
     CmdTblfm = 13
     HashTag = 14
     InlineFootnote = 15
-    Time = 16
-    TimeRange = 17
-    Macro = 18
-    Symbol = 19
-    Escaped = 20
-    Newline = 21
-    Space = 22
-    Word = 23
-    AtMention = 24
-    RawText = 25
-    Punctuation = 26
-    Placeholder = 27
-    BigIdent = 28
-    RadioTarget = 29
-    TextTarget = 30
-    Bold = 31
-    Underline = 32
-    Monospace = 33
-    MarkQuote = 34
-    Verbatim = 35
-    Italic = 36
-    Strike = 37
-    Par = 38
-    Latex = 39
-    Link = 40
-    BlockCenter = 41
-    BlockQuote = 42
-    BlockComment = 43
-    BlockVerse = 44
-    BlockDynamicFallback = 45
-    BlockExample = 46
-    BlockExport = 47
-    BlockAdmonition = 48
-    BlockCode = 49
-    SubtreeLog = 50
-    Subtree = 51
-    Cell = 52
-    Row = 53
-    Table = 54
-    Paragraph = 55
-    ColonExample = 56
-    CmdAttr = 57
-    Call = 58
-    List = 59
-    ListItem = 60
-    DocumentOptions = 61
-    Document = 62
-    FileTarget = 63
-    TextSeparator = 64
-    Include = 65
-    DocumentGroup = 66
+    InlineExport = 16
+    Time = 17
+    TimeRange = 18
+    Macro = 19
+    Symbol = 20
+    Escaped = 21
+    Newline = 22
+    Space = 23
+    Word = 24
+    AtMention = 25
+    RawText = 26
+    Punctuation = 27
+    Placeholder = 28
+    BigIdent = 29
+    RadioTarget = 30
+    TextTarget = 31
+    Bold = 32
+    Underline = 33
+    Monospace = 34
+    MarkQuote = 35
+    Verbatim = 36
+    Italic = 37
+    Strike = 38
+    Par = 39
+    Latex = 40
+    Link = 41
+    BlockCenter = 42
+    BlockQuote = 43
+    BlockComment = 44
+    BlockVerse = 45
+    BlockDynamicFallback = 46
+    BlockExample = 47
+    BlockExport = 48
+    BlockAdmonition = 49
+    BlockCode = 50
+    SubtreeLog = 51
+    Subtree = 52
+    Cell = 53
+    Row = 54
+    Table = 55
+    Paragraph = 56
+    ColonExample = 57
+    CmdAttr = 58
+    CmdExport = 59
+    Call = 60
+    List = 61
+    ListItem = 62
+    DocumentOptions = 63
+    Document = 64
+    FileTarget = 65
+    TextSeparator = 66
+    Include = 67
+    DocumentGroup = 68
 
 class UserTimeBreakdown:
     def __init__(self, year: Optional[int], month: Optional[int], day: Optional[int], hour: Optional[int], minute: Optional[int], second: Optional[int], zone: Optional[str]) -> None: ...

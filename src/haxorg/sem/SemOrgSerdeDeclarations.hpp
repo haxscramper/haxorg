@@ -17,6 +17,7 @@
         __MAP(kCmdtblfm, cmdtblfm, CmdTblfm)  \
         __MAP(kHashtag, hashtag, HashTag)  \
         __MAP(kInlinefootnote, inlinefootnote, InlineFootnote)  \
+        __MAP(kInlineexport, inlineexport, InlineExport)  \
         __MAP(kTime, time, Time)  \
         __MAP(kTimerange, timerange, TimeRange)  \
         __MAP(kMacro, macro, Macro)  \
@@ -59,6 +60,7 @@
         __MAP(kParagraph, paragraph, Paragraph)  \
         __MAP(kColonexample, colonexample, ColonExample)  \
         __MAP(kCmdattr, cmdattr, CmdAttr)  \
+        __MAP(kCmdexport, cmdexport, CmdExport)  \
         __MAP(kCall, call, Call)  \
         __MAP(kList, list, List)  \
         __MAP(kListitem, listitem, ListItem)  \
@@ -798,6 +800,13 @@ struct proto_serde<::orgproto::InlineFootnote, sem::InlineFootnote> {
 
 
 template <>
+struct proto_serde<::orgproto::InlineExport, sem::InlineExport> {
+  static void write(::orgproto::InlineExport* out, sem::InlineExport const& in);
+  static void read(::orgproto::InlineExport const& out, proto_write_accessor<sem::InlineExport> in);
+};
+
+
+template <>
 struct proto_serde<::orgproto::Time::Repeat, sem::Time::Repeat> {
   static void write(::orgproto::Time::Repeat* out, sem::Time::Repeat const& in);
   static void read(::orgproto::Time::Repeat const& out, proto_write_accessor<sem::Time::Repeat> in);
@@ -1116,6 +1125,13 @@ template <>
 struct proto_serde<::orgproto::CmdAttr, sem::CmdAttr> {
   static void write(::orgproto::CmdAttr* out, sem::CmdAttr const& in);
   static void read(::orgproto::CmdAttr const& out, proto_write_accessor<sem::CmdAttr> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::CmdExport, sem::CmdExport> {
+  static void write(::orgproto::CmdExport* out, sem::CmdExport const& in);
+  static void read(::orgproto::CmdExport const& out, proto_write_accessor<sem::CmdExport> in);
 };
 
 
