@@ -46,6 +46,13 @@ sub_lexers:
     - re: ":\\/\\/.*?$"
       token: LinkTarget
 
+  inline_export:
+    - re: "^@@\\w+"
+      token: InlineExportBackend
+
+    - re: ":.*?@@$"
+      token: InlineExportContent
+
   link_protocol_split:
     - re: "^\\[\\["
       token: LinkBegin
@@ -724,6 +731,9 @@ rules:
 
   - re: "\\[\\d+\\/\\d+\\]"
     token: SubtreeCompletion
+
+  - re: "@@\\w+:[^@]+@@"
+    sub: "inline_export"
 
   - re: "\\[\\d+%\\]"
     token: SubtreeCompletion

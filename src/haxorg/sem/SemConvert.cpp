@@ -1986,6 +1986,15 @@ OrgConverter::ConvResult<CmdName> OrgConverter::convertCmdName(__args) {
     return result;
 }
 
+OrgConverter::ConvResult<InlineExport> OrgConverter::convertInlineExport(
+    __args) {
+    auto                __trace = trace(a);
+    SemId<InlineExport> result  = Sem<InlineExport>(a);
+    result->exporter = lstrip(get_text(one(a, N::Name)), CharSet{'@'});
+    result->content  = Str{get_text(one(a, N::Body)).at(slice(1, 3_B))};
+    return result;
+}
+
 SemId<ErrorItem> OrgConverter::SemErrorItem(
     In          adapter,
     CR<Str>     message,
@@ -2226,6 +2235,7 @@ SemId<Org> OrgConverter::convert(__args) {
         case onk::ListTag: return convert(a[0]);
         case onk::InlineMath: return convertMath(a).unwrap();
         case onk::RawLink: return convertLink(a).unwrap();
+        case onk::InlineExport: return convertInlineExport(a).unwrap();
         case onk::StaticActiveTime:
         case onk::StaticInactiveTime:
         case onk::DynamicActiveTime:

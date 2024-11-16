@@ -396,6 +396,12 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                             OrgPattern(org::RawText))})),
             })},
         SpecPair{
+            org::InlineExport,
+            OrgPattern({
+                field1(0, N::Name, org::RawText),
+                field1(1, N::Body, org::RawText),
+            })},
+        SpecPair{
             org::CmdInclude,
             OrgPattern({Field(
                 Range(0, N::Args),

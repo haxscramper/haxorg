@@ -209,6 +209,7 @@ struct OrgConverter : public OperationsTracer {
     ConvResult<Call>            convertCall(In);
     ConvResult<CmdAttr>         convertCmdAttr(In);
     ConvResult<CmdName>         convertCmdName(In);
+    ConvResult<InlineExport>    convertInlineExport(In);
 
     sem::AttrGroup convertCallArguments(CVec<In>, In source);
     sem::AttrValue convertAttr(In);

@@ -18,11 +18,12 @@ std::string OrgLexerImpl::state_name(int state) {
         case 14: return "PROPERTY_LITERAL";
         case 15: return "PROPERTY_ARGUMENT";
         case 16: return "sub_state_http_link";
-        case 17: return "sub_state_link_protocol_split";
-        case 18: return "sub_state_raw_dsl_link";
-        case 19: return "sub_state_no_protocol_file_link";
-        case 20: return "sub_state_link_protocol_internal";
-        case 21: return "sub_state_timestamp_repeater";
+        case 17: return "sub_state_inline_export";
+        case 18: return "sub_state_link_protocol_split";
+        case 19: return "sub_state_raw_dsl_link";
+        case 20: return "sub_state_no_protocol_file_link";
+        case 21: return "sub_state_link_protocol_internal";
+        case 22: return "sub_state_timestamp_repeater";
         default: return std::to_string(state);
     }
 }
@@ -153,6 +154,8 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::HashIdent: return "HashIdent";
         case OrgTokenKind::HashTagBegin: return "HashTagBegin";
         case OrgTokenKind::Indent: return "Indent";
+        case OrgTokenKind::InlineExportBackend: return "InlineExportBackend";
+        case OrgTokenKind::InlineExportContent: return "InlineExportContent";
         case OrgTokenKind::ItalicBegin: return "ItalicBegin";
         case OrgTokenKind::ItalicEnd: return "ItalicEnd";
         case OrgTokenKind::ItalicUnknown: return "ItalicUnknown";
@@ -371,6 +374,8 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "HashIdent") { return OrgTokenKind::HashIdent; } else
   if (value == "HashTagBegin") { return OrgTokenKind::HashTagBegin; } else
   if (value == "Indent") { return OrgTokenKind::Indent; } else
+  if (value == "InlineExportBackend") { return OrgTokenKind::InlineExportBackend; } else
+  if (value == "InlineExportContent") { return OrgTokenKind::InlineExportContent; } else
   if (value == "ItalicBegin") { return OrgTokenKind::ItalicBegin; } else
   if (value == "ItalicEnd") { return OrgTokenKind::ItalicEnd; } else
   if (value == "ItalicUnknown") { return OrgTokenKind::ItalicUnknown; } else

@@ -124,6 +124,8 @@ enum class OrgTokenKind : unsigned short int {
   HashIdent,
   HashTagBegin,
   Indent,
+  InlineExportBackend,
+  InlineExportContent,
   ItalicBegin,
   ItalicEnd,
   ItalicUnknown,

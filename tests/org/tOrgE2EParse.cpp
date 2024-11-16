@@ -1470,6 +1470,14 @@ TEST(OrgApi, TextParsing) {
         EXPECT_EQ(par.at(2)->getKind(), OrgSemKind::Space);
         EXPECT_EQ(par.at(3)->getKind(), OrgSemKind::Word);
         EXPECT_EQ(par.at(4)->getKind(), OrgSemKind::InlineExport);
+
+        auto ex0 = par.at(0).as<sem::InlineExport>();
+        EXPECT_EQ(ex0->exporter, "html"_ss);
+        EXPECT_EQ(ex0->content, "<b>"_ss);
+
+        auto ex4 = par.at(4).as<sem::InlineExport>();
+        EXPECT_EQ(ex4->exporter, "html"_ss);
+        EXPECT_EQ(ex4->content, "</b>"_ss);
     }
 }
 

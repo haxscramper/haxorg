@@ -326,6 +326,11 @@ void OrgParser::textFold(OrgLexer& lex) {
                     break;
                 }
 
+                case otk::InlineExportBackend: {
+                    subParse(InlineExport, lex);
+                    break;
+                }
+
                 case otk::TextSrcBegin: subParse(SrcInline, lex); break;
                 case otk::HashIdent: subParse(HashTag, lex); break;
                 case otk::LinkProtocolHttp:
@@ -1111,6 +1116,13 @@ OrgId OrgParser::parseParagraph(OrgLexer& lex) {
     parseText(lex);
     end();
     return back();
+}
+
+OrgId OrgParser::parseInlineExport(OrgLexer& lex) {
+    start(onk::InlineExport);
+    token(onk::RawText, pop(lex, otk::InlineExportBackend));
+    token(onk::RawText, pop(lex, otk::InlineExportContent));
+    return end();
 }
 
 OrgId OrgParser::parseCommandArguments(OrgLexer& lex) {
