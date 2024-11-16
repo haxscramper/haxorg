@@ -90,14 +90,14 @@ auto Formatter::toString(SemId<Macro> id, CR<Context> ctx) -> Res {
     }
 }
 
-std::string nestedHashtag(sem::SemId<sem::HashTag> const& hash) {
-    if (hash->subtags.empty()) {
-        return hash->head;
-    } else if (hash->subtags.size() == 1) {
-        return hash->head + "##" + nestedHashtag(hash->subtags.at(0));
+std::string nestedHashtag(sem::HashTagText const& hash) {
+    if (hash.subtags.empty()) {
+        return hash.head;
+    } else if (hash.subtags.size() == 1) {
+        return hash.head + "##" + nestedHashtag(hash.subtags.at(0));
     } else {
-        return hash->head + "##["
-             + (hash->subtags                  //
+        return hash.head + "##["
+             + (hash.subtags                   //
                 | rv::transform(nestedHashtag) //
                 | rv::intersperse(",")         //
                 | rv::join                     //
@@ -112,7 +112,7 @@ Formatter::Res colonHashtags(Formatter* f, CVec<SemId<HashTag>> tags) {
         Vec<Formatter::Res>::Splice(
             tags
             | rv::transform([&](CR<SemId<HashTag>> tag) -> Formatter::Res {
-                  return f->str(nestedHashtag(tag));
+                  return f->str(nestedHashtag(tag->text));
               })),
         f->str(":"));
 }
@@ -621,7 +621,7 @@ auto Formatter::toString(SemId<BigIdent> id, CR<Context> ctx) -> Res {
 
 auto Formatter::toString(SemId<HashTag> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    return str("#" + nestedHashtag(id));
+    return str("#" + nestedHashtag(id->text));
 }
 
 auto Formatter::toString(SemId<MarkQuote> id, CR<Context> ctx) -> Res {

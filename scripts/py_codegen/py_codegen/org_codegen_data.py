@@ -811,38 +811,11 @@ def get_sem_block():
 
 def get_sem_text():
     return [
-        d_org(
-            "HashTag",
-            GenTuDoc("Single or nested inline hash-tag"),
-            bases=[t_org("Inline")],
-            fields=[
-                GenTuField(t_str(), "head", GenTuDoc("Main part of the tag")),
-                GenTuField(
-                    t_vec(t_id("HashTag")),
-                    "subtags",
-                    GenTuDoc("List of nested tags"),
-                    value="{}",
-                ),
-            ],
-            methods=[
-                GenTuFunction(
-                    t("bool"),
-                    "prefixMatch",
-                    GenTuDoc(
-                        "Check if list of tag names is a prefix for either of the nested hash tags in this one"
-                    ),
-                    isConst=True,
-                    arguments=[GenTuIdent(t_cr(t_vec(t_str())), "prefix")],
-                ),
-                GenTuFunction(
-                    t_vec(t_vec(t_str())),
-                    "getFlatHashes",
-                    arguments=[GenTuIdent(t_bool(), "withIntermediate", value="true")],
-                    isConst=True,
-                    doc=org_doc("Get flat list of expanded hashtags"),
-                ),
-            ],
-        ),
+        d_org("HashTag",
+              bases=[t_org("Inline")],
+              fields=[
+                  org_field(t_nest_shared("HashTagText"), "text"),
+              ]),
         d_org(
             "InlineFootnote",
             GenTuDoc(
@@ -1567,6 +1540,38 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 GenTuFunction(t_opt(t_int()), "getInt", isConst=True),
                 GenTuFunction(t_str(), "getString", isConst=True),
                 eq_method(t_nest_shared("AttrValue")),
+            ],
+        ),
+        GenTuStruct(
+            t_nest_shared("HashTagText"),
+            GenTuDoc("Single or nested inline hash-tag"),
+            fields=[
+                GenTuField(t_str(), "head", GenTuDoc("Main part of the tag")),
+                GenTuField(
+                    t_vec(t_nest_shared("HashTagText")),
+                    "subtags",
+                    GenTuDoc("List of nested tags"),
+                    value="{}",
+                ),
+            ],
+            methods=[
+                eq_method(t_nest_shared("HashTagText")),
+                GenTuFunction(
+                    t("bool"),
+                    "prefixMatch",
+                    GenTuDoc(
+                        "Check if list of tag names is a prefix for either of the nested hash tags in this one"
+                    ),
+                    isConst=True,
+                    arguments=[GenTuIdent(t_cr(t_vec(t_str())), "prefix")],
+                ),
+                GenTuFunction(
+                    t_vec(t_vec(t_str())),
+                    "getFlatHashes",
+                    arguments=[GenTuIdent(t_bool(), "withIntermediate", value="true")],
+                    isConst=True,
+                    doc=org_doc("Get flat list of expanded hashtags"),
+                ),
             ],
         ),
         GenTuStruct(

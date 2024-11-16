@@ -13,12 +13,16 @@ PYBIND11_MAKE_OPAQUE(std::vector<sem::Tblfm::Assign::Flag>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Tblfm::Assign::Flag>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::Tblfm::Assign>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Tblfm::Assign>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::HashTagText>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::HashTagText>)
+PYBIND11_MAKE_OPAQUE(std::vector<Str>)
+PYBIND11_MAKE_OPAQUE(Vec<Str>)
+PYBIND11_MAKE_OPAQUE(std::vector<Vec<Str>>)
+PYBIND11_MAKE_OPAQUE(Vec<Vec<Str>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::AttrValue>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::AttrValue>)
 PYBIND11_MAKE_OPAQUE(std::unordered_map<Str, sem::AttrList>)
 PYBIND11_MAKE_OPAQUE(UnorderedMap<Str, sem::AttrList>)
-PYBIND11_MAKE_OPAQUE(std::vector<Str>)
-PYBIND11_MAKE_OPAQUE(Vec<Str>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::ColumnView::Column>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::ColumnView::Column>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::BlockCodeLine::Part>)
@@ -29,16 +33,14 @@ PYBIND11_MAKE_OPAQUE(std::unordered_map<Str, Str>)
 PYBIND11_MAKE_OPAQUE(UnorderedMap<Str, Str>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::ErrorItem>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::ErrorItem>>)
-PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::HashTag>>)
-PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::HashTag>>)
-PYBIND11_MAKE_OPAQUE(std::vector<Vec<Str>>)
-PYBIND11_MAKE_OPAQUE(Vec<Vec<Str>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::Symbol::Param>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Symbol::Param>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::BlockCodeSwitch>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::BlockCodeSwitch>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::BlockCodeLine>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::BlockCodeLine>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::HashTag>>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::HashTag>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::SubtreeLog>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::SubtreeLog>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::NamedProperty>)
@@ -70,19 +72,20 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::Tblfm::Expr>(m, "VecOfTblfmExpr", type_registry_guard);
   bind_vector<sem::Tblfm::Assign::Flag>(m, "VecOfTblfmAssignFlag", type_registry_guard);
   bind_vector<sem::Tblfm::Assign>(m, "VecOfTblfmAssign", type_registry_guard);
+  bind_vector<sem::HashTagText>(m, "VecOfHashTagText", type_registry_guard);
+  bind_vector<Str>(m, "VecOfStr", type_registry_guard);
+  bind_vector<Vec<Str>>(m, "VecOfVecOfStr", type_registry_guard);
   bind_vector<sem::AttrValue>(m, "VecOfAttrValue", type_registry_guard);
   bind_unordered_map<Str, sem::AttrList>(m, "UnorderedMapOfStrAttrList", type_registry_guard);
-  bind_vector<Str>(m, "VecOfStr", type_registry_guard);
   bind_vector<sem::ColumnView::Column>(m, "VecOfColumnViewColumn", type_registry_guard);
   bind_vector<sem::BlockCodeLine::Part>(m, "VecOfBlockCodeLinePart", type_registry_guard);
   bind_vector<int>(m, "VecOfint", type_registry_guard);
   bind_unordered_map<Str, Str>(m, "UnorderedMapOfStrStr", type_registry_guard);
   bind_vector<sem::SemId<sem::ErrorItem>>(m, "VecOfSemIdOfErrorItem", type_registry_guard);
-  bind_vector<sem::SemId<sem::HashTag>>(m, "VecOfSemIdOfHashTag", type_registry_guard);
-  bind_vector<Vec<Str>>(m, "VecOfVecOfStr", type_registry_guard);
   bind_vector<sem::Symbol::Param>(m, "VecOfSymbolParam", type_registry_guard);
   bind_vector<sem::BlockCodeSwitch>(m, "VecOfBlockCodeSwitch", type_registry_guard);
   bind_vector<sem::BlockCodeLine>(m, "VecOfBlockCodeLine", type_registry_guard);
+  bind_vector<sem::SemId<sem::HashTag>>(m, "VecOfSemIdOfHashTag", type_registry_guard);
   bind_vector<sem::SemId<sem::SubtreeLog>>(m, "VecOfSemIdOfSubtreeLog", type_registry_guard);
   bind_vector<sem::NamedProperty>(m, "VecOfNamedProperty", type_registry_guard);
   bind_vector<sem::SubtreePeriod>(m, "VecOfSubtreePeriod", type_registry_guard);
@@ -494,6 +497,34 @@ node can have subnodes.)RAW")
                      })
     .def("__getattr__",
          [](sem::AttrValue _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::HashTagText>(m, "HashTagText")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::HashTagText {
+                        sem::HashTagText result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("head", &sem::HashTagText::head, R"RAW(Main part of the tag)RAW")
+    .def_readwrite("subtags", &sem::HashTagText::subtags, R"RAW(List of nested tags)RAW")
+    .def("operator==",
+         static_cast<bool(sem::HashTagText::*)(sem::HashTagText const&) const>(&sem::HashTagText::operator==),
+         pybind11::arg("other"))
+    .def("prefixMatch",
+         static_cast<bool(sem::HashTagText::*)(Vec<Str> const&) const>(&sem::HashTagText::prefixMatch),
+         pybind11::arg("prefix"),
+         R"RAW(Check if list of tag names is a prefix for either of the nested hash tags in this one)RAW")
+    .def("getFlatHashes",
+         static_cast<Vec<Vec<Str>>(sem::HashTagText::*)(bool) const>(&sem::HashTagText::getFlatHashes),
+         pybind11::arg_v("withIntermediate", true),
+         R"RAW(Get flat list of expanded hashtags)RAW")
+    .def("__repr__", [](sem::HashTagText _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::HashTagText _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -2571,16 +2602,7 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("head", &sem::HashTag::head, R"RAW(Main part of the tag)RAW")
-    .def_readwrite("subtags", &sem::HashTag::subtags, R"RAW(List of nested tags)RAW")
-    .def("prefixMatch",
-         static_cast<bool(sem::HashTag::*)(Vec<Str> const&) const>(&sem::HashTag::prefixMatch),
-         pybind11::arg("prefix"),
-         R"RAW(Check if list of tag names is a prefix for either of the nested hash tags in this one)RAW")
-    .def("getFlatHashes",
-         static_cast<Vec<Vec<Str>>(sem::HashTag::*)(bool) const>(&sem::HashTag::getFlatHashes),
-         pybind11::arg_v("withIntermediate", true),
-         R"RAW(Get flat list of expanded hashtags)RAW")
+    .def_readwrite("text", &sem::HashTag::text)
     .def("__repr__", [](sem::HashTag _self) -> std::string {
                      return py_repr_impl(_self);
                      })

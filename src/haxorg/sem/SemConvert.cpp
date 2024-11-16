@@ -193,19 +193,20 @@ OrgConverter::ConvResult<Table> OrgConverter::convertTable(__args) {
 
 OrgConverter::ConvResult<HashTag> OrgConverter::convertHashTag(__args) {
     __perf_trace("convert", "convertHashTag");
-    auto                             __trace = trace(a);
-    auto                             result  = Sem<HashTag>(a);
-    Func<SemId<HashTag>(OrgAdapter)> aux;
-    result->head = strip(get_text(a.at(0)), CharSet{'#'}, CharSet{});
+    auto             __trace = trace(a);
+    auto             result  = Sem<HashTag>(a);
+    sem::HashTagText text;
+    text.head = strip(get_text(a.at(0)), CharSet{'#'}, CharSet{});
 
 
-    aux = [&aux, this](OrgAdapter a) -> SemId<HashTag> {
-        SemId<HashTag> result = Sem<HashTag>(a);
-        result->head = strip(get_text(a.at(0)), CharSet{'#'}, CharSet{});
+    Func<sem::HashTagText(OrgAdapter)> aux;
+    aux = [&aux, &text, this](OrgAdapter a) -> sem::HashTagText {
+        sem::HashTagText result;
+        text.head = strip(get_text(a.at(0)), CharSet{'#'}, CharSet{});
         if (1 < a.size()) {
             for (auto& node : a.at(slice(1, 1_B))) {
                 auto conv = aux(node);
-                result->subtags.push_back(conv);
+                text.subtags.push_back(conv);
             }
         }
         return result;
@@ -214,7 +215,7 @@ OrgConverter::ConvResult<HashTag> OrgConverter::convertHashTag(__args) {
     if (1 < a.size()) {
         for (auto& node : a.at(slice(1, 1_B))) {
             auto conv = aux(node);
-            result->subtags.push_back(conv);
+            text.subtags.push_back(conv);
         }
     }
 
@@ -748,7 +749,7 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
         auto __field = field(N::Tags, a);
         for (const auto& hash : one(a, N::Tags)) {
             auto tag = convertHashTag(hash).value();
-            if (tag->head == "ARCHIVE") {
+            if (tag->text.head == "ARCHIVE") {
                 tree->isArchived = true;
             } else {
                 tree->tags.push_back(tag);

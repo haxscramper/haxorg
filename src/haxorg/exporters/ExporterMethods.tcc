@@ -15,6 +15,7 @@ void visit(R& res, sem::Tblfm::Expr::Call const& object);
 void visit(R& res, sem::Tblfm::Expr::Elisp const& object);
 void visit(R& res, sem::Tblfm::Assign const& object);
 void visit(R& res, sem::AttrValue const& object);
+void visit(R& res, sem::HashTagText const& object);
 void visit(R& res, sem::SubtreeCompletion const& object);
 void visit(R& res, sem::AttrList const& object);
 void visit(R& res, sem::AttrGroup const& object);

@@ -65,6 +65,12 @@ void Exporter<V, R>::visit(R& res, sem::AttrValue const& object) {
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::HashTagText const& object) {
+  __obj_field(res, object, head);
+  __obj_field(res, object, subtags);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::SubtreeCompletion const& object) {
   __obj_field(res, object, done);
   __obj_field(res, object, full);
@@ -498,8 +504,7 @@ void Exporter<V, R>::visitCmdTblfm(R& res, In<sem::CmdTblfm> object) {
 template <typename V, typename R>
 void Exporter<V, R>::visitHashTag(R& res, In<sem::HashTag> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
-  __org_field(res, object, head);
-  __org_field(res, object, subtags);
+  __org_field(res, object, text);
   __org_field(res, object, subnodes);
 }
 

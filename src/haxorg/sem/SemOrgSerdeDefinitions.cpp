@@ -205,6 +205,16 @@ void proto_serde<::orgproto::AttrValue, sem::AttrValue>::read(::orgproto::AttrVa
   proto_serde<std::string, Str>::read(out.value(), in.for_field(&sem::AttrValue::value));
 }
 
+void proto_serde<::orgproto::HashTagText, sem::HashTagText>::write(::orgproto::HashTagText* out, sem::HashTagText const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_head(), in.head);
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::HashTagText>, Vec<sem::HashTagText>>::write(out->mutable_subtags(), in.subtags);
+}
+
+void proto_serde<::orgproto::HashTagText, sem::HashTagText>::read(::orgproto::HashTagText const& out, proto_write_accessor<sem::HashTagText> in) {
+  proto_serde<std::string, Str>::read(out.head(), in.for_field(&sem::HashTagText::head));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::HashTagText>, Vec<sem::HashTagText>>::read(out.subtags(), in.for_field(&sem::HashTagText::subtags));
+}
+
 void proto_serde<::orgproto::SubtreeCompletion, sem::SubtreeCompletion>::write(::orgproto::SubtreeCompletion* out, sem::SubtreeCompletion const& in) {
   out->set_done(in.done);
   out->set_full(in.full);
@@ -1339,14 +1349,12 @@ void proto_serde<::orgproto::CmdTblfm, sem::CmdTblfm>::read(::orgproto::CmdTblfm
 
 void proto_serde<::orgproto::HashTag, sem::HashTag>::write(::orgproto::HashTag* out, sem::HashTag const& in) {
   proto_serde<::orgproto::HashTag, sem::Org>::write(out, in);
-  proto_serde<std::string, Str>::write(out->mutable_head(), in.head);
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::HashTag>, Vec<sem::SemId<sem::HashTag>>>::write(out->mutable_subtags(), in.subtags);
+  proto_serde<orgproto::HashTagText, sem::HashTagText>::write(out->mutable_text(), in.text);
 }
 
 void proto_serde<::orgproto::HashTag, sem::HashTag>::read(::orgproto::HashTag const& out, proto_write_accessor<sem::HashTag> in) {
   proto_serde<::orgproto::HashTag, sem::Org>::read(out, in.as<sem::Org>());
-  proto_serde<std::string, Str>::read(out.head(), in.for_field(&sem::HashTag::head));
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::HashTag>, Vec<sem::SemId<sem::HashTag>>>::read(out.subtags(), in.for_field(&sem::HashTag::subtags));
+  proto_serde<orgproto::HashTagText, sem::HashTagText>::read(out.text(), in.for_field(&sem::HashTag::text));
 }
 
 void proto_serde<::orgproto::InlineFootnote, sem::InlineFootnote>::write(::orgproto::InlineFootnote* out, sem::InlineFootnote const& in) {

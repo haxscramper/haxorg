@@ -100,6 +100,7 @@
     __IMPL(Tblfm::Expr::Elisp, (Tblfm, Expr, Elisp)) \
     __IMPL(Tblfm::Assign, (Tblfm, Assign)) \
     __IMPL(AttrValue, (AttrValue)) \
+    __IMPL(HashTagText, (HashTagText)) \
     __IMPL(SubtreeCompletion, (SubtreeCompletion)) \
     __IMPL(AttrList, (AttrList)) \
     __IMPL(AttrGroup, (AttrGroup)) \

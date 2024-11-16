@@ -82,7 +82,7 @@ void sem::AttrGroup::setPositionalAttr(Vec<sem::AttrValue> const& attr) {
     positional.items = attr;
 }
 
-bool HashTag::prefixMatch(CR<Vec<Str>> prefix) const {
+bool HashTagText::prefixMatch(CR<Vec<Str>> prefix) const {
     if (prefix.empty() || (prefix.size() == 1 && prefix[0] == head)) {
         return true;
     } else if (prefix[0] != head) {
@@ -92,10 +92,37 @@ bool HashTag::prefixMatch(CR<Vec<Str>> prefix) const {
         for (const auto& it : prefix[slice(1, 1_B)]) { tmp.push_back(it); }
 
         for (const auto& sub : subtags) {
-            if (sub->prefixMatch(tmp)) { return true; }
+            if (sub.prefixMatch(tmp)) { return true; }
         }
         return false;
     }
+}
+
+Vec<Vec<Str>> sem::HashTagText::getFlatHashes(
+    bool withIntermediate) const {
+    using Res = Vec<Vec<Str>>;
+    Func<Res(Vec<Str> const& parents, sem::HashTagText const& tag)> aux;
+    UnorderedSet<Vec<Str>> visited;
+    aux = [&](Vec<Str> const&         parents,
+              sem::HashTagText const& tag) -> Res {
+        Res result;
+        if (withIntermediate && !parents.empty()
+            && !visited.contains(parents)) {
+            result.push_back(parents);
+            visited.incl(parents);
+        }
+        if (tag.subtags.empty()) {
+            result.push_back(parents);
+            result.back().push_back(tag.head);
+        } else {
+            for (auto const& subtag : tag.subtags) {
+                result.append(aux(parents + Vec<Str>{tag.head}, subtag));
+            }
+        }
+        return result;
+    };
+
+    return aux({}, *this);
 }
 
 void Subtree::setPropertyStrValue(

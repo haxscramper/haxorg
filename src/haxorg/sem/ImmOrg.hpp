@@ -1095,9 +1095,7 @@ struct ImmAdapterCmdCustomTextAPI : ImmAdapterStmtAPI {};
 struct ImmAdapterCmdResultsAPI : ImmAdapterAttachedAPI {};
 struct ImmAdapterCmdTblfmAPI : ImmAdapterCmdAPI {};
 struct ImmAdapterInlineAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterHashTagAPI : ImmAdapterInlineAPI {
-    Vec<Vec<Str>> getFlatHashes(bool withIntermediate = true) const;
-};
+struct ImmAdapterHashTagAPI : ImmAdapterInlineAPI {};
 struct ImmAdapterInlineFootnoteAPI : ImmAdapterInlineAPI {};
 struct ImmAdapterTimeAPI : ImmAdapterOrgAPI {
     UserTime getStaticTime() const;

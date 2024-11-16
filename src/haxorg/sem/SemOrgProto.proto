@@ -401,6 +401,12 @@ message AttrValue {
   string                                           debug                            = 1000;
 }
 
+message HashTagText {
+  string                                           head                             = 1;
+  repeated HashTagText                             subtags                          = 2;
+  string                                           debug                            = 1000;
+}
+
 message SubtreeCompletion {
   int32                                            done                             = 1;
   int32                                            full                             = 2;
@@ -1030,8 +1036,7 @@ message CmdTblfm {
 message HashTag {
   repeated AnyNode                                 subnodes                         = 1;
   OrgSemKind                                       staticKind                       = 2;
-  string                                           head                             = 3;
-  repeated HashTag                                 subtags                          = 4;
+  HashTagText                                      text                             = 3;
   string                                           debug                            = 1000;
 }
 

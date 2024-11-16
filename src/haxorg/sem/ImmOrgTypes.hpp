@@ -312,7 +312,6 @@ struct ImmCmdTblfm : public org::ImmCmd {
   bool operator==(org::ImmCmdTblfm const& other) const;
 };
 
-/// \brief Single or nested inline hash-tag
 struct ImmHashTag : public org::ImmInline {
   using ImmInline::ImmInline;
   virtual ~ImmHashTag() = default;
@@ -321,13 +320,9 @@ struct ImmHashTag : public org::ImmInline {
                        (),
                        (),
                        (staticKind,
-                        head,
-                        subtags))
+                        text))
   static OrgSemKind const staticKind;
-  /// \brief Main part of the tag
-  ImmBox<Str> head;
-  /// \brief List of nested tags
-  ImmVec<org::ImmIdT<org::ImmHashTag>> subtags = {};
+  sem::HashTagText text;
   virtual OrgSemKind getKind() const { return OrgSemKind::HashTag; }
   bool operator==(org::ImmHashTag const& other) const;
 };

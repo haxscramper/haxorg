@@ -425,40 +425,6 @@ Vec<sem::AttrValue> Stmt_getAttrs(Handle handle, const Opt<Str>& kind) {
 }
 
 template <typename Handle>
-Vec<Vec<Str>> HashTag_getFlatHashes(Handle handle, bool withIntermediate) {
-    using Res = Vec<Vec<Str>>;
-    Func<Res(Vec<Str> const& parents, Handle const& tag)> aux;
-    UnorderedSet<Vec<Str>>                                visited;
-    aux = [&](Vec<Str> const& parents, Handle const& tag) -> Res {
-        auto const& t = to_value(tag);
-        Res         result;
-        if (withIntermediate && !parents.empty()
-            && !visited.contains(parents)) {
-            result.push_back(parents);
-            visited.incl(parents);
-        }
-        if (t.subtags.empty()) {
-            result.push_back(parents);
-            result.back().push_back(t.head);
-        } else {
-            for (auto const& subtag : t.subtags) {
-                if constexpr (IsSemOrgInstance<Handle>) {
-                    result.append(
-                        aux(parents + Vec<Str>{t.head}, subtag.get()));
-                } else {
-                    result.append(
-                        aux(parents + Vec<Str>{t.head},
-                            toHandle(subtag, handle)));
-                }
-            }
-        }
-        return result;
-    };
-
-    return aux({}, handle);
-}
-
-template <typename Handle>
 Opt<Str> Org_getString(Handle const& id) {
     if (id->getKind() == OrgSemKind::Time) {
         return "["_ss
@@ -876,8 +842,6 @@ Opt<sem::AttrValue> org::ImmAdapterCmdAPI::getFirstAttr(Str const& param) const 
   return result;
 }
 
-Vec<Vec<Str>> org::ImmAdapterHashTagAPI::getFlatHashes(bool withIntermediate) const { return HashTag_getFlatHashes(getThis()->as<org::ImmHashTag>(), withIntermediate); }
-
 UserTime org::ImmAdapterTimeAPI::getStaticTime() const  { return getThis()->as<org::ImmTime>()->getStatic().time; }
 Opt<int> org::ImmAdapterTimeAPI::getYear() const { return getStaticTime().getBreakdown().year; }
 Opt<int> org::ImmAdapterTimeAPI::getMonth() const { return getStaticTime().getBreakdown().month; }
@@ -923,8 +887,6 @@ Vec<org::ImmAdapterT<org::ImmHashTag>> org::ImmAdapterParagraphAPI::getLeadHasht
 Vec<org::ImmAdapter> org::ImmAdapterParagraphAPI::getBody(bool withPath) const { return Paragraph_dropAdmonitionNodes(*getThis(), withPath); }
 
 // sem type API implementation
-
-Vec<Vec<Str>> sem::HashTag::getFlatHashes(bool withIntermediate) const { return HashTag_getFlatHashes(this, withIntermediate); }
 
 UserTime sem::Time::getStaticTime() const  { return getStatic().time; }
 Opt<int> sem::Time::getYear() const { return getStaticTime().getBreakdown().year; }

@@ -249,15 +249,13 @@ template <>
 struct ImmSemSerde<sem::HashTag, org::ImmHashTag> {
   static org::ImmHashTag to_immer(sem::HashTag const& value, ImmAstEditContext& ctx) {
     org::ImmHashTag result = SerdeDefaultProvider<org::ImmHashTag>::get();
-    assign_immer_field(result.head, value.head, ctx);
-    assign_immer_field(result.subtags, value.subtags, ctx);
+    assign_immer_field(result.text, value.text, ctx);
     assign_immer_field(result.subnodes, value.subnodes, ctx);
     return result;
   }
   static sem::HashTag from_immer(org::ImmHashTag const& value, ImmAstContext const& ctx) {
     sem::HashTag result = SerdeDefaultProvider<sem::HashTag>::get();
-    assign_sem_field(result.head, value.head, ctx);
-    assign_sem_field(result.subtags, value.subtags, ctx);
+    assign_sem_field(result.text, value.text, ctx);
     assign_sem_field(result.subnodes, value.subnodes, ctx);
     return result;
   }

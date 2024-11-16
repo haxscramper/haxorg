@@ -1110,15 +1110,15 @@ TEST(OrgApi, HashtagParse) {
     using V = Vec<Vec<Str>>;
     {
         auto h = parseOne<sem::HashTag>("#hashtag");
-        EXPECT_EQ(h->head, "hashtag");
-        EXPECT_EQ(h->subtags.size(), 0);
-        EXPECT_EQ(h->getFlatHashes(), V{{"hashtag"}});
+        EXPECT_EQ(h->text.head, "hashtag");
+        EXPECT_EQ(h->text.subtags.size(), 0);
+        EXPECT_EQ(h->text.getFlatHashes(), V{{"hashtag"}});
     }
     {
         auto h = parseOne<sem::HashTag>("#hashtag##[sub]");
-        EXPECT_EQ(h->head, "hashtag");
-        EXPECT_EQ(h->subtags.size(), 1);
-        auto flat = h->getFlatHashes();
+        EXPECT_EQ(h->text.head, "hashtag");
+        EXPECT_EQ(h->text.subtags.size(), 1);
+        auto flat = h->text.getFlatHashes();
         EXPECT_EQ(flat.size(), 2);
         EXPECT_EQ(flat.at(0), Vec<Str>{"hashtag"});
         EXPECT_EQ(flat.at(1), (Vec<Str>{"hashtag", "sub"}));
@@ -1126,9 +1126,9 @@ TEST(OrgApi, HashtagParse) {
 
     {
         auto h = parseOne<sem::HashTag>("#one##[two##[three,four,five]]");
-        EXPECT_EQ(h->head, "one");
-        EXPECT_EQ(h->subtags.size(), 1);
-        auto flat = h->getFlatHashes();
+        EXPECT_EQ(h->text.head, "one");
+        EXPECT_EQ(h->text.subtags.size(), 1);
+        auto flat = h->text.getFlatHashes();
         EXPECT_EQ(flat.size(), 5);
         EXPECT_EQ(flat.at(0), Vec<Str>{"one"});
         EXPECT_EQ(flat.at(1), (Vec<Str>{"one", "two"}));
@@ -1140,9 +1140,9 @@ TEST(OrgApi, HashtagParse) {
     {
         auto par = immConv(parseOne<sem::HashTag>("#hashtag##[sub]"));
         auto h   = par.node;
-        EXPECT_EQ(h->head, "hashtag");
-        EXPECT_EQ(h->subtags.size(), 1);
-        auto flat = h.getFlatHashes();
+        EXPECT_EQ(h->text.head, "hashtag");
+        EXPECT_EQ(h->text.subtags.size(), 1);
+        auto flat = h->text.getFlatHashes();
         EXPECT_EQ(flat.size(), 2);
         EXPECT_EQ(flat.at(0), Vec<Str>{"hashtag"});
         EXPECT_EQ(flat.at(1), (Vec<Str>{"hashtag", "sub"}));

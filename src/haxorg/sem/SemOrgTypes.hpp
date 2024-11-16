@@ -242,6 +242,25 @@ struct AttrValue {
   bool operator==(sem::AttrValue const& other) const;
 };
 
+/// \brief Single or nested inline hash-tag
+struct HashTagText {
+  BOOST_DESCRIBE_CLASS(HashTagText,
+                       (),
+                       (),
+                       (),
+                       (head,
+                        subtags))
+  /// \brief Main part of the tag
+  Str head;
+  /// \brief List of nested tags
+  Vec<sem::HashTagText> subtags = {};
+  bool operator==(sem::HashTagText const& other) const;
+  /// \brief Check if list of tag names is a prefix for either of the nested hash tags in this one
+  bool prefixMatch(Vec<Str> const& prefix) const;
+  /// \brief Get flat list of expanded hashtags
+  Vec<Vec<Str>> getFlatHashes(bool withIntermediate = true) const;
+};
+
 /// \brief Completion status of the subtree list element
 struct SubtreeCompletion {
   BOOST_DESCRIBE_CLASS(SubtreeCompletion,
@@ -1488,7 +1507,6 @@ struct CmdTblfm : public sem::Cmd {
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdTblfm; }
 };
 
-/// \brief Single or nested inline hash-tag
 struct HashTag : public sem::Inline {
   using Inline::Inline;
   virtual ~HashTag() = default;
@@ -1496,19 +1514,10 @@ struct HashTag : public sem::Inline {
                        (Inline),
                        (),
                        (),
-                       (staticKind,
-                        head,
-                        subtags))
+                       (staticKind, text))
   static OrgSemKind const staticKind;
-  /// \brief Main part of the tag
-  Str head;
-  /// \brief List of nested tags
-  Vec<sem::SemId<sem::HashTag>> subtags = {};
+  sem::HashTagText text;
   virtual OrgSemKind getKind() const { return OrgSemKind::HashTag; }
-  /// \brief Check if list of tag names is a prefix for either of the nested hash tags in this one
-  bool prefixMatch(Vec<Str> const& prefix) const;
-  /// \brief Get flat list of expanded hashtags
-  Vec<Vec<Str>> getFlatHashes(bool withIntermediate = true) const;
 };
 
 /// \brief Inline footnote definition
