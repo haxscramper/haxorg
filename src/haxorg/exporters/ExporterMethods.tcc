@@ -85,6 +85,7 @@ void visit(R& res, sem::NamedProperty::ArchiveCategory const& object);
 void visit(R& res, sem::NamedProperty::ArchiveTodo const& object);
 void visit(R& res, sem::NamedProperty::Trigger const& object);
 void visit(R& res, sem::NamedProperty::ExportLatexClass const& object);
+void visit(R& res, sem::NamedProperty::CookieData const& object);
 void visit(R& res, sem::NamedProperty::ExportLatexClassOptions const& object);
 void visit(R& res, sem::NamedProperty::ExportLatexHeader const& object);
 void visit(R& res, sem::NamedProperty::ExportLatexCompiler const& object);

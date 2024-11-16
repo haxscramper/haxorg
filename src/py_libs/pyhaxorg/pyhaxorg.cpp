@@ -1989,6 +1989,37 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  bind_enum_iterator<sem::NamedProperty::CookieData::TodoSource>(m, "NamedPropertyCookieDataTodoSource", type_registry_guard);
+  pybind11::enum_<sem::NamedProperty::CookieData::TodoSource>(m, "NamedPropertyCookieDataTodoSource")
+    .value("Checkbox", sem::NamedProperty::CookieData::TodoSource::Checkbox, R"RAW(Only count checkbox subnodes as a progress completion)RAW")
+    .value("Todo", sem::NamedProperty::CookieData::TodoSource::Todo, R"RAW(Use subtrees with todo keywords)RAW")
+    .value("Both", sem::NamedProperty::CookieData::TodoSource::Both, R"RAW(Use both subtrees and todo keywords)RAW")
+    .def("__iter__", [](sem::NamedProperty::CookieData::TodoSource _self) -> PyEnumIterator<sem::NamedProperty::CookieData::TodoSource> {
+                     return
+                     PyEnumIterator<sem::NamedProperty::CookieData::TodoSource>
+                     ();
+                     })
+    ;
+  pybind11::class_<sem::NamedProperty::CookieData>(m, "NamedPropertyCookieData")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::NamedProperty::CookieData {
+                        sem::NamedProperty::CookieData result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("isRecursive", &sem::NamedProperty::CookieData::isRecursive)
+    .def_readwrite("source", &sem::NamedProperty::CookieData::source)
+    .def("operator==",
+         static_cast<bool(sem::NamedProperty::CookieData::*)(sem::NamedProperty::CookieData const&) const>(&sem::NamedProperty::CookieData::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::NamedProperty::CookieData _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::NamedProperty::CookieData _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<sem::NamedProperty::ExportLatexClassOptions>(m, "NamedPropertyExportLatexClassOptions")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::NamedProperty::ExportLatexClassOptions {
                         sem::NamedProperty::ExportLatexClassOptions result{};
@@ -2244,6 +2275,7 @@ node can have subnodes.)RAW")
     .value("ArchiveTodo", sem::NamedProperty::Kind::ArchiveTodo)
     .value("Trigger", sem::NamedProperty::Kind::Trigger)
     .value("ExportLatexClass", sem::NamedProperty::Kind::ExportLatexClass)
+    .value("CookieData", sem::NamedProperty::Kind::CookieData)
     .value("ExportLatexClassOptions", sem::NamedProperty::Kind::ExportLatexClassOptions)
     .value("ExportLatexHeader", sem::NamedProperty::Kind::ExportLatexHeader)
     .value("ExportLatexCompiler", sem::NamedProperty::Kind::ExportLatexCompiler)
@@ -2297,6 +2329,8 @@ node can have subnodes.)RAW")
     .def("getTrigger", static_cast<sem::NamedProperty::Trigger&(sem::NamedProperty::*)()>(&sem::NamedProperty::getTrigger))
     .def("isExportLatexClass", static_cast<bool(sem::NamedProperty::*)() const>(&sem::NamedProperty::isExportLatexClass))
     .def("getExportLatexClass", static_cast<sem::NamedProperty::ExportLatexClass&(sem::NamedProperty::*)()>(&sem::NamedProperty::getExportLatexClass))
+    .def("isCookieData", static_cast<bool(sem::NamedProperty::*)() const>(&sem::NamedProperty::isCookieData))
+    .def("getCookieData", static_cast<sem::NamedProperty::CookieData&(sem::NamedProperty::*)()>(&sem::NamedProperty::getCookieData))
     .def("isExportLatexClassOptions", static_cast<bool(sem::NamedProperty::*)() const>(&sem::NamedProperty::isExportLatexClassOptions))
     .def("getExportLatexClassOptions", static_cast<sem::NamedProperty::ExportLatexClassOptions&(sem::NamedProperty::*)()>(&sem::NamedProperty::getExportLatexClassOptions))
     .def("isExportLatexHeader", static_cast<bool(sem::NamedProperty::*)() const>(&sem::NamedProperty::isExportLatexHeader))

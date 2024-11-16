@@ -577,6 +577,31 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
             throw convert_logic_error::init("Unknown visibility");
         }
 
+    } else if (name == "cookiedata") {
+        NamedProperty::CookieData p;
+        for (auto const& arg :
+             strip(get_text(one(a, N::Values)), CharSet{' '}, CharSet{' '})
+                 .split(" ")) {
+            auto norm = normalize(arg);
+            if (norm == "todo") {
+                p.source = sem::NamedProperty::CookieData::TodoSource::
+                    Todo;
+            } else if (norm == "recursive") {
+                p.isRecursive = true;
+            } else if (norm == "both") {
+                p.source = sem::NamedProperty::CookieData::TodoSource::
+                    Both;
+            } else if (norm == "checkbox") {
+                p.source = sem::NamedProperty::CookieData::TodoSource::
+                    Checkbox;
+            } else {
+                return SemError(
+                    a, fmt("Unexpected cookie data parameter: {}", arg));
+            }
+        }
+
+        result = NamedProperty{p};
+
     } else if (name == "effort") {
         Str const&            value    = get_text(one(a, N::Values));
         Vec<Str>              duration = value.split(":");

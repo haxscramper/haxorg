@@ -64,6 +64,7 @@
     __IMPL(NamedProperty, ArchiveTodo, (ArchiveTodo)) \
     __IMPL(NamedProperty, Trigger, (Trigger)) \
     __IMPL(NamedProperty, ExportLatexClass, (ExportLatexClass)) \
+    __IMPL(NamedProperty, CookieData, (CookieData)) \
     __IMPL(NamedProperty, ExportLatexClassOptions, (ExportLatexClassOptions)) \
     __IMPL(NamedProperty, ExportLatexHeader, (ExportLatexHeader)) \
     __IMPL(NamedProperty, ExportLatexCompiler, (ExportLatexCompiler)) \
@@ -94,6 +95,7 @@
     __IMPL(DocumentExportConfig, BrokenLinks, (BrokenLinks)) \
     __IMPL(DocumentExportConfig, TocExportKind, (TocExportKind)) \
     __IMPL(SubtreePeriod, Kind, (Kind)) \
+    __IMPL(NamedProperty, CookieData::TodoSource, (CookieData, TodoSource)) \
     __IMPL(NamedProperty, Visibility::Level, (Visibility, Level)) \
     __IMPL(NamedProperty, Kind, (Kind))
 #define EACH_SHARED_ORG_RECORD(__IMPL) \
@@ -173,6 +175,7 @@
     __IMPL(NamedProperty::ArchiveTodo, (NamedProperty, ArchiveTodo)) \
     __IMPL(NamedProperty::Trigger, (NamedProperty, Trigger)) \
     __IMPL(NamedProperty::ExportLatexClass, (NamedProperty, ExportLatexClass)) \
+    __IMPL(NamedProperty::CookieData, (NamedProperty, CookieData)) \
     __IMPL(NamedProperty::ExportLatexClassOptions, (NamedProperty, ExportLatexClassOptions)) \
     __IMPL(NamedProperty::ExportLatexHeader, (NamedProperty, ExportLatexHeader)) \
     __IMPL(NamedProperty::ExportLatexCompiler, (NamedProperty, ExportLatexCompiler)) \

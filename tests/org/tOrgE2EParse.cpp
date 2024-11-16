@@ -1048,9 +1048,26 @@ content
     }
 }
 
-TEST(OrgApi, SubtreeArchiveProperties) {
-    auto tree = parseOne<sem::Subtree>(
-        R"(** COMPLETED Usable code coverage output generator
+TEST(OrgApi, SubtreeProperties) {
+    {
+        auto t = parseOne<sem::Subtree>(
+            R"(* Parent capturing statistics
+  :PROPERTIES:
+  :COOKIE_DATA: todo recursive
+  :END:)",
+            getDebugFile("cookie_data"));
+
+        auto p = sem::getSubtreeProperties<sem::NamedProperty::CookieData>(
+            t);
+        EXPECT_EQ(p.size(), 1);
+        EXPECT_EQ(p.at(0).isRecursive, true);
+        EXPECT_EQ(
+            p.at(0).source,
+            sem::NamedProperty::CookieData::TodoSource::Todo);
+    }
+    {
+        auto tree = parseOne<sem::Subtree>(
+            R"(** COMPLETED Usable code coverage output generator
      CLOSED: [2024-11-01 Fri 20:59:49 +04]
      :PROPERTIES:
      :CREATED:  [2024-05-31 Fri 23:38:18 +04]
@@ -1063,48 +1080,49 @@ TEST(OrgApi, SubtreeArchiveProperties) {
      :ARCHIVE:  %s_archive::* Misc
      :END:
 )",
-        getDebugFile("trace"));
+            getDebugFile("trace"));
 
-    // dbgString(tree);
+        // dbgString(tree);
 
-    {
-        auto olpath = sem::getSubtreeProperties<
-            sem::NamedProperty::ArchiveOlpath>(tree);
-        EXPECT_EQ(olpath.size(), 1);
-        auto const& p = olpath.at(0).path.path;
-        EXPECT_EQ(p.at(0), "Haxorg");
-        EXPECT_EQ(p.at(1), "Infrastructure");
-        EXPECT_EQ(p.at(2), "Code coverage");
-    }
+        {
+            auto olpath = sem::getSubtreeProperties<
+                sem::NamedProperty::ArchiveOlpath>(tree);
+            EXPECT_EQ(olpath.size(), 1);
+            auto const& p = olpath.at(0).path.path;
+            EXPECT_EQ(p.at(0), "Haxorg");
+            EXPECT_EQ(p.at(1), "Infrastructure");
+            EXPECT_EQ(p.at(2), "Code coverage");
+        }
 
-    {
-        auto p = sem::getSubtreeProperties<
-            sem::NamedProperty::ArchiveFile>(tree);
-        EXPECT_EQ(p.size(), 1);
-        EXPECT_EQ(p.at(0).file, "~/projects.org");
-    }
+        {
+            auto p = sem::getSubtreeProperties<
+                sem::NamedProperty::ArchiveFile>(tree);
+            EXPECT_EQ(p.size(), 1);
+            EXPECT_EQ(p.at(0).file, "~/projects.org");
+        }
 
 
-    {
-        auto p = sem::getSubtreeProperties<
-            sem::NamedProperty::ArchiveCategory>(tree);
-        EXPECT_EQ(p.size(), 1);
-        EXPECT_EQ(p.at(0).category, "projects");
-    }
-    {
-        auto p = sem::getSubtreeProperties<
-            sem::NamedProperty::ArchiveTodo>(tree);
-        EXPECT_EQ(p.size(), 1);
-        EXPECT_EQ(p.at(0).todo, "COMPLETED");
-    }
+        {
+            auto p = sem::getSubtreeProperties<
+                sem::NamedProperty::ArchiveCategory>(tree);
+            EXPECT_EQ(p.size(), 1);
+            EXPECT_EQ(p.at(0).category, "projects");
+        }
+        {
+            auto p = sem::getSubtreeProperties<
+                sem::NamedProperty::ArchiveTodo>(tree);
+            EXPECT_EQ(p.size(), 1);
+            EXPECT_EQ(p.at(0).todo, "COMPLETED");
+        }
 
-    {
-        auto p = sem::getSubtreeProperties<
-            sem::NamedProperty::ArchiveTarget>(tree);
-        EXPECT_EQ(p.size(), 1);
-        EXPECT_EQ(p.at(0).pattern, "%s_archive");
-        EXPECT_EQ(p.at(0).path.path.size(), 1);
-        EXPECT_EQ(p.at(0).path.path.at(0), "Misc");
+        {
+            auto p = sem::getSubtreeProperties<
+                sem::NamedProperty::ArchiveTarget>(tree);
+            EXPECT_EQ(p.size(), 1);
+            EXPECT_EQ(p.at(0).pattern, "%s_archive");
+            EXPECT_EQ(p.at(0).path.path.size(), 1);
+            EXPECT_EQ(p.at(0).path.path.at(0), "Misc");
+        }
     }
 }
 

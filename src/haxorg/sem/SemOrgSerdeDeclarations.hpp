@@ -595,6 +595,13 @@ struct proto_serde<::orgproto::NamedProperty::ExportLatexClass, sem::NamedProper
 
 
 template <>
+struct proto_serde<::orgproto::NamedProperty::CookieData, sem::NamedProperty::CookieData> {
+  static void write(::orgproto::NamedProperty::CookieData* out, sem::NamedProperty::CookieData const& in);
+  static void read(::orgproto::NamedProperty::CookieData const& out, proto_write_accessor<sem::NamedProperty::CookieData> in);
+};
+
+
+template <>
 struct proto_serde<::orgproto::NamedProperty::ExportLatexClassOptions, sem::NamedProperty::ExportLatexClassOptions> {
   static void write(::orgproto::NamedProperty::ExportLatexClassOptions* out, sem::NamedProperty::ExportLatexClassOptions const& in);
   static void read(::orgproto::NamedProperty::ExportLatexClassOptions const& out, proto_write_accessor<sem::NamedProperty::ExportLatexClassOptions> in);

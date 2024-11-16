@@ -127,7 +127,6 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::ColonLiteralProperty: return "ColonLiteralProperty";
         case OrgTokenKind::ColonLogbook: return "ColonLogbook";
         case OrgTokenKind::ColonProperties: return "ColonProperties";
-        case OrgTokenKind::ColonPropertyName: return "ColonPropertyName";
         case OrgTokenKind::ColonPropertyText: return "ColonPropertyText";
         case OrgTokenKind::Comma: return "Comma";
         case OrgTokenKind::Comment: return "Comment";
@@ -346,7 +345,6 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "ColonLiteralProperty") { return OrgTokenKind::ColonLiteralProperty; } else
   if (value == "ColonLogbook") { return OrgTokenKind::ColonLogbook; } else
   if (value == "ColonProperties") { return OrgTokenKind::ColonProperties; } else
-  if (value == "ColonPropertyName") { return OrgTokenKind::ColonPropertyName; } else
   if (value == "ColonPropertyText") { return OrgTokenKind::ColonPropertyText; } else
   if (value == "Comma") { return OrgTokenKind::Comma; } else
   if (value == "Comment") { return OrgTokenKind::Comment; } else

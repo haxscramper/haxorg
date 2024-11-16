@@ -846,6 +846,19 @@ class NamedPropertyExportLatexClass:
     def __getattr__(self, name: str) -> object: ...
     latexClass: str
 
+class NamedPropertyCookieDataTodoSource(Enum):
+    Checkbox = 1
+    Todo = 2
+    Both = 3
+
+class NamedPropertyCookieData:
+    def __init__(self, isRecursive: bool, source: NamedPropertyCookieDataTodoSource) -> None: ...
+    def operator==(self, other: NamedPropertyCookieData) -> bool: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    isRecursive: bool
+    source: NamedPropertyCookieDataTodoSource
+
 class NamedPropertyExportLatexClassOptions:
     def __init__(self, options: List[str]) -> None: ...
     def operator==(self, other: NamedPropertyExportLatexClassOptions) -> bool: ...
@@ -940,7 +953,7 @@ class NamedPropertyCustomRaw:
     name: str
     value: str
 
-NamedPropertyData = Union[NamedPropertyNonblocking, NamedPropertyArchiveTime, NamedPropertyArchiveFile, NamedPropertyArchiveOlpath, NamedPropertyArchiveTarget, NamedPropertyArchiveCategory, NamedPropertyArchiveTodo, NamedPropertyTrigger, NamedPropertyExportLatexClass, NamedPropertyExportLatexClassOptions, NamedPropertyExportLatexHeader, NamedPropertyExportLatexCompiler, NamedPropertyOrdered, NamedPropertyEffort, NamedPropertyVisibility, NamedPropertyExportOptions, NamedPropertyBlocker, NamedPropertyUnnumbered, NamedPropertyCreated, NamedPropertyCustomArgs, NamedPropertyCustomRaw]
+NamedPropertyData = Union[NamedPropertyNonblocking, NamedPropertyArchiveTime, NamedPropertyArchiveFile, NamedPropertyArchiveOlpath, NamedPropertyArchiveTarget, NamedPropertyArchiveCategory, NamedPropertyArchiveTodo, NamedPropertyTrigger, NamedPropertyExportLatexClass, NamedPropertyCookieData, NamedPropertyExportLatexClassOptions, NamedPropertyExportLatexHeader, NamedPropertyExportLatexCompiler, NamedPropertyOrdered, NamedPropertyEffort, NamedPropertyVisibility, NamedPropertyExportOptions, NamedPropertyBlocker, NamedPropertyUnnumbered, NamedPropertyCreated, NamedPropertyCustomArgs, NamedPropertyCustomRaw]
 class NamedPropertyKind(Enum):
     Nonblocking = 1
     ArchiveTime = 2
@@ -951,18 +964,19 @@ class NamedPropertyKind(Enum):
     ArchiveTodo = 7
     Trigger = 8
     ExportLatexClass = 9
-    ExportLatexClassOptions = 10
-    ExportLatexHeader = 11
-    ExportLatexCompiler = 12
-    Ordered = 13
-    Effort = 14
-    Visibility = 15
-    ExportOptions = 16
-    Blocker = 17
-    Unnumbered = 18
-    Created = 19
-    CustomArgs = 20
-    CustomRaw = 21
+    CookieData = 10
+    ExportLatexClassOptions = 11
+    ExportLatexHeader = 12
+    ExportLatexCompiler = 13
+    Ordered = 14
+    Effort = 15
+    Visibility = 16
+    ExportOptions = 17
+    Blocker = 18
+    Unnumbered = 19
+    Created = 20
+    CustomArgs = 21
+    CustomRaw = 22
 
 class NamedProperty:
     def __init__(self, data: NamedPropertyData) -> None: ...
@@ -988,6 +1002,8 @@ class NamedProperty:
     def getTrigger(self) -> NamedPropertyTrigger: ...
     def isExportLatexClass(self) -> bool: ...
     def getExportLatexClass(self) -> NamedPropertyExportLatexClass: ...
+    def isCookieData(self) -> bool: ...
+    def getCookieData(self) -> NamedPropertyCookieData: ...
     def isExportLatexClassOptions(self) -> bool: ...
     def getExportLatexClassOptions(self) -> NamedPropertyExportLatexClassOptions: ...
     def isExportLatexHeader(self) -> bool: ...

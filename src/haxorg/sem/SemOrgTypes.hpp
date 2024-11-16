@@ -1191,6 +1191,28 @@ struct NamedProperty {
     bool operator==(sem::NamedProperty::ExportLatexClass const& other) const;
   };
 
+  /// \brief `:COOKIE_DATA:` for the subtree completion calculation
+  struct CookieData {
+    /// \brief Where to take todo completion statistics from
+    enum class TodoSource : short int {
+      /// \brief Only count checkbox subnodes as a progress completion
+      Checkbox,
+      /// \brief Use subtrees with todo keywords
+      Todo,
+      /// \brief Use both subtrees and todo keywords
+      Both,
+    };
+    BOOST_DESCRIBE_NESTED_ENUM(TodoSource, Checkbox, Todo, Both)
+    BOOST_DESCRIBE_CLASS(CookieData,
+                         (),
+                         (),
+                         (),
+                         (isRecursive, source))
+    bool isRecursive;
+    sem::NamedProperty::CookieData::TodoSource source;
+    bool operator==(sem::NamedProperty::CookieData const& other) const;
+  };
+
   struct ExportLatexClassOptions {
     ExportLatexClassOptions() {}
     BOOST_DESCRIBE_CLASS(ExportLatexClassOptions,
@@ -1336,9 +1358,9 @@ struct NamedProperty {
     bool operator==(sem::NamedProperty::CustomRaw const& other) const;
   };
 
-  using Data = std::variant<sem::NamedProperty::Nonblocking, sem::NamedProperty::ArchiveTime, sem::NamedProperty::ArchiveFile, sem::NamedProperty::ArchiveOlpath, sem::NamedProperty::ArchiveTarget, sem::NamedProperty::ArchiveCategory, sem::NamedProperty::ArchiveTodo, sem::NamedProperty::Trigger, sem::NamedProperty::ExportLatexClass, sem::NamedProperty::ExportLatexClassOptions, sem::NamedProperty::ExportLatexHeader, sem::NamedProperty::ExportLatexCompiler, sem::NamedProperty::Ordered, sem::NamedProperty::Effort, sem::NamedProperty::Visibility, sem::NamedProperty::ExportOptions, sem::NamedProperty::Blocker, sem::NamedProperty::Unnumbered, sem::NamedProperty::Created, sem::NamedProperty::CustomArgs, sem::NamedProperty::CustomRaw>;
-  enum class Kind : short int { Nonblocking, ArchiveTime, ArchiveFile, ArchiveOlpath, ArchiveTarget, ArchiveCategory, ArchiveTodo, Trigger, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, CustomArgs, CustomRaw, };
-  BOOST_DESCRIBE_NESTED_ENUM(Kind, Nonblocking, ArchiveTime, ArchiveFile, ArchiveOlpath, ArchiveTarget, ArchiveCategory, ArchiveTodo, Trigger, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, CustomArgs, CustomRaw)
+  using Data = std::variant<sem::NamedProperty::Nonblocking, sem::NamedProperty::ArchiveTime, sem::NamedProperty::ArchiveFile, sem::NamedProperty::ArchiveOlpath, sem::NamedProperty::ArchiveTarget, sem::NamedProperty::ArchiveCategory, sem::NamedProperty::ArchiveTodo, sem::NamedProperty::Trigger, sem::NamedProperty::ExportLatexClass, sem::NamedProperty::CookieData, sem::NamedProperty::ExportLatexClassOptions, sem::NamedProperty::ExportLatexHeader, sem::NamedProperty::ExportLatexCompiler, sem::NamedProperty::Ordered, sem::NamedProperty::Effort, sem::NamedProperty::Visibility, sem::NamedProperty::ExportOptions, sem::NamedProperty::Blocker, sem::NamedProperty::Unnumbered, sem::NamedProperty::Created, sem::NamedProperty::CustomArgs, sem::NamedProperty::CustomRaw>;
+  enum class Kind : short int { Nonblocking, ArchiveTime, ArchiveFile, ArchiveOlpath, ArchiveTarget, ArchiveCategory, ArchiveTodo, Trigger, ExportLatexClass, CookieData, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, CustomArgs, CustomRaw, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, Nonblocking, ArchiveTime, ArchiveFile, ArchiveOlpath, ArchiveTarget, ArchiveCategory, ArchiveTodo, Trigger, ExportLatexClass, CookieData, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, CustomArgs, CustomRaw)
   using variant_enum_type = sem::NamedProperty::Kind;
   using variant_data_type = sem::NamedProperty::Data;
   NamedProperty(CR<Data> data) : data(data) {}
@@ -1382,42 +1404,45 @@ struct NamedProperty {
   bool isExportLatexClass() const { return getKind() == Kind::ExportLatexClass; }
   sem::NamedProperty::ExportLatexClass const& getExportLatexClass() const { return std::get<8>(data); }
   sem::NamedProperty::ExportLatexClass& getExportLatexClass() { return std::get<8>(data); }
+  bool isCookieData() const { return getKind() == Kind::CookieData; }
+  sem::NamedProperty::CookieData const& getCookieData() const { return std::get<9>(data); }
+  sem::NamedProperty::CookieData& getCookieData() { return std::get<9>(data); }
   bool isExportLatexClassOptions() const { return getKind() == Kind::ExportLatexClassOptions; }
-  sem::NamedProperty::ExportLatexClassOptions const& getExportLatexClassOptions() const { return std::get<9>(data); }
-  sem::NamedProperty::ExportLatexClassOptions& getExportLatexClassOptions() { return std::get<9>(data); }
+  sem::NamedProperty::ExportLatexClassOptions const& getExportLatexClassOptions() const { return std::get<10>(data); }
+  sem::NamedProperty::ExportLatexClassOptions& getExportLatexClassOptions() { return std::get<10>(data); }
   bool isExportLatexHeader() const { return getKind() == Kind::ExportLatexHeader; }
-  sem::NamedProperty::ExportLatexHeader const& getExportLatexHeader() const { return std::get<10>(data); }
-  sem::NamedProperty::ExportLatexHeader& getExportLatexHeader() { return std::get<10>(data); }
+  sem::NamedProperty::ExportLatexHeader const& getExportLatexHeader() const { return std::get<11>(data); }
+  sem::NamedProperty::ExportLatexHeader& getExportLatexHeader() { return std::get<11>(data); }
   bool isExportLatexCompiler() const { return getKind() == Kind::ExportLatexCompiler; }
-  sem::NamedProperty::ExportLatexCompiler const& getExportLatexCompiler() const { return std::get<11>(data); }
-  sem::NamedProperty::ExportLatexCompiler& getExportLatexCompiler() { return std::get<11>(data); }
+  sem::NamedProperty::ExportLatexCompiler const& getExportLatexCompiler() const { return std::get<12>(data); }
+  sem::NamedProperty::ExportLatexCompiler& getExportLatexCompiler() { return std::get<12>(data); }
   bool isOrdered() const { return getKind() == Kind::Ordered; }
-  sem::NamedProperty::Ordered const& getOrdered() const { return std::get<12>(data); }
-  sem::NamedProperty::Ordered& getOrdered() { return std::get<12>(data); }
+  sem::NamedProperty::Ordered const& getOrdered() const { return std::get<13>(data); }
+  sem::NamedProperty::Ordered& getOrdered() { return std::get<13>(data); }
   bool isEffort() const { return getKind() == Kind::Effort; }
-  sem::NamedProperty::Effort const& getEffort() const { return std::get<13>(data); }
-  sem::NamedProperty::Effort& getEffort() { return std::get<13>(data); }
+  sem::NamedProperty::Effort const& getEffort() const { return std::get<14>(data); }
+  sem::NamedProperty::Effort& getEffort() { return std::get<14>(data); }
   bool isVisibility() const { return getKind() == Kind::Visibility; }
-  sem::NamedProperty::Visibility const& getVisibility() const { return std::get<14>(data); }
-  sem::NamedProperty::Visibility& getVisibility() { return std::get<14>(data); }
+  sem::NamedProperty::Visibility const& getVisibility() const { return std::get<15>(data); }
+  sem::NamedProperty::Visibility& getVisibility() { return std::get<15>(data); }
   bool isExportOptions() const { return getKind() == Kind::ExportOptions; }
-  sem::NamedProperty::ExportOptions const& getExportOptions() const { return std::get<15>(data); }
-  sem::NamedProperty::ExportOptions& getExportOptions() { return std::get<15>(data); }
+  sem::NamedProperty::ExportOptions const& getExportOptions() const { return std::get<16>(data); }
+  sem::NamedProperty::ExportOptions& getExportOptions() { return std::get<16>(data); }
   bool isBlocker() const { return getKind() == Kind::Blocker; }
-  sem::NamedProperty::Blocker const& getBlocker() const { return std::get<16>(data); }
-  sem::NamedProperty::Blocker& getBlocker() { return std::get<16>(data); }
+  sem::NamedProperty::Blocker const& getBlocker() const { return std::get<17>(data); }
+  sem::NamedProperty::Blocker& getBlocker() { return std::get<17>(data); }
   bool isUnnumbered() const { return getKind() == Kind::Unnumbered; }
-  sem::NamedProperty::Unnumbered const& getUnnumbered() const { return std::get<17>(data); }
-  sem::NamedProperty::Unnumbered& getUnnumbered() { return std::get<17>(data); }
+  sem::NamedProperty::Unnumbered const& getUnnumbered() const { return std::get<18>(data); }
+  sem::NamedProperty::Unnumbered& getUnnumbered() { return std::get<18>(data); }
   bool isCreated() const { return getKind() == Kind::Created; }
-  sem::NamedProperty::Created const& getCreated() const { return std::get<18>(data); }
-  sem::NamedProperty::Created& getCreated() { return std::get<18>(data); }
+  sem::NamedProperty::Created const& getCreated() const { return std::get<19>(data); }
+  sem::NamedProperty::Created& getCreated() { return std::get<19>(data); }
   bool isCustomArgs() const { return getKind() == Kind::CustomArgs; }
-  sem::NamedProperty::CustomArgs const& getCustomArgs() const { return std::get<19>(data); }
-  sem::NamedProperty::CustomArgs& getCustomArgs() { return std::get<19>(data); }
+  sem::NamedProperty::CustomArgs const& getCustomArgs() const { return std::get<20>(data); }
+  sem::NamedProperty::CustomArgs& getCustomArgs() { return std::get<20>(data); }
   bool isCustomRaw() const { return getKind() == Kind::CustomRaw; }
-  sem::NamedProperty::CustomRaw const& getCustomRaw() const { return std::get<20>(data); }
-  sem::NamedProperty::CustomRaw& getCustomRaw() { return std::get<20>(data); }
+  sem::NamedProperty::CustomRaw const& getCustomRaw() const { return std::get<21>(data); }
+  sem::NamedProperty::CustomRaw& getCustomRaw() { return std::get<21>(data); }
   static sem::NamedProperty::Kind getKind(sem::NamedProperty::Data const& __input) { return static_cast<sem::NamedProperty::Kind>(__input.index()); }
   sem::NamedProperty::Kind getKind() const { return getKind(data); }
 };

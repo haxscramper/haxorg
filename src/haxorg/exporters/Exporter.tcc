@@ -351,6 +351,12 @@ template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::NamedProperty::ExportLatexClass const& object) { __obj_field(res, object, latexClass); }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::NamedProperty::CookieData const& object) {
+  __obj_field(res, object, isRecursive);
+  __obj_field(res, object, source);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::NamedProperty::ExportLatexClassOptions const& object) { __obj_field(res, object, options); }
 
 template <typename V, typename R>

@@ -336,6 +336,25 @@ def get_subtree_property_types():
             methods=[eq_method(t_nest_shared("ExportLatexClass", ["NamedProperty"]))],
         ),
         GenTuStruct(
+            t_nest_shared("CookieData", ["NamedProperty"]),
+            GenTuDoc("`:COOKIE_DATA:` for the subtree completion calculation"),
+            nested=[
+                d_simple_enum(
+                    t_nest_shared("TodoSource", ["NamedProperty", "CookieData"]),
+                    org_doc("Where to take todo completion statistics from"),
+                    efield("Checkbox",
+                           "Only count checkbox subnodes as a progress completion"),
+                    efield("Todo", "Use subtrees with todo keywords"),
+                    efield("Both", "Use both subtrees and todo keywords"),
+                ),
+            ],
+            fields=[
+                org_field(t_bool(), "isRecursive"),
+                org_field(t_nest_shared("TodoSource", ["NamedProperty", "CookieData"]), "source"),
+            ],
+            methods=[eq_method(t_nest_shared("CookieData", ["NamedProperty"]))],
+        ),
+        GenTuStruct(
             t_nest_shared("ExportLatexClassOptions", ["NamedProperty"]),
             GenTuDoc(""),
             fields=[GenTuField(t_vec(t_str()), "options", GenTuDoc(""))],

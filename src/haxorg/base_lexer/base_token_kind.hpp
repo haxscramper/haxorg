@@ -98,7 +98,6 @@ enum class OrgTokenKind : unsigned short int {
   ColonLiteralProperty,
   ColonLogbook,
   ColonProperties,
-  ColonPropertyName,
   ColonPropertyText,
   Comma,
   Comment,

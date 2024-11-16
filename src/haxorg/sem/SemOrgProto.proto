@@ -850,6 +850,16 @@ message NamedProperty {
     string                                         latexClass                       = 1;
     string                                         debug                            = 1000;
   }
+  message CookieData {
+    enum TodoSource {
+      TodoSource_Checkbox_f                                                         = 0;
+      TodoSource_Todo_f                                                             = 1;
+      TodoSource_Both_f                                                             = 2;
+    }
+    bool                                           isRecursive                      = 1;
+    NamedProperty.CookieData.TodoSource            source                           = 2;
+    string                                         debug                            = 1000;
+  }
   message ExportLatexClassOptions {
     repeated string                                options                          = 1;
     string                                         debug                            = 1000;
@@ -919,18 +929,19 @@ message NamedProperty {
       NamedProperty.ArchiveTodo                    archivetodo                      = 7;
       NamedProperty.Trigger                        trigger                          = 8;
       NamedProperty.ExportLatexClass               exportlatexclass                 = 9;
-      NamedProperty.ExportLatexClassOptions        exportlatexclassoptions          = 10;
-      NamedProperty.ExportLatexHeader              exportlatexheader                = 11;
-      NamedProperty.ExportLatexCompiler            exportlatexcompiler              = 12;
-      NamedProperty.Ordered                        ordered                          = 13;
-      NamedProperty.Effort                         effort                           = 14;
-      NamedProperty.Visibility                     visibility                       = 15;
-      NamedProperty.ExportOptions                  exportoptions                    = 16;
-      NamedProperty.Blocker                        blocker                          = 17;
-      NamedProperty.Unnumbered                     unnumbered                       = 18;
-      NamedProperty.Created                        created                          = 19;
-      NamedProperty.CustomArgs                     customargs                       = 20;
-      NamedProperty.CustomRaw                      customraw                        = 21;
+      NamedProperty.CookieData                     cookiedata                       = 10;
+      NamedProperty.ExportLatexClassOptions        exportlatexclassoptions          = 11;
+      NamedProperty.ExportLatexHeader              exportlatexheader                = 12;
+      NamedProperty.ExportLatexCompiler            exportlatexcompiler              = 13;
+      NamedProperty.Ordered                        ordered                          = 14;
+      NamedProperty.Effort                         effort                           = 15;
+      NamedProperty.Visibility                     visibility                       = 16;
+      NamedProperty.ExportOptions                  exportoptions                    = 17;
+      NamedProperty.Blocker                        blocker                          = 18;
+      NamedProperty.Unnumbered                     unnumbered                       = 19;
+      NamedProperty.Created                        created                          = 20;
+      NamedProperty.CustomArgs                     customargs                       = 21;
+      NamedProperty.CustomRaw                      customraw                        = 22;
     }
   }
   enum Kind {
@@ -943,18 +954,19 @@ message NamedProperty {
     Kind_ArchiveTodo_f                                                              = 6;
     Kind_Trigger_f                                                                  = 7;
     Kind_ExportLatexClass_f                                                         = 8;
-    Kind_ExportLatexClassOptions_f                                                  = 9;
-    Kind_ExportLatexHeader_f                                                        = 10;
-    Kind_ExportLatexCompiler_f                                                      = 11;
-    Kind_Ordered_f                                                                  = 12;
-    Kind_Effort_f                                                                   = 13;
-    Kind_Visibility_f                                                               = 14;
-    Kind_ExportOptions_f                                                            = 15;
-    Kind_Blocker_f                                                                  = 16;
-    Kind_Unnumbered_f                                                               = 17;
-    Kind_Created_f                                                                  = 18;
-    Kind_CustomArgs_f                                                               = 19;
-    Kind_CustomRaw_f                                                                = 20;
+    Kind_CookieData_f                                                               = 9;
+    Kind_ExportLatexClassOptions_f                                                  = 10;
+    Kind_ExportLatexHeader_f                                                        = 11;
+    Kind_ExportLatexCompiler_f                                                      = 12;
+    Kind_Ordered_f                                                                  = 13;
+    Kind_Effort_f                                                                   = 14;
+    Kind_Visibility_f                                                               = 15;
+    Kind_ExportOptions_f                                                            = 16;
+    Kind_Blocker_f                                                                  = 17;
+    Kind_Unnumbered_f                                                               = 18;
+    Kind_Created_f                                                                  = 19;
+    Kind_CustomArgs_f                                                               = 20;
+    Kind_CustomRaw_f                                                                = 21;
   }
   NamedProperty.Data                               data                             = 1;
   string                                           debug                            = 1000;

@@ -306,7 +306,6 @@ void OrgParser::textFold(OrgLexer& lex) {
                 case otk::WeekdayName:
                 case otk::Time:
                 case otk::Date:
-                case otk::ColonPropertyName:
                 case otk::SubtreePriority:
                 case otk::Number: {
                     token(onk::Word, pop(lex, lex.kind()));
@@ -1569,15 +1568,6 @@ OrgId OrgParser::parseSubtreeProperties(OrgLexer& lex) {
                 while (lex.can_search(Newline)) { sub.add(lex.pop()); }
                 sub.start();
                 parseParagraph(sub);
-                break;
-            }
-            case otk::ColonPropertyName: {
-                space(lex);
-                start(onk::InlineStmtList);
-                while (lex.can_search(Newline)) {
-                    token(onk::RawText, lex.pop());
-                }
-                end();
                 break;
             }
             default: {

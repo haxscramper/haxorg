@@ -689,7 +689,9 @@ rules:
   - re: "{lead_space}:(created):"
     token: ColonPropertyText
   - re: "{lead_space}:\\w+:"
-    token: ColonPropertyName
+    token: ColonLiteralProperty
+    actions:
+      - { do: push, from: INITIAL, to: PROPERTY_LITERAL }
   #endregion
 
   #endregion
