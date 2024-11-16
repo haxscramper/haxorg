@@ -360,11 +360,11 @@ Vec<sem::SubtreePeriod> Subtree_getTimePeriodsImpl(
 
         for (auto const& logIt : h->logbook) {
             auto const log = toHandle(logIt, handle);
-            if (log->getLogKind() == LogType::Kind::Clock) {
+            if (log->head.isClock()) {
                 SubtreePeriod period{};
-                period.from = log->getClock().from;
-                if (!isBoolFalse(log->getClock().to)) {
-                    period.to = log->getClock().to;
+                period.from = log->head.getClock().from;
+                if (!isBoolFalse(log->head.getClock().to)) {
+                    period.to = log->head.getClock().to;
                 }
                 period.kind = SubtreePeriod::Kind::Clocked;
                 res.push_back(period);

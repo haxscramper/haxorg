@@ -27,6 +27,8 @@ struct Formatter {
     }
     Res toString(sem::SubtreeCompletion const& id, CR<Context> ctx);
     Res toString(sem::AttrGroup const& args, CR<Context> ctx);
+    Res toString(sem::HashTagText const& args, CR<Context> ctx);
+    Res toString(sem::LinkTarget const& args, CR<Context> ctx);
     Res toString(sem::AttrList const& args, CR<Context> ctx) {
         Res res = b.stack();
         for (auto const& it : enumerator(args.items)) {

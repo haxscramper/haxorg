@@ -564,15 +564,15 @@ struct proto_serde<float, float> {
 };
 
 
-template <typename Proto>
-struct proto_serde<Proto, sem::SubtreeLog::DescribedLog> {
-    static void write(
-        Proto*                               out,
-        sem::SubtreeLog::DescribedLog const& in) {}
-    static void read(
-        Proto const&                                        out,
-        proto_write_accessor<sem::SubtreeLog::DescribedLog> in) {}
-};
+// template <typename Proto>
+// struct proto_serde<Proto, sem::SubtreeLog::DescribedLog> {
+//     static void write(
+//         Proto*                               out,
+//         sem::SubtreeLog::DescribedLog const& in) {}
+//     static void read(
+//         Proto const&                                        out,
+//         proto_write_accessor<sem::SubtreeLog::DescribedLog> in) {}
+// };
 
 
 template <>

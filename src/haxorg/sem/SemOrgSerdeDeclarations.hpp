@@ -175,65 +175,9 @@ struct proto_serde<::orgproto::HashTagText, sem::HashTagText> {
 
 
 template <>
-struct proto_serde<::orgproto::SubtreeCompletion, sem::SubtreeCompletion> {
-  static void write(::orgproto::SubtreeCompletion* out, sem::SubtreeCompletion const& in);
-  static void read(::orgproto::SubtreeCompletion const& out, proto_write_accessor<sem::SubtreeCompletion> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::AttrList, sem::AttrList> {
-  static void write(::orgproto::AttrList* out, sem::AttrList const& in);
-  static void read(::orgproto::AttrList const& out, proto_write_accessor<sem::AttrList> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::AttrGroup, sem::AttrGroup> {
-  static void write(::orgproto::AttrGroup* out, sem::AttrGroup const& in);
-  static void read(::orgproto::AttrGroup const& out, proto_write_accessor<sem::AttrGroup> in);
-};
-
-
-template <>
 struct proto_serde<::orgproto::SubtreePath, sem::SubtreePath> {
   static void write(::orgproto::SubtreePath* out, sem::SubtreePath const& in);
   static void read(::orgproto::SubtreePath const& out, proto_write_accessor<sem::SubtreePath> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::ColumnView::Summary::CheckboxAggregate, sem::ColumnView::Summary::CheckboxAggregate> {
-  static void write(::orgproto::ColumnView::Summary::CheckboxAggregate* out, sem::ColumnView::Summary::CheckboxAggregate const& in);
-  static void read(::orgproto::ColumnView::Summary::CheckboxAggregate const& out, proto_write_accessor<sem::ColumnView::Summary::CheckboxAggregate> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::ColumnView::Summary::MathAggregate, sem::ColumnView::Summary::MathAggregate> {
-  static void write(::orgproto::ColumnView::Summary::MathAggregate* out, sem::ColumnView::Summary::MathAggregate const& in);
-  static void read(::orgproto::ColumnView::Summary::MathAggregate const& out, proto_write_accessor<sem::ColumnView::Summary::MathAggregate> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::ColumnView::Summary, sem::ColumnView::Summary> {
-  static void write(::orgproto::ColumnView::Summary* out, sem::ColumnView::Summary const& in);
-  static void read(::orgproto::ColumnView::Summary const& out, proto_write_accessor<sem::ColumnView::Summary> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::ColumnView::Column, sem::ColumnView::Column> {
-  static void write(::orgproto::ColumnView::Column* out, sem::ColumnView::Column const& in);
-  static void read(::orgproto::ColumnView::Column const& out, proto_write_accessor<sem::ColumnView::Column> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::ColumnView, sem::ColumnView> {
-  static void write(::orgproto::ColumnView* out, sem::ColumnView const& in);
-  static void read(::orgproto::ColumnView const& out, proto_write_accessor<sem::ColumnView> in);
 };
 
 
@@ -311,6 +255,132 @@ template <>
 struct proto_serde<::orgproto::LinkTarget, sem::LinkTarget> {
   static void write(::orgproto::LinkTarget* out, sem::LinkTarget const& in);
   static void read(::orgproto::LinkTarget const& out, proto_write_accessor<sem::LinkTarget> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::SubtreeLogHead::Priority, sem::SubtreeLogHead::Priority> {
+  static void write(::orgproto::SubtreeLogHead::Priority* out, sem::SubtreeLogHead::Priority const& in);
+  static void read(::orgproto::SubtreeLogHead::Priority const& out, proto_write_accessor<sem::SubtreeLogHead::Priority> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::SubtreeLogHead::Note, sem::SubtreeLogHead::Note> {
+  static void write(::orgproto::SubtreeLogHead::Note* out, sem::SubtreeLogHead::Note const& in);
+  static void read(::orgproto::SubtreeLogHead::Note const& out, proto_write_accessor<sem::SubtreeLogHead::Note> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::SubtreeLogHead::Refile, sem::SubtreeLogHead::Refile> {
+  static void write(::orgproto::SubtreeLogHead::Refile* out, sem::SubtreeLogHead::Refile const& in);
+  static void read(::orgproto::SubtreeLogHead::Refile const& out, proto_write_accessor<sem::SubtreeLogHead::Refile> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::SubtreeLogHead::Clock, sem::SubtreeLogHead::Clock> {
+  static void write(::orgproto::SubtreeLogHead::Clock* out, sem::SubtreeLogHead::Clock const& in);
+  static void read(::orgproto::SubtreeLogHead::Clock const& out, proto_write_accessor<sem::SubtreeLogHead::Clock> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::SubtreeLogHead::State, sem::SubtreeLogHead::State> {
+  static void write(::orgproto::SubtreeLogHead::State* out, sem::SubtreeLogHead::State const& in);
+  static void read(::orgproto::SubtreeLogHead::State const& out, proto_write_accessor<sem::SubtreeLogHead::State> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::SubtreeLogHead::Deadline, sem::SubtreeLogHead::Deadline> {
+  static void write(::orgproto::SubtreeLogHead::Deadline* out, sem::SubtreeLogHead::Deadline const& in);
+  static void read(::orgproto::SubtreeLogHead::Deadline const& out, proto_write_accessor<sem::SubtreeLogHead::Deadline> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::SubtreeLogHead::Schedule, sem::SubtreeLogHead::Schedule> {
+  static void write(::orgproto::SubtreeLogHead::Schedule* out, sem::SubtreeLogHead::Schedule const& in);
+  static void read(::orgproto::SubtreeLogHead::Schedule const& out, proto_write_accessor<sem::SubtreeLogHead::Schedule> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::SubtreeLogHead::Tag, sem::SubtreeLogHead::Tag> {
+  static void write(::orgproto::SubtreeLogHead::Tag* out, sem::SubtreeLogHead::Tag const& in);
+  static void read(::orgproto::SubtreeLogHead::Tag const& out, proto_write_accessor<sem::SubtreeLogHead::Tag> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::SubtreeLogHead::Unknown, sem::SubtreeLogHead::Unknown> {
+  static void write(::orgproto::SubtreeLogHead::Unknown* out, sem::SubtreeLogHead::Unknown const& in);
+  static void read(::orgproto::SubtreeLogHead::Unknown const& out, proto_write_accessor<sem::SubtreeLogHead::Unknown> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::SubtreeLogHead, sem::SubtreeLogHead> {
+  static void write(::orgproto::SubtreeLogHead* out, sem::SubtreeLogHead const& in);
+  static void read(::orgproto::SubtreeLogHead const& out, proto_write_accessor<sem::SubtreeLogHead> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::SubtreeCompletion, sem::SubtreeCompletion> {
+  static void write(::orgproto::SubtreeCompletion* out, sem::SubtreeCompletion const& in);
+  static void read(::orgproto::SubtreeCompletion const& out, proto_write_accessor<sem::SubtreeCompletion> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::AttrList, sem::AttrList> {
+  static void write(::orgproto::AttrList* out, sem::AttrList const& in);
+  static void read(::orgproto::AttrList const& out, proto_write_accessor<sem::AttrList> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::AttrGroup, sem::AttrGroup> {
+  static void write(::orgproto::AttrGroup* out, sem::AttrGroup const& in);
+  static void read(::orgproto::AttrGroup const& out, proto_write_accessor<sem::AttrGroup> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::ColumnView::Summary::CheckboxAggregate, sem::ColumnView::Summary::CheckboxAggregate> {
+  static void write(::orgproto::ColumnView::Summary::CheckboxAggregate* out, sem::ColumnView::Summary::CheckboxAggregate const& in);
+  static void read(::orgproto::ColumnView::Summary::CheckboxAggregate const& out, proto_write_accessor<sem::ColumnView::Summary::CheckboxAggregate> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::ColumnView::Summary::MathAggregate, sem::ColumnView::Summary::MathAggregate> {
+  static void write(::orgproto::ColumnView::Summary::MathAggregate* out, sem::ColumnView::Summary::MathAggregate const& in);
+  static void read(::orgproto::ColumnView::Summary::MathAggregate const& out, proto_write_accessor<sem::ColumnView::Summary::MathAggregate> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::ColumnView::Summary, sem::ColumnView::Summary> {
+  static void write(::orgproto::ColumnView::Summary* out, sem::ColumnView::Summary const& in);
+  static void read(::orgproto::ColumnView::Summary const& out, proto_write_accessor<sem::ColumnView::Summary> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::ColumnView::Column, sem::ColumnView::Column> {
+  static void write(::orgproto::ColumnView::Column* out, sem::ColumnView::Column const& in);
+  static void read(::orgproto::ColumnView::Column const& out, proto_write_accessor<sem::ColumnView::Column> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::ColumnView, sem::ColumnView> {
+  static void write(::orgproto::ColumnView* out, sem::ColumnView const& in);
+  static void read(::orgproto::ColumnView const& out, proto_write_accessor<sem::ColumnView> in);
 };
 
 
@@ -983,76 +1053,6 @@ template <>
 struct proto_serde<::orgproto::BlockCode, sem::BlockCode> {
   static void write(::orgproto::BlockCode* out, sem::BlockCode const& in);
   static void read(::orgproto::BlockCode const& out, proto_write_accessor<sem::BlockCode> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::SubtreeLog::DescribedLog, sem::SubtreeLog::DescribedLog> {
-  static void write(::orgproto::SubtreeLog::DescribedLog* out, sem::SubtreeLog::DescribedLog const& in);
-  static void read(::orgproto::SubtreeLog::DescribedLog const& out, proto_write_accessor<sem::SubtreeLog::DescribedLog> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::SubtreeLog::Priority, sem::SubtreeLog::Priority> {
-  static void write(::orgproto::SubtreeLog::Priority* out, sem::SubtreeLog::Priority const& in);
-  static void read(::orgproto::SubtreeLog::Priority const& out, proto_write_accessor<sem::SubtreeLog::Priority> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::SubtreeLog::Note, sem::SubtreeLog::Note> {
-  static void write(::orgproto::SubtreeLog::Note* out, sem::SubtreeLog::Note const& in);
-  static void read(::orgproto::SubtreeLog::Note const& out, proto_write_accessor<sem::SubtreeLog::Note> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::SubtreeLog::Refile, sem::SubtreeLog::Refile> {
-  static void write(::orgproto::SubtreeLog::Refile* out, sem::SubtreeLog::Refile const& in);
-  static void read(::orgproto::SubtreeLog::Refile const& out, proto_write_accessor<sem::SubtreeLog::Refile> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::SubtreeLog::Clock, sem::SubtreeLog::Clock> {
-  static void write(::orgproto::SubtreeLog::Clock* out, sem::SubtreeLog::Clock const& in);
-  static void read(::orgproto::SubtreeLog::Clock const& out, proto_write_accessor<sem::SubtreeLog::Clock> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::SubtreeLog::State, sem::SubtreeLog::State> {
-  static void write(::orgproto::SubtreeLog::State* out, sem::SubtreeLog::State const& in);
-  static void read(::orgproto::SubtreeLog::State const& out, proto_write_accessor<sem::SubtreeLog::State> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::SubtreeLog::Deadline, sem::SubtreeLog::Deadline> {
-  static void write(::orgproto::SubtreeLog::Deadline* out, sem::SubtreeLog::Deadline const& in);
-  static void read(::orgproto::SubtreeLog::Deadline const& out, proto_write_accessor<sem::SubtreeLog::Deadline> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::SubtreeLog::Schedule, sem::SubtreeLog::Schedule> {
-  static void write(::orgproto::SubtreeLog::Schedule* out, sem::SubtreeLog::Schedule const& in);
-  static void read(::orgproto::SubtreeLog::Schedule const& out, proto_write_accessor<sem::SubtreeLog::Schedule> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::SubtreeLog::Tag, sem::SubtreeLog::Tag> {
-  static void write(::orgproto::SubtreeLog::Tag* out, sem::SubtreeLog::Tag const& in);
-  static void read(::orgproto::SubtreeLog::Tag const& out, proto_write_accessor<sem::SubtreeLog::Tag> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::SubtreeLog::Unknown, sem::SubtreeLog::Unknown> {
-  static void write(::orgproto::SubtreeLog::Unknown* out, sem::SubtreeLog::Unknown const& in);
-  static void read(::orgproto::SubtreeLog::Unknown const& out, proto_write_accessor<sem::SubtreeLog::Unknown> in);
 };
 
 

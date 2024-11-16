@@ -71,50 +71,7 @@ void Exporter<V, R>::visit(R& res, sem::HashTagText const& object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::SubtreeCompletion const& object) {
-  __obj_field(res, object, done);
-  __obj_field(res, object, full);
-  __obj_field(res, object, isPercent);
-}
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::AttrList const& object) { __obj_field(res, object, items); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::AttrGroup const& object) {
-  __obj_field(res, object, positional);
-  __obj_field(res, object, named);
-}
-
-template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::SubtreePath const& object) { __obj_field(res, object, path); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::ColumnView const& object) { __obj_field(res, object, columns); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::ColumnView::Summary::Data const& object) { visitVariants(res, sem::ColumnView::Summary::getKind(object), object); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::ColumnView::Summary const& object) { __obj_field(res, object, data); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::ColumnView::Summary::CheckboxAggregate const& object) { __obj_field(res, object, kind); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::ColumnView::Summary::MathAggregate const& object) {
-  __obj_field(res, object, kind);
-  __obj_field(res, object, formatDigits);
-  __obj_field(res, object, formatPrecision);
-}
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::ColumnView::Column const& object) {
-  __obj_field(res, object, summary);
-  __obj_field(res, object, width);
-  __obj_field(res, object, property);
-  __obj_field(res, object, propertyTitle);
-}
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::LinkTarget::Data const& object) { visitVariants(res, sem::LinkTarget::getKind(object), object); }
@@ -157,6 +114,109 @@ void Exporter<V, R>::visit(R& res, sem::LinkTarget::File const& object) { __obj_
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::LinkTarget::Attachment const& object) { __obj_field(res, object, file); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::SubtreeLogHead::LogEntry const& object) { visitVariants(res, sem::SubtreeLogHead::getLogKind(object), object); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::SubtreeLogHead const& object) { __obj_field(res, object, log); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::SubtreeLogHead::Priority const& object) {
+  __obj_field(res, object, oldPriority);
+  __obj_field(res, object, newPriority);
+  __obj_field(res, object, on);
+  __obj_field(res, object, action);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::SubtreeLogHead::Note const& object) { __obj_field(res, object, on); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::SubtreeLogHead::Refile const& object) {
+  __obj_field(res, object, on);
+  __obj_field(res, object, from);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::SubtreeLogHead::Clock const& object) {
+  __obj_field(res, object, from);
+  __obj_field(res, object, to);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::SubtreeLogHead::State const& object) {
+  __obj_field(res, object, from);
+  __obj_field(res, object, to);
+  __obj_field(res, object, on);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::SubtreeLogHead::Deadline const& object) {
+  __obj_field(res, object, from);
+  __obj_field(res, object, to);
+  __obj_field(res, object, on);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::SubtreeLogHead::Schedule const& object) {
+  __obj_field(res, object, from);
+  __obj_field(res, object, to);
+  __obj_field(res, object, on);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::SubtreeLogHead::Tag const& object) {
+  __obj_field(res, object, on);
+  __obj_field(res, object, tag);
+  __obj_field(res, object, added);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::SubtreeLogHead::Unknown const& object) {  }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::SubtreeCompletion const& object) {
+  __obj_field(res, object, done);
+  __obj_field(res, object, full);
+  __obj_field(res, object, isPercent);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::AttrList const& object) { __obj_field(res, object, items); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::AttrGroup const& object) {
+  __obj_field(res, object, positional);
+  __obj_field(res, object, named);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::ColumnView const& object) { __obj_field(res, object, columns); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::ColumnView::Summary::Data const& object) { visitVariants(res, sem::ColumnView::Summary::getKind(object), object); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::ColumnView::Summary const& object) { __obj_field(res, object, data); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::ColumnView::Summary::CheckboxAggregate const& object) { __obj_field(res, object, kind); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::ColumnView::Summary::MathAggregate const& object) {
+  __obj_field(res, object, kind);
+  __obj_field(res, object, formatDigits);
+  __obj_field(res, object, formatPrecision);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::ColumnView::Column const& object) {
+  __obj_field(res, object, summary);
+  __obj_field(res, object, width);
+  __obj_field(res, object, property);
+  __obj_field(res, object, propertyTitle);
+}
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::BlockCodeLine const& object) { __obj_field(res, object, parts); }
@@ -807,81 +867,12 @@ void Exporter<V, R>::visitBlockCode(R& res, In<sem::BlockCode> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::SubtreeLog::LogEntry const& object) { visitVariants(res, sem::SubtreeLog::getLogKind(object), object); }
-
-template <typename V, typename R>
 void Exporter<V, R>::visitSubtreeLog(R& res, In<sem::SubtreeLog> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
-  __org_field(res, object, log);
+  __org_field(res, object, head);
+  __org_field(res, object, desc);
   __org_field(res, object, subnodes);
 }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::SubtreeLog::DescribedLog const& object) { __obj_field(res, object, desc); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::SubtreeLog::Priority const& object) {
-  __obj_field(res, object, oldPriority);
-  __obj_field(res, object, newPriority);
-  __obj_field(res, object, on);
-  __obj_field(res, object, action);
-  __obj_field(res, object, desc);
-}
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::SubtreeLog::Note const& object) {
-  __obj_field(res, object, on);
-  __obj_field(res, object, desc);
-}
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::SubtreeLog::Refile const& object) {
-  __obj_field(res, object, on);
-  __obj_field(res, object, from);
-  __obj_field(res, object, desc);
-}
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::SubtreeLog::Clock const& object) {
-  __obj_field(res, object, from);
-  __obj_field(res, object, to);
-  __obj_field(res, object, desc);
-}
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::SubtreeLog::State const& object) {
-  __obj_field(res, object, from);
-  __obj_field(res, object, to);
-  __obj_field(res, object, on);
-  __obj_field(res, object, desc);
-}
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::SubtreeLog::Deadline const& object) {
-  __obj_field(res, object, from);
-  __obj_field(res, object, to);
-  __obj_field(res, object, on);
-  __obj_field(res, object, desc);
-}
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::SubtreeLog::Schedule const& object) {
-  __obj_field(res, object, from);
-  __obj_field(res, object, to);
-  __obj_field(res, object, on);
-  __obj_field(res, object, desc);
-}
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::SubtreeLog::Tag const& object) {
-  __obj_field(res, object, on);
-  __obj_field(res, object, tag);
-  __obj_field(res, object, added);
-  __obj_field(res, object, desc);
-}
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::SubtreeLog::Unknown const& object) { __obj_field(res, object, desc); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitSubtree(R& res, In<sem::Subtree> object) {

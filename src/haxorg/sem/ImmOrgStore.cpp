@@ -218,6 +218,7 @@ ImmAstReplace setNewSubnodes(
                         [&](ImmBox<Opt<sem::ColumnView>> const&) { fail_field(); },
                         [&](sem::DocumentExportConfig const&) { fail_field(); },
                         [&](sem::AttrValue const&) { fail_field(); },
+                        [&](sem::SubtreeLogHead const&) { fail_field(); },
                         // clang-format on
                         [&]<typename FK>(
                             ImmBox<Opt<org::ImmIdT<FK>>> const& f) {
@@ -609,9 +610,9 @@ struct AddContext {
 };
 
 template <>
-struct SerdeDefaultProvider<org::ImmSubtreeLog::Priority> {
-    static org::ImmSubtreeLog::Priority get() {
-        return org::ImmSubtreeLog::Priority{};
+struct SerdeDefaultProvider<sem::SubtreeLogHead::Priority> {
+    static sem::SubtreeLogHead::Priority get() {
+        return sem::SubtreeLogHead::Priority{};
     }
 };
 
@@ -826,6 +827,7 @@ __same_type(sem::AttrList);
 __same_type(sem::AttrValue);
 __same_type(sem::SubtreeCompletion);
 __same_type(sem::HashTagText);
+__same_type(sem::SubtreeLogHead);
 
 
 template <typename SemType, typename ImmType>

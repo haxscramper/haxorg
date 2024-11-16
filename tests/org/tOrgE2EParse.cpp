@@ -1167,19 +1167,19 @@ TEST(OrgApi, SubtreeLogParsing) {
 
         EXPECT_EQ(s->logbook.size(), 4);
         auto const& l = s->logbook;
-        EXPECT_TRUE(l.at(0)->isTag());
-        EXPECT_TRUE(l.at(1)->isClock());
-        EXPECT_TRUE(l.at(2)->isState());
-        EXPECT_TRUE(l.at(3)->isState());
-        EXPECT_EQ(l.at(0)->getTag().on.getBreakdown().year, 2000);
-        EXPECT_EQ(l.at(0)->getTag().on.getBreakdown().minute, 52);
-        EXPECT_EQ(l.at(1)->getClock().from.getBreakdown().minute, 51);
+        EXPECT_TRUE(l.at(0)->head.isTag());
+        EXPECT_TRUE(l.at(1)->head.isClock());
+        EXPECT_TRUE(l.at(2)->head.isState());
+        EXPECT_TRUE(l.at(3)->head.isState());
+        EXPECT_EQ(l.at(0)->head.getTag().on.getBreakdown().year, 2000);
+        EXPECT_EQ(l.at(0)->head.getTag().on.getBreakdown().minute, 52);
+        EXPECT_EQ(l.at(1)->head.getClock().from.getBreakdown().minute, 51);
         EXPECT_EQ(
-            l.at(1)->getClock().to.value().getBreakdown().minute, 43);
-        EXPECT_EQ(l.at(2)->getState().from, "TODO"_ss);
-        EXPECT_EQ(l.at(2)->getState().to, "WIP"_ss);
-        EXPECT_EQ(l.at(3)->getState().to, "COMPLETED"_ss);
-        EXPECT_EQ(l.at(3)->getState().from, "WIP"_ss);
+            l.at(1)->head.getClock().to.value().getBreakdown().minute, 43);
+        EXPECT_EQ(l.at(2)->head.getState().from, "TODO"_ss);
+        EXPECT_EQ(l.at(2)->head.getState().to, "WIP"_ss);
+        EXPECT_EQ(l.at(3)->head.getState().to, "COMPLETED"_ss);
+        EXPECT_EQ(l.at(3)->head.getState().from, "WIP"_ss);
     }
     {
         auto t = parseOne<sem::Subtree>(
@@ -1211,9 +1211,9 @@ TEST(OrgApi, SubtreeLogParsing) {
         auto state = log.at(0);
         auto dead1 = log.at(1);
         auto dead2 = log.at(2);
-        EXPECT_TRUE(state->isState());
-        EXPECT_TRUE(dead1->isDeadline());
-        EXPECT_TRUE(dead2->isDeadline());
+        EXPECT_TRUE(state->head.isState());
+        EXPECT_TRUE(dead1->head.isDeadline());
+        EXPECT_TRUE(dead2->head.isDeadline());
     }
     {
         auto t = parseOne<sem::Subtree>(
@@ -1223,8 +1223,8 @@ TEST(OrgApi, SubtreeLogParsing) {
    :END:
 )");
 
-        EXPECT_TRUE(t->logbook.at(0)->isRefile());
-        auto l = t->logbook.at(0)->getRefile();
+        EXPECT_TRUE(t->logbook.at(0)->head.isRefile());
+        auto l = t->logbook.at(0)->head.getRefile();
         EXPECT_EQ(l.on.getBreakdown().year, 2020);
         EXPECT_EQ(l.on.getBreakdown().minute, 40);
     }
@@ -1240,15 +1240,15 @@ TEST(OrgApi, SubtreeLogParsing) {
             getDebugFile("priority"));
 
         auto const& l = t->logbook;
-        EXPECT_TRUE(l.at(0)->isPriority());
-        EXPECT_TRUE(l.at(1)->isPriority());
-        EXPECT_TRUE(l.at(2)->isPriority());
-        auto p0 = l.at(0)->getPriority();
+        EXPECT_TRUE(l.at(0)->head.isPriority());
+        EXPECT_TRUE(l.at(1)->head.isPriority());
+        EXPECT_TRUE(l.at(2)->head.isPriority());
+        auto p0 = l.at(0)->head.getPriority();
         EXPECT_FALSE(p0.oldPriority.has_value());
         EXPECT_TRUE(p0.newPriority.has_value());
         EXPECT_EQ(p0.newPriority.value(), "B");
 
-        auto p1 = l.at(1)->getPriority();
+        auto p1 = l.at(1)->head.getPriority();
         EXPECT_TRUE(p1.oldPriority.has_value());
         EXPECT_TRUE(p1.newPriority.has_value());
         EXPECT_EQ(p1.oldPriority.value(), "B");
@@ -1264,13 +1264,13 @@ TEST(OrgApi, SubtreeLogParsing) {
     people and a set of non-trivial tasks.
   :END:)");
         auto const& l = t->logbook;
-        EXPECT_TRUE(l.at(0)->isNote());
-        auto const& n = l.at(0)->getNote();
+        EXPECT_TRUE(l.at(0)->head.isNote());
+        auto const& n = l.at(0)->head.getNote();
         EXPECT_EQ(n.on.getBreakdown().year, 2023);
         EXPECT_EQ(n.on.getBreakdown().second, 03);
-        EXPECT_TRUE(n.desc.has_value());
+        EXPECT_TRUE(l.at(0)->desc.has_value());
         Vec<Str> desc = sem::getDfsLeafText(
-            n.desc.value().asOrg(), {OrgSemKind::Word});
+            l.at(0)->desc.value().asOrg(), {OrgSemKind::Word});
         EXPECT_EQ(desc.at(0), "Increasing");
         EXPECT_NE(desc.indexOf("tasks"), -1);
     }
@@ -1288,7 +1288,7 @@ TEST(OrgApi, SubtreeLogParsing) {
             getDebugFile("nested_log"));
 
         auto const& l    = t->logbook;
-        auto const& d    = l.at(0)->getNote().desc.value();
+        auto const& d    = l.at(0)->desc.value();
         auto const& nest = d->at(0);
         EXPECT_EQ(nest->getKind(), OrgSemKind::List);
         EXPECT_EQ(nest.size(), 2);

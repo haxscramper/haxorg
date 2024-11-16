@@ -261,50 +261,6 @@ struct HashTagText {
   Vec<Vec<Str>> getFlatHashes(bool withIntermediate = true) const;
 };
 
-/// \brief Completion status of the subtree list element
-struct SubtreeCompletion {
-  BOOST_DESCRIBE_CLASS(SubtreeCompletion,
-                       (),
-                       (),
-                       (),
-                       (done, full, isPercent))
-  /// \brief Number of completed tasks
-  int done = 0;
-  /// \brief Full number of tasks
-  int full = 0;
-  /// \brief Use fraction or percent to display completion
-  bool isPercent = false;
-  bool operator==(sem::SubtreeCompletion const& other) const;
-};
-
-struct AttrList {
-  BOOST_DESCRIBE_CLASS(AttrList,
-                       (),
-                       (),
-                       (),
-                       (items))
-  Vec<sem::AttrValue> items = {};
-  bool operator==(sem::AttrList const& other) const;
-};
-
-struct AttrGroup {
-  BOOST_DESCRIBE_CLASS(AttrGroup,
-                       (),
-                       (),
-                       (),
-                       (positional,
-                        named))
-  /// \brief Positional arguments with no keys
-  sem::AttrList positional;
-  /// \brief Stored key-value mapping
-  UnorderedMap<Str, sem::AttrList> named;
-  Vec<sem::AttrValue> getFlatArgs() const;
-  Vec<sem::AttrValue> getAttrs(Opt<Str> const& key = std::nullopt) const;
-  void setNamedAttr(Str const& key, Vec<sem::AttrValue> const& attrs);
-  void setPositionalAttr(Vec<sem::AttrValue> const& items);
-  bool operator==(sem::AttrGroup const& other) const;
-};
-
 struct SubtreePath {
   BOOST_DESCRIBE_CLASS(SubtreePath,
                        (),
@@ -313,78 +269,6 @@ struct SubtreePath {
                        (path))
   Vec<Str> path = {};
   bool operator==(sem::SubtreePath const& other) const;
-};
-
-struct ColumnView {
-  struct Summary {
-    struct CheckboxAggregate {
-      enum class Kind : short int { IfAllNested, AggregateFractionRec, AggregatePercentRec, };
-      BOOST_DESCRIBE_NESTED_ENUM(Kind, IfAllNested, AggregateFractionRec, AggregatePercentRec)
-      BOOST_DESCRIBE_CLASS(CheckboxAggregate,
-                           (),
-                           (),
-                           (),
-                           (kind))
-      sem::ColumnView::Summary::CheckboxAggregate::Kind kind;
-      bool operator==(sem::ColumnView::Summary::CheckboxAggregate const& other) const;
-    };
-
-    struct MathAggregate {
-      enum class Kind : short int { Min, Max, Mean, Sum, LowHighEst, };
-      BOOST_DESCRIBE_NESTED_ENUM(Kind, Min, Max, Mean, Sum, LowHighEst)
-      BOOST_DESCRIBE_CLASS(MathAggregate,
-                           (),
-                           (),
-                           (),
-                           (kind, formatDigits, formatPrecision))
-      sem::ColumnView::Summary::MathAggregate::Kind kind;
-      Opt<int> formatDigits = std::nullopt;
-      Opt<int> formatPrecision = std::nullopt;
-      bool operator==(sem::ColumnView::Summary::MathAggregate const& other) const;
-    };
-
-    using Data = std::variant<sem::ColumnView::Summary::CheckboxAggregate, sem::ColumnView::Summary::MathAggregate>;
-    enum class Kind : short int { CheckboxAggregate, MathAggregate, };
-    BOOST_DESCRIBE_NESTED_ENUM(Kind, CheckboxAggregate, MathAggregate)
-    using variant_enum_type = sem::ColumnView::Summary::Kind;
-    using variant_data_type = sem::ColumnView::Summary::Data;
-    BOOST_DESCRIBE_CLASS(Summary,
-                         (),
-                         (),
-                         (),
-                         (data))
-    sem::ColumnView::Summary::Data data;
-    bool operator==(sem::ColumnView::Summary const& other) const;
-    bool isCheckboxAggregate() const { return getKind() == Kind::CheckboxAggregate; }
-    sem::ColumnView::Summary::CheckboxAggregate const& getCheckboxAggregate() const { return std::get<0>(data); }
-    sem::ColumnView::Summary::CheckboxAggregate& getCheckboxAggregate() { return std::get<0>(data); }
-    bool isMathAggregate() const { return getKind() == Kind::MathAggregate; }
-    sem::ColumnView::Summary::MathAggregate const& getMathAggregate() const { return std::get<1>(data); }
-    sem::ColumnView::Summary::MathAggregate& getMathAggregate() { return std::get<1>(data); }
-    static sem::ColumnView::Summary::Kind getKind(sem::ColumnView::Summary::Data const& __input) { return static_cast<sem::ColumnView::Summary::Kind>(__input.index()); }
-    sem::ColumnView::Summary::Kind getKind() const { return getKind(data); }
-  };
-
-  struct Column {
-    BOOST_DESCRIBE_CLASS(Column,
-                         (),
-                         (),
-                         (),
-                         (summary, width, property, propertyTitle))
-    Opt<sem::ColumnView::Summary> summary = std::nullopt;
-    Opt<int> width = std::nullopt;
-    Opt<Str> property = std::nullopt;
-    Opt<Str> propertyTitle = std::nullopt;
-    bool operator==(sem::ColumnView::Column const& other) const;
-  };
-
-  BOOST_DESCRIBE_CLASS(ColumnView,
-                       (),
-                       (),
-                       (),
-                       (columns))
-  Vec<sem::ColumnView::Column> columns = {};
-  bool operator==(sem::ColumnView const& other) const;
 };
 
 struct LinkTarget {
@@ -534,6 +418,308 @@ struct LinkTarget {
   sem::LinkTarget::Attachment& getAttachment() { return std::get<9>(data); }
   static sem::LinkTarget::Kind getKind(sem::LinkTarget::Data const& __input) { return static_cast<sem::LinkTarget::Kind>(__input.index()); }
   sem::LinkTarget::Kind getKind() const { return getKind(data); }
+};
+
+struct SubtreeLogHead {
+  /// \brief Priority added
+  struct Priority {
+    /// \brief Priority change action
+    enum class Action : short int {
+      /// \brief `Priority B added on [timestamp]`
+      Added,
+      /// \brief `Priority C removed on [timestamp]`
+      Removed,
+      /// \brief `Priority B changed from C on [timestamp]`
+      Changed,
+    };
+    BOOST_DESCRIBE_NESTED_ENUM(Action, Added, Removed, Changed)
+    Priority() {}
+    BOOST_DESCRIBE_CLASS(Priority,
+                         (),
+                         (),
+                         (),
+                         (oldPriority, newPriority, on, action))
+    /// \brief Previous priority for change and removal
+    Opt<std::string> oldPriority = std::nullopt;
+    /// \brief New priority for change and addition
+    Opt<std::string> newPriority = std::nullopt;
+    /// \brief When priority was changed
+    UserTime on;
+    /// \brief Which action taken
+    sem::SubtreeLogHead::Priority::Action action;
+    bool operator==(sem::SubtreeLogHead::Priority const& other) const;
+  };
+
+  /// \brief Timestamped note
+  struct Note {
+    Note() {}
+    BOOST_DESCRIBE_CLASS(Note,
+                         (),
+                         (),
+                         (),
+                         (on))
+    /// \brief Where log was taken
+    UserTime on;
+    bool operator==(sem::SubtreeLogHead::Note const& other) const;
+  };
+
+  /// \brief Refiling action
+  struct Refile {
+    Refile() {}
+    BOOST_DESCRIBE_CLASS(Refile,
+                         (),
+                         (),
+                         (),
+                         (on, from))
+    /// \brief When the refiling happened
+    UserTime on;
+    /// \brief Link to the original subtree
+    sem::LinkTarget from;
+    bool operator==(sem::SubtreeLogHead::Refile const& other) const;
+  };
+
+  /// \brief Clock entry `CLOCK: [2023-04-30 Sun 13:29:04]--[2023-04-30 Sun 14:51:16] => 1:22`
+  struct Clock {
+    Clock() {}
+    BOOST_DESCRIBE_CLASS(Clock,
+                         (),
+                         (),
+                         (),
+                         (from, to))
+    /// \brief Clock start time
+    UserTime from;
+    /// \brief Optional end of the clock
+    Opt<UserTime> to = std::nullopt;
+    bool operator==(sem::SubtreeLogHead::Clock const& other) const;
+  };
+
+  /// \brief Change of the subtree state -- `- State "WIP" from "TODO" [2023-04-30 Sun 13:29:04]`
+  struct State {
+    State() {}
+    BOOST_DESCRIBE_CLASS(State,
+                         (),
+                         (),
+                         (),
+                         (from, to, on))
+    Str from;
+    Str to;
+    UserTime on;
+    bool operator==(sem::SubtreeLogHead::State const& other) const;
+  };
+
+  /// \brief Change of the subtree deadline
+  struct Deadline {
+    Deadline() {}
+    BOOST_DESCRIBE_CLASS(Deadline,
+                         (),
+                         (),
+                         (),
+                         (from, to, on))
+    Opt<UserTime> from = std::nullopt;
+    UserTime to;
+    UserTime on;
+    bool operator==(sem::SubtreeLogHead::Deadline const& other) const;
+  };
+
+  /// \brief Change of the subtree Schedule
+  struct Schedule {
+    Schedule() {}
+    BOOST_DESCRIBE_CLASS(Schedule,
+                         (),
+                         (),
+                         (),
+                         (from, to, on))
+    Opt<UserTime> from = std::nullopt;
+    UserTime to;
+    UserTime on;
+    bool operator==(sem::SubtreeLogHead::Schedule const& other) const;
+  };
+
+  /// \brief Assign tag to the subtree `- Tag "project##haxorg" Added on [2023-04-30 Sun 13:29:06]`
+  struct Tag {
+    Tag() {}
+    BOOST_DESCRIBE_CLASS(Tag,
+                         (),
+                         (),
+                         (),
+                         (on, tag, added))
+    /// \brief When the log was assigned
+    UserTime on;
+    /// \brief Tag in question
+    sem::HashTagText tag;
+    /// \brief Added/removed?
+    bool added = false;
+    bool operator==(sem::SubtreeLogHead::Tag const& other) const;
+  };
+
+  /// \brief Unknown subtree log entry kind
+  struct Unknown {
+    Unknown() {}
+    BOOST_DESCRIBE_CLASS(Unknown,
+                         (),
+                         (),
+                         (),
+                         ())
+    bool operator==(sem::SubtreeLogHead::Unknown const& other) const;
+  };
+
+  using LogEntry = std::variant<sem::SubtreeLogHead::Priority, sem::SubtreeLogHead::Note, sem::SubtreeLogHead::Refile, sem::SubtreeLogHead::Clock, sem::SubtreeLogHead::State, sem::SubtreeLogHead::Deadline, sem::SubtreeLogHead::Schedule, sem::SubtreeLogHead::Tag, sem::SubtreeLogHead::Unknown>;
+  enum class Kind : short int { Priority, Note, Refile, Clock, State, Deadline, Schedule, Tag, Unknown, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, Priority, Note, Refile, Clock, State, Deadline, Schedule, Tag, Unknown)
+  using variant_enum_type = sem::SubtreeLogHead::Kind;
+  using variant_data_type = sem::SubtreeLogHead::LogEntry;
+  BOOST_DESCRIBE_CLASS(SubtreeLogHead,
+                       (),
+                       (),
+                       (),
+                       (log))
+  sem::SubtreeLogHead::LogEntry log = Note{};
+  bool operator==(sem::SubtreeLogHead const& other) const;
+  bool isPriority() const { return getLogKind() == Kind::Priority; }
+  sem::SubtreeLogHead::Priority const& getPriority() const { return std::get<0>(log); }
+  sem::SubtreeLogHead::Priority& getPriority() { return std::get<0>(log); }
+  bool isNote() const { return getLogKind() == Kind::Note; }
+  sem::SubtreeLogHead::Note const& getNote() const { return std::get<1>(log); }
+  sem::SubtreeLogHead::Note& getNote() { return std::get<1>(log); }
+  bool isRefile() const { return getLogKind() == Kind::Refile; }
+  sem::SubtreeLogHead::Refile const& getRefile() const { return std::get<2>(log); }
+  sem::SubtreeLogHead::Refile& getRefile() { return std::get<2>(log); }
+  bool isClock() const { return getLogKind() == Kind::Clock; }
+  sem::SubtreeLogHead::Clock const& getClock() const { return std::get<3>(log); }
+  sem::SubtreeLogHead::Clock& getClock() { return std::get<3>(log); }
+  bool isState() const { return getLogKind() == Kind::State; }
+  sem::SubtreeLogHead::State const& getState() const { return std::get<4>(log); }
+  sem::SubtreeLogHead::State& getState() { return std::get<4>(log); }
+  bool isDeadline() const { return getLogKind() == Kind::Deadline; }
+  sem::SubtreeLogHead::Deadline const& getDeadline() const { return std::get<5>(log); }
+  sem::SubtreeLogHead::Deadline& getDeadline() { return std::get<5>(log); }
+  bool isSchedule() const { return getLogKind() == Kind::Schedule; }
+  sem::SubtreeLogHead::Schedule const& getSchedule() const { return std::get<6>(log); }
+  sem::SubtreeLogHead::Schedule& getSchedule() { return std::get<6>(log); }
+  bool isTag() const { return getLogKind() == Kind::Tag; }
+  sem::SubtreeLogHead::Tag const& getTag() const { return std::get<7>(log); }
+  sem::SubtreeLogHead::Tag& getTag() { return std::get<7>(log); }
+  bool isUnknown() const { return getLogKind() == Kind::Unknown; }
+  sem::SubtreeLogHead::Unknown const& getUnknown() const { return std::get<8>(log); }
+  sem::SubtreeLogHead::Unknown& getUnknown() { return std::get<8>(log); }
+  static sem::SubtreeLogHead::Kind getLogKind(sem::SubtreeLogHead::LogEntry const& __input) { return static_cast<sem::SubtreeLogHead::Kind>(__input.index()); }
+  sem::SubtreeLogHead::Kind getLogKind() const { return getLogKind(log); }
+};
+
+/// \brief Completion status of the subtree list element
+struct SubtreeCompletion {
+  BOOST_DESCRIBE_CLASS(SubtreeCompletion,
+                       (),
+                       (),
+                       (),
+                       (done, full, isPercent))
+  /// \brief Number of completed tasks
+  int done = 0;
+  /// \brief Full number of tasks
+  int full = 0;
+  /// \brief Use fraction or percent to display completion
+  bool isPercent = false;
+  bool operator==(sem::SubtreeCompletion const& other) const;
+};
+
+struct AttrList {
+  BOOST_DESCRIBE_CLASS(AttrList,
+                       (),
+                       (),
+                       (),
+                       (items))
+  Vec<sem::AttrValue> items = {};
+  bool operator==(sem::AttrList const& other) const;
+};
+
+struct AttrGroup {
+  BOOST_DESCRIBE_CLASS(AttrGroup,
+                       (),
+                       (),
+                       (),
+                       (positional,
+                        named))
+  /// \brief Positional arguments with no keys
+  sem::AttrList positional;
+  /// \brief Stored key-value mapping
+  UnorderedMap<Str, sem::AttrList> named;
+  Vec<sem::AttrValue> getFlatArgs() const;
+  Vec<sem::AttrValue> getAttrs(Opt<Str> const& key = std::nullopt) const;
+  void setNamedAttr(Str const& key, Vec<sem::AttrValue> const& attrs);
+  void setPositionalAttr(Vec<sem::AttrValue> const& items);
+  bool operator==(sem::AttrGroup const& other) const;
+};
+
+struct ColumnView {
+  struct Summary {
+    struct CheckboxAggregate {
+      enum class Kind : short int { IfAllNested, AggregateFractionRec, AggregatePercentRec, };
+      BOOST_DESCRIBE_NESTED_ENUM(Kind, IfAllNested, AggregateFractionRec, AggregatePercentRec)
+      BOOST_DESCRIBE_CLASS(CheckboxAggregate,
+                           (),
+                           (),
+                           (),
+                           (kind))
+      sem::ColumnView::Summary::CheckboxAggregate::Kind kind;
+      bool operator==(sem::ColumnView::Summary::CheckboxAggregate const& other) const;
+    };
+
+    struct MathAggregate {
+      enum class Kind : short int { Min, Max, Mean, Sum, LowHighEst, };
+      BOOST_DESCRIBE_NESTED_ENUM(Kind, Min, Max, Mean, Sum, LowHighEst)
+      BOOST_DESCRIBE_CLASS(MathAggregate,
+                           (),
+                           (),
+                           (),
+                           (kind, formatDigits, formatPrecision))
+      sem::ColumnView::Summary::MathAggregate::Kind kind;
+      Opt<int> formatDigits = std::nullopt;
+      Opt<int> formatPrecision = std::nullopt;
+      bool operator==(sem::ColumnView::Summary::MathAggregate const& other) const;
+    };
+
+    using Data = std::variant<sem::ColumnView::Summary::CheckboxAggregate, sem::ColumnView::Summary::MathAggregate>;
+    enum class Kind : short int { CheckboxAggregate, MathAggregate, };
+    BOOST_DESCRIBE_NESTED_ENUM(Kind, CheckboxAggregate, MathAggregate)
+    using variant_enum_type = sem::ColumnView::Summary::Kind;
+    using variant_data_type = sem::ColumnView::Summary::Data;
+    BOOST_DESCRIBE_CLASS(Summary,
+                         (),
+                         (),
+                         (),
+                         (data))
+    sem::ColumnView::Summary::Data data;
+    bool operator==(sem::ColumnView::Summary const& other) const;
+    bool isCheckboxAggregate() const { return getKind() == Kind::CheckboxAggregate; }
+    sem::ColumnView::Summary::CheckboxAggregate const& getCheckboxAggregate() const { return std::get<0>(data); }
+    sem::ColumnView::Summary::CheckboxAggregate& getCheckboxAggregate() { return std::get<0>(data); }
+    bool isMathAggregate() const { return getKind() == Kind::MathAggregate; }
+    sem::ColumnView::Summary::MathAggregate const& getMathAggregate() const { return std::get<1>(data); }
+    sem::ColumnView::Summary::MathAggregate& getMathAggregate() { return std::get<1>(data); }
+    static sem::ColumnView::Summary::Kind getKind(sem::ColumnView::Summary::Data const& __input) { return static_cast<sem::ColumnView::Summary::Kind>(__input.index()); }
+    sem::ColumnView::Summary::Kind getKind() const { return getKind(data); }
+  };
+
+  struct Column {
+    BOOST_DESCRIBE_CLASS(Column,
+                         (),
+                         (),
+                         (),
+                         (summary, width, property, propertyTitle))
+    Opt<sem::ColumnView::Summary> summary = std::nullopt;
+    Opt<int> width = std::nullopt;
+    Opt<Str> property = std::nullopt;
+    Opt<Str> propertyTitle = std::nullopt;
+    bool operator==(sem::ColumnView::Column const& other) const;
+  };
+
+  BOOST_DESCRIBE_CLASS(ColumnView,
+                       (),
+                       (),
+                       (),
+                       (columns))
+  Vec<sem::ColumnView::Column> columns = {};
+  bool operator==(sem::ColumnView const& other) const;
 };
 
 struct BlockCodeLine {
@@ -2113,159 +2299,19 @@ struct BlockCode : public sem::Block {
 struct SubtreeLog : public sem::Org {
   using Org::Org;
   virtual ~SubtreeLog() = default;
-  /// \brief Base value for the log variant
-  struct DescribedLog {
-    DescribedLog() {}
-    BOOST_DESCRIBE_CLASS(DescribedLog, (), (), (), (desc))
-    /// \brief Optional description of the log entry
-    Opt<sem::SemId<sem::StmtList>> desc = std::nullopt;
-  };
-
-  /// \brief Priority added
-  struct Priority : public sem::SubtreeLog::DescribedLog {
-    /// \brief Priority change action
-    enum class Action : short int {
-      /// \brief `Priority B added on [timestamp]`
-      Added,
-      /// \brief `Priority C removed on [timestamp]`
-      Removed,
-      /// \brief `Priority B changed from C on [timestamp]`
-      Changed,
-    };
-    BOOST_DESCRIBE_NESTED_ENUM(Action, Added, Removed, Changed)
-    Priority() {}
-    BOOST_DESCRIBE_CLASS(Priority,
-                         (DescribedLog),
-                         (),
-                         (),
-                         (oldPriority, newPriority, on, action))
-    /// \brief Previous priority for change and removal
-    Opt<std::string> oldPriority = std::nullopt;
-    /// \brief New priority for change and addition
-    Opt<std::string> newPriority = std::nullopt;
-    /// \brief When priority was changed
-    UserTime on;
-    /// \brief Which action taken
-    sem::SubtreeLog::Priority::Action action;
-  };
-
-  /// \brief Timestamped note
-  struct Note : public sem::SubtreeLog::DescribedLog {
-    Note() {}
-    BOOST_DESCRIBE_CLASS(Note, (DescribedLog), (), (), (on))
-    /// \brief Where log was taken
-    UserTime on;
-  };
-
-  /// \brief Refiling action
-  struct Refile : public sem::SubtreeLog::DescribedLog {
-    Refile() {}
-    BOOST_DESCRIBE_CLASS(Refile, (DescribedLog), (), (), (on, from))
-    /// \brief When the refiling happened
-    UserTime on;
-    /// \brief Link to the original subtree
-    sem::SemId<sem::Link> from = sem::SemId<sem::Link>::Nil();
-  };
-
-  /// \brief Clock entry `CLOCK: [2023-04-30 Sun 13:29:04]--[2023-04-30 Sun 14:51:16] => 1:22`
-  struct Clock : public sem::SubtreeLog::DescribedLog {
-    Clock() {}
-    BOOST_DESCRIBE_CLASS(Clock, (DescribedLog), (), (), (from, to))
-    /// \brief Clock start time
-    UserTime from;
-    /// \brief Optional end of the clock
-    Opt<UserTime> to = std::nullopt;
-  };
-
-  /// \brief Change of the subtree state -- `- State "WIP" from "TODO" [2023-04-30 Sun 13:29:04]`
-  struct State : public sem::SubtreeLog::DescribedLog {
-    State() {}
-    BOOST_DESCRIBE_CLASS(State, (DescribedLog), (), (), (from, to, on))
-    Str from;
-    Str to;
-    UserTime on;
-  };
-
-  /// \brief Change of the subtree deadline
-  struct Deadline : public sem::SubtreeLog::DescribedLog {
-    Deadline() {}
-    BOOST_DESCRIBE_CLASS(Deadline, (DescribedLog), (), (), (from, to, on))
-    Opt<UserTime> from = std::nullopt;
-    UserTime to;
-    UserTime on;
-  };
-
-  /// \brief Change of the subtree Schedule
-  struct Schedule : public sem::SubtreeLog::DescribedLog {
-    Schedule() {}
-    BOOST_DESCRIBE_CLASS(Schedule, (DescribedLog), (), (), (from, to, on))
-    Opt<UserTime> from = std::nullopt;
-    UserTime to;
-    UserTime on;
-  };
-
-  /// \brief Assign tag to the subtree `- Tag "project##haxorg" Added on [2023-04-30 Sun 13:29:06]`
-  struct Tag : public sem::SubtreeLog::DescribedLog {
-    Tag() {}
-    BOOST_DESCRIBE_CLASS(Tag, (DescribedLog), (), (), (on, tag, added))
-    /// \brief When the log was assigned
-    UserTime on;
-    /// \brief Tag in question
-    sem::SemId<sem::HashTag> tag = sem::SemId<sem::HashTag>::Nil();
-    /// \brief Added/removed?
-    bool added = false;
-  };
-
-  /// \brief Unknown subtree log entry kind
-  struct Unknown : public sem::SubtreeLog::DescribedLog {
-    Unknown() {}
-    BOOST_DESCRIBE_CLASS(Unknown, (DescribedLog), (), (), ())
-  };
-
-  using LogEntry = std::variant<sem::SubtreeLog::Priority, sem::SubtreeLog::Note, sem::SubtreeLog::Refile, sem::SubtreeLog::Clock, sem::SubtreeLog::State, sem::SubtreeLog::Deadline, sem::SubtreeLog::Schedule, sem::SubtreeLog::Tag, sem::SubtreeLog::Unknown>;
-  enum class Kind : short int { Priority, Note, Refile, Clock, State, Deadline, Schedule, Tag, Unknown, };
-  BOOST_DESCRIBE_NESTED_ENUM(Kind, Priority, Note, Refile, Clock, State, Deadline, Schedule, Tag, Unknown)
-  using variant_enum_type = sem::SubtreeLog::Kind;
-  using variant_data_type = sem::SubtreeLog::LogEntry;
   BOOST_DESCRIBE_CLASS(SubtreeLog,
                        (Org),
                        (),
                        (),
                        (staticKind,
-                        log))
+                        head,
+                        desc))
   static OrgSemKind const staticKind;
-  sem::SubtreeLog::LogEntry log = Note{};
+  sem::SubtreeLogHead head;
+  /// \brief Optional description of the log entry
+  Opt<sem::SemId<sem::StmtList>> desc = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::SubtreeLog; }
   void setDescription(sem::SemId<sem::StmtList> desc);
-  bool isPriority() const { return getLogKind() == Kind::Priority; }
-  sem::SubtreeLog::Priority const& getPriority() const { return std::get<0>(log); }
-  sem::SubtreeLog::Priority& getPriority() { return std::get<0>(log); }
-  bool isNote() const { return getLogKind() == Kind::Note; }
-  sem::SubtreeLog::Note const& getNote() const { return std::get<1>(log); }
-  sem::SubtreeLog::Note& getNote() { return std::get<1>(log); }
-  bool isRefile() const { return getLogKind() == Kind::Refile; }
-  sem::SubtreeLog::Refile const& getRefile() const { return std::get<2>(log); }
-  sem::SubtreeLog::Refile& getRefile() { return std::get<2>(log); }
-  bool isClock() const { return getLogKind() == Kind::Clock; }
-  sem::SubtreeLog::Clock const& getClock() const { return std::get<3>(log); }
-  sem::SubtreeLog::Clock& getClock() { return std::get<3>(log); }
-  bool isState() const { return getLogKind() == Kind::State; }
-  sem::SubtreeLog::State const& getState() const { return std::get<4>(log); }
-  sem::SubtreeLog::State& getState() { return std::get<4>(log); }
-  bool isDeadline() const { return getLogKind() == Kind::Deadline; }
-  sem::SubtreeLog::Deadline const& getDeadline() const { return std::get<5>(log); }
-  sem::SubtreeLog::Deadline& getDeadline() { return std::get<5>(log); }
-  bool isSchedule() const { return getLogKind() == Kind::Schedule; }
-  sem::SubtreeLog::Schedule const& getSchedule() const { return std::get<6>(log); }
-  sem::SubtreeLog::Schedule& getSchedule() { return std::get<6>(log); }
-  bool isTag() const { return getLogKind() == Kind::Tag; }
-  sem::SubtreeLog::Tag const& getTag() const { return std::get<7>(log); }
-  sem::SubtreeLog::Tag& getTag() { return std::get<7>(log); }
-  bool isUnknown() const { return getLogKind() == Kind::Unknown; }
-  sem::SubtreeLog::Unknown const& getUnknown() const { return std::get<8>(log); }
-  sem::SubtreeLog::Unknown& getUnknown() { return std::get<8>(log); }
-  static sem::SubtreeLog::Kind getLogKind(sem::SubtreeLog::LogEntry const& __input) { return static_cast<sem::SubtreeLog::Kind>(__input.index()); }
-  sem::SubtreeLog::Kind getLogKind() const { return getLogKind(log); }
 };
 
 /// \brief Subtree

@@ -215,130 +215,12 @@ void proto_serde<::orgproto::HashTagText, sem::HashTagText>::read(::orgproto::Ha
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::HashTagText>, Vec<sem::HashTagText>>::read(out.subtags(), in.for_field(&sem::HashTagText::subtags));
 }
 
-void proto_serde<::orgproto::SubtreeCompletion, sem::SubtreeCompletion>::write(::orgproto::SubtreeCompletion* out, sem::SubtreeCompletion const& in) {
-  out->set_done(in.done);
-  out->set_full(in.full);
-  out->set_ispercent(in.isPercent);
-}
-
-void proto_serde<::orgproto::SubtreeCompletion, sem::SubtreeCompletion>::read(::orgproto::SubtreeCompletion const& out, proto_write_accessor<sem::SubtreeCompletion> in) {
-  in.for_field(&sem::SubtreeCompletion::done).get() = out.done();
-  in.for_field(&sem::SubtreeCompletion::full).get() = out.full();
-  in.for_field(&sem::SubtreeCompletion::isPercent).get() = out.ispercent();
-}
-
-void proto_serde<::orgproto::AttrList, sem::AttrList>::write(::orgproto::AttrList* out, sem::AttrList const& in) {
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::AttrValue>, Vec<sem::AttrValue>>::write(out->mutable_items(), in.items);
-}
-
-void proto_serde<::orgproto::AttrList, sem::AttrList>::read(::orgproto::AttrList const& out, proto_write_accessor<sem::AttrList> in) {
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::AttrValue>, Vec<sem::AttrValue>>::read(out.items(), in.for_field(&sem::AttrList::items));
-}
-
-void proto_serde<::orgproto::AttrGroup, sem::AttrGroup>::write(::orgproto::AttrGroup* out, sem::AttrGroup const& in) {
-  proto_serde<orgproto::AttrList, sem::AttrList>::write(out->mutable_positional(), in.positional);
-  proto_serde<::google::protobuf::Map<std::string, orgproto::AttrList>, UnorderedMap<Str, sem::AttrList>>::write(out->mutable_named(), in.named);
-}
-
-void proto_serde<::orgproto::AttrGroup, sem::AttrGroup>::read(::orgproto::AttrGroup const& out, proto_write_accessor<sem::AttrGroup> in) {
-  proto_serde<orgproto::AttrList, sem::AttrList>::read(out.positional(), in.for_field(&sem::AttrGroup::positional));
-  proto_serde<::google::protobuf::Map<std::string, orgproto::AttrList>, UnorderedMap<Str, sem::AttrList>>::read(out.named(), in.for_field(&sem::AttrGroup::named));
-}
-
 void proto_serde<::orgproto::SubtreePath, sem::SubtreePath>::write(::orgproto::SubtreePath* out, sem::SubtreePath const& in) {
   proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::write(out->mutable_path(), in.path);
 }
 
 void proto_serde<::orgproto::SubtreePath, sem::SubtreePath>::read(::orgproto::SubtreePath const& out, proto_write_accessor<sem::SubtreePath> in) {
   proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::read(out.path(), in.for_field(&sem::SubtreePath::path));
-}
-
-void proto_serde<::orgproto::ColumnView::Summary::CheckboxAggregate, sem::ColumnView::Summary::CheckboxAggregate>::write(::orgproto::ColumnView::Summary::CheckboxAggregate* out, sem::ColumnView::Summary::CheckboxAggregate const& in) {
-  out->set_kind(static_cast<orgproto::ColumnView_Summary_CheckboxAggregate_Kind>(in.kind));
-}
-
-void proto_serde<::orgproto::ColumnView::Summary::CheckboxAggregate, sem::ColumnView::Summary::CheckboxAggregate>::read(::orgproto::ColumnView::Summary::CheckboxAggregate const& out, proto_write_accessor<sem::ColumnView::Summary::CheckboxAggregate> in) {
-  in.for_field(&sem::ColumnView::Summary::CheckboxAggregate::kind).get() = static_cast<sem::ColumnView::Summary::CheckboxAggregate::Kind>(out.kind());
-}
-
-void proto_serde<::orgproto::ColumnView::Summary::MathAggregate, sem::ColumnView::Summary::MathAggregate>::write(::orgproto::ColumnView::Summary::MathAggregate* out, sem::ColumnView::Summary::MathAggregate const& in) {
-  out->set_kind(static_cast<orgproto::ColumnView_Summary_MathAggregate_Kind>(in.kind));
-  if (in.formatDigits) {
-    out->set_formatdigits(*in.formatDigits);
-  }
-  if (in.formatPrecision) {
-    out->set_formatprecision(*in.formatPrecision);
-  }
-}
-
-void proto_serde<::orgproto::ColumnView::Summary::MathAggregate, sem::ColumnView::Summary::MathAggregate>::read(::orgproto::ColumnView::Summary::MathAggregate const& out, proto_write_accessor<sem::ColumnView::Summary::MathAggregate> in) {
-  in.for_field(&sem::ColumnView::Summary::MathAggregate::kind).get() = static_cast<sem::ColumnView::Summary::MathAggregate::Kind>(out.kind());
-  if (out.has_formatdigits()) {
-    proto_serde<Opt<::int32_t>, Opt<int>>::read(out.formatdigits(), in.for_field(&sem::ColumnView::Summary::MathAggregate::formatDigits));
-  }
-  if (out.has_formatprecision()) {
-    proto_serde<Opt<::int32_t>, Opt<int>>::read(out.formatprecision(), in.for_field(&sem::ColumnView::Summary::MathAggregate::formatPrecision));
-  }
-}
-
-void proto_serde<::orgproto::ColumnView::Summary, sem::ColumnView::Summary>::write(::orgproto::ColumnView::Summary* out, sem::ColumnView::Summary const& in) {
-  switch (in.data.index()) {
-    case 0:
-      proto_serde<orgproto::ColumnView::Summary::CheckboxAggregate, sem::ColumnView::Summary::CheckboxAggregate>::write(out->mutable_data()->mutable_checkboxaggregate(), std::get<0>(in.data));
-      break;
-    case 1:
-      proto_serde<orgproto::ColumnView::Summary::MathAggregate, sem::ColumnView::Summary::MathAggregate>::write(out->mutable_data()->mutable_mathaggregate(), std::get<1>(in.data));
-      break;
-  }
-}
-
-void proto_serde<::orgproto::ColumnView::Summary, sem::ColumnView::Summary>::read(::orgproto::ColumnView::Summary const& out, proto_write_accessor<sem::ColumnView::Summary> in) {
-  switch (out.data().kind_case()) {
-    case ::orgproto::ColumnView::Summary::Data::kCheckboxaggregate:
-      proto_serde<orgproto::ColumnView::Summary::CheckboxAggregate, sem::ColumnView::Summary::CheckboxAggregate>::read(out.data().checkboxaggregate(), in.for_field_variant<0>(&sem::ColumnView::Summary::data));
-      break;
-    case ::orgproto::ColumnView::Summary::Data::kMathaggregate:
-      proto_serde<orgproto::ColumnView::Summary::MathAggregate, sem::ColumnView::Summary::MathAggregate>::read(out.data().mathaggregate(), in.for_field_variant<1>(&sem::ColumnView::Summary::data));
-      break;
-  }
-}
-
-void proto_serde<::orgproto::ColumnView::Column, sem::ColumnView::Column>::write(::orgproto::ColumnView::Column* out, sem::ColumnView::Column const& in) {
-  if (in.summary) {
-    proto_serde<orgproto::ColumnView::Summary, sem::ColumnView::Summary>::write(out->mutable_summary(), *in.summary);
-  }
-  if (in.width) {
-    out->set_width(*in.width);
-  }
-  if (in.property) {
-    proto_serde<std::string, Str>::write(out->mutable_property(), *in.property);
-  }
-  if (in.propertyTitle) {
-    proto_serde<std::string, Str>::write(out->mutable_propertytitle(), *in.propertyTitle);
-  }
-}
-
-void proto_serde<::orgproto::ColumnView::Column, sem::ColumnView::Column>::read(::orgproto::ColumnView::Column const& out, proto_write_accessor<sem::ColumnView::Column> in) {
-  if (out.has_summary()) {
-    proto_serde<Opt<orgproto::ColumnView::Summary>, Opt<sem::ColumnView::Summary>>::read(out.summary(), in.for_field(&sem::ColumnView::Column::summary));
-  }
-  if (out.has_width()) {
-    proto_serde<Opt<::int32_t>, Opt<int>>::read(out.width(), in.for_field(&sem::ColumnView::Column::width));
-  }
-  if (out.has_property()) {
-    proto_serde<Opt<std::string>, Opt<Str>>::read(out.property(), in.for_field(&sem::ColumnView::Column::property));
-  }
-  if (out.has_propertytitle()) {
-    proto_serde<Opt<std::string>, Opt<Str>>::read(out.propertytitle(), in.for_field(&sem::ColumnView::Column::propertyTitle));
-  }
-}
-
-void proto_serde<::orgproto::ColumnView, sem::ColumnView>::write(::orgproto::ColumnView* out, sem::ColumnView const& in) {
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::ColumnView::Column>, Vec<sem::ColumnView::Column>>::write(out->mutable_columns(), in.columns);
-}
-
-void proto_serde<::orgproto::ColumnView, sem::ColumnView>::read(::orgproto::ColumnView const& out, proto_write_accessor<sem::ColumnView> in) {
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::ColumnView::Column>, Vec<sem::ColumnView::Column>>::read(out.columns(), in.for_field(&sem::ColumnView::columns));
 }
 
 void proto_serde<::orgproto::LinkTarget::Raw, sem::LinkTarget::Raw>::write(::orgproto::LinkTarget::Raw* out, sem::LinkTarget::Raw const& in) {
@@ -493,6 +375,306 @@ void proto_serde<::orgproto::LinkTarget, sem::LinkTarget>::read(::orgproto::Link
       proto_serde<orgproto::LinkTarget::Attachment, sem::LinkTarget::Attachment>::read(out.data().attachment(), in.for_field_variant<9>(&sem::LinkTarget::data));
       break;
   }
+}
+
+void proto_serde<::orgproto::SubtreeLogHead::Priority, sem::SubtreeLogHead::Priority>::write(::orgproto::SubtreeLogHead::Priority* out, sem::SubtreeLogHead::Priority const& in) {
+  if (in.oldPriority) {
+    out->set_oldpriority(*in.oldPriority);
+  }
+  if (in.newPriority) {
+    out->set_newpriority(*in.newPriority);
+  }
+  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_on(), in.on);
+  out->set_action(static_cast<orgproto::SubtreeLogHead_Priority_Action>(in.action));
+}
+
+void proto_serde<::orgproto::SubtreeLogHead::Priority, sem::SubtreeLogHead::Priority>::read(::orgproto::SubtreeLogHead::Priority const& out, proto_write_accessor<sem::SubtreeLogHead::Priority> in) {
+  if (out.has_oldpriority()) {
+    proto_serde<Opt<std::string>, Opt<std::string>>::read(out.oldpriority(), in.for_field(&sem::SubtreeLogHead::Priority::oldPriority));
+  }
+  if (out.has_newpriority()) {
+    proto_serde<Opt<std::string>, Opt<std::string>>::read(out.newpriority(), in.for_field(&sem::SubtreeLogHead::Priority::newPriority));
+  }
+  proto_serde<orgproto::UserTime, UserTime>::read(out.on(), in.for_field(&sem::SubtreeLogHead::Priority::on));
+  in.for_field(&sem::SubtreeLogHead::Priority::action).get() = static_cast<sem::SubtreeLogHead::Priority::Action>(out.action());
+}
+
+void proto_serde<::orgproto::SubtreeLogHead::Note, sem::SubtreeLogHead::Note>::write(::orgproto::SubtreeLogHead::Note* out, sem::SubtreeLogHead::Note const& in) {
+  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_on(), in.on);
+}
+
+void proto_serde<::orgproto::SubtreeLogHead::Note, sem::SubtreeLogHead::Note>::read(::orgproto::SubtreeLogHead::Note const& out, proto_write_accessor<sem::SubtreeLogHead::Note> in) {
+  proto_serde<orgproto::UserTime, UserTime>::read(out.on(), in.for_field(&sem::SubtreeLogHead::Note::on));
+}
+
+void proto_serde<::orgproto::SubtreeLogHead::Refile, sem::SubtreeLogHead::Refile>::write(::orgproto::SubtreeLogHead::Refile* out, sem::SubtreeLogHead::Refile const& in) {
+  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_on(), in.on);
+  proto_serde<orgproto::LinkTarget, sem::LinkTarget>::write(out->mutable_from(), in.from);
+}
+
+void proto_serde<::orgproto::SubtreeLogHead::Refile, sem::SubtreeLogHead::Refile>::read(::orgproto::SubtreeLogHead::Refile const& out, proto_write_accessor<sem::SubtreeLogHead::Refile> in) {
+  proto_serde<orgproto::UserTime, UserTime>::read(out.on(), in.for_field(&sem::SubtreeLogHead::Refile::on));
+  proto_serde<orgproto::LinkTarget, sem::LinkTarget>::read(out.from(), in.for_field(&sem::SubtreeLogHead::Refile::from));
+}
+
+void proto_serde<::orgproto::SubtreeLogHead::Clock, sem::SubtreeLogHead::Clock>::write(::orgproto::SubtreeLogHead::Clock* out, sem::SubtreeLogHead::Clock const& in) {
+  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_from(), in.from);
+  if (in.to) {
+    proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_to(), *in.to);
+  }
+}
+
+void proto_serde<::orgproto::SubtreeLogHead::Clock, sem::SubtreeLogHead::Clock>::read(::orgproto::SubtreeLogHead::Clock const& out, proto_write_accessor<sem::SubtreeLogHead::Clock> in) {
+  proto_serde<orgproto::UserTime, UserTime>::read(out.from(), in.for_field(&sem::SubtreeLogHead::Clock::from));
+  if (out.has_to()) {
+    proto_serde<Opt<orgproto::UserTime>, Opt<UserTime>>::read(out.to(), in.for_field(&sem::SubtreeLogHead::Clock::to));
+  }
+}
+
+void proto_serde<::orgproto::SubtreeLogHead::State, sem::SubtreeLogHead::State>::write(::orgproto::SubtreeLogHead::State* out, sem::SubtreeLogHead::State const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_from(), in.from);
+  proto_serde<std::string, Str>::write(out->mutable_to(), in.to);
+  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_on(), in.on);
+}
+
+void proto_serde<::orgproto::SubtreeLogHead::State, sem::SubtreeLogHead::State>::read(::orgproto::SubtreeLogHead::State const& out, proto_write_accessor<sem::SubtreeLogHead::State> in) {
+  proto_serde<std::string, Str>::read(out.from(), in.for_field(&sem::SubtreeLogHead::State::from));
+  proto_serde<std::string, Str>::read(out.to(), in.for_field(&sem::SubtreeLogHead::State::to));
+  proto_serde<orgproto::UserTime, UserTime>::read(out.on(), in.for_field(&sem::SubtreeLogHead::State::on));
+}
+
+void proto_serde<::orgproto::SubtreeLogHead::Deadline, sem::SubtreeLogHead::Deadline>::write(::orgproto::SubtreeLogHead::Deadline* out, sem::SubtreeLogHead::Deadline const& in) {
+  if (in.from) {
+    proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_from(), *in.from);
+  }
+  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_to(), in.to);
+  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_on(), in.on);
+}
+
+void proto_serde<::orgproto::SubtreeLogHead::Deadline, sem::SubtreeLogHead::Deadline>::read(::orgproto::SubtreeLogHead::Deadline const& out, proto_write_accessor<sem::SubtreeLogHead::Deadline> in) {
+  if (out.has_from()) {
+    proto_serde<Opt<orgproto::UserTime>, Opt<UserTime>>::read(out.from(), in.for_field(&sem::SubtreeLogHead::Deadline::from));
+  }
+  proto_serde<orgproto::UserTime, UserTime>::read(out.to(), in.for_field(&sem::SubtreeLogHead::Deadline::to));
+  proto_serde<orgproto::UserTime, UserTime>::read(out.on(), in.for_field(&sem::SubtreeLogHead::Deadline::on));
+}
+
+void proto_serde<::orgproto::SubtreeLogHead::Schedule, sem::SubtreeLogHead::Schedule>::write(::orgproto::SubtreeLogHead::Schedule* out, sem::SubtreeLogHead::Schedule const& in) {
+  if (in.from) {
+    proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_from(), *in.from);
+  }
+  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_to(), in.to);
+  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_on(), in.on);
+}
+
+void proto_serde<::orgproto::SubtreeLogHead::Schedule, sem::SubtreeLogHead::Schedule>::read(::orgproto::SubtreeLogHead::Schedule const& out, proto_write_accessor<sem::SubtreeLogHead::Schedule> in) {
+  if (out.has_from()) {
+    proto_serde<Opt<orgproto::UserTime>, Opt<UserTime>>::read(out.from(), in.for_field(&sem::SubtreeLogHead::Schedule::from));
+  }
+  proto_serde<orgproto::UserTime, UserTime>::read(out.to(), in.for_field(&sem::SubtreeLogHead::Schedule::to));
+  proto_serde<orgproto::UserTime, UserTime>::read(out.on(), in.for_field(&sem::SubtreeLogHead::Schedule::on));
+}
+
+void proto_serde<::orgproto::SubtreeLogHead::Tag, sem::SubtreeLogHead::Tag>::write(::orgproto::SubtreeLogHead::Tag* out, sem::SubtreeLogHead::Tag const& in) {
+  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_on(), in.on);
+  proto_serde<orgproto::HashTagText, sem::HashTagText>::write(out->mutable_tag(), in.tag);
+  out->set_added(in.added);
+}
+
+void proto_serde<::orgproto::SubtreeLogHead::Tag, sem::SubtreeLogHead::Tag>::read(::orgproto::SubtreeLogHead::Tag const& out, proto_write_accessor<sem::SubtreeLogHead::Tag> in) {
+  proto_serde<orgproto::UserTime, UserTime>::read(out.on(), in.for_field(&sem::SubtreeLogHead::Tag::on));
+  proto_serde<orgproto::HashTagText, sem::HashTagText>::read(out.tag(), in.for_field(&sem::SubtreeLogHead::Tag::tag));
+  in.for_field(&sem::SubtreeLogHead::Tag::added).get() = out.added();
+}
+
+void proto_serde<::orgproto::SubtreeLogHead::Unknown, sem::SubtreeLogHead::Unknown>::write(::orgproto::SubtreeLogHead::Unknown* out, sem::SubtreeLogHead::Unknown const& in) {
+
+}
+
+void proto_serde<::orgproto::SubtreeLogHead::Unknown, sem::SubtreeLogHead::Unknown>::read(::orgproto::SubtreeLogHead::Unknown const& out, proto_write_accessor<sem::SubtreeLogHead::Unknown> in) {
+
+}
+
+void proto_serde<::orgproto::SubtreeLogHead, sem::SubtreeLogHead>::write(::orgproto::SubtreeLogHead* out, sem::SubtreeLogHead const& in) {
+  switch (in.log.index()) {
+    case 0:
+      proto_serde<orgproto::SubtreeLogHead::Priority, sem::SubtreeLogHead::Priority>::write(out->mutable_log()->mutable_priority(), std::get<0>(in.log));
+      break;
+    case 1:
+      proto_serde<orgproto::SubtreeLogHead::Note, sem::SubtreeLogHead::Note>::write(out->mutable_log()->mutable_note(), std::get<1>(in.log));
+      break;
+    case 2:
+      proto_serde<orgproto::SubtreeLogHead::Refile, sem::SubtreeLogHead::Refile>::write(out->mutable_log()->mutable_refile(), std::get<2>(in.log));
+      break;
+    case 3:
+      proto_serde<orgproto::SubtreeLogHead::Clock, sem::SubtreeLogHead::Clock>::write(out->mutable_log()->mutable_clock(), std::get<3>(in.log));
+      break;
+    case 4:
+      proto_serde<orgproto::SubtreeLogHead::State, sem::SubtreeLogHead::State>::write(out->mutable_log()->mutable_state(), std::get<4>(in.log));
+      break;
+    case 5:
+      proto_serde<orgproto::SubtreeLogHead::Deadline, sem::SubtreeLogHead::Deadline>::write(out->mutable_log()->mutable_deadline(), std::get<5>(in.log));
+      break;
+    case 6:
+      proto_serde<orgproto::SubtreeLogHead::Schedule, sem::SubtreeLogHead::Schedule>::write(out->mutable_log()->mutable_schedule(), std::get<6>(in.log));
+      break;
+    case 7:
+      proto_serde<orgproto::SubtreeLogHead::Tag, sem::SubtreeLogHead::Tag>::write(out->mutable_log()->mutable_tag(), std::get<7>(in.log));
+      break;
+    case 8:
+      proto_serde<orgproto::SubtreeLogHead::Unknown, sem::SubtreeLogHead::Unknown>::write(out->mutable_log()->mutable_unknown(), std::get<8>(in.log));
+      break;
+  }
+}
+
+void proto_serde<::orgproto::SubtreeLogHead, sem::SubtreeLogHead>::read(::orgproto::SubtreeLogHead const& out, proto_write_accessor<sem::SubtreeLogHead> in) {
+  switch (out.log().kind_case()) {
+    case ::orgproto::SubtreeLogHead::LogEntry::kPriority:
+      proto_serde<orgproto::SubtreeLogHead::Priority, sem::SubtreeLogHead::Priority>::read(out.log().priority(), in.for_field_variant<0>(&sem::SubtreeLogHead::log));
+      break;
+    case ::orgproto::SubtreeLogHead::LogEntry::kNote:
+      proto_serde<orgproto::SubtreeLogHead::Note, sem::SubtreeLogHead::Note>::read(out.log().note(), in.for_field_variant<1>(&sem::SubtreeLogHead::log));
+      break;
+    case ::orgproto::SubtreeLogHead::LogEntry::kRefile:
+      proto_serde<orgproto::SubtreeLogHead::Refile, sem::SubtreeLogHead::Refile>::read(out.log().refile(), in.for_field_variant<2>(&sem::SubtreeLogHead::log));
+      break;
+    case ::orgproto::SubtreeLogHead::LogEntry::kClock:
+      proto_serde<orgproto::SubtreeLogHead::Clock, sem::SubtreeLogHead::Clock>::read(out.log().clock(), in.for_field_variant<3>(&sem::SubtreeLogHead::log));
+      break;
+    case ::orgproto::SubtreeLogHead::LogEntry::kState:
+      proto_serde<orgproto::SubtreeLogHead::State, sem::SubtreeLogHead::State>::read(out.log().state(), in.for_field_variant<4>(&sem::SubtreeLogHead::log));
+      break;
+    case ::orgproto::SubtreeLogHead::LogEntry::kDeadline:
+      proto_serde<orgproto::SubtreeLogHead::Deadline, sem::SubtreeLogHead::Deadline>::read(out.log().deadline(), in.for_field_variant<5>(&sem::SubtreeLogHead::log));
+      break;
+    case ::orgproto::SubtreeLogHead::LogEntry::kSchedule:
+      proto_serde<orgproto::SubtreeLogHead::Schedule, sem::SubtreeLogHead::Schedule>::read(out.log().schedule(), in.for_field_variant<6>(&sem::SubtreeLogHead::log));
+      break;
+    case ::orgproto::SubtreeLogHead::LogEntry::kTag:
+      proto_serde<orgproto::SubtreeLogHead::Tag, sem::SubtreeLogHead::Tag>::read(out.log().tag(), in.for_field_variant<7>(&sem::SubtreeLogHead::log));
+      break;
+    case ::orgproto::SubtreeLogHead::LogEntry::kUnknown:
+      proto_serde<orgproto::SubtreeLogHead::Unknown, sem::SubtreeLogHead::Unknown>::read(out.log().unknown(), in.for_field_variant<8>(&sem::SubtreeLogHead::log));
+      break;
+  }
+}
+
+void proto_serde<::orgproto::SubtreeCompletion, sem::SubtreeCompletion>::write(::orgproto::SubtreeCompletion* out, sem::SubtreeCompletion const& in) {
+  out->set_done(in.done);
+  out->set_full(in.full);
+  out->set_ispercent(in.isPercent);
+}
+
+void proto_serde<::orgproto::SubtreeCompletion, sem::SubtreeCompletion>::read(::orgproto::SubtreeCompletion const& out, proto_write_accessor<sem::SubtreeCompletion> in) {
+  in.for_field(&sem::SubtreeCompletion::done).get() = out.done();
+  in.for_field(&sem::SubtreeCompletion::full).get() = out.full();
+  in.for_field(&sem::SubtreeCompletion::isPercent).get() = out.ispercent();
+}
+
+void proto_serde<::orgproto::AttrList, sem::AttrList>::write(::orgproto::AttrList* out, sem::AttrList const& in) {
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::AttrValue>, Vec<sem::AttrValue>>::write(out->mutable_items(), in.items);
+}
+
+void proto_serde<::orgproto::AttrList, sem::AttrList>::read(::orgproto::AttrList const& out, proto_write_accessor<sem::AttrList> in) {
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::AttrValue>, Vec<sem::AttrValue>>::read(out.items(), in.for_field(&sem::AttrList::items));
+}
+
+void proto_serde<::orgproto::AttrGroup, sem::AttrGroup>::write(::orgproto::AttrGroup* out, sem::AttrGroup const& in) {
+  proto_serde<orgproto::AttrList, sem::AttrList>::write(out->mutable_positional(), in.positional);
+  proto_serde<::google::protobuf::Map<std::string, orgproto::AttrList>, UnorderedMap<Str, sem::AttrList>>::write(out->mutable_named(), in.named);
+}
+
+void proto_serde<::orgproto::AttrGroup, sem::AttrGroup>::read(::orgproto::AttrGroup const& out, proto_write_accessor<sem::AttrGroup> in) {
+  proto_serde<orgproto::AttrList, sem::AttrList>::read(out.positional(), in.for_field(&sem::AttrGroup::positional));
+  proto_serde<::google::protobuf::Map<std::string, orgproto::AttrList>, UnorderedMap<Str, sem::AttrList>>::read(out.named(), in.for_field(&sem::AttrGroup::named));
+}
+
+void proto_serde<::orgproto::ColumnView::Summary::CheckboxAggregate, sem::ColumnView::Summary::CheckboxAggregate>::write(::orgproto::ColumnView::Summary::CheckboxAggregate* out, sem::ColumnView::Summary::CheckboxAggregate const& in) {
+  out->set_kind(static_cast<orgproto::ColumnView_Summary_CheckboxAggregate_Kind>(in.kind));
+}
+
+void proto_serde<::orgproto::ColumnView::Summary::CheckboxAggregate, sem::ColumnView::Summary::CheckboxAggregate>::read(::orgproto::ColumnView::Summary::CheckboxAggregate const& out, proto_write_accessor<sem::ColumnView::Summary::CheckboxAggregate> in) {
+  in.for_field(&sem::ColumnView::Summary::CheckboxAggregate::kind).get() = static_cast<sem::ColumnView::Summary::CheckboxAggregate::Kind>(out.kind());
+}
+
+void proto_serde<::orgproto::ColumnView::Summary::MathAggregate, sem::ColumnView::Summary::MathAggregate>::write(::orgproto::ColumnView::Summary::MathAggregate* out, sem::ColumnView::Summary::MathAggregate const& in) {
+  out->set_kind(static_cast<orgproto::ColumnView_Summary_MathAggregate_Kind>(in.kind));
+  if (in.formatDigits) {
+    out->set_formatdigits(*in.formatDigits);
+  }
+  if (in.formatPrecision) {
+    out->set_formatprecision(*in.formatPrecision);
+  }
+}
+
+void proto_serde<::orgproto::ColumnView::Summary::MathAggregate, sem::ColumnView::Summary::MathAggregate>::read(::orgproto::ColumnView::Summary::MathAggregate const& out, proto_write_accessor<sem::ColumnView::Summary::MathAggregate> in) {
+  in.for_field(&sem::ColumnView::Summary::MathAggregate::kind).get() = static_cast<sem::ColumnView::Summary::MathAggregate::Kind>(out.kind());
+  if (out.has_formatdigits()) {
+    proto_serde<Opt<::int32_t>, Opt<int>>::read(out.formatdigits(), in.for_field(&sem::ColumnView::Summary::MathAggregate::formatDigits));
+  }
+  if (out.has_formatprecision()) {
+    proto_serde<Opt<::int32_t>, Opt<int>>::read(out.formatprecision(), in.for_field(&sem::ColumnView::Summary::MathAggregate::formatPrecision));
+  }
+}
+
+void proto_serde<::orgproto::ColumnView::Summary, sem::ColumnView::Summary>::write(::orgproto::ColumnView::Summary* out, sem::ColumnView::Summary const& in) {
+  switch (in.data.index()) {
+    case 0:
+      proto_serde<orgproto::ColumnView::Summary::CheckboxAggregate, sem::ColumnView::Summary::CheckboxAggregate>::write(out->mutable_data()->mutable_checkboxaggregate(), std::get<0>(in.data));
+      break;
+    case 1:
+      proto_serde<orgproto::ColumnView::Summary::MathAggregate, sem::ColumnView::Summary::MathAggregate>::write(out->mutable_data()->mutable_mathaggregate(), std::get<1>(in.data));
+      break;
+  }
+}
+
+void proto_serde<::orgproto::ColumnView::Summary, sem::ColumnView::Summary>::read(::orgproto::ColumnView::Summary const& out, proto_write_accessor<sem::ColumnView::Summary> in) {
+  switch (out.data().kind_case()) {
+    case ::orgproto::ColumnView::Summary::Data::kCheckboxaggregate:
+      proto_serde<orgproto::ColumnView::Summary::CheckboxAggregate, sem::ColumnView::Summary::CheckboxAggregate>::read(out.data().checkboxaggregate(), in.for_field_variant<0>(&sem::ColumnView::Summary::data));
+      break;
+    case ::orgproto::ColumnView::Summary::Data::kMathaggregate:
+      proto_serde<orgproto::ColumnView::Summary::MathAggregate, sem::ColumnView::Summary::MathAggregate>::read(out.data().mathaggregate(), in.for_field_variant<1>(&sem::ColumnView::Summary::data));
+      break;
+  }
+}
+
+void proto_serde<::orgproto::ColumnView::Column, sem::ColumnView::Column>::write(::orgproto::ColumnView::Column* out, sem::ColumnView::Column const& in) {
+  if (in.summary) {
+    proto_serde<orgproto::ColumnView::Summary, sem::ColumnView::Summary>::write(out->mutable_summary(), *in.summary);
+  }
+  if (in.width) {
+    out->set_width(*in.width);
+  }
+  if (in.property) {
+    proto_serde<std::string, Str>::write(out->mutable_property(), *in.property);
+  }
+  if (in.propertyTitle) {
+    proto_serde<std::string, Str>::write(out->mutable_propertytitle(), *in.propertyTitle);
+  }
+}
+
+void proto_serde<::orgproto::ColumnView::Column, sem::ColumnView::Column>::read(::orgproto::ColumnView::Column const& out, proto_write_accessor<sem::ColumnView::Column> in) {
+  if (out.has_summary()) {
+    proto_serde<Opt<orgproto::ColumnView::Summary>, Opt<sem::ColumnView::Summary>>::read(out.summary(), in.for_field(&sem::ColumnView::Column::summary));
+  }
+  if (out.has_width()) {
+    proto_serde<Opt<::int32_t>, Opt<int>>::read(out.width(), in.for_field(&sem::ColumnView::Column::width));
+  }
+  if (out.has_property()) {
+    proto_serde<Opt<std::string>, Opt<Str>>::read(out.property(), in.for_field(&sem::ColumnView::Column::property));
+  }
+  if (out.has_propertytitle()) {
+    proto_serde<Opt<std::string>, Opt<Str>>::read(out.propertytitle(), in.for_field(&sem::ColumnView::Column::propertyTitle));
+  }
+}
+
+void proto_serde<::orgproto::ColumnView, sem::ColumnView>::write(::orgproto::ColumnView* out, sem::ColumnView const& in) {
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::ColumnView::Column>, Vec<sem::ColumnView::Column>>::write(out->mutable_columns(), in.columns);
+}
+
+void proto_serde<::orgproto::ColumnView, sem::ColumnView>::read(::orgproto::ColumnView const& out, proto_write_accessor<sem::ColumnView> in) {
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::ColumnView::Column>, Vec<sem::ColumnView::Column>>::read(out.columns(), in.for_field(&sem::ColumnView::columns));
 }
 
 void proto_serde<::orgproto::BlockCodeLine::Part::Raw, sem::BlockCodeLine::Part::Raw>::write(::orgproto::BlockCodeLine::Part::Raw* out, sem::BlockCodeLine::Part::Raw const& in) {
@@ -1837,219 +2019,19 @@ void proto_serde<::orgproto::BlockCode, sem::BlockCode>::read(::orgproto::BlockC
   in.for_field(&sem::BlockCode::tangle).get() = out.tangle();
 }
 
-void proto_serde<::orgproto::SubtreeLog::DescribedLog, sem::SubtreeLog::DescribedLog>::write(::orgproto::SubtreeLog::DescribedLog* out, sem::SubtreeLog::DescribedLog const& in) {
+void proto_serde<::orgproto::SubtreeLog, sem::SubtreeLog>::write(::orgproto::SubtreeLog* out, sem::SubtreeLog const& in) {
+  proto_serde<::orgproto::SubtreeLog, sem::Org>::write(out, in);
+  proto_serde<orgproto::SubtreeLogHead, sem::SubtreeLogHead>::write(out->mutable_head(), in.head);
   if (in.desc) {
     proto_serde<orgproto::StmtList, sem::SemId<sem::StmtList>>::write(out->mutable_desc(), *in.desc);
   }
 }
 
-void proto_serde<::orgproto::SubtreeLog::DescribedLog, sem::SubtreeLog::DescribedLog>::read(::orgproto::SubtreeLog::DescribedLog const& out, proto_write_accessor<sem::SubtreeLog::DescribedLog> in) {
-  if (out.has_desc()) {
-    proto_serde<Opt<orgproto::StmtList>, Opt<sem::SemId<sem::StmtList>>>::read(out.desc(), in.for_field(&sem::SubtreeLog::DescribedLog::desc));
-  }
-}
-
-void proto_serde<::orgproto::SubtreeLog::Priority, sem::SubtreeLog::Priority>::write(::orgproto::SubtreeLog::Priority* out, sem::SubtreeLog::Priority const& in) {
-  proto_serde<::orgproto::SubtreeLog::Priority, sem::SubtreeLog::DescribedLog>::write(out, in);
-  if (in.oldPriority) {
-    out->set_oldpriority(*in.oldPriority);
-  }
-  if (in.newPriority) {
-    out->set_newpriority(*in.newPriority);
-  }
-  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_on(), in.on);
-  out->set_action(static_cast<orgproto::SubtreeLog_Priority_Action>(in.action));
-}
-
-void proto_serde<::orgproto::SubtreeLog::Priority, sem::SubtreeLog::Priority>::read(::orgproto::SubtreeLog::Priority const& out, proto_write_accessor<sem::SubtreeLog::Priority> in) {
-  proto_serde<::orgproto::SubtreeLog::Priority, sem::SubtreeLog::DescribedLog>::read(out, in.as<sem::SubtreeLog::DescribedLog>());
-  if (out.has_oldpriority()) {
-    proto_serde<Opt<std::string>, Opt<std::string>>::read(out.oldpriority(), in.for_field(&sem::SubtreeLog::Priority::oldPriority));
-  }
-  if (out.has_newpriority()) {
-    proto_serde<Opt<std::string>, Opt<std::string>>::read(out.newpriority(), in.for_field(&sem::SubtreeLog::Priority::newPriority));
-  }
-  proto_serde<orgproto::UserTime, UserTime>::read(out.on(), in.for_field(&sem::SubtreeLog::Priority::on));
-  in.for_field(&sem::SubtreeLog::Priority::action).get() = static_cast<sem::SubtreeLog::Priority::Action>(out.action());
-}
-
-void proto_serde<::orgproto::SubtreeLog::Note, sem::SubtreeLog::Note>::write(::orgproto::SubtreeLog::Note* out, sem::SubtreeLog::Note const& in) {
-  proto_serde<::orgproto::SubtreeLog::Note, sem::SubtreeLog::DescribedLog>::write(out, in);
-  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_on(), in.on);
-}
-
-void proto_serde<::orgproto::SubtreeLog::Note, sem::SubtreeLog::Note>::read(::orgproto::SubtreeLog::Note const& out, proto_write_accessor<sem::SubtreeLog::Note> in) {
-  proto_serde<::orgproto::SubtreeLog::Note, sem::SubtreeLog::DescribedLog>::read(out, in.as<sem::SubtreeLog::DescribedLog>());
-  proto_serde<orgproto::UserTime, UserTime>::read(out.on(), in.for_field(&sem::SubtreeLog::Note::on));
-}
-
-void proto_serde<::orgproto::SubtreeLog::Refile, sem::SubtreeLog::Refile>::write(::orgproto::SubtreeLog::Refile* out, sem::SubtreeLog::Refile const& in) {
-  proto_serde<::orgproto::SubtreeLog::Refile, sem::SubtreeLog::DescribedLog>::write(out, in);
-  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_on(), in.on);
-  if (!in.from.isNil()) {
-    proto_serde<orgproto::Link, sem::SemId<sem::Link>>::write(out->mutable_from(), in.from);
-  }
-}
-
-void proto_serde<::orgproto::SubtreeLog::Refile, sem::SubtreeLog::Refile>::read(::orgproto::SubtreeLog::Refile const& out, proto_write_accessor<sem::SubtreeLog::Refile> in) {
-  proto_serde<::orgproto::SubtreeLog::Refile, sem::SubtreeLog::DescribedLog>::read(out, in.as<sem::SubtreeLog::DescribedLog>());
-  proto_serde<orgproto::UserTime, UserTime>::read(out.on(), in.for_field(&sem::SubtreeLog::Refile::on));
-  proto_serde<orgproto::Link, sem::SemId<sem::Link>>::read(out.from(), in.for_field(&sem::SubtreeLog::Refile::from));
-}
-
-void proto_serde<::orgproto::SubtreeLog::Clock, sem::SubtreeLog::Clock>::write(::orgproto::SubtreeLog::Clock* out, sem::SubtreeLog::Clock const& in) {
-  proto_serde<::orgproto::SubtreeLog::Clock, sem::SubtreeLog::DescribedLog>::write(out, in);
-  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_from(), in.from);
-  if (in.to) {
-    proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_to(), *in.to);
-  }
-}
-
-void proto_serde<::orgproto::SubtreeLog::Clock, sem::SubtreeLog::Clock>::read(::orgproto::SubtreeLog::Clock const& out, proto_write_accessor<sem::SubtreeLog::Clock> in) {
-  proto_serde<::orgproto::SubtreeLog::Clock, sem::SubtreeLog::DescribedLog>::read(out, in.as<sem::SubtreeLog::DescribedLog>());
-  proto_serde<orgproto::UserTime, UserTime>::read(out.from(), in.for_field(&sem::SubtreeLog::Clock::from));
-  if (out.has_to()) {
-    proto_serde<Opt<orgproto::UserTime>, Opt<UserTime>>::read(out.to(), in.for_field(&sem::SubtreeLog::Clock::to));
-  }
-}
-
-void proto_serde<::orgproto::SubtreeLog::State, sem::SubtreeLog::State>::write(::orgproto::SubtreeLog::State* out, sem::SubtreeLog::State const& in) {
-  proto_serde<::orgproto::SubtreeLog::State, sem::SubtreeLog::DescribedLog>::write(out, in);
-  proto_serde<std::string, Str>::write(out->mutable_from(), in.from);
-  proto_serde<std::string, Str>::write(out->mutable_to(), in.to);
-  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_on(), in.on);
-}
-
-void proto_serde<::orgproto::SubtreeLog::State, sem::SubtreeLog::State>::read(::orgproto::SubtreeLog::State const& out, proto_write_accessor<sem::SubtreeLog::State> in) {
-  proto_serde<::orgproto::SubtreeLog::State, sem::SubtreeLog::DescribedLog>::read(out, in.as<sem::SubtreeLog::DescribedLog>());
-  proto_serde<std::string, Str>::read(out.from(), in.for_field(&sem::SubtreeLog::State::from));
-  proto_serde<std::string, Str>::read(out.to(), in.for_field(&sem::SubtreeLog::State::to));
-  proto_serde<orgproto::UserTime, UserTime>::read(out.on(), in.for_field(&sem::SubtreeLog::State::on));
-}
-
-void proto_serde<::orgproto::SubtreeLog::Deadline, sem::SubtreeLog::Deadline>::write(::orgproto::SubtreeLog::Deadline* out, sem::SubtreeLog::Deadline const& in) {
-  proto_serde<::orgproto::SubtreeLog::Deadline, sem::SubtreeLog::DescribedLog>::write(out, in);
-  if (in.from) {
-    proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_from(), *in.from);
-  }
-  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_to(), in.to);
-  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_on(), in.on);
-}
-
-void proto_serde<::orgproto::SubtreeLog::Deadline, sem::SubtreeLog::Deadline>::read(::orgproto::SubtreeLog::Deadline const& out, proto_write_accessor<sem::SubtreeLog::Deadline> in) {
-  proto_serde<::orgproto::SubtreeLog::Deadline, sem::SubtreeLog::DescribedLog>::read(out, in.as<sem::SubtreeLog::DescribedLog>());
-  if (out.has_from()) {
-    proto_serde<Opt<orgproto::UserTime>, Opt<UserTime>>::read(out.from(), in.for_field(&sem::SubtreeLog::Deadline::from));
-  }
-  proto_serde<orgproto::UserTime, UserTime>::read(out.to(), in.for_field(&sem::SubtreeLog::Deadline::to));
-  proto_serde<orgproto::UserTime, UserTime>::read(out.on(), in.for_field(&sem::SubtreeLog::Deadline::on));
-}
-
-void proto_serde<::orgproto::SubtreeLog::Schedule, sem::SubtreeLog::Schedule>::write(::orgproto::SubtreeLog::Schedule* out, sem::SubtreeLog::Schedule const& in) {
-  proto_serde<::orgproto::SubtreeLog::Schedule, sem::SubtreeLog::DescribedLog>::write(out, in);
-  if (in.from) {
-    proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_from(), *in.from);
-  }
-  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_to(), in.to);
-  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_on(), in.on);
-}
-
-void proto_serde<::orgproto::SubtreeLog::Schedule, sem::SubtreeLog::Schedule>::read(::orgproto::SubtreeLog::Schedule const& out, proto_write_accessor<sem::SubtreeLog::Schedule> in) {
-  proto_serde<::orgproto::SubtreeLog::Schedule, sem::SubtreeLog::DescribedLog>::read(out, in.as<sem::SubtreeLog::DescribedLog>());
-  if (out.has_from()) {
-    proto_serde<Opt<orgproto::UserTime>, Opt<UserTime>>::read(out.from(), in.for_field(&sem::SubtreeLog::Schedule::from));
-  }
-  proto_serde<orgproto::UserTime, UserTime>::read(out.to(), in.for_field(&sem::SubtreeLog::Schedule::to));
-  proto_serde<orgproto::UserTime, UserTime>::read(out.on(), in.for_field(&sem::SubtreeLog::Schedule::on));
-}
-
-void proto_serde<::orgproto::SubtreeLog::Tag, sem::SubtreeLog::Tag>::write(::orgproto::SubtreeLog::Tag* out, sem::SubtreeLog::Tag const& in) {
-  proto_serde<::orgproto::SubtreeLog::Tag, sem::SubtreeLog::DescribedLog>::write(out, in);
-  proto_serde<orgproto::UserTime, UserTime>::write(out->mutable_on(), in.on);
-  if (!in.tag.isNil()) {
-    proto_serde<orgproto::HashTag, sem::SemId<sem::HashTag>>::write(out->mutable_tag(), in.tag);
-  }
-  out->set_added(in.added);
-}
-
-void proto_serde<::orgproto::SubtreeLog::Tag, sem::SubtreeLog::Tag>::read(::orgproto::SubtreeLog::Tag const& out, proto_write_accessor<sem::SubtreeLog::Tag> in) {
-  proto_serde<::orgproto::SubtreeLog::Tag, sem::SubtreeLog::DescribedLog>::read(out, in.as<sem::SubtreeLog::DescribedLog>());
-  proto_serde<orgproto::UserTime, UserTime>::read(out.on(), in.for_field(&sem::SubtreeLog::Tag::on));
-  proto_serde<orgproto::HashTag, sem::SemId<sem::HashTag>>::read(out.tag(), in.for_field(&sem::SubtreeLog::Tag::tag));
-  in.for_field(&sem::SubtreeLog::Tag::added).get() = out.added();
-}
-
-void proto_serde<::orgproto::SubtreeLog::Unknown, sem::SubtreeLog::Unknown>::write(::orgproto::SubtreeLog::Unknown* out, sem::SubtreeLog::Unknown const& in) {
-  proto_serde<::orgproto::SubtreeLog::Unknown, sem::SubtreeLog::DescribedLog>::write(out, in);
-}
-
-void proto_serde<::orgproto::SubtreeLog::Unknown, sem::SubtreeLog::Unknown>::read(::orgproto::SubtreeLog::Unknown const& out, proto_write_accessor<sem::SubtreeLog::Unknown> in) {
-  proto_serde<::orgproto::SubtreeLog::Unknown, sem::SubtreeLog::DescribedLog>::read(out, in.as<sem::SubtreeLog::DescribedLog>());
-}
-
-void proto_serde<::orgproto::SubtreeLog, sem::SubtreeLog>::write(::orgproto::SubtreeLog* out, sem::SubtreeLog const& in) {
-  proto_serde<::orgproto::SubtreeLog, sem::Org>::write(out, in);
-  switch (in.log.index()) {
-    case 0:
-      proto_serde<orgproto::SubtreeLog::Priority, sem::SubtreeLog::Priority>::write(out->mutable_log()->mutable_priority(), std::get<0>(in.log));
-      break;
-    case 1:
-      proto_serde<orgproto::SubtreeLog::Note, sem::SubtreeLog::Note>::write(out->mutable_log()->mutable_note(), std::get<1>(in.log));
-      break;
-    case 2:
-      proto_serde<orgproto::SubtreeLog::Refile, sem::SubtreeLog::Refile>::write(out->mutable_log()->mutable_refile(), std::get<2>(in.log));
-      break;
-    case 3:
-      proto_serde<orgproto::SubtreeLog::Clock, sem::SubtreeLog::Clock>::write(out->mutable_log()->mutable_clock(), std::get<3>(in.log));
-      break;
-    case 4:
-      proto_serde<orgproto::SubtreeLog::State, sem::SubtreeLog::State>::write(out->mutable_log()->mutable_state(), std::get<4>(in.log));
-      break;
-    case 5:
-      proto_serde<orgproto::SubtreeLog::Deadline, sem::SubtreeLog::Deadline>::write(out->mutable_log()->mutable_deadline(), std::get<5>(in.log));
-      break;
-    case 6:
-      proto_serde<orgproto::SubtreeLog::Schedule, sem::SubtreeLog::Schedule>::write(out->mutable_log()->mutable_schedule(), std::get<6>(in.log));
-      break;
-    case 7:
-      proto_serde<orgproto::SubtreeLog::Tag, sem::SubtreeLog::Tag>::write(out->mutable_log()->mutable_tag(), std::get<7>(in.log));
-      break;
-    case 8:
-      proto_serde<orgproto::SubtreeLog::Unknown, sem::SubtreeLog::Unknown>::write(out->mutable_log()->mutable_unknown(), std::get<8>(in.log));
-      break;
-  }
-}
-
 void proto_serde<::orgproto::SubtreeLog, sem::SubtreeLog>::read(::orgproto::SubtreeLog const& out, proto_write_accessor<sem::SubtreeLog> in) {
   proto_serde<::orgproto::SubtreeLog, sem::Org>::read(out, in.as<sem::Org>());
-  switch (out.log().kind_case()) {
-    case ::orgproto::SubtreeLog::LogEntry::kPriority:
-      proto_serde<orgproto::SubtreeLog::Priority, sem::SubtreeLog::Priority>::read(out.log().priority(), in.for_field_variant<0>(&sem::SubtreeLog::log));
-      break;
-    case ::orgproto::SubtreeLog::LogEntry::kNote:
-      proto_serde<orgproto::SubtreeLog::Note, sem::SubtreeLog::Note>::read(out.log().note(), in.for_field_variant<1>(&sem::SubtreeLog::log));
-      break;
-    case ::orgproto::SubtreeLog::LogEntry::kRefile:
-      proto_serde<orgproto::SubtreeLog::Refile, sem::SubtreeLog::Refile>::read(out.log().refile(), in.for_field_variant<2>(&sem::SubtreeLog::log));
-      break;
-    case ::orgproto::SubtreeLog::LogEntry::kClock:
-      proto_serde<orgproto::SubtreeLog::Clock, sem::SubtreeLog::Clock>::read(out.log().clock(), in.for_field_variant<3>(&sem::SubtreeLog::log));
-      break;
-    case ::orgproto::SubtreeLog::LogEntry::kState:
-      proto_serde<orgproto::SubtreeLog::State, sem::SubtreeLog::State>::read(out.log().state(), in.for_field_variant<4>(&sem::SubtreeLog::log));
-      break;
-    case ::orgproto::SubtreeLog::LogEntry::kDeadline:
-      proto_serde<orgproto::SubtreeLog::Deadline, sem::SubtreeLog::Deadline>::read(out.log().deadline(), in.for_field_variant<5>(&sem::SubtreeLog::log));
-      break;
-    case ::orgproto::SubtreeLog::LogEntry::kSchedule:
-      proto_serde<orgproto::SubtreeLog::Schedule, sem::SubtreeLog::Schedule>::read(out.log().schedule(), in.for_field_variant<6>(&sem::SubtreeLog::log));
-      break;
-    case ::orgproto::SubtreeLog::LogEntry::kTag:
-      proto_serde<orgproto::SubtreeLog::Tag, sem::SubtreeLog::Tag>::read(out.log().tag(), in.for_field_variant<7>(&sem::SubtreeLog::log));
-      break;
-    case ::orgproto::SubtreeLog::LogEntry::kUnknown:
-      proto_serde<orgproto::SubtreeLog::Unknown, sem::SubtreeLog::Unknown>::read(out.log().unknown(), in.for_field_variant<8>(&sem::SubtreeLog::log));
-      break;
+  proto_serde<orgproto::SubtreeLogHead, sem::SubtreeLogHead>::read(out.head(), in.for_field(&sem::SubtreeLog::head));
+  if (out.has_desc()) {
+    proto_serde<Opt<orgproto::StmtList>, Opt<sem::SemId<sem::StmtList>>>::read(out.desc(), in.for_field(&sem::SubtreeLog::desc));
   }
 }
 

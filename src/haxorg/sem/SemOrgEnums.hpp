@@ -16,10 +16,6 @@
     __IMPL(Tblfm, Expr::Call, (Expr, Call)) \
     __IMPL(Tblfm, Expr::Elisp, (Expr, Elisp)) \
     __IMPL(Tblfm, Assign, (Assign)) \
-    __IMPL(ColumnView, Summary, (Summary)) \
-    __IMPL(ColumnView, Summary::CheckboxAggregate, (Summary, CheckboxAggregate)) \
-    __IMPL(ColumnView, Summary::MathAggregate, (Summary, MathAggregate)) \
-    __IMPL(ColumnView, Column, (Column)) \
     __IMPL(LinkTarget, Raw, (Raw)) \
     __IMPL(LinkTarget, Id, (Id)) \
     __IMPL(LinkTarget, CustomId, (CustomId)) \
@@ -30,6 +26,19 @@
     __IMPL(LinkTarget, Footnote, (Footnote)) \
     __IMPL(LinkTarget, File, (File)) \
     __IMPL(LinkTarget, Attachment, (Attachment)) \
+    __IMPL(SubtreeLogHead, Priority, (Priority)) \
+    __IMPL(SubtreeLogHead, Note, (Note)) \
+    __IMPL(SubtreeLogHead, Refile, (Refile)) \
+    __IMPL(SubtreeLogHead, Clock, (Clock)) \
+    __IMPL(SubtreeLogHead, State, (State)) \
+    __IMPL(SubtreeLogHead, Deadline, (Deadline)) \
+    __IMPL(SubtreeLogHead, Schedule, (Schedule)) \
+    __IMPL(SubtreeLogHead, Tag, (Tag)) \
+    __IMPL(SubtreeLogHead, Unknown, (Unknown)) \
+    __IMPL(ColumnView, Summary, (Summary)) \
+    __IMPL(ColumnView, Summary::CheckboxAggregate, (Summary, CheckboxAggregate)) \
+    __IMPL(ColumnView, Summary::MathAggregate, (Summary, MathAggregate)) \
+    __IMPL(ColumnView, Column, (Column)) \
     __IMPL(BlockCodeLine, Part, (Part)) \
     __IMPL(BlockCodeLine, Part::Raw, (Part, Raw)) \
     __IMPL(BlockCodeLine, Part::Callout, (Part, Callout)) \
@@ -71,10 +80,12 @@
     __IMPL(Tblfm, Expr::AxisRef::Position::Kind, (Expr, AxisRef, Position, Kind)) \
     __IMPL(Tblfm, Expr::Kind, (Expr, Kind)) \
     __IMPL(Tblfm, Assign::Flag, (Assign, Flag)) \
+    __IMPL(LinkTarget, Kind, (Kind)) \
+    __IMPL(SubtreeLogHead, Priority::Action, (Priority, Action)) \
+    __IMPL(SubtreeLogHead, Kind, (Kind)) \
     __IMPL(ColumnView, Summary::CheckboxAggregate::Kind, (Summary, CheckboxAggregate, Kind)) \
     __IMPL(ColumnView, Summary::MathAggregate::Kind, (Summary, MathAggregate, Kind)) \
     __IMPL(ColumnView, Summary::Kind, (Summary, Kind)) \
-    __IMPL(LinkTarget, Kind, (Kind)) \
     __IMPL(BlockCodeLine, Part::Kind, (Part, Kind)) \
     __IMPL(BlockCodeSwitch, Kind, (Kind)) \
     __IMPL(BlockCodeEvalResult, Kind, (Kind)) \
@@ -101,15 +112,7 @@
     __IMPL(Tblfm::Assign, (Tblfm, Assign)) \
     __IMPL(AttrValue, (AttrValue)) \
     __IMPL(HashTagText, (HashTagText)) \
-    __IMPL(SubtreeCompletion, (SubtreeCompletion)) \
-    __IMPL(AttrList, (AttrList)) \
-    __IMPL(AttrGroup, (AttrGroup)) \
     __IMPL(SubtreePath, (SubtreePath)) \
-    __IMPL(ColumnView, (ColumnView)) \
-    __IMPL(ColumnView::Summary, (ColumnView, Summary)) \
-    __IMPL(ColumnView::Summary::CheckboxAggregate, (ColumnView, Summary, CheckboxAggregate)) \
-    __IMPL(ColumnView::Summary::MathAggregate, (ColumnView, Summary, MathAggregate)) \
-    __IMPL(ColumnView::Column, (ColumnView, Column)) \
     __IMPL(LinkTarget, (LinkTarget)) \
     __IMPL(LinkTarget::Raw, (LinkTarget, Raw)) \
     __IMPL(LinkTarget::Id, (LinkTarget, Id)) \
@@ -121,6 +124,24 @@
     __IMPL(LinkTarget::Footnote, (LinkTarget, Footnote)) \
     __IMPL(LinkTarget::File, (LinkTarget, File)) \
     __IMPL(LinkTarget::Attachment, (LinkTarget, Attachment)) \
+    __IMPL(SubtreeLogHead, (SubtreeLogHead)) \
+    __IMPL(SubtreeLogHead::Priority, (SubtreeLogHead, Priority)) \
+    __IMPL(SubtreeLogHead::Note, (SubtreeLogHead, Note)) \
+    __IMPL(SubtreeLogHead::Refile, (SubtreeLogHead, Refile)) \
+    __IMPL(SubtreeLogHead::Clock, (SubtreeLogHead, Clock)) \
+    __IMPL(SubtreeLogHead::State, (SubtreeLogHead, State)) \
+    __IMPL(SubtreeLogHead::Deadline, (SubtreeLogHead, Deadline)) \
+    __IMPL(SubtreeLogHead::Schedule, (SubtreeLogHead, Schedule)) \
+    __IMPL(SubtreeLogHead::Tag, (SubtreeLogHead, Tag)) \
+    __IMPL(SubtreeLogHead::Unknown, (SubtreeLogHead, Unknown)) \
+    __IMPL(SubtreeCompletion, (SubtreeCompletion)) \
+    __IMPL(AttrList, (AttrList)) \
+    __IMPL(AttrGroup, (AttrGroup)) \
+    __IMPL(ColumnView, (ColumnView)) \
+    __IMPL(ColumnView::Summary, (ColumnView, Summary)) \
+    __IMPL(ColumnView::Summary::CheckboxAggregate, (ColumnView, Summary, CheckboxAggregate)) \
+    __IMPL(ColumnView::Summary::MathAggregate, (ColumnView, Summary, MathAggregate)) \
+    __IMPL(ColumnView::Column, (ColumnView, Column)) \
     __IMPL(BlockCodeLine, (BlockCodeLine)) \
     __IMPL(BlockCodeLine::Part, (BlockCodeLine, Part)) \
     __IMPL(BlockCodeLine::Part::Raw, (BlockCodeLine, Part, Raw)) \
@@ -169,16 +190,6 @@
     __IMPL(Time, Static, (Static)) \
     __IMPL(Time, Dynamic, (Dynamic)) \
     __IMPL(Symbol, Param, (Param)) \
-    __IMPL(SubtreeLog, DescribedLog, (DescribedLog)) \
-    __IMPL(SubtreeLog, Priority, (Priority)) \
-    __IMPL(SubtreeLog, Note, (Note)) \
-    __IMPL(SubtreeLog, Refile, (Refile)) \
-    __IMPL(SubtreeLog, Clock, (Clock)) \
-    __IMPL(SubtreeLog, State, (State)) \
-    __IMPL(SubtreeLog, Deadline, (Deadline)) \
-    __IMPL(SubtreeLog, Schedule, (Schedule)) \
-    __IMPL(SubtreeLog, Tag, (Tag)) \
-    __IMPL(SubtreeLog, Unknown, (Unknown)) \
     __IMPL(Include, Example, (Example)) \
     __IMPL(Include, Export, (Export)) \
     __IMPL(Include, Src, (Src)) \
@@ -188,8 +199,6 @@
     __IMPL(Time, Repeat::Period, (Repeat, Period)) \
     __IMPL(Time, TimeKind, (TimeKind)) \
     __IMPL(BlockExport, Format, (Format)) \
-    __IMPL(SubtreeLog, Priority::Action, (Priority, Action)) \
-    __IMPL(SubtreeLog, Kind, (Kind)) \
     __IMPL(ListItem, Checkbox, (Checkbox)) \
     __IMPL(Include, Kind, (Kind))
 #define EACH_SEM_ORG_RECORD(__IMPL) \
@@ -255,16 +264,6 @@
     __IMPL(BlockAdmonition, (BlockAdmonition)) \
     __IMPL(BlockCode, (BlockCode)) \
     __IMPL(SubtreeLog, (SubtreeLog)) \
-    __IMPL(SubtreeLog::DescribedLog, (SubtreeLog, DescribedLog)) \
-    __IMPL(SubtreeLog::Priority, (SubtreeLog, Priority)) \
-    __IMPL(SubtreeLog::Note, (SubtreeLog, Note)) \
-    __IMPL(SubtreeLog::Refile, (SubtreeLog, Refile)) \
-    __IMPL(SubtreeLog::Clock, (SubtreeLog, Clock)) \
-    __IMPL(SubtreeLog::State, (SubtreeLog, State)) \
-    __IMPL(SubtreeLog::Deadline, (SubtreeLog, Deadline)) \
-    __IMPL(SubtreeLog::Schedule, (SubtreeLog, Schedule)) \
-    __IMPL(SubtreeLog::Tag, (SubtreeLog, Tag)) \
-    __IMPL(SubtreeLog::Unknown, (SubtreeLog, Unknown)) \
     __IMPL(Subtree, (Subtree)) \
     __IMPL(Cell, (Cell)) \
     __IMPL(Row, (Row)) \

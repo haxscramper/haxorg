@@ -241,8 +241,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
     auto log = Sem<SubtreeLog>(a);
 
 
-    using Entry          = SubtreeLog::LogEntry;
-    using Log            = SubtreeLog;
+    using Log            = SubtreeLogHead;
     SemId<ListItem> item = convertListItem(a).value();
     SemId<Org>      par0 = item->at(0);
 
@@ -314,14 +313,14 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
             clock.to   = range->to->getStaticTime();
         }
 
-        log->log = clock;
+        log->head = Log{clock};
     } else {
         Vec<SemId<Time>> times = filter_subnodes<Time>(par0, limit);
 
         if (words.at(0) == "tag") {
             auto res = Log::Tag{};
             if (auto tag = node_after("tag", {osk::HashTag})) {
-                res.tag = tag->as<sem::HashTag>();
+                res.tag = tag->as<sem::HashTag>()->text;
             } else {
                 return SemError(
                     a, "No hashtag provided for the 'tag' value");
@@ -337,7 +336,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
                 res.added = false;
             }
 
-            log->log = res;
+            log->head = Log{res};
 
         } else if (words.at(0) == "state") {
             auto __trace = trace(a, "state");
@@ -358,7 +357,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
                 states.on = from.value()->getStaticTime();
             }
 
-            log->log = states;
+            log->head = Log{states};
 
         } else if (words.at(0) == "refiled") {
             auto             __trace = trace(a, "refiled");
@@ -375,8 +374,8 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
                     a, "No 'on' time for the refiled subtree log");
             }
 
-            if (!link.empty()) { refile.from = link.at(0); }
-            log->log = refile;
+            if (!link.empty()) { refile.from = link.at(0)->target; }
+            log->head = Log{refile};
 
         } else if (words.at(1) == "deadline") {
             auto             __trace = trace(a, "deadline");
@@ -384,7 +383,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
             auto             dead    = Log::Deadline{};
             auto             on      = time_after("on");
             auto             from    = time_after("from");
-            log->log                 = dead;
+            log->head                = Log{dead};
 
         } else if (words.at(0) == "priority") {
             auto __trace = trace(a, "priority");
@@ -425,7 +424,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
                 priority.on = on.value()->getStaticTime();
             }
 
-            log->log = priority;
+            log->head = Log{priority};
 
         } else if (words.at(0) == "note" && !times.empty()) {
             auto __trace = trace(a, "note");
@@ -435,7 +434,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
                 note.on = on.value()->getStaticTime();
             }
 
-            log->log = note;
+            log->head = Log{note};
 
         } else {
             auto __trace = trace(a, "unknown");
@@ -444,12 +443,13 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
             for (auto const& sub : item->subnodes) {
                 stmt->subnodes.push_back(sub);
             }
-            unknown.desc = stmt;
-            log->log     = unknown;
+
+            log->desc = stmt;
+            log->head = Log{unknown};
         }
     }
 
-    if (log->getLogKind() != Log::Kind::Unknown) {
+    if (!log->head.isUnknown()) {
         auto description = //
             par0->subnodes //
             | rv::drop_while([](sem::OrgArg arg) {

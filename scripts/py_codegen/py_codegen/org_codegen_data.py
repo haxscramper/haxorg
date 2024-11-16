@@ -1019,179 +1019,25 @@ def get_sem_text():
 
 def get_sem_subtree():
     return [
-        d_org(
-            "SubtreeLog",
-            GenTuDoc("Single subtree log entry"),
-            bases=[t_org("Org")],
-            methods=[
-                GenTuFunction(
-                    t("void"),
-                    "setDescription",
-                    GenTuDoc(""),
-                    arguments=[GenTuIdent(t_id("StmtList"), "desc")],
-                )
-            ],
-            nested=[
-                GenTuStruct(
-                    t_nest("DescribedLog", ["SubtreeLog"]),
-                    GenTuDoc("Base value for the log variant"),
-                    fields=[
-                        opt_field(
-                            t_id("StmtList"),
-                            "desc",
-                            GenTuDoc("Optional description of the log entry"),
-                        )
-                    ],
-                    nested=[GenTuPass("DescribedLog() {}")],
-                ),
-                GenTuTypeGroup(
-                    [
-                        GenTuStruct(
-                            t_nest("Priority", ["SubtreeLog"]),
-                            GenTuDoc("Priority added"),
-                            bases=[t_org("DescribedLog", [t("SubtreeLog")])],
-                            nested=[
-                                GenTuEnum(
-                                    t_nest("Action", ["SubtreeLog", "Priority"]),
-                                    GenTuDoc("Priority change action"),
-                                    fields=[
-                                        GenTuEnumField(
-                                            "Added",
-                                            GenTuDoc(
-                                                "`Priority B added on [timestamp]`")),
-                                        GenTuEnumField(
-                                            "Removed",
-                                            GenTuDoc(
-                                                "`Priority C removed on [timestamp]`")),
-                                        GenTuEnumField(
-                                            "Changed",
-                                            GenTuDoc(
-                                                "`Priority B changed from C on [timestamp]`"
-                                            )),
-                                    ]),
-                                GenTuPass("Priority() {}")
-                            ],
-                            fields=[
-                                opt_field(
-                                    t_space("string", ["std"]),
-                                    "oldPriority",
-                                    GenTuDoc("Previous priority for change and removal"),
-                                ),
-                                opt_field(
-                                    t_space("string", ["std"]),
-                                    "newPriority",
-                                    GenTuDoc("New priority for change and addition"),
-                                ),
-                                org_field(t("UserTime"), "on",
-                                          GenTuDoc("When priority was changed")),
-                                GenTuField(t_nest("Action", ["SubtreeLog", "Priority"]),
-                                           "action", GenTuDoc("Which action taken")),
-                            ],
-                        ),
-                        GenTuStruct(
-                            t_nest("Note", ["SubtreeLog"]),
-                            GenTuDoc("Timestamped note"),
-                            bases=[t_org("DescribedLog", [t("SubtreeLog")])],
-                            fields=[
-                                org_field(t("UserTime"), "on",
-                                          GenTuDoc("Where log was taken"))
-                            ],
-                            nested=[GenTuPass("Note() {}")],
-                        ),
-                        GenTuStruct(
-                            t_nest("Refile", ["SubtreeLog"]),
-                            GenTuDoc("Refiling action"),
-                            bases=[t_org("DescribedLog", [t("SubtreeLog")])],
-                            fields=[
-                                org_field(t("UserTime"), "on",
-                                          GenTuDoc("When the refiling happened")),
-                                id_field("Link", "from",
-                                         GenTuDoc("Link to the original subtree")),
-                            ],
-                            nested=[GenTuPass("Refile() {}")],
-                        ),
-                        GenTuStruct(
-                            t_nest("Clock", ["SubtreeLog"]),
-                            GenTuDoc(
-                                "Clock entry `CLOCK: [2023-04-30 Sun 13:29:04]--[2023-04-30 Sun 14:51:16] => 1:22`"
-                            ),
-                            bases=[t_org("DescribedLog", [t("SubtreeLog")])],
-                            fields=[
-                                org_field(t("UserTime"), "from",
-                                          GenTuDoc("Clock start time")),
-                                opt_field(t("UserTime"), "to",
-                                          GenTuDoc("Optional end of the clock")),
-                            ],
-                            nested=[GenTuPass("Clock() {}")],
-                        ),
-                        GenTuStruct(
-                            t_nest("State", ["SubtreeLog"]),
-                            GenTuDoc(
-                                'Change of the subtree state -- `- State "WIP" from "TODO" [2023-04-30 Sun 13:29:04]`'
-                            ),
-                            bases=[t_org("DescribedLog", [t("SubtreeLog")])],
-                            fields=[
-                                org_field(t_str(), "from", GenTuDoc("")),
-                                org_field(t_str(), "to", GenTuDoc("")),
-                                org_field(t("UserTime"), "on", GenTuDoc("")),
-                            ],
-                            nested=[GenTuPass("State() {}")],
-                        ),
-                        GenTuStruct(
-                            t_nest("Deadline", ["SubtreeLog"]),
-                            GenTuDoc('Change of the subtree deadline'),
-                            bases=[t_org("DescribedLog", [t("SubtreeLog")])],
-                            fields=[
-                                opt_field(t("UserTime"), "from", GenTuDoc("")),
-                                org_field(t("UserTime"), "to", GenTuDoc("")),
-                                org_field(t("UserTime"), "on", GenTuDoc("")),
-                            ],
-                            nested=[GenTuPass("Deadline() {}")],
-                        ),
-                        GenTuStruct(
-                            t_nest("Schedule", ["SubtreeLog"]),
-                            GenTuDoc('Change of the subtree Schedule'),
-                            bases=[t_org("DescribedLog", [t("SubtreeLog")])],
-                            fields=[
-                                opt_field(t("UserTime"), "from", GenTuDoc("")),
-                                org_field(t("UserTime"), "to", GenTuDoc("")),
-                                org_field(t("UserTime"), "on", GenTuDoc("")),
-                            ],
-                            nested=[GenTuPass("Schedule() {}")],
-                        ),
-                        GenTuStruct(
-                            t_nest("Tag", ["SubtreeLog"]),
-                            GenTuDoc(
-                                'Assign tag to the subtree `- Tag "project##haxorg" Added on [2023-04-30 Sun 13:29:06]`'
-                            ),
-                            bases=[t_org("DescribedLog", [t("SubtreeLog")])],
-                            fields=[
-                                org_field(t("UserTime"), "on",
-                                          GenTuDoc("When the log was assigned")),
-                                id_field("HashTag", "tag", GenTuDoc("Tag in question")),
-                                GenTuField(t_bool(),
-                                           "added",
-                                           GenTuDoc("Added/removed?"),
-                                           value="false"),
-                            ],
-                            nested=[GenTuPass("Tag() {}")],
-                        ),
-                        GenTuStruct(
-                            t_nest("Unknown", ["SubtreeLog"]),
-                            GenTuDoc("Unknown subtree log entry kind"),
-                            bases=[t_org("DescribedLog", [t("SubtreeLog")])],
-                            fields=[],
-                            nested=[GenTuPass("Unknown() {}")],
-                        ),
-                    ],
-                    kindGetter="getLogKind",
-                    variantField="log",
-                    variantValue="Note{}",
-                    variantName=t_nest("LogEntry", ["SubtreeLog"]),
-                    enumName=t_nest("Kind", ["SubtreeLog"]),
-                ),
-            ],
-        ),
+        d_org("SubtreeLog",
+              GenTuDoc("Single subtree log entry"),
+              bases=[t_org("Org")],
+              methods=[
+                  GenTuFunction(
+                      t("void"),
+                      "setDescription",
+                      GenTuDoc(""),
+                      arguments=[GenTuIdent(t_id("StmtList"), "desc")],
+                  )
+              ],
+              fields=[
+                  org_field(t_nest_shared("SubtreeLogHead"), "head"),
+                  opt_field(
+                      t_id("StmtList"),
+                      "desc",
+                      GenTuDoc("Optional description of the log entry"),
+                  ),
+              ]),
         d_org(
             "Subtree",
             GenTuDoc("Subtree"),
@@ -1575,6 +1421,275 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
             ],
         ),
         GenTuStruct(
+            t_nest_shared("SubtreePath"),
+            fields=[
+                vec_field(t_str(), "path"),
+            ],
+            methods=[
+                eq_method(t_nest_shared("SubtreePath")),
+            ],
+        ),
+        GenTuStruct(
+            t_nest_shared("LinkTarget"),
+            methods=[eq_method(t_nest_shared("LinkTarget"))],
+            nested=[
+                GenTuTypeGroup(
+                    [
+                        GenTuStruct(
+                            t_nest_shared("Raw", ["LinkTarget"]),
+                            GenTuDoc(""),
+                            fields=[(GenTuField(t_str(), "text", GenTuDoc("")))],
+                            methods=[eq_method(t_nest_shared("Raw", ["LinkTarget"]))],
+                        ),
+                        GenTuStruct(
+                            t_nest_shared("Id", ["LinkTarget"]),
+                            GenTuDoc(""),
+                            fields=[(GenTuField(t_str(), "text", GenTuDoc("")))],
+                            methods=[eq_method(t_nest_shared("Id", ["LinkTarget"]))],
+                        ),
+                        GenTuStruct(
+                            t_nest_shared("CustomId", ["LinkTarget"]),
+                            GenTuDoc(""),
+                            fields=[(GenTuField(t_str(), "text", GenTuDoc("")))],
+                            methods=[
+                                eq_method(t_nest_shared("CustomId", ["LinkTarget"]))
+                            ],
+                        ),
+                        GenTuStruct(
+                            t_nest_shared("SubtreeTitle", ["LinkTarget"]),
+                            fields=[
+                                org_field(t_nest_shared("SubtreePath"), "title"),
+                                org_field(t_int(), "level"),
+                            ],
+                            methods=[eq_method(t_nest("SubtreeTitle", ["LinkTarget"]))],
+                        ),
+                        GenTuStruct(
+                            t_nest_shared("Person", ["LinkTarget"]),
+                            GenTuDoc(""),
+                            fields=[(GenTuField(t_str(), "name", GenTuDoc("")))],
+                            methods=[eq_method(t_nest_shared("Person", ["LinkTarget"]))],
+                        ),
+                        GenTuStruct(
+                            t_nest_shared("UserProtocol", ["LinkTarget"]),
+                            GenTuDoc(""),
+                            fields=[
+                                GenTuField(t_str(), "protocol", GenTuDoc("")),
+                                GenTuField(t_str(), "target", GenTuDoc("")),
+                            ],
+                            methods=[
+                                eq_method(t_nest_shared("UserProtocol", ["LinkTarget"]))
+                            ],
+                        ),
+                        GenTuStruct(
+                            t_nest_shared("Internal", ["LinkTarget"]),
+                            GenTuDoc(""),
+                            fields=[
+                                GenTuField(t_str(), "target", GenTuDoc("")),
+                            ],
+                            methods=[
+                                eq_method(t_nest_shared("Internal", ["LinkTarget"]))
+                            ],
+                        ),
+                        GenTuStruct(
+                            t_nest_shared("Footnote", ["LinkTarget"]),
+                            GenTuDoc(""),
+                            fields=[(GenTuField(t_str(), "target", GenTuDoc("")))],
+                            methods=[
+                                eq_method(t_nest_shared("Footnote", ["LinkTarget"]))
+                            ],
+                        ),
+                        GenTuStruct(
+                            t_nest_shared("File", ["LinkTarget"]),
+                            GenTuDoc(""),
+                            fields=[(GenTuField(t_str(), "file", GenTuDoc("")))],
+                            methods=[eq_method(t_nest_shared("File", ["LinkTarget"]))],
+                        ),
+                        GenTuStruct(
+                            t_nest_shared("Attachment", ["LinkTarget"]),
+                            GenTuDoc(""),
+                            fields=[(GenTuField(t_str(), "file", GenTuDoc("")))],
+                            methods=[
+                                eq_method(t_nest_shared("Attachment", ["LinkTarget"]))
+                            ],
+                        ),
+                    ],
+                    kindGetter="getKind",
+                    variantName=t_nest_shared("Data", ["LinkTarget"]),
+                    enumName=t_nest_shared("Kind", ["LinkTarget"]),
+                )
+            ]),
+        GenTuStruct(
+            t_nest_shared("SubtreeLogHead"),
+            methods=[eq_method(t_nest_shared("SubtreeLogHead"))],
+            nested=[
+                GenTuTypeGroup(
+                    [
+                        GenTuStruct(
+                            t_nest_shared("Priority", ["SubtreeLogHead"]),
+                            GenTuDoc("Priority added"),
+                            methods=[
+                                eq_method(t_nest("Priority", ["SubtreeLogHead"])),
+                            ],
+                            nested=[
+                                GenTuEnum(
+                                    t_nest_shared("Action",
+                                                  ["SubtreeLogHead", "Priority"]),
+                                    GenTuDoc("Priority change action"),
+                                    fields=[
+                                        GenTuEnumField(
+                                            "Added",
+                                            GenTuDoc(
+                                                "`Priority B added on [timestamp]`")),
+                                        GenTuEnumField(
+                                            "Removed",
+                                            GenTuDoc(
+                                                "`Priority C removed on [timestamp]`")),
+                                        GenTuEnumField(
+                                            "Changed",
+                                            GenTuDoc(
+                                                "`Priority B changed from C on [timestamp]`"
+                                            )),
+                                    ]),
+                                GenTuPass("Priority() {}")
+                            ],
+                            fields=[
+                                opt_field(
+                                    t_space("string", ["std"]),
+                                    "oldPriority",
+                                    GenTuDoc("Previous priority for change and removal"),
+                                ),
+                                opt_field(
+                                    t_space("string", ["std"]),
+                                    "newPriority",
+                                    GenTuDoc("New priority for change and addition"),
+                                ),
+                                org_field(t("UserTime"), "on",
+                                          GenTuDoc("When priority was changed")),
+                                GenTuField(
+                                    t_nest_shared("Action",
+                                                  ["SubtreeLogHead", "Priority"]),
+                                    "action", GenTuDoc("Which action taken")),
+                            ],
+                        ),
+                        GenTuStruct(
+                            t_nest_shared("Note", ["SubtreeLogHead"]),
+                            GenTuDoc("Timestamped note"),
+                            fields=[
+                                org_field(t("UserTime"), "on",
+                                          GenTuDoc("Where log was taken"))
+                            ],
+                            nested=[GenTuPass("Note() {}")],
+                            methods=[
+                                eq_method(t_nest_shared("Note", ["SubtreeLogHead"]))
+                            ],
+                        ),
+                        GenTuStruct(
+                            t_nest_shared("Refile", ["SubtreeLogHead"]),
+                            GenTuDoc("Refiling action"),
+                            fields=[
+                                org_field(t("UserTime"), "on",
+                                          GenTuDoc("When the refiling happened")),
+                                org_field(t_nest_shared("LinkTarget"), "from",
+                                          GenTuDoc("Link to the original subtree")),
+                            ],
+                            nested=[GenTuPass("Refile() {}")],
+                            methods=[
+                                eq_method(t_nest_shared("Refile", ["SubtreeLogHead"]))
+                            ],
+                        ),
+                        GenTuStruct(
+                            t_nest_shared("Clock", ["SubtreeLogHead"]),
+                            GenTuDoc(
+                                "Clock entry `CLOCK: [2023-04-30 Sun 13:29:04]--[2023-04-30 Sun 14:51:16] => 1:22`"
+                            ),
+                            fields=[
+                                org_field(t("UserTime"), "from",
+                                          GenTuDoc("Clock start time")),
+                                opt_field(t("UserTime"), "to",
+                                          GenTuDoc("Optional end of the clock")),
+                            ],
+                            nested=[GenTuPass("Clock() {}")],
+                            methods=[
+                                eq_method(t_nest_shared("Clock", ["SubtreeLogHead"]))
+                            ],
+                        ),
+                        GenTuStruct(
+                            t_nest_shared("State", ["SubtreeLogHead"]),
+                            GenTuDoc(
+                                'Change of the subtree state -- `- State "WIP" from "TODO" [2023-04-30 Sun 13:29:04]`'
+                            ),
+                            fields=[
+                                org_field(t_str(), "from", GenTuDoc("")),
+                                org_field(t_str(), "to", GenTuDoc("")),
+                                org_field(t("UserTime"), "on", GenTuDoc("")),
+                            ],
+                            nested=[GenTuPass("State() {}")],
+                            methods=[
+                                eq_method(t_nest_shared("State", ["SubtreeLogHead"]))
+                            ],
+                        ),
+                        GenTuStruct(
+                            t_nest_shared("Deadline", ["SubtreeLogHead"]),
+                            GenTuDoc('Change of the subtree deadline'),
+                            fields=[
+                                opt_field(t("UserTime"), "from", GenTuDoc("")),
+                                org_field(t("UserTime"), "to", GenTuDoc("")),
+                                org_field(t("UserTime"), "on", GenTuDoc("")),
+                            ],
+                            nested=[GenTuPass("Deadline() {}")],
+                            methods=[
+                                eq_method(t_nest_shared("Deadline", ["SubtreeLogHead"]))
+                            ],
+                        ),
+                        GenTuStruct(
+                            t_nest_shared("Schedule", ["SubtreeLogHead"]),
+                            GenTuDoc('Change of the subtree Schedule'),
+                            fields=[
+                                opt_field(t("UserTime"), "from", GenTuDoc("")),
+                                org_field(t("UserTime"), "to", GenTuDoc("")),
+                                org_field(t("UserTime"), "on", GenTuDoc("")),
+                            ],
+                            nested=[GenTuPass("Schedule() {}")],
+                            methods=[
+                                eq_method(t_nest_shared("Schedule", ["SubtreeLogHead"]))
+                            ],
+                        ),
+                        GenTuStruct(
+                            t_nest_shared("Tag", ["SubtreeLogHead"]),
+                            GenTuDoc(
+                                'Assign tag to the subtree `- Tag "project##haxorg" Added on [2023-04-30 Sun 13:29:06]`'
+                            ),
+                            fields=[
+                                org_field(t("UserTime"), "on",
+                                          GenTuDoc("When the log was assigned")),
+                                org_field(t_nest_shared("HashTagText"), "tag",
+                                          GenTuDoc("Tag in question")),
+                                GenTuField(t_bool(),
+                                           "added",
+                                           GenTuDoc("Added/removed?"),
+                                           value="false"),
+                            ],
+                            nested=[GenTuPass("Tag() {}")],
+                            methods=[eq_method(t_nest_shared("Tag", ["SubtreeLogHead"]))],
+                        ),
+                        GenTuStruct(
+                            t_nest_shared("Unknown", ["SubtreeLogHead"]),
+                            GenTuDoc("Unknown subtree log entry kind"),
+                            fields=[],
+                            nested=[GenTuPass("Unknown() {}")],
+                            methods=[
+                                eq_method(t_nest_shared("Unknown", ["SubtreeLogHead"]))
+                            ],
+                        ),
+                    ],
+                    kindGetter="getLogKind",
+                    variantField="log",
+                    variantValue="Note{}",
+                    variantName=t_nest_shared("LogEntry", ["SubtreeLogHead"]),
+                    enumName=t_nest_shared("Kind", ["SubtreeLogHead"]),
+                ),
+            ]),
+        GenTuStruct(
             t_nest_shared("SubtreeCompletion"),
             GenTuDoc("Completion status of the subtree list element"),
             fields=[
@@ -1651,15 +1766,6 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     ],
                 ),
                 eq_method(t_nest_shared("AttrGroup")),
-            ],
-        ),
-        GenTuStruct(
-            t_nest_shared("SubtreePath"),
-            fields=[
-                vec_field(t_str(), "path"),
-            ],
-            methods=[
-                eq_method(t_nest_shared("SubtreePath")),
             ],
         ),
         GenTuStruct(
@@ -1752,95 +1858,6 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 ),
             ],
         ),
-        GenTuStruct(
-            t_nest_shared("LinkTarget"),
-            methods=[eq_method(t_nest_shared("LinkTarget"))],
-            nested=[
-                GenTuTypeGroup(
-                    [
-                        GenTuStruct(
-                            t_nest_shared("Raw", ["LinkTarget"]),
-                            GenTuDoc(""),
-                            fields=[(GenTuField(t_str(), "text", GenTuDoc("")))],
-                            methods=[eq_method(t_nest_shared("Raw", ["LinkTarget"]))],
-                        ),
-                        GenTuStruct(
-                            t_nest_shared("Id", ["LinkTarget"]),
-                            GenTuDoc(""),
-                            fields=[(GenTuField(t_str(), "text", GenTuDoc("")))],
-                            methods=[eq_method(t_nest_shared("Id", ["LinkTarget"]))],
-                        ),
-                        GenTuStruct(
-                            t_nest_shared("CustomId", ["LinkTarget"]),
-                            GenTuDoc(""),
-                            fields=[(GenTuField(t_str(), "text", GenTuDoc("")))],
-                            methods=[
-                                eq_method(t_nest_shared("CustomId", ["LinkTarget"]))
-                            ],
-                        ),
-                        GenTuStruct(
-                            t_nest_shared("SubtreeTitle", ["LinkTarget"]),
-                            fields=[
-                                org_field(t_nest_shared("SubtreePath"), "title"),
-                                org_field(t_int(), "level"),
-                            ],
-                            methods=[eq_method(t_nest("SubtreeTitle", ["LinkTarget"]))],
-                        ),
-                        GenTuStruct(
-                            t_nest_shared("Person", ["LinkTarget"]),
-                            GenTuDoc(""),
-                            fields=[(GenTuField(t_str(), "name", GenTuDoc("")))],
-                            methods=[eq_method(t_nest_shared("Person", ["LinkTarget"]))],
-                        ),
-                        GenTuStruct(
-                            t_nest_shared("UserProtocol", ["LinkTarget"]),
-                            GenTuDoc(""),
-                            fields=[
-                                GenTuField(t_str(), "protocol", GenTuDoc("")),
-                                GenTuField(t_str(), "target", GenTuDoc("")),
-                            ],
-                            methods=[
-                                eq_method(t_nest_shared("UserProtocol", ["LinkTarget"]))
-                            ],
-                        ),
-                        GenTuStruct(
-                            t_nest_shared("Internal", ["LinkTarget"]),
-                            GenTuDoc(""),
-                            fields=[
-                                GenTuField(t_str(), "target", GenTuDoc("")),
-                            ],
-                            methods=[
-                                eq_method(t_nest_shared("Internal", ["LinkTarget"]))
-                            ],
-                        ),
-                        GenTuStruct(
-                            t_nest_shared("Footnote", ["LinkTarget"]),
-                            GenTuDoc(""),
-                            fields=[(GenTuField(t_str(), "target", GenTuDoc("")))],
-                            methods=[
-                                eq_method(t_nest_shared("Footnote", ["LinkTarget"]))
-                            ],
-                        ),
-                        GenTuStruct(
-                            t_nest_shared("File", ["LinkTarget"]),
-                            GenTuDoc(""),
-                            fields=[(GenTuField(t_str(), "file", GenTuDoc("")))],
-                            methods=[eq_method(t_nest_shared("File", ["LinkTarget"]))],
-                        ),
-                        GenTuStruct(
-                            t_nest_shared("Attachment", ["LinkTarget"]),
-                            GenTuDoc(""),
-                            fields=[(GenTuField(t_str(), "file", GenTuDoc("")))],
-                            methods=[
-                                eq_method(t_nest_shared("Attachment", ["LinkTarget"]))
-                            ],
-                        ),
-                    ],
-                    kindGetter="getKind",
-                    variantName=t_nest_shared("Data", ["LinkTarget"]),
-                    enumName=t_nest_shared("Kind", ["LinkTarget"]),
-                )
-            ]),
         GenTuStruct(
             t_nest_shared("BlockCodeLine"),
             methods=[eq_method(t_nest_shared("BlockCodeLine"))],

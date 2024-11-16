@@ -107,6 +107,12 @@ std::string nestedHashtag(sem::HashTagText const& hash) {
     }
 }
 
+
+auto Formatter::toString(sem::HashTagText const& hash, CR<Context> ctx)
+    -> Res {
+    return str(nestedHashtag(hash));
+}
+
 Formatter::Res colonHashtags(Formatter* f, CVec<SemId<HashTag>> tags) {
     return f->b.join(
         Vec<Formatter::Res>::Splice(
@@ -412,12 +418,8 @@ auto Formatter::toString(SemId<Monospace> id, CR<Context> ctx) -> Res {
         Vec<Res>::Splice(str("~"), toSubnodes(id, ctx), str("~")));
 }
 
-auto Formatter::toString(SemId<Link> id, CR<Context> ctx) -> Res {
-    if (id.isNil()) { return str("<nil>"); }
-    auto const& t = id->target;
-    if (t.getKind() == LinkTarget::Kind::Raw && !id->description) {
-        return str(t.getRaw().text);
-    }
+auto Formatter::toString(sem::LinkTarget const& t, CR<Context> ctx)
+    -> Res {
 
     Res head = str("");
     switch (t.getKind()) {
@@ -461,27 +463,38 @@ auto Formatter::toString(SemId<Link> id, CR<Context> ctx) -> Res {
         }
     }
 
-    if (t.getKind() == LinkTarget::Kind::Footnote
-        && !id->description.has_value()) {
-        return b.line({
-            str("["),
-            head,
-            str("]"),
-        });
-    } else if (id->description) {
-        return b.line({
-            str("[["),
-            head,
-            str("]["),
-            toString(id->description.value(), ctx),
-            str("]]"),
-        });
+    return head;
+}
+
+auto Formatter::toString(SemId<Link> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    auto const& t = id->target;
+    if (t.getKind() == LinkTarget::Kind::Raw && !id->description) {
+        return str(t.getRaw().text);
     } else {
-        return b.line({
-            str("[["),
-            head,
-            str("]]"),
-        });
+        Res head = toString(t, ctx);
+        if (t.getKind() == LinkTarget::Kind::Footnote
+            && !id->description.has_value()) {
+            return b.line({
+                str("["),
+                head,
+                str("]"),
+            });
+        } else if (id->description) {
+            return b.line({
+                str("[["),
+                head,
+                str("]["),
+                toString(id->description.value(), ctx),
+                str("]]"),
+            });
+        } else {
+            return b.line({
+                str("[["),
+                head,
+                str("]]"),
+            });
+        }
     }
 }
 
@@ -965,13 +978,11 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
     if (!id->logbook.empty()) {
         add(head, str(":LOGBOOK:"));
         for (auto const& log : id->logbook) {
-            using Log                     = sem::SubtreeLog;
-            Res                  log_head = str("");
-            Opt<SemId<StmtList>> desc;
-            switch (log->getLogKind()) {
+            using Log    = sem::SubtreeLogHead;
+            Res log_head = str("");
+            switch (log->head.getLogKind()) {
                 case Log::Kind::Tag: {
-                    auto const& tag = log->getTag();
-                    if (tag.desc) { desc = tag.desc; }
+                    auto const& tag = log->head.getTag();
 
                     log_head = b.line({
                         str("- Tag \""),
@@ -986,8 +997,7 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
                 }
 
                 case Log::Kind::Refile: {
-                    auto const& refile = log->getRefile();
-                    if (refile.desc) { desc = refile.desc; }
+                    auto const& refile = log->head.getRefile();
 
                     log_head = b.line({
                         str("- Refiled on "),
@@ -1000,11 +1010,7 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
                 }
 
                 case Log::Kind::State: {
-                    auto const& state = log->getState();
-                    if (state.desc) {
-                        CHECK(!state.desc->isNil());
-                        desc = state.desc;
-                    }
+                    auto const& state = log->head.getState();
 
                     log_head = b.line({
                         str(
@@ -1018,13 +1024,8 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
                 }
 
                 case Log::Kind::Note: {
-                    auto const& note = log->getNote();
-                    if (note.desc) {
-                        CHECK(!note.desc->isNil());
-                        desc = note.desc;
-                    }
-
-                    log_head = b.line({
+                    auto const& note = log->head.getNote();
+                    log_head         = b.line({
                         str("- Note taken on "),
                         toString(note.on, ctx),
                     });
@@ -1033,7 +1034,7 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
                 }
 
                 case Log::Kind::Clock: {
-                    auto const& clock = log->getClock();
+                    auto const& clock = log->head.getClock();
 
                     if (clock.to) {
                         log_head = b.line({
@@ -1058,7 +1059,7 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
                 }
 
                 case Log::Kind::Priority: {
-                    auto const& priority = log->getPriority();
+                    auto const& priority = log->head.getPriority();
                     switch (priority.action) {
                         case Log::Priority::Action::Added: {
                             log_head = b.line({
@@ -1097,17 +1098,21 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
                 default: {
                     log_head = b.line({
                         str(" -"),
-                        toString(log->getUnknown().desc.value(), ctx),
+                        toString(log->desc.value(), ctx),
                     });
                 }
             }
 
-            if (desc) {
+            if (log->desc) {
                 add(log_head, str(" \\\\"));
-                CHECK(!desc.value().isNil()) << fmt1(log->getLogKind());
+                CHECK(!log->desc.value().isNil())
+                    << fmt1(log->head.getLogKind());
                 add(head, log_head);
                 add(head,
-                    b.indent(2, b.stack(toSubnodes(desc.value(), ctx))));
+                    b.indent(
+                        2,
+                        b.stack(
+                            toSubnodes(log->desc.value().asOrg(), ctx))));
             } else {
                 add(head, log_head);
             }

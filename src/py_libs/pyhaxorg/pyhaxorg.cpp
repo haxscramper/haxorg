@@ -529,77 +529,6 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::SubtreeCompletion>(m, "SubtreeCompletion")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeCompletion {
-                        sem::SubtreeCompletion result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("done", &sem::SubtreeCompletion::done, R"RAW(Number of completed tasks)RAW")
-    .def_readwrite("full", &sem::SubtreeCompletion::full, R"RAW(Full number of tasks)RAW")
-    .def_readwrite("isPercent", &sem::SubtreeCompletion::isPercent, R"RAW(Use fraction or percent to display completion)RAW")
-    .def("operator==",
-         static_cast<bool(sem::SubtreeCompletion::*)(sem::SubtreeCompletion const&) const>(&sem::SubtreeCompletion::operator==),
-         pybind11::arg("other"))
-    .def("__repr__", [](sem::SubtreeCompletion _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::SubtreeCompletion _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::AttrList>(m, "AttrList")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AttrList {
-                        sem::AttrList result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("items", &sem::AttrList::items)
-    .def("operator==",
-         static_cast<bool(sem::AttrList::*)(sem::AttrList const&) const>(&sem::AttrList::operator==),
-         pybind11::arg("other"))
-    .def("__repr__", [](sem::AttrList _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::AttrList _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::AttrGroup>(m, "AttrGroup")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AttrGroup {
-                        sem::AttrGroup result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("positional", &sem::AttrGroup::positional, R"RAW(Positional arguments with no keys)RAW")
-    .def_readwrite("named", &sem::AttrGroup::named, R"RAW(Stored key-value mapping)RAW")
-    .def("getFlatArgs", static_cast<Vec<sem::AttrValue>(sem::AttrGroup::*)() const>(&sem::AttrGroup::getFlatArgs))
-    .def("getAttrs",
-         static_cast<Vec<sem::AttrValue>(sem::AttrGroup::*)(Opt<Str> const&) const>(&sem::AttrGroup::getAttrs),
-         pybind11::arg_v("key", std::nullopt))
-    .def("setNamedAttr",
-         static_cast<void(sem::AttrGroup::*)(Str const&, Vec<sem::AttrValue> const&)>(&sem::AttrGroup::setNamedAttr),
-         pybind11::arg("key"),
-         pybind11::arg("attrs"))
-    .def("setPositionalAttr",
-         static_cast<void(sem::AttrGroup::*)(Vec<sem::AttrValue> const&)>(&sem::AttrGroup::setPositionalAttr),
-         pybind11::arg("items"))
-    .def("operator==",
-         static_cast<bool(sem::AttrGroup::*)(sem::AttrGroup const&) const>(&sem::AttrGroup::operator==),
-         pybind11::arg("other"))
-    .def("__repr__", [](sem::AttrGroup _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::AttrGroup _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
   pybind11::class_<sem::SubtreePath>(m, "SubtreePath")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreePath {
                         sem::SubtreePath result{};
@@ -615,148 +544,6 @@ node can have subnodes.)RAW")
                      })
     .def("__getattr__",
          [](sem::SubtreePath _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  bind_enum_iterator<sem::ColumnView::Summary::CheckboxAggregate::Kind>(m, "ColumnViewSummaryCheckboxAggregateKind", type_registry_guard);
-  pybind11::enum_<sem::ColumnView::Summary::CheckboxAggregate::Kind>(m, "ColumnViewSummaryCheckboxAggregateKind")
-    .value("IfAllNested", sem::ColumnView::Summary::CheckboxAggregate::Kind::IfAllNested)
-    .value("AggregateFractionRec", sem::ColumnView::Summary::CheckboxAggregate::Kind::AggregateFractionRec)
-    .value("AggregatePercentRec", sem::ColumnView::Summary::CheckboxAggregate::Kind::AggregatePercentRec)
-    .def("__iter__", [](sem::ColumnView::Summary::CheckboxAggregate::Kind _self) -> PyEnumIterator<sem::ColumnView::Summary::CheckboxAggregate::Kind> {
-                     return
-                     PyEnumIterator<sem::ColumnView::Summary::CheckboxAggregate::Kind>
-                     ();
-                     })
-    ;
-  pybind11::class_<sem::ColumnView::Summary::CheckboxAggregate>(m, "ColumnViewSummaryCheckboxAggregate")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::ColumnView::Summary::CheckboxAggregate {
-                        sem::ColumnView::Summary::CheckboxAggregate result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("kind", &sem::ColumnView::Summary::CheckboxAggregate::kind)
-    .def("operator==",
-         static_cast<bool(sem::ColumnView::Summary::CheckboxAggregate::*)(sem::ColumnView::Summary::CheckboxAggregate const&) const>(&sem::ColumnView::Summary::CheckboxAggregate::operator==),
-         pybind11::arg("other"))
-    .def("__repr__", [](sem::ColumnView::Summary::CheckboxAggregate _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::ColumnView::Summary::CheckboxAggregate _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  bind_enum_iterator<sem::ColumnView::Summary::MathAggregate::Kind>(m, "ColumnViewSummaryMathAggregateKind", type_registry_guard);
-  pybind11::enum_<sem::ColumnView::Summary::MathAggregate::Kind>(m, "ColumnViewSummaryMathAggregateKind")
-    .value("Min", sem::ColumnView::Summary::MathAggregate::Kind::Min)
-    .value("Max", sem::ColumnView::Summary::MathAggregate::Kind::Max)
-    .value("Mean", sem::ColumnView::Summary::MathAggregate::Kind::Mean)
-    .value("Sum", sem::ColumnView::Summary::MathAggregate::Kind::Sum)
-    .value("LowHighEst", sem::ColumnView::Summary::MathAggregate::Kind::LowHighEst)
-    .def("__iter__", [](sem::ColumnView::Summary::MathAggregate::Kind _self) -> PyEnumIterator<sem::ColumnView::Summary::MathAggregate::Kind> {
-                     return
-                     PyEnumIterator<sem::ColumnView::Summary::MathAggregate::Kind>
-                     ();
-                     })
-    ;
-  pybind11::class_<sem::ColumnView::Summary::MathAggregate>(m, "ColumnViewSummaryMathAggregate")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::ColumnView::Summary::MathAggregate {
-                        sem::ColumnView::Summary::MathAggregate result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("kind", &sem::ColumnView::Summary::MathAggregate::kind)
-    .def_readwrite("formatDigits", &sem::ColumnView::Summary::MathAggregate::formatDigits)
-    .def_readwrite("formatPrecision", &sem::ColumnView::Summary::MathAggregate::formatPrecision)
-    .def("operator==",
-         static_cast<bool(sem::ColumnView::Summary::MathAggregate::*)(sem::ColumnView::Summary::MathAggregate const&) const>(&sem::ColumnView::Summary::MathAggregate::operator==),
-         pybind11::arg("other"))
-    .def("__repr__", [](sem::ColumnView::Summary::MathAggregate _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::ColumnView::Summary::MathAggregate _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  bind_enum_iterator<sem::ColumnView::Summary::Kind>(m, "ColumnViewSummaryKind", type_registry_guard);
-  pybind11::enum_<sem::ColumnView::Summary::Kind>(m, "ColumnViewSummaryKind")
-    .value("CheckboxAggregate", sem::ColumnView::Summary::Kind::CheckboxAggregate)
-    .value("MathAggregate", sem::ColumnView::Summary::Kind::MathAggregate)
-    .def("__iter__", [](sem::ColumnView::Summary::Kind _self) -> PyEnumIterator<sem::ColumnView::Summary::Kind> {
-                     return
-                     PyEnumIterator<sem::ColumnView::Summary::Kind>
-                     ();
-                     })
-    ;
-  pybind11::class_<sem::ColumnView::Summary>(m, "ColumnViewSummary")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::ColumnView::Summary {
-                        sem::ColumnView::Summary result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("data", &sem::ColumnView::Summary::data)
-    .def("operator==",
-         static_cast<bool(sem::ColumnView::Summary::*)(sem::ColumnView::Summary const&) const>(&sem::ColumnView::Summary::operator==),
-         pybind11::arg("other"))
-    .def("isCheckboxAggregate", static_cast<bool(sem::ColumnView::Summary::*)() const>(&sem::ColumnView::Summary::isCheckboxAggregate))
-    .def("getCheckboxAggregate", static_cast<sem::ColumnView::Summary::CheckboxAggregate&(sem::ColumnView::Summary::*)()>(&sem::ColumnView::Summary::getCheckboxAggregate))
-    .def("isMathAggregate", static_cast<bool(sem::ColumnView::Summary::*)() const>(&sem::ColumnView::Summary::isMathAggregate))
-    .def("getMathAggregate", static_cast<sem::ColumnView::Summary::MathAggregate&(sem::ColumnView::Summary::*)()>(&sem::ColumnView::Summary::getMathAggregate))
-    .def_static("getKindStatic",
-                static_cast<sem::ColumnView::Summary::Kind(*)(sem::ColumnView::Summary::Data const&)>(&sem::ColumnView::Summary::getKind),
-                pybind11::arg("__input"))
-    .def("getKind", static_cast<sem::ColumnView::Summary::Kind(sem::ColumnView::Summary::*)() const>(&sem::ColumnView::Summary::getKind))
-    .def("__repr__", [](sem::ColumnView::Summary _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::ColumnView::Summary _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::ColumnView::Column>(m, "ColumnViewColumn")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::ColumnView::Column {
-                        sem::ColumnView::Column result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("summary", &sem::ColumnView::Column::summary)
-    .def_readwrite("width", &sem::ColumnView::Column::width)
-    .def_readwrite("property", &sem::ColumnView::Column::property)
-    .def_readwrite("propertyTitle", &sem::ColumnView::Column::propertyTitle)
-    .def("operator==",
-         static_cast<bool(sem::ColumnView::Column::*)(sem::ColumnView::Column const&) const>(&sem::ColumnView::Column::operator==),
-         pybind11::arg("other"))
-    .def("__repr__", [](sem::ColumnView::Column _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::ColumnView::Column _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::ColumnView>(m, "ColumnView")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::ColumnView {
-                        sem::ColumnView result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("columns", &sem::ColumnView::columns)
-    .def("operator==",
-         static_cast<bool(sem::ColumnView::*)(sem::ColumnView const&) const>(&sem::ColumnView::operator==),
-         pybind11::arg("other"))
-    .def("__repr__", [](sem::ColumnView _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::ColumnView _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -1010,6 +797,471 @@ node can have subnodes.)RAW")
                      })
     .def("__getattr__",
          [](sem::LinkTarget _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<sem::SubtreeLogHead::Priority::Action>(m, "SubtreeLogHeadPriorityAction", type_registry_guard);
+  pybind11::enum_<sem::SubtreeLogHead::Priority::Action>(m, "SubtreeLogHeadPriorityAction")
+    .value("Added", sem::SubtreeLogHead::Priority::Action::Added, R"RAW(`Priority B added on [timestamp]`)RAW")
+    .value("Removed", sem::SubtreeLogHead::Priority::Action::Removed, R"RAW(`Priority C removed on [timestamp]`)RAW")
+    .value("Changed", sem::SubtreeLogHead::Priority::Action::Changed, R"RAW(`Priority B changed from C on [timestamp]`)RAW")
+    .def("__iter__", [](sem::SubtreeLogHead::Priority::Action _self) -> PyEnumIterator<sem::SubtreeLogHead::Priority::Action> {
+                     return
+                     PyEnumIterator<sem::SubtreeLogHead::Priority::Action>
+                     ();
+                     })
+    ;
+  pybind11::class_<sem::SubtreeLogHead::Priority>(m, "SubtreeLogHeadPriority")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLogHead::Priority {
+                        sem::SubtreeLogHead::Priority result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("oldPriority", &sem::SubtreeLogHead::Priority::oldPriority, R"RAW(Previous priority for change and removal)RAW")
+    .def_readwrite("newPriority", &sem::SubtreeLogHead::Priority::newPriority, R"RAW(New priority for change and addition)RAW")
+    .def_readwrite("on", &sem::SubtreeLogHead::Priority::on, R"RAW(When priority was changed)RAW")
+    .def_readwrite("action", &sem::SubtreeLogHead::Priority::action, R"RAW(Which action taken)RAW")
+    .def("operator==",
+         static_cast<bool(sem::SubtreeLogHead::Priority::*)(sem::SubtreeLogHead::Priority const&) const>(&sem::SubtreeLogHead::Priority::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::SubtreeLogHead::Priority _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeLogHead::Priority _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::SubtreeLogHead::Note>(m, "SubtreeLogHeadNote")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLogHead::Note {
+                        sem::SubtreeLogHead::Note result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("on", &sem::SubtreeLogHead::Note::on, R"RAW(Where log was taken)RAW")
+    .def("operator==",
+         static_cast<bool(sem::SubtreeLogHead::Note::*)(sem::SubtreeLogHead::Note const&) const>(&sem::SubtreeLogHead::Note::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::SubtreeLogHead::Note _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeLogHead::Note _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::SubtreeLogHead::Refile>(m, "SubtreeLogHeadRefile")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLogHead::Refile {
+                        sem::SubtreeLogHead::Refile result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("on", &sem::SubtreeLogHead::Refile::on, R"RAW(When the refiling happened)RAW")
+    .def_readwrite("from_", &sem::SubtreeLogHead::Refile::from, R"RAW(Link to the original subtree)RAW")
+    .def("operator==",
+         static_cast<bool(sem::SubtreeLogHead::Refile::*)(sem::SubtreeLogHead::Refile const&) const>(&sem::SubtreeLogHead::Refile::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::SubtreeLogHead::Refile _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeLogHead::Refile _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::SubtreeLogHead::Clock>(m, "SubtreeLogHeadClock")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLogHead::Clock {
+                        sem::SubtreeLogHead::Clock result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("from_", &sem::SubtreeLogHead::Clock::from, R"RAW(Clock start time)RAW")
+    .def_readwrite("to", &sem::SubtreeLogHead::Clock::to, R"RAW(Optional end of the clock)RAW")
+    .def("operator==",
+         static_cast<bool(sem::SubtreeLogHead::Clock::*)(sem::SubtreeLogHead::Clock const&) const>(&sem::SubtreeLogHead::Clock::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::SubtreeLogHead::Clock _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeLogHead::Clock _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::SubtreeLogHead::State>(m, "SubtreeLogHeadState")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLogHead::State {
+                        sem::SubtreeLogHead::State result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("from_", &sem::SubtreeLogHead::State::from)
+    .def_readwrite("to", &sem::SubtreeLogHead::State::to)
+    .def_readwrite("on", &sem::SubtreeLogHead::State::on)
+    .def("operator==",
+         static_cast<bool(sem::SubtreeLogHead::State::*)(sem::SubtreeLogHead::State const&) const>(&sem::SubtreeLogHead::State::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::SubtreeLogHead::State _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeLogHead::State _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::SubtreeLogHead::Deadline>(m, "SubtreeLogHeadDeadline")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLogHead::Deadline {
+                        sem::SubtreeLogHead::Deadline result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("from_", &sem::SubtreeLogHead::Deadline::from)
+    .def_readwrite("to", &sem::SubtreeLogHead::Deadline::to)
+    .def_readwrite("on", &sem::SubtreeLogHead::Deadline::on)
+    .def("operator==",
+         static_cast<bool(sem::SubtreeLogHead::Deadline::*)(sem::SubtreeLogHead::Deadline const&) const>(&sem::SubtreeLogHead::Deadline::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::SubtreeLogHead::Deadline _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeLogHead::Deadline _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::SubtreeLogHead::Schedule>(m, "SubtreeLogHeadSchedule")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLogHead::Schedule {
+                        sem::SubtreeLogHead::Schedule result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("from_", &sem::SubtreeLogHead::Schedule::from)
+    .def_readwrite("to", &sem::SubtreeLogHead::Schedule::to)
+    .def_readwrite("on", &sem::SubtreeLogHead::Schedule::on)
+    .def("operator==",
+         static_cast<bool(sem::SubtreeLogHead::Schedule::*)(sem::SubtreeLogHead::Schedule const&) const>(&sem::SubtreeLogHead::Schedule::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::SubtreeLogHead::Schedule _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeLogHead::Schedule _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::SubtreeLogHead::Tag>(m, "SubtreeLogHeadTag")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLogHead::Tag {
+                        sem::SubtreeLogHead::Tag result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("on", &sem::SubtreeLogHead::Tag::on, R"RAW(When the log was assigned)RAW")
+    .def_readwrite("tag", &sem::SubtreeLogHead::Tag::tag, R"RAW(Tag in question)RAW")
+    .def_readwrite("added", &sem::SubtreeLogHead::Tag::added, R"RAW(Added/removed?)RAW")
+    .def("operator==",
+         static_cast<bool(sem::SubtreeLogHead::Tag::*)(sem::SubtreeLogHead::Tag const&) const>(&sem::SubtreeLogHead::Tag::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::SubtreeLogHead::Tag _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeLogHead::Tag _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::SubtreeLogHead::Unknown>(m, "SubtreeLogHeadUnknown")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLogHead::Unknown {
+                        sem::SubtreeLogHead::Unknown result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("operator==",
+         static_cast<bool(sem::SubtreeLogHead::Unknown::*)(sem::SubtreeLogHead::Unknown const&) const>(&sem::SubtreeLogHead::Unknown::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::SubtreeLogHead::Unknown _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeLogHead::Unknown _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<sem::SubtreeLogHead::Kind>(m, "SubtreeLogHeadKind", type_registry_guard);
+  pybind11::enum_<sem::SubtreeLogHead::Kind>(m, "SubtreeLogHeadKind")
+    .value("Priority", sem::SubtreeLogHead::Kind::Priority)
+    .value("Note", sem::SubtreeLogHead::Kind::Note)
+    .value("Refile", sem::SubtreeLogHead::Kind::Refile)
+    .value("Clock", sem::SubtreeLogHead::Kind::Clock)
+    .value("State", sem::SubtreeLogHead::Kind::State)
+    .value("Deadline", sem::SubtreeLogHead::Kind::Deadline)
+    .value("Schedule", sem::SubtreeLogHead::Kind::Schedule)
+    .value("Tag", sem::SubtreeLogHead::Kind::Tag)
+    .value("Unknown", sem::SubtreeLogHead::Kind::Unknown)
+    .def("__iter__", [](sem::SubtreeLogHead::Kind _self) -> PyEnumIterator<sem::SubtreeLogHead::Kind> {
+                     return
+                     PyEnumIterator<sem::SubtreeLogHead::Kind>
+                     ();
+                     })
+    ;
+  pybind11::class_<sem::SubtreeLogHead>(m, "SubtreeLogHead")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLogHead {
+                        sem::SubtreeLogHead result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("log", &sem::SubtreeLogHead::log)
+    .def("operator==",
+         static_cast<bool(sem::SubtreeLogHead::*)(sem::SubtreeLogHead const&) const>(&sem::SubtreeLogHead::operator==),
+         pybind11::arg("other"))
+    .def("isPriority", static_cast<bool(sem::SubtreeLogHead::*)() const>(&sem::SubtreeLogHead::isPriority))
+    .def("getPriority", static_cast<sem::SubtreeLogHead::Priority&(sem::SubtreeLogHead::*)()>(&sem::SubtreeLogHead::getPriority))
+    .def("isNote", static_cast<bool(sem::SubtreeLogHead::*)() const>(&sem::SubtreeLogHead::isNote))
+    .def("getNote", static_cast<sem::SubtreeLogHead::Note&(sem::SubtreeLogHead::*)()>(&sem::SubtreeLogHead::getNote))
+    .def("isRefile", static_cast<bool(sem::SubtreeLogHead::*)() const>(&sem::SubtreeLogHead::isRefile))
+    .def("getRefile", static_cast<sem::SubtreeLogHead::Refile&(sem::SubtreeLogHead::*)()>(&sem::SubtreeLogHead::getRefile))
+    .def("isClock", static_cast<bool(sem::SubtreeLogHead::*)() const>(&sem::SubtreeLogHead::isClock))
+    .def("getClock", static_cast<sem::SubtreeLogHead::Clock&(sem::SubtreeLogHead::*)()>(&sem::SubtreeLogHead::getClock))
+    .def("isState", static_cast<bool(sem::SubtreeLogHead::*)() const>(&sem::SubtreeLogHead::isState))
+    .def("getState", static_cast<sem::SubtreeLogHead::State&(sem::SubtreeLogHead::*)()>(&sem::SubtreeLogHead::getState))
+    .def("isDeadline", static_cast<bool(sem::SubtreeLogHead::*)() const>(&sem::SubtreeLogHead::isDeadline))
+    .def("getDeadline", static_cast<sem::SubtreeLogHead::Deadline&(sem::SubtreeLogHead::*)()>(&sem::SubtreeLogHead::getDeadline))
+    .def("isSchedule", static_cast<bool(sem::SubtreeLogHead::*)() const>(&sem::SubtreeLogHead::isSchedule))
+    .def("getSchedule", static_cast<sem::SubtreeLogHead::Schedule&(sem::SubtreeLogHead::*)()>(&sem::SubtreeLogHead::getSchedule))
+    .def("isTag", static_cast<bool(sem::SubtreeLogHead::*)() const>(&sem::SubtreeLogHead::isTag))
+    .def("getTag", static_cast<sem::SubtreeLogHead::Tag&(sem::SubtreeLogHead::*)()>(&sem::SubtreeLogHead::getTag))
+    .def("isUnknown", static_cast<bool(sem::SubtreeLogHead::*)() const>(&sem::SubtreeLogHead::isUnknown))
+    .def("getUnknown", static_cast<sem::SubtreeLogHead::Unknown&(sem::SubtreeLogHead::*)()>(&sem::SubtreeLogHead::getUnknown))
+    .def_static("getLogKindStatic",
+                static_cast<sem::SubtreeLogHead::Kind(*)(sem::SubtreeLogHead::LogEntry const&)>(&sem::SubtreeLogHead::getLogKind),
+                pybind11::arg("__input"))
+    .def("getLogKind", static_cast<sem::SubtreeLogHead::Kind(sem::SubtreeLogHead::*)() const>(&sem::SubtreeLogHead::getLogKind))
+    .def("__repr__", [](sem::SubtreeLogHead _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeLogHead _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::SubtreeCompletion>(m, "SubtreeCompletion")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeCompletion {
+                        sem::SubtreeCompletion result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("done", &sem::SubtreeCompletion::done, R"RAW(Number of completed tasks)RAW")
+    .def_readwrite("full", &sem::SubtreeCompletion::full, R"RAW(Full number of tasks)RAW")
+    .def_readwrite("isPercent", &sem::SubtreeCompletion::isPercent, R"RAW(Use fraction or percent to display completion)RAW")
+    .def("operator==",
+         static_cast<bool(sem::SubtreeCompletion::*)(sem::SubtreeCompletion const&) const>(&sem::SubtreeCompletion::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::SubtreeCompletion _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::SubtreeCompletion _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::AttrList>(m, "AttrList")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AttrList {
+                        sem::AttrList result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("items", &sem::AttrList::items)
+    .def("operator==",
+         static_cast<bool(sem::AttrList::*)(sem::AttrList const&) const>(&sem::AttrList::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::AttrList _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::AttrList _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::AttrGroup>(m, "AttrGroup")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AttrGroup {
+                        sem::AttrGroup result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("positional", &sem::AttrGroup::positional, R"RAW(Positional arguments with no keys)RAW")
+    .def_readwrite("named", &sem::AttrGroup::named, R"RAW(Stored key-value mapping)RAW")
+    .def("getFlatArgs", static_cast<Vec<sem::AttrValue>(sem::AttrGroup::*)() const>(&sem::AttrGroup::getFlatArgs))
+    .def("getAttrs",
+         static_cast<Vec<sem::AttrValue>(sem::AttrGroup::*)(Opt<Str> const&) const>(&sem::AttrGroup::getAttrs),
+         pybind11::arg_v("key", std::nullopt))
+    .def("setNamedAttr",
+         static_cast<void(sem::AttrGroup::*)(Str const&, Vec<sem::AttrValue> const&)>(&sem::AttrGroup::setNamedAttr),
+         pybind11::arg("key"),
+         pybind11::arg("attrs"))
+    .def("setPositionalAttr",
+         static_cast<void(sem::AttrGroup::*)(Vec<sem::AttrValue> const&)>(&sem::AttrGroup::setPositionalAttr),
+         pybind11::arg("items"))
+    .def("operator==",
+         static_cast<bool(sem::AttrGroup::*)(sem::AttrGroup const&) const>(&sem::AttrGroup::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::AttrGroup _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::AttrGroup _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<sem::ColumnView::Summary::CheckboxAggregate::Kind>(m, "ColumnViewSummaryCheckboxAggregateKind", type_registry_guard);
+  pybind11::enum_<sem::ColumnView::Summary::CheckboxAggregate::Kind>(m, "ColumnViewSummaryCheckboxAggregateKind")
+    .value("IfAllNested", sem::ColumnView::Summary::CheckboxAggregate::Kind::IfAllNested)
+    .value("AggregateFractionRec", sem::ColumnView::Summary::CheckboxAggregate::Kind::AggregateFractionRec)
+    .value("AggregatePercentRec", sem::ColumnView::Summary::CheckboxAggregate::Kind::AggregatePercentRec)
+    .def("__iter__", [](sem::ColumnView::Summary::CheckboxAggregate::Kind _self) -> PyEnumIterator<sem::ColumnView::Summary::CheckboxAggregate::Kind> {
+                     return
+                     PyEnumIterator<sem::ColumnView::Summary::CheckboxAggregate::Kind>
+                     ();
+                     })
+    ;
+  pybind11::class_<sem::ColumnView::Summary::CheckboxAggregate>(m, "ColumnViewSummaryCheckboxAggregate")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::ColumnView::Summary::CheckboxAggregate {
+                        sem::ColumnView::Summary::CheckboxAggregate result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("kind", &sem::ColumnView::Summary::CheckboxAggregate::kind)
+    .def("operator==",
+         static_cast<bool(sem::ColumnView::Summary::CheckboxAggregate::*)(sem::ColumnView::Summary::CheckboxAggregate const&) const>(&sem::ColumnView::Summary::CheckboxAggregate::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::ColumnView::Summary::CheckboxAggregate _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::ColumnView::Summary::CheckboxAggregate _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<sem::ColumnView::Summary::MathAggregate::Kind>(m, "ColumnViewSummaryMathAggregateKind", type_registry_guard);
+  pybind11::enum_<sem::ColumnView::Summary::MathAggregate::Kind>(m, "ColumnViewSummaryMathAggregateKind")
+    .value("Min", sem::ColumnView::Summary::MathAggregate::Kind::Min)
+    .value("Max", sem::ColumnView::Summary::MathAggregate::Kind::Max)
+    .value("Mean", sem::ColumnView::Summary::MathAggregate::Kind::Mean)
+    .value("Sum", sem::ColumnView::Summary::MathAggregate::Kind::Sum)
+    .value("LowHighEst", sem::ColumnView::Summary::MathAggregate::Kind::LowHighEst)
+    .def("__iter__", [](sem::ColumnView::Summary::MathAggregate::Kind _self) -> PyEnumIterator<sem::ColumnView::Summary::MathAggregate::Kind> {
+                     return
+                     PyEnumIterator<sem::ColumnView::Summary::MathAggregate::Kind>
+                     ();
+                     })
+    ;
+  pybind11::class_<sem::ColumnView::Summary::MathAggregate>(m, "ColumnViewSummaryMathAggregate")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::ColumnView::Summary::MathAggregate {
+                        sem::ColumnView::Summary::MathAggregate result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("kind", &sem::ColumnView::Summary::MathAggregate::kind)
+    .def_readwrite("formatDigits", &sem::ColumnView::Summary::MathAggregate::formatDigits)
+    .def_readwrite("formatPrecision", &sem::ColumnView::Summary::MathAggregate::formatPrecision)
+    .def("operator==",
+         static_cast<bool(sem::ColumnView::Summary::MathAggregate::*)(sem::ColumnView::Summary::MathAggregate const&) const>(&sem::ColumnView::Summary::MathAggregate::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::ColumnView::Summary::MathAggregate _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::ColumnView::Summary::MathAggregate _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<sem::ColumnView::Summary::Kind>(m, "ColumnViewSummaryKind", type_registry_guard);
+  pybind11::enum_<sem::ColumnView::Summary::Kind>(m, "ColumnViewSummaryKind")
+    .value("CheckboxAggregate", sem::ColumnView::Summary::Kind::CheckboxAggregate)
+    .value("MathAggregate", sem::ColumnView::Summary::Kind::MathAggregate)
+    .def("__iter__", [](sem::ColumnView::Summary::Kind _self) -> PyEnumIterator<sem::ColumnView::Summary::Kind> {
+                     return
+                     PyEnumIterator<sem::ColumnView::Summary::Kind>
+                     ();
+                     })
+    ;
+  pybind11::class_<sem::ColumnView::Summary>(m, "ColumnViewSummary")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::ColumnView::Summary {
+                        sem::ColumnView::Summary result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("data", &sem::ColumnView::Summary::data)
+    .def("operator==",
+         static_cast<bool(sem::ColumnView::Summary::*)(sem::ColumnView::Summary const&) const>(&sem::ColumnView::Summary::operator==),
+         pybind11::arg("other"))
+    .def("isCheckboxAggregate", static_cast<bool(sem::ColumnView::Summary::*)() const>(&sem::ColumnView::Summary::isCheckboxAggregate))
+    .def("getCheckboxAggregate", static_cast<sem::ColumnView::Summary::CheckboxAggregate&(sem::ColumnView::Summary::*)()>(&sem::ColumnView::Summary::getCheckboxAggregate))
+    .def("isMathAggregate", static_cast<bool(sem::ColumnView::Summary::*)() const>(&sem::ColumnView::Summary::isMathAggregate))
+    .def("getMathAggregate", static_cast<sem::ColumnView::Summary::MathAggregate&(sem::ColumnView::Summary::*)()>(&sem::ColumnView::Summary::getMathAggregate))
+    .def_static("getKindStatic",
+                static_cast<sem::ColumnView::Summary::Kind(*)(sem::ColumnView::Summary::Data const&)>(&sem::ColumnView::Summary::getKind),
+                pybind11::arg("__input"))
+    .def("getKind", static_cast<sem::ColumnView::Summary::Kind(sem::ColumnView::Summary::*)() const>(&sem::ColumnView::Summary::getKind))
+    .def("__repr__", [](sem::ColumnView::Summary _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::ColumnView::Summary _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::ColumnView::Column>(m, "ColumnViewColumn")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::ColumnView::Column {
+                        sem::ColumnView::Column result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("summary", &sem::ColumnView::Column::summary)
+    .def_readwrite("width", &sem::ColumnView::Column::width)
+    .def_readwrite("property", &sem::ColumnView::Column::property)
+    .def_readwrite("propertyTitle", &sem::ColumnView::Column::propertyTitle)
+    .def("operator==",
+         static_cast<bool(sem::ColumnView::Column::*)(sem::ColumnView::Column const&) const>(&sem::ColumnView::Column::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::ColumnView::Column _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::ColumnView::Column _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::ColumnView>(m, "ColumnView")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::ColumnView {
+                        sem::ColumnView result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("columns", &sem::ColumnView::columns)
+    .def("operator==",
+         static_cast<bool(sem::ColumnView::*)(sem::ColumnView const&) const>(&sem::ColumnView::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::ColumnView _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::ColumnView _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -3541,238 +3793,17 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::SubtreeLog::DescribedLog>(m, "SubtreeLogDescribedLog")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLog::DescribedLog {
-                        sem::SubtreeLog::DescribedLog result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("desc", &sem::SubtreeLog::DescribedLog::desc, R"RAW(Optional description of the log entry)RAW")
-    .def("__repr__", [](sem::SubtreeLog::DescribedLog _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::SubtreeLog::DescribedLog _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  bind_enum_iterator<sem::SubtreeLog::Priority::Action>(m, "SubtreeLogPriorityAction", type_registry_guard);
-  pybind11::enum_<sem::SubtreeLog::Priority::Action>(m, "SubtreeLogPriorityAction")
-    .value("Added", sem::SubtreeLog::Priority::Action::Added, R"RAW(`Priority B added on [timestamp]`)RAW")
-    .value("Removed", sem::SubtreeLog::Priority::Action::Removed, R"RAW(`Priority C removed on [timestamp]`)RAW")
-    .value("Changed", sem::SubtreeLog::Priority::Action::Changed, R"RAW(`Priority B changed from C on [timestamp]`)RAW")
-    .def("__iter__", [](sem::SubtreeLog::Priority::Action _self) -> PyEnumIterator<sem::SubtreeLog::Priority::Action> {
-                     return
-                     PyEnumIterator<sem::SubtreeLog::Priority::Action>
-                     ();
-                     })
-    ;
-  pybind11::class_<sem::SubtreeLog::Priority, sem::SubtreeLog::DescribedLog>(m, "SubtreeLogPriority")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLog::Priority {
-                        sem::SubtreeLog::Priority result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("oldPriority", &sem::SubtreeLog::Priority::oldPriority, R"RAW(Previous priority for change and removal)RAW")
-    .def_readwrite("newPriority", &sem::SubtreeLog::Priority::newPriority, R"RAW(New priority for change and addition)RAW")
-    .def_readwrite("on", &sem::SubtreeLog::Priority::on, R"RAW(When priority was changed)RAW")
-    .def_readwrite("action", &sem::SubtreeLog::Priority::action, R"RAW(Which action taken)RAW")
-    .def("__repr__", [](sem::SubtreeLog::Priority _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::SubtreeLog::Priority _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::SubtreeLog::Note, sem::SubtreeLog::DescribedLog>(m, "SubtreeLogNote")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLog::Note {
-                        sem::SubtreeLog::Note result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("on", &sem::SubtreeLog::Note::on, R"RAW(Where log was taken)RAW")
-    .def("__repr__", [](sem::SubtreeLog::Note _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::SubtreeLog::Note _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::SubtreeLog::Refile, sem::SubtreeLog::DescribedLog>(m, "SubtreeLogRefile")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLog::Refile {
-                        sem::SubtreeLog::Refile result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("on", &sem::SubtreeLog::Refile::on, R"RAW(When the refiling happened)RAW")
-    .def_readwrite("from_", &sem::SubtreeLog::Refile::from, R"RAW(Link to the original subtree)RAW")
-    .def("__repr__", [](sem::SubtreeLog::Refile _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::SubtreeLog::Refile _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::SubtreeLog::Clock, sem::SubtreeLog::DescribedLog>(m, "SubtreeLogClock")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLog::Clock {
-                        sem::SubtreeLog::Clock result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("from_", &sem::SubtreeLog::Clock::from, R"RAW(Clock start time)RAW")
-    .def_readwrite("to", &sem::SubtreeLog::Clock::to, R"RAW(Optional end of the clock)RAW")
-    .def("__repr__", [](sem::SubtreeLog::Clock _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::SubtreeLog::Clock _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::SubtreeLog::State, sem::SubtreeLog::DescribedLog>(m, "SubtreeLogState")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLog::State {
-                        sem::SubtreeLog::State result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("from_", &sem::SubtreeLog::State::from)
-    .def_readwrite("to", &sem::SubtreeLog::State::to)
-    .def_readwrite("on", &sem::SubtreeLog::State::on)
-    .def("__repr__", [](sem::SubtreeLog::State _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::SubtreeLog::State _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::SubtreeLog::Deadline, sem::SubtreeLog::DescribedLog>(m, "SubtreeLogDeadline")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLog::Deadline {
-                        sem::SubtreeLog::Deadline result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("from_", &sem::SubtreeLog::Deadline::from)
-    .def_readwrite("to", &sem::SubtreeLog::Deadline::to)
-    .def_readwrite("on", &sem::SubtreeLog::Deadline::on)
-    .def("__repr__", [](sem::SubtreeLog::Deadline _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::SubtreeLog::Deadline _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::SubtreeLog::Schedule, sem::SubtreeLog::DescribedLog>(m, "SubtreeLogSchedule")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLog::Schedule {
-                        sem::SubtreeLog::Schedule result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("from_", &sem::SubtreeLog::Schedule::from)
-    .def_readwrite("to", &sem::SubtreeLog::Schedule::to)
-    .def_readwrite("on", &sem::SubtreeLog::Schedule::on)
-    .def("__repr__", [](sem::SubtreeLog::Schedule _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::SubtreeLog::Schedule _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::SubtreeLog::Tag, sem::SubtreeLog::DescribedLog>(m, "SubtreeLogTag")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLog::Tag {
-                        sem::SubtreeLog::Tag result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("on", &sem::SubtreeLog::Tag::on, R"RAW(When the log was assigned)RAW")
-    .def_readwrite("tag", &sem::SubtreeLog::Tag::tag, R"RAW(Tag in question)RAW")
-    .def_readwrite("added", &sem::SubtreeLog::Tag::added, R"RAW(Added/removed?)RAW")
-    .def("__repr__", [](sem::SubtreeLog::Tag _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::SubtreeLog::Tag _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::SubtreeLog::Unknown, sem::SubtreeLog::DescribedLog>(m, "SubtreeLogUnknown")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLog::Unknown {
-                        sem::SubtreeLog::Unknown result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](sem::SubtreeLog::Unknown _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::SubtreeLog::Unknown _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  bind_enum_iterator<sem::SubtreeLog::Kind>(m, "SubtreeLogKind", type_registry_guard);
-  pybind11::enum_<sem::SubtreeLog::Kind>(m, "SubtreeLogKind")
-    .value("Priority", sem::SubtreeLog::Kind::Priority)
-    .value("Note", sem::SubtreeLog::Kind::Note)
-    .value("Refile", sem::SubtreeLog::Kind::Refile)
-    .value("Clock", sem::SubtreeLog::Kind::Clock)
-    .value("State", sem::SubtreeLog::Kind::State)
-    .value("Deadline", sem::SubtreeLog::Kind::Deadline)
-    .value("Schedule", sem::SubtreeLog::Kind::Schedule)
-    .value("Tag", sem::SubtreeLog::Kind::Tag)
-    .value("Unknown", sem::SubtreeLog::Kind::Unknown)
-    .def("__iter__", [](sem::SubtreeLog::Kind _self) -> PyEnumIterator<sem::SubtreeLog::Kind> {
-                     return
-                     PyEnumIterator<sem::SubtreeLog::Kind>
-                     ();
-                     })
-    ;
   pybind11::class_<sem::SubtreeLog, sem::SemId<sem::SubtreeLog>, sem::Org>(m, "SubtreeLog")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLog {
                         sem::SubtreeLog result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("log", &sem::SubtreeLog::log)
+    .def_readwrite("head", &sem::SubtreeLog::head)
+    .def_readwrite("desc", &sem::SubtreeLog::desc, R"RAW(Optional description of the log entry)RAW")
     .def("setDescription",
          static_cast<void(sem::SubtreeLog::*)(sem::SemId<sem::StmtList>)>(&sem::SubtreeLog::setDescription),
          pybind11::arg("desc"))
-    .def("isPriority", static_cast<bool(sem::SubtreeLog::*)() const>(&sem::SubtreeLog::isPriority))
-    .def("getPriority", static_cast<sem::SubtreeLog::Priority&(sem::SubtreeLog::*)()>(&sem::SubtreeLog::getPriority))
-    .def("isNote", static_cast<bool(sem::SubtreeLog::*)() const>(&sem::SubtreeLog::isNote))
-    .def("getNote", static_cast<sem::SubtreeLog::Note&(sem::SubtreeLog::*)()>(&sem::SubtreeLog::getNote))
-    .def("isRefile", static_cast<bool(sem::SubtreeLog::*)() const>(&sem::SubtreeLog::isRefile))
-    .def("getRefile", static_cast<sem::SubtreeLog::Refile&(sem::SubtreeLog::*)()>(&sem::SubtreeLog::getRefile))
-    .def("isClock", static_cast<bool(sem::SubtreeLog::*)() const>(&sem::SubtreeLog::isClock))
-    .def("getClock", static_cast<sem::SubtreeLog::Clock&(sem::SubtreeLog::*)()>(&sem::SubtreeLog::getClock))
-    .def("isState", static_cast<bool(sem::SubtreeLog::*)() const>(&sem::SubtreeLog::isState))
-    .def("getState", static_cast<sem::SubtreeLog::State&(sem::SubtreeLog::*)()>(&sem::SubtreeLog::getState))
-    .def("isDeadline", static_cast<bool(sem::SubtreeLog::*)() const>(&sem::SubtreeLog::isDeadline))
-    .def("getDeadline", static_cast<sem::SubtreeLog::Deadline&(sem::SubtreeLog::*)()>(&sem::SubtreeLog::getDeadline))
-    .def("isSchedule", static_cast<bool(sem::SubtreeLog::*)() const>(&sem::SubtreeLog::isSchedule))
-    .def("getSchedule", static_cast<sem::SubtreeLog::Schedule&(sem::SubtreeLog::*)()>(&sem::SubtreeLog::getSchedule))
-    .def("isTag", static_cast<bool(sem::SubtreeLog::*)() const>(&sem::SubtreeLog::isTag))
-    .def("getTag", static_cast<sem::SubtreeLog::Tag&(sem::SubtreeLog::*)()>(&sem::SubtreeLog::getTag))
-    .def("isUnknown", static_cast<bool(sem::SubtreeLog::*)() const>(&sem::SubtreeLog::isUnknown))
-    .def("getUnknown", static_cast<sem::SubtreeLog::Unknown&(sem::SubtreeLog::*)()>(&sem::SubtreeLog::getUnknown))
-    .def_static("getLogKindStatic",
-                static_cast<sem::SubtreeLog::Kind(*)(sem::SubtreeLog::LogEntry const&)>(&sem::SubtreeLog::getLogKind),
-                pybind11::arg("__input"))
-    .def("getLogKind", static_cast<sem::SubtreeLog::Kind(sem::SubtreeLog::*)() const>(&sem::SubtreeLog::getLogKind))
     .def("__repr__", [](sem::SubtreeLog _self) -> std::string {
                      return py_repr_impl(_self);
                      })
