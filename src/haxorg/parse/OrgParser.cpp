@@ -1718,10 +1718,13 @@ OrgId OrgParser::parseSubtreeTags(OrgLexer& lex) {
 OrgId OrgParser::parseSubtreeTimes(OrgLexer& lex) {
     __perf_trace("parsing", "parseSubtreeTimes");
     auto __trace = trace(lex);
-    if (lex.at(otk::LeadingSpace) && lex.at(otk::TreeTime, +1)) {
+    if ((lex.at(otk::LeadingSpace) && lex.at(otk::TreeTime, +1))
+        || lex.at(otk::TreeTime)) {
         space(lex);
         start(onk::StmtList);
-        while (lex.at(otk::TreeTime)) {
+        while (lex.at(otk::TreeTime)
+               || (lex.at(otk::Newline) && lex.at(otk::TreeTime, +1))) {
+            newline(lex);
             start(onk::InlineStmtList);
             token(onk::Word, pop(lex));
             space(lex);

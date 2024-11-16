@@ -72,7 +72,7 @@ Str getDebugFile(Str const& suffix) {
                 ->test_suite_name())};
     if (!fs::is_directory(dir)) { createDirectory(dir); }
     return fmt(
-        "{}/{}_{}",
+        "{}/{}/{}",
         dir.native(),
         ::testing::UnitTest::GetInstance()->current_test_info()->name(),
         suffix);
@@ -109,6 +109,7 @@ GTEST_ADL_PRINT_TYPE(org::ImmUniqId);
 GTEST_ADL_PRINT_TYPE(org::graph::MapNode);
 GTEST_ADL_PRINT_TYPE(org::graph::MapEdge);
 GTEST_ADL_PRINT_TYPE(Vec<Str>);
+GTEST_ADL_PRINT_TYPE(UserTimeBreakdown);
 
 Str getSelfTest(org::ImmAdapter const& it) {
     return fmt(
@@ -1300,6 +1301,113 @@ TEST(OrgApi, SubtreeLogParsing) {
             sem::getCleanText(it1->at(1)->at(0)), "More nesting1"_ss);
         EXPECT_EQ(
             sem::getCleanText(it1->at(1)->at(1)), "More nesting2"_ss);
+    }
+}
+
+TEST(OrgApi, SubtreeTimesParsing) {
+
+    {
+        auto t = parseOne<sem::Subtree>(R"(* Subtree
+    CLOSED: [2019-11-08 Thu 19:35]
+)");
+        EXPECT_EQ(
+            t->closed.value().getBreakdown(),
+            (UserTimeBreakdown{
+                .year   = 2019,
+                .month  = 11,
+                .day    = 8,
+                .hour   = 19,
+                .minute = 35,
+            }));
+    }
+    {
+        auto t = parseOne<sem::Subtree>(
+            R"(* Subtree
+CLOSED: [2019-11-08 Thu 19:35]
+)",
+            getDebugFile("closed_no_indent"));
+        EXPECT_EQ(
+            t->closed.value().getBreakdown(),
+            (UserTimeBreakdown{
+                .year   = 2019,
+                .month  = 11,
+                .day    = 8,
+                .hour   = 19,
+                .minute = 35,
+            }));
+    }
+    {
+        auto t = parseOne<sem::Subtree>(R"(* Subtree
+    CLOSED: [2019-11-08 Thu 19:35] DEADLINE: [2019-11-07 Thu 19:35] SCHEDULED: [2019-11-02 Thu 19:35]
+)");
+        EXPECT_EQ(
+            t->closed.value().getBreakdown(),
+            (UserTimeBreakdown{
+                .year   = 2019,
+                .month  = 11,
+                .day    = 8,
+                .hour   = 19,
+                .minute = 35,
+            }));
+
+        EXPECT_EQ(
+            t->deadline.value().getBreakdown(),
+            (UserTimeBreakdown{
+                .year   = 2019,
+                .month  = 11,
+                .day    = 7,
+                .hour   = 19,
+                .minute = 35,
+            }));
+
+        EXPECT_EQ(
+            t->scheduled.value().getBreakdown(),
+            (UserTimeBreakdown{
+                .year   = 2019,
+                .month  = 11,
+                .day    = 2,
+                .hour   = 19,
+                .minute = 35,
+            }));
+    }
+    {
+        auto t = parseOne<sem::Subtree>(
+            R"(* Subtree
+CLOSED: [2019-11-12 Thu 19:35]
+DEADLINE: [2019-11-13 Thu 19:35]
+SCHEDULED: [2019-11-14 Thu 19:35]
+)",
+            getDebugFile("multiline_times"));
+
+        EXPECT_EQ(
+            t->closed.value().getBreakdown(),
+            (UserTimeBreakdown{
+                .year   = 2019,
+                .month  = 11,
+                .day    = 12,
+                .hour   = 19,
+                .minute = 35,
+            }));
+
+        EXPECT_EQ(
+            t->deadline.value().getBreakdown(),
+            (UserTimeBreakdown{
+                .year   = 2019,
+                .month  = 11,
+                .day    = 13,
+                .hour   = 19,
+                .minute = 35,
+            }));
+
+        EXPECT_EQ(
+            t->scheduled.value().getBreakdown(),
+            (UserTimeBreakdown{
+                .year   = 2019,
+                .month  = 11,
+                .day    = 14,
+                .hour   = 19,
+                .minute = 35,
+            }));
     }
 }
 

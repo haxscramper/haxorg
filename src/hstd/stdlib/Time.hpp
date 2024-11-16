@@ -24,6 +24,15 @@ struct [[refl]] UserTimeBreakdown {
         (year, month, day, hour, minute, second, zone),
         (),
         ());
+
+    bool operator==(UserTimeBreakdown const& other) const {
+        return year == other.year     //
+            && month == other.month   //
+            && day == other.day       //
+            && hour == other.hour     //
+            && second == other.second //
+            && zone == other.zone;
+    }
 };
 
 struct [[refl]] UserTime {

@@ -752,7 +752,7 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
             } else if (org_streq(kind->text, "deadline")) {
                 tree->deadline = time->getStaticTime();
             } else if (org_streq(kind->text, "scheduled")) {
-                tree->deadline = time->getStaticTime();
+                tree->scheduled = time->getStaticTime();
             } else {
                 return SemError(
                     a,
