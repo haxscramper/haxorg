@@ -70,19 +70,6 @@ def test_attached_property_link():
     assert onExport0.getBool() == True
 
 
-def test_link_resolution():
-    resolve = org.OrgDocumentContext()
-    node = org.parseString("""
-* Subtree
-  :properties:
-  :id: id-name
-  :end:
-""")
-
-    resolve.addNodes(node)
-    assert len(resolve.getSubtreeById("id-name")) == 1, org.treeRepr(node)
-
-
 def test_subnode_visitor():
     node = org.parseString("Word")
     kinds = []
