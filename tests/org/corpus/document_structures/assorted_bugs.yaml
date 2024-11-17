@@ -446,8 +446,6 @@ items:
       + B
 
   - name: "Name and results"
-    debug:
-      traceAll: true
     source: |
       #+name: xxx
       #+BEGIN_SRC sch :exports none :file imgs/sch_1.tmp.png

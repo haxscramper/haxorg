@@ -23,7 +23,8 @@ struct Formatter {
 
     Res toString(sem::AttrValue const& id, CR<Context> ctx);
     Res toString(UserTime const& id, CR<Context> ctx) {
-        return str(id.format(UserTime::Format::OrgFormat));
+        return str(
+            "["_ss + Str{id.format(UserTime::Format::OrgFormat)} + "]"_ss);
     }
     Res toString(sem::SubtreeCompletion const& id, CR<Context> ctx);
     Res toString(sem::AttrGroup const& args, CR<Context> ctx);

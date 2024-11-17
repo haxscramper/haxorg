@@ -152,6 +152,77 @@ auto Formatter::toString(SemId<Document> id, CR<Context> ctx) -> Res {
         add(result, b.line({str("#+startup: "), str(res)}));
     }
 
+    if (id->options->columns) {
+        Vec<Res> buf;
+        buf.push_back(str("#+columns:"));
+
+        for (auto const& col : id->options->columns.value().columns) {
+            Str res;
+            res += "%";
+            if (col.width) { res += fmt1(col.width.value()); }
+
+            if (col.property) { res += col.property.value(); }
+
+            if (col.propertyTitle) {
+                res += fmt("({})", col.propertyTitle.value());
+            }
+            using type = sem::ColumnView::Summary;
+
+            if (col.summary) {
+                auto const& s = col.summary.value();
+                res += "[";
+                if (s.isCheckboxAggregate()) {
+                    auto const& check = s.getCheckboxAggregate();
+                    switch (check.kind) {
+                        case type::CheckboxAggregate::Kind::
+                            AggregateFractionRec: {
+                            res += "x/";
+                            break;
+                        }
+                        case type::CheckboxAggregate::Kind::
+                            AggregatePercentRec: {
+                            res += "x%";
+                            break;
+                        }
+                        case type::CheckboxAggregate::Kind::IfAllNested: {
+                            res += "x";
+                            break;
+                        }
+                    }
+                } else {
+                    auto const& math = s.getMathAggregate();
+                    switch (math.kind) {
+                        case type::MathAggregate::Kind::Max: {
+                            res += "min";
+                            break;
+                        }
+                        case type::MathAggregate::Kind::LowHighEst: {
+                            res += "est+";
+                            break;
+                        }
+                        case type::MathAggregate::Kind::Mean: {
+                            res += "avg";
+                            break;
+                        }
+                        case type::MathAggregate::Kind::Min: {
+                            res += "min";
+                            break;
+                        }
+                        case type::MathAggregate::Kind::Sum: {
+                            res += "sum";
+                            break;
+                        }
+                    }
+                }
+                res += "]";
+            }
+
+            buf.push_back(str(res));
+        }
+
+        add(result, b.join(buf, str(" ")));
+    }
+
     if (!id->filetags.empty()) {
         add(result,
             b.line(
@@ -257,7 +328,7 @@ auto Formatter::toString(SemId<InlineFootnote> id, CR<Context> ctx)
 auto Formatter::toString(sem::AttrValue const& id, CR<Context> ctx)
     -> Res {
     if (id.name) {
-        return str(fmt(":{} {}", id.name, id.value));
+        return str(fmt(":{} {}", id.name.value(), id.value));
     } else {
         return str(id.name.value());
     }
@@ -892,6 +963,10 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
             lead.push_back(toString(id->title, ctx));
         }
 
+        if (id->completion) {
+            lead.push_back(toString(id->completion.value(), ctx));
+        }
+
         if (!id->tags.empty()) {
             tags.push_back(colonHashtags(this, id->tags));
         }
@@ -903,6 +978,7 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
                 str(":"),
             }));
         }
+
 
         add(title, b.join(lead, str(" ")));
     }
