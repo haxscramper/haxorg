@@ -769,6 +769,7 @@ def cmake_build_deps(
         if 0 < len(build_whitelist) and build_name not in build_whitelist:
             return
 
+        log(CAT).info(f"Running build name='{build_name}' deps='{deps_name}'")
         if configure:
             run_command(ctx, "cmake", [
                 "-B",
