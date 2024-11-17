@@ -1207,11 +1207,15 @@ def profdata_coverage(
     for file in bin_path.parent.glob("*.profdata"):
         file.unlink()
 
+    for file in bin_path.parent.rglob("*.gcda"):
+        file.unlink()
+
     dir = get_build_root().joinpath("profile")
     dir.mkdir(parents=True, exist_ok=True)
     current = Path().cwd()
 
     run_command(ctx, bin_path, args=arg)
+    print(bin_path.parent)
 
     default_profraw = current / "default.profraw"
     result_profdata = dir / "bench.profdata"

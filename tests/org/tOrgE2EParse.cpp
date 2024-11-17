@@ -2912,19 +2912,13 @@ TestGraph create_test_graph() {
     auto n1 = org::ImmUniqId{org::ImmId::FromValue(1)};
     auto n2 = org::ImmUniqId{org::ImmId::FromValue(2)};
 
-    g.adjList = {
-        {n0, {n1}},
-        {n1, {n2}},
-        {n2, {n0}},
-    };
+    g.addNode(n0);
+    g.addNode(n1);
+    g.addNode(n2);
 
-    g.nodeProps.insert_or_assign(n0, org::graph::MapNodeProp{});
-    g.nodeProps.insert_or_assign(n1, org::graph::MapNodeProp{});
-    g.nodeProps.insert_or_assign(n2, org::graph::MapNodeProp{});
-
-    g.edgeProps.insert_or_assign({n0, n1}, org::graph::MapEdgeProp{});
-    g.edgeProps.insert_or_assign({n1, n2}, org::graph::MapEdgeProp{});
-    g.edgeProps.insert_or_assign({n2, n0}, org::graph::MapEdgeProp{});
+    g.addEdge(org::graph::MapEdge{n0, n1});
+    g.addEdge(org::graph::MapEdge{n1, n2});
+    g.addEdge(org::graph::MapEdge{n2, n0});
 
     return TestGraph{
         .g     = g,
@@ -2933,19 +2927,19 @@ TestGraph create_test_graph() {
 }
 
 
-TEST(ImmMapApi, VertexCount) {
+TEST(ImmMapGraphApi, VertexCount) {
     auto g            = create_test_graph();
     auto num_vertices = boost::num_vertices(g.g);
     EXPECT_EQ(num_vertices, 3);
 }
 
-TEST(ImmMapApi, EdgeCount) {
+TEST(ImmMapGraphApi, EdgeCount) {
     auto g         = create_test_graph();
     auto num_edges = boost::num_edges(g.g);
     EXPECT_EQ(num_edges, 3);
 }
 
-TEST(ImmMapApi, Vertices) {
+TEST(ImmMapGraphApi, Vertices) {
     auto g                = create_test_graph();
     auto [v_begin, v_end] = boost::vertices(g.g);
     std::vector<org::graph::MapNode> vertices(v_begin, v_end);
@@ -2954,7 +2948,7 @@ TEST(ImmMapApi, Vertices) {
     EXPECT_EQ(vertices.size(), 3);
 }
 
-TEST(ImmMapApi, Edges) {
+TEST(ImmMapGraphApi, Edges) {
     auto g                = create_test_graph();
     auto [e_begin, e_end] = boost::edges(g.g);
     std::vector<org::graph::MapEdge> edges(e_begin, e_end);
@@ -2980,34 +2974,53 @@ TEST(ImmMapApi, Edges) {
         edges.end());
 }
 
-TEST(ImmMapApi, AdjacentVertices) {
+TEST(ImmMapGraphApi, AdjacentVertices) {
     auto g                    = create_test_graph();
     auto [adj_begin, adj_end] = boost::adjacent_vertices(
         g.nodes.at(0), g.g);
 
     std::vector<org::graph::MapNode> adjacent_vertices(adj_begin, adj_end);
 
-    EXPECT_EQ(adjacent_vertices.size(), 1);
+    EXPECT_EQ(adjacent_vertices.size(), 2);
     EXPECT_EQ(adjacent_vertices[0], g.nodes.at(1));
+    EXPECT_EQ(adjacent_vertices[1], g.nodes.at(2));
 }
 
-TEST(ImmMapApi, OutDegree) {
+TEST(ImmMapGraphApi, OutDegree) {
     auto g          = create_test_graph();
     auto out_degree = boost::out_degree(g.nodes.at(0), g.g);
     EXPECT_EQ(out_degree, 1);
 }
 
-TEST(ImmMapApi, OutEdges) {
-    auto g                  = create_test_graph();
-    auto [oe_begin, oe_end] = boost::out_edges(g.nodes.at(0), g.g);
-    std::vector<org::graph::MapEdge> out_edges(oe_begin, oe_end);
+TEST(ImmMapGraphApi, EdgeIterators) {
+    auto g = create_test_graph();
+    {
+        auto [oe_begin, oe_end] = boost::out_edges(g.nodes.at(0), g.g);
+        std::vector<org::graph::MapEdge> out_edges(oe_begin, oe_end);
 
-    EXPECT_EQ(out_edges.size(), 1);
-    EXPECT_EQ(
-        out_edges[0], (org::graph::MapEdge{g.nodes.at(0), g.nodes.at(1)}));
+        EXPECT_EQ(out_edges.size(), 1);
+        EXPECT_EQ(
+            out_edges[0],
+            (org::graph::MapEdge{g.nodes.at(0), g.nodes.at(1)}));
+    }
+
+    {
+        auto [ie_begin, ie_end] = boost::in_edges(g.nodes.at(0), g.g);
+        std::vector<org::graph::MapEdge> in_edges(ie_begin, ie_end);
+
+        EXPECT_EQ(in_edges.size(), 1);
+        EXPECT_EQ(
+            in_edges[0],
+            (org::graph::MapEdge{g.nodes.at(2), g.nodes.at(0)}));
+    }
 }
 
-TEST(ImmMapApi, SourceAndTarget) {
+TEST(ImmMapGraphApi, AdjacencyIteration) {
+    auto g = create_test_graph();
+    EXPECT_EQ(g.g.adjNodes(g.nodes.at(0)).size(), 2);
+}
+
+TEST(ImmMapGraphApi, SourceAndTarget) {
     auto                g = create_test_graph();
     org::graph::MapEdge e{g.nodes.at(0), g.nodes.at(1)};
     auto                src = boost::source(e, g.g);
@@ -3017,7 +3030,7 @@ TEST(ImmMapApi, SourceAndTarget) {
     EXPECT_EQ(tgt, g.nodes.at(1));
 }
 
-TEST(ImmMapApi, BoostPropertyWriter) {
+TEST(ImmMapGraphApi, BoostPropertyWriter) {
     auto n = parseNode(getFullMindMapText());
 
     org::ImmAstContext        store;

@@ -33,6 +33,44 @@ struct map_graph_vertices_iterator {
     }
 };
 
+template <typename T>
+struct map_graph_buffered_iterator {
+    using iterator_category = std::forward_iterator_tag;
+    using value_type        = T;
+    using difference_type   = std::ptrdiff_t;
+    using pointer           = const value_type*;
+    using reference         = const value_type&;
+
+    Vec<T> buffer;
+    int    index = 0;
+
+    map_graph_buffered_iterator(int index = 0) : index{index} {}
+    map_graph_buffered_iterator(Vec<T> const& buf, int index = 0)
+        : buffer(buf), index{index} {}
+
+    reference operator*() const { return buffer.at(index); }
+    pointer   operator->() const { return &(buffer.at(index)); }
+
+    map_graph_buffered_iterator& operator++() {
+        ++index;
+        return *this;
+    }
+
+    map_graph_buffered_iterator operator++(int) {
+        auto res = *this;
+        operator++();
+        return res;
+    }
+
+    bool operator==(const map_graph_buffered_iterator& other) const {
+        return index == other.index;
+    }
+
+    bool operator!=(const map_graph_buffered_iterator& other) const {
+        return index != other.index;
+    }
+};
+
 struct map_graph_adjacent_vertices_iterator {
     using iterator_category = std::forward_iterator_tag;
     using value_type        = org::graph::MapNode;
@@ -108,6 +146,46 @@ struct map_graph_out_edges_iterator {
     }
 
     bool operator!=(const map_graph_out_edges_iterator& other) const {
+        return source != other.source || iter != other.iter;
+    }
+};
+
+struct map_graph_in_edges_iterator {
+    using iterator_category = std::forward_iterator_tag;
+    using value_type        = org::graph::MapEdge;
+    using difference_type   = std::ptrdiff_t;
+    using pointer           = const value_type*;
+    using reference         = const value_type&;
+
+    org::graph::MapNode                               source;
+    typename org::graph::AdjNodesList::const_iterator iter;
+
+    map_graph_in_edges_iterator() : source{org::ImmUniqId{}} {};
+    map_graph_in_edges_iterator(
+        org::graph::MapNode const&                        source,
+        typename org::graph::AdjNodesList::const_iterator it)
+        : source{source}, iter{it} {}
+
+    value_type operator*() const {
+        return org::graph::MapEdge{source, *iter};
+    }
+
+    map_graph_in_edges_iterator& operator++() {
+        ++iter;
+        return *this;
+    }
+
+    map_graph_in_edges_iterator operator++(int) {
+        auto res = *this;
+        operator++();
+        return res;
+    }
+
+    bool operator==(const map_graph_in_edges_iterator& other) const {
+        return source == other.source && iter == other.iter;
+    }
+
+    bool operator!=(const map_graph_in_edges_iterator& other) const {
         return source != other.source || iter != other.iter;
     }
 };
@@ -227,21 +305,17 @@ inline std::pair<map_graph_edges_iterator, map_graph_edges_iterator> edges(
     };
 }
 
-inline std::pair<map_graph_adjacent_vertices_iterator, map_graph_adjacent_vertices_iterator> adjacent_vertices(
-    org::graph::MapNode const&  v,
-    org::graph::MapGraph const& g) {
-    auto it = g.adjList.find(v);
-    if (it != nullptr) {
-        return {
-            map_graph_adjacent_vertices_iterator(it->second.begin()),
-            map_graph_adjacent_vertices_iterator(it->second.end()),
-        };
-    } else {
-        return {
-            map_graph_adjacent_vertices_iterator(),
-            map_graph_adjacent_vertices_iterator(),
-        };
-    }
+inline std::pair<
+    map_graph_buffered_iterator<org::graph::MapNode>,
+    map_graph_buffered_iterator<org::graph::MapNode>>
+    adjacent_vertices(
+        org::graph::MapNode const&  v,
+        org::graph::MapGraph const& g) {
+    auto tmp = g.adjNodes(v);
+    return {
+        map_graph_buffered_iterator<org::graph::MapNode>{tmp},
+        map_graph_buffered_iterator<org::graph::MapNode>{tmp.size()},
+    };
 }
 
 inline org::graph::MapNodeProp const& get(
@@ -273,22 +347,28 @@ inline int out_degree(
     return it != nullptr ? it->second.size() : 0;
 }
 
-inline std::pair<map_graph_out_edges_iterator, map_graph_out_edges_iterator> out_edges(
-    org::graph::MapNode const&  v,
-    org::graph::MapGraph const& g) {
-    std::vector<org::graph::MapEdge> outEdges;
-    auto                             it = g.adjList.find(v);
-    if (it == nullptr) {
-        return {
-            map_graph_out_edges_iterator{},
-            map_graph_out_edges_iterator{},
-        };
-    } else {
-        return {
-            map_graph_out_edges_iterator{v, it->second.begin()},
-            map_graph_out_edges_iterator{v, it->second.end()},
-        };
-    }
+inline std::pair<
+    map_graph_buffered_iterator<org::graph::MapEdge>,
+    map_graph_buffered_iterator<org::graph::MapEdge>>
+    out_edges(
+        org::graph::MapNode const&  v,
+        org::graph::MapGraph const& g) {
+    auto tmp = g.outEdges(v);
+    return {
+        map_graph_buffered_iterator<org::graph::MapEdge>{tmp},
+        map_graph_buffered_iterator<org::graph::MapEdge>{tmp.size()},
+    };
+}
+
+inline std::pair<
+    map_graph_buffered_iterator<org::graph::MapEdge>,
+    map_graph_buffered_iterator<org::graph::MapEdge>>
+    in_edges(org::graph::MapNode const& v, org::graph::MapGraph const& g) {
+    auto tmp = g.inEdges(v);
+    return {
+        map_graph_buffered_iterator<org::graph::MapEdge>{tmp},
+        map_graph_buffered_iterator<org::graph::MapEdge>{tmp.size()},
+    };
 }
 
 inline org::graph::MapNode source(
