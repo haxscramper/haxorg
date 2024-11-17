@@ -2,11 +2,33 @@
 #include <gtest/gtest.h>
 #include <hstd/stdlib/dod_base.hpp>
 #include <bitset>
-
-struct IdMask2Value {};
+struct IdMask2;
+struct IdMask2Value {
+    using id_type = IdMask2;
+};
 DECL_ID_TYPE_MASKED(IdMask2Value, IdMask2, u8, 2);
 
-struct IdMask0Value {};
+struct IdMask0;
+struct IdMask0Value {
+    int field1;
+    int field2;
+    using id_type = IdMask0;
+    bool operator==(IdMask0Value const& other) const {
+        return field1 == other.field1 && field2 == other.field2;
+    }
+};
+
+template <>
+struct std::hash<IdMask0Value> {
+    std::size_t operator()(IdMask0Value const& it) const noexcept {
+        std::size_t result = 0;
+        hax_hash_combine(result, it.field1);
+        hax_hash_combine(result, it.field2);
+        return result;
+    }
+};
+
+
 DECL_ID_TYPE_MASKED(IdMask0Value, IdMask0, u8, 0);
 
 template <typename T>
@@ -51,4 +73,60 @@ TEST(DODContainersTest, UnmaskedNodes) {
     EXPECT_EQ(id.getMask(), 0);
     EXPECT_EQ(id.getMaskSize(), 0);
     EXPECT_EQ(id.getMaskUnshifed(), 0);
+}
+
+TEST(DODContainersTest, InternStore) {
+    using Store = dod::InternStore<IdMask0, IdMask0Value>;
+    Store s;
+    auto  id1 = s.add(IdMask0Value{.field1 = 0});
+    EXPECT_FALSE(id1.isNil());
+    auto id2 = s.add(IdMask0Value{.field1 = 0});
+    EXPECT_EQ(s.size(), 1);
+    EXPECT_EQ(id1, id2);
+    auto id3 = s.add(IdMask0Value{.field1 = 12});
+    EXPECT_NE(id1, id3);
+    EXPECT_EQ(s.size(), 2);
+}
+
+TEST(DODContainersTest, Store) {
+    dod::Store<IdMask0, IdMask0Value> s;
+    EXPECT_EQ(s.size(), 0);
+    auto id1 = s.add(IdMask0Value{});
+    EXPECT_FALSE(id1.isNil());
+    EXPECT_EQ(s.size(), 1);
+    auto id2 = s.add(IdMask0Value{});
+    EXPECT_FALSE(id1.isNil());
+    EXPECT_EQ(s.size(), 2);
+    EXPECT_NE(id1, id2);
+
+    s.at(id1).field1 = 0;
+}
+
+TEST(DODContainersTest, MultiStore) {
+    dod::MultiStore<
+        dod::InternStore<IdMask0, IdMask0Value>,
+        dod::Store<IdMask2, IdMask2Value>>
+        s;
+
+    {
+        auto id1 = s.add(IdMask0Value{.field1 = 0});
+        EXPECT_FALSE(id1.isNil());
+        auto id2 = s.add(IdMask0Value{.field1 = 0});
+        EXPECT_EQ(s.store<IdMask0Value>().size(), 1);
+        EXPECT_EQ(id1, id2);
+        auto id3 = s.add(IdMask0Value{.field1 = 12});
+        EXPECT_NE(id1, id3);
+        EXPECT_EQ(s.store<IdMask0Value>().size(), 2);
+    }
+
+    {
+        EXPECT_EQ(s.store<IdMask2Value>().size(), 0);
+        auto id1 = s.add(IdMask2Value{});
+        EXPECT_FALSE(id1.isNil());
+        EXPECT_EQ(s.store<IdMask2Value>().size(), 1);
+        auto id2 = s.add(IdMask2Value{});
+        EXPECT_FALSE(id1.isNil());
+        EXPECT_EQ(s.store<IdMask2Value>().size(), 2);
+        EXPECT_NE(id1, id2);
+    }
 }

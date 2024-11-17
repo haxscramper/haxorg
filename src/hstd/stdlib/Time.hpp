@@ -24,6 +24,15 @@ struct [[refl]] UserTimeBreakdown {
         (year, month, day, hour, minute, second, zone),
         (),
         ());
+
+    bool operator==(UserTimeBreakdown const& other) const {
+        return year == other.year     //
+            && month == other.month   //
+            && day == other.day       //
+            && hour == other.hour     //
+            && second == other.second //
+            && zone == other.zone;
+    }
 };
 
 struct [[refl]] UserTime {
@@ -67,9 +76,10 @@ struct std::formatter<absl::TimeZone> : std::formatter<std::string> {
 };
 
 
-template <>
-struct ReflVisitor<absl::Time> : ReflVisitorLeafType<absl::Time> {};
+template <typename Tag>
+struct ReflVisitor<absl::Time, Tag>
+    : ReflVisitorLeafType<absl::Time, Tag> {};
 
-template <>
-struct ReflVisitor<absl::TimeZone>
-    : ReflVisitorLeafType<absl::TimeZone> {};
+template <typename Tag>
+struct ReflVisitor<absl::TimeZone, Tag>
+    : ReflVisitorLeafType<absl::TimeZone, Tag> {};

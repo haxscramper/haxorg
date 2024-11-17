@@ -44,7 +44,7 @@ std::string UserTime::format(Format kind) const {
         default: format = "%Y-%m-%d"; break;
     }
 
-    if (kind == Format::OrgFormat) { format += " %a"; }
+    // if (kind == Format::OrgFormat) { format += " %a"; }
 
     switch (align) {
         case Alignment::Hour: format += " %H"; break;

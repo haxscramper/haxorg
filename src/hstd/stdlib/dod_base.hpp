@@ -19,6 +19,13 @@
 /// based on my understanding of the DOD practices and as such might
 /// contain some things that could be implemented differently or ones that
 /// are not necessary at all.
+///
+/// The main types in the namespace are `dod::Store` (flat sequence of
+/// values, adressable by the ID), `dod::InternStore` (de-duplicate stored
+/// values using hashing) and `dod::Id` (base type for the ID).
+///
+/// `dod::MultiStore` is an additional helper type to simplify management
+/// of multiple stores.
 namespace dod {
 /// \brief DOD Id type
 ///
@@ -32,6 +39,11 @@ namespace dod {
 /// unsigned data types. They *do not* provide any sort of pointer-like
 /// arithmentics or any other operations that might fail due to the
 /// overflow. Container indices can be freely converted to the pointers.
+///
+/// \note Store only uses the index part of the ID -- mask bytes are
+/// reserved for additional metadata that developer might use. All `.add()`
+/// operations return the ID constructed without any mask set, and
+/// accessing the content in the store using ID will only read index.
 template <
     /// Base type that will be used for ID storage
     std::integral IdType,

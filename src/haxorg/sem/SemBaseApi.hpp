@@ -1,5 +1,6 @@
 #pragma once
 #include <haxorg/sem/SemOrg.hpp>
+#include <haxorg/sem/ImmOrg.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Json.hpp>
 
@@ -114,107 +115,85 @@ struct [[refl]] OrgTreeExportOpts {
     OrgTreeExportOpts const&    opts);
 
 
-using SubnodeVisitor = Func<void(SemId<Org>)>;
+using SubnodeVisitor = Func<void(SemId<Org> const&)>;
 /// \brief Recursively visit each subnode in the tree and apply the
 /// provided callback
 void eachSubnodeRec(SemId<Org> id, SubnodeVisitor cb);
 
+template <typename T, typename Func>
+Vec<T> getDfsFuncEval(SemId<Org> id, Func const& cb) {
+    Vec<T> dfs;
+    eachSubnodeRec(id, [&](SemId<Org> const& sub) {
+        Opt<T> res = cb(sub);
+        if (res.has_value()) { dfs.push_back(res.value()); }
+    });
+    return dfs;
+}
 
-/// \brief Part of the parent node context path. When visiting a node this
-/// path will contain an ordered list of all *parent* elements.
-struct [[refl]] SubnodeVisitorCtxPart {
-    enum class [[refl]] Kind
-    {
-        Field, ///< \brief Visiting named field
-        Index, ///< \brief Visiting indexed subnode.
-        Key,   ///< \brief Visiting Str->Node table
-    };
+template <typename T, typename Func>
+Vec<T> getDfsFuncEval(org::ImmAdapter id, bool withPath, Func const& cb) {
+    Vec<T> dfs;
+    org::eachSubnodeRec(id, withPath, [&](org::ImmAdapter const& sub) {
+        Opt<T> res = cb(sub);
+        if (res.has_value()) { dfs.push_back(res.value()); }
+    });
+    return dfs;
+}
 
-    BOOST_DESCRIBE_NESTED_ENUM(Kind, Field, Index, Key);
+Vec<Str> getDfsLeafText(SemId<Org> id, SemSet const& filter);
+Vec<Str> getDfsLeafText(org::ImmAdapter const& id, SemSet const& filter);
+Str      getCleanText(sem::SemId<sem::Org> const& id);
+Str      getCleanText(org::ImmAdapter const& id);
 
-    /// \brief Parent node for the currently visited one. Each node is
-    /// encountered exactly once in the visitor context path, but when
-    /// visiting multi-layered fields (vector field) the node is not,
-    /// present.
-    ///
-    /// For vector fields the path will have two parts:
-    /// `[node+field-name]+[index]` -- the first element from the actual
-    /// field visit and the second is from accessing each particular index.
-    [[refl]] Opt<SemId<Org>> node;
-    /// \brief If the current visit is in vector field -- index of
-    /// the node in parent list.
-    [[refl]] Opt<int> index;
-    /// \brief If the current visit is in the dedicated field (`.title` for
-    /// example),
-    [[refl]] Opt<Str> field;
-    [[refl]] Kind     kind;
+/// \brief Get index of the list item with given text
+int getListHeaderIndex(sem::SemId<sem::List> const& it, CR<Str> text);
+/// \brief Assign body to the list item at the given position.
+void setListItemBody(
+    sem::SemId<sem::List>     id,
+    int                       index,
+    Vec<sem::SemId<sem::Org>> value);
 
-    BOOST_DESCRIBE_CLASS(
-        SubnodeVisitorCtxPart,
-        (),
-        (node, index, field, kind),
-        (),
-        ());
-};
+void setDescriptionListItemBody(
+    sem::SemId<sem::List>     list,
+    CR<Str>                   text,
+    Vec<sem::SemId<sem::Org>> value);
 
-struct [[refl]] SubnodeVisitorOpts {
+/// \brief Insert the list item at the specified position
+void insertListItemBody(
+    sem::SemId<sem::List>     id,
+    int                       index,
+    Vec<sem::SemId<sem::Org>> value);
 
-    BOOST_DESCRIBE_CLASS(SubnodeVisitorOpts, (), (), (), ());
-};
-
-struct [[refl]] SubnodeVisitorResult {
-    /// \brief After visting the current node, descend into it's node
-    /// fields
-    [[refl]] bool visitNextFields = true;
-    /// \brief
-    [[refl]] bool visitNextSubnodes = true;
-    [[refl]] bool visitNextBases    = true;
-    BOOST_DESCRIBE_CLASS(
-        SubnodeVisitorResult,
-        (),
-        (visitNextFields, visitNextSubnodes, visitNextBases),
-        (),
-        ());
-};
-
-using SubnodeVisitorWithCtx = Func<
-    SubnodeVisitorResult(SemId<Org>, Vec<SubnodeVisitorCtxPart> const&)>;
-
-/// \brief Recursively visit each subnode in the tree and apply the
-/// provided callback to all non-nil subnodes. Pass the current node index
-/// in the parent tree, stack of the parent nodes and the node itself. If
-/// visit is done to a node placed in a
-void eachSubnodeRecWithContext(SemId<Org> id, SubnodeVisitorWithCtx);
+void insertDescriptionListItem(
+    sem::SemId<sem::List>      id,
+    int                        index,
+    sem::SemId<sem::Paragraph> paragraph,
+    Vec<sem::SemId<sem::Org>>  value);
 
 
-struct Subtree;
-struct Link;
+template <typename T>
+Vec<T> getSubtreeProperties(sem::SemId<sem::Subtree> const& tree) {
+    Vec<T> result;
+    for (auto const& prop : tree->properties) {
+        if (std::holds_alternative<T>(prop.data)) {
+            result.push_back(std::get<T>(prop.data));
+        }
+    }
 
-/// \brief Statically computed context for the link, footnote and subtree
-/// ID resolution.
-///
-/// \note All possible link targets are stored and returned as sequences,
-/// so the decision about reaction to the duplicate links can be done by
-/// the callsite. Order of elements in the returned links depends on the
-/// order of node registration.
-struct [[refl]] OrgDocumentContext {
-    UnorderedMap<Str, Vec<SemId<Subtree>>>   subtreeIds;
-    UnorderedMap<Str, Vec<SemId<Subtree>>>   subtreeCustomIds;
-    UnorderedMap<Str, Vec<SemId<Org>>>       radioTargets;
-    UnorderedMap<Str, Vec<SemId<Paragraph>>> footnoteTargets;
-
-
-    [[refl]] Vec<SemId<Subtree>> getSubtreeById(Str const& id) const;
-    [[refl]] Vec<SemId<Org>> getLinkTarget(SemId<Link> const& link) const;
-    [[refl]] Vec<SemId<Org>> getRadioTarget(Str const& name) const;
-
-    /// \brief Recursively register all availble targets from the nodes.
-    [[refl]] void addNodes(SemId<Org> const& node);
-
-    BOOST_DESCRIBE_CLASS(OrgDocumentContext, (), (), (), ());
-};
+    return result;
+}
 
 Opt<UserTime> getCreationTime(SemId<Org> const& node);
+
+Opt<sem::NamedProperty> getFinalProperty(
+    CR<Vec<sem::SemId<sem::Org>>> nodes,
+    CR<Str>                       kind,
+    CR<Opt<Str>>                  subKind = std::nullopt);
+
+Opt<sem::NamedProperty> getFinalProperty(
+    CR<Vec<org::ImmAdapter>> nodes,
+    CR<Str>                  kind,
+    CR<Opt<Str>>             subKind = std::nullopt);
 
 
 } // namespace sem

@@ -347,10 +347,11 @@ struct RecombineState {
             }
 
             case otk::CmdAttr: {
-                auto const& text = lex.tok().value.text;
-                add_fake(
-                    otk::CmdAttr,
-                    loc_fill(text.substr(5, text.size() - 7)));
+                auto text = lex.tok().value.text;
+                text      = text.substr(("attr"_ss).size());
+                text      = lstrip(text, CharSet{'_'});
+                text      = rstrip(text, CharSet{' ', ':'});
+                add_fake(otk::CmdAttr, loc_fill(text));
                 lex.next();
                 break;
             }

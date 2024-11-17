@@ -178,6 +178,41 @@ struct proto_serde<Opt<Proto>, Opt<T>> {
     }
 };
 
+template <>
+struct proto_serde<
+    gpb::RepeatedPtrField<orgproto::Tblfm_Assign_Flag>,
+    Vec<sem::Tblfm::Assign::Flag>> {
+    using Proto = orgproto::Tblfm_Assign_Flag;
+    using T     = sem::Tblfm::Assign::Flag;
+    static void write(
+        gpb::RepeatedPtrField<Proto>* out,
+        Vec<T> const&                 in) {
+        for (auto const& it : in) { out->Add(static_cast<Proto>(it)); }
+    }
+
+    static void write(gpb::RepeatedField<int>* out, Vec<T> const& in) {
+        for (auto const& it : in) { out->Add(static_cast<int>(it)); }
+    }
+
+    static void read(
+        gpb::RepeatedPtrField<Proto> const& out,
+        proto_write_accessor<Vec<T>>        in) {
+        for (auto const& it : out) {
+            auto& ref = in.get().emplace_back();
+            ref       = static_cast<T>(it);
+        }
+    }
+
+    static void read(
+        gpb::RepeatedField<int> const& out,
+        proto_write_accessor<Vec<T>>   in) {
+        for (auto const& it : out) {
+            auto& ref = in.get().emplace_back();
+            ref       = static_cast<T>(it);
+        }
+    }
+};
+
 template <typename Proto, typename T>
 struct proto_serde<gpb::RepeatedPtrField<Proto>, Vec<T>> {
     static void write(
@@ -520,15 +555,24 @@ struct proto_serde<int, int> {
     }
 };
 
-template <typename Proto>
-struct proto_serde<Proto, sem::SubtreeLog::DescribedLog> {
-    static void write(
-        Proto*                               out,
-        sem::SubtreeLog::DescribedLog const& in) {}
-    static void read(
-        Proto const&                                        out,
-        proto_write_accessor<sem::SubtreeLog::DescribedLog> in) {}
+template <>
+struct proto_serde<float, float> {
+    static void write(float* out, float const& in) { *out = in; }
+    static void read(float const& out, proto_write_accessor<float> in) {
+        in.get() = out;
+    }
 };
+
+
+// template <typename Proto>
+// struct proto_serde<Proto, sem::SubtreeLog::DescribedLog> {
+//     static void write(
+//         Proto*                               out,
+//         sem::SubtreeLog::DescribedLog const& in) {}
+//     static void read(
+//         Proto const&                                        out,
+//         proto_write_accessor<sem::SubtreeLog::DescribedLog> in) {}
+// };
 
 
 template <>

@@ -125,17 +125,62 @@ struct MapGraph {
     NodeProps nodeProps;
     EdgeProps edgeProps;
     AdjList   adjList;
-    AdjList   inNodes;
+    AdjList   adjListIn;
+
+    void clear() {
+        nodeProps.clear();
+        edgeProps.clear();
+        adjList.clear();
+        adjListIn.clear();
+    }
 
     int nodeCount() const { return nodeProps.size(); }
     int edgeCount() const { return edgeProps.size(); }
+
+    AdjNodesList const& outNodes(MapNode const& node) const {
+        return adjList.at(node);
+    }
+
+    AdjNodesList const& inNodes(MapNode const& node) const {
+        return adjListIn.at(node);
+    }
+
+    Vec<MapNode> adjNodes(MapNode const& node) const {
+        UnorderedSet<org::graph::MapNode> adjacent;
+        Vec<MapNode>                      result;
+        for (auto const& node : outNodes(node)) {
+            adjacent.incl(node);
+            result.push_back(node);
+        }
+
+        for (auto const& n : inNodes(node)) {
+            if (!adjacent.contains(n)) { result.push_back(n); }
+        }
+        return result;
+    }
+
+    Vec<MapEdge> outEdges(MapNode const& node) const {
+        Vec<MapEdge> result;
+        for (auto const& target : outNodes(node)) {
+            result.push_back(MapEdge{node, target});
+        }
+        return result;
+    }
+
+    Vec<MapEdge> inEdges(MapNode const& node) const {
+        Vec<MapEdge> result;
+        for (auto const& target : inNodes(node)) {
+            result.push_back(MapEdge{target, node});
+        }
+        return result;
+    }
 
     int outDegree(MapNode const& node) const {
         return adjList.contains(node) ? adjList.at(node).size() : 0;
     }
 
     int inDegree(MapNode const& node) const {
-        return inNodes.contains(node) ? inNodes.at(node).size() : 0;
+        return adjListIn.contains(node) ? adjListIn.at(node).size() : 0;
     }
 
     bool isRegisteredNode(MapNode const& id) const {
@@ -154,10 +199,16 @@ struct MapGraph {
         return edgeProps.at(edge);
     }
 
+
+    void addEdge(MapEdge const& edge) { addEdge(edge, MapEdgeProp{}); }
     void addEdge(MapEdge const& edge, MapEdgeProp const& prop);
     /// \brief Add node to the graph, without registering any outgoing or
     /// ingoing elements.
     void addNode(MapNode const& node);
+    void addNode(MapNode const& node, MapNodeProp const& prop) {
+        addNode(node);
+        nodeProps.insert_or_assign(node, prop);
+    }
 
     bool hasEdge(MapNode const& source, MapNode const& target) const {
         if (adjList.find(source) != nullptr) {
@@ -167,6 +218,10 @@ struct MapGraph {
         }
 
         return false;
+    }
+
+    bool hasNode(MapNode const& node) const {
+        return adjList.contains(node);
     }
 
     bool hasEdge(

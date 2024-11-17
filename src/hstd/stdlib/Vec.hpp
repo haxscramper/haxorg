@@ -16,6 +16,21 @@ concept IsIterableRange = requires(T t) {
     { std::end(t) } -> std::input_or_output_iterator;
 };
 
+template <typename LhsIndexable, typename RhsIndexable, typename Cmp>
+bool itemwise_less_than(
+    LhsIndexable const& lhs,
+    RhsIndexable const& rhs,
+    Cmp const&          cmp) {
+    for (int i = 0; i < std::min(
+                        static_cast<int>(lhs.size()),
+                        static_cast<int>(rhs.size()) //
+                    );
+         ++i) {
+        if (cmp(lhs.at(i), rhs.at(i))) { return true; }
+    }
+    return lhs.size() < rhs.size();
+}
+
 template <typename T, typename Container>
 struct IndexedBase : public CRTP_this_method<Container> {
     using CRTP_this_method<Container>::_this;
@@ -173,14 +188,7 @@ struct IndexedBase : public CRTP_this_method<Container> {
 
     template <typename Indexable, typename Cmp>
     bool lessThan(CR<Indexable> other, Cmp const& cmp) const {
-        for (int i = 0; i < std::min(
-                            static_cast<int>(_this()->size()),
-                            static_cast<int>(other.size()) //
-                        );
-             ++i) {
-            if (cmp(_this()->at(i), other.at(i))) { return true; }
-        }
-        return _this()->size() < other.size();
+        return itemwise_less_than(*_this(), other, cmp);
     }
 
     Container operator+(CR<T> other) const {
@@ -231,6 +239,12 @@ struct IndexedBase : public CRTP_this_method<Container> {
     /// operation, so better used only on small vectors.
     bool contains(CR<T> item) const {
         return _this()->indexOf(item) != -1;
+    }
+
+    int push_back_idx(CR<T> item) {
+        int result = _this()->size() - 1;
+        _this()->push_back(item);
+        return result;
     }
 };
 
@@ -555,9 +569,9 @@ template <typename T, int Size>
 struct std::formatter<SmallVec<T, Size>>
     : std_item_iterator_formatter<T, SmallVec<T, Size>> {};
 
-template <typename T>
-struct std::hash<Vec<T>> {
-    std::size_t operator()(Vec<T> const& it) const noexcept {
+template <typename Indexable>
+struct std_indexable_hash {
+    std::size_t operator()(Indexable const& it) const noexcept {
         std::size_t result = 0;
         for (int i = 0; i < it.size(); ++i) {
             hax_hash_combine(result, i);
@@ -567,17 +581,12 @@ struct std::hash<Vec<T>> {
     }
 };
 
+template <typename T>
+struct std::hash<Vec<T>> : std_indexable_hash<Vec<T>> {};
+
 template <typename T, int Size>
-struct std::hash<SmallVec<T, Size>> {
-    std::size_t operator()(SmallVec<T, Size> const& it) const noexcept {
-        std::size_t result = 0;
-        for (int i = 0; i < it.size(); ++i) {
-            hax_hash_combine(result, i);
-            hax_hash_combine(result, it.at(i));
-        }
-        return result;
-    }
-};
+struct std::hash<SmallVec<T, Size>>
+    : std_indexable_hash<SmallVec<T, Size>> {};
 
 
 template <typename T>

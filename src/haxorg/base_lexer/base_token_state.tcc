@@ -16,12 +16,14 @@ std::string OrgLexerImpl::state_name(int state) {
         case 12: return "BODY_EXPORT";
         case 13: return "PROPERTIES";
         case 14: return "PROPERTY_LITERAL";
-        case 15: return "sub_state_http_link";
-        case 16: return "sub_state_link_protocol_split";
-        case 17: return "sub_state_raw_dsl_link";
-        case 18: return "sub_state_no_protocol_file_link";
-        case 19: return "sub_state_link_protocol_internal";
-        case 20: return "sub_state_timestamp_repeater";
+        case 15: return "PROPERTY_ARGUMENT";
+        case 16: return "sub_state_http_link";
+        case 17: return "sub_state_inline_export";
+        case 18: return "sub_state_link_protocol_split";
+        case 19: return "sub_state_raw_dsl_link";
+        case 20: return "sub_state_no_protocol_file_link";
+        case 21: return "sub_state_link_protocol_internal";
+        case 22: return "sub_state_timestamp_repeater";
         default: return std::to_string(state);
     }
 }
@@ -120,12 +122,12 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::CmdVerseBegin: return "CmdVerseBegin";
         case OrgTokenKind::CmdVerseEnd: return "CmdVerseEnd";
         case OrgTokenKind::Colon: return "Colon";
+        case OrgTokenKind::ColonArgumentsProperty: return "ColonArgumentsProperty";
         case OrgTokenKind::ColonEnd: return "ColonEnd";
         case OrgTokenKind::ColonExampleLine: return "ColonExampleLine";
         case OrgTokenKind::ColonLiteralProperty: return "ColonLiteralProperty";
         case OrgTokenKind::ColonLogbook: return "ColonLogbook";
         case OrgTokenKind::ColonProperties: return "ColonProperties";
-        case OrgTokenKind::ColonPropertyName: return "ColonPropertyName";
         case OrgTokenKind::ColonPropertyText: return "ColonPropertyText";
         case OrgTokenKind::Comma: return "Comma";
         case OrgTokenKind::Comment: return "Comment";
@@ -152,6 +154,8 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::HashIdent: return "HashIdent";
         case OrgTokenKind::HashTagBegin: return "HashTagBegin";
         case OrgTokenKind::Indent: return "Indent";
+        case OrgTokenKind::InlineExportBackend: return "InlineExportBackend";
+        case OrgTokenKind::InlineExportContent: return "InlineExportContent";
         case OrgTokenKind::ItalicBegin: return "ItalicBegin";
         case OrgTokenKind::ItalicEnd: return "ItalicEnd";
         case OrgTokenKind::ItalicUnknown: return "ItalicUnknown";
@@ -171,10 +175,12 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::LinkFull: return "LinkFull";
         case OrgTokenKind::LinkProtocol: return "LinkProtocol";
         case OrgTokenKind::LinkProtocolAttachment: return "LinkProtocolAttachment";
+        case OrgTokenKind::LinkProtocolCustomId: return "LinkProtocolCustomId";
         case OrgTokenKind::LinkProtocolFile: return "LinkProtocolFile";
         case OrgTokenKind::LinkProtocolHttp: return "LinkProtocolHttp";
         case OrgTokenKind::LinkProtocolId: return "LinkProtocolId";
         case OrgTokenKind::LinkProtocolInternal: return "LinkProtocolInternal";
+        case OrgTokenKind::LinkProtocolTitle: return "LinkProtocolTitle";
         case OrgTokenKind::LinkSplit: return "LinkSplit";
         case OrgTokenKind::LinkTarget: return "LinkTarget";
         case OrgTokenKind::LinkTargetBegin: return "LinkTargetBegin";
@@ -212,6 +218,7 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::StrikeBegin: return "StrikeBegin";
         case OrgTokenKind::StrikeEnd: return "StrikeEnd";
         case OrgTokenKind::StrikeUnknown: return "StrikeUnknown";
+        case OrgTokenKind::SubtreeCompletion: return "SubtreeCompletion";
         case OrgTokenKind::SubtreePriority: return "SubtreePriority";
         case OrgTokenKind::SubtreeStars: return "SubtreeStars";
         case OrgTokenKind::Symbol: return "Symbol";
@@ -335,12 +342,12 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "CmdVerseBegin") { return OrgTokenKind::CmdVerseBegin; } else
   if (value == "CmdVerseEnd") { return OrgTokenKind::CmdVerseEnd; } else
   if (value == "Colon") { return OrgTokenKind::Colon; } else
+  if (value == "ColonArgumentsProperty") { return OrgTokenKind::ColonArgumentsProperty; } else
   if (value == "ColonEnd") { return OrgTokenKind::ColonEnd; } else
   if (value == "ColonExampleLine") { return OrgTokenKind::ColonExampleLine; } else
   if (value == "ColonLiteralProperty") { return OrgTokenKind::ColonLiteralProperty; } else
   if (value == "ColonLogbook") { return OrgTokenKind::ColonLogbook; } else
   if (value == "ColonProperties") { return OrgTokenKind::ColonProperties; } else
-  if (value == "ColonPropertyName") { return OrgTokenKind::ColonPropertyName; } else
   if (value == "ColonPropertyText") { return OrgTokenKind::ColonPropertyText; } else
   if (value == "Comma") { return OrgTokenKind::Comma; } else
   if (value == "Comment") { return OrgTokenKind::Comment; } else
@@ -367,6 +374,8 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "HashIdent") { return OrgTokenKind::HashIdent; } else
   if (value == "HashTagBegin") { return OrgTokenKind::HashTagBegin; } else
   if (value == "Indent") { return OrgTokenKind::Indent; } else
+  if (value == "InlineExportBackend") { return OrgTokenKind::InlineExportBackend; } else
+  if (value == "InlineExportContent") { return OrgTokenKind::InlineExportContent; } else
   if (value == "ItalicBegin") { return OrgTokenKind::ItalicBegin; } else
   if (value == "ItalicEnd") { return OrgTokenKind::ItalicEnd; } else
   if (value == "ItalicUnknown") { return OrgTokenKind::ItalicUnknown; } else
@@ -386,10 +395,12 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "LinkFull") { return OrgTokenKind::LinkFull; } else
   if (value == "LinkProtocol") { return OrgTokenKind::LinkProtocol; } else
   if (value == "LinkProtocolAttachment") { return OrgTokenKind::LinkProtocolAttachment; } else
+  if (value == "LinkProtocolCustomId") { return OrgTokenKind::LinkProtocolCustomId; } else
   if (value == "LinkProtocolFile") { return OrgTokenKind::LinkProtocolFile; } else
   if (value == "LinkProtocolHttp") { return OrgTokenKind::LinkProtocolHttp; } else
   if (value == "LinkProtocolId") { return OrgTokenKind::LinkProtocolId; } else
   if (value == "LinkProtocolInternal") { return OrgTokenKind::LinkProtocolInternal; } else
+  if (value == "LinkProtocolTitle") { return OrgTokenKind::LinkProtocolTitle; } else
   if (value == "LinkSplit") { return OrgTokenKind::LinkSplit; } else
   if (value == "LinkTarget") { return OrgTokenKind::LinkTarget; } else
   if (value == "LinkTargetBegin") { return OrgTokenKind::LinkTargetBegin; } else
@@ -427,6 +438,7 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "StrikeBegin") { return OrgTokenKind::StrikeBegin; } else
   if (value == "StrikeEnd") { return OrgTokenKind::StrikeEnd; } else
   if (value == "StrikeUnknown") { return OrgTokenKind::StrikeUnknown; } else
+  if (value == "SubtreeCompletion") { return OrgTokenKind::SubtreeCompletion; } else
   if (value == "SubtreePriority") { return OrgTokenKind::SubtreePriority; } else
   if (value == "SubtreeStars") { return OrgTokenKind::SubtreeStars; } else
   if (value == "Symbol") { return OrgTokenKind::Symbol; } else

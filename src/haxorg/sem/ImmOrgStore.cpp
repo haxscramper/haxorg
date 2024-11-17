@@ -102,11 +102,13 @@ ImmAstReplace ImmAstStore::setNode(
 
 /// \brief Reflection path in the parent node, and the subnode that needs
 /// to be assigned to the specified place.
-using SubnodeAssignTarget = Pair<ReflPath, ImmId>;
+using SubnodeAssignTarget = Pair<org::ImmReflPathBase, ImmId>;
 /// \brief Group of subnode values to assign to the given path in the
 /// parent node.
-using SubnodeVecAssignPair = Pair<ReflPath, Vec<SubnodeAssignTarget>>;
-using SubnodeAssignGroup   = Vec<SubnodeVecAssignPair>;
+using SubnodeVecAssignPair = Pair<
+    org::ImmReflPathBase,
+    Vec<SubnodeAssignTarget>>;
+using SubnodeAssignGroup = Vec<SubnodeVecAssignPair>;
 
 /// \brief Group a flat list of subnode updates into assignment group so
 /// that changes on the same field would be grouped together.
@@ -134,7 +136,9 @@ SubnodeAssignGroup groupUpdatedSubnodes(
         | rv::transform([](auto const& group) -> SubnodeVecAssignPair {
               ReflPath path = group.front().first;
               return std::make_pair(
-                  path, group | rs::to<Vec<Pair<ReflPath, ImmId>>>());
+                  path,
+                  group
+                      | rs::to<Vec<Pair<org::ImmReflPathBase, ImmId>>>());
           })
         | rs::to<SubnodeAssignGroup>();
 
@@ -177,7 +181,7 @@ ImmAstReplace setNewSubnodes(
                             function);
                     };
 
-                ReflVisitor<K>::visit(
+                ReflVisitor<K, org::ImmReflPathTag>::visit(
                     node,
                     field,
                     // All field types are explicitly handled in the
@@ -195,16 +199,26 @@ ImmAstReplace setNewSubnodes(
                         [&](ImmBox<bool> const&) { fail_field(); },
                         [&](bool const&) { fail_field(); },
                         [&](ImmBox<Opt<sem::BlockCodeEvalResult>> const&) { fail_field(); },
+                        [&](ImmBox<Opt<sem::AttrGroup>> const&) { fail_field(); },
+                        [&](ImmBox<Opt<sem::HashTagText>> const&) { fail_field(); },
+                        [&](ImmBox<Opt<sem::SubtreeCompletion>> const&) { fail_field(); },
+                        [&](ImmBox<Opt<UserTime>> const&) { fail_field(); },
                         [&](ImmBox<sem::BlockCodeEvalResult> const&) { fail_field(); },
+                        [&](ImmBox<sem::Tblfm> const&) { fail_field(); },
+                        [&](ImmBox<sem::Tblfm::Assign::Flag> const&) { fail_field(); },
                         [&](ImmBox<Opt<Str>> const&) { fail_field(); },
                         [&](ImmBox<Str> const&) { fail_field(); },
                         [&](ImmVec<Str> const&) { fail_field(); },
                         [&](ImmVec<org::ImmSymbol::Param> const&) { fail_field(); },
                         [&](ImmVec<sem::BlockCodeSwitch> const&) { fail_field(); },
-                        [&](ImmVec<sem::NamedProperty> const&) { fail_field(); },
                         [&](ImmVec<sem::BlockCodeLine> const&) { fail_field(); },
+                        [&](ImmVec<sem::NamedProperty> const&) { fail_field(); },
+                        [&](sem::LinkTarget const&) { fail_field(); },
+                        [&](sem::ColumnView const&) { fail_field(); },
+                        [&](ImmBox<Opt<sem::ColumnView>> const&) { fail_field(); },
                         [&](sem::DocumentExportConfig const&) { fail_field(); },
                         [&](sem::AttrValue const&) { fail_field(); },
+                        [&](sem::SubtreeLogHead const&) { fail_field(); },
                         // clang-format on
                         [&]<typename FK>(
                             ImmBox<Opt<org::ImmIdT<FK>>> const& f) {
@@ -596,9 +610,9 @@ struct AddContext {
 };
 
 template <>
-struct SerdeDefaultProvider<org::ImmSubtreeLog::Priority> {
-    static org::ImmSubtreeLog::Priority get() {
-        return org::ImmSubtreeLog::Priority{};
+struct SerdeDefaultProvider<sem::SubtreeLogHead::Priority> {
+    static sem::SubtreeLogHead::Priority get() {
+        return sem::SubtreeLogHead::Priority{};
     }
 };
 
@@ -805,7 +819,15 @@ __same_type(sem::DocumentExportConfig);
 __same_type(sem::BlockCodeSwitch);
 __same_type(sem::BlockCodeEvalResult);
 __same_type(sem::BlockCodeLine);
+__same_type(sem::Tblfm);
+__same_type(sem::LinkTarget);
+__same_type(sem::ColumnView);
+__same_type(sem::AttrGroup);
+__same_type(sem::AttrList);
 __same_type(sem::AttrValue);
+__same_type(sem::SubtreeCompletion);
+__same_type(sem::HashTagText);
+__same_type(sem::SubtreeLogHead);
 
 
 template <typename SemType, typename ImmType>

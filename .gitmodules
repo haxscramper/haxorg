@@ -46,3 +46,6 @@
 [submodule "thirdparty/adaptagrams"]
 	path = thirdparty/adaptagrams
 	url = https://github.com/mjwybrow/adaptagrams.git
+[submodule "thirdparty/lexy"]
+	path = thirdparty/lexy
+	url = https://github.com/foonathan/lexy.git

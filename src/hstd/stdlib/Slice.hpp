@@ -36,6 +36,7 @@ struct Slice : public HSlice<T, T> {
 
     bool     contains(T val) const { return first <= val && val <= last; }
     bool     isValid() const { return first <= last; }
+    bool     isPoint() const { return first == last; }
     Slice<T> narrow(Slice<T> const& other) {
         return slice(
             // If the other boundary is in the range then move ot to the
@@ -47,7 +48,19 @@ struct Slice : public HSlice<T, T> {
         );
     }
 
-    Slice<T> widen(Slice<T> const& other) {
+    bool isBefore(T const& value) const { return value < first; }
+
+    bool isAfter(T const& value) const { return last < value; }
+
+    void expand(T const& other) {
+        if (isBefore(other)) {
+            first = other;
+        } else if (isAfter(other)) {
+            last = other;
+        }
+    }
+
+    Slice<T> expanded(Slice<T> const& other) const {
         return slice(
             // Leftmost of two boundaries -- extend left
             std::min(other.first, first),
@@ -211,15 +224,22 @@ struct std::hash<Slice<T>> {
 
 
 template <typename A, typename B>
-Pair<A, A> getSpan(
+Pair<int, int> getSpan(
     int          containerSize, /// Size of the container to get span over
     HSlice<A, B> s,             /// Span slice
     bool         checkRange = true /// Ensure that slice does not go out of
                                    /// container bounds9
 ) {
-    const A    startPos = s.first;
-    A          endPos;
+    int        startPos{};
+    int        endPos{};
     const auto size = containerSize;
+
+    if constexpr (std::is_same_v<A, BackwardsIndex>) {
+        startPos = size - s.first.value;
+    } else {
+        startPos = s.first;
+    }
+
     if constexpr (std::is_same_v<B, BackwardsIndex>) {
         endPos = size - s.last.value;
     } else {

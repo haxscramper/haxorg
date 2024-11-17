@@ -1,6 +1,7 @@
 #pragma once
 
 #include <format>
+#include <hstd/system/reflection.hpp>
 
 template <typename T, typename CharT>
 using Fmt = std::formatter<T, CharT>;
@@ -97,5 +98,24 @@ struct std::formatter<std::reference_wrapper<T>>
     auto format(const std::reference_wrapper<T>& p, FormatContext& ctx)
         const {
         return fmt_ctx(p.get(), ctx);
+    }
+};
+
+template <DescribedRecord R>
+struct std::formatter<R> : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(R const& p, FormatContext& ctx) const {
+        bool first = true;
+        fmt_ctx("{", ctx);
+        for_each_field_value_with_bases(
+            p, [&](char const* name, auto const& value) {
+                if (!first) { fmt_ctx(", ", ctx); }
+                fmt_ctx(".", ctx);
+                fmt_ctx(name, ctx);
+                fmt_ctx(" = ", ctx);
+                fmt_ctx(value, ctx);
+                first = false;
+            });
+        return fmt_ctx("}", ctx);
     }
 };

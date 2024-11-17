@@ -92,18 +92,6 @@ struct Line {
     DESC_FIELDS(Line, (offset, len));
 };
 
-template <>
-struct std::formatter<Line> : std::formatter<std::string> {
-    template <typename FormatContext>
-    typename FormatContext::iterator format(
-        const Line&    p,
-        FormatContext& ctx) const {
-        std::formatter<std::string> fmt;
-        return fmt.format(described_class_printer(p), ctx);
-    }
-};
-
-
 /// A type representing a single source that may be referred to by
 /// `CodeSpan`s.
 ///

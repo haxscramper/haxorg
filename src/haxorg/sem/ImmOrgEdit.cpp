@@ -29,7 +29,7 @@ ImmAstReplace org::insertSubnodes(
     Vec<ImmId>         add,
     int                position,
     ImmAstEditContext& ctx) {
-    AST_EDIT_MSG(fmt("Insert {} at {} in {}", add, position, node));
+    AST_EDIT_MSG(fmt("Insert {} at {} in {}b", add, position, node));
     Vec<ImmId> u;
     LOGIC_ASSERTION_CHECK(0 <= position, "{}", position);
 
@@ -521,7 +521,9 @@ void OrgDocumentSelector::searchSubtreePlaintextTitle(
         .check = [title,
                   this](ImmAdapter const& node) -> OrgSelectorResult {
             if (auto tree = node.asOpt<org::ImmSubtree>(); tree) {
-                Vec<Str> plaintext = flatWords(tree.value().at("title"));
+                Vec<Str> plaintext = flatWords(tree.value().at(
+                    org::ImmReflFieldId::FromTypeField<org::ImmSubtree>(
+                        &org::ImmSubtree::title)));
                 message(
                     fmt("{} == {} -> {}",
                         plaintext,

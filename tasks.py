@@ -769,6 +769,7 @@ def cmake_build_deps(
         if 0 < len(build_whitelist) and build_name not in build_whitelist:
             return
 
+        log(CAT).info(f"Running build name='{build_name}' deps='{deps_name}'")
         if configure:
             run_command(ctx, "cmake", [
                 "-B",
@@ -929,6 +930,8 @@ def cmake_build_deps(
         ],
     )
 
+    dep(build_name="lexy", deps_name="lexy")
+
 
 @org_task(pre=[cmake_configure_haxorg], iterable=["target", "ninja_flag"])
 def cmake_haxorg(
@@ -978,7 +981,7 @@ def cmake_install_dev(ctx: Context, perfetto: bool = False):
     install_dir = get_build_root().joinpath("install")
     if install_dir.exists():
         shutil.rmtree(install_dir)
-        
+
     run_command(
         ctx,
         "cmake",
@@ -1186,6 +1189,64 @@ def binary_coverage(ctx: Context, test: Path):
 
     assert dir.exists()
     run_command(ctx, test, [], allow_fail=True, cwd=str(dir))
+
+
+@org_task(pre=[cmake_haxorg], iterable=["arg"])
+def profdata_coverage(
+    ctx: Context,
+    binary: str,
+    arg: List[str] = [],
+    report_path: Optional[str] = None,
+):
+    tools = get_llvm_root("bin")
+    if Path(binary).is_absolute():
+        bin_path = Path(binary)
+
+    else:
+        bin_path = get_component_build_dir(ctx, "haxorg").joinpath(binary)
+
+    for file in bin_path.parent.glob("*.profdata"):
+        file.unlink()
+
+    for file in bin_path.parent.rglob("*.gcda"):
+        file.unlink()
+
+    dir = get_build_root().joinpath("profile")
+    dir.mkdir(parents=True, exist_ok=True)
+    current = Path().cwd()
+
+    run_command(ctx, bin_path, args=arg)
+    print(bin_path.parent)
+
+    default_profraw = current / "default.profraw"
+    result_profdata = dir / "bench.profdata"
+
+    assert default_profraw.exists()
+
+    run_command(ctx, tools / "llvm-profdata", [
+        "merge",
+        "-output=" + str(result_profdata),
+        default_profraw,
+    ])
+
+    if report_path:
+        report_dir = Path(report_path)
+
+    else:
+        report_dir = dir / bin_path.name
+
+    if report_dir.exists():
+        rmtree(report_dir)
+
+    report_dir.mkdir(parents=True, exist_ok=True)
+
+    run_command(ctx, tools / "llvm-cov", [
+        "show",
+        bin_path,
+        "-instr-profile=" + str(result_profdata),
+        "-format=html",
+        "-output-dir=" + str(report_dir),
+    ])
 
 
 @beartype

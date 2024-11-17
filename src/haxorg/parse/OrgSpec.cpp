@@ -195,9 +195,9 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
         SpecPair{
             org::BlockDynamicFallback,
             OrgPattern({
-                fieldN(0, N::Name, {org::Ident}),
+                fieldN(0, N::Name, {org::Word}),
                 fieldN(1, N::Args, {org::Attrs, org::Empty}),
-                fieldN(slice(1, 1_B), N::Body, {org::RawText, org::Empty}),
+                fieldN(slice(2, 1_B), N::Body, {org::RawText, org::Empty}),
             })},
         SpecPair{
             org::ColonExample,
@@ -222,7 +222,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
         SpecPair{
             org::InlineCallCode,
             OrgPattern({
-                Field(Range(0, N::Name), OrgPattern(org::Ident)),
+                Field(Range(0, N::Name), OrgPattern(org::Word)),
                 Field(
                     Range(1, N::HeaderArgs),
                     OrgPattern({org::Attrs, org::Empty})),
@@ -237,7 +237,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             OrgPattern({
                 Field(
                     Range(0, N::Lang),
-                    OrgPattern({org::Ident, org::Empty})),
+                    OrgPattern({org::Word, org::Empty})),
                 Field(
                     Range(1, N::HeaderArgs),
                     OrgPattern({org::Attrs, org::Empty})),
@@ -265,6 +265,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
         SpecPair{
             org::CmdValue,
             OrgPattern({fieldN(0, N::Name), fieldN(1, N::Value)})},
+        SpecPair{org::CmdTblfm, OrgPattern({fieldN(0, N::Values)})},
         SpecPair{
             org::CmdResult,
             OrgPattern({fieldN(0, N::Hash), fieldN(1, N::Body)})},
@@ -281,9 +282,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                     OrgPattern({org::Checkbox, org::Empty})),
                 Field(
                     Range(3, N::Header).doc("Header part of the list"),
-                    OrgPattern(
-                        {org::Paragraph,
-                         org::Empty})),
+                    OrgPattern({org::Paragraph, org::Empty})),
                 Field(
                     Range(4, N::Body)
                         .doc("Additional list items - more sublists, "
@@ -335,7 +334,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
         SpecPair{
             org::MetaSymbol,
             OrgPattern({
-                field1(0, N::Name, org::Ident),
+                field1(0, N::Name, org::Word),
                 fieldN(1, N::Args, {org::Attrs, org::Empty}),
                 field1(2, N::Body, org::RawText),
             })},
@@ -355,6 +354,11 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             })},
         SpecPair{org::CmdTitle, parTextCmdPattern},
         SpecPair{org::CmdCaption, parTextCmdPattern},
+        SpecPair{
+            org::CmdColumns,
+            OrgPattern({
+                fieldN(0, N::Args, {org::Attrs, org::Empty}),
+            })},
         SpecPair{
             org::CmdPropertyText,
             OrgPattern({
@@ -376,13 +380,13 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
         SpecPair{
             org::Cmd,
             OrgPattern({
-                field1(0, N::Name, org::Ident),
+                field1(0, N::Name, org::Word),
                 fieldN(1, N::Args, {org::Attrs, org::Empty}),
             })},
         SpecPair{
             org::BlockExport,
             OrgPattern({
-                field1(0, N::Name, org::Ident),
+                field1(0, N::Name, org::Word),
                 fieldN(1, N::Args, {org::Empty, org::Attrs}),
                 Field(
                     Range(2, N::Body),
@@ -392,19 +396,25 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                             OrgPattern(org::RawText))})),
             })},
         SpecPair{
+            org::InlineExport,
+            OrgPattern({
+                field1(0, N::Name, org::RawText),
+                field1(1, N::Body, org::RawText),
+            })},
+        SpecPair{
             org::CmdInclude,
             OrgPattern({Field(
                 Range(0, N::Args),
                 OrgPattern({OrgPattern({
                     field1(0, N::File, org::File),
-                    fieldN(1, N::Kind, {org::Empty, org::Ident}),
-                    fieldN(2, N::Lang, {org::Empty, org::Ident}),
+                    fieldN(1, N::Kind, {org::Empty, org::Word}),
+                    fieldN(2, N::Lang, {org::Empty, org::Word}),
                     fieldN(3, N::Args, {org::Empty, org::Attrs}),
                 })}))})},
         SpecPair{
             org::BlockCode,
             OrgPattern({
-                fieldN(0, N::Lang, {org::Ident, org::Empty}),
+                fieldN(0, N::Lang, {org::Word, org::Empty}),
                 fieldN(1, N::HeaderArgs, {org::Attrs, org::Empty}),
                 Field(
                     Range(2, N::Body),
@@ -453,7 +463,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             OrgPattern({
                 Field(
                     Range(0, N::Name),
-                    OrgPattern({org::Empty, org::Ident})),
+                    OrgPattern({org::Empty, org::Word})),
                 Field(
                     Range(1, N::Args),
                     OrgPattern({org::Empty, org::Attrs})),
@@ -492,7 +502,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
         SpecPair{
             org::Symbol,
             OrgPattern({
-                field1(0, N::Name, org::Ident),
+                field1(0, N::Name, org::Word),
                 fieldN(
                     1,
                     N::Args,

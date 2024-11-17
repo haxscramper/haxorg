@@ -139,7 +139,7 @@ class ExporterTypst(ExporterBase):
             return result
 
         elif len(node.subnodes) == 1 and isinstance(
-                node[0], org.Link) and node[0].getLinkKind() in [org.LinkKind.Attachment]:
+                node[0], org.Link) and node[0].target.isAttachment():
             return self.t.string("")
 
         elif len(node.subnodes) == 0:
@@ -185,16 +185,16 @@ class ExporterTypst(ExporterBase):
         )
 
     def evalBold(self, node: org.Bold) -> BlockId:
-        return self.surround("*", [self.lineSubnodes(node)])
+        return self.t.surround("*", [self.lineSubnodes(node)])
 
     def evalMonospace(self, node: org.Monospace) -> BlockId:
-        return self.surround("`", [self.lineSubnodes(node)])
+        return self.t.surround("`", [self.lineSubnodes(node)])
 
     def evalVerbatim(self, node: org.Verbatim) -> BlockId:
-        return self.surround("*", [self.lineSubnodes(node)])
+        return self.t.surround("*", [self.lineSubnodes(node)])
 
     def evalItalic(self, node: org.Italic) -> BlockId:
-        return self.surround("_", [self.lineSubnodes(node)])
+        return self.t.surround("_", [self.lineSubnodes(node)])
 
     def evalAtMention(self, node: org.AtMention) -> BlockId:
         return self.t.call(
@@ -309,20 +309,20 @@ class ExporterTypst(ExporterBase):
         return self.t.string(formatDateTime(node.getStatic().time))
 
     def evalLink(self, node: org.Link) -> BlockId:
-        match node.getLinkKind():
-            case org.LinkKind.Attachment:
+        match node.target.getKind():
+            case org.LinkTargetKind.Attachment:
                 return self.t.string("")
 
-            case org.LinkKind.Raw:
+            case org.LinkTargetKind.Raw:
                 return self.t.call(
                     "link",
-                    positional=[node.getRaw().text],
+                    positional=[node.target.getRaw().text],
                     body=[self.exp.eval(node.description)] if node.description else [],
                     isLine=True,
                 )
 
             case _:
-                return self.t.string(f"TODO {node.getLinkKind()}")
+                return self.t.string(f"TODO {node.target.getKind()}")
 
     def evalTimeRange(self, node: org.TimeRange) -> BlockId:
         return self.t.line([

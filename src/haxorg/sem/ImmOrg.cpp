@@ -21,7 +21,15 @@ const u64 org::ImmId::NodeIdxOffset  = 0;
 const u64 org::ImmId::NodeKindMask   = 0x000FFF0000000000; // >>10*4=40
 const u64 org::ImmId::NodeKindOffset = 40;
 
-const org::ParentPathMap EmptyParentPathMap;
+const org::ParentPathMap               EmptyParentPathMap;
+UnorderedMap<org::ImmReflFieldId, Str> org::ImmReflFieldId::fieldNames;
+
+std::size_t std::hash<org::ImmReflFieldId>::operator()(
+    org::ImmReflFieldId const& it) const noexcept {
+    std::size_t result = 0;
+    hax_hash_combine(result, it.field);
+    return result;
+}
 
 org::ImmId::IdType org::ImmId::combineMask(OrgSemKind kind) {
     auto res = (u64(kind) << NodeKindOffset) & NodeKindMask;
@@ -107,7 +115,7 @@ using namespace org;
 
 const ImmOrg* ImmAstStore::at(ImmId index) const {
     ImmOrg const* res;
-    switch_node_kind(index, [&]<typename K>(org::ImmIdT<K> id) {
+    switch_node_kind(index, [&, index]<typename K>(org::ImmIdT<K> id) {
         res = getStore<K>()->at(index);
         LOGIC_ASSERTION_CHECK(
             res->getKind() == index.getKind(),
@@ -193,21 +201,21 @@ Str ImmAdapter::selfSelect() const {
     for (ImmPathStep const& step : path.path) {
         auto const& i = step.path.path;
         if (i.size() == 2 && i.at(0).isFieldName() && i.at(1).isIndex()
-            && i.at(0).getFieldName().name == "subnodes") {
+            && i.at(0).getFieldName().name.getName() == "subnodes") {
             result += fmt(".at({})", i.at(1).getIndex().index);
         } else if (
             i.size() == 2 && i.at(0).isFieldName() && i.at(1).isAnyKey()) {
             result += fmt(
                 R"(.{}.at("{}"))",
-                i.at(0).getFieldName().name,
+                i.at(0).getFieldName().name.getName(),
                 i.at(1).getAnyKey().get<Str>());
         } else if (i.size() == 1 && i.at(0).isFieldName()) {
-            return fmt(".{}", i.at(0).getFieldName().name);
+            return fmt(".{}", i.at(0).getFieldName().name.getName());
         } else if (
             i.size() == 2 && i.at(0).isFieldName() && i.at(1).isIndex()) {
             result += fmt(
                 ".{}.at({})",
-                i.at(0).getFieldName().name,
+                i.at(0).getFieldName().name.getName(),
                 i.at(1).getIndex().index);
         } else {
             result += fmt1(i);
@@ -271,13 +279,14 @@ Opt<ImmAdapter> ImmAdapter::getParentSubtree() const {
 }
 
 Vec<ImmAdapter> ImmAdapter::getAllSubnodes(
-    Opt<ImmPath> rootPath,
-    bool         withPath) const {
+    Opt<ImmPath> const& rootPath,
+    bool                withPath) const {
     Vec<ImmAdapter>           result;
     auto                      root = *this;
     ReflRecursiveVisitContext visitCtx;
 
-    auto add_id = [&](ReflPath const& parent, ImmId const& id) {
+    auto add_id = [&](org::ImmReflPathBase const& parent,
+                      ImmId const&                id) {
         if (withPath) {
             ImmPath path;
             if (rootPath) {
@@ -285,7 +294,7 @@ Vec<ImmAdapter> ImmAdapter::getAllSubnodes(
             } else {
                 path.root = this->id;
             }
-            path.path.push_back(ImmPathStep{parent});
+            path.path = path.path.push_back(ImmPathStep{parent});
             result.push_back(root.pass(id, path));
         } else {
             result.push_back(root.ctx->adaptUnrooted(id));
@@ -293,33 +302,36 @@ Vec<ImmAdapter> ImmAdapter::getAllSubnodes(
     };
 
     switch_node_value(id, *ctx, [&]<typename T>(T const& value) {
-        reflVisitAll<T>(
+        reflVisitAll<T, org::ImmReflPathTag>(
             value,
             {},
             visitCtx,
             overloaded{
-                [&](ReflPath const& parent, ImmId const& id) {
+                [&](org::ImmReflPathBase const& parent, ImmId const& id) {
                     add_id(parent, id);
                 },
                 [&]<typename K>(
-                    ReflPath const& parent, ImmIdT<K> const& id) {
-                    add_id(parent, id.toId());
-                },
-                [&](ReflPath const& parent, auto const& other) {},
+                    org::ImmReflPathBase const& parent,
+                    ImmIdT<K> const& id) { add_id(parent, id.toId()); },
+                [&](org::ImmReflPathBase const& parent,
+                    auto const&                 other) {},
             });
     });
     return result;
 }
 
 Vec<ImmAdapter> ImmAdapter::getAllSubnodesDFS(
-    Opt<ImmPath> rootPath,
-    bool         withPath) const {
+    Opt<ImmPath> const&                     rootPath,
+    bool                                    withPath,
+    const Opt<Func<bool(org::ImmAdapter)>>& acceptFilter) const {
     Vec<ImmAdapter>                                    result;
     Func<void(ImmAdapter const&, ImmPath const& root)> aux;
     aux = [&](ImmAdapter const& it, ImmPath const& root) {
-        result.push_back(it);
-        for (auto const& sub : it.getAllSubnodes(root, withPath)) {
-            aux(sub, sub.path);
+        if (!acceptFilter.has_value() || acceptFilter.value()(it)) {
+            result.push_back(it);
+            for (auto const& sub : it.getAllSubnodes(root, withPath)) {
+                aux(sub, sub.path);
+            }
         }
     };
     for (auto const& it : getAllSubnodes(rootPath, withPath)) {
@@ -355,7 +367,10 @@ ImmAdapter ImmAdapter::at(int idx, bool withPath) const {
     if (withPath) {
         return at(
             ctx->at(id)->subnodes.at(idx),
-            ImmPathStep::FieldIdx("subnodes", idx));
+            ImmPathStep::FieldIdx(
+                org::ImmReflFieldId::FromTypeField<org::ImmOrg>(
+                    &org::ImmOrg::subnodes),
+                idx));
     } else {
         return ImmAdapter{ctx->at(id)->subnodes.at(idx), ctx, {}};
     }
@@ -927,14 +942,14 @@ Vec<ImmUniqId> ImmAstTrackingMap::getPathsFor(
                 for (auto const& full : parentPaths) {
                     ImmPath path;
                     path.root = parentId;
-                    path.path.push_back(full);
+                    path.path = path.path.push_back(full);
                     result.push_back(path);
                 }
             } else {
                 for (auto const& added : auxRes) {
                     for (auto const& full : parentPaths) {
                         ImmPath path = added;
-                        path.path.push_back(full);
+                        path.path    = path.path.push_back(full);
                         result.push_back(path);
                     }
                 }

@@ -8,7 +8,7 @@
 
 using namespace org::graph;
 using osk = OrgSemKind;
-using slk = org::ImmLink::Kind;
+using slk = sem::LinkTarget::Kind;
 
 #define GRAPH_TRACE() conf.OperationsTracer::TraceState
 
@@ -26,7 +26,7 @@ bool org::graph::isLinkedDescriptionItemNode(org::ImmAdapter const& n) {
                n.pass(n.as<org::ImmListItem>()->header.get().value())
                    .subAs<org::ImmLink>(),
                [](org::ImmAdapterT<org::ImmLink> head) -> bool {
-                   return !head->isRaw();
+                   return !head->target.isRaw();
                });
 }
 
@@ -87,7 +87,8 @@ bool org::graph::hasGraphAnnotations(
             return true;
         } else if (auto link = node.asOpt<org::ImmLink>();
                    link
-                   && !SkipLinks.contains(link.value()->getLinkKind())) {
+                   && !SkipLinks.contains(
+                       link.value()->target.getKind())) {
             return true;
         }
     }
@@ -268,7 +269,7 @@ Opt<MapLink> org::graph::getUnresolvedLink(
     const MapGraphState& s,
     ImmAdapterT<ImmLink> link,
     MapConfig&           conf) {
-    if (SkipLinks.contains(link->getLinkKind())) {
+    if (SkipLinks.contains(link->target.getKind())) {
         return std::nullopt;
     } else {
         return MapLink{
@@ -277,7 +278,9 @@ Opt<MapLink> org::graph::getUnresolvedLink(
             = link->description.get()
                 ? Vec{link.at(
                       link->description.get().value().toId(),
-                      ImmPathStep::FieldDeref("description"))}
+                      ImmPathStep::FieldDeref(
+                          org::ImmReflFieldId::FromTypeField(
+                              &org::ImmLink::description)))}
                 : Vec<org::ImmAdapter>{},
         };
     }
@@ -307,7 +310,7 @@ Vec<MapLink> org::graph::getUnresolvedSubtreeLinks(
                         // Description list header might contain
                         // non-link elements. These are ignored in the
                         // mind map.
-                        if (!SkipLinks.contains(link->getLinkKind())) {
+                        if (!SkipLinks.contains(link->target.getKind())) {
                             MapLink map_link{.link = link};
                             for (auto const& sub : item.sub()) {
                                 map_link.description.push_back(sub);
@@ -412,9 +415,9 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
         }
     };
 
-    switch (link.link->getLinkKind()) {
+    switch (link.link->target.getKind()) {
         case slk::Id: {
-            auto text = link.link->getId().text;
+            auto text = link.link->target.getId().text;
             if (auto target = s.ast.track->subtrees.get(text)) {
                 GRAPH_MSG(
                     fmt("Subtree ID {} on {} resolved to {}",
@@ -429,7 +432,7 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
         }
 
         case slk::Footnote: {
-            CR<Str> text = link.link->getFootnote().target.get();
+            CR<Str> text = link.link->target.getFootnote().target;
             if (auto target = s.ast.track->footnotes.get(text)) {
                 GRAPH_MSG(
                     fmt("Footnote name {} on {} resolved to {}",
@@ -444,7 +447,7 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
         }
 
         case slk::Internal: {
-            CR<Str> text = link.link->getInternal().target.get();
+            CR<Str> text = link.link->target.getInternal().target;
             if (auto target = s.ast.track->radioTargets.get(text)) {
                 GRAPH_MSG(fmt(
                     "Internal link name '{}' on '{}' resolved to radio "
@@ -468,8 +471,8 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
         }
 
         default: {
-            throw logic_unreachable_error::init(
-                fmt("Unhandled link kind '{}'", link.link->getLinkKind()));
+            throw logic_unreachable_error::init(fmt(
+                "Unhandled link kind '{}'", link.link->target.getKind()));
         }
     }
 
@@ -605,7 +608,7 @@ void MapGraph::addEdge(const MapEdge& edge, const MapEdgeProp& prop) {
         edge.target);
 
     adjList.at(edge.source).push_back(edge.target);
-    inNodes.at(edge.target).push_back(edge.source);
+    adjListIn.at(edge.target).push_back(edge.source);
     edgeProps.insert_or_assign(edge, prop);
 }
 
@@ -613,7 +616,7 @@ void MapGraph::addNode(const MapNode& node) {
     if (!adjList.contains(MapNode{node})) {
         adjList.insert_or_assign(MapNode{node}, Vec<MapNode>{});
         nodeProps.insert_or_assign(MapNode{node}, MapNodeProp{});
-        inNodes.insert_or_assign(MapNode{node}, Vec<MapNode>{});
+        adjListIn.insert_or_assign(MapNode{node}, Vec<MapNode>{});
     }
 }
 
@@ -634,8 +637,9 @@ Graphviz::Graph MapGraph::toGraphviz(
 
     for (auto const& [it, props] : nodeProps) {
         if (nodeOk(it)) {
-            gvNodes.insert_or_assign(
-                it, res.node(it.id.id.getReadableId()));
+            auto node = res.node(it.id.id.getReadableId());
+            node.setAttr("org_id", it.id.id.getReadableId());
+            gvNodes.insert_or_assign(it, node);
         }
     }
 

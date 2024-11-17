@@ -73,6 +73,7 @@ struct OrgParser : public OperationsTracer {
     OrgId parseLatex(OrgLexer& lex);
     OrgId parseBlockExport(OrgLexer& lex);
     OrgId parseParagraph(OrgLexer& lex);
+    OrgId parseInlineExport(OrgLexer& lex);
 
     OrgId parseSubtree(OrgLexer& lex);
     OrgId parseSubtreeTodo(OrgLexer& lex);

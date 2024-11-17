@@ -11,6 +11,8 @@
 #include <hstd/wrappers/hstd_extra/graphviz.hpp>
 #include <boost/preprocessor.hpp>
 #include <hstd/stdlib/reflection_visitor.hpp>
+#include <immer/flex_vector_transient.hpp>
+#include <immer/vector_transient.hpp>
 
 
 #define _declare_hash(__kind)                                             \
@@ -58,6 +60,7 @@ void switch_node_nullptr(OrgSemKind kind, Func const& cb) {
     }
 }
 
+
 namespace org {
 
 template <typename T>
@@ -88,40 +91,41 @@ struct ImmAstTrackingMap;
 struct ImmPathStep {
     /// \brief path from the root of the immer node to the next ImmId
     /// element.
-    ReflPath path;
+    ImmReflPathBase path;
     DESC_FIELDS(ImmPathStep, (path));
     bool operator==(ImmPathStep const& other) const {
         return path == other.path;
     }
 
-    static ImmPathStep FieldIdx(std::string const& field, int idx) {
-        return ImmPathStep{ReflPath{{
-            ReflPathItem::FromFieldName(field),
-            ReflPathItem::FromIndex(idx),
+    static ImmPathStep FieldIdx(ImmReflFieldId const& field, int idx) {
+        return ImmPathStep{ImmReflPathBase{{
+            ImmReflPathItemBase::FromFieldName(field),
+            ImmReflPathItemBase::FromIndex(idx),
         }}};
     }
 
-    static ImmPathStep Field(std::string const& field) {
-        return ImmPathStep{ReflPath{{
-            ReflPathItem::FromFieldName(field),
+    static ImmPathStep Field(ImmReflFieldId const& field) {
+        return ImmPathStep{ImmReflPathBase{{
+            ImmReflPathItemBase::FromFieldName(field),
         }}};
     }
 
-    static ImmPathStep FieldDeref(std::string const& field) {
-        return ImmPathStep{ReflPath{{
-            ReflPathItem::FromFieldName(field),
-            ReflPathItem::FromDeref(),
+    static ImmPathStep FieldDeref(ImmReflFieldId const& field) {
+        return ImmPathStep{ImmReflPathBase{{
+            ImmReflPathItemBase::FromFieldName(field),
+            ImmReflPathItemBase::FromDeref(),
         }}};
     }
 
     bool operator<(ImmPathStep const& other) const {
-        return path.lessThan(other.path, ReflPathComparator<Str>{});
+        return path.lessThan(
+            other.path, ReflPathComparator<org::ImmReflPathTag>{});
     }
 };
 
 /// \brief Full path from the root of the document to a specific node.
 struct ImmPath {
-    using Store = SmallVec<ImmPathStep, 4>;
+    using Store = immer::flex_vector<ImmPathStep>;
     /// \brief Root ID node
     ImmId root;
     /// \brief Sequence of jumps from the root of the document down to the
@@ -141,7 +145,7 @@ struct ImmPath {
     ImmPath(ImmId root) : root{root} {};
     /// \brief Path referring to a direct sub-element of the root (one jump
     /// from the root node)
-    ImmPath(ImmId root, ReflPath const& step0)
+    ImmPath(ImmId root, org::ImmReflPathBase const& step0)
         : root{root}, path{ImmPathStep{step0}} {}
     /// \brief Path referring to a direct sub-element (one jump from the
     /// root)
@@ -160,35 +164,31 @@ struct ImmPath {
     ///
     /// \note Spans will not include the empty span (targeting the root
     /// node itself)
-    generator<Span<ImmPathStep>> pathSpans(
+    generator<immer::flex_vector<ImmPathStep>> pathSpans(
         /// \brief Starting from the leaf will generate the largest path
         /// span first, and then will decrease it in steps. Starting from
         /// the root will go from the span of size 1 and increase it until
         /// it reaches the target.
         bool leafStart = true) const {
         if (leafStart) {
-            for (int i = path.high(); 0 <= i; --i) {
-                co_yield path.at(slice(0, i));
+            for (int i = path.size() - 1; 0 <= i; --i) {
+                co_yield path.take(i);
             }
         } else {
             for (int i = 0; i < path.size(); ++i) {
-                co_yield path.at(slice(0, i));
+                co_yield path.take(i);
             }
         }
     }
 
     /// \brief Remove one jump from the path and return a new version
     ImmPath pop() const {
-        auto res = *this;
-        res.path.pop_back();
-        return res;
+        return ImmPath{root, path.erase(path.size() - 1)};
     }
 
     /// \brief Add one jump step from the path and return a new version.
     ImmPath add(ImmPathStep const& it) const {
-        auto res = *this;
-        res.path.push_back(it);
-        return res;
+        return ImmPath{root, path.push_back(it)};
     }
 
     bool operator==(ImmPath const& other) const {
@@ -196,7 +196,9 @@ struct ImmPath {
     }
 
     bool operator<(ImmPath const& other) const {
-        return root < other.root && path < other.path;
+        return root < other.root
+            && itemwise_less_than(
+                   path, other.path, std::less<ImmPathStep>{});
     }
 };
 
@@ -744,11 +746,13 @@ struct ImmAdapter {
     iterator end() const { return iterator(this, size()); }
     bool     isNil() const { return id.isNil(); }
     bool     isRoot() const { return path.empty(); }
-    ReflPath flatPath() const {
-        ReflPath result;
+    org::ImmReflPathBase flatPath() const {
+        org::ImmReflPathBase result;
+        auto                 tmp = result.path.transient();
         for (auto const& it : path.path) {
-            result.path.append(it.path.path);
+            for (auto const& item : it.path.path) { tmp.push_back(item); }
         }
+        result.path = tmp.persistent();
         return result;
     }
 
@@ -759,13 +763,13 @@ struct ImmAdapter {
 
     OrgSemKind getKind() const { return id.getKind(); }
 
-    ReflPathItem const& lastPath() const {
+    org::ImmReflPathItemBase const& lastPath() const {
         return path.path.back().path.last();
     }
 
     ImmPathStep const& lastStep() const { return path.path.back(); }
 
-    ReflPathItem const& firstPath() const {
+    org::ImmReflPathItemBase const& firstPath() const {
         return path.path.front().path.first();
     }
 
@@ -836,11 +840,13 @@ struct ImmAdapter {
     Opt<ImmAdapter> getAdjacentNode(int offset) const;
     Opt<ImmAdapter> getParentSubtree() const;
     Vec<ImmAdapter> getAllSubnodes(
-        Opt<ImmPath> rootPath,
-        bool         withPath = true) const;
+        const Opt<ImmPath>& rootPath,
+        bool                withPath = true) const;
     Vec<ImmAdapter> getAllSubnodesDFS(
-        Opt<ImmPath> rootPath,
-        bool         withPath = true) const;
+        const Opt<ImmPath>&                     rootPath,
+        bool                                    withPath     = true,
+        const Opt<Func<bool(org::ImmAdapter)>>& acceptFilter = std::
+            nullopt) const;
 
     Vec<ImmPathStep> getRelativeSubnodePaths(ImmId const& subnode) const;
 
@@ -858,18 +864,16 @@ struct ImmAdapter {
         return dynamic_cast<T const*>(get());
     }
 
-    template <typename T>
-    T* dyn_cast() {
-        return dynamic_cast<T*>(get());
-    }
-
     ImmAdapter at(ImmId id, ImmPathStep idx) const {
         return ImmAdapter{id, ctx, path.add(idx)};
     }
 
-    ImmAdapter at(Str const& field) const {
+    ImmAdapter at(ImmReflFieldId const& field) const {
         return at(
-            ctx->at(id, ImmPathStep{{ReflPathItem::FromFieldName(field)}}),
+            ctx->at(
+                id,
+                ImmPathStep{
+                    {org::ImmReflPathItemBase::FromFieldName(field)}}),
             ImmPathStep::Field(field));
     }
 
@@ -937,12 +941,12 @@ struct ImmAdapter {
 
     template <typename Func>
     void visitNodeValue(Func const& cb) const {
-        swtich_node_value(id, ctx, cb);
+        ::org::switch_node_value(id, *ctx, cb);
     }
 
     template <typename Func>
     void visitNodeFields(Func const& cb) const {
-        switch_node_fields(id, ctx, cb);
+        ::org::switch_node_fields(id, *ctx, cb);
     }
 };
 
@@ -1066,6 +1070,8 @@ struct ImmAdapterSubtreeAPI : ImmAdapterOrgAPI {
         Opt<Str> const& subkind = std::nullopt) const;
 
     org::ImmAdapterT<org::ImmParagraph> getTitle() const;
+
+    Str getCleanTitle() const;
 };
 
 struct ImmAdapterNoneAPI : ImmAdapterOrgAPI {};
@@ -1081,6 +1087,7 @@ struct ImmAdapterAttachedAPI : ImmAdapterLineCommandAPI {};
 struct ImmAdapterCmdCaptionAPI : ImmAdapterAttachedAPI {
     org::ImmAdapterT<org::ImmParagraph> getText() const;
 };
+struct ImmAdapterCmdColumnsAPI : ImmAdapterAttachedAPI {};
 struct ImmAdapterCmdNameAPI : ImmAdapterAttachedAPI {};
 struct ImmAdapterCmdCustomArgsAPI : ImmAdapterCmdAPI {};
 struct ImmAdapterCmdCustomRawAPI : ImmAdapterStmtAPI {};
@@ -1090,7 +1097,15 @@ struct ImmAdapterCmdTblfmAPI : ImmAdapterCmdAPI {};
 struct ImmAdapterInlineAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterHashTagAPI : ImmAdapterInlineAPI {};
 struct ImmAdapterInlineFootnoteAPI : ImmAdapterInlineAPI {};
-struct ImmAdapterTimeAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterTimeAPI : ImmAdapterOrgAPI {
+    UserTime getStaticTime() const;
+    Opt<int> getYear() const;
+    Opt<int> getMonth() const;
+    Opt<int> getDay() const;
+    Opt<int> getHour() const;
+    Opt<int> getMinute() const;
+    Opt<int> getSecond() const;
+};
 struct ImmAdapterTimeRangeAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterMacroAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterSymbolAPI : ImmAdapterOrgAPI {};
@@ -1125,7 +1140,11 @@ struct ImmAdapterBlockQuoteAPI : ImmAdapterBlockAPI {};
 struct ImmAdapterBlockCommentAPI : ImmAdapterStmtAPI {};
 struct ImmAdapterBlockVerseAPI : ImmAdapterBlockAPI {};
 struct ImmAdapterBlockExampleAPI : ImmAdapterBlockAPI {};
-struct ImmAdapterBlockExportAPI : ImmAdapterBlockAPI {};
+struct ImmAdapterInlineExportAPI : ImmAdapterBlockAPI {};
+struct ImmAdapterCmdExportAPI : ImmAdapterBlockAPI {};
+struct ImmAdapterBlockExportAPI : ImmAdapterBlockAPI {
+    Opt<Str> getPlacement() const;
+};
 struct ImmAdapterBlockDynamicFallbackAPI : ImmAdapterBlockAPI {};
 struct ImmAdapterBlockAdmonitionAPI : ImmAdapterBlockAPI {};
 struct ImmAdapterBlockCodeAPI : ImmAdapterBlockAPI {};
@@ -1146,6 +1165,7 @@ struct ImmAdapterParagraphAPI : ImmAdapterStmtAPI {
     Vec<org::ImmAdapterT<org::ImmBigIdent>> getAdmonitionNodes() const;
     Vec<org::ImmAdapterT<org::ImmTime>>     getTimestampNodes() const;
     Vec<org::ImmAdapterT<org::ImmHashTag>>  getLeadHashtags() const;
+    Vec<org::ImmAdapter> getBody(bool withPath = true) const;
 };
 struct ImmAdapterColonExampleAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterCmdAttrAPI : ImmAdapterAttachedAPI {};
@@ -1161,6 +1181,7 @@ struct ImmAdapterListItemAPI : ImmAdapterOrgAPI {
     bool isDescriptionItem() const;
 
     Opt<ImmAdapter> getHeader() const;
+    Opt<Str>        getCleanHeader() const;
 };
 
 struct ImmAdapterDocumentOptionsAPI : ImmAdapterOrgAPI {
@@ -1356,7 +1377,8 @@ template <>
 struct std::formatter<org::ImmPathStep> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const org::ImmPathStep& p, FormatContext& ctx) const {
-        return ReflPathFormatter<Str>{}.format(p.path, ctx);
+        return ReflPathFormatter<org::ImmReflPathTag>{}.format(
+            p.path, ctx);
     }
 };
 
@@ -1366,7 +1388,7 @@ struct std::hash<org::ImmPathStep> {
         AnyHasher<Str> hasher;
         std::size_t    result = 0;
         for (int i = 0; i < step.path.path.size(); ++i) {
-            ReflPathItem const& it = step.path.path.at(i);
+            org::ImmReflPathItemBase const& it = step.path.path.at(i);
             hax_hash_combine(result, i);
             if (it.isAnyKey()) {
                 hax_hash_combine(result, hasher(it.getAnyKey().key));

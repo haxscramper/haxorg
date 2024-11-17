@@ -228,203 +228,6 @@ void sem::eachSubnodeRec(SemId<Org> id, SubnodeVisitor cb) {
 }
 
 
-namespace {
-void eachSubnodeRecWithCtxImpl(
-    CR<sem::SubnodeVisitorWithCtx>    visitor,
-    SemId<Org>                        org,
-    bool                              originalBase,
-    Vec<SubnodeVisitorCtxPart> const& ctx);
-
-template <sem::NotOrg T>
-void visitFieldWithCtx(
-    CR<sem::SubnodeVisitorWithCtx>,
-    CR<T>,
-    Vec<SubnodeVisitorCtxPart> const&) {}
-
-
-void visitFieldWithCtx(
-    CR<sem::SubnodeVisitorWithCtx>    visitor,
-    SemId<Org>                        node,
-    Vec<SubnodeVisitorCtxPart> const& ctx) {
-    if (!node.isNil()) {
-        eachSubnodeRecWithCtxImpl(visitor, node, true, ctx);
-    }
-}
-
-template <sem::IsOrg T>
-void visitFieldWithCtx(
-    CR<sem::SubnodeVisitorWithCtx>    visitor,
-    CR<T>                             node,
-    Vec<SubnodeVisitorCtxPart> const& ctx) {
-    visitFieldWithCtx(visitor, node.asOrg(), ctx);
-}
-
-
-template <typename T>
-void visitFieldWithCtx(
-    CR<sem::SubnodeVisitorWithCtx>    visitor,
-    CVec<T>                           value,
-    Vec<SubnodeVisitorCtxPart> const& ctx) {
-    for (int i = 0; i < value.size(); ++i) {
-        visitFieldWithCtx(
-            visitor,
-            value.at(i),
-            ctx
-                + SubnodeVisitorCtxPart{
-                    .index = i,
-                    .kind  = SubnodeVisitorCtxPart::Kind::Index,
-                });
-    }
-}
-
-template <typename T>
-void visitFieldWithCtx(
-    CR<sem::SubnodeVisitorWithCtx>    visitor,
-    UnorderedMap<Str, T> const&       value,
-    Vec<SubnodeVisitorCtxPart> const& ctx) {
-    for (auto const& [key, mapped] : value) {
-        visitFieldWithCtx(
-            visitor,
-            mapped,
-            ctx
-                + SubnodeVisitorCtxPart{
-                    .field = key,
-                    .kind  = SubnodeVisitorCtxPart::Kind::Key,
-                });
-    }
-}
-
-
-template <typename T>
-void visitFieldWithCtx(
-    CR<sem::SubnodeVisitorWithCtx>    visitor,
-    CR<Opt<T>>                        value,
-    Vec<SubnodeVisitorCtxPart> const& ctx) {
-    if (value) { visitFieldWithCtx(visitor, *value, ctx); }
-}
-
-template <typename T>
-void recVisitOrgNodesWithCtxImpl(
-    CR<sem::SubnodeVisitorWithCtx>    visitor,
-    SemId<T>                          tree,
-    bool                              originalBase,
-    Vec<SubnodeVisitorCtxPart> const& ctx) {
-    if (tree.isNil()) { return; }
-    Opt<SubnodeVisitorResult> visitResult;
-    if (originalBase) { visitResult = visitor(tree, ctx); }
-    using Bd = describe_bases<T, mod_any_access>;
-    using Md = describe_members<T, mod_any_access>;
-
-    if (!visitResult || visitResult->visitNextBases) {
-        mp_for_each<Bd>([&](auto Base) {
-            using BaseType = typename decltype(Base)::type;
-            recVisitOrgNodesWithCtxImpl<BaseType>(
-                visitor, tree.template as<BaseType>(), false, ctx);
-        });
-    }
-
-    mp_for_each<Md>([&](auto const& field) {
-        if (!visitResult
-            || (field.name == "subnodes" && visitResult->visitNextSubnodes)
-            || (field.name != "subnodes"
-                && visitResult->visitNextFields)) {
-            visitFieldWithCtx(
-                visitor,
-                tree.get()->*field.pointer,
-                ctx
-                    + SubnodeVisitorCtxPart{
-                        .node  = tree.asOrg(),
-                        .field = field.name,
-                        .kind  = SubnodeVisitorCtxPart::Kind::Field,
-                    });
-        }
-    });
-}
-
-
-void eachSubnodeRecWithCtxImpl(
-    CR<sem::SubnodeVisitorWithCtx>    visitor,
-    SemId<Org>                        org,
-    bool                              originalBase,
-    Vec<SubnodeVisitorCtxPart> const& ctx) {
-    std::visit(
-        [&](const auto& node) {
-            recVisitOrgNodesWithCtxImpl(visitor, node, originalBase, ctx);
-        },
-        asVariant(org));
-}
-} // namespace
-
-void sem::eachSubnodeRecWithContext(
-    SemId<Org>            id,
-    SubnodeVisitorWithCtx cb) {
-    eachSubnodeRecWithCtxImpl(cb, id, true, {});
-}
-
-void OrgDocumentContext::addNodes(const sem::SemId<sem::Org>& node) {
-    if (node.isNil()) { return; }
-    eachSubnodeRec(node, [&](OrgArg arg) {
-        if (arg->is(osk::Subtree)) {
-            SemId<Subtree> tree = arg.as<Subtree>();
-            if (tree->treeId) {
-                this->subtreeIds[tree->treeId.value()].push_back(tree);
-            }
-        } else if (arg->is(osk::Paragraph)) {
-            SemId<Paragraph> par = arg.as<Paragraph>();
-            if (par->isFootnoteDefinition()) {
-                this->footnoteTargets[par->getFootnoteName().value()]
-                    .push_back(par);
-            }
-        }
-    });
-}
-
-
-Vec<SemId<Subtree>> OrgDocumentContext::getSubtreeById(
-    const Str& id) const {
-    if (subtreeIds.contains(id)) {
-        return subtreeIds.at(id);
-    } else {
-        return {};
-    }
-}
-
-
-Vec<SemId<Org>> OrgDocumentContext::getRadioTarget(Str const& name) const {
-    return {};
-}
-
-Vec<SemId<Org>> OrgDocumentContext::getLinkTarget(
-    const sem::SemId<sem::Link>& link) const {
-    Vec<SemId<Org>> result;
-    switch (link->getLinkKind()) {
-        case Link::Kind::Footnote: {
-            CR<Str> target = link->getFootnote().target;
-            if (footnoteTargets.contains(target)) {
-                for (auto const& it : footnoteTargets.at(target)) {
-                    result.push_back(it.asOrg());
-                }
-            }
-            break;
-        }
-
-        case Link::Kind::Id: {
-            CR<Str> target = link->getId().text;
-            if (subtreeIds.contains(target)) {
-                for (auto const& it : subtreeIds.at(target)) {
-                    result.push_back(it.asOrg());
-                }
-            }
-            break;
-        }
-
-        default: {
-        }
-    }
-
-    return result;
-}
-
 Opt<UserTime> getCreationTime(const SemId<Org>& node) {
     if (node->is(osk::Paragraph)) {
         auto time = node.as<sem::Paragraph>()->getTimestamps();
@@ -589,4 +392,60 @@ sem::SemId<Org> sem::asOneNode(OrgArg arg) {
             return sem::asOneNode(arg->at(0));
         default: return arg;
     }
+}
+
+
+int sem::getListHeaderIndex(const sem::SemId<List>& it, CR<Str> text) {
+    for (auto const& [idx, sub] : enumerate(it->subnodes)) {
+        if (auto it = sub.asOpt<sem::ListItem>();
+            it && it->isDescriptionItem()
+            && it->getCleanHeader() == text) {
+            return idx;
+        }
+    }
+
+    return -1;
+}
+
+void sem::setListItemBody(
+    sem::SemId<sem::List> list,
+    int                   index,
+    Vec<sem::SemId<Org>>  value) {
+    list->subnodes.at(index).as<sem::ListItem>()->subnodes = value;
+}
+
+
+void sem::insertDescriptionListItem(
+    sem::SemId<List>           id,
+    int                        index,
+    sem::SemId<sem::Paragraph> paragraph,
+    Vec<sem::SemId<sem::Org>>  value) {
+    auto item      = sem::SemId<sem::ListItem>::New();
+    item->subnodes = value;
+    item->header   = paragraph;
+    id->subnodes.insert(id->subnodes.begin() + index, item);
+}
+
+void sem::setDescriptionListItemBody(
+    sem::SemId<List>     list,
+    CR<Str>              text,
+    Vec<sem::SemId<Org>> value) {
+    int idx = getListHeaderIndex(list, text);
+    if (idx == -1) {
+        auto key = parseString(text);
+        auto par = asOneNode(key);
+        insertDescriptionListItem(
+            list, list.size(), par.as<sem::Paragraph>(), value);
+    } else {
+        setListItemBody(list, idx, value);
+    }
+}
+
+void sem::insertListItemBody(
+    sem::SemId<List>     id,
+    int                  index,
+    Vec<sem::SemId<Org>> value) {
+    auto item      = sem::SemId<sem::ListItem>::New();
+    item->subnodes = value;
+    id->subnodes.insert(id->subnodes.begin() + index, item);
 }

@@ -16,59 +16,6 @@ struct ImmNone : public org::ImmOrg {
   bool operator==(org::ImmNone const& other) const;
 };
 
-/// \brief Single key-value (or positional)
-struct ImmAttr : public org::ImmOrg {
-  using ImmOrg::ImmOrg;
-  virtual ~ImmAttr() = default;
-  BOOST_DESCRIBE_CLASS(ImmAttr,
-                       (ImmOrg),
-                       (),
-                       (),
-                       (staticKind,
-                        arg))
-  static OrgSemKind const staticKind;
-  sem::AttrValue arg;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Attr; }
-  bool operator==(org::ImmAttr const& other) const;
-};
-
-/// \brief Data type to wrap list of identical command arguments
-struct ImmAttrList : public org::ImmOrg {
-  using ImmOrg::ImmOrg;
-  virtual ~ImmAttrList() = default;
-  BOOST_DESCRIBE_CLASS(ImmAttrList,
-                       (ImmOrg),
-                       (),
-                       (),
-                       (staticKind,
-                        args))
-  static OrgSemKind const staticKind;
-  /// \brief List of arguments
-  ImmVec<org::ImmIdT<org::ImmAttr>> args = {};
-  virtual OrgSemKind getKind() const { return OrgSemKind::AttrList; }
-  bool operator==(org::ImmAttrList const& other) const;
-};
-
-/// \brief Additional arguments for command blocks
-struct ImmAttrs : public org::ImmOrg {
-  using ImmOrg::ImmOrg;
-  virtual ~ImmAttrs() = default;
-  BOOST_DESCRIBE_CLASS(ImmAttrs,
-                       (ImmOrg),
-                       (),
-                       (),
-                       (staticKind,
-                        positional,
-                        named))
-  static OrgSemKind const staticKind;
-  /// \brief Positional arguments with no keys
-  org::ImmIdT<org::ImmAttrList> positional = org::ImmIdT<org::ImmAttrList>::Nil();
-  /// \brief Stored key-value mapping
-  ImmMap<Str, org::ImmIdT<org::ImmAttrList>> named;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Attrs; }
-  bool operator==(org::ImmAttrs const& other) const;
-};
-
 struct ImmErrorItem : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmErrorItem() = default;
@@ -175,7 +122,7 @@ struct ImmCmd : public org::ImmStmt {
                        (),
                        (attrs))
   /// \brief Additional parameters aside from 'exporter',
-  ImmBox<Opt<org::ImmIdT<org::ImmAttrs>>> attrs = std::nullopt;
+  ImmBox<Opt<sem::AttrGroup>> attrs = std::nullopt;
   bool operator==(org::ImmCmd const& other) const;
 };
 
@@ -244,6 +191,22 @@ struct ImmCmdCaption : public org::ImmAttached {
   org::ImmIdT<org::ImmParagraph> text = org::ImmIdT<org::ImmParagraph>::Nil();
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdCaption; }
   bool operator==(org::ImmCmdCaption const& other) const;
+};
+
+/// \brief Caption annotation for any subsequent node
+struct ImmCmdColumns : public org::ImmAttached {
+  using ImmAttached::ImmAttached;
+  virtual ~ImmCmdColumns() = default;
+  BOOST_DESCRIBE_CLASS(ImmCmdColumns,
+                       (ImmAttached),
+                       (),
+                       (),
+                       (staticKind,
+                        view))
+  static OrgSemKind const staticKind;
+  sem::ColumnView view;
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdColumns; }
+  bool operator==(org::ImmCmdColumns const& other) const;
 };
 
 /// \brief Name identifier for the statement elements.
@@ -341,13 +304,14 @@ struct ImmCmdTblfm : public org::ImmCmd {
                        (ImmCmd),
                        (),
                        (),
-                       (staticKind))
+                       (staticKind,
+                        expr))
   static OrgSemKind const staticKind;
+  sem::Tblfm expr;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdTblfm; }
   bool operator==(org::ImmCmdTblfm const& other) const;
 };
 
-/// \brief Single or nested inline hash-tag
 struct ImmHashTag : public org::ImmInline {
   using ImmInline::ImmInline;
   virtual ~ImmHashTag() = default;
@@ -356,13 +320,9 @@ struct ImmHashTag : public org::ImmInline {
                        (),
                        (),
                        (staticKind,
-                        head,
-                        subtags))
+                        text))
   static OrgSemKind const staticKind;
-  /// \brief Main part of the tag
-  ImmBox<Str> head;
-  /// \brief List of nested tags
-  ImmVec<org::ImmIdT<org::ImmHashTag>> subtags = {};
+  sem::HashTagText text;
   virtual OrgSemKind getKind() const { return OrgSemKind::HashTag; }
   bool operator==(org::ImmHashTag const& other) const;
 };
@@ -387,6 +347,24 @@ struct ImmInlineFootnote : public org::ImmInline {
   ImmBox<Opt<org::ImmIdT<org::ImmOrg>>> definition = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::InlineFootnote; }
   bool operator==(org::ImmInlineFootnote const& other) const;
+};
+
+/// \brief Inline export
+struct ImmInlineExport : public org::ImmInline {
+  using ImmInline::ImmInline;
+  virtual ~ImmInlineExport() = default;
+  BOOST_DESCRIBE_CLASS(ImmInlineExport,
+                       (ImmInline),
+                       (),
+                       (),
+                       (staticKind,
+                        exporter,
+                        content))
+  static OrgSemKind const staticKind;
+  ImmBox<Str> exporter = "";
+  ImmBox<Str> content = "";
+  virtual OrgSemKind getKind() const { return OrgSemKind::InlineExport; }
+  bool operator==(org::ImmInlineExport const& other) const;
 };
 
 /// \brief Single static or dynamic timestamp (active or inactive)
@@ -508,7 +486,7 @@ struct ImmMacro : public org::ImmOrg {
   /// \brief Macro name
   ImmBox<Str> name = "";
   /// \brief Additional parameters aside from 'exporter',
-  org::ImmIdT<org::ImmAttrs> attrs = org::ImmIdT<org::ImmAttrs>::Nil();
+  sem::AttrGroup attrs;
   virtual OrgSemKind getKind() const { return OrgSemKind::Macro; }
   bool operator==(org::ImmMacro const& other) const;
 };
@@ -832,130 +810,18 @@ struct ImmLatex : public org::ImmOrg {
 struct ImmLink : public org::ImmStmt {
   using ImmStmt::ImmStmt;
   virtual ~ImmLink() = default;
-  struct Raw {
-    BOOST_DESCRIBE_CLASS(Raw,
-                         (),
-                         (),
-                         (),
-                         (text))
-    ImmBox<Str> text;
-    bool operator==(org::ImmLink::Raw const& other) const;
-  };
-
-  struct Id {
-    BOOST_DESCRIBE_CLASS(Id,
-                         (),
-                         (),
-                         (),
-                         (text))
-    ImmBox<Str> text;
-    bool operator==(org::ImmLink::Id const& other) const;
-  };
-
-  struct Person {
-    BOOST_DESCRIBE_CLASS(Person,
-                         (),
-                         (),
-                         (),
-                         (name))
-    ImmBox<Str> name;
-    bool operator==(org::ImmLink::Person const& other) const;
-  };
-
-  struct UserProtocol {
-    BOOST_DESCRIBE_CLASS(UserProtocol,
-                         (),
-                         (),
-                         (),
-                         (protocol, target))
-    ImmBox<Str> protocol;
-    ImmBox<Str> target;
-    bool operator==(org::ImmLink::UserProtocol const& other) const;
-  };
-
-  struct Internal {
-    BOOST_DESCRIBE_CLASS(Internal,
-                         (),
-                         (),
-                         (),
-                         (target))
-    ImmBox<Str> target;
-    bool operator==(org::ImmLink::Internal const& other) const;
-  };
-
-  struct Footnote {
-    BOOST_DESCRIBE_CLASS(Footnote,
-                         (),
-                         (),
-                         (),
-                         (target))
-    ImmBox<Str> target;
-    bool operator==(org::ImmLink::Footnote const& other) const;
-  };
-
-  struct File {
-    BOOST_DESCRIBE_CLASS(File,
-                         (),
-                         (),
-                         (),
-                         (file))
-    ImmBox<Str> file;
-    bool operator==(org::ImmLink::File const& other) const;
-  };
-
-  struct Attachment {
-    BOOST_DESCRIBE_CLASS(Attachment,
-                         (),
-                         (),
-                         (),
-                         (file))
-    ImmBox<Str> file;
-    bool operator==(org::ImmLink::Attachment const& other) const;
-  };
-
-  using Data = std::variant<org::ImmLink::Raw, org::ImmLink::Id, org::ImmLink::Person, org::ImmLink::UserProtocol, org::ImmLink::Internal, org::ImmLink::Footnote, org::ImmLink::File, org::ImmLink::Attachment>;
-  enum class Kind : short int { Raw, Id, Person, UserProtocol, Internal, Footnote, File, Attachment, };
-  BOOST_DESCRIBE_NESTED_ENUM(Kind, Raw, Id, Person, UserProtocol, Internal, Footnote, File, Attachment)
-  using variant_enum_type = org::ImmLink::Kind;
-  using variant_data_type = org::ImmLink::Data;
   BOOST_DESCRIBE_CLASS(ImmLink,
                        (ImmStmt),
                        (),
                        (),
                        (staticKind,
                         description,
-                        data))
+                        target))
   static OrgSemKind const staticKind;
   ImmBox<Opt<org::ImmIdT<org::ImmParagraph>>> description = std::nullopt;
-  org::ImmLink::Data data;
+  sem::LinkTarget target;
   virtual OrgSemKind getKind() const { return OrgSemKind::Link; }
   bool operator==(org::ImmLink const& other) const;
-  bool isRaw() const { return getLinkKind() == Kind::Raw; }
-  org::ImmLink::Raw const& getRaw() const { return std::get<0>(data); }
-  org::ImmLink::Raw& getRaw() { return std::get<0>(data); }
-  bool isId() const { return getLinkKind() == Kind::Id; }
-  org::ImmLink::Id const& getId() const { return std::get<1>(data); }
-  org::ImmLink::Id& getId() { return std::get<1>(data); }
-  bool isPerson() const { return getLinkKind() == Kind::Person; }
-  org::ImmLink::Person const& getPerson() const { return std::get<2>(data); }
-  org::ImmLink::Person& getPerson() { return std::get<2>(data); }
-  bool isUserProtocol() const { return getLinkKind() == Kind::UserProtocol; }
-  org::ImmLink::UserProtocol const& getUserProtocol() const { return std::get<3>(data); }
-  org::ImmLink::UserProtocol& getUserProtocol() { return std::get<3>(data); }
-  bool isInternal() const { return getLinkKind() == Kind::Internal; }
-  org::ImmLink::Internal const& getInternal() const { return std::get<4>(data); }
-  org::ImmLink::Internal& getInternal() { return std::get<4>(data); }
-  bool isFootnote() const { return getLinkKind() == Kind::Footnote; }
-  org::ImmLink::Footnote const& getFootnote() const { return std::get<5>(data); }
-  org::ImmLink::Footnote& getFootnote() { return std::get<5>(data); }
-  bool isFile() const { return getLinkKind() == Kind::File; }
-  org::ImmLink::File const& getFile() const { return std::get<6>(data); }
-  org::ImmLink::File& getFile() { return std::get<6>(data); }
-  bool isAttachment() const { return getLinkKind() == Kind::Attachment; }
-  org::ImmLink::Attachment const& getAttachment() const { return std::get<7>(data); }
-  org::ImmLink::Attachment& getAttachment() { return std::get<7>(data); }
-  static org::ImmLink::Kind getLinkKind(org::ImmLink::Data const& __input) { return static_cast<org::ImmLink::Kind>(__input.index()); }
-  org::ImmLink::Kind getLinkKind() const { return getLinkKind(data); }
 };
 
 /// \brief Center nested content in export
@@ -1047,34 +913,16 @@ struct ImmBlockExample : public org::ImmBlock {
 struct ImmBlockExport : public org::ImmBlock {
   using ImmBlock::ImmBlock;
   virtual ~ImmBlockExport() = default;
-  /// \brief Export block format type
-  enum class Format : short int {
-    /// \brief Export directly in the paragraph
-    Inline,
-    /// \brief Single line of export
-    Line,
-    /// \brief Multiple lines of export
-    Block,
-  };
-  BOOST_DESCRIBE_NESTED_ENUM(Format, Inline, Line, Block)
   BOOST_DESCRIBE_CLASS(ImmBlockExport,
                        (ImmBlock),
                        (),
                        (),
                        (staticKind,
-                        format,
                         exporter,
-                        placement,
                         content))
   static OrgSemKind const staticKind;
-  /// \brief Export block type
-  org::ImmBlockExport::Format format = Format::Inline;
-  /// \brief Exporter backend name
-  ImmBox<Str> exporter;
-  /// \brief Customized position of the text in the final exporting document.
-  ImmBox<Opt<Str>> placement = std::nullopt;
-  /// \brief Raw exporter content string
-  ImmBox<Str> content;
+  ImmBox<Str> exporter = "";
+  ImmBox<Str> content = "";
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockExport; }
   bool operator==(org::ImmBlockExport const& other) const;
 };
@@ -1141,163 +989,19 @@ struct ImmBlockCode : public org::ImmBlock {
 struct ImmSubtreeLog : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmSubtreeLog() = default;
-  /// \brief Base value for the log variant
-  struct DescribedLog {
-    BOOST_DESCRIBE_CLASS(DescribedLog,
-                         (),
-                         (),
-                         (),
-                         (desc))
-    /// \brief Optional description of the log entry
-    ImmBox<Opt<org::ImmIdT<org::ImmStmtList>>> desc = std::nullopt;
-    bool operator==(org::ImmSubtreeLog::DescribedLog const& other) const;
-  };
-
-  /// \brief Priority added
-  struct Priority : public org::ImmSubtreeLog::DescribedLog {
-    /// \brief Priority change action
-    enum class Action : short int {
-      /// \brief `Priority B added on [timestamp]`
-      Added,
-      /// \brief `Priority C removed on [timestamp]`
-      Removed,
-      /// \brief `Priority B changed from C on [timestamp]`
-      Changed,
-    };
-    BOOST_DESCRIBE_NESTED_ENUM(Action, Added, Removed, Changed)
-    BOOST_DESCRIBE_CLASS(Priority,
-                         (DescribedLog),
-                         (),
-                         (),
-                         (oldPriority, newPriority, on, action))
-    /// \brief Previous priority for change and removal
-    ImmBox<Opt<std::string>> oldPriority = std::nullopt;
-    /// \brief New priority for change and addition
-    ImmBox<Opt<std::string>> newPriority = std::nullopt;
-    /// \brief When priority was changed
-    org::ImmIdT<org::ImmTime> on = org::ImmIdT<org::ImmTime>::Nil();
-    /// \brief Which action taken
-    org::ImmSubtreeLog::Priority::Action action;
-    bool operator==(org::ImmSubtreeLog::Priority const& other) const;
-  };
-
-  /// \brief Timestamped note
-  struct Note : public org::ImmSubtreeLog::DescribedLog {
-    BOOST_DESCRIBE_CLASS(Note,
-                         (DescribedLog),
-                         (),
-                         (),
-                         (on))
-    /// \brief Where log was taken
-    org::ImmIdT<org::ImmTime> on = org::ImmIdT<org::ImmTime>::Nil();
-    bool operator==(org::ImmSubtreeLog::Note const& other) const;
-  };
-
-  /// \brief Refiling action
-  struct Refile : public org::ImmSubtreeLog::DescribedLog {
-    BOOST_DESCRIBE_CLASS(Refile,
-                         (DescribedLog),
-                         (),
-                         (),
-                         (on, from))
-    /// \brief When the refiling happened
-    org::ImmIdT<org::ImmTime> on = org::ImmIdT<org::ImmTime>::Nil();
-    /// \brief Link to the original subtree
-    org::ImmIdT<org::ImmLink> from = org::ImmIdT<org::ImmLink>::Nil();
-    bool operator==(org::ImmSubtreeLog::Refile const& other) const;
-  };
-
-  /// \brief Clock entry `CLOCK: [2023-04-30 Sun 13:29:04]--[2023-04-30 Sun 14:51:16] => 1:22`
-  struct Clock : public org::ImmSubtreeLog::DescribedLog {
-    BOOST_DESCRIBE_CLASS(Clock,
-                         (DescribedLog),
-                         (),
-                         (),
-                         (from, to))
-    /// \brief Clock start time
-    org::ImmIdT<org::ImmTime> from = org::ImmIdT<org::ImmTime>::Nil();
-    /// \brief Optional end of the clock
-    ImmBox<Opt<org::ImmIdT<org::ImmTime>>> to = std::nullopt;
-    bool operator==(org::ImmSubtreeLog::Clock const& other) const;
-  };
-
-  /// \brief Change of the subtree state -- `- State "WIP" from "TODO" [2023-04-30 Sun 13:29:04]`
-  struct State : public org::ImmSubtreeLog::DescribedLog {
-    BOOST_DESCRIBE_CLASS(State,
-                         (DescribedLog),
-                         (),
-                         (),
-                         (from, to, on))
-    ImmBox<Str> from;
-    ImmBox<Str> to;
-    org::ImmIdT<org::ImmTime> on = org::ImmIdT<org::ImmTime>::Nil();
-    bool operator==(org::ImmSubtreeLog::State const& other) const;
-  };
-
-  /// \brief Assign tag to the subtree `- Tag "project##haxorg" Added on [2023-04-30 Sun 13:29:06]`
-  struct Tag : public org::ImmSubtreeLog::DescribedLog {
-    BOOST_DESCRIBE_CLASS(Tag,
-                         (DescribedLog),
-                         (),
-                         (),
-                         (on, tag, added))
-    /// \brief When the log was assigned
-    org::ImmIdT<org::ImmTime> on = org::ImmIdT<org::ImmTime>::Nil();
-    /// \brief Tag in question
-    org::ImmIdT<org::ImmHashTag> tag = org::ImmIdT<org::ImmHashTag>::Nil();
-    /// \brief Added/removed?
-    bool added = false;
-    bool operator==(org::ImmSubtreeLog::Tag const& other) const;
-  };
-
-  /// \brief Unknown subtree log entry kind
-  struct Unknown : public org::ImmSubtreeLog::DescribedLog {
-    BOOST_DESCRIBE_CLASS(Unknown,
-                         (DescribedLog),
-                         (),
-                         (),
-                         ())
-    bool operator==(org::ImmSubtreeLog::Unknown const& other) const;
-  };
-
-  using LogEntry = std::variant<org::ImmSubtreeLog::Priority, org::ImmSubtreeLog::Note, org::ImmSubtreeLog::Refile, org::ImmSubtreeLog::Clock, org::ImmSubtreeLog::State, org::ImmSubtreeLog::Tag, org::ImmSubtreeLog::Unknown>;
-  enum class Kind : short int { Priority, Note, Refile, Clock, State, Tag, Unknown, };
-  BOOST_DESCRIBE_NESTED_ENUM(Kind, Priority, Note, Refile, Clock, State, Tag, Unknown)
-  using variant_enum_type = org::ImmSubtreeLog::Kind;
-  using variant_data_type = org::ImmSubtreeLog::LogEntry;
   BOOST_DESCRIBE_CLASS(ImmSubtreeLog,
                        (ImmOrg),
                        (),
                        (),
                        (staticKind,
-                        log))
+                        head,
+                        desc))
   static OrgSemKind const staticKind;
-  org::ImmSubtreeLog::LogEntry log = Note{};
+  sem::SubtreeLogHead head;
+  /// \brief Optional description of the log entry
+  ImmBox<Opt<org::ImmIdT<org::ImmStmtList>>> desc = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::SubtreeLog; }
   bool operator==(org::ImmSubtreeLog const& other) const;
-  bool isPriority() const { return getLogKind() == Kind::Priority; }
-  org::ImmSubtreeLog::Priority const& getPriority() const { return std::get<0>(log); }
-  org::ImmSubtreeLog::Priority& getPriority() { return std::get<0>(log); }
-  bool isNote() const { return getLogKind() == Kind::Note; }
-  org::ImmSubtreeLog::Note const& getNote() const { return std::get<1>(log); }
-  org::ImmSubtreeLog::Note& getNote() { return std::get<1>(log); }
-  bool isRefile() const { return getLogKind() == Kind::Refile; }
-  org::ImmSubtreeLog::Refile const& getRefile() const { return std::get<2>(log); }
-  org::ImmSubtreeLog::Refile& getRefile() { return std::get<2>(log); }
-  bool isClock() const { return getLogKind() == Kind::Clock; }
-  org::ImmSubtreeLog::Clock const& getClock() const { return std::get<3>(log); }
-  org::ImmSubtreeLog::Clock& getClock() { return std::get<3>(log); }
-  bool isState() const { return getLogKind() == Kind::State; }
-  org::ImmSubtreeLog::State const& getState() const { return std::get<4>(log); }
-  org::ImmSubtreeLog::State& getState() { return std::get<4>(log); }
-  bool isTag() const { return getLogKind() == Kind::Tag; }
-  org::ImmSubtreeLog::Tag const& getTag() const { return std::get<5>(log); }
-  org::ImmSubtreeLog::Tag& getTag() { return std::get<5>(log); }
-  bool isUnknown() const { return getLogKind() == Kind::Unknown; }
-  org::ImmSubtreeLog::Unknown const& getUnknown() const { return std::get<6>(log); }
-  org::ImmSubtreeLog::Unknown& getUnknown() { return std::get<6>(log); }
-  static org::ImmSubtreeLog::Kind getLogKind(org::ImmSubtreeLog::LogEntry const& __input) { return static_cast<org::ImmSubtreeLog::Kind>(__input.index()); }
-  org::ImmSubtreeLog::Kind getLogKind() const { return getLogKind(log); }
 };
 
 /// \brief Subtree
@@ -1332,7 +1036,7 @@ struct ImmSubtree : public org::ImmOrg {
   /// \brief Todo state of the tree
   ImmBox<Opt<Str>> todo = std::nullopt;
   /// \brief Task completion state
-  ImmBox<Opt<org::ImmIdT<org::ImmSubtreeCompletion>>> completion = std::nullopt;
+  ImmBox<Opt<sem::SubtreeCompletion>> completion = std::nullopt;
   ImmBox<Opt<org::ImmIdT<org::ImmParagraph>>> description = std::nullopt;
   /// \brief Trailing tags
   ImmVec<org::ImmIdT<org::ImmHashTag>> tags = {};
@@ -1343,11 +1047,11 @@ struct ImmSubtree : public org::ImmOrg {
   /// \brief Immediate properties
   ImmVec<sem::NamedProperty> properties = {};
   /// \brief When subtree was marked as closed
-  ImmBox<Opt<org::ImmIdT<org::ImmTime>>> closed = std::nullopt;
+  ImmBox<Opt<UserTime>> closed = std::nullopt;
   /// \brief When is the deadline
-  ImmBox<Opt<org::ImmIdT<org::ImmTime>>> deadline = std::nullopt;
+  ImmBox<Opt<UserTime>> deadline = std::nullopt;
   /// \brief When the event is scheduled
-  ImmBox<Opt<org::ImmIdT<org::ImmTime>>> scheduled = std::nullopt;
+  ImmBox<Opt<UserTime>> scheduled = std::nullopt;
   /// \brief Subtree is annotated with the COMMENT keyword
   bool isComment = false;
   /// \brief Subtree is tagged with `:ARCHIVE:` tag
@@ -1355,29 +1059,6 @@ struct ImmSubtree : public org::ImmOrg {
   ImmBox<Opt<Str>> priority = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::Subtree; }
   bool operator==(org::ImmSubtree const& other) const;
-};
-
-/// \brief Completion status of the subtree list element
-struct ImmSubtreeCompletion : public org::ImmInline {
-  using ImmInline::ImmInline;
-  virtual ~ImmSubtreeCompletion() = default;
-  BOOST_DESCRIBE_CLASS(ImmSubtreeCompletion,
-                       (ImmInline),
-                       (),
-                       (),
-                       (staticKind,
-                        done,
-                        full,
-                        isPercent))
-  static OrgSemKind const staticKind;
-  /// \brief Number of completed tasks
-  int done = 0;
-  /// \brief Full number of tasks
-  int full = 0;
-  /// \brief Use fraction or percent to display completion
-  bool isPercent = false;
-  virtual OrgSemKind getKind() const { return OrgSemKind::SubtreeCompletion; }
-  bool operator==(org::ImmSubtreeCompletion const& other) const;
 };
 
 /// \brief Table cell
@@ -1481,6 +1162,24 @@ struct ImmCmdAttr : public org::ImmAttached {
   bool operator==(org::ImmCmdAttr const& other) const;
 };
 
+/// \brief Single line of passthrough code
+struct ImmCmdExport : public org::ImmAttached {
+  using ImmAttached::ImmAttached;
+  virtual ~ImmCmdExport() = default;
+  BOOST_DESCRIBE_CLASS(ImmCmdExport,
+                       (ImmAttached),
+                       (),
+                       (),
+                       (staticKind,
+                        exporter,
+                        content))
+  static OrgSemKind const staticKind;
+  ImmBox<Str> exporter = "";
+  ImmBox<Str> content = "";
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdExport; }
+  bool operator==(org::ImmCmdExport const& other) const;
+};
+
 /// \brief Inline, statement or block call
 struct ImmCall : public org::ImmOrg {
   using ImmOrg::ImmOrg;
@@ -1497,7 +1196,7 @@ struct ImmCall : public org::ImmOrg {
   /// \brief Call target name
   ImmBox<Str> name;
   /// \brief Additional parameters aside from 'exporter',
-  org::ImmIdT<org::ImmAttrs> attrs = org::ImmIdT<org::ImmAttrs>::Nil();
+  sem::AttrGroup attrs;
   bool isCommand = false;
   virtual OrgSemKind getKind() const { return OrgSemKind::Call; }
   bool operator==(org::ImmCall const& other) const;
@@ -1554,7 +1253,8 @@ struct ImmDocumentOptions : public org::ImmOrg {
                         startupIndented,
                         category,
                         setupfile,
-                        maxSubtreeLevelExport))
+                        maxSubtreeLevelExport,
+                        columns))
   static OrgSemKind const staticKind;
   InitialSubtreeVisibility initialVisibility = InitialSubtreeVisibility::ShowEverything;
   ImmVec<sem::NamedProperty> properties = {};
@@ -1564,6 +1264,7 @@ struct ImmDocumentOptions : public org::ImmOrg {
   ImmBox<Opt<Str>> category = std::nullopt;
   ImmBox<Opt<Str>> setupfile = std::nullopt;
   ImmBox<Opt<int>> maxSubtreeLevelExport = std::nullopt;
+  ImmBox<Opt<sem::ColumnView>> columns = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::DocumentOptions; }
   bool operator==(org::ImmDocumentOptions const& other) const;
 };

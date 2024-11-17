@@ -13,17 +13,6 @@ struct std::hash<ImmBox<T>> {
     }
 };
 
-template <typename T>
-struct std::hash<ImmVec<T>> {
-    std::size_t operator()(ImmVec<T> const& it) const noexcept {
-        std::size_t result = 0;
-        for (auto const& val : it) {
-            boost::hash_combine(result, get_std_hash<T>(val));
-        }
-        return result;
-    }
-};
-
 template <typename K, typename V>
 struct std::hash<ImmMap<K, V>> {
     std::size_t operator()(ImmMap<K, V> const& it) const noexcept {

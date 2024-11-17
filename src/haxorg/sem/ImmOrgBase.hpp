@@ -14,11 +14,37 @@
 #include <hstd/stdlib/reflection_visitor.hpp>
 #include <haxorg/sem/SemOrgTypes.hpp>
 
+namespace org {
+struct ImmReflFieldId;
+}
+
+template <>
+struct std::hash<org::ImmReflFieldId> {
+    std::size_t operator()(org::ImmReflFieldId const& it) const noexcept;
+};
+
+
 template <typename T>
 using ImmVec = immer::flex_vector<T>;
 
 template <typename T>
 using ImmBox = immer::box<T>;
+
+template <typename T>
+struct std::hash<ImmVec<T>> : std_indexable_hash<ImmVec<T>> {};
+
+template <typename T>
+struct std::hash<immer::vector<T>>
+    : std_indexable_hash<immer::vector<T>> {};
+
+template <typename T>
+struct std::formatter<immer::vector<T>>
+    : std_item_iterator_formatter<T, immer::vector<T>> {};
+
+template <typename T>
+struct std::formatter<ImmVec<T>>
+    : std_item_iterator_formatter<T, ImmVec<T>> {};
+
 
 template <typename K, typename V>
 struct ImmMap : immer::map<K, V> {
@@ -43,41 +69,145 @@ struct ImmMap : immer::map<K, V> {
 template <typename T>
 using ImmSet = immer::set<T>;
 
-template <typename K, typename V>
-struct ReflVisitor<immer::map<K, V>>
-    : ReflVisitorKeyValue<K, V, immer::map<K, V>> {};
+
+namespace org {
 
 
-template <typename K, typename V>
-struct ReflVisitor<ImmMap<K, V>>
-    : ReflVisitorKeyValue<K, V, ImmMap<K, V>> {};
+struct ImmReflPathTag {
+    using field_name_type = ImmReflFieldId;
+};
 
-template <typename T>
-struct ReflVisitor<immer::set<T>>
-    : ReflVisitorUnorderedIndexed<T, immer::set<T>> {};
+using ImmReflPathItemBase = ReflPathItem<ImmReflPathTag>;
+using ImmReflPathBase     = ReflPath<ImmReflPathTag>;
 
-template <typename T>
-struct ReflVisitor<immer::flex_vector<T>>
-    : ReflVisitorIndexed<T, immer::flex_vector<T>> {};
+struct ImmReflFieldId {
+    struct R {
+        int f;
+    };
+
+    static const int member_ptr_size = sizeof(&R::f);
+    using member_ptr_store           = Array<u8, member_ptr_size>;
+    member_ptr_store field;
+
+    static UnorderedMap<ImmReflFieldId, Str> fieldNames;
+
+    Str getName() const {
+        return fieldNames.get(*this).value_or("<none>");
+    }
+
+    template <typename T, typename F>
+    static ImmReflFieldId FromTypeField(F T::*fieldPtr) {
+        ImmReflFieldId result{};
+        std::memcpy(result.field.data(), &fieldPtr, member_ptr_size);
+        return result;
+    }
+
+    template <typename T, typename F>
+    static ImmReflFieldId FromTypeFieldName(
+        char const* name,
+        F T::*fieldPtr) {
+        auto result = FromTypeField(fieldPtr);
+        if (!fieldNames.contains(result)) {
+            fieldNames.insert_or_assign(result, name);
+        }
+        return result;
+    }
+
+    bool operator==(ImmReflFieldId const& other) const {
+        return std::memcmp(
+                   other.field.data(), field.data(), member_ptr_size)
+            == 0;
+    }
+
+    bool operator<(ImmReflFieldId const& other) const {
+        return std::memcmp(
+                   other.field.data(), field.data(), member_ptr_size)
+             < 0;
+    }
+};
 
 
-template <typename T>
-struct ReflVisitor<ImmBox<T>> {
+} // namespace org
+
+template <>
+struct std::formatter<org::ImmReflFieldId> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const org::ImmReflFieldId& p, FormatContext& ctx) const {
+        return fmt_ctx(p.getName(), ctx);
+    }
+};
+
+template <>
+struct std::hash<org::ImmReflFieldId::member_ptr_store> {
+    size_t operator()(
+        const org::ImmReflFieldId::member_ptr_store& arr) const noexcept {
+        size_t result = 0;
+        for (const auto& byte : arr) { hax_hash_combine(result, byte); }
+        return result;
+    }
+};
+
+
+template <>
+struct ReflTypeTraits<org::ImmReflPathTag> {
+    using AnyFormatterType = AnyFormatter<Str>;
+    using AnyHasherType    = AnyHasher<Str>;
+    using AnyEqualType     = AnyEqual<Str>;
+
+    using ReflPathStoreType = immer::vector<
+        ReflPathItem<org::ImmReflPathTag>>;
+
+    template <typename T>
+    static org::ImmReflPathTag::field_name_type InitFieldName(
+        T const&    value,
+        auto const& field) {
+        return org::ImmReflFieldId::FromTypeFieldName<T>(
+            field.name, field.pointer);
+    }
+
+    static ReflPath<org::ImmReflPathTag> AddPathItem(
+        ReflPath<org::ImmReflPathTag>     res,
+        ReflPathItem<org::ImmReflPathTag> item) {
+        return ReflPath<org::ImmReflPathTag>{res.path.push_back(item)};
+    }
+};
+
+
+template <typename K, typename V, typename Tag>
+struct ReflVisitor<immer::map<K, V>, Tag>
+    : ReflVisitorKeyValue<K, V, immer::map<K, V>, Tag> {};
+
+
+template <typename K, typename V, typename Tag>
+struct ReflVisitor<ImmMap<K, V>, Tag>
+    : ReflVisitorKeyValue<K, V, ImmMap<K, V>, Tag> {};
+
+template <typename T, typename Tag>
+struct ReflVisitor<immer::set<T>, Tag>
+    : ReflVisitorUnorderedIndexed<T, immer::set<T>, Tag> {};
+
+template <typename T, typename Tag>
+struct ReflVisitor<immer::flex_vector<T>, Tag>
+    : ReflVisitorIndexed<T, immer::flex_vector<T>, Tag> {};
+
+
+template <typename T, typename Tag>
+struct ReflVisitor<ImmBox<T>, Tag> {
     /// \brief Apply callback to passed value if the path points to it,
     /// otherwise follow the path down the data structure.
     template <typename Func>
     static void visit(
-        ImmBox<T> const&    value,
-        ReflPathItem const& step,
-        Func const&         cb) {
+        ImmBox<T> const&         value,
+        ReflPathItem<Tag> const& step,
+        Func const&              cb) {
         LOGIC_ASSERTION_CHECK(step.isDeref(), "{}", step.getKind());
         cb(value.get());
     }
 
 
-    static Vec<ReflPathItem> subitems(ImmBox<T> const& value) {
-        Vec<ReflPathItem> result;
-        result.push_back(ReflPathItem::FromDeref());
+    static Vec<ReflPathItem<Tag>> subitems(ImmBox<T> const& value) {
+        Vec<ReflPathItem<Tag>> result;
+        result.push_back(ReflPathItem<Tag>::FromDeref());
         return result;
     }
 };
@@ -109,19 +239,6 @@ struct std::formatter<ImmBox<Str>> : std::formatter<std::string> {
         fmt_ctx("Box{", ctx);
         fmt_ctx(escape_literal(p.get()), ctx);
         return fmt_ctx("}", ctx);
-    }
-};
-
-
-template <typename T>
-struct std::formatter<ImmVec<T>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(ImmVec<T> const& p, FormatContext& ctx)
-        const {
-        std::formatter<std::string> fmt;
-        fmt.format("[", ctx);
-        fmt.format(join(", ", p), ctx);
-        return fmt.format("]", ctx);
     }
 };
 
@@ -393,8 +510,9 @@ struct JsonSerde<org::ImmId> {
 };
 
 template <>
-struct ReflVisitor<org::ImmId> : ReflVisitorLeafType<org::ImmId> {};
+struct ReflVisitor<org::ImmId, org::ImmReflPathTag>
+    : ReflVisitorLeafType<org::ImmId, org::ImmReflPathTag> {};
 
 template <typename T>
-struct ReflVisitor<org::ImmIdT<T>>
-    : ReflVisitorLeafType<org::ImmIdT<T>> {};
+struct ReflVisitor<org::ImmIdT<T>, org::ImmReflPathTag>
+    : ReflVisitorLeafType<org::ImmIdT<T>, org::ImmReflPathTag> {};

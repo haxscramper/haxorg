@@ -17,6 +17,7 @@ import shutil
 
 FILE = None
 
+
 @beartype
 @dataclass
 class OrgGenOptions():
@@ -171,8 +172,6 @@ class OrgGenCtx():
 
         result = result - set([
             osk.FileTarget,
-            osk.Attr,
-            osk.Attrs,
             osk.DocumentOptions,
             osk.Empty,
             osk.SubtreeLog,
@@ -189,7 +188,6 @@ class OrgGenCtx():
             osk.CmdResults,
             osk.Table,
             osk.StmtList,
-            osk.SubtreeCompletion,
         ]) - SET_COMMAND_KINDS
 
         if 3 <= self.count(osk.List):
@@ -296,11 +294,16 @@ def build_StmtList(draw: st.DrawFn, ctx: OrgGenCtx):
 
 
 @st.composite
-def build_HashTag(draw: st.DrawFn, ctx: OrgGenCtx):
+def build_HashTagText(draw: st.DrawFn, ctx: OrgGenCtx):
     return draw(
-        st.builds(org.HashTag,
+        st.builds(org.HashTagText,
                   head=build_alnum_ident(),
-                  subtags=st.lists(build_HashTag(ctx=ctx.rec(osk.HashTag)))))
+                  subtags=st.lists(build_HashTagText(ctx))))
+
+
+@st.composite
+def build_HashTag(draw: st.DrawFn, ctx: OrgGenCtx):
+    return draw(st.builds(org.HashTag, text=build_HashTagText(ctx)))
 
 
 @st.composite
@@ -308,7 +311,8 @@ def build_InlineFootnote(draw: st.DrawFn, ctx: OrgGenCtx):
     return draw(
         st.builds(org.InlineFootnote,
                   head=st.from_regex("[a-zA-Z]+", fullmatch=True),
-                  definition=st.one_of(None, build_Paragraph(ctx.rec(osk.InlineFootnote)))))
+                  definition=st.one_of(None,
+                                       build_Paragraph(ctx.rec(osk.InlineFootnote)))))
 
 
 @st.composite
@@ -343,11 +347,6 @@ def build_Table(draw: st.DrawFn, ctx: OrgGenCtx):
 
 
 @st.composite
-def build_SubtreeCompletion(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.SubtreeCompletion))
-
-
-@st.composite
 def build_BlockCenter(draw: st.DrawFn, ctx: OrgGenCtx):
     return draw(st.builds(org.BlockCenter))
 
@@ -365,7 +364,6 @@ def build_CmdName(draw: st.DrawFn, ctx: OrgGenCtx):
 @st.composite
 def build_CmdResults(draw: st.DrawFn, ctx: OrgGenCtx):
     return draw(st.builds(org.CmdResults))
-
 
 
 @st.composite
@@ -392,18 +390,8 @@ def build_BlockVerse(draw: st.DrawFn, ctx: OrgGenCtx):
 
 
 @st.composite
-def build_Attrs(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Attrs))
-
-
-@st.composite
 def build_CmdAttr(draw: st.DrawFn, ctx: OrgGenCtx):
     return draw(st.builds(org.CmdAttr, target=build_alnum_ident()))
-
-
-@st.composite
-def build_Attr(draw: st.DrawFn, ctx: OrgGenCtx):
-    return draw(st.builds(org.Attr))
 
 
 def build_raw_text_block(ctx: OrgGenCtx):
@@ -638,8 +626,6 @@ def node_strategy(draw, ctx: OrgGenCtx):
             return draw(build_HashTag(ctx=ctx))
         case osk.InlineFootnote:
             return draw(build_InlineFootnote(ctx=ctx))
-        case osk.SubtreeCompletion:
-            return draw(build_SubtreeCompletion(ctx=ctx))
         case osk.Paragraph:
             return draw(build_Paragraph(ctx=ctx))
         case osk.BlockCenter:
@@ -658,12 +644,8 @@ def node_strategy(draw, ctx: OrgGenCtx):
             return draw(build_BlockVerse(ctx=ctx))
         case osk.BlockExample:
             return draw(build_BlockExample(ctx=ctx))
-        case osk.Attrs:
-            return draw(build_Attrs(ctx=ctx))
         case osk.CmdAttr:
             return draw(build_CmdAttr(ctx=ctx))
-        case osk.Attr:
-            return draw(build_Attr(ctx=ctx))
         case osk.BlockExport:
             return draw(build_BlockExport(ctx=ctx))
         case osk.BlockAdmonition:
@@ -778,6 +760,7 @@ def test_html_export(doc: org.Document):
 
 
 counter = 0
+
 
 @pytest.mark.unstable
 @settings(**gen_settings)

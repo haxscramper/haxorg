@@ -57,7 +57,7 @@ template <typename Proto>
 void proto_serde<Proto, sem::Cmd>::write(Proto* out, const sem::Cmd& in) {
     if (in.attrs) {
         if (in.attrs) {
-            proto_serde<orgproto::Attrs, sem::SemId<sem::Attrs>>::write(
+            proto_serde<orgproto::AttrGroup, sem::AttrGroup>::write(
                 out->mutable_attrs(), *in.attrs);
         }
     }
@@ -68,8 +68,8 @@ void proto_serde<Proto, sem::Cmd>::read(
     const Proto&                   out,
     proto_write_accessor<sem::Cmd> in) {
     if (out.has_attrs()) {
-        proto_serde<Opt<orgproto::Attrs>, Opt<sem::SemId<sem::Attrs>>>::
-            read(out.attrs(), in.for_field(&sem::BlockExport::attrs));
+        proto_serde<Opt<orgproto::AttrGroup>, Opt<sem::AttrGroup>>::read(
+            out.attrs(), in.for_field(&sem::BlockExport::attrs));
     }
 }
 
@@ -108,3 +108,5 @@ template class proto_serde<::orgproto::CmdTblfm, sem::Cmd>;
 template class proto_serde<::orgproto::BlockVerse, sem::Cmd>;
 template class proto_serde<::orgproto::BlockQuote, sem::Cmd>;
 template class proto_serde<::orgproto::CmdCustomArgs, sem::Cmd>;
+template class proto_serde<::orgproto::CmdColumns, sem::Cmd>;
+template class proto_serde<::orgproto::CmdExport, sem::Cmd>;

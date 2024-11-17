@@ -4,6 +4,7 @@
 #include <haxorg/sem/ImmOrg.hpp>
 #include <haxorg/sem/SemOrg.hpp>
 #include <hstd/stdlib/Ranges.hpp>
+#include <haxorg/sem/SemBaseApi.hpp>
 
 namespace {
 template <sem::IsOrg T>
@@ -171,9 +172,29 @@ T const& to_api(sem::SemId<T> it) {
     return *it.get();
 }
 
+template <sem::IsOrg T>
+T const& to_api(T const* it) {
+    return *it;
+}
+
 template <org::IsImmOrgValueType T>
 org::ImmAdapterT<T> to_api(org::ImmAdapterT<T> it) {
     return it;
+}
+
+template <sem::IsOrg T>
+T const& to_value(sem::SemId<T> const& it) {
+    return *it.get();
+}
+
+template <sem::IsOrg T>
+T const& to_value(T const* it) {
+    return *it;
+}
+
+template <org::IsImmOrgValueType T>
+T const& to_value(org::ImmAdapterT<T> it) {
+    return *it.template dyn_cast<T>();
 }
 
 /// \brief Unwrap type `T` and get underlying sem/imm type, define nested
@@ -185,6 +206,12 @@ template <typename T>
 struct get_ast_type<org::ImmAdapterT<T>> {
     using ast_type = T;
 };
+
+template <>
+struct get_ast_type<org::ImmAdapter> {
+    using ast_type = org::ImmOrg;
+};
+
 
 template <typename T>
 struct get_ast_type<sem::SemId<T>> {
@@ -283,10 +310,12 @@ Vec<sem::SubtreePeriod> Subtree_getTimePeriodsImpl(
     if (kinds.contains(SubtreePeriod::Kind::Deadline)
         && !isBoolFalse(h->deadline)) {
         SubtreePeriod period{};
-        period.from = toHandle(h->deadline, handle)
-                          .value()
-                          ->getStatic()
-                          .time;
+        if constexpr (IsSemOrgInstance<Handle>) {
+            period.from = h->deadline.value();
+        } else {
+            period.from = h->deadline.get().value();
+        }
+
         period.kind = SubtreePeriod::Kind::Deadline;
         res.push_back(period);
     }
@@ -294,10 +323,12 @@ Vec<sem::SubtreePeriod> Subtree_getTimePeriodsImpl(
     if (kinds.contains(SubtreePeriod::Kind::Scheduled)
         && !isBoolFalse(h->scheduled)) {
         SubtreePeriod period{};
-        period.from = toHandle(h->scheduled, handle)
-                          .value()
-                          ->getStatic()
-                          .time;
+        if constexpr (IsSemOrgInstance<Handle>) {
+            period.from = h->scheduled.value();
+        } else {
+            period.from = h->scheduled.get().value();
+        }
+
         period.kind = SubtreePeriod::Kind::Scheduled;
         res.push_back(period);
     }
@@ -305,10 +336,12 @@ Vec<sem::SubtreePeriod> Subtree_getTimePeriodsImpl(
     if (kinds.contains(SubtreePeriod::Kind::Closed)
         && !isBoolFalse(h->closed)) {
         SubtreePeriod period{};
-        period.from = toHandle(h->closed, handle)
-                          .value()
-                          ->getStatic()
-                          .time;
+        if constexpr (IsSemOrgInstance<Handle>) {
+            period.from = h->closed.value();
+        } else {
+            period.from = h->closed.get().value();
+        }
+
         period.kind = SubtreePeriod::Kind::Closed;
         res.push_back(period);
     }
@@ -327,17 +360,11 @@ Vec<sem::SubtreePeriod> Subtree_getTimePeriodsImpl(
 
         for (auto const& logIt : h->logbook) {
             auto const log = toHandle(logIt, handle);
-            if (log->getLogKind() == LogType::Kind::Clock) {
+            if (log->head.isClock()) {
                 SubtreePeriod period{};
-                period.from = toHandle(log->getClock().from, handle)
-                                  ->getStatic()
-                                  .time;
-                if (!isBoolFalse(log->getClock().to)) {
-                    period.to = //
-                        toHandle(log->getClock().to, handle)
-                            .value()
-                            ->getStatic()
-                            .time;
+                period.from = log->head.getClock().from;
+                if (!isBoolFalse(log->head.getClock().to)) {
+                    period.to = log->head.getClock().to;
                 }
                 period.kind = SubtreePeriod::Kind::Clocked;
                 res.push_back(period);
@@ -362,35 +389,20 @@ Vec<sem::SubtreePeriod> Subtree_getTimePeriodsImpl(
     return res;
 }
 
-template <typename Handle>
 Vec<sem::AttrValue> Attrs_getAttrs(
-    Handle const& handle,
-    CR<Opt<Str>>  param) {
-    auto h           = getConstHandle(handle);
-    using HandleBase = get_ast_type<Handle>::ast_type;
-    Vec<sem::AttrValue> res;
-    if (param) {
-        auto norm = normalize(*param);
-        if (h->named.contains(norm)) {
-            for (auto const& it :
-                 toHandle(h->named.at(norm), handle)->args) {
-                res.push_back(toHandle(it, handle)->arg);
-            }
-        }
+    sem::AttrGroup const& attrs,
+    CR<Opt<Str>>          param) {
+    return attrs.getAttrs(param);
+}
+
+Vec<sem::AttrValue> Attrs_getAttrs(
+    Opt<sem::AttrGroup> const& attrs,
+    CR<Opt<Str>>               param) {
+    if (attrs) {
+        return Attrs_getAttrs(attrs.value(), param);
     } else {
-        for (auto const& it : toHandle(h->positional, handle)->args) {
-            res.push_back(toHandle(it, handle)->arg);
-        }
-
-        for (auto const& [it, _1] : h->named) {
-            for (auto const& val :
-                 toHandle(h->named.at(it), handle)->args) {
-                res.push_back(toHandle(val, handle)->arg);
-            }
-        }
+        return {};
     }
-
-    return res;
 }
 
 template <typename Handle>
@@ -404,16 +416,31 @@ Vec<sem::AttrValue> Stmt_getAttrs(Handle handle, const Opt<Str>& kind) {
         if (toHandle(sub, handle)->getKind() == OrgSemKind::CmdAttr) {
             result.append( //
                 Attrs_getAttrs(
-                    toHandle(
-                        org_cast<sem::CmdAttr>(toHandle(sub, handle))
-                            ->attrs,
-                        handle)
-                        .value(),
+                    org_cast<sem::CmdAttr>(toHandle(sub, handle))->attrs,
                     kind));
         }
     }
 
     return result;
+}
+
+template <typename Handle>
+Opt<Str> Org_getString(Handle const& id) {
+    if (id->getKind() == OrgSemKind::Time) {
+        return "["_ss
+             + Str{to_api(toHandle(org_cast<sem::Time>(id), id))
+                       .getStaticTime()
+                       .format(UserTime::Format::OrgFormat)}
+             + "]"_ss;
+    } else if (
+        auto w = id->template dyn_cast<typename SemOrImmType<
+                     typename get_ast_type<Handle>::ast_type,
+                     sem::Leaf,
+                     org::ImmLeaf>::result>()) {
+        return w->text;
+    } else {
+        return std::nullopt;
+    }
 }
 
 Vec<org::ImmAdapter> Org_getLeadNodes(
@@ -452,6 +479,57 @@ Vec<sem::SemId<sem::Org>> Org_getLeadNodes(
     return result;
 }
 
+template <typename Handle, typename Select = SemIdOrImmId<Handle>>
+Vec<Select> Paragraph_dropAdmonitionNodes(Handle handle, bool withPath) {
+    Vec<Select> result;
+    bool        lead     = true;
+    auto        subnodes = getSubnodes(handle, withPath);
+    for (int i = 0; i < subnodes.size(); ++i) {
+        auto const& sub = subnodes.at(i);
+        if (lead) {
+            if (sub->getKind() == OrgSemKind::BigIdent) {
+                if (auto next = subnodes.get(i + 1); next) {
+                    SemIdOrImmId<Handle> colon = next.value().get();
+                    if (sub->getKind() == OrgSemKind::BigIdent
+                        && colon->getKind() == OrgSemKind::Punctuation
+                        && to_api(toHandle(
+                                      org_cast<sem::Punctuation>(colon),
+                                      handle))
+                                   .getText()
+                               == ":") {
+                        ++i;
+                    }
+                }
+            } else if (sub->getKind() == OrgSemKind::Link) {
+                bool isFootnote = false;
+                if constexpr (IsSemOrgInstance<Handle>) {
+                    isFootnote = sub.template as<sem::Link>()
+                                     ->target.isFootnote();
+                } else {
+                    isFootnote = sub.template as<org::ImmLink>()
+                                     ->target.isFootnote();
+                }
+
+                if (!isFootnote) { lead = false; }
+
+            } else if (!SemSet{
+                           OrgSemKind::HashTag,
+                           OrgSemKind::BigIdent,
+                           OrgSemKind::Time,
+                           OrgSemKind::RadioTarget,
+                           OrgSemKind::Space,
+                       }
+                            .contains(sub->getKind())) {
+                lead = false;
+                result.push_back(sub);
+            }
+        } else {
+            result.push_back(sub);
+        }
+    }
+    return result;
+}
+
 template <typename T>
 Vec<org::ImmAdapterT<T>> mapNodes(Vec<org::ImmAdapter> const& nodes) {
     return nodes | rv::transform([](org::ImmAdapter const& id) {
@@ -474,9 +552,7 @@ Vec<sem::AttrValue> Cmd_getAttrs(
     CR<Opt<Str>>  param) {
     auto                h = getConstHandle(handle);
     Vec<sem::AttrValue> res;
-    if (!isBoolFalse(h->attrs)) {
-        res = Attrs_getAttrs(toHandle(h->attrs, handle).value(), param);
-    }
+    if (!isBoolFalse(h->attrs)) { res = Attrs_getAttrs(h->attrs, param); }
     res.append(Stmt_getAttrs(handle, param));
     return res;
 }
@@ -497,8 +573,7 @@ template <typename Handle>
 Opt<sem::AttrValue> Cmd_getFirstAttr(Handle handle, Str const& kind) {
     auto h = getConstHandle(handle);
     if (!isBoolFalse(h->attrs)) {
-        auto res = Attrs_getAttrs(
-            toHandle(h->attrs, handle).value(), kind);
+        auto res = Attrs_getAttrs(h->attrs, kind);
         if (res.empty()) {
             return std::nullopt;
         } else {
@@ -767,6 +842,17 @@ Opt<sem::AttrValue> org::ImmAdapterCmdAPI::getFirstAttr(Str const& param) const 
   return result;
 }
 
+
+
+UserTime org::ImmAdapterTimeAPI::getStaticTime() const  { return getThis()->as<org::ImmTime>()->getStatic().time; }
+Opt<int> org::ImmAdapterTimeAPI::getYear() const { return getStaticTime().getBreakdown().year; }
+Opt<int> org::ImmAdapterTimeAPI::getMonth() const { return getStaticTime().getBreakdown().month; }
+Opt<int> org::ImmAdapterTimeAPI::getDay() const { return getStaticTime().getBreakdown().day; }
+Opt<int> org::ImmAdapterTimeAPI::getSecond() const { return getStaticTime().getBreakdown().second; }
+Opt<int> org::ImmAdapterTimeAPI::getHour() const { return getStaticTime().getBreakdown().hour; }
+Opt<int> org::ImmAdapterTimeAPI::getMinute() const { return getStaticTime().getBreakdown().minute; }
+
+Str org::ImmAdapterSubtreeAPI::getCleanTitle() const { return sem::getCleanText(getThis()->as<org::ImmSubtree>().getTitle()); }
 Opt<sem::NamedProperty> org::ImmAdapterSubtreeAPI::getProperty(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertyImpl(getThis()->as<org::ImmSubtree>(), kind, subkind); }
 Vec<sem::NamedProperty> org::ImmAdapterSubtreeAPI::getProperties(const Str &kind, const Opt<Str> &subkind) const { return subtreeGetPropertiesImpl(getThis()->as<org::ImmSubtree>(), kind, subkind); }
 Vec<sem::SubtreePeriod> org::ImmAdapterSubtreeAPI::getTimePeriods(IntSet<sem::SubtreePeriod::Kind> kinds, bool withPath) const { return Subtree_getTimePeriodsImpl(getThis()->as<org::ImmSubtree>(), kinds, withPath); }
@@ -779,7 +865,9 @@ Opt<sem::NamedProperty> org::ImmAdapterDocumentAPI::getProperty(CR<Str> kind, CR
 bool org::ImmAdapterListAPI::isDescriptionList() const { return List_isDescriptionList(getThis()->as<org::ImmList>()); }
 bool org::ImmAdapterListAPI::isNumberedList() const { return List_isNumberedList(getThis()->as<org::ImmList>()); }
 Vec<sem::AttrValue> org::ImmAdapterListAPI::getListAttrs(CR<Str> param) const { return List_getListAttrs(getThis()->as<org::ImmList>(), param); }
+
 bool org::ImmAdapterListItemAPI::isDescriptionItem() const { return ListItem_isDescriptionItem(getThis()->as<org::ImmListItem>()); }
+Opt<Str> org::ImmAdapterListItemAPI::getCleanHeader() const { return isDescriptionItem() ? std::make_optional(sem::getCleanText(getHeader().value())) : std::nullopt; }
 
 SemSet LeadParagraphNodes{
     OrgSemKind::HashTag,
@@ -798,15 +886,23 @@ Vec<UserTime> org::ImmAdapterParagraphAPI::getTimestamps() const { return own_vi
 Vec<org::ImmAdapterT<org::ImmTime>> org::ImmAdapterParagraphAPI::getTimestampNodes() const { return mapNodes<org::ImmTime>(Org_getLeadNodes(*getThis(), OrgSemKind::Time, LeadParagraphNodes)); }
 bool org::ImmAdapterParagraphAPI::hasLeadHashtags() const { return !getLeadHashtags().empty(); }
 Vec<org::ImmAdapterT<org::ImmHashTag>> org::ImmAdapterParagraphAPI::getLeadHashtags() const { return mapNodes<org::ImmHashTag>(Org_getLeadNodes(*getThis(), OrgSemKind::HashTag, LeadParagraphNodes)); }
+Vec<org::ImmAdapter> org::ImmAdapterParagraphAPI::getBody(bool withPath) const { return Paragraph_dropAdmonitionNodes(*getThis(), withPath); }
 
 // sem type API implementation
 
+UserTime sem::Time::getStaticTime() const  { return getStatic().time; }
+Opt<int> sem::Time::getYear() const { return getStaticTime().getBreakdown().year; }
+Opt<int> sem::Time::getMonth() const { return getStaticTime().getBreakdown().month; }
+Opt<int> sem::Time::getDay() const { return getStaticTime().getBreakdown().day; }
+Opt<int> sem::Time::getSecond() const { return getStaticTime().getBreakdown().second; }
+Opt<int> sem::Time::getHour() const { return getStaticTime().getBreakdown().hour; }
+Opt<int> sem::Time::getMinute() const { return getStaticTime().getBreakdown().minute; }
+
+Str sem::Subtree::getCleanTitle() const { return sem::getCleanText(title.asOrg()); }
 Opt<sem::NamedProperty> sem::Subtree::getProperty(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertyImpl(this, kind, subkind); }
 Vec<sem::NamedProperty> sem::Subtree::getProperties(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertiesImpl(this, kind, subkind); }
 Vec<sem::SubtreePeriod> sem::Subtree::getTimePeriods(IntSet<sem::SubtreePeriod::Kind> kinds) const { return Subtree_getTimePeriodsImpl(this, kinds, false); }
-Str sem::Attr::getValue() const { return arg.value; }
-Str sem::Attr::getName() const { return arg.name.value(); }
-Str sem::Attr::getVarname() const { return arg.varname.value(); }
+
 
 Vec<sem::AttrValue> sem::Stmt::getAttrs(const Opt<Str>& kind) const { return Stmt_getAttrs(this, kind); }
 Opt<sem::AttrValue> sem::Stmt::getFirstAttr(const Str& kind) const { return Stmt_getFirstAttr(this, kind); }
@@ -815,7 +911,6 @@ Vec<sem::SemId<sem::Org>> sem::Stmt::getCaption() const { return Stmt_getCaption
 Vec<Str> sem::Stmt::getName() const { return Stmt_getName(this); }
 
 Opt<sem::AttrValue> sem::Cmd::getFirstAttr(CR<Str> kind) const { return Cmd_getFirstAttr(this, kind); }
-Vec<sem::AttrValue> sem::Attrs::getAttrs(CR<Opt<Str>> param) const { return Attrs_getAttrs(this, param); }
 Vec<sem::AttrValue> sem::Cmd::getAttrs(CR<Opt<Str>> param) const { return Cmd_getAttrs(this, param); }
 
 
@@ -828,6 +923,7 @@ bool sem::List::isDescriptionList() const { return List_isDescriptionList(this);
 bool sem::List::isNumberedList() const { return List_isNumberedList(this); }
 Vec<sem::AttrValue> sem::List::getListAttrs(CR<Str> param) const { return List_getListAttrs(this, param); }
 bool sem::ListItem::isDescriptionItem() const { return ListItem_isDescriptionItem(this); }
+Opt<Str> sem::ListItem::getCleanHeader() const { return isDescriptionItem() ? std::make_optional(sem::getCleanText(header.value().asOrg())) : std::nullopt; }
 
 bool sem::Paragraph::isFootnoteDefinition() const { return getFootnoteName().has_value(); }
 bool sem::Paragraph::hasAdmonition() const { return !getAdmonitionNodes().empty(); }
@@ -838,15 +934,29 @@ Vec<UserTime> sem::Paragraph::getTimestamps() const { return own_view(getTimesta
 Vec<sem::SemId<sem::Time>> sem::Paragraph::getTimestampNodes() const { return mapNodes<sem::Time>(Org_getLeadNodes(this, OrgSemKind::Time, LeadParagraphNodes)); }
 bool sem::Paragraph::hasLeadHashtags() const { return !getLeadHashtags().empty(); }
 Vec<sem::SemId<sem::HashTag>> sem::Paragraph::getLeadHashtags() const { return mapNodes<sem::HashTag>(Org_getLeadNodes(this, OrgSemKind::HashTag, LeadParagraphNodes)); }
+Vec<sem::SemId<sem::Org>> sem::Paragraph::getBody() const { return Paragraph_dropAdmonitionNodes(this, false); }
 
 
 // Opt<org::ImmAdapterT<org::ImmAttrList>> org::ImmAdapterT<org::ImmCell>::getAttrs(CR<Opt<Str>> param) const { return cmdgetAttrsImpl(*this, param); }
 
-org::ImmAdapterT<org::ImmParagraph> org::ImmAdapterSubtreeAPI::getTitle() const { return pass(getThisT<org::ImmSubtree>()->title, ImmPathStep::Field("title")); }
-org::ImmAdapterT<org::ImmParagraph> org::ImmAdapterCmdCaptionAPI::getText() const { return pass(getThisT<org::ImmCmdCaption>()->text, ImmPathStep::Field("text")); }
-
 
 // clang-format on
+
+org::ImmAdapterT<org::ImmParagraph> org::ImmAdapterSubtreeAPI::getTitle()
+    const {
+    return pass(
+        getThisT<org::ImmSubtree>()->title,
+        ImmPathStep::Field(
+            org::ImmReflFieldId::FromTypeField(&org::ImmSubtree::title)));
+}
+org::ImmAdapterT<org::ImmParagraph> org::ImmAdapterCmdCaptionAPI::getText()
+    const {
+    return pass(
+        getThisT<org::ImmCmdCaption>()->text,
+        ImmPathStep::Field(org::ImmReflFieldId::FromTypeField(
+            &org::ImmCmdCaption::text)));
+}
+
 
 Opt<org::ImmAdapter> org::ImmAdapterListItemAPI::getHeader() const {
     auto it = getThisT<org::ImmListItem>();
@@ -854,14 +964,17 @@ Opt<org::ImmAdapter> org::ImmAdapterListItemAPI::getHeader() const {
         return std::nullopt;
     } else {
         return pass(
-            it->header->value(), ImmPathStep::FieldDeref("header"));
+            it->header->value(),
+            ImmPathStep::FieldDeref(org::ImmReflFieldId::FromTypeField(
+                &org::ImmListItem::header)));
     }
 }
 
 Opt<Str> sem::Paragraph::getFootnoteName() const {
     if (!subnodes.has(0)) { return std::nullopt; }
-    if (auto link = at(0).asOpt<sem::Link>(); link && link->isFootnote()) {
-        return link->getFootnote().target;
+    if (auto link = at(0).asOpt<sem::Link>();
+        link && link->target.isFootnote()) {
+        return link->target.getFootnote().target;
     } else {
         return std::nullopt;
     }
@@ -870,8 +983,184 @@ Opt<Str> sem::Paragraph::getFootnoteName() const {
 Opt<Str> org::ImmAdapterParagraphAPI::getFootnoteName() const {
     if (getThis()->get()->subnodes.empty()) { return std::nullopt; }
     if (auto link = getThis()->at(0, false).asOpt<org::ImmLink>();
-        link && link.value()->isFootnote()) {
-        return link.value()->getFootnote().target;
+        link && link.value()->target.isFootnote()) {
+        return link.value()->target.getFootnote().target;
+    } else {
+        return std::nullopt;
+    }
+}
+
+Opt<sem::NamedProperty> Org_combinePropertyStack(
+    Vec<sem::NamedProperty> const& stack,
+    CR<Str>                        kind,
+    CR<Opt<Str>>                   subKind) {
+    if (stack.empty()) {
+        return std::nullopt;
+    } else if (stack.size() == 1) {
+        return stack.at(0);
+    } else {
+        sem::NamedProperty res = stack.at(0);
+        using NP               = sem::NamedProperty;
+        using K                = NP::Kind;
+
+        for (auto const& prop : stack.at(slice(1, 1_B))) {
+            LOGIC_ASSERTION_CHECK(
+                res.getKind() == prop.getKind(),
+                "Property combine expects items of the same kind, "
+                "but got properties with two different kinds {} "
+                "!= {}",
+                res.getKind(),
+                prop.getKind());
+            switch (prop.getKind()) {
+                case K::CustomArgs: {
+                    auto&       res_args = res.getCustomArgs();
+                    auto const& in_args  = prop.getCustomArgs();
+                    LOGIC_ASSERTION_CHECK(
+                        res_args.name == in_args.name,
+                        "expected identical property name for custom args "
+                        "property, {} != {}",
+                        res_args.name,
+                        in_args.name);
+
+
+                    if (!in_args.attrs.positional.items.empty()) {
+                        res_args.attrs.setPositionalAttr(
+                            in_args.attrs.positional.items);
+                    }
+
+                    for (auto const& [key, items] : in_args.attrs.named) {
+                        res_args.attrs.setNamedAttr(key, items.items);
+                    }
+
+                    break;
+                }
+                default: {
+                    res = prop;
+                    break;
+                }
+            }
+        }
+
+        return res;
+    }
+}
+
+Opt<sem::NamedProperty> getPropertyValue(
+    sem::SemId<sem::Org> const& org,
+    CR<Str>                     kind,
+    CR<Opt<Str>>                sub) {
+    if (auto tree = org.asOpt<sem::Subtree>()) {
+        return tree->getProperty(kind, sub);
+    } else if (auto doc = org.asOpt<sem::Document>()) {
+        return doc->getProperty(kind, sub);
+    } else {
+        return std::nullopt;
+    }
+}
+
+Opt<sem::NamedProperty> getPropertyValue(
+    org::ImmAdapter const& org,
+    CR<Str>                kind,
+    CR<Opt<Str>>           sub) {
+    if (auto tree = org.asOpt<org::ImmSubtree>()) {
+        return tree->getProperty(kind, sub);
+    } else if (auto doc = org.asOpt<org::ImmDocument>()) {
+        return doc->getProperty(kind, sub);
+    } else {
+        return std::nullopt;
+    }
+}
+
+template <typename Handle>
+Opt<sem::NamedProperty> Org_getFinalProperty(
+    Vec<Handle> const& handles,
+    CR<Str>            kind,
+    CR<Opt<Str>>       subKind) {
+    Vec<sem::NamedProperty> propertyStack;
+
+    for (auto const& handle : handles) {
+        auto prop = getPropertyValue(handle, kind, subKind);
+        if (prop.has_value()) { propertyStack.push_back(prop.value()); }
+    }
+
+    return Org_combinePropertyStack(propertyStack, kind, subKind);
+}
+
+Opt<sem::NamedProperty> sem::getFinalProperty(
+    CR<Vec<org::ImmAdapter>> nodes,
+    CR<Str>                  kind,
+    CR<Opt<Str>>             subKind) {
+    return Org_getFinalProperty(nodes, kind, subKind);
+}
+
+Opt<sem::NamedProperty> sem::getFinalProperty(
+    CR<Vec<sem::SemId<sem::Org>>> nodes,
+    CR<Str>                       kind,
+    CR<Opt<Str>>                  subKind) {
+    return Org_getFinalProperty(nodes, kind, subKind);
+}
+
+Vec<Str> sem::getDfsLeafText(SemId<Org> id, const SemSet& filter) {
+    return getDfsFuncEval<Str>(id, [&](SemId<Org> const& id) -> Opt<Str> {
+        if (!filter.contains(id->getKind())) {
+            return std::nullopt;
+        } else {
+            return Org_getString(id);
+        }
+    });
+}
+
+Vec<Str> sem::getDfsLeafText(
+    const org::ImmAdapter& id,
+    const SemSet&          filter) {
+    return getDfsFuncEval<Str>(
+        id, false, [&](org::ImmAdapter const& id) -> Opt<Str> {
+            if (!filter.contains(id->getKind())) {
+                return std::nullopt;
+            } else {
+                return Org_getString(id);
+            }
+        });
+}
+
+Str sem::getCleanText(sem::SemId<sem::Org> const& id) {
+    return join(
+        "",
+        sem::getDfsFuncEval<Str>(id, [](SemId<Org> const& id) -> Opt<Str> {
+            if (auto space = id.asOpt<sem::Space>()) {
+                return " ";
+            } else {
+                return Org_getString(id);
+            }
+        }));
+}
+
+Str sem::getCleanText(org::ImmAdapter const& id) {
+    return join(
+        "",
+        sem::getDfsFuncEval<Str>(
+            id, false, [](org::ImmAdapter const& a) -> Opt<Str> {
+                if (auto space = a.dyn_cast<org::ImmSpace>()) {
+                    return " ";
+                } else {
+                    return Org_getString(a);
+                }
+            }));
+}
+
+Opt<Str> org::ImmAdapterBlockExportAPI::getPlacement() const {
+    auto p = getThis()->as<org::ImmBlockExport>().getFirstAttr(
+        "placement");
+    if (p) {
+        return p.value().value;
+    } else {
+        return std::nullopt;
+    }
+}
+
+Opt<Str> sem::BlockExport::getPlacement() const {
+    if (auto p = getFirstAttr("placement")) {
+        return p.value().value;
     } else {
         return std::nullopt;
     }

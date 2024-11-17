@@ -143,9 +143,6 @@ Opt<OrgSpecName> enum_serde<OrgSpecName>::from_string(std::string value) {
   if (value == "Rows") { return OrgSpecName::Rows; } else
   if (value == "Lines") { return OrgSpecName::Lines; } else
   if (value == "Chunks") { return OrgSpecName::Chunks; } else
-  if (value == "InheritanceMode") { return OrgSpecName::InheritanceMode; } else
-  if (value == "MainSetRule") { return OrgSpecName::MainSetRule; } else
-  if (value == "SubSetRule") { return OrgSpecName::SubSetRule; } else
   { return std::nullopt; }
 }
 std::string enum_serde<OrgSpecName>::to_string(OrgSpecName value) {
@@ -208,9 +205,6 @@ std::string enum_serde<OrgSpecName>::to_string(OrgSpecName value) {
     case OrgSpecName::Rows: return "Rows";
     case OrgSpecName::Lines: return "Lines";
     case OrgSpecName::Chunks: return "Chunks";
-    case OrgSpecName::InheritanceMode: return "InheritanceMode";
-    case OrgSpecName::MainSetRule: return "MainSetRule";
-    case OrgSpecName::SubSetRule: return "SubSetRule";
     default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
   }
 }
@@ -285,7 +279,6 @@ Opt<OrgNodeKind> enum_serde<OrgNodeKind>::from_string(std::string value) {
   if (value == "BlockDetails") { return OrgNodeKind::BlockDetails; } else
   if (value == "BlockSummary") { return OrgNodeKind::BlockSummary; } else
   if (value == "BlockDynamicFallback") { return OrgNodeKind::BlockDynamicFallback; } else
-  if (value == "Ident") { return OrgNodeKind::Ident; } else
   if (value == "BigIdent") { return OrgNodeKind::BigIdent; } else
   if (value == "Bold") { return OrgNodeKind::Bold; } else
   if (value == "Italic") { return OrgNodeKind::Italic; } else
@@ -410,7 +403,6 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     case OrgNodeKind::BlockDetails: return "BlockDetails";
     case OrgNodeKind::BlockSummary: return "BlockSummary";
     case OrgNodeKind::BlockDynamicFallback: return "BlockDynamicFallback";
-    case OrgNodeKind::Ident: return "Ident";
     case OrgNodeKind::BigIdent: return "BigIdent";
     case OrgNodeKind::Bold: return "Bold";
     case OrgNodeKind::Italic: return "Italic";
@@ -468,14 +460,12 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
 
 Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "None") { return OrgSemKind::None; } else
-  if (value == "Attr") { return OrgSemKind::Attr; } else
-  if (value == "AttrList") { return OrgSemKind::AttrList; } else
-  if (value == "Attrs") { return OrgSemKind::Attrs; } else
   if (value == "ErrorItem") { return OrgSemKind::ErrorItem; } else
   if (value == "ErrorGroup") { return OrgSemKind::ErrorGroup; } else
   if (value == "StmtList") { return OrgSemKind::StmtList; } else
   if (value == "Empty") { return OrgSemKind::Empty; } else
   if (value == "CmdCaption") { return OrgSemKind::CmdCaption; } else
+  if (value == "CmdColumns") { return OrgSemKind::CmdColumns; } else
   if (value == "CmdName") { return OrgSemKind::CmdName; } else
   if (value == "CmdCustomArgs") { return OrgSemKind::CmdCustomArgs; } else
   if (value == "CmdCustomRaw") { return OrgSemKind::CmdCustomRaw; } else
@@ -484,6 +474,7 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "CmdTblfm") { return OrgSemKind::CmdTblfm; } else
   if (value == "HashTag") { return OrgSemKind::HashTag; } else
   if (value == "InlineFootnote") { return OrgSemKind::InlineFootnote; } else
+  if (value == "InlineExport") { return OrgSemKind::InlineExport; } else
   if (value == "Time") { return OrgSemKind::Time; } else
   if (value == "TimeRange") { return OrgSemKind::TimeRange; } else
   if (value == "Macro") { return OrgSemKind::Macro; } else
@@ -520,13 +511,13 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "BlockCode") { return OrgSemKind::BlockCode; } else
   if (value == "SubtreeLog") { return OrgSemKind::SubtreeLog; } else
   if (value == "Subtree") { return OrgSemKind::Subtree; } else
-  if (value == "SubtreeCompletion") { return OrgSemKind::SubtreeCompletion; } else
   if (value == "Cell") { return OrgSemKind::Cell; } else
   if (value == "Row") { return OrgSemKind::Row; } else
   if (value == "Table") { return OrgSemKind::Table; } else
   if (value == "Paragraph") { return OrgSemKind::Paragraph; } else
   if (value == "ColonExample") { return OrgSemKind::ColonExample; } else
   if (value == "CmdAttr") { return OrgSemKind::CmdAttr; } else
+  if (value == "CmdExport") { return OrgSemKind::CmdExport; } else
   if (value == "Call") { return OrgSemKind::Call; } else
   if (value == "List") { return OrgSemKind::List; } else
   if (value == "ListItem") { return OrgSemKind::ListItem; } else
@@ -541,14 +532,12 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
 std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
   switch (value) {
     case OrgSemKind::None: return "None";
-    case OrgSemKind::Attr: return "Attr";
-    case OrgSemKind::AttrList: return "AttrList";
-    case OrgSemKind::Attrs: return "Attrs";
     case OrgSemKind::ErrorItem: return "ErrorItem";
     case OrgSemKind::ErrorGroup: return "ErrorGroup";
     case OrgSemKind::StmtList: return "StmtList";
     case OrgSemKind::Empty: return "Empty";
     case OrgSemKind::CmdCaption: return "CmdCaption";
+    case OrgSemKind::CmdColumns: return "CmdColumns";
     case OrgSemKind::CmdName: return "CmdName";
     case OrgSemKind::CmdCustomArgs: return "CmdCustomArgs";
     case OrgSemKind::CmdCustomRaw: return "CmdCustomRaw";
@@ -557,6 +546,7 @@ std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::CmdTblfm: return "CmdTblfm";
     case OrgSemKind::HashTag: return "HashTag";
     case OrgSemKind::InlineFootnote: return "InlineFootnote";
+    case OrgSemKind::InlineExport: return "InlineExport";
     case OrgSemKind::Time: return "Time";
     case OrgSemKind::TimeRange: return "TimeRange";
     case OrgSemKind::Macro: return "Macro";
@@ -593,13 +583,13 @@ std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::BlockCode: return "BlockCode";
     case OrgSemKind::SubtreeLog: return "SubtreeLog";
     case OrgSemKind::Subtree: return "Subtree";
-    case OrgSemKind::SubtreeCompletion: return "SubtreeCompletion";
     case OrgSemKind::Cell: return "Cell";
     case OrgSemKind::Row: return "Row";
     case OrgSemKind::Table: return "Table";
     case OrgSemKind::Paragraph: return "Paragraph";
     case OrgSemKind::ColonExample: return "ColonExample";
     case OrgSemKind::CmdAttr: return "CmdAttr";
+    case OrgSemKind::CmdExport: return "CmdExport";
     case OrgSemKind::Call: return "Call";
     case OrgSemKind::List: return "List";
     case OrgSemKind::ListItem: return "ListItem";

@@ -12,6 +12,219 @@
 #include <haxorg/sem/SemOrgBase.hpp>
 #include <haxorg/sem/SemOrgEnums.hpp>
 namespace sem{
+struct Tblfm {
+  struct Expr {
+    struct AxisRef {
+      struct Position {
+        struct Index {
+          Index () {}
+          BOOST_DESCRIBE_CLASS(Index,
+                               (),
+                               (),
+                               (),
+                               (index))
+          int index;
+          bool operator==(sem::Tblfm::Expr::AxisRef::Position::Index const& other) const;
+        };
+
+        struct Name {
+          Name () {}
+          BOOST_DESCRIBE_CLASS(Name,
+                               (),
+                               (),
+                               (),
+                               (name))
+          Str name = "";
+          bool operator==(sem::Tblfm::Expr::AxisRef::Position::Name const& other) const;
+        };
+
+        using Data = std::variant<sem::Tblfm::Expr::AxisRef::Position::Index, sem::Tblfm::Expr::AxisRef::Position::Name>;
+        enum class Kind : short int { Index, Name, };
+        BOOST_DESCRIBE_NESTED_ENUM(Kind, Index, Name)
+        using variant_enum_type = sem::Tblfm::Expr::AxisRef::Position::Kind;
+        using variant_data_type = sem::Tblfm::Expr::AxisRef::Position::Data;
+        Position () {}
+        BOOST_DESCRIBE_CLASS(Position,
+                             (),
+                             (),
+                             (),
+                             (data))
+        sem::Tblfm::Expr::AxisRef::Position::Data data;
+        bool operator==(sem::Tblfm::Expr::AxisRef::Position const& other) const;
+        bool isIndex() const { return getKind() == Kind::Index; }
+        sem::Tblfm::Expr::AxisRef::Position::Index const& getIndex() const { return std::get<0>(data); }
+        sem::Tblfm::Expr::AxisRef::Position::Index& getIndex() { return std::get<0>(data); }
+        bool isName() const { return getKind() == Kind::Name; }
+        sem::Tblfm::Expr::AxisRef::Position::Name const& getName() const { return std::get<1>(data); }
+        sem::Tblfm::Expr::AxisRef::Position::Name& getName() { return std::get<1>(data); }
+        static sem::Tblfm::Expr::AxisRef::Position::Kind getKind(sem::Tblfm::Expr::AxisRef::Position::Data const& __input) { return static_cast<sem::Tblfm::Expr::AxisRef::Position::Kind>(__input.index()); }
+        sem::Tblfm::Expr::AxisRef::Position::Kind getKind() const { return getKind(data); }
+      };
+
+      BOOST_DESCRIBE_CLASS(AxisRef,
+                           (),
+                           (),
+                           (),
+                           (col, row))
+      sem::Tblfm::Expr::AxisRef::Position col;
+      Opt<sem::Tblfm::Expr::AxisRef::Position> row = std::nullopt;
+      bool operator==(sem::Tblfm::Expr::AxisRef const& other) const;
+    };
+
+    struct AxisName {
+      BOOST_DESCRIBE_CLASS(AxisName,
+                           (),
+                           (),
+                           (),
+                           (name))
+      Str name = "";
+      bool operator==(sem::Tblfm::Expr::AxisName const& other) const;
+    };
+
+    struct IntLiteral {
+      BOOST_DESCRIBE_CLASS(IntLiteral,
+                           (),
+                           (),
+                           (),
+                           (value))
+      int value;
+      bool operator==(sem::Tblfm::Expr::IntLiteral const& other) const;
+    };
+
+    struct FloatLiteral {
+      BOOST_DESCRIBE_CLASS(FloatLiteral,
+                           (),
+                           (),
+                           (),
+                           (value))
+      float value;
+      bool operator==(sem::Tblfm::Expr::FloatLiteral const& other) const;
+    };
+
+    struct RangeRef {
+      BOOST_DESCRIBE_CLASS(RangeRef,
+                           (),
+                           (),
+                           (),
+                           (first, last))
+      Opt<sem::Tblfm::Expr::AxisRef> first = std::nullopt;
+      Opt<sem::Tblfm::Expr::AxisRef> last = std::nullopt;
+      bool operator==(sem::Tblfm::Expr::RangeRef const& other) const;
+    };
+
+    struct Call {
+      BOOST_DESCRIBE_CLASS(Call,
+                           (),
+                           (),
+                           (),
+                           (name, args))
+      Str name = "";
+      Vec<sem::Tblfm::Expr> args = {};
+      bool operator==(sem::Tblfm::Expr::Call const& other) const;
+    };
+
+    struct Elisp {
+      BOOST_DESCRIBE_CLASS(Elisp,
+                           (),
+                           (),
+                           (),
+                           (value))
+      Str value = "";
+      bool operator==(sem::Tblfm::Expr::Elisp const& other) const;
+    };
+
+    using Data = std::variant<sem::Tblfm::Expr::AxisRef, sem::Tblfm::Expr::AxisName, sem::Tblfm::Expr::IntLiteral, sem::Tblfm::Expr::FloatLiteral, sem::Tblfm::Expr::RangeRef, sem::Tblfm::Expr::Call, sem::Tblfm::Expr::Elisp>;
+    enum class Kind : short int { AxisRef, AxisName, IntLiteral, FloatLiteral, RangeRef, Call, Elisp, };
+    BOOST_DESCRIBE_NESTED_ENUM(Kind, AxisRef, AxisName, IntLiteral, FloatLiteral, RangeRef, Call, Elisp)
+    using variant_enum_type = sem::Tblfm::Expr::Kind;
+    using variant_data_type = sem::Tblfm::Expr::Data;
+    BOOST_DESCRIBE_CLASS(Expr,
+                         (),
+                         (),
+                         (),
+                         (data))
+    sem::Tblfm::Expr::Data data;
+    bool operator==(sem::Tblfm::Expr const& other) const;
+    bool isAxisRef() const { return getKind() == Kind::AxisRef; }
+    sem::Tblfm::Expr::AxisRef const& getAxisRef() const { return std::get<0>(data); }
+    sem::Tblfm::Expr::AxisRef& getAxisRef() { return std::get<0>(data); }
+    bool isAxisName() const { return getKind() == Kind::AxisName; }
+    sem::Tblfm::Expr::AxisName const& getAxisName() const { return std::get<1>(data); }
+    sem::Tblfm::Expr::AxisName& getAxisName() { return std::get<1>(data); }
+    bool isIntLiteral() const { return getKind() == Kind::IntLiteral; }
+    sem::Tblfm::Expr::IntLiteral const& getIntLiteral() const { return std::get<2>(data); }
+    sem::Tblfm::Expr::IntLiteral& getIntLiteral() { return std::get<2>(data); }
+    bool isFloatLiteral() const { return getKind() == Kind::FloatLiteral; }
+    sem::Tblfm::Expr::FloatLiteral const& getFloatLiteral() const { return std::get<3>(data); }
+    sem::Tblfm::Expr::FloatLiteral& getFloatLiteral() { return std::get<3>(data); }
+    bool isRangeRef() const { return getKind() == Kind::RangeRef; }
+    sem::Tblfm::Expr::RangeRef const& getRangeRef() const { return std::get<4>(data); }
+    sem::Tblfm::Expr::RangeRef& getRangeRef() { return std::get<4>(data); }
+    bool isCall() const { return getKind() == Kind::Call; }
+    sem::Tblfm::Expr::Call const& getCall() const { return std::get<5>(data); }
+    sem::Tblfm::Expr::Call& getCall() { return std::get<5>(data); }
+    bool isElisp() const { return getKind() == Kind::Elisp; }
+    sem::Tblfm::Expr::Elisp const& getElisp() const { return std::get<6>(data); }
+    sem::Tblfm::Expr::Elisp& getElisp() { return std::get<6>(data); }
+    static sem::Tblfm::Expr::Kind getKind(sem::Tblfm::Expr::Data const& __input) { return static_cast<sem::Tblfm::Expr::Kind>(__input.index()); }
+    sem::Tblfm::Expr::Kind getKind() const { return getKind(data); }
+  };
+
+  struct Assign {
+    /// \brief Flags for table format expression cell formulas
+    enum class Flag : short int {
+      /// \brief Left-align the result
+      CellLeftAlign,
+      /// \brief Right-align the result
+      CellRightAlign,
+      /// \brief Center-align the result
+      CellCenterAlign,
+      /// \brief Convert result to number/currency format
+      CellNumber,
+      /// \brief Use exponential notation for numbers
+      CellExponential,
+      /// \brief Use floating point format
+      CellFloating,
+      /// \brief Unformat values before calculating
+      CellUnformat,
+      /// \brief Convert result to text
+      CellText,
+      /// \brief Display boolean values as t/nil
+      CellBool,
+      /// \brief Fixed format with specified decimal places (e.g., ;D2)
+      CellDecimal,
+      /// \brief Percentage format
+      CellPercentage,
+      /// \brief Convert to hours/minutes (HH:MM)
+      CellHours,
+      /// \brief Display zero as empty cell
+      CellZero,
+      /// \brief Mark field as invalid if conversion fails
+      CellMarkInvalid,
+      /// \brief Quote field contents
+      CellQuote,
+    };
+    BOOST_DESCRIBE_NESTED_ENUM(Flag, CellLeftAlign, CellRightAlign, CellCenterAlign, CellNumber, CellExponential, CellFloating, CellUnformat, CellText, CellBool, CellDecimal, CellPercentage, CellHours, CellZero, CellMarkInvalid, CellQuote)
+    BOOST_DESCRIBE_CLASS(Assign,
+                         (),
+                         (),
+                         (),
+                         (target, expr, flags))
+    sem::Tblfm::Expr::AxisRef target;
+    Vec<sem::Tblfm::Expr> expr = {};
+    Vec<sem::Tblfm::Assign::Flag> flags = {};
+    bool operator==(sem::Tblfm::Assign const& other) const;
+  };
+
+  BOOST_DESCRIBE_CLASS(Tblfm,
+                       (),
+                       (),
+                       (),
+                       (exprs))
+  Vec<sem::Tblfm::Assign> exprs = {};
+  bool operator==(sem::Tblfm const& other) const;
+};
+
 struct AttrValue {
   BOOST_DESCRIBE_CLASS(AttrValue,
                        (),
@@ -27,6 +240,486 @@ struct AttrValue {
   Opt<int> getInt() const;
   Str getString() const;
   bool operator==(sem::AttrValue const& other) const;
+};
+
+/// \brief Single or nested inline hash-tag
+struct HashTagText {
+  BOOST_DESCRIBE_CLASS(HashTagText,
+                       (),
+                       (),
+                       (),
+                       (head,
+                        subtags))
+  /// \brief Main part of the tag
+  Str head;
+  /// \brief List of nested tags
+  Vec<sem::HashTagText> subtags = {};
+  bool operator==(sem::HashTagText const& other) const;
+  /// \brief Check if list of tag names is a prefix for either of the nested hash tags in this one
+  bool prefixMatch(Vec<Str> const& prefix) const;
+  /// \brief Get flat list of expanded hashtags
+  Vec<Vec<Str>> getFlatHashes(bool withIntermediate = true) const;
+};
+
+struct SubtreePath {
+  BOOST_DESCRIBE_CLASS(SubtreePath,
+                       (),
+                       (),
+                       (),
+                       (path))
+  Vec<Str> path = {};
+  bool operator==(sem::SubtreePath const& other) const;
+};
+
+struct LinkTarget {
+  struct Raw {
+    BOOST_DESCRIBE_CLASS(Raw,
+                         (),
+                         (),
+                         (),
+                         (text))
+    Str text;
+    bool operator==(sem::LinkTarget::Raw const& other) const;
+  };
+
+  struct Id {
+    BOOST_DESCRIBE_CLASS(Id,
+                         (),
+                         (),
+                         (),
+                         (text))
+    Str text;
+    bool operator==(sem::LinkTarget::Id const& other) const;
+  };
+
+  struct CustomId {
+    BOOST_DESCRIBE_CLASS(CustomId,
+                         (),
+                         (),
+                         (),
+                         (text))
+    Str text;
+    bool operator==(sem::LinkTarget::CustomId const& other) const;
+  };
+
+  struct SubtreeTitle {
+    BOOST_DESCRIBE_CLASS(SubtreeTitle,
+                         (),
+                         (),
+                         (),
+                         (title, level))
+    sem::SubtreePath title;
+    int level;
+    bool operator==(sem::LinkTarget::SubtreeTitle const& other) const;
+  };
+
+  struct Person {
+    BOOST_DESCRIBE_CLASS(Person,
+                         (),
+                         (),
+                         (),
+                         (name))
+    Str name;
+    bool operator==(sem::LinkTarget::Person const& other) const;
+  };
+
+  struct UserProtocol {
+    BOOST_DESCRIBE_CLASS(UserProtocol,
+                         (),
+                         (),
+                         (),
+                         (protocol, target))
+    Str protocol;
+    Str target;
+    bool operator==(sem::LinkTarget::UserProtocol const& other) const;
+  };
+
+  struct Internal {
+    BOOST_DESCRIBE_CLASS(Internal,
+                         (),
+                         (),
+                         (),
+                         (target))
+    Str target;
+    bool operator==(sem::LinkTarget::Internal const& other) const;
+  };
+
+  struct Footnote {
+    BOOST_DESCRIBE_CLASS(Footnote,
+                         (),
+                         (),
+                         (),
+                         (target))
+    Str target;
+    bool operator==(sem::LinkTarget::Footnote const& other) const;
+  };
+
+  struct File {
+    BOOST_DESCRIBE_CLASS(File,
+                         (),
+                         (),
+                         (),
+                         (file))
+    Str file;
+    bool operator==(sem::LinkTarget::File const& other) const;
+  };
+
+  struct Attachment {
+    BOOST_DESCRIBE_CLASS(Attachment,
+                         (),
+                         (),
+                         (),
+                         (file))
+    Str file;
+    bool operator==(sem::LinkTarget::Attachment const& other) const;
+  };
+
+  using Data = std::variant<sem::LinkTarget::Raw, sem::LinkTarget::Id, sem::LinkTarget::CustomId, sem::LinkTarget::SubtreeTitle, sem::LinkTarget::Person, sem::LinkTarget::UserProtocol, sem::LinkTarget::Internal, sem::LinkTarget::Footnote, sem::LinkTarget::File, sem::LinkTarget::Attachment>;
+  enum class Kind : short int { Raw, Id, CustomId, SubtreeTitle, Person, UserProtocol, Internal, Footnote, File, Attachment, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, Raw, Id, CustomId, SubtreeTitle, Person, UserProtocol, Internal, Footnote, File, Attachment)
+  using variant_enum_type = sem::LinkTarget::Kind;
+  using variant_data_type = sem::LinkTarget::Data;
+  BOOST_DESCRIBE_CLASS(LinkTarget,
+                       (),
+                       (),
+                       (),
+                       (data))
+  sem::LinkTarget::Data data;
+  bool operator==(sem::LinkTarget const& other) const;
+  bool isRaw() const { return getKind() == Kind::Raw; }
+  sem::LinkTarget::Raw const& getRaw() const { return std::get<0>(data); }
+  sem::LinkTarget::Raw& getRaw() { return std::get<0>(data); }
+  bool isId() const { return getKind() == Kind::Id; }
+  sem::LinkTarget::Id const& getId() const { return std::get<1>(data); }
+  sem::LinkTarget::Id& getId() { return std::get<1>(data); }
+  bool isCustomId() const { return getKind() == Kind::CustomId; }
+  sem::LinkTarget::CustomId const& getCustomId() const { return std::get<2>(data); }
+  sem::LinkTarget::CustomId& getCustomId() { return std::get<2>(data); }
+  bool isSubtreeTitle() const { return getKind() == Kind::SubtreeTitle; }
+  sem::LinkTarget::SubtreeTitle const& getSubtreeTitle() const { return std::get<3>(data); }
+  sem::LinkTarget::SubtreeTitle& getSubtreeTitle() { return std::get<3>(data); }
+  bool isPerson() const { return getKind() == Kind::Person; }
+  sem::LinkTarget::Person const& getPerson() const { return std::get<4>(data); }
+  sem::LinkTarget::Person& getPerson() { return std::get<4>(data); }
+  bool isUserProtocol() const { return getKind() == Kind::UserProtocol; }
+  sem::LinkTarget::UserProtocol const& getUserProtocol() const { return std::get<5>(data); }
+  sem::LinkTarget::UserProtocol& getUserProtocol() { return std::get<5>(data); }
+  bool isInternal() const { return getKind() == Kind::Internal; }
+  sem::LinkTarget::Internal const& getInternal() const { return std::get<6>(data); }
+  sem::LinkTarget::Internal& getInternal() { return std::get<6>(data); }
+  bool isFootnote() const { return getKind() == Kind::Footnote; }
+  sem::LinkTarget::Footnote const& getFootnote() const { return std::get<7>(data); }
+  sem::LinkTarget::Footnote& getFootnote() { return std::get<7>(data); }
+  bool isFile() const { return getKind() == Kind::File; }
+  sem::LinkTarget::File const& getFile() const { return std::get<8>(data); }
+  sem::LinkTarget::File& getFile() { return std::get<8>(data); }
+  bool isAttachment() const { return getKind() == Kind::Attachment; }
+  sem::LinkTarget::Attachment const& getAttachment() const { return std::get<9>(data); }
+  sem::LinkTarget::Attachment& getAttachment() { return std::get<9>(data); }
+  static sem::LinkTarget::Kind getKind(sem::LinkTarget::Data const& __input) { return static_cast<sem::LinkTarget::Kind>(__input.index()); }
+  sem::LinkTarget::Kind getKind() const { return getKind(data); }
+};
+
+struct SubtreeLogHead {
+  /// \brief Priority added
+  struct Priority {
+    /// \brief Priority change action
+    enum class Action : short int {
+      /// \brief `Priority B added on [timestamp]`
+      Added,
+      /// \brief `Priority C removed on [timestamp]`
+      Removed,
+      /// \brief `Priority B changed from C on [timestamp]`
+      Changed,
+    };
+    BOOST_DESCRIBE_NESTED_ENUM(Action, Added, Removed, Changed)
+    Priority() {}
+    BOOST_DESCRIBE_CLASS(Priority,
+                         (),
+                         (),
+                         (),
+                         (oldPriority, newPriority, on, action))
+    /// \brief Previous priority for change and removal
+    Opt<std::string> oldPriority = std::nullopt;
+    /// \brief New priority for change and addition
+    Opt<std::string> newPriority = std::nullopt;
+    /// \brief When priority was changed
+    UserTime on;
+    /// \brief Which action taken
+    sem::SubtreeLogHead::Priority::Action action;
+    bool operator==(sem::SubtreeLogHead::Priority const& other) const;
+  };
+
+  /// \brief Timestamped note
+  struct Note {
+    Note() {}
+    BOOST_DESCRIBE_CLASS(Note,
+                         (),
+                         (),
+                         (),
+                         (on))
+    /// \brief Where log was taken
+    UserTime on;
+    bool operator==(sem::SubtreeLogHead::Note const& other) const;
+  };
+
+  /// \brief Refiling action
+  struct Refile {
+    Refile() {}
+    BOOST_DESCRIBE_CLASS(Refile,
+                         (),
+                         (),
+                         (),
+                         (on, from))
+    /// \brief When the refiling happened
+    UserTime on;
+    /// \brief Link to the original subtree
+    sem::LinkTarget from;
+    bool operator==(sem::SubtreeLogHead::Refile const& other) const;
+  };
+
+  /// \brief Clock entry `CLOCK: [2023-04-30 Sun 13:29:04]--[2023-04-30 Sun 14:51:16] => 1:22`
+  struct Clock {
+    Clock() {}
+    BOOST_DESCRIBE_CLASS(Clock,
+                         (),
+                         (),
+                         (),
+                         (from, to))
+    /// \brief Clock start time
+    UserTime from;
+    /// \brief Optional end of the clock
+    Opt<UserTime> to = std::nullopt;
+    bool operator==(sem::SubtreeLogHead::Clock const& other) const;
+  };
+
+  /// \brief Change of the subtree state -- `- State "WIP" from "TODO" [2023-04-30 Sun 13:29:04]`
+  struct State {
+    State() {}
+    BOOST_DESCRIBE_CLASS(State,
+                         (),
+                         (),
+                         (),
+                         (from, to, on))
+    Str from;
+    Str to;
+    UserTime on;
+    bool operator==(sem::SubtreeLogHead::State const& other) const;
+  };
+
+  /// \brief Change of the subtree deadline
+  struct Deadline {
+    Deadline() {}
+    BOOST_DESCRIBE_CLASS(Deadline,
+                         (),
+                         (),
+                         (),
+                         (from, to, on))
+    Opt<UserTime> from = std::nullopt;
+    UserTime to;
+    UserTime on;
+    bool operator==(sem::SubtreeLogHead::Deadline const& other) const;
+  };
+
+  /// \brief Change of the subtree Schedule
+  struct Schedule {
+    Schedule() {}
+    BOOST_DESCRIBE_CLASS(Schedule,
+                         (),
+                         (),
+                         (),
+                         (from, to, on))
+    Opt<UserTime> from = std::nullopt;
+    UserTime to;
+    UserTime on;
+    bool operator==(sem::SubtreeLogHead::Schedule const& other) const;
+  };
+
+  /// \brief Assign tag to the subtree `- Tag "project##haxorg" Added on [2023-04-30 Sun 13:29:06]`
+  struct Tag {
+    Tag() {}
+    BOOST_DESCRIBE_CLASS(Tag,
+                         (),
+                         (),
+                         (),
+                         (on, tag, added))
+    /// \brief When the log was assigned
+    UserTime on;
+    /// \brief Tag in question
+    sem::HashTagText tag;
+    /// \brief Added/removed?
+    bool added = false;
+    bool operator==(sem::SubtreeLogHead::Tag const& other) const;
+  };
+
+  /// \brief Unknown subtree log entry kind
+  struct Unknown {
+    Unknown() {}
+    BOOST_DESCRIBE_CLASS(Unknown,
+                         (),
+                         (),
+                         (),
+                         ())
+    bool operator==(sem::SubtreeLogHead::Unknown const& other) const;
+  };
+
+  using LogEntry = std::variant<sem::SubtreeLogHead::Priority, sem::SubtreeLogHead::Note, sem::SubtreeLogHead::Refile, sem::SubtreeLogHead::Clock, sem::SubtreeLogHead::State, sem::SubtreeLogHead::Deadline, sem::SubtreeLogHead::Schedule, sem::SubtreeLogHead::Tag, sem::SubtreeLogHead::Unknown>;
+  enum class Kind : short int { Priority, Note, Refile, Clock, State, Deadline, Schedule, Tag, Unknown, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, Priority, Note, Refile, Clock, State, Deadline, Schedule, Tag, Unknown)
+  using variant_enum_type = sem::SubtreeLogHead::Kind;
+  using variant_data_type = sem::SubtreeLogHead::LogEntry;
+  BOOST_DESCRIBE_CLASS(SubtreeLogHead,
+                       (),
+                       (),
+                       (),
+                       (log))
+  sem::SubtreeLogHead::LogEntry log = Note{};
+  bool operator==(sem::SubtreeLogHead const& other) const;
+  bool isPriority() const { return getLogKind() == Kind::Priority; }
+  sem::SubtreeLogHead::Priority const& getPriority() const { return std::get<0>(log); }
+  sem::SubtreeLogHead::Priority& getPriority() { return std::get<0>(log); }
+  bool isNote() const { return getLogKind() == Kind::Note; }
+  sem::SubtreeLogHead::Note const& getNote() const { return std::get<1>(log); }
+  sem::SubtreeLogHead::Note& getNote() { return std::get<1>(log); }
+  bool isRefile() const { return getLogKind() == Kind::Refile; }
+  sem::SubtreeLogHead::Refile const& getRefile() const { return std::get<2>(log); }
+  sem::SubtreeLogHead::Refile& getRefile() { return std::get<2>(log); }
+  bool isClock() const { return getLogKind() == Kind::Clock; }
+  sem::SubtreeLogHead::Clock const& getClock() const { return std::get<3>(log); }
+  sem::SubtreeLogHead::Clock& getClock() { return std::get<3>(log); }
+  bool isState() const { return getLogKind() == Kind::State; }
+  sem::SubtreeLogHead::State const& getState() const { return std::get<4>(log); }
+  sem::SubtreeLogHead::State& getState() { return std::get<4>(log); }
+  bool isDeadline() const { return getLogKind() == Kind::Deadline; }
+  sem::SubtreeLogHead::Deadline const& getDeadline() const { return std::get<5>(log); }
+  sem::SubtreeLogHead::Deadline& getDeadline() { return std::get<5>(log); }
+  bool isSchedule() const { return getLogKind() == Kind::Schedule; }
+  sem::SubtreeLogHead::Schedule const& getSchedule() const { return std::get<6>(log); }
+  sem::SubtreeLogHead::Schedule& getSchedule() { return std::get<6>(log); }
+  bool isTag() const { return getLogKind() == Kind::Tag; }
+  sem::SubtreeLogHead::Tag const& getTag() const { return std::get<7>(log); }
+  sem::SubtreeLogHead::Tag& getTag() { return std::get<7>(log); }
+  bool isUnknown() const { return getLogKind() == Kind::Unknown; }
+  sem::SubtreeLogHead::Unknown const& getUnknown() const { return std::get<8>(log); }
+  sem::SubtreeLogHead::Unknown& getUnknown() { return std::get<8>(log); }
+  static sem::SubtreeLogHead::Kind getLogKind(sem::SubtreeLogHead::LogEntry const& __input) { return static_cast<sem::SubtreeLogHead::Kind>(__input.index()); }
+  sem::SubtreeLogHead::Kind getLogKind() const { return getLogKind(log); }
+};
+
+/// \brief Completion status of the subtree list element
+struct SubtreeCompletion {
+  BOOST_DESCRIBE_CLASS(SubtreeCompletion,
+                       (),
+                       (),
+                       (),
+                       (done, full, isPercent))
+  /// \brief Number of completed tasks
+  int done = 0;
+  /// \brief Full number of tasks
+  int full = 0;
+  /// \brief Use fraction or percent to display completion
+  bool isPercent = false;
+  bool operator==(sem::SubtreeCompletion const& other) const;
+};
+
+struct AttrList {
+  BOOST_DESCRIBE_CLASS(AttrList,
+                       (),
+                       (),
+                       (),
+                       (items))
+  Vec<sem::AttrValue> items = {};
+  bool operator==(sem::AttrList const& other) const;
+};
+
+struct AttrGroup {
+  BOOST_DESCRIBE_CLASS(AttrGroup,
+                       (),
+                       (),
+                       (),
+                       (positional,
+                        named))
+  /// \brief Positional arguments with no keys
+  sem::AttrList positional;
+  /// \brief Stored key-value mapping
+  UnorderedMap<Str, sem::AttrList> named;
+  Vec<sem::AttrValue> getFlatArgs() const;
+  Vec<sem::AttrValue> getAttrs(Opt<Str> const& key = std::nullopt) const;
+  void setNamedAttr(Str const& key, Vec<sem::AttrValue> const& attrs);
+  void setPositionalAttr(Vec<sem::AttrValue> const& items);
+  bool operator==(sem::AttrGroup const& other) const;
+};
+
+struct ColumnView {
+  struct Summary {
+    struct CheckboxAggregate {
+      enum class Kind : short int { IfAllNested, AggregateFractionRec, AggregatePercentRec, };
+      BOOST_DESCRIBE_NESTED_ENUM(Kind, IfAllNested, AggregateFractionRec, AggregatePercentRec)
+      BOOST_DESCRIBE_CLASS(CheckboxAggregate,
+                           (),
+                           (),
+                           (),
+                           (kind))
+      sem::ColumnView::Summary::CheckboxAggregate::Kind kind;
+      bool operator==(sem::ColumnView::Summary::CheckboxAggregate const& other) const;
+    };
+
+    struct MathAggregate {
+      enum class Kind : short int { Min, Max, Mean, Sum, LowHighEst, };
+      BOOST_DESCRIBE_NESTED_ENUM(Kind, Min, Max, Mean, Sum, LowHighEst)
+      BOOST_DESCRIBE_CLASS(MathAggregate,
+                           (),
+                           (),
+                           (),
+                           (kind, formatDigits, formatPrecision))
+      sem::ColumnView::Summary::MathAggregate::Kind kind;
+      Opt<int> formatDigits = std::nullopt;
+      Opt<int> formatPrecision = std::nullopt;
+      bool operator==(sem::ColumnView::Summary::MathAggregate const& other) const;
+    };
+
+    using Data = std::variant<sem::ColumnView::Summary::CheckboxAggregate, sem::ColumnView::Summary::MathAggregate>;
+    enum class Kind : short int { CheckboxAggregate, MathAggregate, };
+    BOOST_DESCRIBE_NESTED_ENUM(Kind, CheckboxAggregate, MathAggregate)
+    using variant_enum_type = sem::ColumnView::Summary::Kind;
+    using variant_data_type = sem::ColumnView::Summary::Data;
+    BOOST_DESCRIBE_CLASS(Summary,
+                         (),
+                         (),
+                         (),
+                         (data))
+    sem::ColumnView::Summary::Data data;
+    bool operator==(sem::ColumnView::Summary const& other) const;
+    bool isCheckboxAggregate() const { return getKind() == Kind::CheckboxAggregate; }
+    sem::ColumnView::Summary::CheckboxAggregate const& getCheckboxAggregate() const { return std::get<0>(data); }
+    sem::ColumnView::Summary::CheckboxAggregate& getCheckboxAggregate() { return std::get<0>(data); }
+    bool isMathAggregate() const { return getKind() == Kind::MathAggregate; }
+    sem::ColumnView::Summary::MathAggregate const& getMathAggregate() const { return std::get<1>(data); }
+    sem::ColumnView::Summary::MathAggregate& getMathAggregate() { return std::get<1>(data); }
+    static sem::ColumnView::Summary::Kind getKind(sem::ColumnView::Summary::Data const& __input) { return static_cast<sem::ColumnView::Summary::Kind>(__input.index()); }
+    sem::ColumnView::Summary::Kind getKind() const { return getKind(data); }
+  };
+
+  struct Column {
+    BOOST_DESCRIBE_CLASS(Column,
+                         (),
+                         (),
+                         (),
+                         (summary, width, property, propertyTitle))
+    Opt<sem::ColumnView::Summary> summary = std::nullopt;
+    Opt<int> width = std::nullopt;
+    Opt<Str> property = std::nullopt;
+    Opt<Str> propertyTitle = std::nullopt;
+    bool operator==(sem::ColumnView::Column const& other) const;
+  };
+
+  BOOST_DESCRIBE_CLASS(ColumnView,
+                       (),
+                       (),
+                       (),
+                       (columns))
+  Vec<sem::ColumnView::Column> columns = {};
+  bool operator==(sem::ColumnView const& other) const;
 };
 
 struct BlockCodeLine {
@@ -399,10 +1092,6 @@ struct SubtreePeriod {
 /// \brief Single subtree property
 struct NamedProperty {
   NamedProperty() {}
-  enum class SetMode : short int { Override, Add, Subtract, };
-  BOOST_DESCRIBE_NESTED_ENUM(SetMode, Override, Add, Subtract)
-  enum class InheritanceMode : short int { ThisAndSub, OnlyThis, OnlySub, };
-  BOOST_DESCRIBE_NESTED_ENUM(InheritanceMode, ThisAndSub, OnlyThis, OnlySub)
   struct Nonblocking {
     Nonblocking() {}
     BOOST_DESCRIBE_CLASS(Nonblocking,
@@ -412,6 +1101,73 @@ struct NamedProperty {
                          (isBlocking))
     bool isBlocking;
     bool operator==(sem::NamedProperty::Nonblocking const& other) const;
+  };
+
+  struct ArchiveTime {
+    ArchiveTime() {}
+    BOOST_DESCRIBE_CLASS(ArchiveTime,
+                         (),
+                         (),
+                         (),
+                         (time))
+    UserTime time;
+    bool operator==(sem::NamedProperty::ArchiveTime const& other) const;
+  };
+
+  struct ArchiveFile {
+    ArchiveFile() {}
+    BOOST_DESCRIBE_CLASS(ArchiveFile,
+                         (),
+                         (),
+                         (),
+                         (file))
+    Str file;
+    bool operator==(sem::NamedProperty::ArchiveFile const& other) const;
+  };
+
+  struct ArchiveOlpath {
+    ArchiveOlpath() {}
+    BOOST_DESCRIBE_CLASS(ArchiveOlpath,
+                         (),
+                         (),
+                         (),
+                         (path))
+    sem::SubtreePath path;
+    bool operator==(sem::NamedProperty::ArchiveOlpath const& other) const;
+  };
+
+  struct ArchiveTarget {
+    ArchiveTarget() {}
+    BOOST_DESCRIBE_CLASS(ArchiveTarget,
+                         (),
+                         (),
+                         (),
+                         (path, pattern))
+    sem::SubtreePath path;
+    Str pattern;
+    bool operator==(sem::NamedProperty::ArchiveTarget const& other) const;
+  };
+
+  struct ArchiveCategory {
+    ArchiveCategory() {}
+    BOOST_DESCRIBE_CLASS(ArchiveCategory,
+                         (),
+                         (),
+                         (),
+                         (category))
+    Str category;
+    bool operator==(sem::NamedProperty::ArchiveCategory const& other) const;
+  };
+
+  struct ArchiveTodo {
+    ArchiveTodo() {}
+    BOOST_DESCRIBE_CLASS(ArchiveTodo,
+                         (),
+                         (),
+                         (),
+                         (todo))
+    Str todo;
+    bool operator==(sem::NamedProperty::ArchiveTodo const& other) const;
   };
 
   struct Trigger {
@@ -433,6 +1189,28 @@ struct NamedProperty {
                          (latexClass))
     Str latexClass;
     bool operator==(sem::NamedProperty::ExportLatexClass const& other) const;
+  };
+
+  /// \brief `:COOKIE_DATA:` for the subtree completion calculation
+  struct CookieData {
+    /// \brief Where to take todo completion statistics from
+    enum class TodoSource : short int {
+      /// \brief Only count checkbox subnodes as a progress completion
+      Checkbox,
+      /// \brief Use subtrees with todo keywords
+      Todo,
+      /// \brief Use both subtrees and todo keywords
+      Both,
+    };
+    BOOST_DESCRIBE_NESTED_ENUM(TodoSource, Checkbox, Todo, Both)
+    BOOST_DESCRIBE_CLASS(CookieData,
+                         (),
+                         (),
+                         (),
+                         (isRecursive, source))
+    bool isRecursive;
+    sem::NamedProperty::CookieData::TodoSource source;
+    bool operator==(sem::NamedProperty::CookieData const& other) const;
   };
 
   struct ExportLatexClassOptions {
@@ -561,7 +1339,7 @@ struct NamedProperty {
     /// \brief Property target specialization
     Opt<Str> sub = std::nullopt;
     /// \brief Property parameters
-    Vec<sem::AttrValue> attrs = {};
+    sem::AttrGroup attrs;
     bool operator==(sem::NamedProperty::CustomArgs const& other) const;
   };
 
@@ -580,9 +1358,9 @@ struct NamedProperty {
     bool operator==(sem::NamedProperty::CustomRaw const& other) const;
   };
 
-  using Data = std::variant<sem::NamedProperty::Nonblocking, sem::NamedProperty::Trigger, sem::NamedProperty::ExportLatexClass, sem::NamedProperty::ExportLatexClassOptions, sem::NamedProperty::ExportLatexHeader, sem::NamedProperty::ExportLatexCompiler, sem::NamedProperty::Ordered, sem::NamedProperty::Effort, sem::NamedProperty::Visibility, sem::NamedProperty::ExportOptions, sem::NamedProperty::Blocker, sem::NamedProperty::Unnumbered, sem::NamedProperty::Created, sem::NamedProperty::CustomArgs, sem::NamedProperty::CustomRaw>;
-  enum class Kind : short int { Nonblocking, Trigger, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, CustomArgs, CustomRaw, };
-  BOOST_DESCRIBE_NESTED_ENUM(Kind, Nonblocking, Trigger, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, CustomArgs, CustomRaw)
+  using Data = std::variant<sem::NamedProperty::Nonblocking, sem::NamedProperty::ArchiveTime, sem::NamedProperty::ArchiveFile, sem::NamedProperty::ArchiveOlpath, sem::NamedProperty::ArchiveTarget, sem::NamedProperty::ArchiveCategory, sem::NamedProperty::ArchiveTodo, sem::NamedProperty::Trigger, sem::NamedProperty::ExportLatexClass, sem::NamedProperty::CookieData, sem::NamedProperty::ExportLatexClassOptions, sem::NamedProperty::ExportLatexHeader, sem::NamedProperty::ExportLatexCompiler, sem::NamedProperty::Ordered, sem::NamedProperty::Effort, sem::NamedProperty::Visibility, sem::NamedProperty::ExportOptions, sem::NamedProperty::Blocker, sem::NamedProperty::Unnumbered, sem::NamedProperty::Created, sem::NamedProperty::CustomArgs, sem::NamedProperty::CustomRaw>;
+  enum class Kind : short int { Nonblocking, ArchiveTime, ArchiveFile, ArchiveOlpath, ArchiveTarget, ArchiveCategory, ArchiveTodo, Trigger, ExportLatexClass, CookieData, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, CustomArgs, CustomRaw, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, Nonblocking, ArchiveTime, ArchiveFile, ArchiveOlpath, ArchiveTarget, ArchiveCategory, ArchiveTodo, Trigger, ExportLatexClass, CookieData, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, CustomArgs, CustomRaw)
   using variant_enum_type = sem::NamedProperty::Kind;
   using variant_data_type = sem::NamedProperty::Data;
   NamedProperty(CR<Data> data) : data(data) {}
@@ -590,13 +1368,7 @@ struct NamedProperty {
                        (),
                        (),
                        (),
-                       (mainSetRule,
-                        subSetRule,
-                        inheritanceMode,
-                        data))
-  sem::NamedProperty::SetMode mainSetRule = NamedProperty::SetMode::Override;
-  sem::NamedProperty::SetMode subSetRule = NamedProperty::SetMode::Override;
-  sem::NamedProperty::InheritanceMode inheritanceMode = NamedProperty::InheritanceMode::ThisAndSub;
+                       (data))
   sem::NamedProperty::Data data;
   /// \brief Check if property matches specified kind and optional subkind. Built-in property checking is also done with this function -- 'created' etc.
   bool isMatching(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;
@@ -608,48 +1380,69 @@ struct NamedProperty {
   bool isNonblocking() const { return getKind() == Kind::Nonblocking; }
   sem::NamedProperty::Nonblocking const& getNonblocking() const { return std::get<0>(data); }
   sem::NamedProperty::Nonblocking& getNonblocking() { return std::get<0>(data); }
+  bool isArchiveTime() const { return getKind() == Kind::ArchiveTime; }
+  sem::NamedProperty::ArchiveTime const& getArchiveTime() const { return std::get<1>(data); }
+  sem::NamedProperty::ArchiveTime& getArchiveTime() { return std::get<1>(data); }
+  bool isArchiveFile() const { return getKind() == Kind::ArchiveFile; }
+  sem::NamedProperty::ArchiveFile const& getArchiveFile() const { return std::get<2>(data); }
+  sem::NamedProperty::ArchiveFile& getArchiveFile() { return std::get<2>(data); }
+  bool isArchiveOlpath() const { return getKind() == Kind::ArchiveOlpath; }
+  sem::NamedProperty::ArchiveOlpath const& getArchiveOlpath() const { return std::get<3>(data); }
+  sem::NamedProperty::ArchiveOlpath& getArchiveOlpath() { return std::get<3>(data); }
+  bool isArchiveTarget() const { return getKind() == Kind::ArchiveTarget; }
+  sem::NamedProperty::ArchiveTarget const& getArchiveTarget() const { return std::get<4>(data); }
+  sem::NamedProperty::ArchiveTarget& getArchiveTarget() { return std::get<4>(data); }
+  bool isArchiveCategory() const { return getKind() == Kind::ArchiveCategory; }
+  sem::NamedProperty::ArchiveCategory const& getArchiveCategory() const { return std::get<5>(data); }
+  sem::NamedProperty::ArchiveCategory& getArchiveCategory() { return std::get<5>(data); }
+  bool isArchiveTodo() const { return getKind() == Kind::ArchiveTodo; }
+  sem::NamedProperty::ArchiveTodo const& getArchiveTodo() const { return std::get<6>(data); }
+  sem::NamedProperty::ArchiveTodo& getArchiveTodo() { return std::get<6>(data); }
   bool isTrigger() const { return getKind() == Kind::Trigger; }
-  sem::NamedProperty::Trigger const& getTrigger() const { return std::get<1>(data); }
-  sem::NamedProperty::Trigger& getTrigger() { return std::get<1>(data); }
+  sem::NamedProperty::Trigger const& getTrigger() const { return std::get<7>(data); }
+  sem::NamedProperty::Trigger& getTrigger() { return std::get<7>(data); }
   bool isExportLatexClass() const { return getKind() == Kind::ExportLatexClass; }
-  sem::NamedProperty::ExportLatexClass const& getExportLatexClass() const { return std::get<2>(data); }
-  sem::NamedProperty::ExportLatexClass& getExportLatexClass() { return std::get<2>(data); }
+  sem::NamedProperty::ExportLatexClass const& getExportLatexClass() const { return std::get<8>(data); }
+  sem::NamedProperty::ExportLatexClass& getExportLatexClass() { return std::get<8>(data); }
+  bool isCookieData() const { return getKind() == Kind::CookieData; }
+  sem::NamedProperty::CookieData const& getCookieData() const { return std::get<9>(data); }
+  sem::NamedProperty::CookieData& getCookieData() { return std::get<9>(data); }
   bool isExportLatexClassOptions() const { return getKind() == Kind::ExportLatexClassOptions; }
-  sem::NamedProperty::ExportLatexClassOptions const& getExportLatexClassOptions() const { return std::get<3>(data); }
-  sem::NamedProperty::ExportLatexClassOptions& getExportLatexClassOptions() { return std::get<3>(data); }
+  sem::NamedProperty::ExportLatexClassOptions const& getExportLatexClassOptions() const { return std::get<10>(data); }
+  sem::NamedProperty::ExportLatexClassOptions& getExportLatexClassOptions() { return std::get<10>(data); }
   bool isExportLatexHeader() const { return getKind() == Kind::ExportLatexHeader; }
-  sem::NamedProperty::ExportLatexHeader const& getExportLatexHeader() const { return std::get<4>(data); }
-  sem::NamedProperty::ExportLatexHeader& getExportLatexHeader() { return std::get<4>(data); }
+  sem::NamedProperty::ExportLatexHeader const& getExportLatexHeader() const { return std::get<11>(data); }
+  sem::NamedProperty::ExportLatexHeader& getExportLatexHeader() { return std::get<11>(data); }
   bool isExportLatexCompiler() const { return getKind() == Kind::ExportLatexCompiler; }
-  sem::NamedProperty::ExportLatexCompiler const& getExportLatexCompiler() const { return std::get<5>(data); }
-  sem::NamedProperty::ExportLatexCompiler& getExportLatexCompiler() { return std::get<5>(data); }
+  sem::NamedProperty::ExportLatexCompiler const& getExportLatexCompiler() const { return std::get<12>(data); }
+  sem::NamedProperty::ExportLatexCompiler& getExportLatexCompiler() { return std::get<12>(data); }
   bool isOrdered() const { return getKind() == Kind::Ordered; }
-  sem::NamedProperty::Ordered const& getOrdered() const { return std::get<6>(data); }
-  sem::NamedProperty::Ordered& getOrdered() { return std::get<6>(data); }
+  sem::NamedProperty::Ordered const& getOrdered() const { return std::get<13>(data); }
+  sem::NamedProperty::Ordered& getOrdered() { return std::get<13>(data); }
   bool isEffort() const { return getKind() == Kind::Effort; }
-  sem::NamedProperty::Effort const& getEffort() const { return std::get<7>(data); }
-  sem::NamedProperty::Effort& getEffort() { return std::get<7>(data); }
+  sem::NamedProperty::Effort const& getEffort() const { return std::get<14>(data); }
+  sem::NamedProperty::Effort& getEffort() { return std::get<14>(data); }
   bool isVisibility() const { return getKind() == Kind::Visibility; }
-  sem::NamedProperty::Visibility const& getVisibility() const { return std::get<8>(data); }
-  sem::NamedProperty::Visibility& getVisibility() { return std::get<8>(data); }
+  sem::NamedProperty::Visibility const& getVisibility() const { return std::get<15>(data); }
+  sem::NamedProperty::Visibility& getVisibility() { return std::get<15>(data); }
   bool isExportOptions() const { return getKind() == Kind::ExportOptions; }
-  sem::NamedProperty::ExportOptions const& getExportOptions() const { return std::get<9>(data); }
-  sem::NamedProperty::ExportOptions& getExportOptions() { return std::get<9>(data); }
+  sem::NamedProperty::ExportOptions const& getExportOptions() const { return std::get<16>(data); }
+  sem::NamedProperty::ExportOptions& getExportOptions() { return std::get<16>(data); }
   bool isBlocker() const { return getKind() == Kind::Blocker; }
-  sem::NamedProperty::Blocker const& getBlocker() const { return std::get<10>(data); }
-  sem::NamedProperty::Blocker& getBlocker() { return std::get<10>(data); }
+  sem::NamedProperty::Blocker const& getBlocker() const { return std::get<17>(data); }
+  sem::NamedProperty::Blocker& getBlocker() { return std::get<17>(data); }
   bool isUnnumbered() const { return getKind() == Kind::Unnumbered; }
-  sem::NamedProperty::Unnumbered const& getUnnumbered() const { return std::get<11>(data); }
-  sem::NamedProperty::Unnumbered& getUnnumbered() { return std::get<11>(data); }
+  sem::NamedProperty::Unnumbered const& getUnnumbered() const { return std::get<18>(data); }
+  sem::NamedProperty::Unnumbered& getUnnumbered() { return std::get<18>(data); }
   bool isCreated() const { return getKind() == Kind::Created; }
-  sem::NamedProperty::Created const& getCreated() const { return std::get<12>(data); }
-  sem::NamedProperty::Created& getCreated() { return std::get<12>(data); }
+  sem::NamedProperty::Created const& getCreated() const { return std::get<19>(data); }
+  sem::NamedProperty::Created& getCreated() { return std::get<19>(data); }
   bool isCustomArgs() const { return getKind() == Kind::CustomArgs; }
-  sem::NamedProperty::CustomArgs const& getCustomArgs() const { return std::get<13>(data); }
-  sem::NamedProperty::CustomArgs& getCustomArgs() { return std::get<13>(data); }
+  sem::NamedProperty::CustomArgs const& getCustomArgs() const { return std::get<20>(data); }
+  sem::NamedProperty::CustomArgs& getCustomArgs() { return std::get<20>(data); }
   bool isCustomRaw() const { return getKind() == Kind::CustomRaw; }
-  sem::NamedProperty::CustomRaw const& getCustomRaw() const { return std::get<14>(data); }
-  sem::NamedProperty::CustomRaw& getCustomRaw() { return std::get<14>(data); }
+  sem::NamedProperty::CustomRaw const& getCustomRaw() const { return std::get<21>(data); }
+  sem::NamedProperty::CustomRaw& getCustomRaw() { return std::get<21>(data); }
   static sem::NamedProperty::Kind getKind(sem::NamedProperty::Data const& __input) { return static_cast<sem::NamedProperty::Kind>(__input.index()); }
   sem::NamedProperty::Kind getKind() const { return getKind(data); }
 };
@@ -665,59 +1458,6 @@ struct None : public sem::Org {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::None; }
-};
-
-/// \brief Single key-value (or positional)
-struct Attr : public sem::Org {
-  using Org::Org;
-  virtual ~Attr() = default;
-  BOOST_DESCRIBE_CLASS(Attr,
-                       (Org),
-                       (),
-                       (),
-                       (staticKind,
-                        arg))
-  static OrgSemKind const staticKind;
-  sem::AttrValue arg;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Attr; }
-  Str getName() const;
-  Str getValue() const;
-  Str getVarname() const;
-};
-
-/// \brief Data type to wrap list of identical command arguments
-struct AttrList : public sem::Org {
-  using Org::Org;
-  virtual ~AttrList() = default;
-  BOOST_DESCRIBE_CLASS(AttrList,
-                       (Org),
-                       (),
-                       (),
-                       (staticKind, args))
-  static OrgSemKind const staticKind;
-  /// \brief List of arguments
-  Vec<sem::SemId<sem::Attr>> args = {};
-  virtual OrgSemKind getKind() const { return OrgSemKind::AttrList; }
-};
-
-/// \brief Additional arguments for command blocks
-struct Attrs : public sem::Org {
-  using Org::Org;
-  virtual ~Attrs() = default;
-  BOOST_DESCRIBE_CLASS(Attrs,
-                       (Org),
-                       (),
-                       (),
-                       (staticKind,
-                        positional,
-                        named))
-  static OrgSemKind const staticKind;
-  /// \brief Positional arguments with no keys
-  sem::SemId<sem::AttrList> positional = sem::SemId<sem::AttrList>::Nil();
-  /// \brief Stored key-value mapping
-  UnorderedMap<Str, sem::SemId<sem::AttrList>> named;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Attrs; }
-  Vec<sem::AttrValue> getAttrs(Opt<Str> const& key = std::nullopt) const;
 };
 
 struct ErrorItem : public sem::Org {
@@ -820,7 +1560,7 @@ struct Cmd : public sem::Stmt {
                        (),
                        (attrs))
   /// \brief Additional parameters aside from 'exporter',
-  Opt<sem::SemId<sem::Attrs>> attrs = std::nullopt;
+  Opt<sem::AttrGroup> attrs = std::nullopt;
   /// \brief Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.
   virtual Vec<sem::AttrValue> getAttrs(Opt<Str> const& key = std::nullopt) const override;
   /// \brief Override of the base statement argument get, prioritizing the explicit command parameters
@@ -852,9 +1592,14 @@ struct Attached : public sem::LineCommand {
 struct Leaf : public sem::Org {
   using Org::Org;
   virtual ~Leaf() = default;
-  BOOST_DESCRIBE_CLASS(Leaf, (Org), (), (), (text))
+  BOOST_DESCRIBE_CLASS(Leaf,
+                       (Org),
+                       (),
+                       (),
+                       (text))
   /// \brief Final leaf value
   Str text = "";
+  Str getText() const { return text; }
 };
 
 /// \brief Caption annotation for any subsequent node
@@ -870,6 +1615,20 @@ struct CmdCaption : public sem::Attached {
   /// \brief Content description
   sem::SemId<sem::Paragraph> text = sem::SemId<sem::Paragraph>::Nil();
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdCaption; }
+};
+
+/// \brief Caption annotation for any subsequent node
+struct CmdColumns : public sem::Attached {
+  using Attached::Attached;
+  virtual ~CmdColumns() = default;
+  BOOST_DESCRIBE_CLASS(CmdColumns,
+                       (Attached),
+                       (),
+                       (),
+                       (staticKind, view))
+  static OrgSemKind const staticKind;
+  sem::ColumnView view;
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdColumns; }
 };
 
 /// \brief Name identifier for the statement elements.
@@ -953,12 +1712,12 @@ struct CmdTblfm : public sem::Cmd {
                        (Cmd),
                        (),
                        (),
-                       (staticKind))
+                       (staticKind, expr))
   static OrgSemKind const staticKind;
+  sem::Tblfm expr;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdTblfm; }
 };
 
-/// \brief Single or nested inline hash-tag
 struct HashTag : public sem::Inline {
   using Inline::Inline;
   virtual ~HashTag() = default;
@@ -966,17 +1725,10 @@ struct HashTag : public sem::Inline {
                        (Inline),
                        (),
                        (),
-                       (staticKind,
-                        head,
-                        subtags))
+                       (staticKind, text))
   static OrgSemKind const staticKind;
-  /// \brief Main part of the tag
-  Str head;
-  /// \brief List of nested tags
-  Vec<sem::SemId<sem::HashTag>> subtags = {};
+  sem::HashTagText text;
   virtual OrgSemKind getKind() const { return OrgSemKind::HashTag; }
-  /// \brief Check if list of tag names is a prefix for either of the nested hash tags in this one
-  bool prefixMatch(Vec<Str> const& prefix) const;
 };
 
 /// \brief Inline footnote definition
@@ -996,6 +1748,21 @@ struct InlineFootnote : public sem::Inline {
   /// \brief Link to possibly resolved definition
   Opt<sem::SemId<sem::Org>> definition = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::InlineFootnote; }
+};
+
+/// \brief Inline export
+struct InlineExport : public sem::Inline {
+  using Inline::Inline;
+  virtual ~InlineExport() = default;
+  BOOST_DESCRIBE_CLASS(InlineExport,
+                       (Inline),
+                       (),
+                       (),
+                       (staticKind, exporter, content))
+  static OrgSemKind const staticKind;
+  Str exporter = "";
+  Str content = "";
+  virtual OrgSemKind getKind() const { return OrgSemKind::InlineExport; }
 };
 
 /// \brief Single static or dynamic timestamp (active or inactive)
@@ -1056,6 +1823,13 @@ struct Time : public sem::Org {
   bool isActive = false;
   sem::Time::TimeVariant time;
   virtual OrgSemKind getKind() const { return OrgSemKind::Time; }
+  Opt<int> getYear() const;
+  Opt<int> getMonth() const;
+  Opt<int> getDay() const;
+  Opt<int> getHour() const;
+  Opt<int> getMinute() const;
+  Opt<int> getSecond() const;
+  UserTime getStaticTime() const;
   bool isStatic() const { return getTimeKind() == TimeKind::Static; }
   sem::Time::Static const& getStatic() const { return std::get<0>(time); }
   sem::Time::Static& getStatic() { return std::get<0>(time); }
@@ -1096,7 +1870,7 @@ struct Macro : public sem::Org {
   /// \brief Macro name
   Str name = "";
   /// \brief Additional parameters aside from 'exporter',
-  sem::SemId<sem::Attrs> attrs = sem::SemId<sem::Attrs>::Nil();
+  sem::AttrGroup attrs;
   virtual OrgSemKind getKind() const { return OrgSemKind::Macro; }
 };
 
@@ -1385,89 +2159,15 @@ struct Latex : public sem::Org {
 struct Link : public sem::Stmt {
   using Stmt::Stmt;
   virtual ~Link() = default;
-  struct Raw {
-    BOOST_DESCRIBE_CLASS(Raw, (), (), (), (text))
-    Str text;
-  };
-
-  struct Id {
-    BOOST_DESCRIBE_CLASS(Id, (), (), (), (text))
-    Str text;
-  };
-
-  struct Person {
-    BOOST_DESCRIBE_CLASS(Person, (), (), (), (name))
-    Str name;
-  };
-
-  struct UserProtocol {
-    BOOST_DESCRIBE_CLASS(UserProtocol, (), (), (), (protocol, target))
-    Str protocol;
-    Str target;
-  };
-
-  struct Internal {
-    BOOST_DESCRIBE_CLASS(Internal, (), (), (), (target))
-    Str target;
-  };
-
-  struct Footnote {
-    BOOST_DESCRIBE_CLASS(Footnote, (), (), (), (target))
-    Str target;
-  };
-
-  struct File {
-    BOOST_DESCRIBE_CLASS(File, (), (), (), (file))
-    Str file;
-  };
-
-  struct Attachment {
-    BOOST_DESCRIBE_CLASS(Attachment, (), (), (), (file))
-    Str file;
-  };
-
-  using Data = std::variant<sem::Link::Raw, sem::Link::Id, sem::Link::Person, sem::Link::UserProtocol, sem::Link::Internal, sem::Link::Footnote, sem::Link::File, sem::Link::Attachment>;
-  enum class Kind : short int { Raw, Id, Person, UserProtocol, Internal, Footnote, File, Attachment, };
-  BOOST_DESCRIBE_NESTED_ENUM(Kind, Raw, Id, Person, UserProtocol, Internal, Footnote, File, Attachment)
-  using variant_enum_type = sem::Link::Kind;
-  using variant_data_type = sem::Link::Data;
   BOOST_DESCRIBE_CLASS(Link,
                        (Stmt),
                        (),
                        (),
-                       (staticKind,
-                        description,
-                        data))
+                       (staticKind, description, target))
   static OrgSemKind const staticKind;
   Opt<sem::SemId<sem::Paragraph>> description = std::nullopt;
-  sem::Link::Data data;
+  sem::LinkTarget target;
   virtual OrgSemKind getKind() const { return OrgSemKind::Link; }
-  bool isRaw() const { return getLinkKind() == Kind::Raw; }
-  sem::Link::Raw const& getRaw() const { return std::get<0>(data); }
-  sem::Link::Raw& getRaw() { return std::get<0>(data); }
-  bool isId() const { return getLinkKind() == Kind::Id; }
-  sem::Link::Id const& getId() const { return std::get<1>(data); }
-  sem::Link::Id& getId() { return std::get<1>(data); }
-  bool isPerson() const { return getLinkKind() == Kind::Person; }
-  sem::Link::Person const& getPerson() const { return std::get<2>(data); }
-  sem::Link::Person& getPerson() { return std::get<2>(data); }
-  bool isUserProtocol() const { return getLinkKind() == Kind::UserProtocol; }
-  sem::Link::UserProtocol const& getUserProtocol() const { return std::get<3>(data); }
-  sem::Link::UserProtocol& getUserProtocol() { return std::get<3>(data); }
-  bool isInternal() const { return getLinkKind() == Kind::Internal; }
-  sem::Link::Internal const& getInternal() const { return std::get<4>(data); }
-  sem::Link::Internal& getInternal() { return std::get<4>(data); }
-  bool isFootnote() const { return getLinkKind() == Kind::Footnote; }
-  sem::Link::Footnote const& getFootnote() const { return std::get<5>(data); }
-  sem::Link::Footnote& getFootnote() { return std::get<5>(data); }
-  bool isFile() const { return getLinkKind() == Kind::File; }
-  sem::Link::File const& getFile() const { return std::get<6>(data); }
-  sem::Link::File& getFile() { return std::get<6>(data); }
-  bool isAttachment() const { return getLinkKind() == Kind::Attachment; }
-  sem::Link::Attachment const& getAttachment() const { return std::get<7>(data); }
-  sem::Link::Attachment& getAttachment() { return std::get<7>(data); }
-  static sem::Link::Kind getLinkKind(sem::Link::Data const& __input) { return static_cast<sem::Link::Kind>(__input.index()); }
-  sem::Link::Kind getLinkKind() const { return getLinkKind(data); }
 };
 
 /// \brief Center nested content in export
@@ -1552,31 +2252,19 @@ struct BlockExample : public sem::Block {
 struct BlockExport : public sem::Block {
   using Block::Block;
   virtual ~BlockExport() = default;
-  /// \brief Export block format type
-  enum class Format : short int {
-    /// \brief Export directly in the paragraph
-    Inline,
-    /// \brief Single line of export
-    Line,
-    /// \brief Multiple lines of export
-    Block,
-  };
-  BOOST_DESCRIBE_NESTED_ENUM(Format, Inline, Line, Block)
   BOOST_DESCRIBE_CLASS(BlockExport,
                        (Block),
                        (),
                        (),
-                       (staticKind, format, exporter, placement, content))
+                       (staticKind,
+                        exporter,
+                        content))
   static OrgSemKind const staticKind;
-  /// \brief Export block type
-  sem::BlockExport::Format format = Format::Inline;
-  /// \brief Exporter backend name
-  Str exporter;
-  /// \brief Customized position of the text in the final exporting document.
-  Opt<Str> placement = std::nullopt;
-  /// \brief Raw exporter content string
-  Str content;
+  Str exporter = "";
+  Str content = "";
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockExport; }
+  /// \brief Return value of the :placement attribute if present
+  Opt<Str> getPlacement() const;
 };
 
 /// \brief Block of text with admonition tag: 'note',', 'warning','
@@ -1639,135 +2327,19 @@ struct BlockCode : public sem::Block {
 struct SubtreeLog : public sem::Org {
   using Org::Org;
   virtual ~SubtreeLog() = default;
-  /// \brief Base value for the log variant
-  struct DescribedLog {
-    DescribedLog() {}
-    BOOST_DESCRIBE_CLASS(DescribedLog, (), (), (), (desc))
-    /// \brief Optional description of the log entry
-    Opt<sem::SemId<sem::StmtList>> desc = std::nullopt;
-  };
-
-  /// \brief Priority added
-  struct Priority : public sem::SubtreeLog::DescribedLog {
-    /// \brief Priority change action
-    enum class Action : short int {
-      /// \brief `Priority B added on [timestamp]`
-      Added,
-      /// \brief `Priority C removed on [timestamp]`
-      Removed,
-      /// \brief `Priority B changed from C on [timestamp]`
-      Changed,
-    };
-    BOOST_DESCRIBE_NESTED_ENUM(Action, Added, Removed, Changed)
-    Priority() {}
-    BOOST_DESCRIBE_CLASS(Priority,
-                         (DescribedLog),
-                         (),
-                         (),
-                         (oldPriority, newPriority, on, action))
-    /// \brief Previous priority for change and removal
-    Opt<std::string> oldPriority = std::nullopt;
-    /// \brief New priority for change and addition
-    Opt<std::string> newPriority = std::nullopt;
-    /// \brief When priority was changed
-    sem::SemId<sem::Time> on = sem::SemId<sem::Time>::Nil();
-    /// \brief Which action taken
-    sem::SubtreeLog::Priority::Action action;
-  };
-
-  /// \brief Timestamped note
-  struct Note : public sem::SubtreeLog::DescribedLog {
-    Note() {}
-    BOOST_DESCRIBE_CLASS(Note, (DescribedLog), (), (), (on))
-    /// \brief Where log was taken
-    sem::SemId<sem::Time> on = sem::SemId<sem::Time>::Nil();
-  };
-
-  /// \brief Refiling action
-  struct Refile : public sem::SubtreeLog::DescribedLog {
-    Refile() {}
-    BOOST_DESCRIBE_CLASS(Refile, (DescribedLog), (), (), (on, from))
-    /// \brief When the refiling happened
-    sem::SemId<sem::Time> on = sem::SemId<sem::Time>::Nil();
-    /// \brief Link to the original subtree
-    sem::SemId<sem::Link> from = sem::SemId<sem::Link>::Nil();
-  };
-
-  /// \brief Clock entry `CLOCK: [2023-04-30 Sun 13:29:04]--[2023-04-30 Sun 14:51:16] => 1:22`
-  struct Clock : public sem::SubtreeLog::DescribedLog {
-    Clock() {}
-    BOOST_DESCRIBE_CLASS(Clock, (DescribedLog), (), (), (from, to))
-    /// \brief Clock start time
-    sem::SemId<sem::Time> from = sem::SemId<sem::Time>::Nil();
-    /// \brief Optional end of the clock
-    Opt<sem::SemId<sem::Time>> to = std::nullopt;
-  };
-
-  /// \brief Change of the subtree state -- `- State "WIP" from "TODO" [2023-04-30 Sun 13:29:04]`
-  struct State : public sem::SubtreeLog::DescribedLog {
-    State() {}
-    BOOST_DESCRIBE_CLASS(State, (DescribedLog), (), (), (from, to, on))
-    Str from;
-    Str to;
-    sem::SemId<sem::Time> on = sem::SemId<sem::Time>::Nil();
-  };
-
-  /// \brief Assign tag to the subtree `- Tag "project##haxorg" Added on [2023-04-30 Sun 13:29:06]`
-  struct Tag : public sem::SubtreeLog::DescribedLog {
-    Tag() {}
-    BOOST_DESCRIBE_CLASS(Tag, (DescribedLog), (), (), (on, tag, added))
-    /// \brief When the log was assigned
-    sem::SemId<sem::Time> on = sem::SemId<sem::Time>::Nil();
-    /// \brief Tag in question
-    sem::SemId<sem::HashTag> tag = sem::SemId<sem::HashTag>::Nil();
-    /// \brief Added/removed?
-    bool added = false;
-  };
-
-  /// \brief Unknown subtree log entry kind
-  struct Unknown : public sem::SubtreeLog::DescribedLog {
-    Unknown() {}
-    BOOST_DESCRIBE_CLASS(Unknown, (DescribedLog), (), (), ())
-  };
-
-  using LogEntry = std::variant<sem::SubtreeLog::Priority, sem::SubtreeLog::Note, sem::SubtreeLog::Refile, sem::SubtreeLog::Clock, sem::SubtreeLog::State, sem::SubtreeLog::Tag, sem::SubtreeLog::Unknown>;
-  enum class Kind : short int { Priority, Note, Refile, Clock, State, Tag, Unknown, };
-  BOOST_DESCRIBE_NESTED_ENUM(Kind, Priority, Note, Refile, Clock, State, Tag, Unknown)
-  using variant_enum_type = sem::SubtreeLog::Kind;
-  using variant_data_type = sem::SubtreeLog::LogEntry;
   BOOST_DESCRIBE_CLASS(SubtreeLog,
                        (Org),
                        (),
                        (),
                        (staticKind,
-                        log))
+                        head,
+                        desc))
   static OrgSemKind const staticKind;
-  sem::SubtreeLog::LogEntry log = Note{};
+  sem::SubtreeLogHead head;
+  /// \brief Optional description of the log entry
+  Opt<sem::SemId<sem::StmtList>> desc = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::SubtreeLog; }
   void setDescription(sem::SemId<sem::StmtList> desc);
-  bool isPriority() const { return getLogKind() == Kind::Priority; }
-  sem::SubtreeLog::Priority const& getPriority() const { return std::get<0>(log); }
-  sem::SubtreeLog::Priority& getPriority() { return std::get<0>(log); }
-  bool isNote() const { return getLogKind() == Kind::Note; }
-  sem::SubtreeLog::Note const& getNote() const { return std::get<1>(log); }
-  sem::SubtreeLog::Note& getNote() { return std::get<1>(log); }
-  bool isRefile() const { return getLogKind() == Kind::Refile; }
-  sem::SubtreeLog::Refile const& getRefile() const { return std::get<2>(log); }
-  sem::SubtreeLog::Refile& getRefile() { return std::get<2>(log); }
-  bool isClock() const { return getLogKind() == Kind::Clock; }
-  sem::SubtreeLog::Clock const& getClock() const { return std::get<3>(log); }
-  sem::SubtreeLog::Clock& getClock() { return std::get<3>(log); }
-  bool isState() const { return getLogKind() == Kind::State; }
-  sem::SubtreeLog::State const& getState() const { return std::get<4>(log); }
-  sem::SubtreeLog::State& getState() { return std::get<4>(log); }
-  bool isTag() const { return getLogKind() == Kind::Tag; }
-  sem::SubtreeLog::Tag const& getTag() const { return std::get<5>(log); }
-  sem::SubtreeLog::Tag& getTag() { return std::get<5>(log); }
-  bool isUnknown() const { return getLogKind() == Kind::Unknown; }
-  sem::SubtreeLog::Unknown const& getUnknown() const { return std::get<6>(log); }
-  sem::SubtreeLog::Unknown& getUnknown() { return std::get<6>(log); }
-  static sem::SubtreeLog::Kind getLogKind(sem::SubtreeLog::LogEntry const& __input) { return static_cast<sem::SubtreeLog::Kind>(__input.index()); }
-  sem::SubtreeLog::Kind getLogKind() const { return getLogKind(log); }
 };
 
 /// \brief Subtree
@@ -1802,7 +2374,7 @@ struct Subtree : public sem::Org {
   /// \brief Todo state of the tree
   Opt<Str> todo = std::nullopt;
   /// \brief Task completion state
-  Opt<sem::SemId<sem::SubtreeCompletion>> completion = std::nullopt;
+  Opt<sem::SubtreeCompletion> completion = std::nullopt;
   Opt<sem::SemId<sem::Paragraph>> description = std::nullopt;
   /// \brief Trailing tags
   Vec<sem::SemId<sem::HashTag>> tags = {};
@@ -1813,11 +2385,11 @@ struct Subtree : public sem::Org {
   /// \brief Immediate properties
   Vec<sem::NamedProperty> properties = {};
   /// \brief When subtree was marked as closed
-  Opt<sem::SemId<sem::Time>> closed = std::nullopt;
+  Opt<UserTime> closed = std::nullopt;
   /// \brief When is the deadline
-  Opt<sem::SemId<sem::Time>> deadline = std::nullopt;
+  Opt<UserTime> deadline = std::nullopt;
   /// \brief When the event is scheduled
-  Opt<sem::SemId<sem::Time>> scheduled = std::nullopt;
+  Opt<UserTime> scheduled = std::nullopt;
   /// \brief Subtree is annotated with the COMMENT keyword
   bool isComment = false;
   /// \brief Subtree is tagged with `:ARCHIVE:` tag
@@ -1835,25 +2407,8 @@ struct Subtree : public sem::Org {
   ///
   /// This function will not do the conversion or parsing of the assigned value, so if it is a 'created' or some other property with a typed value, it will still remain as string until the file is written and then parsed back from scratch.
   void setPropertyStrValue(Str const& value, Str const& kind, Opt<Str> const& subkind = std::nullopt);
-};
-
-/// \brief Completion status of the subtree list element
-struct SubtreeCompletion : public sem::Inline {
-  using Inline::Inline;
-  virtual ~SubtreeCompletion() = default;
-  BOOST_DESCRIBE_CLASS(SubtreeCompletion,
-                       (Inline),
-                       (),
-                       (),
-                       (staticKind, done, full, isPercent))
-  static OrgSemKind const staticKind;
-  /// \brief Number of completed tasks
-  int done = 0;
-  /// \brief Full number of tasks
-  int full = 0;
-  /// \brief Use fraction or percent to display completion
-  bool isPercent = false;
-  virtual OrgSemKind getKind() const { return OrgSemKind::SubtreeCompletion; }
+  /// \brief Get subtree title as a flat string, without markup nodes, but with all left strings
+  Str getCleanTitle() const;
 };
 
 /// \brief Table cell
@@ -1926,6 +2481,8 @@ struct Paragraph : public sem::Stmt {
   Vec<sem::SemId<sem::Time>> getTimestampNodes() const;
   bool hasLeadHashtags() const;
   Vec<sem::SemId<sem::HashTag>> getLeadHashtags() const;
+  /// \brief Return content of the paragraph, without prefix idents, hashtags, footnotes etc.
+  Vec<sem::SemId<sem::Org>> getBody() const;
 };
 
 /// \brief Shortened colon example block
@@ -1955,6 +2512,21 @@ struct CmdAttr : public sem::Attached {
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdAttr; }
 };
 
+/// \brief Single line of passthrough code
+struct CmdExport : public sem::Attached {
+  using Attached::Attached;
+  virtual ~CmdExport() = default;
+  BOOST_DESCRIBE_CLASS(CmdExport,
+                       (Attached),
+                       (),
+                       (),
+                       (staticKind, exporter, content))
+  static OrgSemKind const staticKind;
+  Str exporter = "";
+  Str content = "";
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdExport; }
+};
+
 /// \brief Inline, statement or block call
 struct Call : public sem::Org {
   using Org::Org;
@@ -1968,7 +2540,7 @@ struct Call : public sem::Org {
   /// \brief Call target name
   Str name;
   /// \brief Additional parameters aside from 'exporter',
-  sem::SemId<sem::Attrs> attrs = sem::SemId<sem::Attrs>::Nil();
+  sem::AttrGroup attrs;
   bool isCommand = false;
   virtual OrgSemKind getKind() const { return OrgSemKind::Call; }
 };
@@ -2011,6 +2583,8 @@ struct ListItem : public sem::Org {
   Opt<Str> bullet = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::ListItem; }
   bool isDescriptionItem() const;
+  /// \brief Return flat text for the description list header
+  Opt<Str> getCleanHeader() const;
 };
 
 struct DocumentOptions : public sem::Org {
@@ -2028,7 +2602,8 @@ struct DocumentOptions : public sem::Org {
                         startupIndented,
                         category,
                         setupfile,
-                        maxSubtreeLevelExport))
+                        maxSubtreeLevelExport,
+                        columns))
   static OrgSemKind const staticKind;
   InitialSubtreeVisibility initialVisibility = InitialSubtreeVisibility::ShowEverything;
   Vec<sem::NamedProperty> properties = {};
@@ -2038,6 +2613,7 @@ struct DocumentOptions : public sem::Org {
   Opt<Str> category = std::nullopt;
   Opt<Str> setupfile = std::nullopt;
   Opt<int> maxSubtreeLevelExport = std::nullopt;
+  Opt<sem::ColumnView> columns = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::DocumentOptions; }
   Vec<sem::NamedProperty> getProperties(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;
   Opt<sem::NamedProperty> getProperty(Str const& kind, Opt<Str> const& subKind = std::nullopt) const;

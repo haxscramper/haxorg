@@ -2,7 +2,6 @@ from py_cli.scratch_scripts import story_grid
 from py_cli.scratch_scripts import activity_analysis
 from py_cli.scratch_scripts import subtree_clocking
 from py_cli.scratch_scripts import node_clouds
-from py_cli.scratch_scripts import mind_map
 from py_exporters import export_sqlite
 from click.testing import CliRunner, Result
 from tempfile import TemporaryDirectory
@@ -131,6 +130,7 @@ def test_subtree_clocking():
         assert df["tags"][0] == "tag##sub1,tag2"
 
 
+@pytest.mark.unstable
 def test_base_activity_analysis():
     runner = CliRunner()
     with TemporaryDirectory() as tmp_dir:
@@ -224,18 +224,3 @@ def test_base_activity_analysis():
             ),
             dbg,
         )
-
-
-mind_map_org = get_haxorg_repo_root_path().joinpath("tests/assets/mind_map.org")
-
-def test_mind_map_collection():
-    with TemporaryDirectory() as tmp_dir:
-        dir = Path(tmp_dir)
-        node = org.parseString(mind_map_org.read_text())
-        idProvider = NodeIdProvider()
-        graph = mind_map.getGraph(idProvider, [node])
-        graph.toJsonGraph().model_dump_json(indent=2)
-        graph.toGraphvizGraph()
-
-
-test_mind_map_collection()

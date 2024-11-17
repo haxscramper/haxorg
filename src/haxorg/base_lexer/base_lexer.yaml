@@ -14,6 +14,7 @@ states:
   - { kind: xstate, name: BODY_EXPORT }
   - { kind: xstate, name: PROPERTIES }
   - { kind: xstate, name: PROPERTY_LITERAL }
+  - { kind: xstate, name: PROPERTY_ARGUMENT }
 
 rx_macros:
   - { name: space, value: "[\\h\\xA0]" }
@@ -22,10 +23,13 @@ rx_macros:
   # and lexed to corresponding tokens. All unknown properties and directives
   # will be converted to raw string literals and processed at later
   # stages, mostly in sem layer
-  - { name: literal_properties, value: "id|effort" }
+  - { name: literal_properties, value: "id|effort|(archive_(olpath|file|time|category|todo))|archive" }
+  # `:header-args` property for setting the parameters of the code blocks
+  # `:property-set` and `:property-set-sub` for configuring how individual properties are computed
   - { name: argument_properties, value: "header-args" }
   - { name: text_properties, value: "description" }
   - { name: dsl_links, value: "file|attachment|id" }
+  - { name: "property_sub_kind", "value": "\\S+:"}
   # Property colon with optional text extension pattern an any number of
   # following spaces. Used both in line command directives and subtree
   # properties
@@ -41,6 +45,13 @@ sub_lexers:
 
     - re: ":\\/\\/.*?$"
       token: LinkTarget
+
+  inline_export:
+    - re: "^@@\\w+"
+      token: InlineExportBackend
+
+    - re: ":.*?@@$"
+      token: InlineExportContent
 
   link_protocol_split:
     - re: "^\\[\\["
@@ -87,6 +98,12 @@ sub_lexers:
 
     - re: "(\\w|-|_)+"
       token: LinkProtocolInternal
+
+    - re: "#"
+      token: LinkProtocolCustomId
+
+    - re: "\\*+[^\\]]+"
+      token: LinkProtocolTitle
 
   timestamp_repeater:
     - re: "(\\.|\\+)?\\+"
@@ -327,17 +344,17 @@ rules:
   #region Command-parameters
   - {
       re: ":(\\w|-)+",
-      states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT],
+      states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT, PROPERTY_ARGUMENT],
       token: CmdColonIdent,
     }
   - {
       re: "{space}+",
-      states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT],
+      states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT, PROPERTY_ARGUMENT],
       token: Whitespace,
     }
   - {
       re: "[\\H--[\\n]]+",
-      states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT],
+      states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT, PROPERTY_ARGUMENT],
       token: CmdRawArg,
     }
 
@@ -637,7 +654,7 @@ rules:
     token: ColonProperties
   - re: "{lead_space}:END:"
     token: ColonEnd
-  - re: "{lead_space}:({literal_properties}):"
+  - re: "{lead_space}:({literal_properties}):({property_sub_kind})?"
     token: ColonLiteralProperty
     actions:
       - { do: push, from: INITIAL, to: PROPERTY_LITERAL }
@@ -660,11 +677,28 @@ rules:
     actions:
       - { do: pop, from: PROPERTY_LITERAL, to: INITIAL }
 
+  - re: "{lead_space}:({argument_properties}):({property_sub_kind})?"
+    token: ColonArgumentsProperty
+    actions:
+      - { do: push, from: INITIAL, to: PROPERTY_ARGUMENT }
+
+  - re: "{space}+"
+    token: Whitespace
+    states: [PROPERTY_ARGUMENT]
+
+  - re: "\\n"
+    token: Newline
+    states: [PROPERTY_ARGUMENT]
+    actions:
+      - { do: pop, from: PROPERTY_ARGUMENT, to: INITIAL }
+
   # Properties with text content
   - re: "{lead_space}:(created):"
     token: ColonPropertyText
   - re: "{lead_space}:\\w+:"
-    token: ColonPropertyName
+    token: ColonLiteralProperty
+    actions:
+      - { do: push, from: INITIAL, to: PROPERTY_LITERAL }
   #endregion
 
   #endregion
@@ -686,11 +720,23 @@ rules:
   - re: "\\[\\[(\\/|\\.){any_non_brace_link}+"
     sub: no_protocol_file_link
 
-  - re: "\\[\\[(\\w|-|_)+(\\]\\]|\\]\\[)"
+  - re: "\\[\\[(\\w|-|_|#)+(\\]\\]|\\]\\[)"
+    sub: link_protocol_internal
+
+  - re: "\\[\\[\\*+.+(\\]\\]|\\]\\[)"
     sub: link_protocol_internal
 
   - re: "\\[\\[\\w+:"
     sub: link_protocol_split
+
+  - re: "\\[\\d+\\/\\d+\\]"
+    token: SubtreeCompletion
+
+  - re: "@@\\w+:[^@]+@@"
+    sub: "inline_export"
+
+  - re: "\\[\\d+%\\]"
+    token: SubtreeCompletion
 
   - { re: "\\]\\]", token: LinkEnd }
   - { re: "\\]\\[", token: LinkSplit }
@@ -761,8 +807,8 @@ rules:
   - { lit: "|", token: Pipe }
   - { lit: "`", token: Backtick }
   - { re: "\\p{{Punctuation}}", token: AnyPunct }
-  - { re: "\\w+", token: Word }
-  - { re: "(\\w+-)+\\w+", token: Word }
+  - { re: "\\w+('\\w+)?", token: Word }
+  - { re: "(\\w+-)+\\w+('\\w+)?", token: Word }
   - { re: "\\$", token: Dollar }
   - {
       re: "[\\x{{0128}}-\\x{{10FFFF}}]|×|©|°|¹|²|³|¥|π|√|¶|∆",

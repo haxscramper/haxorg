@@ -17,6 +17,13 @@ struct MapBase : public CRTP_this_method<Map> {
         return _this()->count(key) != 0;
     }
 
+    V& get_or_insert(K const& key, V const& fallback) {
+        if (!_this()->contains(key)) {
+            _this()->insert_or_assign(key, fallback);
+        }
+        return _this()->at(key);
+    }
+
     std::optional<V> get(K const& key) const {
         if (_this()->contains(key)) {
             return _this()->at(key);
@@ -146,12 +153,11 @@ struct JsonSerde<UnorderedMap<K, V>> {
     }
     static UnorderedMap<K, V> from_json(json const& j) {
         UnorderedMap<K, V> result;
-        auto               tmp = result.transient();
         for (auto const& i : j) {
-            result.insert(
+            result.insert_or_assign(
                 JsonSerde<K>::from_json(i["key"]),
                 JsonSerde<V>::from_json(i["value"]));
         }
-        return tmp.persistent();
+        return result;
     }
 };

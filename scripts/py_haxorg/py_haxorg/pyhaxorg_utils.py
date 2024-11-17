@@ -2,7 +2,7 @@ from datetime import datetime
 from py_haxorg.pyhaxorg_wrap import UserTime, UserTimeBreakdown
 import py_haxorg.pyhaxorg_wrap as org
 from beartype import beartype
-from beartype.typing import List
+from beartype.typing import List, Union
 from py_exporters.export_ultraplain import ExporterUltraplain
 from beartype.typing import Dict
 from dataclasses import dataclass, field
@@ -62,9 +62,9 @@ def formatDateTime(time: UserTime) -> str:
 
 
 @beartype
-def getFlatTags(tag: org.HashTag) -> List[List[str]]:
+def getFlatTags(tag: Union[org.HashTag, org.HashTagText]) -> List[List[str]]:
 
-    def aux(parents: List[str], tag: org.HashTag) -> List[str]:
+    def aux(parents: List[str], tag: org.HashTagText) -> List[str]:
         result: List[str] = []
         if len(tag.subtags) == 0:
             return [parents + [tag.head]]
@@ -76,13 +76,17 @@ def getFlatTags(tag: org.HashTag) -> List[List[str]]:
 
         return result
 
-    return aux([], tag)
+    if isinstance(tag, org.HashTag):
+        return aux([], tag.text)
+
+    else:
+        return aux([], tag)
 
 
 @beartype
-def formatHashTag(node: org.HashTag) -> str:
+def formatHashTag(node: Union[org.HashTag, org.HashTagText]) -> str:
 
-    def aux(sub: org.HashTag) -> str:
+    def aux(sub: org.HashTagText) -> str:
         if len(sub.subtags) == 0:
             return sub.head
 
@@ -92,7 +96,11 @@ def formatHashTag(node: org.HashTag) -> str:
         else:
             return sub.head + "##" + "[" + ",".join([aux(it) for it in sub.subtags]) + "]"
 
-    return "#" + aux(node)
+    if isinstance(node, org.HashTag):
+        return "#" + aux(node.text)
+
+    else:
+        return "#" + aux(node)
 
 
 @beartype
@@ -110,7 +118,7 @@ def getAttachments(node: org.Org) -> List[org.Link]:
     result = []
 
     def visit(it: org.Org):
-        if isinstance(it, org.Link) and it.getLinkKind() == org.LinkKind.Attachment:
+        if isinstance(it, org.Link) and it.target.isAttachment():
             result.append(it)
 
     org.eachSubnodeRec(node, visit)
@@ -128,7 +136,7 @@ def doExportAttachments(
     assert base.exists() and base.is_file(), base
     assert destination.exists() and destination.is_dir(), destination
     for item in attachments:
-        path = item.getAttachment().file
+        path = item.target.getAttachment().file
         do_attach = item.getAttrs("attach-on-export")
         if do_attach and 0 < len(
                 do_attach) and (do_attach[0].getString() == "t" or normalize(

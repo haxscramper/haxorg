@@ -106,6 +106,7 @@ void ColStream::flush() {
 }
 
 void ColStream::write(const ColRune& text) {
+    position += 1;
     if (buffered) {
         append(text);
     } else {
@@ -114,11 +115,22 @@ void ColStream::write(const ColRune& text) {
 }
 
 void ColStream::write(const ColText& text) {
+    position += text.size();
     if (buffered) {
         append(text);
     } else {
         CHECK(ostream != nullptr);
         (*ostream) << to_colored_string(text, colored);
+    }
+}
+
+void ColStream::write_indented_after_first(const Str& text, int indent) {
+    auto lines = text.split('\n');
+    write(ColText{lines.at(0)});
+    for (int i = 1; i < lines.size(); ++i) {
+        write(ColText{"\n"});
+        write(ColText{Str{' '}.repeated(indent)});
+        write(ColText{lines.at(i)});
     }
 }
 

@@ -21,8 +21,31 @@ struct Formatter {
     Res  str(std::string const& str) { return b.text(store.str(str)); }
     void add(Res id, Res other);
 
+    Res toString(sem::AttrValue const& id, CR<Context> ctx);
+    Res toString(UserTime const& id, CR<Context> ctx) {
+        return str(
+            "["_ss + Str{id.format(UserTime::Format::OrgFormat)} + "]"_ss);
+    }
+    Res toString(sem::SubtreeCompletion const& id, CR<Context> ctx);
+    Res toString(sem::AttrGroup const& args, CR<Context> ctx);
+    Res toString(sem::HashTagText const& args, CR<Context> ctx);
+    Res toString(sem::LinkTarget const& args, CR<Context> ctx);
+    Res toString(sem::AttrList const& args, CR<Context> ctx) {
+        Res res = b.stack();
+        for (auto const& it : enumerator(args.items)) {
+            if (!it.is_first()) { b.add_at(res, str(" ")); }
+            b.add_at(res, toString(it.value(), ctx));
+        }
+        return res;
+    }
 
-    Res toString(Opt<SemId<Attrs>> args, CR<Context> ctx);
+    Res toString(Opt<sem::AttrGroup> const& args, CR<Context> ctx) {
+        if (args) {
+            return b.line({str(" "), toString(args.value(), ctx)});
+        } else {
+            return str("");
+        }
+    }
 
     Res stackAttached(Res prev, SemId<sem::Stmt> stmt, CR<Context> ctx);
 
