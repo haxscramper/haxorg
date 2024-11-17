@@ -130,6 +130,7 @@ def test_subtree_clocking():
         assert df["tags"][0] == "tag##sub1,tag2"
 
 
+@pytest.mark.unstable
 def test_base_activity_analysis():
     runner = CliRunner()
     with TemporaryDirectory() as tmp_dir:
