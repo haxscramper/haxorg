@@ -353,8 +353,12 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
                 states.from = from.value().as<sem::BigIdent>()->text;
             }
 
+
+            Vec<SemId<Time>> times = filter_subnodes<Time>(par0, limit);
             if (auto from = time_after("on")) {
                 states.on = from.value()->getStaticTime();
+            } else if (times.has(0)) {
+                states.on = times.at(0)->getStaticTime();
             }
 
             log->head = Log{states};

@@ -41,7 +41,7 @@ struct Formatter {
 
     Res toString(Opt<sem::AttrGroup> const& args, CR<Context> ctx) {
         if (args) {
-            return toString(args, ctx);
+            return b.line({str(" "), toString(args.value(), ctx)});
         } else {
             return str("");
         }

@@ -6,7 +6,7 @@ import enum
 from py_scriptutils.script_logging import log
 from beartype.typing import List, Optional
 from beartype import beartype
-from py_haxorg.pyhaxorg_utils import evalDateTime
+from py_haxorg.pyhaxorg_utils import evalDateTime, formatHashTag
 from py_exporters.export_ultraplain import ExporterUltraplain
 from datetime import datetime
 
@@ -160,34 +160,34 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
 
     @beartype
     def aux_subtree_log(node: org.SubtreeLog, subtree_id: int):
-        match node.getLogKind():
-            case org.SubtreeLogKind.Priority:
-                priority: org.SubtreeLogPriority = node.getPriority()
-                time = evalDateTime(priority.on.getStatic().time)
+        match node.head.getLogKind():
+            case org.SubtreeLogHeadKind.Priority:
+                priority: org.SubtreeLogHeadPriority = node.head.getPriority()
+                time = evalDateTime(priority.on)
                 match priority.action:
-                    case org.SubtreeLogPriorityAction.Added:
+                    case org.SubtreeLogHeadPriorityAction.Added:
                         session.add(
                             PriorityModified(
                                 kind=ValueEditOperation.Added,
                                 new_priority=priority.newPriority,
                                 timestamp=time,
                                 subtree=subtree_id,
-                                description=priority.desc and
-                                ExporterUltraplain.getStr(priority.desc),
+                                description=node.desc and
+                                ExporterUltraplain.getStr(node.desc),
                             ))
 
-                    case org.SubtreeLogPriorityAction.Removed:
+                    case org.SubtreeLogHeadPriorityAction.Removed:
                         session.add(
                             PriorityModified(
                                 kind=ValueEditOperation.Removed,
                                 new_priority=priority.oldPriority,
                                 timestamp=time,
                                 subtree=subtree_id,
-                                description=priority.desc and
-                                ExporterUltraplain.getStr(priority.desc),
+                                description=node.desc and
+                                ExporterUltraplain.getStr(node.desc),
                             ))
 
-                    case org.SubtreeLogPriorityAction.Changed:
+                    case org.SubtreeLogHeadPriorityAction.Changed:
                         session.add(
                             PriorityModified(
                                 kind=ValueEditOperation.Changed,
@@ -195,12 +195,12 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
                                 old_priority=priority.oldPriority,
                                 timestamp=time,
                                 subtree=subtree_id,
-                                description=priority.desc and
-                                ExporterUltraplain.getStr(priority.desc),
+                                description=node.desc and
+                                ExporterUltraplain.getStr(node.desc),
                             ))
 
-            case org.SubtreeLogKind.State:
-                state = node.getState()
+            case org.SubtreeLogHeadKind.State:
+                state = node.head.getState()
                 change = None
                 match (bool(state.from_), bool(state.to)):
                     case (True, True):
@@ -218,37 +218,37 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
                         old_state=state.from_,
                         new_state=state.to,
                         kind=change,
-                        timestamp=evalDateTime(state.on.getStatic().time),
-                        description=state.desc and ExporterUltraplain.getStr(state.desc),
+                        timestamp=evalDateTime(state.on),
+                        description=node.desc and ExporterUltraplain.getStr(node.desc),
                     ))
 
-            case org.SubtreeLogKind.Tag:
-                tag: org.SubtreeLogTag = node.getTag()
+            case org.SubtreeLogHeadKind.Tag:
+                tag: org.SubtreeLogHeadTag = node.head.getTag()
                 session.add(
                     TagModified(
                         subtree=subtree_id,
                         added=tag.added,
-                        timestamp=evalDateTime(tag.on.getStatic().time),
-                        tag=ExporterUltraplain.getStr(tag.tag),
-                        description=tag.desc and ExporterUltraplain.getStr(tag.desc),
+                        timestamp=evalDateTime(tag.on),
+                        tag=formatHashTag(tag.tag),
+                        description=node.desc and ExporterUltraplain.getStr(node.desc),
                     ))
 
-            case org.SubtreeLogKind.Clock:
-                clock: org.SubtreeLogClock = node.getClock()
+            case org.SubtreeLogHeadKind.Clock:
+                clock: org.SubtreeLogHeadClock = node.head.getClock()
                 session.add(
                     ClockModified(
                         subtree=subtree_id,
-                        from_=evalDateTime(clock.from_.getStatic().time),
-                        to=evalDateTime(clock.to.getStatic().time) if clock.to else None,
+                        from_=evalDateTime(clock.from_),
+                        to=evalDateTime(clock.to) if clock.to else None,
                     ))
 
-            case org.SubtreeLogKind.Note:
-                note: org.SubtreeLogNote = node.getNote()
+            case org.SubtreeLogHeadKind.Note:
+                note: org.SubtreeLogHeadNote = node.head.getNote()
                 session.add(
                     NoteModified(
                         subtree=subtree_id,
-                        plaintext=ExporterUltraplain.getStr(note.desc)
-                        if note.desc else "",
+                        plaintext=ExporterUltraplain.getStr(node.desc)
+                        if node.desc else "",
                     ))
 
     @beartype

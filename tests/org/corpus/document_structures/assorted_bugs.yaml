@@ -51,7 +51,7 @@ items:
         - State "BLOCKED"    from "WIP"        [2023-11-08 Wed 14:53:12 +04] \\
           Added SVG icon instead
         - State "COMPLETED"  from "BLOCKED"    [2023-11-09 Thu 12:14:21 +04]
-        - Refiled on [2023-11-09 Thu 12:14:24 +04] from [[file:staging.org][staging:staging.org]]
+        - Refiled on [2023-11-09 Thu 12:14:24 +04] from [[file:staging.org]]
         :END:
 
   - name: "Non-DSL link"
@@ -228,6 +228,8 @@ items:
       #+end_src
 
   - name: "Quote block parameters"
+    debug:
+      traceAll: true
     source: |
       #+begin_quote :cc @user
       Text
@@ -459,6 +461,8 @@ items:
       [[file:imgs/sch_1.tmp.png]]
 
   - name: "Attr HTML"
+    debug:
+      traceAll: true
     source: |
       #+attr_html: border="2" rules="all" frame="border" :width 300px 
       | test num | image                   |   |
@@ -856,6 +860,8 @@ items:
 
 
   - name: "Source code block callouts"
+    debug:
+      traceAll: true
     source: |
       #+begin_src ruby -r -n :tangle mysample.rb
         puts 'Hi!'          # (ref:puts)

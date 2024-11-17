@@ -102,20 +102,20 @@ class ExporterLatex(ExporterBase):
         return res
 
     def evalLink(self, node: org.Link) -> BlockId:
-        match node.getLinkKind():
-            case org.LinkKind.Raw:
-                return self.string(self.escape(node.getRaw().text))
+        match node.target.getKind():
+            case org.LinkTargetKind.Raw:
+                return self.string(self.escape(node.target.getRaw().text))
 
-            case org.LinkKind.Person:
+            case org.LinkTargetKind.Person:
                 return self.eval(node.description) if node.description else self.string(
-                    node.getPerson().name)
+                    node.target.getPerson().name)
 
-            case org.LinkKind.Id:
+            case org.LinkTargetKind.Id:
                 return self.eval(node.description) if node.description else self.string(
-                    node.getId().text)
+                    node.target.getId().text)
 
             case _:
-                return self.string(f"TODO LINK KIND {node.getLinkKind()}")
+                return self.string(f"TODO LINK KIND {node.target.getKind()}")
 
     def evalListItem(self, node: org.ListItem) -> BlockId:
         res = self.t.line([])
@@ -170,7 +170,7 @@ class ExporterLatex(ExporterBase):
         return self.lineSubnodes(node)
 
     def evalBlockExport(self, node: org.BlockExport) -> BlockId:
-        if node.exporter != "latex" or node.placement:
+        if node.exporter != "latex" or node.getPlacement():
             return self.string("")
 
         else:
@@ -221,7 +221,7 @@ class ExporterLatex(ExporterBase):
             res.append(cmd)
 
         for it in node:
-            if isinstance(it, org.BlockExport) and it.placement == "header":
+            if isinstance(it, org.BlockExport) and it.getPlacement() == "header":
                 res.append(self.string(it.content))
 
         return res
@@ -236,12 +236,13 @@ class ExporterLatex(ExporterBase):
         self.t.add_at(res, self.command("begin", [self.string("document")]))
 
         for it in node:
-            if isinstance(it, org.BlockExport) and it.placement == "header":
+            if isinstance(it, org.BlockExport) and it.getPlacement() == "header":
                 continue
 
             elif isinstance(it, org.Stmt):
                 prop = it.getAttrs("export")
-                if prop and 0 < len(prop.args) and prop.args[0] and prop.args[0].getBool() == False:
+                if prop and 0 < len(
+                        prop.args) and prop.args[0] and prop.args[0].getBool() == False:
                     continue
 
             self.t.add_at(res, self.exp.eval(it))

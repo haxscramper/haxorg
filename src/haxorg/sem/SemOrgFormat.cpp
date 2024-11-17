@@ -152,7 +152,7 @@ auto Formatter::toString(SemId<Document> id, CR<Context> ctx) -> Res {
         add(result, b.line({str("#+startup: "), str(res)}));
     }
 
-    if (id->options->columns) {
+    if (id->options && id->options->columns) {
         Vec<Res> buf;
         buf.push_back(str("#+columns:"));
 
@@ -327,10 +327,14 @@ auto Formatter::toString(SemId<InlineFootnote> id, CR<Context> ctx)
 
 auto Formatter::toString(sem::AttrValue const& id, CR<Context> ctx)
     -> Res {
+    auto varname = id.varname.has_value()
+                     ? Str{fmt("{}={}", id.varname.value(), id.value)}
+                     : id.value;
+
     if (id.name) {
-        return str(fmt(":{} {}", id.name.value(), id.value));
+        return str(fmt(":{} {}", id.name.value(), varname));
     } else {
-        return str(id.name.value());
+        return str(varname);
     }
 }
 
@@ -900,7 +904,7 @@ auto Formatter::toString(SemId<BlockAdmonition> id, CR<Context> ctx)
 auto Formatter::toString(SemId<CmdAttr> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return b.line({
-        str("#+attr_"_ss + id->target + ":"_ss),
+        str("#+attr_"_ss + id->target + ": "_ss),
         toString(id->attrs, ctx),
     });
 }
@@ -1061,7 +1065,7 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
                     auto const& tag = log->head.getTag();
 
                     log_head = b.line({
-                        str("- Tag \""),
+                        str("- Tag \"#"),
                         toString(tag.tag, ctx),
                         str("\""),
                         str(tag.added ? " Added" : " Removed"),
@@ -1078,8 +1082,9 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
                     log_head = b.line({
                         str("- Refiled on "),
                         toString(refile.on, ctx),
-                        str(" from "),
+                        str(" from [["),
                         toString(refile.from, ctx),
+                        str("]]"),
                     });
 
                     break;
@@ -1091,8 +1096,8 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
                     log_head = b.line({
                         str(
                             fmt("- State \"{}\" from \"{}\" ",
-                                state.from,
-                                state.to)),
+                                state.to,
+                                state.from)),
                         toString(state.on, ctx),
                     });
 
