@@ -11,6 +11,7 @@
 #include "story_grid.hpp"
 #include "imgui_utils.hpp"
 #include "block_graph.hpp"
+#include "scintilla_editor_widget.hpp"
 
 #include "gui_perfetto.hpp"
 #include <hstd/wrappers/hstd_extra/perfetto_aux_impl_template.hpp>
@@ -23,7 +24,8 @@ struct Config {
         Outline,
         StoryGrid,
         Test,
-        StoryGridAnnotated);
+        StoryGridAnnotated,
+        ScintillaEditorTest);
 
     Str      file;
     Mode     mode = Mode::SemTree;
@@ -429,6 +431,10 @@ int main(int argc, char** argv) {
         }
         case Config::Mode::Test: {
             run_block_graph_test(window);
+            break;
+        }
+        case Config::Mode::ScintillaEditorTest: {
+            run_scintilla_editor_widget_test(window);
             break;
         }
     }

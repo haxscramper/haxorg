@@ -5,12 +5,14 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CXX_STANDARD 23)
 
-set(BASE "${CMAKE_CURRENT_SOURCE_DIR}/../..")
-set(DEPS_INSTALL "${BASE}/build/deps_install")
+set(REPO_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../..")
+set(DEPS_INSTALL "${REPO_ROOT}/build/deps_install")
+set(SCINT_DEPS "${REPO_ROOT}/thirdparty/scintilla/scintilla")
+set(LEXLL_DEPS "${REPO_ROOT}/thirdparty/scintilla/lexilla")
 
 option(ORG_USE_PERFETTO "Enable perfetto profiling" OFF)
 
-list(INSERT CMAKE_PREFIX_PATH 0 "${BASE}/build/install")
+list(INSERT CMAKE_PREFIX_PATH 0 "${REPO_ROOT}/build/install")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/reflex/lib/cmake/reflex")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/protobuf/lib/cmake/protobuf")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/abseil/lib/cmake/absl")
@@ -55,20 +57,24 @@ add_executable(
   gui_perfetto.cpp
   gui_perfetto.hpp
   block_graph.cpp
-  block_graph.hpp)
+  block_graph.hpp
+  scintilla_editor_widget.hpp
+  scintilla_editor_widget.cpp)
 
-set(BASE "${CMAKE_SOURCE_DIR}")
+set(PROJ_ROOT "${CMAKE_SOURCE_DIR}")
 
-file(GLOB IMGUI_SOURCES "${BASE}/imgui/*.cpp")
+file(GLOB IMGUI_SOURCES "$PROJ_ROOT/imgui/*.cpp")
 add_library(
   imgui STATIC
-  ${IMGUI_SOURCES} "${BASE}/imgui/backends/imgui_impl_glfw.cpp"
-  "${BASE}/imgui/misc/cpp/imgui_stdlib.cpp" #
-  "${BASE}/imgui/backends/imgui_impl_opengl3.cpp")
+  ${IMGUI_SOURCES} "${PROJ_ROOT}/imgui/backends/imgui_impl_glfw.cpp"
+  "${PROJ_ROOT}/imgui/misc/cpp/imgui_stdlib.cpp" #
+  "${PROJ_ROOT}/imgui/backends/imgui_impl_opengl3.cpp")
 
-target_link_libraries(imgui PUBLIC "${FONTCONFIG_LIBRARIES}")
-target_include_directories(imgui PUBLIC "${BASE}/imgui" "${BASE}/imgui/backends"
-                                        "${FONTCONFIG_INCLUDE_DIRS}")
+target_link_directories(imgui PUBLIC "${SCINT_DEPS}/bin" "${LEXLL_DEPS}/bin")
+target_link_libraries(imgui PUBLIC "${FONTCONFIG_LIBRARIES}" scintilla)
+target_include_directories(
+  imgui PUBLIC "${PROJ_ROOT}/imgui" "${PROJ_ROOT}/imgui/backends" "${FONTCONFIG_INCLUDE_DIRS}"
+               "${LEXLL_DEPS}/include" "${SCINT_DEPS}/include" "${REPO_ROOT}/thirdparty/scintilla")
 
 if(${ORG_USE_PERFETTO})
   target_link_libraries(main PUBLIC Perfetto::perfetto)
