@@ -159,13 +159,12 @@ void render_outline_subtree(
 
         long full_duration = 0;
         for (auto const& log : org->logbook) {
-            switch (log->getLogKind()) {
-                case sem::SubtreeLog::Kind::Clock: {
-                    auto const& clock = log->getClock();
-                    if (clock.to && clock.from) {
+            switch (log->head.getLogKind()) {
+                case sem::SubtreeLogHead::Kind::Clock: {
+                    auto const& clock = log->head.getClock();
+                    if (clock.to) {
                         full_duration += GetTimeDelta(
-                            clock.from->getStatic().time,
-                            clock.to.value()->getStatic().time);
+                            clock.from, clock.to.value());
                     }
                     break;
                 }

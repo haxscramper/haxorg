@@ -58,6 +58,9 @@ TEST(ManualFileRun, TestDoc1) {
                 .spec = spec,
                 .file = "doc2",
             });
+
+            org::ImmAstContext start;
+            auto               n = start.init(sem::parseString(content));
         }
     }
 }

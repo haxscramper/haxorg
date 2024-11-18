@@ -22,6 +22,7 @@ list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/json/share/cmake/nlohmann_json"
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/lager/lib/cmake/Lager")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/immer/lib/cmake/Immer")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/adaptagrams/lib/cmake/Adaptagrams")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/lexy/lib/cmake/lexy")
 
 find_package(Immer CONFIG REQUIRED)
 find_package(Lager CONFIG REQUIRED)
@@ -35,6 +36,7 @@ find_package(nlohmann_json CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(Perfetto CONFIG REQUIRED)
+find_package(lexy CONFIG REQUIRED)
 find_package(Haxorg CONFIG REQUIRED)
 find_package(Adaptagrams CONFIG REQUIRED)
 

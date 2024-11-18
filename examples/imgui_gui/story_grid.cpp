@@ -819,7 +819,7 @@ Vec<Vec<DocAnnotation>> partition_graph_nodes(
             adjacent.incl(adj);
         }
 
-        for (org::graph::MapNode const& adj : graph.inNodes.at(current)) {
+        for (org::graph::MapNode const& adj : graph.inNodes(current)) {
             if (!adjacent.contains(adj) && !distances.contains(adj)) {
                 distances[adj] = current_distance + 1;
                 q.push(adj);
@@ -857,9 +857,9 @@ void add_description_list_node(
     for (auto const& item : list.subAs<org::ImmListItem>()) {
         graph.addNode(item.uniq());
         for (auto const& link : item.getHeader()->subAs<org::ImmLink>()) {
-            if (link->isId()) {
+            if (link->target.isId()) {
                 auto target = link.ctx->track->subtrees.get(
-                    link.value().getId().text);
+                    link.value().target.getId().text);
                 for (auto const& targetPath :
                      link.ctx->getPathsFor(target.value())) {
                     CTX_MSG(fmt(
@@ -895,10 +895,10 @@ void addFootnotes(
         Opt<org::ImmAdapterT<org::ImmLink>>
             link = recSub.asOpt<org::ImmLink>();
 
-        if (!(link && link.value()->isFootnote())) { continue; }
+        if (!(link && link.value()->target.isFootnote())) { continue; }
 
         auto target = link->ctx->track->footnotes.get(
-            link.value()->getFootnote().target);
+            link.value()->target.getFootnote().target);
 
         if (!target) { continue; }
 
@@ -1320,7 +1320,7 @@ void StoryGridModel::updateDocument() {
             }
             auto tree = row->origin.uniq();
             if (!rectGraph.graph.adjList.at(tree).empty()
-                || !rectGraph.graph.inNodes.at(tree).empty()) {
+                || !rectGraph.graph.inNodes(tree).empty()) {
                 docNodes.push_back(tree);
             }
         }
@@ -1378,12 +1378,12 @@ void StoryGridModel::updateDocument() {
                         org::ImmUniqId rowId = row->origin.uniq();
                         UnorderedSet<org::graph::MapNode> adjacent;
                         for (auto const& n :
-                             rectGraph.graph.inNodes.at(rowId)) {
+                             rectGraph.graph.inNodes(rowId)) {
                             adjacent.incl(n);
                         }
 
                         for (auto const& n :
-                             rectGraph.graph.adjList.at(rowId)) {
+                             rectGraph.graph.outNodes(rowId)) {
                             adjacent.incl(n);
                         }
 
