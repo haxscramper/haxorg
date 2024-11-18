@@ -13,6 +13,7 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 
+#include <scintilla/src/Debugging.h>
 #include <scintilla/include/Scintilla.h>
 #include <scintilla/include/ScintillaTypes.h>
 #include <scintilla/src/Geometry.h>
@@ -44,7 +45,6 @@
 #include <lexilla/lexlib/CharacterCategory.h>
 using CharacterCategoryMap = Lexilla::CharacterCategoryMap;
 #include <scintilla/src/Document.h>
-#include <scintilla/src/Debugging.h>
 #include <scintilla/src/Selection.h>
 #include <scintilla/src/PositionCache.h>
 #include <scintilla/src/EditModel.h>
@@ -302,7 +302,7 @@ ImScEditor* ScInputText(
         editor, 0, 0, (int)window->Size.x - 20, (int)window->Size.y);
 
     int lineCount = (int)editorInterface->SendCommand(
-        SCI_GETLINECOUNT, 0, 0);
+        Scintilla::Message::GetLineCount, 0, 0);
 
     editorInterface->HandleInput();
 
@@ -357,7 +357,8 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
 
     bool IsComment(int position) {
         // position = max(0, position - 1);
-        sptr_t style = SendCommand(SCI_GETSTYLEAT, (uptr_t)position);
+        sptr_t style = SendCommand(
+            Scintilla::Message::GetStyleAt, (uptr_t)position);
 
         // TODO: How to map this cleanly?
         return style == 2;
@@ -366,7 +367,7 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
 
     int GetWordStartPosition(int position, bool onlyWordCharacters) {
         return (int)SendCommand(
-            SCI_WORDSTARTPOSITION,
+            Scintilla::Message::WordStartPosition,
             (uptr_t)position,
             (sptr_t)onlyWordCharacters);
     }
@@ -374,7 +375,7 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
 
     int GetWordEndPosition(int position, bool onlyWordCharacters) {
         return (int)SendCommand(
-            SCI_WORDENDPOSITION,
+            Scintilla::Message::WordEndPosition,
             uptr_t(position),
             sptr_t(onlyWordCharacters));
     }
@@ -398,7 +399,8 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
         textRange.chrg.cpMin = startPosition;
         textRange.chrg.cpMax = endPosition;
 
-        SendCommand(SCI_GETTEXTRANGE, 0, sptr_t(&textRange));
+        SendCommand(
+            Scintilla::Message::GetTextRange, 0, sptr_t(&textRange));
         result[length] = '\0';
 
         return result;
@@ -481,7 +483,7 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
         if (!ct.wCallTip.Created()) {
             // ct.wCallTip = new CallTip(stc, &ct, this);
             ct.wCallTip = AllocateWindowImpl();
-            ct.wDraw    = ct.wCallTip;
+            ct.wDraw    = &ct.wCallTip;
         }
     }
 
@@ -510,6 +512,28 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
 
     bool HaveMouseCapture() override { return false; }
 
+    virtual bool ModifyScrollBars(Sci::Line nMax, Sci::Line nPage)
+        override {
+        return false;
+    }
+    virtual void NotifyParent(Scintilla::NotificationData scn) override {}
+    virtual void CopyToClipboard(
+        const Scintilla::Internal::SelectionText& selectedText) override {}
+    virtual std::string UTF8FromEncoded(
+        std::string_view encoded) const override {
+        abort();
+    }
+    virtual std::string EncodedFromUTF8(
+        std::string_view utf8) const override {
+        abort();
+    }
+    virtual Scintilla::sptr_t DefWndProc(
+        Scintilla::Message iMessage,
+        Scintilla::uptr_t  wParam,
+        Scintilla::sptr_t  lParam) override {
+        abort();
+    }
+
     sptr_t SendCommand(
         Scintilla::Message iMessage,
         uptr_t             wParam = 0,
@@ -525,6 +549,20 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
     ImScEditor interface;
 };
 
+intptr_t ImScEditor::SendCommand(
+    Scintilla::Message message,
+    uintptr_t          p0,
+    intptr_t           p1) {
+    ScEditor* editor = (ScEditor*)privateData;
+    return (intptr_t)editor->SendCommand(message, (uptr_t)p0, (sptr_t)p1);
+}
+
+void ImScEditor::HandleInput() {
+    ScEditor* editor = (ScEditor*)privateData;
+    if (editor) { editor->HandleInput(); }
+}
+
+
 ScEditor* ScEditor_create(int width, int height) {
     ScEditor* ed = new ScEditor;
 
@@ -535,6 +573,39 @@ ScEditor* ScEditor_create(int width, int height) {
     ScEditor_resize(ed, 0, 0, width, height);
 
     return ed;
+}
+
+static ImVec2             s_pos;
+static struct ImFont*     s_imFont;
+static struct ImDrawList* s_drawList;
+
+void ScEditor_setPos(float x, float y) {
+    s_pos.x = x;
+    s_pos.y = y;
+}
+
+void ImScEditor::ScrollTo(int line, bool moveThumb) {
+    ScEditor* editor = (ScEditor*)privateData;
+    // editor->?ScrollTo(line, moveThumb);
+}
+
+ImScEditor* ScEditor_getInterface(ScEditor* editor) {
+    return &editor->interface;
+}
+
+
+void ScEditor_setDrawList(ImDrawList* drawList) { s_drawList = drawList; }
+
+void ScEditor_resize(
+    ScEditor* editor,
+    int       x,
+    int       y,
+    int       width,
+    int       height) {
+    (void)x;
+    (void)y;
+
+    if (editor) { editor->Resize(0, 0, width, height); }
 }
 
 void run_scintilla_editor_widget_test(GLFWwindow* window) {

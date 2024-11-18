@@ -63,18 +63,16 @@ add_executable(
 
 set(PROJ_ROOT "${CMAKE_SOURCE_DIR}")
 
-file(GLOB IMGUI_SOURCES "$PROJ_ROOT/imgui/*.cpp")
+file(GLOB IMGUI_SOURCES "${PROJ_ROOT}/imgui/*.cpp")
 add_library(
   imgui STATIC
   ${IMGUI_SOURCES} "${PROJ_ROOT}/imgui/backends/imgui_impl_glfw.cpp"
   "${PROJ_ROOT}/imgui/misc/cpp/imgui_stdlib.cpp" #
   "${PROJ_ROOT}/imgui/backends/imgui_impl_opengl3.cpp")
 
-target_link_directories(imgui PUBLIC "${SCINT_DEPS}/bin" "${LEXLL_DEPS}/bin")
-target_link_libraries(imgui PUBLIC "${FONTCONFIG_LIBRARIES}" scintilla)
-target_include_directories(
-  imgui PUBLIC "${PROJ_ROOT}/imgui" "${PROJ_ROOT}/imgui/backends" "${FONTCONFIG_INCLUDE_DIRS}"
-               "${LEXLL_DEPS}/include" "${SCINT_DEPS}/include" "${REPO_ROOT}/thirdparty/scintilla")
+target_link_libraries(imgui PUBLIC "${FONTCONFIG_LIBRARIES}")
+target_include_directories(imgui PUBLIC "${PROJ_ROOT}/imgui" "${PROJ_ROOT}/imgui/backends"
+                                        "${FONTCONFIG_INCLUDE_DIRS}")
 
 if(${ORG_USE_PERFETTO})
   target_link_libraries(main PUBLIC Perfetto::perfetto)
@@ -84,10 +82,14 @@ if(${ORG_USE_PERFETTO})
   target_compile_definitions(main PUBLIC ORG_USE_PERFETTO)
 endif()
 
+target_link_directories(main PUBLIC "${SCINT_DEPS}/bin" "${LEXLL_DEPS}/bin")
+target_include_directories(main PUBLIC "${LEXLL_DEPS}/include" "${SCINT_DEPS}/include"
+                                       "${REPO_ROOT}/thirdparty/scintilla")
 target_link_libraries(
   main
   PRIVATE imgui
           glfw
+          scintilla
           OpenGL::GL
           absl::log
           absl::base
