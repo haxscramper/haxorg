@@ -105,14 +105,9 @@ struct std::formatter<ColourRGBA> : std::formatter<std::string> {
 };
 
 struct WindowImpl {
-    WindowImpl() { show = false; }
-
-    PRectangle position;
-    bool       show;
+    ImGuiWindow* im;
 };
 
-
-WindowImpl* AllocateWindowImpl() { return new WindowImpl; }
 
 struct ScEditor : public Scintilla::Internal::ScintillaBase {
   private:
@@ -212,10 +207,14 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
         }
     }
 
+    static WindowImpl* NewWindowImpl() {
+        auto windowImpl = new WindowImpl{};
+        windowImpl->im  = ImGui::GetCurrentWindow();
+        return windowImpl;
+    }
 
     void Initialise() override {
-        wMain = AllocateWindowImpl();
-
+        wMain = NewWindowImpl();
 
         ImGuiIO& io = ImGui::GetIO();
         wMain.SetPosition(PRectangle::FromInts(
@@ -258,7 +257,7 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
     virtual void CreateCallTipWindow(PRectangle rc) override {
         if (!ct.wCallTip.Created()) {
             // ct.wCallTip = new CallTip(stc, &ct, this);
-            ct.wCallTip = AllocateWindowImpl();
+            ct.wCallTip = NewWindowImpl();
             ct.wDraw    = &ct.wCallTip;
         }
     }
@@ -491,9 +490,19 @@ class SurfaceImpl : public Scintilla::Internal::Surface {
     ColourRGBA pen;
 };
 
+namespace {
+WindowImpl* window(WindowID wid) { return static_cast<WindowImpl*>(wid); }
+} // namespace
+
 PRectangle Window::GetPosition() const {
-    LOG(INFO) << "----";
-    return PRectangle{};
+    PRectangle res;
+    auto       w = window(wid)->im;
+    res.left     = w->Pos.x;
+    res.top      = w->Pos.y;
+    res.bottom   = w->Pos.x + w->Size.x;
+    res.right    = w->Pos.y + w->Size.y;
+    // _dfmt(res);
+    return res;
 }
 
 
