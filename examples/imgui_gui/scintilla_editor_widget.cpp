@@ -56,6 +56,8 @@ using CharacterCategoryMap = Lexilla::CharacterCategoryMap;
 #include <scintilla/src/CallTip.h>
 #include <scintilla/src/ScintillaBase.h>
 
+#include <hstd/stdlib/Exception.hpp>
+
 using AutoSurface = Scintilla::Internal::AutoSurface;
 
 
@@ -494,7 +496,91 @@ void run_scintilla_editor_widget_test(GLFWwindow* window) {
     }
 }
 
+using namespace Scintilla::Internal;
+
+
+ImU32 ToImGui(ColourRGBA const& c) {
+    return IM_COL32(c.GetRed(), c.GetGreen(), c.GetBlue(), c.GetAlpha());
+}
+
+
+class SurfaceImpl : public Scintilla::Internal::Surface {
+  public:
+    SurfaceImpl() {}
+    virtual ~SurfaceImpl() {}
+
+    ImDrawList* DrawList();
+    ImVec2      GetPos();
+
+    void FillRectangle(PRectangle rc, ColourRGBA color) {
+        DrawList()->AddDrawCmd();
+        DrawList()->AddRectFilled(
+            ImVec2(rc.left + GetPos().x, rc.top + GetPos().y),
+            ImVec2(rc.right + GetPos().x, rc.bottom + GetPos().y),
+            ToImGui(color));
+    }
+
+
+    // clang-format off
+    virtual void Init(WindowID wid) override {  }
+    virtual void Init(SurfaceID sid, WindowID wid) override { }
+    virtual std::unique_ptr<Surface> AllocatePixMap(int width, int height) override {  logic_todo_impl(); }
+
+    virtual void SetMode(SurfaceMode mode) override {  logic_todo_impl(); }
+    virtual void Release() noexcept override  { }
+    virtual int SupportsFeature(Scintilla::Supports feature) noexcept override  { }
+    virtual bool Initialised() override  { return true; }
+    virtual int LogPixelsY() override  {  logic_todo_impl(); }
+    virtual int PixelDivisions() override  {  logic_todo_impl(); }
+    virtual int DeviceHeightFont(int points) override  {  logic_todo_impl(); }
+    virtual void LineDraw(Point start, Point end, Stroke stroke) override  {  logic_todo_impl(); }
+    virtual void PolyLine(const Point *pts, size_t npts, Stroke stroke) override  {  logic_todo_impl(); }
+    virtual void Polygon(const Point *pts, size_t npts, FillStroke fillStroke) override  {  logic_todo_impl(); }
+    virtual void RectangleDraw(PRectangle rc, FillStroke fillStroke) override  {  logic_todo_impl(); }
+    virtual void RectangleFrame(PRectangle rc, Stroke stroke) override  {  logic_todo_impl(); }
+    virtual void FillRectangle(PRectangle rc, Fill fill) override  {  logic_todo_impl(); }
+    virtual void FillRectangleAligned(PRectangle rc, Fill fill) override  {  logic_todo_impl(); }
+    virtual void FillRectangle(PRectangle rc, Surface &surfacePattern) override  {  logic_todo_impl(); }
+    virtual void RoundedRectangle(PRectangle rc, FillStroke fillStroke) override  {  logic_todo_impl(); }
+    virtual void AlphaRectangle(PRectangle rc, XYPOSITION cornerSize, FillStroke fillStroke) override  {  logic_todo_impl(); }
+    virtual void GradientRectangle(PRectangle rc, const std::vector<ColourStop> &stops, GradientOptions options) override  {  logic_todo_impl(); }
+    virtual void DrawRGBAImage(PRectangle rc, int width, int height, const unsigned char *pixelsImage) override {}
+    virtual void Ellipse(PRectangle rc, FillStroke fillStroke) override  {  logic_todo_impl(); }
+    virtual void Stadium(PRectangle rc, FillStroke fillStroke, Ends ends) override  {  logic_todo_impl(); }
+    virtual void Copy(PRectangle rc, Point from, Surface &surfaceSource) override  {  logic_todo_impl(); }
+
+    virtual std::unique_ptr<IScreenLineLayout> Layout(const IScreenLine *screenLine) override { logic_todo_impl(); }
+
+    virtual void DrawTextNoClip(PRectangle rc, const Font *font_, XYPOSITION ybase, std::string_view text, ColourRGBA fore, ColourRGBA back) override { logic_todo_impl(); }
+    virtual void DrawTextClipped(PRectangle rc, const Font *font_, XYPOSITION ybase, std::string_view text, ColourRGBA fore, ColourRGBA back) override { logic_todo_impl(); }
+    virtual void DrawTextTransparent(PRectangle rc, const Font *font_, XYPOSITION ybase, std::string_view text, ColourRGBA fore) override { logic_todo_impl(); }
+    virtual void MeasureWidths(const Font *font_, std::string_view text, XYPOSITION *positions) override { logic_todo_impl(); }
+    virtual XYPOSITION WidthText(const Font *font_, std::string_view text) override { logic_todo_impl(); }
+
+    virtual void DrawTextNoClipUTF8(PRectangle rc, const Font *font_, XYPOSITION ybase, std::string_view text, ColourRGBA fore, ColourRGBA back) override { logic_todo_impl(); }
+    virtual void DrawTextClippedUTF8(PRectangle rc, const Font *font_, XYPOSITION ybase, std::string_view text, ColourRGBA fore, ColourRGBA back) override { logic_todo_impl(); }
+    virtual void DrawTextTransparentUTF8(PRectangle rc, const Font *font_, XYPOSITION ybase, std::string_view text, ColourRGBA fore) override { logic_todo_impl(); }
+    virtual void MeasureWidthsUTF8(const Font *font_, std::string_view text, XYPOSITION *positions) override { logic_todo_impl(); }
+    virtual XYPOSITION WidthTextUTF8(const Font *font_, std::string_view text) override { logic_todo_impl(); }
+
+    virtual XYPOSITION Ascent(const Font *font_) override  {  logic_todo_impl(); }
+    virtual XYPOSITION Descent(const Font *font_) override  {  logic_todo_impl(); }
+    virtual XYPOSITION InternalLeading(const Font *font_) override  {  logic_todo_impl(); }
+    virtual XYPOSITION Height(const Font *font_) override  {  logic_todo_impl(); }
+    virtual XYPOSITION AverageCharWidth(const Font *font_) override  {  logic_todo_impl(); }
+
+    virtual void SetClip(PRectangle rc) override  {  logic_todo_impl(); }
+    virtual void PopClip() override  {  logic_todo_impl(); }
+    virtual void FlushCachedState() override  {  logic_todo_impl(); }
+    virtual void FlushDrawing() override  {  logic_todo_impl(); }
+    // clang-format on
+
+  private:
+    ColourRGBA m_penColour;
+};
+
+
 std::unique_ptr<Scintilla::Internal::Surface> Scintilla::Internal::
     Surface::Allocate(Scintilla::Technology technology) {
-    return nullptr;
+    return std::make_unique<SurfaceImpl>();
 }
