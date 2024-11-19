@@ -58,38 +58,6 @@ using CharacterCategoryMap = Lexilla::CharacterCategoryMap;
 
 using AutoSurface = Scintilla::Internal::AutoSurface;
 
-static const char* breakpoint_xpm[] = {
-    "16 16 72 1",       "   c None",        ".	c #772B1A",
-    "+	c #903B2D",     "@	c #F17A78", "#	c #C65C55",
-    "$	c #F17876",     "%	c #FF7E7E", "&	c #FF7B7B",
-    "*	c #C65750",     "=	c #8F3A2C", "-	c #EF7573",
-    ";	c #FD7B7B",     ">	c #FD7878", ",	c #FD7575",
-    "'	c #FD7272",     ")	c #C5524B", "!	c #8E392C",
-    "~	c #E7716F",     "{	c #F47676", "]	c #F47373",
-    "^	c #F47070",     "/	c #F46D6D", "(	c #F46A6A",
-    "_	c #F46767",     ":	c #C04C45", "<	c #8B382A",
-    "[	c #DB6B69",     "}	c #E77070", "|	c #E76D6D",
-    "1	c #E76A6A",     "2	c #E76868", "3	c #E76565",
-    "4	c #E76161",     "5	c #E75F5F", "6	c #E75D5D",
-    "7	c #B8453E",     "8	c #8D392B", "9	c #DB6867",
-    "0	c #E56C6C",     "a	c #E56A6A", "b	c #E56767",
-    "c	c #E56363",     "d	c #E56161", "e	c #E55E5E",
-    "f	c #E55C5C",     "g	c #E55959", "h	c #B8443D",
-    "i	c #8A3729",     "j	c #CD5D5B", "k	c #D66060",
-    "l	c #D65E5E",     "m	c #D65A5A", "n	c #D65858",
-    "o	c #D65656",     "p	c #D65353", "q	c #AF413A",
-    "r	c #863326",     "s	c #BB514F", "t	c #C25252",
-    "u	c #C25050",     "v	c #C24E4E", "w	c #C24C4C",
-    "x	c #A33C36",     "y	c #813023", "z	c #A54241",
-    "A	c #AA4444",     "B	c #AA4242", "C	c #953730",
-    "D	c #7B2D1F",     "E	c #893432", "F	c #822F28",
-    "G	c #772B1D",     "       .        ", "      ...       ",
-    "     ..+..      ", "    ..+@#..     ", "   ..+$%&*..    ",
-    "  ..=-;>,')..   ", " ..!~{]^/(_:..  ", "..<[}|1234567.. ",
-    "..890abcdefgh.. ", " ..ijklmnopq..  ", "  ..rstuvwx..   ",
-    "   ..yzABC..    ", "    ..DEF..     ", "     ..G..      ",
-    "      ...       ", "       .        "};
-
 
 // These are keycodes return by the getKeyPressed function in PDUI
 
@@ -270,97 +238,35 @@ struct WindowImpl {
 };
 
 
-namespace ImGui {
-
-ImScEditor* ScInputText(
-    const char* label,
-    float       xSize,
-    float       ySize,
-    void (*callback)(void*),
-    void* userData) {
-    ImGuiWindow*  window = GetCurrentWindow();
-    const ImGuiID id     = window->GetID(label);
-
-    (void)callback;
-    (void)userData;
-
-    ImGuiStorage* storage = GetStateStorage();
-    ScEditor*     editor  = (ScEditor*)storage->GetVoidPtr(id);
-
-    if (!editor) {
-        (void)xSize;
-        (void)ySize;
-        editor = ScEditor_create((int)xSize, (int)ySize);
-        storage->SetVoidPtr(id, (void*)editor);
-    }
-
-    ImScEditor* editorInterface = ScEditor_getInterface(editor);
-
-    float textSize = 26;
-
-    ScEditor_resize(
-        editor, 0, 0, (int)window->Size.x - 20, (int)window->Size.y);
-
-    int lineCount = (int)editorInterface->SendCommand(
-        Scintilla::Message::GetLineCount, 0, 0);
-
-    editorInterface->HandleInput();
-
-    ImGuiListClipper clipper{};
-    clipper.ItemsCount  = lineCount;
-    clipper.ItemsHeight = textSize;
-
-
-    ScEditor_setDrawList(GetWindowDrawList());
-    // ScEditor_setFont(GetWindowFont());
-    ScEditor_setPos(window->Pos.x, window->Pos.y + 14.0f);
-
-    editorInterface->ScrollTo(clipper.DisplayStart);
-
-    clipper.End();
-
-    return editorInterface;
-}
-
-} // namespace ImGui
-
-
 WindowImpl* AllocateWindowImpl() { return new WindowImpl; }
 
 struct ScEditor : public Scintilla::Internal::ScintillaBase {
   private:
-    int m_width;
-    int m_height;
-    int m_wheelVRotation;
-    int m_wheelHRotation;
+    int width;
+    int height;
+    int wheelVRotation;
+    int wheelHRotation;
 
   public:
     ScEditor()
-        : m_width(0)
-        , m_height(0)
-        , m_wheelVRotation(0)
-        , m_wheelHRotation(0) {
-        memset(&interface, 0, sizeof(interface));
-    }
+        : width(0), height(0), wheelVRotation(0), wheelHRotation(0) {}
 
     virtual ~ScEditor() {}
 
 
-    void Update() {
-        // HandleInput();
-        // Tick();
-    }
+    void Update() {}
 
+    void ScrollTo(Sci::Line line, bool moveThumb = true) {
+        Scintilla::Internal::ScintillaBase::ScrollTo(line, moveThumb);
+    }
 
     void ToggleBreakpoint() {}
 
 
     bool IsComment(int position) {
-        // position = max(0, position - 1);
         sptr_t style = SendCommand(
             Scintilla::Message::GetStyleAt, (uptr_t)position);
 
-        // TODO: How to map this cleanly?
         return style == 2;
     }
 
@@ -428,7 +334,7 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
     void Render() {
         PRectangle rcPaint = GetClientRectangle();
 
-        AutoSurface surfaceWindow(this);
+        AutoSurface surfaceWindow{this};
         if (surfaceWindow) {
             Paint(surfaceWindow, rcPaint);
             surfaceWindow->Release();
@@ -439,7 +345,6 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
     void Initialise() override {
         wMain = AllocateWindowImpl();
 
-        // TODO: TEMP! Hook up properly to ImGui
         ImGuiIO& io = ImGui::GetIO();
         wMain.SetPosition(PRectangle::FromInts(
             0, 0, int(io.DisplaySize.x), int(io.DisplaySize.y)));
@@ -455,13 +360,9 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
 
 
     void Resize(int x, int y, int width, int height) {
-        m_width  = width;
-        m_height = height;
-
-        (void)x;
-        (void)y;
-
-        wMain.SetPosition(PRectangle::FromInts(0, 0, m_width, m_height));
+        this->width  = width;
+        this->height = height;
+        wMain.SetPosition(PRectangle::FromInts(0, 0, width, height));
     }
 
 
@@ -471,15 +372,10 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
     virtual void SetHorizontalScrollPos() override { xOffset = 0; }
 
 
-    bool ModifyScrollBars(int nMax, int nPage) {
-        (void)nMax;
-        (void)nPage;
-        return false;
-    }
+    bool ModifyScrollBars(int nMax, int nPage) { return false; }
 
 
     virtual void CreateCallTipWindow(PRectangle rc) override {
-        (void)rc;
         if (!ct.wCallTip.Created()) {
             // ct.wCallTip = new CallTip(stc, &ct, this);
             ct.wCallTip = AllocateWindowImpl();
@@ -543,77 +439,62 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
 
 
     std::vector<unsigned int> m_breakpointLines;
-
-    // Interface sent to external code
-
-    ImScEditor interface;
 };
 
-intptr_t ImScEditor::SendCommand(
-    Scintilla::Message message,
-    uintptr_t          p0,
-    intptr_t           p1) {
-    ScEditor* editor = (ScEditor*)privateData;
-    return (intptr_t)editor->SendCommand(message, (uptr_t)p0, (sptr_t)p1);
+namespace ImGui {
+
+ScEditor* ScInputText(
+    const char* label,
+    float       xSize,
+    float       ySize,
+    void (*callback)(void*),
+    void* userData) {
+    ImGuiWindow*  window = GetCurrentWindow();
+    const ImGuiID id     = window->GetID(label);
+
+    ImGuiStorage* storage = GetStateStorage();
+    ScEditor*     editor  = (ScEditor*)storage->GetVoidPtr(id);
+
+    if (!editor) {
+        editor = new ScEditor();
+        editor->Initialise();
+        storage->SetVoidPtr(id, (void*)editor);
+    }
+
+    float textSize = 26;
+
+    editor->Resize(0, 0, (int)window->Size.x - 20, (int)window->Size.y);
+
+    int lineCount = editor->SendCommand(
+        Scintilla::Message::GetLineCount, 0, 0);
+
+    ImGuiListClipper clipper{};
+    clipper.ItemsCount  = lineCount;
+    clipper.ItemsHeight = textSize;
+
+    editor->ScrollTo(clipper.DisplayStart);
+    clipper.End();
+    return editor;
 }
 
-void ImScEditor::HandleInput() {
-    ScEditor* editor = (ScEditor*)privateData;
-    if (editor) { editor->HandleInput(); }
-}
-
-
-ScEditor* ScEditor_create(int width, int height) {
-    ScEditor* ed = new ScEditor;
-
-    ed->interface.userData    = 0;
-    ed->interface.privateData = ed;
-
-    ed->Initialise();
-    ScEditor_resize(ed, 0, 0, width, height);
-
-    return ed;
-}
-
-static ImVec2             s_pos;
-static struct ImFont*     s_imFont;
-static struct ImDrawList* s_drawList;
-
-void ScEditor_setPos(float x, float y) {
-    s_pos.x = x;
-    s_pos.y = y;
-}
-
-void ImScEditor::ScrollTo(int line, bool moveThumb) {
-    ScEditor* editor = (ScEditor*)privateData;
-    // editor->?ScrollTo(line, moveThumb);
-}
-
-ImScEditor* ScEditor_getInterface(ScEditor* editor) {
-    return &editor->interface;
-}
-
-
-void ScEditor_setDrawList(ImDrawList* drawList) { s_drawList = drawList; }
-
-void ScEditor_resize(
-    ScEditor* editor,
-    int       x,
-    int       y,
-    int       width,
-    int       height) {
-    (void)x;
-    (void)y;
-
-    if (editor) { editor->Resize(0, 0, width, height); }
-}
+} // namespace ImGui
 
 void run_scintilla_editor_widget_test(GLFWwindow* window) {
     while (!glfwWindowShouldClose(window)) {
         frame_start();
         fullscreen_window_begin();
-        {}
+        {
+            auto ed = ImGui::ScInputText(
+                "editor", 200, 200, nullptr, nullptr);
+
+            ed->Render();
+        }
         ImGui::End();
         frame_end(window);
     }
+}
+
+std::unique_ptr<Scintilla::Internal::Surface> Scintilla::Internal::
+    Surface::Allocate(Scintilla::Technology technology) {
+    return nullptr;
 }
