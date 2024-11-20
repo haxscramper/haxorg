@@ -214,6 +214,7 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
     }
 
     void Initialise() override {
+        LOG(INFO) << "Init";
         wMain = NewWindowImpl();
 
         ImGuiIO& io = ImGui::GetIO();
@@ -378,14 +379,29 @@ ImU32 ToImGui(ColourRGBA const& c) {
     return IM_COL32(c.GetRed(), c.GetGreen(), c.GetBlue(), c.GetAlpha());
 }
 
+class ImFontWrap : public Font {
+  public:
+    Scintilla::CharacterSet characterSet = Scintilla::CharacterSet::Ansi;
+    // std::unique_ptr<ImFont> pfont;
+    ImFont* pfont;
+    explicit ImFontWrap(const FontParameters& fp)
+        : characterSet(fp.characterSet) {
+        // pfont           = std::make_unique<ImFont>();
+        // pfont->FontSize = fp.size;
+        pfont = ImGui::GetFont();
+    }
+};
 
 class SurfaceImpl : public Scintilla::Internal::Surface {
   public:
     SurfaceImpl() {}
     virtual ~SurfaceImpl() {}
 
-    ImDrawList* DrawList() { return ImGui::GetWindowDrawList(); }
-    ImVec2      GetPos() { return ImVec2{}; }
+    ImDrawList*   DrawList() { return ImGui::GetWindowDrawList(); }
+    ImVec2        GetPos() { return ImVec2{}; }
+    ImFont const* GetImFont(Font const* f) {
+        return dynamic_cast<ImFontWrap const*>(f)->pfont;
+    }
 
     void FillRectangle(PRectangle rc, ColourRGBA color) {}
 
@@ -399,39 +415,39 @@ class SurfaceImpl : public Scintilla::Internal::Surface {
     virtual int SupportsFeature(Scintilla::Supports feature) noexcept override  { return false; }
     virtual bool Initialised() override  { return true; }
     virtual int LogPixelsY() override  { return 72; }
-    virtual int PixelDivisions() override  {  logic_todo_impl(); }
+    virtual int PixelDivisions() override  {  abort(); }
 
-    virtual void LineDraw(Point start, Point end, Stroke stroke) override  {  logic_todo_impl(); }
-    virtual void PolyLine(const Point *pts, size_t npts, Stroke stroke) override  {  logic_todo_impl(); }
-    virtual void Polygon(const Point *pts, size_t npts, FillStroke fillStroke) override  {  logic_todo_impl(); }
-    virtual void RectangleDraw(PRectangle rc, FillStroke fillStroke) override  {  logic_todo_impl(); }
-    virtual void RectangleFrame(PRectangle rc, Stroke stroke) override  {  logic_todo_impl(); }
+    virtual void LineDraw(Point start, Point end, Stroke stroke) override  {  abort(); }
+    virtual void PolyLine(const Point *pts, size_t npts, Stroke stroke) override  {  abort(); }
+    virtual void Polygon(const Point *pts, size_t npts, FillStroke fillStroke) override  {  abort(); }
+    virtual void RectangleDraw(PRectangle rc, FillStroke fillStroke) override  {  abort(); }
+    virtual void RectangleFrame(PRectangle rc, Stroke stroke) override  {  abort(); }
 
 
-    virtual void RoundedRectangle(PRectangle rc, FillStroke fillStroke) override  {  logic_todo_impl(); }
-    virtual void AlphaRectangle(PRectangle rc, XYPOSITION cornerSize, FillStroke fillStroke) override  {  logic_todo_impl(); }
-    virtual void GradientRectangle(PRectangle rc, const std::vector<ColourStop> &stops, GradientOptions options) override  {  logic_todo_impl(); }
+    virtual void RoundedRectangle(PRectangle rc, FillStroke fillStroke) override  {  abort(); }
+    virtual void AlphaRectangle(PRectangle rc, XYPOSITION cornerSize, FillStroke fillStroke) override  {  abort(); }
+    virtual void GradientRectangle(PRectangle rc, const std::vector<ColourStop> &stops, GradientOptions options) override  {  abort(); }
     virtual void DrawRGBAImage(PRectangle rc, int width, int height, const unsigned char *pixelsImage) override {}
-    virtual void Ellipse(PRectangle rc, FillStroke fillStroke) override  {  logic_todo_impl(); }
-    virtual void Stadium(PRectangle rc, FillStroke fillStroke, Ends ends) override  {  logic_todo_impl(); }
-    virtual void Copy(PRectangle rc, Point from, Surface &surfaceSource) override  {  logic_todo_impl(); }
+    virtual void Ellipse(PRectangle rc, FillStroke fillStroke) override  {  abort(); }
+    virtual void Stadium(PRectangle rc, FillStroke fillStroke, Ends ends) override  {  abort(); }
+    virtual void Copy(PRectangle rc, Point from, Surface &surfaceSource) override  {  abort(); }
 
-    virtual std::unique_ptr<IScreenLineLayout> Layout(const IScreenLine *screenLine) override { logic_todo_impl(); }
+    virtual std::unique_ptr<IScreenLineLayout> Layout(const IScreenLine *screenLine) override { abort(); }
 
-    virtual void DrawTextNoClip(PRectangle rc, const Font *font_, XYPOSITION ybase, std::string_view text, ColourRGBA fore, ColourRGBA back) override { logic_todo_impl(); }
-    virtual void DrawTextClipped(PRectangle rc, const Font *font_, XYPOSITION ybase, std::string_view text, ColourRGBA fore, ColourRGBA back) override { logic_todo_impl(); }
-    virtual void DrawTextTransparent(PRectangle rc, const Font *font_, XYPOSITION ybase, std::string_view text, ColourRGBA fore) override { logic_todo_impl(); }
-    virtual void MeasureWidths(const Font *font_, std::string_view text, XYPOSITION *positions) override { logic_todo_impl(); }
+    virtual void DrawTextNoClip(PRectangle rc, const Font *font_, XYPOSITION ybase, std::string_view text, ColourRGBA fore, ColourRGBA back) override { abort(); }
+    virtual void DrawTextClipped(PRectangle rc, const Font *font_, XYPOSITION ybase, std::string_view text, ColourRGBA fore, ColourRGBA back) override { abort(); }
 
-    virtual void DrawTextNoClipUTF8(PRectangle rc, const Font *font_, XYPOSITION ybase, std::string_view text, ColourRGBA fore, ColourRGBA back) override { logic_todo_impl(); }
-    virtual void DrawTextClippedUTF8(PRectangle rc, const Font *font_, XYPOSITION ybase, std::string_view text, ColourRGBA fore, ColourRGBA back) override { logic_todo_impl(); }
-    virtual void DrawTextTransparentUTF8(PRectangle rc, const Font *font_, XYPOSITION ybase, std::string_view text, ColourRGBA fore) override { logic_todo_impl(); }
-    virtual void MeasureWidthsUTF8(const Font *font_, std::string_view text, XYPOSITION *positions) override { logic_todo_impl(); }
-    virtual XYPOSITION WidthTextUTF8(const Font *font_, std::string_view text) override { logic_todo_impl(); }
+    virtual void MeasureWidths(const Font *font_, std::string_view text, XYPOSITION *positions) override { abort(); }
+
+    virtual void DrawTextNoClipUTF8(PRectangle rc, const Font *font_, XYPOSITION ybase, std::string_view text, ColourRGBA fore, ColourRGBA back) override { abort(); }
+    virtual void DrawTextClippedUTF8(PRectangle rc, const Font *font_, XYPOSITION ybase, std::string_view text, ColourRGBA fore, ColourRGBA back) override { abort(); }
+    virtual void DrawTextTransparentUTF8(PRectangle rc, const Font *font_, XYPOSITION ybase, std::string_view text, ColourRGBA fore) override { abort(); }
+
+    virtual XYPOSITION WidthTextUTF8(const Font *font_, std::string_view text) override { abort(); }
 
 
     virtual XYPOSITION InternalLeading(const Font *font_) override  { return 0; }
-    virtual XYPOSITION Height(const Font *font_) override  {  logic_todo_impl(); }
+    virtual XYPOSITION Height(const Font *font_) override  {  abort(); }
 
     virtual void SetClip(PRectangle rc) override  { }
     virtual void PopClip() override  { }
@@ -449,8 +465,54 @@ class SurfaceImpl : public Scintilla::Internal::Surface {
             ToImGui(pen));
     }
 
+    virtual void MeasureWidthsUTF8(
+        const Font*      font_,
+        std::string_view text,
+        XYPOSITION*      positions) override {
+        float position = 0;
+        for (auto const& c : text) {
+            int advance;
+
+            ImFontGlyph const* glyph = GetImFont(font_)->FindGlyph(
+                (unsigned short)c);
+
+            assert(glyph);
+
+            advance = (int)glyph->AdvanceX;
+
+            position += advance;
+            *positions++ = position;
+        }
+    }
+
+    void DrawTextBase(
+        PRectangle       rc,
+        Font const*      font_,
+        float            ybase,
+        std::string_view s,
+        ColourRGBA       f) {
+        float xt = rc.left;
+        float yt = ybase;
+
+        DrawList()->AddText(
+            GetImFont(font_),
+            GetImFont(font_)->FontSize,
+            ImVec2(xt, yt),
+            ToImGui(f),
+            s.data(),
+            s.data() + s.size());
+    }
+
+    virtual void DrawTextTransparent(
+        PRectangle       rc,
+        const Font*      font_,
+        XYPOSITION       ybase,
+        std::string_view text,
+        ColourRGBA       fore) override {
+        DrawTextBase(rc, font_, ybase, text, fore);
+    }
+
     virtual void FillRectangle(PRectangle rc, Fill fill) override {
-        _dfmt(rc);
         DrawList()->AddDrawCmd();
         DrawList()->AddRectFilled(
             ImVec2(rc.left + GetPos().x, rc.top + GetPos().y),
@@ -459,7 +521,6 @@ class SurfaceImpl : public Scintilla::Internal::Surface {
     }
 
     virtual void FillRectangleAligned(PRectangle rc, Fill fill) override {
-        _dfmt(rc);
         FillRectangle(rc, fill);
     }
 
@@ -478,12 +539,12 @@ class SurfaceImpl : public Scintilla::Internal::Surface {
     virtual XYPOSITION AverageCharWidth(const Font* font_) override {
         return 16;
     }
-    virtual XYPOSITION Ascent(const Font* font_) override { return 16; }
-    virtual XYPOSITION Descent(const Font* font_) override { return 16; }
+    virtual XYPOSITION Ascent(const Font* font_) override { return 1; }
+    virtual XYPOSITION Descent(const Font* font_) override { return 15; }
     virtual XYPOSITION WidthText(const Font* font_, std::string_view text)
         override {
         _dfmt(text);
-        return text.size() * 16;
+        return text.size() * AverageCharWidth(font_);
     }
 
   private:
@@ -505,8 +566,18 @@ PRectangle Window::GetPosition() const {
     return res;
 }
 
+void Window::SetPosition(PRectangle rc) {}
+
+void Window::InvalidateRectangle(PRectangle rc) {
+    if (wid) {}
+}
+
 
 std::unique_ptr<Scintilla::Internal::Surface> Scintilla::Internal::
     Surface::Allocate(Scintilla::Technology technology) {
     return std::make_unique<SurfaceImpl>();
+}
+
+std::shared_ptr<Font> Font::Allocate(const FontParameters& fp) {
+    return std::make_shared<ImFontWrap>(fp);
 }
