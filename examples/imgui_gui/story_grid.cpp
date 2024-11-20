@@ -61,15 +61,7 @@ Vec<Str> split_wrap_text(std::string const& unwrapped, int width) {
 #define CTX_MSG_ALL(...) ctx.message(__VA_ARGS__);
 
 
-void render_debug_rect(ImVec2 const& size, int border = 2) {
-    ImGui::SetCursorPosX(ImGui::GetCursorPosX() - border);
-    ImGui::SetCursorPosY(ImGui::GetCursorPosY() - border);
-    ImVec2 p0 = ImGui::GetCursorScreenPos();
-    ImVec2 p1 = ImVec2(
-        p0.x + size.x + (2 * border), p0.y + size.y + (2 * border));
-    ImGui::GetWindowDrawList()->AddRect(
-        p0, p1, IM_COL32(255, 255, 255, 255));
-}
+
 
 
 bool render_editable_text(

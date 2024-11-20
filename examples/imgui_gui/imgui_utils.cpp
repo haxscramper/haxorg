@@ -48,3 +48,12 @@ int push_frameless_window_vars() {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
     return 3;
 }
+
+void render_debug_rect(const ImVec2& size, int border, ImU32 const& col) {
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() - border);
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY() - border);
+    ImVec2 p0 = ImGui::GetCursorScreenPos();
+    ImVec2 p1 = ImVec2(
+        p0.x + size.x + (2 * border), p0.y + size.y + (2 * border));
+    ImGui::GetWindowDrawList()->AddRect(p0, p1, col);
+}

@@ -85,7 +85,11 @@ struct std::formatter<PRectangle> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const PRectangle& p, FormatContext& ctx) const {
         return fmt_ctx(
-            fmt("[({}, {})+({}, {})]", p.left, p.top, p.right, p.bottom),
+            fmt("[({}, {})+({}, {})]",
+                p.left,
+                p.top,
+                p.right - p.left,
+                p.bottom - p.top),
             ctx);
     }
 };
@@ -106,25 +110,11 @@ struct std::formatter<ColourRGBA> : std::formatter<std::string> {
 
 struct WindowImpl {
     ImGuiWindow* im;
+    PRectangle   frame{};
 };
 
 
 struct ScEditor : public Scintilla::Internal::ScintillaBase {
-  private:
-    int width;
-    int height;
-    int wheelVRotation;
-    int wheelHRotation;
-
-  public:
-    ScEditor()
-        : width(0), height(0), wheelVRotation(0), wheelHRotation(0) {}
-
-    virtual ~ScEditor() {}
-
-
-    void Update() {}
-
     void ScrollTo(Sci::Line line, bool moveThumb = true) {
         Scintilla::Internal::ScintillaBase::ScrollTo(line, moveThumb);
     }
@@ -194,18 +184,14 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
     }
 
 
-    void HandleInput() {}
+    struct InputResult {
+        DECL_DESCRIBED_ENUM(Kind, TextChanged);
+    };
+
+    Opt<InputResult> HandleInput() { return std::nullopt; }
 
 
-    void Render() {
-        PRectangle rcPaint = GetClientRectangle();
-
-        AutoSurface surfaceWindow{this};
-        if (surfaceWindow) {
-            Paint(surfaceWindow, rcPaint);
-            surfaceWindow->Release();
-        }
-    }
+    void Render();
 
     static WindowImpl* NewWindowImpl() {
         auto windowImpl = new WindowImpl{};
@@ -214,7 +200,6 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
     }
 
     void Initialise() override {
-        LOG(INFO) << "Init";
         wMain = NewWindowImpl();
 
         ImGuiIO& io = ImGui::GetIO();
@@ -240,9 +225,11 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
 
 
     void Resize(int x, int y, int width, int height) {
-        this->width  = width;
-        this->height = height;
-        wMain.SetPosition(PRectangle::FromInts(0, 0, width, height));
+        // LOG_EVERY_POW_2(INFO)
+        //     << fmt("x:{} y:{} width:{} height:{}", x, y, width, height);
+
+        wMain.SetPosition(
+            PRectangle::FromInts(x, y, x + width, y + height));
     }
 
 
@@ -329,9 +316,16 @@ ScEditor* ScInputText(
     float       ySize,
     void (*callback)(void*),
     void* userData) {
-    ImGuiWindow*  window = GetCurrentWindow();
-    const ImGuiID id     = window->GetID(label);
+    ImVec2 inputSize{xSize, ySize};
+    render_debug_rect(inputSize, 6, IM_COL32(0, 255, 255, 255));
+    auto frameless_vars = push_frameless_window_vars();
+    ImGui::BeginChild(
+        fmt("##{}_container", label).c_str(),
+        inputSize,
+        false,
+        ImGuiWindowFlags_NoScrollbar);
 
+    ImGuiID const id      = GetCurrentWindow()->GetID(label);
     ImGuiStorage* storage = GetStateStorage();
     ScEditor*     editor  = (ScEditor*)storage->GetVoidPtr(id);
 
@@ -341,19 +335,14 @@ ScEditor* ScInputText(
         storage->SetVoidPtr(id, (void*)editor);
     }
 
-    float textSize = 26;
+    editor->Resize(
+        ImGui::GetCursorScreenPos().x,
+        ImGui::GetCursorScreenPos().y,
+        xSize,
+        ySize);
 
-    editor->Resize(0, 0, (int)window->Size.x - 20, (int)window->Size.y);
-
-    int lineCount = editor->SendCommand(
-        Scintilla::Message::GetLineCount, 0, 0);
-
-    ImGuiListClipper clipper{};
-    clipper.ItemsCount  = lineCount;
-    clipper.ItemsHeight = textSize;
-
-    editor->ScrollTo(clipper.DisplayStart);
-    clipper.End();
+    ImGui::EndChild();
+    ImGui::PopStyleVar(frameless_vars);
     return editor;
 }
 
@@ -362,12 +351,18 @@ ScEditor* ScInputText(
 void run_scintilla_editor_widget_test(GLFWwindow* window) {
     while (!glfwWindowShouldClose(window)) {
         frame_start();
-        fullscreen_window_begin();
+        // const ImGuiViewport* viewport = ImGui::GetMainViewport();
+        // ImGui::SetNextWindowPos(viewport->WorkPos);
+        // ImGui::SetNextWindowSize(viewport->WorkSize);
+
+        ImGui::Begin("Fullscreen Window", nullptr);
         {
+            ImGui::Text("Some random text");
             auto ed = ImGui::ScInputText(
-                "editor", 200, 200, nullptr, nullptr);
+                "editor", 450, 450, nullptr, nullptr);
 
             ed->Render();
+            ImGui::Text("After text input");
         }
         ImGui::End();
         frame_end(window);
@@ -397,14 +392,16 @@ class SurfaceImpl : public Scintilla::Internal::Surface {
     SurfaceImpl() {}
     virtual ~SurfaceImpl() {}
 
-    ImDrawList*   DrawList() { return ImGui::GetWindowDrawList(); }
-    ImVec2        GetPos() { return ImVec2{}; }
+    ImVec2 pos;
+
+    ImDrawList* DrawList() { return ImGui::GetWindowDrawList(); }
+    ImVec2      GetPos() {
+        LOG_EVERY_POW_2(INFO) << fmt("surface pos:{}", pos);
+        return pos;
+    }
     ImFont const* GetImFont(Font const* f) {
         return dynamic_cast<ImFontWrap const*>(f)->pfont;
     }
-
-    void FillRectangle(PRectangle rc, ColourRGBA color) {}
-
 
     // clang-format off
     virtual void Init(WindowID wid) override {  }
@@ -457,11 +454,10 @@ class SurfaceImpl : public Scintilla::Internal::Surface {
 
     virtual void FillRectangle(PRectangle rc, Surface& surfacePattern)
         override {
-        _dfmt(rc);
-        DrawList()->AddDrawCmd();
+        // DrawList()->AddDrawCmd();
         DrawList()->AddRectFilled(
-            ImVec2(rc.left + GetPos().x, rc.top + GetPos().y),
-            ImVec2(rc.right + GetPos().x, rc.bottom + GetPos().y),
+            GetPos() + ImVec2(rc.left, rc.top),
+            GetPos() + ImVec2(rc.right, rc.bottom),
             ToImGui(pen));
     }
 
@@ -491,13 +487,10 @@ class SurfaceImpl : public Scintilla::Internal::Surface {
         float            ybase,
         std::string_view s,
         ColourRGBA       f) {
-        float xt = rc.left;
-        float yt = ybase;
-
         DrawList()->AddText(
             GetImFont(font_),
             GetImFont(font_)->FontSize,
-            ImVec2(xt, yt),
+            GetPos() + ImVec2(rc.left, ybase),
             ToImGui(f),
             s.data(),
             s.data() + s.size());
@@ -513,10 +506,10 @@ class SurfaceImpl : public Scintilla::Internal::Surface {
     }
 
     virtual void FillRectangle(PRectangle rc, Fill fill) override {
-        DrawList()->AddDrawCmd();
+        // DrawList()->AddDrawCmd();
         DrawList()->AddRectFilled(
-            ImVec2(rc.left + GetPos().x, rc.top + GetPos().y),
-            ImVec2(rc.right + GetPos().x, rc.bottom + GetPos().y),
+            GetPos() + ImVec2(rc.left, rc.top),
+            GetPos() + ImVec2(rc.right, rc.bottom),
             ToImGui(fill.colour));
     }
 
@@ -555,18 +548,9 @@ namespace {
 WindowImpl* window(WindowID wid) { return static_cast<WindowImpl*>(wid); }
 } // namespace
 
-PRectangle Window::GetPosition() const {
-    PRectangle res;
-    auto       w = window(wid)->im;
-    res.left     = w->Pos.x;
-    res.top      = w->Pos.y;
-    res.bottom   = w->Pos.x + w->Size.x;
-    res.right    = w->Pos.y + w->Size.y;
-    // _dfmt(res);
-    return res;
-}
+PRectangle Window::GetPosition() const { return window(wid)->frame; }
 
-void Window::SetPosition(PRectangle rc) {}
+void Window::SetPosition(PRectangle rc) { window(wid)->frame = rc; }
 
 void Window::InvalidateRectangle(PRectangle rc) {
     if (wid) {}
@@ -580,4 +564,23 @@ std::unique_ptr<Scintilla::Internal::Surface> Scintilla::Internal::
 
 std::shared_ptr<Font> Font::Allocate(const FontParameters& fp) {
     return std::make_shared<ImFontWrap>(fp);
+}
+
+void ScEditor::Render() {
+    PRectangle rcPaint = GetClientRectangle();
+
+    AutoSurface surf{this};
+    auto        impl = dynamic_cast<SurfaceImpl*>(surf.operator->());
+    impl->pos        = ImVec2{
+        static_cast<float>(wMain.GetPosition().left),
+        static_cast<float>(wMain.GetPosition().top),
+    };
+
+    if (surf) {
+        LOG_EVERY_POW_2(INFO)
+            << fmt("pos:{} window:{}", impl->pos, wMain.GetPosition());
+
+        Paint(surf, rcPaint);
+        surf->Release();
+    }
 }
