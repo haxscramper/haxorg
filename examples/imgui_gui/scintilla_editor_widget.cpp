@@ -130,6 +130,7 @@ struct std::formatter<T[Size]> : std::formatter<std::string> {
 };
 
 struct ScEditor : public Scintilla::Internal::ScintillaBase {
+    using SCI_M = Scintilla::Message;
 
     void ScrollTo(Sci::Line line, bool moveThumb = true) {
         Scintilla::Internal::ScintillaBase::ScrollTo(line, moveThumb);
@@ -139,8 +140,7 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
 
 
     bool IsComment(int position) {
-        sptr_t style = SendCommand(
-            Scintilla::Message::GetStyleAt, (uptr_t)position);
+        sptr_t style = SendCommand(SCI_M::GetStyleAt, (uptr_t)position);
 
         return style == 2;
     }
@@ -148,7 +148,7 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
 
     int GetWordStartPosition(int position, bool onlyWordCharacters) {
         return (int)SendCommand(
-            Scintilla::Message::WordStartPosition,
+            SCI_M::WordStartPosition,
             (uptr_t)position,
             (sptr_t)onlyWordCharacters);
     }
@@ -156,7 +156,7 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
 
     int GetWordEndPosition(int position, bool onlyWordCharacters) {
         return (int)SendCommand(
-            Scintilla::Message::WordEndPosition,
+            SCI_M::WordEndPosition,
             uptr_t(position),
             sptr_t(onlyWordCharacters));
     }
@@ -180,8 +180,7 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
         textRange.chrg.cpMin = startPosition;
         textRange.chrg.cpMax = endPosition;
 
-        SendCommand(
-            Scintilla::Message::GetTextRange, 0, sptr_t(&textRange));
+        SendCommand(SCI_M::GetTextRange, 0, sptr_t(&textRange));
         result[length] = '\0';
 
         return result;
@@ -201,15 +200,32 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
 
 
     struct InputResult {
-        DECL_DESCRIBED_ENUM(Kind, TextChanged);
+        bool inputChanged;
+        bool hadEvents;
+        DESC_FIELDS(InputResult, (inputChanged, hadEvents));
     };
 
     ImVec2 GlobalSpaceToScintilla(ImVec2 const& windowSpace) {
         return windowSpace - globalCursor;
     }
 
-    Opt<InputResult> HandleInput() {
-        ImGuiIO& io = ImGui::GetIO();
+    std::string GetText() {
+        int   textLength = SendCommand(SCI_M::GetTextLength);
+        char* buffer     = new char[textLength + 1];
+        SendCommand(
+            SCI_M::GetText,
+            textLength + 1,
+            reinterpret_cast<sptr_t>(buffer));
+
+        std::string text(buffer);
+        delete[] buffer;
+        return text;
+    }
+
+    InputResult HandleInput() {
+        InputResult res;
+        ImGuiIO&    io               = ImGui::GetIO();
+        int         beforeTextLength = SendCommand(SCI_M::GetTextLength);
         if (ImGui::IsMouseClicked(0)) {
             auto pos = GlobalSpaceToScintilla(io.MouseClickedPos[0]);
             LOG(INFO) << fmt(
@@ -217,6 +233,7 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
             auto pt = Point::FromInts(pos.x, pos.y);
             ButtonDownWithModifiers(
                 pt, io.MouseDownDuration[0], Scintilla::KeyMod::Norm);
+            res.hadEvents = true;
         } else if (!io.KeyCtrl && !io.KeyAlt && !io.KeySuper) {
             for (int i = 0; i < io.InputQueueCharacters.Size; ++i) {
                 ImWchar c = io.InputQueueCharacters[i];
@@ -224,16 +241,23 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
                 if (32 <= c && c < 127) {
                     char charAsStr[2] = {static_cast<char>(c), '\0'};
                     SendCommand(
-                        Scintilla::Message::ReplaceSel,
+                        SCI_M::ReplaceSel,
                         0,
                         reinterpret_cast<sptr_t>(charAsStr));
+                    res.hadEvents = true;
                 }
             }
 
             io.InputQueueCharacters.clear();
         }
 
-        return std::nullopt;
+        int afterTextLength = SendCommand(SCI_M::GetTextLength);
+
+        if (beforeTextLength != afterTextLength) {
+            res.inputChanged = true;
+        }
+
+        return res;
     }
 
 
@@ -257,13 +281,17 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
         // through a pixmap. We want a single draw list for efficiency.
         view.bufferedDraw = false;
 
-        std::string text{"asfasdfasdf"};
+        std::string text{
+            " asdf asd fd d d asd fas df asdf as dfas df as df asdf asdf "
+            "as dfas df asdf as dfa sdf asd fas df asd fas dfas df asd"};
 
         SendCommand(
-            Scintilla::Message::AddText,
+            SCI_M::AddText,
             text.size(),
             reinterpret_cast<sptr_t>(
                 static_cast<const char*>(text.data())));
+
+        SendCommand(SCI_M::SetWrapMode, SC_WRAP_WORD);
 
         SetFocusState(true);
         CaretSetPeriod(0);
@@ -395,8 +423,11 @@ void run_scintilla_editor_widget_test(GLFWwindow* window) {
                 "editor", 450, 450, nullptr, nullptr);
 
             auto action = ed->HandleInput();
-            if (action) {
-                //
+            if (action.hadEvents) {
+                LOG(INFO) << fmt1(action);
+                if (action.inputChanged) {
+                    LOG(INFO) << escape_literal(ed->GetText());
+                }
             }
 
             ed->Render();
@@ -489,7 +520,6 @@ class SurfaceImpl : public Scintilla::Internal::Surface {
 
     virtual void FillRectangle(PRectangle rc, Surface& surfacePattern)
         override {
-        // DrawList()->AddDrawCmd();
         DrawList()->AddRectFilled(
             GetPos() + ImVec2(rc.left, rc.top),
             GetPos() + ImVec2(rc.right, rc.bottom),
