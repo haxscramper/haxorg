@@ -115,6 +115,7 @@ struct WindowImpl {
 
 
 struct ScEditor : public Scintilla::Internal::ScintillaBase {
+
     void ScrollTo(Sci::Line line, bool moveThumb = true) {
         Scintilla::Internal::ScintillaBase::ScrollTo(line, moveThumb);
     }
@@ -223,11 +224,9 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
         CaretSetPeriod(0);
     }
 
+    ImVec2 position;
 
     void Resize(int x, int y, int width, int height) {
-        // LOG_EVERY_POW_2(INFO)
-        //     << fmt("x:{} y:{} width:{} height:{}", x, y, width, height);
-
         wMain.SetPosition(
             PRectangle::FromInts(x, y, x + width, y + height));
     }
@@ -335,11 +334,8 @@ ScEditor* ScInputText(
         storage->SetVoidPtr(id, (void*)editor);
     }
 
-    editor->Resize(
-        ImGui::GetCursorScreenPos().x,
-        ImGui::GetCursorScreenPos().y,
-        xSize,
-        ySize);
+    editor->position = ImGui::GetCursorScreenPos();
+    editor->Resize(0, 0, xSize, ySize);
 
     ImGui::EndChild();
     ImGui::PopStyleVar(frameless_vars);
@@ -571,10 +567,7 @@ void ScEditor::Render() {
 
     AutoSurface surf{this};
     auto        impl = dynamic_cast<SurfaceImpl*>(surf.operator->());
-    impl->pos        = ImVec2{
-        static_cast<float>(wMain.GetPosition().left),
-        static_cast<float>(wMain.GetPosition().top),
-    };
+    impl->pos        = position;
 
     if (surf) {
         LOG_EVERY_POW_2(INFO)
