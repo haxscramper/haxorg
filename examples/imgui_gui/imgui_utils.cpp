@@ -24,7 +24,8 @@ void frame_end(GLFWwindow* window) {
 
     glfwSwapBuffers(window);
 
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS
+        && glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
 }

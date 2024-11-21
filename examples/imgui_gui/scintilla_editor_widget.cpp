@@ -113,6 +113,21 @@ struct WindowImpl {
     PRectangle   frame{};
 };
 
+template <typename T, int Size>
+struct std::formatter<T[Size]> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(T p[Size], FormatContext& ctx) const {
+        fmt_ctx("[", ctx);
+        bool first = true;
+        for (int i = 0; i < Size; ++i) {
+            T const& value = p[i];
+            if (!first) { fmt_ctx(", ", ctx); }
+            first = false;
+            fmt_ctx(value, ctx);
+        }
+        return fmt_ctx("]", ctx);
+    }
+};
 
 struct ScEditor : public Scintilla::Internal::ScintillaBase {
 
@@ -189,7 +204,37 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
         DECL_DESCRIBED_ENUM(Kind, TextChanged);
     };
 
-    Opt<InputResult> HandleInput() { return std::nullopt; }
+    ImVec2 GlobalSpaceToScintilla(ImVec2 const& windowSpace) {
+        return windowSpace - globalCursor;
+    }
+
+    Opt<InputResult> HandleInput() {
+        ImGuiIO& io = ImGui::GetIO();
+        if (ImGui::IsMouseClicked(0)) {
+            auto pos = GlobalSpaceToScintilla(io.MouseClickedPos[0]);
+            LOG(INFO) << fmt(
+                "Clicked mouse at {} sci pos {}", io.MouseClickedPos, pos);
+            auto pt = Point::FromInts(pos.x, pos.y);
+            ButtonDownWithModifiers(
+                pt, io.MouseDownDuration[0], Scintilla::KeyMod::Norm);
+        } else if (!io.KeyCtrl && !io.KeyAlt && !io.KeySuper) {
+            for (int i = 0; i < io.InputQueueCharacters.Size; ++i) {
+                ImWchar c = io.InputQueueCharacters[i];
+                LOG(INFO) << fmt("Sending key event to scintilla {}", c);
+                if (32 <= c && c < 127) {
+                    char charAsStr[2] = {static_cast<char>(c), '\0'};
+                    SendCommand(
+                        Scintilla::Message::ReplaceSel,
+                        0,
+                        reinterpret_cast<sptr_t>(charAsStr));
+                }
+            }
+
+            io.InputQueueCharacters.clear();
+        }
+
+        return std::nullopt;
+    }
 
 
     void Render();
@@ -224,7 +269,8 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
         CaretSetPeriod(0);
     }
 
-    ImVec2 position;
+    ImVec2 globalCursor;
+    ImVec2 windowCursor;
 
     void Resize(int x, int y, int width, int height) {
         wMain.SetPosition(
@@ -257,21 +303,11 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
 
 
     void ClaimSelection() override {}
-
-
     void Copy() override {}
-
-
     void Paste() override {}
-
-
     void NotifyChange() override {}
-
-
     void NotifyParent(SCNotification scn) { (void)scn; }
-
     void SetMouseCapture(bool on) override { (void)on; }
-
     bool HaveMouseCapture() override { return false; }
 
     virtual bool ModifyScrollBars(Sci::Line nMax, Sci::Line nPage)
@@ -316,13 +352,13 @@ ScEditor* ScInputText(
     void (*callback)(void*),
     void* userData) {
     ImVec2 inputSize{xSize, ySize};
-    render_debug_rect(inputSize, 6, IM_COL32(0, 255, 255, 255));
-    auto frameless_vars = push_frameless_window_vars();
+    auto   frameless_vars = push_frameless_window_vars();
     ImGui::BeginChild(
         fmt("##{}_container", label).c_str(),
         inputSize,
         false,
         ImGuiWindowFlags_NoScrollbar);
+    render_debug_rect(inputSize, 6, IM_COL32(0, 255, 255, 255));
 
     ImGuiID const id      = GetCurrentWindow()->GetID(label);
     ImGuiStorage* storage = GetStateStorage();
@@ -334,7 +370,8 @@ ScEditor* ScInputText(
         storage->SetVoidPtr(id, (void*)editor);
     }
 
-    editor->position = ImGui::GetCursorScreenPos();
+    editor->globalCursor = ImGui::GetCursorScreenPos();
+    editor->windowCursor = ImGui::GetCursorPos();
     editor->Resize(0, 0, xSize, ySize);
 
     ImGui::EndChild();
@@ -356,6 +393,11 @@ void run_scintilla_editor_widget_test(GLFWwindow* window) {
             ImGui::Text("Some random text");
             auto ed = ImGui::ScInputText(
                 "editor", 450, 450, nullptr, nullptr);
+
+            auto action = ed->HandleInput();
+            if (action) {
+                //
+            }
 
             ed->Render();
             ImGui::Text("After text input");
@@ -390,11 +432,8 @@ class SurfaceImpl : public Scintilla::Internal::Surface {
 
     ImVec2 pos;
 
-    ImDrawList* DrawList() { return ImGui::GetWindowDrawList(); }
-    ImVec2      GetPos() {
-        LOG_EVERY_POW_2(INFO) << fmt("surface pos:{}", pos);
-        return pos;
-    }
+    ImDrawList*   DrawList() { return ImGui::GetWindowDrawList(); }
+    ImVec2        GetPos() { return pos; }
     ImFont const* GetImFont(Font const* f) {
         return dynamic_cast<ImFontWrap const*>(f)->pfont;
     }
@@ -567,12 +606,9 @@ void ScEditor::Render() {
 
     AutoSurface surf{this};
     auto        impl = dynamic_cast<SurfaceImpl*>(surf.operator->());
-    impl->pos        = position;
+    impl->pos        = globalCursor;
 
     if (surf) {
-        LOG_EVERY_POW_2(INFO)
-            << fmt("pos:{} window:{}", impl->pos, wMain.GetPosition());
-
         Paint(surf, rcPaint);
         surf->Release();
     }
