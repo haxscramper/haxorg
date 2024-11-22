@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <assert.h>
 #include <cstring>
+#include <hstd/stdlib/Ptrs.hpp>
 #include <map>
 #include <stddef.h>
 #include <stdlib.h>
@@ -62,6 +63,25 @@ using CharacterCategoryMap = Lexilla::CharacterCategoryMap;
 #include <hstd/system/reflection.hpp>
 
 #include <stb/stb_truetype.h>
+#include <boost/mp11.hpp>
+#include <boost/describe.hpp>
+
+namespace Scintilla::Internal {
+BOOST_DESCRIBE_STRUCT(
+    FontParameters,
+    (),
+    (faceName,
+     size,
+     weight,
+     italic,
+     extraFontFlag,
+     technology,
+     characterSet,
+     localeName,
+     stretch));
+
+}
+
 
 struct stbtt_Font {
     stbtt_fontinfo  fontinfo;
@@ -113,7 +133,12 @@ struct WindowImpl {
     PRectangle   frame{};
 };
 
-template <typename T, int Size>
+template <typename T>
+concept NotChar = !std::is_same_v<T, char>
+               && !std::is_same_v<T, unsigned char>
+               && !std::is_same_v<T, signed char>;
+
+template <NotChar T, int Size>
 struct std::formatter<T[Size]> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(T p[Size], FormatContext& ctx) const {
@@ -131,6 +156,14 @@ struct std::formatter<T[Size]> : std::formatter<std::string> {
 
 struct ScEditor : public Scintilla::Internal::ScintillaBase {
     using SCI_M = Scintilla::Message;
+
+    void SetDefaultFont(std::string const& family) {
+        SendCommand(
+            SCI_M::StyleSetFont,
+            STYLE_DEFAULT,
+            reinterpret_cast<sptr_t>(family.data()));
+        SendCommand(SCI_M::StyleClearAll);
+    }
 
     void ScrollTo(Sci::Line line, bool moveThumb = true) {
         Scintilla::Internal::ScintillaBase::ScrollTo(line, moveThumb);
@@ -384,6 +417,7 @@ ScEditor* ScInputText(const char* label, const ImVec2& size) {
         editor = new ScEditor();
         editor->Initialise();
         storage->SetVoidPtr(id, (void*)editor);
+        editor->SetDefaultFont("Iosevka");
     }
 
     editor->globalCursor = ImGui::GetCursorScreenPos();
@@ -413,8 +447,68 @@ ScEditor* ScInputText(const char* label, const ImVec2& size) {
 
 } // namespace ImGui
 
+struct ImFontWrap : public Font {
+    static Vec<SPtr<ImFontWrap>> pending_fonts;
+
+    static SPtr<ImFontWrap> Create(FontParameters const& fp) {
+        auto result = std::make_shared<ImFontWrap>(fp);
+        pending_fonts.push_back(result);
+        return result;
+    }
+
+    static void ResolvePendingFonts() {
+        ImGuiIO& io = ImGui::GetIO();
+        for (auto& font : pending_fonts) {
+            LOG(INFO) << fmt("Creating font for parameters {}", font->fp);
+            auto font_path = get_fontconfig_path(font->fp.faceName);
+            LOGIC_ASSERTION_CHECK(
+                font_path.has_value(),
+                "Could not find font path for '{}'",
+                font->fp.faceName);
+            LOG(INFO) << fmt("Using font file {}", *font_path);
+
+            ImFontConfig fontConfig;
+            fontConfig.SizePixels           = font->fp.size;
+            fontConfig.RasterizerMultiply   = 1.0f;
+            fontConfig.OversampleH          = 3;
+            fontConfig.OversampleV          = 1;
+            fontConfig.FontDataOwnedByAtlas = true;
+            fontConfig.MergeMode            = false;
+
+            fontConfig.GlyphExtraSpacing.x = ((int)font->fp.weight > 500)
+                                               ? 1.0f
+                                               : 0.0f;
+            fontConfig.GlyphOffset         = ImVec2(
+                0, font->fp.italic ? 1.0f : 0.0f);
+
+            font->pfont = io.Fonts->AddFontFromFileTTF(
+                font_path->c_str(), font->fp.size, &fontConfig);
+        }
+
+        if (!pending_fonts.empty()) {
+            // io.Fonts->GetTexDataAsRGBA32();
+            // io.Fonts->AddFontDefault();
+            // io.Fonts->Build();
+        }
+
+        pending_fonts.clear();
+    }
+
+    FontParameters fp;
+    ImFont*        pfont;
+    explicit ImFontWrap(const FontParameters& fp) : fp{fp} {
+
+        pfont = ImGui::GetFont();
+    }
+};
+
+Vec<SPtr<ImFontWrap>> ImFontWrap::pending_fonts;
+
 void run_scintilla_editor_widget_test(GLFWwindow* window) {
+
+
     while (!glfwWindowShouldClose(window)) {
+        ImFontWrap::ResolvePendingFonts();
         frame_start();
         // const ImGuiViewport* viewport = ImGui::GetMainViewport();
         // ImGui::SetNextWindowPos(viewport->WorkPos);
@@ -459,18 +553,29 @@ ImU32 ToImGui(ColourRGBA const& c) {
     return IM_COL32(c.GetRed(), c.GetGreen(), c.GetBlue(), c.GetAlpha());
 }
 
-class ImFontWrap : public Font {
-  public:
-    Scintilla::CharacterSet characterSet = Scintilla::CharacterSet::Ansi;
-    // std::unique_ptr<ImFont> pfont;
-    ImFont* pfont;
-    explicit ImFontWrap(const FontParameters& fp)
-        : characterSet(fp.characterSet) {
-        // pfont           = std::make_unique<ImFont>();
-        // pfont->FontSize = fp.size;
-        pfont = ImGui::GetFont();
-    }
-};
+
+// template <>
+// struct std::formatter<Scintilla::Internal::FontParameters>
+//     : std::formatter<std::string> {
+//     template <typename FormatContext>
+//     FormatContext::iterator format(
+//         Scintilla::Internal::FontParameters const& p,
+//         FormatContext&                             ctx) const {
+//         bool first = true;
+//         fmt_ctx("{", ctx);
+//         for_each_field_value_with_bases(
+//             p, [&](char const* name, auto const& value) {
+//                 if (!first) { fmt_ctx(", ", ctx); }
+//                 fmt_ctx(".", ctx);
+//                 fmt_ctx(name, ctx);
+//                 fmt_ctx(" = ", ctx);
+//                 fmt_ctx(value, ctx);
+//                 first = false;
+//             });
+//         return fmt_ctx("}", ctx);
+//     }
+// };
+
 
 class SurfaceImpl : public Scintilla::Internal::Surface {
   public:
@@ -644,7 +749,7 @@ std::unique_ptr<Scintilla::Internal::Surface> Scintilla::Internal::
 }
 
 std::shared_ptr<Font> Font::Allocate(const FontParameters& fp) {
-    return std::make_shared<ImFontWrap>(fp);
+    return ImFontWrap::Create(fp);
 }
 
 void ScEditor::Render() {

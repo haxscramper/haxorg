@@ -11,28 +11,8 @@
 #include <sys/inotify.h>
 #include <haxorg/sem/SemBaseApi.hpp>
 
-#include <fontconfig/fontconfig.h>
+
 #include <haxorg/sem/ImmOrgGraphBoost.hpp>
-
-
-Opt<Str> get_fontconfig_path(std::string const& fontname) {
-    FcInit();
-    FcPattern* pattern = FcNameParse((const FcChar8*)fontname.c_str());
-    FcConfigSubstitute(nullptr, pattern, FcMatchPattern);
-    FcDefaultSubstitute(pattern);
-
-    FcResult   result;
-    FcPattern* match = FcFontMatch(nullptr, pattern, &result);
-
-    FcChar8* font_path = nullptr;
-    if (match) { FcPatternGetString(match, FC_FILE, 0, &font_path); }
-    Opt<Str> opt_result;
-    if (font_path != nullptr) { opt_result = (char const*)font_path; }
-    FcPatternDestroy(pattern);
-    FcPatternDestroy(match);
-    FcFini();
-    return opt_result;
-}
 
 Vec<Str> split_wrap_text(std::string const& unwrapped, int width) {
     Vec<Str>    result;
@@ -59,9 +39,6 @@ Vec<Str> split_wrap_text(std::string const& unwrapped, int width) {
     if (ctx.OperationsTracer::TraceState) { ctx.message(__VA_ARGS__); }
 
 #define CTX_MSG_ALL(...) ctx.message(__VA_ARGS__);
-
-
-
 
 
 bool render_editable_text(

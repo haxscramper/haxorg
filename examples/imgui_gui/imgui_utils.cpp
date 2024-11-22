@@ -5,6 +5,8 @@
 #include "imgui_impl_opengl3.h"
 #include <hstd/system/Formatter.hpp>
 
+#include <fontconfig/fontconfig.h>
+
 void frame_start() {
     glfwPollEvents();
 
@@ -57,4 +59,23 @@ void render_debug_rect(const ImVec2& size, int border, ImU32 const& col) {
     ImVec2 p1 = ImVec2(
         p0.x + size.x + (2 * border), p0.y + size.y + (2 * border));
     ImGui::GetForegroundDrawList()->AddRect(p0, p1, col);
+}
+
+Opt<Str> get_fontconfig_path(Str const& fontname) {
+    FcInit();
+    FcPattern* pattern = FcNameParse((const FcChar8*)fontname.c_str());
+    FcConfigSubstitute(nullptr, pattern, FcMatchPattern);
+    FcDefaultSubstitute(pattern);
+
+    FcResult   result;
+    FcPattern* match = FcFontMatch(nullptr, pattern, &result);
+
+    FcChar8* font_path = nullptr;
+    if (match) { FcPatternGetString(match, FC_FILE, 0, &font_path); }
+    Opt<Str> opt_result;
+    if (font_path != nullptr) { opt_result = (char const*)font_path; }
+    FcPatternDestroy(pattern);
+    FcPatternDestroy(match);
+    FcFini();
+    return opt_result;
 }
