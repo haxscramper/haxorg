@@ -56,5 +56,5 @@ void render_debug_rect(const ImVec2& size, int border, ImU32 const& col) {
     ImVec2 p0 = ImGui::GetCursorScreenPos();
     ImVec2 p1 = ImVec2(
         p0.x + size.x + (2 * border), p0.y + size.y + (2 * border));
-    ImGui::GetWindowDrawList()->AddRect(p0, p1, col);
+    ImGui::GetForegroundDrawList()->AddRect(p0, p1, col);
 }

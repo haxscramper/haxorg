@@ -300,9 +300,9 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
     ImVec2 globalCursor;
     ImVec2 windowCursor;
 
-    void Resize(int x, int y, int width, int height) {
-        wMain.SetPosition(
-            PRectangle::FromInts(x, y, x + width, y + height));
+    void Resize(ImVec2 const& pos, ImVec2 const& size) {
+        wMain.SetPosition(PRectangle::FromInts(
+            pos.x, pos.y, pos.x + size.x, pos.y + size.y));
     }
 
 
@@ -373,20 +373,8 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
 
 namespace ImGui {
 
-ScEditor* ScInputText(
-    const char* label,
-    float       xSize,
-    float       ySize,
-    void (*callback)(void*),
-    void* userData) {
-    ImVec2 inputSize{xSize, ySize};
-    auto   frameless_vars = push_frameless_window_vars();
-    ImGui::BeginChild(
-        fmt("##{}_container", label).c_str(),
-        inputSize,
-        false,
-        ImGuiWindowFlags_NoScrollbar);
-    render_debug_rect(inputSize, 6, IM_COL32(0, 255, 255, 255));
+ScEditor* ScInputText(const char* label, const ImVec2& size) {
+    auto frameless_vars = push_frameless_window_vars();
 
     ImGuiID const id      = GetCurrentWindow()->GetID(label);
     ImGuiStorage* storage = GetStateStorage();
@@ -400,7 +388,23 @@ ScEditor* ScInputText(
 
     editor->globalCursor = ImGui::GetCursorScreenPos();
     editor->windowCursor = ImGui::GetCursorPos();
-    editor->Resize(0, 0, xSize, ySize);
+    // if (size.x != 0 && size.y != 0) {
+    //     render_debug_rect(size, 0, IM_COL32(255, 0, 0, 255));
+    // }
+
+    ImGui::BeginChild(
+        fmt("##{}_container", label).c_str(),
+        size,
+        false,
+        ImGuiWindowFlags_NoScrollbar);
+
+
+    if (size.x == 0 || size.y == 0) {
+        ImVec2 available = ImGui::GetContentRegionAvail();
+        editor->Resize(ImVec2{0, 0}, available);
+    } else {
+        editor->Resize(ImVec2{0, 0}, size);
+    }
 
     ImGui::EndChild();
     ImGui::PopStyleVar(frameless_vars);
@@ -417,10 +421,19 @@ void run_scintilla_editor_widget_test(GLFWwindow* window) {
         // ImGui::SetNextWindowSize(viewport->WorkSize);
 
         ImGui::Begin("Fullscreen Window", nullptr);
-        {
+        if (ImGui::BeginTable(
+                "test_table",
+                1,
+                ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
             ImGui::Text("Some random text");
-            auto ed = ImGui::ScInputText(
-                "editor", 450, 450, nullptr, nullptr);
+            ImGui::TableNextRow();
+
+            ImGui::TableSetColumnIndex(0);
+            auto ed = ImGui::ScInputText("editor");
 
             auto action = ed->HandleInput();
             if (action.hadEvents) {
@@ -431,7 +444,10 @@ void run_scintilla_editor_widget_test(GLFWwindow* window) {
             }
 
             ed->Render();
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
             ImGui::Text("After text input");
+            ImGui::EndTable();
         }
         ImGui::End();
         frame_end(window);

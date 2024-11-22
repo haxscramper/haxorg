@@ -11,9 +11,6 @@ class ScEditor;
 
 namespace ImGui {
 ScEditor* ScInputText(
-    const char* label,
-    float       xSize,
-    float       ySize,
-    void (*callback)(void*),
-    void* userData);
+    const char*   label,
+    ImVec2 const& size = ImVec2{0, 0});
 }
