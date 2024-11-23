@@ -10,6 +10,7 @@
 #include <set>
 
 #include "scintilla_editor_widget.hpp"
+#include "imgui_impl_opengl3.h"
 #include "imgui_utils.hpp"
 #include "imgui.h"
 #include "imgui_internal.h"
@@ -453,6 +454,7 @@ struct ImFontWrap : public Font {
     static SPtr<ImFontWrap> Create(FontParameters const& fp) {
         auto result = std::make_shared<ImFontWrap>(fp);
         pending_fonts.push_back(result);
+        // result->pfont->ContainerAtlas.A
         return result;
     }
 
@@ -486,9 +488,10 @@ struct ImFontWrap : public Font {
         }
 
         if (!pending_fonts.empty()) {
-            // io.Fonts->GetTexDataAsRGBA32();
-            // io.Fonts->AddFontDefault();
-            // io.Fonts->Build();
+            int            width, height;
+            unsigned char* pixels = nullptr;
+            io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+            ImGui_ImplOpenGL3_CreateFontsTexture();
         }
 
         pending_fonts.clear();
@@ -722,7 +725,6 @@ class SurfaceImpl : public Scintilla::Internal::Surface {
     virtual XYPOSITION Descent(const Font* font_) override { return 15; }
     virtual XYPOSITION WidthText(const Font* font_, std::string_view text)
         override {
-        _dfmt(text);
         return text.size() * AverageCharWidth(font_);
     }
 
