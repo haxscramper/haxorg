@@ -63,9 +63,13 @@ using CharacterCategoryMap = Lexilla::CharacterCategoryMap;
 #include <hstd/system/Formatter.hpp>
 #include <hstd/system/reflection.hpp>
 
+#define STBTT_STATIC
+#define STB_TRUETYPE_IMPLEMENTATION
 #include <stb/stb_truetype.h>
+
 #include <boost/mp11.hpp>
 #include <boost/describe.hpp>
+#include <fstream>
 
 namespace Scintilla::Internal {
 BOOST_DESCRIBE_STRUCT(
@@ -448,7 +452,73 @@ ScEditor* ScInputText(const char* label, const ImVec2& size) {
 
 } // namespace ImGui
 
+struct StbFontMetrics {
+    stbtt_fontinfo font;
+    float          fontSize;
+    float          scale;
+
+    static StbFontMetrics FromPath(
+        std::string const& fontPath,
+        float              fontSize) {
+        StbFontMetrics result;
+        result.fontSize = fontSize;
+        std::ifstream fontFile{fontPath, std::ios::binary | std::ios::ate};
+        if (!fontFile.is_open()) {
+            throw std::runtime_error(
+                fmt("Failed to open font file {}", fontPath));
+        }
+
+        std::streamsize size = fontFile.tellg();
+        fontFile.seekg(0, std::ios::beg);
+        std::vector<unsigned char> fontBuffer(size);
+        if (!fontFile.read((char*)fontBuffer.data(), size)) {
+            throw std::runtime_error(
+                fmt("Failed to read font file {}", fontPath));
+        }
+
+        if (!stbtt_InitFont(
+                &result.font,
+                fontBuffer.data(),
+                stbtt_GetFontOffsetForIndex(fontBuffer.data(), 0))) {
+            throw std::runtime_error(
+                fmt("Failed to initialize font from file {}", fontPath));
+        }
+
+        result.scale = stbtt_ScaleForPixelHeight(&result.font, fontSize);
+
+        return result;
+    }
+
+    int WidthChar(char ch) const {
+        int advance, leftBearing;
+        stbtt_GetCodepointHMetrics(&font, ch, &advance, &leftBearing);
+        return advance * scale;
+    }
+
+    Pair<int, int> GetAscentDescent() const {
+        int ascent, descent, lineGap;
+        stbtt_GetFontVMetrics(&font, &ascent, &descent, &lineGap);
+        ascent  = static_cast<int>(ascent * scale);
+        descent = static_cast<int>(descent * scale);
+        return std::make_pair(ascent, descent);
+    }
+
+    int GetTextWidth(std::string_view const& text) const {
+        int textWidth = 0;
+        for (char c : text) {
+            int advanceWidth, leftSideBearing;
+            stbtt_GetCodepointHMetrics(
+                &font, c, &advanceWidth, &leftSideBearing);
+            textWidth += static_cast<int>(advanceWidth * scale);
+        }
+
+        return textWidth;
+    }
+};
+
 struct ImFontWrap : public Font {
+
+
     static Vec<SPtr<ImFontWrap>> pending_fonts;
 
     static SPtr<ImFontWrap> Create(FontParameters const& fp) {
@@ -485,6 +555,9 @@ struct ImFontWrap : public Font {
 
             font->pfont = io.Fonts->AddFontFromFileTTF(
                 font_path->c_str(), font->fp.size, &fontConfig);
+
+            font->metrics = StbFontMetrics::FromPath(
+                font_path.value(), font->fp.size);
         }
 
         if (!pending_fonts.empty()) {
@@ -497,10 +570,44 @@ struct ImFontWrap : public Font {
         pending_fonts.clear();
     }
 
-    FontParameters fp;
-    ImFont*        pfont;
-    explicit ImFontWrap(const FontParameters& fp) : fp{fp} {
+    FontParameters      fp;
+    ImFont*             pfont;
+    Opt<StbFontMetrics> metrics;
 
+    int GetAscent() const {
+        if (metrics) {
+            return metrics.value().GetAscentDescent().first;
+        } else {
+            return 15;
+        }
+    }
+
+    int GetDescent() const {
+        if (metrics) {
+            return metrics.value().GetAscentDescent().second;
+        } else {
+            return 15;
+        }
+    }
+
+    int AverageCharWidth() const {
+        if (metrics) {
+            return metrics.value().WidthChar('\n');
+        } else {
+            return fp.size;
+        }
+    }
+
+    int GetTextWidth(std::string_view const& text) const {
+        if (metrics) {
+            return metrics.value().GetTextWidth(text);
+        } else {
+            return text.size() * AverageCharWidth();
+        }
+    }
+
+
+    explicit ImFontWrap(const FontParameters& fp) : fp{fp} {
         pfont = ImGui::GetFont();
     }
 };
@@ -587,10 +694,10 @@ class SurfaceImpl : public Scintilla::Internal::Surface {
 
     ImVec2 pos;
 
-    ImDrawList*   DrawList() { return ImGui::GetWindowDrawList(); }
-    ImVec2        GetPos() { return pos; }
-    ImFont const* GetImFont(Font const* f) {
-        return dynamic_cast<ImFontWrap const*>(f)->pfont;
+    ImDrawList*       DrawList() { return ImGui::GetWindowDrawList(); }
+    ImVec2            GetPos() { return pos; }
+    ImFontWrap const* GetFont(Font const* f) {
+        return dynamic_cast<ImFontWrap const*>(f);
     }
 
     // clang-format off
@@ -658,7 +765,7 @@ class SurfaceImpl : public Scintilla::Internal::Surface {
         for (auto const& c : text) {
             int advance;
 
-            ImFontGlyph const* glyph = GetImFont(font_)->FindGlyph(
+            ImFontGlyph const* glyph = GetFont(font_)->pfont->FindGlyph(
                 (unsigned short)c);
 
             assert(glyph);
@@ -677,8 +784,8 @@ class SurfaceImpl : public Scintilla::Internal::Surface {
         std::string_view s,
         ColourRGBA       f) {
         DrawList()->AddText(
-            GetImFont(font_),
-            GetImFont(font_)->FontSize,
+            GetFont(font_)->pfont,
+            GetFont(font_)->pfont->FontSize,
             GetPos() + ImVec2(rc.left, ybase),
             ToImGui(f),
             s.data(),
@@ -717,15 +824,21 @@ class SurfaceImpl : public Scintilla::Internal::Surface {
         return (int)((points * logPix + logPix / 2) / 72.0f);
     }
 
-    // TODO
     virtual XYPOSITION AverageCharWidth(const Font* font_) override {
-        return 16;
+        return GetFont(font_)->AverageCharWidth();
     }
-    virtual XYPOSITION Ascent(const Font* font_) override { return 1; }
-    virtual XYPOSITION Descent(const Font* font_) override { return 15; }
+
+    virtual XYPOSITION Ascent(const Font* font_) override {
+        return GetFont(font_)->GetAscent();
+    }
+
+    virtual XYPOSITION Descent(const Font* font_) override {
+        return GetFont(font_)->GetDescent();
+    }
+
     virtual XYPOSITION WidthText(const Font* font_, std::string_view text)
         override {
-        return text.size() * AverageCharWidth(font_);
+        return GetFont(font_)->GetTextWidth(text);
     }
 
   private:
