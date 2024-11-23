@@ -170,6 +170,12 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
         SendCommand(SCI_M::StyleClearAll);
     }
 
+    void FullRedraw() {
+        SendCommand(SCI_M::StyleClearAll);
+        SendCommand(SCI_M::Colourise, 0, -1);
+        // SendCommand(SCI_M::Inva)
+    }
+
     void ScrollTo(Sci::Line line, bool moveThumb = true) {
         Scintilla::Internal::ScintillaBase::ScrollTo(line, moveThumb);
     }
@@ -453,15 +459,16 @@ ScEditor* ScInputText(const char* label, const ImVec2& size) {
 } // namespace ImGui
 
 struct StbFontMetrics {
-    stbtt_fontinfo font;
-    float          fontSize;
-    float          scale;
+    stbtt_fontinfo             font;
+    float                      fontSize;
+    float                      scale;
+    std::vector<unsigned char> buffer;
 
-    static StbFontMetrics FromPath(
+    static SPtr<StbFontMetrics> FromPath(
         std::string const& fontPath,
         float              fontSize) {
-        StbFontMetrics result;
-        result.fontSize = fontSize;
+        auto result      = std::make_shared<StbFontMetrics>();
+        result->fontSize = fontSize;
         std::ifstream fontFile{fontPath, std::ios::binary | std::ios::ate};
         if (!fontFile.is_open()) {
             throw std::runtime_error(
@@ -470,21 +477,24 @@ struct StbFontMetrics {
 
         std::streamsize size = fontFile.tellg();
         fontFile.seekg(0, std::ios::beg);
-        std::vector<unsigned char> fontBuffer(size);
-        if (!fontFile.read((char*)fontBuffer.data(), size)) {
+        result->buffer.resize(size);
+        if (!fontFile.read((char*)result->buffer.data(), size)) {
             throw std::runtime_error(
                 fmt("Failed to read font file {}", fontPath));
         }
 
         if (!stbtt_InitFont(
-                &result.font,
-                fontBuffer.data(),
-                stbtt_GetFontOffsetForIndex(fontBuffer.data(), 0))) {
+                &result->font,
+                result->buffer.data(),
+                stbtt_GetFontOffsetForIndex(result->buffer.data(), 0))) {
             throw std::runtime_error(
                 fmt("Failed to initialize font from file {}", fontPath));
         }
 
-        result.scale = stbtt_ScaleForPixelHeight(&result.font, fontSize);
+        result->scale = stbtt_ScaleForPixelHeight(&result->font, fontSize);
+
+        result->GetAscentDescent();
+
 
         return result;
     }
@@ -496,7 +506,9 @@ struct StbFontMetrics {
     }
 
     Pair<int, int> GetAscentDescent() const {
-        int ascent, descent, lineGap;
+        int ascent  = 0;
+        int descent = 0;
+        int lineGap = 0;
         stbtt_GetFontVMetrics(&font, &ascent, &descent, &lineGap);
         ascent  = static_cast<int>(ascent * scale);
         descent = static_cast<int>(descent * scale);
@@ -516,19 +528,57 @@ struct StbFontMetrics {
     }
 };
 
-struct ImFontWrap : public Font {
+struct CacheMapEqImpl {
+    bool operator()(FontParameters const& lhs, FontParameters const& rhs)
+        const {
+        return strcmp(lhs.faceName, rhs.faceName) == 0 //
+            && lhs.size == rhs.size                    //
+            && lhs.weight == rhs.weight                //
+            && lhs.italic == rhs.italic                //
+            && lhs.extraFontFlag == rhs.extraFontFlag  //
+            && lhs.technology == rhs.technology        //
+            && lhs.characterSet == rhs.characterSet;
+    }
+};
 
+struct CacheMapHashImpl {
+    std::size_t operator()(FontParameters const& h) const {
+        std::size_t hash;
+        hax_hash_combine(hash, h.faceName);
+        hax_hash_combine(hash, h.size);
+        hax_hash_combine(hash, h.italic);
+        hax_hash_combine(hash, h.extraFontFlag);
+        hax_hash_combine(hash, h.technology);
+        hax_hash_combine(hash, h.characterSet);
+        return hash;
+    }
+};
+
+struct ImFontWrap : public Font {
+    using CacheMapType = std::unordered_map<
+        FontParameters,
+        SPtr<ImFontWrap>,
+        CacheMapHashImpl,
+        CacheMapEqImpl>;
+
+    static CacheMapType fontCache;
 
     static Vec<SPtr<ImFontWrap>> pending_fonts;
 
-    static SPtr<ImFontWrap> Create(FontParameters const& fp) {
-        auto result = std::make_shared<ImFontWrap>(fp);
-        pending_fonts.push_back(result);
-        // result->pfont->ContainerAtlas.A
-        return result;
+    static SPtr<ImFontWrap> GetFontForParameters(
+        FontParameters const& fp) {
+        if (fontCache.contains(fp)) {
+            // LOG(INFO) << fmt("Using cached font information for {}",
+            // fp);
+            return fontCache.at(fp);
+        } else {
+            auto result = std::make_shared<ImFontWrap>(fp);
+            pending_fonts.push_back(result);
+            return result;
+        }
     }
 
-    static void ResolvePendingFonts() {
+    static bool ResolvePendingFonts() {
         ImGuiIO& io = ImGui::GetIO();
         for (auto& font : pending_fonts) {
             LOG(INFO) << fmt("Creating font for parameters {}", font->fp);
@@ -558,33 +608,37 @@ struct ImFontWrap : public Font {
 
             font->metrics = StbFontMetrics::FromPath(
                 font_path.value(), font->fp.size);
+
+            fontCache.insert_or_assign(font->fp, font);
         }
 
-        if (!pending_fonts.empty()) {
+        if (pending_fonts.empty()) {
+            return false;
+        } else {
             int            width, height;
             unsigned char* pixels = nullptr;
             io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
             ImGui_ImplOpenGL3_CreateFontsTexture();
+            pending_fonts.clear();
+            return true;
         }
-
-        pending_fonts.clear();
     }
 
-    FontParameters      fp;
-    ImFont*             pfont;
-    Opt<StbFontMetrics> metrics;
+    FontParameters       fp;
+    ImFont*              pfont;
+    SPtr<StbFontMetrics> metrics;
 
     int GetAscent() const {
         if (metrics) {
-            return metrics.value().GetAscentDescent().first;
+            return _dbg(metrics->GetAscentDescent().first);
         } else {
-            return 15;
+            return 1;
         }
     }
 
     int GetDescent() const {
         if (metrics) {
-            return metrics.value().GetAscentDescent().second;
+            return _dbg(metrics->GetAscentDescent().second);
         } else {
             return 15;
         }
@@ -592,7 +646,7 @@ struct ImFontWrap : public Font {
 
     int AverageCharWidth() const {
         if (metrics) {
-            return metrics.value().WidthChar('\n');
+            return metrics->WidthChar('\n');
         } else {
             return fp.size;
         }
@@ -600,7 +654,7 @@ struct ImFontWrap : public Font {
 
     int GetTextWidth(std::string_view const& text) const {
         if (metrics) {
-            return metrics.value().GetTextWidth(text);
+            return metrics->GetTextWidth(text);
         } else {
             return text.size() * AverageCharWidth();
         }
@@ -612,13 +666,12 @@ struct ImFontWrap : public Font {
     }
 };
 
-Vec<SPtr<ImFontWrap>> ImFontWrap::pending_fonts;
+Vec<SPtr<ImFontWrap>>    ImFontWrap::pending_fonts;
+ImFontWrap::CacheMapType ImFontWrap::fontCache;
 
 void run_scintilla_editor_widget_test(GLFWwindow* window) {
-
-
     while (!glfwWindowShouldClose(window)) {
-        ImFontWrap::ResolvePendingFonts();
+        bool updatedFonts = ImFontWrap::ResolvePendingFonts();
         frame_start();
         // const ImGuiViewport* viewport = ImGui::GetMainViewport();
         // ImGui::SetNextWindowPos(viewport->WorkPos);
@@ -646,6 +699,8 @@ void run_scintilla_editor_widget_test(GLFWwindow* window) {
                     LOG(INFO) << escape_literal(ed->GetText());
                 }
             }
+
+            if (updatedFonts) { ed->FullRedraw(); }
 
             ed->Render();
             ImGui::TableNextRow();
@@ -819,7 +874,6 @@ class SurfaceImpl : public Scintilla::Internal::Surface {
     }
 
     virtual int DeviceHeightFont(int points) override {
-        _dfmt(points);
         int logPix = LogPixelsY();
         return (int)((points * logPix + logPix / 2) / 72.0f);
     }
@@ -864,7 +918,7 @@ std::unique_ptr<Scintilla::Internal::Surface> Scintilla::Internal::
 }
 
 std::shared_ptr<Font> Font::Allocate(const FontParameters& fp) {
-    return ImFontWrap::Create(fp);
+    return ImFontWrap::GetFontForParameters(fp);
 }
 
 void ScEditor::Render() {
