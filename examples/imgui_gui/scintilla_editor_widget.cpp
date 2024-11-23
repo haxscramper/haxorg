@@ -85,8 +85,65 @@ BOOST_DESCRIBE_STRUCT(
      localeName,
      stretch));
 
-}
 
+} // namespace Scintilla::Internal
+
+namespace Scintilla {
+BOOST_DESCRIBE_ENUM(CaseVisible, Mixed, Upper, Lower, Camel);
+BOOST_DESCRIBE_ENUM(FontWeight, Normal, SemiBold, Bold);
+BOOST_DESCRIBE_ENUM(
+    FontQuality,
+    QualityMask,
+    QualityDefault,
+    QualityNonAntialiased,
+    QualityAntialiased,
+    QualityLcdOptimized);
+
+BOOST_DESCRIBE_ENUM(
+    Technology,
+    Default,
+    DirectWrite,
+    DirectWriteRetain,
+    DirectWriteDC);
+
+BOOST_DESCRIBE_ENUM(
+    CharacterSet,
+    Ansi,
+    Default,
+    Baltic,
+    ChineseBig5,
+    EastEurope,
+    GB2312,
+    Greek,
+    Hangul,
+    Mac,
+    Oem,
+    Russian,
+    Oem866,
+    Cyrillic,
+    ShiftJis,
+    Symbol,
+    Turkish,
+    Johab,
+    Hebrew,
+    Arabic,
+    Vietnamese,
+    Thai,
+    Iso8859_15);
+
+
+BOOST_DESCRIBE_ENUM(
+    FontStretch,
+    UltraCondensed,
+    ExtraCondensed,
+    Condensed,
+    SemiCondensed,
+    Normal,
+    SemiExpanded,
+    Expanded,
+    ExtraExpanded,
+    UltraExpanded);
+} // namespace Scintilla
 
 struct stbtt_Font {
     stbtt_fontinfo  fontinfo;
@@ -172,7 +229,7 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
 
     void FullRedraw() {
         SendCommand(SCI_M::StyleClearAll);
-        SendCommand(SCI_M::Colourise, 0, -1);
+        // SendCommand(SCI_M::Colourise, 0, -1);
         // SendCommand(SCI_M::Inva)
     }
 
@@ -281,7 +338,6 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
         } else if (!io.KeyCtrl && !io.KeyAlt && !io.KeySuper) {
             for (int i = 0; i < io.InputQueueCharacters.Size; ++i) {
                 ImWchar c = io.InputQueueCharacters[i];
-                LOG(INFO) << fmt("Sending key event to scintilla {}", c);
                 if (32 <= c && c < 127) {
                     char charAsStr[2] = {static_cast<char>(c), '\0'};
                     SendCommand(
@@ -327,7 +383,8 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
 
         std::string text{
             " asdf asd fd d d asd fas df asdf as dfas df as df asdf asdf "
-            "as dfas df asdf as dfa sdf asd fas df asd fas dfas df asd"};
+            "as dfas df asdf as dfa sdf asd fas df asd fas dfas df "
+            "asd\n\n\n\n\n\n 923423aksf sadf sadf asdfasdf asfj asdjf"};
 
         SendCommand(
             SCI_M::AddText,
@@ -336,6 +393,7 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
                 static_cast<const char*>(text.data())));
 
         SendCommand(SCI_M::SetWrapMode, SC_WRAP_WORD);
+        SendCommand(SCI_M::StyleSetSize, STYLE_DEFAULT, 16);
 
         SetFocusState(true);
         CaretSetPeriod(0);
@@ -531,20 +589,22 @@ struct StbFontMetrics {
 struct CacheMapEqImpl {
     bool operator()(FontParameters const& lhs, FontParameters const& rhs)
         const {
-        return strcmp(lhs.faceName, rhs.faceName) == 0 //
-            && lhs.size == rhs.size                    //
-            && lhs.weight == rhs.weight                //
-            && lhs.italic == rhs.italic                //
-            && lhs.extraFontFlag == rhs.extraFontFlag  //
-            && lhs.technology == rhs.technology        //
-            && lhs.characterSet == rhs.characterSet;
+        bool res = std::string_view{lhs.faceName}
+                    == std::string_view{rhs.faceName}     //
+                && lhs.size == rhs.size                   //
+                && lhs.weight == rhs.weight               //
+                && lhs.italic == rhs.italic               //
+                && lhs.extraFontFlag == rhs.extraFontFlag //
+                && lhs.technology == rhs.technology       //
+                && lhs.characterSet == rhs.characterSet;
+        return res;
     }
 };
 
 struct CacheMapHashImpl {
     std::size_t operator()(FontParameters const& h) const {
-        std::size_t hash;
-        hax_hash_combine(hash, h.faceName);
+        std::size_t hash = 0;
+        hax_hash_combine(hash, std::string{h.faceName});
         hax_hash_combine(hash, h.size);
         hax_hash_combine(hash, h.italic);
         hax_hash_combine(hash, h.extraFontFlag);
@@ -565,16 +625,38 @@ struct ImFontWrap : public Font {
 
     static Vec<SPtr<ImFontWrap>> pending_fonts;
 
+    static SPtr<ImFontWrap> LoadFont(FontParameters const& fp) {
+        auto result = std::make_shared<ImFontWrap>(fp);
+        pending_fonts.push_back(result);
+        return result;
+    }
+
     static SPtr<ImFontWrap> GetFontForParameters(
         FontParameters const& fp) {
-        if (fontCache.contains(fp)) {
-            // LOG(INFO) << fmt("Using cached font information for {}",
-            // fp);
-            return fontCache.at(fp);
+        auto iter = fontCache.find(fp);
+        if (iter == fontCache.end()) {
+            return LoadFont(fp);
+
+            // for debug
+            std::string msg;
+            for (auto const& [k, _] : fontCache) {
+                LOG(INFO) << fmt(
+                    "== -> {}\n{} {}\n{} {}",
+                    CacheMapEqImpl{}(fp, k),
+                    CacheMapHashImpl{}(fp),
+                    fp,
+                    CacheMapHashImpl{}(k),
+                    k);
+
+                msg += fmt("\n{}", k);
+            }
+            throw std::logic_error(
+                fmt("Cannot load font at runtime, parameters were\n{}\n"
+                    "Already loaded fonts{}",
+                    fp,
+                    msg));
         } else {
-            auto result = std::make_shared<ImFontWrap>(fp);
-            pending_fonts.push_back(result);
-            return result;
+            return iter->second;
         }
     }
 
@@ -610,6 +692,7 @@ struct ImFontWrap : public Font {
                 font_path.value(), font->fp.size);
 
             fontCache.insert_or_assign(font->fp, font);
+            LOG(INFO) << fmt("Added font for {}", font->fp);
         }
 
         if (pending_fonts.empty()) {
@@ -628,19 +711,27 @@ struct ImFontWrap : public Font {
     ImFont*              pfont;
     SPtr<StbFontMetrics> metrics;
 
+    int GetCharWidth(char ch) const {
+        if (metrics) {
+            return metrics->WidthChar(ch);
+        } else {
+            return 16;
+        }
+    }
+
     int GetAscent() const {
         if (metrics) {
-            return _dbg(metrics->GetAscentDescent().first);
+            return metrics->GetAscentDescent().first;
         } else {
-            return 1;
+            return 9;
         }
     }
 
     int GetDescent() const {
         if (metrics) {
-            return _dbg(metrics->GetAscentDescent().second);
+            return metrics->GetAscentDescent().second;
         } else {
-            return 15;
+            return -2;
         }
     }
 
@@ -671,7 +762,8 @@ ImFontWrap::CacheMapType ImFontWrap::fontCache;
 
 void run_scintilla_editor_widget_test(GLFWwindow* window) {
     while (!glfwWindowShouldClose(window)) {
-        bool updatedFonts = ImFontWrap::ResolvePendingFonts();
+        bool updatedFont = ImFontWrap::ResolvePendingFonts();
+
         frame_start();
         // const ImGuiViewport* viewport = ImGui::GetMainViewport();
         // ImGui::SetNextWindowPos(viewport->WorkPos);
@@ -693,14 +785,9 @@ void run_scintilla_editor_widget_test(GLFWwindow* window) {
             auto ed = ImGui::ScInputText("editor");
 
             auto action = ed->HandleInput();
-            if (action.hadEvents) {
-                LOG(INFO) << fmt1(action);
-                if (action.inputChanged) {
-                    LOG(INFO) << escape_literal(ed->GetText());
-                }
-            }
+            if (action.hadEvents) { LOG(INFO) << fmt1(action); }
 
-            if (updatedFonts) { ed->FullRedraw(); }
+            if (updatedFont) { ed->FullRedraw(); }
 
             ed->Render();
             ImGui::TableNextRow();
@@ -818,16 +905,7 @@ class SurfaceImpl : public Scintilla::Internal::Surface {
         XYPOSITION*      positions) override {
         float position = 0;
         for (auto const& c : text) {
-            int advance;
-
-            ImFontGlyph const* glyph = GetFont(font_)->pfont->FindGlyph(
-                (unsigned short)c);
-
-            assert(glyph);
-
-            advance = (int)glyph->AdvanceX;
-
-            position += advance;
+            position += GetFont(font_)->GetCharWidth(c);
             *positions++ = position;
         }
     }
@@ -838,10 +916,14 @@ class SurfaceImpl : public Scintilla::Internal::Surface {
         float            ybase,
         std::string_view s,
         ColourRGBA       f) {
+        int vfix = 0;
+        vfix += std::abs(GetFont(font_)->GetAscent());
+        vfix += std::abs(GetFont(font_)->GetDescent());
+
         DrawList()->AddText(
             GetFont(font_)->pfont,
             GetFont(font_)->pfont->FontSize,
-            GetPos() + ImVec2(rc.left, ybase),
+            GetPos() + ImVec2(rc.left, ybase - vfix),
             ToImGui(f),
             s.data(),
             s.data() + s.size());
@@ -857,7 +939,6 @@ class SurfaceImpl : public Scintilla::Internal::Surface {
     }
 
     virtual void FillRectangle(PRectangle rc, Fill fill) override {
-        // DrawList()->AddDrawCmd();
         DrawList()->AddRectFilled(
             GetPos() + ImVec2(rc.left, rc.top),
             GetPos() + ImVec2(rc.right, rc.bottom),
