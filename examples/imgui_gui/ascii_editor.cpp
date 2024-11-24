@@ -1,4 +1,5 @@
 #include "ascii_editor.hpp"
+#include "imgui_impl_opengl3.h"
 #include "imgui_utils.hpp"
 #include <hstd/system/macros.hpp>
 #include <hstd/stdlib/Variant.hpp>
@@ -221,14 +222,14 @@ generator<Vec2i> line_points(Vec2i start, Vec2i end) {
 struct Shape {
     struct Rectangle {
         Vec2i   size;
-        ColRune upperLeft{'+'};
-        ColRune lowerLeft{'+'};
-        ColRune upperRight{'+'};
-        ColRune lowerRight{'+'};
-        ColRune topEdge{'-'};
-        ColRune bottomEdge{'-'};
-        ColRune leftEdge{'|'};
-        ColRune rightEdge{'|'};
+        ColRune upperLeft{"╔"};
+        ColRune lowerLeft{"╚"};
+        ColRune upperRight{"╗"};
+        ColRune lowerRight{"╝"};
+        ColRune topEdge{"═"};
+        ColRune bottomEdge{"═"};
+        ColRune leftEdge{"║"};
+        ColRune rightEdge{"║"};
         DESC_FIELDS(
             Rectangle,
             (size,
@@ -424,6 +425,12 @@ void shape_editor(T& t, F const&, ShapeOrigin const& origin) {
                 | ImGuiTableFlags_SizingFixedFit //
                 | ImGuiTableFlags_NoHostExtendX)) {
 
+        ImGui::TableSetupColumn(
+            "Field", ImGuiTableColumnFlags_WidthFixed, 200);
+
+        ImGui::TableSetupColumn(
+            "Value", ImGuiTableColumnFlags_WidthFixed, 200);
+
         // no, std::add_const_t<T> does not work here
         for_each_field_with_bases<F>([&](auto const& field) {
             using FieldType = DESC_FIELD_TYPE(field);
@@ -467,11 +474,31 @@ void render_scene_tree(Scene& scene) {
 }
 
 void run_ascii_editor_widget_test(GLFWwindow* window) {
-    ImGuiIO& io = ImGui::GetIO();
 
-    auto font_path = get_fontconfig_path("Iosevka");
-    auto font      = io.Fonts->AddFontFromFileTTF(font_path->c_str(), 24);
-    auto metric    = StbFontMetrics::FromPath(font_path.value(), 24);
+    auto     font_path = get_fontconfig_path("Iosevka");
+    ImGuiIO& io        = ImGui::GetIO();
+
+    ImVector<ImWchar>        ranges;
+    ImFontGlyphRangesBuilder builder;
+    builder.AddChar(0x20B9);
+    builder.AddRanges(io.Fonts->GetGlyphRangesDefault());
+    builder.BuildRanges(&ranges);
+
+    auto metric = StbFontMetrics::FromPath(font_path.value(), 16);
+    for (int codepoint = 0; codepoint <= 0x10FFFF; ++codepoint) {
+        if (stbtt_FindGlyphIndex(&metric->font, codepoint)) {
+            builder.AddChar(static_cast<ImWchar>(codepoint));
+        }
+    }
+
+    auto font = io.Fonts->AddFontFromFileTTF(
+        font_path->c_str(), 16, nullptr, ranges.Data);
+
+    int            width, height;
+    unsigned char* pixels = nullptr;
+    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+    ImGui_ImplOpenGL3_CreateFontsTexture();
+
 
     Scene scene;
 
@@ -555,6 +582,18 @@ void run_ascii_editor_widget_test(GLFWwindow* window) {
                 ImVec2 text_pos = ImVec2(
                     rect_center.x - text_size.x * 0.5f,
                     rect_center.y - text_size.y * 0.5f);
+
+                std::u32string utf32_string = std::wstring_convert<
+                                                  std::codecvt_utf8<
+                                                      char32_t>,
+                                                  char32_t>{}
+                                                  .from_bytes(text);
+                for (ImWchar ch : utf32_string) {
+                    auto g = font->FindGlyph(ch);
+                    if (g == nullptr) {
+                        LOG(INFO) << fmt("No glyph for {}", ch);
+                    }
+                }
 
                 draw->AddText(
                     font,
