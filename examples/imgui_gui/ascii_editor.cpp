@@ -132,7 +132,22 @@ struct ShapeOrigin {
     int stack = 0;
     int index = 0;
     DESC_FIELDS(ShapeOrigin, (stack, index));
+
+    bool operator==(ShapeOrigin const& o) const {
+        return stack == o.stack && index == o.index;
+    }
 };
+
+template <>
+struct std::hash<ShapeOrigin> {
+    std::size_t operator()(ShapeOrigin const& it) const noexcept {
+        std::size_t result = 0;
+        hax_hash_combine(result, it.stack);
+        hax_hash_combine(result, it.index);
+        return result;
+    }
+};
+
 
 struct BufferCell {
     ColRune     text;
@@ -268,29 +283,38 @@ struct Shape {
     Data  data;
     DESC_FIELDS(Shape, (position, data));
 
-    void render(DisplayBuffer& buf, ShapeOrigin const& origin) {
+    void render(
+        DisplayBuffer&     buf,
+        ShapeOrigin const& origin,
+        Vec2i              offset) {
         std::visit(
             [&](auto const& shape) {
-                shape.render(buf, position, origin);
+                shape.render(buf, position + offset, origin);
             },
             data);
     }
 };
+
+using OffsetMap = UnorderedMap<ShapeOrigin, Vec2i>;
 
 struct Layer {
     Vec<Shape> shapes;
     bool       isVisible = true;
     DESC_FIELDS(Layer, (shapes, isVisible));
 
-    void render(DisplayBuffer& buf, int selfIndex) {
+    void render(
+        DisplayBuffer&   buf,
+        int              selfIndex,
+        OffsetMap const& offsets) {
         if (isVisible) {
             for (int i = 0; i < shapes.size(); ++i) {
-                shapes.at(i).render(
-                    buf,
-                    ShapeOrigin{
-                        .stack = selfIndex,
-                        .index = i,
-                    });
+                ShapeOrigin origin{.stack = selfIndex, .index = i};
+                Vec2i       offset{0, 0};
+                if (offsets.contains(origin)) {
+                    offset = offsets.at(origin);
+                }
+
+                shapes.at(i).render(buf, origin, offset);
             }
         }
     }
@@ -302,9 +326,9 @@ struct Layer {
 struct Stack {
     Vec<Layer> layers;
     DESC_FIELDS(Stack, (layers));
-    void render(DisplayBuffer& buf) {
+    void render(DisplayBuffer& buf, OffsetMap const& offsets) {
         for (int i = 0; i < layers.size(); ++i) {
-            layers.at(i).render(buf, i);
+            layers.at(i).render(buf, i, offsets);
         }
     }
 
@@ -316,9 +340,40 @@ struct Stack {
 
 struct Scene {
     Stack stack;
-    DESC_FIELDS(Scene, (stack));
+    int   cellWidth  = 20;
+    int   cellHeight = 20;
+    DESC_FIELDS(Scene, (stack, cellWidth, cellHeight));
 
-    void render(DisplayBuffer& buf) { stack.render(buf); }
+    struct DragInfo {
+        ShapeOrigin target;
+        ImVec2      start;
+        ImVec2      current;
+        DESC_FIELDS(DragInfo, (target, start, current));
+    };
+
+    Opt<DragInfo> dragging;
+
+    Opt<Vec2i> getDragOffset2i() const {
+        if (dragging) {
+            auto offset = Vec2i::from(dragging->current - dragging->start);
+            offset.x /= cellWidth;
+            offset.y /= cellHeight;
+            return offset;
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    void render(DisplayBuffer& buf) {
+        OffsetMap offsets;
+        if (dragging) {
+            offsets.insert_or_assign(
+                dragging->target, getDragOffset2i().value());
+            stack.render(buf, offsets);
+        }
+
+        stack.render(buf, offsets);
+    }
 
     Shape& at(ShapeOrigin const& pos) { return stack.at(pos); }
 };
@@ -347,8 +402,6 @@ void run_ascii_editor_widget_test(GLFWwindow* window) {
         {
             DisplayBuffer buf;
             scene.render(buf);
-            int    cellWidth  = 20;
-            int    cellHeight = 20;
             ImVec2 window_pos = ImGui::GetWindowPos() + ImVec2{50, 50};
 
             auto draw = ImGui::GetWindowDrawList();
@@ -360,11 +413,14 @@ void run_ascii_editor_widget_test(GLFWwindow* window) {
                 for (int y_pos : buf.size.heightSpan()) {
                     ImVec2 render_pos //
                         = window_pos
-                        + ImVec2(x_pos * cellWidth, y_pos * cellHeight);
+                        + ImVec2(
+                              x_pos * scene.cellWidth,
+                              y_pos * scene.cellHeight);
 
                     draw->AddRect(
                         render_pos,
-                        render_pos + ImVec2(cellWidth, cellHeight),
+                        render_pos
+                            + ImVec2(scene.cellWidth, scene.cellHeight),
                         IM_COL32(155, 155, 155, 255));
                 }
             }
@@ -372,16 +428,35 @@ void run_ascii_editor_widget_test(GLFWwindow* window) {
             for (auto const& [pos, rune] : buf.runes) {
                 ImVec2 render_pos //
                     = window_pos
-                    + ImVec2(pos.x * cellWidth, pos.y * cellHeight);
+                    + ImVec2(
+                          pos.x * scene.cellWidth,
+                          pos.y * scene.cellHeight);
                 ImRect rect{
                     render_pos,
-                    render_pos + ImVec2(cellWidth, cellHeight)};
+                    render_pos
+                        + ImVec2(scene.cellWidth, scene.cellHeight)};
 
                 if (ImGui::IsMouseClicked(0)) {
                     auto pos = ImGui::GetMousePos();
                     if (contains(rect, pos)) {
+                        scene.dragging = Scene::DragInfo{
+                            .target = rune.origin,
+                            .start  = pos,
+                        };
                         LOG(INFO)
                             << fmt("Clicked on shape {}", rune.origin);
+                    }
+                }
+
+                if (scene.dragging && ImGui::IsMouseDragging(0)) {
+                    scene.dragging.value().current = ImGui::GetMousePos();
+                }
+
+                if (ImGui::IsMouseReleased(0)) {
+                    if (scene.dragging) {
+                        scene.at(scene.dragging->target).position //
+                            += scene.getDragOffset2i().value();
+                        scene.dragging.reset();
                     }
                 }
 
