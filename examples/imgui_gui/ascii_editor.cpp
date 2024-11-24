@@ -112,6 +112,12 @@ struct Rect2i {
     }
 };
 
+bool contains(ImRect const& rect, ImVec2 const& pos) {
+    return (rect.Min.x <= pos.x && pos.x <= rect.Max.x)
+        && (rect.Min.y <= pos.y && pos.y <= rect.Max.y) //
+        ;
+}
+
 template <>
 struct std::hash<Vec2i> {
     std::size_t operator()(Vec2i const& it) const noexcept {
@@ -337,13 +343,13 @@ void run_ascii_editor_widget_test(GLFWwindow* window) {
 
     while (!glfwWindowShouldClose(window)) {
         frame_start();
-        ImGui::Begin("Fullscreen Window", nullptr);
+        fullscreen_window_begin();
         {
             DisplayBuffer buf;
             scene.render(buf);
             int    cellWidth  = 20;
             int    cellHeight = 20;
-            ImVec2 window_pos = ImGui::GetWindowPos();
+            ImVec2 window_pos = ImGui::GetWindowPos() + ImVec2{50, 50};
 
             auto draw = ImGui::GetWindowDrawList();
 
@@ -371,13 +377,18 @@ void run_ascii_editor_widget_test(GLFWwindow* window) {
                     render_pos,
                     render_pos + ImVec2(cellWidth, cellHeight)};
 
+                if (ImGui::IsMouseClicked(0)) {
+                    auto pos = ImGui::GetMousePos();
+                    if (contains(rect, pos)) {
+                        LOG(INFO)
+                            << fmt("Clicked on shape {}", rune.origin);
+                    }
+                }
+
                 auto const& text = rune.text.rune;
 
-                ImVec2 rect_center = ImVec2(
-                    (rect.Min.x + rect.Max.x) * 0.5f,
-                    (rect.Min.y + rect.Max.y) * 0.5f);
-
-                ImVec2 text_size = ImGui::CalcTextSize(
+                ImVec2 rect_center = rect.GetCenter();
+                ImVec2 text_size   = ImGui::CalcTextSize(
                     text.data(), text.data() + text.size());
 
                 ImVec2 text_pos = ImVec2(
