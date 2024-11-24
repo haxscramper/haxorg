@@ -4,6 +4,8 @@
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/ColText.hpp>
+#include "misc/cpp/imgui_stdlib.h"
+#include <hstd/stdlib/Debug.hpp>
 
 
 struct Vec2i {
@@ -380,6 +382,90 @@ struct Scene {
 
 #define c_fmt(__fmt_expr, ...) fmt(__fmt_expr, __VA_ARGS__).c_str()
 
+template <typename T>
+struct ImFieldEditor {
+    void static render(
+        std::string const& field,
+        T*                 value,
+        ShapeOrigin const& origin) {}
+};
+
+template <>
+struct ImFieldEditor<ColRune> {
+    void static render(
+        std::string const& field,
+        ColRune*           value,
+        ShapeOrigin const& origin) {
+        ImGui::TableSetColumnIndex(0);
+        ImGui::Text("%s", field.c_str());
+        ImGui::TableSetColumnIndex(1);
+        ImGui::InputText(
+            c_fmt("##{}_{}_{}", field, origin.stack, origin.index),
+            &value->rune);
+    }
+};
+
+template <typename T>
+void field_editor(
+    std::string const& field,
+    T*                 value,
+    ShapeOrigin const& origin) {
+    ImGui::TableNextRow();
+    ImFieldEditor<std::remove_cvref_t<T>>::render(field, value, origin);
+}
+
+template <typename T, typename F>
+void shape_editor(T& t, F const&, ShapeOrigin const& origin) {
+    if (ImGui::BeginTable(
+            c_fmt("##table_{}_{}", origin.stack, origin.index),
+            2,
+            ImGuiTableFlags_Borders              //
+                | ImGuiTableFlags_RowBg          //
+                | ImGuiTableFlags_SizingFixedFit //
+                | ImGuiTableFlags_NoHostExtendX)) {
+
+        // no, std::add_const_t<T> does not work here
+        for_each_field_with_bases<F>([&](auto const& field) {
+            using FieldType = DESC_FIELD_TYPE(field);
+            field_editor<FieldType>(
+                field.name,
+                const_cast<FieldType*>(&(t.*field.pointer)),
+                origin);
+        });
+
+        ImGui::EndTable();
+    }
+}
+
+void render_scene_tree(Scene& scene) {
+    ImGui::Begin("scene");
+    {
+        for (int layer_idx = 0; layer_idx < scene.stack.layers.size();
+             ++layer_idx) {
+            auto const& layer = scene.stack.layers.at(layer_idx);
+            if (ImGui::TreeNode(c_fmt("scene_layer_{}", layer_idx))) {
+                for (int shape_idx = 0; shape_idx < layer.shapes.size();
+                     ++shape_idx) {
+                    auto&       shape = layer.shapes.at(shape_idx);
+                    ShapeOrigin origin{
+                        .stack = layer_idx,
+                        .index = shape_idx,
+                    };
+                    if (ImGui::TreeNode(c_fmt(
+                            "scene_shape_{}_{}", layer_idx, shape_idx))) {
+                        std::visit(
+                            [&](auto& d) { shape_editor(d, d, origin); },
+                            shape.data);
+                        ImGui::TreePop();
+                    }
+                }
+                ImGui::TreePop();
+            }
+        }
+    }
+    ImGui::End();
+}
+
 void run_ascii_editor_widget_test(GLFWwindow* window) {
     ImGuiIO& io = ImGui::GetIO();
 
@@ -480,6 +566,9 @@ void run_ascii_editor_widget_test(GLFWwindow* window) {
             }
         }
         ImGui::End();
+        render_scene_tree(scene);
+
+
         frame_end(window);
     }
 }
