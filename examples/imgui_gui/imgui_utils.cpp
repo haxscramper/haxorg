@@ -7,6 +7,12 @@
 
 #include <fontconfig/fontconfig.h>
 
+#define STBTT_STATIC
+#define STB_TRUETYPE_IMPLEMENTATION
+#include <stb/stb_truetype.h>
+
+#include <fstream>
+
 void frame_start() {
     glfwPollEvents();
 
@@ -78,4 +84,67 @@ Opt<Str> get_fontconfig_path(Str const& fontname) {
     FcPatternDestroy(match);
     FcFini();
     return opt_result;
+}
+
+SPtr<StbFontMetrics> StbFontMetrics::FromPath(
+    const std::string& fontPath,
+    float              fontSize) {
+    auto result      = std::make_shared<StbFontMetrics>();
+    result->fontSize = fontSize;
+    std::ifstream fontFile{fontPath, std::ios::binary | std::ios::ate};
+    if (!fontFile.is_open()) {
+        throw std::runtime_error(
+            fmt("Failed to open font file {}", fontPath));
+    }
+
+    std::streamsize size = fontFile.tellg();
+    fontFile.seekg(0, std::ios::beg);
+    result->buffer.resize(size);
+    if (!fontFile.read((char*)result->buffer.data(), size)) {
+        throw std::runtime_error(
+            fmt("Failed to read font file {}", fontPath));
+    }
+
+    if (!stbtt_InitFont(
+            &result->font,
+            result->buffer.data(),
+            stbtt_GetFontOffsetForIndex(result->buffer.data(), 0))) {
+        throw std::runtime_error(
+            fmt("Failed to initialize font from file {}", fontPath));
+    }
+
+    result->scale = stbtt_ScaleForPixelHeight(&result->font, fontSize);
+
+    result->GetAscentDescent();
+
+
+    return result;
+}
+
+int StbFontMetrics::WidthChar(char ch) const {
+    int advance, leftBearing;
+    stbtt_GetCodepointHMetrics(&font, ch, &advance, &leftBearing);
+    return advance * scale;
+}
+
+Pair<int, int> StbFontMetrics::GetAscentDescent() const {
+    int ascent  = 0;
+    int descent = 0;
+    int lineGap = 0;
+    stbtt_GetFontVMetrics(&font, &ascent, &descent, &lineGap);
+    ascent  = static_cast<int>(ascent * scale);
+    descent = static_cast<int>(descent * scale);
+    return std::make_pair(ascent, descent);
+}
+
+int StbFontMetrics::GetTextWidth(const std::string_view& text) const {
+    int textWidth = 0;
+    for (char c : text) {
+        int advanceWidth, leftSideBearing;
+        stbtt_GetCodepointHMetrics(
+            &font, c, &advanceWidth, &leftSideBearing);
+        textWidth += static_cast<int>(advanceWidth * scale);
+    }
+
+    return textWidth;
 }

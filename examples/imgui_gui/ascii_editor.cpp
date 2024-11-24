@@ -33,6 +33,10 @@ struct Vec2i {
 
     Vec2i operator/(int scalar) const { return {x / scalar, y / scalar}; }
 
+    bool operator==(Vec2i const& other) const {
+        return x == other.x && y == other.y;
+    }
+
     Vec2i& operator+=(Vec2i const& other) {
         x += other.x;
         y += other.y;
@@ -68,6 +72,46 @@ struct Vec2i {
     }
 };
 
+struct Rect2i {
+    Vec2i pos;
+    int   width  = 0;
+    int   height = 0;
+
+    Slice<int> widthSpan() const { return slice(pos.x, pos.x + width); }
+    Slice<int> heightSpan() const { return slice(pos.y, pos.y + height); }
+
+    bool contains(Vec2i const& pos) const {
+        return widthSpan().contains(pos.x) && heightSpan().contains(pos.y);
+    }
+
+    void expandX(int offset) {
+        if (offset < 0) { pos.x += offset; }
+        width += std::abs(offset);
+    }
+
+    void expandY(int offset) {
+        if (offset < 0) { pos.y += offset; }
+        height += std::abs(offset);
+    }
+
+    void convex(Vec2i const& point) {
+        auto w = widthSpan();
+        auto h = heightSpan();
+
+        if (w.isBefore(point.x)) {
+            expandX(point.x - w.first);
+        } else if (w.isAfter(point.x)) {
+            expandX(point.x - w.last);
+        }
+
+        if (h.isBefore(point.y)) {
+            expandY(point.y - h.first);
+        } else if (h.isAfter(point.y)) {
+            expandY(point.y - h.last);
+        }
+    }
+};
+
 template <>
 struct std::hash<Vec2i> {
     std::size_t operator()(Vec2i const& it) const noexcept {
@@ -79,20 +123,30 @@ struct std::hash<Vec2i> {
 };
 
 struct ShapeOrigin {
-    int stack;
-    int index;
+    int stack = 0;
+    int index = 0;
     DESC_FIELDS(ShapeOrigin, (stack, index));
 };
 
-struct DisplayCell {
+struct BufferCell {
     ColRune     text;
     ShapeOrigin origin;
-    DESC_FIELDS(DisplayCell, (text, origin));
+    DESC_FIELDS(BufferCell, (text, origin));
+};
+
+struct DisplayCell {
+    Opt<BufferCell> content;
+    Vec2i           pos;
+    DESC_FIELDS(DisplayCell, (content, pos));
+
+    void render() const {
+        if (content) { ImGui::Text("%s", content->text.rune.c_str()); }
+    }
 };
 
 struct DisplayBuffer {
-    UnorderedMap<Vec2i, DisplayCell> runes;
-    Vec2i                            size;
+    UnorderedMap<Vec2i, BufferCell> runes;
+    Rect2i                          size;
 
     DESC_FIELDS(DisplayBuffer, (runes, size));
 
@@ -100,13 +154,21 @@ struct DisplayBuffer {
         Vec2i const&       pos,
         ColRune const&     rune,
         ShapeOrigin const& origin) {
-        runes.insert_or_assign(pos, rune);
+        size.convex(pos);
+        runes.insert_or_assign(
+            pos,
+            BufferCell{
+                .text   = rune,
+                .origin = origin,
+            });
     }
 
-    Vec<Vec<ColRune>> toGrid() {
-        Vec<Vec<ColRune>> result;
+    Vec<Vec<DisplayCell>> toGrid() {
+        Vec<Vec<DisplayCell>> result;
         for (auto const& [pos, rune] : runes) {
-            result.resize_at(pos.y).resize_at(pos.y) = rune.text;
+            auto& ref   = result.resize_at(pos.y).resize_at(pos.y);
+            ref.content = rune;
+            ref.pos     = pos;
         }
         return result;
     }
@@ -211,18 +273,24 @@ struct Shape {
 
 struct Layer {
     Vec<Shape> shapes;
-    DESC_FIELDS(Layer, (shapes));
+    bool       isVisible = true;
+    DESC_FIELDS(Layer, (shapes, isVisible));
 
     void render(DisplayBuffer& buf, int selfIndex) {
-        for (int i = 0; i < shapes.size(); ++i) {
-            shapes.at(i).render(
-                buf,
-                ShapeOrigin{
-                    .stack = selfIndex,
-                    .index = i,
-                });
+        if (isVisible) {
+            for (int i = 0; i < shapes.size(); ++i) {
+                shapes.at(i).render(
+                    buf,
+                    ShapeOrigin{
+                        .stack = selfIndex,
+                        .index = i,
+                    });
+            }
         }
     }
+
+    Shape& at(int const& index) { return shapes.at(index); }
+    void   add(Shape const& shape) { shapes.push_back(shape); }
 };
 
 struct Stack {
@@ -233,6 +301,10 @@ struct Stack {
             layers.at(i).render(buf, i);
         }
     }
+
+    Shape& at(ShapeOrigin const& pos) {
+        return layers.at(pos.stack).at(pos.index);
+    }
 };
 
 
@@ -241,16 +313,85 @@ struct Scene {
     DESC_FIELDS(Scene, (stack));
 
     void render(DisplayBuffer& buf) { stack.render(buf); }
+
+    Shape& at(ShapeOrigin const& pos) { return stack.at(pos); }
 };
 
+#define c_fmt(__fmt_expr, ...) fmt(__fmt_expr, __VA_ARGS__).c_str()
 
 void run_ascii_editor_widget_test(GLFWwindow* window) {
+    ImGuiIO& io = ImGui::GetIO();
+
+    auto font_path = get_fontconfig_path("Iosevka");
+    auto font      = io.Fonts->AddFontFromFileTTF(font_path->c_str(), 24);
+    auto metric    = StbFontMetrics::FromPath(font_path.value(), 24);
+
     Scene scene;
+
+    scene.stack.layers.push_back(Layer{});
+
+    auto& l0 = scene.stack.layers.at(0);
+    l0.add(Shape{
+        .position = Vec2i{2, 2},
+        .data     = Shape::Rectangle{.size = Vec2i{10, 10}}});
+
     while (!glfwWindowShouldClose(window)) {
         frame_start();
         ImGui::Begin("Fullscreen Window", nullptr);
         {
-            //
+            DisplayBuffer buf;
+            scene.render(buf);
+            int    cellWidth  = 20;
+            int    cellHeight = 20;
+            ImVec2 window_pos = ImGui::GetWindowPos();
+
+            auto draw = ImGui::GetWindowDrawList();
+
+            LOG_EVERY_POW_2(INFO) << fmt(
+                "{}x{}", buf.size.widthSpan(), buf.size.heightSpan());
+
+            for (int x_pos : buf.size.widthSpan()) {
+                for (int y_pos : buf.size.heightSpan()) {
+                    ImVec2 render_pos //
+                        = window_pos
+                        + ImVec2(x_pos * cellWidth, y_pos * cellHeight);
+
+                    draw->AddRect(
+                        render_pos,
+                        render_pos + ImVec2(cellWidth, cellHeight),
+                        IM_COL32(155, 155, 155, 255));
+                }
+            }
+
+            for (auto const& [pos, rune] : buf.runes) {
+                ImVec2 render_pos //
+                    = window_pos
+                    + ImVec2(pos.x * cellWidth, pos.y * cellHeight);
+                ImRect rect{
+                    render_pos,
+                    render_pos + ImVec2(cellWidth, cellHeight)};
+
+                auto const& text = rune.text.rune;
+
+                ImVec2 rect_center = ImVec2(
+                    (rect.Min.x + rect.Max.x) * 0.5f,
+                    (rect.Min.y + rect.Max.y) * 0.5f);
+
+                ImVec2 text_size = ImGui::CalcTextSize(
+                    text.data(), text.data() + text.size());
+
+                ImVec2 text_pos = ImVec2(
+                    rect_center.x - text_size.x * 0.5f,
+                    rect_center.y - text_size.y * 0.5f);
+
+                draw->AddText(
+                    font,
+                    font->FontSize,
+                    text_pos,
+                    IM_COL32(255, 0, 0, 255),
+                    text.data(),
+                    text.data() + text.size());
+            }
         }
         ImGui::End();
         frame_end(window);

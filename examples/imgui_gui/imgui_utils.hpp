@@ -1,11 +1,15 @@
 #pragma once
 
 #include <GLFW/glfw3.h>
+#include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/system/reflection.hpp>
 #include "imgui.h"
 #include "imgui_internal.h"
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Str.hpp>
+
+#include <stb/stb_truetype.h>
+
 
 void frame_start();
 void frame_end(GLFWwindow* window);
@@ -39,3 +43,20 @@ inline ImVec2 operator-(const ImVec2& lhs, const ImVec2& rhs) {
 inline ImVec2 operator*(const ImVec2& lhs, float mult) {
     return ImVec2(lhs.x * mult, lhs.y * mult);
 }
+
+struct StbFontMetrics {
+    stbtt_fontinfo             font;
+    float                      fontSize;
+    float                      scale;
+    std::vector<unsigned char> buffer;
+
+    static SPtr<StbFontMetrics> FromPath(
+        std::string const& fontPath,
+        float              fontSize);
+
+    int WidthChar(char ch) const;
+
+    Pair<int, int> GetAscentDescent() const;
+
+    int GetTextWidth(std::string_view const& text) const;
+};

@@ -63,13 +63,9 @@ using CharacterCategoryMap = Lexilla::CharacterCategoryMap;
 #include <hstd/system/Formatter.hpp>
 #include <hstd/system/reflection.hpp>
 
-#define STBTT_STATIC
-#define STB_TRUETYPE_IMPLEMENTATION
-#include <stb/stb_truetype.h>
-
 #include <boost/mp11.hpp>
 #include <boost/describe.hpp>
-#include <fstream>
+
 
 namespace Scintilla::Internal {
 BOOST_DESCRIBE_STRUCT(
@@ -516,75 +512,6 @@ ScEditor* ScInputText(const char* label, const ImVec2& size) {
 
 } // namespace ImGui
 
-struct StbFontMetrics {
-    stbtt_fontinfo             font;
-    float                      fontSize;
-    float                      scale;
-    std::vector<unsigned char> buffer;
-
-    static SPtr<StbFontMetrics> FromPath(
-        std::string const& fontPath,
-        float              fontSize) {
-        auto result      = std::make_shared<StbFontMetrics>();
-        result->fontSize = fontSize;
-        std::ifstream fontFile{fontPath, std::ios::binary | std::ios::ate};
-        if (!fontFile.is_open()) {
-            throw std::runtime_error(
-                fmt("Failed to open font file {}", fontPath));
-        }
-
-        std::streamsize size = fontFile.tellg();
-        fontFile.seekg(0, std::ios::beg);
-        result->buffer.resize(size);
-        if (!fontFile.read((char*)result->buffer.data(), size)) {
-            throw std::runtime_error(
-                fmt("Failed to read font file {}", fontPath));
-        }
-
-        if (!stbtt_InitFont(
-                &result->font,
-                result->buffer.data(),
-                stbtt_GetFontOffsetForIndex(result->buffer.data(), 0))) {
-            throw std::runtime_error(
-                fmt("Failed to initialize font from file {}", fontPath));
-        }
-
-        result->scale = stbtt_ScaleForPixelHeight(&result->font, fontSize);
-
-        result->GetAscentDescent();
-
-
-        return result;
-    }
-
-    int WidthChar(char ch) const {
-        int advance, leftBearing;
-        stbtt_GetCodepointHMetrics(&font, ch, &advance, &leftBearing);
-        return advance * scale;
-    }
-
-    Pair<int, int> GetAscentDescent() const {
-        int ascent  = 0;
-        int descent = 0;
-        int lineGap = 0;
-        stbtt_GetFontVMetrics(&font, &ascent, &descent, &lineGap);
-        ascent  = static_cast<int>(ascent * scale);
-        descent = static_cast<int>(descent * scale);
-        return std::make_pair(ascent, descent);
-    }
-
-    int GetTextWidth(std::string_view const& text) const {
-        int textWidth = 0;
-        for (char c : text) {
-            int advanceWidth, leftSideBearing;
-            stbtt_GetCodepointHMetrics(
-                &font, c, &advanceWidth, &leftSideBearing);
-            textWidth += static_cast<int>(advanceWidth * scale);
-        }
-
-        return textWidth;
-    }
-};
 
 struct CacheMapEqImpl {
     bool operator()(FontParameters const& lhs, FontParameters const& rhs)
