@@ -56,6 +56,8 @@ add_executable(
   imgui_utils.hpp
   gui_perfetto.cpp
   gui_perfetto.hpp
+  ascii_editor.cpp
+  ascii_editor.hpp
   block_graph.cpp
   block_graph.hpp
   scintilla_editor_widget.hpp

@@ -11,6 +11,7 @@
 #include "story_grid.hpp"
 #include "imgui_utils.hpp"
 #include "block_graph.hpp"
+#include "ascii_editor.hpp"
 #include "scintilla_editor_widget.hpp"
 
 #include "gui_perfetto.hpp"
@@ -25,7 +26,8 @@ struct Config {
         StoryGrid,
         Test,
         StoryGridAnnotated,
-        ScintillaEditorTest);
+        ScintillaEditorTest,
+        AsciiEditorTest);
 
     Str      file;
     Mode     mode = Mode::SemTree;
@@ -435,6 +437,10 @@ int main(int argc, char** argv) {
         }
         case Config::Mode::ScintillaEditorTest: {
             run_scintilla_editor_widget_test(window);
+            break;
+        }
+        case Config::Mode::AsciiEditorTest: {
+            run_ascii_editor_widget_test(window);
             break;
         }
     }
