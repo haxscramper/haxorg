@@ -23,6 +23,7 @@ list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/range-v3/lib/cmake/range-v3")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/json/share/cmake/nlohmann_json")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/lager/lib/cmake/Lager")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/immer/lib/cmake/Immer")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/googletest/lib/cmake/GTest")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/adaptagrams/lib/cmake/Adaptagrams")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/lexy/lib/cmake/lexy")
 
@@ -41,31 +42,17 @@ find_package(Perfetto CONFIG REQUIRED)
 find_package(lexy CONFIG REQUIRED)
 find_package(Haxorg CONFIG REQUIRED)
 find_package(Adaptagrams CONFIG REQUIRED)
+find_package(GTest CONFIG REQUIRED)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(FONTCONFIG REQUIRED fontconfig)
 
-add_executable(
-  main
-  main.cpp
-  sem_tree_render.hpp
-  sem_tree_render.cpp
-  story_grid.hpp
-  story_grid.cpp
-  imgui_utils.cpp
-  imgui_utils.hpp
-  gui_perfetto.cpp
-  gui_perfetto.hpp
-  ascii_editor.cpp
-  ascii_editor.hpp
-  block_graph.cpp
-  block_graph.hpp
-  scintilla_editor_widget.hpp
-  scintilla_editor_widget.cpp)
-
 set(PROJ_ROOT "${CMAKE_SOURCE_DIR}")
 
+# external dependency for imgui library
+
 file(GLOB IMGUI_SOURCES "${PROJ_ROOT}/imgui/*.cpp")
+
 add_library(
   imgui STATIC
   ${IMGUI_SOURCES} "${PROJ_ROOT}/imgui/backends/imgui_impl_glfw.cpp"
@@ -76,32 +63,47 @@ target_link_libraries(imgui PUBLIC "${FONTCONFIG_LIBRARIES}")
 target_include_directories(imgui PUBLIC "${PROJ_ROOT}/imgui" "${PROJ_ROOT}/imgui/backends"
                                         "${FONTCONFIG_INCLUDE_DIRS}")
 
+file(GLOB QIUCUS_LIB_FILES "${PROJ_ROOT}/gui_lib/*.?pp")
+add_library(qiucus_lib ${QIUCUS_LIB_FILES})
+
 if(${ORG_USE_PERFETTO})
-  target_link_libraries(main PUBLIC Perfetto::perfetto)
+  target_link_libraries(qiucus_lib PUBLIC Perfetto::perfetto)
 endif()
 
 if(${ORG_USE_PERFETTO})
-  target_compile_definitions(main PUBLIC ORG_USE_PERFETTO)
+  target_compile_definitions(qiucus_lib PUBLIC ORG_USE_PERFETTO)
 endif()
 
-target_link_directories(main PUBLIC "${SCINT_DEPS}/bin" "${LEXLL_DEPS}/bin")
-target_include_directories(main PUBLIC "${LEXLL_DEPS}/include" "${SCINT_DEPS}/include"
-                                       "${REPO_ROOT}/thirdparty/scintilla")
+target_link_directories(qiucus_lib PUBLIC "${SCINT_DEPS}/bin" "${LEXLL_DEPS}/bin")
+target_include_directories(qiucus_lib PUBLIC "${LEXLL_DEPS}/include" "${SCINT_DEPS}/include"
+                                             "${REPO_ROOT}/thirdparty/scintilla" "${PROJ_ROOT}")
 target_link_libraries(
-  main
-  PRIVATE imgui
-          glfw
-          scintilla
-          OpenGL::GL
-          absl::log
-          absl::base
-          absl::flags
-          Adaptagrams::dialect
-          Adaptagrams::cola
-          Adaptagrams::avoid
-          Adaptagrams::topology
-          Adaptagrams::vpsc
-          haxorg::adaptagrams
-          haxorg::haxorg
-          haxorg::hstd
-          range-v3::range-v3)
+  qiucus_lib
+  PUBLIC imgui
+         glfw
+         scintilla
+         OpenGL::GL
+         absl::log
+         absl::base
+         absl::flags
+         Adaptagrams::dialect
+         Adaptagrams::cola
+         Adaptagrams::avoid
+         Adaptagrams::topology
+         Adaptagrams::vpsc
+         haxorg::adaptagrams
+         haxorg::haxorg
+         haxorg::hstd
+         range-v3::range-v3)
+
+file(GLOB QIUCUS_APP_FILES "${PROJ_ROOT}/gui_app/*.?pp")
+add_executable(qiucus_app ${QIUCUS_APP_FILES})
+target_link_libraries(qiucus_app PUBLIC qiucus_lib)
+
+file(GLOB QIUCUS_GUI_TEST_FILES "${PROJ_ROOT}/gui_test/*.?pp")
+add_executable(qiucus_gui_test ${QIUCUS_GUI_TEST_FILES})
+target_link_libraries(qiucus_gui_test PUBLIC qiucus_lib)
+
+file(GLOB QIUCUS_LOGIC_TEST_FILES "${PROJ_ROOT}/logic_test/*.?pp")
+add_executable(qiucus_logic_test ${QIUCUS_LOGIC_TEST_FILES})
+target_link_libraries(qiucus_logic_test PUBLIC qiucus_lib)

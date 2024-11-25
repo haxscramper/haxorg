@@ -7,14 +7,14 @@
 #include <haxorg/exporters/ExporterUltraplain.hpp>
 #include <hstd/stdlib/Set.hpp>
 
-#include "sem_tree_render.hpp"
-#include "story_grid.hpp"
-#include "imgui_utils.hpp"
-#include "block_graph.hpp"
-#include "ascii_editor.hpp"
-#include "scintilla_editor_widget.hpp"
+#include <gui_lib/sem_tree_render.hpp>
+#include <gui_lib/story_grid.hpp>
+#include <gui_lib/imgui_utils.hpp>
+#include <gui_lib/block_graph.hpp>
+#include <gui_lib/ascii_editor.hpp>
+#include <gui_lib/scintilla_editor_widget.hpp>
 
-#include "gui_perfetto.hpp"
+#include <gui_lib/gui_perfetto.hpp>
 #include <hstd/wrappers/hstd_extra/perfetto_aux_impl_template.hpp>
 
 
