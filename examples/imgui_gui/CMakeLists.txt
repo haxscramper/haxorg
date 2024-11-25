@@ -51,6 +51,11 @@ set(PROJ_ROOT "${CMAKE_SOURCE_DIR}")
 
 # external dependency for imgui library
 
+set(IMCONFIG_TEMPLATE_PATH "${PROJ_ROOT}/imconfig.h")
+set(IMCONFIG_FILE_PATH "${PROJ_ROOT}/imgui/imconfig.h")
+
+configure_file("${IMCONFIG_TEMPLATE_PATH}" "${IMCONFIG_FILE_PATH}" @ONLY)
+
 file(GLOB IMGUI_SOURCES "${PROJ_ROOT}/imgui/*.cpp")
 
 add_library(
@@ -60,8 +65,20 @@ add_library(
   "${PROJ_ROOT}/imgui/backends/imgui_impl_opengl3.cpp")
 
 target_link_libraries(imgui PUBLIC "${FONTCONFIG_LIBRARIES}")
-target_include_directories(imgui PUBLIC "${PROJ_ROOT}/imgui" "${PROJ_ROOT}/imgui/backends"
-                                        "${FONTCONFIG_INCLUDE_DIRS}")
+target_include_directories(
+  imgui PUBLIC "${PROJ_ROOT}/imgui" "${PROJ_ROOT}/imgui/backends" "${FONTCONFIG_INCLUDE_DIRS}"
+               "${REPO_ROOT}/thirdparty/imgui_test_engine/imgui_test_engine")
+
+# imgui test engine
+
+file(GLOB IMGUI_TEST_ENGINE_SOURCES
+     "${REPO_ROOT}/thirdparty/imgui_test_engine/imgui_test_engine/*.cpp")
+add_library(imgui_test_engine STATIC "${IMGUI_TEST_ENGINE_SOURCES}")
+target_include_directories(
+  imgui_test_engine PUBLIC "${PROJ_ROOT}/imgui"
+                           "${REPO_ROOT}/thirdparty/imgui_test_engine/imgui_test_engine")
+
+# main part of app setup
 
 file(GLOB QIUCUS_LIB_FILES "${PROJ_ROOT}/gui_lib/*.?pp")
 add_library(qiucus_lib ${QIUCUS_LIB_FILES})
@@ -80,6 +97,7 @@ target_include_directories(qiucus_lib PUBLIC "${LEXLL_DEPS}/include" "${SCINT_DE
 target_link_libraries(
   qiucus_lib
   PUBLIC imgui
+         imgui_test_engine
          glfw
          scintilla
          OpenGL::GL
@@ -102,7 +120,7 @@ target_link_libraries(qiucus_app PUBLIC qiucus_lib)
 
 file(GLOB QIUCUS_GUI_TEST_FILES "${PROJ_ROOT}/gui_test/*.?pp")
 add_executable(qiucus_gui_test ${QIUCUS_GUI_TEST_FILES})
-target_link_libraries(qiucus_gui_test PUBLIC qiucus_lib)
+target_link_libraries(qiucus_gui_test PUBLIC qiucus_lib imgui_test_engine)
 
 file(GLOB QIUCUS_LOGIC_TEST_FILES "${PROJ_ROOT}/logic_test/*.?pp")
 add_executable(qiucus_logic_test ${QIUCUS_LOGIC_TEST_FILES})
