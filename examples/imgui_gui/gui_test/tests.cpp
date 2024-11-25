@@ -3,101 +3,51 @@
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "imgui.h"
-#include "imgui_internal.h"
 #include "imgui_test_engine/imgui_te_context.h"
-#include "imgui_test_engine/imgui_capture_tool.h"
+#include <gui_lib/ascii_editor.hpp>
+
+struct SceneVars {
+    Scene scene;
+    bool  setup;
+};
 
 void RegisterApptests(ImGuiTestEngine* e) {
-    ImGuiTest* t = NULL;
 
-    //-----------------------------------------------------------------
-    // ## Demo Test: Hello Automation World
-    //-----------------------------------------------------------------
+    {
+        ImGuiTest* t = IM_REGISTER_TEST(e, "demo_tests", "test1");
+        t->SetVarsDataType<SceneVars>();
+        t->GuiFunc = [](ImGuiTestContext* ctx) {
+            ImGui::SetNextWindowSize(ImVec2{250, 250});
+            ImGui::Begin(
+                "Test Window", NULL, ImGuiWindowFlags_NoSavedSettings);
+            DisplayBuffer buf;
+            SceneVars&    vars = ctx->GetVars<SceneVars>();
 
-    t          = IM_REGISTER_TEST(e, "demo_tests", "test1");
-    t->GuiFunc = [](ImGuiTestContext* ctx) {
-        IM_UNUSED(ctx);
-        ImGui::Begin(
-            "Test Window", NULL, ImGuiWindowFlags_NoSavedSettings);
-        ImGui::Text("Hello, automation world");
-        ImGui::Button("Click Me");
-        if (ImGui::TreeNode("Node")) {
-            static bool b = false;
-            ImGui::Checkbox("Checkbox", &b);
-            ImGui::TreePop();
-        }
-        ImGui::End();
-    };
-    t->TestFunc = [](ImGuiTestContext* ctx) {
-        ctx->SetRef("Test Window");
-        ctx->ItemClick("Click Me");
-        ctx->ItemOpen("Node"); // Optional as ItemCheck("Node/Checkbox")
-                               // can do it automatically
-        ctx->ItemCheck("Node/Checkbox");
-        ctx->ItemUncheck("Node/Checkbox");
-    };
+            Scene& scene = vars.scene;
+            if (!vars.setup) {
+                scene.stack.layers.push_back(Layer{});
 
-    //-----------------------------------------------------------------
-    // ## Demo Test: Use variables to communicate data between GuiFunc and TestFunc
-    //-----------------------------------------------------------------
+                auto& l0 = scene.stack.layers.at(0);
+                l0.add(Shape{
+                    .position = Vec2i{1, 1},
+                    .data     = Shape::Rectangle{.size = Vec2i{10, 10}}});
 
-    t = IM_REGISTER_TEST(e, "demo_tests", "test2");
-    struct TestVars2 {
-        int MyInt = 42;
-    };
-    t->SetVarsDataType<TestVars2>();
-    t->GuiFunc = [](ImGuiTestContext* ctx) {
-        TestVars2& vars = ctx->GetVars<TestVars2>();
-        ImGui::Begin(
-            "Test Window", NULL, ImGuiWindowFlags_NoSavedSettings);
-        ImGui::SliderInt("Slider", &vars.MyInt, 0, 1000);
-        ImGui::End();
-    };
-    t->TestFunc = [](ImGuiTestContext* ctx) {
-        TestVars2& vars = ctx->GetVars<TestVars2>();
-        ctx->SetRef("Test Window");
+                ImGui::LogText("Scene initialization done");
+                vars.setup = false;
+            }
 
-        IM_CHECK_EQ(vars.MyInt, 42);
-        ctx->ItemInputValue("Slider", 123);
-        IM_CHECK_EQ(vars.MyInt, 123);
-    };
 
-    //-----------------------------------------------------------------
-    // ## Open Metrics window
-    //-----------------------------------------------------------------
+            scene.render(buf);
+            ImVec2 window_pos = ImGui::GetWindowPos();
+            scene.im_draw(window_pos, ImGui::GetFont(), buf);
+            ImGui::End();
+        };
 
-    t           = IM_REGISTER_TEST(e, "demo_tests", "open_metrics");
-    t->TestFunc = [](ImGuiTestContext* ctx) {
-        ctx->SetRef("ImGui Demo");
-        ctx->MenuCheck("Tools/Metrics\\/Debugger");
-    };
-
-    //-----------------------------------------------------------------
-    // ## Capture entire ImGui Demo window.
-    //-----------------------------------------------------------------
-
-    t           = IM_REGISTER_TEST(e, "demo_tests", "capture_screenshot");
-    t->TestFunc = [](ImGuiTestContext* ctx) {
-        ctx->SetRef("ImGui Demo");
-        ctx->ItemOpen("Widgets");  // Open collapsing header
-        ctx->ItemOpenAll("Basic"); // Open tree node and all its descendant
-        ctx->CaptureScreenshotWindow(
-            "ImGui Demo",
-            ImGuiCaptureFlags_StitchAll
-                | ImGuiCaptureFlags_HideMouseCursor);
-    };
-
-    t           = IM_REGISTER_TEST(e, "demo_tests", "capture_video");
-    t->TestFunc = [](ImGuiTestContext* ctx) {
-        ctx->SetRef("ImGui Demo");
-        ctx->ItemCloseAll("");
-        ctx->MouseTeleportToPos(ctx->GetWindowByRef("")->Pos);
-
-        ctx->CaptureAddWindow("ImGui Demo"); // Optional: Capture
-                                                  // single window
-        ctx->CaptureBeginVideo();
-        ctx->ItemOpen("Widgets");
-        ctx->ItemInputValue("Basic/input text", "My first video!");
-        ctx->CaptureEndVideo();
-    };
+        t->TestFunc = [](ImGuiTestContext* ctx) {
+            ctx->SetRef("Test Window");
+            auto win_info = ctx->GetWindowByRef(ctx->GetRef());
+            ctx->MouseMoveToPos(win_info->Pos + ImVec2{35, 35});
+            ctx->MouseDragWithDelta(ImVec2{25, 25});
+        };
+    }
 }

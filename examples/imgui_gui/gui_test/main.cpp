@@ -46,11 +46,8 @@ int main(int argc, char** argv) {
     ImGui_ImplOpenGL3_Init("#version 130");
 
     ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable
-                                                          // Keyboard
-                                                          // Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad
-                                                          // Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
     io.ConfigDebugIsDebuggerPresent = ImOsIsDebuggerPresent();
 
     // Setup test engine
@@ -58,13 +55,7 @@ int main(int argc, char** argv) {
     ImGuiTestEngineIO& test_io        = ImGuiTestEngine_GetIO(engine);
     test_io.ConfigVerboseLevel        = ImGuiTestVerboseLevel_Info;
     test_io.ConfigVerboseLevelOnError = ImGuiTestVerboseLevel_Debug;
-    test_io.ConfigRunSpeed = ImGuiTestRunSpeed_Cinematic; // Default to
-                                                          // slowest mode
-                                                          // in this demo
-
-    // Optional: save test output in junit-compatible XML format.
-    // test_io.ExportResultsFile = "./results.xml";
-    // test_io.ExportResultsFormat = ImGuiTestEngineExportFormat_JUnitXml;
+    test_io.ConfigRunSpeed            = ImGuiTestRunSpeed_Normal;
 
     // Start test engine
     ImGuiTestEngine_Start(engine, ImGui::GetCurrentContext());
@@ -73,7 +64,6 @@ int main(int argc, char** argv) {
     // Register tests
     RegisterApptests(engine);
 
-    // Main loop
     bool aborted = false;
     while (!aborted) {
         if (!aborted && glfwWindowShouldClose(window)) { aborted = true; }
@@ -82,24 +72,19 @@ int main(int argc, char** argv) {
 
         frame_start();
 
-        // Show windows
         ImGui::ShowDemoWindow();
         ImGuiTestEngine_ShowTestEngineWindows(engine, NULL);
 
         frame_end(window);
 
-        // Post-swap handler is REQUIRED in order to support screen capture
         ImGuiTestEngine_PostSwap(engine);
     }
 
-    // Shutdown
     ImGuiTestEngine_Stop(engine);
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 
-    // IMPORTANT: we need to destroy the ImGui context BEFORE the test
-    // engine context, so .ini data may be saved.
     ImGuiTestEngine_DestroyContext(engine);
 
     glfwDestroyWindow(window);
