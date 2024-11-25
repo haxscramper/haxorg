@@ -75,7 +75,7 @@ file(GLOB IMGUI_TEST_ENGINE_SOURCES
      "${REPO_ROOT}/thirdparty/imgui_test_engine/imgui_test_engine/*.cpp")
 add_library(imgui_test_engine STATIC "${IMGUI_TEST_ENGINE_SOURCES}")
 target_include_directories(
-  imgui_test_engine PUBLIC "${PROJ_ROOT}/imgui"
+  imgui_test_engine PUBLIC "${PROJ_ROOT}/imgui" "${REPO_ROOT}/thirdparty/imgui_test_engine"
                            "${REPO_ROOT}/thirdparty/imgui_test_engine/imgui_test_engine")
 
 # main part of app setup
