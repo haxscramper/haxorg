@@ -29,6 +29,9 @@ void RegisterApptests_story_grid(ImGuiTestEngine* e) {
         t->GuiFunc          = ImWrapGuiFuncT<StoryGridVars>(
             params, [](ImGuiTestContext* ctx, StoryGridVars& vars) {
                 if (vars.is_first()) {
+                    vars.model.conf.setTraceFile(
+                        getDebugFile(ctx->Test, "subtree_init"));
+
                     vars.add_text("* One subtree in grid");
                 }
 

@@ -411,6 +411,12 @@ Vec<GridAction> render_table(
     Vec<GridAction> result;
 
 
+    // Table for the story grid node is drawn as a small floating window
+    // that is overlaid exactly on top of the existing bar. I have no
+    // fucking idea how to make the table header stick while scrolling
+    // (yes, I saw the github replies etc., they don't work). Floating
+    // window obviously solves this issue, as it is positioned completely
+    // independently of the content in the grid table itself.
     ImGui::SetNextWindowPos(ImVec2(grid.pos + model.shift));
     ImGui::SetNextWindowSize(ImVec2(grid.size.x, 20));
     auto frameless_vars = push_frameless_window_vars();
@@ -491,11 +497,13 @@ Vec<GridAction> render_table_node(
     Vec<GridAction> result;
     auto&           ctx = model.conf;
     auto&           doc = grid.node;
-    CTX_MSG(fmt("doc rows {}", doc.rows.size()));
 
     ImGui::SetNextWindowPos(grid.pos + model.shift);
     ImGui::SetNextWindowSize(grid.size);
     auto frameless_vars = push_frameless_window_vars();
+    // Table is drawn in a separate window so it could have the widgets
+    // inside, but otherwise is positioned completely independently on the
+    // screen.
     if (ImGui::Begin(
             "Standalone Table Window",
             nullptr,
@@ -948,17 +956,28 @@ void add_annotation_nodes(
 int add_root_grid_node(
     StoryGridGraph&         res,
     org::ImmAdapter const&  node,
-    TreeGridDocument const& init_doc) {
+    TreeGridDocument const& init_doc,
+    StoryGridContext&       ctx) {
     TreeGridDocument doc = init_doc;
     __perf_trace_begin("gui", "build doc rows");
     doc.rows = build_rows(node, doc);
     __perf_trace_end("gui");
     update_row_positions(doc);
 
+    auto w = doc.getWidth(rowPadding) + tree_fold_column;
+    auto h = doc.getHeight(rowPadding);
+    CTX_MSG(
+        fmt("Add root node to the document, grid size: width={} height={} "
+            "row-count={} col-count={} columns={}",
+            w,
+            h,
+            doc.rowPositions.size(),
+            doc.columns.size(),
+            doc.columns));
+
     StoryGridNode::TreeGrid grid{
         .pos  = ImVec2(0, 0),
-        .size = ImVec2(
-            doc.getWidth(rowPadding), doc.getHeight(rowPadding)),
+        .size = ImVec2(w, h),
         .node = doc,
     };
 
@@ -1280,7 +1299,10 @@ void StoryGridModel::updateDocument(TreeGridDocument const& init_doc) {
         rectGraph = StoryGridGraph{};
 
         int docNodeIndex = add_root_grid_node(
-            rectGraph, getLastHistory().ast.getRootAdapter(), init_doc);
+            rectGraph,
+            getLastHistory().ast.getRootAdapter(),
+            init_doc,
+            ctx);
 
         add_annotation_nodes(
             rectGraph,
