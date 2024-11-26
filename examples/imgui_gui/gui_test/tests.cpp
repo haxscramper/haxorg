@@ -6,6 +6,15 @@
 #include "imgui_test_engine/imgui_te_context.h"
 #include <gui_lib/ascii_editor.hpp>
 
+#define IM_FMT_DECL(T)                                                    \
+    template <>                                                           \
+    void ImGuiTestEngineUtil_appendf_auto(ImGuiTextBuffer* buf, T v) {    \
+        buf->append(fmt1(v).c_str());                                     \
+        IM_UNUSED(v);                                                     \
+    }
+
+IM_FMT_DECL(Vec2i);
+
 struct SceneVars {
     Scene scene;
     bool  setup;
@@ -33,7 +42,7 @@ void RegisterApptests(ImGuiTestEngine* e) {
                     .data     = Shape::Rectangle{.size = Vec2i{10, 10}}});
 
                 ImGui::LogText("Scene initialization done");
-                vars.setup = false;
+                vars.setup = true;
             }
 
 
@@ -44,10 +53,18 @@ void RegisterApptests(ImGuiTestEngine* e) {
         };
 
         t->TestFunc = [](ImGuiTestContext* ctx) {
+            SceneVars& vars  = ctx->GetVars<SceneVars>();
+            Scene&     scene = vars.scene;
+            auto       shape = ShapeOrigin{.stack = 0, .index = 0};
+
+            IM_CHECK_EQ(scene.at(shape).position, (Vec2i{1, 1}));
+
             ctx->SetRef("Test Window");
             auto win_info = ctx->GetWindowByRef(ctx->GetRef());
             ctx->MouseMoveToPos(win_info->Pos + ImVec2{35, 35});
             ctx->MouseDragWithDelta(ImVec2{25, 25});
+            ctx->Yield(2);
+            IM_CHECK_EQ(scene.at(shape).position, (Vec2i{2, 2}));
         };
     }
 }
