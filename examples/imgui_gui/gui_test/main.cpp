@@ -14,6 +14,9 @@
 #include "imgui_test_engine/imgui_te_ui.h"
 #include "imgui_test_engine/imgui_te_utils.h"
 
+#include <gui_lib/gui_perfetto.hpp>
+#include <hstd/wrappers/hstd_extra/perfetto_aux_impl_template.hpp>
+
 extern void RegisterApptests(ImGuiTestEngine* engine);
 
 int main(int argc, char** argv) {
@@ -67,7 +70,7 @@ int main(int argc, char** argv) {
     ImGuiTestEngine_QueueTests(
         engine,
         ImGuiTestGroup_Tests,
-        nullptr,
+        "story_grid",
         ImGuiTestRunFlags_RunFromGui);
 
     bool aborted = false;

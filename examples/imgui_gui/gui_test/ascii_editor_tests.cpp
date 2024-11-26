@@ -1,6 +1,8 @@
 #include "im_test_common.hpp"
 #include <gui_lib/ascii_editor.hpp>
 
+#define TEST_GROUP "ascii_editor"
+
 IM_FMT_DECL(Vec2i);
 
 struct SceneVars {
@@ -11,7 +13,8 @@ struct SceneVars {
 
 void RegisterApptests_ascii_editor(ImGuiTestEngine* e) {
     {
-        ImGuiTest* t = IM_REGISTER_TEST(e, "demo_tests", "test1");
+        ImGuiTest* t = IM_REGISTER_TEST(
+            e, TEST_GROUP, "Drag rectangle diagonally");
         t->SetVarsDataType<SceneVars>();
         t->GuiFunc = [](ImGuiTestContext* ctx) {
             ImGui::SetNextWindowSize(ImVec2{250, 250});

@@ -386,3 +386,5 @@ Opt<json> story_grid_loop(
     std::string const& file,
     bool               annotated,
     Opt<json> const&   in_state);
+
+Vec<GridAction> render_story_grid(StoryGridModel& model);
