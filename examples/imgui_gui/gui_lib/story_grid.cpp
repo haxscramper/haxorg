@@ -411,7 +411,7 @@ Vec<GridAction> render_table(
     Vec<GridAction> result;
 
 
-    ImGui::SetNextWindowPos(ImVec2(grid.pos));
+    ImGui::SetNextWindowPos(ImVec2(grid.pos + model.shift));
     ImGui::SetNextWindowSize(ImVec2(grid.size.x, 20));
     auto frameless_vars = push_frameless_window_vars();
     if (ImGui::Begin(
@@ -422,6 +422,7 @@ Vec<GridAction> render_table(
                 | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize
                 | ImGuiWindowFlags_NoScrollbar
                 | ImGuiWindowFlags_NoScrollWithMouse)) {
+        ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
         if (ImGui::BeginTable(
                 "HeaderTable",
                 1 + doc.columns.size(),
@@ -499,6 +500,7 @@ Vec<GridAction> render_table_node(
             "Standalone Table Window",
             nullptr,
             ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize)) {
+        ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
         result = render_table(model, grid, documentNodeIdx);
 
         ImGui::End();

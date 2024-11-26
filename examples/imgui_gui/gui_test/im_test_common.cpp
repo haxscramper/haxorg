@@ -11,3 +11,14 @@ Str getDebugFile(ImGuiTest* t, const Str& suffix) {
 
     return res.native();
 }
+
+ImVec2 getContentPos(ImGuiTestContext* ctx) {
+    if (!ctx || !ctx->GetWindowByRef(ctx->GetRef())) {
+        return ImGui::GetWindowPos()
+             + ImVec2{0, ImGui::GetCurrentWindow()->TitleBarHeight};
+    } else {
+        return ctx->GetWindowByRef(ctx->GetRef())->Pos
+             + ImVec2{
+                 0, ctx->GetWindowByRef(ctx->GetRef())->TitleBarHeight};
+    }
+}

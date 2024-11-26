@@ -74,10 +74,4 @@ ImFuncPtr(ImGuiTestTestFunc)
 }
 
 
-inline ImVec2 getWindowPos(ImGuiTestContext* ctx) {
-    if (!ctx || !ctx->GetWindowByRef(ctx->GetRef())) {
-        return ImGui::GetWindowPos();
-    } else {
-        return ctx->GetWindowByRef(ctx->GetRef())->Pos;
-    }
-}
+ImVec2 getContentPos(ImGuiTestContext* ctx);

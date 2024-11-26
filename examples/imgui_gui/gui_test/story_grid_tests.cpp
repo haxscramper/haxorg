@@ -32,7 +32,7 @@ void RegisterApptests_story_grid(ImGuiTestEngine* e) {
                     vars.add_text("* One subtree in grid");
                 }
 
-                vars.model.shift        = getWindowPos(ctx);
+                vars.model.shift        = getContentPos(ctx);
                 Vec<GridAction> actions = render_story_grid(vars.model);
             });
 
