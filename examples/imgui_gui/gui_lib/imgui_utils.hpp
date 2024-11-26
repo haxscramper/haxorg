@@ -20,6 +20,8 @@ void render_debug_rect(
     int           border = 2,
     const ImU32&  col    = IM_COL32(255, 255, 255, 255));
 
+void quit_on_q(GLFWwindow* window);
+
 /// \brief Return full path for the font with a given name, if it could be
 /// found.
 Opt<Str> get_fontconfig_path(Str const& fontname);

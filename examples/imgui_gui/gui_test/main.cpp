@@ -64,6 +64,12 @@ int main(int argc, char** argv) {
     // Register tests
     RegisterApptests(engine);
 
+    ImGuiTestEngine_QueueTests(
+        engine,
+        ImGuiTestGroup_Tests,
+        nullptr,
+        ImGuiTestRunFlags_RunFromGui);
+
     bool aborted = false;
     while (!aborted) {
         if (!aborted && glfwWindowShouldClose(window)) { aborted = true; }
@@ -72,12 +78,12 @@ int main(int argc, char** argv) {
 
         frame_start();
 
-        ImGui::ShowDemoWindow();
         ImGuiTestEngine_ShowTestEngineWindows(engine, NULL);
 
         frame_end(window);
 
         ImGuiTestEngine_PostSwap(engine);
+        quit_on_q(window);
     }
 
     ImGuiTestEngine_Stop(engine);

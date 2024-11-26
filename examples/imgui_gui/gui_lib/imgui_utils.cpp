@@ -31,12 +31,14 @@ void frame_end(GLFWwindow* window) {
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
     glfwSwapBuffers(window);
+}
 
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS
-        && glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
+void quit_on_q(GLFWwindow* window) {
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
 }
+
 
 void fullscreen_window_begin() {
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
