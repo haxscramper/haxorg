@@ -12,7 +12,6 @@
 #include <haxorg/sem/SemBaseApi.hpp>
 
 
-
 #include <haxorg/sem/ImmOrgGraphBoost.hpp>
 
 Vec<Str> split_wrap_text(std::string const& unwrapped, int width) {
@@ -542,6 +541,19 @@ Vec<GridAction> render_story_grid(StoryGridModel& model) {
     return result;
 }
 
+TreeGridDocument getInitRootDoc() {
+    TreeGridDocument doc;
+    doc.getColumn("title").width         = 200;
+    doc.getColumn("event").width         = 400;
+    doc.getColumn("note").width          = 400;
+    doc.getColumn("turning_point").width = 300;
+    doc.getColumn("value").width         = 200;
+    doc.getColumn("location").width      = 240;
+    doc.getColumn("location").edit = TreeGridColumn::EditMode::SingleLine;
+    doc.getColumn("pov").width     = 100;
+    return doc;
+}
+
 Opt<json> story_grid_loop(
     GLFWwindow*        window,
     std::string const& file,
@@ -590,6 +602,7 @@ Opt<json> story_grid_loop(
         LOG(ERROR) << "Could not load font path";
     }
 
+
     while (!glfwWindowShouldClose(window)) {
         int inotify_change = read(inotify_fd, &buffer[0], buffer.size());
         if (0 < inotify_change) {
@@ -600,7 +613,7 @@ Opt<json> story_grid_loop(
             });
             model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Graph);
             model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Scroll);
-            model.updateDocument();
+            model.updateDocument(getInitRootDoc());
         }
 
         frame_start();
@@ -612,7 +625,7 @@ Opt<json> story_grid_loop(
             first = false;
             model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Graph);
             model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Scroll);
-            model.updateDocument();
+            model.updateDocument(getInitRootDoc());
         }
 
         if (model.debug) {
@@ -659,7 +672,7 @@ Opt<json> story_grid_loop(
         if (!updates.empty()) {
             model.conf.OperationsTracer::TraceState = true;
             for (auto const& update : updates) { model.apply(update); }
-            model.updateDocument();
+            model.updateDocument(getInitRootDoc());
         }
 
         model.conf.OperationsTracer::TraceState = false;
@@ -930,18 +943,13 @@ void add_annotation_nodes(
 }
 
 
-int add_root_grid_node(StoryGridGraph& res, org::ImmAdapter const& node) {
-    TreeGridDocument doc;
-    doc.getColumn("title").width         = 200;
-    doc.getColumn("event").width         = 400;
-    doc.getColumn("note").width          = 400;
-    doc.getColumn("turning_point").width = 300;
-    doc.getColumn("value").width         = 200;
-    doc.getColumn("location").width      = 240;
-    doc.getColumn("location").edit = TreeGridColumn::EditMode::SingleLine;
+int add_root_grid_node(
+    StoryGridGraph&         res,
+    org::ImmAdapter const&  node,
+    TreeGridDocument const& init_doc) {
+    TreeGridDocument doc = init_doc;
     __perf_trace_begin("gui", "build doc rows");
-    doc.getColumn("pov").width = 100;
-    doc.rows                   = build_rows(node, doc);
+    doc.rows = build_rows(node, doc);
     __perf_trace_end("gui");
     update_row_positions(doc);
 
@@ -1260,7 +1268,7 @@ void update_graph_layout(
     // debug->ir = &thisLayout;
 }
 
-void StoryGridModel::updateDocument() {
+void StoryGridModel::updateDocument(TreeGridDocument const& init_doc) {
     __perf_trace("gui", "update grid model");
     auto& ctx = conf;
 
@@ -1270,7 +1278,7 @@ void StoryGridModel::updateDocument() {
         rectGraph = StoryGridGraph{};
 
         int docNodeIndex = add_root_grid_node(
-            rectGraph, getLastHistory().ast.getRootAdapter());
+            rectGraph, getLastHistory().ast.getRootAdapter(), init_doc);
 
         add_annotation_nodes(
             rectGraph,

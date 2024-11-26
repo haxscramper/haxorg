@@ -13,7 +13,8 @@ struct StoryGridVars : public ImTestVarsBase {
         });
         model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Graph);
         model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Scroll);
-        model.updateDocument();
+        TreeGridDocument doc;
+        model.updateDocument(doc);
     }
 };
 
@@ -37,7 +38,7 @@ void RegisterApptests_story_grid(ImGuiTestEngine* e) {
 
         t->TestFunc = ImWrapTestFuncT<StoryGridVars>(
             params, [](ImGuiTestContext* ctx, StoryGridVars& vars) {
-                ctx->Yield(10);
+                ctx->SuspendTestFunc();
             });
     }
 }

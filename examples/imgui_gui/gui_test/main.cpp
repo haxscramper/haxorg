@@ -81,6 +81,7 @@ int main(int argc, char** argv) {
 
         frame_start();
 
+        ImGui::ShowDemoWindow();
         ImGuiTestEngine_ShowTestEngineWindows(engine, NULL);
 
         frame_end(window);

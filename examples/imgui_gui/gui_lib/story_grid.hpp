@@ -365,17 +365,17 @@ struct StoryGridState {
 
 struct StoryGridModel {
     DECL_DESCRIBED_ENUM(UpdateNeeded, LinkListClick, Scroll, Graph);
-    Vec<StoryGridHistory>      history;
-    StoryGridGraph             rectGraph;
-    StoryGridContext           conf;
-    GraphLayoutIR::Result      layout;
-    ImVec2                     shift{20, 20};
-    Opt<ColaConstraintDebug>   debug;
-    void                       updateDocument();
-    Vec<Slice<int>>            laneSpans;
-    Vec<float>                 laneOffsets;
-    StoryGridHistory&          getLastHistory() { return history.back(); }
-    void                       apply(GridAction const& act);
+    Vec<StoryGridHistory>    history;
+    StoryGridGraph           rectGraph;
+    StoryGridContext         conf;
+    GraphLayoutIR::Result    layout;
+    ImVec2                   shift{20, 20};
+    Opt<ColaConstraintDebug> debug;
+    void              updateDocument(const TreeGridDocument& init_doc);
+    Vec<Slice<int>>   laneSpans;
+    Vec<float>        laneOffsets;
+    StoryGridHistory& getLastHistory() { return history.back(); }
+    void              apply(GridAction const& act);
     UnorderedSet<UpdateNeeded> updateNeeded;
     StoryGridState             state;
 };

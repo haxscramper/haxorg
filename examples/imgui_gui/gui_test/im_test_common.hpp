@@ -4,6 +4,7 @@
 #include "imgui.h"
 #include "imgui_test_engine/imgui_te_context.h"
 #include <hstd/stdlib/Str.hpp>
+#include <gui_lib/imgui_utils.hpp>
 
 #define IM_FMT_DECL(T)                                                    \
     template <>                                                           \
