@@ -32,6 +32,7 @@ void RegisterApptests_story_grid(ImGuiTestEngine* e) {
                     vars.model.conf.setTraceFile(
                         getDebugFile(ctx->Test, "subtree_init"));
 
+                    vars.trace.setTraceFile("/tmp/im_render_trace");
                     vars.add_text("* One subtree in grid");
                 }
 
@@ -39,16 +40,14 @@ void RegisterApptests_story_grid(ImGuiTestEngine* e) {
                 Vec<GridAction> actions = render_story_grid(vars.model);
 
                 if (vars.is_im_traced()) {
-                    OperationsTracer trace;
-                    trace.setTraceFile("/tmp/im_render_trace");
-                    ImRenderTraceRecord::WriteTrace(trace);
+                    ImRenderTraceRecord::WriteTrace(vars.trace);
                 }
             });
 
         t->TestFunc = ImWrapTestFuncT<StoryGridVars>(
             params, [](ImGuiTestContext* ctx, StoryGridVars& vars) {
                 ImGui::LogToFile(-1, "/tmp/imgui_file_log.txt");
-                vars.TraceThisRenderCycle = true;
+                vars.set_im_trace(3);
                 ctx->SuspendTestFunc();
             });
     }

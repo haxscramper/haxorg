@@ -21,9 +21,10 @@ struct ImTestFuncStartupParams {
 };
 
 struct ImTestVarsBase {
-    bool startup              = true;
-    bool TraceThisRenderCycle = false;
-    bool is_first() {
+    OperationsTracer trace;
+    bool             startup      = true;
+    int              TraceCounter = 0;
+    bool             is_first() {
         if (startup) {
             startup = false;
             return true;
@@ -32,7 +33,17 @@ struct ImTestVarsBase {
         }
     }
 
-    bool is_im_traced() { return TraceThisRenderCycle; }
+    bool is_im_traced() { return 0 < TraceCounter; }
+    void im_trace_run() { --TraceCounter; }
+    void set_im_trace(int count) { TraceCounter = count; }
+
+    void show_test_base_window() {
+        if (ImGui::Begin("Test base window")) {
+            if (ImGui::Button("+1 trace run")) { ++TraceCounter; }
+            ImGui::Text("Executing %d trace runs", TraceCounter);
+            ImGui::End();
+        }
+    }
 };
 
 template <typename T>
@@ -41,9 +52,8 @@ ImFuncPtr(ImGuiTestGuiFunc) ImWrapGuiFuncT(
     std::function<void(ImGuiTestContext* ctx, T&)> cb) {
     return [params, cb](ImGuiTestContext* ctx) {
         T& vars = ctx->GetVars<T>();
-        if (vars.TraceThisRenderCycle) {
-            ImRenderTraceRecord::StartTrace();
-        }
+        vars.show_test_base_window();
+        if (vars.is_im_traced()) { ImRenderTraceRecord::StartTrace(); }
 
         ImGui::SetNextWindowSize(params.windowSize);
         if (IM_FN_BEGIN(
@@ -57,9 +67,9 @@ ImFuncPtr(ImGuiTestGuiFunc) ImWrapGuiFuncT(
             IM_FN_END(End);
         }
 
-        if (vars.TraceThisRenderCycle) {
+        if (vars.is_im_traced()) {
             ImRenderTraceRecord::EndTrace();
-            vars.TraceThisRenderCycle = false;
+            vars.im_trace_run();
         }
     };
 }
