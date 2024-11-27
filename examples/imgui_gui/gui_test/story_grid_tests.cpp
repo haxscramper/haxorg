@@ -37,10 +37,18 @@ void RegisterApptests_story_grid(ImGuiTestEngine* e) {
 
                 vars.model.shift        = getContentPos(ctx);
                 Vec<GridAction> actions = render_story_grid(vars.model);
+
+                if (vars.is_im_traced()) {
+                    OperationsTracer trace;
+                    trace.setTraceFile("/tmp/im_render_trace");
+                    ImRenderTraceRecord::WriteTrace(trace);
+                }
             });
 
         t->TestFunc = ImWrapTestFuncT<StoryGridVars>(
             params, [](ImGuiTestContext* ctx, StoryGridVars& vars) {
+                ImGui::LogToFile(-1, "/tmp/imgui_file_log.txt");
+                vars.TraceThisRenderCycle = true;
                 ctx->SuspendTestFunc();
             });
     }

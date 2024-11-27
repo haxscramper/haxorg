@@ -13,6 +13,9 @@
 
 #include <fstream>
 
+Vec<ImRenderTraceRecord> ImRenderTraceRecord::stack;
+bool                     ImRenderTraceRecord::TraceState;
+
 void frame_start() {
     glfwPollEvents();
 
@@ -149,4 +152,69 @@ int StbFontMetrics::GetTextWidth(const std::string_view& text) const {
     }
 
     return textWidth;
+}
+
+ImRenderTraceRecord ImRenderTraceRecord::init(
+    const char* function,
+    int         line,
+    const char* file) {
+    ImRenderTraceRecord res;
+    if (TraceState) {
+        res.function        = function;
+        res.line            = line;
+        res.file            = file;
+        res.cursor_position = ImGui::GetCursorScreenPos();
+    }
+    return res;
+}
+
+bool ImRenderTraceRecord::ImRenderBegin(
+    bool        expr,
+    const char* im_function,
+    const char* im_id,
+    const char* function,
+    int         line,
+    const char* file) {
+    if (TraceState) {
+        auto rec        = ImRenderTraceRecord::init(function, line, file);
+        rec.im_function = im_function;
+        rec.im_id       = im_id;
+        PushRecord(rec);
+    }
+    return expr;
+}
+
+void ImRenderTraceRecord::ImRenderUnit(
+    const char* im_function,
+    const char* im_id,
+    const char* function,
+    int         line,
+    const char* file) {
+    if (TraceState) {
+        auto rec        = ImRenderTraceRecord::init(function, line, file);
+        rec.im_function = im_function;
+        rec.im_id       = im_id;
+        PushUnitRecord(rec);
+    }
+}
+
+void ImRenderTraceRecord::WriteTrace(OperationsTracer& trace) {
+    for (auto const& s : stack) { s.WriteRecord(trace, 0); }
+}
+
+void ImRenderTraceRecord::WriteRecord(OperationsTracer& trace, int level)
+    const {
+    auto os = trace.getStream();
+
+    os.indent(level * 2);
+    os << fmt(
+        "{} at {}:{} to draw {}",
+        im_function,
+        file ? fs::path{file}.filename() : "",
+        line,
+        im_id);
+
+    trace.endStream(os);
+
+    for (auto const& sub : nested) { sub.WriteRecord(trace, level + 1); }
 }

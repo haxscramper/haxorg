@@ -52,10 +52,11 @@ bool render_editable_text(
 
     if (edit == TreeGridColumn::EditMode::Multiline) {
         if (is_editing) {
-            ImGui::InputTextMultiline(
-                fmt("##{}_edit", cell_prefix).c_str(),
+            IM_FN_UNIT(
+                InputTextMultiline,
+                (fmt("##{}_edit", cell_prefix).c_str()),
                 &edit_buffer,
-                ImVec2(width, height + 10),
+                (ImVec2(width, height + 10)),
                 ImGuiInputTextFlags_None);
 
 
@@ -112,8 +113,11 @@ bool render_editable_text(
             }
             ImGui::SameLine(0.0f, 0.0f);
             ImGui::SetNextItemWidth(width);
-            ImGui::InputText(
-                fmt("##{}_edit", cell_prefix).c_str(), &edit_buffer);
+            IM_FN_UNIT(
+                InputText,
+                fmt("##{}_edit", cell_prefix).c_str(),
+                &edit_buffer);
+
             return false;
 
         } else {
@@ -192,12 +196,13 @@ void render_tree_row(
 
     if (skipped && row.nested.empty()) { return; };
 
-    if (ctx.annotated) {
-        ImGui::TableNextRow(
-            ImGuiTableRowFlags_None, row.getHeight().value_or(20));
-    } else {
-        ImGui::TableNextRow();
-    }
+    // if (ctx.annotated) {
+    ImGui::TableNextRow(
+        ImGuiTableRowFlags_None,
+        row.getHeight().value_or(20) + (row.isEditing() ? 40 : 0));
+    // } else {
+    //     ImGui::TableNextRow();
+    // }
 
     // CTX_MSG(fmt("row {}", ImGui::TableGetRowIndex()));
     if (!row.nested.empty()
@@ -315,7 +320,8 @@ Vec<GridAction> render_text_node(
     auto frameless_vars = push_frameless_window_vars();
     ImGui::SetNextWindowPos(grid.pos + model.shift);
     ImGui::SetNextWindowSize(grid.size);
-    ImGui::Begin(
+    IM_FN_BEGIN(
+        Begin,
         fmt("##{:p}", static_cast<const void*>(grid.text.data())).c_str(),
         nullptr,
         ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize);
@@ -329,7 +335,7 @@ Vec<GridAction> render_text_node(
         grid.size.x,
         TreeGridColumn::EditMode::Multiline);
 
-    ImGui::End();
+    IM_FN_END(End);
 
     ImGui::PopStyleVar(frameless_vars);
 
@@ -343,7 +349,8 @@ Vec<GridAction> render_list_node(
     auto            frameless_vars = push_frameless_window_vars();
     ImGui::SetNextWindowPos(list.pos + model.shift);
     ImGui::SetNextWindowSize(list.size);
-    if (ImGui::Begin(
+    if (IM_FN_BEGIN(
+            Begin,
             fmt("##{:p}", static_cast<const void*>(&list)).c_str(),
             nullptr,
             ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize)) {
@@ -357,7 +364,8 @@ Vec<GridAction> render_list_node(
             result.push_back(GridAction{GridAction::LinkListClick{}});
         }
 
-        if (ImGui::BeginTable(
+        if (IM_FN_BEGIN(
+                BeginTable,
                 fmt("##{:p}", static_cast<const void*>(&list)).c_str(),
                 1,
                 ImGuiTableFlags_Borders              //
@@ -379,9 +387,9 @@ Vec<GridAction> render_list_node(
                     item.width,
                     TreeGridColumn::EditMode::Multiline);
             }
-            ImGui::EndTable();
+            IM_FN_END(EndTable);
         }
-        ImGui::End();
+        IM_FN_END(End);
     }
 
     ImGui::PopStyleVar(frameless_vars);
@@ -420,7 +428,8 @@ Vec<GridAction> render_table(
     ImGui::SetNextWindowPos(ImVec2(grid.pos + model.shift));
     ImGui::SetNextWindowSize(ImVec2(grid.size.x, 20));
     auto frameless_vars = push_frameless_window_vars();
-    if (ImGui::Begin(
+    if (IM_FN_BEGIN(
+            Begin,
             "HeaderOverlay",
             nullptr,
             ImGuiWindowFlags_NoDecoration
@@ -429,7 +438,8 @@ Vec<GridAction> render_table(
                 | ImGuiWindowFlags_NoScrollbar
                 | ImGuiWindowFlags_NoScrollWithMouse)) {
         ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
-        if (ImGui::BeginTable(
+        if (IM_FN_BEGIN(
+                BeginTable,
                 "HeaderTable",
                 1 + doc.columns.size(),
                 ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Borders
@@ -448,14 +458,14 @@ Vec<GridAction> render_table(
 
             ImGui::TableHeadersRow();
 
-            ImGui::EndTable();
+            IM_FN_END(EndTable);
         }
-        ImGui::End();
+        IM_FN_END(End);
     }
     ImGui::PopStyleVar(frameless_vars);
 
-    if (ImGui::BeginTable(
-            "TreeTable", 1 + doc.columns.size(), tableFlags)) {
+    if (IM_FN_BEGIN(
+            BeginTable, "TreeTable", 1 + doc.columns.size(), tableFlags)) {
 
         if (model.conf.annotated) {
             ImGui::PushStyleVar(
@@ -480,11 +490,10 @@ Vec<GridAction> render_table(
             render_tree_row(sub, result, doc, ctx, documentNodeIdx);
         }
 
-
         // ImGui::TableNextRow(ImGuiTableRowFlags_None, 800.0f);
         // ImGui::TableNextColumn();
 
-        ImGui::EndTable();
+        IM_FN_END(EndTable);
     }
 
     return result;
@@ -504,14 +513,15 @@ Vec<GridAction> render_table_node(
     // Table is drawn in a separate window so it could have the widgets
     // inside, but otherwise is positioned completely independently on the
     // screen.
-    if (ImGui::Begin(
+    if (IM_FN_BEGIN(
+            Begin,
             "Standalone Table Window",
             nullptr,
             ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize)) {
         ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
         result = render_table(model, grid, documentNodeIdx);
 
-        ImGui::End();
+        IM_FN_END(End);
     }
     ImGui::PopStyleVar(frameless_vars);
 

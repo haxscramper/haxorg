@@ -30,6 +30,8 @@ struct TreeGridCell {
     int  height;
     int  width;
     DESC_FIELDS(TreeGridCell, (height, width, data));
+
+    bool isEditing() const { return isValue() && getValue().is_editing; }
 };
 
 struct TreeGridColumn {
@@ -50,6 +52,12 @@ struct TreeGridRow {
     DESC_FIELDS(
         TreeGridRow,
         (columns, origin, flatIdx, nested, isVisible, isOpen));
+
+    bool isEditing() const {
+        return rs::any_of(columns, [](auto const& arg) -> bool {
+            return arg.second.isEditing();
+        });
+    }
 
     Vec<int> getOriginPath() const {
         Vec<int> idx;

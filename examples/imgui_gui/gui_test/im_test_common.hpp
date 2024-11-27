@@ -21,7 +21,8 @@ struct ImTestFuncStartupParams {
 };
 
 struct ImTestVarsBase {
-    bool startup = true;
+    bool startup              = true;
+    bool TraceThisRenderCycle = false;
     bool is_first() {
         if (startup) {
             startup = false;
@@ -30,6 +31,8 @@ struct ImTestVarsBase {
             return false;
         }
     }
+
+    bool is_im_traced() { return TraceThisRenderCycle; }
 };
 
 template <typename T>
@@ -37,14 +40,27 @@ ImFuncPtr(ImGuiTestGuiFunc) ImWrapGuiFuncT(
     ImTestFuncStartupParams const&                 params,
     std::function<void(ImGuiTestContext* ctx, T&)> cb) {
     return [params, cb](ImGuiTestContext* ctx) {
-        ImGui::SetNextWindowSize(params.windowSize);
-        ImGui::Begin(
-            params.windowName.c_str(),
-            NULL,
-            ImGuiWindowFlags_NoSavedSettings);
         T& vars = ctx->GetVars<T>();
-        cb(ctx, vars);
-        ImGui::End();
+        if (vars.TraceThisRenderCycle) {
+            ImRenderTraceRecord::StartTrace();
+        }
+
+        ImGui::SetNextWindowSize(params.windowSize);
+        if (IM_FN_BEGIN(
+                Begin,
+                params.windowName.c_str(),
+                NULL,
+                ImGuiWindowFlags_NoSavedSettings)) {
+
+            cb(ctx, vars);
+
+            IM_FN_END(End);
+        }
+
+        if (vars.TraceThisRenderCycle) {
+            ImRenderTraceRecord::EndTrace();
+            vars.TraceThisRenderCycle = false;
+        }
     };
 }
 
