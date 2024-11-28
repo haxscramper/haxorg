@@ -160,10 +160,11 @@ ImRenderTraceRecord ImRenderTraceRecord::init(
     const char* file) {
     ImRenderTraceRecord res;
     if (TraceState) {
-        res.function        = function;
-        res.line            = line;
-        res.file            = file;
-        res.cursor_position = ImGui::GetCursorScreenPos();
+        res.function         = function;
+        res.line             = line;
+        res.file             = file;
+        res.cursor_screenpos = ImGui::GetCursorScreenPos();
+        res.cursor_winpos    = ImGui::GetCursorPos();
     }
     return res;
 }
@@ -178,7 +179,7 @@ bool ImRenderTraceRecord::ImRenderBegin(
     if (TraceState) {
         auto rec        = ImRenderTraceRecord::init(function, line, file);
         rec.im_function = im_function;
-        rec.im_id       = im_id;
+        if (im_id) { rec.im_id = im_id; }
         PushRecord(rec);
     }
     return expr;
@@ -193,13 +194,46 @@ void ImRenderTraceRecord::ImRenderUnit(
     if (TraceState) {
         auto rec        = ImRenderTraceRecord::init(function, line, file);
         rec.im_function = im_function;
+        if (im_id) { rec.im_id = im_id; }
+        PushUnitRecord(rec);
+    }
+}
+
+bool ImRenderTraceRecord::ImRenderExpr(
+    bool        expr,
+    const char* im_function,
+    const char* function,
+    int         line,
+    const char* file) {
+    if (TraceState) {
+        auto rec        = ImRenderTraceRecord::init(function, line, file);
+        rec.im_function = im_function;
+        PushUnitRecord(rec);
+    }
+    return expr;
+}
+
+void ImRenderTraceRecord::ImRenderUnit(
+    const std::string& im_function,
+    const std::string& im_id,
+    const char*        function,
+    int                line,
+    const char*        file) {
+    if (TraceState) {
+        auto rec        = ImRenderTraceRecord::init(function, line, file);
+        rec.im_function = im_function;
         rec.im_id       = im_id;
         PushUnitRecord(rec);
     }
 }
 
 void ImRenderTraceRecord::WriteTrace(OperationsTracer& trace) {
-    for (auto const& s : stack) { s.WriteRecord(trace, 0); }
+    for (auto const& [idx, s] : enumerate(stack)) {
+        auto os = trace.getStream();
+        os << fmt("[{}] -- ", idx);
+        trace.endStream(os);
+        s.WriteRecord(trace, idx + 1);
+    }
 }
 
 void ImRenderTraceRecord::WriteRecord(OperationsTracer& trace, int level)
@@ -209,10 +243,16 @@ void ImRenderTraceRecord::WriteRecord(OperationsTracer& trace, int level)
     os.indent(level * 2);
     os << fmt(
         "{} at {}:{} to draw {}",
-        im_function,
+        im_function.value_or("<>"),
         file ? fs::path{file}.filename() : "",
         line,
-        im_id);
+        escape_literal(im_id.value_or("?")));
+
+    if (cursor_screenpos) {
+        os << fmt(" screen {}", cursor_screenpos.value());
+    }
+
+    if (cursor_winpos) { os << fmt(" win {}", cursor_winpos.value()); }
 
     trace.endStream(os);
 

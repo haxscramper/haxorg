@@ -1,5 +1,6 @@
 #pragma once
 
+#include <hstd/stdlib/Debug.hpp>
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "imgui.h"
 #include "imgui_test_engine/imgui_te_context.h"

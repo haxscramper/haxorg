@@ -47,7 +47,10 @@ void RegisterApptests_story_grid(ImGuiTestEngine* e) {
         t->TestFunc = ImWrapTestFuncT<StoryGridVars>(
             params, [](ImGuiTestContext* ctx, StoryGridVars& vars) {
                 ImGui::LogToFile(-1, "/tmp/imgui_file_log.txt");
-                vars.set_im_trace(3);
+                vars.set_im_trace(1);
+                ImVec2 wpos = getContentPos(ctx);
+                ctx->MouseTeleportToPos(wpos + ImVec2{});
+                ctx->MouseClick(0);
                 ctx->SuspendTestFunc();
             });
     }

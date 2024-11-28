@@ -60,7 +60,7 @@ bool render_editable_text(
                 ImGuiInputTextFlags_None);
 
 
-            if (ImGui::Button("done")) {
+            if (IM_FN_EXPR(Button, "done")) {
                 value             //
                     = edit_buffer //
                     | rv::remove_if(
@@ -68,7 +68,7 @@ bool render_editable_text(
                     | rs::to<std::string>;
                 is_editing = false;
                 return true;
-            } else if (ImGui::SameLine(); ImGui::Button("cancel")) {
+            } else if (ImGui::SameLine(); IM_FN_EXPR(Button, "cancel")) {
                 is_editing = false;
                 return false;
             } else {
@@ -82,15 +82,19 @@ bool render_editable_text(
             // NOTE: Using ID with runtime formatting here because
             // there is more than one cell that might potentially be
             // edited.
-            ImGui::BeginChild(
-                fmt("##{}_wrap", cell_prefix).c_str(),
-                ImVec2(width, height),
-                false,
-                ImGuiWindowFlags_NoScrollbar);
-            ImGui::PushID(fmt("##{}_view", cell_prefix).c_str());
-            ImGui::TextWrapped("%s", value.c_str());
-            ImGui::PopID();
-            ImGui::EndChild();
+            if (IM_FN_BEGIN(
+                    BeginChild,
+                    fmt("##{}_wrap", cell_prefix).c_str(),
+                    ImVec2(width, height),
+                    false,
+                    ImGuiWindowFlags_NoScrollbar)) {
+                ImGui::PushID(fmt("##{}_view", cell_prefix).c_str());
+                IM_FN_STMT(TextWrapped, "%s", value.c_str());
+                IM_FN_PRINT("Wrapped text", value);
+                ImGui::PopID();
+                IM_FN_END(EndChild);
+            }
+
             ImGui::PopTextWrapPos();
             ImGui::PopStyleVar(frameless_vars);
 
@@ -113,15 +117,17 @@ bool render_editable_text(
             }
             ImGui::SameLine(0.0f, 0.0f);
             ImGui::SetNextItemWidth(width);
-            IM_FN_UNIT(
+            IM_FN_STMT(
                 InputText,
                 fmt("##{}_edit", cell_prefix).c_str(),
                 &edit_buffer);
+            IM_FN_PRINT("Single line edit text", edit_buffer);
 
             return false;
 
         } else {
-            ImGui::Text("%s", value.c_str());
+            IM_FN_STMT(Text, "%s", value.c_str());
+            IM_FN_PRINT("Text render", value);
             if (ImGui::IsItemClicked()) {
                 is_editing  = true;
                 edit_buffer = value;
@@ -196,10 +202,14 @@ void render_tree_row(
 
     if (skipped && row.nested.empty()) { return; };
 
+    int rowHeight = row.getHeight().value_or(20)
+                  + (row.isEditing() ? 40 : 0);
+    auto __im_scope = IM_SCOPE_BEGIN(
+        "Tree row",
+        fmt("row [{}] height {}", ImGui::TableGetRowIndex(), rowHeight));
+
     // if (ctx.annotated) {
-    ImGui::TableNextRow(
-        ImGuiTableRowFlags_None,
-        row.getHeight().value_or(20) + (row.isEditing() ? 40 : 0));
+    ImGui::TableNextRow(ImGuiTableRowFlags_None, rowHeight);
     // } else {
     //     ImGui::TableNextRow();
     // }
