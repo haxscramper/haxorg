@@ -1,16 +1,27 @@
 #include "im_test_common.hpp"
-#include "imgui_internal.h" // Required for accessing internal structures
-
-
+#include "imgui_internal.h"
 #include <hstd/stdlib/Filesystem.hpp>
 
 void PrintAllWindows() {
-    ImGuiContext& g = *GImGui; // Access the global ImGui context
+    ImGuiContext& g = *GImGui;
     for (int i = 0; i < g.Windows.Size; i++) {
         ImGuiWindow* window = g.Windows[i];
         LOG(INFO) << fmt(
-            "Window Name: \"{}\", ID: {}", window->Name, window->ID);
+            "Window Name:\"{}\", ID:{} POS:{} SIZE:{}",
+            window->Name,
+            window->ID,
+            window->Pos,
+            window->Size);
     }
+}
+
+ImGuiWindow* GetWindowByName(std::string const& name) {
+    ImGuiContext& g = *GImGui;
+    for (int i = 0; i < g.Windows.Size; i++) {
+        ImGuiWindow* window = g.Windows[i];
+        if (window && window->Name == name) { return window; }
+    }
+    return nullptr;
 }
 
 
@@ -29,8 +40,6 @@ ImVec2 getContentPos(ImGuiTestContext* ctx) {
         return ImGui::GetWindowPos()
              + ImVec2{0, ImGui::GetCurrentWindow()->TitleBarHeight};
     } else {
-        _dfmt(ctx->GetWindowByRef(ctx->GetRef())->Pos);
-        _dfmt(ctx->GetWindowByRef(ctx->GetRef())->TitleBarHeight);
         return ctx->GetWindowByRef(ctx->GetRef())->Pos
              + ImVec2{
                  0, ctx->GetWindowByRef(ctx->GetRef())->TitleBarHeight};

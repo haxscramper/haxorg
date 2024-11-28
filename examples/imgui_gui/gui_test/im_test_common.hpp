@@ -55,7 +55,7 @@ ImFuncPtr(ImGuiTestGuiFunc) ImWrapGuiFuncT(
         ImGui::SetNextWindowSize(params.windowSize);
         if (IM_FN_BEGIN(
                 Begin,
-                "TEST WINDOW",
+                params.windowName.c_str(),
                 NULL,
                 ImGuiWindowFlags_NoSavedSettings)) {
 
@@ -78,12 +78,18 @@ ImFuncPtr(ImGuiTestGuiFunc)
     return ImWrapGuiFuncT<T>(ImTestFuncStartupParams{}, cb);
 }
 
+ImGuiWindow* GetWindowByName(std::string const& name);
+
 template <typename T>
 ImFuncPtr(ImGuiTestGuiFunc) ImWrapTestFuncT(
     ImTestFuncStartupParams const&                 params,
     std::function<void(ImGuiTestContext* ctx, T&)> cb) {
     return [params, cb](ImGuiTestContext* ctx) {
-        T& vars = ctx->GetVars<T>();
+        T&   vars = ctx->GetVars<T>();
+        auto wref = GetWindowByName(params.windowName);
+        LOGIC_ASSERTION_CHECK(
+            wref, "Cannot find window with name {}", params.windowName);
+        ctx->SetRef(wref);
         cb(ctx, vars);
     };
 }

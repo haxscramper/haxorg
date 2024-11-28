@@ -49,8 +49,6 @@ void RegisterApptests_story_grid(ImGuiTestEngine* e) {
             params, [](ImGuiTestContext* ctx, StoryGridVars& vars) {
                 // ImGui::LogToFile(-1, "/tmp/imgui_file_log.txt");
 
-                ctx->SetRef("TEST WINDOW");
-                // ImGui::GetWindow
                 ImVec2 wpos = getContentPos(ctx);
                 _dfmt(wpos);
                 ctx->MouseMoveToPos(wpos + ImVec2{50, 50});
