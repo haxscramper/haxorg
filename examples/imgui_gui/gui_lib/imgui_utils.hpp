@@ -75,7 +75,10 @@ struct ImRenderTraceRecord {
     static Vec<ImRenderTraceRecord> stack;
     static bool                     TraceState;
 
-    static void StartTrace() { TraceState = true; }
+    static void StartTrace() {
+        stack.clear();
+        TraceState = true;
+    }
 
     static void EndTrace() { TraceState = false; }
 

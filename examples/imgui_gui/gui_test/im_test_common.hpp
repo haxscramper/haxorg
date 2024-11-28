@@ -35,7 +35,9 @@ struct ImTestVarsBase {
     }
 
     bool is_im_traced() { return 0 < TraceCounter; }
-    void im_trace_run() { --TraceCounter; }
+    void im_trace_run() {
+        if (is_im_traced()) { --TraceCounter; }
+    }
     void set_im_trace(int count) { TraceCounter = count; }
 
     void show_test_base_window() {
