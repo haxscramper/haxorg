@@ -1,6 +1,18 @@
 #include "im_test_common.hpp"
+#include "imgui_internal.h" // Required for accessing internal structures
+
 
 #include <hstd/stdlib/Filesystem.hpp>
+
+void PrintAllWindows() {
+    ImGuiContext& g = *GImGui; // Access the global ImGui context
+    for (int i = 0; i < g.Windows.Size; i++) {
+        ImGuiWindow* window = g.Windows[i];
+        LOG(INFO) << fmt(
+            "Window Name: \"{}\", ID: {}", window->Name, window->ID);
+    }
+}
+
 
 Str getDebugFile(ImGuiTest* t, const Str& suffix) {
     auto res = fs::path{fmt(
@@ -17,8 +29,19 @@ ImVec2 getContentPos(ImGuiTestContext* ctx) {
         return ImGui::GetWindowPos()
              + ImVec2{0, ImGui::GetCurrentWindow()->TitleBarHeight};
     } else {
+        _dfmt(ctx->GetWindowByRef(ctx->GetRef())->Pos);
+        _dfmt(ctx->GetWindowByRef(ctx->GetRef())->TitleBarHeight);
         return ctx->GetWindowByRef(ctx->GetRef())->Pos
              + ImVec2{
                  0, ctx->GetWindowByRef(ctx->GetRef())->TitleBarHeight};
+    }
+}
+
+void ImTestVarsBase::show_test_base_window() {
+    if (ImGui::Begin("Test base window")) {
+        if (ImGui::Button("+1 trace run")) { ++TraceCounter; }
+        ImGui::Text("Executing %d trace runs", TraceCounter);
+        if (ImGui::Button("Print all windows")) { PrintAllWindows(); }
+        ImGui::End();
     }
 }

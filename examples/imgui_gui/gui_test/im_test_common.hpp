@@ -40,13 +40,7 @@ struct ImTestVarsBase {
     }
     void set_im_trace(int count) { TraceCounter = count; }
 
-    void show_test_base_window() {
-        if (ImGui::Begin("Test base window")) {
-            if (ImGui::Button("+1 trace run")) { ++TraceCounter; }
-            ImGui::Text("Executing %d trace runs", TraceCounter);
-            ImGui::End();
-        }
-    }
+    void show_test_base_window();
 };
 
 template <typename T>
@@ -61,7 +55,7 @@ ImFuncPtr(ImGuiTestGuiFunc) ImWrapGuiFuncT(
         ImGui::SetNextWindowSize(params.windowSize);
         if (IM_FN_BEGIN(
                 Begin,
-                params.windowName.c_str(),
+                "TEST WINDOW",
                 NULL,
                 ImGuiWindowFlags_NoSavedSettings)) {
 
@@ -90,7 +84,6 @@ ImFuncPtr(ImGuiTestGuiFunc) ImWrapTestFuncT(
     std::function<void(ImGuiTestContext* ctx, T&)> cb) {
     return [params, cb](ImGuiTestContext* ctx) {
         T& vars = ctx->GetVars<T>();
-        ctx->SetRef(params.windowName.c_str());
         cb(ctx, vars);
     };
 }

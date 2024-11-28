@@ -48,6 +48,14 @@ bool render_editable_text(
     int                      height,
     int                      width,
     TreeGridColumn::EditMode edit) {
+    auto __scope = IM_SCOPE_BEGIN(
+        "Editable text",
+        fmt("height;{} width:{} editing:{} buffer:{}",
+            height,
+            width,
+            is_editing,
+            escape_literal(edit_buffer)));
+
     auto cell_prefix = fmt("{:p}", static_cast<const void*>(value.data()));
 
     if (edit == TreeGridColumn::EditMode::Multiline) {
@@ -58,7 +66,7 @@ bool render_editable_text(
                 &edit_buffer,
                 (ImVec2(width, height + 10)),
                 ImGuiInputTextFlags_None);
-
+            IM_FN_PRINT("Render done", "");
 
             if (IM_FN_EXPR(Button, "done")) {
                 value             //
@@ -88,6 +96,8 @@ bool render_editable_text(
                     ImVec2(width, height),
                     false,
                     ImGuiWindowFlags_NoScrollbar)) {
+                IM_FN_PRINT(
+                    "Child", fmt("width:{} height:{}", width, height));
                 ImGui::PushID(fmt("##{}_view", cell_prefix).c_str());
                 IM_FN_STMT(TextWrapped, "%s", value.c_str());
                 IM_FN_PRINT("Wrapped text", value);
@@ -146,7 +156,7 @@ bool render_editable_cell(
         val.value,
         val.edit_buffer,
         val.is_editing,
-        cell.height,
+        val.is_editing ? cell.height + 120 : cell.height,
         cell.width,
         col.edit);
 }
@@ -202,17 +212,15 @@ void render_tree_row(
 
     if (skipped && row.nested.empty()) { return; };
 
-    int rowHeight = row.getHeight().value_or(20)
-                  + (row.isEditing() ? 40 : 0);
     auto __im_scope = IM_SCOPE_BEGIN(
-        "Tree row",
-        fmt("row [{}] height {}", ImGui::TableGetRowIndex(), rowHeight));
+        "Tree row", fmt("row [{}]", ImGui::TableGetRowIndex()));
 
-    // if (ctx.annotated) {
-    ImGui::TableNextRow(ImGuiTableRowFlags_None, rowHeight);
-    // } else {
-    //     ImGui::TableNextRow();
-    // }
+    if (ctx.annotated) {
+        ImGui::TableNextRow(
+            ImGuiTableRowFlags_None, row.getHeight().value());
+    } else {
+        ImGui::TableNextRow();
+    }
 
     // CTX_MSG(fmt("row {}", ImGui::TableGetRowIndex()));
     if (!row.nested.empty()
