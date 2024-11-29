@@ -185,16 +185,25 @@ void render_cell(
     if (IM_FN_BEGIN(
             BeginChild, c_fmt("cell_{}_{}", row.flatIdx, col.name))) {
         auto res = render_editable_cell(cell, ctx, col);
-        if (res == EditableTextResult::Changed) {
-            ctx.actions.push_back(GridAction{GridAction::EditCell{
-                .cell    = cell,
-                .updated = cell.getValue().value,
-            }});
-        } else if (res == EditableTextResult::StartedEditing) {
-            ctx.actions.push_back(GridAction{GridAction::EditCellStarted{
-                .cell            = cell,
-                .documentNodeIdx = documentNodeIdx,
-            }});
+        switch (res) {
+            case EditableTextResult::Changed: {
+                ctx.actions.push_back(GridAction{GridAction::EditCell{
+                    .cell    = cell,
+                    .updated = cell.getValue().value,
+                }});
+                [[fallthrough]];
+            }
+            case EditableTextResult::CancelledEditing: [[fallthrough]];
+            case EditableTextResult::StartedEditing: {
+                ctx.actions.push_back(
+                    GridAction{GridAction::EditCellChanged{
+                        .cell            = cell,
+                        .documentNodeIdx = documentNodeIdx,
+                    }});
+                break;
+            }
+            default: {
+            };
         }
     }
 
@@ -495,7 +504,14 @@ void render_table(
 
     auto gridStart = ImGui::GetCursorScreenPos()
                    + ImVec2(0, tableHeaderHeight);
-    if (IM_FN_BEGIN(BeginChild, "table_ch")) {
+    auto gridSize = ImVec2(doc.getWidth(), doc.getHeight());
+    render_debug_rect(ImRect(gridStart, gridStart + gridSize));
+    if (IM_FN_BEGIN(
+            BeginChild,
+            "table_ch",
+            gridSize,
+            ImGuiChildFlags_None,
+            ImGuiWindowFlags_NoScrollbar)) {
         for (auto& sub : doc.rows) {
             render_tree_row(sub, doc, ctx, documentNodeIdx, gridStart);
         }
@@ -1407,8 +1423,8 @@ void StoryGridModel::apply(const GridAction& act) {
             break;
         }
 
-        case GridAction::Kind::EditCellStarted: {
-            rectGraph.nodes.at(act.getEditCellStarted().documentNodeIdx)
+        case GridAction::Kind::EditCellChanged: {
+            rectGraph.nodes.at(act.getEditCellChanged().documentNodeIdx)
                 .getTreeGrid()
                 .node.resetCellPositions();
             break;
@@ -1460,26 +1476,41 @@ void StoryGridContext::message(
     OperationsTracer::message(value, activeLevel, line, function, file);
 }
 
+int TreeGridRow::getHeightDirect(int padding) const {
+    return rs::max(
+               own_view(columns.keys())
+               | rv::transform([&](Str const& col) -> int {
+                     return columns.at(col).getHeight();
+                 }))
+         + padding;
+}
+
 Opt<int> TreeGridRow::getHeight(int padding) const {
     if (isVisible) {
-        return rs::max(
-                   own_view(columns.keys())
-                   | rv::transform([&](Str const& col) {
-                         return columns.at(col).height;
-                     }))
-             + padding;
+        return getHeightDirect(padding);
     } else {
         return std::nullopt;
     }
+}
+
+int TreeGridRow::getHeightRecDirect(int padding) const {
+    return getHeight(padding).value()
+         + rs::fold_left(
+               nested | rv::transform([&](TreeGridRow const& r) -> int {
+                   return r.getHeightRecDirect(padding);
+               }),
+               0,
+               [](int lhs, int rhs) { return lhs + rhs; });
 }
 
 Opt<int> TreeGridRow::getHeightRec(int padding) const {
     if (isVisible) {
         return getHeight(padding).value()
              + rs::fold_left(
-                   nested | rv::transform([&](TreeGridRow const& r) {
-                       return r.getHeightRec(padding).value_or(0);
-                   }),
+                   nested
+                       | rv::transform([&](TreeGridRow const& r) -> int {
+                             return r.getHeightRec(padding).value_or(0);
+                         }),
                    0,
                    [](int lhs, int rhs) { return lhs + rhs; });
     } else {
@@ -1493,16 +1524,13 @@ void TreeGridDocument::resetCellPositions() {
     int                            index  = 0;
     Func<void(TreeGridRow&, bool)> aux;
     aux = [&, this](TreeGridRow& row, bool isVisible) {
+        _dfmt(index, offset);
         this->rowPositions.resize_at(index) = offset;
         row.flatIdx                         = index;
 
         if (isVisible) {
             offset += this->rowPadding;
             offset += row.getHeight().value();
-
-            if (row.isEditing()) { offset += editingPadding; }
-
-            ++index;
         }
         ++index;
 
@@ -1518,7 +1546,7 @@ void TreeGridDocument::resetCellPositions() {
         colOffset += col.width + colPadding;
     }
 
-    _dfmt(colPositions, rowPositions);
+    _dfmt(colPositions, rowPositions, getHeight(), getWidth());
 }
 
 void run_story_grid_cycle(StoryGridModel& model) {

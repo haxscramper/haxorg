@@ -64,13 +64,17 @@ int push_frameless_window_vars() {
 }
 
 void render_debug_rect(const ImVec2& size, int border, ImU32 const& col) {
-    ImGui::SetCursorPosX(ImGui::GetCursorPosX() - border);
-    ImGui::SetCursorPosY(ImGui::GetCursorPosY() - border);
-    ImVec2 p0 = ImGui::GetCursorScreenPos();
-    ImVec2 p1 = ImVec2(
-        p0.x + size.x + (2 * border), p0.y + size.y + (2 * border));
-    ImGui::GetForegroundDrawList()->AddRect(p0, p1, col);
+    render_debug_rect(
+        ImRect(ImGui::GetCursorPos(), ImGui::GetCursorScreenPos() + size),
+        border,
+        col);
 }
+
+
+void render_debug_rect(const ImRect& rect, int border, const ImU32& col) {
+    ImGui::GetForegroundDrawList()->AddRect(rect.Min, rect.Max, col);
+}
+
 
 Opt<Str> get_fontconfig_path(Str const& fontname) {
     FcInit();

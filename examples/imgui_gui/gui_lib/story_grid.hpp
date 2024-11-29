@@ -14,9 +14,11 @@
 #include <hstd/wrappers/adaptagrams_wrap/adaptagrams_ir.hpp>
 
 struct TreeGridCell {
+
     struct None {
         DESC_FIELDS(None, ());
     };
+
     struct Value {
         std::string     value       = std::string{};
         org::ImmAdapter origin      = org::ImmAdapter{};
@@ -26,12 +28,16 @@ struct TreeGridCell {
     };
 
     SUB_VARIANTS(Kind, Data, data, getKind, None, Value);
+    DESC_FIELDS(TreeGridCell, (height, width, data));
+
+
     Data data;
     int  height;
     int  width;
-    DESC_FIELDS(TreeGridCell, (height, width, data));
+
 
     bool isEditing() const { return isValue() && getValue().is_editing; }
+    int  getHeight() const { return height + (isEditing() ? 40 : 0); }
 };
 
 struct TreeGridColumn {
@@ -82,8 +88,9 @@ struct TreeGridRow {
         return result;
     }
 
+    int      getHeightDirect(int padding = 0) const;
     Opt<int> getHeight(int padding = 0) const;
-
+    int      getHeightRecDirect(int padding = 0) const;
     Opt<int> getHeightRec(int padding = 0) const;
 
     TreeGridRow* getLastLeaf() {
@@ -108,9 +115,8 @@ struct TreeGridDocument {
     Vec<int>            rowPositions;
     Vec<int>            colPositions;
     Vec<TreeGridColumn> columns;
-    int                 rowPadding     = 6;
-    int                 colPadding     = 6;
-    int                 editingPadding = 40;
+    int                 rowPadding = 6;
+    int                 colPadding = 6;
 
     UnorderedMap<org::ImmUniqId, int> rowOrigins;
 
@@ -358,10 +364,10 @@ struct GridAction {
         DESC_FIELDS(Scroll, (pos, direction));
     };
 
-    struct EditCellStarted {
+    struct EditCellChanged {
         TreeGridCell cell;
         int          documentNodeIdx;
-        DESC_FIELDS(EditCellStarted, (cell, documentNodeIdx));
+        DESC_FIELDS(EditCellChanged, (cell, documentNodeIdx));
     };
 
     struct LinkListClick {
@@ -384,7 +390,7 @@ struct GridAction {
         Scroll,
         LinkListClick,
         RowFolding,
-        EditCellStarted);
+        EditCellChanged);
 
     Data data;
     DESC_FIELDS(GridAction, (data));
