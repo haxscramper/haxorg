@@ -155,11 +155,11 @@ struct ImRenderTraceRecord {
 
 #define IM_SEC_BEGIN(_Im_Func, ...)                                       \
     (void)ImRenderTraceRecord::ImRenderBegin(true, #_Im_Func, nullptr);   \
-    _Im_Func(__VA_ARGS__)
+    ImGui::_Im_Func(__VA_ARGS__)
 
 #define IM_SEC_END(_Im_Func, ...)                                         \
     ImREnderTraceRecord::ImRenderEnd();                                   \
-    _Im_Func(__VA_ARGS__);
+    ImGui::_Im_Func(__VA_ARGS__);
 
 #define IM_FN_BEGIN(_Im_Func, _Im_Id, ...)                                \
     ImRenderTraceRecord::ImRenderBegin(                                   \

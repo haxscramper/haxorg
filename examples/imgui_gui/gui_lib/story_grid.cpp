@@ -102,8 +102,9 @@ bool render_editable_text(
                 IM_FN_STMT(TextWrapped, "%s", value.c_str());
                 IM_FN_PRINT("Wrapped text", value);
                 ImGui::PopID();
-                IM_FN_END(EndChild);
             }
+            
+            IM_FN_END(EndChild);
 
             ImGui::PopTextWrapPos();
             ImGui::PopStyleVar(frameless_vars);
@@ -117,23 +118,18 @@ bool render_editable_text(
         }
     } else {
         if (is_editing) {
-            // if (ImGui::Button("OK")) {
-            //     value      = edit_buffer;
-            //     is_editing = false;
-            //     return true;
-            // } else if (ImGui::SameLine(0.0f, 0.0f); ImGui::Button("X"))
-            // {
-            //     is_editing = false;
-            //     return false;
-            // }
-            // ImGui::SameLine(0.0f, 0.0f);
-            // ImGui::SetNextItemWidth(width);
-            // IM_FN_STMT(
-            //     InputText,
-            //     fmt("##{}_edit", cell_prefix).c_str(),
-            //     &edit_buffer);
-            // IM_FN_PRINT("Single line edit text", edit_buffer);
-
+            if (ImGui::Button("OK")) {
+                value      = edit_buffer;
+                is_editing = false;
+                return true;
+            } else if (ImGui::SameLine(0.0f, 0.0f); ImGui::Button("X")) {
+                is_editing = false;
+                return false;
+            }
+            ImGui::SameLine(0.0f, 0.0f);
+            ImGui::SetNextItemWidth(width);
+            ImGui::InputText(
+                fmt("##{}_edit", cell_prefix).c_str(), &edit_buffer);
             return false;
 
         } else {
