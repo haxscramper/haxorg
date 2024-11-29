@@ -115,8 +115,9 @@ struct TreeGridDocument {
     Vec<int>            rowPositions;
     Vec<int>            colPositions;
     Vec<TreeGridColumn> columns;
-    int                 rowPadding = 6;
-    int                 colPadding = 6;
+    int                 rowPadding    = 6;
+    int                 colPadding    = 6;
+    int                 treeFoldWidth = 120;
 
     UnorderedMap<org::ImmUniqId, int> rowOrigins;
 
@@ -133,6 +134,8 @@ struct TreeGridDocument {
     ImVec2 getCellPos(int row, CR<Str> column) {
         return ImVec2(getColumnXPos(column), getRowYPos(row));
     }
+
+    ImVec2 getSize() const { return ImVec2(getWidth(), getHeight()); }
 
     int getColumnIndex(CR<Str> name) {
         auto iter = rs::find_if(
@@ -209,9 +212,8 @@ struct TreeGridDocument {
 struct StoryGridNode {
     struct TreeGrid {
         ImVec2           pos;
-        ImVec2           size;
         TreeGridDocument node;
-        DESC_FIELDS(TreeGrid, (node, pos, size));
+        DESC_FIELDS(TreeGrid, (node, pos));
     };
 
     struct LinkList {

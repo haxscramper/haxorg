@@ -464,7 +464,7 @@ void render_table(
     // window obviously solves this issue, as it is positioned completely
     // independently of the content in the grid table itself.
     ImGui::SetNextWindowPos(ImVec2(grid.pos + model.shift));
-    ImGui::SetNextWindowSize(ImVec2(grid.size.x, 20));
+    ImGui::SetNextWindowSize(ImVec2(grid.node.getWidth(), 20));
     auto frameless_vars = push_frameless_window_vars();
     if (IM_FN_BEGIN(
             Begin,
@@ -504,7 +504,7 @@ void render_table(
 
     auto gridStart = ImGui::GetCursorScreenPos()
                    + ImVec2(0, tableHeaderHeight);
-    auto gridSize = ImVec2(doc.getWidth(), doc.getHeight());
+    auto gridSize = doc.getSize();
     render_debug_rect(ImRect(gridStart, gridStart + gridSize));
     if (IM_FN_BEGIN(
             BeginChild,
@@ -528,7 +528,8 @@ void render_table_node(
     auto& doc = grid.node;
 
     ImGui::SetNextWindowPos(grid.pos + model.shift);
-    ImGui::SetNextWindowSize(grid.size);
+    ImGui::SetNextWindowSize(
+        grid.node.getSize() + ImVec2(0, tableHeaderHeight));
     auto frameless_vars = push_frameless_window_vars();
     // Table is drawn in a separate window so it could have the widgets
     // inside, but otherwise is positioned completely independently on the
@@ -941,24 +942,22 @@ int add_root_grid_node(
     __perf_trace_end("gui");
     doc.resetCellPositions();
 
-    auto w = doc.getWidth() + tree_fold_column;
-    auto h = doc.getHeight();
+
     CTX_MSG(
-        fmt("Add root node to the document, grid size: width={} height={} "
+        fmt("Add root node to the document, grid size={} "
             "row-count={} col-count={} columns={}",
-            w,
-            h,
+            doc.getSize(),
             doc.rowPositions.size(),
             doc.columns.size(),
             doc.columns));
 
     StoryGridNode::TreeGrid grid{
         .pos  = ImVec2(0, 0),
-        .size = ImVec2(w, h),
         .node = doc,
     };
 
-    int flatIdx = res.addNode(0, grid.size, StoryGridNode{.data = grid});
+    int flatIdx = res.addNode(
+        0, doc.getSize(), StoryGridNode{.data = grid});
 
     for (auto const& row : doc.flatRows(true)) {
         res.orgToId.insert_or_assign(
@@ -1150,10 +1149,6 @@ void update_node_sizes(StoryGridGraph& rectGraph) {
             LaneNodePos pos    = rectGraph.getIrNode(i);
             rectGraph.ir.at(pos).height = height;
             rectGraph.ir.at(pos).width  = width;
-            node.getTreeGrid().size     = ImVec2{
-                static_cast<float>(width),
-                static_cast<float>(height),
-            };
         }
     }
 }
@@ -1540,7 +1535,7 @@ void TreeGridDocument::resetCellPositions() {
     for (auto& row : rows) { aux(row, row.isVisible); }
 
 
-    int colOffset = 0;
+    int colOffset = treeFoldWidth;
     for (auto const& [index, col] : enumerate(columns)) {
         colPositions.resize_at(index) = colOffset;
         colOffset += col.width + colPadding;
@@ -1578,7 +1573,6 @@ void run_story_grid_cycle(StoryGridModel& model) {
     } else {
         auto&                g = model.rectGraph.nodes.at(0).getTreeGrid();
         const ImGuiViewport* viewport = ImGui::GetMainViewport();
-        g.size.x                      = viewport->Size.x;
         render_table(model, g, 0);
     }
 }
