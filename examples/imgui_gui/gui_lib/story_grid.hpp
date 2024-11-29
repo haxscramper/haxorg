@@ -108,8 +108,9 @@ struct TreeGridDocument {
     Vec<int>            rowPositions;
     Vec<int>            colPositions;
     Vec<TreeGridColumn> columns;
-    int                 rowPadding = 6;
-    int                 colPadding = 6;
+    int                 rowPadding     = 6;
+    int                 colPadding     = 6;
+    int                 editingPadding = 40;
 
     UnorderedMap<org::ImmUniqId, int> rowOrigins;
 
@@ -343,19 +344,6 @@ struct StoryGridGraph {
     }
 };
 
-struct StoryGridContext
-    : OperationsTracer
-    , OperationsScope {
-
-    DESC_FIELDS(StoryGridContext, ());
-    bool annotated;
-
-    void message(
-        std::string const& value,
-        int                line     = __builtin_LINE(),
-        char const*        function = __builtin_FUNCTION(),
-        char const*        file     = __builtin_FILE()) const;
-};
 
 struct GridAction {
     struct EditCell {
@@ -368,6 +356,12 @@ struct GridAction {
         ImVec2 pos;
         float  direction;
         DESC_FIELDS(Scroll, (pos, direction));
+    };
+
+    struct EditCellStarted {
+        TreeGridCell cell;
+        int          documentNodeIdx;
+        DESC_FIELDS(EditCellStarted, (cell, documentNodeIdx));
     };
 
     struct LinkListClick {
@@ -389,10 +383,28 @@ struct GridAction {
         EditCell,
         Scroll,
         LinkListClick,
-        RowFolding);
+        RowFolding,
+        EditCellStarted);
 
     Data data;
     DESC_FIELDS(GridAction, (data));
+};
+
+
+struct StoryGridContext
+    : OperationsTracer
+    , OperationsScope {
+
+    DESC_FIELDS(StoryGridContext, (annotated, actions));
+
+    Vec<GridAction> actions;
+    bool            annotated;
+
+    void message(
+        std::string const& value,
+        int                line     = __builtin_LINE(),
+        char const*        function = __builtin_FUNCTION(),
+        char const*        file     = __builtin_FILE()) const;
 };
 
 struct StoryGridHistory {
@@ -429,4 +441,6 @@ Opt<json> story_grid_loop(
     bool               annotated,
     Opt<json> const&   in_state);
 
-Vec<GridAction> render_story_grid(StoryGridModel& model);
+void run_story_grid_annotated_cycle(StoryGridModel& model);
+void run_story_grid_cycle(StoryGridModel& model);
+void apply_story_grid_changes(StoryGridModel& model);

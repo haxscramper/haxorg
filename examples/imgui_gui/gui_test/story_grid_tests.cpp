@@ -26,7 +26,8 @@ void RegisterApptests_story_grid(ImGuiTestEngine* e) {
             e, TEST_GRP_NAME, "Load one paragraph");
         t->SetVarsDataType<StoryGridVars>();
         ImTestFuncStartupParams params;
-        params.windowSize.x = 500;
+        params.windowSize.x = 700;
+        params.windowSize.y = 700;
         t->GuiFunc          = ImWrapGuiFuncT<StoryGridVars>(
             params, [](ImGuiTestContext* ctx, StoryGridVars& vars) {
                 if (vars.is_first()) {
@@ -38,13 +39,25 @@ void RegisterApptests_story_grid(ImGuiTestEngine* e) {
 * One subtree in grid
 ** Subtree 2
 *** Subtree 2 3
+
+- =story_event= :: Event 2
+- =story_location= :: Location 2
+- =story_note= :: Note 4
+
+
 ** Sub-tad 2
 * sub-eq
+
+- =story_event= :: Event 1
+- =story_location= :: Location 1
+- =story_note= :: Note 2
+
 )");
                 }
 
-                vars.model.shift        = getContentPos(ctx);
-                Vec<GridAction> actions = render_story_grid(vars.model);
+                vars.model.shift = getContentPos(ctx);
+                run_story_grid_annotated_cycle(vars.model);
+                apply_story_grid_changes(vars.model);
 
                 if (vars.is_im_traced()) {
                     ImRenderTraceRecord::WriteTrace(vars.trace);
