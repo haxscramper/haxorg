@@ -183,7 +183,10 @@ void render_cell(
     IM_FN_PRINT("Cell", fmt("pos:{} size:{}", pos, cellSize));
     ImGui::SetNextWindowPos(pos);
     if (IM_FN_BEGIN(
-            BeginChild, c_fmt("cell_{}_{}", row.flatIdx, col.name))) {
+            BeginChild,
+            c_fmt("cell_{}_{}", row.flatIdx, col.name),
+            cellSize,
+            ImGuiChildFlags_Borders)) {
         auto res = render_editable_cell(cell, ctx, col);
         switch (res) {
             case EditableTextResult::Changed: {
@@ -220,7 +223,6 @@ void render_tree_columns(
     int  colIdx  = 1;
     for (auto const& col : doc.columns) {
         if (row.columns.contains(col.name)) {
-            ImGui::TableSetColumnIndex(colIdx);
             auto __scope = ctx.scopeLevel();
             render_cell(
                 row,
@@ -246,9 +248,6 @@ void render_tree_row(
     if (!row.isVisible) { return; }
     bool skipped = false;
     auto __scope = ctx.scopeLevel();
-
-    ImVec2 gridContentStart = gridStart
-                            + ImVec2(tree_fold_column + doc.colPadding, 0);
 
     if (skipped && row.nested.empty()) { return; };
 
@@ -289,8 +288,7 @@ void render_tree_row(
         //     fmt("[{}]", row.origin->level).c_str(),
         //     ImGuiTreeNodeFlags_SpanFullWidth);
         // ImGui::PopID();
-        render_tree_columns(
-            row, doc, ctx, documentNodeIdx, gridContentStart);
+        render_tree_columns(row, doc, ctx, documentNodeIdx, gridStart);
         // if (this_open != row.isOpen) {
         //     row.isOpen = this_open;
         //     result.push_back(GridAction{GridAction::RowFolding{
@@ -307,8 +305,7 @@ void render_tree_row(
             // ImGui::TreePop();
         }
     } else if (!skipped) {
-        render_tree_columns(
-            row, doc, ctx, documentNodeIdx, gridContentStart);
+        render_tree_columns(row, doc, ctx, documentNodeIdx, gridStart);
     }
 
     ImRect cell_rect = ImRect(
@@ -505,12 +502,13 @@ void render_table(
     auto gridStart = ImGui::GetCursorScreenPos()
                    + ImVec2(0, tableHeaderHeight);
     auto gridSize = doc.getSize();
-    render_debug_rect(ImRect(gridStart, gridStart + gridSize));
+    // render_debug_rect(ImRect(gridStart, gridStart + gridSize));
+    ImGui::SetNextWindowPos(gridStart);
     if (IM_FN_BEGIN(
             BeginChild,
             "table_ch",
             gridSize,
-            ImGuiChildFlags_None,
+            ImGuiChildFlags_Borders,
             ImGuiWindowFlags_NoScrollbar)) {
         for (auto& sub : doc.rows) {
             render_tree_row(sub, doc, ctx, documentNodeIdx, gridStart);

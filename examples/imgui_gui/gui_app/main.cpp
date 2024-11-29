@@ -378,7 +378,7 @@ int main(int argc, char** argv) {
     GLFWmonitor*       monitor = glfwGetPrimaryMonitor();
     const GLFWvidmode* mode    = glfwGetVideoMode(monitor);
 
-    bool fullscreen = true;
+    bool fullscreen = false;
 
     GLFWwindow* window = glfwCreateWindow(
         fullscreen ? mode->width : 1280,
