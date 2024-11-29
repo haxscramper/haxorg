@@ -52,14 +52,12 @@ EditableTextResult render_editable_text(
     std::string&             value,
     std::string&             edit_buffer,
     bool&                    is_editing,
-    int                      height,
-    int                      width,
+    ImVec2 const&            size,
     TreeGridColumn::EditMode edit) {
     auto __scope = IM_SCOPE_BEGIN(
         "Editable text",
-        fmt("height:{} width:{} editing:{} buffer:{}",
-            height,
-            width,
+        fmt("size:{} editing:{} buffer:{}",
+            size,
             is_editing,
             escape_literal(edit_buffer)));
 
@@ -71,7 +69,7 @@ EditableTextResult render_editable_text(
                 InputTextMultiline,
                 (fmt("##{}_edit", cell_prefix).c_str()),
                 &edit_buffer,
-                (ImVec2(width, height + 10)),
+                size - ImVec2(0, 40),
                 ImGuiInputTextFlags_None);
             IM_FN_PRINT("Render done", "");
 
@@ -93,18 +91,17 @@ EditableTextResult render_editable_text(
 
         } else {
             auto frameless_vars = push_frameless_window_vars();
-            ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + width);
+            ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + size.x);
             // NOTE: Using ID with runtime formatting here because
             // there is more than one cell that might potentially be
             // edited.
             if (IM_FN_BEGIN(
                     BeginChild,
                     fmt("##{}_wrap", cell_prefix).c_str(),
-                    ImVec2(width, height),
-                    false,
+                    size,
+                    ImGuiChildFlags_None,
                     ImGuiWindowFlags_NoScrollbar)) {
-                IM_FN_PRINT(
-                    "Child", fmt("width:{} height:{}", width, height));
+                IM_FN_PRINT("Child", fmt("size:{}", size));
                 ImGui::PushID(fmt("##{}_view", cell_prefix).c_str());
                 IM_FN_STMT(TextWrapped, "%s", value.c_str());
                 IM_FN_PRINT("Wrapped text", value);
@@ -119,7 +116,7 @@ EditableTextResult render_editable_text(
             if (ImGui::IsItemClicked()) {
                 is_editing = true;
                 edit_buffer.clear();
-                edit_buffer = join("\n", split_wrap_text(value, width));
+                edit_buffer = join("\n", split_wrap_text(value, size.x));
                 return EditableTextResult::StartedEditing;
             } else {
                 return EditableTextResult::None;
@@ -136,7 +133,7 @@ EditableTextResult render_editable_text(
                 return EditableTextResult::CancelledEditing;
             } else {
                 ImGui::SameLine(0.0f, 0.0f);
-                ImGui::SetNextItemWidth(width);
+                ImGui::SetNextItemWidth(size.x);
                 ImGui::InputText(
                     fmt("##{}_edit", cell_prefix).c_str(), &edit_buffer);
                 return EditableTextResult::None;
@@ -165,8 +162,7 @@ EditableTextResult render_editable_cell(
         val.value,
         val.edit_buffer,
         val.is_editing,
-        cell.height,
-        cell.width,
+        cell.getSize(),
         col.edit);
 }
 
@@ -179,14 +175,14 @@ void render_cell(
     ImVec2 const&         pos,
     int                   documentNodeIdx) {
 
-    auto cellSize = ImVec2(cell.height, col.width);
-    IM_FN_PRINT("Cell", fmt("pos:{} size:{}", pos, cellSize));
+    IM_FN_PRINT("Cell", fmt("pos:{} size:{}", pos, cell.getSize()));
     ImGui::SetNextWindowPos(pos);
     if (IM_FN_BEGIN(
             BeginChild,
             c_fmt("cell_{}_{}", row.flatIdx, col.name),
-            cellSize,
-            ImGuiChildFlags_Borders)) {
+            cell.getSize(),
+            ImGuiChildFlags_Borders,
+            ImGuiWindowFlags_NoScrollbar)) {
         auto res = render_editable_cell(cell, ctx, col);
         switch (res) {
             case EditableTextResult::Changed: {
@@ -380,8 +376,7 @@ Vec<GridAction> render_text_node(
         grid.text,
         grid.text,
         edit,
-        grid.size.y,
-        grid.size.x,
+        grid.size,
         TreeGridColumn::EditMode::Multiline);
 
     IM_FN_END(End);
@@ -432,8 +427,7 @@ Vec<GridAction> render_list_node(
                     item.text,
                     item.text,
                     edit,
-                    item.height,
-                    item.width,
+                    ImVec2(item.height, item.width),
                     TreeGridColumn::EditMode::Multiline);
             }
             IM_FN_END(EndTable);
@@ -509,7 +503,8 @@ void render_table(
             "table_ch",
             gridSize,
             ImGuiChildFlags_Borders,
-            ImGuiWindowFlags_NoScrollbar)) {
+            ImGuiWindowFlags_NoScrollbar
+                | ImGuiWindowFlags_NoBackground)) {
         for (auto& sub : doc.rows) {
             render_tree_row(sub, doc, ctx, documentNodeIdx, gridStart);
         }

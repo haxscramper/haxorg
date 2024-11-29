@@ -36,8 +36,9 @@ struct TreeGridCell {
     int  width;
 
 
-    bool isEditing() const { return isValue() && getValue().is_editing; }
-    int  getHeight() const { return height + (isEditing() ? 40 : 0); }
+    bool   isEditing() const { return isValue() && getValue().is_editing; }
+    int    getHeight() const { return height + (isEditing() ? 40 : 0); }
+    ImVec2 getSize() const { return ImVec2(width, getHeight()); }
 };
 
 struct TreeGridColumn {
