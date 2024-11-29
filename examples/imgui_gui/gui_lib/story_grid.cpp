@@ -167,8 +167,9 @@ Opt<GridAction> render_cell(
     ImVec2 const&         pos) {
     Opt<GridAction> result;
 
-    ImGui::SetNextWindowPos(pos);
     auto cellSize = ImVec2(cell.height, col.width);
+    IM_FN_PRINT("Cell", fmt("pos:{} size:{}", pos, cellSize));
+    ImGui::SetNextWindowPos(pos);
     if (IM_FN_BEGIN(
             BeginChild, c_fmt("cell_{}_{}", row.flatIdx, col.name))) {
         if (render_editable_cell(cell, ctx, col)) {
@@ -223,10 +224,13 @@ void render_tree_row(
     bool skipped = false;
     auto __scope = ctx.scopeLevel();
 
+    ImVec2 gridContentStart = gridStart
+                            + ImVec2(tree_fold_column + doc.colPadding, 0);
+
     if (skipped && row.nested.empty()) { return; };
 
     auto __im_scope = IM_SCOPE_BEGIN(
-        "Tree row", fmt("row [{}]", ImGui::TableGetRowIndex()));
+        "Tree row", fmt("row [{}]", row.flatIdx));
 
     // CTX_MSG(fmt("row {}", ImGui::TableGetRowIndex()));
     // if (!row.nested.empty()
@@ -263,7 +267,7 @@ void render_tree_row(
         //     ImGuiTreeNodeFlags_SpanFullWidth);
         // ImGui::PopID();
         render_tree_columns(
-            row, result, doc, ctx, documentNodeIdx, gridStart);
+            row, result, doc, ctx, documentNodeIdx, gridContentStart);
         // if (this_open != row.isOpen) {
         //     row.isOpen = this_open;
         //     result.push_back(GridAction{GridAction::RowFolding{
@@ -275,17 +279,21 @@ void render_tree_row(
         if (row.isOpen) {
             for (auto& sub : row.nested) {
                 render_tree_row(
-                    sub, result, doc, ctx, documentNodeIdx, gridStart);
+                    sub,
+                    result,
+                    doc,
+                    ctx,
+                    documentNodeIdx,
+                    gridStart);
             }
 
             // ImGui::TreePop();
         }
     } else if (!skipped) {
         render_tree_columns(
-            row, result, doc, ctx, documentNodeIdx, gridStart);
+            row, result, doc, ctx, documentNodeIdx, gridContentStart);
     }
 
-    ImGui::TableSetColumnIndex(0);
     ImRect cell_rect = ImRect(
         gridStart + ImVec2(0, doc.getRowYPos(row)),
         gridStart
@@ -294,8 +302,8 @@ void render_tree_row(
                 doc.getRowYPos(row) + row.getHeight().value_or(0)));
 
     if (cell_rect.Contains(ImGui::GetMousePos())) {
-        ImGui::TableSetBgColor(
-            ImGuiTableBgTarget_CellBg, IM_COL32(128, 128, 128, 64));
+        // ImGui::TableSetBgColor(
+        //     ImGuiTableBgTarget_CellBg, IM_COL32(128, 128, 128, 64));
 
         if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
             ImGui::OpenPopup(fmt("ctx_{}", row.origin.id).c_str());
@@ -478,14 +486,15 @@ Vec<GridAction> render_table(
     }
     ImGui::PopStyleVar(frameless_vars);
 
-    auto gridStart = ImGui::GetCursorPos();
+    auto gridStart = ImGui::GetCursorScreenPos()
+                   + ImVec2(0, tableHeaderHeight);
     if (IM_FN_BEGIN(BeginChild, "table_ch")) {
         for (auto& sub : doc.rows) {
             render_tree_row(
                 sub, result, doc, ctx, documentNodeIdx, gridStart);
         }
     }
-    IM_FN_END(End);
+    IM_FN_END(EndChild);
 
     return result;
 }

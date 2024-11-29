@@ -246,7 +246,7 @@ void ImRenderTraceRecord::WriteRecord(OperationsTracer& trace, int level)
         im_function.value_or("<>"),
         file ? fs::path{file}.filename() : "",
         line,
-        escape_literal(im_id.value_or("?")));
+        escape_for_write(im_id.value_or("?")));
 
     if (cursor_screenpos) {
         os << fmt(" screen {}", cursor_screenpos.value());

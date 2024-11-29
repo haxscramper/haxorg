@@ -124,7 +124,7 @@ struct TreeGridDocument {
 
 
     ImVec2 getCellPos(int row, CR<Str> column) {
-        return ImVec2(getRowYPos(row), getColumnXPos(column));
+        return ImVec2(getColumnXPos(column), getRowYPos(row));
     }
 
     int getColumnIndex(CR<Str> name) {
