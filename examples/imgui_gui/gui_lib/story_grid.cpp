@@ -103,7 +103,7 @@ bool render_editable_text(
                 IM_FN_PRINT("Wrapped text", value);
                 ImGui::PopID();
             }
-            
+
             IM_FN_END(EndChild);
 
             ImGui::PopTextWrapPos();
@@ -153,24 +153,34 @@ bool render_editable_cell(
         val.value,
         val.edit_buffer,
         val.is_editing,
-        val.is_editing ? cell.height + 120 : cell.height,
+        cell.height,
         cell.width,
         col.edit);
 }
 
 
 Opt<GridAction> render_cell(
+    TreeGridRow&          row,
     TreeGridCell&         cell,
     StoryGridContext&     ctx,
-    TreeGridColumn const& col) {
+    TreeGridColumn const& col,
+    ImVec2 const&         pos) {
     Opt<GridAction> result;
 
-    if (render_editable_cell(cell, ctx, col)) {
-        result = GridAction{GridAction::EditCell{
-            .cell    = cell,
-            .updated = cell.getValue().value,
-        }};
+    ImGui::SetNextWindowPos(pos);
+    auto cellSize = ImVec2(cell.height, col.width);
+    if (IM_FN_BEGIN(
+            BeginChild, c_fmt("cell_{}_{}", row.flatIdx, col.name))) {
+        if (render_editable_cell(cell, ctx, col)) {
+            result = GridAction{GridAction::EditCell{
+                .cell    = cell,
+                .updated = cell.getValue().value,
+            }};
+        }
     }
+
+    IM_FN_END(EndChild);
+
 
     return result;
 }
@@ -180,15 +190,20 @@ void render_tree_columns(
     Vec<GridAction>&  result,
     TreeGridDocument& doc,
     StoryGridContext& ctx,
-    int               documentNodeIdx) {
+    int               documentNodeIdx,
+    ImVec2 const&     gridStart) {
     auto __scope = ctx.scopeLevel();
     int  colIdx  = 1;
     for (auto const& col : doc.columns) {
         if (row.columns.contains(col.name)) {
             ImGui::TableSetColumnIndex(colIdx);
-            // CTX_MSG(fmt("{}", col.name));
             auto __scope = ctx.scopeLevel();
-            render_cell(row.columns.at(col.name), ctx, col);
+            render_cell(
+                row,
+                row.columns.at(col.name),
+                ctx,
+                col,
+                gridStart + doc.getCellPos(row.flatIdx, col.name));
         }
         ++colIdx;
     }
@@ -201,7 +216,8 @@ void render_tree_row(
     Vec<GridAction>&  result,
     TreeGridDocument& doc,
     StoryGridContext& ctx,
-    int               documentNodeIdx) {
+    int               documentNodeIdx,
+    ImVec2 const&     gridStart) {
     // row is completely invisible, including its nested sub-rows
     if (!row.isVisible) { return; }
     bool skipped = false;
@@ -212,74 +228,70 @@ void render_tree_row(
     auto __im_scope = IM_SCOPE_BEGIN(
         "Tree row", fmt("row [{}]", ImGui::TableGetRowIndex()));
 
-    if (ctx.annotated) {
-        ImGui::TableNextRow(
-            ImGuiTableRowFlags_None, row.getHeight().value());
-    } else {
-        ImGui::TableNextRow();
-    }
-
     // CTX_MSG(fmt("row {}", ImGui::TableGetRowIndex()));
-    if (!row.nested.empty()
-        && rs::any_of(row.nested, [](TreeGridRow const& r) {
-               return r.isVisible;
-           })) {
-        switch (row.origin->level) {
-            case 1:
-                ImGui::TableSetBgColor(
-                    ImGuiTableBgTarget_RowBg0,
-                    IM_COL32(255, 200, 200, 128));
-                break;
-            case 2:
-                ImGui::TableSetBgColor(
-                    ImGuiTableBgTarget_RowBg0,
-                    IM_COL32(200, 255, 200, 128));
-                break;
-            case 3:
-                ImGui::TableSetBgColor(
-                    ImGuiTableBgTarget_RowBg0,
-                    IM_COL32(200, 200, 255, 128));
-                break;
-            default: {
-            }
-        }
-    }
+    // if (!row.nested.empty()
+    //     && rs::any_of(row.nested, [](TreeGridRow const& r) {
+    //            return r.isVisible;
+    //        })) {
+    //     switch (row.origin->level) {
+    //         case 1:
+    //             ImGui::TableSetBgColor(
+    //                 ImGuiTableBgTarget_RowBg0,
+    //                 IM_COL32(255, 200, 200, 128));
+    //             break;
+    //         case 2:
+    //             ImGui::TableSetBgColor(
+    //                 ImGuiTableBgTarget_RowBg0,
+    //                 IM_COL32(200, 255, 200, 128));
+    //             break;
+    //         case 3:
+    //             ImGui::TableSetBgColor(
+    //                 ImGuiTableBgTarget_RowBg0,
+    //                 IM_COL32(200, 200, 255, 128));
+    //             break;
+    //         default: {
+    //         }
+    //     }
+    // }
 
 
-    ImGui::TableSetColumnIndex(0);
-
-    int this_index = ImGui::TableGetRowIndex();
     if (!row.nested.empty()) {
-        ImGui::PushID(fmt("{}", row.origin.id).c_str());
-        ImGui::SetNextItemOpen(row.isOpen, ImGuiCond_Once);
-        bool this_open = ImGui::TreeNodeEx(
-            fmt("[{}]", row.origin->level).c_str(),
-            ImGuiTreeNodeFlags_SpanFullWidth);
-        ImGui::PopID();
-        render_tree_columns(row, result, doc, ctx, documentNodeIdx);
-        if (this_open != row.isOpen) {
-            row.isOpen = this_open;
-            result.push_back(GridAction{GridAction::RowFolding{
-                .isOpen          = this_open,
-                .flatIdx         = row.flatIdx,
-                .documentNodeIdx = documentNodeIdx,
-            }});
-        }
-        if (this_open) {
+        // ImGui::PushID(fmt("{}", row.origin.id).c_str());
+        // ImGui::SetNextItemOpen(row.isOpen, ImGuiCond_Once);
+        // bool this_open = ImGui::TreeNodeEx(
+        //     fmt("[{}]", row.origin->level).c_str(),
+        //     ImGuiTreeNodeFlags_SpanFullWidth);
+        // ImGui::PopID();
+        render_tree_columns(
+            row, result, doc, ctx, documentNodeIdx, gridStart);
+        // if (this_open != row.isOpen) {
+        //     row.isOpen = this_open;
+        //     result.push_back(GridAction{GridAction::RowFolding{
+        //         .isOpen          = this_open,
+        //         .flatIdx         = row.flatIdx,
+        //         .documentNodeIdx = documentNodeIdx,
+        //     }});
+        // }
+        if (row.isOpen) {
             for (auto& sub : row.nested) {
-                render_tree_row(sub, result, doc, ctx, documentNodeIdx);
+                render_tree_row(
+                    sub, result, doc, ctx, documentNodeIdx, gridStart);
             }
 
-            ImGui::TreePop();
-        } else {
+            // ImGui::TreePop();
         }
     } else if (!skipped) {
-        render_tree_columns(row, result, doc, ctx, documentNodeIdx);
+        render_tree_columns(
+            row, result, doc, ctx, documentNodeIdx, gridStart);
     }
 
     ImGui::TableSetColumnIndex(0);
-    ImRect cell_rect = ImGui::TableGetCellBgRect(
-        ImGui::GetCurrentTable(), 0);
+    ImRect cell_rect = ImRect(
+        gridStart + ImVec2(0, doc.getRowYPos(row)),
+        gridStart
+            + ImVec2(
+                tree_fold_column,
+                doc.getRowYPos(row) + row.getHeight().value_or(0)));
 
     if (cell_rect.Contains(ImGui::GetMousePos())) {
         ImGui::TableSetBgColor(
@@ -300,7 +312,7 @@ void render_tree_row(
         ImGui::EndPopup();
     }
 
-    if (ImGui::TableGetRowIndex() == this_index && row.isOpen) {
+    if (row.isOpen) {
         ImVec2 cell_max  = cell_rect.Max;
         ImVec2 rect_size = ImVec2(
             std::ceil(
@@ -417,22 +429,9 @@ Vec<GridAction> render_table(
     StoryGridModel&          model,
     StoryGridNode::TreeGrid& grid,
     int                      documentNodeIdx) {
-    auto& doc = grid.node;
-    auto& ctx = model.conf;
-
-    ImGuiTableFlags tableFlags                  //
-        = model.conf.annotated                  //
-            ? (ImGuiTableFlags_ScrollY          //
-               | ImGuiTableFlags_Borders        //
-               | ImGuiTableFlags_RowBg          //
-               | ImGuiTableFlags_Resizable)     //
-            : (ImGuiTableFlags_Borders          //
-               | ImGuiTableFlags_RowBg          //
-               | ImGuiTableFlags_SizingFixedFit //
-               | ImGuiTableFlags_NoHostExtendX);
-
+    auto&           doc = grid.node;
+    auto&           ctx = model.conf;
     Vec<GridAction> result;
-
 
     // Table for the story grid node is drawn as a small floating window
     // that is overlaid exactly on top of the existing bar. I have no
@@ -479,37 +478,14 @@ Vec<GridAction> render_table(
     }
     ImGui::PopStyleVar(frameless_vars);
 
-    if (IM_FN_BEGIN(
-            BeginTable, "TreeTable", 1 + doc.columns.size(), tableFlags)) {
-
-        if (model.conf.annotated) {
-            ImGui::PushStyleVar(
-                ImGuiStyleVar_FramePadding,
-                ImVec2(0, tableHeaderHeight / 2));
-        }
-        ImGui::TableSetupScrollFreeze(0, 1);
-        ImGui::TableSetupColumn(
-            "Tree", ImGuiTableColumnFlags_WidthFixed, tree_fold_column);
-        for (auto const& col : doc.columns) {
-            // CTX_MSG(fmt("{} {}", col.name, col.width));
-            ImGui::TableSetupColumn(
-                col.name.c_str(),
-                ImGuiTableColumnFlags_WidthFixed,
-                col.width);
-        }
-        ImGui::TableHeadersRow();
-
-        if (model.conf.annotated) { ImGui::PopStyleVar(); }
-
+    auto gridStart = ImGui::GetCursorPos();
+    if (IM_FN_BEGIN(BeginChild, "table_ch")) {
         for (auto& sub : doc.rows) {
-            render_tree_row(sub, result, doc, ctx, documentNodeIdx);
+            render_tree_row(
+                sub, result, doc, ctx, documentNodeIdx, gridStart);
         }
-
-        // ImGui::TableNextRow(ImGuiTableRowFlags_None, 800.0f);
-        // ImGui::TableNextColumn();
-
-        IM_FN_END(EndTable);
     }
+    IM_FN_END(End);
 
     return result;
 }
@@ -853,17 +829,6 @@ Vec<Vec<DocAnnotation>> partition_graph_nodes(
     return result;
 }
 
-int rowPadding = 6;
-
-void update_row_positions(TreeGridDocument& doc) {
-    __perf_trace("gui", "update row positions");
-    int offset = tableHeaderHeight;
-    for (auto const& row : doc.flatRows(true)) {
-        doc.rowPositions.resize_at(row->flatIdx) = offset;
-        doc.rowOrigins.insert_or_assign(row->origin.uniq(), row->flatIdx);
-        offset += row->getHeight(rowPadding).value_or(0);
-    }
-}
 
 void add_description_list_node(
     StoryGridGraph&                       res,
@@ -987,10 +952,10 @@ int add_root_grid_node(
     __perf_trace_begin("gui", "build doc rows");
     doc.rows = build_rows(node, doc);
     __perf_trace_end("gui");
-    update_row_positions(doc);
+    doc.resetCellPositions();
 
-    auto w = doc.getWidth(rowPadding) + tree_fold_column;
-    auto h = doc.getHeight(rowPadding);
+    auto w = doc.getWidth() + tree_fold_column;
+    auto h = doc.getHeight();
     CTX_MSG(
         fmt("Add root node to the document, grid size: width={} height={} "
             "row-count={} col-count={} columns={}",
@@ -1043,8 +1008,9 @@ LaneNodePos get_partition_node(
         LaneNodePos annotation = res.ir.addNode(
             lane,
             ImVec2{
-                static_cast<float>(text.getWidth() + rowPadding * 2),
-                static_cast<float>(text.getHeight(rowPadding)),
+                static_cast<float>(
+                    text.getWidth() + res.laneRowPadding * 2),
+                static_cast<float>(text.getHeight(res.laneRowPadding)),
             });
 
         for (auto const& item : text.items) {
@@ -1192,9 +1158,9 @@ void update_node_sizes(StoryGridGraph& rectGraph) {
     for (int i = 0; i < rectGraph.nodes.size(); ++i) {
         auto& node = rectGraph.nodes.at(i);
         if (node.isTreeGrid()) {
-            int height = node.getTreeGrid().node.getHeight(rowPadding);
-            int width  = node.getTreeGrid().node.getWidth(rowPadding);
-            LaneNodePos pos             = rectGraph.getIrNode(i);
+            int         height = node.getTreeGrid().node.getHeight();
+            int         width  = node.getTreeGrid().node.getWidth();
+            LaneNodePos pos    = rectGraph.getIrNode(i);
             rectGraph.ir.at(pos).height = height;
             rectGraph.ir.at(pos).width  = width;
             node.getTreeGrid().size     = ImVec2{
@@ -1240,7 +1206,7 @@ void update_link_list_target_rows(StoryGridGraph& rectGraph) {
                 for (auto& row : node.getTreeGrid().node.rows) {
                     aux(row);
                 }
-                update_row_positions(node.getTreeGrid().node);
+                node.getTreeGrid().node.resetCellPositions();
             }
         }
     } else {
@@ -1255,7 +1221,7 @@ void update_link_list_target_rows(StoryGridGraph& rectGraph) {
                 for (auto& row : node.getTreeGrid().node.rows) {
                     aux(row);
                 }
-                update_row_positions(node.getTreeGrid().node);
+                node.getTreeGrid().node.resetCellPositions();
             }
         }
     }
@@ -1538,5 +1504,34 @@ Opt<int> TreeGridRow::getHeightRec(int padding) const {
                    [](int lhs, int rhs) { return lhs + rhs; });
     } else {
         return std::nullopt;
+    }
+}
+
+void TreeGridDocument::resetCellPositions() {
+    __perf_trace("gui", "reset table row positions");
+    int                            offset = 0;
+    int                            index  = 0;
+    Func<void(TreeGridRow&, bool)> aux;
+    aux = [&, this](TreeGridRow& row, bool isVisible) {
+        this->rowPositions.resize_at(index) = offset;
+        row.flatIdx                         = index;
+
+        if (isVisible) {
+            offset += this->rowPadding;
+            offset += row.getHeight().value();
+            ++index;
+        }
+        ++index;
+
+        for (auto& sub : row.nested) { aux(sub, isVisible && row.isOpen); }
+    };
+
+    for (auto& row : rows) { aux(row, row.isVisible); }
+
+
+    int colOffset = 0;
+    for (auto const& [index, col] : enumerate(columns)) {
+        colPositions.resize_at(index) = colOffset;
+        colOffset += col.width + colPadding;
     }
 }

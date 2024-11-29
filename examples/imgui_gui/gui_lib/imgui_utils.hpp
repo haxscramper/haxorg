@@ -186,3 +186,5 @@ struct ImRenderTraceRecord {
 
 #define IM_FN_PRINT(_What, _Msg)                                          \
     ImRenderTraceRecord::ImRenderUnit(_What, _Msg);
+
+#define c_fmt(__fmt_expr, ...) fmt(__fmt_expr, __VA_ARGS__).c_str()

@@ -59,6 +59,9 @@ struct TreeGridRow {
         });
     }
 
+
+    bool isShowingNested() const { return !nested.empty() && isOpen; }
+
     Vec<int> getOriginPath() const {
         Vec<int> idx;
         for (auto const& step : origin.flatPath().path) {
@@ -82,26 +85,63 @@ struct TreeGridRow {
     Opt<int> getHeight(int padding = 0) const;
 
     Opt<int> getHeightRec(int padding = 0) const;
+
+    TreeGridRow* getLastLeaf() {
+        if (nested.empty()) {
+            return this;
+        } else {
+            return nested.back().getLastLeaf();
+        }
+    }
+
+    TreeGridRow const* getLastLeaf() const {
+        if (nested.empty()) {
+            return this;
+        } else {
+            return nested.back().getLastLeaf();
+        }
+    }
 };
 
 struct TreeGridDocument {
     Vec<TreeGridRow>    rows;
     Vec<int>            rowPositions;
+    Vec<int>            colPositions;
     Vec<TreeGridColumn> columns;
+    int                 rowPadding = 6;
+    int                 colPadding = 6;
 
     UnorderedMap<org::ImmUniqId, int> rowOrigins;
 
-    TreeGridColumn& getColumn(CR<Str> name) {
+    void resetCellPositions();
+
+    int getRowYPos(TreeGridRow const& r) { return getRowYPos(r.flatIdx); }
+    int getRowYPos(int index) { return rowPositions.at(index); }
+
+    int getColumnXPos(CR<Str> name) {
+        return colPositions.at(getColumnIndex(name));
+    }
+
+
+    ImVec2 getCellPos(int row, CR<Str> column) {
+        return ImVec2(getRowYPos(row), getColumnXPos(column));
+    }
+
+    int getColumnIndex(CR<Str> name) {
         auto iter = rs::find_if(
             columns, [&](TreeGridColumn const& col) -> bool {
                 return col.name == name;
             });
         if (iter == columns.end()) {
             columns.push_back(TreeGridColumn{.name = name});
-            return columns.back();
+            return columns.high();
         } else {
-            return *iter;
+            return std::distance(columns.begin(), iter);
         }
+    }
+
+    TreeGridColumn& getColumn(CR<Str> name) {
+        return columns.at(getColumnIndex(name));
     }
 
     Vec<TreeGridRow*> flatRows(bool withInvisible) {
@@ -138,20 +178,13 @@ struct TreeGridDocument {
         return rowPositions.at(rowOrigins.at(id));
     }
 
-    int getHeight(int padding = 0) const {
-        int res = 0;
-        for (auto const& row : rows) {
-            res += row.getHeightRec(padding).value_or(0);
-        }
-        return res;
+    int getHeight() const {
+        return rowPositions.back()
+             + rows.back().getLastLeaf()->getHeight().value_or(0);
     }
 
-    int getWidth(int padding = 0) const {
-        int tableWidth = 0;
-        for (auto const& col : columns) {
-            tableWidth += col.width + padding;
-        }
-        return tableWidth;
+    int getWidth() const {
+        return colPositions.back() + columns.back().width;
     }
 
     Opt<int> getRowCenterOffset(int rowIdx) const {
@@ -256,6 +289,7 @@ struct StoryGridGraph {
     UnorderedMap<LaneNodePos, int> nodeToGridNode;
     org::graph::MapGraph           graph;
     Vec<Vec<DocAnnotation>>        partition;
+    int                            laneRowPadding = 6;
 
     UnorderedMap<org::ImmUniqId, org::ImmUniqId> annotationParents;
     UnorderedMap<org::ImmUniqId, LaneNodePos>    orgToId;

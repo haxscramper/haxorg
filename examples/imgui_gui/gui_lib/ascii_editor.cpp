@@ -31,8 +31,6 @@ generator<Vec2i> line_points(Vec2i start, Vec2i end) {
 }
 
 
-#define c_fmt(__fmt_expr, ...) fmt(__fmt_expr, __VA_ARGS__).c_str()
-
 template <typename T>
 struct ImFieldEditor {
     void static render(
