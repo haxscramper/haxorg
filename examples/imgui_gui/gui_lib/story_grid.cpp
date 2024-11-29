@@ -50,7 +50,7 @@ bool render_editable_text(
     TreeGridColumn::EditMode edit) {
     auto __scope = IM_SCOPE_BEGIN(
         "Editable text",
-        fmt("height;{} width:{} editing:{} buffer:{}",
+        fmt("height:{} width:{} editing:{} buffer:{}",
             height,
             width,
             is_editing,
@@ -117,21 +117,22 @@ bool render_editable_text(
         }
     } else {
         if (is_editing) {
-            if (ImGui::Button("OK")) {
-                value      = edit_buffer;
-                is_editing = false;
-                return true;
-            } else if (ImGui::SameLine(0.0f, 0.0f); ImGui::Button("X")) {
-                is_editing = false;
-                return false;
-            }
-            ImGui::SameLine(0.0f, 0.0f);
-            ImGui::SetNextItemWidth(width);
-            IM_FN_STMT(
-                InputText,
-                fmt("##{}_edit", cell_prefix).c_str(),
-                &edit_buffer);
-            IM_FN_PRINT("Single line edit text", edit_buffer);
+            // if (ImGui::Button("OK")) {
+            //     value      = edit_buffer;
+            //     is_editing = false;
+            //     return true;
+            // } else if (ImGui::SameLine(0.0f, 0.0f); ImGui::Button("X"))
+            // {
+            //     is_editing = false;
+            //     return false;
+            // }
+            // ImGui::SameLine(0.0f, 0.0f);
+            // ImGui::SetNextItemWidth(width);
+            // IM_FN_STMT(
+            //     InputText,
+            //     fmt("##{}_edit", cell_prefix).c_str(),
+            //     &edit_buffer);
+            // IM_FN_PRINT("Single line edit text", edit_buffer);
 
             return false;
 

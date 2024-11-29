@@ -34,7 +34,13 @@ void RegisterApptests_story_grid(ImGuiTestEngine* e) {
                         getDebugFile(ctx->Test, "subtree_init"));
 
                     vars.trace.setTraceFile("/tmp/im_render_trace");
-                    vars.add_text("* One subtree in grid");
+                    vars.add_text(R"(
+* One subtree in grid
+** Subtree 2
+*** Subtree 2 3
+** Sub-tad 2
+* sub-eq
+)");
                 }
 
                 vars.model.shift        = getContentPos(ctx);
@@ -51,7 +57,7 @@ void RegisterApptests_story_grid(ImGuiTestEngine* e) {
 
                 ImVec2 wpos = getContentPos(ctx);
                 _dfmt(wpos);
-                ctx->MouseMoveToPos(wpos + ImVec2{50, 50});
+                ctx->MouseMoveToPos(wpos + ImVec2{140, 25});
                 vars.set_im_trace(1);
                 ctx->Yield(2);
                 ctx->MouseClick(0);
