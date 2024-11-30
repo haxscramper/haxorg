@@ -26,8 +26,11 @@ ImGuiWindow* GetWindowByName(std::string const& name) {
 
 
 Str getDebugFile(ImGuiTest* t, const Str& suffix) {
-    auto res = fs::path{fmt(
-        "/tmp/haxorg_tests/imgui/{}/{}/{}", t->Category, t->Name, suffix)};
+    auto res = fs::path{
+        fmt("/tmp/haxorg_tests/imgui/{}/{}/{}",
+            normalize(t->Category),
+            normalize(t->Name),
+            suffix)};
     if (!fs::is_directory(res.parent_path())) {
         createDirectory(res.parent_path());
     }

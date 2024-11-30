@@ -102,18 +102,19 @@ struct TreeGridRow {
 };
 
 struct TreeGridDocument {
-    Vec<TreeGridRow>    rows;
-    Vec<int>            rowPositions;
-    Vec<int>            colPositions;
+    Vec<TreeGridRow> rows;
+
     Vec<TreeGridColumn> columns;
     int                 rowPadding        = 6;
     int                 colPadding        = 6;
     int                 treeFoldWidth     = 120;
     int                 tableHeaderHeight = 16;
 
+    Vec<int>                          rowPositions;
+    Vec<int>                          colPositions;
     UnorderedMap<org::ImmUniqId, int> rowOrigins;
 
-    void resetCellPositions();
+    void resetGridStatics();
 
     int getRowYPos(TreeGridRow const& r) { return getRowYPos(r.flatIdx); }
     int getRowYPos(int index) { return rowPositions.at(index); }

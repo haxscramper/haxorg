@@ -17,25 +17,37 @@ struct StoryGridVars : public ImTestVarsBase {
         TreeGridDocument doc;
         model.updateDocument(doc);
     }
+
+    void init_section(ImGuiTestContext* ctx, std::string const& text) {
+        if (is_first()) {
+            model.conf.setTraceFile(
+                getDebugFile(ctx->Test, "subtree_init"));
+
+            trace.setTraceFile(getDebugFile(ctx->Test, "trace.log"));
+            add_text(text);
+        }
+    }
+
+    void run_app_loop_iteration(ImGuiTestContext* ctx) {
+        model.shift = getContentPos(ctx);
+        run_story_grid_annotated_cycle(model);
+        apply_story_grid_changes(model, TreeGridDocument{});
+
+        if (is_im_traced()) { ImRenderTraceRecord::WriteTrace(trace); }
+    }
 };
 
-
-void RegisterApptests_story_grid(ImGuiTestEngine* e) {
-    {
-        ImGuiTest* t = IM_REGISTER_TEST(
-            e, TEST_GRP_NAME, "Load one paragraph");
-        t->SetVarsDataType<StoryGridVars>();
-        ImTestFuncStartupParams params;
-        params.windowSize.x = 700;
-        params.windowSize.y = 700;
-        t->GuiFunc          = ImWrapGuiFuncT<StoryGridVars>(
-            params, [](ImGuiTestContext* ctx, StoryGridVars& vars) {
-                if (vars.is_first()) {
-                    vars.model.conf.setTraceFile(
-                        getDebugFile(ctx->Test, "subtree_init"));
-
-                    vars.trace.setTraceFile("/tmp/im_render_trace");
-                    vars.add_text(R"(
+namespace {
+void _Load_One_Paragraph(ImGuiTestEngine* e) {
+    ImGuiTest* t = IM_REGISTER_TEST(
+        e, TEST_GRP_NAME, "Load one paragraph");
+    t->SetVarsDataType<StoryGridVars>();
+    ImTestFuncStartupParams params;
+    params.windowSize.x = 700;
+    params.windowSize.y = 700;
+    t->GuiFunc          = ImWrapGuiFuncT<StoryGridVars>(
+        params, [](ImGuiTestContext* ctx, StoryGridVars& vars) {
+            vars.init_section(ctx, R"(
 * One subtree in grid
 ** Subtree 2
 *** Subtree 2 3
@@ -53,62 +65,93 @@ void RegisterApptests_story_grid(ImGuiTestEngine* e) {
 - =story_note= :: Note 2
 
 )");
-                }
 
-                vars.model.shift = getContentPos(ctx);
-                run_story_grid_annotated_cycle(vars.model);
-                apply_story_grid_changes(vars.model, TreeGridDocument{});
+            vars.run_app_loop_iteration(ctx);
+        });
 
-                if (vars.is_im_traced()) {
-                    ImRenderTraceRecord::WriteTrace(vars.trace);
-                }
-            });
+    t->TestFunc = ImWrapTestFuncT<StoryGridVars>(
+        params, [](ImGuiTestContext* ctx, StoryGridVars& vars) {
+            ImVec2 wpos = getContentPos(ctx);
+            auto&  doc  = vars.model.rectGraph.nodes.at(0)
+                            .getTreeGrid()
+                            .node;
+            ctx->MouseMoveToPos(
+                wpos + doc.getCellPos(0, "title") + ImVec2{0, 5});
+            IM_CHECK_EQ(
+                doc.getExistingCell(0, "title").getValue().value,
+                "One subtree in grid");
+            IM_CHECK_EQ(
+                doc.getExistingCell(2, "event").getValue().value,
+                "Event 2");
+            IM_CHECK_EQ(
+                doc.getExistingCell(2, "location").getValue().value,
+                "Location 2");
+            IM_CHECK_EQ(
+                doc.getExistingCell(2, "note").getValue().value, "Note 4");
+            vars.set_im_trace(1);
+            ctx->Yield(2);
+            ctx->MouseClick(0);
+            vars.set_im_trace(1);
+            ctx->Yield(2);
+            ctx->MouseClick(0);
+            ctx->KeyChars("test");
+            ctx->MouseMoveToPos(ImGui::GetMousePos() + ImVec2{0, 50});
+            ctx->MouseClick(0);
+            IM_CHECK_EQ(
+                doc.getExistingCell(0, "title").getValue().value,
+                "testOne subtree in grid");
 
-        t->TestFunc = ImWrapTestFuncT<StoryGridVars>(
-            params, [](ImGuiTestContext* ctx, StoryGridVars& vars) {
-                // ImGui::LogToFile(-1, "/tmp/imgui_file_log.txt");
-
-                ImVec2 wpos = getContentPos(ctx);
-                auto&  doc  = vars.model.rectGraph.nodes.at(0)
-                                .getTreeGrid()
-                                .node;
-                ctx->MouseMoveToPos(
-                    wpos + doc.getCellPos(0, "title") + ImVec2{0, 5});
-                IM_CHECK_EQ(
-                    doc.getExistingCell(0, "title").getValue().value,
-                    "One subtree in grid");
-                IM_CHECK_EQ(
-                    doc.getExistingCell(2, "event").getValue().value,
-                    "Event 2");
-                IM_CHECK_EQ(
-                    doc.getExistingCell(2, "location").getValue().value,
-                    "Location 2");
-                IM_CHECK_EQ(
-                    doc.getExistingCell(2, "note").getValue().value,
-                    "Note 4");
-                vars.set_im_trace(1);
-                ctx->Yield(2);
-                ctx->MouseClick(0);
-                vars.set_im_trace(1);
-                ctx->Yield(2);
-                ctx->MouseClick(0);
-                ctx->KeyChars("test");
-                ctx->MouseMoveToPos(ImGui::GetMousePos() + ImVec2{0, 50});
-                ctx->MouseClick(0);
-                IM_CHECK_EQ(
-                    doc.getExistingCell(0, "title").getValue().value,
-                    "testOne subtree in grid");
-
-                ctx->MouseMoveToPos(wpos + doc.getCellPos(0, "title"));
-                ctx->MouseMoveToPos(
-                    ImGui::GetMousePos()
-                    - ImVec2(doc.treeFoldWidth - 10, 0));
-                IM_CHECK_EQ(doc.flatRows(false).size(), 5);
-                ctx->MouseClick(0);
-                IM_CHECK_EQ(doc.flatRows(false).size(), 2);
+            ctx->MouseMoveToPos(wpos + doc.getCellPos(0, "title"));
+            ctx->MouseMoveToPos(
+                ImGui::GetMousePos() - ImVec2(doc.treeFoldWidth - 10, 0));
+            IM_CHECK_EQ(doc.flatRows(false).size(), 5);
+            ctx->MouseClick(0);
+            IM_CHECK_EQ(doc.flatRows(false).size(), 2);
 
 
-                ctx->SuspendTestFunc();
-            });
-    }
+            // ctx->SuspendTestFunc();
+        });
+}
+
+void _FootnoteAnnotation(ImGuiTestEngine* e) {
+    ImGuiTest* t = IM_REGISTER_TEST(
+        e, TEST_GRP_NAME, "Load subtree with footnote annotations");
+    t->SetVarsDataType<StoryGridVars>();
+    ImTestFuncStartupParams params;
+    params.windowSize.x = 1500;
+    params.windowSize.y = 700;
+    t->GuiFunc          = ImWrapGuiFuncT<StoryGridVars>(
+        params, [](ImGuiTestContext* ctx, StoryGridVars& vars) {
+            vars.init_section(ctx, R"(
+* One subtree in grid
+
+#+begin_comment
+some random shit about the comments or whatever, need to render as annotation [fn:annotation-529] more text [fn:text-529] more text [fn:text-333]
+#+end_comment
+
+[fn:annotation-529] Footnote inside of a comment block
+
+[fn:text-529] More footnotes on the same block
+
+[fn:text-333] And some more text, followed but [fn:but-536] and then another [fn:another-536]
+
+[fn:but-536] recursive footnote that will contain more text to render somewhere
+
+[fn:another-536] recursive footnote
+)");
+            vars.run_app_loop_iteration(ctx);
+        });
+
+    t->TestFunc = ImWrapTestFuncT<StoryGridVars>(
+        params, [](ImGuiTestContext* ctx, StoryGridVars& vars) {
+            ctx->SuspendTestFunc();
+        });
+}
+
+} // namespace
+
+
+void RegisterApptests_story_grid(ImGuiTestEngine* e) {
+    _FootnoteAnnotation(e);
+    _Load_One_Paragraph(e);
 }
