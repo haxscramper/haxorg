@@ -23,7 +23,6 @@ LaneBlockLayout to_layout(LaneBlockGraph const& g) {
     for (auto const& [lane_idx, lane] : enumerate(g.lanes)) {
         Vec<int> visibleBlocks = lane.getVisibleBlocks(
             slice<int>(0, int(g.visible.height())));
-        // _dfmt(lane_idx, visibleBlocks);
         if (visibleBlocks.empty()) { continue; }
 
         Opt<GC::Align::Spec> first;

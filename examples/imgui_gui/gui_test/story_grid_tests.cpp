@@ -33,9 +33,12 @@ struct StoryGridVars : public ImTestVarsBase {
     }
 
     void run_app_loop_iteration(ImGuiTestContext* ctx) {
-        model.shift = getContentPos(ctx);
-        run_story_grid_cycle(model, conf);
-        apply_story_grid_changes(model, TreeGridDocument{}, conf);
+        {
+            auto __scope = IM_SCOPE_BEGIN("App loop iteration", "");
+            model.shift  = getContentPos(ctx);
+            run_story_grid_cycle(model, conf);
+            apply_story_grid_changes(model, TreeGridDocument{}, conf);
+        }
 
         if (is_im_traced()) { ImRenderTraceRecord::WriteTrace(trace); }
     }
@@ -167,6 +170,7 @@ some random shit about the comments or whatever, need to render as annotation [f
             IM_CHECK_EQ(
                 ir.lanes.at(0).scrollOffset,
                 vars.conf.mouseScrollMultiplier * 5);
+            vars.set_im_trace(2);
             ctx->SuspendTestFunc();
         });
 }

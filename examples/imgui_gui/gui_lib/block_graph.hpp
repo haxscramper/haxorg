@@ -48,10 +48,10 @@ struct LaneBlockNode {
 
 struct LaneBlockStack {
     Vec<LaneBlockNode> blocks;
-    int                scrollOffset;
     Slice<int>         visibleRange;
-    int                leftMargin  = 50;
-    int                rightMargin = 50;
+    int                scrollOffset = 0;
+    int                leftMargin   = 50;
+    int                rightMargin  = 50;
     DESC_FIELDS(
         LaneBlockStack,
         (blocks, visibleRange, scrollOffset, leftMargin, rightMargin));

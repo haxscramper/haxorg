@@ -316,11 +316,8 @@ void render_tree_row(
         rect_min, rect_max, conf.foldCellBackground);
 }
 
-Vec<GridAction> render_text_node(
-    StoryGridModel&      model,
-    StoryGridNode::Text& text) {
-    Vec<GridAction> result;
-    auto&           ctx = model.ctx;
+void render_text_node(StoryGridModel& model, StoryGridNode::Text& text) {
+    auto& ctx = model.ctx;
 
 
     auto frameless_vars = push_frameless_window_vars();
@@ -346,15 +343,12 @@ Vec<GridAction> render_text_node(
     }
 
     ImGui::PopStyleVar(frameless_vars);
-
-    return result;
 }
 
-Vec<GridAction> render_list_node(
+void render_list_node(
     StoryGridModel&          model,
     StoryGridNode::LinkList& list) {
-    Vec<GridAction> result;
-    auto            frameless_vars = push_frameless_window_vars();
+    auto frameless_vars = push_frameless_window_vars();
     ImGui::SetNextWindowPos(list.pos + model.shift);
     ImGui::SetNextWindowSize(list.size);
     if (IM_FN_BEGIN(
@@ -369,7 +363,8 @@ Vec<GridAction> render_list_node(
                 | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)
             && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
             list.isSelected = !list.isSelected;
-            result.push_back(GridAction{GridAction::LinkListClick{}});
+            model.ctx.actions.push_back(
+                GridAction{GridAction::LinkListClick{}});
         }
 
         if (IM_FN_BEGIN(
@@ -400,7 +395,6 @@ Vec<GridAction> render_list_node(
     }
 
     ImGui::PopStyleVar(frameless_vars);
-    return result;
 }
 
 void render_table(
@@ -494,7 +488,6 @@ void run_story_grid_annotated_cycle(
     StoryGridModel&        model,
     StoryGridConfig const& conf) {
     __perf_trace("gui", "grid model render");
-    Vec<GridAction> result;
     for (int i = 0; i < model.rectGraph.nodes.size(); ++i) {
         auto& node = model.rectGraph.nodes.at(i);
         if (node.isVisible) {
@@ -504,12 +497,12 @@ void run_story_grid_annotated_cycle(
                     break;
                 }
                 case StoryGridNode::Kind::Text: {
-                    result.append(render_text_node(model, node.getText()));
+                    render_text_node(model, node.getText());
                     break;
                 }
                 case StoryGridNode::Kind::LinkList: {
-                    result.append(
-                        render_list_node(model, node.getLinkList()));
+
+                    render_list_node(model, node.getLinkList());
                     break;
                 }
             }
@@ -796,7 +789,7 @@ void add_description_list_node(
     }
 }
 
-void addFootnotes(
+void add_footnote_annotation_node(
     UnorderedSet<org::ImmUniqId> visited,
     org::ImmUniqId const&        origin,
     org::ImmAdapter const&       node,
@@ -807,6 +800,7 @@ void addFootnotes(
     } else {
         visited.incl(node.uniq());
     }
+    CTX_MSG(fmt("Footnotes from {}", origin));
     auto __scope = ctx.scopeLevel();
     for (auto const& recSub : node.getAllSubnodesDFS(node.path)) {
         Opt<org::ImmAdapterT<org::ImmLink>>
@@ -829,7 +823,12 @@ void addFootnotes(
                 },
                 org::graph::MapEdgeProp{});
 
-            addFootnotes(
+            CTX_MSG(
+                fmt("Found recursive target, {} is targeting {}",
+                    targetPath,
+                    link->ctx->adapt(targetPath)));
+
+            add_footnote_annotation_node(
                 visited,
                 targetPath,
                 link->ctx->adapt(targetPath),
@@ -844,6 +843,8 @@ void add_annotation_nodes(
     TreeGridDocument&     doc,
     org::graph::MapGraph& graph,
     StoryGridContext&     ctx) {
+    CTX_MSG("Add annotation nodes to document");
+    auto __scope = ctx.scopeLevel();
 
     for (auto const& row : doc.flatRows(true)) {
         org::graph::MapNode subtreeNode{row->origin.uniq()};
@@ -864,7 +865,8 @@ void add_annotation_nodes(
                 org::graph::MapEdgeProp{});
 
             UnorderedSet<org::ImmUniqId> visited;
-            addFootnotes(visited, commentNode.id, nested, graph, ctx);
+            add_footnote_annotation_node(
+                visited, commentNode.id, nested, graph, ctx);
         }
 
         for (auto const& list : row->origin.subAs<org::ImmList>()) {
@@ -1193,6 +1195,8 @@ void update_document_scroll(
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
     auto&                ir       = model.rectGraph.ir;
 
+    ir.visible.h = viewport->Size.y;
+    ir.visible.w = viewport->Size.x;
 
     for (auto& lane : ir.lanes) {
         for (auto& rect : lane.blocks) { rect.isVisible = true; }
@@ -1268,48 +1272,64 @@ void update_document_scroll(
     update_graph_layout(model.rectGraph, model.layout, model.debug);
 }
 
+void update_document_graph(
+    StoryGridModel&         model,
+    StoryGridConfig const&  conf,
+    TreeGridDocument const& init_doc) {
+    __perf_trace("gui", "add grid nodes");
+    model.rectGraph = StoryGridGraph{};
+    auto& rectGraph = model.rectGraph;
+    auto& ctx       = model.ctx;
+    CTX_MSG("Update document graph");
+    auto __scope = ctx.scopeLevel();
+
+    int docNodeIndex = add_root_grid_node(
+        rectGraph,
+        model.getLastHistory().ast.getRootAdapter(),
+        init_doc,
+        model.ctx);
+
+    add_annotation_nodes(
+        rectGraph,
+        rectGraph.nodes.at(docNodeIndex).getTreeGrid().node,
+        rectGraph.graph,
+        model.ctx);
+
+    Vec<org::graph::MapNode> docNodes;
+    for (TreeGridRow* row : rectGraph.nodes.at(docNodeIndex)
+                                .getTreeGrid()
+                                .node.flatRows(true)) {
+        if (model.state.folded.contains(docNodeIndex)) {
+            auto path = row->getOriginPath();
+            if (model.state.folded.at(docNodeIndex).contains(path)) {
+                row->isOpen = model.state.folded.at(docNodeIndex).at(path);
+            }
+        }
+        auto tree = row->origin.uniq();
+        if (!rectGraph.graph.adjList.at(tree).empty()
+            || !rectGraph.graph.inNodes(tree).empty()) {
+            docNodes.push_back(tree);
+        }
+    }
+
+    rectGraph.partition = partition_graph_nodes(docNodes, rectGraph.graph);
+
+    connect_partition_edges(
+        rectGraph,
+        model.getLastHistory(),
+        rectGraph.partition,
+        model.ctx,
+        conf);
+}
+
 void StoryGridModel::updateDocument(
     TreeGridDocument const& init_doc,
     StoryGridConfig const&  conf) {
     __perf_trace("gui", "update grid model");
+    CTX_MSG("Update story grid document");
+    auto __scope = ctx.scopeLevel();
     if (updateNeeded.contains(UpdateNeeded::Graph)) {
-        __perf_trace("gui", "add grid nodes");
-        rectGraph = StoryGridGraph{};
-
-        int docNodeIndex = add_root_grid_node(
-            rectGraph,
-            getLastHistory().ast.getRootAdapter(),
-            init_doc,
-            ctx);
-
-        add_annotation_nodes(
-            rectGraph,
-            rectGraph.nodes.at(docNodeIndex).getTreeGrid().node,
-            rectGraph.graph,
-            ctx);
-
-        Vec<org::graph::MapNode> docNodes;
-        for (TreeGridRow* row : rectGraph.nodes.at(docNodeIndex)
-                                    .getTreeGrid()
-                                    .node.flatRows(true)) {
-            if (state.folded.contains(docNodeIndex)) {
-                auto path = row->getOriginPath();
-                if (state.folded.at(docNodeIndex).contains(path)) {
-                    row->isOpen = state.folded.at(docNodeIndex).at(path);
-                }
-            }
-            auto tree = row->origin.uniq();
-            if (!rectGraph.graph.adjList.at(tree).empty()
-                || !rectGraph.graph.inNodes(tree).empty()) {
-                docNodes.push_back(tree);
-            }
-        }
-
-        rectGraph.partition = partition_graph_nodes(
-            docNodes, rectGraph.graph);
-
-        connect_partition_edges(
-            rectGraph, getLastHistory(), rectGraph.partition, ctx, conf);
+        update_document_graph(*this, conf, init_doc);
     }
 
     if (updateNeeded.contains(UpdateNeeded::LinkListClick)) {
