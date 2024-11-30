@@ -102,16 +102,15 @@ struct TreeGridRow {
 };
 
 struct TreeGridDocument {
-    Vec<TreeGridRow> rows;
-
+    Vec<TreeGridRow>    rows;
     Vec<TreeGridColumn> columns;
     int                 rowPadding        = 6;
     int                 colPadding        = 6;
     int                 treeFoldWidth     = 120;
     int                 tableHeaderHeight = 16;
+    Vec<int>            rowPositions;
+    Vec<int>            colPositions;
 
-    Vec<int>                          rowPositions;
-    Vec<int>                          colPositions;
     UnorderedMap<org::ImmUniqId, int> rowOrigins;
 
     void resetGridStatics();
@@ -295,7 +294,6 @@ struct StoryGridGraph {
     UnorderedMap<LaneNodePos, int> nodeToGridNode;
     org::graph::MapGraph           graph;
     Vec<Vec<DocAnnotation>>        partition;
-    int                            laneRowPadding = 6;
 
     UnorderedMap<org::ImmUniqId, org::ImmUniqId> annotationParents;
     UnorderedMap<org::ImmUniqId, LaneNodePos>    orgToId;
@@ -417,6 +415,7 @@ struct StoryGridConfig {
     int   pageDownScrollStep      = -20;
     int   mouseScrollMultiplier   = 10;
     int   annotationNodeWidth     = 200;
+    int   laneRowPadding          = 6;
 
 
     DESC_FIELDS(
@@ -429,7 +428,8 @@ struct StoryGridConfig {
          pageUpScrollStep,
          pageDownScrollStep,
          mouseScrollMultiplier,
-         annotationNodeWidth));
+         annotationNodeWidth,
+         laneRowPadding));
 };
 
 /// \brief Highly mutable context variable that is passed to all rendering
@@ -467,12 +467,12 @@ struct StoryGridModel {
     GraphLayoutIR::Result    layout;
     ImVec2                   shift{20, 20};
     Opt<ColaConstraintDebug> debug;
-    Vec<Slice<int>>          laneSpans;
-    Vec<float>               laneOffsets;
     StoryGridHistory&        getLastHistory() { return history.back(); }
     void apply(GridAction const& act, StoryGridConfig const& style);
 
-    void updateDocument(const TreeGridDocument& init_doc, const StoryGridConfig &conf);
+    void updateDocument(
+        const TreeGridDocument& init_doc,
+        const StoryGridConfig&  conf);
     UnorderedSet<UpdateNeeded> updateNeeded;
     StoryGridState             state;
 };

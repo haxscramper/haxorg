@@ -941,8 +941,8 @@ LaneNodePos get_partition_node(
             lane,
             ImVec2{
                 static_cast<float>(
-                    text.getWidth() + res.laneRowPadding * 2),
-                static_cast<float>(text.getHeight(res.laneRowPadding)),
+                    text.getWidth() + conf.laneRowPadding * 2),
+                static_cast<float>(text.getHeight(conf.laneRowPadding)),
             });
 
         for (auto const& item : text.items) {
@@ -961,7 +961,7 @@ LaneNodePos get_partition_node(
             .text = join(" ", flatWords(node)),
         };
 
-        int width  = 200;
+        int width  = conf.annotationNodeWidth;
         int height = get_text_height(
             text.text, width, TreeGridColumn::EditMode::Multiline);
         text.size.x = width;
@@ -1062,29 +1062,6 @@ void connect_partition_edges(
                 res.ir.addEdge(source_node, edge);
             }
         }
-    }
-}
-
-void update_lane_offsets(
-    LaneBlockGraph&  ir,
-    ImVec2 const&    viewport,
-    Vec<Slice<int>>& laneSpans,
-    Vec<float>&      laneOffsets) {
-    ir.visible.h = viewport.y;
-    ir.visible.w = viewport.x;
-    for (auto& stack : ir.lanes) { stack.resetVisibleRange(); }
-    for (auto const& [lane_idx, offset] : enumerate(laneOffsets)) {
-        if (ir.lanes.has(lane_idx)) {
-            ir.lanes.at(lane_idx).scrollOffset = offset;
-        }
-    }
-
-    int laneStartX = 0;
-    for (auto const& [lane_idx, lane] : enumerate(ir.lanes)) {
-        laneSpans.resize_at(lane_idx) = slice(
-            laneStartX + lane.leftMargin,
-            laneStartX + lane.leftMargin + lane.getWidth());
-        laneStartX += lane.getFullWidth();
     }
 }
 
@@ -1210,6 +1187,87 @@ void update_graph_layout(
     // debug->ir = &thisLayout;
 }
 
+void update_document_scroll(
+    StoryGridModel&        model,
+    StoryGridConfig const& conf) {
+    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+    auto&                ir       = model.rectGraph.ir;
+
+
+    for (auto& lane : ir.lanes) {
+        for (auto& rect : lane.blocks) { rect.isVisible = true; }
+    }
+
+    for (auto& stack : ir.lanes) { stack.resetVisibleRange(); }
+
+    if (ir.lanes.has(0)) {
+        model.shift.y = 20 + ir.lanes.at(0).scrollOffset;
+    }
+
+    update_graph_layout(model.rectGraph, model.layout, model.debug);
+
+    Slice<int> viewportRange = slice1<int>(0, viewport->WorkSize.y);
+    for (auto const& [lane_idx, lane] :
+         enumerate(model.rectGraph.ir.lanes)) {
+        for (auto const& [block_idx, block] : enumerate(lane.blocks)) {
+            LaneNodePos   lanePos{.lane = lane_idx, .row = block_idx};
+            StoryGridNode storyNode = model.rectGraph.getDocNode(lanePos);
+            // if individual node is a story grid it can have edges
+            // connected at any part of the shape, and they might be
+            // scrolled out of the view even if the grid itself is
+            // partially visible.
+            if (storyNode.isTreeGrid()) {
+                TreeGridDocument treeDoc = storyNode.getTreeGrid().node;
+                // so the code goes over each visible row, collecting the
+                // positions relative to the *block graph layout basis*
+                for (auto const& row : treeDoc.flatRows(false)) {
+                    Slice<int> rowRange = slice1<int>(
+                        treeDoc.getRowYPos(*row)
+                            + (ir.lanes.has(lane_idx)
+                                   ? ir.lanes.at(lane_idx).scrollOffset
+                                   : 0),
+                        treeDoc.getRowYPos(*row)
+                            + (ir.lanes.has(lane_idx)
+                                   ? ir.lanes.at(lane_idx).scrollOffset
+                                   : 0)
+                            + row->getHeight().value());
+                    org::ImmUniqId rowId = row->origin.uniq();
+                    UnorderedSet<org::graph::MapNode> adjacent;
+                    for (auto const& n :
+                         model.rectGraph.graph.inNodes(rowId)) {
+                        adjacent.incl(n);
+                    }
+
+                    for (auto const& n :
+                         model.rectGraph.graph.outNodes(rowId)) {
+                        adjacent.incl(n);
+                    }
+
+                    auto overlap = rowRange.overlap(viewportRange);
+
+                    for (auto const& n : adjacent) {
+                        Opt<LaneNodePos> targetNodePos = model.rectGraph
+                                                             .orgToId.get(
+                                                                 n.id);
+
+                        if (targetNodePos) {
+                            auto const& t = targetNodePos.value();
+
+                            if (overlap) {
+                                model.rectGraph.ir.at(t).isVisible = true;
+                            } else {
+                                model.rectGraph.ir.at(t).isVisible = false;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    update_graph_layout(model.rectGraph, model.layout, model.debug);
+}
+
 void StoryGridModel::updateDocument(
     TreeGridDocument const& init_doc,
     StoryGridConfig const&  conf) {
@@ -1262,76 +1320,7 @@ void StoryGridModel::updateDocument(
     }
 
     if (updateNeeded.contains(UpdateNeeded::Scroll)) {
-        const ImGuiViewport* viewport = ImGui::GetMainViewport();
-
-
-        for (auto& lane : rectGraph.ir.lanes) {
-            for (auto& rect : lane.blocks) { rect.isVisible = true; }
-        }
-
-
-        update_lane_offsets(
-            rectGraph.ir, viewport->WorkSize, laneSpans, laneOffsets);
-
-        if (laneOffsets.has(0)) { shift.y = 20 + laneOffsets.at(0); }
-
-        update_graph_layout(rectGraph, this->layout, this->debug);
-
-        Slice<int> viewportRange = slice1<int>(0, viewport->WorkSize.y);
-        for (auto const& [lane_idx, lane] :
-             enumerate(rectGraph.ir.lanes)) {
-            for (auto const& [block_idx, block] : enumerate(lane.blocks)) {
-                LaneNodePos   lanePos{.lane = lane_idx, .row = block_idx};
-                StoryGridNode storyNode = rectGraph.getDocNode(lanePos);
-                if (storyNode.isTreeGrid()) {
-                    TreeGridDocument treeDoc = storyNode.getTreeGrid()
-                                                   .node;
-                    for (auto const& row : treeDoc.flatRows(false)) {
-                        Slice<int> rowRange = slice1<int>(
-                            treeDoc.rowPositions.at(row->flatIdx)
-                                + (laneOffsets.has(lane_idx)
-                                       ? laneOffsets.at(lane_idx)
-                                       : 0),
-                            treeDoc.rowPositions.at(row->flatIdx)
-                                + (laneOffsets.has(lane_idx)
-                                       ? laneOffsets.at(lane_idx)
-                                       : 0)
-                                + row->getHeight().value());
-                        org::ImmUniqId rowId = row->origin.uniq();
-                        UnorderedSet<org::graph::MapNode> adjacent;
-                        for (auto const& n :
-                             rectGraph.graph.inNodes(rowId)) {
-                            adjacent.incl(n);
-                        }
-
-                        for (auto const& n :
-                             rectGraph.graph.outNodes(rowId)) {
-                            adjacent.incl(n);
-                        }
-
-                        auto overlap = rowRange.overlap(viewportRange);
-
-                        for (auto const& n : adjacent) {
-                            Opt<LaneNodePos>
-                                targetNodePos = rectGraph.orgToId.get(
-                                    n.id);
-
-                            if (targetNodePos) {
-                                auto const& t = targetNodePos.value();
-
-                                if (overlap) {
-                                    rectGraph.ir.at(t).isVisible = true;
-                                } else {
-                                    rectGraph.ir.at(t).isVisible = false;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        update_graph_layout(rectGraph, this->layout, this->debug);
+        update_document_scroll(*this, conf);
     }
 
     // writeFile("/tmp/debug_dump.json",
@@ -1343,6 +1332,7 @@ void StoryGridModel::apply(
     const GridAction&      act,
     StoryGridConfig const& style) {
     __perf_trace("model", "Apply grid action");
+    CTX_MSG(fmt("{}", act));
     switch (act.getKind()) {
         case GridAction::Kind::EditCell: {
             updateNeeded.incl(UpdateNeeded::Graph);
@@ -1376,9 +1366,10 @@ void StoryGridModel::apply(
         case GridAction::Kind::Scroll: {
             updateNeeded.incl(UpdateNeeded::Scroll);
             auto const& scroll = act.getScroll();
-            for (auto const& [lane_idx, span] : enumerate(laneSpans)) {
+            for (auto const& [lane_idx, span] :
+                 enumerate(rectGraph.ir.getLaneSpans())) {
                 if (span.contains(scroll.pos.x)) {
-                    laneOffsets.resize_at(lane_idx, 0.0f) //
+                    rectGraph.ir.lane(lane_idx).scrollOffset //
                         += scroll.direction * style.mouseScrollMultiplier;
                 }
             }
@@ -1515,12 +1506,13 @@ void run_story_grid_cycle(
     if (conf.annotated) {
         run_story_grid_annotated_cycle(model, conf);
 
-        ImGuiIO& io            = ImGui::GetIO();
-        float    scroll_amount = io.MouseWheel;
-        if (scroll_amount != 0.0f) {
+        ImGuiIO& io  = ImGui::GetIO();
+        auto&    ctx = model.ctx;
+        if (io.MouseWheel != 0.0f) {
+            CTX_MSG(fmt("Mouse scrolling"));
             model.ctx.actions.push_back(GridAction{GridAction::Scroll{
                 .pos       = io.MousePos,
-                .direction = scroll_amount,
+                .direction = io.MouseWheel,
             }});
         }
 
@@ -1548,13 +1540,10 @@ void apply_story_grid_changes(
     TreeGridDocument const& init_doc,
     StoryGridConfig const&  conf) {
     if (!model.ctx.actions.empty()) {
-        model.ctx.OperationsTracer::TraceState = true;
         for (auto const& update : model.ctx.actions) {
             model.apply(update, conf);
         }
         model.updateDocument(init_doc, conf);
         model.ctx.actions.clear();
     }
-
-    model.ctx.OperationsTracer::TraceState = false;
 }

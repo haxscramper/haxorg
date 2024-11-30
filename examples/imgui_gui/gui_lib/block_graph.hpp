@@ -126,6 +126,18 @@ struct LaneBlockGraph {
     LaneBlockNode const& at(LaneNodePos const& node) const {
         return lanes.at(node.lane).blocks.at(node.row);
     }
+
+    Vec<Slice<int>> getLaneSpans() const {
+        Vec<Slice<int>> laneSpans;
+        int             laneStartX = 0;
+        for (auto const& [lane_idx, lane] : enumerate(lanes)) {
+            laneSpans.resize_at(lane_idx) = slice(
+                laneStartX + lane.leftMargin,
+                laneStartX + lane.leftMargin + lane.getWidth());
+            laneStartX += lane.getFullWidth();
+        }
+        return laneSpans;
+    }
 };
 
 

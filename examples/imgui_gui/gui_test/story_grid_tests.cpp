@@ -15,6 +15,7 @@ struct StoryGridVars : public ImTestVarsBase {
         });
         model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Graph);
         model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Scroll);
+
         TreeGridDocument doc;
         model.updateDocument(doc, conf);
     }
@@ -22,16 +23,18 @@ struct StoryGridVars : public ImTestVarsBase {
     void init_section(ImGuiTestContext* ctx, std::string const& text) {
         if (is_first()) {
             model.ctx.setTraceFile(
-                getDebugFile(ctx->Test, "subtree_init"));
+                getDebugFile(ctx->Test, "story_grid.log"));
 
-            trace.setTraceFile(getDebugFile(ctx->Test, "trace.log"));
+            trace.setTraceFile(
+                getDebugFile(ctx->Test, "imgui_render.log"));
+
             add_text(text);
         }
     }
 
     void run_app_loop_iteration(ImGuiTestContext* ctx) {
         model.shift = getContentPos(ctx);
-        run_story_grid_annotated_cycle(model, conf);
+        run_story_grid_cycle(model, conf);
         apply_story_grid_changes(model, TreeGridDocument{}, conf);
 
         if (is_im_traced()) { ImRenderTraceRecord::WriteTrace(trace); }
@@ -148,6 +151,22 @@ some random shit about the comments or whatever, need to render as annotation [f
 
     t->TestFunc = ImWrapTestFuncT<StoryGridVars>(
         params, [](ImGuiTestContext* ctx, StoryGridVars& vars) {
+            ImVec2 wpos = getContentPos(ctx);
+            auto&  m    = vars.model;
+            auto&  doc  = m.rectGraph.nodes.at(0).getTreeGrid().node;
+            auto&  ir   = m.rectGraph.ir;
+            IM_CHECK_EQ(ir.getLaneSpans().size(), 4);
+            IM_CHECK_EQ(ir.lanes.at(0).scrollOffset, 0);
+            ctx->MouseMoveToPos(
+                wpos
+                + ImVec2{
+                    static_cast<float>(ir.getLaneSpans().at(1).first + 50),
+                    5});
+
+            ctx->MouseWheelY(5);
+            IM_CHECK_EQ(
+                ir.lanes.at(0).scrollOffset,
+                vars.conf.mouseScrollMultiplier * 5);
             ctx->SuspendTestFunc();
         });
 }
