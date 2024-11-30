@@ -467,28 +467,15 @@ void render_table(
                 | ImGuiWindowFlags_NoScrollbar
                 | ImGuiWindowFlags_NoScrollWithMouse)) {
         ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
-        if (IM_FN_BEGIN(
-                BeginTable,
-                "HeaderTable",
-                1 + doc.columns.size(),
-                ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Borders
-                    | ImGuiTableFlags_RowBg)) {
-            ImGui::TableSetupColumn(
-                "Tree",
-                ImGuiTableColumnFlags_WidthFixed,
-                tree_fold_column);
-
-            for (auto const& col : doc.columns) {
-                ImGui::TableSetupColumn(
-                    col.name.c_str(),
-                    ImGuiTableColumnFlags_WidthFixed,
-                    col.width);
-            }
-
-            ImGui::TableHeadersRow();
-
-            IM_FN_END(EndTable);
+        auto gridStart = ImGui::GetCursorScreenPos();
+        for (auto const& [idx, col] : enumerate(doc.columns)) {
+            ImGui::GetWindowDrawList()->AddText(
+                gridStart + ImVec2(doc.colPositions.at(idx), 0),
+                IM_COL32(255, 255, 255, 255),
+                col.name.data(),
+                col.name.data() + col.name.size());
         }
+
         IM_FN_END(End);
     }
     ImGui::PopStyleVar(frameless_vars);
