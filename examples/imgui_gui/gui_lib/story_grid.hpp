@@ -116,9 +116,10 @@ struct TreeGridDocument {
     Vec<int>            rowPositions;
     Vec<int>            colPositions;
     Vec<TreeGridColumn> columns;
-    int                 rowPadding    = 6;
-    int                 colPadding    = 6;
-    int                 treeFoldWidth = 120;
+    int                 rowPadding        = 6;
+    int                 colPadding        = 6;
+    int                 treeFoldWidth     = 120;
+    int                 tableHeaderHeight = 16;
 
     UnorderedMap<org::ImmUniqId, int> rowOrigins;
 
@@ -129,6 +130,10 @@ struct TreeGridDocument {
 
     int getColumnXPos(CR<Str> name) {
         return colPositions.at(getColumnIndex(name));
+    }
+
+    TreeGridCell& getExistingCell(int row, CR<Str> column) {
+        return flatRows(true).at(row)->columns.at(column);
     }
 
 
@@ -452,4 +457,6 @@ Opt<json> story_grid_loop(
 
 void run_story_grid_annotated_cycle(StoryGridModel& model);
 void run_story_grid_cycle(StoryGridModel& model);
-void apply_story_grid_changes(StoryGridModel& model);
+void apply_story_grid_changes(
+    StoryGridModel&         model,
+    TreeGridDocument const& init_doc);

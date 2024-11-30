@@ -439,14 +439,14 @@ Vec<GridAction> render_list_node(
     return result;
 }
 
-float tableHeaderHeight = 16.0f;
-
 void render_table(
     StoryGridModel&          model,
     StoryGridNode::TreeGrid& grid,
     int                      documentNodeIdx) {
-    auto& doc = grid.node;
-    auto& ctx = model.conf;
+    auto& doc       = grid.node;
+    auto& ctx       = model.conf;
+    auto  gridStart = ImGui::GetCursorScreenPos();
+    auto  gridSize  = doc.getSize();
 
     // Table for the story grid node is drawn as a small floating window
     // that is overlaid exactly on top of the existing bar. I have no
@@ -467,7 +467,6 @@ void render_table(
                 | ImGuiWindowFlags_NoScrollbar
                 | ImGuiWindowFlags_NoScrollWithMouse)) {
         ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
-        auto gridStart = ImGui::GetCursorScreenPos();
         for (auto const& [idx, col] : enumerate(doc.columns)) {
             ImGui::GetWindowDrawList()->AddText(
                 gridStart + ImVec2(doc.colPositions.at(idx), 0),
@@ -480,9 +479,6 @@ void render_table(
     }
     ImGui::PopStyleVar(frameless_vars);
 
-    auto gridStart = ImGui::GetCursorScreenPos()
-                   + ImVec2(0, tableHeaderHeight);
-    auto gridSize = doc.getSize();
     // render_debug_rect(ImRect(gridStart, gridStart + gridSize));
     ImGui::SetNextWindowPos(gridStart);
     if (IM_FN_BEGIN(
@@ -509,7 +505,7 @@ void render_table_node(
 
     ImGui::SetNextWindowPos(grid.pos + model.shift);
     ImGui::SetNextWindowSize(
-        grid.node.getSize() + ImVec2(0, tableHeaderHeight));
+        grid.node.getSize() + ImVec2(0, doc.tableHeaderHeight));
     auto frameless_vars = push_frameless_window_vars();
     // Table is drawn in a separate window so it could have the widgets
     // inside, but otherwise is positioned completely independently on the
@@ -654,7 +650,7 @@ Opt<json> story_grid_loop(
 
         frame_end(window);
 
-        apply_story_grid_changes(model);
+        apply_story_grid_changes(model, getInitRootDoc());
     }
 
     inotify_rm_watch(inotify_fd, watch_descriptor);
@@ -1495,7 +1491,7 @@ Opt<int> TreeGridRow::getHeightRec(int padding) const {
 
 void TreeGridDocument::resetCellPositions() {
     __perf_trace("gui", "reset table row positions");
-    int                            offset = 0;
+    int                            offset = tableHeaderHeight;
     int                            index  = 0;
     Func<void(TreeGridRow&, bool)> aux;
     aux = [&, this](TreeGridRow& row, bool isVisible) {
@@ -1516,6 +1512,7 @@ void TreeGridDocument::resetCellPositions() {
 
 
     int colOffset = treeFoldWidth;
+    colPositions.clear();
     for (auto const& [index, col] : enumerate(columns)) {
         colPositions.resize_at(index) = colOffset;
         colOffset += col.width + colPadding;
@@ -1551,19 +1548,20 @@ void run_story_grid_cycle(StoryGridModel& model) {
             }});
         }
     } else {
-        auto&                g = model.rectGraph.nodes.at(0).getTreeGrid();
-        const ImGuiViewport* viewport = ImGui::GetMainViewport();
+        auto& g = model.rectGraph.nodes.at(0).getTreeGrid();
         render_table(model, g, 0);
     }
 }
 
-void apply_story_grid_changes(StoryGridModel& model) {
+void apply_story_grid_changes(
+    StoryGridModel&         model,
+    TreeGridDocument const& init_doc) {
     if (!model.conf.actions.empty()) {
         model.conf.OperationsTracer::TraceState = true;
         for (auto const& update : model.conf.actions) {
             model.apply(update);
         }
-        model.updateDocument(getInitRootDoc());
+        model.updateDocument(init_doc);
         model.conf.actions.clear();
     }
 

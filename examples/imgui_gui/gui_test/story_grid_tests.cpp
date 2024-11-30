@@ -57,7 +57,7 @@ void RegisterApptests_story_grid(ImGuiTestEngine* e) {
 
                 vars.model.shift = getContentPos(ctx);
                 run_story_grid_annotated_cycle(vars.model);
-                apply_story_grid_changes(vars.model);
+                apply_story_grid_changes(vars.model, TreeGridDocument{});
 
                 if (vars.is_im_traced()) {
                     ImRenderTraceRecord::WriteTrace(vars.trace);
@@ -69,12 +69,26 @@ void RegisterApptests_story_grid(ImGuiTestEngine* e) {
                 // ImGui::LogToFile(-1, "/tmp/imgui_file_log.txt");
 
                 ImVec2 wpos = getContentPos(ctx);
-                _dfmt(wpos);
-                ctx->MouseMoveToPos(wpos + ImVec2{140, 25});
+                auto&  doc  = vars.model.rectGraph.nodes.at(0)
+                                .getTreeGrid()
+                                .node;
+                ctx->MouseMoveToPos(
+                    wpos + doc.getCellPos(0, "title") + ImVec2{0, 5});
+                IM_CHECK_EQ(
+                    doc.getExistingCell(0, "title").getValue().value,
+                    "One subtree in grid");
                 vars.set_im_trace(1);
                 ctx->Yield(2);
                 ctx->MouseClick(0);
                 vars.set_im_trace(1);
+                ctx->Yield(2);
+                ctx->MouseClick(0);
+                ctx->KeyChars("test");
+                ctx->MouseMoveToPos(ImGui::GetMousePos() + ImVec2{0, 50});
+                ctx->MouseClick(0);
+                IM_CHECK_EQ(
+                    doc.getExistingCell(0, "title").getValue().value,
+                    "testOne subtree in grid");
                 ctx->SuspendTestFunc();
             });
     }
