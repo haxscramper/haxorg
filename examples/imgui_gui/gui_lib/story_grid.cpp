@@ -232,8 +232,6 @@ void render_tree_columns(
     }
 }
 
-float tree_fold_column = 120.0f;
-
 void render_tree_row(
     TreeGridRow&      row,
     TreeGridDocument& doc,
@@ -250,55 +248,12 @@ void render_tree_row(
     auto __im_scope = IM_SCOPE_BEGIN(
         "Tree row", fmt("row [{}]", row.flatIdx));
 
-    // CTX_MSG(fmt("row {}", ImGui::TableGetRowIndex()));
-    // if (!row.nested.empty()
-    //     && rs::any_of(row.nested, [](TreeGridRow const& r) {
-    //            return r.isVisible;
-    //        })) {
-    //     switch (row.origin->level) {
-    //         case 1:
-    //             ImGui::TableSetBgColor(
-    //                 ImGuiTableBgTarget_RowBg0,
-    //                 IM_COL32(255, 200, 200, 128));
-    //             break;
-    //         case 2:
-    //             ImGui::TableSetBgColor(
-    //                 ImGuiTableBgTarget_RowBg0,
-    //                 IM_COL32(200, 255, 200, 128));
-    //             break;
-    //         case 3:
-    //             ImGui::TableSetBgColor(
-    //                 ImGuiTableBgTarget_RowBg0,
-    //                 IM_COL32(200, 200, 255, 128));
-    //             break;
-    //         default: {
-    //         }
-    //     }
-    // }
-
-
     if (!row.nested.empty()) {
-        // ImGui::PushID(fmt("{}", row.origin.id).c_str());
-        // ImGui::SetNextItemOpen(row.isOpen, ImGuiCond_Once);
-        // bool this_open = ImGui::TreeNodeEx(
-        //     fmt("[{}]", row.origin->level).c_str(),
-        //     ImGuiTreeNodeFlags_SpanFullWidth);
-        // ImGui::PopID();
         render_tree_columns(row, doc, ctx, documentNodeIdx, gridStart);
-        // if (this_open != row.isOpen) {
-        //     row.isOpen = this_open;
-        //     result.push_back(GridAction{GridAction::RowFolding{
-        //         .isOpen          = this_open,
-        //         .flatIdx         = row.flatIdx,
-        //         .documentNodeIdx = documentNodeIdx,
-        //     }});
-        // }
         if (row.isOpen) {
             for (auto& sub : row.nested) {
                 render_tree_row(sub, doc, ctx, documentNodeIdx, gridStart);
             }
-
-            // ImGui::TreePop();
         }
     } else if (!skipped) {
         render_tree_columns(row, doc, ctx, documentNodeIdx, gridStart);
@@ -308,13 +263,10 @@ void render_tree_row(
         gridStart + ImVec2(0, doc.getRowYPos(row)),
         gridStart
             + ImVec2(
-                tree_fold_column,
+                doc.treeFoldWidth,
                 doc.getRowYPos(row) + row.getHeight().value_or(0)));
 
     if (cell_rect.Contains(ImGui::GetMousePos())) {
-        // ImGui::TableSetBgColor(
-        //     ImGuiTableBgTarget_CellBg, IM_COL32(128, 128, 128, 64));
-
         if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
             ImGui::OpenPopup(fmt("ctx_{}", row.origin.id).c_str());
         }
@@ -330,29 +282,31 @@ void render_tree_row(
         ImGui::EndPopup();
     }
 
-    if (row.isOpen) {
-        ImVec2 cell_max  = cell_rect.Max;
-        ImVec2 rect_size = ImVec2(
-            std::ceil(
-                ((6 - row.origin->level) / 6.0f)
-                * (cell_rect.Max.x - cell_rect.Min.x)),
-            cell_rect.Max.y - cell_rect.Min.y);
-        float  pad      = 2.0f;
-        ImVec2 rect_min = cell_max - rect_size + ImVec2(pad, pad);
-        ImVec2 rect_max = cell_max - ImVec2(pad, pad);
+    ImVec2 cell_max  = cell_rect.Max;
+    ImVec2 rect_size = ImVec2(
+        std::ceil(
+            ((6 - row.origin->level) / 6.0f)
+            * (cell_rect.Max.x - cell_rect.Min.x)),
+        cell_rect.Max.y - cell_rect.Min.y);
+    float  pad      = 2.0f;
+    ImVec2 rect_min = cell_max - rect_size + ImVec2(pad, pad);
+    ImVec2 rect_max = cell_max - ImVec2(pad, pad);
 
-        ImGui::GetWindowDrawList()->AddRectFilled(
-            rect_min, rect_max, IM_COL32(255, 0, 0, 128));
-        if (false) {
-            ImGui::GetWindowDrawList()->AddRect(
-                rect_min,
-                rect_max,
-                IM_COL32(0, 255, 255, 255),
-                0.0f,
-                0,
-                1.0f);
+    if (ImGui::IsMouseHoveringRect(cell_rect.Min, cell_rect.Max)) {
+        ImGui::GetWindowDrawList()->AddRect(
+            rect_min, rect_max, IM_COL32(0, 255, 255, 255), 0.0f, 0, 1.0f);
+        if (ImGui::IsMouseClicked(0)) {
+            row.isOpen = !row.isOpen;
+            ctx.actions.push_back(GridAction{GridAction::RowFolding{
+                .isOpen          = row.isOpen,
+                .flatIdx         = row.flatIdx,
+                .documentNodeIdx = documentNodeIdx,
+            }});
         }
     }
+
+    ImGui::GetWindowDrawList()->AddRectFilled(
+        rect_min, rect_max, IM_COL32(255, 0, 0, 128));
 }
 
 Vec<GridAction> render_text_node(
@@ -1370,7 +1324,6 @@ void StoryGridModel::updateDocument(TreeGridDocument const& init_doc) {
 
 void StoryGridModel::apply(const GridAction& act) {
     __perf_trace("model", "Apply grid action");
-    _dbg(act);
     switch (act.getKind()) {
         case GridAction::Kind::EditCell: {
             updateNeeded.incl(UpdateNeeded::Graph);
@@ -1434,6 +1387,10 @@ void StoryGridModel::apply(const GridAction& act) {
             } else {
                 map.insert_or_assign(path, row->isOpen);
             }
+
+            rectGraph.nodes.at(f.documentNodeIdx)
+                .getTreeGrid()
+                .node.resetCellPositions();
             break;
         }
     }
@@ -1495,7 +1452,6 @@ void TreeGridDocument::resetCellPositions() {
     int                            index  = 0;
     Func<void(TreeGridRow&, bool)> aux;
     aux = [&, this](TreeGridRow& row, bool isVisible) {
-        _dfmt(index, offset);
         this->rowPositions.resize_at(index) = offset;
         row.flatIdx                         = index;
 
@@ -1517,8 +1473,6 @@ void TreeGridDocument::resetCellPositions() {
         colPositions.resize_at(index) = colOffset;
         colOffset += col.width + colPadding;
     }
-
-    _dfmt(colPositions, rowPositions, getHeight(), getWidth());
 }
 
 void run_story_grid_cycle(StoryGridModel& model) {

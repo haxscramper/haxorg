@@ -77,6 +77,15 @@ void RegisterApptests_story_grid(ImGuiTestEngine* e) {
                 IM_CHECK_EQ(
                     doc.getExistingCell(0, "title").getValue().value,
                     "One subtree in grid");
+                IM_CHECK_EQ(
+                    doc.getExistingCell(2, "event").getValue().value,
+                    "Event 2");
+                IM_CHECK_EQ(
+                    doc.getExistingCell(2, "location").getValue().value,
+                    "Location 2");
+                IM_CHECK_EQ(
+                    doc.getExistingCell(2, "note").getValue().value,
+                    "Note 4");
                 vars.set_im_trace(1);
                 ctx->Yield(2);
                 ctx->MouseClick(0);
@@ -89,6 +98,13 @@ void RegisterApptests_story_grid(ImGuiTestEngine* e) {
                 IM_CHECK_EQ(
                     doc.getExistingCell(0, "title").getValue().value,
                     "testOne subtree in grid");
+
+                ctx->MouseMoveToPos(wpos + doc.getCellPos(0, "title"));
+                ctx->MouseMoveToPos(
+                    ImGui::GetMousePos()
+                    - ImVec2(doc.treeFoldWidth - 10, 0));
+                ctx->MouseClick(0);
+
                 ctx->SuspendTestFunc();
             });
     }

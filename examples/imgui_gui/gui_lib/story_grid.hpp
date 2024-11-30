@@ -404,15 +404,19 @@ struct GridAction {
     DESC_FIELDS(GridAction, (data));
 };
 
+struct StoryGridStyle {
+    DESC_FIELDS(StoryGridStyle, ());
+};
 
 struct StoryGridContext
     : OperationsTracer
     , OperationsScope {
 
-    DESC_FIELDS(StoryGridContext, (annotated, actions));
+    DESC_FIELDS(StoryGridContext, (annotated, actions, style));
 
     Vec<GridAction> actions;
     bool            annotated;
+    StoryGridStyle  style;
 
     void message(
         std::string const& value,
