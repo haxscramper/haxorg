@@ -193,9 +193,9 @@ void render_path(const GraphPath& path, ImVec2 const& shift) {
 
 
 void render_bezier_path(
-    const GraphPath&           path,
-    ImVec2 const&              shift,
-    LaneBlockGraphConfig const& style) {
+    const GraphPath&            path,
+    ImVec2 const&               shift,
+    LaneBlockGraphConfig const& conf) {
     if (path.points.size() < 2) { return; }
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -250,10 +250,15 @@ void render_bezier_path(
             }
         };
 
-    const float width = 4.0f;
-    draw_offset_curve(-width + 1.0f, style.edgeBorderColor, 1.0f);
-    draw_offset_curve(0, style.edgeCenterColor, width - 2.0f);
-    draw_offset_curve(+width - 1.0f, style.edgeBorderColor, 1.0f);
+    draw_offset_curve(
+        -conf.edgeCurveWidth + conf.edgeCurveBorderWidth,
+        conf.edgeBorderColor,
+        conf.edgeCurveBorderWidth);
+    draw_offset_curve(0, conf.edgeCenterColor, conf.edgeCurveWidth - 2.0f);
+    draw_offset_curve(
+        +conf.edgeCurveWidth - conf.edgeCurveBorderWidth,
+        conf.edgeBorderColor,
+        conf.edgeCurveBorderWidth);
 }
 
 void render_rect(const GraphRect& rect, ImVec2 const& shift) {
@@ -268,9 +273,9 @@ void render_rect(const GraphRect& rect, ImVec2 const& shift) {
 }
 
 void render_edge(
-    const GraphLayoutIR::Edge& edge,
-    ImVec2 const&              shift,
-    bool                       bezier,
+    const GraphLayoutIR::Edge&  edge,
+    ImVec2 const&               shift,
+    bool                        bezier,
     const LaneBlockGraphConfig& style) {
     for (const auto& path : edge.paths) {
         if (bezier) {
@@ -287,7 +292,7 @@ void render_edge(
 void render_result(
     GraphLayoutIR::Result const& res,
     ImVec2 const&                shift,
-    LaneBlockGraphConfig const&   style) {
+    LaneBlockGraphConfig const&  style) {
     for (auto const& rect : res.fixed) { render_rect(rect, shift); }
     for (auto const& [key, path] : res.lines) {
         render_edge(path, shift, true, style);
@@ -295,8 +300,8 @@ void render_result(
 }
 
 void graph_render_loop(
-    LaneBlockGraph const&      g,
-    GLFWwindow*                window,
+    LaneBlockGraph const&       g,
+    GLFWwindow*                 window,
     LaneBlockGraphConfig const& style) {
     auto lyt  = to_layout(g);
     auto col  = lyt.ir.doColaLayout();

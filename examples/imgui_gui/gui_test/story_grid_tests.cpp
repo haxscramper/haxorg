@@ -7,7 +7,7 @@
 struct StoryGridVars : public ImTestVarsBase {
     StoryGridModel     model;
     org::ImmAstContext start;
-    StoryGridConfig     style;
+    StoryGridConfig    conf;
 
     void add_text(std::string const& text) {
         model.history.push_back(StoryGridHistory{
@@ -16,7 +16,7 @@ struct StoryGridVars : public ImTestVarsBase {
         model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Graph);
         model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Scroll);
         TreeGridDocument doc;
-        model.updateDocument(doc);
+        model.updateDocument(doc, conf);
     }
 
     void init_section(ImGuiTestContext* ctx, std::string const& text) {
@@ -31,8 +31,8 @@ struct StoryGridVars : public ImTestVarsBase {
 
     void run_app_loop_iteration(ImGuiTestContext* ctx) {
         model.shift = getContentPos(ctx);
-        run_story_grid_annotated_cycle(model, style);
-        apply_story_grid_changes(model, TreeGridDocument{});
+        run_story_grid_annotated_cycle(model, conf);
+        apply_story_grid_changes(model, TreeGridDocument{}, conf);
 
         if (is_im_traced()) { ImRenderTraceRecord::WriteTrace(trace); }
     }

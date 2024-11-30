@@ -424,11 +424,22 @@ int main(int argc, char** argv) {
         }
         case Config::Mode::StoryGridAnnotated:
         case Config::Mode::StoryGrid: {
+            StoryGridConfig storyGridConf;
+            using Col = StoryGridConfig::StoryGridColumnConfig;
+            storyGridConf.defaultColumns = {
+                Col{.width = 200, .name = "title"},
+                Col{.width = 400, .name = "event"},
+                Col{.width = 400, .name = "note"},
+                Col{.width = 300, .name = "turning_point"},
+                Col{.width = 200, .name = "value"},
+                Col{.width = 240,
+                    .edit  = TreeGridColumn::EditMode::SingleLine,
+                    .name  = "location"},
+                Col{.width = 100, .name = "pov"},
+            };
+
             appstate = story_grid_loop(
-                window,
-                conf.file,
-                conf.mode == Config::Mode::StoryGridAnnotated,
-                appstate);
+                window, conf.file, appstate, storyGridConf);
             break;
         }
         case Config::Mode::Test: {

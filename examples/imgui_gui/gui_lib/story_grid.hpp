@@ -400,22 +400,36 @@ struct GridAction {
 /// updates etc., but are not change-able from within the UI part of the
 /// application.
 struct StoryGridConfig {
+    struct StoryGridColumnConfig {
+        Opt<int>                      width;
+        Opt<TreeGridColumn::EditMode> edit;
+        Str                           name;
+        DESC_FIELDS(StoryGridColumnConfig, (width, edit, name));
+    };
+
+    Vec<StoryGridColumnConfig> defaultColumns;
+    LaneBlockGraphConfig       blockGraphStyle;
+
     ImU32 foldCellHoverBackground = IM_COL32(0, 255, 255, 255);
     ImU32 foldCellBackground      = IM_COL32(255, 0, 0, 128);
-    LaneBlockGraphConfig blockGraphStyle;
-    bool                 annotated             = true;
-    int                  pageUpScrollStep      = 20;
-    int                  pageDownScrollStep    = -20;
-    int                  mouseScrollMultiplier = 10;
+    bool  annotated               = true;
+    int   pageUpScrollStep        = 20;
+    int   pageDownScrollStep      = -20;
+    int   mouseScrollMultiplier   = 10;
+    int   annotationNodeWidth     = 200;
+
+
     DESC_FIELDS(
         StoryGridConfig,
-        (foldCellHoverBackground,
+        (defaultColumns,
+         foldCellHoverBackground,
          foldCellBackground,
          blockGraphStyle,
          annotated,
          pageUpScrollStep,
          pageDownScrollStep,
-         mouseScrollMultiplier));
+         mouseScrollMultiplier,
+         annotationNodeWidth));
 };
 
 /// \brief Highly mutable context variable that is passed to all rendering
@@ -456,9 +470,9 @@ struct StoryGridModel {
     Vec<Slice<int>>          laneSpans;
     Vec<float>               laneOffsets;
     StoryGridHistory&        getLastHistory() { return history.back(); }
-    void                     apply(GridAction const& act);
+    void apply(GridAction const& act, StoryGridConfig const& style);
 
-    void updateDocument(const TreeGridDocument& init_doc);
+    void updateDocument(const TreeGridDocument& init_doc, const StoryGridConfig &conf);
     UnorderedSet<UpdateNeeded> updateNeeded;
     StoryGridState             state;
 };
@@ -467,16 +481,16 @@ struct StoryGridModel {
 Opt<json> story_grid_loop(
     GLFWwindow*            window,
     std::string const&     file,
-    bool                   annotated,
     Opt<json> const&       in_state,
-    const StoryGridConfig& style);
+    const StoryGridConfig& conf);
 
 void run_story_grid_annotated_cycle(
     StoryGridModel&        model,
-    const StoryGridConfig& style);
+    const StoryGridConfig& conf);
 void run_story_grid_cycle(
     StoryGridModel&        model,
-    StoryGridConfig const& style);
+    StoryGridConfig const& conf);
 void apply_story_grid_changes(
     StoryGridModel&         model,
-    TreeGridDocument const& init_doc);
+    TreeGridDocument const& init_doc,
+    const StoryGridConfig&  conf);
