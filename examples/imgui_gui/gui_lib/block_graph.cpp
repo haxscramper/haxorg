@@ -192,7 +192,10 @@ void render_path(const GraphPath& path, ImVec2 const& shift) {
 }
 
 
-void render_bezier_path(const GraphPath& path, ImVec2 const& shift) {
+void render_bezier_path(
+    const GraphPath&           path,
+    ImVec2 const&              shift,
+    LaneBlockGraphConfig const& style) {
     if (path.points.size() < 2) { return; }
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -212,7 +215,7 @@ void render_bezier_path(const GraphPath& path, ImVec2 const& shift) {
             }
 
             if (offset_points.size() == 4) {
-                float dist = (offset_points[0].x - offset_points[3].x);
+                float  dist = (offset_points[0].x - offset_points[3].x);
                 ImVec2 bezier_start_offset = ImVec2(-dist, 0);
                 ImVec2 bezier_end_offset   = ImVec2(dist, 0);
 
@@ -248,9 +251,9 @@ void render_bezier_path(const GraphPath& path, ImVec2 const& shift) {
         };
 
     const float width = 4.0f;
-    draw_offset_curve(-width + 1.0f, IM_COL32(255, 255, 255, 200), 1.0f);
-    draw_offset_curve(0, IM_COL32(128, 128, 128, 128), width - 2.0f);
-    draw_offset_curve(+width - 1.0f, IM_COL32(255, 255, 255, 200), 1.0f);
+    draw_offset_curve(-width + 1.0f, style.edgeBorderColor, 1.0f);
+    draw_offset_curve(0, style.edgeCenterColor, width - 2.0f);
+    draw_offset_curve(+width - 1.0f, style.edgeBorderColor, 1.0f);
 }
 
 void render_rect(const GraphRect& rect, ImVec2 const& shift) {
@@ -267,10 +270,11 @@ void render_rect(const GraphRect& rect, ImVec2 const& shift) {
 void render_edge(
     const GraphLayoutIR::Edge& edge,
     ImVec2 const&              shift,
-    bool                       bezier) {
+    bool                       bezier,
+    const LaneBlockGraphConfig& style) {
     for (const auto& path : edge.paths) {
         if (bezier) {
-            render_bezier_path(path, shift);
+            render_bezier_path(path, shift, style);
         } else {
             render_path(path, shift);
         }
@@ -280,14 +284,20 @@ void render_edge(
     }
 }
 
-void render_result(GraphLayoutIR::Result const& res, ImVec2 const& shift) {
+void render_result(
+    GraphLayoutIR::Result const& res,
+    ImVec2 const&                shift,
+    LaneBlockGraphConfig const&   style) {
     for (auto const& rect : res.fixed) { render_rect(rect, shift); }
     for (auto const& [key, path] : res.lines) {
-        render_edge(path, shift, true);
+        render_edge(path, shift, true, style);
     }
 }
 
-void graph_render_loop(LaneBlockGraph const& g, GLFWwindow* window) {
+void graph_render_loop(
+    LaneBlockGraph const&      g,
+    GLFWwindow*                window,
+    LaneBlockGraphConfig const& style) {
     auto lyt  = to_layout(g);
     auto col  = lyt.ir.doColaLayout();
     auto conv = col.convert();
@@ -297,7 +307,7 @@ void graph_render_loop(LaneBlockGraph const& g, GLFWwindow* window) {
     while (!glfwWindowShouldClose(window)) {
         frame_start();
         fullscreen_window_begin();
-        render_result(conv, shift);
+        render_result(conv, shift, style);
         ImGui::End();
         frame_end(window);
     }
@@ -373,7 +383,7 @@ void run_block_graph_test(GLFWwindow* window) {
             fmt("/tmp/run_block_graph_test_{}", i));
     }
 
-    graph_render_loop(g, window);
+    graph_render_loop(g, window, LaneBlockGraphConfig{});
 }
 
 int LaneBlockStack::getBlockHeightStart(int blockIdx) const {

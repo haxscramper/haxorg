@@ -233,11 +233,12 @@ void render_tree_columns(
 }
 
 void render_tree_row(
-    TreeGridRow&      row,
-    TreeGridDocument& doc,
-    StoryGridContext& ctx,
-    int               documentNodeIdx,
-    ImVec2 const&     gridStart) {
+    TreeGridRow&           row,
+    TreeGridDocument&      doc,
+    StoryGridContext&      ctx,
+    StoryGridConfig const& style,
+    int                    documentNodeIdx,
+    ImVec2 const&          gridStart) {
     // row is completely invisible, including its nested sub-rows
     if (!row.isVisible) { return; }
     bool skipped = false;
@@ -252,7 +253,8 @@ void render_tree_row(
         render_tree_columns(row, doc, ctx, documentNodeIdx, gridStart);
         if (row.isOpen) {
             for (auto& sub : row.nested) {
-                render_tree_row(sub, doc, ctx, documentNodeIdx, gridStart);
+                render_tree_row(
+                    sub, doc, ctx, style, documentNodeIdx, gridStart);
             }
         }
     } else if (!skipped) {
@@ -296,7 +298,7 @@ void render_tree_row(
         ImGui::GetWindowDrawList()->AddRect(
             rect_min,
             rect_max,
-            ctx.style.foldCellHoverBackground,
+            style.foldCellHoverBackground,
             0.0f,
             0,
             1.0f);
@@ -311,14 +313,14 @@ void render_tree_row(
     }
 
     ImGui::GetWindowDrawList()->AddRectFilled(
-        rect_min, rect_max, ctx.style.foldCellBackground);
+        rect_min, rect_max, style.foldCellBackground);
 }
 
 Vec<GridAction> render_text_node(
     StoryGridModel&      model,
     StoryGridNode::Text& text) {
     Vec<GridAction> result;
-    auto&           ctx = model.conf;
+    auto&           ctx = model.ctx;
 
 
     auto frameless_vars = push_frameless_window_vars();
@@ -404,9 +406,10 @@ Vec<GridAction> render_list_node(
 void render_table(
     StoryGridModel&          model,
     StoryGridNode::TreeGrid& grid,
+    StoryGridConfig const&   style,
     int                      documentNodeIdx) {
     auto& doc       = grid.node;
-    auto& ctx       = model.conf;
+    auto& ctx       = model.ctx;
     auto  gridStart = ImGui::GetCursorScreenPos();
     auto  gridSize  = doc.getSize();
 
@@ -451,7 +454,8 @@ void render_table(
             ImGuiWindowFlags_NoScrollbar
                 | ImGuiWindowFlags_NoBackground)) {
         for (auto& sub : doc.rows) {
-            render_tree_row(sub, doc, ctx, documentNodeIdx, gridStart);
+            render_tree_row(
+                sub, doc, ctx, style, documentNodeIdx, gridStart);
         }
     }
     IM_FN_END(EndChild);
@@ -460,9 +464,10 @@ void render_table(
 void render_table_node(
     StoryGridModel&          model,
     StoryGridNode::TreeGrid& grid,
+    StoryGridConfig const&   style,
     int                      documentNodeIdx) {
 
-    auto& ctx = model.conf;
+    auto& ctx = model.ctx;
     auto& doc = grid.node;
 
     ImGui::SetNextWindowPos(grid.pos + model.shift);
@@ -478,14 +483,16 @@ void render_table_node(
             nullptr,
             ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize)) {
         ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
-        render_table(model, grid, documentNodeIdx);
+        render_table(model, grid, style, documentNodeIdx);
 
         IM_FN_END(End);
     }
     ImGui::PopStyleVar(frameless_vars);
 }
 
-void run_story_grid_annotated_cycle(StoryGridModel& model) {
+void run_story_grid_annotated_cycle(
+    StoryGridModel&        model,
+    StoryGridConfig const& style) {
     __perf_trace("gui", "grid model render");
     Vec<GridAction> result;
     for (int i = 0; i < model.rectGraph.nodes.size(); ++i) {
@@ -493,7 +500,7 @@ void run_story_grid_annotated_cycle(StoryGridModel& model) {
         if (node.isVisible) {
             switch (node.getKind()) {
                 case StoryGridNode::Kind::TreeGrid: {
-                    render_table_node(model, node.getTreeGrid(), i);
+                    render_table_node(model, node.getTreeGrid(), style, i);
                     break;
                 }
                 case StoryGridNode::Kind::Text: {
@@ -510,7 +517,7 @@ void run_story_grid_annotated_cycle(StoryGridModel& model) {
     }
 
     for (auto const& [key, edge] : model.layout.lines) {
-        render_edge(edge, model.shift, true);
+        render_edge(edge, model.shift, true, style.blockGraphStyle);
     }
 }
 
@@ -528,10 +535,10 @@ TreeGridDocument getInitRootDoc() {
 }
 
 Opt<json> story_grid_loop(
-    GLFWwindow*        window,
-    std::string const& file,
-    bool               annotated,
-    const Opt<json>&   in_state) {
+    GLFWwindow*            window,
+    std::string const&     file,
+    const Opt<json>&       in_state,
+    StoryGridConfig const& style) {
     int inotify_fd = inotify_init1(IN_NONBLOCK);
     if (inotify_fd < 0) {
         throw std::system_error(
@@ -557,8 +564,7 @@ Opt<json> story_grid_loop(
         .ast = start.init(sem::parseString(readFile(file))),
     });
 
-    model.conf.annotated = annotated;
-    model.conf.setTraceFile("/tmp/story_grid_trace.txt");
+    model.ctx.setTraceFile("/tmp/story_grid_trace.txt");
     if (in_state) {
         model.state = from_json_eval<StoryGridState>(in_state.value());
     }
@@ -605,7 +611,7 @@ Opt<json> story_grid_loop(
             render_debug(model.debug.value(), model.shift);
         }
 
-        run_story_grid_cycle(model);
+        run_story_grid_cycle(model, style);
 
         ImGui::End();
         ImGui::PopStyleVar(frameless_vars);
@@ -1202,9 +1208,6 @@ void update_graph_layout(
 
 void StoryGridModel::updateDocument(TreeGridDocument const& init_doc) {
     __perf_trace("gui", "update grid model");
-    auto& ctx = conf;
-
-
     if (updateNeeded.contains(UpdateNeeded::Graph)) {
         __perf_trace("gui", "add grid nodes");
         rectGraph = StoryGridGraph{};
@@ -1368,7 +1371,7 @@ void StoryGridModel::apply(const GridAction& act) {
             for (auto const& [lane_idx, span] : enumerate(laneSpans)) {
                 if (span.contains(scroll.pos.x)) {
                     laneOffsets.resize_at(lane_idx, 0.0f) //
-                        += scroll.direction * 10;
+                        += scroll.direction * style.mouseScrollMultiplier;
                 }
             }
             break;
@@ -1498,49 +1501,51 @@ void TreeGridDocument::resetGridStatics() {
     }
 }
 
-void run_story_grid_cycle(StoryGridModel& model) {
-    if (model.conf.annotated) {
-        run_story_grid_annotated_cycle(model);
+void run_story_grid_cycle(
+    StoryGridModel&        model,
+    StoryGridConfig const& style) {
+    if (style.annotated) {
+        run_story_grid_annotated_cycle(model, style);
 
         ImGuiIO& io            = ImGui::GetIO();
         float    scroll_amount = io.MouseWheel;
         if (scroll_amount != 0.0f) {
-            model.conf.actions.push_back(GridAction{GridAction::Scroll{
+            model.ctx.actions.push_back(GridAction{GridAction::Scroll{
                 .pos       = io.MousePos,
                 .direction = scroll_amount,
             }});
         }
 
         if (ImGui::IsKeyPressed(ImGuiKey_PageUp)) {
-            model.conf.actions.push_back(GridAction{GridAction::Scroll{
+            model.ctx.actions.push_back(GridAction{GridAction::Scroll{
                 .pos       = io.MousePos,
-                .direction = 20,
+                .direction = style.pageUpScrollStep,
             }});
         }
 
         if (ImGui::IsKeyPressed(ImGuiKey_PageDown)) {
-            model.conf.actions.push_back(GridAction{GridAction::Scroll{
+            model.ctx.actions.push_back(GridAction{GridAction::Scroll{
                 .pos       = io.MousePos,
-                .direction = -20,
+                .direction = style.pageDownScrollStep,
             }});
         }
     } else {
         auto& g = model.rectGraph.nodes.at(0).getTreeGrid();
-        render_table(model, g, 0);
+        render_table(model, g, style, 0);
     }
 }
 
 void apply_story_grid_changes(
     StoryGridModel&         model,
     TreeGridDocument const& init_doc) {
-    if (!model.conf.actions.empty()) {
-        model.conf.OperationsTracer::TraceState = true;
-        for (auto const& update : model.conf.actions) {
+    if (!model.ctx.actions.empty()) {
+        model.ctx.OperationsTracer::TraceState = true;
+        for (auto const& update : model.ctx.actions) {
             model.apply(update);
         }
         model.updateDocument(init_doc);
-        model.conf.actions.clear();
+        model.ctx.actions.clear();
     }
 
-    model.conf.OperationsTracer::TraceState = false;
+    model.ctx.OperationsTracer::TraceState = false;
 }

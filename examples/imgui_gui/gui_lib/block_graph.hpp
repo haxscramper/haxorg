@@ -88,12 +88,17 @@ struct std::hash<LaneNodePos> {
     }
 };
 
+struct LaneBlockGraphConfig {
+    ImU32 edgeBorderColor = IM_COL32(255, 255, 255, 200);
+    ImU32 edgeCenterColor = IM_COL32(128, 128, 128, 128);
+    DESC_FIELDS(LaneBlockGraphConfig, (edgeBorderColor, edgeCenterColor));
+};
 
 struct LaneBlockGraph {
     Vec<LaneBlockStack>                          lanes;
     UnorderedMap<LaneNodePos, Vec<LaneNodeEdge>> edges;
     GraphSize                                    visible;
-    DESC_FIELDS(LaneBlockGraph, (lanes, visible));
+    DESC_FIELDS(LaneBlockGraph, (lanes, visible, edges));
     LaneNodePos addNode(int lane, ImVec2 const& size) {
         return LaneNodePos{
             .lane = lane,
@@ -148,13 +153,20 @@ ColaConstraintDebug to_constraints(
 
 void render_point(const GraphPoint& point, ImVec2 const& shift);
 void render_path(const GraphPath& path, ImVec2 const& shift);
-void render_bezier_path(const GraphPath& path, ImVec2 const& shift);
+void render_bezier_path(
+    const GraphPath&           path,
+    ImVec2 const&              shift,
+    const LaneBlockGraphConfig& style);
 void render_rect(const GraphRect& rect, ImVec2 const& shift);
 void render_edge(
     const GraphLayoutIR::Edge& edge,
     ImVec2 const&              shift,
-    bool                       bezier);
-void render_result(GraphLayoutIR::Result const& res, ImVec2 const& shift);
+    bool                       bezier,
+    LaneBlockGraphConfig const& style);
+void render_result(
+    GraphLayoutIR::Result const& res,
+    ImVec2 const&                shift,
+    const LaneBlockGraphConfig&   style);
 void render_debug(ColaConstraintDebug const& debug, const ImVec2& shift);
 
 LaneBlockLayout to_layout(LaneBlockGraph const& g);

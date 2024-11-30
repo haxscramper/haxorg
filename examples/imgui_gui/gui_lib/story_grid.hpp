@@ -395,21 +395,38 @@ struct GridAction {
     DESC_FIELDS(GridAction, (data));
 };
 
-struct StoryGridStyle {
+/// \brief All the configuration parameters for rendering the story grid,
+/// static variables that change the logic of the render, data model
+/// updates etc., but are not change-able from within the UI part of the
+/// application.
+struct StoryGridConfig {
     ImU32 foldCellHoverBackground = IM_COL32(0, 255, 255, 255);
     ImU32 foldCellBackground      = IM_COL32(255, 0, 0, 128);
-    DESC_FIELDS(StoryGridStyle, (foldCellHoverBackground));
+    LaneBlockGraphConfig blockGraphStyle;
+    bool                 annotated             = true;
+    int                  pageUpScrollStep      = 20;
+    int                  pageDownScrollStep    = -20;
+    int                  mouseScrollMultiplier = 10;
+    DESC_FIELDS(
+        StoryGridConfig,
+        (foldCellHoverBackground,
+         foldCellBackground,
+         blockGraphStyle,
+         annotated,
+         pageUpScrollStep,
+         pageDownScrollStep,
+         mouseScrollMultiplier));
 };
 
+/// \brief Highly mutable context variable that is passed to all rendering
+/// elements to collect actions.
 struct StoryGridContext
     : OperationsTracer
     , OperationsScope {
 
-    DESC_FIELDS(StoryGridContext, (annotated, actions, style));
+    DESC_FIELDS(StoryGridContext, (actions));
 
     Vec<GridAction> actions;
-    bool            annotated;
-    StoryGridStyle  style;
 
     void message(
         std::string const& value,
@@ -432,28 +449,34 @@ struct StoryGridModel {
     DECL_DESCRIBED_ENUM(UpdateNeeded, LinkListClick, Scroll, Graph);
     Vec<StoryGridHistory>    history;
     StoryGridGraph           rectGraph;
-    StoryGridContext         conf;
+    StoryGridContext         ctx;
     GraphLayoutIR::Result    layout;
     ImVec2                   shift{20, 20};
     Opt<ColaConstraintDebug> debug;
-    void              updateDocument(const TreeGridDocument& init_doc);
-    Vec<Slice<int>>   laneSpans;
-    Vec<float>        laneOffsets;
-    StoryGridHistory& getLastHistory() { return history.back(); }
-    void              apply(GridAction const& act);
+    Vec<Slice<int>>          laneSpans;
+    Vec<float>               laneOffsets;
+    StoryGridHistory&        getLastHistory() { return history.back(); }
+    void                     apply(GridAction const& act);
+
+    void updateDocument(const TreeGridDocument& init_doc);
     UnorderedSet<UpdateNeeded> updateNeeded;
     StoryGridState             state;
 };
 
 
 Opt<json> story_grid_loop(
-    GLFWwindow*        window,
-    std::string const& file,
-    bool               annotated,
-    Opt<json> const&   in_state);
+    GLFWwindow*            window,
+    std::string const&     file,
+    bool                   annotated,
+    Opt<json> const&       in_state,
+    const StoryGridConfig& style);
 
-void run_story_grid_annotated_cycle(StoryGridModel& model);
-void run_story_grid_cycle(StoryGridModel& model);
+void run_story_grid_annotated_cycle(
+    StoryGridModel&        model,
+    const StoryGridConfig& style);
+void run_story_grid_cycle(
+    StoryGridModel&        model,
+    StoryGridConfig const& style);
 void apply_story_grid_changes(
     StoryGridModel&         model,
     TreeGridDocument const& init_doc);

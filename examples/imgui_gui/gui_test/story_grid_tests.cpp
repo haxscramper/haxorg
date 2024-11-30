@@ -7,6 +7,7 @@
 struct StoryGridVars : public ImTestVarsBase {
     StoryGridModel     model;
     org::ImmAstContext start;
+    StoryGridConfig     style;
 
     void add_text(std::string const& text) {
         model.history.push_back(StoryGridHistory{
@@ -20,7 +21,7 @@ struct StoryGridVars : public ImTestVarsBase {
 
     void init_section(ImGuiTestContext* ctx, std::string const& text) {
         if (is_first()) {
-            model.conf.setTraceFile(
+            model.ctx.setTraceFile(
                 getDebugFile(ctx->Test, "subtree_init"));
 
             trace.setTraceFile(getDebugFile(ctx->Test, "trace.log"));
@@ -30,7 +31,7 @@ struct StoryGridVars : public ImTestVarsBase {
 
     void run_app_loop_iteration(ImGuiTestContext* ctx) {
         model.shift = getContentPos(ctx);
-        run_story_grid_annotated_cycle(model);
+        run_story_grid_annotated_cycle(model, style);
         apply_story_grid_changes(model, TreeGridDocument{});
 
         if (is_im_traced()) { ImRenderTraceRecord::WriteTrace(trace); }
@@ -123,6 +124,7 @@ void _FootnoteAnnotation(ImGuiTestEngine* e) {
     t->GuiFunc          = ImWrapGuiFuncT<StoryGridVars>(
         params, [](ImGuiTestContext* ctx, StoryGridVars& vars) {
             vars.init_section(ctx, R"(
+* Subtree entry without any annotations
 * One subtree in grid
 
 #+begin_comment
@@ -138,6 +140,8 @@ some random shit about the comments or whatever, need to render as annotation [f
 [fn:but-536] recursive footnote that will contain more text to render somewhere
 
 [fn:another-536] recursive footnote
+
+* Another subtree w/o annotations
 )");
             vars.run_app_loop_iteration(ctx);
         });
