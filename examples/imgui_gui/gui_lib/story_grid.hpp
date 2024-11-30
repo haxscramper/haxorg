@@ -77,17 +77,7 @@ struct TreeGridRow {
         return idx;
     }
 
-    Vec<TreeGridRow*> flatThisNested(bool withInvisible) {
-        Vec<TreeGridRow*> result;
-        if (withInvisible || isVisible) {
-            result.push_back(this);
-            for (auto& sub : nested) {
-                result.append(sub.flatThisNested(withInvisible));
-            }
-        }
-
-        return result;
-    }
+    Vec<TreeGridRow*> flatThisNested(bool withInvisible);
 
     int      getHeightDirect(int padding = 0) const;
     Opt<int> getHeight(int padding = 0) const;
@@ -405,7 +395,9 @@ struct GridAction {
 };
 
 struct StoryGridStyle {
-    DESC_FIELDS(StoryGridStyle, ());
+    ImU32 foldCellHoverBackground = IM_COL32(0, 255, 255, 255);
+    ImU32 foldCellBackground      = IM_COL32(255, 0, 0, 128);
+    DESC_FIELDS(StoryGridStyle, (foldCellHoverBackground));
 };
 
 struct StoryGridContext

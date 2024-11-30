@@ -294,7 +294,12 @@ void render_tree_row(
 
     if (ImGui::IsMouseHoveringRect(cell_rect.Min, cell_rect.Max)) {
         ImGui::GetWindowDrawList()->AddRect(
-            rect_min, rect_max, IM_COL32(0, 255, 255, 255), 0.0f, 0, 1.0f);
+            rect_min,
+            rect_max,
+            ctx.style.foldCellHoverBackground,
+            0.0f,
+            0,
+            1.0f);
         if (ImGui::IsMouseClicked(0)) {
             row.isOpen = !row.isOpen;
             ctx.actions.push_back(GridAction{GridAction::RowFolding{
@@ -306,7 +311,7 @@ void render_tree_row(
     }
 
     ImGui::GetWindowDrawList()->AddRectFilled(
-        rect_min, rect_max, IM_COL32(255, 0, 0, 128));
+        rect_min, rect_max, ctx.style.foldCellBackground);
 }
 
 Vec<GridAction> render_text_node(
@@ -1402,6 +1407,20 @@ void StoryGridContext::message(
     const char*        function,
     const char*        file) const {
     OperationsTracer::message(value, activeLevel, line, function, file);
+}
+
+Vec<TreeGridRow*> TreeGridRow::flatThisNested(bool withInvisible) {
+    Vec<TreeGridRow*> result;
+    if (withInvisible || isVisible) {
+        result.push_back(this);
+        if (isOpen) {
+            for (auto& sub : nested) {
+                result.append(sub.flatThisNested(withInvisible));
+            }
+        }
+    }
+
+    return result;
 }
 
 int TreeGridRow::getHeightDirect(int padding) const {

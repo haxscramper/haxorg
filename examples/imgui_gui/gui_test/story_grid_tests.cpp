@@ -103,7 +103,10 @@ void RegisterApptests_story_grid(ImGuiTestEngine* e) {
                 ctx->MouseMoveToPos(
                     ImGui::GetMousePos()
                     - ImVec2(doc.treeFoldWidth - 10, 0));
+                IM_CHECK_EQ(doc.flatRows(false).size(), 5);
                 ctx->MouseClick(0);
+                IM_CHECK_EQ(doc.flatRows(false).size(), 2);
+
 
                 ctx->SuspendTestFunc();
             });
