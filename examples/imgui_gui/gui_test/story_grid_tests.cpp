@@ -239,15 +239,15 @@ some random shit about the comments or whatever, need to render as annotation [f
 
             {
                 m.ctx.message("Edit annotation text");
-
-
                 ctx->MouseMoveToPos(
-                    wpos + rg.getDocNode({0, 0}).getTreeGrid().pos
+                    wpos + rg.getDocNode({1, 0}).getText().pos
                     + ImVec2(5, 5));
                 ctx->MouseClick(0);
                 ctx->KeyChars("TYPE");
+                ctx->MouseMoveToPos(ImGui::GetMousePos() + ImVec2(0, 25));
+                ctx->MouseClick(0);
             }
-            // ctx->SuspendTestFunc();
+            ctx->SuspendTestFunc();
         });
 }
 

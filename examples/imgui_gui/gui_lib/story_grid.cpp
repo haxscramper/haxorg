@@ -316,13 +316,16 @@ void render_tree_row(
         rect_min, rect_max, conf.foldCellBackground);
 }
 
-void render_text_node(StoryGridModel& model, StoryGridNode::Text& text) {
+void render_text_node(
+    StoryGridModel&      model,
+    StoryGridNode::Text& text,
+    LaneNodePos const&   selfPos) {
     auto& ctx = model.ctx;
 
 
     auto frameless_vars = push_frameless_window_vars();
     ImGui::SetNextWindowPos(text.pos + model.shift);
-    ImGui::SetNextWindowSize(text.size);
+    ImGui::SetNextWindowSize(text.getSize());
     if (IM_FN_BEGIN(
             Begin,
             fmt("##{:p}", static_cast<const void*>(text.text.data()))
@@ -331,13 +334,22 @@ void render_text_node(StoryGridModel& model, StoryGridNode::Text& text) {
             ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize)) {
         ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
 
-        bool edit = false;
-        render_editable_text(
+        auto res = render_editable_text(
             text.text,
-            text.text,
-            edit,
+            text.edit_buffer,
+            text.edit,
             text.size,
             TreeGridColumn::EditMode::Multiline);
+
+        switch (res) {
+            case EditableTextResult::StartedEditing: {
+                ctx.actions.push_back(
+                    GridAction{GridAction::EditNodeChanged{
+                        .pos = selfPos,
+                    }});
+                break;
+            }
+        }
 
         IM_FN_END(End);
     }
@@ -350,7 +362,7 @@ void render_list_node(
     StoryGridNode::LinkList& list) {
     auto frameless_vars = push_frameless_window_vars();
     ImGui::SetNextWindowPos(list.pos + model.shift);
-    ImGui::SetNextWindowSize(list.size);
+    ImGui::SetNextWindowSize(list.getSize());
     if (IM_FN_BEGIN(
             Begin,
             fmt("##{:p}", static_cast<const void*>(&list)).c_str(),
@@ -497,7 +509,10 @@ void run_story_grid_annotated_cycle(
                     break;
                 }
                 case StoryGridNode::Kind::Text: {
-                    render_text_node(model, node.getText());
+                    render_text_node(
+                        model,
+                        node.getText(),
+                        model.rectGraph.gridNodeToNode.at(i));
                     break;
                 }
                 case StoryGridNode::Kind::LinkList: {
@@ -948,7 +963,7 @@ LaneNodePos get_partition_node(
             ImVec2{
                 static_cast<float>(
                     text.getWidth() + conf.laneRowPadding * 2),
-                static_cast<float>(text.getHeight(conf.laneRowPadding)),
+                static_cast<float>(text.getHeight()),
             },
             conf.blockGraphConf);
 
@@ -1146,6 +1161,13 @@ void update_graph_layout(
     GraphLayoutIR::Result&    thisLayout,
     Opt<ColaConstraintDebug>& debug) {
     __perf_trace_begin("gui", "to doc layout");
+
+    for (auto const& [flat_idx, lane_idx] : rectGraph.gridNodeToNode) {
+        auto size = rectGraph.nodes.at(flat_idx).getSize();
+        rectGraph.ir.at(lane_idx).width  = size.x;
+        rectGraph.ir.at(lane_idx).height = size.y;
+    }
+
     LaneBlockLayout lyt = to_layout(rectGraph.ir);
     __perf_trace_end("gui");
     // writeFile("/tmp/tmp_dump.json", to_json_eval(lyt).dump(2));
@@ -1404,6 +1426,11 @@ void StoryGridModel::apply(
             rectGraph.nodes.at(act.getEditCellChanged().documentNodeIdx)
                 .getTreeGrid()
                 .node.resetGridStatics();
+            break;
+        }
+
+        case GridAction::Kind::EditNodeChanged: {
+            updateNeeded.incl(UpdateNeeded::Scroll);
             break;
         }
 

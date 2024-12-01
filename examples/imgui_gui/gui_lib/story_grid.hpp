@@ -210,6 +210,7 @@ struct StoryGridNode {
         ImVec2           pos;
         TreeGridDocument node;
         DESC_FIELDS(TreeGrid, (node, pos));
+        ImVec2 getSize() const { return node.getSize(); }
     };
 
     struct LinkList {
@@ -223,7 +224,8 @@ struct StoryGridNode {
         Vec<Item> items;
         ImVec2    pos;
         ImVec2    size;
-        bool      isSelected = false;
+        bool      isSelected           = false;
+        int       imguiTableRowPadding = 5;
         DESC_FIELDS(LinkList, (items, pos, size, isSelected));
 
         int getRow(org::ImmUniqId const& row) const {
@@ -250,10 +252,12 @@ struct StoryGridNode {
             return getRowOffset(row) + items.at(row).height / 2.0f;
         }
 
-        int getHeight(int rowPadding) const {
+        ImVec2 getSize() const { return ImVec2(getWidth(), getHeight()); }
+
+        int getHeight() const {
             int result = 0;
             for (auto const& item : items) {
-                result += rowPadding + item.height;
+                result += imguiTableRowPadding + item.height;
             }
             return result;
         }
@@ -270,8 +274,23 @@ struct StoryGridNode {
         ImVec2          size;
         org::ImmAdapter node;
         std::string     text;
-        DESC_FIELDS(Text, (node, pos, size));
+        std::string     edit_buffer;
+        bool            edit = false;
+        DESC_FIELDS(Text, (node, pos, size, edit));
+        ImVec2 getSize() const {
+            return ImVec2(size.x, size.y + (edit ? 40 : 0));
+        }
     };
+
+    ImVec2 getSize() const {
+        return std::visit(
+            overloaded{
+                [](LinkList const& l) -> ImVec2 { return l.getSize(); },
+                [](TreeGrid const& t) -> ImVec2 { return t.getSize(); },
+                [](Text const& t) -> ImVec2 { return t.getSize(); },
+            },
+            data);
+    }
 
 
     SUB_VARIANTS(Kind, Data, data, getKind, TreeGrid, Text, LinkList);
@@ -371,6 +390,11 @@ struct GridAction {
         DESC_FIELDS(EditCellChanged, (cell, documentNodeIdx));
     };
 
+    struct EditNodeChanged {
+        LaneNodePos pos;
+        DESC_FIELDS(EditNodeChanged, (pos));
+    };
+
     struct LinkListClick {
         DESC_FIELDS(LinkListClick, ());
     };
@@ -391,7 +415,8 @@ struct GridAction {
         Scroll,
         LinkListClick,
         RowFolding,
-        EditCellChanged);
+        EditCellChanged,
+        EditNodeChanged);
 
     Data data;
     DESC_FIELDS(GridAction, (data));
