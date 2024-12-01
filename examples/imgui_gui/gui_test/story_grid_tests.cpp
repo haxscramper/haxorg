@@ -243,8 +243,9 @@ some random shit about the comments or whatever, need to render as annotation [f
                     wpos + rg.getDocNode({1, 0}).getText().pos
                     + ImVec2(5, 5));
                 ctx->MouseClick(0);
+                ctx->MouseClick(0);
                 ctx->KeyChars("TYPE");
-                ctx->MouseMoveToPos(ImGui::GetMousePos() + ImVec2(0, 25));
+                ctx->MouseMoveToPos(ImGui::GetMousePos() + ImVec2(0, 75));
                 ctx->MouseClick(0);
             }
             ctx->SuspendTestFunc();

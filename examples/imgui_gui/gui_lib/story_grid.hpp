@@ -439,6 +439,7 @@ struct StoryGridConfig {
 
     ImU32 foldCellHoverBackground = IM_COL32(0, 255, 255, 255);
     ImU32 foldCellBackground      = IM_COL32(255, 0, 0, 128);
+    ImU32 annotationNodeWindowBg  = IM_COL32(128, 128, 128, 128);
     bool  annotated               = true;
     int   pageUpScrollStep        = 20;
     int   pageDownScrollStep      = -20;
@@ -470,6 +471,15 @@ struct StoryGridContext
     DESC_FIELDS(StoryGridContext, (actions));
 
     Vec<GridAction> actions;
+
+    void action(
+        GridAction::Data const& act,
+        int                     line     = __builtin_LINE(),
+        char const*             function = __builtin_FUNCTION(),
+        char const*             file     = __builtin_FILE()) {
+        message(fmt("Action {}", act), line, function, file);
+        actions.push_back(GridAction{act});
+    }
 
     void message(
         std::string const& value,

@@ -186,19 +186,18 @@ void render_cell(
         auto res = render_editable_cell(cell, ctx, col);
         switch (res) {
             case EditableTextResult::Changed: {
-                ctx.actions.push_back(GridAction{GridAction::EditCell{
+                ctx.action(GridAction::EditCell{
                     .cell    = cell,
                     .updated = cell.getValue().value,
-                }});
+                });
                 [[fallthrough]];
             }
             case EditableTextResult::CancelledEditing: [[fallthrough]];
             case EditableTextResult::StartedEditing: {
-                ctx.actions.push_back(
-                    GridAction{GridAction::EditCellChanged{
-                        .cell            = cell,
-                        .documentNodeIdx = documentNodeIdx,
-                    }});
+                ctx.action(GridAction::EditCellChanged{
+                    .cell            = cell,
+                    .documentNodeIdx = documentNodeIdx,
+                });
                 break;
             }
             default: {
@@ -304,11 +303,11 @@ void render_tree_row(
             1.0f);
         if (ImGui::IsMouseClicked(0)) {
             row.isOpen = !row.isOpen;
-            ctx.actions.push_back(GridAction{GridAction::RowFolding{
+            ctx.action(GridAction::RowFolding{
                 .isOpen          = row.isOpen,
                 .flatIdx         = row.flatIdx,
                 .documentNodeIdx = documentNodeIdx,
-            }});
+            });
         }
     }
 
@@ -317,12 +316,14 @@ void render_tree_row(
 }
 
 void render_text_node(
-    StoryGridModel&      model,
-    StoryGridNode::Text& text,
-    LaneNodePos const&   selfPos) {
+    StoryGridModel&        model,
+    StoryGridNode::Text&   text,
+    LaneNodePos const&     selfPos,
+    StoryGridConfig const& conf) {
     auto& ctx = model.ctx;
 
 
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, conf.annotationNodeWindowBg);
     auto frameless_vars = push_frameless_window_vars();
     ImGui::SetNextWindowPos(text.pos + model.shift);
     ImGui::SetNextWindowSize(text.getSize());
@@ -338,23 +339,32 @@ void render_text_node(
             text.text,
             text.edit_buffer,
             text.edit,
-            text.size,
+            text.getSize(),
             TreeGridColumn::EditMode::Multiline);
 
         switch (res) {
+            case EditableTextResult::Changed: {
+                ctx.action(GridAction::EditNodeChanged{
+                    .pos = selfPos,
+                });
+                [[fallthrough]];
+            }
+            case EditableTextResult::CancelledEditing: [[fallthrough]];
             case EditableTextResult::StartedEditing: {
-                ctx.actions.push_back(
-                    GridAction{GridAction::EditNodeChanged{
-                        .pos = selfPos,
-                    }});
+                ctx.action(GridAction::EditNodeChanged{
+                    .pos = selfPos,
+                });
                 break;
             }
+            default: {
+            };
         }
 
         IM_FN_END(End);
     }
 
     ImGui::PopStyleVar(frameless_vars);
+    ImGui::PopStyleColor();
 }
 
 void render_list_node(
@@ -375,8 +385,7 @@ void render_list_node(
                 | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)
             && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
             list.isSelected = !list.isSelected;
-            model.ctx.actions.push_back(
-                GridAction{GridAction::LinkListClick{}});
+            model.ctx.action(GridAction::LinkListClick{});
         }
 
         if (IM_FN_BEGIN(
@@ -512,7 +521,8 @@ void run_story_grid_annotated_cycle(
                     render_text_node(
                         model,
                         node.getText(),
-                        model.rectGraph.gridNodeToNode.at(i));
+                        model.rectGraph.gridNodeToNode.at(i),
+                        conf);
                     break;
                 }
                 case StoryGridNode::Kind::LinkList: {
@@ -1156,11 +1166,9 @@ void update_link_list_target_rows(StoryGridGraph& rectGraph) {
     }
 }
 
-void update_graph_layout(
-    StoryGridGraph&           rectGraph,
-    GraphLayoutIR::Result&    thisLayout,
-    Opt<ColaConstraintDebug>& debug) {
+void update_graph_layout(StoryGridModel& model) {
     __perf_trace_begin("gui", "to doc layout");
+    auto& rectGraph = model.rectGraph;
 
     for (auto const& [flat_idx, lane_idx] : rectGraph.gridNodeToNode) {
         auto size = rectGraph.nodes.at(flat_idx).getSize();
@@ -1177,7 +1185,7 @@ void update_graph_layout(
     auto cola = lyt.ir.doColaLayout();
     __perf_trace_end("gui");
     __perf_trace_begin("gui", "do cola convert");
-    thisLayout = cola.convert();
+    model.layout = cola.convert();
     __perf_trace_end("gui");
 
     // writeFile("/tmp/lyt_dump.json",
@@ -1185,12 +1193,18 @@ void update_graph_layout(
 
     int pad = rectGraph.ir.lanes.at(0).leftMargin;
 
+    for (auto const& [key, edge] : model.layout.lines) {
+        for (auto& path : model.layout.lines.at(key).paths) {
+            for (auto& point : path.points) { point.x += pad; }
+        }
+    }
+
     for (int i = 0; i < rectGraph.nodes.size(); ++i) {
         StoryGridNode&     node = rectGraph.nodes.at(i);
         LaneNodePos const& pos  = rectGraph.getIrNode(i);
         if (lyt.rectMap.contains(pos)) {
             node.isVisible  = true;
-            auto const& rec = thisLayout.fixed.at(lyt.rectMap.at(pos));
+            auto const& rec = model.layout.fixed.at(lyt.rectMap.at(pos));
             switch (node.getKind()) {
                 case StoryGridNode::Kind::TreeGrid: {
                     node.getTreeGrid().pos.x = rec.left + pad;
@@ -1218,39 +1232,11 @@ void update_graph_layout(
     // debug->ir = &thisLayout;
 }
 
-void update_document_scroll(
+void update_hidden_row_connections(
     StoryGridModel&        model,
     StoryGridConfig const& conf) {
-    auto& ctx = model.ctx;
-
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
     auto&                ir       = model.rectGraph.ir;
-
-    {
-        Vec<int> offsets //
-            = ir.lanes
-            | rv::transform([](LaneBlockStack const& lane) -> int {
-                  return lane.scrollOffset;
-              })
-            | rs::to<Vec>();
-
-        CTX_MSG(fmt("Update document scrolling, offsets: {}", offsets));
-    }
-
-    ir.visible.h = viewport->Size.y;
-    ir.visible.w = viewport->Size.x;
-
-    for (auto& lane : ir.lanes) {
-        for (auto& rect : lane.blocks) { rect.isVisible = true; }
-    }
-
-    for (auto& stack : ir.lanes) { stack.resetVisibleRange(); }
-
-    if (ir.lanes.has(0)) {
-        model.shift.y = 20 + ir.lanes.at(0).scrollOffset;
-    }
-
-    update_graph_layout(model.rectGraph, model.layout, model.debug);
 
     Slice<int> viewportRange = slice1<int>(0, viewport->WorkSize.y);
     for (auto const& [lane_idx, lane] :
@@ -1310,8 +1296,43 @@ void update_document_scroll(
             }
         }
     }
+}
 
-    update_graph_layout(model.rectGraph, model.layout, model.debug);
+void update_document_scroll(
+    StoryGridModel&        model,
+    StoryGridConfig const& conf) {
+    auto& ctx = model.ctx;
+
+    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+    auto&                ir       = model.rectGraph.ir;
+
+    {
+        Vec<int> offsets //
+            = ir.lanes
+            | rv::transform([](LaneBlockStack const& lane) -> int {
+                  return lane.scrollOffset;
+              })
+            | rs::to<Vec>();
+
+        CTX_MSG(fmt("Update document scrolling, offsets: {}", offsets));
+    }
+
+    ir.visible.h = viewport->Size.y;
+    ir.visible.w = viewport->Size.x;
+
+    for (auto& lane : ir.lanes) {
+        for (auto& rect : lane.blocks) { rect.isVisible = true; }
+    }
+
+    for (auto& stack : ir.lanes) { stack.resetVisibleRange(); }
+
+    if (ir.lanes.has(0)) {
+        model.shift.y = 20 + ir.lanes.at(0).scrollOffset;
+    }
+
+    update_graph_layout(model);
+    update_hidden_row_connections(model, conf);
+    update_graph_layout(model);
 }
 
 void update_document_graph(
@@ -1598,24 +1619,24 @@ void run_story_grid_cycle(
         auto&    ctx = model.ctx;
         if (io.MouseWheel != 0.0f) {
             CTX_MSG(fmt("Mouse scrolling"));
-            model.ctx.actions.push_back(GridAction{GridAction::Scroll{
+            model.ctx.action(GridAction::Scroll{
                 .pos       = io.MousePos,
                 .direction = io.MouseWheel,
-            }});
+            });
         }
 
         if (ImGui::IsKeyPressed(ImGuiKey_PageUp)) {
-            model.ctx.actions.push_back(GridAction{GridAction::Scroll{
+            model.ctx.action(GridAction::Scroll{
                 .pos       = io.MousePos,
                 .direction = static_cast<float>(conf.pageUpScrollStep),
-            }});
+            });
         }
 
         if (ImGui::IsKeyPressed(ImGuiKey_PageDown)) {
-            model.ctx.actions.push_back(GridAction{GridAction::Scroll{
+            model.ctx.action(GridAction::Scroll{
                 .pos       = io.MousePos,
                 .direction = static_cast<float>(conf.pageDownScrollStep),
-            }});
+            });
         }
     } else {
         auto& g = model.rectGraph.nodes.at(0).getTreeGrid();
