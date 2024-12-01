@@ -47,6 +47,27 @@ struct LaneBlockNode {
         (width, height, topMargin, bottomMargin, isVisible));
 };
 
+struct LaneBlockGraphConfig {
+    ImU32 edgeBorderColor      = IM_COL32(255, 255, 255, 200);
+    ImU32 edgeCenterColor      = IM_COL32(128, 128, 128, 128);
+    float edgeCurveWidth       = 4;
+    float edgeCurveBorderWidth = 1;
+
+    Func<Pair<int, int>(int lane)> getDefaultLaneMargin =
+        [](int lane) -> Pair<int, int> { return {50, 50}; };
+
+    Func<Pair<int, int>(LaneNodePos const& pos)> getDefaultBlockMargin =
+        [](LaneNodePos const& pos) -> Pair<int, int> { return {5, 5}; };
+
+    DESC_FIELDS(
+        LaneBlockGraphConfig,
+        (edgeBorderColor,
+         edgeCenterColor,
+         edgeCurveWidth,
+         edgeCurveBorderWidth));
+};
+
+
 struct LaneBlockStack {
     Vec<LaneBlockNode> blocks;
     Slice<int>         visibleRange;
@@ -60,11 +81,23 @@ struct LaneBlockStack {
     void resetVisibleRange() { visibleRange = slice(0, blocks.high()); }
     bool inSpan(int blockIdx, Slice<int> heightRange) const;
     Vec<int> getVisibleBlocks(Slice<int> heightRange) const;
-    int      addBlock(ImVec2 const& size) {
-        blocks.push_back(LaneBlockNode{
-                 .width  = static_cast<int>(size.x),
-                 .height = static_cast<int>(size.y),
+    int      addBlock(
+             int                         laneIndex,
+             ImVec2 const&               size,
+             LaneBlockGraphConfig const& conf) {
+
+        auto [top, bottom] = conf.getDefaultBlockMargin(LaneNodePos{
+            .lane = laneIndex,
+            .row  = blocks.size(),
         });
+
+        blocks.push_back(LaneBlockNode{
+            .width        = static_cast<int>(size.x),
+            .height       = static_cast<int>(size.y),
+            .topMargin    = top,
+            .bottomMargin = bottom,
+        });
+
         return blocks.high();
     }
 
@@ -89,28 +122,19 @@ struct std::hash<LaneNodePos> {
     }
 };
 
-struct LaneBlockGraphConfig {
-    ImU32 edgeBorderColor      = IM_COL32(255, 255, 255, 200);
-    ImU32 edgeCenterColor      = IM_COL32(128, 128, 128, 128);
-    float edgeCurveWidth       = 4;
-    float edgeCurveBorderWidth = 1;
-    DESC_FIELDS(
-        LaneBlockGraphConfig,
-        (edgeBorderColor,
-         edgeCenterColor,
-         edgeCurveWidth,
-         edgeCurveBorderWidth));
-};
 
 struct LaneBlockGraph {
     Vec<LaneBlockStack>                          lanes;
     UnorderedMap<LaneNodePos, Vec<LaneNodeEdge>> edges;
     GraphSize                                    visible;
     DESC_FIELDS(LaneBlockGraph, (lanes, visible, edges));
-    LaneNodePos addNode(int lane, ImVec2 const& size) {
+    LaneNodePos addNode(
+        int                         lane,
+        ImVec2 const&               size,
+        LaneBlockGraphConfig const& conf) {
         return LaneNodePos{
             .lane = lane,
-            .row  = this->lane(lane).addBlock(size),
+            .row  = this->lane(lane, conf).addBlock(lane, size, conf),
         };
     }
 
@@ -118,7 +142,17 @@ struct LaneBlockGraph {
         edges[source].push_back(target);
     }
 
-    LaneBlockStack& lane(int lane) { return lanes.resize_at(lane); }
+    LaneBlockStack& lane(int lane, LaneBlockGraphConfig const& conf) {
+        if (lanes.has(lane)) {
+            return lanes.at(lane);
+        } else {
+            auto [left, right] = conf.getDefaultLaneMargin(lane);
+            auto& l            = lanes.resize_at(lane);
+            l.leftMargin       = left;
+            l.rightMargin      = right;
+            return l;
+        }
+    }
 
     LaneBlockNode& at(LaneNodePos const& node) {
         return lanes.at(node.lane).blocks.at(node.row);

@@ -510,7 +510,7 @@ void run_story_grid_annotated_cycle(
     }
 
     for (auto const& [key, edge] : model.layout.lines) {
-        render_edge(edge, model.shift, true, conf.blockGraphStyle);
+        render_edge(edge, model.shift, true, conf.blockGraphConf);
     }
 }
 
@@ -883,7 +883,8 @@ int add_root_grid_node(
     StoryGridGraph&         res,
     org::ImmAdapter const&  node,
     TreeGridDocument const& init_doc,
-    StoryGridContext&       ctx) {
+    StoryGridContext&       ctx,
+    StoryGridConfig const&  conf) {
     TreeGridDocument doc = init_doc;
     __perf_trace_begin("gui", "build doc rows");
     doc.rows = build_rows(node, doc);
@@ -905,7 +906,10 @@ int add_root_grid_node(
     };
 
     int flatIdx = res.addNode(
-        0, doc.getSize(), StoryGridNode{.data = grid});
+        0,
+        doc.getSize(),
+        StoryGridNode{.data = grid},
+        conf.blockGraphConf);
 
     for (auto const& row : doc.flatRows(true)) {
         res.orgToId.insert_or_assign(
@@ -945,7 +949,8 @@ LaneNodePos get_partition_node(
                 static_cast<float>(
                     text.getWidth() + conf.laneRowPadding * 2),
                 static_cast<float>(text.getHeight(conf.laneRowPadding)),
-            });
+            },
+            conf.blockGraphConf);
 
         for (auto const& item : text.items) {
             res.orgToId.insert_or_assign(item.node.uniq(), annotation);
@@ -971,7 +976,7 @@ LaneNodePos get_partition_node(
 
         res.nodes.push_back(StoryGridNode{text});
         LaneNodePos annotation = res.ir.addNode(
-            lane, ImVec2(width, height));
+            lane, ImVec2(width, height), conf.blockGraphConf);
         res.orgToId.insert_or_assign(node.uniq(), annotation);
 
         res.addIrNode(res.nodes.high(), annotation);
@@ -1302,13 +1307,16 @@ void update_document_graph(
         rectGraph,
         model.getLastHistory().ast.getRootAdapter(),
         init_doc,
-        model.ctx);
+        model.ctx,
+        conf);
 
     add_annotation_nodes(
         rectGraph,
         rectGraph.nodes.at(docNodeIndex).getTreeGrid().node,
         rectGraph.graph,
         model.ctx);
+
+    CTX_MSG(fmt("Graph with {} nodes", rectGraph.nodes.size()));
 
     Vec<org::graph::MapNode> docNodes;
     for (TreeGridRow* row : rectGraph.nodes.at(docNodeIndex)
@@ -1415,7 +1423,8 @@ void StoryGridModel::apply(
                             scroll.direction,
                             conf.mouseScrollMultiplier));
 
-                    rectGraph.ir.lane(lane_idx).scrollOffset //
+                    rectGraph.ir.lane(lane_idx, conf.blockGraphConf)
+                        .scrollOffset //
                         += scroll.direction * conf.mouseScrollMultiplier;
                 } else {
                     CTX_MSG(

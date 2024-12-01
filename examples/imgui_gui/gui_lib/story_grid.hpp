@@ -339,9 +339,13 @@ struct StoryGridGraph {
         return nodeToGridNode.at(node);
     }
 
-    int addNode(int lane, ImVec2 const& size, StoryGridNode const& node) {
+    int addNode(
+        int                         lane,
+        ImVec2 const&               size,
+        StoryGridNode const&        node,
+        LaneBlockGraphConfig const& conf) {
         nodes.push_back(node);
-        auto rootRect = ir.addNode(0, size);
+        auto rootRect = ir.addNode(0, size, conf);
         addIrNode(nodes.high(), rootRect);
         return nodes.high();
     }
@@ -406,7 +410,7 @@ struct StoryGridConfig {
     };
 
     Vec<StoryGridColumnConfig> defaultColumns;
-    LaneBlockGraphConfig       blockGraphStyle;
+    LaneBlockGraphConfig       blockGraphConf;
 
     ImU32 foldCellHoverBackground = IM_COL32(0, 255, 255, 255);
     ImU32 foldCellBackground      = IM_COL32(255, 0, 0, 128);
@@ -423,7 +427,7 @@ struct StoryGridConfig {
         (defaultColumns,
          foldCellHoverBackground,
          foldCellBackground,
-         blockGraphStyle,
+         blockGraphConf,
          annotated,
          pageUpScrollStep,
          pageDownScrollStep,

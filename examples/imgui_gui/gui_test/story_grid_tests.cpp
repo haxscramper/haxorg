@@ -51,7 +51,7 @@ struct StoryGridVars : public ImTestVarsBase {
     }
 
     void init_section(ImGuiTestContext* ctx, std::string const& text) {
-        if (is_first()) {
+        if (ctx->IsFirstGuiFrame()) {
             model.ctx.setTraceFile(
                 getDebugFile(ctx->Test, "story_grid.log"));
 
@@ -84,6 +84,13 @@ void _Load_One_Paragraph(ImGuiTestEngine* e) {
     params.windowSize.y = 700;
     t->GuiFunc          = ImWrapGuiFuncT<StoryGridVars>(
         params, [](ImGuiTestContext* ctx, StoryGridVars& vars) {
+            if (ctx->IsFirstGuiFrame()) {
+                vars.conf.blockGraphConf.getDefaultLaneMargin =
+                    [](int lane) -> Pair<int, int> {
+                    return {lane == 0 ? 0 : 50, 50};
+                };
+            }
+
             vars.init_section(ctx, R"(
 * One subtree in grid
 ** Subtree 2

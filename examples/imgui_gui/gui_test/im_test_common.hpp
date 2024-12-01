@@ -23,16 +23,7 @@ struct ImTestFuncStartupParams {
 
 struct ImTestVarsBase {
     OperationsTracer trace;
-    bool             startup      = true;
     int              TraceCounter = 0;
-    bool             is_first() {
-        if (startup) {
-            startup = false;
-            return true;
-        } else {
-            return false;
-        }
-    }
 
     bool is_im_traced() { return 0 < TraceCounter; }
     void im_trace_run() {
@@ -110,7 +101,8 @@ template <typename T, typename... Args>
 inline std::string __im_test_utils_format_va_args_list(
     T const& head,
     Args&&... args) {
-    return fmt(", {}{}", head, __im_test_utils_format_va_args_list(args...));
+    return fmt(
+        ", {}{}", head, __im_test_utils_format_va_args_list(args...));
 }
 
 inline float ImVec2Length(const ImVec2& vec) {
@@ -132,7 +124,7 @@ inline bool is_within_distance(
         std::string arglist_buf = __im_test_utils_format_va_args_list(    \
             __VA_ARGS__);                                                 \
         std::string expr_buf = fmt(                                       \
-            "{} [{}] !{}(_, _{} {} [{}]",                                \
+            "{} [{}] !{}(_, _{} {} [{}]",                                 \
             #_LHS,                                                        \
             __lhs,                                                        \
             #__pred,                                                      \
