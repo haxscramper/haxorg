@@ -4,6 +4,7 @@
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/wrappers/adaptagrams_wrap/adaptagrams_ir.hpp>
 #include "imgui.h"
+#include "imgui_internal.h"
 #include <hstd/stdlib/Ranges.hpp>
 
 struct LaneNodePos {
@@ -125,6 +126,10 @@ struct LaneBlockGraph {
 
     LaneBlockNode const& at(LaneNodePos const& node) const {
         return lanes.at(node.lane).blocks.at(node.row);
+    }
+
+    LaneBlockNode const& getLaneNode(LaneNodePos const& pos) {
+        return lanes.at(pos.lane).blocks.at(pos.row);
     }
 
     Vec<Slice<int>> getLaneSpans() const {

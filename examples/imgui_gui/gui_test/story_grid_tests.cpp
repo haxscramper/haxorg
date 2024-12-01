@@ -168,14 +168,23 @@ some random shit about the comments or whatever, need to render as annotation [f
 
 
             {
-                vars.model.ctx.message("Scroll");
-                auto __scope = vars.model.ctx.scopeLevel();
+                m.ctx.message("Scroll");
+                auto __scope = m.ctx.scopeLevel();
                 ctx->MouseWheelY(5);
                 vars.set_im_trace(2);
                 ctx->Yield(5);
                 IM_CHECK_EQ(
                     ir.lanes.at(1).scrollOffset,
                     vars.conf.mouseScrollMultiplier * 5);
+            }
+            {
+                m.ctx.message("Edit annotation text");
+                auto& rg = m.rectGraph;
+                IM_CHECK_BINARY_PRED(
+                    rg.getDocNode({0, 0}).getTreeGrid().pos,
+                    (ImVec2{0, 0}),
+                    is_within_distance,
+                    5);
             }
             // ctx->SuspendTestFunc();
         });

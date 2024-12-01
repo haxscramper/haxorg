@@ -103,3 +103,50 @@ ImFuncPtr(ImGuiTestTestFunc)
 
 
 ImVec2 getContentPos(ImGuiTestContext* ctx);
+
+std::string __im_test_utils_format_va_args_list() { return ")"; }
+
+template <typename T, typename... Args>
+std::string __im_test_utils_format_va_args_list(
+    T const& head,
+    Args&&... args) {
+    return fmt(", {}", head, __im_test_utils_format_va_args_list(args...));
+}
+
+float ImVec2Length(const ImVec2& vec) {
+    return std::sqrt(vec.x * vec.x + vec.y * vec.y);
+}
+
+bool is_within_distance(
+    ImVec2 const& lhs,
+    ImVec2 const& rhs,
+    float         distance) {
+    return ImVec2Length(rhs - lhs) <= distance;
+}
+
+#define IM_CHECK_BINARY_PRED(_LHS, _RHS, __pred, ...)                     \
+    do {                                                                  \
+        auto __lhs = _LHS; /* Cache to avoid side effects */              \
+        auto __rhs = _RHS;                                                \
+        bool __res = __pred(__lhs, __rhs __VA_OPT__(, ) __VA_ARGS__);     \
+        std::string arglist_buf = __im_test_utils_format_va_args_list(    \
+            __VA_ARGS__);                                                 \
+        std::string expr_buf = fmt(                                       \
+            "{} [{}] !{}(_, _ {} [{}]",                                   \
+            #_LHS,                                                        \
+            __lhs,                                                        \
+            #__pred,                                                      \
+            arglist_buf,                                                  \
+            #_RHS,                                                        \
+            __rhs);                                                       \
+        if (ImGuiTestEngine_Check(                                        \
+                __FILE__,                                                 \
+                __func__,                                                 \
+                __LINE__,                                                 \
+                ImGuiTestCheckFlags_None,                                 \
+                __res,                                                    \
+                expr_buf.c_str())) {                                      \
+            IM_ASSERT(__res);                                             \
+        }                                                                 \
+        if (!__res) { return; }                                           \
+    } while (0)
