@@ -159,19 +159,25 @@ some random shit about the comments or whatever, need to render as annotation [f
             auto&  doc  = m.rectGraph.nodes.at(0).getTreeGrid().node;
             auto&  ir   = m.rectGraph.ir;
             IM_CHECK_EQ(ir.getLaneSpans().size(), 4);
-            IM_CHECK_EQ(ir.lanes.at(0).scrollOffset, 0);
+            IM_CHECK_EQ(ir.lanes.at(1).scrollOffset, 0);
             ctx->MouseMoveToPos(
                 wpos
                 + ImVec2{
                     static_cast<float>(ir.getLaneSpans().at(1).first + 50),
                     5});
 
-            ctx->MouseWheelY(5);
-            IM_CHECK_EQ(
-                ir.lanes.at(0).scrollOffset,
-                vars.conf.mouseScrollMultiplier * 5);
-            vars.set_im_trace(2);
-            ctx->SuspendTestFunc();
+
+            {
+                vars.model.ctx.message("Scroll");
+                auto __scope = vars.model.ctx.scopeLevel();
+                ctx->MouseWheelY(5);
+                vars.set_im_trace(2);
+                ctx->Yield(5);
+                IM_CHECK_EQ(
+                    ir.lanes.at(1).scrollOffset,
+                    vars.conf.mouseScrollMultiplier * 5);
+            }
+            // ctx->SuspendTestFunc();
         });
 }
 

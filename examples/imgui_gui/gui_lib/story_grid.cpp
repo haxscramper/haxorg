@@ -1192,8 +1192,21 @@ void update_graph_layout(
 void update_document_scroll(
     StoryGridModel&        model,
     StoryGridConfig const& conf) {
+    auto& ctx = model.ctx;
+
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
     auto&                ir       = model.rectGraph.ir;
+
+    {
+        Vec<int> offsets //
+            = ir.lanes
+            | rv::transform([](LaneBlockStack const& lane) -> int {
+                  return lane.scrollOffset;
+              })
+            | rs::to<Vec>();
+
+        CTX_MSG(fmt("Update document scrolling, offsets: {}", offsets));
+    }
 
     ir.visible.h = viewport->Size.y;
     ir.visible.w = viewport->Size.x;
@@ -1350,9 +1363,10 @@ void StoryGridModel::updateDocument(
 
 void StoryGridModel::apply(
     const GridAction&      act,
-    StoryGridConfig const& style) {
+    StoryGridConfig const& conf) {
     __perf_trace("model", "Apply grid action");
-    CTX_MSG(fmt("{}", act));
+    CTX_MSG(fmt("Apply story grid action {}", act));
+    auto __scope = ctx.scopeLevel();
     switch (act.getKind()) {
         case GridAction::Kind::EditCell: {
             updateNeeded.incl(UpdateNeeded::Graph);
@@ -1386,11 +1400,27 @@ void StoryGridModel::apply(
         case GridAction::Kind::Scroll: {
             updateNeeded.incl(UpdateNeeded::Scroll);
             auto const& scroll = act.getScroll();
-            for (auto const& [lane_idx, span] :
-                 enumerate(rectGraph.ir.getLaneSpans())) {
+            auto        spans  = rectGraph.ir.getLaneSpans();
+            for (auto const& [lane_idx, span] : enumerate(spans)) {
                 if (span.contains(scroll.pos.x)) {
+                    CTX_MSG(
+                        fmt("Lane {} span {} does matches position {} "
+                            "Updating scroll offset direction "
+                            "{} multiplier {}",
+                            lane_idx,
+                            span,
+                            scroll.pos,
+                            scroll.direction,
+                            conf.mouseScrollMultiplier));
+
                     rectGraph.ir.lane(lane_idx).scrollOffset //
-                        += scroll.direction * style.mouseScrollMultiplier;
+                        += scroll.direction * conf.mouseScrollMultiplier;
+                } else {
+                    CTX_MSG(
+                        fmt("Lane {} span {} does not match position {}",
+                            lane_idx,
+                            span,
+                            scroll.pos));
                 }
             }
             break;
