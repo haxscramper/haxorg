@@ -196,7 +196,7 @@ some random shit about the comments or whatever, need to render as annotation [f
                 wpos
                 + ImVec2{static_cast<float>(spans.at(1).first + 50), 5});
 
-            m.ctx.message(to_json_eval(rg).dump(2));
+            // m.ctx.message(to_json_eval(rg.nodes).dump(2));
 
             IM_CHECK_BINARY_PRED(
                 rg.getDocNode({0, 0}).getTreeGrid().pos,
@@ -222,11 +222,11 @@ some random shit about the comments or whatever, need to render as annotation [f
                     vars.conf.mouseScrollMultiplier * 5);
             }
 
-            m.ctx.message(to_json_eval(rg).dump(2));
+            // m.ctx.message(to_json_eval(rg.nodes).dump(2));
 
             IM_CHECK_BINARY_PRED(
                 rg.getDocNode({1, 0}).getText().pos,
-                ImVec2(spans.at(1).first, 0),
+                ImVec2(spans.at(1).first, 50),
                 is_within_distance,
                 5);
 

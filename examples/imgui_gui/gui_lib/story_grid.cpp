@@ -1156,6 +1156,8 @@ void update_graph_layout(
     // writeFile("/tmp/lyt_dump.json",
     // to_json_eval(this->layout).dump(2));
 
+    int pad = rectGraph.ir.lanes.at(0).leftMargin;
+
     for (int i = 0; i < rectGraph.nodes.size(); ++i) {
         StoryGridNode&     node = rectGraph.nodes.at(i);
         LaneNodePos const& pos  = rectGraph.getIrNode(i);
@@ -1164,17 +1166,17 @@ void update_graph_layout(
             auto const& rec = thisLayout.fixed.at(lyt.rectMap.at(pos));
             switch (node.getKind()) {
                 case StoryGridNode::Kind::TreeGrid: {
-                    node.getTreeGrid().pos.x = rec.left;
+                    node.getTreeGrid().pos.x = rec.left + pad;
                     node.getTreeGrid().pos.y = rec.top;
                     break;
                 }
                 case StoryGridNode::Kind::Text: {
-                    node.getText().pos.x = rec.left;
+                    node.getText().pos.x = rec.left + pad;
                     node.getText().pos.y = rec.top;
                     break;
                 }
                 case StoryGridNode::Kind::LinkList: {
-                    node.getLinkList().pos.x = rec.left;
+                    node.getLinkList().pos.x = rec.left + pad;
                     node.getLinkList().pos.y = rec.top;
                     break;
                 }
