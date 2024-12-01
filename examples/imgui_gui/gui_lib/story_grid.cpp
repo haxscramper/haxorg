@@ -10,7 +10,8 @@
 #include <queue>
 #include <sys/inotify.h>
 #include <haxorg/sem/SemBaseApi.hpp>
-
+#include <haxorg/sem/ImmOrg.hpp>
+#include <haxorg/sem/SemOrgFormat.hpp>
 
 #include <haxorg/sem/ImmOrgGraphBoost.hpp>
 
@@ -945,10 +946,11 @@ int add_root_grid_node(
 }
 
 LaneNodePos get_partition_node(
-    StoryGridGraph&        res,
-    int                    lane,
-    org::ImmAdapter const& node,
-    StoryGridConfig const& conf) {
+    org::ImmAstVersion const& ast,
+    StoryGridGraph&           res,
+    int                       lane,
+    org::ImmAdapter const&    node,
+    StoryGridConfig const&    conf) {
     if (res.orgToId.contains(node.uniq())) {
         return res.orgToId.at(node.uniq());
     } else if (auto list = node.asOpt<org::ImmList>();
@@ -988,9 +990,12 @@ LaneNodePos get_partition_node(
         return annotation;
 
     } else {
+        sem::SemId<sem::Org> sem_ast = org::sem_from_immer(
+            node.id, ast.context);
+
         StoryGridNode::Text text{
-            .node = node,
-            .text = join(" ", flatWords(node)),
+            .origin = node,
+            .text   = sem::Formatter::format(sem_ast),
         };
 
         int width  = conf.annotationNodeWidth;
@@ -1011,11 +1016,13 @@ LaneNodePos get_partition_node(
 };
 
 void connect_partition_edges(
-    StoryGridGraph&                res,
-    StoryGridHistory&              state,
+    StoryGridModel&                model,
     Vec<Vec<DocAnnotation>> const& partition,
-    StoryGridContext&              ctx,
     StoryGridConfig const&         conf) {
+    auto& res   = model.rectGraph;
+    auto& state = model.getLastHistory();
+    auto& ctx   = model.ctx;
+
     res.ir.edges.clear();
     for (auto const& [group_idx, group] : enumerate(partition)) {
         for (auto const& node : group) {
@@ -1024,16 +1031,15 @@ void connect_partition_edges(
             org::ImmAdapter target = state.ast.context.adapt(
                 node.target.id);
 
+            auto source_parent = state.ast.context.adapt(
+                res.annotationParents.get(node.source.id)
+                    .value_or(node.source.id));
+
             LaneNodePos source_node = get_partition_node(
-                res,
-                group_idx + 1,
-                state.ast.context.adapt(
-                    res.annotationParents.get(node.source.id)
-                        .value_or(node.source.id)),
-                conf);
+                state.ast, res, group_idx + 1, source_parent, conf);
 
             LaneNodePos target_node = get_partition_node(
-                res, group_idx + 1, target, conf);
+                state.ast, res, group_idx + 1, target, conf);
 
             StoryGridNode const& source_flat = res.getDocNode(source_node);
             StoryGridNode const& target_flat = res.getDocNode(target_node);
@@ -1235,10 +1241,9 @@ void update_graph_layout(StoryGridModel& model) {
 void update_hidden_row_connections(
     StoryGridModel&        model,
     StoryGridConfig const& conf) {
-    const ImGuiViewport* viewport = ImGui::GetMainViewport();
-    auto&                ir       = model.rectGraph.ir;
+    auto& ir = model.rectGraph.ir;
 
-    Slice<int> viewportRange = slice1<int>(0, viewport->WorkSize.y);
+    Slice<int> viewportRange = slice1<int>(0, conf.gridViewport.y);
     for (auto const& [lane_idx, lane] :
          enumerate(model.rectGraph.ir.lanes)) {
         for (auto const& [block_idx, block] : enumerate(lane.blocks)) {
@@ -1302,9 +1307,7 @@ void update_document_scroll(
     StoryGridModel&        model,
     StoryGridConfig const& conf) {
     auto& ctx = model.ctx;
-
-    const ImGuiViewport* viewport = ImGui::GetMainViewport();
-    auto&                ir       = model.rectGraph.ir;
+    auto& ir  = model.rectGraph.ir;
 
     {
         Vec<int> offsets //
@@ -1317,8 +1320,8 @@ void update_document_scroll(
         CTX_MSG(fmt("Update document scrolling, offsets: {}", offsets));
     }
 
-    ir.visible.h = viewport->Size.y;
-    ir.visible.w = viewport->Size.x;
+    ir.visible.h = conf.gridViewport.y;
+    ir.visible.w = conf.gridViewport.x;
 
     for (auto& lane : ir.lanes) {
         for (auto& rect : lane.blocks) { rect.isVisible = true; }
@@ -1380,12 +1383,7 @@ void update_document_graph(
 
     rectGraph.partition = partition_graph_nodes(docNodes, rectGraph.graph);
 
-    connect_partition_edges(
-        rectGraph,
-        model.getLastHistory(),
-        rectGraph.partition,
-        model.ctx,
-        conf);
+    connect_partition_edges(model, rectGraph.partition, conf);
 }
 
 void StoryGridModel::updateDocument(
@@ -1400,8 +1398,7 @@ void StoryGridModel::updateDocument(
 
     if (updateNeeded.contains(UpdateNeeded::LinkListClick)) {
         update_link_list_target_rows(rectGraph);
-        connect_partition_edges(
-            rectGraph, getLastHistory(), rectGraph.partition, ctx, conf);
+        connect_partition_edges(*this, rectGraph.partition, conf);
         update_node_sizes(rectGraph);
     }
 
@@ -1420,26 +1417,40 @@ void StoryGridModel::apply(
     __perf_trace("model", "Apply grid action");
     CTX_MSG(fmt("Apply story grid action {}", act));
     auto __scope = ctx.scopeLevel();
+
+    auto replaceNode = [&](org::ImmAdapter const& origin,
+                           sem::SemId<sem::Org>   replace) {
+        org::ImmAstVersion vNext = getLastHistory().ast.getEditVersion(
+            [&](org::ImmAstContext&     ast,
+                org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
+                org::ImmAstReplaceGroup result;
+                result.incl(
+                    org::replaceNode(origin, ast.add(replace, ctx), ctx));
+                return result;
+            });
+        history.push_back(StoryGridHistory{
+            .ast = vNext,
+        });
+    };
+
     switch (act.getKind()) {
         case GridAction::Kind::EditCell: {
             updateNeeded.incl(UpdateNeeded::Graph);
             updateNeeded.incl(UpdateNeeded::Scroll);
-            auto               edit  = act.getEditCell();
-            org::ImmAstVersion vNext = getLastHistory().ast.getEditVersion(
-                [&](org::ImmAstContext& ast, org::ImmAstEditContext& ctx)
-                    -> org::ImmAstReplaceGroup {
-                    org::ImmAstReplaceGroup result;
-                    result.incl(org::replaceNode(
-                        edit.cell.getValue().origin,
-                        ast.add(
-                            sem::asOneNode(sem::parseString(edit.updated)),
-                            ctx),
-                        ctx));
-                    return result;
-                });
-            history.push_back(StoryGridHistory{
-                .ast = vNext,
-            });
+            auto edit = act.getEditCell();
+            replaceNode(
+                edit.cell.getValue().origin,
+                sem::asOneNode(sem::parseString(edit.updated)));
+            break;
+        }
+
+        case GridAction::Kind::EditNodeText: {
+            updateNeeded.incl(UpdateNeeded::Graph);
+            updateNeeded.incl(UpdateNeeded::Scroll);
+            auto edit = act.getEditNodeText();
+            replaceNode(
+                rectGraph.getDocNode(edit.pos).getText().origin,
+                sem::asOneNode(sem::parseString(edit.updated)));
             break;
         }
 

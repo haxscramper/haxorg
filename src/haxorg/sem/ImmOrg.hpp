@@ -1292,6 +1292,14 @@ struct sem_to_imm_map {};
 EACH_SEM_ORG_KIND(_gen_map)
 #undef _gen_map
 
+sem::SemId<sem::Org> sem_from_immer(
+    org::ImmId const&    id,
+    ImmAstContext const& ctx);
+
+org::ImmId immer_from_sem(
+    sem::SemId<sem::Org> const& id,
+    ImmAstEditContext&          ctx);
+
 } // namespace org
 
 

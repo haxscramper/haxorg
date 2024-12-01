@@ -272,11 +272,11 @@ struct StoryGridNode {
     struct Text {
         ImVec2          pos;
         ImVec2          size;
-        org::ImmAdapter node;
+        org::ImmAdapter origin;
         std::string     text;
         std::string     edit_buffer;
         bool            edit = false;
-        DESC_FIELDS(Text, (node, pos, size, edit));
+        DESC_FIELDS(Text, (origin, pos, size, edit));
         ImVec2 getSize() const {
             return ImVec2(size.x, size.y + (edit ? 40 : 0));
         }
@@ -390,6 +390,12 @@ struct GridAction {
         DESC_FIELDS(EditCellChanged, (cell, documentNodeIdx));
     };
 
+    struct EditNodeText {
+        LaneNodePos pos;
+        std::string updated;
+        DESC_FIELDS(EditNodeText, (pos, updated));
+    };
+
     struct EditNodeChanged {
         LaneNodePos pos;
         DESC_FIELDS(EditNodeChanged, (pos));
@@ -416,7 +422,8 @@ struct GridAction {
         LinkListClick,
         RowFolding,
         EditCellChanged,
-        EditNodeChanged);
+        EditNodeChanged,
+        EditNodeText);
 
     Data data;
     DESC_FIELDS(GridAction, (data));
@@ -437,15 +444,16 @@ struct StoryGridConfig {
     Vec<StoryGridColumnConfig> defaultColumns;
     LaneBlockGraphConfig       blockGraphConf;
 
-    ImU32 foldCellHoverBackground = IM_COL32(0, 255, 255, 255);
-    ImU32 foldCellBackground      = IM_COL32(255, 0, 0, 128);
-    ImU32 annotationNodeWindowBg  = IM_COL32(128, 128, 128, 128);
-    bool  annotated               = true;
-    int   pageUpScrollStep        = 20;
-    int   pageDownScrollStep      = -20;
-    int   mouseScrollMultiplier   = 10;
-    int   annotationNodeWidth     = 200;
-    int   laneRowPadding          = 6;
+    ImU32  foldCellHoverBackground = IM_COL32(0, 255, 255, 255);
+    ImU32  foldCellBackground      = IM_COL32(255, 0, 0, 128);
+    ImU32  annotationNodeWindowBg  = IM_COL32(128, 128, 128, 128);
+    bool   annotated               = true;
+    int    pageUpScrollStep        = 20;
+    int    pageDownScrollStep      = -20;
+    int    mouseScrollMultiplier   = 10;
+    int    annotationNodeWidth     = 200;
+    int    laneRowPadding          = 6;
+    ImVec2 gridViewport;
 
 
     DESC_FIELDS(
@@ -459,7 +467,8 @@ struct StoryGridConfig {
          pageDownScrollStep,
          mouseScrollMultiplier,
          annotationNodeWidth,
-         laneRowPadding));
+         laneRowPadding,
+         gridViewport));
 };
 
 /// \brief Highly mutable context variable that is passed to all rendering

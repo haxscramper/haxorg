@@ -83,8 +83,9 @@ void _Load_One_Paragraph(ImGuiTestEngine* e) {
     params.windowSize.x = 700;
     params.windowSize.y = 700;
     t->GuiFunc          = ImWrapGuiFuncT<StoryGridVars>(
-        params, [](ImGuiTestContext* ctx, StoryGridVars& vars) {
+        params, [params](ImGuiTestContext* ctx, StoryGridVars& vars) {
             if (ctx->IsFirstGuiFrame()) {
+                vars.conf.gridViewport = params.windowSize;
                 vars.conf.blockGraphConf.getDefaultLaneMargin =
                     [](int lane) -> Pair<int, int> {
                     return {lane == 0 ? 0 : 50, 50};
@@ -165,7 +166,10 @@ void _FootnoteAnnotation(ImGuiTestEngine* e) {
     params.windowSize.x = 1500;
     params.windowSize.y = 700;
     t->GuiFunc          = ImWrapGuiFuncT<StoryGridVars>(
-        params, [](ImGuiTestContext* ctx, StoryGridVars& vars) {
+        params, [params](ImGuiTestContext* ctx, StoryGridVars& vars) {
+            if (ctx->IsFirstGuiFrame()) {
+                vars.conf.gridViewport = params.windowSize;
+            }
             vars.init_section(ctx, R"(
 * Subtree entry without any annotations
 * One subtree in grid
@@ -244,8 +248,8 @@ some random shit about the comments or whatever, need to render as annotation [f
                     + ImVec2(5, 5));
                 ctx->MouseClick(0);
                 ctx->MouseClick(0);
-                ctx->KeyChars("TYPE");
-                ctx->MouseMoveToPos(ImGui::GetMousePos() + ImVec2(0, 75));
+                ctx->KeyChars("TYPE\n\n");
+                ctx->MouseMoveToPos(ImGui::GetMousePos() + ImVec2(0, 100));
                 ctx->MouseClick(0);
             }
             ctx->SuspendTestFunc();
