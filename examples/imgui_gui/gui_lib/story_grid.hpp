@@ -316,7 +316,7 @@ struct StoryGridGraph {
 
     DESC_FIELDS(
         StoryGridGraph,
-        (nodes, ir, gridNodeToNode, nodeToGridNode));
+        (nodes, ir, gridNodeToNode, nodeToGridNode, graph, partition));
 
     void addIrNode(int flatIdx, LaneNodePos const& irNode) {
         gridNodeToNode.insert_or_assign(flatIdx, irNode);

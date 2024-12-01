@@ -1,8 +1,38 @@
 #include "im_test_common.hpp"
 #include <gui_lib/story_grid.hpp>
-
+#include <haxorg/sem/ImmOrgBase.hpp>
 
 #define TEST_GRP_NAME "story_grid"
+
+template <typename T>
+struct JsonSerde<immer::vector<T>> {
+    static json to_json(immer::vector<T> const& it) {
+        auto result = json::array();
+        for (auto const& i : it) {
+            result.push_back(JsonSerde<T>::to_json(i));
+        }
+
+        return result;
+    }
+    static immer::vector<T> from_json(json const& j) {
+        immer::vector<T> result;
+        auto             tmp = result.transient();
+        for (auto const& i : j) {
+            tmp.push_back(JsonSerde<T>::from_json(i));
+        }
+        return tmp.persistent();
+    }
+};
+
+template <typename Tag>
+struct JsonSerde<ReflPathItem<Tag>> {
+    static json to_json(ReflPathItem<Tag> const it) { return json{}; }
+
+    static ReflPathItem<Tag> from_json(json const& j) {
+        auto res = SerdeDefaultProvider<ReflPathItem<Tag>>::get();
+        return res;
+    }
+};
 
 struct StoryGridVars : public ImTestVarsBase {
     StoryGridModel     model;
@@ -154,18 +184,32 @@ some random shit about the comments or whatever, need to render as annotation [f
 
     t->TestFunc = ImWrapTestFuncT<StoryGridVars>(
         params, [](ImGuiTestContext* ctx, StoryGridVars& vars) {
-            ImVec2 wpos = getContentPos(ctx);
-            auto&  m    = vars.model;
-            auto&  doc  = m.rectGraph.nodes.at(0).getTreeGrid().node;
-            auto&  ir   = m.rectGraph.ir;
-            IM_CHECK_EQ(ir.getLaneSpans().size(), 4);
+            ImVec2      wpos  = getContentPos(ctx);
+            auto&       m     = vars.model;
+            auto&       doc   = m.rectGraph.nodes.at(0).getTreeGrid().node;
+            auto&       ir    = m.rectGraph.ir;
+            auto const& spans = ir.getLaneSpans();
+            auto&       rg    = m.rectGraph;
+            IM_CHECK_EQ(spans.size(), 4);
             IM_CHECK_EQ(ir.lanes.at(1).scrollOffset, 0);
             ctx->MouseMoveToPos(
                 wpos
-                + ImVec2{
-                    static_cast<float>(ir.getLaneSpans().at(1).first + 50),
-                    5});
+                + ImVec2{static_cast<float>(spans.at(1).first + 50), 5});
 
+            m.ctx.message(to_json_eval(rg).dump(2));
+
+            IM_CHECK_BINARY_PRED(
+                rg.getDocNode({0, 0}).getTreeGrid().pos,
+                ImVec2(spans.at(0).first, 0),
+                is_within_distance,
+                5);
+
+
+            IM_CHECK_BINARY_PRED(
+                rg.getDocNode({1, 0}).getText().pos,
+                ImVec2(spans.at(1).first, 0),
+                is_within_distance,
+                5);
 
             {
                 m.ctx.message("Scroll");
@@ -177,14 +221,24 @@ some random shit about the comments or whatever, need to render as annotation [f
                     ir.lanes.at(1).scrollOffset,
                     vars.conf.mouseScrollMultiplier * 5);
             }
+
+            m.ctx.message(to_json_eval(rg).dump(2));
+
+            IM_CHECK_BINARY_PRED(
+                rg.getDocNode({1, 0}).getText().pos,
+                ImVec2(spans.at(1).first, 0),
+                is_within_distance,
+                5);
+
             {
                 m.ctx.message("Edit annotation text");
-                auto& rg = m.rectGraph;
-                IM_CHECK_BINARY_PRED(
-                    rg.getDocNode({0, 0}).getTreeGrid().pos,
-                    (ImVec2{0, 0}),
-                    is_within_distance,
-                    5);
+
+
+                ctx->MouseMoveToPos(
+                    wpos + rg.getDocNode({0, 0}).getTreeGrid().pos
+                    + ImVec2(5, 5));
+                ctx->MouseClick(0);
+                ctx->KeyChars("TYPE");
             }
             // ctx->SuspendTestFunc();
         });
