@@ -109,18 +109,65 @@ inline float ImVec2Length(const ImVec2& vec) {
     return std::sqrt(vec.x * vec.x + vec.y * vec.y);
 }
 
-inline bool is_within_distance(
+
+struct PredicateResult {
+    bool     ok = false;
+    Opt<Str> explanation;
+};
+
+
+inline PredicateResult is_within_distance(
     ImVec2 const& lhs,
     ImVec2 const& rhs,
     float         distance) {
-    return ImVec2Length(rhs - lhs) <= distance;
+    PredicateResult res;
+    float           dist = ImVec2Length(rhs - lhs);
+    res.ok               = dist <= distance;
+    if (!res.ok) { res.explanation = fmt("distance is {}", dist); }
+    return res;
 }
+
+inline PredicateResult has_substring(Str const& lhs, Str const& rhs) {
+    PredicateResult res;
+    res.ok = lhs.contains(rhs);
+    return res;
+}
+
+inline PredicateResult has_substring_normalized(
+    Str const& lhs,
+    Str const& rhs) {
+    return has_substring(normalize(lhs), normalize(rhs));
+}
+
+inline PredicateResult not_has_substring(Str const& lhs, Str const& rhs) {
+    PredicateResult res;
+    int             idx = lhs.find(rhs);
+    if (idx == std::string::npos) {
+        res.ok = true;
+    } else {
+        res.ok          = false;
+        res.explanation = fmt(
+            "Found substring starting {} ({} ...)",
+            idx,
+            lhs.substr(
+                idx, std::clamp<int>(idx + 20, lhs.length(), idx + 20)));
+    }
+    return res;
+}
+
+inline PredicateResult not_has_substring_normalized(
+    Str const& lhs,
+    Str const& rhs) {
+    return not_has_substring(normalize(lhs), normalize(rhs));
+}
+
 
 #define IM_CHECK_BINARY_PRED(_LHS, _RHS, __pred, ...)                     \
     do {                                                                  \
-        auto __lhs = _LHS; /* Cache to avoid side effects */              \
-        auto __rhs = _RHS;                                                \
-        bool __res = __pred(__lhs, __rhs __VA_OPT__(, ) __VA_ARGS__);     \
+        auto            __lhs = _LHS; /* Cache to avoid side effects */   \
+        auto            __rhs = _RHS;                                     \
+        PredicateResult __res = __pred(                                   \
+            __lhs, __rhs __VA_OPT__(, ) __VA_ARGS__);                     \
         std::string arglist_buf = __im_test_utils_format_va_args_list(    \
             __VA_ARGS__);                                                 \
         std::string expr_buf = fmt(                                       \
@@ -131,14 +178,18 @@ inline bool is_within_distance(
             arglist_buf,                                                  \
             #_RHS,                                                        \
             __rhs);                                                       \
+        if (!__res.ok && __res.explanation) {                             \
+            expr_buf += " ";                                              \
+            expr_buf += __res.explanation.value();                        \
+        }                                                                 \
         if (ImGuiTestEngine_Check(                                        \
                 __FILE__,                                                 \
                 __func__,                                                 \
                 __LINE__,                                                 \
                 ImGuiTestCheckFlags_None,                                 \
-                __res,                                                    \
+                __res.ok,                                                 \
                 expr_buf.c_str())) {                                      \
             IM_ASSERT(__res);                                             \
         }                                                                 \
-        if (!__res) { return; }                                           \
+        if (!__res.ok) { return; }                                        \
     } while (0)

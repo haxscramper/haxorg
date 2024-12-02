@@ -1,6 +1,7 @@
 #include "im_test_common.hpp"
 #include <gui_lib/story_grid.hpp>
 #include <haxorg/sem/ImmOrgBase.hpp>
+#include <haxorg/sem/SemOrgFormat.hpp>
 
 #define TEST_GRP_NAME "story_grid"
 
@@ -48,6 +49,13 @@ struct StoryGridVars : public ImTestVarsBase {
 
         TreeGridDocument doc;
         model.updateDocument(doc, conf);
+    }
+
+    Str get_text() {
+        auto sem = org::sem_from_immer(
+            model.getLastHistory().ast.getRootAdapter().id,
+            model.getLastHistory().ast.context);
+        return sem::Formatter::format(sem);
     }
 
     void init_section(ImGuiTestContext* ctx, std::string const& text) {
@@ -248,11 +256,18 @@ some random shit about the comments or whatever, need to render as annotation [f
                     + ImVec2(5, 5));
                 ctx->MouseClick(0);
                 ctx->MouseClick(0);
+
+                IM_CHECK_BINARY_PRED(
+                    vars.get_text(), "TYPE", not_has_substring_normalized);
+
                 ctx->KeyChars("TYPE\n\n");
                 ctx->MouseMoveToPos(ImGui::GetMousePos() + ImVec2(0, 100));
                 ctx->MouseClick(0);
+                ctx->Yield(5);
+                IM_CHECK_BINARY_PRED(
+                    vars.get_text(), "TYPE", has_substring_normalized);
             }
-            ctx->SuspendTestFunc();
+            // ctx->SuspendTestFunc();
         });
 }
 

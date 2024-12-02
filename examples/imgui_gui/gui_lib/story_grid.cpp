@@ -1624,6 +1624,10 @@ void run_story_grid_cycle(
     StoryGridModel&        model,
     StoryGridConfig const& conf) {
     if (conf.annotated) {
+        auto p = ImGui::GetCursorScreenPos();
+        ImGui::GetForegroundDrawList()->AddRect(
+            p, p + conf.gridViewport, IM_COL32(255, 0, 0, 255));
+
         run_story_grid_annotated_cycle(model, conf);
 
         ImGuiIO& io  = ImGui::GetIO();
