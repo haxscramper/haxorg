@@ -345,8 +345,9 @@ void render_text_node(
 
         switch (res) {
             case EditableTextResult::Changed: {
-                ctx.action(GridAction::EditNodeChanged{
-                    .pos = selfPos,
+                ctx.action(GridAction::EditNodeText{
+                    .pos     = selfPos,
+                    .updated = text.text,
                 });
                 [[fallthrough]];
             }
@@ -731,7 +732,8 @@ TreeGridCell build_editable_cell(
 
 Vec<Vec<DocAnnotation>> partition_graph_nodes(
     const Vec<org::graph::MapNode>& initial_nodes,
-    const org::graph::MapGraph&     graph) {
+    const org::graph::MapGraph&     graph,
+    StoryGridContext&               ctx) {
     __perf_trace("gui", "partition graph by distance");
 
     Vec<Vec<DocAnnotation>>                result;
@@ -778,6 +780,16 @@ Vec<Vec<DocAnnotation>> partition_graph_nodes(
             adjacent.incl(adj);
         }
     }
+
+    Vec<int> partition_debug //
+        = result
+        | rv::transform([](auto const& p) -> int { return p.size(); })
+        | rs::to<Vec>();
+
+    CTX_MSG(
+        fmt("Created partition with {} lanes {} nodes",
+            partition_debug.size(),
+            partition_debug));
 
     return result;
 }
@@ -826,7 +838,7 @@ void add_footnote_annotation_node(
     } else {
         visited.incl(node.uniq());
     }
-    CTX_MSG(fmt("Footnotes from {}", origin));
+    CTX_MSG(fmt("Footnotes from {}", origin.id));
     auto __scope = ctx.scopeLevel();
     for (auto const& recSub : node.getAllSubnodesDFS(node.path)) {
         Opt<org::ImmAdapterT<org::ImmLink>>
@@ -851,8 +863,8 @@ void add_footnote_annotation_node(
 
             CTX_MSG(
                 fmt("Found recursive target, {} is targeting {}",
-                    targetPath,
-                    link->ctx->adapt(targetPath)));
+                    targetPath.id,
+                    link->ctx->adapt(targetPath).id));
 
             add_footnote_annotation_node(
                 visited,
@@ -950,9 +962,12 @@ LaneNodePos get_partition_node(
     StoryGridGraph&           res,
     int                       lane,
     org::ImmAdapter const&    node,
-    StoryGridConfig const&    conf) {
+    StoryGridConfig const&    conf,
+    StoryGridContext&         ctx) {
     if (res.orgToId.contains(node.uniq())) {
-        return res.orgToId.at(node.uniq());
+        auto annotation = res.orgToId.at(node.uniq());
+        CTX_MSG(fmt("Node {} already mapped to {}", node.id, annotation));
+        return annotation;
     } else if (auto list = node.asOpt<org::ImmList>();
                list && list->isDescriptionList()
                && org::graph::isLinkedDescriptionList(node)) {
@@ -979,6 +994,8 @@ LaneNodePos get_partition_node(
             },
             conf.blockGraphConf);
 
+        CTX_MSG(fmt("List {} mapped to IR node {}", node.id, annotation));
+
         for (auto const& item : text.items) {
             res.orgToId.insert_or_assign(item.node.uniq(), annotation);
         }
@@ -990,6 +1007,7 @@ LaneNodePos get_partition_node(
         return annotation;
 
     } else {
+
         sem::SemId<sem::Org> sem_ast = org::sem_from_immer(
             node.id, ast.context);
 
@@ -1007,6 +1025,8 @@ LaneNodePos get_partition_node(
         res.nodes.push_back(StoryGridNode{text});
         LaneNodePos annotation = res.ir.addNode(
             lane, ImVec2(width, height), conf.blockGraphConf);
+        CTX_MSG(
+            fmt("Text node {} mapped to IR node {}", node.id, annotation));
         res.orgToId.insert_or_assign(node.uniq(), annotation);
 
         res.addIrNode(res.nodes.high(), annotation);
@@ -1023,6 +1043,9 @@ void connect_partition_edges(
     auto& state = model.getLastHistory();
     auto& ctx   = model.ctx;
 
+    CTX_MSG("Connecting partition edges");
+    auto __scope = ctx.scopeLevel();
+
     res.ir.edges.clear();
     for (auto const& [group_idx, group] : enumerate(partition)) {
         for (auto const& node : group) {
@@ -1036,10 +1059,15 @@ void connect_partition_edges(
                     .value_or(node.source.id));
 
             LaneNodePos source_node = get_partition_node(
-                state.ast, res, group_idx + 1, source_parent, conf);
+                state.ast,
+                res,
+                group_idx + 1,
+                source_parent,
+                conf,
+                model.ctx);
 
             LaneNodePos target_node = get_partition_node(
-                state.ast, res, group_idx + 1, target, conf);
+                state.ast, res, group_idx + 1, target, conf, model.ctx);
 
             StoryGridNode const& source_flat = res.getDocNode(source_node);
             StoryGridNode const& target_flat = res.getDocNode(target_node);
@@ -1329,9 +1357,8 @@ void update_document_scroll(
 
     for (auto& stack : ir.lanes) { stack.resetVisibleRange(); }
 
-    if (ir.lanes.has(0)) {
-        model.shift.y = 20 + ir.lanes.at(0).scrollOffset;
-    }
+    // use first line as a basis for arranging all other node positions.
+    if (ir.lanes.has(0)) { model.shift.y = ir.lanes.at(0).scrollOffset; }
 
     update_graph_layout(model);
     update_hidden_row_connections(model, conf);
@@ -1344,30 +1371,30 @@ void update_document_graph(
     TreeGridDocument const& init_doc) {
     __perf_trace("gui", "add grid nodes");
     model.rectGraph = StoryGridGraph{};
-    auto& rectGraph = model.rectGraph;
+    auto& rg        = model.rectGraph;
     auto& ctx       = model.ctx;
     CTX_MSG("Update document graph");
     auto __scope = ctx.scopeLevel();
 
     int docNodeIndex = add_root_grid_node(
-        rectGraph,
+        rg,
         model.getLastHistory().ast.getRootAdapter(),
         init_doc,
         model.ctx,
         conf);
 
     add_annotation_nodes(
-        rectGraph,
-        rectGraph.nodes.at(docNodeIndex).getTreeGrid().node,
-        rectGraph.graph,
+        rg,
+        rg.nodes.at(docNodeIndex).getTreeGrid().node,
+        rg.graph,
         model.ctx);
 
-    CTX_MSG(fmt("Graph with {} nodes", rectGraph.nodes.size()));
+    CTX_MSG(fmt("Graph with {} nodes", rg.nodes.size()));
+
 
     Vec<org::graph::MapNode> docNodes;
-    for (TreeGridRow* row : rectGraph.nodes.at(docNodeIndex)
-                                .getTreeGrid()
-                                .node.flatRows(true)) {
+    for (TreeGridRow* row :
+         rg.nodes.at(docNodeIndex).getTreeGrid().node.flatRows(true)) {
         if (model.state.folded.contains(docNodeIndex)) {
             auto path = row->getOriginPath();
             if (model.state.folded.at(docNodeIndex).contains(path)) {
@@ -1375,15 +1402,24 @@ void update_document_graph(
             }
         }
         auto tree = row->origin.uniq();
-        if (!rectGraph.graph.adjList.at(tree).empty()
-            || !rectGraph.graph.inNodes(tree).empty()) {
+        if (!rg.graph.adjList.at(tree).empty()
+            || !rg.graph.inNodes(tree).empty()) {
             docNodes.push_back(tree);
         }
     }
 
-    rectGraph.partition = partition_graph_nodes(docNodes, rectGraph.graph);
+    rg.partition = partition_graph_nodes(docNodes, rg.graph, ctx);
 
-    connect_partition_edges(model, rectGraph.partition, conf);
+    connect_partition_edges(model, rg.partition, conf);
+
+    {
+        int ir_nodes = 0;
+        for (auto const& lane : rg.ir.lanes) {
+            ir_nodes += lane.blocks.size();
+        }
+
+        CTX_MSG(fmt("IR graph {}", ir_nodes));
+    }
 }
 
 void StoryGridModel::updateDocument(

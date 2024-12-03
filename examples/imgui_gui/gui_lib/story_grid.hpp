@@ -513,7 +513,7 @@ struct StoryGridModel {
     StoryGridGraph           rectGraph;
     StoryGridContext         ctx;
     GraphLayoutIR::Result    layout;
-    ImVec2                   shift{20, 20};
+    ImVec2                   shift{};
     Opt<ColaConstraintDebug> debug;
     StoryGridHistory&        getLastHistory() { return history.back(); }
     void apply(GridAction const& act, StoryGridConfig const& style);

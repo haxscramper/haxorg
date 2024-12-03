@@ -267,7 +267,7 @@ some random shit about the comments or whatever, need to render as annotation [f
                 IM_CHECK_BINARY_PRED(
                     vars.get_text(), "TYPE", has_substring_normalized);
             }
-            // ctx->SuspendTestFunc();
+            ctx->SuspendTestFunc();
         });
 }
 
