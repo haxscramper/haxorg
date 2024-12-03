@@ -53,7 +53,7 @@ struct log_record {
 
     log_data data;
 
-    log_record& function(Str const& func);
+    log_record& function(char const* func);
     log_record& message(int const& msg);
     log_record& message(Str const& msg);
     log_record& message(char const* msg);

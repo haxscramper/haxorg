@@ -197,7 +197,7 @@ org_logging::log_record& ::org_logging::log_record::level(
 }
 
 org_logging::log_record& ::org_logging::log_record::function(
-    Str const& func) {
+    char const* func) {
     data.function = func;
     return *this;
 }
