@@ -21,8 +21,7 @@
 #include <boost/log/sinks/sink.hpp>
 #include <stack>
 #include <mutex>
-#include <memory>
-
+#include <hstd/stdlib/Opt.hpp>
 
 BOOST_LOG_GLOBAL_LOGGER(
     global_logger,
@@ -44,6 +43,10 @@ BOOST_LOG_ATTRIBUTE_KEYWORD(a_file, "record", org_logging::log_record)
 
 using namespace org_logging;
 
+#define OLOG_INNER_DEBUG true
+
+#define OLOG_MSG() LOG_IF(INFO, OLOG_INNER_DEBUG)
+
 class log_sink_manager {
   public:
     static log_sink_manager& instance() {
@@ -52,6 +55,11 @@ class log_sink_manager {
     }
 
     void push_sink(sink_ptr sink) {
+        OLOG_MSG() << fmt(
+            "Push shink {:p}, current sink stack is {}",
+            (void*)sink.get(),
+            sinks_.size());
+
         std::lock_guard<std::mutex> lock(m_);
         sinks_.push(sink);
         boost::log::core::get()->add_sink(sink);
@@ -60,6 +68,10 @@ class log_sink_manager {
     void pop_sink() {
         std::lock_guard<std::mutex> lock(m_);
         if (!sinks_.empty()) {
+            OLOG_MSG() << fmt(
+                "Pop sink {:p}, current sink stack is {}",
+                (void*)sinks_.top().get(),
+                sinks_.size());
             sinks_.pop();
             sync_sinks();
         }
@@ -80,6 +92,7 @@ class log_sink_manager {
     log_sink_manager() = default;
 
     void sync_sinks() {
+        OLOG_MSG() << "Sync sinks";
         boost::log::core::get()->remove_all_sinks();
         std::stack<sink_ptr> temp = sinks_;
         std::stack<sink_ptr> reversed;
@@ -116,7 +129,7 @@ void org_logging::clear_sink_backends() {
     log_sink_manager::instance().set_sinks({});
 }
 
-void org_logging::add_file_sink(Str const& log_file_name) {
+sink_ptr org_logging::init_file_sink(Str const& log_file_name) {
 
     auto& logger = global_logger::get();
 
@@ -133,11 +146,18 @@ void org_logging::add_file_sink(Str const& log_file_name) {
 
     sink->set_formatter([](const boost::log::record_view&  rec,
                            boost::log::formatting_ostream& strm) {
-        strm << boost::log::extract<boost::posix_time::ptime>(
-            "TimeStamp", rec)
-             << " ";
+        log_record::log_data const& data = boost::log::extract<log_record>(
+                                               "record", rec)
+                                               ->data;
+
+        strm << Str{"  "}.repeated(data.depth).toBase();
+        strm << data.message;
     });
 
+    return sink;
+}
+
+void org_logging::push_sink(sink_ptr const& sink) {
     log_sink_manager::instance().push_sink(sink);
 }
 
@@ -159,6 +179,11 @@ logger_type& get_logger() { return global_logger::get(); }
 org_logging::log_record& ::org_logging::log_record::message(
     int const& msg) {
     data.message += std::to_string(msg);
+    return *this;
+}
+
+org_logging::log_record& ::org_logging::log_record::depth(int depth) {
+    data.depth += depth;
     return *this;
 }
 
@@ -214,7 +239,7 @@ void org_logging::log_record::end() {
     ::boost::log::record rec_var = start_log_record(
         static_cast<boost::log::trivial::severity_level>(data.level));
     auto pump = ::boost::log::aux::make_record_pump(get_logger(), rec_var);
-    pump.stream() << logging::add_value("File", *this);
+    pump.stream() << logging::add_value("record", *this);
 }
 
 bool ::org_logging::is_log_accepted(

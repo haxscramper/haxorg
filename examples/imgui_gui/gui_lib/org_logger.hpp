@@ -1,6 +1,7 @@
 #pragma once
 
 #include <boost/preprocessor.hpp>
+#include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/system/reflection.hpp>
 #include <hstd/system/macros.hpp>
@@ -24,7 +25,30 @@ class log_sink_scope {
     std::stack<sink_ptr> previous_sinks_;
 };
 
-void add_file_sink(Str const& log_file_name);
+template <int Unique, typename Generator>
+sink_ptr log_sink_mutable_factory(Generator&& gen) {
+    static Generator mutable_state{std::forward<Generator>(gen)};
+    return mutable_state();
+}
+
+
+#define OLOG_SINK_FACTORY(impl)                                           \
+    ::org_logging::log_sink_mutable_factory<__COUNTER__>(impl)
+
+
+sink_ptr init_file_sink(Str const& log_file_name);
+void     push_sink(sink_ptr const& sink);
+
+#define OLOG_SINK_FACTORY_SCOPED(impl)                                    \
+    ::org_logging::log_sink_scoped_factory<__COUNTER__>(impl)
+
+template <int Unique, typename Generator>
+log_sink_scope log_sink_scoped_factory(Generator&& gen) {
+    sink_ptr       sink = log_sink_mutable_factory<Unique>(std::move(gen));
+    log_sink_scope scope;
+    push_sink(sink);
+    return scope;
+}
 
 /// \brief remove all sink backends from the logger
 void clear_sink_backends();
@@ -46,9 +70,10 @@ struct log_record {
         Str            category;
         severity_level level;
         char const*    function;
+        int            depth;
         DESC_FIELDS(
             log_data,
-            (message, line, file, category, level, function));
+            (message, line, file, category, level, function, depth));
     };
 
     log_data data;
@@ -61,6 +86,7 @@ struct log_record {
     log_record& file(char const* f);
     log_record& category(Str const& cat);
     log_record& level(severity_level l);
+    log_record& depth(int depth);
 
     template <typename... _Args>
     inline log_record& fmt_message(
@@ -72,6 +98,7 @@ struct log_record {
     }
 
     void end();
+    DESC_FIELDS(log_record, (data));
 };
 
 bool is_log_accepted(Str const& category, severity_level level);

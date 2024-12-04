@@ -43,6 +43,7 @@ find_package(lexy CONFIG REQUIRED)
 find_package(Haxorg CONFIG REQUIRED)
 find_package(Adaptagrams CONFIG REQUIRED)
 find_package(GTest CONFIG REQUIRED)
+find_package(Boost REQUIRED COMPONENTS log)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(FONTCONFIG REQUIRED fontconfig)
@@ -100,6 +101,7 @@ target_link_libraries(
          imgui_test_engine
          glfw
          scintilla
+         Boost::log
          OpenGL::GL
          absl::log
          absl::base

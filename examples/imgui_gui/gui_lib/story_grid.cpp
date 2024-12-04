@@ -12,6 +12,7 @@
 #include <haxorg/sem/SemBaseApi.hpp>
 #include <haxorg/sem/ImmOrg.hpp>
 #include <haxorg/sem/SemOrgFormat.hpp>
+#include "org_logger.hpp"
 
 #include <haxorg/sem/ImmOrgGraphBoost.hpp>
 
@@ -1043,6 +1044,14 @@ void connect_partition_edges(
     auto& state = model.getLastHistory();
     auto& ctx   = model.ctx;
 
+
+    auto __log_scoped = OLOG_SINK_FACTORY_SCOPED([counter = 0]() mutable {
+        auto file = fmt(
+            "/tmp/connect_partition_edges_log_{}.log", ++counter);
+        LOG(INFO) << "Created scoped file in " << file;
+        return ::org_logging::init_file_sink(file);
+    });
+
     CTX_MSG("Connecting partition edges");
     auto __scope = ctx.scopeLevel();
 
@@ -1567,6 +1576,14 @@ void StoryGridContext::message(
     int                line,
     const char*        function,
     const char*        file) const {
+    auto rec = OLOG_INIT("story-grid", info);
+    rec.file(file);
+    rec.line(line);
+    rec.function(function);
+    rec.message(value);
+    rec.depth(activeLevel);
+    rec.end();
+
     OperationsTracer::message(value, activeLevel, line, function, file);
 }
 
