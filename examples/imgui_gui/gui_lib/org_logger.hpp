@@ -71,9 +71,19 @@ struct log_record {
         severity_level level;
         char const*    function;
         int            depth;
+        Vec<Str>       source_scope;
+        Opt<Str>       source_id;
         DESC_FIELDS(
             log_data,
-            (message, line, file, category, level, function, depth));
+            (message,
+             line,
+             file,
+             category,
+             level,
+             function,
+             depth,
+             source_scope,
+             source_id));
     };
 
     log_data data;

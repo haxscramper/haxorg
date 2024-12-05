@@ -186,10 +186,6 @@ struct std::formatter<ColourRGBA> : std::formatter<std::string> {
     }
 };
 
-struct WindowImpl {
-    ImGuiWindow* im;
-    PRectangle   frame{};
-};
 
 template <typename T>
 concept NotChar = !std::is_same_v<T, char>
@@ -212,262 +208,6 @@ struct std::formatter<T[Size]> : std::formatter<std::string> {
     }
 };
 
-struct ScEditor : public Scintilla::Internal::ScintillaBase {
-    using SCI_M = Scintilla::Message;
-
-    void SetDefaultFont(std::string const& family) {
-        SendCommand(
-            SCI_M::StyleSetFont,
-            STYLE_DEFAULT,
-            reinterpret_cast<sptr_t>(family.data()));
-        SendCommand(SCI_M::StyleClearAll);
-    }
-
-    void FullRedraw() {
-        SendCommand(SCI_M::StyleClearAll);
-        // SendCommand(SCI_M::Colourise, 0, -1);
-        // SendCommand(SCI_M::Inva)
-    }
-
-    void ScrollTo(Sci::Line line, bool moveThumb = true) {
-        Scintilla::Internal::ScintillaBase::ScrollTo(line, moveThumb);
-    }
-
-    void ToggleBreakpoint() {}
-
-
-    bool IsComment(int position) {
-        sptr_t style = SendCommand(SCI_M::GetStyleAt, (uptr_t)position);
-
-        return style == 2;
-    }
-
-
-    int GetWordStartPosition(int position, bool onlyWordCharacters) {
-        return (int)SendCommand(
-            SCI_M::WordStartPosition,
-            (uptr_t)position,
-            (sptr_t)onlyWordCharacters);
-    }
-
-
-    int GetWordEndPosition(int position, bool onlyWordCharacters) {
-        return (int)SendCommand(
-            SCI_M::WordEndPosition,
-            uptr_t(position),
-            sptr_t(onlyWordCharacters));
-    }
-
-
-    char* GetTextRange(int startPosition, int endPosition) {
-        if (endPosition < startPosition) {
-            int temp      = startPosition;
-            startPosition = endPosition;
-            endPosition   = temp;
-        }
-
-        int length = endPosition - startPosition;
-        if (!length) { return nullptr; }
-
-        char* result = static_cast<char*>(
-            malloc(sizeof(char) * (size_t)length + 1));
-
-        Sci_TextRange textRange;
-        textRange.lpstrText  = result;
-        textRange.chrg.cpMin = startPosition;
-        textRange.chrg.cpMax = endPosition;
-
-        SendCommand(SCI_M::GetTextRange, 0, sptr_t(&textRange));
-        result[length] = '\0';
-
-        return result;
-    }
-
-
-    char* GetWordFromPosition(int position, int& start, int& end) {
-        end   = GetWordEndPosition(position, true);
-        start = GetWordStartPosition(position, true);
-        return GetTextRange(start, end);
-    }
-
-
-    static bool IsKeyPressedMap(ImGuiKey key, bool repeat = false) {
-        return ImGui::IsKeyPressed(key, repeat);
-    }
-
-
-    struct InputResult {
-        bool inputChanged;
-        bool hadEvents;
-        DESC_FIELDS(InputResult, (inputChanged, hadEvents));
-    };
-
-    ImVec2 GlobalSpaceToScintilla(ImVec2 const& windowSpace) {
-        return windowSpace - globalCursor;
-    }
-
-    std::string GetText() {
-        int   textLength = SendCommand(SCI_M::GetTextLength);
-        char* buffer     = new char[textLength + 1];
-        SendCommand(
-            SCI_M::GetText,
-            textLength + 1,
-            reinterpret_cast<sptr_t>(buffer));
-
-        std::string text(buffer);
-        delete[] buffer;
-        return text;
-    }
-
-    InputResult HandleInput() {
-        InputResult res;
-        ImGuiIO&    io               = ImGui::GetIO();
-        int         beforeTextLength = SendCommand(SCI_M::GetTextLength);
-        if (ImGui::IsMouseClicked(0)) {
-            auto pos = GlobalSpaceToScintilla(io.MouseClickedPos[0]);
-            LOG(INFO) << fmt(
-                "Clicked mouse at {} sci pos {}", io.MouseClickedPos, pos);
-            auto pt = Point::FromInts(pos.x, pos.y);
-            ButtonDownWithModifiers(
-                pt, io.MouseDownDuration[0], Scintilla::KeyMod::Norm);
-            res.hadEvents = true;
-        } else if (!io.KeyCtrl && !io.KeyAlt && !io.KeySuper) {
-            for (int i = 0; i < io.InputQueueCharacters.Size; ++i) {
-                ImWchar c = io.InputQueueCharacters[i];
-                if (32 <= c && c < 127) {
-                    char charAsStr[2] = {static_cast<char>(c), '\0'};
-                    SendCommand(
-                        SCI_M::ReplaceSel,
-                        0,
-                        reinterpret_cast<sptr_t>(charAsStr));
-                    res.hadEvents = true;
-                }
-            }
-
-            io.InputQueueCharacters.clear();
-        }
-
-        int afterTextLength = SendCommand(SCI_M::GetTextLength);
-
-        if (beforeTextLength != afterTextLength) {
-            res.inputChanged = true;
-        }
-
-        return res;
-    }
-
-
-    void Render();
-
-    static WindowImpl* NewWindowImpl() {
-        auto windowImpl = new WindowImpl{};
-        windowImpl->im  = ImGui::GetCurrentWindow();
-        return windowImpl;
-    }
-
-    void Initialise() override {
-        wMain = NewWindowImpl();
-
-        ImGuiIO& io = ImGui::GetIO();
-        wMain.SetPosition(PRectangle::FromInts(
-            0, 0, int(io.DisplaySize.x), int(io.DisplaySize.y)));
-
-        // We need to disable buffered draw so Scintilla doesn't keep a
-        // yoffset of 0 when rendering text, thinking we are blitting
-        // through a pixmap. We want a single draw list for efficiency.
-        view.bufferedDraw = false;
-
-        std::string text{
-            " asdf asd fd d d asd fas df asdf as dfas df as df asdf asdf "
-            "as dfas df asdf as dfa sdf asd fas df asd fas dfas df "
-            "asd\n\n\n\n\n\n 923423aksf sadf sadf asdfasdf asfj asdjf"};
-
-        SendCommand(
-            SCI_M::AddText,
-            text.size(),
-            reinterpret_cast<sptr_t>(
-                static_cast<const char*>(text.data())));
-
-        SendCommand(SCI_M::SetWrapMode, SC_WRAP_WORD);
-        SendCommand(SCI_M::StyleSetSize, STYLE_DEFAULT, 16);
-
-        SetFocusState(true);
-        CaretSetPeriod(0);
-    }
-
-    ImVec2 globalCursor;
-    ImVec2 windowCursor;
-
-    void Resize(ImVec2 const& pos, ImVec2 const& size) {
-        wMain.SetPosition(PRectangle::FromInts(
-            pos.x, pos.y, pos.x + size.x, pos.y + size.y));
-    }
-
-
-    virtual void SetVerticalScrollPos() override {}
-
-
-    virtual void SetHorizontalScrollPos() override { xOffset = 0; }
-
-
-    bool ModifyScrollBars(int nMax, int nPage) { return false; }
-
-
-    virtual void CreateCallTipWindow(PRectangle rc) override {
-        if (!ct.wCallTip.Created()) {
-            // ct.wCallTip = new CallTip(stc, &ct, this);
-            ct.wCallTip = NewWindowImpl();
-            ct.wDraw    = &ct.wCallTip;
-        }
-    }
-
-
-    virtual void AddToPopUp(
-        const char* label,
-        int         cmd     = 0,
-        bool        enabled = true) override {}
-
-
-    void ClaimSelection() override {}
-    void Copy() override {}
-    void Paste() override {}
-    void NotifyChange() override {}
-    void NotifyParent(SCNotification scn) { (void)scn; }
-    void SetMouseCapture(bool on) override { (void)on; }
-    bool HaveMouseCapture() override { return false; }
-
-    virtual bool ModifyScrollBars(Sci::Line nMax, Sci::Line nPage)
-        override {
-        return false;
-    }
-    virtual void NotifyParent(Scintilla::NotificationData scn) override {}
-    virtual void CopyToClipboard(
-        const Scintilla::Internal::SelectionText& selectedText) override {}
-    virtual std::string UTF8FromEncoded(
-        std::string_view encoded) const override {
-        abort();
-    }
-    virtual std::string EncodedFromUTF8(
-        std::string_view utf8) const override {
-        abort();
-    }
-    virtual Scintilla::sptr_t DefWndProc(
-        Scintilla::Message iMessage,
-        Scintilla::uptr_t  wParam,
-        Scintilla::sptr_t  lParam) override {
-        abort();
-    }
-
-    sptr_t SendCommand(
-        Scintilla::Message iMessage,
-        uptr_t             wParam = 0,
-        sptr_t             lParam = 0) {
-        return WndProc(iMessage, wParam, lParam);
-    }
-
-
-    std::vector<unsigned int> m_breakpointLines;
-};
 
 namespace ImGui {
 
@@ -908,7 +648,9 @@ class SurfaceImpl : public Scintilla::Internal::Surface {
 };
 
 namespace {
-WindowImpl* window(WindowID wid) { return static_cast<WindowImpl*>(wid); }
+SciWindowImpl* window(WindowID wid) {
+    return static_cast<SciWindowImpl*>(wid);
+}
 } // namespace
 
 PRectangle Window::GetPosition() const { return window(wid)->frame; }
@@ -929,6 +671,93 @@ std::shared_ptr<Font> Font::Allocate(const FontParameters& fp) {
     return ImFontWrap::GetFontForParameters(fp);
 }
 
+void ScEditor::SetDefaultFont(const std::string& family) {
+    SendCommand(
+        SCI_M::StyleSetFont,
+        STYLE_DEFAULT,
+        reinterpret_cast<sptr_t>(family.data()));
+    SendCommand(SCI_M::StyleClearAll);
+}
+
+void ScEditor::AddText(const std::string& text) {
+    SendCommand(
+        SCI_M::AddText,
+        text.size(),
+        reinterpret_cast<sptr_t>(static_cast<const char*>(text.data())));
+}
+
+int ScEditor::GetWordEndPosition(int position, bool onlyWordCharacters) {
+    return (int)SendCommand(
+        SCI_M::WordEndPosition,
+        uptr_t(position),
+        sptr_t(onlyWordCharacters));
+}
+
+char* ScEditor::GetTextRange(int startPosition, int endPosition) {
+    if (endPosition < startPosition) {
+        int temp      = startPosition;
+        startPosition = endPosition;
+        endPosition   = temp;
+    }
+
+    int length = endPosition - startPosition;
+    if (!length) { return nullptr; }
+
+    char* result = static_cast<char*>(
+        malloc(sizeof(char) * (size_t)length + 1));
+
+    Sci_TextRange textRange;
+    textRange.lpstrText  = result;
+    textRange.chrg.cpMin = startPosition;
+    textRange.chrg.cpMax = endPosition;
+
+    SendCommand(SCI_M::GetTextRange, 0, sptr_t(&textRange));
+    result[length] = '\0';
+
+    return result;
+}
+
+char* ScEditor::GetWordFromPosition(int position, int& start, int& end) {
+    end   = GetWordEndPosition(position, true);
+    start = GetWordStartPosition(position, true);
+    return GetTextRange(start, end);
+}
+
+ScEditor::InputResult ScEditor::HandleInput() {
+    InputResult res;
+    ImGuiIO&    io               = ImGui::GetIO();
+    int         beforeTextLength = SendCommand(SCI_M::GetTextLength);
+    if (ImGui::IsMouseClicked(0)) {
+        auto pos = GlobalSpaceToScintilla(io.MouseClickedPos[0]);
+        LOG(INFO) << fmt(
+            "Clicked mouse at {} sci pos {}", io.MouseClickedPos, pos);
+        auto pt = Point::FromInts(pos.x, pos.y);
+        ButtonDownWithModifiers(
+            pt, io.MouseDownDuration[0], Scintilla::KeyMod::Norm);
+        res.hadEvents = true;
+    } else if (!io.KeyCtrl && !io.KeyAlt && !io.KeySuper) {
+        for (int i = 0; i < io.InputQueueCharacters.Size; ++i) {
+            ImWchar c = io.InputQueueCharacters[i];
+            if (32 <= c && c < 127) {
+                char charAsStr[2] = {static_cast<char>(c), '\0'};
+                SendCommand(
+                    SCI_M::ReplaceSel,
+                    0,
+                    reinterpret_cast<sptr_t>(charAsStr));
+                res.hadEvents = true;
+            }
+        }
+
+        io.InputQueueCharacters.clear();
+    }
+
+    int afterTextLength = SendCommand(SCI_M::GetTextLength);
+
+    if (beforeTextLength != afterTextLength) { res.inputChanged = true; }
+
+    return res;
+}
+
 void ScEditor::Render() {
     PRectangle rcPaint = GetClientRectangle();
 
@@ -939,5 +768,38 @@ void ScEditor::Render() {
     if (surf) {
         Paint(surf, rcPaint);
         surf->Release();
+    }
+}
+
+void ScEditor::Initialise() {
+    wMain = NewWindowImpl();
+
+    ImGuiIO& io = ImGui::GetIO();
+    wMain.SetPosition(PRectangle::FromInts(
+        0, 0, int(io.DisplaySize.x), int(io.DisplaySize.y)));
+
+    // We need to disable buffered draw so Scintilla doesn't keep a
+    // yoffset of 0 when rendering text, thinking we are blitting
+    // through a pixmap. We want a single draw list for efficiency.
+    view.bufferedDraw = false;
+
+
+    SendCommand(SCI_M::SetWrapMode, SC_WRAP_WORD);
+    SendCommand(SCI_M::StyleSetSize, STYLE_DEFAULT, 16);
+
+    SetFocusState(true);
+    CaretSetPeriod(0);
+}
+
+void ScEditor::Resize(const ImVec2& pos, const ImVec2& size) {
+    wMain.SetPosition(PRectangle::FromInts(
+        pos.x, pos.y, pos.x + size.x, pos.y + size.y));
+}
+
+void ScEditor::CreateCallTipWindow(Scintilla::Internal::PRectangle rc) {
+    if (!ct.wCallTip.Created()) {
+        // ct.wCallTip = new CallTip(stc, &ct, this);
+        ct.wCallTip = NewWindowImpl();
+        ct.wDraw    = &ct.wCallTip;
     }
 }

@@ -9,10 +9,14 @@
 
 #define IM_FMT_DECL(T)                                                    \
     template <>                                                           \
-    void ImGuiTestEngineUtil_appendf_auto(ImGuiTextBuffer* buf, T v) {    \
+    inline void ImGuiTestEngineUtil_appendf_auto(                         \
+        ImGuiTextBuffer* buf, T v) {                                      \
         buf->append(fmt1(v).c_str());                                     \
         IM_UNUSED(v);                                                     \
     }
+
+IM_FMT_DECL(std::string);
+IM_FMT_DECL(Str);
 
 Str getDebugFile(ImGuiTest* t, const Str& suffix);
 

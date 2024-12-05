@@ -736,6 +736,9 @@ Vec<Vec<DocAnnotation>> partition_graph_nodes(
     const org::graph::MapGraph&     graph,
     StoryGridContext&               ctx) {
     __perf_trace("gui", "partition graph by distance");
+    CTX_MSG(fmt("Partition graph nodes, initial nodes {}", initial_nodes));
+    auto __scope = ctx.scopeLevel();
+
 
     Vec<Vec<DocAnnotation>>                result;
     UnorderedMap<org::graph::MapNode, int> distances;
@@ -891,6 +894,10 @@ void add_annotation_nodes(
     }
 
     for (auto const& row : doc.flatRows(true)) {
+        CTX_MSG(fmt("Nested elements for row {}", row->origin));
+        for (auto const& sub : row->origin.sub()) {
+            CTX_MSG(fmt("- Nested {}", sub));
+        }
         for (auto const& nested :
              row->origin.subAs<org::ImmBlockComment>()) {
             org::graph::MapNode subtreeNode{row->origin.uniq()};
@@ -1045,15 +1052,11 @@ void connect_partition_edges(
     auto& ctx   = model.ctx;
 
 
-    auto __log_scoped = OLOG_SINK_FACTORY_SCOPED([counter = 0]() mutable {
-        auto file = fmt(
-            "/tmp/connect_partition_edges_log_{}.log", ++counter);
-        LOG(INFO) << "Created scoped file in " << file;
-        return ::org_logging::init_file_sink(file);
-    });
-
     CTX_MSG("Connecting partition edges");
     auto __scope = ctx.scopeLevel();
+    for (auto const& p : partition) {
+        CTX_MSG(fmt("Partition {}", p.size()));
+    }
 
     res.ir.edges.clear();
     for (auto const& [group_idx, group] : enumerate(partition)) {
@@ -1382,6 +1385,16 @@ void update_document_graph(
     model.rectGraph = StoryGridGraph{};
     auto& rg        = model.rectGraph;
     auto& ctx       = model.ctx;
+
+    rg.graph.clear();
+
+    auto __log_scoped = OLOG_SINK_FACTORY_SCOPED([counter = 0]() mutable {
+        auto file = fmt(
+            "/tmp/connect_partition_edges_log_{}.log", ++counter);
+        LOG(INFO) << "Created scoped file in " << file;
+        return ::org_logging::init_file_sink(file);
+    });
+
     CTX_MSG("Update document graph");
     auto __scope = ctx.scopeLevel();
 
@@ -1399,6 +1412,8 @@ void update_document_graph(
         model.ctx);
 
     CTX_MSG(fmt("Graph with {} nodes", rg.nodes.size()));
+    CTX_MSG(fmt("Graph adjacency list {}", rg.graph.adjList));
+    CTX_MSG(fmt("Graph adjacency list in {}", rg.graph.adjListIn));
 
 
     Vec<org::graph::MapNode> docNodes;
