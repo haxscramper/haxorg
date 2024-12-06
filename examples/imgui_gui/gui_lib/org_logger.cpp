@@ -187,6 +187,16 @@ org_logging::log_record& ::org_logging::log_record::depth(int depth) {
     return *this;
 }
 
+log_record& log_record::source_scope(const Vec<Str>& scope) {
+    data.source_scope = scope;
+    return *this;
+}
+
+log_record& log_record::source_id(const Str& id) {
+    data.source_id = id;
+    return *this;
+}
+
 org_logging::log_record& ::org_logging::log_record::message(
     Str const& msg) {
     data.message += msg;
@@ -215,7 +225,7 @@ org_logging::log_record& ::org_logging::log_record::category(
     return *this;
 }
 
-org_logging::log_record& ::org_logging::log_record::level(
+org_logging::log_record& ::org_logging::log_record::severity(
     severity_level l) {
     data.level = l;
     return *this;

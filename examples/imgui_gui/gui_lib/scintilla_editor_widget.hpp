@@ -1,7 +1,9 @@
 #pragma once
 
+#include "gui_lib/org_logger.hpp"
 #include "imgui_internal.h"
 #include <GLFW/glfw3.h>
+#include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Vec.hpp>
 #include <imgui.h>
 #include <ScintillaMessages.h>
@@ -60,6 +62,13 @@ struct SciWindowImpl {
 
 struct ScEditor : public Scintilla::Internal::ScintillaBase {
     using SCI_M = Scintilla::Message;
+
+    ::org_logging::log_builder message(
+        Str const&                    msg,
+        ::org_logging::severity_level level,
+        int                           line     = __builtin_LINE(),
+        char const*                   function = __builtin_FUNCTION(),
+        char const*                   file     = __builtin_FILE());
 
     void SetDefaultFont(std::string const& family);
 

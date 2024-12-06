@@ -12,6 +12,26 @@
 
 namespace org_logging {
 
+enum class severity_level
+{
+    trace,
+    debug,
+    info,
+    warning,
+    error,
+    fatal
+};
+
+BOOST_DESCRIBE_ENUM(
+    severity_level,
+    trace,
+    debug,
+    info,
+    warning,
+    error,
+    fatal);
+
+
 using sink_ptr = boost::shared_ptr<boost::log::sinks::sink>;
 
 class log_sink_scope {
@@ -53,14 +73,6 @@ log_sink_scope log_sink_scoped_factory(Generator&& gen) {
 /// \brief remove all sink backends from the logger
 void clear_sink_backends();
 
-DECL_DESCRIBED_ENUM_STANDALONE(
-    severity_level,
-    trace,
-    debug,
-    info,
-    warning,
-    error,
-    fatal);
 
 struct log_record {
     struct log_data {
@@ -95,8 +107,17 @@ struct log_record {
     log_record& line(int l);
     log_record& file(char const* f);
     log_record& category(Str const& cat);
-    log_record& level(severity_level l);
+    log_record& severity(severity_level l);
     log_record& depth(int depth);
+    log_record& source_scope(Vec<Str> const& scope);
+    log_record& source_id(Str const& id);
+
+    log_record& set_callsite(
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION(),
+        char const* file     = __builtin_FILE()) {
+        return this->line(line).file(file).function(function);
+    }
 
     template <typename... _Args>
     inline log_record& fmt_message(
@@ -109,6 +130,10 @@ struct log_record {
 
     void end();
     DESC_FIELDS(log_record, (data));
+};
+
+struct log_builder : public log_record {
+    ~log_builder() { end(); }
 };
 
 bool is_log_accepted(Str const& category, severity_level level);
@@ -147,3 +172,12 @@ bool is_log_accepted(Str const& category, severity_level level);
 #define OLOG_SINK_SCOPE() ::org_logging::log_sink_scope()
 /// \brief Create logging sink scope and clear all the current sink state
 #define OLOG_NOSINK_SCOPE() OLOG_SINK_SCOPE().drop_current_sinks()
+
+// clang-format off
+constexpr ::org_logging::severity_level  ol_trace   = ::org_logging::severity_level::trace;
+constexpr ::org_logging::severity_level  ol_info    = ::org_logging::severity_level::info;
+constexpr ::org_logging::severity_level  ol_debug   = ::org_logging::severity_level::debug;
+constexpr ::org_logging::severity_level  ol_warning = ::org_logging::severity_level::warning;
+constexpr ::org_logging::severity_level  ol_error   = ::org_logging::severity_level::error;
+constexpr ::org_logging::severity_level  ol_fatal   = ::org_logging::severity_level::fatal;
+// clang-format on

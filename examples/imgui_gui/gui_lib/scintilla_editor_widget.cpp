@@ -66,6 +66,10 @@ using CharacterCategoryMap = Lexilla::CharacterCategoryMap;
 #include <boost/mp11.hpp>
 #include <boost/describe.hpp>
 
+#define SCI_LOG_ROOT(__cat, __severity)                                   \
+    ::org_logging::log_builder{}.set_callsite().category(__cat).severity( \
+        __severity)
+
 
 namespace Scintilla::Internal {
 BOOST_DESCRIBE_STRUCT(
@@ -359,7 +363,8 @@ struct ImFontWrap : public Font {
                 font_path.value(), font->fp.size);
 
             fontCache.insert_or_assign(font->fp, font);
-            LOG(INFO) << fmt("Added font for {}", font->fp);
+            SCI_LOG_ROOT("font", ol_info)
+                .fmt_message("Added font for {}", font->fp);
         }
 
         if (pending_fonts.empty()) {
@@ -682,6 +687,23 @@ std::unique_ptr<Scintilla::Internal::Surface> Scintilla::Internal::
 
 std::shared_ptr<Font> Font::Allocate(const FontParameters& fp) {
     return ImFontWrap::GetFontForParameters(fp);
+}
+
+::org_logging::log_builder ScEditor::message(
+    const Str&                    msg,
+    ::org_logging::severity_level level,
+    int                           line,
+    const char*                   function,
+    const char*                   file) {
+    return ::org_logging::log_builder{}
+        .category("edit")
+        .severity(level)
+        .source_scope({"gui", "scintilla_editor"})
+        .source_id(fmt("_{:p}", static_cast<void const*>(this)))
+        .message(msg)
+        .function(function)
+        .line(line)
+        .file(file);
 }
 
 void ScEditor::SetDefaultFont(const std::string& family) {
