@@ -15,6 +15,7 @@
 #include "org_logger.hpp"
 
 #include <haxorg/sem/ImmOrgGraphBoost.hpp>
+#include <gui_lib/scintilla_editor_widget.hpp>
 
 Vec<Str> split_wrap_text(std::string const& unwrapped, int width) {
     Vec<Str>    result;
@@ -65,22 +66,20 @@ EditableTextResult render_editable_text(
 
     auto cell_prefix = fmt("{:p}", static_cast<const void*>(value.data()));
 
+    auto get_editor = [&](const ImVec2& size) {
+        return ImGui::ScInputText(c_fmt(
+            "sci_editor_{:p}", static_cast<const void*>(value.data())));
+    };
+
     if (edit == TreeGridColumn::EditMode::Multiline) {
         if (is_editing) {
-            IM_FN_UNIT(
-                InputTextMultiline,
-                (fmt("##{}_edit", cell_prefix).c_str()),
-                &edit_buffer,
-                size - ImVec2(0, 40),
-                ImGuiInputTextFlags_None);
+            auto ed = get_editor(size - ImVec2(0, 40));
+            ed->HandleInput();
+            ed->Render();
             IM_FN_PRINT("Render done", "");
 
             if (IM_FN_EXPR(Button, "done")) {
-                value             //
-                    = edit_buffer //
-                    | rv::remove_if(
-                          [](char c) { return c == '\n' || c == '\r'; })
-                    | rs::to<std::string>;
+                value      = ed->GetText();
                 is_editing = false;
                 return EditableTextResult::Changed;
             } else if (ImGui::SameLine(); IM_FN_EXPR(Button, "cancel")) {
@@ -117,8 +116,10 @@ EditableTextResult render_editable_text(
 
             if (ImGui::IsItemClicked()) {
                 is_editing = true;
-                edit_buffer.clear();
-                edit_buffer = join("\n", split_wrap_text(value, size.x));
+                auto ed    = get_editor(size);
+                ed->WrapOnChar();
+                ed->HideAllMargins();
+                ed->SetText(value);
                 return EditableTextResult::StartedEditing;
             } else {
                 return EditableTextResult::None;

@@ -381,6 +381,8 @@ struct ImFontWrap : public Font {
     int GetCharWidth(char ch) const {
         if (metrics) {
             return metrics->WidthChar(ch);
+        } else if (ImFont* font = ImGui::GetFont()) {
+            return font->GetCharAdvance(ch);
         } else {
             return 16;
         }
@@ -405,6 +407,8 @@ struct ImFontWrap : public Font {
     int AverageCharWidth() const {
         if (metrics) {
             return metrics->WidthChar('\n');
+        } else if (ImFont* font = ImGui::GetFont()) {
+            return font->GetCharAdvance('\n');
         } else {
             return fp.size;
         }
@@ -413,6 +417,15 @@ struct ImFontWrap : public Font {
     int GetTextWidth(std::string_view const& text) const {
         if (metrics) {
             return metrics->GetTextWidth(text);
+        } else if (ImFont* font = ImGui::GetFont()) {
+            return font
+                ->CalcTextSizeA(
+                    font->FontSize,
+                    FLT_MAX,
+                    0.0f,
+                    text.data(),
+                    text.data() + text.size())
+                .x;
         } else {
             return text.size() * AverageCharWidth();
         }
@@ -686,6 +699,13 @@ void ScEditor::AddText(const std::string& text) {
         reinterpret_cast<sptr_t>(static_cast<const char*>(text.data())));
 }
 
+void ScEditor::SetText(const std::string& text) {
+    SendCommand(
+        SCI_M::SetText,
+        text.size(),
+        reinterpret_cast<sptr_t>(static_cast<const char*>(text.data())));
+}
+
 int ScEditor::GetWordEndPosition(int position, bool onlyWordCharacters) {
     return (int)SendCommand(
         SCI_M::WordEndPosition,
@@ -784,7 +804,6 @@ void ScEditor::Initialise() {
     view.bufferedDraw = false;
 
 
-    SendCommand(SCI_M::SetWrapMode, SC_WRAP_WORD);
     SendCommand(SCI_M::StyleSetSize, STYLE_DEFAULT, 16);
 
     SetFocusState(true);

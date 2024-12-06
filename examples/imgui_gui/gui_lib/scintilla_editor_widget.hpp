@@ -64,6 +64,19 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
     void SetDefaultFont(std::string const& family);
 
     void AddText(std::string const& text);
+    void SetText(std::string const& text);
+    void WrapOnWord() { SendCommand(SCI_M::SetWrapMode, SC_WRAP_WORD); }
+    void WrapOnChar() { SendCommand(SCI_M::SetWrapMode, SC_WRAP_CHAR); }
+    void SetMarginWidth(int margin, int pixelWidth) {
+        SendCommand(SCI_M::SetMarginWidthN, margin, pixelWidth);
+    }
+
+    int  GetMarginCount() { return SendCommand(SCI_M::GetMargins); }
+    void HideAllMargins() {
+        for (int i = 0; i < GetMarginCount(); ++i) {
+            SetMarginWidth(i, 0);
+        }
+    }
 
     void FullRedraw() {
         SendCommand(SCI_M::StyleClearAll);
