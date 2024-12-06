@@ -3,7 +3,9 @@
 
 #define TEST_GRP_NAME "scintilla"
 
-struct SciVars : public ImTestVarsBase {};
+struct SciVars : public ImTestVarsBase {
+    std::string text;
+};
 
 
 namespace {
@@ -22,7 +24,6 @@ void _Create_Editor(ImGuiTestEngine* e) {
             auto ed  = ImGui::ScInputText("editor");
             auto act = ed->HandleInput();
             ed->Render();
-            ;
         });
 }
 
@@ -33,15 +34,27 @@ void _Edit_SingleLineText(ImGuiTestEngine* e) {
             auto ed = ImGui::ScInputText("editor");
             if (ctx->IsFirstGuiFrame()) { ed->AddText("oneline"); }
             auto act = ed->HandleInput();
+            if (act.inputChanged) { LOG(INFO) << fmt1(act); }
             ed->Render();
+            vars.text = ed->GetText();
         });
 
     t->TestFunc = ImWrapTestFuncT<SciVars>(
         [](ImGuiTestContext* ctx, SciVars& vars) {
             auto ed = ImGui::ScInputText("editor");
-            IM_CHECK_EQ(ed->GetText(), "oneline");
+            ctx->Yield(5);
+            IM_CHECK_EQ(vars.text, "oneline");
             auto wpos = getContentPos(ctx);
-            ctx->MouseMoveToPos(wpos + ImVec2{10, 10});
+            ctx->MouseMoveToPos(wpos + ImVec2{30, 10});
+            ctx->MouseClick(0);
+            ctx->Yield(3);
+            ctx->KeyChars("y");
+            IM_CHECK_EQ(vars.text, "yoneline");
+            ctx->MouseMoveToPos(ImGui::GetMousePos() + ImVec2{40, 0});
+            ctx->MouseClick(0);
+            ctx->Yield(3);
+            ctx->KeyChars("z");
+            IM_CHECK_EQ(vars.text, "yonzeline");
             ctx->SuspendTestFunc();
         });
 }
