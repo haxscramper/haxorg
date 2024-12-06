@@ -63,9 +63,9 @@ struct SciWindowImpl {
 struct ScEditor : public Scintilla::Internal::ScintillaBase {
     using SCI_M = Scintilla::Message;
 
-    ::org_logging::log_builder message(
-        Str const&                    msg,
+    org_logging::log_builder message(
         ::org_logging::severity_level level,
+        Str const&                    msg,
         int                           line     = __builtin_LINE(),
         char const*                   function = __builtin_FUNCTION(),
         char const*                   file     = __builtin_FILE());
@@ -80,6 +80,7 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
         SendCommand(SCI_M::SetMarginWidthN, margin, pixelWidth);
     }
 
+    int  GetPosition() { return SendCommand(SCI_M::GetCurrentPos); }
     int  GetMarginCount() { return SendCommand(SCI_M::GetMargins); }
     void HideAllMargins() {
         for (int i = 0; i < GetMarginCount(); ++i) {

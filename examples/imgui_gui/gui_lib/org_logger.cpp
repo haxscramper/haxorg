@@ -150,6 +150,8 @@ sink_ptr org_logging::init_file_sink(Str const& log_file_name) {
                                                "record", rec)
                                                ->data;
 
+        strm << join(".", data.source_scope);
+        strm << " ";
         strm << Str{"  "}.repeated(data.depth).toBase();
         strm << data.message;
     });

@@ -1592,13 +1592,13 @@ void StoryGridContext::message(
     int                line,
     const char*        function,
     const char*        file) const {
-    auto rec = OLOG_INIT("story-grid", info);
-    rec.file(file);
-    rec.line(line);
-    rec.function(function);
-    rec.message(value);
-    rec.depth(activeLevel);
-    rec.end();
+    OLOG_BUILDER()
+        .set_callsite(line, function, file)
+        .message(value)
+        .depth(activeLevel)
+        .category("story-grid")
+        .severity(ol_info)
+        .source_scope({"gui", "story_grid"});
 
     OperationsTracer::message(value, activeLevel, line, function, file);
 }

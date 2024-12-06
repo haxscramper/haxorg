@@ -132,8 +132,52 @@ struct log_record {
     DESC_FIELDS(log_record, (data));
 };
 
-struct log_builder : public log_record {
-    ~log_builder() { end(); }
+struct log_builder {
+    bool       is_released = false;
+    log_record rec;
+
+    // clang-format off
+    inline log_builder& function(char const* func) { rec.function(func); return *this; }
+    inline log_builder& message(int const& msg) { rec.message(msg); return *this; }
+    inline log_builder& message(Str const& msg) { rec.message(msg); return *this; }
+    inline log_builder& message(char const* msg) { rec.message(msg); return *this; }
+    inline log_builder& line(int l) { rec.line(l); return *this; }
+    inline log_builder& file(char const* f) { rec.file(f); return *this; }
+    inline log_builder& category(Str const& cat) { rec.category(cat); return *this; }
+    inline log_builder& severity(severity_level l) { rec.severity(l); return *this; }
+    inline log_builder& depth(int depth) { rec.depth(depth); return *this; }
+    inline log_builder& source_scope(Vec<Str> const& scope) { rec.source_scope(scope); return *this; }
+    inline log_builder& source_id(Str const& id) { rec.source_id(id); return *this; }
+    // clang-format on
+
+    log_builder(const log_builder&)            = delete;
+    log_builder& operator=(const log_builder&) = delete;
+    log_builder(log_builder&&)                 = default;
+    log_builder& operator=(log_builder&&)      = default;
+
+    log_record get_record() {
+        is_released = true;
+        return rec;
+    }
+
+    template <typename... _Args>
+    inline log_builder& fmt_message(
+        std::format_string<_Args...> __fmt,
+        _Args&&... __args) {
+        rec.fmt_message(__fmt, std::forward<_Args>(__args)...);
+        return *this;
+    }
+
+    inline log_builder& set_callsite(
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION(),
+        char const* file     = __builtin_FILE()) {
+        return this->line(line).file(file).function(function);
+    }
+
+    ~log_builder() {
+        if (!is_released) { rec.end(); }
+    }
 };
 
 bool is_log_accepted(Str const& category, severity_level level);
@@ -145,6 +189,9 @@ bool is_log_accepted(Str const& category, severity_level level);
 #define __ORG_LOG_ALL_ARGS(...)                                           \
     BOOST_PP_SEQ_FOR_EACH(                                                \
         __ORG_LOG_MESSAGE, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))
+
+#define OLOG_BUILDER()                                                    \
+    ::org_logging::log_builder {}
 
 #define __ORG_LOG_IMPL(__cat, __severity, ...)                            \
     if (::org_logging::is_log_accepted(                                   \
@@ -159,7 +206,7 @@ bool is_log_accepted(Str const& category, severity_level level);
         .line(__LINE__)                                                   \
         .category(__cat)                                                  \
         .function(__FUNCTION__)                                           \
-        .level(::org_logging::severity_level::__severity)
+        .severity(::org_logging::severity_level::__severity)
 
 #define OLOG_TRACE(__cat, ...) __ORG_LOG_IMPL(__cat, trace, __VA_ARGS__)
 #define OLOG_DEBUG(__cat, ...) __ORG_LOG_IMPL(__cat, debug, __VA_ARGS__)

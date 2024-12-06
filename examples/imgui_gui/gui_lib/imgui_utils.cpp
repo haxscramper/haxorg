@@ -158,6 +158,30 @@ int StbFontMetrics::GetTextWidth(const std::string_view& text) const {
     return textWidth;
 }
 
+void ImRenderTraceRecord::StartTrace() {
+    stack.clear();
+    TraceState = true;
+}
+
+void ImRenderTraceRecord::EndTrace() { TraceState = false; }
+
+void ImRenderTraceRecord::PushRecord(const ImRenderTraceRecord& rec) {
+    if (TraceState) { stack.push_back(rec); }
+}
+
+void ImRenderTraceRecord::PushUnitRecord(const ImRenderTraceRecord& rec) {
+    if (TraceState) {
+        if (stack.empty()) {
+            stack.push_back(ImRenderTraceRecord::init());
+        }
+        stack.back().nested.push_back(rec);
+    }
+}
+
+void ImRenderTraceRecord::PopRecord() {
+    if (TraceState) { PushUnitRecord(stack.pop_back_v()); }
+}
+
 ImRenderTraceRecord ImRenderTraceRecord::init(
     const char* function,
     int         line,

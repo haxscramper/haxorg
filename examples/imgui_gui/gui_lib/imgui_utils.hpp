@@ -80,29 +80,11 @@ struct ImRenderTraceRecord {
     static Vec<ImRenderTraceRecord> stack;
     static bool                     TraceState;
 
-    static void StartTrace() {
-        stack.clear();
-        TraceState = true;
-    }
-
-    static void EndTrace() { TraceState = false; }
-
-    static void PushRecord(ImRenderTraceRecord const& rec) {
-        if (TraceState) { stack.push_back(rec); }
-    }
-
-    static void PushUnitRecord(ImRenderTraceRecord const& rec) {
-        if (TraceState) {
-            if (stack.empty()) {
-                stack.push_back(ImRenderTraceRecord::init());
-            }
-            stack.back().nested.push_back(rec);
-        }
-    }
-
-    static void PopRecord() {
-        if (TraceState) { PushUnitRecord(stack.pop_back_v()); }
-    }
+    static void StartTrace();
+    static void EndTrace();
+    static void PushRecord(ImRenderTraceRecord const& rec);
+    static void PushUnitRecord(ImRenderTraceRecord const& rec);
+    static void PopRecord();
 
     static ImRenderTraceRecord init(
         char const* function = __builtin_FUNCTION(),

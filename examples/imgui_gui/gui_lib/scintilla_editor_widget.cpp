@@ -311,13 +311,14 @@ struct ImFontWrap : public Font {
             // for debug
             std::string msg;
             for (auto const& [k, _] : fontCache) {
-                LOG(INFO) << fmt(
-                    "== -> {}\n{} {}\n{} {}",
-                    CacheMapEqImpl{}(fp, k),
-                    CacheMapHashImpl{}(fp),
-                    fp,
-                    CacheMapHashImpl{}(k),
-                    k);
+                SCI_LOG_ROOT("font", ol_info)
+                    .fmt_message(
+                        "== -> {}\n{} {}\n{} {}",
+                        CacheMapEqImpl{}(fp, k),
+                        CacheMapHashImpl{}(fp),
+                        fp,
+                        CacheMapHashImpl{}(k),
+                        k);
 
                 msg += fmt("\n{}", k);
             }
@@ -334,13 +335,15 @@ struct ImFontWrap : public Font {
     static bool ResolvePendingFonts() {
         ImGuiIO& io = ImGui::GetIO();
         for (auto& font : pending_fonts) {
-            LOG(INFO) << fmt("Creating font for parameters {}", font->fp);
+            SCI_LOG_ROOT("font", ol_info)
+                .fmt_message("Creating font for parameters {}", font->fp);
             auto font_path = get_fontconfig_path(font->fp.faceName);
             LOGIC_ASSERTION_CHECK(
                 font_path.has_value(),
                 "Could not find font path for '{}'",
                 font->fp.faceName);
-            LOG(INFO) << fmt("Using font file {}", *font_path);
+            SCI_LOG_ROOT("font", ol_info)
+                .fmt_message("Using font file {}", *font_path);
 
             ImFontConfig fontConfig;
             fontConfig.SizePixels           = font->fp.size;
@@ -470,7 +473,9 @@ void run_scintilla_editor_widget_test(GLFWwindow* window) {
             auto ed = ImGui::ScInputText("editor");
 
             auto action = ed->HandleInput();
-            if (action.hadEvents) { LOG(INFO) << fmt1(action); }
+            if (action.hadEvents) {
+                SCI_LOG_ROOT("font", ol_trace).fmt_message("{}", action);
+            }
 
             if (updatedFont) { ed->FullRedraw(); }
 
@@ -489,30 +494,6 @@ void run_scintilla_editor_widget_test(GLFWwindow* window) {
 ImU32 ToImGui(ColourRGBA const& c) {
     return IM_COL32(c.GetRed(), c.GetGreen(), c.GetBlue(), c.GetAlpha());
 }
-
-
-// template <>
-// struct std::formatter<Scintilla::Internal::FontParameters>
-//     : std::formatter<std::string> {
-//     template <typename FormatContext>
-//     FormatContext::iterator format(
-//         Scintilla::Internal::FontParameters const& p,
-//         FormatContext&                             ctx) const {
-//         bool first = true;
-//         fmt_ctx("{", ctx);
-//         for_each_field_value_with_bases(
-//             p, [&](char const* name, auto const& value) {
-//                 if (!first) { fmt_ctx(", ", ctx); }
-//                 fmt_ctx(".", ctx);
-//                 fmt_ctx(name, ctx);
-//                 fmt_ctx(" = ", ctx);
-//                 fmt_ctx(value, ctx);
-//                 first = false;
-//             });
-//         return fmt_ctx("}", ctx);
-//     }
-// };
-
 
 class SurfaceImpl : public Scintilla::Internal::Surface {
   public:
@@ -690,8 +671,8 @@ std::shared_ptr<Font> Font::Allocate(const FontParameters& fp) {
 }
 
 ::org_logging::log_builder ScEditor::message(
-    const Str&                    msg,
     ::org_logging::severity_level level,
+    const Str&                    msg,
     int                           line,
     const char*                   function,
     const char*                   file) {
@@ -771,24 +752,44 @@ ScEditor::InputResult ScEditor::HandleInput() {
     int         beforeTextLength = SendCommand(SCI_M::GetTextLength);
     if (ImGui::IsMouseClicked(0)) {
         auto pos = GlobalSpaceToScintilla(io.MouseClickedPos[0]);
-        LOG(INFO) << fmt(
-            "Clicked mouse at {} sci pos {}", io.MouseClickedPos, pos);
+        message(
+            ol_trace,
+            fmt("Clicked mouse at {} sci pos {}",
+                io.MouseClickedPos,
+                pos));
+
         auto pt = Point::FromInts(pos.x, pos.y);
         ButtonDownWithModifiers(
             pt, io.MouseDownDuration[0], Scintilla::KeyMod::Norm);
         res.hadEvents = true;
-    } else if (!io.KeyCtrl && !io.KeyAlt && !io.KeySuper) {
+    } else if (
+        !io.KeyCtrl     //
+        && !io.KeyAlt   //
+        && !io.KeySuper //
+        && 0 < io.InputQueueCharacters.Size) {
+        auto debug //
+            = message(ol_trace, "Typed ")
+                  .fmt_message(
+                      "{} characters:", io.InputQueueCharacters.Size)
+                  .get_record();
+
         for (int i = 0; i < io.InputQueueCharacters.Size; ++i) {
             ImWchar c = io.InputQueueCharacters[i];
-            if (32 <= c && c < 127) {
+            if (32 <= c && c < 127 || c == '\n') {
+                debug.fmt_message(
+                    " '{}'", visibleName(static_cast<char>(c)).first);
                 char charAsStr[2] = {static_cast<char>(c), '\0'};
                 SendCommand(
                     SCI_M::ReplaceSel,
                     0,
                     reinterpret_cast<sptr_t>(charAsStr));
                 res.hadEvents = true;
+            } else {
+                debug.fmt_message(" '{}'", c);
             }
         }
+
+        debug.end();
 
         io.InputQueueCharacters.clear();
     }
