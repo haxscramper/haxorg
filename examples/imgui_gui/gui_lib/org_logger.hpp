@@ -157,6 +157,12 @@ struct log_builder {
     template <typename Self> inline auto&& metadata(this Self&& self, Str const& key, json const& id) { self.rec.metadata(key, id); return std::forward<Self>(self); }
     // clang-format on
 
+    template <typename Self>
+    inline auto&& escape_message(this Self&& self, Str const& msg) {
+        self.rec.message(escape_literal(msg));
+        return std::forward<Self>(self);
+    }
+
     log_builder() = default;
 
     log_builder(const log_builder&)            = delete;
@@ -178,19 +184,22 @@ struct log_builder {
         return rec;
     }
 
-    template <typename... _Args>
+    template <typename Self, typename... _Args>
     inline log_builder& fmt_message(
+        this Self&&                  self,
         std::format_string<_Args...> __fmt,
         _Args&&... __args) {
-        rec.fmt_message(__fmt, std::forward<_Args>(__args)...);
-        return *this;
+        self.rec.fmt_message(__fmt, std::forward<_Args>(__args)...);
+        return std::forward<Self>(self);
     }
 
+    template <typename Self>
     inline log_builder& set_callsite(
+        this Self&& self,
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION(),
         char const* file     = __builtin_FILE()) {
-        return this->line(line).file(file).function(function);
+        return self.line(line).file(file).function(function);
     }
 
     ~log_builder() {

@@ -486,8 +486,9 @@ struct StoryGridContext
         int                     line     = __builtin_LINE(),
         char const*             function = __builtin_FUNCTION(),
         char const*             file     = __builtin_FILE()) {
-        message(fmt("Action {}", act), line, function, file);
-        actions.push_back(GridAction{act});
+        GridAction ga{act};
+        message(fmt("Action {}", ga), line, function, file);
+        actions.push_back({ga});
     }
 
     void message(

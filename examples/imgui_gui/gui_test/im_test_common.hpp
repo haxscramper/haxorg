@@ -16,16 +16,35 @@
         .source_scope({"gui", "test"})
 
 
-void join_fmt_varargs_impl(std::string& buf, std::string const& sep) {}
+inline void join_fmt_varargs_impl(
+    std::string&       buf,
+    std::string const& sep) {}
+
+template <typename T>
+inline std::string format_for_log(T const& t) {
+    return fmt1(t);
+}
+
+inline std::string format_for_log(char const* str) {
+    return escape_literal(str);
+}
+
+inline std::string format_for_log(Str const& str) {
+    return escape_literal(str);
+}
+
+inline std::string format_for_log(std::string const& str) {
+    return escape_literal(str);
+}
 
 template <typename T, typename... Args>
-void join_fmt_varargs_impl(
+inline void join_fmt_varargs_impl(
     std::string&       buf,
     std::string const& sep,
     T const&           head,
     Args&&... args) {
     if (!buf.empty()) { buf += sep; }
-    buf += fmt1(head);
+    buf += format_for_log(head);
     join_fmt_varargs_impl(buf, sep, std::forward<Args>(args)...);
 }
 
@@ -46,7 +65,7 @@ void im_ctx_act_impl(
         "Run {} with {}",
         funcname,
         join_fmt_varargs(", ", std::forward<Args>(args)...));
-    ctx->*func(std::forward<Args>(args)...);
+    (ctx->*func)(std::forward<Args>(args)...);
 }
 
 #define IM_CTX_ACT(Func, ...)                                             \
