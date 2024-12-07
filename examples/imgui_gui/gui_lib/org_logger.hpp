@@ -137,23 +137,34 @@ struct log_builder {
     log_record rec;
 
     // clang-format off
-    inline log_builder& function(char const* func) { rec.function(func); return *this; }
-    inline log_builder& message(int const& msg) { rec.message(msg); return *this; }
-    inline log_builder& message(Str const& msg) { rec.message(msg); return *this; }
-    inline log_builder& message(char const* msg) { rec.message(msg); return *this; }
-    inline log_builder& line(int l) { rec.line(l); return *this; }
-    inline log_builder& file(char const* f) { rec.file(f); return *this; }
-    inline log_builder& category(Str const& cat) { rec.category(cat); return *this; }
-    inline log_builder& severity(severity_level l) { rec.severity(l); return *this; }
-    inline log_builder& depth(int depth) { rec.depth(depth); return *this; }
-    inline log_builder& source_scope(Vec<Str> const& scope) { rec.source_scope(scope); return *this; }
-    inline log_builder& source_id(Str const& id) { rec.source_id(id); return *this; }
+    template <typename Self> inline auto&& function(this Self&& self, char const* func) { self.rec.function(func); return std::forward<Self>(self); }
+    template <typename Self> inline auto&& message(this Self&& self, int const& msg) { self.rec.message(msg); return std::forward<Self>(self); }
+    template <typename Self> inline auto&& message(this Self&& self, Str const& msg) { self.rec.message(msg); return std::forward<Self>(self); }
+    template <typename Self> inline auto&& message(this Self&& self, char const* msg) { self.rec.message(msg); return std::forward<Self>(self); }
+    template <typename Self> inline auto&& line(this Self&& self, int l) { self.rec.line(l); return std::forward<Self>(self); }
+    template <typename Self> inline auto&& file(this Self&& self, char const* f) { self.rec.file(f); return std::forward<Self>(self); }
+    template <typename Self> inline auto&& category(this Self&& self, Str const& cat) { self.rec.category(cat); return std::forward<Self>(self); }
+    template <typename Self> inline auto&& severity(this Self&& self, severity_level l) { self.rec.severity(l); return std::forward<Self>(self); }
+    template <typename Self> inline auto&& depth(this Self&& self, int depth) { self.rec.depth(depth); return std::forward<Self>(self); }
+    template <typename Self> inline auto&& source_scope(this Self&& self, Vec<Str> const& scope) { self.rec.source_scope(scope); return std::forward<Self>(self); }
+    template <typename Self> inline auto&& source_id(this Self&& self, Str const& id) { self.rec.source_id(id); return std::forward<Self>(self); }
     // clang-format on
+
+    log_builder()                              = default;
 
     log_builder(const log_builder&)            = delete;
     log_builder& operator=(const log_builder&) = delete;
-    log_builder(log_builder&&)                 = default;
-    log_builder& operator=(log_builder&&)      = default;
+
+    log_builder(log_builder&& other) {
+        this->rec         = std::move(other.rec);
+        other.is_released = true;
+    }
+
+    log_builder& operator=(log_builder&& other) {
+        this->rec         = std::move(other.rec);
+        other.is_released = true;
+        return *this;
+    }
 
     log_record get_record() {
         is_released = true;
