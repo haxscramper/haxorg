@@ -158,6 +158,21 @@ int StbFontMetrics::GetTextWidth(const std::string_view& text) const {
     return textWidth;
 }
 
+org_logging::log_record ImRenderTraceRecord::to_org_log_record() const {
+    org_logging::log_record res;
+    res.set_callsite(line, function, file);
+    if (cursor_winpos) {
+        res.metadata("cursor_winpos", fmt1(cursor_winpos.value()));
+    }
+    if (cursor_screenpos) {
+        res.metadata("cursor_screenpos", fmt1(cursor_screenpos.value()));
+    }
+    if (im_function) { res.fmt_message("Call {}", im_function.value()); }
+    if (im_id) { res.fmt_message("", fmt1(im_id)); }
+    res.source_scope({"gui", "imgui"});
+    return res;
+}
+
 void ImRenderTraceRecord::StartTrace() {
     stack.clear();
     TraceState = true;
@@ -236,7 +251,11 @@ bool ImRenderTraceRecord::ImRenderExpr(
     if (TraceState) {
         auto rec        = ImRenderTraceRecord::init(function, line, file);
         rec.im_function = im_function;
+        rec.im_id       = fmt("Evaluated to {}", expr);
         PushUnitRecord(rec);
+        auto tmp = rec.to_org_log_record();
+        tmp.source_scope_add("expr");
+        tmp.end();
     }
     return expr;
 }

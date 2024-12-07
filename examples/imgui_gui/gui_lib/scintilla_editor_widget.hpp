@@ -169,7 +169,7 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
     ImVec2 globalCursor;
     ImVec2 windowCursor;
 
-    void Resize(ImVec2 const& pos, ImVec2 const& size);
+    void Resize(ImVec2 const& size);
 
 
     virtual void SetVerticalScrollPos() override {}

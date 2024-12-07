@@ -16,6 +16,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/format.hpp>
+#include <hstd/stdlib/Filesystem.hpp>
 
 #include <boost/log/core.hpp>
 #include <boost/log/sinks/sink.hpp>
@@ -154,6 +155,13 @@ sink_ptr org_logging::init_file_sink(Str const& log_file_name) {
         strm << " ";
         strm << Str{"  "}.repeated(data.depth).toBase();
         strm << data.message;
+
+        if (data.metadata) { strm << " " << data.metadata->dump(-1); }
+
+        if (data.file) {
+            strm << " " << fs::path{data.file}.filename() << ":"
+                 << data.line;
+        }
     });
 
     return sink;
@@ -194,6 +202,11 @@ log_record& log_record::source_scope(const Vec<Str>& scope) {
     return *this;
 }
 
+log_record& log_record::source_scope_add(const Str& scope) {
+    data.source_scope.push_back(scope);
+    return *this;
+}
+
 log_record& log_record::source_id(const Str& id) {
     data.source_id = id;
     return *this;
@@ -214,6 +227,13 @@ log_record& log_record::metadata(const Str& field, const json& value) {
         data.metadata.value()[field.toBase()] = value;
     }
 
+    return *this;
+}
+
+log_record& log_record::maybe_space() {
+    if (!data.message.empty() && data.message.back() != ' ') {
+        data.message += " ";
+    }
     return *this;
 }
 
@@ -247,7 +267,7 @@ org_logging::log_record& ::org_logging::log_record::category(
 
 org_logging::log_record& ::org_logging::log_record::severity(
     severity_level l) {
-    data.level = l;
+    data.severity = l;
     return *this;
 }
 
@@ -267,7 +287,11 @@ record_type start_log_record(boost::log::trivial::severity_level level) {
 
 void org_logging::log_record::end() {
     ::boost::log::record rec_var = start_log_record(
-        static_cast<boost::log::trivial::severity_level>(data.level));
+        static_cast<boost::log::trivial::severity_level>(data.severity));
+    LOGIC_ASSERTION_CHECK(
+        !!rec_var,
+        "Failed to create log record with data level {}",
+        data.severity);
     auto pump = ::boost::log::aux::make_record_pump(get_logger(), rec_var);
     pump.stream() << logging::add_value("record", *this);
 }

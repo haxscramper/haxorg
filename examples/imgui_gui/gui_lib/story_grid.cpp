@@ -67,13 +67,17 @@ EditableTextResult render_editable_text(
     auto cell_prefix = fmt("{:p}", static_cast<const void*>(value.data()));
 
     auto get_editor = [&](const ImVec2& size) {
-        return ImGui::ScInputText(c_fmt(
+        auto res = ImGui::ScInputText(c_fmt(
             "sci_editor_{:p}", static_cast<const void*>(value.data())));
+        res->Resize(size);
+        return res;
     };
 
     if (edit == TreeGridColumn::EditMode::Multiline) {
         if (is_editing) {
-            auto ed = get_editor(size - ImVec2(0, 40));
+            auto this_size = size - ImVec2(0, 40);
+            auto ed        = get_editor(this_size);
+            render_debug_rect(this_size);
             ed->HandleInput();
             ed->Render();
             IM_FN_PRINT("Render done", "");
@@ -344,6 +348,10 @@ void render_text_node(
             text.edit,
             text.getSize(),
             TreeGridColumn::EditMode::Multiline);
+
+        if (res != EditableTextResult::None) {
+            CTX_MSG(fmt("Text edit result {}", res));
+        }
 
         switch (res) {
             case EditableTextResult::Changed: {

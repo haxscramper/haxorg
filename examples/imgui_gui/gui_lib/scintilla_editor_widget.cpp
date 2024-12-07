@@ -244,9 +244,9 @@ ScEditor* ScInputText(const char* label, const ImVec2& size) {
 
     if (size.x == 0 || size.y == 0) {
         ImVec2 available = ImGui::GetContentRegionAvail();
-        editor->Resize(ImVec2{0, 0}, available);
+        editor->Resize(available);
     } else {
-        editor->Resize(ImVec2{0, 0}, size);
+        editor->Resize(size);
     }
 
     ImGui::EndChild();
@@ -839,9 +839,8 @@ void ScEditor::Initialise() {
     CaretSetPeriod(0);
 }
 
-void ScEditor::Resize(const ImVec2& pos, const ImVec2& size) {
-    wMain.SetPosition(PRectangle::FromInts(
-        pos.x, pos.y, pos.x + size.x, pos.y + size.y));
+void ScEditor::Resize(const ImVec2& size) {
+    wMain.SetPosition(PRectangle::FromInts(0, 0, size.x, size.y));
 }
 
 void ScEditor::CreateCallTipWindow(Scintilla::Internal::PRectangle rc) {

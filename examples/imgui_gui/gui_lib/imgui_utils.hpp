@@ -4,6 +4,7 @@
 #include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/stdlib/TraceBase.hpp>
 #include <hstd/system/reflection.hpp>
+#include "gui_lib/org_logger.hpp"
 #include "imgui.h"
 #include "imgui_internal.h"
 #include <hstd/stdlib/Opt.hpp>
@@ -76,6 +77,8 @@ struct ImRenderTraceRecord {
     Opt<ImVec2>              cursor_winpos;
     Vec<ImRenderTraceRecord> nested;
     // Vec<std::string> im_id_stack
+
+    ::org_logging::log_record to_org_log_record() const;
 
     static Vec<ImRenderTraceRecord> stack;
     static bool                     TraceState;

@@ -60,17 +60,29 @@ void im_ctx_act_impl(
     ImGuiTestContext* ctx,
     Func              func,
     char const*       funcname,
+    int               line,
+    char const*       file,
+    char const*       function,
     Args&&... args) {
-    IM_TEST_LOG("ctx").fmt_message(
-        "Run {} with {}",
-        funcname,
-        join_fmt_varargs(", ", std::forward<Args>(args)...));
+    IM_TEST_LOG("ctx")
+        .fmt_message(
+            "Run {} with {}",
+            funcname,
+            join_fmt_varargs(", ", std::forward<Args>(args)...))
+        .file(file)
+        .line(line)
+        .function(function);
     (ctx->*func)(std::forward<Args>(args)...);
 }
 
 #define IM_CTX_ACT(Func, ...)                                             \
     im_ctx_act_impl(                                                      \
-        ctx, &ImGuiTestContext::Func, #Func __VA_OPT__(, ) __VA_ARGS__)
+        ctx,                                                              \
+        &ImGuiTestContext::Func,                                          \
+        #Func,                                                            \
+        __LINE__,                                                         \
+        __FILE__,                                                         \
+        __FUNCTION__ __VA_OPT__(, ) __VA_ARGS__)
 
 
 #define IM_FMT_DECL(T)                                                    \

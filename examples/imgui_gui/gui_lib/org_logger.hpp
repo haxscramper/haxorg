@@ -78,22 +78,22 @@ void clear_sink_backends();
 struct log_record {
     struct log_data {
         Str            message;
-        int            line;
-        char const*    file;
+        int            line = 0;
+        char const*    file = nullptr;
         Str            category;
-        severity_level level;
-        char const*    function;
-        int            depth;
-        Vec<Str>       source_scope;
-        Opt<Str>       source_id;
-        Opt<json>      metadata = std::nullopt;
+        severity_level severity     = severity_level::trace;
+        char const*    function     = nullptr;
+        int            depth        = 0;
+        Vec<Str>       source_scope = {};
+        Opt<Str>       source_id    = std::nullopt;
+        Opt<json>      metadata     = std::nullopt;
         DESC_FIELDS(
             log_data,
             (message,
              line,
              file,
              category,
-             level,
+             severity,
              function,
              depth,
              source_scope,
@@ -113,9 +113,11 @@ struct log_record {
     log_record& severity(severity_level l);
     log_record& depth(int depth);
     log_record& source_scope(Vec<Str> const& scope);
+    log_record& source_scope_add(Str const& scope);
     log_record& source_id(Str const& id);
     log_record& metadata(json const& metadata);
     log_record& metadata(Str const& field, json const& value);
+    log_record& maybe_space();
 
     log_record& set_callsite(
         int         line     = __builtin_LINE(),
@@ -142,6 +144,7 @@ struct log_builder {
     log_record rec;
 
     // clang-format off
+    template <typename Self> inline auto&& maybe_space(this Self&& self) { self.rec.maybe_space(); return std::forward<Self>(self); }
     template <typename Self> inline auto&& function(this Self&& self, char const* func) { self.rec.function(func); return std::forward<Self>(self); }
     template <typename Self> inline auto&& message(this Self&& self, int const& msg) { self.rec.message(msg); return std::forward<Self>(self); }
     template <typename Self> inline auto&& message(this Self&& self, Str const& msg) { self.rec.message(msg); return std::forward<Self>(self); }
@@ -152,6 +155,7 @@ struct log_builder {
     template <typename Self> inline auto&& severity(this Self&& self, severity_level l) { self.rec.severity(l); return std::forward<Self>(self); }
     template <typename Self> inline auto&& depth(this Self&& self, int depth) { self.rec.depth(depth); return std::forward<Self>(self); }
     template <typename Self> inline auto&& source_scope(this Self&& self, Vec<Str> const& scope) { self.rec.source_scope(scope); return std::forward<Self>(self); }
+    template <typename Self> inline auto&& source_scope_add(this Self&& self, Str const& scope) { self.rec.source_scope_add(scope); return std::forward<Self>(self); }
     template <typename Self> inline auto&& source_id(this Self&& self, Str const& id) { self.rec.source_id(id); return std::forward<Self>(self); }
     template <typename Self> inline auto&& metadata(this Self&& self, json const& id) { self.rec.metadata(id); return std::forward<Self>(self); }
     template <typename Self> inline auto&& metadata(this Self&& self, Str const& key, json const& id) { self.rec.metadata(key, id); return std::forward<Self>(self); }
@@ -185,7 +189,7 @@ struct log_builder {
     }
 
     template <typename Self, typename... _Args>
-    inline log_builder& fmt_message(
+    inline auto&& fmt_message(
         this Self&&                  self,
         std::format_string<_Args...> __fmt,
         _Args&&... __args) {
@@ -194,7 +198,7 @@ struct log_builder {
     }
 
     template <typename Self>
-    inline log_builder& set_callsite(
+    inline auto&& set_callsite(
         this Self&& self,
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION(),
