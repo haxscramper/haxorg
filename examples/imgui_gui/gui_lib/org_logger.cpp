@@ -199,6 +199,24 @@ log_record& log_record::source_id(const Str& id) {
     return *this;
 }
 
+log_record& log_record::metadata(const json& id) {
+    data.metadata = id;
+    return *this;
+}
+
+log_record& log_record::metadata(const Str& field, const json& value) {
+    if (!data.metadata.has_value()) {
+        data.metadata = json::object();
+    } else if (!data.metadata->is_object()) {
+        throw std::domain_error(
+            "Log record medata is already set, but it is not an object");
+    } else {
+        data.metadata.value()[field.toBase()] = value;
+    }
+
+    return *this;
+}
+
 org_logging::log_record& ::org_logging::log_record::message(
     Str const& msg) {
     data.message += msg;

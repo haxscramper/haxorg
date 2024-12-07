@@ -679,7 +679,7 @@ std::shared_ptr<Font> Font::Allocate(const FontParameters& fp) {
     return ::org_logging::log_builder{}
         .category("edit")
         .severity(level)
-        .source_scope({"gui", "scintilla_editor"})
+        .source_scope({"gui", "widget", "scintilla_editor"})
         .source_id(fmt("_{:p}", static_cast<void const*>(this)))
         .message(msg)
         .function(function)
@@ -752,16 +752,18 @@ ScEditor::InputResult ScEditor::HandleInput() {
     int         beforeTextLength = SendCommand(SCI_M::GetTextLength);
     if (ImGui::IsMouseClicked(0)) {
         auto pos = GlobalSpaceToScintilla(io.MouseClickedPos[0]);
-        message(
-            ol_trace,
-            fmt("Clicked mouse at {} sci pos {}",
-                io.MouseClickedPos,
-                pos));
+
 
         auto pt = Point::FromInts(pos.x, pos.y);
         ButtonDownWithModifiers(
             pt, io.MouseDownDuration[0], Scintilla::KeyMod::Norm);
         res.hadEvents = true;
+        message(
+            ol_trace,
+            fmt("Clicked mouse at {}, sci pos {}, cursor pos {}",
+                io.MouseClickedPos[0],
+                pos,
+                GetPosition()));
     } else if (
         !io.KeyCtrl     //
         && !io.KeyAlt   //
@@ -770,7 +772,9 @@ ScEditor::InputResult ScEditor::HandleInput() {
         auto debug //
             = message(ol_trace, "Typed ")
                   .fmt_message(
-                      "{} characters:", io.InputQueueCharacters.Size)
+                      "{} characters at {}:",
+                      io.InputQueueCharacters.Size,
+                      GetPosition())
                   .get_record();
 
         for (int i = 0; i < io.InputQueueCharacters.Size; ++i) {
@@ -788,6 +792,8 @@ ScEditor::InputResult ScEditor::HandleInput() {
                 debug.fmt_message(" '{}'", c);
             }
         }
+
+        debug.fmt_message(". End position {}", GetPosition());
 
         debug.end();
 

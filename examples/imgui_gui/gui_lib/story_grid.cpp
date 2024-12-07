@@ -1598,7 +1598,7 @@ void StoryGridContext::message(
         .depth(activeLevel)
         .category("story-grid")
         .severity(ol_info)
-        .source_scope({"gui", "story_grid"});
+        .source_scope({"gui", "feature", "story_grid"});
 
     OperationsTracer::message(value, activeLevel, line, function, file);
 }

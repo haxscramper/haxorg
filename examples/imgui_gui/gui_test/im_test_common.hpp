@@ -6,6 +6,53 @@
 #include "imgui_test_engine/imgui_te_context.h"
 #include <hstd/stdlib/Str.hpp>
 #include <gui_lib/imgui_utils.hpp>
+#include <gui_lib/org_logger.hpp>
+
+#define IM_TEST_LOG(__cat)                                                \
+    ::org_logging::log_builder{}                                          \
+        .set_callsite()                                                   \
+        .category(__cat)                                                  \
+        .severity(ol_info)                                                \
+        .source_scope({"gui", "test"})
+
+
+void join_fmt_varargs_impl(std::string& buf, std::string const& sep) {}
+
+template <typename T, typename... Args>
+void join_fmt_varargs_impl(
+    std::string&       buf,
+    std::string const& sep,
+    T const&           head,
+    Args&&... args) {
+    if (!buf.empty()) { buf += sep; }
+    buf += fmt1(head);
+    join_fmt_varargs_impl(buf, sep, std::forward<Args>(args)...);
+}
+
+template <typename... Args>
+std::string join_fmt_varargs(std::string const& sep, Args&&... args) {
+    std::string res;
+    join_fmt_varargs_impl(res, sep, std::forward<Args>(args)...);
+    return res;
+}
+
+template <typename Func, typename... Args>
+void im_ctx_act_impl(
+    ImGuiTestContext* ctx,
+    Func              func,
+    char const*       funcname,
+    Args&&... args) {
+    IM_TEST_LOG("ctx").fmt_message(
+        "Run {} with {}",
+        funcname,
+        join_fmt_varargs(", ", std::forward<Args>(args)...));
+    ctx->*func(std::forward<Args>(args)...);
+}
+
+#define IM_CTX_ACT(Func, ...)                                             \
+    im_ctx_act_impl(                                                      \
+        ctx, &ImGuiTestContext::Func, #Func __VA_OPT__(, ) __VA_ARGS__)
+
 
 #define IM_FMT_DECL(T)                                                    \
     template <>                                                           \

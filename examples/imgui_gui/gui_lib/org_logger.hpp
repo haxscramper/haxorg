@@ -1,6 +1,7 @@
 #pragma once
 
 #include <boost/preprocessor.hpp>
+#include <hstd/stdlib/Json.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/system/reflection.hpp>
@@ -85,6 +86,7 @@ struct log_record {
         int            depth;
         Vec<Str>       source_scope;
         Opt<Str>       source_id;
+        Opt<json>      metadata = std::nullopt;
         DESC_FIELDS(
             log_data,
             (message,
@@ -95,7 +97,8 @@ struct log_record {
              function,
              depth,
              source_scope,
-             source_id));
+             source_id,
+             metadata));
     };
 
     log_data data;
@@ -111,6 +114,8 @@ struct log_record {
     log_record& depth(int depth);
     log_record& source_scope(Vec<Str> const& scope);
     log_record& source_id(Str const& id);
+    log_record& metadata(json const& metadata);
+    log_record& metadata(Str const& field, json const& value);
 
     log_record& set_callsite(
         int         line     = __builtin_LINE(),
@@ -148,9 +153,11 @@ struct log_builder {
     template <typename Self> inline auto&& depth(this Self&& self, int depth) { self.rec.depth(depth); return std::forward<Self>(self); }
     template <typename Self> inline auto&& source_scope(this Self&& self, Vec<Str> const& scope) { self.rec.source_scope(scope); return std::forward<Self>(self); }
     template <typename Self> inline auto&& source_id(this Self&& self, Str const& id) { self.rec.source_id(id); return std::forward<Self>(self); }
+    template <typename Self> inline auto&& metadata(this Self&& self, json const& id) { self.rec.metadata(id); return std::forward<Self>(self); }
+    template <typename Self> inline auto&& metadata(this Self&& self, Str const& key, json const& id) { self.rec.metadata(key, id); return std::forward<Self>(self); }
     // clang-format on
 
-    log_builder()                              = default;
+    log_builder() = default;
 
     log_builder(const log_builder&)            = delete;
     log_builder& operator=(const log_builder&) = delete;

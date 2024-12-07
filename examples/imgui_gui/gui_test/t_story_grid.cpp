@@ -211,9 +211,11 @@ some random shit about the comments or whatever, need to render as annotation [f
             auto&       rg    = m.rectGraph;
             IM_CHECK_EQ(spans.size(), 4);
             IM_CHECK_EQ(ir.lanes.at(1).scrollOffset, 0);
-            ctx->MouseMoveToPos(
+            IM_CTX_ACT(
+                MouseMoveToPos,
                 wpos
-                + ImVec2{static_cast<float>(spans.at(1).first + 50), 5});
+                    + ImVec2{
+                        static_cast<float>(spans.at(1).first + 50), 5});
 
             // m.ctx.message(to_json_eval(rg.nodes).dump(2));
 
@@ -233,9 +235,9 @@ some random shit about the comments or whatever, need to render as annotation [f
             {
                 m.ctx.message("Scroll");
                 auto __scope = m.ctx.scopeLevel();
-                ctx->MouseWheelY(5);
+                IM_CTX_ACT(MouseWheelY, 5);
                 vars.set_im_trace(2);
-                ctx->Yield(5);
+                IM_CTX_ACT(Yield, 5);
                 IM_CHECK_EQ(
                     ir.lanes.at(1).scrollOffset,
                     vars.conf.mouseScrollMultiplier * 5);
@@ -251,19 +253,21 @@ some random shit about the comments or whatever, need to render as annotation [f
 
             {
                 m.ctx.message("Edit annotation text");
-                ctx->MouseMoveToPos(
+                IM_CTX_ACT(
+                    MouseMoveToPos,
                     wpos + rg.getDocNode({1, 0}).getText().pos
-                    + ImVec2(5, 5));
-                ctx->MouseClick(0);
-                ctx->MouseClick(0);
+                        + ImVec2(5, 5));
+                IM_CTX_ACT(MouseClick, 0);
+                IM_CTX_ACT(MouseClick, 0);
 
                 IM_CHECK_BINARY_PRED(
                     vars.get_text(), "TYPE", not_has_substring_normalized);
 
-                ctx->KeyChars("TYPE\n\n");
-                ctx->MouseMoveToPos(ImGui::GetMousePos() + ImVec2(0, 100));
-                ctx->MouseClick(0);
-                ctx->Yield(5);
+                IM_CTX_ACT(KeyChars, "TYPE\n\n");
+                IM_CTX_ACT(
+                    MouseMoveToPos, ImGui::GetMousePos() + ImVec2(0, 100));
+                IM_CTX_ACT(MouseClick, 0);
+                IM_CTX_ACT(Yield, 5);
                 IM_CHECK_BINARY_PRED(
                     vars.get_text(), "TYPE", has_substring_normalized);
             }
