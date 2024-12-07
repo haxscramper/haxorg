@@ -253,6 +253,8 @@ log_builder::Finalizer log_builder_get_mutable_finalizer_filter(
     };
 }
 
+/// \brief Create log message finalizer that will filter out duplicate
+/// messages
 template <int Unique>
 log_builder::Finalizer log_builder_get_mutable_finalizer_filter_unique_records(
     bool reset = false) {

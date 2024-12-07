@@ -497,7 +497,7 @@ ImU32 ToImGui(ColourRGBA const& c) {
 
 class SurfaceImpl : public Scintilla::Internal::Surface {
   public:
-    SurfaceImpl() { message("Create surface impl", true); }
+    SurfaceImpl() { message("Create surface impl"); }
     virtual ~SurfaceImpl() {}
 
     ImVec2 pos;
@@ -520,7 +520,6 @@ class SurfaceImpl : public Scintilla::Internal::Surface {
             .severity(ol_trace)
             .message(msg)
             .source_scope({"gui", "widget", "scintilla_editor"})
-            .source_id(fmt("{:p}", static_cast<const void*>(this)))
             .set_finalizer(OLOG_UNIQUE_VALUE_FILTER_FINALIZER(reset));
     }
 

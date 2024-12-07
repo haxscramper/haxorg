@@ -271,13 +271,13 @@ org_logging::log_record& ::org_logging::log_record::severity(
 }
 
 std::size_t log_record::log_data::hash() const {
-    std::size_t result;
+    std::size_t result{0};
     hax_hash_combine(result, message);
     hax_hash_combine(result, line);
-    hax_hash_combine(result, file);
+    if (file) { hax_hash_combine(result, std::string{file}); }
     hax_hash_combine(result, category);
     hax_hash_combine(result, severity);
-    hax_hash_combine(result, function);
+    if (function) { hax_hash_combine(result, std::string{function}); }
     hax_hash_combine(result, depth);
     hax_hash_combine(result, source_scope);
     hax_hash_combine(result, source_id);
