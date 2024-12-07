@@ -147,9 +147,8 @@ sink_ptr org_logging::init_file_sink(Str const& log_file_name) {
 
     sink->set_formatter([](const boost::log::record_view&  rec,
                            boost::log::formatting_ostream& strm) {
-        log_record::log_data const& data = boost::log::extract<log_record>(
-                                               "record", rec)
-                                               ->data;
+        log_record::log_data const& data //
+            = boost::log::extract<log_record>("record", rec)->data;
 
         strm << join(".", data.source_scope);
         strm << " ";
@@ -271,6 +270,21 @@ org_logging::log_record& ::org_logging::log_record::severity(
     return *this;
 }
 
+std::size_t log_record::log_data::hash() const {
+    std::size_t result;
+    hax_hash_combine(result, message);
+    hax_hash_combine(result, line);
+    hax_hash_combine(result, file);
+    hax_hash_combine(result, category);
+    hax_hash_combine(result, severity);
+    hax_hash_combine(result, function);
+    hax_hash_combine(result, depth);
+    hax_hash_combine(result, source_scope);
+    hax_hash_combine(result, source_id);
+    hax_hash_combine(result, metadata);
+    return result;
+}
+
 org_logging::log_record& ::org_logging::log_record::function(
     char const* func) {
     data.function = func;
@@ -300,4 +314,14 @@ bool ::org_logging::is_log_accepted(
     const Str&     category,
     severity_level level) {
     return true;
+}
+
+::org_logging::log_builder::~log_builder() {
+    if (!is_released) {
+        if (finalizer) {
+            finalizer(*this);
+        } else {
+            rec.end();
+        }
+    }
 }

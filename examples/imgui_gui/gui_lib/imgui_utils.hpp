@@ -19,13 +19,11 @@ void fullscreen_window_begin();
 int  push_frameless_window_vars();
 void render_debug_rect(
     ImVec2 const& size,
-    int           border = 2,
-    const ImU32&  col    = IM_COL32(255, 255, 255, 255));
+    const ImU32&  col = IM_COL32(255, 255, 255, 255));
 
 void render_debug_rect(
     ImRect const& rect,
-    int           border = 2,
-    const ImU32&  col    = IM_COL32(255, 255, 255, 255));
+    const ImU32&  col = IM_COL32(255, 255, 255, 255));
 
 void quit_on_q(GLFWwindow* window);
 

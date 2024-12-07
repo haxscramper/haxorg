@@ -63,15 +63,16 @@ int push_frameless_window_vars() {
     return 3;
 }
 
-void render_debug_rect(const ImVec2& size, int border, ImU32 const& col) {
+void render_debug_rect(const ImVec2& size, ImU32 const& col) {
     render_debug_rect(
-        ImRect(ImGui::GetCursorPos(), ImGui::GetCursorScreenPos() + size),
-        border,
+        ImRect(
+            ImGui::GetCursorScreenPos(),
+            ImGui::GetCursorScreenPos() + size),
         col);
 }
 
 
-void render_debug_rect(const ImRect& rect, int border, const ImU32& col) {
+void render_debug_rect(const ImRect& rect, const ImU32& col) {
     ImGui::GetForegroundDrawList()->AddRect(rect.Min, rect.Max, col);
 }
 

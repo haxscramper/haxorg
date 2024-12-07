@@ -1,6 +1,7 @@
 #pragma once
 
 #include <boost/preprocessor.hpp>
+#include <hstd/stdlib/Func.hpp>
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Str.hpp>
@@ -8,6 +9,7 @@
 #include <hstd/system/macros.hpp>
 #include <stack>
 
+#include <hstd/stdlib/Set.hpp>
 #include <boost/log/core.hpp>
 #include <boost/log/sinks/sink.hpp>
 
@@ -56,7 +58,6 @@ sink_ptr log_sink_mutable_factory(Generator&& gen) {
 #define OLOG_SINK_FACTORY(impl)                                           \
     ::org_logging::log_sink_mutable_factory<__COUNTER__>(impl)
 
-
 sink_ptr init_file_sink(Str const& log_file_name);
 void     push_sink(sink_ptr const& sink);
 
@@ -99,7 +100,11 @@ struct log_record {
              source_scope,
              source_id,
              metadata));
+
+        std::size_t hash() const;
     };
+
+    std::size_t hash() const { return data.hash(); }
 
     log_data data;
 
@@ -140,8 +145,12 @@ struct log_record {
 };
 
 struct log_builder {
+    using Finalizer        = Func<void(log_builder&)>;
     bool       is_released = false;
+    Finalizer  finalizer;
     log_record rec;
+
+    std::size_t hash() const { return rec.hash(); }
 
     // clang-format off
     template <typename Self> inline auto&& maybe_space(this Self&& self) { self.rec.maybe_space(); return std::forward<Self>(self); }
@@ -160,6 +169,12 @@ struct log_builder {
     template <typename Self> inline auto&& metadata(this Self&& self, json const& id) { self.rec.metadata(id); return std::forward<Self>(self); }
     template <typename Self> inline auto&& metadata(this Self&& self, Str const& key, json const& id) { self.rec.metadata(key, id); return std::forward<Self>(self); }
     // clang-format on
+
+    template <typename Self>
+    inline auto&& set_finalizer(this Self&& self, Finalizer const& msg) {
+        self.finalizer = msg;
+        return std::forward<Self>(self);
+    }
 
     template <typename Self>
     inline auto&& escape_message(this Self&& self, Str const& msg) {
@@ -206,10 +221,59 @@ struct log_builder {
         return self.line(line).file(file).function(function);
     }
 
-    ~log_builder() {
-        if (!is_released) { rec.end(); }
-    }
+    ~log_builder();
 };
+
+/// \brief Create a finalizer that can use a mutable generator object as a
+/// filter on the callsite.
+template <int Unique, typename Generator>
+log_builder::Finalizer log_builder_get_mutable_finalizer_filter(
+    Generator gen,
+    bool      reset = false) {
+    // `log_builder_mutable_finalizer<123123>([state = Create{}]( ... {});`
+    // instantiating this function with unique identifier and generator
+    // type will create a new thread-local static instance of the
+    // generator.
+    static Generator mutable_state{std::forward<Generator>(gen)};
+
+    // It should be possible to reset the finalizer state and create a new
+    // one.
+    if (reset) {
+        mutable_state.~Generator();
+        new (&mutable_state) Generator(std::forward<Generator>(gen));
+    }
+
+    // Return a finalizer callback to be used in the log record. Each time
+    // the record is finalized, it can access the mutable state.
+    return [](log_builder& rec) {
+        // Mutable state acts as a filter, if it returns 'true', then the
+        // record is accepted, otherwise the finalizer discards the record
+        // data in the destructor, without submitting it.
+        if (mutable_state(rec)) { rec.rec.end(); }
+    };
+}
+
+template <int Unique>
+log_builder::Finalizer log_builder_get_mutable_finalizer_filter_unique_records(
+    bool reset = false) {
+    return log_builder_get_mutable_finalizer_filter<Unique>(
+        [hash_state = UnorderedSet<std::size_t>{}](
+            log_builder const& rec) mutable -> bool {
+            auto h = rec.hash();
+            if (hash_state.contains(h)) {
+                return false;
+            } else {
+                hash_state.incl(h);
+                return true;
+            }
+        },
+        reset);
+}
+
+#define OLOG_UNIQUE_VALUE_FILTER_FINALIZER(__reset)                       \
+    ::org_logging::                                                       \
+        log_builder_get_mutable_finalizer_filter_unique_records<          \
+            __COUNTER__>(__reset)
 
 bool is_log_accepted(Str const& category, severity_level level);
 
@@ -259,3 +323,19 @@ constexpr ::org_logging::severity_level  ol_warning = ::org_logging::severity_le
 constexpr ::org_logging::severity_level  ol_error   = ::org_logging::severity_level::error;
 constexpr ::org_logging::severity_level  ol_fatal   = ::org_logging::severity_level::fatal;
 // clang-format on
+
+template <>
+struct std::hash<org_logging::log_record> {
+    std::size_t operator()(
+        org_logging::log_record const& it) const noexcept {
+        return it.hash();
+    }
+};
+
+template <>
+struct std::hash<org_logging::log_record::log_data> {
+    std::size_t operator()(
+        org_logging::log_record::log_data const& it) const noexcept {
+        return it.hash();
+    }
+};

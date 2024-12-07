@@ -497,7 +497,7 @@ ImU32 ToImGui(ColourRGBA const& c) {
 
 class SurfaceImpl : public Scintilla::Internal::Surface {
   public:
-    SurfaceImpl() {}
+    SurfaceImpl() { message("Create surface impl", true); }
     virtual ~SurfaceImpl() {}
 
     ImVec2 pos;
@@ -506,6 +506,22 @@ class SurfaceImpl : public Scintilla::Internal::Surface {
     ImVec2            GetPos() { return pos; }
     ImFontWrap const* GetFont(Font const* f) {
         return dynamic_cast<ImFontWrap const*>(f);
+    }
+
+    void message(
+        std::string const& msg,
+        bool               reset    = false,
+        int                line     = __builtin_LINE(),
+        char const*        function = __builtin_FUNCTION(),
+        char const*        file     = __builtin_FILE()) {
+        OLOG_BUILDER()
+            .set_callsite(line, function, file)
+            .category("surface")
+            .severity(ol_trace)
+            .message(msg)
+            .source_scope({"gui", "widget", "scintilla_editor"})
+            .source_id(fmt("{:p}", static_cast<const void*>(this)))
+            .set_finalizer(OLOG_UNIQUE_VALUE_FILTER_FINALIZER(reset));
     }
 
     // clang-format off
@@ -551,14 +567,17 @@ class SurfaceImpl : public Scintilla::Internal::Surface {
     virtual XYPOSITION InternalLeading(const Font *font_) override  { return 0; }
     virtual XYPOSITION Height(const Font *font_) override  {  abort(); }
 
-    virtual void SetClip(PRectangle rc) override  { }
-    virtual void PopClip() override  { }
+    virtual void SetClip(PRectangle rc) override { message(fmt("Set clip {}", rc)); }
+    virtual void PopClip() override  { message(fmt("Pop clip")); }
     virtual void FlushCachedState() override  { }
     virtual void FlushDrawing() override  { }
     // clang-format on
 
     virtual void FillRectangle(PRectangle rc, Surface& surfacePattern)
         override {
+
+        message(fmt("Fill rectangle {}", rc));
+
         DrawList()->AddRectFilled(
             GetPos() + ImVec2(rc.left, rc.top),
             GetPos() + ImVec2(rc.right, rc.bottom),
@@ -582,6 +601,12 @@ class SurfaceImpl : public Scintilla::Internal::Surface {
         float            ybase,
         std::string_view s,
         ColourRGBA       f) {
+        message(
+            fmt("Draw text '{}' in {} base {}",
+                escape_literal(std::string{s.begin(), s.end()}),
+                rc,
+                ybase));
+
         int vfix = 0;
         vfix += std::abs(GetFont(font_)->GetAscent());
         vfix += std::abs(GetFont(font_)->GetDescent());

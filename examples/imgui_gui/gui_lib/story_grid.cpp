@@ -76,8 +76,8 @@ EditableTextResult render_editable_text(
     if (edit == TreeGridColumn::EditMode::Multiline) {
         if (is_editing) {
             auto this_size = size - ImVec2(0, 40);
-            auto ed        = get_editor(this_size);
-            render_debug_rect(this_size);
+            render_debug_rect(this_size, IM_COL32(255, 0, 0, 255));
+            auto ed = get_editor(this_size);
             ed->HandleInput();
             ed->Render();
             IM_FN_PRINT("Render done", "");
