@@ -616,11 +616,13 @@ struct SerdeDefaultProvider<sem::SubtreeLogHead::Priority> {
     }
 };
 
+using SemId_t = sem::SemId<sem::Org>;
+using ImmId_t = org::ImmId;
+
+
 template <typename Sem, typename Imm>
 struct ImmSemSerde {};
 
-using SemId_t = sem::SemId<sem::Org>;
-using ImmId_t = org::ImmId;
 
 template <>
 struct ImmSemSerde<SemId_t, ImmId_t> {
@@ -864,6 +866,20 @@ void assign_sem_field(
 
 
 #include "ImmOrgSerde.tcc"
+
+ImmId org::immer_from_sem(
+    const sem::SemId<sem::Org>& id,
+    ImmAstEditContext&          ctx) {
+    return ImmSemSerde<SemId_t, ImmId_t>::to_immer(id, ctx);
+}
+
+
+sem::SemId<sem::Org> org::sem_from_immer(
+    const ImmId&         id,
+    const ImmAstContext& ctx) {
+    return ImmSemSerde<SemId_t, ImmId_t>::from_immer(id, ctx);
+}
+
 
 sem::SemId<sem::Org> ImmAstContext::get(ImmId id) {
     return store->get(id, *this);

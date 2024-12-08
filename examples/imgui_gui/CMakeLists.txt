@@ -5,12 +5,14 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CXX_STANDARD 23)
 
-set(BASE "${CMAKE_CURRENT_SOURCE_DIR}/../..")
-set(DEPS_INSTALL "${BASE}/build/deps_install")
+set(REPO_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../..")
+set(DEPS_INSTALL "${REPO_ROOT}/build/deps_install")
+set(SCINT_DEPS "${REPO_ROOT}/thirdparty/scintilla/scintilla")
+set(LEXLL_DEPS "${REPO_ROOT}/thirdparty/scintilla/lexilla")
 
 option(ORG_USE_PERFETTO "Enable perfetto profiling" OFF)
 
-list(INSERT CMAKE_PREFIX_PATH 0 "${BASE}/build/install")
+list(INSERT CMAKE_PREFIX_PATH 0 "${REPO_ROOT}/build/install")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/reflex/lib/cmake/reflex")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/protobuf/lib/cmake/protobuf")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/abseil/lib/cmake/absl")
@@ -21,7 +23,9 @@ list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/range-v3/lib/cmake/range-v3")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/json/share/cmake/nlohmann_json")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/lager/lib/cmake/Lager")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/immer/lib/cmake/Immer")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/googletest/lib/cmake/GTest")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/adaptagrams/lib/cmake/Adaptagrams")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/lexy/lib/cmake/lexy")
 
 find_package(Immer CONFIG REQUIRED)
 find_package(Lager CONFIG REQUIRED)
@@ -35,61 +39,91 @@ find_package(nlohmann_json CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(Perfetto CONFIG REQUIRED)
+find_package(lexy CONFIG REQUIRED)
 find_package(Haxorg CONFIG REQUIRED)
 find_package(Adaptagrams CONFIG REQUIRED)
+find_package(GTest CONFIG REQUIRED)
+find_package(Boost REQUIRED COMPONENTS log)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(FONTCONFIG REQUIRED fontconfig)
 
-add_executable(
-  main
-  main.cpp
-  sem_tree_render.hpp
-  sem_tree_render.cpp
-  story_grid.hpp
-  story_grid.cpp
-  imgui_utils.cpp
-  imgui_utils.hpp
-  gui_perfetto.cpp
-  gui_perfetto.hpp
-  block_graph.cpp
-  block_graph.hpp)
+set(PROJ_ROOT "${CMAKE_SOURCE_DIR}")
 
-set(BASE "${CMAKE_SOURCE_DIR}")
+# external dependency for imgui library
 
-file(GLOB IMGUI_SOURCES "${BASE}/imgui/*.cpp")
+set(IMCONFIG_TEMPLATE_PATH "${PROJ_ROOT}/imconfig.h")
+set(IMCONFIG_FILE_PATH "${PROJ_ROOT}/imgui/imconfig.h")
+
+configure_file("${IMCONFIG_TEMPLATE_PATH}" "${IMCONFIG_FILE_PATH}" @ONLY)
+
+file(GLOB IMGUI_SOURCES "${PROJ_ROOT}/imgui/*.cpp")
+
 add_library(
   imgui STATIC
-  ${IMGUI_SOURCES} "${BASE}/imgui/backends/imgui_impl_glfw.cpp"
-  "${BASE}/imgui/misc/cpp/imgui_stdlib.cpp" #
-  "${BASE}/imgui/backends/imgui_impl_opengl3.cpp")
+  ${IMGUI_SOURCES} "${PROJ_ROOT}/imgui/backends/imgui_impl_glfw.cpp"
+  "${PROJ_ROOT}/imgui/misc/cpp/imgui_stdlib.cpp" #
+  "${PROJ_ROOT}/imgui/backends/imgui_impl_opengl3.cpp")
 
 target_link_libraries(imgui PUBLIC "${FONTCONFIG_LIBRARIES}")
-target_include_directories(imgui PUBLIC "${BASE}/imgui" "${BASE}/imgui/backends"
-                                        "${FONTCONFIG_INCLUDE_DIRS}")
+target_include_directories(
+  imgui PUBLIC "${PROJ_ROOT}/imgui" "${PROJ_ROOT}/imgui/backends" "${FONTCONFIG_INCLUDE_DIRS}"
+               "${REPO_ROOT}/thirdparty/imgui_test_engine/imgui_test_engine")
+
+# imgui test engine
+
+file(GLOB IMGUI_TEST_ENGINE_SOURCES
+     "${REPO_ROOT}/thirdparty/imgui_test_engine/imgui_test_engine/*.cpp")
+add_library(imgui_test_engine STATIC "${IMGUI_TEST_ENGINE_SOURCES}")
+target_include_directories(
+  imgui_test_engine PUBLIC "${PROJ_ROOT}/imgui" "${REPO_ROOT}/thirdparty/imgui_test_engine"
+                           "${REPO_ROOT}/thirdparty/imgui_test_engine/imgui_test_engine")
+
+# main part of app setup
+
+file(GLOB QIUCUS_LIB_FILES "${PROJ_ROOT}/gui_lib/*.?pp")
+add_library(qiucus_lib ${QIUCUS_LIB_FILES})
 
 if(${ORG_USE_PERFETTO})
-  target_link_libraries(main PUBLIC Perfetto::perfetto)
+  target_link_libraries(qiucus_lib PUBLIC Perfetto::perfetto)
 endif()
 
 if(${ORG_USE_PERFETTO})
-  target_compile_definitions(main PUBLIC ORG_USE_PERFETTO)
+  target_compile_definitions(qiucus_lib PUBLIC ORG_USE_PERFETTO)
 endif()
 
+target_link_directories(qiucus_lib PUBLIC "${SCINT_DEPS}/bin" "${LEXLL_DEPS}/bin")
+target_include_directories(qiucus_lib PUBLIC "${LEXLL_DEPS}/include" "${SCINT_DEPS}/include"
+                                             "${REPO_ROOT}/thirdparty/scintilla" "${PROJ_ROOT}")
 target_link_libraries(
-  main
-  PRIVATE imgui
-          glfw
-          OpenGL::GL
-          absl::log
-          absl::base
-          absl::flags
-          Adaptagrams::dialect
-          Adaptagrams::cola
-          Adaptagrams::avoid
-          Adaptagrams::topology
-          Adaptagrams::vpsc
-          haxorg::adaptagrams
-          haxorg::haxorg
-          haxorg::hstd
-          range-v3::range-v3)
+  qiucus_lib
+  PUBLIC imgui
+         imgui_test_engine
+         glfw
+         scintilla
+         Boost::log
+         OpenGL::GL
+         absl::log
+         absl::base
+         absl::flags
+         Adaptagrams::dialect
+         Adaptagrams::cola
+         Adaptagrams::avoid
+         Adaptagrams::topology
+         Adaptagrams::vpsc
+         haxorg::adaptagrams
+         haxorg::haxorg
+         haxorg::hstd
+         range-v3::range-v3)
+
+file(GLOB QIUCUS_APP_FILES "${PROJ_ROOT}/gui_app/*.?pp")
+add_executable(qiucus_app ${QIUCUS_APP_FILES})
+target_link_libraries(qiucus_app PUBLIC qiucus_lib)
+
+file(GLOB QIUCUS_GUI_TEST_FILES "${PROJ_ROOT}/gui_test/*.?pp")
+add_executable(qiucus_gui_test ${QIUCUS_GUI_TEST_FILES})
+target_link_libraries(qiucus_gui_test PUBLIC qiucus_lib imgui_test_engine)
+
+file(GLOB QIUCUS_LOGIC_TEST_FILES "${PROJ_ROOT}/logic_test/*.?pp")
+add_executable(qiucus_logic_test ${QIUCUS_LOGIC_TEST_FILES})
+target_link_libraries(qiucus_logic_test PUBLIC qiucus_lib)

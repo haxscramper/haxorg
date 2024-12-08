@@ -14,9 +14,11 @@
 #include <hstd/wrappers/adaptagrams_wrap/adaptagrams_ir.hpp>
 
 struct TreeGridCell {
+
     struct None {
         DESC_FIELDS(None, ());
     };
+
     struct Value {
         std::string     value       = std::string{};
         org::ImmAdapter origin      = org::ImmAdapter{};
@@ -26,10 +28,17 @@ struct TreeGridCell {
     };
 
     SUB_VARIANTS(Kind, Data, data, getKind, None, Value);
+    DESC_FIELDS(TreeGridCell, (height, width, data));
+
+
     Data data;
     int  height;
     int  width;
-    DESC_FIELDS(TreeGridCell, (height, width, data));
+
+
+    bool   isEditing() const { return isValue() && getValue().is_editing; }
+    int    getHeight() const { return height + (isEditing() ? 40 : 0); }
+    ImVec2 getSize() const { return ImVec2(width, getHeight()); }
 };
 
 struct TreeGridColumn {
@@ -51,6 +60,15 @@ struct TreeGridRow {
         TreeGridRow,
         (columns, origin, flatIdx, nested, isVisible, isOpen));
 
+    bool isEditing() const {
+        return rs::any_of(columns, [](auto const& arg) -> bool {
+            return arg.second.isEditing();
+        });
+    }
+
+
+    bool isShowingNested() const { return !nested.empty() && isOpen; }
+
     Vec<int> getOriginPath() const {
         Vec<int> idx;
         for (auto const& step : origin.flatPath().path) {
@@ -59,41 +77,77 @@ struct TreeGridRow {
         return idx;
     }
 
-    Vec<TreeGridRow*> flatThisNested(bool withInvisible) {
-        Vec<TreeGridRow*> result;
-        if (withInvisible || isVisible) {
-            result.push_back(this);
-            for (auto& sub : nested) {
-                result.append(sub.flatThisNested(withInvisible));
-            }
-        }
+    Vec<TreeGridRow*> flatThisNested(bool withInvisible);
 
-        return result;
+    int      getHeightDirect(int padding = 0) const;
+    Opt<int> getHeight(int padding = 0) const;
+    int      getHeightRecDirect(int padding = 0) const;
+    Opt<int> getHeightRec(int padding = 0) const;
+
+    TreeGridRow* getLastLeaf() {
+        if (nested.empty()) {
+            return this;
+        } else {
+            return nested.back().getLastLeaf();
+        }
     }
 
-    Opt<int> getHeight(int padding = 0) const;
-
-    Opt<int> getHeightRec(int padding = 0) const;
+    TreeGridRow const* getLastLeaf() const {
+        if (nested.empty()) {
+            return this;
+        } else {
+            return nested.back().getLastLeaf();
+        }
+    }
 };
 
 struct TreeGridDocument {
     Vec<TreeGridRow>    rows;
-    Vec<int>            rowPositions;
     Vec<TreeGridColumn> columns;
+    int                 rowPadding        = 6;
+    int                 colPadding        = 6;
+    int                 treeFoldWidth     = 120;
+    int                 tableHeaderHeight = 16;
+    Vec<int>            rowPositions;
+    Vec<int>            colPositions;
 
     UnorderedMap<org::ImmUniqId, int> rowOrigins;
 
-    TreeGridColumn& getColumn(CR<Str> name) {
+    void resetGridStatics();
+
+    int getRowYPos(TreeGridRow const& r) { return getRowYPos(r.flatIdx); }
+    int getRowYPos(int index) { return rowPositions.at(index); }
+
+    int getColumnXPos(CR<Str> name) {
+        return colPositions.at(getColumnIndex(name));
+    }
+
+    TreeGridCell& getExistingCell(int row, CR<Str> column) {
+        return flatRows(true).at(row)->columns.at(column);
+    }
+
+
+    ImVec2 getCellPos(int row, CR<Str> column) {
+        return ImVec2(getColumnXPos(column), getRowYPos(row));
+    }
+
+    ImVec2 getSize() const { return ImVec2(getWidth(), getHeight()); }
+
+    int getColumnIndex(CR<Str> name) {
         auto iter = rs::find_if(
             columns, [&](TreeGridColumn const& col) -> bool {
                 return col.name == name;
             });
         if (iter == columns.end()) {
             columns.push_back(TreeGridColumn{.name = name});
-            return columns.back();
+            return columns.high();
         } else {
-            return *iter;
+            return std::distance(columns.begin(), iter);
         }
+    }
+
+    TreeGridColumn& getColumn(CR<Str> name) {
+        return columns.at(getColumnIndex(name));
     }
 
     Vec<TreeGridRow*> flatRows(bool withInvisible) {
@@ -130,20 +184,13 @@ struct TreeGridDocument {
         return rowPositions.at(rowOrigins.at(id));
     }
 
-    int getHeight(int padding = 0) const {
-        int res = 0;
-        for (auto const& row : rows) {
-            res += row.getHeightRec(padding).value_or(0);
-        }
-        return res;
+    int getHeight() const {
+        return rowPositions.back()
+             + rows.back().getLastLeaf()->getHeight().value_or(0);
     }
 
-    int getWidth(int padding = 0) const {
-        int tableWidth = 0;
-        for (auto const& col : columns) {
-            tableWidth += col.width + padding;
-        }
-        return tableWidth;
+    int getWidth() const {
+        return colPositions.back() + columns.back().width;
     }
 
     Opt<int> getRowCenterOffset(int rowIdx) const {
@@ -161,9 +208,9 @@ struct TreeGridDocument {
 struct StoryGridNode {
     struct TreeGrid {
         ImVec2           pos;
-        ImVec2           size;
         TreeGridDocument node;
-        DESC_FIELDS(TreeGrid, (node, pos, size));
+        DESC_FIELDS(TreeGrid, (node, pos));
+        ImVec2 getSize() const { return node.getSize(); }
     };
 
     struct LinkList {
@@ -177,7 +224,8 @@ struct StoryGridNode {
         Vec<Item> items;
         ImVec2    pos;
         ImVec2    size;
-        bool      isSelected = false;
+        bool      isSelected           = false;
+        int       imguiTableRowPadding = 5;
         DESC_FIELDS(LinkList, (items, pos, size, isSelected));
 
         int getRow(org::ImmUniqId const& row) const {
@@ -204,10 +252,12 @@ struct StoryGridNode {
             return getRowOffset(row) + items.at(row).height / 2.0f;
         }
 
-        int getHeight(int rowPadding) const {
+        ImVec2 getSize() const { return ImVec2(getWidth(), getHeight()); }
+
+        int getHeight() const {
             int result = 0;
             for (auto const& item : items) {
-                result += rowPadding + item.height;
+                result += imguiTableRowPadding + item.height;
             }
             return result;
         }
@@ -222,10 +272,25 @@ struct StoryGridNode {
     struct Text {
         ImVec2          pos;
         ImVec2          size;
-        org::ImmAdapter node;
+        org::ImmAdapter origin;
         std::string     text;
-        DESC_FIELDS(Text, (node, pos, size));
+        std::string     edit_buffer;
+        bool            edit = false;
+        DESC_FIELDS(Text, (origin, pos, size, edit));
+        ImVec2 getSize() const {
+            return ImVec2(size.x, size.y + (edit ? 40 : 0));
+        }
     };
+
+    ImVec2 getSize() const {
+        return std::visit(
+            overloaded{
+                [](LinkList const& l) -> ImVec2 { return l.getSize(); },
+                [](TreeGrid const& t) -> ImVec2 { return t.getSize(); },
+                [](Text const& t) -> ImVec2 { return t.getSize(); },
+            },
+            data);
+    }
 
 
     SUB_VARIANTS(Kind, Data, data, getKind, TreeGrid, Text, LinkList);
@@ -270,7 +335,7 @@ struct StoryGridGraph {
 
     DESC_FIELDS(
         StoryGridGraph,
-        (nodes, ir, gridNodeToNode, nodeToGridNode));
+        (nodes, ir, gridNodeToNode, nodeToGridNode, graph, partition));
 
     void addIrNode(int flatIdx, LaneNodePos const& irNode) {
         gridNodeToNode.insert_or_assign(flatIdx, irNode);
@@ -293,27 +358,18 @@ struct StoryGridGraph {
         return nodeToGridNode.at(node);
     }
 
-    int addNode(int lane, ImVec2 const& size, StoryGridNode const& node) {
+    int addNode(
+        int                         lane,
+        ImVec2 const&               size,
+        StoryGridNode const&        node,
+        LaneBlockGraphConfig const& conf) {
         nodes.push_back(node);
-        auto rootRect = ir.addNode(0, size);
+        auto rootRect = ir.addNode(0, size, conf);
         addIrNode(nodes.high(), rootRect);
         return nodes.high();
     }
 };
 
-struct StoryGridContext
-    : OperationsTracer
-    , OperationsScope {
-
-    DESC_FIELDS(StoryGridContext, ());
-    bool annotated;
-
-    void message(
-        std::string const& value,
-        int                line     = __builtin_LINE(),
-        char const*        function = __builtin_FUNCTION(),
-        char const*        file     = __builtin_FILE()) const;
-};
 
 struct GridAction {
     struct EditCell {
@@ -326,6 +382,23 @@ struct GridAction {
         ImVec2 pos;
         float  direction;
         DESC_FIELDS(Scroll, (pos, direction));
+    };
+
+    struct EditCellChanged {
+        TreeGridCell cell;
+        int          documentNodeIdx;
+        DESC_FIELDS(EditCellChanged, (cell, documentNodeIdx));
+    };
+
+    struct EditNodeText {
+        LaneNodePos pos;
+        std::string updated;
+        DESC_FIELDS(EditNodeText, (pos, updated));
+    };
+
+    struct EditNodeChanged {
+        LaneNodePos pos;
+        DESC_FIELDS(EditNodeChanged, (pos));
     };
 
     struct LinkListClick {
@@ -347,10 +420,82 @@ struct GridAction {
         EditCell,
         Scroll,
         LinkListClick,
-        RowFolding);
+        RowFolding,
+        EditCellChanged,
+        EditNodeChanged,
+        EditNodeText);
 
     Data data;
     DESC_FIELDS(GridAction, (data));
+};
+
+/// \brief All the configuration parameters for rendering the story grid,
+/// static variables that change the logic of the render, data model
+/// updates etc., but are not change-able from within the UI part of the
+/// application.
+struct StoryGridConfig {
+    struct StoryGridColumnConfig {
+        Opt<int>                      width;
+        Opt<TreeGridColumn::EditMode> edit;
+        Str                           name;
+        DESC_FIELDS(StoryGridColumnConfig, (width, edit, name));
+    };
+
+    Vec<StoryGridColumnConfig> defaultColumns;
+    LaneBlockGraphConfig       blockGraphConf;
+
+    ImU32  foldCellHoverBackground = IM_COL32(0, 255, 255, 255);
+    ImU32  foldCellBackground      = IM_COL32(255, 0, 0, 128);
+    ImU32  annotationNodeWindowBg  = IM_COL32(128, 128, 128, 128);
+    bool   annotated               = true;
+    int    pageUpScrollStep        = 20;
+    int    pageDownScrollStep      = -20;
+    int    mouseScrollMultiplier   = 10;
+    int    annotationNodeWidth     = 200;
+    int    laneRowPadding          = 6;
+    ImVec2 gridViewport;
+
+
+    DESC_FIELDS(
+        StoryGridConfig,
+        (defaultColumns,
+         foldCellHoverBackground,
+         foldCellBackground,
+         blockGraphConf,
+         annotated,
+         pageUpScrollStep,
+         pageDownScrollStep,
+         mouseScrollMultiplier,
+         annotationNodeWidth,
+         laneRowPadding,
+         gridViewport));
+};
+
+/// \brief Highly mutable context variable that is passed to all rendering
+/// elements to collect actions.
+struct StoryGridContext
+    : OperationsTracer
+    , OperationsScope {
+
+    DESC_FIELDS(StoryGridContext, (actions));
+
+    Vec<GridAction> actions;
+
+    void action(
+        GridAction::Data const& act,
+        int                     line     = __builtin_LINE(),
+        char const*             function = __builtin_FUNCTION(),
+        char const*             file     = __builtin_FILE()) {
+        GridAction ga{act};
+        message(fmt("Action {}", ga), line, function, file);
+        actions.push_back({ga});
+    }
+
+    void message(
+        std::string const& value,
+        int                line     = __builtin_LINE(),
+        char const*        function = __builtin_FUNCTION(),
+        char const*        file     = __builtin_FILE()) const;
 };
 
 struct StoryGridHistory {
@@ -365,24 +510,36 @@ struct StoryGridState {
 
 struct StoryGridModel {
     DECL_DESCRIBED_ENUM(UpdateNeeded, LinkListClick, Scroll, Graph);
-    Vec<StoryGridHistory>      history;
-    StoryGridGraph             rectGraph;
-    StoryGridContext           conf;
-    GraphLayoutIR::Result      layout;
-    ImVec2                     shift{20, 20};
-    Opt<ColaConstraintDebug>   debug;
-    void                       updateDocument();
-    Vec<Slice<int>>            laneSpans;
-    Vec<float>                 laneOffsets;
-    StoryGridHistory&          getLastHistory() { return history.back(); }
-    void                       apply(GridAction const& act);
+    Vec<StoryGridHistory>    history;
+    StoryGridGraph           rectGraph;
+    StoryGridContext         ctx;
+    GraphLayoutIR::Result    layout;
+    ImVec2                   shift{};
+    Opt<ColaConstraintDebug> debug;
+    StoryGridHistory&        getLastHistory() { return history.back(); }
+    void apply(GridAction const& act, StoryGridConfig const& style);
+
+    void updateDocument(
+        const TreeGridDocument& init_doc,
+        const StoryGridConfig&  conf);
     UnorderedSet<UpdateNeeded> updateNeeded;
     StoryGridState             state;
 };
 
 
 Opt<json> story_grid_loop(
-    GLFWwindow*        window,
-    std::string const& file,
-    bool               annotated,
-    Opt<json> const&   in_state);
+    GLFWwindow*            window,
+    std::string const&     file,
+    Opt<json> const&       in_state,
+    const StoryGridConfig& conf);
+
+void run_story_grid_annotated_cycle(
+    StoryGridModel&        model,
+    const StoryGridConfig& conf);
+void run_story_grid_cycle(
+    StoryGridModel&        model,
+    StoryGridConfig const& conf);
+void apply_story_grid_changes(
+    StoryGridModel&         model,
+    TreeGridDocument const& init_doc,
+    const StoryGridConfig&  conf);
