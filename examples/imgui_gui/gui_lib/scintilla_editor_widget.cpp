@@ -571,11 +571,23 @@ class SurfaceImpl : public Scintilla::Internal::Surface {
     virtual XYPOSITION InternalLeading(const Font *font_) override  { return 0; }
     virtual XYPOSITION Height(const Font *font_) override  {  abort(); }
 
-    virtual void SetClip(PRectangle rc) override { message(fmt("Set clip {}", rc)); }
-    virtual void PopClip() override  { message(fmt("Pop clip")); }
     virtual void FlushCachedState() override  { }
     virtual void FlushDrawing() override  { }
     // clang-format on
+
+
+    virtual void SetClip(PRectangle rc) override {
+        message(fmt("Set clip {}", rc));
+        DrawList()->PushClipRect(
+            GetPos() + ImVec2(rc.left, rc.top),
+            GetPos() + ImVec2(rc.right, rc.bottom),
+            true);
+    }
+
+    virtual void PopClip() override {
+        message(fmt("Pop clip"));
+        DrawList()->PopClipRect();
+    }
 
     virtual void FillRectangle(PRectangle rc, Surface& surfacePattern)
         override {
