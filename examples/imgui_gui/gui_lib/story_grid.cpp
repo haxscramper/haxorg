@@ -51,6 +51,10 @@ DECL_DESCRIBED_ENUM_STANDALONE(
     StartedEditing,
     CancelledEditing);
 
+#define SGR_LOG_ROOT(__cat, __severity)                                   \
+    ::org_logging::log_builder{}.set_callsite().category(__cat).severity( \
+        __severity)
+
 EditableTextResult render_editable_text(
     std::string&             value,
     std::string&             edit_buffer,

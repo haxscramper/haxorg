@@ -301,6 +301,27 @@ log_builder::Finalizer log_builder_get_mutable_finalizer_filter_unique_records(
         log_builder_get_mutable_finalizer_filter_unique_records<          \
             __COUNTER__>(__reset)
 
+template <int Unique>
+log_builder::Finalizer log_builder_get_mutable_finalizer_filter_changed_value(
+    bool reset = false) {
+    return log_builder_get_mutable_finalizer_filter<Unique>(
+        [last_state = std::size_t{}](log_builder const& rec) mutable {
+            auto h = rec.hash();
+            if (h == last_state) {
+                return false;
+            } else {
+                last_state = h;
+                return true;
+            }
+        },
+        reset);
+}
+
+#define OLOG_CHANGED_VALUE_FILTER_FINALIZER(__reset)                      \
+    ::org_logging::                                                       \
+        log_builder_get_mutable_finalizer_filter_changed_value<           \
+            __COUNTER__>(__reset)
+
 bool is_log_accepted(Str const& category, severity_level level);
 
 } // namespace org_logging

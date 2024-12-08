@@ -282,7 +282,7 @@ some random shit about the comments or whatever, need to render as annotation [f
                 IM_CTX_ACT(KeyChars, "TYPE\n\n");
                 IM_CTX_ACT(
                     MouseMoveToPos, ImGui::GetMousePos() + ImVec2(0, 100));
-                // ctx->SuspendTestFunc();
+                ctx->SuspendTestFunc();
                 IM_CTX_ACT(MouseClick, 0);
                 IM_CTX_ACT(Yield, 5);
                 IM_CHECK_BINARY_PRED(
