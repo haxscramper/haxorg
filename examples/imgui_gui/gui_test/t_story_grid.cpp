@@ -36,9 +36,10 @@ struct JsonSerde<ReflPathItem<Tag>> {
 };
 
 struct StoryGridVars : public ImTestVarsBase {
-    StoryGridModel     model;
-    org::ImmAstContext start;
-    StoryGridConfig    conf;
+    StoryGridModel                   model;
+    org::ImmAstContext               start;
+    StoryGridConfig                  conf;
+    Vec<org_logging::log_sink_scope> debug_scopes;
 
     void add_text(std::string const& text) {
         model.history.push_back(StoryGridHistory{
@@ -177,6 +178,12 @@ void _FootnoteAnnotation(ImGuiTestEngine* e) {
         params, [params](ImGuiTestContext* ctx, StoryGridVars& vars) {
             if (ctx->IsFirstGuiFrame()) {
                 vars.conf.gridViewport = params.windowSize;
+                vars.debug_scopes.emplace_back(
+                    OLOG_SINK_FACTORY_SCOPED([ctx]() {
+                        auto scoped = ::org_logging::init_file_sink(
+                            getDebugFile(ctx->Test, "scintilla_sink"));
+                        return scoped;
+                    }));
             }
             vars.init_section(ctx, R"(
 * Subtree entry without any annotations

@@ -40,7 +40,11 @@ namespace expr     = boost::log::expressions;
 namespace keywords = boost::log::keywords;
 namespace sinks    = boost::log::sinks;
 
-BOOST_LOG_ATTRIBUTE_KEYWORD(a_file, "record", org_logging::log_record)
+#define LOG_RECORD_FIELD "record"
+BOOST_LOG_ATTRIBUTE_KEYWORD(
+    a_file,
+    LOG_RECORD_FIELD,
+    org_logging::log_record)
 
 using namespace org_logging;
 
@@ -148,7 +152,7 @@ sink_ptr org_logging::init_file_sink(Str const& log_file_name) {
     sink->set_formatter([](const boost::log::record_view&  rec,
                            boost::log::formatting_ostream& strm) {
         log_record::log_data const& data //
-            = boost::log::extract<log_record>("record", rec)->data;
+            = boost::log::extract<log_record>(LOG_RECORD_FIELD, rec)->data;
 
         strm << join(".", data.source_scope);
         strm << " ";
@@ -307,7 +311,7 @@ void org_logging::log_record::end() {
         "Failed to create log record with data level {}",
         data.severity);
     auto pump = ::boost::log::aux::make_record_pump(get_logger(), rec_var);
-    pump.stream() << logging::add_value("record", *this);
+    pump.stream() << logging::add_value(LOG_RECORD_FIELD, *this);
 }
 
 bool ::org_logging::is_log_accepted(
@@ -324,4 +328,31 @@ bool ::org_logging::is_log_accepted(
             rec.end();
         }
     }
+}
+
+void org_logging::set_sink_filter(
+    sink_ptr                      sink,
+    Func<bool(const log_record&)> filter) {
+    sink->set_filter([filter](const logging::attribute_value_set& attrs) {
+        return filter(*attrs[LOG_RECORD_FIELD].extract<log_record>());
+    });
+}
+
+Opt<sink_ptr> org_logging::get_last_sink() {
+    auto const& stack = log_sink_manager::instance().get_sinks();
+    if (stack.empty()) {
+        return std::nullopt;
+    } else {
+        return stack.top();
+    }
+}
+
+void org_logging::set_sink_filter_source_scope(
+    sink_ptr             sink,
+    const Vec<Vec<Str>>& source_scopes) {
+    UnorderedSet<Vec<Str>> scopes;
+    for (auto const& s : source_scopes) { scopes.incl(s); }
+    set_sink_filter(sink, [scopes](log_record const& rec) -> bool {
+        return scopes.contains(rec.data.source_scope);
+    });
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <boost/log/sinks/basic_sink_frontend.hpp>
 #include <boost/preprocessor.hpp>
 #include <hstd/stdlib/Func.hpp>
 #include <hstd/stdlib/Json.hpp>
@@ -35,12 +36,14 @@ BOOST_DESCRIBE_ENUM(
     fatal);
 
 
-using sink_ptr = boost::shared_ptr<boost::log::sinks::sink>;
+using sink_ptr = boost::shared_ptr<boost::log::sinks::basic_sink_frontend>;
 
 class log_sink_scope {
   public:
     log_sink_scope();
     ~log_sink_scope();
+    log_sink_scope(log_sink_scope const&)            = delete;
+    log_sink_scope& operator=(log_sink_scope const&) = delete;
 
     log_sink_scope& drop_current_sinks();
 
@@ -58,8 +61,11 @@ sink_ptr log_sink_mutable_factory(Generator&& gen) {
 #define OLOG_SINK_FACTORY(impl)                                           \
     ::org_logging::log_sink_mutable_factory<__COUNTER__>(impl)
 
-sink_ptr init_file_sink(Str const& log_file_name);
-void     push_sink(sink_ptr const& sink);
+sink_ptr      init_file_sink(Str const& log_file_name);
+void          push_sink(sink_ptr const& sink);
+Opt<sink_ptr> get_last_sink();
+Vec<sink_ptr> get_sink_list();
+
 
 #define OLOG_SINK_FACTORY_SCOPED(impl)                                    \
     ::org_logging::log_sink_scoped_factory<__COUNTER__>(impl)
@@ -143,6 +149,11 @@ struct log_record {
     void end();
     DESC_FIELDS(log_record, (data));
 };
+
+void set_sink_filter(sink_ptr, Func<bool(log_record const&)> filter);
+void set_sink_filter_source_scope(
+    sink_ptr             sink,
+    Vec<Vec<Str>> const& source_scopes);
 
 struct log_builder {
     using Finalizer        = Func<void(log_builder&)>;
