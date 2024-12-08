@@ -121,7 +121,9 @@ org_logging::log_sink_scope::log_sink_scope()
     : previous_sinks_(log_sink_manager::instance().get_sinks()) {}
 
 org_logging::log_sink_scope::~log_sink_scope() {
-    log_sink_manager::instance().set_sinks(previous_sinks_);
+    if (!moved) {
+        log_sink_manager::instance().set_sinks(previous_sinks_);
+    }
 }
 
 log_sink_scope& log_sink_scope::drop_current_sinks() {
@@ -133,6 +135,23 @@ log_sink_scope& log_sink_scope::drop_current_sinks() {
 void org_logging::clear_sink_backends() {
     log_sink_manager::instance().set_sinks({});
 }
+
+namespace {
+void format_log_record_data(
+    boost::log::formatting_ostream& strm,
+    log_record::log_data const&     data) {
+    strm << join(".", data.source_scope);
+    strm << " ";
+    strm << Str{"  "}.repeated(data.depth).toBase();
+    strm << data.message;
+
+    if (data.metadata) { strm << " " << data.metadata->dump(-1); }
+
+    if (data.file) {
+        strm << " " << fs::path{data.file}.filename() << ":" << data.line;
+    }
+}
+} // namespace
 
 sink_ptr org_logging::init_file_sink(Str const& log_file_name) {
 
@@ -151,20 +170,8 @@ sink_ptr org_logging::init_file_sink(Str const& log_file_name) {
 
     sink->set_formatter([](const boost::log::record_view&  rec,
                            boost::log::formatting_ostream& strm) {
-        log_record::log_data const& data //
-            = boost::log::extract<log_record>(LOG_RECORD_FIELD, rec)->data;
-
-        strm << join(".", data.source_scope);
-        strm << " ";
-        strm << Str{"  "}.repeated(data.depth).toBase();
-        strm << data.message;
-
-        if (data.metadata) { strm << " " << data.metadata->dump(-1); }
-
-        if (data.file) {
-            strm << " " << fs::path{data.file}.filename() << ":"
-                 << data.line;
-        }
+        format_log_record_data(
+            strm, rec[LOG_RECORD_FIELD].extract<log_record>()->data);
     });
 
     return sink;
@@ -310,25 +317,13 @@ void org_logging::log_record::end() {
         !!rec_var,
         "Failed to create log record with data level {}",
         data.severity);
+    rec_var.attribute_values().insert(
+        LOG_RECORD_FIELD,
+        boost::log::attributes::make_attribute_value(*this));
+
     auto pump = ::boost::log::aux::make_record_pump(get_logger(), rec_var);
-    pump.stream() << logging::add_value(LOG_RECORD_FIELD, *this);
 }
 
-bool ::org_logging::is_log_accepted(
-    const Str&     category,
-    severity_level level) {
-    return true;
-}
-
-::org_logging::log_builder::~log_builder() {
-    if (!is_released) {
-        if (finalizer) {
-            finalizer(*this);
-        } else {
-            rec.end();
-        }
-    }
-}
 
 template <>
 struct std::formatter<boost::log::attribute_name>
@@ -350,25 +345,48 @@ struct std::formatter<boost::log::attribute_value>
     }
 };
 
-void org_logging::set_sink_filter(
+
+sink_ptr org_logging::set_sink_filter(
     sink_ptr                      sink,
     Func<bool(const log_record&)> filter) {
     sink->set_filter([filter](const logging::attribute_value_set& attrs) {
         auto rec = attrs[LOG_RECORD_FIELD].extract<log_record>();
+
+        LOG(INFO) << "//?";
+        for (auto const& [key, value] : attrs) {
+            LOG(INFO) << fmt("key:{} value:{}", key, value);
+        }
+
         if (!!rec) {
             return filter(*rec);
         } else {
             return true;
         }
-        // for (auto const& [key, value] : attrs) {
-        //     LOG(INFO) << fmt("key:{} value:{}", key, value);
-        // }
+
         // LOGIC_ASSERTION_CHECK(
         //     !!rec,
         //     "Logging attribute record set does not have a 'record'
         //     field");
     });
+    return sink;
 }
+
+bool ::org_logging::is_log_accepted(
+    const Str&     category,
+    severity_level level) {
+    return true;
+}
+
+::org_logging::log_builder::~log_builder() {
+    if (!is_released) {
+        if (finalizer) {
+            finalizer(*this);
+        } else {
+            rec.end();
+        }
+    }
+}
+
 
 Opt<sink_ptr> org_logging::get_last_sink() {
     auto const& stack = log_sink_manager::instance().get_sinks();
@@ -377,14 +395,4 @@ Opt<sink_ptr> org_logging::get_last_sink() {
     } else {
         return stack.top();
     }
-}
-
-void org_logging::set_sink_filter_source_scope(
-    sink_ptr             sink,
-    const Vec<Vec<Str>>& source_scopes) {
-    UnorderedSet<Vec<Str>> scopes;
-    for (auto const& s : source_scopes) { scopes.incl(s); }
-    set_sink_filter(sink, [scopes](log_record const& rec) -> bool {
-        return scopes.contains(rec.data.source_scope);
-    });
 }

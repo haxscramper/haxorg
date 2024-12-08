@@ -42,14 +42,24 @@ class log_sink_scope {
   public:
     log_sink_scope();
     ~log_sink_scope();
-    log_sink_scope(log_sink_scope const&)                = delete;
-    log_sink_scope& operator=(log_sink_scope const&)     = delete;
-    log_sink_scope(log_sink_scope&&) noexcept            = default;
-    log_sink_scope& operator=(log_sink_scope&&) noexcept = default;
+    log_sink_scope(log_sink_scope const&)            = delete;
+    log_sink_scope& operator=(log_sink_scope const&) = delete;
+
+    log_sink_scope(log_sink_scope&& other) noexcept {
+        other.moved           = true;
+        this->previous_sinks_ = std::move(other.previous_sinks_);
+    };
+
+    log_sink_scope& operator=(log_sink_scope&& other) noexcept {
+        other.moved           = true;
+        this->previous_sinks_ = std::move(other.previous_sinks_);
+        return *this;
+    };
 
     log_sink_scope& drop_current_sinks();
 
   private:
+    bool                 moved = false;
     std::stack<sink_ptr> previous_sinks_;
 };
 
@@ -68,17 +78,6 @@ void          push_sink(sink_ptr const& sink);
 Opt<sink_ptr> get_last_sink();
 Vec<sink_ptr> get_sink_list();
 
-
-#define OLOG_SINK_FACTORY_SCOPED(impl)                                    \
-    ::org_logging::log_sink_scoped_factory<__COUNTER__>(impl)
-
-template <int Unique, typename Generator>
-log_sink_scope log_sink_scoped_factory(Generator&& gen) {
-    sink_ptr       sink = log_sink_mutable_factory<Unique>(std::move(gen));
-    log_sink_scope scope;
-    push_sink(sink);
-    return std::move(scope);
-}
 
 /// \brief remove all sink backends from the logger
 void clear_sink_backends();
@@ -152,10 +151,22 @@ struct log_record {
     DESC_FIELDS(log_record, (data));
 };
 
-void set_sink_filter(sink_ptr, Func<bool(log_record const&)> filter);
-void set_sink_filter_source_scope(
-    sink_ptr             sink,
-    Vec<Vec<Str>> const& source_scopes);
+using log_filter_cb = Func<bool(log_record const&)>;
+
+sink_ptr set_sink_filter(sink_ptr, log_filter_cb filter);
+
+
+#define OLOG_SINK_FACTORY_SCOPED(generator)                               \
+    ::org_logging::log_sink_scoped_factory<__COUNTER__>(generator)
+
+template <int Unique, typename Generator>
+log_sink_scope log_sink_scoped_factory(Generator&& gen) {
+    sink_ptr       sink = log_sink_mutable_factory<Unique>(std::move(gen));
+    log_sink_scope scope;
+    push_sink(sink);
+    return std::move(scope);
+}
+
 
 struct log_builder {
     using Finalizer        = Func<void(log_builder&)>;

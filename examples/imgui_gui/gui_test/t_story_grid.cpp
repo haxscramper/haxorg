@@ -180,10 +180,9 @@ void _FootnoteAnnotation(ImGuiTestEngine* e) {
                 vars.conf.gridViewport = params.windowSize;
                 vars.debug_scopes.emplace_back(
                     OLOG_SINK_FACTORY_SCOPED([ctx]() {
-                        auto scoped = ::org_logging::init_file_sink(
-                            getDebugFile(ctx->Test, "scintilla_sink.log"));
-                        ::org_logging::set_sink_filter(
-                            org_logging::get_last_sink().value(),
+                        return org_logging::set_sink_filter(
+                            ::org_logging::init_file_sink(getDebugFile(
+                                ctx->Test, "scintilla_sink.log")),
                             [](org_logging::log_record const& rec)
                                 -> bool {
                                 return rec.data.category == "surface"
@@ -193,7 +192,6 @@ void _FootnoteAnnotation(ImGuiTestEngine* e) {
                                                "widget",
                                                "scintilla_editor"};
                             });
-                        return scoped;
                     }));
             }
             vars.init_section(ctx, R"(
