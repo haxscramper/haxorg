@@ -23,6 +23,9 @@
 #include <stack>
 #include <mutex>
 #include <hstd/stdlib/Opt.hpp>
+#include <boost/thread/shared_mutex.hpp>
+#include <boost/thread/locks.hpp>
+
 
 BOOST_LOG_GLOBAL_LOGGER(
     global_logger,
@@ -46,7 +49,32 @@ BOOST_LOG_ATTRIBUTE_KEYWORD(
     LOG_RECORD_FIELD,
     org_logging::log_record)
 
+typedef boost::log::attributes::mutable_constant<
+    org_logging::log_record,                 // attribute value type
+    boost::shared_mutex,                     // synchronization primitive
+    boost::unique_lock<boost::shared_mutex>, // exclusive lock type
+    boost::shared_lock<boost::shared_mutex>  // shared lock type
+    >
+    log_record_mutable_constant;
+
 using namespace org_logging;
+
+namespace {
+log_record_mutable_constant current_record{log_record{}};
+}
+
+BOOST_LOG_GLOBAL_LOGGER_INIT(
+    global_logger,
+    boost::log::sources::severity_logger_mt<LogLevel>) {
+    static boost::log::sources::severity_logger_mt<
+        boost::log::trivial::severity_level>
+        logger;
+    logger.add_attribute(
+        "TimeStamp", boost::log::attributes::local_clock());
+    boost::log::add_common_attributes();
+    logger.add_attribute(LOG_RECORD_FIELD, current_record);
+    return logger;
+}
 
 #define OLOG_INNER_DEBUG true
 
@@ -170,8 +198,9 @@ sink_ptr org_logging::init_file_sink(Str const& log_file_name) {
 
     sink->set_formatter([](const boost::log::record_view&  rec,
                            boost::log::formatting_ostream& strm) {
-        format_log_record_data(
-            strm, rec[LOG_RECORD_FIELD].extract<log_record>()->data);
+        auto ref = rec[LOG_RECORD_FIELD].extract<log_record>();
+        LOGIC_ASSERTION_CHECK(!!ref, "Log record view missing data");
+        format_log_record_data(strm, ref->data);
     });
 
     return sink;
@@ -181,17 +210,6 @@ void org_logging::push_sink(sink_ptr const& sink) {
     log_sink_manager::instance().push_sink(sink);
 }
 
-BOOST_LOG_GLOBAL_LOGGER_INIT(
-    global_logger,
-    boost::log::sources::severity_logger_mt<LogLevel>) {
-    static boost::log::sources::severity_logger_mt<
-        boost::log::trivial::severity_level>
-        logger;
-    logger.add_attribute(
-        "TimeStamp", boost::log::attributes::local_clock());
-    boost::log::add_common_attributes();
-    return logger;
-}
 
 logger_type& get_logger() { return global_logger::get(); }
 
@@ -311,17 +329,16 @@ record_type start_log_record(boost::log::trivial::severity_level level) {
 } // namespace
 
 void org_logging::log_record::end() {
+    // current record is global, but synced, and all record attributes are
+    // evaluated when record is opened.
+    current_record.set(*this);
     ::boost::log::record rec_var = start_log_record(
         static_cast<boost::log::trivial::severity_level>(data.severity));
-    LOGIC_ASSERTION_CHECK(
-        !!rec_var,
-        "Failed to create log record with data level {}",
-        data.severity);
-    rec_var.attribute_values().insert(
-        LOG_RECORD_FIELD,
-        boost::log::attributes::make_attribute_value(*this));
-
-    auto pump = ::boost::log::aux::make_record_pump(get_logger(), rec_var);
+    // if the record did not pass filtering, it will return empty, and
+    // should not be submitted.
+    if (!!rec_var) {
+        logging::core::get()->push_record(std::move(rec_var));
+    }
 }
 
 
@@ -352,21 +369,20 @@ sink_ptr org_logging::set_sink_filter(
     sink->set_filter([filter](const logging::attribute_value_set& attrs) {
         auto rec = attrs[LOG_RECORD_FIELD].extract<log_record>();
 
-        LOG(INFO) << "//?";
-        for (auto const& [key, value] : attrs) {
-            LOG(INFO) << fmt("key:{} value:{}", key, value);
-        }
+        LOGIC_ASSERTION_CHECK(
+            !!rec,
+            "Logging attribute record set does not have a 'record' field");
 
         if (!!rec) {
-            return filter(*rec);
+            try {
+                return filter(*rec);
+            } catch (...) {
+                LOG(INFO) << "????";
+                return true;
+            }
         } else {
             return true;
         }
-
-        // LOGIC_ASSERTION_CHECK(
-        //     !!rec,
-        //     "Logging attribute record set does not have a 'record'
-        //     field");
     });
     return sink;
 }
