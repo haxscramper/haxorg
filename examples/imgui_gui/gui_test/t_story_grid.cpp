@@ -181,7 +181,18 @@ void _FootnoteAnnotation(ImGuiTestEngine* e) {
                 vars.debug_scopes.emplace_back(
                     OLOG_SINK_FACTORY_SCOPED([ctx]() {
                         auto scoped = ::org_logging::init_file_sink(
-                            getDebugFile(ctx->Test, "scintilla_sink"));
+                            getDebugFile(ctx->Test, "scintilla_sink.log"));
+                        ::org_logging::set_sink_filter(
+                            org_logging::get_last_sink().value(),
+                            [](org_logging::log_record const& rec)
+                                -> bool {
+                                return rec.data.category == "surface"
+                                    && rec.data.source_scope
+                                           == Vec<Str>{
+                                               "gui",
+                                               "widget",
+                                               "scintilla_editor"};
+                            });
                         return scoped;
                     }));
             }
@@ -273,13 +284,13 @@ some random shit about the comments or whatever, need to render as annotation [f
                 IM_CTX_ACT(KeyChars, "TYPE\n\n");
                 IM_CTX_ACT(
                     MouseMoveToPos, ImGui::GetMousePos() + ImVec2(0, 100));
-                ctx->SuspendTestFunc();
+                // ctx->SuspendTestFunc();
                 IM_CTX_ACT(MouseClick, 0);
                 IM_CTX_ACT(Yield, 5);
                 IM_CHECK_BINARY_PRED(
                     vars.get_text(), "TYPE", has_substring_normalized);
             }
-            ctx->SuspendTestFunc();
+            // ctx->SuspendTestFunc();
         });
 }
 

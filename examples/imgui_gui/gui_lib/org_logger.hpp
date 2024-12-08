@@ -42,8 +42,10 @@ class log_sink_scope {
   public:
     log_sink_scope();
     ~log_sink_scope();
-    log_sink_scope(log_sink_scope const&)            = delete;
-    log_sink_scope& operator=(log_sink_scope const&) = delete;
+    log_sink_scope(log_sink_scope const&)                = delete;
+    log_sink_scope& operator=(log_sink_scope const&)     = delete;
+    log_sink_scope(log_sink_scope&&) noexcept            = default;
+    log_sink_scope& operator=(log_sink_scope&&) noexcept = default;
 
     log_sink_scope& drop_current_sinks();
 
@@ -75,7 +77,7 @@ log_sink_scope log_sink_scoped_factory(Generator&& gen) {
     sink_ptr       sink = log_sink_mutable_factory<Unique>(std::move(gen));
     log_sink_scope scope;
     push_sink(sink);
-    return scope;
+    return std::move(scope);
 }
 
 /// \brief remove all sink backends from the logger

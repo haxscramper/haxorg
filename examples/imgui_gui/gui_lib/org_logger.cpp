@@ -330,11 +330,43 @@ bool ::org_logging::is_log_accepted(
     }
 }
 
+template <>
+struct std::formatter<boost::log::attribute_name>
+    : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const boost::log::attribute_name& p, FormatContext& ctx)
+        const {
+        return fmt_ctx(p.string(), ctx);
+    }
+};
+
+template <>
+struct std::formatter<boost::log::attribute_value>
+    : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const boost::log::attribute_value& p, FormatContext& ctx)
+        const {
+        return fmt_ctx(p.get_type().pretty_name(), ctx);
+    }
+};
+
 void org_logging::set_sink_filter(
     sink_ptr                      sink,
     Func<bool(const log_record&)> filter) {
     sink->set_filter([filter](const logging::attribute_value_set& attrs) {
-        return filter(*attrs[LOG_RECORD_FIELD].extract<log_record>());
+        auto rec = attrs[LOG_RECORD_FIELD].extract<log_record>();
+        if (!!rec) {
+            return filter(*rec);
+        } else {
+            return true;
+        }
+        // for (auto const& [key, value] : attrs) {
+        //     LOG(INFO) << fmt("key:{} value:{}", key, value);
+        // }
+        // LOGIC_ASSERTION_CHECK(
+        //     !!rec,
+        //     "Logging attribute record set does not have a 'record'
+        //     field");
     });
 }
 

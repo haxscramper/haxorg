@@ -70,6 +70,11 @@ using CharacterCategoryMap = Lexilla::CharacterCategoryMap;
     ::org_logging::log_builder{}.set_callsite().category(__cat).severity( \
         __severity)
 
+const Vec<Str> scintilla_logging_scope{
+    "gui",
+    "widget",
+    "scintilla_editor"};
+
 
 namespace Scintilla::Internal {
 BOOST_DESCRIBE_STRUCT(
@@ -519,7 +524,7 @@ class SurfaceImpl : public Scintilla::Internal::Surface {
             .category("surface")
             .severity(ol_trace)
             .message(msg)
-            .source_scope({"gui", "widget", "scintilla_editor"})
+            .source_scope(scintilla_logging_scope)
             .set_finalizer(OLOG_UNIQUE_VALUE_FILTER_FINALIZER(reset));
     }
 
@@ -703,7 +708,7 @@ std::shared_ptr<Font> Font::Allocate(const FontParameters& fp) {
     return ::org_logging::log_builder{}
         .category("edit")
         .severity(level)
-        .source_scope({"gui", "widget", "scintilla_editor"})
+        .source_scope(scintilla_logging_scope)
         .source_id(fmt("_{:p}", static_cast<void const*>(this)))
         .message(msg)
         .function(function)
