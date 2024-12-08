@@ -221,7 +221,7 @@ struct std::formatter<T[Size]> : std::formatter<std::string> {
 namespace ImGui {
 
 ScEditor* ScInputText(const char* label, const ImVec2& size) {
-    auto frameless_vars = push_frameless_window_vars();
+
 
     ImGuiID const id      = GetCurrentWindow()->GetID(label);
     ImGuiStorage* storage = GetStateStorage();
@@ -236,16 +236,9 @@ ScEditor* ScInputText(const char* label, const ImVec2& size) {
 
     editor->globalCursor = ImGui::GetCursorScreenPos();
     editor->windowCursor = ImGui::GetCursorPos();
-    // if (size.x != 0 && size.y != 0) {
-    //     render_debug_rect(size, 0, IM_COL32(255, 0, 0, 255));
-    // }
-
-    ImGui::BeginChild(
-        fmt("##{}_container", label).c_str(),
-        size,
-        false,
-        ImGuiWindowFlags_NoScrollbar);
-
+    if (size.x != 0 && size.y != 0) {
+        render_debug_rect(size, IM_COL32(0, 255, 0, 255));
+    }
 
     if (size.x == 0 || size.y == 0) {
         ImVec2 available = ImGui::GetContentRegionAvail();
@@ -254,8 +247,6 @@ ScEditor* ScInputText(const char* label, const ImVec2& size) {
         editor->Resize(size);
     }
 
-    ImGui::EndChild();
-    ImGui::PopStyleVar(frameless_vars);
     return editor;
 }
 

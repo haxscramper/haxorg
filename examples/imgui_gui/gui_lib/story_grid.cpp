@@ -60,7 +60,8 @@ EditableTextResult render_editable_text(
     std::string&             edit_buffer,
     bool&                    is_editing,
     ImVec2 const&            size,
-    TreeGridColumn::EditMode edit) {
+    TreeGridColumn::EditMode edit,
+    std::string const&       id) {
     auto __scope = IM_SCOPE_BEGIN(
         "Editable text",
         fmt("size:{} editing:{} buffer:{}",
@@ -68,35 +69,53 @@ EditableTextResult render_editable_text(
             is_editing,
             escape_literal(edit_buffer)));
 
-    auto cell_prefix = fmt("{:p}", static_cast<const void*>(value.data()));
+    auto cell_prefix = fmt("{}", id);
 
     auto get_editor = [&](const ImVec2& size) {
-        auto res = ImGui::ScInputText(c_fmt(
-            "sci_editor_{:p}", static_cast<const void*>(value.data())));
-        res->Resize(size);
+        render_debug_rect(size, IM_COL32(255, 0, 0, 255));
+        auto frameless_vars = push_frameless_window_vars();
+        ImGui::BeginChild(
+            fmt("##{}_container", id).c_str(),
+            size,
+            false,
+            ImGuiWindowFlags_NoScrollbar);
+
+        auto res = ImGui::ScInputText(c_fmt("sci_editor_{}", id));
+
+        ImGui::EndChild();
+        ImGui::PopStyleVar(frameless_vars);
         return res;
     };
 
+    auto get_log = [](int         line     = __builtin_LINE(),
+                      char const* function = __builtin_FUNCTION(),
+                      char const* file     = __builtin_FILE())
+        -> org_logging::log_builder {
+        return std::move(SGR_LOG_ROOT("text", ol_trace)
+                             .set_callsite(line, function, file));
+    };
+
     if (edit == TreeGridColumn::EditMode::Multiline) {
+
         if (is_editing) {
             auto this_size = size - ImVec2(0, 40);
-            render_debug_rect(this_size, IM_COL32(255, 0, 0, 255));
             auto ed = get_editor(this_size);
             ed->HandleInput();
             ed->Render();
             IM_FN_PRINT("Render done", "");
 
             if (IM_FN_EXPR(Button, "done")) {
+                get_log().message("Clicked 'done'");
                 value      = ed->GetText();
                 is_editing = false;
                 return EditableTextResult::Changed;
             } else if (ImGui::SameLine(); IM_FN_EXPR(Button, "cancel")) {
+                get_log().message("Clicked 'cancel'");
                 is_editing = false;
                 return EditableTextResult::CancelledEditing;
             } else {
                 return EditableTextResult::None;
             }
-
 
         } else {
             auto frameless_vars = push_frameless_window_vars();
@@ -167,14 +186,16 @@ EditableTextResult render_editable_text(
 EditableTextResult render_editable_cell(
     TreeGridCell&         cell,
     StoryGridContext&     ctx,
-    TreeGridColumn const& col) {
+    TreeGridColumn const& col,
+    std::string const&    id) {
     auto& val = cell.getValue();
     return render_editable_text(
         val.value,
         val.edit_buffer,
         val.is_editing,
         cell.getSize(),
-        col.edit);
+        col.edit,
+        id);
 }
 
 
@@ -194,7 +215,11 @@ void render_cell(
             cell.getSize(),
             ImGuiChildFlags_Borders,
             ImGuiWindowFlags_NoScrollbar)) {
-        auto res = render_editable_cell(cell, ctx, col);
+        auto res = render_editable_cell(
+            cell,
+            ctx,
+            col,
+            fmt("cell_{}_{}_{}", documentNodeIdx, row.flatIdx, col.name));
         switch (res) {
             case EditableTextResult::Changed: {
                 ctx.action(GridAction::EditCell{
@@ -351,7 +376,8 @@ void render_text_node(
             text.edit_buffer,
             text.edit,
             text.getSize(),
-            TreeGridColumn::EditMode::Multiline);
+            TreeGridColumn::EditMode::Multiline,
+            fmt("text_node_{}_{}", selfPos.row, selfPos.lane));
 
         if (res != EditableTextResult::None) {
             CTX_MSG(fmt("Text edit result {}", res));
@@ -385,7 +411,8 @@ void render_text_node(
 
 void render_list_node(
     StoryGridModel&          model,
-    StoryGridNode::LinkList& list) {
+    StoryGridNode::LinkList& list,
+    LaneNodePos const&       selfPos) {
     auto frameless_vars = push_frameless_window_vars();
     ImGui::SetNextWindowPos(list.pos + model.shift);
     ImGui::SetNextWindowSize(list.getSize());
@@ -424,7 +451,8 @@ void render_list_node(
                     item.text,
                     edit,
                     ImVec2(item.height, item.width),
-                    TreeGridColumn::EditMode::Multiline);
+                    TreeGridColumn::EditMode::Multiline,
+                    fmt("list_{}_{}", selfPos.row, selfPos.lane));
             }
             IM_FN_END(EndTable);
         }
@@ -526,7 +554,8 @@ void run_story_grid_annotated_cycle(
     StoryGridConfig const& conf) {
     __perf_trace("gui", "grid model render");
     for (int i = 0; i < model.rectGraph.nodes.size(); ++i) {
-        auto& node = model.rectGraph.nodes.at(i);
+        auto&       node    = model.rectGraph.nodes.at(i);
+        auto const& selfPos = model.rectGraph.gridNodeToNode.at(i);
         if (node.isVisible) {
             switch (node.getKind()) {
                 case StoryGridNode::Kind::TreeGrid: {
@@ -534,16 +563,12 @@ void run_story_grid_annotated_cycle(
                     break;
                 }
                 case StoryGridNode::Kind::Text: {
-                    render_text_node(
-                        model,
-                        node.getText(),
-                        model.rectGraph.gridNodeToNode.at(i),
-                        conf);
+                    render_text_node(model, node.getText(), selfPos, conf);
                     break;
                 }
                 case StoryGridNode::Kind::LinkList: {
 
-                    render_list_node(model, node.getLinkList());
+                    render_list_node(model, node.getLinkList(), selfPos);
                     break;
                 }
             }
