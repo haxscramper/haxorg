@@ -272,7 +272,7 @@ some random shit about the comments or whatever, need to render as annotation [f
                 IM_CTX_ACT(
                     MouseMoveToPos,
                     wpos + rg.getDocNode({1, 0}).getText().pos
-                        + ImVec2(5, 5));
+                        + ImVec2(0, 5));
                 IM_CTX_ACT(MouseClick, 0);
                 IM_CTX_ACT(MouseClick, 0);
 
@@ -282,9 +282,13 @@ some random shit about the comments or whatever, need to render as annotation [f
                 IM_CTX_ACT(KeyChars, "TYPE\n\n");
                 IM_CTX_ACT(
                     MouseMoveToPos, ImGui::GetMousePos() + ImVec2(0, 100));
+                m.ctx.message(fmt(
+                    "Pre edit text is\n'''\n{}\n'''", vars.get_text()));
                 // ctx->SuspendTestFunc();
                 IM_CTX_ACT(MouseClick, 0);
                 IM_CTX_ACT(Yield, 5);
+                m.ctx.message(fmt(
+                    "Post edit text is\n'''\n{}\n'''", vars.get_text()));
                 IM_CHECK_BINARY_PRED(
                     vars.get_text(), "TYPE", has_substring_normalized);
             }

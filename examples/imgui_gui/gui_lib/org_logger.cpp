@@ -168,15 +168,33 @@ namespace {
 void format_log_record_data(
     boost::log::formatting_ostream& strm,
     log_record::log_data const&     data) {
-    strm << join(".", data.source_scope);
-    strm << " ";
-    strm << Str{"  "}.repeated(data.depth).toBase();
-    strm << data.message;
+    std::string prefix = fmt(
+        "{} {}",
+        join(".", data.source_scope),
+        Str{"  "}.repeated(data.depth).toBase());
+    strm << prefix;
 
-    if (data.metadata) { strm << " " << data.metadata->dump(-1); }
+    auto write_trail = [&]() {
+        if (data.metadata) { strm << " " << data.metadata->dump(-1); }
 
-    if (data.file) {
-        strm << " " << fs::path{data.file}.filename() << ":" << data.line;
+        if (data.file) {
+            strm << " " << fs::path{data.file}.filename() << ":"
+                 << data.line;
+        }
+    };
+
+    if (data.message.contains('\n')) {
+        auto split = data.message.split('\n');
+        strm << split.at(0);
+        write_trail();
+        for (auto const& line : split.at(slice(1, 1_B))) {
+            strm << "\n";
+            strm << Str{" "}.repeated(prefix.size());
+            strm << line;
+        }
+    } else {
+        strm << data.message;
+        write_trail();
     }
 }
 } // namespace

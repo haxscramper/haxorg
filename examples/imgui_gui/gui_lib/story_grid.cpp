@@ -99,7 +99,7 @@ EditableTextResult render_editable_text(
 
         if (is_editing) {
             auto this_size = size - ImVec2(0, 40);
-            auto ed = get_editor(this_size);
+            auto ed        = get_editor(this_size);
             ed->HandleInput();
             ed->Render();
             IM_FN_PRINT("Render done", "");
@@ -1516,19 +1516,74 @@ void StoryGridModel::apply(
     CTX_MSG(fmt("Apply story grid action {}", act));
     auto __scope = ctx.scopeLevel();
 
-    auto replaceNode = [&](org::ImmAdapter const& origin,
-                           sem::SemId<sem::Org>   replace) {
+    auto replaceNode = [&](org::ImmAdapter const&    origin,
+                           Vec<sem::SemId<sem::Org>> replace) {
         org::ImmAstVersion vNext = getLastHistory().ast.getEditVersion(
-            [&](org::ImmAstContext&     ast,
-                org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
+            [&](org::ImmAstContext& ast, org::ImmAstEditContext& ast_ctx)
+                -> org::ImmAstReplaceGroup {
                 org::ImmAstReplaceGroup result;
-                result.incl(
-                    org::replaceNode(origin, ast.add(replace, ctx), ctx));
+
+                if (replace.size() == 1) {
+                    result.incl(org::replaceNode(
+                        origin, ast.add(replace.at(0), ast_ctx), ast_ctx));
+                } else {
+                    auto parent = origin.getParent().value();
+                    LOGIC_ASSERTION_CHECK(
+                        parent.isDirectParentOf(origin),
+                        "Origin node is {}, computed parent is {}",
+                        origin,
+                        parent);
+
+                    int index = origin.getSelfIndex();
+
+
+                    LOGIC_ASSERTION_CHECK(
+                        index != -1,
+                        "Failed to compute self-index for origin node {}",
+                        origin);
+
+
+                    Vec<org::ImmId> new_nodes;
+
+                    for (int i = 0; i < index; ++i) {
+                        new_nodes.push_back(parent.at(i).id);
+                    }
+
+                    for (auto const& it : replace) {
+                        new_nodes.push_back(ast.add(it, ast_ctx));
+                    }
+
+                    for (int i = index + 1; i < parent.size(); ++i) {
+                        new_nodes.push_back(parent.at(i).id);
+                    }
+
+                    CTX_MSG(
+                        fmt("Replacing parent subnodes {} with {}, origin "
+                            "node had index {}",
+                            parent->subnodes,
+                            new_nodes,
+                            index));
+
+                    result.incl(org::setSubnodes(
+                        parent,
+                        {new_nodes.begin(), new_nodes.end()},
+                        ast_ctx));
+                }
+
+
                 return result;
             });
         history.push_back(StoryGridHistory{
             .ast = vNext,
         });
+    };
+
+    auto as_sem_list = [](sem::OrgArg doc) -> Vec<sem::SemId<sem::Org>> {
+        if (doc->is(OrgSemKind::Document)) {
+            return Vec<sem::SemId<sem::Org>>{doc.begin(), doc.end()};
+        } else {
+            return {doc};
+        }
     };
 
     switch (act.getKind()) {
@@ -1538,7 +1593,7 @@ void StoryGridModel::apply(
             auto edit = act.getEditCell();
             replaceNode(
                 edit.cell.getValue().origin,
-                sem::asOneNode(sem::parseString(edit.updated)));
+                as_sem_list(sem::parseString(edit.updated)));
             break;
         }
 
@@ -1546,9 +1601,12 @@ void StoryGridModel::apply(
             updateNeeded.incl(UpdateNeeded::Graph);
             updateNeeded.incl(UpdateNeeded::Scroll);
             auto edit = act.getEditNodeText();
+            CTX_MSG(
+                fmt("Updated edit node text {}",
+                    escape_literal(edit.updated)));
             replaceNode(
                 rectGraph.getDocNode(edit.pos).getText().origin,
-                sem::asOneNode(sem::parseString(edit.updated)));
+                as_sem_list(sem::parseString(edit.updated)));
             break;
         }
 
