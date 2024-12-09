@@ -12,8 +12,9 @@ DocBlock to_doc_block(const org::ImmAdapter& it) {
     } else if (auto d = it.asOpt<org::ImmParagraph>()) {
         result.data = DocBlock::Paragraph{.origin = d.value()};
     } else if (auto d = it.asOpt<org::ImmSubtree>()) {
-        result.data = DocBlock::Subtree{.origin = d.value()};
-        result.getSubtree().title =
+        result.data               = DocBlock::Subtree{.origin = d.value()};
+        result.getSubtree().title = EditableOrgText::from_adapter(
+            d->getTitle());
     } else {
         throw std::domain_error(
             fmt("No known conversion of node {} to doc block", it));
@@ -21,11 +22,4 @@ DocBlock to_doc_block(const org::ImmAdapter& it) {
 
 
     return result;
-}
-
-EditableOrgText to_editable_text(const org::ImmAdapter it) {
-    EditableOrgText res;
-
-
-    return res;
 }

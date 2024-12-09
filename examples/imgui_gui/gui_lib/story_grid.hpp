@@ -12,6 +12,7 @@
 #include "imgui.h"
 #include <haxorg/sem/ImmOrgGraph.hpp>
 #include <hstd/wrappers/adaptagrams_wrap/adaptagrams_ir.hpp>
+#include <gui_lib/im_org_ui_common.hpp>
 
 struct TreeGridCell {
 
@@ -20,11 +21,10 @@ struct TreeGridCell {
     };
 
     struct Value {
-        std::string     value       = std::string{};
-        org::ImmAdapter origin      = org::ImmAdapter{};
-        bool            is_editing  = false;
-        std::string     edit_buffer = std::string{};
-        DESC_FIELDS(Value, (value, origin, is_editing, edit_buffer));
+        EditableOrgText value;
+        org::ImmAdapter origin = org::ImmAdapter{};
+        DESC_FIELDS(Value, (value, origin));
+        std::string getFinalValue() { return value.getFinalValue(); }
     };
 
     SUB_VARIANTS(Kind, Data, data, getKind, None, Value);
@@ -36,16 +36,18 @@ struct TreeGridCell {
     int  width;
 
 
-    bool   isEditing() const { return isValue() && getValue().is_editing; }
+    bool isEditing() const {
+        return isValue() && getValue().value.is_editing;
+    }
     int    getHeight() const { return height + (isEditing() ? 40 : 0); }
     ImVec2 getSize() const { return ImVec2(width, getHeight()); }
+    std::string getFinalTextValue() { return getValue().getFinalValue(); }
 };
 
 struct TreeGridColumn {
-    std::string name;
-    int         width = 120;
-    DECL_DESCRIBED_ENUM(EditMode, Multiline, SingleLine);
-    EditMode edit = EditMode::Multiline;
+    std::string           name;
+    int                   width = 120;
+    EditableOrgText::Mode edit  = EditableOrgText::Mode::Multiline;
     DESC_FIELDS(TreeGridColumn, (name, width, edit));
 };
 
@@ -215,7 +217,7 @@ struct StoryGridNode {
 
     struct LinkList {
         struct Item {
-            std::string     text;
+            EditableOrgText text;
             int             width;
             int             height;
             org::ImmAdapter node;
@@ -273,12 +275,10 @@ struct StoryGridNode {
         ImVec2          pos;
         ImVec2          size;
         org::ImmAdapter origin;
-        std::string     text;
-        std::string     edit_buffer;
-        bool            edit = false;
-        DESC_FIELDS(Text, (origin, pos, size, edit));
+        EditableOrgText text;
+        DESC_FIELDS(Text, (origin, pos, size, text));
         ImVec2 getSize() const {
-            return ImVec2(size.x, size.y + (edit ? 40 : 0));
+            return ImVec2(size.x, size.y + (text.is_editing ? 40 : 0));
         }
     };
 
@@ -435,9 +435,9 @@ struct GridAction {
 /// application.
 struct StoryGridConfig {
     struct StoryGridColumnConfig {
-        Opt<int>                      width;
-        Opt<TreeGridColumn::EditMode> edit;
-        Str                           name;
+        Opt<int>                   width;
+        Opt<EditableOrgText::Mode> edit;
+        Str                        name;
         DESC_FIELDS(StoryGridColumnConfig, (width, edit, name));
     };
 

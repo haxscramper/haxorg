@@ -433,7 +433,7 @@ int main(int argc, char** argv) {
                 Col{.width = 300, .name = "turning_point"},
                 Col{.width = 200, .name = "value"},
                 Col{.width = 240,
-                    .edit  = TreeGridColumn::EditMode::SingleLine,
+                    .edit  = EditableOrgText::Mode::SingleLine,
                     .name  = "location"},
                 Col{.width = 100, .name = "pov"},
             };

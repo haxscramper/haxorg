@@ -16,27 +16,7 @@
 
 #include <haxorg/sem/ImmOrgGraphBoost.hpp>
 #include <gui_lib/scintilla_editor_widget.hpp>
-
-Vec<Str> split_wrap_text(std::string const& unwrapped, int width) {
-    Vec<Str>    result;
-    const char* text = unwrapped.c_str();
-    while (*text) {
-        const char* line_start = text;
-        float       line_width = 0.0f;
-        while (*text && line_width < width) {
-            uint        __out_char = 0;
-            auto        size = ImTextCharFromUtf8(&__out_char, text, NULL);
-            const char* next = text + size;
-            if (next == text) { break; }
-            auto width = ImGui::CalcTextSize(text, next).x;
-            line_width += width;
-            text = next;
-        }
-        result.emplace_back(line_start, text - line_start);
-    }
-
-    return result;
-}
+#include <gui_lib/im_org_ui_common.hpp>
 
 #define CTX_MSG(...)                                                      \
     if (ctx.OperationsTracer::TraceState) { ctx.message(__VA_ARGS__); }
@@ -44,158 +24,18 @@ Vec<Str> split_wrap_text(std::string const& unwrapped, int width) {
 #define CTX_MSG_ALL(...) ctx.message(__VA_ARGS__);
 
 
-DECL_DESCRIBED_ENUM_STANDALONE(
-    EditableTextResult,
-    None,
-    Changed,
-    StartedEditing,
-    CancelledEditing);
-
 #define SGR_LOG_ROOT(__cat, __severity)                                   \
     ::org_logging::log_builder{}.set_callsite().category(__cat).severity( \
         __severity)
 
-EditableTextResult render_editable_text(
-    std::string&             value,
-    std::string&             edit_buffer,
-    bool&                    is_editing,
-    ImVec2 const&            size,
-    TreeGridColumn::EditMode edit,
-    std::string const&       id) {
-    auto __scope = IM_SCOPE_BEGIN(
-        "Editable text",
-        fmt("size:{} editing:{} buffer:{}",
-            size,
-            is_editing,
-            escape_literal(edit_buffer)));
 
-    auto cell_prefix = fmt("{}", id);
-
-    auto get_editor = [&](const ImVec2& size) {
-        render_debug_rect(size, IM_COL32(255, 0, 0, 255));
-        auto frameless_vars = push_frameless_window_vars();
-        ImGui::BeginChild(
-            fmt("##{}_container", id).c_str(),
-            size,
-            false,
-            ImGuiWindowFlags_NoScrollbar);
-
-        auto res = ImGui::ScInputText(c_fmt("sci_editor_{}", id));
-
-        ImGui::EndChild();
-        ImGui::PopStyleVar(frameless_vars);
-        return res;
-    };
-
-    auto get_log = [](int         line     = __builtin_LINE(),
-                      char const* function = __builtin_FUNCTION(),
-                      char const* file     = __builtin_FILE())
-        -> org_logging::log_builder {
-        return std::move(SGR_LOG_ROOT("text", ol_trace)
-                             .set_callsite(line, function, file));
-    };
-
-    if (edit == TreeGridColumn::EditMode::Multiline) {
-
-        if (is_editing) {
-            auto this_size = size - ImVec2(0, 40);
-            auto ed        = get_editor(this_size);
-            ed->HandleInput();
-            ed->Render();
-            IM_FN_PRINT("Render done", "");
-
-            if (IM_FN_EXPR(Button, "done")) {
-                get_log().message("Clicked 'done'");
-                value      = ed->GetText();
-                is_editing = false;
-                return EditableTextResult::Changed;
-            } else if (ImGui::SameLine(); IM_FN_EXPR(Button, "cancel")) {
-                get_log().message("Clicked 'cancel'");
-                is_editing = false;
-                return EditableTextResult::CancelledEditing;
-            } else {
-                return EditableTextResult::None;
-            }
-
-        } else {
-            auto frameless_vars = push_frameless_window_vars();
-            ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + size.x);
-            // NOTE: Using ID with runtime formatting here because
-            // there is more than one cell that might potentially be
-            // edited.
-            if (IM_FN_BEGIN(
-                    BeginChild,
-                    fmt("##{}_wrap", cell_prefix).c_str(),
-                    size,
-                    ImGuiChildFlags_None,
-                    ImGuiWindowFlags_NoScrollbar)) {
-                IM_FN_PRINT("Child", fmt("size:{}", size));
-                ImGui::PushID(fmt("##{}_view", cell_prefix).c_str());
-                IM_FN_STMT(TextWrapped, "%s", value.c_str());
-                IM_FN_PRINT("Wrapped text", value);
-                ImGui::PopID();
-            }
-
-            IM_FN_END(EndChild);
-
-            ImGui::PopTextWrapPos();
-            ImGui::PopStyleVar(frameless_vars);
-
-            if (ImGui::IsItemClicked()) {
-                is_editing = true;
-                auto ed    = get_editor(size);
-                ed->WrapOnChar();
-                ed->HideAllMargins();
-                ed->SetText(value);
-                return EditableTextResult::StartedEditing;
-            } else {
-                return EditableTextResult::None;
-            }
-        }
-    } else {
-        if (is_editing) {
-            if (ImGui::Button("OK")) {
-                value      = edit_buffer;
-                is_editing = false;
-                return EditableTextResult::Changed;
-            } else if (ImGui::SameLine(0.0f, 0.0f); ImGui::Button("X")) {
-                is_editing = false;
-                return EditableTextResult::CancelledEditing;
-            } else {
-                ImGui::SameLine(0.0f, 0.0f);
-                ImGui::SetNextItemWidth(size.x);
-                ImGui::InputText(
-                    fmt("##{}_edit", cell_prefix).c_str(), &edit_buffer);
-                return EditableTextResult::None;
-            }
-
-        } else {
-            IM_FN_STMT(Text, "%s", value.c_str());
-            IM_FN_PRINT("Text render", value);
-            if (ImGui::IsItemClicked()) {
-                is_editing  = true;
-                edit_buffer = value;
-                return EditableTextResult::StartedEditing;
-            } else {
-                return EditableTextResult::None;
-            }
-        }
-    }
-}
-
-EditableTextResult render_editable_cell(
+EditableOrgText::Result render_editable_cell(
     TreeGridCell&         cell,
     StoryGridContext&     ctx,
     TreeGridColumn const& col,
     std::string const&    id) {
     auto& val = cell.getValue();
-    return render_editable_text(
-        val.value,
-        val.edit_buffer,
-        val.is_editing,
-        cell.getSize(),
-        col.edit,
-        id);
+    return val.value.render(cell.getSize(), col.edit, id);
 }
 
 
@@ -222,15 +62,17 @@ void render_cell(
             col,
             fmt("cell_{}_{}_{}", documentNodeIdx, row.flatIdx, col.name));
         switch (res) {
-            case EditableTextResult::Changed: {
+            case EditableOrgText::Result::Changed: {
                 ctx.action(GridAction::EditCell{
                     .cell    = cell,
-                    .updated = cell.getValue().value,
+                    .updated = cell.getValue()
+                                   .value.getFinalValue(),
                 });
                 [[fallthrough]];
             }
-            case EditableTextResult::CancelledEditing: [[fallthrough]];
-            case EditableTextResult::StartedEditing: {
+            case EditableOrgText::Result::CancelledEditing:
+                [[fallthrough]];
+            case EditableOrgText::Result::StartedEditing: {
                 ctx.action(GridAction::EditCellChanged{
                     .cell            = cell,
                     .documentNodeIdx = documentNodeIdx,
@@ -367,34 +209,31 @@ void render_text_node(
     ImGui::SetNextWindowSize(text.getSize());
     if (IM_FN_BEGIN(
             Begin,
-            fmt("##{:p}", static_cast<const void*>(text.text.data()))
-                .c_str(),
+            c_fmt("##text_node_window_{}_{}", selfPos.row, selfPos.row),
             nullptr,
             ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize)) {
         ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
 
-        auto res = render_editable_text(
-            text.text,
-            text.edit_buffer,
-            text.edit,
+        auto res = text.text.render(
             text.getSize(),
-            TreeGridColumn::EditMode::Multiline,
+            EditableOrgText::Mode::Multiline,
             fmt("text_node_{}_{}", selfPos.row, selfPos.lane));
 
-        if (res != EditableTextResult::None) {
+        if (res != EditableOrgText::Result::None) {
             CTX_MSG(fmt("Text edit result {}", res));
         }
 
         switch (res) {
-            case EditableTextResult::Changed: {
+            case EditableOrgText::Result::Changed: {
                 ctx.action(GridAction::EditNodeText{
                     .pos     = selfPos,
-                    .updated = text.text,
+                    .updated = text.text.value,
                 });
                 [[fallthrough]];
             }
-            case EditableTextResult::CancelledEditing: [[fallthrough]];
-            case EditableTextResult::StartedEditing: {
+            case EditableOrgText::Result::CancelledEditing:
+                [[fallthrough]];
+            case EditableOrgText::Result::StartedEditing: {
                 ctx.action(GridAction::EditNodeChanged{
                     .pos = selfPos,
                 });
@@ -448,12 +287,9 @@ void render_list_node(
             for (auto& item : list.items) {
                 ImGui::TableNextRow(ImGuiTableRowFlags_None, item.height);
                 bool edit = false;
-                render_editable_text(
-                    item.text,
-                    item.text,
-                    edit,
+                item.text.render(
                     ImVec2(item.height, item.width),
-                    TreeGridColumn::EditMode::Multiline,
+                    EditableOrgText::Mode::Multiline,
                     fmt("list_{}_{}", selfPos.row, selfPos.lane));
             }
             IM_FN_END(EndTable);
@@ -739,34 +575,15 @@ Vec<TreeGridRow> build_rows(org::ImmAdapter root, TreeGridDocument& doc) {
     return result;
 }
 
-int get_text_height(
-    std::string const&       text,
-    int                      width,
-    TreeGridColumn::EditMode edit) {
-    Vec<Str>    wrapped = split_wrap_text(text, width);
-    std::string _tmp{"Tt"};
-    char const* _tmp_begin = _tmp.c_str();
-    char const* _tmp_end   = _tmp_begin + _tmp.length();
-    ImVec2      text_size  = ImGui::CalcTextSize(
-        _tmp_begin, _tmp_end, false, width);
-
-    if (edit == TreeGridColumn::EditMode::SingleLine) {
-        return text_size.y;
-    } else {
-        return 0 < wrapped.size() ? text_size.y * (wrapped.size() + 1)
-                                  : text_size.y;
-    }
-}
-
 TreeGridCell build_editable_cell(
     org::ImmAdapter       adapter,
     TreeGridColumn const& col) {
     TreeGridCell result{TreeGridCell::Value{}};
     auto&        v = result.getValue();
-    v.value        = join(" ", flatWords(adapter));
+    v.value        = EditableOrgText::from_adapter(adapter);
     v.origin       = adapter;
     result.width   = col.width;
-    result.height  = get_text_height(v.value, col.width, col.edit);
+    result.height  = v.value.get_expected_height(col.width, col.edit);
     return result;
 }
 
@@ -1025,11 +842,10 @@ LaneNodePos get_partition_node(
             StoryGridNode::LinkList::Item listItem;
             listItem.node   = item;
             listItem.width  = conf.annotationNodeWidth;
-            listItem.text   = join(" ", org::flatWords(item));
-            listItem.height = get_text_height(
-                listItem.text,
-                listItem.width,
-                TreeGridColumn::EditMode::Multiline);
+            listItem.text   = EditableOrgText::from_adapter(item);
+            listItem.height = listItem.text.get_expected_height(
+                listItem.width, EditableOrgText::Mode::Multiline);
+
             text.items.push_back(listItem);
         }
 
@@ -1055,18 +871,14 @@ LaneNodePos get_partition_node(
         return annotation;
 
     } else {
-
-        sem::SemId<sem::Org> sem_ast = org::sem_from_immer(
-            node.id, ast.context);
-
         StoryGridNode::Text text{
             .origin = node,
-            .text   = sem::Formatter::format(sem_ast),
+            .text   = EditableOrgText::from_adapter(node),
         };
 
         int width  = conf.annotationNodeWidth;
-        int height = get_text_height(
-            text.text, width, TreeGridColumn::EditMode::Multiline);
+        int height = text.text.get_expected_height(
+            width, EditableOrgText::Mode::Multiline);
         text.size.x = width;
         text.size.y = height;
 

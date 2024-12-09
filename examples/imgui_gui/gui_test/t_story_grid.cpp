@@ -177,16 +177,17 @@ void _Load_One_Paragraph(ImGuiTestEngine* e) {
             ctx->MouseMoveToPos(
                 wpos + doc.getCellPos(0, "title") + ImVec2{0, 5});
             IM_CHECK_EQ(
-                doc.getExistingCell(0, "title").getValue().value,
+                doc.getExistingCell(0, "title").getFinalTextValue(),
                 "One subtree in grid");
             IM_CHECK_EQ(
-                doc.getExistingCell(2, "event").getValue().value,
+                doc.getExistingCell(2, "event").getFinalTextValue(),
                 "Event 2");
             IM_CHECK_EQ(
-                doc.getExistingCell(2, "location").getValue().value,
+                doc.getExistingCell(2, "location").getFinalTextValue(),
                 "Location 2");
             IM_CHECK_EQ(
-                doc.getExistingCell(2, "note").getValue().value, "Note 4");
+                doc.getExistingCell(2, "note").getFinalTextValue(),
+                "Note 4");
             vars.set_im_trace(1);
             ctx->Yield(2);
             ctx->MouseClick(0);
@@ -197,7 +198,7 @@ void _Load_One_Paragraph(ImGuiTestEngine* e) {
             ctx->MouseMoveToPos(ImGui::GetMousePos() + ImVec2{0, 50});
             ctx->MouseClick(0);
             IM_CHECK_EQ(
-                doc.getExistingCell(0, "title").getValue().value,
+                doc.getExistingCell(0, "title").getFinalTextValue(),
                 "testOne subtree in grid");
 
             ctx->MouseMoveToPos(wpos + doc.getCellPos(0, "title"));
