@@ -48,4 +48,30 @@ struct DocBlock {
     DESC_FIELDS(DocBlock, (data, nested));
 };
 
+struct DocBlockAction {};
+
+struct DocBlockContext
+    : OperationsTracer
+    , OperationsScope {
+    Vec<DocBlockAction> actions;
+};
+
+struct DocBlockConfig {
+    ImVec2 pos;
+
+    DESC_FIELDS(DocBlockConfig, (pos));
+};
+
+struct DocBlockModel {
+    DocBlock        root;
+    DocBlockContext ctx;
+    DESC_FIELDS(DocBlockModel, (root, ctx));
+};
+
 DocBlock to_doc_block(org::ImmAdapter const& it);
+void render_doc_block(DocBlockModel& model, DocBlockConfig const& conf);
+
+void apply_doc_block_actions(
+    EditableOrgDocGroup&  history,
+    DocBlockModel&        model,
+    DocBlockConfig const& config);

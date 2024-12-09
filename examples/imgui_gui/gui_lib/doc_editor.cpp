@@ -23,3 +23,10 @@ DocBlock to_doc_block(const org::ImmAdapter& it) {
 
     return result;
 }
+
+void render_doc_block(DocBlockModel& model, const DocBlockConfig& conf) {}
+
+void apply_doc_block_actions(
+    EditableOrgDocGroup&  history,
+    DocBlockModel&        model,
+    const DocBlockConfig& config) {}

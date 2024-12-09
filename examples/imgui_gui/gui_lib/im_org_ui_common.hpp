@@ -37,3 +37,32 @@ struct EditableOrgText {
         EditableOrgText::Mode edit,
         std::string const&    id);
 };
+
+struct EditableOrgDocGroup {
+    struct History {
+        org::ImmAstVersion   ast;
+        Vec<org::ImmAdapter> roots;
+        DESC_FIELDS(History, (ast, roots));
+    };
+
+    int init_root(sem::SemId<sem::Org> const& id) {
+        History current = getCurrentHistory();
+        auto    new_ast = current.ast.context.init(id);
+        current.ast     = new_ast;
+        int index = current.roots.push_back_idx(new_ast.getRootAdapter());
+        add_history(current);
+        return index;
+    }
+
+    void add_history(History const& h) { history.push_back(h); }
+
+    Vec<History> history;
+
+    DESC_FIELDS(EditableOrgDocGroup, (history));
+
+    History const&     getCurrentHistory() { return history.back(); }
+    org::ImmAstVersion getCurrentAst() { return history.back().ast; }
+    org::ImmAdapter    getCurrentRoot(int index) {
+        return history.back().roots.at(index);
+    }
+};
