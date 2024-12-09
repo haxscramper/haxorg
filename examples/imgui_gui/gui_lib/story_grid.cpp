@@ -208,6 +208,7 @@ void render_cell(
     int                   documentNodeIdx) {
 
     IM_FN_PRINT("Cell", fmt("pos:{} size:{}", pos, cell.getSize()));
+    auto frameless_vars = push_frameless_window_vars();
     ImGui::SetNextWindowPos(pos);
     if (IM_FN_BEGIN(
             BeginChild,
@@ -242,6 +243,7 @@ void render_cell(
     }
 
     IM_FN_END(EndChild);
+    ImGui::PopStyleVar(frameless_vars);
 }
 
 void render_tree_columns(
@@ -1818,6 +1820,10 @@ void run_story_grid_cycle(
             });
         }
     } else {
+        LOGIC_ASSERTION_CHECK(
+            !model.rectGraph.nodes.empty(),
+            "Cannot render non-annotated story grid with empty graph "
+            "nodes");
         auto& g = model.rectGraph.nodes.at(0).getTreeGrid();
         render_table(model, g, conf, 0);
     }

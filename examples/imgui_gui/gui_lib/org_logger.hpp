@@ -177,21 +177,21 @@ struct log_builder {
     std::size_t hash() const { return rec.hash(); }
 
     // clang-format off
-    template <typename Self> inline auto&& maybe_space(this Self&& self) { self.rec.maybe_space(); return std::forward<Self>(self); }
-    template <typename Self> inline auto&& function(this Self&& self, char const* func) { self.rec.function(func); return std::forward<Self>(self); }
-    template <typename Self> inline auto&& message(this Self&& self, int const& msg) { self.rec.message(msg); return std::forward<Self>(self); }
-    template <typename Self> inline auto&& message(this Self&& self, Str const& msg) { self.rec.message(msg); return std::forward<Self>(self); }
-    template <typename Self> inline auto&& message(this Self&& self, char const* msg) { self.rec.message(msg); return std::forward<Self>(self); }
-    template <typename Self> inline auto&& line(this Self&& self, int l) { self.rec.line(l); return std::forward<Self>(self); }
-    template <typename Self> inline auto&& file(this Self&& self, char const* f) { self.rec.file(f); return std::forward<Self>(self); }
-    template <typename Self> inline auto&& category(this Self&& self, Str const& cat) { self.rec.category(cat); return std::forward<Self>(self); }
-    template <typename Self> inline auto&& severity(this Self&& self, severity_level l) { self.rec.severity(l); return std::forward<Self>(self); }
-    template <typename Self> inline auto&& depth(this Self&& self, int depth) { self.rec.depth(depth); return std::forward<Self>(self); }
-    template <typename Self> inline auto&& source_scope(this Self&& self, Vec<Str> const& scope) { self.rec.source_scope(scope); return std::forward<Self>(self); }
-    template <typename Self> inline auto&& source_scope_add(this Self&& self, Str const& scope) { self.rec.source_scope_add(scope); return std::forward<Self>(self); }
-    template <typename Self> inline auto&& source_id(this Self&& self, Str const& id) { self.rec.source_id(id); return std::forward<Self>(self); }
-    template <typename Self> inline auto&& metadata(this Self&& self, json const& id) { self.rec.metadata(id); return std::forward<Self>(self); }
-    template <typename Self> inline auto&& metadata(this Self&& self, Str const& key, json const& id) { self.rec.metadata(key, id); return std::forward<Self>(self); }
+    template <typename Self> inline auto&& maybe_space(this Self&& self) { if (!self.is_released) { self.rec.maybe_space(); } return std::forward<Self>(self); }
+    template <typename Self> inline auto&& function(this Self&& self, char const* func) { if (!self.is_released) { self.rec.function(func); } return std::forward<Self>(self); }
+    template <typename Self> inline auto&& message(this Self&& self, int const& msg) { if (!self.is_released) { self.rec.message(msg); } return std::forward<Self>(self); }
+    template <typename Self> inline auto&& message(this Self&& self, Str const& msg) { if (!self.is_released) { self.rec.message(msg); } return std::forward<Self>(self); }
+    template <typename Self> inline auto&& message(this Self&& self, char const* msg) { if (!self.is_released) { self.rec.message(msg); } return std::forward<Self>(self); }
+    template <typename Self> inline auto&& line(this Self&& self, int l) { if (!self.is_released) { self.rec.line(l); } return std::forward<Self>(self); }
+    template <typename Self> inline auto&& file(this Self&& self, char const* f) { if (!self.is_released) { self.rec.file(f); } return std::forward<Self>(self); }
+    template <typename Self> inline auto&& category(this Self&& self, Str const& cat) { if (!self.is_released) { self.rec.category(cat); } return std::forward<Self>(self); }
+    template <typename Self> inline auto&& severity(this Self&& self, severity_level l) { if (!self.is_released) { self.rec.severity(l); } return std::forward<Self>(self); }
+    template <typename Self> inline auto&& depth(this Self&& self, int depth) { if (!self.is_released) { self.rec.depth(depth); } return std::forward<Self>(self); }
+    template <typename Self> inline auto&& source_scope(this Self&& self, Vec<Str> const& scope) { if (!self.is_released) { self.rec.source_scope(scope); } return std::forward<Self>(self); }
+    template <typename Self> inline auto&& source_scope_add(this Self&& self, Str const& scope) { if (!self.is_released) { self.rec.source_scope_add(scope); } return std::forward<Self>(self); }
+    template <typename Self> inline auto&& source_id(this Self&& self, Str const& id) { if (!self.is_released) { self.rec.source_id(id); } return std::forward<Self>(self); }
+    template <typename Self> inline auto&& metadata(this Self&& self, json const& id) { if (!self.is_released) { self.rec.metadata(id); } return std::forward<Self>(self); }
+    template <typename Self> inline auto&& metadata(this Self&& self, Str const& key, json const& id) { if (!self.is_released) { self.rec.metadata(key, id); } return std::forward<Self>(self); }
     // clang-format on
 
     template <typename Self>
@@ -202,7 +202,7 @@ struct log_builder {
 
     template <typename Self>
     inline auto&& escape_message(this Self&& self, Str const& msg) {
-        self.rec.message(escape_literal(msg));
+        if (!self.is_released) { self.rec.message(escape_literal(msg)); }
         return std::forward<Self>(self);
     }
 
@@ -232,7 +232,9 @@ struct log_builder {
         this Self&&                  self,
         std::format_string<_Args...> __fmt,
         _Args&&... __args) {
-        self.rec.fmt_message(__fmt, std::forward<_Args>(__args)...);
+        if (!self.is_released) {
+            self.rec.fmt_message(__fmt, std::forward<_Args>(__args)...);
+        }
         return std::forward<Self>(self);
     }
 

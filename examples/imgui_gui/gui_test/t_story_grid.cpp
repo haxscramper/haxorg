@@ -84,6 +84,51 @@ struct StoryGridVars : public ImTestVarsBase {
 };
 
 namespace {
+
+ImGuiTest* _init(ImGuiTestEngine* e, char const* name) {
+    ImGuiTest* t = IM_REGISTER_TEST(e, TEST_GRP_NAME, name);
+    t->SetVarsDataType<StoryGridVars>();
+    return t;
+}
+
+void _StoryGrid_SingleView(ImGuiTestEngine* e) {
+    ImTestFuncStartupParams params;
+    params.windowSize.x = 700;
+    params.windowSize.y = 700;
+    auto t              = _init(e, "Single view");
+    t->GuiFunc          = ImWrapGuiFuncT<StoryGridVars>(
+        params, [](ImGuiTestContext* ctx, StoryGridVars& vars) {
+            if (ctx->IsFirstGuiFrame()) {
+                vars.conf.annotated = false;
+                vars.init_section(ctx, R"(
+* One subtree in grid
+** Subtree 2
+*** Subtree 2 3
+
+- =story_event= :: Event 2
+- =story_location= :: Location 2
+- =story_note= :: Note 4
+
+
+** Sub-tad 2
+* sub-eq
+
+- =story_event= :: Event 1
+- =story_location= :: Location 1
+- =story_note= :: Note 2
+)");
+            }
+
+            vars.run_app_loop_iteration(ctx);
+        });
+
+
+    t->TestFunc = ImWrapTestFuncT<StoryGridVars>(
+        params, [](ImGuiTestContext* ctx, StoryGridVars& vars) {
+            ctx->SuspendTestFunc();
+        });
+}
+
 void _Load_One_Paragraph(ImGuiTestEngine* e) {
     ImGuiTest* t = IM_REGISTER_TEST(
         e, TEST_GRP_NAME, "Load one paragraph");
@@ -300,6 +345,7 @@ some random shit about the comments or whatever, need to render as annotation [f
 
 
 void RegisterApptests_story_grid(ImGuiTestEngine* e) {
+    _StoryGrid_SingleView(e);
     _FootnoteAnnotation(e);
     _Load_One_Paragraph(e);
 }

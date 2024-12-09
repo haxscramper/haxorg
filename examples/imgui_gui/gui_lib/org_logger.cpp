@@ -166,12 +166,18 @@ void org_logging::clear_sink_backends() {
 
 namespace {
 void format_log_record_data(
+    const boost::log::record_view&  rec,
     boost::log::formatting_ostream& strm,
     log_record::log_data const&     data) {
+    auto        ts = rec["TimeStamp"].extract<boost::posix_time::ptime>();
     std::string prefix = fmt(
-        "{} {}",
+        "{}{} {}",
+        ts ? boost::posix_time::to_simple_string(*ts).substr(
+                 11, 8 /*Extract HH:MM:SS*/)
+           : "",
         join(".", data.source_scope),
         Str{"  "}.repeated(data.depth).toBase());
+
     strm << prefix;
 
     auto write_trail = [&]() {
@@ -218,7 +224,7 @@ sink_ptr org_logging::init_file_sink(Str const& log_file_name) {
                            boost::log::formatting_ostream& strm) {
         auto ref = rec[LOG_RECORD_FIELD].extract<log_record>();
         LOGIC_ASSERTION_CHECK(!!ref, "Log record view missing data");
-        format_log_record_data(strm, ref->data);
+        format_log_record_data(rec, strm, ref->data);
     });
 
     return sink;
