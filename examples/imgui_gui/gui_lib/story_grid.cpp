@@ -65,8 +65,7 @@ void render_cell(
             case EditableOrgText::Result::Changed: {
                 ctx.action(GridAction::EditCell{
                     .cell    = cell,
-                    .updated = cell.getValue()
-                                   .value.getFinalValue(),
+                    .updated = cell.getValue().value.getFinalValue(),
                 });
                 [[fallthrough]];
             }
@@ -1065,58 +1064,30 @@ void update_link_list_target_rows(StoryGridGraph& rectGraph) {
 }
 
 void update_graph_layout(StoryGridModel& model) {
-    __perf_trace_begin("gui", "to doc layout");
     auto& rectGraph = model.rectGraph;
 
-    for (auto const& [flat_idx, lane_idx] : rectGraph.gridNodeToNode) {
-        auto size = rectGraph.nodes.at(flat_idx).getSize();
-        rectGraph.ir.at(lane_idx).width  = size.x;
-        rectGraph.ir.at(lane_idx).height = size.y;
-    }
+    rectGraph.ir.syncSize([&](int flat_idx) -> ImVec2 {
+        return rectGraph.nodes.at(flat_idx).getSize();
+    });
 
-    LaneBlockLayout lyt = to_layout(rectGraph.ir);
-    __perf_trace_end("gui");
-    // writeFile("/tmp/tmp_dump.json", to_json_eval(lyt).dump(2));
-    lyt.ir.height = 10000;
-    lyt.ir.width  = 10000;
-    __perf_trace_begin("gui", "do cola layout");
-    auto cola = lyt.ir.doColaLayout();
-    __perf_trace_end("gui");
-    __perf_trace_begin("gui", "do cola convert");
-    model.layout = cola.convert();
-    __perf_trace_end("gui");
+    rectGraph.ir.syncLayout();
 
-    // writeFile("/tmp/lyt_dump.json",
-    // to_json_eval(this->layout).dump(2));
-
-    int pad = rectGraph.ir.lanes.at(0).leftMargin;
-
-    for (auto const& [key, edge] : model.layout.lines) {
-        for (auto& path : model.layout.lines.at(key).paths) {
-            for (auto& point : path.points) { point.x += pad; }
-        }
-    }
-
-    for (int i = 0; i < rectGraph.nodes.size(); ++i) {
-        StoryGridNode&     node = rectGraph.nodes.at(i);
-        LaneNodePos const& pos  = rectGraph.getIrNode(i);
-        if (lyt.rectMap.contains(pos)) {
-            node.isVisible  = true;
-            auto const& rec = model.layout.fixed.at(lyt.rectMap.at(pos));
+    for (NodeGridGraph::RectSpec const& rect :
+         rectGraph.ir.getRectangles()) {
+        StoryGridNode& node = rectGraph.nodes.at(rect.flatPos);
+        if (rect.isVisible) {
+            node.isVisible = true;
             switch (node.getKind()) {
                 case StoryGridNode::Kind::TreeGrid: {
-                    node.getTreeGrid().pos.x = rec.left + pad;
-                    node.getTreeGrid().pos.y = rec.top;
+                    node.getTreeGrid().pos = rect.pos;
                     break;
                 }
                 case StoryGridNode::Kind::Text: {
-                    node.getText().pos.x = rec.left + pad;
-                    node.getText().pos.y = rec.top;
+                    node.getText().pos = rect.pos;
                     break;
                 }
                 case StoryGridNode::Kind::LinkList: {
-                    node.getLinkList().pos.x = rec.left + pad;
-                    node.getLinkList().pos.y = rec.top;
+                    node.getLinkList().pos = rect.pos;
                     break;
                 }
             }
@@ -1136,8 +1107,8 @@ void update_hidden_row_connections(
     auto& ir = model.rectGraph.ir;
 
     Slice<int> viewportRange = slice1<int>(0, conf.gridViewport.y);
-    for (auto const& [lane_idx, lane] :
-         enumerate(model.rectGraph.ir.lanes)) {
+    auto&      lanes         = model.rectGraph.ir.ir.lanes;
+    for (auto const& [lane_idx, lane] : enumerate(lanes)) {
         for (auto const& [block_idx, block] : enumerate(lane.blocks)) {
             LaneNodePos   lanePos{.lane = lane_idx, .row = block_idx};
             StoryGridNode storyNode = model.rectGraph.getDocNode(lanePos);
@@ -1152,12 +1123,12 @@ void update_hidden_row_connections(
                 for (auto const& row : treeDoc.flatRows(false)) {
                     Slice<int> rowRange = slice1<int>(
                         treeDoc.getRowYPos(*row)
-                            + (ir.lanes.has(lane_idx)
-                                   ? ir.lanes.at(lane_idx).scrollOffset
+                            + (lanes.has(lane_idx)
+                                   ? lanes.at(lane_idx).scrollOffset
                                    : 0),
                         treeDoc.getRowYPos(*row)
-                            + (ir.lanes.has(lane_idx)
-                                   ? ir.lanes.at(lane_idx).scrollOffset
+                            + (lanes.has(lane_idx)
+                                   ? lanes.at(lane_idx).scrollOffset
                                    : 0)
                             + row->getHeight().value());
                     org::ImmUniqId rowId = row->origin.uniq();
@@ -1183,9 +1154,9 @@ void update_hidden_row_connections(
                             auto const& t = targetNodePos.value();
 
                             if (overlap) {
-                                model.rectGraph.ir.at(t).isVisible = true;
+                                model.rectGraph.at(t).isVisible = true;
                             } else {
-                                model.rectGraph.ir.at(t).isVisible = false;
+                                model.rectGraph.at(t).isVisible = false;
                             }
                         }
                     }

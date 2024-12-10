@@ -13,6 +13,7 @@
 #include <haxorg/sem/ImmOrgGraph.hpp>
 #include <hstd/wrappers/adaptagrams_wrap/adaptagrams_ir.hpp>
 #include <gui_lib/im_org_ui_common.hpp>
+#include <gui_lib/node_grid_graph.hpp>
 
 struct TreeGridCell {
 
@@ -307,12 +308,10 @@ struct DocAnnotation {
 };
 
 struct StoryGridGraph {
-    Vec<StoryGridNode>             nodes;
-    LaneBlockGraph                 ir;
-    UnorderedMap<int, LaneNodePos> gridNodeToNode;
-    UnorderedMap<LaneNodePos, int> nodeToGridNode;
-    org::graph::MapGraph           graph;
-    Vec<Vec<DocAnnotation>>        partition;
+    Vec<StoryGridNode>      nodes;
+    NodeGridGraph           ir;
+    org::graph::MapGraph    graph;
+    Vec<Vec<DocAnnotation>> partition;
 
     UnorderedMap<org::ImmUniqId, org::ImmUniqId> annotationParents;
     UnorderedMap<org::ImmUniqId, LaneNodePos>    orgToId;
@@ -320,7 +319,7 @@ struct StoryGridGraph {
     bool isVisible(org::ImmUniqId const& id) const {
         auto lane_pos = orgToId.get(id);
         if (!lane_pos) { return false; }
-        auto node = nodeToGridNode.get(lane_pos.value());
+        auto node = ir.getFlat(lane_pos.value());
         if (!node) { return false; }
         if (!nodes.at(node.value()).isTreeGrid()) { return false; }
         auto origin = nodes.at(node.value())
@@ -333,13 +332,10 @@ struct StoryGridGraph {
             ->isVisible;
     }
 
-    DESC_FIELDS(
-        StoryGridGraph,
-        (nodes, ir, gridNodeToNode, nodeToGridNode, graph, partition));
+    DESC_FIELDS(StoryGridGraph, (nodes, ir, graph, partition));
 
-    void addIrNode(int flatIdx, LaneNodePos const& irNode) {
-        gridNodeToNode.insert_or_assign(flatIdx, irNode);
-        nodeToGridNode.insert_or_assign(irNode, flatIdx);
+    StoryGridNode& at(LaneNodePos const& pos) {
+        return nodes.at(ir.at(pos));
     }
 
     StoryGridNode const& getDocNode(int idx) const {
@@ -350,12 +346,12 @@ struct StoryGridGraph {
         return getDocNode(getFlatIdx(idx));
     }
 
-    LaneNodePos const& getIrNode(int idx) const {
-        return gridNodeToNode.at(idx);
+    LaneNodePos getIrNode(int idx) const {
+        return ir.getGrid(idx).value();
     }
 
-    int const& getFlatIdx(LaneNodePos const& node) const {
-        return nodeToGridNode.at(node);
+    int getFlatIdx(LaneNodePos const& node) const {
+        return ir.getFlat(node).value();
     }
 
     int addNode(
@@ -364,8 +360,8 @@ struct StoryGridGraph {
         StoryGridNode const&        node,
         LaneBlockGraphConfig const& conf) {
         nodes.push_back(node);
-        auto rootRect = ir.addNode(0, size, conf);
-        addIrNode(nodes.high(), rootRect);
+        auto rootRect = ir.ir.addNode(0, size, conf);
+        ir.add(nodes.high(), rootRect);
         return nodes.high();
     }
 };

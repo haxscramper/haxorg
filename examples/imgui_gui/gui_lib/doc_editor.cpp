@@ -110,3 +110,7 @@ void apply_doc_block_actions(
     EditableOrgDocGroup&  history,
     DocBlockModel&        model,
     const DocBlockConfig& config) {}
+
+void DocBlockDocument::syncPositions(const DocBlockConfig& conf) {
+
+}

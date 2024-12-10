@@ -1,5 +1,6 @@
 #pragma once
 
+#include "gui_lib/block_graph.hpp"
 #include <gui_lib/imgui_utils.hpp>
 #include <haxorg/sem/ImmOrg.hpp>
 #include <gui_lib/im_org_ui_common.hpp>
@@ -136,13 +137,19 @@ struct DocBlockDocument {
     DocBlock::Ptr      root;
     Vec<DocBlock::Ptr> flatBlocks;
     void syncSize(DocBlockConfig const& conf) { root->syncSizeRec(conf); }
+    void syncPositions(DocBlockConfig const& conf);
     DESC_FIELDS(DocBlockDocument, (root, flatBlocks));
 };
 
 struct DocBlockModel {
-    DocBlock::Ptr   root;
-    DocBlockContext ctx;
-    DESC_FIELDS(DocBlockModel, (root, ctx));
+    DocBlock::Ptr                  root;
+    DocBlockContext                ctx;
+    LaneBlockGraph                 ir;
+    UnorderedMap<int, LaneNodePos> gridNodeToNode;
+    UnorderedMap<LaneNodePos, int> nodeToGridNode;
+    DESC_FIELDS(
+        DocBlockModel,
+        (root, ctx, ir, gridNodeToNode, nodeToGridNode));
 };
 
 Opt<DocBlock::Ptr> to_doc_block(
