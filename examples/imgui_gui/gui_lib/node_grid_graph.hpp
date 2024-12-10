@@ -9,14 +9,23 @@ struct NodeGridGraph {
     LaneBlockLayout                lyt;
     GraphLayoutIR::Result          layout;
 
+    void setVisible(ImVec2 const& viewport) {
+        ir.visible.h = viewport.y;
+        ir.visible.w = viewport.x;
+    }
+
     int& at(LaneNodePos const& pos) { return nodeToGridNode.at(pos); }
     LaneNodePos& at(int const& pos) { return gridNodeToNode.at(pos); }
 
-    void syncSize(Func<ImVec2(int)> const& getSizeForFlat) {
+    Vec<LaneBlockStack>& getLanes() { return ir.lanes; }
+
+    void syncSize(Func<Opt<ImVec2>(int)> const& getSizeForFlat) {
         for (auto const& [flat_idx, lane_idx] : gridNodeToNode) {
-            auto size              = getSizeForFlat(flat_idx);
-            ir.at(lane_idx).width  = size.x;
-            ir.at(lane_idx).height = size.y;
+            auto size = getSizeForFlat(flat_idx);
+            if (size) {
+                ir.at(lane_idx).width  = size->x;
+                ir.at(lane_idx).height = size->y;
+            }
         }
     }
 

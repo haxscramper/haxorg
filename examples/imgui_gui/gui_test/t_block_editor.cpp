@@ -33,7 +33,6 @@ struct DocEditVars : public ImTestVarsBase {
     void run_app_loop_iteration(ImGuiTestContext* ctx) {
         {
             auto __scope = IM_SCOPE_BEGIN("App loop iteration", "");
-            conf.pos     = getContentPos(ctx);
             render_doc_block(model, conf);
             apply_doc_block_actions(docs, model, conf);
         }

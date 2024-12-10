@@ -269,10 +269,10 @@ some random shit about the comments or whatever, need to render as annotation [f
             auto&       m     = vars.model;
             auto&       doc   = m.rectGraph.nodes.at(0).getTreeGrid().node;
             auto&       ir    = m.rectGraph.ir;
-            auto const& spans = ir.getLaneSpans();
+            auto const& spans = ir.ir.getLaneSpans();
             auto&       rg    = m.rectGraph;
             IM_CHECK_EQ(spans.size(), 4);
-            IM_CHECK_EQ(ir.lanes.at(1).scrollOffset, 0);
+            IM_CHECK_EQ(ir.getLanes().at(1).scrollOffset, 0);
             IM_CTX_ACT(
                 MouseMoveToPos,
                 wpos
@@ -301,7 +301,7 @@ some random shit about the comments or whatever, need to render as annotation [f
                 vars.set_im_trace(2);
                 IM_CTX_ACT(Yield, 5);
                 IM_CHECK_EQ(
-                    ir.lanes.at(1).scrollOffset,
+                    ir.getLanes().at(1).scrollOffset,
                     vars.conf.mouseScrollMultiplier * 5);
             }
 
@@ -346,7 +346,7 @@ some random shit about the comments or whatever, need to render as annotation [f
 
 
 void RegisterApptests_story_grid(ImGuiTestEngine* e) {
-    _StoryGrid_SingleView(e);
     _FootnoteAnnotation(e);
+    _StoryGrid_SingleView(e);
     _Load_One_Paragraph(e);
 }

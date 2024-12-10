@@ -392,7 +392,7 @@ void run_story_grid_annotated_cycle(
     __perf_trace("gui", "grid model render");
     for (int i = 0; i < model.rectGraph.nodes.size(); ++i) {
         auto&       node    = model.rectGraph.nodes.at(i);
-        auto const& selfPos = model.rectGraph.gridNodeToNode.at(i);
+        auto const& selfPos = model.rectGraph.getIrNode(i);
         if (node.isVisible) {
             switch (node.getKind()) {
                 case StoryGridNode::Kind::TreeGrid: {
@@ -848,7 +848,7 @@ LaneNodePos get_partition_node(
             text.items.push_back(listItem);
         }
 
-        LaneNodePos annotation = res.ir.addNode(
+        LaneNodePos annotation = res.ir.ir.addNode(
             lane,
             ImVec2{
                 static_cast<float>(
@@ -865,7 +865,7 @@ LaneNodePos get_partition_node(
 
         res.orgToId.insert_or_assign(node.uniq(), annotation);
         res.nodes.push_back(StoryGridNode{text});
-        res.addIrNode(res.nodes.high(), annotation);
+        res.ir.add(res.nodes.high(), annotation);
 
         return annotation;
 
@@ -882,13 +882,13 @@ LaneNodePos get_partition_node(
         text.size.y = height;
 
         res.nodes.push_back(StoryGridNode{text});
-        LaneNodePos annotation = res.ir.addNode(
+        LaneNodePos annotation = res.ir.ir.addNode(
             lane, ImVec2(width, height), conf.blockGraphConf);
         CTX_MSG(
             fmt("Text node {} mapped to IR node {}", node.id, annotation));
         res.orgToId.insert_or_assign(node.uniq(), annotation);
 
-        res.addIrNode(res.nodes.high(), annotation);
+        res.ir.add(res.nodes.high(), annotation);
 
         return annotation;
     }
@@ -909,7 +909,7 @@ void connect_partition_edges(
         CTX_MSG(fmt("Partition {}", p.size()));
     }
 
-    res.ir.edges.clear();
+    res.ir.ir.edges.clear();
     for (auto const& [group_idx, group] : enumerate(partition)) {
         for (auto const& node : group) {
             org::ImmAdapter source = state.ast.context.adapt(
@@ -988,23 +988,24 @@ void connect_partition_edges(
                 && !res.isVisible(source.uniq())) {
                 // pass
             } else {
-                res.ir.addEdge(source_node, edge);
+                res.ir.ir.addEdge(source_node, edge);
             }
         }
     }
 }
 
 void update_node_sizes(StoryGridGraph& rectGraph) {
-    for (int i = 0; i < rectGraph.nodes.size(); ++i) {
+    rectGraph.ir.syncSize([&](int i) -> Opt<ImVec2> {
         auto& node = rectGraph.nodes.at(i);
         if (node.isTreeGrid()) {
             int         height = node.getTreeGrid().node.getHeight();
             int         width  = node.getTreeGrid().node.getWidth();
             LaneNodePos pos    = rectGraph.getIrNode(i);
-            rectGraph.ir.at(pos).height = height;
-            rectGraph.ir.at(pos).width  = width;
+            return ImVec2(width, height);
+        } else {
+            return std::nullopt;
         }
-    }
+    });
 }
 
 void update_link_list_target_rows(StoryGridGraph& rectGraph) {
@@ -1107,7 +1108,7 @@ void update_hidden_row_connections(
     auto& ir = model.rectGraph.ir;
 
     Slice<int> viewportRange = slice1<int>(0, conf.gridViewport.y);
-    auto&      lanes         = model.rectGraph.ir.ir.lanes;
+    auto&      lanes         = model.rectGraph.ir.getLanes();
     for (auto const& [lane_idx, lane] : enumerate(lanes)) {
         for (auto const& [block_idx, block] : enumerate(lane.blocks)) {
             LaneNodePos   lanePos{.lane = lane_idx, .row = block_idx};
@@ -1174,7 +1175,7 @@ void update_document_scroll(
 
     {
         Vec<int> offsets //
-            = ir.lanes
+            = ir.getLanes()
             | rv::transform([](LaneBlockStack const& lane) -> int {
                   return lane.scrollOffset;
               })
@@ -1183,17 +1184,18 @@ void update_document_scroll(
         CTX_MSG(fmt("Update document scrolling, offsets: {}", offsets));
     }
 
-    ir.visible.h = conf.gridViewport.y;
-    ir.visible.w = conf.gridViewport.x;
+    ir.setVisible(conf.gridViewport);
 
-    for (auto& lane : ir.lanes) {
+    for (auto& lane : ir.getLanes()) {
         for (auto& rect : lane.blocks) { rect.isVisible = true; }
     }
 
-    for (auto& stack : ir.lanes) { stack.resetVisibleRange(); }
+    for (auto& stack : ir.getLanes()) { stack.resetVisibleRange(); }
 
     // use first line as a basis for arranging all other node positions.
-    if (ir.lanes.has(0)) { model.shift.y = ir.lanes.at(0).scrollOffset; }
+    if (ir.getLanes().has(0)) {
+        model.shift.y = ir.getLanes().at(0).scrollOffset;
+    }
 
     update_graph_layout(model);
     update_hidden_row_connections(model, conf);
@@ -1261,7 +1263,7 @@ void update_document_graph(
 
     {
         int ir_nodes = 0;
-        for (auto const& lane : rg.ir.lanes) {
+        for (auto const& lane : rg.ir.getLanes()) {
             ir_nodes += lane.blocks.size();
         }
 
@@ -1410,7 +1412,7 @@ void StoryGridModel::apply(
         case GridAction::Kind::Scroll: {
             updateNeeded.incl(UpdateNeeded::Scroll);
             auto const& scroll = act.getScroll();
-            auto        spans  = rectGraph.ir.getLaneSpans();
+            auto        spans  = rectGraph.ir.ir.getLaneSpans();
             for (auto const& [lane_idx, span] : enumerate(spans)) {
                 if (span.contains(scroll.pos.x)) {
                     CTX_MSG(
@@ -1423,7 +1425,7 @@ void StoryGridModel::apply(
                             scroll.direction,
                             conf.mouseScrollMultiplier));
 
-                    rectGraph.ir.lane(lane_idx, conf.blockGraphConf)
+                    rectGraph.ir.ir.lane(lane_idx, conf.blockGraphConf)
                         .scrollOffset //
                         += scroll.direction * conf.mouseScrollMultiplier;
                 } else {
