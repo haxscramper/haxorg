@@ -412,7 +412,7 @@ void run_story_grid_annotated_cycle(
         }
     }
 
-    for (auto const& [key, edge] : model.layout.lines) {
+    for (auto const& [key, edge] : model.rectGraph.ir.layout.lines) {
         render_edge(edge, model.shift, true, conf.blockGraphConf);
     }
 }
@@ -587,7 +587,7 @@ TreeGridCell build_editable_cell(
 }
 
 
-Vec<Vec<DocAnnotation>> partition_graph_nodes(
+Vec<Vec<StoryGridAnnotation>> partition_graph_nodes(
     const Vec<org::graph::MapNode>& initial_nodes,
     const org::graph::MapGraph&     graph,
     StoryGridContext&               ctx) {
@@ -596,7 +596,7 @@ Vec<Vec<DocAnnotation>> partition_graph_nodes(
     auto __scope = ctx.scopeLevel();
 
 
-    Vec<Vec<DocAnnotation>>                result;
+    Vec<Vec<StoryGridAnnotation>>          result;
     UnorderedMap<org::graph::MapNode, int> distances;
     std::queue<org::graph::MapNode>        q;
 
@@ -619,7 +619,7 @@ Vec<Vec<DocAnnotation>> partition_graph_nodes(
             if (!adjacent.contains(adj) && !distances.contains(adj)) {
                 distances[adj] = current_distance + 1;
                 q.push(adj);
-                result[current_distance].push_back(DocAnnotation{
+                result[current_distance].push_back(StoryGridAnnotation{
                     .source = current,
                     .target = adj,
                 });
@@ -632,7 +632,7 @@ Vec<Vec<DocAnnotation>> partition_graph_nodes(
             if (!adjacent.contains(adj) && !distances.contains(adj)) {
                 distances[adj] = current_distance + 1;
                 q.push(adj);
-                result[current_distance].push_back(DocAnnotation{
+                result[current_distance].push_back(StoryGridAnnotation{
                     .source = adj,
                     .target = current,
                 });
@@ -895,9 +895,9 @@ LaneNodePos get_partition_node(
 };
 
 void connect_partition_edges(
-    StoryGridModel&                model,
-    Vec<Vec<DocAnnotation>> const& partition,
-    StoryGridConfig const&         conf) {
+    StoryGridModel&                      model,
+    Vec<Vec<StoryGridAnnotation>> const& partition,
+    StoryGridConfig const&               conf) {
     auto& res   = model.rectGraph;
     auto& state = model.getLastHistory();
     auto& ctx   = model.ctx;

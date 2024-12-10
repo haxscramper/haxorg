@@ -301,17 +301,17 @@ struct StoryGridNode {
 };
 
 
-struct DocAnnotation {
+struct StoryGridAnnotation {
     org::graph::MapNode source;
     org::graph::MapNode target;
-    DESC_FIELDS(DocAnnotation, (source, target));
+    DESC_FIELDS(StoryGridAnnotation, (source, target));
 };
 
 struct StoryGridGraph {
-    Vec<StoryGridNode>      nodes;
-    NodeGridGraph           ir;
-    org::graph::MapGraph    graph;
-    Vec<Vec<DocAnnotation>> partition;
+    Vec<StoryGridNode>            nodes;
+    NodeGridGraph                 ir;
+    org::graph::MapGraph          graph;
+    Vec<Vec<StoryGridAnnotation>> partition;
 
     UnorderedMap<org::ImmUniqId, org::ImmUniqId> annotationParents;
     UnorderedMap<org::ImmUniqId, LaneNodePos>    orgToId;
@@ -509,7 +509,6 @@ struct StoryGridModel {
     Vec<StoryGridHistory>    history;
     StoryGridGraph           rectGraph;
     StoryGridContext         ctx;
-    GraphLayoutIR::Result    layout;
     ImVec2                   shift{};
     Opt<ColaConstraintDebug> debug;
     StoryGridHistory&        getLastHistory() { return history.back(); }
