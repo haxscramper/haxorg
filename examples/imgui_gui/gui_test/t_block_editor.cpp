@@ -14,17 +14,30 @@ struct DocEditVars : public ImTestVarsBase {
 
     void add_text(std::string const& text) {
         int root_idx = docs.init_root(sem::parseString(text));
-        model.root   = to_doc_block(docs.getCurrentRoot(root_idx)).value();
+        model.root   = to_doc_block(docs.getCurrentRoot(root_idx), conf)
+                         .value();
     }
 
     void init_section(ImGuiTestContext* ctx, std::string const& text) {
-        if (ctx->IsFirstGuiFrame()) { add_text(text); }
+        if (ctx->IsFirstGuiFrame()) {
+            trace.setTraceFile(
+                getDebugFile(ctx->Test, "imgui_render.log"));
+
+            model.ctx.setTraceFile(
+                getDebugFile(ctx->Test, "block_editor.log"));
+
+            add_text(text);
+        }
     }
 
     void run_app_loop_iteration(ImGuiTestContext* ctx) {
-        conf.pos = getContentPos(ctx);
-        render_doc_block(model, conf);
-        apply_doc_block_actions(docs, model, conf);
+        {
+            auto __scope = IM_SCOPE_BEGIN("App loop iteration", "");
+            conf.pos     = getContentPos(ctx);
+            render_doc_block(model, conf);
+            apply_doc_block_actions(docs, model, conf);
+        }
+        if (is_im_traced()) { ImRenderTraceRecord::WriteTrace(trace); }
     }
 };
 
@@ -59,6 +72,7 @@ Paragraph 2
 
     t->TestFunc = ImWrapTestFuncT<DocEditVars>(
         params, [](ImGuiTestContext* ctx, DocEditVars& vars) {
+            vars.set_im_trace(1);
             ctx->SuspendTestFunc();
         });
 }

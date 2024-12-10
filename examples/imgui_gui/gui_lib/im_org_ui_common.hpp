@@ -31,7 +31,7 @@ struct EditableOrgText {
         StartedEditing,
         CancelledEditing);
 
-    static EditableOrgText from_adapter(org::ImmAdapter const it);
+    static EditableOrgText from_adapter(org::ImmAdapter const& it);
 
     int get_expected_height(int width, Mode mode);
 
@@ -58,6 +58,17 @@ struct EditableOrgTextEntry {
     DESC_FIELDS(
         EditableOrgTextEntry,
         (text, mode, assignedWidth, computedHeight));
+
+    static EditableOrgTextEntry from_adapter(
+        org::ImmAdapter const& it,
+        int                    width,
+        EditableOrgText::Mode  mode = EditableOrgText::Mode::Multiline) {
+        EditableOrgTextEntry result{
+            .text = EditableOrgText::from_adapter(it)};
+        result.setWidth(width);
+        result.mode = mode;
+        return result;
+    }
 
     std::string getFinalValue() const { return text.getFinalValue(); }
 

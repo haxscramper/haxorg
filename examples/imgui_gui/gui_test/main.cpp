@@ -74,7 +74,7 @@ int main(int argc, char** argv) {
     ImGuiTestEngine_QueueTests(
         engine,
         ImGuiTestGroup_Tests,
-        "doc_edit",
+        "story_grid",
         ImGuiTestRunFlags_RunFromGui);
 
     bool aborted = false;

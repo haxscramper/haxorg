@@ -5,13 +5,16 @@
 #include <haxorg/sem/SemOrgFormat.hpp>
 
 
-EditableOrgText EditableOrgText::from_adapter(const org::ImmAdapter it) {
+EditableOrgText EditableOrgText::from_adapter(const org::ImmAdapter& it) {
     EditableOrgText      res;
     sem::SemId<sem::Org> sem_ast = org::sem_from_immer(it.id, *it.ctx);
     res.value                    = sem::Formatter::format(sem_ast);
     return res;
 }
 
+namespace {
+int edit_button_offset = 40;
+}
 
 Vec<Str> split_wrap_text(std::string const& unwrapped, int width) {
     Vec<Str>    result;
@@ -44,10 +47,11 @@ int EditableOrgText::get_expected_height(int width, Mode mode) {
         _tmp_begin, _tmp_end, false, width);
 
     if (mode == Mode::SingleLine) {
-        return text_size.y;
+        return text_size.y + edit_button_offset;
     } else {
-        return 0 < wrapped.size() ? text_size.y * (wrapped.size() + 1)
-                                  : text_size.y;
+        return (0 < wrapped.size() ? text_size.y * (wrapped.size() + 1)
+                                   : text_size.y)
+             + edit_button_offset;
     }
 }
 
@@ -82,7 +86,7 @@ EditableOrgText::Result EditableOrgText::render(
 
     if (edit == Mode::Multiline) {
         if (is_editing) {
-            auto this_size = size - ImVec2(0, 40);
+            auto this_size = size - ImVec2(0, edit_button_offset);
             auto ed        = get_editor(this_size);
             ed->HandleInput();
             ed->Render();
