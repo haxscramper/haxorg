@@ -12,13 +12,13 @@ struct DocBlock {
 
     struct Paragraph {
         struct Annotation {
-            EditableOrgText text;
-            Str             name;
+            EditableOrgTextEntry text;
+            Str                  name;
             DESC_FIELDS(Annotation, (text, name));
         };
 
         org::ImmAdapterT<org::ImmParagraph> origin;
-        EditableOrgText                     text;
+        EditableOrgTextEntry                text;
         Vec<Annotation>                     annotations;
 
 
@@ -27,13 +27,13 @@ struct DocBlock {
 
     struct Subtree {
         struct Annotation {
-            EditableOrgText text;
-            Str             name;
+            EditableOrgTextEntry text;
+            Str                  name;
             DESC_FIELDS(Annotation, (text, name));
         };
 
         org::ImmAdapterT<org::ImmSubtree> origin;
-        EditableOrgText                   title;
+        EditableOrgTextEntry              title;
         Vec<Annotation>                   annotations;
 
         DESC_FIELDS(Subtree, (title, origin, annotations));
@@ -68,7 +68,7 @@ struct DocBlockModel {
     DESC_FIELDS(DocBlockModel, (root, ctx));
 };
 
-DocBlock to_doc_block(org::ImmAdapter const& it);
+Opt<DocBlock> to_doc_block(org::ImmAdapter const& it);
 void render_doc_block(DocBlockModel& model, DocBlockConfig const& conf);
 
 void apply_doc_block_actions(

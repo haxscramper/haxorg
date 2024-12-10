@@ -6,9 +6,9 @@
 
 
 EditableOrgText EditableOrgText::from_adapter(const org::ImmAdapter it) {
-    EditableOrgText res;
+    EditableOrgText      res;
     sem::SemId<sem::Org> sem_ast = org::sem_from_immer(it.id, *it.ctx);
-    res.value = sem::Formatter::format(sem_ast);
+    res.value                    = sem::Formatter::format(sem_ast);
     return res;
 }
 
@@ -163,4 +163,13 @@ EditableOrgText::Result EditableOrgText::render(
             }
         }
     }
+}
+
+int EditableOrgDocGroup::init_root(const sem::SemId<sem::Org>& id) {
+    History& current = getCurrentHistory();
+    auto     new_ast = current.ast.context.init(id);
+    current.ast      = std::move(new_ast);
+    int index = current.roots.push_back_idx(current.ast.getRootAdapter());
+    add_history(std::move(current));
+    return index;
 }

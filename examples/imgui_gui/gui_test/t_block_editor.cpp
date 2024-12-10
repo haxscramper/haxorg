@@ -1,18 +1,20 @@
+#define NDEBUG 0
+
 #include "im_test_common.hpp"
 #include <gui_lib/doc_editor.hpp>
 #include <haxorg/sem/ImmOrgBase.hpp>
 #include <haxorg/sem/SemBaseApi.hpp>
 #include <haxorg/sem/SemOrgFormat.hpp>
 
+
 struct DocEditVars : public ImTestVarsBase {
     DocBlockModel       model;
-    org::ImmAstContext  start;
     EditableOrgDocGroup docs;
     DocBlockConfig      conf;
 
     void add_text(std::string const& text) {
         int root_idx = docs.init_root(sem::parseString(text));
-        model.root   = to_doc_block(docs.getCurrentRoot(root_idx));
+        model.root   = to_doc_block(docs.getCurrentRoot(root_idx)).value();
     }
 
     void init_section(ImGuiTestContext* ctx, std::string const& text) {
@@ -21,6 +23,8 @@ struct DocEditVars : public ImTestVarsBase {
 
     void run_app_loop_iteration(ImGuiTestContext* ctx) {
         conf.pos = getContentPos(ctx);
+        render_doc_block(model, conf);
+        apply_doc_block_actions(docs, model, conf);
     }
 };
 
