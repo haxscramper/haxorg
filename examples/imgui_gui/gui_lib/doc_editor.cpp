@@ -2,6 +2,12 @@
 #include "block_graph.hpp"
 #include "node_grid_graph.hpp"
 
+#define CTX_MSG(...)                                                      \
+    if (ctx.OperationsTracer::TraceState) { ctx.message(__VA_ARGS__); }
+
+#define CTX_MSG_ALL(...) ctx.message(__VA_ARGS__);
+
+
 Opt<DocBlock::Ptr> to_doc_block(
     const org::ImmAdapter& it,
     const DocBlockConfig&  conf) {
@@ -19,9 +25,7 @@ Opt<DocBlock::Ptr> to_doc_block(
             auto add_subnodes = [&]() {
                 for (auto const& sub : it.sub()) {
                     auto subdoc = aux(sub, depth + 1);
-                    if (subdoc) {
-                        result->nested.push_back(subdoc.value());
-                    }
+                    if (subdoc) { result->addNested(subdoc.value()); }
                 }
             };
 
@@ -58,6 +62,8 @@ struct DocBlockRenderContext {
     int    dfsIndex = 0;
     DESC_FIELDS(DocBlockRenderContext, (start, offset));
 
+    int getIndex() { return dfsIndex++; }
+
     ImVec2 getThisWindowPos() const { return start + offset; }
 };
 
@@ -76,14 +82,15 @@ void render_doc_block(
     ImGui::SetNextWindowPos(block->getPos());
     ImGui::SetNextWindowSize(block->getSize());
 
-    if (IM_FN_BEGIN(
-            BeginChild, c_fmt("##doc_block_{}", block->selfIndex))) {
+    int selfIndex = renderContext.getIndex();
+
+    if (IM_FN_BEGIN(BeginChild, c_fmt("##doc_block_{}", selfIndex))) {
         if (block->isSubtree()) {
             auto& t = block->getSubtree();
-            t.title.render(c_fmt("title_{}", block->selfIndex));
+            t.title.render(c_fmt("title_{}", selfIndex));
         } else if (block->isParagraph()) {
             auto& p = block->getParagraph();
-            p.text.render(c_fmt("paragraph_{}", block->selfIndex));
+            p.text.render(c_fmt("paragraph_{}", selfIndex));
         } else if (block->isDocument()) {
             // pass
         } else {
@@ -104,7 +111,7 @@ void render_doc_block(
 void render_doc_block(DocBlockModel& model, const DocBlockConfig& conf) {
     DocBlockRenderContext renderContext{};
     renderContext.start = ImGui::GetCursorScreenPos();
-    render_doc_block(model, model.root, conf, renderContext);
+    render_doc_block(model, model.root.root, conf, renderContext);
 }
 
 void apply_doc_block_actions(
@@ -112,9 +119,16 @@ void apply_doc_block_actions(
     DocBlockModel&        model,
     const DocBlockConfig& config) {}
 
-void DocBlockDocument::syncPositions(const DocBlockConfig& conf) {
+void DocBlockDocument::syncPositions(
+    DocBlockContext&      ctx,
+    const DocBlockConfig& conf) {
+    CTX_MSG("Sync positions");
+    auto __scope = ctx.scopeLevel();
+
     NodeGridGraph                          g;
     Func<void(DocBlock::Ptr const& block)> aux;
+
+    g.setVisible(conf.gridViewport);
 
     int const mainLane       = 0;
     int const annotationLane = 1;
@@ -126,13 +140,62 @@ void DocBlockDocument::syncPositions(const DocBlockConfig& conf) {
         g.ir.lane(i, conf.laneConf).scrollOffset = getLaneScroll(i);
     }
 
-    auto flat = getFlatBlocks();
+    Vec<DocBlock::Ptr> flatGrid;
 
-    for (auto const& block : flat) {
-        int flatPos = g.ir.lane(mainLane, conf.laneConf)
-                          .addBlock(
-                              mainLane, block->getSize(), conf.laneConf);
+    auto add_graph_rect = [&](DocBlock::Ptr block) -> int {
+        int         flatPos = flatGrid.push_back_idx(block);
+        int         lane    = block->getLane();
+        LaneNodePos lanePos = g.ir.addNode(
+            lane, block->getSize(), conf.laneConf);
+
+        g.add(flatPos, lanePos);
+        return flatPos;
+    };
+
+    for (auto const& block : getFlatBlocks()) {
+        int flatPos                               = add_graph_rect(block);
         g.getNode(flatPos).horizontalCenterOffset = conf.nestingBlockOffset
                                                   * block->getDepth();
+        flatGrid.resize_at(flatPos) = block;
+
+        Func<void(DocBlock::Ptr annotation)> aux;
+        aux = [&](DocBlock::Ptr annotation) {
+            int flatPos = add_graph_rect(annotation);
+            for (auto const& sub : annotation->annotations) { aux(sub); }
+        };
     }
+
+    g.syncLayout();
+
+
+    {
+        CTX_MSG("Rectangle positions");
+        auto __scope = ctx.scopeLevel();
+        for (NodeGridGraph::RectSpec const& rect : g.getRectangles()) {
+            CTX_MSG(fmt("Rect {}", rect));
+            DocBlock::Ptr node = flatGrid.at(rect.flatPos);
+            if (rect.isVisible) {
+                node->isVisible = true;
+                node->setPos(rect.pos);
+            } else {
+                node->isVisible = false;
+            }
+        }
+    }
+}
+
+void DocBlockContext::message(
+    const std::string& value,
+    int                line,
+    const char*        function,
+    const char*        file) const {
+    OLOG_BUILDER()
+        .set_callsite(line, function, file)
+        .message(value)
+        .depth(activeLevel)
+        .category("doc-edit")
+        .severity(ol_info)
+        .source_scope({"gui", "feature", "doc_edit"});
+
+    OperationsTracer::message(value, activeLevel, line, function, file);
 }

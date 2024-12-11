@@ -1085,20 +1085,7 @@ void update_graph_layout(StoryGridModel& model) {
 
         if (rect.isVisible) {
             node.isVisible = true;
-            switch (node.getKind()) {
-                case StoryGridNode::Kind::TreeGrid: {
-                    node.getTreeGrid().pos = rect.pos;
-                    break;
-                }
-                case StoryGridNode::Kind::Text: {
-                    node.getText().pos = rect.pos;
-                    break;
-                }
-                case StoryGridNode::Kind::LinkList: {
-                    node.getLinkList().pos = rect.pos;
-                    break;
-                }
-            }
+            node.setPos(rect.pos);
         } else {
             node.isVisible = false;
         }

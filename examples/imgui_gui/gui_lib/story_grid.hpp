@@ -293,6 +293,15 @@ struct StoryGridNode {
             data);
     }
 
+    void setPos(ImVec2 const& pos) {
+        std::visit(
+            overloaded{
+                [&](Text& t) { t.pos = pos; },
+                [&](TreeGrid& t) { t.pos = pos; },
+                [&](LinkList& l) { l.pos = pos; },
+            },
+            data);
+    }
 
     SUB_VARIANTS(Kind, Data, data, getKind, TreeGrid, Text, LinkList);
     Data data;

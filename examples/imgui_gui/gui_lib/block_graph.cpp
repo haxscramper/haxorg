@@ -5,6 +5,20 @@
 #include <hstd/stdlib/Ranges.hpp>
 #include <hstd/stdlib/Debug.hpp>
 #include "imgui_utils.hpp"
+#include <gui_lib/org_logger.hpp>
+
+
+namespace {
+org_logging::log_builder gr_log(
+    org_logging::severity_level __severity,
+    int                         depth) {
+    return std::move(::org_logging::log_builder{}
+                         .set_callsite()
+                         .depth(depth)
+                         .severity(__severity)
+                         .source_scope({"gui", "logic", "block_graph"}));
+}
+} // namespace
 
 using GC = GraphNodeConstraint;
 
@@ -16,25 +30,52 @@ GC::Align::Spec spec(int rect, int offset = 0) {
 }
 
 LaneBlockLayout to_layout(LaneBlockGraph const& g) {
+    LOGIC_ASSERTION_CHECK(
+        int(g.visible.h) != 0 && int(g.visible.w) != 0, "{}", g.visible);
+
+    gr_log(ol_info, 0)
+        .fmt_message("Create block layout, {} lanes", g.lanes.size());
+
     LaneBlockLayout lyt;
 
     Vec<GC::Align>       laneAlignments;
     Vec<GC::Align::Spec> topLaneAlign;
     for (auto const& [lane_idx, lane] : enumerate(g.lanes)) {
-        Vec<int> visibleBlocks = lane.getVisibleBlocks(
-            slice<int>(0, int(g.visible.height())));
-        if (visibleBlocks.empty()) { continue; }
+        gr_log(ol_trace, 1)
+            .fmt_message(
+                "Lane index {} size {}", lane_idx, lane.blocks.size());
+        auto     visibleSlice  = slice<int>(0, int(g.visible.height()));
+        Vec<int> visibleBlocks = lane.getVisibleBlocks(visibleSlice);
+        if (visibleBlocks.empty()) {
+            gr_log(ol_trace, 2)
+                .fmt_message(
+                    "No blocks in visible range {}", visibleSlice);
+            continue;
+        } else {
+            gr_log(ol_trace, 2)
+                .fmt_message(
+                    "Blocks {} are visible in range {}",
+                    visibleBlocks,
+                    visibleSlice);
+        }
 
         Opt<GC::Align::Spec> first;
         for (int row : visibleBlocks) {
             LaneNodePos node{.lane = lane_idx, .row = row};
-            lyt.ir.rectangles.push_back(GraphSize{
-                .w = static_cast<double>(lane.blocks.at(row).width),
-                .h = static_cast<double>(lane.blocks.at(row).height),
-            });
+            GraphSize   size{
+                  .w = static_cast<double>(lane.blocks.at(row).width),
+                  .h = static_cast<double>(lane.blocks.at(row).height),
+            };
+
+            lyt.ir.rectangles.push_back(size);
+
 
             int idx = lyt.ir.rectangles.high();
             lyt.rectMap.insert_or_assign(node, idx);
+
+            gr_log(ol_trace, 2)
+                .fmt_message("Row {} rect {} size {}", row, idx, size);
+
             if (!first) {
                 first = GC::Align::Spec{
                     .node   = idx,

@@ -11,13 +11,15 @@ struct DocBlockConfig {
     int                  nestingBlockOffset = 40;
     Vec<int>             annotationLanesWidth{200};
     LaneBlockGraphConfig laneConf;
+    ImVec2               gridViewport;
 
     DESC_FIELDS(
         DocBlockConfig,
         (editLaneWidth,
          nestingBlockOffset,
          annotationLanesWidth,
-         laneConf));
+         laneConf,
+         gridViewport));
 };
 
 
@@ -32,32 +34,33 @@ struct DocBlock : SharedPtrApi<DocBlock> {
         Str                  name;
         ImVec2               pos;
         ImVec2 const&        getPos() const { return pos; }
+        ImVec2               getSize() const { return text.getSize(); }
+
         DESC_FIELDS(Annotation, (text, name, pos));
+
+        void setWidth(int width) { text.setWidth(width); }
 
         void syncSize(int thisLane, DocBlockConfig const& conf) {
             text.setWidth(conf.annotationLanesWidth.at(thisLane));
         }
     };
 
-
     struct Paragraph {
         org::ImmAdapterT<org::ImmParagraph> origin;
         EditableOrgTextEntry                text;
-        Vec<Annotation>                     annotations;
         void   setWidth(int width) { text.setWidth(width); }
         ImVec2 getSize() const { return text.getSize(); }
-        DESC_FIELDS(Paragraph, (text, origin, annotations));
+        DESC_FIELDS(Paragraph, (text, origin));
     };
 
     struct Subtree {
         org::ImmAdapterT<org::ImmSubtree> origin;
         EditableOrgTextEntry              title;
-        Vec<Annotation>                   annotations;
 
         void   setWidth(int width) { title.setWidth(width); }
         ImVec2 getSize() const { return title.getSize(); }
 
-        DESC_FIELDS(Subtree, (title, origin, annotations));
+        DESC_FIELDS(Subtree, (title, origin));
     };
 
 
@@ -73,11 +76,17 @@ struct DocBlock : SharedPtrApi<DocBlock> {
 
     Data                    data;
     Vec<DocBlock::Ptr>      nested;
+    Vec<DocBlock::Ptr>      annotations;
     std::weak_ptr<DocBlock> parent;
     ImVec2                  pos;
-    int                     selfIndex = 0;
+    bool                    isVisible = true;
+
+    DESC_FIELDS(
+        DocBlock,
+        (data, nested, annotations, parent, pos, isVisible));
 
     ImVec2 const& getPos() const { return pos; }
+    void          setPos(ImVec2 const& p) { pos = p; }
 
     ImVec2 getSize() {
         return std::visit(
@@ -90,27 +99,44 @@ struct DocBlock : SharedPtrApi<DocBlock> {
                 [&](Subtree& st) { st.setWidth(width); },
                 [&](Paragraph& par) { par.setWidth(width); },
                 [&](Document& d) {},
+                [&](Annotation& a) { a.setWidth(width); },
             },
             data);
     }
 
 
-    void add_nested(DocBlock::Ptr block) {
+    void addNested(DocBlock::Ptr block) {
         block->parent = weak_from_this();
         nested.push_back(block);
+    }
+
+    void addAnnotation(DocBlock::Ptr block) {
+        block->parent = weak_from_this();
+        annotations.push_back(block);
     }
 
     int getDepth() const {
         if (parent.expired()) {
             return 0;
+        } else if (isAnnotation()) {
+            return parent.lock()->getDepth();
         } else {
             return parent.lock()->getDepth() + 1;
         }
     }
 
-    DESC_FIELDS(DocBlock, (data, nested, parent, pos, selfIndex));
+    int getLane() const {
+        if (parent.expired()) {
+            return 0;
+        } else if (isAnnotation()) {
+            return parent.lock()->getLane() + 1;
+        } else {
+            return 0;
+        }
+    }
 
-    void syncSize(DocBlockConfig const& conf) {
+
+    void syncSize(int thisLane, DocBlockConfig const& conf) {
         int depth = getDepth();
         std::visit(
             overloaded{
@@ -124,14 +150,16 @@ struct DocBlock : SharedPtrApi<DocBlock> {
                         conf.editLaneWidth
                         - (conf.nestingBlockOffset * depth));
                 },
+                [&](Annotation& a) { a.syncSize(thisLane, conf); },
                 [](Document const& d) {},
             },
             data);
     }
 
-    void syncSizeRec(DocBlockConfig const& conf) {
-        syncSize(conf);
-        for (auto& sub : nested) { sub->syncSizeRec(conf); }
+    void syncSizeRec(int thisLane, DocBlockConfig const& conf) {
+        syncSize(thisLane, conf);
+        for (auto& sub : nested) { sub->syncSizeRec(thisLane, conf); }
+        for (auto& a : annotations) { a->syncSizeRec(thisLane + 1, conf); }
     }
 };
 
@@ -141,11 +169,18 @@ struct DocBlockContext
     : OperationsTracer
     , OperationsScope {
     Vec<DocBlockAction> actions;
+
+    void message(
+        std::string const& value,
+        int                line     = __builtin_LINE(),
+        char const*        function = __builtin_FUNCTION(),
+        char const*        file     = __builtin_FILE()) const;
 };
 
 
 struct DocBlockDocument {
-    DocBlock::Ptr      root;
+    DocBlock::Ptr root;
+
     Vec<DocBlock::Ptr> getFlatBlocks() {
         Vec<DocBlock::Ptr>        res;
         Func<void(DocBlock::Ptr)> aux;
@@ -154,12 +189,31 @@ struct DocBlockDocument {
             for (auto const& sub : ptr->nested) { aux(sub); }
         };
 
+        aux(root);
+
         return res;
     }
+
+    Vec<DocBlock::Ptr> getFlatAnnotations() {
+        Vec<DocBlock::Ptr>        res;
+        Func<void(DocBlock::Ptr)> aux;
+        aux = [&](DocBlock::Ptr ptr) {
+            if (ptr->isAnnotation()) { res.push_back(ptr); }
+            for (auto const& sub : ptr->annotations) { aux(sub); }
+            for (auto const& sub : ptr->nested) { aux(sub); }
+        };
+
+        aux(root);
+
+        return res;
+    }
+
     int      docLaneScrollOffset = 0;
     Vec<int> annotationLaneScrollOffsets;
-    void syncSize(DocBlockConfig const& conf) { root->syncSizeRec(conf); }
-    void syncPositions(DocBlockConfig const& conf);
+    void     syncSize(DocBlockConfig const& conf) {
+        root->syncSizeRec(0, conf);
+    }
+    void syncPositions(DocBlockContext& ctx, DocBlockConfig const& conf);
     DESC_FIELDS(
         DocBlockDocument,
         (root, docLaneScrollOffset, annotationLaneScrollOffsets));
@@ -175,8 +229,8 @@ struct DocBlockDocument {
 };
 
 struct DocBlockModel {
-    DocBlock::Ptr   root;
-    DocBlockContext ctx;
+    DocBlockDocument root;
+    DocBlockContext  ctx;
     DESC_FIELDS(DocBlockModel, (root, ctx));
 };
 

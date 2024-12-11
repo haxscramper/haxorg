@@ -13,9 +13,11 @@ struct DocEditVars : public ImTestVarsBase {
     DocBlockConfig      conf;
 
     void add_text(std::string const& text) {
-        int root_idx = docs.init_root(sem::parseString(text));
-        model.root   = to_doc_block(docs.getCurrentRoot(root_idx), conf)
-                         .value();
+        int root_idx    = docs.init_root(sem::parseString(text));
+        model.root.root = to_doc_block(docs.getCurrentRoot(root_idx), conf)
+                              .value();
+
+        model.root.syncPositions(model.ctx, conf);
     }
 
     void init_section(ImGuiTestContext* ctx, std::string const& text) {
@@ -55,8 +57,9 @@ void _SimpleDocumentEdit(ImGuiTestEngine* e) {
     params.windowSize.y = 700;
 
     t->GuiFunc = ImWrapGuiFuncT<DocEditVars>(
-        params, [](ImGuiTestContext* ctx, DocEditVars& vars) {
+        params, [params](ImGuiTestContext* ctx, DocEditVars& vars) {
             if (ctx->IsFirstGuiFrame()) {
+                vars.conf.gridViewport = params.windowSize;
                 vars.init_section(ctx, R"(
 * Subtree
 
