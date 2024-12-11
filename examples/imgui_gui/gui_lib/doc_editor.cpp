@@ -1,5 +1,6 @@
 #include "doc_editor.hpp"
-
+#include "block_graph.hpp"
+#include "node_grid_graph.hpp"
 
 Opt<DocBlock::Ptr> to_doc_block(
     const org::ImmAdapter& it,
@@ -112,5 +113,26 @@ void apply_doc_block_actions(
     const DocBlockConfig& config) {}
 
 void DocBlockDocument::syncPositions(const DocBlockConfig& conf) {
+    NodeGridGraph                          g;
+    Func<void(DocBlock::Ptr const& block)> aux;
 
+    int const mainLane       = 0;
+    int const annotationLane = 1;
+
+    g.ir.lane(mainLane, conf.laneConf).scrollOffset = docLaneScrollOffset;
+    for (int i = annotationLane;
+         i < annotationLaneScrollOffsets.size() + 1;
+         ++i) {
+        g.ir.lane(i, conf.laneConf).scrollOffset = getLaneScroll(i);
+    }
+
+    auto flat = getFlatBlocks();
+
+    for (auto const& block : flat) {
+        int flatPos = g.ir.lane(mainLane, conf.laneConf)
+                          .addBlock(
+                              mainLane, block->getSize(), conf.laneConf);
+        g.getNode(flatPos).horizontalCenterOffset = conf.nestingBlockOffset
+                                                  * block->getDepth();
+    }
 }

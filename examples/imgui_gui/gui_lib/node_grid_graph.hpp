@@ -21,6 +21,8 @@ struct NodeGridGraph {
     int& at(LaneNodePos const& pos) { return nodeToGridNode.at(pos); }
     LaneNodePos& at(int const& pos) { return gridNodeToNode.at(pos); }
 
+    LaneBlockNode& getNode(int pos) { return ir.at(at(pos)); }
+
     Vec<LaneBlockStack>& getLanes() { return ir.lanes; }
 
     void syncSize(Func<Opt<ImVec2>(int)> const& getSizeForFlat) {

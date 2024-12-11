@@ -7,26 +7,17 @@
 #include <hstd/stdlib/Ptrs.hpp>
 
 struct DocBlockConfig {
-    int      editLaneWidth      = 600;
-    int      nestingBlockOffset = 40;
-    Vec<int> annotationLanesWidth{200};
+    int                  editLaneWidth      = 600;
+    int                  nestingBlockOffset = 40;
+    Vec<int>             annotationLanesWidth{200};
+    LaneBlockGraphConfig laneConf;
 
     DESC_FIELDS(
         DocBlockConfig,
-        (editLaneWidth, nestingBlockOffset, annotationLanesWidth));
-};
-
-
-struct DocAnnotation {
-    EditableOrgTextEntry text;
-    Str                  name;
-    ImVec2               pos;
-    ImVec2 const&        getPos() const { return pos; }
-    DESC_FIELDS(DocAnnotation, (text, name, pos));
-
-    void syncSize(int thisLane, DocBlockConfig const& conf) {
-        text.setWidth(conf.annotationLanesWidth.at(thisLane));
-    }
+        (editLaneWidth,
+         nestingBlockOffset,
+         annotationLanesWidth,
+         laneConf));
 };
 
 
@@ -36,11 +27,23 @@ struct DocBlock : SharedPtrApi<DocBlock> {
         ImVec2 getSize() const { return ImVec2(); }
     };
 
+    struct Annotation {
+        EditableOrgTextEntry text;
+        Str                  name;
+        ImVec2               pos;
+        ImVec2 const&        getPos() const { return pos; }
+        DESC_FIELDS(Annotation, (text, name, pos));
+
+        void syncSize(int thisLane, DocBlockConfig const& conf) {
+            text.setWidth(conf.annotationLanesWidth.at(thisLane));
+        }
+    };
+
 
     struct Paragraph {
         org::ImmAdapterT<org::ImmParagraph> origin;
         EditableOrgTextEntry                text;
-        Vec<DocAnnotation>                  annotations;
+        Vec<Annotation>                     annotations;
         void   setWidth(int width) { text.setWidth(width); }
         ImVec2 getSize() const { return text.getSize(); }
         DESC_FIELDS(Paragraph, (text, origin, annotations));
@@ -49,7 +52,7 @@ struct DocBlock : SharedPtrApi<DocBlock> {
     struct Subtree {
         org::ImmAdapterT<org::ImmSubtree> origin;
         EditableOrgTextEntry              title;
-        Vec<DocAnnotation>                annotations;
+        Vec<Annotation>                   annotations;
 
         void   setWidth(int width) { title.setWidth(width); }
         ImVec2 getSize() const { return title.getSize(); }
@@ -58,7 +61,15 @@ struct DocBlock : SharedPtrApi<DocBlock> {
     };
 
 
-    SUB_VARIANTS(Kind, Data, data, getKind, Paragraph, Subtree, Document);
+    SUB_VARIANTS(
+        Kind,
+        Data,
+        data,
+        getKind,
+        Paragraph,
+        Subtree,
+        Document,
+        Annotation);
 
     Data                    data;
     Vec<DocBlock::Ptr>      nested;
@@ -135,21 +146,38 @@ struct DocBlockContext
 
 struct DocBlockDocument {
     DocBlock::Ptr      root;
-    Vec<DocBlock::Ptr> flatBlocks;
+    Vec<DocBlock::Ptr> getFlatBlocks() {
+        Vec<DocBlock::Ptr>        res;
+        Func<void(DocBlock::Ptr)> aux;
+        aux = [&](DocBlock::Ptr ptr) {
+            res.push_back(ptr);
+            for (auto const& sub : ptr->nested) { aux(sub); }
+        };
+
+        return res;
+    }
+    int      docLaneScrollOffset = 0;
+    Vec<int> annotationLaneScrollOffsets;
     void syncSize(DocBlockConfig const& conf) { root->syncSizeRec(conf); }
     void syncPositions(DocBlockConfig const& conf);
-    DESC_FIELDS(DocBlockDocument, (root, flatBlocks));
+    DESC_FIELDS(
+        DocBlockDocument,
+        (root, docLaneScrollOffset, annotationLaneScrollOffsets));
+
+    int getLaneScroll(int lane) {
+        if (lane == 0) {
+            return docLaneScrollOffset;
+        } else {
+            return docLaneScrollOffset
+                 + annotationLaneScrollOffsets.at_or(lane - 1, 0);
+        }
+    }
 };
 
 struct DocBlockModel {
-    DocBlock::Ptr                  root;
-    DocBlockContext                ctx;
-    LaneBlockGraph                 ir;
-    UnorderedMap<int, LaneNodePos> gridNodeToNode;
-    UnorderedMap<LaneNodePos, int> nodeToGridNode;
-    DESC_FIELDS(
-        DocBlockModel,
-        (root, ctx, ir, gridNodeToNode, nodeToGridNode));
+    DocBlock::Ptr   root;
+    DocBlockContext ctx;
+    DESC_FIELDS(DocBlockModel, (root, ctx));
 };
 
 Opt<DocBlock::Ptr> to_doc_block(

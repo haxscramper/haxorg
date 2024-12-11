@@ -36,6 +36,11 @@ struct LaneBlockNode {
     int  topMargin    = 5;
     int  bottomMargin = 5;
     bool isVisible    = true;
+    /// \brief Horizontal offset from the lane alignment center
+    int horizontalCenterOffset = 0;
+    /// \brief If block has fixed vertical offset it will be arranged
+    /// relative to the top baseline alignment.
+    Opt<int> fixedVerticalOffset = std::nullopt;
 
     /// \brief Get full vertical space occupied by the doc block, including
     /// top and bottom margins.
@@ -47,7 +52,12 @@ struct LaneBlockNode {
 
     DESC_FIELDS(
         LaneBlockNode,
-        (width, height, topMargin, bottomMargin, isVisible));
+        (width,
+         height,
+         topMargin,
+         bottomMargin,
+         isVisible,
+         horizontalCenterOffset));
 };
 
 struct LaneBlockGraphConfig {
