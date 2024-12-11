@@ -92,7 +92,7 @@ struct log_record {
         Str            category;
         severity_level severity     = severity_level::trace;
         char const*    function     = nullptr;
-        int            depth        = 0;
+        Opt<int>       depth        = std::nullopt;
         Vec<Str>       source_scope = {};
         Opt<Str>       source_id    = std::nullopt;
         Opt<json>      metadata     = std::nullopt;
@@ -110,7 +110,7 @@ struct log_record {
              metadata));
 
         std::size_t hash() const;
-        log_data();
+        // log_data();
     };
 
     std::size_t hash() const { return data.hash(); }

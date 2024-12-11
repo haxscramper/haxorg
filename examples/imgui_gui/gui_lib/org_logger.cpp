@@ -46,6 +46,7 @@ namespace sinks    = boost::log::sinks;
 
 #define LOG_RECORD_FIELD "record"
 #define LOG_SCOPE_DEPTH_FIELD "CommonDepth"
+#define LOG_TIMESTAMP_FIELD "TimeStamp"
 
 BOOST_LOG_ATTRIBUTE_KEYWORD(
     a_file,
@@ -73,7 +74,7 @@ BOOST_LOG_GLOBAL_LOGGER_INIT(
         boost::log::trivial::severity_level>
         logger;
     logger.add_attribute(
-        "TimeStamp", boost::log::attributes::local_clock());
+        LOG_TIMESTAMP_FIELD, boost::log::attributes::local_clock());
 
     logger.add_attribute(
         LOG_SCOPE_DEPTH_FIELD,
@@ -179,7 +180,8 @@ void format_log_record_data(
     const boost::log::record_view&  rec,
     boost::log::formatting_ostream& strm,
     log_record::log_data const&     data) {
-    auto        ts = rec["TimeStamp"].extract<boost::posix_time::ptime>();
+    auto ts = rec[LOG_TIMESTAMP_FIELD].extract<boost::posix_time::ptime>();
+    auto global_depth  = rec[LOG_SCOPE_DEPTH_FIELD].extract<int>();
     std::string prefix = fmt(
         "{}{} {}",
         ts ? boost::posix_time::to_simple_string(*ts).substr(
@@ -187,7 +189,11 @@ void format_log_record_data(
                  + std::string{" "}
            : "",
         join(".", data.source_scope),
-        Str{"  "}.repeated(data.depth).toBase());
+        Str{"  "}
+            .repeated(
+                data.depth ? data.depth.value()
+                           : (global_depth ? *global_depth : 0))
+            .toBase());
 
     strm << prefix;
 
@@ -256,7 +262,7 @@ org_logging::log_record& ::org_logging::log_record::message(
 }
 
 org_logging::log_record& ::org_logging::log_record::depth(int depth) {
-    data.depth += depth;
+    data.depth = depth;
     return *this;
 }
 
@@ -349,14 +355,16 @@ std::size_t log_record::log_data::hash() const {
     return result;
 }
 
-log_record::log_data::log_data() {
-    boost::log::attribute attr = get_logger().get_attributes()
-                                     [LOG_SCOPE_DEPTH_FIELD];
-    if (attr) {
-        auto res = attr.get_value().extract<int>();
-        if (res) { this->depth = *res; }
-    }
-}
+// log_record::log_data::log_data() {
+//     get_logger().lock();
+//     auto const&           attrs = get_logger().get_attributes();
+//     boost::log::attribute attr  = attrs[LOG_SCOPE_DEPTH_FIELD];
+//     // if (attr) {
+//     //     auto res = attr.get_value().extract<int>();
+//     //     if (res) { this->depth = *res; }
+//     // }
+//     get_logger().unlock();
+// }
 
 org_logging::log_record& ::org_logging::log_record::function(
     char const* func) {
