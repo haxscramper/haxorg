@@ -13,6 +13,9 @@ struct LaneNodePos {
     bool operator==(LaneNodePos const& other) const {
         return lane == other.lane && row == other.row;
     }
+
+    std::string getImId() const { return fmt("{}_{}", row, lane); }
+
     DESC_FIELDS(LaneNodePos, (lane, row));
 };
 

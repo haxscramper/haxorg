@@ -330,7 +330,11 @@ some random shit about the comments or whatever, need to render as annotation [f
                     MouseMoveToPos, ImGui::GetMousePos() + ImVec2(0, 100));
                 m.ctx.message(fmt(
                     "Pre edit text is\n'''\n{}\n'''", vars.get_text()));
-                // ctx->SuspendTestFunc();
+                writeFile(
+                    getDebugFile(ctx->Test, "test_dump.json"),
+                    to_json_eval(m.rectGraph.ir).dump(2));
+
+                ctx->SuspendTestFunc();
                 IM_CTX_ACT(MouseClick, 0);
                 IM_CTX_ACT(Yield, 5);
                 m.ctx.message(fmt(

@@ -72,11 +72,9 @@ struct EditableOrgTextEntry {
 
     std::string getFinalValue() const { return text.getFinalValue(); }
 
-    int    getHeight() const { return computedHeight; }
+    int    getHeight() const;
     int    getWidth() const { return assignedWidth; }
-    ImVec2 getSize() const {
-        return ImVec2(assignedWidth, computedHeight);
-    }
+    ImVec2 getSize() const { return ImVec2(getWidth(), getHeight()); }
 
     void setWidth(int width) {
         assignedWidth = width;

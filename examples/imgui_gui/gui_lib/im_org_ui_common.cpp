@@ -16,6 +16,12 @@ namespace {
 int edit_button_offset = 40;
 }
 
+
+int EditableOrgTextEntry::getHeight() const {
+    return computedHeight + (text.is_editing ? edit_button_offset : 0);
+}
+
+
 Vec<Str> split_wrap_text(std::string const& unwrapped, int width) {
     Vec<Str>    result;
     const char* text = unwrapped.c_str();
@@ -47,11 +53,11 @@ int EditableOrgText::get_expected_height(int width, Mode mode) {
         _tmp_begin, _tmp_end, false, width);
 
     if (mode == Mode::SingleLine) {
-        return text_size.y + edit_button_offset;
+        return text_size.y;
     } else {
-        return (0 < wrapped.size() ? text_size.y * (wrapped.size() + 1)
-                                   : text_size.y)
-             + edit_button_offset;
+        return (
+            0 < wrapped.size() ? text_size.y * (wrapped.size() + 1)
+                               : text_size.y);
     }
 }
 

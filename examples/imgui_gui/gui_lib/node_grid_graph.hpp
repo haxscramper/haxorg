@@ -9,6 +9,10 @@ struct NodeGridGraph {
     LaneBlockLayout                lyt;
     GraphLayoutIR::Result          layout;
 
+    DESC_FIELDS(
+        NodeGridGraph,
+        (ir, gridNodeToNode, nodeToGridNode, lyt, layout));
+
     void setVisible(ImVec2 const& viewport) {
         ir.visible.h = viewport.y;
         ir.visible.w = viewport.x;
@@ -28,8 +32,6 @@ struct NodeGridGraph {
             }
         }
     }
-
-    void syncPosition(Func<void(ImVec2, int)> const& setPosAtIndex) {}
 
     Opt<int> getFlat(LaneNodePos const& pos) const {
         return nodeToGridNode.get(pos);

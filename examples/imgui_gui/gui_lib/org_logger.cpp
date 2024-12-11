@@ -173,7 +173,8 @@ void format_log_record_data(
     std::string prefix = fmt(
         "{}{} {}",
         ts ? boost::posix_time::to_simple_string(*ts).substr(
-                 11, 8 /*Extract HH:MM:SS*/)
+                 11, 9 /*Extract HH:MM:SS*/)
+                 + std::string{" "}
            : "",
         join(".", data.source_scope),
         Str{"  "}.repeated(data.depth).toBase());

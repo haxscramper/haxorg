@@ -208,7 +208,7 @@ void render_text_node(
     ImGui::SetNextWindowSize(text.getSize());
     if (IM_FN_BEGIN(
             Begin,
-            c_fmt("##text_node_window_{}_{}", selfPos.row, selfPos.row),
+            c_fmt("##text_node_window_{}", selfPos.getImId()),
             nullptr,
             ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize)) {
         ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
@@ -216,7 +216,7 @@ void render_text_node(
         auto res = text.text.render(
             text.getSize(),
             EditableOrgText::Mode::Multiline,
-            fmt("text_node_{}_{}", selfPos.row, selfPos.lane));
+            fmt("text_node_{}", selfPos.getImId()));
 
         if (res != EditableOrgText::Result::None) {
             CTX_MSG(fmt("Text edit result {}", res));
@@ -289,7 +289,7 @@ void render_list_node(
                 item.text.render(
                     ImVec2(item.height, item.width),
                     EditableOrgText::Mode::Multiline,
-                    fmt("list_{}_{}", selfPos.row, selfPos.lane));
+                    fmt("list_{}", selfPos.getImId()));
             }
             IM_FN_END(EndTable);
         }
@@ -1072,10 +1072,17 @@ void update_graph_layout(StoryGridModel& model) {
     });
 
     rectGraph.ir.syncLayout();
+    auto& ctx = model.ctx;
+
+    CTX_MSG("Updating graph layout positions");
+    auto __scope = ctx.scopeLevel();
+
 
     for (NodeGridGraph::RectSpec const& rect :
          rectGraph.ir.getRectangles()) {
         StoryGridNode& node = rectGraph.nodes.at(rect.flatPos);
+        CTX_MSG(fmt("Rect {}", rect));
+
         if (rect.isVisible) {
             node.isVisible = true;
             switch (node.getKind()) {
