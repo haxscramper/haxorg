@@ -58,13 +58,15 @@ namespace {
 
 struct DocBlockRenderContext {
     ImVec2 start;
-    ImVec2 offset;
     int    dfsIndex = 0;
-    DESC_FIELDS(DocBlockRenderContext, (start, offset));
+    DESC_FIELDS(DocBlockRenderContext, (start));
 
     int getIndex() { return dfsIndex++; }
 
-    ImVec2 getThisWindowPos() const { return start + offset; }
+    ImVec2 getThisWindowPos() const { return start; }
+    ImVec2 getWindowPos(DocBlock::Ptr const& block) const {
+        return block->getPos() + start;
+    }
 };
 
 void render_doc_annotation() {}
@@ -79,7 +81,7 @@ void render_doc_block(
         fmt("Index {} kind {}", renderContext.dfsIndex, block->getKind()));
 
     auto frameless_vars = push_frameless_window_vars();
-    ImGui::SetNextWindowPos(block->getPos());
+    ImGui::SetNextWindowPos(renderContext.getWindowPos(block));
     ImGui::SetNextWindowSize(block->getSize());
 
     int selfIndex = renderContext.getIndex();
@@ -153,6 +155,7 @@ void DocBlockDocument::syncPositions(
     };
 
     for (auto const& block : getFlatBlocks()) {
+        if (block->isDocument()) { continue; }
         int flatPos                               = add_graph_rect(block);
         g.getNode(flatPos).horizontalCenterOffset = conf.nestingBlockOffset
                                                   * block->getDepth();

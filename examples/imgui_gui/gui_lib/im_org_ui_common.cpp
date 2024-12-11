@@ -18,6 +18,9 @@ int edit_button_offset = 40;
 
 
 int EditableOrgTextEntry::getHeight() const {
+    LOGIC_ASSERTION_CHECK(
+        assignedWidth != 0,
+        "Cannot get editable text height without assigned width");
     return computedHeight + (text.is_editing ? edit_button_offset : 0);
 }
 

@@ -36,6 +36,20 @@ LaneBlockLayout to_layout(LaneBlockGraph const& g) {
     gr_log(ol_info, 0)
         .fmt_message("Create block layout, {} lanes", g.lanes.size());
 
+
+    for (auto const& [pos, block] : g.getBlocks()) {
+        LOGIC_ASSERTION_CHECK(
+            block.width != 0 && block.height != 0,
+            "Cannot compute layout size with block size of 0. Block node "
+            "at position {} has dimensions {}x{}",
+            pos,
+            block.height,
+            block.width);
+
+        gr_log(ol_info, 1).fmt_message("Pos {} block {}", pos, block);
+    }
+
+
     LaneBlockLayout lyt;
 
     Vec<GC::Align>       laneAlignments;
@@ -87,8 +101,22 @@ LaneBlockLayout to_layout(LaneBlockGraph const& g) {
 
         if (first) { topLaneAlign.push_back(first.value()); }
 
+        // Compose lane alignment axis by constraining nodes pairwise. The
+        // `first` node in the lane is also constrainted with the top
+        // horizontal axis (top lane align), and then every other block on
+        // the lane is transitively constrained to it.
+        //
+        // ──────────── topLaneAlign
+        // align   align
+        //   ┌─┐   ┌╶┐
+        //   └┼┘   └│┘
+        //    │     │
+        //   ┌┼┐   ┌│┐
+        //   └┼┘   └│┘
+        //    │     │
+        //   ┌┼┐   ┌│┐
+        //   └─┘   └╶┘
         GC::Align align;
-
         for (auto const& row : visibleBlocks) {
             LaneNodePos node{.lane = lane_idx, .row = row};
             align.nodes.push_back(spec(lyt.rectMap.at(node)));
@@ -125,6 +153,7 @@ LaneBlockLayout to_layout(LaneBlockGraph const& g) {
         .dimension = GraphDimension::YDIM,
     }});
 
+    // Add constraints to constrain lane positions
     for (auto const& [lane_idx, lane] : enumerate(g.lanes)) {
         if (lane_idx < g.lanes.high()) {
             int         next_idx = lane_idx + 1;
@@ -149,6 +178,7 @@ LaneBlockLayout to_layout(LaneBlockGraph const& g) {
         }
     }
 
+    // Connect all edges on the nodes
     int                               edgeId = 0;
     UnorderedMap<Pair<int, int>, int> inLaneCheckpoints;
     for (auto const& lane : enumerator(g.lanes)) {
@@ -444,22 +474,48 @@ bool LaneBlockStack::inSpan(int blockIdx, Slice<int> heightRange) const {
         auto span = blocks.at(blockIdx).heightSpan(
             getBlockHeightStart(blockIdx));
         bool result = heightRange.overlap(span).has_value();
-        // _dfmt(span, heightRange, blockIdx, result, scrollOffset);
+        // gr_log(ol_debug, 0)
+        //     .message(_dfmt_expr(
+        //         span, heightRange, blockIdx, result, scrollOffset));
         return result;
     } else {
+        // gr_log(ol_debug, 0).message(_dfmt_expr(blockIdx, heightRange));
         return false;
     }
 }
 
 Vec<int> LaneBlockStack::getVisibleBlocks(Slice<int> heightRange) const {
     Vec<int> res;
-    for (int block : visibleRange) {
+    for (int block : slice1(0, blocks.high())) {
         if (inSpan(block, heightRange)) { res.push_back(block); }
     }
 
     std::sort(res.begin(), res.end());
 
     return res;
+}
+
+int LaneBlockStack::addBlock(
+    int                         laneIndex,
+    const ImVec2&               size,
+    const LaneBlockGraphConfig& conf) {
+
+    LOGIC_ASSERTION_CHECK(
+        size.x != 0 && size.y != 0, "Cannot create block with no size");
+
+    auto [top, bottom] = conf.getDefaultBlockMargin(LaneNodePos{
+        .lane = laneIndex,
+        .row  = blocks.size(),
+    });
+
+    blocks.push_back(LaneBlockNode{
+        .width        = static_cast<int>(size.x),
+        .height       = static_cast<int>(size.y),
+        .topMargin    = top,
+        .bottomMargin = bottom,
+    });
+
+    return blocks.high();
 }
 
 ImVec2 get_center(const GraphRect& rect) {

@@ -97,22 +97,7 @@ struct LaneBlockStack {
     int      addBlock(
              int                         laneIndex,
              ImVec2 const&               size,
-             LaneBlockGraphConfig const& conf) {
-
-        auto [top, bottom] = conf.getDefaultBlockMargin(LaneNodePos{
-            .lane = laneIndex,
-            .row  = blocks.size(),
-        });
-
-        blocks.push_back(LaneBlockNode{
-            .width        = static_cast<int>(size.x),
-            .height       = static_cast<int>(size.y),
-            .topMargin    = top,
-            .bottomMargin = bottom,
-        });
-
-        return blocks.high();
-    }
+             LaneBlockGraphConfig const& conf);
 
     int getWidth() const {
         return rs::max(blocks | rv::transform([](LaneBlockNode const& b) {
@@ -177,6 +162,21 @@ struct LaneBlockGraph {
 
     LaneBlockNode const& getLaneNode(LaneNodePos const& pos) {
         return lanes.at(pos.lane).blocks.at(pos.row);
+    }
+
+    generator<Pair<LaneNodePos, LaneBlockNode>> getBlocks() const {
+        for (int lane_idx = 0; lane_idx < lanes.size(); ++lane_idx) {
+            for (int row_idx = 0;
+                 row_idx < lanes.at(lane_idx).blocks.size();
+                 ++row_idx) {
+                co_yield std::make_pair(
+                    LaneNodePos{
+                        .lane = lane_idx,
+                        .row  = row_idx,
+                    },
+                    lanes.at(lane_idx).blocks.at(row_idx));
+            }
+        }
     }
 
     Vec<Slice<int>> getLaneSpans() const {
