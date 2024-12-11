@@ -1,5 +1,6 @@
 #pragma once
 
+#include <boost/log/attributes/mutable_constant.hpp>
 #include <boost/log/sinks/basic_sink_frontend.hpp>
 #include <boost/preprocessor.hpp>
 #include <hstd/stdlib/Func.hpp>
@@ -109,6 +110,7 @@ struct log_record {
              metadata));
 
         std::size_t hash() const;
+        log_data();
     };
 
     std::size_t hash() const { return data.hash(); }
@@ -249,6 +251,30 @@ struct log_builder {
 
     ~log_builder();
 };
+
+class log_scoped_depth_attr {
+    int depth;
+
+  public:
+    static log_scoped_depth_attr& instance() {
+        static log_scoped_depth_attr st;
+        return st;
+    }
+
+    int get_depth() const { return depth; }
+
+    struct raii {
+        friend log_scoped_depth_attr;
+        raii() { ++log_scoped_depth_attr::instance().depth; }
+        ~raii() { --log_scoped_depth_attr::instance().depth; }
+    };
+};
+
+#define OLOG_DEPTH_SCOPE()                                                \
+    ::org_logging::log_scoped_depth_attr::raii {}
+
+#define OLOG_DEPTH_SCOPE_ANON()                                           \
+    auto BOOST_PP_CAT(__scope, __COUNTER__) = OLOG_DEPTH_SCOPE();
 
 /// \brief Create a finalizer that can use a mutable generator object as a
 /// filter on the callsite.

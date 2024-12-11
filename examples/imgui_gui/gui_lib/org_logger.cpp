@@ -16,6 +16,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/format.hpp>
+#include <boost/property_map/property_map.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
 
 #include <boost/log/core.hpp>
@@ -44,6 +45,8 @@ namespace keywords = boost::log::keywords;
 namespace sinks    = boost::log::sinks;
 
 #define LOG_RECORD_FIELD "record"
+#define LOG_SCOPE_DEPTH_FIELD "CommonDepth"
+
 BOOST_LOG_ATTRIBUTE_KEYWORD(
     a_file,
     LOG_RECORD_FIELD,
@@ -71,6 +74,13 @@ BOOST_LOG_GLOBAL_LOGGER_INIT(
         logger;
     logger.add_attribute(
         "TimeStamp", boost::log::attributes::local_clock());
+
+    logger.add_attribute(
+        LOG_SCOPE_DEPTH_FIELD,
+        boost::log::attributes::make_function([]() -> int {
+            return log_scoped_depth_attr::instance().get_depth();
+        }));
+
     boost::log::add_common_attributes();
     logger.add_attribute(LOG_RECORD_FIELD, current_record);
     return logger;
@@ -337,6 +347,15 @@ std::size_t log_record::log_data::hash() const {
     hax_hash_combine(result, source_id);
     hax_hash_combine(result, metadata);
     return result;
+}
+
+log_record::log_data::log_data() {
+    boost::log::attribute attr = get_logger().get_attributes()
+                                     [LOG_SCOPE_DEPTH_FIELD];
+    if (attr) {
+        auto res = attr.get_value().extract<int>();
+        if (res) { this->depth = *res; }
+    }
 }
 
 org_logging::log_record& ::org_logging::log_record::function(
