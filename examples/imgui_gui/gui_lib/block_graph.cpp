@@ -8,19 +8,16 @@
 #include <gui_lib/org_logger.hpp>
 
 
+using GC = GraphNodeConstraint;
+
+
 namespace {
-org_logging::log_builder gr_log(
-    org_logging::severity_level __severity,
-    int                         depth) {
+org_logging::log_builder gr_log(org_logging::severity_level __severity) {
     return std::move(::org_logging::log_builder{}
                          .set_callsite()
-                         .depth(depth)
                          .severity(__severity)
                          .source_scope({"gui", "logic", "block_graph"}));
 }
-} // namespace
-
-using GC = GraphNodeConstraint;
 
 GC::Align::Spec spec(int rect, int offset = 0) {
     return GC::Align::Spec{
@@ -29,48 +26,26 @@ GC::Align::Spec spec(int rect, int offset = 0) {
     };
 }
 
-LaneBlockLayout to_layout(LaneBlockGraph const& g) {
-    LOGIC_ASSERTION_CHECK(
-        int(g.visible.h) != 0 && int(g.visible.w) != 0, "{}", g.visible);
-
-    gr_log(ol_info, 0)
-        .fmt_message("Create block layout, {} lanes", g.lanes.size());
-
-
-    for (auto const& [pos, block] : g.getBlocks()) {
-        LOGIC_ASSERTION_CHECK(
-            block.width != 0 && block.height != 0,
-            "Cannot compute layout size with block size of 0. Block node "
-            "at position {} has dimensions {}x{}",
-            pos,
-            block.height,
-            block.width);
-
-        gr_log(ol_info, 1).fmt_message("Pos {} block {}", pos, block);
-    }
-
-
-    LaneBlockLayout lyt;
-
-    Vec<GC::Align>       laneAlignments;
-    Vec<GC::Align::Spec> topLaneAlign;
+void connect_vertical_constraints(
+    LaneBlockLayout&      lyt,
+    Vec<GC::Align>&       laneAlignments,
+    Vec<GC::Align::Spec>& topLaneAlign,
+    LaneBlockGraph const& g) {
+    OLOG_DEPTH_SCOPE_ANON();
     for (auto const& [lane_idx, lane] : enumerate(g.lanes)) {
-        gr_log(ol_trace, 1)
-            .fmt_message(
-                "Lane index {} size {}", lane_idx, lane.blocks.size());
+        gr_log(ol_trace).fmt_message(
+            "Lane index {} size {}", lane_idx, lane.blocks.size());
         auto     visibleSlice  = slice<int>(0, int(g.visible.height()));
         Vec<int> visibleBlocks = lane.getVisibleBlocks(visibleSlice);
         if (visibleBlocks.empty()) {
-            gr_log(ol_trace, 2)
-                .fmt_message(
-                    "No blocks in visible range {}", visibleSlice);
+            gr_log(ol_trace).fmt_message(
+                "No blocks in visible range {}", visibleSlice);
             continue;
         } else {
-            gr_log(ol_trace, 2)
-                .fmt_message(
-                    "Blocks {} are visible in range {}",
-                    visibleBlocks,
-                    visibleSlice);
+            gr_log(ol_trace).fmt_message(
+                "Blocks {} are visible in range {}",
+                visibleBlocks,
+                visibleSlice);
         }
 
         Opt<GC::Align::Spec> first;
@@ -87,8 +62,8 @@ LaneBlockLayout to_layout(LaneBlockGraph const& g) {
             int idx = lyt.ir.rectangles.high();
             lyt.rectMap.insert_or_assign(node, idx);
 
-            gr_log(ol_trace, 2)
-                .fmt_message("Row {} rect {} size {}", row, idx, size);
+            gr_log(ol_trace).fmt_message(
+                "Row {} rect {} size {}", row, idx, size);
 
             if (!first) {
                 first = GC::Align::Spec{
@@ -101,21 +76,6 @@ LaneBlockLayout to_layout(LaneBlockGraph const& g) {
 
         if (first) { topLaneAlign.push_back(first.value()); }
 
-        // Compose lane alignment axis by constraining nodes pairwise. The
-        // `first` node in the lane is also constrainted with the top
-        // horizontal axis (top lane align), and then every other block on
-        // the lane is transitively constrained to it.
-        //
-        // ──────────── topLaneAlign
-        // align   align
-        //   ┌─┐   ┌╶┐
-        //   └┼┘   └│┘
-        //    │     │
-        //   ┌┼┐   ┌│┐
-        //   └┼┘   └│┘
-        //    │     │
-        //   ┌┼┐   ┌│┐
-        //   └─┘   └╶┘
         GC::Align align;
         for (auto const& row : visibleBlocks) {
             LaneNodePos node{.lane = lane_idx, .row = row};
@@ -146,14 +106,15 @@ LaneBlockLayout to_layout(LaneBlockGraph const& g) {
         align.dimension = GraphDimension::XDIM;
         laneAlignments.push_back(align);
     }
+}
 
-    // _dbg(topLaneAlign);
-    lyt.ir.nodeConstraints.push_back(GraphNodeConstraint{GC::Align{
-        .nodes     = topLaneAlign,
-        .dimension = GraphDimension::YDIM,
-    }});
+void connect_inter_lane_constraints(
+    LaneBlockLayout&      lyt,
+    Vec<GC::Align>&       laneAlignments,
+    LaneBlockGraph const& g) {
+    OLOG_DEPTH_SCOPE_ANON();
 
-    // Add constraints to constrain lane positions
+
     for (auto const& [lane_idx, lane] : enumerate(g.lanes)) {
         if (lane_idx < g.lanes.high()) {
             int         next_idx = lane_idx + 1;
@@ -177,8 +138,10 @@ LaneBlockLayout to_layout(LaneBlockGraph const& g) {
                 }});
         }
     }
+}
 
-    // Connect all edges on the nodes
+void connect_edges(LaneBlockLayout& lyt, LaneBlockGraph const& g) {
+    OLOG_DEPTH_SCOPE_ANON();
     int                               edgeId = 0;
     UnorderedMap<Pair<int, int>, int> inLaneCheckpoints;
     for (auto const& lane : enumerator(g.lanes)) {
@@ -235,7 +198,62 @@ LaneBlockLayout to_layout(LaneBlockGraph const& g) {
             }
         }
     }
+}
 
+} // namespace
+
+
+LaneBlockLayout to_layout(LaneBlockGraph const& g) {
+    LOGIC_ASSERTION_CHECK(
+        int(g.visible.h) != 0 && int(g.visible.w) != 0, "{}", g.visible);
+    gr_log(ol_info).fmt_message(
+        "Create block layout, {} lanes", g.lanes.size());
+
+    OLOG_DEPTH_SCOPE_ANON();
+
+    for (auto const& [pos, block] : g.getBlocks()) {
+        LOGIC_ASSERTION_CHECK(
+            block.width != 0 && block.height != 0,
+            "Cannot compute layout size with block size of 0. Block node "
+            "at position {} has dimensions {}x{}",
+            pos,
+            block.height,
+            block.width);
+
+        gr_log(ol_info).fmt_message("Pos {} block {}", pos, block);
+    }
+
+
+    LaneBlockLayout lyt;
+
+    Vec<GC::Align>       laneAlignments;
+    Vec<GC::Align::Spec> topLaneAlign;
+
+    // Compose lane alignment axis by constraining nodes pairwise. The
+    // `first` node in the lane is also constrainted with the top
+    // horizontal axis (top lane align), and then every other block on
+    // the lane is transitively constrained to it.
+    //
+    // ──────────── topLaneAlign
+    // align   align
+    //   ┌─┐   ┌╶┐
+    //   └┼┘   └│┘
+    //    │     │
+    //   ┌┼┐   ┌│┐
+    //   └┼┘   └│┘
+    //    │     │
+    //   ┌┼┐   ┌│┐
+    //   └─┘   └╶┘
+    connect_vertical_constraints(lyt, laneAlignments, topLaneAlign, g);
+
+    lyt.ir.nodeConstraints.push_back(GraphNodeConstraint{GC::Align{
+        .nodes     = topLaneAlign,
+        .dimension = GraphDimension::YDIM,
+    }});
+
+    connect_inter_lane_constraints(lyt, laneAlignments, g);
+
+    connect_edges(lyt, g);
     return lyt;
 }
 
