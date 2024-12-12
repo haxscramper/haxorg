@@ -88,6 +88,13 @@ struct DocBlock : SharedPtrApi<DocBlock> {
     ImVec2 const& getPos() const { return pos; }
     void          setPos(ImVec2 const& p) { pos = p; }
 
+    DocBlock::Ptr at(int pos) const { return nested.at(pos); }
+    DocBlock::Ptr at(Vec<int> path) const {
+        auto res = nested.at(path.front());
+        for (int i : path.at(slice(1, 1_B))) { res = res->at(i); }
+        return res;
+    }
+
     ImVec2 getSize() {
         return std::visit(
             [](const auto& it) { return it.getSize(); }, data);
@@ -163,12 +170,39 @@ struct DocBlock : SharedPtrApi<DocBlock> {
     }
 };
 
-struct DocBlockAction {};
+template <>
+struct std::formatter<DocBlock*> : std_format_ptr_as_hex<DocBlock> {};
+template <>
+struct std::formatter<DocBlock const*>
+    : std_format_ptr_as_hex<DocBlock> {};
+
+struct DocBlockAction {
+    struct NodeEditChanged {
+        DocBlock::Ptr block;
+        DESC_FIELDS(NodeEditChanged, (block));
+    };
+
+    SUB_VARIANTS(Kind, Data, data, getKind, NodeEditChanged);
+    Data data;
+
+    DESC_FIELDS(DocBlockAction, (data));
+};
 
 struct DocBlockContext
     : OperationsTracer
     , OperationsScope {
     Vec<DocBlockAction> actions;
+
+    void action(
+        DocBlockAction::Data const& act,
+        int                         line     = __builtin_LINE(),
+        char const*                 function = __builtin_FUNCTION(),
+        char const*                 file     = __builtin_FILE()) {
+        DocBlockAction ga{act};
+        message(fmt("Action {}", ga), line, function, file);
+        actions.push_back({ga});
+    }
+
 
     void message(
         std::string const& value,
@@ -180,6 +214,9 @@ struct DocBlockContext
 
 struct DocBlockDocument {
     DocBlock::Ptr root;
+
+    DocBlock::Ptr at(int idx) const { return root->at(idx); }
+    DocBlock::Ptr at(Vec<int> const& path) const { return root->at(path); }
 
     Vec<DocBlock::Ptr> getFlatBlocks() {
         Vec<DocBlock::Ptr>        res;
@@ -242,4 +279,4 @@ void render_doc_block(DocBlockModel& model, DocBlockConfig const& conf);
 void apply_doc_block_actions(
     EditableOrgDocGroup&  history,
     DocBlockModel&        model,
-    DocBlockConfig const& config);
+    DocBlockConfig const& conf);

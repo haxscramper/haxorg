@@ -86,13 +86,25 @@ void render_doc_block(
 
     int selfIndex = renderContext.getIndex();
 
+    using ER = EditableOrgText::Result;
+
+    auto handle_edit_result = [&](ER result) {
+        if (result == ER::CancelledEditing || result == ER::StartedEditing
+            || result == ER::Changed) {
+            model.ctx.action(
+                DocBlockAction::NodeEditChanged{.block = block});
+        }
+    };
+
     if (IM_FN_BEGIN(BeginChild, c_fmt("##doc_block_{}", selfIndex))) {
         if (block->isSubtree()) {
             auto& t = block->getSubtree();
-            t.title.render(c_fmt("title_{}", selfIndex));
+            handle_edit_result(
+                t.title.render(c_fmt("title_{}", selfIndex)));
         } else if (block->isParagraph()) {
             auto& p = block->getParagraph();
-            p.text.render(c_fmt("paragraph_{}", selfIndex));
+            handle_edit_result(
+                p.text.render(c_fmt("paragraph_{}", selfIndex)));
         } else if (block->isDocument()) {
             // pass
         } else {
@@ -119,7 +131,19 @@ void render_doc_block(DocBlockModel& model, const DocBlockConfig& conf) {
 void apply_doc_block_actions(
     EditableOrgDocGroup&  history,
     DocBlockModel&        model,
-    const DocBlockConfig& config) {}
+    const DocBlockConfig& conf) {
+    auto& ctx = model.ctx;
+    CTX_MSG("Apply doc block edit actions");
+    auto __scope = ctx.scopeLevel();
+    for (auto const& act : model.ctx.actions) {
+        switch (act.getKind()) {
+            case DocBlockAction::Kind::NodeEditChanged: {
+                model.root.syncPositions(model.ctx, conf);
+                break;
+            }
+        }
+    }
+}
 
 void DocBlockDocument::syncPositions(
     DocBlockContext&      ctx,
