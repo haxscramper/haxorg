@@ -12,9 +12,13 @@ using GC = GraphNodeConstraint;
 
 
 namespace {
-org_logging::log_builder gr_log(org_logging::severity_level __severity) {
+org_logging::log_builder gr_log(
+    org_logging::severity_level __severity,
+    int                         line     = __builtin_LINE(),
+    char const*                 function = __builtin_FUNCTION(),
+    char const*                 file     = __builtin_FILE()) {
     return std::move(::org_logging::log_builder{}
-                         .set_callsite()
+                         .set_callsite(line, function, file)
                          .severity(__severity)
                          .source_scope({"gui", "logic", "block_graph"}));
 }
@@ -62,8 +66,8 @@ void connect_vertical_constraints(
             int idx = lyt.ir.rectangles.high();
             lyt.rectMap.insert_or_assign(node, idx);
 
-            gr_log(ol_trace).fmt_message(
-                "Row {} rect {} size {}", row, idx, size);
+            // gr_log(ol_trace).fmt_message(
+            //     "Row {} rect {} size {}", row, idx, size);
 
             if (!first) {
                 first = GC::Align::Spec{
@@ -220,7 +224,7 @@ LaneBlockLayout to_layout(LaneBlockGraph const& g) {
             block.height,
             block.width);
 
-        gr_log(ol_info).fmt_message("Pos {} block {}", pos, block);
+        // gr_log(ol_info).fmt_message("Pos {} block {}", pos, block);
     }
 
 

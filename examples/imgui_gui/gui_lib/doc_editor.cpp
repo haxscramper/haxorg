@@ -94,7 +94,9 @@ void render_doc_block(
 
         if (result == ER::Changed) {
             model.ctx.action(DocBlockAction::NodeTextChanged{
-                .block = block,
+                .block   = block,
+                .updated = text.text.value,
+                .origin  = text.text.origin,
             });
         }
 
@@ -139,7 +141,10 @@ void apply_doc_block_actions(
     EditableOrgDocGroup&  history,
     DocBlockModel&        model,
     const DocBlockConfig& conf) {
+    if (model.ctx.actions.empty()) { return; }
+
     auto& ctx = model.ctx;
+
     CTX_MSG("Apply doc block edit actions");
     auto __scope = ctx.scopeLevel();
     for (auto const& act : model.ctx.actions) {
@@ -168,6 +173,8 @@ void apply_doc_block_actions(
             }
         }
     }
+
+    model.ctx.actions.clear();
 }
 
 void DocBlockDocument::syncPositions(

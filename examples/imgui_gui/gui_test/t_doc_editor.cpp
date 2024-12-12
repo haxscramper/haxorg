@@ -8,10 +8,13 @@
 
 
 struct DocEditVars : public ImTestVarsBase {
+    org::ImmAstContext  ctx;
     DocBlockModel       model;
     EditableOrgDocGroup docs;
     DocBlockConfig      conf;
     int                 root_idx = -1;
+
+    DocEditVars() : docs{ctx} {}
 
     Str get_text() {
         auto sem = org::sem_from_immer(

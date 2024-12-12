@@ -11,12 +11,24 @@ EditableOrgText EditableOrgText::from_adapter(const org::ImmAdapter& it) {
     EditableOrgText      res;
     sem::SemId<sem::Org> sem_ast = org::sem_from_immer(it.id, *it.ctx);
     res.value                    = sem::Formatter::format(sem_ast);
+    res.origin                   = it;
     return res;
 }
 
 namespace {
 int edit_button_offset = 40;
+
+org_logging::log_builder gr_log(
+    org_logging::severity_level __severity,
+    int                         line     = __builtin_LINE(),
+    char const*                 function = __builtin_FUNCTION(),
+    char const*                 file     = __builtin_FILE()) {
+    return std::move(::org_logging::log_builder{}
+                         .set_callsite(line, function, file)
+                         .severity(__severity)
+                         .source_scope({"gui", "logic", "shared"}));
 }
+} // namespace
 
 
 int EditableOrgTextEntry::getHeight() const {
@@ -192,16 +204,39 @@ int EditableOrgDocGroup::init_root(const sem::SemId<sem::Org>& id) {
 org::ImmAstVersion EditableOrgDocGroup::replace_node(
     const org::ImmAdapter&    origin,
     Vec<sem::SemId<sem::Org>> replace) {
+    // gr_log(ol_trace).message(origin.treeRepr().toString(false));
+
+    LOGIC_ASSERTION_CHECK(!origin.isNil(), "Cannot replace nil node");
     org::ImmAstVersion vNext = getCurrentAst().getEditVersion(
         [&](org::ImmAstContext&     ast,
             org::ImmAstEditContext& ast_ctx) -> org::ImmAstReplaceGroup {
             org::ImmAstReplaceGroup result;
 
             if (replace.size() == 1) {
-                result.incl(org::replaceNode(
-                    origin, ast.add(replace.at(0), ast_ctx), ast_ctx));
+                auto id = ast.add(replace.at(0), ast_ctx);
+                if (id != origin.id) {
+                    result.incl(org::replaceNode(origin, id, ast_ctx));
+                } else {
+                    gr_log(ol_info).fmt_message(
+                        "Original node {} has the same ID as replacement "
+                        "target {} == {}",
+                        origin,
+                        origin.id,
+                        id);
+
+                    gr_log(ol_trace).message(
+                        origin.treeRepr().toString(false));
+                }
             } else {
-                auto parent = origin.getParent().value();
+                auto opt_parent = origin.getParent();
+                LOGIC_ASSERTION_CHECK(
+                    opt_parent.has_value(),
+                    "Attempting to replace origin node {} with {} items, "
+                    "but the origin node does not have a proper parent.",
+                    origin,
+                    replace.size());
+
+                auto parent = opt_parent.value();
                 LOGIC_ASSERTION_CHECK(
                     parent.isDirectParentOf(origin),
                     "Origin node is {}, computed parent is {}",
