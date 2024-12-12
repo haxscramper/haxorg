@@ -75,6 +75,42 @@ Paragraph 2
     t->TestFunc = ImWrapTestFuncT<DocEditVars>(
         params, [](ImGuiTestContext* ctx, DocEditVars& vars) {
             vars.set_im_trace(1);
+
+            auto wpos = getContentPos(ctx);
+
+            auto r = vars.model.root;
+
+            ColStream os;
+            vars.model.root.root->treeRepr(os);
+            writeFile(
+                getDebugFile(ctx->Test, "doc_repr.txt"),
+                os.getBuffer().toString(false));
+
+            IM_CHECK(r.root->isDocument());
+            IM_CHECK(r.at(0)->isSubtree());
+            IM_CHECK(r.at({0, 0})->isParagraph());
+
+            auto st  = r.at(0);
+            auto par = r.at({0, 0});
+
+            {
+                ImVec2 par_pos0  = par->getPos();
+                ImVec2 par_size0 = par->getSize();
+                ImVec2 st_pos0   = st->getPos();
+                ImVec2 st_size0  = st->getSize();
+                ctx->MouseMoveToPos(wpos + st_pos0);
+                MouseMoveRelative(ctx, ImVec2{10, 0});
+                ctx->SuspendTestFunc();
+                ctx->MouseClick(0);
+
+                IM_CHECK_NE(st_size0, st->getSize());
+                IM_CHECK_EQ(st_pos0, st->getPos());
+
+                IM_CHECK_NE(par_size0, par->getSize());
+                IM_CHECK_NE(par_pos0, par->getPos());
+            }
+
+
             ctx->SuspendTestFunc();
         });
 }

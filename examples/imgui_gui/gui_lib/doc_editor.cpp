@@ -226,3 +226,25 @@ void DocBlockContext::message(
 
     OperationsTracer::message(value, activeLevel, line, function, file);
 }
+
+void DocBlock::treeRepr(ColStream& os) {
+    Func<void(DocBlock::Ptr const&, int)> aux;
+    aux = [&](DocBlock::Ptr const& b, int depth) {
+        os.indent(depth * 2);
+        os << fmt1(b->getKind());
+
+        std::visit([&](auto const& d) { os << " " << fmt1(d); }, b->data);
+
+        for (auto const& a : b->annotations) {
+            os << "\n";
+            aux(a, depth + 1);
+        }
+
+        for (auto const& a : b->nested) {
+            os << "\n";
+            aux(a, depth + 1);
+        }
+    };
+
+    aux(shared_from_this(), 0);
+}

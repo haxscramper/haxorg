@@ -57,3 +57,7 @@ void ImTestVarsBase::show_test_base_window() {
         ImGui::End();
     }
 }
+
+void MouseMoveRelative(ImGuiTestContext* ctx, const ImVec2& shift) {
+    ctx->MouseMoveToPos(ImGui::GetCursorScreenPos() + shift);
+}

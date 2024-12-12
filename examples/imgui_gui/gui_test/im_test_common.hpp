@@ -177,6 +177,8 @@ ImFuncPtr(ImGuiTestTestFunc)
 
 ImVec2 getContentPos(ImGuiTestContext* ctx);
 
+void MouseMoveRelative(ImGuiTestContext* ctx, ImVec2 const& shift);
+
 inline std::string __im_test_utils_format_va_args_list() { return ")"; }
 
 template <typename T, typename... Args>

@@ -27,6 +27,7 @@ struct DocBlock : SharedPtrApi<DocBlock> {
     struct Document {
         org::ImmAdapterT<org::ImmDocument> origin;
         ImVec2 getSize() const { return ImVec2(); }
+        DESC_FIELDS(Document, (origin));
     };
 
     struct Annotation {
@@ -99,6 +100,8 @@ struct DocBlock : SharedPtrApi<DocBlock> {
         return std::visit(
             [](const auto& it) { return it.getSize(); }, data);
     }
+
+    void treeRepr(ColStream& os);
 
     void setWidth(int width) {
         std::visit(
