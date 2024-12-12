@@ -164,7 +164,7 @@ ImmAstReplace setNewSubnodes(
     ImmAstReplace act;
     switch_node_value(
         updateTarget.id,
-        *updateTarget.ctx,
+        updateTarget.ctx.lock(),
         [&]<typename K>(K node /* <<input_node_for_mut_cast>> */) {
             for (SubnodeVecAssignPair const& fieldGroup : grouped) {
                 auto field = fieldGroup.first.first();
@@ -268,7 +268,7 @@ ImmAstReplace setNewSubnodes(
                     });
             }
 
-            act = updateTarget.ctx->store->setNode(
+            act = updateTarget.ctx.lock()->store->setNode(
                 updateTarget, node, ctx);
         });
     return act;
@@ -482,26 +482,27 @@ ImmId ImmAstContext::at(ImmId node, const ImmPathStep& item) const {
             item.path.first().getIndex().index);
     } else {
         Opt<ImmId> result;
-        switch_node_value(node, *this, [&]<typename T>(T const& value) {
-            reflVisitPath<T>(
-                value,
-                item.path,
-                overloaded{
-                    [&](ImmId const& id) { result = id; },
-                    [&]<typename K>(ImmIdT<K> const& id) {
-                        result = id.toId();
-                    },
-                    [&](auto const& other) {
-                        LOGIC_ASSERTION_CHECK(
-                            false,
-                            "Path {} does not point to a field with "
-                            "ID, "
-                            "resolved to {}",
-                            item,
-                            other);
-                    },
-                });
-        });
+        switch_node_value(
+            node, shared_from_this(), [&]<typename T>(T const& value) {
+                reflVisitPath<T>(
+                    value,
+                    item.path,
+                    overloaded{
+                        [&](ImmId const& id) { result = id; },
+                        [&]<typename K>(ImmIdT<K> const& id) {
+                            result = id.toId();
+                        },
+                        [&](auto const& other) {
+                            LOGIC_ASSERTION_CHECK(
+                                false,
+                                "Path {} does not point to a field with "
+                                "ID, "
+                                "resolved to {}",
+                                item,
+                                other);
+                        },
+                    });
+            });
         return result.value();
     }
 }
@@ -553,19 +554,19 @@ void ImmAstContext::format(ColStream& os, const std::string& prefix)
 }
 
 ImmAdapter ImmAstContext::adapt(const ImmUniqId& id) const {
-    return org::ImmAdapter{id, this};
+    return org::ImmAdapter{id, mweak_from_this()};
 }
 
 ImmAdapter ImmAstContext::adaptUnrooted(const ImmId& id) const {
-    return org::ImmAdapter{org::ImmUniqId{id, {}}, this};
+    return org::ImmAdapter{org::ImmUniqId{id, {}}, mweak_from_this()};
 }
 
 
 ImmAstVersion ImmAstContext::getEditVersion(
     const org::ImmAdapter&                                           root,
-    Func<ImmAstReplaceGroup(ImmAstContext& ast, ImmAstEditContext&)> cb) {
+    Func<ImmAstReplaceGroup(ImmAstContext::Ptr, ImmAstEditContext&)> cb) {
     auto ctx     = getEditContext();
-    auto replace = cb(*this, ctx);
+    auto replace = cb(shared_from_this(), ctx);
     return finishEdit(ctx, ctx.store().cascadeUpdate(root, replace, ctx));
 }
 

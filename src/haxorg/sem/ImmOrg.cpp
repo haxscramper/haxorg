@@ -481,7 +481,7 @@ void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
 
     switch_node_value(
         node,
-        *ctx,
+        ctx,
         overloaded{
             [&]<typename N>(N const& nodeValue)
                 requires(ProvidesImmApi<N, ImmAdapterStmtAPI>)
@@ -515,7 +515,7 @@ void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
 
     switch_node_value(
         node,
-        *ctx,
+        ctx,
         overloaded{
             [&](org::ImmSubtree const& subtree) {
                 __perf_trace("imm", "track subtree");
@@ -994,5 +994,3 @@ bool org::isTrackingParentDefault(const ImmAdapter& node) {
     }
                 .contains(node.getKind());
 }
-
-

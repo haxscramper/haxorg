@@ -235,13 +235,13 @@ struct MapGraph {
         Func<bool(MapEdge const& edge)> acceptEdge;
     };
 
-    Graphviz::Graph toGraphviz(const ImmAstContext& ctx) const {
+    Graphviz::Graph toGraphviz(const ImmAstContext::Ptr& ctx) const {
         return toGraphviz(ctx, GvConfig{});
     }
 
     Graphviz::Graph toGraphviz(
-        const ImmAstContext& ctx,
-        GvConfig const&      conf) const;
+        const ImmAstContext::Ptr& ctx,
+        GvConfig const&           conf) const;
 
     DESC_FIELDS(MapGraph, (nodeProps, edgeProps, adjList));
 };

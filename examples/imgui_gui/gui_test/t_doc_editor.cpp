@@ -120,6 +120,8 @@ Paragraph 2
                 IM_CHECK_EQ(par_size0, par->getSize());
                 IM_CHECK_NE(par_pos0, par->getPos());
 
+                vars.model.root.getRootOrigin().treeRepr();
+
 
                 ctx->MouseMoveToPos(
                     wpos + st_pos0 + ImVec2{10, st->getSize().y - 15});
@@ -133,6 +135,8 @@ Paragraph 2
             }
 
             {
+
+                vars.model.root.getRootOrigin().treeRepr();
                 ctx->MouseMoveToPos(wpos + st->getPos());
                 MouseMoveRelative(ctx, ImVec2{10, 10});
                 ctx->MouseClick(0);
@@ -142,6 +146,8 @@ Paragraph 2
                     wpos + st->getPos()
                     + ImVec2{10, st->getSize().y - 15});
                 ctx->MouseClick(0);
+
+                vars.model.root.getRootOrigin().treeRepr();
             }
 
 

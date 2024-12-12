@@ -348,7 +348,7 @@ struct ImmAstStore;
 
 struct ImmAstEditContext {
     ImmAstTrackingMapTransient track;
-    ImmAstContext*             ctx;
+    WPtr<ImmAstContext>        ctx;
     ImmAstContext              finish();
     ImmAstStore&               store();
     OperationsScope            debug;
@@ -363,15 +363,10 @@ struct ImmAstEditContext {
         int                line     = __builtin_LINE(),
         char const*        file     = __builtin_FILE());
 
-    ImmAstContext* operator->() { return ctx; }
+    ImmAstContext* operator->() { return ctx.lock().get(); }
 
     finally collectAbslLogs();
 };
-
-#define AST_EDIT_TRACE() ctx.ctx->debug->TraceState
-
-#define AST_EDIT_MSG(...)                                                 \
-    if (AST_EDIT_TRACE()) { ctx.message(__VA_ARGS__); }
 
 template <org::IsImmOrgValueType T>
 struct ImmAstKindStore {
@@ -518,7 +513,7 @@ struct ImmAstStore {
 struct ImmAstVersion;
 struct ImmAdapter;
 
-struct [[nodiscard]] ImmAstContext {
+struct [[nodiscard]] ImmAstContext : SharedPtrApi<ImmAstContext> {
     SPtr<OperationsTracer>  debug;
     SPtr<ImmAstStore>       store;
     SPtr<ImmAstTrackingMap> track;
@@ -549,8 +544,9 @@ struct [[nodiscard]] ImmAstContext {
     Vec<ImmAdapter> getAdaptersFor(ImmId const& it) const;
 
     ImmAstVersion getEditVersion(
-        ImmAdapter const&                                            root,
-        Func<ImmAstReplaceGroup(ImmAstContext&, ImmAstEditContext&)> cb);
+        ImmAdapter const& root,
+        Func<ImmAstReplaceGroup(ImmAstContext::Ptr, ImmAstEditContext&)>
+            cb);
 
     ImmAstEditContext getEditContext();
 
@@ -674,19 +670,19 @@ void switch_node_kind(org::ImmId id, Func const& cb) {
 
 template <typename Func>
 void switch_node_value(
-    org::ImmId           id,
-    ImmAstContext const& ctx,
-    Func const&          cb) {
+    org::ImmId                id,
+    ImmAstContext::Ptr const& ctx,
+    Func const&               cb) {
     LOGIC_ASSERTION_CHECK(id.getKind() != OrgSemKind::None, "");
     switch_node_kind(
-        id, [&]<typename K>(org::ImmIdT<K> id) { cb(ctx.value<K>(id)); });
+        id, [&]<typename K>(org::ImmIdT<K> id) { cb(ctx->value<K>(id)); });
 }
 
 template <typename Func>
 void switch_node_fields(
-    org::ImmId           id,
-    ImmAstContext const& ctx,
-    Func const&          cb) {
+    org::ImmId                id,
+    ImmAstContext::Ptr const& ctx,
+    Func const&               cb) {
     LOGIC_ASSERTION_CHECK(id.getKind() != OrgSemKind::None, "");
     switch_node_value(id, ctx, [&]<typename T>(T const& node) {
         for_each_field_value_with_bases(node, cb);
@@ -702,9 +698,9 @@ template <typename T>
 struct ImmAdapterT;
 
 struct ImmAdapter {
-    ImmId                id;
-    ImmAstContext const* ctx;
-    ImmPath              path;
+    ImmId               id;
+    ImmAstContext::WPtr ctx;
+    ImmPath             path;
 
     class iterator {
       public:
@@ -741,7 +737,7 @@ struct ImmAdapter {
         }
     };
 
-    int      size() const { return ctx->at(id)->subnodes.size(); }
+    int      size() const { return ctx.lock()->at(id)->subnodes.size(); }
     iterator begin() const { return iterator(this); }
     iterator end() const { return iterator(this, size()); }
     bool     isNil() const { return id.isNil(); }
@@ -773,13 +769,13 @@ struct ImmAdapter {
         return path.path.front().path.first();
     }
 
-    ImmAdapter(ImmPath const& path, ImmAstContext const* ctx)
-        : id{ctx->at(path)}, ctx{ctx}, path{path} {}
+    ImmAdapter(ImmPath const& path, ImmAstContext::WPtr ctx)
+        : id{ctx.lock()->at(path)}, ctx{ctx}, path{path} {}
 
-    ImmAdapter(ImmUniqId id, ImmAstContext const* ctx)
+    ImmAdapter(ImmUniqId id, ImmAstContext::WPtr ctx)
         : id{id.id}, ctx{ctx}, path{id.path} {}
 
-    ImmAdapter(ImmId id, ImmAstContext const* ctx, ImmPath const& path)
+    ImmAdapter(ImmId id, ImmAstContext::WPtr ctx, ImmPath const& path)
         : id{id}, ctx{ctx}, path{path} {}
 
     ImmAdapter() : id{ImmId::Nil()}, ctx{}, path{ImmId::Nil()} {}
@@ -824,7 +820,7 @@ struct ImmAdapter {
             return std::nullopt;
         } else {
             auto newPath = path.pop();
-            return ImmAdapter{ctx->at(newPath), ctx, newPath};
+            return ImmAdapter{ctx.lock()->at(newPath), ctx, newPath};
         }
     }
 
@@ -856,7 +852,7 @@ struct ImmAdapter {
         return this->id == id.id;
     }
 
-    ImmOrg const* get() const { return ctx->at(id); }
+    ImmOrg const* get() const { return ctx.lock()->at(id); }
     ImmOrg const* operator->() const { return get(); }
 
     template <typename T>
@@ -870,7 +866,7 @@ struct ImmAdapter {
 
     ImmAdapter at(ImmReflFieldId const& field) const {
         return at(
-            ctx->at(
+            ctx.lock()->at(
                 id,
                 ImmPathStep{
                     {org::ImmReflPathItemBase::FromFieldName(field)}}),
@@ -941,12 +937,12 @@ struct ImmAdapter {
 
     template <typename Func>
     void visitNodeValue(Func const& cb) const {
-        ::org::switch_node_value(id, *ctx, cb);
+        ::org::switch_node_value(id, ctx, cb);
     }
 
     template <typename Func>
     void visitNodeFields(Func const& cb) const {
-        ::org::switch_node_fields(id, *ctx, cb);
+        ::org::switch_node_fields(id, ctx, cb);
     }
 };
 
@@ -975,7 +971,7 @@ struct ImmAdapterTBase : ImmAdapter {
     using ImmAdapter::ImmAdapter;
     using ImmAdapter::pass;
     using ImmAdapter::subAs;
-    T const* get() const { return ctx->at_t<T>(id); }
+    T const* get() const { return ctx.lock()->template at_t<T>(id); }
     T const* operator->() const { return get(); }
     T const& value() const { return ImmAdapter::value<T>(); }
 
@@ -1417,3 +1413,27 @@ struct std::hash<org::ImmPath> {
         return result;
     }
 };
+
+
+namespace org::details {
+inline org::ImmAstContext* ___get_context(org::ImmAstContext::Ptr p) {
+    return p.get();
+}
+inline ImmAstEditContext* ___get_context(org::ImmAstEditContext& p) {
+    return &p;
+}
+
+inline bool ___is_debug(org::ImmAstEditContext& p) {
+    return p.debug.TraceState;
+}
+inline bool ___is_debug(org::ImmAstContext::Ptr p) {
+    return p->debug->TraceState;
+}
+} // namespace org::details
+
+#define AST_EDIT_TRACE() ::org::details::___is_debug(ctx)
+
+#define AST_EDIT_MSG(...)                                                 \
+    if (AST_EDIT_TRACE()) {                                               \
+        ::org::details::___get_context(ctx)->message(__VA_ARGS__);        \
+    }

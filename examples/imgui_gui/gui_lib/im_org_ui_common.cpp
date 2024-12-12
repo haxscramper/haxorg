@@ -205,12 +205,15 @@ org::ImmAstVersion EditableOrgDocGroup::replace_node(
     const org::ImmAdapter&    origin,
     Vec<sem::SemId<sem::Org>> replace) {
     // gr_log(ol_trace).message(origin.treeRepr().toString(false));
+    auto cp = *origin.ctx;
 
     LOGIC_ASSERTION_CHECK(!origin.isNil(), "Cannot replace nil node");
     org::ImmAstVersion vNext = getCurrentAst().getEditVersion(
         [&](org::ImmAstContext&     ast,
             org::ImmAstEditContext& ast_ctx) -> org::ImmAstReplaceGroup {
             org::ImmAstReplaceGroup result;
+
+            auto cp = *origin.ctx;
 
             if (replace.size() == 1) {
                 auto id = ast.add(replace.at(0), ast_ctx);

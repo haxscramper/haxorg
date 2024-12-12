@@ -621,8 +621,8 @@ void MapGraph::addNode(const MapNode& node) {
 }
 
 Graphviz::Graph MapGraph::toGraphviz(
-    org::ImmAstContext const& ctx,
-    GvConfig const&           conf) const {
+    org::ImmAstContext::Ptr const& ctx,
+    GvConfig const&                conf) const {
     Graphviz::Graph                       res{"g"_ss};
     UnorderedMap<MapNode, Graphviz::Node> gvNodes;
     UnorderedMap<MapEdge, Graphviz::Edge> gvEdges;
