@@ -95,6 +95,18 @@ struct EditableOrgDocGroup {
         org::ImmAstVersion   ast;
         Vec<org::ImmAdapter> roots;
         DESC_FIELDS(History, (ast, roots));
+
+        org::ImmAdapter getNewRoot(org::ImmAdapter const& oldRoot) {
+            auto mapped = ast.epoch.replaced.map.get(oldRoot.uniq());
+            LOGIC_ASSERTION_CHECK(
+                mapped.has_value(),
+                "Old root {} has no mapping in the current history "
+                "version",
+                oldRoot);
+            return ast.context.adapt(mapped.value());
+        }
+
+        History withNewVersion(org::ImmAstVersion const& updated);
     };
 
     EditableOrgDocGroup() { add_history(History{org::ImmAstContext{}}); }
@@ -102,6 +114,9 @@ struct EditableOrgDocGroup {
     int init_root(sem::SemId<sem::Org> const& id);
 
     void add_history(History const& h) { history.push_back(h); }
+    void extend_history(org::ImmAstVersion const& ast) {
+        add_history(getCurrentHistory().withNewVersion(ast));
+    }
 
     Vec<History> history;
 
@@ -113,4 +128,12 @@ struct EditableOrgDocGroup {
     org::ImmAdapter    getCurrentRoot(int index) {
         return history.back().roots.at(index);
     }
+
+    [[nodiscard]] org::ImmAstVersion replace_node(
+        org::ImmAdapter const&    origin,
+        Vec<sem::SemId<sem::Org>> replace);
+
+    [[nodiscard]] org::ImmAstVersion replace_node(
+        org::ImmAdapter const& origin,
+        std::string const&     text);
 };

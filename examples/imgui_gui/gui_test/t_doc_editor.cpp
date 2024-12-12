@@ -11,9 +11,17 @@ struct DocEditVars : public ImTestVarsBase {
     DocBlockModel       model;
     EditableOrgDocGroup docs;
     DocBlockConfig      conf;
+    int                 root_idx = -1;
+
+    Str get_text() {
+        auto sem = org::sem_from_immer(
+            docs.getCurrentRoot(root_idx).id,
+            docs.getCurrentAst().context);
+        return sem::Formatter::format(sem);
+    }
 
     void add_text(std::string const& text) {
-        int root_idx    = docs.init_root(sem::parseString(text));
+        root_idx        = docs.init_root(sem::parseString(text));
         model.root.root = to_doc_block(docs.getCurrentRoot(root_idx), conf)
                               .value();
 
@@ -130,6 +138,7 @@ Paragraph 2
                 ctx->MouseMoveToPos(
                     wpos + st->getPos()
                     + ImVec2{10, st->getSize().y - 15});
+                ctx->MouseClick(0);
             }
 
 

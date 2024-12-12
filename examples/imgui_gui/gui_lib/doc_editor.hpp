@@ -185,7 +185,21 @@ struct DocBlockAction {
         DESC_FIELDS(NodeEditChanged, (block));
     };
 
-    SUB_VARIANTS(Kind, Data, data, getKind, NodeEditChanged);
+    struct NodeTextChanged {
+        DocBlock::Ptr   block;
+        std::string     updated;
+        org::ImmAdapter origin;
+        DESC_FIELDS(NodeTextChanged, (block, updated, origin));
+    };
+
+    SUB_VARIANTS(
+        Kind,
+        Data,
+        data,
+        getKind,
+        NodeEditChanged,
+        NodeTextChanged);
+
     Data data;
 
     DESC_FIELDS(DocBlockAction, (data));
@@ -221,6 +235,10 @@ struct DocBlockDocument {
     DocBlock::Ptr at(int idx) const { return root->at(idx); }
     DocBlock::Ptr at(Vec<int> const& path) const { return root->at(path); }
 
+    org::ImmAdapter getRootOrigin() const {
+        return root->getDocument().origin;
+    }
+
     Vec<DocBlock::Ptr> getFlatBlocks() {
         Vec<DocBlock::Ptr>        res;
         Func<void(DocBlock::Ptr)> aux;
@@ -253,7 +271,11 @@ struct DocBlockDocument {
     void     syncSize(DocBlockConfig const& conf) {
         root->syncSizeRec(0, conf);
     }
+
     void syncPositions(DocBlockContext& ctx, DocBlockConfig const& conf);
+    void syncRoot(org::ImmAdapter const& root, DocBlockConfig const& conf);
+
+
     DESC_FIELDS(
         DocBlockDocument,
         (root, docLaneScrollOffset, annotationLaneScrollOffsets));

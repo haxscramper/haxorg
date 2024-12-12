@@ -88,7 +88,16 @@ void render_doc_block(
 
     using ER = EditableOrgText::Result;
 
-    auto handle_edit_result = [&](ER result) {
+    auto handle_text_edit_result = [&](EditableOrgTextEntry& text,
+                                       std::string const&    prefix) {
+        auto result = text.render(c_fmt("{}_{}", prefix, selfIndex));
+
+        if (result == ER::Changed) {
+            model.ctx.action(DocBlockAction::NodeTextChanged{
+                .block = block,
+            });
+        }
+
         if (result == ER::CancelledEditing || result == ER::StartedEditing
             || result == ER::Changed) {
             model.ctx.action(
@@ -99,12 +108,10 @@ void render_doc_block(
     if (IM_FN_BEGIN(BeginChild, c_fmt("##doc_block_{}", selfIndex))) {
         if (block->isSubtree()) {
             auto& t = block->getSubtree();
-            handle_edit_result(
-                t.title.render(c_fmt("title_{}", selfIndex)));
+            handle_text_edit_result(t.title, "title");
         } else if (block->isParagraph()) {
             auto& p = block->getParagraph();
-            handle_edit_result(
-                p.text.render(c_fmt("paragraph_{}", selfIndex)));
+            handle_text_edit_result(p.text, "paragraph");
         } else if (block->isDocument()) {
             // pass
         } else {
@@ -138,6 +145,24 @@ void apply_doc_block_actions(
     for (auto const& act : model.ctx.actions) {
         switch (act.getKind()) {
             case DocBlockAction::Kind::NodeEditChanged: {
+                model.root.syncPositions(model.ctx, conf);
+                break;
+            }
+
+            case DocBlockAction::Kind::NodeTextChanged: {
+                CTX_MSG("Node text changed, applying changes");
+                auto        __scope = ctx.scopeLevel();
+                auto const& t       = act.getNodeTextChanged();
+                CTX_MSG("Replacing history node");
+                auto upd = history.replace_node(t.origin, t.updated);
+                CTX_MSG("Extending history");
+                history.extend_history(upd);
+                CTX_MSG("Sync root for new adapter");
+                model.root.syncRoot(
+                    history.getCurrentHistory().getNewRoot(
+                        model.root.getRootOrigin()),
+                    conf);
+                CTX_MSG("Sync positions for new adapter");
                 model.root.syncPositions(model.ctx, conf);
                 break;
             }
@@ -209,6 +234,12 @@ void DocBlockDocument::syncPositions(
             }
         }
     }
+}
+
+void DocBlockDocument::syncRoot(
+    const org::ImmAdapter& root,
+    const DocBlockConfig&  conf) {
+    this->root = to_doc_block(root, conf).value();
 }
 
 void DocBlockContext::message(

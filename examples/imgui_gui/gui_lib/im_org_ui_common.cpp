@@ -2,6 +2,8 @@
 #include <gui_lib/imgui_utils.hpp>
 #include <gui_lib/scintilla_editor_widget.hpp>
 #include "misc/cpp/imgui_stdlib.h"
+#include <haxorg/sem/ImmOrgEdit.hpp>
+#include <haxorg/sem/SemBaseApi.hpp>
 #include <haxorg/sem/SemOrgFormat.hpp>
 
 
@@ -185,4 +187,91 @@ int EditableOrgDocGroup::init_root(const sem::SemId<sem::Org>& id) {
     int index = current.roots.push_back_idx(current.ast.getRootAdapter());
     add_history(std::move(current));
     return index;
+}
+
+org::ImmAstVersion EditableOrgDocGroup::replace_node(
+    const org::ImmAdapter&    origin,
+    Vec<sem::SemId<sem::Org>> replace) {
+    org::ImmAstVersion vNext = getCurrentAst().getEditVersion(
+        [&](org::ImmAstContext&     ast,
+            org::ImmAstEditContext& ast_ctx) -> org::ImmAstReplaceGroup {
+            org::ImmAstReplaceGroup result;
+
+            if (replace.size() == 1) {
+                result.incl(org::replaceNode(
+                    origin, ast.add(replace.at(0), ast_ctx), ast_ctx));
+            } else {
+                auto parent = origin.getParent().value();
+                LOGIC_ASSERTION_CHECK(
+                    parent.isDirectParentOf(origin),
+                    "Origin node is {}, computed parent is {}",
+                    origin,
+                    parent);
+
+                int index = origin.getSelfIndex();
+
+
+                LOGIC_ASSERTION_CHECK(
+                    index != -1,
+                    "Failed to compute self-index for origin node {}",
+                    origin);
+
+
+                Vec<org::ImmId> new_nodes;
+
+                for (int i = 0; i < index; ++i) {
+                    new_nodes.push_back(parent.at(i).id);
+                }
+
+                for (auto const& it : replace) {
+                    new_nodes.push_back(ast.add(it, ast_ctx));
+                }
+
+                for (int i = index + 1; i < parent.size(); ++i) {
+                    new_nodes.push_back(parent.at(i).id);
+                }
+
+                result.incl(org::setSubnodes(
+                    parent,
+                    {new_nodes.begin(), new_nodes.end()},
+                    ast_ctx));
+            }
+
+
+            return result;
+        });
+
+    return vNext;
+}
+
+org::ImmAstVersion EditableOrgDocGroup::replace_node(
+    const org::ImmAdapter& origin,
+    const std::string&     text) {
+    auto parse = sem::parseString(text);
+    if (parse->is(OrgSemKind::Document)
+        || parse->is(OrgSemKind::StmtList)) {
+        return replace_node(
+            origin, Vec<sem::SemId<sem::Org>>{parse.begin(), parse.end()});
+    } else {
+        return replace_node(origin, Vec<sem::SemId<sem::Org>>{parse});
+    }
+}
+
+
+EditableOrgDocGroup::History EditableOrgDocGroup::History::withNewVersion(
+    const org::ImmAstVersion& updated) {
+    History res;
+    res.ast = updated;
+
+    for (auto const& root : roots) {
+        auto id = root.uniq();
+        if (auto root1 = updated.epoch.replaced.map.get(id)) {
+            res.roots.push_back(updated.context.adapt(root1.value()));
+        } else {
+            res.roots.push_back(root);
+        }
+    }
+
+
+    return res;
 }
