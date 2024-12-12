@@ -93,21 +93,43 @@ Paragraph 2
             auto st  = r.at(0);
             auto par = r.at({0, 0});
 
-            {
+            { // when document block is being edited, its size can change.
+              // Positions of other blocks should account for that.
                 ImVec2 par_pos0  = par->getPos();
                 ImVec2 par_size0 = par->getSize();
                 ImVec2 st_pos0   = st->getPos();
                 ImVec2 st_size0  = st->getSize();
                 ctx->MouseMoveToPos(wpos + st_pos0);
-                MouseMoveRelative(ctx, ImVec2{10, 0});
-                ctx->SuspendTestFunc();
+                MouseMoveRelative(ctx, ImVec2{10, 10});
                 ctx->MouseClick(0);
 
                 IM_CHECK_NE(st_size0, st->getSize());
                 IM_CHECK_EQ(st_pos0, st->getPos());
 
-                IM_CHECK_NE(par_size0, par->getSize());
+                IM_CHECK_EQ(par_size0, par->getSize());
                 IM_CHECK_NE(par_pos0, par->getPos());
+
+
+                ctx->MouseMoveToPos(
+                    wpos + st_pos0 + ImVec2{10, st->getSize().y - 15});
+                ctx->MouseClick(0);
+
+                IM_CHECK_EQ(st_size0, st->getSize());
+                IM_CHECK_EQ(st_pos0, st->getPos());
+
+                IM_CHECK_EQ(par_size0, par->getSize());
+                IM_CHECK_EQ(par_pos0, par->getPos());
+            }
+
+            {
+                ctx->MouseMoveToPos(wpos + st->getPos());
+                MouseMoveRelative(ctx, ImVec2{10, 10});
+                ctx->MouseClick(0);
+                ctx->MouseClick(0);
+                ctx->KeyChars("Title add ");
+                ctx->MouseMoveToPos(
+                    wpos + st->getPos()
+                    + ImVec2{10, st->getSize().y - 15});
             }
 
 
