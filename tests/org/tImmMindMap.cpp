@@ -46,10 +46,10 @@ void addNodeRec(
 TEST(ImmMapApi, AddNode) {
     auto n1 = testParseString("* subtree");
 
-    org::ImmAstContext    store;
+    auto                  store = org::ImmAstContext::init_start_context();
     org::graph::MapConfig conf;
     conf.setTraceFile(getDebugFile("ImmMapApi_AddNode.txt"));
-    org::ImmAstVersion        v1 = store.addRoot(n1);
+    org::ImmAstVersion        v1 = store->addRoot(n1);
     org::graph::MapGraphState s1{v1.context};
     EXPECT_EQ(s1.graph.nodeCount(), 0);
     org::graph::addNode(s1, v1.getRootAdapter(), conf);
@@ -72,11 +72,11 @@ Paragraph [[id:subtree-id]]
 
     auto n1 = testParseString(text);
 
-    org::ImmAstContext    store;
+    auto store = org::ImmAstContext ::init_start_context();
     org::graph::MapConfig conf;
     conf.setTraceFile(getDebugFile("log"));
-    store.debug->setTraceFile(conf.getTraceFile());
-    org::ImmAstVersion v1   = store.addRoot(n1);
+    store->debug->setTraceFile(conf.getTraceFile());
+    org::ImmAstVersion v1   = store->addRoot(n1);
     auto               root = v1.getRootAdapter();
 
     org::graph::MapGraphState s1{v1.context};
@@ -136,12 +136,12 @@ TEST(ImmMapApi, SubtreeBacklinks) {
     auto n1 = testParseString(text1);
     auto n2 = testParseString(text2);
 
-    org::ImmAstContext    store;
+    auto                  store = org::ImmAstContext::init_start_context();
     org::graph::MapConfig conf;
     conf.setTraceFile(getDebugFile("SubtreeBacklinks_log.txt"));
 
-    org::ImmAstVersion v2 = store.addRoot(n1);
-    org::ImmAstVersion v3 = v2.context.addRoot(n2);
+    org::ImmAstVersion v2 = store->addRoot(n1);
+    org::ImmAstVersion v3 = v2.context->addRoot(n2);
 
 
     org::graph::MapGraphState s1{v3.context};
@@ -254,9 +254,9 @@ using osk = OrgSemKind;
 TEST(ImmMapApi, SubtreeFullMap) {
     auto n = testParseString(getFullMindMapText());
 
-    org::ImmAstContext store;
+    auto store = org::ImmAstContext::init_start_context();
 
-    org::ImmAstVersion        v2 = store.addRoot(n);
+    org::ImmAstVersion        v2 = store->addRoot(n);
     org::graph::MapGraphState s1{v2.context};
     org::ImmAdapter           file = v2.getRootAdapter();
 
@@ -398,9 +398,9 @@ TEST(ImmMapApi, SubtreeBlockMap) {
         });
 
 
-    org::ImmAstContext store;
-    store.debug->setTraceFile(getDebugFile("store"));
-    org::ImmAstVersion v    = store.addRoot(n);
+    auto store = org::ImmAstContext::init_start_context();
+    store->debug->setTraceFile(getDebugFile("store"));
+    org::ImmAstVersion v    = store->addRoot(n);
     org::ImmAdapter    root = v.getRootAdapter();
 
     writeTreeRepr(
@@ -546,8 +546,8 @@ TEST(ImmMapApi, Doc1Graph) {
     if (!fs::exists(file)) { return; }
     auto n = testParseString(readFile(file));
 
-    org::ImmAstContext store;
-    org::ImmAstVersion v = store.addRoot(n);
+    auto               store = org::ImmAstContext::init_start_context();
+    org::ImmAstVersion v     = store->addRoot(n);
     // return;
 
     // writeTreeRepr(
@@ -739,9 +739,9 @@ TEST(ImmMapGraphApi, SourceAndTarget) {
 TEST(ImmMapGraphApi, BoostPropertyWriter) {
     auto n = testParseString(getFullMindMapText());
 
-    org::ImmAstContext        store;
+    auto store = org::ImmAstContext ::init_start_context();
     org::graph::MapConfig     conf;
-    org::ImmAstVersion        v2   = store.addRoot(n);
+    org::ImmAstVersion        v2   = store->addRoot(n);
     org::ImmAdapter           file = v2.getRootAdapter();
     org::graph::MapGraphState s1{v2.context};
     addNodeRec(s1, file, conf);

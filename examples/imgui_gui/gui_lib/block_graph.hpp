@@ -4,6 +4,7 @@
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/wrappers/adaptagrams_wrap/adaptagrams_ir.hpp>
 #include "imgui.h"
+#include "imgui_internal.h"
 #include <hstd/stdlib/Ranges.hpp>
 
 struct LaneNodePos {
@@ -12,6 +13,9 @@ struct LaneNodePos {
     bool operator==(LaneNodePos const& other) const {
         return lane == other.lane && row == other.row;
     }
+
+    std::string getImId() const { return fmt("{}_{}", row, lane); }
+
     DESC_FIELDS(LaneNodePos, (lane, row));
 };
 
@@ -32,6 +36,11 @@ struct LaneBlockNode {
     int  topMargin    = 5;
     int  bottomMargin = 5;
     bool isVisible    = true;
+    /// \brief Horizontal offset from the lane alignment center
+    int horizontalCenterOffset = 0;
+    /// \brief If block has fixed vertical offset it will be arranged
+    /// relative to the top baseline alignment.
+    Opt<int> fixedVerticalOffset = std::nullopt;
 
     /// \brief Get full vertical space occupied by the doc block, including
     /// top and bottom margins.
@@ -43,15 +52,41 @@ struct LaneBlockNode {
 
     DESC_FIELDS(
         LaneBlockNode,
-        (width, height, topMargin, bottomMargin, isVisible));
+        (width,
+         height,
+         topMargin,
+         bottomMargin,
+         isVisible,
+         horizontalCenterOffset));
 };
+
+struct LaneBlockGraphConfig {
+    ImU32 edgeBorderColor      = IM_COL32(255, 255, 255, 200);
+    ImU32 edgeCenterColor      = IM_COL32(128, 128, 128, 128);
+    float edgeCurveWidth       = 4;
+    float edgeCurveBorderWidth = 1;
+
+    Func<Pair<int, int>(int lane)> getDefaultLaneMargin =
+        [](int lane) -> Pair<int, int> { return {50, 50}; };
+
+    Func<Pair<int, int>(LaneNodePos const& pos)> getDefaultBlockMargin =
+        [](LaneNodePos const& pos) -> Pair<int, int> { return {5, 5}; };
+
+    DESC_FIELDS(
+        LaneBlockGraphConfig,
+        (edgeBorderColor,
+         edgeCenterColor,
+         edgeCurveWidth,
+         edgeCurveBorderWidth));
+};
+
 
 struct LaneBlockStack {
     Vec<LaneBlockNode> blocks;
-    int                scrollOffset;
     Slice<int>         visibleRange;
-    int                leftMargin  = 50;
-    int                rightMargin = 50;
+    int                scrollOffset = 0;
+    int                leftMargin   = 50;
+    int                rightMargin  = 50;
     DESC_FIELDS(
         LaneBlockStack,
         (blocks, visibleRange, scrollOffset, leftMargin, rightMargin));
@@ -59,13 +94,10 @@ struct LaneBlockStack {
     void resetVisibleRange() { visibleRange = slice(0, blocks.high()); }
     bool inSpan(int blockIdx, Slice<int> heightRange) const;
     Vec<int> getVisibleBlocks(Slice<int> heightRange) const;
-    int      addBlock(ImVec2 const& size) {
-        blocks.push_back(LaneBlockNode{
-                 .width  = static_cast<int>(size.x),
-                 .height = static_cast<int>(size.y),
-        });
-        return blocks.high();
-    }
+    int      addBlock(
+             int                         laneIndex,
+             ImVec2 const&               size,
+             LaneBlockGraphConfig const& conf);
 
     int getWidth() const {
         return rs::max(blocks | rv::transform([](LaneBlockNode const& b) {
@@ -93,11 +125,14 @@ struct LaneBlockGraph {
     Vec<LaneBlockStack>                          lanes;
     UnorderedMap<LaneNodePos, Vec<LaneNodeEdge>> edges;
     GraphSize                                    visible;
-    DESC_FIELDS(LaneBlockGraph, (lanes, visible));
-    LaneNodePos addNode(int lane, ImVec2 const& size) {
+    DESC_FIELDS(LaneBlockGraph, (lanes, visible, edges));
+    LaneNodePos addNode(
+        int                         lane,
+        ImVec2 const&               size,
+        LaneBlockGraphConfig const& conf) {
         return LaneNodePos{
             .lane = lane,
-            .row  = this->lane(lane).addBlock(size),
+            .row  = this->lane(lane, conf).addBlock(lane, size, conf),
         };
     }
 
@@ -105,7 +140,17 @@ struct LaneBlockGraph {
         edges[source].push_back(target);
     }
 
-    LaneBlockStack& lane(int lane) { return lanes.resize_at(lane); }
+    LaneBlockStack& lane(int lane, LaneBlockGraphConfig const& conf) {
+        if (lanes.has(lane)) {
+            return lanes.at(lane);
+        } else {
+            auto [left, right] = conf.getDefaultLaneMargin(lane);
+            auto& l            = lanes.resize_at(lane);
+            l.leftMargin       = left;
+            l.rightMargin      = right;
+            return l;
+        }
+    }
 
     LaneBlockNode& at(LaneNodePos const& node) {
         return lanes.at(node.lane).blocks.at(node.row);
@@ -113,6 +158,37 @@ struct LaneBlockGraph {
 
     LaneBlockNode const& at(LaneNodePos const& node) const {
         return lanes.at(node.lane).blocks.at(node.row);
+    }
+
+    LaneBlockNode const& getLaneNode(LaneNodePos const& pos) {
+        return lanes.at(pos.lane).blocks.at(pos.row);
+    }
+
+    generator<Pair<LaneNodePos, LaneBlockNode>> getBlocks() const {
+        for (int lane_idx = 0; lane_idx < lanes.size(); ++lane_idx) {
+            for (int row_idx = 0;
+                 row_idx < lanes.at(lane_idx).blocks.size();
+                 ++row_idx) {
+                co_yield std::make_pair(
+                    LaneNodePos{
+                        .lane = lane_idx,
+                        .row  = row_idx,
+                    },
+                    lanes.at(lane_idx).blocks.at(row_idx));
+            }
+        }
+    }
+
+    Vec<Slice<int>> getLaneSpans() const {
+        Vec<Slice<int>> laneSpans;
+        int             laneStartX = 0;
+        for (auto const& [lane_idx, lane] : enumerate(lanes)) {
+            laneSpans.resize_at(lane_idx) = slice(
+                laneStartX + lane.leftMargin,
+                laneStartX + lane.leftMargin + lane.getWidth());
+            laneStartX += lane.getFullWidth();
+        }
+        return laneSpans;
     }
 };
 
@@ -148,13 +224,20 @@ ColaConstraintDebug to_constraints(
 
 void render_point(const GraphPoint& point, ImVec2 const& shift);
 void render_path(const GraphPath& path, ImVec2 const& shift);
-void render_bezier_path(const GraphPath& path, ImVec2 const& shift);
+void render_bezier_path(
+    const GraphPath&            path,
+    ImVec2 const&               shift,
+    const LaneBlockGraphConfig& conf);
 void render_rect(const GraphRect& rect, ImVec2 const& shift);
 void render_edge(
-    const GraphLayoutIR::Edge& edge,
-    ImVec2 const&              shift,
-    bool                       bezier);
-void render_result(GraphLayoutIR::Result const& res, ImVec2 const& shift);
+    const GraphLayoutIR::Edge&  edge,
+    ImVec2 const&               shift,
+    bool                        bezier,
+    LaneBlockGraphConfig const& style);
+void render_result(
+    GraphLayoutIR::Result const& res,
+    ImVec2 const&                shift,
+    const LaneBlockGraphConfig&  style);
 void render_debug(ColaConstraintDebug const& debug, const ImVec2& shift);
 
 LaneBlockLayout to_layout(LaneBlockGraph const& g);

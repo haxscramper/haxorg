@@ -235,13 +235,13 @@ struct MapGraph {
         Func<bool(MapEdge const& edge)> acceptEdge;
     };
 
-    Graphviz::Graph toGraphviz(const ImmAstContext& ctx) const {
+    Graphviz::Graph toGraphviz(const ImmAstContext::Ptr& ctx) const {
         return toGraphviz(ctx, GvConfig{});
     }
 
     Graphviz::Graph toGraphviz(
-        const ImmAstContext& ctx,
-        GvConfig const&      conf) const;
+        const ImmAstContext::Ptr& ctx,
+        GvConfig const&           conf) const;
 
     DESC_FIELDS(MapGraph, (nodeProps, edgeProps, adjList));
 };
@@ -285,9 +285,9 @@ struct MapGraphState {
     /// \brief List of nodes with unresolved outgoing links.
     UnorderedSet<MapNode> unresolved;
     MapGraph              graph;
-    ImmAstContext         ast;
+    ImmAstContext::Ptr    ast;
 
-    MapGraphState(ImmAstContext const& ast) : ast{ast} {};
+    MapGraphState(ImmAstContext::Ptr ast) : ast{ast} {};
 
     DESC_FIELDS(MapGraphState, (unresolved, graph));
 };

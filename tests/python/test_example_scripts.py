@@ -158,8 +158,8 @@ def test_base_activity_analysis():
   - State "TODO"       from "FAILED"     [2024-03-13 Wed 18:01:27 +04]
   - Note taken on [2024-03-13 Wed 18:01:30 +04] \\\\
     Back to todo
-  - Priority "B" Added at [2024-03-13 Wed 18:01:40 +04]
-  - Priority "C" Changed From "B" at [2024-03-13 Wed 18:01:41 +04]
+  - Priority "B" Added on [2024-03-13 Wed 18:01:40 +04]
+  - Priority "C" Changed From "B" on [2024-03-13 Wed 18:01:41 +04]
   - Refiled on [2024-03-13 Wed 18:01:56 +04] from [[id:75397715-6471-4a1a-be00-ca4bb656d810][projects:Haxorg/Documentation]]
   - Refiled on [2024-03-13 Wed 18:02:09 +04] from [[file:staging.org][staging:staging.org]]
   :END:

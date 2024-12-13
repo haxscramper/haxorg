@@ -32,10 +32,11 @@ ImmAstReplace org::setSubnodes(
     LOGIC_ASSERTION_CHECK(
         !target.isNil(), "cannot set subnodes to nil node");
     Opt<ImmAstReplace> result;
-    switch_node_value(target.id, *target.ctx, [&]<typename N>(N node) {
-        node.subnodes = subnodes;
-        result        = target.ctx->store->setNode(target, node, ctx);
-    });
+    switch_node_value(
+        target.id, target.ctx.lock(), [&]<typename N>(N node) {
+            node.subnodes = subnodes;
+            result = target.ctx.lock()->store->setNode(target, node, ctx);
+        });
 
     return result.value();
 }
@@ -47,7 +48,7 @@ ImmAstReplace ImmAstStore::setNode(
     const T&           value,
     ImmAstEditContext& ctx) {
 
-    for (auto const& it : allSubnodes<T>(value, *ctx.ctx)) {
+    for (auto const& it : allSubnodes<T>(value, ctx.ctx.lock())) {
         it.assertValid();
     }
 
@@ -71,8 +72,8 @@ ImmAstReplace ImmAstStore::setNode(
     auto dbg          = [&](std::string section) {
         AST_EDIT_MSG(fmt("{}", section));
         auto        __scope = ctx.debug.scopeLevel();
-        auto const& imm     = ctx.ctx->track->parents;
-        auto const& mut     = ctx.track.parents;
+        auto const& imm     = ctx.ctx.lock()->currentTrack->parents;
+        auto const& mut     = ctx.transientTrack.parents;
 
         UnorderedSet<ImmId> keys;
         for (auto const& [key, value] : imm) { keys.incl(key); }
@@ -89,9 +90,9 @@ ImmAstReplace ImmAstStore::setNode(
     bool verboseSubnodeSet = false;
 
     if (verboseSubnodeSet) { dbg("Pre remove"); }
-    ctx.track.removeAllSubnodesOf(target);
+    ctx.transientTrack.removeAllSubnodesOf(target);
     if (verboseSubnodeSet) { dbg("After remove"); }
-    ctx.track.insertAllSubnodesOf(ctx->adapt(replaced));
+    ctx.transientTrack.insertAllSubnodesOf(ctx->adapt(replaced));
     if (verboseSubnodeSet) { dbg("After insert remove"); }
 
     return ImmAstReplace{
@@ -164,7 +165,7 @@ ImmAstReplace setNewSubnodes(
     ImmAstReplace act;
     switch_node_value(
         updateTarget.id,
-        *updateTarget.ctx,
+        updateTarget.ctx.lock(),
         [&]<typename K>(K node /* <<input_node_for_mut_cast>> */) {
             for (SubnodeVecAssignPair const& fieldGroup : grouped) {
                 auto field = fieldGroup.first.first();
@@ -268,7 +269,7 @@ ImmAstReplace setNewSubnodes(
                     });
             }
 
-            act = updateTarget.ctx->store->setNode(
+            act = updateTarget.ctx.lock()->store->setNode(
                 updateTarget, node, ctx);
         });
     return act;
@@ -453,8 +454,8 @@ ImmId ImmAstStore::add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx) {
             result = getStore<K>()->add(data, ctx);
         });
     auto adapter = ctx->adapt(ImmUniqId{result});
-    ctx.track.removeAllSubnodesOf(adapter);
-    ctx.track.insertAllSubnodesOf(adapter);
+    ctx.transientTrack.removeAllSubnodesOf(adapter);
+    ctx.transientTrack.insertAllSubnodesOf(adapter);
     ctx.updateTracking(result, true);
     return result;
 }
@@ -482,26 +483,27 @@ ImmId ImmAstContext::at(ImmId node, const ImmPathStep& item) const {
             item.path.first().getIndex().index);
     } else {
         Opt<ImmId> result;
-        switch_node_value(node, *this, [&]<typename T>(T const& value) {
-            reflVisitPath<T>(
-                value,
-                item.path,
-                overloaded{
-                    [&](ImmId const& id) { result = id; },
-                    [&]<typename K>(ImmIdT<K> const& id) {
-                        result = id.toId();
-                    },
-                    [&](auto const& other) {
-                        LOGIC_ASSERTION_CHECK(
-                            false,
-                            "Path {} does not point to a field with "
-                            "ID, "
-                            "resolved to {}",
-                            item,
-                            other);
-                    },
-                });
-        });
+        switch_node_value(
+            node, mshared_from_this(), [&]<typename T>(T const& value) {
+                reflVisitPath<T>(
+                    value,
+                    item.path,
+                    overloaded{
+                        [&](ImmId const& id) { result = id; },
+                        [&]<typename K>(ImmIdT<K> const& id) {
+                            result = id.toId();
+                        },
+                        [&](auto const& other) {
+                            LOGIC_ASSERTION_CHECK(
+                                false,
+                                "Path {} does not point to a field with "
+                                "ID, "
+                                "resolved to {}",
+                                item,
+                                other);
+                        },
+                    });
+            });
         return result.value();
     }
 }
@@ -553,27 +555,28 @@ void ImmAstContext::format(ColStream& os, const std::string& prefix)
 }
 
 ImmAdapter ImmAstContext::adapt(const ImmUniqId& id) const {
-    return org::ImmAdapter{id, this};
+    return org::ImmAdapter{id, mweak_from_this()};
 }
 
 ImmAdapter ImmAstContext::adaptUnrooted(const ImmId& id) const {
-    return org::ImmAdapter{org::ImmUniqId{id, {}}, this};
+    return org::ImmAdapter{org::ImmUniqId{id, {}}, mweak_from_this()};
 }
 
 
 ImmAstVersion ImmAstContext::getEditVersion(
     const org::ImmAdapter&                                           root,
-    Func<ImmAstReplaceGroup(ImmAstContext& ast, ImmAstEditContext&)> cb) {
+    Func<ImmAstReplaceGroup(ImmAstContext::Ptr, ImmAstEditContext&)> cb) {
     auto ctx     = getEditContext();
-    auto replace = cb(*this, ctx);
+    auto replace = cb(shared_from_this(), ctx);
     return finishEdit(ctx, ctx.store().cascadeUpdate(root, replace, ctx));
 }
 
-ImmAstContext ImmAstContext::finishEdit(ImmAstEditContext& ctx) {
-    ImmAstContext result = *this;
-    result.track         = std::make_shared<ImmAstTrackingMap>();
-    *result.track        = ctx.track.persistent();
-    return result;
+ImmAstContext::Ptr ImmAstContext::finishEdit(ImmAstEditContext& ctx) {
+    return SharedPtrApi::shared(
+        store,
+        std::make_shared<ImmAstTrackingMap>(
+            ctx.transientTrack.persistent()),
+        debug);
 }
 
 
@@ -616,16 +619,18 @@ struct SerdeDefaultProvider<sem::SubtreeLogHead::Priority> {
     }
 };
 
+using SemId_t = sem::SemId<sem::Org>;
+using ImmId_t = org::ImmId;
+
+
 template <typename Sem, typename Imm>
 struct ImmSemSerde {};
 
-using SemId_t = sem::SemId<sem::Org>;
-using ImmId_t = org::ImmId;
 
 template <>
 struct ImmSemSerde<SemId_t, ImmId_t> {
     static ImmId_t to_immer(SemId_t const& id, ImmAstEditContext& ctx) {
-        return ctx.ctx->store->add(id, ctx);
+        return ctx.ctx.lock()->store->add(id, ctx);
     }
 
     static SemId_t from_immer(
@@ -640,7 +645,9 @@ struct ImmSemSerde<sem::SemId<SemType>, org::ImmIdT<ImmType>> {
     static org::ImmIdT<ImmType> to_immer(
         sem::SemId<SemType> const& id,
         ImmAstEditContext&         ctx) {
-        return ctx.ctx->store->add(id.asOrg(), ctx).template as<ImmType>();
+        return ctx.ctx.lock()
+            ->store->add(id.asOrg(), ctx)
+            .template as<ImmType>();
     }
 
     static sem::SemId<SemType> from_immer(
@@ -864,6 +871,20 @@ void assign_sem_field(
 
 
 #include "ImmOrgSerde.tcc"
+
+ImmId org::immer_from_sem(
+    const sem::SemId<sem::Org>& id,
+    ImmAstEditContext&          ctx) {
+    return ImmSemSerde<SemId_t, ImmId_t>::to_immer(id, ctx);
+}
+
+
+sem::SemId<sem::Org> org::sem_from_immer(
+    const ImmId&         id,
+    const ImmAstContext& ctx) {
+    return ImmSemSerde<SemId_t, ImmId_t>::from_immer(id, ctx);
+}
+
 
 sem::SemId<sem::Org> ImmAstContext::get(ImmId id) {
     return store->get(id, *this);

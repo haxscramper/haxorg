@@ -7,12 +7,14 @@
 #include <haxorg/exporters/ExporterUltraplain.hpp>
 #include <hstd/stdlib/Set.hpp>
 
-#include "sem_tree_render.hpp"
-#include "story_grid.hpp"
-#include "imgui_utils.hpp"
-#include "block_graph.hpp"
+#include <gui_lib/sem_tree_render.hpp>
+#include <gui_lib/story_grid.hpp>
+#include <gui_lib/imgui_utils.hpp>
+#include <gui_lib/block_graph.hpp>
+#include <gui_lib/ascii_editor.hpp>
+#include <gui_lib/scintilla_editor_widget.hpp>
 
-#include "gui_perfetto.hpp"
+#include <gui_lib/gui_perfetto.hpp>
 #include <hstd/wrappers/hstd_extra/perfetto_aux_impl_template.hpp>
 
 
@@ -23,7 +25,9 @@ struct Config {
         Outline,
         StoryGrid,
         Test,
-        StoryGridAnnotated);
+        StoryGridAnnotated,
+        ScintillaEditorTest,
+        AsciiEditorTest);
 
     Str      file;
     Mode     mode = Mode::SemTree;
@@ -159,13 +163,12 @@ void render_outline_subtree(
 
         long full_duration = 0;
         for (auto const& log : org->logbook) {
-            switch (log->getLogKind()) {
-                case sem::SubtreeLog::Kind::Clock: {
-                    auto const& clock = log->getClock();
-                    if (clock.to && clock.from) {
+            switch (log->head.getLogKind()) {
+                case sem::SubtreeLogHead::Kind::Clock: {
+                    auto const& clock = log->head.getClock();
+                    if (clock.to) {
                         full_duration += GetTimeDelta(
-                            clock.from->getStatic().time,
-                            clock.to.value()->getStatic().time);
+                            clock.from, clock.to.value());
                     }
                     break;
                 }
@@ -375,7 +378,7 @@ int main(int argc, char** argv) {
     GLFWmonitor*       monitor = glfwGetPrimaryMonitor();
     const GLFWvidmode* mode    = glfwGetVideoMode(monitor);
 
-    bool fullscreen = true;
+    bool fullscreen = false;
 
     GLFWwindow* window = glfwCreateWindow(
         fullscreen ? mode->width : 1280,
@@ -421,15 +424,34 @@ int main(int argc, char** argv) {
         }
         case Config::Mode::StoryGridAnnotated:
         case Config::Mode::StoryGrid: {
+            StoryGridConfig storyGridConf;
+            using Col = StoryGridConfig::StoryGridColumnConfig;
+            storyGridConf.defaultColumns = {
+                Col{.width = 200, .name = "title"},
+                Col{.width = 400, .name = "event"},
+                Col{.width = 400, .name = "note"},
+                Col{.width = 300, .name = "turning_point"},
+                Col{.width = 200, .name = "value"},
+                Col{.width = 240,
+                    .edit  = EditableOrgText::Mode::SingleLine,
+                    .name  = "location"},
+                Col{.width = 100, .name = "pov"},
+            };
+
             appstate = story_grid_loop(
-                window,
-                conf.file,
-                conf.mode == Config::Mode::StoryGridAnnotated,
-                appstate);
+                window, conf.file, appstate, storyGridConf);
             break;
         }
         case Config::Mode::Test: {
             run_block_graph_test(window);
+            break;
+        }
+        case Config::Mode::ScintillaEditorTest: {
+            run_scintilla_editor_widget_test(window);
+            break;
+        }
+        case Config::Mode::AsciiEditorTest: {
+            run_ascii_editor_widget_test(window);
             break;
         }
     }

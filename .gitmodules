@@ -49,3 +49,6 @@
 [submodule "thirdparty/lexy"]
 	path = thirdparty/lexy
 	url = https://github.com/foonathan/lexy.git
+[submodule "thirdparty/imgui_test_engine"]
+	path = thirdparty/imgui_test_engine
+	url = https://github.com/ocornut/imgui_test_engine.git

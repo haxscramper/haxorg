@@ -242,7 +242,7 @@ struct IndexedBase : public CRTP_this_method<Container> {
     }
 
     int push_back_idx(CR<T> item) {
-        int result = _this()->size() - 1;
+        int result = _this()->size();
         _this()->push_back(item);
         return result;
     }

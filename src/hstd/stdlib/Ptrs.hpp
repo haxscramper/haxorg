@@ -14,6 +14,9 @@ template <typename T>
 using UPtrIn = std::unique_ptr<T>&&;
 
 template <typename T>
+using WPtr = std::weak_ptr<T>;
+
+template <typename T>
 struct SharedPtrApi
     : public std::enable_shared_from_this<T>
     , public CRTP_this_method<T> {
@@ -27,7 +30,16 @@ struct SharedPtrApi
         return std::make_shared<T>(*_this());
     }
 
-    using Ptr = std::shared_ptr<T>;
+    using Ptr  = std::shared_ptr<T>;
+    using WPtr = std::weak_ptr<T>;
+
+    std::shared_ptr<T> mshared_from_this() const {
+        return const_cast<T*>(_this())->shared_from_this();
+    }
+
+    std::weak_ptr<T> mweak_from_this() const {
+        return const_cast<T*>(_this())->weak_from_this();
+    }
 };
 
 

@@ -536,3 +536,4 @@ toolchain/
 *.pdf
 adaptagrams_debug.*
 libavoid-diagram.*
+thirdparty/scintilla

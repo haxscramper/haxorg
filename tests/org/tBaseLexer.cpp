@@ -23,8 +23,8 @@ TEST(ManualFileRun, TestDoc1) {
                 .file = "doc1",
             });
 
-            org::ImmAstContext start;
-            auto               n = start.init(sem::parseString(content));
+            auto start = org::ImmAstContext::init_start_context();
+            auto n     = start->init(sem::parseString(content));
 
             writeFile(
                 "/tmp/TestDoc1_clean.txt",
@@ -58,6 +58,9 @@ TEST(ManualFileRun, TestDoc1) {
                 .spec = spec,
                 .file = "doc2",
             });
+
+            auto start = org::ImmAstContext::init_start_context();
+            auto n     = start->init(sem::parseString(content));
         }
     }
 }

@@ -282,6 +282,9 @@ struct ImmAstTrackingMapTransient {
     /// value alone.
     void insertAllSubnodesOf(ImmAdapter const& parent);
 
+    /// \brief Check if the target adapter should be tracked as a parent
+    /// node in the map. Uses \see `isTrackingParentImpl` callback if it is
+    /// provided.
     bool isTrackingParent(ImmAdapter const& it) const {
         return isTrackingParentImpl && isTrackingParentImpl(it);
     }
@@ -302,6 +305,9 @@ struct ImmAstTrackingMap {
     ImmStrIdMap  names;
     ImmParentMap parents;
 
+    /// \brief Filter out unnecessary nodes that should not be tracked as
+    /// parents -- mostly related to leaf nodes like space, word, big ident
+    /// etc., to reduce the size of the parent tracking map
     ImmPanentTrackFilter isTrackingParent = isTrackingParentDefault;
 
     DESC_FIELDS(
@@ -347,9 +353,9 @@ struct ImmAstTrackingMap {
 struct ImmAstStore;
 
 struct ImmAstEditContext {
-    ImmAstTrackingMapTransient track;
-    ImmAstContext*             ctx;
-    ImmAstContext              finish();
+    ImmAstTrackingMapTransient transientTrack;
+    WPtr<ImmAstContext>        ctx;
+    SPtr<ImmAstContext>        finish();
     ImmAstStore&               store();
     OperationsScope            debug;
 
@@ -363,15 +369,10 @@ struct ImmAstEditContext {
         int                line     = __builtin_LINE(),
         char const*        file     = __builtin_FILE());
 
-    ImmAstContext* operator->() { return ctx; }
+    ImmAstContext* operator->() { return ctx.lock().get(); }
 
     finally collectAbslLogs();
 };
-
-#define AST_EDIT_TRACE() ctx.ctx->debug->TraceState
-
-#define AST_EDIT_MSG(...)                                                 \
-    if (AST_EDIT_TRACE()) { ctx.message(__VA_ARGS__); }
 
 template <org::IsImmOrgValueType T>
 struct ImmAstKindStore {
@@ -518,10 +519,18 @@ struct ImmAstStore {
 struct ImmAstVersion;
 struct ImmAdapter;
 
-struct [[nodiscard]] ImmAstContext {
-    SPtr<OperationsTracer>  debug;
-    SPtr<ImmAstStore>       store;
-    SPtr<ImmAstTrackingMap> track;
+/// \brief Store additional lookup and debug contexts for a particular
+/// version of the AST tree.
+struct [[nodiscard]] ImmAstContext : SharedPtrApi<ImmAstContext> {
+    /// \brief Shared operation tracer for the debug operations.
+    SPtr<OperationsTracer> debug;
+    /// \brief Shared AST store, the underlying store data is shared
+    /// between all contexts and can only be added to, store data is never
+    /// removed so older contexts are always valid.
+    SPtr<ImmAstStore> store;
+    /// \brief Current version of the AST tracking map stored in the
+    /// context
+    SPtr<ImmAstTrackingMap> currentTrack;
 
     void message(
         std::string const& value,
@@ -532,29 +541,30 @@ struct [[nodiscard]] ImmAstContext {
         if (debug) { debug->message(value, level, line, function, file); }
     }
 
-    DESC_FIELDS(ImmAstContext, (store, track));
+    DESC_FIELDS(ImmAstContext, (store, currentTrack));
 
     ImmParentIdVec const& getParentIds(ImmId const& it) const {
-        return track->getParentIds(it);
+        return currentTrack->getParentIds(it);
     }
 
     ParentPathMap getParentsFor(ImmId const& it) const {
-        return track->getParentsFor(it, this);
+        return currentTrack->getParentsFor(it, this);
     }
 
     Vec<ImmUniqId> getPathsFor(ImmId const& it) const {
-        return track->getPathsFor(it, this);
+        return currentTrack->getPathsFor(it, this);
     }
 
     Vec<ImmAdapter> getAdaptersFor(ImmId const& it) const;
 
     ImmAstVersion getEditVersion(
-        ImmAdapter const&                                            root,
-        Func<ImmAstReplaceGroup(ImmAstContext&, ImmAstEditContext&)> cb);
+        ImmAdapter const& root,
+        Func<ImmAstReplaceGroup(ImmAstContext::Ptr, ImmAstEditContext&)>
+            cb);
 
     ImmAstEditContext getEditContext();
 
-    ImmAstContext finishEdit(ImmAstEditContext& ctx);
+    ImmAstContext::Ptr finishEdit(ImmAstEditContext& ctx);
 
     ImmAstVersion finishEdit(
         ImmAstEditContext&        ctx,
@@ -595,17 +605,27 @@ struct [[nodiscard]] ImmAstContext {
     ImmAdapter adapt(ImmUniqId const& id) const;
     ImmAdapter adaptUnrooted(ImmId const& id) const;
 
+    static ImmAstContext::Ptr init_start_context() {
+        return std::make_shared<ImmAstContext>(
+            std::make_shared<ImmAstStore>(),
+            std::make_shared<ImmAstTrackingMap>(),
+            std::make_shared<OperationsTracer>() //
+        );
+    }
 
-    ImmAstContext()
-        : store{std::make_shared<ImmAstStore>()}
-        , track{std::make_shared<ImmAstTrackingMap>()}
-        , debug{std::make_shared<OperationsTracer>()} //
+    ImmAstContext(
+        SPtr<ImmAstStore> const&       sharedStore,
+        SPtr<ImmAstTrackingMap> const& startTracking,
+        SPtr<OperationsTracer> const&  sharedTracer)
+        : store{sharedStore}
+        , currentTrack{startTracking}
+        , debug{sharedTracer} //
     {}
 };
 
 /// \brief Specific version of the document.
 struct ImmAstVersion {
-    ImmAstContext      context;
+    ImmAstContext::Ptr context;
     ImmAstReplaceEpoch epoch;
     DESC_FIELDS(ImmAstVersion, (context, epoch));
 
@@ -613,7 +633,7 @@ struct ImmAstVersion {
     ImmAdapter getRootAdapter() const;
 
     ImmAstVersion getEditVersion(
-        Func<ImmAstReplaceGroup(ImmAstContext& ast, ImmAstEditContext&)>
+        Func<ImmAstReplaceGroup(ImmAstContext::Ptr, ImmAstEditContext&)>
             cb);
 };
 
@@ -649,9 +669,11 @@ struct ImmAstGraphvizConf {
 };
 
 template <org::IsImmOrgValueType T>
-Vec<ImmId> allSubnodes(T const& value, org::ImmAstContext const& ctx);
+Vec<ImmId> allSubnodes(T const& value, org::ImmAstContext::Ptr const& ctx);
 
-Vec<ImmId> allSubnodes(ImmId const& value, org::ImmAstContext const& ctx);
+Vec<ImmId> allSubnodes(
+    ImmId const&                   value,
+    org::ImmAstContext::Ptr const& ctx);
 
 
 template <typename Func>
@@ -674,19 +696,19 @@ void switch_node_kind(org::ImmId id, Func const& cb) {
 
 template <typename Func>
 void switch_node_value(
-    org::ImmId           id,
-    ImmAstContext const& ctx,
-    Func const&          cb) {
+    org::ImmId                id,
+    ImmAstContext::Ptr const& ctx,
+    Func const&               cb) {
     LOGIC_ASSERTION_CHECK(id.getKind() != OrgSemKind::None, "");
     switch_node_kind(
-        id, [&]<typename K>(org::ImmIdT<K> id) { cb(ctx.value<K>(id)); });
+        id, [&]<typename K>(org::ImmIdT<K> id) { cb(ctx->value<K>(id)); });
 }
 
 template <typename Func>
 void switch_node_fields(
-    org::ImmId           id,
-    ImmAstContext const& ctx,
-    Func const&          cb) {
+    org::ImmId                id,
+    ImmAstContext::Ptr const& ctx,
+    Func const&               cb) {
     LOGIC_ASSERTION_CHECK(id.getKind() != OrgSemKind::None, "");
     switch_node_value(id, ctx, [&]<typename T>(T const& node) {
         for_each_field_value_with_bases(node, cb);
@@ -702,9 +724,9 @@ template <typename T>
 struct ImmAdapterT;
 
 struct ImmAdapter {
-    ImmId                id;
-    ImmAstContext const* ctx;
-    ImmPath              path;
+    ImmId               id;
+    ImmAstContext::WPtr ctx;
+    ImmPath             path;
 
     class iterator {
       public:
@@ -741,7 +763,7 @@ struct ImmAdapter {
         }
     };
 
-    int      size() const { return ctx->at(id)->subnodes.size(); }
+    int      size() const { return ctx.lock()->at(id)->subnodes.size(); }
     iterator begin() const { return iterator(this); }
     iterator end() const { return iterator(this, size()); }
     bool     isNil() const { return id.isNil(); }
@@ -773,13 +795,13 @@ struct ImmAdapter {
         return path.path.front().path.first();
     }
 
-    ImmAdapter(ImmPath const& path, ImmAstContext const* ctx)
-        : id{ctx->at(path)}, ctx{ctx}, path{path} {}
+    ImmAdapter(ImmPath const& path, ImmAstContext::WPtr ctx)
+        : id{ctx.lock()->at(path)}, ctx{ctx}, path{path} {}
 
-    ImmAdapter(ImmUniqId id, ImmAstContext const* ctx)
+    ImmAdapter(ImmUniqId id, ImmAstContext::WPtr ctx)
         : id{id.id}, ctx{ctx}, path{id.path} {}
 
-    ImmAdapter(ImmId id, ImmAstContext const* ctx, ImmPath const& path)
+    ImmAdapter(ImmId id, ImmAstContext::WPtr ctx, ImmPath const& path)
         : id{id}, ctx{ctx}, path{path} {}
 
     ImmAdapter() : id{ImmId::Nil()}, ctx{}, path{ImmId::Nil()} {}
@@ -824,7 +846,7 @@ struct ImmAdapter {
             return std::nullopt;
         } else {
             auto newPath = path.pop();
-            return ImmAdapter{ctx->at(newPath), ctx, newPath};
+            return ImmAdapter{ctx.lock()->at(newPath), ctx, newPath};
         }
     }
 
@@ -856,7 +878,7 @@ struct ImmAdapter {
         return this->id == id.id;
     }
 
-    ImmOrg const* get() const { return ctx->at(id); }
+    ImmOrg const* get() const { return ctx.lock()->at(id); }
     ImmOrg const* operator->() const { return get(); }
 
     template <typename T>
@@ -870,7 +892,7 @@ struct ImmAdapter {
 
     ImmAdapter at(ImmReflFieldId const& field) const {
         return at(
-            ctx->at(
+            ctx.lock()->at(
                 id,
                 ImmPathStep{
                     {org::ImmReflPathItemBase::FromFieldName(field)}}),
@@ -941,12 +963,12 @@ struct ImmAdapter {
 
     template <typename Func>
     void visitNodeValue(Func const& cb) const {
-        ::org::switch_node_value(id, *ctx, cb);
+        ::org::switch_node_value(id, ctx, cb);
     }
 
     template <typename Func>
     void visitNodeFields(Func const& cb) const {
-        ::org::switch_node_fields(id, *ctx, cb);
+        ::org::switch_node_fields(id, ctx, cb);
     }
 };
 
@@ -975,7 +997,7 @@ struct ImmAdapterTBase : ImmAdapter {
     using ImmAdapter::ImmAdapter;
     using ImmAdapter::pass;
     using ImmAdapter::subAs;
-    T const* get() const { return ctx->at_t<T>(id); }
+    T const* get() const { return ctx.lock()->template at_t<T>(id); }
     T const* operator->() const { return get(); }
     T const& value() const { return ImmAdapter::value<T>(); }
 
@@ -1292,6 +1314,14 @@ struct sem_to_imm_map {};
 EACH_SEM_ORG_KIND(_gen_map)
 #undef _gen_map
 
+sem::SemId<sem::Org> sem_from_immer(
+    org::ImmId const&    id,
+    ImmAstContext const& ctx);
+
+org::ImmId immer_from_sem(
+    sem::SemId<sem::Org> const& id,
+    ImmAstEditContext&          ctx);
+
 } // namespace org
 
 
@@ -1409,3 +1439,27 @@ struct std::hash<org::ImmPath> {
         return result;
     }
 };
+
+
+namespace org::details {
+inline org::ImmAstContext* ___get_context(org::ImmAstContext::Ptr p) {
+    return p.get();
+}
+inline ImmAstEditContext* ___get_context(org::ImmAstEditContext& p) {
+    return &p;
+}
+
+inline bool ___is_debug(org::ImmAstEditContext& p) {
+    return p.debug.TraceState;
+}
+inline bool ___is_debug(org::ImmAstContext::Ptr p) {
+    return p->debug->TraceState;
+}
+} // namespace org::details
+
+#define AST_EDIT_TRACE() ::org::details::___is_debug(ctx)
+
+#define AST_EDIT_MSG(...)                                                 \
+    if (AST_EDIT_TRACE()) {                                               \
+        ::org::details::___get_context(ctx)->message(__VA_ARGS__);        \
+    }

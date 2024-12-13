@@ -5,8 +5,23 @@
 #include <hstd/stdlib/Ranges.hpp>
 #include <hstd/stdlib/Debug.hpp>
 #include "imgui_utils.hpp"
+#include <gui_lib/org_logger.hpp>
+
 
 using GC = GraphNodeConstraint;
+
+
+namespace {
+org_logging::log_builder gr_log(
+    org_logging::severity_level __severity,
+    int                         line     = __builtin_LINE(),
+    char const*                 function = __builtin_FUNCTION(),
+    char const*                 file     = __builtin_FILE()) {
+    return std::move(::org_logging::log_builder{}
+                         .set_callsite(line, function, file)
+                         .severity(__severity)
+                         .source_scope({"gui", "logic", "block_graph"}));
+}
 
 GC::Align::Spec spec(int rect, int offset = 0) {
     return GC::Align::Spec{
@@ -15,27 +30,45 @@ GC::Align::Spec spec(int rect, int offset = 0) {
     };
 }
 
-LaneBlockLayout to_layout(LaneBlockGraph const& g) {
-    LaneBlockLayout lyt;
-
-    Vec<GC::Align>       laneAlignments;
-    Vec<GC::Align::Spec> topLaneAlign;
+void connect_vertical_constraints(
+    LaneBlockLayout&      lyt,
+    Vec<GC::Align>&       laneAlignments,
+    Vec<GC::Align::Spec>& topLaneAlign,
+    LaneBlockGraph const& g) {
+    OLOG_DEPTH_SCOPE_ANON();
     for (auto const& [lane_idx, lane] : enumerate(g.lanes)) {
-        Vec<int> visibleBlocks = lane.getVisibleBlocks(
-            slice<int>(0, int(g.visible.height())));
-        // _dfmt(lane_idx, visibleBlocks);
-        if (visibleBlocks.empty()) { continue; }
+        gr_log(ol_trace).fmt_message(
+            "Lane index {} size {}", lane_idx, lane.blocks.size());
+        auto     visibleSlice  = slice<int>(0, int(g.visible.height()));
+        Vec<int> visibleBlocks = lane.getVisibleBlocks(visibleSlice);
+        if (visibleBlocks.empty()) {
+            gr_log(ol_trace).fmt_message(
+                "No blocks in visible range {}", visibleSlice);
+            continue;
+        } else {
+            gr_log(ol_trace).fmt_message(
+                "Blocks {} are visible in range {}",
+                visibleBlocks,
+                visibleSlice);
+        }
 
         Opt<GC::Align::Spec> first;
         for (int row : visibleBlocks) {
             LaneNodePos node{.lane = lane_idx, .row = row};
-            lyt.ir.rectangles.push_back(GraphSize{
-                .w = static_cast<double>(lane.blocks.at(row).width),
-                .h = static_cast<double>(lane.blocks.at(row).height),
-            });
+            GraphSize   size{
+                  .w = static_cast<double>(lane.blocks.at(row).width),
+                  .h = static_cast<double>(lane.blocks.at(row).height),
+            };
+
+            lyt.ir.rectangles.push_back(size);
+
 
             int idx = lyt.ir.rectangles.high();
             lyt.rectMap.insert_or_assign(node, idx);
+
+            // gr_log(ol_trace).fmt_message(
+            //     "Row {} rect {} size {}", row, idx, size);
+
             if (!first) {
                 first = GC::Align::Spec{
                     .node   = idx,
@@ -48,7 +81,6 @@ LaneBlockLayout to_layout(LaneBlockGraph const& g) {
         if (first) { topLaneAlign.push_back(first.value()); }
 
         GC::Align align;
-
         for (auto const& row : visibleBlocks) {
             LaneNodePos node{.lane = lane_idx, .row = row};
             align.nodes.push_back(spec(lyt.rectMap.at(node)));
@@ -78,12 +110,14 @@ LaneBlockLayout to_layout(LaneBlockGraph const& g) {
         align.dimension = GraphDimension::XDIM;
         laneAlignments.push_back(align);
     }
+}
 
-    // _dbg(topLaneAlign);
-    lyt.ir.nodeConstraints.push_back(GraphNodeConstraint{GC::Align{
-        .nodes     = topLaneAlign,
-        .dimension = GraphDimension::YDIM,
-    }});
+void connect_inter_lane_constraints(
+    LaneBlockLayout&      lyt,
+    Vec<GC::Align>&       laneAlignments,
+    LaneBlockGraph const& g) {
+    OLOG_DEPTH_SCOPE_ANON();
+
 
     for (auto const& [lane_idx, lane] : enumerate(g.lanes)) {
         if (lane_idx < g.lanes.high()) {
@@ -108,7 +142,10 @@ LaneBlockLayout to_layout(LaneBlockGraph const& g) {
                 }});
         }
     }
+}
 
+void connect_edges(LaneBlockLayout& lyt, LaneBlockGraph const& g) {
+    OLOG_DEPTH_SCOPE_ANON();
     int                               edgeId = 0;
     UnorderedMap<Pair<int, int>, int> inLaneCheckpoints;
     for (auto const& lane : enumerator(g.lanes)) {
@@ -165,7 +202,62 @@ LaneBlockLayout to_layout(LaneBlockGraph const& g) {
             }
         }
     }
+}
 
+} // namespace
+
+
+LaneBlockLayout to_layout(LaneBlockGraph const& g) {
+    LOGIC_ASSERTION_CHECK(
+        int(g.visible.h) != 0 && int(g.visible.w) != 0, "{}", g.visible);
+    gr_log(ol_info).fmt_message(
+        "Create block layout, {} lanes", g.lanes.size());
+
+    OLOG_DEPTH_SCOPE_ANON();
+
+    for (auto const& [pos, block] : g.getBlocks()) {
+        LOGIC_ASSERTION_CHECK(
+            block.width != 0 && block.height != 0,
+            "Cannot compute layout size with block size of 0. Block node "
+            "at position {} has dimensions {}x{}",
+            pos,
+            block.height,
+            block.width);
+
+        // gr_log(ol_info).fmt_message("Pos {} block {}", pos, block);
+    }
+
+
+    LaneBlockLayout lyt;
+
+    Vec<GC::Align>       laneAlignments;
+    Vec<GC::Align::Spec> topLaneAlign;
+
+    // Compose lane alignment axis by constraining nodes pairwise. The
+    // `first` node in the lane is also constrainted with the top
+    // horizontal axis (top lane align), and then every other block on
+    // the lane is transitively constrained to it.
+    //
+    // ──────────── topLaneAlign
+    // align   align
+    //   ┌─┐   ┌╶┐
+    //   └┼┘   └│┘
+    //    │     │
+    //   ┌┼┐   ┌│┐
+    //   └┼┘   └│┘
+    //    │     │
+    //   ┌┼┐   ┌│┐
+    //   └─┘   └╶┘
+    connect_vertical_constraints(lyt, laneAlignments, topLaneAlign, g);
+
+    lyt.ir.nodeConstraints.push_back(GraphNodeConstraint{GC::Align{
+        .nodes     = topLaneAlign,
+        .dimension = GraphDimension::YDIM,
+    }});
+
+    connect_inter_lane_constraints(lyt, laneAlignments, g);
+
+    connect_edges(lyt, g);
     return lyt;
 }
 
@@ -192,7 +284,10 @@ void render_path(const GraphPath& path, ImVec2 const& shift) {
 }
 
 
-void render_bezier_path(const GraphPath& path, ImVec2 const& shift) {
+void render_bezier_path(
+    const GraphPath&            path,
+    ImVec2 const&               shift,
+    LaneBlockGraphConfig const& conf) {
     if (path.points.size() < 2) { return; }
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -212,7 +307,7 @@ void render_bezier_path(const GraphPath& path, ImVec2 const& shift) {
             }
 
             if (offset_points.size() == 4) {
-                float dist = (offset_points[0].x - offset_points[3].x);
+                float  dist = (offset_points[0].x - offset_points[3].x);
                 ImVec2 bezier_start_offset = ImVec2(-dist, 0);
                 ImVec2 bezier_end_offset   = ImVec2(dist, 0);
 
@@ -247,10 +342,15 @@ void render_bezier_path(const GraphPath& path, ImVec2 const& shift) {
             }
         };
 
-    const float width = 4.0f;
-    draw_offset_curve(-width + 1.0f, IM_COL32(255, 255, 255, 200), 1.0f);
-    draw_offset_curve(0, IM_COL32(128, 128, 128, 128), width - 2.0f);
-    draw_offset_curve(+width - 1.0f, IM_COL32(255, 255, 255, 200), 1.0f);
+    draw_offset_curve(
+        -conf.edgeCurveWidth + conf.edgeCurveBorderWidth,
+        conf.edgeBorderColor,
+        conf.edgeCurveBorderWidth);
+    draw_offset_curve(0, conf.edgeCenterColor, conf.edgeCurveWidth - 2.0f);
+    draw_offset_curve(
+        +conf.edgeCurveWidth - conf.edgeCurveBorderWidth,
+        conf.edgeBorderColor,
+        conf.edgeCurveBorderWidth);
 }
 
 void render_rect(const GraphRect& rect, ImVec2 const& shift) {
@@ -265,12 +365,13 @@ void render_rect(const GraphRect& rect, ImVec2 const& shift) {
 }
 
 void render_edge(
-    const GraphLayoutIR::Edge& edge,
-    ImVec2 const&              shift,
-    bool                       bezier) {
+    const GraphLayoutIR::Edge&  edge,
+    ImVec2 const&               shift,
+    bool                        bezier,
+    const LaneBlockGraphConfig& style) {
     for (const auto& path : edge.paths) {
         if (bezier) {
-            render_bezier_path(path, shift);
+            render_bezier_path(path, shift, style);
         } else {
             render_path(path, shift);
         }
@@ -280,14 +381,20 @@ void render_edge(
     }
 }
 
-void render_result(GraphLayoutIR::Result const& res, ImVec2 const& shift) {
+void render_result(
+    GraphLayoutIR::Result const& res,
+    ImVec2 const&                shift,
+    LaneBlockGraphConfig const&  style) {
     for (auto const& rect : res.fixed) { render_rect(rect, shift); }
     for (auto const& [key, path] : res.lines) {
-        render_edge(path, shift, true);
+        render_edge(path, shift, true, style);
     }
 }
 
-void graph_render_loop(LaneBlockGraph const& g, GLFWwindow* window) {
+void graph_render_loop(
+    LaneBlockGraph const&       g,
+    GLFWwindow*                 window,
+    LaneBlockGraphConfig const& style) {
     auto lyt  = to_layout(g);
     auto col  = lyt.ir.doColaLayout();
     auto conv = col.convert();
@@ -297,7 +404,7 @@ void graph_render_loop(LaneBlockGraph const& g, GLFWwindow* window) {
     while (!glfwWindowShouldClose(window)) {
         frame_start();
         fullscreen_window_begin();
-        render_result(conv, shift);
+        render_result(conv, shift, style);
         ImGui::End();
         frame_end(window);
     }
@@ -373,7 +480,7 @@ void run_block_graph_test(GLFWwindow* window) {
             fmt("/tmp/run_block_graph_test_{}", i));
     }
 
-    graph_render_loop(g, window);
+    graph_render_loop(g, window, LaneBlockGraphConfig{});
 }
 
 int LaneBlockStack::getBlockHeightStart(int blockIdx) const {
@@ -389,22 +496,48 @@ bool LaneBlockStack::inSpan(int blockIdx, Slice<int> heightRange) const {
         auto span = blocks.at(blockIdx).heightSpan(
             getBlockHeightStart(blockIdx));
         bool result = heightRange.overlap(span).has_value();
-        // _dfmt(span, heightRange, blockIdx, result, scrollOffset);
+        // gr_log(ol_debug, 0)
+        //     .message(_dfmt_expr(
+        //         span, heightRange, blockIdx, result, scrollOffset));
         return result;
     } else {
+        // gr_log(ol_debug, 0).message(_dfmt_expr(blockIdx, heightRange));
         return false;
     }
 }
 
 Vec<int> LaneBlockStack::getVisibleBlocks(Slice<int> heightRange) const {
     Vec<int> res;
-    for (int block : visibleRange) {
+    for (int block : slice1(0, blocks.high())) {
         if (inSpan(block, heightRange)) { res.push_back(block); }
     }
 
     std::sort(res.begin(), res.end());
 
     return res;
+}
+
+int LaneBlockStack::addBlock(
+    int                         laneIndex,
+    const ImVec2&               size,
+    const LaneBlockGraphConfig& conf) {
+
+    LOGIC_ASSERTION_CHECK(
+        size.x != 0 && size.y != 0, "Cannot create block with no size");
+
+    auto [top, bottom] = conf.getDefaultBlockMargin(LaneNodePos{
+        .lane = laneIndex,
+        .row  = blocks.size(),
+    });
+
+    blocks.push_back(LaneBlockNode{
+        .width        = static_cast<int>(size.x),
+        .height       = static_cast<int>(size.y),
+        .topMargin    = top,
+        .bottomMargin = bottom,
+    });
+
+    return blocks.high();
 }
 
 ImVec2 get_center(const GraphRect& rect) {
