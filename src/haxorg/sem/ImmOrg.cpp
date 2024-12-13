@@ -733,7 +733,7 @@ struct ImmSubnodeCollectionVisitor {};
     DEFINE_VISITOR_BASE_ALL(                                              \
         /*Typename=*/ImmSubnodeCollectionVisitor,                         \
         /*TemplateArgs=*/__TemplateArgs,                                  \
-        /*SharedArgs=*/(org::ImmAstContext const& ctx),                   \
+        /*SharedArgs=*/(org::ImmAstContext::Ptr const& ctx),              \
         /*TypeSpecification=*/__VisitorTypeSpecification,                 \
         /*ResultType=*/(Vec<ImmId>),                                      \
         /*MethodName=*/getSubnodes)
@@ -794,7 +794,9 @@ IMM_SUBNODE_COLLECTOR((typename T), (Opt<T>)) {
 }
 
 template <org::IsImmOrgValueType T>
-Vec<ImmId> org::allSubnodes(T const& value, const SharedPtrApi::Ptr& ctx) {
+Vec<ImmId> org::allSubnodes(
+    T const&                  value,
+    const ImmAstContext::Ptr& ctx) {
     Vec<ImmId> subnodes;
     for_each_field_with_bases<T>([&](auto const& f) {
         using FieldType = DESC_FIELD_TYPE(f);
@@ -807,13 +809,13 @@ Vec<ImmId> org::allSubnodes(T const& value, const SharedPtrApi::Ptr& ctx) {
 
 
 Vec<ImmId> org::allSubnodes(
-    const ImmId&             value,
-    const SharedPtrApi::Ptr& ctx) {
+    const ImmId&              value,
+    const ImmAstContext::Ptr& ctx) {
     value.assertValid();
     switch (value.getKind()) {
 #define _case(__Kind)                                                     \
     case OrgSemKind::__Kind: {                                            \
-        return allSubnodes(ctx.value<org::Imm##__Kind>(value), ctx);      \
+        return allSubnodes(ctx->value<org::Imm##__Kind>(value), ctx);     \
     }
         EACH_SEM_ORG_KIND(_case)
     }
@@ -825,14 +827,14 @@ Vec<ImmId> org::allSubnodes(
 ImmAdapter ImmAstVersion::getRootAdapter() const {
     return org::ImmAdapter{
         epoch.getRoot(),
-        &context,
+        context,
         ImmPath{epoch.getRoot()},
     };
 }
 
 ImmAstVersion ImmAstVersion::getEditVersion(
-    Func<ImmAstReplaceGroup(ImmAstContext&, ImmAstEditContext&)> cb) {
-    return context.getEditVersion(getRootAdapter(), cb);
+    Func<ImmAstReplaceGroup(ImmAstContext::Ptr, ImmAstEditContext&)> cb) {
+    return context->getEditVersion(getRootAdapter(), cb);
 }
 
 void ImmAstReplaceGroup::set(const ImmAstReplace& replace) {
@@ -978,7 +980,7 @@ Vec<ImmAdapter> ImmAstContext::getAdaptersFor(const ImmId& it) const {
 ImmAstEditContext ImmAstContext::getEditContext() {
     return ImmAstEditContext{
         .transientTrack = currentTrack->transient(this),
-        .ctx            = this,
+        .ctx            = shared_from_this(),
         .debug          = OperationsScope{
                      .TraceState  = &debug->TraceState,
                      .activeLevel = 0,

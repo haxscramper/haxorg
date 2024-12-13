@@ -12,20 +12,21 @@ TEST_F(ImmOrgApi, StoreNode) {
 
 =pybind11= python module exposing the org-mode AST for scripting. intern intern intern intern
 )");
-    auto [store, root] = org::ImmAstContext{}.addRoot(node);
+    auto s0            = org::ImmAstContext::init_start_context();
+    auto [store, root] = s0->addRoot(node);
     ColStream os;
-    store.format(os);
+    store->format(os);
     writeFile("/tmp/StoreNode.txt", os.getBuffer().toString(false));
 }
 
 
 TEST_F(ImmOrgApi, RountripImmutableAst) {
-    std::string file   = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
-    std::string source = readFile(fs::path(file));
-    org::ImmAstContext store;
-    sem::SemId         write_node = testParseString(source);
-    org::ImmAstVersion v1         = store.addRoot(write_node);
-    sem::SemId         read_node  = v1.context.get(v1.getRoot());
+    std::string file       = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
+    std::string source     = readFile(fs::path(file));
+    auto        store      = org::ImmAstContext::init_start_context();
+    sem::SemId  write_node = testParseString(source);
+    org::ImmAstVersion v1  = store->addRoot(write_node);
+    sem::SemId         read_node = v1.context->get(v1.getRoot());
 
     Vec<compare_report> out;
 
@@ -36,7 +37,7 @@ TEST_F(ImmOrgApi, RountripImmutableAst) {
 
 
 TEST_F(ImmOrgApi, ImmAstFieldIteration) {
-    org::ImmAstContext store;
+    auto store = org::ImmAstContext::init_start_context();
     for (auto const& k : sliceT<OrgSemKind>()) {
         if (k != OrgSemKind::None) {
             switch_node_nullptr(k, [&]<typename N>(N*) {
@@ -59,14 +60,14 @@ TEST_F(ImmOrgApi, ImmAstFieldIteration) {
 
 TEST_F(ImmOrgApi, ItearteParentNodes) {
     setTraceFile(getDebugFile("trace.txt"));
-    start.currentTrack->isTrackingParent = [](org::ImmAdapter const&) {
+    start->currentTrack->isTrackingParent = [](org::ImmAdapter const&) {
         return true;
     };
 
 
     auto start_node   = testParseString("word0 word2 word4");
     auto replace_node = testParseString("wordXX").at(0).at(0);
-    auto v1           = start.init(start_node);
+    auto v1           = start->init(start_node);
     auto r            = v1.getRootAdapter();
     auto doc_id       = r;
     auto par_id       = doc_id.at(0);
@@ -74,14 +75,16 @@ TEST_F(ImmOrgApi, ItearteParentNodes) {
 
     EXPECT_EQ(space_id->getKind(), OrgSemKind::Space);
     {
-        org::ImmParentIdVec parents = v1.context.getParentIds(space_id.id);
+        org::ImmParentIdVec parents = v1.context->getParentIds(
+            space_id.id);
         EXPECT_EQ(parents.size(), 1);
         EXPECT_TRUE(parents.contains(par_id.id));
         EXPECT_EQ(parents.size(), 1);
     }
 
     {
-        org::ParentPathMap parents = v1.context.getParentsFor(space_id.id);
+        org::ParentPathMap parents = v1.context->getParentsFor(
+            space_id.id);
         EXPECT_EQ(parents.size(), 1);
         EXPECT_TRUE(parents.contains(par_id.id));
         EXPECT_EQ(parents.at(par_id.id).size(), 2);
@@ -99,7 +102,7 @@ TEST_F(ImmOrgApi, ItearteParentNodes) {
 
 
     {
-        Vec<org::ImmUniqId> paths = v1.context.getPathsFor(space_id.id);
+        Vec<org::ImmUniqId> paths = v1.context->getPathsFor(space_id.id);
         EXPECT_EQ(paths.size(), 2);
         auto const& p0 = paths.at(0);
         auto const& p1 = paths.at(1);
@@ -111,20 +114,20 @@ TEST_F(ImmOrgApi, ItearteParentNodes) {
 
 TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {
     setTraceFile(getDebugFile("trace.txt"));
-    start.currentTrack->isTrackingParent = [](org::ImmAdapter const&) {
+    start->currentTrack->isTrackingParent = [](org::ImmAdapter const&) {
         return true;
     };
 
 
     auto start_node   = testParseString("word0 word2 word4");
     auto replace_node = testParseString("wordXX").at(0).at(0);
-    auto version1     = start.init(start_node);
+    auto version1     = start->init(start_node);
     auto store        = version1.context;
     auto paragraph    = version1.getRootAdapter().at(0);
-    auto ctx          = store.getEditContext();
+    auto ctx          = store->getEditContext();
     auto __absl_scope = ctx.collectAbslLogs();
-    auto word_xx      = store.add(replace_node, ctx);
-    auto version2     = store.finishEdit(
+    auto word_xx      = store->add(replace_node, ctx);
+    auto version2     = store->finishEdit(
         ctx,
         ctx.store().cascadeUpdate(
             version1.getRootAdapter(),
@@ -173,15 +176,15 @@ TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {
     EXPECT_EQ(space_id, par2_id.at(1));
     EXPECT_EQ(space_id, par2_id.at(3));
 
-    EXPECT_TRUE(store2.currentTrack->isParentOf(par2_id.id, space_id.id));
+    EXPECT_TRUE(store2->currentTrack->isParentOf(par2_id.id, space_id.id));
     {
-        auto parents = store.currentTrack->getParentIds(space_id.id);
+        auto parents = store->currentTrack->getParentIds(space_id.id);
         EXPECT_EQ(parents.size(), 1);
         EXPECT_EQ(parents.at(0), par1_id.id);
     }
 
     {
-        auto parents = store2.currentTrack->getParentIds(space_id.id);
+        auto parents = store2->currentTrack->getParentIds(space_id.id);
         EXPECT_EQ(parents.size(), 1);
         EXPECT_EQ(parents.at(0), par2_id.id);
     }
@@ -253,7 +256,7 @@ TEST_F(ImmOrgApiEdit, LeafSubtreeDemote) {
     Vec<int> path{0, 1, 0};
 
     org::ImmAstVersion v2 = v1.getEditVersion(
-        [&](org::ImmAstContext&     ast,
+        [&](org::ImmAstContext::Ptr ast,
             org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
             auto root  = v1.getRootAdapter();
             auto s3010 = root.at(path);
@@ -274,7 +277,7 @@ TEST_F(ImmOrgApiEdit, LeafSubtreeDemote) {
         v2.getRootAdapter().treeRepr(conf).toString(false));
 
     ColStream os;
-    start.format(os);
+    start->format(os);
     writeFile(getDebugFile("store.txt"), os.getBuffer().toString(false));
     writeGvHistory({v1, v2}, "v1_v2");
 
@@ -304,7 +307,7 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_OneNested) {
     writeTreeRepr(v1.getRootAdapter(), "repr_v1.txt");
 
     org::ImmAstVersion v2 = v1.getEditVersion(
-        [&](org::ImmAstContext&     ast,
+        [&](org::ImmAstContext::Ptr ast,
             org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
             auto root = v1.getRootAdapter();
             auto s201 = root.at(Vec{0, 1});
@@ -332,7 +335,7 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_All) {
     org::ImmAstVersion v1 = getInitialVersion(getSubtreeDash());
 
     org::ImmAstVersion v2 = v1.getEditVersion(
-        [&](org::ImmAstContext&     ast,
+        [&](org::ImmAstContext::Ptr ast,
             org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
             auto root = v1.getRootAdapter();
             auto s1   = root.at(0);
@@ -357,7 +360,7 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_WithParentChange) {
     auto demotePath = [&](org::ImmAstVersion v,
                           CVec<int>          path) -> org::ImmAstVersion {
         return v.getEditVersion(
-            [&](org::ImmAstContext&     ast,
+            [&](org::ImmAstContext::Ptr ast,
                 org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
                 auto root = v.getRootAdapter();
                 auto s1   = root.at(path);
@@ -431,7 +434,7 @@ TEST_F(ImmOrgApiEdit, PhysicalDemote) {
     writeTreeRepr(v1.getRootAdapter(), "repr_v1.txt");
 
     org::ImmAstVersion v2 = v1.getEditVersion(
-        [&](org::ImmAstContext&     ast,
+        [&](org::ImmAstContext::Ptr ast,
             org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
             auto root = v1.getRootAdapter();
             auto s1   = root.at(Vec{0, 0});
@@ -456,7 +459,7 @@ TEST_F(ImmOrgApiEdit, ResetTitle) {
     writeTreeRepr(v1.getRootAdapter(), "repr_v1.txt");
 
     org::ImmAstVersion v2 = v1.getEditVersion(
-        [&](org::ImmAstContext&     ast,
+        [&](org::ImmAstContext::Ptr ast,
             org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
             return ctx.store().updateNode<org::ImmSubtree>(
                 v1.getRootAdapter().at(0), ctx, [&](org::ImmSubtree tree) {
@@ -494,7 +497,7 @@ TEST_F(ImmOrgApiEdit, MoveSubnodes) {
     auto move =
         [&](int position, int offset, bool bounded) -> org::ImmAstVersion {
         return v1.getEditVersion(
-            [&](org::ImmAstContext&     ast,
+            [&](org::ImmAstContext::Ptr ast,
                 org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
                 auto update = moveSubnode(
                     v1.getRootAdapter().at(0),
@@ -630,18 +633,18 @@ TEST_F(ImmOrgApiAppModel, EditModel) {
     }
 
     org::ImmAstVersion v2 = v1.getEditVersion(
-        [&](org::ImmAstContext&     ast,
+        [&](org::ImmAstContext::Ptr ast,
             org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
             auto                    t2 = rows1.at(0).nested.at(0);
             org::ImmAstReplaceGroup result;
             result.incl(org::replaceNode(
                 t2.nameOrigin,
-                ast.add(
+                ast->add(
                     sem::asOneNode(sem::parseString("New title")), ctx),
                 ctx));
             result.incl(org::replaceNode(
                 t2.storyEventOrigin,
-                ast.add(
+                ast->add(
                     sem::asOneNode(
                         sem::parseString("New story event description")),
                     ctx),

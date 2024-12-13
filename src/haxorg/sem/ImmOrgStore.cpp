@@ -484,7 +484,7 @@ ImmId ImmAstContext::at(ImmId node, const ImmPathStep& item) const {
     } else {
         Opt<ImmId> result;
         switch_node_value(
-            node, shared_from_this(), [&]<typename T>(T const& value) {
+            node, mshared_from_this(), [&]<typename T>(T const& value) {
                 reflVisitPath<T>(
                     value,
                     item.path,

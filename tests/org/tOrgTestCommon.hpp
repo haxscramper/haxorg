@@ -381,30 +381,43 @@ sem::SemId<T> parseOne(
 
 template <typename T>
 struct ImmTestResult {
-    org::ImmAstContext  context;
-    org::ImmAstVersion  version;
-    org::ImmAdapterT<T> node;
+    org::ImmAstContext::Ptr context;
+    org::ImmAstVersion      version;
+    org::ImmAdapterT<T>     node;
 };
 
 template <
     sem::IsOrg Sem,
     typename Imm = org::sem_to_imm_map<Sem>::imm_type>
-ImmTestResult<Imm> immConv(sem::SemId<Sem> const& id) {
+ImmTestResult<Imm> immConv(
+    org::ImmAstContext::Ptr ctx,
+    sem::SemId<Sem> const&  id) {
     ImmTestResult<Imm> res;
-    res.version = res.context.init(id.asOrg());
+    res.context = ctx;
+    res.version = res.context->init(id.asOrg());
     res.node    = res.version.getRootAdapter().template as<Imm>();
     return res;
 }
 
+template <
+    sem::IsOrg Sem,
+    typename Imm = org::sem_to_imm_map<Sem>::imm_type>
+ImmTestResult<Imm> immConv(sem::SemId<Sem> const& id) {
+    return immConv(org::ImmAstContext::init_start_context(), id);
+}
+
 struct ImmOrgApiTestBase : public ::testing::Test {
-    org::ImmAstContext start;
+    org::ImmAstContext::Ptr start;
+
+    ImmOrgApiTestBase()
+        : start{org::ImmAstContext::init_start_context()} {}
 
     void setTraceFile(std::string const& path) {
-        start.debug->setTraceFile(path);
+        start->debug->setTraceFile(path);
     }
 
     org::ImmAstVersion getInitialVersion(Str const& text) {
-        return start.init(testParseString(text));
+        return start->init(testParseString(text));
     }
 
     void writeGvHistory(

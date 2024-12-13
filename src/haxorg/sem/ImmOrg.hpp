@@ -282,6 +282,9 @@ struct ImmAstTrackingMapTransient {
     /// value alone.
     void insertAllSubnodesOf(ImmAdapter const& parent);
 
+    /// \brief Check if the target adapter should be tracked as a parent
+    /// node in the map. Uses \see `isTrackingParentImpl` callback if it is
+    /// provided.
     bool isTrackingParent(ImmAdapter const& it) const {
         return isTrackingParentImpl && isTrackingParentImpl(it);
     }
@@ -302,6 +305,9 @@ struct ImmAstTrackingMap {
     ImmStrIdMap  names;
     ImmParentMap parents;
 
+    /// \brief Filter out unnecessary nodes that should not be tracked as
+    /// parents -- mostly related to leaf nodes like space, word, big ident
+    /// etc., to reduce the size of the parent tracking map
     ImmPanentTrackFilter isTrackingParent = isTrackingParentDefault;
 
     DESC_FIELDS(
@@ -627,7 +633,7 @@ struct ImmAstVersion {
     ImmAdapter getRootAdapter() const;
 
     ImmAstVersion getEditVersion(
-        Func<ImmAstReplaceGroup(ImmAstContext& ast, ImmAstEditContext&)>
+        Func<ImmAstReplaceGroup(ImmAstContext::Ptr, ImmAstEditContext&)>
             cb);
 };
 
