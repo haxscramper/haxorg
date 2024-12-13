@@ -8,18 +8,19 @@
 
 
 struct DocEditVars : public ImTestVarsBase {
-    org::ImmAstContext  ctx;
-    DocBlockModel       model;
-    EditableOrgDocGroup docs;
-    DocBlockConfig      conf;
-    int                 root_idx = -1;
+    org::ImmAstContext::Ptr ctx;
+    DocBlockModel           model;
+    EditableOrgDocGroup     docs;
+    DocBlockConfig          conf;
+    int                     root_idx = -1;
 
-    DocEditVars() : docs{ctx} {}
+    DocEditVars()
+        : ctx{org::ImmAstContext::init_start_context()}, docs{ctx} {}
 
     Str get_text() {
         auto sem = org::sem_from_immer(
             docs.getCurrentRoot(root_idx).id,
-            docs.getCurrentAst().context);
+            *docs.getCurrentAst().context);
         return sem::Formatter::format(sem);
     }
 

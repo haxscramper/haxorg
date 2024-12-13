@@ -456,10 +456,10 @@ Opt<json> story_grid_loop(
 
     sem::SemId<sem::Org> node;
 
-    StoryGridModel     model;
-    org::ImmAstContext start;
+    StoryGridModel model;
+    auto           start = org::ImmAstContext::init_start_context();
     model.history.push_back(StoryGridHistory{
-        .ast = start.init(sem::parseString(readFile(file))),
+        .ast = start->init(sem::parseString(readFile(file))),
     });
 
     model.ctx.setTraceFile("/tmp/story_grid_trace.txt");
@@ -486,7 +486,7 @@ Opt<json> story_grid_loop(
             LOG(INFO) << "File change, reloading the model";
             model.history.clear();
             model.history.push_back(StoryGridHistory{
-                .ast = start.init(sem::parseString(readFile(file))),
+                .ast = start->init(sem::parseString(readFile(file))),
             });
             model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Graph);
             model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Scroll);
@@ -666,10 +666,10 @@ void add_description_list_node(
         graph.addNode(item.uniq());
         for (auto const& link : item.getHeader()->subAs<org::ImmLink>()) {
             if (link->target.isId()) {
-                auto target = link.ctx->track->subtrees.get(
+                auto target = link.ctx.lock()->currentTrack->subtrees.get(
                     link.value().target.getId().text);
                 for (auto const& targetPath :
-                     link.ctx->getPathsFor(target.value())) {
+                     link.ctx.lock()->getPathsFor(target.value())) {
                     CTX_MSG(fmt(
                         "List link {} -> {}", item.uniq(), targetPath));
 
@@ -706,13 +706,13 @@ void add_footnote_annotation_node(
 
         if (!(link && link.value()->target.isFootnote())) { continue; }
 
-        auto target = link->ctx->track->footnotes.get(
+        auto target = link->ctx.lock()->currentTrack->footnotes.get(
             link.value()->target.getFootnote().target);
 
         if (!target) { continue; }
 
         for (auto const& targetPath :
-             link->ctx->getPathsFor(target.value())) {
+             link->ctx.lock()->getPathsFor(target.value())) {
             graph.addNode(targetPath);
             graph.addEdge(
                 org::graph::MapEdge{
@@ -724,12 +724,12 @@ void add_footnote_annotation_node(
             CTX_MSG(
                 fmt("Found recursive target, {} is targeting {}",
                     targetPath.id,
-                    link->ctx->adapt(targetPath).id));
+                    link->ctx.lock()->adapt(targetPath).id));
 
             add_footnote_annotation_node(
                 visited,
                 targetPath,
-                link->ctx->adapt(targetPath),
+                link->ctx.lock()->adapt(targetPath),
                 graph,
                 ctx);
         }
@@ -912,12 +912,12 @@ void connect_partition_edges(
     res.ir.ir.edges.clear();
     for (auto const& [group_idx, group] : enumerate(partition)) {
         for (auto const& node : group) {
-            org::ImmAdapter source = state.ast.context.adapt(
+            org::ImmAdapter source = state.ast.context->adapt(
                 node.source.id);
-            org::ImmAdapter target = state.ast.context.adapt(
+            org::ImmAdapter target = state.ast.context->adapt(
                 node.target.id);
 
-            auto source_parent = state.ast.context.adapt(
+            auto source_parent = state.ast.context->adapt(
                 res.annotationParents.get(node.source.id)
                     .value_or(node.source.id));
 
@@ -1300,13 +1300,16 @@ void StoryGridModel::apply(
     auto replaceNode = [&](org::ImmAdapter const&    origin,
                            Vec<sem::SemId<sem::Org>> replace) {
         org::ImmAstVersion vNext = getLastHistory().ast.getEditVersion(
-            [&](org::ImmAstContext& ast, org::ImmAstEditContext& ast_ctx)
+            [&](org::ImmAstContext::Ptr ast,
+                org::ImmAstEditContext& ast_ctx)
                 -> org::ImmAstReplaceGroup {
                 org::ImmAstReplaceGroup result;
 
                 if (replace.size() == 1) {
                     result.incl(org::replaceNode(
-                        origin, ast.add(replace.at(0), ast_ctx), ast_ctx));
+                        origin,
+                        ast->add(replace.at(0), ast_ctx),
+                        ast_ctx));
                 } else {
                     auto parent = origin.getParent().value();
                     LOGIC_ASSERTION_CHECK(
@@ -1331,7 +1334,7 @@ void StoryGridModel::apply(
                     }
 
                     for (auto const& it : replace) {
-                        new_nodes.push_back(ast.add(it, ast_ctx));
+                        new_nodes.push_back(ast->add(it, ast_ctx));
                     }
 
                     for (int i = index + 1; i < parent.size(); ++i) {

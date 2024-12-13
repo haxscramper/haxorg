@@ -100,7 +100,7 @@ struct EditableOrgDocGroup {
         org::ImmAdapter getNewRoot(org::ImmAdapter const& oldRoot) {
             auto mapped = ast.epoch.replaced.map.get(oldRoot.uniq());
             if (mapped) {
-                return ast.context.adapt(mapped.value());
+                return ast.context->adapt(mapped.value());
             } else {
                 return oldRoot;
             }
@@ -109,7 +109,7 @@ struct EditableOrgDocGroup {
         History withNewVersion(org::ImmAstVersion const& updated);
     };
 
-    EditableOrgDocGroup(org::ImmAstContext const& ctx) {
+    EditableOrgDocGroup(org::ImmAstContext::Ptr const& ctx) {
         add_history(History{org::ImmAstVersion{.context = ctx}});
     }
 

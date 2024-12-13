@@ -14,7 +14,6 @@ Opt<DocBlock::Ptr> to_doc_block(
 
     Func<Opt<DocBlock::Ptr>(org::ImmAdapter const&, int)> aux;
     aux = [&](org::ImmAdapter const& it, int depth) -> Opt<DocBlock::Ptr> {
-        { auto cp = *it.ctx; }
         if (it.is(OrgSemKind::Newline)) {
             return std::nullopt;
         } else {
@@ -94,7 +93,6 @@ void render_doc_block(
         auto result = text.render(c_fmt("{}_{}", prefix, selfIndex));
 
         if (result == ER::Changed) {
-            { auto cp = *text.text.origin.ctx; }
             model.ctx.action(DocBlockAction::NodeTextChanged{
                 .block   = block,
                 .updated = text.text.value,
@@ -160,7 +158,6 @@ void apply_doc_block_actions(
                 CTX_MSG("Node text changed, applying changes");
                 auto        __scope = ctx.scopeLevel();
                 auto const& t       = act.getNodeTextChanged();
-                { auto cp = *t.origin.ctx; }
                 CTX_MSG("Replacing history node");
                 auto upd = history.replace_node(t.origin, t.updated);
                 CTX_MSG("Extending history");

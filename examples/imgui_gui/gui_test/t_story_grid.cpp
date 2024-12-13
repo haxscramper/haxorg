@@ -37,13 +37,15 @@ struct JsonSerde<ReflPathItem<Tag>> {
 
 struct StoryGridVars : public ImTestVarsBase {
     StoryGridModel                   model;
-    org::ImmAstContext               start;
+    org::ImmAstContext::Ptr          start;
     StoryGridConfig                  conf;
     Vec<org_logging::log_sink_scope> debug_scopes;
 
+    StoryGridVars() : start{org::ImmAstContext::init_start_context()} {}
+
     void add_text(std::string const& text) {
         model.history.push_back(StoryGridHistory{
-            .ast = start.init(sem::parseString(text)),
+            .ast = start->init(sem::parseString(text)),
         });
         model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Graph);
         model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Scroll);
@@ -55,7 +57,7 @@ struct StoryGridVars : public ImTestVarsBase {
     Str get_text() {
         auto sem = org::sem_from_immer(
             model.getLastHistory().ast.getRootAdapter().id,
-            model.getLastHistory().ast.context);
+            *model.getLastHistory().ast.context.get());
         return sem::Formatter::format(sem);
     }
 

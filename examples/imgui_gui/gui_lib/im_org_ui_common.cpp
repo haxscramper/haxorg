@@ -9,9 +9,10 @@
 
 EditableOrgText EditableOrgText::from_adapter(const org::ImmAdapter& it) {
     EditableOrgText      res;
-    sem::SemId<sem::Org> sem_ast = org::sem_from_immer(it.id, *it.ctx);
-    res.value                    = sem::Formatter::format(sem_ast);
-    res.origin                   = it;
+    sem::SemId<sem::Org> sem_ast = org::sem_from_immer(
+        it.id, *it.ctx.lock());
+    res.value  = sem::Formatter::format(sem_ast);
+    res.origin = it;
     return res;
 }
 
@@ -194,7 +195,7 @@ EditableOrgText::Result EditableOrgText::render(
 
 int EditableOrgDocGroup::init_root(const sem::SemId<sem::Org>& id) {
     History& current = getCurrentHistory();
-    auto     new_ast = current.ast.context.init(id);
+    auto     new_ast = current.ast.context->init(id);
     current.ast      = std::move(new_ast);
     int index = current.roots.push_back_idx(current.ast.getRootAdapter());
     add_history(std::move(current));
@@ -205,18 +206,14 @@ org::ImmAstVersion EditableOrgDocGroup::replace_node(
     const org::ImmAdapter&    origin,
     Vec<sem::SemId<sem::Org>> replace) {
     // gr_log(ol_trace).message(origin.treeRepr().toString(false));
-    auto cp = *origin.ctx;
-
     LOGIC_ASSERTION_CHECK(!origin.isNil(), "Cannot replace nil node");
     org::ImmAstVersion vNext = getCurrentAst().getEditVersion(
-        [&](org::ImmAstContext&     ast,
+        [&](org::ImmAstContext::Ptr ast,
             org::ImmAstEditContext& ast_ctx) -> org::ImmAstReplaceGroup {
             org::ImmAstReplaceGroup result;
 
-            auto cp = *origin.ctx;
-
             if (replace.size() == 1) {
-                auto id = ast.add(replace.at(0), ast_ctx);
+                auto id = ast->add(replace.at(0), ast_ctx);
                 if (id != origin.id) {
                     result.incl(org::replaceNode(origin, id, ast_ctx));
                 } else {
@@ -262,7 +259,7 @@ org::ImmAstVersion EditableOrgDocGroup::replace_node(
                 }
 
                 for (auto const& it : replace) {
-                    new_nodes.push_back(ast.add(it, ast_ctx));
+                    new_nodes.push_back(ast->add(it, ast_ctx));
                 }
 
                 for (int i = index + 1; i < parent.size(); ++i) {
@@ -304,7 +301,7 @@ EditableOrgDocGroup::History EditableOrgDocGroup::History::withNewVersion(
     for (auto const& root : roots) {
         auto id = root.uniq();
         if (auto root1 = updated.epoch.replaced.map.get(id)) {
-            res.roots.push_back(updated.context.adapt(root1.value()));
+            res.roots.push_back(updated.context->adapt(root1.value()));
         } else {
             res.roots.push_back(root);
         }
