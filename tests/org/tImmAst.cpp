@@ -59,7 +59,7 @@ TEST_F(ImmOrgApi, ImmAstFieldIteration) {
 
 TEST_F(ImmOrgApi, ItearteParentNodes) {
     setTraceFile(getDebugFile("trace.txt"));
-    start.track->isTrackingParent = [](org::ImmAdapter const&) {
+    start.currentTrack->isTrackingParent = [](org::ImmAdapter const&) {
         return true;
     };
 
@@ -111,7 +111,7 @@ TEST_F(ImmOrgApi, ItearteParentNodes) {
 
 TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {
     setTraceFile(getDebugFile("trace.txt"));
-    start.track->isTrackingParent = [](org::ImmAdapter const&) {
+    start.currentTrack->isTrackingParent = [](org::ImmAdapter const&) {
         return true;
     };
 
@@ -173,15 +173,15 @@ TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {
     EXPECT_EQ(space_id, par2_id.at(1));
     EXPECT_EQ(space_id, par2_id.at(3));
 
-    EXPECT_TRUE(store2.track->isParentOf(par2_id.id, space_id.id));
+    EXPECT_TRUE(store2.currentTrack->isParentOf(par2_id.id, space_id.id));
     {
-        auto parents = store.track->getParentIds(space_id.id);
+        auto parents = store.currentTrack->getParentIds(space_id.id);
         EXPECT_EQ(parents.size(), 1);
         EXPECT_EQ(parents.at(0), par1_id.id);
     }
 
     {
-        auto parents = store2.track->getParentIds(space_id.id);
+        auto parents = store2.currentTrack->getParentIds(space_id.id);
         EXPECT_EQ(parents.size(), 1);
         EXPECT_EQ(parents.at(0), par2_id.id);
     }

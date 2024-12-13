@@ -285,9 +285,9 @@ struct MapGraphState {
     /// \brief List of nodes with unresolved outgoing links.
     UnorderedSet<MapNode> unresolved;
     MapGraph              graph;
-    ImmAstContext         ast;
+    ImmAstContext::Ptr    ast;
 
-    MapGraphState(ImmAstContext const& ast) : ast{ast} {};
+    MapGraphState(ImmAstContext::Ptr ast) : ast{ast} {};
 
     DESC_FIELDS(MapGraphState, (unresolved, graph));
 };

@@ -140,7 +140,7 @@ struct ImmTreeReprContext {
     int                           level;
     Vec<int>                      path;
     org::ImmAdapter::TreeReprConf conf;
-    ImmAstContext const*          ctx;
+    ImmAstContext::WPtr           ctx;
 
     ImmTreeReprContext addPath(int diff) const {
         ImmTreeReprContext result = *this;
@@ -166,7 +166,7 @@ void treeReprRec(
     if (ctx.conf.withReflFields) {
         if (ctx.conf.withAuxFields) {
             switch_node_value(
-                id.id, *id.ctx, [&]<typename N>(N const& node) {
+                id.id, id.ctx.lock(), [&]<typename N>(N const& node) {
                     os << " " << fmt1(node);
                 });
         }
@@ -180,7 +180,7 @@ void treeReprRec(
     } else {
         if (ctx.conf.withAuxFields) {
             switch_node_value(
-                id.id, *id.ctx, [&]<typename N>(N const& node) {
+                id.id, id.ctx.lock(), [&]<typename N>(N const& node) {
                     os << " " << fmt1(node);
                 });
         }
@@ -297,11 +297,11 @@ Vec<ImmAdapter> ImmAdapter::getAllSubnodes(
             path.path = path.path.push_back(ImmPathStep{parent});
             result.push_back(root.pass(id, path));
         } else {
-            result.push_back(root.ctx->adaptUnrooted(id));
+            result.push_back(root.ctx.lock()->adaptUnrooted(id));
         }
     };
 
-    switch_node_value(id, *ctx, [&]<typename T>(T const& value) {
+    switch_node_value(id, ctx.lock(), [&]<typename T>(T const& value) {
         reflVisitAll<T, org::ImmReflPathTag>(
             value,
             {},
@@ -366,13 +366,13 @@ Vec<ImmAdapter> ImmAdapter::getParentChain(bool withSelf) const {
 ImmAdapter ImmAdapter::at(int idx, bool withPath) const {
     if (withPath) {
         return at(
-            ctx->at(id)->subnodes.at(idx),
+            ctx.lock()->at(id)->subnodes.at(idx),
             ImmPathStep::FieldIdx(
                 org::ImmReflFieldId::FromTypeField<org::ImmOrg>(
                     &org::ImmOrg::subnodes),
                 idx));
     } else {
-        return ImmAdapter{ctx->at(id)->subnodes.at(idx), ctx, {}};
+        return ImmAdapter{ctx.lock()->at(id)->subnodes.at(idx), ctx, {}};
     }
 }
 
@@ -444,11 +444,11 @@ ImmAstTrackingMap ImmAstTrackingMapTransient::persistent() {
     };
 }
 
-ImmAstContext ImmAstEditContext::finish() {
-    return ctx->finishEdit(*this);
+SPtr<ImmAstContext> ImmAstEditContext::finish() {
+    return ctx.lock()->finishEdit(*this);
 }
 
-ImmAstStore& ImmAstEditContext::store() { return *ctx->store; }
+ImmAstStore& ImmAstEditContext::store() { return *ctx.lock()->store; }
 
 template <org::IsImmOrgValueType T>
 struct imm_api_type {
@@ -465,41 +465,42 @@ void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
     auto search_radio_targets = [&](org::ImmAdapter const& id) {
         __perf_trace("imm", "search radio targets");
         for (auto const& target : id.subAs<org::ImmRadioTarget>(false)) {
-            if (ctx->debug->TraceState) {
+            if (ctx.lock()->debug->TraceState) {
                 message(
                     fmt("Node {} contains radio target {}",
                         node,
                         target.getText()));
             }
             if (add) {
-                track.radioTargets.set(target.getText(), node);
+                transientTrack.radioTargets.set(target.getText(), node);
             } else {
-                track.radioTargets.erase(target.getText());
+                transientTrack.radioTargets.erase(target.getText());
             }
         }
     };
 
     switch_node_value(
         node,
-        ctx,
+        ctx.lock(),
         overloaded{
             [&]<typename N>(N const& nodeValue)
                 requires(ProvidesImmApi<N, ImmAdapterStmtAPI>)
                         {
-                            auto adapter = ctx->adaptUnrooted(node)
+                            auto adapter = ctx.lock()
+                                               ->adaptUnrooted(node)
                                                .as<N>();
                             __perf_trace("imm", "track names");
                             for (auto const& name : adapter.getName()) {
-                                if (ctx->debug->TraceState) {
+                                if (ctx.lock()->debug->TraceState) {
                                     message(fmt(
                                         "Tracking name '{}' for node {}",
                                         name,
                                         node));
                                 }
                                 if (add) {
-                                    track.names.set(name, node);
+                                    transientTrack.names.set(name, node);
                                 } else {
-                                    track.names.erase(name);
+                                    transientTrack.names.erase(name);
                                 }
                             }
                         },
@@ -515,37 +516,38 @@ void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
 
     switch_node_value(
         node,
-        ctx,
+        ctx.lock(),
         overloaded{
             [&](org::ImmSubtree const& subtree) {
                 __perf_trace("imm", "track subtree");
                 if (auto id = subtree.treeId.get(); id) {
-                    if (ctx->debug->TraceState) {
+                    if (ctx.lock()->debug->TraceState) {
                         message(fmt("Subtree ID {}", id.value()));
                     }
                     if (add) {
-                        track.subtrees.set(*id, node);
+                        transientTrack.subtrees.set(*id, node);
                     } else {
-                        track.subtrees.erase(*id);
+                        transientTrack.subtrees.erase(*id);
                     }
                 }
             },
             [&](org::ImmParagraph const&) {
                 __perf_trace("imm", "track paragraph");
-                auto par = ctx->adaptUnrooted(node)
+                auto par = ctx.lock()
+                               ->adaptUnrooted(node)
                                .as<org::ImmParagraph>();
                 if (par.isFootnoteDefinition()) {
                     auto id = par.getFootnoteName().value();
-                    if (ctx->debug->TraceState) {
+                    if (ctx.lock()->debug->TraceState) {
                         message(fmt("Footnote ID {}", id));
                     }
                     if (add) {
-                        track.footnotes.set(id, node);
+                        transientTrack.footnotes.set(id, node);
                     } else {
-                        track.footnotes.erase(id);
+                        transientTrack.footnotes.erase(id);
                     }
                 }
-                search_radio_targets(ctx->adaptUnrooted(node));
+                search_radio_targets(ctx.lock()->adaptUnrooted(node));
             },
             [&](auto const& nodeValue) {},
         });
@@ -556,11 +558,11 @@ void ImmAstEditContext::message(
     const char*        function,
     int                line,
     const char*        file) {
-    ctx->message(value, debug.activeLevel, function, line, file);
+    ctx.lock()->message(value, debug.activeLevel, function, line, file);
 }
 
 finally ImmAstEditContext::collectAbslLogs() {
-    return ctx->debug->collectAbslLogs(&debug);
+    return ctx.lock()->debug->collectAbslLogs(&debug);
 }
 
 
@@ -601,7 +603,7 @@ Graphviz::Graph org::toGraphviz(
     UnorderedMap<ImmId, Graphviz::Node>              gvNodes;
     UnorderedMap<Pair<ImmId, ImmId>, Graphviz::Edge> gvEdges;
     Vec<Graphviz::Graph>                             gvClusters;
-    ImmAstContext ctx = history.front().context;
+    ImmAstContext::Ptr ctx = history.front().context;
 
     auto get_graph = [&](int epoch) -> Graphviz::Graph& {
         if (conf.withEpochClusters && epoch < history.size()) {
@@ -699,7 +701,7 @@ Graphviz::Graph org::toGraphviz(
     }
 
     if (conf.withAuxNodes) {
-        for (ImmId id : ctx.store->all_ids()) {
+        for (ImmId id : ctx->store->all_ids()) {
             if (!gvNodes.contains(id)) { aux(id, history.size()); }
         }
     }
@@ -792,9 +794,7 @@ IMM_SUBNODE_COLLECTOR((typename T), (Opt<T>)) {
 }
 
 template <org::IsImmOrgValueType T>
-Vec<ImmId> org::allSubnodes(
-    T const&                  value,
-    org::ImmAstContext const& ctx) {
+Vec<ImmId> org::allSubnodes(T const& value, const SharedPtrApi::Ptr& ctx) {
     Vec<ImmId> subnodes;
     for_each_field_with_bases<T>([&](auto const& f) {
         using FieldType = DESC_FIELD_TYPE(f);
@@ -806,7 +806,9 @@ Vec<ImmId> org::allSubnodes(
 }
 
 
-Vec<ImmId> org::allSubnodes(const ImmId& value, const ImmAstContext& ctx) {
+Vec<ImmId> org::allSubnodes(
+    const ImmId&             value,
+    const SharedPtrApi::Ptr& ctx) {
     value.assertValid();
     switch (value.getKind()) {
 #define _case(__Kind)                                                     \
@@ -975,11 +977,11 @@ Vec<ImmAdapter> ImmAstContext::getAdaptersFor(const ImmId& it) const {
 
 ImmAstEditContext ImmAstContext::getEditContext() {
     return ImmAstEditContext{
-        .track = track->transient(this),
-        .ctx   = this,
-        .debug = OperationsScope{
-            .TraceState  = &debug->TraceState,
-            .activeLevel = 0,
+        .transientTrack = currentTrack->transient(this),
+        .ctx            = this,
+        .debug          = OperationsScope{
+                     .TraceState  = &debug->TraceState,
+                     .activeLevel = 0,
         }};
 }
 

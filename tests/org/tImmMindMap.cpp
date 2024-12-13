@@ -46,10 +46,10 @@ void addNodeRec(
 TEST(ImmMapApi, AddNode) {
     auto n1 = testParseString("* subtree");
 
-    org::ImmAstContext    store;
+    auto                  store = org::ImmAstContext::init_start_context();
     org::graph::MapConfig conf;
     conf.setTraceFile(getDebugFile("ImmMapApi_AddNode.txt"));
-    org::ImmAstVersion        v1 = store.addRoot(n1);
+    org::ImmAstVersion        v1 = store->addRoot(n1);
     org::graph::MapGraphState s1{v1.context};
     EXPECT_EQ(s1.graph.nodeCount(), 0);
     org::graph::addNode(s1, v1.getRootAdapter(), conf);
@@ -136,12 +136,12 @@ TEST(ImmMapApi, SubtreeBacklinks) {
     auto n1 = testParseString(text1);
     auto n2 = testParseString(text2);
 
-    org::ImmAstContext    store;
+    auto                  store = org::ImmAstContext::init_start_context();
     org::graph::MapConfig conf;
     conf.setTraceFile(getDebugFile("SubtreeBacklinks_log.txt"));
 
-    org::ImmAstVersion v2 = store.addRoot(n1);
-    org::ImmAstVersion v3 = v2.context.addRoot(n2);
+    org::ImmAstVersion v2 = store->addRoot(n1);
+    org::ImmAstVersion v3 = v2.context->addRoot(n2);
 
 
     org::graph::MapGraphState s1{v3.context};

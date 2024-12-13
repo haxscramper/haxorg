@@ -393,14 +393,14 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
     MapConfig&           conf) {
 
     GRAPH_MSG(fmt("Get resolve targets {} {}", source, link));
-    GRAPH_MSG(fmt("footnotes {}", s.ast.track->footnotes));
-    GRAPH_MSG(fmt("subtrees {}", s.ast.track->subtrees));
-    GRAPH_MSG(fmt("names {}", s.ast.track->names));
+    GRAPH_MSG(fmt("footnotes {}", s.ast->currentTrack->footnotes));
+    GRAPH_MSG(fmt("subtrees {}", s.ast->currentTrack->subtrees));
+    GRAPH_MSG(fmt("names {}", s.ast->currentTrack->names));
 
     Vec<MapLinkResolveResult> result;
 
     auto add_edge = [&](org::ImmId const& target) {
-        auto adapters = s.ast.getAdaptersFor(target);
+        auto adapters = s.ast->getAdaptersFor(target);
         LOGIC_ASSERTION_CHECK(
             !adapters.empty(),
             "Target node {} does not have any parent adapters tracked",
@@ -418,7 +418,7 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
     switch (link.link->target.getKind()) {
         case slk::Id: {
             auto text = link.link->target.getId().text;
-            if (auto target = s.ast.track->subtrees.get(text)) {
+            if (auto target = s.ast->currentTrack->subtrees.get(text)) {
                 GRAPH_MSG(
                     fmt("Subtree ID {} on {} resolved to {}",
                         text,
@@ -433,7 +433,7 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
 
         case slk::Footnote: {
             CR<Str> text = link.link->target.getFootnote().target;
-            if (auto target = s.ast.track->footnotes.get(text)) {
+            if (auto target = s.ast->currentTrack->footnotes.get(text)) {
                 GRAPH_MSG(
                     fmt("Footnote name {} on {} resolved to {}",
                         text,
@@ -448,7 +448,8 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
 
         case slk::Internal: {
             CR<Str> text = link.link->target.getInternal().target;
-            if (auto target = s.ast.track->radioTargets.get(text)) {
+            if (auto target = s.ast->currentTrack->radioTargets.get(
+                    text)) {
                 GRAPH_MSG(fmt(
                     "Internal link name '{}' on '{}' resolved to radio "
                     "target '{}'",
@@ -456,7 +457,8 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
                     source,
                     *target));
                 add_edge(*target);
-            } else if (auto target = s.ast.track->names.get(text)) {
+            } else if (
+                auto target = s.ast->currentTrack->names.get(text)) {
                 GRAPH_MSG(fmt(
                     "Internal link name '{}' on '{}' resolved to named "
                     "node '{}'",
@@ -670,13 +672,13 @@ Graphviz::Graph MapGraph::toGraphviz(
         auto add_field_text = [&](Str const& name, org::ImmId id) {
             add_field(Record{{
                 Record{name},
-                Record{join(" ", flatWords(ctx.adaptUnrooted(id)))},
+                Record{join(" ", flatWords(ctx->adaptUnrooted(id)))},
             }});
         };
 
         add_field(Record{{
             Record{"Select"},
-            Record{ctx.adapt(it.id).selfSelect()},
+            Record{ctx->adapt(it.id).selfSelect()},
         }});
 
         switch_node_value(
@@ -688,7 +690,7 @@ Graphviz::Graph MapGraph::toGraphviz(
                         Record{"Title"},
                         Record{join(
                             " ",
-                            flatWords(ctx.adaptUnrooted(tree.title)))},
+                            flatWords(ctx->adaptUnrooted(tree.title)))},
                     }});
                 },
                 [&](org::ImmParagraph const& tree) {

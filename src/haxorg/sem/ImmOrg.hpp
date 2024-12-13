@@ -347,9 +347,9 @@ struct ImmAstTrackingMap {
 struct ImmAstStore;
 
 struct ImmAstEditContext {
-    ImmAstTrackingMapTransient track;
+    ImmAstTrackingMapTransient transientTrack;
     WPtr<ImmAstContext>        ctx;
-    ImmAstContext              finish();
+    SPtr<ImmAstContext>        finish();
     ImmAstStore&               store();
     OperationsScope            debug;
 
@@ -513,10 +513,18 @@ struct ImmAstStore {
 struct ImmAstVersion;
 struct ImmAdapter;
 
+/// \brief Store additional lookup and debug contexts for a particular
+/// version of the AST tree.
 struct [[nodiscard]] ImmAstContext : SharedPtrApi<ImmAstContext> {
-    SPtr<OperationsTracer>  debug;
-    SPtr<ImmAstStore>       store;
-    SPtr<ImmAstTrackingMap> track;
+    /// \brief Shared operation tracer for the debug operations.
+    SPtr<OperationsTracer> debug;
+    /// \brief Shared AST store, the underlying store data is shared
+    /// between all contexts and can only be added to, store data is never
+    /// removed so older contexts are always valid.
+    SPtr<ImmAstStore> store;
+    /// \brief Current version of the AST tracking map stored in the
+    /// context
+    SPtr<ImmAstTrackingMap> currentTrack;
 
     void message(
         std::string const& value,
@@ -527,18 +535,18 @@ struct [[nodiscard]] ImmAstContext : SharedPtrApi<ImmAstContext> {
         if (debug) { debug->message(value, level, line, function, file); }
     }
 
-    DESC_FIELDS(ImmAstContext, (store, track));
+    DESC_FIELDS(ImmAstContext, (store, currentTrack));
 
     ImmParentIdVec const& getParentIds(ImmId const& it) const {
-        return track->getParentIds(it);
+        return currentTrack->getParentIds(it);
     }
 
     ParentPathMap getParentsFor(ImmId const& it) const {
-        return track->getParentsFor(it, this);
+        return currentTrack->getParentsFor(it, this);
     }
 
     Vec<ImmUniqId> getPathsFor(ImmId const& it) const {
-        return track->getPathsFor(it, this);
+        return currentTrack->getPathsFor(it, this);
     }
 
     Vec<ImmAdapter> getAdaptersFor(ImmId const& it) const;
@@ -550,7 +558,7 @@ struct [[nodiscard]] ImmAstContext : SharedPtrApi<ImmAstContext> {
 
     ImmAstEditContext getEditContext();
 
-    ImmAstContext finishEdit(ImmAstEditContext& ctx);
+    ImmAstContext::Ptr finishEdit(ImmAstEditContext& ctx);
 
     ImmAstVersion finishEdit(
         ImmAstEditContext&        ctx,
@@ -591,17 +599,27 @@ struct [[nodiscard]] ImmAstContext : SharedPtrApi<ImmAstContext> {
     ImmAdapter adapt(ImmUniqId const& id) const;
     ImmAdapter adaptUnrooted(ImmId const& id) const;
 
+    static ImmAstContext::Ptr init_start_context() {
+        return std::make_shared<ImmAstContext>(
+            std::make_shared<ImmAstStore>(),
+            std::make_shared<ImmAstTrackingMap>(),
+            std::make_shared<OperationsTracer>() //
+        );
+    }
 
-    ImmAstContext()
-        : store{std::make_shared<ImmAstStore>()}
-        , track{std::make_shared<ImmAstTrackingMap>()}
-        , debug{std::make_shared<OperationsTracer>()} //
+    ImmAstContext(
+        SPtr<ImmAstStore> const&       sharedStore,
+        SPtr<ImmAstTrackingMap> const& startTracking,
+        SPtr<OperationsTracer> const&  sharedTracer)
+        : store{sharedStore}
+        , currentTrack{startTracking}
+        , debug{sharedTracer} //
     {}
 };
 
 /// \brief Specific version of the document.
 struct ImmAstVersion {
-    ImmAstContext      context;
+    ImmAstContext::Ptr context;
     ImmAstReplaceEpoch epoch;
     DESC_FIELDS(ImmAstVersion, (context, epoch));
 
@@ -645,9 +663,11 @@ struct ImmAstGraphvizConf {
 };
 
 template <org::IsImmOrgValueType T>
-Vec<ImmId> allSubnodes(T const& value, org::ImmAstContext const& ctx);
+Vec<ImmId> allSubnodes(T const& value, org::ImmAstContext::Ptr const& ctx);
 
-Vec<ImmId> allSubnodes(ImmId const& value, org::ImmAstContext const& ctx);
+Vec<ImmId> allSubnodes(
+    ImmId const&                   value,
+    org::ImmAstContext::Ptr const& ctx);
 
 
 template <typename Func>

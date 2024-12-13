@@ -34,7 +34,7 @@ struct SharedPtrApi
     using WPtr = std::weak_ptr<T>;
 
     std::weak_ptr<T> mweak_from_this() const {
-        return const_cast<T*>(this)->weak_from_this();
+        return const_cast<T*>(_this())->weak_from_this();
     }
 };
 
