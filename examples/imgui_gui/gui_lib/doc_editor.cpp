@@ -64,75 +64,10 @@ Opt<DocBlock::Ptr> to_doc_block(
     return aux(it, 0);
 }
 
-namespace {
-
-
-void render_doc_annotation() {}
-
-void render_doc_block(
-    DocBlockModel&           model,
-    DocBlock::Ptr&           block,
-    const DocBlockConfig&    conf,
-    DocBlock::RenderContext& renderContext) {
-    auto __scope = IM_SCOPE_BEGIN(
-        "Doc block rendering",
-        fmt("Index {} kind {}", renderContext.dfsIndex, block->getKind()));
-
-    auto frameless_vars = push_frameless_window_vars();
-    ImGui::SetNextWindowPos(renderContext.getWindowPos(block.get()));
-    ImGui::SetNextWindowSize(block->getSize());
-
-    int selfIndex = renderContext.getIndex();
-
-    using ER = EditableOrgText::Result;
-
-    auto handle_text_edit_result = [&](EditableOrgTextEntry& text,
-                                       std::string const&    prefix) {
-        auto result = text.render(c_fmt("{}_{}", prefix, selfIndex));
-
-        if (result == ER::Changed) {
-            model.ctx.action(DocBlockAction::NodeTextChanged{
-                .block   = block,
-                .updated = text.text.value,
-                .origin  = text.text.origin,
-            });
-        }
-
-        if (result == ER::CancelledEditing || result == ER::StartedEditing
-            || result == ER::Changed) {
-            model.ctx.action(
-                DocBlockAction::NodeEditChanged{.block = block});
-        }
-    };
-
-    if (IM_FN_BEGIN(BeginChild, c_fmt("##doc_block_{}", selfIndex))) {
-        if (block->isSubtree()) {
-            auto t = block->ptr_as<DocBlockSubtree>();
-            handle_text_edit_result(t->title, "title");
-        } else if (block->isParagraph()) {
-            auto p = block->ptr_as<DocBlockParagraph>();
-            handle_text_edit_result(p->text, "paragraph");
-        } else if (block->isDocument()) {
-            // pass
-        } else {
-            logic_todo_impl();
-        }
-    }
-
-    IM_FN_END(EndChild);
-    ImGui::PopStyleVar(frameless_vars);
-
-    ++renderContext.dfsIndex;
-    for (auto& sub : block->nested) {
-        render_doc_block(model, sub, conf, renderContext);
-    }
-}
-} // namespace
-
 void render_doc_block(DocBlockModel& model, const DocBlockConfig& conf) {
     DocBlock::RenderContext renderContext{};
     renderContext.start = ImGui::GetCursorScreenPos();
-    model.root->render(model, conf);
+    model.root->render(model, conf, renderContext);
 }
 
 void apply_doc_block_actions(
@@ -383,4 +318,127 @@ void DocBlock::syncSize(int thisLane, const DocBlockConfig& conf) {
                         - (conf.nestingBlockOffset * depth);
 
     setWidth(widthWithOffset);
+}
+
+namespace {
+using ER = EditableOrgText::Result;
+
+
+void handle_text_edit_result(
+    DocBlockModel&        model,
+    EditableOrgTextEntry& text,
+    DocBlock*             block,
+    std::string const&    id) {
+    auto result = text.render(id.c_str());
+
+    if (result == ER::Changed) {
+        model.ctx.action(DocBlockAction::NodeTextChanged{
+            .block   = block->shared_from_this(),
+            .updated = text.text.value,
+            .origin  = text.text.origin,
+        });
+    }
+
+    if (result == ER::CancelledEditing || result == ER::StartedEditing
+        || result == ER::Changed) {
+        model.ctx.action(DocBlockAction::NodeEditChanged{
+            .block = block->shared_from_this()});
+    }
+};
+
+int configure_window_render(
+    DocBlockModel&           model,
+    DocBlock*                block,
+    DocBlock::RenderContext& renderContext) {
+    auto frameless_vars = push_frameless_window_vars();
+    ImGui::SetNextWindowPos(renderContext.getWindowPos(block));
+    ImGui::SetNextWindowSize(block->getSize());
+    return frameless_vars;
+}
+
+void pop_window_render(int frameless_vars) {
+    ImGui::PopStyleVar(frameless_vars);
+}
+
+void post_render(DocBlock::RenderContext& renderContext) {
+    ++renderContext.dfsIndex;
+}
+
+void render_nested(
+    DocBlockModel&           model,
+    DocBlock*                block,
+    const DocBlockConfig&    conf,
+    DocBlock::RenderContext& renderContext) {
+    for (auto& sub : block->nested) {
+        block->render(model, conf, renderContext);
+    }
+}
+} // namespace
+
+void DocBlockDocument::render(
+    DocBlockModel&        model,
+    const DocBlockConfig& conf,
+    RenderContext&        renderContext) {
+    post_render(renderContext);
+    render_nested(model, this, conf, renderContext);
+}
+
+void DocBlockParagraph::render(
+    DocBlockModel&        model,
+    const DocBlockConfig& conf,
+    RenderContext&        renderContext) {
+    auto tmp = configure_window_render(model, this, renderContext);
+    if (IM_FN_BEGIN(
+            BeginChild, renderContext.getId("##doc_block").c_str())) {
+        handle_text_edit_result(
+            model, text, this, renderContext.getId("text"));
+    }
+    IM_FN_END(EndChild);
+    pop_window_render(tmp);
+    post_render(renderContext);
+}
+
+void DocBlockAnnotation::render(
+    DocBlockModel&        model,
+    const DocBlockConfig& conf,
+    RenderContext&        renderContext) {
+    auto tmp = configure_window_render(model, this, renderContext);
+    if (IM_FN_BEGIN(
+            BeginChild, renderContext.getId("##doc_block").c_str())) {
+        handle_text_edit_result(
+            model, text, this, renderContext.getId("annotation"));
+    }
+    IM_FN_END(EndChild);
+
+    pop_window_render(tmp);
+    post_render(renderContext);
+}
+
+void DocBlockExport::render(
+    DocBlockModel&        model,
+    const DocBlockConfig& conf,
+    RenderContext&        renderContext) {}
+
+void DocBlockSubtree::render(
+    DocBlockModel&        model,
+    const DocBlockConfig& conf,
+    RenderContext&        renderContext) {
+    auto tmp = configure_window_render(model, this, renderContext);
+
+    if (IM_FN_BEGIN(
+            BeginChild, renderContext.getId("##doc_block").c_str())) {
+        handle_text_edit_result(
+            model, title, this, renderContext.getId("title"));
+    }
+    IM_FN_END(EndChild);
+    post_render(renderContext);
+    render_nested(model, this, conf, renderContext);
+}
+
+void DocBlockListHeader::render(
+    DocBlockModel&        model,
+    const DocBlockConfig& conf,
+    RenderContext&        renderContext) {
+    post_render(renderContext);
+    render_nested(model, this, conf, renderContext);
 }

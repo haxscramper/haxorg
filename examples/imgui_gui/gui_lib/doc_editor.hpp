@@ -25,41 +25,25 @@ struct DocBlockConfig {
 struct DocBlockModel;
 struct DocBlockContext;
 
-template <typename T>
-struct PtrAstApi : public CRTP_this_method<T> {
-    using CRTP_this_method<T>::_this;
-    template <typename Other>
-    Other* dyn_cast() {
-        return dynamic_cast<Other*>(_this());
-    }
+struct DocBlock : SharedPtrApi<DocBlock> {
+    virtual ~DocBlock() = default;
 
-    template <typename Other>
-    Other const* dyn_cast() const {
-        return dynamic_cast<Other const*>(_this());
-    }
-};
-
-struct DocBlock
-    : SharedPtrApi<DocBlock>
-    , PtrAstApi<DocBlock> {
-    struct RenderContext {
-        ImVec2 start;
-        int    dfsIndex = 0;
-        DESC_FIELDS(RenderContext, (start));
-
-        int getIndex() { return dfsIndex++; }
-
-        ImVec2 getThisWindowPos() const { return start; }
-        ImVec2 getWindowPos(DocBlock* block) const {
-            return block->getPos() + start;
-        }
-    };
 
     template <typename Other>
     SPtr<Other> ptr_as() {
         auto tmp = std::dynamic_pointer_cast<Other>(shared_from_this());
         LOGIC_ASSERTION_CHECK(tmp.get() != nullptr, "Ptr get failed");
         return tmp;
+    }
+
+    template <typename Other>
+    Other* dyn_cast() {
+        return dynamic_cast<Other*>(this);
+    }
+
+    template <typename Other>
+    Other const* dyn_cast() const {
+        return dynamic_cast<Other const*>(this);
     }
 
     DECL_DESCRIBED_ENUM(
@@ -97,8 +81,24 @@ struct DocBlock
     ImVec2         getPos() const { return pos; }
     virtual void   setPos(ImVec2 const& p) { pos = p; }
 
-    virtual void render(DocBlockModel& model, DocBlockConfig const& conf);
+    struct RenderContext {
+        ImVec2 start;
+        int    dfsIndex = 0;
+        DESC_FIELDS(RenderContext, (start));
 
+        int getIndex() { return dfsIndex++; }
+
+        ImVec2 getThisWindowPos() const { return start; }
+        ImVec2 getWindowPos(DocBlock* block) const {
+            return block->getPos() + start;
+        }
+
+        std::string getId(std::string prefix = "") const {
+            return fmt("{}_{}", prefix, dfsIndex);
+        }
+    };
+
+    virtual void render(DocBlockModel& model, DocBlockConfig const& conf, RenderContext& renderContext) = 0;
 
     DocBlock::Ptr at(int pos) const { return nested.at(pos); }
     DocBlock::Ptr at(Vec<int> path) const {
@@ -145,6 +145,11 @@ struct DocBlockDocument : public DocBlock {
     BOOST_DESCRIBE_CLASS(DocBlockDocument, (DocBlock), (origin), (), ());
 
     org::ImmAdapter getRootOrigin() const { return origin; }
+
+    virtual void render(
+        DocBlockModel&        model,
+        const DocBlockConfig& conf,
+        RenderContext&        renderContext) override;
 };
 
 struct DocBlockAnnotation : public DocBlock {
@@ -168,6 +173,11 @@ struct DocBlockAnnotation : public DocBlock {
     void syncSize(int thisLane, DocBlockConfig const& conf) override {
         text.setWidth(conf.annotationLanesWidth.at(thisLane));
     }
+
+    virtual void render(
+        DocBlockModel&        model,
+        const DocBlockConfig& conf,
+        RenderContext&        renderContext) override;
 };
 
 struct DocBlockExport : public DocBlock {
@@ -176,6 +186,11 @@ struct DocBlockExport : public DocBlock {
     void   setWidth(int width) override {}
     Kind   getKind() const override { return Kind::Export; }
     BOOST_DESCRIBE_CLASS(DocBlockExport, (DocBlock), (origin), (), ());
+
+    virtual void render(
+        DocBlockModel&        model,
+        const DocBlockConfig& conf,
+        RenderContext&        renderContext) override;
 };
 
 struct DocBlockParagraph : public DocBlock {
@@ -185,6 +200,11 @@ struct DocBlockParagraph : public DocBlock {
     ImVec2 getSize() const override { return text.getSize(); }
     Kind   getKind() const override { return Kind::Paragraph; }
     BOOST_DESCRIBE_CLASS(DocBlockParagraph, (), (text, origin), (), ());
+
+    virtual void render(
+        DocBlockModel&        model,
+        const DocBlockConfig& conf,
+        RenderContext&        renderContext) override;
 };
 
 struct DocBlockSubtree : public DocBlock {
@@ -196,6 +216,11 @@ struct DocBlockSubtree : public DocBlock {
     Kind   getKind() const override { return Kind::Subtree; }
 
     BOOST_DESCRIBE_CLASS(DocBlockSubtree, (), (title, origin), (), ());
+
+    virtual void render(
+        DocBlockModel&        model,
+        const DocBlockConfig& conf,
+        RenderContext&        renderContext) override;
 };
 
 struct DocBlockListHeader : public DocBlock {
@@ -204,6 +229,11 @@ struct DocBlockListHeader : public DocBlock {
     void   setWidth(int width) override {}
     ImVec2 getSize() const override { return ImVec2{100, 20}; }
     BOOST_DESCRIBE_CLASS(DocBlockListHeader, (DocBlock), (origin), (), ());
+
+    virtual void render(
+        DocBlockModel&        model,
+        const DocBlockConfig& conf,
+        RenderContext&        renderContext) override;
 };
 
 template <>
