@@ -1,3 +1,5 @@
+#define NDEBUG 0
+
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -13,6 +15,7 @@
 #include <gui_lib/block_graph.hpp>
 #include <gui_lib/ascii_editor.hpp>
 #include <gui_lib/scintilla_editor_widget.hpp>
+#include <gui_lib/doc_editor.hpp>
 
 #include <gui_lib/gui_perfetto.hpp>
 #include <hstd/wrappers/hstd_extra/perfetto_aux_impl_template.hpp>
@@ -27,7 +30,8 @@ struct Config {
         Test,
         StoryGridAnnotated,
         ScintillaEditorTest,
-        AsciiEditorTest);
+        AsciiEditorTest,
+        DocEditor);
 
     Str      file;
     Mode     mode = Mode::SemTree;
@@ -422,6 +426,12 @@ int main(int argc, char** argv) {
             outline_tree_loop(window, node);
             break;
         }
+        case Config::Mode::DocEditor: {
+            auto node = sem::parseString(text);
+            doc_editor_loop(window, node);
+            break;
+        }
+
         case Config::Mode::StoryGridAnnotated:
         case Config::Mode::StoryGrid: {
             StoryGridConfig storyGridConf;

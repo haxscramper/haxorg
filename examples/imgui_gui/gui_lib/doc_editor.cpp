@@ -1,3 +1,5 @@
+#define NDEBUG 0
+
 #include "doc_editor.hpp"
 #include "block_graph.hpp"
 #include "node_grid_graph.hpp"
@@ -41,6 +43,8 @@ Opt<DocBlock::Ptr> to_doc_block(
                 result->getSubtree().title = EditableOrgTextEntry::
                     from_adapter(d->getTitle(), thisWidth);
                 add_subnodes();
+            } else if (auto e = it.asOpt<org::ImmBlockExport>()) {
+                result->data = DocBlock::Export{.origin = e.value()};
             } else {
                 throw std::domain_error(fmt(
                     "No known conversion of node {} to doc block", it));
@@ -56,26 +60,14 @@ Opt<DocBlock::Ptr> to_doc_block(
 
 namespace {
 
-struct DocBlockRenderContext {
-    ImVec2 start;
-    int    dfsIndex = 0;
-    DESC_FIELDS(DocBlockRenderContext, (start));
-
-    int getIndex() { return dfsIndex++; }
-
-    ImVec2 getThisWindowPos() const { return start; }
-    ImVec2 getWindowPos(DocBlock::Ptr const& block) const {
-        return block->getPos() + start;
-    }
-};
 
 void render_doc_annotation() {}
 
 void render_doc_block(
-    DocBlockModel&         model,
-    DocBlock::Ptr&         block,
-    const DocBlockConfig&  conf,
-    DocBlockRenderContext& renderContext) {
+    DocBlockModel&           model,
+    DocBlock::Ptr&           block,
+    const DocBlockConfig&    conf,
+    DocBlock::RenderContext& renderContext) {
     auto __scope = IM_SCOPE_BEGIN(
         "Doc block rendering",
         fmt("Index {} kind {}", renderContext.dfsIndex, block->getKind()));
@@ -132,9 +124,9 @@ void render_doc_block(
 } // namespace
 
 void render_doc_block(DocBlockModel& model, const DocBlockConfig& conf) {
-    DocBlockRenderContext renderContext{};
+    DocBlock::RenderContext renderContext{};
     renderContext.start = ImGui::GetCursorScreenPos();
-    render_doc_block(model, model.root.root, conf, renderContext);
+    model.root.render(model, conf);
 }
 
 void apply_doc_block_actions(
@@ -175,6 +167,20 @@ void apply_doc_block_actions(
     }
 
     model.ctx.actions.clear();
+}
+
+Vec<SharedPtrApi::Ptr> DocBlockDocument::getFlatAnnotations() {
+    Vec<DocBlock::Ptr>        res;
+    Func<void(DocBlock::Ptr)> aux;
+    aux = [&](DocBlock::Ptr ptr) {
+        if (ptr->dyn_cast<DocBlockAnnotation>()) { res.push_back(ptr); }
+        for (auto const& sub : ptr->annotations) { aux(sub); }
+        for (auto const& sub : ptr->nested) { aux(sub); }
+    };
+
+    aux(shared_from_this());
+
+    return res;
 }
 
 void DocBlockDocument::syncPositions(
@@ -285,4 +291,55 @@ void DocBlock::treeRepr(ColStream& os) {
     };
 
     aux(shared_from_this(), 0);
+}
+
+int DocBlock::getDepth() const {
+    if (parent.expired()) {
+        return 0;
+    } else if (dyn_cast<DocBlockAnnotation>()) {
+        return parent.lock()->getDepth();
+    } else {
+        return parent.lock()->getDepth() + 1;
+    }
+}
+
+void doc_editor_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
+    auto                ast_ctx = org::ImmAstContext::init_start_context();
+    DocBlockModel       model;
+    EditableOrgDocGroup docs{ast_ctx};
+    DocBlockConfig      conf;
+
+    int root_idx = docs.init_root(node);
+
+    bool first = true;
+
+    while (!glfwWindowShouldClose(window)) {
+        frame_start();
+        if (first) {
+            model.root.root = to_doc_block(
+                                  docs.getCurrentRoot(root_idx), conf)
+                                  .value();
+
+            model.root.syncPositions(model.ctx, conf);
+            first = false;
+        }
+
+        {
+            fullscreen_window_begin();
+            { render_doc_block(model, conf); }
+            ImGui::End();
+        }
+        frame_end(window);
+        apply_doc_block_actions(docs, model, conf);
+    }
+}
+
+int DocBlock::getLane() const {
+    if (parent.expired()) {
+        return 0;
+    } else if (dyn_cast<DocBlockAnnotation>()) {
+        return parent.lock()->getLane() + 1;
+    } else {
+        return 0;
+    }
 }
