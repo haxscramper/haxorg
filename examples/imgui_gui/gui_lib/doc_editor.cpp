@@ -59,6 +59,12 @@ Opt<DocBlock::Ptr> to_doc_block(
                 add_subnodes();
             }
 
+            ImVec2 size = result->getSize();
+            LOGIC_ASSERTION_CHECK(
+                size.x != 0 && size.y != 0,
+                "Cannot create block with no size from {}",
+                it);
+
             return result;
         }
     };
@@ -194,9 +200,17 @@ void DocBlockModel::syncPositions(
         CTX_MSG("Rectangle positions");
         auto __scope = ctx.scopeLevel();
         for (NodeGridGraph::RectSpec const& rect : g.getRectangles()) {
-            CTX_MSG(fmt("Rect {}", rect));
             DocBlock::Ptr node = flatGrid.at(rect.flatPos);
             if (rect.isVisible) {
+                LOGIC_ASSERTION_CHECK(
+                    rect.size.x != 0 && rect.size.y != 0,
+                    "Rect is visible but has no size {}. Size of the "
+                    "original rectangle at position {} is {}",
+                    rect,
+                    rect.flatPos,
+                    node->getSize());
+
+                CTX_MSG(fmt("Rect {}", rect));
                 node->isVisible = true;
                 node->setPos(rect.pos);
             } else {
@@ -286,6 +300,9 @@ void doc_editor_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
     EditableOrgDocGroup docs{ast_ctx};
     DocBlockConfig      conf;
 
+    conf.laneConf.getDefaultBlockMargin =
+        [](LaneNodePos const&) -> Pair<int, int> { return {0, 0}; };
+
     model.ctx.setTraceFile("/tmp/doc_editor_trace.log");
 
     int root_idx = docs.init_root(node);
@@ -361,18 +378,25 @@ void handle_text_edit_result(
     }
 };
 
-int configure_window_render(
+void configure_window_render(
     DocBlockModel&           model,
     DocBlock*                block,
-    DocBlock::RenderContext& renderContext) {
-    auto frameless_vars = push_frameless_window_vars();
+    DocBlock::RenderContext& renderContext,
+    const DocBlockConfig&    conf) {
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1);
+    ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0);
+    ImGui::PushStyleColor(ImGuiCol_Border, IM_COL32(255, 0, 0, 255));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, conf.annotationNodeWindowBg);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+
     ImGui::SetNextWindowPos(renderContext.getWindowPos(block));
     ImGui::SetNextWindowSize(block->getSize());
-    return frameless_vars;
 }
 
-void pop_window_render(int frameless_vars) {
-    ImGui::PopStyleVar(frameless_vars);
+void pop_window_render() {
+    ImGui::PopStyleVar(3);
+    ImGui::PopStyleColor(2);
 }
 
 void post_render(DocBlock::RenderContext& renderContext) {
@@ -388,12 +412,27 @@ void render_nested(
         sub->render(model, conf, renderContext);
     }
 }
+
+void debug_render(
+    DocBlock*                block,
+    DocBlock::RenderContext& renderContext) {
+    AddText(
+        ImGui::GetForegroundDrawList(),
+        renderContext.getWindowPos(block) + ImVec2{600, 0},
+        IM_COL32(0, 255, 0, 255),
+        fmt("{} @{} {}",
+            block->getKind(),
+            block->getPos(),
+            block->getSize()));
+}
+
 } // namespace
 
 void DocBlockDocument::render(
     DocBlockModel&        model,
     const DocBlockConfig& conf,
     RenderContext&        renderContext) {
+    debug_render(this, renderContext);
     post_render(renderContext);
     render_nested(model, this, conf, renderContext);
 }
@@ -403,14 +442,15 @@ void DocBlockParagraph::render(
     const DocBlockConfig& conf,
     RenderContext&        renderContext) {
     if (!isVisible) { return; }
-    auto tmp = configure_window_render(model, this, renderContext);
+    configure_window_render(model, this, renderContext, conf);
     if (IM_FN_BEGIN(
             BeginChild, renderContext.getId("##doc_block").c_str())) {
         handle_text_edit_result(
             model, text, this, renderContext.getId("text"));
     }
     IM_FN_END(EndChild);
-    pop_window_render(tmp);
+    pop_window_render();
+    debug_render(this, renderContext);
     post_render(renderContext);
 }
 
@@ -419,7 +459,7 @@ void DocBlockAnnotation::render(
     const DocBlockConfig& conf,
     RenderContext&        renderContext) {
     if (!isVisible) { return; }
-    auto tmp = configure_window_render(model, this, renderContext);
+    configure_window_render(model, this, renderContext, conf);
     if (IM_FN_BEGIN(
             BeginChild, renderContext.getId("##doc_block").c_str())) {
         handle_text_edit_result(
@@ -427,7 +467,8 @@ void DocBlockAnnotation::render(
     }
     IM_FN_END(EndChild);
 
-    pop_window_render(tmp);
+    pop_window_render();
+    debug_render(this, renderContext);
     post_render(renderContext);
 }
 
@@ -443,17 +484,18 @@ void DocBlockSubtree::render(
     const DocBlockConfig& conf,
     RenderContext&        renderContext) {
     if (isVisible) {
-        auto tmp = configure_window_render(model, this, renderContext);
+        configure_window_render(model, this, renderContext, conf);
         if (IM_FN_BEGIN(
                 BeginChild, renderContext.getId("##doc_block").c_str())) {
             handle_text_edit_result(
                 model, title, this, renderContext.getId("title"));
         }
         IM_FN_END(EndChild);
-        pop_window_render(tmp);
+        pop_window_render();
     }
 
     post_render(renderContext);
+    debug_render(this, renderContext);
     render_nested(model, this, conf, renderContext);
 }
 
@@ -462,6 +504,7 @@ void DocBlockListHeader::render(
     const DocBlockConfig& conf,
     RenderContext&        renderContext) {
     post_render(renderContext);
+    debug_render(this, renderContext);
     render_nested(model, this, conf, renderContext);
 }
 
@@ -469,19 +512,23 @@ void DocBlockFallback::render(
     DocBlockModel&        model,
     const DocBlockConfig& conf,
     RenderContext&        renderContext) {
-    if (!isVisible) { return; }
-    auto tmp = configure_window_render(model, this, renderContext);
-    if (IM_FN_BEGIN(
-            BeginChild, renderContext.getId("##doc_block").c_str())) {
-        auto pos = getCurrentWindowContentPos();
+    if (isVisible) {
+        configure_window_render(model, this, renderContext, conf);
+        if (IM_FN_BEGIN(
+                BeginChild, renderContext.getId("##doc_block").c_str())) {
+            auto pos = getCurrentWindowContentPos();
 
-        AddText(
-            dl(),
-            pos,
-            IM_COL32(255, 0, 0, 255),
-            fmt("Fallback for {}", origin.getKind()));
+            AddText(
+                dl(),
+                pos,
+                IM_COL32(255, 0, 0, 255),
+                fmt("Fallback for {}", origin.getKind()));
+        }
+        IM_FN_END(EndChild);
+        pop_window_render();
     }
-    IM_FN_END(EndChild);
-    pop_window_render(tmp);
+
+    debug_render(this, renderContext);
     post_render(renderContext);
+    render_nested(model, this, conf, renderContext);
 }

@@ -7,11 +7,13 @@
 #include <hstd/stdlib/Ptrs.hpp>
 
 struct DocBlockConfig {
-    int                  editLaneWidth      = 600;
-    int                  nestingBlockOffset = 40;
-    Vec<int>             annotationLanesWidth{200};
+    int      editLaneWidth      = 600;
+    int      nestingBlockOffset = 40;
+    Vec<int> annotationLanesWidth{200};
+    ImU32    annotationNodeWindowBg = IM_COL32(128, 128, 128, 128);
+    ImVec2   gridViewport;
+
     LaneBlockGraphConfig laneConf;
-    ImVec2               gridViewport;
 
     DESC_FIELDS(
         DocBlockConfig,
@@ -19,7 +21,8 @@ struct DocBlockConfig {
          nestingBlockOffset,
          annotationLanesWidth,
          laneConf,
-         gridViewport));
+         gridViewport,
+         annotationNodeWindowBg));
 };
 
 struct DocBlockModel;
@@ -146,7 +149,7 @@ struct DocBlockDocument : public DocBlock {
     org::ImmAdapterT<org::ImmDocument> origin;
 
     Kind   getKind() const override { return Kind::Document; }
-    ImVec2 getSize() const override { return ImVec2(); }
+    ImVec2 getSize() const override { return ImVec2(10, 10); }
     void   setWidth(int w) override {}
 
     BOOST_DESCRIBE_CLASS(DocBlockDocument, (DocBlock), (origin), (), ());
@@ -202,7 +205,7 @@ struct DocBlockExport : public DocBlock {
 
 struct DocBlockFallback : public DocBlock {
     org::ImmAdapter origin;
-    ImVec2          getSize() const override { return ImVec2{100, 20}; }
+    ImVec2          getSize() const override { return ImVec2{200, 20}; }
     void            setWidth(int width) override {}
     Kind            getKind() const override { return Kind::Fallback; }
     BOOST_DESCRIBE_CLASS(DocBlockFallback, (DocBlock), (origin), (), ());
