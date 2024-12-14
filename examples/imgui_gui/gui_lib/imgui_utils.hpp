@@ -25,6 +25,14 @@ void render_debug_rect(
     ImRect const& rect,
     const ImU32&  col = IM_COL32(255, 255, 255, 255));
 
+ImVec2 getCurrentWindowContentPos();
+
+void AddText(
+    ImDrawList*        list,
+    const ImVec2&      pos,
+    ImU32 const&       color,
+    std::string const& text);
+
 void quit_on_q(GLFWwindow* window);
 
 /// \brief Return full path for the font with a given name, if it could be

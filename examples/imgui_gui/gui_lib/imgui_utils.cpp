@@ -306,3 +306,16 @@ void ImRenderTraceRecord::WriteRecord(OperationsTracer& trace, int level)
 
     for (auto const& sub : nested) { sub.WriteRecord(trace, level + 1); }
 }
+
+ImVec2 getCurrentWindowContentPos() {
+    return ImGui::GetWindowPos()
+         + ImVec2{0, ImGui::GetCurrentWindow()->TitleBarHeight};
+}
+
+void AddText(
+    ImDrawList*        list,
+    ImVec2 const&      pos,
+    const ImU32&       color,
+    const std::string& text) {
+    list->AddText(pos, color, text.data(), text.data() + text.size());
+}

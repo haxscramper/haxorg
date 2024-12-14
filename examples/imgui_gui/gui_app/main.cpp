@@ -36,8 +36,9 @@ struct Config {
     Str      file;
     Mode     mode = Mode::SemTree;
     Opt<Str> appstate;
+    bool     fullscreen = false;
 
-    DESC_FIELDS(Config, (file, mode, appstate));
+    DESC_FIELDS(Config, (file, mode, appstate, fullscreen));
 };
 
 struct OutlineConfig {
@@ -382,11 +383,9 @@ int main(int argc, char** argv) {
     GLFWmonitor*       monitor = glfwGetPrimaryMonitor();
     const GLFWvidmode* mode    = glfwGetVideoMode(monitor);
 
-    bool fullscreen = false;
-
     GLFWwindow* window = glfwCreateWindow(
-        fullscreen ? mode->width : 1280,
-        fullscreen ? mode->height : 720,
+        conf.fullscreen ? mode->width : 1280,
+        conf.fullscreen ? mode->height : 720,
         "Dear ImGui GLFW+OpenGL3 example",
         NULL,
         NULL);

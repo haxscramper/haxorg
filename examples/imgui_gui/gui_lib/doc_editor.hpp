@@ -28,6 +28,7 @@ struct DocBlockContext;
 struct DocBlock : SharedPtrApi<DocBlock> {
     virtual ~DocBlock() = default;
 
+    ImDrawList* dl() const { return ImGui::GetWindowDrawList(); }
 
     template <typename Other>
     SPtr<Other> ptr_as() {
@@ -53,7 +54,8 @@ struct DocBlock : SharedPtrApi<DocBlock> {
         Export,
         Paragraph,
         Subtree,
-        ListHeader);
+        ListHeader,
+        Fallback);
 
 #define __kind_methods(_Kind)                                             \
     bool is##_Kind() const { return getKind() == Kind::_Kind; }
@@ -107,7 +109,12 @@ struct DocBlock : SharedPtrApi<DocBlock> {
         return res;
     }
 
-    void treeRepr(ColStream& os);
+    void    treeRepr(ColStream& os);
+    ColText treeRepr() {
+        ColStream os;
+        treeRepr(os);
+        return os.getBuffer();
+    }
 
     void addNested(DocBlock::Ptr block) {
         block->parent = weak_from_this();
@@ -192,6 +199,20 @@ struct DocBlockExport : public DocBlock {
         const DocBlockConfig& conf,
         RenderContext&        renderContext) override;
 };
+
+struct DocBlockFallback : public DocBlock {
+    org::ImmAdapter origin;
+    ImVec2          getSize() const override { return ImVec2{100, 20}; }
+    void            setWidth(int width) override {}
+    Kind            getKind() const override { return Kind::Fallback; }
+    BOOST_DESCRIBE_CLASS(DocBlockFallback, (DocBlock), (origin), (), ());
+
+    virtual void render(
+        DocBlockModel&        model,
+        const DocBlockConfig& conf,
+        RenderContext&        renderContext) override;
+};
+
 
 struct DocBlockParagraph : public DocBlock {
     org::ImmAdapterT<org::ImmParagraph> origin;

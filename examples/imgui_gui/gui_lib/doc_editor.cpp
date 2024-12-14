@@ -49,13 +49,15 @@ Opt<DocBlock::Ptr> to_doc_block(
                 result = tmp;
                 add_subnodes();
             } else if (auto e = it.asOpt<org::ImmBlockExport>()) {
-                auto tmp = std::make_shared<DocBlockExport>();
-                result   = tmp;
+                auto tmp    = std::make_shared<DocBlockExport>();
+                tmp->origin = e.value();
+                result      = tmp;
             } else {
-                throw std::domain_error(fmt(
-                    "No known conversion of node {} to doc block", it));
+                auto tmp    = std::make_shared<DocBlockFallback>();
+                tmp->origin = it;
+                result      = tmp;
+                add_subnodes();
             }
-
 
             return result;
         }
@@ -233,11 +235,16 @@ void DocBlock::treeRepr(ColStream& os) {
         os.indent(depth * 2);
         os << fmt1(b->getKind());
 
+        os << fmt(
+            " {}@{} ({})", isVisible ? "Y" : "N", getPos(), getSize());
+
         os << " ";
         using K = DocBlock::Kind;
 
 #define __case(_Kind)                                                     \
-    case K::_Kind: os << fmt1(*b->dyn_cast<DocBlock##_Kind>()); break;
+    case K::_Kind:                                                        \
+        os << escape_literal(fmt1(*b->dyn_cast<DocBlock##_Kind>()));      \
+        break;
 
         switch (b->getKind()) {
             __case(Annotation);
@@ -246,6 +253,7 @@ void DocBlock::treeRepr(ColStream& os) {
             __case(Paragraph);
             __case(Subtree);
             __case(ListHeader);
+            __case(Fallback);
         }
 
         for (auto const& a : b->annotations) {
@@ -278,6 +286,8 @@ void doc_editor_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
     EditableOrgDocGroup docs{ast_ctx};
     DocBlockConfig      conf;
 
+    model.ctx.setTraceFile("/tmp/doc_editor_trace.log");
+
     int root_idx = docs.init_root(node);
 
     bool first = true;
@@ -285,10 +295,14 @@ void doc_editor_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
     while (!glfwWindowShouldClose(window)) {
         frame_start();
         if (first) {
+            conf.gridViewport = ImGui::GetMainViewport()->Size;
             model.root = to_doc_block(docs.getCurrentRoot(root_idx), conf)
                              .value();
 
             model.syncPositions(model.ctx, conf);
+            writeFile(
+                "/tmp/doc_editor_tree.txt",
+                model.root->treeRepr().toString(false));
             first = false;
         }
 
@@ -299,6 +313,7 @@ void doc_editor_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
         }
         frame_end(window);
         apply_doc_block_actions(docs, model, conf);
+        quit_on_q(window);
     }
 }
 
@@ -370,7 +385,7 @@ void render_nested(
     const DocBlockConfig&    conf,
     DocBlock::RenderContext& renderContext) {
     for (auto& sub : block->nested) {
-        block->render(model, conf, renderContext);
+        sub->render(model, conf, renderContext);
     }
 }
 } // namespace
@@ -387,6 +402,7 @@ void DocBlockParagraph::render(
     DocBlockModel&        model,
     const DocBlockConfig& conf,
     RenderContext&        renderContext) {
+    if (!isVisible) { return; }
     auto tmp = configure_window_render(model, this, renderContext);
     if (IM_FN_BEGIN(
             BeginChild, renderContext.getId("##doc_block").c_str())) {
@@ -402,6 +418,7 @@ void DocBlockAnnotation::render(
     DocBlockModel&        model,
     const DocBlockConfig& conf,
     RenderContext&        renderContext) {
+    if (!isVisible) { return; }
     auto tmp = configure_window_render(model, this, renderContext);
     if (IM_FN_BEGIN(
             BeginChild, renderContext.getId("##doc_block").c_str())) {
@@ -417,20 +434,25 @@ void DocBlockAnnotation::render(
 void DocBlockExport::render(
     DocBlockModel&        model,
     const DocBlockConfig& conf,
-    RenderContext&        renderContext) {}
+    RenderContext&        renderContext) {
+    if (!isVisible) { return; }
+}
 
 void DocBlockSubtree::render(
     DocBlockModel&        model,
     const DocBlockConfig& conf,
     RenderContext&        renderContext) {
-    auto tmp = configure_window_render(model, this, renderContext);
-
-    if (IM_FN_BEGIN(
-            BeginChild, renderContext.getId("##doc_block").c_str())) {
-        handle_text_edit_result(
-            model, title, this, renderContext.getId("title"));
+    if (isVisible) {
+        auto tmp = configure_window_render(model, this, renderContext);
+        if (IM_FN_BEGIN(
+                BeginChild, renderContext.getId("##doc_block").c_str())) {
+            handle_text_edit_result(
+                model, title, this, renderContext.getId("title"));
+        }
+        IM_FN_END(EndChild);
+        pop_window_render(tmp);
     }
-    IM_FN_END(EndChild);
+
     post_render(renderContext);
     render_nested(model, this, conf, renderContext);
 }
@@ -441,4 +463,25 @@ void DocBlockListHeader::render(
     RenderContext&        renderContext) {
     post_render(renderContext);
     render_nested(model, this, conf, renderContext);
+}
+
+void DocBlockFallback::render(
+    DocBlockModel&        model,
+    const DocBlockConfig& conf,
+    RenderContext&        renderContext) {
+    if (!isVisible) { return; }
+    auto tmp = configure_window_render(model, this, renderContext);
+    if (IM_FN_BEGIN(
+            BeginChild, renderContext.getId("##doc_block").c_str())) {
+        auto pos = getCurrentWindowContentPos();
+
+        AddText(
+            dl(),
+            pos,
+            IM_COL32(255, 0, 0, 255),
+            fmt("Fallback for {}", origin.getKind()));
+    }
+    IM_FN_END(EndChild);
+    pop_window_render(tmp);
+    post_render(renderContext);
 }
