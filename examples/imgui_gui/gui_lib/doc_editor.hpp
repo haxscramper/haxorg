@@ -26,15 +26,16 @@ struct DocBlockModel;
 struct DocBlockContext;
 
 template <typename T>
-struct PtrAstApi {
+struct PtrAstApi : public CRTP_this_method<T> {
+    using CRTP_this_method<T>::_this;
     template <typename Other>
     Other* dyn_cast() {
-        return dynamic_cast<Other*>(this);
+        return dynamic_cast<Other*>(_this());
     }
 
     template <typename Other>
     Other const* dyn_cast() const {
-        return dynamic_cast<Other const*>(this);
+        return dynamic_cast<Other const*>(_this());
     }
 };
 
@@ -54,12 +55,43 @@ struct DocBlock
         }
     };
 
+    template <typename Other>
+    SPtr<Other> ptr_as() {
+        auto tmp = std::dynamic_pointer_cast<Other>(shared_from_this());
+        LOGIC_ASSERTION_CHECK(tmp.get() != nullptr, "Ptr get failed");
+        return tmp;
+    }
+
+    DECL_DESCRIBED_ENUM(
+        Kind,
+        Annotation,
+        Document,
+        Export,
+        Paragraph,
+        Subtree,
+        ListHeader);
+
+#define __kind_methods(_Kind)                                             \
+    bool is##_Kind() const { return getKind() == Kind::_Kind; }
+
+    __kind_methods(Annotation);
+    __kind_methods(Document);
+    __kind_methods(Export);
+    __kind_methods(Paragraph);
+    __kind_methods(Subtree);
+    __kind_methods(ListHeader);
+
+#undef __kind_methods
+
     Vec<DocBlock::Ptr>      nested;
     Vec<DocBlock::Ptr>      annotations;
     std::weak_ptr<DocBlock> parent;
     bool                    isVisible = true;
 
+    DESC_FIELDS(DocBlock, (nested, annotations, isVisible));
+
     ImVec2         pos;
+    virtual Kind   getKind() const     = 0;
     virtual ImVec2 getSize() const     = 0;
     virtual void   setWidth(int width) = 0;
     ImVec2         getPos() const { return pos; }
@@ -91,107 +123,87 @@ struct DocBlock
 
     int getLane() const;
 
-    virtual void syncSize(int thisLane, DocBlockConfig const& conf) {
-        int depth           = getDepth();
-        int widthWithOffset = conf.editLaneWidth
-                            - (conf.nestingBlockOffset * depth);
-
-        setWidth(widthWithOffset);
-    }
+    virtual void syncSize(int thisLane, DocBlockConfig const& conf);
 
     virtual void syncSizeRec(int thisLane, DocBlockConfig const& conf) {
         syncSize(thisLane, conf);
         for (auto& sub : nested) { sub->syncSizeRec(thisLane, conf); }
         for (auto& a : annotations) { a->syncSizeRec(thisLane + 1, conf); }
     }
+
+    Vec<DocBlock::Ptr> getFlatBlocks();
+    Vec<DocBlock::Ptr> getFlatAnnotations();
 };
 
 struct DocBlockDocument : public DocBlock {
     org::ImmAdapterT<org::ImmDocument> origin;
-    ImVec2                             getSize() const { return ImVec2(); }
-    void                               setWidth(int w) {}
-    DESC_FIELDS(DocBlockDocument, (origin));
+
+    Kind   getKind() const override { return Kind::Document; }
+    ImVec2 getSize() const override { return ImVec2(); }
+    void   setWidth(int w) override {}
+
+    BOOST_DESCRIBE_CLASS(DocBlockDocument, (DocBlock), (origin), (), ());
 
     org::ImmAdapter getRootOrigin() const { return origin; }
-
-    Vec<DocBlock::Ptr> getFlatBlocks() {
-        Vec<DocBlock::Ptr>        res;
-        Func<void(DocBlock::Ptr)> aux;
-        aux = [&](DocBlock::Ptr ptr) {
-            res.push_back(ptr);
-            for (auto const& sub : ptr->nested) { aux(sub); }
-        };
-
-        aux(shared_from_this());
-
-        return res;
-    }
-
-    Vec<DocBlock::Ptr> getFlatAnnotations();
-
-    int      docLaneScrollOffset = 0;
-    Vec<int> annotationLaneScrollOffsets;
-    void syncPositions(DocBlockContext& ctx, DocBlockConfig const& conf);
-    void syncRoot(org::ImmAdapter const& root, DocBlockConfig const& conf);
-
-
-    int getLaneScroll(int lane) {
-        if (lane == 0) {
-            return docLaneScrollOffset;
-        } else {
-            return docLaneScrollOffset
-                 + annotationLaneScrollOffsets.at_or(lane - 1, 0);
-        }
-    }
 };
 
 struct DocBlockAnnotation : public DocBlock {
     EditableOrgTextEntry text;
     Str                  name;
     ImVec2               pos;
-    ImVec2 const&        getPos() const { return pos; }
-    ImVec2               getSize() const { return text.getSize(); }
 
-    DESC_FIELDS(DocBlockAnnotation, (text, name, pos));
+    ImVec2 const& getPos() const { return pos; }
+    ImVec2        getSize() const override { return text.getSize(); }
+    Kind          getKind() const override { return Kind::Annotation; }
 
-    void setWidth(int width) { text.setWidth(width); }
+    BOOST_DESCRIBE_CLASS(
+        DocBlockAnnotation,
+        (DocBlock),
+        (text, name, pos),
+        (),
+        ());
 
-    void syncSize(int thisLane, DocBlockConfig const& conf) {
+    void setWidth(int width) override { text.setWidth(width); }
+
+    void syncSize(int thisLane, DocBlockConfig const& conf) override {
         text.setWidth(conf.annotationLanesWidth.at(thisLane));
     }
 };
 
 struct DocBlockExport : public DocBlock {
     org::ImmAdapterT<org::ImmBlockExport> origin;
-    ImVec2 getSize() const { return ImVec2{100, 20}; }
-    void   setWidth(int width) {}
-    DESC_FIELDS(DocBlockExport, (origin));
+    ImVec2 getSize() const override { return ImVec2{100, 20}; }
+    void   setWidth(int width) override {}
+    Kind   getKind() const override { return Kind::Export; }
+    BOOST_DESCRIBE_CLASS(DocBlockExport, (DocBlock), (origin), (), ());
 };
 
 struct DocBlockParagraph : public DocBlock {
     org::ImmAdapterT<org::ImmParagraph> origin;
     EditableOrgTextEntry                text;
-    void   setWidth(int width) { text.setWidth(width); }
-    ImVec2 getSize() const { return text.getSize(); }
-    DESC_FIELDS(DocBlockParagraph, (text, origin));
+    void   setWidth(int width) override { text.setWidth(width); }
+    ImVec2 getSize() const override { return text.getSize(); }
+    Kind   getKind() const override { return Kind::Paragraph; }
+    BOOST_DESCRIBE_CLASS(DocBlockParagraph, (), (text, origin), (), ());
 };
 
 struct DocBlockSubtree : public DocBlock {
     org::ImmAdapterT<org::ImmSubtree> origin;
     EditableOrgTextEntry              title;
 
-    void   setWidth(int width) { title.setWidth(width); }
-    ImVec2 getSize() const { return title.getSize(); }
+    void   setWidth(int width) override { title.setWidth(width); }
+    ImVec2 getSize() const override { return title.getSize(); }
+    Kind   getKind() const override { return Kind::Subtree; }
 
-    DESC_FIELDS(DocBlockSubtree, (title, origin));
+    BOOST_DESCRIBE_CLASS(DocBlockSubtree, (), (title, origin), (), ());
 };
 
 struct DocBlockListHeader : public DocBlock {
     org::ImmAdapterT<org::ImmList> origin;
-
-    void   setWidth(int width) {}
-    ImVec2 getSize() const { return ImVec2{100, 20}; }
-    DESC_FIELDS(DocBlockListHeader, (origin));
+    Kind   getKind() const override { return Kind::ListHeader; }
+    void   setWidth(int width) override {}
+    ImVec2 getSize() const override { return ImVec2{100, 20}; }
+    BOOST_DESCRIBE_CLASS(DocBlockListHeader, (DocBlock), (origin), (), ());
 };
 
 template <>
@@ -250,9 +262,26 @@ struct DocBlockContext
 };
 
 struct DocBlockModel {
-    DocBlockDocument root;
-    DocBlockContext  ctx;
+    DocBlockDocument::Ptr root;
+    DocBlockContext       ctx;
+
+    int      docLaneScrollOffset = 0;
+    Vec<int> annotationLaneScrollOffsets;
+
     DESC_FIELDS(DocBlockModel, (root, ctx));
+
+    void syncPositions(DocBlockContext& ctx, DocBlockConfig const& conf);
+    void syncRoot(org::ImmAdapter const& root, DocBlockConfig const& conf);
+
+
+    int getLaneScroll(int lane) {
+        if (lane == 0) {
+            return docLaneScrollOffset;
+        } else {
+            return docLaneScrollOffset
+                 + annotationLaneScrollOffsets.at_or(lane - 1, 0);
+        }
+    }
 };
 
 Opt<DocBlock::Ptr> to_doc_block(

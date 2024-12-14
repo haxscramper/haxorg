@@ -19,7 +19,7 @@ Opt<DocBlock::Ptr> to_doc_block(
         if (it.is(OrgSemKind::Newline)) {
             return std::nullopt;
         } else {
-            auto result = DocBlock::shared();
+            SPtr<DocBlock> result;
 
             auto thisWidth = conf.editLaneWidth
                            - (conf.nestingBlockOffset * depth);
@@ -32,19 +32,25 @@ Opt<DocBlock::Ptr> to_doc_block(
             };
 
             if (auto d = it.asOpt<org::ImmDocument>()) {
-                result->data = DocBlock::Document{.origin = d.value()};
+                auto tmp    = std::make_shared<DocBlockDocument>();
+                tmp->origin = d.value();
+                result      = tmp;
                 add_subnodes();
             } else if (auto d = it.asOpt<org::ImmParagraph>()) {
-                result->data = DocBlock::Paragraph{.origin = d.value()};
-                result->getParagraph().text = EditableOrgTextEntry::
-                    from_adapter(d.value(), thisWidth);
+                auto tmp  = std::make_shared<DocBlockParagraph>();
+                tmp->text = EditableOrgTextEntry::from_adapter(
+                    d.value(), thisWidth);
+                result = tmp;
             } else if (auto d = it.asOpt<org::ImmSubtree>()) {
-                result->data = DocBlock::Subtree{.origin = d.value()};
-                result->getSubtree().title = EditableOrgTextEntry::
-                    from_adapter(d->getTitle(), thisWidth);
+                auto tmp    = std::make_shared<DocBlockSubtree>();
+                tmp->origin = d.value();
+                tmp->title  = EditableOrgTextEntry::from_adapter(
+                    d->getTitle(), thisWidth);
+                result = tmp;
                 add_subnodes();
             } else if (auto e = it.asOpt<org::ImmBlockExport>()) {
-                result->data = DocBlock::Export{.origin = e.value()};
+                auto tmp = std::make_shared<DocBlockExport>();
+                result   = tmp;
             } else {
                 throw std::domain_error(fmt(
                     "No known conversion of node {} to doc block", it));
@@ -73,7 +79,7 @@ void render_doc_block(
         fmt("Index {} kind {}", renderContext.dfsIndex, block->getKind()));
 
     auto frameless_vars = push_frameless_window_vars();
-    ImGui::SetNextWindowPos(renderContext.getWindowPos(block));
+    ImGui::SetNextWindowPos(renderContext.getWindowPos(block.get()));
     ImGui::SetNextWindowSize(block->getSize());
 
     int selfIndex = renderContext.getIndex();
@@ -101,11 +107,11 @@ void render_doc_block(
 
     if (IM_FN_BEGIN(BeginChild, c_fmt("##doc_block_{}", selfIndex))) {
         if (block->isSubtree()) {
-            auto& t = block->getSubtree();
-            handle_text_edit_result(t.title, "title");
+            auto t = block->ptr_as<DocBlockSubtree>();
+            handle_text_edit_result(t->title, "title");
         } else if (block->isParagraph()) {
-            auto& p = block->getParagraph();
-            handle_text_edit_result(p.text, "paragraph");
+            auto p = block->ptr_as<DocBlockParagraph>();
+            handle_text_edit_result(p->text, "paragraph");
         } else if (block->isDocument()) {
             // pass
         } else {
@@ -126,7 +132,7 @@ void render_doc_block(
 void render_doc_block(DocBlockModel& model, const DocBlockConfig& conf) {
     DocBlock::RenderContext renderContext{};
     renderContext.start = ImGui::GetCursorScreenPos();
-    model.root.render(model, conf);
+    model.root->render(model, conf);
 }
 
 void apply_doc_block_actions(
@@ -142,7 +148,7 @@ void apply_doc_block_actions(
     for (auto const& act : model.ctx.actions) {
         switch (act.getKind()) {
             case DocBlockAction::Kind::NodeEditChanged: {
-                model.root.syncPositions(model.ctx, conf);
+                model.syncPositions(model.ctx, conf);
                 break;
             }
 
@@ -155,12 +161,13 @@ void apply_doc_block_actions(
                 CTX_MSG("Extending history");
                 history.extend_history(upd);
                 CTX_MSG("Sync root for new adapter");
-                model.root.syncRoot(
+                model.syncRoot(
                     history.getCurrentHistory().getNewRoot(
-                        model.root.getRootOrigin()),
+                        model.root->ptr_as<DocBlockDocument>()
+                            ->getRootOrigin()),
                     conf);
                 CTX_MSG("Sync positions for new adapter");
-                model.root.syncPositions(model.ctx, conf);
+                model.syncPositions(model.ctx, conf);
                 break;
             }
         }
@@ -169,7 +176,20 @@ void apply_doc_block_actions(
     model.ctx.actions.clear();
 }
 
-Vec<SharedPtrApi::Ptr> DocBlockDocument::getFlatAnnotations() {
+Vec<DocBlock::Ptr> DocBlock::getFlatBlocks() {
+    Vec<DocBlock::Ptr>        res;
+    Func<void(DocBlock::Ptr)> aux;
+    aux = [&](DocBlock::Ptr ptr) {
+        res.push_back(ptr);
+        for (auto const& sub : ptr->nested) { aux(sub); }
+    };
+
+    aux(shared_from_this());
+
+    return res;
+}
+
+Vec<DocBlock::Ptr> DocBlock::getFlatAnnotations() {
     Vec<DocBlock::Ptr>        res;
     Func<void(DocBlock::Ptr)> aux;
     aux = [&](DocBlock::Ptr ptr) {
@@ -183,7 +203,7 @@ Vec<SharedPtrApi::Ptr> DocBlockDocument::getFlatAnnotations() {
     return res;
 }
 
-void DocBlockDocument::syncPositions(
+void DocBlockModel::syncPositions(
     DocBlockContext&      ctx,
     const DocBlockConfig& conf) {
     CTX_MSG("Sync positions");
@@ -216,8 +236,8 @@ void DocBlockDocument::syncPositions(
         return flatPos;
     };
 
-    for (auto const& block : getFlatBlocks()) {
-        if (block->isDocument()) { continue; }
+    for (auto const& block : root->getFlatBlocks()) {
+        if (block->dyn_cast<DocBlockDocument>()) { continue; }
         int flatPos                               = add_graph_rect(block);
         g.getNode(flatPos).horizontalCenterOffset = conf.nestingBlockOffset
                                                   * block->getDepth();
@@ -249,10 +269,11 @@ void DocBlockDocument::syncPositions(
     }
 }
 
-void DocBlockDocument::syncRoot(
+void DocBlockModel::syncRoot(
     const org::ImmAdapter& root,
     const DocBlockConfig&  conf) {
-    this->root = to_doc_block(root, conf).value();
+    this->root = std::dynamic_pointer_cast<DocBlockDocument>(
+        to_doc_block(root, conf).value());
 }
 
 void DocBlockContext::message(
@@ -277,7 +298,20 @@ void DocBlock::treeRepr(ColStream& os) {
         os.indent(depth * 2);
         os << fmt1(b->getKind());
 
-        std::visit([&](auto const& d) { os << " " << fmt1(d); }, b->data);
+        os << " ";
+        using K = DocBlock::Kind;
+
+#define __case(_Kind)                                                     \
+    case K::_Kind: os << fmt1(*b->dyn_cast<DocBlock##_Kind>()); break;
+
+        switch (b->getKind()) {
+            __case(Annotation);
+            __case(Document);
+            __case(Export);
+            __case(Paragraph);
+            __case(Subtree);
+            __case(ListHeader);
+        }
 
         for (auto const& a : b->annotations) {
             os << "\n";
@@ -316,11 +350,10 @@ void doc_editor_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
     while (!glfwWindowShouldClose(window)) {
         frame_start();
         if (first) {
-            model.root.root = to_doc_block(
-                                  docs.getCurrentRoot(root_idx), conf)
-                                  .value();
+            model.root = to_doc_block(docs.getCurrentRoot(root_idx), conf)
+                             .value();
 
-            model.root.syncPositions(model.ctx, conf);
+            model.syncPositions(model.ctx, conf);
             first = false;
         }
 
@@ -342,4 +375,12 @@ int DocBlock::getLane() const {
     } else {
         return 0;
     }
+}
+
+void DocBlock::syncSize(int thisLane, const DocBlockConfig& conf) {
+    int depth           = getDepth();
+    int widthWithOffset = conf.editLaneWidth
+                        - (conf.nestingBlockOffset * depth);
+
+    setWidth(widthWithOffset);
 }
