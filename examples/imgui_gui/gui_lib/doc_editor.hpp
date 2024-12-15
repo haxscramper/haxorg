@@ -170,26 +170,22 @@ struct DocBlockDocument : public DocBlock {
 };
 
 struct DocBlockAnnotation : public DocBlock {
-    EditableOrgTextEntry text;
-    Str                  name;
+    EditableOrgTextEntry name;
     ImVec2               pos;
 
     ImVec2 const& getPos() const { return pos; }
-    ImVec2        getSize() const override { return text.getSize(); }
+    ImVec2        getSize() const override { return name.getSize(); }
     Kind          getKind() const override { return Kind::Annotation; }
 
     BOOST_DESCRIBE_CLASS(
         DocBlockAnnotation,
         (DocBlock),
-        (text, name, pos),
+        (name, pos),
         (),
         ());
 
-    void setWidth(int width) override { text.setWidth(width); }
-
-    void syncSize(int thisLane, DocBlockConfig const& conf) override {
-        text.setWidth(conf.annotationLanesWidth.at(thisLane));
-    }
+    void setWidth(int width) override {}
+    void syncSize(int thisLane, DocBlockConfig const& conf) override {}
 
     virtual void render(
         DocBlockModel&        model,
@@ -357,7 +353,8 @@ struct DocBlockModel {
 
 Opt<DocBlock::Ptr> to_doc_block(
     org::ImmAdapter const& it,
-    DocBlockConfig const&  conf);
+    DocBlockConfig const&  conf,
+    DocBlockContext&       ctx);
 void render_doc_block(DocBlockModel& model, DocBlockConfig const& conf);
 
 void apply_doc_block_actions(

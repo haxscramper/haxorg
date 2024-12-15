@@ -20,10 +20,9 @@ void NodeGridGraph::syncLayout() {
 Vec<NodeGridGraph::RectSpec> NodeGridGraph::getRectangles() {
     Vec<RectSpec> res;
     for (auto const& [flat_idx, lane_idx] : gridNodeToNode) {
-        int layout_index = lyt.rectMap.at(lane_idx);
-        if (lyt.rectMap.contains(lane_idx)) {
-            auto pos  = layout.fixed.at(layout_index).topLeft();
-            auto size = layout.fixed.at(layout_index).size();
+        if (auto layout_index = lyt.rectMap.get(lane_idx)) {
+            auto pos  = layout.fixed.at(layout_index.value()).topLeft();
+            auto size = layout.fixed.at(layout_index.value()).size();
             res.push_back(RectSpec{
                 .lanePos   = lane_idx,
                 .flatPos   = flat_idx,

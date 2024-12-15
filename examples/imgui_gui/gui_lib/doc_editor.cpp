@@ -1,3 +1,4 @@
+#include <haxorg/sem/ImmOrgGraph.hpp>
 #define NDEBUG 0
 
 #include "doc_editor.hpp"
@@ -12,21 +13,74 @@
 
 Opt<DocBlock::Ptr> to_doc_block(
     const org::ImmAdapter& it,
-    const DocBlockConfig&  conf) {
+    const DocBlockConfig&  conf,
+    DocBlockContext&       ctx) {
 
-    Func<Opt<DocBlock::Ptr>(org::ImmAdapter const&, int)> aux;
-    aux = [&](org::ImmAdapter const& it, int depth) -> Opt<DocBlock::Ptr> {
+    struct AuxCtx {
+        int depth = 0;
+        int lane  = 0;
+
+        AuxCtx inLane(int l) const {
+            auto r = *this;
+            r.lane = l;
+            return r;
+        }
+
+        int getThisWidth(const DocBlockConfig& conf) const {
+            if (lane == 0) {
+                return conf.editLaneWidth
+                     - (conf.nestingBlockOffset * depth);
+                ;
+            } else {
+                return conf.annotationLanesWidth.at(lane - 1);
+            }
+        }
+
+        AuxCtx withIncDepth() const {
+            auto r = *this;
+            r.depth += 1;
+            return r;
+        }
+    };
+
+    Func<Opt<DocBlock::Ptr>(org::ImmAdapter const&, CR<AuxCtx> actx)>
+        auxAnnotation;
+    Func<Opt<DocBlock::Ptr>(org::ImmAdapter const&, CR<AuxCtx> actx)>
+        auxNode;
+
+    auxAnnotation = [&](org::ImmAdapter const& it,
+                        CR<AuxCtx>             actx) -> DocBlock::Ptr {
+        CTX_MSG(fmt("Aux annotation from {}", it));
+        auto __scope = ctx.scopeLevel();
+        auto tmp     = std::make_shared<DocBlockAnnotation>();
+        if (auto item = it.asOpt<org::ImmListItem>()) {
+            if (auto header = item->getHeader()) {
+                tmp->name = EditableOrgTextEntry::from_adapter(
+                    header.value(),
+                    conf.annotationLanesWidth.at(0),
+                    EditableOrgText::Mode::SingleLine);
+            }
+
+            for (auto const& sub : item->sub()) {
+                auto subdoc = auxNode(sub, actx.withIncDepth());
+                if (subdoc) { tmp->addNested(subdoc.value()); }
+            }
+        }
+
+        return tmp;
+    };
+
+    auxNode = [&](org::ImmAdapter const& it,
+                  CR<AuxCtx>             actx) -> Opt<DocBlock::Ptr> {
         if (it.is(OrgSemKind::Newline)) {
             return std::nullopt;
         } else {
+            CTX_MSG(fmt("Aux newline from {}", it));
+            auto           __scope = ctx.scopeLevel();
             SPtr<DocBlock> result;
-
-            auto thisWidth = conf.editLaneWidth
-                           - (conf.nestingBlockOffset * depth);
-
-            auto add_subnodes = [&]() {
+            auto           add_subnodes = [&]() {
                 for (auto const& sub : it.sub()) {
-                    auto subdoc = aux(sub, depth + 1);
+                    auto subdoc = auxNode(sub, actx.withIncDepth());
                     if (subdoc) { result->addNested(subdoc.value()); }
                 }
             };
@@ -39,15 +93,22 @@ Opt<DocBlock::Ptr> to_doc_block(
             } else if (auto d = it.asOpt<org::ImmParagraph>()) {
                 auto tmp  = std::make_shared<DocBlockParagraph>();
                 tmp->text = EditableOrgTextEntry::from_adapter(
-                    d.value(), thisWidth);
+                    d.value(), actx.getThisWidth(conf));
                 result = tmp;
             } else if (auto d = it.asOpt<org::ImmSubtree>()) {
                 auto tmp    = std::make_shared<DocBlockSubtree>();
                 tmp->origin = d.value();
                 tmp->title  = EditableOrgTextEntry::from_adapter(
-                    d->getTitle(), thisWidth);
+                    d->getTitle(), actx.getThisWidth(conf));
                 result = tmp;
-                add_subnodes();
+                for (auto const& sub : it.sub()) {
+                    if (org::graph::isAttachedDescriptionList(sub)) {
+
+                    } else {
+                        auto subdoc = auxNode(sub, actx.withIncDepth());
+                        if (subdoc) { result->addNested(subdoc.value()); }
+                    }
+                }
             } else if (auto e = it.asOpt<org::ImmBlockExport>()) {
                 auto tmp    = std::make_shared<DocBlockExport>();
                 tmp->origin = e.value();
@@ -69,7 +130,7 @@ Opt<DocBlock::Ptr> to_doc_block(
         }
     };
 
-    return aux(it, 0);
+    return auxNode(it, AuxCtx{});
 }
 
 void render_doc_block(DocBlockModel& model, const DocBlockConfig& conf) {
@@ -190,7 +251,7 @@ void DocBlockModel::syncRoot(
     const org::ImmAdapter& root,
     const DocBlockConfig&  conf) {
     this->root = std::dynamic_pointer_cast<DocBlockDocument>(
-        to_doc_block(root, conf).value());
+        to_doc_block(root, conf, ctx).value());
 }
 
 void DocBlockModel::syncBlockGraph(const DocBlockConfig& conf) {
@@ -437,9 +498,13 @@ void render_nested(
 void debug_render(
     DocBlock*                block,
     DocBlock::RenderContext& renderContext) {
+    auto pos = renderContext.getWindowPos(block);
+    ImGui::GetForegroundDrawList()->AddRect(
+        pos, pos + block->getSize(), IM_COL32(0, 255, 255, 255));
+
     AddText(
         ImGui::GetForegroundDrawList(),
-        renderContext.getWindowPos(block) + ImVec2{600, 0},
+        pos + ImVec2{600, 0},
         IM_COL32(0, 255, 0, 255),
         fmt("{} @{} {}",
             block->getKind(),
@@ -484,13 +549,14 @@ void DocBlockAnnotation::render(
     if (IM_FN_BEGIN(
             BeginChild, renderContext.getId("##doc_block").c_str())) {
         handle_text_edit_result(
-            model, text, this, renderContext.getId("annotation"));
+            model, name, this, renderContext.getId("annotation"));
     }
     IM_FN_END(EndChild);
 
     pop_window_render();
     debug_render(this, renderContext);
     post_render(renderContext);
+    render_nested(model, this, conf, renderContext);
 }
 
 void DocBlockExport::render(

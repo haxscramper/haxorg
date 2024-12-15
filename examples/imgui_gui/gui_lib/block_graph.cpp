@@ -508,11 +508,12 @@ bool LaneBlockStack::inSpan(int blockIdx, Slice<int> heightRange) const {
         auto span = blocks.at(blockIdx).heightSpan(
             getBlockHeightStart(blockIdx));
         bool result = heightRange.overlap(span).has_value();
-        gr_log(ol_debug).message(
-            _dfmt_expr(span, heightRange, blockIdx, result, scrollOffset));
+        // gr_log(ol_debug).message(
+        //     _dfmt_expr(span, heightRange, blockIdx, result,
+        //     scrollOffset));
         return result;
     } else {
-        gr_log(ol_debug).message(_dfmt_expr(blockIdx, heightRange));
+        // gr_log(ol_debug).message(_dfmt_expr(blockIdx, heightRange));
         return false;
     }
 }
