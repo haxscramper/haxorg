@@ -846,7 +846,9 @@ void StoryGridGraph::focusLinkListTargetRows(StoryGridContext& ctx) {
 
 void StoryGridModel::updateHiddenRowConnection(
     StoryGridConfig const& conf) {
-    auto& ir = rectGraph.ir;
+    CTX_MSG("Update hiddent row connections");
+    auto  __scope = ctx.scopeLevel();
+    auto& ir      = rectGraph.ir;
 
     Slice<int> viewportRange = slice1<int>(0, conf.gridViewport.y);
     auto&      lanes         = rectGraph.ir.getLanes();
@@ -873,17 +875,10 @@ void StoryGridModel::updateHiddenRowConnection(
                                    ? lanes.at(lane_idx).scrollOffset
                                    : 0)
                             + row->getHeight().value());
+
                     org::ImmUniqId rowId = row->origin.uniq();
-                    UnorderedSet<org::graph::MapNode> adjacent;
-                    for (auto const& n : rectGraph.graph.inNodes(rowId)) {
-                        adjacent.incl(n);
-                    }
-
-                    for (auto const& n : rectGraph.graph.outNodes(rowId)) {
-                        adjacent.incl(n);
-                    }
-
-                    auto overlap = rowRange.overlap(viewportRange);
+                    auto adjacent        = rectGraph.graph.adjNodes(rowId);
+                    auto overlap         = rowRange.overlap(viewportRange);
 
                     for (auto const& n : adjacent) {
                         Opt<LaneNodePos> targetNodePos = rectGraph.orgToId
