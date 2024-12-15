@@ -176,7 +176,8 @@ void render_tree_row(
         ImGui::GetWindowDrawList()->AddRect(
             rect_min,
             rect_max,
-            conf.foldCellHoverBackground,
+            row.isOpen ? conf.foldCellHoverBackground_Open
+                       : conf.foldCellHoverBackground_Closed,
             0.0f,
             0,
             1.0f);
@@ -191,7 +192,10 @@ void render_tree_row(
     }
 
     ImGui::GetWindowDrawList()->AddRectFilled(
-        rect_min, rect_max, conf.foldCellBackground);
+        rect_min,
+        rect_max,
+        row.isOpen ? conf.foldCellForeground_Open
+                   : conf.foldCellForeground_Closed);
 }
 
 void render_text_node(
@@ -433,10 +437,10 @@ TreeGridDocument getInitRootDoc(StoryGridConfig const& conf) {
 }
 
 Opt<json> story_grid_loop(
-    GLFWwindow*            window,
-    std::string const&     file,
-    const Opt<json>&       in_state,
-    StoryGridConfig const& conf) {
+    GLFWwindow*        window,
+    std::string const& file,
+    const Opt<json>&   in_state,
+    StoryGridConfig&   conf) {
     int inotify_fd = inotify_init1(IN_NONBLOCK);
     if (inotify_fd < 0) {
         throw std::system_error(
@@ -481,6 +485,7 @@ Opt<json> story_grid_loop(
 
 
     while (!glfwWindowShouldClose(window)) {
+
         int inotify_change = read(inotify_fd, &buffer[0], buffer.size());
         if (0 < inotify_change) {
             LOG(INFO) << "File change, reloading the model";
@@ -499,7 +504,8 @@ Opt<json> story_grid_loop(
         fullscreen_window_begin();
 
         if (first) {
-            first = false;
+            first             = false;
+            conf.gridViewport = ImGui::GetMainViewport()->Size;
             model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Graph);
             model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Scroll);
             model.updateDocument(getInitRootDoc(conf), conf);
@@ -517,6 +523,7 @@ Opt<json> story_grid_loop(
         frame_end(window);
 
         apply_story_grid_changes(model, getInitRootDoc(conf), conf);
+        quit_on_q(window);
     }
 
     inotify_rm_watch(inotify_fd, watch_descriptor);
@@ -654,39 +661,6 @@ Vec<Vec<StoryGridAnnotation>> partition_graph_nodes(
     return result;
 }
 
-
-void add_description_list_node(
-    StoryGridGraph&                       res,
-    TreeGridDocument&                     doc,
-    org::ImmAdapterT<org::ImmList> const& list,
-    org::graph::MapGraph&                 graph,
-    StoryGridContext&                     ctx) {
-    org::graph::MapNode listNode{list.uniq()};
-    for (auto const& item : list.subAs<org::ImmListItem>()) {
-        graph.addNode(item.uniq());
-        for (auto const& link : item.getHeader()->subAs<org::ImmLink>()) {
-            if (link->target.isId()) {
-                auto target = link.ctx.lock()->currentTrack->subtrees.get(
-                    link.value().target.getId().text);
-                for (auto const& targetPath :
-                     link.ctx.lock()->getPathsFor(target.value())) {
-                    CTX_MSG(fmt(
-                        "List link {} -> {}", item.uniq(), targetPath));
-
-                    res.annotationParents.insert_or_assign(
-                        item.uniq(), list.uniq());
-                    graph.addEdge(
-                        org::graph::MapEdge{
-                            .source = item.uniq(),
-                            .target = org::graph::MapNode{targetPath},
-                        },
-                        org::graph::MapEdgeProp{});
-                }
-            }
-        }
-    }
-}
-
 void add_footnote_annotation_node(
     UnorderedSet<org::ImmUniqId> visited,
     org::ImmUniqId const&        origin,
@@ -735,91 +709,6 @@ void add_footnote_annotation_node(
         }
     }
 };
-
-void add_annotation_nodes(
-    StoryGridGraph&       res,
-    TreeGridDocument&     doc,
-    org::graph::MapGraph& graph,
-    StoryGridContext&     ctx) {
-    CTX_MSG("Add annotation nodes to document");
-    auto __scope = ctx.scopeLevel();
-
-    for (auto const& row : doc.flatRows(true)) {
-        org::graph::MapNode subtreeNode{row->origin.uniq()};
-        graph.addNode(subtreeNode);
-    }
-
-    for (auto const& row : doc.flatRows(true)) {
-        CTX_MSG(fmt("Nested elements for row {}", row->origin));
-        for (auto const& sub : row->origin.sub()) {
-            CTX_MSG(fmt("- Nested {}", sub));
-        }
-        for (auto const& nested :
-             row->origin.subAs<org::ImmBlockComment>()) {
-            org::graph::MapNode subtreeNode{row->origin.uniq()};
-            org::graph::MapNode commentNode{nested.uniq()};
-            graph.addNode(commentNode);
-            graph.addEdge(
-                org::graph::MapEdge{
-                    .source = subtreeNode,
-                    .target = commentNode,
-                },
-                org::graph::MapEdgeProp{});
-
-            UnorderedSet<org::ImmUniqId> visited;
-            add_footnote_annotation_node(
-                visited, commentNode.id, nested, graph, ctx);
-        }
-
-        for (auto const& list : row->origin.subAs<org::ImmList>()) {
-            if (list.isDescriptionList()
-                && org::graph::isLinkedDescriptionList(list)) {
-                add_description_list_node(res, doc, list, graph, ctx);
-            }
-        }
-    }
-}
-
-
-int add_root_grid_node(
-    StoryGridGraph&         res,
-    org::ImmAdapter const&  node,
-    TreeGridDocument const& init_doc,
-    StoryGridContext&       ctx,
-    StoryGridConfig const&  conf) {
-    TreeGridDocument doc = init_doc;
-    __perf_trace_begin("gui", "build doc rows");
-    doc.rows = build_rows(node, doc);
-    __perf_trace_end("gui");
-    doc.resetGridStatics();
-
-
-    CTX_MSG(
-        fmt("Add root node to the document, grid size={} "
-            "row-count={} col-count={} columns={}",
-            doc.getSize(),
-            doc.rowPositions.size(),
-            doc.columns.size(),
-            doc.columns));
-
-    StoryGridNode::TreeGrid grid{
-        .pos  = ImVec2(0, 0),
-        .node = doc,
-    };
-
-    int flatIdx = res.addNode(
-        0,
-        doc.getSize(),
-        StoryGridNode{.data = grid},
-        conf.blockGraphConf);
-
-    for (auto const& row : doc.flatRows(true)) {
-        res.orgToId.insert_or_assign(
-            row->origin.uniq(), res.getIrNode(flatIdx));
-    }
-
-    return flatIdx;
-}
 
 LaneNodePos get_partition_node(
     org::ImmAstVersion const& ast,
@@ -1210,28 +1099,22 @@ void update_document_graph(
 
     rg.graph.clear();
 
-    auto __log_scoped = OLOG_SINK_FACTORY_SCOPED([counter = 0]() mutable {
-        auto file = fmt(
-            "/tmp/connect_partition_edges_log_{}.log", ++counter);
-        LOG(INFO) << "Created scoped file in " << file;
-        return ::org_logging::init_file_sink(file);
+    auto __log_scoped = OLOG_SINK_FACTORY_SCOPED([]() {
+        return ::org_logging::init_file_sink(
+            "/tmp/connect_partition_edges_log.log");
     });
 
     CTX_MSG("Update document graph");
     auto __scope = ctx.scopeLevel();
 
-    int docNodeIndex = add_root_grid_node(
-        rg,
+    int docNodeIndex = rg.addRootGrid(
         model.getLastHistory().ast.getRootAdapter(),
         init_doc,
         model.ctx,
         conf);
 
-    add_annotation_nodes(
-        rg,
-        rg.nodes.at(docNodeIndex).getTreeGrid().node,
-        rg.graph,
-        model.ctx);
+    rg.addGridAnnotationNodes(
+        rg.nodes.at(docNodeIndex).getTreeGrid().node, rg.graph, model.ctx);
 
     CTX_MSG(fmt("Graph with {} nodes", rg.nodes.size()));
     CTX_MSG(fmt("Graph adjacency list {}", rg.graph.adjList));
@@ -1624,5 +1507,117 @@ void apply_story_grid_changes(
         }
         model.updateDocument(init_doc, conf);
         model.ctx.actions.clear();
+    }
+}
+
+int StoryGridGraph::addRootGrid(
+    const org::ImmAdapter&  node,
+    const TreeGridDocument& init_doc,
+    StoryGridContext&       ctx,
+    const StoryGridConfig&  conf) {
+    TreeGridDocument doc = init_doc;
+    __perf_trace_begin("gui", "build doc rows");
+    doc.rows = build_rows(node, doc);
+    __perf_trace_end("gui");
+    doc.resetGridStatics();
+
+
+    CTX_MSG(
+        fmt("Add root node to the document, grid size={} "
+            "row-count={} col-count={} columns={}",
+            doc.getSize(),
+            doc.rowPositions.size(),
+            doc.columns.size(),
+            doc.columns));
+
+    StoryGridNode::TreeGrid grid{
+        .pos  = ImVec2(0, 0),
+        .node = doc,
+    };
+
+    int flatIdx = addNode(
+        0,
+        doc.getSize(),
+        StoryGridNode{.data = grid},
+        conf.blockGraphConf);
+
+    for (auto const& row : doc.flatRows(true)) {
+        orgToId.insert_or_assign(row->origin.uniq(), getIrNode(flatIdx));
+    }
+
+    return flatIdx;
+}
+
+void StoryGridGraph::addGridAnnotationNodes(
+    TreeGridDocument&     doc,
+    org::graph::MapGraph& graph,
+    StoryGridContext&     ctx) {
+    CTX_MSG("Add annotation nodes to document");
+    auto __scope = ctx.scopeLevel();
+
+    for (auto const& row : doc.flatRows(true)) {
+        org::graph::MapNode subtreeNode{row->origin.uniq()};
+        graph.addNode(subtreeNode);
+    }
+
+    for (auto const& row : doc.flatRows(true)) {
+        CTX_MSG(fmt("Nested elements for row {}", row->origin));
+        for (auto const& sub : row->origin.sub()) {
+            CTX_MSG(fmt("- Nested {}", sub));
+        }
+        for (auto const& nested :
+             row->origin.subAs<org::ImmBlockComment>()) {
+            org::graph::MapNode subtreeNode{row->origin.uniq()};
+            org::graph::MapNode commentNode{nested.uniq()};
+            graph.addNode(commentNode);
+            graph.addEdge(
+                org::graph::MapEdge{
+                    .source = subtreeNode,
+                    .target = commentNode,
+                },
+                org::graph::MapEdgeProp{});
+
+            UnorderedSet<org::ImmUniqId> visited;
+            add_footnote_annotation_node(
+                visited, commentNode.id, nested, graph, ctx);
+        }
+
+        for (auto const& list : row->origin.subAs<org::ImmList>()) {
+            if (list.isDescriptionList()
+                && org::graph::isLinkedDescriptionList(list)) {
+                addDescriptionListNodes(doc, list, graph, ctx);
+            }
+        }
+    }
+}
+
+void StoryGridGraph::addDescriptionListNodes(
+    TreeGridDocument&                     doc,
+    const org::ImmAdapterT<org::ImmList>& list,
+    org::graph::MapGraph&                 graph,
+    StoryGridContext&                     ctx) {
+    org::graph::MapNode listNode{list.uniq()};
+    for (auto const& item : list.subAs<org::ImmListItem>()) {
+        graph.addNode(item.uniq());
+        for (auto const& link : item.getHeader()->subAs<org::ImmLink>()) {
+            if (link->target.isId()) {
+                auto target = link.ctx.lock()->currentTrack->subtrees.get(
+                    link.value().target.getId().text);
+                for (auto const& targetPath :
+                     link.ctx.lock()->getPathsFor(target.value())) {
+                    CTX_MSG(fmt(
+                        "List link {} -> {}", item.uniq(), targetPath));
+
+                    annotationParents.insert_or_assign(
+                        item.uniq(), list.uniq());
+                    graph.addEdge(
+                        org::graph::MapEdge{
+                            .source = item.uniq(),
+                            .target = org::graph::MapNode{targetPath},
+                        },
+                        org::graph::MapEdgeProp{});
+                }
+            }
+        }
     }
 }

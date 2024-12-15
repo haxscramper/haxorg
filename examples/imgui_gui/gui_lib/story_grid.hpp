@@ -316,6 +316,9 @@ struct StoryGridAnnotation {
     DESC_FIELDS(StoryGridAnnotation, (source, target));
 };
 
+struct StoryGridContext;
+struct StoryGridConfig;
+
 struct StoryGridGraph {
     Vec<StoryGridNode>            nodes;
     NodeGridGraph                 ir;
@@ -324,6 +327,23 @@ struct StoryGridGraph {
 
     UnorderedMap<org::ImmUniqId, org::ImmUniqId> annotationParents;
     UnorderedMap<org::ImmUniqId, LaneNodePos>    orgToId;
+
+    int addRootGrid(
+        org::ImmAdapter const&  node,
+        TreeGridDocument const& init_doc,
+        StoryGridContext&       ctx,
+        StoryGridConfig const&  conf);
+
+    void addGridAnnotationNodes(
+        TreeGridDocument&     doc,
+        org::graph::MapGraph& graph,
+        StoryGridContext&     ctx);
+
+    void addDescriptionListNodes(
+        TreeGridDocument&                     doc,
+        org::ImmAdapterT<org::ImmList> const& list,
+        org::graph::MapGraph&                 graph,
+        StoryGridContext&                     ctx);
 
     bool isVisible(org::ImmUniqId const& id) const {
         auto lane_pos = orgToId.get(id);
@@ -449,23 +469,27 @@ struct StoryGridConfig {
     Vec<StoryGridColumnConfig> defaultColumns;
     LaneBlockGraphConfig       blockGraphConf;
 
-    ImU32  foldCellHoverBackground = IM_COL32(0, 255, 255, 255);
-    ImU32  foldCellBackground      = IM_COL32(255, 0, 0, 128);
-    ImU32  annotationNodeWindowBg  = IM_COL32(128, 128, 128, 128);
-    bool   annotated               = true;
-    int    pageUpScrollStep        = 20;
-    int    pageDownScrollStep      = -20;
-    int    mouseScrollMultiplier   = 10;
-    int    annotationNodeWidth     = 200;
-    int    laneRowPadding          = 6;
+    ImU32  foldCellHoverBackground_Open   = IM_COL32(0, 255, 255, 255);
+    ImU32  foldCellForeground_Open        = IM_COL32(255, 0, 0, 128);
+    ImU32  foldCellHoverBackground_Closed = IM_COL32(0, 255, 255, 255);
+    ImU32  foldCellForeground_Closed      = IM_COL32(0, 255, 0, 128);
+    ImU32  annotationNodeWindowBg         = IM_COL32(128, 128, 128, 128);
+    bool   annotated                      = true;
+    int    pageUpScrollStep               = 20;
+    int    pageDownScrollStep             = -20;
+    int    mouseScrollMultiplier          = 10;
+    int    annotationNodeWidth            = 200;
+    int    laneRowPadding                 = 6;
     ImVec2 gridViewport;
 
 
     DESC_FIELDS(
         StoryGridConfig,
         (defaultColumns,
-         foldCellHoverBackground,
-         foldCellBackground,
+         foldCellHoverBackground_Open,
+         foldCellForeground_Open,
+         foldCellHoverBackground_Closed,
+         foldCellForeground_Closed,
          blockGraphConf,
          annotated,
          pageUpScrollStep,
@@ -532,10 +556,10 @@ struct StoryGridModel {
 
 
 Opt<json> story_grid_loop(
-    GLFWwindow*            window,
-    std::string const&     file,
-    Opt<json> const&       in_state,
-    const StoryGridConfig& conf);
+    GLFWwindow*        window,
+    std::string const& file,
+    Opt<json> const&   in_state,
+    StoryGridConfig&   conf);
 
 void run_story_grid_annotated_cycle(
     StoryGridModel&        model,
