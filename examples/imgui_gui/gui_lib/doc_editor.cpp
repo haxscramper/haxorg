@@ -76,6 +76,30 @@ void render_doc_block(DocBlockModel& model, const DocBlockConfig& conf) {
     DocBlock::RenderContext renderContext{};
     renderContext.start = ImGui::GetCursorScreenPos();
     model.root->render(model, conf, renderContext);
+
+
+    ImGuiIO& io  = ImGui::GetIO();
+    auto&    ctx = model.ctx;
+    if (io.MouseWheel != 0.0f) {
+        model.ctx.action(DocBlockAction::Scroll{
+            .pos       = io.MousePos - renderContext.start,
+            .direction = io.MouseWheel * conf.mouseScrollMultiplier,
+        });
+    }
+
+    if (ImGui::IsKeyPressed(ImGuiKey_PageUp)) {
+        model.ctx.action(DocBlockAction::Scroll{
+            .pos       = io.MousePos - renderContext.start,
+            .direction = static_cast<float>(conf.pageUpScrollStep),
+        });
+    }
+
+    if (ImGui::IsKeyPressed(ImGuiKey_PageDown)) {
+        model.ctx.action(DocBlockAction::Scroll{
+            .pos       = io.MousePos - renderContext.start,
+            .direction = static_cast<float>(conf.pageDownScrollStep),
+        });
+    }
 }
 
 void apply_doc_block_actions(
@@ -91,7 +115,8 @@ void apply_doc_block_actions(
     for (auto const& act : model.ctx.actions) {
         switch (act.getKind()) {
             case DocBlockAction::Kind::NodeEditChanged: {
-                model.syncPositions(model.ctx, conf);
+                model.syncBlockGraph(conf);
+                model.syncLayout(conf);
                 break;
             }
 
@@ -110,7 +135,15 @@ void apply_doc_block_actions(
                             ->getRootOrigin()),
                     conf);
                 CTX_MSG("Sync positions for new adapter");
-                model.syncPositions(model.ctx, conf);
+                model.syncBlockGraph(conf);
+                model.syncLayout(conf);
+                break;
+            }
+
+            case DocBlockAction::Kind::Scroll: {
+                auto const& scr = act.getScroll();
+                model.g.ir.addScrolling(scr.pos, scr.direction);
+                model.syncLayout(conf);
                 break;
             }
         }
@@ -146,28 +179,21 @@ Vec<DocBlock::Ptr> DocBlock::getFlatAnnotations() {
     return res;
 }
 
-void DocBlockModel::syncPositions(
-    DocBlockContext&      ctx,
-    const DocBlockConfig& conf) {
-    CTX_MSG("Sync positions");
+
+void DocBlockModel::syncRoot(
+    const org::ImmAdapter& root,
+    const DocBlockConfig&  conf) {
+    this->root = std::dynamic_pointer_cast<DocBlockDocument>(
+        to_doc_block(root, conf).value());
+}
+
+void DocBlockModel::syncBlockGraph(const DocBlockConfig& conf) {
+    CTX_MSG("Sync block graph");
     auto __scope = ctx.scopeLevel();
 
-    NodeGridGraph                          g;
     Func<void(DocBlock::Ptr const& block)> aux;
 
     g.setVisible(conf.gridViewport);
-
-    int const mainLane       = 0;
-    int const annotationLane = 1;
-
-    g.ir.lane(mainLane, conf.laneConf).scrollOffset = docLaneScrollOffset;
-    for (int i = annotationLane;
-         i < annotationLaneScrollOffsets.size() + 1;
-         ++i) {
-        g.ir.lane(i, conf.laneConf).scrollOffset = getLaneScroll(i);
-    }
-
-    Vec<DocBlock::Ptr> flatGrid;
 
     auto add_graph_rect = [&](DocBlock::Ptr block) -> int {
         int         flatPos = flatGrid.push_back_idx(block);
@@ -192,40 +218,32 @@ void DocBlockModel::syncPositions(
             for (auto const& sub : annotation->annotations) { aux(sub); }
         };
     }
+}
 
+void DocBlockModel::syncLayout(const DocBlockConfig& conf) {
+    CTX_MSG("Sync layout graph");
+    auto __scope = ctx.scopeLevel();
     g.syncLayout();
+    for (NodeGridGraph::RectSpec const& rect : g.getRectangles()) {
+        DocBlock::Ptr node = flatGrid.at(rect.flatPos);
+        if (rect.isVisible) {
+            LOGIC_ASSERTION_CHECK(
+                rect.size.x != 0 && rect.size.y != 0,
+                "Rect is visible but has no size {}. Size of the "
+                "original rectangle at position {} is {}",
+                rect,
+                rect.flatPos,
+                node->getSize());
 
-
-    {
-        CTX_MSG("Rectangle positions");
-        auto __scope = ctx.scopeLevel();
-        for (NodeGridGraph::RectSpec const& rect : g.getRectangles()) {
-            DocBlock::Ptr node = flatGrid.at(rect.flatPos);
-            if (rect.isVisible) {
-                LOGIC_ASSERTION_CHECK(
-                    rect.size.x != 0 && rect.size.y != 0,
-                    "Rect is visible but has no size {}. Size of the "
-                    "original rectangle at position {} is {}",
-                    rect,
-                    rect.flatPos,
-                    node->getSize());
-
-                CTX_MSG(fmt("Rect {}", rect));
-                node->isVisible = true;
-                node->setPos(rect.pos);
-            } else {
-                node->isVisible = false;
-            }
+            CTX_MSG(fmt("Rect {}", rect));
+            node->isVisible = true;
+            node->setPos(rect.pos);
+        } else {
+            node->isVisible = false;
         }
     }
 }
 
-void DocBlockModel::syncRoot(
-    const org::ImmAdapter& root,
-    const DocBlockConfig&  conf) {
-    this->root = std::dynamic_pointer_cast<DocBlockDocument>(
-        to_doc_block(root, conf).value());
-}
 
 void DocBlockContext::message(
     const std::string& value,
@@ -313,10 +331,7 @@ void doc_editor_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
         frame_start();
         if (first) {
             conf.gridViewport = ImGui::GetMainViewport()->Size;
-            model.root = to_doc_block(docs.getCurrentRoot(root_idx), conf)
-                             .value();
-
-            model.syncPositions(model.ctx, conf);
+            model.syncFull(docs.getCurrentRoot(root_idx), conf);
             writeFile(
                 "/tmp/doc_editor_tree.txt",
                 model.root->treeRepr().toString(false));

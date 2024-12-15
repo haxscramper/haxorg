@@ -136,6 +136,14 @@ struct LaneBlockGraph {
         };
     }
 
+    void addScrolling(ImVec2 const& graphPos, float direction) {
+        for (auto const& [idx, span] : enumerate(getLaneSpans())) {
+            if (span.contains(graphPos.x)) {
+                lanes.at(idx).scrollOffset += direction;
+            }
+        }
+    }
+
     void addEdge(LaneNodePos const& source, LaneNodeEdge const& target) {
         edges[source].push_back(target);
     }
@@ -150,6 +158,10 @@ struct LaneBlockGraph {
             l.rightMargin      = right;
             return l;
         }
+    }
+
+    LaneBlockStack const& getExistingLane(int lane) const {
+        return lanes.at(lane);
     }
 
     LaneBlockNode& at(LaneNodePos const& node) {

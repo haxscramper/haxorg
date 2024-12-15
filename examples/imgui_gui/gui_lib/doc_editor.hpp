@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gui_lib/block_graph.hpp"
+#include "gui_lib/node_grid_graph.hpp"
 #include <gui_lib/imgui_utils.hpp>
 #include <haxorg/sem/ImmOrg.hpp>
 #include <gui_lib/im_org_ui_common.hpp>
@@ -11,6 +12,9 @@ struct DocBlockConfig {
     int      nestingBlockOffset = 40;
     Vec<int> annotationLanesWidth{200};
     ImU32    annotationNodeWindowBg = IM_COL32(128, 128, 128, 128);
+    int      pageUpScrollStep       = 20;
+    int      pageDownScrollStep     = -20;
+    int      mouseScrollMultiplier  = 10;
     ImVec2   gridViewport;
 
     LaneBlockGraphConfig laneConf;
@@ -22,6 +26,9 @@ struct DocBlockConfig {
          annotationLanesWidth,
          laneConf,
          gridViewport,
+         pageUpScrollStep,
+         pageDownScrollStep,
+         mouseScrollMultiplier,
          annotationNodeWindowBg));
 };
 
@@ -279,13 +286,20 @@ struct DocBlockAction {
         DESC_FIELDS(NodeTextChanged, (block, updated, origin));
     };
 
+    struct Scroll {
+        ImVec2 pos;
+        float  direction;
+        DESC_FIELDS(Scroll, (pos, direction));
+    };
+
     SUB_VARIANTS(
         Kind,
         Data,
         data,
         getKind,
         NodeEditChanged,
-        NodeTextChanged);
+        NodeTextChanged,
+        Scroll);
 
     Data data;
 
@@ -319,22 +333,25 @@ struct DocBlockModel {
     DocBlockDocument::Ptr root;
     DocBlockContext       ctx;
 
-    int      docLaneScrollOffset = 0;
-    Vec<int> annotationLaneScrollOffsets;
+    NodeGridGraph      g;
+    Vec<DocBlock::Ptr> flatGrid;
 
-    DESC_FIELDS(DocBlockModel, (root, ctx));
+    DESC_FIELDS(DocBlockModel, (root, ctx, g));
 
-    void syncPositions(DocBlockContext& ctx, DocBlockConfig const& conf);
+    void syncFull(
+        org::ImmAdapter const& root,
+        DocBlockConfig const&  conf) {
+        syncRoot(root, conf);
+        syncBlockGraph(conf);
+        syncLayout(conf);
+    }
+
     void syncRoot(org::ImmAdapter const& root, DocBlockConfig const& conf);
-
+    void syncBlockGraph(DocBlockConfig const& conf);
+    void syncLayout(DocBlockConfig const& conf);
 
     int getLaneScroll(int lane) {
-        if (lane == 0) {
-            return docLaneScrollOffset;
-        } else {
-            return docLaneScrollOffset
-                 + annotationLaneScrollOffsets.at_or(lane - 1, 0);
-        }
+        return g.ir.getExistingLane(lane).scrollOffset;
     }
 };
 

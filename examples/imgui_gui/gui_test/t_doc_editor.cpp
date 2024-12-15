@@ -25,11 +25,8 @@ struct DocEditVars : public ImTestVarsBase {
     }
 
     void add_text(std::string const& text) {
-        root_idx   = docs.init_root(sem::parseString(text));
-        model.root = to_doc_block(docs.getCurrentRoot(root_idx), conf)
-                         .value();
-
-        model.syncPositions(model.ctx, conf);
+        root_idx = docs.init_root(sem::parseString(text));
+        model.syncFull(docs.getCurrentRoot(root_idx), conf);
     }
 
     void init_section(ImGuiTestContext* ctx, std::string const& text) {
