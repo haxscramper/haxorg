@@ -478,8 +478,6 @@ Opt<json> story_grid_loop(
             model.history.push_back(StoryGridHistory{
                 .ast = start->init(sem::parseString(readFile(file))),
             });
-            model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Graph);
-            model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Scroll);
             model.updateDocument(conf);
         }
 
@@ -491,8 +489,6 @@ Opt<json> story_grid_loop(
         if (first) {
             first             = false;
             conf.gridViewport = ImGui::GetMainViewport()->Size;
-            model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Graph);
-            model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Scroll);
             model.updateDocument(conf);
         }
 
@@ -944,11 +940,6 @@ void StoryGridModel::updateDocumentGraph(StoryGridConfig const& conf) {
     rectGraph = StoryGridGraph{};
     rectGraph.graph.clear();
 
-    auto __log_scoped = OLOG_SINK_FACTORY_SCOPED([]() {
-        return ::org_logging::init_file_sink(
-            "/tmp/connect_partition_edges_log.log");
-    });
-
     CTX_MSG("Update document graph");
     auto __scope = ctx.scopeLevel();
 
@@ -1010,22 +1001,12 @@ void StoryGridModel::updateDocument(StoryGridConfig const& conf) {
     __perf_trace("gui", "update grid model");
     CTX_MSG("Update story grid document");
     auto __scope = ctx.scopeLevel();
-    if (updateNeeded.contains(UpdateNeeded::Graph)) {
-        updateDocumentGraph(conf);
-    }
+    updateDocumentGraph(conf);
 
-    if (updateNeeded.contains(UpdateNeeded::LinkListClick)) {
-        update_link_list_target_rows(rectGraph);
-        connectPartitionEdges(rectGraph.partition, conf);
-    }
+    update_link_list_target_rows(rectGraph);
+    connectPartitionEdges(rectGraph.partition, conf);
 
-    if (updateNeeded.contains(UpdateNeeded::Scroll)) {
-        updateDocumentLayout(conf);
-    }
-
-    // writeFile("/tmp/debug_dump.json",
-    // to_json_eval(this->debug).dump(2));
-    updateNeeded.clear();
+    updateDocumentLayout(conf);
 }
 
 void StoryGridModel::updateGridState() {
@@ -1131,6 +1112,11 @@ void StoryGridModel::apply(
     CTX_MSG(fmt("Apply story grid action {}", act));
     auto __scope = ctx.scopeLevel();
 
+    auto __log_scoped = OLOG_SINK_FACTORY_SCOPED([]() {
+        return ::org_logging::init_file_sink(
+            "/tmp/story_grid_model_apply.log");
+    });
+
     auto replaceNode = [&](org::ImmAdapter const&    origin,
                            Vec<sem::SemId<sem::Org>> replace) {
         org::ImmAstVersion vNext = getLastHistory().ast.getEditVersion(
@@ -1206,18 +1192,15 @@ void StoryGridModel::apply(
 
     switch (act.getKind()) {
         case GridAction::Kind::EditCell: {
-            updateNeeded.incl(UpdateNeeded::Graph);
-            updateNeeded.incl(UpdateNeeded::Scroll);
             auto edit = act.getEditCell();
             replaceNode(
                 edit.cell.getValue().origin,
                 as_sem_list(sem::parseString(edit.updated)));
+            updateDocument(conf);
             break;
         }
 
         case GridAction::Kind::EditNodeText: {
-            updateNeeded.incl(UpdateNeeded::Graph);
-            updateNeeded.incl(UpdateNeeded::Scroll);
             auto edit = act.getEditNodeText();
             CTX_MSG(
                 fmt("Updated edit node text {}",
@@ -1225,6 +1208,7 @@ void StoryGridModel::apply(
             replaceNode(
                 rectGraph.getDocNode(edit.pos).getText().origin,
                 as_sem_list(sem::parseString(edit.updated)));
+            updateDocument(conf);
             break;
         }
 
@@ -1236,29 +1220,33 @@ void StoryGridModel::apply(
         }
 
         case GridAction::Kind::EditNodeChanged: {
-            updateNeeded.incl(UpdateNeeded::Scroll);
+            updateDocumentLayout(conf);
             break;
         }
 
         case GridAction::Kind::Scroll: {
-            updateNeeded.incl(UpdateNeeded::Scroll);
             auto const& scroll = act.getScroll();
             auto        spans  = rectGraph.ir.ir.getLaneSpans();
             for (auto const& [lane_idx, span] : enumerate(spans)) {
                 if (span.contains(scroll.pos.x)) {
+                    auto& l = rectGraph.ir.ir.lane(
+                        lane_idx, conf.blockGraphConf);
+
+                    l.scrollOffset += scroll.direction
+                                    * conf.mouseScrollMultiplier;
+
                     CTX_MSG(
                         fmt("Lane {} span {} does matches position {} "
                             "Updating scroll offset direction "
-                            "{} multiplier {}",
+                            "{} multiplier {} current offset {}",
                             lane_idx,
                             span,
                             scroll.pos,
                             scroll.direction,
-                            conf.mouseScrollMultiplier));
+                            conf.mouseScrollMultiplier,
+                            l.scrollOffset));
 
-                    rectGraph.ir.ir.lane(lane_idx, conf.blockGraphConf)
-                        .scrollOffset //
-                        += scroll.direction * conf.mouseScrollMultiplier;
+
                 } else {
                     CTX_MSG(
                         fmt("Lane {} span {} does not match position {}",
@@ -1267,12 +1255,14 @@ void StoryGridModel::apply(
                             scroll.pos));
                 }
             }
+            updateDocumentLayout(conf);
             break;
         }
 
         case GridAction::Kind::LinkListClick: {
-            updateNeeded.incl(UpdateNeeded::LinkListClick);
-            updateNeeded.incl(UpdateNeeded::Scroll);
+            update_link_list_target_rows(rectGraph);
+            connectPartitionEdges(rectGraph.partition, conf);
+            updateDocumentLayout(conf);
             break;
         }
 
@@ -1448,7 +1438,6 @@ void run_story_grid_cycle(
 void StoryGridModel::applyChanges(StoryGridConfig const& conf) {
     if (!ctx.actions.empty()) {
         for (auto const& update : ctx.actions) { apply(update, conf); }
-        updateDocument(conf);
         ctx.actions.clear();
     }
 }

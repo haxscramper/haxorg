@@ -47,8 +47,6 @@ struct StoryGridVars : public ImTestVarsBase {
         model.history.push_back(StoryGridHistory{
             .ast = start->init(sem::parseString(text)),
         });
-        model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Graph);
-        model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Scroll);
         model.updateDocument(conf);
     }
 

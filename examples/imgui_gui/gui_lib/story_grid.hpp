@@ -513,38 +513,51 @@ struct StoryGridState {
 
 
 struct StoryGridModel {
-    DECL_DESCRIBED_ENUM(UpdateNeeded, LinkListClick, Scroll, Graph);
     Vec<StoryGridHistory>    history;
     StoryGridGraph           rectGraph;
     StoryGridContext         ctx;
     ImVec2                   shift{};
     Opt<ColaConstraintDebug> debug;
-    int                      docNodeIndex;
-    StoryGridHistory&        getLastHistory() { return history.back(); }
+    /// \brief Root of the tree grid document in the `rectGraph.nodes`.
+    int            docNodeIndex = 0;
+    StoryGridState state;
+
+    StoryGridHistory& getLastHistory() { return history.back(); }
     void apply(GridAction const& act, StoryGridConfig const& style);
 
-    void updateDocument(const StoryGridConfig& conf);
 
     void updateGridState();
 
     Vec<Vec<StoryGridAnnotation>> getGraphPartition();
 
+    /// \brief Get graph nodes associated with the current root grid node.
     Vec<org::graph::MapNode> getDocNodes();
 
     void connectPartitionEdges(
         Vec<Vec<StoryGridAnnotation>> const& partition,
         StoryGridConfig const&               conf);
 
+    /// \brief Update full document using latest history data.
+    void updateDocument(const StoryGridConfig& conf);
 
-    UnorderedSet<UpdateNeeded> updateNeeded;
-    StoryGridState             state;
-
+    /// \brief Reset model graph from scratch and populate the structure
+    /// using information from the current history roots.
     void updateDocumentGraph(StoryGridConfig const& conf);
 
+    /// \brief Update document layout for the current graph configuration.
+    /// Syncs node sizes and builds graph layout IR to sync with the
+    /// current document state. This is the entry point to update node and
+    /// edge positions if the graph structure itself is the same.
     void updateDocumentLayout(StoryGridConfig const& conf);
-    void updateDocumentNodePositions(StoryGridConfig const& conf);
+
+    /// \brief Mark edge and node visibility based on the current scroll
+    /// positions. This function is called in the `updateDocumentLayout`
+    /// and requires node positions to be computed before.
     void updateHiddenRowConnection(StoryGridConfig const& conf);
 
+    /// \brief Update document node positions with current node sizes and
+    /// edge positions. Called by `updateDocumentLayout`
+    void updateDocumentNodePositions(StoryGridConfig const& conf);
     void applyChanges(StoryGridConfig const& conf);
 };
 
