@@ -1064,9 +1064,12 @@ void update_link_list_target_rows(StoryGridGraph& rectGraph) {
     }
 }
 
-void update_graph_layout(StoryGridModel& model) {
+void update_graph_layout(
+    StoryGridModel&        model,
+    StoryGridConfig const& conf) {
     auto& rectGraph = model.rectGraph;
 
+    rectGraph.ir.setVisible(conf.gridViewport);
     rectGraph.ir.syncSize([&](int flat_idx) -> ImVec2 {
         return rectGraph.nodes.at(flat_idx).getSize();
     });
@@ -1191,9 +1194,9 @@ void update_document_scroll(
         model.shift.y = ir.getLanes().at(0).scrollOffset;
     }
 
-    update_graph_layout(model);
+    update_graph_layout(model, conf);
     update_hidden_row_connections(model, conf);
-    update_graph_layout(model);
+    update_graph_layout(model, conf);
 }
 
 void update_document_graph(

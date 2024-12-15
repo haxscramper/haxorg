@@ -1,5 +1,5 @@
-#include <haxorg/sem/ImmOrgGraph.hpp>
 #define NDEBUG 0
+#include <haxorg/sem/ImmOrgGraph.hpp>
 
 #include "doc_editor.hpp"
 #include "block_graph.hpp"
@@ -49,7 +49,7 @@ Opt<DocBlock::Ptr> to_doc_block(
         auxNode;
 
     auxAnnotation = [&](org::ImmAdapter const& it,
-                        CR<AuxCtx>             actx) -> DocBlock::Ptr {
+                        CR<AuxCtx> actx) -> Opt<DocBlock::Ptr> {
         CTX_MSG(fmt("Aux annotation from {}", it));
         auto __scope = ctx.scopeLevel();
         auto tmp     = std::make_shared<DocBlockAnnotation>();
@@ -75,7 +75,7 @@ Opt<DocBlock::Ptr> to_doc_block(
         if (it.is(OrgSemKind::Newline)) {
             return std::nullopt;
         } else {
-            CTX_MSG(fmt("Aux newline from {}", it));
+            CTX_MSG(fmt("Aux node from {}", it));
             auto           __scope = ctx.scopeLevel();
             SPtr<DocBlock> result;
             auto           add_subnodes = [&]() {
@@ -103,7 +103,11 @@ Opt<DocBlock::Ptr> to_doc_block(
                 result = tmp;
                 for (auto const& sub : it.sub()) {
                     if (org::graph::isAttachedDescriptionList(sub)) {
-
+                        auto annotation = auxAnnotation(
+                            sub, actx.withIncDepth());
+                        if (annotation) {
+                            result->addAnnotation(annotation.value());
+                        }
                     } else {
                         auto subdoc = auxNode(sub, actx.withIncDepth());
                         if (subdoc) { result->addNested(subdoc.value()); }
@@ -485,12 +489,16 @@ void post_render(DocBlock::RenderContext& renderContext) {
     ++renderContext.dfsIndex;
 }
 
-void render_nested(
+void render_sub_entries(
     DocBlockModel&           model,
     DocBlock*                block,
     const DocBlockConfig&    conf,
     DocBlock::RenderContext& renderContext) {
     for (auto& sub : block->nested) {
+        sub->render(model, conf, renderContext);
+    }
+
+    for (auto& sub : block->annotations) {
         sub->render(model, conf, renderContext);
     }
 }
@@ -520,7 +528,7 @@ void DocBlockDocument::render(
     RenderContext&        renderContext) {
     debug_render(this, renderContext);
     post_render(renderContext);
-    render_nested(model, this, conf, renderContext);
+    render_sub_entries(model, this, conf, renderContext);
 }
 
 void DocBlockParagraph::render(
@@ -556,7 +564,7 @@ void DocBlockAnnotation::render(
     pop_window_render();
     debug_render(this, renderContext);
     post_render(renderContext);
-    render_nested(model, this, conf, renderContext);
+    render_sub_entries(model, this, conf, renderContext);
 }
 
 void DocBlockExport::render(
@@ -583,7 +591,7 @@ void DocBlockSubtree::render(
 
     post_render(renderContext);
     debug_render(this, renderContext);
-    render_nested(model, this, conf, renderContext);
+    render_sub_entries(model, this, conf, renderContext);
 }
 
 void DocBlockListHeader::render(
@@ -592,7 +600,7 @@ void DocBlockListHeader::render(
     RenderContext&        renderContext) {
     post_render(renderContext);
     debug_render(this, renderContext);
-    render_nested(model, this, conf, renderContext);
+    render_sub_entries(model, this, conf, renderContext);
 }
 
 void DocBlockFallback::render(
@@ -617,5 +625,5 @@ void DocBlockFallback::render(
 
     debug_render(this, renderContext);
     post_render(renderContext);
-    render_nested(model, this, conf, renderContext);
+    render_sub_entries(model, this, conf, renderContext);
 }

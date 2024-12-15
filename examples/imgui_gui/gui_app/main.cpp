@@ -454,6 +454,8 @@ int main(int argc, char** argv) {
                 Col{.width = 100, .name = "pov"},
             };
 
+            storyGridConf.annotated = true;
+
             appstate = story_grid_loop(
                 window, conf.file, appstate, storyGridConf);
             break;
