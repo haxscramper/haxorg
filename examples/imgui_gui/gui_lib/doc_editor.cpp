@@ -83,7 +83,7 @@ void render_doc_block(DocBlockModel& model, const DocBlockConfig& conf) {
     if (io.MouseWheel != 0.0f) {
         model.ctx.action(DocBlockAction::Scroll{
             .pos       = io.MousePos - renderContext.start,
-            .direction = io.MouseWheel * conf.mouseScrollMultiplier,
+            .direction = -(io.MouseWheel * conf.mouseScrollMultiplier),
         });
     }
 
@@ -235,7 +235,7 @@ void DocBlockModel::syncLayout(const DocBlockConfig& conf) {
                 rect.flatPos,
                 node->getSize());
 
-            CTX_MSG(fmt("Rect {}", rect));
+            // CTX_MSG(fmt("Rect {}", rect));
             node->isVisible = true;
             node->setPos(rect.pos);
         } else {

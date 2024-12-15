@@ -31,8 +31,8 @@ struct LaneNodeEdge {
 };
 
 struct LaneBlockNode {
-    int  width;
-    int  height;
+    int  width        = 0;
+    int  height       = 0;
     int  topMargin    = 5;
     int  bottomMargin = 5;
     bool isVisible    = true;
@@ -45,6 +45,12 @@ struct LaneBlockNode {
     /// \brief Get full vertical space occupied by the doc block, including
     /// top and bottom margins.
     int fullHeight() const { return height + topMargin + bottomMargin; }
+
+    int getWidth() const {
+        LOGIC_ASSERTION_CHECK(
+            width != 0, "Depleted block, has width 0, block is invalid.");
+        return width;
+    }
 
     Slice<int> heightSpan(int start) const {
         return slice(start, start + fullHeight());
@@ -100,9 +106,10 @@ struct LaneBlockStack {
              LaneBlockGraphConfig const& conf);
 
     int getWidth() const {
-        return rs::max(blocks | rv::transform([](LaneBlockNode const& b) {
-                           return float(b.width);
-                       }));
+        return rs::max(
+            blocks | rv::transform([](LaneBlockNode const& b) -> int {
+                return b.getWidth();
+            }));
     }
 
     int getFullWidth() const {
@@ -136,13 +143,7 @@ struct LaneBlockGraph {
         };
     }
 
-    void addScrolling(ImVec2 const& graphPos, float direction) {
-        for (auto const& [idx, span] : enumerate(getLaneSpans())) {
-            if (span.contains(graphPos.x)) {
-                lanes.at(idx).scrollOffset += direction;
-            }
-        }
-    }
+    void addScrolling(ImVec2 const& graphPos, float direction);
 
     void addEdge(LaneNodePos const& source, LaneNodeEdge const& target) {
         edges[source].push_back(target);
@@ -176,32 +177,9 @@ struct LaneBlockGraph {
         return lanes.at(pos.lane).blocks.at(pos.row);
     }
 
-    generator<Pair<LaneNodePos, LaneBlockNode>> getBlocks() const {
-        for (int lane_idx = 0; lane_idx < lanes.size(); ++lane_idx) {
-            for (int row_idx = 0;
-                 row_idx < lanes.at(lane_idx).blocks.size();
-                 ++row_idx) {
-                co_yield std::make_pair(
-                    LaneNodePos{
-                        .lane = lane_idx,
-                        .row  = row_idx,
-                    },
-                    lanes.at(lane_idx).blocks.at(row_idx));
-            }
-        }
-    }
+    generator<Pair<LaneNodePos, LaneBlockNode>> getBlocks() const;
 
-    Vec<Slice<int>> getLaneSpans() const {
-        Vec<Slice<int>> laneSpans;
-        int             laneStartX = 0;
-        for (auto const& [lane_idx, lane] : enumerate(lanes)) {
-            laneSpans.resize_at(lane_idx) = slice(
-                laneStartX + lane.leftMargin,
-                laneStartX + lane.leftMargin + lane.getWidth());
-            laneStartX += lane.getFullWidth();
-        }
-        return laneSpans;
-    }
+    Vec<Slice<int>> getLaneSpans() const;
 };
 
 

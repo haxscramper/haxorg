@@ -213,6 +213,14 @@ LaneBlockLayout to_layout(LaneBlockGraph const& g) {
     gr_log(ol_info).fmt_message(
         "Create block layout, {} lanes", g.lanes.size());
 
+    {
+        auto rec = gr_log(ol_info).get_record();
+        for (auto const& [idx, lane] : enumerate(g.lanes)) {
+            rec.fmt_message(" [{}] scroll:{}", idx, lane.scrollOffset);
+        }
+        rec.end();
+    }
+
     OLOG_DEPTH_SCOPE_ANON();
 
     for (auto const& [pos, block] : g.getBlocks()) {
@@ -633,4 +641,56 @@ void render_debug(const ColaConstraintDebug& debug, ImVec2 const& shift) {
             }
         }
     }
+}
+
+void LaneBlockGraph::addScrolling(
+    const ImVec2& graphPos,
+    float         direction) {
+    gr_log(ol_trace).fmt_message(
+        "Graph position {}, direction {}", graphPos, direction);
+    OLOG_DEPTH_SCOPE_ANON();
+    auto spans = getLaneSpans();
+    for (auto const& [idx, span] : enumerate(spans)) {
+        if (span.contains(graphPos.x)) {
+            gr_log(ol_trace).fmt_message(
+                "Lane {} x span is {}, adding scroll offset {}",
+                idx,
+                span,
+                direction);
+            lanes.at(idx).scrollOffset += direction;
+        } else {
+            gr_log(ol_trace).fmt_message(
+                "Lane {} x span {}, no match", idx, span);
+        }
+    }
+}
+
+generator<Pair<LaneNodePos, LaneBlockNode>> LaneBlockGraph::getBlocks()
+    const {
+    for (int lane_idx = 0; lane_idx < lanes.size(); ++lane_idx) {
+        for (int row_idx = 0; row_idx < lanes.at(lane_idx).blocks.size();
+             ++row_idx) {
+            co_yield std::make_pair(
+                LaneNodePos{
+                    .lane = lane_idx,
+                    .row  = row_idx,
+                },
+                lanes.at(lane_idx).blocks.at(row_idx));
+        }
+    }
+}
+
+Vec<Slice<int>> LaneBlockGraph::getLaneSpans() const {
+    Vec<Slice<int>> laneSpans;
+    int             laneStartX = 0;
+    for (auto const& [lane_idx, lane] : enumerate(lanes)) {
+        Slice<int> sl = slice1<int>(
+            laneStartX + lane.leftMargin,
+            laneStartX + lane.leftMargin + lane.getWidth());
+
+        gr_log(ol_debug).fmt_message("{}", sl);
+        laneSpans.resize_at(lane_idx) = sl;
+        laneStartX += lane.getFullWidth();
+    }
+    return laneSpans;
 }

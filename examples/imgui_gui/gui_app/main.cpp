@@ -37,8 +37,9 @@ struct Config {
     Mode     mode = Mode::SemTree;
     Opt<Str> appstate;
     bool     fullscreen = false;
+    Opt<Str> log_file   = std::nullopt;
 
-    DESC_FIELDS(Config, (file, mode, appstate, fullscreen));
+    DESC_FIELDS(Config, (file, mode, appstate, fullscreen, log_file));
 };
 
 struct OutlineConfig {
@@ -367,6 +368,12 @@ int main(int argc, char** argv) {
     auto conf_text = readFile(conf_file);
     auto conf_json = json::parse(conf_text);
     auto conf      = from_json_eval<Config>(conf_json);
+
+    org_logging::clear_sink_backends();
+    if (conf.log_file) {
+        org_logging::push_sink(
+            org_logging::init_file_sink(conf.log_file.value()));
+    }
 
 #ifdef ORG_USE_PERFETTO
     std::unique_ptr<perfetto::TracingSession>
