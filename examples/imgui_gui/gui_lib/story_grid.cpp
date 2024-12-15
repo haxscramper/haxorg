@@ -593,74 +593,6 @@ TreeGridCell build_editable_cell(
     return result;
 }
 
-
-Vec<Vec<StoryGridAnnotation>> partition_graph_nodes(
-    const Vec<org::graph::MapNode>& initial_nodes,
-    const org::graph::MapGraph&     graph,
-    StoryGridContext&               ctx) {
-    __perf_trace("gui", "partition graph by distance");
-    CTX_MSG(fmt("Partition graph nodes, initial nodes {}", initial_nodes));
-    auto __scope = ctx.scopeLevel();
-
-
-    Vec<Vec<StoryGridAnnotation>>          result;
-    UnorderedMap<org::graph::MapNode, int> distances;
-    std::queue<org::graph::MapNode>        q;
-
-    for (const auto& node : initial_nodes) {
-        distances[node] = 0;
-        q.push(node);
-    }
-
-    while (!q.empty()) {
-        org::graph::MapNode current = q.front();
-        q.pop();
-        int current_distance = distances[current];
-
-        if (current_distance >= result.size()) {
-            result.resize(current_distance + 1);
-        }
-
-        UnorderedSet<org::graph::MapNode> adjacent;
-        for (org::graph::MapNode const& adj : graph.adjList.at(current)) {
-            if (!adjacent.contains(adj) && !distances.contains(adj)) {
-                distances[adj] = current_distance + 1;
-                q.push(adj);
-                result[current_distance].push_back(StoryGridAnnotation{
-                    .source = current,
-                    .target = adj,
-                });
-            }
-
-            adjacent.incl(adj);
-        }
-
-        for (org::graph::MapNode const& adj : graph.inNodes(current)) {
-            if (!adjacent.contains(adj) && !distances.contains(adj)) {
-                distances[adj] = current_distance + 1;
-                q.push(adj);
-                result[current_distance].push_back(StoryGridAnnotation{
-                    .source = adj,
-                    .target = current,
-                });
-            }
-            adjacent.incl(adj);
-        }
-    }
-
-    Vec<int> partition_debug //
-        = result
-        | rv::transform([](auto const& p) -> int { return p.size(); })
-        | rs::to<Vec>();
-
-    CTX_MSG(
-        fmt("Created partition with {} lanes {} nodes",
-            partition_debug.size(),
-            partition_debug));
-
-    return result;
-}
-
 void add_footnote_annotation_node(
     UnorderedSet<org::ImmUniqId> visited,
     org::ImmUniqId const&        origin,
@@ -1088,16 +1020,12 @@ void update_document_scroll(
     update_graph_layout(model, conf);
 }
 
-void update_document_graph(
-    StoryGridModel&         model,
+void StoryGridModel::updateDocumentGraph(
     StoryGridConfig const&  conf,
     TreeGridDocument const& init_doc) {
     __perf_trace("gui", "add grid nodes");
-    model.rectGraph = StoryGridGraph{};
-    auto& rg        = model.rectGraph;
-    auto& ctx       = model.ctx;
-
-    rg.graph.clear();
+    rectGraph = StoryGridGraph{};
+    rectGraph.graph.clear();
 
     auto __log_scoped = OLOG_SINK_FACTORY_SCOPED([]() {
         return ::org_logging::init_file_sink(
@@ -1107,43 +1035,25 @@ void update_document_graph(
     CTX_MSG("Update document graph");
     auto __scope = ctx.scopeLevel();
 
-    int docNodeIndex = rg.addRootGrid(
-        model.getLastHistory().ast.getRootAdapter(),
-        init_doc,
-        model.ctx,
-        conf);
+    docNodeIndex = rectGraph.addRootGrid(
+        getLastHistory().ast.getRootAdapter(), init_doc, ctx, conf);
 
-    rg.addGridAnnotationNodes(
-        rg.nodes.at(docNodeIndex).getTreeGrid().node, rg.graph, model.ctx);
+    rectGraph.addGridAnnotationNodes(
+        rectGraph.nodes.at(docNodeIndex).getTreeGrid().node,
+        rectGraph.graph,
+        ctx);
 
-    CTX_MSG(fmt("Graph with {} nodes", rg.nodes.size()));
-    CTX_MSG(fmt("Graph adjacency list {}", rg.graph.adjList));
-    CTX_MSG(fmt("Graph adjacency list in {}", rg.graph.adjListIn));
+    CTX_MSG(fmt("Graph with {} nodes", rectGraph.nodes.size()));
+    CTX_MSG(fmt("Graph adjacency list {}", rectGraph.graph.adjList));
+    CTX_MSG(fmt("Graph adjacency list in {}", rectGraph.graph.adjListIn));
 
+    rectGraph.partition = getGraphPartition();
 
-    Vec<org::graph::MapNode> docNodes;
-    for (TreeGridRow* row :
-         rg.nodes.at(docNodeIndex).getTreeGrid().node.flatRows(true)) {
-        if (model.state.folded.contains(docNodeIndex)) {
-            auto path = row->getOriginPath();
-            if (model.state.folded.at(docNodeIndex).contains(path)) {
-                row->isOpen = model.state.folded.at(docNodeIndex).at(path);
-            }
-        }
-        auto tree = row->origin.uniq();
-        if (!rg.graph.adjList.at(tree).empty()
-            || !rg.graph.inNodes(tree).empty()) {
-            docNodes.push_back(tree);
-        }
-    }
-
-    rg.partition = partition_graph_nodes(docNodes, rg.graph, ctx);
-
-    connect_partition_edges(model, rg.partition, conf);
+    connect_partition_edges(*this, rectGraph.partition, conf);
 
     {
         int ir_nodes = 0;
-        for (auto const& lane : rg.ir.getLanes()) {
+        for (auto const& lane : rectGraph.ir.getLanes()) {
             ir_nodes += lane.blocks.size();
         }
 
@@ -1158,7 +1068,7 @@ void StoryGridModel::updateDocument(
     CTX_MSG("Update story grid document");
     auto __scope = ctx.scopeLevel();
     if (updateNeeded.contains(UpdateNeeded::Graph)) {
-        update_document_graph(*this, conf, init_doc);
+        updateDocumentGraph(conf, init_doc);
     }
 
     if (updateNeeded.contains(UpdateNeeded::LinkListClick)) {
@@ -1174,6 +1084,102 @@ void StoryGridModel::updateDocument(
     // writeFile("/tmp/debug_dump.json",
     // to_json_eval(this->debug).dump(2));
     updateNeeded.clear();
+}
+
+void StoryGridModel::updateGridState() {
+    Vec<org::graph::MapNode> docNodes;
+    for (TreeGridRow* row : rectGraph.nodes.at(docNodeIndex)
+                                .getTreeGrid()
+                                .node.flatRows(true)) {
+        if (state.folded.contains(docNodeIndex)) {
+            auto path = row->getOriginPath();
+            if (state.folded.at(docNodeIndex).contains(path)) {
+                row->isOpen = state.folded.at(docNodeIndex).at(path);
+            }
+        }
+    }
+}
+
+Vec<Vec<StoryGridAnnotation>> StoryGridModel::getGraphPartition() {
+    __perf_trace("gui", "partition graph by distance");
+    auto initial_nodes = getDocNodes();
+    CTX_MSG(fmt("Partition graph nodes, initial nodes {}", initial_nodes));
+    auto __scope = ctx.scopeLevel();
+
+
+    Vec<Vec<StoryGridAnnotation>>          result;
+    UnorderedMap<org::graph::MapNode, int> distances;
+    std::queue<org::graph::MapNode>        q;
+
+    for (const auto& node : initial_nodes) {
+        distances[node] = 0;
+        q.push(node);
+    }
+
+    while (!q.empty()) {
+        org::graph::MapNode current = q.front();
+        q.pop();
+        int current_distance = distances[current];
+
+        if (current_distance >= result.size()) {
+            result.resize(current_distance + 1);
+        }
+
+        UnorderedSet<org::graph::MapNode> adjacent;
+        for (org::graph::MapNode const& adj :
+             rectGraph.graph.adjList.at(current)) {
+            if (!adjacent.contains(adj) && !distances.contains(adj)) {
+                distances[adj] = current_distance + 1;
+                q.push(adj);
+                result[current_distance].push_back(StoryGridAnnotation{
+                    .source = current,
+                    .target = adj,
+                });
+            }
+
+            adjacent.incl(adj);
+        }
+
+        for (org::graph::MapNode const& adj :
+             rectGraph.graph.inNodes(current)) {
+            if (!adjacent.contains(adj) && !distances.contains(adj)) {
+                distances[adj] = current_distance + 1;
+                q.push(adj);
+                result[current_distance].push_back(StoryGridAnnotation{
+                    .source = adj,
+                    .target = current,
+                });
+            }
+            adjacent.incl(adj);
+        }
+    }
+
+    Vec<int> partition_debug //
+        = result
+        | rv::transform([](auto const& p) -> int { return p.size(); })
+        | rs::to<Vec>();
+
+    CTX_MSG(
+        fmt("Created partition with {} lanes {} nodes",
+            partition_debug.size(),
+            partition_debug));
+
+    return result;
+}
+
+Vec<org::graph::MapNode> StoryGridModel::getDocNodes() {
+    Vec<org::graph::MapNode> docNodes;
+    for (TreeGridRow* row : rectGraph.nodes.at(docNodeIndex)
+                                .getTreeGrid()
+                                .node.flatRows(true)) {
+
+        auto tree = row->origin.uniq();
+        if (!rectGraph.graph.adjList.at(tree).empty()
+            || !rectGraph.graph.inNodes(tree).empty()) {
+            docNodes.push_back(tree);
+        }
+    }
+    return docNodes;
 }
 
 void StoryGridModel::apply(
@@ -1620,4 +1626,20 @@ void StoryGridGraph::addDescriptionListNodes(
             }
         }
     }
+}
+
+bool StoryGridGraph::isVisible(const org::ImmUniqId& id) const {
+    auto lane_pos = orgToId.get(id);
+    if (!lane_pos) { return false; }
+    auto node = ir.getFlat(lane_pos.value());
+    if (!node) { return false; }
+    if (!nodes.at(node.value()).isTreeGrid()) { return false; }
+    auto origin = nodes.at(node.value())
+                      .getTreeGrid()
+                      .node.rowOrigins.get(id);
+    if (!origin) { return false; }
+    return nodes.at(node.value())
+        .getTreeGrid()
+        .node.getRow(origin.value())
+        ->isVisible;
 }

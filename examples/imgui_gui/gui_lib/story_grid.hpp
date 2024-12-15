@@ -345,21 +345,7 @@ struct StoryGridGraph {
         org::graph::MapGraph&                 graph,
         StoryGridContext&                     ctx);
 
-    bool isVisible(org::ImmUniqId const& id) const {
-        auto lane_pos = orgToId.get(id);
-        if (!lane_pos) { return false; }
-        auto node = ir.getFlat(lane_pos.value());
-        if (!node) { return false; }
-        if (!nodes.at(node.value()).isTreeGrid()) { return false; }
-        auto origin = nodes.at(node.value())
-                          .getTreeGrid()
-                          .node.rowOrigins.get(id);
-        if (!origin) { return false; }
-        return nodes.at(node.value())
-            .getTreeGrid()
-            .node.getRow(origin.value())
-            ->isVisible;
-    }
+    bool isVisible(org::ImmUniqId const& id) const;
 
     DESC_FIELDS(StoryGridGraph, (nodes, ir, graph, partition));
 
@@ -544,14 +530,27 @@ struct StoryGridModel {
     StoryGridContext         ctx;
     ImVec2                   shift{};
     Opt<ColaConstraintDebug> debug;
+    int                      docNodeIndex;
     StoryGridHistory&        getLastHistory() { return history.back(); }
     void apply(GridAction const& act, StoryGridConfig const& style);
 
     void updateDocument(
         const TreeGridDocument& init_doc,
         const StoryGridConfig&  conf);
+
+    void updateGridState();
+
+    Vec<Vec<StoryGridAnnotation>> getGraphPartition();
+
+    Vec<org::graph::MapNode> getDocNodes();
+
+
     UnorderedSet<UpdateNeeded> updateNeeded;
     StoryGridState             state;
+
+    void updateDocumentGraph(
+        StoryGridConfig const&  conf,
+        TreeGridDocument const& init_doc);
 };
 
 
