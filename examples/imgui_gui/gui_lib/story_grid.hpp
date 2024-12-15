@@ -342,6 +342,11 @@ struct StoryGridGraph {
         org::ImmAdapterT<org::ImmList> const& list,
         StoryGridContext&                     ctx);
 
+    /// \brief If grid graph has focused linked description list, hide all
+    /// grid rows except ones that are directly targeted by the link list.
+    /// If there is no focused list, then show all rows.
+    void focusLinkListTargetRows(StoryGridContext& ctx);
+
     bool isVisible(org::ImmUniqId const& id) const;
 
     DESC_FIELDS(StoryGridGraph, (nodes, ir, graph, partition));

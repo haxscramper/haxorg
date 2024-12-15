@@ -461,6 +461,14 @@ int main(int argc, char** argv) {
             };
 
 
+            storyGridConf.blockGraphConf.getDefaultLaneMargin =
+                [](int lane) -> Pair<int, int> {
+                if (lane == 0) {
+                    return std::make_pair(0, 25);
+                } else {
+                    return std::make_pair(25, 25);
+                }
+            };
             storyGridConf.mouseScrollMultiplier = 20;
             storyGridConf.annotated             = true;
 

@@ -787,16 +787,16 @@ void StoryGridModel::connectPartitionEdges(
     }
 }
 
-void update_link_list_target_rows(StoryGridGraph& rectGraph) {
-    if (rs::any_of(rectGraph.nodes, [](CR<StoryGridNode> n) {
+void StoryGridGraph::focusLinkListTargetRows(StoryGridContext& ctx) {
+    if (rs::any_of(nodes, [](CR<StoryGridNode> n) {
             return n.isLinkList() && n.getLinkList().isSelected;
         })) {
         UnorderedSet<org::ImmUniqId> targets;
-        for (auto const& node : rectGraph.nodes) {
+        for (auto const& node : nodes) {
             if (node.isLinkList() && node.getLinkList().isSelected) {
                 for (auto const& item : node.getLinkList().items) {
                     for (auto const& target :
-                         rectGraph.graph.adjList.at(item.node.uniq())) {
+                         graph.adjList.at(item.node.uniq())) {
                         targets.incl(target.id);
                     }
                 }
@@ -817,7 +817,7 @@ void update_link_list_target_rows(StoryGridGraph& rectGraph) {
             return row.isVisible;
         };
 
-        for (auto& node : rectGraph.nodes) {
+        for (auto& node : nodes) {
             if (node.isTreeGrid()) {
                 for (auto& row : node.getTreeGrid().node.rows) {
                     aux(row);
@@ -832,7 +832,7 @@ void update_link_list_target_rows(StoryGridGraph& rectGraph) {
             for (auto& sub : row.nested) { aux(sub); }
         };
 
-        for (auto& node : rectGraph.nodes) {
+        for (auto& node : nodes) {
             if (node.isTreeGrid()) {
                 for (auto& row : node.getTreeGrid().node.rows) {
                     aux(row);
@@ -1002,10 +1002,8 @@ void StoryGridModel::updateDocument(StoryGridConfig const& conf) {
     CTX_MSG("Update story grid document");
     auto __scope = ctx.scopeLevel();
     updateDocumentGraph(conf);
-
-    update_link_list_target_rows(rectGraph);
+    rectGraph.focusLinkListTargetRows(ctx);
     connectPartitionEdges(rectGraph.partition, conf);
-
     updateDocumentLayout(conf);
 }
 
@@ -1260,7 +1258,7 @@ void StoryGridModel::apply(
         }
 
         case GridAction::Kind::LinkListClick: {
-            update_link_list_target_rows(rectGraph);
+            rectGraph.focusLinkListTargetRows(ctx);
             connectPartitionEdges(rectGraph.partition, conf);
             updateDocumentLayout(conf);
             break;
