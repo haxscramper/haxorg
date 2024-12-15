@@ -49,9 +49,7 @@ struct StoryGridVars : public ImTestVarsBase {
         });
         model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Graph);
         model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Scroll);
-
-        TreeGridDocument doc;
-        model.updateDocument(doc, conf);
+        model.updateDocument(conf);
     }
 
     Str get_text() {
@@ -78,7 +76,7 @@ struct StoryGridVars : public ImTestVarsBase {
             auto __scope = IM_SCOPE_BEGIN("App loop iteration", "");
             model.shift  = getContentPos(ctx);
             run_story_grid_cycle(model, conf);
-            apply_story_grid_changes(model, TreeGridDocument{}, conf);
+            model.applyChanges(conf);
         }
 
         if (is_im_traced()) { ImRenderTraceRecord::WriteTrace(trace); }

@@ -329,20 +329,17 @@ struct StoryGridGraph {
     UnorderedMap<org::ImmUniqId, LaneNodePos>    orgToId;
 
     int addRootGrid(
-        org::ImmAdapter const&  node,
-        TreeGridDocument const& init_doc,
-        StoryGridContext&       ctx,
-        StoryGridConfig const&  conf);
+        org::ImmAdapter const& node,
+        StoryGridConfig const& conf,
+        StoryGridContext&      ctx);
 
     void addGridAnnotationNodes(
-        TreeGridDocument&     doc,
-        org::graph::MapGraph& graph,
-        StoryGridContext&     ctx);
+        TreeGridDocument& doc,
+        StoryGridContext& ctx);
 
     void addDescriptionListNodes(
         TreeGridDocument&                     doc,
         org::ImmAdapterT<org::ImmList> const& list,
-        org::graph::MapGraph&                 graph,
         StoryGridContext&                     ctx);
 
     bool isVisible(org::ImmUniqId const& id) const;
@@ -445,15 +442,8 @@ struct GridAction {
 /// updates etc., but are not change-able from within the UI part of the
 /// application.
 struct StoryGridConfig {
-    struct StoryGridColumnConfig {
-        Opt<int>                   width;
-        Opt<EditableOrgText::Mode> edit;
-        Str                        name;
-        DESC_FIELDS(StoryGridColumnConfig, (width, edit, name));
-    };
-
-    Vec<StoryGridColumnConfig> defaultColumns;
-    LaneBlockGraphConfig       blockGraphConf;
+    LaneBlockGraphConfig     blockGraphConf;
+    Func<TreeGridDocument()> getDefaultDoc;
 
     ImU32  foldCellHoverBackground_Open   = IM_COL32(0, 255, 255, 255);
     ImU32  foldCellForeground_Open        = IM_COL32(255, 0, 0, 128);
@@ -471,8 +461,7 @@ struct StoryGridConfig {
 
     DESC_FIELDS(
         StoryGridConfig,
-        (defaultColumns,
-         foldCellHoverBackground_Open,
+        (foldCellHoverBackground_Open,
          foldCellForeground_Open,
          foldCellHoverBackground_Closed,
          foldCellForeground_Closed,
@@ -534,9 +523,7 @@ struct StoryGridModel {
     StoryGridHistory&        getLastHistory() { return history.back(); }
     void apply(GridAction const& act, StoryGridConfig const& style);
 
-    void updateDocument(
-        const TreeGridDocument& init_doc,
-        const StoryGridConfig&  conf);
+    void updateDocument(const StoryGridConfig& conf);
 
     void updateGridState();
 
@@ -544,13 +531,21 @@ struct StoryGridModel {
 
     Vec<org::graph::MapNode> getDocNodes();
 
+    void connectPartitionEdges(
+        Vec<Vec<StoryGridAnnotation>> const& partition,
+        StoryGridConfig const&               conf);
+
 
     UnorderedSet<UpdateNeeded> updateNeeded;
     StoryGridState             state;
 
-    void updateDocumentGraph(
-        StoryGridConfig const&  conf,
-        TreeGridDocument const& init_doc);
+    void updateDocumentGraph(StoryGridConfig const& conf);
+
+    void updateDocumentLayout(StoryGridConfig const& conf);
+    void updateDocumentNodePositions(StoryGridConfig const& conf);
+    void updateHiddenRowConnection(StoryGridConfig const& conf);
+
+    void applyChanges(StoryGridConfig const& conf);
 };
 
 
@@ -566,7 +561,3 @@ void run_story_grid_annotated_cycle(
 void run_story_grid_cycle(
     StoryGridModel&        model,
     StoryGridConfig const& conf);
-void apply_story_grid_changes(
-    StoryGridModel&         model,
-    TreeGridDocument const& init_doc,
-    const StoryGridConfig&  conf);

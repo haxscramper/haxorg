@@ -421,21 +421,6 @@ void run_story_grid_annotated_cycle(
     }
 }
 
-TreeGridDocument getInitRootDoc(StoryGridConfig const& conf) {
-    TreeGridDocument doc;
-    for (auto const& column : conf.defaultColumns) {
-        if (column.width) {
-            doc.getColumn(column.name).width = column.width.value();
-        }
-
-        if (column.edit) {
-            doc.getColumn(column.name).edit = column.edit.value();
-        }
-    }
-
-    return doc;
-}
-
 Opt<json> story_grid_loop(
     GLFWwindow*        window,
     std::string const& file,
@@ -495,7 +480,7 @@ Opt<json> story_grid_loop(
             });
             model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Graph);
             model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Scroll);
-            model.updateDocument(getInitRootDoc(conf), conf);
+            model.updateDocument(conf);
         }
 
         frame_start();
@@ -508,7 +493,7 @@ Opt<json> story_grid_loop(
             conf.gridViewport = ImGui::GetMainViewport()->Size;
             model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Graph);
             model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Scroll);
-            model.updateDocument(getInitRootDoc(conf), conf);
+            model.updateDocument(conf);
         }
 
         if (model.debug) {
@@ -522,7 +507,7 @@ Opt<json> story_grid_loop(
 
         frame_end(window);
 
-        apply_story_grid_changes(model, getInitRootDoc(conf), conf);
+        model.applyChanges(conf);
         quit_on_q(window);
     }
 
@@ -715,14 +700,11 @@ LaneNodePos get_partition_node(
     }
 };
 
-void connect_partition_edges(
-    StoryGridModel&                      model,
+void StoryGridModel::connectPartitionEdges(
     Vec<Vec<StoryGridAnnotation>> const& partition,
     StoryGridConfig const&               conf) {
-    auto& res   = model.rectGraph;
-    auto& state = model.getLastHistory();
-    auto& ctx   = model.ctx;
-
+    auto& res   = rectGraph;
+    auto& state = getLastHistory();
 
     CTX_MSG("Connecting partition edges");
     auto __scope = ctx.scopeLevel();
@@ -743,15 +725,10 @@ void connect_partition_edges(
                     .value_or(node.source.id));
 
             LaneNodePos source_node = get_partition_node(
-                state.ast,
-                res,
-                group_idx + 1,
-                source_parent,
-                conf,
-                model.ctx);
+                state.ast, res, group_idx + 1, source_parent, conf, ctx);
 
             LaneNodePos target_node = get_partition_node(
-                state.ast, res, group_idx + 1, target, conf, model.ctx);
+                state.ast, res, group_idx + 1, target, conf, ctx);
 
             StoryGridNode const& source_flat = res.getDocNode(source_node);
             StoryGridNode const& target_flat = res.getDocNode(target_node);
@@ -772,8 +749,7 @@ void connect_partition_edges(
             }
 
             auto get_connector_offset =
-                [&ctx](
-                    StoryGridNode const&   flat,
+                [&](StoryGridNode const&   flat,
                     org::ImmAdapter const& node) -> Opt<int> {
                 if (flat.isTreeGrid()) {
                     int row_idx = flat.getTreeGrid()
@@ -813,20 +789,6 @@ void connect_partition_edges(
             }
         }
     }
-}
-
-void update_node_sizes(StoryGridGraph& rectGraph) {
-    rectGraph.ir.syncSize([&](int i) -> Opt<ImVec2> {
-        auto& node = rectGraph.nodes.at(i);
-        if (node.isTreeGrid()) {
-            int         height = node.getTreeGrid().node.getHeight();
-            int         width  = node.getTreeGrid().node.getWidth();
-            LaneNodePos pos    = rectGraph.getIrNode(i);
-            return ImVec2(width, height);
-        } else {
-            return std::nullopt;
-        }
-    });
 }
 
 void update_link_list_target_rows(StoryGridGraph& rectGraph) {
@@ -885,52 +847,17 @@ void update_link_list_target_rows(StoryGridGraph& rectGraph) {
     }
 }
 
-void update_graph_layout(
-    StoryGridModel&        model,
+
+void StoryGridModel::updateHiddenRowConnection(
     StoryGridConfig const& conf) {
-    auto& rectGraph = model.rectGraph;
-
-    rectGraph.ir.setVisible(conf.gridViewport);
-    rectGraph.ir.syncSize([&](int flat_idx) -> ImVec2 {
-        return rectGraph.nodes.at(flat_idx).getSize();
-    });
-
-    rectGraph.ir.syncLayout();
-    auto& ctx = model.ctx;
-
-    CTX_MSG("Updating graph layout positions");
-    auto __scope = ctx.scopeLevel();
-
-
-    for (NodeGridGraph::RectSpec const& rect :
-         rectGraph.ir.getRectangles()) {
-        StoryGridNode& node = rectGraph.nodes.at(rect.flatPos);
-        CTX_MSG(fmt("Rect {}", rect));
-
-        if (rect.isVisible) {
-            node.isVisible = true;
-            node.setPos(rect.pos);
-        } else {
-            node.isVisible = false;
-        }
-    }
-
-
-    // debug     = to_constraints(lyt, rectGraph.ir, thisLayout);
-    // debug->ir = &thisLayout;
-}
-
-void update_hidden_row_connections(
-    StoryGridModel&        model,
-    StoryGridConfig const& conf) {
-    auto& ir = model.rectGraph.ir;
+    auto& ir = rectGraph.ir;
 
     Slice<int> viewportRange = slice1<int>(0, conf.gridViewport.y);
-    auto&      lanes         = model.rectGraph.ir.getLanes();
+    auto&      lanes         = rectGraph.ir.getLanes();
     for (auto const& [lane_idx, lane] : enumerate(lanes)) {
         for (auto const& [block_idx, block] : enumerate(lane.blocks)) {
             LaneNodePos   lanePos{.lane = lane_idx, .row = block_idx};
-            StoryGridNode storyNode = model.rectGraph.getDocNode(lanePos);
+            StoryGridNode storyNode = rectGraph.getDocNode(lanePos);
             // if individual node is a story grid it can have edges
             // connected at any part of the shape, and they might be
             // scrolled out of the view even if the grid itself is
@@ -952,30 +879,27 @@ void update_hidden_row_connections(
                             + row->getHeight().value());
                     org::ImmUniqId rowId = row->origin.uniq();
                     UnorderedSet<org::graph::MapNode> adjacent;
-                    for (auto const& n :
-                         model.rectGraph.graph.inNodes(rowId)) {
+                    for (auto const& n : rectGraph.graph.inNodes(rowId)) {
                         adjacent.incl(n);
                     }
 
-                    for (auto const& n :
-                         model.rectGraph.graph.outNodes(rowId)) {
+                    for (auto const& n : rectGraph.graph.outNodes(rowId)) {
                         adjacent.incl(n);
                     }
 
                     auto overlap = rowRange.overlap(viewportRange);
 
                     for (auto const& n : adjacent) {
-                        Opt<LaneNodePos> targetNodePos = model.rectGraph
-                                                             .orgToId.get(
-                                                                 n.id);
+                        Opt<LaneNodePos> targetNodePos = rectGraph.orgToId
+                                                             .get(n.id);
 
                         if (targetNodePos) {
                             auto const& t = targetNodePos.value();
 
                             if (overlap) {
-                                model.rectGraph.at(t).isVisible = true;
+                                rectGraph.at(t).isVisible = true;
                             } else {
-                                model.rectGraph.at(t).isVisible = false;
+                                rectGraph.at(t).isVisible = false;
                             }
                         }
                     }
@@ -985,11 +909,10 @@ void update_hidden_row_connections(
     }
 }
 
-void update_document_scroll(
-    StoryGridModel&        model,
-    StoryGridConfig const& conf) {
-    auto& ctx = model.ctx;
-    auto& ir  = model.rectGraph.ir;
+void StoryGridModel::updateDocumentLayout(StoryGridConfig const& conf) {
+    CTX_MSG("Update document layout");
+    auto  __scope = ctx.scopeLevel();
+    auto& ir      = rectGraph.ir;
 
     {
         Vec<int> offsets //
@@ -1004,25 +927,19 @@ void update_document_scroll(
 
     ir.setVisible(conf.gridViewport);
 
-    for (auto& lane : ir.getLanes()) {
-        for (auto& rect : lane.blocks) { rect.isVisible = true; }
-    }
-
-    for (auto& stack : ir.getLanes()) { stack.resetVisibleRange(); }
+    ir.ir.resetVisibility();
 
     // use first line as a basis for arranging all other node positions.
     if (ir.getLanes().has(0)) {
-        model.shift.y = ir.getLanes().at(0).scrollOffset;
+        shift.y = ir.getLanes().at(0).scrollOffset;
     }
 
-    update_graph_layout(model, conf);
-    update_hidden_row_connections(model, conf);
-    update_graph_layout(model, conf);
+    updateDocumentNodePositions(conf);
+    updateHiddenRowConnection(conf);
+    updateDocumentNodePositions(conf);
 }
 
-void StoryGridModel::updateDocumentGraph(
-    StoryGridConfig const&  conf,
-    TreeGridDocument const& init_doc) {
+void StoryGridModel::updateDocumentGraph(StoryGridConfig const& conf) {
     __perf_trace("gui", "add grid nodes");
     rectGraph = StoryGridGraph{};
     rectGraph.graph.clear();
@@ -1036,12 +953,10 @@ void StoryGridModel::updateDocumentGraph(
     auto __scope = ctx.scopeLevel();
 
     docNodeIndex = rectGraph.addRootGrid(
-        getLastHistory().ast.getRootAdapter(), init_doc, ctx, conf);
+        getLastHistory().ast.getRootAdapter(), conf, ctx);
 
     rectGraph.addGridAnnotationNodes(
-        rectGraph.nodes.at(docNodeIndex).getTreeGrid().node,
-        rectGraph.graph,
-        ctx);
+        rectGraph.nodes.at(docNodeIndex).getTreeGrid().node, ctx);
 
     CTX_MSG(fmt("Graph with {} nodes", rectGraph.nodes.size()));
     CTX_MSG(fmt("Graph adjacency list {}", rectGraph.graph.adjList));
@@ -1049,7 +964,7 @@ void StoryGridModel::updateDocumentGraph(
 
     rectGraph.partition = getGraphPartition();
 
-    connect_partition_edges(*this, rectGraph.partition, conf);
+    connectPartitionEdges(rectGraph.partition, conf);
 
     {
         int ir_nodes = 0;
@@ -1061,24 +976,51 @@ void StoryGridModel::updateDocumentGraph(
     }
 }
 
-void StoryGridModel::updateDocument(
-    TreeGridDocument const& init_doc,
-    StoryGridConfig const&  conf) {
+void StoryGridModel::updateDocumentNodePositions(
+    const StoryGridConfig& conf) {
+    rectGraph.ir.setVisible(conf.gridViewport);
+    rectGraph.ir.syncSize([&](int flat_idx) -> ImVec2 {
+        return rectGraph.nodes.at(flat_idx).getSize();
+    });
+
+    rectGraph.ir.syncLayout();
+
+    CTX_MSG("Updating graph layout positions");
+    auto __scope = ctx.scopeLevel();
+
+
+    for (NodeGridGraph::RectSpec const& rect :
+         rectGraph.ir.getRectangles()) {
+        StoryGridNode& node = rectGraph.nodes.at(rect.flatPos);
+        CTX_MSG(fmt("Rect {}", rect));
+
+        if (rect.isVisible) {
+            node.isVisible = true;
+            node.setPos(rect.pos);
+        } else {
+            node.isVisible = false;
+        }
+    }
+
+    // debug     = to_constraints(lyt, rectGraph.ir, thisLayout);
+    // debug->ir = &thisLayout;
+}
+
+void StoryGridModel::updateDocument(StoryGridConfig const& conf) {
     __perf_trace("gui", "update grid model");
     CTX_MSG("Update story grid document");
     auto __scope = ctx.scopeLevel();
     if (updateNeeded.contains(UpdateNeeded::Graph)) {
-        updateDocumentGraph(conf, init_doc);
+        updateDocumentGraph(conf);
     }
 
     if (updateNeeded.contains(UpdateNeeded::LinkListClick)) {
         update_link_list_target_rows(rectGraph);
-        connect_partition_edges(*this, rectGraph.partition, conf);
-        update_node_sizes(rectGraph);
+        connectPartitionEdges(rectGraph.partition, conf);
     }
 
     if (updateNeeded.contains(UpdateNeeded::Scroll)) {
-        update_document_scroll(*this, conf);
+        updateDocumentLayout(conf);
     }
 
     // writeFile("/tmp/debug_dump.json",
@@ -1503,25 +1445,19 @@ void run_story_grid_cycle(
     }
 }
 
-void apply_story_grid_changes(
-    StoryGridModel&         model,
-    TreeGridDocument const& init_doc,
-    StoryGridConfig const&  conf) {
-    if (!model.ctx.actions.empty()) {
-        for (auto const& update : model.ctx.actions) {
-            model.apply(update, conf);
-        }
-        model.updateDocument(init_doc, conf);
-        model.ctx.actions.clear();
+void StoryGridModel::applyChanges(StoryGridConfig const& conf) {
+    if (!ctx.actions.empty()) {
+        for (auto const& update : ctx.actions) { apply(update, conf); }
+        updateDocument(conf);
+        ctx.actions.clear();
     }
 }
 
 int StoryGridGraph::addRootGrid(
-    const org::ImmAdapter&  node,
-    const TreeGridDocument& init_doc,
-    StoryGridContext&       ctx,
-    const StoryGridConfig&  conf) {
-    TreeGridDocument doc = init_doc;
+    const org::ImmAdapter& node,
+    const StoryGridConfig& conf,
+    StoryGridContext&      ctx) {
+    TreeGridDocument doc = conf.getDefaultDoc();
     __perf_trace_begin("gui", "build doc rows");
     doc.rows = build_rows(node, doc);
     __perf_trace_end("gui");
@@ -1555,9 +1491,8 @@ int StoryGridGraph::addRootGrid(
 }
 
 void StoryGridGraph::addGridAnnotationNodes(
-    TreeGridDocument&     doc,
-    org::graph::MapGraph& graph,
-    StoryGridContext&     ctx) {
+    TreeGridDocument& doc,
+    StoryGridContext& ctx) {
     CTX_MSG("Add annotation nodes to document");
     auto __scope = ctx.scopeLevel();
 
@@ -1591,7 +1526,7 @@ void StoryGridGraph::addGridAnnotationNodes(
         for (auto const& list : row->origin.subAs<org::ImmList>()) {
             if (list.isDescriptionList()
                 && org::graph::isLinkedDescriptionList(list)) {
-                addDescriptionListNodes(doc, list, graph, ctx);
+                addDescriptionListNodes(doc, list, ctx);
             }
         }
     }
@@ -1600,7 +1535,6 @@ void StoryGridGraph::addGridAnnotationNodes(
 void StoryGridGraph::addDescriptionListNodes(
     TreeGridDocument&                     doc,
     const org::ImmAdapterT<org::ImmList>& list,
-    org::graph::MapGraph&                 graph,
     StoryGridContext&                     ctx) {
     org::graph::MapNode listNode{list.uniq()};
     for (auto const& item : list.subAs<org::ImmListItem>()) {

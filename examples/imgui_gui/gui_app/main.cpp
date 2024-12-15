@@ -441,17 +441,23 @@ int main(int argc, char** argv) {
         case Config::Mode::StoryGridAnnotated:
         case Config::Mode::StoryGrid: {
             StoryGridConfig storyGridConf;
-            using Col = StoryGridConfig::StoryGridColumnConfig;
-            storyGridConf.defaultColumns = {
-                Col{.width = 200, .name = "title"},
-                Col{.width = 400, .name = "event"},
-                Col{.width = 400, .name = "note"},
-                Col{.width = 300, .name = "turning_point"},
-                Col{.width = 200, .name = "value"},
-                Col{.width = 240,
-                    .edit  = EditableOrgText::Mode::SingleLine,
-                    .name  = "location"},
-                Col{.width = 100, .name = "pov"},
+            using Col                   = TreeGridColumn;
+            storyGridConf.getDefaultDoc = []() -> TreeGridDocument {
+                TreeGridDocument doc;
+                doc.columns = {
+                    Col{.name = "title", .width = 200},
+                    Col{.name = "event", .width = 400},
+                    Col{.name = "note", .width = 400},
+                    Col{.name = "turning_point", .width = 300},
+                    Col{.name = "value", .width = 200},
+                    Col{
+                        .name  = "location",
+                        .width = 240,
+                        .edit  = EditableOrgText::Mode::SingleLine,
+                    },
+                    Col{.name = "pov", .width = 100},
+                };
+                return doc;
             };
 
 
