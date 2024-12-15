@@ -38,7 +38,11 @@ void connect_vertical_constraints(
     OLOG_DEPTH_SCOPE_ANON();
     for (auto const& [lane_idx, lane] : enumerate(g.lanes)) {
         gr_log(ol_trace).fmt_message(
-            "Lane index {} size {}", lane_idx, lane.blocks.size());
+            "Lane index {} size {}, scroll is {}",
+            lane_idx,
+            lane.blocks.size(),
+            lane.scrollOffset);
+
         auto     visibleSlice  = slice<int>(0, int(g.visible.height()));
         Vec<int> visibleBlocks = lane.getVisibleBlocks(visibleSlice);
         if (visibleBlocks.empty()) {
@@ -504,12 +508,11 @@ bool LaneBlockStack::inSpan(int blockIdx, Slice<int> heightRange) const {
         auto span = blocks.at(blockIdx).heightSpan(
             getBlockHeightStart(blockIdx));
         bool result = heightRange.overlap(span).has_value();
-        // gr_log(ol_debug, 0)
-        //     .message(_dfmt_expr(
-        //         span, heightRange, blockIdx, result, scrollOffset));
+        gr_log(ol_debug).message(
+            _dfmt_expr(span, heightRange, blockIdx, result, scrollOffset));
         return result;
     } else {
-        // gr_log(ol_debug, 0).message(_dfmt_expr(blockIdx, heightRange));
+        gr_log(ol_debug).message(_dfmt_expr(blockIdx, heightRange));
         return false;
     }
 }
@@ -652,17 +655,27 @@ void LaneBlockGraph::addScrolling(
     auto spans = getLaneSpans();
     for (auto const& [idx, span] : enumerate(spans)) {
         if (span.contains(graphPos.x)) {
+            lanes.at(idx).scrollOffset += direction;
             gr_log(ol_trace).fmt_message(
-                "Lane {} x span is {}, adding scroll offset {}",
+                "Lane {} x span is {}, adding scroll offset {}, current "
+                "scroll is {}",
                 idx,
                 span,
-                direction);
-            lanes.at(idx).scrollOffset += direction;
+                direction,
+                lanes.at(idx).scrollOffset);
         } else {
             gr_log(ol_trace).fmt_message(
                 "Lane {} x span {}, no match", idx, span);
         }
     }
+}
+
+void LaneBlockGraph::resetVisibility() {
+    for (auto& lane : lanes) {
+        for (auto& rect : lane.blocks) { rect.isVisible = true; }
+    }
+
+    for (auto& stack : lanes) { stack.resetVisibleRange(); }
 }
 
 generator<Pair<LaneNodePos, LaneBlockNode>> LaneBlockGraph::getBlocks()

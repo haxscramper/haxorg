@@ -87,7 +87,7 @@ BOOST_LOG_GLOBAL_LOGGER_INIT(
     return logger;
 }
 
-#define OLOG_INNER_DEBUG true
+#define OLOG_INNER_DEBUG false
 
 #define OLOG_MSG() LOG_IF(INFO, OLOG_INNER_DEBUG)
 

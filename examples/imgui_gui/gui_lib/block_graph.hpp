@@ -144,6 +144,7 @@ struct LaneBlockGraph {
     }
 
     void addScrolling(ImVec2 const& graphPos, float direction);
+    void resetVisibility();
 
     void addEdge(LaneNodePos const& source, LaneNodeEdge const& target) {
         edges[source].push_back(target);
@@ -184,7 +185,16 @@ struct LaneBlockGraph {
 
 
 struct LaneBlockLayout {
-    GraphLayoutIR                  ir;
+    /// \brief Finalized set of graph layout constraints, ready to be
+    /// solved for final layout.
+    GraphLayoutIR ir;
+    /// \brief Store mapping between the block graph nodes and the final
+    /// fixed layout rectangles. Adaptagrams IR will only have nodes that
+    /// are actually laid out, so this will create a full new set of
+    /// indices that are specific to the final
+    /// `GraphLayoutIR::Result::fixed` field (final data for fully
+    /// positioned nodes) or `GraphLayoutIR::rectangles` field
+    /// (intermediate data for not-yet-positioned rectangle sizes)
     UnorderedMap<LaneNodePos, int> rectMap;
     DESC_FIELDS(LaneBlockLayout, (ir, rectMap));
 };
@@ -230,5 +240,8 @@ void render_result(
     const LaneBlockGraphConfig&  style);
 void render_debug(ColaConstraintDebug const& debug, const ImVec2& shift);
 
+/// \brief Convert lane block graph into adaptagrams block layout IR. This
+/// function does not perform any node positioning, only creates a set of
+/// constraints for later layout.
 LaneBlockLayout to_layout(LaneBlockGraph const& g);
 void            run_block_graph_test(GLFWwindow* window);

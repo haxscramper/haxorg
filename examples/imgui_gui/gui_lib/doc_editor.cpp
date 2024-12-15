@@ -83,7 +83,7 @@ void render_doc_block(DocBlockModel& model, const DocBlockConfig& conf) {
     if (io.MouseWheel != 0.0f) {
         model.ctx.action(DocBlockAction::Scroll{
             .pos       = io.MousePos - renderContext.start,
-            .direction = -(io.MouseWheel * conf.mouseScrollMultiplier),
+            .direction = io.MouseWheel * conf.mouseScrollMultiplier,
         });
     }
 
@@ -107,6 +107,11 @@ void apply_doc_block_actions(
     DocBlockModel&        model,
     const DocBlockConfig& conf) {
     if (model.ctx.actions.empty()) { return; }
+
+    auto __log_scoped = OLOG_SINK_FACTORY_SCOPED([]() {
+        return ::org_logging::init_file_sink(
+            "/tmp/apply_doc_block_actions.log");
+    });
 
     auto& ctx = model.ctx;
 
@@ -143,6 +148,7 @@ void apply_doc_block_actions(
             case DocBlockAction::Kind::Scroll: {
                 auto const& scr = act.getScroll();
                 model.g.ir.addScrolling(scr.pos, scr.direction);
+                model.g.ir.resetVisibility();
                 model.syncLayout(conf);
                 break;
             }

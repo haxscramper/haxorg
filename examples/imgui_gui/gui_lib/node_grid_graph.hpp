@@ -3,11 +3,20 @@
 #include <gui_lib/block_graph.hpp>
 
 struct NodeGridGraph {
-    LaneBlockGraph                 ir;
+    /// \brief Lane block graph structure with the block positions and
+    /// other data.
+    LaneBlockGraph ir;
+    /// \brief Map external node index to the lane node position. Changed
+    /// in `add` method.
     UnorderedMap<int, LaneNodePos> gridNodeToNode;
+    /// \brief Reverse map to get external node index based on the lane
+    /// node position. Updated in the `add` method.
     UnorderedMap<LaneNodePos, int> nodeToGridNode;
-    LaneBlockLayout                lyt;
-    GraphLayoutIR::Result          layout;
+    /// \brief Intermediate storage for the adaptagrapms graph layout IR.
+    /// Updated in the `syncLayout` method, together with the `layout`
+    /// field.
+    LaneBlockLayout       lyt;
+    GraphLayoutIR::Result layout;
 
     DESC_FIELDS(
         NodeGridGraph,
@@ -48,51 +57,33 @@ struct NodeGridGraph {
         nodeToGridNode.insert_or_assign(irNode, flatIdx);
     }
 
-    void syncLayout() {
-        int pad       = ir.lanes.at(0).leftMargin;
-        lyt           = to_layout(ir);
-        lyt.ir.height = 10000;
-        lyt.ir.width  = 10000;
-        auto cola     = lyt.ir.doColaLayout();
-        layout        = cola.convert();
-
-        for (auto const& [key, edge] : layout.lines) {
-            for (auto& path : layout.lines.at(key).paths) {
-                for (auto& point : path.points) { point.x += pad; }
-            }
-        }
-
-        for (auto& rect : layout.fixed) { rect.left += pad; }
-    }
+    void syncLayout();
 
     struct RectSpec {
+        /// \brief Block lane graph position of the rectangle
         LaneNodePos lanePos;
-        int         flatPos;
-        ImVec2      size;
-        ImVec2      pos;
-        bool        isVisible = true;
+        /// \brief Flat index of the original external block (note: this is
+        /// not directly related to the `layout.fixed` and similar fields,
+        /// but `lyt.rectMap` still can be used to get the original index
+        /// through `lanePos`)
+        int flatPos;
+        /// \brief Size of the layout rectangle. If rectangle is invisible
+        /// the data is not filled.
+        ImVec2 size;
+        /// \brief Position of the upper left corner of the rectangle. If
+        /// rectangle is invisible the data is not filled.
+        ImVec2 pos;
+        /// \brief If the rectangle was not added to the `lyt` it is marked
+        /// as invisible. Rectangle might be missing from the `lyt` if (1)
+        /// `syncLayout` did not run yet, (2) the rectangle is out of the
+        /// scroll window and was cut off from layout.
+        bool isVisible = true;
         DESC_FIELDS(RectSpec, (lanePos, flatPos, size, pos, isVisible));
     };
 
-    generator<RectSpec> getRectangles() {
-        for (auto const& [flat_idx, lane_idx] : gridNodeToNode) {
-            if (lyt.rectMap.contains(lane_idx)) {
-                auto pos  = layout.fixed.at(flat_idx).topLeft();
-                auto size = layout.fixed.at(flat_idx).size();
-                co_yield RectSpec{
-                    .lanePos   = lane_idx,
-                    .flatPos   = flat_idx,
-                    .size      = ImVec2(size.width(), size.height()),
-                    .pos       = ImVec2(pos.x, pos.y),
-                    .isVisible = true,
-                };
-            } else {
-                co_yield RectSpec{
-                    .lanePos   = lane_idx,
-                    .flatPos   = flat_idx,
-                    .isVisible = false,
-                };
-            }
-        }
-    }
+    /// \brief Get information on all previously provided rectangles.
+    ///
+    /// \warning If any changes were made to the rectangle list it is
+    /// necessary to run `syncLayout` again to update the layout data.
+    Vec<RectSpec> getRectangles();
 };
