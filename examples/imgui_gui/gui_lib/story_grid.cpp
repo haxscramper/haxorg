@@ -822,7 +822,7 @@ void StoryGridGraph::focusLinkListTargetRows(StoryGridContext& ctx) {
                 for (auto& row : node.getTreeGrid().node.rows) {
                     aux(row);
                 }
-                node.getTreeGrid().node.resetGridStatics();
+                node.getTreeGrid().node.updatePositions();
             }
         }
     } else {
@@ -837,7 +837,7 @@ void StoryGridGraph::focusLinkListTargetRows(StoryGridContext& ctx) {
                 for (auto& row : node.getTreeGrid().node.rows) {
                     aux(row);
                 }
-                node.getTreeGrid().node.resetGridStatics();
+                node.getTreeGrid().node.updatePositions();
             }
         }
     }
@@ -1229,7 +1229,7 @@ void StoryGridModel::apply(
         case GridAction::Kind::EditCellChanged: {
             rectGraph.nodes.at(act.getEditCellChanged().documentNodeIdx)
                 .getTreeGrid()
-                .node.resetGridStatics();
+                .node.updatePositions();
             break;
         }
 
@@ -1298,7 +1298,8 @@ void StoryGridModel::apply(
 
             rectGraph.nodes.at(f.documentNodeIdx)
                 .getTreeGrid()
-                .node.resetGridStatics();
+                .node.updatePositions();
+            updateDocumentLayout(conf);
             break;
         }
     }
@@ -1376,10 +1377,11 @@ Opt<int> TreeGridRow::getHeightRec(int padding) const {
     }
 }
 
-void TreeGridDocument::resetGridStatics() {
+void TreeGridDocument::updatePositions() {
     __perf_trace("gui", "reset table row positions");
-    int                            offset = tableHeaderHeight;
-    int                            index  = 0;
+    int offset = tableHeaderHeight;
+    int index  = 0;
+
     Func<void(TreeGridRow&, bool)> aux;
     aux = [&, this](TreeGridRow& row, bool isVisible) {
         this->rowOrigins.insert_or_assign(row.origin.uniq(), index);
@@ -1464,7 +1466,7 @@ int StoryGridGraph::addRootGrid(
     __perf_trace_begin("gui", "build doc rows");
     doc.rows = build_rows(node, doc);
     __perf_trace_end("gui");
-    doc.resetGridStatics();
+    doc.updatePositions();
 
 
     CTX_MSG(
