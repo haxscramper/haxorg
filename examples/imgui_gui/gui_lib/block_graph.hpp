@@ -89,16 +89,14 @@ struct LaneBlockGraphConfig {
 
 struct LaneBlockStack {
     Vec<LaneBlockNode> blocks;
-    Slice<int>         visibleRange;
     int                scrollOffset = 0;
     int                leftMargin   = 50;
     int                rightMargin  = 50;
     DESC_FIELDS(
         LaneBlockStack,
-        (blocks, visibleRange, scrollOffset, leftMargin, rightMargin));
-    int  getBlockHeightStart(int blockIdx) const;
-    void resetVisibleRange() { visibleRange = slice(0, blocks.high()); }
-    bool inSpan(int blockIdx, Slice<int> heightRange) const;
+        (blocks, scrollOffset, leftMargin, rightMargin));
+    int      getBlockHeightStart(int blockIdx) const;
+    bool     inSpan(int blockIdx, Slice<int> heightRange) const;
     Vec<int> getVisibleBlocks(Slice<int> heightRange) const;
     int      addBlock(
              int                         laneIndex,
@@ -246,4 +244,3 @@ void render_debug(ColaConstraintDebug const& debug, const ImVec2& shift);
 /// function does not perform any node positioning, only creates a set of
 /// constraints for later layout.
 LaneBlockLayout to_layout(LaneBlockGraph const& g);
-void            run_block_graph_test(GLFWwindow* window);

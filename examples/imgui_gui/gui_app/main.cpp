@@ -477,7 +477,6 @@ int main(int argc, char** argv) {
             break;
         }
         case Config::Mode::Test: {
-            run_block_graph_test(window);
             break;
         }
         case Config::Mode::ScintillaEditorTest: {

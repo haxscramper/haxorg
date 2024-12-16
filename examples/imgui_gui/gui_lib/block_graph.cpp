@@ -153,8 +153,12 @@ void connect_edges(LaneBlockLayout& lyt, LaneBlockGraph const& g) {
     int                               edgeId = 0;
     UnorderedMap<Pair<int, int>, int> inLaneCheckpoints;
     for (auto const& lane : enumerator(g.lanes)) {
-        for (auto const& row : lane.value().visibleRange) {
-            LaneNodePos source{.lane = lane.index(), .row = row};
+        for (auto const& [block_idx, block] :
+             enumerate(lane.value().blocks)) {
+            LaneNodePos source{
+                .lane = lane.index(),
+                .row  = block_idx,
+            };
             if (!g.edges.contains(source)) { continue; }
             for (LaneNodeEdge const& target : g.edges.at(source)) {
                 if (lyt.rectMap.contains(source)
@@ -431,70 +435,6 @@ LaneNodePos n(int lane, int row) {
     return LaneNodePos{.lane = lane, .row = row};
 }
 
-void run_block_graph_test(GLFWwindow* window) {
-    int  w     = 75;
-    int  h     = 50;
-    auto lane0 = Vec<LaneBlockNode>{
-        LaneBlockNode{.width = w, .height = h}, // 0.0
-        LaneBlockNode{.width = w, .height = h}, // 0.1
-        LaneBlockNode{.width = w, .height = h}, // 0.2
-    };
-
-    auto lane1 = Vec<LaneBlockNode>{
-        LaneBlockNode{.width = w, .height = h}, // 1.0
-        LaneBlockNode{.width = w, .height = h}, // 1.1
-        LaneBlockNode{.width = w, .height = h}, // 1.2
-        LaneBlockNode{.width = w, .height = h}, // 1.3
-        LaneBlockNode{.width = w, .height = h}, // 1.4
-    };
-
-    auto lane2 = Vec<LaneBlockNode>{
-        LaneBlockNode{.width = w, .height = h}, // 2.0
-        LaneBlockNode{.width = w, .height = h}, // 2.1
-        LaneBlockNode{.width = w, .height = h}, // 2.2
-        LaneBlockNode{.width = w, .height = h}, // 2.3
-    };
-
-    LaneBlockGraph g{
-        .lanes
-        = {LaneBlockStack{.blocks = lane0, .visibleRange = slice(0, 2)},
-           LaneBlockStack{.blocks = lane1, .visibleRange = slice(0, 4)},
-           LaneBlockStack{.blocks = lane2, .visibleRange = slice(0, 3)}},
-        .visible = GraphSize{.w = 1200, .h = 1200}};
-
-    g.addEdge(n(0, 0), e(1, 0));
-
-    g.addEdge(n(0, 1), e(1, 1));
-    g.addEdge(n(0, 1), e(1, 2));
-    g.addEdge(n(0, 1), e(1, 3));
-
-    g.addEdge(n(0, 2), e(1, 4));
-
-    g.addEdge(n(1, 0), e(2, 0));
-    g.addEdge(n(1, 1), e(2, 0));
-    g.addEdge(n(1, 1), e(2, 1));
-
-    g.addEdge(n(1, 2), e(2, 1));
-
-    g.addEdge(n(1, 3), e(2, 1));
-    g.addEdge(n(1, 3), e(2, 2));
-    g.addEdge(n(1, 4), e(2, 1));
-    g.addEdge(n(1, 4), e(2, 3));
-
-    g.lanes.at(1).scrollOffset -= 100;
-    for (int i = 0; i < 5; ++i) {
-        auto lyt = to_layout(g);
-        g.lanes.at(1).scrollOffset += 100;
-        lyt.ir.height = 10000;
-        lyt.ir.width  = 10000;
-        auto col      = lyt.ir.doColaLayout();
-        col.router->outputInstanceToSVG(
-            fmt("/tmp/run_block_graph_test_{}", i));
-    }
-
-    graph_render_loop(g, window, LaneBlockGraphConfig{});
-}
-
 int LaneBlockStack::getBlockHeightStart(int blockIdx) const {
     int start = scrollOffset;
     for (int i = 0; i < blockIdx; ++i) {
@@ -675,8 +615,6 @@ void LaneBlockGraph::resetVisibility() {
     for (auto& lane : lanes) {
         for (auto& rect : lane.blocks) { rect.isVisible = true; }
     }
-
-    for (auto& stack : lanes) { stack.resetVisibleRange(); }
 }
 
 generator<Pair<LaneNodePos, LaneBlockNode>> LaneBlockGraph::getBlocks()
