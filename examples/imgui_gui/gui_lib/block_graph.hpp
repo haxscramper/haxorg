@@ -144,6 +144,8 @@ struct LaneBlockGraph {
     }
 
     void addScrolling(ImVec2 const& graphPos, float direction);
+    /// \brief Set all nodes in all lanes as visible and reset visible
+    /// range for each lane to encompas all blocks.
     void resetVisibility();
 
     void addEdge(LaneNodePos const& source, LaneNodeEdge const& target) {

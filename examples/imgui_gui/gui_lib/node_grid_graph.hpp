@@ -44,6 +44,18 @@ struct NodeGridGraph {
         }
     }
 
+    /// \brief Update visibility status on all rectangles. Callback can
+    /// return true/false or nullopt. In the latter case visibility of the
+    /// rectangle will remain unchanged.
+    void syncVisibility(Func<Opt<bool>(int)> const& cb) {
+        for (auto const& [flat_idx, lane_idx] : gridNodeToNode) {
+            auto visibility = cb(flat_idx);
+            if (visibility.has_value()) {
+                ir.at(lane_idx).isVisible = visibility.value();
+            }
+        }
+    }
+
     Opt<int> getFlat(LaneNodePos const& pos) const {
         return nodeToGridNode.get(pos);
     }

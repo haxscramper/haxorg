@@ -861,6 +861,7 @@ void StoryGridModel::updateHiddenRowConnection(
             // scrolled out of the view even if the grid itself is
             // partially visible.
             if (storyNode.isTreeGrid()) {
+                CTX_MSG(fmt("Block at {} is story grid", lanePos));
                 TreeGridDocument treeDoc = storyNode.getTreeGrid().node;
                 // so the code goes over each visible row, collecting the
                 // positions relative to the *block graph layout basis*
@@ -880,10 +881,25 @@ void StoryGridModel::updateHiddenRowConnection(
                     auto adjacent        = rectGraph.graph.adjNodes(rowId);
                     auto overlap         = rowRange.overlap(viewportRange);
 
+                    if (!adjacent.empty()) {
+                        CTX_MSG(
+                            fmt("Row {}, adjacent nodes {} row range {} "
+                                "viewport range {}",
+                                row->flatIdx,
+                                adjacent,
+                                rowRange,
+                                viewportRange));
+                    }
+
+                    auto __scope = ctx.scopeLevel();
                     for (auto const& n : adjacent) {
                         Opt<LaneNodePos> targetNodePos = rectGraph.orgToId
                                                              .get(n.id);
-
+                        CTX_MSG(
+                            fmt("N {} target {} overlap {}",
+                                n.id.id,
+                                targetNodePos,
+                                overlap));
                         if (targetNodePos) {
                             auto const& t = targetNodePos.value();
 
@@ -965,6 +981,11 @@ void StoryGridModel::updateDocumentGraph(StoryGridConfig const& conf) {
 void StoryGridModel::updateDocumentNodePositions(
     const StoryGridConfig& conf) {
     rectGraph.ir.setVisible(conf.gridViewport);
+
+    rectGraph.ir.syncVisibility([&](int flat_idx) -> Opt<bool> {
+        return rectGraph.nodes.at(flat_idx).isVisible;
+    });
+
     rectGraph.ir.syncSize([&](int flat_idx) -> ImVec2 {
         return rectGraph.nodes.at(flat_idx).getSize();
     });
