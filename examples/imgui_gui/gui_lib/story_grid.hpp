@@ -52,13 +52,15 @@ struct TreeGridColumn {
     DESC_FIELDS(TreeGridColumn, (name, width, edit));
 };
 
-struct TreeGridRow {
+struct TreeGridRow : SharedPtrApi<TreeGridRow> {
     int                               flatIdx;
     org::ImmAdapterT<org::ImmSubtree> origin;
     UnorderedMap<Str, TreeGridCell>   columns;
-    Vec<TreeGridRow>                  nested;
+    Vec<TreeGridRow::Ptr>             nested;
+    std::weak_ptr<TreeGridRow>        parent;
     bool                              isVisible = true;
     bool                              isOpen    = true;
+
     DESC_FIELDS(
         TreeGridRow,
         (columns, origin, flatIdx, nested, isVisible, isOpen));
@@ -69,6 +71,12 @@ struct TreeGridRow {
         });
     }
 
+    bool hasParent() const { return !parent.expired(); }
+
+    bool isInvisibleOrParentFolded() const {
+        return !isVisible
+            || (hasParent() && parent.lock()->isInvisibleOrParentFolded());
+    }
 
     bool isShowingNested() const { return !nested.empty() && isOpen; }
 
@@ -80,35 +88,31 @@ struct TreeGridRow {
         return idx;
     }
 
-    Vec<TreeGridRow*> flatThisNested(bool withInvisible);
+    void addNested(TreeGridRow::Ptr const& nest) {
+        nested.push_back(nest);
+        nested.back()->parent = weak_from_this();
+    }
 
+    Vec<Ptr> flatThisNested(bool withInvisible) const;
     int      getHeightDirect(int padding = 0) const;
     Opt<int> getHeight(int padding = 0) const;
     int      getHeightRecDirect(int padding = 0) const;
     Opt<int> getHeightRec(int padding = 0) const;
 
-    TreeGridRow* getLastLeaf() {
+    TreeGridRow::Ptr getLastLeaf() const {
         if (nested.empty()) {
-            return this;
+            return mshared_from_this();
         } else {
-            return nested.back().getLastLeaf();
-        }
-    }
-
-    TreeGridRow const* getLastLeaf() const {
-        if (nested.empty()) {
-            return this;
-        } else {
-            return nested.back().getLastLeaf();
+            return nested.back()->getLastLeaf();
         }
     }
 };
 
 struct TreeGridDocument {
-    Vec<TreeGridRow>    rows;
-    Vec<TreeGridColumn> columns;
-    int                 rowPadding = 6;
-    int                 colPadding = 6;
+    Vec<TreeGridRow::Ptr> rows;
+    Vec<TreeGridColumn>   columns;
+    int                   rowPadding = 6;
+    int                   colPadding = 6;
     /// \brief Width of leftmost column with tree folding indicators
     int      treeFoldWidth     = 120;
     int      tableHeaderHeight = 16;
@@ -119,7 +123,9 @@ struct TreeGridDocument {
 
     void updatePositions();
 
-    int getRowYPos(TreeGridRow const& r) { return getRowYPos(r.flatIdx); }
+    int getRowYPos(TreeGridRow::Ptr const& r) {
+        return getRowYPos(r->flatIdx);
+    }
     int getRowYPos(int index) { return rowPositions.at(index); }
 
     int getColumnXPos(CR<Str> name) {
@@ -154,31 +160,21 @@ struct TreeGridDocument {
         return columns.at(getColumnIndex(name));
     }
 
-    Vec<TreeGridRow*> flatRows(bool withInvisible) {
-        Vec<TreeGridRow*> result;
+    Vec<TreeGridRow::Ptr> flatRows(bool withInvisible) const {
+        Vec<TreeGridRow::Ptr> result;
         for (auto& row : rows) {
-            result.append(row.flatThisNested(withInvisible));
+            result.append(row->flatThisNested(withInvisible));
         }
         return result;
     }
 
-    TreeGridRow* getRow(int pos) {
+    TreeGridRow::Ptr getRow(int pos) const {
         // TODO Optimize, this is a O(n^2) code.
         for (auto it : flatRows(true)) {
             if (it->flatIdx == pos) { return it; }
         }
         return nullptr;
     }
-
-    TreeGridRow const* getRow(int pos) const {
-        // TODO Optimize, this is a O(n^2) code.
-        for (auto it :
-             const_cast<TreeGridDocument*>(this)->flatRows(true)) {
-            if (it->flatIdx == pos) { return it; }
-        }
-        return nullptr;
-    }
-
 
     Opt<int> getRow(org::ImmUniqId const& id) const {
         return rowOrigins.get(id);
@@ -190,7 +186,7 @@ struct TreeGridDocument {
 
     int getHeight() const {
         return rowPositions.back()
-             + rows.back().getLastLeaf()->getHeight().value_or(0);
+             + rows.back()->getLastLeaf()->getHeight().value_or(0);
     }
 
     int getWidth() const {

@@ -40,7 +40,7 @@ EditableOrgText::Result render_editable_cell(
 
 
 void render_cell(
-    TreeGridRow&          row,
+    TreeGridRow::Ptr      row,
     TreeGridCell&         cell,
     StoryGridContext&     ctx,
     TreeGridColumn const& col,
@@ -52,7 +52,7 @@ void render_cell(
     ImGui::SetNextWindowPos(pos);
     if (IM_FN_BEGIN(
             BeginChild,
-            c_fmt("cell_{}_{}", row.flatIdx, col.name),
+            c_fmt("cell_{}_{}", row->flatIdx, col.name),
             cell.getSize(),
             ImGuiChildFlags_Borders,
             ImGuiWindowFlags_NoScrollbar)) {
@@ -60,7 +60,7 @@ void render_cell(
             cell,
             ctx,
             col,
-            fmt("cell_{}_{}_{}", documentNodeIdx, row.flatIdx, col.name));
+            fmt("cell_{}_{}_{}", documentNodeIdx, row->flatIdx, col.name));
         switch (res) {
             case EditableOrgText::Result::Changed: {
                 ctx.action(GridAction::EditCell{
@@ -88,7 +88,7 @@ void render_cell(
 }
 
 void render_tree_columns(
-    TreeGridRow&      row,
+    TreeGridRow::Ptr  row,
     TreeGridDocument& doc,
     StoryGridContext& ctx,
     int               documentNodeIdx,
@@ -96,14 +96,14 @@ void render_tree_columns(
     auto __scope = ctx.scopeLevel();
     int  colIdx  = 1;
     for (auto const& col : doc.columns) {
-        if (row.columns.contains(col.name)) {
+        if (row->columns.contains(col.name)) {
             auto __scope = ctx.scopeLevel();
             render_cell(
                 row,
-                row.columns.at(col.name),
+                row->columns.at(col.name),
                 ctx,
                 col,
-                gridStart + doc.getCellPos(row.flatIdx, col.name),
+                gridStart + doc.getCellPos(row->flatIdx, col.name),
                 documentNodeIdx);
         }
         ++colIdx;
@@ -111,26 +111,26 @@ void render_tree_columns(
 }
 
 void render_tree_row(
-    TreeGridRow&           row,
+    TreeGridRow::Ptr       row,
     TreeGridDocument&      doc,
     StoryGridContext&      ctx,
     StoryGridConfig const& conf,
     int                    documentNodeIdx,
     ImVec2 const&          gridStart) {
     // row is completely invisible, including its nested sub-rows
-    if (!row.isVisible) { return; }
+    if (!row->isVisible) { return; }
     bool skipped = false;
     auto __scope = ctx.scopeLevel();
 
-    if (skipped && row.nested.empty()) { return; };
+    if (skipped && row->nested.empty()) { return; };
 
     auto __im_scope = IM_SCOPE_BEGIN(
-        "Tree row", fmt("row [{}]", row.flatIdx));
+        "Tree row", fmt("row [{}]", row->flatIdx));
 
-    if (!row.nested.empty()) {
+    if (!row->nested.empty()) {
         render_tree_columns(row, doc, ctx, documentNodeIdx, gridStart);
-        if (row.isOpen) {
-            for (auto& sub : row.nested) {
+        if (row->isOpen) {
+            for (auto& sub : row->nested) {
                 render_tree_row(
                     sub, doc, ctx, conf, documentNodeIdx, gridStart);
             }
@@ -144,19 +144,19 @@ void render_tree_row(
         gridStart
             + ImVec2(
                 doc.treeFoldWidth,
-                doc.getRowYPos(row) + row.getHeight().value_or(0)));
+                doc.getRowYPos(row) + row->getHeight().value_or(0)));
 
     if (cell_rect.Contains(ImGui::GetMousePos())) {
         if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-            ImGui::OpenPopup(fmt("ctx_{}", row.origin.id).c_str());
+            ImGui::OpenPopup(fmt("ctx_{}", row->origin.id).c_str());
         }
     }
 
-    if (ImGui::BeginPopup(fmt("ctx_{}", row.origin.id).c_str())) {
+    if (ImGui::BeginPopup(fmt("ctx_{}", row->origin.id).c_str())) {
         if (ImGui::MenuItem("Copy")) {
-            if (row.origin->treeId.get().has_value()) {
+            if (row->origin->treeId.get().has_value()) {
                 ImGui::SetClipboardText(
-                    row.origin->treeId->value().c_str());
+                    row->origin->treeId->value().c_str());
             }
         }
         ImGui::EndPopup();
@@ -165,7 +165,7 @@ void render_tree_row(
     ImVec2 cell_max  = cell_rect.Max;
     ImVec2 rect_size = ImVec2(
         std::ceil(
-            ((6 - row.origin->level) / 6.0f)
+            ((6 - row->origin->level) / 6.0f)
             * (cell_rect.Max.x - cell_rect.Min.x)),
         cell_rect.Max.y - cell_rect.Min.y);
     float  pad      = 2.0f;
@@ -176,16 +176,16 @@ void render_tree_row(
         ImGui::GetWindowDrawList()->AddRect(
             rect_min,
             rect_max,
-            row.isOpen ? conf.foldCellHoverBackground_Open
-                       : conf.foldCellHoverBackground_Closed,
+            row->isOpen ? conf.foldCellHoverBackground_Open
+                        : conf.foldCellHoverBackground_Closed,
             0.0f,
             0,
             1.0f);
         if (ImGui::IsMouseClicked(0)) {
-            row.isOpen = !row.isOpen;
+            row->isOpen = !row->isOpen;
             ctx.action(GridAction::RowFolding{
-                .isOpen          = row.isOpen,
-                .flatIdx         = row.flatIdx,
+                .isOpen          = row->isOpen,
+                .flatIdx         = row->flatIdx,
                 .documentNodeIdx = documentNodeIdx,
             });
         }
@@ -194,8 +194,8 @@ void render_tree_row(
     ImGui::GetWindowDrawList()->AddRectFilled(
         rect_min,
         rect_max,
-        row.isOpen ? conf.foldCellForeground_Open
-                   : conf.foldCellForeground_Closed);
+        row->isOpen ? conf.foldCellForeground_Open
+                    : conf.foldCellForeground_Closed);
 }
 
 void render_text_node(
@@ -518,15 +518,15 @@ TreeGridCell build_editable_cell(
     org::ImmAdapter       adapter,
     TreeGridColumn const& col);
 
-TreeGridRow build_row(
+TreeGridRow::Ptr build_row(
     org::ImmAdapterT<org::ImmSubtree> tree,
     TreeGridDocument&                 doc,
     int&                              flatIdx) {
-    TreeGridRow result;
-    result.columns["title"] = build_editable_cell(
+    auto result              = TreeGridRow::shared();
+    result->columns["title"] = build_editable_cell(
         tree.getTitle(), doc.getColumn("title"));
-    result.origin  = tree;
-    result.flatIdx = flatIdx;
+    result->origin  = tree;
+    result->flatIdx = flatIdx;
     ++flatIdx;
     for (auto const& sub : tree.subAs<org::ImmList>()) {
         if (sub.isDescriptionList()) {
@@ -534,8 +534,8 @@ TreeGridRow build_row(
                 auto flat = flatWords(item.getHeader().value());
                 for (auto const& word : flat) {
                     if (word.starts_with("story_")) {
-                        auto column            = word.dropPrefix("story_");
-                        result.columns[column] = build_editable_cell(
+                        auto column = word.dropPrefix("story_");
+                        result->columns[column] = build_editable_cell(
                             item.at(0), doc.getColumn(column));
                     }
                 }
@@ -545,16 +545,18 @@ TreeGridRow build_row(
 
     for (auto const& sub : tree.subAs<org::ImmSubtree>()) {
         if (!sub->isComment && !sub->isArchived) {
-            result.nested.push_back(build_row(sub, doc, flatIdx));
+            result->addNested(build_row(sub, doc, flatIdx));
         }
     }
 
     return result;
 }
 
-Vec<TreeGridRow> build_rows(org::ImmAdapter root, TreeGridDocument& doc) {
-    Vec<TreeGridRow> result;
-    int              idx = 0;
+Vec<TreeGridRow::Ptr> build_rows(
+    org::ImmAdapter   root,
+    TreeGridDocument& doc) {
+    Vec<TreeGridRow::Ptr> result;
+    int                   idx = 0;
     for (auto const& tree : root.subAs<org::ImmSubtree>()) {
         result.push_back(build_row(tree, doc, idx));
     }
@@ -803,18 +805,18 @@ void StoryGridGraph::focusLinkListTargetRows(StoryGridContext& ctx) {
             }
         }
 
-        Func<bool(TreeGridRow&)> aux;
-        aux = [&](TreeGridRow& row) -> bool {
-            row.isVisible = false;
-            if (targets.contains(row.origin.uniq())) {
-                row.isVisible = true;
+        Func<bool(TreeGridRow::Ptr)> aux;
+        aux = [&](TreeGridRow::Ptr row) -> bool {
+            row->isVisible = false;
+            if (targets.contains(row->origin.uniq())) {
+                row->isVisible = true;
             }
 
-            for (auto& sub : row.nested) {
-                if (aux(sub)) { row.isVisible = true; }
+            for (auto& sub : row->nested) {
+                if (aux(sub)) { row->isVisible = true; }
             }
 
-            return row.isVisible;
+            return row->isVisible;
         };
 
         for (auto& node : nodes) {
@@ -826,10 +828,10 @@ void StoryGridGraph::focusLinkListTargetRows(StoryGridContext& ctx) {
             }
         }
     } else {
-        Func<void(TreeGridRow&)> aux;
-        aux = [&](TreeGridRow& row) {
-            row.isVisible = true;
-            for (auto& sub : row.nested) { aux(sub); }
+        Func<void(TreeGridRow::Ptr)> aux;
+        aux = [&](TreeGridRow::Ptr row) {
+            row->isVisible = true;
+            for (auto& sub : row->nested) { aux(sub); }
         };
 
         for (auto& node : nodes) {
@@ -867,11 +869,11 @@ void StoryGridModel::updateHiddenRowConnection(
                 // positions relative to the *block graph layout basis*
                 for (auto const& row : treeDoc.flatRows(false)) {
                     Slice<int> rowRange = slice1<int>(
-                        treeDoc.getRowYPos(*row)
+                        treeDoc.getRowYPos(row)
                             + (lanes.has(lane_idx)
                                    ? lanes.at(lane_idx).scrollOffset
                                    : 0),
-                        treeDoc.getRowYPos(*row)
+                        treeDoc.getRowYPos(row)
                             + (lanes.has(lane_idx)
                                    ? lanes.at(lane_idx).scrollOffset
                                    : 0)
@@ -1025,9 +1027,9 @@ void StoryGridModel::updateDocument(StoryGridConfig const& conf) {
 
 void StoryGridModel::updateGridState() {
     Vec<org::graph::MapNode> docNodes;
-    for (TreeGridRow* row : rectGraph.nodes.at(docNodeIndex)
-                                .getTreeGrid()
-                                .node.flatRows(true)) {
+    for (TreeGridRow::Ptr const& row : rectGraph.nodes.at(docNodeIndex)
+                                           .getTreeGrid()
+                                           .node.flatRows(true)) {
         if (state.folded.contains(docNodeIndex)) {
             auto path = row->getOriginPath();
             if (state.folded.at(docNodeIndex).contains(path)) {
@@ -1106,9 +1108,9 @@ Vec<Vec<StoryGridAnnotation>> StoryGridModel::getGraphPartition() {
 
 Vec<org::graph::MapNode> StoryGridModel::getDocNodes() {
     Vec<org::graph::MapNode> docNodes;
-    for (TreeGridRow* row : rectGraph.nodes.at(docNodeIndex)
-                                .getTreeGrid()
-                                .node.flatRows(true)) {
+    for (TreeGridRow::Ptr row : rectGraph.nodes.at(docNodeIndex)
+                                    .getTreeGrid()
+                                    .node.flatRows(true)) {
 
         auto tree = row->origin.uniq();
         if (!rectGraph.graph.adjList.at(tree).empty()
@@ -1321,13 +1323,14 @@ void StoryGridContext::message(
     OperationsTracer::message(value, activeLevel, line, function, file);
 }
 
-Vec<TreeGridRow*> TreeGridRow::flatThisNested(bool withInvisible) {
-    Vec<TreeGridRow*> result;
+Vec<TreeGridRow::Ptr> TreeGridRow::flatThisNested(
+    bool withInvisible) const {
+    Vec<TreeGridRow::Ptr> result;
     if (withInvisible || isVisible) {
-        result.push_back(this);
+        result.push_back(mshared_from_this());
         if (isOpen) {
             for (auto& sub : nested) {
-                result.append(sub.flatThisNested(withInvisible));
+                result.append(sub->flatThisNested(withInvisible));
             }
         }
     }
@@ -1355,9 +1358,10 @@ Opt<int> TreeGridRow::getHeight(int padding) const {
 int TreeGridRow::getHeightRecDirect(int padding) const {
     return getHeight(padding).value()
          + rs::fold_left(
-               nested | rv::transform([&](TreeGridRow const& r) -> int {
-                   return r.getHeightRecDirect(padding);
-               }),
+               nested
+                   | rv::transform([&](TreeGridRow::Ptr const& r) -> int {
+                         return r->getHeightRecDirect(padding);
+                     }),
                0,
                [](int lhs, int rhs) { return lhs + rhs; });
 }
@@ -1367,9 +1371,10 @@ Opt<int> TreeGridRow::getHeightRec(int padding) const {
         return getHeight(padding).value()
              + rs::fold_left(
                    nested
-                       | rv::transform([&](TreeGridRow const& r) -> int {
-                             return r.getHeightRec(padding).value_or(0);
-                         }),
+                       | rv::transform(
+                           [&](TreeGridRow::Ptr const& r) -> int {
+                               return r->getHeightRec(padding).value_or(0);
+                           }),
                    0,
                    [](int lhs, int rhs) { return lhs + rhs; });
     } else {
@@ -1382,22 +1387,24 @@ void TreeGridDocument::updatePositions() {
     int offset = tableHeaderHeight;
     int index  = 0;
 
-    Func<void(TreeGridRow&, bool)> aux;
-    aux = [&, this](TreeGridRow& row, bool isVisible) {
-        this->rowOrigins.insert_or_assign(row.origin.uniq(), index);
+    Func<void(TreeGridRow::Ptr, bool)> aux;
+    aux = [&, this](TreeGridRow::Ptr row, bool isVisible) {
+        this->rowOrigins.insert_or_assign(row->origin.uniq(), index);
         this->rowPositions.resize_at(index) = offset;
-        row.flatIdx                         = index;
+        row->flatIdx                        = index;
 
         if (isVisible) {
             offset += this->rowPadding;
-            offset += row.getHeight().value();
+            offset += row->getHeight().value();
         }
         ++index;
 
-        for (auto& sub : row.nested) { aux(sub, isVisible && row.isOpen); }
+        for (auto& sub : row->nested) {
+            aux(sub, isVisible && row->isOpen);
+        }
     };
 
-    for (auto& row : rows) { aux(row, row.isVisible); }
+    for (auto& row : rows) { aux(row, row->isVisible); }
 
 
     int colOffset = treeFoldWidth;
