@@ -546,6 +546,15 @@ struct StoryGridModel {
     /// using information from the current history roots.
     void updateDocumentGraph(StoryGridConfig const& conf);
 
+    /// \brief Reset map graph and populate the semantic node/edge
+    /// connections in the `rectGraph.graph` part. Called by the
+    /// `updateDocumentGraph`
+    void updateDocumentSemanticGraph(StoryGridConfig const& conf);
+
+    /// \brief Rebuild block graph, populate edges and nodes in the
+    /// `rectGraph.ir`. Called by the `updateDocumentGraph` part.
+    void updateDocumentBlockGraph(StoryGridConfig const& conf);
+
     /// \brief Update document layout for the current graph configuration.
     /// Syncs node sizes and builds graph layout IR to sync with the
     /// current document state. This is the entry point to update node and

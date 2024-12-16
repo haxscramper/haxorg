@@ -950,10 +950,15 @@ void StoryGridModel::updateDocumentLayout(StoryGridConfig const& conf) {
 
 void StoryGridModel::updateDocumentGraph(StoryGridConfig const& conf) {
     __perf_trace("gui", "add grid nodes");
-    rectGraph = StoryGridGraph{};
-    rectGraph.graph.clear();
+    updateDocumentSemanticGraph(conf);
+    updateDocumentBlockGraph(conf);
+}
 
-    CTX_MSG("Update document graph");
+void StoryGridModel::updateDocumentSemanticGraph(
+    const StoryGridConfig& conf) {
+    rectGraph = StoryGridGraph{};
+
+    CTX_MSG("Update document semantic graph");
     auto __scope = ctx.scopeLevel();
 
     docNodeIndex = rectGraph.addRootGrid(
@@ -961,23 +966,14 @@ void StoryGridModel::updateDocumentGraph(StoryGridConfig const& conf) {
 
     rectGraph.addGridAnnotationNodes(
         rectGraph.nodes.at(docNodeIndex).getTreeGrid().node, ctx);
+}
 
-    CTX_MSG(fmt("Graph with {} nodes", rectGraph.nodes.size()));
-    CTX_MSG(fmt("Graph adjacency list {}", rectGraph.graph.adjList));
-    CTX_MSG(fmt("Graph adjacency list in {}", rectGraph.graph.adjListIn));
-
+void StoryGridModel::updateDocumentBlockGraph(
+    const StoryGridConfig& conf) {
+    CTX_MSG("Update document block graph");
+    auto __scope        = ctx.scopeLevel();
     rectGraph.partition = getGraphPartition();
-
     connectPartitionEdges(rectGraph.partition, conf);
-
-    {
-        int ir_nodes = 0;
-        for (auto const& lane : rectGraph.ir.getLanes()) {
-            ir_nodes += lane.blocks.size();
-        }
-
-        CTX_MSG(fmt("IR graph {}", ir_nodes));
-    }
 }
 
 void StoryGridModel::updateDocumentNodePositions(
@@ -1108,9 +1104,9 @@ Vec<Vec<StoryGridAnnotation>> StoryGridModel::getGraphPartition() {
 
 Vec<org::graph::MapNode> StoryGridModel::getDocNodes() {
     Vec<org::graph::MapNode> docNodes;
-    for (TreeGridRow::Ptr row : rectGraph.nodes.at(docNodeIndex)
-                                    .getTreeGrid()
-                                    .node.flatRows(true)) {
+    for (const TreeGridRow::Ptr& row : rectGraph.nodes.at(docNodeIndex)
+                                           .getTreeGrid()
+                                           .node.flatRows(true)) {
 
         auto tree = row->origin.uniq();
         if (!rectGraph.graph.adjList.at(tree).empty()
@@ -1298,9 +1294,16 @@ void StoryGridModel::apply(
                 map.insert_or_assign(path, row->isOpen);
             }
 
+            // folding row will change vertical offsets for the targeted
+            // tree grid.
             rectGraph.nodes.at(f.documentNodeIdx)
                 .getTreeGrid()
                 .node.updatePositions();
+            // Row folding will change edge connector positions in the
+            // block graph
+            updateDocumentBlockGraph(conf);
+            // Changed edge connectors mean the whole document layout needs
+            // to be updated.
             updateDocumentLayout(conf);
             break;
         }
