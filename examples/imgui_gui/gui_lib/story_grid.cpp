@@ -625,19 +625,47 @@ void add_footnote_annotation_node(
     }
 };
 
+void StoryGridGraph::setOrgNodeOrigin(StoryGridNode const& n, int idx) {
+    std::visit(
+        overloaded{
+            [&](StoryGridNode::LinkList const& l) {
+                for (auto const& item : l.items) {
+                    setOrgNodeOrigin(item.node.uniq(), idx);
+                }
+
+                setOrgNodeOrigin(l.origin.uniq(), idx);
+            },
+            [&](StoryGridNode::TreeGrid const& t) {
+                for (auto const& row : t.node.flatRows(true)) {
+                    setOrgNodeOrigin(row->origin.uniq(), idx);
+                }
+            },
+            [&](StoryGridNode::Text const& t) {
+
+            },
+        },
+        n.data);
+}
+
+LaneNodePos StoryGridGraph::addFlatNodeToLane(
+    int                    laneIdx,
+    int                    flatNode,
+    const StoryGridConfig& conf) {
+    auto pos = ir.ir.addNode(
+        laneIdx, nodes.at(flatNode).getSize(), conf.blockGraphConf);
+    ir.add(flatNode, pos);
+    return pos;
+}
+
 void StoryGridModel::updateBlockGraphIR(
     Vec<Vec<StoryGridAnnotation>> const& partition,
     StoryGridConfig const&               conf) {
     auto& state = getLastHistory();
-    rectGraph.resetBlockLanes(conf);
 
+    rectGraph.ir = NodeGridGraph{};
+    rectGraph.ir.setVisible(conf.gridViewport);
+    rectGraph.orgToFlatIdx.clear();
 
-    for (auto const& row : rectGraph.nodes.at(docNodeIndex)
-                               .getTreeGrid()
-                               .node.flatRows(true)) {
-        rectGraph.orgToLaneBlock.insert_or_assign(
-            row->origin.uniq(), rectGraph.getIrNode(docNodeIndex));
-    }
 
     CTX_MSG("Update block graph IR");
     auto __scope = ctx.scopeLevel();
@@ -646,9 +674,9 @@ void StoryGridModel::updateBlockGraphIR(
         CTX_MSG(fmt("Partition {} has {} items", group_idx, group.size()));
         auto __scope = ctx.scopeLevel();
         for (auto const& node : group) {
-            org::ImmAdapter source = state.ast.context->adapt(
+            org::ImmAdapter source_adapter = state.ast.context->adapt(
                 node.source.id);
-            org::ImmAdapter target = state.ast.context->adapt(
+            org::ImmAdapter target_adapter = state.ast.context->adapt(
                 node.target.id);
 
             auto source_parent = state.ast.context->adapt(
@@ -658,20 +686,18 @@ void StoryGridModel::updateBlockGraphIR(
             CTX_MSG(_dfmt_expr(
                 rectGraph.ir.nodeToGridNode, rectGraph.ir.gridNodeToNode));
 
-            LaneNodePos source_node = getBlockNodePos(
-                group_idx + 1, source_parent, conf);
+            int source_flat = getFlatNodePos(source_parent);
+            int target_flat = getFlatNodePos(target);
 
-            LaneNodePos target_node = getBlockNodePos(
-                group_idx + 1, target, conf);
+            LaneNodePos source_node = rectGraph.addFlatNodeToLane(
+                group_idx + 1, source_flat, conf);
+            LaneNodePos target_node = rectGraph.addFlatNodeToLane(
+                group_idx + 1, target_flat, conf);
 
             CTX_MSG(_dfmt_expr(
                 rectGraph.ir.nodeToGridNode, rectGraph.ir.gridNodeToNode));
             CTX_MSG(_dfmt_expr(source_node, target_node));
 
-            StoryGridNode const& source_flat = rectGraph.getDocNode(
-                source_node);
-            StoryGridNode const& target_flat = rectGraph.getDocNode(
-                target_node);
 
             using GEC = GraphEdgeConstraint;
 
@@ -713,15 +739,21 @@ void StoryGridModel::updateBlockGraphIR(
                 }
             };
 
+            StoryGridNode const& source = rectGraph.getDocNode(
+                source_node);
+            StoryGridNode const& target = rectGraph.getDocNode(
+                target_node);
 
-            edge.sourceOffset = get_connector_offset(source_flat, source);
-            edge.targetOffset = get_connector_offset(target_flat, target);
+            edge.sourceOffset = get_connector_offset(
+                source, source_adapter);
+            edge.targetOffset = get_connector_offset(
+                target, target_adapter);
 
-            if (source_flat.isLinkList() || target_flat.isLinkList()) {
+            if (source.isLinkList() || target.isLinkList()) {
                 CTX_MSG(fmt("{}", edge));
             }
 
-            if (source_flat.isTreeGrid()
+            if (source.isTreeGrid()
                 && !rectGraph.isVisible(source.uniq())) {
                 // pass
             } else {
@@ -838,7 +870,7 @@ void StoryGridModel::updateHiddenRowConnection(
                     auto __scope = ctx.scopeLevel();
                     for (auto const& n : adjacent) {
                         Opt<LaneNodePos>
-                            targetNodePos = rectGraph.orgToLaneBlock.get(
+                            targetNodePos = rectGraph.orgToFlatIdx.get(
                                 n.id);
                         CTX_MSG(
                             fmt("N {} target {} overlap {}",
@@ -902,13 +934,16 @@ void StoryGridModel::updateDocumentSemanticGraph(
     rectGraph = StoryGridGraph{};
 
     CTX_MSG("Update document semantic graph");
-    auto __scope = ctx.scopeLevel();
-
-    docNodeIndex = rectGraph.addRootGrid(
-        getLastHistory().ast.getRootAdapter(), conf, ctx);
+    auto  __scope = ctx.scopeLevel();
+    auto& ast     = getLastHistory().ast;
+    docNodeIndex  = rectGraph.addRootGrid(ast.getRootAdapter(), conf, ctx);
 
     rectGraph.addGridAnnotationNodes(
         rectGraph.nodes.at(docNodeIndex).getTreeGrid().node, ctx);
+
+    for (auto const& [node, adjacent] : rectGraph.graph.adjList) {
+        getFlatNodePos(ast.context->adapt(node.id), conf);
+    }
 }
 
 void StoryGridModel::updateDocumentBlockGraph(
@@ -1060,14 +1095,17 @@ Vec<org::graph::MapNode> StoryGridModel::getDocNodes() {
     return docNodes;
 }
 
-LaneNodePos StoryGridModel::getBlockNodePos(
-    int                    lane,
+int StoryGridModel::getFlatNodePos(const org::ImmAdapter& node) {
+    return rectGraph.orgToFlatIdx.at(node.uniq());
+}
+
+void StoryGridModel::addFlatNode(
     const org::ImmAdapter& node,
     const StoryGridConfig& conf) {
-    if (rectGraph.orgToLaneBlock.contains(node.uniq())) {
-        auto annotation = rectGraph.orgToLaneBlock.at(node.uniq());
-        CTX_MSG(fmt("Node {} already mapped to {}", node.id, annotation));
-        return annotation;
+    if (rectGraph.orgToFlatIdx.contains(node.uniq())) {
+        auto annotation = rectGraph.orgToFlatIdx.at(node.uniq());
+        CTX_MSG(fmt(
+            "Node {} already mapped to index {}", node.id, annotation));
     } else if (auto list = node.asOpt<org::ImmList>();
                list && list->isDescriptionList()
                && org::graph::isLinkedDescriptionList(node)) {
@@ -1084,29 +1122,8 @@ LaneNodePos StoryGridModel::getBlockNodePos(
             text.items.push_back(listItem);
         }
 
-        LaneNodePos annotation = rectGraph.ir.ir.addNode(
-            lane,
-            ImVec2{
-                static_cast<float>(
-                    text.getWidth() + conf.laneRowPadding * 2),
-                static_cast<float>(text.getHeight()),
-            },
-            conf.blockGraphConf);
-
+        int annotation = rectGraph.addFlatNode(StoryGridNode{text});
         CTX_MSG(fmt("List {} mapped to IR node {}", node.id, annotation));
-
-        for (auto const& item : text.items) {
-            rectGraph.orgToLaneBlock.insert_or_assign(
-                item.node.uniq(), annotation);
-        }
-
-        rectGraph.orgToLaneBlock.insert_or_assign(node.uniq(), annotation);
-        rectGraph.nodes.push_back(StoryGridNode{text});
-        rectGraph.ir.add(rectGraph.nodes.high(), annotation);
-
-        rectGraph.getFlatIdx(annotation);
-        return annotation;
-
     } else {
         StoryGridNode::Text text{
             .origin = node,
@@ -1119,17 +1136,9 @@ LaneNodePos StoryGridModel::getBlockNodePos(
         text.size.x = width;
         text.size.y = height;
 
-        rectGraph.nodes.push_back(StoryGridNode{text});
-        LaneNodePos annotation = rectGraph.ir.ir.addNode(
-            lane, ImVec2(width, height), conf.blockGraphConf);
+        int annotation = rectGraph.addFlatNode(StoryGridNode{text});
         CTX_MSG(
             fmt("Text node {} mapped to IR node {}", node.id, annotation));
-        rectGraph.orgToLaneBlock.insert_or_assign(node.uniq(), annotation);
-
-        rectGraph.ir.add(rectGraph.nodes.high(), annotation);
-
-        rectGraph.getFlatIdx(annotation);
-        return annotation;
     }
 }
 
@@ -1484,11 +1493,7 @@ void StoryGridModel::applyChanges(StoryGridConfig const& conf) {
     }
 }
 
-void StoryGridGraph::resetBlockLanes(const StoryGridConfig& conf) {
-    ir = NodeGridGraph{};
-    ir.setVisible(conf.gridViewport);
-    orgToLaneBlock.clear();
-}
+void StoryGridGraph::resetBlockLanes(const StoryGridConfig& conf) {}
 
 int StoryGridGraph::addRootGrid(
     const org::ImmAdapter& node,
@@ -1514,11 +1519,8 @@ int StoryGridGraph::addRootGrid(
         .node = doc,
     };
 
-    int flatIdx = addNode(
-        0,
-        doc.getSize(),
-        StoryGridNode{.data = grid},
-        conf.blockGraphConf);
+    int flatIdx = addFlatNode(
+        0, StoryGridNode{.data = grid}, conf.blockGraphConf);
 
     return flatIdx;
 }
@@ -1596,7 +1598,7 @@ void StoryGridGraph::addDescriptionListNodes(
 }
 
 bool StoryGridGraph::isVisible(const org::ImmUniqId& id) const {
-    auto lane_pos = orgToLaneBlock.get(id);
+    auto lane_pos = orgToFlatIdx.get(id);
     if (!lane_pos) { return false; }
     auto node = ir.getFlat(lane_pos.value());
     if (!node) { return false; }

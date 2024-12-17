@@ -221,12 +221,13 @@ struct StoryGridNode {
             org::ImmAdapter node;
             DESC_FIELDS(Item, (text, width, height, node));
         };
-        Vec<Item> items;
-        ImVec2    pos;
-        ImVec2    size;
-        bool      isSelected           = false;
-        int       imguiTableRowPadding = 5;
-        DESC_FIELDS(LinkList, (items, pos, size, isSelected));
+        Vec<Item>       items;
+        ImVec2          pos;
+        ImVec2          size;
+        org::ImmAdapter origin;
+        bool            isSelected           = false;
+        int             imguiTableRowPadding = 5;
+        DESC_FIELDS(LinkList, (items, pos, size, isSelected, origin));
 
         int getRow(org::ImmUniqId const& row) const {
             auto iter = rs::find_if(items, [&](Item const& i) {
@@ -323,7 +324,7 @@ struct StoryGridGraph {
     Vec<Vec<StoryGridAnnotation>> partition;
 
     UnorderedMap<org::ImmUniqId, org::ImmUniqId> annotationParents;
-    UnorderedMap<org::ImmUniqId, LaneNodePos>    orgToLaneBlock;
+    UnorderedMap<org::ImmUniqId, int>            orgToFlatIdx;
 
     void resetBlockLanes(StoryGridConfig const& conf);
 
@@ -370,16 +371,22 @@ struct StoryGridGraph {
         return ir.getFlat(node).value();
     }
 
-    int addNode(
-        int                         lane,
-        ImVec2 const&               size,
-        StoryGridNode const&        node,
-        LaneBlockGraphConfig const& conf) {
-        nodes.push_back(node);
-        auto rootRect = ir.ir.addNode(0, size, conf);
-        ir.add(nodes.high(), rootRect);
-        return nodes.high();
+    void setOrgNodeOrigin(org::ImmUniqId const& id, int flatIdx) {
+        orgToFlatIdx.insert_or_assign(id, flatIdx);
     }
+
+    void setOrgNodeOrigin(StoryGridNode const& n, int flatIdx);
+
+    int addFlatNode(StoryGridNode const& node) {
+        auto flat_idx = nodes.push_back_idx(node);
+        setOrgNodeOrigin(node, flat_idx);
+        return flat_idx;
+    }
+
+    LaneNodePos addFlatNodeToLane(
+        int                    laneIdx,
+        int                    flatNode,
+        StoryGridConfig const& conf);
 };
 
 
@@ -529,7 +536,6 @@ struct StoryGridModel {
     StoryGridHistory& getLastHistory() { return history.back(); }
     void apply(GridAction const& act, StoryGridConfig const& style);
 
-
     void updateGridState();
 
     Vec<Vec<StoryGridAnnotation>> getGraphPartition();
@@ -537,10 +543,10 @@ struct StoryGridModel {
     /// \brief Get graph nodes associated with the current root grid node.
     Vec<org::graph::MapNode> getDocNodes();
 
-    /// \brief Get existing block node position for AST adapter, or insert
-    /// a new adapter.
-    LaneNodePos getBlockNodePos(
-        int                    lane,
+    /// \brief Get existing block node position for AST adapter.
+    int getFlatNodePos(org::ImmAdapter const& node);
+
+    void addFlatNode(
         org::ImmAdapter const& node,
         StoryGridConfig const& conf);
 
