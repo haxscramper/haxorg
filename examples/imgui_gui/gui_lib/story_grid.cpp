@@ -625,93 +625,20 @@ void add_footnote_annotation_node(
     }
 };
 
-LaneNodePos get_partition_node(
-    org::ImmAstVersion const& ast,
-    StoryGridGraph&           res,
-    int                       lane,
-    org::ImmAdapter const&    node,
-    StoryGridConfig const&    conf,
-    StoryGridContext&         ctx) {
-    if (res.orgToId.contains(node.uniq())) {
-        auto annotation = res.orgToId.at(node.uniq());
-        CTX_MSG(fmt("Node {} already mapped to {}", node.id, annotation));
-        return annotation;
-    } else if (auto list = node.asOpt<org::ImmList>();
-               list && list->isDescriptionList()
-               && org::graph::isLinkedDescriptionList(node)) {
-        StoryGridNode::LinkList text{};
-
-        for (auto const& item : list->subAs<org::ImmListItem>()) {
-            StoryGridNode::LinkList::Item listItem;
-            listItem.node   = item;
-            listItem.width  = conf.annotationNodeWidth;
-            listItem.text   = EditableOrgText::from_adapter(item);
-            listItem.height = listItem.text.get_expected_height(
-                listItem.width, EditableOrgText::Mode::Multiline);
-
-            text.items.push_back(listItem);
-        }
-
-        LaneNodePos annotation = res.ir.ir.addNode(
-            lane,
-            ImVec2{
-                static_cast<float>(
-                    text.getWidth() + conf.laneRowPadding * 2),
-                static_cast<float>(text.getHeight()),
-            },
-            conf.blockGraphConf);
-
-        CTX_MSG(fmt("List {} mapped to IR node {}", node.id, annotation));
-
-        for (auto const& item : text.items) {
-            res.orgToId.insert_or_assign(item.node.uniq(), annotation);
-        }
-
-        res.orgToId.insert_or_assign(node.uniq(), annotation);
-        res.nodes.push_back(StoryGridNode{text});
-        res.ir.add(res.nodes.high(), annotation);
-
-        return annotation;
-
-    } else {
-        StoryGridNode::Text text{
-            .origin = node,
-            .text   = EditableOrgText::from_adapter(node),
-        };
-
-        int width  = conf.annotationNodeWidth;
-        int height = text.text.get_expected_height(
-            width, EditableOrgText::Mode::Multiline);
-        text.size.x = width;
-        text.size.y = height;
-
-        res.nodes.push_back(StoryGridNode{text});
-        LaneNodePos annotation = res.ir.ir.addNode(
-            lane, ImVec2(width, height), conf.blockGraphConf);
-        CTX_MSG(
-            fmt("Text node {} mapped to IR node {}", node.id, annotation));
-        res.orgToId.insert_or_assign(node.uniq(), annotation);
-
-        res.ir.add(res.nodes.high(), annotation);
-
-        return annotation;
-    }
-};
-
-void StoryGridModel::connectPartitionEdges(
+void StoryGridModel::updateBlockGraphIR(
     Vec<Vec<StoryGridAnnotation>> const& partition,
     StoryGridConfig const&               conf) {
     auto& res   = rectGraph;
     auto& state = getLastHistory();
 
-    CTX_MSG("Connecting partition edges");
-    auto __scope = ctx.scopeLevel();
-    for (auto const& p : partition) {
-        CTX_MSG(fmt("Partition {}", p.size()));
-    }
+    res.resetBlockLanes(conf);
 
-    res.ir.ir.edges.clear();
+    CTX_MSG("Update block graph IR");
+    auto __scope = ctx.scopeLevel();
+
     for (auto const& [group_idx, group] : enumerate(partition)) {
+        CTX_MSG(fmt("Partition {} has {} items", group_idx, group.size()));
+        auto __scope = ctx.scopeLevel();
         for (auto const& node : group) {
             org::ImmAdapter source = state.ast.context->adapt(
                 node.source.id);
@@ -722,11 +649,11 @@ void StoryGridModel::connectPartitionEdges(
                 res.annotationParents.get(node.source.id)
                     .value_or(node.source.id));
 
-            LaneNodePos source_node = get_partition_node(
-                state.ast, res, group_idx + 1, source_parent, conf, ctx);
+            LaneNodePos source_node = getBlockNodePos(
+                group_idx + 1, source_parent, conf);
 
-            LaneNodePos target_node = get_partition_node(
-                state.ast, res, group_idx + 1, target, conf, ctx);
+            LaneNodePos target_node = getBlockNodePos(
+                group_idx + 1, target, conf);
 
             StoryGridNode const& source_flat = res.getDocNode(source_node);
             StoryGridNode const& target_flat = res.getDocNode(target_node);
@@ -895,7 +822,7 @@ void StoryGridModel::updateHiddenRowConnection(
 
                     auto __scope = ctx.scopeLevel();
                     for (auto const& n : adjacent) {
-                        Opt<LaneNodePos> targetNodePos = rectGraph.orgToId
+                        Opt<LaneNodePos> targetNodePos = rectGraph.orgToLaneBlock
                                                              .get(n.id);
                         CTX_MSG(
                             fmt("N {} target {} overlap {}",
@@ -973,7 +900,7 @@ void StoryGridModel::updateDocumentBlockGraph(
     CTX_MSG("Update document block graph");
     auto __scope        = ctx.scopeLevel();
     rectGraph.partition = getGraphPartition();
-    connectPartitionEdges(rectGraph.partition, conf);
+    updateBlockGraphIR(rectGraph.partition, conf);
 }
 
 void StoryGridModel::updateDocumentNodePositions(
@@ -1017,7 +944,7 @@ void StoryGridModel::updateDocument(StoryGridConfig const& conf) {
     auto __scope = ctx.scopeLevel();
     updateDocumentGraph(conf);
     rectGraph.focusLinkListTargetRows(ctx);
-    connectPartitionEdges(rectGraph.partition, conf);
+    updateBlockGraphIR(rectGraph.partition, conf);
     updateDocumentLayout(conf);
 }
 
@@ -1115,6 +1042,77 @@ Vec<org::graph::MapNode> StoryGridModel::getDocNodes() {
         }
     }
     return docNodes;
+}
+
+LaneNodePos StoryGridModel::getBlockNodePos(
+    int                    lane,
+    const org::ImmAdapter& node,
+    const StoryGridConfig& conf) {
+    if (rectGraph.orgToLaneBlock.contains(node.uniq())) {
+        auto annotation = rectGraph.orgToLaneBlock.at(node.uniq());
+        CTX_MSG(fmt("Node {} already mapped to {}", node.id, annotation));
+        return annotation;
+    } else if (auto list = node.asOpt<org::ImmList>();
+               list && list->isDescriptionList()
+               && org::graph::isLinkedDescriptionList(node)) {
+        StoryGridNode::LinkList text{};
+
+        for (auto const& item : list->subAs<org::ImmListItem>()) {
+            StoryGridNode::LinkList::Item listItem;
+            listItem.node   = item;
+            listItem.width  = conf.annotationNodeWidth;
+            listItem.text   = EditableOrgText::from_adapter(item);
+            listItem.height = listItem.text.get_expected_height(
+                listItem.width, EditableOrgText::Mode::Multiline);
+
+            text.items.push_back(listItem);
+        }
+
+        LaneNodePos annotation = rectGraph.ir.ir.addNode(
+            lane,
+            ImVec2{
+                static_cast<float>(
+                    text.getWidth() + conf.laneRowPadding * 2),
+                static_cast<float>(text.getHeight()),
+            },
+            conf.blockGraphConf);
+
+        CTX_MSG(fmt("List {} mapped to IR node {}", node.id, annotation));
+
+        for (auto const& item : text.items) {
+            rectGraph.orgToLaneBlock.insert_or_assign(
+                item.node.uniq(), annotation);
+        }
+
+        rectGraph.orgToLaneBlock.insert_or_assign(node.uniq(), annotation);
+        rectGraph.nodes.push_back(StoryGridNode{text});
+        rectGraph.ir.add(rectGraph.nodes.high(), annotation);
+
+        return annotation;
+
+    } else {
+        StoryGridNode::Text text{
+            .origin = node,
+            .text   = EditableOrgText::from_adapter(node),
+        };
+
+        int width  = conf.annotationNodeWidth;
+        int height = text.text.get_expected_height(
+            width, EditableOrgText::Mode::Multiline);
+        text.size.x = width;
+        text.size.y = height;
+
+        rectGraph.nodes.push_back(StoryGridNode{text});
+        LaneNodePos annotation = rectGraph.ir.ir.addNode(
+            lane, ImVec2(width, height), conf.blockGraphConf);
+        CTX_MSG(
+            fmt("Text node {} mapped to IR node {}", node.id, annotation));
+        rectGraph.orgToLaneBlock.insert_or_assign(node.uniq(), annotation);
+
+        rectGraph.ir.add(rectGraph.nodes.high(), annotation);
+
+        return annotation;
+    }
 }
 
 void StoryGridModel::apply(
@@ -1273,7 +1271,7 @@ void StoryGridModel::apply(
 
         case GridAction::Kind::LinkListClick: {
             rectGraph.focusLinkListTargetRows(ctx);
-            connectPartitionEdges(rectGraph.partition, conf);
+            updateBlockGraphIR(rectGraph.partition, conf);
             updateDocumentLayout(conf);
             break;
         }
@@ -1468,6 +1466,11 @@ void StoryGridModel::applyChanges(StoryGridConfig const& conf) {
     }
 }
 
+void StoryGridGraph::resetBlockLanes(const StoryGridConfig& conf) {
+    ir = NodeGridGraph{};
+    ir.setVisible(conf.gridViewport);
+}
+
 int StoryGridGraph::addRootGrid(
     const org::ImmAdapter& node,
     const StoryGridConfig& conf,
@@ -1499,7 +1502,7 @@ int StoryGridGraph::addRootGrid(
         conf.blockGraphConf);
 
     for (auto const& row : doc.flatRows(true)) {
-        orgToId.insert_or_assign(row->origin.uniq(), getIrNode(flatIdx));
+        orgToLaneBlock.insert_or_assign(row->origin.uniq(), getIrNode(flatIdx));
     }
 
     return flatIdx;
@@ -1578,7 +1581,7 @@ void StoryGridGraph::addDescriptionListNodes(
 }
 
 bool StoryGridGraph::isVisible(const org::ImmUniqId& id) const {
-    auto lane_pos = orgToId.get(id);
+    auto lane_pos = orgToLaneBlock.get(id);
     if (!lane_pos) { return false; }
     auto node = ir.getFlat(lane_pos.value());
     if (!node) { return false; }

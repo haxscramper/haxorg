@@ -43,6 +43,8 @@ void connect_vertical_constraints(
             lane.blocks.size(),
             lane.scrollOffset);
 
+        OLOG_DEPTH_SCOPE_ANON();
+
         auto     visibleSlice  = slice<int>(0, int(g.visible.height()));
         Vec<int> visibleBlocks = lane.getVisibleBlocks(visibleSlice);
         if (visibleBlocks.empty()) {

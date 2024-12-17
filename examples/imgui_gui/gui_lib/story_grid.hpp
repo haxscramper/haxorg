@@ -323,7 +323,9 @@ struct StoryGridGraph {
     Vec<Vec<StoryGridAnnotation>> partition;
 
     UnorderedMap<org::ImmUniqId, org::ImmUniqId> annotationParents;
-    UnorderedMap<org::ImmUniqId, LaneNodePos>    orgToId;
+    UnorderedMap<org::ImmUniqId, LaneNodePos>    orgToLaneBlock;
+
+    void resetBlockLanes(StoryGridConfig const& conf);
 
     int addRootGrid(
         org::ImmAdapter const& node,
@@ -535,7 +537,14 @@ struct StoryGridModel {
     /// \brief Get graph nodes associated with the current root grid node.
     Vec<org::graph::MapNode> getDocNodes();
 
-    void connectPartitionEdges(
+    /// \brief Get existing block node position for AST adapter, or insert
+    /// a new adapter.
+    LaneNodePos getBlockNodePos(
+        int                    lane,
+        org::ImmAdapter const& node,
+        StoryGridConfig const& conf);
+
+    void updateBlockGraphIR(
         Vec<Vec<StoryGridAnnotation>> const& partition,
         StoryGridConfig const&               conf);
 
