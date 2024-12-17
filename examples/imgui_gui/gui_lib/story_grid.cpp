@@ -628,10 +628,16 @@ void add_footnote_annotation_node(
 void StoryGridModel::updateBlockGraphIR(
     Vec<Vec<StoryGridAnnotation>> const& partition,
     StoryGridConfig const&               conf) {
-    auto& res   = rectGraph;
     auto& state = getLastHistory();
+    rectGraph.resetBlockLanes(conf);
 
-    res.resetBlockLanes(conf);
+
+    for (auto const& row : rectGraph.nodes.at(docNodeIndex)
+                               .getTreeGrid()
+                               .node.flatRows(true)) {
+        rectGraph.orgToLaneBlock.insert_or_assign(
+            row->origin.uniq(), rectGraph.getIrNode(docNodeIndex));
+    }
 
     CTX_MSG("Update block graph IR");
     auto __scope = ctx.scopeLevel();
@@ -646,8 +652,11 @@ void StoryGridModel::updateBlockGraphIR(
                 node.target.id);
 
             auto source_parent = state.ast.context->adapt(
-                res.annotationParents.get(node.source.id)
+                rectGraph.annotationParents.get(node.source.id)
                     .value_or(node.source.id));
+
+            CTX_MSG(_dfmt_expr(
+                rectGraph.ir.nodeToGridNode, rectGraph.ir.gridNodeToNode));
 
             LaneNodePos source_node = getBlockNodePos(
                 group_idx + 1, source_parent, conf);
@@ -655,8 +664,14 @@ void StoryGridModel::updateBlockGraphIR(
             LaneNodePos target_node = getBlockNodePos(
                 group_idx + 1, target, conf);
 
-            StoryGridNode const& source_flat = res.getDocNode(source_node);
-            StoryGridNode const& target_flat = res.getDocNode(target_node);
+            CTX_MSG(_dfmt_expr(
+                rectGraph.ir.nodeToGridNode, rectGraph.ir.gridNodeToNode));
+            CTX_MSG(_dfmt_expr(source_node, target_node));
+
+            StoryGridNode const& source_flat = rectGraph.getDocNode(
+                source_node);
+            StoryGridNode const& target_flat = rectGraph.getDocNode(
+                target_node);
 
             using GEC = GraphEdgeConstraint;
 
@@ -707,10 +722,10 @@ void StoryGridModel::updateBlockGraphIR(
             }
 
             if (source_flat.isTreeGrid()
-                && !res.isVisible(source.uniq())) {
+                && !rectGraph.isVisible(source.uniq())) {
                 // pass
             } else {
-                res.ir.ir.addEdge(source_node, edge);
+                rectGraph.ir.ir.addEdge(source_node, edge);
             }
         }
     }
@@ -822,8 +837,9 @@ void StoryGridModel::updateHiddenRowConnection(
 
                     auto __scope = ctx.scopeLevel();
                     for (auto const& n : adjacent) {
-                        Opt<LaneNodePos> targetNodePos = rectGraph.orgToLaneBlock
-                                                             .get(n.id);
+                        Opt<LaneNodePos>
+                            targetNodePos = rectGraph.orgToLaneBlock.get(
+                                n.id);
                         CTX_MSG(
                             fmt("N {} target {} overlap {}",
                                 n.id.id,
@@ -1088,6 +1104,7 @@ LaneNodePos StoryGridModel::getBlockNodePos(
         rectGraph.nodes.push_back(StoryGridNode{text});
         rectGraph.ir.add(rectGraph.nodes.high(), annotation);
 
+        rectGraph.getFlatIdx(annotation);
         return annotation;
 
     } else {
@@ -1111,6 +1128,7 @@ LaneNodePos StoryGridModel::getBlockNodePos(
 
         rectGraph.ir.add(rectGraph.nodes.high(), annotation);
 
+        rectGraph.getFlatIdx(annotation);
         return annotation;
     }
 }
@@ -1469,6 +1487,7 @@ void StoryGridModel::applyChanges(StoryGridConfig const& conf) {
 void StoryGridGraph::resetBlockLanes(const StoryGridConfig& conf) {
     ir = NodeGridGraph{};
     ir.setVisible(conf.gridViewport);
+    orgToLaneBlock.clear();
 }
 
 int StoryGridGraph::addRootGrid(
@@ -1500,10 +1519,6 @@ int StoryGridGraph::addRootGrid(
         doc.getSize(),
         StoryGridNode{.data = grid},
         conf.blockGraphConf);
-
-    for (auto const& row : doc.flatRows(true)) {
-        orgToLaneBlock.insert_or_assign(row->origin.uniq(), getIrNode(flatIdx));
-    }
 
     return flatIdx;
 }
