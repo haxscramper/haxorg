@@ -630,9 +630,11 @@ StoryGridGraph::FlatNodeStore StoryGridGraph::FlatNodeStore::init(
     const SemGraphStore&   semGraph,
     StoryGridContext&      ctx,
     const StoryGridConfig& conf) {
+    FlatNodeStore res;
     for (auto const& [node, adjacent] : semGraph.graph.adjList) {
-        addLeafNode(semGraph.ctx->adapt(node.id), conf);
+        res.add(semGraph.ctx->adapt(node.id), conf, ctx);
     }
+    return res;
 }
 
 
@@ -765,7 +767,7 @@ void StoryGridGraph::BlockGraphStore::setPartition(
 void StoryGridGraph::FlatNodeStore::focusLinkListTargetRows(
     StoryGridContext&    ctx,
     SemGraphStore const& semGraph) {
-    if (rs::any_of(nodes.items(), [](StoryNode* n) {
+    if (rs::any_of(gen_view(nodes.items()), [](StoryNode* n) {
             return n->isLinkList() && n->getLinkList().isSelected;
         })) {
         UnorderedSet<org::ImmUniqId> targets;
@@ -925,15 +927,6 @@ void StoryGridGraph::BlockGraphStore::updateDocumentLayout(
     updateHiddenRowConnection(conf, ctx, semGraph, storyNodes);
     updateDocumentNodePositions(conf, ctx, storyNodes);
 }
-
-void StoryGridModel::updateDocumentBlockGraph(
-    const StoryGridConfig& conf) {
-    CTX_MSG("Update document block graph");
-    auto __scope        = ctx.scopeLevel();
-    rectGraph.partition = getGraphPartition();
-    updateBlockGraphIR(rectGraph.partition, conf);
-}
-
 
 void StoryGridModel::updateGridState() {
     Vec<org::graph::MapNode> docNodes;
@@ -1217,51 +1210,24 @@ void StoryGridModel::apply(
 
         case GridAction::Kind::Scroll: {
             auto const& scroll = act.getScroll();
-            auto        spans  = rectGraph.ir.ir.getLaneSpans();
-            for (auto const& [lane_idx, span] : enumerate(spans)) {
-                if (span.contains(scroll.pos.x)) {
-                    auto& l = rectGraph.ir.ir.lane(
-                        lane_idx, conf.blockGraphConf);
-
-                    l.scrollOffset += scroll.direction
-                                    * conf.mouseScrollMultiplier;
-
-                    CTX_MSG(
-                        fmt("Lane {} span {} does matches position {} "
-                            "Updating scroll offset direction "
-                            "{} multiplier {} current offset {}",
-                            lane_idx,
-                            span,
-                            scroll.pos,
-                            scroll.direction,
-                            conf.mouseScrollMultiplier,
-                            l.scrollOffset));
-
-
-                } else {
-                    CTX_MSG(
-                        fmt("Lane {} span {} does not match position {}",
-                            lane_idx,
-                            span,
-                            scroll.pos));
-                }
-            }
+            rectGraph.blockGraph.ir.ir.addScrolling(
+                scroll.pos, scroll.direction);
             updateDocumentLayout(conf);
             break;
         }
 
         case GridAction::Kind::LinkListClick: {
             rectGraph.focusLinkListTargetRows(ctx);
-            updateBlockGraphIR(rectGraph.partition, conf);
             updateDocumentLayout(conf);
             break;
         }
 
         case GridAction::Kind::RowFolding: {
             auto const& f = act.getRowFolding();
-            auto& g = rectGraph.nodes.at(f.documentNodeIdx).getTreeGrid();
+            auto&       g = rectGraph.getStoryNode(f.documentNodeIdx)
+                          .getTreeGrid();
             auto  row  = g.node.getRow(f.flatIdx);
-            auto& map  = state.folded[f.documentNodeIdx];
+            auto& map  = state.folded[f.documentNodeIdx.getIndex()];
             auto  path = row->getOriginPath();
             if (map.contains(path)) {
                 if (f.isOpen) {
@@ -1275,7 +1241,7 @@ void StoryGridModel::apply(
 
             // folding row will change vertical offsets for the targeted
             // tree grid.
-            rectGraph.nodes.at(f.documentNodeIdx)
+            rectGraph.getStoryNode(f.documentNodeIdx)
                 .getTreeGrid()
                 .node.updatePositions();
             // Row folding will change edge connector positions in the
@@ -1432,11 +1398,12 @@ void run_story_grid_cycle(
         }
     } else {
         LOGIC_ASSERTION_CHECK(
-            !model.rectGraph.nodes.empty(),
+            !model.rectGraph.storyNodes.nodes.empty(),
             "Cannot render non-annotated story grid with empty graph "
             "nodes");
-        auto& g = model.rectGraph.nodes.at(0).getTreeGrid();
-        render_table(model, g, conf, 0);
+        auto  id = StoryNodeId::FromValue(0);
+        auto& g  = model.rectGraph.storyNodes.nodes.at(id).getTreeGrid();
+        render_table(model, g, conf, id);
     }
 }
 
@@ -1482,8 +1449,8 @@ TreeGridDocument TreeGridDocument::from_root(
 }
 
 void StoryGridGraph::SemGraphStore::addGridAnnotationNodes(
-    TreeGridDocument& doc,
-    StoryGridContext& ctx) {
+    TreeGridDocument const& doc,
+    StoryGridContext&       ctx) {
     CTX_MSG("Add annotation nodes to document");
     auto __scope = ctx.scopeLevel();
 
@@ -1552,10 +1519,9 @@ void StoryGridGraph::SemGraphStore::addDescriptionListNodes(
     }
 }
 
-bool StoryGridGraph::isVisible(const org::ImmUniqId& id) const {
-    auto lane_pos = orgToFlatIdx.get(id);
-    if (!lane_pos) { return false; }
-    Opt<int> node = getStoryNodeId(id);
+bool StoryGridGraph::FlatNodeStore::isVisible(
+    const org::ImmUniqId& id) const {
+    Opt<StoryNodeId> node = getStoryNodeId(id);
     if (!node) { return false; }
     if (!nodes.at(node.value()).isTreeGrid()) { return false; }
     Opt<int> origin = nodes.at(node.value())
@@ -1581,31 +1547,33 @@ StoryGridGraph::BlockGraphStore StoryGridGraph::BlockGraphStore::init(
     return res;
 }
 
-void BlockGraphStore::updateDocumentNodePositions(
+void StoryGridGraph::BlockGraphStore::updateDocumentNodePositions(
     const StoryGridConfig& conf,
     StoryGridContext&      ctx,
     FlatNodeStore&         storyNodes) {
-    rectGraph.ir.setVisible(conf.gridViewport);
+    ir.setVisible(conf.gridViewport);
 
-    rectGraph.ir.syncVisibility([&](int flat_idx) -> Opt<bool> {
-        return rectGraph.nodes.at(flat_idx).isVisible;
+    ir.syncVisibility([&](int flat_idx) -> Opt<bool> {
+        return storyNodes.getStoryNode(StoryNodeId::FromIndex(flat_idx))
+            .isVisible;
     });
 
-    rectGraph.ir.syncSize([&](int flat_idx) -> ImVec2 {
-        return rectGraph.nodes.at(flat_idx).getSize();
+    ir.syncSize([&](int flat_idx) -> ImVec2 {
+        return storyNodes.getStoryNode(StoryNodeId::FromIndex(flat_idx))
+            .getSize();
     });
 
-    rectGraph.ir.syncLayout();
+    ir.syncLayout();
 
     CTX_MSG("Updating graph layout positions");
     auto __scope = ctx.scopeLevel();
 
 
-    for (NodeGridGraph::RectSpec const& rect :
-         rectGraph.ir.getRectangles()) {
-        StoryGridNode& node = rectGraph.nodes.at(rect.flatPos);
-        CTX_MSG(fmt("Rect {}", rect));
+    for (NodeGridGraph::RectSpec const& rect : ir.getRectangles()) {
+        StoryNode& node = storyNodes.getStoryNode(
+            StoryNodeId::FromIndex(rect.flatPos));
 
+        CTX_MSG(fmt("Rect {}", rect));
         if (rect.isVisible) {
             node.isVisible = true;
             node.setPos(rect.pos);

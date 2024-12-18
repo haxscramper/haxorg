@@ -169,8 +169,9 @@ void _Load_One_Paragraph(ImGuiTestEngine* e) {
     t->TestFunc = ImWrapTestFuncT<StoryGridVars>(
         params, [](ImGuiTestContext* ctx, StoryGridVars& vars) {
             ImVec2 wpos = getContentPos(ctx);
-            auto&  doc  = vars.model.rectGraph.nodes.at(0)
-                            .getTreeGrid()
+            auto&  doc  = vars.model.rectGraph.getGridNodes()
+                            .at(0)
+                            ->getTreeGrid()
                             .node;
             ctx->MouseMoveToPos(
                 wpos + doc.getCellPos(0, "title") + ImVec2{0, 5});
@@ -263,10 +264,13 @@ some random shit about the comments or whatever, need to render as annotation [f
 
     t->TestFunc = ImWrapTestFuncT<StoryGridVars>(
         params, [](ImGuiTestContext* ctx, StoryGridVars& vars) {
-            ImVec2      wpos  = getContentPos(ctx);
-            auto&       m     = vars.model;
-            auto&       doc   = m.rectGraph.nodes.at(0).getTreeGrid().node;
-            auto&       ir    = m.rectGraph.ir;
+            ImVec2 wpos = getContentPos(ctx);
+            auto&  m    = vars.model;
+            auto&  doc  = m.rectGraph.getGridNodes()
+                            .at(0)
+                            ->getTreeGrid()
+                            .node;
+            auto&       ir    = m.rectGraph.blockGraph.ir;
             auto const& spans = ir.ir.getLaneSpans();
             auto&       rg    = m.rectGraph;
             IM_CHECK_EQ(spans.size(), 4);
@@ -328,9 +332,6 @@ some random shit about the comments or whatever, need to render as annotation [f
                     MouseMoveToPos, ImGui::GetMousePos() + ImVec2(0, 100));
                 m.ctx.message(fmt(
                     "Pre edit text is\n'''\n{}\n'''", vars.get_text()));
-                writeFile(
-                    getDebugFile(ctx->Test, "test_dump.json"),
-                    to_json_eval(m.rectGraph.ir).dump(2));
 
                 // ctx->SuspendTestFunc();
                 IM_CTX_ACT(MouseClick, 0);

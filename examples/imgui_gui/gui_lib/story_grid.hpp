@@ -412,6 +412,8 @@ struct StoryGridGraph {
             }
         }
 
+        bool isVisible(const org::ImmUniqId& id) const;
+
         /// \brief If grid graph has focused linked description list, hide
         /// all grid rows except ones that are directly targeted by the
         /// link list. If there is no focused list, then show all rows.
@@ -500,11 +502,23 @@ struct StoryGridGraph {
     SemGraphStore   semGraph;
     BlockGraphStore blockGraph;
 
+    Vec<StoryNode*> getGridNodes() {
+        Vec<StoryNode*> res;
+        for (auto const& node : storyNodes.items()) {
+            if (node->isTreeGrid()) { res.push_back(node); }
+        }
+        return res;
+    }
+
     void updateGeometry(StoryNodeId const& id) {
         if (storyNodes.getStoryNode(id).isTreeGrid()) {
             auto& n = storyNodes.getStoryNode(id).getTreeGrid();
             n.node.updatePositions();
         }
+    }
+
+    void focusLinkListTargetRows(StoryGridContext& ctx) {
+        storyNodes.focusLinkListTargetRows(ctx, semGraph);
     }
 
     void updateStoryNodes(
@@ -550,6 +564,10 @@ struct StoryGridGraph {
 
     StoryNode& getStoryNode(LaneNodePos const& pos) {
         return storyNodes.getStoryNode(getStoryNodeId(pos).value());
+    }
+
+    StoryNode& getStoryNode(StoryNodeId idx) {
+        return storyNodes.getStoryNode(idx);
     }
 
     StoryNode const& getStoryNode(StoryNodeId idx) const {
@@ -740,10 +758,6 @@ struct StoryGridModel {
 
     /// \brief Get existing block node position for AST adapter.
     int getFlatNodePos(org::ImmAdapter const& node);
-
-    void updateBlockGraphIR(StoryGridConfig const& conf) {
-        rectGraph.updateNodeLanePlacement(ctx, conf);
-    }
 
     /// \brief Update full document using latest history data.
     void updateDocument(const StoryGridConfig& conf) {
