@@ -351,19 +351,19 @@ struct StoryGridGraph {
 
     DESC_FIELDS(StoryGridGraph, (nodes, ir, graph, partition));
 
-    StoryGridNode& at(LaneNodePos const& pos) {
+    StoryGridNode& getStoryNode(LaneNodePos const& pos) {
         return nodes.at(ir.at(pos));
     }
 
-    StoryGridNode const& getDocNode(int idx) const {
+    StoryGridNode const& getStoryNode(int idx) const {
         return nodes.at(idx);
     }
 
-    StoryGridNode const& getDocNode(LaneNodePos const& idx) const {
-        return getDocNode(getFlatIdx(idx));
+    StoryGridNode const& getStoryNode(LaneNodePos const& idx) const {
+        return getStoryNode(getFlatIdx(idx));
     }
 
-    LaneNodePos getIrNode(int idx) const {
+    LaneNodePos getBlockNode(int idx) const {
         return ir.getGrid(idx).value();
     }
 
@@ -373,6 +373,19 @@ struct StoryGridGraph {
 
     void setOrgNodeOrigin(org::ImmUniqId const& id, int flatIdx) {
         orgToFlatIdx.insert_or_assign(id, flatIdx);
+    }
+
+    Opt<int> getFlatNode(org::ImmUniqId const& id) const {
+        return orgToFlatIdx.get(id);
+    }
+
+    Opt<LaneNodePos> getBlockNodePos(org::ImmUniqId const& id) {
+        auto flat = getFlatNode(id);
+        if (flat) {
+            return ir.getGrid(flat.value());
+        } else {
+            return std::nullopt;
+        }
     }
 
     void setOrgNodeOrigin(StoryGridNode const& n, int flatIdx);
@@ -546,8 +559,12 @@ struct StoryGridModel {
     /// \brief Get existing block node position for AST adapter.
     int getFlatNodePos(org::ImmAdapter const& node);
 
-    void addFlatNode(
+    int addFlatNode(
         org::ImmAdapter const& node,
+        StoryGridConfig const& conf);
+
+    int addFlatNode(
+        StoryGridNode const&   node,
         StoryGridConfig const& conf);
 
     void updateBlockGraphIR(

@@ -280,14 +280,14 @@ some random shit about the comments or whatever, need to render as annotation [f
             // m.ctx.message(to_json_eval(rg.nodes).dump(2));
 
             IM_CHECK_BINARY_PRED(
-                rg.getDocNode({0, 0}).getTreeGrid().pos,
+                rg.getStoryNode({0, 0}).getTreeGrid().pos,
                 ImVec2(spans.at(0).first, 0),
                 is_within_distance,
                 5);
 
 
             IM_CHECK_BINARY_PRED(
-                rg.getDocNode({1, 0}).getText().pos,
+                rg.getStoryNode({1, 0}).getText().pos,
                 ImVec2(spans.at(1).first, 0),
                 is_within_distance,
                 5);
@@ -306,7 +306,7 @@ some random shit about the comments or whatever, need to render as annotation [f
             // m.ctx.message(to_json_eval(rg.nodes).dump(2));
 
             IM_CHECK_BINARY_PRED(
-                rg.getDocNode({1, 0}).getText().pos,
+                rg.getStoryNode({1, 0}).getText().pos,
                 ImVec2(spans.at(1).first, 50),
                 is_within_distance,
                 5);
@@ -315,7 +315,7 @@ some random shit about the comments or whatever, need to render as annotation [f
                 m.ctx.message("Edit annotation text");
                 IM_CTX_ACT(
                     MouseMoveToPos,
-                    wpos + rg.getDocNode({1, 0}).getText().pos
+                    wpos + rg.getStoryNode({1, 0}).getText().pos
                         + ImVec2(0, 5));
                 IM_CTX_ACT(MouseClick, 0);
                 IM_CTX_ACT(MouseClick, 0);
