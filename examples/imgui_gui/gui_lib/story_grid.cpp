@@ -200,7 +200,7 @@ void render_tree_row(
 
 void render_text_node(
     StoryGridModel&        model,
-    StoryGridNode::Text&   text,
+    StoryNode::Text&       text,
     LaneNodePos const&     selfPos,
     StoryGridConfig const& conf) {
     auto& ctx = model.ctx;
@@ -254,9 +254,9 @@ void render_text_node(
 }
 
 void render_list_node(
-    StoryGridModel&          model,
-    StoryGridNode::LinkList& list,
-    LaneNodePos const&       selfPos) {
+    StoryGridModel&      model,
+    StoryNode::LinkList& list,
+    LaneNodePos const&   selfPos) {
     auto frameless_vars = push_frameless_window_vars();
     ImGui::SetNextWindowPos(list.pos + model.shift);
     ImGui::SetNextWindowSize(list.getSize());
@@ -304,10 +304,10 @@ void render_list_node(
 }
 
 void render_table(
-    StoryGridModel&          model,
-    StoryGridNode::TreeGrid& grid,
-    StoryGridConfig const&   conf,
-    int                      documentNodeIdx) {
+    StoryGridModel&        model,
+    StoryNode::TreeGrid&   grid,
+    StoryGridConfig const& conf,
+    int                    documentNodeIdx) {
     auto& doc       = grid.node;
     auto& ctx       = model.ctx;
     auto  gridStart = ImGui::GetCursorScreenPos();
@@ -362,10 +362,10 @@ void render_table(
 }
 
 void render_table_node(
-    StoryGridModel&          model,
-    StoryGridNode::TreeGrid& grid,
-    StoryGridConfig const&   conf,
-    int                      documentNodeIdx) {
+    StoryGridModel&        model,
+    StoryNode::TreeGrid&   grid,
+    StoryGridConfig const& conf,
+    StoryNodeId            documentNodeIdx) {
 
     auto& ctx = model.ctx;
     auto& doc = grid.node;
@@ -394,22 +394,22 @@ void run_story_grid_annotated_cycle(
     StoryGridModel&        model,
     StoryGridConfig const& conf) {
     __perf_trace("gui", "grid model render");
-    for (int i = 0; i < model.rectGraph.nodes.size(); ++i) {
-        auto&       node    = model.rectGraph.nodes.at(i);
-        auto const& selfPos = model.rectGraph.getBlockNode(i);
-        if (node.isVisible) {
-            switch (node.getKind()) {
-                case StoryGridNode::Kind::TreeGrid: {
-                    render_table_node(model, node.getTreeGrid(), conf, i);
+    for (auto const& [node_id, node] : model.rectGraph.getStoryNodes()) {
+        LaneNodePos selfPos = model.rectGraph.getBlockPos(node_id);
+        if (node->isVisible) {
+            switch (node->getKind()) {
+                case StoryNode::Kind::TreeGrid: {
+                    render_table_node(
+                        model, node->getTreeGrid(), conf, node_id);
                     break;
                 }
-                case StoryGridNode::Kind::Text: {
-                    render_text_node(model, node.getText(), selfPos, conf);
+                case StoryNode::Kind::Text: {
+                    render_text_node(
+                        model, node->getText(), selfPos, conf);
                     break;
                 }
-                case StoryGridNode::Kind::LinkList: {
-
-                    render_list_node(model, node.getLinkList(), selfPos);
+                case StoryNode::Kind::LinkList: {
+                    render_list_node(model, node->getLinkList(), selfPos);
                     break;
                 }
             }
@@ -625,22 +625,22 @@ void add_footnote_annotation_node(
     }
 };
 
-void StoryGridGraph::setOrgNodeOrigin(StoryGridNode const& n, int idx) {
+void StoryGridGraph::setOrgNodeOrigin(StoryNode const& n, int idx) {
     std::visit(
         overloaded{
-            [&](StoryGridNode::LinkList const& l) {
+            [&](StoryNode::LinkList const& l) {
                 for (auto const& item : l.items) {
                     setOrgNodeOrigin(item.node.uniq(), idx);
                 }
 
                 setOrgNodeOrigin(l.origin.uniq(), idx);
             },
-            [&](StoryGridNode::TreeGrid const& t) {
+            [&](StoryNode::TreeGrid const& t) {
                 for (auto const& row : t.node.flatRows(true)) {
                     setOrgNodeOrigin(row->origin.uniq(), idx);
                 }
             },
-            [&](StoryGridNode::Text const& t) {
+            [&](StoryNode::Text const& t) {
 
             },
         },
@@ -1105,7 +1105,7 @@ int StoryGridModel::addFlatNode(
     } else if (auto list = node.asOpt<org::ImmList>();
                list && list->isDescriptionList()
                && org::graph::isLinkedDescriptionList(node)) {
-        StoryGridNode::LinkList text{};
+        StoryNode::LinkList text{};
 
         for (auto const& item : list->subAs<org::ImmListItem>()) {
             StoryGridNode::LinkList::Item listItem;
@@ -1122,7 +1122,7 @@ int StoryGridModel::addFlatNode(
         CTX_MSG(fmt("List {} mapped to IR node {}", node.id, annotation));
         return annotation;
     } else {
-        StoryGridNode::Text text{
+        StoryNode::Text text{
             .origin = node,
             .text   = EditableOrgText::from_adapter(node),
         };
@@ -1141,7 +1141,7 @@ int StoryGridModel::addFlatNode(
 }
 
 int StoryGridModel::addFlatNode(
-    const StoryGridNode&   node,
+    const StoryNode&       node,
     const StoryGridConfig& conf) {
     return rectGraph.addFlatNode(node);
 }
@@ -1518,7 +1518,7 @@ int StoryGridGraph::addRootGrid(
             doc.columns.size(),
             doc.columns));
 
-    StoryGridNode::TreeGrid grid{
+    StoryNode::TreeGrid grid{
         .pos  = ImVec2(0, 0),
         .node = doc,
     };
@@ -1603,7 +1603,7 @@ void StoryGridGraph::addDescriptionListNodes(
 bool StoryGridGraph::isVisible(const org::ImmUniqId& id) const {
     auto lane_pos = orgToFlatIdx.get(id);
     if (!lane_pos) { return false; }
-    Opt<int> node = getFlatNode(id);
+    Opt<int> node = getStoryNodeId(id);
     if (!node) { return false; }
     if (!nodes.at(node.value()).isTreeGrid()) { return false; }
     Opt<int> origin = nodes.at(node.value())

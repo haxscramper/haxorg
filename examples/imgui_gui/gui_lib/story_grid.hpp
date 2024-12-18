@@ -205,7 +205,10 @@ struct TreeGridDocument {
     DESC_FIELDS(TreeGridDocument, (rows, rowPositions, columns));
 };
 
-struct StoryGridNode {
+DECL_ID_TYPE(StoryNode, StoryNodeId, std::size_t);
+
+struct StoryNode {
+    using id_type = StoryNodeId;
     struct TreeGrid {
         ImVec2           pos;
         TreeGridDocument node;
@@ -304,7 +307,7 @@ struct StoryGridNode {
     SUB_VARIANTS(Kind, Data, data, getKind, TreeGrid, Text, LinkList);
     Data data;
     bool isVisible = true;
-    DESC_FIELDS(StoryGridNode, (data, isVisible));
+    DESC_FIELDS(StoryNode, (data, isVisible));
 };
 
 
@@ -318,13 +321,73 @@ struct StoryGridContext;
 struct StoryGridConfig;
 
 struct StoryGridGraph {
-    Vec<StoryGridNode>            nodes;
-    NodeGridGraph                 ir;
-    org::graph::MapGraph          graph;
-    Vec<Vec<StoryGridAnnotation>> partition;
+    struct FlatNodeStore {
+        UnorderedMap<org::ImmUniqId, StoryNodeId> orgToFlatIdx;
+        dod::Store<StoryNodeId, StoryNode>        nodes;
+        DESC_FIELDS(FlatNodeStore, (orgToFlatIdx, nodes));
 
-    UnorderedMap<org::ImmUniqId, org::ImmUniqId> annotationParents;
-    UnorderedMap<org::ImmUniqId, int>            orgToFlatIdx;
+        auto&& getStoryNode(this auto&& s, StoryNodeId const& id) {
+            return s.nodes.at(id);
+        }
+
+        auto&& getStoryNode(this auto&& s, org::ImmUniqId const& id) {
+            return s.getStoryNode(s.orgToFlatIdx.at(id));
+        }
+
+        Opt<StoryNodeId> getStoryNodeId(org::ImmUniqId const& id) const {
+            return orgToFlatIdx.get(id);
+        }
+
+
+        void setOrgNodeOrigin(org::ImmUniqId const& id, int flatIdx) {
+            orgToFlatIdx.insert_or_assign(id, flatIdx);
+        }
+
+        void setOrgNodeOrigin(StoryNode const& n, StoryNodeId id);
+
+        StoryNodeId add(StoryNode const& node) {
+            auto id = nodes.add(node);
+            setOrgNodeOrigin(node, id);
+            return id;
+        }
+
+        auto pairs() -> generator<Pair<StoryNodeId, StoryNode*>> {
+            const int size = nodes.size();
+            for (int i = 0; i < size; ++i) {
+                auto id = StoryNodeId::FromIndex(i);
+                co_yield {id, &nodes.at(id)};
+            }
+        }
+    };
+
+    struct SemGraphStore {
+        UnorderedMap<org::ImmUniqId, org::ImmUniqId> annotationParents;
+        org::graph::MapGraph                         graph;
+        DESC_FIELDS(SemGraphStore, (annotationParents, graph));
+    };
+
+    struct BlockGraphStore {
+        NodeGridGraph                 ir;
+        Vec<Vec<StoryGridAnnotation>> partition;
+        DESC_FIELDS(BlockGraphStore, (ir, partition));
+
+        Opt<LaneNodePos> getBlockPos(StoryNodeId const& id) const {
+            return ir.getGrid(id.getIndex());
+        }
+
+        Opt<StoryNodeId> getStoryNodeId(LaneNodePos const& pos) const {
+            auto idx = ir.getFlat(pos);
+            if (idx) {
+                return StoryNodeId::FromIndex(idx.value());
+            } else {
+                return std::nullopt;
+            }
+        }
+    };
+
+    FlatNodeStore   storyNodes;
+    SemGraphStore   semGraph;
+    BlockGraphStore blockGraph;
 
     void resetBlockLanes(StoryGridConfig const& conf);
 
@@ -349,51 +412,43 @@ struct StoryGridGraph {
 
     bool isVisible(org::ImmUniqId const& id) const;
 
-    DESC_FIELDS(StoryGridGraph, (nodes, ir, graph, partition));
+    DESC_FIELDS(StoryGridGraph, (storyNodes, semGraph, blockGraph));
 
-    StoryGridNode& getStoryNode(LaneNodePos const& pos) {
-        return nodes.at(ir.at(pos));
+    generator<Pair<StoryNodeId, StoryNode*>> getStoryNodes() {
+        return storyNodes.pairs();
     }
 
-    StoryGridNode const& getStoryNode(int idx) const {
-        return nodes.at(idx);
+    StoryNode& getStoryNode(LaneNodePos const& pos) {
+        return storyNodes.getStoryNode(getStoryNodeId(pos).value());
     }
 
-    StoryGridNode const& getStoryNode(LaneNodePos const& idx) const {
-        return getStoryNode(getFlatIdx(idx));
+    StoryNode const& getStoryNode(StoryNodeId idx) const {
+        return storyNodes.getStoryNode(idx);
     }
 
-    LaneNodePos getBlockNode(int idx) const {
-        return ir.getGrid(idx).value();
+    StoryNode const& getStoryNode(LaneNodePos const& idx) const {
+        return storyNodes.getStoryNode(getStoryNodeId(idx).value());
     }
 
-    int getFlatIdx(LaneNodePos const& node) const {
-        return ir.getFlat(node).value();
+    Opt<LaneNodePos> getBlockPos(StoryNodeId idx) const {
+        return blockGraph.getBlockPos(idx);
     }
 
-    void setOrgNodeOrigin(org::ImmUniqId const& id, int flatIdx) {
-        orgToFlatIdx.insert_or_assign(id, flatIdx);
+    Opt<StoryNodeId> getStoryNodeId(LaneNodePos const& node) const {
+        return blockGraph.getStoryNodeId(node);
     }
 
-    Opt<int> getFlatNode(org::ImmUniqId const& id) const {
-        return orgToFlatIdx.get(id);
+    Opt<StoryNodeId> getStoryNodeId(org::ImmUniqId const& id) const {
+        return storyNodes.getStoryNodeId(id);
     }
 
     Opt<LaneNodePos> getBlockNodePos(org::ImmUniqId const& id) {
-        auto flat = getFlatNode(id);
+        auto flat = getStoryNodeId(id);
         if (flat) {
-            return ir.getGrid(flat.value());
+            return blockGraph.getBlockPos(flat.value());
         } else {
             return std::nullopt;
         }
-    }
-
-    void setOrgNodeOrigin(StoryGridNode const& n, int flatIdx);
-
-    int addFlatNode(StoryGridNode const& node) {
-        auto flat_idx = nodes.push_back_idx(node);
-        setOrgNodeOrigin(node, flat_idx);
-        return flat_idx;
     }
 
     LaneNodePos addFlatNodeToLane(
@@ -563,9 +618,7 @@ struct StoryGridModel {
         org::ImmAdapter const& node,
         StoryGridConfig const& conf);
 
-    int addFlatNode(
-        StoryGridNode const&   node,
-        StoryGridConfig const& conf);
+    int addFlatNode(StoryNode const& node, StoryGridConfig const& conf);
 
     void updateBlockGraphIR(
         Vec<Vec<StoryGridAnnotation>> const& partition,
