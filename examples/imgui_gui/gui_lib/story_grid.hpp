@@ -108,6 +108,8 @@ struct TreeGridRow : SharedPtrApi<TreeGridRow> {
     }
 };
 
+struct StoryGridConfig;
+struct StoryGridContext;
 struct TreeGridDocument {
     Vec<TreeGridRow::Ptr> rows;
     Vec<TreeGridColumn>   columns;
@@ -201,6 +203,11 @@ struct TreeGridDocument {
             return std::nullopt;
         }
     }
+
+    static TreeGridDocument from_root(
+        const org::ImmAdapter& node,
+        const StoryGridConfig& conf,
+        StoryGridContext&      ctx);
 
     DESC_FIELDS(TreeGridDocument, (rows, rowPositions, columns));
 };
@@ -323,6 +330,7 @@ struct StoryGridConfig;
 struct StoryGridGraph {
 
     struct SemGraphStore {
+        org::ImmAstContext::Ptr                      ctx;
         UnorderedMap<org::ImmUniqId, org::ImmUniqId> annotationParents;
         org::graph::MapGraph                         graph;
         DESC_FIELDS(SemGraphStore, (annotationParents, graph));
@@ -339,11 +347,6 @@ struct StoryGridGraph {
         void addDescriptionListNodes(
             org::ImmAdapterT<org::ImmList> const& list,
             StoryGridContext&                     ctx);
-
-        void addNode(
-            const org::ImmAdapter& node,
-            const StoryGridConfig& conf,
-            StoryGridContext&      ctx);
 
         static SemGraphStore init(
             org::ImmAdapter const& root,
@@ -369,6 +372,10 @@ struct StoryGridGraph {
             return orgToFlatIdx.get(id);
         }
 
+        static FlatNodeStore init(
+            SemGraphStore const&   semGraph,
+            StoryGridContext&      ctx,
+            StoryGridConfig const& conf);
 
         void setOrgNodeOrigin(
             org::ImmUniqId const& id,
@@ -377,6 +384,11 @@ struct StoryGridGraph {
         }
 
         void setOrgNodeOrigin(StoryNode const& n, StoryNodeId id);
+
+        StoryNodeId add(
+            const org::ImmAdapter& node,
+            const StoryGridConfig& conf,
+            StoryGridContext&      ctx);
 
         StoryNodeId add(StoryNode const& node) {
             auto id = nodes.add(node);
@@ -479,7 +491,7 @@ struct StoryGridGraph {
 
         static BlockGraphStore init(
             SemGraphStore const&   semGraph,
-            FlatNodeStore const&   storyNodes,
+            FlatNodeStore&         storyNodes,
             StoryGridContext&      ctx,
             StoryGridConfig const& conf);
     };
@@ -487,6 +499,43 @@ struct StoryGridGraph {
     FlatNodeStore   storyNodes;
     SemGraphStore   semGraph;
     BlockGraphStore blockGraph;
+
+    void updateGeometry(StoryNodeId const& id) {
+        if (storyNodes.getStoryNode(id).isTreeGrid()) {
+            auto& n = storyNodes.getStoryNode(id).getTreeGrid();
+            n.node.updatePositions();
+        }
+    }
+
+    void updateStoryNodes(
+        StoryGridContext&      ctx,
+        StoryGridConfig const& conf) {
+        storyNodes = FlatNodeStore::init(semGraph, ctx, conf);
+    }
+
+    void updateSemanticGraph(
+        org::ImmAdapter const& root,
+        StoryGridContext&      ctx,
+        StoryGridConfig const& conf) {
+        semGraph = SemGraphStore::init(root, conf, ctx);
+    }
+
+    /// \brief Rebuild block grid
+    void updateNodeLanePlacement(
+        StoryGridContext&      ctx,
+        StoryGridConfig const& conf) {
+        // FIXME: the same as node position update, later on block graph
+        // should be split into "lane node graph" + "node position bundle"
+        blockGraph = BlockGraphStore::init(
+            semGraph, storyNodes, ctx, conf);
+    }
+
+    void updateNodePositions(
+        StoryGridContext&      ctx,
+        StoryGridConfig const& conf) {
+        blockGraph = BlockGraphStore::init(
+            semGraph, storyNodes, ctx, conf);
+    }
 
     void resetBlockLanes(StoryGridConfig const& conf);
 
@@ -657,6 +706,10 @@ struct StoryGridContext
         char const*        file     = __builtin_FILE()) const;
 };
 
+#define STORY_GRID_MSG_SCOPE(__ctx, __message)                            \
+    __ctx.message(__message);                                             \
+    auto BOOST_PP_CAT(__scope, __COUNTER__) = __ctx.scopeLevel();
+
 struct StoryGridHistory {
     org::ImmAstVersion ast;
 };
@@ -688,32 +741,53 @@ struct StoryGridModel {
     /// \brief Get existing block node position for AST adapter.
     int getFlatNodePos(org::ImmAdapter const& node);
 
-    int addFlatNode(
-        org::ImmAdapter const& node,
-        StoryGridConfig const& conf);
-
-    int addFlatNode(StoryNode const& node, StoryGridConfig const& conf);
-
-    void updateBlockGraphIR(
-        Vec<Vec<StoryGridAnnotation>> const& partition,
-        StoryGridConfig const&               conf);
+    void updateBlockGraphIR(StoryGridConfig const& conf) {
+        rectGraph.updateNodeLanePlacement(ctx, conf);
+    }
 
     /// \brief Update full document using latest history data.
-    void updateDocument(const StoryGridConfig& conf);
+    void updateDocument(const StoryGridConfig& conf) {
+        STORY_GRID_MSG_SCOPE(ctx, "Update full document");
+        updateDocumentGraph(conf);
+        rectGraph.updateStoryNodes(ctx, conf);
+        updateDocumentLayout(conf);
+    }
 
     /// \brief Reset model graph from scratch and populate the structure
     /// using information from the current history roots.
-    void updateDocumentGraph(StoryGridConfig const& conf);
+    void updateDocumentGraph(StoryGridConfig const& conf) {
+        STORY_GRID_MSG_SCOPE(ctx, "Update document graph");
+        updateDocumentSemanticGraph(conf);
+        updateDocumentBlockGraph(conf);
+    }
 
     /// \brief Reset map graph and populate the semantic node/edge
     /// connections in the `rectGraph.graph` part. Called by the
     /// `updateDocumentGraph`
-    void updateDocumentSemanticGraph(StoryGridConfig const& conf);
+    void updateDocumentSemanticGraph(StoryGridConfig const& conf) {
+        STORY_GRID_MSG_SCOPE(ctx, "Update document semantic graph");
+        rectGraph = StoryGridGraph{};
+        auto& ast = getLastHistory().ast;
+        rectGraph.updateSemanticGraph(ast.getRootAdapter(), ctx, conf);
+    }
 
     /// \brief Rebuild block graph, populate edges and nodes in the
     /// `rectGraph.ir`. Called by the `updateDocumentGraph` part.
-    void updateDocumentBlockGraph(StoryGridConfig const& conf);
+    void updateDocumentBlockGraph(StoryGridConfig const& conf) {
+        STORY_GRID_MSG_SCOPE(ctx, "Update document block graph");
+        rectGraph.updateNodeLanePlacement(ctx, conf);
+    }
 
+    void updateNodePositions(StoryGridConfig const& conf) {
+        STORY_GRID_MSG_SCOPE(ctx, "Update document node positions");
+        rectGraph.updateNodePositions(ctx, conf);
+    }
+
+    void updateDocumentLayout(StoryGridConfig const& conf) {
+        STORY_GRID_MSG_SCOPE(ctx, "Update document layout");
+        updateDocumentBlockGraph(conf);
+        updateNodePositions(conf);
+    }
 
     void applyChanges(StoryGridConfig const& conf);
 };
