@@ -321,6 +321,37 @@ struct StoryGridContext;
 struct StoryGridConfig;
 
 struct StoryGridGraph {
+
+    struct SemGraphStore {
+        UnorderedMap<org::ImmUniqId, org::ImmUniqId> annotationParents;
+        org::graph::MapGraph                         graph;
+        DESC_FIELDS(SemGraphStore, (annotationParents, graph));
+
+        TreeGridDocument addDocNode(
+            org::ImmAdapter const& node,
+            StoryGridConfig const& conf,
+            StoryGridContext&      ctx);
+
+        void addGridAnnotationNodes(
+            TreeGridDocument const& doc,
+            StoryGridContext&       ctx);
+
+        void addDescriptionListNodes(
+            org::ImmAdapterT<org::ImmList> const& list,
+            StoryGridContext&                     ctx);
+
+        void addNode(
+            const org::ImmAdapter& node,
+            const StoryGridConfig& conf,
+            StoryGridContext&      ctx);
+
+        static SemGraphStore init(
+            org::ImmAdapter const& root,
+            StoryGridConfig const& conf,
+            StoryGridContext&      ctx);
+    };
+
+
     struct FlatNodeStore {
         UnorderedMap<org::ImmUniqId, StoryNodeId> orgToFlatIdx;
         dod::Store<StoryNodeId, StoryNode>        nodes;
@@ -360,26 +391,29 @@ struct StoryGridGraph {
                 co_yield {id, &nodes.at(id)};
             }
         }
-    };
 
-    struct SemGraphStore {
-        UnorderedMap<org::ImmUniqId, org::ImmUniqId> annotationParents;
-        org::graph::MapGraph                         graph;
-        DESC_FIELDS(SemGraphStore, (annotationParents, graph));
+        auto items() -> generator<StoryNode*> {
+            const int size = nodes.size();
+            for (int i = 0; i < size; ++i) {
+                auto id = StoryNodeId::FromIndex(i);
+                co_yield &nodes.at(id);
+            }
+        }
 
-        TreeGridDocument addDocNode(
-            org::ImmAdapter const& node,
-            StoryGridConfig const& conf,
-            StoryGridContext&      ctx);
+        /// \brief If grid graph has focused linked description list, hide
+        /// all grid rows except ones that are directly targeted by the
+        /// link list. If there is no focused list, then show all rows.
+        void focusLinkListTargetRows(
+            StoryGridContext&    ctx,
+            SemGraphStore const& semGraph);
 
-        void addGridAnnotationNodes(
-            TreeGridDocument const& doc,
-            StoryGridContext&       ctx);
+        Vec<org::graph::MapNode> getInitialNodes(
+            StoryGridContext&    ctx,
+            SemGraphStore const& semGraph) const;
 
-
-        void addDescriptionListNodes(
-            org::ImmAdapterT<org::ImmList> const& list,
-            StoryGridContext&                     ctx);
+        Vec<Vec<StoryGridAnnotation>> getGraphPartition(
+            StoryGridContext&    ctx,
+            SemGraphStore const& semGraph) const;
     };
 
     struct BlockGraphStore {
@@ -406,6 +440,43 @@ struct StoryGridGraph {
             StoryGridConfig const& conf,
             FlatNodeStore const&   nodes);
 
+        void setPartition(
+            Vec<Vec<StoryGridAnnotation>> const& inPartition,
+            FlatNodeStore const&                 storyNodes,
+            SemGraphStore const&                 semGraph,
+            StoryGridConfig const&               conf,
+            StoryGridContext&                    ctx);
+
+
+        /// \brief Mark edge and node visibility based on the current
+        /// scroll positions. This function is called in the
+        /// `updateDocumentLayout` and requires node positions to be
+        /// computed before.
+        void updateHiddenRowConnection(
+            StoryGridConfig const& conf,
+            StoryGridContext&      ctx,
+            SemGraphStore const&   semGraph,
+            FlatNodeStore&         storyNodes);
+
+
+        /// \brief Update document layout for the current graph
+        /// configuration. Syncs node sizes and builds graph layout IR to
+        /// sync with the current document state. This is the entry point
+        /// to update node and edge positions if the graph structure itself
+        /// is the same.
+        void updateDocumentLayout(
+            StoryGridConfig const& conf,
+            StoryGridContext&      ctx,
+            SemGraphStore const&   semGraph,
+            FlatNodeStore&         storyNodes);
+
+        /// \brief Update document node positions with current node sizes
+        /// and edge positions. Called by `updateDocumentLayout`
+        void updateDocumentNodePositions(
+            StoryGridConfig const& conf,
+            StoryGridContext&      ctx,
+            FlatNodeStore&         storyNodes);
+
         static BlockGraphStore init(
             SemGraphStore const&   semGraph,
             FlatNodeStore const&   storyNodes,
@@ -419,11 +490,6 @@ struct StoryGridGraph {
 
     void resetBlockLanes(StoryGridConfig const& conf);
 
-
-    /// \brief If grid graph has focused linked description list, hide all
-    /// grid rows except ones that are directly targeted by the link list.
-    /// If there is no focused list, then show all rows.
-    void focusLinkListTargetRows(StoryGridContext& ctx);
 
     bool isVisible(org::ImmUniqId const& id) const;
 
@@ -616,8 +682,6 @@ struct StoryGridModel {
 
     void updateGridState();
 
-    Vec<Vec<StoryGridAnnotation>> getGraphPartition();
-
     /// \brief Get graph nodes associated with the current root grid node.
     Vec<org::graph::MapNode> getDocNodes();
 
@@ -650,20 +714,7 @@ struct StoryGridModel {
     /// `rectGraph.ir`. Called by the `updateDocumentGraph` part.
     void updateDocumentBlockGraph(StoryGridConfig const& conf);
 
-    /// \brief Update document layout for the current graph configuration.
-    /// Syncs node sizes and builds graph layout IR to sync with the
-    /// current document state. This is the entry point to update node and
-    /// edge positions if the graph structure itself is the same.
-    void updateDocumentLayout(StoryGridConfig const& conf);
 
-    /// \brief Mark edge and node visibility based on the current scroll
-    /// positions. This function is called in the `updateDocumentLayout`
-    /// and requires node positions to be computed before.
-    void updateHiddenRowConnection(StoryGridConfig const& conf);
-
-    /// \brief Update document node positions with current node sizes and
-    /// edge positions. Called by `updateDocumentLayout`
-    void updateDocumentNodePositions(StoryGridConfig const& conf);
     void applyChanges(StoryGridConfig const& conf);
 };
 

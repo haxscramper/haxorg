@@ -650,7 +650,7 @@ void StoryGridGraph::FlatNodeStore::setOrgNodeOrigin(
         n.data);
 }
 
-LaneNodePos StoryGridGraph::BlockGraphStore::addFlatNodeToLane(
+LaneNodePos StoryGridGraph::BlockGraphStore::addToLane(
     int                    laneIdx,
     StoryNodeId            id,
     const StoryGridConfig& conf,
@@ -661,15 +661,12 @@ LaneNodePos StoryGridGraph::BlockGraphStore::addFlatNodeToLane(
     return pos;
 }
 
-void StoryGridModel::updateBlockGraphIR(
-    Vec<Vec<StoryGridAnnotation>> const& partition,
-    StoryGridConfig const&               conf) {
-    auto& state = getLastHistory();
-
-    rectGraph.ir = NodeGridGraph{};
-    rectGraph.ir.setVisible(conf.gridViewport);
-    rectGraph.orgToFlatIdx.clear();
-
+void StoryGridGraph::BlockGraphStore::setPartition(
+    const Vec<Vec<StoryGridAnnotation>>& inPartition,
+    FlatNodeStore const&                 storyNodes,
+    SemGraphStore const&                 semGraph,
+    StoryGridConfig const&               conf,
+    StoryGridContext&                    ctx) {
 
     CTX_MSG("Update block graph IR");
     auto __scope = ctx.scopeLevel();
@@ -678,30 +675,24 @@ void StoryGridModel::updateBlockGraphIR(
         CTX_MSG(fmt("Partition {} has {} items", group_idx, group.size()));
         auto __scope = ctx.scopeLevel();
         for (auto const& node : group) {
-            org::ImmAdapter source_adapter = state.ast.context->adapt(
-                node.source.id);
-            org::ImmAdapter target_adapter = state.ast.context->adapt(
-                node.target.id);
+            org::ImmUniqId source_adapter = node.source.id;
+            org::ImmUniqId target_adapter = node.target.id;
 
-            auto source_parent = state.ast.context->adapt(
-                rectGraph.annotationParents.get(node.source.id)
-                    .value_or(node.source.id));
+            auto source_parent = semGraph.annotationParents
+                                     .get(node.source.id)
+                                     .value_or(node.source.id);
 
-            CTX_MSG(_dfmt_expr(
-                rectGraph.ir.nodeToGridNode, rectGraph.ir.gridNodeToNode));
+            StoryNodeId source_id = storyNodes
+                                        .getStoryNodeId(source_parent)
+                                        .value();
+            StoryNodeId target_id = storyNodes
+                                        .getStoryNodeId(target_adapter)
+                                        .value();
 
-            int source_flat = getFlatNodePos(source_parent);
-            int target_flat = getFlatNodePos(target_adapter);
-
-            LaneNodePos source_node = rectGraph.addFlatNodeToLane(
-                group_idx + 1, source_flat, conf);
-            LaneNodePos target_node = rectGraph.addFlatNodeToLane(
-                group_idx + 1, target_flat, conf);
-
-            CTX_MSG(_dfmt_expr(
-                rectGraph.ir.nodeToGridNode, rectGraph.ir.gridNodeToNode));
-            CTX_MSG(_dfmt_expr(source_node, target_node));
-
+            LaneNodePos source_node = addToLane(
+                group_idx + 1, source_id, conf, storyNodes);
+            LaneNodePos target_node = addToLane(
+                group_idx + 1, target_id, conf, storyNodes);
 
             using GEC = GraphEdgeConstraint;
 
@@ -719,11 +710,11 @@ void StoryGridModel::updateBlockGraphIR(
             }
 
             auto get_connector_offset =
-                [&](StoryGridNode const&   flat,
-                    org::ImmAdapter const& node) -> Opt<int> {
+                [&](StoryNode const&      flat,
+                    org::ImmUniqId const& node) -> Opt<int> {
                 if (flat.isTreeGrid()) {
                     int row_idx = flat.getTreeGrid()
-                                      .node.getRow(node.uniq())
+                                      .node.getRow(node)
                                       .value();
                     auto offset = flat.getTreeGrid()
                                       .node.getRowCenterOffset(row_idx);
@@ -735,7 +726,7 @@ void StoryGridModel::updateBlockGraphIR(
                     //         doc.annotationParents.get(node.source.id),
                     //         doc.annotationParents.get(node.target.id)));
                     return flat.getLinkList().getRowCenterOffset(
-                        flat.getLinkList().getRow(node.uniq()));
+                        flat.getLinkList().getRow(node));
 
                     // CTX_MSG(fmt("edge {} -> {}", source_node, edge));
                 } else {
@@ -743,10 +734,8 @@ void StoryGridModel::updateBlockGraphIR(
                 }
             };
 
-            StoryGridNode const& source = rectGraph.getStoryNode(
-                source_node);
-            StoryGridNode const& target = rectGraph.getStoryNode(
-                target_node);
+            StoryNode const& source = storyNodes.getStoryNode(source_id);
+            StoryNode const& target = storyNodes.getStoryNode(target_id);
 
             edge.sourceOffset = get_connector_offset(
                 source, source_adapter);
@@ -757,21 +746,34 @@ void StoryGridModel::updateBlockGraphIR(
                 CTX_MSG(fmt("{}", edge));
             }
 
-            rectGraph.ir.ir.addEdge(source_node, edge);
+            ir.ir.addEdge(source_node, edge);
         }
     }
 }
 
-void StoryGridGraph::focusLinkListTargetRows(StoryGridContext& ctx) {
-    if (rs::any_of(nodes, [](CR<StoryGridNode> n) {
-            return n.isLinkList() && n.getLinkList().isSelected;
+
+void StoryGridModel::updateBlockGraphIR(
+    Vec<Vec<StoryGridAnnotation>> const& partition,
+    StoryGridConfig const&               conf) {
+    auto& state = getLastHistory();
+
+    rectGraph.ir = NodeGridGraph{};
+    rectGraph.ir.setVisible(conf.gridViewport);
+    rectGraph.orgToFlatIdx.clear();
+}
+
+void StoryGridGraph::FlatNodeStore::focusLinkListTargetRows(
+    StoryGridContext&    ctx,
+    SemGraphStore const& semGraph) {
+    if (rs::any_of(nodes.items(), [](StoryNode* n) {
+            return n->isLinkList() && n->getLinkList().isSelected;
         })) {
         UnorderedSet<org::ImmUniqId> targets;
-        for (auto const& node : nodes) {
-            if (node.isLinkList() && node.getLinkList().isSelected) {
-                for (auto const& item : node.getLinkList().items) {
+        for (auto const& node : items()) {
+            if (node->isLinkList() && node->getLinkList().isSelected) {
+                for (auto const& item : node->getLinkList().items) {
                     for (auto const& target :
-                         graph.adjList.at(item.node.uniq())) {
+                         semGraph.graph.adjList.at(item.node.uniq())) {
                         targets.incl(target.id);
                     }
                 }
@@ -792,12 +794,12 @@ void StoryGridGraph::focusLinkListTargetRows(StoryGridContext& ctx) {
             return row->isVisible;
         };
 
-        for (auto& node : nodes) {
-            if (node.isTreeGrid()) {
-                for (auto& row : node.getTreeGrid().node.rows) {
+        for (auto& node : items()) {
+            if (node->isTreeGrid()) {
+                for (auto& row : node->getTreeGrid().node.rows) {
                     aux(row);
                 }
-                node.getTreeGrid().node.updatePositions();
+                node->getTreeGrid().node.updatePositions();
             }
         }
     } else {
@@ -807,30 +809,32 @@ void StoryGridGraph::focusLinkListTargetRows(StoryGridContext& ctx) {
             for (auto& sub : row->nested) { aux(sub); }
         };
 
-        for (auto& node : nodes) {
-            if (node.isTreeGrid()) {
-                for (auto& row : node.getTreeGrid().node.rows) {
+        for (auto& node : items()) {
+            if (node->isTreeGrid()) {
+                for (auto& row : node->getTreeGrid().node.rows) {
                     aux(row);
                 }
-                node.getTreeGrid().node.updatePositions();
+                node->getTreeGrid().node.updatePositions();
             }
         }
     }
 }
 
 
-void StoryGridModel::updateHiddenRowConnection(
-    StoryGridConfig const& conf) {
+void StoryGridGraph::BlockGraphStore::updateHiddenRowConnection(
+    StoryGridConfig const& conf,
+    StoryGridContext&      ctx,
+    SemGraphStore const&   semGraph,
+    FlatNodeStore&         storyNodes) {
     CTX_MSG("Update hiddent row connections");
-    auto  __scope = ctx.scopeLevel();
-    auto& ir      = rectGraph.ir;
-
+    auto       __scope       = ctx.scopeLevel();
     Slice<int> viewportRange = slice1<int>(0, conf.gridViewport.y);
-    auto&      lanes         = rectGraph.ir.getLanes();
+    auto&      lanes         = ir.getLanes();
     for (auto const& [lane_idx, lane] : enumerate(lanes)) {
         for (auto const& [block_idx, block] : enumerate(lane.blocks)) {
-            LaneNodePos   lanePos{.lane = lane_idx, .row = block_idx};
-            StoryGridNode storyNode = rectGraph.getStoryNode(lanePos);
+            LaneNodePos      lanePos{.lane = lane_idx, .row = block_idx};
+            StoryNode const& storyNode = storyNodes.getStoryNode(
+                getStoryNodeId(lanePos).value());
             // if individual node is a story grid it can have edges
             // connected at any part of the shape, and they might be
             // scrolled out of the view even if the grid itself is
@@ -853,7 +857,7 @@ void StoryGridModel::updateHiddenRowConnection(
                             + row->getHeight().value());
 
                     org::ImmUniqId rowId = row->origin.uniq();
-                    auto adjacent        = rectGraph.graph.adjNodes(rowId);
+                    auto adjacent        = semGraph.graph.adjNodes(rowId);
                     auto overlap         = rowRange.overlap(viewportRange);
 
                     if (!adjacent.empty()) {
@@ -868,21 +872,19 @@ void StoryGridModel::updateHiddenRowConnection(
 
                     auto __scope = ctx.scopeLevel();
                     for (auto const& n : adjacent) {
-                        Opt<LaneNodePos>
-                            targetNodePos = rectGraph.getBlockNodePos(
-                                n.id);
+                        Opt<StoryNodeId>
+                            targetNodeId = storyNodes.getStoryNodeId(n.id);
                         CTX_MSG(
                             fmt("N {} target {} overlap {}",
                                 n.id.id,
-                                targetNodePos,
+                                targetNodeId,
                                 overlap));
-                        if (targetNodePos) {
-                            auto const& t = targetNodePos.value();
-
+                        if (targetNodeId) {
+                            auto const& t = targetNodeId.value();
                             if (overlap) {
-                                rectGraph.getStoryNode(t).isVisible = true;
+                                storyNodes.getStoryNode(t).isVisible = true;
                             } else {
-                                rectGraph.getStoryNode(t).isVisible = false;
+                                storyNodes.getStoryNode(t).isVisible = false;
                             }
                         }
                     }
@@ -892,10 +894,13 @@ void StoryGridModel::updateHiddenRowConnection(
     }
 }
 
-void StoryGridModel::updateDocumentLayout(StoryGridConfig const& conf) {
+void StoryGridGraph::BlockGraphStore::updateDocumentLayout(
+    StoryGridConfig const& conf,
+    StoryGridContext&      ctx,
+    SemGraphStore const&   semGraph,
+    FlatNodeStore&         storyNodes) {
     CTX_MSG("Update document layout");
-    auto  __scope = ctx.scopeLevel();
-    auto& ir      = rectGraph.ir;
+    auto __scope = ctx.scopeLevel();
 
     {
         Vec<int> offsets //
@@ -912,14 +917,13 @@ void StoryGridModel::updateDocumentLayout(StoryGridConfig const& conf) {
 
     ir.ir.resetVisibility();
 
-    // use first line as a basis for arranging all other node positions.
-    if (ir.getLanes().has(0)) {
-        shift.y = ir.getLanes().at(0).scrollOffset;
-    }
+    // if (ir.getLanes().has(0)) {
+    //     shift.y = ir.getLanes().at(0).scrollOffset;
+    // }
 
-    updateDocumentNodePositions(conf);
-    updateHiddenRowConnection(conf);
-    updateDocumentNodePositions(conf);
+    updateDocumentNodePositions(conf, ctx, storyNodes);
+    updateHiddenRowConnection(conf, ctx, semGraph, storyNodes);
+    updateDocumentNodePositions(conf, ctx, storyNodes);
 }
 
 void StoryGridModel::updateDocumentGraph(StoryGridConfig const& conf) {
@@ -1012,9 +1016,11 @@ void StoryGridModel::updateGridState() {
     }
 }
 
-Vec<Vec<StoryGridAnnotation>> StoryGridModel::getGraphPartition() {
+Vec<Vec<StoryGridAnnotation>> StoryGridGraph::FlatNodeStore::
+    getGraphPartition(StoryGridContext& ctx, SemGraphStore const& semGraph)
+        const {
     __perf_trace("gui", "partition graph by distance");
-    auto initial_nodes = getDocNodes();
+    auto initial_nodes = getInitialNodes(ctx, semGraph);
     CTX_MSG(fmt("Partition graph nodes, initial nodes {}", initial_nodes));
     auto __scope = ctx.scopeLevel();
 
@@ -1039,7 +1045,7 @@ Vec<Vec<StoryGridAnnotation>> StoryGridModel::getGraphPartition() {
 
         UnorderedSet<org::graph::MapNode> adjacent;
         for (org::graph::MapNode const& adj :
-             rectGraph.graph.adjList.at(current)) {
+             semGraph.graph.adjList.at(current)) {
             if (!adjacent.contains(adj) && !distances.contains(adj)) {
                 distances[adj] = current_distance + 1;
                 q.push(adj);
@@ -1053,7 +1059,7 @@ Vec<Vec<StoryGridAnnotation>> StoryGridModel::getGraphPartition() {
         }
 
         for (org::graph::MapNode const& adj :
-             rectGraph.graph.inNodes(current)) {
+             semGraph.graph.inNodes(current)) {
             if (!adjacent.contains(adj) && !distances.contains(adj)) {
                 distances[adj] = current_distance + 1;
                 q.push(adj);
@@ -1079,18 +1085,24 @@ Vec<Vec<StoryGridAnnotation>> StoryGridModel::getGraphPartition() {
     return result;
 }
 
-Vec<org::graph::MapNode> StoryGridModel::getDocNodes() {
+Vec<org::graph::MapNode> StoryGridGraph::FlatNodeStore::getInitialNodes(
+    StoryGridContext&    ctx,
+    SemGraphStore const& semGraph) const {
     Vec<org::graph::MapNode> docNodes;
-    for (const TreeGridRow::Ptr& row : rectGraph.nodes.at(docNodeIndex)
-                                           .getTreeGrid()
-                                           .node.flatRows(true)) {
+    for (auto const& node : nodes.items()) {
+        if (node->isTreeGrid()) {
+            for (const TreeGridRow::Ptr& row :
+                 node->getTreeGrid().node.flatRows(true)) {
 
-        auto tree = row->origin.uniq();
-        if (!rectGraph.graph.adjList.at(tree).empty()
-            || !rectGraph.graph.inNodes(tree).empty()) {
-            docNodes.push_back(tree);
+                auto tree = row->origin.uniq();
+                if (!semGraph.graph.adjList.at(tree).empty()
+                    || !semGraph.graph.inNodes(tree).empty()) {
+                    docNodes.push_back(tree);
+                }
+            }
         }
     }
+
     return docNodes;
 }
 
@@ -1098,7 +1110,7 @@ int StoryGridModel::getFlatNodePos(const org::ImmAdapter& node) {
     return rectGraph.orgToFlatIdx.at(node.uniq());
 }
 
-int StoryGridModel::addFlatNode(
+int StoryGridGraph::SemGraphStore::addNode(
     const org::ImmAdapter& node,
     const StoryGridConfig& conf) {
     if (rectGraph.orgToFlatIdx.contains(node.uniq())) {
@@ -1112,7 +1124,7 @@ int StoryGridModel::addFlatNode(
         StoryNode::LinkList text{};
 
         for (auto const& item : list->subAs<org::ImmListItem>()) {
-            StoryGridNode::LinkList::Item listItem;
+            StoryNode::LinkList::Item listItem;
             listItem.node   = item;
             listItem.width  = conf.annotationNodeWidth;
             listItem.text   = EditableOrgText::from_adapter(item);
@@ -1122,7 +1134,7 @@ int StoryGridModel::addFlatNode(
             text.items.push_back(listItem);
         }
 
-        int annotation = addFlatNode(StoryGridNode{text}, conf);
+        int annotation = addFlatNode(StoryNode{text}, conf);
         CTX_MSG(fmt("List {} mapped to IR node {}", node.id, annotation));
         return annotation;
     } else {
@@ -1137,7 +1149,7 @@ int StoryGridModel::addFlatNode(
         text.size.x = width;
         text.size.y = height;
 
-        int annotation = addFlatNode(StoryGridNode{text}, conf);
+        int annotation = addFlatNode(StoryNode{text}, conf);
         CTX_MSG(
             fmt("Text node {} mapped to IR node {}", node.id, annotation));
         return annotation;
@@ -1502,6 +1514,17 @@ void StoryGridModel::applyChanges(StoryGridConfig const& conf) {
 }
 
 void StoryGridGraph::resetBlockLanes(const StoryGridConfig& conf) {}
+
+StoryGridGraph::SemGraphStore StoryGridGraph::SemGraphStore::init(
+    const org::ImmAdapter& root,
+    StoryGridConfig const& conf,
+    StoryGridContext&      ctx) {
+    SemGraphStore res;
+    auto          doc = addDocNode(root, conf, ctx);
+    res.addGridAnnotationNodes(doc, ctx);
+    return res;
+}
+
 
 TreeGridDocument StoryGridGraph::SemGraphStore::addDocNode(
     const org::ImmAdapter& node,
