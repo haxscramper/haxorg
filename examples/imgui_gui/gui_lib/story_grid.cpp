@@ -45,7 +45,7 @@ void render_cell(
     StoryGridContext&     ctx,
     TreeGridColumn const& col,
     ImVec2 const&         pos,
-    int                   documentNodeIdx) {
+    StoryNodeId           documentNodeIdx) {
 
     IM_FN_PRINT("Cell", fmt("pos:{} size:{}", pos, cell.getSize()));
     auto frameless_vars = push_frameless_window_vars();
@@ -91,7 +91,7 @@ void render_tree_columns(
     TreeGridRow::Ptr  row,
     TreeGridDocument& doc,
     StoryGridContext& ctx,
-    int               documentNodeIdx,
+    StoryNodeId       documentNodeIdx,
     ImVec2 const&     gridStart) {
     auto __scope = ctx.scopeLevel();
     int  colIdx  = 1;
@@ -115,7 +115,7 @@ void render_tree_row(
     TreeGridDocument&      doc,
     StoryGridContext&      ctx,
     StoryGridConfig const& conf,
-    int                    documentNodeIdx,
+    StoryNodeId            documentNodeIdx,
     ImVec2 const&          gridStart) {
     // row is completely invisible, including its nested sub-rows
     if (!row->isVisible) { return; }
@@ -307,7 +307,7 @@ void render_table(
     StoryGridModel&        model,
     StoryNode::TreeGrid&   grid,
     StoryGridConfig const& conf,
-    int                    documentNodeIdx) {
+    StoryNodeId            documentNodeIdx) {
     auto& doc       = grid.node;
     auto& ctx       = model.ctx;
     auto  gridStart = ImGui::GetCursorScreenPos();
@@ -395,7 +395,7 @@ void run_story_grid_annotated_cycle(
     StoryGridConfig const& conf) {
     __perf_trace("gui", "grid model render");
     for (auto const& [node_id, node] : model.rectGraph.getStoryNodes()) {
-        LaneNodePos selfPos = model.rectGraph.getBlockPos(node_id);
+        LaneNodePos selfPos = model.rectGraph.getBlockPos(node_id).value();
         if (node->isVisible) {
             switch (node->getKind()) {
                 case StoryNode::Kind::TreeGrid: {
@@ -416,7 +416,8 @@ void run_story_grid_annotated_cycle(
         }
     }
 
-    for (auto const& [key, edge] : model.rectGraph.ir.layout.lines) {
+    for (auto const& [key, edge] :
+         model.rectGraph.blockGraph.ir.layout.lines) {
         render_edge(edge, model.shift, true, conf.blockGraphConf);
     }
 }
@@ -625,7 +626,9 @@ void add_footnote_annotation_node(
     }
 };
 
-void StoryGridGraph::setOrgNodeOrigin(StoryNode const& n, int idx) {
+void StoryGridGraph::FlatNodeStore::setOrgNodeOrigin(
+    StoryNode const& n,
+    StoryNodeId      idx) {
     std::visit(
         overloaded{
             [&](StoryNode::LinkList const& l) {
@@ -647,13 +650,14 @@ void StoryGridGraph::setOrgNodeOrigin(StoryNode const& n, int idx) {
         n.data);
 }
 
-LaneNodePos StoryGridGraph::addFlatNodeToLane(
+LaneNodePos StoryGridGraph::BlockGraphStore::addFlatNodeToLane(
     int                    laneIdx,
-    int                    flatNode,
-    const StoryGridConfig& conf) {
+    StoryNodeId            id,
+    const StoryGridConfig& conf,
+    FlatNodeStore const&   nodes) {
     auto pos = ir.ir.addNode(
-        laneIdx, nodes.at(flatNode).getSize(), conf.blockGraphConf);
-    ir.add(flatNode, pos);
+        laneIdx, nodes.getStoryNode(id).getSize(), conf.blockGraphConf);
+    ir.add(id.getIndex(), pos);
     return pos;
 }
 
@@ -1499,7 +1503,7 @@ void StoryGridModel::applyChanges(StoryGridConfig const& conf) {
 
 void StoryGridGraph::resetBlockLanes(const StoryGridConfig& conf) {}
 
-int StoryGridGraph::addRootGrid(
+TreeGridDocument StoryGridGraph::SemGraphStore::addDocNode(
     const org::ImmAdapter& node,
     const StoryGridConfig& conf,
     StoryGridContext&      ctx) {
@@ -1509,7 +1513,6 @@ int StoryGridGraph::addRootGrid(
     __perf_trace_end("gui");
     doc.updatePositions();
 
-
     CTX_MSG(
         fmt("Add root node to the document, grid size={} "
             "row-count={} col-count={} columns={}",
@@ -1518,17 +1521,10 @@ int StoryGridGraph::addRootGrid(
             doc.columns.size(),
             doc.columns));
 
-    StoryNode::TreeGrid grid{
-        .pos  = ImVec2(0, 0),
-        .node = doc,
-    };
-
-    int flatIdx = addFlatNode(StoryGridNode{.data = grid});
-
-    return flatIdx;
+    return doc;
 }
 
-void StoryGridGraph::addGridAnnotationNodes(
+void StoryGridGraph::SemGraphStore::addGridAnnotationNodes(
     TreeGridDocument& doc,
     StoryGridContext& ctx) {
     CTX_MSG("Add annotation nodes to document");
@@ -1564,14 +1560,13 @@ void StoryGridGraph::addGridAnnotationNodes(
         for (auto const& list : row->origin.subAs<org::ImmList>()) {
             if (list.isDescriptionList()
                 && org::graph::isLinkedDescriptionList(list)) {
-                addDescriptionListNodes(doc, list, ctx);
+                addDescriptionListNodes(list, ctx);
             }
         }
     }
 }
 
-void StoryGridGraph::addDescriptionListNodes(
-    TreeGridDocument&                     doc,
+void StoryGridGraph::SemGraphStore::addDescriptionListNodes(
     const org::ImmAdapterT<org::ImmList>& list,
     StoryGridContext&                     ctx) {
     org::graph::MapNode listNode{list.uniq()};

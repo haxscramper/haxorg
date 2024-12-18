@@ -339,7 +339,9 @@ struct StoryGridGraph {
         }
 
 
-        void setOrgNodeOrigin(org::ImmUniqId const& id, int flatIdx) {
+        void setOrgNodeOrigin(
+            org::ImmUniqId const& id,
+            StoryNodeId           flatIdx) {
             orgToFlatIdx.insert_or_assign(id, flatIdx);
         }
 
@@ -364,6 +366,20 @@ struct StoryGridGraph {
         UnorderedMap<org::ImmUniqId, org::ImmUniqId> annotationParents;
         org::graph::MapGraph                         graph;
         DESC_FIELDS(SemGraphStore, (annotationParents, graph));
+
+        TreeGridDocument addDocNode(
+            org::ImmAdapter const& node,
+            StoryGridConfig const& conf,
+            StoryGridContext&      ctx);
+
+        void addGridAnnotationNodes(
+            TreeGridDocument const& doc,
+            StoryGridContext&       ctx);
+
+
+        void addDescriptionListNodes(
+            org::ImmAdapterT<org::ImmList> const& list,
+            StoryGridContext&                     ctx);
     };
 
     struct BlockGraphStore {
@@ -383,6 +399,18 @@ struct StoryGridGraph {
                 return std::nullopt;
             }
         }
+
+        LaneNodePos addToLane(
+            int                    laneIdx,
+            StoryNodeId            id,
+            StoryGridConfig const& conf,
+            FlatNodeStore const&   nodes);
+
+        static BlockGraphStore init(
+            SemGraphStore const&   semGraph,
+            FlatNodeStore const&   storyNodes,
+            StoryGridContext&      ctx,
+            StoryGridConfig const& conf);
     };
 
     FlatNodeStore   storyNodes;
@@ -391,19 +419,6 @@ struct StoryGridGraph {
 
     void resetBlockLanes(StoryGridConfig const& conf);
 
-    int addRootGrid(
-        org::ImmAdapter const& node,
-        StoryGridConfig const& conf,
-        StoryGridContext&      ctx);
-
-    void addGridAnnotationNodes(
-        TreeGridDocument& doc,
-        StoryGridContext& ctx);
-
-    void addDescriptionListNodes(
-        TreeGridDocument&                     doc,
-        org::ImmAdapterT<org::ImmList> const& list,
-        StoryGridContext&                     ctx);
 
     /// \brief If grid graph has focused linked description list, hide all
     /// grid rows except ones that are directly targeted by the link list.
@@ -450,11 +465,6 @@ struct StoryGridGraph {
             return std::nullopt;
         }
     }
-
-    LaneNodePos addFlatNodeToLane(
-        int                    laneIdx,
-        int                    flatNode,
-        StoryGridConfig const& conf);
 };
 
 
@@ -473,7 +483,7 @@ struct GridAction {
 
     struct EditCellChanged {
         TreeGridCell cell;
-        int          documentNodeIdx;
+        StoryNodeId  documentNodeIdx;
         DESC_FIELDS(EditCellChanged, (cell, documentNodeIdx));
     };
 
@@ -493,9 +503,9 @@ struct GridAction {
     };
 
     struct RowFolding {
-        bool isOpen;
-        int  flatIdx;
-        int  documentNodeIdx;
+        bool        isOpen;
+        int         flatIdx;
+        StoryNodeId documentNodeIdx;
         DESC_FIELDS(RowFolding, (isOpen, flatIdx, documentNodeIdx));
     };
 
