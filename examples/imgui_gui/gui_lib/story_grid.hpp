@@ -430,19 +430,28 @@ struct StoryGridGraph {
             SemGraphStore const& semGraph) const;
     };
 
+    struct NodePositionStore;
     struct BlockGraphStore {
-        NodeGridGraph                 ir;
+        LaneBlockGraph                ir;
         Vec<Vec<StoryGridAnnotation>> partition;
         DESC_FIELDS(BlockGraphStore, (ir, partition));
 
+        StoryNodeId toStory(BlockNodeId id) const {
+            return StoryNodeId::FromIndex(id.getIndex());
+        }
+
+        BlockNodeId toBlock(StoryNodeId id) const {
+            return BlockNodeId::FromIndex(id.getIndex());
+        }
+
         Opt<LaneNodePos> getBlockPos(StoryNodeId const& id) const {
-            return ir.getGrid(id.getIndex());
+            return ir.getBlockPos(BlockNodeId::FromIndex(id.getIndex()));
         }
 
         Opt<StoryNodeId> getStoryNodeId(LaneNodePos const& pos) const {
-            auto idx = ir.getFlat(pos);
+            auto idx = ir.getBlockId(pos);
             if (idx) {
-                return StoryNodeId::FromIndex(idx.value());
+                return StoryNodeId::FromIndex(idx.value().getIndex());
             } else {
                 return std::nullopt;
             }
@@ -470,26 +479,23 @@ struct StoryGridGraph {
             StoryGridConfig const& conf,
             StoryGridContext&      ctx,
             SemGraphStore const&   semGraph,
-            FlatNodeStore&         storyNodes);
+            FlatNodeStore const&   storyNodes);
 
+        void updateBlockNodes(
+            StoryGridConfig const& conf,
+            StoryGridContext&      ctx,
+            FlatNodeStore const&   storyNodes);
 
         /// \brief Update document layout for the current graph
         /// configuration. Syncs node sizes and builds graph layout IR to
         /// sync with the current document state. This is the entry point
         /// to update node and edge positions if the graph structure itself
         /// is the same.
-        void updateDocumentLayout(
+        NodePositionStore updateDocumentLayout(
             StoryGridConfig const& conf,
             StoryGridContext&      ctx,
             SemGraphStore const&   semGraph,
-            FlatNodeStore&         storyNodes);
-
-        /// \brief Update document node positions with current node sizes
-        /// and edge positions. Called by `updateDocumentLayout`
-        void updateDocumentNodePositions(
-            StoryGridConfig const& conf,
-            StoryGridContext&      ctx,
-            FlatNodeStore&         storyNodes);
+            FlatNodeStore const&   storyNodes);
 
         static BlockGraphStore init(
             SemGraphStore const&   semGraph,
@@ -498,9 +504,27 @@ struct StoryGridGraph {
             StoryGridConfig const& conf);
     };
 
-    FlatNodeStore   storyNodes;
-    SemGraphStore   semGraph;
-    BlockGraphStore blockGraph;
+    struct NodePositionStore {
+        LaneBlockLayout                   lyt;
+        UnorderedMap<StoryNodeId, ImVec2> nodePositions;
+        static NodePositionStore          init(
+                     StoryGridContext&      ctx,
+                     BlockGraphStore const& blockGraph);
+    };
+
+    FlatNodeStore     storyNodes;
+    SemGraphStore     semGraph;
+    BlockGraphStore   blockGraph;
+    NodePositionStore positionStore;
+
+    ImVec2 getPosition(StoryNodeId id) const {
+        return positionStore.nodePositions.at(id);
+    }
+
+    bool isNodeVisible(StoryNodeId const& id) {
+        auto pos = blockGraph.getBlockPos(id);
+        return pos && blockGraph.ir.at(pos.value()).isVisible;
+    }
 
     Vec<StoryNode*> getGridNodes() {
         Vec<StoryNode*> res;

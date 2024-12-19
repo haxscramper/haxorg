@@ -417,7 +417,7 @@ void run_story_grid_annotated_cycle(
     }
 
     for (auto const& [key, edge] :
-         model.rectGraph.blockGraph.ir.layout.lines) {
+         model.rectGraph.positionStore.lyt.layout.lines) {
         render_edge(edge, model.shift, true, conf.blockGraphConf);
     }
 }
@@ -667,10 +667,11 @@ LaneNodePos StoryGridGraph::BlockGraphStore::addToLane(
     StoryNodeId            id,
     const StoryGridConfig& conf,
     FlatNodeStore const&   nodes) {
-    auto pos = ir.ir.addNode(
-        laneIdx, nodes.getStoryNode(id).getSize(), conf.blockGraphConf);
-    ir.add(id.getIndex(), pos);
-    return pos;
+    return ir.addNode(
+        laneIdx,
+        toBlock(id),
+        nodes.getStoryNode(id).getSize(),
+        conf.blockGraphConf);
 }
 
 void StoryGridGraph::BlockGraphStore::setPartition(
@@ -758,7 +759,7 @@ void StoryGridGraph::BlockGraphStore::setPartition(
                 CTX_MSG(fmt("{}", edge));
             }
 
-            ir.ir.addEdge(source_node, edge);
+            ir.addEdge(source_node, edge);
         }
     }
 }
@@ -827,12 +828,11 @@ void StoryGridGraph::BlockGraphStore::updateHiddenRowConnection(
     StoryGridConfig const& conf,
     StoryGridContext&      ctx,
     SemGraphStore const&   semGraph,
-    FlatNodeStore&         storyNodes) {
+    FlatNodeStore const&   storyNodes) {
     CTX_MSG("Update hiddent row connections");
     auto       __scope       = ctx.scopeLevel();
     Slice<int> viewportRange = slice1<int>(0, conf.gridViewport.y);
-    auto&      lanes         = ir.getLanes();
-    for (auto const& [lane_idx, lane] : enumerate(lanes)) {
+    for (auto const& [lane_idx, lane] : enumerate(ir.lanes)) {
         for (auto const& [block_idx, block] : enumerate(lane.blocks)) {
             LaneNodePos      lanePos{.lane = lane_idx, .row = block_idx};
             StoryNode const& storyNode = storyNodes.getStoryNode(
@@ -849,12 +849,12 @@ void StoryGridGraph::BlockGraphStore::updateHiddenRowConnection(
                 for (auto const& row : treeDoc.flatRows(false)) {
                     Slice<int> rowRange = slice1<int>(
                         treeDoc.getRowYPos(row)
-                            + (lanes.has(lane_idx)
-                                   ? lanes.at(lane_idx).scrollOffset
+                            + (ir.lanes.has(lane_idx)
+                                   ? ir.lanes.at(lane_idx).scrollOffset
                                    : 0),
                         treeDoc.getRowYPos(row)
-                            + (lanes.has(lane_idx)
-                                   ? lanes.at(lane_idx).scrollOffset
+                            + (ir.lanes.has(lane_idx)
+                                   ? ir.lanes.at(lane_idx).scrollOffset
                                    : 0)
                             + row->getHeight().value());
 
@@ -882,11 +882,12 @@ void StoryGridGraph::BlockGraphStore::updateHiddenRowConnection(
                                 targetNodeId,
                                 overlap));
                         if (targetNodeId) {
-                            auto const& t = targetNodeId.value();
+                            auto const& t   = targetNodeId.value();
+                            LaneNodePos pos = getBlockPos(t).value();
                             if (overlap) {
-                                storyNodes.getStoryNode(t).isVisible = true;
+                                ir.at(pos).isVisible = true;
                             } else {
-                                storyNodes.getStoryNode(t).isVisible = false;
+                                ir.at(pos).isVisible = false;
                             }
                         }
                     }
@@ -896,17 +897,18 @@ void StoryGridGraph::BlockGraphStore::updateHiddenRowConnection(
     }
 }
 
-void StoryGridGraph::BlockGraphStore::updateDocumentLayout(
-    StoryGridConfig const& conf,
-    StoryGridContext&      ctx,
-    SemGraphStore const&   semGraph,
-    FlatNodeStore&         storyNodes) {
+StoryGridGraph::NodePositionStore StoryGridGraph::BlockGraphStore::
+    updateDocumentLayout(
+        StoryGridConfig const& conf,
+        StoryGridContext&      ctx,
+        SemGraphStore const&   semGraph,
+        FlatNodeStore const&   storyNodes) {
     CTX_MSG("Update document layout");
     auto __scope = ctx.scopeLevel();
 
     {
         Vec<int> offsets //
-            = ir.getLanes()
+            = ir.lanes
             | rv::transform([](LaneBlockStack const& lane) -> int {
                   return lane.scrollOffset;
               })
@@ -916,16 +918,11 @@ void StoryGridGraph::BlockGraphStore::updateDocumentLayout(
     }
 
     ir.setVisible(conf.gridViewport);
+    ir.resetVisibility();
 
-    ir.ir.resetVisibility();
-
-    // if (ir.getLanes().has(0)) {
-    //     shift.y = ir.getLanes().at(0).scrollOffset;
-    // }
-
-    updateDocumentNodePositions(conf, ctx, storyNodes);
+    auto positions0 = NodePositionStore::init(ctx, *this);
     updateHiddenRowConnection(conf, ctx, semGraph, storyNodes);
-    updateDocumentNodePositions(conf, ctx, storyNodes);
+    return NodePositionStore::init(ctx, *this);
 }
 
 void StoryGridModel::updateGridState() {
@@ -1210,7 +1207,7 @@ void StoryGridModel::apply(
 
         case GridAction::Kind::Scroll: {
             auto const& scroll = act.getScroll();
-            rectGraph.blockGraph.ir.ir.addScrolling(
+            rectGraph.blockGraph.ir.addScrolling(
                 scroll.pos, scroll.direction);
             updateDocumentLayout(conf);
             break;
@@ -1547,41 +1544,28 @@ StoryGridGraph::BlockGraphStore StoryGridGraph::BlockGraphStore::init(
     return res;
 }
 
-void StoryGridGraph::BlockGraphStore::updateDocumentNodePositions(
+
+StoryGridGraph::NodePositionStore StoryGridGraph::NodePositionStore::init(
+    StoryGridContext&      ctx,
+    BlockGraphStore const& blockGraph) {
+    NodePositionStore res;
+    res.lyt = blockGraph.ir.toLayout();
+
+    for (LaneBlockLayout::RectSpec const& rect :
+         res.lyt.getRectangles(blockGraph.ir)) {
+        res.nodePositions.insert_or_assign(
+            blockGraph.toStory(rect.blockId), rect.pos);
+    }
+    return res;
+}
+
+void StoryGridGraph::BlockGraphStore::updateBlockNodes(
     const StoryGridConfig& conf,
     StoryGridContext&      ctx,
-    FlatNodeStore&         storyNodes) {
-    ir.setVisible(conf.gridViewport);
-
-    ir.syncVisibility([&](int flat_idx) -> Opt<bool> {
-        return storyNodes.getStoryNode(StoryNodeId::FromIndex(flat_idx))
-            .isVisible;
-    });
-
-    ir.syncSize([&](int flat_idx) -> ImVec2 {
-        return storyNodes.getStoryNode(StoryNodeId::FromIndex(flat_idx))
+    const FlatNodeStore&   storyNodes) {
+    ir.syncSize([&](BlockNodeId id) -> ImVec2 {
+        return storyNodes
+            .getStoryNode(StoryNodeId::FromIndex(id.getIndex()))
             .getSize();
     });
-
-    ir.syncLayout();
-
-    CTX_MSG("Updating graph layout positions");
-    auto __scope = ctx.scopeLevel();
-
-
-    for (NodeGridGraph::RectSpec const& rect : ir.getRectangles()) {
-        StoryNode& node = storyNodes.getStoryNode(
-            StoryNodeId::FromIndex(rect.flatPos));
-
-        CTX_MSG(fmt("Rect {}", rect));
-        if (rect.isVisible) {
-            node.isVisible = true;
-            node.setPos(rect.pos);
-        } else {
-            node.isVisible = false;
-        }
-    }
-
-    // debug     = to_constraints(lyt, rectGraph.ir, thisLayout);
-    // debug->ir = &thisLayout;
 }
