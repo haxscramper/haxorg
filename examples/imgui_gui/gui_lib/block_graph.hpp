@@ -20,6 +20,18 @@ struct LaneNodePos {
     DESC_FIELDS(LaneNodePos, (lane, row));
 };
 
+template <>
+struct std::formatter<LaneNodePos> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const LaneNodePos& p, FormatContext& ctx) const {
+        fmt_ctx("[", ctx);
+        fmt_ctx(p.lane, ctx);
+        fmt_ctx("@", ctx);
+        fmt_ctx(p.row, ctx);
+        return fmt_ctx("]", ctx);
+    }
+};
+
 struct LaneNodeEdge {
     LaneNodePos               target;
     Opt<int>                  targetOffset;
@@ -192,13 +204,13 @@ struct LaneBlockGraph {
     /// node position. Updated in the `add` method.
     UnorderedMap<LaneNodePos, BlockNodeId> posToId;
 
+    DESC_FIELDS(LaneBlockGraph, (lanes, visible, edges, idToPos, posToId));
 
     void setVisible(ImVec2 const& viewport) {
         visible.h = viewport.y;
         visible.w = viewport.x;
     }
 
-    DESC_FIELDS(LaneBlockGraph, (lanes, visible, edges, idToPos, posToId));
 
     void syncSize(Func<Opt<ImVec2>(BlockNodeId)> const& getSizeForFlat) {
         for (auto const& [flat_idx, lane_idx] : idToPos) {

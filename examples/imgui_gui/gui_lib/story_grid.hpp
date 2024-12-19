@@ -121,7 +121,8 @@ struct TreeGridDocument {
     Vec<int> rowPositions;
     Vec<int> colPositions;
 
-    UnorderedMap<org::ImmUniqId, int> rowOrigins;
+    org::ImmAdapterT<org::ImmDocument> origin;
+    UnorderedMap<org::ImmUniqId, int>  rowOrigins;
 
     void updatePositions();
 
@@ -317,10 +318,18 @@ struct StoryGridConfig;
 struct StoryGridGraph {
 
     struct SemGraphStore {
-        org::ImmAstContext::Ptr                      ctx;
+        org::ImmAstContext::Ptr ctx;
+        /// \brief Node IDs that are explicitly mapped to a node in the
+        /// story grid.
+        Vec<org::ImmUniqId>  storyRoots;
+        org::graph::MapGraph graph;
+
         UnorderedMap<org::ImmUniqId, org::ImmUniqId> annotationParents;
-        org::graph::MapGraph                         graph;
-        DESC_FIELDS(SemGraphStore, (annotationParents, graph));
+        DESC_FIELDS(SemGraphStore, (annotationParents, graph, storyRoots));
+
+        void addRoot(org::ImmUniqId const& id) {
+            storyRoots.push_back(id);
+        }
 
         TreeGridDocument addDocNode(
             org::ImmAdapter const& node,
@@ -334,6 +343,21 @@ struct StoryGridGraph {
         void addDescriptionListNodes(
             org::ImmAdapterT<org::ImmList> const& list,
             StoryGridContext&                     ctx);
+
+        void addFootnoteAnnotationNode(
+            UnorderedSet<org::ImmUniqId>& visited,
+            org::ImmUniqId const&         origin,
+            org::ImmAdapter const&        node,
+            StoryGridContext&             ctx);
+
+        void addFootnoteAnnotationNode(
+            org::ImmUniqId const&  origin,
+            org::ImmAdapter const& node,
+            StoryGridContext&      ctx) {
+            UnorderedSet<org::ImmUniqId> visited;
+            addFootnoteAnnotationNode(visited, origin, node, ctx);
+        }
+
 
         static SemGraphStore init(
             org::ImmAdapter const& root,

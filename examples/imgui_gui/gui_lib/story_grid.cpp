@@ -462,7 +462,7 @@ Opt<json> story_grid_loop(
         .ast = start->init(sem::parseString(readFile(file))),
     });
 
-    model.ctx.setTraceFile("/tmp/story_grid_trace.txt");
+    model.ctx.setTraceFile("/tmp/story_grid_trace.log");
     if (in_state) {
         model.state = from_json_eval<StoryGridState>(in_state.value());
     }
@@ -527,15 +527,26 @@ Opt<json> story_grid_loop(
 
 TreeGridCell build_editable_cell(
     org::ImmAdapter       adapter,
-    TreeGridColumn const& col);
+    TreeGridColumn const& col,
+    StoryGridContext&     ctx);
 
 TreeGridRow::Ptr build_row(
     org::ImmAdapterT<org::ImmSubtree> tree,
     TreeGridDocument&                 doc,
-    int&                              flatIdx) {
-    auto result              = TreeGridRow::shared();
-    result->columns["title"] = build_editable_cell(
-        tree.getTitle(), doc.getColumn("title"));
+    int&                              flatIdx,
+    StoryGridContext&                 ctx) {
+    auto result     = TreeGridRow::shared();
+    auto title_cell = build_editable_cell(
+        tree.getTitle(), doc.getColumn("title"), ctx);
+
+    STORY_GRID_MSG_SCOPE(
+        ctx,
+        fmt("Story grid row from {}, '{}'",
+            tree.id,
+            title_cell.getFinalTextValue()));
+
+    result->columns["title"] = title_cell;
+
     result->origin  = tree;
     result->flatIdx = flatIdx;
     ++flatIdx;
@@ -547,7 +558,7 @@ TreeGridRow::Ptr build_row(
                     if (word.starts_with("story_")) {
                         auto column = word.dropPrefix("story_");
                         result->columns[column] = build_editable_cell(
-                            item.at(0), doc.getColumn(column));
+                            item.at(0), doc.getColumn(column), ctx);
                     }
                 }
             }
@@ -556,7 +567,7 @@ TreeGridRow::Ptr build_row(
 
     for (auto const& sub : tree.subAs<org::ImmSubtree>()) {
         if (!sub->isComment && !sub->isArchived) {
-            result->addNested(build_row(sub, doc, flatIdx));
+            result->addNested(build_row(sub, doc, flatIdx, ctx));
         }
     }
 
@@ -565,11 +576,13 @@ TreeGridRow::Ptr build_row(
 
 Vec<TreeGridRow::Ptr> build_rows(
     org::ImmAdapter   root,
-    TreeGridDocument& doc) {
+    TreeGridDocument& doc,
+    StoryGridContext& ctx) {
+    STORY_GRID_MSG_SCOPE(ctx, "Build grid document rows");
     Vec<TreeGridRow::Ptr> result;
     int                   idx = 0;
     for (auto const& tree : root.subAs<org::ImmSubtree>()) {
-        result.push_back(build_row(tree, doc, idx));
+        result.push_back(build_row(tree, doc, idx, ctx));
     }
 
     return result;
@@ -577,7 +590,8 @@ Vec<TreeGridRow::Ptr> build_rows(
 
 TreeGridCell build_editable_cell(
     org::ImmAdapter       adapter,
-    TreeGridColumn const& col) {
+    TreeGridColumn const& col,
+    StoryGridContext&     ctx) {
     TreeGridCell result{TreeGridCell::Value{}};
     auto&        v = result.getValue();
     v.value        = EditableOrgText::from_adapter(adapter);
@@ -587,12 +601,11 @@ TreeGridCell build_editable_cell(
     return result;
 }
 
-void add_footnote_annotation_node(
-    UnorderedSet<org::ImmUniqId> visited,
-    org::ImmUniqId const&        origin,
-    org::ImmAdapter const&       node,
-    org::graph::MapGraph&        graph,
-    StoryGridContext&            ctx) {
+void StoryGridGraph::SemGraphStore::addFootnoteAnnotationNode(
+    UnorderedSet<org::ImmUniqId>& visited,
+    org::ImmUniqId const&         origin,
+    org::ImmAdapter const&        node,
+    StoryGridContext&             ctx) {
     if (visited.contains(node.uniq())) {
         return;
     } else {
@@ -614,6 +627,8 @@ void add_footnote_annotation_node(
         for (auto const& targetPath :
              link->ctx.lock()->getPathsFor(target.value())) {
             graph.addNode(targetPath);
+            addRoot(targetPath);
+
             graph.addEdge(
                 org::graph::MapEdge{
                     .source = origin,
@@ -626,11 +641,10 @@ void add_footnote_annotation_node(
                     targetPath.id,
                     link->ctx.lock()->adapt(targetPath).id));
 
-            add_footnote_annotation_node(
+            addFootnoteAnnotationNode(
                 visited,
                 targetPath,
                 link->ctx.lock()->adapt(targetPath),
-                graph,
                 ctx);
         }
     }
@@ -642,8 +656,8 @@ StoryGridGraph::FlatNodeStore StoryGridGraph::FlatNodeStore::init(
     const StoryGridConfig& conf) {
     STORY_GRID_MSG_SCOPE(ctx, "Flat grid init store");
     FlatNodeStore res;
-    for (auto const& [node, adjacent] : semGraph.graph.adjList) {
-        res.add(semGraph.ctx->adapt(node.id), conf, ctx);
+    for (auto const& node : semGraph.storyRoots) {
+        res.add(semGraph.ctx->adapt(node), conf, ctx);
     }
     return res;
 }
@@ -662,12 +676,13 @@ void StoryGridGraph::FlatNodeStore::setOrgNodeOrigin(
                 setOrgNodeOrigin(l.origin.uniq(), idx);
             },
             [&](StoryNode::TreeGrid const& t) {
+                setOrgNodeOrigin(t.node.origin.uniq(), idx);
                 for (auto const& row : t.node.flatRows(true)) {
                     setOrgNodeOrigin(row->origin.uniq(), idx);
                 }
             },
             [&](StoryNode::Text const& t) {
-
+                setOrgNodeOrigin(t.origin.uniq(), idx);
             },
         },
         n.data);
@@ -959,9 +974,19 @@ Vec<Vec<StoryGridAnnotation>> StoryGridGraph::FlatNodeStore::
         const {
     __perf_trace("gui", "partition graph by distance");
     auto initial_nodes = getInitialNodes(ctx, semGraph);
-    CTX_MSG(fmt("Partition graph nodes, initial nodes {}", initial_nodes));
-    auto __scope = ctx.scopeLevel();
+    {
+        STORY_GRID_MSG_SCOPE(
+            ctx, fmt("Partition graph nodes, initial nodes:"));
+        for (auto const& i : initial_nodes) {
+            CTX_MSG(fmt("  {} {}", i.id.id, i));
+        }
+    }
 
+    STORY_GRID_MSG_SCOPE(ctx, "Partition flat node");
+
+    LOGIC_ASSERTION_CHECK(
+        !initial_nodes.empty(),
+        "Cannot partition graph with no initial nodes");
 
     Vec<Vec<StoryGridAnnotation>>          result;
     UnorderedMap<org::graph::MapNode, int> distances;
@@ -1010,14 +1035,28 @@ Vec<Vec<StoryGridAnnotation>> StoryGridGraph::FlatNodeStore::
         }
     }
 
-    Vec<int> partition_debug //
+    std::string partition_debug //
         = result
-        | rv::transform([](auto const& p) -> int { return p.size(); })
-        | rs::to<Vec>();
+        | rv::transform(
+              [](Vec<StoryGridAnnotation> const& p) -> std::string {
+                  return p
+                       | rv::transform(
+                             [](StoryGridAnnotation const& p)
+                                 -> std::string {
+                                 return fmt("[{}]", p.source.id.id);
+                             })
+                       | rv::intersperse(" - - ") //
+                       | rv::join                 //
+                       | rs::to<std::string>();
+              })
+        | rv::intersperse("\n") //
+        | rv::join              //
+        | rs::to<std::string>();
 
     CTX_MSG(
-        fmt("Created partition with {} lanes {} nodes",
-            partition_debug.size(),
+        fmt("Created partition with {} lanes. Root node partition "
+            "placement:\n{}",
+            result.size(),
             partition_debug));
 
     return result;
@@ -1093,8 +1132,12 @@ StoryNodeId StoryGridGraph::FlatNodeStore::add(
         text.size.y = height;
 
         StoryNodeId annotation = add(StoryNode{text});
-        CTX_MSG(fmt(
-            "Text node {} mapped to Text node {}", node.id, annotation));
+        CTX_MSG(
+            fmt("Text node {} mapped to Text node {}, \"{}\"",
+                node.id,
+                annotation,
+                escape_literal(text.text.getFinalValue())));
+
         return annotation;
     }
 }
@@ -1433,8 +1476,20 @@ StoryGridGraph::SemGraphStore StoryGridGraph::SemGraphStore::init(
     SemGraphStore res;
 
     auto doc = TreeGridDocument::from_root(root, conf, ctx);
-    res.ctx  = root.ctx.lock();
+
+    res.addRoot(root.uniq());
+
+    CTX_MSG(
+        fmt("Add root node to the document, grid size={} "
+            "row-count={} col-count={} columns={}",
+            doc.getSize(),
+            doc.rowPositions.size(),
+            doc.columns.size(),
+            doc.columns));
+
+    res.ctx = root.ctx.lock();
     res.addGridAnnotationNodes(doc, ctx);
+
     {
         auto     gv = res.graph.toGraphviz(res.ctx);
         Graphviz gvc;
@@ -1452,18 +1507,9 @@ TreeGridDocument TreeGridDocument::from_root(
     StoryGridContext&      ctx) {
     TreeGridDocument doc = conf.getDefaultDoc();
     __perf_trace_begin("gui", "build doc rows");
-    doc.rows = build_rows(node, doc);
+    doc.rows = build_rows(node, doc, ctx);
     __perf_trace_end("gui");
     doc.updatePositions();
-
-    CTX_MSG(
-        fmt("Add root node to the document, grid size={} "
-            "row-count={} col-count={} columns={}",
-            doc.getSize(),
-            doc.rowPositions.size(),
-            doc.columns.size(),
-            doc.columns));
-
     return doc;
 }
 
@@ -1495,9 +1541,8 @@ void StoryGridGraph::SemGraphStore::addGridAnnotationNodes(
                 },
                 org::graph::MapEdgeProp{});
 
-            UnorderedSet<org::ImmUniqId> visited;
-            add_footnote_annotation_node(
-                visited, commentNode.id, nested, graph, ctx);
+            addRoot(commentNode.id);
+            addFootnoteAnnotationNode(commentNode.id, nested, ctx);
         }
 
         for (auto const& list : row->origin.subAs<org::ImmList>()) {
@@ -1513,6 +1558,7 @@ void StoryGridGraph::SemGraphStore::addDescriptionListNodes(
     const org::ImmAdapterT<org::ImmList>& list,
     StoryGridContext&                     ctx) {
     org::graph::MapNode listNode{list.uniq()};
+    addRoot(list.uniq());
     for (auto const& item : list.subAs<org::ImmListItem>()) {
         graph.addNode(item.uniq());
         for (auto const& link : item.getHeader()->subAs<org::ImmLink>()) {
@@ -1558,7 +1604,7 @@ StoryGridGraph::BlockGraphStore StoryGridGraph::BlockGraphStore::init(
     FlatNodeStore&         storyNodes,
     StoryGridContext&      ctx,
     const StoryGridConfig& conf) {
-    STORY_GRID_MSG_SCOPE(ctx, "Update block graph stor");
+    STORY_GRID_MSG_SCOPE(ctx, "Update block graph store");
     BlockGraphStore res;
     res.ir.setVisible(conf.gridViewport);
     auto partition = storyNodes.getGraphPartition(ctx, semGraph);
@@ -1571,12 +1617,24 @@ StoryGridGraph::BlockGraphStore StoryGridGraph::BlockGraphStore::init(
 StoryGridGraph::NodePositionStore StoryGridGraph::NodePositionStore::init(
     StoryGridContext&      ctx,
     BlockGraphStore const& blockGraph) {
-    STORY_GRID_MSG_SCOPE(ctx, "Update node positions");
+    STORY_GRID_MSG_SCOPE(ctx, "Init node position store");
     NodePositionStore res;
-    res.lyt = blockGraph.ir.toLayout();
+    LOGIC_ASSERTION_CHECK(
+        !blockGraph.ir.idToPos.empty(),
+        "Block graph has empty ID to position mapping, nothing to "
+        "position on the graph");
+    {
+        STORY_GRID_MSG_SCOPE(ctx, "Create graph layout");
+        for (auto const& [id, pos] : blockGraph.ir.idToPos) {
+            CTX_MSG(fmt("Id {} pos {}", id, pos));
+        }
+        res.lyt = blockGraph.ir.toLayout();
+        CTX_MSG(fmt("Layout for {} rectangles", res.lyt.rectMap.size()));
+    }
 
     for (LaneBlockLayout::RectSpec const& rect :
          res.lyt.getRectangles(blockGraph.ir)) {
+        CTX_MSG(fmt("Node position {}", rect));
         res.nodePositions.insert_or_assign(
             blockGraph.toStory(rect.blockId), rect.pos);
     }
