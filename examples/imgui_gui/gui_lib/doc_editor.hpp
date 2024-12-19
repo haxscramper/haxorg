@@ -329,7 +329,8 @@ struct DocBlockModel {
     DocBlockDocument::Ptr root;
     DocBlockContext       ctx;
 
-    NodeGridGraph      g;
+    LaneBlockGraph     g;
+    LaneBlockLayout    lyt;
     Vec<DocBlock::Ptr> flatGrid;
 
     DESC_FIELDS(DocBlockModel, (root, ctx, g));
@@ -347,7 +348,7 @@ struct DocBlockModel {
     void syncLayout(DocBlockConfig const& conf);
 
     int getLaneScroll(int lane) {
-        return g.ir.getExistingLane(lane).scrollOffset;
+        return g.getExistingLane(lane).scrollOffset;
     }
 };
 

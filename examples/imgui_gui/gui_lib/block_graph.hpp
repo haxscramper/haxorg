@@ -275,6 +275,10 @@ struct LaneBlockGraph {
         return lanes.at(lane);
     }
 
+    LaneBlockNode& at(BlockNodeId const& id) {
+        return at(getBlockPos(id).value());
+    }
+
     LaneBlockNode& at(LaneNodePos const& node) {
         return lanes.at(node.lane).blocks.at(node.row);
     }

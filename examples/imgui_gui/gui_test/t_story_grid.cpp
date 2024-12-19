@@ -271,10 +271,10 @@ some random shit about the comments or whatever, need to render as annotation [f
                             ->getTreeGrid()
                             .node;
             auto&       ir    = m.rectGraph.blockGraph.ir;
-            auto const& spans = ir.ir.getLaneSpans();
+            auto const& spans = ir.getLaneSpans();
             auto&       rg    = m.rectGraph;
             IM_CHECK_EQ(spans.size(), 4);
-            IM_CHECK_EQ(ir.getLanes().at(1).scrollOffset, 0);
+            IM_CHECK_EQ(ir.lanes.at(1).scrollOffset, 0);
             IM_CTX_ACT(
                 MouseMoveToPos,
                 wpos
@@ -284,14 +284,14 @@ some random shit about the comments or whatever, need to render as annotation [f
             // m.ctx.message(to_json_eval(rg.nodes).dump(2));
 
             IM_CHECK_BINARY_PRED(
-                rg.getStoryNode({0, 0}).getTreeGrid().pos,
+                rg.getPosition({0, 0}),
                 ImVec2(spans.at(0).first, 0),
                 is_within_distance,
                 5);
 
 
             IM_CHECK_BINARY_PRED(
-                rg.getStoryNode({1, 0}).getText().pos,
+                rg.getPosition({1, 0}),
                 ImVec2(spans.at(1).first, 0),
                 is_within_distance,
                 5);
@@ -303,14 +303,14 @@ some random shit about the comments or whatever, need to render as annotation [f
                 vars.set_im_trace(2);
                 IM_CTX_ACT(Yield, 5);
                 IM_CHECK_EQ(
-                    ir.getLanes().at(1).scrollOffset,
+                    ir.lanes.at(1).scrollOffset,
                     vars.conf.mouseScrollMultiplier * 5);
             }
 
             // m.ctx.message(to_json_eval(rg.nodes).dump(2));
 
             IM_CHECK_BINARY_PRED(
-                rg.getStoryNode({1, 0}).getText().pos,
+                rg.getPosition({1, 0}),
                 ImVec2(spans.at(1).first, 50),
                 is_within_distance,
                 5);
@@ -319,8 +319,7 @@ some random shit about the comments or whatever, need to render as annotation [f
                 m.ctx.message("Edit annotation text");
                 IM_CTX_ACT(
                     MouseMoveToPos,
-                    wpos + rg.getStoryNode({1, 0}).getText().pos
-                        + ImVec2(0, 5));
+                    wpos + rg.getPosition({1, 0}) + ImVec2(0, 5));
                 IM_CTX_ACT(MouseClick, 0);
                 IM_CTX_ACT(MouseClick, 0);
 

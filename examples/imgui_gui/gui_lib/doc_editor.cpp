@@ -212,8 +212,8 @@ void apply_doc_block_actions(
 
             case DocBlockAction::Kind::Scroll: {
                 auto const& scr = act.getScroll();
-                model.g.ir.addScrolling(scr.pos, scr.direction);
-                model.g.ir.resetVisibility();
+                model.g.addScrolling(scr.pos, scr.direction);
+                model.g.resetVisibility();
                 model.syncLayout(conf);
                 break;
             }
@@ -266,26 +266,25 @@ void DocBlockModel::syncBlockGraph(const DocBlockConfig& conf) {
 
     g.setVisible(conf.gridViewport);
 
-    auto add_graph_rect = [&](DocBlock::Ptr block) -> int {
-        int         flatPos = flatGrid.push_back_idx(block);
+    auto add_graph_rect = [&](DocBlock::Ptr block) -> BlockNodeId {
+        auto flatPos = BlockNodeId ::FromIndex(
+            flatGrid.push_back_idx(block));
         int         lane    = block->getLane();
-        LaneNodePos lanePos = g.ir.addNode(
-            lane, block->getSize(), conf.laneConf);
-
-        g.add(flatPos, lanePos);
+        LaneNodePos lanePos = g.addNode(
+            lane, flatPos, block->getSize(), conf.laneConf);
         return flatPos;
     };
 
     for (auto const& block : root->getFlatBlocks()) {
         if (block->dyn_cast<DocBlockDocument>()) { continue; }
-        int flatPos                               = add_graph_rect(block);
-        g.getNode(flatPos).horizontalCenterOffset = conf.nestingBlockOffset
-                                                  * block->getDepth();
-        flatGrid.resize_at(flatPos) = block;
+        BlockNodeId flatPos                  = add_graph_rect(block);
+        g.at(flatPos).horizontalCenterOffset = conf.nestingBlockOffset
+                                             * block->getDepth();
+        flatGrid.resize_at(flatPos.getIndex()) = block;
 
         Func<void(DocBlock::Ptr annotation)> aux;
         aux = [&](DocBlock::Ptr annotation) {
-            int flatPos = add_graph_rect(annotation);
+            add_graph_rect(annotation);
             for (auto const& sub : annotation->annotations) { aux(sub); }
         };
     }
@@ -294,16 +293,16 @@ void DocBlockModel::syncBlockGraph(const DocBlockConfig& conf) {
 void DocBlockModel::syncLayout(const DocBlockConfig& conf) {
     CTX_MSG("Sync layout graph");
     auto __scope = ctx.scopeLevel();
-    g.syncLayout();
-    for (NodeGridGraph::RectSpec const& rect : g.getRectangles()) {
-        DocBlock::Ptr node = flatGrid.at(rect.flatPos);
+    lyt          = g.toLayout();
+    for (LaneBlockLayout::RectSpec const& rect : lyt.getRectangles(g)) {
+        DocBlock::Ptr node = flatGrid.at(rect.blockId.getIndex());
         if (rect.isVisible) {
             LOGIC_ASSERTION_CHECK(
                 rect.size.x != 0 && rect.size.y != 0,
                 "Rect is visible but has no size {}. Size of the "
                 "original rectangle at position {} is {}",
                 rect,
-                rect.flatPos,
+                rect.blockId,
                 node->getSize());
 
             // CTX_MSG(fmt("Rect {}", rect));

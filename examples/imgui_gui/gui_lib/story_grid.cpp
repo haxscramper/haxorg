@@ -208,7 +208,8 @@ void render_text_node(
 
     ImGui::PushStyleColor(ImGuiCol_WindowBg, conf.annotationNodeWindowBg);
     auto frameless_vars = push_frameless_window_vars();
-    ImGui::SetNextWindowPos(text.pos + model.shift);
+    ImGui::SetNextWindowPos(
+        model.rectGraph.getPosition(selfPos) + model.shift);
     ImGui::SetNextWindowSize(text.getSize());
     if (IM_FN_BEGIN(
             Begin,
@@ -258,7 +259,8 @@ void render_list_node(
     StoryNode::LinkList& list,
     LaneNodePos const&   selfPos) {
     auto frameless_vars = push_frameless_window_vars();
-    ImGui::SetNextWindowPos(list.pos + model.shift);
+    ImGui::SetNextWindowPos(
+        model.rectGraph.getPosition(selfPos) + model.shift);
     ImGui::SetNextWindowSize(list.getSize());
     if (IM_FN_BEGIN(
             Begin,
@@ -307,7 +309,8 @@ void render_table(
     StoryGridModel&        model,
     StoryNode::TreeGrid&   grid,
     StoryGridConfig const& conf,
-    StoryNodeId            documentNodeIdx) {
+    StoryNodeId            documentNodeIdx,
+    LaneNodePos const&     selfPos) {
     auto& doc       = grid.node;
     auto& ctx       = model.ctx;
     auto  gridStart = ImGui::GetCursorScreenPos();
@@ -319,7 +322,8 @@ void render_table(
     // (yes, I saw the github replies etc., they don't work). Floating
     // window obviously solves this issue, as it is positioned completely
     // independently of the content in the grid table itself.
-    ImGui::SetNextWindowPos(ImVec2(grid.pos + model.shift));
+    ImGui::SetNextWindowPos(
+        ImVec2(model.rectGraph.getPosition(selfPos) + model.shift));
     ImGui::SetNextWindowSize(ImVec2(grid.node.getWidth(), 20));
     auto frameless_vars = push_frameless_window_vars();
     if (IM_FN_BEGIN(
@@ -365,12 +369,14 @@ void render_table_node(
     StoryGridModel&        model,
     StoryNode::TreeGrid&   grid,
     StoryGridConfig const& conf,
-    StoryNodeId            documentNodeIdx) {
+    StoryNodeId            documentNodeIdx,
+    LaneNodePos const&     selfPos) {
 
     auto& ctx = model.ctx;
     auto& doc = grid.node;
 
-    ImGui::SetNextWindowPos(grid.pos + model.shift);
+    ImGui::SetNextWindowPos(
+        model.rectGraph.getPosition(selfPos) + model.shift);
     ImGui::SetNextWindowSize(
         grid.node.getSize() + ImVec2(0, doc.tableHeaderHeight));
     auto frameless_vars = push_frameless_window_vars();
@@ -383,7 +389,7 @@ void render_table_node(
             nullptr,
             ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize)) {
         ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
-        render_table(model, grid, conf, documentNodeIdx);
+        render_table(model, grid, conf, documentNodeIdx, selfPos);
 
         IM_FN_END(End);
     }
@@ -400,7 +406,11 @@ void run_story_grid_annotated_cycle(
             switch (node->getKind()) {
                 case StoryNode::Kind::TreeGrid: {
                     render_table_node(
-                        model, node->getTreeGrid(), conf, node_id);
+                        model,
+                        node->getTreeGrid(),
+                        conf,
+                        node_id,
+                        selfPos);
                     break;
                 }
                 case StoryNode::Kind::Text: {
@@ -1400,7 +1410,7 @@ void run_story_grid_cycle(
             "nodes");
         auto  id = StoryNodeId::FromValue(0);
         auto& g  = model.rectGraph.storyNodes.nodes.at(id).getTreeGrid();
-        render_table(model, g, conf, id);
+        render_table(model, g, conf, id, LaneNodePos{0, 0});
     }
 }
 

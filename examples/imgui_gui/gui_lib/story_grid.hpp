@@ -217,9 +217,8 @@ DECL_ID_TYPE(StoryNode, StoryNodeId, std::size_t);
 struct StoryNode {
     using id_type = StoryNodeId;
     struct TreeGrid {
-        ImVec2           pos;
         TreeGridDocument node;
-        DESC_FIELDS(TreeGrid, (node, pos));
+        DESC_FIELDS(TreeGrid, (node));
         ImVec2 getSize() const { return node.getSize(); }
     };
 
@@ -232,12 +231,11 @@ struct StoryNode {
             DESC_FIELDS(Item, (text, width, height, node));
         };
         Vec<Item>       items;
-        ImVec2          pos;
         ImVec2          size;
         org::ImmAdapter origin;
         bool            isSelected           = false;
         int             imguiTableRowPadding = 5;
-        DESC_FIELDS(LinkList, (items, pos, size, isSelected, origin));
+        DESC_FIELDS(LinkList, (items, size, isSelected, origin));
 
         int getRow(org::ImmUniqId const& row) const {
             auto iter = rs::find_if(items, [&](Item const& i) {
@@ -281,11 +279,10 @@ struct StoryNode {
     };
 
     struct Text {
-        ImVec2          pos;
         ImVec2          size;
         org::ImmAdapter origin;
         EditableOrgText text;
-        DESC_FIELDS(Text, (origin, pos, size, text));
+        DESC_FIELDS(Text, (origin, size, text));
         ImVec2 getSize() const {
             return ImVec2(size.x, size.y + (text.is_editing ? 40 : 0));
         }
@@ -297,16 +294,6 @@ struct StoryNode {
                 [](LinkList const& l) -> ImVec2 { return l.getSize(); },
                 [](TreeGrid const& t) -> ImVec2 { return t.getSize(); },
                 [](Text const& t) -> ImVec2 { return t.getSize(); },
-            },
-            data);
-    }
-
-    void setPos(ImVec2 const& pos) {
-        std::visit(
-            overloaded{
-                [&](Text& t) { t.pos = pos; },
-                [&](TreeGrid& t) { t.pos = pos; },
-                [&](LinkList& l) { l.pos = pos; },
             },
             data);
     }
@@ -521,6 +508,11 @@ struct StoryGridGraph {
         return positionStore.nodePositions.at(id);
     }
 
+    ImVec2 getPosition(LaneNodePos const& pos) const {
+        return positionStore.nodePositions.at(
+            blockGraph.getStoryNodeId(pos).value());
+    }
+
     bool isNodeVisible(StoryNodeId const& id) {
         auto pos = blockGraph.getBlockPos(id);
         return pos && blockGraph.ir.at(pos.value()).isVisible;
@@ -562,8 +554,6 @@ struct StoryGridGraph {
     void updateNodeLanePlacement(
         StoryGridContext&      ctx,
         StoryGridConfig const& conf) {
-        // FIXME: the same as node position update, later on block graph
-        // should be split into "lane node graph" + "node position bundle"
         blockGraph = BlockGraphStore::init(
             semGraph, storyNodes, ctx, conf);
     }
@@ -571,8 +561,7 @@ struct StoryGridGraph {
     void updateNodePositions(
         StoryGridContext&      ctx,
         StoryGridConfig const& conf) {
-        blockGraph = BlockGraphStore::init(
-            semGraph, storyNodes, ctx, conf);
+        positionStore = NodePositionStore::init(ctx, blockGraph);
     }
 
     void resetBlockLanes(StoryGridConfig const& conf);
