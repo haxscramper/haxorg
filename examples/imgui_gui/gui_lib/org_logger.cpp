@@ -181,19 +181,26 @@ void format_log_record_data(
     boost::log::formatting_ostream& strm,
     log_record::log_data const&     data) {
     auto ts = rec[LOG_TIMESTAMP_FIELD].extract<boost::posix_time::ptime>();
-    auto global_depth  = rec[LOG_SCOPE_DEPTH_FIELD].extract<int>();
-    std::string prefix = fmt(
-        "{}{} {}",
-        ts ? boost::posix_time::to_simple_string(*ts).substr(
-                 11, 9 /*Extract HH:MM:SS*/)
-                 + std::string{" "}
-           : "",
-        join(".", data.source_scope),
-        Str{"  "}
-            .repeated(
-                data.depth ? data.depth.value()
-                           : (global_depth ? *global_depth : 0))
-            .toBase());
+    auto global_depth = rec[LOG_SCOPE_DEPTH_FIELD].extract<int>();
+    std::string prefix;
+
+    if (false) {
+        prefix += fmt(
+            "{}{}",
+            ts ? boost::posix_time::to_simple_string(*ts).substr(
+                     11, 9 /*Extract HH:MM:SS*/)
+                     + std::string{" "}
+               : "",
+            join(".", data.source_scope));
+    }
+
+    if (!prefix.empty()) { prefix += " "; }
+
+    prefix += Str{"  "}
+                  .repeated(
+                      data.depth ? data.depth.value()
+                                 : (global_depth ? *global_depth : 0))
+                  .toBase();
 
     strm << prefix;
 
@@ -201,8 +208,9 @@ void format_log_record_data(
         if (data.metadata) { strm << " " << data.metadata->dump(-1); }
 
         if (data.file) {
-            strm << " " << fs::path{data.file}.filename() << ":"
-                 << data.line;
+            strm << " " << fs::path{data.file}.filename().native();
+            if (data.function) { strm << ":" << data.function; }
+            strm << ":" << data.line;
         }
     };
 

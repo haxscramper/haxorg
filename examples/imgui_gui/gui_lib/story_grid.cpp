@@ -640,6 +640,7 @@ StoryGridGraph::FlatNodeStore StoryGridGraph::FlatNodeStore::init(
     const SemGraphStore&   semGraph,
     StoryGridContext&      ctx,
     const StoryGridConfig& conf) {
+    STORY_GRID_MSG_SCOPE(ctx, "Flat grid init store");
     FlatNodeStore res;
     for (auto const& [node, adjacent] : semGraph.graph.adjList) {
         res.add(semGraph.ctx->adapt(node.id), conf, ctx);
@@ -1049,15 +1050,15 @@ StoryNodeId StoryGridGraph::FlatNodeStore::add(
     StoryGridContext&      ctx) {
     if (orgToFlatIdx.contains(node.uniq())) {
         auto annotation = orgToFlatIdx.at(node.uniq());
-        CTX_MSG(fmt(
-            "Node {} already mapped to index {}", node.id, annotation));
+        CTX_MSG(
+            fmt("Node {} already mapped to id {}", node.id, annotation));
         return annotation;
     } else if (auto doc = node.asOpt<org::ImmDocument>()) {
         auto grid = TreeGridDocument::from_root(doc.value(), conf, ctx);
         StoryNodeId res = add(
             StoryNode{StoryNode::TreeGrid{.node = grid}});
-        CTX_MSG(
-            fmt("Document node  {} mapped to IR node {}", node.id, res));
+        CTX_MSG(fmt(
+            "Document node  {} mapped to Document node {}", node.id, res));
         return res;
     } else if (auto list = node.asOpt<org::ImmList>();
                list && list->isDescriptionList()
@@ -1076,7 +1077,8 @@ StoryNodeId StoryGridGraph::FlatNodeStore::add(
         }
 
         StoryNodeId annotation = add(StoryNode{text});
-        CTX_MSG(fmt("List {} mapped to IR node {}", node.id, annotation));
+        CTX_MSG(fmt(
+            "List {} mapped to LinkList node {}", node.id, annotation));
         return annotation;
     } else {
         StoryNode::Text text{
@@ -1091,8 +1093,8 @@ StoryNodeId StoryGridGraph::FlatNodeStore::add(
         text.size.y = height;
 
         StoryNodeId annotation = add(StoryNode{text});
-        CTX_MSG(
-            fmt("Text node {} mapped to IR node {}", node.id, annotation));
+        CTX_MSG(fmt(
+            "Text node {} mapped to Text node {}", node.id, annotation));
         return annotation;
     }
 }
@@ -1427,9 +1429,19 @@ StoryGridGraph::SemGraphStore StoryGridGraph::SemGraphStore::init(
     const org::ImmAdapter& root,
     StoryGridConfig const& conf,
     StoryGridContext&      ctx) {
+    STORY_GRID_MSG_SCOPE(ctx, "Semantic graph init store");
     SemGraphStore res;
-    auto          doc = TreeGridDocument::from_root(root, conf, ctx);
+
+    auto doc = TreeGridDocument::from_root(root, conf, ctx);
+    res.ctx  = root.ctx.lock();
     res.addGridAnnotationNodes(doc, ctx);
+    {
+        auto     gv = res.graph.toGraphviz(res.ctx);
+        Graphviz gvc;
+        gvc.renderToFile("/tmp/sem_graph.png", gv);
+        gvc.writeFile("/tmp/sem_graph.dot", gv);
+    }
+
     return res;
 }
 
@@ -1546,6 +1558,7 @@ StoryGridGraph::BlockGraphStore StoryGridGraph::BlockGraphStore::init(
     FlatNodeStore&         storyNodes,
     StoryGridContext&      ctx,
     const StoryGridConfig& conf) {
+    STORY_GRID_MSG_SCOPE(ctx, "Update block graph stor");
     BlockGraphStore res;
     res.ir.setVisible(conf.gridViewport);
     auto partition = storyNodes.getGraphPartition(ctx, semGraph);
@@ -1558,6 +1571,7 @@ StoryGridGraph::BlockGraphStore StoryGridGraph::BlockGraphStore::init(
 StoryGridGraph::NodePositionStore StoryGridGraph::NodePositionStore::init(
     StoryGridContext&      ctx,
     BlockGraphStore const& blockGraph) {
+    STORY_GRID_MSG_SCOPE(ctx, "Update node positions");
     NodePositionStore res;
     res.lyt = blockGraph.ir.toLayout();
 

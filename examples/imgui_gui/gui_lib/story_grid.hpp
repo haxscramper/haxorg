@@ -802,6 +802,7 @@ struct StoryGridModel {
     /// `rectGraph.ir`. Called by the `updateDocumentGraph` part.
     void updateDocumentBlockGraph(StoryGridConfig const& conf) {
         STORY_GRID_MSG_SCOPE(ctx, "Update document block graph");
+        rectGraph.updateStoryNodes(ctx, conf);
         rectGraph.updateNodeLanePlacement(ctx, conf);
     }
 
