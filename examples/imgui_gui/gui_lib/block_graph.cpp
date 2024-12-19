@@ -216,70 +216,6 @@ void connect_edges(LaneBlockLayout& lyt, LaneBlockGraph const& g) {
 
 } // namespace
 
-
-LaneBlockLayout to_layout(LaneBlockGraph const& g) {
-    LOGIC_ASSERTION_CHECK(
-        int(g.visible.h) != 0 && int(g.visible.w) != 0, "{}", g.visible);
-    gr_log(ol_info).fmt_message(
-        "Create block layout, {} lanes", g.lanes.size());
-
-    {
-        auto rec = gr_log(ol_info).get_record();
-        for (auto const& [idx, lane] : enumerate(g.lanes)) {
-            rec.fmt_message(" [{}] scroll:{}", idx, lane.scrollOffset);
-        }
-        rec.end();
-    }
-
-    OLOG_DEPTH_SCOPE_ANON();
-
-    for (auto const& [pos, block] : g.getBlocks()) {
-        LOGIC_ASSERTION_CHECK(
-            block.width != 0 && block.height != 0,
-            "Cannot compute layout size with block size of 0. Block node "
-            "at position {} has dimensions {}x{}",
-            pos,
-            block.height,
-            block.width);
-
-        // gr_log(ol_info).fmt_message("Pos {} block {}", pos, block);
-    }
-
-
-    LaneBlockLayout lyt;
-
-    Vec<GC::Align>       laneAlignments;
-    Vec<GC::Align::Spec> topLaneAlign;
-
-    // Compose lane alignment axis by constraining nodes pairwise. The
-    // `first` node in the lane is also constrainted with the top
-    // horizontal axis (top lane align), and then every other block on
-    // the lane is transitively constrained to it.
-    //
-    // ──────────── topLaneAlign
-    // align   align
-    //   ┌─┐   ┌╶┐
-    //   └┼┘   └│┘
-    //    │     │
-    //   ┌┼┐   ┌│┐
-    //   └┼┘   └│┘
-    //    │     │
-    //   ┌┼┐   ┌│┐
-    //   └─┘   └╶┘
-    connect_vertical_constraints(lyt, laneAlignments, topLaneAlign, g);
-
-    lyt.ir.nodeConstraints.push_back(GraphNodeConstraint{GC::Align{
-        .nodes     = topLaneAlign,
-        .dimension = GraphDimension::YDIM,
-    }});
-
-    connect_inter_lane_constraints(lyt, laneAlignments, g);
-
-    connect_edges(lyt, g);
-    return lyt;
-}
-
-
 float line_width = 4.0f;
 
 void render_point(const GraphPoint& point, ImVec2 const& shift) {
@@ -407,34 +343,6 @@ void render_result(
     for (auto const& [key, path] : res.lines) {
         render_edge(path, shift, true, style);
     }
-}
-
-void graph_render_loop(
-    LaneBlockGraph const&       g,
-    GLFWwindow*                 window,
-    LaneBlockGraphConfig const& style) {
-    auto lyt  = to_layout(g);
-    auto col  = lyt.ir.doColaLayout();
-    auto conv = col.convert();
-
-    ImVec2 shift{20, 20};
-
-    while (!glfwWindowShouldClose(window)) {
-        frame_start();
-        fullscreen_window_begin();
-        render_result(conv, shift, style);
-        ImGui::End();
-        frame_end(window);
-    }
-}
-
-
-LaneNodeEdge e(int lane, int row) {
-    return LaneNodeEdge{.target = LaneNodePos{.lane = lane, .row = row}};
-}
-
-LaneNodePos n(int lane, int row) {
-    return LaneNodePos{.lane = lane, .row = row};
 }
 
 int LaneBlockStack::getBlockHeightStart(int blockIdx) const {
@@ -647,4 +555,109 @@ Vec<Slice<int>> LaneBlockGraph::getLaneSpans() const {
         laneStartX += lane.getFullWidth();
     }
     return laneSpans;
+}
+
+
+LaneBlockLayout LaneBlockGraph::toLayout() const {
+    LOGIC_ASSERTION_CHECK(
+        int(visible.h) != 0 && int(visible.w) != 0, "{}", visible);
+    gr_log(ol_info).fmt_message(
+        "Create block layout, {} lanes", lanes.size());
+
+    {
+        auto rec = gr_log(ol_info).get_record();
+        for (auto const& [idx, lane] : enumerate(lanes)) {
+            rec.fmt_message(" [{}] scroll:{}", idx, lane.scrollOffset);
+        }
+        rec.end();
+    }
+
+    OLOG_DEPTH_SCOPE_ANON();
+
+    for (auto const& [pos, block] : getBlocks()) {
+        LOGIC_ASSERTION_CHECK(
+            block.width != 0 && block.height != 0,
+            "Cannot compute layout size with block size of 0. Block node "
+            "at position {} has dimensions {}x{}",
+            pos,
+            block.height,
+            block.width);
+
+        // gr_log(ol_info).fmt_message("Pos {} block {}", pos, block);
+    }
+
+
+    LaneBlockLayout lyt;
+
+    Vec<GC::Align>       laneAlignments;
+    Vec<GC::Align::Spec> topLaneAlign;
+
+    // Compose lane alignment axis by constraining nodes pairwise. The
+    // `first` node in the lane is also constrainted with the top
+    // horizontal axis (top lane align), and then every other block on
+    // the lane is transitively constrained to it.
+    //
+    // ──────────── topLaneAlign
+    // align   align
+    //   ┌─┐   ┌╶┐
+    //   └┼┘   └│┘
+    //    │     │
+    //   ┌┼┐   ┌│┐
+    //   └┼┘   └│┘
+    //    │     │
+    //   ┌┼┐   ┌│┐
+    //   └─┘   └╶┘
+    connect_vertical_constraints(lyt, laneAlignments, topLaneAlign, *this);
+
+    lyt.ir.nodeConstraints.push_back(GraphNodeConstraint{GC::Align{
+        .nodes     = topLaneAlign,
+        .dimension = GraphDimension::YDIM,
+    }});
+
+    connect_inter_lane_constraints(lyt, laneAlignments, *this);
+
+    connect_edges(lyt, *this);
+    return lyt;
+
+
+    LaneBlockLayout res;
+    int             pad = lanes.at(0).leftMargin;
+    lyt.ir.height       = 10000;
+    lyt.ir.width        = 10000;
+    auto cola           = lyt.ir.doColaLayout();
+    res.layout          = cola.convert();
+
+    for (auto const& [key, edge] : res.layout.lines) {
+        for (auto& path : res.layout.lines.at(key).paths) {
+            for (auto& point : path.points) { point.x += pad; }
+        }
+    }
+
+    for (auto& rect : res.layout.fixed) { rect.left += pad; }
+    return res;
+}
+
+Vec<LaneBlockLayout::RectSpec> LaneBlockLayout::getRectangles(
+    LaneBlockGraph const& blockGraph) const {
+    Vec<RectSpec> res;
+    for (auto const& [blockId, lane_idx] : blockGraph.idToPos) {
+        if (auto layout_index = rectMap.get(lane_idx)) {
+            auto pos  = layout.fixed.at(layout_index.value()).topLeft();
+            auto size = layout.fixed.at(layout_index.value()).size();
+            res.push_back(RectSpec{
+                .lanePos   = lane_idx,
+                .blockId   = blockId,
+                .size      = ImVec2(size.width(), size.height()),
+                .pos       = ImVec2(pos.x, pos.y),
+                .isVisible = true,
+            });
+        } else {
+            res.push_back(RectSpec{
+                .lanePos   = lane_idx,
+                .blockId   = blockId,
+                .isVisible = false,
+            });
+        }
+    }
+    return res;
 }
