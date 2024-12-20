@@ -307,9 +307,13 @@ struct StoryNode {
 
 
 struct StoryGridAnnotation {
+    int                 sourceLane = 0;
+    int                 targetLane = 0;
     org::graph::MapNode source;
     org::graph::MapNode target;
-    DESC_FIELDS(StoryGridAnnotation, (source, target));
+    DESC_FIELDS(
+        StoryGridAnnotation,
+        (source, target, sourceLane, targetLane));
 };
 
 struct StoryGridContext;
@@ -333,7 +337,9 @@ struct StoryGridGraph {
         /// to render them on the scene and compute layout the list items
         /// must be grouped under a single parent, a list.
         UnorderedMap<org::ImmUniqId, org::ImmUniqId> annotationParents;
-        DESC_FIELDS(SemGraphStore, (annotationParents, graph, graphGroupRoots));
+        DESC_FIELDS(
+            SemGraphStore,
+            (annotationParents, graph, graphGroupRoots));
 
         void setParent(
             org::ImmUniqId const& nested,

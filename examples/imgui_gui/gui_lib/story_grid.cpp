@@ -735,15 +735,15 @@ void StoryGridGraph::BlockGraphStore::setPartition(
             StoryNodeId target_id //
                 = storyNodes.getStoryNodeId(target_root).value();
 
-            LaneNodePos source_node = addToLaneCached(
-                group_idx, source_id);
-            LaneNodePos target_node = addToLaneCached(
-                group_idx, target_id);
+            LaneNodePos source_node //
+                = addToLaneCached(node.sourceLane, source_id);
+            LaneNodePos target_node //
+                = addToLaneCached(node.targetLane, target_id);
 
             CTX_MSG(
-                fmt("Partition node [{}][{}] source:{}->{} target:{}-{} "
+                fmt("Partition node [{}][{}] source:{}->{} target:{}->{} "
                     "is placed as nodes source:{} target:{}",
-                    group_idx,
+                    node.sourceLane,
                     node_idx,
                     source_adapter.id,
                     source_root.id,
@@ -1010,47 +1010,56 @@ Vec<Vec<StoryGridAnnotation>> StoryGridGraph::FlatNodeStore::getPartition(
     // converting to the parent nodes. This way `setPartition` can compute
     // specific offsets for tree and list item rows.
     Vec<Vec<StoryGridAnnotation>> result;
-    UnorderedMap<MapNode, int>    distances;
-    std::queue<MapNode>           q;
 
-    for (const auto& node : initial_nodes) {
-        distances[node] = 0;
-        q.push(node);
-    }
 
-    while (!q.empty()) {
-        MapNode current = q.front();
-        q.pop();
-        int current_distance = distances[current];
-
-        UnorderedSet<MapNode> adjacent;
-        for (MapNode const& adj : semGraph.graph.outNodes(current)) {
-            if (!adjacent.contains(adj) && !distances.contains(adj)) {
-                distances[adj] = current_distance + 1;
-                q.push(adj);
-                result.resize_at(current_distance)
-                    .push_back(StoryGridAnnotation{
-                        .source = current.id,
-                        .target = adj.id,
-                    });
+    // Construct partition mapping using simple DFS pre-visit traversal.
+    // Starting nodes will go to the visit lane 0, their target nodes will
+    // go to lane 1 etc.
+    Func<void(MapNode const&, int)> dfsPartition;
+    UnorderedSet<MapNode>           visited;
+    dfsPartition = [&](MapNode const& current, int distance) {
+        STORY_GRID_MSG_SCOPE(
+            ctx, fmt("DFS node {} at depth {}", current.id.id, distance));
+        if (visited.contains(current)) {
+            return;
+        } else {
+            visited.incl(current);
+            for (MapNode const& adj : semGraph.graph.outNodes(current)) {
+                if (!visited.contains(adj)) {
+                    result.resize_at(distance).push_back(
+                        StoryGridAnnotation{
+                            .sourceLane = distance,
+                            .targetLane = distance + 1,
+                            .source     = current.id,
+                            .target     = adj.id,
+                        });
+                }
+                dfsPartition(adj, distance + 1);
             }
 
-            adjacent.incl(adj);
-        }
-
-        for (MapNode const& adj : semGraph.graph.inNodes(current)) {
-            if (!adjacent.contains(adj) && !distances.contains(adj)) {
-                distances[adj] = current_distance + 1;
-                q.push(adj);
-                result.resize_at(current_distance)
-                    .push_back(StoryGridAnnotation{
-                        .source = adj.id,
-                        .target = current.id,
-                    });
+            for (MapNode const& adj : semGraph.graph.inNodes(current)) {
+                if (!visited.contains(adj)) {
+                    result.resize_at(distance).push_back(
+                        StoryGridAnnotation{
+                            .sourceLane = distance,
+                            // If the distnace is equal to 0, it means DFS
+                            // is currently visiting one of the initial
+                            // nodes. Initial nodes are always placed as
+                            // the leftmost items, so `distance + 1` is the
+                            // corner to ensure correct placement.
+                            .targetLane = distance <= 1 ? distance + 1
+                                                        : distance - 1,
+                            .source     = adj.id,
+                            .target     = current.id,
+                        });
+                }
+                dfsPartition(adj, distance + 1);
             }
-            adjacent.incl(adj);
         }
-    }
+    };
+
+    for (const auto& node : initial_nodes) { dfsPartition(node, 0); }
+
 
     std::string partition_debug //
         = result
@@ -1502,7 +1511,13 @@ StoryGridGraph::SemGraphStore StoryGridGraph::SemGraphStore::init(
     {
         auto     gv = res.graph.toGraphviz(res.ctx);
         Graphviz gvc;
-        gvc.renderToFile("/tmp/sem_graph.png", gv);
+        gv.setRankDirection(Graphviz::Graph::RankDirection::LR);
+        gvc.renderToFile(
+            "/tmp/sem_graph.png",
+            gv,
+            Graphviz::RenderFormat::PNG,
+            Graphviz::LayoutType::Fdp);
+
         gvc.writeFile("/tmp/sem_graph.dot", gv);
     }
 
