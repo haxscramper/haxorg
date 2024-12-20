@@ -324,14 +324,32 @@ struct StoryGridGraph {
         Vec<org::ImmUniqId>  storyRoots;
         org::graph::MapGraph graph;
 
+
         UnorderedMap<org::ImmUniqId, org::ImmUniqId> annotationParents;
         DESC_FIELDS(SemGraphStore, (annotationParents, graph, storyRoots));
 
-        void addRoot(org::ImmUniqId const& id) {
+        void setParent(
+            org::ImmUniqId const& nested,
+            org::ImmUniqId const& parent) {
+            annotationParents.insert_or_assign(nested, parent);
+        }
+
+        org::ImmUniqId getRoot(org::ImmUniqId const& nested) const {
+            auto res = annotationParents.get(nested).value_or(nested);
+            LOGIC_ASSERTION_CHECK(
+                storyRoots.contains(res),
+                "Node {} mapped to {}, but this node was not added as an "
+                "explicit story node root in the sem graph",
+                nested,
+                res);
+            return res;
+        }
+
+        void addStoryNode(org::ImmUniqId const& id) {
             storyRoots.push_back(id);
         }
 
-        TreeGridDocument addDocNode(
+        void addDocNode(
             org::ImmAdapter const& node,
             StoryGridConfig const& conf,
             StoryGridContext&      ctx);
@@ -497,12 +515,9 @@ struct StoryGridGraph {
             StoryGridContext&      ctx,
             FlatNodeStore const&   storyNodes);
 
-        /// \brief Update document layout for the current graph
-        /// configuration. Syncs node sizes and builds graph layout IR to
-        /// sync with the current document state. This is the entry point
-        /// to update node and edge positions if the graph structure itself
-        /// is the same.
-        NodePositionStore updateDocumentLayout(
+        /// \brief Sync IR block state with the provided story nodes.
+        /// Assign current block visibility and check
+        void updateBlockState(
             StoryGridConfig const& conf,
             StoryGridContext&      ctx,
             SemGraphStore const&   semGraph,

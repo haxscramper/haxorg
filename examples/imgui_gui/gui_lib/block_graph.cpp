@@ -370,11 +370,14 @@ bool LaneBlockStack::inSpan(int blockIdx, Slice<int> heightRange) const {
 
 Vec<int> LaneBlockStack::getVisibleBlocks(Slice<int> heightRange) const {
     Vec<int> res;
-    for (int block : slice1(0, blocks.high())) {
-        if (inSpan(block, heightRange)) { res.push_back(block); }
+    if (!blocks.empty()) {
+        for (int block : slice1(0, blocks.high())) {
+            if (inSpan(block, heightRange)) { res.push_back(block); }
+        }
+
+        std::sort(res.begin(), res.end());
     }
 
-    std::sort(res.begin(), res.end());
 
     return res;
 }
@@ -570,6 +573,13 @@ LaneBlockLayout LaneBlockGraph::toLayout() const {
             rec.fmt_message(" [{}] scroll:{}", idx, lane.scrollOffset);
         }
         rec.end();
+    }
+
+    for (auto const& [idx, lane] : enumerate(lanes)) {
+        LOGIC_ASSERTION_CHECK(
+            !lane.blocks.empty(),
+            "lane {} has 0 blocks, not supported for layout",
+            idx);
     }
 
     OLOG_DEPTH_SCOPE_ANON();
