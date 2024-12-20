@@ -17,6 +17,7 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/format.hpp>
 #include <boost/property_map/property_map.hpp>
+#include <hstd/stdlib/Enumerate.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
 
 #include <boost/log/core.hpp>
@@ -284,6 +285,12 @@ struct log_differential_sink
         auto&         prev     = factory->prev_run;
         auto&         prev_fmt = factory->prev_run_format;
 
+        auto prefixed_write = [&](Str const& prefix, Str const& text) {
+            for (auto const& line : text.split("\n")) {
+                ofs << prefix << line << "\n";
+            }
+        };
+
         while (i < prev.size() || j < curr_run.size()) {
             if (i < prev.size() && j < curr_run.size()) {
                 if (prev[i] == curr_run[j]) {
@@ -291,16 +298,16 @@ struct log_differential_sink
                     i++;
                     j++;
                 } else {
-                    ofs << "- " << prev_fmt[i] << "\n";
-                    ofs << "+ " << curr_run_format[j] << "\n";
+                    prefixed_write("- ", prev_fmt.at(i));
+                    prefixed_write("+ ", curr_run_format.at(j));
                     i++;
                     j++;
                 }
             } else if (i < prev.size()) {
-                ofs << "- " << prev_fmt[i] << "\n";
+                prefixed_write("- ", prev_fmt.at(i));
                 i++;
             } else {
-                ofs << "+ " << curr_run_format[j] << "\n";
+                prefixed_write("+ ", curr_run_format.at(j));
                 j++;
             }
         }

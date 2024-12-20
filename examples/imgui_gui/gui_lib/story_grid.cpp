@@ -1296,14 +1296,14 @@ void StoryGridModel::apply(
         case GridAction::Kind::Scroll: {
             auto const& scroll = act.getScroll();
             rectGraph.blockGraph.ir.addScrolling(
-                scroll.pos, scroll.direction);
-            updateDocumentLayout(conf);
+                scroll.pos, scroll.direction * conf.mouseScrollMultiplier);
+            updateNodePositions(conf);
             break;
         }
 
         case GridAction::Kind::LinkListClick: {
             rectGraph.focusLinkListTargetRows(ctx);
-            updateDocumentLayout(conf);
+            updateFullBlockGraph(conf);
             break;
         }
 
@@ -1334,7 +1334,7 @@ void StoryGridModel::apply(
             updateDocumentBlockGraph(conf);
             // Changed edge connectors mean the whole document layout needs
             // to be updated.
-            updateDocumentLayout(conf);
+            updateFullBlockGraph(conf);
             break;
         }
     }

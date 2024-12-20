@@ -829,7 +829,7 @@ struct StoryGridModel {
         STORY_GRID_MSG_SCOPE(ctx, "Update full document");
         updateDocumentGraph(conf);
         rectGraph.updateStoryNodes(ctx, conf);
-        updateDocumentLayout(conf);
+        updateFullBlockGraph(conf);
     }
 
     /// \brief Reset model graph from scratch and populate the structure
@@ -863,7 +863,7 @@ struct StoryGridModel {
         rectGraph.updateNodePositions(ctx, conf);
     }
 
-    void updateDocumentLayout(StoryGridConfig const& conf) {
+    void updateFullBlockGraph(StoryGridConfig const& conf) {
         STORY_GRID_MSG_SCOPE(ctx, "Update document layout");
         updateDocumentBlockGraph(conf);
         updateNodePositions(conf);
