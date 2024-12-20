@@ -74,6 +74,7 @@ sink_ptr log_sink_mutable_factory(Generator&& gen) {
 #define OLOG_SINK_FACTORY(impl)                                           \
     ::org_logging::log_sink_mutable_factory<__COUNTER__>(impl)
 
+
 sink_ptr      init_file_sink(Str const& log_file_name);
 void          push_sink(sink_ptr const& sink);
 Opt<sink_ptr> get_last_sink();
@@ -111,9 +112,14 @@ struct log_record {
 
         std::size_t hash() const;
         // log_data();
+
+        bool operator==(log_data const& other) const;
     };
 
     std::size_t hash() const { return data.hash(); }
+    bool        operator==(log_record const& other) const {
+        return data == other.data;
+    }
 
     log_data data;
 
@@ -152,6 +158,19 @@ struct log_record {
     void end();
     DESC_FIELDS(log_record, (data));
 };
+
+/// \brief If the scoped code section runs more than one time, sink will
+/// produce log file showing difference between two runs in diff format.
+struct log_differential_sink_factory {
+    Vec<log_record>  prev_run;
+    Vec<std::string> prev_run_format;
+    Str              outfile;
+    sink_ptr         operator()();
+
+    log_differential_sink_factory(std::string const& path)
+        : outfile{path} {};
+};
+
 
 using log_filter_cb = Func<bool(log_record const&)>;
 

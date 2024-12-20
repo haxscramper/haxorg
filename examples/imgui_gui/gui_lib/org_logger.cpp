@@ -26,6 +26,7 @@
 #include <hstd/stdlib/Opt.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/locks.hpp>
+#include <fstream>
 
 
 BOOST_LOG_GLOBAL_LOGGER(
@@ -176,6 +177,7 @@ void org_logging::clear_sink_backends() {
 }
 
 namespace {
+
 void format_log_record_data(
     const boost::log::record_view&  rec,
     boost::log::formatting_ostream& strm,
@@ -253,6 +255,68 @@ sink_ptr org_logging::init_file_sink(Str const& log_file_name) {
     });
 
     return sink;
+}
+
+struct log_differential_sink
+    : public boost::log::sinks::basic_formatted_sink_backend<
+          char,
+          boost::log::sinks::synchronized_feeding> {
+
+    Vec<log_record>                curr_run;
+    Vec<std::string>               curr_run_format;
+    log_differential_sink_factory* factory;
+
+    void consume(const boost::log::record_view& rec, std::string const&) {
+        auto ref = rec[LOG_RECORD_FIELD].extract<log_record>();
+        if (!ref) { return; }
+
+        std::string                    ss;
+        boost::log::formatting_ostream strm(ss);
+        format_log_record_data(rec, strm, ref->data);
+
+        curr_run.push_back(*ref);
+        curr_run_format.push_back(ss);
+    }
+
+    ~log_differential_sink() {
+        std::ofstream ofs(factory->outfile);
+        size_t        i = 0, j = 0;
+        auto&         prev     = factory->prev_run;
+        auto&         prev_fmt = factory->prev_run_format;
+
+        while (i < prev.size() || j < curr_run.size()) {
+            if (i < prev.size() && j < curr_run.size()) {
+                if (prev[i] == curr_run[j]) {
+                    ofs << "  " << curr_run_format[j] << "\n";
+                    i++;
+                    j++;
+                } else {
+                    ofs << "- " << prev_fmt[i] << "\n";
+                    ofs << "+ " << curr_run_format[j] << "\n";
+                    i++;
+                    j++;
+                }
+            } else if (i < prev.size()) {
+                ofs << "- " << prev_fmt[i] << "\n";
+                i++;
+            } else {
+                ofs << "+ " << curr_run_format[j] << "\n";
+                j++;
+            }
+        }
+
+        factory->prev_run        = std::move(curr_run);
+        factory->prev_run_format = std::move(curr_run_format);
+    }
+};
+
+
+sink_ptr log_differential_sink_factory::operator()() {
+    auto backend     = boost::make_shared<log_differential_sink>();
+    backend->factory = this;
+    return boost::make_shared<
+        boost::log::sinks::synchronous_sink<log_differential_sink>>(
+        backend);
 }
 
 void org_logging::push_sink(sink_ptr const& sink) {
@@ -361,6 +425,30 @@ std::size_t log_record::log_data::hash() const {
     hax_hash_combine(result, source_id);
     hax_hash_combine(result, metadata);
     return result;
+}
+
+template <DescribedRecord T>
+bool impl_refl_operator_eq(T const& t1, T const& t2) {
+    using Bd = boost::describe::
+        describe_bases<T, boost::describe::mod_any_access>;
+    using Md = boost::describe::
+        describe_members<T, boost::describe::mod_any_access>;
+
+    bool r = true;
+
+    boost::mp11::mp_for_each<Bd>([&](auto D) {
+        using B = typename decltype(D)::type;
+        r       = r && (B const&)t1 == (B const&)t2;
+    });
+
+    boost::mp11::mp_for_each<Md>(
+        [&](auto D) { r = r && t1.*D.pointer == t2.*D.pointer; });
+
+    return r;
+}
+
+bool log_record::log_data::operator==(const log_data& other) const {
+    return impl_refl_operator_eq(*this, other);
 }
 
 // log_record::log_data::log_data() {

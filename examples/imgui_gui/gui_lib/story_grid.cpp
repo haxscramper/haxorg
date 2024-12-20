@@ -1183,6 +1183,10 @@ void StoryGridModel::apply(
             "/tmp/story_grid_model_apply.log");
     });
 
+    auto __log_diff = OLOG_SINK_FACTORY_SCOPED(
+        ::org_logging::log_differential_sink_factory{
+            "/tmp/story_grid_model_apply.diff"});
+
     auto replaceNode = [&](org::ImmAdapter const&    origin,
                            Vec<sem::SemId<sem::Org>> replace) {
         org::ImmAstVersion vNext = getLastHistory().ast.getEditVersion(
