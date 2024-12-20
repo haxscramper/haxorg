@@ -316,17 +316,24 @@ struct StoryGridContext;
 struct StoryGridConfig;
 
 struct StoryGridGraph {
-
     struct SemGraphStore {
         org::ImmAstContext::Ptr ctx;
         /// \brief Node IDs that are explicitly mapped to a node in the
         /// story grid.
-        Vec<org::ImmUniqId>  storyRoots;
+        Vec<org::ImmUniqId> graphGroupRoots;
+        /// \brief Graph storage for specific document nodes that are
+        /// targeting other parts of the document. Map graph entries are
+        /// nested under parent nodes.
         org::graph::MapGraph graph;
 
-
+        /// \brief Mapping from map graph nodes to the actual parents that
+        /// are going to be rendered in the story grid. This is done to
+        /// handle cases like grid/list. In case of list the semantic graph
+        /// contains nodes nodes for list *items*, not the list itself. But
+        /// to render them on the scene and compute layout the list items
+        /// must be grouped under a single parent, a list.
         UnorderedMap<org::ImmUniqId, org::ImmUniqId> annotationParents;
-        DESC_FIELDS(SemGraphStore, (annotationParents, graph, storyRoots));
+        DESC_FIELDS(SemGraphStore, (annotationParents, graph, graphGroupRoots));
 
         void setParent(
             org::ImmUniqId const& nested,
@@ -337,7 +344,7 @@ struct StoryGridGraph {
         org::ImmUniqId getRoot(org::ImmUniqId const& nested) const {
             auto res = annotationParents.get(nested).value_or(nested);
             LOGIC_ASSERTION_CHECK(
-                storyRoots.contains(res),
+                graphGroupRoots.contains(res),
                 "Node {} mapped to {}, but this node was not added as an "
                 "explicit story node root in the sem graph",
                 nested,
@@ -346,7 +353,7 @@ struct StoryGridGraph {
         }
 
         void addStoryNode(org::ImmUniqId const& id) {
-            storyRoots.push_back(id);
+            graphGroupRoots.push_back(id);
         }
 
         void addDocNode(
@@ -454,7 +461,7 @@ struct StoryGridGraph {
             StoryGridContext&    ctx,
             SemGraphStore const& semGraph) const;
 
-        Vec<Vec<StoryGridAnnotation>> getGraphPartition(
+        Vec<Vec<StoryGridAnnotation>> getPartition(
             StoryGridContext&    ctx,
             SemGraphStore const& semGraph) const;
     };

@@ -597,7 +597,7 @@ LaneBlockLayout LaneBlockGraph::toLayout() const {
     }
 
 
-    LaneBlockLayout lyt;
+    LaneBlockLayout res;
 
     Vec<GC::Align>       laneAlignments;
     Vec<GC::Align::Spec> topLaneAlign;
@@ -617,31 +617,29 @@ LaneBlockLayout LaneBlockGraph::toLayout() const {
     //    │     │
     //   ┌┼┐   ┌│┐
     //   └─┘   └╶┘
-    connect_vertical_constraints(lyt, laneAlignments, topLaneAlign, *this);
+    connect_vertical_constraints(res, laneAlignments, topLaneAlign, *this);
 
-    lyt.ir.nodeConstraints.push_back(GraphNodeConstraint{GC::Align{
+    res.ir.nodeConstraints.push_back(GraphNodeConstraint{GC::Align{
         .nodes     = topLaneAlign,
         .dimension = GraphDimension::YDIM,
     }});
 
-    connect_inter_lane_constraints(lyt, laneAlignments, *this);
+    connect_inter_lane_constraints(res, laneAlignments, *this);
 
-    connect_edges(lyt, *this);
-    return lyt;
+    connect_edges(res, *this);
 
-
-    LaneBlockLayout res;
-    int             pad = lanes.at(0).leftMargin;
-    lyt.ir.height       = 10000;
-    lyt.ir.width        = 10000;
-    auto cola           = lyt.ir.doColaLayout();
-    res.layout          = cola.convert();
+    int pad       = lanes.at(0).leftMargin;
+    res.ir.height = 10000;
+    res.ir.width  = 10000;
+    auto cola     = res.ir.doColaLayout();
+    res.layout    = cola.convert();
 
     for (auto const& [key, edge] : res.layout.lines) {
         for (auto& path : res.layout.lines.at(key).paths) {
             for (auto& point : path.points) { point.x += pad; }
         }
     }
+
 
     for (auto& rect : res.layout.fixed) { rect.left += pad; }
     return res;
