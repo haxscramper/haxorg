@@ -128,16 +128,18 @@ struct EditableOrgDocGroup {
         History withNewVersion(org::ImmAstVersion const& updated);
     };
 
+    Vec<History> history;
+
     EditableOrgDocGroup(org::ImmAstContext::Ptr const& ctx) {
         addHistory(History{org::ImmAstVersion{.context = ctx}});
     }
 
     DocRootId resetWith(sem::SemId<sem::Org> const& id) {
         history.clear();
-        return initRoot(id);
+        return addRoot(id);
     }
 
-    DocRootId initRoot(sem::SemId<sem::Org> const& id);
+    DocRootId addRoot(sem::SemId<sem::Org> const& id);
 
     int addHistory(History const& h) { return history.push_back_idx(h); }
     Opt<int> extendHistory(org::ImmAstVersion const& ast) {
@@ -148,7 +150,6 @@ struct EditableOrgDocGroup {
         }
     }
 
-    Vec<History> history;
 
     DESC_FIELDS(EditableOrgDocGroup, (history));
 

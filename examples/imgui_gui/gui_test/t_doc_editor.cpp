@@ -25,7 +25,7 @@ struct DocEditVars : public ImTestVarsBase {
     }
 
     void add_text(std::string const& text) {
-        root_idx = docs.initRoot(sem::parseString(text));
+        root_idx = docs.addRoot(sem::parseString(text));
         model.syncFull(docs.getCurrentRoot(root_idx), conf);
     }
 

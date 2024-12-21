@@ -349,10 +349,10 @@ struct StoryNode {
 
 
 struct StoryGridAnnotation {
-    int                 sourceLane = 0;
-    int                 targetLane = 0;
-    org::graph::MapNode source;
-    org::graph::MapNode target;
+    int                      sourceLane = 0;
+    Opt<int>                 targetLane = std::nullopt;
+    org::graph::MapNode      source;
+    Opt<org::graph::MapNode> target = std::nullopt;
     DESC_FIELDS(
         StoryGridAnnotation,
         (source, target, sourceLane, targetLane));
@@ -608,47 +608,14 @@ struct StoryGridGraph {
     BlockGraphStore   blockGraph;
     NodePositionStore positionStore;
 
-    void cascadeSemanticUpdate(
-        Vec<org::ImmAdapter> const& root,
-        StoryGridContext&           ctx,
-        StoryGridConfig const&      conf) {
-        updateSemanticGraph(root, ctx, conf);
-        cascadeStoryNodeUpdate(ctx, conf);
-    }
-
-    void cascadeStoryNodeUpdate(
-        StoryGridContext&      ctx,
-        StoryGridConfig const& conf) {
-        updateStoryNodes(ctx, conf);
-        cascadeBlockGraphUpdate(ctx, conf);
-    }
-
-    void cascadeBlockGraphUpdate(
-        StoryGridContext&      ctx,
-        StoryGridConfig const& conf) {
-        updateNodeLanePlacement(ctx, conf);
-        cascadeNodePositionsUpdate(ctx, conf);
-    }
-
-    void cascadeGeometryUpdate(
-        StoryNodeId const&     id,
-        StoryGridContext&      ctx,
-        StoryGridConfig const& conf) {
-        updateGeometry(id);
-        cascadeNodePositionsUpdate(ctx, conf);
-    }
-
-    void cascadeScrollingUpdate(
-        const ImVec2&          graphPos,
-        float                  direction,
-        StoryGridContext&      ctx,
-        StoryGridConfig const& conf);
-
-    void cascadeNodePositionsUpdate(
-        StoryGridContext&      ctx,
-        StoryGridConfig const& conf) {
-        updateNodePositions(ctx, conf);
-    }
+    // clang-format off
+    void cascadeSemanticUpdate(Vec<org::ImmAdapter> const &root, StoryGridContext &ctx, StoryGridConfig const &conf);
+    void cascadeStoryNodeUpdate(StoryGridContext &ctx, StoryGridConfig const &conf);
+    void cascadeBlockGraphUpdate(StoryGridContext &ctx, StoryGridConfig const &conf);
+    void cascadeGeometryUpdate(StoryNodeId const &id, StoryGridContext &ctx, StoryGridConfig const &conf);
+    void cascadeScrollingUpdate(const ImVec2 &graphPos, float direction, StoryGridContext &ctx, StoryGridConfig const &conf);
+    void cascadeNodePositionsUpdate(StoryGridContext &ctx, StoryGridConfig const &conf);
+    // clang-format on
 
     ImVec2 getPosition(StoryNodeId id) const {
         return positionStore.nodePositions.at(id);
@@ -934,10 +901,10 @@ struct StoryGridModel {
 
 
 Opt<json> story_grid_loop(
-    GLFWwindow*        window,
-    std::string const& file,
-    Opt<json> const&   in_state,
-    StoryGridConfig&   conf);
+    GLFWwindow*      window,
+    const Vec<Str>&  file,
+    Opt<json> const& in_state,
+    StoryGridConfig& conf);
 
 void run_story_grid_annotated_cycle(
     StoryGridModel&        model,

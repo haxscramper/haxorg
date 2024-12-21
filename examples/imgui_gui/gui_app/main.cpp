@@ -33,7 +33,7 @@ struct Config {
         AsciiEditorTest,
         DocEditor);
 
-    Str      file;
+    Vec<Str> file;
     Mode     mode = Mode::SemTree;
     Opt<Str> appstate;
     bool     fullscreen = false;
@@ -412,8 +412,6 @@ int main(int argc, char** argv) {
     ImGui_ImplOpenGL3_Init("#version 130");
 
 
-    auto text = readFile(fs::path{conf.file.toBase()});
-
     Opt<json> appstate;
     if (conf.appstate.has_value()
         && fs::is_regular_file(conf.appstate.value().toBase())) {
@@ -423,17 +421,20 @@ int main(int argc, char** argv) {
 
     switch (conf.mode) {
         case Config::Mode::SemTree: {
-            auto node = sem::parseString(text);
+            auto node = sem::parseString(
+                readFile(fs::path{conf.file.front().toBase()}));
             sem_tree_loop(window, node);
             break;
         }
         case Config::Mode::Outline: {
-            auto node = sem::parseString(text);
+            auto node = sem::parseString(
+                readFile(fs::path{conf.file.front().toBase()}));
             outline_tree_loop(window, node);
             break;
         }
         case Config::Mode::DocEditor: {
-            auto node = sem::parseString(text);
+            auto node = sem::parseString(
+                readFile(fs::path{conf.file.front().toBase()}));
             doc_editor_loop(window, node);
             break;
         }

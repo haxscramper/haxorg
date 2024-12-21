@@ -393,7 +393,7 @@ void doc_editor_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
 
     model.ctx.setTraceFile("/tmp/doc_editor_trace.log");
 
-    DocRootId root_idx = docs.initRoot(node);
+    DocRootId root_idx = docs.addRoot(node);
 
     bool first = true;
 

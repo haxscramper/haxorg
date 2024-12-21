@@ -215,7 +215,7 @@ Opt<EditableOrgText::Result> EditableOrgText::render(
     }
 }
 
-DocRootId EditableOrgDocGroup::initRoot(const sem::SemId<sem::Org>& id) {
+DocRootId EditableOrgDocGroup::addRoot(const sem::SemId<sem::Org>& id) {
     History& current = getCurrentHistory();
     auto     new_ast = current.ast.context->init(id);
     current.ast      = std::move(new_ast);

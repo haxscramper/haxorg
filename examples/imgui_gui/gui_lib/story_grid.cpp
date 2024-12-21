@@ -142,38 +142,23 @@ void run_story_grid_annotated_cycle(
     }
 }
 
+
 Opt<json> story_grid_loop(
-    GLFWwindow*        window,
-    std::string const& file,
-    const Opt<json>&   in_state,
-    StoryGridConfig&   conf) {
-    int inotify_fd = inotify_init1(IN_NONBLOCK);
-    if (inotify_fd < 0) {
-        throw std::system_error(
-            errno,
-            std::generic_category(),
-            "Failed to initialize inotify");
-    }
-
-    int watch_descriptor = inotify_add_watch(
-        inotify_fd, file.c_str(), IN_MODIFY);
-    if (watch_descriptor < 0) {
-        throw std::system_error(
-            errno, std::generic_category(), "Failed to add inotify watch");
-    }
-
-    std::string buffer(1024, '\0');
-
-    sem::SemId<sem::Org> node;
-
+    GLFWwindow*      window,
+    Vec<Str> const&  file,
+    const Opt<json>& in_state,
+    StoryGridConfig& conf) {
     auto                start = org::ImmAstContext::init_start_context();
     EditableOrgDocGroup history{start};
     StoryGridModel      model{&history};
-    auto                rootId = model.history->initRoot(
-        sem::parseString(readFile(file)));
-    model.addDocument(rootId);
-
     model.ctx.setTraceFile("/tmp/story_grid_trace.log");
+    for (auto const& f : file) {
+        auto doc = model.history->addRoot(
+            sem::parseString(readFile(f.toBase())));
+        model.addDocument(doc);
+        model.ctx.message(fmt("added file {}", f));
+    }
+
     if (in_state) {
         model.state = from_json_eval<StoryGridState>(in_state.value());
     }
@@ -189,19 +174,7 @@ Opt<json> story_grid_loop(
         LOG(ERROR) << "Could not load font path";
     }
 
-
     while (!glfwWindowShouldClose(window)) {
-
-        int inotify_change = read(inotify_fd, &buffer[0], buffer.size());
-        if (0 < inotify_change) {
-            LOG(INFO) << "File change, reloading the model";
-            auto rootId = model.history->resetWith(
-                sem::parseString(readFile(file)));
-            model.documents.clear();
-            model.addDocument(rootId);
-            model.rebuild(conf);
-        }
-
         frame_start();
 
         auto frameless_vars = push_frameless_window_vars();
@@ -230,9 +203,6 @@ Opt<json> story_grid_loop(
         model.applyChanges(conf);
         quit_on_q(window);
     }
-
-    inotify_rm_watch(inotify_fd, watch_descriptor);
-    close(inotify_fd);
 
     return to_json_eval(model.state);
 }
@@ -436,20 +406,23 @@ void StoryGridGraph::BlockGraphStore::setPartition(
             fmt("Partition {} has {} items", group_idx, group.size()));
         for (auto const& [node_idx, node] : enumerate(group)) {
             org::ImmUniqId source_adapter = node.source.id;
-            org::ImmUniqId target_adapter = node.target.id;
-
             org::ImmUniqId source_root = semGraph.getRoot(node.source.id);
-            org::ImmUniqId target_root = semGraph.getRoot(node.target.id);
-
-            StoryNodeId source_id //
+            StoryNodeId    source_id //
                 = storyNodes.getStoryNodeId(source_root).value();
-            StoryNodeId target_id //
-                = storyNodes.getStoryNodeId(target_root).value();
-
             LaneNodePos source_node //
                 = addToLaneCached(node.sourceLane, source_id);
+
+            // Annotation only has a source block, but no outgoing target
+            // nodes.
+            if (!node.target.has_value()) { continue; }
+
+            org::ImmUniqId target_adapter = node.target->id;
+            org::ImmUniqId target_root = semGraph.getRoot(node.target->id);
+            StoryNodeId    target_id //
+                = storyNodes.getStoryNodeId(target_root).value();
+
             LaneNodePos target_node //
-                = addToLaneCached(node.targetLane, target_id);
+                = addToLaneCached(node.targetLane.value(), target_id);
 
             CTX_MSG(
                 fmt("Partition node [{}][{}] source:{}->{} target:{}->{} "
@@ -734,6 +707,7 @@ Vec<Vec<StoryGridAnnotation>> StoryGridGraph::FlatNodeStore::getPartition(
             return;
         } else {
             visited.incl(current);
+            bool addedCurrent = false;
             for (MapNode const& adj : semGraph.graph.outNodes(current)) {
                 if (!visited.contains(adj)) {
                     result.resize_at(distance).push_back(
@@ -743,6 +717,7 @@ Vec<Vec<StoryGridAnnotation>> StoryGridGraph::FlatNodeStore::getPartition(
                             .source     = current.id,
                             .target     = adj.id,
                         });
+                    addedCurrent = true;
                 }
                 dfsPartition(adj, distance + 1);
             }
@@ -762,8 +737,18 @@ Vec<Vec<StoryGridAnnotation>> StoryGridGraph::FlatNodeStore::getPartition(
                             .source     = adj.id,
                             .target     = current.id,
                         });
+                    addedCurrent = true;
                 }
                 dfsPartition(adj, distance + 1);
+            }
+
+            // if the current node does not have any outgoing elements it
+            // still must be added to the graph.
+            if (!addedCurrent) {
+                result.resize_at(distance).push_back(StoryGridAnnotation{
+                    .sourceLane = distance,
+                    .source     = current.id,
+                });
             }
         }
     };
@@ -779,10 +764,14 @@ Vec<Vec<StoryGridAnnotation>> StoryGridGraph::FlatNodeStore::getPartition(
                        | rv::transform(
                              [](StoryGridAnnotation const& p)
                                  -> std::string {
-                                 return fmt(
-                                     "[{}->{}]",
-                                     p.source.id.id,
-                                     p.target.id.id);
+                                 if (p.target) {
+                                     return fmt(
+                                         "[{}->{}]",
+                                         p.source.id.id,
+                                         p.target->id.id);
+                                 } else {
+                                     return fmt("[{}]", p.source.id.id);
+                                 }
                              })
                        | rv::intersperse(" - - ") //
                        | rv::join                 //
@@ -807,14 +796,22 @@ Vec<org::graph::MapNode> StoryGridGraph::FlatNodeStore::getInitialNodes(
     Vec<org::graph::MapNode> docNodes;
     for (auto const& node : nodes.items()) {
         if (node->isTreeGrid()) {
-            for (const TreeGridRow::Ptr& row :
-                 node->getTreeGrid().node.flatRows(true)) {
+            bool foundLinkedSubtree = false;
+            auto flat = node->getTreeGrid().node.flatRows(true);
+            for (const TreeGridRow::Ptr& row : flat) {
 
                 auto tree = row->origin.uniq();
                 if (!semGraph.graph.adjList.at(tree).empty()
                     || !semGraph.graph.inNodes(tree).empty()) {
+                    foundLinkedSubtree = true;
                     docNodes.push_back(tree);
                 }
+            }
+
+            // If the document has no annotations it still needs to be
+            // shown as a story grid entry.
+            if (!foundLinkedSubtree) {
+                docNodes.push_back(flat.at(0)->origin.uniq());
             }
         }
     }
@@ -1152,7 +1149,10 @@ StoryGridGraph::SemGraphStore StoryGridGraph::SemGraphStore::init(
     SemGraphStore res;
 
     res.ctx = root.front().ctx.lock();
-    for (auto const& r : root) { res.addDocNode(r, conf, ctx); }
+    for (auto const& r : root) {
+        STORY_GRID_MSG_SCOPE(ctx, fmt("Add root node {} {}", r.id, r));
+        res.addDocNode(r, conf, ctx);
+    }
 
     {
         auto     gv = res.graph.toGraphviz(res.ctx);
@@ -1249,24 +1249,25 @@ void StoryGridGraph::SemGraphStore::addDocNode(
     const StoryGridConfig& conf,
     StoryGridContext&      ctx) {
 
-    auto doc = TreeGridDocument::from_root(node, conf, ctx);
+    auto doc  = TreeGridDocument::from_root(node, conf, ctx);
+    auto flat = doc.flatRows(true);
+    if (!flat.empty()) {
+        addStoryNode(node.uniq());
+        for (auto const& row : flat) {
+            setParent(row->origin.uniq(), node.uniq());
+        }
 
-    addStoryNode(node.uniq());
+        CTX_MSG(
+            fmt("Add root node to the document, grid size={} "
+                "row-count={} col-count={} columns={}",
+                doc.getSize(),
+                doc.rowPositions.size(),
+                doc.columns.size(),
+                doc.columns));
 
-    for (auto const& row : doc.flatRows(true)) {
-        setParent(row->origin.uniq(), node.uniq());
+
+        addGridAnnotationNodes(doc, ctx);
     }
-
-    CTX_MSG(
-        fmt("Add root node to the document, grid size={} "
-            "row-count={} col-count={} columns={}",
-            doc.getSize(),
-            doc.rowPositions.size(),
-            doc.columns.size(),
-            doc.columns));
-
-
-    addGridAnnotationNodes(doc, ctx);
 }
 
 void StoryGridGraph::SemGraphStore::addGridAnnotationNodes(
@@ -1420,7 +1421,61 @@ void StoryGridGraph::cascadeScrollingUpdate(
     float                  direction,
     StoryGridContext&      ctx,
     const StoryGridConfig& conf) {
-    blockGraph.ir.addScrolling(
-        graphPos, -direction * conf.mouseScrollMultiplier);
+    {
+        STORY_GRID_MSG_SCOPE(ctx, "Add scrolling to graph");
+        blockGraph.ir.addScrolling(
+            graphPos, -direction * conf.mouseScrollMultiplier);
+    }
+    cascadeNodePositionsUpdate(ctx, conf);
+}
+
+void StoryGridGraph::cascadeSemanticUpdate(
+    const Vec<org::ImmAdapter>& root,
+    StoryGridContext&           ctx,
+    const StoryGridConfig&      conf) {
+    {
+        STORY_GRID_MSG_SCOPE(ctx, "Semantic update");
+        updateSemanticGraph(root, ctx, conf);
+    }
+    cascadeStoryNodeUpdate(ctx, conf);
+}
+
+void StoryGridGraph::cascadeStoryNodeUpdate(
+    StoryGridContext&      ctx,
+    const StoryGridConfig& conf) {
+    {
+        STORY_GRID_MSG_SCOPE(ctx, "Story node update");
+        updateStoryNodes(ctx, conf);
+    }
+    cascadeBlockGraphUpdate(ctx, conf);
+}
+
+void StoryGridGraph::cascadeBlockGraphUpdate(
+    StoryGridContext&      ctx,
+    const StoryGridConfig& conf) {
+    {
+        STORY_GRID_MSG_SCOPE(ctx, "Block graph update");
+        updateNodeLanePlacement(ctx, conf);
+    }
+    cascadeNodePositionsUpdate(ctx, conf);
+}
+
+void StoryGridGraph::cascadeNodePositionsUpdate(
+    StoryGridContext&      ctx,
+    const StoryGridConfig& conf) {
+    {
+        STORY_GRID_MSG_SCOPE(ctx, "Node positions update");
+        updateNodePositions(ctx, conf);
+    }
+}
+
+void StoryGridGraph::cascadeGeometryUpdate(
+    const StoryNodeId&     id,
+    StoryGridContext&      ctx,
+    const StoryGridConfig& conf) {
+    {
+        STORY_GRID_MSG_SCOPE(ctx, fmt("Geometry update for {}", id));
+        updateGeometry(id);
+    }
     cascadeNodePositionsUpdate(ctx, conf);
 }
