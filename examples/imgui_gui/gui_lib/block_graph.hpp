@@ -44,11 +44,10 @@ struct LaneNodeEdge {
 };
 
 struct LaneBlockNode {
-    int  width        = 0;
-    int  height       = 0;
-    int  topMargin    = 5;
-    int  bottomMargin = 5;
-    bool isVisible    = true;
+    int width        = 0;
+    int height       = 0;
+    int topMargin    = 5;
+    int bottomMargin = 5;
     /// \brief Horizontal offset from the lane alignment center
     int horizontalCenterOffset = 0;
     /// \brief If block has fixed vertical offset it will be arranged
@@ -71,12 +70,7 @@ struct LaneBlockNode {
 
     DESC_FIELDS(
         LaneBlockNode,
-        (width,
-         height,
-         topMargin,
-         bottomMargin,
-         isVisible,
-         horizontalCenterOffset));
+        (width, height, topMargin, bottomMargin, horizontalCenterOffset));
 };
 
 struct LaneBlockGraphConfig {
@@ -285,19 +279,6 @@ struct LaneBlockGraph {
         }
     }
 
-
-    /// \brief Update visibility status on all rectangles. Callback can
-    /// return true/false or nullopt. In the latter case visibility of the
-    /// rectangle will remain unchanged.
-    void syncVisibility(Func<Opt<bool>(BlockNodeId)> const& cb) {
-        for (auto const& [flat_idx, lane_idx] : idToPos) {
-            auto visibility = cb(flat_idx);
-            if (visibility.has_value()) {
-                at(lane_idx).isVisible = visibility.value();
-            }
-        }
-    }
-
     Opt<BlockNodeId> getBlockId(LaneNodePos const& pos) const {
         return posToId.get(pos);
     }
@@ -326,9 +307,6 @@ struct LaneBlockGraph {
     }
 
     void addScrolling(ImVec2 const& graphPos, float direction);
-    /// \brief Set all nodes in all lanes as visible and reset visible
-    /// range for each lane to encompas all blocks.
-    void resetVisibility();
 
     void addEdge(LaneNodePos const& source, LaneNodeEdge const& target) {
         edges[source].push_back(target);

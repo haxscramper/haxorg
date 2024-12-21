@@ -618,8 +618,7 @@ struct StoryGridGraph {
     }
 
     bool isNodeVisible(StoryNodeId const& id) {
-        auto pos = blockGraph.getBlockPos(id);
-        return pos && blockGraph.ir.at(pos.value()).isVisible;
+        return blockGraph.getBlockPos(id).has_value();
     }
 
     Vec<StoryNode*> getGridNodes() {

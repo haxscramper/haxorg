@@ -45,21 +45,10 @@ void connect_vertical_constraints(
 
         OLOG_DEPTH_SCOPE_ANON();
 
-        auto     visibleSlice  = slice<int>(0, int(g.visible.height()));
-        Vec<int> visibleBlocks = lane.getVisibleBlocks(visibleSlice);
-        if (visibleBlocks.empty()) {
-            gr_log(ol_trace).fmt_message(
-                "No blocks in visible range {}", visibleSlice);
-            continue;
-        } else {
-            gr_log(ol_trace).fmt_message(
-                "Blocks {} are visible in range {}",
-                visibleBlocks,
-                visibleSlice);
-        }
+        int maxRow = lane.blocks.high();
 
         Opt<GC::Align::Spec> first;
-        for (int row : visibleBlocks) {
+        for (int row = 0; row <= maxRow; ++row) {
             LaneNodePos node{.lane = lane_idx, .row = row};
             GraphSize   size{
                   .w = static_cast<double>(lane.blocks.at(row).width),
@@ -71,9 +60,6 @@ void connect_vertical_constraints(
 
             int idx = lyt.ir.rectangles.high();
             lyt.rectMap.insert_or_assign(node, idx);
-
-            // gr_log(ol_trace).fmt_message(
-            //     "Row {} rect {} size {}", row, idx, size);
 
             if (!first) {
                 first = GC::Align::Spec{
@@ -87,12 +73,12 @@ void connect_vertical_constraints(
         if (first) { topLaneAlign.push_back(first.value()); }
 
         GC::Align align;
-        for (auto const& row : visibleBlocks) {
+        for (int row = 0; row <= maxRow; ++row) {
             LaneNodePos node{.lane = lane_idx, .row = row};
             align.nodes.push_back(spec(lyt.rectMap.at(node)));
 
             auto next_row = row + 1;
-            if (visibleBlocks.contains(next_row)) {
+            if (next_row <= maxRow) {
                 LaneNodePos next{.lane = lane_idx, .row = next_row};
                 lyt.ir.nodeConstraints.push_back(GraphNodeConstraint{GC::Separate{
                     .left = GC::
@@ -354,18 +340,13 @@ int LaneBlockStack::getBlockHeightStart(int blockIdx) const {
 }
 
 bool LaneBlockStack::inSpan(int blockIdx, Slice<int> heightRange) const {
-    if (blocks.at(blockIdx).isVisible) {
-        auto span = blocks.at(blockIdx).heightSpan(
-            getBlockHeightStart(blockIdx));
-        bool result = heightRange.overlap(span).has_value();
-        // gr_log(ol_debug).message(
-        //     _dfmt_expr(span, heightRange, blockIdx, result,
-        //     scrollOffset));
-        return result;
-    } else {
-        // gr_log(ol_debug).message(_dfmt_expr(blockIdx, heightRange));
-        return false;
-    }
+    auto span = blocks.at(blockIdx).heightSpan(
+        getBlockHeightStart(blockIdx));
+    bool result = heightRange.overlap(span).has_value();
+    // gr_log(ol_debug).message(
+    //     _dfmt_expr(span, heightRange, blockIdx, result,
+    //     scrollOffset));
+    return result;
 }
 
 Vec<int> LaneBlockStack::getVisibleBlocks(Slice<int> heightRange) const {
@@ -630,12 +611,6 @@ void LaneBlockGraph::addScrolling(
     }
 }
 
-void LaneBlockGraph::resetVisibility() {
-    for (auto& lane : lanes) {
-        for (auto& rect : lane.blocks) { rect.isVisible = true; }
-    }
-}
-
 generator<Pair<LaneNodePos, LaneBlockNode>> LaneBlockGraph::getBlocks()
     const {
     for (int lane_idx = 0; lane_idx < lanes.size(); ++lane_idx) {
@@ -776,14 +751,24 @@ Vec<LaneBlockLayout::RectSpec> LaneBlockLayout::getRectangles(
     Vec<RectSpec> res;
     for (auto const& [blockId, lane_idx] : blockGraph.idToPos) {
         if (auto layout_index = rectMap.get(lane_idx)) {
-            auto pos  = layout.fixed.at(layout_index.value()).topLeft();
-            auto size = layout.fixed.at(layout_index.value()).size();
+            auto pos     = layout.fixed.at(layout_index.value()).topLeft();
+            auto size    = layout.fixed.at(layout_index.value()).size();
+            auto im_size = ImVec2(size.width(), size.height());
+            auto im_pos  = ImVec2(pos.x, pos.y);
+            // `getLayout()` adjusts vertical positions for the lanes to
+            // account for differences in the adaptagram data model and
+            // what the more constrained story grid expects. Because of
+            // this adjustment some blocks can either be placed too high
+            // relative to the visible viewport, or below it. They are
+            // marked as invisible.
             res.push_back(RectSpec{
                 .lanePos   = lane_idx,
                 .blockId   = blockId,
-                .size      = ImVec2(size.width(), size.height()),
-                .pos       = ImVec2(pos.x, pos.y),
-                .isVisible = true,
+                .size      = im_size,
+                .pos       = im_pos,
+                .isVisible = !(
+                    (im_pos.y + im_size.y < 0)
+                    || (blockGraph.visible.height() < im_pos.y)),
             });
         } else {
             res.push_back(RectSpec{

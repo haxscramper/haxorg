@@ -120,20 +120,18 @@ void run_story_grid_annotated_cycle(
     __perf_trace("gui", "grid model render");
     for (auto const& [node_id, node] : model.graph.getStoryNodes()) {
         LaneNodePos selfPos = model.graph.getBlockPos(node_id).value();
-        if (node->isVisible) {
-            switch (node->getKind()) {
-                case StoryNode::Kind::TreeGrid: {
-                    node->getTreeGrid().render(model, node_id, conf);
-                    break;
-                }
-                case StoryNode::Kind::Text: {
-                    node->getText().render(model, node_id, conf);
-                    break;
-                }
-                case StoryNode::Kind::LinkList: {
-                    node->getLinkList().render(model, node_id, conf);
-                    break;
-                }
+        switch (node->getKind()) {
+            case StoryNode::Kind::TreeGrid: {
+                node->getTreeGrid().render(model, node_id, conf);
+                break;
+            }
+            case StoryNode::Kind::Text: {
+                node->getText().render(model, node_id, conf);
+                break;
+            }
+            case StoryNode::Kind::LinkList: {
+                node->getLinkList().render(model, node_id, conf);
+                break;
             }
         }
     }
@@ -638,11 +636,11 @@ void StoryGridGraph::BlockGraphStore::updateHiddenRowConnection(
                         if (targetNodeId) {
                             auto const& t   = targetNodeId.value();
                             LaneNodePos pos = getBlockPos(t).value();
-                            if (overlap) {
-                                ir.at(pos).isVisible = true;
-                            } else {
-                                ir.at(pos).isVisible = false;
-                            }
+                            // if (overlap) {
+                            //     ir.at(pos).isVisible = true;
+                            // } else {
+                            //     ir.at(pos).isVisible = false;
+                            // }
                         }
                     }
                 }
@@ -671,9 +669,7 @@ void StoryGridGraph::BlockGraphStore::updateBlockState(
     }
 
     ir.setVisible(conf.gridViewport);
-    ir.resetVisibility();
     updateBlockNodes(conf, ctx, storyNodes);
-
     updateHiddenRowConnection(conf, ctx, semGraph, storyNodes);
 }
 

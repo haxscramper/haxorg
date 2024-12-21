@@ -214,7 +214,6 @@ void apply_doc_block_actions(
             case DocBlockAction::Kind::Scroll: {
                 auto const& scr = act.getScroll();
                 model.g.addScrolling(scr.pos, scr.direction);
-                model.g.resetVisibility();
                 model.syncLayout(conf);
                 break;
             }
