@@ -410,6 +410,22 @@ ImVec2 get_center(const GraphRect& rect) {
         rect.left + rect.width / 2.0, rect.top + rect.height / 2.0);
 }
 
+template <typename T, typename F>
+std::function<F(T const& obj)> get_field_get(F T::*field) {
+    return [field](T const& obj) -> F { return obj.*field; };
+}
+
+template <typename T, typename F>
+std::function<F(T const& obj)> get_getter_get(F (T::*method)() const) {
+    return [method](T const& obj) -> F { return obj.*method(); };
+}
+
+template <typename T>
+std::function<bool(T const& obj)> get_method_filter(bool (T::*method)()
+                                                        const) {
+    return [method](T const& obj) -> bool { return (obj.*method)(); };
+}
+
 ColaConstraintDebug LaneBlockLayout::getConstraintDebug() const {
     ColaConstraintDebug res;
 
@@ -422,31 +438,37 @@ ColaConstraintDebug LaneBlockLayout::getConstraintDebug() const {
 
     auto add_align_line = [&](GraphNodeConstraint::Align const& a) {
         bool           x = a.dimension == GraphDimension::XDIM;
-        Vec<ImVec2>    centers;
+        Vec<C::Point>  centers;
         Vec<C::Offset> offsets;
         for (auto const& rect : a.nodes) {
             ImVec2 center = get_rect_center(rect.node);
             ImVec2 offset = (x ? ImVec2(rect.offset, 0) : ImVec2(0, rect.offset));
-            centers.push_back(center - offset);
+            centers.push_back(C::Point{center - offset, {rect.node}});
             offsets.push_back(C::Offset{
                 .offset = -offset,
-                .start  = center,
+                .start  = C::Point{center, {rect.node}},
             });
         }
+
         std::sort(
             centers.begin(),
             centers.end(),
-            [&](ImVec2 const& lhs, ImVec2 const& rhs) {
-                return x ? (lhs.y < rhs.y) : (lhs.x < rhs.x);
+            [&](C::Point const& lhs, C::Point const& rhs) {
+                return x ? (lhs.pos.y < rhs.pos.y)
+                         : (lhs.pos.x < rhs.pos.x);
             });
 
-        ImVec2 start = centers.at(0);
-        ImVec2 end   = centers.at(1_B);
+        C::Point start = centers.at(0);
+        C::Point end   = centers.at(1_B);
 
         return C::Align{
             .start   = start,
             .end     = end,
             .offsets = offsets,
+            .rects   = a.nodes
+                   | rv::transform(get_field_get(
+                       &GraphNodeConstraint::Align::Spec::node))
+                   | rs::to<Vec>(),
         };
     };
 
@@ -458,15 +480,18 @@ ColaConstraintDebug LaneBlockLayout::getConstraintDebug() const {
                 break;
             }
             case GraphNodeConstraint::Kind::Separate: {
-                auto const& s      = c.getSeparate();
-                ImVec2      offset = s.dimension == GraphDimension::XDIM
-                                       ? ImVec2(0, s.separationDistance)
-                                       : ImVec2(s.separationDistance, 0);
-                auto        left   = add_align_line(s.left);
-                auto        right  = add_align_line(s.right);
+                auto const& s     = c.getSeparate();
+                auto        left  = add_align_line(s.left);
+                auto        right = add_align_line(s.right);
+
+                ImVec2 offset = //
+                    s.dimension == GraphDimension::XDIM
+                        ? ImVec2(right.start.pos.x - left.start.pos.x, 0)
+                        : ImVec2(0, right.start.pos.y - left.start.pos.y);
+
 
                 C::Offset offsetSpec{
-                    .offset = -offset,
+                    .offset = offset,
                     .start  = left.start,
                 };
 
@@ -488,6 +513,23 @@ ColaConstraintDebug LaneBlockLayout::getConstraintDebug() const {
     return res;
 }
 
+void RenderTextWithBackground(
+    ImDrawList*        draw_list,
+    const ImVec2&      position,
+    ImU32              text_color,
+    const std::string& text,
+    ImU32              background_color = IM_COL32(255, 255, 255, 255)) {
+    ImFont* font      = ImGui::GetFont();
+    ImVec2  text_size = font->CalcTextSizeA(
+        font->FontSize, FLT_MAX, 0.0f, text.c_str());
+    ImVec2 rect_min = position;
+    ImVec2 rect_max = ImVec2(
+        position.x + text_size.x, position.y + text_size.y);
+    draw_list->AddRectFilled(rect_min, rect_max, background_color);
+    draw_list->AddText(
+        font, font->FontSize, position, text_color, text.c_str());
+}
+
 void render_debug(
     const ColaConstraintDebug&   debug,
     ImVec2 const&                shift,
@@ -501,9 +543,15 @@ void render_debug(
     auto alignOffsetColor    = IM_COL32(0, 255, 0, 255);
     auto separateOffsetColor = IM_COL32(211, 255, 0, 255);
 
-    auto point = [&](const GraphPoint& point) {
-        dl->AddCircleFilled(
-            ImVec2(point.x, point.y) + shift, 3.0f, rectCenterColor);
+    auto text = [&](ImVec2 const& pos, std::string const& t) {
+        RenderTextWithBackground(dl, pos, IM_COL32(0, 0, 0, 255), t);
+    };
+
+    auto point = [&](const C::Point& point) {
+        dl->AddCircleFilled(point.pos + shift, 3.0f, rectCenterColor);
+        if (!point.rectOrigin.empty()) {
+            text(point.pos + shift, fmt("{}", point.rectOrigin));
+        }
     };
 
     for (auto const& r : ir.fixed) {
@@ -517,31 +565,29 @@ void render_debug(
     }
 
     auto render_offset = [&](C::Offset const& offset, ImU32 color) {
+        if (offset.isEmpty()) { return; }
         if (int(offset.offset.x) != 0) {
-            AddText(
-                dl,
-                offset.start + shift + (offset.offset / 2),
-                color,
+            text(
+                offset.start.pos + shift + (offset.offset / 2),
                 fmt("x{:.1f}", offset.offset.x));
         } else if (int(offset.offset.y) != 0) {
-            AddText(
-                dl,
-                offset.start + shift + (offset.offset / 2),
-                color,
+            text(
+                offset.start.pos + shift + (offset.offset / 2),
                 fmt("y{:.1f}", offset.offset.y));
         }
 
         dl->AddLine(
-            offset.start + shift,
-            offset.start + shift + offset.offset,
+            offset.start.pos + shift,
+            offset.start.pos + shift + offset.offset,
             color,
             2.0f);
     };
 
     auto render_align_line = [&](C::Align const& a) {
-        point(GraphPoint{a.start.x, a.start.y});
-        point(GraphPoint{a.end.x, a.end.y});
-        dl->AddLine(a.start + shift, a.end + shift, alignAxisColor, 2.0f);
+        point(a.start);
+        point(a.end);
+        dl->AddLine(
+            a.start.pos + shift, a.end.pos + shift, alignAxisColor, 2.0f);
         for (auto const& offset : a.offsets) {
             render_offset(offset, alignOffsetColor);
         }
@@ -732,4 +778,72 @@ Vec<LaneBlockLayout::RectSpec> LaneBlockLayout::getRectangles(
         }
     }
     return res;
+}
+
+void ColaConstraintDebug::toString(ColStream& os) const {
+    using C = Constraint;
+
+    auto write_2_point = [&](C::Point const& p1, C::Point const& p2) {
+        if (int(p1.pos.x) == int(p2.pos.x)) {
+            os << fmt("x:{} y:{}-{}", p1.pos.x, p1.pos.y, p2.pos.y);
+        } else if (int(p1.pos.y) == int(p2.pos.y)) {
+            os << fmt("x:{}-{} y:{}", p1.pos.x, p2.pos.x, p1.pos.y);
+        } else {
+            os << fmt(
+                "x:{}-{} y:{}-{}", p1.pos.x, p2.pos.x, p1.pos.y, p2.pos.y);
+        }
+
+        if (p1.rectOrigin != p2.rectOrigin) {
+            os << fmt(" <{}><{}>", p1.rectOrigin, p2.rectOrigin);
+        } else {
+            os << fmt(" <{}>", p1.rectOrigin);
+        }
+    };
+
+    auto write_offset = [&](C::Offset const& o) {
+        if (int(o.offset.x) == 0) {
+            os << fmt("{}->+{}y", o.start.pos, o.offset.y);
+        } else if (int(o.offset.y) == 0) {
+            os << fmt("{}->+{}x", o.start.pos, o.offset.x);
+        } else {
+            os << fmt("{}->+{}", o.start.pos, o.offset);
+        }
+    };
+
+    auto write_align = [&](C::Align const& a, int depth) {
+        os.indent(depth * 2);
+        os << fmt("Align {} ", a.rects);
+        write_2_point(a.start, a.end);
+        auto existing_offsets //
+            = a.offsets
+            | rv::filter(get_method_filter(&C::Offset::isEmpty))
+            | rs::to<Vec>();
+
+        if (existing_offsets.size() == 1) {
+            os << " ";
+            write_offset(existing_offsets.front());
+        } else {
+            for (auto const& o : existing_offsets) {
+                os << "\n";
+                os.indent(2 * (depth + 1));
+                write_offset(o);
+            }
+        }
+    };
+
+    for (auto const& c : constraints) {
+        if (c.isAlign()) {
+            write_align(c.getAlign(), 0);
+            os << "\n";
+        } else if (c.isSeparate()) {
+            auto const& s = c.getSeparate();
+            os << "Sep ";
+            write_offset(s.offset);
+            os << "\n";
+            write_align(s.left, 1);
+            os << "\n";
+            write_align(s.right, 1);
+            os << "\n";
+        }
+    }
 }

@@ -144,18 +144,27 @@ DECL_ID_TYPE(___BlockNode, BlockNodeId, std::size_t);
 
 struct ColaConstraintDebug {
     struct Constraint {
+        struct Point {
+            ImVec2   pos;
+            Vec<int> rectOrigin;
+            DESC_FIELDS(Point, (pos, rectOrigin));
+        };
+
         struct Offset {
             ImVec2 offset;
-            ImVec2 start;
+            Point  start;
+            bool   isEmpty() const {
+                return int(offset.x) == 0 && int(offset.y) == 0;
+            }
             DESC_FIELDS(Offset, (offset, start));
         };
 
         struct Align {
-            ImVec2      start;
-            ImVec2      end;
+            Point       start;
+            Point       end;
             Vec<Offset> offsets;
-
-            DESC_FIELDS(Align, (start, end, offsets));
+            Vec<int>    rects;
+            DESC_FIELDS(Align, (start, end, offsets, rects));
         };
 
         struct Separate {
@@ -169,6 +178,13 @@ struct ColaConstraintDebug {
         Data data;
         DESC_FIELDS(Constraint, (data));
     };
+
+    void    toString(ColStream& os) const;
+    ColText toString() const {
+        ColStream os;
+        toString(os);
+        return os.getBuffer();
+    }
 
     Vec<Constraint> constraints;
     DESC_FIELDS(ColaConstraintDebug, (constraints));

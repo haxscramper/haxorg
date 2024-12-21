@@ -1757,6 +1757,9 @@ StoryGridGraph::NodePositionStore StoryGridGraph::NodePositionStore::init(
 
     res.debug = res.lyt.getConstraintDebug();
 
+    CTX_MSG(fmt(
+        "Constraint debug:\n{}", res.debug->toString().toString(false)));
+
     return res;
 }
 
