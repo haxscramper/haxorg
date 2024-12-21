@@ -276,10 +276,9 @@ struct DocBlockAction {
     };
 
     struct NodeTextChanged {
-        DocBlock::Ptr   block;
-        std::string     updated;
-        org::ImmAdapter origin;
-        DESC_FIELDS(NodeTextChanged, (block, updated, origin));
+        DocBlock::Ptr           block;
+        EditableOrgText::Result edit;
+        DESC_FIELDS(NodeTextChanged, (block, edit));
     };
 
     struct Scroll {

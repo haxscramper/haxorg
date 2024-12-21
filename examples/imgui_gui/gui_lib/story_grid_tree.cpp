@@ -22,25 +22,11 @@ void TreeGridCell::render(
         auto& val = getValue();
         auto  res = val.value.render(fmt("cell_{}_{}", id, im_tag));
 
-        switch (res) {
-            case EditableOrgText::Result::Changed: {
-                ctx.action(GridAction::EditCell{
-                    .origin  = getOrigin(),
-                    .updated = getFinalTextValue(),
-                });
-                [[fallthrough]];
-            }
-            case EditableOrgText::Result::CancelledEditing:
-                [[fallthrough]];
-            case EditableOrgText::Result::StartedEditing: {
-                ctx.action(GridAction::EditCellChanged{
-                    .origin = getOrigin(),
-                    .id     = id,
-                });
-                break;
-            }
-            default: {
-            };
+        if (res) {
+            ctx.action(GridAction::EditCell{
+                .edit = res.value(),
+                .id   = id,
+            });
         }
     }
 

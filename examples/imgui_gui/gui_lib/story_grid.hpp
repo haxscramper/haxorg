@@ -724,9 +724,15 @@ struct StoryGridGraph {
 
 struct GridAction {
     struct EditCell {
-        org::ImmAdapter origin;
-        std::string     updated;
-        DESC_FIELDS(EditCell, (origin, updated));
+        EditableOrgText::Result edit;
+        StoryNodeId             id;
+        DESC_FIELDS(EditCell, (edit, id));
+    };
+
+    struct EditNodeText {
+        EditableOrgText::Result edit;
+        StoryNodeId             id;
+        DESC_FIELDS(EditNodeText, (id, edit));
     };
 
     struct Scroll {
@@ -735,22 +741,6 @@ struct GridAction {
         DESC_FIELDS(Scroll, (pos, direction));
     };
 
-    struct EditCellChanged {
-        org::ImmAdapter origin;
-        StoryNodeId     id;
-        DESC_FIELDS(EditCellChanged, (origin, id));
-    };
-
-    struct EditNodeText {
-        StoryNodeId id;
-        std::string updated;
-        DESC_FIELDS(EditNodeText, (id, updated));
-    };
-
-    struct EditNodeChanged {
-        StoryNodeId id;
-        DESC_FIELDS(EditNodeChanged, (id));
-    };
 
     struct LinkListClick {
         DESC_FIELDS(LinkListClick, ());
@@ -772,8 +762,6 @@ struct GridAction {
         Scroll,
         LinkListClick,
         RowFolding,
-        EditCellChanged,
-        EditNodeChanged,
         EditNodeText);
 
     Data data;

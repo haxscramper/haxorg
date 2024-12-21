@@ -25,12 +25,27 @@ struct EditableOrgText {
 
     DECL_DESCRIBED_ENUM(Mode, Multiline, SingleLine);
 
-    DECL_DESCRIBED_ENUM(
-        Result,
-        None,
-        Changed,
-        StartedEditing,
-        CancelledEditing);
+
+    struct Result {
+        DECL_DESCRIBED_ENUM(
+            Kind,
+            Changed,
+            StartedEditing,
+            CancelledEditing);
+        Kind             kind;
+        org::ImmAdapter  origin;
+        Opt<std::string> value;
+
+        DESC_FIELDS(Result, (kind, origin, value));
+
+        bool isChanged() const { return kind == Kind::Changed; }
+        bool isStartedEditing() const {
+            return kind == Kind::StartedEditing;
+        }
+        bool isCancelledEditing() const {
+            return kind == Kind::CancelledEditing;
+        }
+    };
 
     static EditableOrgText from_adapter(org::ImmAdapter const& it);
 
@@ -39,7 +54,7 @@ struct EditableOrgText {
     /// \brief Render editable text widget at the current position using
     /// provided size and edit mode. Edit state and buffer are stored in
     /// the object.
-    Result render(
+    Opt<Result> render(
         ImVec2 const&         size,
         EditableOrgText::Mode edit,
         std::string const&    id);
@@ -88,7 +103,7 @@ struct EditableOrgTextEntry {
         computedHeight = text.get_expected_height(assignedWidth, mode);
     }
 
-    EditableOrgText::Result render(std::string const& id) {
+    Opt<EditableOrgText::Result> render(std::string const& id) {
         return text.render(getSize(), mode, id);
     }
 };

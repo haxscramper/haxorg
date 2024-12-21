@@ -79,7 +79,7 @@ int EditableOrgText::get_expected_height(int width, Mode mode) {
     }
 }
 
-EditableOrgText::Result EditableOrgText::render(
+Opt<EditableOrgText::Result> EditableOrgText::render(
     ImVec2 const&         size,
     EditableOrgText::Mode edit,
     std::string const&    id) {
@@ -119,12 +119,19 @@ EditableOrgText::Result EditableOrgText::render(
             if (IM_FN_EXPR(Button, "done")) {
                 value      = ed->GetText();
                 is_editing = false;
-                return Result::Changed;
+                return Result{
+                    .kind   = Result::Kind::Changed,
+                    .origin = origin,
+                    .value  = value,
+                };
             } else if (ImGui::SameLine(); IM_FN_EXPR(Button, "cancel")) {
                 is_editing = false;
-                return Result::CancelledEditing;
+                return Result{
+                    .kind   = Result::Kind::CancelledEditing,
+                    .origin = origin,
+                };
             } else {
-                return Result::None;
+                return std::nullopt;
             }
 
         } else {
@@ -157,9 +164,12 @@ EditableOrgText::Result EditableOrgText::render(
                 ed->WrapOnChar();
                 ed->HideAllMargins();
                 ed->SetText(value);
-                return Result::StartedEditing;
+                return Result{
+                    .kind   = Result::Kind::StartedEditing,
+                    .origin = origin,
+                };
             } else {
-                return Result::None;
+                return std::nullopt;
             }
         }
     } else {
@@ -167,16 +177,24 @@ EditableOrgText::Result EditableOrgText::render(
             if (ImGui::Button("OK")) {
                 value      = edit_buffer;
                 is_editing = false;
-                return Result::Changed;
+                return Result{
+                    .kind   = Result::Kind::Changed,
+                    .origin = origin,
+                    .value  = value,
+                };
             } else if (ImGui::SameLine(0.0f, 0.0f); ImGui::Button("X")) {
                 is_editing = false;
-                return Result::CancelledEditing;
+                return Result{
+                    .kind   = Result::Kind::CancelledEditing,
+                    .origin = origin,
+                    .value  = value,
+                };
             } else {
                 ImGui::SameLine(0.0f, 0.0f);
                 ImGui::SetNextItemWidth(size.x);
                 ImGui::InputText(
                     fmt("##{}_edit", id).c_str(), &edit_buffer);
-                return Result::None;
+                return std::nullopt;
             }
 
         } else {
@@ -185,9 +203,13 @@ EditableOrgText::Result EditableOrgText::render(
             if (ImGui::IsItemClicked()) {
                 is_editing  = true;
                 edit_buffer = value;
-                return Result::StartedEditing;
+                return Result{
+                    .kind   = Result::Kind::StartedEditing,
+                    .origin = origin,
+                    .value  = value,
+                };
             } else {
-                return Result::None;
+                return std::nullopt;
             }
         }
     }

@@ -195,7 +195,8 @@ void apply_doc_block_actions(
                 auto        __scope = ctx.scopeLevel();
                 auto const& t       = act.getNodeTextChanged();
                 CTX_MSG("Replacing history node");
-                auto upd = history.replace_node(t.origin, t.updated);
+                auto upd = history.replace_node(
+                    t.edit.origin, t.edit.value.value());
                 CTX_MSG("Extending history");
                 history.extend_history(upd);
                 CTX_MSG("Sync root for new adapter");
@@ -448,16 +449,14 @@ void handle_text_edit_result(
     std::string const&    id) {
     auto result = text.render(id.c_str());
 
-    if (result == ER::Changed) {
+    if (result && result->isChanged()) {
         model.ctx.action(DocBlockAction::NodeTextChanged{
-            .block   = block->shared_from_this(),
-            .updated = text.text.value,
-            .origin  = text.text.origin,
+            .block = block->shared_from_this(),
+            .edit  = result.value(),
         });
     }
 
-    if (result == ER::CancelledEditing || result == ER::StartedEditing
-        || result == ER::Changed) {
+    if (result) {
         model.ctx.action(DocBlockAction::NodeEditChanged{
             .block = block->shared_from_this()});
     }

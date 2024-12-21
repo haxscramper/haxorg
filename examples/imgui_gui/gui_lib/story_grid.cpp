@@ -50,28 +50,12 @@ void StoryNode::Text::render(
             EditableOrgText::Mode::Multiline,
             fmt("text_node_{}", id));
 
-        if (res != EditableOrgText::Result::None) {
-            CTX_MSG(fmt("Text edit result {}", res));
-        }
-
-        switch (res) {
-            case EditableOrgText::Result::Changed: {
-                ctx.action(GridAction::EditNodeText{
-                    .id      = id,
-                    .updated = text.value,
-                });
-                [[fallthrough]];
-            }
-            case EditableOrgText::Result::CancelledEditing:
-                [[fallthrough]];
-            case EditableOrgText::Result::StartedEditing: {
-                ctx.action(GridAction::EditNodeChanged{
-                    .id = id,
-                });
-                break;
-            }
-            default: {
-            };
+        if (res) {
+            CTX_MSG(fmt("Text edit result {}", res.value()));
+            ctx.action(GridAction::EditNodeText{
+                .edit = res.value(),
+                .id   = id,
+            });
         }
 
         IM_FN_END(End);
@@ -992,32 +976,33 @@ void StoryGridModel::apply(
 
     switch (act.getKind()) {
         case GridAction::Kind::EditCell: {
-            auto edit = act.getEditCell();
-            replaceNode(
-                edit.origin, as_sem_list(sem::parseString(edit.updated)));
-            updateDocument(conf);
+            auto edit = act.getEditCell().edit;
+            if (edit.isChanged()) {
+                replaceNode(
+                    edit.origin,
+                    as_sem_list(sem::parseString(edit.value.value())));
+                updateDocument(conf);
+            } else {
+                rectGraph.updateGeometry(act.getEditCell().id);
+                rectGraph.updateNodePositions(ctx, conf);
+            }
             break;
         }
 
         case GridAction::Kind::EditNodeText: {
             auto edit = act.getEditNodeText();
-            CTX_MSG(
-                fmt("Updated edit node text {}",
-                    escape_literal(edit.updated)));
-            replaceNode(
-                rectGraph.getStoryNode(edit.id).getText().origin,
-                as_sem_list(sem::parseString(edit.updated)));
-            updateDocument(conf);
-            break;
-        }
-
-        case GridAction::Kind::EditCellChanged: {
-            rectGraph.updateGeometry(act.getEditCellChanged().id);
-            break;
-        }
-
-        case GridAction::Kind::EditNodeChanged: {
-            rectGraph.updateNodePositions(ctx, conf);
+            if (edit.edit.isChanged()) {
+                auto text = edit.edit.value.value();
+                CTX_MSG(fmt(
+                    "Updated edit node text {}", escape_literal(text)));
+                replaceNode(
+                    rectGraph.getStoryNode(edit.id).getText().origin,
+                    as_sem_list(sem::parseString(text)));
+                updateDocument(conf);
+            } else {
+                rectGraph.updateGeometry(act.getEditNodeText().id);
+                rectGraph.updateNodePositions(ctx, conf);
+            }
             break;
         }
 
