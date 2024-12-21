@@ -1571,6 +1571,36 @@ TreeGridDocument TreeGridDocument::from_root(
     __perf_trace_begin("gui", "build doc rows");
     doc.rows = build_rows(node, doc, ctx);
     __perf_trace_end("gui");
+
+
+    UnorderedSet<Str> emptyColumns;
+    for (auto const& it : doc.columns) { emptyColumns.incl(it.name); }
+
+    for (auto const& row : doc.flatRows(true)) {
+        for (auto const& [col, cell] : row->columns) {
+            emptyColumns.excl(col);
+        }
+    }
+
+    while (!emptyColumns.empty()) {
+        Str  toRemove = *emptyColumns.begin();
+        auto iter     = std::find_if(
+            doc.columns.begin(),
+            doc.columns.end(),
+            [&](TreeGridColumn const& col) {
+                return col.name == toRemove;
+            });
+
+        if (iter != doc.columns.end()) {
+            CTX_MSG(
+                fmt("Column '{}' has no cells, dropping empty column",
+                    toRemove));
+            doc.columns.erase(iter);
+        }
+
+        emptyColumns.erase(toRemove);
+    }
+
     doc.updatePositions();
     return doc;
 }
