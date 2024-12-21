@@ -198,7 +198,7 @@ void apply_doc_block_actions(
                 auto upd = history.replace_node(
                     t.edit.origin, t.edit.value.value());
                 CTX_MSG("Extending history");
-                history.extend_history(upd);
+                history.extendHistory(upd);
                 CTX_MSG("Sync root for new adapter");
                 model.syncRoot(
                     history.getCurrentHistory().getNewRoot(
@@ -393,7 +393,7 @@ void doc_editor_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
 
     model.ctx.setTraceFile("/tmp/doc_editor_trace.log");
 
-    int root_idx = docs.init_root(node);
+    DocRootId root_idx = docs.initRoot(node);
 
     bool first = true;
 

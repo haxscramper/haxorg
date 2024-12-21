@@ -48,8 +48,8 @@ struct StoryGridVars : public ImTestVarsBase {
         , model{&history} {}
 
     void add_text(std::string const& text) {
-        model.history->init_root(sem::parseString(text));
-        model.updateDocument(conf);
+        model.history->initRoot(sem::parseString(text));
+        model.rebuild(conf);
     }
 
     Str get_text() {

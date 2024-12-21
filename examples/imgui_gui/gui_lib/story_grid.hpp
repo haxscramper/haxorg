@@ -433,9 +433,9 @@ struct StoryGridGraph {
 
 
         static SemGraphStore init(
-            org::ImmAdapter const& root,
-            StoryGridConfig const& conf,
-            StoryGridContext&      ctx);
+            Vec<org::ImmAdapter> const& root,
+            StoryGridConfig const&      conf,
+            StoryGridContext&           ctx);
     };
 
 
@@ -609,9 +609,9 @@ struct StoryGridGraph {
     NodePositionStore positionStore;
 
     void cascadeSemanticUpdate(
-        org::ImmAdapter const& root,
-        StoryGridContext&      ctx,
-        StoryGridConfig const& conf) {
+        Vec<org::ImmAdapter> const& root,
+        StoryGridContext&           ctx,
+        StoryGridConfig const&      conf) {
         updateSemanticGraph(root, ctx, conf);
         cascadeStoryNodeUpdate(ctx, conf);
     }
@@ -689,9 +689,9 @@ struct StoryGridGraph {
     }
 
     void updateSemanticGraph(
-        org::ImmAdapter const& root,
-        StoryGridContext&      ctx,
-        StoryGridConfig const& conf) {
+        Vec<org::ImmAdapter> const& root,
+        StoryGridContext&           ctx,
+        StoryGridConfig const&      conf) {
         semGraph = SemGraphStore::init(root, conf, ctx);
     }
 
@@ -722,8 +722,6 @@ struct StoryGridGraph {
     }
 
     void resetBlockLanes(StoryGridConfig const& conf);
-
-
     bool isVisible(org::ImmUniqId const& id) const;
 
     DESC_FIELDS(StoryGridGraph, (storyNodes, semGraph, blockGraph));
@@ -905,6 +903,7 @@ struct StoryGridModel {
     StoryGridGraph       graph;
     StoryGridContext     ctx;
     ImVec2               shift{};
+    Vec<DocRootId>       documents;
 
     StoryGridModel(EditableOrgDocGroup* h) : history{h} {}
 
@@ -912,12 +911,9 @@ struct StoryGridModel {
     int            docNodeIndex = 0;
     StoryGridState state;
     void apply(GridAction const& act, StoryGridConfig const& style);
-
     void updateGridState();
 
-    org::ImmAdapter getHistoryRoot() {
-        return history->getCurrentAst().getRootAdapter();
-    }
+    void addDocument(DocRootId root) { documents.push_back(root); }
 
     /// \brief Get graph nodes associated with the current root grid
     /// node.
@@ -927,9 +923,10 @@ struct StoryGridModel {
     int getFlatNodePos(org::ImmAdapter const& node);
 
     /// \brief Update full document using latest history data.
-    void updateDocument(const StoryGridConfig& conf) {
+    void rebuild(const StoryGridConfig& conf) {
         STORY_GRID_MSG_SCOPE(ctx, "Update full document");
-        graph.cascadeSemanticUpdate(getHistoryRoot(), ctx, conf);
+        graph.cascadeSemanticUpdate(
+            history->getAdapters(documents), ctx, conf);
     }
 
     void applyChanges(StoryGridConfig const& conf);

@@ -215,16 +215,21 @@ Opt<EditableOrgText::Result> EditableOrgText::render(
     }
 }
 
-int EditableOrgDocGroup::init_root(const sem::SemId<sem::Org>& id) {
+DocRootId EditableOrgDocGroup::initRoot(const sem::SemId<sem::Org>& id) {
     History& current = getCurrentHistory();
     auto     new_ast = current.ast.context->init(id);
     current.ast      = std::move(new_ast);
-    int index = current.roots.push_back_idx(current.ast.getRootAdapter());
-    add_history(std::move(current));
-    return index;
+    int root_idx     = current.roots.push_back_idx(
+        current.ast.getRootAdapter());
+    int history_idx = addHistory(std::move(current));
+    return DocRootId::FromMaskedIdx(root_idx, history_idx);
 }
 
-org::ImmAstVersion EditableOrgDocGroup::replace_node(
+DocRootId EditableOrgDocGroup::getLatest(DocRootId id) const {
+    return DocRootId::FromMaskedIdx(id.getMask(), history.high());
+}
+
+org::ImmAstVersion EditableOrgDocGroup::replaceNode(
     const org::ImmAdapter&    origin,
     Vec<sem::SemId<sem::Org>> replace) {
     // gr_log(ol_trace).message(origin.treeRepr().toString(false));
@@ -307,10 +312,10 @@ org::ImmAstVersion EditableOrgDocGroup::replace_node(
     auto parse = sem::parseString(text);
     if (parse->is(OrgSemKind::Document)
         || parse->is(OrgSemKind::StmtList)) {
-        return replace_node(
+        return replaceNode(
             origin, Vec<sem::SemId<sem::Org>>{parse.begin(), parse.end()});
     } else {
-        return replace_node(origin, Vec<sem::SemId<sem::Org>>{parse});
+        return replaceNode(origin, Vec<sem::SemId<sem::Org>>{parse});
     }
 }
 

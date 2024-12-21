@@ -108,6 +108,8 @@ struct EditableOrgTextEntry {
     }
 };
 
+DECL_ID_TYPE_MASKED(___RootId, DocRootId, u64, 32);
+
 struct EditableOrgDocGroup {
     struct History {
         org::ImmAstVersion   ast;
@@ -127,19 +129,22 @@ struct EditableOrgDocGroup {
     };
 
     EditableOrgDocGroup(org::ImmAstContext::Ptr const& ctx) {
-        add_history(History{org::ImmAstVersion{.context = ctx}});
+        addHistory(History{org::ImmAstVersion{.context = ctx}});
     }
 
-    int reset_with(sem::SemId<sem::Org> const& id) {
+    DocRootId resetWith(sem::SemId<sem::Org> const& id) {
         history.clear();
-        return init_root(id);
+        return initRoot(id);
     }
-    int init_root(sem::SemId<sem::Org> const& id);
 
-    void add_history(History const& h) { history.push_back(h); }
-    void extend_history(org::ImmAstVersion const& ast) {
-        if (!ast.epoch.replaced.map.empty()) {
-            add_history(getCurrentHistory().withNewVersion(ast));
+    DocRootId initRoot(sem::SemId<sem::Org> const& id);
+
+    int addHistory(History const& h) { return history.push_back_idx(h); }
+    Opt<int> extendHistory(org::ImmAstVersion const& ast) {
+        if (ast.epoch.replaced.map.empty()) {
+            return std::nullopt;
+        } else {
+            return addHistory(getCurrentHistory().withNewVersion(ast));
         }
     }
 
@@ -147,14 +152,34 @@ struct EditableOrgDocGroup {
 
     DESC_FIELDS(EditableOrgDocGroup, (history));
 
+    bool isLatest(DocRootId const& id) const {
+        return id.getMask() == history.high();
+    }
+
+    DocRootId          getLatest(DocRootId id) const;
     History&           getCurrentHistory() { return history.back(); }
     History const&     getCurrentHistory() const { return history.back(); }
     org::ImmAstVersion getCurrentAst() { return history.back().ast; }
-    org::ImmAdapter    getCurrentRoot(int index) {
-        return history.back().roots.at(index);
+    Vec<org::ImmAdapter> getAdapters(Vec<DocRootId> const& ids) const {
+        Vec<org::ImmAdapter> res;
+        for (auto const& id : ids) { res.push_back(getRoot(id)); }
+        return res;
     }
 
-    [[nodiscard]] org::ImmAstVersion replace_node(
+    org::ImmAdapter getRoot(DocRootId id) const {
+        return history.at(id.getMask()).roots.at(id.getIndex());
+    }
+
+    org::ImmAdapter getCurrentRoot(DocRootId id) const {
+        LOGIC_ASSERTION_CHECK(
+            isLatest(id),
+            "Provided doc root ID {} does not come from the latest "
+            "history.",
+            id);
+        return history.back().roots.at(id.getIndex());
+    }
+
+    [[nodiscard]] org::ImmAstVersion replaceNode(
         org::ImmAdapter const&    origin,
         Vec<sem::SemId<sem::Org>> replace);
 

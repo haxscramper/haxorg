@@ -169,13 +169,14 @@ Opt<json> story_grid_loop(
     auto                start = org::ImmAstContext::init_start_context();
     EditableOrgDocGroup history{start};
     StoryGridModel      model{&history};
-    model.history->init_root(sem::parseString(readFile(file)));
+    auto                rootId = model.history->initRoot(
+        sem::parseString(readFile(file)));
+    model.addDocument(rootId);
 
     model.ctx.setTraceFile("/tmp/story_grid_trace.log");
     if (in_state) {
         model.state = from_json_eval<StoryGridState>(in_state.value());
     }
-
 
     bool first = true;
 
@@ -194,8 +195,11 @@ Opt<json> story_grid_loop(
         int inotify_change = read(inotify_fd, &buffer[0], buffer.size());
         if (0 < inotify_change) {
             LOG(INFO) << "File change, reloading the model";
-            model.history->reset_with(sem::parseString(readFile(file)));
-            model.updateDocument(conf);
+            auto rootId = model.history->resetWith(
+                sem::parseString(readFile(file)));
+            model.documents.clear();
+            model.addDocument(rootId);
+            model.rebuild(conf);
         }
 
         frame_start();
@@ -206,7 +210,7 @@ Opt<json> story_grid_loop(
         if (first) {
             first             = false;
             conf.gridViewport = ImGui::GetMainViewport()->Size;
-            model.updateDocument(conf);
+            model.rebuild(conf);
         }
 
         if (model.graph.positionStore.debug) {
@@ -908,8 +912,8 @@ void StoryGridModel::apply(
             if (edit.isChanged()) {
                 auto ast = history->replace_node(
                     edit.origin, edit.value.value());
-                history->extend_history(ast);
-                updateDocument(conf);
+                history->extendHistory(ast);
+                rebuild(conf);
             } else {
                 graph.cascadeGeometryUpdate(
                     act.getEditCell().id, ctx, conf);
@@ -925,8 +929,8 @@ void StoryGridModel::apply(
                     "Updated edit node text {}", escape_literal(text)));
                 auto ast = history->replace_node(
                     graph.getStoryNode(edit.id).getText().origin, text);
-                history->extend_history(ast);
-                updateDocument(conf);
+                history->extendHistory(ast);
+                rebuild(conf);
             } else {
                 graph.cascadeGeometryUpdate(
                     act.getEditCell().id, ctx, conf);
@@ -1138,15 +1142,17 @@ void StoryGridModel::applyChanges(StoryGridConfig const& conf) {
 void StoryGridGraph::resetBlockLanes(const StoryGridConfig& conf) {}
 
 StoryGridGraph::SemGraphStore StoryGridGraph::SemGraphStore::init(
-    const org::ImmAdapter& root,
-    StoryGridConfig const& conf,
-    StoryGridContext&      ctx) {
+    Vec<org::ImmAdapter> const& root,
+    StoryGridConfig const&      conf,
+    StoryGridContext&           ctx) {
+    LOGIC_ASSERTION_CHECK(
+        !root.empty(),
+        "Cannot update story grid graph with empty list of nodes");
     STORY_GRID_MSG_SCOPE(ctx, "Semantic graph init store");
     SemGraphStore res;
 
-
-    res.ctx = root.ctx.lock();
-    res.addDocNode(root, conf, ctx);
+    res.ctx = root.front().ctx.lock();
+    for (auto const& r : root) { res.addDocNode(r, conf, ctx); }
 
     {
         auto     gv = res.graph.toGraphviz(res.ctx);

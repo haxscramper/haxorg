@@ -12,7 +12,7 @@ struct DocEditVars : public ImTestVarsBase {
     DocBlockModel           model;
     EditableOrgDocGroup     docs;
     DocBlockConfig          conf;
-    int                     root_idx = -1;
+    DocRootId               root_idx = DocRootId::Nil();
 
     DocEditVars()
         : ctx{org::ImmAstContext::init_start_context()}, docs{ctx} {}
@@ -25,7 +25,7 @@ struct DocEditVars : public ImTestVarsBase {
     }
 
     void add_text(std::string const& text) {
-        root_idx = docs.init_root(sem::parseString(text));
+        root_idx = docs.initRoot(sem::parseString(text));
         model.syncFull(docs.getCurrentRoot(root_idx), conf);
     }
 
