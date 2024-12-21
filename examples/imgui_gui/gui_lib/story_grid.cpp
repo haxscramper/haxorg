@@ -503,8 +503,11 @@ Opt<json> story_grid_loop(
             model.updateDocument(conf);
         }
 
-        if (model.debug) {
-            render_debug(model.debug.value(), model.shift);
+        if (model.rectGraph.positionStore.debug) {
+            render_debug(
+                model.rectGraph.positionStore.debug.value(),
+                model.shift,
+                model.rectGraph.positionStore.lyt.layout);
         }
 
         run_story_grid_cycle(model, conf);
@@ -1711,7 +1714,7 @@ StoryGridGraph::NodePositionStore StoryGridGraph::NodePositionStore::init(
         for (auto const& [id, pos] : blockGraph.ir.idToPos) {
             CTX_MSG(fmt("Id {} pos {}", id, pos));
         }
-        res.lyt = blockGraph.ir.toLayout();
+        res.lyt = blockGraph.ir.getLayout();
         CTX_MSG(fmt("Layout for {} rectangles", res.lyt.rectMap.size()));
     }
 
@@ -1721,6 +1724,9 @@ StoryGridGraph::NodePositionStore StoryGridGraph::NodePositionStore::init(
         res.nodePositions.insert_or_assign(
             blockGraph.toStory(rect.blockId), rect.pos);
     }
+
+    res.debug = res.lyt.getConstraintDebug();
+
     return res;
 }
 

@@ -546,6 +546,7 @@ struct StoryGridGraph {
     struct NodePositionStore {
         LaneBlockLayout                   lyt;
         UnorderedMap<StoryNodeId, ImVec2> nodePositions;
+        Opt<ColaConstraintDebug>          debug;
         static NodePositionStore          init(
                      StoryGridContext&      ctx,
                      BlockGraphStore const& blockGraph);
@@ -804,11 +805,10 @@ struct StoryGridState {
 
 
 struct StoryGridModel {
-    Vec<StoryGridHistory>    history;
-    StoryGridGraph           rectGraph;
-    StoryGridContext         ctx;
-    ImVec2                   shift{};
-    Opt<ColaConstraintDebug> debug;
+    Vec<StoryGridHistory> history;
+    StoryGridGraph        rectGraph;
+    StoryGridContext      ctx;
+    ImVec2                shift{};
     /// \brief Root of the tree grid document in the `rectGraph.nodes`.
     int            docNodeIndex = 0;
     StoryGridState state;

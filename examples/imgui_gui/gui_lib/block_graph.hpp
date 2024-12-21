@@ -142,6 +142,39 @@ struct std::hash<LaneNodePos> {
 // strongly typed integer.
 DECL_ID_TYPE(___BlockNode, BlockNodeId, std::size_t);
 
+struct ColaConstraintDebug {
+    struct Constraint {
+        struct Offset {
+            ImVec2 offset;
+            ImVec2 start;
+            DESC_FIELDS(Offset, (offset, start));
+        };
+
+        struct Align {
+            ImVec2      start;
+            ImVec2      end;
+            Vec<Offset> offsets;
+
+            DESC_FIELDS(Align, (start, end, offsets));
+        };
+
+        struct Separate {
+            Align  left;
+            Align  right;
+            Offset offset;
+            DESC_FIELDS(Separate, (left, right, offset));
+        };
+
+        SUB_VARIANTS(Kind, Data, data, getKind, Align, Separate);
+        Data data;
+        DESC_FIELDS(Constraint, (data));
+    };
+
+    Vec<Constraint> constraints;
+    DESC_FIELDS(ColaConstraintDebug, (constraints));
+};
+
+
 struct LaneBlockGraph;
 struct LaneBlockLayout {
     /// \brief Finalized set of graph layout constraints, ready to be
@@ -190,6 +223,7 @@ struct LaneBlockLayout {
     /// \warning If any changes were made to the rectangle list it is
     /// necessary to run `syncLayout` again to update the layout data.
     Vec<RectSpec> getRectangles(LaneBlockGraph const& blockGraph) const;
+    ColaConstraintDebug getConstraintDebug() const;
 };
 
 
@@ -310,27 +344,9 @@ struct LaneBlockGraph {
     /// \brief Convert lane block graph into adaptagrams block layout IR.
     /// This function does not perform any node positioning, only creates a
     /// set of constraints for later layout.
-    LaneBlockLayout toLayout() const;
+    LaneBlockLayout getLayout() const;
 };
 
-
-struct ColaConstraintDebug {
-    struct Constraint {
-        struct Align {
-            ImVec2 start;
-            ImVec2 end;
-            DESC_FIELDS(Align, (start, end));
-        };
-
-        SUB_VARIANTS(Kind, Data, data, getKind, Align);
-        Data data;
-        DESC_FIELDS(Constraint, (data));
-    };
-
-    GraphLayoutIR::Result const* ir;
-    Vec<Constraint>              constraints;
-    DESC_FIELDS(ColaConstraintDebug, (constraints));
-};
 
 ColaConstraintDebug to_constraints(
     LaneBlockLayout const&       lyt,
@@ -353,4 +369,7 @@ void render_result(
     GraphLayoutIR::Result const& res,
     ImVec2 const&                shift,
     const LaneBlockGraphConfig&  style);
-void render_debug(ColaConstraintDebug const& debug, const ImVec2& shift);
+void render_debug(
+    ColaConstraintDebug const&   debug,
+    const ImVec2&                shift,
+    const GraphLayoutIR::Result& ir);

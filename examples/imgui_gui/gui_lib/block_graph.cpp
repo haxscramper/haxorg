@@ -410,19 +410,24 @@ ImVec2 get_center(const GraphRect& rect) {
         rect.left + rect.width / 2.0, rect.top + rect.height / 2.0);
 }
 
-ColaConstraintDebug to_constraints(
-    const LaneBlockLayout&       lyt,
-    const LaneBlockGraph&        g,
-    GraphLayoutIR::Result const& final) {
+ColaConstraintDebug LaneBlockLayout::getConstraintDebug() const {
     ColaConstraintDebug res;
 
+    using D = ColaConstraintDebug;
+    using C = ColaConstraintDebug::Constraint;
+
     auto add_align_line = [&](GraphNodeConstraint::Align const& a) {
-        bool        x = a.dimension == GraphDimension::XDIM;
-        Vec<ImVec2> centers;
+        bool           x = a.dimension == GraphDimension::XDIM;
+        Vec<ImVec2>    centers;
+        Vec<C::Offset> offsets;
         for (auto const& rect : a.nodes) {
-            centers.push_back(
-                get_center(final.fixed.at(rect.node))
-                - (x ? ImVec2(rect.offset, 0) : ImVec2(0, rect.offset)));
+            ImVec2 center = get_center(layout.fixed.at(rect.node));
+            ImVec2 offset = (x ? ImVec2(rect.offset, 0) : ImVec2(0, rect.offset));
+            centers.push_back(center - offset);
+            offsets.push_back(C::Offset{
+                .offset = -offset,
+                .start  = center,
+            });
         }
         std::sort(
             centers.begin(),
@@ -434,23 +439,34 @@ ColaConstraintDebug to_constraints(
         ImVec2 start = centers.at(0);
         ImVec2 end   = centers.at(1_B);
 
-        res.constraints.push_back(ColaConstraintDebug::Constraint{
-            ColaConstraintDebug::Constraint::Align{
-                .start = start,
-                .end   = end,
-            }});
+        return C::Align{
+            .start   = start,
+            .end     = end,
+            .offsets = offsets,
+        };
     };
 
 
-    for (auto const& c : lyt.ir.nodeConstraints) {
+    for (auto const& c : ir.nodeConstraints) {
         switch (c.getKind()) {
             case GraphNodeConstraint::Kind::Align: {
-                add_align_line(c.getAlign());
+                res.constraints.push_back(C{add_align_line(c.getAlign())});
                 break;
             }
             case GraphNodeConstraint::Kind::Separate: {
-                add_align_line(c.getSeparate().left);
-                add_align_line(c.getSeparate().right);
+                auto const& s      = c.getSeparate();
+                ImVec2      offset = s.dimension == GraphDimension::XDIM
+                                       ? ImVec2(s.separationDistance, 0)
+                                       : ImVec2(0, s.separationDistance);
+
+
+                auto left = add_align_line(s.left);
+                res.constraints.push_back(C{C::Separate{
+                    .left   = left,
+                    .right  = add_align_line(s.right),
+                    .offset = C::
+                        Offset{.offset = offset, .start = (left.end - left.start) / 2},
+                }});
                 break;
             }
             default: {
@@ -462,38 +478,75 @@ ColaConstraintDebug to_constraints(
     return res;
 }
 
-void render_debug(const ColaConstraintDebug& debug, ImVec2 const& shift) {
-    ImDrawList* draw_list = ImGui::GetForegroundDrawList();
-    using C               = ColaConstraintDebug::Constraint;
+void render_debug(
+    const ColaConstraintDebug&   debug,
+    ImVec2 const&                shift,
+    GraphLayoutIR::Result const& ir) {
+    ImDrawList* dl = ImGui::GetForegroundDrawList();
+    using C        = ColaConstraintDebug::Constraint;
 
-    auto color = IM_COL32(255, 0, 0, 255);
+    auto alignAxisColor    = IM_COL32(255, 0, 0, 255);
+    auto rectCenterColor   = IM_COL32(255, 0, 0, 255);
+    auto rectBoundaryColor = IM_COL32(255, 0, 0, 255);
+    auto alignOffsetColor  = IM_COL32(0, 255, 0, 255);
 
     auto point = [&](const GraphPoint& point) {
-        draw_list->AddCircleFilled(
-            ImVec2(point.x, point.y) + shift, 3.0f, color);
+        dl->AddCircleFilled(
+            ImVec2(point.x, point.y) + shift, 3.0f, rectCenterColor);
     };
 
-    for (auto const& r : debug.ir->fixed) {
-        draw_list->AddRect(
+    for (auto const& r : ir.fixed) {
+        dl->AddRect(
             ImVec2(r.left, r.top) + shift,
             ImVec2(r.left + r.width, r.top + r.height) + shift,
-            color,
+            rectBoundaryColor,
             0.0f,
             0,
             line_width);
     }
 
+    auto render_offset = [&](C::Offset const& offset, ImU32 color) {
+        if (int(offset.offset.x) != 0) {
+            AddText(
+                dl,
+                offset.start + shift,
+                color,
+                fmt("{:.1f}", offset.offset.x));
+        } else if (int(offset.offset.y) != 0) {
+            AddText(
+                dl,
+                offset.start + shift,
+                color,
+                fmt("{:.1f}", offset.offset.y));
+        }
+
+        dl->AddLine(
+            offset.start + shift,
+            offset.start + shift + offset.offset,
+            color,
+            2.0f);
+    };
+
+    auto render_align_line = [&](C::Align const& a) {
+        point(GraphPoint{a.start.x, a.start.y});
+        point(GraphPoint{a.end.x, a.end.y});
+        dl->AddLine(a.start + shift, a.end + shift, alignAxisColor, 2.0f);
+        for (auto const& offset : a.offsets) {
+            render_offset(offset, alignOffsetColor);
+        }
+    };
+
     for (auto const& c : debug.constraints) {
         switch (c.getKind()) {
             case C::Kind::Align: {
-                auto const& a = c.getAlign();
-                point(GraphPoint{a.start.x, a.start.y});
-                point(GraphPoint{a.end.x, a.end.y});
-                draw_list->AddLine(
-                    ImVec2(a.start.x, a.start.y) + shift,
-                    ImVec2(a.end.x, a.end.y) + shift,
-                    color,
-                    2.0f);
+                render_align_line(c.getAlign());
+                break;
+            }
+            case C::Kind::Separate: {
+                auto const& s = c.getSeparate();
+                render_align_line(s.left);
+                render_align_line(s.right);
+                render_offset(s.offset, alignOffsetColor);
                 break;
             }
         }
@@ -561,7 +614,7 @@ Vec<Slice<int>> LaneBlockGraph::getLaneSpans() const {
 }
 
 
-LaneBlockLayout LaneBlockGraph::toLayout() const {
+LaneBlockLayout LaneBlockGraph::getLayout() const {
     LOGIC_ASSERTION_CHECK(
         int(visible.h) != 0 && int(visible.w) != 0, "{}", visible);
     gr_log(ol_info).fmt_message(

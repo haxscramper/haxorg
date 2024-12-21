@@ -293,7 +293,7 @@ void DocBlockModel::syncBlockGraph(const DocBlockConfig& conf) {
 void DocBlockModel::syncLayout(const DocBlockConfig& conf) {
     CTX_MSG("Sync layout graph");
     auto __scope = ctx.scopeLevel();
-    lyt          = g.toLayout();
+    lyt          = g.getLayout();
     for (LaneBlockLayout::RectSpec const& rect : lyt.getRectangles(g)) {
         DocBlock::Ptr node = flatGrid.at(rect.blockId.getIndex());
         if (rect.isVisible) {
