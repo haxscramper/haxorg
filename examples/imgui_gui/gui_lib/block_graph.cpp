@@ -416,12 +416,16 @@ ColaConstraintDebug LaneBlockLayout::getConstraintDebug() const {
     using D = ColaConstraintDebug;
     using C = ColaConstraintDebug::Constraint;
 
+    auto get_rect_center = [&](int idx) {
+        return get_center(layout.fixed.at(idx));
+    };
+
     auto add_align_line = [&](GraphNodeConstraint::Align const& a) {
         bool           x = a.dimension == GraphDimension::XDIM;
         Vec<ImVec2>    centers;
         Vec<C::Offset> offsets;
         for (auto const& rect : a.nodes) {
-            ImVec2 center = get_center(layout.fixed.at(rect.node));
+            ImVec2 center = get_rect_center(rect.node);
             ImVec2 offset = (x ? ImVec2(rect.offset, 0) : ImVec2(0, rect.offset));
             centers.push_back(center - offset);
             offsets.push_back(C::Offset{
@@ -456,17 +460,23 @@ ColaConstraintDebug LaneBlockLayout::getConstraintDebug() const {
             case GraphNodeConstraint::Kind::Separate: {
                 auto const& s      = c.getSeparate();
                 ImVec2      offset = s.dimension == GraphDimension::XDIM
-                                       ? ImVec2(s.separationDistance, 0)
-                                       : ImVec2(0, s.separationDistance);
+                                       ? ImVec2(0, s.separationDistance)
+                                       : ImVec2(s.separationDistance, 0);
+                auto        left   = add_align_line(s.left);
+                auto        right  = add_align_line(s.right);
 
+                C::Offset offsetSpec{
+                    .offset = -offset,
+                    .start  = left.start,
+                };
 
-                auto left = add_align_line(s.left);
-                res.constraints.push_back(C{C::Separate{
+                C::Separate sep{
                     .left   = left,
-                    .right  = add_align_line(s.right),
-                    .offset = C::
-                        Offset{.offset = offset, .start = (left.end - left.start) / 2},
-                }});
+                    .right  = right,
+                    .offset = offsetSpec,
+                };
+
+                res.constraints.push_back(C{sep});
                 break;
             }
             default: {
@@ -485,10 +495,11 @@ void render_debug(
     ImDrawList* dl = ImGui::GetForegroundDrawList();
     using C        = ColaConstraintDebug::Constraint;
 
-    auto alignAxisColor    = IM_COL32(255, 0, 0, 255);
-    auto rectCenterColor   = IM_COL32(255, 0, 0, 255);
-    auto rectBoundaryColor = IM_COL32(255, 0, 0, 255);
-    auto alignOffsetColor  = IM_COL32(0, 255, 0, 255);
+    auto alignAxisColor      = IM_COL32(255, 0, 0, 255);
+    auto rectCenterColor     = IM_COL32(255, 0, 0, 255);
+    auto rectBoundaryColor   = IM_COL32(255, 0, 0, 255);
+    auto alignOffsetColor    = IM_COL32(0, 255, 0, 255);
+    auto separateOffsetColor = IM_COL32(211, 255, 0, 255);
 
     auto point = [&](const GraphPoint& point) {
         dl->AddCircleFilled(
@@ -509,15 +520,15 @@ void render_debug(
         if (int(offset.offset.x) != 0) {
             AddText(
                 dl,
-                offset.start + shift,
+                offset.start + shift + (offset.offset / 2),
                 color,
-                fmt("{:.1f}", offset.offset.x));
+                fmt("x{:.1f}", offset.offset.x));
         } else if (int(offset.offset.y) != 0) {
             AddText(
                 dl,
-                offset.start + shift,
+                offset.start + shift + (offset.offset / 2),
                 color,
-                fmt("{:.1f}", offset.offset.y));
+                fmt("y{:.1f}", offset.offset.y));
         }
 
         dl->AddLine(
@@ -546,7 +557,7 @@ void render_debug(
                 auto const& s = c.getSeparate();
                 render_align_line(s.left);
                 render_align_line(s.right);
-                render_offset(s.offset, alignOffsetColor);
+                render_offset(s.offset, separateOffsetColor);
                 break;
             }
         }
