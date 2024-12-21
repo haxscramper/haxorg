@@ -81,48 +81,45 @@ void StoryNode::Text::render(
     ImGui::PopStyleColor();
 }
 
-void render_list_node(
-    StoryGridModel&      model,
-    StoryNode::LinkList& list,
-    LaneNodePos const&   selfPos) {
+void StoryNode::LinkList::render(
+    StoryGridModel&        model,
+    StoryNodeId const&     id,
+    StoryGridConfig const& conf) {
     auto frameless_vars = push_frameless_window_vars();
-    ImGui::SetNextWindowPos(
-        model.rectGraph.getPosition(selfPos) + model.shift);
-    ImGui::SetNextWindowSize(list.getSize());
+    ImGui::SetNextWindowPos(model.rectGraph.getPosition(id) + model.shift);
+    ImGui::SetNextWindowSize(getSize());
     if (IM_FN_BEGIN(
             Begin,
-            fmt("##{:p}", static_cast<const void*>(&list)).c_str(),
+            c_fmt("##list_{}", id),
             nullptr,
             ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize)) {
-
         if (ImGui::IsWindowHovered(
                 ImGuiHoveredFlags_RootAndChildWindows
                 | ImGuiHoveredFlags_AllowWhenBlockedByPopup
                 | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)
             && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-            list.isSelected = !list.isSelected;
+            isSelected = !isSelected;
             model.ctx.action(GridAction::LinkListClick{});
         }
 
         if (IM_FN_BEGIN(
                 BeginTable,
-                fmt("##{:p}", static_cast<const void*>(&list)).c_str(),
+                c_fmt("##table_list{}", id),
                 1,
                 ImGuiTableFlags_Borders              //
                     | ImGuiTableFlags_RowBg          //
                     | ImGuiTableFlags_SizingFixedFit //
                     | ImGuiTableFlags_NoHostExtendX)) {
-
             ImGui::TableSetupColumn(
-                "List", ImGuiTableColumnFlags_WidthFixed, list.getWidth());
+                "List", ImGuiTableColumnFlags_WidthFixed, getWidth());
 
-            for (auto& item : list.items) {
+            for (auto& item : items) {
                 ImGui::TableNextRow(ImGuiTableRowFlags_None, item.height);
                 bool edit = false;
                 item.text.render(
                     ImVec2(item.height, item.width),
                     EditableOrgText::Mode::Multiline,
-                    fmt("list_{}", selfPos.getImId()));
+                    fmt("list_{}", id));
             }
             IM_FN_END(EndTable);
         }
@@ -150,7 +147,7 @@ void run_story_grid_annotated_cycle(
                     break;
                 }
                 case StoryNode::Kind::LinkList: {
-                    render_list_node(model, node->getLinkList(), selfPos);
+                    node->getLinkList().render(model, node_id, conf);
                     break;
                 }
             }

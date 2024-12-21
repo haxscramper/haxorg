@@ -309,6 +309,11 @@ struct StoryNode {
                                return col.width;
                            }));
         }
+
+        void render(
+            StoryGridModel&        model,
+            StoryNodeId const&     id,
+            StoryGridConfig const& conf);
     };
 
     struct Text {
