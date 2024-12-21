@@ -911,8 +911,8 @@ void StoryGridModel::apply(
                 history->extend_history(ast);
                 updateDocument(conf);
             } else {
-                graph.updateGeometry(act.getEditCell().id);
-                graph.updateNodePositions(ctx, conf);
+                graph.cascadeGeometryUpdate(
+                    act.getEditCell().id, ctx, conf);
             }
             break;
         }
@@ -928,24 +928,22 @@ void StoryGridModel::apply(
                 history->extend_history(ast);
                 updateDocument(conf);
             } else {
-                graph.updateGeometry(act.getEditNodeText().id);
-                graph.updateNodePositions(ctx, conf);
+                graph.cascadeGeometryUpdate(
+                    act.getEditCell().id, ctx, conf);
             }
             break;
         }
 
         case GridAction::Kind::Scroll: {
             auto const& scroll = act.getScroll();
-            graph.blockGraph.ir.addScrolling(
-                scroll.pos,
-                -scroll.direction * conf.mouseScrollMultiplier);
-            updateNodePositions(conf);
+            graph.cascadeScrollingUpdate(
+                scroll.pos, scroll.direction, ctx, conf);
             break;
         }
 
         case GridAction::Kind::LinkListClick: {
             graph.focusLinkListTargetRows(ctx);
-            updateFullBlockGraph(conf);
+            graph.cascadeBlockGraphUpdate(ctx, conf);
             break;
         }
 
@@ -971,8 +969,8 @@ void StoryGridModel::apply(
             // Row folding will change edge connector positions in the
             // block graph. Changed edge connectors mean the whole document
             // layout needs to be updated.
-            updateDocumentLanePlacement(conf);
-            updateNodePositions(conf);
+            graph.updateNodeLanePlacement(ctx, conf);
+            graph.updateNodePositions(ctx, conf);
             break;
         }
     }
@@ -1409,4 +1407,14 @@ void StoryGridGraph::BlockGraphStore::updateBlockNodes(
             .getStoryNode(StoryNodeId::FromIndex(id.getIndex()))
             .getSize();
     });
+}
+
+void StoryGridGraph::cascadeScrollingUpdate(
+    const ImVec2&          graphPos,
+    float                  direction,
+    StoryGridContext&      ctx,
+    const StoryGridConfig& conf) {
+    blockGraph.ir.addScrolling(
+        graphPos, -direction * conf.mouseScrollMultiplier);
+    cascadeNodePositionsUpdate(ctx, conf);
 }

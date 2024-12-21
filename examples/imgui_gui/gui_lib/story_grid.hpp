@@ -608,6 +608,48 @@ struct StoryGridGraph {
     BlockGraphStore   blockGraph;
     NodePositionStore positionStore;
 
+    void cascadeSemanticUpdate(
+        org::ImmAdapter const& root,
+        StoryGridContext&      ctx,
+        StoryGridConfig const& conf) {
+        updateSemanticGraph(root, ctx, conf);
+        cascadeStoryNodeUpdate(ctx, conf);
+    }
+
+    void cascadeStoryNodeUpdate(
+        StoryGridContext&      ctx,
+        StoryGridConfig const& conf) {
+        updateStoryNodes(ctx, conf);
+        cascadeBlockGraphUpdate(ctx, conf);
+    }
+
+    void cascadeBlockGraphUpdate(
+        StoryGridContext&      ctx,
+        StoryGridConfig const& conf) {
+        updateNodeLanePlacement(ctx, conf);
+        cascadeNodePositionsUpdate(ctx, conf);
+    }
+
+    void cascadeGeometryUpdate(
+        StoryNodeId const&     id,
+        StoryGridContext&      ctx,
+        StoryGridConfig const& conf) {
+        updateGeometry(id);
+        cascadeNodePositionsUpdate(ctx, conf);
+    }
+
+    void cascadeScrollingUpdate(
+        const ImVec2&          graphPos,
+        float                  direction,
+        StoryGridContext&      ctx,
+        StoryGridConfig const& conf);
+
+    void cascadeNodePositionsUpdate(
+        StoryGridContext&      ctx,
+        StoryGridConfig const& conf) {
+        updateNodePositions(ctx, conf);
+    }
+
     ImVec2 getPosition(StoryNodeId id) const {
         return positionStore.nodePositions.at(id);
     }
@@ -873,6 +915,10 @@ struct StoryGridModel {
 
     void updateGridState();
 
+    org::ImmAdapter getHistoryRoot() {
+        return history->getCurrentAst().getRootAdapter();
+    }
+
     /// \brief Get graph nodes associated with the current root grid
     /// node.
     Vec<org::graph::MapNode> getDocNodes();
@@ -883,52 +929,7 @@ struct StoryGridModel {
     /// \brief Update full document using latest history data.
     void updateDocument(const StoryGridConfig& conf) {
         STORY_GRID_MSG_SCOPE(ctx, "Update full document");
-        updateDocumentGraph(conf);
-        graph.updateStoryNodes(ctx, conf);
-        updateFullBlockGraph(conf);
-    }
-
-    /// \brief Reset model graph from scratch and populate the
-    /// structure using information from the current history roots.
-    void updateDocumentGraph(StoryGridConfig const& conf) {
-        STORY_GRID_MSG_SCOPE(ctx, "Update document graph");
-        updateDocumentSemanticGraph(conf);
-        updateDocumentBlockGraph(conf);
-    }
-
-    /// \brief Reset map graph and populate the semantic node/edge
-    /// connections in the `graph.graph` part. Called by the
-    /// `updateDocumentGraph`
-    void updateDocumentSemanticGraph(StoryGridConfig const& conf) {
-        STORY_GRID_MSG_SCOPE(ctx, "Update document semantic graph");
-        graph    = StoryGridGraph{};
-        auto ast = history->getCurrentAst();
-        graph.updateSemanticGraph(ast.getRootAdapter(), ctx, conf);
-    }
-
-    void updateDocumentLanePlacement(StoryGridConfig const& conf) {
-        STORY_GRID_MSG_SCOPE(
-            ctx, "Update document document lane placement");
-        graph.updateNodeLanePlacement(ctx, conf);
-    }
-
-    /// \brief Rebuild block graph, populate edges and nodes in the
-    /// `graph.ir`. Called by the `updateDocumentGraph` part.
-    void updateDocumentBlockGraph(StoryGridConfig const& conf) {
-        STORY_GRID_MSG_SCOPE(ctx, "Update document block graph");
-        graph.updateStoryNodes(ctx, conf);
-        updateDocumentLanePlacement(conf);
-    }
-
-    void updateNodePositions(StoryGridConfig const& conf) {
-        STORY_GRID_MSG_SCOPE(ctx, "Update document node positions");
-        graph.updateNodePositions(ctx, conf);
-    }
-
-    void updateFullBlockGraph(StoryGridConfig const& conf) {
-        STORY_GRID_MSG_SCOPE(ctx, "Update document layout");
-        updateDocumentBlockGraph(conf);
-        updateNodePositions(conf);
+        graph.cascadeSemanticUpdate(getHistoryRoot(), ctx, conf);
     }
 
     void applyChanges(StoryGridConfig const& conf);
