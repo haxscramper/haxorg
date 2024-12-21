@@ -750,20 +750,40 @@ LaneBlockLayout LaneBlockGraph::getLayout() const {
 
     connect_edges(res, *this);
 
-    int pad       = lanes.at(0).leftMargin;
+    // All elements in the adaptagrams layout are placed in the positive
+    // quadrant of the coordinates and without any gaps from the layout
+    // canvas sides. So negative vertical offsets and left layout margin is
+    // added after the fact.
+    int leftPad = lanes.at(0).leftMargin;
+    int topPad  = std::clamp<int>(
+        rs::min(
+            lanes
+            | rv::transform(get_field_get(&LaneBlockStack::scrollOffset))),
+        value_domain<int>::low(),
+        0);
+
     res.ir.height = 10000;
     res.ir.width  = 10000;
     auto cola     = res.ir.doColaLayout();
     res.layout    = cola.convert();
 
+    gr_log(ol_info).fmt_message("left-pad:{} top-pad:{}", leftPad, topPad);
+
     for (auto const& [key, edge] : res.layout.lines) {
         for (auto& path : res.layout.lines.at(key).paths) {
-            for (auto& point : path.points) { point.x += pad; }
+            for (auto& point : path.points) {
+                point.y += topPad;
+                point.x += leftPad;
+            }
         }
     }
 
 
-    for (auto& rect : res.layout.fixed) { rect.left += pad; }
+    for (auto& rect : res.layout.fixed) {
+        rect.top += topPad;
+        rect.left += leftPad;
+    }
+
     return res;
 }
 
