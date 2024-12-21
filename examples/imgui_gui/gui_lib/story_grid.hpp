@@ -547,9 +547,18 @@ struct StoryGridGraph {
         LaneBlockLayout                   lyt;
         UnorderedMap<StoryNodeId, ImVec2> nodePositions;
         Opt<ColaConstraintDebug>          debug;
-        static NodePositionStore          init(
-                     StoryGridContext&      ctx,
-                     BlockGraphStore const& blockGraph);
+
+        /// \brief Check if the story node has a position information. If
+        /// the block node is hidden or went out of visible range, it is
+        /// not going to have an associated position information.
+        bool hasNode(StoryNodeId const& id) const {
+            return nodePositions.contains(id);
+        }
+
+
+        static NodePositionStore init(
+            StoryGridContext&      ctx,
+            BlockGraphStore const& blockGraph);
     };
 
     FlatNodeStore     storyNodes;
@@ -625,7 +634,11 @@ struct StoryGridGraph {
     DESC_FIELDS(StoryGridGraph, (storyNodes, semGraph, blockGraph));
 
     generator<Pair<StoryNodeId, StoryNode*>> getStoryNodes() {
-        return storyNodes.pairs();
+        for (auto const& [node_id, node] : storyNodes.pairs()) {
+            if (positionStore.hasNode(node_id)) {
+                co_yield {node_id, node};
+            }
+        }
     }
 
     StoryNode& getStoryNode(LaneNodePos const& pos) {
@@ -725,10 +738,10 @@ struct GridAction {
     DESC_FIELDS(GridAction, (data));
 };
 
-/// \brief All the configuration parameters for rendering the story grid,
-/// static variables that change the logic of the render, data model
-/// updates etc., but are not change-able from within the UI part of the
-/// application.
+/// \brief All the configuration parameters for rendering the story
+/// grid, static variables that change the logic of the render, data
+/// model updates etc., but are not change-able from within the UI part
+/// of the application.
 struct StoryGridConfig {
     LaneBlockGraphConfig     blockGraphConf;
     Func<TreeGridDocument()> getDefaultDoc;
@@ -763,8 +776,8 @@ struct StoryGridConfig {
          gridViewport));
 };
 
-/// \brief Highly mutable context variable that is passed to all rendering
-/// elements to collect actions.
+/// \brief Highly mutable context variable that is passed to all
+/// rendering elements to collect actions.
 struct StoryGridContext
     : OperationsTracer
     , OperationsScope {
@@ -818,7 +831,8 @@ struct StoryGridModel {
 
     void updateGridState();
 
-    /// \brief Get graph nodes associated with the current root grid node.
+    /// \brief Get graph nodes associated with the current root grid
+    /// node.
     Vec<org::graph::MapNode> getDocNodes();
 
     /// \brief Get existing block node position for AST adapter.
@@ -832,8 +846,8 @@ struct StoryGridModel {
         updateFullBlockGraph(conf);
     }
 
-    /// \brief Reset model graph from scratch and populate the structure
-    /// using information from the current history roots.
+    /// \brief Reset model graph from scratch and populate the
+    /// structure using information from the current history roots.
     void updateDocumentGraph(StoryGridConfig const& conf) {
         STORY_GRID_MSG_SCOPE(ctx, "Update document graph");
         updateDocumentSemanticGraph(conf);
@@ -850,12 +864,18 @@ struct StoryGridModel {
         rectGraph.updateSemanticGraph(ast.getRootAdapter(), ctx, conf);
     }
 
+    void updateDocumentLanePlacement(StoryGridConfig const& conf) {
+        STORY_GRID_MSG_SCOPE(
+            ctx, "Update document document lane placement");
+        rectGraph.updateNodeLanePlacement(ctx, conf);
+    }
+
     /// \brief Rebuild block graph, populate edges and nodes in the
     /// `rectGraph.ir`. Called by the `updateDocumentGraph` part.
     void updateDocumentBlockGraph(StoryGridConfig const& conf) {
         STORY_GRID_MSG_SCOPE(ctx, "Update document block graph");
         rectGraph.updateStoryNodes(ctx, conf);
-        rectGraph.updateNodeLanePlacement(ctx, conf);
+        updateDocumentLanePlacement(conf);
     }
 
     void updateNodePositions(StoryGridConfig const& conf) {

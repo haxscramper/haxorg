@@ -166,6 +166,12 @@ struct log_differential_sink_factory {
     Vec<std::string> prev_run_format;
     Str              outfile;
     sink_ptr         operator()();
+    bool             ignoreDepth = false;
+
+    log_differential_sink_factory& ignore_depth(bool ignore) {
+        ignoreDepth = ignore;
+        return *this;
+    }
 
     log_differential_sink_factory(std::string const& path)
         : outfile{path} {};

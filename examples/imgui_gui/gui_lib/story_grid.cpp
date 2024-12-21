@@ -992,6 +992,7 @@ void StoryGridModel::updateGridState() {
 Vec<Vec<StoryGridAnnotation>> StoryGridGraph::FlatNodeStore::getPartition(
     StoryGridContext&    ctx,
     SemGraphStore const& semGraph) const {
+
     using org::graph::MapNode;
     __perf_trace("gui", "partition graph by distance");
     auto initial_nodes = getInitialNodes(ctx, semGraph);
@@ -1112,7 +1113,7 @@ Vec<org::graph::MapNode> StoryGridGraph::FlatNodeStore::getInitialNodes(
         }
     }
 
-    return docNodes;
+    return sorted(docNodes);
 }
 
 StoryNodeId StoryGridGraph::FlatNodeStore::add(
@@ -1299,7 +1300,8 @@ void StoryGridModel::apply(
         case GridAction::Kind::Scroll: {
             auto const& scroll = act.getScroll();
             rectGraph.blockGraph.ir.addScrolling(
-                scroll.pos, scroll.direction * conf.mouseScrollMultiplier);
+                scroll.pos,
+                -scroll.direction * conf.mouseScrollMultiplier);
             updateNodePositions(conf);
             break;
         }
@@ -1333,11 +1335,10 @@ void StoryGridModel::apply(
                 .getTreeGrid()
                 .node.updatePositions();
             // Row folding will change edge connector positions in the
-            // block graph
-            updateDocumentBlockGraph(conf);
-            // Changed edge connectors mean the whole document layout needs
-            // to be updated.
-            updateFullBlockGraph(conf);
+            // block graph. Changed edge connectors mean the whole document
+            // layout needs to be updated.
+            updateDocumentLanePlacement(conf);
+            updateNodePositions(conf);
             break;
         }
     }

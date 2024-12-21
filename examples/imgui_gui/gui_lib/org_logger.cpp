@@ -182,7 +182,8 @@ namespace {
 void format_log_record_data(
     const boost::log::record_view&  rec,
     boost::log::formatting_ostream& strm,
-    log_record::log_data const&     data) {
+    log_record::log_data const&     data,
+    bool                            ignoreDepth = false) {
     auto ts = rec[LOG_TIMESTAMP_FIELD].extract<boost::posix_time::ptime>();
     auto global_depth = rec[LOG_SCOPE_DEPTH_FIELD].extract<int>();
     std::string prefix;
@@ -199,11 +200,13 @@ void format_log_record_data(
 
     if (!prefix.empty()) { prefix += " "; }
 
-    prefix += Str{"  "}
-                  .repeated(
-                      data.depth ? data.depth.value()
-                                 : (global_depth ? *global_depth : 0))
-                  .toBase();
+    if (!ignoreDepth) {
+        prefix += Str{"  "}
+                      .repeated(
+                          data.depth ? data.depth.value()
+                                     : (global_depth ? *global_depth : 0))
+                      .toBase();
+    }
 
     strm << prefix;
 
@@ -273,7 +276,7 @@ struct log_differential_sink
 
         std::string                    ss;
         boost::log::formatting_ostream strm(ss);
-        format_log_record_data(rec, strm, ref->data);
+        format_log_record_data(rec, strm, ref->data, factory->ignoreDepth);
 
         curr_run.push_back(*ref);
         curr_run_format.push_back(ss);
@@ -293,7 +296,7 @@ struct log_differential_sink
 
         while (i < prev.size() || j < curr_run.size()) {
             if (i < prev.size() && j < curr_run.size()) {
-                if (prev[i] == curr_run[j]) {
+                if (prev_fmt[i] == curr_run_format[j]) {
                     ofs << "  " << curr_run_format[j] << "\n";
                     i++;
                     j++;
