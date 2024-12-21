@@ -36,7 +36,7 @@ void StoryNode::Text::render(
 
     ImGui::PushStyleColor(ImGuiCol_WindowBg, conf.annotationNodeWindowBg);
     auto frameless_vars = push_frameless_window_vars();
-    ImGui::SetNextWindowPos(model.rectGraph.getPosition(id) + model.shift);
+    ImGui::SetNextWindowPos(model.graph.getPosition(id) + model.shift);
     ImGui::SetNextWindowSize(getSize());
     if (IM_FN_BEGIN(
             Begin,
@@ -70,7 +70,7 @@ void StoryNode::LinkList::render(
     StoryNodeId const&     id,
     StoryGridConfig const& conf) {
     auto frameless_vars = push_frameless_window_vars();
-    ImGui::SetNextWindowPos(model.rectGraph.getPosition(id) + model.shift);
+    ImGui::SetNextWindowPos(model.graph.getPosition(id) + model.shift);
     ImGui::SetNextWindowSize(getSize());
     if (IM_FN_BEGIN(
             Begin,
@@ -118,8 +118,8 @@ void run_story_grid_annotated_cycle(
     StoryGridModel&        model,
     StoryGridConfig const& conf) {
     __perf_trace("gui", "grid model render");
-    for (auto const& [node_id, node] : model.rectGraph.getStoryNodes()) {
-        LaneNodePos selfPos = model.rectGraph.getBlockPos(node_id).value();
+    for (auto const& [node_id, node] : model.graph.getStoryNodes()) {
+        LaneNodePos selfPos = model.graph.getBlockPos(node_id).value();
         if (node->isVisible) {
             switch (node->getKind()) {
                 case StoryNode::Kind::TreeGrid: {
@@ -139,7 +139,7 @@ void run_story_grid_annotated_cycle(
     }
 
     for (auto const& [key, edge] :
-         model.rectGraph.positionStore.lyt.layout.lines) {
+         model.graph.positionStore.lyt.layout.lines) {
         render_edge(edge, model.shift, true, conf.blockGraphConf);
     }
 }
@@ -211,11 +211,11 @@ Opt<json> story_grid_loop(
             model.updateDocument(conf);
         }
 
-        if (model.rectGraph.positionStore.debug) {
+        if (model.graph.positionStore.debug) {
             render_debug(
-                model.rectGraph.positionStore.debug.value(),
+                model.graph.positionStore.debug.value(),
                 model.shift,
-                model.rectGraph.positionStore.lyt.layout);
+                model.graph.positionStore.lyt.layout);
         }
 
         run_story_grid_cycle(model, conf);
@@ -679,7 +679,7 @@ void StoryGridGraph::BlockGraphStore::updateBlockState(
 
 void StoryGridModel::updateGridState() {
     Vec<org::graph::MapNode> docNodes;
-    for (auto const& [_, node] : rectGraph.getStoryNodes()) {
+    for (auto const& [_, node] : graph.getStoryNodes()) {
         if (node->isTreeGrid()) {
             for (TreeGridRow::Ptr const& row :
                  node->getTreeGrid().node.flatRows(true)) {
@@ -915,8 +915,8 @@ void StoryGridModel::apply(
                 history->extend_history(ast);
                 updateDocument(conf);
             } else {
-                rectGraph.updateGeometry(act.getEditCell().id);
-                rectGraph.updateNodePositions(ctx, conf);
+                graph.updateGeometry(act.getEditCell().id);
+                graph.updateNodePositions(ctx, conf);
             }
             break;
         }
@@ -928,20 +928,20 @@ void StoryGridModel::apply(
                 CTX_MSG(fmt(
                     "Updated edit node text {}", escape_literal(text)));
                 auto ast = history->replace_node(
-                    rectGraph.getStoryNode(edit.id).getText().origin,
+                    graph.getStoryNode(edit.id).getText().origin,
                     text);
                 history->extend_history(ast);
                 updateDocument(conf);
             } else {
-                rectGraph.updateGeometry(act.getEditNodeText().id);
-                rectGraph.updateNodePositions(ctx, conf);
+                graph.updateGeometry(act.getEditNodeText().id);
+                graph.updateNodePositions(ctx, conf);
             }
             break;
         }
 
         case GridAction::Kind::Scroll: {
             auto const& scroll = act.getScroll();
-            rectGraph.blockGraph.ir.addScrolling(
+            graph.blockGraph.ir.addScrolling(
                 scroll.pos,
                 -scroll.direction * conf.mouseScrollMultiplier);
             updateNodePositions(conf);
@@ -949,14 +949,14 @@ void StoryGridModel::apply(
         }
 
         case GridAction::Kind::LinkListClick: {
-            rectGraph.focusLinkListTargetRows(ctx);
+            graph.focusLinkListTargetRows(ctx);
             updateFullBlockGraph(conf);
             break;
         }
 
         case GridAction::Kind::RowFolding: {
             auto const& f    = act.getRowFolding();
-            auto&       g    = rectGraph.getStoryNode(f.id).getTreeGrid();
+            auto&       g    = graph.getStoryNode(f.id).getTreeGrid();
             auto        row  = g.node.getRow(f.flatIdx);
             auto&       map  = state.folded[f.id.getIndex()];
             auto        path = row->getOriginPath();
@@ -972,7 +972,7 @@ void StoryGridModel::apply(
 
             // folding row will change vertical offsets for the targeted
             // tree grid.
-            rectGraph.getStoryNode(f.id)
+            graph.getStoryNode(f.id)
                 .getTreeGrid()
                 .node.updatePositions();
             // Row folding will change edge connector positions in the
@@ -1128,11 +1128,11 @@ void run_story_grid_cycle(
         }
     } else {
         LOGIC_ASSERTION_CHECK(
-            !model.rectGraph.storyNodes.nodes.empty(),
+            !model.graph.storyNodes.nodes.empty(),
             "Cannot render non-annotated story grid with empty graph "
             "nodes");
         auto  id = StoryNodeId::FromValue(0);
-        auto& g  = model.rectGraph.storyNodes.nodes.at(id).getTreeGrid();
+        auto& g  = model.graph.storyNodes.nodes.at(id).getTreeGrid();
         g.render(model, id, conf);
     }
 }

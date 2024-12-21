@@ -171,7 +171,7 @@ void _Load_One_Paragraph(ImGuiTestEngine* e) {
     t->TestFunc = ImWrapTestFuncT<StoryGridVars>(
         params, [](ImGuiTestContext* ctx, StoryGridVars& vars) {
             ImVec2 wpos = getContentPos(ctx);
-            auto&  doc  = vars.model.rectGraph.getGridNodes()
+            auto&  doc  = vars.model.graph.getGridNodes()
                             .at(0)
                             ->getTreeGrid()
                             .node;
@@ -268,13 +268,13 @@ some random shit about the comments or whatever, need to render as annotation [f
         params, [](ImGuiTestContext* ctx, StoryGridVars& vars) {
             ImVec2 wpos = getContentPos(ctx);
             auto&  m    = vars.model;
-            auto&  doc  = m.rectGraph.getGridNodes()
+            auto&  doc  = m.graph.getGridNodes()
                             .at(0)
                             ->getTreeGrid()
                             .node;
-            auto&       ir    = m.rectGraph.blockGraph.ir;
+            auto&       ir    = m.graph.blockGraph.ir;
             auto const& spans = ir.getLaneSpans();
-            auto&       rg    = m.rectGraph;
+            auto&       rg    = m.graph;
             IM_CHECK_EQ(spans.size(), 4);
             IM_CHECK_EQ(ir.lanes.at(1).scrollOffset, 0);
             IM_CTX_ACT(

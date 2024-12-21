@@ -41,7 +41,7 @@ void StoryNode::TreeGrid::render(
     StoryGridConfig const& conf) {
 
     auto& ctx = model.ctx;
-    ImGui::SetNextWindowPos(model.rectGraph.getPosition(id) + model.shift);
+    ImGui::SetNextWindowPos(model.graph.getPosition(id) + model.shift);
     ImGui::SetNextWindowSize(
         getSize() + ImVec2(0, node.tableHeaderHeight));
     auto frameless_vars = push_frameless_window_vars();
@@ -75,7 +75,7 @@ void TreeGridDocument::render(
     // window obviously solves this issue, as it is positioned completely
     // independently of the content in the grid table itself.
     ImGui::SetNextWindowPos(
-        ImVec2(model.rectGraph.getPosition(id) + model.shift));
+        ImVec2(model.graph.getPosition(id) + model.shift));
     ImGui::SetNextWindowSize(ImVec2(getWidth(), 20));
     auto frameless_vars = push_frameless_window_vars();
     if (IM_FN_BEGIN(

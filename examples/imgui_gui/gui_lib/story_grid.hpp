@@ -658,8 +658,20 @@ struct StoryGridGraph {
     void updateNodeLanePlacement(
         StoryGridContext&      ctx,
         StoryGridConfig const& conf) {
+        Vec<int> offset           //
+            = blockGraph.ir.lanes //
+            | rv::transform(
+                  get_field_get(&LaneBlockStack::scrollOffset)) //
+            | rs::to<Vec>();
+
         blockGraph = BlockGraphStore::init(
             semGraph, storyNodes, ctx, conf);
+
+        for (int i = 0; i < blockGraph.ir.lanes.size(); ++i) {
+            if (offset.has(i)) {
+                blockGraph.ir.lanes.at(i).scrollOffset = offset.at(i);
+            }
+        }
     }
 
     void updateNodePositions(
@@ -849,7 +861,7 @@ struct StoryGridState {
 
 struct StoryGridModel {
     EditableOrgDocGroup* history;
-    StoryGridGraph       rectGraph;
+    StoryGridGraph       graph;
     StoryGridContext     ctx;
     ImVec2               shift{};
 
@@ -873,7 +885,7 @@ struct StoryGridModel {
     void updateDocument(const StoryGridConfig& conf) {
         STORY_GRID_MSG_SCOPE(ctx, "Update full document");
         updateDocumentGraph(conf);
-        rectGraph.updateStoryNodes(ctx, conf);
+        graph.updateStoryNodes(ctx, conf);
         updateFullBlockGraph(conf);
     }
 
@@ -886,32 +898,32 @@ struct StoryGridModel {
     }
 
     /// \brief Reset map graph and populate the semantic node/edge
-    /// connections in the `rectGraph.graph` part. Called by the
+    /// connections in the `graph.graph` part. Called by the
     /// `updateDocumentGraph`
     void updateDocumentSemanticGraph(StoryGridConfig const& conf) {
         STORY_GRID_MSG_SCOPE(ctx, "Update document semantic graph");
-        rectGraph = StoryGridGraph{};
-        auto ast  = history->getCurrentAst();
-        rectGraph.updateSemanticGraph(ast.getRootAdapter(), ctx, conf);
+        graph    = StoryGridGraph{};
+        auto ast = history->getCurrentAst();
+        graph.updateSemanticGraph(ast.getRootAdapter(), ctx, conf);
     }
 
     void updateDocumentLanePlacement(StoryGridConfig const& conf) {
         STORY_GRID_MSG_SCOPE(
             ctx, "Update document document lane placement");
-        rectGraph.updateNodeLanePlacement(ctx, conf);
+        graph.updateNodeLanePlacement(ctx, conf);
     }
 
     /// \brief Rebuild block graph, populate edges and nodes in the
-    /// `rectGraph.ir`. Called by the `updateDocumentGraph` part.
+    /// `graph.ir`. Called by the `updateDocumentGraph` part.
     void updateDocumentBlockGraph(StoryGridConfig const& conf) {
         STORY_GRID_MSG_SCOPE(ctx, "Update document block graph");
-        rectGraph.updateStoryNodes(ctx, conf);
+        graph.updateStoryNodes(ctx, conf);
         updateDocumentLanePlacement(conf);
     }
 
     void updateNodePositions(StoryGridConfig const& conf) {
         STORY_GRID_MSG_SCOPE(ctx, "Update document node positions");
-        rectGraph.updateNodePositions(ctx, conf);
+        graph.updateNodePositions(ctx, conf);
     }
 
     void updateFullBlockGraph(StoryGridConfig const& conf) {
