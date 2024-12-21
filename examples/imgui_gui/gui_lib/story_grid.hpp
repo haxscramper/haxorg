@@ -14,6 +14,7 @@
 #include <hstd/wrappers/adaptagrams_wrap/adaptagrams_ir.hpp>
 #include <gui_lib/im_org_ui_common.hpp>
 #include <gui_lib/node_grid_graph.hpp>
+#include <gui_lib/imgui_utils.hpp>
 
 struct TreeGridCell {
 
@@ -215,6 +216,7 @@ struct TreeGridDocument {
 
 DECL_ID_TYPE(StoryNode, StoryNodeId, std::size_t);
 
+struct StoryGridModel;
 struct StoryNode {
     using id_type = StoryNodeId;
     struct TreeGrid {
@@ -287,6 +289,11 @@ struct StoryNode {
         ImVec2 getSize() const {
             return ImVec2(size.x, size.y + (text.is_editing ? 40 : 0));
         }
+
+        void render(
+            StoryGridModel&        model,
+            StoryNodeId const&     id,
+            StoryGridConfig const& conf);
     };
 
     ImVec2 getSize() const {
@@ -700,14 +707,14 @@ struct GridAction {
     };
 
     struct EditNodeText {
-        LaneNodePos pos;
+        StoryNodeId id;
         std::string updated;
-        DESC_FIELDS(EditNodeText, (pos, updated));
+        DESC_FIELDS(EditNodeText, (id, updated));
     };
 
     struct EditNodeChanged {
-        LaneNodePos pos;
-        DESC_FIELDS(EditNodeChanged, (pos));
+        StoryNodeId id;
+        DESC_FIELDS(EditNodeChanged, (id));
     };
 
     struct LinkListClick {

@@ -198,30 +198,27 @@ void render_tree_row(
                     : conf.foldCellForeground_Closed);
 }
 
-void render_text_node(
+void StoryNode::Text::render(
     StoryGridModel&        model,
-    StoryNode::Text&       text,
-    LaneNodePos const&     selfPos,
+    const StoryNodeId&     id,
     StoryGridConfig const& conf) {
     auto& ctx = model.ctx;
 
-
     ImGui::PushStyleColor(ImGuiCol_WindowBg, conf.annotationNodeWindowBg);
     auto frameless_vars = push_frameless_window_vars();
-    ImGui::SetNextWindowPos(
-        model.rectGraph.getPosition(selfPos) + model.shift);
-    ImGui::SetNextWindowSize(text.getSize());
+    ImGui::SetNextWindowPos(model.rectGraph.getPosition(id) + model.shift);
+    ImGui::SetNextWindowSize(getSize());
     if (IM_FN_BEGIN(
             Begin,
-            c_fmt("##text_node_window_{}", selfPos.getImId()),
+            c_fmt("##text_node_window_{}", id),
             nullptr,
             ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize)) {
         ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
 
-        auto res = text.text.render(
-            text.getSize(),
+        auto res = text.render(
+            getSize(),
             EditableOrgText::Mode::Multiline,
-            fmt("text_node_{}", selfPos.getImId()));
+            fmt("text_node_{}", id));
 
         if (res != EditableOrgText::Result::None) {
             CTX_MSG(fmt("Text edit result {}", res));
@@ -230,8 +227,8 @@ void render_text_node(
         switch (res) {
             case EditableOrgText::Result::Changed: {
                 ctx.action(GridAction::EditNodeText{
-                    .pos     = selfPos,
-                    .updated = text.text.value,
+                    .id      = id,
+                    .updated = text.value,
                 });
                 [[fallthrough]];
             }
@@ -239,7 +236,7 @@ void render_text_node(
                 [[fallthrough]];
             case EditableOrgText::Result::StartedEditing: {
                 ctx.action(GridAction::EditNodeChanged{
-                    .pos = selfPos,
+                    .id = id,
                 });
                 break;
             }
@@ -414,8 +411,7 @@ void run_story_grid_annotated_cycle(
                     break;
                 }
                 case StoryNode::Kind::Text: {
-                    render_text_node(
-                        model, node->getText(), selfPos, conf);
+                    node->getText().render(model, node_id, conf);
                     break;
                 }
                 case StoryNode::Kind::LinkList: {
@@ -1280,7 +1276,7 @@ void StoryGridModel::apply(
                 fmt("Updated edit node text {}",
                     escape_literal(edit.updated)));
             replaceNode(
-                rectGraph.getStoryNode(edit.pos).getText().origin,
+                rectGraph.getStoryNode(edit.id).getText().origin,
                 as_sem_list(sem::parseString(edit.updated)));
             updateDocument(conf);
             break;
