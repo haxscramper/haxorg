@@ -928,8 +928,7 @@ void StoryGridModel::apply(
                 CTX_MSG(fmt(
                     "Updated edit node text {}", escape_literal(text)));
                 auto ast = history->replace_node(
-                    graph.getStoryNode(edit.id).getText().origin,
-                    text);
+                    graph.getStoryNode(edit.id).getText().origin, text);
                 history->extend_history(ast);
                 updateDocument(conf);
             } else {
@@ -972,9 +971,7 @@ void StoryGridModel::apply(
 
             // folding row will change vertical offsets for the targeted
             // tree grid.
-            graph.getStoryNode(f.id)
-                .getTreeGrid()
-                .node.updatePositions();
+            graph.getStoryNode(f.id).getTreeGrid().node.updatePositions();
             // Row folding will change edge connector positions in the
             // block graph. Changed edge connectors mean the whole document
             // layout needs to be updated.
@@ -1393,8 +1390,10 @@ StoryGridGraph::NodePositionStore StoryGridGraph::NodePositionStore::init(
     for (LaneBlockLayout::RectSpec const& rect :
          res.lyt.getRectangles(blockGraph.ir)) {
         CTX_MSG(fmt("Node position {}", rect));
-        res.nodePositions.insert_or_assign(
-            blockGraph.toStory(rect.blockId), rect.pos);
+        if (rect.isVisible) {
+            res.nodePositions.insert_or_assign(
+                blockGraph.toStory(rect.blockId), rect.pos);
+        }
     }
 
     res.debug = res.lyt.getConstraintDebug();
