@@ -71,11 +71,13 @@ struct EditableOrgTextEntry {
         return result;
     }
 
-    std::string getFinalValue() const { return text.getFinalValue(); }
+    std::string     getFinalValue() const { return text.getFinalValue(); }
+    org::ImmAdapter getOrigin() const { return text.origin; }
 
     int    getHeight() const;
     int    getWidth() const { return assignedWidth; }
     ImVec2 getSize() const { return ImVec2(getWidth(), getHeight()); }
+    bool   isEditing() const { return text.is_editing; }
 
     void setWidth(int width) {
         assignedWidth = width;

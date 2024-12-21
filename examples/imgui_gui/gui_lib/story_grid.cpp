@@ -28,176 +28,6 @@
     ::org_logging::log_builder{}.set_callsite().category(__cat).severity( \
         __severity)
 
-
-EditableOrgText::Result render_editable_cell(
-    TreeGridCell&         cell,
-    StoryGridContext&     ctx,
-    TreeGridColumn const& col,
-    std::string const&    id) {
-    auto& val = cell.getValue();
-    return val.value.render(cell.getSize(), col.edit, id);
-}
-
-
-void render_cell(
-    TreeGridRow::Ptr      row,
-    TreeGridCell&         cell,
-    StoryGridContext&     ctx,
-    TreeGridColumn const& col,
-    ImVec2 const&         pos,
-    StoryNodeId           documentNodeIdx) {
-
-    IM_FN_PRINT("Cell", fmt("pos:{} size:{}", pos, cell.getSize()));
-    auto frameless_vars = push_frameless_window_vars();
-    ImGui::SetNextWindowPos(pos);
-    if (IM_FN_BEGIN(
-            BeginChild,
-            c_fmt("cell_{}_{}", row->flatIdx, col.name),
-            cell.getSize(),
-            ImGuiChildFlags_Borders,
-            ImGuiWindowFlags_NoScrollbar)) {
-        auto res = render_editable_cell(
-            cell,
-            ctx,
-            col,
-            fmt("cell_{}_{}_{}", documentNodeIdx, row->flatIdx, col.name));
-        switch (res) {
-            case EditableOrgText::Result::Changed: {
-                ctx.action(GridAction::EditCell{
-                    .cell    = cell,
-                    .updated = cell.getValue().value.getFinalValue(),
-                });
-                [[fallthrough]];
-            }
-            case EditableOrgText::Result::CancelledEditing:
-                [[fallthrough]];
-            case EditableOrgText::Result::StartedEditing: {
-                ctx.action(GridAction::EditCellChanged{
-                    .cell            = cell,
-                    .documentNodeIdx = documentNodeIdx,
-                });
-                break;
-            }
-            default: {
-            };
-        }
-    }
-
-    IM_FN_END(EndChild);
-    ImGui::PopStyleVar(frameless_vars);
-}
-
-void render_tree_columns(
-    TreeGridRow::Ptr  row,
-    TreeGridDocument& doc,
-    StoryGridContext& ctx,
-    StoryNodeId       documentNodeIdx,
-    ImVec2 const&     gridStart) {
-    auto __scope = ctx.scopeLevel();
-    int  colIdx  = 1;
-    for (auto const& col : doc.columns) {
-        if (row->columns.contains(col.name)) {
-            auto __scope = ctx.scopeLevel();
-            render_cell(
-                row,
-                row->columns.at(col.name),
-                ctx,
-                col,
-                gridStart + doc.getCellPos(row->flatIdx, col.name),
-                documentNodeIdx);
-        }
-        ++colIdx;
-    }
-}
-
-void render_tree_row(
-    TreeGridRow::Ptr       row,
-    TreeGridDocument&      doc,
-    StoryGridContext&      ctx,
-    StoryGridConfig const& conf,
-    StoryNodeId            documentNodeIdx,
-    ImVec2 const&          gridStart) {
-    // row is completely invisible, including its nested sub-rows
-    if (!row->isVisible) { return; }
-    bool skipped = false;
-    auto __scope = ctx.scopeLevel();
-
-    if (skipped && row->nested.empty()) { return; };
-
-    auto __im_scope = IM_SCOPE_BEGIN(
-        "Tree row", fmt("row [{}]", row->flatIdx));
-
-    if (!row->nested.empty()) {
-        render_tree_columns(row, doc, ctx, documentNodeIdx, gridStart);
-        if (row->isOpen) {
-            for (auto& sub : row->nested) {
-                render_tree_row(
-                    sub, doc, ctx, conf, documentNodeIdx, gridStart);
-            }
-        }
-    } else if (!skipped) {
-        render_tree_columns(row, doc, ctx, documentNodeIdx, gridStart);
-    }
-
-    ImRect cell_rect = ImRect(
-        gridStart + ImVec2(0, doc.getRowYPos(row)),
-        gridStart
-            + ImVec2(
-                doc.treeFoldWidth,
-                doc.getRowYPos(row) + row->getHeight().value_or(0)));
-
-    if (cell_rect.Contains(ImGui::GetMousePos())) {
-        if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-            ImGui::OpenPopup(fmt("ctx_{}", row->origin.id).c_str());
-        }
-    }
-
-    if (ImGui::BeginPopup(fmt("ctx_{}", row->origin.id).c_str())) {
-        if (ImGui::MenuItem("Copy")) {
-            if (row->origin->treeId.get().has_value()) {
-                ImGui::SetClipboardText(
-                    row->origin->treeId->value().c_str());
-            }
-        }
-        ImGui::EndPopup();
-    }
-
-    ImVec2 cell_max  = cell_rect.Max;
-    ImVec2 rect_size = ImVec2(
-        std::ceil(
-            ((6 - row->origin->level) / 6.0f)
-            * (cell_rect.Max.x - cell_rect.Min.x)),
-        cell_rect.Max.y - cell_rect.Min.y);
-    float  pad      = 2.0f;
-    ImVec2 rect_min = cell_max - rect_size + ImVec2(pad, pad);
-    ImVec2 rect_max = cell_max - ImVec2(pad, pad);
-
-    if (ImGui::IsMouseHoveringRect(cell_rect.Min, cell_rect.Max)) {
-        ImGui::GetWindowDrawList()->AddRect(
-            rect_min,
-            rect_max,
-            row->isOpen ? conf.foldCellHoverBackground_Open
-                        : conf.foldCellHoverBackground_Closed,
-            0.0f,
-            0,
-            1.0f);
-        if (ImGui::IsMouseClicked(0)) {
-            row->isOpen = !row->isOpen;
-            ctx.action(GridAction::RowFolding{
-                .isOpen          = row->isOpen,
-                .flatIdx         = row->flatIdx,
-                .documentNodeIdx = documentNodeIdx,
-            });
-        }
-    }
-
-    ImGui::GetWindowDrawList()->AddRectFilled(
-        rect_min,
-        rect_max,
-        row->isOpen ? conf.foldCellForeground_Open
-                    : conf.foldCellForeground_Closed);
-}
-
 void StoryNode::Text::render(
     StoryGridModel&        model,
     const StoryNodeId&     id,
@@ -302,96 +132,6 @@ void render_list_node(
     ImGui::PopStyleVar(frameless_vars);
 }
 
-void render_table(
-    StoryGridModel&        model,
-    StoryNode::TreeGrid&   grid,
-    StoryGridConfig const& conf,
-    StoryNodeId            documentNodeIdx,
-    LaneNodePos const&     selfPos) {
-    auto& doc       = grid.node;
-    auto& ctx       = model.ctx;
-    auto  gridStart = ImGui::GetCursorScreenPos();
-    auto  gridSize  = doc.getSize();
-
-    // Table for the story grid node is drawn as a small floating window
-    // that is overlaid exactly on top of the existing bar. I have no
-    // fucking idea how to make the table header stick while scrolling
-    // (yes, I saw the github replies etc., they don't work). Floating
-    // window obviously solves this issue, as it is positioned completely
-    // independently of the content in the grid table itself.
-    ImGui::SetNextWindowPos(
-        ImVec2(model.rectGraph.getPosition(selfPos) + model.shift));
-    ImGui::SetNextWindowSize(ImVec2(grid.node.getWidth(), 20));
-    auto frameless_vars = push_frameless_window_vars();
-    if (IM_FN_BEGIN(
-            Begin,
-            "HeaderOverlay",
-            nullptr,
-            ImGuiWindowFlags_NoDecoration
-                | ImGuiWindowFlags_AlwaysAutoResize
-                | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize
-                | ImGuiWindowFlags_NoScrollbar
-                | ImGuiWindowFlags_NoScrollWithMouse)) {
-        ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
-        for (auto const& [idx, col] : enumerate(doc.columns)) {
-            ImGui::GetWindowDrawList()->AddText(
-                gridStart + ImVec2(doc.colPositions.at(idx), 0),
-                IM_COL32(255, 255, 255, 255),
-                col.name.data(),
-                col.name.data() + col.name.size());
-        }
-
-        IM_FN_END(End);
-    }
-    ImGui::PopStyleVar(frameless_vars);
-
-    // render_debug_rect(ImRect(gridStart, gridStart + gridSize));
-    ImGui::SetNextWindowPos(gridStart);
-    if (IM_FN_BEGIN(
-            BeginChild,
-            "table_ch",
-            gridSize,
-            ImGuiChildFlags_Borders,
-            ImGuiWindowFlags_NoScrollbar
-                | ImGuiWindowFlags_NoBackground)) {
-        for (auto& sub : doc.rows) {
-            render_tree_row(
-                sub, doc, ctx, conf, documentNodeIdx, gridStart);
-        }
-    }
-    IM_FN_END(EndChild);
-}
-
-void render_table_node(
-    StoryGridModel&        model,
-    StoryNode::TreeGrid&   grid,
-    StoryGridConfig const& conf,
-    StoryNodeId            documentNodeIdx,
-    LaneNodePos const&     selfPos) {
-
-    auto& ctx = model.ctx;
-    auto& doc = grid.node;
-
-    ImGui::SetNextWindowPos(
-        model.rectGraph.getPosition(selfPos) + model.shift);
-    ImGui::SetNextWindowSize(
-        grid.node.getSize() + ImVec2(0, doc.tableHeaderHeight));
-    auto frameless_vars = push_frameless_window_vars();
-    // Table is drawn in a separate window so it could have the widgets
-    // inside, but otherwise is positioned completely independently on the
-    // screen.
-    if (IM_FN_BEGIN(
-            Begin,
-            "Standalone Table Window",
-            nullptr,
-            ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize)) {
-        ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
-        render_table(model, grid, conf, documentNodeIdx, selfPos);
-
-        IM_FN_END(End);
-    }
-    ImGui::PopStyleVar(frameless_vars);
-}
 
 void run_story_grid_annotated_cycle(
     StoryGridModel&        model,
@@ -402,12 +142,7 @@ void run_story_grid_annotated_cycle(
         if (node->isVisible) {
             switch (node->getKind()) {
                 case StoryNode::Kind::TreeGrid: {
-                    render_table_node(
-                        model,
-                        node->getTreeGrid(),
-                        conf,
-                        node_id,
-                        selfPos);
+                    node->getTreeGrid().render(model, node_id, conf);
                     break;
                 }
                 case StoryNode::Kind::Text: {
@@ -593,10 +328,8 @@ TreeGridCell build_editable_cell(
     StoryGridContext&     ctx) {
     TreeGridCell result{TreeGridCell::Value{}};
     auto&        v = result.getValue();
-    v.value        = EditableOrgText::from_adapter(adapter);
-    v.origin       = adapter;
-    result.width   = col.width;
-    result.height  = v.value.get_expected_height(col.width, col.edit);
+    v.value        = EditableOrgTextEntry::from_adapter(
+        adapter, col.width, col.edit);
     return result;
 }
 
@@ -1264,8 +997,7 @@ void StoryGridModel::apply(
         case GridAction::Kind::EditCell: {
             auto edit = act.getEditCell();
             replaceNode(
-                edit.cell.getValue().origin,
-                as_sem_list(sem::parseString(edit.updated)));
+                edit.origin, as_sem_list(sem::parseString(edit.updated)));
             updateDocument(conf);
             break;
         }
@@ -1283,8 +1015,7 @@ void StoryGridModel::apply(
         }
 
         case GridAction::Kind::EditCellChanged: {
-            rectGraph.updateGeometry(
-                act.getEditCellChanged().documentNodeIdx);
+            rectGraph.updateGeometry(act.getEditCellChanged().id);
             break;
         }
 
@@ -1309,12 +1040,11 @@ void StoryGridModel::apply(
         }
 
         case GridAction::Kind::RowFolding: {
-            auto const& f = act.getRowFolding();
-            auto&       g = rectGraph.getStoryNode(f.documentNodeIdx)
-                          .getTreeGrid();
-            auto  row  = g.node.getRow(f.flatIdx);
-            auto& map  = state.folded[f.documentNodeIdx.getIndex()];
-            auto  path = row->getOriginPath();
+            auto const& f    = act.getRowFolding();
+            auto&       g    = rectGraph.getStoryNode(f.id).getTreeGrid();
+            auto        row  = g.node.getRow(f.flatIdx);
+            auto&       map  = state.folded[f.id.getIndex()];
+            auto        path = row->getOriginPath();
             if (map.contains(path)) {
                 if (f.isOpen) {
                     map.erase(path);
@@ -1327,7 +1057,7 @@ void StoryGridModel::apply(
 
             // folding row will change vertical offsets for the targeted
             // tree grid.
-            rectGraph.getStoryNode(f.documentNodeIdx)
+            rectGraph.getStoryNode(f.id)
                 .getTreeGrid()
                 .node.updatePositions();
             // Row folding will change edge connector positions in the
@@ -1375,7 +1105,7 @@ int TreeGridRow::getHeightDirect(int padding) const {
     return rs::max(
                own_view(columns.keys())
                | rv::transform([&](Str const& col) -> int {
-                     return columns.at(col).getHeight();
+                     return columns.at(col).getSize().y;
                  }))
          + padding;
 }
@@ -1488,7 +1218,7 @@ void run_story_grid_cycle(
             "nodes");
         auto  id = StoryNodeId::FromValue(0);
         auto& g  = model.rectGraph.storyNodes.nodes.at(id).getTreeGrid();
-        render_table(model, g, conf, id, LaneNodePos{0, 0});
+        g.render(model, id, conf);
     }
 }
 

@@ -16,34 +16,49 @@
 #include <gui_lib/node_grid_graph.hpp>
 #include <gui_lib/imgui_utils.hpp>
 
+DECL_ID_TYPE(StoryNode, StoryNodeId, std::size_t);
+struct StoryGridConfig;
+struct StoryGridContext;
+struct StoryGridModel;
+struct TreeGridDocument;
+
 struct TreeGridCell {
 
     struct None {
-        DESC_FIELDS(None, ());
+        DESC_FIELDS(None, (size));
+        ImVec2 size;
     };
 
     struct Value {
-        EditableOrgText value;
-        org::ImmAdapter origin = org::ImmAdapter{};
-        DESC_FIELDS(Value, (value, origin));
+        EditableOrgTextEntry value;
+        DESC_FIELDS(Value, (value));
         std::string getFinalValue() { return value.getFinalValue(); }
     };
 
     SUB_VARIANTS(Kind, Data, data, getKind, None, Value);
-    DESC_FIELDS(TreeGridCell, (height, width, data));
-
+    DESC_FIELDS(TreeGridCell, (data));
 
     Data data;
-    int  height;
-    int  width;
-
 
     bool isEditing() const {
-        return isValue() && getValue().value.is_editing;
+        return isValue() && getValue().value.isEditing();
     }
-    int    getHeight() const { return height + (isEditing() ? 40 : 0); }
-    ImVec2 getSize() const { return ImVec2(width, getHeight()); }
+
+    ImVec2 getSize() const {
+        return isNone() ? getNone().size : getValue().value.getSize();
+    }
+
     std::string getFinalTextValue() { return getValue().getFinalValue(); }
+    org::ImmAdapter getOrigin() const {
+        return getValue().value.getOrigin();
+    }
+
+    void render(
+        StoryGridModel&        model,
+        StoryNodeId const&     id,
+        StoryGridConfig const& conf,
+        ImVec2 const&          start,
+        std::string const&     im_tag);
 };
 
 struct TreeGridColumn {
@@ -107,10 +122,16 @@ struct TreeGridRow : SharedPtrApi<TreeGridRow> {
             return nested.back()->getLastLeaf();
         }
     }
+
+    void render(
+        TreeGridDocument*      doc,
+        StoryGridModel&        model,
+        StoryNodeId const&     id,
+        StoryGridConfig const& conf,
+        ImVec2 const&          start);
 };
 
-struct StoryGridConfig;
-struct StoryGridContext;
+
 struct TreeGridDocument {
     Vec<TreeGridRow::Ptr> rows;
     Vec<TreeGridColumn>   columns;
@@ -211,10 +232,14 @@ struct TreeGridDocument {
         const StoryGridConfig& conf,
         StoryGridContext&      ctx);
 
+    void render(
+        StoryGridModel&        model,
+        StoryNodeId const&     id,
+        StoryGridConfig const& conf);
+
     DESC_FIELDS(TreeGridDocument, (rows, rowPositions, columns));
 };
 
-DECL_ID_TYPE(StoryNode, StoryNodeId, std::size_t);
 
 struct StoryGridModel;
 struct StoryNode {
@@ -223,6 +248,11 @@ struct StoryNode {
         TreeGridDocument node;
         DESC_FIELDS(TreeGrid, (node));
         ImVec2 getSize() const { return node.getSize(); }
+
+        void render(
+            StoryGridModel&        model,
+            StoryNodeId const&     id,
+            StoryGridConfig const& conf);
     };
 
     struct LinkList {
@@ -689,9 +719,9 @@ struct StoryGridGraph {
 
 struct GridAction {
     struct EditCell {
-        TreeGridCell cell;
-        std::string  updated;
-        DESC_FIELDS(EditCell, (cell, updated));
+        org::ImmAdapter origin;
+        std::string     updated;
+        DESC_FIELDS(EditCell, (origin, updated));
     };
 
     struct Scroll {
@@ -701,9 +731,9 @@ struct GridAction {
     };
 
     struct EditCellChanged {
-        TreeGridCell cell;
-        StoryNodeId  documentNodeIdx;
-        DESC_FIELDS(EditCellChanged, (cell, documentNodeIdx));
+        org::ImmAdapter origin;
+        StoryNodeId     id;
+        DESC_FIELDS(EditCellChanged, (origin, id));
     };
 
     struct EditNodeText {
@@ -724,8 +754,8 @@ struct GridAction {
     struct RowFolding {
         bool        isOpen;
         int         flatIdx;
-        StoryNodeId documentNodeIdx;
-        DESC_FIELDS(RowFolding, (isOpen, flatIdx, documentNodeIdx));
+        StoryNodeId id;
+        DESC_FIELDS(RowFolding, (isOpen, flatIdx, id));
     };
 
     SUB_VARIANTS(
