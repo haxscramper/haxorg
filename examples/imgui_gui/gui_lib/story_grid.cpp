@@ -168,11 +168,10 @@ Opt<json> story_grid_loop(
 
     sem::SemId<sem::Org> node;
 
-    StoryGridModel model;
-    auto           start = org::ImmAstContext::init_start_context();
-    model.history.push_back(StoryGridHistory{
-        .ast = start->init(sem::parseString(readFile(file))),
-    });
+    auto                start = org::ImmAstContext::init_start_context();
+    EditableOrgDocGroup history{start};
+    StoryGridModel      model{&history};
+    model.history->init_root(sem::parseString(readFile(file)));
 
     model.ctx.setTraceFile("/tmp/story_grid_trace.log");
     if (in_state) {
@@ -197,10 +196,7 @@ Opt<json> story_grid_loop(
         int inotify_change = read(inotify_fd, &buffer[0], buffer.size());
         if (0 < inotify_change) {
             LOG(INFO) << "File change, reloading the model";
-            model.history.clear();
-            model.history.push_back(StoryGridHistory{
-                .ast = start->init(sem::parseString(readFile(file))),
-            });
+            model.history->reset_with(sem::parseString(readFile(file)));
             model.updateDocument(conf);
         }
 
@@ -901,70 +897,6 @@ void StoryGridModel::apply(
         ::org_logging::log_differential_sink_factory{
             "/tmp/story_grid_model_apply.diff"});
 
-    auto replaceNode = [&](org::ImmAdapter const&    origin,
-                           Vec<sem::SemId<sem::Org>> replace) {
-        org::ImmAstVersion vNext = getLastHistory().ast.getEditVersion(
-            [&](org::ImmAstContext::Ptr ast,
-                org::ImmAstEditContext& ast_ctx)
-                -> org::ImmAstReplaceGroup {
-                org::ImmAstReplaceGroup result;
-
-                if (replace.size() == 1) {
-                    result.incl(org::replaceNode(
-                        origin,
-                        ast->add(replace.at(0), ast_ctx),
-                        ast_ctx));
-                } else {
-                    auto parent = origin.getParent().value();
-                    LOGIC_ASSERTION_CHECK(
-                        parent.isDirectParentOf(origin),
-                        "Origin node is {}, computed parent is {}",
-                        origin,
-                        parent);
-
-                    int index = origin.getSelfIndex();
-
-
-                    LOGIC_ASSERTION_CHECK(
-                        index != -1,
-                        "Failed to compute self-index for origin node {}",
-                        origin);
-
-
-                    Vec<org::ImmId> new_nodes;
-
-                    for (int i = 0; i < index; ++i) {
-                        new_nodes.push_back(parent.at(i).id);
-                    }
-
-                    for (auto const& it : replace) {
-                        new_nodes.push_back(ast->add(it, ast_ctx));
-                    }
-
-                    for (int i = index + 1; i < parent.size(); ++i) {
-                        new_nodes.push_back(parent.at(i).id);
-                    }
-
-                    CTX_MSG(
-                        fmt("Replacing parent subnodes {} with {}, origin "
-                            "node had index {}",
-                            parent->subnodes,
-                            new_nodes,
-                            index));
-
-                    result.incl(org::setSubnodes(
-                        parent,
-                        {new_nodes.begin(), new_nodes.end()},
-                        ast_ctx));
-                }
-
-
-                return result;
-            });
-        history.push_back(StoryGridHistory{
-            .ast = vNext,
-        });
-    };
 
     auto as_sem_list = [](sem::OrgArg doc) -> Vec<sem::SemId<sem::Org>> {
         if (doc->is(OrgSemKind::Document)) {
@@ -978,9 +910,9 @@ void StoryGridModel::apply(
         case GridAction::Kind::EditCell: {
             auto edit = act.getEditCell().edit;
             if (edit.isChanged()) {
-                replaceNode(
-                    edit.origin,
-                    as_sem_list(sem::parseString(edit.value.value())));
+                auto ast = history->replace_node(
+                    edit.origin, edit.value.value());
+                history->extend_history(ast);
                 updateDocument(conf);
             } else {
                 rectGraph.updateGeometry(act.getEditCell().id);
@@ -995,9 +927,10 @@ void StoryGridModel::apply(
                 auto text = edit.edit.value.value();
                 CTX_MSG(fmt(
                     "Updated edit node text {}", escape_literal(text)));
-                replaceNode(
+                auto ast = history->replace_node(
                     rectGraph.getStoryNode(edit.id).getText().origin,
-                    as_sem_list(sem::parseString(text)));
+                    text);
+                history->extend_history(ast);
                 updateDocument(conf);
             } else {
                 rectGraph.updateGeometry(act.getEditNodeText().id);

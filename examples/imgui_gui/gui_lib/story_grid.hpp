@@ -848,15 +848,16 @@ struct StoryGridState {
 
 
 struct StoryGridModel {
-    Vec<StoryGridHistory> history;
-    StoryGridGraph        rectGraph;
-    StoryGridContext      ctx;
-    ImVec2                shift{};
+    EditableOrgDocGroup* history;
+    StoryGridGraph       rectGraph;
+    StoryGridContext     ctx;
+    ImVec2               shift{};
+
+    StoryGridModel(EditableOrgDocGroup* h) : history{h} {}
+
     /// \brief Root of the tree grid document in the `rectGraph.nodes`.
     int            docNodeIndex = 0;
     StoryGridState state;
-
-    StoryGridHistory& getLastHistory() { return history.back(); }
     void apply(GridAction const& act, StoryGridConfig const& style);
 
     void updateGridState();
@@ -890,7 +891,7 @@ struct StoryGridModel {
     void updateDocumentSemanticGraph(StoryGridConfig const& conf) {
         STORY_GRID_MSG_SCOPE(ctx, "Update document semantic graph");
         rectGraph = StoryGridGraph{};
-        auto& ast = getLastHistory().ast;
+        auto ast  = history->getCurrentAst();
         rectGraph.updateSemanticGraph(ast.getRootAdapter(), ctx, conf);
     }
 

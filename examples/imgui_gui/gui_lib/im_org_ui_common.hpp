@@ -130,6 +130,10 @@ struct EditableOrgDocGroup {
         add_history(History{org::ImmAstVersion{.context = ctx}});
     }
 
+    int reset_with(sem::SemId<sem::Org> const& id) {
+        history.clear();
+        return init_root(id);
+    }
     int init_root(sem::SemId<sem::Org> const& id);
 
     void add_history(History const& h) { history.push_back(h); }

@@ -36,24 +36,26 @@ struct JsonSerde<ReflPathItem<Tag>> {
 };
 
 struct StoryGridVars : public ImTestVarsBase {
-    StoryGridModel                   model;
     org::ImmAstContext::Ptr          start;
+    EditableOrgDocGroup              history;
+    StoryGridModel                   model;
     StoryGridConfig                  conf;
     Vec<org_logging::log_sink_scope> debug_scopes;
 
-    StoryGridVars() : start{org::ImmAstContext::init_start_context()} {}
+    StoryGridVars()
+        : start{org::ImmAstContext::init_start_context()}
+        , history{start}
+        , model{&history} {}
 
     void add_text(std::string const& text) {
-        model.history.push_back(StoryGridHistory{
-            .ast = start->init(sem::parseString(text)),
-        });
+        model.history->init_root(sem::parseString(text));
         model.updateDocument(conf);
     }
 
     Str get_text() {
         auto sem = org::sem_from_immer(
-            model.getLastHistory().ast.getRootAdapter().id,
-            *model.getLastHistory().ast.context.get());
+            model.history->getCurrentAst().getRootAdapter().id,
+            *model.history->getCurrentAst().context.get());
         return sem::Formatter::format(sem);
     }
 
