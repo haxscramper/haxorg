@@ -472,6 +472,13 @@ ColaConstraintDebug LaneBlockLayout::getConstraintDebug() const {
         };
     };
 
+    for (auto const& [rect_idx, rect] : enumerate(layout.fixed)) {
+        res.constraints.push_back(C{C::RectPosition{
+            .pos  = ImVec2(rect.left, rect.top),
+            .rect = rect_idx,
+        }});
+    }
+
 
     for (auto const& c : ir.nodeConstraints) {
         switch (c.getKind()) {
@@ -604,6 +611,11 @@ void render_debug(
                 render_align_line(s.left);
                 render_align_line(s.right);
                 render_offset(s.offset, separateOffsetColor);
+                break;
+            }
+            case C::Kind::RectPosition: {
+                auto const& r = c.getRectPosition();
+                text(r.pos, fmt("[{}] {}", r.rect, r.pos));
                 break;
             }
         }

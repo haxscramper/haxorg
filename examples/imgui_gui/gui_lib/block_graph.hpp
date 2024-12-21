@@ -159,6 +159,12 @@ struct ColaConstraintDebug {
             DESC_FIELDS(Offset, (offset, start));
         };
 
+        struct RectPosition {
+            ImVec2 pos;
+            int    rect;
+            DESC_FIELDS(RectPosition, (pos, rect));
+        };
+
         struct Align {
             Point       start;
             Point       end;
@@ -174,7 +180,14 @@ struct ColaConstraintDebug {
             DESC_FIELDS(Separate, (left, right, offset));
         };
 
-        SUB_VARIANTS(Kind, Data, data, getKind, Align, Separate);
+        SUB_VARIANTS(
+            Kind,
+            Data,
+            data,
+            getKind,
+            Align,
+            Separate,
+            RectPosition);
         Data data;
         DESC_FIELDS(Constraint, (data));
     };
