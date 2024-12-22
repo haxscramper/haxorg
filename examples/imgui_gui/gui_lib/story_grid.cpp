@@ -408,29 +408,31 @@ void StoryGridGraph::BlockGraphStore::setPartition(
             ctx,
             fmt("Partition {} has {} items", group_idx, group.size()));
         for (auto const& [node_idx, node] : enumerate(group)) {
-            org::ImmUniqId source_adapter = node.source.id;
-            org::ImmUniqId source_root = semGraph.getRoot(node.source.id);
-            StoryNodeId    source_id //
+            org::ImmUniqId source_adapter = node.getSource().id;
+            org::ImmUniqId source_root    = semGraph.getRoot(
+                node.getSource().id);
+            StoryNodeId source_id //
                 = storyNodes.getStoryNodeId(source_root).value();
             LaneNodePos source_node //
-                = addToLaneCached(node.sourceLane, source_id);
+                = addToLaneCached(node.getSourceLane(), source_id);
 
             // Annotation only has a source block, but no outgoing target
             // nodes.
             if (!node.target.has_value()) { continue; }
 
-            org::ImmUniqId target_adapter = node.target->id;
-            org::ImmUniqId target_root = semGraph.getRoot(node.target->id);
-            StoryNodeId    target_id //
+            org::ImmUniqId target_adapter = node.getTarget()->id;
+            org::ImmUniqId target_root    = semGraph.getRoot(
+                node.getTarget()->id);
+            StoryNodeId target_id //
                 = storyNodes.getStoryNodeId(target_root).value();
 
             LaneNodePos target_node //
-                = addToLaneCached(node.targetLane.value(), target_id);
+                = addToLaneCached(node.getTargetLane().value(), target_id);
 
             CTX_MSG(
                 fmt("Partition node [{}][{}] source:{}->{} target:{}->{} "
                     "is placed as nodes source:{} target:{}",
-                    node.sourceLane,
+                    node.getSourceLane(),
                     node_idx,
                     source_adapter.id,
                     source_root.id,
@@ -693,10 +695,11 @@ Vec<Vec<StoryGridAnnotation>> StoryGridGraph::FlatNodeStore::getPartition(
         !initial_nodes.empty(),
         "Cannot partition graph with no initial nodes");
 
+    using SAG = StoryGridAnnotation;
     // Graph partition uses nodes found by the sem graph, without
     // converting to the parent nodes. This way `setPartition` can compute
     // specific offsets for tree and list item rows.
-    Vec<Vec<StoryGridAnnotation>> result;
+    Vec<Vec<SAG>> result;
 
 
     // Construct partition mapping using simple DFS pre-visit traversal.
@@ -708,17 +711,14 @@ Vec<Vec<StoryGridAnnotation>> StoryGridGraph::FlatNodeStore::getPartition(
 
     // auto get_final_lane = [&](){};
 
-    auto add_annotation = [&](int                 distance,
-                              StoryGridAnnotation annotation) {
+    auto add_annotation = [&](int distance, SAG annotation) {
         int idx = result.resize_at(distance).push_back_idx(annotation);
         CTX_MSG(
-            fmt("Set [{}][{}] = [{}] -> [{}] {}->{}",
+            fmt("Set [{}][{}] = {}->{}",
                 distance,
                 idx,
-                annotation.sourceLane,
-                annotation.targetLane,
-                annotation.source.id.id,
-                annotation.target.value_or(MapNode{}).id.id));
+                annotation.source,
+                annotation.target));
     };
 
     dfsPartition = [&](MapNode const& current, int distance) {
@@ -734,15 +734,15 @@ Vec<Vec<StoryGridAnnotation>> StoryGridGraph::FlatNodeStore::getPartition(
             visited.incl(current);
             bool addedCurrent = false;
             for (MapNode const& adj : semGraph.graph.outNodes(current)) {
+                SAG an{
+                    .source = SAG::
+                        Placement{.lane = distance, .node = current.id},
+                    .target = SAG::
+                        Placement{.lane = distance + 1, .node = adj.id},
+                };
+
                 if (!visited.contains(adj)) {
-                    add_annotation(
-                        distance,
-                        StoryGridAnnotation{
-                            .sourceLane = distance,
-                            .targetLane = distance + 1,
-                            .source     = current.id,
-                            .target     = adj.id,
-                        });
+                    add_annotation(distance, an);
                     addedCurrent = true;
                 }
                 dfsPartition(adj, distance + 1);
@@ -750,32 +750,34 @@ Vec<Vec<StoryGridAnnotation>> StoryGridGraph::FlatNodeStore::getPartition(
 
             for (MapNode const& adj : semGraph.graph.inNodes(current)) {
                 if (!visited.contains(adj)) {
-                    add_annotation(
-                        distance,
-                        StoryGridAnnotation{
-                            .sourceLane = distance,
-                            // If the distnace is equal to 0, it means DFS
-                            // is currently visiting one of the initial
-                            // nodes. Initial nodes are always placed as
-                            // the leftmost items, so `distance + 1` is the
-                            // corner to ensure correct placement.
-                            .targetLane = distance <= 1 ? distance + 1
-                                                        : distance - 1,
-                            .source     = adj.id,
-                            .target     = current.id,
-                        });
+                    SAG an{};
+                    an.source = SAG::Placement{
+                        // If the distnace is equal to 0, it means
+                        // DFS is currently visiting one of the
+                        // initial nodes. Initial nodes are always
+                        // placed as the leftmost items, so
+                        // `distance + 1` is the corner to ensure
+                        // correct placement.
+                        .lane = distance <= 1 ? distance + 1
+                                              : distance - 1,
+                        .node = current.id};
+                    an.target = SAG::Placement{
+                        .lane = distance, .node = adj.id};
+
+                    add_annotation(distance, an);
                     addedCurrent = true;
                 }
                 dfsPartition(adj, distance + 1);
             }
 
-            // if the current node does not have any outgoing elements it
-            // still must be added to the graph.
+            // if the current node does not have any outgoing elements
+            // it still must be added to the graph.
             if (!addedCurrent) {
-                result.resize_at(distance).push_back(StoryGridAnnotation{
-                    .sourceLane = distance,
-                    .source     = current.id,
-                });
+                result.resize_at(distance).push_back(
+                    SAG{.source = SAG::Placement{
+                            .lane = distance,
+                            .node = current.id,
+                        }});
             }
         }
     };
@@ -784,30 +786,25 @@ Vec<Vec<StoryGridAnnotation>> StoryGridGraph::FlatNodeStore::getPartition(
 
 
     std::string partition_debug //
-        = result
-        | rv::transform(
-              [&](Vec<StoryGridAnnotation> const& p) -> std::string {
-                  return p
-                       | rv::transform(
-                             [&](StoryGridAnnotation const& p)
-                                 -> std::string {
-                                 if (p.target) {
-                                     return fmt(
-                                         "[{}->{}]@{}",
-                                         p.source.id.id,
-                                         p.target->id.id,
-                                         semGraph.getRoot(p.source.id).id);
-                                 } else {
-                                     return fmt(
-                                         "[{}]@{}",
-                                         p.source.id.id,
-                                         semGraph.getRoot(p.source.id).id);
-                                 }
-                             })
-                       | rv::intersperse(" - - ") //
-                       | rv::join                 //
-                       | rs::to<std::string>();
-              })
+        = result | rv::transform([&](Vec<SAG> const& p) -> std::string {
+              return p | rv::transform([&](SAG const& p) -> std::string {
+                         if (p.target) {
+                             return fmt(
+                                 "[{}->{}]@{}",
+                                 p.source,
+                                 p.target,
+                                 semGraph.getRoot(p.getSource().id).id);
+                         } else {
+                             return fmt(
+                                 "[{}]@{}",
+                                 p.source,
+                                 semGraph.getRoot(p.getSource().id).id);
+                         }
+                     })
+                   | rv::intersperse(" - - ") //
+                   | rv::join                 //
+                   | rs::to<std::string>();
+          })
         | rv::intersperse("\n") //
         | rv::join              //
         | rs::to<std::string>();

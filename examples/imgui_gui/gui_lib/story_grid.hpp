@@ -352,15 +352,34 @@ struct StoryGridAnnotation {
     struct Placement {
         int                 lane = 0;
         org::graph::MapNode node;
+        DESC_FIELDS(Placement, (lane, node));
     };
 
-    int                      sourceLane = 0;
-    Opt<int>                 targetLane = std::nullopt;
-    org::graph::MapNode      source;
-    Opt<org::graph::MapNode> target = std::nullopt;
-    DESC_FIELDS(
-        StoryGridAnnotation,
-        (source, target, sourceLane, targetLane));
+    int                 getSourceLane() const { return source.lane; }
+    org::graph::MapNode getSource() const { return source.node; }
+
+    Opt<int> getTargetLane() const {
+        return target ? std::make_optional(target->lane) : std::nullopt;
+    }
+
+    Opt<org::graph::MapNode> getTarget() const {
+        return target ? std::make_optional(target->node) : std::nullopt;
+    }
+
+    Placement      source;
+    Opt<Placement> target = std::nullopt;
+    DESC_FIELDS(StoryGridAnnotation, (source, target));
+};
+
+template <>
+struct std::formatter<StoryGridAnnotation::Placement>
+    : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(
+        const StoryGridAnnotation::Placement& p,
+        FormatContext&                        ctx) const {
+        return fmt_ctx(fmt("[{}@{}]", p.node.id.id, p.lane), ctx);
+    }
 };
 
 struct StoryGridContext;
