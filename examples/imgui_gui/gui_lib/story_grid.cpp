@@ -413,8 +413,8 @@ void StoryGridGraph::BlockGraphStore::setPartition(
         for (auto const& node : group) {
             org::ImmUniqId adapter = node.id;
             org::ImmUniqId root    = semGraph.getRoot(node.id);
-            StoryNodeId    id  = storyNodes.getStoryNodeId(root).value();
-            LaneNodePos    pos = addToLaneCached(group_idx, id);
+            StoryNodeId    id = storyNodes.getStoryNodeId(root).value();
+            addToLaneCached(group_idx, id);
         }
     }
 
@@ -437,15 +437,6 @@ void StoryGridGraph::BlockGraphStore::setPartition(
 
             LaneNodePos target_block_pos = getPos(target_story_id);
 
-            CTX_MSG(
-                fmt("Partition node source:{}->{} target:{}->{} "
-                    "is placed as nodes source:{} target:{}",
-                    source_org_adapter.id,
-                    source_org_root.id,
-                    target_org_adapter.id,
-                    target_org_root.id,
-                    source_block_pos,
-                    target_block_pos));
 
             using GEC = GraphEdgeConstraint;
 
@@ -493,10 +484,23 @@ void StoryGridGraph::BlockGraphStore::setPartition(
             StoryNode const& target_story = storyNodes.getStoryNode(
                 target_story_id);
 
+
             edge.sourceOffset = get_connector_offset(
                 source_story, source_org_adapter);
             edge.targetOffset = get_connector_offset(
                 target_story, target_org_adapter);
+
+            CTX_MSG(
+                fmt("Partition node {}",
+                    _dfmt_expr(
+                        source_org_adapter.id,
+                        source_org_root.id,
+                        target_org_adapter.id,
+                        target_org_root.id,
+                        source_block_pos,
+                        target_block_pos,
+                        edge.sourceOffset,
+                        edge.targetOffset)));
 
             if (source_story.isLinkList() || target_story.isLinkList()) {
                 CTX_MSG(fmt("{}", edge));
@@ -1458,6 +1462,18 @@ void StoryGridGraph::cascadeGeometryUpdate(
     cascadeNodePositionsUpdate(ctx, conf);
 }
 
+template <typename T>
+Vec<Vec<Opt<T>>> pivot_with_nullopt(const Vec<Vec<T>>& input) {
+    Vec<Vec<Opt<T>>> result;
+    for (auto const& [row_idx, row] : enumerate(input)) {
+        for (auto const& [col_idx, col] : enumerate(row)) {
+            result.resize_at(col_idx).resize_at(row_idx) = col;
+        }
+    }
+
+    return result;
+}
+
 std::string StoryGridGraph::FlatNodeStore::Partition::toString(
     const SemGraphStore& semGraph) const {
 
@@ -1466,15 +1482,62 @@ std::string StoryGridGraph::FlatNodeStore::Partition::toString(
         return fmt("[{}]@{}", p.id.id, semGraph.getRoot(p.id).id);
     };
 
-    std::string nodes //
+    // TODO move this code into generic table formatter implementation with
+    // some customizations. `hshow` with colored text is a great addition
+    // for this sort of things.
+    Vec<Vec<std::string>> node_grid //
         = this->nodes
         | rv::transform(
-              [&](Vec<org::graph::MapNode> const& p) -> std::string {
-                  return p | rv::transform(format_map_node)
-                       | rv::intersperse(" - - ") //
-                       | rv::join                 //
-                       | rs::to<std::string>();
+              [&](Vec<org::graph::MapNode> const& p) -> Vec<std::string> {
+                  return p                              //
+                       | rv::transform(format_map_node) //
+                       | rs::to<Vec>();
               })
+        | rs::to<Vec>();
+
+    Vec<Vec<Opt<std::string>>> pivot_grid = pivot_with_nullopt(node_grid);
+
+    Vec<int> col_width //
+        = node_grid
+        | rv::transform([&](Vec<std::string> const& row) -> int {
+              if (row.empty()) {
+                  return 0;
+              } else {
+                  return rs::max(
+                      row
+                      | rv::transform([](std::string const& cell) -> int {
+                            return cell.size();
+                        }));
+              }
+          }) //
+        | rs::to<Vec>();
+
+    _dbg(col_width);
+    for (auto const& [row_idx, row] : enumerate(pivot_grid)) {
+        _dfmt(row_idx, row);
+    }
+
+    std::string nodes_format //
+        = pivot_grid         //
+        | rv::enumerate
+        | rv::transform([&](Pair<uint, Vec<Opt<std::string>>> const& str) {
+              return              //
+                  str.second      //
+                  | rv::enumerate //
+                  | rv::transform(
+                      [&](Pair<int, Opt<std::string>> const& cell)
+                          -> std::string {
+                          int align = col_width.at(cell.first);
+                          return fmt(
+                              " {} ",
+                              cell.second ? left_aligned(
+                                                cell.second.value(), align)
+                                          : left_aligned("_", align));
+                      })                 //
+                  | rv::intersperse(" ") //
+                  | rv::join             //
+                  | rs::to<std::string>();
+          })                    //
         | rv::intersperse("\n") //
         | rv::join              //
         | rs::to<std::string>();
@@ -1483,15 +1546,18 @@ std::string StoryGridGraph::FlatNodeStore::Partition::toString(
         = own_view(sorted(this->edges.keys() | rs::to<Vec>()))
         | rv::transform(
               [&](org::graph::MapNode const& key) -> std::string {
-                  return this->edges.at(key)
-                       | rv::transform(format_map_node)
-                       | rv::intersperse(", ") //
-                       | rv::join              //
-                       | rs::to<std::string>();
+                  return fmt(
+                      "{} -> [{}]",
+                      key.id.id,
+                      this->edges.at(key)                  //
+                          | rv::transform(format_map_node) //
+                          | rv::intersperse(", ")          //
+                          | rv::join                       //
+                          | rs::to<std::string>());
               })
         | rv::intersperse("\n") //
         | rv::join              //
         | rs::to<std::string>();
 
-    return nodes;
+    return fmt("{}\n{}", nodes_format, edges);
 }
