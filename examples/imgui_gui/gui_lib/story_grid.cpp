@@ -490,16 +490,24 @@ void StoryGridGraph::BlockGraphStore::setPartition(
             edge.targetOffset = get_connector_offset(
                 target_story, target_org_adapter);
 
+            CTX_MSG(fmt(
+                "{}-> {}", source_org_adapter.id, target_org_adapter.id));
+            auto __scope = ctx.scopeLevel();
+
             CTX_MSG(
                 fmt("Partition node {}",
                     _dfmt_expr(
                         source_org_adapter.id,
                         source_org_root.id,
+                        source_block_pos,
+                        edge.sourceOffset)));
+
+            CTX_MSG(
+                fmt("Partition node {}",
+                    _dfmt_expr(
                         target_org_adapter.id,
                         target_org_root.id,
-                        source_block_pos,
                         target_block_pos,
-                        edge.sourceOffset,
                         edge.targetOffset)));
 
             if (source_story.isLinkList() || target_story.isLinkList()) {
@@ -720,8 +728,12 @@ StoryGridGraph::FlatNodeStore::Partition StoryGridGraph::FlatNodeStore::
     UnorderedSet<MapNode>           visited;
 
     auto add_edge = [&](MapNode const& source, MapNode const& target) {
-        result.edges.get_or_insert(source, Vec<MapNode>{})
-            .push_back(target);
+        auto& adj = result.edges.get_or_insert(
+            source, UnorderedSet<MapNode>{});
+        if (!adj.contains(target)) {
+            CTX_MSG(fmt("Add edge {}->{}", source.id.id, target.id.id));
+            adj.incl(target);
+        }
     };
 
     dfsPartition = [&](MapNode const& current, int distance) {

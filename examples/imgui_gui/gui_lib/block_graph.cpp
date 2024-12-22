@@ -733,10 +733,17 @@ LaneBlockLayout LaneBlockGraph::getLayout() const {
             for (auto& point : path.points) {
                 point.y += topPad;
                 point.x += leftPad;
+
+                LOGIC_ASSERTION_CHECK(
+                    0 <= point.x && 0 <= point.y,
+                    "Depleted edge case point positioning: element placed "
+                    "at ({}) after adjustment. Key:{} edge:{}",
+                    point,
+                    key,
+                    edge);
             }
         }
     }
-
 
     for (auto& rect : res.layout.fixed) {
         rect.top += topPad;

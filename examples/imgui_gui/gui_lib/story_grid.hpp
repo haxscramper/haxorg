@@ -432,7 +432,9 @@ struct StoryGridGraph {
     struct FlatNodeStore {
         struct Partition {
             Vec<Vec<org::graph::MapNode>> nodes;
-            UnorderedMap<org::graph::MapNode, Vec<org::graph::MapNode>>
+            UnorderedMap<
+                org::graph::MapNode,
+                UnorderedSet<org::graph::MapNode>>
                 edges;
 
             DESC_FIELDS(Partition, (nodes, edges));
