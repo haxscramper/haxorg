@@ -20,7 +20,7 @@ std::function<F(T const& obj)> get_field_get(F T::*field) {
 
 template <typename T, typename F>
 std::function<F(T const& obj)> get_getter_get(F (T::*method)() const) {
-    return [method](T const& obj) -> F { return obj.*method(); };
+    return [method](T const& obj) -> F { return (obj.*method)(); };
 }
 
 template <typename T>

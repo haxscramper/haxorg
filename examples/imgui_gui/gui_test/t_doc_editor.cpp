@@ -19,8 +19,7 @@ struct DocEditVars : public ImTestVarsBase {
 
     Str get_text() {
         auto sem = org::sem_from_immer(
-            docs.getCurrentRoot(root_idx).id,
-            *docs.getCurrentAst().context);
+            docs.getCurrentRoot(root_idx).id, *docs.getContext());
         return sem::Formatter::format(sem);
     }
 

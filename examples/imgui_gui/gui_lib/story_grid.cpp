@@ -153,8 +153,8 @@ Opt<json> story_grid_loop(
     StoryGridModel      model{&history};
     model.ctx.setTraceFile("/tmp/story_grid_trace.log");
     for (auto const& f : file) {
-        auto doc = model.history->addRoot(
-            sem::parseString(readFile(f.toBase())));
+        auto doc = history.addRoot(sem::parseString(readFile(f.toBase())));
+        model.documents = history.migrate(model.documents).value();
         model.addDocument(doc);
         model.ctx.message(fmt("added file {}", f));
     }
@@ -907,7 +907,7 @@ void StoryGridModel::apply(
         case GridAction::Kind::EditCell: {
             auto edit = act.getEditCell().edit;
             if (edit.isChanged()) {
-                auto ast = history->replace_node(
+                auto ast = history->replaceNode(
                     edit.origin, edit.value.value());
                 history->extendHistory(ast);
                 rebuild(conf);
@@ -924,7 +924,7 @@ void StoryGridModel::apply(
                 auto text = edit.edit.value.value();
                 CTX_MSG(fmt(
                     "Updated edit node text {}", escape_literal(text)));
-                auto ast = history->replace_node(
+                auto ast = history->replaceNode(
                     graph.getStoryNode(edit.id).getText().origin, text);
                 history->extendHistory(ast);
                 rebuild(conf);

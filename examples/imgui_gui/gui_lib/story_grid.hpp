@@ -870,7 +870,8 @@ struct StoryGridModel {
     StoryGridGraph       graph;
     StoryGridContext     ctx;
     ImVec2               shift{};
-    Vec<DocRootId>       documents;
+
+    EditableOrgDocGroup::RootGroup documents;
 
     StoryGridModel(EditableOrgDocGroup* h) : history{h} {}
 
@@ -880,7 +881,7 @@ struct StoryGridModel {
     void apply(GridAction const& act, StoryGridConfig const& style);
     void updateGridState();
 
-    void addDocument(DocRootId root) { documents.push_back(root); }
+    void addDocument(DocRootId root) { documents.add(root); }
 
     /// \brief Get graph nodes associated with the current root grid
     /// node.

@@ -216,12 +216,8 @@ Opt<EditableOrgText::Result> EditableOrgText::render(
 }
 
 DocRootId EditableOrgDocGroup::addRoot(const sem::SemId<sem::Org>& id) {
-    History& current = getCurrentHistory();
-    auto     new_ast = current.ast.context->init(id);
-    current.ast      = std::move(new_ast);
-    int root_idx     = current.roots.push_back_idx(
-        current.ast.getRootAdapter());
-    int history_idx = addHistory(std::move(current));
+    auto [history, root_idx] = getCurrentHistory().addRoot(id);
+    int history_idx          = addHistory(history);
     return DocRootId::FromMaskedIdx(root_idx, history_idx);
 }
 
@@ -229,12 +225,36 @@ DocRootId EditableOrgDocGroup::getLatest(DocRootId id) const {
     return DocRootId::FromMaskedIdx(id.getMask(), history.high());
 }
 
+Opt<EditableOrgDocGroup::RootGroup> EditableOrgDocGroup::migrate(
+    RootGroup prev,
+    Opt<int>  maxVersion) const {
+    if (prev.getHistoryIndex() == history.high()) {
+        return std::nullopt;
+    } else {
+        while (prev.getHistoryIndex() < history.high()
+               && (!maxVersion || prev.getHistoryIndex() <= maxVersion)) {
+            int            idx  = prev.getHistoryIndex();
+            int            next = idx + 1;
+            Vec<DocRootId> updated;
+            for (auto const& item : prev.roots) {
+                if (auto migrated = history.at(next).getTransition(
+                        item.getIndex())) {
+                    updated.push_back(
+                        DocRootId::FromMaskedIdx(next, migrated.value()));
+                }
+            }
+            prev = RootGroup{next, updated};
+        }
+        return prev;
+    }
+}
+
 org::ImmAstVersion EditableOrgDocGroup::replaceNode(
     const org::ImmAdapter&    origin,
     Vec<sem::SemId<sem::Org>> replace) {
     // gr_log(ol_trace).message(origin.treeRepr().toString(false));
     LOGIC_ASSERTION_CHECK(!origin.isNil(), "Cannot replace nil node");
-    org::ImmAstVersion vNext = getCurrentAst().getEditVersion(
+    org::ImmAstVersion vNext = getCurrentHistory().ast->getEditVersion(
         [&](org::ImmAstContext::Ptr ast,
             org::ImmAstEditContext& ast_ctx) -> org::ImmAstReplaceGroup {
             org::ImmAstReplaceGroup result;
@@ -306,7 +326,7 @@ org::ImmAstVersion EditableOrgDocGroup::replaceNode(
     return vNext;
 }
 
-org::ImmAstVersion EditableOrgDocGroup::replace_node(
+org::ImmAstVersion EditableOrgDocGroup::replaceNode(
     const org::ImmAdapter& origin,
     const std::string&     text) {
     auto parse = sem::parseString(text);
@@ -321,19 +341,29 @@ org::ImmAstVersion EditableOrgDocGroup::replace_node(
 
 
 EditableOrgDocGroup::History EditableOrgDocGroup::History::withNewVersion(
-    const org::ImmAstVersion& updated) {
-    History res;
-    res.ast = updated;
+    const org::ImmAstVersion& updated) const {
+    History res{};
+    res.ast = std::make_shared<org::ImmAstVersion>(updated);
 
+    auto tmp = res.roots.transient();
     for (auto const& root : roots) {
-        auto id = root.uniq();
-        if (auto root1 = updated.epoch.replaced.map.get(id)) {
-            res.roots.push_back(updated.context->adapt(root1.value()));
+        if (auto root1 = updated.epoch.replaced.map.get(root)) {
+            tmp.push_back(root1.value());
         } else {
-            res.roots.push_back(root);
+            tmp.push_back(root);
         }
     }
 
+    res.roots = tmp.persistent();
 
     return res;
+}
+
+Pair<EditableOrgDocGroup::History, int> EditableOrgDocGroup::History::
+    addRoot(const sem::SemId<sem::Org>& root) const {
+    org::ImmAstVersion updated = ast->context->init(root);
+    auto               history = withNewVersion(updated);
+    history.roots              = history.roots.push_back(
+        updated.getRootAdapter().uniq());
+    return {history, history.roots.size() - 1};
 }

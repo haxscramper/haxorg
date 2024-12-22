@@ -195,7 +195,7 @@ void apply_doc_block_actions(
                 auto        __scope = ctx.scopeLevel();
                 auto const& t       = act.getNodeTextChanged();
                 CTX_MSG("Replacing history node");
-                auto upd = history.replace_node(
+                auto upd = history.replaceNode(
                     t.edit.origin, t.edit.value.value());
                 CTX_MSG("Extending history");
                 history.extendHistory(upd);

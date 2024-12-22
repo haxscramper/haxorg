@@ -41,6 +41,7 @@ struct StoryGridVars : public ImTestVarsBase {
     StoryGridModel                   model;
     StoryGridConfig                  conf;
     Vec<org_logging::log_sink_scope> debug_scopes;
+    DocRootId                        root = DocRootId::Nil();
 
     StoryGridVars()
         : start{org::ImmAstContext::init_start_context()}
@@ -48,14 +49,13 @@ struct StoryGridVars : public ImTestVarsBase {
         , model{&history} {}
 
     void add_text(std::string const& text) {
-        model.history->addRoot(sem::parseString(text));
+        root = model.history->addRoot(sem::parseString(text));
         model.rebuild(conf);
     }
 
     Str get_text() {
         auto sem = org::sem_from_immer(
-            model.history->getCurrentAst().getRootAdapter().id,
-            *model.history->getCurrentAst().context.get());
+            model.history->getRoot(root).id, *model.history->getContext());
         return sem::Formatter::format(sem);
     }
 
@@ -268,11 +268,8 @@ some random shit about the comments or whatever, need to render as annotation [f
         params, [](ImGuiTestContext* ctx, StoryGridVars& vars) {
             ImVec2 wpos = getContentPos(ctx);
             auto&  m    = vars.model;
-            auto&  doc  = m.graph.getGridNodes()
-                            .at(0)
-                            ->getTreeGrid()
-                            .node;
-            auto&       ir    = m.graph.blockGraph.ir;
+            auto&  doc  = m.graph.getGridNodes().at(0)->getTreeGrid().node;
+            auto&  ir   = m.graph.blockGraph.ir;
             auto const& spans = ir.getLaneSpans();
             auto&       rg    = m.graph;
             IM_CHECK_EQ(spans.size(), 4);
