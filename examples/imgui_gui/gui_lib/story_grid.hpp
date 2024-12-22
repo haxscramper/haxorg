@@ -348,40 +348,6 @@ struct StoryNode {
 };
 
 
-struct StoryGridAnnotation {
-    struct Placement {
-        int                 lane = 0;
-        org::graph::MapNode node;
-        DESC_FIELDS(Placement, (lane, node));
-    };
-
-    int                 getSourceLane() const { return source.lane; }
-    org::graph::MapNode getSource() const { return source.node; }
-
-    Opt<int> getTargetLane() const {
-        return target ? std::make_optional(target->lane) : std::nullopt;
-    }
-
-    Opt<org::graph::MapNode> getTarget() const {
-        return target ? std::make_optional(target->node) : std::nullopt;
-    }
-
-    Placement      source;
-    Opt<Placement> target = std::nullopt;
-    DESC_FIELDS(StoryGridAnnotation, (source, target));
-};
-
-template <>
-struct std::formatter<StoryGridAnnotation::Placement>
-    : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(
-        const StoryGridAnnotation::Placement& p,
-        FormatContext&                        ctx) const {
-        return fmt_ctx(fmt("[{}@{}]", p.node.id.id, p.lane), ctx);
-    }
-};
-
 struct StoryGridContext;
 struct StoryGridConfig;
 
@@ -464,6 +430,16 @@ struct StoryGridGraph {
 
 
     struct FlatNodeStore {
+        struct Partition {
+            Vec<Vec<org::graph::MapNode>> nodes;
+            UnorderedMap<org::graph::MapNode, Vec<org::graph::MapNode>>
+                edges;
+
+            DESC_FIELDS(Partition, (nodes, edges));
+
+            std::string toString(SemGraphStore const& semGraph) const;
+        };
+
         UnorderedMap<org::ImmUniqId, StoryNodeId> orgToFlatIdx;
         dod::Store<StoryNodeId, StoryNode>        nodes;
         DESC_FIELDS(FlatNodeStore, (orgToFlatIdx, nodes));
@@ -533,15 +509,15 @@ struct StoryGridGraph {
             StoryGridContext&    ctx,
             SemGraphStore const& semGraph) const;
 
-        Vec<Vec<StoryGridAnnotation>> getPartition(
+        Partition getPartition(
             StoryGridContext&    ctx,
             SemGraphStore const& semGraph) const;
     };
 
     struct NodePositionStore;
     struct BlockGraphStore {
-        LaneBlockGraph                ir;
-        Vec<Vec<StoryGridAnnotation>> partition;
+        LaneBlockGraph           ir;
+        FlatNodeStore::Partition partition;
         DESC_FIELDS(BlockGraphStore, (ir, partition));
 
         StoryNodeId toStory(BlockNodeId id) const {
@@ -572,11 +548,11 @@ struct StoryGridGraph {
             FlatNodeStore const&   nodes);
 
         void setPartition(
-            Vec<Vec<StoryGridAnnotation>> const& inPartition,
-            FlatNodeStore const&                 storyNodes,
-            SemGraphStore const&                 semGraph,
-            StoryGridConfig const&               conf,
-            StoryGridContext&                    ctx);
+            FlatNodeStore::Partition const& inPartition,
+            FlatNodeStore const&            storyNodes,
+            SemGraphStore const&            semGraph,
+            StoryGridConfig const&          conf,
+            StoryGridContext&               ctx);
 
 
         /// \brief Mark edge and node visibility based on the current
@@ -762,7 +738,6 @@ struct StoryGridGraph {
         }
     }
 };
-
 
 struct GridAction {
     struct EditCell {

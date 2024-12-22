@@ -385,16 +385,12 @@ LaneNodePos StoryGridGraph::BlockGraphStore::addToLane(
 }
 
 void StoryGridGraph::BlockGraphStore::setPartition(
-    const Vec<Vec<StoryGridAnnotation>>& inPartition,
-    FlatNodeStore const&                 storyNodes,
-    SemGraphStore const&                 semGraph,
-    StoryGridConfig const&               conf,
-    StoryGridContext&                    ctx) {
-
-    partition = inPartition;
-    STORY_GRID_MSG_SCOPE(
-        ctx, fmt("Grid annotation from {}", inPartition.size()));
-
+    StoryGridGraph::FlatNodeStore::Partition const& inPartition,
+    FlatNodeStore const&                            storyNodes,
+    SemGraphStore const&                            semGraph,
+    StoryGridConfig const&                          conf,
+    StoryGridContext&                               ctx) {
+    partition            = inPartition;
     auto addToLaneCached = [&](int lane, StoryNodeId id) -> LaneNodePos {
         if (auto pos = ir.getBlockPos(toBlock(id))) {
             return pos.value();
@@ -403,52 +399,62 @@ void StoryGridGraph::BlockGraphStore::setPartition(
         }
     };
 
-    for (auto const& [group_idx, group] : enumerate(partition)) {
+    auto getPos = [&](StoryNodeId id) -> LaneNodePos {
+        auto pos = ir.getBlockPos(toBlock(id));
+        LOGIC_ASSERTION_CHECK(
+            pos, "Story node {} is not added to block layout wtf", id);
+        return pos.value();
+    };
+
+    for (auto const& [group_idx, group] : enumerate(partition.nodes)) {
         STORY_GRID_MSG_SCOPE(
             ctx,
             fmt("Partition {} has {} items", group_idx, group.size()));
-        for (auto const& [node_idx, node] : enumerate(group)) {
-            org::ImmUniqId source_adapter = node.getSource().id;
-            org::ImmUniqId source_root    = semGraph.getRoot(
-                node.getSource().id);
-            StoryNodeId source_id //
-                = storyNodes.getStoryNodeId(source_root).value();
-            LaneNodePos source_node //
-                = addToLaneCached(node.getSourceLane(), source_id);
+        for (auto const& node : group) {
+            org::ImmUniqId adapter = node.id;
+            org::ImmUniqId root    = semGraph.getRoot(node.id);
+            StoryNodeId    id  = storyNodes.getStoryNodeId(root).value();
+            LaneNodePos    pos = addToLaneCached(group_idx, id);
+        }
+    }
 
-            // Annotation only has a source block, but no outgoing target
-            // nodes.
-            if (!node.target.has_value()) { continue; }
+    for (auto const& [source, target_bundle] : partition.edges) {
+        for (org::graph::MapNode const& target : target_bundle) {
+            org::ImmUniqId source_org_adapter = source.id;
+            org::ImmUniqId source_org_root = semGraph.getRoot(source.id);
+            StoryNodeId    source_story_id = storyNodes
+                                              .getStoryNodeId(
+                                                  source_org_root)
+                                              .value();
+            LaneNodePos source_block_pos = getPos(source_story_id);
 
-            org::ImmUniqId target_adapter = node.getTarget()->id;
-            org::ImmUniqId target_root    = semGraph.getRoot(
-                node.getTarget()->id);
-            StoryNodeId target_id //
-                = storyNodes.getStoryNodeId(target_root).value();
+            org::ImmUniqId target_org_adapter = target.id;
+            org::ImmUniqId target_org_root = semGraph.getRoot(target.id);
+            StoryNodeId    target_story_id = storyNodes
+                                              .getStoryNodeId(
+                                                  target_org_root)
+                                              .value();
 
-            LaneNodePos target_node //
-                = addToLaneCached(node.getTargetLane().value(), target_id);
+            LaneNodePos target_block_pos = getPos(target_story_id);
 
             CTX_MSG(
-                fmt("Partition node [{}][{}] source:{}->{} target:{}->{} "
+                fmt("Partition node source:{}->{} target:{}->{} "
                     "is placed as nodes source:{} target:{}",
-                    node.getSourceLane(),
-                    node_idx,
-                    source_adapter.id,
-                    source_root.id,
-                    target_adapter.id,
-                    target_root.id,
-                    source_node,
-                    target_node));
+                    source_org_adapter.id,
+                    source_org_root.id,
+                    target_org_adapter.id,
+                    target_org_root.id,
+                    source_block_pos,
+                    target_block_pos));
 
             using GEC = GraphEdgeConstraint;
 
             LaneNodeEdge edge;
-            edge.target = target_node;
-            if (source_node.lane == target_node.lane) {
+            edge.target = target_block_pos;
+            if (source_block_pos.lane == target_block_pos.lane) {
                 edge.targetPort = GEC::Port::West;
                 edge.sourcePort = GEC::Port::West;
-            } else if (source_node.lane < target_node.lane) {
+            } else if (source_block_pos.lane < target_block_pos.lane) {
                 edge.sourcePort = GEC::Port::East;
                 edge.targetPort = GEC::Port::West;
             } else {
@@ -475,25 +481,28 @@ void StoryGridGraph::BlockGraphStore::setPartition(
                     return flat.getLinkList().getRowCenterOffset(
                         flat.getLinkList().getRow(node));
 
-                    // CTX_MSG(fmt("edge {} -> {}", source_node, edge));
+                    // CTX_MSG(fmt("edge {} -> {}", source_block_pos,
+                    // edge));
                 } else {
                     return std::nullopt;
                 }
             };
 
-            StoryNode const& source = storyNodes.getStoryNode(source_id);
-            StoryNode const& target = storyNodes.getStoryNode(target_id);
+            StoryNode const& source_story = storyNodes.getStoryNode(
+                source_story_id);
+            StoryNode const& target_story = storyNodes.getStoryNode(
+                target_story_id);
 
             edge.sourceOffset = get_connector_offset(
-                source, source_adapter);
+                source_story, source_org_adapter);
             edge.targetOffset = get_connector_offset(
-                target, target_adapter);
+                target_story, target_org_adapter);
 
-            if (source.isLinkList() || target.isLinkList()) {
+            if (source_story.isLinkList() || target_story.isLinkList()) {
                 CTX_MSG(fmt("{}", edge));
             }
 
-            ir.addEdge(source_node, edge);
+            ir.addEdge(source_block_pos, edge);
         }
     }
 }
@@ -673,9 +682,9 @@ void StoryGridModel::updateGridState() {
     }
 }
 
-Vec<Vec<StoryGridAnnotation>> StoryGridGraph::FlatNodeStore::getPartition(
-    StoryGridContext&    ctx,
-    SemGraphStore const& semGraph) const {
+StoryGridGraph::FlatNodeStore::Partition StoryGridGraph::FlatNodeStore::
+    getPartition(StoryGridContext& ctx, SemGraphStore const& semGraph)
+        const {
 
     using org::graph::MapNode;
     __perf_trace("gui", "partition graph by distance");
@@ -695,30 +704,20 @@ Vec<Vec<StoryGridAnnotation>> StoryGridGraph::FlatNodeStore::getPartition(
         !initial_nodes.empty(),
         "Cannot partition graph with no initial nodes");
 
-    using SAG = StoryGridAnnotation;
     // Graph partition uses nodes found by the sem graph, without
     // converting to the parent nodes. This way `setPartition` can compute
     // specific offsets for tree and list item rows.
-    Vec<Vec<SAG>> result;
-
+    Partition result;
 
     // Construct partition mapping using simple DFS pre-visit traversal.
     // Starting nodes will go to the visit lane 0, their target nodes will
     // go to lane 1 etc.
     Func<void(MapNode const&, int)> dfsPartition;
     UnorderedSet<MapNode>           visited;
-    UnorderedMap<MapNode, int>      lanePlacementRedirect;
 
-    // auto get_final_lane = [&](){};
-
-    auto add_annotation = [&](int distance, SAG annotation) {
-        int idx = result.resize_at(distance).push_back_idx(annotation);
-        CTX_MSG(
-            fmt("Set [{}][{}] = {}->{}",
-                distance,
-                idx,
-                annotation.source,
-                annotation.target));
+    auto add_edge = [&](MapNode const& source, MapNode const& target) {
+        result.edges.get_or_insert(source, Vec<MapNode>{})
+            .push_back(target);
     };
 
     dfsPartition = [&](MapNode const& current, int distance) {
@@ -732,88 +731,30 @@ Vec<Vec<StoryGridAnnotation>> StoryGridGraph::FlatNodeStore::getPartition(
             return;
         } else {
             visited.incl(current);
-            bool addedCurrent = false;
-            for (MapNode const& adj : semGraph.graph.outNodes(current)) {
-                SAG an{
-                    .source = SAG::
-                        Placement{.lane = distance, .node = current.id},
-                    .target = SAG::
-                        Placement{.lane = distance + 1, .node = adj.id},
-                };
+            int idx = result.nodes.resize_at(distance).push_back_idx(
+                current);
+            CTX_MSG(
+                fmt("Set [{}][{}] = {}", distance, idx, current.id.id));
 
-                if (!visited.contains(adj)) {
-                    add_annotation(distance, an);
-                    addedCurrent = true;
-                }
+            for (MapNode const& adj : semGraph.graph.outNodes(current)) {
+                add_edge(current, adj);
                 dfsPartition(adj, distance + 1);
             }
 
             for (MapNode const& adj : semGraph.graph.inNodes(current)) {
-                if (!visited.contains(adj)) {
-                    SAG an{};
-                    an.source = SAG::Placement{
-                        // If the distnace is equal to 0, it means
-                        // DFS is currently visiting one of the
-                        // initial nodes. Initial nodes are always
-                        // placed as the leftmost items, so
-                        // `distance + 1` is the corner to ensure
-                        // correct placement.
-                        .lane = distance <= 1 ? distance + 1
-                                              : distance - 1,
-                        .node = current.id};
-                    an.target = SAG::Placement{
-                        .lane = distance, .node = adj.id};
-
-                    add_annotation(distance, an);
-                    addedCurrent = true;
-                }
+                add_edge(adj, current);
                 dfsPartition(adj, distance + 1);
-            }
-
-            // if the current node does not have any outgoing elements
-            // it still must be added to the graph.
-            if (!addedCurrent) {
-                result.resize_at(distance).push_back(
-                    SAG{.source = SAG::Placement{
-                            .lane = distance,
-                            .node = current.id,
-                        }});
             }
         }
     };
 
     for (const auto& node : initial_nodes) { dfsPartition(node, 0); }
 
-
-    std::string partition_debug //
-        = result | rv::transform([&](Vec<SAG> const& p) -> std::string {
-              return p | rv::transform([&](SAG const& p) -> std::string {
-                         if (p.target) {
-                             return fmt(
-                                 "[{}->{}]@{}",
-                                 p.source,
-                                 p.target,
-                                 semGraph.getRoot(p.getSource().id).id);
-                         } else {
-                             return fmt(
-                                 "[{}]@{}",
-                                 p.source,
-                                 semGraph.getRoot(p.getSource().id).id);
-                         }
-                     })
-                   | rv::intersperse(" - - ") //
-                   | rv::join                 //
-                   | rs::to<std::string>();
-          })
-        | rv::intersperse("\n") //
-        | rv::join              //
-        | rs::to<std::string>();
-
     CTX_MSG(
         fmt("Created partition with {} lanes. Root node partition "
             "placement:\n{}",
-            result.size(),
-            partition_debug));
+            result.nodes.size(),
+            result.toString(semGraph)));
 
     return result;
 }
@@ -1515,4 +1456,42 @@ void StoryGridGraph::cascadeGeometryUpdate(
         updateGeometry(id);
     }
     cascadeNodePositionsUpdate(ctx, conf);
+}
+
+std::string StoryGridGraph::FlatNodeStore::Partition::toString(
+    const SemGraphStore& semGraph) const {
+
+    auto format_map_node =
+        [&](org::graph::MapNode const& p) -> std::string {
+        return fmt("[{}]@{}", p.id.id, semGraph.getRoot(p.id).id);
+    };
+
+    std::string nodes //
+        = this->nodes
+        | rv::transform(
+              [&](Vec<org::graph::MapNode> const& p) -> std::string {
+                  return p | rv::transform(format_map_node)
+                       | rv::intersperse(" - - ") //
+                       | rv::join                 //
+                       | rs::to<std::string>();
+              })
+        | rv::intersperse("\n") //
+        | rv::join              //
+        | rs::to<std::string>();
+
+    std::string edges //
+        = own_view(sorted(this->edges.keys() | rs::to<Vec>()))
+        | rv::transform(
+              [&](org::graph::MapNode const& key) -> std::string {
+                  return this->edges.at(key)
+                       | rv::transform(format_map_node)
+                       | rv::intersperse(", ") //
+                       | rv::join              //
+                       | rs::to<std::string>();
+              })
+        | rv::intersperse("\n") //
+        | rv::join              //
+        | rs::to<std::string>();
+
+    return nodes;
 }
