@@ -149,14 +149,17 @@ Opt<json> story_grid_loop(
     const Opt<json>& in_state,
     StoryGridConfig& conf) {
     auto                start = org::ImmAstContext::init_start_context();
-    EditableOrgDocGroup history{start};
-    StoryGridModel      model{&history};
+    EditableOrgDocGroup docs{start};
+    StoryGridModel      model{&docs};
     model.ctx.setTraceFile("/tmp/story_grid_trace.log");
     for (auto const& f : file) {
-        auto doc = history.addRoot(sem::parseString(readFile(f.toBase())));
-        model.documents = history.migrate(model.documents).value();
+        auto doc = docs.addRoot(sem::parseString(readFile(f.toBase())));
+        model.documents = docs.migrate(model.documents).value();
         model.addDocument(doc);
         model.ctx.message(fmt("added file {}", f));
+        for (auto const& h : docs.history) {
+            model.ctx.message(fmt("> {}", h));
+        }
     }
 
     if (in_state) {

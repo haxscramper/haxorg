@@ -216,8 +216,15 @@ Opt<EditableOrgText::Result> EditableOrgText::render(
 }
 
 DocRootId EditableOrgDocGroup::addRoot(const sem::SemId<sem::Org>& id) {
-    auto [history, root_idx] = getCurrentHistory().addRoot(id);
-    int history_idx          = addHistory(history);
+    gr_log(ol_trace).fmt_message("Adding root to AST");
+    OLOG_DEPTH_SCOPE_ANON();
+    auto const& current = getCurrentHistory();
+    gr_log(ol_trace).fmt_message("Current history {}", current);
+    auto [history, root_idx] = current.addRoot(id);
+    gr_log(ol_trace).fmt_message(
+        "History {} root idx {}", history, root_idx);
+    int history_idx = addHistory(history);
+    gr_log(ol_trace).fmt_message("Added history as index {}", history_idx);
     return DocRootId::FromMaskedIdx(root_idx, history_idx);
 }
 
@@ -228,22 +235,37 @@ DocRootId EditableOrgDocGroup::getLatest(DocRootId id) const {
 Opt<EditableOrgDocGroup::RootGroup> EditableOrgDocGroup::migrate(
     RootGroup prev,
     Opt<int>  maxVersion) const {
+    gr_log(ol_trace).fmt_message("Migrating root group {}", prev);
     if (prev.getHistoryIndex() == history.high()) {
         return std::nullopt;
     } else {
+        OLOG_DEPTH_SCOPE_ANON();
         while (prev.getHistoryIndex() < history.high()
                && (!maxVersion || prev.getHistoryIndex() <= maxVersion)) {
             int            idx  = prev.getHistoryIndex();
             int            next = idx + 1;
             Vec<DocRootId> updated;
-            for (auto const& item : prev.roots) {
-                if (auto migrated = history.at(next).getTransition(
-                        item.getIndex())) {
-                    updated.push_back(
-                        DocRootId::FromMaskedIdx(next, migrated.value()));
+            {
+                OLOG_DEPTH_SCOPE_ANON();
+                for (auto const& item : prev.roots) {
+                    if (auto migrated = history.at(next).getTransition(
+                            item.getIndex())) {
+                        updated.push_back(DocRootId::FromMaskedIdx(
+                            migrated.value(), next));
+                        gr_log(ol_trace).fmt_message(
+                            "Item {} migrated to {}",
+                            item,
+                            migrated.value());
+                    } else {
+                        gr_log(ol_trace).fmt_message(
+                            "Item {} has no mapping in the last version",
+                            item);
+                    }
                 }
             }
-            prev = RootGroup{next, updated};
+            RootGroup upd{next, updated};
+            gr_log(ol_trace).fmt_message("Updating {} -> {}", prev, upd);
+            prev = upd;
         }
         return prev;
     }
@@ -342,19 +364,24 @@ org::ImmAstVersion EditableOrgDocGroup::replaceNode(
 
 EditableOrgDocGroup::History EditableOrgDocGroup::History::withNewVersion(
     const org::ImmAstVersion& updated) const {
+    OLOG_DEPTH_SCOPE_ANON();
     History res{};
     res.ast = std::make_shared<org::ImmAstVersion>(updated);
 
-    auto tmp = res.roots.transient();
-    for (auto const& root : roots) {
+    auto tmp = roots.transient();
+    for (int i = 0; i < roots.size(); ++i) {
+        auto const& root = roots.at(i);
         if (auto root1 = updated.epoch.replaced.map.get(root)) {
             tmp.push_back(root1.value());
         } else {
             tmp.push_back(root);
         }
+        res.transition.insert_or_assign(i, i);
     }
 
     res.roots = tmp.persistent();
+    gr_log(ol_trace).fmt_message(
+        "With new version, roots {} -> {}", roots, res.roots);
 
     return res;
 }
@@ -362,8 +389,50 @@ EditableOrgDocGroup::History EditableOrgDocGroup::History::withNewVersion(
 Pair<EditableOrgDocGroup::History, int> EditableOrgDocGroup::History::
     addRoot(const sem::SemId<sem::Org>& root) const {
     org::ImmAstVersion updated = ast->context->init(root);
-    auto               history = withNewVersion(updated);
-    history.roots              = history.roots.push_back(
-        updated.getRootAdapter().uniq());
-    return {history, history.roots.size() - 1};
+    auto               res     = withNewVersion(updated);
+    res.roots = res.roots.push_back(updated.getRootAdapter().uniq());
+    for (int i = 0; i < res.roots.size(); ++i) {
+        res.transition.insert_or_assign(i, i);
+    }
+    return {res, res.roots.size() - 1};
+}
+
+void EditableOrgDocGroup::RootGroup::add(DocRootId id) {
+    LOGIC_ASSERTION_CHECK(
+        id.getMask() == historyIndex,
+        "Trying to add ID {} with history index {}, which does "
+        "not match the current document group history index of "
+        "{}. To sync document group and ID to the same history "
+        "index use `migrate()` method of the editable document "
+        "group.",
+        id,
+        id.getMask(),
+        historyIndex);
+    roots.push_back(id);
+}
+
+EditableOrgDocGroup::RootGroup::RootGroup(
+    int            history,
+    Vec<DocRootId> roots)
+    : historyIndex{history}, roots{roots} {
+    Vec<u64> versions //
+        = roots | rv::transform(get_getter_get(&DocRootId::getMask))
+        | rs::to<Vec>();
+    UnorderedSet<u64> unique{versions.begin(), versions.end()};
+    LOGIC_ASSERTION_CHECK(
+        unique.size() <= 1,
+        "Document root group must have all document IDs from the "
+        "same version, but the list contains IDs with different "
+        "version mask: {} (roots: {})",
+        unique,
+        roots);
+    if (!unique.empty()) {
+        LOGIC_ASSERTION_CHECK(
+            *unique.begin() == history,
+            "Document group history index must match with the "
+            "provided explicit history index {}. History index "
+            "from ID group: {}",
+            history,
+            unique);
+    }
 }

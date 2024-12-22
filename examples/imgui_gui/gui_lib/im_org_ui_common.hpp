@@ -111,6 +111,10 @@ struct EditableOrgTextEntry {
 
 DECL_ID_TYPE_MASKED(___RootId, DocRootId, u64, 32);
 
+template <>
+struct std::formatter<org::ImmAstVersion*>
+    : std_format_ptr_as_hex<org::ImmAstVersion> {};
+
 struct EditableOrgDocGroup {
     struct RootGroup {
         Vec<DocRootId> roots;
@@ -119,45 +123,10 @@ struct EditableOrgDocGroup {
 
         int getHistoryIndex() const { return historyIndex; }
 
-        void add(DocRootId id) {
-            LOGIC_ASSERTION_CHECK(
-                id.getMask() == historyIndex,
-                "Trying to add ID {} with history index {}, which does "
-                "not match the current document group history index of "
-                "{}. To sync document group and ID to the same history "
-                "index use `migrate()` method of the editable document "
-                "group.",
-                id,
-                id.getMask(),
-                historyIndex);
-            roots.push_back(id);
-        }
+        void add(DocRootId id);
 
         RootGroup() {}
-        RootGroup(int history, Vec<DocRootId> roots)
-            : historyIndex{history}, roots{roots} {
-            Vec<u64> versions //
-                = roots
-                | rv::transform(get_getter_get(&DocRootId::getMask))
-                | rs::to<Vec>();
-            UnorderedSet<u64> unique{versions.begin(), versions.end()};
-            LOGIC_ASSERTION_CHECK(
-                unique.size() <= 1,
-                "Document root group must have all document IDs from the "
-                "same version, but the list contains IDs with different "
-                "version mask: {} (roots: {})",
-                unique,
-                roots);
-            if (!unique.empty()) {
-                LOGIC_ASSERTION_CHECK(
-                    *unique.begin() == history,
-                    "Document group history index must match with the "
-                    "provided explicit history index {}. History index "
-                    "from ID group: {}",
-                    history,
-                    unique);
-            }
-        }
+        RootGroup(int history, Vec<DocRootId> roots);
     };
 
     struct History {
