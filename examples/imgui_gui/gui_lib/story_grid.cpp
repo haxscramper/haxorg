@@ -728,11 +728,18 @@ StoryGridGraph::FlatNodeStore::Partition StoryGridGraph::FlatNodeStore::
     UnorderedSet<MapNode>           visited;
 
     auto add_edge = [&](MapNode const& source, MapNode const& target) {
-        auto& adj = result.edges.get_or_insert(
-            source, UnorderedSet<MapNode>{});
-        if (!adj.contains(target)) {
-            CTX_MSG(fmt("Add edge {}->{}", source.id.id, target.id.id));
-            adj.incl(target);
+        if (source == target) {
+            CTX_MSG(fmt(
+                "Ignoring self-loop {}-{}", source.id.id, target.id.id));
+            return;
+        } else {
+            auto& adj = result.edges.get_or_insert(
+                source, UnorderedSet<MapNode>{});
+            if (!adj.contains(target)) {
+                CTX_MSG(
+                    fmt("Add edge {}->{}", source.id.id, target.id.id));
+                adj.incl(target);
+            }
         }
     };
 
