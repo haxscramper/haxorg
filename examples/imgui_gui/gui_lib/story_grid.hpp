@@ -349,6 +349,11 @@ struct StoryNode {
 
 
 struct StoryGridAnnotation {
+    struct Placement {
+        int                 lane = 0;
+        org::graph::MapNode node;
+    };
+
     int                      sourceLane = 0;
     Opt<int>                 targetLane = std::nullopt;
     org::graph::MapNode      source;
