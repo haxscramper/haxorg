@@ -257,11 +257,12 @@ struct StoryNode {
 
     struct LinkList {
         struct Item {
-            EditableOrgText text;
-            int             width;
-            int             height;
-            org::ImmAdapter node;
-            DESC_FIELDS(Item, (text, width, height, node));
+            EditableOrgTextEntry text;
+            org::ImmAdapter      node;
+            DESC_FIELDS(Item, (text, node));
+            ImVec2 getSize() const { return text.getSize(); }
+            int    getHeight() const { return text.getHeight(); }
+            int    getWidth() const { return text.getWidth(); }
         };
         Vec<Item>       items;
         ImVec2          size;
@@ -285,13 +286,13 @@ struct StoryNode {
         int getRowOffset(int row) const {
             int offset = 0;
             for (auto const& [row_idx, item] : enumerate(items)) {
-                if (row_idx < row) { offset += item.height; }
+                if (row_idx < row) { offset += item.getHeight(); }
             }
             return offset;
         }
 
         int getRowCenterOffset(int row) const {
-            return getRowOffset(row) + items.at(row).height / 2.0f;
+            return getRowOffset(row) + items.at(row).getHeight() / 2.0f;
         }
 
         ImVec2 getSize() const { return ImVec2(getWidth(), getHeight()); }
@@ -299,15 +300,16 @@ struct StoryNode {
         int getHeight() const {
             int result = 0;
             for (auto const& item : items) {
-                result += imguiTableRowPadding + item.height;
+                result += imguiTableRowPadding + item.getHeight();
             }
             return result;
         }
 
         int getWidth() const {
-            return rs::max(items | rv::transform([&](Item const& col) {
-                               return col.width;
-                           }));
+            return rs::max(
+                items | rv::transform([&](Item const& col) -> int {
+                    return col.getWidth();
+                }));
         }
 
         void render(
@@ -644,9 +646,9 @@ struct StoryGridGraph {
     }
 
     void updateGeometry(StoryNodeId const& id) {
-        if (storyNodes.getStoryNode(id).isTreeGrid()) {
-            auto& n = storyNodes.getStoryNode(id).getTreeGrid();
-            n.node.updatePositions();
+        StoryNode& node = storyNodes.getStoryNode(id);
+        if (node.isTreeGrid()) {
+            node.getTreeGrid().node.updatePositions();
         }
     }
 

@@ -125,12 +125,16 @@ void StoryNode::LinkList::render(
                 "List", ImGuiTableColumnFlags_WidthFixed, getWidth());
 
             for (auto& item : items) {
-                ImGui::TableNextRow(ImGuiTableRowFlags_None, item.height);
+                ImGui::TableNextRow(
+                    ImGuiTableRowFlags_None, item.getHeight());
                 bool edit = false;
-                item.text.render(
-                    ImVec2(item.height, item.width),
-                    EditableOrgText::Mode::Multiline,
-                    fmt("list_{}", id));
+                auto res  = item.text.render(fmt("list_{}", id));
+                if (res) {
+                    model.ctx.action(GridAction::EditNodeText{
+                        .edit = res.value(),
+                        .id   = id,
+                    });
+                }
             }
             IM_FN_END(EndTable);
         }
@@ -876,11 +880,11 @@ StoryNodeId StoryGridGraph::FlatNodeStore::add(
 
         for (auto const& item : list->subAs<org::ImmListItem>()) {
             StoryNode::LinkList::Item listItem;
-            listItem.node   = item;
-            listItem.width  = conf.annotationNodeWidth;
-            listItem.text   = EditableOrgText::from_adapter(item);
-            listItem.height = listItem.text.get_expected_height(
-                listItem.width, EditableOrgText::Mode::Multiline);
+            listItem.node = item;
+            listItem.text = EditableOrgTextEntry::from_adapter(
+                item,
+                conf.annotationNodeWidth,
+                EditableOrgText::Mode::Multiline);
 
             text.items.push_back(listItem);
         }
