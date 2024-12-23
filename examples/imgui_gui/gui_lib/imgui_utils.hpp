@@ -49,6 +49,13 @@ void AddText(
     ImU32 const&       color,
     std::string const& text);
 
+void AddTextWithBackground(
+    ImDrawList*        draw_list,
+    const ImVec2&      position,
+    ImU32              text_color,
+    const std::string& text,
+    ImU32              background_color = IM_COL32(255, 255, 255, 255));
+
 void quit_on_q(GLFWwindow* window);
 
 /// \brief Return full path for the font with a given name, if it could be

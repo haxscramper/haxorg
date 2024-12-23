@@ -485,23 +485,6 @@ ColaConstraintDebug LaneBlockLayout::getConstraintDebug() const {
     return res;
 }
 
-void RenderTextWithBackground(
-    ImDrawList*        draw_list,
-    const ImVec2&      position,
-    ImU32              text_color,
-    const std::string& text,
-    ImU32              background_color = IM_COL32(255, 255, 255, 255)) {
-    ImFont* font      = ImGui::GetFont();
-    ImVec2  text_size = font->CalcTextSizeA(
-        font->FontSize, FLT_MAX, 0.0f, text.c_str());
-    ImVec2 rect_min = position;
-    ImVec2 rect_max = ImVec2(
-        position.x + text_size.x, position.y + text_size.y);
-    draw_list->AddRectFilled(rect_min, rect_max, background_color);
-    draw_list->AddText(
-        font, font->FontSize, position, text_color, text.c_str());
-}
-
 void render_debug(
     const ColaConstraintDebug&   debug,
     ImVec2 const&                shift,
@@ -516,7 +499,7 @@ void render_debug(
     auto separateOffsetColor = IM_COL32(211, 255, 0, 255);
 
     auto text = [&](ImVec2 const& pos, std::string const& t) {
-        RenderTextWithBackground(dl, pos, IM_COL32(0, 0, 0, 255), t);
+        AddTextWithBackground(dl, pos, IM_COL32(0, 0, 0, 255), t);
     };
 
     auto point = [&](const C::Point& point) {

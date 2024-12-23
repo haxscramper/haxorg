@@ -28,6 +28,22 @@
     ::org_logging::log_builder{}.set_callsite().category(__cat).severity( \
         __severity)
 
+template <typename KeyValueWhatever>
+std::string fmt_key_value(KeyValueWhatever const& map) {
+    std::string res;
+    res += "{";
+    bool first = true;
+    for (const auto& [key, value] : map) {
+        if (!first) { res += ", "; }
+        first = false;
+        res += key;
+        res += ": ";
+        res += value;
+    }
+    res += "}";
+    return res;
+}
+
 void StoryNode::Text::render(
     StoryGridModel&        model,
     const StoryNodeId&     id,
@@ -44,6 +60,11 @@ void StoryNode::Text::render(
             nullptr,
             ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize)) {
         ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
+        AddTextWithBackground(
+            ImGui::GetWindowDrawList(),
+            model.graph.getPosition(id) + model.shift,
+            IM_COL32(0, 0, 0, 255),
+            "Text");
 
         auto res = text.render(
             getSize(),
@@ -77,6 +98,12 @@ void StoryNode::LinkList::render(
             c_fmt("##list_{}", id),
             nullptr,
             ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize)) {
+        AddTextWithBackground(
+            ImGui::GetWindowDrawList(),
+            model.graph.getPosition(id) + model.shift,
+            IM_COL32(0, 0, 0, 255),
+            "List");
+
         if (ImGui::IsWindowHovered(
                 ImGuiHoveredFlags_RootAndChildWindows
                 | ImGuiHoveredFlags_AllowWhenBlockedByPopup
@@ -410,10 +437,17 @@ void StoryGridGraph::BlockGraphStore::setPartition(
         STORY_GRID_MSG_SCOPE(
             ctx,
             fmt("Partition {} has {} items", group_idx, group.size()));
+
+        for (auto const& [k, v] : storyNodes.orgToFlatIdx) {
+            CTX_MSG(fmt("> {} {}", k.id, v));
+        }
+
         for (auto const& node : group) {
             org::ImmUniqId adapter = node.id;
             org::ImmUniqId root    = semGraph.getRoot(node.id);
-            StoryNodeId    id = storyNodes.getStoryNodeId(root).value();
+            CTX_MSG(fmt("Node {} to root {}", node.id.id, root.id));
+
+            StoryNodeId id = storyNodes.getStoryNodeId(root).value();
             addToLaneCached(group_idx, id);
         }
     }
@@ -811,6 +845,14 @@ Vec<org::graph::MapNode> StoryGridGraph::FlatNodeStore::getInitialNodes(
     return sorted(docNodes);
 }
 
+namespace {
+bool isSubtreeDescriptionList(org::ImmAdapter const& list) {
+    return list.is(OrgSemKind::List)
+        && list.as<org::ImmList>().isDescriptionList()
+        && org::graph::isAttachedDescriptionList(list);
+}
+} // namespace
+
 StoryNodeId StoryGridGraph::FlatNodeStore::add(
     const org::ImmAdapter& node,
     const StoryGridConfig& conf,
@@ -827,10 +869,10 @@ StoryNodeId StoryGridGraph::FlatNodeStore::add(
         CTX_MSG(fmt(
             "Document node  {} mapped to Document node {}", node.id, res));
         return res;
-    } else if (auto list = node.asOpt<org::ImmList>();
-               list && list->isDescriptionList()
-               && org::graph::isLinkedDescriptionList(node)) {
+    } else if (isSubtreeDescriptionList(node)) {
         StoryNode::LinkList text{};
+        text.origin = node;
+        auto list   = node.asOpt<org::ImmList>();
 
         for (auto const& item : list->subAs<org::ImmListItem>()) {
             StoryNode::LinkList::Item listItem;
@@ -922,7 +964,7 @@ void StoryGridModel::apply(
                 rebuild(conf);
             } else {
                 graph.cascadeGeometryUpdate(
-                    act.getEditCell().id, ctx, conf);
+                    act.getEditNodeText().id, ctx, conf);
             }
             break;
         }
@@ -1295,8 +1337,7 @@ void StoryGridGraph::SemGraphStore::addGridAnnotationNodes(
         }
 
         for (auto const& list : row->origin.subAs<org::ImmList>()) {
-            if (list.isDescriptionList()
-                && org::graph::isAttachedDescriptionList(list)) {
+            if (isSubtreeDescriptionList(list)) {
                 addDescriptionListNodes(list, ctx);
             }
         }
@@ -1373,7 +1414,8 @@ StoryGridGraph::BlockGraphStore StoryGridGraph::BlockGraphStore::init(
 
 StoryGridGraph::NodePositionStore StoryGridGraph::NodePositionStore::init(
     StoryGridContext&      ctx,
-    BlockGraphStore const& blockGraph) {
+    BlockGraphStore const& blockGraph,
+    StoryGridConfig const& conf) {
     STORY_GRID_MSG_SCOPE(ctx, "Init node position store");
     NodePositionStore res;
     LOGIC_ASSERTION_CHECK(
@@ -1398,10 +1440,14 @@ StoryGridGraph::NodePositionStore StoryGridGraph::NodePositionStore::init(
         }
     }
 
-    res.debug = res.lyt.getConstraintDebug();
+    if (conf.renderDebugOverlay) {
+        res.debug = res.lyt.getConstraintDebug();
 
-    CTX_MSG(fmt(
-        "Constraint debug:\n{}", res.debug->toString().toString(false)));
+        CTX_MSG(
+            fmt("Constraint debug:\n{}",
+                res.debug->toString().toString(false)));
+    }
+
 
     return res;
 }
@@ -1530,11 +1576,6 @@ std::string StoryGridGraph::FlatNodeStore::Partition::toString(
               }
           }) //
         | rs::to<Vec>();
-
-    _dbg(col_width);
-    for (auto const& [row_idx, row] : enumerate(pivot_grid)) {
-        _dfmt(row_idx, row);
-    }
 
     std::string nodes_format //
         = pivot_grid         //

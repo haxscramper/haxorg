@@ -466,6 +466,8 @@ struct StoryGridGraph {
         void setOrgNodeOrigin(
             org::ImmUniqId const& id,
             StoryNodeId           flatIdx) {
+            LOGIC_ASSERTION_CHECK(
+                !id.id.isNil(), "Cannot map NIL node to node");
             orgToFlatIdx.insert_or_assign(id, flatIdx);
         }
 
@@ -602,7 +604,8 @@ struct StoryGridGraph {
 
         static NodePositionStore init(
             StoryGridContext&      ctx,
-            BlockGraphStore const& blockGraph);
+            BlockGraphStore const& blockGraph,
+            StoryGridConfig const& conf);
     };
 
     FlatNodeStore     storyNodes;
@@ -687,7 +690,7 @@ struct StoryGridGraph {
     void updateNodePositions(
         StoryGridContext&      ctx,
         StoryGridConfig const& conf) {
-        positionStore = NodePositionStore::init(ctx, blockGraph);
+        positionStore = NodePositionStore::init(ctx, blockGraph, conf);
     }
 
     void resetBlockLanes(StoryGridConfig const& conf);
@@ -807,6 +810,7 @@ struct StoryGridConfig {
     int    annotationNodeWidth            = 200;
     int    laneRowPadding                 = 6;
     ImVec2 gridViewport;
+    bool   renderDebugOverlay = false;
 
 
     DESC_FIELDS(
