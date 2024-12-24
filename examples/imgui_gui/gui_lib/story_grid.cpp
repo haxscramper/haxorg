@@ -12,11 +12,13 @@
 #include <haxorg/sem/SemBaseApi.hpp>
 #include <haxorg/sem/ImmOrg.hpp>
 #include <haxorg/sem/SemOrgFormat.hpp>
+#include <haxorg/sem/ImmOrgGraphBoost.hpp>
 #include "org_logger.hpp"
 
 #include <haxorg/sem/ImmOrgGraphBoost.hpp>
 #include <gui_lib/scintilla_editor_widget.hpp>
 #include <gui_lib/im_org_ui_common.hpp>
+#include <boost/graph/breadth_first_search.hpp>
 
 #define CTX_MSG(...)                                                      \
     if (ctx.OperationsTracer::TraceState) { ctx.message(__VA_ARGS__); }
@@ -1623,4 +1625,102 @@ StoryNode& StoryGridGraph::FlatNodeStore::Proxy::getStoryNode(
 const StoryNode& StoryGridGraph::FlatNodeStore::Proxy::getStoryNode(
     const StoryNodeId& id) const {
     return source->getStoryNode(getUnderlying(id));
+}
+
+template <typename Graph>
+struct lambda_bfs_visitor : public boost::default_bfs_visitor {
+    using VD = typename boost::graph_traits<Graph>::vertex_descriptor;
+    using ED = typename boost::graph_traits<Graph>::edge_descriptor;
+
+    std::function<void(CR<VD>, CR<Graph>)> initialize_vertex_fn;
+    std::function<void(CR<VD>, CR<Graph>)> discover_vertex_fn;
+    std::function<void(CR<VD>, CR<Graph>)> examine_vertex_fn;
+    std::function<void(CR<ED>, CR<Graph>)> examine_edge_fn;
+    std::function<void(CR<ED>, CR<Graph>)> tree_edge_fn;
+    std::function<void(CR<ED>, CR<Graph>)> non_tree_edge_fn;
+    std::function<void(CR<ED>, CR<Graph>)> gray_target_fn;
+    std::function<void(CR<ED>, CR<Graph>)> black_target_fn;
+    std::function<void(CR<VD>, CR<Graph>)> finish_vertex_fn;
+
+
+    // clang-format off
+    void initialize_vertex                     (VD v, CR<Graph> g) { if (initialize_vertex_fn) { initialize_vertex_fn               (v, g); } }
+    void discover_vertex                       (VD v, CR<Graph> g) { if (discover_vertex_fn) { discover_vertex_fn                   (v, g); } }
+    void examine_vertex                        (VD v, CR<Graph> g) { if (examine_vertex_fn) { examine_vertex_fn                     (v, g); } }
+    void examine_edge                          (ED e, CR<Graph> g) { if (examine_edge_fn) { examine_edge_fn                         (e, g); } }
+    void tree_edge                             (ED e, CR<Graph> g) { if (tree_edge_fn) { tree_edge_fn                               (e, g); } }
+    void non_tree_edge                         (ED e, CR<Graph> g) { if (non_tree_edge_fn) { non_tree_edge_fn                       (e, g); } }
+    void gray_target                           (ED e, CR<Graph> g) { if (gray_target_fn) { gray_target_fn                           (e, g); } }
+    void black_target                          (ED e, CR<Graph> g) { if (black_target_fn) { black_target_fn                         (e, g); } }
+    void finish_vertex                         (VD v, CR<Graph> g) { if (finish_vertex_fn) { finish_vertex_fn                       (v, g); } }
+
+    lambda_bfs_visitor &with_initialize_vertex (std::function<void (CR<VD>, CR<Graph>)> fn) { initialize_vertex_fn = std::move (fn); return *this; }
+    lambda_bfs_visitor &with_discover_vertex   (std::function<void (CR<VD>, CR<Graph>)> fn) { discover_vertex_fn = std::move   (fn); return *this; }
+    lambda_bfs_visitor &with_examine_vertex    (std::function<void (CR<VD>, CR<Graph>)> fn) { examine_vertex_fn = std::move    (fn); return *this; }
+    lambda_bfs_visitor &with_examine_edge      (std::function<void (CR<ED>, CR<Graph>)> fn) { examine_edge_fn = std::move      (fn); return *this; }
+    lambda_bfs_visitor &with_tree_edge         (std::function<void (CR<ED>, CR<Graph>)> fn) { tree_edge_fn = std::move         (fn); return *this; }
+    lambda_bfs_visitor &with_non_tree_edge     (std::function<void (CR<ED>, CR<Graph>)> fn) { non_tree_edge_fn = std::move     (fn); return *this; }
+    lambda_bfs_visitor &with_gray_target       (std::function<void (CR<ED>, CR<Graph>)> fn) { gray_target_fn = std::move       (fn); return *this; }
+    lambda_bfs_visitor &with_black_target      (std::function<void (CR<ED>, CR<Graph>)> fn) { black_target_fn = std::move      (fn); return *this; }
+    lambda_bfs_visitor &with_finish_vertex     (std::function<void (CR<VD>, CR<Graph>)> fn) { finish_vertex_fn = std::move     (fn); return *this; }
+    // clang-format on
+};
+
+template <typename Graph>
+struct boost_color_property_map_bundle {
+    using ColorMap = boost::iterator_property_map<
+        std::vector<boost::default_color_type>::iterator,
+        typename boost::property_map<Graph, boost::vertex_index_t>::type>;
+
+    boost_color_property_map_bundle(Graph const& g)
+        : colors{static_cast<std::size_t  >(boost::num_vertices(g))}
+        , map{colors.begin(), get(boost::vertex_index, g)} {}
+
+    std::vector<boost::default_color_type> colors;
+    ColorMap                               map;
+};
+
+StoryGridGraph::SemGraphStore StoryGridGraph::Layer::getSubgraph(
+    StoryGridContext&      ctx,
+    const StoryGridConfig& conf) const {
+    SemGraphStore result;
+
+    using namespace org::graph;
+
+    Vec<MapNode> initial;
+    for (auto const& node : flat->getStore().items()) {
+        if (node->isTreeGrid()) {
+            for (auto const& row :
+                 node->getTreeGrid().node.flatRows(false)) {
+                initial.push_back(MapNode{row->origin.getThis()->uniq()});
+            }
+        }
+    }
+
+    SemGraphStore res;
+    res.annotationParents = sem.annotationParents;
+    boost_color_property_map_bundle<MapGraph> colorMap{sem.graph};
+
+    for (MapNode const& n : initial) {
+        boost::breadth_first_search(
+            sem.graph,
+            n,
+            boost::color_map(colorMap.map)
+                .visitor(lambda_bfs_visitor<MapGraph>{}.with_examine_edge(
+                    [&](MapEdge const& e, MapGraph const&) {
+                        if (!res.graph.hasNode(e.source)) {
+                            res.graph.addNode(e.source);
+                        }
+
+                        if (!res.graph.hasNode(e.target)) {
+                            res.graph.addNode(e.target);
+                        }
+
+                        if (!res.graph.hasEdge(e.source, e.target)) {
+                            res.graph.addEdge(e);
+                        }
+                    })));
+    }
+
+    return res;
 }

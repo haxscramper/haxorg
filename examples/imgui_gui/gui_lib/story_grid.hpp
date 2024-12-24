@@ -749,6 +749,10 @@ struct StoryGridGraph {
         NodePositionStore  position;
         DESC_FIELDS(Layer, (flat, sem, block, position));
 
+        SemGraphStore getSubgraph(
+            StoryGridContext&      ctx,
+            StoryGridConfig const& conf) const;
+
         void updateGeometry(StoryNodeId const& id) {
             StoryNode& node = flat->getStore().getStoryNode(id);
             if (node.isTreeGrid()) {
