@@ -731,6 +731,9 @@ struct StoryGridGraph {
             return nodePositions.contains(id);
         }
 
+        ImVec2 at(StoryNodeId const& id) const {
+            return nodePositions.at(id);
+        }
 
         static NodePositionStore init(
             StoryGridContext&      ctx,
@@ -738,10 +741,82 @@ struct StoryGridGraph {
             StoryGridConfig const& conf);
     };
 
-    FlatNodeStore::Ptr storyNodes;
-    SemGraphStore      semGraph;
-    BlockGraphStore    blockGraph;
-    NodePositionStore  positionStore;
+
+    struct Layer {
+        FlatNodeStore::Ptr flat;
+        SemGraphStore      sem;
+        BlockGraphStore    block;
+        NodePositionStore  position;
+        DESC_FIELDS(Layer, (flat, sem, block, position));
+
+        void updateGeometry(StoryNodeId const& id) {
+            StoryNode& node = flat->getStore().getStoryNode(id);
+            if (node.isTreeGrid()) {
+                node.getTreeGrid().node.updatePositions();
+            }
+        }
+
+        void updateLinkListTargetRows(StoryGridContext& ctx) {
+            flat->getStore().focusLinkListTargetRows(ctx, sem);
+        }
+
+        void updateStoryNodes(
+            StoryGridContext&      ctx,
+            StoryGridConfig const& conf) {
+            flat = FlatNodeStore::init_store(sem, ctx, conf);
+        }
+
+        void updateSemanticGraph(
+            Vec<org::ImmAdapter> const& root,
+            StoryGridContext&           ctx,
+            StoryGridConfig const&      conf) {
+            sem = SemGraphStore::init(root, conf, ctx);
+        }
+
+        /// \brief Rebuild block grid
+        void updateNodeLanePlacement(
+            StoryGridContext&      ctx,
+            StoryGridConfig const& conf) {
+            Vec<int> offset      //
+                = block.ir.lanes //
+                | rv::transform(
+                      get_field_get(&LaneBlockStack::scrollOffset)) //
+                | rs::to<Vec>();
+
+            block = BlockGraphStore::init(sem, flat, ctx, conf);
+
+            for (int i = 0; i < block.ir.lanes.size(); ++i) {
+                if (offset.has(i)) {
+                    block.ir.lanes.at(i).scrollOffset = offset.at(i);
+                }
+            }
+        }
+
+        void updateNodePositions(
+            StoryGridContext&      ctx,
+            StoryGridConfig const& conf) {
+            position = NodePositionStore::init(ctx, block, conf);
+        }
+    };
+
+    Layer      base;
+    Opt<Layer> subgraph;
+
+    Layer const& getLayer() const {
+        if (subgraph) {
+            return subgraph.value();
+        } else {
+            return base;
+        }
+    }
+
+    Layer& getLayer() {
+        if (subgraph) {
+            return subgraph.value();
+        } else {
+            return base;
+        }
+    }
 
     // clang-format off
     void cascadeSemanticUpdate(Vec<org::ImmAdapter> const &root, StoryGridContext &ctx, StoryGridConfig const &conf);
@@ -754,122 +829,71 @@ struct StoryGridGraph {
     // clang-format on
 
     ImVec2 getPosition(StoryNodeId id) const {
-        return positionStore.nodePositions.at(id);
+        return getLayer().position.at(id);
     }
 
     ImVec2 getPosition(LaneNodePos const& pos) const {
-        return positionStore.nodePositions.at(
-            blockGraph.getStoryNodeId(pos).value());
+        return getLayer().position.at(
+            getLayer().block.getStoryNodeId(pos).value());
     }
 
     bool isNodeVisible(StoryNodeId const& id) {
-        return blockGraph.getBlockPos(id).has_value();
+        return getLayer().block.getBlockPos(id).has_value();
     }
 
     Vec<StoryNode*> getGridNodes() {
         Vec<StoryNode*> res;
-        for (auto const& node : storyNodes->getStore().items()) {
+        for (auto const& node : getLayer().flat->getStore().items()) {
             if (node->isTreeGrid()) { res.push_back(node); }
         }
         return res;
     }
 
-    void updateGeometry(StoryNodeId const& id) {
-        StoryNode& node = storyNodes->getStore().getStoryNode(id);
-        if (node.isTreeGrid()) {
-            node.getTreeGrid().node.updatePositions();
-        }
-    }
-
-    void focusLinkListTargetRows(StoryGridContext& ctx) {
-        storyNodes->getStore().focusLinkListTargetRows(ctx, semGraph);
-    }
-
-    void updateStoryNodes(
-        StoryGridContext&      ctx,
-        StoryGridConfig const& conf) {
-        storyNodes = FlatNodeStore::init_store(semGraph, ctx, conf);
-    }
-
-    void updateSemanticGraph(
-        Vec<org::ImmAdapter> const& root,
-        StoryGridContext&           ctx,
-        StoryGridConfig const&      conf) {
-        semGraph = SemGraphStore::init(root, conf, ctx);
-    }
-
-    /// \brief Rebuild block grid
-    void updateNodeLanePlacement(
-        StoryGridContext&      ctx,
-        StoryGridConfig const& conf) {
-        Vec<int> offset           //
-            = blockGraph.ir.lanes //
-            | rv::transform(
-                  get_field_get(&LaneBlockStack::scrollOffset)) //
-            | rs::to<Vec>();
-
-        blockGraph = BlockGraphStore::init(
-            semGraph, storyNodes, ctx, conf);
-
-        for (int i = 0; i < blockGraph.ir.lanes.size(); ++i) {
-            if (offset.has(i)) {
-                blockGraph.ir.lanes.at(i).scrollOffset = offset.at(i);
-            }
-        }
-    }
-
-    void updateNodePositions(
-        StoryGridContext&      ctx,
-        StoryGridConfig const& conf) {
-        positionStore = NodePositionStore::init(ctx, blockGraph, conf);
-    }
-
-    void resetBlockLanes(StoryGridConfig const& conf);
     bool isVisible(org::ImmUniqId const& id) const;
 
-    DESC_FIELDS(StoryGridGraph, (storyNodes, semGraph, blockGraph));
+    DESC_FIELDS(StoryGridGraph, (base, subgraph));
 
     generator<Pair<StoryNodeId, StoryNode*>> getStoryNodes() {
         for (auto const& [node_id, node] :
-             storyNodes->getStore().pairs()) {
-            if (positionStore.hasNode(node_id)) {
+             getLayer().flat->getStore().pairs()) {
+            if (getLayer().position.hasNode(node_id)) {
                 co_yield {node_id, node};
             }
         }
     }
 
     StoryNode& getStoryNode(LaneNodePos const& pos) {
-        return storyNodes->getStoryNode(getStoryNodeId(pos).value());
+        return getLayer().flat->getStoryNode(getStoryNodeId(pos).value());
     }
 
     StoryNode& getStoryNode(StoryNodeId idx) {
-        return storyNodes->getStoryNode(idx);
+        return getLayer().flat->getStoryNode(idx);
     }
 
     StoryNode const& getStoryNode(StoryNodeId idx) const {
-        return storyNodes->getStoryNode(idx);
+        return getLayer().flat->getStoryNode(idx);
     }
 
     StoryNode const& getStoryNode(LaneNodePos const& idx) const {
-        return storyNodes->getStoryNode(getStoryNodeId(idx).value());
+        return getLayer().flat->getStoryNode(getStoryNodeId(idx).value());
     }
 
     Opt<LaneNodePos> getBlockPos(StoryNodeId idx) const {
-        return blockGraph.getBlockPos(idx);
+        return getLayer().block.getBlockPos(idx);
     }
 
     Opt<StoryNodeId> getStoryNodeId(LaneNodePos const& node) const {
-        return blockGraph.getStoryNodeId(node);
+        return getLayer().block.getStoryNodeId(node);
     }
 
     Opt<StoryNodeId> getStoryNodeId(org::ImmUniqId const& id) const {
-        return storyNodes->getStoryNodeId(id);
+        return getLayer().flat->getStoryNodeId(id);
     }
 
     Opt<LaneNodePos> getBlockNodePos(org::ImmUniqId const& id) {
         auto flat = getStoryNodeId(id);
         if (flat) {
-            return blockGraph.getBlockPos(flat.value());
+            return getLayer().block.getBlockPos(flat.value());
         } else {
             return std::nullopt;
         }

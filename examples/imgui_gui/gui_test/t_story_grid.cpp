@@ -269,7 +269,7 @@ some random shit about the comments or whatever, need to render as annotation [f
             ImVec2 wpos = getContentPos(ctx);
             auto&  m    = vars.model;
             auto&  doc  = m.graph.getGridNodes().at(0)->getTreeGrid().node;
-            auto&  ir   = m.graph.blockGraph.ir;
+            auto&  ir   = m.graph.getLayer().block.ir;
             auto const& spans = ir.getLaneSpans();
             auto&       rg    = m.graph;
             IM_CHECK_EQ(spans.size(), 4);

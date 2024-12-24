@@ -165,7 +165,7 @@ void run_story_grid_annotated_cycle(
     }
 
     for (auto const& [key, edge] :
-         model.graph.positionStore.lyt.layout.lines) {
+         model.graph.getLayer().position.lyt.layout.lines) {
         render_edge(edge, model.shift, true, conf.blockGraphConf);
     }
 }
@@ -217,11 +217,11 @@ Opt<json> story_grid_loop(
             model.rebuild(conf);
         }
 
-        if (model.graph.positionStore.debug) {
+        if (model.graph.getLayer().position.debug) {
             render_debug(
-                model.graph.positionStore.debug.value(),
+                model.graph.getLayer().position.debug.value(),
                 model.shift,
-                model.graph.positionStore.lyt.layout);
+                model.graph.getLayer().position.lyt.layout);
         }
 
         run_story_grid_cycle(model, conf);
@@ -1006,8 +1006,7 @@ void StoryGridModel::apply(
             // Row folding will change edge connector positions in the
             // block graph. Changed edge connectors mean the whole document
             // layout needs to be updated.
-            graph.updateNodeLanePlacement(ctx, conf);
-            graph.updateNodePositions(ctx, conf);
+            graph.cascadeBlockGraphUpdate(ctx, conf);
             break;
         }
     }
@@ -1161,8 +1160,6 @@ void StoryGridModel::applyChanges(StoryGridConfig const& conf) {
         ctx.actions.clear();
     }
 }
-
-void StoryGridGraph::resetBlockLanes(const StoryGridConfig& conf) {}
 
 StoryGridGraph::SemGraphStore StoryGridGraph::SemGraphStore::init(
     Vec<org::ImmAdapter> const& root,
@@ -1459,7 +1456,7 @@ void StoryGridGraph::cascadeScrollingUpdate(
     const StoryGridConfig& conf) {
     {
         STORY_GRID_MSG_SCOPE(ctx, "Add scrolling to graph");
-        blockGraph.ir.addScrolling(
+        getLayer().block.ir.addScrolling(
             graphPos, -direction * conf.mouseScrollMultiplier);
     }
     cascadeNodePositionsUpdate(ctx, conf);
@@ -1471,7 +1468,7 @@ void StoryGridGraph::cascadeSemanticUpdate(
     const StoryGridConfig&      conf) {
     {
         STORY_GRID_MSG_SCOPE(ctx, "Semantic update");
-        updateSemanticGraph(root, ctx, conf);
+        getLayer().updateSemanticGraph(root, ctx, conf);
     }
     cascadeStoryNodeUpdate(ctx, conf);
 }
@@ -1481,7 +1478,7 @@ void StoryGridGraph::cascadeStoryNodeUpdate(
     const StoryGridConfig& conf) {
     {
         STORY_GRID_MSG_SCOPE(ctx, "Story node update");
-        updateStoryNodes(ctx, conf);
+        getLayer().updateStoryNodes(ctx, conf);
     }
     cascadeBlockGraphUpdate(ctx, conf);
 }
@@ -1491,7 +1488,7 @@ void StoryGridGraph::cascadeBlockGraphUpdate(
     const StoryGridConfig& conf) {
     {
         STORY_GRID_MSG_SCOPE(ctx, "Block graph update");
-        updateNodeLanePlacement(ctx, conf);
+        getLayer().updateNodeLanePlacement(ctx, conf);
     }
     cascadeNodePositionsUpdate(ctx, conf);
 }
@@ -1501,7 +1498,7 @@ void StoryGridGraph::cascadeNodePositionsUpdate(
     const StoryGridConfig& conf) {
     {
         STORY_GRID_MSG_SCOPE(ctx, "Node positions update");
-        updateNodePositions(ctx, conf);
+        getLayer().updateNodePositions(ctx, conf);
     }
 }
 
@@ -1511,7 +1508,7 @@ void StoryGridGraph::cascadeGeometryUpdate(
     const StoryGridConfig& conf) {
     {
         STORY_GRID_MSG_SCOPE(ctx, fmt("Geometry update for {}", id));
-        updateGeometry(id);
+        getLayer().updateGeometry(id);
     }
     cascadeNodePositionsUpdate(ctx, conf);
 }
@@ -1614,7 +1611,7 @@ std::string StoryGridGraph::FlatNodeStore::Partition::toString(
 void StoryGridGraph::cascadeLinkListTargetsUpdate(
     StoryGridContext&      ctx,
     const StoryGridConfig& conf) {
-    focusLinkListTargetRows(ctx);
+    getLayer().updateLinkListTargetRows(ctx);
     cascadeBlockGraphUpdate(ctx, conf);
 }
 
