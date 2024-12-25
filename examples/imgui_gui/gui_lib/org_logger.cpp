@@ -224,10 +224,12 @@ void format_log_record_data(
         auto split = data.message.split('\n');
         strm << split.at(0);
         write_trail();
-        for (auto const& line : split.at(slice(1, 1_B))) {
-            strm << "\n";
-            strm << Str{" "}.repeated(prefix.size());
-            strm << line;
+        if (split.has(1)) {
+            for (auto const& line : split.at(slice(1, 1_B))) {
+                strm << "\n";
+                strm << Str{" "}.repeated(prefix.size());
+                strm << line;
+            }
         }
     } else {
         strm << data.message;

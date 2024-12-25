@@ -63,12 +63,6 @@ void StoryNode::Text::render(
             nullptr,
             ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize)) {
         ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
-        AddTextWithBackground(
-            ImGui::GetWindowDrawList(),
-            model.graph.getPosition(id) + model.shift,
-            IM_COL32(0, 0, 0, 255),
-            "Text");
-
         auto res = text.render(
             getSize(),
             EditableOrgText::Mode::Multiline,
@@ -101,12 +95,6 @@ void StoryNode::LinkList::render(
             c_fmt("##list_{}", id),
             nullptr,
             ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize)) {
-        AddTextWithBackground(
-            ImGui::GetWindowDrawList(),
-            model.graph.getPosition(id) + model.shift,
-            IM_COL32(0, 0, 0, 255),
-            "List");
-
         if (ImGui::Button("Focus")) {
             model.ctx.action(GridAction::LinkListClick{
                 .id = id,
@@ -983,7 +971,7 @@ void StoryGridModel::apply(
             auto const& click             = act.getLinkListClick();
             StoryNode&  list              = graph.getStoryNode(click.id);
             list.getLinkList().isSelected = !list.getLinkList().isSelected;
-
+            graph.cascadeLinkListTargetsUpdate(ctx, conf);
             break;
         }
 
@@ -1101,7 +1089,7 @@ void TreeGridDocument::updatePositions() {
         this->rowPositions.resize_at(index) = offset;
         row->flatIdx                        = index;
 
-        if (isVisible) {
+        if (isVisible && row->isVisible) {
             offset += this->rowPadding;
             offset += row->getHeight().value();
         }
@@ -1614,8 +1602,25 @@ std::string StoryGridGraph::FlatNodeStore::Partition::toString(
 void StoryGridGraph::cascadeLinkListTargetsUpdate(
     StoryGridContext&      ctx,
     const StoryGridConfig& conf) {
-    getLayer().updateLinkListTargetRows(ctx);
-    cascadeBlockGraphUpdate(ctx, conf);
+    STORY_GRID_MSG_SCOPE(ctx, fmt("Cascade link list target update"));
+    base.updateLinkListTargetRows(ctx);
+
+    bool hasFocused = rs::any_of(
+        gen_view(base.flat->getStore().items()),
+        [](StoryNode const* node) {
+            return node->isLinkList() && node->getLinkList().isSelected;
+        });
+
+    if (hasFocused) {
+        CTX_MSG("Has focused link list nodes, adding new layer");
+        subgraph      = Layer{};
+        subgraph->sem = base.getSubgraph(ctx, conf);
+        cascadeStoryNodeUpdate(ctx, conf);
+    } else {
+        CTX_MSG("No focused link list nodes, resetting subgraph overlay");
+        subgraph.reset();
+        cascadeBlockGraphUpdate(ctx, conf);
+    }
 }
 
 StoryNode& StoryGridGraph::FlatNodeStore::Proxy::getStoryNode(
@@ -1709,27 +1714,71 @@ StoryGridGraph::SemGraphStore StoryGridGraph::Layer::getSubgraph(
     res.annotationParents = sem.annotationParents;
     boost_color_property_map_bundle<MapGraph> colorMap{sem.graph};
 
-    for (MapNode const& n : initial) {
-        boost::breadth_first_search(
-            sem.graph,
-            n,
-            boost::visitor(
-                lambda_bfs_visitor<MapGraph>{}.with_examine_edge(
-                    [&](MapEdge const& e, MapGraph const&) {
-                        if (!res.graph.hasNode(e.source)) {
-                            res.graph.addNode(e.source);
-                        }
+    auto get_graph_debug = [](MapGraph const& g) -> std::string {
+        return g.adjList //
+             | rv::transform(
+                   [&](Pair<MapNode, AdjNodesList> const& adj)
+                       -> std::string {
+                       return fmt(
+                           "{} -> {}",
+                           adj.first.id.id,
+                           adj.second //
+                               | rv::transform([](MapNode const& node) {
+                                     return fmt1(node.id.id);
+                                 })
+                               | rs::to<Vec>());
+                   })
+             | rv_intersperse_newline_join;
+    };
 
-                        if (!res.graph.hasNode(e.target)) {
-                            res.graph.addNode(e.target);
-                        }
+    CTX_MSG(
+        fmt("Starting graph:\n{}", indent(get_graph_debug(sem.graph), 2)));
 
-                        if (!res.graph.hasEdge(e.source, e.target)) {
-                            res.graph.addEdge(e);
-                        }
-                    }))
-                .color_map(colorMap.map));
+    CTX_MSG(fmt(
+        "Initial nodes {}",
+        initial                                  //
+            | rv::transform(&MapNode::id)        //
+            | rv::transform(&org::ImmUniqId::id) //
+            | rv_transform_fmt1                  //
+            | rs::to<Vec>()                      //
+        ));
+
+
+    {
+        STORY_GRID_MSG_SCOPE(ctx, "DFS visit");
+        for (MapNode const& n : initial) {
+            STORY_GRID_MSG_SCOPE(
+                ctx, fmt("Visiting initial node {}", n.id.id));
+            boost::breadth_first_search(
+                sem.graph,
+                n,
+                boost::visitor( //
+                    lambda_bfs_visitor<MapGraph>{}
+                        .with_examine_vertex(
+                            [&](CR<MapNode> n, CR<MapGraph>) {
+                                CTX_MSG(fmt("Node {}", n.id.id));
+                                auto& g = res.graph;
+                                if (!g.hasNode(n)) { g.addNode(n); }
+                            })
+                        .with_examine_edge(
+                            [&](CR<MapEdge> e, CR<MapGraph>) {
+                                CTX_MSG(
+                                    fmt("Visiting {}->{}",
+                                        e.source.id.id,
+                                        e.target.id.id));
+                                auto& g = res.graph;
+
+                                if (!g.hasEdge(e.source, e.target)) {
+                                    g.addEdge(e);
+                                }
+                            }))
+                    .color_map(colorMap.map));
+        }
     }
+
+    std::string graph_debug = get_graph_debug(res.graph);
+
+    CTX_MSG(fmt("Focused subgraph:\n{}", indent(graph_debug, 2)));
 
     return res;
 }

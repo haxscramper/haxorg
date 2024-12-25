@@ -9,9 +9,17 @@
 #include "imgui_internal.h"
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Str.hpp>
+#include <hstd/stdlib/Ranges.hpp>
 
 #include <stb/stb_truetype.h>
 
+inline auto rv_transform_fmt1 = rv::transform(
+    [](auto const& it) { return fmt1(it); });
+
+inline auto rv_intersperse_newline_join //
+    = rv::intersperse("\n")             //
+    | rv::join                          //
+    | rs::to<std::string>();
 
 template <typename T, typename F>
 std::function<F(T const& obj)> get_field_get(F T::*field) {

@@ -259,11 +259,15 @@ struct vector_as_graph_traversal_tag
 
 template <>
 struct graph_traits<org::graph::MapGraph> {
+
+    using ItNodes = map_graph_buffered_iterator<org::graph::MapNode>;
+    using ItEdges = map_graph_buffered_iterator<org::graph::MapEdge>;
+
     using vertex_descriptor      = org::graph::MapNode;
     using edge_descriptor        = org::graph::MapEdge;
-    using adjacency_iterator     = map_graph_adjacent_vertices_iterator;
-    using out_edge_iterator      = map_graph_out_edges_iterator;
-    using in_edge_iterator       = void;
+    using adjacency_iterator     = ItNodes;
+    using out_edge_iterator      = ItEdges;
+    using in_edge_iterator       = ItEdges;
     using edge_iterator          = map_graph_edges_iterator;
     using vertex_iterator        = map_graph_vertices_iterator;
     using directed_category      = directed_tag;
