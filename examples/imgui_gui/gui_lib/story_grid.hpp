@@ -488,6 +488,12 @@ struct StoryGridGraph {
                 }
             }
 
+            generator<StoryNodeId> getNodeIds() const {
+                for (auto const& [id, node] : nodes.pairs()) {
+                    co_yield id;
+                }
+            }
+
             auto items() -> generator<StoryNode*> {
                 const int size = nodes.size();
                 for (int i = 0; i < size; ++i) {
@@ -537,20 +543,7 @@ struct StoryGridGraph {
 
             void add(
                 StoryNodeId const& underlying,
-                StoryNodeId const& proxy) {
-                LOGIC_ASSERTION_CHECK(
-                    underlying.getMask() + 1 == proxy.getMask(),
-                    "Underlying ID and proxy ID must have mask exactly "
-                    "one step apart. Underlying {}, proxy {}",
-                    underlying.getMask(),
-                    proxy.getMask());
-                auto [iter, success] = map.insert({underlying, proxy});
-                LOGIC_ASSERTION_CHECK(
-                    success,
-                    "Failed to insert mapping {}<->{}",
-                    underlying,
-                    proxy);
-            }
+                StoryNodeId const& proxy);
 
             generator<Pair<org::ImmUniqId, StoryNodeId>> getOrgToFlatMapping()
                 const {
@@ -567,6 +560,10 @@ struct StoryGridGraph {
 
             bool hasProxy(StoryNodeId const& id) const {
                 return map.right.find(id) != map.right.end();
+            }
+
+            generator<StoryNodeId> getNodeIds() const {
+                for (auto const& pair : map) { co_yield pair.right; }
             }
 
             StoryNodeId getProxy(StoryNodeId const& underlying) const {
@@ -614,6 +611,11 @@ struct StoryGridGraph {
             StoryGridContext&      ctx,
             StoryGridConfig const& conf);
 
+        static FlatNodeStore::Ptr init_proxy(
+            FlatNodeStore::Ptr const& prev,
+            SemGraphStore const&      semGraph,
+            StoryGridContext&         ctx,
+            StoryGridConfig const&    conf);
 
         bool isVisible(const org::ImmUniqId& id) const;
 
@@ -644,6 +646,14 @@ struct StoryGridGraph {
                 return getStore().getStoryNodeId(id);
             } else {
                 return getProxy().getStoryNodeId(id);
+            }
+        }
+
+        generator<StoryNodeId> getNodeIds() const {
+            if (isStore()) {
+                return getStore().getNodeIds();
+            } else {
+                return getStore().getNodeIds();
             }
         }
     };

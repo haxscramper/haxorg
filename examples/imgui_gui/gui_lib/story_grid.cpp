@@ -362,8 +362,43 @@ StoryGridGraph::FlatNodeStore::Ptr StoryGridGraph::FlatNodeStore::
     auto res  = FlatNodeStore::shared();
     res->data = Store{};
     for (auto const& node : semGraph.graphGroupRoots) {
-        res->getStore().add(semGraph.ctx->adapt(node), conf, ctx);
+        (void)res->getStore().add(semGraph.ctx->adapt(node), conf, ctx);
     }
+    return res;
+}
+
+
+StoryGridGraph::FlatNodeStore::Ptr StoryGridGraph::FlatNodeStore::
+    init_proxy(
+        StoryGridGraph::FlatNodeStore::Ptr const& prev,
+        StoryGridGraph::SemGraphStore const&      semGraph,
+        StoryGridContext&                         ctx,
+        StoryGridConfig const&                    conf) {
+    auto res               = FlatNodeStore::shared();
+    res->data              = Proxy{};
+    res->getProxy().source = prev;
+
+    UnorderedSet<StoryNodeId> unique;
+    for (org::graph::MapNode const& node :
+         boost::make_iterator_range(boost::vertices(semGraph.graph))) {
+        Opt<StoryNodeId> id = prev->getStoryNodeId(node.id);
+        LOGIC_ASSERTION_CHECK(
+            id.has_value(),
+            "Subgraph map node {} does not have a corresponding story "
+            "node ID mapping in the provided flat node store. (full node: "
+            "{})",
+            node.id.id,
+            node);
+        unique.incl(id.value());
+    }
+
+    for (auto const& id : sorted(unique | rs::to<Vec>())) {
+        auto next = StoryNodeId::FromMaskedIdx(
+            id.getIndex(), id.getMask() + 1);
+        CTX_MSG(fmt("{}<->{}", id, next));
+        res->getProxy().add(id, next);
+    }
+
     return res;
 }
 
@@ -1613,14 +1648,16 @@ void StoryGridGraph::cascadeLinkListTargetsUpdate(
 
     if (hasFocused) {
         CTX_MSG("Has focused link list nodes, adding new layer");
-        subgraph      = Layer{};
-        subgraph->sem = base.getSubgraph(ctx, conf);
-        cascadeStoryNodeUpdate(ctx, conf);
+        subgraph       = Layer{};
+        subgraph->sem  = base.getSubgraph(ctx, conf);
+        subgraph->flat = FlatNodeStore::init_proxy(
+            base.flat, subgraph->sem, ctx, conf);
     } else {
         CTX_MSG("No focused link list nodes, resetting subgraph overlay");
         subgraph.reset();
-        cascadeBlockGraphUpdate(ctx, conf);
     }
+
+    cascadeBlockGraphUpdate(ctx, conf);
 }
 
 StoryNode& StoryGridGraph::FlatNodeStore::Proxy::getStoryNode(
@@ -1781,4 +1818,25 @@ StoryGridGraph::SemGraphStore StoryGridGraph::Layer::getSubgraph(
     CTX_MSG(fmt("Focused subgraph:\n{}", indent(graph_debug, 2)));
 
     return res;
+}
+
+void StoryGridGraph::FlatNodeStore::Proxy::add(
+    const StoryNodeId& underlying,
+    const StoryNodeId& proxy) {
+    LOGIC_ASSERTION_CHECK(
+        underlying.getMask() + 1 == proxy.getMask(),
+        "Underlying ID and proxy ID must have mask exactly "
+        "one step apart. Underlying {}, proxy {}",
+        underlying.getMask(),
+        proxy.getMask());
+    LOGIC_ASSERTION_CHECK(
+        !hasUnderlying(underlying) && !hasProxy(proxy),
+        "Cannot add ID mapping {}<->{} underlying/proxy node already "
+        "exists.",
+        underlying,
+        proxy);
+
+    auto [iter, success] = map.insert({underlying, proxy});
+    LOGIC_ASSERTION_CHECK(
+        success, "Failed to insert mapping {}<->{}", underlying, proxy);
 }
