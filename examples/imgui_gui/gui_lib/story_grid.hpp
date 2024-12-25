@@ -467,11 +467,6 @@ struct StoryGridGraph {
 
             void setOrgNodeOrigin(StoryNode const& n, StoryNodeId id);
 
-
-            Vec<org::graph::MapNode> getInitialNodes(
-                StoryGridContext&    ctx,
-                SemGraphStore const& semGraph) const;
-
             void setOrgNodeOrigin(
                 org::ImmUniqId const& id,
                 StoryNodeId           flatIdx) {
@@ -480,11 +475,15 @@ struct StoryGridGraph {
                 orgToFlatIdx.insert_or_assign(id, flatIdx);
             }
 
-            auto pairs() -> generator<Pair<StoryNodeId, StoryNode*>> {
-                const int size = nodes.size();
+            template <typename Self>
+            auto pairs(this Self&& self)
+                -> generator<Pair<
+                    StoryNodeId,
+                    transfer_this_const_t<StoryNode*, Self>>> {
+                const int size = self.nodes.size();
                 for (int i = 0; i < size; ++i) {
                     auto id = StoryNodeId::FromIndex(i);
-                    co_yield {id, &nodes.at(id)};
+                    co_yield {id, &self.nodes.at(id)};
                 }
             }
 
@@ -566,6 +565,14 @@ struct StoryGridGraph {
                 for (auto const& pair : map) { co_yield pair.right; }
             }
 
+            template <typename Self>
+            generator<Pair<StoryNodeId, transfer_this_const_t<StoryNode*, Self>>> pairs(
+                this Self&& self) {
+                for (auto const& id : self.getNodeIds()) {
+                    co_yield {id, &self.getStoryNode(id)};
+                }
+            }
+
             StoryNodeId getProxy(StoryNodeId const& underlying) const {
                 auto it = map.right.find(underlying);
                 LOGIC_ASSERTION_CHECK(
@@ -605,6 +612,10 @@ struct StoryGridGraph {
         Data data;
         DESC_FIELDS(FlatNodeStore, (data));
 
+        Vec<org::graph::MapNode> getInitialNodes(
+            StoryGridContext&    ctx,
+            SemGraphStore const& semGraph) const;
+
 
         static FlatNodeStore::Ptr init_store(
             SemGraphStore const&   semGraph,
@@ -623,6 +634,16 @@ struct StoryGridGraph {
         Partition getPartition(
             StoryGridContext&    ctx,
             SemGraphStore const& semGraph) const;
+
+        template <typename Self>
+        generator<Pair<StoryNodeId, transfer_this_const_t<StoryNode*, Self>>> pairs(
+            this Self&& self) {
+            if (self.isStore()) {
+                return self.getStore().pairs();
+            } else {
+                return self.getProxy().pairs();
+            }
+        }
 
         generator<Pair<org::ImmUniqId, StoryNodeId>> getOrgToFlatMapping()
             const {

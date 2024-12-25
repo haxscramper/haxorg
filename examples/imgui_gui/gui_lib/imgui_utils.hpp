@@ -21,6 +21,33 @@ inline auto rv_intersperse_newline_join //
     | rv::join                          //
     | rs::to<std::string>();
 
+template <typename T, typename Self>
+struct transfer_this_const {
+    using type = std::conditional_t<
+        std::is_const_v<std::remove_reference_t<Self>>,
+        std::add_const_t<T>,
+        T>;
+};
+
+template <typename T, typename Self>
+struct transfer_this_const<T*, Self> {
+    using type = std::conditional_t<
+        std::is_const_v<std::remove_reference_t<Self>>,
+        std::add_const_t<T>*,
+        T*>;
+};
+
+template <typename T, typename Self>
+struct transfer_this_const<T&, Self> {
+    using type = std::conditional_t<
+        std::is_const_v<std::remove_reference_t<Self>>,
+        std::add_const_t<T>&,
+        T&>;
+};
+
+template <typename T, typename Self>
+using transfer_this_const_t = typename transfer_this_const<T, Self>::type;
+
 template <typename T, typename F>
 std::function<F(T const& obj)> get_field_get(F T::*field) {
     return [field](T const& obj) -> F { return obj.*field; };

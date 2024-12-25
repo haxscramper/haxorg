@@ -760,7 +760,7 @@ StoryGridGraph::FlatNodeStore::Partition StoryGridGraph::FlatNodeStore::
 
     using org::graph::MapNode;
     __perf_trace("gui", "partition graph by distance");
-    auto initial_nodes = getStore().getInitialNodes(ctx, semGraph);
+    auto initial_nodes = getInitialNodes(ctx, semGraph);
     {
         STORY_GRID_MSG_SCOPE(
             ctx, fmt("Partition graph nodes, initial nodes:"));
@@ -842,11 +842,11 @@ StoryGridGraph::FlatNodeStore::Partition StoryGridGraph::FlatNodeStore::
     return result;
 }
 
-Vec<org::graph::MapNode> StoryGridGraph::FlatNodeStore::Store::
-    getInitialNodes(StoryGridContext& ctx, SemGraphStore const& semGraph)
-        const {
+Vec<org::graph::MapNode> StoryGridGraph::FlatNodeStore::getInitialNodes(
+    StoryGridContext&    ctx,
+    SemGraphStore const& semGraph) const {
     Vec<org::graph::MapNode> docNodes;
-    for (auto const& node : nodes.items()) {
+    for (auto const& [node_id, node] : pairs()) {
         if (node->isTreeGrid()) {
             bool foundLinkedSubtree = false;
             auto flat = node->getTreeGrid().node.flatRows(true);
