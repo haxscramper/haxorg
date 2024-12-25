@@ -14,6 +14,7 @@
 #include <haxorg/sem/SemOrgFormat.hpp>
 #include <haxorg/sem/ImmOrgGraphBoost.hpp>
 #include "org_logger.hpp"
+#include <boost/range/iterator_range.hpp>
 
 #include <haxorg/sem/ImmOrgGraphBoost.hpp>
 #include <gui_lib/scintilla_editor_widget.hpp>
@@ -1666,18 +1667,25 @@ struct lambda_bfs_visitor : public boost::default_bfs_visitor {
     // clang-format on
 };
 
+
 template <typename Graph>
 struct boost_color_property_map_bundle {
-    using ColorMap = boost::iterator_property_map<
-        std::vector<boost::default_color_type>::iterator,
-        typename boost::property_map<Graph, boost::vertex_index_t>::type>;
+    using vertex_descriptor = typename boost::graph_traits<
+        Graph>::vertex_descriptor;
+    using ColorStorage = std::
+        unordered_map<vertex_descriptor, boost::default_color_type>;
+    using ColorMap = boost::associative_property_map<ColorStorage>;
 
     boost_color_property_map_bundle(Graph const& g)
-        : colors{static_cast<std::size_t  >(boost::num_vertices(g))}
-        , map{colors.begin(), get(boost::vertex_index, g)} {}
+        : colors{}, map{colors} {
+        // Pre-populate with white if needed
+        for (auto vd : boost::make_iterator_range(boost::vertices(g))) {
+            colors[vd] = boost::white_color;
+        }
+    }
 
-    std::vector<boost::default_color_type> colors;
-    ColorMap                               map;
+    ColorStorage colors;
+    ColorMap     map;
 };
 
 StoryGridGraph::SemGraphStore StoryGridGraph::Layer::getSubgraph(
@@ -1705,8 +1713,8 @@ StoryGridGraph::SemGraphStore StoryGridGraph::Layer::getSubgraph(
         boost::breadth_first_search(
             sem.graph,
             n,
-            boost::color_map(colorMap.map)
-                .visitor(lambda_bfs_visitor<MapGraph>{}.with_examine_edge(
+            boost::visitor(
+                lambda_bfs_visitor<MapGraph>{}.with_examine_edge(
                     [&](MapEdge const& e, MapGraph const&) {
                         if (!res.graph.hasNode(e.source)) {
                             res.graph.addNode(e.source);
@@ -1719,7 +1727,8 @@ StoryGridGraph::SemGraphStore StoryGridGraph::Layer::getSubgraph(
                         if (!res.graph.hasEdge(e.source, e.target)) {
                             res.graph.addEdge(e);
                         }
-                    })));
+                    }))
+                .color_map(colorMap.map));
     }
 
     return res;
