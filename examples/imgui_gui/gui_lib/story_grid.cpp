@@ -137,7 +137,7 @@ void run_story_grid_annotated_cycle(
     StoryGridModel&        model,
     StoryGridConfig const& conf) {
     __perf_trace("gui", "grid model render");
-    for (auto const& [node_id, node] : model.graph.getStoryNodes()) {
+    for (auto const& [node_id, node] : model.graph.getPositionedStoryNodes()) {
         LaneNodePos selfPos = model.graph.getBlockPos(node_id).value();
         switch (node->getKind()) {
             case StoryNode::Kind::TreeGrid: {
@@ -738,7 +738,7 @@ void StoryGridGraph::BlockGraphStore::updateBlockState(
 
 void StoryGridModel::updateGridState() {
     Vec<org::graph::MapNode> docNodes;
-    for (auto const& [_, node] : graph.getStoryNodes()) {
+    for (auto const& [_, node] : graph.getPositionedStoryNodes()) {
         if (node->isTreeGrid()) {
             for (TreeGridRow::Ptr const& row :
                  node->getTreeGrid().node.flatRows(true)) {
@@ -848,15 +848,22 @@ Vec<org::graph::MapNode> StoryGridGraph::FlatNodeStore::getInitialNodes(
     Vec<org::graph::MapNode> docNodes;
     for (auto const& [node_id, node] : pairs()) {
         if (node->isTreeGrid()) {
-            bool foundLinkedSubtree = false;
-            auto flat = node->getTreeGrid().node.flatRows(true);
+            bool        foundLinkedSubtree = false;
+            auto        flat = node->getTreeGrid().node.flatRows(true);
+            auto const& g    = semGraph.graph;
             for (const TreeGridRow::Ptr& row : flat) {
-
                 auto tree = row->origin.uniq();
-                if (!semGraph.graph.adjList.at(tree).empty()
-                    || !semGraph.graph.inNodes(tree).empty()) {
-                    foundLinkedSubtree = true;
-                    docNodes.push_back(tree);
+                if (g.hasNode(tree)) {
+                    if (!g.adjList.at(tree).empty()
+                        || !g.inNodes(tree).empty()) {
+                        foundLinkedSubtree = true;
+                        docNodes.push_back(tree);
+                    }
+                } else {
+                    CTX_MSG(
+                        fmt("Row [{}] ID {} is not added to the graph.",
+                            row->flatIdx,
+                            row->origin.id));
                 }
             }
 
@@ -1791,12 +1798,21 @@ StoryGridGraph::SemGraphStore StoryGridGraph::Layer::getSubgraph(
                 n,
                 boost::visitor( //
                     lambda_bfs_visitor<MapGraph>{}
-                        .with_examine_vertex(
-                            [&](CR<MapNode> n, CR<MapGraph>) {
-                                CTX_MSG(fmt("Node {}", n.id.id));
-                                auto& g = res.graph;
-                                if (!g.hasNode(n)) { g.addNode(n); }
-                            })
+                        .with_examine_vertex([&](CR<MapNode> n,
+                                                 CR<MapGraph>) {
+                            CTX_MSG(fmt("Node {}", n.id.id));
+                            auto& g = res.graph;
+                            if (!g.hasNode(n)) {
+                                g.addNode(n);
+
+                                org::ImmUniqId parent = res.annotationParents
+                                                            .at(n.id);
+                                if (!res.graphGroupRoots.contains(
+                                        parent)) {
+                                    res.graphGroupRoots.push_back(parent);
+                                }
+                            }
+                        })
                         .with_examine_edge(
                             [&](CR<MapEdge> e, CR<MapGraph>) {
                                 CTX_MSG(

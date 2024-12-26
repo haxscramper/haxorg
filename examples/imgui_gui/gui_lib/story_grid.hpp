@@ -888,9 +888,8 @@ struct StoryGridGraph {
 
     DESC_FIELDS(StoryGridGraph, (base, subgraph));
 
-    generator<Pair<StoryNodeId, StoryNode*>> getStoryNodes() {
-        for (auto const& [node_id, node] :
-             getLayer().flat->getStore().pairs()) {
+    generator<Pair<StoryNodeId, StoryNode*>> getPositionedStoryNodes() {
+        for (auto const& [node_id, node] : getLayer().flat->pairs()) {
             if (getLayer().position.hasNode(node_id)) {
                 co_yield {node_id, node};
             }
