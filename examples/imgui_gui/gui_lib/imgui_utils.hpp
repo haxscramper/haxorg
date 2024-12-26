@@ -16,6 +16,14 @@
 inline auto rv_transform_fmt1 = rv::transform(
     [](auto const& it) { return fmt1(it); });
 
+inline auto rv_transform_pair_first = rv::transform(
+    []<typename A, typename B>(Pair<A, B> const& it) { return it.first; });
+
+inline auto rv_transform_pair_second = rv::transform(
+    []<typename A, typename B>(Pair<A, B> const& it) {
+        return it.second;
+    });
+
 inline auto rv_intersperse_newline_join //
     = rv::intersperse("\n")             //
     | rv::join                          //

@@ -137,8 +137,39 @@ void run_story_grid_annotated_cycle(
     StoryGridModel&        model,
     StoryGridConfig const& conf) {
     __perf_trace("gui", "grid model render");
-    for (auto const& [node_id, node] : model.graph.getPositionedStoryNodes()) {
-        LaneNodePos selfPos = model.graph.getBlockPos(node_id).value();
+    auto& ctx = model.ctx;
+
+
+    // {
+    //     CTX_MSG(
+    //         fmt("Positioned story nodes {}",
+    //             model.graph.getLayer().position.nodePositions));
+    // }
+
+    // {
+    //     Vec<std::string> dbg                                  //
+    //         = gen_view(model.graph.getPositionedStoryNodes()) //
+    //         | rv_transform_pair_first                         //
+    //         | rv_transform_fmt1                               //
+    //         | rs::to<Vec>();
+
+    //     CTX_MSG(fmt("Positioned story nodes {}", dbg));
+    // }
+
+    // {
+    //     Vec<std::string> dbg                                 //
+    //         = gen_view(model.graph.getLayer().flat->pairs()) //
+    //         | rv_transform_pair_first                        //
+    //         | rv_transform_fmt1                              //
+    //         | rs::to<Vec>();
+
+    //     CTX_MSG(fmt("Positioned story nodes {}", dbg));
+    // }
+
+
+    for (auto const& [node_id, node] :
+         model.graph.getPositionedStoryNodes()) {
+        CTX_MSG(fmt("ID {}", node_id));
         switch (node->getKind()) {
             case StoryNode::Kind::TreeGrid: {
                 node->getTreeGrid().render(model, node_id, conf);
@@ -433,9 +464,12 @@ LaneNodePos StoryGridGraph::BlockGraphStore::addToLane(
     StoryNodeId               id,
     const StoryGridConfig&    conf,
     FlatNodeStore::Ptr const& nodes) {
+    BlockNodeId block    = BlockGraphStore::toInitialBlockId(id);
+    auto [iter, success] = irMapping.insert({id, block});
+    LOGIC_ASSERTION_CHECK(success, "cannot insert");
     return ir.addNode(
         laneIdx,
-        toBlock(id),
+        block,
         nodes->getStoryNode(id).getSize(),
         conf.blockGraphConf);
 }
@@ -448,7 +482,7 @@ void StoryGridGraph::BlockGraphStore::setPartition(
     StoryGridContext&                               ctx) {
     partition            = inPartition;
     auto addToLaneCached = [&](int lane, StoryNodeId id) -> LaneNodePos {
-        if (auto pos = ir.getBlockPos(toBlock(id))) {
+        if (auto pos = getBlockPos(id)) {
             return pos.value();
         } else {
             return addToLane(lane, id, conf, storyNodes);
@@ -456,7 +490,7 @@ void StoryGridGraph::BlockGraphStore::setPartition(
     };
 
     auto getPos = [&](StoryNodeId id) -> LaneNodePos {
-        auto pos = ir.getBlockPos(toBlock(id));
+        auto pos = getBlockPos(id);
         LOGIC_ASSERTION_CHECK(
             pos, "Story node {} is not added to block layout wtf", id);
         return pos.value();
@@ -1156,6 +1190,12 @@ void TreeGridDocument::updatePositions() {
 void run_story_grid_cycle(
     StoryGridModel&        model,
     StoryGridConfig const& conf) {
+    auto __log_scoped = OLOG_SINK_FACTORY_SCOPED([]() {
+        return ::org_logging::init_file_sink(
+            "/tmp/story_grid_model_cycle.log");
+    });
+
+
     auto p = ImGui::GetCursorScreenPos();
     ImGui::GetForegroundDrawList()->AddRect(
         p, p + conf.gridViewport, IM_COL32(255, 0, 0, 255));

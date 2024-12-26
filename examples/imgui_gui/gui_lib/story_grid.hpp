@@ -683,18 +683,38 @@ struct StoryGridGraph {
     struct BlockGraphStore {
         LaneBlockGraph           ir;
         FlatNodeStore::Partition partition;
-        DESC_FIELDS(BlockGraphStore, (ir, partition));
+        boost::bimap<
+            boost::bimaps::set_of<StoryNodeId>,
+            boost::bimaps::set_of<BlockNodeId>>
+            irMapping;
+
+        DESC_FIELDS(BlockGraphStore, (ir, partition, irMapping));
+
 
         StoryNodeId toStory(BlockNodeId id) const {
-            return StoryNodeId::FromIndex(id.getIndex());
+            auto it = irMapping.right.find(id);
+            LOGIC_ASSERTION_CHECK(
+                it != irMapping.right.end(),
+                "No mapping to block from {}",
+                id);
+            return it->second;
         }
 
-        BlockNodeId toBlock(StoryNodeId id) const {
+        static BlockNodeId toInitialBlockId(StoryNodeId id) {
             return BlockNodeId::FromIndex(id.getIndex());
         }
 
+        BlockNodeId toBlock(StoryNodeId id) const {
+            auto it = irMapping.left.find(id);
+            LOGIC_ASSERTION_CHECK(
+                it != irMapping.left.end(),
+                "No mapping to block from {}",
+                id);
+            return it->second;
+        }
+
         Opt<LaneNodePos> getBlockPos(StoryNodeId const& id) const {
-            return ir.getBlockPos(BlockNodeId::FromIndex(id.getIndex()));
+            return ir.getBlockPos(toBlock(id));
         }
 
         Opt<StoryNodeId> getStoryNodeId(LaneNodePos const& pos) const {
@@ -770,6 +790,8 @@ struct StoryGridGraph {
             StoryGridContext&      ctx,
             BlockGraphStore const& blockGraph,
             StoryGridConfig const& conf);
+
+        DESC_FIELDS(NodePositionStore, (lyt, nodePositions, debug));
     };
 
 
