@@ -1890,6 +1890,47 @@ StoryGridGraph::SemGraphStore StoryGridGraph::Layer::getSubgraph(
 
     {
         STORY_GRID_MSG_SCOPE(ctx, "DFS visit");
+
+        auto visit_node = [&](CR<MapNode> n) {
+            CTX_MSG(fmt("Node {}", n.id.id));
+            auto& g = res.graph;
+            if (!g.hasNode(n)) {
+                g.addNode(n);
+
+                org::ImmUniqId parent = res.annotationParents.at(n.id);
+                if (!res.graphGroupRoots.contains(parent)) {
+                    res.graphGroupRoots.push_back(parent);
+                }
+            }
+        };
+
+        auto visit_edge = [&](CR<MapEdge> e) {
+            CTX_MSG(
+                fmt("Visiting {}->{}", e.source.id.id, e.target.id.id));
+            auto& g = res.graph;
+
+            if (!g.hasEdge(e.source, e.target)) { g.addEdge(e); }
+        };
+
+        // TODO implement undirected and inverted mind map overlay to reuse
+        // the boost BFS traversal algorithm.
+        Func<void(CR<MapNode> node)> inverseBfs;
+        UnorderedSet<MapNode>        visited;
+        inverseBfs = [&](CR<MapNode> node) {
+            CTX_MSG(fmt("Inverse visit {}", node));
+            if (visited.contains(node)) {
+                return;
+            } else {
+                visited.incl(node);
+                visit_node(node);
+                for (auto const& out : sem.graph.inEdges(node)) {
+                    visit_node(out.source);
+                    visit_edge(out);
+                    inverseBfs(out.source);
+                }
+            }
+        };
+
         for (MapNode const& n : initial) {
             STORY_GRID_MSG_SCOPE(
                 ctx, fmt("Visiting initial node {}", n.id.id));
@@ -1898,34 +1939,17 @@ StoryGridGraph::SemGraphStore StoryGridGraph::Layer::getSubgraph(
                 n,
                 boost::visitor( //
                     lambda_bfs_visitor<MapGraph>{}
-                        .with_examine_vertex([&](CR<MapNode> n,
-                                                 CR<MapGraph>) {
-                            CTX_MSG(fmt("Node {}", n.id.id));
-                            auto& g = res.graph;
-                            if (!g.hasNode(n)) {
-                                g.addNode(n);
-
-                                org::ImmUniqId parent = res.annotationParents
-                                                            .at(n.id);
-                                if (!res.graphGroupRoots.contains(
-                                        parent)) {
-                                    res.graphGroupRoots.push_back(parent);
-                                }
-                            }
-                        })
+                        .with_examine_vertex(
+                            [&](CR<MapNode> n, CR<MapGraph>) {
+                                visit_node(n);
+                            })
                         .with_examine_edge(
                             [&](CR<MapEdge> e, CR<MapGraph>) {
-                                CTX_MSG(
-                                    fmt("Visiting {}->{}",
-                                        e.source.id.id,
-                                        e.target.id.id));
-                                auto& g = res.graph;
-
-                                if (!g.hasEdge(e.source, e.target)) {
-                                    g.addEdge(e);
-                                }
+                                visit_edge(e);
                             }))
                     .color_map(colorMap.map));
+
+            inverseBfs(n);
         }
     }
 
