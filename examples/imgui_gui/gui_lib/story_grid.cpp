@@ -169,7 +169,7 @@ void run_story_grid_annotated_cycle(
 
     for (auto const& [node_id, node] :
          model.graph.getPositionedStoryNodes()) {
-        CTX_MSG(fmt("ID {}", node_id));
+        // CTX_MSG(fmt("ID {}", node_id));
         switch (node->getKind()) {
             case StoryNode::Kind::TreeGrid: {
                 node->getTreeGrid().render(model, node_id, conf);
@@ -467,6 +467,21 @@ LaneNodePos StoryGridGraph::BlockGraphStore::addToLane(
     BlockNodeId block    = BlockGraphStore::toInitialBlockId(id);
     auto [iter, success] = irMapping.insert({id, block});
     LOGIC_ASSERTION_CHECK(success, "cannot insert");
+    {
+        auto back_story = toStory(block);
+        auto back_block = toBlock(id);
+        LOGIC_ASSERTION_CHECK(
+            back_story == id,
+            "Insertion mapping failed, back story {} != story {}",
+            back_story,
+            id);
+
+        LOGIC_ASSERTION_CHECK(
+            back_block == block,
+            "Insertion mapping failed, back block {} != block {}",
+            back_block,
+            block);
+    }
     return ir.addNode(
         laneIdx,
         block,
@@ -480,12 +495,15 @@ void StoryGridGraph::BlockGraphStore::setPartition(
     SemGraphStore const&                            semGraph,
     StoryGridConfig const&                          conf,
     StoryGridContext&                               ctx) {
+    STORY_GRID_MSG_SCOPE(ctx, "Assign partition");
     partition            = inPartition;
     auto addToLaneCached = [&](int lane, StoryNodeId id) -> LaneNodePos {
         if (auto pos = getBlockPos(id)) {
             return pos.value();
         } else {
-            return addToLane(lane, id, conf, storyNodes);
+            LaneNodePos res = addToLane(lane, id, conf, storyNodes);
+            CTX_MSG(fmt("Set {} on {}", id, res));
+            return res;
         }
     };
 
@@ -496,118 +514,134 @@ void StoryGridGraph::BlockGraphStore::setPartition(
         return pos.value();
     };
 
-    for (auto const& [group_idx, group] : enumerate(partition.nodes)) {
-        STORY_GRID_MSG_SCOPE(
-            ctx,
-            fmt("Partition {} has {} items", group_idx, group.size()));
+    {
+        STORY_GRID_MSG_SCOPE(ctx, "Assign partitioned nodes to lanes");
+        for (auto const& [group_idx, group] : enumerate(partition.nodes)) {
+            STORY_GRID_MSG_SCOPE(
+                ctx,
+                fmt("Partition {} has {} items", group_idx, group.size()));
 
-        // for (auto const& [k, v] : storyNodes.orgToFlatIdx) {
-        //     CTX_MSG(fmt("> {} {}", k.id, v));
-        // }
+            // for (auto const& [k, v] : storyNodes.orgToFlatIdx) {
+            //     CTX_MSG(fmt("> {} {}", k.id, v));
+            // }
 
-        for (auto const& node : group) {
-            org::ImmUniqId adapter = node.id;
-            org::ImmUniqId root    = semGraph.getRoot(node.id);
-            CTX_MSG(fmt("Node {} to root {}", node.id.id, root.id));
-
-            StoryNodeId id = storyNodes->getStoryNodeId(root).value();
-            addToLaneCached(group_idx, id);
+            for (auto const& node : group) {
+                org::ImmUniqId adapter = node.id;
+                org::ImmUniqId root    = semGraph.getRoot(node.id);
+                StoryNodeId id = storyNodes->getStoryNodeId(root).value();
+                CTX_MSG(
+                    fmt("Node {} to root {} story ID {}",
+                        node.id.id,
+                        root.id,
+                        id));
+                addToLaneCached(group_idx, id);
+            }
         }
     }
 
-    for (auto const& [source, target_bundle] : partition.edges) {
-        for (org::graph::MapNode const& target : target_bundle) {
-            org::ImmUniqId source_org_adapter = source.id;
-            org::ImmUniqId source_org_root = semGraph.getRoot(source.id);
-            StoryNodeId    source_story_id //
-                = storyNodes->getStoryNodeId(source_org_root).value();
-            LaneNodePos source_block_pos = getPos(source_story_id);
+    {
+        STORY_GRID_MSG_SCOPE(ctx, "Connect partitioned node edges");
+        for (auto const& [source, target_bundle] : partition.edges) {
+            for (org::graph::MapNode const& target : target_bundle) {
+                org::ImmUniqId source_org_adapter = source.id;
+                org::ImmUniqId source_org_root    = semGraph.getRoot(
+                    source.id);
+                StoryNodeId source_story_id //
+                    = storyNodes->getStoryNodeId(source_org_root).value();
+                LaneNodePos source_block_pos = getPos(source_story_id);
 
-            org::ImmUniqId target_org_adapter = target.id;
-            org::ImmUniqId target_org_root = semGraph.getRoot(target.id);
-            StoryNodeId    target_story_id //
-                = storyNodes->getStoryNodeId(target_org_root).value();
+                org::ImmUniqId target_org_adapter = target.id;
+                org::ImmUniqId target_org_root    = semGraph.getRoot(
+                    target.id);
+                StoryNodeId target_story_id //
+                    = storyNodes->getStoryNodeId(target_org_root).value();
 
-            LaneNodePos target_block_pos = getPos(target_story_id);
+                LaneNodePos target_block_pos = getPos(target_story_id);
 
 
-            using GEC = GraphEdgeConstraint;
+                using GEC = GraphEdgeConstraint;
 
-            LaneNodeEdge edge;
-            edge.target = target_block_pos;
-            if (source_block_pos.lane == target_block_pos.lane) {
-                edge.targetPort = GEC::Port::West;
-                edge.sourcePort = GEC::Port::West;
-            } else if (source_block_pos.lane < target_block_pos.lane) {
-                edge.sourcePort = GEC::Port::East;
-                edge.targetPort = GEC::Port::West;
-            } else {
-                edge.sourcePort = GEC::Port::West;
-                edge.targetPort = GEC::Port::East;
-            }
-
-            auto get_connector_offset =
-                [&](StoryNode const&      flat,
-                    org::ImmUniqId const& node) -> Opt<int> {
-                if (flat.isTreeGrid()) {
-                    int row_idx = flat.getTreeGrid()
-                                      .node.getRow(node)
-                                      .value();
-                    auto offset = flat.getTreeGrid()
-                                      .node.getRowCenterOffset(row_idx);
-                    return offset;
-                } else if (flat.isLinkList()) {
-                    // CTX_MSG(
-                    //     fmt("node {} source parent {} target parent {}",
-                    //         node,
-                    //         doc.annotationParents.get(node.source.id),
-                    //         doc.annotationParents.get(node.target.id)));
-                    return flat.getLinkList().getRowCenterOffset(
-                        flat.getLinkList().getRow(node));
-
-                    // CTX_MSG(fmt("edge {} -> {}", source_block_pos,
-                    // edge));
+                LaneNodeEdge edge;
+                edge.target = target_block_pos;
+                if (source_block_pos.lane == target_block_pos.lane) {
+                    edge.targetPort = GEC::Port::West;
+                    edge.sourcePort = GEC::Port::West;
+                } else if (source_block_pos.lane < target_block_pos.lane) {
+                    edge.sourcePort = GEC::Port::East;
+                    edge.targetPort = GEC::Port::West;
                 } else {
-                    return std::nullopt;
+                    edge.sourcePort = GEC::Port::West;
+                    edge.targetPort = GEC::Port::East;
                 }
-            };
 
-            StoryNode const& source_story //
-                = storyNodes->getStoryNode(source_story_id);
-            StoryNode const& target_story //
-                = storyNodes->getStoryNode(target_story_id);
+                auto get_connector_offset =
+                    [&](StoryNode const&      flat,
+                        org::ImmUniqId const& node) -> Opt<int> {
+                    if (flat.isTreeGrid()) {
+                        int row_idx = flat.getTreeGrid()
+                                          .node.getRow(node)
+                                          .value();
+                        auto offset = flat.getTreeGrid()
+                                          .node.getRowCenterOffset(
+                                              row_idx);
+                        return offset;
+                    } else if (flat.isLinkList()) {
+                        // CTX_MSG(
+                        //     fmt("node {} source parent {} target parent
+                        //     {}",
+                        //         node,
+                        //         doc.annotationParents.get(node.source.id),
+                        //         doc.annotationParents.get(node.target.id)));
+                        return flat.getLinkList().getRowCenterOffset(
+                            flat.getLinkList().getRow(node));
+
+                        // CTX_MSG(fmt("edge {} -> {}", source_block_pos,
+                        // edge));
+                    } else {
+                        return std::nullopt;
+                    }
+                };
+
+                StoryNode const& source_story //
+                    = storyNodes->getStoryNode(source_story_id);
+                StoryNode const& target_story //
+                    = storyNodes->getStoryNode(target_story_id);
 
 
-            edge.sourceOffset = get_connector_offset(
-                source_story, source_org_adapter);
-            edge.targetOffset = get_connector_offset(
-                target_story, target_org_adapter);
+                edge.sourceOffset = get_connector_offset(
+                    source_story, source_org_adapter);
+                edge.targetOffset = get_connector_offset(
+                    target_story, target_org_adapter);
 
-            CTX_MSG(fmt(
-                "{}-> {}", source_org_adapter.id, target_org_adapter.id));
-            auto __scope = ctx.scopeLevel();
-
-            CTX_MSG(
-                fmt("Partition node {}",
-                    _dfmt_expr(
+                CTX_MSG(
+                    fmt("{}-> {}",
                         source_org_adapter.id,
-                        source_org_root.id,
-                        source_block_pos,
-                        edge.sourceOffset)));
+                        target_org_adapter.id));
+                auto __scope = ctx.scopeLevel();
 
-            CTX_MSG(
-                fmt("Partition node {}",
-                    _dfmt_expr(
-                        target_org_adapter.id,
-                        target_org_root.id,
-                        target_block_pos,
-                        edge.targetOffset)));
+                CTX_MSG(
+                    fmt("Partition node {}",
+                        _dfmt_expr(
+                            source_org_adapter.id,
+                            source_org_root.id,
+                            source_block_pos,
+                            edge.sourceOffset)));
 
-            if (source_story.isLinkList() || target_story.isLinkList()) {
-                CTX_MSG(fmt("{}", edge));
+                CTX_MSG(
+                    fmt("Partition node {}",
+                        _dfmt_expr(
+                            target_org_adapter.id,
+                            target_org_root.id,
+                            target_block_pos,
+                            edge.targetOffset)));
+
+                if (source_story.isLinkList()
+                    || target_story.isLinkList()) {
+                    CTX_MSG(fmt("{}", edge));
+                }
+
+                ir.addEdge(source_block_pos, edge);
             }
-
-            ir.addEdge(source_block_pos, edge);
         }
     }
 }
@@ -1472,9 +1506,10 @@ StoryGridGraph::BlockGraphStore StoryGridGraph::BlockGraphStore::init(
 
 
 StoryGridGraph::NodePositionStore StoryGridGraph::NodePositionStore::init(
-    StoryGridContext&      ctx,
-    BlockGraphStore const& blockGraph,
-    StoryGridConfig const& conf) {
+    StoryGridContext&         ctx,
+    FlatNodeStore::Ptr const& storyNodes,
+    BlockGraphStore const&    blockGraph,
+    StoryGridConfig const&    conf) {
     STORY_GRID_MSG_SCOPE(ctx, "Init node position store");
     NodePositionStore res;
     LOGIC_ASSERTION_CHECK(
@@ -1486,16 +1521,41 @@ StoryGridGraph::NodePositionStore StoryGridGraph::NodePositionStore::init(
         for (auto const& [id, pos] : blockGraph.ir.idToPos) {
             CTX_MSG(fmt("Id {} pos {}", id, pos));
         }
+        for (auto const& [story, block] : blockGraph.irMapping) {
+            CTX_MSG(fmt("story {} block {}", story, block));
+        }
         res.lyt = blockGraph.ir.getLayout();
         CTX_MSG(fmt("Layout for {} rectangles", res.lyt.rectMap.size()));
     }
 
+    Opt<StoryNodeId> mask;
+
+    for (auto const& [id, node] : storyNodes->pairs()) {
+        if (!mask) { mask = id; }
+    }
+
     for (LaneBlockLayout::RectSpec const& rect :
          res.lyt.getRectangles(blockGraph.ir)) {
-        CTX_MSG(fmt("Node position {}", rect));
         if (rect.isVisible) {
-            res.nodePositions.insert_or_assign(
-                blockGraph.toStory(rect.blockId), rect.pos);
+            StoryNodeId id = blockGraph.toStory(rect.blockId);
+            CTX_MSG(fmt(
+                "Node {} block {} position {}", id, rect.blockId, rect));
+            if (mask) {
+                LOGIC_ASSERTION_CHECK(
+                    id.getMask() == mask->getMask(),
+                    "All node positions must have identical masks, but "
+                    "story ID {} for block {} has mask '{}', while "
+                    "previous ID {} had mask {}",
+                    id,
+                    rect.blockId,
+                    id.getMask(),
+                    mask.value(),
+                    mask->getMask());
+            } else {
+                mask = id;
+            }
+
+            res.nodePositions.insert_or_assign(id, rect.pos);
         }
     }
 

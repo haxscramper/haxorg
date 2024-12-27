@@ -574,21 +574,23 @@ struct StoryGridGraph {
             }
 
             StoryNodeId getProxy(StoryNodeId const& underlying) const {
-                auto it = map.right.find(underlying);
+                auto it = map.left.find(underlying);
                 LOGIC_ASSERTION_CHECK(
-                    it != map.right.end(),
+                    it != map.left.end(),
                     "No mapped proxy for underlying node {}",
                     underlying);
+
                 return it->second;
             }
 
             StoryNodeId getUnderlying(StoryNodeId const& proxy) const {
-                auto it = map.left.find(proxy);
+                auto it = map.right.find(proxy);
                 LOGIC_ASSERTION_CHECK(
-                    it != map.left.end(),
+                    it != map.right.end(),
                     "No underlying node for proxy {}",
                     proxy);
-                return it->second;
+
+                return it->first;
             }
 
             DESC_FIELDS(Proxy, (source, map));
@@ -704,6 +706,10 @@ struct StoryGridGraph {
             return BlockNodeId::FromIndex(id.getIndex());
         }
 
+        bool hasBlockForNode(StoryNodeId id) const {
+            return irMapping.left.find(id) != irMapping.left.end();
+        }
+
         BlockNodeId toBlock(StoryNodeId id) const {
             auto it = irMapping.left.find(id);
             LOGIC_ASSERTION_CHECK(
@@ -714,7 +720,11 @@ struct StoryGridGraph {
         }
 
         Opt<LaneNodePos> getBlockPos(StoryNodeId const& id) const {
-            return ir.getBlockPos(toBlock(id));
+            if (hasBlockForNode(id)) {
+                return ir.getBlockPos(toBlock(id));
+            } else {
+                return std::nullopt;
+            }
         }
 
         Opt<StoryNodeId> getStoryNodeId(LaneNodePos const& pos) const {
@@ -787,9 +797,10 @@ struct StoryGridGraph {
         }
 
         static NodePositionStore init(
-            StoryGridContext&      ctx,
-            BlockGraphStore const& blockGraph,
-            StoryGridConfig const& conf);
+            StoryGridContext&         ctx,
+            FlatNodeStore::Ptr const& storyNodes,
+            BlockGraphStore const&    blockGraph,
+            StoryGridConfig const&    conf);
 
         DESC_FIELDS(NodePositionStore, (lyt, nodePositions, debug));
     };
@@ -852,7 +863,7 @@ struct StoryGridGraph {
         void updateNodePositions(
             StoryGridContext&      ctx,
             StoryGridConfig const& conf) {
-            position = NodePositionStore::init(ctx, block, conf);
+            position = NodePositionStore::init(ctx, flat, block, conf);
         }
     };
 
