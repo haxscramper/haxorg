@@ -901,8 +901,8 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
     node = org.parseFile(str(opts.infile.resolve()), org.OrgParseParameters())
     headers = rec_node(node)
 
-    with open("/tmp/res.txt", "w") as file:
-        file.write(org.treeRepr(node, colored=False))
+    # with open("/tmp/res.txt", "w") as file:
+    #     file.write(org.treeRepr(node, colored=False))
 
     doc = get_html_story_grid(headers)
     with open(opts.outfile, "w") as out:

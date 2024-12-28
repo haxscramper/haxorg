@@ -36,28 +36,26 @@ struct JsonSerde<ReflPathItem<Tag>> {
 };
 
 struct StoryGridVars : public ImTestVarsBase {
-    StoryGridModel                   model;
     org::ImmAstContext::Ptr          start;
+    EditableOrgDocGroup              history;
+    StoryGridModel                   model;
     StoryGridConfig                  conf;
     Vec<org_logging::log_sink_scope> debug_scopes;
+    DocRootId                        root = DocRootId::Nil();
 
-    StoryGridVars() : start{org::ImmAstContext::init_start_context()} {}
+    StoryGridVars()
+        : start{org::ImmAstContext::init_start_context()}
+        , history{start}
+        , model{&history} {}
 
     void add_text(std::string const& text) {
-        model.history.push_back(StoryGridHistory{
-            .ast = start->init(sem::parseString(text)),
-        });
-        model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Graph);
-        model.updateNeeded.incl(StoryGridModel::UpdateNeeded::Scroll);
-
-        TreeGridDocument doc;
-        model.updateDocument(doc, conf);
+        root = model.history->addRoot(sem::parseString(text));
+        model.rebuild(conf);
     }
 
     Str get_text() {
         auto sem = org::sem_from_immer(
-            model.getLastHistory().ast.getRootAdapter().id,
-            *model.getLastHistory().ast.context.get());
+            model.history->getRoot(root).id, *model.history->getContext());
         return sem::Formatter::format(sem);
     }
 
@@ -78,7 +76,7 @@ struct StoryGridVars : public ImTestVarsBase {
             auto __scope = IM_SCOPE_BEGIN("App loop iteration", "");
             model.shift  = getContentPos(ctx);
             run_story_grid_cycle(model, conf);
-            apply_story_grid_changes(model, TreeGridDocument{}, conf);
+            model.applyChanges(conf);
         }
 
         if (is_im_traced()) { ImRenderTraceRecord::WriteTrace(trace); }
@@ -173,8 +171,9 @@ void _Load_One_Paragraph(ImGuiTestEngine* e) {
     t->TestFunc = ImWrapTestFuncT<StoryGridVars>(
         params, [](ImGuiTestContext* ctx, StoryGridVars& vars) {
             ImVec2 wpos = getContentPos(ctx);
-            auto&  doc  = vars.model.rectGraph.nodes.at(0)
-                            .getTreeGrid()
+            auto&  doc  = vars.model.graph.getGridNodes()
+                            .at(0)
+                            ->getTreeGrid()
                             .node;
             ctx->MouseMoveToPos(
                 wpos + doc.getCellPos(0, "title") + ImVec2{0, 5});
@@ -267,14 +266,14 @@ some random shit about the comments or whatever, need to render as annotation [f
 
     t->TestFunc = ImWrapTestFuncT<StoryGridVars>(
         params, [](ImGuiTestContext* ctx, StoryGridVars& vars) {
-            ImVec2      wpos  = getContentPos(ctx);
-            auto&       m     = vars.model;
-            auto&       doc   = m.rectGraph.nodes.at(0).getTreeGrid().node;
-            auto&       ir    = m.rectGraph.ir;
-            auto const& spans = ir.ir.getLaneSpans();
-            auto&       rg    = m.rectGraph;
+            ImVec2 wpos = getContentPos(ctx);
+            auto&  m    = vars.model;
+            auto&  doc  = m.graph.getGridNodes().at(0)->getTreeGrid().node;
+            auto&  ir   = m.graph.getLayer().block.ir;
+            auto const& spans = ir.getLaneSpans();
+            auto&       rg    = m.graph;
             IM_CHECK_EQ(spans.size(), 4);
-            IM_CHECK_EQ(ir.getLanes().at(1).scrollOffset, 0);
+            IM_CHECK_EQ(ir.lanes.at(1).scrollOffset, 0);
             IM_CTX_ACT(
                 MouseMoveToPos,
                 wpos
@@ -284,14 +283,14 @@ some random shit about the comments or whatever, need to render as annotation [f
             // m.ctx.message(to_json_eval(rg.nodes).dump(2));
 
             IM_CHECK_BINARY_PRED(
-                rg.getDocNode({0, 0}).getTreeGrid().pos,
+                rg.getPosition({0, 0}),
                 ImVec2(spans.at(0).first, 0),
                 is_within_distance,
                 5);
 
 
             IM_CHECK_BINARY_PRED(
-                rg.getDocNode({1, 0}).getText().pos,
+                rg.getPosition({1, 0}),
                 ImVec2(spans.at(1).first, 0),
                 is_within_distance,
                 5);
@@ -303,14 +302,14 @@ some random shit about the comments or whatever, need to render as annotation [f
                 vars.set_im_trace(2);
                 IM_CTX_ACT(Yield, 5);
                 IM_CHECK_EQ(
-                    ir.getLanes().at(1).scrollOffset,
+                    ir.lanes.at(1).scrollOffset,
                     vars.conf.mouseScrollMultiplier * 5);
             }
 
             // m.ctx.message(to_json_eval(rg.nodes).dump(2));
 
             IM_CHECK_BINARY_PRED(
-                rg.getDocNode({1, 0}).getText().pos,
+                rg.getPosition({1, 0}),
                 ImVec2(spans.at(1).first, 50),
                 is_within_distance,
                 5);
@@ -319,8 +318,7 @@ some random shit about the comments or whatever, need to render as annotation [f
                 m.ctx.message("Edit annotation text");
                 IM_CTX_ACT(
                     MouseMoveToPos,
-                    wpos + rg.getDocNode({1, 0}).getText().pos
-                        + ImVec2(0, 5));
+                    wpos + rg.getPosition({1, 0}) + ImVec2(0, 5));
                 IM_CTX_ACT(MouseClick, 0);
                 IM_CTX_ACT(MouseClick, 0);
 
@@ -332,9 +330,6 @@ some random shit about the comments or whatever, need to render as annotation [f
                     MouseMoveToPos, ImGui::GetMousePos() + ImVec2(0, 100));
                 m.ctx.message(fmt(
                     "Pre edit text is\n'''\n{}\n'''", vars.get_text()));
-                writeFile(
-                    getDebugFile(ctx->Test, "test_dump.json"),
-                    to_json_eval(m.rectGraph.ir).dump(2));
 
                 // ctx->SuspendTestFunc();
                 IM_CTX_ACT(MouseClick, 0);

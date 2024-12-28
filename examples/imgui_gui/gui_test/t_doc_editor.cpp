@@ -12,24 +12,20 @@ struct DocEditVars : public ImTestVarsBase {
     DocBlockModel           model;
     EditableOrgDocGroup     docs;
     DocBlockConfig          conf;
-    int                     root_idx = -1;
+    DocRootId               root_idx = DocRootId::Nil();
 
     DocEditVars()
         : ctx{org::ImmAstContext::init_start_context()}, docs{ctx} {}
 
     Str get_text() {
         auto sem = org::sem_from_immer(
-            docs.getCurrentRoot(root_idx).id,
-            *docs.getCurrentAst().context);
+            docs.getCurrentRoot(root_idx).id, *docs.getContext());
         return sem::Formatter::format(sem);
     }
 
     void add_text(std::string const& text) {
-        root_idx        = docs.init_root(sem::parseString(text));
-        model.root.root = to_doc_block(docs.getCurrentRoot(root_idx), conf)
-                              .value();
-
-        model.root.syncPositions(model.ctx, conf);
+        root_idx = docs.addRoot(sem::parseString(text));
+        model.syncFull(docs.getCurrentRoot(root_idx), conf);
     }
 
     void init_section(ImGuiTestContext* ctx, std::string const& text) {
@@ -93,17 +89,17 @@ Paragraph 2
             auto r = vars.model.root;
 
             ColStream os;
-            vars.model.root.root->treeRepr(os);
+            vars.model.root->treeRepr(os);
             writeFile(
                 getDebugFile(ctx->Test, "doc_repr.txt"),
                 os.getBuffer().toString(false));
 
-            IM_CHECK(r.root->isDocument());
-            IM_CHECK(r.at(0)->isSubtree());
-            IM_CHECK(r.at({0, 0})->isParagraph());
+            IM_CHECK(r->isDocument());
+            IM_CHECK(r->at(0)->isSubtree());
+            IM_CHECK(r->at({0, 0})->isParagraph());
 
-            auto st  = r.at(0);
-            auto par = r.at({0, 0});
+            auto st  = r->at(0);
+            auto par = r->at({0, 0});
 
             { // when document block is being edited, its size can change.
               // Positions of other blocks should account for that.
@@ -121,9 +117,6 @@ Paragraph 2
                 IM_CHECK_EQ(par_size0, par->getSize());
                 IM_CHECK_NE(par_pos0, par->getPos());
 
-                vars.model.root.getRootOrigin().treeRepr();
-
-
                 ctx->MouseMoveToPos(
                     wpos + st_pos0 + ImVec2{10, st->getSize().y - 15});
                 ctx->MouseClick(0);
@@ -137,7 +130,6 @@ Paragraph 2
 
             {
 
-                vars.model.root.getRootOrigin().treeRepr();
                 ctx->MouseMoveToPos(wpos + st->getPos());
                 MouseMoveRelative(ctx, ImVec2{10, 10});
                 ctx->MouseClick(0);
@@ -147,10 +139,7 @@ Paragraph 2
                     wpos + st->getPos()
                     + ImVec2{10, st->getSize().y - 15});
                 ctx->MouseClick(0);
-
-                vars.model.root.getRootOrigin().treeRepr();
             }
-
 
             ctx->SuspendTestFunc();
         });

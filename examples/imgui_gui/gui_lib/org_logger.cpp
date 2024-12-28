@@ -17,6 +17,7 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/format.hpp>
 #include <boost/property_map/property_map.hpp>
+#include <hstd/stdlib/Enumerate.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
 
 #include <boost/log/core.hpp>
@@ -26,6 +27,7 @@
 #include <hstd/stdlib/Opt.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/locks.hpp>
+#include <fstream>
 
 
 BOOST_LOG_GLOBAL_LOGGER(
@@ -87,7 +89,7 @@ BOOST_LOG_GLOBAL_LOGGER_INIT(
     return logger;
 }
 
-#define OLOG_INNER_DEBUG true
+#define OLOG_INNER_DEBUG false
 
 #define OLOG_MSG() LOG_IF(INFO, OLOG_INNER_DEBUG)
 
@@ -176,24 +178,35 @@ void org_logging::clear_sink_backends() {
 }
 
 namespace {
+
 void format_log_record_data(
     const boost::log::record_view&  rec,
     boost::log::formatting_ostream& strm,
-    log_record::log_data const&     data) {
+    log_record::log_data const&     data,
+    bool                            ignoreDepth = false) {
     auto ts = rec[LOG_TIMESTAMP_FIELD].extract<boost::posix_time::ptime>();
-    auto global_depth  = rec[LOG_SCOPE_DEPTH_FIELD].extract<int>();
-    std::string prefix = fmt(
-        "{}{} {}",
-        ts ? boost::posix_time::to_simple_string(*ts).substr(
-                 11, 9 /*Extract HH:MM:SS*/)
-                 + std::string{" "}
-           : "",
-        join(".", data.source_scope),
-        Str{"  "}
-            .repeated(
-                data.depth ? data.depth.value()
-                           : (global_depth ? *global_depth : 0))
-            .toBase());
+    auto global_depth = rec[LOG_SCOPE_DEPTH_FIELD].extract<int>();
+    std::string prefix;
+
+    if (false) {
+        prefix += fmt(
+            "{}{}",
+            ts ? boost::posix_time::to_simple_string(*ts).substr(
+                     11, 9 /*Extract HH:MM:SS*/)
+                     + std::string{" "}
+               : "",
+            join(".", data.source_scope));
+    }
+
+    if (!prefix.empty()) { prefix += " "; }
+
+    if (!ignoreDepth) {
+        prefix += Str{"  "}
+                      .repeated(
+                          data.depth ? data.depth.value()
+                                     : (global_depth ? *global_depth : 0))
+                      .toBase();
+    }
 
     strm << prefix;
 
@@ -201,8 +214,9 @@ void format_log_record_data(
         if (data.metadata) { strm << " " << data.metadata->dump(-1); }
 
         if (data.file) {
-            strm << " " << fs::path{data.file}.filename() << ":"
-                 << data.line;
+            strm << " " << fs::path{data.file}.filename().native();
+            if (data.function) { strm << ":" << data.function; }
+            strm << ":" << data.line;
         }
     };
 
@@ -210,10 +224,12 @@ void format_log_record_data(
         auto split = data.message.split('\n');
         strm << split.at(0);
         write_trail();
-        for (auto const& line : split.at(slice(1, 1_B))) {
-            strm << "\n";
-            strm << Str{" "}.repeated(prefix.size());
-            strm << line;
+        if (split.has(1)) {
+            for (auto const& line : split.at(slice(1, 1_B))) {
+                strm << "\n";
+                strm << Str{" "}.repeated(prefix.size());
+                strm << line;
+            }
         }
     } else {
         strm << data.message;
@@ -245,6 +261,74 @@ sink_ptr org_logging::init_file_sink(Str const& log_file_name) {
     });
 
     return sink;
+}
+
+struct log_differential_sink
+    : public boost::log::sinks::basic_formatted_sink_backend<
+          char,
+          boost::log::sinks::synchronized_feeding> {
+
+    Vec<log_record>                curr_run;
+    Vec<std::string>               curr_run_format;
+    log_differential_sink_factory* factory;
+
+    void consume(const boost::log::record_view& rec, std::string const&) {
+        auto ref = rec[LOG_RECORD_FIELD].extract<log_record>();
+        if (!ref) { return; }
+
+        std::string                    ss;
+        boost::log::formatting_ostream strm(ss);
+        format_log_record_data(rec, strm, ref->data, factory->ignoreDepth);
+
+        curr_run.push_back(*ref);
+        curr_run_format.push_back(ss);
+    }
+
+    ~log_differential_sink() {
+        std::ofstream ofs(factory->outfile);
+        size_t        i = 0, j = 0;
+        auto&         prev     = factory->prev_run;
+        auto&         prev_fmt = factory->prev_run_format;
+
+        auto prefixed_write = [&](Str const& prefix, Str const& text) {
+            for (auto const& line : text.split("\n")) {
+                ofs << prefix << line << "\n";
+            }
+        };
+
+        while (i < prev.size() || j < curr_run.size()) {
+            if (i < prev.size() && j < curr_run.size()) {
+                if (prev_fmt[i] == curr_run_format[j]) {
+                    ofs << "  " << curr_run_format[j] << "\n";
+                    i++;
+                    j++;
+                } else {
+                    prefixed_write("- ", prev_fmt.at(i));
+                    prefixed_write("+ ", curr_run_format.at(j));
+                    i++;
+                    j++;
+                }
+            } else if (i < prev.size()) {
+                prefixed_write("- ", prev_fmt.at(i));
+                i++;
+            } else {
+                prefixed_write("+ ", curr_run_format.at(j));
+                j++;
+            }
+        }
+
+        factory->prev_run        = std::move(curr_run);
+        factory->prev_run_format = std::move(curr_run_format);
+    }
+};
+
+
+sink_ptr log_differential_sink_factory::operator()() {
+    auto backend     = boost::make_shared<log_differential_sink>();
+    backend->factory = this;
+    return boost::make_shared<
+        boost::log::sinks::synchronous_sink<log_differential_sink>>(
+        backend);
 }
 
 void org_logging::push_sink(sink_ptr const& sink) {
@@ -353,6 +437,30 @@ std::size_t log_record::log_data::hash() const {
     hax_hash_combine(result, source_id);
     hax_hash_combine(result, metadata);
     return result;
+}
+
+template <DescribedRecord T>
+bool impl_refl_operator_eq(T const& t1, T const& t2) {
+    using Bd = boost::describe::
+        describe_bases<T, boost::describe::mod_any_access>;
+    using Md = boost::describe::
+        describe_members<T, boost::describe::mod_any_access>;
+
+    bool r = true;
+
+    boost::mp11::mp_for_each<Bd>([&](auto D) {
+        using B = typename decltype(D)::type;
+        r       = r && (B const&)t1 == (B const&)t2;
+    });
+
+    boost::mp11::mp_for_each<Md>(
+        [&](auto D) { r = r && t1.*D.pointer == t2.*D.pointer; });
+
+    return r;
+}
+
+bool log_record::log_data::operator==(const log_data& other) const {
+    return impl_refl_operator_eq(*this, other);
 }
 
 // log_record::log_data::log_data() {

@@ -16,6 +16,25 @@
 Vec<ImRenderTraceRecord> ImRenderTraceRecord::stack;
 bool                     ImRenderTraceRecord::TraceState;
 
+
+void AddTextWithBackground(
+    ImDrawList*        draw_list,
+    const ImVec2&      position,
+    ImU32              text_color,
+    const std::string& text,
+    ImU32              background_color) {
+    ImFont* font      = ImGui::GetFont();
+    ImVec2  text_size = font->CalcTextSizeA(
+        font->FontSize, FLT_MAX, 0.0f, text.c_str());
+    ImVec2 rect_min = position;
+    ImVec2 rect_max = ImVec2(
+        position.x + text_size.x, position.y + text_size.y);
+    draw_list->AddRectFilled(rect_min, rect_max, background_color);
+    draw_list->AddText(
+        font, font->FontSize, position, text_color, text.c_str());
+}
+
+
 void frame_start() {
     glfwPollEvents();
 
@@ -305,4 +324,17 @@ void ImRenderTraceRecord::WriteRecord(OperationsTracer& trace, int level)
     trace.endStream(os);
 
     for (auto const& sub : nested) { sub.WriteRecord(trace, level + 1); }
+}
+
+ImVec2 getCurrentWindowContentPos() {
+    return ImGui::GetWindowPos()
+         + ImVec2{0, ImGui::GetCurrentWindow()->TitleBarHeight};
+}
+
+void AddText(
+    ImDrawList*        list,
+    ImVec2 const&      pos,
+    const ImU32&       color,
+    const std::string& text) {
+    list->AddText(pos, color, text.data(), text.data() + text.size());
 }

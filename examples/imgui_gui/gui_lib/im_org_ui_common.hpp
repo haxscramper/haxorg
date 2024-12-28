@@ -1,4 +1,5 @@
 #pragma once
+#include "gui_lib/imgui_utils.hpp"
 #define NDEBUG 0
 
 #include <haxorg/sem/ImmOrg.hpp>
@@ -25,12 +26,27 @@ struct EditableOrgText {
 
     DECL_DESCRIBED_ENUM(Mode, Multiline, SingleLine);
 
-    DECL_DESCRIBED_ENUM(
-        Result,
-        None,
-        Changed,
-        StartedEditing,
-        CancelledEditing);
+
+    struct Result {
+        DECL_DESCRIBED_ENUM(
+            Kind,
+            Changed,
+            StartedEditing,
+            CancelledEditing);
+        Kind             kind;
+        org::ImmAdapter  origin;
+        Opt<std::string> value;
+
+        DESC_FIELDS(Result, (kind, origin, value));
+
+        bool isChanged() const { return kind == Kind::Changed; }
+        bool isStartedEditing() const {
+            return kind == Kind::StartedEditing;
+        }
+        bool isCancelledEditing() const {
+            return kind == Kind::CancelledEditing;
+        }
+    };
 
     static EditableOrgText from_adapter(org::ImmAdapter const& it);
 
@@ -39,7 +55,7 @@ struct EditableOrgText {
     /// \brief Render editable text widget at the current position using
     /// provided size and edit mode. Edit state and buffer are stored in
     /// the object.
-    Result render(
+    Opt<Result> render(
         ImVec2 const&         size,
         EditableOrgText::Mode edit,
         std::string const&    id);
@@ -71,11 +87,13 @@ struct EditableOrgTextEntry {
         return result;
     }
 
-    std::string getFinalValue() const { return text.getFinalValue(); }
+    std::string     getFinalValue() const { return text.getFinalValue(); }
+    org::ImmAdapter getOrigin() const { return text.origin; }
 
     int    getHeight() const;
     int    getWidth() const { return assignedWidth; }
     ImVec2 getSize() const { return ImVec2(getWidth(), getHeight()); }
+    bool   isEditing() const { return text.is_editing; }
 
     void setWidth(int width) {
         assignedWidth = width;
@@ -86,58 +104,127 @@ struct EditableOrgTextEntry {
         computedHeight = text.get_expected_height(assignedWidth, mode);
     }
 
-    EditableOrgText::Result render(std::string const& id) {
+    Opt<EditableOrgText::Result> render(std::string const& id) {
         return text.render(getSize(), mode, id);
     }
 };
 
+DECL_ID_TYPE_MASKED(___RootId, DocRootId, u64, 32);
+
+template <>
+struct std::formatter<org::ImmAstVersion*>
+    : std_format_ptr_as_hex<org::ImmAstVersion> {};
+
 struct EditableOrgDocGroup {
+    struct RootGroup {
+        Vec<DocRootId> roots;
+        int            historyIndex = 0;
+        DESC_FIELDS(RootGroup, (roots, historyIndex));
+
+        int getHistoryIndex() const { return historyIndex; }
+
+        void add(DocRootId id);
+
+        RootGroup() {}
+        RootGroup(int history, Vec<DocRootId> roots);
+    };
+
     struct History {
-        org::ImmAstVersion   ast;
-        Vec<org::ImmAdapter> roots;
-        DESC_FIELDS(History, (ast, roots));
+        SPtr<org::ImmAstVersion> ast;
+        ImmVec<org::ImmUniqId>   roots;
+        UnorderedMap<int, int>   transition;
+        DESC_FIELDS(History, (ast, roots, transition));
+
+        Opt<int> getTransition(int rootIdx) const {
+            return transition.get(rootIdx);
+        }
 
         org::ImmAdapter getNewRoot(org::ImmAdapter const& oldRoot) {
-            auto mapped = ast.epoch.replaced.map.get(oldRoot.uniq());
+            auto mapped = ast->epoch.replaced.map.get(oldRoot.uniq());
             if (mapped) {
-                return ast.context->adapt(mapped.value());
+                return ast->context->adapt(mapped.value());
             } else {
                 return oldRoot;
             }
         }
 
-        History withNewVersion(org::ImmAstVersion const& updated);
-    };
+        History withNewVersion(org::ImmAstVersion const& updated) const;
+        Pair<History, int> addRoot(sem::SemId<sem::Org> const& root) const;
 
-    EditableOrgDocGroup(org::ImmAstContext::Ptr const& ctx) {
-        add_history(History{org::ImmAstVersion{.context = ctx}});
-    }
-
-    int init_root(sem::SemId<sem::Org> const& id);
-
-    void add_history(History const& h) { history.push_back(h); }
-    void extend_history(org::ImmAstVersion const& ast) {
-        if (!ast.epoch.replaced.map.empty()) {
-            add_history(getCurrentHistory().withNewVersion(ast));
+        History() {}
+        History(org::ImmAstContext::Ptr const& ctx)
+            : ast{std::make_shared<org::ImmAstVersion>()} {
+            ast->context = ctx;
         }
-    }
+
+        org::ImmAdapter getRoot(int index) const {
+            return ast->context->adapt(roots.at(index));
+        }
+    };
 
     Vec<History> history;
 
-    DESC_FIELDS(EditableOrgDocGroup, (history));
-
-    History&           getCurrentHistory() { return history.back(); }
-    History const&     getCurrentHistory() const { return history.back(); }
-    org::ImmAstVersion getCurrentAst() { return history.back().ast; }
-    org::ImmAdapter    getCurrentRoot(int index) {
-        return history.back().roots.at(index);
+    EditableOrgDocGroup(org::ImmAstContext::Ptr const& ctx) {
+        addHistory(History{ctx});
     }
 
-    [[nodiscard]] org::ImmAstVersion replace_node(
+    DocRootId resetWith(sem::SemId<sem::Org> const& id) {
+        history.clear();
+        return addRoot(id);
+    }
+
+    DocRootId addRoot(sem::SemId<sem::Org> const& id);
+
+    int addHistory(History const& h) { return history.push_back_idx(h); }
+    Opt<int> extendHistory(org::ImmAstVersion const& ast) {
+        if (ast.epoch.replaced.map.empty()) {
+            return std::nullopt;
+        } else {
+            return addHistory(getCurrentHistory().withNewVersion(ast));
+        }
+    }
+
+
+    DESC_FIELDS(EditableOrgDocGroup, (history));
+
+    bool isLatest(DocRootId const& id) const {
+        return id.getMask() == history.high();
+    }
+
+    DocRootId               getLatest(DocRootId id) const;
+    org::ImmAstContext::Ptr getContext() const {
+        return getCurrentHistory().ast->context;
+    }
+    History&       getCurrentHistory() { return history.back(); }
+    History const& getCurrentHistory() const { return history.back(); }
+    Vec<org::ImmAdapter> getAdapters(RootGroup const& ids) const {
+        Vec<org::ImmAdapter> res;
+        for (auto const& id : ids.roots) { res.push_back(getRoot(id)); }
+        return res;
+    }
+
+    Opt<RootGroup> migrate(
+        RootGroup prev,
+        Opt<int>  maxVersion = std::nullopt) const;
+
+    org::ImmAdapter getRoot(DocRootId id) const {
+        return history.at(id.getMask()).getRoot(id.getIndex());
+    }
+
+    org::ImmAdapter getCurrentRoot(DocRootId id) const {
+        LOGIC_ASSERTION_CHECK(
+            isLatest(id),
+            "Provided doc root ID {} does not come from the latest "
+            "history.",
+            id);
+        return history.back().getRoot(id.getIndex());
+    }
+
+    [[nodiscard]] org::ImmAstVersion replaceNode(
         org::ImmAdapter const&    origin,
         Vec<sem::SemId<sem::Org>> replace);
 
-    [[nodiscard]] org::ImmAstVersion replace_node(
+    [[nodiscard]] org::ImmAstVersion replaceNode(
         org::ImmAdapter const& origin,
         std::string const&     text);
 };

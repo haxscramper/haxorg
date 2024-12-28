@@ -38,22 +38,17 @@ void connect_vertical_constraints(
     OLOG_DEPTH_SCOPE_ANON();
     for (auto const& [lane_idx, lane] : enumerate(g.lanes)) {
         gr_log(ol_trace).fmt_message(
-            "Lane index {} size {}", lane_idx, lane.blocks.size());
-        auto     visibleSlice  = slice<int>(0, int(g.visible.height()));
-        Vec<int> visibleBlocks = lane.getVisibleBlocks(visibleSlice);
-        if (visibleBlocks.empty()) {
-            gr_log(ol_trace).fmt_message(
-                "No blocks in visible range {}", visibleSlice);
-            continue;
-        } else {
-            gr_log(ol_trace).fmt_message(
-                "Blocks {} are visible in range {}",
-                visibleBlocks,
-                visibleSlice);
-        }
+            "Lane index {} size {}, scroll is {}",
+            lane_idx,
+            lane.blocks.size(),
+            lane.scrollOffset);
+
+        OLOG_DEPTH_SCOPE_ANON();
+
+        int maxRow = lane.blocks.high();
 
         Opt<GC::Align::Spec> first;
-        for (int row : visibleBlocks) {
+        for (int row = 0; row <= maxRow; ++row) {
             LaneNodePos node{.lane = lane_idx, .row = row};
             GraphSize   size{
                   .w = static_cast<double>(lane.blocks.at(row).width),
@@ -65,9 +60,6 @@ void connect_vertical_constraints(
 
             int idx = lyt.ir.rectangles.high();
             lyt.rectMap.insert_or_assign(node, idx);
-
-            // gr_log(ol_trace).fmt_message(
-            //     "Row {} rect {} size {}", row, idx, size);
 
             if (!first) {
                 first = GC::Align::Spec{
@@ -81,12 +73,12 @@ void connect_vertical_constraints(
         if (first) { topLaneAlign.push_back(first.value()); }
 
         GC::Align align;
-        for (auto const& row : visibleBlocks) {
+        for (int row = 0; row <= maxRow; ++row) {
             LaneNodePos node{.lane = lane_idx, .row = row};
             align.nodes.push_back(spec(lyt.rectMap.at(node)));
 
             auto next_row = row + 1;
-            if (visibleBlocks.contains(next_row)) {
+            if (next_row <= maxRow) {
                 LaneNodePos next{.lane = lane_idx, .row = next_row};
                 lyt.ir.nodeConstraints.push_back(GraphNodeConstraint{GC::Separate{
                     .left = GC::
@@ -149,8 +141,12 @@ void connect_edges(LaneBlockLayout& lyt, LaneBlockGraph const& g) {
     int                               edgeId = 0;
     UnorderedMap<Pair<int, int>, int> inLaneCheckpoints;
     for (auto const& lane : enumerator(g.lanes)) {
-        for (auto const& row : lane.value().visibleRange) {
-            LaneNodePos source{.lane = lane.index(), .row = row};
+        for (auto const& [block_idx, block] :
+             enumerate(lane.value().blocks)) {
+            LaneNodePos source{
+                .lane = lane.index(),
+                .row  = block_idx,
+            };
             if (!g.edges.contains(source)) { continue; }
             for (LaneNodeEdge const& target : g.edges.at(source)) {
                 if (lyt.rectMap.contains(source)
@@ -205,62 +201,6 @@ void connect_edges(LaneBlockLayout& lyt, LaneBlockGraph const& g) {
 }
 
 } // namespace
-
-
-LaneBlockLayout to_layout(LaneBlockGraph const& g) {
-    LOGIC_ASSERTION_CHECK(
-        int(g.visible.h) != 0 && int(g.visible.w) != 0, "{}", g.visible);
-    gr_log(ol_info).fmt_message(
-        "Create block layout, {} lanes", g.lanes.size());
-
-    OLOG_DEPTH_SCOPE_ANON();
-
-    for (auto const& [pos, block] : g.getBlocks()) {
-        LOGIC_ASSERTION_CHECK(
-            block.width != 0 && block.height != 0,
-            "Cannot compute layout size with block size of 0. Block node "
-            "at position {} has dimensions {}x{}",
-            pos,
-            block.height,
-            block.width);
-
-        // gr_log(ol_info).fmt_message("Pos {} block {}", pos, block);
-    }
-
-
-    LaneBlockLayout lyt;
-
-    Vec<GC::Align>       laneAlignments;
-    Vec<GC::Align::Spec> topLaneAlign;
-
-    // Compose lane alignment axis by constraining nodes pairwise. The
-    // `first` node in the lane is also constrainted with the top
-    // horizontal axis (top lane align), and then every other block on
-    // the lane is transitively constrained to it.
-    //
-    // ──────────── topLaneAlign
-    // align   align
-    //   ┌─┐   ┌╶┐
-    //   └┼┘   └│┘
-    //    │     │
-    //   ┌┼┐   ┌│┐
-    //   └┼┘   └│┘
-    //    │     │
-    //   ┌┼┐   ┌│┐
-    //   └─┘   └╶┘
-    connect_vertical_constraints(lyt, laneAlignments, topLaneAlign, g);
-
-    lyt.ir.nodeConstraints.push_back(GraphNodeConstraint{GC::Align{
-        .nodes     = topLaneAlign,
-        .dimension = GraphDimension::YDIM,
-    }});
-
-    connect_inter_lane_constraints(lyt, laneAlignments, g);
-
-    connect_edges(lyt, g);
-    return lyt;
-}
-
 
 float line_width = 4.0f;
 
@@ -391,98 +331,6 @@ void render_result(
     }
 }
 
-void graph_render_loop(
-    LaneBlockGraph const&       g,
-    GLFWwindow*                 window,
-    LaneBlockGraphConfig const& style) {
-    auto lyt  = to_layout(g);
-    auto col  = lyt.ir.doColaLayout();
-    auto conv = col.convert();
-
-    ImVec2 shift{20, 20};
-
-    while (!glfwWindowShouldClose(window)) {
-        frame_start();
-        fullscreen_window_begin();
-        render_result(conv, shift, style);
-        ImGui::End();
-        frame_end(window);
-    }
-}
-
-
-LaneNodeEdge e(int lane, int row) {
-    return LaneNodeEdge{.target = LaneNodePos{.lane = lane, .row = row}};
-}
-
-LaneNodePos n(int lane, int row) {
-    return LaneNodePos{.lane = lane, .row = row};
-}
-
-void run_block_graph_test(GLFWwindow* window) {
-    int  w     = 75;
-    int  h     = 50;
-    auto lane0 = Vec<LaneBlockNode>{
-        LaneBlockNode{.width = w, .height = h}, // 0.0
-        LaneBlockNode{.width = w, .height = h}, // 0.1
-        LaneBlockNode{.width = w, .height = h}, // 0.2
-    };
-
-    auto lane1 = Vec<LaneBlockNode>{
-        LaneBlockNode{.width = w, .height = h}, // 1.0
-        LaneBlockNode{.width = w, .height = h}, // 1.1
-        LaneBlockNode{.width = w, .height = h}, // 1.2
-        LaneBlockNode{.width = w, .height = h}, // 1.3
-        LaneBlockNode{.width = w, .height = h}, // 1.4
-    };
-
-    auto lane2 = Vec<LaneBlockNode>{
-        LaneBlockNode{.width = w, .height = h}, // 2.0
-        LaneBlockNode{.width = w, .height = h}, // 2.1
-        LaneBlockNode{.width = w, .height = h}, // 2.2
-        LaneBlockNode{.width = w, .height = h}, // 2.3
-    };
-
-    LaneBlockGraph g{
-        .lanes
-        = {LaneBlockStack{.blocks = lane0, .visibleRange = slice(0, 2)},
-           LaneBlockStack{.blocks = lane1, .visibleRange = slice(0, 4)},
-           LaneBlockStack{.blocks = lane2, .visibleRange = slice(0, 3)}},
-        .visible = GraphSize{.w = 1200, .h = 1200}};
-
-    g.addEdge(n(0, 0), e(1, 0));
-
-    g.addEdge(n(0, 1), e(1, 1));
-    g.addEdge(n(0, 1), e(1, 2));
-    g.addEdge(n(0, 1), e(1, 3));
-
-    g.addEdge(n(0, 2), e(1, 4));
-
-    g.addEdge(n(1, 0), e(2, 0));
-    g.addEdge(n(1, 1), e(2, 0));
-    g.addEdge(n(1, 1), e(2, 1));
-
-    g.addEdge(n(1, 2), e(2, 1));
-
-    g.addEdge(n(1, 3), e(2, 1));
-    g.addEdge(n(1, 3), e(2, 2));
-    g.addEdge(n(1, 4), e(2, 1));
-    g.addEdge(n(1, 4), e(2, 3));
-
-    g.lanes.at(1).scrollOffset -= 100;
-    for (int i = 0; i < 5; ++i) {
-        auto lyt = to_layout(g);
-        g.lanes.at(1).scrollOffset += 100;
-        lyt.ir.height = 10000;
-        lyt.ir.width  = 10000;
-        auto col      = lyt.ir.doColaLayout();
-        col.router->outputInstanceToSVG(
-            fmt("/tmp/run_block_graph_test_{}", i));
-    }
-
-    graph_render_loop(g, window, LaneBlockGraphConfig{});
-}
-
 int LaneBlockStack::getBlockHeightStart(int blockIdx) const {
     int start = scrollOffset;
     for (int i = 0; i < blockIdx; ++i) {
@@ -492,27 +340,25 @@ int LaneBlockStack::getBlockHeightStart(int blockIdx) const {
 }
 
 bool LaneBlockStack::inSpan(int blockIdx, Slice<int> heightRange) const {
-    if (blocks.at(blockIdx).isVisible) {
-        auto span = blocks.at(blockIdx).heightSpan(
-            getBlockHeightStart(blockIdx));
-        bool result = heightRange.overlap(span).has_value();
-        // gr_log(ol_debug, 0)
-        //     .message(_dfmt_expr(
-        //         span, heightRange, blockIdx, result, scrollOffset));
-        return result;
-    } else {
-        // gr_log(ol_debug, 0).message(_dfmt_expr(blockIdx, heightRange));
-        return false;
-    }
+    auto span = blocks.at(blockIdx).heightSpan(
+        getBlockHeightStart(blockIdx));
+    bool result = heightRange.overlap(span).has_value();
+    // gr_log(ol_debug).message(
+    //     _dfmt_expr(span, heightRange, blockIdx, result,
+    //     scrollOffset));
+    return result;
 }
 
 Vec<int> LaneBlockStack::getVisibleBlocks(Slice<int> heightRange) const {
     Vec<int> res;
-    for (int block : slice1(0, blocks.high())) {
-        if (inSpan(block, heightRange)) { res.push_back(block); }
+    if (!blocks.empty()) {
+        for (int block : slice1(0, blocks.high())) {
+            if (inSpan(block, heightRange)) { res.push_back(block); }
+        }
+
+        std::sort(res.begin(), res.end());
     }
 
-    std::sort(res.begin(), res.end());
 
     return res;
 }
@@ -545,47 +391,89 @@ ImVec2 get_center(const GraphRect& rect) {
         rect.left + rect.width / 2.0, rect.top + rect.height / 2.0);
 }
 
-ColaConstraintDebug to_constraints(
-    const LaneBlockLayout&       lyt,
-    const LaneBlockGraph&        g,
-    GraphLayoutIR::Result const& final) {
+ColaConstraintDebug LaneBlockLayout::getConstraintDebug() const {
     ColaConstraintDebug res;
 
+    using D = ColaConstraintDebug;
+    using C = ColaConstraintDebug::Constraint;
+
+    auto get_rect_center = [&](int idx) {
+        return get_center(layout.fixed.at(idx));
+    };
+
     auto add_align_line = [&](GraphNodeConstraint::Align const& a) {
-        bool        x = a.dimension == GraphDimension::XDIM;
-        Vec<ImVec2> centers;
+        bool           x = a.dimension == GraphDimension::XDIM;
+        Vec<C::Point>  centers;
+        Vec<C::Offset> offsets;
         for (auto const& rect : a.nodes) {
-            centers.push_back(
-                get_center(final.fixed.at(rect.node))
-                - (x ? ImVec2(rect.offset, 0) : ImVec2(0, rect.offset)));
+            ImVec2 center = get_rect_center(rect.node);
+            ImVec2 offset = (x ? ImVec2(rect.offset, 0) : ImVec2(0, rect.offset));
+            centers.push_back(C::Point{center - offset, {rect.node}});
+            offsets.push_back(C::Offset{
+                .offset = -offset,
+                .start  = C::Point{center, {rect.node}},
+            });
         }
+
         std::sort(
             centers.begin(),
             centers.end(),
-            [&](ImVec2 const& lhs, ImVec2 const& rhs) {
-                return x ? (lhs.y < rhs.y) : (lhs.x < rhs.x);
+            [&](C::Point const& lhs, C::Point const& rhs) {
+                return x ? (lhs.pos.y < rhs.pos.y)
+                         : (lhs.pos.x < rhs.pos.x);
             });
 
-        ImVec2 start = centers.at(0);
-        ImVec2 end   = centers.at(1_B);
+        C::Point start = centers.at(0);
+        C::Point end   = centers.at(1_B);
 
-        res.constraints.push_back(ColaConstraintDebug::Constraint{
-            ColaConstraintDebug::Constraint::Align{
-                .start = start,
-                .end   = end,
-            }});
+        return C::Align{
+            .start   = start,
+            .end     = end,
+            .offsets = offsets,
+            .rects   = a.nodes
+                   | rv::transform(get_field_get(
+                       &GraphNodeConstraint::Align::Spec::node))
+                   | rs::to<Vec>(),
+        };
     };
 
+    for (auto const& [rect_idx, rect] : enumerate(layout.fixed)) {
+        res.constraints.push_back(C{C::RectPosition{
+            .pos  = ImVec2(rect.left, rect.top),
+            .rect = rect_idx,
+        }});
+    }
 
-    for (auto const& c : lyt.ir.nodeConstraints) {
+
+    for (auto const& c : ir.nodeConstraints) {
         switch (c.getKind()) {
             case GraphNodeConstraint::Kind::Align: {
-                add_align_line(c.getAlign());
+                res.constraints.push_back(C{add_align_line(c.getAlign())});
                 break;
             }
             case GraphNodeConstraint::Kind::Separate: {
-                add_align_line(c.getSeparate().left);
-                add_align_line(c.getSeparate().right);
+                auto const& s     = c.getSeparate();
+                auto        left  = add_align_line(s.left);
+                auto        right = add_align_line(s.right);
+
+                ImVec2 offset = //
+                    s.dimension == GraphDimension::XDIM
+                        ? ImVec2(right.start.pos.x - left.start.pos.x, 0)
+                        : ImVec2(0, right.start.pos.y - left.start.pos.y);
+
+
+                C::Offset offsetSpec{
+                    .offset = offset,
+                    .start  = left.start,
+                };
+
+                C::Separate sep{
+                    .left   = left,
+                    .right  = right,
+                    .offset = offsetSpec,
+                };
+
+                res.constraints.push_back(C{sep});
                 break;
             }
             default: {
@@ -597,40 +485,348 @@ ColaConstraintDebug to_constraints(
     return res;
 }
 
-void render_debug(const ColaConstraintDebug& debug, ImVec2 const& shift) {
-    ImDrawList* draw_list = ImGui::GetForegroundDrawList();
-    using C               = ColaConstraintDebug::Constraint;
+void render_debug(
+    const ColaConstraintDebug&   debug,
+    ImVec2 const&                shift,
+    GraphLayoutIR::Result const& ir) {
+    ImDrawList* dl = ImGui::GetForegroundDrawList();
+    using C        = ColaConstraintDebug::Constraint;
 
-    auto color = IM_COL32(255, 0, 0, 255);
+    auto alignAxisColor      = IM_COL32(255, 0, 0, 255);
+    auto rectCenterColor     = IM_COL32(255, 0, 0, 255);
+    auto rectBoundaryColor   = IM_COL32(255, 0, 0, 255);
+    auto alignOffsetColor    = IM_COL32(0, 255, 0, 255);
+    auto separateOffsetColor = IM_COL32(211, 255, 0, 255);
 
-    auto point = [&](const GraphPoint& point) {
-        draw_list->AddCircleFilled(
-            ImVec2(point.x, point.y) + shift, 3.0f, color);
+    auto text = [&](ImVec2 const& pos, std::string const& t) {
+        AddTextWithBackground(dl, pos, IM_COL32(0, 0, 0, 255), t);
     };
 
-    for (auto const& r : debug.ir->fixed) {
-        draw_list->AddRect(
+    auto point = [&](const C::Point& point) {
+        dl->AddCircleFilled(point.pos + shift, 3.0f, rectCenterColor);
+        if (!point.rectOrigin.empty()) {
+            text(point.pos + shift, fmt("{}", point.rectOrigin));
+        }
+    };
+
+    for (auto const& r : ir.fixed) {
+        dl->AddRect(
             ImVec2(r.left, r.top) + shift,
             ImVec2(r.left + r.width, r.top + r.height) + shift,
-            color,
+            rectBoundaryColor,
             0.0f,
             0,
             line_width);
     }
 
+    auto render_offset = [&](C::Offset const& offset, ImU32 color) {
+        if (offset.isEmpty()) { return; }
+        if (int(offset.offset.x) != 0) {
+            text(
+                offset.start.pos + shift + (offset.offset / 2),
+                fmt("x{:.1f}", offset.offset.x));
+        } else if (int(offset.offset.y) != 0) {
+            text(
+                offset.start.pos + shift + (offset.offset / 2),
+                fmt("y{:.1f}", offset.offset.y));
+        }
+
+        dl->AddLine(
+            offset.start.pos + shift,
+            offset.start.pos + shift + offset.offset,
+            color,
+            2.0f);
+    };
+
+    auto render_align_line = [&](C::Align const& a) {
+        point(a.start);
+        point(a.end);
+        dl->AddLine(
+            a.start.pos + shift, a.end.pos + shift, alignAxisColor, 2.0f);
+        for (auto const& offset : a.offsets) {
+            render_offset(offset, alignOffsetColor);
+        }
+    };
+
     for (auto const& c : debug.constraints) {
         switch (c.getKind()) {
             case C::Kind::Align: {
-                auto const& a = c.getAlign();
-                point(GraphPoint{a.start.x, a.start.y});
-                point(GraphPoint{a.end.x, a.end.y});
-                draw_list->AddLine(
-                    ImVec2(a.start.x, a.start.y) + shift,
-                    ImVec2(a.end.x, a.end.y) + shift,
-                    color,
-                    2.0f);
+                render_align_line(c.getAlign());
                 break;
             }
+            case C::Kind::Separate: {
+                auto const& s = c.getSeparate();
+                render_align_line(s.left);
+                render_align_line(s.right);
+                render_offset(s.offset, separateOffsetColor);
+                break;
+            }
+            case C::Kind::RectPosition: {
+                auto const& r = c.getRectPosition();
+                text(r.pos, fmt("[{}] {}", r.rect, r.pos));
+                break;
+            }
+        }
+    }
+}
+
+void LaneBlockGraph::addScrolling(
+    const ImVec2& graphPos,
+    float         direction) {
+    gr_log(ol_trace).fmt_message(
+        "Graph position {}, direction {}", graphPos, direction);
+    OLOG_DEPTH_SCOPE_ANON();
+    auto spans = getLaneSpans();
+    for (auto const& [idx, span] : enumerate(spans)) {
+        if (span.contains(graphPos.x)) {
+            lanes.at(idx).scrollOffset += direction;
+            gr_log(ol_trace).fmt_message(
+                "Lane {} x span is {}, adding scroll offset {}, current "
+                "scroll is {}",
+                idx,
+                span,
+                direction,
+                lanes.at(idx).scrollOffset);
+        } else {
+            gr_log(ol_trace).fmt_message(
+                "Lane {} x span {}, no match", idx, span);
+        }
+    }
+}
+
+generator<Pair<LaneNodePos, LaneBlockNode>> LaneBlockGraph::getBlocks()
+    const {
+    for (int lane_idx = 0; lane_idx < lanes.size(); ++lane_idx) {
+        for (int row_idx = 0; row_idx < lanes.at(lane_idx).blocks.size();
+             ++row_idx) {
+            co_yield std::make_pair(
+                LaneNodePos{
+                    .lane = lane_idx,
+                    .row  = row_idx,
+                },
+                lanes.at(lane_idx).blocks.at(row_idx));
+        }
+    }
+}
+
+Vec<Slice<int>> LaneBlockGraph::getLaneSpans() const {
+    Vec<Slice<int>> laneSpans;
+    int             laneStartX = 0;
+    for (auto const& [lane_idx, lane] : enumerate(lanes)) {
+        Slice<int> sl = slice1<int>(
+            laneStartX + lane.leftMargin,
+            laneStartX + lane.leftMargin + lane.getWidth());
+
+        gr_log(ol_debug).fmt_message("{}", sl);
+        laneSpans.resize_at(lane_idx) = sl;
+        laneStartX += lane.getFullWidth();
+    }
+    return laneSpans;
+}
+
+
+LaneBlockLayout LaneBlockGraph::getLayout() const {
+    LOGIC_ASSERTION_CHECK(
+        int(visible.h) != 0 && int(visible.w) != 0, "{}", visible);
+    gr_log(ol_info).fmt_message(
+        "Create block layout, {} lanes", lanes.size());
+
+    {
+        auto rec = gr_log(ol_info).get_record();
+        for (auto const& [idx, lane] : enumerate(lanes)) {
+            rec.fmt_message(" [{}] scroll:{}", idx, lane.scrollOffset);
+        }
+        rec.end();
+    }
+
+    for (auto const& [idx, lane] : enumerate(lanes)) {
+        LOGIC_ASSERTION_CHECK(
+            !lane.blocks.empty(),
+            "lane {} has 0 blocks, not supported for layout",
+            idx);
+    }
+
+    OLOG_DEPTH_SCOPE_ANON();
+
+    for (auto const& [pos, block] : getBlocks()) {
+        LOGIC_ASSERTION_CHECK(
+            block.width != 0 && block.height != 0,
+            "Cannot compute layout size with block size of 0. Block node "
+            "at position {} has dimensions {}x{}",
+            pos,
+            block.height,
+            block.width);
+
+        // gr_log(ol_info).fmt_message("Pos {} block {}", pos, block);
+    }
+
+
+    LaneBlockLayout res;
+
+    Vec<GC::Align>       laneAlignments;
+    Vec<GC::Align::Spec> topLaneAlign;
+
+    // Compose lane alignment axis by constraining nodes pairwise. The
+    // `first` node in the lane is also constrainted with the top
+    // horizontal axis (top lane align), and then every other block on
+    // the lane is transitively constrained to it.
+    //
+    // ──────────── topLaneAlign
+    // align   align
+    //   ┌─┐   ┌╶┐
+    //   └┼┘   └│┘
+    //    │     │
+    //   ┌┼┐   ┌│┐
+    //   └┼┘   └│┘
+    //    │     │
+    //   ┌┼┐   ┌│┐
+    //   └─┘   └╶┘
+    connect_vertical_constraints(res, laneAlignments, topLaneAlign, *this);
+
+    res.ir.nodeConstraints.push_back(GraphNodeConstraint{GC::Align{
+        .nodes     = topLaneAlign,
+        .dimension = GraphDimension::YDIM,
+    }});
+
+    connect_inter_lane_constraints(res, laneAlignments, *this);
+
+    connect_edges(res, *this);
+
+    // All elements in the adaptagrams layout are placed in the positive
+    // quadrant of the coordinates and without any gaps from the layout
+    // canvas sides. So negative vertical offsets and left layout margin is
+    // added after the fact.
+    int leftPad = lanes.at(0).leftMargin;
+    int topPad  = std::clamp<int>(
+        rs::min(
+            lanes
+            | rv::transform(get_field_get(&LaneBlockStack::scrollOffset))),
+        value_domain<int>::low(),
+        0);
+
+    res.ir.height = 10000;
+    res.ir.width  = 10000;
+    auto cola     = res.ir.doColaLayout();
+    res.layout    = cola.convert();
+
+    gr_log(ol_info).fmt_message("left-pad:{} top-pad:{}", leftPad, topPad);
+
+    for (auto const& [key, edge] : res.layout.lines) {
+        for (auto& path : res.layout.lines.at(key).paths) {
+            for (auto& point : path.points) {
+                point.y += topPad;
+                point.x += leftPad;
+            }
+        }
+    }
+
+    for (auto& rect : res.layout.fixed) {
+        rect.top += topPad;
+        rect.left += leftPad;
+    }
+
+    return res;
+}
+
+Vec<LaneBlockLayout::RectSpec> LaneBlockLayout::getRectangles(
+    LaneBlockGraph const& blockGraph) const {
+    Vec<RectSpec> res;
+    for (auto const& [blockId, lane_idx] : blockGraph.idToPos) {
+        if (auto layout_index = rectMap.get(lane_idx)) {
+            auto pos     = layout.fixed.at(layout_index.value()).topLeft();
+            auto size    = layout.fixed.at(layout_index.value()).size();
+            auto im_size = ImVec2(size.width(), size.height());
+            auto im_pos  = ImVec2(pos.x, pos.y);
+            // `getLayout()` adjusts vertical positions for the lanes to
+            // account for differences in the adaptagram data model and
+            // what the more constrained story grid expects. Because of
+            // this adjustment some blocks can either be placed too high
+            // relative to the visible viewport, or below it. They are
+            // marked as invisible.
+            res.push_back(RectSpec{
+                .lanePos   = lane_idx,
+                .blockId   = blockId,
+                .size      = im_size,
+                .pos       = im_pos,
+                .isVisible = !(
+                    (im_pos.y + im_size.y < 0)
+                    || (blockGraph.visible.height() < im_pos.y)),
+            });
+        } else {
+            res.push_back(RectSpec{
+                .lanePos   = lane_idx,
+                .blockId   = blockId,
+                .isVisible = false,
+            });
+        }
+    }
+    return res;
+}
+
+void ColaConstraintDebug::toString(ColStream& os) const {
+    using C = Constraint;
+
+    auto write_2_point = [&](C::Point const& p1, C::Point const& p2) {
+        if (int(p1.pos.x) == int(p2.pos.x)) {
+            os << fmt("x:{} y:{}-{}", p1.pos.x, p1.pos.y, p2.pos.y);
+        } else if (int(p1.pos.y) == int(p2.pos.y)) {
+            os << fmt("x:{}-{} y:{}", p1.pos.x, p2.pos.x, p1.pos.y);
+        } else {
+            os << fmt(
+                "x:{}-{} y:{}-{}", p1.pos.x, p2.pos.x, p1.pos.y, p2.pos.y);
+        }
+
+        if (p1.rectOrigin != p2.rectOrigin) {
+            os << fmt(" <{}><{}>", p1.rectOrigin, p2.rectOrigin);
+        } else {
+            os << fmt(" <{}>", p1.rectOrigin);
+        }
+    };
+
+    auto write_offset = [&](C::Offset const& o) {
+        if (int(o.offset.x) == 0) {
+            os << fmt("{}->+{}y", o.start.pos, o.offset.y);
+        } else if (int(o.offset.y) == 0) {
+            os << fmt("{}->+{}x", o.start.pos, o.offset.x);
+        } else {
+            os << fmt("{}->+{}", o.start.pos, o.offset);
+        }
+    };
+
+    auto write_align = [&](C::Align const& a, int depth) {
+        os.indent(depth * 2);
+        os << fmt("Align {} ", a.rects);
+        write_2_point(a.start, a.end);
+        auto existing_offsets //
+            = a.offsets
+            | rv::filter(get_method_filter(&C::Offset::isEmpty))
+            | rs::to<Vec>();
+
+        if (existing_offsets.size() == 1) {
+            os << " ";
+            write_offset(existing_offsets.front());
+        } else {
+            for (auto const& o : existing_offsets) {
+                os << "\n";
+                os.indent(2 * (depth + 1));
+                write_offset(o);
+            }
+        }
+    };
+
+    for (auto const& c : constraints) {
+        if (c.isAlign()) {
+            write_align(c.getAlign(), 0);
+            os << "\n";
+        } else if (c.isSeparate()) {
+            auto const& s = c.getSeparate();
+            os << "Sep ";
+            write_offset(s.offset);
+            os << "\n";
+            write_align(s.left, 1);
+            os << "\n";
+            write_align(s.right, 1);
+            os << "\n";
         }
     }
 }

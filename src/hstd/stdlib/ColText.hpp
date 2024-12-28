@@ -405,7 +405,42 @@ inline ColStream& operator<<(ColStream& os, char const& value) {
     return os;
 }
 
-inline ColStream& operator<<(ColStream& os, int const& value) {
+inline ColStream& operator<<(ColStream& os, i8 const& value) {
+    os.write(ColText(os.active, std::to_string(value)));
+    return os;
+}
+
+inline ColStream& operator<<(ColStream& os, u8 const& value) {
+    os.write(ColText(os.active, std::to_string(value)));
+    return os;
+}
+
+inline ColStream& operator<<(ColStream& os, u16 const& value) {
+    os.write(ColText(os.active, std::to_string(value)));
+    return os;
+}
+
+inline ColStream& operator<<(ColStream& os, i16 const& value) {
+    os.write(ColText(os.active, std::to_string(value)));
+    return os;
+}
+
+inline ColStream& operator<<(ColStream& os, u32 const& value) {
+    os.write(ColText(os.active, std::to_string(value)));
+    return os;
+}
+
+inline ColStream& operator<<(ColStream& os, i32 const& value) {
+    os.write(ColText(os.active, std::to_string(value)));
+    return os;
+}
+
+inline ColStream& operator<<(ColStream& os, u64 const& value) {
+    os.write(ColText(os.active, std::to_string(value)));
+    return os;
+}
+
+inline ColStream& operator<<(ColStream& os, i64 const& value) {
     os.write(ColText(os.active, std::to_string(value)));
     return os;
 }

@@ -1,3 +1,6 @@
+#define NDEBUG 0
+#include <haxorg/sem/ImmOrgGraph.hpp>
+
 #include "doc_editor.hpp"
 #include "block_graph.hpp"
 #include "node_grid_graph.hpp"
@@ -10,131 +13,158 @@
 
 Opt<DocBlock::Ptr> to_doc_block(
     const org::ImmAdapter& it,
-    const DocBlockConfig&  conf) {
+    const DocBlockConfig&  conf,
+    DocBlockContext&       ctx) {
 
-    Func<Opt<DocBlock::Ptr>(org::ImmAdapter const&, int)> aux;
-    aux = [&](org::ImmAdapter const& it, int depth) -> Opt<DocBlock::Ptr> {
+    struct AuxCtx {
+        int depth = 0;
+        int lane  = 0;
+
+        AuxCtx inLane(int l) const {
+            auto r = *this;
+            r.lane = l;
+            return r;
+        }
+
+        int getThisWidth(const DocBlockConfig& conf) const {
+            if (lane == 0) {
+                return conf.editLaneWidth
+                     - (conf.nestingBlockOffset * depth);
+                ;
+            } else {
+                return conf.annotationLanesWidth.at(lane - 1);
+            }
+        }
+
+        AuxCtx withIncDepth() const {
+            auto r = *this;
+            r.depth += 1;
+            return r;
+        }
+    };
+
+    Func<Opt<DocBlock::Ptr>(org::ImmAdapter const&, CR<AuxCtx> actx)>
+        auxAnnotation;
+    Func<Opt<DocBlock::Ptr>(org::ImmAdapter const&, CR<AuxCtx> actx)>
+        auxNode;
+
+    auxAnnotation = [&](org::ImmAdapter const& it,
+                        CR<AuxCtx> actx) -> Opt<DocBlock::Ptr> {
+        CTX_MSG(fmt("Aux annotation from {}", it));
+        auto __scope = ctx.scopeLevel();
+        auto tmp     = std::make_shared<DocBlockAnnotation>();
+        if (auto item = it.asOpt<org::ImmListItem>()) {
+            if (auto header = item->getHeader()) {
+                tmp->name = EditableOrgTextEntry::from_adapter(
+                    header.value(),
+                    conf.annotationLanesWidth.at(0),
+                    EditableOrgText::Mode::SingleLine);
+            }
+
+            for (auto const& sub : item->sub()) {
+                auto subdoc = auxNode(sub, actx.withIncDepth());
+                if (subdoc) { tmp->addNested(subdoc.value()); }
+            }
+        }
+
+        return tmp;
+    };
+
+    auxNode = [&](org::ImmAdapter const& it,
+                  CR<AuxCtx>             actx) -> Opt<DocBlock::Ptr> {
         if (it.is(OrgSemKind::Newline)) {
             return std::nullopt;
         } else {
-            auto result = DocBlock::shared();
-
-            auto thisWidth = conf.editLaneWidth
-                           - (conf.nestingBlockOffset * depth);
-
-            auto add_subnodes = [&]() {
+            CTX_MSG(fmt("Aux node from {}", it));
+            auto           __scope = ctx.scopeLevel();
+            SPtr<DocBlock> result;
+            auto           add_subnodes = [&]() {
                 for (auto const& sub : it.sub()) {
-                    auto subdoc = aux(sub, depth + 1);
+                    auto subdoc = auxNode(sub, actx.withIncDepth());
                     if (subdoc) { result->addNested(subdoc.value()); }
                 }
             };
 
             if (auto d = it.asOpt<org::ImmDocument>()) {
-                result->data = DocBlock::Document{.origin = d.value()};
+                auto tmp    = std::make_shared<DocBlockDocument>();
+                tmp->origin = d.value();
+                result      = tmp;
                 add_subnodes();
             } else if (auto d = it.asOpt<org::ImmParagraph>()) {
-                result->data = DocBlock::Paragraph{.origin = d.value()};
-                result->getParagraph().text = EditableOrgTextEntry::
-                    from_adapter(d.value(), thisWidth);
+                auto tmp  = std::make_shared<DocBlockParagraph>();
+                tmp->text = EditableOrgTextEntry::from_adapter(
+                    d.value(), actx.getThisWidth(conf));
+                result = tmp;
             } else if (auto d = it.asOpt<org::ImmSubtree>()) {
-                result->data = DocBlock::Subtree{.origin = d.value()};
-                result->getSubtree().title = EditableOrgTextEntry::
-                    from_adapter(d->getTitle(), thisWidth);
-                add_subnodes();
+                auto tmp    = std::make_shared<DocBlockSubtree>();
+                tmp->origin = d.value();
+                tmp->title  = EditableOrgTextEntry::from_adapter(
+                    d->getTitle(), actx.getThisWidth(conf));
+                result = tmp;
+                for (auto const& sub : it.sub()) {
+                    if (org::graph::isAttachedDescriptionList(sub)) {
+                        auto annotation = auxAnnotation(
+                            sub, actx.withIncDepth());
+                        if (annotation) {
+                            result->addAnnotation(annotation.value());
+                        }
+                    } else {
+                        auto subdoc = auxNode(sub, actx.withIncDepth());
+                        if (subdoc) { result->addNested(subdoc.value()); }
+                    }
+                }
+            } else if (auto e = it.asOpt<org::ImmBlockExport>()) {
+                auto tmp    = std::make_shared<DocBlockExport>();
+                tmp->origin = e.value();
+                result      = tmp;
             } else {
-                throw std::domain_error(fmt(
-                    "No known conversion of node {} to doc block", it));
+                auto tmp    = std::make_shared<DocBlockFallback>();
+                tmp->origin = it;
+                result      = tmp;
+                add_subnodes();
             }
 
+            ImVec2 size = result->getSize();
+            LOGIC_ASSERTION_CHECK(
+                size.x != 0 && size.y != 0,
+                "Cannot create block with no size from {}",
+                it);
 
             return result;
         }
     };
 
-    return aux(it, 0);
+    return auxNode(it, AuxCtx{});
 }
-
-namespace {
-
-struct DocBlockRenderContext {
-    ImVec2 start;
-    int    dfsIndex = 0;
-    DESC_FIELDS(DocBlockRenderContext, (start));
-
-    int getIndex() { return dfsIndex++; }
-
-    ImVec2 getThisWindowPos() const { return start; }
-    ImVec2 getWindowPos(DocBlock::Ptr const& block) const {
-        return block->getPos() + start;
-    }
-};
-
-void render_doc_annotation() {}
-
-void render_doc_block(
-    DocBlockModel&         model,
-    DocBlock::Ptr&         block,
-    const DocBlockConfig&  conf,
-    DocBlockRenderContext& renderContext) {
-    auto __scope = IM_SCOPE_BEGIN(
-        "Doc block rendering",
-        fmt("Index {} kind {}", renderContext.dfsIndex, block->getKind()));
-
-    auto frameless_vars = push_frameless_window_vars();
-    ImGui::SetNextWindowPos(renderContext.getWindowPos(block));
-    ImGui::SetNextWindowSize(block->getSize());
-
-    int selfIndex = renderContext.getIndex();
-
-    using ER = EditableOrgText::Result;
-
-    auto handle_text_edit_result = [&](EditableOrgTextEntry& text,
-                                       std::string const&    prefix) {
-        auto result = text.render(c_fmt("{}_{}", prefix, selfIndex));
-
-        if (result == ER::Changed) {
-            model.ctx.action(DocBlockAction::NodeTextChanged{
-                .block   = block,
-                .updated = text.text.value,
-                .origin  = text.text.origin,
-            });
-        }
-
-        if (result == ER::CancelledEditing || result == ER::StartedEditing
-            || result == ER::Changed) {
-            model.ctx.action(
-                DocBlockAction::NodeEditChanged{.block = block});
-        }
-    };
-
-    if (IM_FN_BEGIN(BeginChild, c_fmt("##doc_block_{}", selfIndex))) {
-        if (block->isSubtree()) {
-            auto& t = block->getSubtree();
-            handle_text_edit_result(t.title, "title");
-        } else if (block->isParagraph()) {
-            auto& p = block->getParagraph();
-            handle_text_edit_result(p.text, "paragraph");
-        } else if (block->isDocument()) {
-            // pass
-        } else {
-            logic_todo_impl();
-        }
-    }
-
-    IM_FN_END(EndChild);
-    ImGui::PopStyleVar(frameless_vars);
-
-    ++renderContext.dfsIndex;
-    for (auto& sub : block->nested) {
-        render_doc_block(model, sub, conf, renderContext);
-    }
-}
-} // namespace
 
 void render_doc_block(DocBlockModel& model, const DocBlockConfig& conf) {
-    DocBlockRenderContext renderContext{};
+    DocBlock::RenderContext renderContext{};
     renderContext.start = ImGui::GetCursorScreenPos();
-    render_doc_block(model, model.root.root, conf, renderContext);
+    model.root->render(model, conf, renderContext);
+
+
+    ImGuiIO& io  = ImGui::GetIO();
+    auto&    ctx = model.ctx;
+    if (io.MouseWheel != 0.0f) {
+        model.ctx.action(DocBlockAction::Scroll{
+            .pos       = io.MousePos - renderContext.start,
+            .direction = io.MouseWheel * conf.mouseScrollMultiplier,
+        });
+    }
+
+    if (ImGui::IsKeyPressed(ImGuiKey_PageUp)) {
+        model.ctx.action(DocBlockAction::Scroll{
+            .pos       = io.MousePos - renderContext.start,
+            .direction = static_cast<float>(conf.pageUpScrollStep),
+        });
+    }
+
+    if (ImGui::IsKeyPressed(ImGuiKey_PageDown)) {
+        model.ctx.action(DocBlockAction::Scroll{
+            .pos       = io.MousePos - renderContext.start,
+            .direction = static_cast<float>(conf.pageDownScrollStep),
+        });
+    }
 }
 
 void apply_doc_block_actions(
@@ -143,6 +173,11 @@ void apply_doc_block_actions(
     const DocBlockConfig& conf) {
     if (model.ctx.actions.empty()) { return; }
 
+    auto __log_scoped = OLOG_SINK_FACTORY_SCOPED([]() {
+        return ::org_logging::init_file_sink(
+            "/tmp/apply_doc_block_actions.log");
+    });
+
     auto& ctx = model.ctx;
 
     CTX_MSG("Apply doc block edit actions");
@@ -150,7 +185,8 @@ void apply_doc_block_actions(
     for (auto const& act : model.ctx.actions) {
         switch (act.getKind()) {
             case DocBlockAction::Kind::NodeEditChanged: {
-                model.root.syncPositions(model.ctx, conf);
+                model.syncBlockGraph(conf);
+                model.syncLayout(conf);
                 break;
             }
 
@@ -159,16 +195,26 @@ void apply_doc_block_actions(
                 auto        __scope = ctx.scopeLevel();
                 auto const& t       = act.getNodeTextChanged();
                 CTX_MSG("Replacing history node");
-                auto upd = history.replace_node(t.origin, t.updated);
+                auto upd = history.replaceNode(
+                    t.edit.origin, t.edit.value.value());
                 CTX_MSG("Extending history");
-                history.extend_history(upd);
+                history.extendHistory(upd);
                 CTX_MSG("Sync root for new adapter");
-                model.root.syncRoot(
+                model.syncRoot(
                     history.getCurrentHistory().getNewRoot(
-                        model.root.getRootOrigin()),
+                        model.root->ptr_as<DocBlockDocument>()
+                            ->getRootOrigin()),
                     conf);
                 CTX_MSG("Sync positions for new adapter");
-                model.root.syncPositions(model.ctx, conf);
+                model.syncBlockGraph(conf);
+                model.syncLayout(conf);
+                break;
+            }
+
+            case DocBlockAction::Kind::Scroll: {
+                auto const& scr = act.getScroll();
+                model.g.addScrolling(scr.pos, scr.direction);
+                model.syncLayout(conf);
                 break;
             }
         }
@@ -177,77 +223,97 @@ void apply_doc_block_actions(
     model.ctx.actions.clear();
 }
 
-void DocBlockDocument::syncPositions(
-    DocBlockContext&      ctx,
-    const DocBlockConfig& conf) {
-    CTX_MSG("Sync positions");
+Vec<DocBlock::Ptr> DocBlock::getFlatBlocks() {
+    Vec<DocBlock::Ptr>        res;
+    Func<void(DocBlock::Ptr)> aux;
+    aux = [&](DocBlock::Ptr ptr) {
+        res.push_back(ptr);
+        for (auto const& sub : ptr->nested) { aux(sub); }
+    };
+
+    aux(shared_from_this());
+
+    return res;
+}
+
+Vec<DocBlock::Ptr> DocBlock::getFlatAnnotations() {
+    Vec<DocBlock::Ptr>        res;
+    Func<void(DocBlock::Ptr)> aux;
+    aux = [&](DocBlock::Ptr ptr) {
+        if (ptr->dyn_cast<DocBlockAnnotation>()) { res.push_back(ptr); }
+        for (auto const& sub : ptr->annotations) { aux(sub); }
+        for (auto const& sub : ptr->nested) { aux(sub); }
+    };
+
+    aux(shared_from_this());
+
+    return res;
+}
+
+
+void DocBlockModel::syncRoot(
+    const org::ImmAdapter& root,
+    const DocBlockConfig&  conf) {
+    this->root = std::dynamic_pointer_cast<DocBlockDocument>(
+        to_doc_block(root, conf, ctx).value());
+}
+
+void DocBlockModel::syncBlockGraph(const DocBlockConfig& conf) {
+    CTX_MSG("Sync block graph");
     auto __scope = ctx.scopeLevel();
 
-    NodeGridGraph                          g;
     Func<void(DocBlock::Ptr const& block)> aux;
 
     g.setVisible(conf.gridViewport);
 
-    int const mainLane       = 0;
-    int const annotationLane = 1;
-
-    g.ir.lane(mainLane, conf.laneConf).scrollOffset = docLaneScrollOffset;
-    for (int i = annotationLane;
-         i < annotationLaneScrollOffsets.size() + 1;
-         ++i) {
-        g.ir.lane(i, conf.laneConf).scrollOffset = getLaneScroll(i);
-    }
-
-    Vec<DocBlock::Ptr> flatGrid;
-
-    auto add_graph_rect = [&](DocBlock::Ptr block) -> int {
-        int         flatPos = flatGrid.push_back_idx(block);
+    auto add_graph_rect = [&](DocBlock::Ptr block) -> BlockNodeId {
+        auto flatPos = BlockNodeId ::FromIndex(
+            flatGrid.push_back_idx(block));
         int         lane    = block->getLane();
-        LaneNodePos lanePos = g.ir.addNode(
-            lane, block->getSize(), conf.laneConf);
-
-        g.add(flatPos, lanePos);
+        LaneNodePos lanePos = g.addNode(
+            lane, flatPos, block->getSize(), conf.laneConf);
         return flatPos;
     };
 
-    for (auto const& block : getFlatBlocks()) {
-        if (block->isDocument()) { continue; }
-        int flatPos                               = add_graph_rect(block);
-        g.getNode(flatPos).horizontalCenterOffset = conf.nestingBlockOffset
-                                                  * block->getDepth();
-        flatGrid.resize_at(flatPos) = block;
+    for (auto const& block : root->getFlatBlocks()) {
+        if (block->dyn_cast<DocBlockDocument>()) { continue; }
+        BlockNodeId flatPos                  = add_graph_rect(block);
+        g.at(flatPos).horizontalCenterOffset = conf.nestingBlockOffset
+                                             * block->getDepth();
+        flatGrid.resize_at(flatPos.getIndex()) = block;
 
         Func<void(DocBlock::Ptr annotation)> aux;
         aux = [&](DocBlock::Ptr annotation) {
-            int flatPos = add_graph_rect(annotation);
+            add_graph_rect(annotation);
             for (auto const& sub : annotation->annotations) { aux(sub); }
         };
     }
+}
 
-    g.syncLayout();
+void DocBlockModel::syncLayout(const DocBlockConfig& conf) {
+    CTX_MSG("Sync layout graph");
+    auto __scope = ctx.scopeLevel();
+    lyt          = g.getLayout();
+    for (LaneBlockLayout::RectSpec const& rect : lyt.getRectangles(g)) {
+        DocBlock::Ptr node = flatGrid.at(rect.blockId.getIndex());
+        if (rect.isVisible) {
+            LOGIC_ASSERTION_CHECK(
+                rect.size.x != 0 && rect.size.y != 0,
+                "Rect is visible but has no size {}. Size of the "
+                "original rectangle at position {} is {}",
+                rect,
+                rect.blockId,
+                node->getSize());
 
-
-    {
-        CTX_MSG("Rectangle positions");
-        auto __scope = ctx.scopeLevel();
-        for (NodeGridGraph::RectSpec const& rect : g.getRectangles()) {
-            CTX_MSG(fmt("Rect {}", rect));
-            DocBlock::Ptr node = flatGrid.at(rect.flatPos);
-            if (rect.isVisible) {
-                node->isVisible = true;
-                node->setPos(rect.pos);
-            } else {
-                node->isVisible = false;
-            }
+            // CTX_MSG(fmt("Rect {}", rect));
+            node->isVisible = true;
+            node->setPos(rect.pos);
+        } else {
+            node->isVisible = false;
         }
     }
 }
 
-void DocBlockDocument::syncRoot(
-    const org::ImmAdapter& root,
-    const DocBlockConfig&  conf) {
-    this->root = to_doc_block(root, conf).value();
-}
 
 void DocBlockContext::message(
     const std::string& value,
@@ -271,7 +337,26 @@ void DocBlock::treeRepr(ColStream& os) {
         os.indent(depth * 2);
         os << fmt1(b->getKind());
 
-        std::visit([&](auto const& d) { os << " " << fmt1(d); }, b->data);
+        os << fmt(
+            " {}@{} ({})", isVisible ? "Y" : "N", getPos(), getSize());
+
+        os << " ";
+        using K = DocBlock::Kind;
+
+#define __case(_Kind)                                                     \
+    case K::_Kind:                                                        \
+        os << escape_literal(fmt1(*b->dyn_cast<DocBlock##_Kind>()));      \
+        break;
+
+        switch (b->getKind()) {
+            __case(Annotation);
+            __case(Document);
+            __case(Export);
+            __case(Paragraph);
+            __case(Subtree);
+            __case(ListHeader);
+            __case(Fallback);
+        }
 
         for (auto const& a : b->annotations) {
             os << "\n";
@@ -285,4 +370,257 @@ void DocBlock::treeRepr(ColStream& os) {
     };
 
     aux(shared_from_this(), 0);
+}
+
+int DocBlock::getDepth() const {
+    if (parent.expired()) {
+        return 0;
+    } else if (dyn_cast<DocBlockAnnotation>()) {
+        return parent.lock()->getDepth();
+    } else {
+        return parent.lock()->getDepth() + 1;
+    }
+}
+
+void doc_editor_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
+    auto                ast_ctx = org::ImmAstContext::init_start_context();
+    DocBlockModel       model;
+    EditableOrgDocGroup docs{ast_ctx};
+    DocBlockConfig      conf;
+
+    conf.laneConf.getDefaultBlockMargin =
+        [](LaneNodePos const&) -> Pair<int, int> { return {0, 0}; };
+
+    model.ctx.setTraceFile("/tmp/doc_editor_trace.log");
+
+    DocRootId root_idx = docs.addRoot(node);
+
+    bool first = true;
+
+    while (!glfwWindowShouldClose(window)) {
+        frame_start();
+        if (first) {
+            conf.gridViewport = ImGui::GetMainViewport()->Size;
+            model.syncFull(docs.getCurrentRoot(root_idx), conf);
+            writeFile(
+                "/tmp/doc_editor_tree.txt",
+                model.root->treeRepr().toString(false));
+            first = false;
+        }
+
+        {
+            fullscreen_window_begin();
+            { render_doc_block(model, conf); }
+            ImGui::End();
+        }
+        frame_end(window);
+        apply_doc_block_actions(docs, model, conf);
+        quit_on_q(window);
+    }
+}
+
+int DocBlock::getLane() const {
+    if (parent.expired()) {
+        return 0;
+    } else if (dyn_cast<DocBlockAnnotation>()) {
+        return parent.lock()->getLane() + 1;
+    } else {
+        return 0;
+    }
+}
+
+void DocBlock::syncSize(int thisLane, const DocBlockConfig& conf) {
+    int depth           = getDepth();
+    int widthWithOffset = conf.editLaneWidth
+                        - (conf.nestingBlockOffset * depth);
+
+    setWidth(widthWithOffset);
+}
+
+namespace {
+using ER = EditableOrgText::Result;
+
+
+void handle_text_edit_result(
+    DocBlockModel&        model,
+    EditableOrgTextEntry& text,
+    DocBlock*             block,
+    std::string const&    id) {
+    auto result = text.render(id.c_str());
+
+    if (result && result->isChanged()) {
+        model.ctx.action(DocBlockAction::NodeTextChanged{
+            .block = block->shared_from_this(),
+            .edit  = result.value(),
+        });
+    }
+
+    if (result) {
+        model.ctx.action(DocBlockAction::NodeEditChanged{
+            .block = block->shared_from_this()});
+    }
+};
+
+void configure_window_render(
+    DocBlockModel&           model,
+    DocBlock*                block,
+    DocBlock::RenderContext& renderContext,
+    const DocBlockConfig&    conf) {
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1);
+    ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0);
+    ImGui::PushStyleColor(ImGuiCol_Border, IM_COL32(255, 0, 0, 255));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, conf.annotationNodeWindowBg);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+
+    ImGui::SetNextWindowPos(renderContext.getWindowPos(block));
+    ImGui::SetNextWindowSize(block->getSize());
+}
+
+void pop_window_render() {
+    ImGui::PopStyleVar(3);
+    ImGui::PopStyleColor(2);
+}
+
+void post_render(DocBlock::RenderContext& renderContext) {
+    ++renderContext.dfsIndex;
+}
+
+void render_sub_entries(
+    DocBlockModel&           model,
+    DocBlock*                block,
+    const DocBlockConfig&    conf,
+    DocBlock::RenderContext& renderContext) {
+    for (auto& sub : block->nested) {
+        sub->render(model, conf, renderContext);
+    }
+
+    for (auto& sub : block->annotations) {
+        sub->render(model, conf, renderContext);
+    }
+}
+
+void debug_render(
+    DocBlock*                block,
+    DocBlock::RenderContext& renderContext) {
+    auto pos = renderContext.getWindowPos(block);
+    ImGui::GetForegroundDrawList()->AddRect(
+        pos, pos + block->getSize(), IM_COL32(0, 255, 255, 255));
+
+    AddText(
+        ImGui::GetForegroundDrawList(),
+        pos + ImVec2{600, 0},
+        IM_COL32(0, 255, 0, 255),
+        fmt("{} @{} {}",
+            block->getKind(),
+            block->getPos(),
+            block->getSize()));
+}
+
+} // namespace
+
+void DocBlockDocument::render(
+    DocBlockModel&        model,
+    const DocBlockConfig& conf,
+    RenderContext&        renderContext) {
+    debug_render(this, renderContext);
+    post_render(renderContext);
+    render_sub_entries(model, this, conf, renderContext);
+}
+
+void DocBlockParagraph::render(
+    DocBlockModel&        model,
+    const DocBlockConfig& conf,
+    RenderContext&        renderContext) {
+    if (!isVisible) { return; }
+    configure_window_render(model, this, renderContext, conf);
+    if (IM_FN_BEGIN(
+            BeginChild, renderContext.getId("##doc_block").c_str())) {
+        handle_text_edit_result(
+            model, text, this, renderContext.getId("text"));
+    }
+    IM_FN_END(EndChild);
+    pop_window_render();
+    debug_render(this, renderContext);
+    post_render(renderContext);
+}
+
+void DocBlockAnnotation::render(
+    DocBlockModel&        model,
+    const DocBlockConfig& conf,
+    RenderContext&        renderContext) {
+    if (!isVisible) { return; }
+    configure_window_render(model, this, renderContext, conf);
+    if (IM_FN_BEGIN(
+            BeginChild, renderContext.getId("##doc_block").c_str())) {
+        handle_text_edit_result(
+            model, name, this, renderContext.getId("annotation"));
+    }
+    IM_FN_END(EndChild);
+
+    pop_window_render();
+    debug_render(this, renderContext);
+    post_render(renderContext);
+    render_sub_entries(model, this, conf, renderContext);
+}
+
+void DocBlockExport::render(
+    DocBlockModel&        model,
+    const DocBlockConfig& conf,
+    RenderContext&        renderContext) {
+    if (!isVisible) { return; }
+}
+
+void DocBlockSubtree::render(
+    DocBlockModel&        model,
+    const DocBlockConfig& conf,
+    RenderContext&        renderContext) {
+    if (isVisible) {
+        configure_window_render(model, this, renderContext, conf);
+        if (IM_FN_BEGIN(
+                BeginChild, renderContext.getId("##doc_block").c_str())) {
+            handle_text_edit_result(
+                model, title, this, renderContext.getId("title"));
+        }
+        IM_FN_END(EndChild);
+        pop_window_render();
+    }
+
+    post_render(renderContext);
+    debug_render(this, renderContext);
+    render_sub_entries(model, this, conf, renderContext);
+}
+
+void DocBlockListHeader::render(
+    DocBlockModel&        model,
+    const DocBlockConfig& conf,
+    RenderContext&        renderContext) {
+    post_render(renderContext);
+    debug_render(this, renderContext);
+    render_sub_entries(model, this, conf, renderContext);
+}
+
+void DocBlockFallback::render(
+    DocBlockModel&        model,
+    const DocBlockConfig& conf,
+    RenderContext&        renderContext) {
+    if (isVisible) {
+        configure_window_render(model, this, renderContext, conf);
+        if (IM_FN_BEGIN(
+                BeginChild, renderContext.getId("##doc_block").c_str())) {
+            auto pos = getCurrentWindowContentPos();
+
+            AddText(
+                dl(),
+                pos,
+                IM_COL32(255, 0, 0, 255),
+                fmt("Fallback for {}", origin.getKind()));
+        }
+        IM_FN_END(EndChild);
+        pop_window_render();
+    }
+
+    debug_render(this, renderContext);
+    post_render(renderContext);
+    render_sub_entries(model, this, conf, renderContext);
 }

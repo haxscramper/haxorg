@@ -1,3 +1,5 @@
+#define NDEBUG 0
+
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -13,6 +15,7 @@
 #include <gui_lib/block_graph.hpp>
 #include <gui_lib/ascii_editor.hpp>
 #include <gui_lib/scintilla_editor_widget.hpp>
+#include <gui_lib/doc_editor.hpp>
 
 #include <gui_lib/gui_perfetto.hpp>
 #include <hstd/wrappers/hstd_extra/perfetto_aux_impl_template.hpp>
@@ -27,13 +30,16 @@ struct Config {
         Test,
         StoryGridAnnotated,
         ScintillaEditorTest,
-        AsciiEditorTest);
+        AsciiEditorTest,
+        DocEditor);
 
-    Str      file;
+    Vec<Str> file;
     Mode     mode = Mode::SemTree;
     Opt<Str> appstate;
+    bool     fullscreen = false;
+    Opt<Str> log_file   = std::nullopt;
 
-    DESC_FIELDS(Config, (file, mode, appstate));
+    DESC_FIELDS(Config, (file, mode, appstate, fullscreen, log_file));
 };
 
 struct OutlineConfig {
@@ -363,6 +369,12 @@ int main(int argc, char** argv) {
     auto conf_json = json::parse(conf_text);
     auto conf      = from_json_eval<Config>(conf_json);
 
+    org_logging::clear_sink_backends();
+    if (conf.log_file) {
+        org_logging::push_sink(
+            org_logging::init_file_sink(conf.log_file.value()));
+    }
+
 #ifdef ORG_USE_PERFETTO
     std::unique_ptr<perfetto::TracingSession>
         tracing_session = StartProcessTracing("Perfetto track example");
@@ -378,11 +390,9 @@ int main(int argc, char** argv) {
     GLFWmonitor*       monitor = glfwGetPrimaryMonitor();
     const GLFWvidmode* mode    = glfwGetVideoMode(monitor);
 
-    bool fullscreen = false;
-
     GLFWwindow* window = glfwCreateWindow(
-        fullscreen ? mode->width : 1280,
-        fullscreen ? mode->height : 720,
+        conf.fullscreen ? mode->width : 1280,
+        conf.fullscreen ? mode->height : 720,
         "Dear ImGui GLFW+OpenGL3 example",
         NULL,
         NULL);
@@ -402,8 +412,6 @@ int main(int argc, char** argv) {
     ImGui_ImplOpenGL3_Init("#version 130");
 
 
-    auto text = readFile(fs::path{conf.file.toBase()});
-
     Opt<json> appstate;
     if (conf.appstate.has_value()
         && fs::is_regular_file(conf.appstate.value().toBase())) {
@@ -413,37 +421,63 @@ int main(int argc, char** argv) {
 
     switch (conf.mode) {
         case Config::Mode::SemTree: {
-            auto node = sem::parseString(text);
+            auto node = sem::parseString(
+                readFile(fs::path{conf.file.front().toBase()}));
             sem_tree_loop(window, node);
             break;
         }
         case Config::Mode::Outline: {
-            auto node = sem::parseString(text);
+            auto node = sem::parseString(
+                readFile(fs::path{conf.file.front().toBase()}));
             outline_tree_loop(window, node);
             break;
         }
+        case Config::Mode::DocEditor: {
+            auto node = sem::parseString(
+                readFile(fs::path{conf.file.front().toBase()}));
+            doc_editor_loop(window, node);
+            break;
+        }
+
         case Config::Mode::StoryGridAnnotated:
         case Config::Mode::StoryGrid: {
             StoryGridConfig storyGridConf;
-            using Col = StoryGridConfig::StoryGridColumnConfig;
-            storyGridConf.defaultColumns = {
-                Col{.width = 200, .name = "title"},
-                Col{.width = 400, .name = "event"},
-                Col{.width = 400, .name = "note"},
-                Col{.width = 300, .name = "turning_point"},
-                Col{.width = 200, .name = "value"},
-                Col{.width = 240,
-                    .edit  = EditableOrgText::Mode::SingleLine,
-                    .name  = "location"},
-                Col{.width = 100, .name = "pov"},
+            using Col                   = TreeGridColumn;
+            storyGridConf.getDefaultDoc = []() -> TreeGridDocument {
+                TreeGridDocument doc;
+                doc.columns = {
+                    Col{.name = "title", .width = 200},
+                    Col{.name = "event", .width = 400},
+                    Col{.name = "note", .width = 400},
+                    Col{.name = "turning_point", .width = 300},
+                    Col{.name = "value", .width = 200},
+                    Col{
+                        .name  = "location",
+                        .width = 240,
+                        .edit  = EditableOrgText::Mode::SingleLine,
+                    },
+                    Col{.name = "pov", .width = 100},
+                };
+                return doc;
             };
+
+
+            storyGridConf.blockGraphConf.getDefaultLaneMargin =
+                [](int lane) -> Pair<int, int> {
+                if (lane == 0) {
+                    return std::make_pair(0, 25);
+                } else {
+                    return std::make_pair(25, 25);
+                }
+            };
+            storyGridConf.mouseScrollMultiplier = 20;
+            storyGridConf.annotated             = true;
 
             appstate = story_grid_loop(
                 window, conf.file, appstate, storyGridConf);
             break;
         }
         case Config::Mode::Test: {
-            run_block_graph_test(window);
             break;
         }
         case Config::Mode::ScintillaEditorTest: {

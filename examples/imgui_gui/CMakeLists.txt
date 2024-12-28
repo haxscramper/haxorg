@@ -92,6 +92,8 @@ if(${ORG_USE_PERFETTO})
   target_compile_definitions(qiucus_lib PUBLIC ORG_USE_PERFETTO)
 endif()
 
+target_compile_options(qiucus_lib PUBLIC "-Wno-ambiguous-reversed-operator")
+
 target_link_directories(qiucus_lib PUBLIC "${SCINT_DEPS}/bin" "${LEXLL_DEPS}/bin")
 target_include_directories(qiucus_lib PUBLIC "${LEXLL_DEPS}/include" "${SCINT_DEPS}/include"
                                              "${REPO_ROOT}/thirdparty/scintilla" "${PROJ_ROOT}")

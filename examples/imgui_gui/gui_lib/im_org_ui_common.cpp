@@ -79,7 +79,7 @@ int EditableOrgText::get_expected_height(int width, Mode mode) {
     }
 }
 
-EditableOrgText::Result EditableOrgText::render(
+Opt<EditableOrgText::Result> EditableOrgText::render(
     ImVec2 const&         size,
     EditableOrgText::Mode edit,
     std::string const&    id) {
@@ -119,12 +119,19 @@ EditableOrgText::Result EditableOrgText::render(
             if (IM_FN_EXPR(Button, "done")) {
                 value      = ed->GetText();
                 is_editing = false;
-                return Result::Changed;
+                return Result{
+                    .kind   = Result::Kind::Changed,
+                    .origin = origin,
+                    .value  = value,
+                };
             } else if (ImGui::SameLine(); IM_FN_EXPR(Button, "cancel")) {
                 is_editing = false;
-                return Result::CancelledEditing;
+                return Result{
+                    .kind   = Result::Kind::CancelledEditing,
+                    .origin = origin,
+                };
             } else {
-                return Result::None;
+                return std::nullopt;
             }
 
         } else {
@@ -157,9 +164,12 @@ EditableOrgText::Result EditableOrgText::render(
                 ed->WrapOnChar();
                 ed->HideAllMargins();
                 ed->SetText(value);
-                return Result::StartedEditing;
+                return Result{
+                    .kind   = Result::Kind::StartedEditing,
+                    .origin = origin,
+                };
             } else {
-                return Result::None;
+                return std::nullopt;
             }
         }
     } else {
@@ -167,16 +177,24 @@ EditableOrgText::Result EditableOrgText::render(
             if (ImGui::Button("OK")) {
                 value      = edit_buffer;
                 is_editing = false;
-                return Result::Changed;
+                return Result{
+                    .kind   = Result::Kind::Changed,
+                    .origin = origin,
+                    .value  = value,
+                };
             } else if (ImGui::SameLine(0.0f, 0.0f); ImGui::Button("X")) {
                 is_editing = false;
-                return Result::CancelledEditing;
+                return Result{
+                    .kind   = Result::Kind::CancelledEditing,
+                    .origin = origin,
+                    .value  = value,
+                };
             } else {
                 ImGui::SameLine(0.0f, 0.0f);
                 ImGui::SetNextItemWidth(size.x);
                 ImGui::InputText(
                     fmt("##{}_edit", id).c_str(), &edit_buffer);
-                return Result::None;
+                return std::nullopt;
             }
 
         } else {
@@ -185,29 +203,80 @@ EditableOrgText::Result EditableOrgText::render(
             if (ImGui::IsItemClicked()) {
                 is_editing  = true;
                 edit_buffer = value;
-                return Result::StartedEditing;
+                return Result{
+                    .kind   = Result::Kind::StartedEditing,
+                    .origin = origin,
+                    .value  = value,
+                };
             } else {
-                return Result::None;
+                return std::nullopt;
             }
         }
     }
 }
 
-int EditableOrgDocGroup::init_root(const sem::SemId<sem::Org>& id) {
-    History& current = getCurrentHistory();
-    auto     new_ast = current.ast.context->init(id);
-    current.ast      = std::move(new_ast);
-    int index = current.roots.push_back_idx(current.ast.getRootAdapter());
-    add_history(std::move(current));
-    return index;
+DocRootId EditableOrgDocGroup::addRoot(const sem::SemId<sem::Org>& id) {
+    gr_log(ol_trace).fmt_message("Adding root to AST");
+    OLOG_DEPTH_SCOPE_ANON();
+    auto const& current = getCurrentHistory();
+    gr_log(ol_trace).fmt_message("Current history {}", current);
+    auto [history, root_idx] = current.addRoot(id);
+    gr_log(ol_trace).fmt_message(
+        "History {} root idx {}", history, root_idx);
+    int history_idx = addHistory(history);
+    gr_log(ol_trace).fmt_message("Added history as index {}", history_idx);
+    return DocRootId::FromMaskedIdx(root_idx, history_idx);
 }
 
-org::ImmAstVersion EditableOrgDocGroup::replace_node(
+DocRootId EditableOrgDocGroup::getLatest(DocRootId id) const {
+    return DocRootId::FromMaskedIdx(id.getMask(), history.high());
+}
+
+Opt<EditableOrgDocGroup::RootGroup> EditableOrgDocGroup::migrate(
+    RootGroup prev,
+    Opt<int>  maxVersion) const {
+    gr_log(ol_trace).fmt_message("Migrating root group {}", prev);
+    if (prev.getHistoryIndex() == history.high()) {
+        return std::nullopt;
+    } else {
+        OLOG_DEPTH_SCOPE_ANON();
+        while (prev.getHistoryIndex() < history.high()
+               && (!maxVersion || prev.getHistoryIndex() <= maxVersion)) {
+            int            idx  = prev.getHistoryIndex();
+            int            next = idx + 1;
+            Vec<DocRootId> updated;
+            {
+                OLOG_DEPTH_SCOPE_ANON();
+                for (auto const& item : prev.roots) {
+                    if (auto migrated = history.at(next).getTransition(
+                            item.getIndex())) {
+                        updated.push_back(DocRootId::FromMaskedIdx(
+                            migrated.value(), next));
+                        gr_log(ol_trace).fmt_message(
+                            "Item {} migrated to {}",
+                            item,
+                            migrated.value());
+                    } else {
+                        gr_log(ol_trace).fmt_message(
+                            "Item {} has no mapping in the last version",
+                            item);
+                    }
+                }
+            }
+            RootGroup upd{next, updated};
+            gr_log(ol_trace).fmt_message("Updating {} -> {}", prev, upd);
+            prev = upd;
+        }
+        return prev;
+    }
+}
+
+org::ImmAstVersion EditableOrgDocGroup::replaceNode(
     const org::ImmAdapter&    origin,
     Vec<sem::SemId<sem::Org>> replace) {
     // gr_log(ol_trace).message(origin.treeRepr().toString(false));
     LOGIC_ASSERTION_CHECK(!origin.isNil(), "Cannot replace nil node");
-    org::ImmAstVersion vNext = getCurrentAst().getEditVersion(
+    org::ImmAstVersion vNext = getCurrentHistory().ast->getEditVersion(
         [&](org::ImmAstContext::Ptr ast,
             org::ImmAstEditContext& ast_ctx) -> org::ImmAstReplaceGroup {
             org::ImmAstReplaceGroup result;
@@ -279,34 +348,91 @@ org::ImmAstVersion EditableOrgDocGroup::replace_node(
     return vNext;
 }
 
-org::ImmAstVersion EditableOrgDocGroup::replace_node(
+org::ImmAstVersion EditableOrgDocGroup::replaceNode(
     const org::ImmAdapter& origin,
     const std::string&     text) {
     auto parse = sem::parseString(text);
     if (parse->is(OrgSemKind::Document)
         || parse->is(OrgSemKind::StmtList)) {
-        return replace_node(
+        return replaceNode(
             origin, Vec<sem::SemId<sem::Org>>{parse.begin(), parse.end()});
     } else {
-        return replace_node(origin, Vec<sem::SemId<sem::Org>>{parse});
+        return replaceNode(origin, Vec<sem::SemId<sem::Org>>{parse});
     }
 }
 
 
 EditableOrgDocGroup::History EditableOrgDocGroup::History::withNewVersion(
-    const org::ImmAstVersion& updated) {
-    History res;
-    res.ast = updated;
+    const org::ImmAstVersion& updated) const {
+    OLOG_DEPTH_SCOPE_ANON();
+    History res{};
+    res.ast = std::make_shared<org::ImmAstVersion>(updated);
 
-    for (auto const& root : roots) {
-        auto id = root.uniq();
-        if (auto root1 = updated.epoch.replaced.map.get(id)) {
-            res.roots.push_back(updated.context->adapt(root1.value()));
+    auto tmp = roots.transient();
+    for (int i = 0; i < roots.size(); ++i) {
+        auto const& root = roots.at(i);
+        if (auto root1 = updated.epoch.replaced.map.get(root)) {
+            tmp.push_back(root1.value());
         } else {
-            res.roots.push_back(root);
+            tmp.push_back(root);
         }
+        res.transition.insert_or_assign(i, i);
     }
 
+    res.roots = tmp.persistent();
+    gr_log(ol_trace).fmt_message(
+        "With new version, roots {} -> {}", roots, res.roots);
 
     return res;
+}
+
+Pair<EditableOrgDocGroup::History, int> EditableOrgDocGroup::History::
+    addRoot(const sem::SemId<sem::Org>& root) const {
+    org::ImmAstVersion updated = ast->context->init(root);
+    auto               res     = withNewVersion(updated);
+    res.roots = res.roots.push_back(updated.getRootAdapter().uniq());
+    for (int i = 0; i < res.roots.size(); ++i) {
+        res.transition.insert_or_assign(i, i);
+    }
+    return {res, res.roots.size() - 1};
+}
+
+void EditableOrgDocGroup::RootGroup::add(DocRootId id) {
+    LOGIC_ASSERTION_CHECK(
+        id.getMask() == historyIndex,
+        "Trying to add ID {} with history index {}, which does "
+        "not match the current document group history index of "
+        "{}. To sync document group and ID to the same history "
+        "index use `migrate()` method of the editable document "
+        "group.",
+        id,
+        id.getMask(),
+        historyIndex);
+    roots.push_back(id);
+}
+
+EditableOrgDocGroup::RootGroup::RootGroup(
+    int            history,
+    Vec<DocRootId> roots)
+    : historyIndex{history}, roots{roots} {
+    Vec<u64> versions //
+        = roots | rv::transform(get_getter_get(&DocRootId::getMask))
+        | rs::to<Vec>();
+    UnorderedSet<u64> unique{versions.begin(), versions.end()};
+    LOGIC_ASSERTION_CHECK(
+        unique.size() <= 1,
+        "Document root group must have all document IDs from the "
+        "same version, but the list contains IDs with different "
+        "version mask: {} (roots: {})",
+        unique,
+        roots);
+    if (!unique.empty()) {
+        LOGIC_ASSERTION_CHECK(
+            *unique.begin() == history,
+            "Document group history index must match with the "
+            "provided explicit history index {}. History index "
+            "from ID group: {}",
+            history,
+            unique);
+    }
 }
