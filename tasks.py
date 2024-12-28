@@ -795,6 +795,8 @@ def cmake_build_deps(
             *(["--", *ninja_flag] if 0 < len(ninja_flag) else []),
         ])
 
+    dep(build_name="cpptrace", deps_name="cpptrace")
+
     dep(build_name="scintilla", deps_name="scintilla/")
     dep(build_name="describe", deps_name="cmake_wrap/describe")
     dep(

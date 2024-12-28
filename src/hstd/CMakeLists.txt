@@ -20,7 +20,8 @@ target_link_libraries(
          absl::flags
          range-v3::range-v3
          nlohmann_json::nlohmann_json
-         Boost::boost_describe)
+         Boost::boost_describe
+         cpptrace::cpptrace)
 
 if(${ORG_USE_PERFETTO})
   target_link_libraries(hstd PUBLIC Perfetto::perfetto)

@@ -52,3 +52,6 @@
 [submodule "thirdparty/imgui_test_engine"]
 	path = thirdparty/imgui_test_engine
 	url = https://github.com/ocornut/imgui_test_engine.git
+[submodule "thirdparty/cpptrace"]
+	path = thirdparty/cpptrace
+	url = https://github.com/jeremy-rifkin/cpptrace.git
