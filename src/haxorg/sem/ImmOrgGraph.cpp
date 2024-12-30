@@ -672,11 +672,10 @@ Graphviz::Graph MapGraph::toGraphviz(
         }});
 
         auto add_field_text = [&](Str const& name, org::ImmId id) {
-            add_field(Record{{
-                Record{name},
-                Record{join(" ", flatWords(ctx->adaptUnrooted(id)))}
-                    .htmlAttr("width", "90"),
-            }});
+            add_field(Record{
+                {Record{name},
+                 Record{Graphviz::escapeHtmlForGraphviz(wrap_text(
+                     flatWords(ctx->adaptUnrooted(id)), 60, true))}}});
         };
 
         add_field(Record{{

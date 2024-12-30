@@ -1,6 +1,8 @@
+#include "hstd/stdlib/Debug.hpp"
 #include <hstd/stdlib/strutils.hpp>
 #include <absl/log/log.h>
 #include <absl/log/check.h>
+#include <numeric>
 
 Str unicodeCharMappings[256][15] = {
     [(int)'A']
@@ -1252,4 +1254,73 @@ Str lstrip(CR<Str> string, CR<CharSet> chars) {
 
 Str rstrip(CR<Str> string, CR<CharSet> chars) {
     return strip(string, {}, chars);
+}
+
+Str wrap_text(const Vec<Str>& words, int maxWidth, bool justified) {
+    Vec<Str> lines;
+    Vec<Str> currentLine;
+    int      currentWidth = 0;
+
+    for (const auto& word : words) {
+        // _dbg(word);
+        if (currentWidth + word.size() + (currentLine.empty() ? 0 : 1)
+            > maxWidth) {
+            if (justified && currentLine.size() > 1) {
+                int totalSpaces = maxWidth
+                                - (currentWidth - currentLine.size() + 1);
+                int spaceSlots  = currentLine.size() - 1;
+                int extraSpaces = totalSpaces % spaceSlots;
+
+                // _dfmt(totalSpaces, spaceSlots, extraSpaces);
+
+                for (int i = 0; i < extraSpaces; ++i) {
+                    currentLine[i] += " ";
+                }
+
+                Str line = currentLine[0];
+                Str baseSpace((totalSpaces / spaceSlots), ' ');
+                for (size_t i = 1; i < currentLine.size(); ++i) {
+                    line += baseSpace + currentLine[i];
+                }
+                // _dbg(line);
+                lines.push_back(line);
+            } else {
+                Str line = std::accumulate(
+                    currentLine.begin() + 1,
+                    currentLine.end(),
+                    currentLine[0],
+                    [](const Str& a, const Str& b) {
+                        return a + " "_ss + b;
+                    });
+                // _dbg(line);
+                lines.push_back(line);
+            }
+            currentLine.clear();
+            currentWidth = 0;
+        }
+        currentLine.push_back(word);
+        currentWidth += word.size() + (currentLine.empty() ? 0 : 1);
+    }
+
+    if (!currentLine.empty()) {
+        Str lastLine = std::accumulate(
+            currentLine.begin() + 1,
+            currentLine.end(),
+            currentLine[0],
+            [](const Str& a, const Str& b) { return a + " "_ss + b; });
+        lines.push_back(lastLine);
+    }
+
+    // _dbg(words);
+    // _dbg(lines);
+
+    if (lines.empty()) {
+        return "";
+    } else {
+        return std::accumulate(
+            lines.begin() + 1,
+            lines.end(),
+            lines[0],
+            [](const Str& a, const Str& b) { return a + "\n"_ss + b; });
+    }
 }

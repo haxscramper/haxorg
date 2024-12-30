@@ -45,6 +45,8 @@ Str      escape_for_write(Str const& str, bool quote = true);
 int      rune_length(const std::string& str);
 std::vector<std::string> rune_chunks(const std::string& str);
 
+Str wrap_text(const Vec<Str>& words, int maxWidth, bool justified);
+
 
 enum class AsciiStyle
 {
