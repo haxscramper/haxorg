@@ -149,6 +149,26 @@ class Graphviz {
             }
         }
 
+        void setHtmlAttr(Str attribute, Str const& value) {
+            // Define the attribute if not already defined
+            Agsym_t* attr = agattr(
+                agraphof(_this()->get()),
+                T::graphvizKind,
+                attribute.data(),
+                "");
+            if (!attr) {
+                throw std::runtime_error(
+                    "Failed to define attribute: " + attribute);
+            }
+
+            // Set the raw value using `agxset` and `agstrdup_html`
+            agxset(
+                _this()->get(),
+                attr,
+                agstrdup_html(agraphof(_this()->get()), value.c_str()));
+        }
+
+
         void setAttr(Str attribute, Str const& value) {
             if (setOverride) {
                 setOverride(attribute, value);
@@ -194,24 +214,13 @@ class Graphviz {
 
     class Node : public GraphvizObjBase<Node> {
       public:
+        static const auto graphvizKind = AGNODE;
         struct Record {
-            static Str escape(Str const& input) {
-                Str escaped;
-                escaped.reserve(input.size());
-                for (char c : input) {
-                    switch (c) {
-                        case '"': [[fallthrough]];
-                        case '>': [[fallthrough]];
-                        case '<': [[fallthrough]];
-                        case '{': [[fallthrough]];
-                        case '}': [[fallthrough]];
-                        case '|': [[fallthrough]];
-                        case '\\': escaped += '\\'; [[fallthrough]];
-                        default: escaped += c;
-                    }
-                }
-                return escaped;
-            }
+            static Str escape(Str const& input);
+
+            static Str escapeHtml(CR<Str> input);
+
+            Str toHtml(bool horizontal = true) const;
 
 
             Record() {}
@@ -242,11 +251,25 @@ class Graphviz {
                 return std::get<1>(content);
             }
 
-            Opt<Str>                  tag;
-            Variant<Str, Vec<Record>> content;
+            Opt<Str>                                     tag;
+            Variant<Str, Vec<Record>>                    content;
+            std::unordered_map<std::string, std::string> htmlAttrs;
+
+            Record& htmlAttr(
+                std::string const& key,
+                std::string const& value) {
+                htmlAttrs.insert_or_assign(key, value);
+                return *this;
+            }
 
             Str toString(bool braceCount = 1) const;
         };
+
+        void startHtmlRecord() {
+            setShape(Shape::plaintext);
+            bindRecord<Record>("record");
+            getNodeRecord()->content = Vec<Record>{};
+        }
 
         void startRecord() {
             setShape(Shape::record);
@@ -258,6 +281,10 @@ class Graphviz {
 
         void finishRecord(int braceCount = 1) {
             setLabel(getNodeRecord()->toString(braceCount));
+        }
+
+        void finishHtmlRecord(bool horizontal = false) {
+            setHtmlAttr("label", getNodeRecord()->toHtml(horizontal));
         }
 
         Node(Agraph_t* graph, Str const& name, Record const& record);
@@ -433,6 +460,7 @@ class Graphviz {
 
     class Edge : public GraphvizObjBase<Edge> {
       public:
+        static const auto graphvizKind = AGEDGE;
         Edge(Agraph_t* graph, Agedge_t* edge)
             : edge_(edge), graph(graph) {}
 
@@ -483,8 +511,9 @@ class Graphviz {
         void initDefaultSetters();
 
       public:
-        Node defaultNode;
-        Edge defaultEdge;
+        static const auto graphvizKind = AGRAPH;
+        Node              defaultNode;
+        Edge              defaultEdge;
 
         Graph(Str const& name, Agdesc_t desc = Agdirected);
         Graph(fs::path const& file);

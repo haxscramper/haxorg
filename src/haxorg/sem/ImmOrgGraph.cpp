@@ -660,13 +660,13 @@ Graphviz::Graph MapGraph::toGraphviz(
         if (!nodeOk(it)) { continue; }
         using Record = Graphviz::Node::Record;
         auto& node   = gvNodes.at(it);
-        node.startRecord();
+        node.startHtmlRecord();
         auto rec       = node.getNodeRecord();
         auto add_field = [&](Record const& r) { rec->push_back(r); };
 
         add_field(Record{{
             Record{left_aligned("ID", 16)},
-            Record{fmt1(it.id)},
+            Record{fmt1(it.id.id)},
         }});
 
         auto add_field_text = [&](Str const& name, org::ImmId id) {
@@ -712,7 +712,7 @@ Graphviz::Graph MapGraph::toGraphviz(
             }});
         }
 
-        node.finishRecord();
+        node.finishHtmlRecord();
     }
 
     return res;

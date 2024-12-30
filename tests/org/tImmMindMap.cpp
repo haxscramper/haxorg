@@ -763,5 +763,11 @@ TEST(ImmMapGraphApi, BoostVisitors) {
     addNodeRec(s1, file, conf);
 
 
+    Graphviz gvc;
+    auto     gv = s1.graph.toGraphviz(v2.context);
+    gv.setRankDirection(Graphviz::Graph::RankDirection::LR);
+    gvc.writeFile(getDebugFile("BoostVisitors.dot"), gv);
+    gvc.renderToFile(getDebugFile("BoostVisitors.png"), gv);
+
     // org::graph::bfs_visit();
 }
