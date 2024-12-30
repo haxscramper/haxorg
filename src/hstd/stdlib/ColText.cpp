@@ -134,24 +134,58 @@ void ColStream::write_indented_after_first(const Str& text, int indent) {
     }
 }
 
-template <>
-ColStream& hshow(ColStream& os, CR<Str> value, CR<HDisplayOpts> opts) {
-    bool first = true;
-    if (opts.flags.contains(HDisplayFlag::UseQuotes)) {
-        for (Str const& it : visibleUnicodeName(
-                 value, !opts.flags.contains(HDisplayFlag::UseAscii))) {
-            if (!first) { os << " "; }
-            first = false;
-            os << std::format("'{}'", it);
-        }
+void hshow<std::string_view>::format(
+    ColStream&           os,
+    CR<std::string_view> value,
+    CR<hshow_opts>       opts) {
+    if (value.data() == nullptr) {
+        os << "nil";
     } else {
-        for (const auto& it : visibleUnicodeName(
-                 value, !opts.flags.contains(HDisplayFlag::UseAscii))) {
-            os << it;
-        }
-    }
+        bool first = true;
+        os.yellow();
+        std::string open_quote  = opts.get_use_ascii() ? "'" : "«";
+        std::string close_quote = opts.get_use_ascii() ? "'" : "»";
 
-    return os;
+        if (opts.get_string_as_array()) {
+            if (opts.get_use_quotes()) {
+                for (Str const& it :
+                     visibleUnicodeName(value, !opts.get_use_ascii())) {
+                    if (!first) { os << " "; }
+                    first = false;
+                    os << std::format(
+                        "{}{}{}", open_quote, it, close_quote);
+                }
+            } else {
+                for (const auto& it :
+                     visibleUnicodeName(value, !opts.get_use_ascii())) {
+                    os << it;
+                }
+            }
+        } else {
+            if (opts.get_use_quotes()) { os << open_quote; }
+
+            if (opts.get_use_ascii()) {
+                if (opts.get_unicode_newlines()) {
+                    for (auto const& c : value) {
+                        if (c == '\n') {
+                            os << visibleName(c).first;
+                        } else {
+                            os << c;
+                        }
+                    }
+                } else {
+                    os << value;
+                }
+            } else {
+                for (const auto& it : visibleUnicodeName(value, true)) {
+                    os << it;
+                }
+            }
+
+            if (opts.get_use_quotes()) { os << close_quote; }
+        }
+        os.end();
+    }
 }
 
 ColText::ColText(CR<ColStyle> style, CR<std::string> text) {

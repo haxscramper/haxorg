@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 #include <hstd/stdlib/strutils.hpp>
 #include <hstd/stdlib/strformat.hpp>
+#include <hstd/stdlib/ColText.hpp>
 
 
 TEST(StringOperationsTest, StringViews) {
@@ -181,4 +182,15 @@ TEST(Strutils, Mappings) {
     EXPECT_EQ(left_aligned("X", 2), "X ");
     EXPECT_EQ(right_aligned("X", 2), " X");
     EXPECT_EQ(right_aligned("", 2), "  ");
+}
+
+
+TEST(Hshow, Instantiations) {
+    auto dbg = [&]<typename T>(T const& v) {
+        std::cout << fmt1(v) << std::endl;
+        std::cout << hshow1(v).toString(true) << std::endl;
+    };
+
+    dbg(12);
+    dbg("test");
 }

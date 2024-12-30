@@ -30,7 +30,8 @@ Str join(CR<Str> sep, generator<T>&& list) {
 Pair<Str, Str> visibleName(char ch);
 Str indent(CR<Str> str, int spaces, char space = ' ', Str prefix = "");
 
-Vec<Str> visibleUnicodeName(Str str, bool useUnicode = true);
+Vec<Str> visibleUnicodeName(std::string_view str, bool useUnicode = true);
+Vec<Str> visibleUnicodeName(Str const& str, bool useUnicode = true);
 Vec<Str> split_keep_separator(const Str& str, CharSet sep = {' '});
 Str      strip(CR<Str> string, CR<CharSet> leading, CR<CharSet> trailing);
 Str      lstrip(CR<Str> string, CR<CharSet> chars);
