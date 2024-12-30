@@ -40,3 +40,12 @@ boost::dynamic_properties org::graph::toGraphvizDynamicProperties(
 
     return dp;
 }
+
+void org::graph::bfs_visit(
+    const MapGraph&                           g,
+    const MapNode&                            start,
+    const boost_lambda_bfs_visitor<MapGraph>& visitor,
+    const boost_color_map&                    map) {
+    boost::breadth_first_search(
+        g, start, boost::visitor(visitor).color_map(map.map));
+}

@@ -751,3 +751,17 @@ TEST(ImmMapGraphApi, BoostPropertyWriter) {
 
     writeFile("/tmp/BoostPropertyWriter.dot", os.str());
 }
+
+TEST(ImmMapGraphApi, BoostVisitors) {
+    auto n = testParseString(getFullMindMapText());
+
+    auto store = org::ImmAstContext ::init_start_context();
+    org::graph::MapConfig     conf;
+    org::ImmAstVersion        v2   = store->addRoot(n);
+    org::ImmAdapter           file = v2.getRootAdapter();
+    org::graph::MapGraphState s1{v2.context};
+    addNodeRec(s1, file, conf);
+
+
+    // org::graph::bfs_visit();
+}

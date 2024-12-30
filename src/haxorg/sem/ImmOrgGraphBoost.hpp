@@ -3,6 +3,7 @@
 #include <haxorg/sem/ImmOrgGraph.hpp>
 
 #include <boost/graph/graph_traits.hpp>
+#include <hstd/wrappers/hstd_extra/graphwrap.hpp>
 
 namespace boost {
 
@@ -470,5 +471,56 @@ inline org::graph::MapNode get(
 } // namespace boost
 
 namespace org::graph {
+
+// to fix ADL lookup issues that some boost graph code suffers from. In
+// some places these methods are called as simply `func()`, and not
+// `boost::func()`, which leads to a failing attempt to look up via ADL
+using boost::edges;
+using boost::in_edges;
+using boost::num_edges;
+using boost::num_vertices;
+using boost::out_degree;
+using boost::out_edges;
+using boost::source;
+using boost::target;
+using boost::vertices;
+
+template <typename Graph>
+struct boost_color_property_map_bundle {
+    using vertex_descriptor = typename boost::graph_traits<
+        Graph>::vertex_descriptor;
+    using ColorStorage = std::
+        unordered_map<vertex_descriptor, boost::default_color_type>;
+    using ColorMap = boost::associative_property_map<ColorStorage>;
+
+    boost_color_property_map_bundle(Graph const& g)
+        : colors{}, map{colors} {
+        // Pre-populate with white if needed
+        for (auto vd : boost::make_iterator_range(boost::vertices(g))) {
+            colors[vd] = boost::white_color;
+        }
+    }
+
+    ColorStorage colors;
+    ColorMap     map;
+};
+
+
 boost::dynamic_properties toGraphvizDynamicProperties(MapGraph const& g);
+
+using boost_color_map = boost_color_property_map_bundle<MapGraph>;
+
+void bfs_visit(
+    MapGraph const&                           g,
+    MapNode const&                            start,
+    boost_lambda_bfs_visitor<MapGraph> const& visitor,
+    boost_color_map const&                    map);
+
+inline void bfs_visit(
+    MapGraph const&                           g,
+    MapNode const&                            start,
+    boost_lambda_bfs_visitor<MapGraph> const& visitor) {
+    boost_color_map map{g};
+    bfs_visit(g, start, visitor, map);
 }
+} // namespace org::graph
