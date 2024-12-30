@@ -63,6 +63,10 @@ class Graphviz {
 
     static Str alignText(Str const& text, TextAlign direction);
 
+    static std::string escapeHtmlForGraphviz(
+        const std::string& input,
+        TextAlign          direction = TextAlign::Left);
+
     template <typename T>
     struct GraphvizObjBase : CRTP_this_method<T> {
         using CRTP_this_method<T>::_this;

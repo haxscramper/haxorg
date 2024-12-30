@@ -1,6 +1,7 @@
 #include "ImmOrgGraph.hpp"
 #include "haxorg/sem/ImmOrgEdit.hpp"
 #include "haxorg/sem/SemBaseApi.hpp"
+#include <boost/algorithm/string/replace.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 #include <immer/set_transient.hpp>
 #include <immer/vector_transient.hpp>
@@ -622,6 +623,7 @@ void MapGraph::addNode(const MapNode& node) {
     }
 }
 
+
 Graphviz::Graph MapGraph::toGraphviz(
     org::ImmAstContext::Ptr const& ctx,
     GvConfig const&                conf) const {
@@ -665,14 +667,15 @@ Graphviz::Graph MapGraph::toGraphviz(
         auto add_field = [&](Record const& r) { rec->push_back(r); };
 
         add_field(Record{{
-            Record{left_aligned("ID", 16)},
+            Record{"ID"},
             Record{fmt1(it.id.id)},
         }});
 
         auto add_field_text = [&](Str const& name, org::ImmId id) {
             add_field(Record{{
                 Record{name},
-                Record{join(" ", flatWords(ctx->adaptUnrooted(id)))},
+                Record{join(" ", flatWords(ctx->adaptUnrooted(id)))}
+                    .htmlAttr("width", "90"),
             }});
         };
 
@@ -706,9 +709,9 @@ Graphviz::Graph MapGraph::toGraphviz(
 
         for (auto const& [idx, unresolved] : enumerate(prop.unresolved)) {
             add_field(Record{{
-                Record{left_aligned(
-                    fmt("Unresolved []", unresolved.link), 16)},
-                Record{fmt1(unresolved.link.value())},
+                Record{fmt("Unresolved [{}]", unresolved.link.id)},
+                Record{Graphviz::escapeHtmlForGraphviz(
+                    to_json_eval(unresolved.link.value()).dump(2))},
             }});
         }
 

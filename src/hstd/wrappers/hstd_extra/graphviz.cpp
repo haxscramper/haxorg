@@ -1,3 +1,4 @@
+#include <boost/algorithm/string/replace.hpp>
 #include <hstd/wrappers/hstd_extra/graphviz.hpp>
 #include <filesystem>
 #include <format>
@@ -45,7 +46,7 @@ Str Graphviz::Node::Record::toHtml(bool horizontal) const {
         res += "<";
         res += tagname;
         for (auto const& [key, value] : rec->htmlAttrs) {
-            res += std::format("{}='{}'", key, value);
+            res += std::format(" {}='{}'", key, value);
         }
         res += ">";
         return res;
@@ -252,6 +253,30 @@ Str Graphviz::alignText(const Str& text, TextAlign direction) {
     }
 
     return res;
+}
+
+std::string Graphviz::escapeHtmlForGraphviz(
+    const std::string& input,
+    TextAlign          direction) {
+    std::string escaped = input;
+    boost::replace_all(escaped, "&", "&amp;");
+    boost::replace_all(escaped, "<", "&lt;");
+    boost::replace_all(escaped, ">", "&gt;");
+    boost::replace_all(escaped, "\"", "&quot;");
+    boost::replace_all(escaped, "\'", "&#39;");
+    std::string newline_replace = "<BR ALIGN=\"";
+
+    switch (direction) {
+        case TextAlign::Left: newline_replace += "LEFT"; break;
+        case TextAlign::Right: newline_replace += "RIGHT"; break;
+        case TextAlign::Center: newline_replace += "CENTER"; break;
+    }
+
+    newline_replace += "\"/>";
+
+    boost::replace_all(escaped, "\n", newline_replace);
+    escaped += newline_replace;
+    return escaped;
 }
 
 Str Graphviz::layoutTypeToString(LayoutType layoutType) const {
