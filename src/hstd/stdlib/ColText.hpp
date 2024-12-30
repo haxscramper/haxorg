@@ -5,11 +5,8 @@
 #include <hstd/stdlib/IntSet.hpp>
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/Array.hpp>
 #include <hstd/system/reflection.hpp>
 
-#include <locale>
-#include <codecvt>
 
 struct TermColorBgFull {
     u8 color;
@@ -340,6 +337,10 @@ struct ColStream : public ColText {
     ColStream() : buffered(true) {};
     ColStream(std::ostream& os) : ostream(&os), buffered(false) {}
 
+    finally style_scope() {
+        return finally{[this, start = active]() { this->active = start; }};
+    }
+
     // clang-format off
     ColStream& red() { active.fg = TermColorFg8Bit::Red; return *this; }
     ColStream& blue() { active.fg = TermColorFg8Bit::Blue; return *this; }
@@ -411,8 +412,7 @@ enum class hshow_verbosity : u8
 BOOST_DESCRIBE_ENUM(hshow_verbosity, Minimal, Normal, Verbose, DataDump);
 
 #define hshow_flag_list(__impl, __sep)                                    \
-    __impl(colored) __sep __impl(position_indexed)                        \
-    __sep                 __impl(path_indexed)                            \
+    __impl(colored) __sep __impl(show_list_index)                         \
     __sep                 __impl(unicode_newlines)                        \
     __sep                 __impl(with_ranges)                             \
     __sep                 __impl(spell_empty_string)                      \
@@ -449,7 +449,7 @@ hshow_flag_list(__ident, __nop)
 struct hshow_opts {
     IntSet<hshow_flag> flags = IntSet<hshow_flag>{
         hshow_flag::colored,
-        hshow_flag::position_indexed,
+        hshow_flag::show_list_index,
         hshow_flag::spell_empty_string,
         hshow_flag::use_commas,
         hshow_flag::use_quotes,
@@ -502,11 +502,25 @@ template <typename T, typename Aux = int>
 struct hshow {};
 
 template <StdFormattable T>
-struct hshow<T> {
+struct hshow_std_format {
     static void format(ColStream& s, CR<T> value, CR<hshow_opts> opts) {
         s << std::format("{}", value);
     }
 };
+
+
+template <typename T>
+ColText hshow1(CR<T> value, CR<hshow_opts> opts = hshow_opts{}) {
+    ColStream s;
+    hshow<T>::format(s, value, opts);
+    return s.getBuffer();
+}
+
+
+template <typename T>
+void hshow_ctx(ColStream& os, CR<T> value, CR<hshow_opts> opts) {
+    hshow<T>::format(os, value, opts);
+}
 
 template <typename T>
 struct hshow_integral_type {
@@ -523,7 +537,112 @@ struct hshow_integral_type {
     }
 };
 
+template <DescribedRecord R>
+struct hshow_described_record {
+    static void format(ColStream& s, CR<R> value, CR<hshow_opts> opts) {
+        bool first = true;
+        s << "{";
+        for_each_field_value_with_bases(
+            value, [&](char const* name, auto const& value) {
+                if (!first) { s << ", "; }
+                s << ".";
+                s.cyan();
+                s << name;
+                s.end();
+                s << " = ";
+                hshow_ctx(s, value, opts);
+                first = false;
+            });
+        s << "}";
+    }
+};
+
+template <DescribedEnum E>
+struct hshow_described_enum {
+    static void format(ColStream& s, E value, CR<hshow_opts> opts) {
+        char const* string = boost::describe::enum_to_string(
+            value, nullptr);
+        if (string == nullptr) {
+            s.red();
+            s << fmt("{} (invalid)", std::to_underlying(value));
+            s.end();
+        } else {
+            s.green();
+            s << string;
+            s.end();
+        }
+    }
+};
+
+template <typename T>
+struct hshow_indexed_list {
+    static void format(ColStream& s, CR<T> value, CR<hshow_opts> opts) {
+        int idx = 0;
+        s << "[";
+        for (auto const& it : value) {
+            if (idx != 0) {
+                if (opts.get_use_commas()) {
+                    s << ", ";
+                } else {
+                    s << " ";
+                }
+            }
+
+            if (opts.get_show_list_index()) { s << fmt("[{}]:", idx); }
+
+            hshow_ctx(s, it, opts);
+            ++idx;
+        }
+        s << "]";
+    }
+};
+
+template <typename T>
+struct hshow_unordered_set {
+    static void format(ColStream& s, CR<T> value, CR<hshow_opts> opts) {
+        int idx = 0;
+        s << "{";
+        for (auto const& it : value) {
+            if (idx != 0) {
+                if (opts.get_use_commas()) {
+                    s << ", ";
+                } else {
+                    s << " ";
+                }
+            }
+
+            hshow_ctx(s, it, opts);
+            ++idx;
+        }
+        s << "}";
+    }
+};
+
+template <typename T>
+struct hshow_key_value_pairs {
+    static void format(ColStream& s, CR<T> value, CR<hshow_opts> opts) {
+        int idx = 0;
+        s << "{";
+        for (auto const& [key, value] : value) {
+            if (idx != 0) {
+                if (opts.get_use_commas()) {
+                    s << ", ";
+                } else {
+                    s << " ";
+                }
+            }
+
+            hshow_ctx(s, key, opts);
+            s << ": ";
+            hshow_ctx(s, value, opts);
+            ++idx;
+        }
+        s << "}";
+    }
+};
+
 // clang-format off
+template <> struct hshow<char> : public hshow_std_format<char> {};
 template <> struct hshow<i8> : public hshow_integral_type<i8> {};
 template <> struct hshow<u8> : public hshow_integral_type<u8> {};
 template <> struct hshow<i16> : public hshow_integral_type<i16> {};
@@ -532,7 +651,13 @@ template <> struct hshow<i32> : public hshow_integral_type<i32> {};
 template <> struct hshow<u32> : public hshow_integral_type<u32> {};
 template <> struct hshow<i64> : public hshow_integral_type<i64> {};
 template <> struct hshow<u64> : public hshow_integral_type<u64> {};
+template <DescribedRecord R> struct hshow<R> : public hshow_described_record<R> {};
+template <DescribedEnum E> struct hshow<E> : public hshow_described_enum<E> {};
+template <typename T> struct hshow<Vec<T>> : public hshow_indexed_list<Vec<T>> {};
+template <typename T> struct hshow<std::vector<T>> : public hshow_indexed_list<std::vector<T>> {};
+template <typename T> struct hshow<IntSet<T>> : public hshow_unordered_set<IntSet<T>> {};
 // clang-format on
+
 
 template <>
 struct hshow<std::string_view> {
@@ -551,6 +676,17 @@ struct hshow<char const*> {
         hshow<std::string_view>::format(os, value, opts);
     }
 };
+
+template <>
+struct hshow<std::string> {
+    static void format(
+        ColStream&      os,
+        CR<std::string> value,
+        CR<hshow_opts>  opts) {
+        hshow<std::string_view>::format(os, value, opts);
+    }
+};
+
 
 template <>
 struct hshow<char*> {
@@ -579,13 +715,6 @@ struct hshow<char const[N]> {
     }
 };
 
-
-template <typename T>
-ColText hshow1(CR<T> value, CR<hshow_opts> opts = hshow_opts{}) {
-    ColStream s;
-    hshow<T>::format(s, value, opts);
-    return s.getBuffer();
-}
 
 template <typename T>
 ColText join(CR<ColText> separator, CR<T> container) {

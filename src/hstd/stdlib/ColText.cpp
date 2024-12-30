@@ -141,7 +141,8 @@ void hshow<std::string_view>::format(
     if (value.data() == nullptr) {
         os << "nil";
     } else {
-        bool first = true;
+        auto __scope = os.style_scope();
+        bool first   = true;
         os.yellow();
         std::string open_quote  = opts.get_use_ascii() ? "'" : "«";
         std::string close_quote = opts.get_use_ascii() ? "'" : "»";
@@ -184,7 +185,6 @@ void hshow<std::string_view>::format(
 
             if (opts.get_use_quotes()) { os << close_quote; }
         }
-        os.end();
     }
 }
 

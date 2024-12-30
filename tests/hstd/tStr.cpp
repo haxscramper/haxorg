@@ -185,6 +185,16 @@ TEST(Strutils, Mappings) {
 }
 
 
+struct DescField {
+    int                    f1;
+    int                    f2;
+    std::string            f3;
+    char                   f4 = 'q';
+    std::vector<DescField> sub;
+
+    DESC_FIELDS(DescField, (f1, f2, f3, f4, sub));
+};
+
 TEST(Hshow, Instantiations) {
     auto dbg = [&]<typename T>(T const& v) {
         std::cout << fmt1(v) << std::endl;
@@ -193,4 +203,7 @@ TEST(Hshow, Instantiations) {
 
     dbg(12);
     dbg("test");
+    dbg(Vec<int>{123, 33});
+    dbg(Vec<std::string>{"123", "33"});
+    dbg(DescField{.sub = {DescField{}}});
 }
