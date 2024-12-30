@@ -687,6 +687,13 @@ struct hshow<std::string> {
     }
 };
 
+template <>
+struct hshow<Str> {
+    static void format(ColStream& os, CR<Str> value, CR<hshow_opts> opts) {
+        hshow<std::string_view>::format(os, value.toBase(), opts);
+    }
+};
+
 
 template <>
 struct hshow<char*> {

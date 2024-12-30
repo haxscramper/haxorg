@@ -13,6 +13,7 @@
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/stdlib/reflection_visitor.hpp>
 #include <haxorg/sem/SemOrgTypes.hpp>
+#include <hstd/stdlib/Array.hpp>
 
 namespace org {
 struct ImmReflFieldId;

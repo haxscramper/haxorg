@@ -2,15 +2,14 @@
 
 #include "hstd/stdlib/Slice.hpp"
 #include <string>
-#include <vector>
 #include <utility>
 #include <memory>
 #include <functional>
 #include <optional>
 #include <iostream>
-#include <algorithm>
 
 #include <hstd/stdlib/Vec.hpp>
+#include <hstd/stdlib/Map.hpp>
 
 #include <boost/describe.hpp>
 #include <hstd/stdlib/Debug.hpp>

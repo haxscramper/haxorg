@@ -562,7 +562,6 @@ TEST(ImmMapApi, Doc1Graph) {
         int count = 0;
         __perf_trace("imm", "iterate each sem node");
         sem::eachSubnodeRec(n, [&](sem::OrgArg) { ++count; });
-        _dbg(count);
     }
 
     {
@@ -572,7 +571,6 @@ TEST(ImmMapApi, Doc1Graph) {
             v.getRootAdapter(), true, [&](org::ImmAdapter const&) {
                 ++count;
             });
-        _dbg(count);
     }
 
     {
@@ -582,7 +580,6 @@ TEST(ImmMapApi, Doc1Graph) {
             v.getRootAdapter(), false, [&](org::ImmAdapter const&) {
                 ++count;
             });
-        _dbg(count);
     }
 
     org::ImmAdapter root = v.getRootAdapter();
