@@ -207,3 +207,53 @@ TEST(Hshow, Instantiations) {
     dbg(Vec<std::string>{"123", "33"});
     dbg(DescField{.sub = {DescField{}}});
 }
+
+
+TEST(WrapTextTest, SingleShortWord) {
+    Vec<Str> words  = {"Hello"};
+    Str      result = wrap_text(words, 10, false);
+    EXPECT_EQ(result, "Hello");
+}
+
+TEST(WrapTextTest, MultipleShortWordsSingleLine) {
+    Vec<Str> words  = {"Hello", "world"};
+    Str      result = wrap_text(words, 20, false);
+    EXPECT_EQ(result, "Hello world");
+}
+
+TEST(WrapTextTest, WrapWordsToMultipleLines) {
+    Vec<Str> words = {"This", "is", "a", "test", "of", "text", "wrapping"};
+    Str      result = wrap_text(words, 10, false);
+    EXPECT_EQ(result, "This is a\ntest of\ntext\nwrapping");
+}
+
+TEST(WrapTextTest, JustifiedText) {
+    Vec<Str> words = {
+        "This", "is", "a", "test", "of", "justified", "text"};
+    Str result = wrap_text(words, 20, true);
+    EXPECT_EQ(result, "This  is  a test of\njustified     text");
+}
+
+TEST(WrapTextTest, LastLineNotJustified) {
+    Vec<Str> words  = {"One", "last", "line", "example", "here"};
+    Str      result = wrap_text(words, 15, true);
+    EXPECT_EQ(result, "One   last   line\nexample here");
+}
+
+TEST(WrapTextTest, WordsExceedingMaxWidth) {
+    Vec<Str> words  = {"Extraordinarily", "long", "word", "here"};
+    Str      result = wrap_text(words, 10, false);
+    EXPECT_EQ(result, "Extraordinarily\nlong word\nhere");
+}
+
+TEST(WrapTextTest, EmptyInput) {
+    Vec<Str> words  = {};
+    Str      result = wrap_text(words, 10, false);
+    EXPECT_EQ(result, "");
+}
+
+TEST(WrapTextTest, SingleWordExceedingMaxWidth) {
+    Vec<Str> words  = {"Supercalifragilisticexpialidocious"};
+    Str      result = wrap_text(words, 10, false);
+    EXPECT_EQ(result, "Supercalifragilisticexpialidocious");
+}
