@@ -765,6 +765,7 @@ TEST(ImmMapGraphApi, BoostVisitors) {
     addNodeRec(s1, file, conf);
 
     UnorderedMap<MapNode, int> forwardBfsExamineOrder;
+    UnorderedMap<MapNode, int> undirectedBfsExamineOrder;
     UnorderedMap<MapNode, int> forwardDfsDiscoverOrder;
 
     org::graph::bfs_visit(
@@ -773,6 +774,15 @@ TEST(ImmMapGraphApi, BoostVisitors) {
         boost_lambda_bfs_visitor<MapGraph>{}.set_examine_vertex(
             [&, index = 0](CR<MapNode> n, CR<MapGraph>) mutable {
                 forwardBfsExamineOrder.insert_or_assign(n, index);
+                ++index;
+            }));
+
+    org::graph::bfs_visit(
+        MapGraphUndirected{&s1.graph},
+        MapNode{file.at({1, 1, 0}).uniq()},
+        boost_lambda_bfs_visitor<MapGraphUndirected>{}.set_examine_vertex(
+            [&, index = 0](CR<MapNode> n, CR<MapGraphUndirected>) mutable {
+                undirectedBfsExamineOrder.insert_or_assign(n, index);
                 ++index;
             }));
 
@@ -795,6 +805,11 @@ TEST(ImmMapGraphApi, BoostVisitors) {
         MapNode node{adapter.uniq()};
         if (auto forward = forwardBfsExamineOrder.get(node)) {
             res.setEscaped("Forward BFS examine #", fmt1(forward.value()));
+        }
+
+        if (auto undirected = undirectedBfsExamineOrder.get(node)) {
+            res.setEscaped(
+                "Undirected BFS examine #", fmt1(undirected.value()));
         }
 
         if (auto forward = forwardDfsDiscoverOrder.get(node)) {
