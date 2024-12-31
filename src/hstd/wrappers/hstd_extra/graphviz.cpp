@@ -122,6 +122,28 @@ void Graphviz::Node::Record::set(const Str& columnKey, CR<Record> value) {
     }
 }
 
+Graphviz::Node::Record Graphviz::Node::Record::fromEscapedText(
+    const Str& text,
+    TextAlign  align) {
+    Record res;
+    res.content = escapeHtmlForGraphviz(text, align);
+    return res;
+}
+
+Graphviz::Node::Record Graphviz::Node::Record::fromRow(
+    const Vec<Record>& recs) {
+    Record res;
+    res.content = recs;
+    return res;
+}
+
+Graphviz::Node::Record Graphviz::Node::Record::fromEscapedTextRow(
+    const Vec<Str>& cells) {
+    Record res = fromRow({});
+    for (auto const& cell : cells) { res.add(fromEscapedText(cell)); }
+    return res;
+}
+
 Str Graphviz::Node::Record::toString(bool braceCount) const {
     Str result;
     if (isFinal()) {

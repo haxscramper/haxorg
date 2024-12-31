@@ -246,6 +246,13 @@ class Graphviz {
             }
 
             void set(Str const& columnKey, CR<Record> value);
+            void setEscaped(Str const& columnKey, Str const& value) {
+                set(columnKey, fromEscapedText(value));
+            }
+
+            void setHtml(Str const& columnKey, Str const& value) {
+                set(columnKey, fromHtmlText(value));
+            }
 
             bool       isRecord() const { return !isFinal(); }
             Str&       getLabel() { return std::get<Str>(content); }
@@ -258,6 +265,28 @@ class Graphviz {
             Opt<Str>                                     tag;
             Variant<Str, Vec<Record>>                    content;
             std::unordered_map<std::string, std::string> htmlAttrs;
+
+
+            static Record fromEscapedText(
+                Str const& text,
+                TextAlign  align = TextAlign::Left);
+
+            static Record fromHtmlText(Str const& text) {
+                return Record{text};
+            }
+
+            static Record fromRow(Vec<Record> const& recs);
+
+            static Record fromEscapedTextRow(Vec<Str> const& cells);
+
+            void add(Record const& rec) { getNested().push_back(rec); }
+            void addHtml(Str const& html) { getLabel().append(html); }
+            void addEscaped(
+                Str const& text,
+                TextAlign  align = TextAlign::Left) {
+                getLabel().append(
+                    escapeHtmlForGraphviz(text.toBase(), align));
+            }
 
             Record& htmlAttr(
                 std::string const& key,

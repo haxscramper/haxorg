@@ -233,6 +233,14 @@ struct MapGraph {
     struct GvConfig {
         Func<bool(MapNode const& node)> acceptNode;
         Func<bool(MapEdge const& edge)> acceptEdge;
+
+        static Graphviz::Node::Record getDefaultNodeLabel(
+            org::ImmAdapter const& node,
+            MapNodeProp const&     prop);
+        Func<Graphviz::Node::Record(
+            org::ImmAdapter const&,
+            MapNodeProp const& prop)>
+            getNodeLabel = getDefaultNodeLabel;
     };
 
     Graphviz::Graph toGraphviz(const ImmAstContext::Ptr& ctx) const {

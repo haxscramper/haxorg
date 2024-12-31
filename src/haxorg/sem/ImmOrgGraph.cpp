@@ -663,56 +663,7 @@ Graphviz::Graph MapGraph::toGraphviz(
         using Record = Graphviz::Node::Record;
         auto& node   = gvNodes.at(it);
         node.startHtmlRecord();
-        auto rec       = node.getNodeRecord();
-        auto add_field = [&](Record const& r) { rec->push_back(r); };
-
-        add_field(Record{{
-            Record{"ID"},
-            Record{fmt1(it.id.id)},
-        }});
-
-        auto add_field_text = [&](Str const& name, org::ImmId id) {
-            add_field(Record{
-                {Record{name},
-                 Record{Graphviz::escapeHtmlForGraphviz(wrap_text(
-                     flatWords(ctx->adaptUnrooted(id)), 60, true))}}});
-        };
-
-        add_field(Record{{
-            Record{"Select"},
-            Record{ctx->adapt(it.id).selfSelect()},
-        }});
-
-        switch_node_value(
-            it.id.id,
-            ctx,
-            overloaded{
-                [&](org::ImmSubtree const& tree) {
-                    add_field(Record{{
-                        Record{"Title"},
-                        Record{join(
-                            " ",
-                            flatWords(ctx->adaptUnrooted(tree.title)))},
-                    }});
-                },
-                [&](org::ImmParagraph const& tree) {
-                    add_field_text("Text", it.id.id);
-                },
-                [&]<typename K>(K const& value) {
-                    add_field(Record{{
-                        Record{"Type"},
-                        Record{TypeName<K>::get()},
-                    }});
-                },
-            });
-
-        for (auto const& [idx, unresolved] : enumerate(prop.unresolved)) {
-            add_field(Record{{
-                Record{fmt("Unresolved [{}]", unresolved.link.id)},
-                Record{Graphviz::escapeHtmlForGraphviz(
-                    to_json_eval(unresolved.link.value()).dump(2))},
-            }});
-        }
+        *node.getNodeRecord() = conf.getNodeLabel(ctx->adapt(it.id), prop);
 
         node.finishHtmlRecord();
     }
@@ -729,4 +680,49 @@ MapConfig::MapConfig(SPtr<MapInterface> impl) : impl{impl} {
 MapConfig::MapConfig() : impl{std::make_shared<MapInterface>()} {
     this->OperationsScope::TraceState //
         = &this->OperationsTracer::TraceState;
+}
+
+Graphviz::Node::Record MapGraph::GvConfig::getDefaultNodeLabel(
+    const ImmAdapter&  node,
+    const MapNodeProp& prop) {
+    using Record = Graphviz::Node::Record;
+    Record rec;
+    rec.setEscaped("ID", fmt1(node.id));
+
+    auto add_field_text = [&](Str const& name, org::ImmId id) {
+        rec.set(
+            name,
+            Record{Graphviz::escapeHtmlForGraphviz(
+                wrap_text(flatWords(node), 60, true))});
+    };
+
+    rec.setEscaped("Select", node.selfSelect());
+
+    switch_node_value(
+        node.id,
+        node.ctx.lock(),
+        overloaded{
+            [&](org::ImmSubtree const& tree) {
+                rec.setEscaped(
+                    "Title",
+                    join(
+                        " ",
+                        flatWords(
+                            node.ctx.lock()->adaptUnrooted(tree.title))));
+            },
+            [&](org::ImmParagraph const& tree) {
+                add_field_text("Text", node.id);
+            },
+            [&]<typename K>(K const& value) {
+                rec.setEscaped("Type", TypeName<K>::get());
+            },
+        });
+
+    for (auto const& [idx, unresolved] : enumerate(prop.unresolved)) {
+        rec.setEscaped(
+            fmt("Unresolved [{}]", unresolved.link.id),
+            to_json_eval(unresolved.link.value()).dump(2));
+    }
+
+    return rec;
 }
