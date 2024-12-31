@@ -193,3 +193,64 @@ ColText::ColText(CR<ColStyle> style, CR<std::string> text) {
         push_back(ColRune(ch, style));
     }
 }
+
+namespace {
+std::string toHtmlColor(TermColorFg8Bit color) {
+    switch (color) {
+        case TermColorFg8Bit::Black: return "black";
+        case TermColorFg8Bit::Red: return "#800000";
+        case TermColorFg8Bit::Green: return "#008000";
+        case TermColorFg8Bit::Yellow: return "#808000";
+        case TermColorFg8Bit::Blue: return "#000080";
+        case TermColorFg8Bit::Magenta: return "#800080";
+        case TermColorFg8Bit::Cyan: return "#008080";
+        case TermColorFg8Bit::White: return "c0c0c0";
+        default: return "inherit"; // For default or unsupported cases
+    }
+}
+} // namespace
+
+std::string to_colored_html(const Vec<ColRune>& runes) {
+    std::string result;
+    auto        prev = ColStyle();
+    for (const auto& rune : runes) {
+        const auto& s1 = prev;
+        const auto& s2 = rune.style;
+        std::string open_tags, close_tags;
+
+        if (s2.fg != s1.fg) {
+            if (!isDefault(s1.fg)) { close_tags += "</font>"; }
+            if (!isDefault(s2.fg)) {
+                open_tags += std::format(
+                    "<font color=\"{}\">", toHtmlColor(s2.fg));
+            }
+        }
+
+        for (const auto& style : s1.style - s2.style) {
+            if (style == Style::Bright) { close_tags += "</b>"; }
+            if (style == Style::Italic) { close_tags += "</i>"; }
+            if (style == Style::Underscore) { close_tags += "</u>"; }
+            if (style == Style::Strikethrough) { close_tags += "</s>"; }
+        }
+
+        for (const auto& style : s2.style - s1.style) {
+            if (style == Style::Bright) { open_tags += "<b>"; }
+            if (style == Style::Italic) { open_tags += "<i>"; }
+            if (style == Style::Underscore) { open_tags += "<u>"; }
+            if (style == Style::Strikethrough) { open_tags += "<s>"; }
+        }
+
+        result += close_tags + open_tags + rune.rune.toBase();
+        prev = s2;
+    }
+
+    if (!isDefault(prev.fg)) { result += "</font>"; }
+    for (const auto& style : prev.style) {
+        if (style == Style::Bright) { result += "</b>"; }
+        if (style == Style::Italic) { result += "</i>"; }
+        if (style == Style::Underscore) { result += "</u>"; }
+        if (style == Style::Strikethrough) { result += "</s>"; }
+    }
+
+    return result;
+}

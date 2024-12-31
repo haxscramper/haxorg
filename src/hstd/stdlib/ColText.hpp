@@ -196,6 +196,8 @@ std::string to_colored_string(
     const Vec<ColRune>& runes,
     const bool&         color = true);
 
+std::string to_colored_html(const Vec<ColRune>& runes);
+
 
 /// NOTE yes, I know it is very inefficient, but it is not a HPC solution
 /// in any case, so I'm trading current development productivity (not
@@ -255,6 +257,8 @@ struct ColText : Vec<ColRune> {
     std::string toString(bool colored = true) const {
         return to_colored_string(*this, colored);
     }
+
+    std::string toHtml() const { return to_colored_html(*this); }
 
     ColText& withStyle(CR<ColStyle> style) {
         for (auto& ch : *this) { ch.style = style; }

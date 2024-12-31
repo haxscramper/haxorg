@@ -718,6 +718,8 @@ Graphviz::Node::Record MapGraph::GvConfig::getDefaultNodeLabel(
             },
         });
 
+    rec.setHtml("test", hshow1("random").toHtml());
+
     for (auto const& [idx, unresolved] : enumerate(prop.unresolved)) {
         rec.setEscaped(
             fmt("Unresolved [{}]", unresolved.link.id),
