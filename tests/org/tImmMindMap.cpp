@@ -562,7 +562,6 @@ TEST(ImmMapApi, Doc1Graph) {
         int count = 0;
         __perf_trace("imm", "iterate each sem node");
         sem::eachSubnodeRec(n, [&](sem::OrgArg) { ++count; });
-        _dbg(count);
     }
 
     {
@@ -572,7 +571,6 @@ TEST(ImmMapApi, Doc1Graph) {
             v.getRootAdapter(), true, [&](org::ImmAdapter const&) {
                 ++count;
             });
-        _dbg(count);
     }
 
     {
@@ -582,7 +580,6 @@ TEST(ImmMapApi, Doc1Graph) {
             v.getRootAdapter(), false, [&](org::ImmAdapter const&) {
                 ++count;
             });
-        _dbg(count);
     }
 
     org::ImmAdapter root = v.getRootAdapter();
@@ -753,4 +750,77 @@ TEST(ImmMapGraphApi, BoostPropertyWriter) {
     write_graphviz_dp(os, s1.graph, dp);
 
     writeFile("/tmp/BoostPropertyWriter.dot", os.str());
+}
+
+TEST(ImmMapGraphApi, BoostVisitors) {
+    auto n = testParseString(getFullMindMapText());
+    using namespace org;
+    using namespace org::graph;
+
+    auto          store = ImmAstContext ::init_start_context();
+    MapConfig     conf;
+    ImmAstVersion v2   = store->addRoot(n);
+    ImmAdapter    file = v2.getRootAdapter();
+    MapGraphState s1{v2.context};
+    addNodeRec(s1, file, conf);
+
+    UnorderedMap<MapNode, int> forwardBfsExamineOrder;
+    UnorderedMap<MapNode, int> undirectedBfsExamineOrder;
+    UnorderedMap<MapNode, int> forwardDfsDiscoverOrder;
+
+    org::graph::bfs_visit(
+        s1.graph,
+        MapNode{file.at({1, 1, 0}).uniq()},
+        boost_lambda_bfs_visitor<MapGraph>{}.set_examine_vertex(
+            [&, index = 0](CR<MapNode> n, CR<MapGraph>) mutable {
+                forwardBfsExamineOrder.insert_or_assign(n, index);
+                ++index;
+            }));
+
+    org::graph::bfs_visit(
+        MapGraphUndirected{&s1.graph},
+        MapNode{file.at({1, 1, 0}).uniq()},
+        boost_lambda_bfs_visitor<MapGraphUndirected>{}.set_examine_vertex(
+            [&, index = 0](CR<MapNode> n, CR<MapGraphUndirected>) mutable {
+                undirectedBfsExamineOrder.insert_or_assign(n, index);
+                ++index;
+            }));
+
+    org::graph::dfs_visit(
+        s1.graph,
+        MapNode{file.at({1, 1, 0}).uniq()},
+        boost_lambda_dfs_visitor<MapGraph>{}.set_discover_vertex(
+            [&, index = 0](CR<MapNode> n, CR<MapGraph>) mutable {
+                forwardDfsDiscoverOrder.insert_or_assign(n, index);
+                ++index;
+            }));
+
+    Graphviz           gvc;
+    MapGraph::GvConfig gvConf;
+
+    gvConf.getNodeLabel =
+        [&](org::ImmAdapter const& adapter,
+            MapNodeProp const&     prop) -> Graphviz::Node::Record {
+        auto res = MapGraph::GvConfig::getDefaultNodeLabel(adapter, prop);
+        MapNode node{adapter.uniq()};
+        if (auto forward = forwardBfsExamineOrder.get(node)) {
+            res.setEscaped("Forward BFS examine #", fmt1(forward.value()));
+        }
+
+        if (auto undirected = undirectedBfsExamineOrder.get(node)) {
+            res.setEscaped(
+                "Undirected BFS examine #", fmt1(undirected.value()));
+        }
+
+        if (auto forward = forwardDfsDiscoverOrder.get(node)) {
+            res.setEscaped(
+                "Forward DFS discover #", fmt1(forward.value()));
+        }
+        return res;
+    };
+
+    auto gv = s1.graph.toGraphviz(v2.context, gvConf);
+    gv.setRankDirection(Graphviz::Graph::RankDirection::LR);
+    gvc.writeFile(getDebugFile("BoostVisitors.dot"), gv);
+    gvc.renderToFile(getDebugFile("BoostVisitors.png"), gv);
 }

@@ -6,12 +6,13 @@ Str getDebugFile(const Str& suffix) {
             ::testing::UnitTest::GetInstance()
                 ->current_test_info()
                 ->test_suite_name())};
-    if (!fs::is_directory(dir)) { createDirectory(dir); }
-    return fmt(
+    Str result = fmt(
         "{}/{}/{}",
         dir.native(),
         ::testing::UnitTest::GetInstance()->current_test_info()->name(),
         suffix);
+    createDirectory(fs::path{result.toBase()}.parent_path());
+    return result;
 }
 
 void writeTreeRepr(

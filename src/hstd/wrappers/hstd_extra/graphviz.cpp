@@ -1,6 +1,108 @@
+#include <boost/algorithm/string/replace.hpp>
 #include <hstd/wrappers/hstd_extra/graphviz.hpp>
 #include <filesystem>
 #include <format>
+
+Str Graphviz::Node::Record::escape(const Str& input) {
+    Str escaped;
+    escaped.reserve(input.size());
+    for (char c : input) {
+        switch (c) {
+            case '"': [[fallthrough]];
+            case '>': [[fallthrough]];
+            case '<': [[fallthrough]];
+            case '{': [[fallthrough]];
+            case '}': [[fallthrough]];
+            case '|': [[fallthrough]];
+            case '\\': escaped += '\\'; [[fallthrough]];
+            default: escaped += c;
+        }
+    }
+    return escaped;
+}
+
+Str Graphviz::Node::Record::escapeHtml(CR<Str> input) {
+    Str escaped;
+    for (char c : input) {
+        switch (c) {
+            case '&': escaped += "&amp;"; break;
+            case '<': escaped += "&lt;"; break;
+            case '>': escaped += "&gt;"; break;
+            case '"': escaped += "&quot;"; break;
+            case '\'': escaped += "&#39;"; break;
+            default: escaped += c; break;
+        }
+    }
+    return escaped;
+}
+
+Str Graphviz::Node::Record::toHtml(bool horizontal) const {
+    auto generateCell = [](CR<Record> rec) -> Str {
+        return rec.isFinal() ? rec.getLabel() : rec.toHtml();
+    };
+
+    auto get_html_tag = [&](Record const* rec, Str const& tagname) -> Str {
+        Str res;
+        res += "<";
+        res += tagname;
+        for (auto const& [key, value] : rec->htmlAttrs) {
+            res += std::format(" {}='{}'", key, value);
+        }
+        res += ">";
+        return res;
+    };
+
+    if (isRecord()) {
+        auto const& nested = getNested();
+        if (std::all_of(
+                nested.begin(),
+                nested.end(),
+                [](CR<Record> r) { return r.isRecord(); })
+            && std::all_of(
+                nested.front().getNested().begin(),
+                nested.front().getNested().end(),
+                [&nested](CR<Record> r) {
+                    return std::all_of(
+                        nested.begin(), nested.end(), [&](CR<Record> row) {
+                            return row.isRecord()
+                                && row.getNested().size()
+                                       == nested.front()
+                                              .getNested()
+                                              .size();
+                        });
+                })) {
+
+
+            Str html = get_html_tag(this, "table");
+            for (CR<Record> row : nested) {
+                html += "\n" + get_html_tag(&row, "tr");
+                for (CR<Record> cell : row.getNested()) {
+                    html += "\n" + get_html_tag(&cell, "td")
+                          + generateCell(cell) + "</td>"_ss;
+                }
+                html += "</tr>";
+            }
+            html += "</table>";
+            return html;
+        } else {
+            Str html = get_html_tag(this, "table");
+            for (CR<Record> r : nested) {
+                if (horizontal) {
+                    html += get_html_tag(&r, "tr") + "<td>"_ss;
+                } else {
+                    html += get_html_tag(&r, "tr");
+                    html += "<td style='writing-mode:vertical-lr'>"_ss;
+                }
+                html += generateCell(r);
+                html += "</td></tr>";
+            }
+            html += "</table>";
+            return html;
+        }
+    } else {
+        return getLabel();
+    }
+}
 
 void Graphviz::Node::Record::set(const Str& columnKey, CR<Record> value) {
     if (isFinal()) {
@@ -18,6 +120,28 @@ void Graphviz::Node::Record::set(const Str& columnKey, CR<Record> value) {
 
         push_back(Record({Record(columnKey), value}));
     }
+}
+
+Graphviz::Node::Record Graphviz::Node::Record::fromEscapedText(
+    const Str& text,
+    TextAlign  align) {
+    Record res;
+    res.content = escapeHtmlForGraphviz(text, align);
+    return res;
+}
+
+Graphviz::Node::Record Graphviz::Node::Record::fromRow(
+    const Vec<Record>& recs) {
+    Record res;
+    res.content = recs;
+    return res;
+}
+
+Graphviz::Node::Record Graphviz::Node::Record::fromEscapedTextRow(
+    const Vec<Str>& cells) {
+    Record res = fromRow({});
+    for (auto const& cell : cells) { res.add(fromEscapedText(cell)); }
+    return res;
 }
 
 Str Graphviz::Node::Record::toString(bool braceCount) const {
@@ -151,6 +275,30 @@ Str Graphviz::alignText(const Str& text, TextAlign direction) {
     }
 
     return res;
+}
+
+std::string Graphviz::escapeHtmlForGraphviz(
+    const std::string& input,
+    TextAlign          direction) {
+    std::string escaped = input;
+    boost::replace_all(escaped, "&", "&amp;");
+    boost::replace_all(escaped, "<", "&lt;");
+    boost::replace_all(escaped, ">", "&gt;");
+    boost::replace_all(escaped, "\"", "&quot;");
+    boost::replace_all(escaped, "\'", "&#39;");
+    std::string newline_replace = "<BR ALIGN=\"";
+
+    switch (direction) {
+        case TextAlign::Left: newline_replace += "LEFT"; break;
+        case TextAlign::Right: newline_replace += "RIGHT"; break;
+        case TextAlign::Center: newline_replace += "CENTER"; break;
+    }
+
+    newline_replace += "\"/>";
+
+    boost::replace_all(escaped, "\n", newline_replace);
+    escaped += newline_replace;
+    return escaped;
 }
 
 Str Graphviz::layoutTypeToString(LayoutType layoutType) const {

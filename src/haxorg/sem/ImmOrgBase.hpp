@@ -13,6 +13,7 @@
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/stdlib/reflection_visitor.hpp>
 #include <haxorg/sem/SemOrgTypes.hpp>
+#include <hstd/stdlib/Array.hpp>
 
 namespace org {
 struct ImmReflFieldId;
@@ -239,6 +240,16 @@ struct std::formatter<ImmBox<Str>> : std::formatter<std::string> {
         fmt_ctx("Box{", ctx);
         fmt_ctx(escape_literal(p.get()), ctx);
         return fmt_ctx("}", ctx);
+    }
+};
+
+template <typename T>
+struct JsonSerde<ImmBox<T>> {
+    static json to_json(ImmBox<T> const& it) {
+        return JsonSerde<T>::to_json(it.get());
+    }
+    static ImmBox<T> from_json(json const& j) {
+        return ImmBox<T>{JsonSerde<T>::from_json(j)};
     }
 };
 
@@ -506,6 +517,16 @@ struct JsonSerde<org::ImmId> {
     static org::ImmId from_json(json const& j) {
         return org::ImmId::FromValue(
             j["number"].get<unsigned long long>());
+    }
+};
+
+template <typename T>
+struct JsonSerde<org::ImmIdT<T>> {
+    static json to_json(org::ImmIdT<T> const& it) {
+        return JsonSerde<org::ImmId>::to_json(it.toId());
+    }
+    static org::ImmIdT<T> from_json(json const& j) {
+        return org::ImmIdT<T>{JsonSerde<org::ImmId>::from_json(j)};
     }
 };
 

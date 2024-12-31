@@ -1,6 +1,8 @@
+#include "hstd/stdlib/Debug.hpp"
 #include <hstd/stdlib/strutils.hpp>
 #include <absl/log/log.h>
 #include <absl/log/check.h>
+#include <numeric>
 
 Str unicodeCharMappings[256][15] = {
     [(int)'A']
@@ -1065,7 +1067,7 @@ Vec<Str> split_keep_separator(const Str& str, CharSet sep) {
     return result;
 }
 
-Vec<Str> visibleUnicodeName(Str str, bool useUnicode) {
+Vec<Str> visibleUnicodeName(std::string_view str, bool useUnicode) {
     Vec<Str> result;
     for (char ch : str) {
         if (ch <= 127) {
@@ -1080,6 +1082,10 @@ Vec<Str> visibleUnicodeName(Str str, bool useUnicode) {
     }
 
     return result;
+}
+
+Vec<Str> visibleUnicodeName(Str const& str, bool useUnicode) {
+    return visibleUnicodeName(std::string_view{str.toBase()}, useUnicode);
 }
 
 Pair<Str, Str> visibleName(char ch) {
@@ -1248,4 +1254,83 @@ Str lstrip(CR<Str> string, CR<CharSet> chars) {
 
 Str rstrip(CR<Str> string, CR<CharSet> chars) {
     return strip(string, {}, chars);
+}
+
+Str wrap_text(const Vec<Str>& words, int maxWidth, bool justified) {
+    Vec<Str> lines;
+    Vec<Str> buffer;
+    int      currentWidth = 0;
+
+    auto fold_buffer = [&]() {
+        if (justified && 1 < buffer.size()) {
+            Vec<Str> padding;
+            padding.resize(buffer.size() - 1);
+            auto join_line = [&]() {
+                // _dfmt("= = = = = = = = = =", buffer, padding);
+                Str res;
+                for (int i = 0; i < buffer.size(); ++i) {
+                    if (0 < i) {
+                        // _dfmt(padding.at(i - 1));
+                        res += padding.at(i - 1);
+                    }
+                    // _dfmt(res, buffer.at(i), i, res.size());
+                    res += buffer.at(i);
+                }
+                return res;
+            };
+            int slots      = buffer.size() - 1;
+            int toAdd      = maxWidth - (currentWidth - slots);
+            int addPerSlot = toAdd / slots;
+
+            for (int i = 0; i < padding.size(); ++i) {
+                padding.at(i) = Str{addPerSlot, ' '};
+            }
+
+            // I'm writing this code at 2024-12-31T22:53:23+04:00 and I
+            // don't give a shit how performant this is.
+            while (join_line().size() < maxWidth) {
+                for (int i = 0; (i < padding.size())
+                                && (join_line().size() < maxWidth);
+                     ++i) {
+                    padding.at(i).append(" ");
+                }
+            }
+
+            auto res = join_line();
+            // _dfmt(res.size(), res);
+            lines.push_back(res);
+
+        } else {
+            // _dbg(buffer);
+            Str line = std::accumulate(
+                buffer.begin() + 1,
+                buffer.end(),
+                buffer[0],
+                [](const Str& a, const Str& b) { return a + " "_ss + b; });
+            lines.push_back(line);
+        }
+        buffer.clear();
+        currentWidth = 0;
+    };
+
+    for (const auto& word : words) {
+        if (maxWidth
+            < (currentWidth + word.size() + (buffer.empty() ? 0 : 1))) {
+            if (!buffer.empty()) { fold_buffer(); }
+        }
+        buffer.push_back(word);
+        currentWidth += word.size() + (buffer.empty() ? 0 : 1);
+    }
+
+    if (!buffer.empty()) { fold_buffer(); }
+
+    if (lines.empty()) {
+        return "";
+    } else {
+        return std::accumulate(
+            lines.begin() + 1,
+            lines.end(),
+            lines[0],
+            [](const Str& a, const Str& b) { return a + "\n"_ss + b; });
+    }
 }

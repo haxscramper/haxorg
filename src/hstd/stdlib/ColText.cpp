@@ -134,28 +134,123 @@ void ColStream::write_indented_after_first(const Str& text, int indent) {
     }
 }
 
-template <>
-ColStream& hshow(ColStream& os, CR<Str> value, CR<HDisplayOpts> opts) {
-    bool first = true;
-    if (opts.flags.contains(HDisplayFlag::UseQuotes)) {
-        for (Str const& it : visibleUnicodeName(
-                 value, !opts.flags.contains(HDisplayFlag::UseAscii))) {
-            if (!first) { os << " "; }
-            first = false;
-            os << std::format("'{}'", it);
-        }
+void hshow<std::string_view>::format(
+    ColStream&           os,
+    CR<std::string_view> value,
+    CR<hshow_opts>       opts) {
+    if (value.data() == nullptr) {
+        os << "nil";
     } else {
-        for (const auto& it : visibleUnicodeName(
-                 value, !opts.flags.contains(HDisplayFlag::UseAscii))) {
-            os << it;
+        auto __scope = os.style_scope();
+        bool first   = true;
+        os.yellow();
+        std::string open_quote  = opts.get_use_ascii() ? "'" : "«";
+        std::string close_quote = opts.get_use_ascii() ? "'" : "»";
+
+        if (opts.get_string_as_array()) {
+            if (opts.get_use_quotes()) {
+                for (Str const& it :
+                     visibleUnicodeName(value, !opts.get_use_ascii())) {
+                    if (!first) { os << " "; }
+                    first = false;
+                    os << std::format(
+                        "{}{}{}", open_quote, it, close_quote);
+                }
+            } else {
+                for (const auto& it :
+                     visibleUnicodeName(value, !opts.get_use_ascii())) {
+                    os << it;
+                }
+            }
+        } else {
+            if (opts.get_use_quotes()) { os << open_quote; }
+
+            if (opts.get_use_ascii()) {
+                if (opts.get_unicode_newlines()) {
+                    for (auto const& c : value) {
+                        if (c == '\n') {
+                            os << visibleName(c).first;
+                        } else {
+                            os << c;
+                        }
+                    }
+                } else {
+                    os << value;
+                }
+            } else {
+                for (const auto& it : visibleUnicodeName(value, true)) {
+                    os << it;
+                }
+            }
+
+            if (opts.get_use_quotes()) { os << close_quote; }
         }
     }
-
-    return os;
 }
 
 ColText::ColText(CR<ColStyle> style, CR<std::string> text) {
     for (const auto& ch : rune_chunks(text)) {
         push_back(ColRune(ch, style));
     }
+}
+
+namespace {
+std::string toHtmlColor(TermColorFg8Bit color) {
+    switch (color) {
+        case TermColorFg8Bit::Black: return "black";
+        case TermColorFg8Bit::Red: return "#800000";
+        case TermColorFg8Bit::Green: return "#008000";
+        case TermColorFg8Bit::Yellow: return "#808000";
+        case TermColorFg8Bit::Blue: return "#000080";
+        case TermColorFg8Bit::Magenta: return "#800080";
+        case TermColorFg8Bit::Cyan: return "#008080";
+        case TermColorFg8Bit::White: return "c0c0c0";
+        default: return "inherit"; // For default or unsupported cases
+    }
+}
+} // namespace
+
+std::string to_colored_html(const Vec<ColRune>& runes) {
+    std::string result;
+    auto        prev = ColStyle();
+    for (const auto& rune : runes) {
+        const auto& s1 = prev;
+        const auto& s2 = rune.style;
+        std::string open_tags, close_tags;
+
+        if (s2.fg != s1.fg) {
+            if (!isDefault(s1.fg)) { close_tags += "</font>"; }
+            if (!isDefault(s2.fg)) {
+                open_tags += std::format(
+                    "<font color=\"{}\">", toHtmlColor(s2.fg));
+            }
+        }
+
+        for (const auto& style : s1.style - s2.style) {
+            if (style == Style::Bright) { close_tags += "</b>"; }
+            if (style == Style::Italic) { close_tags += "</i>"; }
+            if (style == Style::Underscore) { close_tags += "</u>"; }
+            if (style == Style::Strikethrough) { close_tags += "</s>"; }
+        }
+
+        for (const auto& style : s2.style - s1.style) {
+            if (style == Style::Bright) { open_tags += "<b>"; }
+            if (style == Style::Italic) { open_tags += "<i>"; }
+            if (style == Style::Underscore) { open_tags += "<u>"; }
+            if (style == Style::Strikethrough) { open_tags += "<s>"; }
+        }
+
+        result += close_tags + open_tags + rune.rune.toBase();
+        prev = s2;
+    }
+
+    if (!isDefault(prev.fg)) { result += "</font>"; }
+    for (const auto& style : prev.style) {
+        if (style == Style::Bright) { result += "</b>"; }
+        if (style == Style::Italic) { result += "</i>"; }
+        if (style == Style::Underscore) { result += "</u>"; }
+        if (style == Style::Strikethrough) { result += "</s>"; }
+    }
+
+    return result;
 }

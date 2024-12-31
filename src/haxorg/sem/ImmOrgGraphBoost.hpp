@@ -3,6 +3,7 @@
 #include <haxorg/sem/ImmOrgGraph.hpp>
 
 #include <boost/graph/graph_traits.hpp>
+#include <hstd/wrappers/hstd_extra/graphwrap.hpp>
 
 namespace boost {
 
@@ -48,6 +49,13 @@ struct map_graph_buffered_iterator {
     map_graph_buffered_iterator(Vec<T> const& buf, int index = 0)
         : buffer(buf), index{index} {}
 
+    static std::pair<map_graph_buffered_iterator<T>, map_graph_buffered_iterator<T>> to_iterator_pair(
+        Vec<T> const& buf) {
+        return std::make_pair(
+            map_graph_buffered_iterator<T>{buf},
+            map_graph_buffered_iterator<T>{buf.size()});
+    }
+
     reference operator*() const { return buffer.at(index); }
     pointer   operator->() const { return &(buffer.at(index)); }
 
@@ -71,124 +79,10 @@ struct map_graph_buffered_iterator {
     }
 };
 
-struct map_graph_adjacent_vertices_iterator {
-    using iterator_category = std::forward_iterator_tag;
-    using value_type        = org::graph::MapNode;
-    using difference_type   = std::ptrdiff_t;
-    using pointer           = const value_type*;
-    using reference         = const value_type&;
-
-    typename org::graph::AdjNodesList::const_iterator iter;
-
-    map_graph_adjacent_vertices_iterator() = default;
-    map_graph_adjacent_vertices_iterator(
-        typename org::graph::AdjNodesList::const_iterator it)
-        : iter(it) {}
-
-    reference operator*() const { return *iter; }
-    pointer   operator->() const { return &(*iter); }
-
-    map_graph_adjacent_vertices_iterator& operator++() {
-        ++iter;
-        return *this;
-    }
-
-    map_graph_adjacent_vertices_iterator operator++(int) {
-        auto res = *this;
-        operator++();
-        return res;
-    }
-
-    bool operator==(
-        const map_graph_adjacent_vertices_iterator& other) const {
-        return iter == other.iter;
-    }
-
-    bool operator!=(
-        const map_graph_adjacent_vertices_iterator& other) const {
-        return iter != other.iter;
-    }
-};
-
-struct map_graph_out_edges_iterator {
-    using iterator_category = std::forward_iterator_tag;
-    using value_type        = org::graph::MapEdge;
-    using difference_type   = std::ptrdiff_t;
-    using pointer           = const value_type*;
-    using reference         = const value_type&;
-
-    org::graph::MapNode                               source;
-    typename org::graph::AdjNodesList::const_iterator iter;
-
-    map_graph_out_edges_iterator() : source{org::ImmUniqId{}} {};
-    map_graph_out_edges_iterator(
-        org::graph::MapNode const&                        source,
-        typename org::graph::AdjNodesList::const_iterator it)
-        : source{source}, iter{it} {}
-
-    value_type operator*() const {
-        return org::graph::MapEdge{source, *iter};
-    }
-
-    map_graph_out_edges_iterator& operator++() {
-        ++iter;
-        return *this;
-    }
-
-    map_graph_out_edges_iterator operator++(int) {
-        auto res = *this;
-        operator++();
-        return res;
-    }
-
-    bool operator==(const map_graph_out_edges_iterator& other) const {
-        return source == other.source && iter == other.iter;
-    }
-
-    bool operator!=(const map_graph_out_edges_iterator& other) const {
-        return source != other.source || iter != other.iter;
-    }
-};
-
-struct map_graph_in_edges_iterator {
-    using iterator_category = std::forward_iterator_tag;
-    using value_type        = org::graph::MapEdge;
-    using difference_type   = std::ptrdiff_t;
-    using pointer           = const value_type*;
-    using reference         = const value_type&;
-
-    org::graph::MapNode                               source;
-    typename org::graph::AdjNodesList::const_iterator iter;
-
-    map_graph_in_edges_iterator() : source{org::ImmUniqId{}} {};
-    map_graph_in_edges_iterator(
-        org::graph::MapNode const&                        source,
-        typename org::graph::AdjNodesList::const_iterator it)
-        : source{source}, iter{it} {}
-
-    value_type operator*() const {
-        return org::graph::MapEdge{source, *iter};
-    }
-
-    map_graph_in_edges_iterator& operator++() {
-        ++iter;
-        return *this;
-    }
-
-    map_graph_in_edges_iterator operator++(int) {
-        auto res = *this;
-        operator++();
-        return res;
-    }
-
-    bool operator==(const map_graph_in_edges_iterator& other) const {
-        return source == other.source && iter == other.iter;
-    }
-
-    bool operator!=(const map_graph_in_edges_iterator& other) const {
-        return source != other.source || iter != other.iter;
-    }
-};
+namespace o_dtl {
+    using edge_buffer = map_graph_buffered_iterator<::org::graph::MapEdge>;
+    using node_buffer = map_graph_buffered_iterator<::org::graph::MapNode>;
+} // namespace o_dtl
 
 struct map_graph_edges_iterator {
     using iterator_category = std::forward_iterator_tag;
@@ -257,10 +151,8 @@ struct vector_as_graph_traversal_tag
 //
 {};
 
-template <>
-struct graph_traits<org::graph::MapGraph> {
-
-    using ItNodes = map_graph_buffered_iterator<org::graph::MapNode>;
+struct map_graph_traits_common {
+    using ItNodes = o_dtl::node_buffer;
     using ItEdges = map_graph_buffered_iterator<org::graph::MapEdge>;
 
     using vertex_descriptor      = org::graph::MapNode;
@@ -276,6 +168,19 @@ struct graph_traits<org::graph::MapGraph> {
     using vertices_size_type     = int;
     using edges_size_type        = int;
     using degree_size_type       = int;
+};
+
+template <>
+struct graph_traits<org::graph::MapGraph> : map_graph_traits_common {};
+
+template <>
+struct graph_traits<org::graph::MapGraphInverse>
+    : map_graph_traits_common {};
+
+template <>
+struct graph_traits<org::graph::MapGraphUndirected>
+    : map_graph_traits_common {
+    using directed_category = undirected_tag;
 };
 
 template <>
@@ -301,6 +206,14 @@ inline std::pair<map_graph_vertices_iterator, map_graph_vertices_iterator> verti
         map_graph_vertices_iterator(g.nodeProps.end())};
 }
 
+inline std::pair<map_graph_vertices_iterator, map_graph_vertices_iterator> vertices(
+    org::graph::MapGraphUndirected const& g) {
+    return {
+        map_graph_vertices_iterator(g.origin->nodeProps.begin()),
+        map_graph_vertices_iterator(g.origin->nodeProps.end())};
+}
+
+
 inline std::pair<map_graph_edges_iterator, map_graph_edges_iterator> edges(
     org::graph::MapGraph const& g) {
     return {
@@ -309,17 +222,10 @@ inline std::pair<map_graph_edges_iterator, map_graph_edges_iterator> edges(
     };
 }
 
-inline std::pair<
-    map_graph_buffered_iterator<org::graph::MapNode>,
-    map_graph_buffered_iterator<org::graph::MapNode>>
-    adjacent_vertices(
-        org::graph::MapNode const&  v,
-        org::graph::MapGraph const& g) {
-    auto tmp = g.adjNodes(v);
-    return {
-        map_graph_buffered_iterator<org::graph::MapNode>{tmp},
-        map_graph_buffered_iterator<org::graph::MapNode>{tmp.size()},
-    };
+inline std::pair<o_dtl::node_buffer, o_dtl::node_buffer> adjacent_vertices(
+    org::graph::MapNode const&  v,
+    org::graph::MapGraph const& g) {
+    return o_dtl::node_buffer::to_iterator_pair(g.adjNodes(v));
 }
 
 inline org::graph::MapNodeProp const& get(
@@ -351,39 +257,44 @@ inline int out_degree(
     return it != nullptr ? it->second.size() : 0;
 }
 
-inline std::pair<
-    map_graph_buffered_iterator<org::graph::MapEdge>,
-    map_graph_buffered_iterator<org::graph::MapEdge>>
-    out_edges(
-        org::graph::MapNode const&  v,
-        org::graph::MapGraph const& g) {
-    auto tmp = g.outEdges(v);
-    return {
-        map_graph_buffered_iterator<org::graph::MapEdge>{tmp},
-        map_graph_buffered_iterator<org::graph::MapEdge>{tmp.size()},
-    };
+inline std::pair<o_dtl::edge_buffer, o_dtl::edge_buffer> out_edges(
+    org::graph::MapNode const&  v,
+    org::graph::MapGraph const& g) {
+    return o_dtl::edge_buffer::to_iterator_pair(g.outEdges(v));
 }
 
-inline std::pair<
-    map_graph_buffered_iterator<org::graph::MapEdge>,
-    map_graph_buffered_iterator<org::graph::MapEdge>>
-    in_edges(org::graph::MapNode const& v, org::graph::MapGraph const& g) {
-    auto tmp = g.inEdges(v);
-    return {
-        map_graph_buffered_iterator<org::graph::MapEdge>{tmp},
-        map_graph_buffered_iterator<org::graph::MapEdge>{tmp.size()},
-    };
+inline std::pair<o_dtl::edge_buffer, o_dtl::edge_buffer> out_edges(
+    org::graph::MapNode const&         v,
+    org::graph::MapGraphInverse const& g) {
+    return o_dtl::edge_buffer::to_iterator_pair(g.outEdges(v));
 }
 
-inline org::graph::MapNode source(
-    org::graph::MapEdge const& e,
-    org::graph::MapGraph const&) {
+inline std::pair<o_dtl::edge_buffer, o_dtl::edge_buffer> out_edges(
+    org::graph::MapNode const&            v,
+    org::graph::MapGraphUndirected const& g) {
+    return o_dtl::edge_buffer::to_iterator_pair(g.adjEdges(v));
+}
+
+inline int out_degree(
+    org::graph::MapNode const&            v,
+    org::graph::MapGraphUndirected const& g) {
+    return g.adjEdges(v).size();
+}
+
+
+inline std::pair<o_dtl::edge_buffer, o_dtl::edge_buffer> in_edges(
+    org::graph::MapNode const&  v,
+    org::graph::MapGraph const& g) {
+    return o_dtl::edge_buffer::to_iterator_pair(g.inEdges(v));
+}
+
+template <org::graph::IsOrgMapGraph G>
+inline org::graph::MapNode source(org::graph::MapEdge const& e, G const&) {
     return e.source;
 }
 
-inline org::graph::MapNode target(
-    org::graph::MapEdge const& e,
-    org::graph::MapGraph const&) {
+template <org::graph::IsOrgMapGraph G>
+inline org::graph::MapNode target(org::graph::MapEdge const& e, G const&) {
     return e.target;
 }
 
@@ -470,5 +381,79 @@ inline org::graph::MapNode get(
 } // namespace boost
 
 namespace org::graph {
+
+// to fix ADL lookup issues that some boost graph code suffers from. In
+// some places these methods are called as simply `func()`, and not
+// `boost::func()`, which leads to a failing attempt to look up via ADL
+using boost::edges;
+using boost::in_edges;
+using boost::num_edges;
+using boost::num_vertices;
+using boost::out_degree;
+using boost::out_edges;
+using boost::source;
+using boost::target;
+using boost::vertices;
+
+template <typename Graph>
+struct boost_color_property_map_bundle {
+    using vertex_descriptor = typename boost::graph_traits<
+        Graph>::vertex_descriptor;
+    using ColorStorage = std::
+        unordered_map<vertex_descriptor, boost::default_color_type>;
+    using ColorMap = boost::associative_property_map<ColorStorage>;
+
+    boost_color_property_map_bundle(Graph const& g)
+        : colors{}, map{colors} {
+        // Pre-populate with white if needed
+        for (auto vd : boost::make_iterator_range(boost::vertices(g))) {
+            colors[vd] = boost::white_color;
+        }
+    }
+
+    ColorStorage colors;
+    ColorMap     map;
+};
+
+
 boost::dynamic_properties toGraphvizDynamicProperties(MapGraph const& g);
+
+template <org::graph::IsOrgMapGraph OrgGraphT>
+void bfs_visit(
+    OrgGraphT const&                                  g,
+    MapNode const&                                    start,
+    boost_lambda_bfs_visitor<OrgGraphT> const&        visitor,
+    boost_color_property_map_bundle<OrgGraphT> const& map) {
+    boost::breadth_first_search(
+        g, start, boost::visitor(visitor).color_map(map.map));
 }
+
+template <org::graph::IsOrgMapGraph OrgGraphT>
+inline void bfs_visit(
+    OrgGraphT const&                           g,
+    MapNode const&                             start,
+    boost_lambda_bfs_visitor<OrgGraphT> const& visitor) {
+    boost_color_property_map_bundle<OrgGraphT> map{g};
+    bfs_visit(g, start, visitor, map);
+}
+
+template <org::graph::IsOrgMapGraph OrgGraphT>
+void dfs_visit(
+    OrgGraphT const&                                  g,
+    MapNode const&                                    start,
+    boost_lambda_dfs_visitor<OrgGraphT> const&        visitor,
+    boost_color_property_map_bundle<OrgGraphT> const& map) {
+    boost::breadth_first_search(
+        g, start, boost::visitor(visitor).color_map(map.map));
+}
+
+template <org::graph::IsOrgMapGraph OrgGraphT>
+inline void dfs_visit(
+    OrgGraphT const&                           g,
+    MapNode const&                             start,
+    boost_lambda_dfs_visitor<OrgGraphT> const& visitor) {
+    boost_color_property_map_bundle<OrgGraphT> map{g};
+    dfs_visit(g, start, visitor, map);
+}
+
+} // namespace org::graph

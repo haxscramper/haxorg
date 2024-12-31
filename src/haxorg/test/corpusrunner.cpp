@@ -461,11 +461,11 @@ CorpusRunner::RunResult::LexCompare compareTokens(
                 auto tok = isLhs ? lexed.tokens.content.at(id)
                                  : expected.tokens.content.at(id);
 
-                HDisplayOpts opts{};
-                opts.flags.excl(HDisplayFlag::UseQuotes);
+                hshow_opts opts{};
+                opts.flags.excl(hshow_flag::use_quotes);
 
                 std::string text = escape_literal(
-                    hshow(get_token_text(tok), opts).toString(false));
+                    hshow1(get_token_text(tok), opts).toString(false));
 
                 std::string result = //
                     "${index} ${kind} ${text}"
@@ -561,13 +561,13 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
                     node.kind,
                     node.isTerminal()
                         ? escape_literal(
-                              hshow(
+                              hshow1(
                                   group->tokens->tokens.content
                                       .get_copy(node.getToken().getIndex())
                                       .value_or(OrgToken{})
                                       ->text,
-                                  HDisplayOpts().excl(
-                                      HDisplayFlag::UseQuotes))
+                                  hshow_opts().excl(
+                                      hshow_flag::use_quotes))
                                   .toString(false))
                         : std::string(""),
                     node.isTerminal()

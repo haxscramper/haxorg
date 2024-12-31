@@ -80,6 +80,8 @@ list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/describe/lib/cmake/BoostDescrib
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/adaptagrams/lib/cmake/Adaptagrams")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/utf8_range/lib/cmake/utf8_range")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/lexy/lib/cmake/lexy")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/cpptrace/lib/cmake/cpptrace")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/cpptrace/lib/cmake/libdwarf")
 
 set(ENV{PKG_CONFIG_PATH} "${DEPS_INSTALL}/libgit2/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
 
@@ -106,6 +108,7 @@ endif()
 find_package(BoostDescribe CONFIG REQUIRED)
 find_package(PythonLibs 3.11)
 find_package(Adaptagrams CONFIG REQUIRED)
+find_package(cpptrace CONFIG REQUIRED)
 
 include("${DEPS_DIR}/protobuf/cmake/protobuf-generate.cmake")
 

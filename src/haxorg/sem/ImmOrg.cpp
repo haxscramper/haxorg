@@ -11,6 +11,7 @@
 #include <boost/preprocessor.hpp>
 #include <haxorg/sem/ImmOrgHash.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
+#include <haxorg/sem/ImmOrgBase.hpp>
 
 #include <boost/mp11/list.hpp>
 #include <boost/mp11/algorithm.hpp>

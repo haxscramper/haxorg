@@ -31,6 +31,7 @@ std::string fmt1(T const& t) {
     return std::format("{}", t);
 }
 
+
 template <typename T, typename FormatContext>
 FormatContext::iterator fmt_ctx(T const& t, FormatContext& ctx) {
     with_std_formatter(t);

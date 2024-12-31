@@ -30,7 +30,8 @@ Str join(CR<Str> sep, generator<T>&& list) {
 Pair<Str, Str> visibleName(char ch);
 Str indent(CR<Str> str, int spaces, char space = ' ', Str prefix = "");
 
-Vec<Str> visibleUnicodeName(Str str, bool useUnicode = true);
+Vec<Str> visibleUnicodeName(std::string_view str, bool useUnicode = true);
+Vec<Str> visibleUnicodeName(Str const& str, bool useUnicode = true);
 Vec<Str> split_keep_separator(const Str& str, CharSet sep = {' '});
 Str      strip(CR<Str> string, CR<CharSet> leading, CR<CharSet> trailing);
 Str      lstrip(CR<Str> string, CR<CharSet> chars);
@@ -43,6 +44,8 @@ Str      repeat(CR<Str> str, int count);
 Str      escape_for_write(Str const& str, bool quote = true);
 int      rune_length(const std::string& str);
 std::vector<std::string> rune_chunks(const std::string& str);
+
+Str wrap_text(const Vec<Str>& words, int maxWidth, bool justified);
 
 
 enum class AsciiStyle

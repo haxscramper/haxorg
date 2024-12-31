@@ -145,6 +145,19 @@ struct MapGraph {
         return adjListIn.at(node);
     }
 
+    Vec<MapEdge> adjEdges(MapNode const& node) const {
+        Vec<MapEdge> res;
+        for (auto const& out : outNodes(node)) {
+            res.push_back(MapEdge{.source = node, .target = out});
+        }
+
+        for (auto const& in : inNodes(node)) {
+            res.push_back(MapEdge{.source = in, .target = node});
+        }
+
+        return res;
+    }
+
     Vec<MapNode> adjNodes(MapNode const& node) const {
         UnorderedSet<org::graph::MapNode> adjacent;
         Vec<MapNode>                      result;
@@ -233,6 +246,14 @@ struct MapGraph {
     struct GvConfig {
         Func<bool(MapNode const& node)> acceptNode;
         Func<bool(MapEdge const& edge)> acceptEdge;
+
+        static Graphviz::Node::Record getDefaultNodeLabel(
+            org::ImmAdapter const& node,
+            MapNodeProp const&     prop);
+        Func<Graphviz::Node::Record(
+            org::ImmAdapter const&,
+            MapNodeProp const& prop)>
+            getNodeLabel = getDefaultNodeLabel;
     };
 
     Graphviz::Graph toGraphviz(const ImmAstContext::Ptr& ctx) const {
@@ -245,6 +266,59 @@ struct MapGraph {
 
     DESC_FIELDS(MapGraph, (nodeProps, edgeProps, adjList));
 };
+
+struct MapGraphInverse {
+    MapGraph* origin;
+
+    AdjNodesList const& inNodes(MapNode const& n) const {
+        return origin->outNodes(n);
+    }
+
+    AdjNodesList const& outNodes(MapNode const& n) const {
+        return origin->inNodes(n);
+    }
+
+    Vec<MapEdge> inEdges(MapNode const& n) const {
+        return origin->outEdges(n);
+    }
+
+    Vec<MapEdge> outEdges(MapNode const& n) const {
+        return origin->inEdges(n);
+    }
+
+    Vec<MapNode> adjNodes(MapNode const& n) const {
+        return origin->adjNodes(n);
+    }
+};
+
+struct MapGraphUndirected {
+    MapGraph*    origin;
+    Vec<MapNode> adjNodes(MapNode const& n) const {
+        return origin->adjNodes(n);
+    }
+
+    Vec<MapEdge> adjEdges(MapNode const& n) const {
+        UnorderedSet<MapNode> adjacent;
+        Vec<MapEdge>          res;
+        for (auto const& out : origin->outNodes(n)) {
+            res.push_back(MapEdge{.source = n, .target = out});
+            adjacent.incl(out);
+        }
+
+        for (auto const& in : origin->inNodes(n)) {
+            if (!adjacent.contains(in)) {
+                res.push_back(MapEdge{.source = n, .target = in});
+            }
+        }
+        return res;
+    }
+};
+
+template <typename T>
+concept IsOrgMapGraph //
+    = std::is_same_v<std::remove_reference_t<T>, MapGraphUndirected>
+   || std::is_same_v<std::remove_reference_t<T>, MapGraphInverse>
+   || std::is_same_v<std::remove_reference_t<T>, MapGraph>;
 
 struct MapGraphState;
 struct MapConfig;

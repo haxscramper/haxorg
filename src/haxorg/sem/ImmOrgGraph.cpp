@@ -1,6 +1,7 @@
 #include "ImmOrgGraph.hpp"
 #include "haxorg/sem/ImmOrgEdit.hpp"
 #include "haxorg/sem/SemBaseApi.hpp"
+#include <boost/algorithm/string/replace.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 #include <immer/set_transient.hpp>
 #include <immer/vector_transient.hpp>
@@ -622,6 +623,7 @@ void MapGraph::addNode(const MapNode& node) {
     }
 }
 
+
 Graphviz::Graph MapGraph::toGraphviz(
     org::ImmAstContext::Ptr const& ctx,
     GvConfig const&                conf) const {
@@ -660,59 +662,10 @@ Graphviz::Graph MapGraph::toGraphviz(
         if (!nodeOk(it)) { continue; }
         using Record = Graphviz::Node::Record;
         auto& node   = gvNodes.at(it);
-        node.startRecord();
-        auto rec       = node.getNodeRecord();
-        auto add_field = [&](Record const& r) { rec->push_back(r); };
+        node.startHtmlRecord();
+        *node.getNodeRecord() = conf.getNodeLabel(ctx->adapt(it.id), prop);
 
-        add_field(Record{{
-            Record{left_aligned("ID", 16)},
-            Record{fmt1(it.id)},
-        }});
-
-        auto add_field_text = [&](Str const& name, org::ImmId id) {
-            add_field(Record{{
-                Record{name},
-                Record{join(" ", flatWords(ctx->adaptUnrooted(id)))},
-            }});
-        };
-
-        add_field(Record{{
-            Record{"Select"},
-            Record{ctx->adapt(it.id).selfSelect()},
-        }});
-
-        switch_node_value(
-            it.id.id,
-            ctx,
-            overloaded{
-                [&](org::ImmSubtree const& tree) {
-                    add_field(Record{{
-                        Record{"Title"},
-                        Record{join(
-                            " ",
-                            flatWords(ctx->adaptUnrooted(tree.title)))},
-                    }});
-                },
-                [&](org::ImmParagraph const& tree) {
-                    add_field_text("Text", it.id.id);
-                },
-                [&]<typename K>(K const& value) {
-                    add_field(Record{{
-                        Record{"Type"},
-                        Record{TypeName<K>::get()},
-                    }});
-                },
-            });
-
-        for (auto const& [idx, unresolved] : enumerate(prop.unresolved)) {
-            add_field(Record{{
-                Record{left_aligned(
-                    fmt("Unresolved []", unresolved.link), 16)},
-                Record{fmt1(unresolved.link.value())},
-            }});
-        }
-
-        node.finishRecord();
+        node.finishHtmlRecord();
     }
 
     return res;
@@ -727,4 +680,51 @@ MapConfig::MapConfig(SPtr<MapInterface> impl) : impl{impl} {
 MapConfig::MapConfig() : impl{std::make_shared<MapInterface>()} {
     this->OperationsScope::TraceState //
         = &this->OperationsTracer::TraceState;
+}
+
+Graphviz::Node::Record MapGraph::GvConfig::getDefaultNodeLabel(
+    const ImmAdapter&  node,
+    const MapNodeProp& prop) {
+    using Record = Graphviz::Node::Record;
+    Record rec;
+    rec.setEscaped("ID", fmt1(node.id));
+
+    auto add_field_text = [&](Str const& name, org::ImmId id) {
+        rec.set(
+            name,
+            Record{Graphviz::escapeHtmlForGraphviz(
+                wrap_text(flatWords(node), 60, true))});
+    };
+
+    rec.setEscaped("Select", node.selfSelect());
+
+    switch_node_value(
+        node.id,
+        node.ctx.lock(),
+        overloaded{
+            [&](org::ImmSubtree const& tree) {
+                rec.setEscaped(
+                    "Title",
+                    join(
+                        " ",
+                        flatWords(
+                            node.ctx.lock()->adaptUnrooted(tree.title))));
+            },
+            [&](org::ImmParagraph const& tree) {
+                add_field_text("Text", node.id);
+            },
+            [&]<typename K>(K const& value) {
+                rec.setEscaped("Type", TypeName<K>::get());
+            },
+        });
+
+    rec.setHtml("test", hshow1("random").toHtml());
+
+    for (auto const& [idx, unresolved] : enumerate(prop.unresolved)) {
+        rec.setEscaped(
+            fmt("Unresolved [{}]", unresolved.link.id),
+            to_json_eval(unresolved.link.value()).dump(2));
+    }
+
+    return rec;
 }

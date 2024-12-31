@@ -1,9 +1,14 @@
 #pragma once
 
+#include "hstd/stdlib/Exception.hpp"
 #include <coroutine>
-#include <type_traits>
 #include <optional>
-#include <exception>
+#include <hstd/system/exceptions.hpp>
+#include <cpptrace.hpp>
+#include <cpptrace/from_current.hpp>
+
+struct generator_rethrow_exception
+    : CRTP_hexception<generator_rethrow_exception> {};
 
 template <typename T>
 struct generator {
@@ -16,8 +21,10 @@ struct generator {
         std::suspend_always initial_suspend() { return {}; }
         std::suspend_always final_suspend() noexcept { return {}; }
         generator get_return_object() { return generator{this}; };
-        void      unhandled_exception() { throw; }
-        void      return_void() {}
+
+        void unhandled_exception() { throw; }
+
+        void return_void() {}
     };
 
     class iterator {
