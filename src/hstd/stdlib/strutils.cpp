@@ -1258,61 +1258,71 @@ Str rstrip(CR<Str> string, CR<CharSet> chars) {
 
 Str wrap_text(const Vec<Str>& words, int maxWidth, bool justified) {
     Vec<Str> lines;
-    Vec<Str> currentLine;
+    Vec<Str> buffer;
     int      currentWidth = 0;
 
-    for (const auto& word : words) {
-        // _dbg(word);
-        if (currentWidth + word.size() + (currentLine.empty() ? 0 : 1)
-            > maxWidth) {
-            if (justified && currentLine.size() > 1) {
-                int totalSpaces = maxWidth
-                                - (currentWidth - currentLine.size() + 1);
-                int spaceSlots  = currentLine.size() - 1;
-                int extraSpaces = totalSpaces % spaceSlots;
-
-                // _dfmt(totalSpaces, spaceSlots, extraSpaces);
-
-                for (int i = 0; i < extraSpaces; ++i) {
-                    currentLine[i] += " ";
+    auto fold_buffer = [&]() {
+        if (justified && 1 < buffer.size()) {
+            Vec<Str> padding;
+            padding.resize(buffer.size() - 1);
+            auto join_line = [&]() {
+                // _dfmt("= = = = = = = = = =", buffer, padding);
+                Str res;
+                for (int i = 0; i < buffer.size(); ++i) {
+                    if (0 < i) {
+                        // _dfmt(padding.at(i - 1));
+                        res += padding.at(i - 1);
+                    }
+                    // _dfmt(res, buffer.at(i), i, res.size());
+                    res += buffer.at(i);
                 }
+                return res;
+            };
+            int slots      = buffer.size() - 1;
+            int toAdd      = maxWidth - (currentWidth - slots);
+            int addPerSlot = toAdd / slots;
 
-                Str line = currentLine[0];
-                Str baseSpace((totalSpaces / spaceSlots), ' ');
-                for (size_t i = 1; i < currentLine.size(); ++i) {
-                    line += baseSpace + currentLine[i];
-                }
-                // _dbg(line);
-                lines.push_back(line);
-            } else {
-                Str line = std::accumulate(
-                    currentLine.begin() + 1,
-                    currentLine.end(),
-                    currentLine[0],
-                    [](const Str& a, const Str& b) {
-                        return a + " "_ss + b;
-                    });
-                // _dbg(line);
-                lines.push_back(line);
+            for (int i = 0; i < padding.size(); ++i) {
+                padding.at(i) = Str{addPerSlot, ' '};
             }
-            currentLine.clear();
-            currentWidth = 0;
+
+            // I'm writing this code at 2024-12-31T22:53:23+04:00 and I
+            // don't give a shit how performant this is.
+            while (join_line().size() < maxWidth) {
+                for (int i = 0; (i < padding.size())
+                                && (join_line().size() < maxWidth);
+                     ++i) {
+                    padding.at(i).append(" ");
+                }
+            }
+
+            auto res = join_line();
+            // _dfmt(res.size(), res);
+            lines.push_back(res);
+
+        } else {
+            // _dbg(buffer);
+            Str line = std::accumulate(
+                buffer.begin() + 1,
+                buffer.end(),
+                buffer[0],
+                [](const Str& a, const Str& b) { return a + " "_ss + b; });
+            lines.push_back(line);
         }
-        currentLine.push_back(word);
-        currentWidth += word.size() + (currentLine.empty() ? 0 : 1);
+        buffer.clear();
+        currentWidth = 0;
+    };
+
+    for (const auto& word : words) {
+        if (maxWidth
+            < (currentWidth + word.size() + (buffer.empty() ? 0 : 1))) {
+            if (!buffer.empty()) { fold_buffer(); }
+        }
+        buffer.push_back(word);
+        currentWidth += word.size() + (buffer.empty() ? 0 : 1);
     }
 
-    if (!currentLine.empty()) {
-        Str lastLine = std::accumulate(
-            currentLine.begin() + 1,
-            currentLine.end(),
-            currentLine[0],
-            [](const Str& a, const Str& b) { return a + " "_ss + b; });
-        lines.push_back(lastLine);
-    }
-
-    // _dbg(words);
-    // _dbg(lines);
+    if (!buffer.empty()) { fold_buffer(); }
 
     if (lines.empty()) {
         return "";

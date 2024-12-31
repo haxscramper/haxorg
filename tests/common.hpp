@@ -11,35 +11,20 @@ extern TestParameters testParameters;
 #include <gtest/gtest.h>
 // #include <gmock/gmock.h>
 
+// adl-based customization points is the most disgusting degenerate idea
+// you can possible have. The shit doesn't work reliably, you need to do
+// some fucking magic with namespaces and whatever the fuck else, it does
+// not work again, and with functions you need to specify the concrete type
+// for every type. If this was a structure I could've used `std::format`
+// with some form of concept here, if the library was actually written with
+// this in mind.
+#define GTEST_ADL_PRINT_TYPE(__type)                                      \
+    namespace testing {                                                   \
+        template <>                                                       \
+        inline std::string PrintToString(__type const& value) {           \
+            return fmt1(value);                                           \
+        }                                                                 \
+    } // namespace testing
 
-namespace testing {
-//// FIXME despite documentation claim that 'PrintTo' must only be defined
-//// in the same namespace as the type (`Str`) I had to explicitly
-//// specialize / the internal template for this to work. It does not seem
-//// like a big
-//// issue but https://github.com/google/googletest/blob/main/docs/advanced.md#teaching-googletest-how-to-print-your-values
-//// this still needs to be investigated.
-///// \internal
-// template <>
-// inline ::std::string PrintToString(const std::string& str) {
-//     std::string        result;
-//     std::ostringstream escaped_str;
-//     for (char c : str) {
-//         if (c == '\n') {
-//             result += "\\n";
-//         } else if (c == '\t') {
-//             result += "\\t";
-//         } else {
-//             result += std::string(1, c);
-//         }
-//     }
 
-//    return result;
-//}
-
-template <>
-inline ::std::string PrintToString(const Str& str) {
-    PrintToString(str.toBase());
-    return "";
-}
-} // namespace testing
+GTEST_ADL_PRINT_TYPE(Str);

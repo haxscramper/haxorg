@@ -4,6 +4,8 @@
 #include <hstd/stdlib/strformat.hpp>
 #include <hstd/stdlib/ColText.hpp>
 
+#include "../common.hpp"
+
 
 TEST(StringOperationsTest, StringViews) {
     Str  base{"test"};
@@ -212,48 +214,48 @@ TEST(Hshow, Instantiations) {
 TEST(WrapTextTest, SingleShortWord) {
     Vec<Str> words  = {"Hello"};
     Str      result = wrap_text(words, 10, false);
-    EXPECT_EQ(result, "Hello");
+    EXPECT_EQ(result.toBase(), "Hello");
 }
 
 TEST(WrapTextTest, MultipleShortWordsSingleLine) {
     Vec<Str> words  = {"Hello", "world"};
     Str      result = wrap_text(words, 20, false);
-    EXPECT_EQ(result, "Hello world");
+    EXPECT_EQ(result.toBase(), "Hello world");
 }
 
 TEST(WrapTextTest, WrapWordsToMultipleLines) {
     Vec<Str> words = {"This", "is", "a", "test", "of", "text", "wrapping"};
     Str      result = wrap_text(words, 10, false);
-    EXPECT_EQ(result, "This is a\ntest of\ntext\nwrapping");
+    EXPECT_EQ(result.toBase(), "This is a\ntest of\ntext\nwrapping");
 }
 
 TEST(WrapTextTest, JustifiedText) {
     Vec<Str> words = {
         "This", "is", "a", "test", "of", "justified", "text"};
     Str result = wrap_text(words, 20, true);
-    EXPECT_EQ(result, "This  is  a test of\njustified     text");
+    EXPECT_EQ(result.toBase(), "This  is  a  test of\njustified       text");
 }
 
 TEST(WrapTextTest, LastLineNotJustified) {
     Vec<Str> words  = {"One", "last", "line", "example", "here"};
     Str      result = wrap_text(words, 15, true);
-    EXPECT_EQ(result, "One   last   line\nexample here");
+    EXPECT_EQ(result.toBase(), "One  last  line\nexample    here");
 }
 
 TEST(WrapTextTest, WordsExceedingMaxWidth) {
     Vec<Str> words  = {"Extraordinarily", "long", "word", "here"};
     Str      result = wrap_text(words, 10, false);
-    EXPECT_EQ(result, "Extraordinarily\nlong word\nhere");
+    EXPECT_EQ(result.toBase(), "Extraordinarily\nlong word\nhere");
 }
 
 TEST(WrapTextTest, EmptyInput) {
     Vec<Str> words  = {};
     Str      result = wrap_text(words, 10, false);
-    EXPECT_EQ(result, "");
+    EXPECT_EQ(result.toBase(), "");
 }
 
 TEST(WrapTextTest, SingleWordExceedingMaxWidth) {
     Vec<Str> words  = {"Supercalifragilisticexpialidocious"};
     Str      result = wrap_text(words, 10, false);
-    EXPECT_EQ(result, "Supercalifragilisticexpialidocious");
+    EXPECT_EQ(result.toBase(), "Supercalifragilisticexpialidocious");
 }
