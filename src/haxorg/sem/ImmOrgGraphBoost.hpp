@@ -523,4 +523,19 @@ inline void bfs_visit(
     boost_color_map map{g};
     bfs_visit(g, start, visitor, map);
 }
+
+void dfs_visit(
+    MapGraph const&                           g,
+    MapNode const&                            start,
+    boost_lambda_dfs_visitor<MapGraph> const& visitor,
+    boost_color_map const&                    map);
+
+inline void dfs_visit(
+    MapGraph const&                           g,
+    MapNode const&                            start,
+    boost_lambda_dfs_visitor<MapGraph> const& visitor) {
+    boost_color_map map{g};
+    dfs_visit(g, start, visitor, map);
+}
+
 } // namespace org::graph

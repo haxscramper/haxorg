@@ -764,14 +764,24 @@ TEST(ImmMapGraphApi, BoostVisitors) {
     MapGraphState s1{v2.context};
     addNodeRec(s1, file, conf);
 
-    UnorderedMap<MapNode, int> forwardBfsVisitIndex;
+    UnorderedMap<MapNode, int> forwardBfsExamineOrder;
+    UnorderedMap<MapNode, int> forwardDfsDiscoverOrder;
 
     org::graph::bfs_visit(
         s1.graph,
         MapNode{file.at({1, 1, 0}).uniq()},
         boost_lambda_bfs_visitor<MapGraph>{}.set_examine_vertex(
             [&, index = 0](CR<MapNode> n, CR<MapGraph>) mutable {
-                forwardBfsVisitIndex.insert_or_assign(n, index);
+                forwardBfsExamineOrder.insert_or_assign(n, index);
+                ++index;
+            }));
+
+    org::graph::dfs_visit(
+        s1.graph,
+        MapNode{file.at({1, 1, 0}).uniq()},
+        boost_lambda_dfs_visitor<MapGraph>{}.set_discover_vertex(
+            [&, index = 0](CR<MapNode> n, CR<MapGraph>) mutable {
+                forwardDfsDiscoverOrder.insert_or_assign(n, index);
                 ++index;
             }));
 
@@ -783,8 +793,13 @@ TEST(ImmMapGraphApi, BoostVisitors) {
             MapNodeProp const&     prop) -> Graphviz::Node::Record {
         auto res = MapGraph::GvConfig::getDefaultNodeLabel(adapter, prop);
         MapNode node{adapter.uniq()};
-        if (auto forward = forwardBfsVisitIndex.get(node)) {
-            res.setEscaped("Forward BFS idx", fmt1(forward.value()));
+        if (auto forward = forwardBfsExamineOrder.get(node)) {
+            res.setEscaped("Forward BFS examine #", fmt1(forward.value()));
+        }
+
+        if (auto forward = forwardDfsDiscoverOrder.get(node)) {
+            res.setEscaped(
+                "Forward DFS discover #", fmt1(forward.value()));
         }
         return res;
     };
