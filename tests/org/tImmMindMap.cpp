@@ -754,20 +754,43 @@ TEST(ImmMapGraphApi, BoostPropertyWriter) {
 
 TEST(ImmMapGraphApi, BoostVisitors) {
     auto n = testParseString(getFullMindMapText());
+    using namespace org;
+    using namespace org::graph;
 
-    auto store = org::ImmAstContext ::init_start_context();
-    org::graph::MapConfig     conf;
-    org::ImmAstVersion        v2   = store->addRoot(n);
-    org::ImmAdapter           file = v2.getRootAdapter();
-    org::graph::MapGraphState s1{v2.context};
+    auto          store = ImmAstContext ::init_start_context();
+    MapConfig     conf;
+    ImmAstVersion v2   = store->addRoot(n);
+    ImmAdapter    file = v2.getRootAdapter();
+    MapGraphState s1{v2.context};
     addNodeRec(s1, file, conf);
 
+    UnorderedMap<MapNode, int> forwardBfsVisitIndex;
 
-    Graphviz gvc;
-    auto     gv = s1.graph.toGraphviz(v2.context);
+    org::graph::bfs_visit(
+        s1.graph,
+        MapNode{file.at({1, 1, 0}).uniq()},
+        boost_lambda_bfs_visitor<MapGraph>{}.set_examine_vertex(
+            [&, index = 0](CR<MapNode> n, CR<MapGraph>) mutable {
+                forwardBfsVisitIndex.insert_or_assign(n, index);
+                ++index;
+            }));
+
+    Graphviz           gvc;
+    MapGraph::GvConfig gvConf;
+
+    gvConf.getNodeLabel =
+        [&](org::ImmAdapter const& adapter,
+            MapNodeProp const&     prop) -> Graphviz::Node::Record {
+        auto res = MapGraph::GvConfig::getDefaultNodeLabel(adapter, prop);
+        MapNode node{adapter.uniq()};
+        if (auto forward = forwardBfsVisitIndex.get(node)) {
+            res.setEscaped("Forward BFS idx", fmt1(forward.value()));
+        }
+        return res;
+    };
+
+    auto gv = s1.graph.toGraphviz(v2.context, gvConf);
     gv.setRankDirection(Graphviz::Graph::RankDirection::LR);
     gvc.writeFile(getDebugFile("BoostVisitors.dot"), gv);
     gvc.renderToFile(getDebugFile("BoostVisitors.png"), gv);
-
-    // org::graph::bfs_visit();
 }
