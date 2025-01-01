@@ -136,6 +136,50 @@ Other paragraph mentions radiotarget
 }
 
 
+TEST_F(ImmOrgApi, RadioLinkDetectionForSubtree) {
+    setTraceFile(getDebugFile("trace.log"));
+    org::ImmAstVersion init = getInitialVersion(R"(
+* Subtree with item description
+  :properties:
+  :radio_id: alias1
+  :radio_id: alias2
+  :radio_id: human-readable alias
+  :end:
+
+* Other subtree
+
+alias1 is a thing
+
+alias2 is a thing
+
+also known as a human-readable alias
+)");
+
+    org::ImmAdapter root = init.getRootAdapter();
+    writeTreeRepr(root, "repr.txt");
+    org::ImmAdapter t1 = root.at(1);
+    EXPECT_EQ(t1.getKind(), OrgSemKind::Subtree);
+    org::ImmAdapter t2 = root.at(2);
+    EXPECT_EQ(t2.getKind(), OrgSemKind::Subtree);
+
+    org::ImmAdapterT<org::ImmSubtree>
+        treeAdapter = t1.as<org::ImmSubtree>();
+
+    Vec<sem::NamedProperty> radioAliases = treeAdapter.getProperties(
+        "radio_id");
+
+    EXPECT_EQ(radioAliases.size(), 3);
+    EXPECT_EQ(radioAliases.at(0).getRadioId().words, Vec<Str>{"alias1"});
+    EXPECT_EQ(radioAliases.at(1).getRadioId().words, Vec<Str>{"alias2"});
+    EXPECT_EQ(
+        radioAliases.at(2).getRadioId().words,
+        (Vec<Str>{"human-readable", "alias"}));
+
+    org::ImmAdapter par_alias1 = t2.at(0);
+    org::ImmAdapter par_alias2 = t2.at(2);
+    org::ImmAdapter par_human  = t2.at(4);
+}
+
 TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {
     setTraceFile(getDebugFile("trace.txt"));
     start->currentTrack->isTrackingParent = [](org::ImmAdapter const&) {

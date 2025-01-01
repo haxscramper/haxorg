@@ -909,7 +909,7 @@ message NamedProperty {
     UserTime                                       time                             = 1;
     string                                         debug                            = 1000;
   }
-  message RadioTarget {
+  message RadioId {
     repeated string                                words                            = 1;
     string                                         debug                            = 1000;
   }
@@ -946,7 +946,7 @@ message NamedProperty {
       NamedProperty.Blocker                        blocker                          = 18;
       NamedProperty.Unnumbered                     unnumbered                       = 19;
       NamedProperty.Created                        created                          = 20;
-      NamedProperty.RadioTarget                    radiotarget                      = 21;
+      NamedProperty.RadioId                        radioid                          = 21;
       NamedProperty.CustomArgs                     customargs                       = 22;
       NamedProperty.CustomRaw                      customraw                        = 23;
     }
@@ -972,7 +972,7 @@ message NamedProperty {
     Kind_Blocker_f                                                                  = 17;
     Kind_Unnumbered_f                                                               = 18;
     Kind_Created_f                                                                  = 19;
-    Kind_RadioTarget_f                                                              = 20;
+    Kind_RadioId_f                                                                  = 20;
     Kind_CustomArgs_f                                                               = 21;
     Kind_CustomRaw_f                                                                = 22;
   }

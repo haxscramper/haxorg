@@ -393,7 +393,7 @@ template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::NamedProperty::Created const& object) { __obj_field(res, object, time); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::NamedProperty::RadioTarget const& object) { __obj_field(res, object, words); }
+void Exporter<V, R>::visit(R& res, sem::NamedProperty::RadioId const& object) { __obj_field(res, object, words); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::NamedProperty::CustomArgs const& object) {

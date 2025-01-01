@@ -449,11 +449,11 @@ def get_subtree_property_types():
             methods=[eq_method(t_nest_shared("Created", ["NamedProperty"]))],
         ),
         GenTuStruct(
-            t_nest_shared("RadioTarget", ["NamedProperty"]),
+            t_nest_shared("RadioId", ["NamedProperty"]),
             GenTuDoc("Radio target ID"),
-            nested=[GenTuPass("RadioTarget() {}")],
+            nested=[GenTuPass("RadioId() {}")],
             fields=[vec_field(t_str(), "words")],
-            methods=[eq_method(t_nest_shared("RadioTarget", ["NamedProperty"]))],
+            methods=[eq_method(t_nest_shared("RadioId", ["NamedProperty"]))],
         ),
         GenTuStruct(
             t_nest_shared("CustomArgs", ["NamedProperty"]),

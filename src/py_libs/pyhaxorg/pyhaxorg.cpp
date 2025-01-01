@@ -2223,21 +2223,21 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::NamedProperty::RadioTarget>(m, "NamedPropertyRadioTarget")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::NamedProperty::RadioTarget {
-                        sem::NamedProperty::RadioTarget result{};
+  pybind11::class_<sem::NamedProperty::RadioId>(m, "NamedPropertyRadioId")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::NamedProperty::RadioId {
+                        sem::NamedProperty::RadioId result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("words", &sem::NamedProperty::RadioTarget::words)
+    .def_readwrite("words", &sem::NamedProperty::RadioId::words)
     .def("operator==",
-         static_cast<bool(sem::NamedProperty::RadioTarget::*)(sem::NamedProperty::RadioTarget const&) const>(&sem::NamedProperty::RadioTarget::operator==),
+         static_cast<bool(sem::NamedProperty::RadioId::*)(sem::NamedProperty::RadioId const&) const>(&sem::NamedProperty::RadioId::operator==),
          pybind11::arg("other"))
-    .def("__repr__", [](sem::NamedProperty::RadioTarget _self) -> std::string {
+    .def("__repr__", [](sem::NamedProperty::RadioId _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::NamedProperty::RadioTarget _self, std::string name) -> pybind11::object {
+         [](sem::NamedProperty::RadioId _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -2305,7 +2305,7 @@ node can have subnodes.)RAW")
     .value("Blocker", sem::NamedProperty::Kind::Blocker)
     .value("Unnumbered", sem::NamedProperty::Kind::Unnumbered)
     .value("Created", sem::NamedProperty::Kind::Created)
-    .value("RadioTarget", sem::NamedProperty::Kind::RadioTarget)
+    .value("RadioId", sem::NamedProperty::Kind::RadioId)
     .value("CustomArgs", sem::NamedProperty::Kind::CustomArgs)
     .value("CustomRaw", sem::NamedProperty::Kind::CustomRaw)
     .def("__iter__", [](sem::NamedProperty::Kind _self) -> PyEnumIterator<sem::NamedProperty::Kind> {
@@ -2371,8 +2371,8 @@ node can have subnodes.)RAW")
     .def("getUnnumbered", static_cast<sem::NamedProperty::Unnumbered&(sem::NamedProperty::*)()>(&sem::NamedProperty::getUnnumbered))
     .def("isCreated", static_cast<bool(sem::NamedProperty::*)() const>(&sem::NamedProperty::isCreated))
     .def("getCreated", static_cast<sem::NamedProperty::Created&(sem::NamedProperty::*)()>(&sem::NamedProperty::getCreated))
-    .def("isRadioTarget", static_cast<bool(sem::NamedProperty::*)() const>(&sem::NamedProperty::isRadioTarget))
-    .def("getRadioTarget", static_cast<sem::NamedProperty::RadioTarget&(sem::NamedProperty::*)()>(&sem::NamedProperty::getRadioTarget))
+    .def("isRadioId", static_cast<bool(sem::NamedProperty::*)() const>(&sem::NamedProperty::isRadioId))
+    .def("getRadioId", static_cast<sem::NamedProperty::RadioId&(sem::NamedProperty::*)()>(&sem::NamedProperty::getRadioId))
     .def("isCustomArgs", static_cast<bool(sem::NamedProperty::*)() const>(&sem::NamedProperty::isCustomArgs))
     .def("getCustomArgs", static_cast<sem::NamedProperty::CustomArgs&(sem::NamedProperty::*)()>(&sem::NamedProperty::getCustomArgs))
     .def("isCustomRaw", static_cast<bool(sem::NamedProperty::*)() const>(&sem::NamedProperty::isCustomRaw))

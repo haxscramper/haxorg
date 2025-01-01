@@ -538,11 +538,15 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
 
     auto __trace = trace(a, fmt("property-'{}'", name));
 
+    auto get_values_text = [&]() {
+        return strip_space(get_text(one(a, N::Values)));
+    };
+
     Opt<Property> result;
     if (name == "exportoptions") {
         Property::ExportOptions res;
         res.backend = get_text(one(a, N::Subname));
-        for (Str const& pair : get_text(one(a, N::Values)).split(' ')) {
+        for (Str const& pair : get_values_text().split(' ')) {
             auto kv           = pair.split(':');
             res.values[kv[0]] = kv[1];
         }
@@ -550,8 +554,15 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         result = Property(res);
 
     } else if (name == "id") {
-        tree->treeId = strip(get_text(one(a, N::Values)), {' '}, {' '});
+        tree->treeId = get_values_text();
 
+    } else if (name == "radioid") {
+        Property::RadioId radio;
+        for (Str const& pair : get_values_text().split(' ')) {
+            radio.words.push_back(pair);
+        }
+
+        result = Property{radio};
     } else if (name == "created") {
         Property::Created created;
         auto par  = convertParagraph(one(a, N::Values)).value();
@@ -583,9 +594,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
 
     } else if (name == "cookiedata") {
         NamedProperty::CookieData p;
-        for (auto const& arg :
-             strip(get_text(one(a, N::Values)), CharSet{' '}, CharSet{' '})
-                 .split(" ")) {
+        for (auto const& arg : get_values_text().split(" ")) {
             auto norm = normalize(arg);
             if (norm == "todo") {
                 p.source = sem::NamedProperty::CookieData::TodoSource::
@@ -607,7 +616,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         result = NamedProperty{p};
 
     } else if (name == "effort") {
-        Str const&            value    = get_text(one(a, N::Values));
+        Str const&            value    = get_values_text();
         Vec<Str>              duration = value.split(":");
         NamedProperty::Effort prop;
 
@@ -621,13 +630,13 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         result = NamedProperty(prop);
     } else if (name == "archivefile") {
         NamedProperty::ArchiveFile file{};
-        file.file = strip_space(get_text(one(a, N::Values)));
+        file.file = get_values_text();
         result    = NamedProperty{file};
     } else if (name == "archivetime") {
         NamedProperty::ArchiveTime prop{};
-        Str        time = strip_space(get_text(one(a, N::Values)));
-        Slice<int> span = slice(0, time.size() - 1);
-        Opt<absl::TimeZone> zone;
+        Str                        time = get_values_text();
+        Slice<int>                 span = slice(0, time.size() - 1);
+        Opt<absl::TimeZone>        zone;
         if (time.at(3_B) == '+' || time.at(3_B) == '-') {
             span.last -= 3;
             zone = ConvertToTimeZone(
@@ -655,22 +664,21 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
 
     } else if (name == "archivecategory") {
         NamedProperty::ArchiveCategory file{};
-        file.category = strip_space(get_text(one(a, N::Values)));
+        file.category = get_values_text();
         result        = NamedProperty{file};
     } else if (name == "archivetodo") {
         NamedProperty::ArchiveTodo file{};
-        file.todo = strip_space(get_text(one(a, N::Values)));
+        file.todo = get_values_text();
         result    = NamedProperty{file};
     } else if (name == "archive") {
         NamedProperty::ArchiveTarget file{};
-        auto dsl = strip_space(get_text(one(a, N::Values))).split("::");
-        file.pattern   = dsl.at(0);
+        auto                         dsl = get_values_text().split("::");
+        file.pattern                     = dsl.at(0);
         file.path.path = lstrip(dsl.at(1), CharSet{'*', ' '}).split("/");
         result         = NamedProperty{file};
     } else if (name == "archiveolpath") {
         NamedProperty::ArchiveOlpath path{};
-        Vec<Str> const&              items //
-            = strip_space(get_text(one(a, N::Values))).split("/");
+        Vec<Str> const&              items = get_values_text().split("/");
         path.path = sem::SubtreePath{.path = items};
         result    = NamedProperty{path};
     } else if (
@@ -695,7 +703,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         NamedProperty::CustomRaw prop;
         prop.name = basename;
         if (one(a, N::Values).kind() == onk::RawText) {
-            prop.value = get_text(one(a, N::Values));
+            prop.value = get_values_text();
         } else {
             for (auto const& arg : one(a, N::Values)) {
                 prop.value += get_text(arg);

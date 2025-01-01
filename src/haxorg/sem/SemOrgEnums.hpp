@@ -75,7 +75,7 @@
     __IMPL(NamedProperty, Blocker, (Blocker)) \
     __IMPL(NamedProperty, Unnumbered, (Unnumbered)) \
     __IMPL(NamedProperty, Created, (Created)) \
-    __IMPL(NamedProperty, RadioTarget, (RadioTarget)) \
+    __IMPL(NamedProperty, RadioId, (RadioId)) \
     __IMPL(NamedProperty, CustomArgs, (CustomArgs)) \
     __IMPL(NamedProperty, CustomRaw, (CustomRaw))
 #define EACH_SHARED_ORG_ENUM_NESTED(__IMPL) \
@@ -187,7 +187,7 @@
     __IMPL(NamedProperty::Blocker, (NamedProperty, Blocker)) \
     __IMPL(NamedProperty::Unnumbered, (NamedProperty, Unnumbered)) \
     __IMPL(NamedProperty::Created, (NamedProperty, Created)) \
-    __IMPL(NamedProperty::RadioTarget, (NamedProperty, RadioTarget)) \
+    __IMPL(NamedProperty::RadioId, (NamedProperty, RadioId)) \
     __IMPL(NamedProperty::CustomArgs, (NamedProperty, CustomArgs)) \
     __IMPL(NamedProperty::CustomRaw, (NamedProperty, CustomRaw))
 #define EACH_SEM_ORG_RECORD_NESTED(__IMPL) \

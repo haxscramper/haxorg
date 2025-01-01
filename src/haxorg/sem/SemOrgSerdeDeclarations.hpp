@@ -674,9 +674,9 @@ struct proto_serde<::orgproto::NamedProperty::Created, sem::NamedProperty::Creat
 
 
 template <>
-struct proto_serde<::orgproto::NamedProperty::RadioTarget, sem::NamedProperty::RadioTarget> {
-  static void write(::orgproto::NamedProperty::RadioTarget* out, sem::NamedProperty::RadioTarget const& in);
-  static void read(::orgproto::NamedProperty::RadioTarget const& out, proto_write_accessor<sem::NamedProperty::RadioTarget> in);
+struct proto_serde<::orgproto::NamedProperty::RadioId, sem::NamedProperty::RadioId> {
+  static void write(::orgproto::NamedProperty::RadioId* out, sem::NamedProperty::RadioId const& in);
+  static void read(::orgproto::NamedProperty::RadioId const& out, proto_write_accessor<sem::NamedProperty::RadioId> in);
 };
 
 
