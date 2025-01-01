@@ -463,47 +463,52 @@ concept ProvidesImmApi //
 
 void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
     __perf_trace("imm", "updateTracking");
+
+    auto edit_radio_targets = [&](auto const&    words,
+                                  CR<org::ImmId> target) {
+        auto&             rt    = transientTrack.radioTargets;
+        auto              word  = words.at(0);
+        Vec<ImmId> const* items = rt.find(word);
+        LOGIC_ASSERTION_CHECK(
+            items != nullptr || add,
+            "Cannot remove radio target from transient lookup map. "
+            "The first radio target subnode word is {}, but the "
+            "transient map does not contain ID vector for this "
+            "start.",
+            word);
+        if (add) {
+            if (items == nullptr) {
+                rt.set(word, {target});
+            } else if (items->indexOf(target) == -1) {
+                rt.set(word, *items + Vec<ImmId>{target});
+            }
+        } else {
+            int index = items->indexOf(target);
+            LOGIC_ASSERTION_CHECK(
+                index != -1,
+                "Target ID {} first node {} is mapped to a vector in "
+                "transient lookup map, but the vector itself does not "
+                "contain the target ID",
+                target,
+                word);
+
+            Vec<ImmId> copy = *items;
+            copy.erase(copy.begin() + index);
+            if (copy.empty()) {
+                rt.erase(word);
+            } else {
+                rt.set(word, copy);
+            }
+        }
+    };
+
     auto search_radio_targets = [&](org::ImmAdapter const& id) {
         __perf_trace("imm", "search radio targets");
         for (auto const& target : id.subAs<org::ImmRadioTarget>(false)) {
             if (ctx.lock()->debug->TraceState) {
                 message(
                     fmt("Node {} contains radio target {}", node, target));
-            }
-
-            auto&             rt    = transientTrack.radioTargets;
-            auto              word  = target->words.at(0);
-            Vec<ImmId> const* items = rt.find(word);
-            LOGIC_ASSERTION_CHECK(
-                items != nullptr || add,
-                "Cannot remove radio target from transient lookup map. "
-                "The first radio target subnode word is {}, but the "
-                "transient map does not contain ID vector for this "
-                "start.",
-                word);
-            if (add) {
-                if (items == nullptr) {
-                    rt.set(word, {target.id});
-                } else if (items->indexOf(target.id) == -1) {
-                    rt.set(word, *items + Vec<ImmId>{target.id});
-                }
-            } else {
-                int index = items->indexOf(target.id);
-                LOGIC_ASSERTION_CHECK(
-                    index != -1,
-                    "Target ID {} first node {} is mapped to a vector in "
-                    "transient lookup map, but the vector itself does not "
-                    "contain the target ID",
-                    target.id,
-                    word);
-
-                Vec<ImmId> copy = *items;
-                copy.erase(copy.begin() + index);
-                if (copy.empty()) {
-                    rt.erase(word);
-                } else {
-                    rt.set(word, copy);
-                }
+                edit_radio_targets(target->words, target.id);
             }
         }
     };
@@ -558,6 +563,11 @@ void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
                     } else {
                         transientTrack.subtrees.erase(*id);
                     }
+                }
+
+                for (auto const& id : org::getSubtreeProperties<
+                         sem::NamedProperty::RadioId>(subtree)) {
+                    edit_radio_targets(id.words, node);
                 }
             },
             [&](org::ImmParagraph const&) {
@@ -1038,6 +1048,75 @@ bool org::isTrackingParentDefault(const ImmAdapter& node) {
                 .contains(node.getKind());
 }
 
+namespace {
+
+struct RadioTargetSearchResult {
+    Opt<ImmSubnodeGroup::RadioTarget> target;
+    int                               nextGroupIdx;
+};
+
+
+RadioTargetSearchResult tryRadioTargetSearch(
+    auto const&              words,
+    CR<Vec<org::ImmAdapter>> sub,
+    CR<int>                  groupingIdx,
+    ImmId                    targetId,
+    org::ImmAstContext::Ptr  ctx) {
+    int                     sourceOffset = 0;
+    int                     radioOffset  = 0;
+    RadioTargetSearchResult result;
+    while (radioOffset < words.size()) {
+        auto atSource   = sub.at(groupingIdx + sourceOffset);
+        auto sourceWord = atSource->dyn_cast<org::ImmLeaf>();
+        if (sourceWord == nullptr) {
+            ctx->message(
+                fmt("Source word at offset {} is not "
+                    "a leaf",
+                    sourceOffset));
+            // Source word at position is not a final
+            // leaf, radio target tracking us used only
+            // in the flat leaf sequences.
+            return result;
+        } else if (sourceWord->text == words.at(radioOffset)) {
+            if (radioOffset == (words.size() - 1)) {
+                auto range = slice(
+                    groupingIdx, groupingIdx + sourceOffset);
+                result.target = ImmSubnodeGroup::RadioTarget{
+                    .target = targetId,
+                    .nodes  = Vec<ImmAdapter>{sub.at(range)}};
+                ctx->message(
+                    fmt("Fully matched radio target "
+                        "offset, subnode range {} is a "
+                        "radio target",
+                        range));
+                result.nextGroupIdx = groupingIdx + sourceOffset;
+                // Successfully found radio target,
+                // resetting the grouping index and
+                // exiting the search. Single
+                // subsequence of words can only be
+                // targeting a single radio target.
+                return result;
+            } else {
+                // Radio target search matched one
+                // word, moving to the next one.
+                ++sourceOffset;
+                ++radioOffset;
+            }
+        } else if (atSource.is(OrgSemKind::Space)) {
+            // pass, differences in space sizes are
+            // ignored for radio node target searching
+            ++sourceOffset;
+        } else {
+            // found mismatched subnode
+            return result;
+        }
+    }
+
+    return result;
+}
+
+} // namespace
+
 Vec<ImmSubnodeGroup> org::getSubnodeGroups(
     CR<ImmAdapter> node,
     bool           withPath) {
@@ -1062,72 +1141,52 @@ Vec<ImmSubnodeGroup> org::getSubnodeGroups(
                     ImmSubnodeGroup{ImmSubnodeGroup::Single{.node = it}});
             } else {
                 ctx->message(fmt("Found potential radio targets"));
-                bool foundMatchingRadioTarget = false;
+                RadioTargetSearchResult searchResult;
                 for (ImmId const& radioId : *radioTargets) {
                     ctx->message(fmt("Trying radio ID {}", radioId));
-                    org::ImmAdapterT<org::ImmRadioTarget>
-                        radio = it.ctx.lock()
-                                    ->adaptUnrooted(radioId)
-                                    .as<org::ImmRadioTarget>();
-                    int sourceOffset = 0;
-                    int radioOffset  = 0;
-                    while (radioOffset < radio->words.size()) {
-                        auto atSource = sub.at(groupingIdx + sourceOffset);
-                        auto sourceWord = atSource
-                                              ->dyn_cast<org::ImmLeaf>();
-                        if (sourceWord == nullptr) {
-                            ctx->message(fmt(
-                                "Source word at offset {} is not a leaf",
-                                sourceOffset));
-                            // Source word at position is not a final leaf,
-                            // radio target tracking us used only in the
-                            // flat leaf sequences.
-                            goto radio_search_attempt_exit;
-                        } else if (
-                            sourceWord->text
-                            == radio->words.at(radioOffset)) {
-                            if (radioOffset == (radio->words.size() - 1)) {
-                                auto range = slice(
-                                    groupingIdx,
-                                    groupingIdx + sourceOffset);
-                                result.push_back(ImmSubnodeGroup{
-                                    ImmSubnodeGroup::RadioTarget{
-                                        .target = radio.id,
-                                        .nodes  = Vec<ImmAdapter>{
-                                            sub.at(range)}}});
-                                ctx->message(
-                                    fmt("Fully matched radio target "
-                                        "offset, subnode range {} is a "
-                                        "radio target",
-                                        range));
-                                groupingIdx += sourceOffset;
-                                // Successfully found radio target,
-                                // resetting the grouping index and exiting
-                                // the search. Single subsequence of words
-                                // can only be targeting a single radio
-                                // target.
-                                foundMatchingRadioTarget = true;
-                                goto radio_search_exit;
-                            } else {
-                                // Radio target search matched one word,
-                                // moving to the next one.
-                                ++sourceOffset;
-                                ++radioOffset;
-                            }
-                        } else if (atSource.is(OrgSemKind::Space)) {
-                            // pass, differences in space sizes are ignored
-                            // for radio node target searching
-                            ++sourceOffset;
-                        } else {
-                            // found mismatched subnode
-                            goto radio_search_attempt_exit;
+                    auto radioAdapter = it.ctx.lock()->adaptUnrooted(
+                        radioId);
+
+                    if (radioAdapter.is(OrgSemKind::RadioTarget)) {
+                        auto radio = radioAdapter
+                                         .as<org::ImmRadioTarget>();
+                        searchResult = tryRadioTargetSearch(
+                            radio->words, sub, groupingIdx, radio.id, ctx);
+
+                        if (searchResult.target) {
+                            goto radio_search_exit;
                         }
+                    } else if (radioAdapter.is(OrgSemKind::Subtree)) {
+                        auto subtree = radioAdapter.as<org::ImmSubtree>();
+                        for (auto const& id : org::getSubtreeProperties<
+                                 sem::NamedProperty::RadioId>(
+                                 subtree.value())) {
+                            searchResult = tryRadioTargetSearch(
+                                id.words,
+                                sub,
+                                groupingIdx,
+                                subtree.id,
+                                ctx);
+                            if (searchResult.target) {
+                                goto radio_search_exit;
+                            }
+                        }
+
+                    } else {
+                        LOGIC_ASSERTION_CHECK(
+                            false,
+                            "Expected radio target tracking for radio "
+                            "target nodes or subtrees but got {}",
+                            radioAdapter.getKind());
                     }
-                radio_search_attempt_exit:
                 }
 
             radio_search_exit:
-                if (!foundMatchingRadioTarget) {
+                if (searchResult.target) {
+                    result.push_back(
+                        ImmSubnodeGroup{searchResult.target.value()});
+                    groupingIdx = searchResult.nextGroupIdx;
+                } else {
                     result.push_back(ImmSubnodeGroup{
                         ImmSubnodeGroup::Single{.node = it}});
                 }

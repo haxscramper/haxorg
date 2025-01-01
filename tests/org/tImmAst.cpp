@@ -178,6 +178,25 @@ also known as a human-readable alias
     org::ImmAdapter par_alias1 = t2.at(0);
     org::ImmAdapter par_alias2 = t2.at(2);
     org::ImmAdapter par_human  = t2.at(4);
+
+    EXPECT_EQ(par_alias1.getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(par_alias2.getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(par_human.getKind(), OrgSemKind::Paragraph);
+
+    auto group_alias1 = org::getSubnodeGroups(par_alias1);
+    EXPECT_EQ(group_alias1.size(), 7);
+    EXPECT_TRUE(group_alias1.at(0).isRadioTarget());
+    EXPECT_EQ(group_alias1.at(0).getRadioTarget().target, t1.id);
+
+    auto group_alias2 = org::getSubnodeGroups(par_alias2);
+    EXPECT_EQ(group_alias2.size(), 7);
+    EXPECT_TRUE(group_alias2.at(0).isRadioTarget());
+    EXPECT_EQ(group_alias2.at(0).getRadioTarget().target, t1.id);
+
+    auto group_human = org::getSubnodeGroups(par_human);
+    EXPECT_EQ(group_human.size(), 9);
+    EXPECT_TRUE(group_human.at(1_B).isRadioTarget());
+    EXPECT_EQ(group_human.at(1_B).getRadioTarget().target, t1.id);
 }
 
 TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {

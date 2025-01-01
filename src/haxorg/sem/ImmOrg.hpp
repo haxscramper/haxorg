@@ -1271,6 +1271,18 @@ struct ImmAdapterDocumentGroupAPI : ImmAdapterOrgAPI {};
 EACH_SEM_ORG_FINAL_TYPE_BASE(__define_adapter)
 #undef __define_adapter
 
+template <typename T>
+Vec<T> getSubtreeProperties(CR<org::ImmSubtree> subtree) {
+    Vec<T> result;
+    for (auto const& prop : subtree.properties) {
+        if (std::holds_alternative<T>(prop.data)) {
+            result.push_back(std::get<T>(prop.data));
+        }
+    }
+
+    return result;
+}
+
 
 template <typename T>
 template <typename F>
