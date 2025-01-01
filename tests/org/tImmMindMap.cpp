@@ -313,11 +313,22 @@ also known as a human-readable alias
 )"_ss};
 
     auto init = getInitialVersion(text);
-    writeTreeRepr(init.getRootAdapter(), "repr.txt");
+    auto root = init.getRootAdapter();
+    writeTreeRepr(root, "repr.txt");
     setGraphTrace(getDebugFile("graph_trace.log"));
     setTraceFile(getDebugFile("imm_trace.log"));
-    addNodeRec(init.getRootAdapter());
+    addNodeRec(root);
     writeGraphviz(getDebugFile("RadioTargetAliases.png"));
+
+    org::ImmAdapter t1         = root.at(1);
+    org::ImmAdapter t2         = root.at(2);
+    org::ImmAdapter par_alias1 = t2.at(0);
+    org::ImmAdapter par_alias2 = t2.at(2);
+    org::ImmAdapter par_human  = t2.at(4);
+
+    EXPECT_TRUE(graph.graph.hasEdge(par_alias1.uniq(), t1.uniq()));
+    EXPECT_TRUE(graph.graph.hasEdge(par_alias2.uniq(), t1.uniq()));
+    EXPECT_TRUE(graph.graph.hasEdge(par_human.uniq(), t1.uniq()));
 }
 
 Str getFullMindMapText() {
