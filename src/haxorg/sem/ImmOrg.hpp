@@ -559,6 +559,7 @@ struct [[nodiscard]] ImmAstContext : SharedPtrApi<ImmAstContext> {
     }
 
     Vec<ImmAdapter> getAdaptersFor(ImmId const& it) const;
+    Vec<ImmAdapter> getParentPathsFor(CR<ImmId> id) const;
 
     ImmAstVersion getEditVersion(
         ImmAdapter const& root,

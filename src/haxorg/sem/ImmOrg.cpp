@@ -1006,6 +1006,16 @@ Vec<ImmAdapter> ImmAstContext::getAdaptersFor(const ImmId& it) const {
     return result;
 }
 
+Vec<ImmAdapter> ImmAstContext::getParentPathsFor(CR<ImmId> id) const {
+    Vec<ImmAdapter> result;
+    for (auto const& parent : getParentsFor(id)) {
+        for (auto const& path : getPathsFor(parent.first)) {
+            result.push_back(adapt(path));
+        }
+    }
+    return result;
+}
+
 ImmAstEditContext ImmAstContext::getEditContext() {
     return ImmAstEditContext{
         .transientTrack = currentTrack->transient(this),

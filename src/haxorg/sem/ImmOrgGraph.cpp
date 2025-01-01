@@ -488,6 +488,32 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
         "Node {} is already marked as unresolved in the graph",
         node.id);
 
+    {
+        auto __scope = conf.scopeLevel();
+        GRAPH_MSG(fmt("Collecting radio targets in graph"));
+        if (auto par = node.id.asOpt<org::ImmParagraph>()) {
+            for (auto const& group : getSubnodeGroups(node.id)) {
+                if (group.isRadioTarget()) {
+                    for (org::ImmAdapter const& radio :
+                         node.id.ctx.lock()->getParentPathsFor(
+                             group.getRadioTarget().target)) {
+                        MapLinkResolveResult resolve{
+                            .source = MapNode{node.id.uniq()},
+                            .target = MapNode{radio.uniq()},
+                        };
+                        if (s.graph.isRegisteredNode(radio.uniq())) {
+                            result.resolved.push_back(resolve);
+                        } else {
+                            GRAPH_MSG(
+                                fmt("FIXME Skipping radio target node {}",
+                                    radio));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 
     {
         auto __scope = conf.scopeLevel();
