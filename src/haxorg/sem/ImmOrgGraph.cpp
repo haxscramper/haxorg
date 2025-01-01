@@ -78,12 +78,15 @@ static const IntSet<slk> SkipLinks{
 };
 
 bool org::graph::hasGraphAnnotations(const ImmAdapterT<ImmSubtree>& par) {
-    return par->treeId->has_value();
+    return par->treeId->has_value()
+        || !org::getSubtreeProperties<sem::NamedProperty::RadioId>(
+                par.value())
+                .empty();
 }
 
 bool org::graph::hasGraphAnnotations(
     const ImmAdapterT<ImmParagraph>& par) {
-    for (auto const& node : par.sub()) {
+    for (auto const& node : par.sub(false)) {
         if (node.is(OrgSemKind::RadioTarget)) {
             return true;
         } else if (auto link = node.asOpt<org::ImmLink>();
@@ -509,6 +512,8 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
     result.node.unresolved.clear();
     GRAPH_MSG(fmt("Get unresolved for node {}", node.id));
 
+    auto ctx = node.id.ctx.lock();
+
     LOGIC_ASSERTION_CHECK(
         s.unresolved.find(MapNode{node.id.uniq()}) == nullptr,
         "Node {} is already marked as unresolved in the graph",
@@ -517,32 +522,50 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
     {
         auto __scope = conf.scopeLevel();
         GRAPH_MSG(fmt("Collecting radio targets in graph"));
+
+        auto found_radio_target_node = [&](CR<org::ImmAdapter> radio) {
+            if (s.graph.isRegisteredNode(radio.uniq())) {
+                GRAPH_MSG(
+                    fmt("Detected radio target from node {} "
+                        "to target {}, which is a resolved "
+                        "graph node. ",
+                        node.id,
+                        radio));
+                result.resolved.push_back(MapLinkResolveResult{
+                    .source = MapNode{node.id.uniq()},
+                    .target = MapNode{radio.uniq()},
+                });
+            } else {
+                GRAPH_MSG(
+                    fmt("Radio target {} from node {} is not "
+                        "a resolved graph node.",
+                        radio,
+                        node.id));
+                result.node.unresolved.push_back(
+                    MapLink{MapLink::Radio{.target = radio}});
+            }
+        };
+
         if (auto par = node.id.asOpt<org::ImmParagraph>()) {
             for (auto const& group : getSubnodeGroups(node.id)) {
+                GRAPH_MSG(fmt("Group {}", group));
                 if (group.isRadioTarget()) {
-                    for (org::ImmAdapter const& radio :
-                         node.id.ctx.lock()->getParentPathsFor(
-                             group.getRadioTarget().target)) {
-                        if (s.graph.isRegisteredNode(radio.uniq())) {
-                            GRAPH_MSG(
-                                fmt("Detected radio target from node {} "
-                                    "to target {}, which is a resolved "
-                                    "graph node. ",
-                                    node.id,
-                                    radio));
-                            result.resolved.push_back(MapLinkResolveResult{
-                                .source = MapNode{node.id.uniq()},
-                                .target = MapNode{radio.uniq()},
-                            });
-                        } else {
-                            GRAPH_MSG(
-                                fmt("Radio target {} from node {} is not "
-                                    "a resolved graph node.",
-                                    radio,
-                                    node.id));
-                            result.node.unresolved.push_back(
-                                MapLink{MapLink::Radio{.target = radio}});
+                    auto groupTarget = group.getRadioTarget().target;
+                    if (groupTarget.is(OrgSemKind::Subtree)) {
+                        for (auto const& subtree :
+                             ctx->getPathsFor(groupTarget)) {
+                            found_radio_target_node(ctx->adapt(subtree));
                         }
+                    } else if (groupTarget.is(OrgSemKind::RadioTarget)) {
+                        for (org::ImmAdapter const& radio :
+                             ctx->getParentPathsFor(groupTarget)) {
+                            found_radio_target_node(radio);
+                        }
+                    } else {
+                        LOGIC_ASSERTION_CHECK(
+                            false,
+                            "Unexpected subnode group target kind {}",
+                            groupTarget.getKind())
                     }
                 }
             }
@@ -645,6 +668,8 @@ void org::graph::addNode(
         GRAPH_MSG("ID maps to graph node");
         auto __init = conf.scopeLevel();
         registerNode(g, *prop, conf);
+    } else {
+        GRAPH_MSG(fmt("No initial properties for {}, skipping", node.id));
     }
 }
 

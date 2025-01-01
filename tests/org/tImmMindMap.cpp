@@ -19,9 +19,21 @@ void addNodeRec(
                 break;
             }
             case OrgSemKind::Paragraph: {
-                if (auto par = node.as<org::ImmParagraph>();
-                    org::graph::hasGraphAnnotations(par)) {
+                auto par = node.as<org::ImmParagraph>();
+                // conf.message(
+                //     fmt("rec visit of {}\n{}",
+                //         par,
+                //         par.treeRepr().toString()));
+                if (org::graph::hasGraphAnnotations(par)) {
                     addNode(g, node, conf);
+                } else {
+                    auto group = org::getSubnodeGroups(node, false);
+                    if (rs::any_of(group, [](auto const& it) {
+                            return it.isRadioTarget();
+                        })) {
+                        // conf.message(fmt("Paragraph has radio target"));
+                        addNode(g, node, conf);
+                    }
                 }
                 break;
             }
@@ -42,8 +54,27 @@ void addNodeRec(
     aux(node);
 }
 
+struct ImmMapApi : ImmOrgApiTestBase {
+    org::graph::MapConfig     conf;
+    org::graph::MapGraphState graph;
 
-TEST(ImmMapApi, AddNode) {
+    ImmMapApi() : graph{start} {}
+
+    void addNodeRec(CR<org::ImmAdapter> node) {
+        ::addNodeRec(graph, node, conf);
+    }
+
+    void writeGraphviz(CR<Str> name) {
+        Graphviz gvc;
+        auto     gv = graph.graph.toGraphviz(start);
+        gvc.renderToFile(name, gv);
+    }
+
+    void setGraphTrace(CR<Str> name) { conf.setTraceFile(name.toBase()); }
+};
+
+
+TEST_F(ImmMapApi, AddNode) {
     auto n1 = testParseString("* subtree");
 
     auto                  store = org::ImmAstContext::init_start_context();
@@ -60,7 +91,7 @@ TEST(ImmMapApi, AddNode) {
     gvc.renderToFile(getDebugFile("MapS2.png"), gv);
 }
 
-TEST(ImmMapApi, AddNodeWithLinks) {
+TEST_F(ImmMapApi, AddNodeWithLinks) {
     Str text{R"(
 Paragraph [[id:subtree-id]]
 
@@ -112,7 +143,7 @@ Paragraph [[id:subtree-id]]
 }
 
 
-TEST(ImmMapApi, SubtreeBacklinks) {
+TEST_F(ImmMapApi, SubtreeBacklinks) {
     Str text1{R"(
 * Subtree1
   :properties:
@@ -165,7 +196,7 @@ TEST(ImmMapApi, SubtreeBacklinks) {
     gvc.renderToFile(getDebugFile("SubtreeBacklinks.png"), gv);
 }
 
-TEST(ImmMapApi, RadioTargetsForward) {
+TEST_F(ImmMapApi, RadioTargetsForward) {
     Str text{R"(
 <<<radio>>> target paragraph
 
@@ -212,7 +243,7 @@ radio user paragraph
     gvc.renderToFile(getDebugFile("RadioTargetsForward.png"), gv);
 }
 
-TEST(ImmMapApi, RadioTargetsInverse) {
+TEST_F(ImmMapApi, RadioTargetsInverse) {
     Str text{R"(
 radio user paragraph
 
@@ -261,6 +292,32 @@ radio user paragraph
     Graphviz gvc;
     auto     gv = s1.graph.toGraphviz(v1.context);
     gvc.renderToFile(getDebugFile("RadioTargetsForward.png"), gv);
+}
+
+TEST_F(ImmMapApi, RadioTargetAliases) {
+    Str text{R"(
+* Subtree with item description
+  :properties:
+  :radio_id: alias1
+  :radio_id: alias2
+  :radio_id: human-readable alias
+  :end:
+
+* Other subtree
+
+alias1 is a thing
+
+alias2 is a thing
+
+also known as a human-readable alias
+)"_ss};
+
+    auto init = getInitialVersion(text);
+    writeTreeRepr(init.getRootAdapter(), "repr.txt");
+    setGraphTrace(getDebugFile("graph_trace.log"));
+    setTraceFile(getDebugFile("imm_trace.log"));
+    addNodeRec(init.getRootAdapter());
+    writeGraphviz(getDebugFile("RadioTargetAliases.png"));
 }
 
 Str getFullMindMapText() {
@@ -349,7 +406,7 @@ Multiline [[id:6d6d6689-d9da-418d-9f91-1c8c4428e5af][Extra entries]]
 
 using osk = OrgSemKind;
 
-TEST(ImmMapApi, SubtreeFullMap) {
+TEST_F(ImmMapApi, SubtreeFullMap) {
     auto n = testParseString(getFullMindMapText());
 
     auto store = org::ImmAstContext::init_start_context();
@@ -375,7 +432,7 @@ TEST(ImmMapApi, SubtreeFullMap) {
 
     org::graph::MapConfig conf;
     conf.setTraceFile(getDebugFile("conf"));
-    addNodeRec(s1, v2.getRootAdapter(), conf);
+    ::addNodeRec(s1, v2.getRootAdapter(), conf);
 
     EXPECT_TRUE(s1.graph.hasEdge(node_p110.uniq(), node_s12.uniq()));
     EXPECT_TRUE(s1.graph.hasEdge(node_p110.uniq(), node_s10.uniq()));
@@ -486,7 +543,7 @@ void addAll(
     for (auto const& it : block.nested) { addAll(state, it, conf); }
 }
 
-TEST(ImmMapApi, SubtreeBlockMap) {
+TEST_F(ImmMapApi, SubtreeBlockMap) {
     auto n = testParseString(getSubtreeBlockText());
     sem::exportToTreeFile(
         n,
@@ -636,7 +693,7 @@ TEST(ImmMapApi, SubtreeBlockMap) {
     g.hasEdge(Paragraph_11, Paragraph_12);
 }
 
-TEST(ImmMapApi, Doc1Graph) {
+TEST_F(ImmMapApi, Doc1Graph) {
     __perf_trace("imm", "run test");
     fs::path file = fs::path{std::getenv("HOME")}
                   / std::string{"tmp/doc_graph.org"};
@@ -684,7 +741,7 @@ TEST(ImmMapApi, Doc1Graph) {
 
     org::graph::MapConfig     conf;
     org::graph::MapGraphState state{v.context};
-    addNodeRec(state, root, conf);
+    ::addNodeRec(state, root, conf);
 
     Graphviz                       gvc;
     org::graph::MapGraph::GvConfig gvConf;
