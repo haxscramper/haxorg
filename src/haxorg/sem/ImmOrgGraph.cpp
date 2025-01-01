@@ -449,17 +449,7 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
 
         case slk::Internal: {
             CR<Str> text = link.link->target.getInternal().target;
-            if (auto target = s.ast->currentTrack->radioTargets.get(
-                    text)) {
-                GRAPH_MSG(fmt(
-                    "Internal link name '{}' on '{}' resolved to radio "
-                    "target '{}'",
-                    text,
-                    source,
-                    *target));
-                add_edge(*target);
-            } else if (
-                auto target = s.ast->currentTrack->names.get(text)) {
+            if (auto target = s.ast->currentTrack->names.get(text)) {
                 GRAPH_MSG(fmt(
                     "Internal link name '{}' on '{}' resolved to named "
                     "node '{}'",

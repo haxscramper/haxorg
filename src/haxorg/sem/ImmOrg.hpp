@@ -258,19 +258,20 @@ using ImmStrIdMap          = ImmMap<Str, ImmId>;
 using ImmParentPathVec     = SmallVec<ImmPathStep, 4>;
 using ImmParentIdVec       = SmallVec<ImmId, 4>;
 using ParentPathMap        = UnorderedMap<ImmId, ImmParentPathVec>;
+using RadioTargetMap       = ImmMap<ImmId, Vec<ImmId>>;
 using ImmParentMap         = ImmMap<ImmId, ImmParentIdVec>;
 using ImmPanentTrackFilter = Func<bool(ImmAdapter const&)>;
 
 
 struct ImmAstTrackingMapTransient {
-    ImmAstContext*               oldCtx;
-    ImmStrIdMap::transient_type  footnotes;
-    ImmStrIdMap::transient_type  subtrees;
-    ImmStrIdMap::transient_type  radioTargets;
-    ImmStrIdMap::transient_type  anchorTargets;
-    ImmStrIdMap::transient_type  names;
-    ImmParentMap::transient_type parents;
-    ImmPanentTrackFilter const&  isTrackingParentImpl;
+    ImmAstContext*                 oldCtx;
+    ImmStrIdMap::transient_type    footnotes;
+    ImmStrIdMap::transient_type    subtrees;
+    RadioTargetMap::transient_type radioTargets;
+    ImmStrIdMap::transient_type    anchorTargets;
+    ImmStrIdMap::transient_type    names;
+    ImmParentMap::transient_type   parents;
+    ImmPanentTrackFilter const&    isTrackingParentImpl;
 
     void setAsParentOf(ImmId const& parent, ImmId const& target);
 
@@ -300,10 +301,12 @@ bool isTrackingParentDefault(ImmAdapter const&);
 struct ImmAstTrackingMap {
     ImmStrIdMap  footnotes;
     ImmStrIdMap  subtrees;
-    ImmStrIdMap  radioTargets;
     ImmStrIdMap  anchorTargets;
     ImmStrIdMap  names;
     ImmParentMap parents;
+    /// \brief Map starting ID of the radio target text to the parent radio
+    /// target for faster lookup.
+    RadioTargetMap radioTargets;
 
     /// \brief Filter out unnecessary nodes that should not be tracked as
     /// parents -- mostly related to leaf nodes like space, word, big ident
@@ -988,6 +991,31 @@ ImmAstReplace setSubnodes(
     ImmVec<org::ImmId> subnodes,
     ImmAstEditContext& ctx);
 
+
+/// \brief Group sequence of subnodes under some criteria depending on the
+/// AST context. Used to implement contextually aware elements that are not
+/// represented by the actual document syntax, like radio link targets.
+struct ImmSubnodeGroup {
+    struct RadioTarget {
+        Vec<org::ImmAdapter> nodes;
+        ImmId                target;
+        DESC_FIELDS(RadioTarget, (nodes, target));
+    };
+
+    struct Single {
+        org::ImmAdapter node;
+        DESC_FIELDS(Single, (node));
+    };
+
+    SUB_VARIANTS(Kind, Data, data, getKind, RadioTarget, Single);
+    Data data;
+    DESC_FIELDS(ImmSubnodeGroup, (data));
+};
+
+Vec<ImmSubnodeGroup> getSubnodeGroups(
+    CR<org::ImmAdapter> node,
+    bool                withPath = true);
+
 /// \brief Common adapter specialization methods to inject in the final
 /// specializations.
 template <typename T>
@@ -1143,13 +1171,13 @@ struct ImmAdapterRawTextAPI : ImmAdapterLeafAPI {};
 struct ImmAdapterPunctuationAPI : ImmAdapterLeafAPI {};
 struct ImmAdapterPlaceholderAPI : ImmAdapterLeafAPI {};
 struct ImmAdapterBigIdentAPI : ImmAdapterLeafAPI {};
-struct ImmAdapterRadioTargetAPI : ImmAdapterLeafAPI {};
 struct ImmAdapterTextTargetAPI : ImmAdapterLeafAPI {};
 struct ImmAdapterMarkupAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterBoldAPI : ImmAdapterMarkupAPI {};
 struct ImmAdapterUnderlineAPI : ImmAdapterMarkupAPI {};
 struct ImmAdapterMonospaceAPI : ImmAdapterMarkupAPI {};
 struct ImmAdapterMarkQuoteAPI : ImmAdapterMarkupAPI {};
+struct ImmAdapterRadioTargetAPI : ImmAdapterMarkupAPI {};
 struct ImmAdapterVerbatimAPI : ImmAdapterMarkupAPI {};
 struct ImmAdapterItalicAPI : ImmAdapterMarkupAPI {};
 struct ImmAdapterStrikeAPI : ImmAdapterMarkupAPI {};

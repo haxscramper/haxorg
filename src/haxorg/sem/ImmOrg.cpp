@@ -468,14 +468,42 @@ void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
         for (auto const& target : id.subAs<org::ImmRadioTarget>(false)) {
             if (ctx.lock()->debug->TraceState) {
                 message(
-                    fmt("Node {} contains radio target {}",
-                        node,
-                        target.getText()));
+                    fmt("Node {} contains radio target {}", node, target));
             }
+
+            auto&             rt    = transientTrack.radioTargets;
+            ImmId             first = target.at(0).id;
+            Vec<ImmId> const* items = rt.find(first);
+            LOGIC_ASSERTION_CHECK(
+                items != nullptr || add,
+                "Cannot remove radio target from transient lookup map. "
+                "The first radio target subnode word is {}, but the "
+                "transient map does not contain ID vector for this "
+                "start.",
+                first);
             if (add) {
-                transientTrack.radioTargets.set(target.getText(), node);
+                if (items == nullptr) {
+                    rt.set(first, {target.id});
+                } else if (items->indexOf(target.id) == -1) {
+                    rt.set(first, *items + Vec<ImmId>{target.id});
+                }
             } else {
-                transientTrack.radioTargets.erase(target.getText());
+                int index = items->indexOf(target.id);
+                LOGIC_ASSERTION_CHECK(
+                    index != -1,
+                    "Target ID {} first node {} is mapped to a vector in "
+                    "transient lookup map, but the vector itself does not "
+                    "contain the target ID",
+                    target.id,
+                    first);
+
+                Vec<ImmId> copy = *items;
+                copy.erase(copy.begin() + index);
+                if (copy.empty()) {
+                    rt.erase(first);
+                } else {
+                    rt.set(first, copy);
+                }
             }
         }
     };
@@ -998,4 +1026,67 @@ bool org::isTrackingParentDefault(const ImmAdapter& node) {
         OrgSemKind::Newline,
     }
                 .contains(node.getKind());
+}
+
+Vec<ImmSubnodeGroup> org::getSubnodeGroups(
+    CR<ImmAdapter> node,
+    bool           withPath) {
+    ImmAstTrackingMap const& track = *node.ctx.lock()->currentTrack;
+    Vec<org::ImmAdapter>     sub   = node.sub(withPath);
+    Vec<ImmSubnodeGroup>     result;
+
+    for (int i = 0; i < sub.size(); ++i) {
+        org::ImmAdapter const& it      = sub.at(i);
+        Vec<ImmId> const* radioTargets = track.radioTargets.find(it.id);
+        if (radioTargets == nullptr) {
+            result.push_back(
+                ImmSubnodeGroup{ImmSubnodeGroup::Single{.node = it}});
+        } else {
+            bool foundMatchingRadio = false;
+            for (ImmId const& radioId : *radioTargets) {
+                org::ImmAdapter radio = it.ctx.lock()->adaptUnrooted(
+                    radioId);
+                Vec<org::ImmAdapter> radioSubnodes = radio.sub(false);
+                for (int offset = 0; offset < radioSubnodes.size();
+                     ++offset) {
+                    CR<org::ImmAdapter> atSource = sub.at(i + offset);
+                    CR<org::ImmAdapter> atRadio = radioSubnodes.at(offset);
+                    if (atSource.id == atRadio.id
+                        && offset == radioSubnodes.high()) {
+                        result.push_back(
+                            ImmSubnodeGroup{ImmSubnodeGroup::RadioTarget{
+                                .target = radio.id,
+                                .nodes  = Vec<ImmAdapter>{
+                                    sub.at(slice(i, i + offset))}}});
+                    } else if (
+                        atSource.is(OrgSemKind::Space)
+                        && atRadio.is(OrgSemKind::Space)) {
+                        // pass, differences in space sizes are ignored for
+                        // radio node target searching
+                    } else {
+                        // found mismatched subnode
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    int totalNodes = 0;
+    for (auto const& it : result) {
+        std::visit(
+            overloaded{
+                [&](CR<ImmSubnodeGroup::RadioTarget> t) {
+                    totalNodes += t.nodes.size();
+                },
+                [&](CR<ImmSubnodeGroup::Single>) { totalNodes += 1; },
+            },
+            it.data);
+    }
+
+    LOGIC_ASSERTION_CHECK(
+        totalNodes == sub.size(), "Missing nodes from result");
+
+
+    return result;
 }

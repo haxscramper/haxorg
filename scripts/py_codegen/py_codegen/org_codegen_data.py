@@ -998,7 +998,6 @@ def get_sem_text():
         d_org("Punctuation", GenTuDoc(""), bases=[t_org("Leaf")]),
         d_org("Placeholder", GenTuDoc(""), bases=[t_org("Leaf")]),
         d_org("BigIdent", GenTuDoc(""), bases=[t_org("Leaf")]),
-        d_org("RadioTarget", GenTuDoc("~<<<target>>>~"), bases=[t_org("Leaf")]),
         d_org("TextTarget", GenTuDoc("~<<target>>~"), bases=[t_org("Leaf")]),
         d_org(
             "Markup",
@@ -1014,6 +1013,7 @@ def get_sem_text():
         d_org("Italic", GenTuDoc(""), bases=[t_org("Markup")]),
         d_org("Strike", GenTuDoc(""), bases=[t_org("Markup")]),
         d_org("Par", GenTuDoc(""), bases=[t_org("Markup")]),
+        d_org("RadioTarget", GenTuDoc("~<<<target>>>~"), bases=[t_org("Markup")]),
         d_org("Latex", GenTuDoc("Latex code body"), bases=[t_org("Org")]),
         d_org(
             "Link",

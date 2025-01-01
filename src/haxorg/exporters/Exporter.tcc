@@ -712,13 +712,6 @@ void Exporter<V, R>::visitBigIdent(R& res, In<sem::BigIdent> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visitRadioTarget(R& res, In<sem::RadioTarget> object) {
-  auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
-  __org_field(res, object, text);
-  __org_field(res, object, subnodes);
-}
-
-template <typename V, typename R>
 void Exporter<V, R>::visitTextTarget(R& res, In<sem::TextTarget> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, text);
@@ -775,6 +768,12 @@ void Exporter<V, R>::visitStrike(R& res, In<sem::Strike> object) {
 
 template <typename V, typename R>
 void Exporter<V, R>::visitPar(R& res, In<sem::Par> object) {
+  auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visitRadioTarget(R& res, In<sem::RadioTarget> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, subnodes);
 }

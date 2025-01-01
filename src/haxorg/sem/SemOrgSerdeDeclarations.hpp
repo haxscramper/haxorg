@@ -31,7 +31,6 @@
         __MAP(kPunctuation, punctuation, Punctuation)  \
         __MAP(kPlaceholder, placeholder, Placeholder)  \
         __MAP(kBigident, bigident, BigIdent)  \
-        __MAP(kRadiotarget, radiotarget, RadioTarget)  \
         __MAP(kTexttarget, texttarget, TextTarget)  \
         __MAP(kBold, bold, Bold)  \
         __MAP(kUnderline, underline, Underline)  \
@@ -41,6 +40,7 @@
         __MAP(kItalic, italic, Italic)  \
         __MAP(kStrike, strike, Strike)  \
         __MAP(kPar, par, Par)  \
+        __MAP(kRadiotarget, radiotarget, RadioTarget)  \
         __MAP(kLatex, latex, Latex)  \
         __MAP(kLink, link, Link)  \
         __MAP(kBlockcenter, blockcenter, BlockCenter)  \
@@ -926,13 +926,6 @@ struct proto_serde<::orgproto::BigIdent, sem::BigIdent> {
 
 
 template <>
-struct proto_serde<::orgproto::RadioTarget, sem::RadioTarget> {
-  static void write(::orgproto::RadioTarget* out, sem::RadioTarget const& in);
-  static void read(::orgproto::RadioTarget const& out, proto_write_accessor<sem::RadioTarget> in);
-};
-
-
-template <>
 struct proto_serde<::orgproto::TextTarget, sem::TextTarget> {
   static void write(::orgproto::TextTarget* out, sem::TextTarget const& in);
   static void read(::orgproto::TextTarget const& out, proto_write_accessor<sem::TextTarget> in);
@@ -992,6 +985,13 @@ template <>
 struct proto_serde<::orgproto::Par, sem::Par> {
   static void write(::orgproto::Par* out, sem::Par const& in);
   static void read(::orgproto::Par const& out, proto_write_accessor<sem::Par> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::RadioTarget, sem::RadioTarget> {
+  static void write(::orgproto::RadioTarget* out, sem::RadioTarget const& in);
+  static void read(::orgproto::RadioTarget const& out, proto_write_accessor<sem::RadioTarget> in);
 };
 
 

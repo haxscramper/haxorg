@@ -111,6 +111,30 @@ TEST_F(ImmOrgApi, ItearteParentNodes) {
     }
 }
 
+TEST_F(ImmOrgApi, RadioLinkDetection) {
+    setTraceFile(getDebugFile("trace.log"));
+    org::ImmAstVersion init = getInitialVersion(R"(
+<<<radiotarget>>> Paragraph with radio links
+
+Other paragraph mentions radiotarget
+)");
+
+    org::ImmAdapter root = init.getRootAdapter();
+    writeTreeRepr(root, "repr.txt");
+
+    org::ImmAdapter par1 = root.at(1);
+    EXPECT_EQ(par1.getKind(), OrgSemKind::Paragraph);
+    org::ImmAdapter radio = par1.at(0);
+    EXPECT_EQ(radio.getKind(), OrgSemKind::RadioTarget);
+    org::ImmAdapter par2 = root.at(3);
+    EXPECT_EQ(par2.getKind(), OrgSemKind::Paragraph);
+    Vec<org::ImmSubnodeGroup> grouped = org::getSubnodeGroups(par2);
+    EXPECT_EQ(grouped.size(), 7);
+    EXPECT_TRUE(grouped.at(0).isSingle());
+    EXPECT_TRUE(grouped.at(6).isRadioTarget());
+    EXPECT_EQ(grouped.at(6).getRadioTarget().target, radio.id);
+}
+
 
 TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {
     setTraceFile(getDebugFile("trace.txt"));
@@ -119,15 +143,17 @@ TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {
     };
 
 
-    auto start_node   = testParseString("word0 word2 word4");
-    auto replace_node = testParseString("wordXX").at(0).at(0);
-    auto version1     = start->init(start_node);
-    auto store        = version1.context;
-    auto paragraph    = version1.getRootAdapter().at(0);
-    auto ctx          = store->getEditContext();
-    auto __absl_scope = ctx.collectAbslLogs();
-    auto word_xx      = store->add(replace_node, ctx);
-    auto version2     = store->finishEdit(
+    sem::SemId<sem::Org> start_node = testParseString("word0 word2 word4");
+    sem::SemId<sem::Org> replace_node = testParseString("wordXX").at(0).at(
+        0);
+
+    org::ImmAstVersion      version1     = start->init(start_node);
+    org::ImmAstContext::Ptr store        = version1.context;
+    org::ImmAdapter         paragraph    = version1.getRootAdapter().at(0);
+    org::ImmAstEditContext  ctx          = store->getEditContext();
+    auto                    __absl_scope = ctx.collectAbslLogs();
+    auto                    word_xx      = store->add(replace_node, ctx);
+    auto                    version2     = store->finishEdit(
         ctx,
         ctx.store().cascadeUpdate(
             version1.getRootAdapter(),

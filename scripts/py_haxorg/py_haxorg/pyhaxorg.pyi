@@ -1422,13 +1422,6 @@ class BigIdent(Leaf):
     def __getattr__(self, name: str) -> object: ...
     text: str
 
-class RadioTarget(Leaf):
-    def __init__(self, text: str) -> None: ...
-    def getText(self) -> str: ...
-    def __repr__(self) -> str: ...
-    def __getattr__(self, name: str) -> object: ...
-    text: str
-
 class TextTarget(Leaf):
     def __init__(self, text: str) -> None: ...
     def getText(self) -> str: ...
@@ -1475,6 +1468,11 @@ class Strike(Markup):
     def __getattr__(self, name: str) -> object: ...
 
 class Par(Markup):
+    def __init__(self) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+
+class RadioTarget(Markup):
     def __init__(self) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
@@ -2153,16 +2151,16 @@ class OrgSemKind(Enum):
     Punctuation = 27
     Placeholder = 28
     BigIdent = 29
-    RadioTarget = 30
-    TextTarget = 31
-    Bold = 32
-    Underline = 33
-    Monospace = 34
-    MarkQuote = 35
-    Verbatim = 36
-    Italic = 37
-    Strike = 38
-    Par = 39
+    TextTarget = 30
+    Bold = 31
+    Underline = 32
+    Monospace = 33
+    MarkQuote = 34
+    Verbatim = 35
+    Italic = 36
+    Strike = 37
+    Par = 38
+    RadioTarget = 39
     Latex = 40
     Link = 41
     BlockCenter = 42

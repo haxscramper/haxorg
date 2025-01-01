@@ -3273,23 +3273,6 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::RadioTarget, sem::SemId<sem::RadioTarget>, sem::Leaf>(m, "RadioTarget")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::RadioTarget {
-                        sem::RadioTarget result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("text", &sem::RadioTarget::text, R"RAW(Final leaf value)RAW")
-    .def("getText", static_cast<Str(sem::RadioTarget::*)() const>(&sem::RadioTarget::getText))
-    .def("__repr__", [](sem::RadioTarget _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::RadioTarget _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
   pybind11::class_<sem::TextTarget, sem::SemId<sem::TextTarget>, sem::Leaf>(m, "TextTarget")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::TextTarget {
                         sem::TextTarget result{};
@@ -3425,6 +3408,21 @@ node can have subnodes.)RAW")
                      })
     .def("__getattr__",
          [](sem::Par _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::RadioTarget, sem::SemId<sem::RadioTarget>, sem::Markup>(m, "RadioTarget")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::RadioTarget {
+                        sem::RadioTarget result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("__repr__", [](sem::RadioTarget _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::RadioTarget _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -4772,7 +4770,6 @@ node can have subnodes.)RAW")
     .value("Punctuation", OrgSemKind::Punctuation)
     .value("Placeholder", OrgSemKind::Placeholder)
     .value("BigIdent", OrgSemKind::BigIdent)
-    .value("RadioTarget", OrgSemKind::RadioTarget)
     .value("TextTarget", OrgSemKind::TextTarget)
     .value("Bold", OrgSemKind::Bold)
     .value("Underline", OrgSemKind::Underline)
@@ -4782,6 +4779,7 @@ node can have subnodes.)RAW")
     .value("Italic", OrgSemKind::Italic)
     .value("Strike", OrgSemKind::Strike)
     .value("Par", OrgSemKind::Par)
+    .value("RadioTarget", OrgSemKind::RadioTarget)
     .value("Latex", OrgSemKind::Latex)
     .value("Link", OrgSemKind::Link)
     .value("BlockCenter", OrgSemKind::BlockCenter)

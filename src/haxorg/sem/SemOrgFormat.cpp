@@ -50,7 +50,8 @@ void Formatter::add_subnodes(Res result, SemId<Org> id, CR<Context> ctx) {
 
 auto Formatter::toString(SemId<RadioTarget> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    return str("<<<"_ss + id->text + ">>>"_ss);
+    return b.line(
+        Vec<Res>::Splice(str("<<<"), toSubnodes(id, ctx), str(">>>")));
 }
 
 auto Formatter::toString(SemId<TextTarget> id, CR<Context> ctx) -> Res {

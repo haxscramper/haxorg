@@ -1789,16 +1789,6 @@ void proto_serde<::orgproto::BigIdent, sem::BigIdent>::read(::orgproto::BigIdent
   proto_serde<::orgproto::BigIdent, sem::Org>::read(out, in.as<sem::Org>());
 }
 
-void proto_serde<::orgproto::RadioTarget, sem::RadioTarget>::write(::orgproto::RadioTarget* out, sem::RadioTarget const& in) {
-  proto_serde<::orgproto::RadioTarget, sem::Leaf>::write(out, in);
-  proto_serde<::orgproto::RadioTarget, sem::Org>::write(out, in);
-}
-
-void proto_serde<::orgproto::RadioTarget, sem::RadioTarget>::read(::orgproto::RadioTarget const& out, proto_write_accessor<sem::RadioTarget> in) {
-  proto_serde<::orgproto::RadioTarget, sem::Leaf>::read(out, in.as<sem::Leaf>());
-  proto_serde<::orgproto::RadioTarget, sem::Org>::read(out, in.as<sem::Org>());
-}
-
 void proto_serde<::orgproto::TextTarget, sem::TextTarget>::write(::orgproto::TextTarget* out, sem::TextTarget const& in) {
   proto_serde<::orgproto::TextTarget, sem::Leaf>::write(out, in);
   proto_serde<::orgproto::TextTarget, sem::Org>::write(out, in);
@@ -1871,6 +1861,14 @@ void proto_serde<::orgproto::Par, sem::Par>::write(::orgproto::Par* out, sem::Pa
 
 void proto_serde<::orgproto::Par, sem::Par>::read(::orgproto::Par const& out, proto_write_accessor<sem::Par> in) {
   proto_serde<::orgproto::Par, sem::Org>::read(out, in.as<sem::Org>());
+}
+
+void proto_serde<::orgproto::RadioTarget, sem::RadioTarget>::write(::orgproto::RadioTarget* out, sem::RadioTarget const& in) {
+  proto_serde<::orgproto::RadioTarget, sem::Org>::write(out, in);
+}
+
+void proto_serde<::orgproto::RadioTarget, sem::RadioTarget>::read(::orgproto::RadioTarget const& out, proto_write_accessor<sem::RadioTarget> in) {
+  proto_serde<::orgproto::RadioTarget, sem::Org>::read(out, in.as<sem::Org>());
 }
 
 void proto_serde<::orgproto::Latex, sem::Latex>::write(::orgproto::Latex* out, sem::Latex const& in) {

@@ -2015,19 +2015,6 @@ struct BigIdent : public sem::Leaf {
   virtual OrgSemKind getKind() const { return OrgSemKind::BigIdent; }
 };
 
-/// \brief ~<<<target>>>~
-struct RadioTarget : public sem::Leaf {
-  using Leaf::Leaf;
-  virtual ~RadioTarget() = default;
-  BOOST_DESCRIBE_CLASS(RadioTarget,
-                       (Leaf),
-                       (),
-                       (),
-                       (staticKind))
-  static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::RadioTarget; }
-};
-
 /// \brief ~<<target>>~
 struct TextTarget : public sem::Leaf {
   using Leaf::Leaf;
@@ -2141,6 +2128,19 @@ struct Par : public sem::Markup {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Par; }
+};
+
+/// \brief ~<<<target>>>~
+struct RadioTarget : public sem::Markup {
+  using Markup::Markup;
+  virtual ~RadioTarget() = default;
+  BOOST_DESCRIBE_CLASS(RadioTarget,
+                       (Markup),
+                       (),
+                       (),
+                       (staticKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::RadioTarget; }
 };
 
 /// \brief Latex code body
