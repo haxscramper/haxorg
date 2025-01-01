@@ -711,11 +711,13 @@ template <>
 struct ImmSemSerde<sem::RadioTarget, org::ImmRadioTarget> {
   static org::ImmRadioTarget to_immer(sem::RadioTarget const& value, ImmAstEditContext& ctx) {
     org::ImmRadioTarget result = SerdeDefaultProvider<org::ImmRadioTarget>::get();
+    assign_immer_field(result.words, value.words, ctx);
     assign_immer_field(result.subnodes, value.subnodes, ctx);
     return result;
   }
   static sem::RadioTarget from_immer(org::ImmRadioTarget const& value, ImmAstContext const& ctx) {
     sem::RadioTarget result = SerdeDefaultProvider<sem::RadioTarget>::get();
+    assign_sem_field(result.words, value.words, ctx);
     assign_sem_field(result.subnodes, value.subnodes, ctx);
     return result;
   }

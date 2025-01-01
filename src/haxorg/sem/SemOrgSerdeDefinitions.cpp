@@ -1189,6 +1189,14 @@ void proto_serde<::orgproto::NamedProperty::Created, sem::NamedProperty::Created
   proto_serde<orgproto::UserTime, UserTime>::read(out.time(), in.for_field(&sem::NamedProperty::Created::time));
 }
 
+void proto_serde<::orgproto::NamedProperty::RadioTarget, sem::NamedProperty::RadioTarget>::write(::orgproto::NamedProperty::RadioTarget* out, sem::NamedProperty::RadioTarget const& in) {
+  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::write(out->mutable_words(), in.words);
+}
+
+void proto_serde<::orgproto::NamedProperty::RadioTarget, sem::NamedProperty::RadioTarget>::read(::orgproto::NamedProperty::RadioTarget const& out, proto_write_accessor<sem::NamedProperty::RadioTarget> in) {
+  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::read(out.words(), in.for_field(&sem::NamedProperty::RadioTarget::words));
+}
+
 void proto_serde<::orgproto::NamedProperty::CustomArgs, sem::NamedProperty::CustomArgs>::write(::orgproto::NamedProperty::CustomArgs* out, sem::NamedProperty::CustomArgs const& in) {
   proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
   if (in.sub) {
@@ -1278,10 +1286,13 @@ void proto_serde<::orgproto::NamedProperty, sem::NamedProperty>::write(::orgprot
       proto_serde<orgproto::NamedProperty::Created, sem::NamedProperty::Created>::write(out->mutable_data()->mutable_created(), std::get<19>(in.data));
       break;
     case 20:
-      proto_serde<orgproto::NamedProperty::CustomArgs, sem::NamedProperty::CustomArgs>::write(out->mutable_data()->mutable_customargs(), std::get<20>(in.data));
+      proto_serde<orgproto::NamedProperty::RadioTarget, sem::NamedProperty::RadioTarget>::write(out->mutable_data()->mutable_radiotarget(), std::get<20>(in.data));
       break;
     case 21:
-      proto_serde<orgproto::NamedProperty::CustomRaw, sem::NamedProperty::CustomRaw>::write(out->mutable_data()->mutable_customraw(), std::get<21>(in.data));
+      proto_serde<orgproto::NamedProperty::CustomArgs, sem::NamedProperty::CustomArgs>::write(out->mutable_data()->mutable_customargs(), std::get<21>(in.data));
+      break;
+    case 22:
+      proto_serde<orgproto::NamedProperty::CustomRaw, sem::NamedProperty::CustomRaw>::write(out->mutable_data()->mutable_customraw(), std::get<22>(in.data));
       break;
   }
 }
@@ -1348,11 +1359,14 @@ void proto_serde<::orgproto::NamedProperty, sem::NamedProperty>::read(::orgproto
     case ::orgproto::NamedProperty::Data::kCreated:
       proto_serde<orgproto::NamedProperty::Created, sem::NamedProperty::Created>::read(out.data().created(), in.for_field_variant<19>(&sem::NamedProperty::data));
       break;
+    case ::orgproto::NamedProperty::Data::kRadiotarget:
+      proto_serde<orgproto::NamedProperty::RadioTarget, sem::NamedProperty::RadioTarget>::read(out.data().radiotarget(), in.for_field_variant<20>(&sem::NamedProperty::data));
+      break;
     case ::orgproto::NamedProperty::Data::kCustomargs:
-      proto_serde<orgproto::NamedProperty::CustomArgs, sem::NamedProperty::CustomArgs>::read(out.data().customargs(), in.for_field_variant<20>(&sem::NamedProperty::data));
+      proto_serde<orgproto::NamedProperty::CustomArgs, sem::NamedProperty::CustomArgs>::read(out.data().customargs(), in.for_field_variant<21>(&sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kCustomraw:
-      proto_serde<orgproto::NamedProperty::CustomRaw, sem::NamedProperty::CustomRaw>::read(out.data().customraw(), in.for_field_variant<21>(&sem::NamedProperty::data));
+      proto_serde<orgproto::NamedProperty::CustomRaw, sem::NamedProperty::CustomRaw>::read(out.data().customraw(), in.for_field_variant<22>(&sem::NamedProperty::data));
       break;
   }
 }
@@ -1865,10 +1879,12 @@ void proto_serde<::orgproto::Par, sem::Par>::read(::orgproto::Par const& out, pr
 
 void proto_serde<::orgproto::RadioTarget, sem::RadioTarget>::write(::orgproto::RadioTarget* out, sem::RadioTarget const& in) {
   proto_serde<::orgproto::RadioTarget, sem::Org>::write(out, in);
+  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::write(out->mutable_words(), in.words);
 }
 
 void proto_serde<::orgproto::RadioTarget, sem::RadioTarget>::read(::orgproto::RadioTarget const& out, proto_write_accessor<sem::RadioTarget> in) {
   proto_serde<::orgproto::RadioTarget, sem::Org>::read(out, in.as<sem::Org>());
+  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::read(out.words(), in.for_field(&sem::RadioTarget::words));
 }
 
 void proto_serde<::orgproto::Latex, sem::Latex>::write(::orgproto::Latex* out, sem::Latex const& in) {

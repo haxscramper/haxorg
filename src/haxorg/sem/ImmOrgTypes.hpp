@@ -780,15 +780,17 @@ struct ImmPar : public org::ImmMarkup {
 };
 
 /// \brief ~<<<target>>>~
-struct ImmRadioTarget : public org::ImmMarkup {
-  using ImmMarkup::ImmMarkup;
+struct ImmRadioTarget : public org::ImmOrg {
+  using ImmOrg::ImmOrg;
   virtual ~ImmRadioTarget() = default;
   BOOST_DESCRIBE_CLASS(ImmRadioTarget,
-                       (ImmMarkup),
+                       (ImmOrg),
                        (),
                        (),
-                       (staticKind))
+                       (staticKind,
+                        words))
   static OrgSemKind const staticKind;
+  ImmVec<Str> words = {};
   virtual OrgSemKind getKind() const { return OrgSemKind::RadioTarget; }
   bool operator==(org::ImmRadioTarget const& other) const;
 };

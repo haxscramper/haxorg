@@ -909,6 +909,10 @@ message NamedProperty {
     UserTime                                       time                             = 1;
     string                                         debug                            = 1000;
   }
+  message RadioTarget {
+    repeated string                                words                            = 1;
+    string                                         debug                            = 1000;
+  }
   message CustomArgs {
     string                                         name                             = 1;
     optional string                                sub                              = 2;
@@ -942,8 +946,9 @@ message NamedProperty {
       NamedProperty.Blocker                        blocker                          = 18;
       NamedProperty.Unnumbered                     unnumbered                       = 19;
       NamedProperty.Created                        created                          = 20;
-      NamedProperty.CustomArgs                     customargs                       = 21;
-      NamedProperty.CustomRaw                      customraw                        = 22;
+      NamedProperty.RadioTarget                    radiotarget                      = 21;
+      NamedProperty.CustomArgs                     customargs                       = 22;
+      NamedProperty.CustomRaw                      customraw                        = 23;
     }
   }
   enum Kind {
@@ -967,8 +972,9 @@ message NamedProperty {
     Kind_Blocker_f                                                                  = 17;
     Kind_Unnumbered_f                                                               = 18;
     Kind_Created_f                                                                  = 19;
-    Kind_CustomArgs_f                                                               = 20;
-    Kind_CustomRaw_f                                                                = 21;
+    Kind_RadioTarget_f                                                              = 20;
+    Kind_CustomArgs_f                                                               = 21;
+    Kind_CustomRaw_f                                                                = 22;
   }
   NamedProperty.Data                               data                             = 1;
   string                                           debug                            = 1000;
@@ -1355,6 +1361,7 @@ message Par {
 message RadioTarget {
   repeated AnyNode                                 subnodes                         = 1;
   OrgSemKind                                       staticKind                       = 2;
+  repeated string                                  words                            = 3;
   string                                           debug                            = 1000;
 }
 

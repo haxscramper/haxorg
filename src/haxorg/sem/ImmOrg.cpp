@@ -472,20 +472,20 @@ void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
             }
 
             auto&             rt    = transientTrack.radioTargets;
-            ImmId             first = target.at(0).id;
-            Vec<ImmId> const* items = rt.find(first);
+            auto              word  = target->words.at(0);
+            Vec<ImmId> const* items = rt.find(word);
             LOGIC_ASSERTION_CHECK(
                 items != nullptr || add,
                 "Cannot remove radio target from transient lookup map. "
                 "The first radio target subnode word is {}, but the "
                 "transient map does not contain ID vector for this "
                 "start.",
-                first);
+                word);
             if (add) {
                 if (items == nullptr) {
-                    rt.set(first, {target.id});
+                    rt.set(word, {target.id});
                 } else if (items->indexOf(target.id) == -1) {
-                    rt.set(first, *items + Vec<ImmId>{target.id});
+                    rt.set(word, *items + Vec<ImmId>{target.id});
                 }
             } else {
                 int index = items->indexOf(target.id);
@@ -495,14 +495,14 @@ void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
                     "transient lookup map, but the vector itself does not "
                     "contain the target ID",
                     target.id,
-                    first);
+                    word);
 
                 Vec<ImmId> copy = *items;
                 copy.erase(copy.begin() + index);
                 if (copy.empty()) {
-                    rt.erase(first);
+                    rt.erase(word);
                 } else {
-                    rt.set(first, copy);
+                    rt.set(word, copy);
                 }
             }
         }
@@ -1045,40 +1045,96 @@ Vec<ImmSubnodeGroup> org::getSubnodeGroups(
     Vec<org::ImmAdapter>     sub   = node.sub(withPath);
     Vec<ImmSubnodeGroup>     result;
 
-    for (int i = 0; i < sub.size(); ++i) {
-        org::ImmAdapter const& it      = sub.at(i);
-        Vec<ImmId> const* radioTargets = track.radioTargets.find(it.id);
-        if (radioTargets == nullptr) {
-            result.push_back(
-                ImmSubnodeGroup{ImmSubnodeGroup::Single{.node = it}});
-        } else {
-            bool foundMatchingRadio = false;
-            for (ImmId const& radioId : *radioTargets) {
-                org::ImmAdapter radio = it.ctx.lock()->adaptUnrooted(
-                    radioId);
-                Vec<org::ImmAdapter> radioSubnodes = radio.sub(false);
-                for (int offset = 0; offset < radioSubnodes.size();
-                     ++offset) {
-                    CR<org::ImmAdapter> atSource = sub.at(i + offset);
-                    CR<org::ImmAdapter> atRadio = radioSubnodes.at(offset);
-                    if (atSource.id == atRadio.id
-                        && offset == radioSubnodes.high()) {
-                        result.push_back(
-                            ImmSubnodeGroup{ImmSubnodeGroup::RadioTarget{
-                                .target = radio.id,
-                                .nodes  = Vec<ImmAdapter>{
-                                    sub.at(slice(i, i + offset))}}});
-                    } else if (
-                        atSource.is(OrgSemKind::Space)
-                        && atRadio.is(OrgSemKind::Space)) {
-                        // pass, differences in space sizes are ignored for
-                        // radio node target searching
-                    } else {
-                        // found mismatched subnode
-                        break;
+    auto ctx = node.ctx.lock();
+
+    for (int groupingIdx = 0; groupingIdx < sub.size(); ++groupingIdx) {
+        org::ImmAdapter const& it = sub.at(groupingIdx);
+        if (auto leaf = it->dyn_cast<org::ImmLeaf>();
+            leaf != nullptr && !leaf->is(OrgSemKind::Space)) {
+            ctx->message(fmt("Subnode {} is leaf", groupingIdx));
+            Vec<ImmId> const* radioTargets = track.radioTargets.find(
+                leaf->text);
+            if (radioTargets == nullptr) {
+                ctx->message(
+                    fmt("No radio target starting with word '{}'",
+                        leaf->text));
+                result.push_back(
+                    ImmSubnodeGroup{ImmSubnodeGroup::Single{.node = it}});
+            } else {
+                ctx->message(fmt("Found potential radio targets"));
+                bool foundMatchingRadioTarget = false;
+                for (ImmId const& radioId : *radioTargets) {
+                    ctx->message(fmt("Trying radio ID {}", radioId));
+                    org::ImmAdapterT<org::ImmRadioTarget>
+                        radio = it.ctx.lock()
+                                    ->adaptUnrooted(radioId)
+                                    .as<org::ImmRadioTarget>();
+                    int sourceOffset = 0;
+                    int radioOffset  = 0;
+                    while (radioOffset < radio->words.size()) {
+                        auto atSource = sub.at(groupingIdx + sourceOffset);
+                        auto sourceWord = atSource
+                                              ->dyn_cast<org::ImmLeaf>();
+                        if (sourceWord == nullptr) {
+                            ctx->message(fmt(
+                                "Source word at offset {} is not a leaf",
+                                sourceOffset));
+                            // Source word at position is not a final leaf,
+                            // radio target tracking us used only in the
+                            // flat leaf sequences.
+                            goto radio_search_attempt_exit;
+                        } else if (
+                            sourceWord->text
+                            == radio->words.at(radioOffset)) {
+                            if (radioOffset == (radio->words.size() - 1)) {
+                                auto range = slice(
+                                    groupingIdx,
+                                    groupingIdx + sourceOffset);
+                                result.push_back(ImmSubnodeGroup{
+                                    ImmSubnodeGroup::RadioTarget{
+                                        .target = radio.id,
+                                        .nodes  = Vec<ImmAdapter>{
+                                            sub.at(range)}}});
+                                ctx->message(
+                                    fmt("Fully matched radio target "
+                                        "offset, subnode range {} is a "
+                                        "radio target",
+                                        range));
+                                groupingIdx += sourceOffset;
+                                // Successfully found radio target,
+                                // resetting the grouping index and exiting
+                                // the search. Single subsequence of words
+                                // can only be targeting a single radio
+                                // target.
+                                foundMatchingRadioTarget = true;
+                                goto radio_search_exit;
+                            } else {
+                                // Radio target search matched one word,
+                                // moving to the next one.
+                                ++sourceOffset;
+                                ++radioOffset;
+                            }
+                        } else if (atSource.is(OrgSemKind::Space)) {
+                            // pass, differences in space sizes are ignored
+                            // for radio node target searching
+                            ++sourceOffset;
+                        } else {
+                            // found mismatched subnode
+                            goto radio_search_attempt_exit;
+                        }
                     }
+                radio_search_attempt_exit:
+                }
+
+            radio_search_exit:
+                if (!foundMatchingRadioTarget) {
+                    result.push_back(ImmSubnodeGroup{
+                        ImmSubnodeGroup::Single{.node = it}});
                 }
             }
+        } else {
+            result.push_back(
+                ImmSubnodeGroup{ImmSubnodeGroup::Single{.node = it}});
         }
     }
 
@@ -1095,7 +1151,9 @@ Vec<ImmSubnodeGroup> org::getSubnodeGroups(
     }
 
     LOGIC_ASSERTION_CHECK(
-        totalNodes == sub.size(), "Missing nodes from result");
+        totalNodes == sub.size(),
+        "Missing nodes from result {}",
+        _dfmt_expr(totalNodes, sub.size()));
 
 
     return result;

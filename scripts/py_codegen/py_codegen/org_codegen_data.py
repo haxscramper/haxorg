@@ -449,6 +449,13 @@ def get_subtree_property_types():
             methods=[eq_method(t_nest_shared("Created", ["NamedProperty"]))],
         ),
         GenTuStruct(
+            t_nest_shared("RadioTarget", ["NamedProperty"]),
+            GenTuDoc("Radio target ID"),
+            nested=[GenTuPass("RadioTarget() {}")],
+            fields=[vec_field(t_str(), "words")],
+            methods=[eq_method(t_nest_shared("RadioTarget", ["NamedProperty"]))],
+        ),
+        GenTuStruct(
             t_nest_shared("CustomArgs", ["NamedProperty"]),
             GenTuDoc("Custop property with unparsed arguments"),
             nested=[GenTuPass("CustomArgs() {}")],
@@ -1013,7 +1020,12 @@ def get_sem_text():
         d_org("Italic", GenTuDoc(""), bases=[t_org("Markup")]),
         d_org("Strike", GenTuDoc(""), bases=[t_org("Markup")]),
         d_org("Par", GenTuDoc(""), bases=[t_org("Markup")]),
-        d_org("RadioTarget", GenTuDoc("~<<<target>>>~"), bases=[t_org("Markup")]),
+        d_org(
+            "RadioTarget",
+            GenTuDoc("~<<<target>>>~"),
+            bases=[t_org("Org")],
+            fields=[vec_field(t_str(), "words")],
+        ),
         d_org("Latex", GenTuDoc("Latex code body"), bases=[t_org("Org")]),
         d_org(
             "Link",

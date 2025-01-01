@@ -1572,7 +1572,13 @@ OrgConverter::ConvResult<RawText> OrgConverter::convertRawText(__args) {
 
 OrgConverter::ConvResult<RadioTarget> OrgConverter::convertRadioTarget(
     __args) {
-    return convertAllSubnodes<RadioTarget>(a);
+    auto result = Sem<RadioTarget>(a);
+    for (auto const& sub : a) {
+        if (sub.getKind() != OrgNodeKind::Space) {
+            result->words.push_back(get_text(sub));
+        }
+    }
+    return result;
 }
 
 OrgConverter::ConvResult<TextTarget> OrgConverter::convertTextTarget(
