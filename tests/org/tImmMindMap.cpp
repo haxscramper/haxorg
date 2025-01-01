@@ -165,7 +165,7 @@ TEST(ImmMapApi, SubtreeBacklinks) {
     gvc.renderToFile(getDebugFile("SubtreeBacklinks.png"), gv);
 }
 
-TEST(ImmMapApi, RadioTargets) {
+TEST(ImmMapApi, RadioTargetsForward) {
     Str text{R"(
 <<<radio>>> target paragraph
 
@@ -209,7 +209,58 @@ radio user paragraph
 
     Graphviz gvc;
     auto     gv = s1.graph.toGraphviz(v1.context);
-    gvc.renderToFile(getDebugFile("RadioTargets.png"), gv);
+    gvc.renderToFile(getDebugFile("RadioTargetsForward.png"), gv);
+}
+
+TEST(ImmMapApi, RadioTargetsInverse) {
+    Str text{R"(
+radio user paragraph
+
+<<<radio>>> target paragraph
+)"_ss};
+
+    auto n1 = testParseString(text);
+
+    auto store = org::ImmAstContext ::init_start_context();
+    org::graph::MapConfig conf;
+    conf.setTraceFile(getDebugFile("log"));
+    store->debug->setTraceFile(conf.getTraceFile());
+    org::ImmAstVersion v1   = store->addRoot(n1);
+    auto               root = v1.getRootAdapter();
+
+    org::graph::MapGraphState s1{v1.context};
+
+    EXPECT_EQ(s1.graph.nodeCount(), 0);
+    EXPECT_EQ(s1.graph.edgeCount(), 0);
+    EXPECT_EQ(s1.unresolved.size(), 0);
+
+    conf.message("add first node");
+    {
+        auto __scope = conf.scopeLevel();
+        auto par     = root.at(1);
+        org::graph::addNode(s1, par, conf);
+        EXPECT_EQ(par->getKind(), OrgSemKind::Paragraph);
+        EXPECT_EQ(s1.graph.nodeCount(), 1);
+        EXPECT_EQ(s1.graph.edgeCount(), 0);
+        // radio link tracking is finalized by the time the immutable AST
+        // context is constructed, even though the graph node with radio
+        // target has not been added to the graph yet, the unresolve link
+        // is registered.
+        ASSERT_EQ(s1.unresolved.size(), 1);
+    }
+
+    conf.message("add second node");
+    {
+        auto __scope = conf.scopeLevel();
+        org::graph::addNode(s1, root.at(3), conf);
+        EXPECT_EQ(s1.graph.nodeCount(), 2);
+        EXPECT_EQ(s1.graph.edgeCount(), 1);
+        EXPECT_EQ(s1.unresolved.size(), 0);
+    }
+
+    Graphviz gvc;
+    auto     gv = s1.graph.toGraphviz(v1.context);
+    gvc.renderToFile(getDebugFile("RadioTargetsForward.png"), gv);
 }
 
 Str getFullMindMapText() {
