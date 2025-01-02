@@ -24,7 +24,7 @@ class CodexTrackingOptions(BaseModel):
 @beartype
 @dataclass
 class RadioEntry:
-    target_path: List[str] = field(default_factory=list)
+    use_path: List[str] = field(default_factory=list)
     prev_context: List[org.Org] = field(default_factory=list)
     radio_use: List[org.Org] = field(default_factory=list)
     post_context: List[org.Org] = field(default_factory=list)
@@ -43,7 +43,7 @@ def format_dataframe_for_file(df: pd.DataFrame) -> str:
         grouped_by_path = use_group.groupby("path")
 
         for path, path_group in grouped_by_path:
-            result.append(f"  path {''.join(path)}:")
+            result.append(f"  path {'/'.join(path)}:")
             for _, row in path_group.iterrows():
                 prev = "".join(row["prev"])
                 use_field = "".join(row["use"])
@@ -72,7 +72,7 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
     radio_entries: List[RadioEntry] = list()
 
     @beartype
-    def visit_node(node: org.Org):
+    def visit_node(node: org.Org, path):
         match node:
             case org.Paragraph():
                 groups: List[org.AstTrackingGroup] = org.getSubnodeGroups(node, tracking)
@@ -105,21 +105,21 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
                     group: org.AstTrackingGroup = groups[i]
                     if group.isRadioTarget():
                         radio: org.AstTrackingGroupRadioTarget = group.getRadioTarget()
-                        target_path: List[str] = list()
-                        for step in radio.target.path:
+                        use_path: List[str] = list()
+                        for step in path:
                             match step:
                                 case org.Subtree():
-                                    target_path.append(step.getCleanTitle())
+                                    use_path.append(step.getCleanTitle())
 
                         radio_entries.append(RadioEntry(
-                            target_path=target_path,
+                            use_path=use_path,
                             prev_context=flat_span(i-10, i),
                             post_context=flat_span(i+1, i+11),
                             radio_use=list(radio.nodes),
                         ))
 
 
-    org.eachSubnodeRec(target_node, visit_node)
+    org.eachSubnodeRecSimplePath(target_node, visit_node)
         
     @beartype
     def format_list(items: List[org.Org]) -> Tuple[str, ...]:
@@ -134,18 +134,21 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
         return tuple(res)
 
 
-    df = pd.DataFrame.from_records([
-        dict(
-            path=tuple(entry.target_path),
-            prev=format_list(entry.prev_context),
-            use=format_list(entry.radio_use),
-            post=format_list(entry.post_context),
-            # use_line=entry.radio_use.lo
-        ) for entry in radio_entries
-    ])
+    if radio_entries:
+        df = pd.DataFrame.from_records([
+            dict(
+                path=tuple(entry.use_path),
+                prev=format_list(entry.prev_context),
+                use=format_list(entry.radio_use),
+                post=format_list(entry.post_context),
+                # use_line=entry.radio_use.lo
+            ) for entry in radio_entries
+        ])
+        
+        opts.outfile.write_text(format_dataframe_for_file(df))
 
-    
-    opts.outfile.write_text(format_dataframe_for_file(df))
+    else:
+        opts.outfile.write_text("no codex entries detected")
 
 
 if __name__ == "__main__":

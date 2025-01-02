@@ -38,6 +38,10 @@ sem::SemId<sem::Org> getSingleSubnode(sem::SemId<sem::Org> id, int index);
     sem::SemId<sem::Org> node,
     py::function         callback);
 
+[[refl]] void eachSubnodeRecSimplePath(
+    sem::SemId<sem::Org> node,
+    py::function         callback);
+
 enum class [[refl]] LeafFieldType
 {
     Int,

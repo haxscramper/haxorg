@@ -243,10 +243,13 @@ struct [[refl]] AstTrackingMap {
     sem::SemId<sem::Org>  node,
     AstTrackingMap const& map);
 
-using SubnodeVisitor = Func<void(SemId<Org> const&)>;
+using SubnodeVisitor           = Func<void(SemId<Org> const&)>;
+using SubnodeVisitorSimplePath = Func<
+    void(SemId<Org> const&, Vec<SemId<Org>> const& path)>;
 /// \brief Recursively visit each subnode in the tree and apply the
 /// provided callback
 void eachSubnodeRec(SemId<Org> id, SubnodeVisitor cb);
+void eachSubnodeRecSimplePath(SemId<Org> id, SubnodeVisitorSimplePath cb);
 
 template <typename T, typename Func>
 Vec<T> getDfsFuncEval(SemId<Org> id, Func const& cb) {

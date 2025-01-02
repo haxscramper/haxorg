@@ -5369,5 +5369,9 @@ and a segment kind.)RAW")
         static_cast<void(*)(sem::SemId<sem::Org>, pybind11::function)>(&eachSubnodeRec),
         pybind11::arg("node"),
         pybind11::arg("callback"));
+  m.def("eachSubnodeRecSimplePath",
+        static_cast<void(*)(sem::SemId<sem::Org>, pybind11::function)>(&eachSubnodeRecSimplePath),
+        pybind11::arg("node"),
+        pybind11::arg("callback"));
 }
 /* clang-format on */
