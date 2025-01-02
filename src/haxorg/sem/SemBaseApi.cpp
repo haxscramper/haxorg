@@ -510,10 +510,10 @@ struct RadioTargetSearchResult {
 
 /// Mirror of the `tryRadioTargetSearch` implementation for immutable AST.
 RadioTargetSearchResult tryRadioTargetSearch(
-    auto const& words,
-    OrgVecArg   sub,
-    CR<int>     groupingIdx,
-    OrgArg      targetId) {
+    auto const&         words,
+    OrgVecArg           sub,
+    CR<int>             groupingIdx,
+    CR<AstTrackingPath> target) {
     // FIXME After this code is properly tested for both implementations I
     // might move it to the shared API in some form.
     int                     sourceOffset = 0;
@@ -529,7 +529,7 @@ RadioTargetSearchResult tryRadioTargetSearch(
                 auto range = slice(
                     groupingIdx, groupingIdx + sourceOffset);
                 result.target = AstTrackingGroup::RadioTarget{
-                    .target = targetId,
+                    .target = target,
                     .nodes  = Vec<SemIdOrg>{sub.at(range)}};
                 result.nextGroupIdx = groupingIdx + sourceOffset;
                 return result;
@@ -556,8 +556,8 @@ Vec<AstTrackingGroup> sem::getSubnodeGroups(
     Vec<G>      res;
     auto const& sub = node->subnodes;
 
-    for (int groupingIdx = 0; groupingIdx < sub.size(); ++groupingIdx) {
-        auto const& it = sub.at(groupingIdx);
+    for (int idx = 0; idx < sub.size(); ++idx) {
+        auto const& it = sub.at(idx);
         if (auto leaf = it->dyn_cast<sem::Leaf>();
             leaf != nullptr && !leaf->is(OrgSemKind::Space)) {
             auto radioTargets = map.radioTargets.find(leaf->text);
@@ -571,13 +571,13 @@ Vec<AstTrackingGroup> sem::getSubnodeGroups(
                         for (auto const& prop : sem::getSubtreeProperties<
                                  sem::NamedProperty::RadioId>(tree)) {
                             search = tryRadioTargetSearch(
-                                prop.words, sub, groupingIdx, tree);
+                                prop.words, sub, idx, alt);
                             if (search.target) { goto radio_search_exit; }
                         }
                     } else if (
                         auto target = alt.getNode().asOpt<RadioTarget>()) {
                         search = tryRadioTargetSearch(
-                            target->words, sub, groupingIdx, target);
+                            target->words, sub, idx, alt);
                         if (search.target) { goto radio_search_exit; }
                     }
                 }
@@ -585,7 +585,7 @@ Vec<AstTrackingGroup> sem::getSubnodeGroups(
             radio_search_exit:
                 if (search.target) {
                     res.push_back(G{search.target.value()});
-                    groupingIdx = search.nextGroupIdx;
+                    idx = search.nextGroupIdx;
                 } else {
                     res.push_back(G{G::Single{it}});
                 }

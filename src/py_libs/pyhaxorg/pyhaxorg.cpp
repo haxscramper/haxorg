@@ -5002,6 +5002,39 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<sem::AstTrackingGroup::RadioTarget>(m, "AstTrackingGroupRadioTarget")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AstTrackingGroup::RadioTarget {
+                        sem::AstTrackingGroup::RadioTarget result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("target", &sem::AstTrackingGroup::RadioTarget::target)
+    .def_readwrite("nodes", &sem::AstTrackingGroup::RadioTarget::nodes)
+    .def("__repr__", [](sem::AstTrackingGroup::RadioTarget _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::AstTrackingGroup::RadioTarget _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::AstTrackingGroup::Single>(m, "AstTrackingGroupSingle")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AstTrackingGroup::Single {
+                        sem::AstTrackingGroup::Single result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("node", &sem::AstTrackingGroup::Single::node)
+    .def("__repr__", [](sem::AstTrackingGroup::Single _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::AstTrackingGroup::Single _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<sem::AstTrackingMap>(m, "AstTrackingMap")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AstTrackingMap {
                         sem::AstTrackingMap result{};

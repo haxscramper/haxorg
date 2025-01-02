@@ -157,14 +157,14 @@ struct [[refl]] AstTrackingAlternatives {
 };
 
 struct [[refl]] AstTrackingGroup {
-    struct RadioTarget {
-        sem::SemId<sem::Org>      target;
-        Vec<sem::SemId<sem::Org>> nodes;
+    struct [[refl]] RadioTarget {
+        [[refl]] AstTrackingPath           target;
+        [[refl]] Vec<sem::SemId<sem::Org>> nodes;
         DESC_FIELDS(RadioTarget, (nodes));
     };
 
-    struct Single {
-        sem::SemId<sem::Org> node;
+    struct [[refl]] Single {
+        [[refl]] sem::SemId<sem::Org> node;
         DESC_FIELDS(Single, (node));
     };
 
