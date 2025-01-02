@@ -193,11 +193,11 @@ struct [[refl]] AstTrackingGroup {
 /// \brief Fixed snapshot of all tracking information from a set of nodes.
 /// Mirrors the `ImmAstTrackingMap` API for shared pointer AST.
 struct [[refl]] AstTrackingMap {
-    [[refl]] UnorderedMap<Str, AstTrackingAlternatives>      footnotes;
-    [[refl]] UnorderedMap<Str, AstTrackingAlternatives>      subtrees;
-    [[refl]] UnorderedMap<Str, AstTrackingAlternatives>      names;
-    [[refl]] UnorderedMap<Str, AstTrackingAlternatives>      anchorTargets;
-    [[refl]] UnorderedMap<Str, Vec<AstTrackingAlternatives>> radioTargets;
+    [[refl]] UnorderedMap<Str, AstTrackingAlternatives> footnotes;
+    [[refl]] UnorderedMap<Str, AstTrackingAlternatives> subtrees;
+    [[refl]] UnorderedMap<Str, AstTrackingAlternatives> names;
+    [[refl]] UnorderedMap<Str, AstTrackingAlternatives> anchorTargets;
+    [[refl]] UnorderedMap<Str, AstTrackingAlternatives> radioTargets;
 
     [[refl]] Opt<AstTrackingAlternatives> getIdPath(Str const& id) const {
         return subtrees.get(id);

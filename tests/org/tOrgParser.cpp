@@ -1,7 +1,7 @@
 #include "tOrgTestCommon.hpp"
 
 
-TEST(OrgApi, NamedPropertyModification) {
+TEST(OrgParseSem, NamedPropertyModification) {
     auto doc = testParseString(R"(* Subtree)");
 
     auto tree = doc.at(0).as<sem::Subtree>();
@@ -15,7 +15,7 @@ TEST(OrgApi, NamedPropertyModification) {
     EXPECT_EQ(formatted.find(":bookmark_pos: 123"), -1) << formatted;
 }
 
-TEST(OrgApi, LinkAttachedGet1) {
+TEST(OrgParseSem, LinkAttachedGet1) {
     auto doc = testParseString(
         R"(#+attr_link: :attach-method copy :attach-on-export t
 [[attachment:image 1.jpg]]
@@ -37,7 +37,7 @@ TEST(OrgApi, LinkAttachedGet1) {
     EXPECT_EQ(arg0.getString(), "t");
 }
 
-TEST(OrgApi, TracerOperations1) {
+TEST(OrgParseSem, TracerOperations1) {
     auto     text = R"(
 * Subtree
   :properties:
@@ -79,7 +79,7 @@ TEST(OrgApi, TracerOperations1) {
 }
 
 
-TEST(OrgApi, ParagraphBody) {
+TEST(OrgParseSem, ParagraphBody) {
     {
         auto par = parseOne<sem::Paragraph>("NOTE: content");
         EXPECT_TRUE(par->hasAdmonition());
@@ -123,7 +123,7 @@ TEST(OrgApi, ParagraphBody) {
     }
 }
 
-TEST(OrgApi, CustomBlocks) {
+TEST(OrgParseSem, CustomBlocks) {
     auto block = parseOne<sem::BlockDynamicFallback>(
         R"(#+begin_random_content
 body of the random
@@ -136,7 +136,7 @@ body of the random
     EXPECT_EQ(body.at(0).as<sem::Word>()->text, "body");
 }
 
-TEST(OrgApi, BlockAttachment) {
+TEST(OrgParseSem, BlockAttachment) {
     {
         auto block = parseOne<sem::BlockExample>(
             R"(#+caption: example *caption*
@@ -167,7 +167,7 @@ content
     }
 }
 
-TEST(OrgApi, SubtreeProperties) {
+TEST(OrgParseSem, SubtreeProperties) {
     {
         auto t = parseOne<sem::Subtree>(
             R"(* Parent capturing statistics
@@ -245,7 +245,7 @@ TEST(OrgApi, SubtreeProperties) {
     }
 }
 
-TEST(OrgApi, HashtagParse) {
+TEST(OrgParseSem, HashtagParse) {
     using V = Vec<Vec<Str>>;
     {
         auto h = parseOne<sem::HashTag>("#hashtag");
@@ -288,7 +288,7 @@ TEST(OrgApi, HashtagParse) {
     }
 }
 
-TEST(OrgApi, SubtreeLogParsing) {
+TEST(OrgParseSem, SubtreeLogParsing) {
     {
         auto s = parseOne<sem::Subtree>(R"(**** COMPLETED Subtree
      CLOSED: [2000-01-03 Wed 10:43:40 +04]
@@ -443,7 +443,7 @@ TEST(OrgApi, SubtreeLogParsing) {
 }
 
 
-TEST(OrgApi, SubtreeTimesParsing) {
+TEST(OrgParseSem, SubtreeTimesParsing) {
 
     {
         auto t = parseOne<sem::Subtree>(R"(* Subtree
@@ -550,7 +550,7 @@ SCHEDULED: [2019-11-14 Thu 19:35]
     }
 }
 
-TEST(OrgApi, SubtreeTitleParsing) {
+TEST(OrgParseSem, SubtreeTitleParsing) {
     {
         auto t = parseOne<sem::Subtree>(R"(* Title [0/1])");
         auto c = t->completion.value();
@@ -567,7 +567,7 @@ TEST(OrgApi, SubtreeTitleParsing) {
     }
 }
 
-TEST(OrgApi, TextParsing) {
+TEST(OrgParseSem, TextParsing) {
     {
         auto w = parseOne<sem::Word>("test");
         EXPECT_EQ(w->text, "test"_ss);
@@ -601,7 +601,7 @@ TEST(OrgApi, TextParsing) {
     }
 }
 
-TEST(OrgApi, TblfmExpression) {
+TEST(OrgParseSem, TblfmExpression) {
     {
         auto t = parseOne<sem::CmdTblfm>(
             R"(#+TBLFM: $6=vsum($P1..$P3)::$7=10*$Tot/$max;%.1f::$at=vmean(@-2..@-1);%.1f)",
@@ -609,7 +609,7 @@ TEST(OrgApi, TblfmExpression) {
     }
 }
 
-TEST(OrgApi, LinkTarget) {
+TEST(OrgParseSem, LinkTarget) {
     {
         auto l = parseOne<sem::Link>(
             R"([[* Title]])", getDebugFile("subtree_title"));
@@ -638,7 +638,7 @@ TEST(OrgApi, LinkTarget) {
     }
 }
 
-TEST(OrgApi, ColumnView) {
+TEST(OrgParseSem, ColumnView) {
     {
         auto doc = parseOne<sem::Document>(
             R"(#+columns: %20ITEM %9Approved(Approved?){X} %Owner %11Status %10Time_Spent{:})",
@@ -659,7 +659,7 @@ TEST(OrgApi, ColumnView) {
     }
 }
 
-TEST(OrgApi, List) {
+TEST(OrgParseSem, List) {
     {
         auto l = parseOne<sem::List>("- Desc :: value");
         EXPECT_EQ(l.size(), 1);
@@ -692,7 +692,7 @@ TEST(OrgApi, List) {
     }
 }
 
-TEST(OrgApi, SubtreePropertyContext) {
+TEST(OrgParseSem, SubtreePropertyContext) {
     {
         auto t1 = parseOne<sem::Subtree>(
             R"(* Subtree
@@ -738,7 +738,7 @@ TEST(OrgApi, SubtreePropertyContext) {
     }
 }
 
-TEST(OrgApi, SubtreeTitle) {
+TEST(OrgParseSem, SubtreeTitle) {
     {
         auto t    = parseOne<sem::Subtree>(R"(* Subtree)");
         auto conv = immConv(t);
