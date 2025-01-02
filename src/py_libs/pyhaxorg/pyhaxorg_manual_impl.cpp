@@ -127,3 +127,12 @@ void eachSubnodeRec(sem::SemId<sem::Org> node, py::function callback) {
     sem::eachSubnodeRec(
         node, [&](sem::SemId<sem::Org> arg) { callback(arg); });
 }
+
+void eachSubnodeRecSimplePath(
+    sem::SemId<sem::Org> node,
+    py::function         callback) {
+    sem::eachSubnodeRecSimplePath(
+        node, [&](sem::OrgArg arg, sem::OrgVecArg path) {
+            callback(arg, path);
+        });
+}

@@ -449,3 +449,165 @@ void sem::insertListItemBody(
     item->subnodes = value;
     id->subnodes.insert(id->subnodes.begin() + index, item);
 }
+
+void sem::eachSubnodeRecSimplePath(
+    SemId<Org>               id,
+    SubnodeVisitorSimplePath cb) {
+    Func<void(sem::OrgArg, OrgVecArg path)> aux;
+
+    aux = [&](sem::OrgArg node, OrgVecArg path) {
+        cb(node, path);
+        for (auto const& sub : node->getAllSubnodes()) {
+            aux(sub, path + Vec<SemId<Org>>{node});
+        }
+    };
+
+    aux(id, {});
+}
+
+AstTrackingMap sem::getAstTrackingMap(const Vec<sem::SemId<Org>>& nodes) {
+    AstTrackingMap res;
+
+    for (auto const& node : nodes) {
+        sem::eachSubnodeRecSimplePath(
+            node, [&](sem::OrgArg node, CR<Vec<SemId<Org>>> path) {
+                auto add_string_tracking =
+                    [&](UnorderedMap<Str, AstTrackingAlternatives>& map,
+                        CR<Str>                                     key,
+                        Vec<SemId<Org>> target) {
+                        map.get_or_insert(key, AstTrackingAlternatives{})
+                            .alternatives.push_back(
+                                AstTrackingPath{.path = path + target});
+                    };
+
+                if (auto tree = node.asOpt<Subtree>()) {
+                    if (auto id = tree->treeId) {
+                        add_string_tracking(
+                            res.subtrees, id.value(), {node});
+                    }
+
+                    for (auto const& radio :
+                         getSubtreeProperties<sem::NamedProperty::RadioId>(
+                             tree)) {
+                        add_string_tracking(
+                            res.radioTargets, radio.words.at(0), {node});
+                    }
+
+                } else if (auto par = node.asOpt<Paragraph>()) {
+                    if (auto id = par->getFootnoteName()) {
+                        add_string_tracking(
+                            res.footnotes, id.value(), {par});
+                    }
+
+                    for (auto const& target :
+                         par.subAs<sem::RadioTarget>()) {
+                        add_string_tracking(
+                            res.radioTargets,
+                            target->words.at(0),
+                            {par.asOrg(), target.asOrg()});
+                    }
+                }
+            });
+    }
+
+    return res;
+}
+
+namespace {
+
+
+struct RadioTargetSearchResult {
+    Opt<AstTrackingGroup::RadioTarget> target;
+    int                                nextGroupIdx;
+};
+
+/// Mirror of the `tryRadioTargetSearch` implementation for immutable AST.
+RadioTargetSearchResult tryRadioTargetSearch(
+    auto const&         words,
+    OrgVecArg           sub,
+    CR<int>             groupingIdx,
+    CR<AstTrackingPath> target) {
+    // FIXME After this code is properly tested for both implementations I
+    // might move it to the shared API in some form.
+    int                     sourceOffset = 0;
+    int                     radioOffset  = 0;
+    RadioTargetSearchResult result;
+    while (radioOffset < words.size()
+           && (groupingIdx + sourceOffset) < sub.size()) {
+        auto atSource   = sub.at(groupingIdx + sourceOffset);
+        auto sourceWord = atSource->dyn_cast<sem::Leaf>();
+        if (sourceWord == nullptr) {
+            return result;
+        } else if (sourceWord->text == words.at(radioOffset)) {
+            if (radioOffset == (words.size() - 1)) {
+                auto range = slice(
+                    groupingIdx, groupingIdx + sourceOffset);
+                result.target = AstTrackingGroup::RadioTarget{
+                    .target = target,
+                    .nodes  = Vec<SemIdOrg>{sub.at(range)}};
+                result.nextGroupIdx = groupingIdx + sourceOffset;
+                return result;
+            } else {
+                ++sourceOffset;
+                ++radioOffset;
+            }
+        } else if (atSource->is(OrgSemKind::Space)) {
+            ++sourceOffset;
+        } else {
+            return result;
+        }
+    }
+
+    return result;
+}
+
+} // namespace
+
+Vec<AstTrackingGroup> sem::getSubnodeGroups(
+    sem::SemId<Org>       node,
+    const AstTrackingMap& map) {
+    using G = AstTrackingGroup;
+    Vec<G>      res;
+    auto const& sub = node->subnodes;
+
+    for (int idx = 0; idx < sub.size(); ++idx) {
+        auto const& it = sub.at(idx);
+        if (auto leaf = it->dyn_cast<sem::Leaf>();
+            leaf != nullptr && !leaf->is(OrgSemKind::Space)) {
+            auto radioTargets = map.radioTargets.find(leaf->text);
+            if (radioTargets == map.radioTargets.end()) {
+                res.push_back(G{G::Single{it}});
+            } else {
+                RadioTargetSearchResult search;
+                for (CR<AstTrackingPath> alt :
+                     radioTargets->second.alternatives) {
+                    if (auto tree = alt.getNode().asOpt<Subtree>()) {
+                        for (auto const& prop : sem::getSubtreeProperties<
+                                 sem::NamedProperty::RadioId>(tree)) {
+                            search = tryRadioTargetSearch(
+                                prop.words, sub, idx, alt);
+                            if (search.target) { goto radio_search_exit; }
+                        }
+                    } else if (
+                        auto target = alt.getNode().asOpt<RadioTarget>()) {
+                        search = tryRadioTargetSearch(
+                            target->words, sub, idx, alt);
+                        if (search.target) { goto radio_search_exit; }
+                    }
+                }
+
+            radio_search_exit:
+                if (search.target) {
+                    res.push_back(G{search.target.value()});
+                    idx = search.nextGroupIdx;
+                } else {
+                    res.push_back(G{G::Single{it}});
+                }
+            }
+        } else {
+            res.push_back(G{G::Single{it}});
+        }
+    }
+
+    return res;
+}

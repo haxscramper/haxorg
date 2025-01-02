@@ -5,6 +5,7 @@
 #include <hstd/stdlib/Span.hpp>
 #include <hstd/stdlib/sequtils.hpp>
 #include <boost/container/small_vector.hpp>
+#include <hstd/system/exceptions.hpp>
 
 
 #include <vector>
@@ -38,17 +39,17 @@ struct IndexedBase : public CRTP_this_method<Container> {
     /// \brief helper assertion to fail if the vector is empty.
     void failEmpty() const {
         if (_this()->empty()) {
-            throw std::out_of_range(
+            throw out_of_range_error::init(
                 "Operation does not work with an empty vector");
         }
     }
 
     void checkIdx(int idx) const {
         if (idx < 0) {
-            throw std::out_of_range(
+            throw out_of_range_error::init(
                 "Operation does not support negative indices");
         } else if (!(idx < _this()->size())) {
-            throw std::out_of_range(
+            throw out_of_range_error::init(
                 std::string("Value out of range. idx < size(): ")
                 + std::to_string(idx) + std::string(" !< ")
                 + std::to_string(_this()->size()));

@@ -580,22 +580,6 @@ struct ImmSemSerde<sem::BigIdent, org::ImmBigIdent> {
 };
 
 template <>
-struct ImmSemSerde<sem::RadioTarget, org::ImmRadioTarget> {
-  static org::ImmRadioTarget to_immer(sem::RadioTarget const& value, ImmAstEditContext& ctx) {
-    org::ImmRadioTarget result = SerdeDefaultProvider<org::ImmRadioTarget>::get();
-    assign_immer_field(result.text, value.text, ctx);
-    assign_immer_field(result.subnodes, value.subnodes, ctx);
-    return result;
-  }
-  static sem::RadioTarget from_immer(org::ImmRadioTarget const& value, ImmAstContext const& ctx) {
-    sem::RadioTarget result = SerdeDefaultProvider<sem::RadioTarget>::get();
-    assign_sem_field(result.text, value.text, ctx);
-    assign_sem_field(result.subnodes, value.subnodes, ctx);
-    return result;
-  }
-};
-
-template <>
 struct ImmSemSerde<sem::TextTarget, org::ImmTextTarget> {
   static org::ImmTextTarget to_immer(sem::TextTarget const& value, ImmAstEditContext& ctx) {
     org::ImmTextTarget result = SerdeDefaultProvider<org::ImmTextTarget>::get();
@@ -718,6 +702,22 @@ struct ImmSemSerde<sem::Par, org::ImmPar> {
   }
   static sem::Par from_immer(org::ImmPar const& value, ImmAstContext const& ctx) {
     sem::Par result = SerdeDefaultProvider<sem::Par>::get();
+    assign_sem_field(result.subnodes, value.subnodes, ctx);
+    return result;
+  }
+};
+
+template <>
+struct ImmSemSerde<sem::RadioTarget, org::ImmRadioTarget> {
+  static org::ImmRadioTarget to_immer(sem::RadioTarget const& value, ImmAstEditContext& ctx) {
+    org::ImmRadioTarget result = SerdeDefaultProvider<org::ImmRadioTarget>::get();
+    assign_immer_field(result.words, value.words, ctx);
+    assign_immer_field(result.subnodes, value.subnodes, ctx);
+    return result;
+  }
+  static sem::RadioTarget from_immer(org::ImmRadioTarget const& value, ImmAstContext const& ctx) {
+    sem::RadioTarget result = SerdeDefaultProvider<sem::RadioTarget>::get();
+    assign_sem_field(result.words, value.words, ctx);
     assign_sem_field(result.subnodes, value.subnodes, ctx);
     return result;
   }

@@ -114,11 +114,142 @@ struct [[refl]] OrgTreeExportOpts {
     std::string                 path,
     OrgTreeExportOpts const&    opts);
 
+/// \brief Full path to an AST tracking target.
+struct [[refl]] AstTrackingPath {
+    [[refl]] Vec<sem::SemId<sem::Org>> path;
+    DESC_FIELDS(AstTrackingPath, (path));
 
-using SubnodeVisitor = Func<void(SemId<Org> const&)>;
+    [[refl]] sem::SemId<sem::Org> getParent(int offset = 0) const {
+        int pos = path.high() - 1 - offset;
+        LOGIC_ASSERTION_CHECK(
+            path.has(pos),
+            "Trying to get parent with offset {}, target index is {} but "
+            "path only has {} items",
+            offset,
+            pos,
+            path.size());
+
+        return path.at(pos);
+    }
+    [[refl]] sem::SemId<sem::Org> getNode() const { return path.back(); }
+};
+
+/// \brief Group of the alternative AST tracking paths. If the list of
+/// input subtrees has multiple elements with identical names, or IDs, all
+/// of them are recorded, since it is not possible to know whether
+/// duplicate IDs is an issue for the caller code, or it can resolve them.
+struct [[refl]] AstTrackingAlternatives {
+    Vec<AstTrackingPath> alternatives;
+    DESC_FIELDS(AstTrackingAlternatives, (alternatives));
+
+    /// \brief Return final nodes for all tracking alternatives.
+    [[refl]] Vec<sem::SemId<sem::Org>> getAllNodes() const {
+        return alternatives //
+             | rv::transform(
+                   [](AstTrackingPath const& p) { return p.getNode(); })
+             | rs::to<Vec>();
+    }
+
+    /// \brief Return first node from the alternatives.
+    [[refl]] sem::SemId<sem::Org> getNode() const {
+        return alternatives.at(0).getNode();
+    }
+};
+
+struct [[refl]] AstTrackingGroup {
+    struct [[refl]] RadioTarget {
+        [[refl]] AstTrackingPath           target;
+        [[refl]] Vec<sem::SemId<sem::Org>> nodes;
+        DESC_FIELDS(RadioTarget, (nodes));
+    };
+
+    struct [[refl]] Single {
+        [[refl]] sem::SemId<sem::Org> node;
+        DESC_FIELDS(Single, (node));
+    };
+
+    Variant<RadioTarget, Single> data;
+    DESC_FIELDS(AstTrackingGroup, (data));
+
+    enum class [[refl]] Kind
+    {
+        RadioTarget,
+        Single,
+    };
+
+    BOOST_DESCRIBE_NESTED_ENUM(Kind, RadioTarget, Single);
+
+    Kind getKind() const { return static_cast<Kind>(data.index()); }
+
+    [[refl]] RadioTarget const& getRadioTarget() const {
+        return std::get<RadioTarget>(data);
+    }
+
+    [[refl]] Single const& getSingle() const {
+        return std::get<Single>(data);
+    }
+
+    [[refl]] RadioTarget& getRadioTarget() {
+        return std::get<RadioTarget>(data);
+    }
+
+    [[refl]] Single& getSingle() { return std::get<Single>(data); }
+
+    [[refl]] bool isSingle() const { return getKind() == Kind::Single; }
+
+    [[refl]] bool isRadioTarget() const {
+        return getKind() == Kind::RadioTarget;
+    }
+};
+
+/// \brief Fixed snapshot of all tracking information from a set of nodes.
+/// Mirrors the `ImmAstTrackingMap` API for shared pointer AST.
+struct [[refl]] AstTrackingMap {
+    [[refl]] UnorderedMap<Str, AstTrackingAlternatives> footnotes;
+    [[refl]] UnorderedMap<Str, AstTrackingAlternatives> subtrees;
+    [[refl]] UnorderedMap<Str, AstTrackingAlternatives> names;
+    [[refl]] UnorderedMap<Str, AstTrackingAlternatives> anchorTargets;
+    [[refl]] UnorderedMap<Str, AstTrackingAlternatives> radioTargets;
+
+    DESC_FIELDS(
+        AstTrackingMap,
+        (footnotes, subtrees, names, anchorTargets, radioTargets));
+
+    [[refl]] Opt<AstTrackingAlternatives> getIdPath(Str const& id) const {
+        return subtrees.get(id);
+    }
+
+    [[refl]] Opt<AstTrackingAlternatives> getNamePath(
+        Str const& id) const {
+        return names.get(id);
+    }
+
+
+    [[refl]] Opt<AstTrackingAlternatives> getAnchorTarget(
+        Str const& id) const {
+        return anchorTargets.get(id);
+    }
+
+    [[refl]] Opt<AstTrackingAlternatives> getFootnotePath(
+        Str const& id) const {
+        return names.get(id);
+    }
+};
+
+[[refl]] AstTrackingMap getAstTrackingMap(
+    Vec<sem::SemId<sem::Org>> const& nodes);
+
+[[refl]] Vec<AstTrackingGroup> getSubnodeGroups(
+    sem::SemId<sem::Org>  node,
+    AstTrackingMap const& map);
+
+using SubnodeVisitor           = Func<void(SemId<Org> const&)>;
+using SubnodeVisitorSimplePath = Func<
+    void(SemId<Org> const&, Vec<SemId<Org>> const& path)>;
 /// \brief Recursively visit each subnode in the tree and apply the
 /// provided callback
 void eachSubnodeRec(SemId<Org> id, SubnodeVisitor cb);
+void eachSubnodeRecSimplePath(SemId<Org> id, SubnodeVisitorSimplePath cb);
 
 template <typename T, typename Func>
 Vec<T> getDfsFuncEval(SemId<Org> id, Func const& cb) {

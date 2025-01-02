@@ -111,6 +111,93 @@ TEST_F(ImmOrgApi, ItearteParentNodes) {
     }
 }
 
+TEST_F(ImmOrgApi, RadioLinkDetection) {
+    setTraceFile(getDebugFile("trace.log"));
+    org::ImmAstVersion init = getInitialVersion(R"(
+<<<radiotarget>>> Paragraph with radio links
+
+Other paragraph mentions radiotarget
+)");
+
+    org::ImmAdapter root = init.getRootAdapter();
+    writeTreeRepr(root, "repr.txt");
+
+    org::ImmAdapter par1 = root.at(1);
+    EXPECT_EQ(par1.getKind(), OrgSemKind::Paragraph);
+    org::ImmAdapter radio = par1.at(0);
+    EXPECT_EQ(radio.getKind(), OrgSemKind::RadioTarget);
+    org::ImmAdapter par2 = root.at(3);
+    EXPECT_EQ(par2.getKind(), OrgSemKind::Paragraph);
+    Vec<org::ImmSubnodeGroup> grouped = org::getSubnodeGroups(par2);
+    EXPECT_EQ(grouped.size(), 7);
+    EXPECT_TRUE(grouped.at(0).isSingle());
+    EXPECT_TRUE(grouped.at(6).isRadioTarget());
+    EXPECT_EQ(grouped.at(6).getRadioTarget().target, radio.id);
+}
+
+
+TEST_F(ImmOrgApi, RadioLinkDetectionForSubtree) {
+    setTraceFile(getDebugFile("trace.log"));
+    org::ImmAstVersion init = getInitialVersion(R"(
+* Subtree with item description
+  :properties:
+  :radio_id: alias1
+  :radio_id: alias2
+  :radio_id: human-readable alias
+  :end:
+
+* Other subtree
+
+alias1 is a thing
+
+alias2 is a thing
+
+also known as a human-readable alias
+)");
+
+    org::ImmAdapter root = init.getRootAdapter();
+    writeTreeRepr(root, "repr.txt");
+    org::ImmAdapter t1 = root.at(1);
+    EXPECT_EQ(t1.getKind(), OrgSemKind::Subtree);
+    org::ImmAdapter t2 = root.at(2);
+    EXPECT_EQ(t2.getKind(), OrgSemKind::Subtree);
+
+    org::ImmAdapterT<org::ImmSubtree>
+        treeAdapter = t1.as<org::ImmSubtree>();
+
+    Vec<sem::NamedProperty> radioAliases = treeAdapter.getProperties(
+        "radio_id");
+
+    EXPECT_EQ(radioAliases.size(), 3);
+    EXPECT_EQ(radioAliases.at(0).getRadioId().words, Vec<Str>{"alias1"});
+    EXPECT_EQ(radioAliases.at(1).getRadioId().words, Vec<Str>{"alias2"});
+    EXPECT_EQ(
+        radioAliases.at(2).getRadioId().words,
+        (Vec<Str>{"human-readable", "alias"}));
+
+    org::ImmAdapter par_alias1 = t2.at(0);
+    org::ImmAdapter par_alias2 = t2.at(2);
+    org::ImmAdapter par_human  = t2.at(4);
+
+    EXPECT_EQ(par_alias1.getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(par_alias2.getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(par_human.getKind(), OrgSemKind::Paragraph);
+
+    auto group_alias1 = org::getSubnodeGroups(par_alias1);
+    EXPECT_EQ(group_alias1.size(), 7);
+    EXPECT_TRUE(group_alias1.at(0).isRadioTarget());
+    EXPECT_EQ(group_alias1.at(0).getRadioTarget().target, t1.id);
+
+    auto group_alias2 = org::getSubnodeGroups(par_alias2);
+    EXPECT_EQ(group_alias2.size(), 7);
+    EXPECT_TRUE(group_alias2.at(0).isRadioTarget());
+    EXPECT_EQ(group_alias2.at(0).getRadioTarget().target, t1.id);
+
+    auto group_human = org::getSubnodeGroups(par_human);
+    EXPECT_EQ(group_human.size(), 9);
+    EXPECT_TRUE(group_human.at(1_B).isRadioTarget());
+    EXPECT_EQ(group_human.at(1_B).getRadioTarget().target, t1.id);
+}
 
 TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {
     setTraceFile(getDebugFile("trace.txt"));
@@ -119,15 +206,17 @@ TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {
     };
 
 
-    auto start_node   = testParseString("word0 word2 word4");
-    auto replace_node = testParseString("wordXX").at(0).at(0);
-    auto version1     = start->init(start_node);
-    auto store        = version1.context;
-    auto paragraph    = version1.getRootAdapter().at(0);
-    auto ctx          = store->getEditContext();
-    auto __absl_scope = ctx.collectAbslLogs();
-    auto word_xx      = store->add(replace_node, ctx);
-    auto version2     = store->finishEdit(
+    sem::SemId<sem::Org> start_node = testParseString("word0 word2 word4");
+    sem::SemId<sem::Org> replace_node = testParseString("wordXX").at(0).at(
+        0);
+
+    org::ImmAstVersion      version1     = start->init(start_node);
+    org::ImmAstContext::Ptr store        = version1.context;
+    org::ImmAdapter         paragraph    = version1.getRootAdapter().at(0);
+    org::ImmAstEditContext  ctx          = store->getEditContext();
+    auto                    __absl_scope = ctx.collectAbslLogs();
+    auto                    word_xx      = store->add(replace_node, ctx);
+    auto                    version2     = store->finishEdit(
         ctx,
         ctx.store().cascadeUpdate(
             version1.getRootAdapter(),

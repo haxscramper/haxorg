@@ -78,12 +78,15 @@ static const IntSet<slk> SkipLinks{
 };
 
 bool org::graph::hasGraphAnnotations(const ImmAdapterT<ImmSubtree>& par) {
-    return par->treeId->has_value();
+    return par->treeId->has_value()
+        || !org::getSubtreeProperties<sem::NamedProperty::RadioId>(
+                par.value())
+                .empty();
 }
 
 bool org::graph::hasGraphAnnotations(
     const ImmAdapterT<ImmParagraph>& par) {
-    for (auto const& node : par.sub()) {
+    for (auto const& node : par.sub(false)) {
         if (node.is(OrgSemKind::RadioTarget)) {
             return true;
         } else if (auto link = node.asOpt<org::ImmLink>();
@@ -109,8 +112,15 @@ void removeUnresolvedNodeProps(
             MapNodeProp prop = props[node];
             rs::actions::remove_if(
                 prop.unresolved, [&](CR<MapLink> old) -> bool {
-                    bool result = old.link == op.link.link;
-                    return result;
+                    if (old.isLink() && op.link.isLink()) {
+                        return old.getLink().link
+                            == op.link.getLink().link;
+                    } else if (old.isRadio() && op.link.isRadio()) {
+                        return old.getRadio().target
+                            == op.link.getRadio().target;
+                    } else {
+                        return false;
+                    }
                 });
 
             props.insert_or_assign(node, prop);
@@ -203,19 +213,19 @@ void traceNodeResolve(
         if (outputState.graph.nodeProps.find(mapNode) != nullptr) {
             for (auto const& u :
                  outputState.graph.at(mapNode).unresolved) {
-                GRAPH_MSG(fmt(">> g[v] unresolved {}", u.link));
+                GRAPH_MSG(fmt(">> g[v] unresolved {}", u));
             }
         } else {
             GRAPH_MSG(fmt(">> new node, no preexisting unresolved"));
         }
 
         for (auto const& u : resolved_node.node.unresolved) {
-            GRAPH_MSG(fmt("<<- updated unresolved {}", u.link));
+            GRAPH_MSG(fmt("<<- updated unresolved {}", u));
         }
         for (auto const& u : resolved_node.resolved) {
             GRAPH_MSG(
                 fmt("<<+ updated resolved {} {}->{}",
-                    u.link.link,
+                    u.link,
                     u.source,
                     u.target));
         }
@@ -273,7 +283,7 @@ Opt<MapLink> org::graph::getUnresolvedLink(
     if (SkipLinks.contains(link->target.getKind())) {
         return std::nullopt;
     } else {
-        return MapLink{
+        return MapLink{MapLink::Link{
             .link = link,
             .description //
             = link->description.get()
@@ -283,7 +293,7 @@ Opt<MapLink> org::graph::getUnresolvedLink(
                           org::ImmReflFieldId::FromTypeField(
                               &org::ImmLink::description)))}
                 : Vec<org::ImmAdapter>{},
-        };
+        }};
     }
 }
 
@@ -312,11 +322,11 @@ Vec<MapLink> org::graph::getUnresolvedSubtreeLinks(
                         // non-link elements. These are ignored in the
                         // mind map.
                         if (!SkipLinks.contains(link->target.getKind())) {
-                            MapLink map_link{.link = link};
+                            MapLink::Link map_link{.link = link};
                             for (auto const& sub : item.sub()) {
                                 map_link.description.push_back(sub);
                             }
-                            unresolved.push_back(map_link);
+                            unresolved.push_back(MapLink{map_link});
                         }
                     }
                 }
@@ -394,90 +404,99 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
     MapConfig&           conf) {
 
     GRAPH_MSG(fmt("Get resolve targets {} {}", source, link));
-    GRAPH_MSG(fmt("footnotes {}", s.ast->currentTrack->footnotes));
-    GRAPH_MSG(fmt("subtrees {}", s.ast->currentTrack->subtrees));
-    GRAPH_MSG(fmt("names {}", s.ast->currentTrack->names));
+
 
     Vec<MapLinkResolveResult> result;
 
-    auto add_edge = [&](org::ImmId const& target) {
-        auto adapters = s.ast->getAdaptersFor(target);
-        LOGIC_ASSERTION_CHECK(
-            !adapters.empty(),
-            "Target node {} does not have any parent adapters tracked",
-            target);
+    if (link.isRadio()) {
+        // Unresolved radio link already contains all the information for
+        // creating edge. This only happens when the node itself has not
+        // been added to the graph.
+        result.push_back(MapLinkResolveResult{
+            .link   = link,
+            .target = MapNode{link.getRadio().target.uniq()},
+            .source = source,
+        });
+    } else {
+        GRAPH_MSG(fmt("footnotes {}", s.ast->currentTrack->footnotes));
+        GRAPH_MSG(fmt("subtrees {}", s.ast->currentTrack->subtrees));
+        GRAPH_MSG(fmt("names {}", s.ast->currentTrack->names));
 
-        for (auto const& full : adapters) {
-            result.push_back(MapLinkResolveResult{
-                .link   = link,
-                .target = MapNode{full.uniq()},
-                .source = source,
-            });
-        }
-    };
+        auto add_edge = [&](org::ImmId const& target) {
+            auto adapters = s.ast->getAdaptersFor(target);
+            LOGIC_ASSERTION_CHECK(
+                !adapters.empty(),
+                "Target node {} does not have any parent adapters tracked",
+                target);
 
-    switch (link.link->target.getKind()) {
-        case slk::Id: {
-            auto text = link.link->target.getId().text;
-            if (auto target = s.ast->currentTrack->subtrees.get(text)) {
-                GRAPH_MSG(
-                    fmt("Subtree ID {} on {} resolved to {}",
-                        text,
-                        source,
-                        *target));
-                add_edge(*target);
-            } else {
-                GRAPH_MSG(fmt("Not subtree with ID {}", text));
+            for (auto const& full : adapters) {
+                result.push_back(MapLinkResolveResult{
+                    .link   = link,
+                    .target = MapNode{full.uniq()},
+                    .source = source,
+                });
             }
-            break;
-        }
+        };
 
-        case slk::Footnote: {
-            CR<Str> text = link.link->target.getFootnote().target;
-            if (auto target = s.ast->currentTrack->footnotes.get(text)) {
-                GRAPH_MSG(
-                    fmt("Footnote name {} on {} resolved to {}",
-                        text,
-                        source,
-                        *target));
-                add_edge(*target);
-            } else {
-                GRAPH_MSG(fmt("No footnote with ID {}", text));
+        CR<MapLink::Link> spec = link.getLink();
+        switch (spec.link->target.getKind()) {
+            case slk::Id: {
+                auto text = spec.link->target.getId().text;
+                if (auto target = s.ast->currentTrack->subtrees.get(
+                        text)) {
+                    GRAPH_MSG(
+                        fmt("Subtree ID {} on {} resolved to {}",
+                            text,
+                            source,
+                            *target));
+                    add_edge(*target);
+                } else {
+                    GRAPH_MSG(fmt("Not subtree with ID {}", text));
+                }
+                break;
             }
-            break;
-        }
 
-        case slk::Internal: {
-            CR<Str> text = link.link->target.getInternal().target;
-            if (auto target = s.ast->currentTrack->radioTargets.get(
-                    text)) {
-                GRAPH_MSG(fmt(
-                    "Internal link name '{}' on '{}' resolved to radio "
-                    "target '{}'",
-                    text,
-                    source,
-                    *target));
-                add_edge(*target);
-            } else if (
-                auto target = s.ast->currentTrack->names.get(text)) {
-                GRAPH_MSG(fmt(
-                    "Internal link name '{}' on '{}' resolved to named "
-                    "node '{}'",
-                    text,
-                    source,
-                    *target));
-                add_edge(*target);
-            } else {
-                GRAPH_MSG(fmt("No internal link with ID '{}'", text));
+            case slk::Footnote: {
+                CR<Str> text = spec.link->target.getFootnote().target;
+                if (auto target = s.ast->currentTrack->footnotes.get(
+                        text)) {
+                    GRAPH_MSG(
+                        fmt("Footnote name {} on {} resolved to {}",
+                            text,
+                            source,
+                            *target));
+                    add_edge(*target);
+                } else {
+                    GRAPH_MSG(fmt("No footnote with ID {}", text));
+                }
+                break;
             }
-            break;
-        }
 
-        default: {
-            throw logic_unreachable_error::init(fmt(
-                "Unhandled link kind '{}'", link.link->target.getKind()));
+            case slk::Internal: {
+                CR<Str> text = spec.link->target.getInternal().target;
+                if (auto target = s.ast->currentTrack->names.get(text)) {
+                    GRAPH_MSG(
+                        fmt("Internal link name '{}' on '{}' resolved to "
+                            "named "
+                            "node '{}'",
+                            text,
+                            source,
+                            *target));
+                    add_edge(*target);
+                } else {
+                    GRAPH_MSG(fmt("No internal link with ID '{}'", text));
+                }
+                break;
+            }
+
+            default: {
+                throw logic_unreachable_error::init(
+                    fmt("Unhandled link kind '{}'",
+                        spec.link->target.getKind()));
+            }
         }
     }
+
 
     return result;
 }
@@ -493,10 +512,65 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
     result.node.unresolved.clear();
     GRAPH_MSG(fmt("Get unresolved for node {}", node.id));
 
+    auto ctx = node.id.ctx.lock();
+
     LOGIC_ASSERTION_CHECK(
         s.unresolved.find(MapNode{node.id.uniq()}) == nullptr,
         "Node {} is already marked as unresolved in the graph",
         node.id);
+
+    {
+        auto __scope = conf.scopeLevel();
+        GRAPH_MSG(fmt("Collecting radio targets in graph"));
+
+        auto found_radio_target_node = [&](CR<org::ImmAdapter> radio) {
+            if (s.graph.isRegisteredNode(radio.uniq())) {
+                GRAPH_MSG(
+                    fmt("Detected radio target from node {} "
+                        "to target {}, which is a resolved "
+                        "graph node. ",
+                        node.id,
+                        radio));
+                result.resolved.push_back(MapLinkResolveResult{
+                    .source = MapNode{node.id.uniq()},
+                    .target = MapNode{radio.uniq()},
+                });
+            } else {
+                GRAPH_MSG(
+                    fmt("Radio target {} from node {} is not "
+                        "a resolved graph node.",
+                        radio,
+                        node.id));
+                result.node.unresolved.push_back(
+                    MapLink{MapLink::Radio{.target = radio}});
+            }
+        };
+
+        if (auto par = node.id.asOpt<org::ImmParagraph>()) {
+            for (auto const& group : getSubnodeGroups(node.id)) {
+                GRAPH_MSG(fmt("Group {}", group));
+                if (group.isRadioTarget()) {
+                    auto groupTarget = group.getRadioTarget().target;
+                    if (groupTarget.is(OrgSemKind::Subtree)) {
+                        for (auto const& subtree :
+                             ctx->getPathsFor(groupTarget)) {
+                            found_radio_target_node(ctx->adapt(subtree));
+                        }
+                    } else if (groupTarget.is(OrgSemKind::RadioTarget)) {
+                        for (org::ImmAdapter const& radio :
+                             ctx->getParentPathsFor(groupTarget)) {
+                            found_radio_target_node(radio);
+                        }
+                    } else {
+                        LOGIC_ASSERTION_CHECK(
+                            false,
+                            "Unexpected subnode group target kind {}",
+                            groupTarget.getKind())
+                    }
+                }
+            }
+        }
+    }
 
 
     {
@@ -594,6 +668,8 @@ void org::graph::addNode(
         GRAPH_MSG("ID maps to graph node");
         auto __init = conf.scopeLevel();
         registerNode(g, *prop, conf);
+    } else {
+        GRAPH_MSG(fmt("No initial properties for {}, skipping", node.id));
     }
 }
 
@@ -721,9 +797,16 @@ Graphviz::Node::Record MapGraph::GvConfig::getDefaultNodeLabel(
     rec.setHtml("test", hshow1("random").toHtml());
 
     for (auto const& [idx, unresolved] : enumerate(prop.unresolved)) {
-        rec.setEscaped(
-            fmt("Unresolved [{}]", unresolved.link.id),
-            to_json_eval(unresolved.link.value()).dump(2));
+        if (unresolved.isLink()) {
+            rec.setEscaped(
+                fmt("Unresolved link [{}]", unresolved.getLink().link.id),
+                to_json_eval(unresolved.getLink().link.value()).dump(2));
+        } else {
+            rec.setEscaped(
+                fmt("Unresolved radio [{}]",
+                    unresolved.getRadio().target.id),
+                "radio target");
+        }
     }
 
     return rec;

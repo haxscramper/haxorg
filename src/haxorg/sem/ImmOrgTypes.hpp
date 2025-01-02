@@ -650,20 +650,6 @@ struct ImmBigIdent : public org::ImmLeaf {
   bool operator==(org::ImmBigIdent const& other) const;
 };
 
-/// \brief ~<<<target>>>~
-struct ImmRadioTarget : public org::ImmLeaf {
-  using ImmLeaf::ImmLeaf;
-  virtual ~ImmRadioTarget() = default;
-  BOOST_DESCRIBE_CLASS(ImmRadioTarget,
-                       (ImmLeaf),
-                       (),
-                       (),
-                       (staticKind))
-  static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::RadioTarget; }
-  bool operator==(org::ImmRadioTarget const& other) const;
-};
-
 /// \brief ~<<target>>~
 struct ImmTextTarget : public org::ImmLeaf {
   using ImmLeaf::ImmLeaf;
@@ -791,6 +777,22 @@ struct ImmPar : public org::ImmMarkup {
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::Par; }
   bool operator==(org::ImmPar const& other) const;
+};
+
+/// \brief ~<<<target>>>~
+struct ImmRadioTarget : public org::ImmOrg {
+  using ImmOrg::ImmOrg;
+  virtual ~ImmRadioTarget() = default;
+  BOOST_DESCRIBE_CLASS(ImmRadioTarget,
+                       (ImmOrg),
+                       (),
+                       (),
+                       (staticKind,
+                        words))
+  static OrgSemKind const staticKind;
+  ImmVec<Str> words = {};
+  virtual OrgSemKind getKind() const { return OrgSemKind::RadioTarget; }
+  bool operator==(org::ImmRadioTarget const& other) const;
 };
 
 /// \brief Latex code body

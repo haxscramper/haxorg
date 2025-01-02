@@ -2,6 +2,7 @@ from py_cli.scratch_scripts import story_grid
 from py_cli.scratch_scripts import activity_analysis
 from py_cli.scratch_scripts import subtree_clocking
 from py_cli.scratch_scripts import node_clouds
+from py_cli.scratch_scripts import codex_tracking
 from py_exporters import export_sqlite
 from click.testing import CliRunner, Result
 from tempfile import TemporaryDirectory
@@ -128,6 +129,44 @@ def test_subtree_clocking():
 
         df = pd.read_csv(csv_file)
         assert df["tags"][0] == "tag##sub1,tag2"
+
+def test_codex_tracking():
+    runner = CliRunner()
+    with TemporaryDirectory() as tmp_dir:
+        dir = Path(tmp_dir)
+        dir = Path("/tmp/codex_tracking")
+        dir.mkdir(parents=True, exist_ok=True)
+
+        target_file = dir.joinpath("target.org")
+        codex_file = dir.joinpath("codex.org")
+        outfile = dir.joinpath("result.txt")
+
+        target_file.write_text("""
+Some random text that can mention, using ABBR radio ID
+
+Sentence with Character name should trigger radio target detection
+        """)
+
+        codex_file.write_text("""
+* Subtree
+  :properties:
+  :radio_id: ABBR 
+  :end:
+
+* Character description
+  :properties:
+  :radio_id: Character name
+  :end:
+
+        """)
+
+        result = runner.invoke(codex_tracking.cli, [
+            f"--target_file={target_file}",
+            f"--codex_files={codex_file}",
+            f"--outfile={outfile}",
+        ])
+
+        check_cli(result)
 
 
 @pytest.mark.unstable

@@ -61,6 +61,11 @@ void writeDebugFile(
 }
 
 void createDirectory(const fs::path& target, bool parents, bool existsOk) {
+    if (target.native().empty()) {
+        throw FilesystemError{
+            fmt("Cannot create directory, target is empty")};
+    }
+
     if (fs::is_regular_file(target)) {
         throw FilesystemError(
             fmt("Cannot create directory {} -- the file with this name "

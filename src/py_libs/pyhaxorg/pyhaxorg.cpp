@@ -58,10 +58,14 @@ PYBIND11_MAKE_OPAQUE(std::vector<UserTime>)
 PYBIND11_MAKE_OPAQUE(Vec<UserTime>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Time>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Time>>)
+PYBIND11_MAKE_OPAQUE(std::unordered_map<Str, sem::AstTrackingAlternatives>)
+PYBIND11_MAKE_OPAQUE(UnorderedMap<Str, sem::AstTrackingAlternatives>)
 PYBIND11_MAKE_OPAQUE(std::vector<SequenceSegment>)
 PYBIND11_MAKE_OPAQUE(Vec<SequenceSegment>)
 PYBIND11_MAKE_OPAQUE(std::vector<SequenceAnnotationTag>)
 PYBIND11_MAKE_OPAQUE(Vec<SequenceAnnotationTag>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::AstTrackingGroup>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::AstTrackingGroup>)
 PYBIND11_MAKE_OPAQUE(std::vector<SequenceAnnotation>)
 PYBIND11_MAKE_OPAQUE(Vec<SequenceAnnotation>)
 PYBIND11_MAKE_OPAQUE(std::vector<SequenceSegmentGroup>)
@@ -95,8 +99,10 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::SemId<sem::BigIdent>>(m, "VecOfSemIdOfBigIdent", type_registry_guard);
   bind_vector<UserTime>(m, "VecOfUserTime", type_registry_guard);
   bind_vector<sem::SemId<sem::Time>>(m, "VecOfSemIdOfTime", type_registry_guard);
+  bind_unordered_map<Str, sem::AstTrackingAlternatives>(m, "UnorderedMapOfStrAstTrackingAlternatives", type_registry_guard);
   bind_vector<SequenceSegment>(m, "VecOfSequenceSegment", type_registry_guard);
   bind_vector<SequenceAnnotationTag>(m, "VecOfSequenceAnnotationTag", type_registry_guard);
+  bind_vector<sem::AstTrackingGroup>(m, "VecOfAstTrackingGroup", type_registry_guard);
   bind_vector<SequenceAnnotation>(m, "VecOfSequenceAnnotation", type_registry_guard);
   bind_vector<SequenceSegmentGroup>(m, "VecOfSequenceSegmentGroup", type_registry_guard);
   pybind11::class_<sem::Org, sem::SemId<sem::Org>>(m, "Org")
@@ -2223,6 +2229,25 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<sem::NamedProperty::RadioId>(m, "NamedPropertyRadioId")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::NamedProperty::RadioId {
+                        sem::NamedProperty::RadioId result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("words", &sem::NamedProperty::RadioId::words)
+    .def("operator==",
+         static_cast<bool(sem::NamedProperty::RadioId::*)(sem::NamedProperty::RadioId const&) const>(&sem::NamedProperty::RadioId::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::NamedProperty::RadioId _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::NamedProperty::RadioId _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<sem::NamedProperty::CustomArgs>(m, "NamedPropertyCustomArgs")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::NamedProperty::CustomArgs {
                         sem::NamedProperty::CustomArgs result{};
@@ -2286,6 +2311,7 @@ node can have subnodes.)RAW")
     .value("Blocker", sem::NamedProperty::Kind::Blocker)
     .value("Unnumbered", sem::NamedProperty::Kind::Unnumbered)
     .value("Created", sem::NamedProperty::Kind::Created)
+    .value("RadioId", sem::NamedProperty::Kind::RadioId)
     .value("CustomArgs", sem::NamedProperty::Kind::CustomArgs)
     .value("CustomRaw", sem::NamedProperty::Kind::CustomRaw)
     .def("__iter__", [](sem::NamedProperty::Kind _self) -> PyEnumIterator<sem::NamedProperty::Kind> {
@@ -2351,6 +2377,8 @@ node can have subnodes.)RAW")
     .def("getUnnumbered", static_cast<sem::NamedProperty::Unnumbered&(sem::NamedProperty::*)()>(&sem::NamedProperty::getUnnumbered))
     .def("isCreated", static_cast<bool(sem::NamedProperty::*)() const>(&sem::NamedProperty::isCreated))
     .def("getCreated", static_cast<sem::NamedProperty::Created&(sem::NamedProperty::*)()>(&sem::NamedProperty::getCreated))
+    .def("isRadioId", static_cast<bool(sem::NamedProperty::*)() const>(&sem::NamedProperty::isRadioId))
+    .def("getRadioId", static_cast<sem::NamedProperty::RadioId&(sem::NamedProperty::*)()>(&sem::NamedProperty::getRadioId))
     .def("isCustomArgs", static_cast<bool(sem::NamedProperty::*)() const>(&sem::NamedProperty::isCustomArgs))
     .def("getCustomArgs", static_cast<sem::NamedProperty::CustomArgs&(sem::NamedProperty::*)()>(&sem::NamedProperty::getCustomArgs))
     .def("isCustomRaw", static_cast<bool(sem::NamedProperty::*)() const>(&sem::NamedProperty::isCustomRaw))
@@ -3273,23 +3301,6 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::RadioTarget, sem::SemId<sem::RadioTarget>, sem::Leaf>(m, "RadioTarget")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::RadioTarget {
-                        sem::RadioTarget result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("text", &sem::RadioTarget::text, R"RAW(Final leaf value)RAW")
-    .def("getText", static_cast<Str(sem::RadioTarget::*)() const>(&sem::RadioTarget::getText))
-    .def("__repr__", [](sem::RadioTarget _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::RadioTarget _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
   pybind11::class_<sem::TextTarget, sem::SemId<sem::TextTarget>, sem::Leaf>(m, "TextTarget")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::TextTarget {
                         sem::TextTarget result{};
@@ -3425,6 +3436,22 @@ node can have subnodes.)RAW")
                      })
     .def("__getattr__",
          [](sem::Par _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::RadioTarget, sem::SemId<sem::RadioTarget>, sem::Org>(m, "RadioTarget")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::RadioTarget {
+                        sem::RadioTarget result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("words", &sem::RadioTarget::words)
+    .def("__repr__", [](sem::RadioTarget _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::RadioTarget _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -4772,7 +4799,6 @@ node can have subnodes.)RAW")
     .value("Punctuation", OrgSemKind::Punctuation)
     .value("Placeholder", OrgSemKind::Placeholder)
     .value("BigIdent", OrgSemKind::BigIdent)
-    .value("RadioTarget", OrgSemKind::RadioTarget)
     .value("TextTarget", OrgSemKind::TextTarget)
     .value("Bold", OrgSemKind::Bold)
     .value("Underline", OrgSemKind::Underline)
@@ -4782,6 +4808,7 @@ node can have subnodes.)RAW")
     .value("Italic", OrgSemKind::Italic)
     .value("Strike", OrgSemKind::Strike)
     .value("Par", OrgSemKind::Par)
+    .value("RadioTarget", OrgSemKind::RadioTarget)
     .value("Latex", OrgSemKind::Latex)
     .value("Link", OrgSemKind::Link)
     .value("BlockCenter", OrgSemKind::BlockCenter)
@@ -4913,6 +4940,129 @@ node can have subnodes.)RAW")
                      })
     .def("__getattr__",
          [](sem::OrgTreeExportOpts _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::AstTrackingPath>(m, "AstTrackingPath")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AstTrackingPath {
+                        sem::AstTrackingPath result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("path", &sem::AstTrackingPath::path)
+    .def("getParent",
+         static_cast<sem::SemId<sem::Org>(sem::AstTrackingPath::*)(int) const>(&sem::AstTrackingPath::getParent),
+         pybind11::arg_v("offset", 0))
+    .def("getNode", static_cast<sem::SemId<sem::Org>(sem::AstTrackingPath::*)() const>(&sem::AstTrackingPath::getNode))
+    .def("__repr__", [](sem::AstTrackingPath _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::AstTrackingPath _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::AstTrackingAlternatives>(m, "AstTrackingAlternatives")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AstTrackingAlternatives {
+                        sem::AstTrackingAlternatives result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("getAllNodes", static_cast<Vec<sem::SemId<sem::Org>>(sem::AstTrackingAlternatives::*)() const>(&sem::AstTrackingAlternatives::getAllNodes), R"RAW(\brief Return final nodes for all tracking alternatives.)RAW")
+    .def("getNode", static_cast<sem::SemId<sem::Org>(sem::AstTrackingAlternatives::*)() const>(&sem::AstTrackingAlternatives::getNode), R"RAW(\brief Return first node from the alternatives.)RAW")
+    .def("__repr__", [](sem::AstTrackingAlternatives _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::AstTrackingAlternatives _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::AstTrackingGroup>(m, "AstTrackingGroup")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AstTrackingGroup {
+                        sem::AstTrackingGroup result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("getRadioTarget", static_cast<sem::AstTrackingGroup::RadioTarget const&(sem::AstTrackingGroup::*)() const>(&sem::AstTrackingGroup::getRadioTarget))
+    .def("getSingle", static_cast<sem::AstTrackingGroup::Single const&(sem::AstTrackingGroup::*)() const>(&sem::AstTrackingGroup::getSingle))
+    .def("getRadioTarget", static_cast<sem::AstTrackingGroup::RadioTarget&(sem::AstTrackingGroup::*)()>(&sem::AstTrackingGroup::getRadioTarget))
+    .def("getSingle", static_cast<sem::AstTrackingGroup::Single&(sem::AstTrackingGroup::*)()>(&sem::AstTrackingGroup::getSingle))
+    .def("isSingle", static_cast<bool(sem::AstTrackingGroup::*)() const>(&sem::AstTrackingGroup::isSingle))
+    .def("isRadioTarget", static_cast<bool(sem::AstTrackingGroup::*)() const>(&sem::AstTrackingGroup::isRadioTarget))
+    .def("__repr__", [](sem::AstTrackingGroup _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::AstTrackingGroup _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::AstTrackingGroup::RadioTarget>(m, "AstTrackingGroupRadioTarget")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AstTrackingGroup::RadioTarget {
+                        sem::AstTrackingGroup::RadioTarget result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("target", &sem::AstTrackingGroup::RadioTarget::target)
+    .def_readwrite("nodes", &sem::AstTrackingGroup::RadioTarget::nodes)
+    .def("__repr__", [](sem::AstTrackingGroup::RadioTarget _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::AstTrackingGroup::RadioTarget _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::AstTrackingGroup::Single>(m, "AstTrackingGroupSingle")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AstTrackingGroup::Single {
+                        sem::AstTrackingGroup::Single result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("node", &sem::AstTrackingGroup::Single::node)
+    .def("__repr__", [](sem::AstTrackingGroup::Single _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::AstTrackingGroup::Single _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::AstTrackingMap>(m, "AstTrackingMap")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AstTrackingMap {
+                        sem::AstTrackingMap result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("footnotes", &sem::AstTrackingMap::footnotes)
+    .def_readwrite("subtrees", &sem::AstTrackingMap::subtrees)
+    .def_readwrite("names", &sem::AstTrackingMap::names)
+    .def_readwrite("anchorTargets", &sem::AstTrackingMap::anchorTargets)
+    .def_readwrite("radioTargets", &sem::AstTrackingMap::radioTargets)
+    .def("getIdPath",
+         static_cast<std::optional<sem::AstTrackingAlternatives>(sem::AstTrackingMap::*)(Str const&) const>(&sem::AstTrackingMap::getIdPath),
+         pybind11::arg("id"))
+    .def("getNamePath",
+         static_cast<std::optional<sem::AstTrackingAlternatives>(sem::AstTrackingMap::*)(Str const&) const>(&sem::AstTrackingMap::getNamePath),
+         pybind11::arg("id"))
+    .def("getAnchorTarget",
+         static_cast<std::optional<sem::AstTrackingAlternatives>(sem::AstTrackingMap::*)(Str const&) const>(&sem::AstTrackingMap::getAnchorTarget),
+         pybind11::arg("id"))
+    .def("getFootnotePath",
+         static_cast<std::optional<sem::AstTrackingAlternatives>(sem::AstTrackingMap::*)(Str const&) const>(&sem::AstTrackingMap::getFootnotePath),
+         pybind11::arg("id"))
+    .def("__repr__", [](sem::AstTrackingMap _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::AstTrackingMap _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -5123,6 +5273,16 @@ and a segment kind.)RAW")
          },
          pybind11::arg("name"))
     ;
+  bind_enum_iterator<sem::AstTrackingGroup::Kind>(m, "AstTrackingGroupKind", type_registry_guard);
+  pybind11::enum_<sem::AstTrackingGroup::Kind>(m, "AstTrackingGroupKind")
+    .value("RadioTarget", sem::AstTrackingGroup::Kind::RadioTarget)
+    .value("Single", sem::AstTrackingGroup::Kind::Single)
+    .def("__iter__", [](sem::AstTrackingGroup::Kind _self) -> PyEnumIterator<sem::AstTrackingGroup::Kind> {
+                     return
+                     PyEnumIterator<sem::AstTrackingGroup::Kind>
+                     ();
+                     })
+    ;
   bind_enum_iterator<LeafFieldType>(m, "LeafFieldType", type_registry_guard);
   pybind11::enum_<LeafFieldType>(m, "LeafFieldType")
     .value("Int", LeafFieldType::Int)
@@ -5193,6 +5353,13 @@ and a segment kind.)RAW")
         pybind11::arg("node"),
         pybind11::arg("path"),
         pybind11::arg("opts"));
+  m.def("getAstTrackingMap",
+        static_cast<sem::AstTrackingMap(*)(Vec<sem::SemId<sem::Org>> const&)>(&sem::getAstTrackingMap),
+        pybind11::arg("nodes"));
+  m.def("getSubnodeGroups",
+        static_cast<Vec<sem::AstTrackingGroup>(*)(sem::SemId<sem::Org>, sem::AstTrackingMap const&)>(&sem::getSubnodeGroups),
+        pybind11::arg("node"),
+        pybind11::arg("map"));
   m.def("annotateSequence",
         static_cast<Vec<SequenceAnnotation>(*)(Vec<SequenceSegmentGroup> const&, int, int)>(&annotateSequence),
         pybind11::arg("groups"),
@@ -5200,6 +5367,10 @@ and a segment kind.)RAW")
         pybind11::arg("last"));
   m.def("eachSubnodeRec",
         static_cast<void(*)(sem::SemId<sem::Org>, pybind11::function)>(&eachSubnodeRec),
+        pybind11::arg("node"),
+        pybind11::arg("callback"));
+  m.def("eachSubnodeRecSimplePath",
+        static_cast<void(*)(sem::SemId<sem::Org>, pybind11::function)>(&eachSubnodeRecSimplePath),
         pybind11::arg("node"),
         pybind11::arg("callback"));
 }

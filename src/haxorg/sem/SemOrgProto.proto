@@ -250,16 +250,16 @@ enum OrgSemKind {
   OrgSemKind_Punctuation_f                                                          = 26;
   OrgSemKind_Placeholder_f                                                          = 27;
   OrgSemKind_BigIdent_f                                                             = 28;
-  OrgSemKind_RadioTarget_f                                                          = 29;
-  OrgSemKind_TextTarget_f                                                           = 30;
-  OrgSemKind_Bold_f                                                                 = 31;
-  OrgSemKind_Underline_f                                                            = 32;
-  OrgSemKind_Monospace_f                                                            = 33;
-  OrgSemKind_MarkQuote_f                                                            = 34;
-  OrgSemKind_Verbatim_f                                                             = 35;
-  OrgSemKind_Italic_f                                                               = 36;
-  OrgSemKind_Strike_f                                                               = 37;
-  OrgSemKind_Par_f                                                                  = 38;
+  OrgSemKind_TextTarget_f                                                           = 29;
+  OrgSemKind_Bold_f                                                                 = 30;
+  OrgSemKind_Underline_f                                                            = 31;
+  OrgSemKind_Monospace_f                                                            = 32;
+  OrgSemKind_MarkQuote_f                                                            = 33;
+  OrgSemKind_Verbatim_f                                                             = 34;
+  OrgSemKind_Italic_f                                                               = 35;
+  OrgSemKind_Strike_f                                                               = 36;
+  OrgSemKind_Par_f                                                                  = 37;
+  OrgSemKind_RadioTarget_f                                                          = 38;
   OrgSemKind_Latex_f                                                                = 39;
   OrgSemKind_Link_f                                                                 = 40;
   OrgSemKind_BlockCenter_f                                                          = 41;
@@ -909,6 +909,10 @@ message NamedProperty {
     UserTime                                       time                             = 1;
     string                                         debug                            = 1000;
   }
+  message RadioId {
+    repeated string                                words                            = 1;
+    string                                         debug                            = 1000;
+  }
   message CustomArgs {
     string                                         name                             = 1;
     optional string                                sub                              = 2;
@@ -942,8 +946,9 @@ message NamedProperty {
       NamedProperty.Blocker                        blocker                          = 18;
       NamedProperty.Unnumbered                     unnumbered                       = 19;
       NamedProperty.Created                        created                          = 20;
-      NamedProperty.CustomArgs                     customargs                       = 21;
-      NamedProperty.CustomRaw                      customraw                        = 22;
+      NamedProperty.RadioId                        radioid                          = 21;
+      NamedProperty.CustomArgs                     customargs                       = 22;
+      NamedProperty.CustomRaw                      customraw                        = 23;
     }
   }
   enum Kind {
@@ -967,8 +972,9 @@ message NamedProperty {
     Kind_Blocker_f                                                                  = 17;
     Kind_Unnumbered_f                                                               = 18;
     Kind_Created_f                                                                  = 19;
-    Kind_CustomArgs_f                                                               = 20;
-    Kind_CustomRaw_f                                                                = 21;
+    Kind_RadioId_f                                                                  = 20;
+    Kind_CustomArgs_f                                                               = 21;
+    Kind_CustomRaw_f                                                                = 22;
   }
   NamedProperty.Data                               data                             = 1;
   string                                           debug                            = 1000;
@@ -1292,13 +1298,6 @@ message BigIdent {
   string                                           debug                            = 1000;
 }
 
-message RadioTarget {
-  string                                           text                             = 1;
-  repeated AnyNode                                 subnodes                         = 2;
-  OrgSemKind                                       staticKind                       = 3;
-  string                                           debug                            = 1000;
-}
-
 message TextTarget {
   string                                           text                             = 1;
   repeated AnyNode                                 subnodes                         = 2;
@@ -1356,6 +1355,13 @@ message Strike {
 message Par {
   repeated AnyNode                                 subnodes                         = 1;
   OrgSemKind                                       staticKind                       = 2;
+  string                                           debug                            = 1000;
+}
+
+message RadioTarget {
+  repeated AnyNode                                 subnodes                         = 1;
+  OrgSemKind                                       staticKind                       = 2;
+  repeated string                                  words                            = 3;
   string                                           debug                            = 1000;
 }
 
@@ -1700,16 +1706,16 @@ message AnyNode {
     Punctuation                                      punctuation                      = 27;
     Placeholder                                      placeholder                      = 28;
     BigIdent                                         bigident                         = 29;
-    RadioTarget                                      radiotarget                      = 30;
-    TextTarget                                       texttarget                       = 31;
-    Bold                                             bold                             = 32;
-    Underline                                        underline                        = 33;
-    Monospace                                        monospace                        = 34;
-    MarkQuote                                        markquote                        = 35;
-    Verbatim                                         verbatim                         = 36;
-    Italic                                           italic                           = 37;
-    Strike                                           strike                           = 38;
-    Par                                              par                              = 39;
+    TextTarget                                       texttarget                       = 30;
+    Bold                                             bold                             = 31;
+    Underline                                        underline                        = 32;
+    Monospace                                        monospace                        = 33;
+    MarkQuote                                        markquote                        = 34;
+    Verbatim                                         verbatim                         = 35;
+    Italic                                           italic                           = 36;
+    Strike                                           strike                           = 37;
+    Par                                              par                              = 38;
+    RadioTarget                                      radiotarget                      = 39;
     Latex                                            latex                            = 40;
     Link                                             link                             = 41;
     BlockCenter                                      blockcenter                      = 42;

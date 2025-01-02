@@ -12,14 +12,27 @@ namespace org::graph {
 struct graph_error : CRTP_hexception<graph_error> {};
 
 struct MapLink {
-    /// \brief Original link used to create the graph edge. Used to return
-    /// an edge to unresolved state when target is deleted. When source is
-    /// deleted the edge is simply dropped.
-    org::ImmAdapterT<org::ImmLink> link;
-    /// MapLink description field can be reused or, for description list
-    /// items, this field contains a newly created statment list
-    Vec<org::ImmAdapter> description;
-    DESC_FIELDS(MapLink, (link, description));
+    struct Link {
+        /// \brief Original link used to create the graph edge. Used to
+        /// return an edge to unresolved state when target is deleted. When
+        /// source is deleted the edge is simply dropped.
+        org::ImmAdapterT<org::ImmLink> link;
+        /// MapLink description field can be reused or, for description
+        /// list items, this field contains a newly created statment list
+        Vec<org::ImmAdapter> description;
+        DESC_FIELDS(Link, (link, description));
+    };
+
+    /// \brief Unresolved radio link that was detected from AST context but
+    /// the graph node has not been added yet.
+    struct Radio {
+        org::ImmAdapter target;
+        DESC_FIELDS(Radio, (target));
+    };
+
+    SUB_VARIANTS(Kind, Data, data, getKind, Radio, Link);
+    Data data;
+    DESC_FIELDS(MapLink, (data));
 };
 
 

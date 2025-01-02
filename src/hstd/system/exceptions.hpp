@@ -49,6 +49,7 @@ struct CRTP_hexception
 
 struct logic_assertion_error : CRTP_hexception<logic_assertion_error> {};
 struct logic_unreachable_error : CRTP_hexception<logic_assertion_error> {};
+struct out_of_range_error : CRTP_hexception<out_of_range_error> {};
 
 
 #define LOGIC_ASSERTION_CHECK(expr, message_fmt, ...)                     \

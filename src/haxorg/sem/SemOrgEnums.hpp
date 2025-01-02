@@ -75,6 +75,7 @@
     __IMPL(NamedProperty, Blocker, (Blocker)) \
     __IMPL(NamedProperty, Unnumbered, (Unnumbered)) \
     __IMPL(NamedProperty, Created, (Created)) \
+    __IMPL(NamedProperty, RadioId, (RadioId)) \
     __IMPL(NamedProperty, CustomArgs, (CustomArgs)) \
     __IMPL(NamedProperty, CustomRaw, (CustomRaw))
 #define EACH_SHARED_ORG_ENUM_NESTED(__IMPL) \
@@ -186,6 +187,7 @@
     __IMPL(NamedProperty::Blocker, (NamedProperty, Blocker)) \
     __IMPL(NamedProperty::Unnumbered, (NamedProperty, Unnumbered)) \
     __IMPL(NamedProperty::Created, (NamedProperty, Created)) \
+    __IMPL(NamedProperty::RadioId, (NamedProperty, RadioId)) \
     __IMPL(NamedProperty::CustomArgs, (NamedProperty, CustomArgs)) \
     __IMPL(NamedProperty::CustomRaw, (NamedProperty, CustomRaw))
 #define EACH_SEM_ORG_RECORD_NESTED(__IMPL) \
@@ -244,7 +246,6 @@
     __IMPL(Punctuation, (Punctuation)) \
     __IMPL(Placeholder, (Placeholder)) \
     __IMPL(BigIdent, (BigIdent)) \
-    __IMPL(RadioTarget, (RadioTarget)) \
     __IMPL(TextTarget, (TextTarget)) \
     __IMPL(Markup, (Markup)) \
     __IMPL(Bold, (Bold)) \
@@ -255,6 +256,7 @@
     __IMPL(Italic, (Italic)) \
     __IMPL(Strike, (Strike)) \
     __IMPL(Par, (Par)) \
+    __IMPL(RadioTarget, (RadioTarget)) \
     __IMPL(Latex, (Latex)) \
     __IMPL(Link, (Link)) \
     __IMPL(BlockCenter, (BlockCenter)) \
@@ -318,7 +320,6 @@
     __IMPL(Punctuation) \
     __IMPL(Placeholder) \
     __IMPL(BigIdent) \
-    __IMPL(RadioTarget) \
     __IMPL(TextTarget) \
     __IMPL(Bold) \
     __IMPL(Underline) \
@@ -328,6 +329,7 @@
     __IMPL(Italic) \
     __IMPL(Strike) \
     __IMPL(Par) \
+    __IMPL(RadioTarget) \
     __IMPL(Latex) \
     __IMPL(Link) \
     __IMPL(BlockCenter) \
@@ -387,7 +389,6 @@
     __IMPL(Punctuation, Leaf) \
     __IMPL(Placeholder, Leaf) \
     __IMPL(BigIdent, Leaf) \
-    __IMPL(RadioTarget, Leaf) \
     __IMPL(TextTarget, Leaf) \
     __IMPL(Bold, Markup) \
     __IMPL(Underline, Markup) \
@@ -397,6 +398,7 @@
     __IMPL(Italic, Markup) \
     __IMPL(Strike, Markup) \
     __IMPL(Par, Markup) \
+    __IMPL(RadioTarget, Org) \
     __IMPL(Latex, Org) \
     __IMPL(Link, Stmt) \
     __IMPL(BlockCenter, Block) \
@@ -463,7 +465,6 @@
     __IMPL(Punctuation, Leaf) \
     __IMPL(Placeholder, Leaf) \
     __IMPL(BigIdent, Leaf) \
-    __IMPL(RadioTarget, Leaf) \
     __IMPL(TextTarget, Leaf) \
     __IMPL(Markup, Org) \
     __IMPL(Bold, Markup) \
@@ -474,6 +475,7 @@
     __IMPL(Italic, Markup) \
     __IMPL(Strike, Markup) \
     __IMPL(Par, Markup) \
+    __IMPL(RadioTarget, Org) \
     __IMPL(Latex, Org) \
     __IMPL(Link, Stmt) \
     __IMPL(BlockCenter, Block) \
@@ -821,7 +823,7 @@ struct value_domain<OrgNodeKind> : public value_domain_ungapped<OrgNodeKind,
                                                                 OrgNodeKind::None,
                                                                 OrgNodeKind::SubtreeImportance> {};
 
-enum class OrgSemKind : short int { None, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdResults, CmdTblfm, HashTag, InlineFootnote, InlineExport, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, RadioTarget, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCode, SubtreeLog, Subtree, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, CmdExport, Call, List, ListItem, DocumentOptions, Document, FileTarget, TextSeparator, Include, DocumentGroup, };
+enum class OrgSemKind : short int { None, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdResults, CmdTblfm, HashTag, InlineFootnote, InlineExport, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, RadioTarget, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCode, SubtreeLog, Subtree, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, CmdExport, Call, List, ListItem, DocumentOptions, Document, FileTarget, TextSeparator, Include, DocumentGroup, };
 template <>
 struct enum_serde<OrgSemKind> {
   static Opt<OrgSemKind> from_string(std::string value);
