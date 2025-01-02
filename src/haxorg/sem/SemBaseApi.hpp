@@ -179,9 +179,7 @@ struct [[refl]] AstTrackingGroup {
 
     BOOST_DESCRIBE_NESTED_ENUM(Kind, RadioTarget, Single);
 
-    [[refl]] Kind getKind() const {
-        return static_cast<Kind>(data.index());
-    }
+    Kind getKind() const { return static_cast<Kind>(data.index()); }
 
     [[refl]] RadioTarget const& getRadioTarget() const {
         return std::get<RadioTarget>(data);
