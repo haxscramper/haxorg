@@ -521,7 +521,7 @@ RadioTargetSearchResult tryRadioTargetSearch(
     RadioTargetSearchResult result;
     while (radioOffset < words.size()) {
         auto atSource   = sub.at(groupingIdx + sourceOffset);
-        auto sourceWord = atSource->dyn_cast<org::ImmLeaf>();
+        auto sourceWord = atSource->dyn_cast<sem::Leaf>();
         if (sourceWord == nullptr) {
             return result;
         } else if (sourceWord->text == words.at(radioOffset)) {
@@ -562,7 +562,7 @@ Vec<AstTrackingGroup> sem::getSubnodeGroups(
             leaf != nullptr && !leaf->is(OrgSemKind::Space)) {
             auto radioTargets = map.radioTargets.find(leaf->text);
             if (radioTargets == map.radioTargets.end()) {
-                res.push_back(G{G::Single{node}});
+                res.push_back(G{G::Single{it}});
             } else {
                 RadioTargetSearchResult search;
                 for (CR<AstTrackingPath> alt :
@@ -587,11 +587,11 @@ Vec<AstTrackingGroup> sem::getSubnodeGroups(
                     res.push_back(G{search.target.value()});
                     groupingIdx = search.nextGroupIdx;
                 } else {
-                    res.push_back(G{G::Single{.node = it}});
+                    res.push_back(G{G::Single{it}});
                 }
             }
         } else {
-            res.push_back(G{G::Single{.node = it}});
+            res.push_back(G{G::Single{it}});
         }
     }
 
