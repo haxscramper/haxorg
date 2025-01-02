@@ -167,7 +167,9 @@ struct SemId {
     operator bool() const { return !isNil(); }
 };
 
-using OrgArg = sem::SemId<sem::Org> const&;
+using SemIdOrg  = sem::SemId<sem::Org>;
+using OrgArg    = SemIdOrg const&;
+using OrgVecArg = Vec<SemIdOrg> const&;
 
 template <typename T>
 struct remove_sem_org {

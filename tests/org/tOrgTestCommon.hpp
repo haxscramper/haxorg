@@ -36,6 +36,8 @@ void writeTreeRepr(
         .withAuxFields = true,
     });
 
+// void writeTreeRepr(sem::SemId<sem::Org> node, CR<Str> full, ExporterT);
+
 
 GTEST_ADL_PRINT_TYPE(OrgSemKind);
 GTEST_ADL_PRINT_TYPE(org::ImmId);
@@ -330,25 +332,34 @@ sem::SemId<sem::Org> testParseString(
     std::optional<std::string> debug = std::nullopt);
 
 template <typename T>
-void dbgString(
+std::string dbgString(
     sem::SemId<T> const& id,
     char const*          function = __builtin_FUNCTION(),
     int                  line     = __builtin_LINE(),
     char const*          file     = __builtin_FILE()) {
-    LOG(INFO) << fmt(
+    return fmt(
         "{}:{}\n{}",
         function,
         line,
-        sem::exportToTreeString(id.asOrg(), sem::OrgTreeExportOpts{}));
+        sem::exportToTreeString(
+            id.asOrg(),
+            sem::OrgTreeExportOpts{
+                .withColor = false,
+            }));
 }
 
 template <typename T>
-void dbgString(
+std::string dbgString(
     Vec<sem::SemId<T>> const& id,
     char const*               function = __builtin_FUNCTION(),
     int                       line     = __builtin_LINE(),
     char const*               file     = __builtin_FILE()) {
-    for (auto const& i : id) { dbgString(i, function, line, file); }
+    std::string result;
+    for (auto const& i : enumerator(id)) {
+        if (i.is_first()) { result += "\n"; }
+        result += dbgString(i.value(), function, line, file);
+    }
+    return result;
 }
 
 template <typename T>

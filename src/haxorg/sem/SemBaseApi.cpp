@@ -459,29 +459,34 @@ AstTrackingMap sem::getAstTrackingMap(const Vec<sem::SemId<Org>>& nodes) {
     aux = [&](sem::OrgArg node, CR<Vec<SemId<Org>>> path) {
         auto add_string_tracking =
             [&](UnorderedMap<Str, AstTrackingAlternatives>& map,
-                CR<Str>                                     key) {
+                CR<Str>                                     key,
+                Vec<SemId<Org>>                             target) {
                 map.get_or_insert(key, AstTrackingAlternatives{})
-                    .alternatives.push_back(AstTrackingPath{
-                        .path = path + Vec<SemId<Org>>{node}});
+                    .alternatives.push_back(
+                        AstTrackingPath{.path = path + target});
             };
 
         if (auto tree = node.asOpt<Subtree>()) {
             if (auto id = tree->treeId) {
-                add_string_tracking(res.subtrees, id.value());
+                add_string_tracking(res.subtrees, id.value(), {node});
             }
 
             for (auto const& radio :
                  getSubtreeProperties<sem::NamedProperty::RadioId>(tree)) {
-                add_string_tracking(res.radioTargets, radio.words.at(0));
+                add_string_tracking(
+                    res.radioTargets, radio.words.at(0), {node});
             }
 
         } else if (auto par = node.asOpt<Paragraph>()) {
             if (auto id = par->getFootnoteName()) {
-                add_string_tracking(res.footnotes, id.value());
+                add_string_tracking(res.footnotes, id.value(), {par});
             }
 
             for (auto const& target : par.subAs<sem::RadioTarget>()) {
-                add_string_tracking(res.radioTargets, target->words.at(0));
+                add_string_tracking(
+                    res.radioTargets,
+                    target->words.at(0),
+                    {par.asOrg(), target.asOrg()});
             }
         }
 
@@ -495,10 +500,100 @@ AstTrackingMap sem::getAstTrackingMap(const Vec<sem::SemId<Org>>& nodes) {
     return res;
 }
 
+namespace {
+
+
+struct RadioTargetSearchResult {
+    Opt<AstTrackingGroup::RadioTarget> target;
+    int                                nextGroupIdx;
+};
+
+/// Mirror of the `tryRadioTargetSearch` implementation for immutable AST.
+RadioTargetSearchResult tryRadioTargetSearch(
+    auto const& words,
+    OrgVecArg   sub,
+    CR<int>     groupingIdx,
+    OrgArg      targetId) {
+    // FIXME After this code is properly tested for both implementations I
+    // might move it to the shared API in some form.
+    int                     sourceOffset = 0;
+    int                     radioOffset  = 0;
+    RadioTargetSearchResult result;
+    while (radioOffset < words.size()) {
+        auto atSource   = sub.at(groupingIdx + sourceOffset);
+        auto sourceWord = atSource->dyn_cast<org::ImmLeaf>();
+        if (sourceWord == nullptr) {
+            return result;
+        } else if (sourceWord->text == words.at(radioOffset)) {
+            if (radioOffset == (words.size() - 1)) {
+                auto range = slice(
+                    groupingIdx, groupingIdx + sourceOffset);
+                result.target = AstTrackingGroup::RadioTarget{
+                    .target = targetId,
+                    .nodes  = Vec<SemIdOrg>{sub.at(range)}};
+                result.nextGroupIdx = groupingIdx + sourceOffset;
+                return result;
+            } else {
+                ++sourceOffset;
+                ++radioOffset;
+            }
+        } else if (atSource->is(OrgSemKind::Space)) {
+            ++sourceOffset;
+        } else {
+            return result;
+        }
+    }
+
+    return result;
+}
+
+} // namespace
+
 Vec<AstTrackingGroup> sem::getSubnodeGroups(
     sem::SemId<Org>       node,
     const AstTrackingMap& map) {
-    Vec<AstTrackingGroup> res;
+    using G = AstTrackingGroup;
+    Vec<G>      res;
+    auto const& sub = node->subnodes;
+
+    for (int groupingIdx = 0; groupingIdx < sub.size(); ++groupingIdx) {
+        auto const& it = sub.at(groupingIdx);
+        if (auto leaf = it->dyn_cast<sem::Leaf>();
+            leaf != nullptr && !leaf->is(OrgSemKind::Space)) {
+            auto radioTargets = map.radioTargets.find(leaf->text);
+            if (radioTargets == map.radioTargets.end()) {
+                res.push_back(G{G::Single{node}});
+            } else {
+                RadioTargetSearchResult search;
+                for (CR<AstTrackingPath> alt :
+                     radioTargets->second.alternatives) {
+                    if (auto tree = alt.getNode().asOpt<Subtree>()) {
+                        for (auto const& prop : sem::getSubtreeProperties<
+                                 sem::NamedProperty::RadioId>(tree)) {
+                            search = tryRadioTargetSearch(
+                                prop.words, sub, groupingIdx, tree);
+                            if (search.target) { goto radio_search_exit; }
+                        }
+                    } else if (
+                        auto target = alt.getNode().asOpt<RadioTarget>()) {
+                        search = tryRadioTargetSearch(
+                            target->words, sub, groupingIdx, target);
+                        if (search.target) { goto radio_search_exit; }
+                    }
+                }
+
+            radio_search_exit:
+                if (search.target) {
+                    res.push_back(G{search.target.value()});
+                    groupingIdx = search.nextGroupIdx;
+                } else {
+                    res.push_back(G{G::Single{.node = it}});
+                }
+            }
+        } else {
+            res.push_back(G{G::Single{.node = it}});
+        }
+    }
 
     return res;
 }

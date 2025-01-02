@@ -119,6 +119,18 @@ struct [[refl]] AstTrackingPath {
     [[refl]] Vec<sem::SemId<sem::Org>> path;
     DESC_FIELDS(AstTrackingPath, (path));
 
+    [[refl]] sem::SemId<sem::Org> getParent(int offset = 0) const {
+        int pos = path.high() - 1 - offset;
+        LOGIC_ASSERTION_CHECK(
+            path.has(pos),
+            "Trying to get parent with offset {}, target index is {} but "
+            "path only has {} items",
+            offset,
+            pos,
+            path.size());
+
+        return path.at(pos);
+    }
     [[refl]] sem::SemId<sem::Org> getNode() const { return path.back(); }
 };
 
@@ -146,8 +158,9 @@ struct [[refl]] AstTrackingAlternatives {
 
 struct [[refl]] AstTrackingGroup {
     struct RadioTarget {
-        Vec<sem::SemId<sem::Org>> subnodes;
-        DESC_FIELDS(RadioTarget, (subnodes));
+        sem::SemId<sem::Org>      target;
+        Vec<sem::SemId<sem::Org>> nodes;
+        DESC_FIELDS(RadioTarget, (nodes));
     };
 
     struct Single {
@@ -156,6 +169,7 @@ struct [[refl]] AstTrackingGroup {
     };
 
     Variant<RadioTarget, Single> data;
+    DESC_FIELDS(AstTrackingGroup, (data));
 
     enum class [[refl]] Kind
     {
@@ -198,6 +212,10 @@ struct [[refl]] AstTrackingMap {
     [[refl]] UnorderedMap<Str, AstTrackingAlternatives> names;
     [[refl]] UnorderedMap<Str, AstTrackingAlternatives> anchorTargets;
     [[refl]] UnorderedMap<Str, AstTrackingAlternatives> radioTargets;
+
+    DESC_FIELDS(
+        AstTrackingMap,
+        (footnotes, subtrees, names, anchorTargets, radioTargets));
 
     [[refl]] Opt<AstTrackingAlternatives> getIdPath(Str const& id) const {
         return subtrees.get(id);
