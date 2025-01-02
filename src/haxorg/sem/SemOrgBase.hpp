@@ -250,10 +250,40 @@ struct [[refl]] Org {
         return subnodes.get(idx);
     }
 
+    template <typename Func>
+    void visit(Func const& cb) {
+        switch (getKind()) {
+#define _case(__Kind)                                                     \
+    case OrgSemKind::__Kind: {                                            \
+        cb(dyn_cast<sem::__Kind>());                                      \
+        break;                                                            \
+    }
+
+            EACH_SEM_ORG_KIND(_case)
+#undef _case
+        }
+    }
+
+    template <typename Func>
+    void visit(Func const& cb) const {
+        switch (getKind()) {
+#define _case(__Kind)                                                     \
+    case OrgSemKind::__Kind: {                                            \
+        cb(dyn_cast<sem::__Kind>());                                      \
+        break;                                                            \
+    }
+
+            EACH_SEM_ORG_KIND(_case)
+#undef _case
+        }
+    }
+
     [[refl]] bool is(OrgSemKind kind) const { return getKind() == kind; }
     bool          is(CR<IntSet<OrgSemKind>> kinds) const {
         return kinds.contains(getKind());
     }
+
+    Vec<SemId<Org>> getAllSubnodes() const;
 
     template <typename T>
     Vec<SemId<T>> subAs() const {

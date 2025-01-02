@@ -31,16 +31,3 @@ concept IsOrg = std::
     derived_from<typename remove_sem_org<T>::type, sem::Org>;
 
 }; // namespace sem
-
-#define __hack_fmt(__kind)                                                \
-    template <>                                                           \
-    struct std::formatter<__kind> : std::formatter<std::string> {         \
-        template <typename FormatContext>                                 \
-        FormatContext::iterator format(                                   \
-            __kind const&  p,                                             \
-            FormatContext& ctx) const {                                   \
-            std::formatter<std::string> fmt;                              \
-            return fmt.format(enum_serde<__kind>::to_string(p), ctx);     \
-        }                                                                 \
-    };
-

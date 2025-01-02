@@ -197,6 +197,31 @@ SemId<Org> Org::as_unref_shared() const {
     return res;
 }
 
+Vec<SemId<Org>> Org::getAllSubnodes() const {
+    Vec<SemId<Org>> result;
+    // for (auto const& )
+    this->visit([&]<IsOrg T>(T const*) {
+        for_each_field_value_with_bases<T>(overloaded{
+            [&]<typename K, typename F>(
+                char const* name, UnorderedMap<K, F> const& values) {
+                for (auto const& [key, value] : values) {
+                    result.push_back(value);
+                }
+            },
+            [&]<typename F>(char const* name, Vec<SemId<F>> const& items) {
+                result.append(items);
+            },
+            [&]<typename F>(char const* name, SemId<F> const& id) {
+                result.push_back(id);
+            },
+            [&]<typename F>(char const* name, F const& value) {},
+        });
+    });
+
+
+    return result;
+}
+
 
 Str AttrValue::getString() const { return value; }
 

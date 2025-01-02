@@ -449,3 +449,25 @@ void sem::insertListItemBody(
     item->subnodes = value;
     id->subnodes.insert(id->subnodes.begin() + index, item);
 }
+
+AstTrackingMap sem::getAstTrackingMap(const Vec<sem::SemId<Org>>& nodes) {
+    AstTrackingMap res;
+
+    Func<void(sem::OrgArg, CR<Vec<SemId<Org>>> path)> aux;
+
+    aux = [](sem::OrgArg node, CR<Vec<SemId<Org>>> path) {
+
+    };
+
+    for (auto const& node : nodes) { aux(node, {}); }
+
+    return res;
+}
+
+Vec<AstTrackingGroup> sem::getSubnodeGroups(
+    sem::SemId<Org>       node,
+    const AstTrackingMap& map) {
+    Vec<AstTrackingGroup> res;
+
+    return res;
+}
