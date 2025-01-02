@@ -3,11 +3,13 @@
 import pandas as pd
 from py_cli.haxorg_cli import *
 from beartype import beartype
-from beartype.typing import List
+from beartype.typing import List, Tuple
 from py_haxorg.pyhaxorg_utils import getFlatTags
 from py_scriptutils.script_logging import log
 import py_haxorg.pyhaxorg_wrap as org
 from dataclasses import dataclass, field
+from py_scriptutils.pandas_utils import dataframe_to_rich_table
+from py_scriptutils.rich_utils import render_rich
 
 CAT = __name__
 
@@ -31,6 +33,25 @@ class RadioEntry:
 def analysis_options(f):
     return apply_options(f, options_from_model(CodexTrackingOptions))
 
+
+def format_dataframe_for_file(df: pd.DataFrame) -> str:
+    result: List[str] = []
+    grouped_by_use = df.groupby("use")
+
+    for use, use_group in grouped_by_use:
+        result.append(f"use {''.join(use)}:")
+        grouped_by_path = use_group.groupby("path")
+
+        for path, path_group in grouped_by_path:
+            result.append(f"  path {''.join(path)}:")
+            for _, row in path_group.iterrows():
+                prev = "".join(row["prev"])
+                use_field = "".join(row["use"])
+                post = "".join(row["post"])
+                result.append(f"    .. {prev}>>{use_field}<<{post} ..")
+
+            result.append("")  
+    return "\n".join(result).strip()
 
 @click.command()
 @click.option("--config",
@@ -100,6 +121,31 @@ def cli(ctx: click.Context, config: str, **kwargs) -> None:
 
     org.eachSubnodeRec(target_node, visit_node)
         
+    @beartype
+    def format_list(items: List[org.Org]) -> Tuple[str, ...]:
+        res = []
+        for it in items:
+            if isinstance(it, org.Space):
+                res.append(it.text)
+
+            else:
+                res.append(org.formatToString(it))
+
+        return tuple(res)
+
+
+    df = pd.DataFrame.from_records([
+        dict(
+            path=tuple(entry.target_path),
+            prev=format_list(entry.prev_context),
+            use=format_list(entry.radio_use),
+            post=format_list(entry.post_context),
+            # use_line=entry.radio_use.lo
+        ) for entry in radio_entries
+    ])
+
+    
+    opts.outfile.write_text(format_dataframe_for_file(df))
 
 
 if __name__ == "__main__":

@@ -134,6 +134,8 @@ def test_codex_tracking():
     runner = CliRunner()
     with TemporaryDirectory() as tmp_dir:
         dir = Path(tmp_dir)
+        dir = Path("/tmp/codex_tracking")
+        dir.mkdir(parents=True, exist_ok=True)
 
         target_file = dir.joinpath("target.org")
         codex_file = dir.joinpath("codex.org")
