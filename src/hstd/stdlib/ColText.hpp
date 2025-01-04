@@ -341,8 +341,9 @@ struct ColStream : public ColText {
     ColStream() : buffered(true) {};
     ColStream(std::ostream& os) : ostream(&os), buffered(false) {}
 
-    finally style_scope() {
-        return finally{[this, start = active]() { this->active = start; }};
+    finally_std style_scope() {
+        return finally_std{
+            [this, start = active]() { this->active = start; }};
     }
 
     // clang-format off

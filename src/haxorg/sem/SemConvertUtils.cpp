@@ -215,7 +215,7 @@ struct Builder : OperationsMsgBulder<Builder, OrgConverter::Report> {
     }
 };
 
-finally OrgConverter::trace(
+finally_std OrgConverter::trace(
     Opt<In>     adapter,
     Opt<Str>    subname,
     int         line,
@@ -228,7 +228,7 @@ finally OrgConverter::trace(
                 .with_msg(subname)
                 .report);
 
-        return finally{[this, line, function, adapter, subname]() {
+        return finally_std{[this, line, function, adapter, subname]() {
             report(Builder(
                        OrgConverter::ReportKind::Leave,
                        nullptr,
@@ -240,12 +240,12 @@ finally OrgConverter::trace(
         }};
 
     } else {
-        return finally{[]() {}};
+        return finally_std::nop();
     }
 }
 
 
-finally OrgConverter::field(
+finally_std OrgConverter::field(
     OrgSpecName name,
     In          adapter,
     Opt<Str>    subname,
@@ -262,20 +262,21 @@ finally OrgConverter::field(
                    .with_field(name)
                    .report);
 
-        return finally{[this, line, function, adapter, name, subname]() {
-            report(Builder(
-                       OrgConverter::ReportKind::LeaveField,
-                       nullptr,
-                       line,
-                       function)
-                       .with_node(adapter)
-                       .with_msg(subname)
-                       .with_field(name)
-                       .report);
-        }};
+        return finally_std{
+            [this, line, function, adapter, name, subname]() {
+                report(Builder(
+                           OrgConverter::ReportKind::LeaveField,
+                           nullptr,
+                           line,
+                           function)
+                           .with_node(adapter)
+                           .with_msg(subname)
+                           .with_field(name)
+                           .report);
+            }};
 
     } else {
-        return finally{[]() {}};
+        return finally_std::nop();
     }
 }
 

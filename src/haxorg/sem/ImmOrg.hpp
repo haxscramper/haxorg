@@ -374,7 +374,7 @@ struct ImmAstEditContext {
 
     ImmAstContext* operator->() { return ctx.lock().get(); }
 
-    finally collectAbslLogs();
+    finally_std collectAbslLogs();
 };
 
 template <org::IsImmOrgValueType T>

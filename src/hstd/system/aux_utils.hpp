@@ -5,20 +5,18 @@
 
 /// Trigger callback when exiting the scope. Ad-hoc RAII
 /// implementation
+template <typename Func>
 struct finally {
     /// Callback function called in destructor
-    std::function<void(void)> action;
+    Func action;
 
     /// Default constructor, use as ~funally{[](){ callback-action(); }}~
-    explicit finally(std::function<void(void)> _action)
-        : action(_action) {}
+    explicit finally(Func _action) : action(_action) {}
 
     /// Overloaded constructor to run scope finalizer with some captured
     /// value
-    template <typename T>
-    static finally init(
-        std::function<void(T const&)> _action,
-        T const&                      value) {
+    template <typename T, typename Func1>
+    static finally init(Func1 _action, T const& value) {
         return finally([value, _action]() { _action(value); });
     }
 
@@ -30,6 +28,8 @@ struct finally {
   private:
     static void nop_impl() {}
 };
+
+using finally_std = finally<std::function<void(void)>>;
 
 /// Overloading support for `std::visit`
 template <class... Ts>

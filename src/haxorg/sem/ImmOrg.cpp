@@ -600,7 +600,7 @@ void ImmAstEditContext::message(
     ctx.lock()->message(value, debug.activeLevel, function, line, file);
 }
 
-finally ImmAstEditContext::collectAbslLogs() {
+finally_std ImmAstEditContext::collectAbslLogs() {
     return ctx.lock()->debug->collectAbslLogs(&debug);
 }
 
