@@ -797,7 +797,7 @@ def cmake_build_deps(
 
     dep(build_name="cpptrace", deps_name="cpptrace")
 
-    dep(build_name="scintilla", deps_name="scintilla/")
+    # dep(build_name="scintilla", deps_name="scintilla/")
     dep(build_name="describe", deps_name="cmake_wrap/describe")
     dep(
         build_name="adaptagrams",

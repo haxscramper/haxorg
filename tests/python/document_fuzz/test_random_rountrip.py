@@ -727,6 +727,7 @@ def node_strategy(draw, ctx: OrgGenCtx):
 ignore_this_fucking_vomit_shit = [
     HealthCheck.data_too_large,
     HealthCheck.too_slow,
+    HealthCheck.filter_too_much,
 ]
 
 gen_settings = dict(

@@ -222,7 +222,9 @@ class GitTestRepository:
     def __exit__(self, exc_type: Optional[Type[BaseException]],
                  exc_value: Optional[BaseException],
                  traceback: Optional[TracebackType]) -> Optional[bool]:
-        self.dir.__exit__(exc_type, exc_value, traceback)
+        if isinstance(self.dir, TemporaryDirectory):
+            self.dir.__exit__(exc_type, exc_value, traceback)
+            
         if exc_type is not None:
             return False
 
