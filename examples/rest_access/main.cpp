@@ -16,6 +16,7 @@
 #include <tuple>
 #include <type_traits>
 #include <cpptrace/cpptrace.hpp>
+#include <boost/beast/websocket.hpp>
 
 namespace cpptrace {
 BOOST_DESCRIBE_STRUCT(stacktrace, (), (frames));
@@ -31,13 +32,86 @@ BOOST_DESCRIBE_STRUCT(
      is_inline));
 } // namespace cpptrace
 
+namespace boost::beast::http {
+BOOST_DESCRIBE_ENUM(
+    status,
+    unknown,
+    continue_,
+    switching_protocols,
+    processing,
+    early_hints,
+
+    ok,
+    created,
+    accepted,
+    non_authoritative_information,
+    no_content,
+    reset_content,
+    partial_content,
+    multi_status,
+    already_reported,
+    im_used,
+
+    multiple_choices,
+    moved_permanently,
+    found,
+    see_other,
+    not_modified,
+    use_proxy,
+    temporary_redirect,
+    permanent_redirect,
+
+    bad_request,
+    unauthorized,
+    payment_required,
+    forbidden,
+    not_found,
+    method_not_allowed,
+    not_acceptable,
+    proxy_authentication_required,
+    request_timeout,
+    conflict,
+    gone,
+    length_required,
+    precondition_failed,
+    payload_too_large,
+    uri_too_long,
+    unsupported_media_type,
+    range_not_satisfiable,
+    expectation_failed,
+    i_am_a_teapot,
+    misdirected_request,
+    unprocessable_entity,
+    locked,
+    failed_dependency,
+    too_early,
+    upgrade_required,
+    precondition_required,
+    too_many_requests,
+    request_header_fields_too_large,
+    unavailable_for_legal_reasons,
+
+    internal_server_error,
+    not_implemented,
+    bad_gateway,
+    service_unavailable,
+    gateway_timeout,
+    http_version_not_supported,
+    variant_also_negotiates,
+    insufficient_storage,
+    loop_detected,
+    not_extended,
+    network_authentication_required);
+}
+
 
 #define OLOG(lvl) BOOST_LOG_TRIVIAL(lvl)
 
-namespace beast = boost::beast;
-namespace http  = beast::http;
-namespace net   = boost::asio;
-using tcp       = boost::asio::ip::tcp;
+namespace beast     = boost::beast;
+namespace http      = beast::http;
+namespace net       = boost::asio;
+using tcp           = boost::asio::ip::tcp;
+namespace websocket = beast::websocket;
 
 template <typename F, typename C>
 void read_opt_query_param_impl(
@@ -212,22 +286,35 @@ struct HttpState : public SharedPtrApi<HttpState> {
     HttpState() : ctx{org::ImmAstContext::init_start_context()} {}
 };
 
+struct ResponseWrap {
+    struct Rest {
+        std::shared_ptr<http::response<http::string_body>> response;
+        DESC_FIELDS(Rest, (response));
+    };
+
+    struct Websocket {
+        json response;
+        DESC_FIELDS(Websocket, (response));
+    };
+
+    SUB_VARIANTS(Kind, Data, data, getKind, Rest, Websocket);
+    Data data;
+    DESC_FIELDS(ResponseWrap, (data));
+};
 
 struct RestHandlerContext {
-    UnorderedMap<std::string, std::string>             query_params;
-    std::shared_ptr<http::response<http::string_body>> response;
-    std::string                                        route;
-    json                                               query_body;
-    HttpState::Ptr                                     state;
-    bool exception_handler = false;
+    UnorderedMap<std::string, std::string> query_params;
+    std::string                            route;
+    json                                   query_body;
+    HttpState::Ptr                         state;
+    ResponseWrap                           response;
+    bool                                   exception_handler = false;
 
     DESC_FIELDS(
         RestHandlerContext,
         (query_params, response, route, query_body, state));
 
-    RestHandlerContext(
-        std::shared_ptr<http::response<http::string_body>> response,
-        HttpState::Ptr                                     state)
+    RestHandlerContext(ResponseWrap response, HttpState::Ptr state)
         : response{response}, state{state} {}
 
     template <typename T>
@@ -247,18 +334,35 @@ struct RestHandlerContext {
     }
 
     void setResponseBody(std::string const& text) {
-        response->body() = text;
+        if (response.isRest()) {
+            response.getRest().response->body() = text;
+        } else {
+            response.getWebsocket().response["body"] = text;
+        }
     }
 
     void setResponseBody(json const& text) {
-        response->body() = text.dump();
+        setResponseBody(text.dump());
     }
 
 
     void setResponseResult(boost::beast::http::status status) {
-        response->result(status);
+        if (response.isRest()) {
+            response.getRest().response->result(status);
+        } else {
+            response.getWebsocket().response["status"] = fmt1(status);
+        }
     }
 
+    void setSocket(std::string_view body) {
+        json query = json::parse(body);
+        if (query.contains("query")) {
+            query_params = from_json_eval<
+                UnorderedMap<std::string, std::string>>(query.at("query"));
+        }
+
+        if (query.contains("body")) { query_body = query.at("body"); }
+    }
 
     void setRequest(http::request<http::string_body> const& req) {
         setTarget(req.target());
@@ -525,6 +629,121 @@ struct HandlerMapType : SharedPtrApi<HandlerMapType> {
     }
 };
 
+class WSSession : public SharedPtrApi<WSSession> {
+    websocket::stream<beast::tcp_stream> ws;
+    beast::flat_buffer                   buffer;
+    HandlerMapType::Ptr                  handlers;
+    net::io_context&                     ioc;
+    HttpState::Ptr                       state;
+
+  public:
+    explicit WSSession(
+        tcp::socket&&       socket,
+        HandlerMapType::Ptr handler,
+        net::io_context&    ioc,
+        HttpState::Ptr      state)
+        : ws(std::move(socket))
+        , handlers(handler)
+        , ioc(ioc)
+        , state{state} {}
+
+    void run() {
+        net::dispatch(
+            ws.get_executor(),
+            beast::bind_front_handler(
+                &WSSession::on_run, this->shared_from_this()));
+    }
+
+  private:
+    void on_run() {
+        ws.set_option(websocket::stream_base::timeout::suggested(
+            beast::role_type::server));
+        ws.set_option(websocket::stream_base::decorator(
+            [](websocket::response_type& res) {
+                res.set(
+                    http::field::server,
+                    std::string(BOOST_BEAST_VERSION_STRING));
+            }));
+
+        ws.async_accept(beast::bind_front_handler(
+            &WSSession::on_accept, this->shared_from_this()));
+    }
+
+    void on_accept(beast::error_code ec) {
+        if (ec) { return; }
+        do_read();
+    }
+
+    void do_read() {
+        ws.async_read(
+            buffer,
+            beast::bind_front_handler(
+                &WSSession::on_read, this->shared_from_this()));
+    }
+
+    void on_read(beast::error_code ec, std::size_t bytes_transferred) {
+        if (ec) { return; }
+
+        auto response = [&]() -> std::string {
+            try {
+                auto request = json::parse(
+                    beast::buffers_to_string(buffer.data()));
+                auto target = request["target"].get<std::string>();
+                RestHandlerContext ctx{
+                    ResponseWrap{ResponseWrap::Websocket{}}, state};
+                handlers->call(target, &ctx);
+                return ctx.response.getWebsocket().response.dump();
+            } catch (const std::exception& e) {
+                return std::format("{{\"error\": \"{}\"}}", e.what());
+            }
+        }();
+
+        buffer.consume(buffer.size());
+
+        ws.async_write(
+            net::buffer(response),
+            beast::bind_front_handler(
+                &WSSession::on_write, this->shared_from_this()));
+    }
+
+    void on_write(beast::error_code ec, std::size_t bytes_transferred) {
+        if (ec) { return; }
+        do_read();
+    }
+};
+
+template <class RestHandler>
+class WSServer {
+    net::io_context& ioc_;
+    tcp::acceptor    acceptor_;
+    RestHandler&     handler_;
+
+  public:
+    WSServer(
+        net::io_context& ioc,
+        unsigned short   port,
+        RestHandler&     handler)
+        : ioc_(ioc)
+        , acceptor_(ioc, {net::ip::make_address("0.0.0.0"), port})
+        , handler_(handler) {}
+
+    void run() { do_accept(); }
+
+  private:
+    void do_accept() {
+        acceptor_.async_accept(
+            net::make_strand(ioc_),
+            beast::bind_front_handler(&WSServer::on_accept, this));
+    }
+
+    void on_accept(beast::error_code ec, tcp::socket socket) {
+        if (!ec) {
+            std::make_shared<WSSession>(std::move(socket), handler_, ioc_)
+                ->run();
+        }
+        do_accept();
+    }
+};
 
 class HttpSession : public SharedPtrApi<HttpSession> {
     beast::tcp_stream                stream;
@@ -570,7 +789,8 @@ class HttpSession : public SharedPtrApi<HttpSession> {
         response->set(http::field::content_type, "application/json");
 
         // Get the request target/route
-        RestHandlerContext ctx{response, state};
+        RestHandlerContext ctx{
+            ResponseWrap{ResponseWrap::Rest{response}}, state};
         ctx.setRequest(req);
 
         OLOG(info) << fmt("Query parametersn {}", ctx.query_params);
