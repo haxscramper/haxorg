@@ -15,6 +15,22 @@
 #include <functional>
 #include <tuple>
 #include <type_traits>
+#include <cpptrace/cpptrace.hpp>
+
+namespace cpptrace {
+BOOST_DESCRIBE_STRUCT(stacktrace, (), (frames));
+BOOST_DESCRIBE_STRUCT(
+    stacktrace_frame,
+    (),
+    (raw_address,
+     object_address,
+     line,
+     column,
+     filename,
+     symbol,
+     is_inline));
+} // namespace cpptrace
+
 
 #define OLOG(lvl) BOOST_LOG_TRIVIAL(lvl)
 
@@ -46,6 +62,32 @@ void read_opt_json_param_impl(
         obj.*field = from_json_eval<F>(j);
     }
 }
+
+
+#define opt_query_param(map, obj, field)                                  \
+    read_opt_query_param_impl(map, obj, &decltype(obj)::field, #field);
+
+#define opt_json_param(map, obj, field)                                   \
+    read_opt_json_param_impl(map, obj, &decltype(obj)::field, #field);
+
+
+template <typename T>
+struct JsonSerde<cpptrace::nullable<T>> {
+    static json to_json(cpptrace::nullable<T> const& it) {
+        if (it.has_value()) {
+            return JsonSerde<T>::to_json(it.value());
+        } else {
+            return json{};
+        }
+    }
+    static cpptrace::nullable<T> from_json(json const& j) {
+        if (j.is_null()) {
+            return cpptrace::nullable<T>::null();
+        } else {
+            return JsonSerde<T>::from_json(j);
+        }
+    }
+};
 
 template <typename T>
 struct JsonSerde<immer::vector<T>> {
@@ -89,6 +131,7 @@ struct JsonSerde<std::any> {
 template <typename Tag>
 struct JsonSerde<ReflPathItem<Tag>> {
     using Item = ReflPathItem<Tag>;
+    using Kind = typename Item::Kind;
     static json to_json(Item const it) {
         json res;
         it.visit([&]<typename Sub>(Sub const& sub) {
@@ -99,14 +142,15 @@ struct JsonSerde<ReflPathItem<Tag>> {
     }
 
     static Item from_json(json const& j) {
-        switch (from_json_eval<Item::Kind>(j["kind"])) {
-            case Item::Kind::Index:
+        switch (from_json_eval<Kind>(j["kind"])) {
+            case Kind::Index:
                 return Item::FromIndex(j["index"].get<int>());
-            case Item::Kind::Deref: return Item::FromDeref();
-            case Item::Kind::AnyKey: logic_todo_impl();
-            case Item::Kind::FieldName:
+            case Kind::Deref: return Item::FromDeref();
+            case Kind::AnyKey: logic_todo_impl();
+            case Kind::FieldName:
                 return Item::FromFieldName(
-                    from_json_eval<Tag::field_name_type>(j["name"]));
+                    from_json_eval<typename Tag::field_name_type>(
+                        j["name"]));
         }
     }
 };
@@ -175,6 +219,7 @@ struct RestHandlerContext {
     std::string                                        route;
     json                                               query_body;
     HttpState::Ptr                                     state;
+    bool exception_handler = false;
 
     DESC_FIELDS(
         RestHandlerContext,
@@ -187,7 +232,7 @@ struct RestHandlerContext {
 
     template <typename T>
     T getArg(ArgSpec const& arg) {
-        return query_body.at(arg.name).get<T>();
+        return JsonSerde<T>::from_json(query_body.at(arg.name));
     }
 
     json getSelfJson() { return getArg<json>(ArgSpec{"self"}); }
@@ -204,6 +249,11 @@ struct RestHandlerContext {
     void setResponseBody(std::string const& text) {
         response->body() = text;
     }
+
+    void setResponseBody(json const& text) {
+        response->body() = text.dump();
+    }
+
 
     void setResponseResult(boost::beast::http::status status) {
         response->result(status);
@@ -223,6 +273,22 @@ struct RestHandlerContext {
         return state->root.getRootAdapter().uniq();
     }
 
+    void setRootText(std::string const& t) { state->parseRoot(t); }
+    void setRootFile(std::string const& t) { setRootText(readFile(t)); }
+
+    json toJson(sem::SemId<sem::Org> id) {
+        ExporterJson exp{};
+        opt_query_param(query_params, exp, skipEmptyLists);
+        opt_query_param(query_params, exp, skipLocation);
+        opt_query_param(query_params, exp, skipId);
+        opt_query_param(query_params, exp, skipNullFields);
+        return exp.eval(id);
+    }
+
+    json getTreeJsonDeep(org::ImmUniqId const& id) {
+        return toJson(org::sem_from_immer(id.id, *state->ctx));
+    }
+
     void setTarget(std::string_view target) {
         if (auto pos = target.find('?'); pos != std::string_view::npos) {
             std::string_view query = target.substr(pos + 1);
@@ -237,6 +303,11 @@ struct RestHandlerContext {
                         param.substr(0, eq_pos), param.substr(eq_pos + 1));
                 }
             }
+
+            if (auto handler = query_params.get("exception_handler")) {
+                this->exception_handler = handler.value() == "true";
+            }
+
             this->route = route;
         } else {
             this->route = target;
@@ -349,24 +420,67 @@ struct HandlerMapType : SharedPtrApi<HandlerMapType> {
                 },
                 args);
 
-            // Call method and serialize result
-            auto result = call_with_tuple(
-                [&instance, f](auto&&... args) {
-                    if constexpr (std::is_pointer_v<decltype(instance)>) {
-                        return (instance->*f)(
-                            std::forward<decltype(args)>(args)...);
-                    } else {
-                        return (instance.*f)(
-                            std::forward<decltype(args)>(args)...);
-                    }
-                },
-                args);
+            auto invoke_impl = [&]() {
+                if constexpr (std::is_void_v<return_type>) {
+                    call_with_tuple(
+                        [&instance, f](auto&&... args) {
+                            if constexpr (std::is_pointer_v<
+                                              decltype(instance)>) {
+                                (instance->*f)(
+                                    std::forward<decltype(args)>(args)...);
+                            } else {
+                                (instance.*f)(
+                                    std::forward<decltype(args)>(args)...);
+                            }
+                        },
+                        args);
+                } else {
+                    // Call method and serialize result
+                    auto result = call_with_tuple(
+                        [&instance, f](auto&&... args) {
+                            if constexpr (std::is_pointer_v<
+                                              decltype(instance)>) {
+                                return (instance->*f)(
+                                    std::forward<decltype(args)>(args)...);
+                            } else {
+                                return (instance.*f)(
+                                    std::forward<decltype(args)>(args)...);
+                            }
+                        },
+                        args);
 
-            if constexpr (!std::is_void_v<return_type>) {
-                ctx->setResponseBody(
-                    JsonSerde<return_type>::to_json(result).dump());
+                    ctx->setResponseBody(
+                        JsonSerde<return_type>::to_json(result).dump(
+                            -1,
+                            ' ',
+                            false,
+                            nlohmann::ordered_json::error_handler_t::
+                                replace));
+                }
+            };
+
+
+            if (ctx->exception_handler) {
+                try {
+                    invoke_impl();
+                    ctx->setResponseResult(http::status::ok);
+                } catch (cpptrace::exception& ex) {
+                    ctx->setResponseBody(json::object({
+                        {"what", ex.what()},
+                        {"trace", to_json_eval(ex.trace())},
+                    }));
+                    ctx->setResponseResult(
+                        http::status::internal_server_error);
+                } catch (std::exception& ex) {
+                    ctx->setResponseBody(
+                        json::object({{"what", ex.what()}}));
+                    ctx->setResponseResult(
+                        http::status::internal_server_error);
+                }
+            } else {
+                invoke_impl();
+                ctx->setResponseResult(http::status::ok);
             }
-            ctx->setResponseResult(http::status::ok);
         };
     }
 
@@ -411,12 +525,6 @@ struct HandlerMapType : SharedPtrApi<HandlerMapType> {
     }
 };
 
-
-#define opt_query_param(map, obj, field)                                  \
-    read_opt_query_param_impl(map, obj, &decltype(obj)::field, #field);
-
-#define opt_json_param(map, obj, field)                                   \
-    read_opt_json_param_impl(map, obj, &decltype(obj)::field, #field);
 
 class HttpSession : public SharedPtrApi<HttpSession> {
     beast::tcp_stream                stream;
@@ -471,16 +579,11 @@ class HttpSession : public SharedPtrApi<HttpSession> {
             case http::verb::post: {
                 if (ctx.route == "/api/parseString") {
                     response->result(http::status::ok);
-                    ExporterJson exp{};
-                    opt_query_param(ctx.query_params, exp, skipEmptyLists);
-                    opt_query_param(ctx.query_params, exp, skipLocation);
-                    opt_query_param(ctx.query_params, exp, skipId);
-                    opt_query_param(ctx.query_params, exp, skipNullFields);
-                    response->body() = exp
-                                           .evalTop(sem::parseString(
-                                               ctx.getArg<std::string>(
-                                                   {"text"})))
-                                           .dump();
+                    response->body() //
+                        = ctx
+                              .toJson(sem::parseString(
+                                  ctx.getArg<std::string>({"text"})))
+                              .dump();
                 } else if (ctx.route == "/api/parseRoot") {
                     state->parseRoot(ctx.getArg<std::string>({"text"}));
                     response->result(http::status::ok);
@@ -568,6 +671,24 @@ int main() {
 
         handlers->setMethod<RestHandlerContext>(
             "/api/getRoot", &RestHandlerContext::getRoot, 0, {});
+
+        handlers->setMethod<RestHandlerContext>(
+            "/api/getTreeJsonDeep",
+            &RestHandlerContext::getTreeJsonDeep,
+            1,
+            {arg("target")});
+
+        handlers->setMethod<RestHandlerContext>(
+            "/api/setRootText",
+            &RestHandlerContext::setRootText,
+            1,
+            {arg("text")});
+
+        handlers->setMethod<RestHandlerContext>(
+            "/api/setRootFile",
+            &RestHandlerContext::setRootFile,
+            1,
+            {arg("path")});
 
         auto const      port    = 8080;
         auto const      threads = std::thread::hardware_concurrency();
