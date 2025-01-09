@@ -44,4 +44,5 @@ find_package(GTest CONFIG REQUIRED)
 find_package(Boost REQUIRED COMPONENTS log)
 
 add_executable(org_server main.cpp)
-target_link_libraries(org_server PUBLIC haxorg::haxorg haxorg::hstd Boost::log)
+target_link_libraries(org_server PUBLIC haxorg::haxorg haxorg::hstd Boost::log TracyClient)
+target_include_directories(org_server PUBLIC "/usr/include/Tracy")

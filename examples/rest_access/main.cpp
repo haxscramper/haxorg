@@ -1,4 +1,5 @@
 #define NDEBUG 0
+#define TRACY_ENABLE
 
 #include <boost/asio.hpp>
 #include <boost/beast.hpp>
@@ -17,6 +18,7 @@
 #include <type_traits>
 #include <cpptrace/cpptrace.hpp>
 #include <boost/beast/websocket.hpp>
+#include <tracy/Tracy.hpp>
 
 namespace cpptrace {
 BOOST_DESCRIBE_STRUCT(stacktrace, (), (frames));
@@ -380,7 +382,7 @@ struct RestHandlerContext {
 
     void setRequest(http::request<http::string_body> const& req) {
         setTarget(req.target());
-        setQueryBody(req.body());
+        if (!req.body().empty()) { setQueryBody(req.body()); }
     }
 
     void setQueryBody(std::string_view body) {
@@ -702,21 +704,33 @@ class WSSession : public SharedPtrApi<WSSession> {
                 ec.to_string(),
                 ec.message());
         } else {
+            ZoneNamed(ReadRequest, true);
             auto request = json::parse(
                 beast::buffers_to_string(buffer.data()));
-            // OLOG(info) << fmt("Parsed WS request:\n{}", request.dump(2));
+            // OLOG(info) << fmt("Parsed WS request:\n{}",
+            // request.dump(2));
             auto target = request["target"].get<std::string>();
             RestHandlerContext ctx{
                 ResponseWrap{ResponseWrap::Websocket{}}, state};
             ctx.setSocket(request);
-            handlers->call(target, &ctx);
+            {
+                ZoneNamed(CallRequest, true);
+                handlers->call(target, &ctx);
+            }
 
-            buffer.consume(buffer.size());
+            {
+                ZoneNamed(ConsumeBuffer, true);
+                buffer.consume(buffer.size());
+            }
 
-            ws.async_write(
-                net::buffer(ctx.response.getWebsocket().response.dump()),
-                beast::bind_front_handler(
-                    &WSSession::on_write, this->shared_from_this()));
+            {
+                ZoneNamed(WriteResponse, true);
+                ws.async_write(
+                    net::buffer(
+                        ctx.response.getWebsocket().response.dump()),
+                    beast::bind_front_handler(
+                        &WSSession::on_write, this->shared_from_this()));
+            }
         }
     }
 
@@ -811,6 +825,14 @@ class HttpSession : public SharedPtrApi<HttpSession> {
         response->keep_alive(false);
         response->set(http::field::content_type, "application/json");
 
+        response->set(http::field::access_control_allow_origin, "*");
+        response->set(
+            http::field::access_control_allow_methods,
+            "POST, GET, OPTIONS");
+        response->set(
+            http::field::access_control_allow_headers, "content-type");
+
+
         // Get the request target/route
         RestHandlerContext ctx{
             ResponseWrap{ResponseWrap::Rest{response}}, state};
@@ -896,6 +918,7 @@ class HttpServer : public SharedPtrApi<HttpServer> {
             OLOG(warning) << fmt(
                 "HTTP connection accept failed: {}", ec.to_string());
         } else {
+            ZoneScoped;
             std::make_shared<HttpSession>(
                 std::move(socket), state, handlers)
                 ->start();
@@ -905,6 +928,7 @@ class HttpServer : public SharedPtrApi<HttpServer> {
 };
 
 int main() {
+    { ZoneScoped; }
     try {
         HttpState::Ptr      state    = std::make_shared<HttpState>();
         HandlerMapType::Ptr handlers = std::make_shared<HandlerMapType>();
