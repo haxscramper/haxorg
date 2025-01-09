@@ -342,7 +342,11 @@ struct RestHandlerContext {
     }
 
     void setResponseBody(json const& text) {
-        setResponseBody(text.dump());
+        if (response.isRest()) {
+            response.getRest().response->body() = text.dump();
+        } else {
+            response.getWebsocket().response["body"] = text;
+        }
     }
 
 
@@ -354,15 +358,25 @@ struct RestHandlerContext {
         }
     }
 
-    void setSocket(std::string_view body) {
-        json query = json::parse(body);
+    void setSocket(json const& query) {
         if (query.contains("query")) {
-            query_params = from_json_eval<
-                UnorderedMap<std::string, std::string>>(query.at("query"));
+            auto const& q = query.at("query");
+            for (auto const& [key, value] : q.items()) {
+                LOGIC_ASSERTION_CHECK(
+                    value.is_string(),
+                    "'query' parameter for websocket request should be a "
+                    "string:string map, but key {} is mapped to value {}, "
+                    "which is not string",
+                    key,
+                    value.dump());
+                query_params[key] = value.get<std::string>();
+            }
         }
 
         if (query.contains("body")) { query_body = query.at("body"); }
     }
+
+    void setSocket(std::string_view body) { setSocket(json::parse(body)); }
 
     void setRequest(http::request<http::string_body> const& req) {
         setTarget(req.target());
@@ -682,28 +696,28 @@ class WSSession : public SharedPtrApi<WSSession> {
     }
 
     void on_read(beast::error_code ec, std::size_t bytes_transferred) {
-        if (ec) { return; }
+        if (ec) {
+            OLOG(error) << fmt(
+                "Websocket read error: {} {}",
+                ec.to_string(),
+                ec.message());
+        } else {
+            auto request = json::parse(
+                beast::buffers_to_string(buffer.data()));
+            // OLOG(info) << fmt("Parsed WS request:\n{}", request.dump(2));
+            auto target = request["target"].get<std::string>();
+            RestHandlerContext ctx{
+                ResponseWrap{ResponseWrap::Websocket{}}, state};
+            ctx.setSocket(request);
+            handlers->call(target, &ctx);
 
-        auto response = [&]() -> std::string {
-            try {
-                auto request = json::parse(
-                    beast::buffers_to_string(buffer.data()));
-                auto target = request["target"].get<std::string>();
-                RestHandlerContext ctx{
-                    ResponseWrap{ResponseWrap::Websocket{}}, state};
-                handlers->call(target, &ctx);
-                return ctx.response.getWebsocket().response.dump();
-            } catch (const std::exception& e) {
-                return std::format("{{\"error\": \"{}\"}}", e.what());
-            }
-        }();
+            buffer.consume(buffer.size());
 
-        buffer.consume(buffer.size());
-
-        ws.async_write(
-            net::buffer(response),
-            beast::bind_front_handler(
-                &WSSession::on_write, this->shared_from_this()));
+            ws.async_write(
+                net::buffer(ctx.response.getWebsocket().response.dump()),
+                beast::bind_front_handler(
+                    &WSSession::on_write, this->shared_from_this()));
+        }
     }
 
     void on_write(beast::error_code ec, std::size_t bytes_transferred) {
@@ -712,33 +726,42 @@ class WSSession : public SharedPtrApi<WSSession> {
     }
 };
 
-template <class RestHandler>
 class WSServer {
-    net::io_context& ioc_;
-    tcp::acceptor    acceptor_;
-    RestHandler&     handler_;
+    net::io_context&    ioc;
+    tcp::acceptor       acceptor;
+    HandlerMapType::Ptr handlers;
+    HttpState::Ptr      state;
 
   public:
     WSServer(
-        net::io_context& ioc,
-        unsigned short   port,
-        RestHandler&     handler)
-        : ioc_(ioc)
-        , acceptor_(ioc, {net::ip::make_address("0.0.0.0"), port})
-        , handler_(handler) {}
+        net::io_context&    ioc,
+        unsigned short      port,
+        HttpState::Ptr      state,
+        HandlerMapType::Ptr handler)
+        : ioc(ioc)
+        , acceptor(ioc, {net::ip::make_address("0.0.0.0"), port})
+        , handlers(handler)
+        , state{state} {
+        OLOG(info) << "Created websocket server";
+    }
 
     void run() { do_accept(); }
 
   private:
     void do_accept() {
-        acceptor_.async_accept(
-            net::make_strand(ioc_),
+        acceptor.async_accept(
+            net::make_strand(ioc),
             beast::bind_front_handler(&WSServer::on_accept, this));
     }
 
     void on_accept(beast::error_code ec, tcp::socket socket) {
-        if (!ec) {
-            std::make_shared<WSSession>(std::move(socket), handler_, ioc_)
+        if (ec) {
+            OLOG(warning) << fmt(
+                "Websocket connection accept failed: {}", ec.to_string());
+        } else {
+            OLOG(info) << "Accepted websocket connection";
+            std::make_shared<WSSession>(
+                std::move(socket), handlers, ioc, state)
                 ->run();
         }
         do_accept();
@@ -793,7 +816,7 @@ class HttpSession : public SharedPtrApi<HttpSession> {
             ResponseWrap{ResponseWrap::Rest{response}}, state};
         ctx.setRequest(req);
 
-        OLOG(info) << fmt("Query parametersn {}", ctx.query_params);
+        OLOG(info) << fmt("HTTP Query parametersn {}", ctx.query_params);
 
         switch (req.method()) {
             case http::verb::post: {
@@ -861,7 +884,7 @@ class HttpServer : public SharedPtrApi<HttpServer> {
 
   private:
     void accept() {
-        OLOG(info) << "Accepted connection";
+        OLOG(info) << "Accepted HTTP connection";
         acceptor.async_accept(
             net::make_strand(ioc),
             beast::bind_front_handler(
@@ -869,7 +892,10 @@ class HttpServer : public SharedPtrApi<HttpServer> {
     }
 
     void on_accept(beast::error_code ec, tcp::socket socket) {
-        if (!ec) {
+        if (ec) {
+            OLOG(warning) << fmt(
+                "HTTP connection accept failed: {}", ec.to_string());
+        } else {
             std::make_shared<HttpSession>(
                 std::move(socket), state, handlers)
                 ->start();
@@ -910,14 +936,18 @@ int main() {
             1,
             {arg("path")});
 
-        auto const      port    = 8080;
-        auto const      threads = std::thread::hardware_concurrency();
+        int const       http_port      = 8080;
+        int const       websocket_port = 8089;
+        int const       threads = std::thread::hardware_concurrency();
         net::io_context ioc{static_cast<int>(threads)};
 
-        auto server = std::make_shared<HttpServer>(
-            ioc, port, state, handlers);
+        auto http_server = std::make_shared<HttpServer>(
+            ioc, http_port, state, handlers);
+        auto websocket_server = std::make_shared<WSServer>(
+            ioc, websocket_port, state, handlers);
 
-        server->run();
+        http_server->run();
+        websocket_server->run();
 
         std::vector<std::thread> v;
         v.reserve(threads - 1);
