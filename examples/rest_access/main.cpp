@@ -262,10 +262,67 @@ struct function_traits<R (C::*)(Args...)> {
     static constexpr size_t arity = sizeof...(Args);
 };
 
-struct ArgSpec {
-    std::string name;
-    bool        optional = false;
+struct TypeSpec {
+    std::string           name;
+    std::vector<TypeSpec> params;
+    std::string           getApiSchema() const {
+        std::string res = name;
+        if (!params.empty()) {
+            res += "<";
+            for (auto const& it : enumerator(params)) {
+                if (!it.is_first()) { res += ", "; }
+                res += it.value().getApiSchema();
+            }
+            res += ">";
+        }
+        return res;
+    }
 };
+
+template <typename T>
+struct TypeSpecProvider {
+    static TypeSpec get() { return TypeSpec{.name = typeid(T).name()}; }
+};
+
+struct ArgSpec {
+    std::string   name;
+    bool          optional     = false;
+    Opt<TypeSpec> type         = std::nullopt;
+    json          defaultValue = json{};
+
+    json getApiSchema() const {
+        json s    = json::object();
+        s["name"] = name;
+        if (type) { s["type"] = type.value().getApiSchema(); }
+        if (optional) {
+            s["optional"] = true;
+            s["default"]  = defaultValue;
+        }
+        return s;
+    }
+};
+
+template <typename Func>
+std::vector<ArgSpec> add_type_specs(std::vector<ArgSpec> const& args) {
+    using traits                = function_traits<Func>;
+    using tuple                 = typename traits::args_tuple;
+    std::vector<ArgSpec> result = args;
+
+    auto add_type =
+        [&result]<std::size_t I>(std::integral_constant<std::size_t, I>) {
+            if (I < result.size()) {
+                using arg_t    = std::tuple_element_t<I, tuple>;
+                result[I].type = TypeSpecProvider<arg_t>::get();
+            }
+        };
+
+    [&]<std::size_t... I>(std::index_sequence<I...>) {
+        (add_type(std::integral_constant<std::size_t, I>{}), ...);
+    }(std::make_index_sequence<std::tuple_size_v<tuple>>{});
+
+    return result;
+}
+
 
 ArgSpec arg(std::string const& name) { return ArgSpec{.name = name}; }
 ArgSpec opt_arg(std::string const& name) {
@@ -469,19 +526,34 @@ struct refl_redirect<RestHandlerContext> {
 
 
 // Handler implementation
-class HandlerImpl {
-    std::function<void(RestHandlerContext*)> callback_;
-    std::vector<ArgSpec>                     args_;
-    size_t                                   required_args_;
+struct HandlerImpl {
+    std::function<void(RestHandlerContext*)> callback;
+    std::vector<ArgSpec>                     args;
+    size_t                                   required_args;
+    std::string                              name;
 
-  public:
     template <typename F>
-    HandlerImpl(F&& f, size_t req_args, std::vector<ArgSpec> args)
-        : callback_(std::forward<F>(f))
-        , args_(std::move(args))
-        , required_args_(req_args) {}
+    HandlerImpl(
+        F&&                  f,
+        size_t               req_args,
+        std::vector<ArgSpec> args,
+        std::string const&   name)
+        : callback(std::forward<F>(f))
+        , args(std::move(args))
+        , required_args(req_args)
+        , name{name} {}
 
-    void call(RestHandlerContext* ctx) { callback_(ctx); }
+    void call(RestHandlerContext* ctx) { callback(ctx); }
+
+    json getApiSchema() const {
+        json s          = json::object();
+        s["name"]       = name;
+        s["parameters"] = json::array();
+        for (auto const& arg : args) {
+            s["parameters"].push_back(arg.getApiSchema());
+        }
+        return s;
+    }
 };
 
 // Helper for unpacking tuple into function arguments
@@ -629,18 +701,23 @@ struct HandlerMapType : SharedPtrApi<HandlerMapType> {
     template <typename Func>
     void setFunction(
         std::string const&          endpoint,
+        std::string const&          name,
         Func                        f,
         int                         required_args,
         std::vector<ArgSpec> const& args) {
         map.emplace(
             endpoint,
             HandlerImpl(
-                make_handler_callback(f, args), required_args, args));
+                make_handler_callback(f, args),
+                required_args,
+                add_type_specs<Func>(args),
+                name));
     }
 
     template <typename Class, typename Func>
     void setMethod(
         std::string const&          endpoint,
+        std::string const&          name,
         Func                        f,
         int                         required_args,
         std::vector<ArgSpec> const& args) {
@@ -649,7 +726,8 @@ struct HandlerMapType : SharedPtrApi<HandlerMapType> {
             HandlerImpl(
                 make_method_handler_callback<Class>(f, args),
                 required_args,
-                args));
+                add_type_specs<Func>(args),
+                name));
     }
 
     void call(std::string const& target, RestHandlerContext* ctx) {
@@ -666,6 +744,17 @@ struct HandlerMapType : SharedPtrApi<HandlerMapType> {
         }
 
         ctx->finishResponse();
+    }
+
+    json getApiSchema() {
+        json s       = json::object();
+        s["name"]    = "OrgService";
+        s["methods"] = json::object();
+        for (auto const& [key, handler] : map) {
+            s["methods"][key] = handler.getApiSchema();
+        }
+
+        return s;
     }
 };
 
@@ -959,30 +1048,40 @@ int main() {
 
         handlers->setFunction(
             "/api/standalone",
+            "standalone_function",
             &standalone_function,
             2,
             {arg("arg1"), arg("arg2"), opt_arg("opt1")});
 
         handlers->setMethod<RestHandlerContext>(
-            "/api/getRoot", &RestHandlerContext::getRoot, 0, {});
+            "/api/getRoot",
+            "getRoot",
+            &RestHandlerContext::getRoot,
+            0,
+            {});
 
         handlers->setMethod<RestHandlerContext>(
             "/api/getTreeJsonDeep",
+            "getTreeJsonDeep",
             &RestHandlerContext::getTreeJsonDeep,
             1,
             {arg("target")});
 
         handlers->setMethod<RestHandlerContext>(
             "/api/setRootText",
+            "setRootText",
             &RestHandlerContext::setRootText,
             1,
             {arg("text")});
 
         handlers->setMethod<RestHandlerContext>(
             "/api/setRootFile",
+            "setRootFile",
             &RestHandlerContext::setRootFile,
             1,
             {arg("path")});
+
+        writeFile("/tmp/schema.json", handlers->getApiSchema().dump(2));
 
         int const       http_port      = 8080;
         int const       websocket_port = 8089;
