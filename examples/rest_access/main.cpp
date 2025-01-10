@@ -309,6 +309,7 @@ struct RestHandlerContext {
     std::string                            route;
     json                                   query_body;
     HttpState::Ptr                         state;
+    Opt<std::string>                       requestId;
     ResponseWrap                           response;
     bool                                   exception_handler = false;
 
@@ -351,12 +352,26 @@ struct RestHandlerContext {
         }
     }
 
+    void setResponseError(json const& text) {
+        if (response.isRest()) {
+            response.getRest().response->body() = text.dump();
+        } else {
+            response.getWebsocket().response["error"] = text;
+        }
+    }
+
 
     void setResponseResult(boost::beast::http::status status) {
         if (response.isRest()) {
             response.getRest().response->result(status);
         } else {
             response.getWebsocket().response["status"] = fmt1(status);
+        }
+    }
+
+    void finishResponse() {
+        if (requestId) {
+            response.getWebsocket().response["id"] = requestId.value();
         }
     }
 
@@ -373,6 +388,12 @@ struct RestHandlerContext {
                     value.dump());
                 query_params[key] = value.get<std::string>();
             }
+        }
+
+        if (query.contains("id")) {
+            requestId = query.at("id").get<std::string>();
+            OLOG(info) << fmt(
+                "Processing request id {}", requestId.value());
         }
 
         if (query.contains("body")) { query_body = query.at("body"); }
@@ -635,13 +656,16 @@ struct HandlerMapType : SharedPtrApi<HandlerMapType> {
         if (map.contains(target)) {
             map.at(target).call(ctx);
         } else {
-            OLOG(error) << fmt(
-                "No handler method defined for target '{}'\nquery "
-                "parameters: {}\nquery_body: {}",
-                target,
-                ctx->query_params,
-                ctx->query_body.dump(2));
+            ctx->setResponseResult(http::status::bad_request);
+            ctx->setResponseError(
+                fmt("No handler method defined for target '{}'\nquery "
+                    "parameters: {}\nquery_body: {}",
+                    target,
+                    ctx->query_params,
+                    ctx->query_body.dump(2)));
         }
+
+        ctx->finishResponse();
     }
 };
 
