@@ -255,6 +255,7 @@ namespace org {
 
 struct ImmAdapter;
 using ImmStrIdMap          = ImmMap<Str, ImmId>;
+using ImmVecStrIdMap       = ImmMap<Vec<Str>, ImmId>;
 using ImmParentPathVec     = SmallVec<ImmPathStep, 4>;
 using ImmParentIdVec       = SmallVec<ImmId, 4>;
 using ParentPathMap        = UnorderedMap<ImmId, ImmParentPathVec>;
@@ -270,6 +271,7 @@ struct ImmAstTrackingMapTransient {
     RadioTargetMap::transient_type radioTargets;
     ImmStrIdMap::transient_type    anchorTargets;
     ImmStrIdMap::transient_type    names;
+    ImmVecStrIdMap::transient_type hashtagDefinitions;
     ImmParentMap::transient_type   parents;
     ImmPanentTrackFilter const&    isTrackingParentImpl;
 
@@ -299,11 +301,12 @@ struct ImmAstTrackingMapTransient {
 bool isTrackingParentDefault(ImmAdapter const&);
 
 struct ImmAstTrackingMap {
-    ImmStrIdMap  footnotes;
-    ImmStrIdMap  subtrees;
-    ImmStrIdMap  anchorTargets;
-    ImmStrIdMap  names;
-    ImmParentMap parents;
+    ImmStrIdMap    footnotes;
+    ImmStrIdMap    subtrees;
+    ImmStrIdMap    anchorTargets;
+    ImmStrIdMap    names;
+    ImmParentMap   parents;
+    ImmVecStrIdMap hashtagDefinitions;
     /// \brief Map starting ID of the radio target text to the parent radio
     /// target for faster lookup.
     RadioTargetMap radioTargets;
@@ -348,6 +351,7 @@ struct ImmAstTrackingMap {
             .radioTargets         = radioTargets.transient(),
             .anchorTargets        = anchorTargets.transient(),
             .parents              = parents.transient(),
+            .hashtagDefinitions   = hashtagDefinitions.transient(),
             .isTrackingParentImpl = isTrackingParent,
         };
     }

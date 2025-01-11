@@ -456,6 +456,13 @@ def get_subtree_property_types():
             methods=[eq_method(t_nest_shared("RadioId", ["NamedProperty"]))],
         ),
         GenTuStruct(
+            t_nest_shared("HashtagDef", ["NamedProperty"]),
+            GenTuDoc("Definition of a hashtag entry"),
+            nested=[GenTuPass("HashtagDef() {}")],
+            fields=[org_field(t_nest_shared("HashTagText"), "hashtag")],
+            methods=[eq_method(t_nest_shared("HashtagDef", ["NamedProperty"]))],
+        ),
+        GenTuStruct(
             t_nest_shared("CustomArgs", ["NamedProperty"]),
             GenTuDoc("Custop property with unparsed arguments"),
             nested=[GenTuPass("CustomArgs() {}")],

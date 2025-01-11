@@ -435,13 +435,14 @@ void ImmAstTrackingMapTransient::insertAllSubnodesOf(
 
 ImmAstTrackingMap ImmAstTrackingMapTransient::persistent() {
     return ImmAstTrackingMap{
-        .footnotes        = footnotes.persistent(),
-        .subtrees         = subtrees.persistent(),
-        .radioTargets     = radioTargets.persistent(),
-        .anchorTargets    = anchorTargets.persistent(),
-        .parents          = parents.persistent(),
-        .names            = names.persistent(),
-        .isTrackingParent = isTrackingParentImpl,
+        .footnotes          = footnotes.persistent(),
+        .subtrees           = subtrees.persistent(),
+        .radioTargets       = radioTargets.persistent(),
+        .anchorTargets      = anchorTargets.persistent(),
+        .parents            = parents.persistent(),
+        .names              = names.persistent(),
+        .isTrackingParent   = isTrackingParentImpl,
+        .hashtagDefinitions = hashtagDefinitions.persistent(),
     };
 }
 
@@ -568,6 +569,15 @@ void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
                 for (auto const& id : org::getSubtreeProperties<
                          sem::NamedProperty::RadioId>(subtree)) {
                     edit_radio_targets(id.words, node);
+                }
+
+                for (auto const& tag : org::getSubtreeProperties<
+                         sem::NamedProperty::HashtagDef>(subtree)) {
+                    for (auto const& hashtag :
+                         tag.hashtag.getFlatHashes()) {
+                        transientTrack.hashtagDefinitions.insert(
+                            {hashtag, node});
+                    }
                 }
             },
             [&](org::ImmParagraph const&) {

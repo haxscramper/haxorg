@@ -563,6 +563,34 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         }
 
         result = Property{radio};
+    } else if (name == "hashtagdef") {
+        Property::HashtagDef def;
+        auto par = convertParagraph(one(a, N::Values)).value();
+        for (int i = 0; i < par.size(); ++i) {
+            auto sub = par.at(i);
+            if (sub->is(OrgSemKind::Space)) {
+                continue;
+            } else if (auto tag = sub.asOpt<sem::HashTag>()) {
+                if (def.hashtag.head.empty()) {
+                    def.hashtag = tag.value->text;
+                } else {
+                    return SemError(
+                        a,
+                        fmt(":hashtag_def: property can contain only one "
+                            "definition, to assign multiple definitions "
+                            "to the subtree use repeated `:hashtag_def:` "
+                            "property blocks."));
+                }
+            } else {
+                return SemError(
+                    a,
+                    fmt("Hashtag definition property can only contain "
+                        "space or hashtag node, but found node of kind {}",
+                        tag->getKind()));
+            }
+        }
+
+        result = Property{def};
     } else if (name == "created") {
         Property::Created created;
         auto par  = convertParagraph(one(a, N::Values)).value();

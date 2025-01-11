@@ -97,6 +97,7 @@ void visit(R& res, sem::NamedProperty::Blocker const& object);
 void visit(R& res, sem::NamedProperty::Unnumbered const& object);
 void visit(R& res, sem::NamedProperty::Created const& object);
 void visit(R& res, sem::NamedProperty::RadioId const& object);
+void visit(R& res, sem::NamedProperty::HashtagDef const& object);
 void visit(R& res, sem::NamedProperty::CustomArgs const& object);
 void visit(R& res, sem::NamedProperty::CustomRaw const& object);
 void visitNone(R& res, In<sem::None> object);

@@ -913,6 +913,10 @@ message NamedProperty {
     repeated string                                words                            = 1;
     string                                         debug                            = 1000;
   }
+  message HashtagDef {
+    HashTagText                                    hashtag                          = 1;
+    string                                         debug                            = 1000;
+  }
   message CustomArgs {
     string                                         name                             = 1;
     optional string                                sub                              = 2;
@@ -947,8 +951,9 @@ message NamedProperty {
       NamedProperty.Unnumbered                     unnumbered                       = 19;
       NamedProperty.Created                        created                          = 20;
       NamedProperty.RadioId                        radioid                          = 21;
-      NamedProperty.CustomArgs                     customargs                       = 22;
-      NamedProperty.CustomRaw                      customraw                        = 23;
+      NamedProperty.HashtagDef                     hashtagdef                       = 22;
+      NamedProperty.CustomArgs                     customargs                       = 23;
+      NamedProperty.CustomRaw                      customraw                        = 24;
     }
   }
   enum Kind {
@@ -973,8 +978,9 @@ message NamedProperty {
     Kind_Unnumbered_f                                                               = 18;
     Kind_Created_f                                                                  = 19;
     Kind_RadioId_f                                                                  = 20;
-    Kind_CustomArgs_f                                                               = 21;
-    Kind_CustomRaw_f                                                                = 22;
+    Kind_HashtagDef_f                                                               = 21;
+    Kind_CustomArgs_f                                                               = 22;
+    Kind_CustomRaw_f                                                                = 23;
   }
   NamedProperty.Data                               data                             = 1;
   string                                           debug                            = 1000;

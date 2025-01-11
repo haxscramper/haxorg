@@ -135,6 +135,28 @@ Other paragraph mentions radiotarget
     EXPECT_EQ(grouped.at(6).getRadioTarget().target, radio.id);
 }
 
+TEST_F(ImmOrgApi, HashtagDefinitionTracking) {
+    setTraceFile(getDebugFile("trace.log"));
+    org::ImmAstVersion init = getInitialVersion(R"(
+* Subtree with item description
+  :properties:
+  :hashtag_def: #hashtag1
+  :hashtag_def: #nested##[alias1,alias2]
+  :end:
+
+Mention #hashtag1 and #nested##alias1 with #nested##alias2
+
+)");
+
+    org::ImmAdapter root = init.getRootAdapter();
+    writeTreeRepr(root, "repr.txt");
+    org::ImmAdapter t1 = root.at(1);
+    EXPECT_EQ(t1.getKind(), OrgSemKind::Subtree);
+    org::ImmAdapter par = t1.at(0);
+    EXPECT_EQ2(par.getKind(), OrgSemKind::Paragraph);
+
+    auto group = org::getSubnodeGroups(par);
+}
 
 TEST_F(ImmOrgApi, RadioLinkDetectionForSubtree) {
     setTraceFile(getDebugFile("trace.log"));
@@ -831,7 +853,7 @@ Paragraph under subtitle 2
         selector.searchAnyKind({OrgSemKind::Word}, true);
 
         auto words = selector.getMatches(doc.getRootAdapter());
-        EXPECT_EQ(words.size(), 5) << fmt1(words);
+        EXPECT_EQ(words.size(), 5);
         // Subtree nodes are added as targets in the post-order DFS
         // traversal over all 'nested' elements. First the words in subtree
         // are collected.

@@ -1338,6 +1338,18 @@ struct NamedProperty {
     bool operator==(sem::NamedProperty::RadioId const& other) const;
   };
 
+  /// \brief Definition of a hashtag entry
+  struct HashtagDef {
+    HashtagDef() {}
+    BOOST_DESCRIBE_CLASS(HashtagDef,
+                         (),
+                         (),
+                         (),
+                         (hashtag))
+    sem::HashTagText hashtag;
+    bool operator==(sem::NamedProperty::HashtagDef const& other) const;
+  };
+
   /// \brief Custop property with unparsed arguments
   struct CustomArgs {
     CustomArgs() {}
@@ -1370,9 +1382,9 @@ struct NamedProperty {
     bool operator==(sem::NamedProperty::CustomRaw const& other) const;
   };
 
-  using Data = std::variant<sem::NamedProperty::Nonblocking, sem::NamedProperty::ArchiveTime, sem::NamedProperty::ArchiveFile, sem::NamedProperty::ArchiveOlpath, sem::NamedProperty::ArchiveTarget, sem::NamedProperty::ArchiveCategory, sem::NamedProperty::ArchiveTodo, sem::NamedProperty::Trigger, sem::NamedProperty::ExportLatexClass, sem::NamedProperty::CookieData, sem::NamedProperty::ExportLatexClassOptions, sem::NamedProperty::ExportLatexHeader, sem::NamedProperty::ExportLatexCompiler, sem::NamedProperty::Ordered, sem::NamedProperty::Effort, sem::NamedProperty::Visibility, sem::NamedProperty::ExportOptions, sem::NamedProperty::Blocker, sem::NamedProperty::Unnumbered, sem::NamedProperty::Created, sem::NamedProperty::RadioId, sem::NamedProperty::CustomArgs, sem::NamedProperty::CustomRaw>;
-  enum class Kind : short int { Nonblocking, ArchiveTime, ArchiveFile, ArchiveOlpath, ArchiveTarget, ArchiveCategory, ArchiveTodo, Trigger, ExportLatexClass, CookieData, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, RadioId, CustomArgs, CustomRaw, };
-  BOOST_DESCRIBE_NESTED_ENUM(Kind, Nonblocking, ArchiveTime, ArchiveFile, ArchiveOlpath, ArchiveTarget, ArchiveCategory, ArchiveTodo, Trigger, ExportLatexClass, CookieData, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, RadioId, CustomArgs, CustomRaw)
+  using Data = std::variant<sem::NamedProperty::Nonblocking, sem::NamedProperty::ArchiveTime, sem::NamedProperty::ArchiveFile, sem::NamedProperty::ArchiveOlpath, sem::NamedProperty::ArchiveTarget, sem::NamedProperty::ArchiveCategory, sem::NamedProperty::ArchiveTodo, sem::NamedProperty::Trigger, sem::NamedProperty::ExportLatexClass, sem::NamedProperty::CookieData, sem::NamedProperty::ExportLatexClassOptions, sem::NamedProperty::ExportLatexHeader, sem::NamedProperty::ExportLatexCompiler, sem::NamedProperty::Ordered, sem::NamedProperty::Effort, sem::NamedProperty::Visibility, sem::NamedProperty::ExportOptions, sem::NamedProperty::Blocker, sem::NamedProperty::Unnumbered, sem::NamedProperty::Created, sem::NamedProperty::RadioId, sem::NamedProperty::HashtagDef, sem::NamedProperty::CustomArgs, sem::NamedProperty::CustomRaw>;
+  enum class Kind : short int { Nonblocking, ArchiveTime, ArchiveFile, ArchiveOlpath, ArchiveTarget, ArchiveCategory, ArchiveTodo, Trigger, ExportLatexClass, CookieData, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, RadioId, HashtagDef, CustomArgs, CustomRaw, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, Nonblocking, ArchiveTime, ArchiveFile, ArchiveOlpath, ArchiveTarget, ArchiveCategory, ArchiveTodo, Trigger, ExportLatexClass, CookieData, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, RadioId, HashtagDef, CustomArgs, CustomRaw)
   using variant_enum_type = sem::NamedProperty::Kind;
   using variant_data_type = sem::NamedProperty::Data;
   NamedProperty(CR<Data> data) : data(data) {}
@@ -1452,12 +1464,15 @@ struct NamedProperty {
   bool isRadioId() const { return getKind() == Kind::RadioId; }
   sem::NamedProperty::RadioId const& getRadioId() const { return std::get<20>(data); }
   sem::NamedProperty::RadioId& getRadioId() { return std::get<20>(data); }
+  bool isHashtagDef() const { return getKind() == Kind::HashtagDef; }
+  sem::NamedProperty::HashtagDef const& getHashtagDef() const { return std::get<21>(data); }
+  sem::NamedProperty::HashtagDef& getHashtagDef() { return std::get<21>(data); }
   bool isCustomArgs() const { return getKind() == Kind::CustomArgs; }
-  sem::NamedProperty::CustomArgs const& getCustomArgs() const { return std::get<21>(data); }
-  sem::NamedProperty::CustomArgs& getCustomArgs() { return std::get<21>(data); }
+  sem::NamedProperty::CustomArgs const& getCustomArgs() const { return std::get<22>(data); }
+  sem::NamedProperty::CustomArgs& getCustomArgs() { return std::get<22>(data); }
   bool isCustomRaw() const { return getKind() == Kind::CustomRaw; }
-  sem::NamedProperty::CustomRaw const& getCustomRaw() const { return std::get<22>(data); }
-  sem::NamedProperty::CustomRaw& getCustomRaw() { return std::get<22>(data); }
+  sem::NamedProperty::CustomRaw const& getCustomRaw() const { return std::get<23>(data); }
+  sem::NamedProperty::CustomRaw& getCustomRaw() { return std::get<23>(data); }
   static sem::NamedProperty::Kind getKind(sem::NamedProperty::Data const& __input) { return static_cast<sem::NamedProperty::Kind>(__input.index()); }
   sem::NamedProperty::Kind getKind() const { return getKind(data); }
 };

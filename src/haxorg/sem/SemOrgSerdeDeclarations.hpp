@@ -681,6 +681,13 @@ struct proto_serde<::orgproto::NamedProperty::RadioId, sem::NamedProperty::Radio
 
 
 template <>
+struct proto_serde<::orgproto::NamedProperty::HashtagDef, sem::NamedProperty::HashtagDef> {
+  static void write(::orgproto::NamedProperty::HashtagDef* out, sem::NamedProperty::HashtagDef const& in);
+  static void read(::orgproto::NamedProperty::HashtagDef const& out, proto_write_accessor<sem::NamedProperty::HashtagDef> in);
+};
+
+
+template <>
 struct proto_serde<::orgproto::NamedProperty::CustomArgs, sem::NamedProperty::CustomArgs> {
   static void write(::orgproto::NamedProperty::CustomArgs* out, sem::NamedProperty::CustomArgs const& in);
   static void read(::orgproto::NamedProperty::CustomArgs const& out, proto_write_accessor<sem::NamedProperty::CustomArgs> in);

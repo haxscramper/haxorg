@@ -2248,6 +2248,25 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<sem::NamedProperty::HashtagDef>(m, "NamedPropertyHashtagDef")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::NamedProperty::HashtagDef {
+                        sem::NamedProperty::HashtagDef result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("hashtag", &sem::NamedProperty::HashtagDef::hashtag)
+    .def("operator==",
+         static_cast<bool(sem::NamedProperty::HashtagDef::*)(sem::NamedProperty::HashtagDef const&) const>(&sem::NamedProperty::HashtagDef::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::NamedProperty::HashtagDef _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::NamedProperty::HashtagDef _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<sem::NamedProperty::CustomArgs>(m, "NamedPropertyCustomArgs")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::NamedProperty::CustomArgs {
                         sem::NamedProperty::CustomArgs result{};
@@ -2312,6 +2331,7 @@ node can have subnodes.)RAW")
     .value("Unnumbered", sem::NamedProperty::Kind::Unnumbered)
     .value("Created", sem::NamedProperty::Kind::Created)
     .value("RadioId", sem::NamedProperty::Kind::RadioId)
+    .value("HashtagDef", sem::NamedProperty::Kind::HashtagDef)
     .value("CustomArgs", sem::NamedProperty::Kind::CustomArgs)
     .value("CustomRaw", sem::NamedProperty::Kind::CustomRaw)
     .def("__iter__", [](sem::NamedProperty::Kind _self) -> PyEnumIterator<sem::NamedProperty::Kind> {
@@ -2379,6 +2399,8 @@ node can have subnodes.)RAW")
     .def("getCreated", static_cast<sem::NamedProperty::Created&(sem::NamedProperty::*)()>(&sem::NamedProperty::getCreated))
     .def("isRadioId", static_cast<bool(sem::NamedProperty::*)() const>(&sem::NamedProperty::isRadioId))
     .def("getRadioId", static_cast<sem::NamedProperty::RadioId&(sem::NamedProperty::*)()>(&sem::NamedProperty::getRadioId))
+    .def("isHashtagDef", static_cast<bool(sem::NamedProperty::*)() const>(&sem::NamedProperty::isHashtagDef))
+    .def("getHashtagDef", static_cast<sem::NamedProperty::HashtagDef&(sem::NamedProperty::*)()>(&sem::NamedProperty::getHashtagDef))
     .def("isCustomArgs", static_cast<bool(sem::NamedProperty::*)() const>(&sem::NamedProperty::isCustomArgs))
     .def("getCustomArgs", static_cast<sem::NamedProperty::CustomArgs&(sem::NamedProperty::*)()>(&sem::NamedProperty::getCustomArgs))
     .def("isCustomRaw", static_cast<bool(sem::NamedProperty::*)() const>(&sem::NamedProperty::isCustomRaw))

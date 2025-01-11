@@ -1197,6 +1197,14 @@ void proto_serde<::orgproto::NamedProperty::RadioId, sem::NamedProperty::RadioId
   proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::read(out.words(), in.for_field(&sem::NamedProperty::RadioId::words));
 }
 
+void proto_serde<::orgproto::NamedProperty::HashtagDef, sem::NamedProperty::HashtagDef>::write(::orgproto::NamedProperty::HashtagDef* out, sem::NamedProperty::HashtagDef const& in) {
+  proto_serde<orgproto::HashTagText, sem::HashTagText>::write(out->mutable_hashtag(), in.hashtag);
+}
+
+void proto_serde<::orgproto::NamedProperty::HashtagDef, sem::NamedProperty::HashtagDef>::read(::orgproto::NamedProperty::HashtagDef const& out, proto_write_accessor<sem::NamedProperty::HashtagDef> in) {
+  proto_serde<orgproto::HashTagText, sem::HashTagText>::read(out.hashtag(), in.for_field(&sem::NamedProperty::HashtagDef::hashtag));
+}
+
 void proto_serde<::orgproto::NamedProperty::CustomArgs, sem::NamedProperty::CustomArgs>::write(::orgproto::NamedProperty::CustomArgs* out, sem::NamedProperty::CustomArgs const& in) {
   proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
   if (in.sub) {
@@ -1289,10 +1297,13 @@ void proto_serde<::orgproto::NamedProperty, sem::NamedProperty>::write(::orgprot
       proto_serde<orgproto::NamedProperty::RadioId, sem::NamedProperty::RadioId>::write(out->mutable_data()->mutable_radioid(), std::get<20>(in.data));
       break;
     case 21:
-      proto_serde<orgproto::NamedProperty::CustomArgs, sem::NamedProperty::CustomArgs>::write(out->mutable_data()->mutable_customargs(), std::get<21>(in.data));
+      proto_serde<orgproto::NamedProperty::HashtagDef, sem::NamedProperty::HashtagDef>::write(out->mutable_data()->mutable_hashtagdef(), std::get<21>(in.data));
       break;
     case 22:
-      proto_serde<orgproto::NamedProperty::CustomRaw, sem::NamedProperty::CustomRaw>::write(out->mutable_data()->mutable_customraw(), std::get<22>(in.data));
+      proto_serde<orgproto::NamedProperty::CustomArgs, sem::NamedProperty::CustomArgs>::write(out->mutable_data()->mutable_customargs(), std::get<22>(in.data));
+      break;
+    case 23:
+      proto_serde<orgproto::NamedProperty::CustomRaw, sem::NamedProperty::CustomRaw>::write(out->mutable_data()->mutable_customraw(), std::get<23>(in.data));
       break;
   }
 }
@@ -1362,11 +1373,14 @@ void proto_serde<::orgproto::NamedProperty, sem::NamedProperty>::read(::orgproto
     case ::orgproto::NamedProperty::Data::kRadioid:
       proto_serde<orgproto::NamedProperty::RadioId, sem::NamedProperty::RadioId>::read(out.data().radioid(), in.for_field_variant<20>(&sem::NamedProperty::data));
       break;
+    case ::orgproto::NamedProperty::Data::kHashtagdef:
+      proto_serde<orgproto::NamedProperty::HashtagDef, sem::NamedProperty::HashtagDef>::read(out.data().hashtagdef(), in.for_field_variant<21>(&sem::NamedProperty::data));
+      break;
     case ::orgproto::NamedProperty::Data::kCustomargs:
-      proto_serde<orgproto::NamedProperty::CustomArgs, sem::NamedProperty::CustomArgs>::read(out.data().customargs(), in.for_field_variant<21>(&sem::NamedProperty::data));
+      proto_serde<orgproto::NamedProperty::CustomArgs, sem::NamedProperty::CustomArgs>::read(out.data().customargs(), in.for_field_variant<22>(&sem::NamedProperty::data));
       break;
     case ::orgproto::NamedProperty::Data::kCustomraw:
-      proto_serde<orgproto::NamedProperty::CustomRaw, sem::NamedProperty::CustomRaw>::read(out.data().customraw(), in.for_field_variant<22>(&sem::NamedProperty::data));
+      proto_serde<orgproto::NamedProperty::CustomRaw, sem::NamedProperty::CustomRaw>::read(out.data().customraw(), in.for_field_variant<23>(&sem::NamedProperty::data));
       break;
   }
 }

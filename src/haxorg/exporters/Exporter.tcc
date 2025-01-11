@@ -396,6 +396,9 @@ template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::NamedProperty::RadioId const& object) { __obj_field(res, object, words); }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::NamedProperty::HashtagDef const& object) { __obj_field(res, object, hashtag); }
+
+template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::NamedProperty::CustomArgs const& object) {
   __obj_field(res, object, name);
   __obj_field(res, object, sub);

@@ -1,9 +1,8 @@
-#include <haxorg/test/org_parse_aux.hpp>
-#include <gtest/gtest.h>
+#include "../common.hpp"
 
 #include <haxorg/parse/OrgParser.hpp>
 #include <haxorg/parse/OrgTokenizer.hpp>
-#include <gtest/gtest.h>
+
 
 #include <haxorg/lexbase/AstSpec.hpp>
 #include <haxorg/lexbase/AstDiff.hpp>
@@ -22,10 +21,21 @@
 #include <haxorg/sem/ImmOrgGraphBoost.hpp>
 #include <boost/graph/graphml.hpp>
 #include <boost/graph/graphviz.hpp>
-#include <fstream>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <haxorg/exporters/exportertree.hpp>
-#include "../common.hpp"
+
+
+GTEST_ADL_PRINT_TYPE(org::ImmAdapter);
+GTEST_ADL_PRINT_TYPE(org::ImmUniqId);
+GTEST_ADL_PRINT_TYPE(org::graph::MapNode);
+GTEST_ADL_PRINT_TYPE(org::graph::MapEdge);
+GTEST_ADL_PRINT_TYPE(Vec<Str>);
+GTEST_ADL_PRINT_TYPE(Vec<Vec<Str>>);
+GTEST_ADL_PRINT_TYPE(UserTimeBreakdown);
+
+#include <haxorg/test/org_parse_aux.hpp>
+#include <gtest/gtest.h>
+
 
 Str getDebugFile(Str const& suffix);
 
@@ -41,30 +51,48 @@ void writeTreeRepr(
 
 GTEST_ADL_PRINT_TYPE(OrgSemKind);
 GTEST_ADL_PRINT_TYPE(org::ImmId);
-GTEST_ADL_PRINT_TYPE(org::ImmAdapter);
-GTEST_ADL_PRINT_TYPE(org::ImmUniqId);
-GTEST_ADL_PRINT_TYPE(org::graph::MapNode);
-GTEST_ADL_PRINT_TYPE(org::graph::MapEdge);
-GTEST_ADL_PRINT_TYPE(Vec<Str>);
-GTEST_ADL_PRINT_TYPE(Vec<Vec<Str>>);
-GTEST_ADL_PRINT_TYPE(UserTimeBreakdown);
 
 
-#define EXPECT_EQ2(lhs, rhs)                                              \
-    {                                                                     \
-        auto lhs_val = lhs;                                               \
-        auto rhs_val = rhs;                                               \
-        if (lhs != rhs) {                                                 \
-            FAIL() << fmt(                                                \
-                "Expected equality of these values:\n  {}\n    {}\n  "    \
-                "{}\n "                                                   \
-                "   {}",                                                  \
-                #lhs,                                                     \
-                lhs,                                                      \
-                #rhs,                                                     \
-                rhs);                                                     \
-        }                                                                 \
+template <typename T>
+struct TestValueFormat {
+    static std::string format(T const& t) { return fmt1(t); }
+};
+
+
+template <typename T1, typename T2>
+struct TestValueCompareFormat {
+    static std::string format(
+        T1 const&   t1,
+        T2 const&   t2,
+        char const* lhs,
+        char const* rhs) {
+        return fmt(
+            "Expected equality of these values:\n  {}\n    {}\n  "
+            "{}\n "
+            "   {}",
+            lhs,
+            t1,
+            rhs,
+            t2);
     }
+};
+
+template <typename T1, typename T2>
+std::string format_test_fail(
+    T1 const&   t1,
+    T2 const&   t2,
+    char const* lhs,
+    char const* rhs) {
+    return TestValueCompareFormat<T1, T2>::format(t1, t2, lhs, rhs);
+}
+
+// use when shitty ADL lookup solution that 1000IQ shitbags from google
+// cooked fails to work. Not like there are any other ways to make test
+// suite print values in some sane capacity, greasy cumshots are splattered
+// over the docs are not worth shit, they don't even match whatever is in
+// the `gtest.h` header. `AbslStringify`, right. Fuck you.
+#define EXPECT_EQ2(lhs, rhs)                                              \
+    EXPECT_EQ(lhs, rhs) << format_test_fail(lhs, rhs, #lhs, #rhs)
 
 
 struct compare_context {
