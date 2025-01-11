@@ -262,6 +262,16 @@ struct function_traits<R (C::*)(Args...)> {
     static constexpr size_t arity = sizeof...(Args);
 };
 
+template <typename T, typename = void>
+struct has_class_type : std::false_type {};
+
+template <typename T>
+struct has_class_type<T, std::void_t<typename T::class_type>>
+    : std::true_type {};
+
+template <typename T>
+inline constexpr bool has_class_type_v = has_class_type<T>::value;
+
 struct TypeSpec {
     std::string           name;
     std::vector<TypeSpec> params;
@@ -281,8 +291,23 @@ struct TypeSpec {
 
 template <typename T>
 struct TypeSpecProvider {
-    static TypeSpec get() { return TypeSpec{.name = typeid(T).name()}; }
+    static TypeSpec get() {
+        return TypeSpec{.name = demangle(typeid(T).name())};
+    }
 };
+
+
+#define __trivial_type_spec_provider(__type, __name)                      \
+    template <>                                                           \
+    struct TypeSpecProvider<__type> {                                     \
+        static TypeSpec get() { return TypeSpec{.name = __name}; }        \
+    };
+
+__trivial_type_spec_provider(std::string, "string");
+__trivial_type_spec_provider(int, "number");
+__trivial_type_spec_provider(i8, "number");
+__trivial_type_spec_provider(org::ImmUniqId, "ImmUniqId");
+
 
 struct ArgSpec {
     std::string   name;
@@ -524,38 +549,6 @@ struct refl_redirect<RestHandlerContext> {
     using target_type = RestHandlerContext&;
 };
 
-
-// Handler implementation
-struct HandlerImpl {
-    std::function<void(RestHandlerContext*)> callback;
-    std::vector<ArgSpec>                     args;
-    size_t                                   required_args;
-    std::string                              name;
-
-    template <typename F>
-    HandlerImpl(
-        F&&                  f,
-        size_t               req_args,
-        std::vector<ArgSpec> args,
-        std::string const&   name)
-        : callback(std::forward<F>(f))
-        , args(std::move(args))
-        , required_args(req_args)
-        , name{name} {}
-
-    void call(RestHandlerContext* ctx) { callback(ctx); }
-
-    json getApiSchema() const {
-        json s          = json::object();
-        s["name"]       = name;
-        s["parameters"] = json::array();
-        for (auto const& arg : args) {
-            s["parameters"].push_back(arg.getApiSchema());
-        }
-        return s;
-    }
-};
-
 // Helper for unpacking tuple into function arguments
 template <typename Func, typename Tuple, size_t... I>
 auto call_with_tuple_impl(Func&& f, Tuple&& t, std::index_sequence<I...>) {
@@ -571,131 +564,192 @@ auto call_with_tuple(Func&& f, Tuple&& t) {
             std::tuple_size_v<std::remove_reference_t<Tuple>>>{});
 }
 
-// Handler construction helpers
-struct HandlerMapType : SharedPtrApi<HandlerMapType> {
-    UnorderedMap<std::string, HandlerImpl> map;
+template <typename Func, typename... Args>
+auto make_handler_callback(Func f, std::vector<ArgSpec> const& arg_specs) {
+    return [f, arg_specs](RestHandlerContext* ctx) {
+        using traits      = function_traits<std::decay_t<Func>>;
+        using args_tuple  = typename traits::args_tuple;
+        using return_type = typename traits::return_type;
 
-    template <typename Func, typename... Args>
-    auto make_handler_callback(
-        Func                        f,
-        std::vector<ArgSpec> const& arg_specs) {
-        return [f, arg_specs](RestHandlerContext* ctx) {
-            using traits      = function_traits<std::decay_t<Func>>;
-            using args_tuple  = typename traits::args_tuple;
-            using return_type = typename traits::return_type;
+        // Build tuple of arguments
+        args_tuple args;
+        std::apply(
+            [&](auto&... tuple_args) {
+                size_t idx = 0;
+                ((tuple_args = ctx->template getArg<
+                               std::decay_t<decltype(tuple_args)>>(
+                      arg_specs[idx++])),
+                 ...);
+            },
+            args);
 
-            // Build tuple of arguments
-            args_tuple args;
-            std::apply(
-                [&](auto&... tuple_args) {
-                    size_t idx = 0;
-                    ((tuple_args = ctx->template getArg<
-                                   std::decay_t<decltype(tuple_args)>>(
-                          arg_specs[idx++])),
-                     ...);
-                },
-                args);
+        // Call function and serialize result
+        if constexpr (std::is_void_v<return_type>) {
+            call_with_tuple(f, args);
+        } else {
+            auto result = call_with_tuple(f, args);
+            ctx->setResponseBody(
+                JsonSerde<return_type>::to_json(result).dump());
+        }
+        ctx->setResponseResult(http::status::ok);
+    };
+}
 
-            // Call function and serialize result
+template <typename Class, typename Func>
+auto make_method_handler_callback(
+    Func                        f,
+    std::vector<ArgSpec> const& arg_specs) {
+    return [f, arg_specs](RestHandlerContext* ctx) {
+        using traits      = function_traits<std::decay_t<Func>>;
+        using args_tuple  = typename traits::args_tuple;
+        using return_type = typename traits::return_type;
+        using this_class  = typename refl_redirect<Class>::target_type;
+
+        // Get instance
+        auto instance = ctx->template getThis<this_class>();
+
+        // Build tuple of arguments
+        args_tuple args;
+        std::apply(
+            [&](auto&... tuple_args) {
+                size_t idx = 0;
+                ((tuple_args = ctx->template getArg<
+                               std::decay_t<decltype(tuple_args)>>(
+                      arg_specs[idx++])),
+                 ...);
+            },
+            args);
+
+        auto invoke_impl = [&]() {
             if constexpr (std::is_void_v<return_type>) {
-                call_with_tuple(f, args);
+                call_with_tuple(
+                    [&instance, f](auto&&... args) {
+                        if constexpr (std::is_pointer_v<
+                                          decltype(instance)>) {
+                            (instance->*f)(
+                                std::forward<decltype(args)>(args)...);
+                        } else {
+                            (instance
+                             .*f)(std::forward<decltype(args)>(args)...);
+                        }
+                    },
+                    args);
             } else {
-                auto result = call_with_tuple(f, args);
+                // Call method and serialize result
+                auto result = call_with_tuple(
+                    [&instance, f](auto&&... args) {
+                        if constexpr (std::is_pointer_v<
+                                          decltype(instance)>) {
+                            return (instance->*f)(
+                                std::forward<decltype(args)>(args)...);
+                        } else {
+                            return (instance.*f)(
+                                std::forward<decltype(args)>(args)...);
+                        }
+                    },
+                    args);
+
                 ctx->setResponseBody(
-                    JsonSerde<return_type>::to_json(result).dump());
+                    JsonSerde<return_type>::to_json(result).dump(
+                        -1,
+                        ' ',
+                        false,
+                        nlohmann::ordered_json::error_handler_t::replace));
             }
+        };
+
+
+        if (ctx->exception_handler) {
+            try {
+                invoke_impl();
+                ctx->setResponseResult(http::status::ok);
+            } catch (cpptrace::exception& ex) {
+                ctx->setResponseBody(json::object({
+                    {"what", ex.what()},
+                    {"trace", to_json_eval(ex.trace())},
+                }));
+                ctx->setResponseResult(
+                    http::status::internal_server_error);
+            } catch (std::exception& ex) {
+                ctx->setResponseBody(json::object({{"what", ex.what()}}));
+                ctx->setResponseResult(
+                    http::status::internal_server_error);
+            }
+        } else {
+            invoke_impl();
             ctx->setResponseResult(http::status::ok);
+        }
+    };
+}
+
+
+// Handler implementation
+struct HandlerImpl {
+    std::function<void(RestHandlerContext*)> callback;
+    std::vector<ArgSpec>                     args;
+    int                                      required_args;
+    std::string                              name;
+    Opt<TypeSpec>                            self;
+    Opt<TypeSpec>                            result;
+
+
+    template <typename Func>
+    static HandlerImpl init_function(
+        std::string const&          name,
+        Func                        f,
+        int                         required_args,
+        std::vector<ArgSpec> const& args) {
+
+        return HandlerImpl{
+            .callback      = make_handler_callback(f, args),
+            .args          = add_type_specs<Func>(args),
+            .required_args = required_args,
+            .name          = name,
         };
     }
 
     template <typename Class, typename Func>
-    auto make_method_handler_callback(
+    static HandlerImpl init_method(
+        std::string const&          name,
         Func                        f,
-        std::vector<ArgSpec> const& arg_specs) {
-        return [f, arg_specs](RestHandlerContext* ctx) {
-            using traits      = function_traits<std::decay_t<Func>>;
-            using args_tuple  = typename traits::args_tuple;
-            using return_type = typename traits::return_type;
-            using this_class  = typename refl_redirect<Class>::target_type;
-
-            // Get instance
-            auto instance = ctx->template getThis<this_class>();
-
-            // Build tuple of arguments
-            args_tuple args;
-            std::apply(
-                [&](auto&... tuple_args) {
-                    size_t idx = 0;
-                    ((tuple_args = ctx->template getArg<
-                                   std::decay_t<decltype(tuple_args)>>(
-                          arg_specs[idx++])),
-                     ...);
-                },
-                args);
-
-            auto invoke_impl = [&]() {
-                if constexpr (std::is_void_v<return_type>) {
-                    call_with_tuple(
-                        [&instance, f](auto&&... args) {
-                            if constexpr (std::is_pointer_v<
-                                              decltype(instance)>) {
-                                (instance->*f)(
-                                    std::forward<decltype(args)>(args)...);
-                            } else {
-                                (instance.*f)(
-                                    std::forward<decltype(args)>(args)...);
-                            }
-                        },
-                        args);
-                } else {
-                    // Call method and serialize result
-                    auto result = call_with_tuple(
-                        [&instance, f](auto&&... args) {
-                            if constexpr (std::is_pointer_v<
-                                              decltype(instance)>) {
-                                return (instance->*f)(
-                                    std::forward<decltype(args)>(args)...);
-                            } else {
-                                return (instance.*f)(
-                                    std::forward<decltype(args)>(args)...);
-                            }
-                        },
-                        args);
-
-                    ctx->setResponseBody(
-                        JsonSerde<return_type>::to_json(result).dump(
-                            -1,
-                            ' ',
-                            false,
-                            nlohmann::ordered_json::error_handler_t::
-                                replace));
-                }
-            };
-
-
-            if (ctx->exception_handler) {
-                try {
-                    invoke_impl();
-                    ctx->setResponseResult(http::status::ok);
-                } catch (cpptrace::exception& ex) {
-                    ctx->setResponseBody(json::object({
-                        {"what", ex.what()},
-                        {"trace", to_json_eval(ex.trace())},
-                    }));
-                    ctx->setResponseResult(
-                        http::status::internal_server_error);
-                } catch (std::exception& ex) {
-                    ctx->setResponseBody(
-                        json::object({{"what", ex.what()}}));
-                    ctx->setResponseResult(
-                        http::status::internal_server_error);
-                }
-            } else {
-                invoke_impl();
-                ctx->setResponseResult(http::status::ok);
-            }
+        int                         required_args,
+        std::vector<ArgSpec> const& args) {
+        return HandlerImpl{
+            .callback      = make_method_handler_callback<Class>(f, args),
+            .args          = add_type_specs<Func>(args),
+            .required_args = required_args,
+            .name          = name,
+            .self          = TypeSpecProvider<Class>::get(),
         };
     }
+
+    void call(RestHandlerContext* ctx) { callback(ctx); }
+
+    json getApiSchema() const {
+        json s          = json::object();
+        s["name"]       = name;
+        s["parameters"] = json::array();
+        if (self) {
+            s["parameters"].push_back(ArgSpec{
+                .name = "self",
+                .type = self.value(),
+            }
+                                          .getApiSchema());
+        }
+
+        if (result) { s["result"] = result.value().getApiSchema(); }
+
+        for (auto const& arg : args) {
+            s["parameters"].push_back(arg.getApiSchema());
+        }
+        return s;
+    }
+};
+
+
+// Handler construction helpers
+struct HandlerMapType : SharedPtrApi<HandlerMapType> {
+    UnorderedMap<std::string, HandlerImpl> map;
 
   public:
     template <typename Func>
@@ -707,11 +761,7 @@ struct HandlerMapType : SharedPtrApi<HandlerMapType> {
         std::vector<ArgSpec> const& args) {
         map.emplace(
             endpoint,
-            HandlerImpl(
-                make_handler_callback(f, args),
-                required_args,
-                add_type_specs<Func>(args),
-                name));
+            HandlerImpl::init_function(name, f, required_args, args));
     }
 
     template <typename Class, typename Func>
@@ -723,11 +773,7 @@ struct HandlerMapType : SharedPtrApi<HandlerMapType> {
         std::vector<ArgSpec> const& args) {
         map.emplace(
             endpoint,
-            HandlerImpl(
-                make_method_handler_callback<Class>(f, args),
-                required_args,
-                add_type_specs<Func>(args),
-                name));
+            HandlerImpl::init_method<Class>(name, f, required_args, args));
     }
 
     void call(std::string const& target, RestHandlerContext* ctx) {
@@ -751,7 +797,7 @@ struct HandlerMapType : SharedPtrApi<HandlerMapType> {
         s["name"]    = "OrgService";
         s["methods"] = json::object();
         for (auto const& [key, handler] : map) {
-            s["methods"][key] = handler.getApiSchema();
+            s["methods"][handler.name] = handler.getApiSchema();
         }
 
         return s;
