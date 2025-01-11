@@ -204,6 +204,15 @@ struct JsonSerde<std::any> {
     static std::any from_json(json const& id) { logic_todo_impl(); }
 };
 
+template <>
+struct JsonSerde<OrgSemKind> {
+    static json       to_json(OrgSemKind const& id) { return fmt1(id); }
+    static OrgSemKind from_json(json const& id) {
+        return enum_serde<OrgSemKind>::from_string(id.get<std::string>())
+            .value();
+    }
+};
+
 template <typename Tag>
 struct JsonSerde<ReflPathItem<Tag>> {
     using Item = ReflPathItem<Tag>;
@@ -272,6 +281,16 @@ struct has_class_type<T, std::void_t<typename T::class_type>>
 template <typename T>
 inline constexpr bool has_class_type_v = has_class_type<T>::value;
 
+template <typename T, typename = void>
+struct has_return_type : std::false_type {};
+
+template <typename T>
+struct has_return_type<T, std::void_t<typename T::return_type>>
+    : std::true_type {};
+
+template <typename T>
+inline constexpr bool has_return_type_v = has_return_type<T>::value;
+
 struct TypeSpec {
     std::string           name;
     std::vector<TypeSpec> params;
@@ -307,6 +326,7 @@ __trivial_type_spec_provider(std::string, "string");
 __trivial_type_spec_provider(int, "number");
 __trivial_type_spec_provider(i8, "number");
 __trivial_type_spec_provider(org::ImmUniqId, "ImmUniqId");
+__trivial_type_spec_provider(json, "json");
 
 
 struct ArgSpec {
@@ -350,8 +370,12 @@ std::vector<ArgSpec> add_type_specs(std::vector<ArgSpec> const& args) {
 
 
 ArgSpec arg(std::string const& name) { return ArgSpec{.name = name}; }
-ArgSpec opt_arg(std::string const& name) {
-    return ArgSpec{.name = name, .optional = true};
+ArgSpec opt_arg(std::string const& name, json value = json{}) {
+    return ArgSpec{
+        .name         = name,
+        .optional     = true,
+        .defaultValue = value,
+    };
 }
 
 void standalone_function(int arg1, int arg2, int opt1 = 123) {
@@ -363,7 +387,9 @@ void standalone_function(int arg1, int arg2, int opt1 = 123) {
 struct HttpState : public SharedPtrApi<HttpState> {
     org::ImmAstContext::Ptr ctx;
     org::ImmAstVersion      root;
-    void                    parseRoot(std::string const& text) {
+    bool                    exception_handler = false;
+
+    void parseRoot(std::string const& text) {
         root = ctx->addRoot(sem::parseString(text));
     }
 
@@ -393,7 +419,7 @@ struct RestHandlerContext {
     HttpState::Ptr                         state;
     Opt<std::string>                       requestId;
     ResponseWrap                           response;
-    bool                                   exception_handler = false;
+
 
     DESC_FIELDS(
         RestHandlerContext,
@@ -404,7 +430,20 @@ struct RestHandlerContext {
 
     template <typename T>
     T getArg(ArgSpec const& arg) {
-        return JsonSerde<T>::from_json(query_body.at(arg.name));
+        LOGIC_ASSERTION_CHECK(
+            arg.optional || query_body.contains(arg.name),
+            "Missing non-optional argument {}",
+            arg.name);
+
+        if (arg.optional && !query_body.contains(arg.name)) {
+            if (arg.defaultValue.is_null()) {
+                return SerdeDefaultProvider<T>::get();
+            } else {
+                return JsonSerde<T>::from_json(arg.defaultValue);
+            }
+        } else {
+            return JsonSerde<T>::from_json(query_body.at(arg.name));
+        }
     }
 
     json getSelfJson() { return getArg<json>(ArgSpec{"self"}); }
@@ -415,14 +454,6 @@ struct RestHandlerContext {
             return *this;
         } else {
             return getArg<T>(ArgSpec{"self"});
-        }
-    }
-
-    void setResponseBody(std::string const& text) {
-        if (response.isRest()) {
-            response.getRest().response->body() = text;
-        } else {
-            response.getWebsocket().response["body"] = text;
         }
     }
 
@@ -492,12 +523,28 @@ struct RestHandlerContext {
         query_body = json::parse(body);
     }
 
-    org::ImmUniqId getRoot() {
+    org::ImmUniqId getRoot() const {
         return state->root.getRootAdapter().uniq();
+    }
+
+    OrgSemKind getKind(org::ImmUniqId const& id) const {
+        return state->ctx->adapt(id).getKind();
+    }
+
+    org::ImmUniqId getSubnodeAt(org::ImmUniqId const& id, int index)
+        const {
+        return state->ctx->adapt(id).at(index).uniq();
+    }
+
+    int getSize(org::ImmUniqId const& id) const {
+        return state->ctx->adapt(id).size();
     }
 
     void setRootText(std::string const& t) { state->parseRoot(t); }
     void setRootFile(std::string const& t) { setRootText(readFile(t)); }
+    void setExceptionHandler(bool handler) {
+        state->exception_handler = handler;
+    }
 
     json toJson(sem::SemId<sem::Org> id) {
         ExporterJson exp{};
@@ -525,10 +572,6 @@ struct RestHandlerContext {
                     query_params.insert_or_assign(
                         param.substr(0, eq_pos), param.substr(eq_pos + 1));
                 }
-            }
-
-            if (auto handler = query_params.get("exception_handler")) {
-                this->exception_handler = handler.value() == "true";
             }
 
             this->route = route;
@@ -573,25 +616,48 @@ auto make_handler_callback(Func f, std::vector<ArgSpec> const& arg_specs) {
 
         // Build tuple of arguments
         args_tuple args;
+        json       failed_arg_parse;
+
+        auto place_argument = [&]<typename Arg>(Arg& arg, int idx) {
+            auto fmt_arg_message = [&]() -> std::string {
+                auto const& name = arg_specs.at(idx).name;
+                return fmt(
+                    "Failed to parse arg '{}' from JSON '{}'",
+                    name,
+                    ctx->query_body.contains(name)
+                        ? ctx->query_body.at(name)
+                        : json{});
+            };
+            try {
+                arg = ctx->template getArg<std::decay_t<decltype(arg)>>(
+                    arg_specs[idx]);
+            } catch (std::exception& ex) {
+                failed_arg_parse.push_back(json::object(
+                    {{"arg", fmt_arg_message()}, {"what", ex.what()}}));
+            }
+        };
+
         std::apply(
             [&](auto&... tuple_args) {
                 size_t idx = 0;
-                ((tuple_args = ctx->template getArg<
-                               std::decay_t<decltype(tuple_args)>>(
-                      arg_specs[idx++])),
-                 ...);
+                (place_argument(tuple_args, ++idx), ...);
             },
             args);
 
-        // Call function and serialize result
-        if constexpr (std::is_void_v<return_type>) {
-            call_with_tuple(f, args);
+        if (failed_arg_parse.empty()) {
+            // Call function and serialize result
+            if constexpr (std::is_void_v<return_type>) {
+                call_with_tuple(f, args);
+            } else {
+                auto result = call_with_tuple(f, args);
+                ctx->setResponseBody(
+                    JsonSerde<return_type>::to_json(result));
+            }
+            ctx->setResponseResult(http::status::ok);
         } else {
-            auto result = call_with_tuple(f, args);
-            ctx->setResponseBody(
-                JsonSerde<return_type>::to_json(result).dump());
+            ctx->setResponseError(failed_arg_parse);
+            ctx->setResponseResult(http::status::bad_request);
         }
-        ctx->setResponseResult(http::status::ok);
     };
 }
 
@@ -650,16 +716,12 @@ auto make_method_handler_callback(
                     args);
 
                 ctx->setResponseBody(
-                    JsonSerde<return_type>::to_json(result).dump(
-                        -1,
-                        ' ',
-                        false,
-                        nlohmann::ordered_json::error_handler_t::replace));
+                    JsonSerde<return_type>::to_json(result));
             }
         };
 
 
-        if (ctx->exception_handler) {
+        if (ctx->state->exception_handler) {
             try {
                 invoke_impl();
                 ctx->setResponseResult(http::status::ok);
@@ -687,7 +749,6 @@ auto make_method_handler_callback(
 struct HandlerImpl {
     std::function<void(RestHandlerContext*)> callback;
     std::vector<ArgSpec>                     args;
-    int                                      required_args;
     std::string                              name;
     Opt<TypeSpec>                            self;
     Opt<TypeSpec>                            result;
@@ -697,30 +758,40 @@ struct HandlerImpl {
     static HandlerImpl init_function(
         std::string const&          name,
         Func                        f,
-        int                         required_args,
         std::vector<ArgSpec> const& args) {
 
-        return HandlerImpl{
-            .callback      = make_handler_callback(f, args),
-            .args          = add_type_specs<Func>(args),
-            .required_args = required_args,
-            .name          = name,
+        auto res = HandlerImpl{
+            .callback = make_handler_callback(f, args),
+            .args     = add_type_specs<Func>(args),
+            .name     = name,
         };
+
+        if constexpr (has_return_type_v<function_traits<Func>>) {
+            res.result = TypeSpecProvider<
+                typename function_traits<Func>::return_type>::get();
+        }
+
+        return res;
     }
 
     template <typename Class, typename Func>
     static HandlerImpl init_method(
         std::string const&          name,
         Func                        f,
-        int                         required_args,
         std::vector<ArgSpec> const& args) {
-        return HandlerImpl{
-            .callback      = make_method_handler_callback<Class>(f, args),
-            .args          = add_type_specs<Func>(args),
-            .required_args = required_args,
-            .name          = name,
-            .self          = TypeSpecProvider<Class>::get(),
+        auto res = HandlerImpl{
+            .callback = make_method_handler_callback<Class>(f, args),
+            .args     = add_type_specs<Func>(args),
+            .name     = name,
+            .self     = TypeSpecProvider<Class>::get(),
         };
+
+        if constexpr (has_return_type_v<function_traits<Func>>) {
+            res.result = TypeSpecProvider<
+                typename function_traits<Func>::return_type>::get();
+        }
+
+        return res;
     }
 
     void call(RestHandlerContext* ctx) { callback(ctx); }
@@ -729,7 +800,7 @@ struct HandlerImpl {
         json s          = json::object();
         s["name"]       = name;
         s["parameters"] = json::array();
-        if (self) {
+        if (false && self) {
             s["parameters"].push_back(ArgSpec{
                 .name = "self",
                 .type = self.value(),
@@ -757,11 +828,8 @@ struct HandlerMapType : SharedPtrApi<HandlerMapType> {
         std::string const&          endpoint,
         std::string const&          name,
         Func                        f,
-        int                         required_args,
         std::vector<ArgSpec> const& args) {
-        map.emplace(
-            endpoint,
-            HandlerImpl::init_function(name, f, required_args, args));
+        map.emplace(endpoint, HandlerImpl::init_function(name, f, args));
     }
 
     template <typename Class, typename Func>
@@ -769,11 +837,9 @@ struct HandlerMapType : SharedPtrApi<HandlerMapType> {
         std::string const&          endpoint,
         std::string const&          name,
         Func                        f,
-        int                         required_args,
         std::vector<ArgSpec> const& args) {
         map.emplace(
-            endpoint,
-            HandlerImpl::init_method<Class>(name, f, required_args, args));
+            endpoint, HandlerImpl::init_method<Class>(name, f, args));
     }
 
     void call(std::string const& target, RestHandlerContext* ctx) {
@@ -866,8 +932,7 @@ class WSSession : public SharedPtrApi<WSSession> {
             ZoneNamed(ReadRequest, true);
             auto request = json::parse(
                 beast::buffers_to_string(buffer.data()));
-            // OLOG(info) << fmt("Parsed WS request:\n{}",
-            // request.dump(2));
+            OLOG(info) << fmt("Parsed WS request:\n{}", request.dump(2));
             auto target = request["target"].get<std::string>();
             RestHandlerContext ctx{
                 ResponseWrap{ResponseWrap::Websocket{}}, state};
@@ -885,8 +950,11 @@ class WSSession : public SharedPtrApi<WSSession> {
             {
                 ZoneNamed(WriteResponse, true);
                 ws.async_write(
-                    net::buffer(
-                        ctx.response.getWebsocket().response.dump()),
+                    net::buffer(ctx.response.getWebsocket().response.dump(
+                        -1,
+                        ' ',
+                        false,
+                        nlohmann::ordered_json::error_handler_t::replace)),
                     beast::bind_front_handler(
                         &WSSession::on_write, this->shared_from_this()));
             }
@@ -1096,38 +1164,29 @@ int main() {
             "/api/standalone",
             "standalone_function",
             &standalone_function,
-            2,
             {arg("arg1"), arg("arg2"), opt_arg("opt1")});
 
-        handlers->setMethod<RestHandlerContext>(
-            "/api/getRoot",
-            "getRoot",
-            &RestHandlerContext::getRoot,
-            0,
-            {});
+#define _ctx_method(__method, ...)                                        \
+    handlers->setMethod<RestHandlerContext>(                              \
+        "/api/" #__method,                                                \
+        #__method,                                                        \
+        &RestHandlerContext::__method,                                    \
+        {__VA_ARGS__});
 
-        handlers->setMethod<RestHandlerContext>(
-            "/api/getTreeJsonDeep",
-            "getTreeJsonDeep",
-            &RestHandlerContext::getTreeJsonDeep,
-            1,
-            {arg("target")});
 
-        handlers->setMethod<RestHandlerContext>(
-            "/api/setRootText",
-            "setRootText",
-            &RestHandlerContext::setRootText,
-            1,
-            {arg("text")});
+        _ctx_method(getRoot);
+        _ctx_method(getTreeJsonDeep, arg("target"));
+        _ctx_method(setRootText, arg("text"));
+        _ctx_method(setRootFile, arg("path"));
+        _ctx_method(getKind, arg("id"));
+        _ctx_method(getSubnodeAt, arg("id"), arg("index"));
+        _ctx_method(getSize, arg("id"));
+        _ctx_method(setExceptionHandler, arg("handler"));
 
-        handlers->setMethod<RestHandlerContext>(
-            "/api/setRootFile",
-            "setRootFile",
-            &RestHandlerContext::setRootFile,
-            1,
-            {arg("path")});
-
-        writeFile("/tmp/schema.json", handlers->getApiSchema().dump(2));
+        writeFile(
+            "/tmp/schema.ts",
+            fmt(R"(export const data = {} as const;)",
+                handlers->getApiSchema().dump(2)));
 
         int const       http_port      = 8080;
         int const       websocket_port = 8089;
