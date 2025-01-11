@@ -192,9 +192,13 @@ struct JsonSerde<org::ImmReflFieldId> {
     }
 
     static org::ImmReflFieldId from_json(json const& j) {
-        // refl field id tracking to bidirectional map and get the refl
-        // field ID from there.
-        logic_todo_impl();
+        std::string j_name = j.get<std::string>();
+        for (auto const& [id, name] : org::ImmReflFieldId::fieldNames) {
+            if (name == j_name) { return id; }
+        }
+
+        LOGIC_ASSERTION_CHECK(
+            false, "Cannot find refl field for name {}", j_name);
     }
 };
 
@@ -505,8 +509,6 @@ struct RestHandlerContext {
 
         if (query.contains("id")) {
             requestId = query.at("id").get<std::string>();
-            OLOG(info) << fmt(
-                "Processing request id {}", requestId.value());
         }
 
         if (query.contains("body")) { query_body = query.at("body"); }
@@ -943,13 +945,22 @@ class WSSession : public SharedPtrApi<WSSession> {
                 ec.message());
         } else {
             ZoneNamed(ReadRequest, true);
+            bool logging = false;
+
             auto request = json::parse(
                 beast::buffers_to_string(buffer.data()));
-            OLOG(info) << fmt("Parsed WS request:\n{}", request.dump(2));
+            if (logging) {
+                OLOG(info)
+                    << fmt("Parsed WS request:\n{}", request.dump(2));
+            }
             auto target = request["target"].get<std::string>();
             RestHandlerContext ctx{
                 ResponseWrap{ResponseWrap::Websocket{}}, state};
             ctx.setSocket(request);
+            if (logging) {
+                OLOG(info)
+                    << fmt("Processing request ID {}", ctx.requestId);
+            }
             {
                 ZoneNamed(CallRequest, true);
                 handlers->call(target, &ctx);
@@ -971,6 +982,8 @@ class WSSession : public SharedPtrApi<WSSession> {
                     beast::bind_front_handler(
                         &WSSession::on_write, this->shared_from_this()));
             }
+
+            if (logging) { OLOG(info) << fmt("Request done"); }
         }
     }
 
