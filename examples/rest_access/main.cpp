@@ -579,6 +579,33 @@ struct RestHandlerContext {
             this->route = target;
         }
     }
+
+    template <typename Func>
+    void call_impl(Func const& invoke_impl, json const& failed_arg_parse) {
+        if (failed_arg_parse.empty()) {
+            if (state->exception_handler) {
+                try {
+                    invoke_impl();
+                    setResponseResult(http::status::ok);
+                } catch (cpptrace::exception& ex) {
+                    setResponseBody(json::object({
+                        {"what", ex.what()},
+                        {"trace", to_json_eval(ex.trace())},
+                    }));
+                    setResponseResult(http::status::internal_server_error);
+                } catch (std::exception& ex) {
+                    setResponseBody(json::object({{"what", ex.what()}}));
+                    setResponseResult(http::status::internal_server_error);
+                }
+            } else {
+                invoke_impl();
+                setResponseResult(http::status::ok);
+            }
+        } else {
+            setResponseError(failed_arg_parse);
+            setResponseResult(http::status::bad_request);
+        }
+    }
 };
 
 template <typename T>
@@ -607,6 +634,31 @@ auto call_with_tuple(Func&& f, Tuple&& t) {
             std::tuple_size_v<std::remove_reference_t<Tuple>>>{});
 }
 
+template <typename Arg>
+void place_argument(
+    Arg&                        arg,
+    int&                        idx,
+    std::vector<ArgSpec> const& arg_specs,
+    json&                       failed_arg_parse,
+    RestHandlerContext*         ctx) {
+    auto fmt_arg_message = [&]() -> std::string {
+        auto const& name = arg_specs.at(idx).name;
+        return fmt(
+            "Failed to parse arg '{}' from JSON '{}'",
+            name,
+            ctx->query_body.contains(name) ? ctx->query_body.at(name)
+                                           : json{});
+    };
+    try {
+        arg = ctx->template getArg<std::decay_t<decltype(arg)>>(
+            arg_specs.at(idx));
+        ++idx;
+    } catch (std::exception& ex) {
+        failed_arg_parse.push_back(json::object(
+            {{"arg", fmt_arg_message()}, {"what", ex.what()}}));
+    }
+}
+
 template <typename Func, typename... Args>
 auto make_handler_callback(Func f, std::vector<ArgSpec> const& arg_specs) {
     return [f, arg_specs](RestHandlerContext* ctx) {
@@ -618,34 +670,16 @@ auto make_handler_callback(Func f, std::vector<ArgSpec> const& arg_specs) {
         args_tuple args;
         json       failed_arg_parse;
 
-        auto place_argument = [&]<typename Arg>(Arg& arg, int idx) {
-            auto fmt_arg_message = [&]() -> std::string {
-                auto const& name = arg_specs.at(idx).name;
-                return fmt(
-                    "Failed to parse arg '{}' from JSON '{}'",
-                    name,
-                    ctx->query_body.contains(name)
-                        ? ctx->query_body.at(name)
-                        : json{});
-            };
-            try {
-                arg = ctx->template getArg<std::decay_t<decltype(arg)>>(
-                    arg_specs[idx]);
-            } catch (std::exception& ex) {
-                failed_arg_parse.push_back(json::object(
-                    {{"arg", fmt_arg_message()}, {"what", ex.what()}}));
-            }
-        };
-
         std::apply(
             [&](auto&... tuple_args) {
-                size_t idx = 0;
-                (place_argument(tuple_args, ++idx), ...);
+                int idx = 0;
+                (place_argument(
+                     tuple_args, idx, arg_specs, failed_arg_parse, ctx),
+                 ...);
             },
             args);
 
-        if (failed_arg_parse.empty()) {
-            // Call function and serialize result
+        auto invoke_impl = [&]() {
             if constexpr (std::is_void_v<return_type>) {
                 call_with_tuple(f, args);
             } else {
@@ -654,10 +688,9 @@ auto make_handler_callback(Func f, std::vector<ArgSpec> const& arg_specs) {
                     JsonSerde<return_type>::to_json(result));
             }
             ctx->setResponseResult(http::status::ok);
-        } else {
-            ctx->setResponseError(failed_arg_parse);
-            ctx->setResponseResult(http::status::bad_request);
-        }
+        };
+
+        ctx->call_impl(invoke_impl, failed_arg_parse);
     };
 }
 
@@ -676,12 +709,12 @@ auto make_method_handler_callback(
 
         // Build tuple of arguments
         args_tuple args;
+        json       failed_arg_parse;
         std::apply(
             [&](auto&... tuple_args) {
-                size_t idx = 0;
-                ((tuple_args = ctx->template getArg<
-                               std::decay_t<decltype(tuple_args)>>(
-                      arg_specs[idx++])),
+                int idx = 0;
+                (place_argument(
+                     tuple_args, idx, arg_specs, failed_arg_parse, ctx),
                  ...);
             },
             args);
@@ -720,27 +753,7 @@ auto make_method_handler_callback(
             }
         };
 
-
-        if (ctx->state->exception_handler) {
-            try {
-                invoke_impl();
-                ctx->setResponseResult(http::status::ok);
-            } catch (cpptrace::exception& ex) {
-                ctx->setResponseBody(json::object({
-                    {"what", ex.what()},
-                    {"trace", to_json_eval(ex.trace())},
-                }));
-                ctx->setResponseResult(
-                    http::status::internal_server_error);
-            } catch (std::exception& ex) {
-                ctx->setResponseBody(json::object({{"what", ex.what()}}));
-                ctx->setResponseResult(
-                    http::status::internal_server_error);
-            }
-        } else {
-            invoke_impl();
-            ctx->setResponseResult(http::status::ok);
-        }
+        ctx->call_impl(invoke_impl, failed_arg_parse);
     };
 }
 
