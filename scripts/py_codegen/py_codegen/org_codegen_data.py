@@ -1418,6 +1418,11 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
             ],
         ),
         GenTuStruct(
+            t_nest_shared("HashTagFlat"),
+            fields=[vec_field(t_str(), "tags")],
+            methods=[eq_method(t_nest_shared("HashTagFlat"))],
+        ),
+        GenTuStruct(
             t_nest_shared("HashTagText"),
             GenTuDoc("Single or nested inline hash-tag"),
             fields=[
@@ -1441,7 +1446,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     arguments=[GenTuIdent(t_cr(t_vec(t_str())), "prefix")],
                 ),
                 GenTuFunction(
-                    t_vec(t_vec(t_str())),
+                    t_vec(t_nest_shared("HashTagFlat")),
                     "getFlatHashes",
                     arguments=[GenTuIdent(t_bool(), "withIntermediate", value="true")],
                     isConst=True,

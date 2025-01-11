@@ -115,6 +115,7 @@
     __IMPL(Tblfm::Expr::Elisp, (Tblfm, Expr, Elisp)) \
     __IMPL(Tblfm::Assign, (Tblfm, Assign)) \
     __IMPL(AttrValue, (AttrValue)) \
+    __IMPL(HashTagFlat, (HashTagFlat)) \
     __IMPL(HashTagText, (HashTagText)) \
     __IMPL(SubtreePath, (SubtreePath)) \
     __IMPL(LinkTarget, (LinkTarget)) \

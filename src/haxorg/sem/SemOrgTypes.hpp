@@ -242,6 +242,16 @@ struct AttrValue {
   bool operator==(sem::AttrValue const& other) const;
 };
 
+struct HashTagFlat {
+  BOOST_DESCRIBE_CLASS(HashTagFlat,
+                       (),
+                       (),
+                       (),
+                       (tags))
+  Vec<Str> tags = {};
+  bool operator==(sem::HashTagFlat const& other) const;
+};
+
 /// \brief Single or nested inline hash-tag
 struct HashTagText {
   BOOST_DESCRIBE_CLASS(HashTagText,
@@ -258,7 +268,7 @@ struct HashTagText {
   /// \brief Check if list of tag names is a prefix for either of the nested hash tags in this one
   bool prefixMatch(Vec<Str> const& prefix) const;
   /// \brief Get flat list of expanded hashtags
-  Vec<Vec<Str>> getFlatHashes(bool withIntermediate = true) const;
+  Vec<sem::HashTagFlat> getFlatHashes(bool withIntermediate = true) const;
 };
 
 struct SubtreePath {

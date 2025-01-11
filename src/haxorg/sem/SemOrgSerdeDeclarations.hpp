@@ -170,6 +170,13 @@ struct proto_serde<::orgproto::AttrValue, sem::AttrValue> {
 
 
 template <>
+struct proto_serde<::orgproto::HashTagFlat, sem::HashTagFlat> {
+  static void write(::orgproto::HashTagFlat* out, sem::HashTagFlat const& in);
+  static void read(::orgproto::HashTagFlat const& out, proto_write_accessor<sem::HashTagFlat> in);
+};
+
+
+template <>
 struct proto_serde<::orgproto::HashTagText, sem::HashTagText> {
   static void write(::orgproto::HashTagText* out, sem::HashTagText const& in);
   static void read(::orgproto::HashTagText const& out, proto_write_accessor<sem::HashTagText> in);

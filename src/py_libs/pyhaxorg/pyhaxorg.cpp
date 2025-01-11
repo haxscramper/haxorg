@@ -13,12 +13,12 @@ PYBIND11_MAKE_OPAQUE(std::vector<sem::Tblfm::Assign::Flag>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Tblfm::Assign::Flag>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::Tblfm::Assign>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Tblfm::Assign>)
-PYBIND11_MAKE_OPAQUE(std::vector<sem::HashTagText>)
-PYBIND11_MAKE_OPAQUE(Vec<sem::HashTagText>)
 PYBIND11_MAKE_OPAQUE(std::vector<Str>)
 PYBIND11_MAKE_OPAQUE(Vec<Str>)
-PYBIND11_MAKE_OPAQUE(std::vector<Vec<Str>>)
-PYBIND11_MAKE_OPAQUE(Vec<Vec<Str>>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::HashTagText>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::HashTagText>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::HashTagFlat>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::HashTagFlat>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::AttrValue>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::AttrValue>)
 PYBIND11_MAKE_OPAQUE(std::unordered_map<Str, sem::AttrList>)
@@ -76,9 +76,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::Tblfm::Expr>(m, "VecOfTblfmExpr", type_registry_guard);
   bind_vector<sem::Tblfm::Assign::Flag>(m, "VecOfTblfmAssignFlag", type_registry_guard);
   bind_vector<sem::Tblfm::Assign>(m, "VecOfTblfmAssign", type_registry_guard);
-  bind_vector<sem::HashTagText>(m, "VecOfHashTagText", type_registry_guard);
   bind_vector<Str>(m, "VecOfStr", type_registry_guard);
-  bind_vector<Vec<Str>>(m, "VecOfVecOfStr", type_registry_guard);
+  bind_vector<sem::HashTagText>(m, "VecOfHashTagText", type_registry_guard);
+  bind_vector<sem::HashTagFlat>(m, "VecOfHashTagFlat", type_registry_guard);
   bind_vector<sem::AttrValue>(m, "VecOfAttrValue", type_registry_guard);
   bind_unordered_map<Str, sem::AttrList>(m, "UnorderedMapOfStrAttrList", type_registry_guard);
   bind_vector<sem::ColumnView::Column>(m, "VecOfColumnViewColumn", type_registry_guard);
@@ -507,6 +507,25 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<sem::HashTagFlat>(m, "HashTagFlat")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::HashTagFlat {
+                        sem::HashTagFlat result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("tags", &sem::HashTagFlat::tags)
+    .def("operator==",
+         static_cast<bool(sem::HashTagFlat::*)(sem::HashTagFlat const&) const>(&sem::HashTagFlat::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::HashTagFlat _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::HashTagFlat _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<sem::HashTagText>(m, "HashTagText")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::HashTagText {
                         sem::HashTagText result{};
@@ -523,7 +542,7 @@ node can have subnodes.)RAW")
          pybind11::arg("prefix"),
          R"RAW(Check if list of tag names is a prefix for either of the nested hash tags in this one)RAW")
     .def("getFlatHashes",
-         static_cast<Vec<Vec<Str>>(sem::HashTagText::*)(bool) const>(&sem::HashTagText::getFlatHashes),
+         static_cast<Vec<sem::HashTagFlat>(sem::HashTagText::*)(bool) const>(&sem::HashTagText::getFlatHashes),
          pybind11::arg_v("withIntermediate", true),
          R"RAW(Get flat list of expanded hashtags)RAW")
     .def("__repr__", [](sem::HashTagText _self) -> std::string {

@@ -255,7 +255,7 @@ namespace org {
 
 struct ImmAdapter;
 using ImmStrIdMap          = ImmMap<Str, ImmId>;
-using ImmVecStrIdMap       = ImmMap<Vec<Str>, ImmId>;
+using ImmHashTagIdMap      = ImmMap<sem::HashTagFlat, ImmId>;
 using ImmParentPathVec     = SmallVec<ImmPathStep, 4>;
 using ImmParentIdVec       = SmallVec<ImmId, 4>;
 using ParentPathMap        = UnorderedMap<ImmId, ImmParentPathVec>;
@@ -265,15 +265,15 @@ using ImmPanentTrackFilter = Func<bool(ImmAdapter const&)>;
 
 
 struct ImmAstTrackingMapTransient {
-    ImmAstContext*                 oldCtx;
-    ImmStrIdMap::transient_type    footnotes;
-    ImmStrIdMap::transient_type    subtrees;
-    RadioTargetMap::transient_type radioTargets;
-    ImmStrIdMap::transient_type    anchorTargets;
-    ImmStrIdMap::transient_type    names;
-    ImmVecStrIdMap::transient_type hashtagDefinitions;
-    ImmParentMap::transient_type   parents;
-    ImmPanentTrackFilter const&    isTrackingParentImpl;
+    ImmAstContext*                  oldCtx;
+    ImmStrIdMap::transient_type     footnotes;
+    ImmStrIdMap::transient_type     subtrees;
+    RadioTargetMap::transient_type  radioTargets;
+    ImmStrIdMap::transient_type     anchorTargets;
+    ImmStrIdMap::transient_type     names;
+    ImmHashTagIdMap::transient_type hashtagDefinitions;
+    ImmParentMap::transient_type    parents;
+    ImmPanentTrackFilter const&     isTrackingParentImpl;
 
     void setAsParentOf(ImmId const& parent, ImmId const& target);
 
@@ -301,12 +301,12 @@ struct ImmAstTrackingMapTransient {
 bool isTrackingParentDefault(ImmAdapter const&);
 
 struct ImmAstTrackingMap {
-    ImmStrIdMap    footnotes;
-    ImmStrIdMap    subtrees;
-    ImmStrIdMap    anchorTargets;
-    ImmStrIdMap    names;
-    ImmParentMap   parents;
-    ImmVecStrIdMap hashtagDefinitions;
+    ImmStrIdMap     footnotes;
+    ImmStrIdMap     subtrees;
+    ImmStrIdMap     anchorTargets;
+    ImmStrIdMap     names;
+    ImmParentMap    parents;
+    ImmHashTagIdMap hashtagDefinitions;
     /// \brief Map starting ID of the radio target text to the parent radio
     /// target for faster lookup.
     RadioTargetMap radioTargets;
@@ -1012,7 +1012,20 @@ struct ImmSubnodeGroup {
         DESC_FIELDS(Single, (node));
     };
 
-    SUB_VARIANTS(Kind, Data, data, getKind, RadioTarget, Single);
+    struct TrackedHashtag {
+        org::ImmAdapter                       tag;
+        UnorderedMap<sem::HashTagFlat, ImmId> targets;
+        DESC_FIELDS(TrackedHashtag, (tag, targets));
+    };
+
+    SUB_VARIANTS(
+        Kind,
+        Data,
+        data,
+        getKind,
+        RadioTarget,
+        Single,
+        TrackedHashtag);
     Data data;
     DESC_FIELDS(ImmSubnodeGroup, (data));
 };

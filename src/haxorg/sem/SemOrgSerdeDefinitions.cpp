@@ -205,6 +205,14 @@ void proto_serde<::orgproto::AttrValue, sem::AttrValue>::read(::orgproto::AttrVa
   proto_serde<std::string, Str>::read(out.value(), in.for_field(&sem::AttrValue::value));
 }
 
+void proto_serde<::orgproto::HashTagFlat, sem::HashTagFlat>::write(::orgproto::HashTagFlat* out, sem::HashTagFlat const& in) {
+  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::write(out->mutable_tags(), in.tags);
+}
+
+void proto_serde<::orgproto::HashTagFlat, sem::HashTagFlat>::read(::orgproto::HashTagFlat const& out, proto_write_accessor<sem::HashTagFlat> in) {
+  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, Vec<Str>>::read(out.tags(), in.for_field(&sem::HashTagFlat::tags));
+}
+
 void proto_serde<::orgproto::HashTagText, sem::HashTagText>::write(::orgproto::HashTagText* out, sem::HashTagText const& in) {
   proto_serde<std::string, Str>::write(out->mutable_head(), in.head);
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::HashTagText>, Vec<sem::HashTagText>>::write(out->mutable_subtags(), in.subtags);

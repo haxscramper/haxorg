@@ -246,12 +246,13 @@ TEST(OrgParseSem, SubtreeProperties) {
 }
 
 TEST(OrgParseSem, HashtagParse) {
-    using V = Vec<Vec<Str>>;
+    using V = Vec<sem::HashTagFlat>;
     {
         auto h = parseOne<sem::HashTag>("#hashtag");
         EXPECT_EQ(h->text.head, "hashtag"_ss);
         EXPECT_EQ(h->text.subtags.size(), 0);
-        EXPECT_EQ(h->text.getFlatHashes(), V{{"hashtag"_ss}});
+        EXPECT_EQ(
+            h->text.getFlatHashes(), V{sem::HashTagFlat{{"hashtag"_ss}}});
     }
     {
         auto h = parseOne<sem::HashTag>("#hashtag##[sub]");
@@ -259,8 +260,8 @@ TEST(OrgParseSem, HashtagParse) {
         EXPECT_EQ(h->text.subtags.size(), 1);
         auto flat = h->text.getFlatHashes();
         EXPECT_EQ(flat.size(), 2);
-        EXPECT_EQ(flat.at(0), Vec<Str>{"hashtag"});
-        EXPECT_EQ(flat.at(1), (Vec<Str>{"hashtag", "sub"}));
+        EXPECT_EQ(flat.at(0), sem::HashTagFlat{{"hashtag"}});
+        EXPECT_EQ(flat.at(1), (sem::HashTagFlat{{"hashtag", "sub"}}));
     }
 
     {
@@ -269,11 +270,11 @@ TEST(OrgParseSem, HashtagParse) {
         EXPECT_EQ(h->text.subtags.size(), 1);
         auto flat = h->text.getFlatHashes();
         EXPECT_EQ(flat.size(), 5);
-        EXPECT_EQ(flat.at(0), Vec<Str>{"one"});
-        EXPECT_EQ(flat.at(1), (Vec<Str>{"one", "two"}));
-        EXPECT_EQ(flat.at(2), (Vec<Str>{"one", "two", "three"}));
-        EXPECT_EQ(flat.at(3), (Vec<Str>{"one", "two", "four"}));
-        EXPECT_EQ(flat.at(4), (Vec<Str>{"one", "two", "five"}));
+        EXPECT_EQ(flat.at(0), sem::HashTagFlat{{"one"}});
+        EXPECT_EQ(flat.at(1), (sem::HashTagFlat{{"one", "two"}}));
+        EXPECT_EQ(flat.at(2), (sem::HashTagFlat{{"one", "two", "three"}}));
+        EXPECT_EQ(flat.at(3), (sem::HashTagFlat{{"one", "two", "four"}}));
+        EXPECT_EQ(flat.at(4), (sem::HashTagFlat{{"one", "two", "five"}}));
     }
 
     {
@@ -283,8 +284,8 @@ TEST(OrgParseSem, HashtagParse) {
         EXPECT_EQ(h->text.subtags.size(), 1);
         auto flat = h->text.getFlatHashes();
         EXPECT_EQ(flat.size(), 2);
-        EXPECT_EQ(flat.at(0), Vec<Str>{"hashtag"});
-        EXPECT_EQ(flat.at(1), (Vec<Str>{"hashtag", "sub"}));
+        EXPECT_EQ(flat.at(0), sem::HashTagFlat{{"hashtag"}});
+        EXPECT_EQ(flat.at(1), (sem::HashTagFlat{{"hashtag", "sub"}}));
     }
 }
 

@@ -1201,6 +1201,23 @@ Vec<ImmSubnodeGroup> org::getSubnodeGroups(
                         ImmSubnodeGroup::Single{.node = it}});
                 }
             }
+        } else if (auto tag = it.asOpt<org::ImmHashTag>()) {
+            ImmSubnodeGroup::TrackedHashtag rt;
+            for (auto const& flat : tag->value().text.getFlatHashes()) {
+                if (auto target = ctx->currentTrack->hashtagDefinitions
+                                      .get(flat)) {
+                    rt.targets.insert_or_assign(flat, target.value());
+                }
+            }
+
+            if (rt.targets.empty()) {
+                result.push_back(
+                    ImmSubnodeGroup{ImmSubnodeGroup::Single{.node = it}});
+            } else {
+                rt.tag = it;
+                result.push_back(ImmSubnodeGroup{rt});
+            }
+
         } else {
             result.push_back(
                 ImmSubnodeGroup{ImmSubnodeGroup::Single{.node = it}});
@@ -1215,6 +1232,9 @@ Vec<ImmSubnodeGroup> org::getSubnodeGroups(
                     totalNodes += t.nodes.size();
                 },
                 [&](CR<ImmSubnodeGroup::Single>) { totalNodes += 1; },
+                [&](CR<ImmSubnodeGroup::TrackedHashtag>) {
+                    totalNodes += 1;
+                },
             },
             it.data);
     }

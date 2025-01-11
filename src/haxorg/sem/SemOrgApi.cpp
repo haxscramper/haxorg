@@ -98,9 +98,9 @@ bool HashTagText::prefixMatch(CR<Vec<Str>> prefix) const {
     }
 }
 
-Vec<Vec<Str>> sem::HashTagText::getFlatHashes(
+Vec<sem::HashTagFlat> sem::HashTagText::getFlatHashes(
     bool withIntermediate) const {
-    using Res = Vec<Vec<Str>>;
+    using Res = Vec<sem::HashTagFlat>;
     Func<Res(Vec<Str> const& parents, sem::HashTagText const& tag)> aux;
     UnorderedSet<Vec<Str>> visited;
     aux = [&](Vec<Str> const&         parents,
@@ -108,12 +108,12 @@ Vec<Vec<Str>> sem::HashTagText::getFlatHashes(
         Res result;
         if (withIntermediate && !parents.empty()
             && !visited.contains(parents)) {
-            result.push_back(parents);
+            result.push_back(sem::HashTagFlat{parents});
             visited.incl(parents);
         }
         if (tag.subtags.empty()) {
-            result.push_back(parents);
-            result.back().push_back(tag.head);
+            result.push_back(sem::HashTagFlat{parents});
+            result.back().tags.push_back(tag.head);
         } else {
             for (auto const& subtag : tag.subtags) {
                 result.append(aux(parents + Vec<Str>{tag.head}, subtag));

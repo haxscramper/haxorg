@@ -403,6 +403,11 @@ message AttrValue {
   string                                           debug                            = 1000;
 }
 
+message HashTagFlat {
+  repeated string                                  tags                             = 1;
+  string                                           debug                            = 1000;
+}
+
 message HashTagText {
   string                                           head                             = 1;
   repeated HashTagText                             subtags                          = 2;

@@ -156,7 +156,18 @@ Mention #hashtag1 and #nested##alias1 with #nested##alias2
     EXPECT_EQ2(par.getKind(), OrgSemKind::Paragraph);
 
     auto group = org::getSubnodeGroups(par);
+
+    for (auto const& [idx, gr] : enumerate(group)) {
+        LOG(INFO) << fmt("[{}] {}", idx, gr);
+    }
+
+    LOG(INFO) << fmt1(root.ctx.lock()->currentTrack->hashtagDefinitions);
+
+    EXPECT_TRUE(group.at(2).isTrackedHashtag());
+    EXPECT_TRUE(group.at(6).isTrackedHashtag());
+    EXPECT_TRUE(group.at(10).isTrackedHashtag());
 }
+
 
 TEST_F(ImmOrgApi, RadioLinkDetectionForSubtree) {
     setTraceFile(getDebugFile("trace.log"));
