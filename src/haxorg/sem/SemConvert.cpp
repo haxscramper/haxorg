@@ -566,6 +566,8 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
     } else if (name == "hashtagdef") {
         Property::HashtagDef def;
         auto par = convertParagraph(one(a, N::Values)).value();
+        print(fmt("{}", a.treeRepr()));
+        print(fmt("{}", ExporterTree::treeRepr(par).toString(false)));
         for (int i = 0; i < par.size(); ++i) {
             auto sub = par.at(i);
             if (sub->is(OrgSemKind::Space)) {

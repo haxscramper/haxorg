@@ -573,8 +573,10 @@ void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
 
                 for (auto const& tag : org::getSubtreeProperties<
                          sem::NamedProperty::HashtagDef>(subtree)) {
+                    // only track fully resolved nodes, for node details
+                    // see [[hashtag_track_set_minimization]]
                     for (auto const& hashtag :
-                         tag.hashtag.getFlatHashes()) {
+                         tag.hashtag.getFlatHashes(false)) {
                         transientTrack.hashtagDefinitions.insert(
                             {hashtag, node});
                     }
@@ -1203,7 +1205,16 @@ Vec<ImmSubnodeGroup> org::getSubnodeGroups(
             }
         } else if (auto tag = it.asOpt<org::ImmHashTag>()) {
             ImmSubnodeGroup::TrackedHashtag rt;
-            for (auto const& flat : tag->value().text.getFlatHashes()) {
+            // <<hashtag_track_set_minimization>>
+            // hashtag group tracking will only search for a fully
+            // resolved paths. So tag like `#parent##nested1` would only have one
+            // target: subtree that defines the full `#parent##nested1` node.
+            // `#parent` target itself is not tracked directly and not resolved
+            // as a group target since there can be many different trees
+            // that define something like `#parent##XXXX`, and placing all of them to the target
+            // map is not useful.
+            for (auto const& flat :
+                 tag->value().text.getFlatHashes(false)) {
                 if (auto target = ctx->currentTrack->hashtagDefinitions
                                       .get(flat)) {
                     rt.targets.insert_or_assign(flat, target.value());

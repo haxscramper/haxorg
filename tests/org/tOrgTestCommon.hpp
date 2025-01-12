@@ -37,7 +37,7 @@ GTEST_ADL_PRINT_TYPE(UserTimeBreakdown);
 #include <gtest/gtest.h>
 
 
-Str getDebugFile(Str const& suffix);
+Str getDebugFile(Str const& suffix = "");
 
 void writeTreeRepr(
     org::ImmAdapter               n,
@@ -441,8 +441,10 @@ struct ImmOrgApiTestBase : public ::testing::Test {
         start->debug->setTraceFile(path);
     }
 
-    org::ImmAstVersion getInitialVersion(Str const& text) {
-        return start->init(testParseString(text));
+    org::ImmAstVersion getInitialVersion(
+        Str const&                 text,
+        std::optional<std::string> debug = std::nullopt) {
+        return start->init(testParseString(text, debug));
     }
 
     void writeGvHistory(

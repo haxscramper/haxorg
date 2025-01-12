@@ -137,7 +137,8 @@ Other paragraph mentions radiotarget
 
 TEST_F(ImmOrgApi, HashtagDefinitionTracking) {
     setTraceFile(getDebugFile("trace.log"));
-    org::ImmAstVersion init = getInitialVersion(R"(
+    org::ImmAstVersion init = getInitialVersion(
+        R"(
 * Subtree with item description
   :properties:
   :hashtag_def: #hashtag1
@@ -146,7 +147,8 @@ TEST_F(ImmOrgApi, HashtagDefinitionTracking) {
 
 Mention #hashtag1 and #nested##alias1 with #nested##alias2
 
-)");
+)",
+        getDebugFile());
 
     org::ImmAdapter root = init.getRootAdapter();
     writeTreeRepr(root, "repr.txt");
@@ -157,15 +159,26 @@ Mention #hashtag1 and #nested##alias1 with #nested##alias2
 
     auto group = org::getSubnodeGroups(par);
 
-    for (auto const& [idx, gr] : enumerate(group)) {
-        LOG(INFO) << fmt("[{}] {}", idx, gr);
-    }
-
-    LOG(INFO) << fmt1(root.ctx.lock()->currentTrack->hashtagDefinitions);
-
     EXPECT_TRUE(group.at(2).isTrackedHashtag());
     EXPECT_TRUE(group.at(6).isTrackedHashtag());
     EXPECT_TRUE(group.at(10).isTrackedHashtag());
+    auto t2  = group.at(2).getTrackedHashtag();
+    auto t6  = group.at(6).getTrackedHashtag();
+    auto t10 = group.at(10).getTrackedHashtag();
+
+    EXPECT_EQ2(t2.targets.size(), 1);
+    EXPECT_EQ2(t2.targets.begin()->second, t1.id);
+    EXPECT_EQ2(t2.targets.begin()->first, sem::HashTagFlat{{"hashtag1"}});
+    EXPECT_EQ2(t6.targets.size(), 1);
+    EXPECT_EQ2(t6.targets.begin()->second, t1.id);
+    EXPECT_EQ2(
+        t6.targets.begin()->first,
+        (sem::HashTagFlat{{"nested", "alias1"}}));
+    EXPECT_EQ2(t10.targets.size(), 1);
+    EXPECT_EQ2(t10.targets.begin()->second, t1.id);
+    EXPECT_EQ2(
+        t10.targets.begin()->first,
+        (sem::HashTagFlat{{"nested", "alias2"}}));
 }
 
 
