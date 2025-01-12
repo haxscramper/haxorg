@@ -168,34 +168,60 @@ struct [[refl]] AstTrackingGroup {
         DESC_FIELDS(Single, (node));
     };
 
-    Variant<RadioTarget, Single> data;
+    struct [[refl]] TrackedHashtag {
+        [[refl]] sem::SemId<sem::Org>                            tag;
+        [[refl]] UnorderedMap<sem::HashTagFlat, AstTrackingPath> targets;
+        DESC_FIELDS(TrackedHashtag, (tag, targets));
+    };
+
+    using Data = Variant<RadioTarget, Single, TrackedHashtag>;
+    Data data;
     DESC_FIELDS(AstTrackingGroup, (data));
 
     enum class [[refl]] Kind
     {
         RadioTarget,
         Single,
+        TrackedHashtag,
     };
 
-    BOOST_DESCRIBE_NESTED_ENUM(Kind, RadioTarget, Single);
+    using variant_enum_type = Kind;
+    using variant_data_type = Data;
+    char const* sub_variant_get_name() const { return "data"; }
+    Data const& sub_variant_get_data() const { return data; }
+    Kind        sub_variant_get_kind() const { return getKind(); }
+
+    BOOST_DESCRIBE_NESTED_ENUM(Kind, RadioTarget, Single, TrackedHashtag);
 
     Kind getKind() const { return static_cast<Kind>(data.index()); }
 
     [[refl]] RadioTarget const& getRadioTarget() const {
-        return std::get<RadioTarget>(data);
+        return get_sub_variant<RadioTarget, AstTrackingGroup>(data);
+    }
+
+
+    [[refl]] TrackedHashtag const& getTrackedHashtag() const {
+        return get_sub_variant<TrackedHashtag, AstTrackingGroup>(data);
+    }
+
+    [[refl]] TrackedHashtag& getTrackedHashtag() {
+        return get_sub_variant<TrackedHashtag, AstTrackingGroup>(data);
     }
 
     [[refl]] Single const& getSingle() const {
-        return std::get<Single>(data);
+        return get_sub_variant<Single, AstTrackingGroup>(data);
     }
 
     [[refl]] RadioTarget& getRadioTarget() {
-        return std::get<RadioTarget>(data);
+        return get_sub_variant<RadioTarget, AstTrackingGroup>(data);
     }
 
     [[refl]] Single& getSingle() { return std::get<Single>(data); }
 
     [[refl]] bool isSingle() const { return getKind() == Kind::Single; }
+    [[refl]] bool isTrackedHashtag() const {
+        return getKind() == Kind::TrackedHashtag;
+    }
 
     [[refl]] bool isRadioTarget() const {
         return getKind() == Kind::RadioTarget;
@@ -210,10 +236,17 @@ struct [[refl]] AstTrackingMap {
     [[refl]] UnorderedMap<Str, AstTrackingAlternatives> names;
     [[refl]] UnorderedMap<Str, AstTrackingAlternatives> anchorTargets;
     [[refl]] UnorderedMap<Str, AstTrackingAlternatives> radioTargets;
+    [[refl]] UnorderedMap<sem::HashTagFlat, AstTrackingAlternatives>
+        hashtagDefinitions;
 
     DESC_FIELDS(
         AstTrackingMap,
-        (footnotes, subtrees, names, anchorTargets, radioTargets));
+        (footnotes,
+         subtrees,
+         names,
+         anchorTargets,
+         radioTargets,
+         hashtagDefinitions));
 
     [[refl]] Opt<AstTrackingAlternatives> getIdPath(Str const& id) const {
         return subtrees.get(id);

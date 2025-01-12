@@ -12,6 +12,20 @@
 #    include <memory>
 #    include <cxxabi.h>
 
+template <typename T>
+constexpr std::string_view get_type_name_fallback() {
+#    if defined(__clang__)
+    std::string_view p = __PRETTY_FUNCTION__;
+    return std::string_view(p.data() + 34, p.size() - 35);
+#    elif defined(__GNUG__)
+    std::string_view p = __PRETTY_FUNCTION__;
+    return std::string_view(p.data() + 49, p.find(';', 49) - 49);
+#    else
+    return "unknown";
+#    endif
+}
+
+
 inline std::string demangle(const char* name) {
 
     int status = -4; // some arbitrary value to eliminate the compiler
@@ -76,7 +90,13 @@ template <typename T>
 struct value_metadata {
     static bool        isEmpty(T const& value) { return false; }
     static bool        isNil(T const& value) { return false; }
-    static std::string typeName() { return demangle(typeid(T).name()); }
+    static std::string typeName() {
+#if defined(__GXX_RTTI) || defined(_CPPRTTI)
+        return ::demangle(typeid(T).name());
+#else
+        return std::string{::get_type_name_fallback<T>()};
+#endif
+    }
 };
 
 

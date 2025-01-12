@@ -24,6 +24,8 @@ TEST(OrgApi, AstTrackingCollection) {
   :radio_id: alias2
   :radio_id: human readable
   :id: subtree-id
+  :hashtag_def: #hashtag1
+  :hashtag_def: #nested##[alias1,alias2]
   :end:
 
 Regular paragraph [fn:note]
@@ -35,6 +37,8 @@ Regular paragraph [fn:note]
 using alias1, alias2, and human readable
 
 Referencing [[id:subtree-id]]
+
+Mention #hashtag1 and #nested##alias1 with #nested##alias2
 )");
 
     auto map = sem::getAstTrackingMap({doc1, doc2});
@@ -43,23 +47,38 @@ Referencing [[id:subtree-id]]
 
 
     auto doc2_par1 = doc2.at(1);
-    EXPECT_EQ(doc2_par1->getKind(), OrgSemKind::Paragraph);
+    auto doc2_par3 = doc2.at(5);
+    EXPECT_EQ2(doc2_par1->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ2(doc2_par1->getKind(), OrgSemKind::Paragraph);
     writeFile(getDebugFile("repr.txt"), dbgString(doc2_par1));
 
-    auto groups = sem::getSubnodeGroups(doc2_par1, map);
+    {
+        auto groups = sem::getSubnodeGroups(doc2_par1, map);
+        EXPECT_TRUE(groups.at(2).isRadioTarget());
+        EXPECT_TRUE(groups.at(5).isRadioTarget());
+        EXPECT_TRUE(groups.at(1_B).isRadioTarget());
+    }
 
-    // for (auto const& [idx, g] : enumerate(groups)) {
-    //     _dfmt(idx, g.getKind(), g);
-    //     if (g.isSingle()) {
-    //         _dbg(dbgString(g.getSingle().node));
-    //     } else {
-    //         for (auto const& n : g.getRadioTarget().nodes) {
-    //             _dbg(dbgString(n));
-    //         }
-    //     }
-    // }
+    {
+        auto group = sem::getSubnodeGroups(doc2_par3, map);
 
-    EXPECT_TRUE(groups.at(2).isRadioTarget());
-    EXPECT_TRUE(groups.at(5).isRadioTarget());
-    EXPECT_TRUE(groups.at(1_B).isRadioTarget());
+        EXPECT_TRUE(group.at(2).isTrackedHashtag());
+        EXPECT_TRUE(group.at(6).isTrackedHashtag());
+        EXPECT_TRUE(group.at(10).isTrackedHashtag());
+        auto t2  = group.at(2).getTrackedHashtag();
+        auto t6  = group.at(6).getTrackedHashtag();
+        auto t10 = group.at(10).getTrackedHashtag();
+
+        EXPECT_EQ2(t2.targets.size(), 1);
+        EXPECT_EQ2(
+            t2.targets.begin()->first, sem::HashTagFlat{{"hashtag1"}});
+        EXPECT_EQ2(t6.targets.size(), 1);
+        EXPECT_EQ2(
+            t6.targets.begin()->first,
+            (sem::HashTagFlat{{"nested", "alias1"}}));
+        EXPECT_EQ2(t10.targets.size(), 1);
+        EXPECT_EQ2(
+            t10.targets.begin()->first,
+            (sem::HashTagFlat{{"nested", "alias2"}}));
+    }
 }

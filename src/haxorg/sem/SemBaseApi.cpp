@@ -493,6 +493,20 @@ AstTrackingMap sem::getAstTrackingMap(const Vec<sem::SemId<Org>>& nodes) {
                             res.radioTargets, radio.words.at(0), {node});
                     }
 
+                    for (auto const& tag : sem::getSubtreeProperties<
+                             sem::NamedProperty::HashtagDef>(tree)) {
+                        // only track fully resolved nodes, for node
+                        // details see [[hashtag_track_set_minimization]]
+                        for (auto const& hashtag :
+                             tag.hashtag.getFlatHashes(false)) {
+                            res.hashtagDefinitions
+                                .get_or_insert(
+                                    hashtag, AstTrackingAlternatives{})
+                                .alternatives.push_back(
+                                    AstTrackingPath{.path = path + node});
+                        }
+                    }
+
                 } else if (auto par = node.asOpt<Paragraph>()) {
                     if (auto id = par->getFootnoteName()) {
                         add_string_tracking(
@@ -603,6 +617,23 @@ Vec<AstTrackingGroup> sem::getSubnodeGroups(
                 } else {
                     res.push_back(G{G::Single{it}});
                 }
+            }
+        } else if (auto tag = it.asOpt<sem::HashTag>()) {
+            G::TrackedHashtag rt;
+            for (auto const& flat : tag->text.getFlatHashes(false)) {
+                if (auto targets = map.hashtagDefinitions.get(flat)) {
+                    for (auto const& target :
+                         targets.value().alternatives) {
+                        rt.targets.insert_or_assign(flat, target);
+                    }
+                }
+            }
+
+            if (rt.targets.empty()) {
+                res.push_back(G{G::Single{.node = it}});
+            } else {
+                rt.tag = it;
+                res.push_back(G{rt});
             }
         } else {
             res.push_back(G{G::Single{it}});
