@@ -6,6 +6,31 @@
 
 #include <hstd/system/basic_typedefs.hpp>
 
+
+#ifdef __GNUG__
+#    include <cstdlib>
+#    include <memory>
+#    include <cxxabi.h>
+
+inline std::string demangle(const char* name) {
+
+    int status = -4; // some arbitrary value to eliminate the compiler
+                     // warning
+
+    // enable c++11 by passing the flag -std=c++11 to g++
+    std::unique_ptr<char, void (*)(void*)> res{
+        abi::__cxa_demangle(name, NULL, NULL, &status), std::free};
+
+    return (status == 0) ? res.get() : name;
+}
+
+#else
+
+// does nothing if not g++
+inline std::string demangle(const char* name) { return name; }
+
+#endif
+
 /// \brief get next value
 template <typename T>
 struct value_domain;
@@ -49,10 +74,10 @@ struct value_domain<T> {
 
 template <typename T>
 struct value_metadata {
-    static bool isEmpty(T const& value) { return false; }
-    static bool isNil(T const& value) { return false; }
+    static bool        isEmpty(T const& value) { return false; }
+    static bool        isNil(T const& value) { return false; }
+    static std::string typeName() { return demangle(typeid(T).name()); }
 };
-
 
 
 template <typename E, E Low, E High>
