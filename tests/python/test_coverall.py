@@ -15,11 +15,16 @@ CAT = __name__
 
 
 @beartype
+def add_if_ok(target: Tree, other: Optional[Tree]):
+    if other is not None:
+        target.add(other)
+
+
+@beartype
 @dataclass
 class ValueCheckResult():
     is_ok: bool = False
     on_fail: Optional[Tree] = None
-
 
 @beartype
 @dataclass
@@ -31,21 +36,34 @@ class ValuePredicate():
 @dataclass
 class FieldCheckResult():
     field: str
-    value_check: ValueCheckResult
-    field_predicate_id: str
+    value_check: Optional[ValueCheckResult]
+    field_predicate_id: Optional[str]
+    sub_failed: List["FieldCheckResult"] = field(default_factory=list)
 
     def is_matching(self) -> bool:
         return self.value_check.is_ok
 
-    def format(self) -> Tree:
+    def format(self, format_if_ok: bool) -> Tree:
         if self.is_matching():
-            res = Tree(f"Field '[green]{self.field}[/green]' OK")
+            if format_if_ok:
+                return Tree(f"Field '[green]{self.field}[/green]' OK")
+
+            else:
+                return None
 
         else:
             res = Tree(f"Field '[red]{self.field}[/red]' fail")
-            res.add(self.value_check.on_fail)
+            if self.value_check.on_fail:
+                res.add(self.value_check.on_fail)
 
-        return res
+            elif self.sub_failed:
+                sub_fail = Tree("Field alternatives failed")
+                for alt in self.sub_failed:
+                    add_if_ok(sub_fail, alt.format(format_if_ok))
+
+                res.add(sub_fail)
+
+            return res
 
 
 @beartype
@@ -68,15 +86,28 @@ class FieldPredicate():
 class FieldAlternatives():
     items: List[FieldPredicate] = field(default_factory=list)
 
-    def visit_field(self, field: str, value: Any):
-        pass
+    def visit_field(self, field: str, value: Any) -> FieldCheckResult:
+        failed: List[FieldCheckResult] = []
+        for alt in self.items:
+            res = alt.visit_field(field, value)
+            if res.is_matching():
+                return res
+
+            else:
+                failed.append(failed)
+
+        return FieldCheckResult(
+            fielld=field,
+            sub_failed=failed,
+            field_predicate_id=None,
+        )
 
 
 @beartype
 @dataclass
 class ClassCheckResult():
     class_predicate_id: Optional[str]
-    class_name: str
+    class_name: org.OrgSemKind
     fields: List[FieldCheckResult] = field(default_factory=list)
     error: Optional[Tree] = None
     unknown_fields: List[str] = field(default_factory=list)
@@ -86,11 +117,15 @@ class ClassCheckResult():
         return all(f.is_matching() for f in self.fields) and len(
             self.unknown_fields) == 0 and not self.error
 
-    def format(self) -> Tree:
+    def format(self, format_if_ok: bool) -> Optional[Tree]:
         if self.is_matching():
-            return Tree(
-                f"Class [green]{self.class_name}[/green] ok with ID [green]{self.class_predicate_id}[/green]"
-            )
+            if format_if_ok:
+                return Tree(
+                    f"Class [green]{self.class_name}[/green] ok with ID [green]{self.class_predicate_id}[/green]"
+                )
+
+            else:
+                return None
 
         else:
             res = Tree(
@@ -102,14 +137,14 @@ class ClassCheckResult():
             if any(not f.is_matching() for f in self.fields):
                 sub_fails = Tree("Failed to match fields")
                 for field in self.fields:
-                    sub_fails.add(field.format())
+                    add_if_ok(sub_fails, field.format(format_if_ok))
 
                 res.add(sub_fails)
 
             if self.match_failure:
                 sub_matches = Tree("Failed to match alternatives")
                 for fail in self.match_failure:
-                    sub_matches.add(fail.format())
+                    add_if_ok(sub_matches, fail.format(format_if_ok))
 
                 res.add(sub_matches)
 
@@ -130,9 +165,9 @@ class ClassPrediate():
     class_predicate_id: str
     allow_unknown_fields: bool = True
 
-    def visit_type(self, value: Any) -> ClassCheckResult:
+    def visit_type(self, value: org.Org) -> ClassCheckResult:
         res = ClassCheckResult(
-            class_name=str(type(value)),
+            class_name=value.getKind(),
             class_predicate_id=self.class_predicate_id,
         )
 
@@ -183,7 +218,7 @@ class OrgSpecification:
             return ClassCheckResult(
                 error=Tree(f"No type description for {kind}"),
                 class_predicate_id=None,
-                class_name=str(kind),
+                class_name=kind,
             )
 
     def visit_all(self, node: org.Org) -> List[ClassCheckResult]:
@@ -202,7 +237,7 @@ class OrgSpecification:
                     ClassCheckResult(
                         error=Tree(f"Missing coverage for node kind {kind}"),
                         class_predicate_id=None,
-                        class_name=str(kind),
+                        class_name=kind,
                     ))
 
         return result
@@ -229,13 +264,45 @@ def get_regex_field_check(field: str, regex: str, predicate_id: str) -> FieldPre
 
 
 @beartype
+def altN(*args: FieldPredicate) -> FieldAlternatives:
+    return FieldAlternatives(items=[*args])
+
+
+@beartype
+def get_regex_field_alternatives(
+        field: str, regex_with_id: List[Tuple[str, str]]) -> FieldAlternatives:
+    return altN(*(get_regex_field_check(field, rx, id) for rx, id in regex_with_id))
+
+
+@beartype
 def get_spec() -> OrgSpecification:
     res = OrgSpecification()
 
     res.alternatives[org.OrgSemKind.Word] = ClassAlternatives(items=[
         ClassPrediate(
-            fields=dict(text=get_regex_field_check("text", ".*", "any_value")),
+            fields=dict(text=altN(get_regex_field_check("text", ".*", "any_value"))),
             class_predicate_id="text_field",
+        ),
+        ClassPrediate(
+            fields=dict(
+                text=altN(get_regex_field_check("text", ".*", "any_value")),
+                nonexistent_field=altN(get_regex_field_check("text", ".*", "any_value")),
+            ),
+            class_predicate_id="text_field",
+        ),
+        ClassPrediate(
+            fields=dict(text=altN(get_regex_field_check("text", "asfasdfasdfasdfasdfasdffasdfasdfa", "any_value"))),
+            class_predicate_id="guaranteed_to_fail",
+        )
+    ])
+
+    res.alternatives[org.OrgSemKind.BigIdent] = ClassAlternatives(items=[
+        ClassPrediate(
+            fields=dict(text=get_regex_field_alternatives("text", [
+                ("[A-Z]+", "single_ident"),
+                ("[A-Z]+_[A-Z]+", "underscore_ident"),
+            ])),
+            class_predicate_id="big_ident_text",
         )
     ])
 
@@ -250,7 +317,41 @@ def test_run():
     coverage = spec.visit_all(node)
 
     final = Tree("Coverage report")
+    class_cover_tree: Mapping[org.OrgSemKind, Mapping[str, ClassCheckResult]] = dict()
     for item in coverage:
-        final.add(item.format())
+        add_if_ok(final, item.format(format_if_ok=False))
+        if item.is_matching():
+            if item.class_name not in class_cover_tree:
+                class_cover_tree[item.class_name] = dict()
+
+            class_cover_tree[item.class_name][item.class_predicate_id] = item
+
+    for class_kind, alternatives in spec.alternatives.items():
+        for alt in alternatives.items:
+            if class_kind not in class_cover_tree:
+                final.add(Tree(f"Document does not have coverage for class kind {class_kind}"))
+
+            elif alt.class_predicate_id not in class_cover_tree[class_kind]:
+                final.add(Tree(f"Document does not cover ID {class_kind}.{alt.class_predicate_id}"))
+
+            else:
+                cover = class_cover_tree[class_kind][alt.class_predicate_id]
+                field_check_fail = Tree(f"field check for {class_kind}.{alt.class_predicate_id}")
+                for field_name, field_predicate in alt.fields.items():
+                    if any(field_name == f.field for f in cover.fields):
+                        for wanted_check in field_predicate.items:
+                            if any(wanted_check.field_predicate_id == f.field_predicate_id for f in cover.fields):
+                                pass 
+
+                            else:
+                                field_check_fail.add(f"No nodes in the input document checked {class_kind}.{alt.class_predicate_id}.{wanted_check.field_predicate_id}")
+                                
+                    else:
+                        field_check_fail.add(f"No node {class_kind} had field {field_name}")
+
+                if 0 < len(field_check_fail.children):
+                    final.add(field_check_fail)
+
 
     Path("/tmp/report.txt").write_text(render_rich(final, False))
+    Path("/tmp/report.ansi").write_text(render_rich(final, True))
