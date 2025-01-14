@@ -1,13 +1,28 @@
 * Subtree
+  :properties:
+  :archive_file: ~/tmp.org
+  :end:
 
 * [2024-01-01] Date
 * [2023-02-12]--[2023-02-12] Time range :tag:tag##sub:
 
 /Italic/
 
+/Italic with space/
+
+/*italic bold*/
+
 *Bold*
 
+*Bold with space*
+
+*/bold italic/*
+
 _Underline_
+
+_Underline with space_
+
+_*bold underline*_
 
 ~Monospace~
 
