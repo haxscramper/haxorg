@@ -90,7 +90,11 @@ class FieldAlternatives():
     def visit_field(self, field: str, value: Any) -> FieldCheckResult:
         failed: List[FieldCheckResult] = []
         final_res: Optional[FieldCheckResult] = None
+        visisted_alternatives: Set[str] = set()
         for alt in self.items:
+            assert alt.name not in visisted_alternatives, f"Field '{field}' already has value alternative named '{alt.name}'"
+            visisted_alternatives.add(alt.name)
+
             res = alt.visit_field(field, value)
             if res.is_matching():
                 final_res = res
@@ -207,8 +211,8 @@ class ClassPrediate():
 
         for field_name, field_value in value.__dict__.items():
             if field_name in self.fields:
-                res.fields.append(self.fields[field_name].visit_field(
-                    field_name, field_value))
+                visit_res = self.fields[field_name].visit_field(field_name, field_value)
+                res.fields.append(visit_res)
 
             elif not self.allow_unknown_fields:
                 res.unknown_fields.append(field_name)
@@ -334,24 +338,55 @@ def make_check_node_has_subnode_of_kind(kind: org.OrgSemKind):
 
 
 @beartype
-def get_subtree_property_spec() -> List[ClassPrediate]:
-    res = []
+def altFieldsCheck1(
+        name: str, check: Callable[[Any],
+                                   ValueCheckResult]) -> Mapping[str, FieldPredicate]:
+    return {
+        name:
+            altN(
+                FieldPredicate(
+                    name=name,
+                    check=ValuePredicate(func=check),
+                    field_predicate_id=name,
+                ))
+    }
 
-    for property_kind in org.NamedPropertyKind(0):
 
-        def impl(kind: org.NamedPropertyKind, subtree: org.Subtree):
-            for prop in subtree.properties:
-                if prop.getKind() == kind:
-                    return NodeCheckResult(is_ok=True)
+@beartype
+def altFieldsCheckN(
+        name: str,
+        checks: List[Callable[[Any], ValueCheckResult]]) -> Mapping[str, FieldPredicate]:
+    return {
+        name:
+            altN(*(FieldPredicate(
+                name=name,
+                check=ValuePredicate(func=check),
+                field_predicate_id=name,
+            ) for check in checks))
+    }
 
-            return NodeCheckResult(is_ok=False,
-                                   on_fail=Tree(f"No subtree with property {kind}"))
 
-        res.append(
-            ClassPrediate(class_predicate_id=f"subtree_with_{property_kind}_property",
-                          node_predicate=functools.partial(impl, property_kind)))
+@beartype
+def get_subtree_property_spec() -> ClassPrediate:
 
-    return res
+    def impl(kind: org.NamedPropertyKind,
+             properties: List[org.NamedProperty]) -> ValueCheckResult:
+        for prop in properties:
+            if prop.getKind() == kind:
+                return ValueCheckResult(is_ok=True)
+
+        return ValueCheckResult(
+            is_ok=False,
+            on_fail=Tree(f"No subtree with property {kind}"),
+        )
+
+    return ClassPrediate(
+        class_predicate_id=f"subtree_with_all_properties",
+        fields=altFieldsCheckN("properties",
+                               checks=list(
+                                   functools.partial(impl, property_kind)
+                                   for property_kind in org.NamedPropertyKind(0))),
+    )
 
 
 @beartype
@@ -401,7 +436,7 @@ def get_spec() -> OrgSpecification:
             ),
         )
 
-    res.alternatives[osk.Subtree] = altCls(*get_subtree_property_spec(),)
+    res.alternatives[osk.Subtree] = altCls(get_subtree_property_spec(),)
 
     res.alternatives[org.OrgSemKind.BigIdent] = altCls(
         ClassPrediate(
@@ -451,7 +486,42 @@ def test_run():
                 cover = class_cover_tree[class_kind][alt.class_predicate_id]
                 if any(alt.class_predicate_id == cov.class_predicate_id and
                        cov.is_matching() for cov in cover):
-                    pass
+                    field_cover_tree: Mapping[Tuple[str, str],
+                                              List[FieldCheckResult]] = dict()
+                    for cov in cover:
+                        for field_check in cov.fields:
+                            key = (field_check.field, field_check.field_predicate_id)
+                            if key not in field_cover_tree:
+                                field_cover_tree[key] = []
+
+                            field_cover_tree[key].append(field_check)
+
+                    for field_name, field_predicate in alt.fields.items():
+                        for wanted_check in field_predicate.items:
+                            key = (field_name, wanted_check.field_predicate_id)
+                            if key not in field_cover_tree:
+                                field_cover_tree[key] = []
+
+                    field_coverage = Tree(
+                        f"Field coverage for {class_kind}.{alt.class_predicate_id}")
+
+                    for key in sorted(field_cover_tree):
+                        check_result = field_cover_tree[key]
+                        log(CAT).info(f"{key} {len(check_result)}")
+                        if 0 < len(check_result):
+                            if any(f.is_matching() for f in check_result):
+                                pass
+
+                            else:
+                                field_coverage.add(
+                                    Tree(f"No node ever matched {key[0]}.{key[1]}"))
+
+                        else:
+                            field_coverage.add(
+                                Tree(f"No node ever checked {key[0]}.{key[1]}"))
+
+                    if 0 < len(field_coverage.children):
+                        final.add(field_coverage)
 
                 else:
                     none_covered = Tree(
