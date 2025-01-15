@@ -1,10 +1,40 @@
 * Subtree
   :properties:
   :archive_file: ~/tmp.org
+  :archive_target: [[id:subtree-target]]
+  :blocker: nil
   :end:
 
 * [2024-01-01] Date
 * [2023-02-12]--[2023-02-12] Time range :tag:tag##sub:
+
+Par [fn:target]
+
+[fn:target] definition
+
+-----------
+
+- Item
+- Second Item
+
+
+
+
+- key :: Value
+- key :: Value
+
+
+#+attr_list: :export nil
+- =some_property= :: Must skip list on export
+
+Text
+
+- =some_property= :: Value
+
+#+attr_link: :attach-method copy :attach-on-export t
+[[attachment:attach_text.txt]]
+
+* Inline text markup
 
 /Italic/
 
@@ -30,6 +60,18 @@ _*bold underline*_
 
 +strike+
 
+Punctuation , .
+
+@mention
+
+(Par)
+
+* Text entities
+
+<<<radio target>>>
+
+<<anchor>>
+
 #hashtag
 
 {{{Macro}}}
@@ -42,15 +84,32 @@ _*bold underline*_
 
 BIG_IDENT
 
-Punctuation , .
+NOTE: Annotated paragraph
 
-@mention
+[2024-02-12] Timestamp paragraph
 
-(Par)
+paragraph [fn:1]
 
-Par [fn:target]
+[fn:1] footnote par
 
-[fn:target] definition
+* Line commands
+
+#+name: some-name
+[[file:image.png]]
+
+| a | b |
+| q | q |
+#+tblfm: a=b+c
+
+* Block nodes
+
+#+begin_verse
+some verse
+#+end_verse
+
+#+begin_comment
+some text
+#+end_comment
 
 #+begin_src xml
  xxx
@@ -74,32 +133,23 @@ example
 \test{}
 #+end_export
 
------------
+* Subtree
 
-- Item
-- Second Item
+** TODO big ident in title
+** TODO Log book
+:LOGBOOK:
+- State "TODO"       from              [2025-01-15 Wed 19:45:36 +04]
+:END:
 
+** Tree ID
+:properties:
+:id: tree-id
+:end:
 
+** tree time assignments
+CLOSED: [1998-01-15 Thu]
+SCHEDULED: [1998-01-15 Thu]
+DEADLINE: [1998-01-15 Thu]
 
-
-- key :: Value
-- key :: Value
-
-
-#+attr_list: :export nil
-- =some_property= :: Must skip list on export
-
-Text
-
-- =some_property= :: Value
-
-NOTE: Annotated paragraph
-
-[2024-02-12] Timestamp paragraph
-
-paragraph [fn:1]
-
-[fn:1] footnote par
-
-#+attr_link: :attach-method copy :attach-on-export t
-[[attachment:attach_text.txt]]
+** archived :ARCHIVE:
+** COMMENT comment subtree
