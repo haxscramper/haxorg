@@ -3,6 +3,8 @@
   :archive_file: ~/tmp.org
   :archive_target: [[id:subtree-target]]
   :blocker: nil
+  :nonblocking: t
+  :created: [2025-01-16 Thu]
   :end:
 
 * [2024-01-01] Date
@@ -156,3 +158,27 @@ CLOSED: [1960-01-15 Thu]
 
 ** archived :ARCHIVE:
 ** COMMENT comment subtree
+
+* Subtree ID and hashtag tracking
+
+** definition-target
+  :properties:
+  :radio_id: alias1
+  :radio_id: alias2
+  :radio_id: human readable
+  :id: subtree-id
+  :hashtag_def: #hashtag1
+  :hashtag_def: #nested##[alias1,alias2]
+  :end:
+
+Regular paragraph [fn:note]
+
+[fn:note] footnote paragraph
+
+** definition-user
+
+using alias1, alias2, and human readable
+
+Referencing [[id:subtree-id]]
+
+Mention #hashtag1 and #nested##alias1 with #nested##alias2
