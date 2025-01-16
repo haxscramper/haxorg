@@ -227,6 +227,11 @@ class ClassPrediate():
 class ClassAlternatives():
     items: List[ClassPrediate] = field(default_factory=list)
 
+    def get_for_id(self, name: str) -> Optional[ClassPrediate]:
+        for it in self.items:
+            if it.class_predicate_id == name:
+                return it
+
     def visit_type(self, value: org.Org) -> ClassCheckResult:
         failed: List[ClassCheckResult] = []
         final_res: Optional[ClassCheckResult] = None
@@ -238,6 +243,10 @@ class ClassAlternatives():
 
             else:
                 failed.append(res)
+
+        if any(it.class_predicate_id == "subtree_closed_pre_1970" for it in self.items):
+            log(CAT).info(
+                f"Final res {final_res.class_predicate_id} {final_res.class_name}")
 
         if final_res:
             return final_res
@@ -316,6 +325,22 @@ def altCls(*args: ClassPrediate) -> ClassAlternatives:
 
 
 @beartype
+def fnBoolOrText(
+        func: Callable[[Any], Union[Tree, bool]]) -> Callable[[Any], ValueCheckResult]:
+
+    def impl(func, value):
+        res = func(value)
+        if isinstance(res, bool) and res == True:
+            return ValueCheckResult(is_ok=True)
+
+        else:
+            assert isinstance(res, Tree)
+            return ValueCheckResult(is_ok=False, on_fail=res)
+
+    return functools.partial(impl, func)
+
+
+@beartype
 def get_regex_field_alternatives(
         field: str, regex_with_id: List[Tuple[str, str]]) -> FieldAlternatives:
     return altN(*(get_regex_field_check(field, rx, id) for rx, id in regex_with_id))
@@ -338,7 +363,7 @@ def make_check_node_has_subnode_of_kind(kind: org.OrgSemKind):
 @beartype
 def altFieldsCheck1(
         name: str, check: Callable[[Any],
-                                   ValueCheckResult]) -> Mapping[str, FieldPredicate]:
+                                   ValueCheckResult]) -> Mapping[str, FieldAlternatives]:
     return {
         name:
             altN(
@@ -353,7 +378,7 @@ def altFieldsCheck1(
 @beartype
 def altFieldsCheckN(
     name: str, checks: List[Tuple[str, Callable[[Any], ValueCheckResult]]]
-) -> Mapping[str, FieldPredicate]:
+) -> Mapping[str, FieldAlternatives]:
     return {
         name:
             altN(*(FieldPredicate(
@@ -362,6 +387,27 @@ def altFieldsCheckN(
                 field_predicate_id=f"{name}_{idx}",
             ) for idx, check in checks))
     }
+
+
+@beartype
+def clsField1Check(predicate_name: str, field_name: str, mapping) -> ClassPrediate:
+    if isinstance(mapping, dict):
+        return ClassPrediate(
+            class_predicate_id=predicate_name,
+            fields=mapping,
+        )
+
+    elif isinstance(mapping, list):
+        return ClassPrediate(
+            class_predicate_id=predicate_name,
+            fields=altFieldsCheckN(name=field_name, checks=mapping),
+        )
+
+    else:
+        return ClassPrediate(
+            class_predicate_id=predicate_name,
+            fields=altFieldsCheck1(name=field_name, check=mapping),
+        )
 
 
 @beartype
@@ -380,11 +426,11 @@ def get_subtree_property_spec() -> ClassPrediate:
 
     return ClassPrediate(
         class_predicate_id=f"subtree_with_all_properties",
-        fields=altFieldsCheckN("properties",
-                               checks=list(
-                                   (str(property_kind),
-                                    functools.partial(impl, property_kind))
-                                   for property_kind in org.NamedPropertyKind(0))),
+        fields=altFieldsCheckN(
+            "properties",
+            checks=list((str(property_kind), functools.partial(impl, property_kind))
+                        for property_kind in org.NamedPropertyKind(0)),
+        ),
     )
 
 
@@ -445,7 +491,30 @@ def get_spec() -> OrgSpecification:
             ),
         )
 
-    res.alternatives[osk.Subtree] = altCls(get_subtree_property_spec(),)
+    def check_closed_value(it: org.UserTime):
+        if isinstance(it, org.UserTime) and it.getBreakdown().year < 1960:
+            return True
+
+        else:
+            return Tree("no subtree with year prior to 1960")
+
+    res.alternatives[osk.Subtree] = altCls(
+        get_subtree_property_spec(),
+        clsField1Check("subtree_closed", "closed", [
+            ("closed",
+             fnBoolOrText(lambda it: bool(it) or Tree("no subtree with missing 'closed'"))
+            ),
+            ("closed",
+             fnBoolOrText(
+                 lambda it: not bool(it) or Tree("no subtree with provided 'closed'"))),
+        ]),
+        clsField1Check(
+            "subtree_closed_pre_1970",
+            "closed",
+            fnBoolOrText(check_closed_value),
+        ),
+    )
+
     res.alternatives[osk.SubtreeLog] = altCls(*get_subtree_logbook_head_spec(),)
 
     res.alternatives[org.OrgSemKind.BigIdent] = altCls(
@@ -467,7 +536,7 @@ def test_run():
     spec = get_spec()
     coverage = spec.visit_all(node)
 
-    final_mapping: Mapping[str, List[Tree]] = dict()
+    final_mapping: Mapping[org.OrgSemKind, List[Tree]] = dict()
     class_cover_tree: Mapping[org.OrgSemKind, Mapping[str,
                                                       List[ClassCheckResult]]] = dict()
 
@@ -479,15 +548,24 @@ def test_run():
 
             final_mapping[kind].append(node)
 
-    for item in coverage:
-        add_final_to_type(item.class_name, item.format(format_if_ok=False))
+    def add_class_item(item: ClassCheckResult):
+
+        # add_final_to_type(item.class_name, item.format(format_if_ok=False))
         if item.class_name not in class_cover_tree:
             class_cover_tree[item.class_name] = dict()
 
         if item.class_predicate_id not in class_cover_tree[item.class_name]:
             class_cover_tree[item.class_name][item.class_predicate_id] = []
 
-        class_cover_tree[item.class_name][item.class_predicate_id].append(item)
+        if item.class_predicate_id is None:
+            for sub_fail in item.match_failure:
+                add_class_item(sub_fail)
+
+        else:
+            class_cover_tree[item.class_name][item.class_predicate_id].append(item)
+
+    for item in coverage:
+        add_class_item(item)
 
     for class_kind, alternatives in spec.alternatives.items():
         for alt in alternatives.items:
@@ -504,73 +582,73 @@ def test_run():
                         f"Document does not cover ID {class_kind}.{alt.class_predicate_id}"
                     ))
 
-            else:
-                cover = class_cover_tree[class_kind][alt.class_predicate_id]
+    for class_kind, class_preciate_map in class_cover_tree.items():
+        for class_predicate_id, cover in class_preciate_map.items():
+            unknown_fields: Set[str] = set()
+            for cov in cover:
+                for field in cov.unknown_fields:
+                    unknown_fields.add(field)
 
-                unknown_fields: Set[str] = set()
-                for cov in cover:
-                    for field in cov.unknown_fields:
-                        unknown_fields.add(field)
+            for cov in cover:
+                for field_check in cov.fields:
+                    if field_check.field in unknown_fields:
+                        unknown_fields.remove(field_check.field)
 
+            if 0 < len(unknown_fields):
+                missing_fields = Tree("No checks defined for fields")
+                for f in sorted(unknown_fields):
+                    missing_fields.add(Tree(f"{f}"))
+
+                add_final_to_type(class_kind, missing_fields)
+
+            if any(cov.is_matching() for cov in cover):
+                field_cover_tree: Mapping[Tuple[str, str],
+                                          List[FieldCheckResult]] = dict()
                 for cov in cover:
                     for field_check in cov.fields:
-                        if field_check.field in unknown_fields:
-                            unknown_fields.remove(field_check.field)
+                        key = (field_check.field, field_check.field_predicate_id)
+                        if key not in field_cover_tree:
+                            field_cover_tree[key] = []
 
-                if 0 < len(unknown_fields):
-                    missing_fields = Tree("No checks defined for fields")
-                    for f in sorted(unknown_fields):
-                        missing_fields.add(Tree(f"{f}"))
+                        field_cover_tree[key].append(field_check)
 
-                    add_final_to_type(class_kind, missing_fields)
-
-                if any(alt.class_predicate_id == cov.class_predicate_id and
-                       cov.is_matching() for cov in cover):
-                    field_cover_tree: Mapping[Tuple[str, str],
-                                              List[FieldCheckResult]] = dict()
-                    for cov in cover:
-                        for field_check in cov.fields:
-                            key = (field_check.field, field_check.field_predicate_id)
-                            if key not in field_cover_tree:
-                                field_cover_tree[key] = []
-
-                            field_cover_tree[key].append(field_check)
-
-                    for field_name, field_predicate in alt.fields.items():
+                if class_predicate_id is not None:
+                    for field_name, field_predicate in spec.alternatives[
+                            class_kind].get_for_id(class_predicate_id).fields.items():
                         for wanted_check in field_predicate.items:
                             key = (field_name, wanted_check.field_predicate_id)
                             if key not in field_cover_tree:
                                 field_cover_tree[key] = []
 
-                    field_coverage = Tree(
-                        f"Field coverage for {class_kind}.{alt.class_predicate_id}")
+                field_coverage = Tree(
+                    f"Field coverage for {class_kind}.{class_predicate_id}")
 
-                    for key in sorted(field_cover_tree):
-                        check_result = field_cover_tree[key]
-                        if 0 < len(check_result):
-                            if any(f.is_matching() for f in check_result):
-                                pass
-
-                            else:
-                                field_coverage.add(
-                                    Tree(f"No node ever matched {key[0]}.{key[1]}"))
+                for key in sorted(field_cover_tree):
+                    check_result = field_cover_tree[key]
+                    if 0 < len(check_result):
+                        if any(f.is_matching() for f in check_result):
+                            pass
 
                         else:
                             field_coverage.add(
-                                Tree(f"No node ever checked {key[0]}.{key[1]}"))
+                                Tree(f"No node ever matched {key[0]}.{key[1]}"))
 
-                    if 0 < len(field_coverage.children):
-                        add_final_to_type(class_kind, field_coverage)
+                    else:
+                        field_coverage.add(
+                            Tree(f"No node ever checked {key[0]}.{key[1]}"))
 
-                else:
-                    none_covered = Tree(
-                        f"No nodes in the input document successfully checked {class_kind}.{alt.class_predicate_id}"
-                    )
+                if 0 < len(field_coverage.children):
+                    add_final_to_type(class_kind, field_coverage)
 
-                    for cov in cover:
-                        none_covered.add(cov.format())
+            else:
+                none_covered = Tree(
+                    f"No nodes in the input document successfully checked {class_kind}.{class_predicate_id}"
+                )
 
-                    add_final_to_type(class_kind, none_covered)
+                for cov in cover:
+                    add_if_ok(none_covered, cov.format(format_if_ok=False))
+
+                add_final_to_type(class_kind, none_covered)
 
     final = Tree("Coverage report")
 

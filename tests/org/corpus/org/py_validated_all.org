@@ -151,5 +151,8 @@ CLOSED: [1998-01-15 Thu]
 SCHEDULED: [1998-01-15 Thu]
 DEADLINE: [1998-01-15 Thu]
 
+** Subtree properties outside of UNIX timestamp
+CLOSED: [1960-01-15 Thu]
+
 ** archived :ARCHIVE:
 ** COMMENT comment subtree
