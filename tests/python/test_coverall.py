@@ -134,14 +134,13 @@ class ClassCheckResult():
     class_predicate_id: Optional[str]
     class_name: org.OrgSemKind
     fields: List[FieldCheckResult] = field(default_factory=list)
-    error: Optional[Tree] = None
     unknown_fields: List[str] = field(default_factory=list)
-    grouped: List["ClassCheckResult"] = field(default_factory=list)
     node_check_result: Optional[NodeCheckResult] = None
 
     def is_matching(self):
-        return all(f.is_matching() for f in self.fields) and not self.error and (
-            self.node_check_result is None or self.node_check_result.is_ok)
+        return all(
+            f.is_matching() for f in self.fields) and (self.node_check_result is None or
+                                                       self.node_check_result.is_ok)
 
     def format(self, format_if_ok: bool) -> Optional[Tree]:
         if self.is_matching():
@@ -157,8 +156,6 @@ class ClassCheckResult():
             res = Tree(
                 f"Class [red]{self.class_name}[/red] failed with ID [red]{self.class_predicate_id}[/red]"
             )
-            if self.error:
-                res.add(self.error)
 
             if self.node_check_result is not None:
                 add_if_ok(res, self.node_check_result.format(format_if_ok))
@@ -169,13 +166,6 @@ class ClassCheckResult():
                     add_if_ok(sub_fails, field.format(format_if_ok))
 
                 res.add(sub_fails)
-
-            if self.grouped:
-                sub_matches = Tree("Failed to match alternatives")
-                for fail in self.grouped:
-                    add_if_ok(sub_matches, fail.format(format_if_ok))
-
-                res.add(sub_matches)
 
             if self.unknown_fields:
                 sub_fields = Tree("Unknown fields")
@@ -310,6 +300,30 @@ def valueFnBoolOrText(
             return ValueCheckResult(is_ok=False, on_fail=res)
 
     return functools.partial(impl, func)
+
+
+@beartype
+def boolableField(field_name: str,
+                  expected: bool) -> Tuple[str, Callable[[Any], ValueCheckResult]]:
+
+    def impl(val: bool, it):
+        if bool(it) == val:
+            return ValueCheckResult(is_ok=True)
+
+        else:
+            return ValueCheckResult(is_ok=False,
+                                    on_fail=Tree(f"Expected bool({field_name}) == {val}"))
+
+    return (field_name, functools.partial(impl, expected))
+
+
+@beartype
+def boolableField2(
+        field_name: str) -> List[Tuple[str, Callable[[Any], ValueCheckResult]]]:
+    return [
+        boolableField(field_name, True),
+        boolableField(field_name, False),
+    ]
 
 
 @beartype
@@ -458,6 +472,42 @@ def get_subtree_logbook_head_spec() -> List[ClassPrediate]:
 
 
 @beartype
+def get_block_spec(kind: org.OrgSemKind) -> List[ClassPrediate]:
+    Block_alternatives: List[ClassPrediate] = []
+
+    def impl_expect(kind: org.OrgSemKind, attached: List[org.Org]):
+        if any(at.getKind() == kind for at in attached):
+            return ValueCheckResult(is_ok=True)
+
+        else:
+            return ValueCheckResult(is_ok=False, on_fail=Tree(f"Not {kind} in attached"))
+
+    for attached_kind in [org.OrgSemKind.CmdCaption, org.OrgSemKind.CmdName]:
+        Block_alternatives.append(
+            clsField1Check(
+                f"with_{attached_kind}_attached",
+                "attached",
+                [(f"{attached_kind}", functools.partial(impl_expect, attached_kind))],
+            ))
+
+    def impl_not_expect(attached: List[org.Org]):
+        if len(attached) == 0:
+            return ValueCheckResult(is_ok=True)
+
+        else:
+            return ValueCheckResult(is_ok=False, on_fail=Tree(f"Not empty in attached"))
+
+    Block_alternatives.append(
+        clsField1Check(
+            f"with_no_attached",
+            "attached",
+            [(f"{attached_kind}", impl_not_expect)],
+        ))
+
+    return Block_alternatives
+
+
+@beartype
 def get_spec() -> OrgSpecification:
     osk = org.OrgSemKind
     res = OrgSpecification()
@@ -503,14 +553,9 @@ def get_spec() -> OrgSpecification:
 
     res.alternatives[osk.Subtree] = altCls(
         *get_subtree_property_spec(),
-        clsField1Check("subtree_closed", "closed", [
-            ("closed",
-             valueFnBoolOrText(
-                 lambda it: bool(it) or Tree("no subtree with missing 'closed'"))),
-            ("closed",
-             valueFnBoolOrText(
-                 lambda it: not bool(it) or Tree("no subtree with provided 'closed'"))),
-        ]),
+        clsField1Check("subtree_closed", "closed", boolableField2("closed")),
+        clsField1Check("subtree_archiving", "isArchived", boolableField2("isArchived")),
+        clsField1Check("subtree_comment", "isComment", boolableField2("isComment")),
         clsField1Check(
             "subtree_closed_pre_1970",
             "closed",
@@ -578,11 +623,8 @@ def get_spec() -> OrgSpecification:
 
     Time_alternatives.append(
         clsField1Check("time_isActive", "isActive", [
-            ("isActive",
-             valueFnBoolOrText(lambda it: bool(it) or Tree("no tiem with 'isActive'"))),
-            ("isActive",
-             valueFnBoolOrText(
-                 lambda it: not bool(it) or Tree("no tiem with provided 'isActive'"))),
+            boolableField("isActive", True),
+            boolableField("isActive", False),
         ]))
 
     res.alternatives[osk.Time] = altCls(*Time_alternatives)
@@ -602,7 +644,7 @@ def get_spec() -> OrgSpecification:
             clsField1Check(
                 f"link_with_{kind}_target",
                 "target",
-                functools.partial(impl, kind),
+                [(f"{kind}", functools.partial(impl, kind))],
             ))
 
     res.alternatives[osk.Link] = altCls(*Link_alternatives)
@@ -617,6 +659,19 @@ def get_spec() -> OrgSpecification:
             ])),
             class_predicate_id="big_ident_text",
         ),)
+
+    block_kinds = [
+        osk.BlockQuote,
+        osk.BlockCenter,
+        osk.BlockComment,
+        osk.BlockCode,
+        osk.BlockVerse,
+        osk.BlockExample,
+        osk.BlockExport,
+    ]
+
+    for kind in block_kinds:
+        res.alternatives[kind] = altCls(*get_block_spec(kind))
 
     for kind in org.OrgSemKind(0):
         if kind not in res.alternatives:

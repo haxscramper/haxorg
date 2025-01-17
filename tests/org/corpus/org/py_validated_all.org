@@ -86,6 +86,20 @@ Punctuation , .
 
 BIG_IDENT
 
+** Links
+
+[[id:subtree-id]]
+
+[[person:person-target]]
+
+[[internal]]
+
+https://raw-link.com
+
+[[user-protocol:sometarget]]
+
+** Paragraph admonitions
+
 NOTE: Annotated paragraph
 
 [2024-02-12] Timestamp paragraph
@@ -93,6 +107,8 @@ NOTE: Annotated paragraph
 paragraph [fn:1]
 
 [fn:1] footnote par
+
+** Timestamps
 
 [2024-12-09]
 
@@ -110,6 +126,54 @@ paragraph [fn:1]
 #+tblfm: a=b+c
 
 * Block nodes
+
+** With attachments
+
+#+name: block-verse-name
+#+caption: Attached caption for block
+#+begin_verse
+some verse
+#+end_verse
+
+#+name: block-comment-name
+#+caption: Attached caption for block
+#+begin_comment
+some text
+#+end_comment
+
+#+name: block-xml-name
+#+caption: Attached caption for block
+#+begin_src xml
+ xxx
+ Line2
+#+end_src
+
+#+caption: Caption
+#+name: block-quote-name
+#+caption: Attached caption for block
+#+begin_quote
+content
+#+end_quote
+
+#+name: block-center-name
+#+caption: Attached caption for block
+#+begin_center
+center
+#+end_center
+
+#+name: block-example-name
+#+caption: Attached caption for block
+#+begin_example
+example
+#+end_example
+
+#+name: block-export-name
+#+caption: Attached caption for block
+#+begin_export latex :placement header
+\test{}
+#+end_export
+
+** Without attachments
 
 #+begin_verse
 some verse
@@ -144,9 +208,21 @@ example
 * Subtree
 
 ** TODO big ident in title
-** TODO Log book
+** FAILED Log book :design:
+CLOSED: [2025-01-17 Fri 20:38:10 +04]
 :LOGBOOK:
+- Tag "#design" Added on [2025-01-17 Fri 20:38:07 +04]
 - State "TODO"       from              [2025-01-15 Wed 19:45:36 +04]
+- Note taken on [2025-01-17 Fri 20:37:58 +04] \\
+  Random note
+- State "FAILED"     from "TODO"       [2025-01-17 Fri 20:38:10 +04] \\
+  Update failed
+- Refiled on [2020-05-02 Sat 14:40] from [[id:e2de69d4-4073-477f-af6b-cc2cd8d5a122][Quick latex input [17/26]]]
+- Priority "B" Added on [2023-07-20 Thu 13:43:21 +04]
+- Priority "A" Changed From "B" on [2023-07-20 Thu 13:43:21 +04]
+- New deadline from "[2019-09-26 Thu]" on [2019-09-27 Fri 22:36] \\
+  New week deadline
+CLOCK: [2000-01-03 Wed 09:51:50 +04]--[2000-01-03 Wed 10:43:40 +04] =>  0:52
 :END:
 
 ** Tree ID
