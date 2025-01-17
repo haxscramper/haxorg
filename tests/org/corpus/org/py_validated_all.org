@@ -78,6 +78,10 @@ Punctuation , .
 
 {{{Macro}}}
 
+{{{macro(arg1)}}}
+
+{{{macro(key=value)}}}
+
 \(Inline\)
 
 \Escaped

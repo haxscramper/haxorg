@@ -41,7 +41,8 @@ def format_value(val: Any) -> str:
         else:  # set
             return f"{{{items}}}"
     elif isinstance(val, dict):
-        items = ", ".join(f"{format_value(k)}: {format_value(val[k])}" for k in sorted(val))
+        items = ", ".join(
+            f"{format_value(k)}: {format_value(val[k])}" for k in sorted(val))
         return f"{{{items}}}"
     elif isinstance(val, str):
         return f'[yellow]"{val}"[/yellow]'
@@ -54,6 +55,7 @@ def format_value(val: Any) -> str:
     else:
         return str(val)
 
+
 def get_callable_info(func: Callable[..., Any], tree: Tree | None = None) -> Tree:
     """Get debug information about callable object and its wrapped implementations."""
     if tree is None:
@@ -62,7 +64,7 @@ def get_callable_info(func: Callable[..., Any], tree: Tree | None = None) -> Tre
 
         else:
             tree = Tree(f"partial")
-    
+
     # Get basic info
     try:
         file_path = Path(inspect.getfile(func))
@@ -75,11 +77,10 @@ def get_callable_info(func: Callable[..., Any], tree: Tree | None = None) -> Tre
             head += f" Qualified name: {func.__qualname__}"
 
         tree.add(head)
-        
+
         if func.__doc__:
             tree.add(f"Docstring: {func.__doc__.strip()}")
 
-            
     except (TypeError, OSError) as e:
         tree.add(f"[red]Failed to get source: {str(e)}[/]")
 
@@ -94,15 +95,15 @@ def get_callable_info(func: Callable[..., Any], tree: Tree | None = None) -> Tre
         for key in sorted(func.keywords):
             tmp.add(f"{format_value(key)} = {format_value(func.keywords[key])}")
 
-
         return tmp
-        
+
     # Handle other callable wrappers
     if hasattr(func, "__wrapped__"):
         subtree = tree.add("Wrapped function:")
         return get_callable_info(func.__wrapped__, subtree)
 
     return tree
+
 
 @beartype
 @dataclass
@@ -155,7 +156,9 @@ class FieldPredicate():
     field_predicate_id: str
 
     def treeRepr(self) -> Tree:
-        res = Tree(f"name: '[green]{self.name}[/green]' id: '[green]{self.field_predicate_id}[/green]'")
+        res = Tree(
+            f"name: '[green]{self.name}[/green]' id: '[green]{self.field_predicate_id}[/green]'"
+        )
         res.add(self.check.treeRepr())
 
         return res
@@ -351,7 +354,6 @@ class OrgSpecification:
                 alt.add(it.treeRepr())
 
             res.add(alt)
-
 
         return res
 
@@ -630,6 +632,76 @@ def get_block_spec(kind: org.OrgSemKind) -> List[ClassPrediate]:
 
     return Block_alternatives
 
+@beartype
+def get_subtree_spec() -> ClassAlternatives: 
+    def check_closed_value(it: org.UserTime):
+        if isinstance(it, org.UserTime) and it.getBreakdown().year < 1970:
+            return True
+
+        else:
+            return Tree("no subtree with year prior to 1960")
+
+
+    return altCls(
+        *get_subtree_property_spec(),
+        *[
+            clsField1Check(f"subtree_{name}", name, boolableField2(name)) for name in [
+                "closed",
+                "isArchived",
+                "treeId",
+                "isComment",
+                "deadline",
+                "scheduled",
+                "completion",
+            ]
+        ],
+        clsField1Check(
+            "subtree_closed_pre_1970",
+            "closed",
+            valueFnBoolOrText(check_closed_value),
+        ),
+    )
+
+@beartype
+def get_time_spec() -> ClassAlternatives:
+    Time_alternatives: List[ClassPrediate] = []
+
+    def breakdown_cutoff(field_list: List[str], node: org.Time):
+        for field_name, value in node.getStaticTime().getBreakdown().__dict__.items():
+            if field_name in field_list:
+                if not isinstance(value, int) or value == 0:
+                    return NodeCheckResult(
+                        is_ok=False,
+                        on_fail=Tree(
+                            f"Expected field {field_name} to be listed in breakdown"))
+
+            else:
+                if isinstance(value, int) and value != 0:
+                    return NodeCheckResult(
+                        is_ok=False,
+                        on_fail=Tree(
+                            f"Expected field {field_name} to be absent from breakdown"))
+
+        return NodeCheckResult(is_ok=True)
+
+    for field_names in [
+        ["year", "month", "day"],
+        ["year", "month", "day", "hour", "minute"],
+        ["year", "month", "day", "hour", "minute", "second"],
+    ]:
+        Time_alternatives.append(
+            nodeCls(
+                f"breakdown_for_{field_names}",
+                functools.partial(breakdown_cutoff, field_names),
+            ))
+
+    Time_alternatives.append(
+        clsField1Check("time_isActive", "isActive", [
+            boolableField("isActive", True),
+            boolableField("isActive", False),
+        ]))
+
+    return altCls(*Time_alternatives)
 
 @beartype
 def get_spec() -> OrgSpecification:
@@ -668,24 +740,7 @@ def get_spec() -> OrgSpecification:
             ),
         )
 
-    def check_closed_value(it: org.UserTime):
-        if isinstance(it, org.UserTime) and it.getBreakdown().year < 1970:
-            return True
-
-        else:
-            return Tree("no subtree with year prior to 1960")
-
-    res.alternatives[osk.Subtree] = altCls(
-        *get_subtree_property_spec(),
-        clsField1Check("subtree_closed", "closed", boolableField2("closed")),
-        clsField1Check("subtree_archiving", "isArchived", boolableField2("isArchived")),
-        clsField1Check("subtree_comment", "isComment", boolableField2("isComment")),
-        clsField1Check(
-            "subtree_closed_pre_1970",
-            "closed",
-            valueFnBoolOrText(check_closed_value),
-        ),
-    )
+    res.alternatives[osk.Subtree] = get_subtree_spec()
 
     res.alternatives[osk.Paragraph] = altCls(
         nodeCls(
@@ -714,44 +769,8 @@ def get_spec() -> OrgSpecification:
         ),
     )
 
-    Time_alternatives: List[ClassPrediate] = []
 
-    def breakdown_cutoff(field_list: List[str], node: org.Time):
-        for field_name, value in node.getStaticTime().getBreakdown().__dict__.items():
-            if field_name in field_list:
-                if not isinstance(value, int) or value == 0:
-                    return NodeCheckResult(
-                        is_ok=False,
-                        on_fail=Tree(
-                            f"Expected field {field_name} to be listed in breakdown"))
-
-            else:
-                if isinstance(value, int) and value != 0:
-                    return NodeCheckResult(
-                        is_ok=False,
-                        on_fail=Tree(
-                            f"Expected field {field_name} to be absent from breakdown"))
-
-        return NodeCheckResult(is_ok=True)
-
-    for field_names in [
-        ["year", "month", "day"],
-        ["year", "month", "day", "hour", "minute"],
-        ["year", "month", "day", "hour", "minute", "second"],
-    ]:
-        Time_alternatives.append(
-            nodeCls(
-                f"breakdown_for_{field_names}",
-                functools.partial(breakdown_cutoff, field_names),
-            ))
-
-    Time_alternatives.append(
-        clsField1Check("time_isActive", "isActive", [
-            boolableField("isActive", True),
-            boolableField("isActive", False),
-        ]))
-
-    res.alternatives[osk.Time] = altCls(*Time_alternatives)
+    res.alternatives[osk.Time] = get_time_spec()
 
     Link_alternatives: List[ClassPrediate] = []
     for kind in org.LinkTargetKind(0):
@@ -871,6 +890,7 @@ def test_run():
                 for field in cov.unknown_fields:
                     unknown_fields.add(field)
 
+        for class_predicate_id, cover in class_preciate_map.items():
             for cov in cover:
                 for field_check in cov.fields:
                     if field_check.field in unknown_fields:
