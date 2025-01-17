@@ -38,7 +38,7 @@ class ValuePredicate():
 class FieldCheckResult():
     field: str
     value_check: Optional[ValueCheckResult]
-    field_predicate_id: Optional[str]
+    field_predicate_id: str
     sub_failed: List["FieldCheckResult"] = field(default_factory=list)
 
     def is_matching(self) -> bool:
@@ -54,7 +54,7 @@ class FieldCheckResult():
 
         else:
             res = Tree(f"Field '[red]{self.field}[/red]' fail")
-            if self.value_check.on_fail:
+            if self.value_check and self.value_check.on_fail:
                 res.add(self.value_check.on_fail)
 
             elif self.sub_failed:
@@ -87,7 +87,7 @@ class FieldPredicate():
 class FieldAlternatives():
     items: List[FieldPredicate] = field(default_factory=list)
 
-    def visit_field(self, field: str, value: Any) -> FieldCheckResult:
+    def visit_field(self, field: str, value: Any) -> Optional[FieldCheckResult]:
         failed: List[FieldCheckResult] = []
         final_res: Optional[FieldCheckResult] = None
         visisted_alternatives: Set[str] = set()
@@ -108,14 +108,6 @@ class FieldAlternatives():
 
         if final_res:
             return final_res
-
-        else:
-            return FieldCheckResult(
-                field=field,
-                sub_failed=failed,
-                field_predicate_id=None,
-                value_check=None,
-            )
 
 
 @beartype
@@ -214,7 +206,8 @@ class ClassPrediate():
         for field_name, field_value in value.__dict__.items():
             if field_name in self.fields:
                 visit_res = self.fields[field_name].visit_field(field_name, field_value)
-                res.fields.append(visit_res)
+                if visit_res is not None:
+                    res.fields.append(visit_res)
 
             else:
                 res.unknown_fields.append(field_name)
@@ -232,34 +225,15 @@ class ClassAlternatives():
             if it.class_predicate_id == name:
                 return it
 
-    def visit_type(self, value: org.Org) -> ClassCheckResult:
-        failed: List[ClassCheckResult] = []
-        passed: List[ClassCheckResult] = []
+    def visit_type(self, value: org.Org) -> List[ClassCheckResult]:
+        res_list: List[ClassCheckResult] = []
         visited: Set[str] = set()
         for item in self.items:
             assert item.class_predicate_id not in visited, f"Duplicate class alternative for ID {item.class_predicate_id}"
             visited.add(item.class_predicate_id)
-            res = item.visit_type(value)
+            res_list.append(item.visit_type(value))
 
-            if res.is_matching():
-                passed.append(res)
-
-            else:
-                failed.append(res)
-
-        if 0 < len(passed):
-            return ClassCheckResult(
-                grouped=passed,
-                class_name=value.getKind(),
-                class_predicate_id=None,
-            )
-
-        else:
-            return ClassCheckResult(
-                grouped=failed,
-                class_name=value.getKind(),
-                class_predicate_id=None,
-            )
+        return res_list
 
 
 @beartype
@@ -267,19 +241,23 @@ class ClassAlternatives():
 class OrgSpecification:
     alternatives: Mapping[org.OrgSemKind, ClassAlternatives] = field(default_factory=dict)
 
-    def visit(self, node: org.Org) -> Optional[ClassCheckResult]:
+    def visit(self, node: org.Org) -> List[ClassCheckResult]:
         kind = node.getKind()
         if kind in self.alternatives:
             return self.alternatives[kind].visit_type(node)
+
+        else:
+            return []
 
     def visit_all(self, node: org.Org) -> List[ClassCheckResult]:
         result: List[ClassCheckResult] = []
         visited_kinds: Set[org.OrgSemKind] = set()
 
         def impl(node: org.Org):
+            nonlocal result
             res = self.visit(node)
             if res is not None:
-                result.append(res)
+                result += res
 
             visited_kinds.add(node.getKind())
 
@@ -319,7 +297,7 @@ def altCls(*args: ClassPrediate) -> ClassAlternatives:
 
 
 @beartype
-def fnBoolOrText(
+def valueFnBoolOrText(
         func: Callable[[Any], Union[Tree, bool]]) -> Callable[[Any], ValueCheckResult]:
 
     def impl(func, value):
@@ -332,6 +310,29 @@ def fnBoolOrText(
             return ValueCheckResult(is_ok=False, on_fail=res)
 
     return functools.partial(impl, func)
+
+
+@beartype
+def nodeFnBoolOrText(
+        func: Callable[[org.Org], Union[Tree,
+                                        bool]]) -> Callable[[org.Org], NodeCheckResult]:
+
+    def impl(func, value):
+        res = func(value)
+        if isinstance(res, bool) and res == True:
+            return NodeCheckResult(is_ok=True)
+
+        else:
+            assert isinstance(res, Tree)
+            return NodeCheckResult(is_ok=False, on_fail=res)
+
+    return functools.partial(impl, func)
+
+
+@beartype
+def nodeCls(class_predicate_id: str, func: Callable[[org.Org],
+                                                    NodeCheckResult]) -> ClassPrediate:
+    return ClassPrediate(class_predicate_id=class_predicate_id, node_predicate=func)
 
 
 @beartype
@@ -348,8 +349,12 @@ def make_check_node_has_subnode_of_kind(kind: org.OrgSemKind):
             return NodeCheckResult(is_ok=True)
 
         else:
-            return NodeCheckResult(is_ok=False,
-                                   on_fail=Tree(f"No subnode of kind [red]{kind}[/red]"))
+            return NodeCheckResult(
+                is_ok=False,
+                on_fail=Tree(
+                    f"No subnode of kind [red]{kind}[/red] in"
+                    # f"No subnode of kind [red]{kind}[/red] in {org.treeRepr(node, colored=False)}"
+                ))
 
     return functools.partial(impl, kind)
 
@@ -463,7 +468,7 @@ def get_spec() -> OrgSpecification:
             class_predicate_id="text_field",
         ),)
 
-    markup_node_kind = [osk.Bold, osk.Italic, osk.Underline]
+    markup_node_kind = [osk.Bold, osk.Italic, osk.Underline, osk.Strike]
     for kind in markup_node_kind:
 
         def has_different_nested_markup_kind(kind: org.OrgSemKind, node: org.Org):
@@ -472,7 +477,11 @@ def get_spec() -> OrgSpecification:
 
             else:
                 return NodeCheckResult(
-                    is_ok=False, on_fail=Tree(f"No subnode of kind [red]{kind}[/red]"))
+                    is_ok=False,
+                    on_fail=Tree(
+                        f"No subnode of kind [red]{kind}[/red]"
+                        # f"No subnode of kind [red]{kind}[/red] in {org.treeRepr(node, colored=False)}"
+                    ))
 
         res.alternatives[kind] = altCls(
             ClassPrediate(
@@ -496,18 +505,107 @@ def get_spec() -> OrgSpecification:
         *get_subtree_property_spec(),
         clsField1Check("subtree_closed", "closed", [
             ("closed",
-             fnBoolOrText(lambda it: bool(it) or Tree("no subtree with missing 'closed'"))
-            ),
+             valueFnBoolOrText(
+                 lambda it: bool(it) or Tree("no subtree with missing 'closed'"))),
             ("closed",
-             fnBoolOrText(
+             valueFnBoolOrText(
                  lambda it: not bool(it) or Tree("no subtree with provided 'closed'"))),
         ]),
         clsField1Check(
             "subtree_closed_pre_1970",
             "closed",
-            fnBoolOrText(check_closed_value),
+            valueFnBoolOrText(check_closed_value),
         ),
     )
+
+    res.alternatives[osk.Paragraph] = altCls(
+        nodeCls(
+            "footnote_definition_paragraph",
+            nodeFnBoolOrText(lambda node:
+                             (isinstance(node, org.Paragraph) and node.
+                              isFootnoteDefinition()) or Tree("No footnote definition")),
+        ),
+        nodeCls(
+            "paragraph_with_admonition",
+            nodeFnBoolOrText(lambda node:
+                             (isinstance(node, org.Paragraph) and node.hasAdmonition()
+                             ) or Tree("No paragraph with admonition")),
+        ),
+        nodeCls(
+            "paragraph_with_lead_hashtag",
+            nodeFnBoolOrText(lambda node:
+                             (isinstance(node, org.Paragraph) and node.hasLeadHashtags()
+                             ) or Tree("No paragraph with lead hashtag")),
+        ),
+        nodeCls(
+            "paragraph_with_lead_timestamp",
+            nodeFnBoolOrText(lambda node:
+                             (isinstance(node, org.Paragraph) and node.hasTimestamp()
+                             ) or Tree("No paragraph with lead timestamp")),
+        ),
+    )
+
+    Time_alternatives: List[ClassPrediate] = []
+
+    def breakdown_cutoff(field_list: List[str], node: org.Time):
+        for field_name, value in node.getStaticTime().getBreakdown().__dict__.items():
+            if field_name in field_list:
+                if not isinstance(value, int) or value == 0:
+                    return NodeCheckResult(
+                        is_ok=False,
+                        on_fail=Tree(
+                            f"Expected field {field_name} to be listed in breakdown"))
+
+            else:
+                if isinstance(value, int) and value != 0:
+                    return NodeCheckResult(
+                        is_ok=False,
+                        on_fail=Tree(
+                            f"Expected field {field_name} to be absent from breakdown"))
+
+        return NodeCheckResult(is_ok=True)
+
+    for field_names in [
+        ["year", "month", "day"],
+        ["year", "month", "day", "hour", "minute"],
+        ["year", "month", "day", "hour", "minute", "second"],
+    ]:
+        Time_alternatives.append(
+            nodeCls(
+                f"breakdown_for_{field_names}",
+                functools.partial(breakdown_cutoff, field_names),
+            ))
+
+    Time_alternatives.append(
+        clsField1Check("time_isActive", "isActive", [
+            ("isActive",
+             valueFnBoolOrText(lambda it: bool(it) or Tree("no tiem with 'isActive'"))),
+            ("isActive",
+             valueFnBoolOrText(
+                 lambda it: not bool(it) or Tree("no tiem with provided 'isActive'"))),
+        ]))
+
+    res.alternatives[osk.Time] = altCls(*Time_alternatives)
+
+    Link_alternatives: List[ClassPrediate] = []
+    for kind in org.LinkTargetKind(0):
+
+        def impl(kind: org.LinkTargetKind, target: org.LinkTarget):
+            if target.getKind() == kind:
+                log(CAT).info(f"Got target with kind {kind}")
+                return ValueCheckResult(is_ok=True)
+
+            else:
+                return ValueCheckResult(is_ok=False, on_fail=Tree(f"Expected {kind}"))
+
+        Link_alternatives.append(
+            clsField1Check(
+                f"link_with_{kind}_target",
+                "target",
+                functools.partial(impl, kind),
+            ))
+
+    res.alternatives[osk.Link] = altCls(*Link_alternatives)
 
     res.alternatives[osk.SubtreeLog] = altCls(*get_subtree_logbook_head_spec(),)
 

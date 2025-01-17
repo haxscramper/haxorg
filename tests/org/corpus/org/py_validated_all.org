@@ -38,7 +38,7 @@ Text
 
 * Inline text markup
 
-/Italic/
+test /Italic/
 
 /Italic with space/
 
@@ -93,6 +93,12 @@ NOTE: Annotated paragraph
 paragraph [fn:1]
 
 [fn:1] footnote par
+
+[2024-12-09]
+
+[2024-12-09 03:12]
+
+[2024-12-09 03:18:38]
 
 * Line commands
 
