@@ -6,10 +6,13 @@ from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import log
 from rich.tree import Tree
 from py_scriptutils.rich_utils import render_rich
+from rich.repr import rich_repr
 from pathlib import Path
 import re
 import functools
 import copy
+import inspect
+import types
 
 CAT = __name__
 
@@ -27,10 +30,87 @@ class ValueCheckResult():
     on_fail: Optional[Tree] = None
 
 
+def format_value(val: Any) -> str:
+    """Format value using rich repr with fallback for built-in types"""
+    if isinstance(val, (list, tuple, set)):
+        items = ", ".join(format_value(x) for x in val)
+        if isinstance(val, list):
+            return f"[{items}]"
+        elif isinstance(val, tuple):
+            return f"({items})"
+        else:  # set
+            return f"{{{items}}}"
+    elif isinstance(val, dict):
+        items = ", ".join(f"{format_value(k)}: {format_value(val[k])}" for k in sorted(val))
+        return f"{{{items}}}"
+    elif isinstance(val, str):
+        return f'[yellow]"{val}"[/yellow]'
+    elif isinstance(val, int):
+        return f"[cyan]{val}[/cyan]"
+    elif isinstance(val, bool):
+        return str(val).lower()
+    elif val is None:
+        return "None"
+    else:
+        return str(val)
+
+def get_callable_info(func: Callable[..., Any], tree: Tree | None = None) -> Tree:
+    """Get debug information about callable object and its wrapped implementations."""
+    if tree is None:
+        if isinstance(func, types.FunctionType):
+            tree = Tree(f"[bold blue]{func.__name__}[/]")
+
+        else:
+            tree = Tree(f"partial")
+    
+    # Get basic info
+    try:
+        file_path = Path(inspect.getfile(func))
+        source_lines, line_no = inspect.getsourcelines(func)
+        location = f"[cyan]{Path(file_path).name}[/]:[yellow]{line_no}[/]"
+
+        head = f"Defined at: {location} Type: {type(func).__name__}"
+
+        if hasattr(func, "__qualname__"):
+            head += f" Qualified name: {func.__qualname__}"
+
+        tree.add(head)
+        
+        if func.__doc__:
+            tree.add(f"Docstring: {func.__doc__.strip()}")
+
+            
+    except (TypeError, OSError) as e:
+        tree.add(f"[red]Failed to get source: {str(e)}[/]")
+
+    # Handle partial
+    if isinstance(func, functools.partial):
+        subtree = tree.add("Wrapped function:")
+        tmp = get_callable_info(func.func, subtree)
+
+        for idx, arg in enumerate(func.args):
+            tmp.add(f"[{idx}] = {format_value(arg)}")
+
+        for key in sorted(func.keywords):
+            tmp.add(f"{format_value(key)} = {format_value(func.keywords[key])}")
+
+
+        return tmp
+        
+    # Handle other callable wrappers
+    if hasattr(func, "__wrapped__"):
+        subtree = tree.add("Wrapped function:")
+        return get_callable_info(func.__wrapped__, subtree)
+
+    return tree
+
 @beartype
 @dataclass
 class ValuePredicate():
     func: Callable[[Any], ValueCheckResult]
+
+    def treeRepr(self) -> Tree:
+        return get_callable_info(self.func)
 
 
 @beartype
@@ -74,6 +154,12 @@ class FieldPredicate():
     check: ValuePredicate
     field_predicate_id: str
 
+    def treeRepr(self) -> Tree:
+        res = Tree(f"name: '[green]{self.name}[/green]' id: '[green]{self.field_predicate_id}[/green]'")
+        res.add(self.check.treeRepr())
+
+        return res
+
     def visit_field(self, name: str, value: Any) -> FieldCheckResult:
         return FieldCheckResult(
             field=name,
@@ -86,6 +172,17 @@ class FieldPredicate():
 @dataclass
 class FieldAlternatives():
     items: List[FieldPredicate] = field(default_factory=list)
+
+    def treeRepr(self) -> Tree:
+        if len(self.items) == 1:
+            return self.items[0].treeRepr()
+
+        else:
+            res = Tree(f"{len(self.items)} field alternatives")
+            for alt in self.items:
+                res.add(alt.treeRepr())
+
+            return res
 
     def visit_field(self, field: str, value: Any) -> Optional[FieldCheckResult]:
         failed: List[FieldCheckResult] = []
@@ -184,6 +281,19 @@ class ClassPrediate():
     fields: Mapping[str, FieldAlternatives] = field(default_factory=dict)
     node_predicate: Optional[Callable[[org.Org], NodeCheckResult]] = None
 
+    def treeRepr(self) -> Tree:
+        res = Tree(f"class predicate: {self.class_predicate_id}")
+
+        if self.node_predicate:
+            node_check = Tree("Node predicate")
+            node_check.add(get_callable_info(self.node_predicate))
+            res.add(node_check)
+
+        for key in sorted(self.fields):
+            res.add(self.fields[key].treeRepr())
+
+        return res
+
     def visit_type(self, value: org.Org) -> ClassCheckResult:
         res = ClassCheckResult(
             class_name=value.getKind(),
@@ -230,6 +340,20 @@ class ClassAlternatives():
 @dataclass
 class OrgSpecification:
     alternatives: Mapping[org.OrgSemKind, ClassAlternatives] = field(default_factory=dict)
+
+    def treeRepr(self) -> Tree:
+        res = Tree("Specification")
+
+        for key in sorted(self.alternatives, key=lambda it: int(it)):
+            alt = Tree(f"{key}")
+
+            for it in self.alternatives[key].items:
+                alt.add(it.treeRepr())
+
+            res.add(alt)
+
+
+        return res
 
     def visit(self, node: org.Org) -> List[ClassCheckResult]:
         kind = node.getKind()
@@ -685,6 +809,10 @@ def test_run():
     file = org_corpus_dir.joinpath("py_validated_all.org")
     node = org.parseFile(str(file), org.OrgParseParameters())
     spec = get_spec()
+
+    Path("/tmp/spec.txt").write_text(render_rich(spec.treeRepr(), False))
+    Path("/tmp/spec.ansi").write_text(render_rich(spec.treeRepr(), True))
+
     coverage = spec.visit_all(node)
 
     final_mapping: Mapping[org.OrgSemKind, List[Tree]] = dict()
