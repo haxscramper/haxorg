@@ -839,7 +839,43 @@ def generate_cov_report(cov: Coverage, target_file: Path, output_dir: str) -> Pa
     )
     return output_path / "index.html"
 
+
 from coverage.report_core import get_analysis_to_report
+import ast
+
+
+@beartype
+@dataclass
+class TypeDefinitionRanges:
+    decorators: Set[int] = field(default_factory=set)
+    class_def: Set[int] = field(default_factory=set)
+    fields: Set[int] = field(default_factory=set)
+    methods: Set[int] = field(default_factory=set)
+
+    def in_range(self, it: int) -> bool:
+        return it in self.decorators or it in self.class_def or it in self.fields or it in self.methods
+
+
+def get_type_definition_lines(cls_type: type) -> TypeDefinitionRanges:
+    source_lines, start = inspect.getsourcelines(cls_type)
+    tree = ast.parse("".join(source_lines))
+
+    result = TypeDefinitionRanges()
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ClassDef):
+            result.class_def = set([start + node.lineno - 1])
+            for decorator in node.decorator_list:
+                result.decorators.add(start + decorator.lineno - 1)
+
+            for body_item in node.body:
+                if isinstance(body_item, ast.AnnAssign):
+                    result.fields.add(start + body_item.lineno - 1)
+                elif isinstance(body_item, ast.FunctionDef):
+                    result.methods.add(start + body_item.lineno - 1)
+
+    return result
+
 
 @contextmanager
 def verify_full_coverage(cov: Coverage, cls, report_path: str) -> Generator:
@@ -850,7 +886,7 @@ def verify_full_coverage(cov: Coverage, cls, report_path: str) -> Generator:
 
     cov_obj = cov
 
-    use_target_cov = False
+    use_target_cov = True
 
     if use_target_cov:
         import sys
@@ -877,29 +913,22 @@ def verify_full_coverage(cov: Coverage, cls, report_path: str) -> Generator:
 
         source_file = Path(inspect.getfile(cls))
         source_lines, start_line = inspect.getsourcelines(cls)
+        definition_lines = get_type_definition_lines(cls)
 
-
-        file_analysis = list(get_analysis_to_report(coverage=cov_obj, morfs=[str(source_file)]))
+        file_analysis = list(
+            get_analysis_to_report(coverage=cov_obj, morfs=[str(source_file)]))
         end_line = start_line + len(source_lines)
-        file_reporter, analysis =  file_analysis[0]
-
+        file_reporter, analysis = file_analysis[0]
 
         missing_lines = []
         offset = 0
-        # log(CAT).info(f"executed = {analysis.executed} missing = {analysis.missing} excluded = {analysis.excluded}")
         for line_no in range(start_line, end_line):
             class_line = source_lines[offset]
-            if line_no in analysis.missing:
-            # if line_no in analysis.excluded or line_no in analysis.executed:
-                # pass
-
-            # else:
+            if line_no in analysis.missing and not definition_lines.in_range(line_no):
                 log(CAT).info(f"[{line_no}] {class_line.strip('\n')}")
                 missing_lines.append(line_no)
 
             offset += 1
-
-
 
         if missing_lines:
             generate_cov_report(
