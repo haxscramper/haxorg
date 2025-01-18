@@ -224,7 +224,11 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
         visitIdHookCb[kind] = cb;
     }
 
-    [[refl]] void print_trace(std::string const& trace);
+    [[refl]] void print_trace(
+        std::string const& trace,
+        std::string const& file,
+        std::string const& function,
+        int                line);
 
     Res newRes(sem::SemId<sem::Org> const& node) {
         if (newAnyOrgResCb) {

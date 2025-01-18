@@ -87,6 +87,18 @@ void ExporterPython::enableFileTrace(
     this->traceColored = colored;
 }
 
+void ExporterPython::print_trace(
+    const std::string& trace,
+    const std::string& file,
+    const std::string& function,
+    int                line) {
+    auto rep     = this->trace(VisitReport::Kind::Print);
+    rep.line     = line;
+    rep.function = function.c_str();
+    rep.file     = file.c_str();
+    trace_instant(rep);
+}
+
 void ExporterPython::visitDispatch(Res& res, sem::SemId<sem::Org> arg) {
     auto __scope = trace_scope(
         trace(VisitReport::Kind::VisitDispatch).with_node(arg));
