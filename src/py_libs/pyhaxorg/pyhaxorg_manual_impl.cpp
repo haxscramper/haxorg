@@ -48,6 +48,29 @@ void init_py_manual_api(pybind11::module& m) {
     assert(PyDateTimeAPI);
 }
 
+std::string format_function_definition(const pybind11::function& func) {
+    auto obj  = func.attr("__code__");
+    auto name = std::string{pybind11::str(func.attr("__name__"))};
+    auto file = std::string{pybind11::str(obj.attr("co_filename"))};
+    auto line = obj.attr("co_firstlineno").cast<int>();
+
+    return std::format(
+        "{}:{}@{}",
+        name,
+        line,
+        std::filesystem::path(file).stem().string());
+}
+
+std::string ExporterPython::describe(const PyFunc& func) const {
+    return format_function_definition(func);
+}
+
+std::string ExporterPython::describe_use(
+    const std::string& msg,
+    const PyFunc&      usage) const {
+    return std::format("{} {}", msg, describe(usage));
+}
+
 void ExporterPython::enableBufferTrace() {
     TraceState    = true;
     traceToBuffer = true;

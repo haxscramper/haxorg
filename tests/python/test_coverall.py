@@ -1095,8 +1095,11 @@ def test_run_typst_exporter(cov):
     node = org.parseFile(str(file), org.OrgParseParameters())
     from py_exporters.export_typst import ExporterTypst
 
+    Path("/tmp/total_repr.txt").write_text(org.treeRepr(node, colored=False))
+
     with verify_full_coverage(cov, ExporterTypst, "/tmp"):
         exp = ExporterTypst()
+        exp.enableFileTrace("/tmp/typst_export_trace.log")
         exp.eval(node)
 
         exp.expr(org.parseString("word"))

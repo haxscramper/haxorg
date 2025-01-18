@@ -71,7 +71,7 @@ class ExporterTypstConfig(BaseModel):
     with_standard_baze: bool = True
 
 
-@beartype
+# @beartype
 class ExporterTypst(ExporterBase):
     t: typ.ASTBuilder
     c: ExporterTypstConfig
