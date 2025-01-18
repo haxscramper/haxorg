@@ -268,3 +268,15 @@ using alias1, alias2, and human readable
 Referencing [[id:subtree-id]]
 
 Mention #hashtag1 and #nested##alias1 with #nested##alias2
+
+* Exporter-specific
+
+** typst
+
+#+begin_export typst :edit-config in-visit
+
+#+end_export
+
+#+begin_export typst :edit-config pre-visit
+
+#+end_export

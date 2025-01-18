@@ -1,7 +1,7 @@
 import py_haxorg.pyhaxorg_wrap as org
 from dataclasses import dataclass, replace, field
 from beartype import beartype
-from beartype.typing import List, Optional, Union, Iterable, Callable, Any, Tuple, Mapping, Set
+from beartype.typing import List, Optional, Union, Iterable, Callable, Any, Tuple, Mapping, Set, Generator
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import log
 from rich.tree import Tree
@@ -13,6 +13,9 @@ import functools
 import copy
 import inspect
 import types
+from coverage import Coverage
+import pytest
+from contextlib import contextmanager
 
 CAT = __name__
 
@@ -632,15 +635,16 @@ def get_block_spec(kind: org.OrgSemKind) -> List[ClassPrediate]:
 
     return Block_alternatives
 
+
 @beartype
-def get_subtree_spec() -> ClassAlternatives: 
+def get_subtree_spec() -> ClassAlternatives:
+
     def check_closed_value(it: org.UserTime):
         if isinstance(it, org.UserTime) and it.getBreakdown().year < 1970:
             return True
 
         else:
             return Tree("no subtree with year prior to 1960")
-
 
     return altCls(
         *get_subtree_property_spec(),
@@ -661,6 +665,7 @@ def get_subtree_spec() -> ClassAlternatives:
             valueFnBoolOrText(check_closed_value),
         ),
     )
+
 
 @beartype
 def get_time_spec() -> ClassAlternatives:
@@ -702,6 +707,7 @@ def get_time_spec() -> ClassAlternatives:
         ]))
 
     return altCls(*Time_alternatives)
+
 
 @beartype
 def get_spec() -> OrgSpecification:
@@ -769,7 +775,6 @@ def get_spec() -> OrgSpecification:
         ),
     )
 
-
     res.alternatives[osk.Time] = get_time_spec()
 
     Link_alternatives: List[ClassPrediate] = []
@@ -777,7 +782,6 @@ def get_spec() -> OrgSpecification:
 
         def impl(kind: org.LinkTargetKind, target: org.LinkTarget):
             if target.getKind() == kind:
-                log(CAT).info(f"Got target with kind {kind}")
                 return ValueCheckResult(is_ok=True)
 
             else:
@@ -823,8 +827,59 @@ def get_spec() -> OrgSpecification:
     return res
 
 
+def generate_html_report(cov: Coverage, target_file: str, output_dir: str) -> Path:
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+    cov.html_report(morfs=[target_file], directory=str(output_path))
+    return output_path / "index.html"
+
+
+@contextmanager
+def verify_full_coverage(cov: Coverage, cls, report_path: str) -> Generator:
+    """
+    Verify that all lines in the class methods are covered.
+    Raises AssertionError with coverage report if not fully covered.
+    """
+
+    try:
+        yield
+
+    finally:
+        source_file = Path(inspect.getfile(cls))
+
+        _, start_line = inspect.getsourcelines(cls)
+        end_line = start_line + len(inspect.getsource(cls).splitlines())
+
+        file_data = cov.get_data()
+        executed = file_data.lines(str(source_file.resolve()))
+        runnable = file_data.measured_files()
+
+        if not file_data:
+            pytest.fail(f"No coverage data collected for {source_file}")
+
+        missing_lines = []
+        for line_no in range(start_line, end_line):
+            if str(source_file.resolve()) in runnable and line_no not in executed:
+                missing_lines.append(line_no)
+
+        if missing_lines:
+            generate_html_report(
+                cov=cov,
+                target_file=source_file,
+                output_dir=report_path,
+            )
+
+            pytest.fail(f"Incomplete coverage for {cls.__name__} in {source_file}:\n"
+                        f"Missing lines: {missing_lines}\n"
+                        f"Coverage Report: {report_path}\n")
+
+
+
+
+org_corpus_dir = get_haxorg_repo_root_path().joinpath("tests/org/corpus/org")
+
+
 def test_run():
-    org_corpus_dir = get_haxorg_repo_root_path().joinpath("tests/org/corpus/org")
     file = org_corpus_dir.joinpath("py_validated_all.org")
     node = org.parseFile(str(file), org.OrgParseParameters())
     spec = get_spec()
@@ -967,3 +1022,13 @@ def test_run():
 
     Path("/tmp/report.txt").write_text(render_rich(final, False))
     Path("/tmp/report.ansi").write_text(render_rich(final, True))
+
+
+def test_run_typst_exporter(cov):
+    file = org_corpus_dir.joinpath("py_validated_all.org")
+    node = org.parseFile(str(file), org.OrgParseParameters())
+    from py_exporters.export_typst import ExporterTypst
+
+    with verify_full_coverage(cov, ExporterTypst, "/tmp"):
+        exp = ExporterTypst()
+        exp.eval(node)
