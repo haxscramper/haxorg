@@ -828,12 +828,18 @@ def get_spec() -> OrgSpecification:
 
 
 @beartype
-def generate_html_report(cov: Coverage, target_file: Path, output_dir: str) -> Path:
+def generate_cov_report(cov: Coverage, target_file: Path, output_dir: str) -> Path:
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
     cov.html_report(morfs=[str(target_file)], directory=str(output_path))
+    cov.json_report(
+        morfs=[str(target_file)],
+        outfile=output_path.joinpath("cov.json"),
+        pretty_print=True,
+    )
     return output_path / "index.html"
 
+from coverage.report_core import get_analysis_to_report
 
 @contextmanager
 def verify_full_coverage(cov: Coverage, cls, report_path: str) -> Generator:
@@ -854,7 +860,7 @@ def verify_full_coverage(cov: Coverage, cls, report_path: str) -> Generator:
             cov_plugin = sys._pytest_cov.get_cov_source()
             # Temporarily suspend global coverage
             cov_plugin.pause()
-        
+
         # Setup local coverage
         cov_obj = Coverage()
         cov_obj.start()
@@ -865,29 +871,38 @@ def verify_full_coverage(cov: Coverage, cls, report_path: str) -> Generator:
     finally:
         if use_target_cov:
             cov_obj.stop()
-        
+
             if cov_plugin:
                 cov_plugin.resume()
 
         source_file = Path(inspect.getfile(cls))
+        source_lines, start_line = inspect.getsourcelines(cls)
 
-        _, start_line = inspect.getsourcelines(cls)
-        end_line = start_line + len(inspect.getsource(cls).splitlines())
 
-        file_data = cov_obj.get_data()
-        executed = file_data.lines(str(source_file.resolve()))
-        runnable = file_data.measured_files()
+        file_analysis = list(get_analysis_to_report(coverage=cov_obj, morfs=[str(source_file)]))
+        end_line = start_line + len(source_lines)
+        file_reporter, analysis =  file_analysis[0]
 
-        if not file_data:
-            pytest.fail(f"No coverage data collected for {source_file}")
 
         missing_lines = []
+        offset = 0
+        # log(CAT).info(f"executed = {analysis.executed} missing = {analysis.missing} excluded = {analysis.excluded}")
         for line_no in range(start_line, end_line):
-            if str(source_file.resolve()) in runnable and line_no not in executed:
+            class_line = source_lines[offset]
+            if line_no in analysis.missing:
+            # if line_no in analysis.excluded or line_no in analysis.executed:
+                # pass
+
+            # else:
+                log(CAT).info(f"[{line_no}] {class_line.strip('\n')}")
                 missing_lines.append(line_no)
 
+            offset += 1
+
+
+
         if missing_lines:
-            generate_html_report(
+            generate_cov_report(
                 cov=cov_obj,
                 target_file=source_file,
                 output_dir=report_path,
@@ -896,8 +911,6 @@ def verify_full_coverage(cov: Coverage, cls, report_path: str) -> Generator:
             pytest.fail(f"Incomplete coverage for {cls.__name__} in {source_file}:\n"
                         f"Missing lines: {missing_lines}\n"
                         f"Coverage Report: {report_path}\n")
-
-
 
 
 org_corpus_dir = get_haxorg_repo_root_path().joinpath("tests/org/corpus/org")
@@ -1061,12 +1074,10 @@ def test_run_typst_exporter(cov):
         exp.evalParagraph(org.Paragraph())
 
         with pytest.raises(ValueError) as ex:
-            ExporterTypst().evalTop(org.parseString("""
+            ExporterTypst().evalTop(
+                org.parseString("""
             - header :: body
             - mixed
             """))
 
             assert "mixed description list" in str(ex.value)
-
-
-            
