@@ -827,10 +827,11 @@ def get_spec() -> OrgSpecification:
     return res
 
 
-def generate_html_report(cov: Coverage, target_file: str, output_dir: str) -> Path:
+@beartype
+def generate_html_report(cov: Coverage, target_file: Path, output_dir: str) -> Path:
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
-    cov.html_report(morfs=[target_file], directory=str(output_path))
+    cov.html_report(morfs=[str(target_file)], directory=str(output_path))
     return output_path / "index.html"
 
 
@@ -841,16 +842,39 @@ def verify_full_coverage(cov: Coverage, cls, report_path: str) -> Generator:
     Raises AssertionError with coverage report if not fully covered.
     """
 
+    cov_obj = cov
+
+    use_target_cov = False
+
+    if use_target_cov:
+        import sys
+        cov_plugin = None
+        if hasattr(sys, '_pytest_cov'):
+            # Get the active coverage object from pytest-cov
+            cov_plugin = sys._pytest_cov.get_cov_source()
+            # Temporarily suspend global coverage
+            cov_plugin.pause()
+        
+        # Setup local coverage
+        cov_obj = Coverage()
+        cov_obj.start()
+
     try:
         yield
 
     finally:
+        if use_target_cov:
+            cov_obj.stop()
+        
+            if cov_plugin:
+                cov_plugin.resume()
+
         source_file = Path(inspect.getfile(cls))
 
         _, start_line = inspect.getsourcelines(cls)
         end_line = start_line + len(inspect.getsource(cls).splitlines())
 
-        file_data = cov.get_data()
+        file_data = cov_obj.get_data()
         executed = file_data.lines(str(source_file.resolve()))
         runnable = file_data.measured_files()
 
@@ -864,7 +888,7 @@ def verify_full_coverage(cov: Coverage, cls, report_path: str) -> Generator:
 
         if missing_lines:
             generate_html_report(
-                cov=cov,
+                cov=cov_obj,
                 target_file=source_file,
                 output_dir=report_path,
             )
@@ -1032,3 +1056,17 @@ def test_run_typst_exporter(cov):
     with verify_full_coverage(cov, ExporterTypst, "/tmp"):
         exp = ExporterTypst()
         exp.eval(node)
+
+        exp.expr(org.parseString("word"))
+        exp.evalParagraph(org.Paragraph())
+
+        with pytest.raises(ValueError) as ex:
+            ExporterTypst().evalTop(org.parseString("""
+            - header :: body
+            - mixed
+            """))
+
+            assert "mixed description list" in str(ex.value)
+
+
+            

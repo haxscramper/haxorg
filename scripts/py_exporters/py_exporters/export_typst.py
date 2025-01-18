@@ -234,7 +234,6 @@ class ExporterTypst(ExporterBase):
         return self.t.call(self.c.tags.example, body=[self.stackSubnodes(node)])
 
     def evalBlockExport(self, node: org.BlockExport) -> BlockId:
-        log(CAT).info(f"Export {node.exporter}")
         if node.exporter == "typst":
             edit_config = node.getAttrs("edit-config")
             if edit_config and 0 < len(edit_config):

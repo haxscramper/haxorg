@@ -92,6 +92,10 @@ BIG_IDENT
 
 ** Links
 
+[[attachment:some-file.png]]
+
+[[file:random-path.pdf]]
+
 [[id:subtree-id]]
 
 [[person:person-target]]
@@ -278,5 +282,9 @@ Mention #hashtag1 and #nested##alias1 with #nested##alias2
 #+end_export
 
 #+begin_export typst :edit-config pre-visit
+
+#+end_export
+
+#+begin_export typst
 
 #+end_export
