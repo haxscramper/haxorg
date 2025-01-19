@@ -464,7 +464,7 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
                 VK::VisitDispatchHook, id, "cb for kind", *cb);
             cb.value()(_self, res, id);
         } else {
-            trace_no_cb(VK::VisitDispatchHook, id);
+            // trace_no_cb(VK::VisitDispatchHook, id);
         }
     }
 

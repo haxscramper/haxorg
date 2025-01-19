@@ -107,10 +107,10 @@ ExporterPython::Res ExporterPython::newResImpl(sem::OrgArg node) {
         trace_leaf(VK::NewRes, node, "callback for kind", *cb);
         return cb.value()(_self, node);
     } else {
-        trace_instant(
-            trace(VK::NewRes)
-                .with_node(node)
-                .with_msg(fmt("no callback for {}", node->getKind())));
+        // trace_instant(
+        //     trace(VK::NewRes)
+        //         .with_node(node)
+        //         .with_msg(fmt("no callback for {}", node->getKind())));
         return py::none();
     }
 }
@@ -148,7 +148,7 @@ void ExporterPython::pushVisitImpl(Res& res, sem::OrgArg id) {
         trace_leaf(VK::PushVisit, id, "kind", *cb);
         cb.value()(_self, res, id);
     } else {
-        trace_no_cb(VK::PushVisit, id);
+        // trace_no_cb(VK::PushVisit, id);
     }
 }
 
@@ -160,7 +160,7 @@ void ExporterPython::popVisitImpl(Res& res, sem::OrgArg id) {
         trace_leaf(VK::PopVisit, id, "kind", *cb);
         cb.value()(_self, res, id);
     } else {
-        trace_no_cb(VK::PopVisit, id);
+        // trace_no_cb(VK::PopVisit, id);
     }
 }
 

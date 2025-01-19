@@ -1,4 +1,4 @@
-#+begin_export typst :edit-config
+#+begin_export typst :edit-config pre-visit
 
 #+end_export
 

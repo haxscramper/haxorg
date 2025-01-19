@@ -1115,3 +1115,12 @@ def test_run_typst_exporter(cov):
             """))
 
             assert "mixed description list" in str(ex.value)
+
+        with pytest.raises(ValueError) as ex:
+            ExporterTypst().evalTop(org.parseString("""
+#+begin_export typst :edit-config
+
+#+end_export
+            """))
+
+            assert "edit-config parameter" in str(ex.value)

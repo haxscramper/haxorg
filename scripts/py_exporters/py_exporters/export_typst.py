@@ -245,6 +245,9 @@ class ExporterTypst(ExporterBase):
                         self.applyExportConfig(node)
                         return self.t.string("")
 
+                    case _:
+                        raise ValueError(f"edit-config parameter at {node.loc} has unexpected value '{edit_config[0].getString()}'")
+
             else:
                 return self.t.string(node.content)
 
