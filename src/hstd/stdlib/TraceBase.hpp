@@ -17,6 +17,9 @@ struct OperationsMsg {
     int              column   = 0;
     int              level    = 0;
     json             metadata = json{};
+
+    void use_stacktrace_as_msg();
+
     DESC_FIELDS(
         OperationsMsg,
         (msg, file, function, line, column, metadata));

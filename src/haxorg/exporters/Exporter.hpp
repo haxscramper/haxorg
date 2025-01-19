@@ -129,7 +129,7 @@ struct ExporterEventBase : OperationsTracer {
         ~VisitScope() {
             if (exp->TraceState) {
                 --exp->visitDepth;
-                if (event.instant) {
+                if (!event.instant) {
                     event.level   = exp->visitDepth;
                     event.isStart = false;
                     exp->report(event);

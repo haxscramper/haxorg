@@ -282,38 +282,15 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
         std::string const& function,
         int                line);
 
+    Res newResImpl(sem::OrgArg node);
 
     Res newRes(sem::SemId<sem::Org> const& node) {
-        if (newAnyOrgResCb) {
-            trace_leaf(VK::NewRes, node, "universal CB", *newAnyOrgResCb);
-            return newAnyOrgResCb->operator()(_self, node);
-        } else if (auto cb = newOrgResCb.get(node->getKind())) {
-            trace_leaf(VK::NewRes, node, "callback for kind", *cb);
-            return cb.value()(_self, node);
-        } else {
-            trace_instant(
-                trace(VK::NewRes)
-                    .with_node(node)
-                    .with_msg(fmt("no callback for {}", node->getKind())));
-            return py::none();
-        }
+        return newResImpl(node);
     }
 
     template <sem::IsOrg T>
     Res newRes(sem::SemId<T> const& node) {
-        if (newAnyOrgResCb) {
-            trace_leaf(VK::NewRes, node, "universal CB", *newAnyOrgResCb);
-            return newAnyOrgResCb->operator()(_self, node);
-        } else if (auto cb = newOrgResCb.get(T::staticKind)) {
-            trace_leaf(VK::NewRes, node, "callback for kind", *cb);
-            return newOrgResCb.at(T::staticKind)(_self, node);
-        } else {
-            trace_instant(
-                trace(VK::NewRes)
-                    .with_node(node)
-                    .with_msg(fmt("no callback for {}", T::staticKind)));
-            return py::none();
-        }
+        return newResImpl(node.asOrg());
     }
 
     template <sem::NotOrg T>
@@ -487,36 +464,22 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
                 VK::VisitDispatchHook, id, "cb for kind", *cb);
             cb.value()(_self, res, id);
         } else {
-            trace_no_cb(VK::VisitDispatchHook, "no fallback", id);
+            trace_no_cb(VK::VisitDispatchHook, id);
         }
     }
+
+    void pushVisitImpl(Res& res, sem::OrgArg id);
 
     template <sem::IsOrg T>
     void pushVisit(Res& res, sem::SemId<T> id) {
-        auto ev = trace(VK::PushVisit).with_node(id);
-        if (pushVisitAnyIdCb) {
-            trace_instant(ev.with_loc());
-            pushVisitAnyIdCb->operator()(_self, res, id);
-        } else if (auto cb = pushVisitIdCb.get(T::staticKind)) {
-            trace_instant(ev.with_loc());
-            cb.value()(_self, res, id);
-        } else {
-            trace_no_cb(VK::PushVisit, id);
-        }
+        pushVisitImpl(res, id);
     }
+
+    void popVisitImpl(Res& res, sem::OrgArg id);
 
     template <sem::IsOrg T>
     void popVisit(Res& res, sem::SemId<T> id) {
-        auto ev = trace(VK::PopVisit).with_node(id);
-        if (popVisitAnyIdCb) {
-            trace_leaf(VK::PopVisit, id, "universal", *popVisitAnyIdCb);
-            popVisitAnyIdCb->operator()(_self, res, id);
-        } else if (auto cb = popVisitIdCb.get(T::staticKind)) {
-            trace_leaf(VK::PopVisit, id, "kind", *cb);
-            cb.value()(_self, res, id);
-        } else {
-            trace_no_cb(VK::PopVisit, id);
-        }
+        popVisitImpl(res, id);
     }
 
     template <sem::IsOrg T>

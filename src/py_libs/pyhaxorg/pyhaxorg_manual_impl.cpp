@@ -99,6 +99,22 @@ void ExporterPython::print_trace(
     trace_instant(rep);
 }
 
+ExporterPython::Res ExporterPython::newResImpl(sem::OrgArg node) {
+    if (newAnyOrgResCb) {
+        trace_leaf(VK::NewRes, node, "universal CB", *newAnyOrgResCb);
+        return newAnyOrgResCb->operator()(_self, node);
+    } else if (auto cb = newOrgResCb.get(node->getKind())) {
+        trace_leaf(VK::NewRes, node, "callback for kind", *cb);
+        return cb.value()(_self, node);
+    } else {
+        trace_instant(
+            trace(VK::NewRes)
+                .with_node(node)
+                .with_msg(fmt("no callback for {}", node->getKind())));
+        return py::none();
+    }
+}
+
 void ExporterPython::visitDispatch(Res& res, sem::SemId<sem::Org> arg) {
     auto __scope = trace_scope(
         trace(VisitReport::Kind::VisitDispatch).with_node(arg));
@@ -121,6 +137,30 @@ void ExporterPython::visitDispatch(Res& res, sem::SemId<sem::Org> arg) {
         EACH_SEM_ORG_KIND(__case)
 
 #undef __case
+    }
+}
+
+void ExporterPython::pushVisitImpl(Res& res, sem::OrgArg id) {
+    if (pushVisitAnyIdCb) {
+        trace_leaf(VK::PushVisit, id, "universal", *pushVisitAnyIdCb);
+        pushVisitAnyIdCb->operator()(_self, res, id);
+    } else if (auto cb = pushVisitIdCb.get(id->getKind())) {
+        trace_leaf(VK::PushVisit, id, "kind", *cb);
+        cb.value()(_self, res, id);
+    } else {
+        trace_no_cb(VK::PushVisit, id);
+    }
+}
+
+void ExporterPython::popVisitImpl(Res& res, sem::OrgArg id) {
+    if (popVisitAnyIdCb) {
+        trace_leaf(VK::PopVisit, id, "universal", *popVisitAnyIdCb);
+        popVisitAnyIdCb->operator()(_self, res, id);
+    } else if (auto cb = popVisitIdCb.get(id->getKind())) {
+        trace_leaf(VK::PopVisit, id, "kind", *cb);
+        cb.value()(_self, res, id);
+    } else {
+        trace_no_cb(VK::PopVisit, id);
     }
 }
 

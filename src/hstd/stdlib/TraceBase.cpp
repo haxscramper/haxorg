@@ -4,6 +4,7 @@
 #include <fstream>
 #include <hstd/stdlib/Exception.hpp>
 #include <hstd/stdlib/strutils.hpp>
+#include <cpptrace.hpp>
 
 SPtr<std::ostream> OperationsTracer::getTraceFile() { return stream; }
 
@@ -161,4 +162,8 @@ finally_std OperationsTracer::collectAbslLogs(
             cthis->collectingAbseil = false;
         }};
     }
+}
+
+void OperationsMsg::use_stacktrace_as_msg() {
+    this->msg = cpptrace::generate_trace().to_string(false);
 }
