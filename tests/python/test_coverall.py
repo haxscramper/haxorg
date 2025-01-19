@@ -911,35 +911,37 @@ def verify_full_coverage(cov: Coverage, cls, report_path: str) -> Generator:
             if cov_plugin:
                 cov_plugin.resume()
 
-        source_file = Path(inspect.getfile(cls))
-        source_lines, start_line = inspect.getsourcelines(cls)
-        definition_lines = get_type_definition_lines(cls)
+    # Coverage checking is not in the `finally:` scope because if exception is thrown
+    # and not handled in the body of the coverage collector, it is almost guaranteed
+    # to lead to incomplete coverage down the line. 
+    source_file = Path(inspect.getfile(cls))
+    source_lines, start_line = inspect.getsourcelines(cls)
+    definition_lines = get_type_definition_lines(cls)
 
-        file_analysis = list(
-            get_analysis_to_report(coverage=cov_obj, morfs=[str(source_file)]))
-        end_line = start_line + len(source_lines)
-        file_reporter, analysis = file_analysis[0]
+    file_analysis = list(
+        get_analysis_to_report(coverage=cov_obj, morfs=[str(source_file)]))
+    end_line = start_line + len(source_lines)
+    file_reporter, analysis = file_analysis[0]
 
-        missing_lines = []
-        offset = 0
-        for line_no in range(start_line, end_line):
-            class_line = source_lines[offset]
-            if line_no in analysis.missing and not definition_lines.in_range(line_no):
-                log(CAT).info(f"[{line_no}] {class_line.strip('\n')}")
-                missing_lines.append(line_no)
+    missing_lines = []
+    offset = 0
+    for line_no in range(start_line, end_line):
+        class_line = source_lines[offset]
+        if line_no in analysis.missing and not definition_lines.in_range(line_no):
+            missing_lines.append(f"[{line_no}] {class_line.strip('\n')}")
 
-            offset += 1
+        offset += 1
 
-        if missing_lines:
-            generate_cov_report(
-                cov=cov_obj,
-                target_file=source_file,
-                output_dir=report_path,
-            )
+    if missing_lines:
+        generate_cov_report(
+            cov=cov_obj,
+            target_file=source_file,
+            output_dir=report_path,
+        )
 
-            pytest.fail(f"Incomplete coverage for {cls.__name__} in {source_file}:\n"
-                        f"Missing lines: {missing_lines}\n"
-                        f"Coverage Report: {report_path}\n")
+        pytest.fail(f"Incomplete coverage for {cls.__name__} in {source_file}:\n"
+                    f"Missing lines:\n{'\n'.join(missing_lines)}\n"
+                    f"Coverage Report: {report_path}\n")
 
 
 org_corpus_dir = get_haxorg_repo_root_path().joinpath("tests/org/corpus/org")

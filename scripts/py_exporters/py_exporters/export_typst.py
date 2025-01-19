@@ -294,7 +294,7 @@ class ExporterTypst(ExporterBase):
             if isinstance(it, org.BlockExport):
                 edit_config = it.getAttrs("edit-config")
                 if edit_config and 0 < len(edit_config):
-                    if edit_config[0].getString() == "pre-visit":
+                     if edit_config[0].getString() == "pre-visit":
                         self.applyExportConfig(it)
 
         for it in node:
@@ -309,6 +309,7 @@ class ExporterTypst(ExporterBase):
         return self.t.string(formatDateTime(node.getStatic().time))
 
     def evalLink(self, node: org.Link) -> BlockId:
+        self.printTrace(f">>>>??? {node.target.getKind()}")
         match node.target.getKind():
             case org.LinkTargetKind.Attachment:
                 return self.t.string("")

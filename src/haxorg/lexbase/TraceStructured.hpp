@@ -2,6 +2,7 @@
 
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Json.hpp>
+#include <hstd/stdlib/Variant.hpp>
 
 namespace org::report {
 
@@ -178,6 +179,8 @@ struct EntryLexer {
 };
 
 
+/// \brief definition for the structured message records produced in the
+/// org visit exporter.
 struct EntryExport {
     DECL_DESCRIBED_ENUM(
         Kind,
@@ -195,7 +198,8 @@ struct EntryExport {
         PopVisit,
         VisitGeneric,
         VisitTop,
-        VisitVariant);
+        VisitVariant,
+        Print);
 
     Kind             kind;
     Opt<Str>         visitedKind = std::nullopt;

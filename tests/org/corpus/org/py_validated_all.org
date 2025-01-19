@@ -1,3 +1,7 @@
+#+begin_export typst :edit-config
+
+#+end_export
+
 * Subtree
   :properties:
   :archive_file: ~/tmp.org
@@ -92,7 +96,7 @@ BIG_IDENT
 
 ** Links
 
-[[attachment:some-file.png]]
+[[attachment:some-file.png]] [[attachment:some-file.png]]
 
 [[file:random-path.pdf]]
 
