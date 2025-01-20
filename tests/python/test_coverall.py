@@ -1093,9 +1093,9 @@ def test_run():
 
 
 @beartype
-def get_test_node() -> org.Org:
+def get_test_node(prefix: str = "", postfix: str = "") -> org.Org:
     file = org_corpus_dir.joinpath("py_validated_all.org")
-    node = org.parseFile(str(file), org.OrgParseParameters())
+    node = org.parseString(prefix + file.read_text() + postfix)
     return node
 
 def test_run_typst_exporter(cov):
@@ -1151,3 +1151,13 @@ def test_run_pandoc_exporter(cov):
         exp.eval(node)
 
         ExporterPandoc().evalNewline(org.Newline())
+
+def test_run_tex_exporter(cov): 
+    from py_exporters.export_tex import ExporterLatex
+    with verify_full_coverage(cov, ExporterLatex, "/tmp"):
+        ExporterLatex().eval(get_test_node())
+        exp2 = ExporterLatex()
+        exp2.enableFileTrace("/tmp/test_run_tex_export.log")
+        exp2.eval(get_test_node(prefix="""
+#+export_latex_class: book
+        """))

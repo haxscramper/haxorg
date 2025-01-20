@@ -88,6 +88,8 @@ struct TextLayout {
     bool isStack(Id id) { return b.at(id).isStack(); }
     bool isLine(Id id) { return b.at(id).isLine(); }
 
+    int size(Id id) { return b.at(id).size(); }
+
     Id surround_non_empty(Id content, Id before, Id after) {
         return b.surround_non_empty(content, before, after);
     }
@@ -116,6 +118,7 @@ struct TextLayout {
             .def("indent", &TextLayout::indent)
             .def("space", &TextLayout::space)
             .def("empty", &TextLayout::empty)
+            .def("size", &TextLayout::size)
             .def("toString", &TextLayout::toString)
             .def("toTreeRepr", &TextLayout::toTreeRepr)
             .def(

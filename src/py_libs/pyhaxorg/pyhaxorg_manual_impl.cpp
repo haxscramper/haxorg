@@ -96,6 +96,7 @@ void ExporterPython::print_trace(
     rep.line     = line;
     rep.function = function.c_str();
     rep.file     = file.c_str();
+    rep.msg      = trace;
     trace_instant(rep);
 }
 
