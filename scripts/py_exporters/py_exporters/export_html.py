@@ -155,19 +155,3 @@ class ExporterHtml(ExporterBase):
             add_html(doc, self.eval(sub))
 
         return doc
-
-    def getHtmlString(self, node: org.Org) -> str:
-        formatted = self.evalTop(node)
-
-        def aux(it) -> str:
-            match it:
-                case text():
-                    return it.render()
-
-                case list():
-                    return "".join(aux(sub) for sub in it)
-
-                case _:
-                    return str(it)
-
-        return aux(formatted)

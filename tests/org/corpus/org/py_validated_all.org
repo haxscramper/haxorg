@@ -1,3 +1,5 @@
+#+title: Validate export and sem for all nodes
+
 #+begin_export typst :edit-config pre-visit
 
 #+end_export
@@ -119,6 +121,8 @@ NOTE: Annotated paragraph
 paragraph [fn:1]
 
 [fn:1] footnote par
+
+[fn::inline footnote]
 
 ** Timestamps
 
@@ -292,3 +296,31 @@ Mention #hashtag1 and #nested##alias1 with #nested##alias2
 #+begin_export typst
 
 #+end_export
+
+* subtree 1
+** subtree 2
+*** subtree 3
+**** subtree 4
+***** subtree 5
+****** subtree 6
+******* subtree 7
+******** subtree 8
+********* subtree 9
+********** subtree 10
+****** subtree 6
+******* subtree 7
+******** subtree 8
+********* subtree 9
+********** subtree 10
+**** subtree 4
+***** subtree 5
+****** subtree 6
+******* subtree 7
+******** subtree 8
+********* subtree 9
+********** subtree 10
+****** subtree 6
+******* subtree 7
+******** subtree 8
+********* subtree 9
+********** subtree 10

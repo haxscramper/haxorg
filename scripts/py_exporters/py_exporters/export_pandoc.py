@@ -11,12 +11,16 @@ import itertools
 
 CAT = "export.pandoc"
 
-AttrKv = List[Tuple[str, Json]]
+@beartype
+@dataclass
+class AttrKv():
+    key: str
+    value: Json
 
 
 @beartype
 def Attr(identifier: str, classes: List[str] = [], kvpairs: List[AttrKv] = []) -> Json:
-    return [identifier, classes, [[key, value] for key, value in kvpairs]]
+    return [identifier, classes, [[it.key, it.value] for it in kvpairs]]
 
 
 @beartype
@@ -107,7 +111,7 @@ class ExporterPandoc(ExporterBase):
     def evalBlockExport(self, node: org.BlockExport) -> PandocRes:
         return PandocRes()
 
-    def evalFootnote(self, node: org.InlineFootnote) -> PandocRes:
+    def evalInlineFootnote(self, node: org.InlineFootnote) -> PandocRes:
         return PandocRes()
 
     def evalListItem(self, node: org.ListItem) -> PandocRes:
@@ -146,7 +150,7 @@ class ExporterPandoc(ExporterBase):
 
         attrs: AttrKv = []
         if node.treeId:
-            attrs.append(("id", node.treeId))
+            attrs.append(AttrKv("id", node.treeId))
 
         result = PandocRes.Node("Header", [
             node.level,

@@ -1092,9 +1092,14 @@ def test_run():
     Path("/tmp/report.ansi").write_text(render_rich(final, True))
 
 
-def test_run_typst_exporter(cov):
+@beartype
+def get_test_node() -> org.Org:
     file = org_corpus_dir.joinpath("py_validated_all.org")
     node = org.parseFile(str(file), org.OrgParseParameters())
+    return node
+
+def test_run_typst_exporter(cov):
+    node = get_test_node()    
     from py_exporters.export_typst import ExporterTypst
 
     Path("/tmp/total_repr.txt").write_text(org.treeRepr(node, colored=False))
@@ -1124,3 +1129,25 @@ def test_run_typst_exporter(cov):
             """))
 
             assert "edit-config parameter" in str(ex.value)
+
+def test_run_html_exporter(cov):
+    node = get_test_node()
+    from py_exporters.export_html import ExporterHtml
+
+    with verify_full_coverage(cov, ExporterHtml, "/tmp"):
+        exp = ExporterHtml()
+        exp.eval(node)
+
+        with_custom_break_tag = ExporterHtml()
+        with_custom_break_tag.get_break_tag = lambda it: "<basdf>"
+        with_custom_break_tag.eval(node)
+
+def test_run_pandoc_exporter(cov):
+    node = get_test_node()
+    from py_exporters.export_pandoc import ExporterPandoc
+
+    with verify_full_coverage(cov, ExporterPandoc, "/tmp"):
+        exp = ExporterPandoc()
+        exp.eval(node)
+
+        ExporterPandoc().evalNewline(org.Newline())
