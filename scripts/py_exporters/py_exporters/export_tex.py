@@ -22,7 +22,7 @@ class TexCommand(Enum):
     textbf = 8
 
 
-@beartype
+# @beartype
 class ExporterLatex(ExporterBase):
     t: TextLayout
 
@@ -239,12 +239,6 @@ class ExporterLatex(ExporterBase):
             if isinstance(it, org.BlockExport) and it.getPlacement() == "header":
                 continue
 
-            elif isinstance(it, org.Stmt):
-                prop = it.getAttrs("export")
-                if prop and 0 < len(
-                        prop.args) and prop.args[0] and prop.args[0].getBool() == False:
-                    continue
-
             self.t.add_if_not_empty(res, self.exp.eval(it))
 
         self.t.add_at(res, self.command("end", [self.string("document")]))
@@ -259,16 +253,18 @@ class ExporterLatex(ExporterBase):
         if lclass == "book":
             match node.level:
                 case 1:
-                    return TexCommand.chapter
+                    return TexCommand.part
                 case 2:
-                    return TexCommand.section
+                    return TexCommand.chapter
                 case 3:
-                    return TexCommand.subsection
+                    return TexCommand.section
                 case 4:
-                    return TexCommand.subsubsection
+                    return TexCommand.subsection
                 case 5:
-                    return TexCommand.paragraph
+                    return TexCommand.subsubsection
                 case 6:
+                    return TexCommand.paragraph
+                case 7:
                     return TexCommand.subparagraph
                 case _:
                     return TexCommand.textbf
@@ -319,7 +315,7 @@ class ExporterLatex(ExporterBase):
         self.t.add_at(
             res, self.command(self.getOrgCommand(cmd) if cmd else "texbf", [title_text]))
 
-        if False and cmd in [TexCommand.part, TexCommand.chapter, TexCommand.section]:
+        if cmd in [TexCommand.part, TexCommand.chapter, TexCommand.section]:
             self.t.add_at(
                 res,
                 self.command(

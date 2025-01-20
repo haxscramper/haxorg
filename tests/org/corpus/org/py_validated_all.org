@@ -4,6 +4,10 @@
 
 #+end_export
 
+#+begin_export latex :placement header
+
+#+end_export
+
 * Subtree
   :properties:
   :archive_file: ~/tmp.org
@@ -95,6 +99,50 @@ Punctuation , .
 <placeholder>
 
 BIG_IDENT
+
+WIP paragraph with big ident annotation
+
+TODO paragraph with big ident annotation
+
+DONE paragraph with big ident annotation
+
+DOC paragraph with big ident annotation
+
+FIXME paragraph with big ident annotation
+
+HACK paragraph with big ident annotation
+
+IDEA paragraph with big ident annotation
+
+NOTE paragraph with big ident annotation
+
+DEPRECATED paragraph with big ident annotation
+
+REFACTOR paragraph with big ident annotation
+
+STYLE paragraph with big ident annotation
+
+BUG paragraph with big ident annotation
+
+XXX paragraph with big ident annotation
+
+XXXX paragraph with big ident annotation
+
+xxx paragraph with big ident annotation
+
+IMPLEMENT paragraph with big ident annotation
+
+IMPORTANT paragraph with big ident annotation
+
+QUESTION paragraph with big ident annotation
+
+TEST paragraph with big ident annotation
+
+WARNING paragraph with big ident annotation
+
+ERROR paragraph with big ident annotation
+
+TEMP paragraph with big ident annotation
 
 ** Links
 
@@ -294,6 +342,12 @@ Mention #hashtag1 and #nested##alias1 with #nested##alias2
 #+end_export
 
 #+begin_export typst
+
+#+end_export
+
+** latex
+
+#+begin_export latex
 
 #+end_export
 

@@ -1157,7 +1157,9 @@ def test_run_tex_exporter(cov):
     with verify_full_coverage(cov, ExporterLatex, "/tmp"):
         ExporterLatex().eval(get_test_node())
         exp2 = ExporterLatex()
-        exp2.enableFileTrace("/tmp/test_run_tex_export.log")
         exp2.eval(get_test_node(prefix="""
-#+export_latex_class: book
+#+latex_class: article
+#+LATEX_CLASS_OPTIONS: [a4paper]
         """))
+
+        ExporterLatex().evalUnderline(org.Underline())
