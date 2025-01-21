@@ -9,13 +9,6 @@
 #+end_export
 
 * Subtree
-  :properties:
-  :archive_file: ~/tmp.org
-  :archive_target: [[id:subtree-target]]
-  :blocker: nil
-  :nonblocking: t
-  :created: [2025-01-16 Thu]
-  :end:
 
 * [2024-01-01] Date
 * [2023-02-12]--[2023-02-12] Time range :tag:tag##sub:
@@ -160,7 +153,7 @@ TEMP paragraph with big ident annotation
 
 https://raw-link.com
 
-[[user-protocol:sometarget]]
+[[userprotocol:sometarget]]
 
 ** Paragraph admonitions
 
@@ -254,7 +247,6 @@ some text
  Line2
 #+end_src
 
-#+caption: Caption
 #+begin_quote
 content
 #+end_quote
@@ -301,11 +293,27 @@ CLOSED: [1998-01-15 Thu]
 SCHEDULED: [1998-01-15 Thu]
 DEADLINE: [1998-01-15 Thu]
 
-** Subtree properties outside of UNIX timestamp
+** Subtree timestamps outside of UNIX timestamp
 CLOSED: [1960-01-15 Thu]
 
 ** archived :ARCHIVE:
 ** COMMENT comment subtree
+
+** Subtree properties
+  :properties:
+  :archive_file: ~/tmp.org
+  :archive_target: [[id:subtree-target]]
+  :blocker: t
+  :nonblocking: t
+  :created: [2025-01-16 Thu]
+  :Effort:   0:10
+  :ORDERED:  t
+  :COOKIE_DATA: todo recursive
+  :export_latex_header: somehaeders
+  :archive_todo: COMPLETED
+  :CUSTOM_ID: custom-id
+  :end:
+
 
 * Subtree ID and hashtag tracking
 

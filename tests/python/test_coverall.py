@@ -127,6 +127,7 @@ class FieldCheckResult():
     field: str
     value_check: Optional[ValueCheckResult]
     field_predicate_id: str
+    msg: Optional[Tree] = None
     sub_failed: List["FieldCheckResult"] = field(default_factory=list)
 
     def is_matching(self) -> bool:
@@ -141,7 +142,7 @@ class FieldCheckResult():
                 return None
 
         else:
-            res = Tree(f"Field '[red]{self.field}[/red]' fail")
+            res = Tree(f"Field '[red]{self.field}.{self.field_predicate_id}[/red]' fail")
             if self.value_check and self.value_check.on_fail:
                 res.add(self.value_check.on_fail)
 
@@ -151,6 +152,9 @@ class FieldCheckResult():
                     add_if_ok(sub_fail, alt.format(format_if_ok))
 
                 res.add(sub_fail)
+
+            if self.msg:
+                res.add(self.msg)
 
             return res
 
@@ -442,6 +446,11 @@ def valueFnBoolOrText(func: Callable[[Any], Union[Tree, bool]]) -> ValuePredicat
 
 @beartype
 def boolableField(field_name: str, expected: bool) -> Tuple[str, ValuePredicateFunc]:
+    """
+    Return field predicate that check a field has expected `bool()` value. This is 
+    the most trivial check to validate if the field was filled in the document or not 
+    (empty string vs non-empty string, option with value vs without one etc)
+    """
 
     def impl(val: bool, it):
         if bool(it) == val:
@@ -456,6 +465,11 @@ def boolableField(field_name: str, expected: bool) -> Tuple[str, ValuePredicateF
 
 @beartype
 def boolableField2(field_name: str) -> List[Tuple[str, ValuePredicateFunc]]:
+    """
+    Get a list of two checks for a given field that would require it to both match and fail, 
+    meaning there should be at least two nodes in the document, and these nodes should 
+    have different values for the specified field. 
+    """
     return [
         boolableField(field_name, True),
         boolableField(field_name, False),
@@ -466,6 +480,11 @@ def boolableField2(field_name: str) -> List[Tuple[str, ValuePredicateFunc]]:
 def nodeFnBoolOrText(
         func: Callable[[org.Org], Union[Tree,
                                         bool]]) -> Callable[[org.Org], NodeCheckResult]:
+    """
+    Get callable for checking the node property and convert it to the function returning
+    a node check result. The input callable cal return a `True` value for successful 
+    match, and `Tree` type for a failure description. 
+    """
 
     def impl(func, value):
         res = func(value)
@@ -482,17 +501,26 @@ def nodeFnBoolOrText(
 @beartype
 def nodeCls(class_predicate_id: str, func: Callable[[org.Org],
                                                     NodeCheckResult]) -> ClassPrediate:
+    """Shortcut constructor to create a single class predicate"""
     return ClassPrediate(class_predicate_id=class_predicate_id, node_predicate=func)
 
 
 @beartype
 def get_regex_field_alternatives(
         field: str, regex_with_id: List[Tuple[str, str]]) -> FieldAlternatives:
+    """
+    Get a field alternative for checking that the document contains at least
+    one node with a field matching provided regex. 
+    """
     return altN(*(get_regex_field_check(field, rx, id) for rx, id in regex_with_id))
 
 
 @beartype
 def make_check_node_has_subnode_of_kind(kind: org.OrgSemKind):
+    """
+    Get callable node predicate function that would check that a provided
+    node has a direct subnode of kind `kind`
+    """
 
     def impl(kind: org.OrgSemKind, node: org.Org):
         if any(sub.getKind() == kind for sub in node):
@@ -513,6 +541,10 @@ def make_check_node_has_subnode_of_kind(kind: org.OrgSemKind):
 def altFieldsCheck1(
         name: str, check: Callable[[Any],
                                    ValueCheckResult]) -> Mapping[str, FieldAlternatives]:
+    """
+    Helper function create a field alternatives mapping from a single field name
+    and callable function. 
+    """
     return {
         name:
             altN(
@@ -528,6 +560,9 @@ def altFieldsCheck1(
 def altFieldsCheckN(
         name: str,
         checks: List[Tuple[str, ValuePredicateFunc]]) -> Mapping[str, FieldAlternatives]:
+    """
+    Create field alternative mapping for a single field and a list of value predicate checks. 
+    """
     validate_unique(checks, lambda it: it[0])
     return {
         name:
@@ -562,6 +597,12 @@ def clsField1Check(predicate_name: str, field_name: str, mapping) -> ClassPredia
 
 @beartype
 def get_subtree_property_spec() -> List[ClassPrediate]:
+    """
+    Get list of predicates to check that every possible subtree property was provided in 
+    the input document. 
+    """
+
+    PK = org.NamedPropertyKind
 
     def impl(kind: org.NamedPropertyKind,
              properties: List[org.NamedProperty]) -> ValueCheckResult:
@@ -581,11 +622,33 @@ def get_subtree_property_spec() -> List[ClassPrediate]:
                 "properties",
                 functools.partial(impl, property_kind),
             ),
-        ) for property_kind in org.NamedPropertyKind(0))
+        ) for property_kind in org.NamedPropertyKind(0) if property_kind not in [
+            # TODO Re-enable properties once they are properly covered in the sem layer
+            PK.Blocker,
+            PK.Nonblocking,
+            PK.ExportLatexHeader,
+            PK.Ordered, 
+            PK.Visibility,
+            PK.ExportOptions,
+            PK.CustomArgs,
+            PK.Trigger,
+            PK.Unnumbered,
+            PK.ExportLatexClass,
+            PK.ExportLatexClassOptions,
+            PK.ArchiveTarget,
+            PK.ArchiveOlpath,
+            PK.ArchiveTime,
+            PK.ArchiveCategory,
+            PK.ExportLatexCompiler,
+        ])
 
 
 @beartype
 def get_subtree_logbook_head_spec() -> List[ClassPrediate]:
+    """
+    Get class predicate list to check if every single subtree log type 
+    was provided in the input document. 
+    """
 
     @beartype
     def impl(kind: org.SubtreeLogHeadKind, head: org.SubtreeLogHead) -> ValueCheckResult:
@@ -1069,13 +1132,27 @@ def test_total_representation():
                             pass
 
                         else:
-                            missing_trigger.append(check_result)
+                            missing_trigger.append(
+                                replace(
+                                    check_result[0],
+                                    msg=Tree(
+                                        f"Field coverage for {class_kind}.{class_predicate_id}"
+                                    )))
                             field_coverage.add(
                                 Tree(f"No node ever matched {key[0]}.{key[1]}"))
 
                     else:
                         field_coverage.add(
                             Tree(f"No node ever checked {key[0]}.{key[1]}"))
+
+                        missing_trigger.append(
+                            FieldCheckResult(
+                                field=key[0],
+                                value_check=None,
+                                field_predicate_id=key[1],
+                                msg=Tree(
+                                    f"Field coverage for {class_kind}.{class_predicate_id}"
+                                )))
 
                 if 0 < len(field_coverage.children):
                     add_final_to_type(class_kind, field_coverage)

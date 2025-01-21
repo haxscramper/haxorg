@@ -118,7 +118,7 @@ typename NodeGroup<N, K, V>::Id NodeGroup<N, K, V>::subnode(
             "-- it contains only $# items"
             % to_string_vec(index, node.getUnmasked(), i));
     } else {
-        LOG(FATAL) << "Cannot get subnode for token, TODO error msg";
+        logic_todo_impl();
     }
 }
 
