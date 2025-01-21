@@ -148,7 +148,6 @@ class ExporterHtml(ExporterBase):
     def evalDocument(self, node: org.Subtree) -> dominate.document:
         doc = dominate.document()
         if node.title:
-            log(CAT).info("Has title")
             doc.title = self.eval(node.title)
 
         for sub in node:

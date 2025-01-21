@@ -72,6 +72,8 @@ _*bold underline*_
 
 +strike+
 
++strike with space+
+
 Punctuation , .
 
 @mention

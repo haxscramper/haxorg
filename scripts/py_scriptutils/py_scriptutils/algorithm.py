@@ -3,6 +3,7 @@ import itertools
 from beartype import beartype
 from itertools import dropwhile, takewhile
 import more_itertools as mit
+from collections import defaultdict
 import re
 
 T = TypeVar('T')
@@ -168,3 +169,13 @@ def trim_right(lst: Iterable[T], predicate: Callable[[T], bool]) -> List[T]:
 def trim_both(lst: Iterable[T], predicate: Callable[[T], bool]) -> List[T]:
     trimmed_left = list(dropwhile(predicate, lst))
     return list(dropwhile(predicate, trimmed_left[::-1]))[::-1]
+
+@beartype
+def validate_unique(items: Iterable[T], key: Callable[[T], Any] = lambda x: x) -> None:
+    seen = defaultdict(list)
+    for item in items:
+        seen[key(item)].append(item)
+
+    duplicates = {k: v for k, v in seen.items() if len(v) > 1}
+    if duplicates:
+        raise ValueError(f"Found duplicate items: {duplicates}")
