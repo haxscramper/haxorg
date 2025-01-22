@@ -668,7 +668,9 @@ def get_subtree_logbook_head_spec() -> List[ClassPrediate]:
                 "head",
                 functools.partial(impl, property_kind),
             ),
-        ) for property_kind in org.SubtreeLogHeadKind(0))
+        ) for property_kind in org.SubtreeLogHeadKind(0) if property_kind not in [
+            org.SubtreeLogHeadKind.Schedule,
+        ])
 
 
 @beartype
@@ -1020,6 +1022,11 @@ org_corpus_dir = get_haxorg_repo_root_path().joinpath("tests/org/corpus/org")
 
 
 def test_total_representation():
+    """
+    Ensure that the test file matches all checks specified in the specification. This test ensures 
+    that the file in question has the most complete collection of nodes possible. 
+    """
+
     file = org_corpus_dir.joinpath("py_validated_all.org")
     node = org.parseFile(str(file), org.OrgParseParameters())
     spec = get_spec()

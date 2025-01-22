@@ -155,6 +155,10 @@ https://raw-link.com
 
 [[userprotocol:sometarget]]
 
+[[#customid-target]]
+
+[[*subtree title]]
+
 ** Paragraph admonitions
 
 NOTE: Annotated paragraph
@@ -174,6 +178,12 @@ paragraph [fn:1]
 [2024-12-09 03:12]
 
 [2024-12-09 03:18:38]
+
+<2024-12-09>
+
+<2024-12-09 03:12>
+
+<2024-12-09 03:18:38>
 
 * Line commands
 
@@ -298,6 +308,7 @@ CLOSED: [1960-01-15 Thu]
 
 ** archived :ARCHIVE:
 ** COMMENT comment subtree
+** Subtree completion [1/3]
 
 ** Subtree properties
   :properties:
@@ -334,6 +345,7 @@ Regular paragraph [fn:note]
 ** definition-user
 
 using alias1, alias2, and human readable
+
 
 Referencing [[id:subtree-id]]
 
