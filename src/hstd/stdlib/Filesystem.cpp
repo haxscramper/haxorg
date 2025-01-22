@@ -87,10 +87,13 @@ void createDirectory(const fs::path& target, bool parents, bool existsOk) {
 
     std::function<void(fs::path const& target)> aux;
     aux = [&](fs::path const& target) {
-        if (fs::is_directory(target.parent_path())) {
-            fs::create_directory(target);
-        } else {
+        // apparently `/` root directory has parent path according to this code,
+        // so the `!=` thing is the only one that worked.
+        if (target.parent_path() != target) {
             aux(target.parent_path());
+            if (fs::is_directory(target.parent_path())) {
+                fs::create_directory(target);
+            }
         }
     };
     aux(target);
