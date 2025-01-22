@@ -17,6 +17,9 @@ struct OperationsMsg {
     int              column   = 0;
     int              level    = 0;
     json             metadata = json{};
+
+    void use_stacktrace_as_msg();
+
     DESC_FIELDS(
         OperationsMsg,
         (msg, file, function, line, column, metadata));
@@ -26,8 +29,8 @@ struct OperationsScope {
     bool* TraceState  = nullptr;
     int   activeLevel = 0;
 
-    finally scopeLevel() const;
-    finally scopeTrace(bool state);
+    finally_std scopeLevel() const;
+    finally_std scopeTrace(bool state);
 };
 
 struct OperationsTracer;
@@ -59,7 +62,8 @@ struct OperationsTracer {
     ColStream          getStream() const;
     void               endStream(ColStream& stream) const;
     void               message(OperationsMsg const& value) const;
-    finally collectAbslLogs(OperationsScope const* scope = nullptr) const;
+    finally_std        collectAbslLogs(
+               OperationsScope const* scope = nullptr) const;
 
     void message(
         std::string const& value,

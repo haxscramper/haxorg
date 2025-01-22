@@ -58,7 +58,8 @@ struct ExporterEventBase : OperationsTracer {
             PopVisit,
             VisitGeneric,
             VisitTop,
-            VisitVariant);
+            VisitVariant,
+            Print);
 
         Kind                      kind;
         Opt<sem::SemId<sem::Org>> node = std::nullopt;
@@ -128,7 +129,7 @@ struct ExporterEventBase : OperationsTracer {
         ~VisitScope() {
             if (exp->TraceState) {
                 --exp->visitDepth;
-                if (event.instant) {
+                if (!event.instant) {
                     event.level   = exp->visitDepth;
                     event.isStart = false;
                     exp->report(event);

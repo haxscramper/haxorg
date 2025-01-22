@@ -4,6 +4,7 @@
 #include <fstream>
 #include <hstd/stdlib/Exception.hpp>
 #include <hstd/stdlib/strutils.hpp>
+#include <cpptrace.hpp>
 
 SPtr<std::ostream> OperationsTracer::getTraceFile() { return stream; }
 
@@ -119,19 +120,20 @@ void OperationsTracer::message(const OperationsMsg& value) const {
     }
 }
 
-finally OperationsScope::scopeLevel() const {
+finally_std OperationsScope::scopeLevel() const {
     ++(const_cast<OperationsScope*>(this)->activeLevel);
-    return finally{
+    return finally_std{
         [&]() { --(const_cast<OperationsScope*>(this)->activeLevel); }};
 }
 
-finally OperationsScope::scopeTrace(bool state) {
+finally_std OperationsScope::scopeTrace(bool state) {
     LOGIC_ASSERTION_CHECK(
         TraceState != nullptr,
         "use operations tracer `.TraceState` field as a pointer base");
     bool initialTrace = *TraceState;
     *TraceState       = state;
-    return finally{[initialTrace, this]() { *TraceState = initialTrace; }};
+    return finally_std{
+        [initialTrace, this]() { *TraceState = initialTrace; }};
 }
 
 void OperationsTracerSink::Send(const absl::LogEntry& entry) {
@@ -144,20 +146,24 @@ void OperationsTracerSink::Send(const absl::LogEntry& entry) {
 }
 
 
-finally OperationsTracer::collectAbslLogs(
+finally_std OperationsTracer::collectAbslLogs(
     const OperationsScope* scope) const {
     auto cthis = const_cast<OperationsTracer*>(this);
     if (cthis->collectingAbseil) {
-        return finally::nop();
+        return finally_std::nop();
     } else {
         auto sink               = std::make_shared<OperationsTracerSink>();
         cthis->collectingAbseil = true;
         sink->tracer            = this;
         sink->scope             = scope;
         absl::AddLogSink(sink.get());
-        return finally{[sink, cthis]() {
+        return finally_std{[sink, cthis]() {
             absl::RemoveLogSink(sink.get());
             cthis->collectingAbseil = false;
         }};
     }
+}
+
+void OperationsMsg::use_stacktrace_as_msg() {
+    this->msg = cpptrace::generate_trace().to_string(false);
 }

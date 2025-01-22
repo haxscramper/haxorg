@@ -263,13 +263,13 @@ struct OrgConverter : public OperationsTracer {
     SemId<Org>      convert(In);
     SemId<Document> toDocument(OrgAdapter tree);
 
-    finally trace(
+    finally_std trace(
         Opt<In>     adapter,
         Opt<Str>    subname  = std::nullopt,
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION());
 
-    finally field(
+    finally_std field(
         OrgSpecName name,
         In          adapter,
         Opt<Str>    subname  = std::nullopt,

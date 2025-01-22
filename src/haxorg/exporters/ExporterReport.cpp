@@ -33,6 +33,7 @@ void ExporterEventBase::report(CR<VisitReport> ev) {
             __kind(VisitGeneric);
             __kind(VisitTop);
             __kind(VisitVariant);
+            __kind(Print);
         }
 
         if (ev.function) { exp.codeFunction = ev.function; }
@@ -47,7 +48,13 @@ void ExporterEventBase::report(CR<VisitReport> ev) {
         os << os.indent(ev.level * 2) << (ev.isStart ? ">" : "<") << " "
            << fmt1(ev.kind);
 
-        if (ev.node) { os << " node:" << fmt1((*ev.node)->getKind()); }
+        if (ev.node) {
+            os << " node:" << fmt1((*ev.node)->getKind());
+            if (auto const& l = ev.node->value->loc) {
+                os << " loc:" << os.cyan() << l->line << ":" << l->column
+                   << os.end();
+            }
+        }
         if (ev.field) { os << " field:" << ev.field.value(); }
         if (ev.msg) {
             os << " msg:" << os.yellow() << *ev.msg << os.end();

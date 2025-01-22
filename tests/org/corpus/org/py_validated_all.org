@@ -1,0 +1,402 @@
+#+title: Validate export and sem for all nodes
+
+#+begin_export typst :edit-config pre-visit
+
+#+end_export
+
+#+begin_export latex :placement header
+
+#+end_export
+
+* Subtree
+
+* [2024-01-01] Date
+* [2023-02-12]--[2023-02-12] Time range :tag:tag##sub:
+
+Par [fn:target]
+
+[fn:target] definition
+
+-----------
+
+- Item
+- Second Item
+
+
+
+
+- key :: Value
+- key :: Value
+
+
+#+attr_list: :export nil
+- =some_property= :: Must skip list on export
+
+Text
+
+- =some_property= :: Value
+
+#+attr_link: :attach-method copy :attach-on-export t
+[[attachment:attach_text.txt]]
+
+* Inline text markup
+
+test /Italic/
+
+/Italic with space/
+
+/*italic bold*/
+
+*Bold*
+
+*Bold with space*
+
+*/bold italic/*
+
+_Underline_
+
+_Underline with space_
+
+_*bold underline*_
+
+~Monospace~
+
+=Verbatim=
+
++strike+
+
++strike with space+
+
+Punctuation , .
+
+@mention
+
+(Par)
+
+* Text entities
+
+<<<radio target>>>
+
+<<anchor>>
+
+#hashtag
+
+{{{Macro}}}
+
+{{{macro(arg1)}}}
+
+{{{macro(key=value)}}}
+
+\(Inline\)
+
+\Escaped
+
+<placeholder>
+
+BIG_IDENT
+
+WIP paragraph with big ident annotation
+
+TODO paragraph with big ident annotation
+
+DONE paragraph with big ident annotation
+
+DOC paragraph with big ident annotation
+
+FIXME paragraph with big ident annotation
+
+HACK paragraph with big ident annotation
+
+IDEA paragraph with big ident annotation
+
+NOTE paragraph with big ident annotation
+
+DEPRECATED paragraph with big ident annotation
+
+REFACTOR paragraph with big ident annotation
+
+STYLE paragraph with big ident annotation
+
+BUG paragraph with big ident annotation
+
+XXX paragraph with big ident annotation
+
+XXXX paragraph with big ident annotation
+
+xxx paragraph with big ident annotation
+
+IMPLEMENT paragraph with big ident annotation
+
+IMPORTANT paragraph with big ident annotation
+
+QUESTION paragraph with big ident annotation
+
+TEST paragraph with big ident annotation
+
+WARNING paragraph with big ident annotation
+
+ERROR paragraph with big ident annotation
+
+TEMP paragraph with big ident annotation
+
+** Links
+
+[[attachment:some-file.png]] [[attachment:some-file.png]]
+
+[[file:random-path.pdf]]
+
+[[id:subtree-id]]
+
+[[person:person-target]]
+
+[[internal]]
+
+https://raw-link.com
+
+[[userprotocol:sometarget]]
+
+[[#customid-target]]
+
+[[*subtree title]]
+
+** Paragraph admonitions
+
+NOTE: Annotated paragraph
+
+[2024-02-12] Timestamp paragraph
+
+paragraph [fn:1]
+
+[fn:1] footnote par
+
+[fn::inline footnote]
+
+** Timestamps
+
+[2024-12-09]
+
+[2024-12-09 03:12]
+
+[2024-12-09 03:18:38]
+
+<2024-12-09>
+
+<2024-12-09 03:12>
+
+<2024-12-09 03:18:38>
+
+* Line commands
+
+#+name: some-name
+[[file:image.png]]
+
+| a | b |
+| q | q |
+#+tblfm: a=b+c
+
+* Block nodes
+
+** With attachments
+
+#+name: block-verse-name
+#+caption: Attached caption for block
+#+begin_verse
+some verse
+#+end_verse
+
+#+name: block-comment-name
+#+caption: Attached caption for block
+#+begin_comment
+some text
+#+end_comment
+
+#+name: block-xml-name
+#+caption: Attached caption for block
+#+begin_src xml
+ xxx
+ Line2
+#+end_src
+
+#+caption: Caption
+#+name: block-quote-name
+#+caption: Attached caption for block
+#+begin_quote
+content
+#+end_quote
+
+#+name: block-center-name
+#+caption: Attached caption for block
+#+begin_center
+center
+#+end_center
+
+#+name: block-example-name
+#+caption: Attached caption for block
+#+begin_example
+example
+#+end_example
+
+#+name: block-export-name
+#+caption: Attached caption for block
+#+begin_export latex :placement header
+\test{}
+#+end_export
+
+** Without attachments
+
+#+begin_verse
+some verse
+#+end_verse
+
+#+begin_comment
+some text
+#+end_comment
+
+#+begin_src xml
+ xxx
+ Line2
+#+end_src
+
+#+begin_quote
+content
+#+end_quote
+
+#+begin_center
+center
+#+end_center
+
+#+begin_example
+example
+#+end_example
+
+#+begin_export latex :placement header
+\test{}
+#+end_export
+
+* Subtree
+
+** TODO big ident in title
+** FAILED Log book :design:
+CLOSED: [2025-01-17 Fri 20:38:10 +04]
+:LOGBOOK:
+- Tag "#design" Added on [2025-01-17 Fri 20:38:07 +04]
+- State "TODO"       from              [2025-01-15 Wed 19:45:36 +04]
+- Note taken on [2025-01-17 Fri 20:37:58 +04] \\
+  Random note
+- State "FAILED"     from "TODO"       [2025-01-17 Fri 20:38:10 +04] \\
+  Update failed
+- Refiled on [2020-05-02 Sat 14:40] from [[id:e2de69d4-4073-477f-af6b-cc2cd8d5a122][Quick latex input [17/26]]]
+- Priority "B" Added on [2023-07-20 Thu 13:43:21 +04]
+- Priority "A" Changed From "B" on [2023-07-20 Thu 13:43:21 +04]
+- New deadline from "[2019-09-26 Thu]" on [2019-09-27 Fri 22:36] \\
+  New week deadline
+CLOCK: [2000-01-03 Wed 09:51:50 +04]--[2000-01-03 Wed 10:43:40 +04] =>  0:52
+:END:
+
+** Tree ID
+:properties:
+:id: tree-id
+:end:
+
+** tree time assignments
+CLOSED: [1998-01-15 Thu]
+SCHEDULED: [1998-01-15 Thu]
+DEADLINE: [1998-01-15 Thu]
+
+** Subtree timestamps outside of UNIX timestamp
+CLOSED: [1960-01-15 Thu]
+
+** archived :ARCHIVE:
+** COMMENT comment subtree
+** Subtree completion [1/3]
+
+** Subtree properties
+  :properties:
+  :archive_file: ~/tmp.org
+  :archive_target: [[id:subtree-target]]
+  :blocker: t
+  :nonblocking: t
+  :created: [2025-01-16 Thu]
+  :Effort:   0:10
+  :ORDERED:  t
+  :COOKIE_DATA: todo recursive
+  :export_latex_header: somehaeders
+  :archive_todo: COMPLETED
+  :CUSTOM_ID: custom-id
+  :end:
+
+
+* Subtree ID and hashtag tracking
+
+** definition-target
+  :properties:
+  :radio_id: alias1
+  :radio_id: alias2
+  :radio_id: human readable
+  :id: subtree-id
+  :hashtag_def: #hashtag1
+  :hashtag_def: #nested##[alias1,alias2]
+  :end:
+
+Regular paragraph [fn:note]
+
+[fn:note] footnote paragraph
+
+** definition-user
+
+using alias1, alias2, and human readable
+
+
+Referencing [[id:subtree-id]]
+
+Mention #hashtag1 and #nested##alias1 with #nested##alias2
+
+* Exporter-specific
+
+** typst
+
+#+begin_export typst :edit-config in-visit
+
+#+end_export
+
+#+begin_export typst :edit-config pre-visit
+
+#+end_export
+
+#+begin_export typst
+
+#+end_export
+
+** latex
+
+#+begin_export latex
+
+#+end_export
+
+* subtree 1
+** subtree 2
+*** subtree 3
+**** subtree 4
+***** subtree 5
+****** subtree 6
+******* subtree 7
+******** subtree 8
+********* subtree 9
+********** subtree 10
+****** subtree 6
+******* subtree 7
+******** subtree 8
+********* subtree 9
+********** subtree 10
+**** subtree 4
+***** subtree 5
+****** subtree 6
+******* subtree 7
+******** subtree 8
+********* subtree 9
+********** subtree 10
+****** subtree 6
+******* subtree 7
+******** subtree 8
+********* subtree 9
+********** subtree 10

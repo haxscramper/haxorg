@@ -1,0 +1,5 @@
+* ~test_coverall.py~
+
+Collection test for ensuring 100% coverage on some parts of the project. The test collection is made of two parts. The first part checks that the input files actually cover all meaningful variations of the node values, and the second part checks that a specific class had a full, 100% coverage on all its methods.
+
+Algorithm for checking for total representation of all nodes in the input documents takes a list of predicates to match against each node and field. If all provided predicates had at least one match then the test passes, if there is a predicate that had no matching nodes whatsoever, then the test fails.

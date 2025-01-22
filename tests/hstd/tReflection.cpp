@@ -202,7 +202,7 @@ TEST(Reflection, SubVariants) {
         T it{};
         EXPECT_EQ(it.getKind(), T::Kind::First);
         EXPECT_EQ(it.getFirst().f, T::First{}.f);
-        EXPECT_THROW(it.getSecond(), std::bad_variant_access);
+        EXPECT_THROW(it.getSecond(), ::bad_variant_access);
         EXPECT_EQ(fmt1(it), "First({.f = 0})");
     }
 
@@ -210,20 +210,20 @@ TEST(Reflection, SubVariants) {
         T it{T::Second{}};
         EXPECT_EQ(it.getKind(), T::Kind::Second);
         EXPECT_EQ(it.getSecond().f, T::Second{}.f);
-        EXPECT_THROW(it.getFirst(), std::bad_variant_access);
+        EXPECT_THROW(it.getFirst(), ::bad_variant_access);
     }
 
     {
         T it{T::Second{.f = 12}};
         EXPECT_EQ(it.getKind(), T::Kind::Second);
         EXPECT_EQ(it.getSecond().f, 12);
-        EXPECT_THROW(it.getFirst(), std::bad_variant_access);
+        EXPECT_THROW(it.getFirst(), ::bad_variant_access);
 
         it.data = T::First{.f = 24};
 
         EXPECT_EQ(it.getKind(), T::Kind::First);
         EXPECT_EQ(it.getFirst().f, 24);
-        EXPECT_THROW(it.getSecond(), std::bad_variant_access);
+        EXPECT_THROW(it.getSecond(), ::bad_variant_access);
     }
 }
 

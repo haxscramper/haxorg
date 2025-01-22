@@ -3,18 +3,24 @@ from py_textlayout.py_textlayout_wrap import *
 from py_haxorg.pyhaxorg_wrap import OrgSemKind as osk
 import re
 from py_scriptutils.script_logging import log
+import inspect
 
 
 class ExporterBase:
 
     def evalTop(self, node: org.Org):
         return self.exp.evalTop(node)
-    
+
     def eval(self, node: org.Org):
         return self.exp.eval(node)
 
     def enableFileTrace(self, path: str, colored: bool = False):
         self.exp.enableFileTrace(path, colored)
+
+    def printTrace(self, text: str):
+        frame = inspect.currentframe().f_back
+        info = inspect.getframeinfo(frame)
+        self.exp.print_trace(text, info.filename, info.function, info.lineno)
 
     def __init__(self, derived):
         self.exp = org.ExporterPython()
@@ -51,7 +57,8 @@ class ExporterBase:
         ]
 
         for method_name in dir(derived):
-            if method_name.startswith("__") or method_name in direct_mappings or method_name in ["evalTop"]:
+            if method_name.startswith(
+                    "__") or method_name in direct_mappings or method_name in ["evalTop"]:
                 continue
 
             for (prefix, setter) in prefix_to_setter_with_kind:

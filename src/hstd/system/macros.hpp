@@ -23,13 +23,22 @@
 #define FOR_EACH_CALL_WITH_PASS(macro, pass, ...)                         \
     __VA_OPT__(EXPAND(__FOR_EACH_HELPER(macro, pass, __VA_ARGS__)))
 
-
 /// \internal Generate getter methods for SUB_VARIANTS
 #define __SUB_VARIANT_GETTER(fieldName, Type)                             \
-    Type&       get##Type() { return std::get<Type>(fieldName); }         \
-    Type const& get##Type() const { return std::get<Type>(fieldName); }   \
-    bool        is##Type() const {                                        \
-        return std::holds_alternative<Type>(fieldName);            \
+    Type& get##Type() {                                                   \
+        return ::                                                         \
+            get_sub_variant<Type, std::remove_cvref_t<decltype(*this)>>(  \
+                fieldName);                                               \
+    }                                                                     \
+                                                                          \
+    Type const& get##Type() const {                                       \
+        return ::                                                         \
+            get_sub_variant<Type, std::remove_cvref_t<decltype(*this)>>(  \
+                fieldName);                                               \
+    }                                                                     \
+                                                                          \
+    bool is##Type() const {                                               \
+        return std::holds_alternative<Type>(fieldName);                   \
     }
 
 /// \internal Generate kind getter lambda for SUB_VARIANTS
@@ -90,13 +99,6 @@
     EnumName sub_variant_get_kind() const { return kindGetterName(); }    \
     VariantName const& sub_variant_get_data() const { return fieldName; } \
     char const*        sub_variant_get_name() const { return #fieldName; }
-
-template <typename T>
-concept IsSubVariantType = requires(T t) {
-    typename T::variant_enum_type;
-    typename T::variant_data_type;
-    { t.sub_variant_get_name() } -> std::same_as<char const*>;
-};
 
 
 #define DESC_FIELDS(classname, arg)                                       \

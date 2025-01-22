@@ -13,12 +13,12 @@ PYBIND11_MAKE_OPAQUE(std::vector<sem::Tblfm::Assign::Flag>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Tblfm::Assign::Flag>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::Tblfm::Assign>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Tblfm::Assign>)
-PYBIND11_MAKE_OPAQUE(std::vector<sem::HashTagText>)
-PYBIND11_MAKE_OPAQUE(Vec<sem::HashTagText>)
 PYBIND11_MAKE_OPAQUE(std::vector<Str>)
 PYBIND11_MAKE_OPAQUE(Vec<Str>)
-PYBIND11_MAKE_OPAQUE(std::vector<Vec<Str>>)
-PYBIND11_MAKE_OPAQUE(Vec<Vec<Str>>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::HashTagText>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::HashTagText>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::HashTagFlat>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::HashTagFlat>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::AttrValue>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::AttrValue>)
 PYBIND11_MAKE_OPAQUE(std::unordered_map<Str, sem::AttrList>)
@@ -58,8 +58,12 @@ PYBIND11_MAKE_OPAQUE(std::vector<UserTime>)
 PYBIND11_MAKE_OPAQUE(Vec<UserTime>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Time>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Time>>)
+PYBIND11_MAKE_OPAQUE(std::unordered_map<sem::HashTagFlat, sem::AstTrackingPath>)
+PYBIND11_MAKE_OPAQUE(UnorderedMap<sem::HashTagFlat, sem::AstTrackingPath>)
 PYBIND11_MAKE_OPAQUE(std::unordered_map<Str, sem::AstTrackingAlternatives>)
 PYBIND11_MAKE_OPAQUE(UnorderedMap<Str, sem::AstTrackingAlternatives>)
+PYBIND11_MAKE_OPAQUE(std::unordered_map<sem::HashTagFlat, sem::AstTrackingAlternatives>)
+PYBIND11_MAKE_OPAQUE(UnorderedMap<sem::HashTagFlat, sem::AstTrackingAlternatives>)
 PYBIND11_MAKE_OPAQUE(std::vector<SequenceSegment>)
 PYBIND11_MAKE_OPAQUE(Vec<SequenceSegment>)
 PYBIND11_MAKE_OPAQUE(std::vector<SequenceAnnotationTag>)
@@ -76,9 +80,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::Tblfm::Expr>(m, "VecOfTblfmExpr", type_registry_guard);
   bind_vector<sem::Tblfm::Assign::Flag>(m, "VecOfTblfmAssignFlag", type_registry_guard);
   bind_vector<sem::Tblfm::Assign>(m, "VecOfTblfmAssign", type_registry_guard);
-  bind_vector<sem::HashTagText>(m, "VecOfHashTagText", type_registry_guard);
   bind_vector<Str>(m, "VecOfStr", type_registry_guard);
-  bind_vector<Vec<Str>>(m, "VecOfVecOfStr", type_registry_guard);
+  bind_vector<sem::HashTagText>(m, "VecOfHashTagText", type_registry_guard);
+  bind_vector<sem::HashTagFlat>(m, "VecOfHashTagFlat", type_registry_guard);
   bind_vector<sem::AttrValue>(m, "VecOfAttrValue", type_registry_guard);
   bind_unordered_map<Str, sem::AttrList>(m, "UnorderedMapOfStrAttrList", type_registry_guard);
   bind_vector<sem::ColumnView::Column>(m, "VecOfColumnViewColumn", type_registry_guard);
@@ -99,7 +103,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::SemId<sem::BigIdent>>(m, "VecOfSemIdOfBigIdent", type_registry_guard);
   bind_vector<UserTime>(m, "VecOfUserTime", type_registry_guard);
   bind_vector<sem::SemId<sem::Time>>(m, "VecOfSemIdOfTime", type_registry_guard);
+  bind_unordered_map<sem::HashTagFlat, sem::AstTrackingPath>(m, "UnorderedMapOfHashTagFlatAstTrackingPath", type_registry_guard);
   bind_unordered_map<Str, sem::AstTrackingAlternatives>(m, "UnorderedMapOfStrAstTrackingAlternatives", type_registry_guard);
+  bind_unordered_map<sem::HashTagFlat, sem::AstTrackingAlternatives>(m, "UnorderedMapOfHashTagFlatAstTrackingAlternatives", type_registry_guard);
   bind_vector<SequenceSegment>(m, "VecOfSequenceSegment", type_registry_guard);
   bind_vector<SequenceAnnotationTag>(m, "VecOfSequenceAnnotationTag", type_registry_guard);
   bind_vector<sem::AstTrackingGroup>(m, "VecOfAstTrackingGroup", type_registry_guard);
@@ -507,6 +513,25 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<sem::HashTagFlat>(m, "HashTagFlat")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::HashTagFlat {
+                        sem::HashTagFlat result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("tags", &sem::HashTagFlat::tags)
+    .def("operator==",
+         static_cast<bool(sem::HashTagFlat::*)(sem::HashTagFlat const&) const>(&sem::HashTagFlat::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::HashTagFlat _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::HashTagFlat _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<sem::HashTagText>(m, "HashTagText")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::HashTagText {
                         sem::HashTagText result{};
@@ -523,7 +548,7 @@ node can have subnodes.)RAW")
          pybind11::arg("prefix"),
          R"RAW(Check if list of tag names is a prefix for either of the nested hash tags in this one)RAW")
     .def("getFlatHashes",
-         static_cast<Vec<Vec<Str>>(sem::HashTagText::*)(bool) const>(&sem::HashTagText::getFlatHashes),
+         static_cast<Vec<sem::HashTagFlat>(sem::HashTagText::*)(bool) const>(&sem::HashTagText::getFlatHashes),
          pybind11::arg_v("withIntermediate", true),
          R"RAW(Get flat list of expanded hashtags)RAW")
     .def("__repr__", [](sem::HashTagText _self) -> std::string {
@@ -2248,6 +2273,25 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<sem::NamedProperty::HashtagDef>(m, "NamedPropertyHashtagDef")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::NamedProperty::HashtagDef {
+                        sem::NamedProperty::HashtagDef result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("hashtag", &sem::NamedProperty::HashtagDef::hashtag)
+    .def("operator==",
+         static_cast<bool(sem::NamedProperty::HashtagDef::*)(sem::NamedProperty::HashtagDef const&) const>(&sem::NamedProperty::HashtagDef::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::NamedProperty::HashtagDef _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::NamedProperty::HashtagDef _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<sem::NamedProperty::CustomArgs>(m, "NamedPropertyCustomArgs")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::NamedProperty::CustomArgs {
                         sem::NamedProperty::CustomArgs result{};
@@ -2312,6 +2356,7 @@ node can have subnodes.)RAW")
     .value("Unnumbered", sem::NamedProperty::Kind::Unnumbered)
     .value("Created", sem::NamedProperty::Kind::Created)
     .value("RadioId", sem::NamedProperty::Kind::RadioId)
+    .value("HashtagDef", sem::NamedProperty::Kind::HashtagDef)
     .value("CustomArgs", sem::NamedProperty::Kind::CustomArgs)
     .value("CustomRaw", sem::NamedProperty::Kind::CustomRaw)
     .def("__iter__", [](sem::NamedProperty::Kind _self) -> PyEnumIterator<sem::NamedProperty::Kind> {
@@ -2379,6 +2424,8 @@ node can have subnodes.)RAW")
     .def("getCreated", static_cast<sem::NamedProperty::Created&(sem::NamedProperty::*)()>(&sem::NamedProperty::getCreated))
     .def("isRadioId", static_cast<bool(sem::NamedProperty::*)() const>(&sem::NamedProperty::isRadioId))
     .def("getRadioId", static_cast<sem::NamedProperty::RadioId&(sem::NamedProperty::*)()>(&sem::NamedProperty::getRadioId))
+    .def("isHashtagDef", static_cast<bool(sem::NamedProperty::*)() const>(&sem::NamedProperty::isHashtagDef))
+    .def("getHashtagDef", static_cast<sem::NamedProperty::HashtagDef&(sem::NamedProperty::*)()>(&sem::NamedProperty::getHashtagDef))
     .def("isCustomArgs", static_cast<bool(sem::NamedProperty::*)() const>(&sem::NamedProperty::isCustomArgs))
     .def("getCustomArgs", static_cast<sem::NamedProperty::CustomArgs&(sem::NamedProperty::*)()>(&sem::NamedProperty::getCustomArgs))
     .def("isCustomRaw", static_cast<bool(sem::NamedProperty::*)() const>(&sem::NamedProperty::isCustomRaw))
@@ -4988,10 +5035,12 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def("getRadioTarget", static_cast<sem::AstTrackingGroup::RadioTarget const&(sem::AstTrackingGroup::*)() const>(&sem::AstTrackingGroup::getRadioTarget))
+    .def("getTrackedHashtag", static_cast<sem::AstTrackingGroup::TrackedHashtag&(sem::AstTrackingGroup::*)()>(&sem::AstTrackingGroup::getTrackedHashtag))
     .def("getSingle", static_cast<sem::AstTrackingGroup::Single const&(sem::AstTrackingGroup::*)() const>(&sem::AstTrackingGroup::getSingle))
     .def("getRadioTarget", static_cast<sem::AstTrackingGroup::RadioTarget&(sem::AstTrackingGroup::*)()>(&sem::AstTrackingGroup::getRadioTarget))
     .def("getSingle", static_cast<sem::AstTrackingGroup::Single&(sem::AstTrackingGroup::*)()>(&sem::AstTrackingGroup::getSingle))
     .def("isSingle", static_cast<bool(sem::AstTrackingGroup::*)() const>(&sem::AstTrackingGroup::isSingle))
+    .def("isTrackedHashtag", static_cast<bool(sem::AstTrackingGroup::*)() const>(&sem::AstTrackingGroup::isTrackedHashtag))
     .def("isRadioTarget", static_cast<bool(sem::AstTrackingGroup::*)() const>(&sem::AstTrackingGroup::isRadioTarget))
     .def("__repr__", [](sem::AstTrackingGroup _self) -> std::string {
                      return py_repr_impl(_self);
@@ -5035,6 +5084,23 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<sem::AstTrackingGroup::TrackedHashtag>(m, "AstTrackingGroupTrackedHashtag")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AstTrackingGroup::TrackedHashtag {
+                        sem::AstTrackingGroup::TrackedHashtag result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("tag", &sem::AstTrackingGroup::TrackedHashtag::tag)
+    .def_readwrite("targets", &sem::AstTrackingGroup::TrackedHashtag::targets)
+    .def("__repr__", [](sem::AstTrackingGroup::TrackedHashtag _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::AstTrackingGroup::TrackedHashtag _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<sem::AstTrackingMap>(m, "AstTrackingMap")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AstTrackingMap {
                         sem::AstTrackingMap result{};
@@ -5046,6 +5112,7 @@ node can have subnodes.)RAW")
     .def_readwrite("names", &sem::AstTrackingMap::names)
     .def_readwrite("anchorTargets", &sem::AstTrackingMap::anchorTargets)
     .def_readwrite("radioTargets", &sem::AstTrackingMap::radioTargets)
+    .def_readwrite("hashtagDefinitions", &sem::AstTrackingMap::hashtagDefinitions)
     .def("getIdPath",
          static_cast<std::optional<sem::AstTrackingAlternatives>(sem::AstTrackingMap::*)(Str const&) const>(&sem::AstTrackingMap::getIdPath),
          pybind11::arg("id"))
@@ -5258,6 +5325,12 @@ and a segment kind.)RAW")
          static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setVisitIdHook),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
+    .def("print_trace",
+         static_cast<void(ExporterPython::*)(std::string const&, std::string const&, std::string const&, int)>(&ExporterPython::print_trace),
+         pybind11::arg("trace"),
+         pybind11::arg("file"),
+         pybind11::arg("function"),
+         pybind11::arg("line"))
     .def("evalTop",
          static_cast<ExporterPython::Res(ExporterPython::*)(sem::SemId<sem::Org>)>(&ExporterPython::evalTop),
          pybind11::arg("org"))
@@ -5277,6 +5350,7 @@ and a segment kind.)RAW")
   pybind11::enum_<sem::AstTrackingGroup::Kind>(m, "AstTrackingGroupKind")
     .value("RadioTarget", sem::AstTrackingGroup::Kind::RadioTarget)
     .value("Single", sem::AstTrackingGroup::Kind::Single)
+    .value("TrackedHashtag", sem::AstTrackingGroup::Kind::TrackedHashtag)
     .def("__iter__", [](sem::AstTrackingGroup::Kind _self) -> PyEnumIterator<sem::AstTrackingGroup::Kind> {
                      return
                      PyEnumIterator<sem::AstTrackingGroup::Kind>

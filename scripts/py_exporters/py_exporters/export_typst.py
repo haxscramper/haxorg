@@ -100,7 +100,7 @@ class ExporterTypst(ExporterBase):
 
     def wrapStmt(self, node: org.Stmt, result: BlockId) -> BlockId:
         args = node.getAttrs("export")
-        if args and 0 < len(args.args) and args.args[0].getBool() == False:
+        if args and 0 < len(args) and args[0].getBool() == False:
             return self.t.string("")
 
         else:
@@ -245,6 +245,9 @@ class ExporterTypst(ExporterBase):
                         self.applyExportConfig(node)
                         return self.t.string("")
 
+                    case _:
+                        raise ValueError(f"edit-config parameter at {node.loc} has unexpected value '{edit_config[0].getString()}'")
+
             else:
                 return self.t.string(node.content)
 
@@ -294,7 +297,7 @@ class ExporterTypst(ExporterBase):
             if isinstance(it, org.BlockExport):
                 edit_config = it.getAttrs("edit-config")
                 if edit_config and 0 < len(edit_config):
-                    if edit_config[0].getString() == "pre-visit":
+                     if edit_config[0].getString() == "pre-visit":
                         self.applyExportConfig(it)
 
         for it in node:
@@ -309,6 +312,7 @@ class ExporterTypst(ExporterBase):
         return self.t.string(formatDateTime(node.getStatic().time))
 
     def evalLink(self, node: org.Link) -> BlockId:
+        self.printTrace(f">>>>??? {node.target.getKind()}")
         match node.target.getKind():
             case org.LinkTargetKind.Attachment:
                 return self.t.string("")

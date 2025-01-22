@@ -27,6 +27,10 @@ struct value_metadata<std::vector<T>> {
     static bool isEmpty(std::vector<T> const& value) {
         return value.empty();
     }
+
+    static std::string typeName() {
+        return "std::vector<" + value_metadata<T>::typeName() + ">";
+    }
 };
 
 template <typename T>
@@ -38,24 +42,35 @@ struct value_metadata<std::optional<T>> {
     static bool isNil(std::optional<T> const& value) {
         return !value.has_value();
     }
+
+    static std::string typeName() {
+        return "Opt<" + value_metadata<T>::typeName() + ">";
+    }
 };
 
 template <typename T>
 struct value_metadata<T*> {
     static bool isEmpty(T* const& value) { return value == nullptr; }
     static bool isNil(T* const& value) { return value == nullptr; }
+    static std::string typeName() {
+        return value_metadata<T>::typeName() + "*";
+    }
 };
 
 template <typename T>
 struct value_metadata<T const*> {
     static bool isEmpty(T const* const& value) { return value == nullptr; }
     static bool isNil(T const* const& value) { return value == nullptr; }
+    static std::string typeName() {
+        return value_metadata<T>::typeName() + "const *";
+    }
 };
 
 
 template <>
 struct value_metadata<std::string> {
     static bool isEmpty(std::string const& value) { return value.empty(); }
+    static std::string typeName() { return "std::string"; }
 };
 
 

@@ -209,7 +209,7 @@ void OrgParser::skip(
     lex.next();
 }
 
-finally OrgParser::trace(
+finally_std OrgParser::trace(
     OrgLexer&        lex,
     Opt<std::string> msg,
     int              line,
@@ -221,7 +221,7 @@ finally OrgParser::trace(
                 .with_lex(lex)
                 .report);
 
-        return finally([line, function, this, &lex]() {
+        return finally_std([line, function, this, &lex]() {
             report(Builder(
                        OrgParser::ReportKind::LeaveParse,
                        nullptr,
@@ -232,7 +232,7 @@ finally OrgParser::trace(
         });
 
     } else {
-        return finally{[]() {}};
+        return finally_std::nop();
     }
 }
 

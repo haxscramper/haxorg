@@ -25,7 +25,7 @@ from datetime import datetime
 
 T = TypeVar('T')
 
-SomePath: TypeAlias = Union[str, Path, GeneratorType]
+SomePath: TypeAlias = Union[str, Path, GeneratorType, map]
 SomePaths: TypeAlias = Union[SomePath, List[SomePath]]
 
 
@@ -47,6 +47,10 @@ def normalize_paths(input_paths: SomePaths) -> List[Path]:
                     add(it)
 
             case List():
+                for it in item:
+                    add(it)
+
+            case map():
                 for it in item:
                     add(it)
 

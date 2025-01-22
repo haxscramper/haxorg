@@ -117,15 +117,15 @@ struct MarginContext {
 
     Characters const& draw() const { return config.char_set; }
 
-    finally scope(
+    finally_std scope(
         Str const& function    = Str{__builtin_FUNCTION()},
         bool       force_scope = false,
         int        line        = __builtin_LINE()) const {
         if (config.debug_scopes || force_scope) {
             w.stream << fmt("«{}:{}«", line, function);
-            return finally{[&]() { w.stream << "»»"; }};
+            return finally_std{[&]() { w.stream << "»»"; }};
         } else {
-            return finally::nop();
+            return finally_std::nop();
         }
     }
 };

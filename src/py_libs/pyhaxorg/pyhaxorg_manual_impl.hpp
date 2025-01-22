@@ -105,6 +105,16 @@ class PythonStreamDevice {
     py::object   stream;
 };
 
+template <typename... Ts>
+struct FixedTypeUnion {
+    template <typename T>
+    static constexpr bool contains = (std::same_as<T, Ts> || ...);
+};
+
+template <typename T, typename... Ts>
+concept IsOneOf = FixedTypeUnion<Ts...>::template contains<
+    std::remove_cvref_t<T>>;
+
 struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
     using Base = Exporter<ExporterPython, py::object>;
 #define __ExporterBase Base
@@ -117,6 +127,52 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
     using Res        = py::object;
     using SemCbMap   = UnorderedMap<OrgSemKind, PyFunc>;
     using FieldCbMap = UnorderedMap<LeafFieldType, PyFunc>;
+
+    std::string describe(PyFunc const& func) const;
+    std::string describe_use(std::string const& msg, PyFunc const& usage)
+        const;
+
+
+    using VK = VisitReport::Kind;
+
+    void trace_no_cb(
+        VK          kind,
+        sem::OrgArg node,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION()) {
+        trace_instant(
+            trace(kind)
+                .with_node(node)
+                .with_loc(line, function)
+                .with_msg(
+                    fmt("no callback for node kind {}", node->getKind())));
+    }
+
+    VisitScope trace_leaf(
+        VK                 kind,
+        sem::OrgArg        node,
+        std::string const& msg,
+        PyFunc const&      cb,
+        int                line     = __builtin_LINE(),
+        char const*        function = __builtin_FUNCTION()) {
+        return trace_instant(trace(kind)
+                                 .with_node(node)
+                                 .with_msg(describe_use(msg, cb))
+                                 .with_loc(line, function));
+    }
+
+    VisitScope trace_scoped(
+        VK                 kind,
+        sem::OrgArg        node,
+        std::string const& msg,
+        PyFunc const&      cb,
+        int                line     = __builtin_LINE(),
+        char const*        function = __builtin_FUNCTION()) {
+        return trace_scope(trace(kind)
+                               .with_node(node)
+                               .with_msg(describe_use(msg, cb))
+                               .with_loc(line, function));
+    }
 
     [[refl]] void        enableBufferTrace();
     [[refl]] std::string getTraceBuffer() const;
@@ -220,45 +276,21 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
         visitIdHookCb[kind] = cb;
     }
 
+    [[refl]] void print_trace(
+        std::string const& trace,
+        std::string const& file,
+        std::string const& function,
+        int                line);
+
+    Res newResImpl(sem::OrgArg node);
+
     Res newRes(sem::SemId<sem::Org> const& node) {
-        if (newAnyOrgResCb) {
-            trace_instant(trace(VisitReport::Kind::NewRes)
-                              .with_node(node)
-                              .with_msg("has universal CB"));
-            return newAnyOrgResCb->operator()(_self, node);
-        } else if (newOrgResCb.contains(node->getKind())) {
-            trace_instant(trace(VisitReport::Kind::NewRes)
-                              .with_node(node)
-                              .with_msg("has callback for kind"));
-            return newOrgResCb.at(node->getKind())(_self, node);
-        } else {
-            trace_instant(
-                trace(VisitReport::Kind::NewRes)
-                    .with_node(node)
-                    .with_msg(fmt("no callback for {}", node->getKind())));
-            return py::none();
-        }
+        return newResImpl(node);
     }
 
     template <sem::IsOrg T>
     Res newRes(sem::SemId<T> const& node) {
-        if (newAnyOrgResCb) {
-            trace_instant(trace(VisitReport::Kind::NewRes)
-                              .with_node(node)
-                              .with_msg("has universal CB"));
-            return newAnyOrgResCb->operator()(_self, node);
-        } else if (newOrgResCb.contains(T::staticKind)) {
-            trace_instant(trace(VisitReport::Kind::NewRes)
-                              .with_node(node)
-                              .with_msg("has callback for kind"));
-            return newOrgResCb.at(T::staticKind)(_self, node);
-        } else {
-            trace_instant(
-                trace(VisitReport::Kind::NewRes)
-                    .with_node(node)
-                    .with_msg(fmt("no callback for {}", T::staticKind)));
-            return py::none();
-        }
+        return newResImpl(node.asOrg());
     }
 
     template <sem::NotOrg T>
@@ -266,13 +298,16 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
         if (newAnyOrgResCb) {
             return newAnyLeafResCb->operator()(_self, node);
         } else if (newLeafResCb.contains(LeafKindForT<T>::value)) {
-            trace_instant(trace(VisitReport::Kind::NewRes)
-                              .with_node(node)
-                              .with_msg("has callback for kind"));
+            trace_instant(
+                trace(VK::NewRes)
+                    .with_node(node)
+                    .with_msg(describe_use(
+                        "has callback for kind",
+                        newLeafResCb.at(LeafKindForT<T>::value))));
             return newLeafResCb.at(LeafKindForT<T>::value)(_self, node);
         } else {
             trace_instant(
-                trace(VisitReport::Kind::NewRes)
+                trace(VK::NewRes)
                     .with_node(node)
                     .with_msg(fmt("no callback for {}", T::staticKind)));
             return py::none();
@@ -282,18 +317,21 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
     template <sem::IsOrg T>
     void visitOrgNodeAround(Res& res, sem::SemId<T> node) {
         OrgSemKind kind = T::staticKind;
-        auto ev = trace(VisitReport::Kind::VisitValue).with_node(node);
+        auto       ev   = trace(VK::VisitValue).with_node(node);
         if (visitAnyNodeAround) {
-            trace_instant(ev.with_loc().with_msg(
-                "has generic around visitor callback"));
+            trace_instant(ev.with_loc().with_msg(describe_use(
+                "has generic around visitor callback",
+                *visitAnyNodeAround)));
             visitAnyNodeAround->operator()(_self, res, node);
         } else if (visitIdAroundCb.contains(kind)) {
-            trace_instant(ev.with_loc().with_msg(
-                "has specific around visitor callback"));
+            trace_instant(ev.with_loc().with_msg(describe_use(
+                "has specific around visitor callback",
+                visitIdAroundCb.at(kind))));
             visitIdAroundCb.at(kind)(_self, res, node);
         } else if (evalIdAroundCb.contains(kind)) {
-            trace_instant(ev.with_loc().with_msg(
-                "has specific around eval callback"));
+            trace_instant(ev.with_loc().with_msg(describe_use(
+                "has specific around eval callback",
+                evalIdAroundCb.at(kind))));
             res = evalIdAroundCb.at(kind)(_self, node);
         } else {
             trace_instant(ev.with_loc().with_msg("going to dispatched"));
@@ -306,19 +344,19 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
     template <sem::IsOrg T>
     void visitOrgNodeIn(Res& res, sem::SemId<T> node) {
         OrgSemKind kind = T::staticKind;
-        auto       ev   = trace(VisitReport::Kind::VisitSpecificKind)
-                      .with_node(node);
+        auto       ev   = trace(VK::VisitSpecificKind).with_node(node);
         if (visitAnyNodeIn) {
-            auto __scope = trace_scope(
-                ev.with_loc().with_msg("has generic visitor callback"));
+            auto __scope = trace_scope(ev.with_loc().with_msg(describe_use(
+                "has generic visitor callback", *visitAnyNodeIn)));
             visitAnyNodeIn->operator()(_self, res, node);
         } else if (visitIdInCb.contains(kind)) {
-            auto __scope = trace_scope(
-                ev.with_loc().with_msg("has specifid visitor callback"));
+            auto __scope = trace_scope(ev.with_loc().with_msg(describe_use(
+                "has specifid visitor callback", visitIdInCb.at(kind))));
             visitIdInCb.at(kind)(_self, res, node);
         } else if (evalIdInCb.contains(kind)) {
-            auto __scope = trace_scope(
-                ev.with_loc().with_msg("has specifid eval callback"));
+            auto __scope = trace_scope(ev.with_loc().with_msg(describe_use(
+                "has specifid eval callback", evalIdInCb.at(kind))));
+
             res = evalIdInCb.at(kind)(_self, node);
         } else {
             auto __scope = trace_scope(
@@ -343,21 +381,22 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
         const char*          name,
         sem::SemId<T> const& value) {
         OrgSemKind kind = T::staticKind;
-        auto       ev   = trace(VisitReport::Kind::VisitField)
+        auto       ev   = trace(VK::VisitField)
                       .with_node(value.asOrg())
                       .with_field(name);
 
         if (visitAnyField) {
-            auto __scope = trace_scope(
-                ev.with_loc().with_msg("has universal CB"));
+            auto __scope = trace_scope(ev.with_loc().with_msg(
+                describe_use("has universal CB", *visitAnyField)));
             visitAnyField->operator()(_self, res, name, value);
         } else if (visitOrgFieldCb.contains(kind)) {
-            auto __scope = trace_scope(
-                ev.with_loc().with_msg("has specific visitor CB"));
+            auto __scope = trace_scope(ev.with_loc().with_msg(describe_use(
+                "has specific visitor CB", visitOrgFieldCb.at(kind))));
             visitOrgFieldCb.at(kind)(_self, res, name, value);
         } else if (evalOrgFieldCb.contains(kind)) {
-            auto __scope = trace_scope(
-                ev.with_loc().with_msg("has specific eval CB"));
+            auto __scope = trace_scope(ev.with_loc().with_msg(describe_use(
+                "has specific eval CB", evalOrgFieldCb.at(kind))));
+
             res = evalOrgFieldCb.at(kind)(_self, name, value);
         } else {
             auto __scope = trace_scope(
@@ -367,9 +406,8 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
     }
 
 #define __fallback_visit(__msg)                                           \
-    auto __scope = trace_scope(trace(VisitReport::Kind::VisitField)       \
-                                   .with_field(name)                      \
-                                   .with_msg(__msg));
+    auto __scope = trace_scope(                                           \
+        trace(VK::VisitField).with_field(name).with_msg(__msg));
 
 
     template <typename T>
@@ -393,23 +431,21 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
 
     template <sem::NotOrg T>
     void visitOrgField(Res& res, const char* name, T const& value) {
-        auto ev = trace(VisitReport::Kind::VisitField)
-                      .with_value(value)
-                      .with_field(name);
+        auto ev = trace(VK::VisitField).with_value(value).with_field(name);
 
         LeafFieldType kind = LeafKindForT<T>::value;
         if (visitAnyField) {
-            auto __scope = trace_scope(
-                ev.with_loc().with_msg("has universal CB"));
+            auto __scope = trace_scope(ev.with_loc().with_msg(
+                describe_use("has universal CB", *visitAnyField)));
             visitAnyField->operator()(_self, res, name, value);
         } else if (visitLeafFieldCb.contains(kind)) {
-            auto __scope = trace_scope(
-                ev.with_loc().with_msg("has specific visitor CB"));
+            auto __scope = trace_scope(ev.with_loc().with_msg(describe_use(
+                "has specific visitor CB", visitLeafFieldCb.at(kind))));
 
             visitLeafFieldCb.at(kind)(_self, res, name, value);
         } else if (evalLeafFieldCb.contains(kind)) {
-            auto __scope = trace_scope(
-                ev.with_loc().with_msg("has specific eval CB"));
+            auto __scope = trace_scope(ev.with_loc().with_msg(describe_use(
+                "has specific eval CB", evalLeafFieldCb.at(kind))));
 
             res = evalLeafFieldCb.at(kind)(_self, name, value);
         } else {
@@ -419,47 +455,31 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
 
     template <sem::IsOrg T>
     void visitDispatchHook(Res& res, sem::SemId<T> id) {
-        auto ev = trace(VisitReport::Kind::VisitDispatchHook)
-                      .with_node(id);
         if (visitAnyHookCb) {
-            auto __scope = trace_scope(
-                ev.with_loc().with_msg("has universal CB"));
+            auto __scope = trace_scoped(
+                VK::VisitDispatchHook, id, "universal", *visitAnyHookCb);
             visitAnyHookCb->operator()(_self, res, id);
-        } else if (visitIdHookCb.contains(T::staticKind)) {
-            auto __scope = trace_scope(
-                ev.with_loc().with_msg("has fixed CB"));
-            visitIdHookCb.at(T::staticKind)(_self, res, id);
+        } else if (auto cb = visitIdHookCb.get(T::staticKind)) {
+            auto __scope = trace_scoped(
+                VK::VisitDispatchHook, id, "cb for kind", *cb);
+            cb.value()(_self, res, id);
         } else {
-            auto __scope = trace_scope(ev.with_loc().with_msg(
-                fmt("no callback for {}", T::staticKind)));
+            // trace_no_cb(VK::VisitDispatchHook, id);
         }
     }
+
+    void pushVisitImpl(Res& res, sem::OrgArg id);
 
     template <sem::IsOrg T>
     void pushVisit(Res& res, sem::SemId<T> id) {
-        auto ev = trace(VisitReport::Kind::PushVisit).with_node(id);
-        if (pushVisitAnyIdCb) {
-            trace_instant(ev.with_loc());
-            pushVisitAnyIdCb->operator()(_self, res, id);
-        } else if (pushVisitIdCb.contains(T::staticKind)) {
-            trace_instant(ev.with_loc());
-            pushVisitIdCb.at(T::staticKind)(_self, res, id);
-        }
+        pushVisitImpl(res, id);
     }
+
+    void popVisitImpl(Res& res, sem::OrgArg id);
 
     template <sem::IsOrg T>
     void popVisit(Res& res, sem::SemId<T> id) {
-        auto ev = trace(VisitReport::Kind::PopVisit).with_node(id);
-        if (popVisitAnyIdCb) {
-            trace_instant(ev.with_loc().with_msg("has universal CB"));
-            popVisitAnyIdCb->operator()(_self, res, id);
-        } else if (popVisitIdCb.contains(T::staticKind)) {
-            trace_instant(ev.with_loc().with_msg("has fixed CB"));
-            popVisitIdCb.at(T::staticKind)(_self, res, id);
-        } else {
-            trace_instant(ev.with_loc().with_msg(
-                fmt("no 'pop visit' callback for {}", T::staticKind)));
-        }
+        popVisitImpl(res, id);
     }
 
     template <sem::IsOrg T>

@@ -115,7 +115,7 @@ struct RecombineState {
 
     void report(OrgTokenizer::Report const& report) { d->report(report); }
 
-    finally trace(
+    finally_std trace(
         std::optional<std::string> msg      = std::nullopt,
         int                        line     = __builtin_LINE(),
         char const*                function = __builtin_FUNCTION()) {
@@ -127,7 +127,7 @@ struct RecombineState {
             rep.msg      = msg;
             rep.lex      = &lex;
             report(rep);
-            return finally([line, function, this]() {
+            return finally_std([line, function, this]() {
                 ::OrgTokenizer::Report rep;
                 rep.function = function;
                 rep.line     = line;
@@ -136,7 +136,7 @@ struct RecombineState {
                 report(rep);
             });
         } else {
-            return finally::nop();
+            return finally_std::nop();
         }
     }
 

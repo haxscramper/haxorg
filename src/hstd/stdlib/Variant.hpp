@@ -6,6 +6,7 @@
 #include <hstd/system/Formatter.hpp>
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/system/macros.hpp>
+#include <hstd/system/exceptions.hpp>
 
 template <typename... Types>
 using Variant = std::variant<Types...>;
@@ -21,6 +22,55 @@ struct is_variant<std::variant<Args...>> : std::true_type {};
 template <typename T>
 concept IsVariant = is_variant<std::remove_cvref_t<T>>::value;
 
+struct bad_variant_access : CRTP_hexception<bad_variant_access> {
+    template <typename E>
+    static bad_variant_access init(
+        E           expected,
+        E           given,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION(),
+        char const* file     = __builtin_FILE()) {
+        return CRTP_hexception<bad_variant_access>::init(
+            fmt("Variant access mismatch, expected {}::{}, but got {}::{}",
+                value_metadata<E>::typeName(),
+                expected,
+                value_metadata<E>::typeName(),
+                given),
+            line,
+            function,
+            file);
+    }
+};
+
+template <typename T>
+concept IsSubVariantType = requires(T t) {
+    typename T::variant_enum_type;
+    typename T::variant_data_type;
+    { t.sub_variant_get_name() } -> std::same_as<char const*>;
+};
+
+
+template <typename T, typename Variant>
+constexpr std::size_t variant_index = std::variant_size_v<Variant>;
+
+template <typename T, typename... Types>
+constexpr std::size_t variant_index<T, std::variant<T, Types...>> = 0;
+
+template <typename T, typename U, typename... Types>
+constexpr std::size_t variant_index<T, std::variant<U, Types...>>
+    = 1 + variant_index<T, std::variant<Types...>>;
+
+template <typename T, IsSubVariantType V>
+auto& get_sub_variant(auto& variant) {
+    if (std::holds_alternative<T>(variant)) {
+        return std::get<T>(variant);
+    } else {
+        throw ::bad_variant_access::init(
+            static_cast<V::variant_enum_type>(
+                variant_index<T, typename V::variant_data_type>),
+            static_cast<V::variant_enum_type>(variant.index()));
+    }
+}
 
 template <IsVariant V>
 struct std::formatter<V> : std::formatter<std::string> {

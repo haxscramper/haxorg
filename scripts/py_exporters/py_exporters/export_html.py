@@ -148,26 +148,9 @@ class ExporterHtml(ExporterBase):
     def evalDocument(self, node: org.Subtree) -> dominate.document:
         doc = dominate.document()
         if node.title:
-            log(CAT).info("Has title")
             doc.title = self.eval(node.title)
 
         for sub in node:
             add_html(doc, self.eval(sub))
 
         return doc
-
-    def getHtmlString(self, node: org.Org) -> str:
-        formatted = self.evalTop(node)
-
-        def aux(it) -> str:
-            match it:
-                case text():
-                    return it.render()
-
-                case list():
-                    return "".join(aux(sub) for sub in it)
-
-                case _:
-                    return str(it)
-
-        return aux(formatted)

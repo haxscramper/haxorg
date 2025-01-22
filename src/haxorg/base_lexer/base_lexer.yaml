@@ -27,7 +27,7 @@ rx_macros:
   # `:header-args` property for setting the parameters of the code blocks
   # `:property-set` and `:property-set-sub` for configuring how individual properties are computed
   - { name: argument_properties, value: "header-args" }
-  - { name: text_properties, value: "description" }
+  - { name: text_properties, value: "description|created|hashtag_?def" }
   - { name: dsl_links, value: "file|attachment|id" }
   - { name: "property_sub_kind", "value": "\\S+:"}
   # Property colon with optional text extension pattern an any number of
@@ -693,7 +693,7 @@ rules:
       - { do: pop, from: PROPERTY_ARGUMENT, to: INITIAL }
 
   # Properties with text content
-  - re: "{lead_space}:(created):"
+  - re: "{lead_space}:({text_properties}):"
     token: ColonPropertyText
   - re: "{lead_space}:\\w+:"
     token: ColonLiteralProperty

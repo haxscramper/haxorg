@@ -90,6 +90,8 @@ pkg_check_modules(CAIROMM REQUIRED cairomm-1.0)
 pkg_check_modules(LIBGIT2 REQUIRED libgit2)
 
 find_package(yaml-cpp CONFIG REQUIRED)
+set(PYBIND11_PYTHON_VERSION 3.13)
+set(PYTHON_VERSION 3.13)
 find_package(pybind11 CONFIG REQUIRED)
 find_package(absl CONFIG REQUIRED)
 find_package(range-v3 CONFIG REQUIRED)
@@ -106,11 +108,12 @@ if(${ORG_USE_PERFETTO})
   find_package(Perfetto CONFIG REQUIRED)
 endif()
 find_package(BoostDescribe CONFIG REQUIRED)
-find_package(PythonLibs 3.11)
+find_package(PythonLibs 3.13)
 find_package(Adaptagrams CONFIG REQUIRED)
 find_package(cpptrace CONFIG REQUIRED)
 
 include("${DEPS_DIR}/protobuf/cmake/protobuf-generate.cmake")
+message(STATUS "PYTHON_LIBRARIES = ${PYTHON_LIBRARIES}")
 
 set(JSON_BuildTests
     OFF
