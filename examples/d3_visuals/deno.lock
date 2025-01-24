@@ -721,6 +721,11 @@
       "npm:electron@^34.0.1",
       "npm:esbuild@~0.24.2",
       "npm:tslog@^4.9.3"
-    ]
+    ],
+    "packageJson": {
+      "dependencies": [
+        "npm:tslog@^4.9.3"
+      ]
+    }
   }
 }

@@ -1,4 +1,7 @@
 {
   "name": "d3-electron-app",
-  "main": "dist/main.js"
+  "main": "dist/main.js",
+  "dependencies": {
+    "tslog": "^4.9.3"
+  }
 }

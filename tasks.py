@@ -246,8 +246,8 @@ def run_command(
 
     elif run_mode == "nohup":
         cwd.mkdir(parents=True, exist_ok=True)
-        stderr_stream = open(stderr_debug) if stderr_debug else None
-        stdout_stream = open(stdout_debug) if stdout_stream else None
+        stderr_stream = open(stderr_debug, "w") if stderr_debug else None
+        stdout_stream = open(stdout_debug, "w") if stdout_debug else None
 
         try:
             subprocess.Popen(
