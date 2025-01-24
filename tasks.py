@@ -242,7 +242,6 @@ def run_command(
 
     if run_mode == "bg":
         run[*args] & BG
-        run.run(list(args), env=local.env, bg=True)
         return (0, "", "")
 
     elif run_mode == "nohup":
@@ -1103,6 +1102,7 @@ def build_web_example(ctx: Context):
     """
     Build web access example project
     """
+    cmake_example_project(ctx, "rest_access")
 
 
 @org_task(pre=[
@@ -1120,11 +1120,25 @@ def build_d3_example(ctx: Context):
     )
 
 
+@beartype
+def get_log_dir() -> Path:
+    return Path("/tmp")
+
+
 @org_task(pre=[build_d3_example, build_web_example])
 def run_d3_example(ctx: Context):
-    web_build = get_example_build("rest_access")
+    web_build = get_example_build("rest_access").joinpath("org_server")
     d3_example_dir = get_script_root().joinpath("examples/d3_visuals")
     deno_run = find_process("deno", d3_example_dir, ["task", "run-gui"])
+
+    run_command(
+        ctx,
+        web_build,
+        [],
+        run_mode="bg",
+        stderr_debug=get_log_dir().joinpath("rest_stderr.log"),
+        stdout_debug=get_log_dir().joinpath("rest_stdout.log"),
+    )
 
     if deno_run:
         log(CAT).info("Sending user signal to electron")
@@ -1138,6 +1152,8 @@ def run_d3_example(ctx: Context):
             ["task", "run-gui"],
             cwd=d3_example_dir,
             run_mode="nohup",
+            stderr_debug=get_log_dir().joinpath("electron_stderr.log"),
+            stdout_debug=get_log_dir().joinpath("electron_stdout.log"),
         )
 
 
