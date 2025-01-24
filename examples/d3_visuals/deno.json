@@ -1,7 +1,7 @@
-
 {
   "tasks": {
-    "dev": "deno run -A --unstable --node-modules-dir esbuild.config.ts && electron ."
+    "build": "deno run -A --unstable --node-modules-dir esbuild.config.ts",
+    "run-gui": "electron ."
   },
   "nodeModulesDir": "auto",
   "imports": {
@@ -11,7 +11,11 @@
     "tslog": "npm:tslog@^4.9.3"
   },
   "compilerOptions": {
-      "lib": ["dom", "dom.iterable", "esnext"],
-      "strict": true
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "strict": true
   }
 }
