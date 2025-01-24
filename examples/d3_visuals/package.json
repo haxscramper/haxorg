@@ -1,0 +1,4 @@
+{
+  "name": "d3-electron-app",
+  "main": "dist/main.js"
+}
