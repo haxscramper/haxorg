@@ -37,7 +37,7 @@ interface XYPoint {
 
 export class CollapsibleTreeVisualizationConfig {
   width: number                    = 1400;
-  height: number                   = 1600;
+  height: number                   = 800;
   circle_radius: number            = 5;
   circle_label_spacing: number     = 13;
   layer_horizontal_spacing: number = 250;
@@ -128,8 +128,8 @@ export class CollapsibleTreeVisualization {
     // declares a tree layout and assigns the size
     this.treemap = d3.tree<OrgTreeNode>()
                        .size([
-                         this.conf.height,
                          this.conf.width,
+                         this.conf.height,
                        ])
                        .nodeSize([
                          this.conf.circle_vertical_spacing,
@@ -148,6 +148,7 @@ export class CollapsibleTreeVisualization {
 
   // Creates a curved (diagonal) path from parent to the child nodes
   diagonal(s: XYPoint, d: XYPoint): string {
+    // console.log(`diagonal ${s.x} / ${s.y} ... ${d.x} / ${d.y}`)
     const path = d3.path();
 
     // Control points for the bezier curve
@@ -277,17 +278,24 @@ export class CollapsibleTreeVisualization {
   }
 
   update() {
-    // Assigns the x and y position for the nodes
-    var treeData = this.treemap(this.root);
-    // Compute the new tree layout.
-    var nodes = treeData.descendants();
-    var links = treeData.descendants().slice(1);
-    {
-      const minY       = d3.min(treeData.descendants(), d => d.y) ?? 0;
-      const maxY       = d3.max(treeData.descendants(), d => d.y) ?? 0;
-      const treeHeight = maxY - minY;
-      const yOffset    = (this.conf.height - treeHeight) / 2 - minY;
-      treeData.descendants().forEach(node => { node.y += yOffset; });
+    var   treeData          = this.treemap(this.root);
+    var   nodes             = treeData.descendants();
+    var   links             = treeData.descendants().slice(1);
+    const minY              = d3.min(treeData.descendants(), d => d.x) ?? 0;
+    const maxY              = d3.max(treeData.descendants(), d => d.x) ?? 0;
+    const vertical_offset   = -minY + this.conf.height / 2;
+    const horizontal_offset = 20;
+
+    function fix_point(p: XYPoint): XYPoint {
+      return {x : p.x + vertical_offset, y : p.y + horizontal_offset};
+    }
+
+    function format_point(p: XYPoint): string {
+      const p1 = fix_point(p);
+      // for unkown reasons `treeData` nodes layout layers are spaced out
+      // vertically (several lanes with identical y, so I need to format the
+      // nodes using this random code where y goes to x and vice versa).
+      return `${(p1.y).toFixed(3)},${(p1.x).toFixed(3)}`;
     }
 
     // Normalize for fixed-depth.
@@ -310,7 +318,7 @@ export class CollapsibleTreeVisualization {
               .attr("class", "node")
               .attr("transform",
                     (d: OrgHierarchyPointNode) => {
-                      return "translate(" + d.y + "," + d.x + ")";
+                      return "translate(" + format_point(d) + ")";
                     })
               .on("click",
                   (event: any, d: OrgHierarchyPointNode) => { this.click(d); });
@@ -341,7 +349,7 @@ export class CollapsibleTreeVisualization {
         .on("end", dump_html)
         // .duration(duration)
         .attr("transform", (d: OrgHierarchyPointNode) => {
-          return "translate(" + d.y + "," + d.x + ")";
+          return "translate(" + format_point(d) + ")";
         });
 
     // Update the node attributes and style
@@ -362,8 +370,11 @@ export class CollapsibleTreeVisualization {
               // .duration(duration)
               .attr("transform", (d: OrgHierarchyPointNode):
                                      string => {
-                                       return "translate(" + this.conf.y_offset
-                                              + "," + this.conf.x_offset + ")";
+                                       return "translate(" + format_point({
+                                                y : this.conf.y_offset!,
+                                                x : this.conf.x_offset,
+                                              })
+                                              + ")";
                                      })
               .remove();
 
@@ -388,7 +399,7 @@ export class CollapsibleTreeVisualization {
               .attr("class", "link")
               .attr("d", (d: OrgHierarchyNode) => {
                 var o = {x : this.conf.x_offset, y : this.conf.y_offset!};
-                return this.diagonal(o, o);
+                return this.diagonal(fix_point(o), fix_point(o));
               });
 
     // UPDATE
@@ -398,8 +409,9 @@ export class CollapsibleTreeVisualization {
     linkUpdate.transition()
         .on("end", dump_html)
         // .duration(duration)
-        .attr("d", (d: OrgHierarchyNode) => {return this.diagonal(
-                       d as XYPoint, d.parent as XYPoint)});
+        .attr("d",
+              (d: OrgHierarchyNode) => {return this.diagonal(
+                  fix_point(d as XYPoint), fix_point(d.parent as XYPoint))});
 
     // Remove any exiting links
     var linkExit
@@ -410,7 +422,7 @@ export class CollapsibleTreeVisualization {
               .attr("d",
                     (d: OrgHierarchyNode) => {
                       var o = {x : this.conf.x_offset, y : this.conf.y_offset!};
-                      return this.diagonal(o, o);
+                      return this.diagonal(fix_point(o), fix_point(o));
                     })
               .remove();
 
