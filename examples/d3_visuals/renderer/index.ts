@@ -1,6 +1,6 @@
-import {CircleVisualization} from "./visualization";
+import {CollapsibleTreeVisualization} from "./visualization";
 
 window.addEventListener("DOMContentLoaded", () => {
-  const viz = new CircleVisualization("visualization");
+  const viz = new CollapsibleTreeVisualization("visualization");
   viz.render();
 });
