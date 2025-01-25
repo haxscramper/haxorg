@@ -240,20 +240,15 @@ def run_command(
     if cwd is not None:
         run = run.with_cwd(str(cwd))
 
-    if run_mode == "bg":
-        run[*args] & BG
-        return (0, "", "")
-
-    elif run_mode == "nohup":
-        cwd.mkdir(parents=True, exist_ok=True)
+    if run_mode == "nohup" or run_mode == "bg":
         stderr_stream = open(stderr_debug, "w") if stderr_debug else None
         stdout_stream = open(stdout_debug, "w") if stdout_debug else None
 
         try:
             subprocess.Popen(
                 [str(cmd), *args],
-                cwd=str(cwd),
-                start_new_session=True,
+                cwd=str(cwd) if cwd else None,
+                start_new_session=run_mode == "nohup",
                 stdout=stdout_stream if stdout_stream else subprocess.DEVNULL,
                 stderr=stderr_stream if stderr_stream else subprocess.DEVNULL,
             )
@@ -1107,11 +1102,24 @@ def build_web_example(ctx: Context):
 
 @org_task(pre=[
     # cmake_install_dev
+    build_web_example
 ])
 def build_d3_example(ctx: Context):
     """
     Build d3.js visualization example
     """
+
+    web_build = get_example_build("rest_access").joinpath("org_server")
+    run_command(ctx, web_build, [
+        json.dumps({
+            "operation":
+                "WriteSchema",
+            "schema_path":
+                str(get_script_root().joinpath(
+                    "examples/d3_visuals/renderer/org_schema.ts")),
+        })
+    ])
+
     run_command(
         ctx,
         "deno",
@@ -1134,7 +1142,7 @@ def run_d3_example(ctx: Context):
     run_command(
         ctx,
         web_build,
-        [],
+        [json.dumps(dict(operation="RunServer"))],
         run_mode="bg",
         stderr_debug=get_log_dir().joinpath("rest_stderr.log"),
         stdout_debug=get_log_dir().joinpath("rest_stdout.log"),

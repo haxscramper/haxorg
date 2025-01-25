@@ -1,1 +1,3 @@
 !*.html
+# this file is generated automatically by the org server
+org_schema.ts

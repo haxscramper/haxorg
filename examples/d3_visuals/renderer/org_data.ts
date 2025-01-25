@@ -60,7 +60,7 @@ export type InferServiceClient<T extends ServiceDefinition> = {
       Promise<InferParamType<T["methods"][M]["result"]>>
 };
 
-import {data} from "/tmp/schema.ts";
+import {data} from "./org_schema.ts";
 
 // Example service definition
 export const OrgServiceDefinition = data;
