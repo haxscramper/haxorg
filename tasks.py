@@ -1148,6 +1148,9 @@ def run_d3_example(ctx: Context):
         stdout_debug=get_log_dir().joinpath("rest_stdout.log"),
     )
 
+    import time
+    time.sleep(1)
+
     if deno_run:
         log(CAT).info("Sending user signal to electron")
         electron = find_process("electron", d3_example_dir, ["."])

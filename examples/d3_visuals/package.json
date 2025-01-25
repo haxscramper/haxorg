@@ -2,6 +2,7 @@
   "name": "d3-electron-app",
   "main": "dist/main.js",
   "dependencies": {
+    "@types/d3": "^7.4.3",
     "tslog": "^4.9.3"
   }
 }
