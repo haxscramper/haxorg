@@ -8,5 +8,6 @@ await esbuild.build({
   platform : "node",
   target : "node16",
   format : "cjs",
-  external : [ "electron" ]
+  external : [ "electron" ],
+  sourcemap : true,
 });

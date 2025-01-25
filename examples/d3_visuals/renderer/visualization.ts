@@ -1,5 +1,9 @@
 // src/renderer/visualization.ts
+import {execSync} from "child_process";
 import * as d3 from "d3";
+import * as fs from "fs";
+import SVGPathCommander from "svg-path-commander";
+import {BaseLogger} from "tslog";
 
 import * as org from "./org_data.ts";
 import {log} from "./org_logger.ts";
@@ -13,46 +17,34 @@ interface OrgTreeNode {
   idx: number;
 }
 
-interface OrgHierarchyNode extends d3.HierarchyNode<OrgTreeNode> {
-  // d3.hierarchy returns hierarchy node type, but there are extra fields not
-  // described in the shipped interface.
-  x0: number|undefined;
-  y0: number|undefined;
-}
-
+type OrgHierarchyNode      = d3.HierarchyNode<OrgTreeNode>;
 type OrgHierarchyPointNode = d3.HierarchyPointNode<OrgTreeNode>;
 
-// Set the dimensions and margins of the diagram
+function dump_html() {
+  const html: string = document.documentElement.outerHTML;
+  const fileName     = "/tmp/d3_js_output.html"
+  fs.writeFileSync(fileName, html, "utf-8");
+  try {
+    execSync(`tidy -q -m -i -w 120 --show-warnings no ${fileName}`);
+  } catch (e) {
+  }
+}
 
-// export class CircleVisualization {
-//   private svg: d3.Selection<SVGSVGElement, OrgTreeNode, HTMLElement, any>;
-//   private data: number[];
-
-//   constructor(containerId: string, width: number = 400, height: number =
-//   200) {
-//     this.data = Array.from({length : 5}, () => Math.random() * 100);
-
-//     this.svg = d3.select<SVGSVGElement, OrgTreeNode>(`#${containerId}`)
-//                    .append("svg")
-//                    .attr("width", width)
-//                    .attr("height", height);
-//   }
-
-//   render(): void {
-//     log.info("Render");
-//     tree_repr_test();
-//   }
-// }
+interface XYPoint {
+  x: number;
+  y: number;
+}
 
 export class CollapsibleTreeVisualizationConfig {
-  width: number = 1400;
-  height: number = 1600;
-  circle_radius: number = 5;
-  circle_label_spacing: number = 13;
+  width: number                    = 1400;
+  height: number                   = 1600;
+  circle_radius: number            = 5;
+  circle_label_spacing: number     = 13;
   layer_horizontal_spacing: number = 250;
-  circle_vertical_spacing: number = 12;
-  x_offset: number = 0;
-  y_offset: number = 0;
+  circle_vertical_spacing: number  = 12;
+  x_offset: number                 = 0;
+  y_offset?: number                = undefined;
+  link_width: number               = 2;
 };
 
 export class CollapsibleTreeVisualization {
@@ -66,20 +58,19 @@ export class CollapsibleTreeVisualization {
     this.root = d3.hierarchy(treeData,
                              function(d: OrgTreeNode) { return d.subtrees; }) as
                 OrgHierarchyNode;
-    console.log(this.root);
     this.root.each(CollapsibleTreeVisualization.initialDocumentVisibility);
     this.root.each(CollapsibleTreeVisualization.initialNodeVisibility);
-    this.update(this.root);
+    this.update();
   }
 
   async toTreeHierarchy(client: org.OrgClient,
                         id: org.ImmUniqId): Promise<OrgTreeNode|null> {
-    if (id.id.format.startsWith("Subtree") ||
-        id.id.format.startsWith("Document")) {
+    if (id.id.format.startsWith("Subtree")
+        || id.id.format.startsWith("Document")) {
       var result: OrgTreeNode = {
         id : id,
         subtrees : Array(),
-        visibility : "all",
+        visibility : "showall",
         name : await client.getCleanSubtreeTitle({id : id}),
         idx : 0,
       };
@@ -87,7 +78,7 @@ export class CollapsibleTreeVisualization {
       const size: number = await client.getSize({id : id});
 
       for (var idx = 0; idx < size; ++idx) {
-        const subnode = await client.getSubnodeAt({id : id, index : idx});
+        const subnode       = await client.getSubnodeAt({id : id, index : idx});
         const sub_hierarchy = await this.toTreeHierarchy(client, subnode);
         if (sub_hierarchy) {
           result.subtrees.push(sub_hierarchy);
@@ -104,30 +95,27 @@ export class CollapsibleTreeVisualization {
     const ws = new WebSocket("ws://localhost:8089");
 
     // Wait for connection
-    await new Promise<void>(resolve =>
-                                ws.addEventListener("open", () => resolve()));
+    await new Promise<void>(
+        resolve => ws.addEventListener("open", () => resolve()));
 
     const client = org.createWebSocketClient(ws);
     client.setExceptionHandler({handler : true});
 
     await client.setRootFile({path : "/home/haxscramper/tmp/org_trivial.org"});
 
-    const root = await client.getRoot({});
-    log.info(`root: ${JSON.stringify(root)}`);
-
-    // await treeRepr(client, root, 0);
-    log.info("done");
-
-    const hierarchy = await this.toTreeHierarchy(client, root);
+    const root                   = await client.getRoot({});
+    const              hierarchy = await this.toTreeHierarchy(client, root);
 
     if (hierarchy) {
-      console.log(hierarchy);
       this.onLoadAll(hierarchy);
     }
   }
 
   constructor(containerId: string, conf: CollapsibleTreeVisualizationConfig) {
     this.conf = conf;
+    if (!this.conf.y_offset) {
+      this.conf.y_offset = this.conf.height / 2;
+    }
     // append the svg object to the body of the page
     // appends a 'group' element to 'svg'
     // moves the 'group' element to the top left margin
@@ -159,19 +147,53 @@ export class CollapsibleTreeVisualization {
   }
 
   // Creates a curved (diagonal) path from parent to the child nodes
-  diagonal(s, d: OrgHierarchyNode) {
-    var path = `M ${s.y} ${s.x} C ${(s.y + d.y) / 2} ${s.x}, ${
-        (s.y + d.y) / 2} ${d.x}, ${d.y} ${d.x}`;
-    return path
+  diagonal(s: XYPoint, d: XYPoint): string {
+    const path = d3.path();
+
+    // Control points for the bezier curve
+    const controlPointX1 = s.y + (d.y - s.y) / 3;
+    const controlPointX2 = d.y - (d.y - s.y) / 3;
+
+    // Calculate the direction of the curve (vector from start to end)
+    const deltaX = d.x - s.x;
+    const deltaY = d.y - s.y;
+    const length = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+    if (length === 0) {
+      return "";
+    } else {
+      // Calculate unit normal vector (perpendicular to the direction vector)
+      const normalX = (this.conf.link_width / 2) * (deltaY / length);
+      const normalY = (this.conf.link_width / 2) * (-deltaX / length);
+
+      // Move to the starting point, offset by the normal vector
+      path.moveTo(s.y + normalY, s.x + normalX);
+
+      // Draw upper part of the bezier curve with offset
+      path.bezierCurveTo(controlPointX1 + normalY, s.x + normalX,
+                         controlPointX2 + normalY, d.x + normalX, d.y + normalY,
+                         d.x + normalX);
+
+      // Draw the lower part of the bezier curve (reverse normal direction)
+      path.lineTo(d.y - normalY, d.x - normalX);
+      path.bezierCurveTo(controlPointX2 - normalY, d.x - normalX,
+                         controlPointX1 - normalY, s.x - normalX, s.y - normalY,
+                         s.x - normalX);
+
+      // Close the path
+      path.closePath();
+
+      return path.toString();
+    }
   }
 
   static hideDirectSubnodes(d) {
     d._children = d.children;
-    d.children = null;
+    d.children  = null;
   }
 
   static showDirectSubnodes(d) {
-    d.children = d._children;
+    d.children  = d._children;
     d._children = null;
   }
 
@@ -192,26 +214,13 @@ export class CollapsibleTreeVisualization {
   }
 
   static initialNodeVisibility(d: OrgHierarchyNode) {
-    switch (d.data.visibility) {
-    case "folded":
+    const v = d.data.visibility;
+    if (v === "folded") {
       CollapsibleTreeVisualization.hideDirectSubnodes(d);
-      break;
-    case "children":
-      // No-op, since direct children are initially visible
-      break;
-    case "content":
-      // Hide grandchildren
-      d.children &&
-          d.children.forEach(CollapsibleTreeVisualization.hideDirectSubnodes);
-      break;
-    case "all":
-      // No-op, since all nodes are initially visible
-      break;
-    case undefined:
-      break;
-    default:
-      console.warn(`Unknown visibility option "${d.data.visibility}"`);
-      break;
+    } else if (v === "content") {
+      d.children
+          && d.children.forEach(
+              CollapsibleTreeVisualization.hideDirectSubnodes);
     }
   }
 
@@ -258,22 +267,28 @@ export class CollapsibleTreeVisualization {
   }
 
   // Toggle children on click.
-  click(d: OrgHierarchyNode) {
-    log.info(`Click on node ${d.data.id}`)
-        // if (d3.event.shiftKey) {
-        // closeSameLevelNodes(d);
-        // } else {
-        this.toggleNode(d);
+  click(d: OrgHierarchyPointNode) {
+    // if (d3.event.shiftKey) {
+    // closeSameLevelNodes(d);
+    // } else {
+    this.toggleNode(d);
     // }
-    this.update(d);
+    this.update();
   }
 
-  update(source: OrgHierarchyNode) {
+  update() {
     // Assigns the x and y position for the nodes
     var treeData = this.treemap(this.root);
     // Compute the new tree layout.
     var nodes = treeData.descendants();
     var links = treeData.descendants().slice(1);
+    {
+      const minY       = d3.min(treeData.descendants(), d => d.y) ?? 0;
+      const maxY       = d3.max(treeData.descendants(), d => d.y) ?? 0;
+      const treeHeight = maxY - minY;
+      const yOffset    = (this.conf.height - treeHeight) / 2 - minY;
+      treeData.descendants().forEach(node => { node.y += yOffset; });
+    }
 
     // Normalize for fixed-depth.
     nodes.forEach((d) => {d.y = d.depth * this.conf.layer_horizontal_spacing});
@@ -282,13 +297,11 @@ export class CollapsibleTreeVisualization {
 
     var i = 0;
     // Update the nodes...
-    var node =
-        this.svg.selectAll<d3.BaseType, OrgHierarchyPointNode>("g.node").data(
+    var node
+        = this.svg.selectAll<d3.BaseType, OrgHierarchyPointNode>("g.node").data(
             nodes, function(this: d3.BaseType, d: OrgHierarchyPointNode) {
               return d.data.idx || (d.data.idx = ++i);
             });
-
-    console.log(nodes);
 
     // Enter any new modes at the parent's previous position.
     var nodeEnter //
@@ -297,17 +310,17 @@ export class CollapsibleTreeVisualization {
               .attr("class", "node")
               .attr("transform",
                     (d: OrgHierarchyPointNode) => {
-                      return "translate(" + this.conf.x_offset + "," +
-                             this.conf.y_offset + ")";
+                      return "translate(" + d.y + "," + d.x + ")";
                     })
-              .on("click", this.click);
+              .on("click",
+                  (event: any, d: OrgHierarchyPointNode) => { this.click(d); });
 
     // Add Circle for the nodes
     nodeEnter.append("circle")
         .attr("class", "node")
         .attr("r", 1e-6)
         .style("fill", function(d: OrgHierarchyPointNode) {
-          return d.data.tmp_children ? "lightsteelblue" : "#fff";
+          return d.data.tmp_children ? "lightsteelblue" : "cyan";
         });
 
     // Add labels for the nodes
@@ -323,13 +336,13 @@ export class CollapsibleTreeVisualization {
 
     // UPDATE
     var nodeUpdate = nodeEnter.merge(node);
-
     // Transition to the proper position for the node
-    nodeUpdate
-        .transition()
+    nodeUpdate.transition()
+        .on("end", dump_html)
         // .duration(duration)
-        .attr("transform",
-              function(d) { return "translate(" + d.y + "," + d.x + ")"; });
+        .attr("transform", (d: OrgHierarchyPointNode) => {
+          return "translate(" + d.y + "," + d.x + ")";
+        });
 
     // Update the node attributes and style
     nodeUpdate.select("circle.node")
@@ -337,20 +350,21 @@ export class CollapsibleTreeVisualization {
         .style("fill", function(this: d3.BaseType, d: OrgHierarchyPointNode):
                            string {
                              return d.data.tmp_children ? "lightsteelblue"
-                                                        : "#fff";
+                                                        : "cyan";
                            })
         .attr("cursor", "pointer");
 
     // Remove any exiting nodes
     var nodeExit //
-        = node.exit()
+        = node.exit<OrgHierarchyPointNode>()
               .transition()
+              .on("end", dump_html)
               // .duration(duration)
-              .attr("transform",
-                    function(this: d3.BaseType, d: OrgHierarchyPointNode):
-                        string {
-                          return "translate(" + source.y + "," + source.x + ")";
-                        })
+              .attr("transform", (d: OrgHierarchyPointNode):
+                                     string => {
+                                       return "translate(" + this.conf.y_offset
+                                              + "," + this.conf.x_offset + ")";
+                                     })
               .remove();
 
     // On exit reduce the node circles size to 0
@@ -362,45 +376,51 @@ export class CollapsibleTreeVisualization {
     // ****************** links section ***************************
 
     // Update the links...
-    var link = this.svg.selectAll("path.link")
-                   .data(links, function(d: OrgHierarchyNode) { return d.id; });
+    var link
+        = this.svg.selectAll<d3.BaseType, OrgHierarchyPointNode>("path.link")
+              .data(links, function(this: d3.BaseType,
+                                    d: OrgHierarchyNode) { return d.id; });
 
     // Enter any new links at the parent's previous position.
-    var linkEnter =
-        link.enter()
-            .insert("path", "g")
-            .attr("class", "link")
-            .attr("d", (d: OrgHierarchyNode) => {
-              var o = {x : this.conf.x_offset, y : this.conf.y_offset};
-              return this.diagonal(o, o);
-            });
+    var linkEnter
+        = link.enter()
+              .insert("path", "g")
+              .attr("class", "link")
+              .attr("d", (d: OrgHierarchyNode) => {
+                var o = {x : this.conf.x_offset, y : this.conf.y_offset!};
+                return this.diagonal(o, o);
+              });
 
     // UPDATE
     var linkUpdate = linkEnter.merge(link);
 
     // Transition back to the parent element position
-    linkUpdate
-        .transition()
+    linkUpdate.transition()
+        .on("end", dump_html)
         // .duration(duration)
-        .attr("d",
-              (d: OrgHierarchyNode) => {return this.diagonal(d, d.parent)});
+        .attr("d", (d: OrgHierarchyNode) => {return this.diagonal(
+                       d as XYPoint, d.parent as XYPoint)});
 
     // Remove any exiting links
-    var linkExit = link.exit()
-                       .transition()
-                       //  .duration(duration)
-                       .attr("d",
-                             (d: OrgHierarchyNode) => {
-                               var o = {x : source.x, y : source.y};
-                               return this.diagonal(o, o);
-                             })
-                       .remove();
+    var linkExit
+        = link.exit()
+              .transition()
+              .on("end", dump_html)
+              //  .duration(duration)
+              .attr("d",
+                    (d: OrgHierarchyNode) => {
+                      var o = {x : this.conf.x_offset, y : this.conf.y_offset!};
+                      return this.diagonal(o, o);
+                    })
+              .remove();
 
-    // Store the old positions for transition.
-    nodes.forEach(function(d: OrgHierarchyNode) {
-      d.x0 = d.x;
-      d.y0 = d.y;
-    });
+    // // Store the old positions for transition.
+    // nodes.forEach(function(d: OrgHierarchyNode) {
+    //   d.x0 = d.x;
+    //   d.y0 = d.y;
+    // });
+
+    dump_html();
   }
 }
 
@@ -411,6 +431,6 @@ async function treeRepr(client: org.OrgClient, id: org.ImmUniqId,
   const size: number = await client.getSize({id : id});
   for (var idx = 0; idx < size; ++idx) {
     const subnode = await client.getSubnodeAt({id : id, index : idx});
-    await treeRepr(client, subnode, depth + 1);
+    await                 treeRepr(client, subnode, depth + 1);
   }
 }

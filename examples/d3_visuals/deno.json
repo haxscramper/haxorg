@@ -16,9 +16,6 @@
       "dom.iterable",
       "esnext"
     ],
-    "strict": true,
-    "sourceMap": true,
-    "inlineSourceMap": false,
-    "inlineSources": true
+    "strict": true
   }
 }
