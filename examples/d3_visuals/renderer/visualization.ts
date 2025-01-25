@@ -6,7 +6,7 @@ import {log} from "./org_logger.ts";
 
 // Set the dimensions and margins of the diagram
 const margin = {
-  top : 1200,
+  top : 0,
   right : 90,
   bottom : 30,
   left : 90
@@ -23,16 +23,25 @@ var i = 0;
 var duration = 750;
 
 interface OrgTreeNode {
+  id: org.ImmUniqId;
   subtrees: OrgTreeNode[];
   visibility: string;
+  tmp_children?: OrgHierarchyNode[];
 }
 
-type OrgHierarchyNode = d3.HierarchyNode<OrgTreeNode>;
+interface OrgHierarchyNode extends d3.HierarchyNode<OrgTreeNode> {
+  // d3.hierarchy returns hierarchy node type, but there are extra fields not
+  // described in the shipped interface.
+  x0: number|undefined;
+  y0: number|undefined;
+}
+
+type OrgHierarchyPointNode = d3.HierarchyPointNode<OrgTreeNode>;
 
 var root: OrgHierarchyNode;
 
 function initialNodeVisibility(d: OrgHierarchyNode) {
-  switch (d.visibility) {
+  switch (d.data.visibility) {
   case "folded":
     hideDirectSubnodes(d);
     break;
@@ -49,13 +58,13 @@ function initialNodeVisibility(d: OrgHierarchyNode) {
   case undefined:
     break;
   default:
-    console.warn(`Unknown visibility option "${d.visibility}"`);
+    console.warn(`Unknown visibility option "${d.data.visibility}"`);
     break;
   }
 }
 
 function initialDocumentVisibility(d: OrgHierarchyNode) {
-  switch (d.visibility) {
+  switch (d.data.visibility) {
   case "overview":
     // Show only the root (first-level nodes)
     if (d.depth > 1)
@@ -91,22 +100,22 @@ function initialDocumentVisibility(d: OrgHierarchyNode) {
   case undefined:
     break;
   default:
-    console.warn(`Unknown visibility option "${d.visibility}"`);
+    console.warn(`Unknown visibility option "${d.data.visibility}"`);
     break;
   }
 }
 
 // Collapse the node and all it's children
-function collapse(d: OrgTreeNode) {
+function collapse(d: OrgHierarchyNode) {
   if (d.children) {
-    d._children = d.children
-    d._children.forEach(collapse)
-    d.children = null
+    d.data.tmp_children = d.children;
+    d.data.tmp_children.forEach(collapse);
+    d.children = undefined;
   }
 }
 
 // Creates a curved (diagonal) path from parent to the child nodes
-function diagonal(s, d: OrgTreeNode) {
+function diagonal(s, d: OrgHierarchyNode) {
   var path = `M ${s.y} ${s.x} C ${(s.y + d.y) / 2} ${s.x}, ${(s.y + d.y) / 2} ${
       d.x}, ${d.y} ${d.x}`;
   return path
@@ -139,7 +148,8 @@ function closeSameLevelNodes(targetNode) {
 }
 
 // Toggle children on click.
-function click(d) {
+function click(d: OrgHierarchyNode) {
+  log.info(`Click on node ${d.data.id}`)
   // if (d3.event.shiftKey) {
   // closeSameLevelNodes(d);
   // } else {
@@ -148,10 +158,13 @@ function click(d) {
   update(d);
 }
 
-function update(source) {
+class CollapsibleTree {
+  
+}
+
+function update(source: OrgHierarchyNode) {
   // Assigns the x and y position for the nodes
   var treeData = treemap(root);
-
   // Compute the new tree layout.
   var nodes = treeData.descendants();
   var links = treeData.descendants().slice(1);
@@ -163,7 +176,7 @@ function update(source) {
 
   // Update the nodes...
   var node = svg.selectAll("g.node").data(
-      nodes, function(d: OrgTreeNode) { return d.id || (d.id = ++i); });
+      nodes, function(d: OrgHierarchyNode) { return d.id || (d.id = ++i); });
 
   // Enter any new modes at the parent's previous position.
   var nodeEnter =
@@ -171,7 +184,7 @@ function update(source) {
           .append("g")
           .attr("class", "node")
           .attr("transform",
-                function(d) {
+                function(d: OrgHierarchyPointNode) {
                   return "translate(" + source.y0 + "," + source.x0 + ")";
                 })
           .on("click", click);
@@ -205,8 +218,8 @@ function update(source) {
   nodeUpdate.select("circle.node")
       .attr("r", circle_radius)
       .style("fill",
-             function(d: OrgTreeNode) {
-               return d._children ? "lightsteelblue" : "#fff";
+             function(d: OrgHierarchyNode) {
+               return d.data.tmp_children ? "lightsteelblue" : "#fff";
              })
       .attr("cursor", "pointer");
 
@@ -216,7 +229,7 @@ function update(source) {
           .transition()
           // .duration(duration)
           .attr("transform",
-                function(d: OrgTreeNode) {
+                function(d: OrgHierarchyNode) {
                   return "translate(" + source.y + "," + source.x + ")";
                 })
           .remove();
@@ -231,13 +244,13 @@ function update(source) {
 
   // Update the links...
   var link = svg.selectAll("path.link")
-                 .data(links, function(d: OrgTreeNode) { return d.id; });
+                 .data(links, function(d: OrgHierarchyNode) { return d.id; });
 
   // Enter any new links at the parent's previous position.
   var linkEnter = link.enter()
                       .insert("path", "g")
                       .attr("class", "link")
-                      .attr("d", function(d: OrgTreeNode) {
+                      .attr("d", function(d: OrgHierarchyNode) {
                         var o = {x : source.x0, y : source.y0};
                         return diagonal(o, o);
                       });
@@ -249,21 +262,22 @@ function update(source) {
   linkUpdate
       .transition()
       // .duration(duration)
-      .attr("d", function(d: OrgTreeNode) { return diagonal(d, d.parent) });
+      .attr("d",
+            function(d: OrgHierarchyNode) { return diagonal(d, d.parent) });
 
   // Remove any exiting links
   var linkExit = link.exit()
                      .transition()
                      //  .duration(duration)
                      .attr("d",
-                           function(d: OrgTreeNode) {
+                           function(d: OrgHierarchyNode) {
                              var o = {x : source.x, y : source.y};
                              return diagonal(o, o);
                            })
                      .remove();
 
   // Store the old positions for transition.
-  nodes.forEach(function(d: OrgTreeNode) {
+  nodes.forEach(function(d: OrgHierarchyNode) {
     d.x0 = d.x;
     d.y0 = d.y;
   });
@@ -281,7 +295,7 @@ var svg =
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 // declares a tree layout and assigns the size
-var treemap = d3.tree()
+var treemap = d3.tree<OrgTreeNode>()
                   .size([
                     height,
                     width,
@@ -291,10 +305,12 @@ var treemap = d3.tree()
                     layer_horizontal_spacing,
                   ]);
 
-function onLoadAll(treeData) {
+function onLoadAll(treeData: OrgTreeNode) {
   // Assigns parent, children, height, depth
   root =
-      d3.hierarchy(treeData, function(d: OrgTreeNode) { return d.subtrees; });
+      d3.hierarchy(treeData, function(d: OrgTreeNode) { return d.subtrees; }) as
+      OrgHierarchyNode;
+  console.log(root);
   root.x0 = height / 2;
   root.y0 = 0;
 
@@ -309,8 +325,34 @@ async function treeRepr(client: org.OrgClient, id: org.ImmUniqId,
 
   const size: number = await client.getSize({id : id});
   for (var idx = 0; idx < size; ++idx) {
-    const subnode = await client.getSubnodeAt({id : id, index : idx})
-                        await treeRepr(client, subnode, depth + 1);
+    const subnode = await client.getSubnodeAt({id : id, index : idx});
+    await treeRepr(client, subnode, depth + 1);
+  }
+}
+
+async function toTreeHierarchy(client: org.OrgClient,
+                               id: org.ImmUniqId): Promise<OrgTreeNode|null> {
+  if (id.id.format.startsWith("Subtree") ||
+      id.id.format.startsWith("Document")) {
+    var result: OrgTreeNode = {
+      id : id,
+      subtrees : Array(),
+      visibility : "all",
+    };
+
+    const size: number = await client.getSize({id : id});
+
+    for (var idx = 0; idx < size; ++idx) {
+      const subnode = await client.getSubnodeAt({id : id, index : idx});
+      const sub_hierarchy = await toTreeHierarchy(client, subnode);
+      if (sub_hierarchy) {
+        result.subtrees.push(sub_hierarchy);
+      }
+    }
+
+    return result;
+  } else {
+    return null;
   }
 }
 
@@ -329,8 +371,14 @@ async function tree_repr_test() {
   const root = await client.getRoot({});
   log.info(`root: ${JSON.stringify(root)}`);
 
-  await treeRepr(client, root, 0);
+  // await treeRepr(client, root, 0);
   log.info("done");
+
+  const hierarchy = await toTreeHierarchy(client, root);
+
+  if (hierarchy) {
+    onLoadAll(hierarchy);
+  }
 }
 
 export class CircleVisualization {
@@ -349,19 +397,5 @@ export class CircleVisualization {
   render(): void {
     log.info("Render");
     tree_repr_test();
-    this.svg.selectAll("circle")
-        .data(this.data)
-        .join("circle")
-        .attr("cx", (d: number, i: number) => i * 80 + 40)
-        .attr("cy", 100)
-        .attr("r", (d: number) => d / 4)
-        .style("fill", "steelblue")
-        .on("mouseover",
-            function(this: SVGCircleElement) {
-              d3.select(this).transition().duration(200).style("fill", "red");
-            })
-        .on("mouseout", function(this: SVGCircleElement) {
-          d3.select(this).transition().duration(200).style("fill", "steelblue");
-        });
   }
 }

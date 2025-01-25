@@ -23,7 +23,22 @@ export interface ServiceDefinition {
 // Helper type for tuple to union conversion
 type TupleToUnion<T extends readonly any[]> = T[number];
 
-export interface ImmUniqId {}
+export interface ImmId {
+  format: string;
+  number: number;
+}
+
+export interface ImmReflPathStep {}
+
+export interface ImmReflPath {
+  path: ImmReflPathStep[];
+  root: ImmId;
+}
+
+export interface ImmUniqId {
+  id: ImmId;
+  path: ImmReflPath;
+}
 
 // Improved type inference helpers
 export type InferParamType<T extends string> =
