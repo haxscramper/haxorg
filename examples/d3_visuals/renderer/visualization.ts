@@ -9,6 +9,8 @@ interface OrgTreeNode {
   subtrees: OrgTreeNode[];
   visibility: string;
   tmp_children?: OrgHierarchyNode[];
+  name: string;
+  idx: number;
 }
 
 interface OrgHierarchyNode extends d3.HierarchyNode<OrgTreeNode> {
@@ -21,22 +23,6 @@ interface OrgHierarchyNode extends d3.HierarchyNode<OrgTreeNode> {
 type OrgHierarchyPointNode = d3.HierarchyPointNode<OrgTreeNode>;
 
 // Set the dimensions and margins of the diagram
-const margin = {
-  top : 0,
-  right : 90,
-  bottom : 30,
-  left : 90
-};
-
-const width = 1400 - margin.left - margin.right;
-const height = 1600 - margin.top - margin.bottom;
-const circle_radius = 5;
-const circle_label_spacing = 13;
-const layer_horizontal_spacing = 250;
-const circle_vertical_spacing = 12;
-
-var i = 0;
-var duration = 750;
 
 // export class CircleVisualization {
 //   private svg: d3.Selection<SVGSVGElement, OrgTreeNode, HTMLElement, any>;
@@ -58,10 +44,22 @@ var duration = 750;
 //   }
 // }
 
+export class CollapsibleTreeVisualizationConfig {
+  width: number = 1400;
+  height: number = 1600;
+  circle_radius: number = 5;
+  circle_label_spacing: number = 13;
+  layer_horizontal_spacing: number = 250;
+  circle_vertical_spacing: number = 12;
+  x_offset: number = 0;
+  y_offset: number = 0;
+};
+
 export class CollapsibleTreeVisualization {
   svg: d3.Selection<SVGGElement, OrgTreeNode, HTMLElement, any>;
   treemap: d3.TreeLayout<OrgTreeNode>;
   root: OrgHierarchyNode;
+  conf: CollapsibleTreeVisualizationConfig;
 
   onLoadAll(treeData: OrgTreeNode) {
     // Assigns parent, children, height, depth
@@ -69,9 +67,6 @@ export class CollapsibleTreeVisualization {
                              function(d: OrgTreeNode) { return d.subtrees; }) as
                 OrgHierarchyNode;
     console.log(this.root);
-    this.root.x0 = height / 2;
-    this.root.y0 = 0;
-
     this.root.each(CollapsibleTreeVisualization.initialDocumentVisibility);
     this.root.each(CollapsibleTreeVisualization.initialNodeVisibility);
     this.update(this.root);
@@ -85,6 +80,8 @@ export class CollapsibleTreeVisualization {
         id : id,
         subtrees : Array(),
         visibility : "all",
+        name : await client.getCleanSubtreeTitle({id : id}),
+        idx : 0,
       };
 
       const size: number = await client.getSize({id : id});
@@ -124,31 +121,31 @@ export class CollapsibleTreeVisualization {
     const hierarchy = await this.toTreeHierarchy(client, root);
 
     if (hierarchy) {
+      console.log(hierarchy);
       this.onLoadAll(hierarchy);
     }
   }
 
-  constructor(containerId: string, width: number = 400, height: number = 200) {
+  constructor(containerId: string, conf: CollapsibleTreeVisualizationConfig) {
+    this.conf = conf;
     // append the svg object to the body of the page
     // appends a 'group' element to 'svg'
     // moves the 'group' element to the top left margin
-    this.svg = d3.select<SVGSVGElement, OrgTreeNode>(containerId)
+    this.svg = d3.select<SVGSVGElement, OrgTreeNode>(`#${containerId}`)
                    .append("svg")
-                   .attr("width", width + margin.right + margin.left)
-                   .attr("height", height + margin.top + margin.bottom)
-                   .append("g")
-                   .attr("transform",
-                         "translate(" + margin.left + "," + margin.top + ")");
+                   .attr("width", this.conf.width)
+                   .attr("height", this.conf.height)
+                   .append("g");
 
     // declares a tree layout and assigns the size
     this.treemap = d3.tree<OrgTreeNode>()
                        .size([
-                         height,
-                         width,
+                         this.conf.height,
+                         this.conf.width,
                        ])
                        .nodeSize([
-                         circle_vertical_spacing,
-                         layer_horizontal_spacing,
+                         this.conf.circle_vertical_spacing,
+                         this.conf.layer_horizontal_spacing,
                        ]);
   }
 
@@ -279,41 +276,50 @@ export class CollapsibleTreeVisualization {
     var links = treeData.descendants().slice(1);
 
     // Normalize for fixed-depth.
-    nodes.forEach(function(d) { d.y = d.depth * layer_horizontal_spacing });
+    nodes.forEach((d) => {d.y = d.depth * this.conf.layer_horizontal_spacing});
 
     // ****************** Nodes section ***************************
 
+    var i = 0;
     // Update the nodes...
-    var node = this.svg.selectAll("g.node").data(
-        nodes,
-        function(this: d3.BaseType,
-                 d: OrgHierarchyPointNode) { return d.id || (d.id = ++i); });
+    var node =
+        this.svg.selectAll<d3.BaseType, OrgHierarchyPointNode>("g.node").data(
+            nodes, function(this: d3.BaseType, d: OrgHierarchyPointNode) {
+              return d.data.idx || (d.data.idx = ++i);
+            });
+
+    console.log(nodes);
 
     // Enter any new modes at the parent's previous position.
-    var nodeEnter =
-        node.enter()
-            .append("g")
-            .attr("class", "node")
-            .attr("transform",
-                  function(d: OrgHierarchyPointNode) {
-                    return "translate(" + source.y0 + "," + source.x0 + ")";
-                  })
-            .on("click", this.click);
+    var nodeEnter //
+        = node.enter()
+              .append("g")
+              .attr("class", "node")
+              .attr("transform",
+                    (d: OrgHierarchyPointNode) => {
+                      return "translate(" + this.conf.x_offset + "," +
+                             this.conf.y_offset + ")";
+                    })
+              .on("click", this.click);
 
     // Add Circle for the nodes
     nodeEnter.append("circle")
         .attr("class", "node")
         .attr("r", 1e-6)
-        .style("fill", function(d: OrgTreeNode) {
-          return d._children ? "lightsteelblue" : "#fff";
+        .style("fill", function(d: OrgHierarchyPointNode) {
+          return d.data.tmp_children ? "lightsteelblue" : "#fff";
         });
 
     // Add labels for the nodes
     nodeEnter.append("text")
         .attr("dy", ".35em")
-        .attr("x", function(d) { return circle_label_spacing; })
+        .attr("x",
+              (d: OrgHierarchyPointNode) => {
+                return this.conf.circle_label_spacing;
+              })
         .attr("text-anchor", function(d) { return "start"; })
-        .text(function(d: OrgTreeNode) { return d.data.name; });
+        .text(function(this: SVGTextElement,
+                       d: OrgHierarchyPointNode) { return d.data.name; });
 
     // UPDATE
     var nodeUpdate = nodeEnter.merge(node);
@@ -327,7 +333,7 @@ export class CollapsibleTreeVisualization {
 
     // Update the node attributes and style
     nodeUpdate.select("circle.node")
-        .attr("r", circle_radius)
+        .attr("r", this.conf.circle_radius)
         .style("fill", function(this: d3.BaseType, d: OrgHierarchyPointNode):
                            string {
                              return d.data.tmp_children ? "lightsteelblue"
@@ -360,13 +366,14 @@ export class CollapsibleTreeVisualization {
                    .data(links, function(d: OrgHierarchyNode) { return d.id; });
 
     // Enter any new links at the parent's previous position.
-    var linkEnter = link.enter()
-                        .insert("path", "g")
-                        .attr("class", "link")
-                        .attr("d", (d: OrgHierarchyNode) => {
-                          var o = {x : source.x0, y : source.y0};
-                          return this.diagonal(o, o);
-                        });
+    var linkEnter =
+        link.enter()
+            .insert("path", "g")
+            .attr("class", "link")
+            .attr("d", (d: OrgHierarchyNode) => {
+              var o = {x : this.conf.x_offset, y : this.conf.y_offset};
+              return this.diagonal(o, o);
+            });
 
     // UPDATE
     var linkUpdate = linkEnter.merge(link);

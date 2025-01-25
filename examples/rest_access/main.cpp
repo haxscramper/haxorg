@@ -533,6 +533,16 @@ struct RestHandlerContext {
         return state->ctx->adapt(id).getKind();
     }
 
+    std::string getCleanSubtreeTitle(org::ImmUniqId const& id) const {
+        if (id.id.is(OrgSemKind::Subtree)) {
+            return state->ctx->adapt(id)
+                .as<org::ImmSubtree>()
+                .getCleanTitle();
+        } else {
+            return "";
+        }
+    }
+
     org::ImmUniqId getSubnodeAt(org::ImmUniqId const& id, int index)
         const {
         return state->ctx->adapt(id).at(index).uniq();
@@ -1222,6 +1232,7 @@ int main(int argc, char** argv) {
         _ctx_method(setRootText, arg("text"));
         _ctx_method(setRootFile, arg("path"));
         _ctx_method(getKind, arg("id"));
+        _ctx_method(getCleanSubtreeTitle, arg("id"));
         _ctx_method(getSubnodeAt, arg("id"), arg("index"));
         _ctx_method(getSize, arg("id"));
         _ctx_method(setExceptionHandler, arg("handler"));

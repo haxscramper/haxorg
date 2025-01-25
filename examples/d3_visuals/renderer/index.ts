@@ -1,6 +1,11 @@
-import {CollapsibleTreeVisualization} from "./visualization";
+import {
+  CollapsibleTreeVisualization,
+  CollapsibleTreeVisualizationConfig
+} from "./visualization";
 
 window.addEventListener("DOMContentLoaded", () => {
-  const viz = new CollapsibleTreeVisualization("visualization");
-  viz.render();
+  var conf = new CollapsibleTreeVisualizationConfig();
+  conf.circle_vertical_spacing = 30;
+  const viz = new CollapsibleTreeVisualization("visualization", conf);
+  viz.render_tree_repr();
 });
