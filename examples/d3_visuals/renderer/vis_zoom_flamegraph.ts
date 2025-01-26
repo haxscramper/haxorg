@@ -103,6 +103,15 @@ export class ZoomFlamegraphVisualizationConfig {
   }
 }
 
+class ZoomUpdateState {
+  tooltip: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
+  x_domain: d3.ScaleTime<number, number, never>;
+  brush_x_domain: d3.ScaleTime<number, number, never>;
+  brush_y_domain: d3.ScaleLinear<number, number, never>;
+  y_domain: d3.ScaleBand<string>;
+  area: d3.Selection<SVGGElement, ZoomDatum, HTMLElement, any>;
+}
+
 export class ZoomFlamegraphVisualization {
   svg: d3.Selection<SVGSVGElement, ZoomDatum, HTMLElement, any>;
 
@@ -112,6 +121,8 @@ export class ZoomFlamegraphVisualization {
   event_selector: string = ".event_rectangle";
   gantt?: Gantt;
   conf: ZoomFlamegraphVisualizationConfig
+
+  state: ZoomUpdateState;
 
   convertTimeline(data: Gantt): ZoomDatum[] {
     function flatten(data) {
@@ -147,26 +158,20 @@ export class ZoomFlamegraphVisualization {
                     .attr("width", this.conf.width);
   }
 
-  rescaleForTransform(
-      x: d3.ScaleTime<number, number, never>,
-      y: d3.ScaleBand<string>,
-      area: d3.Selection<SVGGElement, ZoomDatum, HTMLElement, any>,
-  ) {
-    area.selectAll(this.event_selector)
+  rescaleForTransform() {
+    this.state.area
+        .selectAll(this.event_selector)
         // @ts-ignore
-        .attr("transform", (d: ZoomDatum) => this.rectTransform(d, x, y));
-    area.selectAll(this.event_selector)
+        .attr("transform", (d: ZoomDatum) => this.rectTransform(d));
+    this.state.area.selectAll(this.event_selector)
         .attr("width",
               // @ts-ignore
-              (d: ZoomDatum) => {return (x(d.enddate) - x(d.startdate))})
+              (d: ZoomDatum) => {return (this.state.x_domain(d.enddate)
+                                         - this.state.x_domain(d.startdate))})
   }
 
   zoomed(
       e: any,
-      x: d3.ScaleTime<number, number, never>,
-      y: d3.ScaleBand<string>,
-      brush_x_domain: d3.ScaleTime<number, number, never>,
-      area: d3.Selection<SVGGElement, ZoomDatum, HTMLElement, any>,
       focus: d3.Selection<SVGGElement, ZoomDatum, HTMLElement, any>,
       xAxis: any,
       context: d3.Selection<SVGGElement, ZoomDatum, HTMLElement, any>,
@@ -184,13 +189,14 @@ export class ZoomFlamegraphVisualization {
     localStorage.setItem("translateX", t.x);
     localStorage.setItem("translateY", t.y);
 
-    x.domain(t.rescaleX(brush_x_domain).domain());
-    this.rescaleForTransform(x, y, area);
+    this.state.x_domain.domain(t.rescaleX(this.state.brush_x_domain).domain());
+    this.rescaleForTransform();
 
     focus.select(".axis--x").call(xAxis);
     this.programmaticBrush = true;
-    // @ts-ignore
-    context.select(".brush").call(brush.move, x.range().map(t.invertX, t));
+    context.select(".brush").call(
+        // @ts-ignore
+        brush.move, this.state.x_domain.range().map(t.invertX, t));
   }
 
   async get_gantt(client: org.OrgClient, root: org.ImmUniqId): Promise<Gantt> {
@@ -226,18 +232,13 @@ export class ZoomFlamegraphVisualization {
 
   rectTransform(
       d: ZoomDatum,
-      x: d3.ScaleTime<number, number, never>,
-      y: d3.ScaleBand<string>,
   ) {
-    return "translate(" + x(d.startdate).toFixed(3) + "," + y(d.type) + ")";
+    return "translate(" + this.state.x_domain(d.startdate).toFixed(3) + ","
+           + this.state.y_domain(d.type) + ")";
   };
 
   brushed(
       event: any,
-      x_domain: d3.ScaleTime<number, number, never>,
-      y_domain: d3.ScaleBand<string>,
-      area: d3.Selection<SVGGElement, ZoomDatum, HTMLElement, any>,
-      brush_x_domain: d3.ScaleTime<number, number, never>,
       zoom: d3.ZoomBehavior<Element, ZoomDatum>,
       xAxis: d3.Axis<Date|d3.NumberValue>,
       focus: d3.Selection<SVGGElement, ZoomDatum, HTMLElement, any>,
@@ -246,10 +247,11 @@ export class ZoomFlamegraphVisualization {
       this.programmaticBrush = false;
       return;
     } else {
-      var s = event.selection || brush_x_domain.range();
+      var s = event.selection || this.state.brush_x_domain.range();
 
-      x_domain.domain(s.map(brush_x_domain.invert, brush_x_domain));
-      this.rescaleForTransform(x_domain, y_domain, area);
+      this.state.x_domain.domain(
+          s.map(this.state.brush_x_domain.invert, this.state.brush_x_domain));
+      this.rescaleForTransform();
 
       // focus.select(".focus").attr("d", focus);
       // @ts-ignore
@@ -266,23 +268,17 @@ export class ZoomFlamegraphVisualization {
     }
   }
 
-  update_event_rectangles(
-      area: d3.Selection<SVGGElement, ZoomDatum, HTMLElement, any>,
-      x_domain: d3.ScaleTime<number, number, never>,
-      y_domain: d3.ScaleBand<string>,
-      timeline: ZoomDatum[],
-  ) {
+  update_event_rectangles(timeline: ZoomDatum[]) {
 
     var keyFunction = function(d: ZoomDatum) { return d.startdate + d.type; };
 
     var event_rectangles
-        = area.selectAll(".event_rectangle")
+        = this.state.area.selectAll(".event_rectangle")
               .data(timeline, keyFunction)
               .enter()
               .append("g")
               .attr("class", "event_rectangle")
-              .attr("transform", (d: ZoomDatum) => this.rectTransform(
-                                     d, x_domain, y_domain));
+              .attr("transform", (d: ZoomDatum) => this.rectTransform(d));
 
     const rectOffset = (d) => { return d.index * this.conf.rect_size; }
 
@@ -296,12 +292,13 @@ export class ZoomFlamegraphVisualization {
 
         .attr("y", d => rectOffset(d))
         .attr("height", function(d) { return 10; })
-        .attr("width", (d: ZoomDatum) => {return (x_domain(d.enddate)
-                                                  - x_domain(d.startdate))})
+        .attr("width",
+              (d: ZoomDatum) => {return (this.state.x_domain(d.enddate)
+                                         - this.state.x_domain(d.startdate))})
         .style("fill", d => randomColor())
         .on("mouseover",
             (event: any, d: ZoomDatum) => {
-              tooltip.style("left", event.pageX + "px")
+              this.state.tooltip.style("left", event.pageX + "px")
                   .style("top", event.pageY + "px")
                   .style("display", "inline-block")
                   .html((d.name)
@@ -309,7 +306,7 @@ export class ZoomFlamegraphVisualization {
                         + "<br> to :" + d.enddate.toISOString().slice(0, 19));
             })
         .on("mouseout",
-            function(d: ZoomDatum) { tooltip.style("display", "none") });
+            (d: ZoomDatum) => {this.state.tooltip.style("display", "none")});
 
     const tail_offset = 3;
 
@@ -382,12 +379,14 @@ export class ZoomFlamegraphVisualization {
   }
 
   update() {
+    this.state     = new ZoomUpdateState();
     const timeline = this.convertTimeline(this.gantt!);
 
     // Define the div for the tooltip
-    var tooltip = d3.select("body").append("div").attr("class", "tooltip")
+    this.state.tooltip
+        = d3.select("body").append("div").attr("class", "tooltip");
 
-    var x_domain
+    this.state.x_domain
         = d3.scaleTime()
               .domain([
                 get_defined(d3.min(
@@ -397,12 +396,13 @@ export class ZoomFlamegraphVisualization {
               ])
               .range([ 0, this.conf.get_content_width() ]);
 
-    var brush_x_domain
+    this.state.brush_x_domain
         = d3.scaleTime().range([ 0, this.conf.get_brush_width() ]);
     // y = d3.scaleOrdinal().range([height, 0]),
-    var brush_y_domain = d3.scaleLinear().range([ this.conf.brush_height, 0 ]);
+    this.state.brush_y_domain
+        = d3.scaleLinear().range([ this.conf.brush_height, 0 ]);
 
-    var y_domain
+    this.state.y_domain
         = d3.scaleBand()
               .domain(timeline.map(function(entry) { return entry.type; }))
               .rangeRound([ this.conf.get_content_height(), 0 ]);
@@ -420,9 +420,9 @@ export class ZoomFlamegraphVisualization {
                     .attr("transform", "translate(" + this.conf.left_margin
                                            + "," + this.conf.top_margin + ")");
 
-    var xAxis  = d3.axisBottom(x_domain);
-    var xAxis2 = d3.axisBottom(brush_x_domain);
-    var yAxis  = d3.axisLeft(y_domain).tickSize(0);
+    var xAxis  = d3.axisBottom(this.state.x_domain);
+    var xAxis2 = d3.axisBottom(this.state.brush_x_domain);
+    var yAxis  = d3.axisLeft(this.state.y_domain).tickSize(0);
     var brush  = d3.brushX<ZoomDatum>()
                     .extent([
                       [ 0, 0 ],
@@ -430,34 +430,33 @@ export class ZoomFlamegraphVisualization {
                     ])
                     .on("brush end", (e: any, d: ZoomDatum) => this.brushed(
                                          e,
-                                         x_domain,
-                                         y_domain,
-                                         area,
-                                         brush_x_domain,
                                          zoom,
                                          xAxis,
                                          focus,
                                          ));
-    var zoom
-        = d3.zoom<Element, ZoomDatum>()
-              .scaleExtent([ 1, Infinity ])
-              .translateExtent([
-                [ 0, 0 ],
-                [
-                  this.conf.get_content_width(),
-                  this.conf.get_content_height(),
-                ]
-              ])
-              .extent([
-                [ 0, 0 ],
-                [
-                  this.conf.get_content_width(),
-                  this.conf.get_content_height(),
-                ]
-              ])
-              .on("zoom",
-                  (e: any) => this.zoomed(e, x_domain, y_domain, brush_x_domain,
-                                          area, focus, xAxis, context, brush));
+    var zoom = d3.zoom<Element, ZoomDatum>()
+                   .scaleExtent([ 1, Infinity ])
+                   .translateExtent([
+                     [ 0, 0 ],
+                     [
+                       this.conf.get_content_width(),
+                       this.conf.get_content_height(),
+                     ]
+                   ])
+                   .extent([
+                     [ 0, 0 ],
+                     [
+                       this.conf.get_content_width(),
+                       this.conf.get_content_height(),
+                     ]
+                   ])
+                   .on("zoom", (e: any) => this.zoomed(
+                                   e,
+                                   focus,
+                                   xAxis,
+                                   context,
+                                   brush,
+                                   ));
 
     this.svg.append("rect")
         .attr("class", "zoom")
@@ -479,30 +478,31 @@ export class ZoomFlamegraphVisualization {
         .attr("width", this.conf.get_content_width())
         .attr("height", this.conf.get_content_height())
 
-    var area = this.svg.append("g")
-                   .attr("class", "clipped")
-                   .attr("width", this.conf.get_content_width())
-                   .attr("height", this.conf.get_content_height())
-                   .attr(
-                       "transform",
-                       "translate(" + this.conf.left_margin + ","
-                           + this.conf.top_margin + ")",
-                   );
+            this.state.area
+        = this.svg.append("g")
+              .attr("class", "clipped")
+              .attr("width", this.conf.get_content_width())
+              .attr("height", this.conf.get_content_height())
+              .attr(
+                  "transform",
+                  "translate(" + this.conf.left_margin + ","
+                      + this.conf.top_margin + ")",
+              );
 
     this.update_event_rectangles(
-        area,
-        x_domain,
-        y_domain,
         timeline,
     );
 
-    var brush_area
-        = d3.area<ZoomDatum>()
-              .curve(d3.curveMonotoneX)
-              .x((d: ZoomDatum) => { return brush_x_domain(d.startdate); })
-              .y0(this.conf.brush_height)
-              // @ts-ignore
-              .y1((d: ZoomDatum) => { return brush_y_domain(d.name); });
+    var brush_area = d3.area<ZoomDatum>()
+                         .curve(d3.curveMonotoneX)
+                         .x((d: ZoomDatum) => {
+                           return this.state.brush_x_domain(d.startdate);
+                         })
+                         .y0(this.conf.brush_height)
+                         .y1((d: ZoomDatum) => {
+                           // @ts-ignore
+                           return this.state.brush_y_domain(d.name);
+                         });
 
     var context = this.svg.append("g")
                       .attr("class", "context")
@@ -510,9 +510,9 @@ export class ZoomFlamegraphVisualization {
                             "translate(" + this.conf.get_brush_left_pos() + ","
                                 + this.conf.get_brush_top_pos() + ")");
 
-    brush_x_domain.domain(x_domain.domain());
+    this.state.brush_x_domain.domain(this.state.x_domain.domain());
     // @ts-ignore
-    brush_y_domain.domain(y_domain.domain());
+    this.state.brush_y_domain.domain(this.state.y_domain.domain());
 
     focus.append("g")
         .attr("class", "axis axis--x")
@@ -535,7 +535,7 @@ export class ZoomFlamegraphVisualization {
     this.restore_brush_selection(
         context,
         brush,
-        brush_x_domain,
+        this.state.brush_x_domain,
     );
 
     dump_html();
