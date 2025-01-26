@@ -69,7 +69,7 @@ class ZoomDatum {
 
 export class ZoomFlamegraphVisualizationConfig {
   height: number              = 600;
-  width: number               = 600;
+  width: number               = 900;
   rect_size: number           = 10;
   brush_height: number        = 70;
   top_margin: number          = 40;
@@ -153,9 +153,11 @@ export class ZoomFlamegraphVisualization {
       area: d3.Selection<SVGGElement, ZoomDatum, HTMLElement, any>,
   ) {
     area.selectAll(this.scalable_selector)
+        // @ts-ignore
         .attr("transform", (d: ZoomDatum) => this.rectTransform(d, x, y));
     area.selectAll(this.event_selector)
         .attr("width",
+              // @ts-ignore
               (d: ZoomDatum) => {return (x(d.enddate) - x(d.startdate))})
   }
 
@@ -187,6 +189,7 @@ export class ZoomFlamegraphVisualization {
 
     focus.select(".axis--x").call(xAxis);
     this.programmaticBrush = true;
+    // @ts-ignore
     context.select(".brush").call(brush.move, x.range().map(t.invertX, t));
   }
 
@@ -225,7 +228,7 @@ export class ZoomFlamegraphVisualization {
       y_domain: d3.ScaleBand<string>,
       area: d3.Selection<SVGGElement, ZoomDatum, HTMLElement, any>,
       brush_x_domain: d3.ScaleTime<number, number, never>,
-      zoom: d3.ZoomBehavior<Element, unknown>,
+      zoom: d3.ZoomBehavior<Element, ZoomDatum>,
       xAxis: d3.Axis<Date|d3.NumberValue>,
       focus: d3.Selection<SVGGElement, ZoomDatum, HTMLElement, any>,
   ) {
@@ -239,9 +242,11 @@ export class ZoomFlamegraphVisualization {
       this.rescaleForTransform(x_domain, y_domain, area);
 
       // focus.select(".focus").attr("d", focus);
+      // @ts-ignore
       focus.select(".axis--x").call(xAxis);
       this.programmaticZoom = true;
       this.svg.select(".zoom").call(
+          // @ts-ignore
           zoom.transform,
           d3.zoomIdentity.scale(this.conf.width / (s[1] - s[0]))
               .translate(-s[0], 0),
@@ -258,7 +263,6 @@ export class ZoomFlamegraphVisualization {
     // Define the div for the tooltip
     var tooltip = d3.select("body").append("div").attr("class", "tooltip")
 
-    console.log(timeline);
     var x_domain
         = d3.scaleTime()
               .domain([
@@ -295,8 +299,7 @@ export class ZoomFlamegraphVisualization {
     var xAxis  = d3.axisBottom(x_domain);
     var xAxis2 = d3.axisBottom(brush_x_domain);
     var yAxis  = d3.axisLeft(y_domain).tickSize(0);
-    console.log([ this.conf.get_brush_width(), this.conf.brush_height ]);
-    var brush = d3.brushX<ZoomDatum>()
+    var brush  = d3.brushX<ZoomDatum>()
                     .extent([
                       [ 0, 0 ],
                       [ this.conf.get_brush_width(), this.conf.brush_height ]
@@ -312,7 +315,7 @@ export class ZoomFlamegraphVisualization {
                                          focus,
                                          ));
     var zoom
-        = d3.zoom()
+        = d3.zoom<Element, ZoomDatum>()
               .scaleExtent([ 1, Infinity ])
               .translateExtent([
                 [ 0, 0 ],
@@ -342,6 +345,7 @@ export class ZoomFlamegraphVisualization {
             "translate(" + this.conf.left_margin + "," + this.conf.top_margin
                 + ")",
             )
+        // @ts-ignore
         .call(zoom);
 
     this.svg.append("defs")
@@ -431,6 +435,7 @@ export class ZoomFlamegraphVisualization {
               .curve(d3.curveMonotoneX)
               .x((d: ZoomDatum) => { return brush_x_domain(d.startdate); })
               .y0(this.conf.brush_height)
+              // @ts-ignore
               .y1((d: ZoomDatum) => { return brush_y_domain(d.name); });
 
     var context = this.svg.append("g")
@@ -468,6 +473,7 @@ export class ZoomFlamegraphVisualization {
     var brushG = context.append("g")
                      .attr("class", "brush")
                      .call(brush)
+                     // @ts-ignore
                      .call(brush.move, brush_x_domain.range());
 
     // Get stored zoom and pan values
@@ -479,15 +485,26 @@ export class ZoomFlamegraphVisualization {
     if (storedZoom && storedTranslateX && storedTranslateY) {
       console.log("Restoring zoom transform");
       this.svg.call(
+          // @ts-ignore
           zoom.transform,
           d3.zoomIdentity.translate(storedTranslateX, storedTranslateY)
               .scale(storedZoom));
     }
 
-    console.log("Restore brush selection", storedBrushSelection);
     // If stored brush selection exists, apply it
     if (storedBrushSelection) {
-      // brushG.call(brush.move, storedBrushSelection);
+      function clamp(domain: d3.ScaleTime<number, number>, value) {
+        return Math.max(domain.range()[0], Math.min(domain.range()[1], value));
+      }
+
+      const clamped_selection = [
+        clamp(brush_x_domain, storedBrushSelection[0]),
+        clamp(brush_x_domain, storedBrushSelection[1])
+      ];
+
+      console.log("Restore brush selection", clamped_selection);
+      // @ts-ignore
+      brushG.call(brush.move, clamped_selection);
     }
 
     dump_html();
