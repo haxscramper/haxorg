@@ -12,7 +12,7 @@ export interface ParamDefinition {
 export interface MethodDefinition {
   readonly name: string;
   readonly parameters: readonly ParamDefinition[];
-  readonly result: string;
+  readonly                      result: string;
 }
 
 export interface ServiceDefinition {
@@ -71,8 +71,9 @@ export type InferMethodParams<T extends MethodDefinition> = {
 };
 
 export type InferServiceClient<T extends ServiceDefinition> = {
-  [M in keyof T["methods"]]: (params: InferMethodParams<T["methods"][M]>) =>
-      Promise<InferParamType<T["methods"][M]["result"]>>
+  [M in keyof T["methods"]]:
+      (params: InferMethodParams<T["methods"][M]>) => Promise<
+          InferParamType<T["methods"][M]["result"]>>
 };
 
 import {data} from "./org_schema.ts";
@@ -130,4 +131,22 @@ export function createWebSocketClient(ws: WebSocket): OrgClient {
   }
 
   return client as OrgClient;
+}
+
+export async function openClient(
+    port: number = 8089, root_file: string|null = null): Promise<OrgClient> {
+  const ws = new WebSocket(`ws://localhost:${port}`);
+
+  // Wait for connection
+  await new Promise<void>(
+      resolve => ws.addEventListener("open", () => resolve()));
+
+  const client = createWebSocketClient(ws);
+  client.setExceptionHandler({handler : true});
+
+  if (root_file) {
+    await client.setRootFile({path : root_file});
+  }
+
+  return client;
 }

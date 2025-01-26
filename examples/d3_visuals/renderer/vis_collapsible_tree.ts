@@ -1,12 +1,8 @@
-// src/renderer/visualization.ts
-import {execSync} from "child_process";
 import * as d3 from "d3";
-import * as fs from "fs";
-import SVGPathCommander from "svg-path-commander";
-import {BaseLogger} from "tslog";
 
 import * as org from "./org_data.ts";
 import {log} from "./org_logger.ts";
+import {dump_html} from "./utils.ts";
 
 interface OrgTreeNode {
   id: org.ImmUniqId;
@@ -19,16 +15,6 @@ interface OrgTreeNode {
 
 type OrgHierarchyNode      = d3.HierarchyNode<OrgTreeNode>;
 type OrgHierarchyPointNode = d3.HierarchyPointNode<OrgTreeNode>;
-
-function dump_html() {
-  const html: string = document.documentElement.outerHTML;
-  const fileName     = "/tmp/d3_js_output.html"
-  fs.writeFileSync(fileName, html, "utf-8");
-  try {
-    execSync(`tidy -q -m -i -w 120 --show-warnings no ${fileName}`);
-  } catch (e) {
-  }
-}
 
 interface XYPoint {
   x: number;
