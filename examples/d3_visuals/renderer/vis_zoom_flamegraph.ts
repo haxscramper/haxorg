@@ -37,6 +37,7 @@ class Event {
       public end: Date,
       public name: string,
       public completion?: number,
+      public type: string        = "one",
       public nested: Event[]     = Array(),
       public hasHours: boolean   = true,
       public hasMinute: boolean  = true,
@@ -123,7 +124,7 @@ export class ZoomFlamegraphVisualization {
       var result = new ZoomDatum(
           new Date(d.start),
           new Date(d.end),
-          "one",
+          d.type,
           d.name,
       );
 
@@ -196,10 +197,20 @@ export class ZoomFlamegraphVisualization {
   async get_gantt(client: org.OrgClient, root: org.ImmUniqId): Promise<Gantt> {
     var res = new Gantt();
     res.events.push(new Event(new Date("2025-01-26T16:00:00"),
-                              new Date("2025-01-26T16:30:00"), "test"))
+                              new Date("2025-01-26T16:30:00"), "test1-1",
+                              undefined, "one"));
 
     res.events.push(new Event(new Date("2025-01-26T17:00:00"),
-                              new Date("2025-01-26T17:30:00"), "test"))
+                              new Date("2025-01-26T17:30:00"), "test1-2",
+                              undefined, "one"));
+
+    res.events.push(new Event(new Date("2025-01-26T17:00:00"),
+                              new Date("2025-01-26T17:30:00"), "test2-1",
+                              undefined, "two"));
+
+    res.events.push(new Event(new Date("2025-01-26T18:00:00"),
+                              new Date("2025-01-26T18:30:00"), "test2-2",
+                              undefined, "two"));
 
     return res;
   }
@@ -365,10 +376,14 @@ export class ZoomFlamegraphVisualization {
                            + this.conf.top_margin + ")",
                    );
 
-    var event_rectangles = area.selectAll(".event_rectangle")
-                               .data(timeline, keyFunction)
-                               .enter()
-                               .append("g");
+    var event_rectangles
+        = area.selectAll(".event_rectangle")
+              .data(timeline, keyFunction)
+              .attr("class", "event_rectangle")
+              .enter()
+              .append("g")
+              .attr("transform", (d: ZoomDatum) => this.rectTransform(
+                                     d, x_domain, y_domain));
 
     const rectOffset = (d) => { return d.index * this.conf.rect_size; }
 
@@ -377,11 +392,10 @@ export class ZoomFlamegraphVisualization {
     const randomColor
         = () => colorScale(Math.floor(Math.random() * 20).toString());
 
-    event_rectangles.append("rect")
-        .attr("class", "event_rectangle")
+    event_rectangles
+        .append("rect")
+
         .attr("y", d => rectOffset(d))
-        .attr("transform",
-              (d: ZoomDatum) => this.rectTransform(d, x_domain, y_domain))
         .attr("height", function(d) { return 10; })
         .attr("width", (d: ZoomDatum) => {return (x_domain(d.enddate)
                                                   - x_domain(d.startdate))})
@@ -398,35 +412,24 @@ export class ZoomFlamegraphVisualization {
         .on("mouseout",
             function(d: ZoomDatum) { tooltip.style("display", "none") });
 
-    var data_overlay = area.selectAll(".data_overlay")
-                           .data(timeline, keyFunction)
-                           .enter()
-                           .append("g");
-
     const tail_offset = 3;
 
-    data_overlay.append("text")
+    event_rectangles.append("text")
         .attr("y", d => rectOffset(d) - this.conf.rect_size * tail_offset)
         .text(d => d.name)
-        .attr("class", "data_overlay")
         .attr("text-anchor", "start")
         .attr("alignment-baseline", "middle")
         .attr("font-family", "Verdana, sans-serif")
         .attr("font-size", "14px")
-        .attr("transform",
-              (d: ZoomDatum) => this.rectTransform(d, x_domain, y_domain))
         .attr("fill", "black");
 
     // Timeline annotation ticks
-    data_overlay.append("rect")
+    event_rectangles.append("rect")
         .attr("x", -0.5)
         .attr("y", d => rectOffset(d) - this.conf.rect_size * tail_offset)
-        .attr("class", "data_overlay")
         .attr("height", d => this.conf.rect_size * tail_offset)
         .attr("stroke", "black")
         .attr("stroke-width", 0)
-        .attr("transform",
-              (d: ZoomDatum) => this.rectTransform(d, x_domain, y_domain))
         .attr("width", 1)
         .attr("fill", "black");
 
