@@ -109,8 +109,7 @@ export class ZoomFlamegraphVisualization {
   programmaticZoom: boolean  = false;
   programmaticBrush: boolean = false;
 
-  event_selector: string    = ".event_rectangle";
-  scalable_selector: string = this.event_selector + ",.data_overlay";
+  event_selector: string = ".event_rectangle";
   gantt?: Gantt;
   conf: ZoomFlamegraphVisualizationConfig
 
@@ -153,7 +152,7 @@ export class ZoomFlamegraphVisualization {
       y: d3.ScaleBand<string>,
       area: d3.Selection<SVGGElement, ZoomDatum, HTMLElement, any>,
   ) {
-    area.selectAll(this.scalable_selector)
+    area.selectAll(this.event_selector)
         // @ts-ignore
         .attr("transform", (d: ZoomDatum) => this.rectTransform(d, x, y));
     area.selectAll(this.event_selector)
@@ -267,10 +266,124 @@ export class ZoomFlamegraphVisualization {
     }
   }
 
+  update_event_rectangles(
+      area: d3.Selection<SVGGElement, ZoomDatum, HTMLElement, any>,
+      x_domain: d3.ScaleTime<number, number, never>,
+      y_domain: d3.ScaleBand<string>,
+      timeline: ZoomDatum[],
+  ) {
+
+    var keyFunction = function(d: ZoomDatum) { return d.startdate + d.type; };
+
+    var event_rectangles
+        = area.selectAll(".event_rectangle")
+              .data(timeline, keyFunction)
+              .enter()
+              .append("g")
+              .attr("class", "event_rectangle")
+              .attr("transform", (d: ZoomDatum) => this.rectTransform(
+                                     d, x_domain, y_domain));
+
+    const rectOffset = (d) => { return d.index * this.conf.rect_size; }
+
+    const colorScale
+        = d3.scaleOrdinal(d3.schemeCategory10);
+    const randomColor
+        = () => colorScale(Math.floor(Math.random() * 20).toString());
+
+    event_rectangles
+        .append("rect")
+
+        .attr("y", d => rectOffset(d))
+        .attr("height", function(d) { return 10; })
+        .attr("width", (d: ZoomDatum) => {return (x_domain(d.enddate)
+                                                  - x_domain(d.startdate))})
+        .style("fill", d => randomColor())
+        .on("mouseover",
+            (event: any, d: ZoomDatum) => {
+              tooltip.style("left", event.pageX + "px")
+                  .style("top", event.pageY + "px")
+                  .style("display", "inline-block")
+                  .html((d.name)
+                        + "<br> from :" + d.startdate.toISOString().slice(0, 19)
+                        + "<br> to :" + d.enddate.toISOString().slice(0, 19));
+            })
+        .on("mouseout",
+            function(d: ZoomDatum) { tooltip.style("display", "none") });
+
+    const tail_offset = 3;
+
+    event_rectangles.append("text")
+        .attr("y", d => rectOffset(d) - this.conf.rect_size * tail_offset)
+        .text(d => d.name)
+        .attr("text-anchor", "start")
+        .attr("alignment-baseline", "middle")
+        .attr("font-family", "Verdana, sans-serif")
+        .attr("font-size", "14px")
+        .attr("fill", "black");
+
+    // Timeline annotation ticks
+    event_rectangles.append("rect")
+        .attr("x", -0.5)
+        .attr("y", d => rectOffset(d) - this.conf.rect_size * tail_offset)
+        .attr("height", d => this.conf.rect_size * tail_offset)
+        .attr("stroke", "black")
+        .attr("stroke-width", 0)
+        .attr("width", 1)
+        .attr("fill", "black");
+  }
+
+  restore_brush_selection(
+      context: d3.Selection<SVGGElement, ZoomDatum, HTMLElement, any>,
+      brush: d3.BrushBehavior<ZoomDatum>,
+      brush_x_domain: d3.ScaleTime<number, number, never>,
+  ) {
+    var storedBrushSelection
+        = localStorage.getItem("brushSelection")
+              ? JSON.parse(localStorage.getItem("brushSelection")!) as number[]
+              : brush_x_domain.range();
+
+    var brushG = context.append("g")
+                     .attr("class", "brush")
+                     .call(brush)
+                     // @ts-ignore
+                     .call(brush.move, brush_x_domain.range());
+
+    // Get stored zoom and pan values
+    var storedZoom       = +localStorage.getItem("zoom")!;
+    var storedTranslateX = +localStorage.getItem("translateX")!;
+    var storedTranslateY = +localStorage.getItem("translateY")!;
+
+    // If stored values exist, apply them to the SVG
+    if (storedZoom && storedTranslateX && storedTranslateY) {
+      console.log("Restoring zoom transform");
+      this.svg.call(
+          // @ts-ignore
+          zoom.transform,
+          d3.zoomIdentity.translate(storedTranslateX, storedTranslateY)
+              .scale(storedZoom));
+    }
+
+    // If stored brush selection exists, apply it
+    if (storedBrushSelection) {
+      function clamp(domain: d3.ScaleTime<number, number>, value) {
+        return Math.max(domain.range()[0], Math.min(domain.range()[1], value));
+      }
+
+      const clamped_selection = [
+        clamp(brush_x_domain, storedBrushSelection[0]),
+        clamp(brush_x_domain, storedBrushSelection[1])
+      ];
+
+      console.log("Restore brush selection", clamped_selection);
+      // @ts-ignore
+      brushG.call(brush.move, clamped_selection);
+    }
+  }
+
   update() {
     const timeline = this.convertTimeline(this.gantt!);
-    // To get the event positio05
-    var keyFunction = function(d) { return d.startdate + d.type; };
+
     // Define the div for the tooltip
     var tooltip = d3.select("body").append("div").attr("class", "tooltip")
 
@@ -376,64 +489,14 @@ export class ZoomFlamegraphVisualization {
                            + this.conf.top_margin + ")",
                    );
 
-    var event_rectangles
-        = area.selectAll(".event_rectangle")
-              .data(timeline, keyFunction)
-              .attr("class", "event_rectangle")
-              .enter()
-              .append("g")
-              .attr("transform", (d: ZoomDatum) => this.rectTransform(
-                                     d, x_domain, y_domain));
+    this.update_event_rectangles(
+        area,
+        x_domain,
+        y_domain,
+        timeline,
+    );
 
-    const rectOffset = (d) => { return d.index * this.conf.rect_size; }
-
-    const colorScale
-        = d3.scaleOrdinal(d3.schemeCategory10);
-    const randomColor
-        = () => colorScale(Math.floor(Math.random() * 20).toString());
-
-    event_rectangles
-        .append("rect")
-
-        .attr("y", d => rectOffset(d))
-        .attr("height", function(d) { return 10; })
-        .attr("width", (d: ZoomDatum) => {return (x_domain(d.enddate)
-                                                  - x_domain(d.startdate))})
-        .style("fill", d => randomColor())
-        .on("mouseover",
-            (event: any, d: ZoomDatum) => {
-              tooltip.style("left", event.pageX + "px")
-                  .style("top", event.pageY + "px")
-                  .style("display", "inline-block")
-                  .html((d.name)
-                        + "<br> from :" + d.startdate.toISOString().slice(0, 19)
-                        + "<br> to :" + d.enddate.toISOString().slice(0, 19));
-            })
-        .on("mouseout",
-            function(d: ZoomDatum) { tooltip.style("display", "none") });
-
-    const tail_offset = 3;
-
-    event_rectangles.append("text")
-        .attr("y", d => rectOffset(d) - this.conf.rect_size * tail_offset)
-        .text(d => d.name)
-        .attr("text-anchor", "start")
-        .attr("alignment-baseline", "middle")
-        .attr("font-family", "Verdana, sans-serif")
-        .attr("font-size", "14px")
-        .attr("fill", "black");
-
-    // Timeline annotation ticks
-    event_rectangles.append("rect")
-        .attr("x", -0.5)
-        .attr("y", d => rectOffset(d) - this.conf.rect_size * tail_offset)
-        .attr("height", d => this.conf.rect_size * tail_offset)
-        .attr("stroke", "black")
-        .attr("stroke-width", 0)
-        .attr("width", 1)
-        .attr("fill", "black");
-
-    var area2
+    var brush_area
         = d3.area<ZoomDatum>()
               .curve(d3.curveMonotoneX)
               .x((d: ZoomDatum) => { return brush_x_domain(d.startdate); })
@@ -448,6 +511,7 @@ export class ZoomFlamegraphVisualization {
                                 + this.conf.get_brush_top_pos() + ")");
 
     brush_x_domain.domain(x_domain.domain());
+    // @ts-ignore
     brush_y_domain.domain(y_domain.domain());
 
     focus.append("g")
@@ -461,54 +525,18 @@ export class ZoomFlamegraphVisualization {
     context.append("path")
         .datum(timeline)
         .attr("class", "area")
-        .attr("d", area2);
+        .attr("d", brush_area);
 
     context.append("g")
         .attr("class", "axis axis--x")
         .attr("transform", "translate(0," + this.conf.brush_height + ")")
         .call(xAxis2);
 
-    var storedBrushSelection
-        = localStorage.getItem("brushSelection")
-              ? JSON.parse(localStorage.getItem("brushSelection")!) as number[]
-              : brush_x_domain.range();
-
-    var brushG = context.append("g")
-                     .attr("class", "brush")
-                     .call(brush)
-                     // @ts-ignore
-                     .call(brush.move, brush_x_domain.range());
-
-    // Get stored zoom and pan values
-    var storedZoom       = +localStorage.getItem("zoom")!;
-    var storedTranslateX = +localStorage.getItem("translateX")!;
-    var storedTranslateY = +localStorage.getItem("translateY")!;
-
-    // If stored values exist, apply them to the SVG
-    if (storedZoom && storedTranslateX && storedTranslateY) {
-      console.log("Restoring zoom transform");
-      this.svg.call(
-          // @ts-ignore
-          zoom.transform,
-          d3.zoomIdentity.translate(storedTranslateX, storedTranslateY)
-              .scale(storedZoom));
-    }
-
-    // If stored brush selection exists, apply it
-    if (storedBrushSelection) {
-      function clamp(domain: d3.ScaleTime<number, number>, value) {
-        return Math.max(domain.range()[0], Math.min(domain.range()[1], value));
-      }
-
-      const clamped_selection = [
-        clamp(brush_x_domain, storedBrushSelection[0]),
-        clamp(brush_x_domain, storedBrushSelection[1])
-      ];
-
-      console.log("Restore brush selection", clamped_selection);
-      // @ts-ignore
-      brushG.call(brush.move, clamped_selection);
-    }
+    this.restore_brush_selection(
+        context,
+        brush,
+        brush_x_domain,
+    );
 
     dump_html();
   }
