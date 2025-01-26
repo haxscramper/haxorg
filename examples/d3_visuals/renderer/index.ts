@@ -1,12 +1,16 @@
 import {
   CollapsibleTreeVisualization,
-  CollapsibleTreeVisualizationConfig
+  CollapsibleTreeVisualizationConfig,
 } from "./vis_collapsible_tree.ts";
-import {ZoomFlamegraphVisualization} from "./vis_zoom_flamegraph.ts"
+import {
+  ZoomFlamegraphVisualization,
+  ZoomFlamegraphVisualizationConfig,
+} from "./vis_zoom_flamegraph.ts"
 
 window.addEventListener("DOMContentLoaded", () => {
   if (true) {
-    const viz = new ZoomFlamegraphVisualization("visualization");
+    const viz = new ZoomFlamegraphVisualization(
+        "visualization", new ZoomFlamegraphVisualizationConfig());
     viz.render();
   } else {
     var conf                     = new CollapsibleTreeVisualizationConfig();
