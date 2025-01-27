@@ -1817,25 +1817,25 @@ struct lambda_bfs_visitor : public boost::default_bfs_visitor {
 };
 
 
-template <typename Graph>
-struct boost_color_property_map_bundle {
-    using vertex_descriptor = typename boost::graph_traits<
-        Graph>::vertex_descriptor;
-    using ColorStorage = std::
-        unordered_map<vertex_descriptor, boost::default_color_type>;
-    using ColorMap = boost::associative_property_map<ColorStorage>;
+// template <typename Graph>
+// struct boost_color_property_map_bundle {
+//     using vertex_descriptor = typename boost::graph_traits<
+//         Graph>::vertex_descriptor;
+//     using ColorStorage = std::
+//         unordered_map<vertex_descriptor, boost::default_color_type>;
+//     using ColorMap = boost::associative_property_map<ColorStorage>;
 
-    boost_color_property_map_bundle(Graph const& g)
-        : colors{}, map{colors} {
-        // Pre-populate with white if needed
-        for (auto vd : boost::make_iterator_range(boost::vertices(g))) {
-            colors[vd] = boost::white_color;
-        }
-    }
+//     boost_color_property_map_bundle(Graph const& g)
+//         : colors{}, map{colors} {
+//         // Pre-populate with white if needed
+//         for (auto vd : boost::make_iterator_range(boost::vertices(g))) {
+//             colors[vd] = boost::white_color;
+//         }
+//     }
 
-    ColorStorage colors;
-    ColorMap     map;
-};
+//     ColorStorage colors;
+//     ColorMap     map;
+// };
 
 StoryGridGraph::SemGraphStore StoryGridGraph::Layer::getSubgraph(
     StoryGridContext&      ctx,
