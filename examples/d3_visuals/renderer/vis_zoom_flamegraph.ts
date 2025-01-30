@@ -1,19 +1,11 @@
 import * as d3 from "d3";
-import {Schema, z} from "zod";
+import {Schema, string, z} from "zod";
 
 import * as org from "./org_data.ts";
 import {dump_html} from "./utils.ts";
 
 class RangeClose {
   constructor(public start: Date, public end: Date) {}
-}
-
-function get_defined<T>(value: T|undefined|null,
-                        errorMessage = "Value is not defined"): T {
-  if (value === undefined || value === null) {
-    throw new Error(errorMessage);
-  }
-  return value;
 }
 
 export function lt_cmp(lhs, rhs): number {
@@ -33,19 +25,26 @@ export function gt_cmp(lhs, rhs): number {
 }
 
 class EventPoint {
-  public point: Date | number;
-  constructor(date: Date | number) { this.datetime = date; }
+  public point: Date|number;
+  constructor(date: Date|number) { this.point = date; }
 
-  // isDate(): boolean {
-  //   return this.point
-  // }
+  isDate(): boolean { return this.point instanceof Date; }
+  isNumber(): boolean { return typeof this.point == "number"; }
 
   public static readonly Schema = z.object({
-    datetime : z.date(),
+    point : z.union([ z.date(), z.number() ]),
   });
 }
 
 function assert_zod<T>(value: T, schema) { schema.parse(value); }
+
+function get_defined<T>(value: T|undefined|null,
+                        errorMessage = "Value is not defined"): T {
+  if (value === undefined || value === null) {
+    throw new Error(errorMessage);
+  }
+  return value;
+}
 
 class Event {
   public static readonly Schema = z.object({
@@ -76,12 +75,24 @@ class Gantt {
 
 class ZoomDatum {
   constructor(
-      public startdate: Date,
-      public enddate: Date,
+      public start: EventPoint,
+      public end: EventPoint,
       public type: string,
       public name: string,
       public index?: number,
-  ) {}
+  ) {
+    assert_zod(start, EventPoint.Schema);
+    assert_zod(end, EventPoint.Schema);
+    assert_zod(type, z.string());
+    assert_zod(name, z.string());
+  }
+
+  public static readonly Schema = z.object({
+    start : EventPoint.Schema,
+    end: EventPoint.Schema,
+    type: z.string(),
+    name: z.string(),
+  });
 }
 
 export class ZoomFlamegraphVisualizationConfig {
@@ -153,8 +164,8 @@ export class ZoomFlamegraphVisualization {
     var   flat     = data.events.map(d => flatten(d));
     const timeline = flat.flat(1).map(function(d: Event): ZoomDatum {
       var result = new ZoomDatum(
-          new Date(d.start!.datetime),
-          new Date(d.end!.datetime),
+          d.start,
+          d.end,
           d.type!,
           d.name,
       );
@@ -163,7 +174,7 @@ export class ZoomFlamegraphVisualization {
     });
 
     var idx = 0;
-    return timeline.sort((lhs, rhs) => gt_cmp(lhs.startdate, rhs.startdate))
+    return timeline.sort((lhs, rhs) => gt_cmp(lhs.start.point, rhs.start.point))
         .map(d => ({...d, index : idx++}));
   }
 
@@ -183,8 +194,8 @@ export class ZoomFlamegraphVisualization {
     this.state.area.selectAll(this.event_selector)
         .attr("width",
               // @ts-ignore
-              (d: ZoomDatum) => {return (this.state.x_domain(d.enddate)
-                                         - this.state.x_domain(d.startdate))})
+              (d: ZoomDatum) => {return (this.state.x_domain(d.end.point)
+                                         - this.state.x_domain(d.start.point))})
   }
 
   zoomed(e: any) {
@@ -217,10 +228,8 @@ export class ZoomFlamegraphVisualization {
     async function to_event(tree: org.ImmUniqId): Promise<Event> {
       var res = new Event(
           await client.getCleanSubtreeTitle({id : tree}),
-          new EventPoint(
-              new Date(`2025-01-26T${idx.toString().padStart(2, "0")}:00:00`)),
-          new EventPoint(new Date(
-              `2025-01-26T${(idx + 1).toString().padStart(2, "0")}:00:00`)),
+          new EventPoint(new Date(idx)),
+          new EventPoint(new Date(idx + 1)),
       );
 
       idx += 2;
@@ -250,7 +259,7 @@ export class ZoomFlamegraphVisualization {
   rectTransform(
       d: ZoomDatum,
   ) {
-    return "translate(" + this.state.x_domain(d.startdate).toFixed(3) + ","
+    return "translate(" + this.state.x_domain(d.start.point).toFixed(3) + ","
            + this.state.y_domain(d.type) + ")";
   };
 
@@ -315,7 +324,7 @@ export class ZoomFlamegraphVisualization {
 
   update_event_rectangles(timeline: ZoomDatum[]) {
 
-    var keyFunction = function(d: ZoomDatum) { return d.startdate + d.type; };
+    var keyFunction = function(d: ZoomDatum) { return d.start.point + d.type; };
 
     var event_rectangles
         = this.state.area.selectAll(".event_rectangle")
@@ -338,17 +347,17 @@ export class ZoomFlamegraphVisualization {
         .attr("y", d => rectOffset(d))
         .attr("height", function(d) { return 10; })
         .attr("width",
-              (d: ZoomDatum) => {return (this.state.x_domain(d.enddate)
-                                         - this.state.x_domain(d.startdate))})
+              (d: ZoomDatum) => {return (this.state.x_domain(d.end.point)
+                                         - this.state.x_domain(d.start.point))})
         .style("fill", d => randomColor())
         .on("mouseover",
             (event: any, d: ZoomDatum) => {
               this.state.tooltip.style("left", event.pageX + "px")
                   .style("top", event.pageY + "px")
                   .style("display", "inline-block")
-                  .html((d.name)
-                        + "<br> from :" + d.startdate.toISOString().slice(0, 19)
-                        + "<br> to :" + d.enddate.toISOString().slice(0, 19));
+                  .html((d.name) + "<br> from :"
+                        + d.start.point.toISOString().slice(0, 19)
+                        + "<br> to :" + d.end.point.toISOString().slice(0, 19));
             })
         .on("mouseout",
             (d: ZoomDatum) => {this.state.tooltip.style("display", "none")});
@@ -432,9 +441,11 @@ export class ZoomFlamegraphVisualization {
         = d3.scaleTime()
               .domain([
                 get_defined(d3.min(
-                    timeline, (d: ZoomDatum): Date => { return d.startdate; })),
+                    timeline,
+                    (d: ZoomDatum): Date|number => { return d.start.point; })),
                 get_defined(d3.max(
-                    timeline, (d: ZoomDatum): Date => { return d.enddate; })),
+                    timeline,
+                    (d: ZoomDatum): Date|number => { return d.end.point; })),
               ])
               .range([ 0, this.conf.get_content_width() ]);
 
