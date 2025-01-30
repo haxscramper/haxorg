@@ -109,6 +109,8 @@ struct ContentNode : public SharedPtrApi<ContentNode> {
 
 SPtr<ContentNode> DirContext::getFileNode(const fs::path& file) {
     if (hadChanges(file)) {
+        OLOG_INFO(
+            "load", "Loading file ", fs::relative(file, root).native());
         auto node = sem::parseString(readFile(file));
         auto root = ctx->addRoot(node);
         auto res  = ContentNode::from_node(*this, root.getRootAdapter());
@@ -121,7 +123,7 @@ SPtr<ContentNode> DirContext::getFileNode(const fs::path& file) {
 
 struct FileNode : public SharedPtrApi<FileNode> {
     org::ImmAdapter  root;
-    Opt<Str>         title;
+    Str              title;
     ContentNode::Ptr document;
     Str              relative;
 
@@ -130,7 +132,7 @@ struct FileNode : public SharedPtrApi<FileNode> {
                 c_fmt("file_{}", relative),
                 ImGuiTreeNodeFlags_DefaultOpen,
                 "%s",
-                relative.c_str())) {
+                title.c_str())) {
             document->render(ctx);
             ImGui::TreePop();
         }
@@ -138,7 +140,6 @@ struct FileNode : public SharedPtrApi<FileNode> {
 
     static FileNode::Ptr from_file(DirContext& ctx, fs::path const& file) {
         Str relative = fs::relative(file, ctx.root).native();
-        OLOG_INFO("load", "Loading file ", relative);
         OLOG_DEPTH_SCOPE_ANON();
 
         auto doc      = ctx.getFileNode(file);
@@ -146,6 +147,17 @@ struct FileNode : public SharedPtrApi<FileNode> {
         res->root     = doc->a;
         res->document = doc;
         res->relative = relative;
+        if (true) {
+            res->title = file.filename().native();
+        } else {
+            if (auto doc_node = doc->a.asOpt<org::ImmDocument>();
+                doc_node && doc_node.value()->title->has_value()) {
+                res->title = sem::getCleanText(doc_node.value().pass(
+                    doc_node.value()->title->value()));
+            } else {
+                res->title = file.filename().native();
+            }
+        }
 
         return res;
     }
@@ -274,14 +286,15 @@ class InotifyWatcher {
         watchDescriptors.clear();
 
         for (const auto& file : files) {
-            OLOG_INFO(
-                "watch",
-                "Watching for changes in ",
-                escape_literal(file.native()));
+            // OLOG_INFO(
+            //     "watch",
+            //     "Watching for changes in ",
+            //     escape_literal(file.native()));
             int wd = inotify_add_watch(
                 inotifyFd,
                 file.c_str(),
-                IN_CREATE | IN_DELETE | IN_MODIFY);
+                IN_CREATE | IN_DELETE | IN_MODIFY | IN_ISDIR
+                    | IN_MOVED_FROM | IN_MOVED_TO);
             if (wd == -1) {
                 throw std::runtime_error(
                     "Failed to add inotify watch for: " + file.string());
@@ -298,16 +311,23 @@ class InotifyWatcher {
         if (0 < length) {
             OLOG_DEPTH_SCOPE_ANON();
             OLOG_INFO("watch", "Changes in the filesystem");
-            char* ptr = buffer;
-            while (ptr < buffer + length) {
-                const struct inotify_event* event = reinterpret_cast<
-                    const struct inotify_event*>(ptr);
-                fs::path const& path = watchDescriptors.at(event->wd);
-                std::string     description = format_event(*event);
-                OLOG_INFO("watch", "Path ", path.native(), description);
-                ptr += sizeof(struct inotify_event) + event->len;
+            int  i           = 0;
+            bool had_changes = false;
+            while (i < length) {
+                struct inotify_event* event = (struct
+                                               inotify_event*)&buffer[i];
+                if (event->len) {
+                    fs::path const& path = watchDescriptors.at(event->wd);
+                    std::string     description = format_event(*event);
+                    OLOG_INFO(
+                        "watch", "Path ", path.native(), description);
+                    had_changes = true;
+                }
+                i += sizeof(struct inotify_event) + event->len;
             }
-            return true;
+
+            return had_changes;
+
         } else {
             return false;
         }

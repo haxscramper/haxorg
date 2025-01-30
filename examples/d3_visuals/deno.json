@@ -5,6 +5,7 @@
   },
   "nodeModulesDir": "auto",
   "imports": {
+    "@dx/reflect": "jsr:@dx/reflect@^0.2.14",
     "d3": "npm:d3@^7.9.0",
     "electron": "npm:electron@^34.0.1",
     "esbuild": "npm:esbuild@^0.24.2",
@@ -16,6 +17,14 @@
       "dom.iterable",
       "esnext"
     ],
-    "strict": true
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "exactOptionalPropertyTypes": true,
+    "emitDecoratorMetadata": true
   }
 }

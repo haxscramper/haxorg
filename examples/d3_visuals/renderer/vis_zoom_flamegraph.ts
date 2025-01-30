@@ -1,4 +1,5 @@
 import * as d3 from "d3";
+import {Schema, z} from "zod";
 
 import * as org from "./org_data.ts";
 import {dump_html} from "./utils.ts";
@@ -31,29 +32,44 @@ export function gt_cmp(lhs, rhs): number {
   }
 }
 
+class EventPoint {
+  public point: Date | number;
+  constructor(date: Date | number) { this.datetime = date; }
+
+  // isDate(): boolean {
+  //   return this.point
+  // }
+
+  public static readonly Schema = z.object({
+    datetime : z.date(),
+  });
+}
+
+function assert_zod<T>(value: T, schema) { schema.parse(value); }
+
 class Event {
+  public static readonly Schema = z.object({
+    name : z.string(),
+    start: EventPoint.Schema,
+    end: EventPoint.Schema,
+  });
+
   constructor(
-      public start: Date,
-      public end: Date,
       public name: string,
-      public completion?: number,
-      public type: string        = "one",
-      public nested: Event[]     = Array(),
-      public hasHours: boolean   = true,
-      public hasMinute: boolean  = true,
-      public hasSeconds: boolean = true,
-  ) {}
+      public start: EventPoint,
+      public end: EventPoint,
+      public completion: number|null = null,
+      public type: string            = "one",
+      public nested: Event[]         = Array(),
+  ) {
+    assert_zod(start, EventPoint.Schema);
+    assert_zod(end, EventPoint.Schema);
+    assert_zod(nested, z.array(Event.Schema));
+  }
 }
 
 class Gantt {
   constructor(
-      public title?: string,
-      public dateFormat?: string,
-      public today?: Date,
-      public printScale?: string,
-      public projectStart?: Date,
-      public projectEnd?: Date,
-      public legend?: string,
       public events: Event[] = Array(),
   ) {}
 }
@@ -130,22 +146,18 @@ export class ZoomFlamegraphVisualization {
   state: ZoomUpdateState;
 
   convertTimeline(data: Gantt): ZoomDatum[] {
-    function flatten(data) {
+    function flatten(data: Event) {
       return [ data ].concat(data.nested.map(d => flatten(d)).flat(1));
     }
 
     var   flat     = data.events.map(d => flatten(d));
     const timeline = flat.flat(1).map(function(d: Event): ZoomDatum {
       var result = new ZoomDatum(
-          new Date(d.start),
-          new Date(d.end),
-          d.type,
+          new Date(d.start!.datetime),
+          new Date(d.end!.datetime),
+          d.type!,
           d.name,
       );
-
-      if (d.start_date_only && d.stop_date_only) {
-        result.enddate.setHours(23, 59, 59);
-      }
 
       return result;
     });
@@ -200,21 +212,27 @@ export class ZoomFlamegraphVisualization {
 
   async get_gantt(client: org.OrgClient, root: org.ImmUniqId): Promise<Gantt> {
     var res = new Gantt();
-    res.events.push(new Event(new Date("2025-01-26T16:00:00"),
-                              new Date("2025-01-26T16:30:00"), "test1-1",
-                              undefined, "one"));
+    var idx = 0;
 
-    res.events.push(new Event(new Date("2025-01-26T17:00:00"),
-                              new Date("2025-01-26T17:30:00"), "test1-2",
-                              undefined, "one"));
+    async function to_event(tree: org.ImmUniqId): Promise<Event> {
+      var res = new Event(
+          await client.getCleanSubtreeTitle({id : tree}),
+          new EventPoint(
+              new Date(`2025-01-26T${idx.toString().padStart(2, "0")}:00:00`)),
+          new EventPoint(new Date(
+              `2025-01-26T${(idx + 1).toString().padStart(2, "0")}:00:00`)),
+      );
 
-    res.events.push(new Event(new Date("2025-01-26T17:00:00"),
-                              new Date("2025-01-26T17:30:00"), "test2-1",
-                              undefined, "two"));
+      idx += 2;
 
-    res.events.push(new Event(new Date("2025-01-26T18:00:00"),
-                              new Date("2025-01-26T18:30:00"), "test2-2",
-                              undefined, "two"));
+      return res;
+    }
+
+    const size: number = await client.getSize({id : root});
+    for (var idx = 0; idx < size; ++idx) {
+      const subnode = await client.getSubnodeAt({id : root, index : idx});
+      res.events.push(await to_event(subnode));
+    }
 
     return res;
   }
