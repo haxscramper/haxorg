@@ -51,19 +51,21 @@ class Event {
     name : z.string(),
     start: EventPoint.Schema,
     end: EventPoint.Schema,
+    layer: z.number(),
   });
 
   constructor(
       public name: string,
       public start: EventPoint,
       public end: EventPoint,
-      public completion: number|null = null,
-      public type: string            = "one",
-      public nested: Event[]         = Array(),
+      public layer: number,
+      public type: string    = "one",
+      public nested: Event[] = Array(),
   ) {
     assert_zod(start, EventPoint.Schema);
     assert_zod(end, EventPoint.Schema);
     assert_zod(nested, z.array(Event.Schema));
+    assert_zod(layer, z.number());
   }
 }
 
@@ -79,12 +81,13 @@ class ZoomDatum {
       public end: EventPoint,
       public type: string,
       public name: string,
-      public index?: number,
+      public layer: number,
   ) {
     assert_zod(start, EventPoint.Schema);
     assert_zod(end, EventPoint.Schema);
     assert_zod(type, z.string());
     assert_zod(name, z.string());
+    assert_zod(layer, z.number());
   }
 
   public static readonly Schema = z.object({
@@ -92,21 +95,23 @@ class ZoomDatum {
     end: EventPoint.Schema,
     type: z.string(),
     name: z.string(),
+    layer: z.number(),
   });
 }
 
 export class ZoomFlamegraphVisualizationConfig {
-  height: number              = 600;
-  width: number               = 900;
-  rect_size: number           = 10;
-  brush_height: number        = 70;
-  top_margin: number          = 40;
-  right_margin: number        = 20;
-  bottom_margin: number       = 20;
-  left_margin: number         = 20;
-  left_brush_margin: number   = 10;
-  right_brush_margin: number  = 10;
-  bottom_brush_margin: number = 10;
+  height: number                 = 600;
+  width: number                  = 900;
+  rect_height: number            = 20;
+  brush_height: number           = 70;
+  top_margin: number             = 40;
+  right_margin: number           = 20;
+  bottom_margin: number          = 20;
+  left_margin: number            = 20;
+  left_brush_margin: number      = 10;
+  right_brush_margin: number     = 10;
+  bottom_brush_margin: number    = 10;
+  rect_annotation_offset: number = this.rect_height - 2;
 
   get_brush_left_pos(): number {
     return this.left_margin + this.left_brush_margin;
@@ -166,19 +171,16 @@ export class ZoomFlamegraphVisualization {
 
     var   flat     = data.events.map(d => flatten(d));
     const timeline = flat.flat(1).map(function(d: Event): ZoomDatum {
-      var result = new ZoomDatum(
+      return new ZoomDatum(
           d.start,
           d.end,
           d.type!,
           d.name,
+          d.layer,
       );
-
-      return result;
     });
 
-    var idx = 0;
-    return timeline.sort((lhs, rhs) => gt_cmp(lhs.start.point, rhs.start.point))
-        .map(d => ({...d, index : idx++}));
+    return timeline;
   }
 
   constructor(svg_element: string, conf: ZoomFlamegraphVisualizationConfig) {
@@ -226,17 +228,21 @@ export class ZoomFlamegraphVisualization {
   }
 
   async get_gantt(client: org.OrgClient, root: org.ImmUniqId): Promise<Gantt> {
-    var res = new Gantt();
-    var idx = 0;
+    var res       = new Gantt();
+    var layer_idx = 0;
 
     async function to_event(tree: org.ImmUniqId): Promise<Event> {
+      const title = await client.getCleanSubtreeTitle({id : tree});
+
       var res = new Event(
-          await client.getCleanSubtreeTitle({id : tree}),
-          new EventPoint(idx),
-          new EventPoint(idx + 1),
+          `${title} [${layer_idx}]`,
+          new EventPoint(1),
+          new EventPoint(2),
+          layer_idx,
       );
 
-      idx += 2;
+      console.log(title, layer_idx);
+      layer_idx += 1;
 
       return res;
     }
@@ -260,11 +266,12 @@ export class ZoomFlamegraphVisualization {
     this.update();
   }
 
-  rectTransform(
-      d: ZoomDatum,
-  ) {
-    return "translate(" + this.state.x_domain(d.start.point).toFixed(3) + ","
-           + this.state.y_domain(d.type) + ")";
+  rectTransform(d: ZoomDatum) {
+    const y_pos = get_defined(this.state.y_domain(d.type))
+                  + (this.conf.rect_height * d.layer);
+    const x_pos = this.state.x_domain(d.start.point).toFixed(3);
+
+    return `translate(${x_pos},${y_pos})`;
   };
 
   brushed(event: any) {
@@ -338,58 +345,61 @@ export class ZoomFlamegraphVisualization {
               .attr("class", "event_rectangle")
               .attr("transform", (d: ZoomDatum) => this.rectTransform(d));
 
-    const rectOffset = (d) => { return d.index * this.conf.rect_size; }
+    const rectOffset
+        = (d: ZoomDatum) => { return d.layer * this.conf.rect_height; }
 
     const colorScale
         = d3.scaleOrdinal(d3.schemeCategory10);
     const randomColor
         = () => colorScale(Math.floor(Math.random() * 20).toString());
 
-    event_rectangles
-        .append("rect")
-
-        .attr("y", d => rectOffset(d))
-        .attr("height", function(d) { return 10; })
+    event_rectangles.append("rect")
+        .attr("height", (d: ZoomDatum) => { return this.conf.rect_height; })
         .attr("width",
-              (d: ZoomDatum) => {return (this.state.x_domain(d.end.point)
-                                         - this.state.x_domain(d.start.point))})
+              (d: ZoomDatum) => {
+                return (this.state.x_domain(d.end.point)
+                        - this.state.x_domain(d.start.point));
+              })
         .style("fill", d => randomColor())
         .on("mouseover",
             (event: any, d: ZoomDatum) => {
+              const f_from: string
+                  = d.start.point instanceof Date
+                        ? d.start.point.toISOString().slice(0, 19)
+                        : d.start.point.toString();
+
+              const f_to: string = d.end.point instanceof Date
+                                       ? d.end.point.toISOString().slice(0, 19)
+                                       : d.end.point.toString();
+
               this.state.tooltip.style("left", event.pageX + "px")
                   .style("top", event.pageY + "px")
                   .style("display", "inline-block")
-                  .html(
-                      (d.name) + "<br> from :" + d.start.isDate()
-                          ? ((d.start.point as Date).toISOString().slice(0, 19)
-                             + "<br> to :"
-                             + (d.end.point as Date).toISOString().slice(0, 19))
-                          : (d.start.point.toString().slice(0, 19) + "<br> to :"
-                             + d.end.point.toString().slice(0, 19)));
+                  .html((d.name) + `<br> from: ${f_from}<br> to: ${f_to}`);
             })
         .on("mouseout",
             (d: ZoomDatum) => {this.state.tooltip.style("display", "none")});
 
-    const tail_offset = 3;
-
     event_rectangles.append("text")
-        .attr("y", d => rectOffset(d) - this.conf.rect_size * tail_offset)
+        .attr("y", d => this.conf.rect_annotation_offset)
         .text(d => d.name)
         .attr("text-anchor", "start")
-        .attr("alignment-baseline", "middle")
+        .attr("alignment-baseline", "baseline")
         .attr("font-family", "Verdana, sans-serif")
-        .attr("font-size", "14px")
+        .attr("font-size", "12px")
         .attr("fill", "black");
 
-    // Timeline annotation ticks
-    event_rectangles.append("rect")
-        .attr("x", -0.5)
-        .attr("y", d => rectOffset(d) - this.conf.rect_size * tail_offset)
-        .attr("height", d => this.conf.rect_size * tail_offset)
-        .attr("stroke", "black")
-        .attr("stroke-width", 0)
-        .attr("width", 1)
-        .attr("fill", "black");
+    if (this.conf.rect_annotation_offset < 0) {
+      // Timeline annotation ticks
+      event_rectangles.append("rect")
+          .attr("x", -0.5)
+          .attr("y", d => this.conf.rect_annotation_offset)
+          .attr("height", d => -this.conf.rect_annotation_offset)
+          .attr("stroke", "black")
+          .attr("stroke-width", 0)
+          .attr("width", 1)
+          .attr("fill", "black");
+    }
   }
 
   restore_brush_selection() {
