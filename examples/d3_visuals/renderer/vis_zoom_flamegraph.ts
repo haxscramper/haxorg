@@ -130,10 +130,13 @@ export class ZoomFlamegraphVisualizationConfig {
   }
 }
 
+type XDomain
+    = d3.ScaleTime<number, number, never>|d3.ScaleLinear<number, number>;
+
 class ZoomUpdateState {
   tooltip: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
-  x_domain: d3.ScaleTime<number, number, never>;
-  brush_x_domain: d3.ScaleTime<number, number, never>;
+  x_domain: XDomain;
+  brush_x_domain: XDomain;
   brush_y_domain: d3.ScaleLinear<number, number, never>;
   y_domain: d3.ScaleBand<string>;
   area: d3.Selection<SVGGElement, ZoomDatum, HTMLElement, any>;
@@ -214,6 +217,7 @@ export class ZoomFlamegraphVisualization {
     this.state.x_domain.domain(t.rescaleX(this.state.brush_x_domain).domain());
     this.rescaleForTransform();
 
+    // @ts-ignore
     this.state.focus.select(".axis--x").call(this.state.xAxis);
     this.programmaticBrush = true;
     this.state.context.select(".brush").call(
@@ -228,8 +232,8 @@ export class ZoomFlamegraphVisualization {
     async function to_event(tree: org.ImmUniqId): Promise<Event> {
       var res = new Event(
           await client.getCleanSubtreeTitle({id : tree}),
-          new EventPoint(new Date(idx)),
-          new EventPoint(new Date(idx + 1)),
+          new EventPoint(idx),
+          new EventPoint(idx + 1),
       );
 
       idx += 2;
@@ -355,9 +359,13 @@ export class ZoomFlamegraphVisualization {
               this.state.tooltip.style("left", event.pageX + "px")
                   .style("top", event.pageY + "px")
                   .style("display", "inline-block")
-                  .html((d.name) + "<br> from :"
-                        + d.start.point.toISOString().slice(0, 19)
-                        + "<br> to :" + d.end.point.toISOString().slice(0, 19));
+                  .html(
+                      (d.name) + "<br> from :" + d.start.isDate()
+                          ? ((d.start.point as Date).toISOString().slice(0, 19)
+                             + "<br> to :"
+                             + (d.end.point as Date).toISOString().slice(0, 19))
+                          : (d.start.point.toString().slice(0, 19) + "<br> to :"
+                             + d.end.point.toString().slice(0, 19)));
             })
         .on("mouseout",
             (d: ZoomDatum) => {this.state.tooltip.style("display", "none")});
@@ -425,7 +433,7 @@ export class ZoomFlamegraphVisualization {
 
       console.log("Restore brush selection", clamped_selection);
       // @ts-ignore
-      brushG.call(this.state.brush.move, clamped_selection);
+      // brushG.call(this.state.brush.move, clamped_selection);
     }
   }
 
@@ -433,25 +441,46 @@ export class ZoomFlamegraphVisualization {
     this.state     = new ZoomUpdateState();
     const timeline = this.convertTimeline(this.gantt!);
 
+    if (!(timeline.every(d => d.start.isDate())
+          || timeline.every(d => d.start.isNumber()))) {
+      throw new Error(
+          "Either every timeline event must be a date, or every event must be a number");
+    }
+
+    const isTimeXDomain = timeline[0].start.isDate();
+
     // Define the div for the tooltip
     this.state.tooltip
         = d3.select("body").append("div").attr("class", "tooltip");
 
-    this.state.x_domain
-        = d3.scaleTime()
-              .domain([
-                get_defined(d3.min(
-                    timeline,
-                    (d: ZoomDatum): Date|number => { return d.start.point; })),
-                get_defined(d3.max(
-                    timeline,
-                    (d: ZoomDatum): Date|number => { return d.end.point; })),
-              ])
-              .range([ 0, this.conf.get_content_width() ]);
+    const x_domain_range = [
+      get_defined(d3.min(
+          timeline, (d: ZoomDatum): Date|number => { return d.start.point; })),
+      get_defined(d3.max(
+          timeline, (d: ZoomDatum): Date|number => { return d.end.point; })),
+    ];
 
-    this.state.brush_x_domain
-        = d3.scaleTime().range([ 0, this.conf.get_brush_width() ]);
-    // y = d3.scaleOrdinal().range([height, 0]),
+    if (isTimeXDomain) {
+      this.state.x_domain = d3.scaleTime().domain(x_domain_range).range([
+        0, this.conf.get_content_width()
+      ]);
+    } else {
+      this.state.x_domain = d3.scaleLinear().domain(x_domain_range).range([
+        0, this.conf.get_content_width()
+      ]);
+    }
+
+    if (isTimeXDomain) {
+      this.state.brush_x_domain = d3.scaleTime().domain(x_domain_range).range([
+        0, this.conf.get_brush_width()
+      ]);
+    } else {
+      this.state.brush_x_domain
+          = d3.scaleLinear().domain(x_domain_range).range([
+              0, this.conf.get_brush_width()
+            ]);
+    }
+
     this.state.brush_y_domain
         = d3.scaleLinear().range([ this.conf.brush_height, 0 ]);
 
@@ -509,7 +538,7 @@ export class ZoomFlamegraphVisualization {
     var brush_area = d3.area<ZoomDatum>()
                          .curve(d3.curveMonotoneX)
                          .x((d: ZoomDatum) => {
-                           return this.state.brush_x_domain(d.startdate);
+                           return this.state.brush_x_domain(d.start.point);
                          })
                          .y0(this.conf.brush_height)
                          .y1((d: ZoomDatum) => {
