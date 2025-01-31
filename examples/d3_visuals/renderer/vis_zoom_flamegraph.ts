@@ -191,16 +191,25 @@ export class ZoomFlamegraphVisualization {
                     .attr("width", this.conf.width);
   }
 
+  get_event_x_length(d: ZoomDatum): number {
+    return (this.state.x_domain(d.end.point)
+            - this.state.x_domain(d.start.point));
+  }
+
   rescaleForTransform() {
     this.state.area
         .selectAll(this.event_selector)
         // @ts-ignore
         .attr("transform", (d: ZoomDatum) => this.rectTransform(d));
-    this.state.area.selectAll(this.event_selector)
+    this.state.area.selectAll(this.event_selector + ",.body")
         .attr("width",
               // @ts-ignore
-              (d: ZoomDatum) => {return (this.state.x_domain(d.end.point)
-                                         - this.state.x_domain(d.start.point))})
+              (d: ZoomDatum) => { return this.get_event_x_length(d); });
+
+    this.state.area.selectAll(this.event_selector + ",.text")
+        .attr("x",
+              // @ts-ignore
+              (d: ZoomDatum) => { return this.get_event_x_length(d) / 2; })
   }
 
   zoomed(e: any) {
@@ -236,8 +245,8 @@ export class ZoomFlamegraphVisualization {
 
       var res = new Event(
           `${title} [${layer_idx}]`,
-          new EventPoint(1),
-          new EventPoint(2),
+          new EventPoint(layer_idx),
+          new EventPoint(layer_idx + 2),
           layer_idx,
       );
 
@@ -345,15 +354,12 @@ export class ZoomFlamegraphVisualization {
               .attr("class", "event_rectangle")
               .attr("transform", (d: ZoomDatum) => this.rectTransform(d));
 
-    const rectOffset
-        = (d: ZoomDatum) => { return d.layer * this.conf.rect_height; }
-
-    const colorScale
-        = d3.scaleOrdinal(d3.schemeCategory10);
+    const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
     const randomColor
         = () => colorScale(Math.floor(Math.random() * 20).toString());
 
     event_rectangles.append("rect")
+        .attr("class", "body")
         .attr("height", (d: ZoomDatum) => { return this.conf.rect_height; })
         .attr("width",
               (d: ZoomDatum) => {
@@ -382,7 +388,11 @@ export class ZoomFlamegraphVisualization {
 
     event_rectangles.append("text")
         .attr("y", d => this.conf.rect_annotation_offset)
+        .attr("x", d => (this.state.x_domain(d.end.point)
+                         - this.state.x_domain(d.start.point))
+                        / 2)
         .text(d => d.name)
+        .attr("class", "text")
         .attr("text-anchor", "start")
         .attr("alignment-baseline", "baseline")
         .attr("font-family", "Verdana, sans-serif")
