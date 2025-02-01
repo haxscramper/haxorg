@@ -157,19 +157,28 @@ class ZoomDatum {
 }
 
 export class ZoomFlamegraphVisualizationConfig {
-  height: number                 = 600;
-  width: number                  = 900;
-  rect_height: number            = 20;
-  brush_height: number           = 70;
-  top_margin: number             = 40;
-  right_margin: number           = 20;
-  bottom_margin: number          = 20;
-  left_margin: number            = 20;
-  left_brush_margin: number      = 10;
-  right_brush_margin: number     = 10;
-  bottom_brush_margin: number    = 10;
-  rect_annotation_offset: number = this.rect_height - 2;
-  horizontal: boolean            = true;
+  height: number                      = 900;
+  width: number                       = 900;
+  rect_height: number                 = 20;
+  brush_height: number                = 70;
+  top_margin: number                  = 40;
+  right_margin: number                = 20;
+  bottom_margin: number               = 20;
+  left_margin: number                 = 20;
+  left_brush_margin: number           = 10;
+  right_brush_margin: number          = 10;
+  bottom_brush_margin: number         = 10;
+  rect_annotation_offset: number      = this.rect_height - 2;
+  horizontal_event_placement: boolean = true;
+  horizontal_brush_placement: boolean = true;
+
+  get_event_domain_size_attr_name(): string {
+    return this.horizontal_event_placement ? "width" : "height";
+  }
+
+  get_layer_domain_size_attr_name(): string {
+    return this.horizontal_event_placement ? "height" : "width";
+  }
 
   get_brush_left_pos(): number {
     return this.left_margin + this.left_brush_margin;
@@ -250,7 +259,7 @@ export class ZoomFlamegraphVisualization {
                     .attr("width", this.conf.width);
   }
 
-  get_event_x_length(d: ZoomDatum): number {
+  get_datum_event_domain_length(d: ZoomDatum): number {
     return (this.state.event_domain(d.end.point)
             - this.state.event_domain(d.start.point));
   }
@@ -261,14 +270,22 @@ export class ZoomFlamegraphVisualization {
         // @ts-ignore
         .attr("transform", (d: ZoomDatum) => this.rectTransform(d));
     this.state.area.selectAll(this.event_selector + ",.body")
-        .attr("width",
+        .attr(this.conf.get_event_domain_size_attr_name(),
               // @ts-ignore
-              (d: ZoomDatum) => { return this.get_event_x_length(d); });
+              (d: ZoomDatum) => {
+                return this.get_datum_event_domain_length(d);
+              });
 
     this.state.area.selectAll(this.event_selector + ",.text")
-        .attr("x",
+        .attr(this.conf.horizontal_event_placement ? "x" : "y",
               // @ts-ignore
-              (d: ZoomDatum) => { return this.get_event_x_length(d) / 2; })
+              (d: ZoomDatum) => {
+                if (this.conf.horizontal_event_placement) {
+                  return this.get_datum_event_domain_length(d) / 2;
+                } else {
+                  return 0;
+                }
+              })
   }
 
   zoomed(e: any) {
@@ -323,11 +340,15 @@ export class ZoomFlamegraphVisualization {
   }
 
   rectTransform(d: ZoomDatum) {
-    const y_pos = get_defined(this.state.layer_domain(d.type))
-                  + (this.conf.rect_height * d.layer);
-    const x_pos = this.state.event_domain(d.start.point).toFixed(3);
+    const layer_offset = get_defined(this.state.layer_domain(d.type))
+                         + (this.conf.rect_height * d.layer);
+    const event_offset = this.state.event_domain(d.start.point).toFixed(3);
 
-    return `translate(${x_pos},${y_pos})`;
+    if (this.conf.horizontal_event_placement) {
+      return `translate(${event_offset},${layer_offset})`;
+    } else {
+      return `translate(${layer_offset},${event_offset})`;
+    }
   };
 
   brushed(event: any) {
@@ -390,7 +411,6 @@ export class ZoomFlamegraphVisualization {
   }
 
   update_event_rectangles(timeline: ZoomDatum[]) {
-
     var keyFunction = function(d: ZoomDatum) { return d.start.point + d.type; };
 
     var event_rectangles
@@ -407,12 +427,11 @@ export class ZoomFlamegraphVisualization {
 
     event_rectangles.append("rect")
         .attr("class", "body")
-        .attr("height", (d: ZoomDatum) => { return this.conf.rect_height; })
-        .attr("width",
-              (d: ZoomDatum) => {
-                return (this.state.event_domain(d.end.point)
-                        - this.state.event_domain(d.start.point));
-              })
+        .attr(this.conf.get_layer_domain_size_attr_name(),
+              (d: ZoomDatum) => { return this.conf.rect_height; })
+        .attr(
+            this.conf.get_event_domain_size_attr_name(),
+            (d: ZoomDatum) => { return this.get_datum_event_domain_length(d); })
         .style("fill", d => randomColor())
         .on("mouseover",
             (event: any, d: ZoomDatum) => {
@@ -435,11 +454,16 @@ export class ZoomFlamegraphVisualization {
 
     event_rectangles.append("text")
         .attr("y", (d: ZoomDatum) => this.conf.rect_annotation_offset)
-        .attr("x", (d: ZoomDatum) => this.get_event_x_length(d) / 2)
+        .attr(this.conf.horizontal_event_placement ? "x" : "y",
+              (d: ZoomDatum) => this.conf.horizontal_event_placement
+                                    ? this.get_datum_event_domain_length(d) / 2
+                                    : 0)
         .text((d: ZoomDatum) => d.name)
         .attr("class", "text")
-        .attr("text-anchor", "middle")
-        .attr("alignment-baseline", "baseline")
+        .attr("text-anchor",
+              this.conf.horizontal_event_placement ? "middle" : "start")
+        .attr("alignment-baseline",
+              this.conf.horizontal_event_placement ? "baseline" : "hanging")
         .attr("font-family", "Verdana, sans-serif")
         .attr("font-size", "12px")
         .attr("fill", "black");
