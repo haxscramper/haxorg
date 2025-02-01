@@ -543,6 +543,15 @@ struct RestHandlerContext {
         }
     }
 
+    Vec<org::ImmUniqId> getAllSubnodes(org::ImmUniqId const& id) const {
+        Vec<org::ImmUniqId> res;
+        for (auto const& sub : state->ctx->adapt(id).sub(true)) {
+            res.push_back(sub.uniq());
+        }
+        return res;
+    }
+
+
     org::ImmUniqId getSubnodeAt(org::ImmUniqId const& id, int index)
         const {
         return state->ctx->adapt(id).at(index).uniq();
@@ -1233,6 +1242,7 @@ int main(int argc, char** argv) {
         _ctx_method(setRootFile, arg("path"));
         _ctx_method(getKind, arg("id"));
         _ctx_method(getCleanSubtreeTitle, arg("id"));
+        _ctx_method(getAllSubnodes, arg("id"));
         _ctx_method(getSubnodeAt, arg("id"), arg("index"));
         _ctx_method(getSize, arg("id"));
         _ctx_method(setExceptionHandler, arg("handler"));

@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import {Schema, string, z} from "zod";
+import {array, Schema, string, z} from "zod";
 
 import * as org from "./org_data.ts";
 import {dump_html} from "./utils.ts";
@@ -46,6 +46,35 @@ function get_defined<T>(value: T|undefined|null,
   return value;
 }
 
+class OrgSubtreeEvent {
+  public self_size: number         = 0;
+  public nested: OrgSubtreeEvent[] = Array();
+  public title: string;
+
+  get_full_size(): number {
+    var res = this.self_size;
+    for (var sub of this.nested) {
+      res += sub.get_full_size();
+    }
+    return res;
+  }
+
+  static async from_id(client: org.OrgClient,
+                       id: org.ImmUniqId): Promise<OrgSubtreeEvent> {
+    var res       = new OrgSubtreeEvent();
+    res.self_size = 1;
+    res.title     = await client.getCleanSubtreeTitle({id : id});
+
+    const subnodes: org.ImmUniqId[] = await client.getAllSubnodes({id : id});
+
+    for (var subnode of subnodes) {
+      res.nested.push(await this.from_id(client, subnode));
+    }
+
+    return res;
+  }
+}
+
 class Event {
   public static readonly Schema = z.object({
     name : z.string(),
@@ -66,6 +95,32 @@ class Event {
     assert_zod(end, EventPoint.Schema);
     assert_zod(nested, z.array(Event.Schema));
     assert_zod(layer, z.number());
+  }
+
+  static from_org_subtree(tree: OrgSubtreeEvent[]): Event[] {
+    var      res: Event[] = Array();
+    var      start        = 0;
+    function aux(event: OrgSubtreeEvent, event_layer: number) {
+      const this_start = start;
+      start += event.self_size;
+      for (var sub of event.nested) {
+        aux(sub, event_layer + 1);
+      }
+
+      res.push(new Event(
+          event.title,
+          new EventPoint(this_start),
+          new EventPoint(start),
+          event_layer,
+          "one",
+          ));
+    }
+
+    for (var t of tree) {
+      aux(t, 0);
+    }
+
+    return res;
   }
 }
 
@@ -166,6 +221,7 @@ export class ZoomFlamegraphVisualization {
 
   convertTimeline(data: Gantt): ZoomDatum[] {
     function flatten(data: Event) {
+      assert_zod(data, Event.Schema);
       return [ data ].concat(data.nested.map(d => flatten(d)).flat(1));
     }
 
@@ -237,31 +293,18 @@ export class ZoomFlamegraphVisualization {
   }
 
   async get_gantt(client: org.OrgClient, root: org.ImmUniqId): Promise<Gantt> {
-    var res       = new Gantt();
-    var layer_idx = 0;
-
-    async function to_event(tree: org.ImmUniqId): Promise<Event> {
-      const title = await client.getCleanSubtreeTitle({id : tree});
-
-      var res = new Event(
-          `${title} [${layer_idx}]`,
-          new EventPoint(layer_idx),
-          new EventPoint(layer_idx + 2),
-          layer_idx,
-      );
-
-      console.log(title, layer_idx);
-      layer_idx += 1;
-
-      return res;
+    var res                            = new Gantt();
+    var root_subtrees: org.ImmUniqId[] = Array();
+    for (var subnode of await client.getAllSubnodes({id : root})) {
+      if ((subnode as org.ImmUniqId).id.format.startsWith("Subtree")) {
+        root_subtrees.push(subnode as org.ImmUniqId);
+      }
     }
-
-    const size: number = await client.getSize({id : root});
-    for (var idx = 0; idx < size; ++idx) {
-      const subnode = await client.getSubnodeAt({id : root, index : idx});
-      res.events.push(await to_event(subnode));
-    }
-
+    const root_subtrees_list = await Promise.all(root_subtrees.map(
+        async (id: org.ImmUniqId) => await OrgSubtreeEvent.from_id(client,
+                                                                   id)));
+    console.log(root_subtrees_list);
+    res.events = Event.from_org_subtree(root_subtrees_list);
     return res;
   }
 
@@ -387,13 +430,11 @@ export class ZoomFlamegraphVisualization {
             (d: ZoomDatum) => {this.state.tooltip.style("display", "none")});
 
     event_rectangles.append("text")
-        .attr("y", d => this.conf.rect_annotation_offset)
-        .attr("x", d => (this.state.x_domain(d.end.point)
-                         - this.state.x_domain(d.start.point))
-                        / 2)
-        .text(d => d.name)
+        .attr("y", (d: ZoomDatum) => this.conf.rect_annotation_offset)
+        .attr("x", (d: ZoomDatum) => this.get_event_x_length(d) / 2)
+        .text((d: ZoomDatum) => d.name)
         .attr("class", "text")
-        .attr("text-anchor", "start")
+        .attr("text-anchor", "middle")
         .attr("alignment-baseline", "baseline")
         .attr("font-family", "Verdana, sans-serif")
         .attr("font-size", "12px")
@@ -403,8 +444,8 @@ export class ZoomFlamegraphVisualization {
       // Timeline annotation ticks
       event_rectangles.append("rect")
           .attr("x", -0.5)
-          .attr("y", d => this.conf.rect_annotation_offset)
-          .attr("height", d => -this.conf.rect_annotation_offset)
+          .attr("y", (d: ZoomDatum) => this.conf.rect_annotation_offset)
+          .attr("height", (d: ZoomDatum) => -this.conf.rect_annotation_offset)
           .attr("stroke", "black")
           .attr("stroke-width", 0)
           .attr("width", 1)

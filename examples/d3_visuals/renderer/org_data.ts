@@ -56,6 +56,7 @@ export type InferParamType<T extends string> =
     T extends `Set<${infer U}>` ? Set<InferParamType<U>> :
     T extends `Promise<${infer U}>` ? Promise<InferParamType<U>> :
     T extends `${infer U}[]` ? InferParamType<U>[] :
+    T extends `Vec<${infer U}>` ? InferParamType<U>[] :
     T extends keyof GlobalTypes ? GlobalTypes[T] :
                         // clang-format on
             unknown;
