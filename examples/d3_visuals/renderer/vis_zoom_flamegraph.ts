@@ -172,6 +172,14 @@ export class ZoomFlamegraphVisualizationConfig {
   horizontal_event_placement: boolean = true;
   horizontal_brush_placement: boolean = true;
 
+  get_zoom_area_offset_left(): number {
+    if (this.horizontal_brush_placement) {
+      return this.left_margin;
+    } else {
+      return this.left_margin + this.brush_height;
+    }
+  }
+
   get_event_domain_size_attr_name(): string {
     return this.horizontal_event_placement ? "width" : "height";
   }
@@ -181,23 +189,44 @@ export class ZoomFlamegraphVisualizationConfig {
   }
 
   get_brush_left_pos(): number {
-    return this.left_margin + this.left_brush_margin;
+    if (this.horizontal_brush_placement) {
+      return this.left_margin + this.left_brush_margin;
+    } else {
+      return this.left_margin;
+    }
   }
 
-  get_brush_width(): number {
-    return this.get_content_width() - this.left_brush_margin
-           - this.right_brush_margin;
+  get_brush_layer_domain_size(): number {
+    if (this.horizontal_brush_placement) {
+      return this.brush_height;
+    } else {
+      return this.get_content_event_extent() - this.left_brush_margin
+             - this.right_brush_margin;
+    }
+  }
+
+  get_brush_event_domain_size(): number {
+    if (this.horizontal_brush_placement) {
+      return this.get_content_event_extent() - this.left_brush_margin
+             - this.right_brush_margin;
+    } else {
+      return this.get_content_event_extent();
+    }
   }
 
   get_brush_top_pos(): number {
-    return this.height - this.top_margin - this.brush_height;
+    if (this.horizontal_brush_placement) {
+      return this.height - this.top_margin - this.brush_height;
+    } else {
+      return this.top_margin;
+    }
   }
 
-  get_content_width(): number {
+  get_content_event_extent(): number {
     return this.width - this.left_margin - this.right_margin;
   }
 
-  get_content_height(): number {
+  get_content_layer_extent(): number {
     return this.height - this.top_margin - this.bottom_margin;
   }
 }
@@ -383,28 +412,28 @@ export class ZoomFlamegraphVisualization {
                           .translateExtent([
                             [ 0, 0 ],
                             [
-                              this.conf.get_content_width(),
-                              this.conf.get_content_height(),
+                              this.conf.get_content_event_extent(),
+                              this.conf.get_content_layer_extent(),
                             ]
                           ])
                           .extent([
                             [ 0, 0 ],
                             [
-                              this.conf.get_content_width(),
-                              this.conf.get_content_height(),
+                              this.conf.get_content_event_extent(),
+                              this.conf.get_content_layer_extent(),
                             ]
                           ])
                           .on("zoom", (e: any) => this.zoomed(e));
 
     this.svg.append("rect")
         .attr("class", "zoom")
-        .attr("width", this.conf.get_content_width())
-        .attr("height", this.conf.get_content_height())
+        .attr("width", this.conf.get_content_event_extent())
+        .attr("height", this.conf.get_content_layer_extent())
         .style("fill", "white")
         .attr(
             "transform",
-            "translate(" + this.conf.left_margin + "," + this.conf.top_margin
-                + ")",
+            "translate(" + this.conf.get_zoom_area_offset_left() + ","
+                + this.conf.top_margin + ")",
             )
         // @ts-ignore
         .call(this.state.zoom);
@@ -552,24 +581,24 @@ export class ZoomFlamegraphVisualization {
     if (isTimeXDomain) {
       this.state.event_domain
           = d3.scaleTime().domain(event_domain_range).range([
-              0, this.conf.get_content_width()
+              0, this.conf.get_content_event_extent()
             ]);
     } else {
       this.state.event_domain
           = d3.scaleLinear().domain(event_domain_range).range([
-              0, this.conf.get_content_width()
+              0, this.conf.get_content_event_extent()
             ]);
     }
 
     if (isTimeXDomain) {
       this.state.brush_event_domain
           = d3.scaleTime().domain(event_domain_range).range([
-              0, this.conf.get_brush_width()
+              0, this.conf.get_brush_event_domain_size()
             ]);
     } else {
       this.state.brush_event_domain
           = d3.scaleLinear().domain(event_domain_range).range([
-              0, this.conf.get_brush_width()
+              0, this.conf.get_brush_event_domain_size()
             ]);
     }
 
@@ -579,7 +608,7 @@ export class ZoomFlamegraphVisualization {
     this.state.layer_domain
         = d3.scaleBand()
               .domain(timeline.map(function(entry) { return entry.type; }))
-              .rangeRound([ this.conf.get_content_height(), 0 ]);
+              .rangeRound([ this.conf.get_content_layer_extent(), 0 ]);
 
     // colors for each type
     var types      = [...new Set(timeline.map(item => item.type)) ];
@@ -595,28 +624,52 @@ export class ZoomFlamegraphVisualization {
               .attr("transform", "translate(" + this.conf.left_margin + ","
                                      + this.conf.top_margin + ")");
 
-    this.state.event_axis = d3.axisBottom(this.state.event_domain);
-    var brush_event_axis  = d3.axisBottom(this.state.brush_event_domain);
-    var layer_axis        = d3.axisLeft(this.state.layer_domain).tickSize(0);
-    this.state.brush
-        = d3.brushX<ZoomDatum>()
-              .extent([
-                [ 0, 0 ],
-                [ this.conf.get_brush_width(), this.conf.brush_height ]
-              ])
-              .on("brush end", (e: any, d: ZoomDatum) => this.brushed(e));
+    this.state.event_axis = this.conf.horizontal_event_placement
+                                ? d3.axisBottom(this.state.event_domain)
+                                : d3.axisLeft(this.state.event_domain);
+    var brush_event_axis  = this.conf.horizontal_brush_placement
+                                ? d3.axisBottom(this.state.brush_event_domain)
+                                : d3.axisLeft(this.state.brush_event_domain);
+    var layer_axis        = this.conf.horizontal_event_placement
+                                ? d3.axisLeft(this.state.layer_domain).tickSize(0)
+                                : d3.axisBottom(this.state.layer_domain).tickSize(0);
+
+    if (this.conf.horizontal_brush_placement) {
+      this.state.brush
+          = d3.brushX<ZoomDatum>()
+                .extent([
+                  [ 0, 0 ],
+                  [
+                    this.conf.get_brush_event_domain_size(),
+                    this.conf.get_brush_layer_domain_size(),
+                  ]
+                ])
+                .on("brush end", (e: any, d: ZoomDatum) => this.brushed(e));
+    } else {
+      this.state.brush
+          = d3.brushY<ZoomDatum>()
+                .extent([
+                  [ 0, 0 ],
+                  [
+                    this.conf.get_brush_event_domain_size(),
+                    this.conf.get_brush_layer_domain_size(),
+                  ]
+                ])
+                .on("brush end", (e: any, d: ZoomDatum) => this.brushed(e));
+    }
 
     this.update_zoom_selector();
 
-    this.state.area = this.svg.append("g")
-                          .attr("class", "clipped")
-                          .attr("width", this.conf.get_content_width())
-                          .attr("height", this.conf.get_content_height())
-                          .attr(
-                              "transform",
-                              "translate(" + this.conf.left_margin + ","
-                                  + this.conf.top_margin + ")",
-                          );
+    this.state.area
+        = this.svg.append("g")
+              .attr("class", "clipped")
+              .attr("width", this.conf.get_content_event_extent())
+              .attr("height", this.conf.get_content_layer_extent())
+              .attr(
+                  "transform",
+                  "translate(" + this.conf.get_zoom_area_offset_left() + ","
+                      + this.conf.top_margin + ")",
+              );
 
     this.update_event_rectangles(timeline);
 
@@ -625,7 +678,7 @@ export class ZoomFlamegraphVisualization {
                          .x((d: ZoomDatum) => {
                            return this.state.brush_event_domain(d.start.point);
                          })
-                         .y0(this.conf.brush_height)
+                         .y0(this.conf.get_brush_layer_domain_size())
                          .y1((d: ZoomDatum) => {
                            // @ts-ignore
                            return this.state.brush_layer_domain(d.name);
@@ -644,11 +697,20 @@ export class ZoomFlamegraphVisualization {
 
     this.state.focus.append("g")
         .attr("class", "axis axis--event")
-        .attr("transform",
-              "translate(0," + this.conf.get_content_height() + ")")
+        .attr("transform", "translate("
+                               + (this.conf.horizontal_brush_placement
+                                      ? 0
+                                      : this.conf.brush_height)
+                               + ","
+                               + (this.conf.horizontal_event_placement
+                                      ? this.conf.get_content_layer_extent()
+                                      : 0)
+                               + ")")
         .call(this.state.event_axis);
 
-    this.state.focus.append("g").attr("class", "axis axis--y").call(layer_axis);
+    this.state.focus.append("g")
+        .attr("class", "axis axis--layer")
+        .call(layer_axis);
 
     this.state.context.append("path")
         .datum(timeline)
@@ -657,7 +719,11 @@ export class ZoomFlamegraphVisualization {
 
     this.state.context.append("g")
         .attr("class", "axis axis--event")
-        .attr("transform", "translate(0," + this.conf.brush_height + ")")
+        .attr("transform", "translate(0,"
+                               + (this.conf.horizontal_brush_placement
+                                      ? this.conf.brush_height
+                                      : 0)
+                               + ")")
         .call(brush_event_axis);
 
     this.restore_brush_selection();

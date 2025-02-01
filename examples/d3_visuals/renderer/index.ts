@@ -9,9 +9,10 @@ import {
 
 window.addEventListener("DOMContentLoaded", () => {
   if (true) {
-    var conf1        = new ZoomFlamegraphVisualizationConfig();
+    var conf1                        = new ZoomFlamegraphVisualizationConfig();
     conf1.horizontal_event_placement = false;
-    const viz        = new ZoomFlamegraphVisualization("visualization", conf1);
+    conf1.horizontal_brush_placement = true;
+    const viz = new ZoomFlamegraphVisualization("visualization", conf1);
     viz.render();
   } else {
     var conf                     = new CollapsibleTreeVisualizationConfig();
