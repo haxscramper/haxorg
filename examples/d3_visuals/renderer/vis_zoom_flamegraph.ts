@@ -61,14 +61,16 @@ class OrgSubtreeEvent {
 
   static async from_id(client: org.OrgClient,
                        id: org.ImmUniqId): Promise<OrgSubtreeEvent> {
-    var res       = new OrgSubtreeEvent();
-    res.self_size = 1;
-    res.title     = await client.getCleanSubtreeTitle({id : id});
+    var               res = new OrgSubtreeEvent();
+    res.title             = await client.getCleanSubtreeTitle({id : id});
+    res.self_size         = 1;
 
     const subnodes: org.ImmUniqId[] = await client.getAllSubnodes({id : id});
 
     for (var subnode of subnodes) {
-      res.nested.push(await this.from_id(client, subnode));
+      if ((subnode as org.ImmUniqId).id.format.startsWith("Subtree")) {
+        res.nested.push(await this.from_id(client, subnode));
+      }
     }
 
     return res;
@@ -167,6 +169,7 @@ export class ZoomFlamegraphVisualizationConfig {
   right_brush_margin: number     = 10;
   bottom_brush_margin: number    = 10;
   rect_annotation_offset: number = this.rect_height - 2;
+  horizontal: boolean            = true;
 
   get_brush_left_pos(): number {
     return this.left_margin + this.left_brush_margin;
@@ -195,15 +198,15 @@ type XDomain
 
 class ZoomUpdateState {
   tooltip: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
-  x_domain: XDomain;
-  brush_x_domain: XDomain;
-  brush_y_domain: d3.ScaleLinear<number, number, never>;
-  y_domain: d3.ScaleBand<string>;
+  event_domain: XDomain;
+  brush_event_domain: XDomain;
+  brush_layer_domain: d3.ScaleLinear<number, number, never>;
+  layer_domain: d3.ScaleBand<string>;
   area: d3.Selection<SVGGElement, ZoomDatum, HTMLElement, any>;
   zoom: d3.ZoomBehavior<Element, ZoomDatum>;
   context: d3.Selection<SVGGElement, ZoomDatum, HTMLElement, any>;
   focus: d3.Selection<SVGGElement, ZoomDatum, HTMLElement, any>;
-  xAxis: d3.Axis<Date|d3.NumberValue>;
+  event_axis: d3.Axis<Date|d3.NumberValue>;
   brush: d3.BrushBehavior<ZoomDatum>;
 }
 
@@ -248,8 +251,8 @@ export class ZoomFlamegraphVisualization {
   }
 
   get_event_x_length(d: ZoomDatum): number {
-    return (this.state.x_domain(d.end.point)
-            - this.state.x_domain(d.start.point));
+    return (this.state.event_domain(d.end.point)
+            - this.state.event_domain(d.start.point));
   }
 
   rescaleForTransform() {
@@ -281,15 +284,17 @@ export class ZoomFlamegraphVisualization {
     localStorage.setItem("translateX", t.x);
     localStorage.setItem("translateY", t.y);
 
-    this.state.x_domain.domain(t.rescaleX(this.state.brush_x_domain).domain());
+    this.state.event_domain.domain(
+        t.rescaleX(this.state.brush_event_domain).domain());
     this.rescaleForTransform();
 
     // @ts-ignore
-    this.state.focus.select(".axis--x").call(this.state.xAxis);
+    this.state.focus.select(".axis--event").call(this.state.event_axis);
     this.programmaticBrush = true;
     this.state.context.select(".brush").call(
         // @ts-ignore
-        this.state.brush.move, this.state.x_domain.range().map(t.invertX, t));
+        this.state.brush.move,
+        this.state.event_domain.range().map(t.invertX, t));
   }
 
   async get_gantt(client: org.OrgClient, root: org.ImmUniqId): Promise<Gantt> {
@@ -303,8 +308,7 @@ export class ZoomFlamegraphVisualization {
     const root_subtrees_list = await Promise.all(root_subtrees.map(
         async (id: org.ImmUniqId) => await OrgSubtreeEvent.from_id(client,
                                                                    id)));
-    console.log(root_subtrees_list);
-    res.events = Event.from_org_subtree(root_subtrees_list);
+    res.events               = Event.from_org_subtree(root_subtrees_list);
     return res;
   }
 
@@ -319,9 +323,9 @@ export class ZoomFlamegraphVisualization {
   }
 
   rectTransform(d: ZoomDatum) {
-    const y_pos = get_defined(this.state.y_domain(d.type))
+    const y_pos = get_defined(this.state.layer_domain(d.type))
                   + (this.conf.rect_height * d.layer);
-    const x_pos = this.state.x_domain(d.start.point).toFixed(3);
+    const x_pos = this.state.event_domain(d.start.point).toFixed(3);
 
     return `translate(${x_pos},${y_pos})`;
   };
@@ -331,15 +335,15 @@ export class ZoomFlamegraphVisualization {
       this.programmaticBrush = false;
       return;
     } else {
-      var s = event.selection || this.state.brush_x_domain.range();
+      var s = event.selection || this.state.brush_event_domain.range();
 
-      this.state.x_domain.domain(
-          s.map(this.state.brush_x_domain.invert, this.state.brush_x_domain));
+      this.state.event_domain.domain(s.map(this.state.brush_event_domain.invert,
+                                           this.state.brush_event_domain));
       this.rescaleForTransform();
 
       // focus.select(".focus").attr("d", focus);
       // @ts-ignore
-      this.state.focus.select(".axis--x").call(this.state.xAxis);
+      this.state.focus.select(".axis--event").call(this.state.event_axis);
       this.programmaticZoom = true;
       this.svg.select(".zoom").call(
           // @ts-ignore
@@ -406,8 +410,8 @@ export class ZoomFlamegraphVisualization {
         .attr("height", (d: ZoomDatum) => { return this.conf.rect_height; })
         .attr("width",
               (d: ZoomDatum) => {
-                return (this.state.x_domain(d.end.point)
-                        - this.state.x_domain(d.start.point));
+                return (this.state.event_domain(d.end.point)
+                        - this.state.event_domain(d.start.point));
               })
         .style("fill", d => randomColor())
         .on("mouseover",
@@ -457,14 +461,14 @@ export class ZoomFlamegraphVisualization {
     var storedBrushSelection
         = localStorage.getItem("brushSelection")
               ? JSON.parse(localStorage.getItem("brushSelection")!) as number[]
-              : this.state.brush_x_domain.range();
+              : this.state.brush_event_domain.range();
 
-    var brushG
-        = this.state.context.append("g")
-              .attr("class", "brush")
-              .call(this.state.brush)
-              // @ts-ignore
-              .call(this.state.brush.move, this.state.brush_x_domain.range());
+    var brushG = this.state.context.append("g")
+                     .attr("class", "brush")
+                     .call(this.state.brush)
+                     // @ts-ignore
+                     .call(this.state.brush.move,
+                           this.state.brush_event_domain.range());
 
     // Get stored zoom and pan values
     var storedZoom       = +localStorage.getItem("zoom")!;
@@ -488,8 +492,8 @@ export class ZoomFlamegraphVisualization {
       }
 
       const clamped_selection = [
-        clamp(this.state.brush_x_domain, storedBrushSelection[0]),
-        clamp(this.state.brush_x_domain, storedBrushSelection[1])
+        clamp(this.state.brush_event_domain, storedBrushSelection[0]),
+        clamp(this.state.brush_event_domain, storedBrushSelection[1])
       ];
 
       console.log("Restore brush selection", clamped_selection);
@@ -514,7 +518,7 @@ export class ZoomFlamegraphVisualization {
     this.state.tooltip
         = d3.select("body").append("div").attr("class", "tooltip");
 
-    const x_domain_range = [
+    const event_domain_range = [
       get_defined(d3.min(
           timeline, (d: ZoomDatum): Date|number => { return d.start.point; })),
       get_defined(d3.max(
@@ -522,30 +526,33 @@ export class ZoomFlamegraphVisualization {
     ];
 
     if (isTimeXDomain) {
-      this.state.x_domain = d3.scaleTime().domain(x_domain_range).range([
-        0, this.conf.get_content_width()
-      ]);
+      this.state.event_domain
+          = d3.scaleTime().domain(event_domain_range).range([
+              0, this.conf.get_content_width()
+            ]);
     } else {
-      this.state.x_domain = d3.scaleLinear().domain(x_domain_range).range([
-        0, this.conf.get_content_width()
-      ]);
+      this.state.event_domain
+          = d3.scaleLinear().domain(event_domain_range).range([
+              0, this.conf.get_content_width()
+            ]);
     }
 
     if (isTimeXDomain) {
-      this.state.brush_x_domain = d3.scaleTime().domain(x_domain_range).range([
-        0, this.conf.get_brush_width()
-      ]);
+      this.state.brush_event_domain
+          = d3.scaleTime().domain(event_domain_range).range([
+              0, this.conf.get_brush_width()
+            ]);
     } else {
-      this.state.brush_x_domain
-          = d3.scaleLinear().domain(x_domain_range).range([
+      this.state.brush_event_domain
+          = d3.scaleLinear().domain(event_domain_range).range([
               0, this.conf.get_brush_width()
             ]);
     }
 
-    this.state.brush_y_domain
+    this.state.brush_layer_domain
         = d3.scaleLinear().range([ this.conf.brush_height, 0 ]);
 
-    this.state.y_domain
+    this.state.layer_domain
         = d3.scaleBand()
               .domain(timeline.map(function(entry) { return entry.type; }))
               .rangeRound([ this.conf.get_content_height(), 0 ]);
@@ -564,9 +571,9 @@ export class ZoomFlamegraphVisualization {
               .attr("transform", "translate(" + this.conf.left_margin + ","
                                      + this.conf.top_margin + ")");
 
-    this.state.xAxis = d3.axisBottom(this.state.x_domain);
-    var xAxis2       = d3.axisBottom(this.state.brush_x_domain);
-    var yAxis        = d3.axisLeft(this.state.y_domain).tickSize(0);
+    this.state.event_axis = d3.axisBottom(this.state.event_domain);
+    var brush_event_axis  = d3.axisBottom(this.state.brush_event_domain);
+    var layer_axis        = d3.axisLeft(this.state.layer_domain).tickSize(0);
     this.state.brush
         = d3.brushX<ZoomDatum>()
               .extent([
@@ -576,35 +583,28 @@ export class ZoomFlamegraphVisualization {
               .on("brush end", (e: any, d: ZoomDatum) => this.brushed(e));
 
     this.update_zoom_selector();
-    this.svg.append("defs")
-        .append("clipPath")
-        .attr("id", "clip")
-        .append("rect")
-        .attr("width", this.conf.get_content_width())
-        .attr("height", this.conf.get_content_height())
 
-            this.state.area
-        = this.svg.append("g")
-              .attr("class", "clipped")
-              .attr("width", this.conf.get_content_width())
-              .attr("height", this.conf.get_content_height())
-              .attr(
-                  "transform",
-                  "translate(" + this.conf.left_margin + ","
-                      + this.conf.top_margin + ")",
-              );
+    this.state.area = this.svg.append("g")
+                          .attr("class", "clipped")
+                          .attr("width", this.conf.get_content_width())
+                          .attr("height", this.conf.get_content_height())
+                          .attr(
+                              "transform",
+                              "translate(" + this.conf.left_margin + ","
+                                  + this.conf.top_margin + ")",
+                          );
 
     this.update_event_rectangles(timeline);
 
     var brush_area = d3.area<ZoomDatum>()
                          .curve(d3.curveMonotoneX)
                          .x((d: ZoomDatum) => {
-                           return this.state.brush_x_domain(d.start.point);
+                           return this.state.brush_event_domain(d.start.point);
                          })
                          .y0(this.conf.brush_height)
                          .y1((d: ZoomDatum) => {
                            // @ts-ignore
-                           return this.state.brush_y_domain(d.name);
+                           return this.state.brush_layer_domain(d.name);
                          });
 
     this.state.context
@@ -614,17 +614,17 @@ export class ZoomFlamegraphVisualization {
                                      + "," + this.conf.get_brush_top_pos()
                                      + ")");
 
-    this.state.brush_x_domain.domain(this.state.x_domain.domain());
+    this.state.brush_event_domain.domain(this.state.event_domain.domain());
     // @ts-ignore
-    this.state.brush_y_domain.domain(this.state.y_domain.domain());
+    this.state.brush_layer_domain.domain(this.state.layer_domain.domain());
 
     this.state.focus.append("g")
-        .attr("class", "axis axis--x")
+        .attr("class", "axis axis--event")
         .attr("transform",
               "translate(0," + this.conf.get_content_height() + ")")
-        .call(this.state.xAxis);
+        .call(this.state.event_axis);
 
-    this.state.focus.append("g").attr("class", "axis axis--y").call(yAxis);
+    this.state.focus.append("g").attr("class", "axis axis--y").call(layer_axis);
 
     this.state.context.append("path")
         .datum(timeline)
@@ -632,9 +632,9 @@ export class ZoomFlamegraphVisualization {
         .attr("d", brush_area);
 
     this.state.context.append("g")
-        .attr("class", "axis axis--x")
+        .attr("class", "axis axis--event")
         .attr("transform", "translate(0," + this.conf.brush_height + ")")
-        .call(xAxis2);
+        .call(brush_event_axis);
 
     this.restore_brush_selection();
 
