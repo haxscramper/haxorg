@@ -446,6 +446,64 @@ export class ZoomFlamegraphVisualization {
         .call(this.state.zoom);
   }
 
+  update_brush_context_event_rectangles(timeline: ZoomDatum[]) {
+    var brush_rectangles
+        = this.svg.append("g")
+              .attr("width", this.conf.get_brush_horizontal_size())
+              .attr("height", this.conf.get_brush_vertical_size())
+              .attr("class", "brush-rectangles")
+              .attr("transform",
+                    `translate(${this.conf.get_brush_left_pos()}, ${
+                        this.conf.get_brush_top_pos()})`);
+
+    const conf  = this.conf;
+    const state = this.state;
+    var   context_layer_domain
+        = d3.scaleBand()
+              .domain(timeline.map(function(entry) { return entry.type; }))
+              .rangeRound([ conf.brush_height, 0 ]);
+
+    const event_height       = 2;
+    const event_layer_height = 4;
+
+    function get_event_context_x(d: ZoomDatum): number {
+      if (conf.horizontal_brush_placement) {
+        return state.brush_event_domain(d.start.point);
+      } else {
+        return context_layer_domain(d.type) as
+               number + d.layer * event_layer_height;
+      }
+    }
+
+    function get_event_context_y(d: ZoomDatum): number {
+      if (conf.horizontal_brush_placement) {
+        return context_layer_domain(d.type) as
+               number + d.layer * event_layer_height;
+      } else {
+        return state.brush_event_domain(d.start.point);
+      }
+    }
+
+    function get_event_context_extent(d: ZoomDatum): number {
+      return state.brush_event_domain(d.end.point)
+             - state.brush_event_domain(d.start.point);
+    }
+
+    brush_rectangles.selectAll("rect")
+        .data(timeline)
+        .enter()
+        .append("rect")
+        .attr("fill", "green")
+        .attr("x", (d: ZoomDatum) => get_event_context_x(d))
+        .attr("y", (d: ZoomDatum) => get_event_context_y(d))
+        .attr("width", (d: ZoomDatum) => conf.horizontal_brush_placement
+                                             ? get_event_context_extent(d)
+                                             : event_height)
+        .attr("height", (d: ZoomDatum) => conf.horizontal_brush_placement
+                                              ? event_height
+                                              : get_event_context_extent(d));
+  }
+
   update_event_rectangles(timeline: ZoomDatum[]) {
     var keyFunction = function(d: ZoomDatum) { return d.start.point + d.type; };
 
@@ -736,6 +794,7 @@ export class ZoomFlamegraphVisualization {
         .call(brush_event_axis);
 
     this.restore_brush_selection();
+    this.update_brush_context_event_rectangles(timeline);
 
     dump_html();
   }
