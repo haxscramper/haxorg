@@ -253,6 +253,7 @@ class ZoomUpdateState {
   focus: d3.Selection<SVGGElement, ZoomDatum, HTMLElement, any>;
   event_axis: d3.Axis<Date|d3.NumberValue>;
   brush: d3.BrushBehavior<ZoomDatum>;
+  event_color: d3.ScaleOrdinal<string, string>;
 }
 
 export class ZoomFlamegraphVisualization {
@@ -266,6 +267,10 @@ export class ZoomFlamegraphVisualization {
   conf: ZoomFlamegraphVisualizationConfig
 
   state: ZoomUpdateState;
+
+  get_event_color(d: ZoomDatum): string {
+    return this.state.event_color(`${d.layer}`);
+  }
 
   convertTimeline(data: Gantt): ZoomDatum[] {
     function flatten(data: Event) {
@@ -291,6 +296,7 @@ export class ZoomFlamegraphVisualization {
     this.conf = conf;
     this.svg  = d3.select<SVGGElement, ZoomDatum>(`#${svg_element}`)
                     .append("svg")
+                    .attr("class", "flame-graph")
                     .attr("height", this.conf.height)
                     .attr("width", this.conf.width);
   }
@@ -493,7 +499,7 @@ export class ZoomFlamegraphVisualization {
         .data(timeline)
         .enter()
         .append("rect")
-        .attr("fill", "green")
+        .attr("fill", (d: ZoomDatum) => this.get_event_color(d))
         .attr("x", (d: ZoomDatum) => get_event_context_x(d))
         .attr("y", (d: ZoomDatum) => get_event_context_y(d))
         .attr("width", (d: ZoomDatum) => conf.horizontal_brush_placement
@@ -515,18 +521,24 @@ export class ZoomFlamegraphVisualization {
               .attr("class", "event_rectangle")
               .attr("transform", (d: ZoomDatum) => this.rectTransform(d));
 
-    const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
-    const randomColor
-        = () => colorScale(Math.floor(Math.random() * 20).toString());
+    this.state.event_color
+        = d3.scaleOrdinal<string, string>()
+              .domain(
+                  [...new Set(timeline.map((d: ZoomDatum) => `${d.layer}`)) ])
+              .range(d3.schemeSet3);
 
     event_rectangles.append("rect")
         .attr("class", "body")
+        .attr("rx", "2px")
+        .attr("ry", "2px")
         .attr(this.conf.get_layer_domain_size_attr_name(),
               (d: ZoomDatum) => { return this.conf.rect_height; })
         .attr(
             this.conf.get_event_domain_size_attr_name(),
             (d: ZoomDatum) => { return this.get_datum_event_domain_length(d); })
-        .style("fill", d => randomColor())
+        .style("fill", (d: ZoomDatum) => this.get_event_color(d))
+        .style("stroke", "black")
+        .style("stroke-width", "1px")
         .on("mouseover",
             (event: any, d: ZoomDatum) => {
               const f_from: string
@@ -675,14 +687,6 @@ export class ZoomFlamegraphVisualization {
               .domain(timeline.map(function(entry) { return entry.type; }))
               .rangeRound([ this.conf.get_content_layer_extent(), 0 ]);
 
-    // colors for each type
-    var types      = [...new Set(timeline.map(item => item.type)) ];
-    var colors     = d3.quantize(d3.interpolateSpectral, types.length);
-    var type2color = {};
-    types.forEach(function(
-        element: string,
-        index: number) { type2color[element] = colors[index] });
-
     this.state.focus
         = this.svg.append("g")
               .attr("class", "focus")
@@ -727,7 +731,7 @@ export class ZoomFlamegraphVisualization {
 
     this.state.area
         = this.svg.append("g")
-              .attr("class", "clipped")
+              .attr("class", "clipped event-rect-area")
               .attr("width", this.conf.get_content_event_extent())
               .attr("height", this.conf.get_content_layer_extent())
               .attr(
