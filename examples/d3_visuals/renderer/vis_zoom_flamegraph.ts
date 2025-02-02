@@ -170,6 +170,8 @@ export class ZoomFlamegraphVisualizationConfig {
   bottom_brush_margin: number         = 10;
   horizontal_event_placement: boolean = true;
   horizontal_brush_placement: boolean = true;
+  event_domain_rect_padding: number   = 4;
+  layer_domain_rect_padding: number   = 4;
 
   get_zoom_area_offset_left(): number {
     if (this.horizontal_brush_placement) {
@@ -315,6 +317,14 @@ export class ZoomFlamegraphVisualization {
               // @ts-ignore
               (d: ZoomDatum) => {
                 return this.get_datum_event_domain_length(d);
+              });
+
+    this.state.area.selectAll(this.event_selector + ",.rect-visual")
+        .attr(this.conf.get_event_domain_size_attr_name(),
+              // @ts-ignore
+              (d: ZoomDatum) => {
+                return this.get_datum_event_domain_length(d)
+                       - this.conf.event_domain_rect_padding;
               });
   }
 
@@ -501,7 +511,9 @@ export class ZoomFlamegraphVisualization {
   update_event_rectangles(timeline: ZoomDatum[]) {
     var keyFunction = function(d: ZoomDatum) { return d.start.point + d.type; };
 
-    var event_rectangles = this.state.area.selectAll(".event_rectangle")
+    var event_rectangles = this.state.area
+                               .selectAll(".event_rectangle")
+                               // @ts-ignore
                                .data(timeline, keyFunction)
                                .enter()
                                .append("g")
@@ -518,6 +530,10 @@ export class ZoomFlamegraphVisualization {
                     })
               .attr("transform", (d: ZoomDatum) => this.rectTransform(d));
 
+    if (!this.conf.horizontal_event_placement) {
+      event_repr.attr("overflow", "visible");
+    }
+
     this.state.event_color
         = d3.scaleOrdinal<string, string>()
               .domain(
@@ -527,10 +543,13 @@ export class ZoomFlamegraphVisualization {
     event_repr.append("rect")
         .attr("rx", "2px")
         .attr("ry", "2px")
-        .attr("x", "5%")
-        .attr("y", "5%")
-        .attr("width", "90%")
-        .attr("height", "90%")
+        .attr(this.conf.horizontal_event_placement ? "x" : "y",
+              this.conf.event_domain_rect_padding / 2)
+        .attr(this.conf.horizontal_brush_placement ? "y" : "x",
+              this.conf.layer_domain_rect_padding / 2)
+        .attr("class", "rect-visual")
+        .attr(this.conf.get_layer_domain_size_attr_name(),
+              this.conf.rect_height - this.conf.layer_domain_rect_padding)
         .style("fill", (d: ZoomDatum) => this.get_event_color(d))
         .style("stroke", "black")
         .style("stroke-width", "1px")
@@ -553,18 +572,26 @@ export class ZoomFlamegraphVisualization {
         .on("mouseout",
             (d: ZoomDatum) => {this.state.tooltip.style("display", "none")});
 
-    event_repr.append("text")
-        .text((d: ZoomDatum) => d.name)
-        .attr("x", "50%")
-        .attr("y", "50%")
-        .attr("class", "text")
-        .attr("text-anchor",
-              this.conf.horizontal_event_placement ? "middle" : "start")
-        .attr("alignment-baseline",
-              this.conf.horizontal_event_placement ? "middle" : "hanging")
-        .attr("font-family", "Verdana, sans-serif")
-        .attr("font-size", "12px")
-        .attr("fill", "black");
+    var text_repr = event_repr.append("text")
+                        .text((d: ZoomDatum) => d.name)
+                        .attr("class", "text")
+                        .attr("font-family", "Verdana, sans-serif")
+                        .attr("font-size", "12px")
+                        .attr("fill", "black");
+
+    if (this.conf.horizontal_event_placement) {
+      text_repr //
+          .attr("x", "50%")
+          .attr("y", "50%")
+          .attr("text-anchor", "middle")
+          .attr("alignment-baseline", "middle");
+    } else {
+      text_repr //
+          .attr("x", this.conf.event_domain_rect_padding / 2)
+          .attr("y", this.conf.layer_domain_rect_padding / 2)
+          .attr("text-anchor", "start")
+          .attr("alignment-baseline", "hanging");
+    }
   }
 
   restore_brush_selection() {
@@ -578,6 +605,7 @@ export class ZoomFlamegraphVisualization {
                      .call(this.state.brush)
                      // @ts-ignore
                      .call(this.state.brush.move,
+                           // @ts-ignore
                            this.state.brush_event_domain.range());
 
     // Get stored zoom and pan values
@@ -602,7 +630,9 @@ export class ZoomFlamegraphVisualization {
       }
 
       const clamped_selection = [
+        // @ts-ignore
         clamp(this.state.brush_event_domain, storedBrushSelection[0]),
+        // @ts-ignore
         clamp(this.state.brush_event_domain, storedBrushSelection[1])
       ];
 
