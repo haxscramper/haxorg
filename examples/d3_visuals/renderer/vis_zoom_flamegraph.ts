@@ -205,6 +205,14 @@ export class ZoomFlamegraphVisualizationConfig {
     }
   }
 
+  get_brush_event_domain_size(): number {
+    if (this.horizontal_brush_placement) {
+      return this.get_brush_horizontal_size();
+    } else {
+      return this.get_brush_vertical_size();
+    }
+  }
+
   get_brush_vertical_size(): number {
     if (this.horizontal_brush_placement) {
       return this.brush_height;
@@ -528,11 +536,11 @@ export class ZoomFlamegraphVisualization {
     var storedTranslateY = +localStorage.getItem("translateY")!;
 
     // If stored values exist, apply them to the SVG
-    if (storedZoom && storedTranslateX && storedTranslateY) {
+    if (storedZoom && storedTranslateX && storedTranslateY && false) {
       console.log("Restoring zoom transform");
       this.svg.call(
           // @ts-ignore
-          zoom.transform,
+          this.state.zoom.transform,
           d3.zoomIdentity.translate(storedTranslateX, storedTranslateY)
               .scale(storedZoom));
     }
@@ -592,17 +600,17 @@ export class ZoomFlamegraphVisualization {
     if (isTimeXDomain) {
       this.state.brush_event_domain
           = d3.scaleTime().domain(event_domain_range).range([
-              0, this.conf.get_brush_vertical_size()
+              0, this.conf.get_brush_event_domain_size()
             ]);
     } else {
       this.state.brush_event_domain
           = d3.scaleLinear().domain(event_domain_range).range([
-              0, this.conf.get_brush_vertical_size()
+              0, this.conf.get_brush_event_domain_size()
             ]);
     }
 
-    this.state.brush_layer_domain
-        = d3.scaleLinear().range([ this.conf.get_brush_horizontal_size(), 0 ]);
+    this.state.brush_layer_domain = d3.scaleLinear().range(
+        [ this.conf.get_brush_event_domain_size(), 0 ]);
 
     this.state.layer_domain
         = d3.scaleBand()
@@ -632,9 +640,6 @@ export class ZoomFlamegraphVisualization {
     var layer_axis        = this.conf.horizontal_event_placement
                                 ? d3.axisLeft(this.state.layer_domain).tickSize(0)
                                 : d3.axisBottom(this.state.layer_domain).tickSize(0);
-
-    console.log(this.conf.get_brush_vertical_size(),
-                this.conf.get_brush_horizontal_size());
 
     if (this.conf.horizontal_brush_placement) {
       this.state.brush

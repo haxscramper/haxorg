@@ -10,7 +10,7 @@ import {
 window.addEventListener("DOMContentLoaded", () => {
   if (true) {
     var conf1                        = new ZoomFlamegraphVisualizationConfig();
-    conf1.horizontal_event_placement = false;
+    conf1.horizontal_event_placement = true;
     conf1.horizontal_brush_placement = true;
     const viz = new ZoomFlamegraphVisualization("visualization", conf1);
     viz.render();
