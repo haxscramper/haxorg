@@ -168,7 +168,6 @@ export class ZoomFlamegraphVisualizationConfig {
   left_brush_margin: number           = 10;
   right_brush_margin: number          = 10;
   bottom_brush_margin: number         = 10;
-  rect_annotation_offset: number      = this.rect_height - 2;
   horizontal_event_placement: boolean = true;
   horizontal_brush_placement: boolean = true;
 
@@ -317,17 +316,6 @@ export class ZoomFlamegraphVisualization {
               (d: ZoomDatum) => {
                 return this.get_datum_event_domain_length(d);
               });
-
-    this.state.area.selectAll(this.event_selector + ",.text")
-        .attr(this.conf.horizontal_event_placement ? "x" : "y",
-              // @ts-ignore
-              (d: ZoomDatum) => {
-                if (this.conf.horizontal_event_placement) {
-                  return this.get_datum_event_domain_length(d) / 2;
-                } else {
-                  return 0;
-                }
-              })
   }
 
   zoomed(e: any) {
@@ -513,12 +501,21 @@ export class ZoomFlamegraphVisualization {
   update_event_rectangles(timeline: ZoomDatum[]) {
     var keyFunction = function(d: ZoomDatum) { return d.start.point + d.type; };
 
-    var event_rectangles
-        = this.state.area.selectAll(".event_rectangle")
-              .data(timeline, keyFunction)
-              .enter()
-              .append("g")
-              .attr("class", "event_rectangle")
+    var event_rectangles = this.state.area.selectAll(".event_rectangle")
+                               .data(timeline, keyFunction)
+                               .enter()
+                               .append("g")
+                               .attr("class", "event_rectangle");
+
+    var event_repr
+        = event_rectangles.append("svg")
+              .attr("class", "body")
+              .attr(this.conf.get_layer_domain_size_attr_name(),
+                    (d: ZoomDatum) => { return this.conf.rect_height; })
+              .attr(this.conf.get_event_domain_size_attr_name(),
+                    (d: ZoomDatum) => {
+                      return this.get_datum_event_domain_length(d);
+                    })
               .attr("transform", (d: ZoomDatum) => this.rectTransform(d));
 
     this.state.event_color
@@ -527,15 +524,13 @@ export class ZoomFlamegraphVisualization {
                   [...new Set(timeline.map((d: ZoomDatum) => `${d.layer}`)) ])
               .range(d3.schemeSet3);
 
-    event_rectangles.append("rect")
-        .attr("class", "body")
+    event_repr.append("rect")
         .attr("rx", "2px")
         .attr("ry", "2px")
-        .attr(this.conf.get_layer_domain_size_attr_name(),
-              (d: ZoomDatum) => { return this.conf.rect_height; })
-        .attr(
-            this.conf.get_event_domain_size_attr_name(),
-            (d: ZoomDatum) => { return this.get_datum_event_domain_length(d); })
+        .attr("x", "5%")
+        .attr("y", "5%")
+        .attr("width", "90%")
+        .attr("height", "90%")
         .style("fill", (d: ZoomDatum) => this.get_event_color(d))
         .style("stroke", "black")
         .style("stroke-width", "1px")
@@ -558,33 +553,18 @@ export class ZoomFlamegraphVisualization {
         .on("mouseout",
             (d: ZoomDatum) => {this.state.tooltip.style("display", "none")});
 
-    event_rectangles.append("text")
-        .attr("y", (d: ZoomDatum) => this.conf.rect_annotation_offset)
-        .attr(this.conf.horizontal_event_placement ? "x" : "y",
-              (d: ZoomDatum) => this.conf.horizontal_event_placement
-                                    ? this.get_datum_event_domain_length(d) / 2
-                                    : 0)
+    event_repr.append("text")
         .text((d: ZoomDatum) => d.name)
+        .attr("x", "50%")
+        .attr("y", "50%")
         .attr("class", "text")
         .attr("text-anchor",
               this.conf.horizontal_event_placement ? "middle" : "start")
         .attr("alignment-baseline",
-              this.conf.horizontal_event_placement ? "baseline" : "hanging")
+              this.conf.horizontal_event_placement ? "middle" : "hanging")
         .attr("font-family", "Verdana, sans-serif")
         .attr("font-size", "12px")
         .attr("fill", "black");
-
-    if (this.conf.rect_annotation_offset < 0) {
-      // Timeline annotation ticks
-      event_rectangles.append("rect")
-          .attr("x", -0.5)
-          .attr("y", (d: ZoomDatum) => this.conf.rect_annotation_offset)
-          .attr("height", (d: ZoomDatum) => -this.conf.rect_annotation_offset)
-          .attr("stroke", "black")
-          .attr("stroke-width", 0)
-          .attr("width", 1)
-          .attr("fill", "black");
-    }
   }
 
   restore_brush_selection() {
