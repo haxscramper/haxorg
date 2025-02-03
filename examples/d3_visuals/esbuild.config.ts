@@ -11,3 +11,17 @@ await esbuild.build({
   external : [ "electron" ],
   sourcemap : true,
 });
+
+await esbuild.build({
+  entryPoints : [ "app/main.tsx" ],
+  bundle : true,
+  outdir : "dist/app",
+  platform : "browser",
+  format : "esm",
+  loader : {
+    ".tsx" : "tsx",
+    ".ts" : "ts",
+    ".js" : "js",
+  },
+  jsx : "automatic"
+});
