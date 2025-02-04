@@ -2,7 +2,6 @@ import * as d3 from "d3";
 import {array, Schema, string, z} from "zod";
 
 import * as org from "./org_data.ts";
-import {dump_html} from "./utils.ts";
 
 class RangeClose {
   constructor(public start: Date, public end: Date) {}
@@ -809,7 +808,5 @@ export class ZoomFlamegraphVisualization {
 
     this.restore_brush_selection();
     this.update_brush_context_event_rectangles(timeline);
-
-    dump_html();
   }
 }

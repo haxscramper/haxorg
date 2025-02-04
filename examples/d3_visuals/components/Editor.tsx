@@ -1,6 +1,7 @@
 import { Block, InlineContent, BlockNoteSchema, defaultBlockSchema, defaultBlockSpecs, defaultInlineContentSpecs, defaultStyleSpecs } from "@blocknote/core";
 import { useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
+import React from "react";
 
 enum OrgSemKind {
   Word,

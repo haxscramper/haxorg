@@ -23,5 +23,6 @@ await esbuild.build({
     ".ts" : "ts",
     ".js" : "js",
   },
-  jsx : "automatic"
+  jsx : "automatic",
+  sourcemap : true
 });

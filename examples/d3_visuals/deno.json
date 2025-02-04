@@ -25,6 +25,7 @@
     "strictPropertyInitialization": true,
     "noImplicitThis": true,
     "exactOptionalPropertyTypes": true,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
+    "jsx": "react-jsx"
   }
 }

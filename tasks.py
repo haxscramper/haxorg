@@ -1134,19 +1134,20 @@ def get_log_dir() -> Path:
 
 
 @org_task(pre=[build_d3_example, build_web_example])
-def run_d3_example(ctx: Context):
+def run_d3_example(ctx: Context, with_server: bool = True):
     web_build = get_example_build("rest_access").joinpath("org_server")
     d3_example_dir = get_script_root().joinpath("examples/d3_visuals")
     deno_run = find_process("deno", d3_example_dir, ["task", "run-gui"])
 
-    run_command(
-        ctx,
-        web_build,
-        [json.dumps(dict(operation="RunServer"))],
-        run_mode="bg",
-        stderr_debug=get_log_dir().joinpath("rest_stderr.log"),
-        stdout_debug=get_log_dir().joinpath("rest_stdout.log"),
-    )
+    if with_server: 
+        run_command(
+            ctx,
+            web_build,
+            [json.dumps(dict(operation="RunServer"))],
+            run_mode="bg",
+            stderr_debug=get_log_dir().joinpath("rest_stderr.log"),
+            stdout_debug=get_log_dir().joinpath("rest_stdout.log"),
+        )
 
     import time
     time.sleep(1)
