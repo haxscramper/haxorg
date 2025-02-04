@@ -2,33 +2,20 @@ import { useState, useContext, useEffect, useRef, React } from "react";
 import { OrgEditor } from "./Editor.tsx";
 import { createContext } from "react";
 
-const EditorContext = createContext<OrgEditor | null>(null);
+// const EditorContext = createContext<OrgEditor | null>(null);
 
-function EditorUI() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const editor = useContext(EditorContext);
-
-  useEffect(() => {
-    if (editor && containerRef.current) {
-      editor.initializeEditor(containerRef.current);
-    }
-    return () => editor?.destroyEditor();
-  }, [editor]);
-
-  return (
-    <div className="editor-container">
-      <div ref={containerRef} className="blocknote-editor"
-        style={{ height: "100vh", width: "100vw" }} />
-    </div>
-  );
-}
+// function EditorUI() {
+//   // Creates a new editor instance.
+//   const editor = useCreateBlockNote();
+ 
+//   // Renders the editor instance using a React component.
+//   return <BlockNoteView editor={editor} />;
+// }
 
 export function App() {
-  const [editor] = useState(() => new OrgEditor());
-
   return (
-    <EditorContext.Provider value={editor}>
-      <EditorUI />
-    </EditorContext.Provider>
+    // <EditorContext.Provider value={editor}>
+      <OrgEditor />
+    // </EditorContext.Provider>
   );
 }

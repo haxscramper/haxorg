@@ -1,5 +1,6 @@
 import { Block, InlineContent, BlockNoteSchema, defaultBlockSchema, defaultBlockSpecs, defaultInlineContentSpecs, defaultStyleSpecs } from "@blocknote/core";
 import { useCreateBlockNote } from "@blocknote/react";
+import { BlockNoteView } from "@blocknote/mantine";
 
 enum OrgSemKind {
   Word,
@@ -63,37 +64,26 @@ function blockNoteToOrgAst(blocks: Block[]): Org {
 }
 
 
-export class OrgEditor {
-  private editor: import("@blocknote/core").BlockNoteEditor | null = null;
-  private currentPath: string | null = null;
-  private currentContent: Org | null = null;
-  private saveTimeout: number | null = null;
+export function OrgEditor() {
+  const editor = useCreateBlockNote({
+    initialContent: [
+      {
+        type: "paragraph",
+        content: "Welcome to this demo!",
+      },
+      {
+        type: "heading",
+        content: "This is a heading block",
+      },
+      {
+        type: "paragraph",
+        content: "This is a paragraph block",
+      },
+      {
+        type: "paragraph",
+      },
+    ],
+  });
 
-  async initializeEditor(container: HTMLElement) {
-    const { BlockNoteEditor } = await import("@blocknote/core");
-
-    if (this.currentPath) {
-      this.editor = useCreateBlockNote({
-        initialContent: [
-          {
-            type: "paragraph",
-            content: "Welcome to this demo!",
-          },
-          {
-            type: "heading",
-            content: "This is a heading block",
-          },
-          {
-            type: "paragraph",
-            content: "This is a paragraph block",
-          },
-          {
-            type: "paragraph",
-          },
-        ],
-      });
-    }
-  }
-
+  return <BlockNoteView editor={editor} />;
 }
-
