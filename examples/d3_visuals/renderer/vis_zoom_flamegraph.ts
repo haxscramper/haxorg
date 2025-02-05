@@ -515,21 +515,25 @@ export class ZoomFlamegraphVisualization {
   }
 
   update_event_rectangles(timeline: ZoomDatum[]) {
-    var keyFunction = function(d: ZoomDatum) {
-      return `${d.start.point}-${d.end.point}-${d.layer}-${d.type}`;
+    const c           = this.conf;
+    var   keyFunction = function(d: ZoomDatum) {
+      const res = `${d.start.point}-${d.end.point}-${d.layer}-${d.type}-${
+          c.horizontal_event_placement}`;
+      return res;
     };
 
     var event_rectangles = this.state.area
                                .selectAll(".event_rectangle")
                                // @ts-ignore
-                               .data(timeline, keyFunction)
-                               .enter()
-                               .append("g")
-                               .attr("class", "event_rectangle");
+                               .data(timeline, keyFunction);
 
     var event_repr
-        = event_rectangles.append("svg")
-              .attr("class", "body")
+        = event_rectangles
+              .join(enter => enter.append("g")
+                                 .attr("class", "event_rectangle")
+                                 .append("svg")
+                                 .attr("class", "body"),
+                    update => update)
               .attr(this.conf.get_layer_domain_size_attr_name(),
                     (d: ZoomDatum) => { return this.conf.rect_height; })
               .attr(this.conf.get_event_domain_size_attr_name(),
@@ -548,37 +552,49 @@ export class ZoomFlamegraphVisualization {
                   [...new Set(timeline.map((d: ZoomDatum) => `${d.layer}`)) ])
               .range(d3.schemeSet3);
 
-    event_repr.append("rect")
-        .attr("rx", "2px")
-        .attr("ry", "2px")
-        .attr(this.conf.horizontal_event_placement ? "x" : "y",
-              this.conf.event_domain_rect_padding / 2)
-        .attr(this.conf.horizontal_brush_placement ? "y" : "x",
-              this.conf.layer_domain_rect_padding / 2)
-        .attr("class", "rect-visual")
+    event_repr.selectAll(".rect-visual")
+        .data((d: ZoomDatum) => [d])
+        .join(
+            enter => enter.append("rect")
+                         .attr("rx", "2px")
+                         .attr("ry", "2px")
+                         .attr(this.conf.horizontal_event_placement ? "x" : "y",
+                               this.conf.event_domain_rect_padding / 2)
+                         .attr(this.conf.horizontal_brush_placement ? "y" : "x",
+                               this.conf.layer_domain_rect_padding / 2)
+                         .attr("class", "rect-visual")
+                         .style("fill",
+                                (d: ZoomDatum) => this.get_event_color(d))
+                         .style("stroke", "black")
+                         .style("stroke-width", "1px")
+                         .on("mouseover",
+                             (event: any, d: ZoomDatum) => {
+                               const f_from: string
+                                   = d.start.point instanceof Date
+                                         ? d.start.point.toISOString().slice(0,
+                                                                             19)
+                                         : d.start.point.toString();
+
+                               const f_to: string
+                                   = d.end.point instanceof Date
+                                         ? d.end.point.toISOString().slice(0,
+                                                                           19)
+                                         : d.end.point.toString();
+
+                               // console.log(`Focused from ${f_from} to
+                               // ${f_to}`);
+                             })
+                         .on("mouseout", (d: ZoomDatum) => {}))
         .attr(this.conf.get_layer_domain_size_attr_name(),
-              this.conf.rect_height - this.conf.layer_domain_rect_padding)
-        .style("fill", (d: ZoomDatum) => this.get_event_color(d))
-        .style("stroke", "black")
-        .style("stroke-width", "1px")
-        .on("mouseover",
-            (event: any, d: ZoomDatum) => {
-              const f_from: string
-                  = d.start.point instanceof Date
-                        ? d.start.point.toISOString().slice(0, 19)
-                        : d.start.point.toString();
+              this.conf.rect_height - this.conf.layer_domain_rect_padding);
 
-              const f_to: string = d.end.point instanceof Date
-                                       ? d.end.point.toISOString().slice(0, 19)
-                                       : d.end.point.toString();
-
-              // console.log(`Focused from ${f_from} to ${f_to}`);
-            })
-        .on("mouseout", (d: ZoomDatum) => {});
-
-    var text_repr = event_repr.append("text")
+    var text_repr = event_repr.selectAll(".text")
+                        .data((d: ZoomDatum) => [d])
+                        .join(
+                            enter => enter.append("text").attr("class", "text"),
+                            update => update,
+                            )
                         .text((d: ZoomDatum) => d.name)
-                        .attr("class", "text")
                         .attr("font-family", "Verdana, sans-serif")
                         .attr("font-size", "12px")
                         .attr("fill", "black");
@@ -650,6 +666,7 @@ export class ZoomFlamegraphVisualization {
   }
 
   update() {
+    console.log("Triggering update");
     this.state     = new ZoomUpdateState();
     const timeline = this.convertTimeline(this.gantt!);
 
@@ -749,17 +766,15 @@ export class ZoomFlamegraphVisualization {
         = this.svg.selectAll(".clipped.event-rect-area")
               .data([ this.conf ])
               .join(
-                  enter => enter.append("g")
-                               .attr("class", "clipped event-rect-area")
-                               .attr("width",
-                                     this.conf.get_content_event_extent())
-                               .attr("height",
-                                     this.conf.get_content_layer_extent())
-                               .attr(
-                                   "transform",
-                                   `translate(${
-                                       this.conf.get_zoom_area_offset_left()},${
-                                       this.conf.top_margin})`));
+                  (enter) => {
+                      return enter.append("g")
+                          .attr("class", "clipped event-rect-area")
+                          .attr("width", this.conf.get_content_event_extent())
+                          .attr("height", this.conf.get_content_layer_extent())
+                          .attr("transform",
+                                `translate(${
+                                    this.conf.get_zoom_area_offset_left()},${
+                                    this.conf.top_margin})`)});
 
     this.update_event_rectangles(timeline);
 
