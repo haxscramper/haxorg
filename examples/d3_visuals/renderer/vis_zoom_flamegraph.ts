@@ -242,7 +242,6 @@ type EventDomain
     = d3.ScaleTime<number, number, never>|d3.ScaleLinear<number, number>;
 
 class ZoomUpdateState {
-  tooltip: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   event_domain: EventDomain;
   brush_event_domain: EventDomain;
   brush_layer_domain: d3.ScaleLinear<number, number, never>;
@@ -435,29 +434,37 @@ export class ZoomFlamegraphVisualization {
                           ])
                           .on("zoom", (e: any) => this.zoomed(e));
 
-    this.svg.append("rect")
-        .attr("class", "zoom")
-        .attr("width", this.conf.get_content_event_extent())
-        .attr("height", this.conf.get_content_layer_extent())
-        .style("fill", "white")
-        .attr(
-            "transform",
-            "translate(" + this.conf.get_zoom_area_offset_left() + ","
-                + this.conf.top_margin + ")",
-            )
-        // @ts-ignore
-        .call(this.state.zoom);
+    this.svg.selectAll(".zoom")
+        .data([ this.conf ])
+        .join(enter => enter.append("rect")
+                           .attr("class", "zoom")
+                           .attr("width", this.conf.get_content_event_extent())
+                           .attr("height", this.conf.get_content_layer_extent())
+                           .style("fill", "white")
+                           .attr(
+                               "transform",
+                               "translate("
+                                   + this.conf.get_zoom_area_offset_left() + ","
+                                   + this.conf.top_margin + ")",
+                               )
+                           // @ts-ignore
+                           .call(this.state.zoom));
   }
 
   update_brush_context_event_rectangles(timeline: ZoomDatum[]) {
     var brush_rectangles
-        = this.svg.append("g")
-              .attr("width", this.conf.get_brush_horizontal_size())
-              .attr("height", this.conf.get_brush_vertical_size())
-              .attr("class", "brush-rectangles")
-              .attr("transform",
-                    `translate(${this.conf.get_brush_left_pos()}, ${
-                        this.conf.get_brush_top_pos()})`);
+        = this.svg.selectAll(".brush-rectangles")
+              .data([ this.conf ])
+              .join(enter => enter.append("g")
+                                 .attr("width",
+                                       this.conf.get_brush_horizontal_size())
+                                 .attr("height",
+                                       this.conf.get_brush_vertical_size())
+                                 .attr("class", "brush-rectangles")
+                                 .attr("transform",
+                                       `translate(${
+                                           this.conf.get_brush_left_pos()}, ${
+                                           this.conf.get_brush_top_pos()})`));
 
     const conf  = this.conf;
     const state = this.state;
@@ -508,7 +515,9 @@ export class ZoomFlamegraphVisualization {
   }
 
   update_event_rectangles(timeline: ZoomDatum[]) {
-    var keyFunction = function(d: ZoomDatum) { return d.start.point + d.type; };
+    var keyFunction = function(d: ZoomDatum) {
+      return `${d.start.point}-${d.end.point}-${d.layer}-${d.type}`;
+    };
 
     var event_rectangles = this.state.area
                                .selectAll(".event_rectangle")
@@ -563,13 +572,9 @@ export class ZoomFlamegraphVisualization {
                                        ? d.end.point.toISOString().slice(0, 19)
                                        : d.end.point.toString();
 
-              this.state.tooltip.style("left", event.pageX + "px")
-                  .style("top", event.pageY + "px")
-                  .style("display", "inline-block")
-                  .html((d.name) + `<br> from: ${f_from}<br> to: ${f_to}`);
+              // console.log(`Focused from ${f_from} to ${f_to}`);
             })
-        .on("mouseout",
-            (d: ZoomDatum) => {this.state.tooltip.style("display", "none")});
+        .on("mouseout", (d: ZoomDatum) => {});
 
     var text_repr = event_repr.append("text")
                         .text((d: ZoomDatum) => d.name)
@@ -591,6 +596,8 @@ export class ZoomFlamegraphVisualization {
           .attr("text-anchor", "start")
           .attr("alignment-baseline", "hanging");
     }
+
+    // event_rectangles.exit();
   }
 
   restore_brush_selection() {
@@ -599,13 +606,15 @@ export class ZoomFlamegraphVisualization {
               ? JSON.parse(localStorage.getItem("brushSelection")!) as number[]
               : this.state.brush_event_domain.range();
 
-    var brushG = this.state.context.append("g")
-                     .attr("class", "brush")
-                     .call(this.state.brush)
-                     // @ts-ignore
-                     .call(this.state.brush.move,
+    this.state.context.selectAll(".brush")
+        .data([ this.conf ])
+        .join(enter => enter.append("g")
+                           .attr("class", "brush")
+                           .call(this.state.brush)
                            // @ts-ignore
-                           this.state.brush_event_domain.range());
+                           .call(this.state.brush.move,
+                                 // @ts-ignore
+                                 this.state.brush_event_domain.range()));
 
     // Get stored zoom and pan values
     var storedZoom       = +localStorage.getItem("zoom")!;
@@ -635,7 +644,6 @@ export class ZoomFlamegraphVisualization {
         clamp(this.state.brush_event_domain, storedBrushSelection[1])
       ];
 
-      console.log("Restore brush selection", clamped_selection);
       // @ts-ignore
       // brushG.call(this.state.brush.move, clamped_selection);
     }
@@ -652,10 +660,6 @@ export class ZoomFlamegraphVisualization {
     }
 
     const isTimeXDomain = timeline[0].start.isDate();
-
-    // Define the div for the tooltip
-    this.state.tooltip
-        = d3.select("body").append("div").attr("class", "tooltip");
 
     const event_domain_range = [
       get_defined(d3.min(
@@ -697,10 +701,13 @@ export class ZoomFlamegraphVisualization {
               .rangeRound([ this.conf.get_content_layer_extent(), 0 ]);
 
     this.state.focus
-        = this.svg.append("g")
-              .attr("class", "focus")
-              .attr("transform", "translate(" + this.conf.left_margin + ","
-                                     + this.conf.top_margin + ")");
+        = this.svg.selectAll(".focus")
+              .data([ this.conf ])
+              .join(enter => enter.append("g")
+                                 .attr("class", "focus")
+                                 .attr("transform",
+                                       "translate(" + this.conf.left_margin
+                                           + "," + this.conf.top_margin + ")"));
 
     this.state.event_axis = this.conf.horizontal_event_placement
                                 ? d3.axisBottom(this.state.event_domain)
@@ -739,15 +746,20 @@ export class ZoomFlamegraphVisualization {
     this.update_zoom_selector();
 
     this.state.area
-        = this.svg.append("g")
-              .attr("class", "clipped event-rect-area")
-              .attr("width", this.conf.get_content_event_extent())
-              .attr("height", this.conf.get_content_layer_extent())
-              .attr(
-                  "transform",
-                  "translate(" + this.conf.get_zoom_area_offset_left() + ","
-                      + this.conf.top_margin + ")",
-              );
+        = this.svg.selectAll(".clipped.event-rect-area")
+              .data([ this.conf ])
+              .join(
+                  enter => enter.append("g")
+                               .attr("class", "clipped event-rect-area")
+                               .attr("width",
+                                     this.conf.get_content_event_extent())
+                               .attr("height",
+                                     this.conf.get_content_layer_extent())
+                               .attr(
+                                   "transform",
+                                   `translate(${
+                                       this.conf.get_zoom_area_offset_left()},${
+                                       this.conf.top_margin})`));
 
     this.update_event_rectangles(timeline);
 
@@ -765,46 +777,54 @@ export class ZoomFlamegraphVisualization {
               });
 
     this.state.context
-        = this.svg.append("g")
-              .attr("class", "context")
-              .attr("transform", "translate(" + this.conf.get_brush_left_pos()
-                                     + "," + this.conf.get_brush_top_pos()
-                                     + ")");
+        = this.svg.selectAll(".context")
+              .data([ this.conf ])
+              .join(enter => enter.append("g")
+                                 .attr("class", "context")
+                                 .attr("transform",
+                                       "translate("
+                                           + this.conf.get_brush_left_pos()
+                                           + "," + this.conf.get_brush_top_pos()
+                                           + ")"));
 
     this.state.brush_event_domain.domain(this.state.event_domain.domain());
     // @ts-ignore
     this.state.brush_layer_domain.domain(this.state.layer_domain.domain());
 
-    this.state.focus.append("g")
-        .attr("class", "axis axis--event")
-        .attr("transform", "translate("
-                               + (this.conf.horizontal_brush_placement
-                                      ? 0
-                                      : this.conf.brush_height)
-                               + ","
-                               + (this.conf.horizontal_event_placement
-                                      ? this.conf.get_content_layer_extent()
-                                      : 0)
-                               + ")")
-        .call(this.state.event_axis);
+    this.state.focus.selectAll(".axis--event")
+        .data([ this.conf ])
+        .join(
+            enter => enter.append("g")
+                         .attr("class", "axis axis--event")
+                         .attr("transform",
+                               "translate("
+                                   + (this.conf.horizontal_brush_placement
+                                          ? 0
+                                          : this.conf.brush_height)
+                                   + ","
+                                   + (this.conf.horizontal_event_placement
+                                          ? this.conf.get_content_layer_extent()
+                                          : 0)
+                                   + ")")
+                         .call(this.state.event_axis));
 
-    this.state.focus.append("g")
-        .attr("class", "axis axis--layer")
-        .call(layer_axis);
+    this.state.focus.selectAll(".axis--layer")
+        .data([ this.conf ])
+        .join(enter => enter.append("g")
+                           .attr("class", "axis axis--layer")
+                           .call(layer_axis));
 
-    this.state.context.append("path")
-        .datum(timeline)
-        .attr("class", "area")
-        .attr("d", brush_area);
-
-    this.state.context.append("g")
-        .attr("class", "axis axis--event")
-        .attr("transform", "translate(0,"
-                               + (this.conf.horizontal_brush_placement
-                                      ? this.conf.brush_height
-                                      : 0)
-                               + ")")
-        .call(brush_event_axis);
+    this.state.context.selectAll(".axis--event")
+        .data([ this.conf ])
+        .join(enter => enter.append("g")
+                           .attr("class", "axis axis--event")
+                           .attr("transform",
+                                 "translate(0,"
+                                     + (this.conf.horizontal_brush_placement
+                                            ? this.conf.brush_height
+                                            : 0)
+                                     + ")")
+                           .call(brush_event_axis));
 
     this.restore_brush_selection();
     this.update_brush_context_event_rectangles(timeline);
