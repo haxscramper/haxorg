@@ -1,7 +1,8 @@
 import { useState, useContext, useEffect, useRef, React } from "react";
 import { OrgEditor } from "./Editor.tsx";
 import { createContext } from "react";
-import { FlameGraph } from "./Visualization/FlameGraph.tsx"
+import { FlameGraph } from "./Visualization/FlameGraph.tsx";
+import { Stack } from '@mui/material';
 
 // const EditorContext = createContext<OrgEditor | null>(null);
 
@@ -15,8 +16,12 @@ import { FlameGraph } from "./Visualization/FlameGraph.tsx"
 
 export function App() {
   return (
+    // <?
     // <EditorContext.Provider value={editor}>
-    <FlameGraph />
+    <Stack>
+      <OrgEditor />
+      <FlameGraph />
+    </Stack>
     // </EditorContext.Provider>
   );
 }
