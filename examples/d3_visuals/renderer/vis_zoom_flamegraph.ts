@@ -311,11 +311,14 @@ export class ZoomFlamegraphVisualization {
         // @ts-ignore
         .attr("transform", (d: ZoomDatum) => this.rectTransform(d));
     this.state.area.selectAll(this.event_selector + ",.body")
+        .attr("overflow",
+              this.conf.horizontal_event_placement ? "hidden" : "visible")
+        .attr(this.conf.get_layer_domain_size_attr_name(),
+              // @ts-ignore
+              (d: ZoomDatum) => this.conf.rect_height)
         .attr(this.conf.get_event_domain_size_attr_name(),
               // @ts-ignore
-              (d: ZoomDatum) => {
-                return this.get_datum_event_domain_length(d);
-              });
+              (d: ZoomDatum) => this.get_datum_event_domain_length(d));
 
     this.state.area.selectAll(this.event_selector + ",.rect-visual")
         .attr(this.conf.get_event_domain_size_attr_name(),
@@ -527,24 +530,30 @@ export class ZoomFlamegraphVisualization {
                                // @ts-ignore
                                .data(timeline, keyFunction);
 
-    var event_repr
-        = event_rectangles
-              .join(enter => enter.append("g")
-                                 .attr("class", "event_rectangle")
-                                 .append("svg")
-                                 .attr("class", "body"),
-                    update => update)
-              .attr(this.conf.get_layer_domain_size_attr_name(),
-                    (d: ZoomDatum) => { return this.conf.rect_height; })
-              .attr(this.conf.get_event_domain_size_attr_name(),
-                    (d: ZoomDatum) => {
-                      return this.get_datum_event_domain_length(d);
-                    })
-              .attr("transform", (d: ZoomDatum) => this.rectTransform(d));
+    const get_overflow_state
+        = () => this.conf.horizontal_event_placement ? "hidden" : "visible";
 
-    if (!this.conf.horizontal_event_placement) {
-      event_repr.attr("overflow", "visible");
-    }
+    var event_repr = event_rectangles.join(
+        enter => enter.append("g")
+                     .attr("class", "event_rectangle")
+                     .attr("debug", keyFunction)
+                     .attr("overflow", get_overflow_state)
+                     .append("svg")
+                     .attr("class", "body")
+                     .attr("overflow", get_overflow_state),
+        update => update.attr("overflow", get_overflow_state))
+        // .attr(this.conf.get_layer_domain_size_attr_name(),
+        //       (d: ZoomDatum) => { return this.conf.rect_height; })
+        // .attr(this.conf.get_event_domain_size_attr_name(),
+        //       (d: ZoomDatum) => {
+        //         return this.get_datum_event_domain_length(d);
+        //       })
+        // .attr("transform", (d: ZoomDatum) => this.rectTransform(d))
+        ;
+
+    // if (!this.conf.horizontal_event_placement) {
+    //   event_repr.attr("overflow", "visible");
+    // }
 
     this.state.event_color
         = d3.scaleOrdinal<string, string>()
@@ -554,37 +563,32 @@ export class ZoomFlamegraphVisualization {
 
     event_repr.selectAll(".rect-visual")
         .data((d: ZoomDatum) => [d])
-        .join(
-            enter => enter.append("rect")
-                         .attr("rx", "2px")
-                         .attr("ry", "2px")
-                         .attr(this.conf.horizontal_event_placement ? "x" : "y",
-                               this.conf.event_domain_rect_padding / 2)
-                         .attr(this.conf.horizontal_brush_placement ? "y" : "x",
-                               this.conf.layer_domain_rect_padding / 2)
-                         .attr("class", "rect-visual")
-                         .style("fill",
-                                (d: ZoomDatum) => this.get_event_color(d))
-                         .style("stroke", "black")
-                         .style("stroke-width", "1px")
-                         .on("mouseover",
-                             (event: any, d: ZoomDatum) => {
-                               const f_from: string
-                                   = d.start.point instanceof Date
-                                         ? d.start.point.toISOString().slice(0,
-                                                                             19)
-                                         : d.start.point.toString();
+        .join(enter => enter.append("rect"))
+        .attr("rx", "2px")
+        .attr("ry", "2px")
+        .attr(this.conf.horizontal_event_placement ? "x" : "y",
+              this.conf.event_domain_rect_padding / 2)
+        .attr(this.conf.horizontal_brush_placement ? "y" : "x",
+              this.conf.layer_domain_rect_padding / 2)
+        .attr("class", "rect-visual")
+        .style("fill", (d: ZoomDatum) => this.get_event_color(d))
+        .style("stroke", "black")
+        .style("stroke-width", "1px")
+        .on("mouseover",
+            (event: any, d: ZoomDatum) => {
+              const f_from: string
+                  = d.start.point instanceof Date
+                        ? d.start.point.toISOString().slice(0, 19)
+                        : d.start.point.toString();
 
-                               const f_to: string
-                                   = d.end.point instanceof Date
-                                         ? d.end.point.toISOString().slice(0,
-                                                                           19)
-                                         : d.end.point.toString();
+              const f_to: string = d.end.point instanceof Date
+                                       ? d.end.point.toISOString().slice(0, 19)
+                                       : d.end.point.toString();
 
-                               // console.log(`Focused from ${f_from} to
-                               // ${f_to}`);
-                             })
-                         .on("mouseout", (d: ZoomDatum) => {}))
+              // console.log(`Focused from ${f_from} to
+              // ${f_to}`);
+            })
+        .on("mouseout", (d: ZoomDatum) => {})
         .attr(this.conf.get_layer_domain_size_attr_name(),
               this.conf.rect_height - this.conf.layer_domain_rect_padding);
 
@@ -843,5 +847,7 @@ export class ZoomFlamegraphVisualization {
 
     this.restore_brush_selection();
     this.update_brush_context_event_rectangles(timeline);
+
+    this.rescaleForTransform();
   }
 }
