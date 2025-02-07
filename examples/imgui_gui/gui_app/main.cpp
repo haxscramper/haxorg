@@ -16,6 +16,7 @@
 #include <gui_lib/ascii_editor.hpp>
 #include <gui_lib/scintilla_editor_widget.hpp>
 #include <gui_lib/doc_editor.hpp>
+#include <gui_lib/dir_explorer.hpp>
 
 #include <gui_lib/gui_perfetto.hpp>
 #include <hstd/wrappers/hstd_extra/perfetto_aux_impl_template.hpp>
@@ -31,6 +32,7 @@ struct Config {
         StoryGridAnnotated,
         ScintillaEditorTest,
         AsciiEditorTest,
+        DirectoryExplorer,
         DocEditor);
 
     Vec<Str> file;
@@ -420,6 +422,10 @@ int main(int argc, char** argv) {
     }
 
     switch (conf.mode) {
+        case Config::Mode::DirectoryExplorer: {
+            dir_explorer_loop(window, conf.file);
+            break;
+        }
         case Config::Mode::SemTree: {
             auto node = sem::parseString(
                 readFile(fs::path{conf.file.front().toBase()}));

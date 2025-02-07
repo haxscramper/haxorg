@@ -26,6 +26,8 @@ list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/immer/lib/cmake/Immer")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/googletest/lib/cmake/GTest")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/adaptagrams/lib/cmake/Adaptagrams")
 list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/lexy/lib/cmake/lexy")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/cpptrace/lib/cmake/cpptrace")
+list(INSERT CMAKE_PREFIX_PATH 0 "${DEPS_INSTALL}/cpptrace/lib/cmake/libdwarf")
 
 find_package(Immer CONFIG REQUIRED)
 find_package(Lager CONFIG REQUIRED)
@@ -44,6 +46,7 @@ find_package(Haxorg CONFIG REQUIRED)
 find_package(Adaptagrams CONFIG REQUIRED)
 find_package(GTest CONFIG REQUIRED)
 find_package(Boost REQUIRED COMPONENTS log)
+find_package(cpptrace CONFIG REQUIRED)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(FONTCONFIG REQUIRED fontconfig)
@@ -116,6 +119,7 @@ target_link_libraries(
          haxorg::adaptagrams
          haxorg::haxorg
          haxorg::hstd
+         cpptrace::cpptrace
          range-v3::range-v3)
 
 file(GLOB QIUCUS_APP_FILES "${PROJ_ROOT}/gui_app/*.?pp")

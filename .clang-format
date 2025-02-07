@@ -97,7 +97,9 @@ InsertBraces: true
 
 ---
 Language: JavaScript
-# Use 100 columns for JS.
 ColumnLimit: 80
 InsertBraces: true
 JavaScriptQuotes: Double
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true
+BreakBeforeBinaryOperators: All

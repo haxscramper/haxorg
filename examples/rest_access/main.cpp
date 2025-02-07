@@ -533,6 +533,25 @@ struct RestHandlerContext {
         return state->ctx->adapt(id).getKind();
     }
 
+    std::string getCleanSubtreeTitle(org::ImmUniqId const& id) const {
+        if (id.id.is(OrgSemKind::Subtree)) {
+            return state->ctx->adapt(id)
+                .as<org::ImmSubtree>()
+                .getCleanTitle();
+        } else {
+            return "";
+        }
+    }
+
+    Vec<org::ImmUniqId> getAllSubnodes(org::ImmUniqId const& id) const {
+        Vec<org::ImmUniqId> res;
+        for (auto const& sub : state->ctx->adapt(id).sub(true)) {
+            res.push_back(sub.uniq());
+        }
+        return res;
+    }
+
+
     org::ImmUniqId getSubnodeAt(org::ImmUniqId const& id, int index)
         const {
         return state->ctx->adapt(id).at(index).uniq();
@@ -1180,7 +1199,24 @@ class HttpServer : public SharedPtrApi<HttpServer> {
     }
 };
 
-int main() {
+struct Config {
+    DECL_DESCRIBED_ENUM(Operation, WriteSchema, RunServer);
+    Operation operation;
+    Opt<Str>  schema_path;
+    DESC_FIELDS(Config, (operation, schema_path));
+};
+
+int main(int argc, char** argv) {
+    if (argc != 2) {
+        throw std::invalid_argument{
+            "Org server expects one positional argument: json literal "
+            "with parameters"};
+    }
+
+    OLOG(info) << fmt("argv[1] = '{}'", argv[1]);
+    Config conf = from_json_eval<Config>(json::parse(argv[1]));
+
+
     { ZoneScoped; }
     try {
         HttpState::Ptr      state    = std::make_shared<HttpState>();
@@ -1205,35 +1241,39 @@ int main() {
         _ctx_method(setRootText, arg("text"));
         _ctx_method(setRootFile, arg("path"));
         _ctx_method(getKind, arg("id"));
+        _ctx_method(getCleanSubtreeTitle, arg("id"));
+        _ctx_method(getAllSubnodes, arg("id"));
         _ctx_method(getSubnodeAt, arg("id"), arg("index"));
         _ctx_method(getSize, arg("id"));
         _ctx_method(setExceptionHandler, arg("handler"));
 
-        writeFile(
-            "/tmp/schema.ts",
-            fmt(R"(export const data = {} as const;)",
-                handlers->getApiSchema().dump(2)));
+        if (conf.operation == Config::Operation::WriteSchema) {
+            writeFile(
+                conf.schema_path->toBase(),
+                fmt(R"(export const data = {} as const;)",
+                    handlers->getApiSchema().dump(2)));
+        } else {
+            int const       http_port      = 8080;
+            int const       websocket_port = 8089;
+            int const       threads = std::thread::hardware_concurrency();
+            net::io_context ioc{static_cast<int>(threads)};
 
-        int const       http_port      = 8080;
-        int const       websocket_port = 8089;
-        int const       threads = std::thread::hardware_concurrency();
-        net::io_context ioc{static_cast<int>(threads)};
+            auto http_server = std::make_shared<HttpServer>(
+                ioc, http_port, state, handlers);
+            auto websocket_server = std::make_shared<WSServer>(
+                ioc, websocket_port, state, handlers);
 
-        auto http_server = std::make_shared<HttpServer>(
-            ioc, http_port, state, handlers);
-        auto websocket_server = std::make_shared<WSServer>(
-            ioc, websocket_port, state, handlers);
+            http_server->run();
+            websocket_server->run();
 
-        http_server->run();
-        websocket_server->run();
+            std::vector<std::thread> v;
+            v.reserve(threads - 1);
+            for (auto i = threads - 1; i > 0; --i) {
+                v.emplace_back([&ioc] { ioc.run(); });
+            }
 
-        std::vector<std::thread> v;
-        v.reserve(threads - 1);
-        for (auto i = threads - 1; i > 0; --i) {
-            v.emplace_back([&ioc] { ioc.run(); });
+            ioc.run();
         }
-
-        ioc.run();
 
         return EXIT_SUCCESS;
     } catch (const std::exception& e) {

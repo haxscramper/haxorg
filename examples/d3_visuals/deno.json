@@ -1,0 +1,31 @@
+{
+  "tasks": {
+    "build": "deno run -A --unstable --node-modules-dir esbuild.config.ts",
+    "run-gui": "ELECTRON_DISABLE_SECURITY_WARNINGS=true electron ."
+  },
+  "nodeModulesDir": "auto",
+  "imports": {
+    "@dx/reflect": "jsr:@dx/reflect@^0.2.14",
+    "d3": "npm:d3@^7.9.0",
+    "electron": "npm:electron@^34.0.1",
+    "esbuild": "npm:esbuild@^0.24.2",
+    "tslog": "npm:tslog@^4.9.3"
+  },
+  "compilerOptions": {
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "exactOptionalPropertyTypes": true,
+    "emitDecoratorMetadata": true,
+    "jsx": "react-jsx"
+  }
+}

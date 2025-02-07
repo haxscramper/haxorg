@@ -1,0 +1,17 @@
+{
+  "name": "d3-electron-app",
+  "main": "dist/main.js",
+  "dependencies": {
+    "@blocknote/core": "^0.23.1",
+    "@blocknote/mantine": "^0.23.1",
+    "@blocknote/react": "^0.23.1",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/material": "^6.4.3",
+    "@types/d3": "^7.4.3",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tslog": "^4.9.3",
+    "zod": "^3.24.1"
+  }
+}

@@ -219,7 +219,8 @@ DocRootId EditableOrgDocGroup::addRoot(const sem::SemId<sem::Org>& id) {
     gr_log(ol_trace).fmt_message("Adding root to AST");
     OLOG_DEPTH_SCOPE_ANON();
     auto const& current = getCurrentHistory();
-    gr_log(ol_trace).fmt_message("Current history {}", current);
+    gr_log(ol_trace).fmt_message(
+        "Current history {}", current.roots.size());
     auto [history, root_idx] = current.addRoot(id);
     gr_log(ol_trace).fmt_message(
         "History {} root idx {}", history, root_idx);

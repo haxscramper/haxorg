@@ -195,7 +195,7 @@ struct ImRenderTraceRecord {
         int                line     = __builtin_LINE(),
         char const*        file     = __builtin_FILE());
 
-    static finally ImScopeRecord(
+    static finally_std ImScopeRecord(
         std::string const& _What,
         std::string const& _Msg,
         char const*        function = __builtin_FUNCTION(),
@@ -203,7 +203,7 @@ struct ImRenderTraceRecord {
         char const*        file     = __builtin_FILE()) {
         (void)ImRenderTraceRecord::ImRenderBegin(
             true, _What.c_str(), _Msg.c_str(), function, line, file);
-        return finally{[]() { ImRenderTraceRecord::ImRenderEnd(); }};
+        return finally_std{[]() { ImRenderTraceRecord::ImRenderEnd(); }};
     }
 
     static void ImRenderEnd() { PopRecord(); }

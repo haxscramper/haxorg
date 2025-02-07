@@ -1,4 +1,4 @@
-from plumbum import local, ProcessExecutionError, FG
+from plumbum import local, ProcessExecutionError, FG, BG, NOHUP
 import plumbum
 from py_scriptutils.script_logging import log
 from pathlib import Path
@@ -27,6 +27,9 @@ import typing
 import inspect
 import copy
 import shutil
+import signal
+import psutil
+import subprocess
 
 graphviz_logger = logging.getLogger("graphviz._tools")
 graphviz_logger.setLevel(logging.WARNING)
@@ -195,9 +198,10 @@ def run_command(
     capture: bool = False,
     allow_fail: bool = False,
     env: dict[str, str] = {},
-    cwd: Optional[str] = None,
+    cwd: Optional[Union[str, Path]] = None,
     stderr_debug: Optional[Path] = None,
     stdout_debug: Optional[Path] = None,
+    run_mode: Literal["nohup", "bg", "fg"] = "fg",
 ) -> tuple[int, str, str]:
     stderr_debug = stderr_debug or get_cmd_debug_file("stderr")
     stdout_debug = stdout_debug or get_cmd_debug_file("stdout")
@@ -207,7 +211,8 @@ def run_command(
 
     args_repr = " ".join((f"'[cyan]{s}[/cyan]'" for s in args))
 
-    log(CAT).debug(f"Running [red]{cmd}[/red] {args_repr}")
+    log(CAT).debug(f"Running [red]{cmd}[/red] {args_repr}" +
+                   (f" in [green]{cwd}[/green]" if cwd else ""))
 
     try:
         run = local[cmd]
@@ -233,31 +238,54 @@ def run_command(
         run = run.with_env(**env)
 
     if cwd is not None:
-        run = run.with_cwd(cwd)
+        run = run.with_cwd(str(cwd))
 
-    if get_config(ctx).quiet:
-        retcode, stdout, stderr = run.run(list(args), retcode=None)
+    if run_mode == "nohup" or run_mode == "bg":
+        stderr_stream = open(stderr_debug, "w") if stderr_debug else None
+        stdout_stream = open(stdout_debug, "w") if stdout_debug else None
+
+        try:
+            subprocess.Popen(
+                [str(cmd), *args],
+                cwd=str(cwd) if cwd else None,
+                start_new_session=run_mode == "nohup",
+                stdout=stdout_stream if stdout_stream else subprocess.DEVNULL,
+                stderr=stderr_stream if stderr_stream else subprocess.DEVNULL,
+            )
+
+        finally:
+            if stdout_stream:
+                stdout_stream.close()
+
+            if stderr_stream:
+                stderr_stream.close()
+
+        return (0, "", "")
 
     else:
-        retcode, stdout, stderr = run[*args] & plumbum.TEE(retcode=None)
+        if get_config(ctx).quiet:
+            retcode, stdout, stderr = run.run(list(args), retcode=None)
 
-    if stdout_debug and stdout:
-        log(CAT).info(f"Wrote stdout to {stdout_debug}")
-        stdout_debug.write_text(remove_ansi(stdout))
+        else:
+            retcode, stdout, stderr = run[*args] & plumbum.TEE(retcode=None)
 
-    if stderr_debug and stderr:
-        log(CAT).info(f"Wrote stderr to {stderr_debug}")
-        stderr_debug.write_text(remove_ansi(stderr))
+        if stdout_debug and stdout:
+            log(CAT).info(f"Wrote stdout to {stdout_debug}")
+            stdout_debug.write_text(remove_ansi(stdout))
 
-    if allow_fail or retcode == 0:
-        return (retcode, stdout, stderr)
+        if stderr_debug and stderr:
+            log(CAT).info(f"Wrote stderr to {stderr_debug}")
+            stderr_debug.write_text(remove_ansi(stderr))
 
-    else:
-        raise Failure("Failed to execute the command {}{}{}".format(
-            cmd,
-            f"\nwrote stdout to {stdout_debug}" if (stdout_debug and stdout) else "",
-            f"\nwrote stderr to {stderr_debug}" if (stderr_debug and stderr) else "",
-        )) from None
+        if allow_fail or retcode == 0:
+            return (retcode, stdout, stderr)
+
+        else:
+            raise Failure("Failed to execute the command {}{}{}".format(
+                cmd,
+                f"\nwrote stdout to {stdout_debug}" if (stdout_debug and stdout) else "",
+                f"\nwrote stderr to {stderr_debug}" if (stderr_debug and stderr) else "",
+            )) from None
 
 
 @beartype
@@ -428,9 +456,15 @@ def create_graph(call_map: Dict[Callable, List[Callable]]) -> graphviz.Digraph:
 def org_task_graph(ctx: Context, dot_file: str = "/tmp/graph.dot"):
     """Generate graphviz for task graph"""
     graph = create_graph(TASK_DEPS)
-    with open(dot_file, "w") as file:
-        file.write(graph.source)
-        log(CAT).info(f"Wrote graph to {dot_file}")
+    file = Path(dot_file)
+    file.write_text(graph.source)
+    log(CAT).info(f"Wrote graph to {dot_file}")
+    run_command(ctx, "dot", [
+        "-Tpng",
+        file,
+        "-o",
+        file.with_suffix(".png"),
+    ])
 
 
 @org_task()
@@ -999,16 +1033,21 @@ def cmake_install_dev(ctx: Context, perfetto: bool = False):
         ])
 
 
-@org_task(pre=[cmake_install_dev])
-def cmake_example(ctx: Context):
-    example_build = get_build_root().joinpath("example_build")
+@beartype
+def get_example_build(example_name: str) -> Path:
+    return get_build_root().joinpath(f"example_build_{example_name}")
+
+
+@beartype
+def cmake_example_project(ctx: Context, example_name: str):
+    example_build = get_example_build(example_name)
     toolchain = get_script_root().joinpath("toolchain.cmake")
     assert toolchain.exists()
     run_command(ctx, "cmake", [
         "-B",
         example_build,
         "-S",
-        get_script_root().joinpath("examples/imgui_gui"),
+        get_script_root().joinpath(f"examples/{example_name}"),
         "-G",
         "Ninja",
         cmake_opt("CMAKE_CXX_COMPILER", get_llvm_root("bin/clang++")),
@@ -1022,6 +1061,112 @@ def cmake_example(ctx: Context):
         "all",
         "--parallel",
     ])
+
+
+@org_task(pre=[
+    # cmake_install_dev
+])
+def build_imgui_example(ctx: Context):
+    """
+    Build imgui example project. 
+    """
+    cmake_example_project(ctx, "imgui_gui")
+
+
+@beartype
+def find_process(
+    name: str,
+    root_dir: Optional[Path] = None,
+    args: Optional[list[str]] = None,
+) -> Optional[psutil.Process]:
+    for proc in psutil.process_iter(['pid', 'name', 'cmdline', 'cwd']):
+        try:
+            if ((proc.name() == name) and
+                (root_dir is None or proc.cwd() == str(root_dir)) and
+                (args is None or all(arg in proc.cmdline() for arg in args))):
+                return proc
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+    return None
+
+
+@org_task(pre=[
+    # cmake_install_dev
+])
+def build_web_example(ctx: Context):
+    """
+    Build web access example project
+    """
+    cmake_example_project(ctx, "rest_access")
+
+
+@org_task(pre=[
+    # cmake_install_dev
+    build_web_example
+])
+def build_d3_example(ctx: Context):
+    """
+    Build d3.js visualization example
+    """
+
+    web_build = get_example_build("rest_access").joinpath("org_server")
+    run_command(ctx, web_build, [
+        json.dumps({
+            "operation":
+                "WriteSchema",
+            "schema_path":
+                str(get_script_root().joinpath(
+                    "examples/d3_visuals/renderer/org_schema.ts")),
+        })
+    ])
+
+    run_command(
+        ctx,
+        "deno",
+        ["task", "build"],
+        cwd=get_script_root().joinpath("examples/d3_visuals"),
+    )
+
+
+@beartype
+def get_log_dir() -> Path:
+    return Path("/tmp")
+
+
+@org_task(pre=[build_d3_example, build_web_example])
+def run_d3_example(ctx: Context, with_server: bool = True):
+    web_build = get_example_build("rest_access").joinpath("org_server")
+    d3_example_dir = get_script_root().joinpath("examples/d3_visuals")
+    deno_run = find_process("deno", d3_example_dir, ["task", "run-gui"])
+
+    if with_server: 
+        run_command(
+            ctx,
+            web_build,
+            [json.dumps(dict(operation="RunServer"))],
+            run_mode="bg",
+            stderr_debug=get_log_dir().joinpath("rest_stderr.log"),
+            stdout_debug=get_log_dir().joinpath("rest_stdout.log"),
+        )
+
+    import time
+    time.sleep(1)
+
+    if deno_run:
+        log(CAT).info("Sending user signal to electron")
+        electron = find_process("electron", d3_example_dir, ["."])
+        electron.send_signal(signal.SIGUSR1)
+
+    else:
+        run_command(
+            ctx,
+            "deno",
+            ["task", "run-gui"],
+            cwd=d3_example_dir,
+            run_mode="nohup",
+            stderr_debug=get_log_dir().joinpath("electron_stderr.log"),
+            stdout_debug=get_log_dir().joinpath("electron_stdout.log"),
+        )
 
 
 def get_lldb_py_import() -> List[str]:
@@ -1566,6 +1711,10 @@ def py_tests(ctx: Context, arg: List[str] = []):
 
 @org_task(pre=[cmake_all, python_protobuf_files, symlink_build], iterable=["arg"])
 def py_script(ctx: Context, script: str, arg: List[str] = []):
+    """
+    Run script with arguments with all environment variables set.
+    Debug task. 
+    """
     run_command(
         ctx,
         "poetry",
