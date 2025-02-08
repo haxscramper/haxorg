@@ -297,6 +297,7 @@
     __IMPL(File::Attachment, (File, Attachment)) \
     __IMPL(File::Source, (File, Source)) \
     __IMPL(Directory, (Directory)) \
+    __IMPL(Symlink, (Symlink)) \
     __IMPL(CmdInclude, (CmdInclude)) \
     __IMPL(CmdInclude::Example, (CmdInclude, Example)) \
     __IMPL(CmdInclude::Export, (CmdInclude, Export)) \
@@ -372,6 +373,7 @@
     __IMPL(DocumentGroup) \
     __IMPL(File) \
     __IMPL(Directory) \
+    __IMPL(Symlink) \
     __IMPL(CmdInclude)
 #define EACH_SEM_ORG_FINAL_TYPE_BASE(__IMPL) \
     __IMPL(None, Org) \
@@ -443,6 +445,7 @@
     __IMPL(DocumentGroup, Org) \
     __IMPL(File, Org) \
     __IMPL(Directory, Org) \
+    __IMPL(Symlink, Org) \
     __IMPL(CmdInclude, Org)
 #define EACH_SEM_ORG_TYPE_BASE(__IMPL) \
     __IMPL(None, Org) \
@@ -522,6 +525,7 @@
     __IMPL(DocumentGroup, Org) \
     __IMPL(File, Org) \
     __IMPL(Directory, Org) \
+    __IMPL(Symlink, Org) \
     __IMPL(CmdInclude, Org)
 enum class ListFormattingMode : short int { None, Table1D1Col, Table1D2Col, Table2DColFirst, };
 template <>
@@ -841,7 +845,7 @@ struct value_domain<OrgNodeKind> : public value_domain_ungapped<OrgNodeKind,
                                                                 OrgNodeKind::None,
                                                                 OrgNodeKind::SubtreeImportance> {};
 
-enum class OrgSemKind : short int { None, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdResults, CmdTblfm, HashTag, InlineFootnote, InlineExport, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, RadioTarget, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCode, SubtreeLog, Subtree, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, CmdExport, Call, List, ListItem, DocumentOptions, Document, FileTarget, TextSeparator, DocumentGroup, File, Directory, CmdInclude, };
+enum class OrgSemKind : short int { None, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdResults, CmdTblfm, HashTag, InlineFootnote, InlineExport, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, RadioTarget, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCode, SubtreeLog, Subtree, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, CmdExport, Call, List, ListItem, DocumentOptions, Document, FileTarget, TextSeparator, DocumentGroup, File, Directory, Symlink, CmdInclude, };
 template <>
 struct enum_serde<OrgSemKind> {
   static Opt<OrgSemKind> from_string(std::string value);

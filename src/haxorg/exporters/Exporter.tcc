@@ -1083,6 +1083,14 @@ void Exporter<V, R>::visitDirectory(R& res, In<sem::Directory> object) {
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visitSymlink(R& res, In<sem::Symlink> object) {
+  auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
+  __org_field(res, object, isDirectory);
+  __org_field(res, object, absPath);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::CmdInclude::Data const& object) { visitVariants(res, sem::CmdInclude::getIncludeKind(object), object); }
 
 template <typename V, typename R>

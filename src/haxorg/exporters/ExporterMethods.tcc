@@ -187,6 +187,7 @@ void visit(R& res, sem::File::Document const& object);
 void visit(R& res, sem::File::Attachment const& object);
 void visit(R& res, sem::File::Source const& object);
 void visitDirectory(R& res, In<sem::Directory> object);
+void visitSymlink(R& res, In<sem::Symlink> object);
 void visit(R& res, sem::CmdInclude::Data const& object);
 void visitCmdInclude(R& res, In<sem::CmdInclude> object);
 void visit(R& res, sem::CmdInclude::Example const& object);

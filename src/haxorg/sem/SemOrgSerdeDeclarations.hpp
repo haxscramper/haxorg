@@ -71,6 +71,7 @@
         __MAP(kDocumentgroup, documentgroup, DocumentGroup)  \
         __MAP(kFile, file, File)  \
         __MAP(kDirectory, directory, Directory)  \
+        __MAP(kSymlink, symlink, Symlink)  \
         __MAP(kCmdinclude, cmdinclude, CmdInclude)  \
 
 template <>
@@ -1246,6 +1247,13 @@ template <>
 struct proto_serde<::orgproto::Directory, sem::Directory> {
   static void write(::orgproto::Directory* out, sem::Directory const& in);
   static void read(::orgproto::Directory const& out, proto_write_accessor<sem::Directory> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::Symlink, sem::Symlink> {
+  static void write(::orgproto::Symlink* out, sem::Symlink const& in);
+  static void read(::orgproto::Symlink const& out, proto_write_accessor<sem::Symlink> in);
 };
 
 

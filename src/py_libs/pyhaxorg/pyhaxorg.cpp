@@ -4540,6 +4540,23 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<sem::Symlink, sem::SemId<sem::Symlink>, sem::Org>(m, "Symlink")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Symlink {
+                        sem::Symlink result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("isDirectory", &sem::Symlink::isDirectory)
+    .def_readwrite("absPath", &sem::Symlink::absPath, R"RAW(Absolute path to the symlinked target directory. All relative paths under symlink node use its absolute path as a root.)RAW")
+    .def("__repr__", [](sem::Symlink _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Symlink _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<sem::CmdInclude::Example>(m, "CmdIncludeExample")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdInclude::Example {
                         sem::CmdInclude::Example result{};
@@ -4986,6 +5003,7 @@ node can have subnodes.)RAW")
     .value("DocumentGroup", OrgSemKind::DocumentGroup)
     .value("File", OrgSemKind::File)
     .value("Directory", OrgSemKind::Directory)
+    .value("Symlink", OrgSemKind::Symlink)
     .value("CmdInclude", OrgSemKind::CmdInclude)
     .def("__iter__", [](OrgSemKind _self) -> PyEnumIterator<OrgSemKind> {
                      return

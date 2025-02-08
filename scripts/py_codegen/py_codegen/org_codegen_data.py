@@ -2543,7 +2543,7 @@ def get_types() -> Sequence[GenTuStruct]:
                           GenTuStruct(t_nest("Source", ["File"]))
                       ],
                       enumName=t_nest("Kind", ["File"]),
-                      kindGetter="getFileKind", 
+                      kindGetter="getFileKind",
                       variantName=t_nest("Data", ["File"]),
                   )
               ]),
@@ -2554,6 +2554,16 @@ def get_types() -> Sequence[GenTuStruct]:
                 str_field(
                     "relPath",
                     "Relative path from the root directory, empty if this is the root directory"
+                )
+            ]),
+        d_org(
+            "Symlink",
+            bases=[t_org("Org")],
+            fields=[
+                org_field(t_bool(), "isDirectory"),
+                str_field(
+                    "absPath", "Absolute path to the symlinked target directory. "
+                    "All relative paths under symlink node use its absolute path as a root."
                 )
             ]),
         d_org(

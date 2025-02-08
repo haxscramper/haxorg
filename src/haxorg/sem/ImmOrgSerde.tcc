@@ -1384,6 +1384,24 @@ struct ImmSemSerde<sem::Directory, org::ImmDirectory> {
 };
 
 template <>
+struct ImmSemSerde<sem::Symlink, org::ImmSymlink> {
+  static org::ImmSymlink to_immer(sem::Symlink const& value, ImmAstEditContext& ctx) {
+    org::ImmSymlink result = SerdeDefaultProvider<org::ImmSymlink>::get();
+    assign_immer_field(result.isDirectory, value.isDirectory, ctx);
+    assign_immer_field(result.absPath, value.absPath, ctx);
+    assign_immer_field(result.subnodes, value.subnodes, ctx);
+    return result;
+  }
+  static sem::Symlink from_immer(org::ImmSymlink const& value, ImmAstContext const& ctx) {
+    sem::Symlink result = SerdeDefaultProvider<sem::Symlink>::get();
+    assign_sem_field(result.isDirectory, value.isDirectory, ctx);
+    assign_sem_field(result.absPath, value.absPath, ctx);
+    assign_sem_field(result.subnodes, value.subnodes, ctx);
+    return result;
+  }
+};
+
+template <>
 struct ImmSemSerde<sem::CmdInclude, org::ImmCmdInclude> {
   static org::ImmCmdInclude to_immer(sem::CmdInclude const& value, ImmAstEditContext& ctx) {
     org::ImmCmdInclude result = SerdeDefaultProvider<org::ImmCmdInclude>::get();

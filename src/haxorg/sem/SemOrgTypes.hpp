@@ -2797,6 +2797,21 @@ struct Directory : public sem::Org {
   virtual OrgSemKind getKind() const { return OrgSemKind::Directory; }
 };
 
+struct Symlink : public sem::Org {
+  using Org::Org;
+  virtual ~Symlink() = default;
+  BOOST_DESCRIBE_CLASS(Symlink,
+                       (Org),
+                       (),
+                       (),
+                       (staticKind, isDirectory, absPath))
+  static OrgSemKind const staticKind;
+  bool isDirectory;
+  /// \brief Absolute path to the symlinked target directory. All relative paths under symlink node use its absolute path as a root.
+  Str absPath = "";
+  virtual OrgSemKind getKind() const { return OrgSemKind::Symlink; }
+};
+
 struct CmdInclude : public sem::Org {
   using Org::Org;
   virtual ~CmdInclude() = default;

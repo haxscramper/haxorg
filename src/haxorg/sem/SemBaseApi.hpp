@@ -25,6 +25,13 @@ struct [[refl]] OrgParseParameters {
 };
 
 struct [[refl]] OrgDirectoryParseParameters {
+    Func<sem::SemId<sem::Document>(std::string const& fullPath)>
+        getParsedNode;
+
+    Func<bool(std::string const& fullPath)> shouldProcessPath;
+    Func<Opt<std::string>(std::string const& includePath)>
+        findIncludeTarget;
+
     BOOST_DESCRIBE_CLASS(OrgDirectoryParseParameters, (), (), (), ());
 };
 
@@ -36,9 +43,9 @@ struct [[refl]] OrgDirectoryParseParameters {
     std::string const         text,
     OrgParseParameters const& opts);
 
-[[refl]] sem::SemId<sem::Directory> parseDirectoryOpts(
+[[refl]] Opt<sem::SemId<sem::Org>> parseDirectoryOpts(
     std::string const&                 path,
-    OrgDirectoryParseParameters const& directoryParseParameters);
+    OrgDirectoryParseParameters const& opts);
 
 
 /// \brief Remove outer wrapper containers from a node and return its

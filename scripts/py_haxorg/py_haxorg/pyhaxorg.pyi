@@ -1933,6 +1933,13 @@ class Directory(Org):
     def __getattr__(self, name: str) -> object: ...
     relPath: str
 
+class Symlink(Org):
+    def __init__(self, isDirectory: bool, absPath: str) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    isDirectory: bool
+    absPath: str
+
 class CmdIncludeExample:
     def __init__(self) -> None: ...
     def __repr__(self) -> str: ...
@@ -2263,7 +2270,8 @@ class OrgSemKind(Enum):
     DocumentGroup = 67
     File = 68
     Directory = 69
-    CmdInclude = 70
+    Symlink = 70
+    CmdInclude = 71
 
 class UserTimeBreakdown:
     def __init__(self, year: Optional[int], month: Optional[int], day: Optional[int], hour: Optional[int], minute: Optional[int], second: Optional[int], zone: Optional[str]) -> None: ...

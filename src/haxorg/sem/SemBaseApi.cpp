@@ -133,12 +133,89 @@ sem::SemId<sem::Document> sem::parseStringOpts(
 }
 
 
-sem::SemId<Directory> parseDirectoryOpts(
-    const std::string&                 path,
-    const OrgDirectoryParseParameters& directoryParseParameters) {
-    sem::SemId<Directory> root = sem::SemId<Directory>::New();
+Opt<sem::SemId<Org>> parseDirectoryOpts(
+    const std::string&                 root,
+    const OrgDirectoryParseParameters& opts) {
 
-    return root;
+    Func<Opt<sem::SemId<Org>>(fs::path const&, fs::path const&)> aux;
+
+    aux = [&](fs::path const& path,
+              fs::path const& activeRoot) -> Opt<sem::SemId<Org>> {
+        _dfmt(path, activeRoot);
+        if (opts.shouldProcessPath && !opts.shouldProcessPath(path)) {
+            return std::nullopt;
+        } else if (fs::is_symlink(path)) {
+            auto                     target = fs::read_symlink(path);
+            sem::SemId<sem::Symlink> sym = sem::SemId<sem::Symlink>::New();
+            if (fs::is_directory(target)) {
+                sym->isDirectory = true;
+                sym->absPath     = target.native();
+                auto dir         = aux(target, sym->absPath.toBase());
+                if (dir) { sym->push_back(dir.value()); }
+
+            } else if (fs::is_regular_file(target)) {
+                sym->absPath = target.parent_path().native();
+                auto file    = aux(target, sym->absPath.toBase());
+                if (file) { sym->push_back(file.value()); }
+            } else {
+                logic_todo_impl();
+            }
+
+            return sym;
+
+        } else if (fs::is_directory(path)) {
+            sem::SemId<Directory> dir = sem::SemId<Directory>::New();
+            dir->relPath              = fs::relative(path, root).native();
+            for (const auto& entry : fs::directory_iterator(path)) {
+                auto nested = aux(entry, activeRoot);
+                if (nested) { dir->push_back(nested.value()); }
+            }
+
+            return dir;
+        } else if (fs::is_regular_file(path)) {
+            auto parsed = opts.getParsedNode(path);
+
+            sem::eachSubnodeRec(parsed, [&](sem::SemId<sem::Org> arg) {
+                if (auto incl = arg.asOpt<sem::CmdInclude>()) {
+                    auto     includeTarget = incl->path;
+                    fs::path full //
+                        = fs::path{includeTarget.toBase()}.is_absolute()
+                            ? fs::path{includeTarget.toBase()}
+                            : (path.parent_path()
+                               / includeTarget.toBase());
+
+                    if (!fs::exists(full) && opts.findIncludeTarget) {
+                        auto includeFound = opts.findIncludeTarget(
+                            incl->path);
+                        if (includeFound) { full = includeFound.value(); }
+                    }
+
+                    if (fs::exists(full)) {
+                        switch (incl->getIncludeKind()) {
+                            case sem::CmdInclude::Kind::OrgDocument: {
+                                auto parsed = aux(full, activeRoot);
+                                if (parsed) {
+                                    arg->push_back(parsed.value());
+                                }
+                            }
+                        }
+                    } else {
+                        auto group = sem::SemId<sem::ErrorGroup>::New();
+                        auto error = sem::SemId<sem::ErrorItem>::New();
+                        error->message = fmt(
+                            "Could not resolve include target '{}'",
+                            incl->path);
+                        arg->push_back(error);
+                        return arg;
+                    }
+                }
+            });
+
+            return parsed;
+        }
+    };
+
+    return aux(fs::absolute(root), root);
 }
 
 

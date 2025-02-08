@@ -1240,6 +1240,7 @@ struct ImmAdapterCmdAttrAPI : ImmAdapterAttachedAPI {};
 struct ImmAdapterCallAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterFileAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterDirectoryAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterSymlinkAPI : ImmAdapterOrgAPI {};
 
 struct ImmAdapterListAPI : ImmAdapterStmtAPI {
     bool                isDescriptionList() const;

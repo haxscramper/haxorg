@@ -1428,6 +1428,24 @@ struct ImmDirectory : public org::ImmOrg {
   bool operator==(org::ImmDirectory const& other) const;
 };
 
+struct ImmSymlink : public org::ImmOrg {
+  using ImmOrg::ImmOrg;
+  virtual ~ImmSymlink() = default;
+  BOOST_DESCRIBE_CLASS(ImmSymlink,
+                       (ImmOrg),
+                       (),
+                       (),
+                       (staticKind,
+                        isDirectory,
+                        absPath))
+  static OrgSemKind const staticKind;
+  bool isDirectory;
+  /// \brief Absolute path to the symlinked target directory. All relative paths under symlink node use its absolute path as a root.
+  ImmBox<Str> absPath = "";
+  virtual OrgSemKind getKind() const { return OrgSemKind::Symlink; }
+  bool operator==(org::ImmSymlink const& other) const;
+};
+
 struct ImmCmdInclude : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmCmdInclude() = default;

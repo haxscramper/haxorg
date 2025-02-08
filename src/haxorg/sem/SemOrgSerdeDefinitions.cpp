@@ -2517,6 +2517,18 @@ void proto_serde<::orgproto::Directory, sem::Directory>::read(::orgproto::Direct
   proto_serde<std::string, Str>::read(out.relpath(), in.for_field(&sem::Directory::relPath));
 }
 
+void proto_serde<::orgproto::Symlink, sem::Symlink>::write(::orgproto::Symlink* out, sem::Symlink const& in) {
+  proto_serde<::orgproto::Symlink, sem::Org>::write(out, in);
+  out->set_isdirectory(in.isDirectory);
+  proto_serde<std::string, Str>::write(out->mutable_abspath(), in.absPath);
+}
+
+void proto_serde<::orgproto::Symlink, sem::Symlink>::read(::orgproto::Symlink const& out, proto_write_accessor<sem::Symlink> in) {
+  proto_serde<::orgproto::Symlink, sem::Org>::read(out, in.as<sem::Org>());
+  in.for_field(&sem::Symlink::isDirectory).get() = out.isdirectory();
+  proto_serde<std::string, Str>::read(out.abspath(), in.for_field(&sem::Symlink::absPath));
+}
+
 void proto_serde<::orgproto::CmdInclude::Example, sem::CmdInclude::Example>::write(::orgproto::CmdInclude::Example* out, sem::CmdInclude::Example const& in) {
 
 }

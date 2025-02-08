@@ -290,7 +290,8 @@ enum OrgSemKind {
   OrgSemKind_DocumentGroup_f                                                        = 66;
   OrgSemKind_File_f                                                                 = 67;
   OrgSemKind_Directory_f                                                            = 68;
-  OrgSemKind_CmdInclude_f                                                           = 69;
+  OrgSemKind_Symlink_f                                                              = 69;
+  OrgSemKind_CmdInclude_f                                                           = 70;
 }
 
 message Tblfm {
@@ -1687,6 +1688,14 @@ message Directory {
   string                                           debug                            = 1000;
 }
 
+message Symlink {
+  repeated AnyNode                                 subnodes                         = 1;
+  OrgSemKind                                       staticKind                       = 2;
+  bool                                             isDirectory                      = 3;
+  string                                           absPath                          = 4;
+  string                                           debug                            = 1000;
+}
+
 message CmdInclude {
   message Example {
     string                                         debug                            = 1000;
@@ -1796,7 +1805,8 @@ message AnyNode {
     DocumentGroup                                    documentgroup                    = 67;
     File                                             file                             = 68;
     Directory                                        directory                        = 69;
-    CmdInclude                                       cmdinclude                       = 70;
+    Symlink                                          symlink                          = 70;
+    CmdInclude                                       cmdinclude                       = 71;
   }
 }
 /* clang-format on */
