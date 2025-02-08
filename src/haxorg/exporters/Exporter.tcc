@@ -1050,34 +1050,62 @@ void Exporter<V, R>::visitTextSeparator(R& res, In<sem::TextSeparator> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Include::Data const& object) { visitVariants(res, sem::Include::getIncludeKind(object), object); }
+void Exporter<V, R>::visitDocumentGroup(R& res, In<sem::DocumentGroup> object) {
+  auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
+  __org_field(res, object, subnodes);
+}
 
 template <typename V, typename R>
-void Exporter<V, R>::visitInclude(R& res, In<sem::Include> object) {
+void Exporter<V, R>::visit(R& res, sem::File::Data const& object) { visitVariants(res, sem::File::getFileKind(object), object); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visitFile(R& res, In<sem::File> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
-  __org_field(res, object, path);
-  __org_field(res, object, firstLine);
-  __org_field(res, object, lastLine);
+  __org_field(res, object, relPath);
   __org_field(res, object, data);
   __org_field(res, object, subnodes);
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Include::Example const& object) {  }
+void Exporter<V, R>::visit(R& res, sem::File::Document const& object) {  }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Include::Export const& object) {  }
+void Exporter<V, R>::visit(R& res, sem::File::Attachment const& object) {  }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Include::Src const& object) {  }
+void Exporter<V, R>::visit(R& res, sem::File::Source const& object) {  }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Include::OrgDocument const& object) { __obj_field(res, object, minLevel); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visitDocumentGroup(R& res, In<sem::DocumentGroup> object) {
+void Exporter<V, R>::visitDirectory(R& res, In<sem::Directory> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
+  __org_field(res, object, relPath);
   __org_field(res, object, subnodes);
 }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::CmdInclude::Data const& object) { visitVariants(res, sem::CmdInclude::getIncludeKind(object), object); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visitCmdInclude(R& res, In<sem::CmdInclude> object) {
+  auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
+  __org_field(res, object, path);
+  __org_field(res, object, firstLine);
+  __org_field(res, object, lastLine);
+  __org_field(res, object, resolved);
+  __org_field(res, object, data);
+  __org_field(res, object, subnodes);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::CmdInclude::Example const& object) {  }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::CmdInclude::Export const& object) {  }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::CmdInclude::Src const& object) {  }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::CmdInclude::OrgDocument const& object) { __obj_field(res, object, minLevel); }
 
 /* clang-format on */

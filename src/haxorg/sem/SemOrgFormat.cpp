@@ -1258,7 +1258,17 @@ auto Formatter::toString(SemId<BlockVerse> id, CR<Context> ctx) -> Res {
 }
 
 
-auto Formatter::toString(SemId<Include> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<CmdInclude> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    return str(__PRETTY_FUNCTION__);
+}
+
+auto Formatter::toString(SemId<File> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    return str(__PRETTY_FUNCTION__);
+}
+
+auto Formatter::toString(SemId<Directory> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str(__PRETTY_FUNCTION__);
 }

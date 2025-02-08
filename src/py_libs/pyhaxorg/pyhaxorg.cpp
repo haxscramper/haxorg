@@ -4426,110 +4426,6 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Include::Example>(m, "IncludeExample")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Include::Example {
-                        sem::Include::Example result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](sem::Include::Example _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Include::Example _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::Include::Export>(m, "IncludeExport")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Include::Export {
-                        sem::Include::Export result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](sem::Include::Export _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Include::Export _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::Include::Src>(m, "IncludeSrc")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Include::Src {
-                        sem::Include::Src result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("__repr__", [](sem::Include::Src _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Include::Src _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<sem::Include::OrgDocument>(m, "IncludeOrgDocument")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Include::OrgDocument {
-                        sem::Include::OrgDocument result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("minLevel", &sem::Include::OrgDocument::minLevel, R"RAW(The minimum level of headlines to include. Headlines with a level smaller than this value will be demoted to this level.)RAW")
-    .def("__repr__", [](sem::Include::OrgDocument _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Include::OrgDocument _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  bind_enum_iterator<sem::Include::Kind>(m, "IncludeKind", type_registry_guard);
-  pybind11::enum_<sem::Include::Kind>(m, "IncludeKind")
-    .value("Example", sem::Include::Kind::Example)
-    .value("Export", sem::Include::Kind::Export)
-    .value("Src", sem::Include::Kind::Src)
-    .value("OrgDocument", sem::Include::Kind::OrgDocument)
-    .def("__iter__", [](sem::Include::Kind _self) -> PyEnumIterator<sem::Include::Kind> {
-                     return
-                     PyEnumIterator<sem::Include::Kind>
-                     ();
-                     })
-    ;
-  pybind11::class_<sem::Include, sem::SemId<sem::Include>, sem::Org>(m, "Include")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Include {
-                        sem::Include result{};
-                        init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("path", &sem::Include::path, R"RAW(Path to include)RAW")
-    .def_readwrite("firstLine", &sem::Include::firstLine, R"RAW(0-based index of the first line to include. NOTE: Org-mode syntax uses 1-based half-open range in the text)RAW")
-    .def_readwrite("lastLine", &sem::Include::lastLine, R"RAW(0-based index of the last line to include)RAW")
-    .def_readwrite("data", &sem::Include::data)
-    .def("isExample", static_cast<bool(sem::Include::*)() const>(&sem::Include::isExample))
-    .def("getExample", static_cast<sem::Include::Example&(sem::Include::*)()>(&sem::Include::getExample))
-    .def("isExport", static_cast<bool(sem::Include::*)() const>(&sem::Include::isExport))
-    .def("getExport", static_cast<sem::Include::Export&(sem::Include::*)()>(&sem::Include::getExport))
-    .def("isSrc", static_cast<bool(sem::Include::*)() const>(&sem::Include::isSrc))
-    .def("getSrc", static_cast<sem::Include::Src&(sem::Include::*)()>(&sem::Include::getSrc))
-    .def("isOrgDocument", static_cast<bool(sem::Include::*)() const>(&sem::Include::isOrgDocument))
-    .def("getOrgDocument", static_cast<sem::Include::OrgDocument&(sem::Include::*)()>(&sem::Include::getOrgDocument))
-    .def_static("getIncludeKindStatic",
-                static_cast<sem::Include::Kind(*)(sem::Include::Data const&)>(&sem::Include::getIncludeKind),
-                pybind11::arg("__input"))
-    .def("getIncludeKind", static_cast<sem::Include::Kind(sem::Include::*)() const>(&sem::Include::getIncludeKind))
-    .def("__repr__", [](sem::Include _self) -> std::string {
-                     return py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](sem::Include _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
   pybind11::class_<sem::DocumentGroup, sem::SemId<sem::DocumentGroup>, sem::Org>(m, "DocumentGroup")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::DocumentGroup {
                         sem::DocumentGroup result{};
@@ -4541,6 +4437,210 @@ node can have subnodes.)RAW")
                      })
     .def("__getattr__",
          [](sem::DocumentGroup _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::File::Document>(m, "FileDocument")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::File::Document {
+                        sem::File::Document result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("__repr__", [](sem::File::Document _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::File::Document _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::File::Attachment>(m, "FileAttachment")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::File::Attachment {
+                        sem::File::Attachment result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("__repr__", [](sem::File::Attachment _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::File::Attachment _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::File::Source>(m, "FileSource")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::File::Source {
+                        sem::File::Source result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("__repr__", [](sem::File::Source _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::File::Source _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<sem::File::Kind>(m, "FileKind", type_registry_guard);
+  pybind11::enum_<sem::File::Kind>(m, "FileKind")
+    .value("Document", sem::File::Kind::Document)
+    .value("Attachment", sem::File::Kind::Attachment)
+    .value("Source", sem::File::Kind::Source)
+    .def("__iter__", [](sem::File::Kind _self) -> PyEnumIterator<sem::File::Kind> {
+                     return
+                     PyEnumIterator<sem::File::Kind>
+                     ();
+                     })
+    ;
+  pybind11::class_<sem::File, sem::SemId<sem::File>, sem::Org>(m, "File")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::File {
+                        sem::File result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("relPath", &sem::File::relPath, R"RAW(Relative path from the root directory)RAW")
+    .def_readwrite("data", &sem::File::data)
+    .def("isDocument", static_cast<bool(sem::File::*)() const>(&sem::File::isDocument))
+    .def("getDocument", static_cast<sem::File::Document&(sem::File::*)()>(&sem::File::getDocument))
+    .def("isAttachment", static_cast<bool(sem::File::*)() const>(&sem::File::isAttachment))
+    .def("getAttachment", static_cast<sem::File::Attachment&(sem::File::*)()>(&sem::File::getAttachment))
+    .def("isSource", static_cast<bool(sem::File::*)() const>(&sem::File::isSource))
+    .def("getSource", static_cast<sem::File::Source&(sem::File::*)()>(&sem::File::getSource))
+    .def_static("getFileKindStatic",
+                static_cast<sem::File::Kind(*)(sem::File::Data const&)>(&sem::File::getFileKind),
+                pybind11::arg("__input"))
+    .def("getFileKind", static_cast<sem::File::Kind(sem::File::*)() const>(&sem::File::getFileKind))
+    .def("__repr__", [](sem::File _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::File _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::Directory, sem::SemId<sem::Directory>, sem::Org>(m, "Directory")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Directory {
+                        sem::Directory result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("relPath", &sem::Directory::relPath, R"RAW(Relative path from the root directory, empty if this is the root directory)RAW")
+    .def("__repr__", [](sem::Directory _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::Directory _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::CmdInclude::Example>(m, "CmdIncludeExample")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdInclude::Example {
+                        sem::CmdInclude::Example result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("__repr__", [](sem::CmdInclude::Example _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::CmdInclude::Example _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::CmdInclude::Export>(m, "CmdIncludeExport")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdInclude::Export {
+                        sem::CmdInclude::Export result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("__repr__", [](sem::CmdInclude::Export _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::CmdInclude::Export _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::CmdInclude::Src>(m, "CmdIncludeSrc")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdInclude::Src {
+                        sem::CmdInclude::Src result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("__repr__", [](sem::CmdInclude::Src _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::CmdInclude::Src _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::CmdInclude::OrgDocument>(m, "CmdIncludeOrgDocument")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdInclude::OrgDocument {
+                        sem::CmdInclude::OrgDocument result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("minLevel", &sem::CmdInclude::OrgDocument::minLevel, R"RAW(The minimum level of headlines to include. Headlines with a level smaller than this value will be demoted to this level.)RAW")
+    .def("__repr__", [](sem::CmdInclude::OrgDocument _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::CmdInclude::OrgDocument _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<sem::CmdInclude::Kind>(m, "CmdIncludeKind", type_registry_guard);
+  pybind11::enum_<sem::CmdInclude::Kind>(m, "CmdIncludeKind")
+    .value("Example", sem::CmdInclude::Kind::Example)
+    .value("Export", sem::CmdInclude::Kind::Export)
+    .value("Src", sem::CmdInclude::Kind::Src)
+    .value("OrgDocument", sem::CmdInclude::Kind::OrgDocument)
+    .def("__iter__", [](sem::CmdInclude::Kind _self) -> PyEnumIterator<sem::CmdInclude::Kind> {
+                     return
+                     PyEnumIterator<sem::CmdInclude::Kind>
+                     ();
+                     })
+    ;
+  pybind11::class_<sem::CmdInclude, sem::SemId<sem::CmdInclude>, sem::Org>(m, "CmdInclude")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdInclude {
+                        sem::CmdInclude result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("path", &sem::CmdInclude::path, R"RAW(Path to include)RAW")
+    .def_readwrite("firstLine", &sem::CmdInclude::firstLine, R"RAW(0-based index of the first line to include. NOTE: Org-mode syntax uses 1-based half-open range in the text)RAW")
+    .def_readwrite("lastLine", &sem::CmdInclude::lastLine, R"RAW(0-based index of the last line to include)RAW")
+    .def_readwrite("resolved", &sem::CmdInclude::resolved)
+    .def_readwrite("data", &sem::CmdInclude::data)
+    .def("isExample", static_cast<bool(sem::CmdInclude::*)() const>(&sem::CmdInclude::isExample))
+    .def("getExample", static_cast<sem::CmdInclude::Example&(sem::CmdInclude::*)()>(&sem::CmdInclude::getExample))
+    .def("isExport", static_cast<bool(sem::CmdInclude::*)() const>(&sem::CmdInclude::isExport))
+    .def("getExport", static_cast<sem::CmdInclude::Export&(sem::CmdInclude::*)()>(&sem::CmdInclude::getExport))
+    .def("isSrc", static_cast<bool(sem::CmdInclude::*)() const>(&sem::CmdInclude::isSrc))
+    .def("getSrc", static_cast<sem::CmdInclude::Src&(sem::CmdInclude::*)()>(&sem::CmdInclude::getSrc))
+    .def("isOrgDocument", static_cast<bool(sem::CmdInclude::*)() const>(&sem::CmdInclude::isOrgDocument))
+    .def("getOrgDocument", static_cast<sem::CmdInclude::OrgDocument&(sem::CmdInclude::*)()>(&sem::CmdInclude::getOrgDocument))
+    .def_static("getIncludeKindStatic",
+                static_cast<sem::CmdInclude::Kind(*)(sem::CmdInclude::Data const&)>(&sem::CmdInclude::getIncludeKind),
+                pybind11::arg("__input"))
+    .def("getIncludeKind", static_cast<sem::CmdInclude::Kind(sem::CmdInclude::*)() const>(&sem::CmdInclude::getIncludeKind))
+    .def("__repr__", [](sem::CmdInclude _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::CmdInclude _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -4883,8 +4983,10 @@ node can have subnodes.)RAW")
     .value("Document", OrgSemKind::Document)
     .value("FileTarget", OrgSemKind::FileTarget)
     .value("TextSeparator", OrgSemKind::TextSeparator)
-    .value("Include", OrgSemKind::Include)
     .value("DocumentGroup", OrgSemKind::DocumentGroup)
+    .value("File", OrgSemKind::File)
+    .value("Directory", OrgSemKind::Directory)
+    .value("CmdInclude", OrgSemKind::CmdInclude)
     .def("__iter__", [](OrgSemKind _self) -> PyEnumIterator<OrgSemKind> {
                      return
                      PyEnumIterator<OrgSemKind>

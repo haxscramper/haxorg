@@ -525,8 +525,10 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "Document") { return OrgSemKind::Document; } else
   if (value == "FileTarget") { return OrgSemKind::FileTarget; } else
   if (value == "TextSeparator") { return OrgSemKind::TextSeparator; } else
-  if (value == "Include") { return OrgSemKind::Include; } else
   if (value == "DocumentGroup") { return OrgSemKind::DocumentGroup; } else
+  if (value == "File") { return OrgSemKind::File; } else
+  if (value == "Directory") { return OrgSemKind::Directory; } else
+  if (value == "CmdInclude") { return OrgSemKind::CmdInclude; } else
   { return std::nullopt; }
 }
 std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
@@ -597,8 +599,10 @@ std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::Document: return "Document";
     case OrgSemKind::FileTarget: return "FileTarget";
     case OrgSemKind::TextSeparator: return "TextSeparator";
-    case OrgSemKind::Include: return "Include";
     case OrgSemKind::DocumentGroup: return "DocumentGroup";
+    case OrgSemKind::File: return "File";
+    case OrgSemKind::Directory: return "Directory";
+    case OrgSemKind::CmdInclude: return "CmdInclude";
     default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
   }
 }

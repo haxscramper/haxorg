@@ -287,8 +287,10 @@ enum OrgSemKind {
   OrgSemKind_Document_f                                                             = 63;
   OrgSemKind_FileTarget_f                                                           = 64;
   OrgSemKind_TextSeparator_f                                                        = 65;
-  OrgSemKind_Include_f                                                              = 66;
-  OrgSemKind_DocumentGroup_f                                                        = 67;
+  OrgSemKind_DocumentGroup_f                                                        = 66;
+  OrgSemKind_File_f                                                                 = 67;
+  OrgSemKind_Directory_f                                                            = 68;
+  OrgSemKind_CmdInclude_f                                                           = 69;
 }
 
 message Tblfm {
@@ -1643,7 +1645,49 @@ message TextSeparator {
   string                                           debug                            = 1000;
 }
 
-message Include {
+message DocumentGroup {
+  repeated AnyNode                                 subnodes                         = 1;
+  OrgSemKind                                       staticKind                       = 2;
+  string                                           debug                            = 1000;
+}
+
+message File {
+  message Document {
+    string                                         debug                            = 1000;
+  }
+  message Attachment {
+    string                                         debug                            = 1000;
+  }
+  message Source {
+    string                                         debug                            = 1000;
+  }
+  message Data {
+    oneof kind {
+      File.Document                                document                         = 1;
+      File.Attachment                              attachment                       = 2;
+      File.Source                                  source                           = 3;
+    }
+  }
+  enum Kind {
+    Kind_Document_f                                                                 = 0;
+    Kind_Attachment_f                                                               = 1;
+    Kind_Source_f                                                                   = 2;
+  }
+  repeated AnyNode                                 subnodes                         = 1;
+  OrgSemKind                                       staticKind                       = 2;
+  string                                           relPath                          = 3;
+  File.Data                                        data                             = 4;
+  string                                           debug                            = 1000;
+}
+
+message Directory {
+  repeated AnyNode                                 subnodes                         = 1;
+  OrgSemKind                                       staticKind                       = 2;
+  string                                           relPath                          = 3;
+  string                                           debug                            = 1000;
+}
+
+message CmdInclude {
   message Example {
     string                                         debug                            = 1000;
   }
@@ -1659,10 +1703,10 @@ message Include {
   }
   message Data {
     oneof kind {
-      Include.Example                              example                          = 1;
-      Include.Export                               export                           = 2;
-      Include.Src                                  src                              = 3;
-      Include.OrgDocument                          orgdocument                      = 4;
+      CmdInclude.Example                           example                          = 1;
+      CmdInclude.Export                            export                           = 2;
+      CmdInclude.Src                               src                              = 3;
+      CmdInclude.OrgDocument                       orgdocument                      = 4;
     }
   }
   enum Kind {
@@ -1676,13 +1720,8 @@ message Include {
   string                                           path                             = 3;
   optional int32                                   firstLine                        = 4;
   optional int32                                   lastLine                         = 5;
-  Include.Data                                     data                             = 6;
-  string                                           debug                            = 1000;
-}
-
-message DocumentGroup {
-  repeated AnyNode                                 subnodes                         = 1;
-  OrgSemKind                                       staticKind                       = 2;
+  File                                             resolved                         = 6;
+  CmdInclude.Data                                  data                             = 7;
   string                                           debug                            = 1000;
 }
 
@@ -1754,8 +1793,10 @@ message AnyNode {
     Document                                         document                         = 64;
     FileTarget                                       filetarget                       = 65;
     TextSeparator                                    textseparator                    = 66;
-    Include                                          include                          = 67;
-    DocumentGroup                                    documentgroup                    = 68;
+    DocumentGroup                                    documentgroup                    = 67;
+    File                                             file                             = 68;
+    Directory                                        directory                        = 69;
+    CmdInclude                                       cmdinclude                       = 70;
   }
 }
 /* clang-format on */

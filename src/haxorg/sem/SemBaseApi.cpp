@@ -132,6 +132,16 @@ sem::SemId<sem::Document> sem::parseStringOpts(
     return converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
 }
 
+
+sem::SemId<Directory> parseDirectoryOpts(
+    const std::string&                 path,
+    const OrgDirectoryParseParameters& directoryParseParameters) {
+    sem::SemId<Directory> root = sem::SemId<Directory>::New();
+
+    return root;
+}
+
+
 sem::SemId<sem::Document> sem::readProtobufFile(const std::string& file) {
     sem::SemId        read_node = sem::SemId<sem::Org>::Nil();
     std::ifstream     stream{file};

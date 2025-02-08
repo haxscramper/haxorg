@@ -191,7 +191,7 @@ struct OrgConverter : public OperationsTracer {
     ConvResult<Placeholder>     convertPlaceholder(In);
     ConvResult<Latex>           convertMath(In);
     ConvResult<InlineFootnote>  convertInlineFootnote(In);
-    ConvResult<Include>         convertInclude(In);
+    ConvResult<CmdInclude>      convertCmdInclude(In);
     ConvResult<Escaped>         convertEscaped(In);
     ConvResult<TextSeparator>   convertTextSeparator(In);
     ConvResult<AtMention>       convertAtMention(In);

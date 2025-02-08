@@ -2529,16 +2529,44 @@ def get_types() -> Sequence[GenTuStruct]:
             bases=[t_org("Org")],
         ),
         d_org(
-            "Include",
+            "DocumentGroup",
+            bases=[t_org("Org")],
+        ),
+        d_org("File",
+              bases=[t_org("Org")],
+              fields=[str_field("relPath", "Relative path from the root directory")],
+              nested=[
+                  GenTuTypeGroup(
+                      [
+                          GenTuStruct(t_nest("Document", ["File"])),
+                          GenTuStruct(t_nest("Attachment", ["File"])),
+                          GenTuStruct(t_nest("Source", ["File"]))
+                      ],
+                      enumName=t_nest("Kind", ["File"]),
+                      kindGetter="getFileKind", 
+                      variantName=t_nest("Data", ["File"]),
+                  )
+              ]),
+        d_org(
+            "Directory",
+            bases=[t_org("Org")],
+            fields=[
+                str_field(
+                    "relPath",
+                    "Relative path from the root directory, empty if this is the root directory"
+                )
+            ]),
+        d_org(
+            "CmdInclude",
             bases=[t_org("Org")],
             nested=[
                 GenTuTypeGroup(
                     [
-                        org_struct(t_nest("Example", ["Include"])),
-                        org_struct(t_nest("Export", ["Include"])),
-                        org_struct(t_nest("Src", ["Include"])),
+                        org_struct(t_nest("Example", ["CmdInclude"])),
+                        org_struct(t_nest("Export", ["CmdInclude"])),
+                        org_struct(t_nest("Src", ["CmdInclude"])),
                         org_struct(
-                            t_nest("OrgDocument", ["Include"]),
+                            t_nest("OrgDocument", ["CmdInclude"]),
                             fields=[
                                 opt_field(
                                     t_int(),
@@ -2548,8 +2576,8 @@ def get_types() -> Sequence[GenTuStruct]:
                             ]),
                     ],
                     kindGetter="getIncludeKind",
-                    enumName=t_nest("Kind", ["Include"]),
-                    variantName=t_nest("Data", ["Include"]),
+                    enumName=t_nest("Kind", ["CmdInclude"]),
+                    variantName=t_nest("Data", ["CmdInclude"]),
                 )
             ],
             fields=[
@@ -2563,11 +2591,8 @@ def get_types() -> Sequence[GenTuStruct]:
                     "lastLine",
                     "0-based index of the last line to include",
                 ),
+                id_field("File", "resolved"),
             ],
-        ),
-        d_org(
-            "DocumentGroup",
-            bases=[t_org("Org")],
         ),
     ]
 

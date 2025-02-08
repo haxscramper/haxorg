@@ -68,8 +68,10 @@
         __MAP(kDocument, document, Document)  \
         __MAP(kFiletarget, filetarget, FileTarget)  \
         __MAP(kTextseparator, textseparator, TextSeparator)  \
-        __MAP(kInclude, include, Include)  \
         __MAP(kDocumentgroup, documentgroup, DocumentGroup)  \
+        __MAP(kFile, file, File)  \
+        __MAP(kDirectory, directory, Directory)  \
+        __MAP(kCmdinclude, cmdinclude, CmdInclude)  \
 
 template <>
 struct proto_serde<::orgproto::Tblfm::Expr::AxisRef::Position::Index, sem::Tblfm::Expr::AxisRef::Position::Index> {
@@ -1206,44 +1208,79 @@ struct proto_serde<::orgproto::TextSeparator, sem::TextSeparator> {
 
 
 template <>
-struct proto_serde<::orgproto::Include::Example, sem::Include::Example> {
-  static void write(::orgproto::Include::Example* out, sem::Include::Example const& in);
-  static void read(::orgproto::Include::Example const& out, proto_write_accessor<sem::Include::Example> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Include::Export, sem::Include::Export> {
-  static void write(::orgproto::Include::Export* out, sem::Include::Export const& in);
-  static void read(::orgproto::Include::Export const& out, proto_write_accessor<sem::Include::Export> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Include::Src, sem::Include::Src> {
-  static void write(::orgproto::Include::Src* out, sem::Include::Src const& in);
-  static void read(::orgproto::Include::Src const& out, proto_write_accessor<sem::Include::Src> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Include::OrgDocument, sem::Include::OrgDocument> {
-  static void write(::orgproto::Include::OrgDocument* out, sem::Include::OrgDocument const& in);
-  static void read(::orgproto::Include::OrgDocument const& out, proto_write_accessor<sem::Include::OrgDocument> in);
-};
-
-
-template <>
-struct proto_serde<::orgproto::Include, sem::Include> {
-  static void write(::orgproto::Include* out, sem::Include const& in);
-  static void read(::orgproto::Include const& out, proto_write_accessor<sem::Include> in);
-};
-
-
-template <>
 struct proto_serde<::orgproto::DocumentGroup, sem::DocumentGroup> {
   static void write(::orgproto::DocumentGroup* out, sem::DocumentGroup const& in);
   static void read(::orgproto::DocumentGroup const& out, proto_write_accessor<sem::DocumentGroup> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::File::Document, sem::File::Document> {
+  static void write(::orgproto::File::Document* out, sem::File::Document const& in);
+  static void read(::orgproto::File::Document const& out, proto_write_accessor<sem::File::Document> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::File::Attachment, sem::File::Attachment> {
+  static void write(::orgproto::File::Attachment* out, sem::File::Attachment const& in);
+  static void read(::orgproto::File::Attachment const& out, proto_write_accessor<sem::File::Attachment> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::File::Source, sem::File::Source> {
+  static void write(::orgproto::File::Source* out, sem::File::Source const& in);
+  static void read(::orgproto::File::Source const& out, proto_write_accessor<sem::File::Source> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::File, sem::File> {
+  static void write(::orgproto::File* out, sem::File const& in);
+  static void read(::orgproto::File const& out, proto_write_accessor<sem::File> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::Directory, sem::Directory> {
+  static void write(::orgproto::Directory* out, sem::Directory const& in);
+  static void read(::orgproto::Directory const& out, proto_write_accessor<sem::Directory> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::CmdInclude::Example, sem::CmdInclude::Example> {
+  static void write(::orgproto::CmdInclude::Example* out, sem::CmdInclude::Example const& in);
+  static void read(::orgproto::CmdInclude::Example const& out, proto_write_accessor<sem::CmdInclude::Example> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::CmdInclude::Export, sem::CmdInclude::Export> {
+  static void write(::orgproto::CmdInclude::Export* out, sem::CmdInclude::Export const& in);
+  static void read(::orgproto::CmdInclude::Export const& out, proto_write_accessor<sem::CmdInclude::Export> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::CmdInclude::Src, sem::CmdInclude::Src> {
+  static void write(::orgproto::CmdInclude::Src* out, sem::CmdInclude::Src const& in);
+  static void read(::orgproto::CmdInclude::Src const& out, proto_write_accessor<sem::CmdInclude::Src> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::CmdInclude::OrgDocument, sem::CmdInclude::OrgDocument> {
+  static void write(::orgproto::CmdInclude::OrgDocument* out, sem::CmdInclude::OrgDocument const& in);
+  static void read(::orgproto::CmdInclude::OrgDocument const& out, proto_write_accessor<sem::CmdInclude::OrgDocument> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::CmdInclude, sem::CmdInclude> {
+  static void write(::orgproto::CmdInclude* out, sem::CmdInclude const& in);
+  static void read(::orgproto::CmdInclude const& out, proto_write_accessor<sem::CmdInclude> in);
 };
 
 

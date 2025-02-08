@@ -24,6 +24,10 @@ struct [[refl]] OrgParseParameters {
         ());
 };
 
+struct [[refl]] OrgDirectoryParseParameters {
+    BOOST_DESCRIBE_CLASS(OrgDirectoryParseParameters, (), (), (), ());
+};
+
 [[refl]] sem::SemId<sem::Document> parseFile(
     std::string               file,
     OrgParseParameters const& opts);
@@ -31,6 +35,10 @@ struct [[refl]] OrgParseParameters {
 [[refl]] sem::SemId<sem::Document> parseStringOpts(
     std::string const         text,
     OrgParseParameters const& opts);
+
+[[refl]] sem::SemId<sem::Directory> parseDirectoryOpts(
+    std::string const&                 path,
+    OrgDirectoryParseParameters const& directoryParseParameters);
 
 
 /// \brief Remove outer wrapper containers from a node and return its

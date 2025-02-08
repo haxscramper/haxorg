@@ -2726,9 +2726,80 @@ struct TextSeparator : public sem::Org {
   virtual OrgSemKind getKind() const { return OrgSemKind::TextSeparator; }
 };
 
-struct Include : public sem::Org {
+struct DocumentGroup : public sem::Org {
   using Org::Org;
-  virtual ~Include() = default;
+  virtual ~DocumentGroup() = default;
+  BOOST_DESCRIBE_CLASS(DocumentGroup,
+                       (Org),
+                       (),
+                       (),
+                       (staticKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::DocumentGroup; }
+};
+
+struct File : public sem::Org {
+  using Org::Org;
+  virtual ~File() = default;
+  struct Document {
+    BOOST_DESCRIBE_CLASS(Document, (), (), (), ())
+  };
+
+  struct Attachment {
+    BOOST_DESCRIBE_CLASS(Attachment, (), (), (), ())
+  };
+
+  struct Source {
+    BOOST_DESCRIBE_CLASS(Source, (), (), (), ())
+  };
+
+  using Data = std::variant<sem::File::Document, sem::File::Attachment, sem::File::Source>;
+  enum class Kind : short int { Document, Attachment, Source, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, Document, Attachment, Source)
+  using variant_enum_type = sem::File::Kind;
+  using variant_data_type = sem::File::Data;
+  BOOST_DESCRIBE_CLASS(File,
+                       (Org),
+                       (),
+                       (),
+                       (staticKind,
+                        relPath,
+                        data))
+  static OrgSemKind const staticKind;
+  /// \brief Relative path from the root directory
+  Str relPath = "";
+  sem::File::Data data;
+  virtual OrgSemKind getKind() const { return OrgSemKind::File; }
+  bool isDocument() const { return getFileKind() == Kind::Document; }
+  sem::File::Document const& getDocument() const { return std::get<0>(data); }
+  sem::File::Document& getDocument() { return std::get<0>(data); }
+  bool isAttachment() const { return getFileKind() == Kind::Attachment; }
+  sem::File::Attachment const& getAttachment() const { return std::get<1>(data); }
+  sem::File::Attachment& getAttachment() { return std::get<1>(data); }
+  bool isSource() const { return getFileKind() == Kind::Source; }
+  sem::File::Source const& getSource() const { return std::get<2>(data); }
+  sem::File::Source& getSource() { return std::get<2>(data); }
+  static sem::File::Kind getFileKind(sem::File::Data const& __input) { return static_cast<sem::File::Kind>(__input.index()); }
+  sem::File::Kind getFileKind() const { return getFileKind(data); }
+};
+
+struct Directory : public sem::Org {
+  using Org::Org;
+  virtual ~Directory() = default;
+  BOOST_DESCRIBE_CLASS(Directory,
+                       (Org),
+                       (),
+                       (),
+                       (staticKind, relPath))
+  static OrgSemKind const staticKind;
+  /// \brief Relative path from the root directory, empty if this is the root directory
+  Str relPath = "";
+  virtual OrgSemKind getKind() const { return OrgSemKind::Directory; }
+};
+
+struct CmdInclude : public sem::Org {
+  using Org::Org;
+  virtual ~CmdInclude() = default;
   struct Example {
     BOOST_DESCRIBE_CLASS(Example, (), (), (), ())
   };
@@ -2747,12 +2818,12 @@ struct Include : public sem::Org {
     Opt<int> minLevel = std::nullopt;
   };
 
-  using Data = std::variant<sem::Include::Example, sem::Include::Export, sem::Include::Src, sem::Include::OrgDocument>;
+  using Data = std::variant<sem::CmdInclude::Example, sem::CmdInclude::Export, sem::CmdInclude::Src, sem::CmdInclude::OrgDocument>;
   enum class Kind : short int { Example, Export, Src, OrgDocument, };
   BOOST_DESCRIBE_NESTED_ENUM(Kind, Example, Export, Src, OrgDocument)
-  using variant_enum_type = sem::Include::Kind;
-  using variant_data_type = sem::Include::Data;
-  BOOST_DESCRIBE_CLASS(Include,
+  using variant_enum_type = sem::CmdInclude::Kind;
+  using variant_data_type = sem::CmdInclude::Data;
+  BOOST_DESCRIBE_CLASS(CmdInclude,
                        (Org),
                        (),
                        (),
@@ -2760,6 +2831,7 @@ struct Include : public sem::Org {
                         path,
                         firstLine,
                         lastLine,
+                        resolved,
                         data))
   static OrgSemKind const staticKind;
   /// \brief Path to include
@@ -2768,34 +2840,23 @@ struct Include : public sem::Org {
   Opt<int> firstLine = std::nullopt;
   /// \brief 0-based index of the last line to include
   Opt<int> lastLine = std::nullopt;
-  sem::Include::Data data;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Include; }
+  sem::SemId<sem::File> resolved = sem::SemId<sem::File>::Nil();
+  sem::CmdInclude::Data data;
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdInclude; }
   bool isExample() const { return getIncludeKind() == Kind::Example; }
-  sem::Include::Example const& getExample() const { return std::get<0>(data); }
-  sem::Include::Example& getExample() { return std::get<0>(data); }
+  sem::CmdInclude::Example const& getExample() const { return std::get<0>(data); }
+  sem::CmdInclude::Example& getExample() { return std::get<0>(data); }
   bool isExport() const { return getIncludeKind() == Kind::Export; }
-  sem::Include::Export const& getExport() const { return std::get<1>(data); }
-  sem::Include::Export& getExport() { return std::get<1>(data); }
+  sem::CmdInclude::Export const& getExport() const { return std::get<1>(data); }
+  sem::CmdInclude::Export& getExport() { return std::get<1>(data); }
   bool isSrc() const { return getIncludeKind() == Kind::Src; }
-  sem::Include::Src const& getSrc() const { return std::get<2>(data); }
-  sem::Include::Src& getSrc() { return std::get<2>(data); }
+  sem::CmdInclude::Src const& getSrc() const { return std::get<2>(data); }
+  sem::CmdInclude::Src& getSrc() { return std::get<2>(data); }
   bool isOrgDocument() const { return getIncludeKind() == Kind::OrgDocument; }
-  sem::Include::OrgDocument const& getOrgDocument() const { return std::get<3>(data); }
-  sem::Include::OrgDocument& getOrgDocument() { return std::get<3>(data); }
-  static sem::Include::Kind getIncludeKind(sem::Include::Data const& __input) { return static_cast<sem::Include::Kind>(__input.index()); }
-  sem::Include::Kind getIncludeKind() const { return getIncludeKind(data); }
-};
-
-struct DocumentGroup : public sem::Org {
-  using Org::Org;
-  virtual ~DocumentGroup() = default;
-  BOOST_DESCRIBE_CLASS(DocumentGroup,
-                       (Org),
-                       (),
-                       (),
-                       (staticKind))
-  static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::DocumentGroup; }
+  sem::CmdInclude::OrgDocument const& getOrgDocument() const { return std::get<3>(data); }
+  sem::CmdInclude::OrgDocument& getOrgDocument() { return std::get<3>(data); }
+  static sem::CmdInclude::Kind getIncludeKind(sem::CmdInclude::Data const& __input) { return static_cast<sem::CmdInclude::Kind>(__input.index()); }
+  sem::CmdInclude::Kind getIncludeKind() const { return getIncludeKind(data); }
 };
 
 }

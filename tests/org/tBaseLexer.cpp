@@ -64,3 +64,10 @@ TEST(ManualFileRun, TestDoc1) {
         }
     }
 }
+
+TEST(ManualFileRun, TestDir1) {
+    fs::path dir{"/home/haxscramper/tmp/org_test_dir"};
+    if (fs::exists(dir)) {
+
+    }
+}

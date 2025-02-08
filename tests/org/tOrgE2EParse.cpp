@@ -79,7 +79,7 @@ TEST(TestFiles, AllNodeCoverage) {
 
     using osk = OrgSemKind;
     SemSet wipNotParseable{
-        osk::Include,
+        osk::CmdInclude,
         osk::DocumentGroup,
         osk::Empty,
         osk::Row,

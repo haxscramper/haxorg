@@ -1238,6 +1238,8 @@ struct ImmAdapterParagraphAPI : ImmAdapterStmtAPI {
 struct ImmAdapterColonExampleAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterCmdAttrAPI : ImmAdapterAttachedAPI {};
 struct ImmAdapterCallAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterFileAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterDirectoryAPI : ImmAdapterOrgAPI {};
 
 struct ImmAdapterListAPI : ImmAdapterStmtAPI {
     bool                isDescriptionList() const;
@@ -1272,7 +1274,7 @@ struct ImmAdapterDocumentAPI : ImmAdapterOrgAPI {
 
 struct ImmAdapterFileTargetAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterTextSeparatorAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterIncludeAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterCmdIncludeAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterDocumentGroupAPI : ImmAdapterOrgAPI {};
 
 // Define specializations for all final (non-abstract) org-mode types.

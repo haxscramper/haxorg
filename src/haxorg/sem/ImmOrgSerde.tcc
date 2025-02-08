@@ -1300,78 +1300,6 @@ struct ImmSemSerde<sem::TextSeparator, org::ImmTextSeparator> {
 };
 
 template <>
-struct ImmSemSerde<sem::Include, org::ImmInclude> {
-  static org::ImmInclude to_immer(sem::Include const& value, ImmAstEditContext& ctx) {
-    org::ImmInclude result = SerdeDefaultProvider<org::ImmInclude>::get();
-    assign_immer_field(result.path, value.path, ctx);
-    assign_immer_field(result.firstLine, value.firstLine, ctx);
-    assign_immer_field(result.lastLine, value.lastLine, ctx);
-    assign_immer_field(result.data, value.data, ctx);
-    assign_immer_field(result.subnodes, value.subnodes, ctx);
-    return result;
-  }
-  static sem::Include from_immer(org::ImmInclude const& value, ImmAstContext const& ctx) {
-    sem::Include result = SerdeDefaultProvider<sem::Include>::get();
-    assign_sem_field(result.path, value.path, ctx);
-    assign_sem_field(result.firstLine, value.firstLine, ctx);
-    assign_sem_field(result.lastLine, value.lastLine, ctx);
-    assign_sem_field(result.data, value.data, ctx);
-    assign_sem_field(result.subnodes, value.subnodes, ctx);
-    return result;
-  }
-};
-
-template <>
-struct ImmSemSerde<sem::Include::Example, org::ImmInclude::Example> {
-  static org::ImmInclude::Example to_immer(sem::Include::Example const& value, ImmAstEditContext& ctx) {
-    org::ImmInclude::Example result = SerdeDefaultProvider<org::ImmInclude::Example>::get();
-    return result;
-  }
-  static sem::Include::Example from_immer(org::ImmInclude::Example const& value, ImmAstContext const& ctx) {
-    sem::Include::Example result = SerdeDefaultProvider<sem::Include::Example>::get();
-    return result;
-  }
-};
-
-template <>
-struct ImmSemSerde<sem::Include::Export, org::ImmInclude::Export> {
-  static org::ImmInclude::Export to_immer(sem::Include::Export const& value, ImmAstEditContext& ctx) {
-    org::ImmInclude::Export result = SerdeDefaultProvider<org::ImmInclude::Export>::get();
-    return result;
-  }
-  static sem::Include::Export from_immer(org::ImmInclude::Export const& value, ImmAstContext const& ctx) {
-    sem::Include::Export result = SerdeDefaultProvider<sem::Include::Export>::get();
-    return result;
-  }
-};
-
-template <>
-struct ImmSemSerde<sem::Include::Src, org::ImmInclude::Src> {
-  static org::ImmInclude::Src to_immer(sem::Include::Src const& value, ImmAstEditContext& ctx) {
-    org::ImmInclude::Src result = SerdeDefaultProvider<org::ImmInclude::Src>::get();
-    return result;
-  }
-  static sem::Include::Src from_immer(org::ImmInclude::Src const& value, ImmAstContext const& ctx) {
-    sem::Include::Src result = SerdeDefaultProvider<sem::Include::Src>::get();
-    return result;
-  }
-};
-
-template <>
-struct ImmSemSerde<sem::Include::OrgDocument, org::ImmInclude::OrgDocument> {
-  static org::ImmInclude::OrgDocument to_immer(sem::Include::OrgDocument const& value, ImmAstEditContext& ctx) {
-    org::ImmInclude::OrgDocument result = SerdeDefaultProvider<org::ImmInclude::OrgDocument>::get();
-    assign_immer_field(result.minLevel, value.minLevel, ctx);
-    return result;
-  }
-  static sem::Include::OrgDocument from_immer(org::ImmInclude::OrgDocument const& value, ImmAstContext const& ctx) {
-    sem::Include::OrgDocument result = SerdeDefaultProvider<sem::Include::OrgDocument>::get();
-    assign_sem_field(result.minLevel, value.minLevel, ctx);
-    return result;
-  }
-};
-
-template <>
 struct ImmSemSerde<sem::DocumentGroup, org::ImmDocumentGroup> {
   static org::ImmDocumentGroup to_immer(sem::DocumentGroup const& value, ImmAstEditContext& ctx) {
     org::ImmDocumentGroup result = SerdeDefaultProvider<org::ImmDocumentGroup>::get();
@@ -1381,6 +1309,150 @@ struct ImmSemSerde<sem::DocumentGroup, org::ImmDocumentGroup> {
   static sem::DocumentGroup from_immer(org::ImmDocumentGroup const& value, ImmAstContext const& ctx) {
     sem::DocumentGroup result = SerdeDefaultProvider<sem::DocumentGroup>::get();
     assign_sem_field(result.subnodes, value.subnodes, ctx);
+    return result;
+  }
+};
+
+template <>
+struct ImmSemSerde<sem::File, org::ImmFile> {
+  static org::ImmFile to_immer(sem::File const& value, ImmAstEditContext& ctx) {
+    org::ImmFile result = SerdeDefaultProvider<org::ImmFile>::get();
+    assign_immer_field(result.relPath, value.relPath, ctx);
+    assign_immer_field(result.data, value.data, ctx);
+    assign_immer_field(result.subnodes, value.subnodes, ctx);
+    return result;
+  }
+  static sem::File from_immer(org::ImmFile const& value, ImmAstContext const& ctx) {
+    sem::File result = SerdeDefaultProvider<sem::File>::get();
+    assign_sem_field(result.relPath, value.relPath, ctx);
+    assign_sem_field(result.data, value.data, ctx);
+    assign_sem_field(result.subnodes, value.subnodes, ctx);
+    return result;
+  }
+};
+
+template <>
+struct ImmSemSerde<sem::File::Document, org::ImmFile::Document> {
+  static org::ImmFile::Document to_immer(sem::File::Document const& value, ImmAstEditContext& ctx) {
+    org::ImmFile::Document result = SerdeDefaultProvider<org::ImmFile::Document>::get();
+    return result;
+  }
+  static sem::File::Document from_immer(org::ImmFile::Document const& value, ImmAstContext const& ctx) {
+    sem::File::Document result = SerdeDefaultProvider<sem::File::Document>::get();
+    return result;
+  }
+};
+
+template <>
+struct ImmSemSerde<sem::File::Attachment, org::ImmFile::Attachment> {
+  static org::ImmFile::Attachment to_immer(sem::File::Attachment const& value, ImmAstEditContext& ctx) {
+    org::ImmFile::Attachment result = SerdeDefaultProvider<org::ImmFile::Attachment>::get();
+    return result;
+  }
+  static sem::File::Attachment from_immer(org::ImmFile::Attachment const& value, ImmAstContext const& ctx) {
+    sem::File::Attachment result = SerdeDefaultProvider<sem::File::Attachment>::get();
+    return result;
+  }
+};
+
+template <>
+struct ImmSemSerde<sem::File::Source, org::ImmFile::Source> {
+  static org::ImmFile::Source to_immer(sem::File::Source const& value, ImmAstEditContext& ctx) {
+    org::ImmFile::Source result = SerdeDefaultProvider<org::ImmFile::Source>::get();
+    return result;
+  }
+  static sem::File::Source from_immer(org::ImmFile::Source const& value, ImmAstContext const& ctx) {
+    sem::File::Source result = SerdeDefaultProvider<sem::File::Source>::get();
+    return result;
+  }
+};
+
+template <>
+struct ImmSemSerde<sem::Directory, org::ImmDirectory> {
+  static org::ImmDirectory to_immer(sem::Directory const& value, ImmAstEditContext& ctx) {
+    org::ImmDirectory result = SerdeDefaultProvider<org::ImmDirectory>::get();
+    assign_immer_field(result.relPath, value.relPath, ctx);
+    assign_immer_field(result.subnodes, value.subnodes, ctx);
+    return result;
+  }
+  static sem::Directory from_immer(org::ImmDirectory const& value, ImmAstContext const& ctx) {
+    sem::Directory result = SerdeDefaultProvider<sem::Directory>::get();
+    assign_sem_field(result.relPath, value.relPath, ctx);
+    assign_sem_field(result.subnodes, value.subnodes, ctx);
+    return result;
+  }
+};
+
+template <>
+struct ImmSemSerde<sem::CmdInclude, org::ImmCmdInclude> {
+  static org::ImmCmdInclude to_immer(sem::CmdInclude const& value, ImmAstEditContext& ctx) {
+    org::ImmCmdInclude result = SerdeDefaultProvider<org::ImmCmdInclude>::get();
+    assign_immer_field(result.path, value.path, ctx);
+    assign_immer_field(result.firstLine, value.firstLine, ctx);
+    assign_immer_field(result.lastLine, value.lastLine, ctx);
+    assign_immer_field(result.resolved, value.resolved, ctx);
+    assign_immer_field(result.data, value.data, ctx);
+    assign_immer_field(result.subnodes, value.subnodes, ctx);
+    return result;
+  }
+  static sem::CmdInclude from_immer(org::ImmCmdInclude const& value, ImmAstContext const& ctx) {
+    sem::CmdInclude result = SerdeDefaultProvider<sem::CmdInclude>::get();
+    assign_sem_field(result.path, value.path, ctx);
+    assign_sem_field(result.firstLine, value.firstLine, ctx);
+    assign_sem_field(result.lastLine, value.lastLine, ctx);
+    assign_sem_field(result.resolved, value.resolved, ctx);
+    assign_sem_field(result.data, value.data, ctx);
+    assign_sem_field(result.subnodes, value.subnodes, ctx);
+    return result;
+  }
+};
+
+template <>
+struct ImmSemSerde<sem::CmdInclude::Example, org::ImmCmdInclude::Example> {
+  static org::ImmCmdInclude::Example to_immer(sem::CmdInclude::Example const& value, ImmAstEditContext& ctx) {
+    org::ImmCmdInclude::Example result = SerdeDefaultProvider<org::ImmCmdInclude::Example>::get();
+    return result;
+  }
+  static sem::CmdInclude::Example from_immer(org::ImmCmdInclude::Example const& value, ImmAstContext const& ctx) {
+    sem::CmdInclude::Example result = SerdeDefaultProvider<sem::CmdInclude::Example>::get();
+    return result;
+  }
+};
+
+template <>
+struct ImmSemSerde<sem::CmdInclude::Export, org::ImmCmdInclude::Export> {
+  static org::ImmCmdInclude::Export to_immer(sem::CmdInclude::Export const& value, ImmAstEditContext& ctx) {
+    org::ImmCmdInclude::Export result = SerdeDefaultProvider<org::ImmCmdInclude::Export>::get();
+    return result;
+  }
+  static sem::CmdInclude::Export from_immer(org::ImmCmdInclude::Export const& value, ImmAstContext const& ctx) {
+    sem::CmdInclude::Export result = SerdeDefaultProvider<sem::CmdInclude::Export>::get();
+    return result;
+  }
+};
+
+template <>
+struct ImmSemSerde<sem::CmdInclude::Src, org::ImmCmdInclude::Src> {
+  static org::ImmCmdInclude::Src to_immer(sem::CmdInclude::Src const& value, ImmAstEditContext& ctx) {
+    org::ImmCmdInclude::Src result = SerdeDefaultProvider<org::ImmCmdInclude::Src>::get();
+    return result;
+  }
+  static sem::CmdInclude::Src from_immer(org::ImmCmdInclude::Src const& value, ImmAstContext const& ctx) {
+    sem::CmdInclude::Src result = SerdeDefaultProvider<sem::CmdInclude::Src>::get();
+    return result;
+  }
+};
+
+template <>
+struct ImmSemSerde<sem::CmdInclude::OrgDocument, org::ImmCmdInclude::OrgDocument> {
+  static org::ImmCmdInclude::OrgDocument to_immer(sem::CmdInclude::OrgDocument const& value, ImmAstEditContext& ctx) {
+    org::ImmCmdInclude::OrgDocument result = SerdeDefaultProvider<org::ImmCmdInclude::OrgDocument>::get();
+    assign_immer_field(result.minLevel, value.minLevel, ctx);
+    return result;
+  }
+  static sem::CmdInclude::OrgDocument from_immer(org::ImmCmdInclude::OrgDocument const& value, ImmAstContext const& ctx) {
+    sem::CmdInclude::OrgDocument result = SerdeDefaultProvider<sem::CmdInclude::OrgDocument>::get();
+    assign_sem_field(result.minLevel, value.minLevel, ctx);
     return result;
   }
 };
