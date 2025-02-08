@@ -133,7 +133,7 @@ sem::SemId<sem::Document> sem::parseStringOpts(
 }
 
 
-Opt<sem::SemId<Org>> parseDirectoryOpts(
+Opt<sem::SemId<Org>> sem::parseDirectoryOpts(
     const std::string&                 root,
     const OrgDirectoryParseParameters& opts) {
 
@@ -173,45 +173,55 @@ Opt<sem::SemId<Org>> parseDirectoryOpts(
 
             return dir;
         } else if (fs::is_regular_file(path)) {
-            auto parsed = opts.getParsedNode(path);
+            if (normalize(path.extension().native()) == "org") {
+                auto parsed = opts.getParsedNode(path);
 
-            sem::eachSubnodeRec(parsed, [&](sem::SemId<sem::Org> arg) {
-                if (auto incl = arg.asOpt<sem::CmdInclude>()) {
-                    auto     includeTarget = incl->path;
-                    fs::path full //
-                        = fs::path{includeTarget.toBase()}.is_absolute()
-                            ? fs::path{includeTarget.toBase()}
-                            : (path.parent_path()
-                               / includeTarget.toBase());
+                sem::eachSubnodeRec(parsed, [&](sem::SemId<sem::Org> arg) {
+                    if (auto incl = arg.asOpt<sem::CmdInclude>()) {
+                        auto     includeTarget = incl->path;
+                        fs::path full //
+                            = fs::path{includeTarget.toBase()}
+                                      .is_absolute()
+                                ? fs::path{includeTarget.toBase()}
+                                : (path.parent_path()
+                                   / includeTarget.toBase());
 
-                    if (!fs::exists(full) && opts.findIncludeTarget) {
-                        auto includeFound = opts.findIncludeTarget(
-                            incl->path);
-                        if (includeFound) { full = includeFound.value(); }
-                    }
-
-                    if (fs::exists(full)) {
-                        switch (incl->getIncludeKind()) {
-                            case sem::CmdInclude::Kind::OrgDocument: {
-                                auto parsed = aux(full, activeRoot);
-                                if (parsed) {
-                                    arg->push_back(parsed.value());
-                                }
+                        if (!fs::exists(full) && opts.findIncludeTarget) {
+                            auto includeFound = opts.findIncludeTarget(
+                                incl->path);
+                            if (includeFound) {
+                                full = includeFound.value();
                             }
                         }
-                    } else {
-                        auto group = sem::SemId<sem::ErrorGroup>::New();
-                        auto error = sem::SemId<sem::ErrorItem>::New();
-                        error->message = fmt(
-                            "Could not resolve include target '{}'",
-                            incl->path);
-                        arg->push_back(error);
-                        return arg;
-                    }
-                }
-            });
 
-            return parsed;
+                        if (fs::exists(full)) {
+                            switch (incl->getIncludeKind()) {
+                                case sem::CmdInclude::Kind::OrgDocument: {
+                                    auto parsed = aux(full, activeRoot);
+                                    if (parsed) {
+                                        arg->push_back(parsed.value());
+                                    }
+                                }
+                            }
+                        } else {
+                            auto group = sem::SemId<
+                                sem::ErrorGroup>::New();
+                            auto error = sem::SemId<sem::ErrorItem>::New();
+                            error->message = fmt(
+                                "Could not resolve include target '{}'",
+                                incl->path);
+                            arg->push_back(error);
+                        }
+                    }
+                });
+
+                return parsed;
+            } else {
+                return std::nullopt;
+            }
+
+        } else {
+            return std::nullopt;
         }
     };
 

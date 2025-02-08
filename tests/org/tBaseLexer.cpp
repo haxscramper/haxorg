@@ -69,9 +69,19 @@ TEST(ManualFileRun, TestDir1) {
     fs::path dir{"/home/haxscramper/tmp/org_test_dir"};
     if (fs::exists(dir)) {
         sem::OrgDirectoryParseParameters opts;
+
         opts.getParsedNode = [&](std::string const& path) {
             return sem::parseFile(path, sem::OrgParseParameters{});
         };
+
+        opts.shouldProcessPath = [](std::string const& path) -> bool {
+            if (path.contains(".git") || path.contains(".trunk")) {
+                return false;
+            } else {
+                return true;
+            }
+        };
+
         auto parse = sem::parseDirectoryOpts(dir, opts);
     }
 }

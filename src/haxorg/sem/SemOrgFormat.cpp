@@ -1273,6 +1273,11 @@ auto Formatter::toString(SemId<Directory> id, CR<Context> ctx) -> Res {
     return str(__PRETTY_FUNCTION__);
 }
 
+auto Formatter::toString(SemId<Symlink> id, CR<Context> ctx) -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    return str(__PRETTY_FUNCTION__);
+}
+
 auto Formatter::toString(SemId<Punctuation> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return str(id->text);
