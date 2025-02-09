@@ -132,151 +132,168 @@ sem::SemId<sem::Document> sem::parseStringOpts(
     return converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
 }
 
+namespace {
+
+struct DirectoryParseState {
+    UnorderedSet<std::string> visited;
+};
+
+void parseIncludes(
+    fs::path const&                    path,
+    fs::path const&                    activeRoot,
+    sem::OrgArg                        parsed,
+    const OrgDirectoryParseParameters& opts,
+    DirectoryParseState&               state);
+
+Opt<sem::SemId<Org>> parseDirectoryAux(
+    fs::path const&                    path,
+    fs::path const&                    activeRoot,
+    const OrgDirectoryParseParameters& opts,
+    DirectoryParseState&               state) {
+    if (state.visited.contains(path.native())) { return std::nullopt; }
+    state.visited.incl(path.native());
+
+    _dfmt(path);
+    if (opts.shouldProcessPath && !opts.shouldProcessPath(path)) {
+        return std::nullopt;
+    } else if (fs::is_symlink(path)) {
+        auto target = fs::read_symlink(path);
+        LOG(INFO) << fmt("Symlink '{}' targets '{}'", path, target);
+        sem::SemId<sem::Symlink> sym = sem::SemId<sem::Symlink>::New();
+        if (fs::is_directory(target)) {
+            sym->isDirectory = true;
+            sym->absPath     = target.native();
+            auto dir         = parseDirectoryAux(
+                target, sym->absPath.toBase(), opts, state);
+            if (dir) { sym->push_back(dir.value()); }
+
+        } else if (fs::is_regular_file(target)) {
+            sym->absPath = target.parent_path().native();
+            auto file    = parseDirectoryAux(
+                target, sym->absPath.toBase(), opts, state);
+            if (file) { sym->push_back(file.value()); }
+        } else {
+            logic_todo_impl();
+        }
+
+        return sym;
+
+    } else if (fs::is_directory(path)) {
+        sem::SemId<Directory> dir = sem::SemId<Directory>::New();
+        dir->relPath = fs::relative(path, activeRoot).native();
+        dir->absPath = path.native();
+        for (const auto& entry : fs::directory_iterator(path)) {
+            auto nested = parseDirectoryAux(
+                entry, activeRoot, opts, state);
+            if (nested) { dir->push_back(nested.value()); }
+        }
+
+        return dir;
+    } else if (fs::is_regular_file(path)) {
+        if (normalize(path.extension().native()) == "org") {
+            auto parsed = opts.getParsedNode(path);
+
+            if (parsed.isNil()) { return std::nullopt; }
+            parseIncludes(path, activeRoot, parsed, opts, state);
+
+            sem::SemId<File> file = sem::SemId<File>::New();
+            file->relPath = fs::relative(path, activeRoot).native();
+            file->absPath = path.native();
+            file->push_back(parsed);
+            return file;
+        } else {
+            return std::nullopt;
+        }
+
+    } else {
+        return std::nullopt;
+    }
+}
+
+void parseIncludes(
+    fs::path const&                    path,
+    fs::path const&                    activeRoot,
+    sem::OrgArg                        parsed,
+    const OrgDirectoryParseParameters& opts,
+    DirectoryParseState&               state) {
+    sem::eachSubnodeRec(parsed, [&](sem::SemId<sem::Org> arg) {
+        if (auto incl = arg.asOpt<sem::CmdInclude>()) {
+            auto     includeTarget = incl->path;
+            fs::path full //
+                = fs::path{includeTarget.toBase()}.is_absolute()
+                    ? fs::path{includeTarget.toBase()}
+                    : (path.parent_path() / includeTarget.toBase());
+
+            if (!fs::exists(full) && opts.findIncludeTarget) {
+                auto includeFound = opts.findIncludeTarget(incl->path);
+                if (includeFound) { full = includeFound.value(); }
+            }
+
+            if (fs::exists(full)) {
+                switch (incl->getIncludeKind()) {
+                    case sem::CmdInclude::Kind::OrgDocument: {
+                        auto parsed = parseDirectoryAux(
+                            full, activeRoot, opts, state);
+                        if (parsed) { arg->push_back(parsed.value()); }
+                        break;
+                    }
+                    case sem::CmdInclude::Kind::Src: {
+                        LOGIC_ASSERTION_CHECK(
+                            incl.at(0)->is(OrgSemKind::BlockCode), "");
+
+                        auto code   = incl.as<sem::BlockCode>();
+                        auto source = readFile(full);
+                        for (auto const& line : split(source, '\n')) {
+                            sem::BlockCodeLine lineNode;
+                            lineNode.parts.push_back(
+                                sem::BlockCodeLine::Part{
+                                    sem::BlockCodeLine::Part::Raw{
+                                        .code = line}});
+                            code->lines.push_back(lineNode);
+                        }
+                        break;
+                    }
+                    case sem::CmdInclude::Kind::Example: {
+                        LOGIC_ASSERTION_CHECK(
+                            incl.at(0)->is(OrgSemKind::BlockExample), "");
+
+                        auto code   = incl.as<sem::BlockExample>();
+                        auto source = readFile(full);
+                        for (auto const& line : split(source, '\n')) {
+                            auto raw  = sem::SemId<sem::RawText>();
+                            raw->text = line;
+                            code->push_back(raw);
+                        }
+                        break;
+                    }
+                    case sem::CmdInclude::Kind::Export: {
+                        LOGIC_ASSERTION_CHECK(
+                            incl.at(0)->is(OrgSemKind::BlockExport), "");
+
+                        auto code     = incl.as<sem::BlockExport>();
+                        code->content = readFile(full);
+                        break;
+                    }
+                }
+            } else {
+                auto group     = sem::SemId<sem::ErrorGroup>::New();
+                auto error     = sem::SemId<sem::ErrorItem>::New();
+                error->message = fmt(
+                    "Could not resolve include target '{}'", incl->path);
+                arg->push_back(error);
+            }
+        }
+    });
+}
+} // namespace
+
 
 Opt<sem::SemId<Org>> sem::parseDirectoryOpts(
     const std::string&                 root,
     const OrgDirectoryParseParameters& opts) {
 
-    Func<Opt<sem::SemId<Org>>(fs::path const&, fs::path const&)> aux;
-    UnorderedSet<std::string>                                    visited;
-
-    aux = [&](fs::path const& path,
-              fs::path const& activeRoot) -> Opt<sem::SemId<Org>> {
-        if (visited.contains(path.native())) { return std::nullopt; }
-        visited.incl(path.native());
-
-        _dfmt(path);
-        if (opts.shouldProcessPath && !opts.shouldProcessPath(path)) {
-            return std::nullopt;
-        } else if (fs::is_symlink(path)) {
-            auto target = fs::read_symlink(path);
-            LOG(INFO) << fmt("Symlink '{}' targets '{}'", path, target);
-            sem::SemId<sem::Symlink> sym = sem::SemId<sem::Symlink>::New();
-            if (fs::is_directory(target)) {
-                sym->isDirectory = true;
-                sym->absPath     = target.native();
-                auto dir         = aux(target, sym->absPath.toBase());
-                if (dir) { sym->push_back(dir.value()); }
-
-            } else if (fs::is_regular_file(target)) {
-                sym->absPath = target.parent_path().native();
-                auto file    = aux(target, sym->absPath.toBase());
-                if (file) { sym->push_back(file.value()); }
-            } else {
-                logic_todo_impl();
-            }
-
-            return sym;
-
-        } else if (fs::is_directory(path)) {
-            sem::SemId<Directory> dir = sem::SemId<Directory>::New();
-            dir->relPath              = fs::relative(path, root).native();
-            dir->absPath              = path.native();
-            for (const auto& entry : fs::directory_iterator(path)) {
-                auto nested = aux(entry, activeRoot);
-                if (nested) { dir->push_back(nested.value()); }
-            }
-
-            return dir;
-        } else if (fs::is_regular_file(path)) {
-            if (normalize(path.extension().native()) == "org") {
-                auto parsed = opts.getParsedNode(path);
-
-                if (parsed.isNil()) { return std::nullopt; }
-
-                sem::eachSubnodeRec(parsed, [&](sem::SemId<sem::Org> arg) {
-                    if (auto incl = arg.asOpt<sem::CmdInclude>()) {
-                        auto     includeTarget = incl->path;
-                        fs::path full //
-                            = fs::path{includeTarget.toBase()}
-                                      .is_absolute()
-                                ? fs::path{includeTarget.toBase()}
-                                : (path.parent_path()
-                                   / includeTarget.toBase());
-
-                        if (!fs::exists(full) && opts.findIncludeTarget) {
-                            auto includeFound = opts.findIncludeTarget(
-                                incl->path);
-                            if (includeFound) {
-                                full = includeFound.value();
-                            }
-                        }
-
-                        if (fs::exists(full)) {
-                            switch (incl->getIncludeKind()) {
-                                case sem::CmdInclude::Kind::OrgDocument: {
-                                    auto parsed = aux(full, activeRoot);
-                                    if (parsed) {
-                                        arg->push_back(parsed.value());
-                                    }
-                                    break;
-                                }
-                                case sem::CmdInclude::Kind::Src: {
-                                    LOGIC_ASSERTION_CHECK(
-                                        incl.at(0)->is(
-                                            OrgSemKind::BlockCode),
-                                        "");
-
-                                    auto code = incl.as<sem::BlockCode>();
-                                    auto source = readFile(full);
-                                    for (auto const& line :
-                                         split(source, '\n')) {
-                                        auto lineNode = sem::SemId<
-                                            sem::BlockCodeLine>::New();
-                                        lineNode->parts.push_back(
-                                            sem::BlockCodeLine::Part{
-                                                sem::BlockCodeLine::Part::
-                                                    Raw{.code = line}});
-                                        code->push_back(lineNode);
-                                    }
-                                    break;
-                                }
-                                case sem::CmdInclude::Kind::Example: {
-                                    LOGIC_ASSERTION_CHECK(
-                                        incl.at(0)->is(
-                                            OrgSemKind::BlockExample),
-                                        "");
-
-                                    auto code = incl.as<
-                                        sem::BlockExample>();
-                                    auto source = readFile(full);
-                                    for (auto const& line :
-                                         split(source, '\n')) {
-                                        auto raw = sem::SemId<
-                                            sem::RawText>();
-                                        raw->text = line;
-                                        code->push_back(raw);
-                                    }
-                                    break;
-                                }
-                            }
-                        } else {
-                            auto group = sem::SemId<
-                                sem::ErrorGroup>::New();
-                            auto error = sem::SemId<sem::ErrorItem>::New();
-                            error->message = fmt(
-                                "Could not resolve include target '{}'",
-                                incl->path);
-                            arg->push_back(error);
-                        }
-                    }
-                });
-
-                sem::SemId<File> file = sem::SemId<File>::New();
-                file->relPath         = fs::relative(path, root).native();
-                file->absPath         = path.native();
-                file->push_back(parsed);
-                return file;
-            } else {
-                return std::nullopt;
-            }
-
-        } else {
-            return std::nullopt;
-        }
-    };
-
-    return aux(fs::absolute(root), root);
+    DirectoryParseState state;
+    return parseDirectoryAux(fs::absolute(root), root, opts, state);
 }
 
 

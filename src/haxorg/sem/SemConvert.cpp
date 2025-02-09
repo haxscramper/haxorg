@@ -1813,6 +1813,11 @@ OrgConverter::ConvResult<CmdInclude> OrgConverter::convertCmdInclude(
             auto content  = Sem<BlockExample>(a);
             include->push_back(content);
 
+        } else if (ks == "export"_ss) {
+            auto ex       = sem::CmdInclude::Export{};
+            include->data = ex;
+            auto content  = Sem<BlockExport>(a);
+            include->push_back(content);
         } else {
             return SemError(a, fmt("Unhandled org include kind {}", ks));
         }
