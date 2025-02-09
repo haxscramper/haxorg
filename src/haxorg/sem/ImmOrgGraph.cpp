@@ -802,6 +802,10 @@ Graphviz::Node::Record MapGraph::GvConfig::getDefaultNodeLabel(
 
     rec.setHtml("test", hshow1("random").toHtml());
 
+    // if (node.get().) {
+
+    // }
+
     for (auto const& [idx, unresolved] : enumerate(prop.unresolved)) {
         if (unresolved.isLink()) {
             rec.setEscaped(

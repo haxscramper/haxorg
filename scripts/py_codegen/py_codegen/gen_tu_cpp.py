@@ -610,6 +610,7 @@ def get_base_map(expanded: List[GenTuUnion]) -> Mapping[str, GenTuStruct]:
         GenTuDoc(""),
         [
             GenTuField(t_vec(t_id()), "subnodes", GenTuDoc(""), value="{}"),
+            GenTuField(t_opt(QualType(name="LineCol")), "loc", value="std::nullopt"),
         ],
     )
 

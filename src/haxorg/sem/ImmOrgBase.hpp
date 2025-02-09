@@ -456,6 +456,7 @@ struct ImmIdT : public ImmId {
 
 struct ImmOrg {
     ImmVec<ImmId>      subnodes;
+    Opt<LineCol>       loc             = std::nullopt;
     virtual OrgSemKind getKind() const = 0;
 
     ImmId at(int pos) const { return subnodes.at(pos); }
@@ -494,7 +495,7 @@ struct ImmOrg {
         return res;
     }
 
-    DESC_FIELDS(ImmOrg, (subnodes));
+    DESC_FIELDS(ImmOrg, (subnodes, loc));
 };
 
 } // namespace org

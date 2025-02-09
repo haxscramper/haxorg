@@ -267,16 +267,23 @@ Opt<ImmAdapter> ImmAdapter::getAdjacentNode(int offset) const {
     }
 }
 
-Opt<ImmAdapter> ImmAdapter::getParentSubtree() const {
+Opt<ImmAdapter> ImmAdapter::getFirstMatchingParent(
+    Func<bool(org::ImmAdapter const&)> pred) const {
     auto parent = getParent();
     while (parent) {
-        if (parent->is(OrgSemKind::Subtree)) {
+        if (pred(parent.value())) {
             return parent;
         } else {
             parent = parent->getParent();
         }
     }
     return std::nullopt;
+}
+
+Opt<ImmAdapter> ImmAdapter::getParentSubtree() const {
+    return getFirstMatchingParent([](org::ImmAdapter const& ad) {
+        return ad->is(OrgSemKind::Subtree);
+    });
 }
 
 Vec<ImmAdapter> ImmAdapter::getAllSubnodes(

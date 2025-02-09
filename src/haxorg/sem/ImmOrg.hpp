@@ -868,6 +868,8 @@ struct ImmAdapter {
     }
 
     Opt<ImmAdapter> getAdjacentNode(int offset) const;
+    Opt<ImmAdapter> getFirstMatchingParent(
+        Func<bool(const org::ImmAdapter&)> pred) const;
     Opt<ImmAdapter> getParentSubtree() const;
     Vec<ImmAdapter> getAllSubnodes(
         const Opt<ImmPath>& rootPath,

@@ -208,6 +208,8 @@ ImmAstReplace setNewSubnodes(
                         [&](ImmBox<sem::Tblfm> const&) { fail_field(); },
                         [&](ImmBox<sem::Tblfm::Assign::Flag> const&) { fail_field(); },
                         [&](ImmBox<Opt<Str>> const&) { fail_field(); },
+                        [&](LineCol const&) { fail_field(); },
+                        [&](Opt<LineCol> const&) { fail_field(); },
                         [&](ImmBox<Str> const&) { fail_field(); },
                         [&](ImmVec<Str> const&) { fail_field(); },
                         [&](ImmVec<org::ImmSymbol::Param> const&) { fail_field(); },
@@ -835,6 +837,7 @@ __same_type(sem::AttrValue);
 __same_type(sem::SubtreeCompletion);
 __same_type(sem::HashTagText);
 __same_type(sem::SubtreeLogHead);
+__same_type(LineCol);
 
 
 template <typename SemType, typename ImmType>
