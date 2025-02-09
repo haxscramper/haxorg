@@ -328,6 +328,8 @@ struct ImmAstTrackingMap {
         return parents.contains(item) && parents.at(item).contains(parent);
     }
 
+    ColText toString() const;
+
     /// \brief Get a list of all nodes that specified ID is used in. Due to
     /// value interning, each specific ID can be used in multiple places at
     /// once.

@@ -1420,7 +1420,17 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
         GenTuStruct(
             t_nest_shared("HashTagFlat"),
             fields=[vec_field(t_str(), "tags")],
-            methods=[eq_method(t_nest_shared("HashTagFlat"))],
+            methods=[
+                eq_method(t_nest_shared("HashTagFlat")),
+                GenTuFunction(
+                    result=t_bool(),
+                    name="operator<",
+                    arguments=[
+                        GenTuIdent(type=t_cr(t_nest_shared("HashTagFlat")), name="other")
+                    ],
+                    isConst=True,
+                ),
+            ],
         ),
         GenTuStruct(
             t_nest_shared("HashTagText"),

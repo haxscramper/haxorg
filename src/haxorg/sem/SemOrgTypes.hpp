@@ -250,6 +250,7 @@ struct HashTagFlat {
                        (tags))
   Vec<Str> tags = {};
   bool operator==(sem::HashTagFlat const& other) const;
+  bool operator<(sem::HashTagFlat const& other) const;
 };
 
 /// \brief Single or nested inline hash-tag

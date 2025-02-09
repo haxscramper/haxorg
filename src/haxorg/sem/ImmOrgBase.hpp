@@ -538,3 +538,16 @@ struct ReflVisitor<org::ImmId, org::ImmReflPathTag>
 template <typename T>
 struct ReflVisitor<org::ImmIdT<T>, org::ImmReflPathTag>
     : ReflVisitorLeafType<org::ImmIdT<T>, org::ImmReflPathTag> {};
+
+
+template <>
+struct hshow<org::ImmId> {
+    static void format(
+        ColStream&     s,
+        CR<org::ImmId> value,
+        CR<hshow_opts> opts) {
+        auto copy = opts;
+        copy.with_use_quotes(false);
+        hshow_ctx(s, value.format(), copy);
+    }
+};

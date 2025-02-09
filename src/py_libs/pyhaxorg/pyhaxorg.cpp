@@ -523,6 +523,9 @@ node can have subnodes.)RAW")
     .def("operator==",
          static_cast<bool(sem::HashTagFlat::*)(sem::HashTagFlat const&) const>(&sem::HashTagFlat::operator==),
          pybind11::arg("other"))
+    .def("operator<",
+         static_cast<bool(sem::HashTagFlat::*)(sem::HashTagFlat const&) const>(&sem::HashTagFlat::operator<),
+         pybind11::arg("other"))
     .def("__repr__", [](sem::HashTagFlat _self) -> std::string {
                      return py_repr_impl(_self);
                      })

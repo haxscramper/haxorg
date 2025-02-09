@@ -660,6 +660,7 @@ template <DescribedRecord R> struct hshow<R> : public hshow_described_record<R> 
 template <DescribedEnum E> struct hshow<E> : public hshow_described_enum<E> {};
 template <typename T> struct hshow<Vec<T>> : public hshow_indexed_list<Vec<T>> {};
 template <typename T> struct hshow<std::vector<T>> : public hshow_indexed_list<std::vector<T>> {};
+template <typename T, int Size> struct hshow<SmallVec<T, Size>> : public hshow_indexed_list<SmallVec<T, Size>> {};
 template <typename T> struct hshow<IntSet<T>> : public hshow_unordered_set<IntSet<T>> {};
 // clang-format on
 

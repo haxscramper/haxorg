@@ -80,3 +80,7 @@ EACH_SEM_ORG_RECORD(_eq_method)
 
 EACH_SHARED_ORG_RECORD(_eq_method)
 #undef _eq_method
+
+bool sem::HashTagFlat::operator<(sem::HashTagFlat const& other) const {
+    return this->tags < other.tags;
+}

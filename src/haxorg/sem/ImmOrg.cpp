@@ -960,6 +960,40 @@ Vec<ImmId> ImmAstReplaceGroup::newSubnodes(Vec<ImmId> oldSubnodes) const {
 
 ImmParentIdVec EmptyImmParentIdVec;
 
+ColText ImmAstTrackingMap::toString() const {
+    ColStream os;
+
+    CR<hshow_opts> opts = hshow_opts{};
+
+    auto write_map = [&]<typename K, typename V>(ImmMap<K, V> const& map) {
+        auto keys = map | rv::transform([](auto const& pair) {
+                        return pair.first;
+                    })
+                  | rs::to<Vec>();
+        for (auto const& key : sorted(keys)) {
+            os.indent(2);
+            hshow_ctx(os, key, opts);
+            os << ": ";
+            hshow_ctx(os, map.at(key), opts);
+            os << "\n";
+        }
+    };
+
+#define __it(name)                                                        \
+    os << #name << "\n";                                                  \
+    write_map(name);
+
+    __it(footnotes);
+    __it(subtrees);
+    __it(anchorTargets);
+    __it(names);
+    // __it(parents);
+    __it(hashtagDefinitions);
+    __it(radioTargets);
+
+    return os.getBuffer();
+}
+
 const ImmParentIdVec& ImmAstTrackingMap::getParentIds(
     const ImmId& it) const {
     if (parents.contains(it)) {

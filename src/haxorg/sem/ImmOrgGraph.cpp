@@ -816,9 +816,16 @@ Graphviz::Node::Record MapGraph::GvConfig::getDefaultNodeLabel(
 
     for (auto const& [idx, unresolved] : enumerate(prop.unresolved)) {
         if (unresolved.isLink()) {
+            auto const& val = unresolved.getLink().link.value();
             rec.setEscaped(
                 fmt("Unresolved link [{}]", unresolved.getLink().link.id),
-                to_json_eval(unresolved.getLink().link.value()).dump(2));
+                fmt("{} {}",
+                    val.target.getKind(),
+                    std::visit(
+                        [](auto const& d) -> std::string {
+                            return to_json_eval(d).dump();
+                        },
+                        val.target.data)));
         } else {
             rec.setEscaped(
                 fmt("Unresolved radio [{}]",

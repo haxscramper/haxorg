@@ -153,7 +153,6 @@ Opt<sem::SemId<Org>> parseDirectoryAux(
     if (state.visited.contains(path.native())) { return std::nullopt; }
     state.visited.incl(path.native());
 
-    _dfmt(path);
     if (opts.shouldProcessPath && !opts.shouldProcessPath(path)) {
         return std::nullopt;
     } else if (fs::is_symlink(path)) {

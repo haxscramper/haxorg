@@ -83,21 +83,29 @@ TEST(ManualFileRun, TestDir1) {
             }
         };
 
-        auto parse = sem::parseDirectoryOpts(dir, opts);
-        auto ctx   = org::ImmAstContext::init_start_context();
-        auto root  = ctx->addRoot(parse.value());
+        LOG(INFO) << "Parse directory content";
+        auto parse           = sem::parseDirectoryOpts(dir, opts);
+        auto initial_context = org::ImmAstContext::init_start_context();
+        auto root            = initial_context->addRoot(parse.value());
 
-        org::graph::MapConfig     conf;
-        org::graph::MapGraphState graph{ctx};
+        LOG(INFO) << "Write tracking debug";
+        writeFile(
+            "/tmp/TestDirTracking.txt",
+            root.context->currentTrack->toString().toString(false));
+
+        LOG(INFO) << "Generating mind map";
+        org::graph::MapConfig conf;
+        // conf.setTraceFile("/tmp/TestDirMindMapTrace.log");
+        org::graph::MapGraphState graph{root.context};
         org::graph::addNodeRec(graph, root.getRootAdapter(), conf);
         auto gv = graph.graph.toGraphviz(
-            ctx,
+            root.context,
             org::graph::MapGraph::GvConfig{
                 .acceptNode =
                     [&](org::graph::MapNode const& node) -> bool {
-                    return true;
-                    // return 0 < graph.graph.inDegree(node)
-                    //     || 0 < graph.graph.outDegree(node);
+                    // return true;
+                    return 0 < graph.graph.inDegree(node)
+                        || 0 < graph.graph.outDegree(node);
                 },
             });
         Graphviz gvc;
