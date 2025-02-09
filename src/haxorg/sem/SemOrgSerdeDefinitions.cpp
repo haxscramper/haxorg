@@ -2478,6 +2478,7 @@ void proto_serde<::orgproto::File::Source, sem::File::Source>::read(::orgproto::
 void proto_serde<::orgproto::File, sem::File>::write(::orgproto::File* out, sem::File const& in) {
   proto_serde<::orgproto::File, sem::Org>::write(out, in);
   proto_serde<std::string, Str>::write(out->mutable_relpath(), in.relPath);
+  proto_serde<std::string, Str>::write(out->mutable_abspath(), in.absPath);
   switch (in.data.index()) {
     case 0:
       proto_serde<orgproto::File::Document, sem::File::Document>::write(out->mutable_data()->mutable_document(), std::get<0>(in.data));
@@ -2494,6 +2495,7 @@ void proto_serde<::orgproto::File, sem::File>::write(::orgproto::File* out, sem:
 void proto_serde<::orgproto::File, sem::File>::read(::orgproto::File const& out, proto_write_accessor<sem::File> in) {
   proto_serde<::orgproto::File, sem::Org>::read(out, in.as<sem::Org>());
   proto_serde<std::string, Str>::read(out.relpath(), in.for_field(&sem::File::relPath));
+  proto_serde<std::string, Str>::read(out.abspath(), in.for_field(&sem::File::absPath));
   switch (out.data().kind_case()) {
     case ::orgproto::File::Data::kDocument:
       proto_serde<orgproto::File::Document, sem::File::Document>::read(out.data().document(), in.for_field_variant<0>(&sem::File::data));
@@ -2510,11 +2512,13 @@ void proto_serde<::orgproto::File, sem::File>::read(::orgproto::File const& out,
 void proto_serde<::orgproto::Directory, sem::Directory>::write(::orgproto::Directory* out, sem::Directory const& in) {
   proto_serde<::orgproto::Directory, sem::Org>::write(out, in);
   proto_serde<std::string, Str>::write(out->mutable_relpath(), in.relPath);
+  proto_serde<std::string, Str>::write(out->mutable_abspath(), in.absPath);
 }
 
 void proto_serde<::orgproto::Directory, sem::Directory>::read(::orgproto::Directory const& out, proto_write_accessor<sem::Directory> in) {
   proto_serde<::orgproto::Directory, sem::Org>::read(out, in.as<sem::Org>());
   proto_serde<std::string, Str>::read(out.relpath(), in.for_field(&sem::Directory::relPath));
+  proto_serde<std::string, Str>::read(out.abspath(), in.for_field(&sem::Directory::absPath));
 }
 
 void proto_serde<::orgproto::Symlink, sem::Symlink>::write(::orgproto::Symlink* out, sem::Symlink const& in) {
@@ -2574,9 +2578,6 @@ void proto_serde<::orgproto::CmdInclude, sem::CmdInclude>::write(::orgproto::Cmd
   if (in.lastLine) {
     out->set_lastline(*in.lastLine);
   }
-  if (!in.resolved.isNil()) {
-    proto_serde<orgproto::File, sem::SemId<sem::File>>::write(out->mutable_resolved(), in.resolved);
-  }
   switch (in.data.index()) {
     case 0:
       proto_serde<orgproto::CmdInclude::Example, sem::CmdInclude::Example>::write(out->mutable_data()->mutable_example(), std::get<0>(in.data));
@@ -2602,7 +2603,6 @@ void proto_serde<::orgproto::CmdInclude, sem::CmdInclude>::read(::orgproto::CmdI
   if (out.has_lastline()) {
     proto_serde<Opt<::int32_t>, Opt<int>>::read(out.lastline(), in.for_field(&sem::CmdInclude::lastLine));
   }
-  proto_serde<orgproto::File, sem::SemId<sem::File>>::read(out.resolved(), in.for_field(&sem::CmdInclude::resolved));
   switch (out.data().kind_case()) {
     case ::orgproto::CmdInclude::Data::kExample:
       proto_serde<orgproto::CmdInclude::Example, sem::CmdInclude::Example>::read(out.data().example(), in.for_field_variant<0>(&sem::CmdInclude::data));

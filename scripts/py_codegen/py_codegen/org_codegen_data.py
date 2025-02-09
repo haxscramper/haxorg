@@ -2534,7 +2534,10 @@ def get_types() -> Sequence[GenTuStruct]:
         ),
         d_org("File",
               bases=[t_org("Org")],
-              fields=[str_field("relPath", "Relative path from the root directory")],
+              fields=[
+                  str_field("relPath", "Relative path from the root directory"),
+                  str_field("absPath", "Absolute resolved path to physical file"),
+              ],
               nested=[
                   GenTuTypeGroup(
                       [
@@ -2554,7 +2557,8 @@ def get_types() -> Sequence[GenTuStruct]:
                 str_field(
                     "relPath",
                     "Relative path from the root directory, empty if this is the root directory"
-                )
+                ),
+                str_field("absPath", "Absolute resolved path to physical directory"),
             ]),
         d_org(
             "Symlink",
@@ -2601,7 +2605,6 @@ def get_types() -> Sequence[GenTuStruct]:
                     "lastLine",
                     "0-based index of the last line to include",
                 ),
-                id_field("File", "resolved"),
             ],
         ),
     ]

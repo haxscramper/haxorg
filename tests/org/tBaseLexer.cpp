@@ -83,5 +83,7 @@ TEST(ManualFileRun, TestDir1) {
         };
 
         auto parse = sem::parseDirectoryOpts(dir, opts);
+        auto ctx   = org::ImmAstContext::init_start_context();
+        auto root  = ctx->addRoot(parse.value());
     }
 }

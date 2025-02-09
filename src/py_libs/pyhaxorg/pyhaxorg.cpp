@@ -4504,6 +4504,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("relPath", &sem::File::relPath, R"RAW(Relative path from the root directory)RAW")
+    .def_readwrite("absPath", &sem::File::absPath, R"RAW(Absolute resolved path to physical file)RAW")
     .def_readwrite("data", &sem::File::data)
     .def("isDocument", static_cast<bool(sem::File::*)() const>(&sem::File::isDocument))
     .def("getDocument", static_cast<sem::File::Document&(sem::File::*)()>(&sem::File::getDocument))
@@ -4531,6 +4532,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("relPath", &sem::Directory::relPath, R"RAW(Relative path from the root directory, empty if this is the root directory)RAW")
+    .def_readwrite("absPath", &sem::Directory::absPath, R"RAW(Absolute resolved path to physical directory)RAW")
     .def("__repr__", [](sem::Directory _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -4639,7 +4641,6 @@ node can have subnodes.)RAW")
     .def_readwrite("path", &sem::CmdInclude::path, R"RAW(Path to include)RAW")
     .def_readwrite("firstLine", &sem::CmdInclude::firstLine, R"RAW(0-based index of the first line to include. NOTE: Org-mode syntax uses 1-based half-open range in the text)RAW")
     .def_readwrite("lastLine", &sem::CmdInclude::lastLine, R"RAW(0-based index of the last line to include)RAW")
-    .def_readwrite("resolved", &sem::CmdInclude::resolved)
     .def_readwrite("data", &sem::CmdInclude::data)
     .def("isExample", static_cast<bool(sem::CmdInclude::*)() const>(&sem::CmdInclude::isExample))
     .def("getExample", static_cast<sem::CmdInclude::Example&(sem::CmdInclude::*)()>(&sem::CmdInclude::getExample))

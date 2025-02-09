@@ -1062,6 +1062,7 @@ template <typename V, typename R>
 void Exporter<V, R>::visitFile(R& res, In<sem::File> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, relPath);
+  __org_field(res, object, absPath);
   __org_field(res, object, data);
   __org_field(res, object, subnodes);
 }
@@ -1079,6 +1080,7 @@ template <typename V, typename R>
 void Exporter<V, R>::visitDirectory(R& res, In<sem::Directory> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, relPath);
+  __org_field(res, object, absPath);
   __org_field(res, object, subnodes);
 }
 
@@ -1099,7 +1101,6 @@ void Exporter<V, R>::visitCmdInclude(R& res, In<sem::CmdInclude> object) {
   __org_field(res, object, path);
   __org_field(res, object, firstLine);
   __org_field(res, object, lastLine);
-  __org_field(res, object, resolved);
   __org_field(res, object, data);
   __org_field(res, object, subnodes);
 }

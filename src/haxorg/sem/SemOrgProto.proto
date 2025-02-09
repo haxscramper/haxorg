@@ -1677,7 +1677,8 @@ message File {
   repeated AnyNode                                 subnodes                         = 1;
   OrgSemKind                                       staticKind                       = 2;
   string                                           relPath                          = 3;
-  File.Data                                        data                             = 4;
+  string                                           absPath                          = 4;
+  File.Data                                        data                             = 5;
   string                                           debug                            = 1000;
 }
 
@@ -1685,6 +1686,7 @@ message Directory {
   repeated AnyNode                                 subnodes                         = 1;
   OrgSemKind                                       staticKind                       = 2;
   string                                           relPath                          = 3;
+  string                                           absPath                          = 4;
   string                                           debug                            = 1000;
 }
 
@@ -1729,8 +1731,7 @@ message CmdInclude {
   string                                           path                             = 3;
   optional int32                                   firstLine                        = 4;
   optional int32                                   lastLine                         = 5;
-  File                                             resolved                         = 6;
-  CmdInclude.Data                                  data                             = 7;
+  CmdInclude.Data                                  data                             = 6;
   string                                           debug                            = 1000;
 }
 

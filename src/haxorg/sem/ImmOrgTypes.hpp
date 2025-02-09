@@ -1392,10 +1392,13 @@ struct ImmFile : public org::ImmOrg {
                        (),
                        (staticKind,
                         relPath,
+                        absPath,
                         data))
   static OrgSemKind const staticKind;
   /// \brief Relative path from the root directory
   ImmBox<Str> relPath = "";
+  /// \brief Absolute resolved path to physical file
+  ImmBox<Str> absPath = "";
   org::ImmFile::Data data;
   virtual OrgSemKind getKind() const { return OrgSemKind::File; }
   bool operator==(org::ImmFile const& other) const;
@@ -1420,10 +1423,13 @@ struct ImmDirectory : public org::ImmOrg {
                        (),
                        (),
                        (staticKind,
-                        relPath))
+                        relPath,
+                        absPath))
   static OrgSemKind const staticKind;
   /// \brief Relative path from the root directory, empty if this is the root directory
   ImmBox<Str> relPath = "";
+  /// \brief Absolute resolved path to physical directory
+  ImmBox<Str> absPath = "";
   virtual OrgSemKind getKind() const { return OrgSemKind::Directory; }
   bool operator==(org::ImmDirectory const& other) const;
 };
@@ -1500,7 +1506,6 @@ struct ImmCmdInclude : public org::ImmOrg {
                         path,
                         firstLine,
                         lastLine,
-                        resolved,
                         data))
   static OrgSemKind const staticKind;
   /// \brief Path to include
@@ -1509,7 +1514,6 @@ struct ImmCmdInclude : public org::ImmOrg {
   ImmBox<Opt<int>> firstLine = std::nullopt;
   /// \brief 0-based index of the last line to include
   ImmBox<Opt<int>> lastLine = std::nullopt;
-  org::ImmIdT<org::ImmFile> resolved = org::ImmIdT<org::ImmFile>::Nil();
   org::ImmCmdInclude::Data data;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdInclude; }
   bool operator==(org::ImmCmdInclude const& other) const;

@@ -1318,6 +1318,7 @@ struct ImmSemSerde<sem::File, org::ImmFile> {
   static org::ImmFile to_immer(sem::File const& value, ImmAstEditContext& ctx) {
     org::ImmFile result = SerdeDefaultProvider<org::ImmFile>::get();
     assign_immer_field(result.relPath, value.relPath, ctx);
+    assign_immer_field(result.absPath, value.absPath, ctx);
     assign_immer_field(result.data, value.data, ctx);
     assign_immer_field(result.subnodes, value.subnodes, ctx);
     return result;
@@ -1325,6 +1326,7 @@ struct ImmSemSerde<sem::File, org::ImmFile> {
   static sem::File from_immer(org::ImmFile const& value, ImmAstContext const& ctx) {
     sem::File result = SerdeDefaultProvider<sem::File>::get();
     assign_sem_field(result.relPath, value.relPath, ctx);
+    assign_sem_field(result.absPath, value.absPath, ctx);
     assign_sem_field(result.data, value.data, ctx);
     assign_sem_field(result.subnodes, value.subnodes, ctx);
     return result;
@@ -1372,12 +1374,14 @@ struct ImmSemSerde<sem::Directory, org::ImmDirectory> {
   static org::ImmDirectory to_immer(sem::Directory const& value, ImmAstEditContext& ctx) {
     org::ImmDirectory result = SerdeDefaultProvider<org::ImmDirectory>::get();
     assign_immer_field(result.relPath, value.relPath, ctx);
+    assign_immer_field(result.absPath, value.absPath, ctx);
     assign_immer_field(result.subnodes, value.subnodes, ctx);
     return result;
   }
   static sem::Directory from_immer(org::ImmDirectory const& value, ImmAstContext const& ctx) {
     sem::Directory result = SerdeDefaultProvider<sem::Directory>::get();
     assign_sem_field(result.relPath, value.relPath, ctx);
+    assign_sem_field(result.absPath, value.absPath, ctx);
     assign_sem_field(result.subnodes, value.subnodes, ctx);
     return result;
   }
@@ -1408,7 +1412,6 @@ struct ImmSemSerde<sem::CmdInclude, org::ImmCmdInclude> {
     assign_immer_field(result.path, value.path, ctx);
     assign_immer_field(result.firstLine, value.firstLine, ctx);
     assign_immer_field(result.lastLine, value.lastLine, ctx);
-    assign_immer_field(result.resolved, value.resolved, ctx);
     assign_immer_field(result.data, value.data, ctx);
     assign_immer_field(result.subnodes, value.subnodes, ctx);
     return result;
@@ -1418,7 +1421,6 @@ struct ImmSemSerde<sem::CmdInclude, org::ImmCmdInclude> {
     assign_sem_field(result.path, value.path, ctx);
     assign_sem_field(result.firstLine, value.firstLine, ctx);
     assign_sem_field(result.lastLine, value.lastLine, ctx);
-    assign_sem_field(result.resolved, value.resolved, ctx);
     assign_sem_field(result.data, value.data, ctx);
     assign_sem_field(result.subnodes, value.subnodes, ctx);
     return result;

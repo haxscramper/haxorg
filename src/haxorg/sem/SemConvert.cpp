@@ -1800,6 +1800,18 @@ OrgConverter::ConvResult<CmdInclude> OrgConverter::convertCmdInclude(
         if (ks == "src"_ss) {
             auto src      = sem::CmdInclude::Src{};
             include->data = src;
+            // Add empty source code block, converter logic does not have
+            // access to the files, so the actual content of the block will
+            // be filled in `sem::parseDirectoryOpts` or by the other
+            // processing pass.
+            auto content = Sem<BlockCode>(a);
+            include->push_back(content);
+
+        } else if (ks == "example"_ss) {
+            auto ex       = sem::CmdInclude::Example{};
+            include->data = ex;
+            auto content  = Sem<BlockExample>(a);
+            include->push_back(content);
 
         } else {
             return SemError(a, fmt("Unhandled org include kind {}", ks));

@@ -138,14 +138,19 @@ Opt<sem::SemId<Org>> sem::parseDirectoryOpts(
     const OrgDirectoryParseParameters& opts) {
 
     Func<Opt<sem::SemId<Org>>(fs::path const&, fs::path const&)> aux;
+    UnorderedSet<std::string>                                    visited;
 
     aux = [&](fs::path const& path,
               fs::path const& activeRoot) -> Opt<sem::SemId<Org>> {
-        _dfmt(path, activeRoot);
+        if (visited.contains(path.native())) { return std::nullopt; }
+        visited.incl(path.native());
+
+        _dfmt(path);
         if (opts.shouldProcessPath && !opts.shouldProcessPath(path)) {
             return std::nullopt;
         } else if (fs::is_symlink(path)) {
-            auto                     target = fs::read_symlink(path);
+            auto target = fs::read_symlink(path);
+            LOG(INFO) << fmt("Symlink '{}' targets '{}'", path, target);
             sem::SemId<sem::Symlink> sym = sem::SemId<sem::Symlink>::New();
             if (fs::is_directory(target)) {
                 sym->isDirectory = true;
@@ -166,6 +171,7 @@ Opt<sem::SemId<Org>> sem::parseDirectoryOpts(
         } else if (fs::is_directory(path)) {
             sem::SemId<Directory> dir = sem::SemId<Directory>::New();
             dir->relPath              = fs::relative(path, root).native();
+            dir->absPath              = path.native();
             for (const auto& entry : fs::directory_iterator(path)) {
                 auto nested = aux(entry, activeRoot);
                 if (nested) { dir->push_back(nested.value()); }
@@ -175,6 +181,8 @@ Opt<sem::SemId<Org>> sem::parseDirectoryOpts(
         } else if (fs::is_regular_file(path)) {
             if (normalize(path.extension().native()) == "org") {
                 auto parsed = opts.getParsedNode(path);
+
+                if (parsed.isNil()) { return std::nullopt; }
 
                 sem::eachSubnodeRec(parsed, [&](sem::SemId<sem::Org> arg) {
                     if (auto incl = arg.asOpt<sem::CmdInclude>()) {
@@ -201,6 +209,45 @@ Opt<sem::SemId<Org>> sem::parseDirectoryOpts(
                                     if (parsed) {
                                         arg->push_back(parsed.value());
                                     }
+                                    break;
+                                }
+                                case sem::CmdInclude::Kind::Src: {
+                                    LOGIC_ASSERTION_CHECK(
+                                        incl.at(0)->is(
+                                            OrgSemKind::BlockCode),
+                                        "");
+
+                                    auto code = incl.as<sem::BlockCode>();
+                                    auto source = readFile(full);
+                                    for (auto const& line :
+                                         split(source, '\n')) {
+                                        auto lineNode = sem::SemId<
+                                            sem::BlockCodeLine>::New();
+                                        lineNode->parts.push_back(
+                                            sem::BlockCodeLine::Part{
+                                                sem::BlockCodeLine::Part::
+                                                    Raw{.code = line}});
+                                        code->push_back(lineNode);
+                                    }
+                                    break;
+                                }
+                                case sem::CmdInclude::Kind::Example: {
+                                    LOGIC_ASSERTION_CHECK(
+                                        incl.at(0)->is(
+                                            OrgSemKind::BlockExample),
+                                        "");
+
+                                    auto code = incl.as<
+                                        sem::BlockExample>();
+                                    auto source = readFile(full);
+                                    for (auto const& line :
+                                         split(source, '\n')) {
+                                        auto raw = sem::SemId<
+                                            sem::RawText>();
+                                        raw->text = line;
+                                        code->push_back(raw);
+                                    }
+                                    break;
                                 }
                             }
                         } else {
@@ -215,7 +262,11 @@ Opt<sem::SemId<Org>> sem::parseDirectoryOpts(
                     }
                 });
 
-                return parsed;
+                sem::SemId<File> file = sem::SemId<File>::New();
+                file->relPath         = fs::relative(path, root).native();
+                file->absPath         = path.native();
+                file->push_back(parsed);
+                return file;
             } else {
                 return std::nullopt;
             }

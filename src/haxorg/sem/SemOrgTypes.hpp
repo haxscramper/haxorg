@@ -2764,10 +2764,13 @@ struct File : public sem::Org {
                        (),
                        (staticKind,
                         relPath,
+                        absPath,
                         data))
   static OrgSemKind const staticKind;
   /// \brief Relative path from the root directory
   Str relPath = "";
+  /// \brief Absolute resolved path to physical file
+  Str absPath = "";
   sem::File::Data data;
   virtual OrgSemKind getKind() const { return OrgSemKind::File; }
   bool isDocument() const { return getFileKind() == Kind::Document; }
@@ -2790,10 +2793,12 @@ struct Directory : public sem::Org {
                        (Org),
                        (),
                        (),
-                       (staticKind, relPath))
+                       (staticKind, relPath, absPath))
   static OrgSemKind const staticKind;
   /// \brief Relative path from the root directory, empty if this is the root directory
   Str relPath = "";
+  /// \brief Absolute resolved path to physical directory
+  Str absPath = "";
   virtual OrgSemKind getKind() const { return OrgSemKind::Directory; }
 };
 
@@ -2846,7 +2851,6 @@ struct CmdInclude : public sem::Org {
                         path,
                         firstLine,
                         lastLine,
-                        resolved,
                         data))
   static OrgSemKind const staticKind;
   /// \brief Path to include
@@ -2855,7 +2859,6 @@ struct CmdInclude : public sem::Org {
   Opt<int> firstLine = std::nullopt;
   /// \brief 0-based index of the last line to include
   Opt<int> lastLine = std::nullopt;
-  sem::SemId<sem::File> resolved = sem::SemId<sem::File>::Nil();
   sem::CmdInclude::Data data;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdInclude; }
   bool isExample() const { return getIncludeKind() == Kind::Example; }
