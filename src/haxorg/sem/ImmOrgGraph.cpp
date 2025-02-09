@@ -489,6 +489,12 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
                 break;
             }
 
+            case slk::File:
+            case slk::Attachment:
+            case slk::UserProtocol: {
+                break;
+            }
+
             default: {
                 throw logic_unreachable_error::init(
                     fmt("Unhandled link kind '{}'",
@@ -810,4 +816,59 @@ Graphviz::Node::Record MapGraph::GvConfig::getDefaultNodeLabel(
     }
 
     return rec;
+}
+
+void org::graph::addNodeRec(
+    MapGraphState&    g,
+    const ImmAdapter& node,
+    MapConfig&        conf) {
+    Func<void(org::ImmAdapter const&)> aux;
+    aux = [&](org::ImmAdapter const& node) {
+        conf.message(fmt("recursive add {}", node), "addNodeRec");
+        auto __tmp = conf.scopeLevel();
+        switch (node->getKind()) {
+            case OrgSemKind::CmdInclude:
+            case OrgSemKind::File:
+            case OrgSemKind::Directory:
+            case OrgSemKind::Symlink:
+            case OrgSemKind::Document:
+            case OrgSemKind::ListItem:
+            case OrgSemKind::List: {
+                for (auto const& it : node) { aux(it); }
+                break;
+            }
+            case OrgSemKind::Paragraph: {
+                auto par = node.as<org::ImmParagraph>();
+                // conf.message(
+                //     fmt("rec visit of {}\n{}",
+                //         par,
+                //         par.treeRepr().toString()));
+                if (org::graph::hasGraphAnnotations(par)) {
+                    addNode(g, node, conf);
+                } else {
+                    auto group = org::getSubnodeGroups(node, false);
+                    if (rs::any_of(group, [](auto const& it) {
+                            return it.isRadioTarget();
+                        })) {
+                        // conf.message(fmt("Paragraph has radio target"));
+                        addNode(g, node, conf);
+                    }
+                }
+                break;
+            }
+            case OrgSemKind::Subtree: {
+                if (auto tree = node.as<org::ImmSubtree>();
+                    org::graph::hasGraphAnnotations(tree)) {
+                    addNode(g, node, conf);
+                }
+
+                for (auto const& it : node) { aux(it); }
+                break;
+            }
+            default: {
+            }
+        }
+    };
+
+    aux(node);
 }

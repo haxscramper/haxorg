@@ -1,3 +1,4 @@
+#include <haxorg/sem/ImmOrgGraph.hpp>
 #include <gtest/gtest.h>
 #include <haxorg/base_lexer/base_token.hpp>
 #include <hstd/stdlib/Json.hpp>
@@ -85,5 +86,27 @@ TEST(ManualFileRun, TestDir1) {
         auto parse = sem::parseDirectoryOpts(dir, opts);
         auto ctx   = org::ImmAstContext::init_start_context();
         auto root  = ctx->addRoot(parse.value());
+
+        org::graph::MapConfig     conf;
+        org::graph::MapGraphState graph{ctx};
+        org::graph::addNodeRec(graph, root.getRootAdapter(), conf);
+        auto gv = graph.graph.toGraphviz(
+            ctx,
+            org::graph::MapGraph::GvConfig{
+                .acceptNode =
+                    [&](org::graph::MapNode const& node) -> bool {
+                    return true;
+                    // return 0 < graph.graph.inDegree(node)
+                    //     || 0 < graph.graph.outDegree(node);
+                },
+            });
+        Graphviz gvc;
+        gv.setRankDirection(Graphviz::Graph::RankDirection::LR);
+        gvc.writeFile("/tmp/TestDir.dot", gv);
+        gvc.renderToFile(
+            "/tmp/TestDir.png",
+            gv,
+            Graphviz::RenderFormat::PNG,
+            Graphviz::LayoutType::Sfdp);
     }
 }
