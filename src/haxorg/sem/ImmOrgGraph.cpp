@@ -800,11 +800,19 @@ Graphviz::Node::Record MapGraph::GvConfig::getDefaultNodeLabel(
             },
         });
 
-    rec.setHtml("test", hshow1("random").toHtml());
+    auto file = node.getFirstMatchingParent(
+        [](org::ImmAdapter const& a) { return a.is(OrgSemKind::File); });
 
-    // if (node.get().) {
-
-    // }
+    if (node->loc || file) {
+        rec.setEscaped(
+            "Loc",
+            fmt("{}:{}:{} @ {}",
+                node->loc->column,
+                node->loc->line,
+                node->loc->pos,
+                file ? file->as<org::ImmFile>()->relPath.get()
+                     : Str{"?"}));
+    }
 
     for (auto const& [idx, unresolved] : enumerate(prop.unresolved)) {
         if (unresolved.isLink()) {
