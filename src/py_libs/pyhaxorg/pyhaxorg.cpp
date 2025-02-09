@@ -5073,6 +5073,21 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<sem::OrgDirectoryParseParameters>(m, "OrgDirectoryParseParameters")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgDirectoryParseParameters {
+                        sem::OrgDirectoryParseParameters result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("__repr__", [](sem::OrgDirectoryParseParameters _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::OrgDirectoryParseParameters _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<sem::OrgYamlExportOpts>(m, "OrgYamlExportOpts")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgYamlExportOpts {
                         sem::OrgYamlExportOpts result{};
@@ -5512,6 +5527,14 @@ and a segment kind.)RAW")
   m.def("parseStringOpts",
         static_cast<sem::SemId<sem::Document>(*)(std::string const, sem::OrgParseParameters const&)>(&sem::parseStringOpts),
         pybind11::arg("text"),
+        pybind11::arg("opts"));
+  m.def("parseDirectoryOpts",
+        static_cast<std::optional<sem::SemId<sem::Org>>(*)(std::string const&, sem::OrgDirectoryParseParameters const&)>(&sem::parseDirectoryOpts),
+        pybind11::arg("path"),
+        pybind11::arg("opts"));
+  m.def("parseFileWithIncludes",
+        static_cast<sem::SemId<sem::File>(*)(std::string const&, sem::OrgDirectoryParseParameters const&)>(&sem::parseFileWithIncludes),
+        pybind11::arg("file"),
         pybind11::arg("opts"));
   m.def("asOneNode",
         static_cast<sem::SemId<sem::Org>(*)(sem::OrgArg)>(&sem::asOneNode),

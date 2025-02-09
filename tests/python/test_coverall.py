@@ -17,6 +17,7 @@ import types
 from coverage import Coverage
 import pytest
 from contextlib import contextmanager
+from plumbum import local
 
 CAT = __name__
 
@@ -1203,14 +1204,19 @@ def test_total_representation():
 
 
 @beartype
-def get_test_node(prefix: str = "", postfix: str = "") -> org.Org:
+def get_test_node_from_text(prefix: str = "", postfix: str = "") -> org.Org:
     file = org_corpus_dir.joinpath("py_validated_all.org")
     node = org.parseString(prefix + file.read_text() + postfix)
     return node
 
+@beartype
+def get_test_node_from_file() -> org.Org:
+    file = org_corpus_dir.joinpath("py_validated_all.org")
+    opts = org.OrgDirectoryParseParameters()
+    return org.parseFileWithIncludes(str(file), opts)
 
 def test_run_typst_exporter(cov):
-    node = get_test_node()
+    node = get_test_node_from_file()
     from py_exporters.export_typst import ExporterTypst
 
     Path("/tmp/total_repr.txt").write_text(org.treeRepr(node, colored=False))
@@ -1218,7 +1224,13 @@ def test_run_typst_exporter(cov):
     with verify_full_coverage(cov, ExporterTypst, "/tmp"):
         exp = ExporterTypst()
         exp.enableFileTrace("/tmp/typst_export_trace.log")
-        exp.eval(node)
+        res = exp.eval(node)
+
+        full_export = Path("/tmp/typst_export_file.typ")
+        full_export.write_text(exp.t.toString(res))
+
+        cmd = local["typst"].with_cwd(str(full_export.parent))
+        # cmd.run(["compile", str(full_export), str(full_export.with_suffix(".pdf"))])
 
         exp.expr(org.parseString("word"))
         exp.evalParagraph(org.Paragraph())
@@ -1244,7 +1256,7 @@ def test_run_typst_exporter(cov):
 
 
 def test_run_html_exporter(cov):
-    node = get_test_node()
+    node = get_test_node_from_text()
     from py_exporters.export_html import ExporterHtml
 
     with verify_full_coverage(cov, ExporterHtml, "/tmp"):
@@ -1257,7 +1269,7 @@ def test_run_html_exporter(cov):
 
 
 def test_run_pandoc_exporter(cov):
-    node = get_test_node()
+    node = get_test_node_from_text()
     from py_exporters.export_pandoc import ExporterPandoc
 
     with verify_full_coverage(cov, ExporterPandoc, "/tmp"):
@@ -1270,10 +1282,10 @@ def test_run_pandoc_exporter(cov):
 def test_run_tex_exporter(cov):
     from py_exporters.export_tex import ExporterLatex
     with verify_full_coverage(cov, ExporterLatex, "/tmp"):
-        ExporterLatex().eval(get_test_node())
+        ExporterLatex().eval(get_test_node_from_text())
         exp2 = ExporterLatex()
         exp2.eval(
-            get_test_node(prefix="""
+            get_test_node_from_text(prefix="""
 #+latex_class: article
 #+LATEX_CLASS_OPTIONS: [a4paper]
         """))

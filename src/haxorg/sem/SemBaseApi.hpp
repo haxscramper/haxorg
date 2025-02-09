@@ -38,6 +38,8 @@ struct [[refl]] OrgDirectoryParseParameters {
 [[refl]] sem::SemId<sem::Document> parseFile(
     std::string               file,
     OrgParseParameters const& opts);
+
+
 [[refl]] sem::SemId<sem::Document> parseString(std::string const text);
 [[refl]] sem::SemId<sem::Document> parseStringOpts(
     std::string const         text,
@@ -47,6 +49,9 @@ struct [[refl]] OrgDirectoryParseParameters {
     std::string const&                 path,
     OrgDirectoryParseParameters const& opts);
 
+[[refl]] sem::SemId<sem::File> parseFileWithIncludes(
+    std::string const&                 file,
+    OrgDirectoryParseParameters const& opts);
 
 /// \brief Remove outer wrapper containers from a node and return its
 /// single subnode.

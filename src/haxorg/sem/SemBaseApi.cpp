@@ -132,6 +132,7 @@ sem::SemId<sem::Document> sem::parseStringOpts(
     return converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
 }
 
+
 namespace {
 
 struct DirectoryParseState {
@@ -144,6 +145,31 @@ void postProcessFileReferences(
     sem::OrgArg                        parsed,
     const OrgDirectoryParseParameters& opts,
     DirectoryParseState&               state);
+
+Opt<sem::SemId<sem::File>> parseFileAux(
+    fs::path const&                    path,
+    fs::path const&                    activeRoot,
+    const OrgDirectoryParseParameters& opts,
+    DirectoryParseState&               state) {
+    LOGIC_ASSERTION_CHECK(
+        fs::is_regular_file(path),
+        "'{}' should be a regular text file",
+        path);
+
+    auto parsed = opts.getParsedNode
+                    ? opts.getParsedNode(path)
+                    : sem::parseFile(
+                          path.native(), sem::OrgParseParameters{});
+
+    if (parsed.isNil()) { return std::nullopt; }
+    postProcessFileReferences(path, activeRoot, parsed, opts, state);
+
+    sem::SemId<File> file = sem::SemId<File>::New();
+    file->relPath         = fs::relative(path, activeRoot).native();
+    file->absPath         = path.native();
+    file->push_back(parsed);
+    return file;
+}
 
 Opt<sem::SemId<Org>> parseDirectoryAux(
     fs::path const&                    path,
@@ -190,17 +216,7 @@ Opt<sem::SemId<Org>> parseDirectoryAux(
         return dir;
     } else if (fs::is_regular_file(path)) {
         if (normalize(path.extension().native()) == "org") {
-            auto parsed = opts.getParsedNode(path);
-
-            if (parsed.isNil()) { return std::nullopt; }
-            postProcessFileReferences(
-                path, activeRoot, parsed, opts, state);
-
-            sem::SemId<File> file = sem::SemId<File>::New();
-            file->relPath = fs::relative(path, activeRoot).native();
-            file->absPath = path.native();
-            file->push_back(parsed);
-            return file;
+            return parseFileAux(path, activeRoot, opts, state);
         } else {
             return std::nullopt;
         }
@@ -352,6 +368,19 @@ Opt<sem::SemId<Org>> sem::parseDirectoryOpts(
 
     DirectoryParseState state;
     return parseDirectoryAux(fs::absolute(root), root, opts, state);
+}
+
+sem::SemId<File> sem::parseFileWithIncludes(
+    const std::string&                 file,
+    const OrgDirectoryParseParameters& opts) {
+    DirectoryParseState state;
+    auto                parsed = parseFileAux(
+        file, fs::path{file}.parent_path(), opts, state);
+    if (parsed) {
+        return parsed.value();
+    } else {
+        return sem::SemId<sem::File>::New();
+    }
 }
 
 

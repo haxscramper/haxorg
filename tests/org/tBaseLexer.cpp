@@ -66,6 +66,20 @@ TEST(ManualFileRun, TestDoc1) {
     }
 }
 
+TEST(ManualFileRun, TestMain1) {
+    fs::path file{"/home/haxscramper/tmp/org_test_dir/main/main.org"};
+    if (fs::exists(file)) {
+        sem::OrgDirectoryParseParameters opts;
+
+        opts.getParsedNode = [&](std::string const& path) {
+            return sem::parseFile(path, sem::OrgParseParameters{});
+        };
+
+        auto parsed = sem::parseFileWithIncludes(file, opts);
+    }
+}
+
+
 TEST(ManualFileRun, TestDir1) {
     fs::path dir{"/home/haxscramper/tmp/org_test_dir"};
     if (fs::exists(dir)) {
@@ -115,6 +129,6 @@ TEST(ManualFileRun, TestDir1) {
             "/tmp/TestDir.png",
             gv,
             Graphviz::RenderFormat::PNG,
-            Graphviz::LayoutType::Sfdp);
+            Graphviz::LayoutType::Dot);
     }
 }

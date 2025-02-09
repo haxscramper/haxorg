@@ -1,0 +1,4 @@
+#+include: include2.org
+
+* content in the first include file
+** nested subtree
