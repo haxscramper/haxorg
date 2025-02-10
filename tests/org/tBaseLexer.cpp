@@ -1,3 +1,4 @@
+#include <haxorg/sem/ImmOrgGraph.hpp>
 #include <gtest/gtest.h>
 #include <haxorg/base_lexer/base_token.hpp>
 #include <hstd/stdlib/Json.hpp>
@@ -62,5 +63,72 @@ TEST(ManualFileRun, TestDoc1) {
             auto start = org::ImmAstContext::init_start_context();
             auto n     = start->init(sem::parseString(content));
         }
+    }
+}
+
+TEST(ManualFileRun, TestMain1) {
+    fs::path file{"/home/haxscramper/tmp/org_test_dir/main/main.org"};
+    if (fs::exists(file)) {
+        sem::OrgDirectoryParseParameters opts;
+
+        opts.getParsedNode = [&](std::string const& path) {
+            return sem::parseFile(path, sem::OrgParseParameters{});
+        };
+
+        auto parsed = sem::parseFileWithIncludes(file, opts);
+    }
+}
+
+
+TEST(ManualFileRun, TestDir1) {
+    fs::path dir{"/home/haxscramper/tmp/org_test_dir"};
+    if (fs::exists(dir)) {
+        sem::OrgDirectoryParseParameters opts;
+
+        opts.getParsedNode = [&](std::string const& path) {
+            return sem::parseFile(path, sem::OrgParseParameters{});
+        };
+
+        opts.shouldProcessPath = [](std::string const& path) -> bool {
+            if (path.contains(".git") || path.contains(".trunk")) {
+                return false;
+            } else {
+                return true;
+            }
+        };
+
+        LOG(INFO) << "Parse directory content";
+        auto parse           = sem::parseDirectoryOpts(dir, opts);
+        auto initial_context = org::ImmAstContext::init_start_context();
+        auto root            = initial_context->addRoot(parse.value());
+
+        LOG(INFO) << "Write tracking debug";
+        writeFile(
+            "/tmp/TestDirTracking.txt",
+            root.context->currentTrack->toString().toString(false));
+
+        LOG(INFO) << "Generating mind map";
+        org::graph::MapConfig conf;
+        // conf.setTraceFile("/tmp/TestDirMindMapTrace.log");
+        org::graph::MapGraphState graph{root.context};
+        org::graph::addNodeRec(graph, root.getRootAdapter(), conf);
+        auto gv = graph.graph.toGraphviz(
+            root.context,
+            org::graph::MapGraph::GvConfig{
+                .acceptNode =
+                    [&](org::graph::MapNode const& node) -> bool {
+                    // return true;
+                    return 0 < graph.graph.inDegree(node)
+                        || 0 < graph.graph.outDegree(node);
+                },
+            });
+        Graphviz gvc;
+        gv.setRankDirection(Graphviz::Graph::RankDirection::LR);
+        gvc.writeFile("/tmp/TestDir.dot", gv);
+        gvc.renderToFile(
+            "/tmp/TestDir.png",
+            gv,
+            Graphviz::RenderFormat::PNG,
+            Graphviz::LayoutType::Dot);
     }
 }

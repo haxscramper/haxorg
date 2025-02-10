@@ -1789,23 +1789,41 @@ OrgConverter::ConvResult<Latex> OrgConverter::convertMath(__args) {
     }
 }
 
-OrgConverter::ConvResult<Include> OrgConverter::convertInclude(__args) {
-    SemId<Include> include = Sem<Include>(a);
-    auto           args    = convertAttrs(one(a, N::Args));
-    include->path          = args.positional.items.at(0).getString();
+OrgConverter::ConvResult<CmdInclude> OrgConverter::convertCmdInclude(
+    __args) {
+    SemId<CmdInclude> include = Sem<CmdInclude>(a);
+    auto              args    = convertAttrs(one(a, N::Args));
+    include->path             = args.positional.items.at(0).getString();
 
     if (auto kind = args.positional.items.get(1)) {
         Str ks = kind.value().get().value;
         if (ks == "src"_ss) {
-            auto src      = sem::Include::Src{};
+            auto src      = sem::CmdInclude::Src{};
             include->data = src;
+            // Add empty source code block, converter logic does not have
+            // access to the files, so the actual content of the block will
+            // be filled in `sem::parseDirectoryOpts` or by the other
+            // processing pass.
+            auto content = Sem<BlockCode>(a);
+            include->push_back(content);
 
+        } else if (ks == "example"_ss) {
+            auto ex       = sem::CmdInclude::Example{};
+            include->data = ex;
+            auto content  = Sem<BlockExample>(a);
+            include->push_back(content);
+
+        } else if (ks == "export"_ss) {
+            auto ex       = sem::CmdInclude::Export{};
+            include->data = ex;
+            auto content  = Sem<BlockExport>(a);
+            include->push_back(content);
         } else {
             return SemError(a, fmt("Unhandled org include kind {}", ks));
         }
 
     } else {
-        include->data = sem::Include::OrgDocument{};
+        include->data = sem::CmdInclude::OrgDocument{};
     }
 
     if (args.named.contains("minlevel")) {
@@ -2290,7 +2308,7 @@ SemId<Org> OrgConverter::convert(__args) {
         case onk::BlockComment: return convertBlockComment(a).unwrap();
         case onk::BlockQuote: return convertBlockQuote(a).unwrap();
         case onk::Colon: return convertPunctuation(a).unwrap();
-        case onk::CmdInclude: return convertInclude(a).unwrap();
+        case onk::CmdInclude: return convertCmdInclude(a).unwrap();
         case onk::Symbol: return convertSymbol(a).unwrap();
         case onk::Angle: return convertPlaceholder(a).unwrap();
         case onk::Empty: return Sem<Empty>(a);

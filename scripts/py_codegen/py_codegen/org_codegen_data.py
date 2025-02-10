@@ -1420,7 +1420,17 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
         GenTuStruct(
             t_nest_shared("HashTagFlat"),
             fields=[vec_field(t_str(), "tags")],
-            methods=[eq_method(t_nest_shared("HashTagFlat"))],
+            methods=[
+                eq_method(t_nest_shared("HashTagFlat")),
+                GenTuFunction(
+                    result=t_bool(),
+                    name="operator<",
+                    arguments=[
+                        GenTuIdent(type=t_cr(t_nest_shared("HashTagFlat")), name="other")
+                    ],
+                    isConst=True,
+                ),
+            ],
         ),
         GenTuStruct(
             t_nest_shared("HashTagText"),
@@ -2529,16 +2539,58 @@ def get_types() -> Sequence[GenTuStruct]:
             bases=[t_org("Org")],
         ),
         d_org(
-            "Include",
+            "DocumentGroup",
+            bases=[t_org("Org")],
+        ),
+        d_org("File",
+              bases=[t_org("Org")],
+              fields=[
+                  str_field("relPath", "Relative path from the root directory"),
+                  str_field("absPath", "Absolute resolved path to physical file"),
+              ],
+              nested=[
+                  GenTuTypeGroup(
+                      [
+                          GenTuStruct(t_nest("Document", ["File"])),
+                          GenTuStruct(t_nest("Attachment", ["File"])),
+                          GenTuStruct(t_nest("Source", ["File"]))
+                      ],
+                      enumName=t_nest("Kind", ["File"]),
+                      kindGetter="getFileKind",
+                      variantName=t_nest("Data", ["File"]),
+                  )
+              ]),
+        d_org(
+            "Directory",
+            bases=[t_org("Org")],
+            fields=[
+                str_field(
+                    "relPath",
+                    "Relative path from the root directory, empty if this is the root directory"
+                ),
+                str_field("absPath", "Absolute resolved path to physical directory"),
+            ]),
+        d_org(
+            "Symlink",
+            bases=[t_org("Org")],
+            fields=[
+                org_field(t_bool(), "isDirectory"),
+                str_field(
+                    "absPath", "Absolute path to the symlinked target directory. "
+                    "All relative paths under symlink node use its absolute path as a root."
+                )
+            ]),
+        d_org(
+            "CmdInclude",
             bases=[t_org("Org")],
             nested=[
                 GenTuTypeGroup(
                     [
-                        org_struct(t_nest("Example", ["Include"])),
-                        org_struct(t_nest("Export", ["Include"])),
-                        org_struct(t_nest("Src", ["Include"])),
+                        org_struct(t_nest("Example", ["CmdInclude"])),
+                        org_struct(t_nest("Export", ["CmdInclude"])),
+                        org_struct(t_nest("Src", ["CmdInclude"])),
                         org_struct(
-                            t_nest("OrgDocument", ["Include"]),
+                            t_nest("OrgDocument", ["CmdInclude"]),
                             fields=[
                                 opt_field(
                                     t_int(),
@@ -2548,8 +2600,8 @@ def get_types() -> Sequence[GenTuStruct]:
                             ]),
                     ],
                     kindGetter="getIncludeKind",
-                    enumName=t_nest("Kind", ["Include"]),
-                    variantName=t_nest("Data", ["Include"]),
+                    enumName=t_nest("Kind", ["CmdInclude"]),
+                    variantName=t_nest("Data", ["CmdInclude"]),
                 )
             ],
             fields=[
@@ -2564,10 +2616,6 @@ def get_types() -> Sequence[GenTuStruct]:
                     "0-based index of the last line to include",
                 ),
             ],
-        ),
-        d_org(
-            "DocumentGroup",
-            bases=[t_org("Org")],
         ),
     ]
 

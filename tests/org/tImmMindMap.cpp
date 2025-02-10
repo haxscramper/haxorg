@@ -3,56 +3,6 @@
 
 #include "tOrgTestCommon.hpp"
 
-void addNodeRec(
-    org::graph::MapGraphState& g,
-    org::ImmAdapter const&     node,
-    org::graph::MapConfig&     conf) {
-    Func<void(org::ImmAdapter const&)> aux;
-    aux = [&](org::ImmAdapter const& node) {
-        conf.message(fmt("recursive add {}", node), "addNodeRec");
-        auto __tmp = conf.scopeLevel();
-        switch (node->getKind()) {
-            case OrgSemKind::Document:
-            case OrgSemKind::ListItem:
-            case OrgSemKind::List: {
-                for (auto const& it : node) { aux(it); }
-                break;
-            }
-            case OrgSemKind::Paragraph: {
-                auto par = node.as<org::ImmParagraph>();
-                // conf.message(
-                //     fmt("rec visit of {}\n{}",
-                //         par,
-                //         par.treeRepr().toString()));
-                if (org::graph::hasGraphAnnotations(par)) {
-                    addNode(g, node, conf);
-                } else {
-                    auto group = org::getSubnodeGroups(node, false);
-                    if (rs::any_of(group, [](auto const& it) {
-                            return it.isRadioTarget();
-                        })) {
-                        // conf.message(fmt("Paragraph has radio target"));
-                        addNode(g, node, conf);
-                    }
-                }
-                break;
-            }
-            case OrgSemKind::Subtree: {
-                if (auto tree = node.as<org::ImmSubtree>();
-                    org::graph::hasGraphAnnotations(tree)) {
-                    addNode(g, node, conf);
-                }
-
-                for (auto const& it : node) { aux(it); }
-                break;
-            }
-            default: {
-            }
-        }
-    };
-
-    aux(node);
-}
 
 struct ImmMapApi : ImmOrgApiTestBase {
     org::graph::MapConfig     conf;
@@ -61,7 +11,7 @@ struct ImmMapApi : ImmOrgApiTestBase {
     ImmMapApi() : graph{start} {}
 
     void addNodeRec(CR<org::ImmAdapter> node) {
-        ::addNodeRec(graph, node, conf);
+        ::org::graph::addNodeRec(graph, node, conf);
     }
 
     void writeGraphviz(CR<Str> name) {
@@ -443,7 +393,7 @@ TEST_F(ImmMapApi, SubtreeFullMap) {
 
     org::graph::MapConfig conf;
     conf.setTraceFile(getDebugFile("conf"));
-    ::addNodeRec(s1, v2.getRootAdapter(), conf);
+    org::graph::addNodeRec(s1, v2.getRootAdapter(), conf);
 
     EXPECT_TRUE(s1.graph.hasEdge(node_p110.uniq(), node_s12.uniq()));
     EXPECT_TRUE(s1.graph.hasEdge(node_p110.uniq(), node_s10.uniq()));
@@ -752,7 +702,7 @@ TEST_F(ImmMapApi, Doc1Graph) {
 
     org::graph::MapConfig     conf;
     org::graph::MapGraphState state{v.context};
-    ::addNodeRec(state, root, conf);
+    org::graph::addNodeRec(state, root, conf);
 
     Graphviz                       gvc;
     org::graph::MapGraph::GvConfig gvConf;

@@ -1,18 +1,42 @@
 #include "ImmOrgHash.hpp"
 
 namespace {
+const std::string loc_field = std::string{"loc"};
+
 template <typename T>
 std::size_t imm_hash_build(T const& value) {
     std::size_t result = 0;
     for_each_field_with_bases<T>([&](auto const& field) {
-        boost::hash_combine(
-            result,
-            std::hash<
-                std::remove_cvref_t<decltype(value.*field.pointer)>>{}(
-                value.*field.pointer));
+        using FieldType = DESC_FIELD_TYPE(field);
+        if (std::is_same_v<Opt<LineCol>, FieldType>
+            && field.name == loc_field) {
+            // pass
+        } else {
+            boost::hash_combine(
+                result,
+                std::hash<
+                    std::remove_cvref_t<decltype(value.*field.pointer)>>{}(
+                    value.*field.pointer));
+        }
     });
     return result;
 }
+
+template <typename T>
+bool imm_eq_build(T const* lhs, T const* rhs) {
+    bool result = true;
+    for_each_field_with_bases<T>([&](auto const& field) {
+        using FieldType = DESC_FIELD_TYPE(field);
+        if (std::is_same_v<Opt<LineCol>, FieldType>
+            && field.name == loc_field) {
+            // pass
+        } else if (result) {
+            result &= lhs->*field.pointer == rhs->*field.pointer;
+        }
+    });
+    return result;
+}
+
 } // namespace
 
 #define _define_hash(__kind)                                              \
@@ -50,15 +74,7 @@ EACH_SHARED_ORG_RECORD(_declare_hash)
 #define _eq_method(__QualType, _)                                         \
     bool org::Imm##__QualType::operator==(                                \
         org::Imm##__QualType const& other) const {                        \
-        bool result = true;                                               \
-        for_each_field_with_bases<org::Imm##__QualType>(                  \
-            [&](auto const& field) {                                      \
-                if (result) {                                             \
-                    result &= this->*field.pointer                        \
-                           == other.*field.pointer;                       \
-                }                                                         \
-            });                                                           \
-        return result;                                                    \
+        return imm_eq_build<org::Imm##__QualType>(this, &other);          \
     }
 
 EACH_SEM_ORG_RECORD(_eq_method)
@@ -67,16 +83,12 @@ EACH_SEM_ORG_RECORD(_eq_method)
 #define _eq_method(__QualType, _)                                         \
     bool sem::__QualType::operator==(sem::__QualType const& other)        \
         const {                                                           \
-        bool result = true;                                               \
-        for_each_field_with_bases<sem::__QualType>(                       \
-            [&](auto const& field) {                                      \
-                if (result) {                                             \
-                    result &= this->*field.pointer                        \
-                           == other.*field.pointer;                       \
-                }                                                         \
-            });                                                           \
-        return result;                                                    \
+        return imm_eq_build<sem::__QualType>(this, &other);               \
     }
 
 EACH_SHARED_ORG_RECORD(_eq_method)
 #undef _eq_method
+
+bool sem::HashTagFlat::operator<(sem::HashTagFlat const& other) const {
+    return this->tags < other.tags;
+}

@@ -31,6 +31,17 @@ struct std::formatter<LineCol> : std::formatter<std::string> {
     }
 };
 
+template <>
+struct std::hash<LineCol> {
+    std::size_t operator()(LineCol const& it) const noexcept {
+        std::size_t result = 0;
+        hax_hash_combine(result, it.line);
+        hax_hash_combine(result, it.column);
+        hax_hash_combine(result, it.pos);
+        return result;
+    }
+};
+
 
 /// \brief Base parse error
 struct ParseError : public std::runtime_error {

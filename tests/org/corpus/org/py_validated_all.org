@@ -194,6 +194,10 @@ paragraph [fn:1]
 | q | q |
 #+tblfm: a=b+c
 
+* Include commands
+
+#+include: include1.org
+
 * Block nodes
 
 ** With attachments

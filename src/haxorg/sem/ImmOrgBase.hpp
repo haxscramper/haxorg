@@ -456,6 +456,7 @@ struct ImmIdT : public ImmId {
 
 struct ImmOrg {
     ImmVec<ImmId>      subnodes;
+    Opt<LineCol>       loc             = std::nullopt;
     virtual OrgSemKind getKind() const = 0;
 
     ImmId at(int pos) const { return subnodes.at(pos); }
@@ -494,7 +495,7 @@ struct ImmOrg {
         return res;
     }
 
-    DESC_FIELDS(ImmOrg, (subnodes));
+    DESC_FIELDS(ImmOrg, (subnodes, loc));
 };
 
 } // namespace org
@@ -537,3 +538,16 @@ struct ReflVisitor<org::ImmId, org::ImmReflPathTag>
 template <typename T>
 struct ReflVisitor<org::ImmIdT<T>, org::ImmReflPathTag>
     : ReflVisitorLeafType<org::ImmIdT<T>, org::ImmReflPathTag> {};
+
+
+template <>
+struct hshow<org::ImmId> {
+    static void format(
+        ColStream&     s,
+        CR<org::ImmId> value,
+        CR<hshow_opts> opts) {
+        auto copy = opts;
+        copy.with_use_quotes(false);
+        hshow_ctx(s, value.format(), copy);
+    }
+};

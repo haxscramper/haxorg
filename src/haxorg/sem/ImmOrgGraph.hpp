@@ -389,6 +389,11 @@ void addNode(
     org::ImmAdapter const& node,
     MapConfig&             conf);
 
+void addNodeRec(
+    MapGraphState&         g,
+    org::ImmAdapter const& node,
+    MapConfig&             conf);
+
 Vec<MapLink> getUnresolvedSubtreeLinks(
     MapGraphState const&    s,
     ImmAdapterT<ImmSubtree> node,

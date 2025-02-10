@@ -328,6 +328,8 @@ struct ImmAstTrackingMap {
         return parents.contains(item) && parents.at(item).contains(parent);
     }
 
+    ColText toString() const;
+
     /// \brief Get a list of all nodes that specified ID is used in. Due to
     /// value interning, each specific ID can be used in multiple places at
     /// once.
@@ -868,6 +870,8 @@ struct ImmAdapter {
     }
 
     Opt<ImmAdapter> getAdjacentNode(int offset) const;
+    Opt<ImmAdapter> getFirstMatchingParent(
+        Func<bool(const org::ImmAdapter&)> pred) const;
     Opt<ImmAdapter> getParentSubtree() const;
     Vec<ImmAdapter> getAllSubnodes(
         const Opt<ImmPath>& rootPath,
@@ -1238,6 +1242,9 @@ struct ImmAdapterParagraphAPI : ImmAdapterStmtAPI {
 struct ImmAdapterColonExampleAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterCmdAttrAPI : ImmAdapterAttachedAPI {};
 struct ImmAdapterCallAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterFileAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterDirectoryAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterSymlinkAPI : ImmAdapterOrgAPI {};
 
 struct ImmAdapterListAPI : ImmAdapterStmtAPI {
     bool                isDescriptionList() const;
@@ -1272,7 +1279,7 @@ struct ImmAdapterDocumentAPI : ImmAdapterOrgAPI {
 
 struct ImmAdapterFileTargetAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterTextSeparatorAPI : ImmAdapterOrgAPI {};
-struct ImmAdapterIncludeAPI : ImmAdapterOrgAPI {};
+struct ImmAdapterCmdIncludeAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterDocumentGroupAPI : ImmAdapterOrgAPI {};
 
 // Define specializations for all final (non-abstract) org-mode types.

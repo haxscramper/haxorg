@@ -1338,16 +1338,130 @@ struct ImmTextSeparator : public org::ImmOrg {
   bool operator==(org::ImmTextSeparator const& other) const;
 };
 
-struct ImmInclude : public org::ImmOrg {
+struct ImmDocumentGroup : public org::ImmOrg {
   using ImmOrg::ImmOrg;
-  virtual ~ImmInclude() = default;
+  virtual ~ImmDocumentGroup() = default;
+  BOOST_DESCRIBE_CLASS(ImmDocumentGroup,
+                       (ImmOrg),
+                       (),
+                       (),
+                       (staticKind))
+  static OrgSemKind const staticKind;
+  virtual OrgSemKind getKind() const { return OrgSemKind::DocumentGroup; }
+  bool operator==(org::ImmDocumentGroup const& other) const;
+};
+
+struct ImmFile : public org::ImmOrg {
+  using ImmOrg::ImmOrg;
+  virtual ~ImmFile() = default;
+  struct Document {
+    BOOST_DESCRIBE_CLASS(Document,
+                         (),
+                         (),
+                         (),
+                         ())
+    bool operator==(org::ImmFile::Document const& other) const;
+  };
+
+  struct Attachment {
+    BOOST_DESCRIBE_CLASS(Attachment,
+                         (),
+                         (),
+                         (),
+                         ())
+    bool operator==(org::ImmFile::Attachment const& other) const;
+  };
+
+  struct Source {
+    BOOST_DESCRIBE_CLASS(Source,
+                         (),
+                         (),
+                         (),
+                         ())
+    bool operator==(org::ImmFile::Source const& other) const;
+  };
+
+  using Data = std::variant<org::ImmFile::Document, org::ImmFile::Attachment, org::ImmFile::Source>;
+  enum class Kind : short int { Document, Attachment, Source, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, Document, Attachment, Source)
+  using variant_enum_type = org::ImmFile::Kind;
+  using variant_data_type = org::ImmFile::Data;
+  BOOST_DESCRIBE_CLASS(ImmFile,
+                       (ImmOrg),
+                       (),
+                       (),
+                       (staticKind,
+                        relPath,
+                        absPath,
+                        data))
+  static OrgSemKind const staticKind;
+  /// \brief Relative path from the root directory
+  ImmBox<Str> relPath = "";
+  /// \brief Absolute resolved path to physical file
+  ImmBox<Str> absPath = "";
+  org::ImmFile::Data data;
+  virtual OrgSemKind getKind() const { return OrgSemKind::File; }
+  bool operator==(org::ImmFile const& other) const;
+  bool isDocument() const { return getFileKind() == Kind::Document; }
+  org::ImmFile::Document const& getDocument() const { return std::get<0>(data); }
+  org::ImmFile::Document& getDocument() { return std::get<0>(data); }
+  bool isAttachment() const { return getFileKind() == Kind::Attachment; }
+  org::ImmFile::Attachment const& getAttachment() const { return std::get<1>(data); }
+  org::ImmFile::Attachment& getAttachment() { return std::get<1>(data); }
+  bool isSource() const { return getFileKind() == Kind::Source; }
+  org::ImmFile::Source const& getSource() const { return std::get<2>(data); }
+  org::ImmFile::Source& getSource() { return std::get<2>(data); }
+  static org::ImmFile::Kind getFileKind(org::ImmFile::Data const& __input) { return static_cast<org::ImmFile::Kind>(__input.index()); }
+  org::ImmFile::Kind getFileKind() const { return getFileKind(data); }
+};
+
+struct ImmDirectory : public org::ImmOrg {
+  using ImmOrg::ImmOrg;
+  virtual ~ImmDirectory() = default;
+  BOOST_DESCRIBE_CLASS(ImmDirectory,
+                       (ImmOrg),
+                       (),
+                       (),
+                       (staticKind,
+                        relPath,
+                        absPath))
+  static OrgSemKind const staticKind;
+  /// \brief Relative path from the root directory, empty if this is the root directory
+  ImmBox<Str> relPath = "";
+  /// \brief Absolute resolved path to physical directory
+  ImmBox<Str> absPath = "";
+  virtual OrgSemKind getKind() const { return OrgSemKind::Directory; }
+  bool operator==(org::ImmDirectory const& other) const;
+};
+
+struct ImmSymlink : public org::ImmOrg {
+  using ImmOrg::ImmOrg;
+  virtual ~ImmSymlink() = default;
+  BOOST_DESCRIBE_CLASS(ImmSymlink,
+                       (ImmOrg),
+                       (),
+                       (),
+                       (staticKind,
+                        isDirectory,
+                        absPath))
+  static OrgSemKind const staticKind;
+  bool isDirectory;
+  /// \brief Absolute path to the symlinked target directory. All relative paths under symlink node use its absolute path as a root.
+  ImmBox<Str> absPath = "";
+  virtual OrgSemKind getKind() const { return OrgSemKind::Symlink; }
+  bool operator==(org::ImmSymlink const& other) const;
+};
+
+struct ImmCmdInclude : public org::ImmOrg {
+  using ImmOrg::ImmOrg;
+  virtual ~ImmCmdInclude() = default;
   struct Example {
     BOOST_DESCRIBE_CLASS(Example,
                          (),
                          (),
                          (),
                          ())
-    bool operator==(org::ImmInclude::Example const& other) const;
+    bool operator==(org::ImmCmdInclude::Example const& other) const;
   };
 
   struct Export {
@@ -1356,7 +1470,7 @@ struct ImmInclude : public org::ImmOrg {
                          (),
                          (),
                          ())
-    bool operator==(org::ImmInclude::Export const& other) const;
+    bool operator==(org::ImmCmdInclude::Export const& other) const;
   };
 
   struct Src {
@@ -1365,7 +1479,7 @@ struct ImmInclude : public org::ImmOrg {
                          (),
                          (),
                          ())
-    bool operator==(org::ImmInclude::Src const& other) const;
+    bool operator==(org::ImmCmdInclude::Src const& other) const;
   };
 
   struct OrgDocument {
@@ -1376,15 +1490,15 @@ struct ImmInclude : public org::ImmOrg {
                          (minLevel))
     /// \brief The minimum level of headlines to include. Headlines with a level smaller than this value will be demoted to this level.
     ImmBox<Opt<int>> minLevel = std::nullopt;
-    bool operator==(org::ImmInclude::OrgDocument const& other) const;
+    bool operator==(org::ImmCmdInclude::OrgDocument const& other) const;
   };
 
-  using Data = std::variant<org::ImmInclude::Example, org::ImmInclude::Export, org::ImmInclude::Src, org::ImmInclude::OrgDocument>;
+  using Data = std::variant<org::ImmCmdInclude::Example, org::ImmCmdInclude::Export, org::ImmCmdInclude::Src, org::ImmCmdInclude::OrgDocument>;
   enum class Kind : short int { Example, Export, Src, OrgDocument, };
   BOOST_DESCRIBE_NESTED_ENUM(Kind, Example, Export, Src, OrgDocument)
-  using variant_enum_type = org::ImmInclude::Kind;
-  using variant_data_type = org::ImmInclude::Data;
-  BOOST_DESCRIBE_CLASS(ImmInclude,
+  using variant_enum_type = org::ImmCmdInclude::Kind;
+  using variant_data_type = org::ImmCmdInclude::Data;
+  BOOST_DESCRIBE_CLASS(ImmCmdInclude,
                        (ImmOrg),
                        (),
                        (),
@@ -1400,36 +1514,23 @@ struct ImmInclude : public org::ImmOrg {
   ImmBox<Opt<int>> firstLine = std::nullopt;
   /// \brief 0-based index of the last line to include
   ImmBox<Opt<int>> lastLine = std::nullopt;
-  org::ImmInclude::Data data;
-  virtual OrgSemKind getKind() const { return OrgSemKind::Include; }
-  bool operator==(org::ImmInclude const& other) const;
+  org::ImmCmdInclude::Data data;
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdInclude; }
+  bool operator==(org::ImmCmdInclude const& other) const;
   bool isExample() const { return getIncludeKind() == Kind::Example; }
-  org::ImmInclude::Example const& getExample() const { return std::get<0>(data); }
-  org::ImmInclude::Example& getExample() { return std::get<0>(data); }
+  org::ImmCmdInclude::Example const& getExample() const { return std::get<0>(data); }
+  org::ImmCmdInclude::Example& getExample() { return std::get<0>(data); }
   bool isExport() const { return getIncludeKind() == Kind::Export; }
-  org::ImmInclude::Export const& getExport() const { return std::get<1>(data); }
-  org::ImmInclude::Export& getExport() { return std::get<1>(data); }
+  org::ImmCmdInclude::Export const& getExport() const { return std::get<1>(data); }
+  org::ImmCmdInclude::Export& getExport() { return std::get<1>(data); }
   bool isSrc() const { return getIncludeKind() == Kind::Src; }
-  org::ImmInclude::Src const& getSrc() const { return std::get<2>(data); }
-  org::ImmInclude::Src& getSrc() { return std::get<2>(data); }
+  org::ImmCmdInclude::Src const& getSrc() const { return std::get<2>(data); }
+  org::ImmCmdInclude::Src& getSrc() { return std::get<2>(data); }
   bool isOrgDocument() const { return getIncludeKind() == Kind::OrgDocument; }
-  org::ImmInclude::OrgDocument const& getOrgDocument() const { return std::get<3>(data); }
-  org::ImmInclude::OrgDocument& getOrgDocument() { return std::get<3>(data); }
-  static org::ImmInclude::Kind getIncludeKind(org::ImmInclude::Data const& __input) { return static_cast<org::ImmInclude::Kind>(__input.index()); }
-  org::ImmInclude::Kind getIncludeKind() const { return getIncludeKind(data); }
-};
-
-struct ImmDocumentGroup : public org::ImmOrg {
-  using ImmOrg::ImmOrg;
-  virtual ~ImmDocumentGroup() = default;
-  BOOST_DESCRIBE_CLASS(ImmDocumentGroup,
-                       (ImmOrg),
-                       (),
-                       (),
-                       (staticKind))
-  static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::DocumentGroup; }
-  bool operator==(org::ImmDocumentGroup const& other) const;
+  org::ImmCmdInclude::OrgDocument const& getOrgDocument() const { return std::get<3>(data); }
+  org::ImmCmdInclude::OrgDocument& getOrgDocument() { return std::get<3>(data); }
+  static org::ImmCmdInclude::Kind getIncludeKind(org::ImmCmdInclude::Data const& __input) { return static_cast<org::ImmCmdInclude::Kind>(__input.index()); }
+  org::ImmCmdInclude::Kind getIncludeKind() const { return getIncludeKind(data); }
 };
 
 }

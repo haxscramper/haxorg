@@ -198,16 +198,20 @@
     __IMPL(Time, Static, (Static)) \
     __IMPL(Time, Dynamic, (Dynamic)) \
     __IMPL(Symbol, Param, (Param)) \
-    __IMPL(Include, Example, (Example)) \
-    __IMPL(Include, Export, (Export)) \
-    __IMPL(Include, Src, (Src)) \
-    __IMPL(Include, OrgDocument, (OrgDocument))
+    __IMPL(File, Document, (Document)) \
+    __IMPL(File, Attachment, (Attachment)) \
+    __IMPL(File, Source, (Source)) \
+    __IMPL(CmdInclude, Example, (Example)) \
+    __IMPL(CmdInclude, Export, (Export)) \
+    __IMPL(CmdInclude, Src, (Src)) \
+    __IMPL(CmdInclude, OrgDocument, (OrgDocument))
 #define EACH_SEM_ORG_ENUM_NESTED(__IMPL) \
     __IMPL(Time, Repeat::Mode, (Repeat, Mode)) \
     __IMPL(Time, Repeat::Period, (Repeat, Period)) \
     __IMPL(Time, TimeKind, (TimeKind)) \
     __IMPL(ListItem, Checkbox, (Checkbox)) \
-    __IMPL(Include, Kind, (Kind))
+    __IMPL(File, Kind, (Kind)) \
+    __IMPL(CmdInclude, Kind, (Kind))
 #define EACH_SEM_ORG_RECORD(__IMPL) \
     __IMPL(None, (None)) \
     __IMPL(ErrorItem, (ErrorItem)) \
@@ -287,12 +291,18 @@
     __IMPL(Document, (Document)) \
     __IMPL(FileTarget, (FileTarget)) \
     __IMPL(TextSeparator, (TextSeparator)) \
-    __IMPL(Include, (Include)) \
-    __IMPL(Include::Example, (Include, Example)) \
-    __IMPL(Include::Export, (Include, Export)) \
-    __IMPL(Include::Src, (Include, Src)) \
-    __IMPL(Include::OrgDocument, (Include, OrgDocument)) \
-    __IMPL(DocumentGroup, (DocumentGroup))
+    __IMPL(DocumentGroup, (DocumentGroup)) \
+    __IMPL(File, (File)) \
+    __IMPL(File::Document, (File, Document)) \
+    __IMPL(File::Attachment, (File, Attachment)) \
+    __IMPL(File::Source, (File, Source)) \
+    __IMPL(Directory, (Directory)) \
+    __IMPL(Symlink, (Symlink)) \
+    __IMPL(CmdInclude, (CmdInclude)) \
+    __IMPL(CmdInclude::Example, (CmdInclude, Example)) \
+    __IMPL(CmdInclude::Export, (CmdInclude, Export)) \
+    __IMPL(CmdInclude::Src, (CmdInclude, Src)) \
+    __IMPL(CmdInclude::OrgDocument, (CmdInclude, OrgDocument))
 #define EACH_SEM_ORG_KIND(__IMPL) \
     __IMPL(None) \
     __IMPL(ErrorItem) \
@@ -360,8 +370,11 @@
     __IMPL(Document) \
     __IMPL(FileTarget) \
     __IMPL(TextSeparator) \
-    __IMPL(Include) \
-    __IMPL(DocumentGroup)
+    __IMPL(DocumentGroup) \
+    __IMPL(File) \
+    __IMPL(Directory) \
+    __IMPL(Symlink) \
+    __IMPL(CmdInclude)
 #define EACH_SEM_ORG_FINAL_TYPE_BASE(__IMPL) \
     __IMPL(None, Org) \
     __IMPL(ErrorItem, Org) \
@@ -429,8 +442,11 @@
     __IMPL(Document, Org) \
     __IMPL(FileTarget, Org) \
     __IMPL(TextSeparator, Org) \
-    __IMPL(Include, Org) \
-    __IMPL(DocumentGroup, Org)
+    __IMPL(DocumentGroup, Org) \
+    __IMPL(File, Org) \
+    __IMPL(Directory, Org) \
+    __IMPL(Symlink, Org) \
+    __IMPL(CmdInclude, Org)
 #define EACH_SEM_ORG_TYPE_BASE(__IMPL) \
     __IMPL(None, Org) \
     __IMPL(ErrorItem, Org) \
@@ -506,8 +522,11 @@
     __IMPL(Document, Org) \
     __IMPL(FileTarget, Org) \
     __IMPL(TextSeparator, Org) \
-    __IMPL(Include, Org) \
-    __IMPL(DocumentGroup, Org)
+    __IMPL(DocumentGroup, Org) \
+    __IMPL(File, Org) \
+    __IMPL(Directory, Org) \
+    __IMPL(Symlink, Org) \
+    __IMPL(CmdInclude, Org)
 enum class ListFormattingMode : short int { None, Table1D1Col, Table1D2Col, Table2DColFirst, };
 template <>
 struct enum_serde<ListFormattingMode> {
@@ -826,7 +845,7 @@ struct value_domain<OrgNodeKind> : public value_domain_ungapped<OrgNodeKind,
                                                                 OrgNodeKind::None,
                                                                 OrgNodeKind::SubtreeImportance> {};
 
-enum class OrgSemKind : short int { None, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdResults, CmdTblfm, HashTag, InlineFootnote, InlineExport, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, RadioTarget, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCode, SubtreeLog, Subtree, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, CmdExport, Call, List, ListItem, DocumentOptions, Document, FileTarget, TextSeparator, Include, DocumentGroup, };
+enum class OrgSemKind : short int { None, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdResults, CmdTblfm, HashTag, InlineFootnote, InlineExport, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, RadioTarget, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCode, SubtreeLog, Subtree, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, CmdExport, Call, List, ListItem, DocumentOptions, Document, FileTarget, TextSeparator, DocumentGroup, File, Directory, Symlink, CmdInclude, };
 template <>
 struct enum_serde<OrgSemKind> {
   static Opt<OrgSemKind> from_string(std::string value);
@@ -836,7 +855,7 @@ struct enum_serde<OrgSemKind> {
 template <>
 struct value_domain<OrgSemKind> : public value_domain_ungapped<OrgSemKind,
                                                                OrgSemKind::None,
-                                                               OrgSemKind::DocumentGroup> {};
+                                                               OrgSemKind::CmdInclude> {};
 
 
 template <>

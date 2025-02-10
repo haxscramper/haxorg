@@ -267,16 +267,23 @@ Opt<ImmAdapter> ImmAdapter::getAdjacentNode(int offset) const {
     }
 }
 
-Opt<ImmAdapter> ImmAdapter::getParentSubtree() const {
+Opt<ImmAdapter> ImmAdapter::getFirstMatchingParent(
+    Func<bool(org::ImmAdapter const&)> pred) const {
     auto parent = getParent();
     while (parent) {
-        if (parent->is(OrgSemKind::Subtree)) {
+        if (pred(parent.value())) {
             return parent;
         } else {
             parent = parent->getParent();
         }
     }
     return std::nullopt;
+}
+
+Opt<ImmAdapter> ImmAdapter::getParentSubtree() const {
+    return getFirstMatchingParent([](org::ImmAdapter const& ad) {
+        return ad->is(OrgSemKind::Subtree);
+    });
 }
 
 Vec<ImmAdapter> ImmAdapter::getAllSubnodes(
@@ -952,6 +959,40 @@ Vec<ImmId> ImmAstReplaceGroup::newSubnodes(Vec<ImmId> oldSubnodes) const {
 }
 
 ImmParentIdVec EmptyImmParentIdVec;
+
+ColText ImmAstTrackingMap::toString() const {
+    ColStream os;
+
+    CR<hshow_opts> opts = hshow_opts{};
+
+    auto write_map = [&]<typename K, typename V>(ImmMap<K, V> const& map) {
+        auto keys = map | rv::transform([](auto const& pair) {
+                        return pair.first;
+                    })
+                  | rs::to<Vec>();
+        for (auto const& key : sorted(keys)) {
+            os.indent(2);
+            hshow_ctx(os, key, opts);
+            os << ": ";
+            hshow_ctx(os, map.at(key), opts);
+            os << "\n";
+        }
+    };
+
+#define __it(name)                                                        \
+    os << #name << "\n";                                                  \
+    write_map(name);
+
+    __it(footnotes);
+    __it(subtrees);
+    __it(anchorTargets);
+    __it(names);
+    // __it(parents);
+    __it(hashtagDefinitions);
+    __it(radioTargets);
+
+    return os.getBuffer();
+}
 
 const ImmParentIdVec& ImmAstTrackingMap::getParentIds(
     const ImmId& it) const {
