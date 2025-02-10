@@ -73,6 +73,8 @@ TEST_F(ImmOrgApi, ItearteParentNodes) {
     auto par_id       = doc_id.at(0);
     auto space_id     = par_id.at(1);
 
+    writeTreeRepr(r, "repr.txt");
+
     EXPECT_EQ(space_id->getKind(), OrgSemKind::Space);
     {
         org::ImmParentIdVec parents = v1.context->getParentIds(

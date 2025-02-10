@@ -352,7 +352,7 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
                             location=get_location(node),
                         ))
 
-            case osk.Newline | osk.Space | osk.Empty | osk.TextSeparator | osk.CmdCaption | osk.CmdTblfm | osk.Include:
+            case osk.Newline | osk.Space | osk.Empty | osk.TextSeparator | osk.CmdCaption | osk.CmdTblfm | osk.CmdInclude:
                 pass
 
             case osk.BlockCode:
