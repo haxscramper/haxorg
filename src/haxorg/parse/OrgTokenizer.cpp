@@ -266,6 +266,9 @@ struct RecombineState {
         otk::ParBegin,
         otk::ParEnd,
         otk::AnyPunct,
+        otk::ForwardSlash,
+        otk::Asterisk,
+        otk::Underline,
     };
 
     void recombine_markup() {
@@ -279,6 +282,10 @@ struct RecombineState {
                  {otk::BoldBegin, otk::BoldEnd, otk::BoldUnknown}},
                 {otk::ForwardSlash,
                  {otk::ItalicBegin, otk::ItalicEnd, otk::ItalicUnknown}},
+                {otk::Underline,
+                 {otk::UnderlineBegin,
+                  otk::UnderlineEnd,
+                  otk::UnderlineUnknown}},
                 {otk::Equals,
                  {otk::VerbatimBegin,
                   otk::VerbatimEnd,
@@ -449,6 +456,7 @@ struct RecombineState {
             case otk::ForwardSlash:
             case otk::Equals:
             case otk::Tilda:
+            case otk::Underline:
             case otk::Asterisk: {
                 recombine_markup();
                 break;

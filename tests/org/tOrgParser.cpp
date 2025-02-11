@@ -765,3 +765,64 @@ TEST(OrgParseSem, SubtreeTitle) {
         EXPECT_EQ(i.getCleanTitle(), "Time"_ss);
     }
 }
+
+TEST(OrgParserSem, TestMarkup) {
+    Str text{R"(
+test /Italic/
+
+/Italic with space/
+
+/*italic bold*/
+
+*Bold*
+
+*Bold with space*
+
+*/bold italic/*
+
+_Underline_
+
+_Underline with space_
+
+_*bold underline*_
+
+~Monospace~
+
+=Verbatim=
+
++strike+
+
++strike with space+
+
+Punctuation , .
+
+@mention
+)"};
+
+    auto doc = parseOne<sem::Document>(text, getDebugFile("test_markup"));
+
+    auto get = [&](CVec<int> path) {
+        auto result = doc.asOrg();
+        for (int i : path) { result = result.at(i); }
+        return result;
+    };
+
+    EXPECT_EQ2(get({1})->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ2(get({1, 2})->getKind(), OrgSemKind::Italic);
+    EXPECT_EQ2(get({3, 0})->getKind(), OrgSemKind::Italic);
+    EXPECT_EQ2(get({5, 0})->getKind(), OrgSemKind::Italic);
+    EXPECT_EQ2(get({5, 0, 0})->getKind(), OrgSemKind::Bold);
+    EXPECT_EQ2(get({7, 0})->getKind(), OrgSemKind::Bold);
+    EXPECT_EQ2(get({9, 0})->getKind(), OrgSemKind::Bold);
+    EXPECT_EQ2(get({11, 0})->getKind(), OrgSemKind::Bold);
+    EXPECT_EQ2(get({11, 0, 0})->getKind(), OrgSemKind::Italic);
+    EXPECT_EQ2(get({13, 0})->getKind(), OrgSemKind::Underline);
+    EXPECT_EQ2(get({15, 0})->getKind(), OrgSemKind::Underline);
+    EXPECT_EQ2(get({17, 0})->getKind(), OrgSemKind::Underline);
+    EXPECT_EQ2(get({17, 0, 0})->getKind(), OrgSemKind::Bold);
+    EXPECT_EQ2(get({19, 0})->getKind(), OrgSemKind::Monospace);
+    EXPECT_EQ2(get({19, 0, 0})->getKind(), OrgSemKind::RawText);
+    EXPECT_EQ2(get({21, 0})->getKind(), OrgSemKind::Verbatim);
+    EXPECT_EQ2(get({21, 0, 0})->getKind(), OrgSemKind::RawText);
+    EXPECT_EQ2(get({23, 0})->getKind(), OrgSemKind::Strike);
+}

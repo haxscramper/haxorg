@@ -37,6 +37,7 @@ rx_macros:
   - { name: maybe_12h_time, value: "(\\s?(am|AM|pm|PM))?" }
   - { name: "any_non_space_link", value: "[^\\s\\]}}]" }
   - { name: "any_non_brace_link", value: "[^\\]}}]" }
+  - { name: "word_letter", value: "[\\w--[_]]" }
 
 sub_lexers:
   http_link:
@@ -767,6 +768,7 @@ rules:
   - { lit: "&", token: Ampersand }
   - { lit: "!", token: Exclamation }
   - { lit: "/", token: ForwardSlash }
+  - { lit: "_", token: "Underline" }
   - { re: "[\\.?]", token: AnyPunct }
   - { re: "{lead_space}-(?={space}+)", token: LeadingMinus }
   - { re: "{lead_space}\\+(?={space}+)", token: LeadingPlus }
@@ -807,8 +809,8 @@ rules:
   - { lit: "|", token: Pipe }
   - { lit: "`", token: Backtick }
   - { re: "\\p{{Punctuation}}", token: AnyPunct }
-  - { re: "\\w+('\\w+)?", token: Word }
-  - { re: "(\\w+-)+\\w+('\\w+)?", token: Word }
+  - { re: "{word_letter}+('{word_letter}+)?", token: Word }
+  - { re: "({word_letter}+-)+{word_letter}+('{word_letter}+)?", token: Word }
   - { re: "\\$", token: Dollar }
   - {
       re: "[\\x{{0128}}-\\x{{10FFFF}}]|×|©|°|¹|²|³|¥|π|√|¶|∆",
