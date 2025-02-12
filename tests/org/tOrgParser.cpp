@@ -794,9 +794,13 @@ _*bold underline*_
 
 +strike with space+
 
-Punctuation , .
-
 @mention
+
+work_with_space
+
+BIG_IDENT
+
+other
 )"};
 
     auto doc = parseOne<sem::Document>(text, getDebugFile("test_markup"));
@@ -825,4 +829,10 @@ Punctuation , .
     EXPECT_EQ2(get({21, 0})->getKind(), OrgSemKind::Verbatim);
     EXPECT_EQ2(get({21, 0, 0})->getKind(), OrgSemKind::RawText);
     EXPECT_EQ2(get({23, 0})->getKind(), OrgSemKind::Strike);
+    EXPECT_EQ2(get({25, 0})->getKind(), OrgSemKind::Strike);
+    EXPECT_EQ2(get({27, 0})->getKind(), OrgSemKind::AtMention);
+    EXPECT_EQ2(get({29, 0})->getKind(), OrgSemKind::Word);
+    EXPECT_EQ2(get({29}).size(), 1);
+    EXPECT_EQ2(get({31, 0})->getKind(), OrgSemKind::BigIdent);
+    EXPECT_EQ2(get({31}).size(), 1);
 }

@@ -3,6 +3,9 @@
 
 using namespace sem;
 
+#pragma clang diagnostic error "-Wswitch"
+
+
 namespace {
 long GetTimeDelta(CR<UserTime> from, CR<UserTime> to) {
     auto from_utc = absl::ToCivilSecond(
@@ -17,6 +20,10 @@ std::string FormatTimeDelta(long delta_seconds) {
     long hours   = delta / 60;
     long minutes = delta % 60;
     return std::format("{}:{:02}", hours, minutes);
+}
+
+std::string FormatPath(sem::SubtreePath const& path) {
+    return join("/", path.path);
 }
 
 } // namespace
@@ -534,13 +541,25 @@ auto Formatter::toString(sem::LinkTarget const& t, CR<Context> ctx)
             break;
         }
 
+        case LinkTarget::Kind::CustomId: {
+            head = str("#" + t.getCustomId().text);
+            break;
+        }
+
+        case LinkTarget::Kind::SubtreeTitle: {
+            head = str("*" + FormatPath(t.getSubtreeTitle().title));
+            break;
+        }
+
         case LinkTarget::Kind::Footnote: {
             head = str("fn:"_ss + t.getFootnote().target);
             break;
         }
 
-        default: {
-            LOG(FATAL) << fmt1(t.getKind());
+        case LinkTarget::Kind::UserProtocol: {
+            head = str(
+                t.getUserProtocol().protocol + ":"_ss
+                + t.getUserProtocol().target);
         }
     }
 
@@ -1016,6 +1035,51 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
         for (auto const& prop : id->properties) {
             using P = sem::NamedProperty;
             switch (prop.getKind()) {
+                case P::Kind::ArchiveTodo: {
+                    add(head,
+                        str(
+                            fmt(":archive_todo: {}",
+                                prop.getArchiveTodo().todo)));
+                    break;
+                }
+                case P::Kind::ArchiveTarget: {
+                    add(head,
+                        str(fmt(
+                            ":archive: {}::* {}",
+                            prop.getArchiveTarget().pattern,
+                            FormatPath(prop.getArchiveTarget().path))));
+                    break;
+                }
+                case P::Kind::ArchiveOlpath: {
+                    add(head,
+                        str(fmt(
+                            ":archive_olpath: {}",
+                            FormatPath(prop.getArchiveOlpath().path))));
+                    break;
+                }
+                case P::Kind::ArchiveTime: {
+                    add(head,
+                        str(
+                            fmt(":archive_time: [{}]",
+                                prop.getArchiveTime().time.format(
+                                    UserTime::Format::OrgFormat))));
+                    break;
+                }
+                case P::Kind::Nonblocking: {
+                    add(head,
+                        str(fmt(
+                            ":nonblocking: {}",
+                            prop.getNonblocking().isBlocking ? "t"
+                                                             : "nil")));
+                    break;
+                }
+                case P::Kind::ArchiveCategory: {
+                    add(head,
+                        str(
+                            fmt(":archive_category: {}",
+                                prop.getArchiveCategory().category)));
+                    break;
+                }
                 case P::Kind::Created: {
                     add(head,
                         b.line({
@@ -1052,8 +1116,12 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
                                 prop.getVisibility().level)));
                     break;
                 }
-                default: {
-                    LOG(FATAL) << fmt1(prop.getKind());
+                case P::Kind::ArchiveFile: {
+                    add(head,
+                        str(
+                            fmt(":archive_file: {}",
+                                prop.getArchiveFile().file)));
+                    break;
                 }
             }
         }

@@ -1230,7 +1230,7 @@ def test_run_typst_exporter(cov):
         full_export.write_text(exp.t.toString(res))
 
         cmd = local["typst"].with_cwd(str(full_export.parent))
-        # cmd.run(["compile", str(full_export), str(full_export.with_suffix(".pdf"))])
+        cmd.run(["compile", str(full_export), str(full_export.with_suffix(".pdf"))])
 
         exp.expr(org.parseString("word"))
         exp.evalParagraph(org.Paragraph())
