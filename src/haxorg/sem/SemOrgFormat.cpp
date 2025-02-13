@@ -1356,7 +1356,7 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
 
                 default: {
                     log_head = b.line({
-                        str(" -"),
+                        str("- "),
                         toString(log->desc.value(), ctx),
                     });
                 }
