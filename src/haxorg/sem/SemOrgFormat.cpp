@@ -1035,6 +1035,65 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
         for (auto const& prop : id->properties) {
             using P = sem::NamedProperty;
             switch (prop.getKind()) {
+                case P::Kind::ExportLatexCompiler: {
+                    add(head,
+                        str(
+                            fmt(":latex_compiler: {}",
+                                prop.getExportLatexCompiler().compiler)));
+                    break;
+                }
+                case P::Kind::ExportOptions: {
+                    add(head,
+                        str(
+                            fmt(":export_options:{}: {}",
+                                prop.getExportOptions().backend,
+                                prop.getExportOptions().values
+                                    | rv::transform(
+                                        [](Pair<Str, Str> const& pair) {
+                                            return fmt(
+                                                "{}:{}",
+                                                pair.first,
+                                                pair.second);
+                                        })
+                                    | rv::intersperse(" ") //
+                                    | rv::join             //
+                                    | rs::to<std::string>())));
+                    break;
+                }
+                case P::Kind::ExportLatexClassOptions: {
+                    add(head,
+                        str(fmt(
+                            ":latex_class_options: {}",
+                            prop.getExportLatexClassOptions().options)));
+                    break;
+                }
+                case P::Kind::CookieData: {
+                    add(head,
+                        str(fmt(
+                            ":cookie: {}{}",
+                            prop.getCookieData().source,
+                            prop.getCookieData().isRecursive ? " recursive"
+                                                             : "")));
+                    break;
+                }
+                case P::Kind::ExportLatexHeader: {
+                    add(head,
+                        str(
+                            fmt(":latex_header: {}",
+                                prop.getExportLatexHeader().header)));
+                    break;
+                }
+                case P::Kind::ExportLatexClass: {
+                    add(head,
+                        str(
+                            fmt(":latex_class: {}",
+                                prop.getExportLatexClass().latexClass)));
+                    break;
+                }
+                case P::Kind::Trigger: {
+                    add(head, str(fmt(":trigger:")));
+                    break;
+                }
                 case P::Kind::ArchiveTodo: {
                     add(head,
                         str(
@@ -1065,12 +1124,57 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
                                     UserTime::Format::OrgFormat))));
                     break;
                 }
+                case P::Kind::Ordered: {
+                    add(head,
+                        str(fmt(
+                            ":ordered: {}",
+                            prop.getOrdered().isOrdered ? "t" : "nil")));
+                    break;
+                }
                 case P::Kind::Nonblocking: {
                     add(head,
                         str(fmt(
                             ":nonblocking: {}",
                             prop.getNonblocking().isBlocking ? "t"
                                                              : "nil")));
+                    break;
+                }
+                case P::Kind::HashtagDef: {
+                    add(head,
+                        str(fmt(
+                            ":hashtag_def: {}",
+                            nestedHashtag(prop.getHashtagDef().hashtag))));
+                    break;
+                }
+                case P::Kind::CustomArgs: {
+                    auto const& ca   = prop.getCustomArgs();
+                    auto        line = b.line();
+                    add(line,
+                        str(
+                            fmt(":{}:{}{} ",
+                                ca.name,
+                                ca.sub.value_or(""),
+                                ca.sub ? ":" : "")));
+
+                    add(line, toString(ca.attrs, ctx));
+                    add(head, line);
+                    break;
+                }
+                case P::Kind::RadioId: {
+                    add(head,
+                        str(
+                            fmt(":radio_id: {}",
+                                join(" ", prop.getRadioId().words))));
+                    break;
+                }
+                case P::Kind::Unnumbered: {
+                    add(head, str(fmt(":unnumbered:")));
+                    break;
+                }
+                case P::Kind::Blocker: {
+                    add(head,
+                        str(fmt(
+                            ":blocker: {}", prop.getBlocker().blockers)));
                     break;
                 }
                 case P::Kind::ArchiveCategory: {
