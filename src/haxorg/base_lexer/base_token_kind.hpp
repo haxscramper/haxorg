@@ -206,6 +206,7 @@ enum class OrgTokenKind : unsigned short int {
   TreeTime,
   TripleAngleBegin,
   TripleAngleEnd,
+  Underline,
   UnderlineBegin,
   UnderlineEnd,
   UnderlineUnknown,

@@ -328,6 +328,15 @@ class ExporterTypst(ExporterBase):
             case _:
                 return self.t.string(f"TODO {node.target.getKind()}")
 
+    def evalCmdInclude(self, node: org.CmdInclude) -> BlockId:
+        match node.getIncludeKind():
+            case org.CmdIncludeKind.OrgDocument:
+                log(CAT).info(f"{org.treeRepr(node)}")
+                return eval(node.subnodes[0])
+
+            case _:
+                return self.t.string(f"TODO {node.getIncludeKind()}")
+
     def evalTimeRange(self, node: org.TimeRange) -> BlockId:
         return self.t.line([
             self.exp.eval(node.from_),

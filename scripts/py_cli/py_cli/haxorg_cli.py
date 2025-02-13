@@ -66,13 +66,22 @@ def get_run(ctx: click.Context) -> CliRunContext:
 
 
 @beartype
-def parseCachedFile(file: Path, cache: Optional[Path]) -> org.Org:
+def parseCachedFile(file: Path, cache: Optional[Path], with_includes: bool = True) -> org.Org:
     cache_file = None if not cache else Path(cache).joinpath(file.name)
+
+    def aux():
+        if with_includes:
+            opts = org.OrgDirectoryParseParameters()
+            return org.parseFileWithIncludes(str(file.resolve()), opts)
+        else:
+            return org.parseFile(str(file.resolve()))
+
     if cache_file:
         with FileOperation.InOut([file], [cache_file]) as op:
             if op.should_run():
                 log("haxorg.cache").info(f"{file} parsing")
-                node = org.parseFile(str(file.resolve()))
+                node = aux()
+
                 if not cache_file.parent.exists():
                     cache_file.parent.mkdir()
 
@@ -85,7 +94,7 @@ def parseCachedFile(file: Path, cache: Optional[Path]) -> org.Org:
             return node
 
     else:
-        return org.parseFile(str(file.resolve()), org.OrgParseParameters())
+        return aux()
 
 
 @beartype

@@ -236,6 +236,7 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
         case OrgTokenKind::TreeTime: return "TreeTime";
         case OrgTokenKind::TripleAngleBegin: return "TripleAngleBegin";
         case OrgTokenKind::TripleAngleEnd: return "TripleAngleEnd";
+        case OrgTokenKind::Underline: return "Underline";
         case OrgTokenKind::UnderlineBegin: return "UnderlineBegin";
         case OrgTokenKind::UnderlineEnd: return "UnderlineEnd";
         case OrgTokenKind::UnderlineUnknown: return "UnderlineUnknown";
@@ -456,6 +457,7 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value
   if (value == "TreeTime") { return OrgTokenKind::TreeTime; } else
   if (value == "TripleAngleBegin") { return OrgTokenKind::TripleAngleBegin; } else
   if (value == "TripleAngleEnd") { return OrgTokenKind::TripleAngleEnd; } else
+  if (value == "Underline") { return OrgTokenKind::Underline; } else
   if (value == "UnderlineBegin") { return OrgTokenKind::UnderlineBegin; } else
   if (value == "UnderlineEnd") { return OrgTokenKind::UnderlineEnd; } else
   if (value == "UnderlineUnknown") { return OrgTokenKind::UnderlineUnknown; } else

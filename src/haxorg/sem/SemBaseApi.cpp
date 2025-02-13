@@ -171,7 +171,7 @@ Opt<sem::SemId<sem::File>> parseFileAux(
     return file;
 }
 
-Opt<sem::SemId<Org>> parseDirectoryAux(
+Opt<sem::SemId<Org>> parsePathAux(
     fs::path const&                    path,
     fs::path const&                    activeRoot,
     const OrgDirectoryParseParameters& opts,
@@ -188,13 +188,13 @@ Opt<sem::SemId<Org>> parseDirectoryAux(
         if (fs::is_directory(target)) {
             sym->isDirectory = true;
             sym->absPath     = target.native();
-            auto dir         = parseDirectoryAux(
+            auto dir         = parsePathAux(
                 target, sym->absPath.toBase(), opts, state);
             if (dir) { sym->push_back(dir.value()); }
 
         } else if (fs::is_regular_file(target)) {
             sym->absPath = target.parent_path().native();
-            auto file    = parseDirectoryAux(
+            auto file    = parsePathAux(
                 target, sym->absPath.toBase(), opts, state);
             if (file) { sym->push_back(file.value()); }
         } else {
@@ -208,8 +208,7 @@ Opt<sem::SemId<Org>> parseDirectoryAux(
         dir->relPath = fs::relative(path, activeRoot).native();
         dir->absPath = path.native();
         for (const auto& entry : fs::directory_iterator(path)) {
-            auto nested = parseDirectoryAux(
-                entry, activeRoot, opts, state);
+            auto nested = parsePathAux(entry, activeRoot, opts, state);
             if (nested) { dir->push_back(nested.value()); }
         }
 
@@ -227,13 +226,18 @@ Opt<sem::SemId<Org>> parseDirectoryAux(
 }
 
 Opt<fs::path> resolvePath(
-    fs::path const&                    path,
+    fs::path const&                    workdir,
     CR<Str>                            target,
     const OrgDirectoryParseParameters& opts) {
+    LOGIC_ASSERTION_CHECK(
+        fs::is_directory(workdir),
+        "Workdir must be a directory, but got '{}'",
+        workdir);
+
     fs::path full //
         = fs::path{target.toBase()}.is_absolute()
             ? fs::path{target.toBase()}
-            : (path.parent_path() / target.toBase());
+            : (workdir / target.toBase());
 
     if (!fs::exists(full) && opts.findIncludeTarget) {
         auto includeFound = opts.findIncludeTarget(target);
@@ -249,18 +253,18 @@ Opt<fs::path> resolvePath(
 
 void postProcessInclude(
     sem::SemId<sem::Org>               arg,
-    fs::path const&                    path,
+    fs::path const&                    filePath,
     fs::path const&                    activeRoot,
     sem::OrgArg                        parsed,
     const OrgDirectoryParseParameters& opts,
     DirectoryParseState&               state) {
     auto incl = arg.as<sem::CmdInclude>();
-    auto full = resolvePath(path, incl->path, opts);
+    auto full = resolvePath(filePath.parent_path(), incl->path, opts);
 
     if (full) {
         switch (incl->getIncludeKind()) {
             case sem::CmdInclude::Kind::OrgDocument: {
-                auto parsed = parseDirectoryAux(
+                auto parsed = parsePathAux(
                     full.value(), activeRoot, opts, state);
                 if (parsed) { arg->push_back(parsed.value()); }
                 break;
@@ -305,14 +309,16 @@ void postProcessInclude(
         auto group     = sem::SemId<sem::ErrorGroup>::New();
         auto error     = sem::SemId<sem::ErrorItem>::New();
         error->message = fmt(
-            "Could not resolve include target '{}'", incl->path);
+            "Could not resolve include target '{}' from working file '{}'",
+            incl->path,
+            filePath);
         arg->push_back(error);
     }
 }
 
 void postProcessFileLink(
     sem::SemId<sem::Org>               arg,
-    fs::path const&                    path,
+    fs::path const&                    documentPath,
     fs::path const&                    activeRoot,
     sem::OrgArg                        parsed,
     const OrgDirectoryParseParameters& opts,
@@ -329,7 +335,8 @@ void postProcessFileLink(
                 target = t.getAttachment().file;
             }
 
-            auto full = resolvePath(path, target, opts);
+            auto full = resolvePath(
+                documentPath.parent_path(), target, opts);
             if (full) {
                 auto file     = sem::SemId<sem::File>::New();
                 file->relPath = fs::relative(full.value(), activeRoot)
@@ -367,7 +374,7 @@ Opt<sem::SemId<Org>> sem::parseDirectoryOpts(
     const OrgDirectoryParseParameters& opts) {
 
     DirectoryParseState state;
-    return parseDirectoryAux(fs::absolute(root), root, opts, state);
+    return parsePathAux(fs::absolute(root), root, opts, state);
 }
 
 sem::SemId<File> sem::parseFileWithIncludes(
