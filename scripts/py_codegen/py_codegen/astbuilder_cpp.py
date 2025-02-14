@@ -159,7 +159,7 @@ class QualType(BaseModel, extra="forbid"):
 
     @beartype
     class Function(BaseModel, extra="forbid"):
-        ReturnTy: 'QualType'
+        ReturnTy: Optional['QualType']
         Args: List['QualType']
         Ident: str = ""
         Class: Optional['QualType'] = None

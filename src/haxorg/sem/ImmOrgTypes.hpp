@@ -1465,6 +1465,7 @@ struct ImmCmdInclude : public org::ImmOrg {
     ImmBox<Opt<int>> minLineRange = std::nullopt;
     /// \brief Do not include nodes with position after specified line.
     ImmBox<Opt<int>> maxLineRange = std::nullopt;
+    IncludeBase() {  }
     bool operator==(org::ImmCmdInclude::IncludeBase const& other) const;
   };
 
@@ -1474,6 +1475,7 @@ struct ImmCmdInclude : public org::ImmOrg {
                          (),
                          (),
                          ())
+    Example() {  }
     bool operator==(org::ImmCmdInclude::Example const& other) const;
   };
 
@@ -1483,6 +1485,7 @@ struct ImmCmdInclude : public org::ImmOrg {
                          (),
                          (),
                          ())
+    Export() {  }
     bool operator==(org::ImmCmdInclude::Export const& other) const;
   };
 
@@ -1492,6 +1495,7 @@ struct ImmCmdInclude : public org::ImmOrg {
                          (),
                          (),
                          ())
+    Src() {  }
     bool operator==(org::ImmCmdInclude::Src const& other) const;
   };
 
@@ -1507,6 +1511,7 @@ struct ImmCmdInclude : public org::ImmOrg {
     ImmBox<Opt<int>> minLevel = std::nullopt;
     /// \brief Include target subtree content with `file.org::#custom`
     ImmBox<Opt<Str>> customIdTarget = std::nullopt;
+    OrgDocument() {  }
     bool operator==(org::ImmCmdInclude::OrgDocument const& other) const;
   };
 

@@ -628,7 +628,12 @@ class Py11Class:
             sub.append(Field.build_bind(self.Class, ast))
 
         for Meth in self.dedup_methods():
-            sub.append(Meth.build_bind(self.Class, ast))
+            if Meth.ResultTy is None:
+                # do not bind constructors as function pointers
+                pass
+
+            else:
+                sub.append(Meth.build_bind(self.Class, ast))
 
         sub.append(b.text(";"))
 

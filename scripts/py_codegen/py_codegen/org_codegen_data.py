@@ -210,6 +210,9 @@ def eq_method(name: QualType) -> GenTuFunction:
 def default_constructor(name: str) -> GenTuPass:
     return GenTuPass(f"{name} () {{}}")
 
+@beartype
+def default_constructor_method(name: str) -> GenTuFunction:
+    return GenTuFunction(name=name, impl="", result=None)
 
 #endregion
 
@@ -2588,7 +2591,7 @@ def get_types() -> Sequence[GenTuStruct]:
             nested=[
                 org_struct(
                     t_nest("IncludeBase", ["CmdInclude"]),
-                    nested=[GenTuPass("IncludeBase() {}")],
+                    methods=[default_constructor_method("IncludeBase")], 
                     fields=[
                         opt_field(
                             t_int(), "minLineRange",
@@ -2602,22 +2605,22 @@ def get_types() -> Sequence[GenTuStruct]:
                     [
                         org_struct(
                             t_nest("Example", ["CmdInclude"]),
-                            nested=[GenTuPass("Example() {}")],
+                            methods=[default_constructor_method("Example")], 
                             bases=[t_nest("IncludeBase", ["CmdInclude"])],
                         ),
                         org_struct(
                             t_nest("Export", ["CmdInclude"]),
-                            nested=[GenTuPass("Export() {}")],
+                            methods=[default_constructor_method("Export")], 
                             bases=[t_nest("IncludeBase", ["CmdInclude"])],
                         ),
                         org_struct(
                             t_nest("Src", ["CmdInclude"]),
-                            nested=[GenTuPass("Src() {}")],
+                            methods=[default_constructor_method("Src")], 
                             bases=[t_nest("IncludeBase", ["CmdInclude"])],
                         ),
                         org_struct(
                             t_nest("OrgDocument", ["CmdInclude"]),
-                            nested=[GenTuPass("OrgDocument() {}")],
+                            methods=[default_constructor_method("OrgDocument")], 
                             bases=[t_nest("IncludeBase", ["CmdInclude"])],
                             fields=[
                                 opt_field(

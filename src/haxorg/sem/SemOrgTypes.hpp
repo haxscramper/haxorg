@@ -2822,31 +2822,30 @@ struct CmdInclude : public sem::Org {
   using Org::Org;
   virtual ~CmdInclude() = default;
   struct IncludeBase {
-    IncludeBase() {}
     BOOST_DESCRIBE_CLASS(IncludeBase, (), (), (), (minLineRange, maxLineRange))
     /// \brief No not include nodes with position before specified line.
     Opt<int> minLineRange = std::nullopt;
     /// \brief Do not include nodes with position after specified line.
     Opt<int> maxLineRange = std::nullopt;
+    IncludeBase() {  }
   };
 
   struct Example : public sem::CmdInclude::IncludeBase {
-    Example() {}
     BOOST_DESCRIBE_CLASS(Example, (IncludeBase), (), (), ())
+    Example() {  }
   };
 
   struct Export : public sem::CmdInclude::IncludeBase {
-    Export() {}
     BOOST_DESCRIBE_CLASS(Export, (IncludeBase), (), (), ())
+    Export() {  }
   };
 
   struct Src : public sem::CmdInclude::IncludeBase {
-    Src() {}
     BOOST_DESCRIBE_CLASS(Src, (IncludeBase), (), (), ())
+    Src() {  }
   };
 
   struct OrgDocument : public sem::CmdInclude::IncludeBase {
-    OrgDocument() {}
     BOOST_DESCRIBE_CLASS(OrgDocument, (IncludeBase), (), (), (subtreePath, minLevel, customIdTarget))
     /// \brief Include first subtree matching path with `file.org::* tree`
     Opt<Str> subtreePath = std::nullopt;
@@ -2854,6 +2853,7 @@ struct CmdInclude : public sem::Org {
     Opt<int> minLevel = std::nullopt;
     /// \brief Include target subtree content with `file.org::#custom`
     Opt<Str> customIdTarget = std::nullopt;
+    OrgDocument() {  }
   };
 
   using Data = std::variant<sem::CmdInclude::Example, sem::CmdInclude::Export, sem::CmdInclude::Src, sem::CmdInclude::OrgDocument>;
