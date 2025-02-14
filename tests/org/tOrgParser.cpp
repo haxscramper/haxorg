@@ -838,14 +838,19 @@ other
 }
 
 TEST(OrgParserSem, IncludeCommand) {
-    auto get = [&](std::string const& s) {
-        return parseOne<sem::CmdInclude>(s);
+    auto get = [&](std::string const& s,
+                   Opt<std::string>   debug = std::nullopt) {
+        return parseOne<sem::CmdInclude>(s, debug);
     };
 
     { auto i = get(R"(#+include: data.org)"); }
     { auto i = get(R"(#+include: "data.org")"); }
     { auto i = get(R"(#+include: "data.org::#custom-id")"); }
-    { auto i = get(R"(#+include: "data.org::* path 1")"); }
+    {
+        auto i = get(
+            R"(#+include: "d.org::* path 1")",
+            getDebugFile("include_command"));
+    }
     { auto i = get(R"(#+include: "data.org::*path 1")"); }
     { auto i = get(R"(#+include: "data.org::* path 1/path 2")"); }
 }

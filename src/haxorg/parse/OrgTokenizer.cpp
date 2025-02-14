@@ -9,6 +9,7 @@
 #include <hstd/stdlib/Ranges.hpp>
 #include <hstd/system/Formatter.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
+#include <hstd/stdlib/Enumerate.hpp>
 
 struct Builder : OperationsMsgBulder<Builder, OrgTokenizer::Report> {
     Builder& with_id(OrgTokenId const& id) {
@@ -171,6 +172,10 @@ struct RecombineState {
         x_report(Print, .with_line(line).with_msg(msg));
     }
 
+    std::string const& tok_str(int offset = 0) const {
+        return lex.tok(offset)->text;
+    }
+
 
     void skip(
         OrgLexer&    lex,
@@ -205,6 +210,15 @@ struct RecombineState {
         }
     }
 
+    OrgTokenId add(OrgToken const& tok, int line = __builtin_LINE()) {
+        auto res = d->out->add(tok);
+        x_report(
+            Push,
+            .with_id(res).with_line(line).with_msg(
+                fmt("add {} from {}", tok, lex.tok())));
+        return res;
+    }
+
     void pop_as(
         OrgTokenKind      __to,
         Opt<OrgTokenKind> expected = std::nullopt,
@@ -228,6 +242,7 @@ struct RecombineState {
             .col  = lex.tok()->col,
         };
     }
+
 
     OrgTokenId add_fake(OrgTokenKind __to, int line = __builtin_LINE()) {
         auto res = d->out->add(OrgToken{__to});
@@ -425,6 +440,45 @@ struct RecombineState {
             case otk::CmdExampleEnd: {
                 add_fake(otk::CmdPrefix, loc_fill());
                 pop_as(otk::CmdExampleEnd);
+                break;
+            }
+
+            case otk::CmdRawArg: {
+                if (tok_str().starts_with('"')
+                    && !tok_str().ends_with('"')) {
+                    Vec<OrgToken> buf;
+                    buf.push_back(lex.tok());
+                    lex.pop();
+                    while (lex.tok().kind == OrgTokenKind::Whitespace
+                           || lex.tok().kind == OrgTokenKind::CmdRawArg) {
+                        buf.push_back(lex.tok());
+                        lex.pop();
+                        if (buf.back().value.text.ends_with('"')) {
+                            break;
+                        }
+                    }
+
+                    if (buf.back().value.text.ends_with('"')) {
+                        OrgToken merged = buf.front();
+                        merged->text    = "";
+                        for (auto const& it : enumerator(buf)) {
+                            if (it.is_first()) {
+                                merged->text += it.value()->text.substr(1);
+                            } else if (it.is_last()) {
+                                merged->text += it.value()->text.substr(
+                                    0, it.value()->text.size() - 1);
+                            } else {
+                                merged->text += it.value()->text;
+                            }
+                        }
+                        add(merged);
+                    } else {
+                        for (auto const& tok : buf) { add(tok); }
+                    }
+
+                } else {
+                    pop();
+                }
                 break;
             }
 

@@ -399,7 +399,14 @@ sem::SemId<T> parseOne(
         return node.as<T>();
     } else {
         auto one = sem::asOneNode(node);
-        while (T::staticKind != one->getKind()) { one = one.at(0); }
+        while (T::staticKind != one->getKind()) {
+            LOGIC_ASSERTION_CHECK(
+                one->subnodes.has(0),
+                "Parsed node does not have item at index 0: {}",
+                sem::exportToTreeString(
+                    node, sem::OrgTreeExportOpts{.withColor = false}));
+            one = one.at(0);
+        }
         return one.as<T>();
     }
 }
