@@ -111,6 +111,7 @@ def org_struct(
     fields: List[GenTuField] = [],
     nested: List[GenTuEntry] = [],
     methods: List[GenTuFunction] = [],
+    bases: List[QualType] = [],
 ) -> GenTuStruct:
     return GenTuStruct(
         name=typ,
@@ -118,6 +119,7 @@ def org_struct(
         fields=fields,
         nested=nested,
         methods=methods,
+        bases=bases,
     )
 
 
@@ -2584,19 +2586,54 @@ def get_types() -> Sequence[GenTuStruct]:
             "CmdInclude",
             bases=[t_org("Org")],
             nested=[
+                org_struct(
+                    t_nest("IncludeBase", ["CmdInclude"]),
+                    nested=[GenTuPass("IncludeBase() {}")],
+                    fields=[
+                        opt_field(
+                            t_int(), "minLineRange",
+                            "No not include nodes with position before specified line."),
+                        opt_field(
+                            t_int(), "maxLineRange",
+                            "Do not include nodes with position after specified line."),
+                    ],
+                ),
                 GenTuTypeGroup(
                     [
-                        org_struct(t_nest("Example", ["CmdInclude"])),
-                        org_struct(t_nest("Export", ["CmdInclude"])),
-                        org_struct(t_nest("Src", ["CmdInclude"])),
+                        org_struct(
+                            t_nest("Example", ["CmdInclude"]),
+                            nested=[GenTuPass("Example() {}")],
+                            bases=[t_nest("IncludeBase", ["CmdInclude"])],
+                        ),
+                        org_struct(
+                            t_nest("Export", ["CmdInclude"]),
+                            nested=[GenTuPass("Export() {}")],
+                            bases=[t_nest("IncludeBase", ["CmdInclude"])],
+                        ),
+                        org_struct(
+                            t_nest("Src", ["CmdInclude"]),
+                            nested=[GenTuPass("Src() {}")],
+                            bases=[t_nest("IncludeBase", ["CmdInclude"])],
+                        ),
                         org_struct(
                             t_nest("OrgDocument", ["CmdInclude"]),
+                            nested=[GenTuPass("OrgDocument() {}")],
+                            bases=[t_nest("IncludeBase", ["CmdInclude"])],
                             fields=[
+                                opt_field(
+                                    t_str(), "subtreePath",
+                                    "Include first subtree matching path with `file.org::* tree`"
+                                ),
                                 opt_field(
                                     t_int(),
                                     "minLevel",
                                     "The minimum level of headlines to include. Headlines with a level smaller than this value will be demoted to this level.",
-                                )
+                                ),
+                                opt_field(
+                                    t_str(),
+                                    "customIdTarget",
+                                    "Include target subtree content with `file.org::#custom`",
+                                ),
                             ]),
                     ],
                     kindGetter="getIncludeKind",

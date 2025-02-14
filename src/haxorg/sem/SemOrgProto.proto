@@ -1777,17 +1777,32 @@ message Symlink {
 }
 
 message CmdInclude {
+  message IncludeBase {
+    optional int32                                 minLineRange                     = 1;
+    optional int32                                 maxLineRange                     = 2;
+    string                                         debug                            = 1000;
+  }
   message Example {
+    optional int32                                 minLineRange                     = 1;
+    optional int32                                 maxLineRange                     = 2;
     string                                         debug                            = 1000;
   }
   message Export {
+    optional int32                                 minLineRange                     = 1;
+    optional int32                                 maxLineRange                     = 2;
     string                                         debug                            = 1000;
   }
   message Src {
+    optional int32                                 minLineRange                     = 1;
+    optional int32                                 maxLineRange                     = 2;
     string                                         debug                            = 1000;
   }
   message OrgDocument {
-    optional int32                                 minLevel                         = 1;
+    optional int32                                 minLineRange                     = 1;
+    optional int32                                 maxLineRange                     = 2;
+    optional string                                subtreePath                      = 3;
+    optional int32                                 minLevel                         = 4;
+    optional string                                customIdTarget                   = 5;
     string                                         debug                            = 1000;
   }
   message Data {

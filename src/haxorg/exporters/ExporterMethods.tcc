@@ -190,6 +190,7 @@ void visitDirectory(R& res, In<sem::Directory> object);
 void visitSymlink(R& res, In<sem::Symlink> object);
 void visit(R& res, sem::CmdInclude::Data const& object);
 void visitCmdInclude(R& res, In<sem::CmdInclude> object);
+void visit(R& res, sem::CmdInclude::IncludeBase const& object);
 void visit(R& res, sem::CmdInclude::Example const& object);
 void visit(R& res, sem::CmdInclude::Export const& object);
 void visit(R& res, sem::CmdInclude::Src const& object);

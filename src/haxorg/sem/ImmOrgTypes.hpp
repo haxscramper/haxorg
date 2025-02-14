@@ -1455,41 +1455,58 @@ struct ImmSymlink : public org::ImmOrg {
 struct ImmCmdInclude : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmCmdInclude() = default;
-  struct Example {
-    BOOST_DESCRIBE_CLASS(Example,
+  struct IncludeBase {
+    BOOST_DESCRIBE_CLASS(IncludeBase,
                          (),
+                         (),
+                         (),
+                         (minLineRange, maxLineRange))
+    /// \brief No not include nodes with position before specified line.
+    ImmBox<Opt<int>> minLineRange = std::nullopt;
+    /// \brief Do not include nodes with position after specified line.
+    ImmBox<Opt<int>> maxLineRange = std::nullopt;
+    bool operator==(org::ImmCmdInclude::IncludeBase const& other) const;
+  };
+
+  struct Example : public org::ImmCmdInclude::IncludeBase {
+    BOOST_DESCRIBE_CLASS(Example,
+                         (IncludeBase),
                          (),
                          (),
                          ())
     bool operator==(org::ImmCmdInclude::Example const& other) const;
   };
 
-  struct Export {
+  struct Export : public org::ImmCmdInclude::IncludeBase {
     BOOST_DESCRIBE_CLASS(Export,
-                         (),
+                         (IncludeBase),
                          (),
                          (),
                          ())
     bool operator==(org::ImmCmdInclude::Export const& other) const;
   };
 
-  struct Src {
+  struct Src : public org::ImmCmdInclude::IncludeBase {
     BOOST_DESCRIBE_CLASS(Src,
-                         (),
+                         (IncludeBase),
                          (),
                          (),
                          ())
     bool operator==(org::ImmCmdInclude::Src const& other) const;
   };
 
-  struct OrgDocument {
+  struct OrgDocument : public org::ImmCmdInclude::IncludeBase {
     BOOST_DESCRIBE_CLASS(OrgDocument,
+                         (IncludeBase),
                          (),
                          (),
-                         (),
-                         (minLevel))
+                         (subtreePath, minLevel, customIdTarget))
+    /// \brief Include first subtree matching path with `file.org::* tree`
+    ImmBox<Opt<Str>> subtreePath = std::nullopt;
     /// \brief The minimum level of headlines to include. Headlines with a level smaller than this value will be demoted to this level.
     ImmBox<Opt<int>> minLevel = std::nullopt;
+    /// \brief Include target subtree content with `file.org::#custom`
+    ImmBox<Opt<Str>> customIdTarget = std::nullopt;
     bool operator==(org::ImmCmdInclude::OrgDocument const& other) const;
   };
 

@@ -836,3 +836,16 @@ other
     EXPECT_EQ2(get({31, 0})->getKind(), OrgSemKind::BigIdent);
     EXPECT_EQ2(get({31}).size(), 1);
 }
+
+TEST(OrgParserSem, IncludeCommand) {
+    auto get = [&](std::string const& s) {
+        return parseOne<sem::CmdInclude>(s);
+    };
+
+    { auto i = get(R"(#+include: data.org)"); }
+    { auto i = get(R"(#+include: "data.org")"); }
+    { auto i = get(R"(#+include: "data.org::#custom-id")"); }
+    { auto i = get(R"(#+include: "data.org::* path 1")"); }
+    { auto i = get(R"(#+include: "data.org::*path 1")"); }
+    { auto i = get(R"(#+include: "data.org::* path 1/path 2")"); }
+}

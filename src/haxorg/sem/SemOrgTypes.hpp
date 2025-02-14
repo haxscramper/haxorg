@@ -2821,22 +2821,39 @@ struct Symlink : public sem::Org {
 struct CmdInclude : public sem::Org {
   using Org::Org;
   virtual ~CmdInclude() = default;
-  struct Example {
-    BOOST_DESCRIBE_CLASS(Example, (), (), (), ())
+  struct IncludeBase {
+    IncludeBase() {}
+    BOOST_DESCRIBE_CLASS(IncludeBase, (), (), (), (minLineRange, maxLineRange))
+    /// \brief No not include nodes with position before specified line.
+    Opt<int> minLineRange = std::nullopt;
+    /// \brief Do not include nodes with position after specified line.
+    Opt<int> maxLineRange = std::nullopt;
   };
 
-  struct Export {
-    BOOST_DESCRIBE_CLASS(Export, (), (), (), ())
+  struct Example : public sem::CmdInclude::IncludeBase {
+    Example() {}
+    BOOST_DESCRIBE_CLASS(Example, (IncludeBase), (), (), ())
   };
 
-  struct Src {
-    BOOST_DESCRIBE_CLASS(Src, (), (), (), ())
+  struct Export : public sem::CmdInclude::IncludeBase {
+    Export() {}
+    BOOST_DESCRIBE_CLASS(Export, (IncludeBase), (), (), ())
   };
 
-  struct OrgDocument {
-    BOOST_DESCRIBE_CLASS(OrgDocument, (), (), (), (minLevel))
+  struct Src : public sem::CmdInclude::IncludeBase {
+    Src() {}
+    BOOST_DESCRIBE_CLASS(Src, (IncludeBase), (), (), ())
+  };
+
+  struct OrgDocument : public sem::CmdInclude::IncludeBase {
+    OrgDocument() {}
+    BOOST_DESCRIBE_CLASS(OrgDocument, (IncludeBase), (), (), (subtreePath, minLevel, customIdTarget))
+    /// \brief Include first subtree matching path with `file.org::* tree`
+    Opt<Str> subtreePath = std::nullopt;
     /// \brief The minimum level of headlines to include. Headlines with a level smaller than this value will be demoted to this level.
     Opt<int> minLevel = std::nullopt;
+    /// \brief Include target subtree content with `file.org::#custom`
+    Opt<Str> customIdTarget = std::nullopt;
   };
 
   using Data = std::variant<sem::CmdInclude::Example, sem::CmdInclude::Export, sem::CmdInclude::Src, sem::CmdInclude::OrgDocument>;

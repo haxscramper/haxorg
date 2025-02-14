@@ -331,8 +331,7 @@ class ExporterTypst(ExporterBase):
     def evalCmdInclude(self, node: org.CmdInclude) -> BlockId:
         match node.getIncludeKind():
             case org.CmdIncludeKind.OrgDocument:
-                log(CAT).info(f"{org.treeRepr(node)}")
-                return eval(node.subnodes[0])
+                return self.eval(node.subnodes[0])
 
             case _:
                 return self.t.string(f"TODO {node.getIncludeKind()}")

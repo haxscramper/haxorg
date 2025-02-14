@@ -4562,7 +4562,24 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::CmdInclude::Example>(m, "CmdIncludeExample")
+  pybind11::class_<sem::CmdInclude::IncludeBase>(m, "CmdIncludeIncludeBase")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdInclude::IncludeBase {
+                        sem::CmdInclude::IncludeBase result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("minLineRange", &sem::CmdInclude::IncludeBase::minLineRange, R"RAW(No not include nodes with position before specified line.)RAW")
+    .def_readwrite("maxLineRange", &sem::CmdInclude::IncludeBase::maxLineRange, R"RAW(Do not include nodes with position after specified line.)RAW")
+    .def("__repr__", [](sem::CmdInclude::IncludeBase _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::CmdInclude::IncludeBase _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::CmdInclude::Example, sem::CmdInclude::IncludeBase>(m, "CmdIncludeExample")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdInclude::Example {
                         sem::CmdInclude::Example result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -4577,7 +4594,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::CmdInclude::Export>(m, "CmdIncludeExport")
+  pybind11::class_<sem::CmdInclude::Export, sem::CmdInclude::IncludeBase>(m, "CmdIncludeExport")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdInclude::Export {
                         sem::CmdInclude::Export result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -4592,7 +4609,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::CmdInclude::Src>(m, "CmdIncludeSrc")
+  pybind11::class_<sem::CmdInclude::Src, sem::CmdInclude::IncludeBase>(m, "CmdIncludeSrc")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdInclude::Src {
                         sem::CmdInclude::Src result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -4607,13 +4624,15 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::CmdInclude::OrgDocument>(m, "CmdIncludeOrgDocument")
+  pybind11::class_<sem::CmdInclude::OrgDocument, sem::CmdInclude::IncludeBase>(m, "CmdIncludeOrgDocument")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdInclude::OrgDocument {
                         sem::CmdInclude::OrgDocument result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def_readwrite("subtreePath", &sem::CmdInclude::OrgDocument::subtreePath, R"RAW(Include first subtree matching path with `file.org::* tree`)RAW")
     .def_readwrite("minLevel", &sem::CmdInclude::OrgDocument::minLevel, R"RAW(The minimum level of headlines to include. Headlines with a level smaller than this value will be demoted to this level.)RAW")
+    .def_readwrite("customIdTarget", &sem::CmdInclude::OrgDocument::customIdTarget, R"RAW(Include target subtree content with `file.org::#custom`)RAW")
     .def("__repr__", [](sem::CmdInclude::OrgDocument _self) -> std::string {
                      return py_repr_impl(_self);
                      })

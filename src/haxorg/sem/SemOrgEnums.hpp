@@ -201,6 +201,7 @@
     __IMPL(File, Document, (Document)) \
     __IMPL(File, Attachment, (Attachment)) \
     __IMPL(File, Source, (Source)) \
+    __IMPL(CmdInclude, IncludeBase, (IncludeBase)) \
     __IMPL(CmdInclude, Example, (Example)) \
     __IMPL(CmdInclude, Export, (Export)) \
     __IMPL(CmdInclude, Src, (Src)) \
@@ -299,6 +300,7 @@
     __IMPL(Directory, (Directory)) \
     __IMPL(Symlink, (Symlink)) \
     __IMPL(CmdInclude, (CmdInclude)) \
+    __IMPL(CmdInclude::IncludeBase, (CmdInclude, IncludeBase)) \
     __IMPL(CmdInclude::Example, (CmdInclude, Example)) \
     __IMPL(CmdInclude::Export, (CmdInclude, Export)) \
     __IMPL(CmdInclude::Src, (CmdInclude, Src)) \

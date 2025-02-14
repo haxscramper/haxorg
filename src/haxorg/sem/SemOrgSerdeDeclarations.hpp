@@ -1258,6 +1258,13 @@ struct proto_serde<::orgproto::Symlink, sem::Symlink> {
 
 
 template <>
+struct proto_serde<::orgproto::CmdInclude::IncludeBase, sem::CmdInclude::IncludeBase> {
+  static void write(::orgproto::CmdInclude::IncludeBase* out, sem::CmdInclude::IncludeBase const& in);
+  static void read(::orgproto::CmdInclude::IncludeBase const& out, proto_write_accessor<sem::CmdInclude::IncludeBase> in);
+};
+
+
+template <>
 struct proto_serde<::orgproto::CmdInclude::Example, sem::CmdInclude::Example> {
   static void write(::orgproto::CmdInclude::Example* out, sem::CmdInclude::Example const& in);
   static void read(::orgproto::CmdInclude::Example const& out, proto_write_accessor<sem::CmdInclude::Example> in);
