@@ -204,6 +204,7 @@
     __IMPL(CmdInclude, IncludeBase, (IncludeBase)) \
     __IMPL(CmdInclude, Example, (Example)) \
     __IMPL(CmdInclude, Export, (Export)) \
+    __IMPL(CmdInclude, Custom, (Custom)) \
     __IMPL(CmdInclude, Src, (Src)) \
     __IMPL(CmdInclude, OrgDocument, (OrgDocument))
 #define EACH_SEM_ORG_ENUM_NESTED(__IMPL) \
@@ -303,6 +304,7 @@
     __IMPL(CmdInclude::IncludeBase, (CmdInclude, IncludeBase)) \
     __IMPL(CmdInclude::Example, (CmdInclude, Example)) \
     __IMPL(CmdInclude::Export, (CmdInclude, Export)) \
+    __IMPL(CmdInclude::Custom, (CmdInclude, Custom)) \
     __IMPL(CmdInclude::Src, (CmdInclude, Src)) \
     __IMPL(CmdInclude::OrgDocument, (CmdInclude, OrgDocument))
 #define EACH_SEM_ORG_KIND(__IMPL) \

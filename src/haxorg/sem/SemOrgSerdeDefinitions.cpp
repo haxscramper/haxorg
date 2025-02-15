@@ -2534,49 +2534,49 @@ void proto_serde<::orgproto::Symlink, sem::Symlink>::read(::orgproto::Symlink co
 }
 
 void proto_serde<::orgproto::CmdInclude::IncludeBase, sem::CmdInclude::IncludeBase>::write(::orgproto::CmdInclude::IncludeBase* out, sem::CmdInclude::IncludeBase const& in) {
-  if (in.minLineRange) {
-    out->set_minlinerange(*in.minLineRange);
-  }
-  if (in.maxLineRange) {
-    out->set_maxlinerange(*in.maxLineRange);
-  }
+
 }
 
 void proto_serde<::orgproto::CmdInclude::IncludeBase, sem::CmdInclude::IncludeBase>::read(::orgproto::CmdInclude::IncludeBase const& out, proto_write_accessor<sem::CmdInclude::IncludeBase> in) {
-  if (out.has_minlinerange()) {
-    proto_serde<Opt<::int32_t>, Opt<int>>::read(out.minlinerange(), in.for_field(&sem::CmdInclude::IncludeBase::minLineRange));
-  }
-  if (out.has_maxlinerange()) {
-    proto_serde<Opt<::int32_t>, Opt<int>>::read(out.maxlinerange(), in.for_field(&sem::CmdInclude::IncludeBase::maxLineRange));
-  }
+
 }
 
 void proto_serde<::orgproto::CmdInclude::Example, sem::CmdInclude::Example>::write(::orgproto::CmdInclude::Example* out, sem::CmdInclude::Example const& in) {
-  proto_serde<::orgproto::CmdInclude::Example, sem::CmdInclude::IncludeBase>::write(out, in);
+
 }
 
 void proto_serde<::orgproto::CmdInclude::Example, sem::CmdInclude::Example>::read(::orgproto::CmdInclude::Example const& out, proto_write_accessor<sem::CmdInclude::Example> in) {
-  proto_serde<::orgproto::CmdInclude::Example, sem::CmdInclude::IncludeBase>::read(out, in.as<sem::CmdInclude::IncludeBase>());
+
 }
 
 void proto_serde<::orgproto::CmdInclude::Export, sem::CmdInclude::Export>::write(::orgproto::CmdInclude::Export* out, sem::CmdInclude::Export const& in) {
-  proto_serde<::orgproto::CmdInclude::Export, sem::CmdInclude::IncludeBase>::write(out, in);
+  proto_serde<std::string, Str>::write(out->mutable_language(), in.language);
 }
 
 void proto_serde<::orgproto::CmdInclude::Export, sem::CmdInclude::Export>::read(::orgproto::CmdInclude::Export const& out, proto_write_accessor<sem::CmdInclude::Export> in) {
-  proto_serde<::orgproto::CmdInclude::Export, sem::CmdInclude::IncludeBase>::read(out, in.as<sem::CmdInclude::IncludeBase>());
+  proto_serde<std::string, Str>::read(out.language(), in.for_field(&sem::CmdInclude::Export::language));
+}
+
+void proto_serde<::orgproto::CmdInclude::Custom, sem::CmdInclude::Custom>::write(::orgproto::CmdInclude::Custom* out, sem::CmdInclude::Custom const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_blockname(), in.blockName);
+}
+
+void proto_serde<::orgproto::CmdInclude::Custom, sem::CmdInclude::Custom>::read(::orgproto::CmdInclude::Custom const& out, proto_write_accessor<sem::CmdInclude::Custom> in) {
+  proto_serde<std::string, Str>::read(out.blockname(), in.for_field(&sem::CmdInclude::Custom::blockName));
 }
 
 void proto_serde<::orgproto::CmdInclude::Src, sem::CmdInclude::Src>::write(::orgproto::CmdInclude::Src* out, sem::CmdInclude::Src const& in) {
-  proto_serde<::orgproto::CmdInclude::Src, sem::CmdInclude::IncludeBase>::write(out, in);
+  proto_serde<std::string, Str>::write(out->mutable_language(), in.language);
 }
 
 void proto_serde<::orgproto::CmdInclude::Src, sem::CmdInclude::Src>::read(::orgproto::CmdInclude::Src const& out, proto_write_accessor<sem::CmdInclude::Src> in) {
-  proto_serde<::orgproto::CmdInclude::Src, sem::CmdInclude::IncludeBase>::read(out, in.as<sem::CmdInclude::IncludeBase>());
+  proto_serde<std::string, Str>::read(out.language(), in.for_field(&sem::CmdInclude::Src::language));
 }
 
 void proto_serde<::orgproto::CmdInclude::OrgDocument, sem::CmdInclude::OrgDocument>::write(::orgproto::CmdInclude::OrgDocument* out, sem::CmdInclude::OrgDocument const& in) {
-  proto_serde<::orgproto::CmdInclude::OrgDocument, sem::CmdInclude::IncludeBase>::write(out, in);
+  if (in.onlyContent) {
+    out->set_onlycontent(*in.onlyContent);
+  }
   if (in.subtreePath) {
     proto_serde<orgproto::SubtreePath, sem::SubtreePath>::write(out->mutable_subtreepath(), *in.subtreePath);
   }
@@ -2589,7 +2589,9 @@ void proto_serde<::orgproto::CmdInclude::OrgDocument, sem::CmdInclude::OrgDocume
 }
 
 void proto_serde<::orgproto::CmdInclude::OrgDocument, sem::CmdInclude::OrgDocument>::read(::orgproto::CmdInclude::OrgDocument const& out, proto_write_accessor<sem::CmdInclude::OrgDocument> in) {
-  proto_serde<::orgproto::CmdInclude::OrgDocument, sem::CmdInclude::IncludeBase>::read(out, in.as<sem::CmdInclude::IncludeBase>());
+  if (out.has_onlycontent()) {
+    proto_serde<Opt<bool>, Opt<bool>>::read(out.onlycontent(), in.for_field(&sem::CmdInclude::OrgDocument::onlyContent));
+  }
   if (out.has_subtreepath()) {
     proto_serde<Opt<orgproto::SubtreePath>, Opt<sem::SubtreePath>>::read(out.subtreepath(), in.for_field(&sem::CmdInclude::OrgDocument::subtreePath));
   }
@@ -2618,10 +2620,13 @@ void proto_serde<::orgproto::CmdInclude, sem::CmdInclude>::write(::orgproto::Cmd
       proto_serde<orgproto::CmdInclude::Export, sem::CmdInclude::Export>::write(out->mutable_data()->mutable_export_(), std::get<1>(in.data));
       break;
     case 2:
-      proto_serde<orgproto::CmdInclude::Src, sem::CmdInclude::Src>::write(out->mutable_data()->mutable_src(), std::get<2>(in.data));
+      proto_serde<orgproto::CmdInclude::Custom, sem::CmdInclude::Custom>::write(out->mutable_data()->mutable_custom(), std::get<2>(in.data));
       break;
     case 3:
-      proto_serde<orgproto::CmdInclude::OrgDocument, sem::CmdInclude::OrgDocument>::write(out->mutable_data()->mutable_orgdocument(), std::get<3>(in.data));
+      proto_serde<orgproto::CmdInclude::Src, sem::CmdInclude::Src>::write(out->mutable_data()->mutable_src(), std::get<3>(in.data));
+      break;
+    case 4:
+      proto_serde<orgproto::CmdInclude::OrgDocument, sem::CmdInclude::OrgDocument>::write(out->mutable_data()->mutable_orgdocument(), std::get<4>(in.data));
       break;
   }
 }
@@ -2642,11 +2647,14 @@ void proto_serde<::orgproto::CmdInclude, sem::CmdInclude>::read(::orgproto::CmdI
     case ::orgproto::CmdInclude::Data::kExport:
       proto_serde<orgproto::CmdInclude::Export, sem::CmdInclude::Export>::read(out.data().export_(), in.for_field_variant<1>(&sem::CmdInclude::data));
       break;
+    case ::orgproto::CmdInclude::Data::kCustom:
+      proto_serde<orgproto::CmdInclude::Custom, sem::CmdInclude::Custom>::read(out.data().custom(), in.for_field_variant<2>(&sem::CmdInclude::data));
+      break;
     case ::orgproto::CmdInclude::Data::kSrc:
-      proto_serde<orgproto::CmdInclude::Src, sem::CmdInclude::Src>::read(out.data().src(), in.for_field_variant<2>(&sem::CmdInclude::data));
+      proto_serde<orgproto::CmdInclude::Src, sem::CmdInclude::Src>::read(out.data().src(), in.for_field_variant<3>(&sem::CmdInclude::data));
       break;
     case ::orgproto::CmdInclude::Data::kOrgdocument:
-      proto_serde<orgproto::CmdInclude::OrgDocument, sem::CmdInclude::OrgDocument>::read(out.data().orgdocument(), in.for_field_variant<3>(&sem::CmdInclude::data));
+      proto_serde<orgproto::CmdInclude::OrgDocument, sem::CmdInclude::OrgDocument>::read(out.data().orgdocument(), in.for_field_variant<4>(&sem::CmdInclude::data));
       break;
   }
 }

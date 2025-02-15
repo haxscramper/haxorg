@@ -1803,6 +1803,8 @@ OrgConverter::ConvResult<CmdInclude> OrgConverter::convertCmdInclude(
     auto              args    = convertAttrs(one(a, N::Args));
     include->path             = args.positional.items.at(0).getString();
 
+    if (TraceState) { print(fmt("args: {}", args)); }
+
     if (auto kind = args.positional.items.get(1)) {
         Str ks = kind.value().get().value;
         if (ks == "src"_ss) {
@@ -1846,24 +1848,26 @@ OrgConverter::ConvResult<CmdInclude> OrgConverter::convertCmdInclude(
         include->data = doc;
     }
 
-    if (args.named.contains("minlevel")) {
+    if (auto minlevel = args.named.pop_opt("minlevel")) {
         include->getOrgDocument().minLevel //
-            = args.named.at("minlevel").items.at(0).getInt();
+            = minlevel->items.at(0).getInt();
     }
 
-    if (args.named.contains("lines")) {
+    if (auto only = args.named.pop_opt("onlycontents")) {
+        include->getOrgDocument().onlyContent = only->items.at(0)
+                                                    .getBool();
+    }
+    if (auto arg = args.named.pop_opt("lines")) {
         Str lines = strip(
-            args.getAttrs("lines").at(0).getString(),
-            CharSet{'"'},
-            CharSet{'"'});
+            arg->items.at(0).getString(), CharSet{'"'}, CharSet{'"'});
         Vec<Str> split = lines.split("-");
         if (lines.starts_with("-")) {
-            include->lastLine = split.at(1).toInt() - 1;
+            include->lastLine = split.at(1).toInt();
         } else if (lines.ends_with("-")) {
-            include->firstLine = split.at(0).toInt() - 1;
+            include->firstLine = split.at(0).toInt();
         } else {
-            include->firstLine = split.at(0).toInt() - 1;
-            include->lastLine  = split.at(1).toInt() - 1;
+            include->firstLine = split.at(0).toInt();
+            include->lastLine  = split.at(1).toInt();
         }
     }
 

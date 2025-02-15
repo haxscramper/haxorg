@@ -1279,6 +1279,13 @@ struct proto_serde<::orgproto::CmdInclude::Export, sem::CmdInclude::Export> {
 
 
 template <>
+struct proto_serde<::orgproto::CmdInclude::Custom, sem::CmdInclude::Custom> {
+  static void write(::orgproto::CmdInclude::Custom* out, sem::CmdInclude::Custom const& in);
+  static void read(::orgproto::CmdInclude::Custom const& out, proto_write_accessor<sem::CmdInclude::Custom> in);
+};
+
+
+template <>
 struct proto_serde<::orgproto::CmdInclude::Src, sem::CmdInclude::Src> {
   static void write(::orgproto::CmdInclude::Src* out, sem::CmdInclude::Src const& in);
   static void read(::orgproto::CmdInclude::Src const& out, proto_write_accessor<sem::CmdInclude::Src> in);

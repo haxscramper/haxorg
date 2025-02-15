@@ -193,6 +193,7 @@ void visitCmdInclude(R& res, In<sem::CmdInclude> object);
 void visit(R& res, sem::CmdInclude::IncludeBase const& object);
 void visit(R& res, sem::CmdInclude::Example const& object);
 void visit(R& res, sem::CmdInclude::Export const& object);
+void visit(R& res, sem::CmdInclude::Custom const& object);
 void visit(R& res, sem::CmdInclude::Src const& object);
 void visit(R& res, sem::CmdInclude::OrgDocument const& object);
 /* clang-format on */

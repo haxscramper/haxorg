@@ -1573,14 +1573,10 @@ template <>
 struct ImmSemSerde<sem::CmdInclude::IncludeBase, org::ImmCmdInclude::IncludeBase> {
   static org::ImmCmdInclude::IncludeBase to_immer(sem::CmdInclude::IncludeBase const& value, ImmAstEditContext& ctx) {
     org::ImmCmdInclude::IncludeBase result = SerdeDefaultProvider<org::ImmCmdInclude::IncludeBase>::get();
-    assign_immer_field(result.minLineRange, value.minLineRange, ctx);
-    assign_immer_field(result.maxLineRange, value.maxLineRange, ctx);
     return result;
   }
   static sem::CmdInclude::IncludeBase from_immer(org::ImmCmdInclude::IncludeBase const& value, ImmAstContext const& ctx) {
     sem::CmdInclude::IncludeBase result = SerdeDefaultProvider<sem::CmdInclude::IncludeBase>::get();
-    assign_sem_field(result.minLineRange, value.minLineRange, ctx);
-    assign_sem_field(result.maxLineRange, value.maxLineRange, ctx);
     return result;
   }
 };
@@ -1589,14 +1585,10 @@ template <>
 struct ImmSemSerde<sem::CmdInclude::Example, org::ImmCmdInclude::Example> {
   static org::ImmCmdInclude::Example to_immer(sem::CmdInclude::Example const& value, ImmAstEditContext& ctx) {
     org::ImmCmdInclude::Example result = SerdeDefaultProvider<org::ImmCmdInclude::Example>::get();
-    assign_immer_field(result.minLineRange, value.minLineRange, ctx);
-    assign_immer_field(result.maxLineRange, value.maxLineRange, ctx);
     return result;
   }
   static sem::CmdInclude::Example from_immer(org::ImmCmdInclude::Example const& value, ImmAstContext const& ctx) {
     sem::CmdInclude::Example result = SerdeDefaultProvider<sem::CmdInclude::Example>::get();
-    assign_sem_field(result.minLineRange, value.minLineRange, ctx);
-    assign_sem_field(result.maxLineRange, value.maxLineRange, ctx);
     return result;
   }
 };
@@ -1605,14 +1597,26 @@ template <>
 struct ImmSemSerde<sem::CmdInclude::Export, org::ImmCmdInclude::Export> {
   static org::ImmCmdInclude::Export to_immer(sem::CmdInclude::Export const& value, ImmAstEditContext& ctx) {
     org::ImmCmdInclude::Export result = SerdeDefaultProvider<org::ImmCmdInclude::Export>::get();
-    assign_immer_field(result.minLineRange, value.minLineRange, ctx);
-    assign_immer_field(result.maxLineRange, value.maxLineRange, ctx);
+    assign_immer_field(result.language, value.language, ctx);
     return result;
   }
   static sem::CmdInclude::Export from_immer(org::ImmCmdInclude::Export const& value, ImmAstContext const& ctx) {
     sem::CmdInclude::Export result = SerdeDefaultProvider<sem::CmdInclude::Export>::get();
-    assign_sem_field(result.minLineRange, value.minLineRange, ctx);
-    assign_sem_field(result.maxLineRange, value.maxLineRange, ctx);
+    assign_sem_field(result.language, value.language, ctx);
+    return result;
+  }
+};
+
+template <>
+struct ImmSemSerde<sem::CmdInclude::Custom, org::ImmCmdInclude::Custom> {
+  static org::ImmCmdInclude::Custom to_immer(sem::CmdInclude::Custom const& value, ImmAstEditContext& ctx) {
+    org::ImmCmdInclude::Custom result = SerdeDefaultProvider<org::ImmCmdInclude::Custom>::get();
+    assign_immer_field(result.blockName, value.blockName, ctx);
+    return result;
+  }
+  static sem::CmdInclude::Custom from_immer(org::ImmCmdInclude::Custom const& value, ImmAstContext const& ctx) {
+    sem::CmdInclude::Custom result = SerdeDefaultProvider<sem::CmdInclude::Custom>::get();
+    assign_sem_field(result.blockName, value.blockName, ctx);
     return result;
   }
 };
@@ -1621,14 +1625,12 @@ template <>
 struct ImmSemSerde<sem::CmdInclude::Src, org::ImmCmdInclude::Src> {
   static org::ImmCmdInclude::Src to_immer(sem::CmdInclude::Src const& value, ImmAstEditContext& ctx) {
     org::ImmCmdInclude::Src result = SerdeDefaultProvider<org::ImmCmdInclude::Src>::get();
-    assign_immer_field(result.minLineRange, value.minLineRange, ctx);
-    assign_immer_field(result.maxLineRange, value.maxLineRange, ctx);
+    assign_immer_field(result.language, value.language, ctx);
     return result;
   }
   static sem::CmdInclude::Src from_immer(org::ImmCmdInclude::Src const& value, ImmAstContext const& ctx) {
     sem::CmdInclude::Src result = SerdeDefaultProvider<sem::CmdInclude::Src>::get();
-    assign_sem_field(result.minLineRange, value.minLineRange, ctx);
-    assign_sem_field(result.maxLineRange, value.maxLineRange, ctx);
+    assign_sem_field(result.language, value.language, ctx);
     return result;
   }
 };
@@ -1637,20 +1639,18 @@ template <>
 struct ImmSemSerde<sem::CmdInclude::OrgDocument, org::ImmCmdInclude::OrgDocument> {
   static org::ImmCmdInclude::OrgDocument to_immer(sem::CmdInclude::OrgDocument const& value, ImmAstEditContext& ctx) {
     org::ImmCmdInclude::OrgDocument result = SerdeDefaultProvider<org::ImmCmdInclude::OrgDocument>::get();
+    assign_immer_field(result.onlyContent, value.onlyContent, ctx);
     assign_immer_field(result.subtreePath, value.subtreePath, ctx);
     assign_immer_field(result.minLevel, value.minLevel, ctx);
     assign_immer_field(result.customIdTarget, value.customIdTarget, ctx);
-    assign_immer_field(result.minLineRange, value.minLineRange, ctx);
-    assign_immer_field(result.maxLineRange, value.maxLineRange, ctx);
     return result;
   }
   static sem::CmdInclude::OrgDocument from_immer(org::ImmCmdInclude::OrgDocument const& value, ImmAstContext const& ctx) {
     sem::CmdInclude::OrgDocument result = SerdeDefaultProvider<sem::CmdInclude::OrgDocument>::get();
+    assign_sem_field(result.onlyContent, value.onlyContent, ctx);
     assign_sem_field(result.subtreePath, value.subtreePath, ctx);
     assign_sem_field(result.minLevel, value.minLevel, ctx);
     assign_sem_field(result.customIdTarget, value.customIdTarget, ctx);
-    assign_sem_field(result.minLineRange, value.minLineRange, ctx);
-    assign_sem_field(result.maxLineRange, value.maxLineRange, ctx);
     return result;
   }
 };

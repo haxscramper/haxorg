@@ -244,11 +244,7 @@ Opt<bool> AttrValue::getBool() const {
 }
 
 Opt<int> AttrValue::getInt() const {
-    bool isOk   = false;
-    int  result = value.toInt();
-    if (isOk) {
-        return result;
-    } else {
-        return std::nullopt;
-    }
+    try {
+        return value.toInt();
+    } catch (std::invalid_argument const& e) { return std::nullopt; }
 }

@@ -597,22 +597,8 @@ struct proto_serde<orgproto::UserTime, UserTime> {
 
 template <typename Out>
 struct proto_serde<Out, sem::CmdInclude::IncludeBase> {
-    static void write(Out* out, sem::CmdInclude::IncludeBase const& in) {
-        if (in.minLineRange) { out->set_minlinerange(*in.minLineRange); }
-        if (in.maxLineRange) { out->set_maxlinerange(*in.maxLineRange); }
-    }
+    static void write(Out* out, sem::CmdInclude::IncludeBase const& in) {}
     static void read(
         Out const&                                         out,
-        proto_write_accessor<sem::CmdInclude::IncludeBase> in) {
-        if (out.has_minlinerange()) {
-            proto_serde<Opt<::int32_t>, Opt<int>>::read(
-                out.minlinerange(),
-                in.for_field(&sem::CmdInclude::IncludeBase::minLineRange));
-        }
-        if (out.has_maxlinerange()) {
-            proto_serde<Opt<::int32_t>, Opt<int>>::read(
-                out.maxlinerange(),
-                in.for_field(&sem::CmdInclude::IncludeBase::maxLineRange));
-        }
-    }
+        proto_write_accessor<sem::CmdInclude::IncludeBase> in) {}
 };

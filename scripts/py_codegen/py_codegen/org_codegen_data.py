@@ -2594,14 +2594,7 @@ def get_types() -> Sequence[GenTuStruct]:
                 org_struct(
                     t_nest("IncludeBase", ["CmdInclude"]),
                     methods=[default_constructor_method("IncludeBase")],
-                    fields=[
-                        opt_field(
-                            t_int(), "minLineRange",
-                            "No not include nodes with position before specified line."),
-                        opt_field(
-                            t_int(), "maxLineRange",
-                            "Do not include nodes with position after specified line."),
-                    ],
+                    fields=[],
                 ),
                 GenTuTypeGroup(
                     [
@@ -2614,17 +2607,42 @@ def get_types() -> Sequence[GenTuStruct]:
                             t_nest("Export", ["CmdInclude"]),
                             methods=[default_constructor_method("Export")],
                             bases=[t_nest("IncludeBase", ["CmdInclude"])],
+                            fields=[
+                                org_field(t_str(), "language",
+                                          "Source code language for export"),
+                            ],
                         ),
+                        org_struct(
+                            t_nest("Custom", ["CmdInclude"]),
+                            doc=
+                            "Second positional argument in the include command can have any arbitrary value -- "
+                            "default src/export/example have additional properties, but user "
+                            "can provide anything else there.",
+                            methods=[default_constructor_method("Custom")],
+                            bases=[t_nest("IncludeBase", ["CmdInclude"])],
+                            fields=[
+                                org_field(t_str(), "blockName",
+                                          "Block name not covered by the default values")
+                            ]),
                         org_struct(
                             t_nest("Src", ["CmdInclude"]),
                             methods=[default_constructor_method("Src")],
                             bases=[t_nest("IncludeBase", ["CmdInclude"])],
+                            fields=[
+                                org_field(t_str(), "language",
+                                          "Source code language for code block"),
+                            ],
                         ),
                         org_struct(
                             t_nest("OrgDocument", ["CmdInclude"]),
                             methods=[default_constructor_method("OrgDocument")],
                             bases=[t_nest("IncludeBase", ["CmdInclude"])],
                             fields=[
+                                opt_field(
+                                    t_bool(),
+                                    "onlyContent",
+                                    "omits any planning lines or property drawers",
+                                ),
                                 opt_field(
                                     t_nest_shared("SubtreePath"),
                                     "subtreePath",

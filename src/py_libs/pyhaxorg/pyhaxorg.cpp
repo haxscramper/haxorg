@@ -4568,8 +4568,6 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("minLineRange", &sem::CmdInclude::IncludeBase::minLineRange, R"RAW(No not include nodes with position before specified line.)RAW")
-    .def_readwrite("maxLineRange", &sem::CmdInclude::IncludeBase::maxLineRange, R"RAW(Do not include nodes with position after specified line.)RAW")
     .def("__repr__", [](sem::CmdInclude::IncludeBase _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -4600,11 +4598,28 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def_readwrite("language", &sem::CmdInclude::Export::language, R"RAW(Source code language for export)RAW")
     .def("__repr__", [](sem::CmdInclude::Export _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
          [](sem::CmdInclude::Export _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::CmdInclude::Custom, sem::CmdInclude::IncludeBase>(m, "CmdIncludeCustom")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdInclude::Custom {
+                        sem::CmdInclude::Custom result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("blockName", &sem::CmdInclude::Custom::blockName, R"RAW(Block name not covered by the default values)RAW")
+    .def("__repr__", [](sem::CmdInclude::Custom _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::CmdInclude::Custom _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -4615,6 +4630,7 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def_readwrite("language", &sem::CmdInclude::Src::language, R"RAW(Source code language for code block)RAW")
     .def("__repr__", [](sem::CmdInclude::Src _self) -> std::string {
                      return py_repr_impl(_self);
                      })
@@ -4630,6 +4646,7 @@ node can have subnodes.)RAW")
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def_readwrite("onlyContent", &sem::CmdInclude::OrgDocument::onlyContent, R"RAW(omits any planning lines or property drawers)RAW")
     .def_readwrite("subtreePath", &sem::CmdInclude::OrgDocument::subtreePath, R"RAW(Include first subtree matching path with `file.org::* tree`)RAW")
     .def_readwrite("minLevel", &sem::CmdInclude::OrgDocument::minLevel, R"RAW(The minimum level of headlines to include. Headlines with a level smaller than this value will be demoted to this level.)RAW")
     .def_readwrite("customIdTarget", &sem::CmdInclude::OrgDocument::customIdTarget, R"RAW(Include target subtree content with `file.org::#custom`)RAW")
@@ -4646,6 +4663,7 @@ node can have subnodes.)RAW")
   pybind11::enum_<sem::CmdInclude::Kind>(m, "CmdIncludeKind")
     .value("Example", sem::CmdInclude::Kind::Example)
     .value("Export", sem::CmdInclude::Kind::Export)
+    .value("Custom", sem::CmdInclude::Kind::Custom)
     .value("Src", sem::CmdInclude::Kind::Src)
     .value("OrgDocument", sem::CmdInclude::Kind::OrgDocument)
     .def("__iter__", [](sem::CmdInclude::Kind _self) -> PyEnumIterator<sem::CmdInclude::Kind> {
@@ -4668,6 +4686,8 @@ node can have subnodes.)RAW")
     .def("getExample", static_cast<sem::CmdInclude::Example&(sem::CmdInclude::*)()>(&sem::CmdInclude::getExample))
     .def("isExport", static_cast<bool(sem::CmdInclude::*)() const>(&sem::CmdInclude::isExport))
     .def("getExport", static_cast<sem::CmdInclude::Export&(sem::CmdInclude::*)()>(&sem::CmdInclude::getExport))
+    .def("isCustom", static_cast<bool(sem::CmdInclude::*)() const>(&sem::CmdInclude::isCustom))
+    .def("getCustom", static_cast<sem::CmdInclude::Custom&(sem::CmdInclude::*)()>(&sem::CmdInclude::getCustom))
     .def("isSrc", static_cast<bool(sem::CmdInclude::*)() const>(&sem::CmdInclude::isSrc))
     .def("getSrc", static_cast<sem::CmdInclude::Src&(sem::CmdInclude::*)()>(&sem::CmdInclude::getSrc))
     .def("isOrgDocument", static_cast<bool(sem::CmdInclude::*)() const>(&sem::CmdInclude::isOrgDocument))

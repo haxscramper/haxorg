@@ -1185,36 +1185,26 @@ void Exporter<V, R>::visitCmdInclude(R& res, In<sem::CmdInclude> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::CmdInclude::IncludeBase const& object) {
-  __obj_field(res, object, minLineRange);
-  __obj_field(res, object, maxLineRange);
-}
+void Exporter<V, R>::visit(R& res, sem::CmdInclude::IncludeBase const& object) {  }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::CmdInclude::Example const& object) {
-  __obj_field(res, object, minLineRange);
-  __obj_field(res, object, maxLineRange);
-}
+void Exporter<V, R>::visit(R& res, sem::CmdInclude::Example const& object) {  }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::CmdInclude::Export const& object) {
-  __obj_field(res, object, minLineRange);
-  __obj_field(res, object, maxLineRange);
-}
+void Exporter<V, R>::visit(R& res, sem::CmdInclude::Export const& object) { __obj_field(res, object, language); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::CmdInclude::Src const& object) {
-  __obj_field(res, object, minLineRange);
-  __obj_field(res, object, maxLineRange);
-}
+void Exporter<V, R>::visit(R& res, sem::CmdInclude::Custom const& object) { __obj_field(res, object, blockName); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::CmdInclude::Src const& object) { __obj_field(res, object, language); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::CmdInclude::OrgDocument const& object) {
+  __obj_field(res, object, onlyContent);
   __obj_field(res, object, subtreePath);
   __obj_field(res, object, minLevel);
   __obj_field(res, object, customIdTarget);
-  __obj_field(res, object, minLineRange);
-  __obj_field(res, object, maxLineRange);
 }
 
 /* clang-format on */

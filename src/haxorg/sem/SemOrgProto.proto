@@ -1778,46 +1778,45 @@ message Symlink {
 
 message CmdInclude {
   message IncludeBase {
-    optional int32                                 minLineRange                     = 1;
-    optional int32                                 maxLineRange                     = 2;
     string                                         debug                            = 1000;
   }
   message Example {
-    optional int32                                 minLineRange                     = 1;
-    optional int32                                 maxLineRange                     = 2;
     string                                         debug                            = 1000;
   }
   message Export {
-    optional int32                                 minLineRange                     = 1;
-    optional int32                                 maxLineRange                     = 2;
+    string                                         language                         = 1;
+    string                                         debug                            = 1000;
+  }
+  message Custom {
+    string                                         blockName                        = 1;
     string                                         debug                            = 1000;
   }
   message Src {
-    optional int32                                 minLineRange                     = 1;
-    optional int32                                 maxLineRange                     = 2;
+    string                                         language                         = 1;
     string                                         debug                            = 1000;
   }
   message OrgDocument {
-    optional int32                                 minLineRange                     = 1;
-    optional int32                                 maxLineRange                     = 2;
-    optional SubtreePath                           subtreePath                      = 3;
-    optional int32                                 minLevel                         = 4;
-    optional string                                customIdTarget                   = 5;
+    optional bool                                  onlyContent                      = 1;
+    optional SubtreePath                           subtreePath                      = 2;
+    optional int32                                 minLevel                         = 3;
+    optional string                                customIdTarget                   = 4;
     string                                         debug                            = 1000;
   }
   message Data {
     oneof kind {
       CmdInclude.Example                           example                          = 1;
       CmdInclude.Export                            export                           = 2;
-      CmdInclude.Src                               src                              = 3;
-      CmdInclude.OrgDocument                       orgdocument                      = 4;
+      CmdInclude.Custom                            custom                           = 3;
+      CmdInclude.Src                               src                              = 4;
+      CmdInclude.OrgDocument                       orgdocument                      = 5;
     }
   }
   enum Kind {
     Kind_Example_f                                                                  = 0;
     Kind_Export_f                                                                   = 1;
-    Kind_Src_f                                                                      = 2;
-    Kind_OrgDocument_f                                                              = 3;
+    Kind_Custom_f                                                                   = 2;
+    Kind_Src_f                                                                      = 3;
+    Kind_OrgDocument_f                                                              = 4;
   }
   repeated AnyNode                                 subnodes                         = 1;
   optional LineCol                                 loc                              = 2;

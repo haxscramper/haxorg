@@ -1460,11 +1460,7 @@ struct ImmCmdInclude : public org::ImmOrg {
                          (),
                          (),
                          (),
-                         (minLineRange, maxLineRange))
-    /// \brief No not include nodes with position before specified line.
-    ImmBox<Opt<int>> minLineRange = std::nullopt;
-    /// \brief Do not include nodes with position after specified line.
-    ImmBox<Opt<int>> maxLineRange = std::nullopt;
+                         ())
     IncludeBase() {  }
     bool operator==(org::ImmCmdInclude::IncludeBase const& other) const;
   };
@@ -1484,9 +1480,24 @@ struct ImmCmdInclude : public org::ImmOrg {
                          (IncludeBase),
                          (),
                          (),
-                         ())
+                         (language))
+    /// \brief Source code language for export
+    ImmBox<Str> language;
     Export() {  }
     bool operator==(org::ImmCmdInclude::Export const& other) const;
+  };
+
+  /// \brief Second positional argument in the include command can have any arbitrary value -- default src/export/example have additional properties, but user can provide anything else there.
+  struct Custom : public org::ImmCmdInclude::IncludeBase {
+    BOOST_DESCRIBE_CLASS(Custom,
+                         (IncludeBase),
+                         (),
+                         (),
+                         (blockName))
+    /// \brief Block name not covered by the default values
+    ImmBox<Str> blockName;
+    Custom() {  }
+    bool operator==(org::ImmCmdInclude::Custom const& other) const;
   };
 
   struct Src : public org::ImmCmdInclude::IncludeBase {
@@ -1494,7 +1505,9 @@ struct ImmCmdInclude : public org::ImmOrg {
                          (IncludeBase),
                          (),
                          (),
-                         ())
+                         (language))
+    /// \brief Source code language for code block
+    ImmBox<Str> language;
     Src() {  }
     bool operator==(org::ImmCmdInclude::Src const& other) const;
   };
@@ -1504,7 +1517,9 @@ struct ImmCmdInclude : public org::ImmOrg {
                          (IncludeBase),
                          (),
                          (),
-                         (subtreePath, minLevel, customIdTarget))
+                         (onlyContent, subtreePath, minLevel, customIdTarget))
+    /// \brief omits any planning lines or property drawers
+    ImmBox<Opt<bool>> onlyContent = std::nullopt;
     /// \brief Include first subtree matching path with `file.org::* tree`
     ImmBox<Opt<sem::SubtreePath>> subtreePath = std::nullopt;
     /// \brief The minimum level of headlines to include. Headlines with a level smaller than this value will be demoted to this level.
@@ -1515,9 +1530,9 @@ struct ImmCmdInclude : public org::ImmOrg {
     bool operator==(org::ImmCmdInclude::OrgDocument const& other) const;
   };
 
-  using Data = std::variant<org::ImmCmdInclude::Example, org::ImmCmdInclude::Export, org::ImmCmdInclude::Src, org::ImmCmdInclude::OrgDocument>;
-  enum class Kind : short int { Example, Export, Src, OrgDocument, };
-  BOOST_DESCRIBE_NESTED_ENUM(Kind, Example, Export, Src, OrgDocument)
+  using Data = std::variant<org::ImmCmdInclude::Example, org::ImmCmdInclude::Export, org::ImmCmdInclude::Custom, org::ImmCmdInclude::Src, org::ImmCmdInclude::OrgDocument>;
+  enum class Kind : short int { Example, Export, Custom, Src, OrgDocument, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, Example, Export, Custom, Src, OrgDocument)
   using variant_enum_type = org::ImmCmdInclude::Kind;
   using variant_data_type = org::ImmCmdInclude::Data;
   BOOST_DESCRIBE_CLASS(ImmCmdInclude,
@@ -1545,12 +1560,15 @@ struct ImmCmdInclude : public org::ImmOrg {
   bool isExport() const { return getIncludeKind() == Kind::Export; }
   org::ImmCmdInclude::Export const& getExport() const { return std::get<1>(data); }
   org::ImmCmdInclude::Export& getExport() { return std::get<1>(data); }
+  bool isCustom() const { return getIncludeKind() == Kind::Custom; }
+  org::ImmCmdInclude::Custom const& getCustom() const { return std::get<2>(data); }
+  org::ImmCmdInclude::Custom& getCustom() { return std::get<2>(data); }
   bool isSrc() const { return getIncludeKind() == Kind::Src; }
-  org::ImmCmdInclude::Src const& getSrc() const { return std::get<2>(data); }
-  org::ImmCmdInclude::Src& getSrc() { return std::get<2>(data); }
+  org::ImmCmdInclude::Src const& getSrc() const { return std::get<3>(data); }
+  org::ImmCmdInclude::Src& getSrc() { return std::get<3>(data); }
   bool isOrgDocument() const { return getIncludeKind() == Kind::OrgDocument; }
-  org::ImmCmdInclude::OrgDocument const& getOrgDocument() const { return std::get<3>(data); }
-  org::ImmCmdInclude::OrgDocument& getOrgDocument() { return std::get<3>(data); }
+  org::ImmCmdInclude::OrgDocument const& getOrgDocument() const { return std::get<4>(data); }
+  org::ImmCmdInclude::OrgDocument& getOrgDocument() { return std::get<4>(data); }
   static org::ImmCmdInclude::Kind getIncludeKind(org::ImmCmdInclude::Data const& __input) { return static_cast<org::ImmCmdInclude::Kind>(__input.index()); }
   org::ImmCmdInclude::Kind getIncludeKind() const { return getIncludeKind(data); }
 };

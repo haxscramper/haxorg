@@ -2822,11 +2822,7 @@ struct CmdInclude : public sem::Org {
   using Org::Org;
   virtual ~CmdInclude() = default;
   struct IncludeBase {
-    BOOST_DESCRIBE_CLASS(IncludeBase, (), (), (), (minLineRange, maxLineRange))
-    /// \brief No not include nodes with position before specified line.
-    Opt<int> minLineRange = std::nullopt;
-    /// \brief Do not include nodes with position after specified line.
-    Opt<int> maxLineRange = std::nullopt;
+    BOOST_DESCRIBE_CLASS(IncludeBase, (), (), (), ())
     IncludeBase() {  }
   };
 
@@ -2836,17 +2832,35 @@ struct CmdInclude : public sem::Org {
   };
 
   struct Export : public sem::CmdInclude::IncludeBase {
-    BOOST_DESCRIBE_CLASS(Export, (IncludeBase), (), (), ())
+    BOOST_DESCRIBE_CLASS(Export, (IncludeBase), (), (), (language))
+    /// \brief Source code language for export
+    Str language;
     Export() {  }
   };
 
+  /// \brief Second positional argument in the include command can have any arbitrary value -- default src/export/example have additional properties, but user can provide anything else there.
+  struct Custom : public sem::CmdInclude::IncludeBase {
+    BOOST_DESCRIBE_CLASS(Custom, (IncludeBase), (), (), (blockName))
+    /// \brief Block name not covered by the default values
+    Str blockName;
+    Custom() {  }
+  };
+
   struct Src : public sem::CmdInclude::IncludeBase {
-    BOOST_DESCRIBE_CLASS(Src, (IncludeBase), (), (), ())
+    BOOST_DESCRIBE_CLASS(Src, (IncludeBase), (), (), (language))
+    /// \brief Source code language for code block
+    Str language;
     Src() {  }
   };
 
   struct OrgDocument : public sem::CmdInclude::IncludeBase {
-    BOOST_DESCRIBE_CLASS(OrgDocument, (IncludeBase), (), (), (subtreePath, minLevel, customIdTarget))
+    BOOST_DESCRIBE_CLASS(OrgDocument,
+                         (IncludeBase),
+                         (),
+                         (),
+                         (onlyContent, subtreePath, minLevel, customIdTarget))
+    /// \brief omits any planning lines or property drawers
+    Opt<bool> onlyContent = std::nullopt;
     /// \brief Include first subtree matching path with `file.org::* tree`
     Opt<sem::SubtreePath> subtreePath = std::nullopt;
     /// \brief The minimum level of headlines to include. Headlines with a level smaller than this value will be demoted to this level.
@@ -2856,9 +2870,9 @@ struct CmdInclude : public sem::Org {
     OrgDocument() {  }
   };
 
-  using Data = std::variant<sem::CmdInclude::Example, sem::CmdInclude::Export, sem::CmdInclude::Src, sem::CmdInclude::OrgDocument>;
-  enum class Kind : short int { Example, Export, Src, OrgDocument, };
-  BOOST_DESCRIBE_NESTED_ENUM(Kind, Example, Export, Src, OrgDocument)
+  using Data = std::variant<sem::CmdInclude::Example, sem::CmdInclude::Export, sem::CmdInclude::Custom, sem::CmdInclude::Src, sem::CmdInclude::OrgDocument>;
+  enum class Kind : short int { Example, Export, Custom, Src, OrgDocument, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, Example, Export, Custom, Src, OrgDocument)
   using variant_enum_type = sem::CmdInclude::Kind;
   using variant_data_type = sem::CmdInclude::Data;
   BOOST_DESCRIBE_CLASS(CmdInclude,
@@ -2885,12 +2899,15 @@ struct CmdInclude : public sem::Org {
   bool isExport() const { return getIncludeKind() == Kind::Export; }
   sem::CmdInclude::Export const& getExport() const { return std::get<1>(data); }
   sem::CmdInclude::Export& getExport() { return std::get<1>(data); }
+  bool isCustom() const { return getIncludeKind() == Kind::Custom; }
+  sem::CmdInclude::Custom const& getCustom() const { return std::get<2>(data); }
+  sem::CmdInclude::Custom& getCustom() { return std::get<2>(data); }
   bool isSrc() const { return getIncludeKind() == Kind::Src; }
-  sem::CmdInclude::Src const& getSrc() const { return std::get<2>(data); }
-  sem::CmdInclude::Src& getSrc() { return std::get<2>(data); }
+  sem::CmdInclude::Src const& getSrc() const { return std::get<3>(data); }
+  sem::CmdInclude::Src& getSrc() { return std::get<3>(data); }
   bool isOrgDocument() const { return getIncludeKind() == Kind::OrgDocument; }
-  sem::CmdInclude::OrgDocument const& getOrgDocument() const { return std::get<3>(data); }
-  sem::CmdInclude::OrgDocument& getOrgDocument() { return std::get<3>(data); }
+  sem::CmdInclude::OrgDocument const& getOrgDocument() const { return std::get<4>(data); }
+  sem::CmdInclude::OrgDocument& getOrgDocument() { return std::get<4>(data); }
   static sem::CmdInclude::Kind getIncludeKind(sem::CmdInclude::Data const& __input) { return static_cast<sem::CmdInclude::Kind>(__input.index()); }
   sem::CmdInclude::Kind getIncludeKind() const { return getIncludeKind(data); }
 };
