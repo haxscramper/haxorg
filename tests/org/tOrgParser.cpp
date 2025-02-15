@@ -843,9 +843,21 @@ TEST(OrgParserSem, IncludeCommand) {
         return parseOne<sem::CmdInclude>(s, debug);
     };
 
-    { auto i = get(R"(#+include: data.org)"); }
-    { auto i = get(R"(#+include: "data.org")"); }
-    { auto i = get(R"(#+include: "data.org::#custom-id")"); }
+    {
+        auto i = get(R"(#+include: data.org)");
+        EXPECT_EQ(i->path, "data.org"_ss);
+    }
+    {
+        auto i = get(R"(#+include: "data.org")");
+        EXPECT_EQ(i->path, "data.org"_ss);
+    }
+    {
+        auto i = get(R"(#+include: "data.org::#custom-id")");
+        EXPECT_EQ2(
+            i->getIncludeKind(), sem::CmdInclude::Kind::OrgDocument);
+        EXPECT_EQ(
+            i->getOrgDocument().customIdTarget.value(), "custom-id"_ss);
+    }
     {
         auto i = get(
             R"(#+include: "d.org::* path 1")",
@@ -858,6 +870,15 @@ TEST(OrgParserSem, IncludeCommand) {
         EXPECT_EQ(p.size(), 1);
         EXPECT_EQ2(p.at(0), "path 1"_ss);
     }
-    { auto i = get(R"(#+include: "data.org::*path 1")"); }
-    { auto i = get(R"(#+include: "data.org::* path 1/path 2")"); }
+    {
+        auto i = get(R"(#+include: "data.org::* path 1/path 2")");
+        EXPECT_EQ2(
+            i->getIncludeKind(), sem::CmdInclude::Kind::OrgDocument);
+        EXPECT_EQ2(i->path, "data.org");
+        EXPECT_TRUE(i->getOrgDocument().subtreePath.has_value());
+        auto const& p = i->getOrgDocument().subtreePath.value().path;
+        EXPECT_EQ(p.size(), 2);
+        EXPECT_EQ2(p.at(0), "path 1"_ss);
+        EXPECT_EQ2(p.at(1), "path 2"_ss);
+    }
 }

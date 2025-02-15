@@ -1840,7 +1840,7 @@ OrgConverter::ConvResult<CmdInclude> OrgConverter::convertCmdInclude(
                 doc.subtreePath = convertSubtreePath(second);
             } else if (second.starts_with("#")) {
                 doc.customIdTarget = strip(
-                    second, CharSet{'*', ' '}, CharSet{' '});
+                    second, CharSet{'#', ' '}, CharSet{' '});
             }
         }
         include->data = doc;
