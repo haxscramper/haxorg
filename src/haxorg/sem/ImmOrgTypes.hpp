@@ -1506,7 +1506,7 @@ struct ImmCmdInclude : public org::ImmOrg {
                          (),
                          (subtreePath, minLevel, customIdTarget))
     /// \brief Include first subtree matching path with `file.org::* tree`
-    ImmBox<Opt<Str>> subtreePath = std::nullopt;
+    ImmBox<Opt<sem::SubtreePath>> subtreePath = std::nullopt;
     /// \brief The minimum level of headlines to include. Headlines with a level smaller than this value will be demoted to this level.
     ImmBox<Opt<int>> minLevel = std::nullopt;
     /// \brief Include target subtree content with `file.org::#custom`

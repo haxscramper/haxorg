@@ -2578,7 +2578,7 @@ void proto_serde<::orgproto::CmdInclude::Src, sem::CmdInclude::Src>::read(::orgp
 void proto_serde<::orgproto::CmdInclude::OrgDocument, sem::CmdInclude::OrgDocument>::write(::orgproto::CmdInclude::OrgDocument* out, sem::CmdInclude::OrgDocument const& in) {
   proto_serde<::orgproto::CmdInclude::OrgDocument, sem::CmdInclude::IncludeBase>::write(out, in);
   if (in.subtreePath) {
-    proto_serde<std::string, Str>::write(out->mutable_subtreepath(), *in.subtreePath);
+    proto_serde<orgproto::SubtreePath, sem::SubtreePath>::write(out->mutable_subtreepath(), *in.subtreePath);
   }
   if (in.minLevel) {
     out->set_minlevel(*in.minLevel);
@@ -2591,7 +2591,7 @@ void proto_serde<::orgproto::CmdInclude::OrgDocument, sem::CmdInclude::OrgDocume
 void proto_serde<::orgproto::CmdInclude::OrgDocument, sem::CmdInclude::OrgDocument>::read(::orgproto::CmdInclude::OrgDocument const& out, proto_write_accessor<sem::CmdInclude::OrgDocument> in) {
   proto_serde<::orgproto::CmdInclude::OrgDocument, sem::CmdInclude::IncludeBase>::read(out, in.as<sem::CmdInclude::IncludeBase>());
   if (out.has_subtreepath()) {
-    proto_serde<Opt<std::string>, Opt<Str>>::read(out.subtreepath(), in.for_field(&sem::CmdInclude::OrgDocument::subtreePath));
+    proto_serde<Opt<orgproto::SubtreePath>, Opt<sem::SubtreePath>>::read(out.subtreepath(), in.for_field(&sem::CmdInclude::OrgDocument::subtreePath));
   }
   if (out.has_minlevel()) {
     proto_serde<Opt<::int32_t>, Opt<int>>::read(out.minlevel(), in.for_field(&sem::CmdInclude::OrgDocument::minLevel));

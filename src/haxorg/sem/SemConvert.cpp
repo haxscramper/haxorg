@@ -41,6 +41,15 @@ Str strip_space(Str const& space) {
     return strip(space, CharSet{' '}, CharSet{' '});
 }
 
+sem::SubtreePath convertSubtreePath(Str const& path) {
+    sem::SubtreePath res;
+    for (auto const& item :
+         strip(path, CharSet{'*', ' '}, CharSet{' '}).split("/")) {
+        res.path.push_back(strip_space(item));
+    }
+    return res;
+}
+
 absl::TimeZone ConvertToTimeZone(std::string z) {
     int  hours    = 0;
     int  minutes  = 0;
@@ -708,8 +717,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         result         = NamedProperty{file};
     } else if (name == "archiveolpath") {
         NamedProperty::ArchiveOlpath path{};
-        Vec<Str> const&              items = get_values_text().split("/");
-        path.path = sem::SubtreePath{.path = items};
+        path.path = convertSubtreePath(get_values_text());
         result    = NamedProperty{path};
     } else if (
         one(a, N::Values).kind() == onk::InlineStmtList
@@ -1823,7 +1831,19 @@ OrgConverter::ConvResult<CmdInclude> OrgConverter::convertCmdInclude(
         }
 
     } else {
-        include->data = sem::CmdInclude::OrgDocument{};
+        sem::CmdInclude::OrgDocument doc{};
+        if (include->path.contains("::")) {
+            auto split    = include->path.split("::");
+            include->path = split.at(0);
+            auto second   = strip_space(split.at(1));
+            if (second.starts_with("*")) {
+                doc.subtreePath = convertSubtreePath(second);
+            } else if (second.starts_with("#")) {
+                doc.customIdTarget = strip(
+                    second, CharSet{'*', ' '}, CharSet{' '});
+            }
+        }
+        include->data = doc;
     }
 
     if (args.named.contains("minlevel")) {

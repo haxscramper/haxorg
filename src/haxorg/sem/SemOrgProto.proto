@@ -1800,7 +1800,7 @@ message CmdInclude {
   message OrgDocument {
     optional int32                                 minLineRange                     = 1;
     optional int32                                 maxLineRange                     = 2;
-    optional string                                subtreePath                      = 3;
+    optional SubtreePath                           subtreePath                      = 3;
     optional int32                                 minLevel                         = 4;
     optional string                                customIdTarget                   = 5;
     string                                         debug                            = 1000;

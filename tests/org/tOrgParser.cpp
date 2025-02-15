@@ -850,6 +850,13 @@ TEST(OrgParserSem, IncludeCommand) {
         auto i = get(
             R"(#+include: "d.org::* path 1")",
             getDebugFile("include_command"));
+        EXPECT_EQ2(
+            i->getIncludeKind(), sem::CmdInclude::Kind::OrgDocument);
+        EXPECT_EQ2(i->path, "d.org");
+        EXPECT_TRUE(i->getOrgDocument().subtreePath.has_value());
+        auto const& p = i->getOrgDocument().subtreePath.value().path;
+        EXPECT_EQ(p.size(), 1);
+        EXPECT_EQ2(p.at(0), "path 1"_ss);
     }
     { auto i = get(R"(#+include: "data.org::*path 1")"); }
     { auto i = get(R"(#+include: "data.org::* path 1/path 2")"); }
