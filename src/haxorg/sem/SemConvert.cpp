@@ -1829,7 +1829,9 @@ OrgConverter::ConvResult<CmdInclude> OrgConverter::convertCmdInclude(
             auto content  = Sem<BlockExport>(a);
             include->push_back(content);
         } else {
-            return SemError(a, fmt("Unhandled org include kind {}", ks));
+            auto ex       = sem::CmdInclude::Custom{};
+            ex.blockName  = ks;
+            include->data = ex;
         }
 
     } else {

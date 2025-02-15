@@ -340,9 +340,17 @@ auto Formatter::toString(SemId<InlineFootnote> id, CR<Context> ctx)
 
 auto Formatter::toString(sem::AttrValue const& id, CR<Context> ctx)
     -> Res {
+    Str value = id.value.replaceAll("\"", "\\\"");
+
+    if (value.contains('"') || value.starts_with(":")
+        || value.contains('"')) {
+        value = "\""_ss + value + "\""_ss;
+    }
+
     auto varname = id.varname.has_value()
-                     ? Str{fmt("{}={}", id.varname.value(), id.value)}
-                     : id.value;
+                     ? Str{fmt("{}={}", id.varname.value(), value)}
+                     : value;
+
 
     if (id.name) {
         return str(fmt(":{} {}", id.name.value(), varname));

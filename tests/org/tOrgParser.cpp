@@ -911,4 +911,16 @@ TEST(OrgParserSem, IncludeCommand) {
         EXPECT_EQ(i->getIncludeKind(), sem::CmdInclude::Kind::Src);
         // EXPECT_EQ(i->getSrc())
     }
+
+    {
+        auto i = get(R"(#+INCLUDE: "~/.emacs" custom-name)");
+        EXPECT_EQ(i->getIncludeKind(), sem::CmdInclude::Kind::Custom);
+        EXPECT_EQ2(i->getCustom().blockName, "custom-name");
+    }
+
+    {
+        auto i = get(R"(#+INCLUDE: "~/.emacs" ":custom-name")");
+        EXPECT_EQ(i->getIncludeKind(), sem::CmdInclude::Kind::Custom);
+        EXPECT_EQ2(i->getCustom().blockName, ":custom-name");
+    }
 }
