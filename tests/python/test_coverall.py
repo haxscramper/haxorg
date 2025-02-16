@@ -1218,7 +1218,7 @@ def get_test_node_from_file() -> org.Org:
 
 def test_run_typst_exporter(cov):
     node = get_test_node_from_file()
-    from py_exporters.export_typst import ExporterTypst
+    from py_exporters.export_typst import ExporterTypst, refresh_typst_export_package
 
     Path("/tmp/total_repr.txt").write_text(org.treeRepr(node, colored=False))
 
@@ -1231,6 +1231,7 @@ def test_run_typst_exporter(cov):
         full_export.write_text(exp.t.toString(res))
 
         cmd = local["typst"].with_cwd(str(full_export.parent))
+        refresh_typst_export_package()
         cmd.run(["compile", str(full_export), str(full_export.with_suffix(".pdf"))])
 
         exp.expr(org.parseString("word"))

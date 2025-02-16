@@ -64,6 +64,7 @@ class ExporterTypstConfigTags(BaseModel):
     code: str = "orgCode"
     table: str = "orgTable"
     table_cell: str = "orgTableCell"
+    dynamic_block: str = "orgDynamicBlock"
 
 
 class ExporterTypstConfig(BaseModel):
@@ -119,8 +120,8 @@ class ExporterTypst(ExporterBase):
         return self.t.stack([self.exp.eval(it) for it in node])
 
     def evalParagraph(self, node: org.Paragraph) -> BlockId:
-        if node.isFootnoteDefinition() or node.hasTimestamp() or self.isDefaultAdmonition(
-                node):
+        if (node.isFootnoteDefinition() or node.hasTimestamp() or
+                self.isDefaultAdmonition(node)) and 0 < len(node.getBody()):
             result = self.lineSubnodes(self.trimSub(node.getBody()))
             args = dict()
             if node.isFootnoteDefinition():
@@ -154,6 +155,16 @@ class ExporterTypst(ExporterBase):
                 body=[self.lineSubnodes(self.trimSub(node))],
                 isLine=True,
             )
+
+    def evalBlockDynamicFallback(self, node: org.BlockDynamicFallback) -> BlockId:
+        return self.t.call(
+            self.c.tags.dynamic_block,
+            args=dict(
+                body=[typ.RawBlock(self.t.content(self.eval(it))) for it in node],
+                name=node.name,
+                org_attrs=self.getNodeAttrs(node),
+            ),
+        )
 
     def evalBlockCenter(self, node: org.BlockCenter) -> BlockId:
         return self.t.call(self.c.tags.center, body=[self.stackSubnodes(node)])
@@ -364,6 +375,13 @@ class ExporterTypst(ExporterBase):
                 res[name] = []
 
             res[name].append(arg.getString())
+
+        if isinstance(node, org.Stmt):
+            caption = node.getCaption()
+            if 0 < len(caption):
+                res["caption"] = [
+                    typ.RawBlock(self.t.content(self.eval(it))) for it in caption
+                ]
 
         return res
 

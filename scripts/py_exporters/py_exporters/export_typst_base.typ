@@ -41,6 +41,15 @@
   }
 }
 
+#let orgDynamicBlock(body: (), name: "", org_attrs:()) = {
+  [#name]
+  box(stroke: red, inset: 1em)[
+    #for value in body {
+      value
+    }
+  ]
+}
+
 #let orgParagraph(
   admonition: "",
   timestamp: "",
