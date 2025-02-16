@@ -6,7 +6,7 @@ from beartype.typing import List, Optional, Dict
 from enum import Enum
 from beartype import beartype
 
-from py_exporters.export_base import ExporterBase
+from py_exporters.export_base import ExporterBase, with_export_context
 from py_exporters.export_ultraplain import ExporterUltraplain
 from py_haxorg.pyhaxorg_utils import formatDateTime, formatHashTag, getFlatTags
 from py_scriptutils.script_logging import log
@@ -71,7 +71,7 @@ class ExporterTypstConfig(BaseModel):
     with_standard_baze: bool = True
 
 
-@beartype
+# @beartype
 class ExporterTypst(ExporterBase):
     t: typ.ASTBuilder
     c: ExporterTypstConfig
@@ -117,8 +117,8 @@ class ExporterTypst(ExporterBase):
         return self.t.stack([self.exp.eval(it) for it in node])
 
     def evalParagraph(self, node: org.Paragraph) -> BlockId:
-        if node.isFootnoteDefinition() or node.hasTimestamp() or node.hasAdmonition():
-            result = self.lineSubnodes(self.trimSub(node))
+        if node.isFootnoteDefinition() or node.hasTimestamp() or self.isDefaultAdmonition(node):
+            result = self.lineSubnodes(self.trimSub(node.getBody()))
             args = dict()
             if node.isFootnoteDefinition():
                 args["kind"] = "footnote"
@@ -254,6 +254,7 @@ class ExporterTypst(ExporterBase):
         else:
             return self.t.string("")
 
+    @with_export_context
     def evalSubtree(self, node: org.Subtree) -> BlockId:
         if node.isComment or node.isArchived:
             return self.t.string("")
@@ -270,7 +271,7 @@ class ExporterTypst(ExporterBase):
             self.t.line([
                 self.t.call(
                     self.c.tags.subtree,
-                    dict(level=node.level, tags=tags),
+                    dict(level=self.getRealSubtreeLevel(node), tags=tags),
                     self.exp.eval(node.title),
                 ),
             ]))
@@ -280,25 +281,28 @@ class ExporterTypst(ExporterBase):
 
         return res
 
+    @with_export_context
     def evalDocument(self, node: org.Document) -> BlockId:
-        module = typ.get_typst_export_package(typst_toml)
         res = self.t.stack([])
+        self.printTrace(f"Eval document, context: {[n.getKind() for n in self.context]}, is in include {self.isInInclude()}")
+        if not self.isInInclude():
+            module = typ.get_typst_export_package(typst_toml)
 
-        if self.c.with_standard_baze:
-            self.t.add_at(
-                res,
-                self.t.string("#import \"@local/{name}:{version}\": *".format(
-                    name=module.package.name,
-                    version=module.package.version,
-                )),
-            )
+            if self.c.with_standard_baze:
+                self.t.add_at(
+                    res,
+                    self.t.string("#import \"@local/{name}:{version}\": *".format(
+                        name=module.package.name,
+                        version=module.package.version,
+                    )),
+                )
 
-        for it in node:
-            if isinstance(it, org.BlockExport):
-                edit_config = it.getAttrs("edit-config")
-                if edit_config and 0 < len(edit_config):
-                     if edit_config[0].getString() == "pre-visit":
-                        self.applyExportConfig(it)
+            for it in node:
+                if isinstance(it, org.BlockExport):
+                    edit_config = it.getAttrs("edit-config")
+                    if edit_config and 0 < len(edit_config):
+                        if edit_config[0].getString() == "pre-visit":
+                            self.applyExportConfig(it)
 
         for it in node:
             self.t.add_at(res, self.exp.eval(it))
@@ -328,6 +332,7 @@ class ExporterTypst(ExporterBase):
             case _:
                 return self.t.string(f"TODO {node.target.getKind()}")
 
+    @with_export_context
     def evalCmdInclude(self, node: org.CmdInclude) -> BlockId:
         match node.getIncludeKind():
             case org.CmdIncludeKind.OrgDocument:

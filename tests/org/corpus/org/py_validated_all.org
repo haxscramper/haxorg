@@ -197,6 +197,19 @@ paragraph [fn:1]
 * Include commands
 
 #+include: include1.org
+#+INCLUDE: "~/.emacs" ":custom-name"
+#+INCLUDE: "~/.emacs" custom-name
+#+INCLUDE: "~/.emacs" src emacs-lisp
+#+INCLUDE: "./paper.org::#theory" :only-contents t
+#+INCLUDE: "~/my-book/chapter2.org" :minlevel 1
+#+INCLUDE: "~/.emacs" :lines "10-"
+#+INCLUDE: "~/.emacs" :lines "-10"
+#+INCLUDE: "~/.emacs" :lines "5-10"
+#+include: "data.org::* path 1/path 2"
+#+include: "d.org::* path 1"
+#+include: "data.org::#custom-id"
+#+include: "data.org"
+#+include: data.org
 
 * Block nodes
 

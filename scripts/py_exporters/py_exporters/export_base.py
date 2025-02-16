@@ -4,9 +4,28 @@ from py_haxorg.pyhaxorg_wrap import OrgSemKind as osk
 import re
 from py_scriptutils.script_logging import log
 import inspect
+from beartype.typing import Set
+from types import TracebackType
+import contextlib
+import functools
+from py_scriptutils import algorithm
 
 
+def with_export_context(func):
+
+    @functools.wraps(func)
+    def wrapper(self, node):
+        with self.WithContext(node):
+            result = func(self, node)
+
+        return result
+
+    return wrapper
+
+
+@beartype
 class ExporterBase:
+    context: List[org.Org]
 
     def evalTop(self, node: org.Org):
         return self.exp.evalTop(node)
@@ -22,8 +41,65 @@ class ExporterBase:
         info = inspect.getframeinfo(frame)
         self.exp.print_trace(text, info.filename, info.function, info.lineno)
 
+    def getContextOfKind(self,
+                         kind: org.OrgSemKind | Set[org.OrgSemKind]) -> List[org.Org]:
+        if isinstance(kind, set):
+            return [it for it in self.context if it.getKind() in kind]
+
+        else:
+            return [it for it in self.context if it.getKind() == kind]
+
+    def isInInclude(self) -> bool:
+        return 0 < len(self.getContextOfKind(org.OrgSemKind.CmdInclude))
+
+    def isDefaultAdmonition(self, node: org.Paragraph) -> bool:
+        return node.hasAdmonition() and 0 < len(
+            set(node.getAdmonitions()).intersection(set(self.admonitionNames)))
+
+    def getRealSubtreeLevel(self, node: org.Subtree) -> int:
+        compound_level = 0
+        for group in algorithm.partition_list(
+                self.getContextOfKind(
+                    set([org.OrgSemKind.Subtree, org.OrgSemKind.CmdInclude])),
+                lambda it: it.getKind() == org.OrgSemKind.CmdInclude,
+        ):
+            if node != group[-1]:
+                compound_level += group[-1].level
+
+        return node.level + compound_level
+
+    @contextlib.contextmanager
+    def WithContext(self, node: org.Org):
+        self.context.append(node)
+        yield
+        self.context.pop()
+
     def __init__(self, derived):
         self.exp = org.ExporterPython()
+        self.context = []
+        self.admonitionNames = [
+            "IMPORTANT",
+            "TODO",
+            "DONE",
+            "DOC",
+            "FIXME",
+            "HACK",
+            "IDEA",
+            "NOTE",
+            "DEPRECATED",
+            "REFACTOR",
+            "STYLE",
+            "BUG",
+            "XXX",
+            "XXXX",
+            "IMPLEMENT",
+            "IMPORTANT",
+            "QUESTION",
+            "TEST",
+            "WARNING",
+            "ERROR",
+            "TEMP",
+        ]
 
         direct_mappings = {
             "visitAnyIdAround": self.exp.setVisitAnyIdAround,

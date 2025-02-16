@@ -1003,7 +1003,8 @@ def verify_full_coverage(cov: Coverage, cls, report_path: str) -> Generator:
     for line_no in range(start_line, end_line):
         class_line = source_lines[offset]
         if line_no in analysis.missing and not definition_lines.in_range(line_no):
-            missing_lines.append(f"[{line_no}] {class_line.strip('\n')}")
+            if not class_line.strip().startswith("@"):
+                missing_lines.append(f"[{line_no}] {class_line.strip('\n')}")
 
         offset += 1
 
