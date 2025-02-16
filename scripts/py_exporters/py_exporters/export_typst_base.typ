@@ -21,6 +21,14 @@
   }
 }
 
+#let orgTable(kwargs: (), items: ()) = {
+  table(..kwargs, ..items)
+}
+
+#let orgTableCell(column: 0, body) = {
+  body
+}
+
 #let orgListItem(
   header: none,
   content: [],

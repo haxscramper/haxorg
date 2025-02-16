@@ -531,7 +531,16 @@
     __IMPL(Directory, Org) \
     __IMPL(Symlink, Org) \
     __IMPL(CmdInclude, Org)
-enum class ListFormattingMode : short int { None, Table1D1Col, Table1D2Col, Table2DColFirst, };
+enum class ListFormattingMode : short int {
+  /// \brief Default, no custom formatting
+  None,
+  /// \brief one column, each table item is an individual row
+  Table1D1Col,
+  /// \brief for description lists, treat header row as an individual column
+  Table1D2Col,
+  /// \brief for nested tables, treat the first level of items as column names, treat all nested elements in these columns as row values
+  Table2DColFirst,
+};
 template <>
 struct enum_serde<ListFormattingMode> {
   static Opt<ListFormattingMode> from_string(std::string value);

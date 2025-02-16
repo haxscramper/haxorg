@@ -2598,6 +2598,7 @@ struct List : public sem::Stmt {
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::List; }
   Vec<sem::AttrValue> getListAttrs(Str const& key) const;
+  ListFormattingMode getListFormattingMode() const;
   /// \brief List is marked as description if any list item has a header
   bool isDescriptionList() const;
   /// \brief List is marked as numbered if any list item has bullet text set

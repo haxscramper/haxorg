@@ -4273,6 +4273,7 @@ node can have subnodes.)RAW")
     .def("getListAttrs",
          static_cast<Vec<sem::AttrValue>(sem::List::*)(Str const&) const>(&sem::List::getListAttrs),
          pybind11::arg("key"))
+    .def("getListFormattingMode", static_cast<ListFormattingMode(sem::List::*)() const>(&sem::List::getListFormattingMode))
     .def("isDescriptionList", static_cast<bool(sem::List::*)() const>(&sem::List::isDescriptionList), R"RAW(List is marked as description if any list item has a header)RAW")
     .def("isNumberedList", static_cast<bool(sem::List::*)() const>(&sem::List::isNumberedList), R"RAW(List is marked as numbered if any list item has bullet text set)RAW")
     .def("getAttached",
@@ -4707,10 +4708,10 @@ node can have subnodes.)RAW")
     ;
   bind_enum_iterator<ListFormattingMode>(m, "ListFormattingMode", type_registry_guard);
   pybind11::enum_<ListFormattingMode>(m, "ListFormattingMode")
-    .value("None", ListFormattingMode::None)
-    .value("Table1D1Col", ListFormattingMode::Table1D1Col)
-    .value("Table1D2Col", ListFormattingMode::Table1D2Col)
-    .value("Table2DColFirst", ListFormattingMode::Table2DColFirst)
+    .value("None", ListFormattingMode::None, R"RAW(Default, no custom formatting)RAW")
+    .value("Table1D1Col", ListFormattingMode::Table1D1Col, R"RAW(one column, each table item is an individual row)RAW")
+    .value("Table1D2Col", ListFormattingMode::Table1D2Col, R"RAW(for description lists, treat header row as an individual column)RAW")
+    .value("Table2DColFirst", ListFormattingMode::Table2DColFirst, R"RAW(for nested tables, treat the first level of items as column names, treat all nested elements in these columns as row values)RAW")
     .def("__iter__", [](ListFormattingMode _self) -> PyEnumIterator<ListFormattingMode> {
                      return
                      PyEnumIterator<ListFormattingMode>

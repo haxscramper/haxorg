@@ -1189,16 +1189,10 @@ def get_shared_sem_enums() -> Sequence[GenTuEnum]:
         d_simple_enum(
             t("ListFormattingMode"),
             GenTuDoc(""),
-            "None",
-            "Table1D1Col",
-            "Table1D2Col",
-            "Table2DColFirst",
-        ),
-        d_simple_enum(
-            t("NodeAttachMode"),
-            GenTuDoc(""),
-            "None",
-            "Subtree",
+            efield("None", "Default, no custom formatting"),
+            efield("Table1D1Col", "one column, each table item is an individual row"),
+            efield("Table1D2Col", "for description lists, treat header row as an individual column"),
+            efield("Table2DColFirst", "for nested tables, treat the first level of items as column names, treat all nested elements in these columns as row values"),
         ),
         d_simple_enum(
             t("InitialSubtreeVisibility"),
@@ -2389,6 +2383,12 @@ def get_types() -> Sequence[GenTuStruct]:
                     "getListAttrs",
                     GenTuDoc(""),
                     arguments=[GenTuIdent(t_str().asConstRef(), "key")],
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t("ListFormattingMode"),
+                    "getListFormattingMode",
+                    GenTuDoc(""),
                     isConst=True,
                 ),
                 GenTuFunction(
