@@ -99,6 +99,16 @@ class ExporterBase:
             "WARNING",
             "ERROR",
             "TEMP",
+            "CONCLUSION",
+            "NOTIFICATION",
+            "GOAL",
+            "DANGER",
+            "MEMORIZE",
+            "SUCCESS",
+            "EXPERIMENT",
+            "INFO",
+            "ABSTRACT",
+            "TIP",
         ]
 
         direct_mappings = {

@@ -1,3 +1,5 @@
+#import "@preview/gentle-clues:1.1.0": *
+
 #let orgSubtree(
     level: 1, 
     tags: (),
@@ -41,8 +43,25 @@
   if kind == "none" {
     body
   } else if kind == "admonition" {
-    [#box(radius: 2pt, stroke: red, inset: 4pt)[#admonition]]
-    body
+    if admonition == "INFO" {
+      info[#body]
+    } else if admonition == "IDEA" {
+      idea[#body]
+    } else if admonition == "QUESTION" {
+      question[#body]
+    } else if admonition == "EXAMPLE" {
+      example[#body]
+    } else if admonition == "NOTE" {
+      clue(
+        title: "Note",
+        icon: emoji.notepad,
+      )[#body]
+    } else {
+      clue(
+        title: admonition,
+        icon: emoji.unknown,
+      )[#body]
+    }
   }
 }
 
