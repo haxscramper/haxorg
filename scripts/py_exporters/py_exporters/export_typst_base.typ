@@ -21,7 +21,7 @@
   }
 }
 
-#let orgTable(kwargs: (), items: ()) = {
+#let orgTable(kwargs: (), org_attrs: (), items: ()) = {
   table(..kwargs, ..items)
 }
 

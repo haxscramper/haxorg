@@ -355,6 +355,18 @@ class ExporterTypst(ExporterBase):
             self.exp.eval(node.to),
         ])
 
+    def getNodeAttrs(self, node: org.Org) -> Dict[str, List[any]]:
+        res: Dict[str, List] = dict()
+        arg: org.AttrValue
+        for arg in node.getAttrs():
+            name = org.org_ident_normalize(arg.name)
+            if name not in res:
+                res[name] = []
+
+            res[name].append(arg.getString())
+
+        return res
+
     def evalList(self, node: org.List) -> BlockId:
         desc_status = [it.isDescriptionItem() for it in node.subnodes]
         if any(desc_status) and not all(desc_status):
@@ -388,7 +400,11 @@ class ExporterTypst(ExporterBase):
 
             return self.t.call(
                 self.c.tags.table,
-                args=dict(items=items, kwargs=dict(columns=2)),
+                args=dict(
+                    items=items,
+                    kwargs=dict(columns=2),
+                    org_attrs=self.getNodeAttrs(node),
+                ),
             )
 
         else:
