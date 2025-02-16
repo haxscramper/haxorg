@@ -3,6 +3,8 @@
 from py_cli.haxorg_cli import (
     pack_context,
     BaseModel,
+    parseFile,
+    CliRootOptions,
 )
 
 from py_scriptutils.toml_config_profiler import (
@@ -93,6 +95,7 @@ def rec_node(node: org.Org) -> List[Header]:
     result = []
     match node:
         case org.Subtree():
+            log(CAT).info(f"Subtree {node.getCleanTitle()}")
             if node.isComment or node.isArchived:
                 return result
 
@@ -147,7 +150,7 @@ def rec_node(node: org.Org) -> List[Header]:
                         header.words = count
 
             for sub in node:
-                if isinstance(sub, org.Subtree):
+                if isinstance(sub, (org.Subtree, org.Document, org.CmdInclude, org.File)):
                     header.nested += rec_node(sub)
 
                 elif isinstance(sub, org.List):
@@ -205,7 +208,8 @@ def rec_node(node: org.Org) -> List[Header]:
                     count_words(sub)
 
             result.append(header)
-        case org.Document():
+
+        case org.Document() | org.CmdInclude() | org.File():
             for sub in node:
                 result += rec_node(sub)
 
@@ -330,8 +334,8 @@ def get_html_story_grid(nested_headers: List[Header]) -> dominate.document:
             opacity = (max_level - h.level) / max_level * 0.75
             header_style = f"background-color: rgba(255, 0, 0, {opacity:.2f});"
             cell_args = dict()
-            if 0 < len(h.nested):
-                cell_args["style"] = header_style
+            # if 0 < len(h.nested):
+            #     cell_args["style"] = header_style
 
             if field.name in SKIP_FIELDS:
                 continue
@@ -896,13 +900,13 @@ def get_typst_story_grid(headers: List[Header]):
 @cli_options
 @click.pass_context
 def cli(ctx: click.Context, config: str, **kwargs) -> None:
-    pack_context(ctx, "root", StoryGridOpts, config=config, kwargs=kwargs)
-    opts: StoryGridOpts = ctx.obj["root"]
-    node = org.parseFile(str(opts.infile.resolve()), org.OrgParseParameters())
+    pack_context(ctx, "story_grid", StoryGridOpts, config=config, kwargs=kwargs)
+    opts: StoryGridOpts = ctx.obj["story_grid"]
+    node = parseFile(CliRootOptions(), Path(opts.infile))
     headers = rec_node(node)
 
-    # with open("/tmp/res.txt", "w") as file:
-    #     file.write(org.treeRepr(node, colored=False))
+    with open("/tmp/res.txt", "w") as file:
+        file.write(org.treeRepr(node, colored=False))
 
     doc = get_html_story_grid(headers)
     with open(opts.outfile, "w") as out:
