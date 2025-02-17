@@ -72,6 +72,38 @@ Vec<sem::AttrValue> sem::AttrGroup::getAttrs(CR<Opt<Str>> param) const {
     }
 }
 
+int sem::AttrGroup::getNamedSize() const {
+    int result = 0;
+    for (auto const& [key, val] : this->named) {
+        result += val.items.size();
+    }
+    return result;
+}
+
+int sem::AttrGroup::getPositionalSize() const {
+    return positional.items.size();
+}
+
+bool sem::AttrGroup::isEmpty() const {
+    return getNamedSize() == 0 && getPositionalSize() == 0;
+}
+
+sem::AttrValue const& sem::AttrGroup::atPositional(int index) const {
+    return this->positional.items.at(index);
+}
+
+Opt<sem::AttrValue> sem::AttrGroup::getPositional(int index) const {
+    return this->positional.items.get(index);
+}
+
+sem::AttrList const& sem::AttrGroup::atNamed(Str const& index) const {
+    return this->named.at(index);
+}
+
+Opt<sem::AttrList> sem::AttrGroup::getNamed(Str const& index) const {
+    return this->named.get(index);
+}
+
 void sem::AttrGroup::setNamedAttr(
     Str const&                 key,
     Vec<sem::AttrValue> const& attr) {

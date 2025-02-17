@@ -18,19 +18,6 @@ std::string enum_serde<ListFormattingMode>::to_string(ListFormattingMode value) 
   }
 }
 
-Opt<NodeAttachMode> enum_serde<NodeAttachMode>::from_string(std::string value) {
-  if (value == "None") { return NodeAttachMode::None; } else
-  if (value == "Subtree") { return NodeAttachMode::Subtree; } else
-  { return std::nullopt; }
-}
-std::string enum_serde<NodeAttachMode>::to_string(NodeAttachMode value) {
-  switch (value) {
-    case NodeAttachMode::None: return "None";
-    case NodeAttachMode::Subtree: return "Subtree";
-    default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
-  }
-}
-
 Opt<InitialSubtreeVisibility> enum_serde<InitialSubtreeVisibility>::from_string(std::string value) {
   if (value == "Overview") { return InitialSubtreeVisibility::Overview; } else
   if (value == "Content") { return InitialSubtreeVisibility::Content; } else

@@ -226,6 +226,9 @@ struct Tblfm {
 };
 
 struct AttrValue {
+  /// \brief Best-guess type of the attribute
+  enum class Kind : short int { String, Boolean, Integer, Float, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, String, Boolean, Integer, Float)
   BOOST_DESCRIBE_CLASS(AttrValue,
                        (),
                        (),
@@ -239,6 +242,7 @@ struct AttrValue {
   Opt<bool> getBool() const;
   Opt<int> getInt() const;
   Str getString() const;
+  double getDouble() const;
   bool operator==(sem::AttrValue const& other) const;
 };
 
@@ -658,6 +662,13 @@ struct AttrGroup {
   Vec<sem::AttrValue> getAttrs(Opt<Str> const& key = std::nullopt) const;
   void setNamedAttr(Str const& key, Vec<sem::AttrValue> const& attrs);
   void setPositionalAttr(Vec<sem::AttrValue> const& items);
+  int getPositionalSize() const;
+  int getNamedSize() const;
+  bool isEmpty() const;
+  sem::AttrValue const& atPositional(int index) const;
+  Opt<sem::AttrValue> getPositional(int index) const;
+  sem::AttrList const& atNamed(Str const& index) const;
+  Opt<sem::AttrList> getNamed(Str const& index) const;
   bool operator==(sem::AttrGroup const& other) const;
 };
 

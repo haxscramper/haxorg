@@ -9,11 +9,6 @@ enum ListFormattingMode {
   ListFormattingMode_Table2DColFirst_f                                              = 3;
 }
 
-enum NodeAttachMode {
-  NodeAttachMode_None_f                                                             = 0;
-  NodeAttachMode_Subtree_f                                                          = 1;
-}
-
 enum InitialSubtreeVisibility {
   InitialSubtreeVisibility_Overview_f                                               = 0;
   InitialSubtreeVisibility_Content_f                                                = 1;
@@ -400,6 +395,12 @@ message Tblfm {
 }
 
 message AttrValue {
+  enum Kind {
+    Kind_String_f                                                                   = 0;
+    Kind_Boolean_f                                                                  = 1;
+    Kind_Integer_f                                                                  = 2;
+    Kind_Float_f                                                                    = 3;
+  }
   optional string                                  name                             = 1;
   optional string                                  varname                          = 2;
   string                                           value                            = 3;

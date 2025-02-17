@@ -489,6 +489,18 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  bind_enum_iterator<sem::AttrValue::Kind>(m, "AttrValueKind", type_registry_guard);
+  pybind11::enum_<sem::AttrValue::Kind>(m, "AttrValueKind")
+    .value("String", sem::AttrValue::Kind::String)
+    .value("Boolean", sem::AttrValue::Kind::Boolean)
+    .value("Integer", sem::AttrValue::Kind::Integer)
+    .value("Float", sem::AttrValue::Kind::Float)
+    .def("__iter__", [](sem::AttrValue::Kind _self) -> PyEnumIterator<sem::AttrValue::Kind> {
+                     return
+                     PyEnumIterator<sem::AttrValue::Kind>
+                     ();
+                     })
+    ;
   pybind11::class_<sem::AttrValue>(m, "AttrValue")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AttrValue {
                         sem::AttrValue result{};
@@ -501,6 +513,7 @@ node can have subnodes.)RAW")
     .def("getBool", static_cast<Opt<bool>(sem::AttrValue::*)() const>(&sem::AttrValue::getBool))
     .def("getInt", static_cast<Opt<int>(sem::AttrValue::*)() const>(&sem::AttrValue::getInt))
     .def("getString", static_cast<Str(sem::AttrValue::*)() const>(&sem::AttrValue::getString))
+    .def("getDouble", static_cast<double(sem::AttrValue::*)() const>(&sem::AttrValue::getDouble))
     .def("operator==",
          static_cast<bool(sem::AttrValue::*)(sem::AttrValue const&) const>(&sem::AttrValue::operator==),
          pybind11::arg("other"))
@@ -1146,6 +1159,21 @@ node can have subnodes.)RAW")
     .def("setPositionalAttr",
          static_cast<void(sem::AttrGroup::*)(Vec<sem::AttrValue> const&)>(&sem::AttrGroup::setPositionalAttr),
          pybind11::arg("items"))
+    .def("getPositionalSize", static_cast<int(sem::AttrGroup::*)() const>(&sem::AttrGroup::getPositionalSize))
+    .def("getNamedSize", static_cast<int(sem::AttrGroup::*)() const>(&sem::AttrGroup::getNamedSize))
+    .def("isEmpty", static_cast<bool(sem::AttrGroup::*)() const>(&sem::AttrGroup::isEmpty))
+    .def("atPositional",
+         static_cast<sem::AttrValue const&(sem::AttrGroup::*)(int) const>(&sem::AttrGroup::atPositional),
+         pybind11::arg("index"))
+    .def("getPositional",
+         static_cast<Opt<sem::AttrValue>(sem::AttrGroup::*)(int) const>(&sem::AttrGroup::getPositional),
+         pybind11::arg("index"))
+    .def("atNamed",
+         static_cast<sem::AttrList const&(sem::AttrGroup::*)(Str const&) const>(&sem::AttrGroup::atNamed),
+         pybind11::arg("index"))
+    .def("getNamed",
+         static_cast<Opt<sem::AttrList>(sem::AttrGroup::*)(Str const&) const>(&sem::AttrGroup::getNamed),
+         pybind11::arg("index"))
     .def("operator==",
          static_cast<bool(sem::AttrGroup::*)(sem::AttrGroup const&) const>(&sem::AttrGroup::operator==),
          pybind11::arg("other"))
@@ -4715,16 +4743,6 @@ node can have subnodes.)RAW")
     .def("__iter__", [](ListFormattingMode _self) -> PyEnumIterator<ListFormattingMode> {
                      return
                      PyEnumIterator<ListFormattingMode>
-                     ();
-                     })
-    ;
-  bind_enum_iterator<NodeAttachMode>(m, "NodeAttachMode", type_registry_guard);
-  pybind11::enum_<NodeAttachMode>(m, "NodeAttachMode")
-    .value("None", NodeAttachMode::None)
-    .value("Subtree", NodeAttachMode::Subtree)
-    .def("__iter__", [](NodeAttachMode _self) -> PyEnumIterator<NodeAttachMode> {
-                     return
-                     PyEnumIterator<NodeAttachMode>
                      ();
                      })
     ;

@@ -1191,8 +1191,12 @@ def get_shared_sem_enums() -> Sequence[GenTuEnum]:
             GenTuDoc(""),
             efield("None", "Default, no custom formatting"),
             efield("Table1D1Col", "one column, each table item is an individual row"),
-            efield("Table1D2Col", "for description lists, treat header row as an individual column"),
-            efield("Table2DColFirst", "for nested tables, treat the first level of items as column names, treat all nested elements in these columns as row values"),
+            efield("Table1D2Col",
+                   "for description lists, treat header row as an individual column"),
+            efield(
+                "Table2DColFirst",
+                "for nested tables, treat the first level of items as column names, treat all nested elements in these columns as row values"
+            ),
         ),
         d_simple_enum(
             t("InitialSubtreeVisibility"),
@@ -1406,6 +1410,16 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
             ]),
         GenTuStruct(
             t_nest_shared("AttrValue"),
+            nested=[
+                d_simple_enum(
+                    t_nest_shared("Kind", ["AttrValue"]),
+                    org_doc("Best-guess type of the attribute"),
+                    efield("String"),
+                    efield("Boolean"),
+                    efield("Integer"), 
+                    efield("Float"),
+                )
+            ],
             fields=[
                 opt_field(t_str(), "name"),
                 opt_field(t_str(), "varname"),
@@ -1415,6 +1429,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 GenTuFunction(t_opt(t_bool()), "getBool", isConst=True),
                 GenTuFunction(t_opt(t_int()), "getInt", isConst=True),
                 GenTuFunction(t_str(), "getString", isConst=True),
+                GenTuFunction(QualType(name="double"), "getDouble", isConst=True),
                 eq_method(t_nest_shared("AttrValue")),
             ],
         ),
@@ -1809,6 +1824,45 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     arguments=[
                         GenTuIdent(t_cr(t_vec(t_nest_shared("AttrValue"))), "items"),
                     ],
+                ),
+                GenTuFunction(
+                    t_int(),
+                    "getPositionalSize",
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_int(),
+                    "getNamedSize",
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_bool(),
+                    "isEmpty",
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_cr(t_nest_shared("AttrValue")),
+                    "atPositional",
+                    arguments=[GenTuIdent(t_int(), "index")],
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_opt(t_nest_shared("AttrValue")),
+                    "getPositional",
+                    arguments=[GenTuIdent(t_int(), "index")],
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_cr(t_nest_shared("AttrList")),
+                    "atNamed",
+                    arguments=[GenTuIdent(t_cr(t_str()), "index")],
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_opt(t_nest_shared("AttrList")),
+                    "getNamed",
+                    arguments=[GenTuIdent(t_cr(t_str()), "index")],
+                    isConst=True,
                 ),
                 eq_method(t_nest_shared("AttrGroup")),
             ],

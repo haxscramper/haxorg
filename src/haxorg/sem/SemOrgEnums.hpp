@@ -83,6 +83,7 @@
     __IMPL(Tblfm, Expr::AxisRef::Position::Kind, (Expr, AxisRef, Position, Kind)) \
     __IMPL(Tblfm, Expr::Kind, (Expr, Kind)) \
     __IMPL(Tblfm, Assign::Flag, (Assign, Flag)) \
+    __IMPL(AttrValue, Kind, (Kind)) \
     __IMPL(LinkTarget, Kind, (Kind)) \
     __IMPL(SubtreeLogHead, Priority::Action, (Priority, Action)) \
     __IMPL(SubtreeLogHead, Kind, (Kind)) \
@@ -551,18 +552,6 @@ template <>
 struct value_domain<ListFormattingMode> : public value_domain_ungapped<ListFormattingMode,
                                                                        ListFormattingMode::None,
                                                                        ListFormattingMode::Table2DColFirst> {};
-
-enum class NodeAttachMode : short int { None, Subtree, };
-template <>
-struct enum_serde<NodeAttachMode> {
-  static Opt<NodeAttachMode> from_string(std::string value);
-  static std::string to_string(NodeAttachMode value);
-};
-
-template <>
-struct value_domain<NodeAttachMode> : public value_domain_ungapped<NodeAttachMode,
-                                                                   NodeAttachMode::None,
-                                                                   NodeAttachMode::Subtree> {};
 
 enum class InitialSubtreeVisibility : short int { Overview, Content, ShowAll, Show2Levels, Show3Levels, Show4Levels, Show5Levels, ShowEverything, };
 template <>

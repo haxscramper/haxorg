@@ -600,6 +600,16 @@ TEST(OrgParseSem, TextParsing) {
         EXPECT_EQ(ex4->exporter, "html"_ss);
         EXPECT_EQ(ex4->content, "</b>"_ss);
     }
+
+    {
+        auto par = parseOne<sem::Paragraph>(R"([2024])");
+        EXPECT_EQ(par.size(), 3);
+    }
+
+    {
+        auto par = parseOne<sem::Paragraph>(R"([2024-12])");
+        EXPECT_EQ(par.size(), 3);
+    }
 }
 
 TEST(OrgParseSem, TblfmExpression) {
@@ -739,6 +749,32 @@ TEST(OrgParseSem, SubtreePropertyContext) {
     }
 }
 
+TEST(OrgParseSem, Macro) {
+    {
+        auto m = parseOne<sem::Macro>(R"({{{simple}}})");
+        EXPECT_EQ(m->name, "simple"_ss);
+    }
+    {
+        auto m = parseOne<sem::Macro>(R"({{{simple(arg)}}})");
+        EXPECT_EQ(m->name, "simple"_ss);
+        EXPECT_EQ(m->attrs.getPositionalSize(), 1);
+        EXPECT_EQ(m->attrs.atPositional(0).getString(), "arg"_ss);
+    }
+    {
+        auto m = parseOne<sem::Macro>(R"({{{dashed-name}}})");
+        EXPECT_EQ(m->name, "dashed-name"_ss);
+    }
+    {
+        auto m = parseOne<sem::Macro>(
+            R"({{{property(PROPERTY-NAME, SEARCH OPTION)}}})");
+        EXPECT_EQ(m->name, "property");
+        EXPECT_EQ(m->attrs.getPositionalSize(), 2);
+        EXPECT_EQ(
+            m->attrs.atPositional(0).getString(), "PROPERTY-NAME"_ss);
+        EXPECT_EQ(m->attrs.atPositional(1).getString(), "SEARCH OPTION");
+    }
+}
+
 TEST(OrgParseSem, SubtreeTitle) {
     {
         auto t    = parseOne<sem::Subtree>(R"(* Subtree)");
@@ -766,7 +802,7 @@ TEST(OrgParseSem, SubtreeTitle) {
     }
 }
 
-TEST(OrgParserSem, TestMarkup) {
+TEST(OrgParseSem, TestMarkup) {
     Str text{R"(
 test /Italic/
 
@@ -837,7 +873,7 @@ other
     EXPECT_EQ2(get({31}).size(), 1);
 }
 
-TEST(OrgParserSem, IncludeCommand) {
+TEST(OrgParseSem, IncludeCommand) {
     auto get = [&](std::string const& s,
                    Opt<std::string>   debug = std::nullopt) {
         return parseOne<sem::CmdInclude>(s, debug);
