@@ -20,17 +20,67 @@ struct std::formatter<OrgSpecName> : std::formatter<std::string> {
     }
 };
 
+using OrgToken = Token<OrgTokenKind, OrgFill>;
 
-using OrgToken      = Token<OrgTokenKind, OrgFill>;
+struct OrgNodeMono {
+    struct None {
+        DESC_FIELDS(None, ());
+    };
+
+    struct Error {
+        struct Box {
+            std::string error;
+            int         parserLine;
+            std::string parserFunction;
+            OrgToken    failToken;
+            DESC_FIELDS(
+                Box,
+                (error, parserLine, parserFunction, failToken));
+        };
+
+        SPtr<Box> box;
+        DESC_FIELDS(Error, (box));
+    };
+
+    SUB_VARIANTS(Kind, Data, data, getKind, None, Error);
+    Data data;
+    DESC_FIELDS(OrgNodeMono, (data));
+};
+
+template <>
+struct std::formatter<OrgNodeMono::Error> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const OrgNodeMono::Error& p, FormatContext& ctx) const {
+        if (p.box) {
+            return fmt_ctx(*p.box, ctx);
+        } else {
+            return fmt_ctx("Error{}", ctx);
+        }
+    }
+};
+
+
 using OrgTokenId    = TokenId<OrgTokenKind, OrgFill>;
 using OrgTokenStore = TokenStore<OrgTokenKind, OrgFill>;
 using OrgTokenGroup = TokenGroup<OrgTokenKind, OrgFill>;
-using OrgNode       = Node<OrgNodeKind, OrgTokenKind, OrgFill>;
-using OrgId         = NodeId<OrgNodeKind, OrgTokenKind, OrgFill>;
-using OrgNodeGroup  = NodeGroup<OrgNodeKind, OrgTokenKind, OrgFill>;
-using OrgLexer      = LexerCommon<OrgTokenKind, OrgFill>;
-using OrgTokSet     = IntSet<OrgTokenKind>;
-using OrgAdapter    = NodeAdapter<OrgNodeKind, OrgTokenKind, OrgFill>;
-using OrgSet        = IntSet<OrgNodeKind>;
+using OrgNode = Node<OrgNodeKind, OrgTokenKind, OrgFill, OrgNodeMono>;
+using OrgId   = NodeId<OrgNodeKind, OrgTokenKind, OrgFill, OrgNodeMono>;
+using OrgNodeGroup = NodeGroup<
+    OrgNodeKind,
+    OrgTokenKind,
+    OrgFill,
+    OrgNodeMono>;
+using OrgLexer   = LexerCommon<OrgTokenKind, OrgFill>;
+using OrgTokSet  = IntSet<OrgTokenKind>;
+using OrgAdapter = NodeAdapter<
+    OrgNodeKind,
+    OrgTokenKind,
+    OrgFill,
+    OrgNodeMono>;
+using OrgSet = IntSet<OrgNodeKind>;
 
-extern template class NodeGroup<OrgNodeKind, OrgTokenKind, OrgFill>;
+extern template class NodeGroup<
+    OrgNodeKind,
+    OrgTokenKind,
+    OrgFill,
+    OrgNodeMono>;

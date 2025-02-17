@@ -21,12 +21,12 @@ BOOST_DESCRIBE_ENUM(TokenKind, T1, T2, T3);
 BOOST_DESCRIBE_ENUM(NodeKind, N1, N2, N3);
 
 TEST(GeneralNodeAPITest, SubnodeWithTwoLevelsOfNesting) {
-    using NodeT  = Node<NodeKind, TokenKind, char>;
-    using NIdT   = NodeId<NodeKind, TokenKind, char>;
+    using NodeT  = Node<NodeKind, TokenKind, char, std::monostate>;
+    using NIdT   = NodeId<NodeKind, TokenKind, char, std::monostate>;
     using TIdT   = TokenId<TokenKind, char>;
     using TokenT = Token<TokenKind, char>;
-    TokenGroup<TokenKind, char>          tokens;
-    NodeGroup<NodeKind, TokenKind, char> nodes(&tokens);
+    TokenGroup<TokenKind, char>                          tokens;
+    NodeGroup<NodeKind, TokenKind, char, std::monostate> nodes(&tokens);
 
     // [ T                         ]
     // [   A       B       C       ]
@@ -84,12 +84,12 @@ TEST(GeneralNodeAPITest, SubnodeWithTwoLevelsOfNesting) {
 }
 
 TEST(GeneralNodeAPITest, FlatSubnodeWithNoDeepNesting) {
-    using NodeT  = Node<NodeKind, TokenKind, char>;
-    using NIdT   = NodeId<NodeKind, TokenKind, char>;
+    using NodeT  = Node<NodeKind, TokenKind, char, std::monostate>;
+    using NIdT   = NodeId<NodeKind, TokenKind, char, std::monostate>;
     using TIdT   = TokenId<TokenKind, char>;
     using TokenT = Token<TokenKind, char>;
-    TokenGroup<TokenKind, char>          tokens;
-    NodeGroup<NodeKind, TokenKind, char> nodes(&tokens);
+    TokenGroup<TokenKind, char>                          tokens;
+    NodeGroup<NodeKind, TokenKind, char, std::monostate> nodes(&tokens);
 
     NIdT top = nodes.startTree(NodeT(NodeKind::N1));
     (void)nodes.token(

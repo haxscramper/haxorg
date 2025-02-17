@@ -108,24 +108,34 @@ OrgId OrgParser::parseMacro(OrgLexer& lex) {
         ++closingOffset;
     }
 
-    if (lex.at(otk::CurlyEnd, closingOffset)
-        && lex.at(otk::CurlyEnd, closingOffset + 1)
-        && lex.at(otk::CurlyEnd, closingOffset + 2)) {
-        start(onk::Macro);
-        skip(lex, otk::CurlyBegin);
-        skip(lex, otk::CurlyBegin);
-        skip(lex, otk::CurlyBegin);
-        token(onk::Word, pop(lex, OrgTokSet{otk::Word}));
+    bool hasClose = lex.at(otk::CurlyEnd, closingOffset)
+                 && lex.at(otk::CurlyEnd, closingOffset + 1)
+                 && lex.at(otk::CurlyEnd, closingOffset + 2);
 
-        parseCallArguments(lex);
+    if (!hasClose) { start(onk::ErrorWrap); }
 
-        skip(lex, otk::CurlyEnd);
-        skip(lex, otk::CurlyEnd);
-        skip(lex, otk::CurlyEnd);
-        return end();
-    } else {
-        return token(onk::Punctuation, pop(lex, otk::CurlyBegin));
+    start(onk::Macro);
+    skip(lex, otk::CurlyBegin);
+    skip(lex, otk::CurlyBegin);
+    skip(lex, otk::CurlyBegin);
+    token(onk::Word, pop(lex, OrgTokSet{otk::Word}));
+
+    parseCallArguments(lex);
+
+    for (int i = 0; i <= 2; ++i) {
+        if (lex.at(otk::CurlyEnd)) {
+            skip(lex, otk::CurlyEnd);
+        } else {
+            LOGIC_ASSERTION_CHECK(!hasClose, "");
+            end(); // end macro parse
+            error_token(
+                "macro is missing closing triple curly brace", lex);
+            return end(); // end error wrap
+        }
     }
+
+    LOGIC_ASSERTION_CHECK(hasClose, "");
+    return end();
 }
 
 void OrgParser::parseCallArguments(OrgLexer& lex) {

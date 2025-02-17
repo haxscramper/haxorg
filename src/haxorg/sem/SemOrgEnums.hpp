@@ -749,6 +749,8 @@ enum class OrgNodeKind : short int {
   ///      elements like `some text (notes)` are also represented as `Word,
   ///      Word, Markup(str: "(", [Word])` - e.g. structure is not fully flat.
   Bold,
+  ErrorWrap,
+  ErrorToken,
   Italic,
   Verbatim,
   Backtick,

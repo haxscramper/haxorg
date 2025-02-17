@@ -237,6 +237,7 @@ struct LexerCommon {
   public:
     TokenGroup<K, V>* in;
     TokenId<K, V>     pos;
+    Opt<Token<K, V>>  lastToken;
     LexerCommon(
         TokenGroup<K, V>* _in,
         TokenId<K, V>     startPos = TokenId<K, V>(0))
@@ -625,6 +626,7 @@ struct SubLexer : public LexerCommon<K, V> {
     void next(int offset = 1) override {
         // TODO boundary checking
         if (hasNext(offset)) {
+            this->lastToken = this->tok();
             subPos += offset;
             pos = tokens.at(subPos);
         } else {
@@ -652,7 +654,8 @@ struct Lexer : public LexerCommon<K, V> {
 
     void next(int offset = 1) override {
         if (hasNext(offset)) {
-            pos = pos + offset;
+            this->lastToken = this->tok();
+            pos             = pos + offset;
         } else {
             pos = TokenId<K, V>::Nil();
         }

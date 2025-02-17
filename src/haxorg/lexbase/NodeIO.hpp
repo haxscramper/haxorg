@@ -1,5 +1,6 @@
 #pragma once
 
+#include "haxorg/base_lexer/base_token.hpp"
 #include <unordered_set>
 #include <haxorg/lexbase/Node.hpp>
 #include <haxorg/lexbase/Token.hpp>
@@ -10,11 +11,11 @@
 #include <hstd/stdlib/Yaml.hpp>
 
 
-template <typename N, typename K, typename V>
+template <typename N, typename K, typename V, typename M>
 yaml yamlRepr(
-    CR<NodeGroup<N, K, V>> group,
-    bool                   withStrings = true,
-    bool                   withId      = false) {
+    CR<NodeGroup<N, K, V, M>> group,
+    bool                      withStrings = true,
+    bool                      withId      = false) {
     yaml out;
     for (const auto& [id, node] : group.nodes.pairs()) {
         yaml item;
@@ -36,8 +37,8 @@ yaml yamlRepr(
 }
 
 
-template <typename N, typename K, typename V>
-json jsonRepr(CR<NodeGroup<N, K, V>> group, bool withStrings = true) {
+template <typename N, typename K, typename V, typename M>
+json jsonRepr(CR<NodeGroup<N, K, V, M>> group, bool withStrings = true) {
     json out = json::array();
     for (const auto& [id, node] : group.nodes.pairs()) {
         json item;
@@ -172,20 +173,21 @@ json jsonRepr(CR<TokenGroup<K, V>> group, bool withIdx = false) {
     return out;
 }
 
-template <typename N, typename K, typename V>
-NodeGroup<N, K, V> fromFlatNodes(CR<yaml> node) {
-    NodeGroup<N, K, V> result;
+template <typename N, typename K, typename V, typename M>
+NodeGroup<N, K, V, M> fromFlatNodes(CR<yaml> node) {
+    NodeGroup<N, K, V, M> result;
     result.nodes.resize(
-        node.size(), Node(value_domain<N>::low(), TokenId<K, V>::Nil()));
+        node.size(),
+        Node<N, K, V, M>(value_domain<N>::low(), TokenId<K, V>::Nil()));
     int index = 0;
     for (const auto& it : node) {
         N kind = enum_serde<N>::from_string(it["kind"].as<std::string>())
                      .value();
         if (it["extent"]) {
-            result.at(NodeId<N, K, V>(index)) = Node<N, K, V>(
+            result.at(NodeId<N, K, V, M>(index)) = Node<N, K, V, M>(
                 kind, it["extent"].as<int>());
         } else {
-            result.at(NodeId<N, K, V>(index)) = Node<N, K, V>(
+            result.at(NodeId<N, K, V, M>(index)) = Node<N, K, V, M>(
                 kind, TokenId<K, V>(it["tok_idx"].as<int>()));
         }
         ++index;

@@ -1,32 +1,33 @@
 #include "Node.hpp"
 
 
-template <typename N, typename K, typename V>
-typename NodeGroup<N, K, V>::Id NodeGroup<N, K, V>::endTree(int offset) {
+template <typename N, typename K, typename V, typename M>
+typename NodeGroup<N, K, V, M>::Id NodeGroup<N, K, V, M>::endTree(
+    int offset) {
     CHECK(0 < pendingTrees.size());
     auto start = pendingTrees.pop_back_v();
     nodes.at(start).extend(distance(start, nodes.back()) + offset);
     return start;
 }
 
-template <typename N, typename K, typename V>
-typename NodeGroup<N, K, V>::Id NodeGroup<N, K, V>::failTree(
-    Node<N, K, V> replacement) {
+template <typename N, typename K, typename V, typename M>
+typename NodeGroup<N, K, V, M>::Id NodeGroup<N, K, V, M>::failTree(
+    Node<N, K, V, M> replacement) {
     CHECK(0 < pendingTrees.size());
     auto start      = pendingTrees.pop_back_v();
     nodes.at(start) = replacement;
     return start;
 }
 
-template <typename N, typename K, typename V>
-void NodeGroup<N, K, V>::removeTail(Id id) {
+template <typename N, typename K, typename V, typename M>
+void NodeGroup<N, K, V, M>::removeTail(Id id) {
     nodes.content.erase(
         nodes.content.begin() + id.getIndex(), nodes.content.end());
 }
 
-template <typename N, typename K, typename V>
-typename NodeGroup<N, K, V>::iterator NodeGroup<N, K, V>::begin(
-    NodeGroup<N, K, V>::Id start) const {
+template <typename N, typename K, typename V, typename M>
+typename NodeGroup<N, K, V, M>::iterator NodeGroup<N, K, V, M>::begin(
+    NodeGroup<N, K, V, M>::Id start) const {
     if (start.getIndex() < size()) {
         auto result = iterator(start, this);
         result.check();
@@ -36,19 +37,20 @@ typename NodeGroup<N, K, V>::iterator NodeGroup<N, K, V>::begin(
     }
 }
 
-template <typename N, typename K, typename V>
-typename NodeGroup<N, K, V>::iterator NodeGroup<N, K, V>::end(
-    NodeGroup<N, K, V>::Id last) const {
+template <typename N, typename K, typename V, typename M>
+typename NodeGroup<N, K, V, M>::iterator NodeGroup<N, K, V, M>::end(
+    NodeGroup<N, K, V, M>::Id last) const {
     ++last;
     return iterator(last, this);
 }
 
 
-template <typename N, typename K, typename V>
-Opt<Pair<typename NodeGroup<N, K, V>::iterator, typename NodeGroup<N, K, V>::iterator>> NodeGroup<
+template <typename N, typename K, typename V, typename M>
+Opt<Pair<typename NodeGroup<N, K, V, M>::iterator, typename NodeGroup<N, K, V, M>::iterator>> NodeGroup<
     N,
     K,
-    V>::subnodesOf(typename NodeGroup<N, K, V>::Id node) const {
+    V,
+    M>::subnodesOf(typename NodeGroup<N, K, V, M>::Id node) const {
     // TODO return empty range for iterator start
     if (at(node).isTerminal()) {
         return std::nullopt;
@@ -60,8 +62,8 @@ Opt<Pair<typename NodeGroup<N, K, V>::iterator, typename NodeGroup<N, K, V>::ite
     }
 }
 
-template <typename N, typename K, typename V>
-Opt<Slice<typename NodeGroup<N, K, V>::Id>> NodeGroup<N, K, V>::
+template <typename N, typename K, typename V, typename M>
+Opt<Slice<typename NodeGroup<N, K, V, M>::Id>> NodeGroup<N, K, V, M>::
     allSubnodesOf(Id node) const {
     if (0 < at(node).getExtent()) {
         return slice<Id>(node + 1, node + at(node).getExtent());
@@ -70,10 +72,10 @@ Opt<Slice<typename NodeGroup<N, K, V>::Id>> NodeGroup<N, K, V>::
     }
 }
 
-template <typename N, typename K, typename V>
-typename NodeGroup<N, K, V>::Id NodeGroup<N, K, V>::parent(
-    NodeGroup<N, K, V>::Id node) const {
-    NodeGroup<N, K, V>::Id parent = node;
+template <typename N, typename K, typename V, typename M>
+typename NodeGroup<N, K, V, M>::Id NodeGroup<N, K, V, M>::parent(
+    NodeGroup<N, K, V, M>::Id node) const {
+    NodeGroup<N, K, V, M>::Id parent = node;
     --parent;
     while (!parent.isNil()) {
         auto extent = allSubnodesOf(parent);
@@ -89,8 +91,8 @@ typename NodeGroup<N, K, V>::Id NodeGroup<N, K, V>::parent(
     return Id::Nil();
 }
 
-template <typename N, typename K, typename V>
-int NodeGroup<N, K, V>::size(Id node) const {
+template <typename N, typename K, typename V, typename M>
+int NodeGroup<N, K, V, M>::size(Id node) const {
     if (auto pair = subnodesOf(node)) {
         auto [begin, end] = *pair;
         int result        = 0;
@@ -102,8 +104,8 @@ int NodeGroup<N, K, V>::size(Id node) const {
     }
 }
 
-template <typename N, typename K, typename V>
-typename NodeGroup<N, K, V>::Id NodeGroup<N, K, V>::subnode(
+template <typename N, typename K, typename V, typename M>
+typename NodeGroup<N, K, V, M>::Id NodeGroup<N, K, V, M>::subnode(
     Id  node,
     int index) const {
     if (auto pair = subnodesOf(node)) {
@@ -123,8 +125,8 @@ typename NodeGroup<N, K, V>::Id NodeGroup<N, K, V>::subnode(
 }
 
 
-template <typename N, typename K, typename V>
-void NodeGroup<N, K, V>::treeRepr(
+template <typename N, typename K, typename V, typename M>
+void NodeGroup<N, K, V, M>::treeRepr(
     ColStream&       os,
     Id               node,
     int              level,
@@ -220,8 +222,8 @@ void NodeGroup<N, K, V>::treeRepr(
     if (conf.flushEach) { os.flush(); }
 }
 
-template <typename N, typename K, typename V>
-std::string NodeGroup<N, K, V>::treeRepr(Id node, CR<TreeReprConf> conf)
+template <typename N, typename K, typename V, typename M>
+std::string NodeGroup<N, K, V, M>::treeRepr(Id node, CR<TreeReprConf> conf)
     const {
     std::stringstream buffer;
     ColStream         text{buffer};

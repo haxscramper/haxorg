@@ -2767,6 +2767,8 @@ def get_org_node_kind_text():
      elements like `some text (notes)` are also represented as `Word,
      Word, Markup(str: \"(\", [Word])` - e.g. structure is not fully flat.""",
         ),
+        efield("ErrorWrap"),
+        efield("ErrorToken"),
         efield("Italic"),
         efield("Verbatim"),
         efield("Backtick"),

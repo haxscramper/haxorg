@@ -781,8 +781,17 @@ TEST(OrgParseSem, Macro) {
         EXPECT_EQ(m->attrs.getFirstNamed("key")->getString(), "value"_ss);
     }
     {
-        auto m = parseOne<sem::Paragraph>(R"({{{partial}})");
-        EXPECT_EQ2(m.at(0)->getKind(), OrgSemKind::Punctuation);
+        auto par = parseOne<sem::Paragraph>(
+            R"({{{partial}})", getDebugFile("broken_macro"));
+        // _dbg(sem::exportToTreeString(par, sem::OrgTreeExportOpts{}));
+        EXPECT_EQ2(par.size(), 1);
+        EXPECT_EQ2(par.at(0)->getKind(), OrgSemKind::ErrorGroup);
+        auto err = par.at(0).as<sem::ErrorGroup>();
+        EXPECT_EQ2(err.size(), 1);
+        EXPECT_EQ2(err->diagnostics.size(), 1);
+        EXPECT_EQ2(err.at(0)->getKind(), OrgSemKind::Macro);
+        auto m = err.at(0).as<sem::Macro>();
+        EXPECT_EQ2(m->name, "partial"_ss);
     }
 }
 

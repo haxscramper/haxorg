@@ -4937,6 +4937,8 @@ node can have subnodes.)RAW")
      NOTE: when structured sentences are enabled, regular punctuation
      elements like `some text (notes)` are also represented as `Word,
      Word, Markup(str: "(", [Word])` - e.g. structure is not fully flat.)RAW")
+    .value("ErrorWrap", OrgNodeKind::ErrorWrap)
+    .value("ErrorToken", OrgNodeKind::ErrorToken)
     .value("Italic", OrgNodeKind::Italic)
     .value("Verbatim", OrgNodeKind::Verbatim)
     .value("Backtick", OrgNodeKind::Backtick)

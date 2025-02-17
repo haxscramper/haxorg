@@ -268,6 +268,8 @@ Opt<OrgNodeKind> enum_serde<OrgNodeKind>::from_string(std::string value) {
   if (value == "BlockDynamicFallback") { return OrgNodeKind::BlockDynamicFallback; } else
   if (value == "BigIdent") { return OrgNodeKind::BigIdent; } else
   if (value == "Bold") { return OrgNodeKind::Bold; } else
+  if (value == "ErrorWrap") { return OrgNodeKind::ErrorWrap; } else
+  if (value == "ErrorToken") { return OrgNodeKind::ErrorToken; } else
   if (value == "Italic") { return OrgNodeKind::Italic; } else
   if (value == "Verbatim") { return OrgNodeKind::Verbatim; } else
   if (value == "Backtick") { return OrgNodeKind::Backtick; } else
@@ -392,6 +394,8 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     case OrgNodeKind::BlockDynamicFallback: return "BlockDynamicFallback";
     case OrgNodeKind::BigIdent: return "BigIdent";
     case OrgNodeKind::Bold: return "Bold";
+    case OrgNodeKind::ErrorWrap: return "ErrorWrap";
+    case OrgNodeKind::ErrorToken: return "ErrorToken";
     case OrgNodeKind::Italic: return "Italic";
     case OrgNodeKind::Verbatim: return "Verbatim";
     case OrgNodeKind::Backtick: return "Backtick";

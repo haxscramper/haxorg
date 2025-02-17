@@ -2350,6 +2350,29 @@ SemId<Org> OrgConverter::convert(__args) {
         case onk::Paragraph: return convertParagraph(a).unwrap();
         case onk::BlockDynamicFallback:
             return convertBlockDynamicFallback(a).unwrap();
+        case onk::ErrorWrap: {
+            auto group = Sem<ErrorGroup>(a);
+            for (auto const& sub : a) {
+                if (sub.isMono() && sub.getMono().isError()) {
+                    auto mono = sub.getMono().getError();
+                    LOGIC_ASSERTION_CHECK(
+                        mono.box,
+                        "Mono error for node should have box data");
+                    group->diagnostics.push_back(SemErrorItem(
+                        sub,
+                        fmt("{} at {}:{} {}",
+                            mono.box->error,
+                            mono.box->failToken->line,
+                            mono.box->failToken->col,
+                            escape_literal(mono.box->failToken->text)),
+                        mono.box->parserLine,
+                        mono.box->parserFunction.c_str()));
+                } else {
+                    group->push_back(convert(sub));
+                }
+            }
+            return group;
+        }
         default: {
             return SemError(a, fmt("ERR Unknown content {}", a.getKind()));
         }
