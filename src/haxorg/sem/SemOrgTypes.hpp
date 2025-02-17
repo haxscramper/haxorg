@@ -669,6 +669,8 @@ struct AttrGroup {
   Opt<sem::AttrValue> getPositional(int index) const;
   sem::AttrList const& atNamed(Str const& index) const;
   Opt<sem::AttrList> getNamed(Str const& index) const;
+  sem::AttrValue const& atFirstNamed(Str const& index) const;
+  Opt<sem::AttrValue> getFirstNamed(Str const& index) const;
   bool operator==(sem::AttrGroup const& other) const;
 };
 

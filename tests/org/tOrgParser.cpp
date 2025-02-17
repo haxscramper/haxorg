@@ -773,6 +773,13 @@ TEST(OrgParseSem, Macro) {
             m->attrs.atPositional(0).getString(), "PROPERTY-NAME"_ss);
         EXPECT_EQ(m->attrs.atPositional(1).getString(), "SEARCH OPTION");
     }
+    {
+        auto m = parseOne<sem::Macro>(R"({{{named(key=value)}}})");
+        EXPECT_EQ(m->name, "named"_ss);
+        EXPECT_EQ(m->attrs.getPositionalSize(), 0);
+        EXPECT_EQ(m->attrs.getNamedSize(), 1);
+        EXPECT_EQ(m->attrs.getFirstNamed("key")->getString(), "value"_ss);
+    }
 }
 
 TEST(OrgParseSem, SubtreeTitle) {

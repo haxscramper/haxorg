@@ -1416,7 +1416,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     org_doc("Best-guess type of the attribute"),
                     efield("String"),
                     efield("Boolean"),
-                    efield("Integer"), 
+                    efield("Integer"),
                     efield("Float"),
                 )
             ],
@@ -1861,6 +1861,18 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 GenTuFunction(
                     t_opt(t_nest_shared("AttrList")),
                     "getNamed",
+                    arguments=[GenTuIdent(t_cr(t_str()), "index")],
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_cr(t_nest_shared("AttrValue")),
+                    "atFirstNamed",
+                    arguments=[GenTuIdent(t_cr(t_str()), "index")],
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_opt(t_nest_shared("AttrValue")),
+                    "getFirstNamed",
                     arguments=[GenTuIdent(t_cr(t_str()), "index")],
                     isConst=True,
                 ),

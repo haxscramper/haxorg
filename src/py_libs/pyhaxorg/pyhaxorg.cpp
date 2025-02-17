@@ -1174,6 +1174,12 @@ node can have subnodes.)RAW")
     .def("getNamed",
          static_cast<Opt<sem::AttrList>(sem::AttrGroup::*)(Str const&) const>(&sem::AttrGroup::getNamed),
          pybind11::arg("index"))
+    .def("atFirstNamed",
+         static_cast<sem::AttrValue const&(sem::AttrGroup::*)(Str const&) const>(&sem::AttrGroup::atFirstNamed),
+         pybind11::arg("index"))
+    .def("getFirstNamed",
+         static_cast<Opt<sem::AttrValue>(sem::AttrGroup::*)(Str const&) const>(&sem::AttrGroup::getFirstNamed),
+         pybind11::arg("index"))
     .def("operator==",
          static_cast<bool(sem::AttrGroup::*)(sem::AttrGroup const&) const>(&sem::AttrGroup::operator==),
          pybind11::arg("other"))

@@ -104,6 +104,19 @@ Opt<sem::AttrList> sem::AttrGroup::getNamed(Str const& index) const {
     return this->named.get(index);
 }
 
+sem::AttrValue const& sem::AttrGroup::atFirstNamed(
+    Str const& index) const {
+    return this->named.at(index).items.at(0);
+}
+
+Opt<sem::AttrValue> sem::AttrGroup::getFirstNamed(Str const& index) const {
+    if (named.contains(index)) {
+        return this->named.at(index).items.get(0);
+    } else {
+        return std::nullopt;
+    }
+}
+
 void sem::AttrGroup::setNamedAttr(
     Str const&                 key,
     Vec<sem::AttrValue> const& attr) {
