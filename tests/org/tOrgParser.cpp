@@ -780,6 +780,10 @@ TEST(OrgParseSem, Macro) {
         EXPECT_EQ(m->attrs.getNamedSize(), 1);
         EXPECT_EQ(m->attrs.getFirstNamed("key")->getString(), "value"_ss);
     }
+    {
+        auto m = parseOne<sem::Paragraph>(R"({{{partial}})");
+        EXPECT_EQ2(m.at(0)->getKind(), OrgSemKind::Punctuation);
+    }
 }
 
 TEST(OrgParseSem, SubtreeTitle) {

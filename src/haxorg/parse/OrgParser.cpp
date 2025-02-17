@@ -101,18 +101,31 @@ OrgId OrgParser::subParseImpl(
 OrgId OrgParser::parseMacro(OrgLexer& lex) {
     __perf_trace("parsing", "parseMacro");
     auto __trace = trace(lex);
-    start(onk::Macro);
-    skip(lex, otk::CurlyBegin);
-    skip(lex, otk::CurlyBegin);
-    skip(lex, otk::CurlyBegin);
-    token(onk::Word, pop(lex, OrgTokSet{otk::Word}));
 
-    parseCallArguments(lex);
+    int closingOffset = 0;
+    while (lex.hasNext(closingOffset)
+           && !lex.at(otk::CurlyEnd, closingOffset)) {
+        ++closingOffset;
+    }
 
-    skip(lex, otk::CurlyEnd);
-    skip(lex, otk::CurlyEnd);
-    skip(lex, otk::CurlyEnd);
-    return end();
+    if (lex.at(otk::CurlyEnd, closingOffset)
+        && lex.at(otk::CurlyEnd, closingOffset + 1)
+        && lex.at(otk::CurlyEnd, closingOffset + 2)) {
+        start(onk::Macro);
+        skip(lex, otk::CurlyBegin);
+        skip(lex, otk::CurlyBegin);
+        skip(lex, otk::CurlyBegin);
+        token(onk::Word, pop(lex, OrgTokSet{otk::Word}));
+
+        parseCallArguments(lex);
+
+        skip(lex, otk::CurlyEnd);
+        skip(lex, otk::CurlyEnd);
+        skip(lex, otk::CurlyEnd);
+        return end();
+    } else {
+        return token(onk::Punctuation, pop(lex, otk::CurlyBegin));
+    }
 }
 
 void OrgParser::parseCallArguments(OrgLexer& lex) {
