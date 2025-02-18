@@ -115,12 +115,17 @@ typename NodeGroup<N, K, V, M>::Id NodeGroup<N, K, V, M>::subnode(
             if (i == index) { return *begin; }
         }
 
-        throw RangeError(
-            "Could not get subnode with index $# for node with id $# "
-            "-- it contains only $# items"
-            % to_string_vec(index, node.getUnmasked(), i));
+        throw RangeError::init(
+            fmt("Could not get subnode with index {} for node with id {} "
+                "-- it contains only {} items",
+                index,
+                node.getUnmasked(),
+                i));
     } else {
-        logic_todo_impl();
+        throw RangeError::init(
+            fmt("Node {} of kind {} does not have subnode range",
+                node,
+                at(node).kind));
     }
 }
 

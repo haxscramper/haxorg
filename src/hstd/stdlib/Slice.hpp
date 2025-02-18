@@ -140,19 +140,19 @@ constexpr Slice<T> slice(CR<T> first, CR<T> last) {
     if (!(first <= last)) {
         if constexpr (std::is_integral_v<T> && sizeof(T) <= sizeof(u64)) {
             if constexpr (std::is_signed_v<T>) {
-                throw RangeError(
+                throw RangeError::init(
                     "Expected first <= last but got first='"
                     + std::to_string(static_cast<i64>(first)) + "' last='"
                     + std::to_string(static_cast<i64>(last)) + "'");
             } else {
-                throw RangeError(
+                throw RangeError::init(
                     "Expected first <= last but got first='"
                     + std::to_string(static_cast<u64>(first)) + "' last='"
                     + std::to_string(static_cast<u64>(last)) + "'");
             }
 
         } else {
-            throw RangeError(
+            throw RangeError::init(
                 "Expected first <= last but got <unformattable type>");
         }
     }
@@ -250,7 +250,7 @@ Pair<int, int> getSpan(
         && !(
             (0 <= startPos && startPos < size)
             && (0 <= endPos && endPos < size))) {
-        throw OutOfRangeError(std::format(
+        throw RangeError::init(std::format(
             "Container index is out of range: real span range is {}..{} "
             "computed from {}, but full extent length is only {}",
             startPos,

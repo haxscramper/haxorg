@@ -243,6 +243,12 @@ TEST(OrgParseSem, SubtreeProperties) {
             EXPECT_EQ(p.at(0).path.path.at(0), "Misc");
         }
     }
+    {
+        auto tree = parseOne<sem::Subtree>(R"(* Tree
+:properties:
+:visibility: content
+:end:)");
+    }
 }
 
 TEST(OrgParseSem, HashtagParse) {

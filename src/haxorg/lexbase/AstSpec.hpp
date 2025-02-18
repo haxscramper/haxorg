@@ -20,10 +20,7 @@
 
 
 namespace astspec {
-struct FieldAccessError : public GetterError {
-    explicit FieldAccessError(const std::string& message)
-        : GetterError(message) {}
-};
+struct FieldAccessError : CRTP_hexception<FieldAccessError> {};
 
 
 enum class AstRangeKind : u8
@@ -709,7 +706,7 @@ struct AstSpec {
         CR<Name>           name,
         Opt<Slice<int>>    slice,
         CR<AstRange<Name>> range) const {
-        return FieldAccessError(std::format(
+        return FieldAccessError::init(std::format(
             "Range {} for node kind {} was resolved into slice {} "
             "(required ast range is {})",
             fmt1(name),
@@ -732,7 +729,7 @@ struct AstSpec {
             names = "Available names: " + join(", ", tmp);
         }
 
-        return FieldAccessError(
+        return FieldAccessError::init(
             "Cannot get positional node with name '" + fmt1(name)
             + "' from node of kind '" + fmt1(kind) + "'. "
             + names.toBase());

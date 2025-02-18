@@ -150,7 +150,7 @@ check: {2:064b}
     /// from the `getValue()`
     auto getIndex() const -> IdType {
         if (isNil()) {
-            throw OutOfRangeError(
+            throw RangeError::init(
                 "Cannot get index for nil value of DOD ID");
         } else {
             return (getUnmasked() - 1);

@@ -622,7 +622,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
     } else if (name == "visibility") {
         if (auto visibility = parseOrgEnum<
                 sem::NamedProperty::Visibility::Level>(
-                get_text(one(a, N::Values).at(0)));
+                get_text(one(a, N::Values)));
             visibility) {
             Property::Visibility prop;
             prop.level = visibility.value();
