@@ -712,6 +712,20 @@ struct proto_serde<::orgproto::NamedProperty::CustomRaw, sem::NamedProperty::Cus
 
 
 template <>
+struct proto_serde<::orgproto::NamedProperty::CustomSubtreeJson, sem::NamedProperty::CustomSubtreeJson> {
+  static void write(::orgproto::NamedProperty::CustomSubtreeJson* out, sem::NamedProperty::CustomSubtreeJson const& in);
+  static void read(::orgproto::NamedProperty::CustomSubtreeJson const& out, proto_write_accessor<sem::NamedProperty::CustomSubtreeJson> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::NamedProperty::CustomSubtreeFlags, sem::NamedProperty::CustomSubtreeFlags> {
+  static void write(::orgproto::NamedProperty::CustomSubtreeFlags* out, sem::NamedProperty::CustomSubtreeFlags const& in);
+  static void read(::orgproto::NamedProperty::CustomSubtreeFlags const& out, proto_write_accessor<sem::NamedProperty::CustomSubtreeFlags> in);
+};
+
+
+template <>
 struct proto_serde<::orgproto::NamedProperty, sem::NamedProperty> {
   static void write(::orgproto::NamedProperty* out, sem::NamedProperty const& in);
   static void read(::orgproto::NamedProperty const& out, proto_write_accessor<sem::NamedProperty> in);

@@ -247,6 +247,8 @@ TEST(OrgParseSem, SubtreeProperties) {
         auto tree = parseOne<sem::Subtree>(R"(* Tree
 :properties:
 :visibility: content
+:prop_json:name: {"key": "value"}
+:prop_args:name: :key value
 :end:)");
     }
 }

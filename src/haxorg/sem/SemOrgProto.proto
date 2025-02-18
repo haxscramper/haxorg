@@ -217,6 +217,16 @@ enum OrgNodeKind {
   OrgNodeKind_SubtreeImportance_f                                                   = 121;
 }
 
+enum OrgJsonKind {
+  OrgJsonKind_Null_f                                                                = 0;
+  OrgJsonKind_Object_f                                                              = 1;
+  OrgJsonKind_Array_f                                                               = 2;
+  OrgJsonKind_String_f                                                              = 3;
+  OrgJsonKind_Boolean_f                                                             = 4;
+  OrgJsonKind_Int_f                                                                 = 5;
+  OrgJsonKind_Float_f                                                               = 6;
+}
+
 enum OrgSemKind {
   OrgSemKind_None_f                                                                 = 0;
   OrgSemKind_ErrorItem_f                                                            = 1;
@@ -939,6 +949,16 @@ message NamedProperty {
     string                                         value                            = 2;
     string                                         debug                            = 1000;
   }
+  message CustomSubtreeJson {
+    string                                         name                             = 1;
+    OrgJson                                        value                            = 2;
+    string                                         debug                            = 1000;
+  }
+  message CustomSubtreeFlags {
+    string                                         name                             = 1;
+    AttrList                                       value                            = 2;
+    string                                         debug                            = 1000;
+  }
   message Data {
     oneof kind {
       NamedProperty.Nonblocking                    nonblocking                      = 1;
@@ -965,6 +985,8 @@ message NamedProperty {
       NamedProperty.HashtagDef                     hashtagdef                       = 22;
       NamedProperty.CustomArgs                     customargs                       = 23;
       NamedProperty.CustomRaw                      customraw                        = 24;
+      NamedProperty.CustomSubtreeJson              customsubtreejson                = 25;
+      NamedProperty.CustomSubtreeFlags             customsubtreeflags               = 26;
     }
   }
   enum Kind {
@@ -992,6 +1014,8 @@ message NamedProperty {
     Kind_HashtagDef_f                                                               = 21;
     Kind_CustomArgs_f                                                               = 22;
     Kind_CustomRaw_f                                                                = 23;
+    Kind_CustomSubtreeJson_f                                                        = 24;
+    Kind_CustomSubtreeFlags_f                                                       = 25;
   }
   NamedProperty.Data                               data                             = 1;
   string                                           debug                            = 1000;

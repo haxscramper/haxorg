@@ -549,6 +549,19 @@ struct proto_serde<bool, bool> {
 
 
 template <>
+struct proto_serde<::orgproto::OrgJson, ::sem::OrgJson> {
+    static void read(
+        ::orgproto::OrgJson const&         out,
+        proto_write_accessor<sem::OrgJson> in) {
+        in.get().value = json::parse(out.raw());
+    }
+
+    static void write(::orgproto::OrgJson* out, sem::OrgJson const& in) {
+        out->set_raw(in.getRef().dump());
+    }
+};
+
+template <>
 struct proto_serde<int, int> {
     static void read(int const& out, proto_write_accessor<int> in) {
         in.get() = out;

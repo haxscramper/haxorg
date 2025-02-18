@@ -415,6 +415,18 @@ void Exporter<V, R>::visit(R& res, sem::NamedProperty::CustomRaw const& object) 
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::NamedProperty::CustomSubtreeJson const& object) {
+  __obj_field(res, object, name);
+  __obj_field(res, object, value);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::NamedProperty::CustomSubtreeFlags const& object) {
+  __obj_field(res, object, name);
+  __obj_field(res, object, value);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visitNone(R& res, In<sem::None> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, subnodes);

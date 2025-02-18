@@ -490,7 +490,25 @@ def get_subtree_property_types():
                 str_field("name", GenTuDoc("Original name of the property")),
                 str_field("value", GenTuDoc("Property value")),
             ],
-        )
+        ),
+        GenTuStruct(
+            t_nest_shared("CustomSubtreeJson", ["NamedProperty"]),
+            GenTuDoc("Free-form JSON"),
+            methods=[eq_method(t_nest_shared("CustomSubtreeJson", ["NamedProperty"]))],
+            fields=[
+                org_field(t_str(), "name"), 
+                org_field(t_nest_shared("OrgJson"), "value")
+            ]
+        ),
+        GenTuStruct(
+            t_nest_shared("CustomSubtreeFlags", ["NamedProperty"]),
+            GenTuDoc("Free-form flags"),
+            methods=[eq_method(t_nest_shared("CustomSubtreeFlags", ["NamedProperty"]))],
+            fields=[
+                org_field(t_str(), "name"), 
+                org_field(t_nest_shared("AttrList"), "value")
+            ]
+        ),
     ]
 
 
@@ -1778,7 +1796,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
             t_nest_shared("AttrList"),
             fields=[
                 vec_field(t_nest_shared("AttrValue"), "items"),
-            ],
+        ],
             methods=[eq_method(t_nest_shared("AttrList"))],
         ),
         GenTuStruct(
@@ -3093,5 +3111,16 @@ def get_enums():
             GenTuDoc(""),
             get_org_node_kind(),
             #endregion
+        ),
+        d_simple_enum(
+            t("OrgJsonKind"),
+            GenTuDoc(""),
+            efield("Null"),
+            efield("Object"),
+            efield("Array"),
+            efield("String"),
+            efield("Boolean"),
+            efield("Int"),
+            efield("Float"),
         ),
     ]

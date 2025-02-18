@@ -78,7 +78,9 @@
     __IMPL(NamedProperty, RadioId, (RadioId)) \
     __IMPL(NamedProperty, HashtagDef, (HashtagDef)) \
     __IMPL(NamedProperty, CustomArgs, (CustomArgs)) \
-    __IMPL(NamedProperty, CustomRaw, (CustomRaw))
+    __IMPL(NamedProperty, CustomRaw, (CustomRaw)) \
+    __IMPL(NamedProperty, CustomSubtreeJson, (CustomSubtreeJson)) \
+    __IMPL(NamedProperty, CustomSubtreeFlags, (CustomSubtreeFlags))
 #define EACH_SHARED_ORG_ENUM_NESTED(__IMPL) \
     __IMPL(Tblfm, Expr::AxisRef::Position::Kind, (Expr, AxisRef, Position, Kind)) \
     __IMPL(Tblfm, Expr::Kind, (Expr, Kind)) \
@@ -193,7 +195,9 @@
     __IMPL(NamedProperty::RadioId, (NamedProperty, RadioId)) \
     __IMPL(NamedProperty::HashtagDef, (NamedProperty, HashtagDef)) \
     __IMPL(NamedProperty::CustomArgs, (NamedProperty, CustomArgs)) \
-    __IMPL(NamedProperty::CustomRaw, (NamedProperty, CustomRaw))
+    __IMPL(NamedProperty::CustomRaw, (NamedProperty, CustomRaw)) \
+    __IMPL(NamedProperty::CustomSubtreeJson, (NamedProperty, CustomSubtreeJson)) \
+    __IMPL(NamedProperty::CustomSubtreeFlags, (NamedProperty, CustomSubtreeFlags))
 #define EACH_SEM_ORG_RECORD_NESTED(__IMPL) \
     __IMPL(Time, Repeat, (Repeat)) \
     __IMPL(Time, Static, (Static)) \
@@ -848,6 +852,18 @@ template <>
 struct value_domain<OrgNodeKind> : public value_domain_ungapped<OrgNodeKind,
                                                                 OrgNodeKind::None,
                                                                 OrgNodeKind::SubtreeImportance> {};
+
+enum class OrgJsonKind : short int { Null, Object, Array, String, Boolean, Int, Float, };
+template <>
+struct enum_serde<OrgJsonKind> {
+  static Opt<OrgJsonKind> from_string(std::string value);
+  static std::string to_string(OrgJsonKind value);
+};
+
+template <>
+struct value_domain<OrgJsonKind> : public value_domain_ungapped<OrgJsonKind,
+                                                                OrgJsonKind::Null,
+                                                                OrgJsonKind::Float> {};
 
 enum class OrgSemKind : short int { None, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdResults, CmdTblfm, HashTag, InlineFootnote, InlineExport, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, RadioTarget, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCode, SubtreeLog, Subtree, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, CmdExport, Call, List, ListItem, DocumentOptions, Document, FileTarget, TextSeparator, DocumentGroup, File, Directory, Symlink, CmdInclude, };
 template <>

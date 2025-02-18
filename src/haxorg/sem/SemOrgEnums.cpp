@@ -449,6 +449,29 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
   }
 }
 
+Opt<OrgJsonKind> enum_serde<OrgJsonKind>::from_string(std::string value) {
+  if (value == "Null") { return OrgJsonKind::Null; } else
+  if (value == "Object") { return OrgJsonKind::Object; } else
+  if (value == "Array") { return OrgJsonKind::Array; } else
+  if (value == "String") { return OrgJsonKind::String; } else
+  if (value == "Boolean") { return OrgJsonKind::Boolean; } else
+  if (value == "Int") { return OrgJsonKind::Int; } else
+  if (value == "Float") { return OrgJsonKind::Float; } else
+  { return std::nullopt; }
+}
+std::string enum_serde<OrgJsonKind>::to_string(OrgJsonKind value) {
+  switch (value) {
+    case OrgJsonKind::Null: return "Null";
+    case OrgJsonKind::Object: return "Object";
+    case OrgJsonKind::Array: return "Array";
+    case OrgJsonKind::String: return "String";
+    case OrgJsonKind::Boolean: return "Boolean";
+    case OrgJsonKind::Int: return "Int";
+    case OrgJsonKind::Float: return "Float";
+    default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
+  }
+}
+
 Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "None") { return OrgSemKind::None; } else
   if (value == "ErrorItem") { return OrgSemKind::ErrorItem; } else

@@ -1043,6 +1043,27 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
         for (auto const& prop : id->properties) {
             using P = sem::NamedProperty;
             switch (prop.getKind()) {
+                case P::Kind::CustomSubtreeFlags: {
+                    add(head,
+                        b.line({
+                            str(
+                                fmt(":prop_args:{}:",
+                                    prop.getCustomSubtreeFlags().name)),
+                            toString(
+                                prop.getCustomSubtreeFlags().value, ctx),
+                        }));
+                    break;
+                }
+                case P::Kind::CustomSubtreeJson: {
+                    add(head,
+                        str(
+                            fmt(":prop_json:{}: {}",
+                                prop.getCustomSubtreeJson().name,
+                                prop.getCustomSubtreeJson()
+                                    .value.getRef()
+                                    .dump())));
+                    break;
+                }
                 case P::Kind::ExportLatexCompiler: {
                     add(head,
                         str(

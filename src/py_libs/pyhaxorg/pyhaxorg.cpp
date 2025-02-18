@@ -58,6 +58,8 @@ PYBIND11_MAKE_OPAQUE(std::vector<UserTime>)
 PYBIND11_MAKE_OPAQUE(Vec<UserTime>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId<sem::Time>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemId<sem::Time>>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::OrgJson>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::OrgJson>)
 PYBIND11_MAKE_OPAQUE(std::unordered_map<sem::HashTagFlat, sem::AstTrackingPath>)
 PYBIND11_MAKE_OPAQUE(UnorderedMap<sem::HashTagFlat, sem::AstTrackingPath>)
 PYBIND11_MAKE_OPAQUE(std::unordered_map<Str, sem::AstTrackingAlternatives>)
@@ -103,6 +105,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::SemId<sem::BigIdent>>(m, "VecOfSemIdOfBigIdent", type_registry_guard);
   bind_vector<UserTime>(m, "VecOfUserTime", type_registry_guard);
   bind_vector<sem::SemId<sem::Time>>(m, "VecOfSemIdOfTime", type_registry_guard);
+  bind_vector<sem::OrgJson>(m, "VecOfOrgJson", type_registry_guard);
   bind_unordered_map<sem::HashTagFlat, sem::AstTrackingPath>(m, "UnorderedMapOfHashTagFlatAstTrackingPath", type_registry_guard);
   bind_unordered_map<Str, sem::AstTrackingAlternatives>(m, "UnorderedMapOfStrAstTrackingAlternatives", type_registry_guard);
   bind_unordered_map<sem::HashTagFlat, sem::AstTrackingAlternatives>(m, "UnorderedMapOfHashTagFlatAstTrackingAlternatives", type_registry_guard);
@@ -2369,6 +2372,46 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<sem::NamedProperty::CustomSubtreeJson>(m, "NamedPropertyCustomSubtreeJson")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::NamedProperty::CustomSubtreeJson {
+                        sem::NamedProperty::CustomSubtreeJson result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("name", &sem::NamedProperty::CustomSubtreeJson::name)
+    .def_readwrite("value", &sem::NamedProperty::CustomSubtreeJson::value)
+    .def("operator==",
+         static_cast<bool(sem::NamedProperty::CustomSubtreeJson::*)(sem::NamedProperty::CustomSubtreeJson const&) const>(&sem::NamedProperty::CustomSubtreeJson::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::NamedProperty::CustomSubtreeJson _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::NamedProperty::CustomSubtreeJson _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::NamedProperty::CustomSubtreeFlags>(m, "NamedPropertyCustomSubtreeFlags")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::NamedProperty::CustomSubtreeFlags {
+                        sem::NamedProperty::CustomSubtreeFlags result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("name", &sem::NamedProperty::CustomSubtreeFlags::name)
+    .def_readwrite("value", &sem::NamedProperty::CustomSubtreeFlags::value)
+    .def("operator==",
+         static_cast<bool(sem::NamedProperty::CustomSubtreeFlags::*)(sem::NamedProperty::CustomSubtreeFlags const&) const>(&sem::NamedProperty::CustomSubtreeFlags::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](sem::NamedProperty::CustomSubtreeFlags _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::NamedProperty::CustomSubtreeFlags _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   bind_enum_iterator<sem::NamedProperty::Kind>(m, "NamedPropertyKind", type_registry_guard);
   pybind11::enum_<sem::NamedProperty::Kind>(m, "NamedPropertyKind")
     .value("Nonblocking", sem::NamedProperty::Kind::Nonblocking)
@@ -2395,6 +2438,8 @@ node can have subnodes.)RAW")
     .value("HashtagDef", sem::NamedProperty::Kind::HashtagDef)
     .value("CustomArgs", sem::NamedProperty::Kind::CustomArgs)
     .value("CustomRaw", sem::NamedProperty::Kind::CustomRaw)
+    .value("CustomSubtreeJson", sem::NamedProperty::Kind::CustomSubtreeJson)
+    .value("CustomSubtreeFlags", sem::NamedProperty::Kind::CustomSubtreeFlags)
     .def("__iter__", [](sem::NamedProperty::Kind _self) -> PyEnumIterator<sem::NamedProperty::Kind> {
                      return
                      PyEnumIterator<sem::NamedProperty::Kind>
@@ -2466,6 +2511,10 @@ node can have subnodes.)RAW")
     .def("getCustomArgs", static_cast<sem::NamedProperty::CustomArgs&(sem::NamedProperty::*)()>(&sem::NamedProperty::getCustomArgs))
     .def("isCustomRaw", static_cast<bool(sem::NamedProperty::*)() const>(&sem::NamedProperty::isCustomRaw))
     .def("getCustomRaw", static_cast<sem::NamedProperty::CustomRaw&(sem::NamedProperty::*)()>(&sem::NamedProperty::getCustomRaw))
+    .def("isCustomSubtreeJson", static_cast<bool(sem::NamedProperty::*)() const>(&sem::NamedProperty::isCustomSubtreeJson))
+    .def("getCustomSubtreeJson", static_cast<sem::NamedProperty::CustomSubtreeJson&(sem::NamedProperty::*)()>(&sem::NamedProperty::getCustomSubtreeJson))
+    .def("isCustomSubtreeFlags", static_cast<bool(sem::NamedProperty::*)() const>(&sem::NamedProperty::isCustomSubtreeFlags))
+    .def("getCustomSubtreeFlags", static_cast<sem::NamedProperty::CustomSubtreeFlags&(sem::NamedProperty::*)()>(&sem::NamedProperty::getCustomSubtreeFlags))
     .def_static("getKindStatic",
                 static_cast<sem::NamedProperty::Kind(*)(sem::NamedProperty::Data const&)>(&sem::NamedProperty::getKind),
                 pybind11::arg("__input"))
@@ -5001,6 +5050,21 @@ node can have subnodes.)RAW")
                      ();
                      })
     ;
+  bind_enum_iterator<OrgJsonKind>(m, "OrgJsonKind", type_registry_guard);
+  pybind11::enum_<OrgJsonKind>(m, "OrgJsonKind")
+    .value("Null", OrgJsonKind::Null)
+    .value("Object", OrgJsonKind::Object)
+    .value("Array", OrgJsonKind::Array)
+    .value("String", OrgJsonKind::String)
+    .value("Boolean", OrgJsonKind::Boolean)
+    .value("Int", OrgJsonKind::Int)
+    .value("Float", OrgJsonKind::Float)
+    .def("__iter__", [](OrgJsonKind _self) -> PyEnumIterator<OrgJsonKind> {
+                     return
+                     PyEnumIterator<OrgJsonKind>
+                     ();
+                     })
+    ;
   bind_enum_iterator<OrgSemKind>(m, "OrgSemKind", type_registry_guard);
   pybind11::enum_<OrgSemKind>(m, "OrgSemKind")
     .value("None", OrgSemKind::None)
@@ -5115,6 +5179,38 @@ node can have subnodes.)RAW")
                      })
     .def("__getattr__",
          [](UserTime _self, std::string name) -> pybind11::object {
+         return py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<sem::OrgJson>(m, "OrgJson")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::OrgJson {
+                        sem::OrgJson result{};
+                        init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("getKind", static_cast<OrgJsonKind(sem::OrgJson::*)() const>(&sem::OrgJson::getKind))
+    .def("at",
+         static_cast<sem::OrgJson(sem::OrgJson::*)(int) const>(&sem::OrgJson::at),
+         pybind11::arg("idx"))
+    .def("at",
+         static_cast<sem::OrgJson(sem::OrgJson::*)(std::string const&) const>(&sem::OrgJson::at),
+         pybind11::arg("name"))
+    .def("getString", static_cast<std::string(sem::OrgJson::*)() const>(&sem::OrgJson::getString))
+    .def("getField",
+         static_cast<sem::OrgJson(sem::OrgJson::*)(std::string const&) const>(&sem::OrgJson::getField),
+         pybind11::arg("name"))
+    .def("getItem",
+         static_cast<sem::OrgJson(sem::OrgJson::*)(int) const>(&sem::OrgJson::getItem),
+         pybind11::arg("index"))
+    .def("getInt", static_cast<int(sem::OrgJson::*)() const>(&sem::OrgJson::getInt))
+    .def("getBool", static_cast<bool(sem::OrgJson::*)() const>(&sem::OrgJson::getBool))
+    .def("getArray", static_cast<Vec<sem::OrgJson>(sem::OrgJson::*)() const>(&sem::OrgJson::getArray))
+    .def("__repr__", [](sem::OrgJson _self) -> std::string {
+                     return py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](sem::OrgJson _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))

@@ -1406,9 +1406,33 @@ struct NamedProperty {
     bool operator==(sem::NamedProperty::CustomRaw const& other) const;
   };
 
-  using Data = std::variant<sem::NamedProperty::Nonblocking, sem::NamedProperty::ArchiveTime, sem::NamedProperty::ArchiveFile, sem::NamedProperty::ArchiveOlpath, sem::NamedProperty::ArchiveTarget, sem::NamedProperty::ArchiveCategory, sem::NamedProperty::ArchiveTodo, sem::NamedProperty::Trigger, sem::NamedProperty::ExportLatexClass, sem::NamedProperty::CookieData, sem::NamedProperty::ExportLatexClassOptions, sem::NamedProperty::ExportLatexHeader, sem::NamedProperty::ExportLatexCompiler, sem::NamedProperty::Ordered, sem::NamedProperty::Effort, sem::NamedProperty::Visibility, sem::NamedProperty::ExportOptions, sem::NamedProperty::Blocker, sem::NamedProperty::Unnumbered, sem::NamedProperty::Created, sem::NamedProperty::RadioId, sem::NamedProperty::HashtagDef, sem::NamedProperty::CustomArgs, sem::NamedProperty::CustomRaw>;
-  enum class Kind : short int { Nonblocking, ArchiveTime, ArchiveFile, ArchiveOlpath, ArchiveTarget, ArchiveCategory, ArchiveTodo, Trigger, ExportLatexClass, CookieData, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, RadioId, HashtagDef, CustomArgs, CustomRaw, };
-  BOOST_DESCRIBE_NESTED_ENUM(Kind, Nonblocking, ArchiveTime, ArchiveFile, ArchiveOlpath, ArchiveTarget, ArchiveCategory, ArchiveTodo, Trigger, ExportLatexClass, CookieData, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, RadioId, HashtagDef, CustomArgs, CustomRaw)
+  /// \brief Free-form JSON
+  struct CustomSubtreeJson {
+    BOOST_DESCRIBE_CLASS(CustomSubtreeJson,
+                         (),
+                         (),
+                         (),
+                         (name, value))
+    Str name;
+    sem::OrgJson value;
+    bool operator==(sem::NamedProperty::CustomSubtreeJson const& other) const;
+  };
+
+  /// \brief Free-form flags
+  struct CustomSubtreeFlags {
+    BOOST_DESCRIBE_CLASS(CustomSubtreeFlags,
+                         (),
+                         (),
+                         (),
+                         (name, value))
+    Str name;
+    sem::AttrList value;
+    bool operator==(sem::NamedProperty::CustomSubtreeFlags const& other) const;
+  };
+
+  using Data = std::variant<sem::NamedProperty::Nonblocking, sem::NamedProperty::ArchiveTime, sem::NamedProperty::ArchiveFile, sem::NamedProperty::ArchiveOlpath, sem::NamedProperty::ArchiveTarget, sem::NamedProperty::ArchiveCategory, sem::NamedProperty::ArchiveTodo, sem::NamedProperty::Trigger, sem::NamedProperty::ExportLatexClass, sem::NamedProperty::CookieData, sem::NamedProperty::ExportLatexClassOptions, sem::NamedProperty::ExportLatexHeader, sem::NamedProperty::ExportLatexCompiler, sem::NamedProperty::Ordered, sem::NamedProperty::Effort, sem::NamedProperty::Visibility, sem::NamedProperty::ExportOptions, sem::NamedProperty::Blocker, sem::NamedProperty::Unnumbered, sem::NamedProperty::Created, sem::NamedProperty::RadioId, sem::NamedProperty::HashtagDef, sem::NamedProperty::CustomArgs, sem::NamedProperty::CustomRaw, sem::NamedProperty::CustomSubtreeJson, sem::NamedProperty::CustomSubtreeFlags>;
+  enum class Kind : short int { Nonblocking, ArchiveTime, ArchiveFile, ArchiveOlpath, ArchiveTarget, ArchiveCategory, ArchiveTodo, Trigger, ExportLatexClass, CookieData, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, RadioId, HashtagDef, CustomArgs, CustomRaw, CustomSubtreeJson, CustomSubtreeFlags, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, Nonblocking, ArchiveTime, ArchiveFile, ArchiveOlpath, ArchiveTarget, ArchiveCategory, ArchiveTodo, Trigger, ExportLatexClass, CookieData, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, RadioId, HashtagDef, CustomArgs, CustomRaw, CustomSubtreeJson, CustomSubtreeFlags)
   using variant_enum_type = sem::NamedProperty::Kind;
   using variant_data_type = sem::NamedProperty::Data;
   NamedProperty(CR<Data> data) : data(data) {}
@@ -1497,6 +1521,12 @@ struct NamedProperty {
   bool isCustomRaw() const { return getKind() == Kind::CustomRaw; }
   sem::NamedProperty::CustomRaw const& getCustomRaw() const { return std::get<23>(data); }
   sem::NamedProperty::CustomRaw& getCustomRaw() { return std::get<23>(data); }
+  bool isCustomSubtreeJson() const { return getKind() == Kind::CustomSubtreeJson; }
+  sem::NamedProperty::CustomSubtreeJson const& getCustomSubtreeJson() const { return std::get<24>(data); }
+  sem::NamedProperty::CustomSubtreeJson& getCustomSubtreeJson() { return std::get<24>(data); }
+  bool isCustomSubtreeFlags() const { return getKind() == Kind::CustomSubtreeFlags; }
+  sem::NamedProperty::CustomSubtreeFlags const& getCustomSubtreeFlags() const { return std::get<25>(data); }
+  sem::NamedProperty::CustomSubtreeFlags& getCustomSubtreeFlags() { return std::get<25>(data); }
   static sem::NamedProperty::Kind getKind(sem::NamedProperty::Data const& __input) { return static_cast<sem::NamedProperty::Kind>(__input.index()); }
   sem::NamedProperty::Kind getKind() const { return getKind(data); }
 };

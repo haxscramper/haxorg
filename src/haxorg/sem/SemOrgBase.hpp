@@ -184,6 +184,73 @@ struct remove_sem_org<SemId<T>> {
 sem::OrgIdVariant  asVariant(SemId<Org> in);
 sem::OrgPtrVariant asVariant(Org* in);
 
+struct [[refl]] OrgJson {
+    mutable Variant<json, json*> value;
+
+    DESC_FIELDS(OrgJson, ());
+
+    [[refl]] OrgJsonKind getKind() const {
+        using K = OrgJsonKind;
+        switch (getRef().type()) {
+            case json::value_t::null: return K::Null;
+            case json::value_t::object: return K::Object;
+            case json::value_t::array: return K::Array;
+            case json::value_t::string: return K::String;
+            case json::value_t::boolean: return K::Boolean;
+            case json::value_t::number_integer: return K::Int;
+            case json::value_t::number_float: return K::Float;
+            case json::value_t::number_unsigned: return K::Int;
+            case json::value_t::discarded: return K::Null;
+            case json::value_t::binary: return K::String;
+        }
+    }
+
+    OrgJson(json const* ptr) : value{const_cast<json*>(ptr)} {}
+    OrgJson(json const& copy) : value{copy} {}
+    OrgJson() {}
+
+    bool operator==(OrgJson const& other) const {
+        return getRef() == other.getRef();
+    }
+
+    bool isPtr() const { return std::holds_alternative<json*>(value); }
+
+    json*       getPtr() const { return std::get<json*>(value); }
+    json const& getValue() const { return std::get<json>(value); }
+
+    json const& getRef() const {
+        if (isPtr()) {
+            return *getPtr();
+        } else {
+            return getValue();
+        }
+    }
+
+    [[refl]] OrgJson at(int idx) const { return &getRef().at(idx); }
+    [[refl]] OrgJson at(std::string const& name) const {
+        return &getRef().at(name);
+    }
+    [[refl]] std::string getString() const {
+        return getRef().get<std::string>();
+    }
+
+    [[refl]] OrgJson getField(std::string const& name) const {
+        return getRef().at(name);
+    }
+
+    [[refl]] OrgJson getItem(int index) const {
+        return getRef().at(index);
+    }
+
+    [[refl]] int          getInt() const { return getRef().get<int>(); }
+    [[refl]] bool         getBool() const { return getRef().get<bool>(); }
+    [[refl]] Vec<OrgJson> getArray() const {
+        Vec<OrgJson> result;
+        for (auto const& sub : getRef()) { result.push_back(&sub); }
+        return result;
+    }
+};
+
 /// \brief Base class for all org nodes. Provides essential baseline API
 /// and information.
 struct [[refl]] Org {
@@ -330,5 +397,14 @@ struct std::formatter<sem::SemId<T>> : std::formatter<std::string> {
         } else {
             return fmt_ctx(p->getKind(), ctx);
         }
+    }
+};
+
+template <>
+struct std::hash<sem::OrgJson> {
+    std::size_t operator()(sem::OrgJson const& it) const noexcept {
+        std::size_t result = 0;
+        hax_hash_combine(result, it.getRef());
+        return result;
     }
 };

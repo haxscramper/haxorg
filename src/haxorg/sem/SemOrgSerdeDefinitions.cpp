@@ -1239,6 +1239,26 @@ void proto_serde<::orgproto::NamedProperty::CustomRaw, sem::NamedProperty::Custo
   proto_serde<std::string, Str>::read(out.value(), in.for_field(&sem::NamedProperty::CustomRaw::value));
 }
 
+void proto_serde<::orgproto::NamedProperty::CustomSubtreeJson, sem::NamedProperty::CustomSubtreeJson>::write(::orgproto::NamedProperty::CustomSubtreeJson* out, sem::NamedProperty::CustomSubtreeJson const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
+  proto_serde<orgproto::OrgJson, sem::OrgJson>::write(out->mutable_value(), in.value);
+}
+
+void proto_serde<::orgproto::NamedProperty::CustomSubtreeJson, sem::NamedProperty::CustomSubtreeJson>::read(::orgproto::NamedProperty::CustomSubtreeJson const& out, proto_write_accessor<sem::NamedProperty::CustomSubtreeJson> in) {
+  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::NamedProperty::CustomSubtreeJson::name));
+  proto_serde<orgproto::OrgJson, sem::OrgJson>::read(out.value(), in.for_field(&sem::NamedProperty::CustomSubtreeJson::value));
+}
+
+void proto_serde<::orgproto::NamedProperty::CustomSubtreeFlags, sem::NamedProperty::CustomSubtreeFlags>::write(::orgproto::NamedProperty::CustomSubtreeFlags* out, sem::NamedProperty::CustomSubtreeFlags const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
+  proto_serde<orgproto::AttrList, sem::AttrList>::write(out->mutable_value(), in.value);
+}
+
+void proto_serde<::orgproto::NamedProperty::CustomSubtreeFlags, sem::NamedProperty::CustomSubtreeFlags>::read(::orgproto::NamedProperty::CustomSubtreeFlags const& out, proto_write_accessor<sem::NamedProperty::CustomSubtreeFlags> in) {
+  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::NamedProperty::CustomSubtreeFlags::name));
+  proto_serde<orgproto::AttrList, sem::AttrList>::read(out.value(), in.for_field(&sem::NamedProperty::CustomSubtreeFlags::value));
+}
+
 void proto_serde<::orgproto::NamedProperty, sem::NamedProperty>::write(::orgproto::NamedProperty* out, sem::NamedProperty const& in) {
   switch (in.data.index()) {
     case 0:
@@ -1312,6 +1332,12 @@ void proto_serde<::orgproto::NamedProperty, sem::NamedProperty>::write(::orgprot
       break;
     case 23:
       proto_serde<orgproto::NamedProperty::CustomRaw, sem::NamedProperty::CustomRaw>::write(out->mutable_data()->mutable_customraw(), std::get<23>(in.data));
+      break;
+    case 24:
+      proto_serde<orgproto::NamedProperty::CustomSubtreeJson, sem::NamedProperty::CustomSubtreeJson>::write(out->mutable_data()->mutable_customsubtreejson(), std::get<24>(in.data));
+      break;
+    case 25:
+      proto_serde<orgproto::NamedProperty::CustomSubtreeFlags, sem::NamedProperty::CustomSubtreeFlags>::write(out->mutable_data()->mutable_customsubtreeflags(), std::get<25>(in.data));
       break;
   }
 }
@@ -1389,6 +1415,12 @@ void proto_serde<::orgproto::NamedProperty, sem::NamedProperty>::read(::orgproto
       break;
     case ::orgproto::NamedProperty::Data::kCustomraw:
       proto_serde<orgproto::NamedProperty::CustomRaw, sem::NamedProperty::CustomRaw>::read(out.data().customraw(), in.for_field_variant<23>(&sem::NamedProperty::data));
+      break;
+    case ::orgproto::NamedProperty::Data::kCustomsubtreejson:
+      proto_serde<orgproto::NamedProperty::CustomSubtreeJson, sem::NamedProperty::CustomSubtreeJson>::read(out.data().customsubtreejson(), in.for_field_variant<24>(&sem::NamedProperty::data));
+      break;
+    case ::orgproto::NamedProperty::Data::kCustomsubtreeflags:
+      proto_serde<orgproto::NamedProperty::CustomSubtreeFlags, sem::NamedProperty::CustomSubtreeFlags>::read(out.data().customsubtreeflags(), in.for_field_variant<25>(&sem::NamedProperty::data));
       break;
   }
 }

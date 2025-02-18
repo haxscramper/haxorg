@@ -286,6 +286,7 @@ struct Exporter : ExporterEventBase {
     void visitVariants(R& res, Kind kind, CR<T> var);
 
     void visit(R& res, CR<UserTime> time);
+    void visit(R& res, CR<sem::OrgJson> time);
     void visit(R& res, CR<LineCol> time);
     void visit(R& res, float const& time);
     void visit(
