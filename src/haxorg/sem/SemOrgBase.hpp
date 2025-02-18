@@ -206,8 +206,6 @@ struct [[refl]] Org {
     [[refl]] bool isGenerated() const { return original.isNil(); }
     /// \brief Location of the node in the original source file
     [[refl]] Opt<LineCol> loc = std::nullopt;
-    /// \brief Application specific ID of the original document
-    [[refl]] Opt<int> documentId = std::nullopt;
     /// \brief List of subnodes.
     ///
     /// Some of the derived nodes don't make the use of subnode list

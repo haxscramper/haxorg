@@ -113,7 +113,6 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<SequenceSegmentGroup>(m, "VecOfSequenceSegmentGroup", type_registry_guard);
   pybind11::class_<sem::Org, sem::SemId<sem::Org>>(m, "Org")
     .def_readwrite("loc", &sem::Org::loc, R"RAW(\brief Location of the node in the original source file)RAW")
-    .def_readwrite("documentId", &sem::Org::documentId, R"RAW(\brief Application specific ID of the original document)RAW")
     .def_readwrite("subnodes", &sem::Org::subnodes, R"RAW(\brief List of subnodes.
 
 Some of the derived nodes don't make the use of subnode list

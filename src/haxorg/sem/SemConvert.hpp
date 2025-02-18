@@ -229,9 +229,8 @@ struct OrgConverter : public OperationsTracer {
 
     template <typename T>
     SemId<T> Sem(In adapter) {
-        SemId<T> res    = SemId<T>::New(adapter);
-        res->loc        = getLoc(adapter);
-        res->documentId = documentId;
+        SemId<T> res = SemId<T>::New(adapter);
+        res->loc     = getLoc(adapter);
         return res;
     }
 
