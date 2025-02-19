@@ -244,12 +244,20 @@ TEST(OrgParseSem, SubtreeProperties) {
         }
     }
     {
-        auto tree = parseOne<sem::Subtree>(R"(* Tree
+        auto tree = parseOne<sem::Subtree>(
+            R"(* Tree
 :properties:
 :visibility: content
 :prop_json:name: {"key": "value"}
 :prop_args:name: :key value
-:end:)");
+:end:)",
+            getDebugFile("prop_json"));
+        {
+            auto p = sem::getSubtreeProperties<
+                sem::NamedProperty::CustomSubtreeJson>(tree);
+            EXPECT_EQ(p.size(), 1);
+            EXPECT_EQ(p.at(0).value.getField("key").getString(), "value");
+        }
     }
 }
 

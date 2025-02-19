@@ -545,14 +545,21 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         get_text(one(a, N::Name)), CharSet{' ', ':'}, CharSet{':'});
     std::string name = normalize(basename);
 
-    auto __trace = trace(a, fmt("property-'{}'", name));
+    auto __trace = trace(
+        a, fmt("property-'{}' (base: '{}')", name, basename));
 
     auto get_values_text = [&]() {
         return strip_space(get_text(one(a, N::Values)));
     };
 
+    auto handled = [&](int         line     = __builtin_LINE(),
+                       char const* function = __builtin_FUNCTION()) {
+        print(fmt("handled '{}'", name), line, function);
+    };
+
     Opt<Property> result;
     if (name == "exportoptions") {
+        handled();
         Property::ExportOptions res;
         res.backend = get_text(one(a, N::Subname));
         for (Str const& pair : get_values_text().split(' ')) {
@@ -563,9 +570,11 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         result = Property(res);
 
     } else if (name == "id") {
+        handled();
         tree->treeId = get_values_text();
 
     } else if (name == "radioid") {
+        handled();
         Property::RadioId radio;
         for (Str const& pair : get_values_text().split(' ')) {
             radio.words.push_back(pair);
@@ -573,6 +582,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
 
         result = Property{radio};
     } else if (name == "hashtagdef") {
+        handled();
         Property::HashtagDef def;
         auto par = convertParagraph(one(a, N::Values)).value();
         print(fmt("{}", a.treeRepr()));
@@ -603,6 +613,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
 
         result = Property{def};
     } else if (name == "created") {
+        handled();
         Property::Created created;
         auto par  = convertParagraph(one(a, N::Values)).value();
         auto par0 = par->at(0);
@@ -620,6 +631,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         }
 
     } else if (name == "visibility") {
+        handled();
         if (auto visibility = parseOrgEnum<
                 sem::NamedProperty::Visibility::Level>(
                 get_text(one(a, N::Values)));
@@ -632,6 +644,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         }
 
     } else if (name == "cookiedata") {
+        handled();
         NamedProperty::CookieData p;
         for (auto const& arg : get_values_text().split(" ")) {
             auto norm = normalize(arg);
@@ -655,6 +668,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         result = NamedProperty{p};
 
     } else if (name == "effort") {
+        handled();
         Str const&            value    = get_values_text();
         Vec<Str>              duration = value.split(":");
         NamedProperty::Effort prop;
@@ -668,10 +682,12 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
 
         result = NamedProperty(prop);
     } else if (name == "archivefile") {
+        handled();
         NamedProperty::ArchiveFile file{};
         file.file = get_values_text();
         result    = NamedProperty{file};
     } else if (name == "archivetime") {
+        handled();
         NamedProperty::ArchiveTime prop{};
         Str                        time = get_values_text();
         Slice<int>                 span = slice(0, time.size() - 1);
@@ -702,29 +718,41 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         }
 
     } else if (name == "archivecategory") {
+        handled();
         NamedProperty::ArchiveCategory file{};
         file.category = get_values_text();
         result        = NamedProperty{file};
     } else if (name == "archivetodo") {
+        handled();
         NamedProperty::ArchiveTodo file{};
         file.todo = get_values_text();
         result    = NamedProperty{file};
     } else if (name == "archive") {
+        handled();
         NamedProperty::ArchiveTarget file{};
         auto                         dsl = get_values_text().split("::");
         file.pattern                     = dsl.at(0);
         file.path.path = lstrip(dsl.at(1), CharSet{'*', ' '}).split("/");
         result         = NamedProperty{file};
     } else if (name == "archiveolpath") {
+        handled();
         NamedProperty::ArchiveOlpath path{};
         path.path = convertSubtreePath(get_values_text());
         result    = NamedProperty{path};
+    } else if (name.starts_with("propjson")) {
+        handled();
+        NamedProperty::CustomSubtreeJson prop{};
+        auto name = strip(basename, CharSet{':'}, CharSet{':'}).split(':');
+        prop.name = normalize(name.at(0));
+        prop.value = json::parse(strip_space(get_text(one(a, N::Values))));
+        result     = NamedProperty{prop};
     } else if (
         one(a, N::Values).kind() == onk::InlineStmtList
         && rs::all_of(
             gen_view(one(a, N::Values).items()), [](OrgAdapter const& a) {
                 return a.getKind() == onk::CmdValue;
             })) {
+        handled();
         NamedProperty::CustomArgs prop;
         auto                      name = strip(
                         get_text(one(a, N::Name)),
@@ -738,6 +766,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         result     = NamedProperty{prop};
 
     } else {
+        handled();
         NamedProperty::CustomRaw prop;
         prop.name = basename;
         if (one(a, N::Values).kind() == onk::RawText) {
