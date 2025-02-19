@@ -101,6 +101,19 @@ OrgId OrgParser::subParseImpl(
 OrgId OrgParser::parseMacro(OrgLexer& lex) {
     __perf_trace("parsing", "parseMacro");
     auto __trace = trace(lex);
+
+    int closingOffset = 0;
+    while (lex.hasNext(closingOffset)
+           && !lex.at(otk::CurlyEnd, closingOffset)) {
+        ++closingOffset;
+    }
+
+    bool hasClose = lex.at(otk::CurlyEnd, closingOffset)
+                 && lex.at(otk::CurlyEnd, closingOffset + 1)
+                 && lex.at(otk::CurlyEnd, closingOffset + 2);
+
+    if (!hasClose) { start(onk::ErrorWrap); }
+
     start(onk::Macro);
     skip(lex, otk::CurlyBegin);
     skip(lex, otk::CurlyBegin);
@@ -109,9 +122,19 @@ OrgId OrgParser::parseMacro(OrgLexer& lex) {
 
     parseCallArguments(lex);
 
-    skip(lex, otk::CurlyEnd);
-    skip(lex, otk::CurlyEnd);
-    skip(lex, otk::CurlyEnd);
+    for (int i = 0; i <= 2; ++i) {
+        if (lex.at(otk::CurlyEnd)) {
+            skip(lex, otk::CurlyEnd);
+        } else {
+            LOGIC_ASSERTION_CHECK(!hasClose, "");
+            end(); // end macro parse
+            error_token(
+                "macro is missing closing triple curly brace", lex);
+            return end(); // end error wrap
+        }
+    }
+
+    LOGIC_ASSERTION_CHECK(hasClose, "");
     return end();
 }
 

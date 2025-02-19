@@ -9,11 +9,6 @@ enum ListFormattingMode {
   ListFormattingMode_Table2DColFirst_f                                              = 3;
 }
 
-enum NodeAttachMode {
-  NodeAttachMode_None_f                                                             = 0;
-  NodeAttachMode_Subtree_f                                                          = 1;
-}
-
 enum InitialSubtreeVisibility {
   InitialSubtreeVisibility_Overview_f                                               = 0;
   InitialSubtreeVisibility_Content_f                                                = 1;
@@ -169,55 +164,67 @@ enum OrgNodeKind {
   OrgNodeKind_BlockDynamicFallback_f                                                = 68;
   OrgNodeKind_BigIdent_f                                                            = 69;
   OrgNodeKind_Bold_f                                                                = 70;
-  OrgNodeKind_Italic_f                                                              = 71;
-  OrgNodeKind_Verbatim_f                                                            = 72;
-  OrgNodeKind_Backtick_f                                                            = 73;
-  OrgNodeKind_Underline_f                                                           = 74;
-  OrgNodeKind_Strike_f                                                              = 75;
-  OrgNodeKind_Quote_f                                                               = 76;
-  OrgNodeKind_Angle_f                                                               = 77;
-  OrgNodeKind_Monospace_f                                                           = 78;
-  OrgNodeKind_Par_f                                                                 = 79;
-  OrgNodeKind_InlineMath_f                                                          = 80;
-  OrgNodeKind_DisplayMath_f                                                         = 81;
-  OrgNodeKind_Space_f                                                               = 82;
-  OrgNodeKind_Punctuation_f                                                         = 83;
-  OrgNodeKind_Colon_f                                                               = 84;
-  OrgNodeKind_Word_f                                                                = 85;
-  OrgNodeKind_Escaped_f                                                             = 86;
-  OrgNodeKind_Newline_f                                                             = 87;
-  OrgNodeKind_RawLink_f                                                             = 88;
-  OrgNodeKind_Link_f                                                                = 89;
-  OrgNodeKind_Macro_f                                                               = 90;
-  OrgNodeKind_Symbol_f                                                              = 91;
-  OrgNodeKind_StaticActiveTime_f                                                    = 92;
-  OrgNodeKind_StaticInactiveTime_f                                                  = 93;
-  OrgNodeKind_DynamicActiveTime_f                                                   = 94;
-  OrgNodeKind_DynamicInactiveTime_f                                                 = 95;
-  OrgNodeKind_TimeRange_f                                                           = 96;
-  OrgNodeKind_SimpleTime_f                                                          = 97;
-  OrgNodeKind_HashTag_f                                                             = 98;
-  OrgNodeKind_MetaSymbol_f                                                          = 99;
-  OrgNodeKind_AtMention_f                                                           = 100;
-  OrgNodeKind_Placeholder_f                                                         = 101;
-  OrgNodeKind_RadioTarget_f                                                         = 102;
-  OrgNodeKind_Target_f                                                              = 103;
-  OrgNodeKind_SrcInlineCode_f                                                       = 104;
-  OrgNodeKind_InlineCallCode_f                                                      = 105;
-  OrgNodeKind_InlineExport_f                                                        = 106;
-  OrgNodeKind_InlineComment_f                                                       = 107;
-  OrgNodeKind_RawText_f                                                             = 108;
-  OrgNodeKind_SubtreeDescription_f                                                  = 109;
-  OrgNodeKind_SubtreeUrgency_f                                                      = 110;
-  OrgNodeKind_DrawerLogbook_f                                                       = 111;
-  OrgNodeKind_Drawer_f                                                              = 112;
-  OrgNodeKind_DrawerPropertyList_f                                                  = 113;
-  OrgNodeKind_DrawerProperty_f                                                      = 114;
-  OrgNodeKind_Subtree_f                                                             = 115;
-  OrgNodeKind_SubtreeTimes_f                                                        = 116;
-  OrgNodeKind_SubtreeStars_f                                                        = 117;
-  OrgNodeKind_SubtreeCompletion_f                                                   = 118;
-  OrgNodeKind_SubtreeImportance_f                                                   = 119;
+  OrgNodeKind_ErrorWrap_f                                                           = 71;
+  OrgNodeKind_ErrorToken_f                                                          = 72;
+  OrgNodeKind_Italic_f                                                              = 73;
+  OrgNodeKind_Verbatim_f                                                            = 74;
+  OrgNodeKind_Backtick_f                                                            = 75;
+  OrgNodeKind_Underline_f                                                           = 76;
+  OrgNodeKind_Strike_f                                                              = 77;
+  OrgNodeKind_Quote_f                                                               = 78;
+  OrgNodeKind_Angle_f                                                               = 79;
+  OrgNodeKind_Monospace_f                                                           = 80;
+  OrgNodeKind_Par_f                                                                 = 81;
+  OrgNodeKind_InlineMath_f                                                          = 82;
+  OrgNodeKind_DisplayMath_f                                                         = 83;
+  OrgNodeKind_Space_f                                                               = 84;
+  OrgNodeKind_Punctuation_f                                                         = 85;
+  OrgNodeKind_Colon_f                                                               = 86;
+  OrgNodeKind_Word_f                                                                = 87;
+  OrgNodeKind_Escaped_f                                                             = 88;
+  OrgNodeKind_Newline_f                                                             = 89;
+  OrgNodeKind_RawLink_f                                                             = 90;
+  OrgNodeKind_Link_f                                                                = 91;
+  OrgNodeKind_Macro_f                                                               = 92;
+  OrgNodeKind_Symbol_f                                                              = 93;
+  OrgNodeKind_StaticActiveTime_f                                                    = 94;
+  OrgNodeKind_StaticInactiveTime_f                                                  = 95;
+  OrgNodeKind_DynamicActiveTime_f                                                   = 96;
+  OrgNodeKind_DynamicInactiveTime_f                                                 = 97;
+  OrgNodeKind_TimeRange_f                                                           = 98;
+  OrgNodeKind_SimpleTime_f                                                          = 99;
+  OrgNodeKind_HashTag_f                                                             = 100;
+  OrgNodeKind_MetaSymbol_f                                                          = 101;
+  OrgNodeKind_AtMention_f                                                           = 102;
+  OrgNodeKind_Placeholder_f                                                         = 103;
+  OrgNodeKind_RadioTarget_f                                                         = 104;
+  OrgNodeKind_Target_f                                                              = 105;
+  OrgNodeKind_SrcInlineCode_f                                                       = 106;
+  OrgNodeKind_InlineCallCode_f                                                      = 107;
+  OrgNodeKind_InlineExport_f                                                        = 108;
+  OrgNodeKind_InlineComment_f                                                       = 109;
+  OrgNodeKind_RawText_f                                                             = 110;
+  OrgNodeKind_SubtreeDescription_f                                                  = 111;
+  OrgNodeKind_SubtreeUrgency_f                                                      = 112;
+  OrgNodeKind_DrawerLogbook_f                                                       = 113;
+  OrgNodeKind_Drawer_f                                                              = 114;
+  OrgNodeKind_DrawerPropertyList_f                                                  = 115;
+  OrgNodeKind_DrawerProperty_f                                                      = 116;
+  OrgNodeKind_Subtree_f                                                             = 117;
+  OrgNodeKind_SubtreeTimes_f                                                        = 118;
+  OrgNodeKind_SubtreeStars_f                                                        = 119;
+  OrgNodeKind_SubtreeCompletion_f                                                   = 120;
+  OrgNodeKind_SubtreeImportance_f                                                   = 121;
+}
+
+enum OrgJsonKind {
+  OrgJsonKind_Null_f                                                                = 0;
+  OrgJsonKind_Object_f                                                              = 1;
+  OrgJsonKind_Array_f                                                               = 2;
+  OrgJsonKind_String_f                                                              = 3;
+  OrgJsonKind_Boolean_f                                                             = 4;
+  OrgJsonKind_Int_f                                                                 = 5;
+  OrgJsonKind_Float_f                                                               = 6;
 }
 
 enum OrgSemKind {
@@ -400,9 +407,16 @@ message Tblfm {
 }
 
 message AttrValue {
+  enum Kind {
+    Kind_String_f                                                                   = 0;
+    Kind_Boolean_f                                                                  = 1;
+    Kind_Integer_f                                                                  = 2;
+    Kind_Float_f                                                                    = 3;
+  }
   optional string                                  name                             = 1;
   optional string                                  varname                          = 2;
   string                                           value                            = 3;
+  bool                                             isQuoted                         = 4;
   string                                           debug                            = 1000;
 }
 
@@ -936,6 +950,16 @@ message NamedProperty {
     string                                         value                            = 2;
     string                                         debug                            = 1000;
   }
+  message CustomSubtreeJson {
+    string                                         name                             = 1;
+    OrgJson                                        value                            = 2;
+    string                                         debug                            = 1000;
+  }
+  message CustomSubtreeFlags {
+    string                                         name                             = 1;
+    AttrGroup                                      value                            = 2;
+    string                                         debug                            = 1000;
+  }
   message Data {
     oneof kind {
       NamedProperty.Nonblocking                    nonblocking                      = 1;
@@ -962,6 +986,8 @@ message NamedProperty {
       NamedProperty.HashtagDef                     hashtagdef                       = 22;
       NamedProperty.CustomArgs                     customargs                       = 23;
       NamedProperty.CustomRaw                      customraw                        = 24;
+      NamedProperty.CustomSubtreeJson              customsubtreejson                = 25;
+      NamedProperty.CustomSubtreeFlags             customsubtreeflags               = 26;
     }
   }
   enum Kind {
@@ -989,6 +1015,8 @@ message NamedProperty {
     Kind_HashtagDef_f                                                               = 21;
     Kind_CustomArgs_f                                                               = 22;
     Kind_CustomRaw_f                                                                = 23;
+    Kind_CustomSubtreeJson_f                                                        = 24;
+    Kind_CustomSubtreeFlags_f                                                       = 25;
   }
   NamedProperty.Data                               data                             = 1;
   string                                           debug                            = 1000;
@@ -1017,7 +1045,7 @@ message ErrorGroup {
   OrgSemKind                                       staticKind                       = 3;
   repeated ErrorItem                               diagnostics                      = 4;
   optional string                                  function                         = 5;
-  optional string                                  line                             = 6;
+  optional int32                                   line                             = 6;
   string                                           debug                            = 1000;
 }
 
@@ -1777,32 +1805,46 @@ message Symlink {
 }
 
 message CmdInclude {
+  message IncludeBase {
+    string                                         debug                            = 1000;
+  }
   message Example {
     string                                         debug                            = 1000;
   }
   message Export {
+    string                                         language                         = 1;
+    string                                         debug                            = 1000;
+  }
+  message Custom {
+    string                                         blockName                        = 1;
     string                                         debug                            = 1000;
   }
   message Src {
+    string                                         language                         = 1;
     string                                         debug                            = 1000;
   }
   message OrgDocument {
-    optional int32                                 minLevel                         = 1;
+    optional bool                                  onlyContent                      = 1;
+    optional SubtreePath                           subtreePath                      = 2;
+    optional int32                                 minLevel                         = 3;
+    optional string                                customIdTarget                   = 4;
     string                                         debug                            = 1000;
   }
   message Data {
     oneof kind {
       CmdInclude.Example                           example                          = 1;
       CmdInclude.Export                            export                           = 2;
-      CmdInclude.Src                               src                              = 3;
-      CmdInclude.OrgDocument                       orgdocument                      = 4;
+      CmdInclude.Custom                            custom                           = 3;
+      CmdInclude.Src                               src                              = 4;
+      CmdInclude.OrgDocument                       orgdocument                      = 5;
     }
   }
   enum Kind {
     Kind_Example_f                                                                  = 0;
     Kind_Export_f                                                                   = 1;
-    Kind_Src_f                                                                      = 2;
-    Kind_OrgDocument_f                                                              = 3;
+    Kind_Custom_f                                                                   = 2;
+    Kind_Src_f                                                                      = 3;
+    Kind_OrgDocument_f                                                              = 4;
   }
   repeated AnyNode                                 subnodes                         = 1;
   optional LineCol                                 loc                              = 2;

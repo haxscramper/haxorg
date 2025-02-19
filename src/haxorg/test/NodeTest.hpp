@@ -137,9 +137,9 @@ struct ParseSpec {
         CR<std::string> specFile,
         CR<std::string> testRoot);
 
-    template <typename N, typename K, typename V>
-    NodeGroup<N, K, V> getNodeGroup() {
-        NodeGroup<N, K, V> result;
+    template <typename N, typename K, typename V, typename M>
+    NodeGroup<N, K, V, M> getNodeGroup() {
+        NodeGroup<N, K, V, M> result;
 
         return result;
     }

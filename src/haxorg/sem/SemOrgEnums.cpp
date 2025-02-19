@@ -18,19 +18,6 @@ std::string enum_serde<ListFormattingMode>::to_string(ListFormattingMode value) 
   }
 }
 
-Opt<NodeAttachMode> enum_serde<NodeAttachMode>::from_string(std::string value) {
-  if (value == "None") { return NodeAttachMode::None; } else
-  if (value == "Subtree") { return NodeAttachMode::Subtree; } else
-  { return std::nullopt; }
-}
-std::string enum_serde<NodeAttachMode>::to_string(NodeAttachMode value) {
-  switch (value) {
-    case NodeAttachMode::None: return "None";
-    case NodeAttachMode::Subtree: return "Subtree";
-    default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
-  }
-}
-
 Opt<InitialSubtreeVisibility> enum_serde<InitialSubtreeVisibility>::from_string(std::string value) {
   if (value == "Overview") { return InitialSubtreeVisibility::Overview; } else
   if (value == "Content") { return InitialSubtreeVisibility::Content; } else
@@ -281,6 +268,8 @@ Opt<OrgNodeKind> enum_serde<OrgNodeKind>::from_string(std::string value) {
   if (value == "BlockDynamicFallback") { return OrgNodeKind::BlockDynamicFallback; } else
   if (value == "BigIdent") { return OrgNodeKind::BigIdent; } else
   if (value == "Bold") { return OrgNodeKind::Bold; } else
+  if (value == "ErrorWrap") { return OrgNodeKind::ErrorWrap; } else
+  if (value == "ErrorToken") { return OrgNodeKind::ErrorToken; } else
   if (value == "Italic") { return OrgNodeKind::Italic; } else
   if (value == "Verbatim") { return OrgNodeKind::Verbatim; } else
   if (value == "Backtick") { return OrgNodeKind::Backtick; } else
@@ -405,6 +394,8 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     case OrgNodeKind::BlockDynamicFallback: return "BlockDynamicFallback";
     case OrgNodeKind::BigIdent: return "BigIdent";
     case OrgNodeKind::Bold: return "Bold";
+    case OrgNodeKind::ErrorWrap: return "ErrorWrap";
+    case OrgNodeKind::ErrorToken: return "ErrorToken";
     case OrgNodeKind::Italic: return "Italic";
     case OrgNodeKind::Verbatim: return "Verbatim";
     case OrgNodeKind::Backtick: return "Backtick";
@@ -454,6 +445,29 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     case OrgNodeKind::SubtreeStars: return "SubtreeStars";
     case OrgNodeKind::SubtreeCompletion: return "SubtreeCompletion";
     case OrgNodeKind::SubtreeImportance: return "SubtreeImportance";
+    default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
+  }
+}
+
+Opt<OrgJsonKind> enum_serde<OrgJsonKind>::from_string(std::string value) {
+  if (value == "Null") { return OrgJsonKind::Null; } else
+  if (value == "Object") { return OrgJsonKind::Object; } else
+  if (value == "Array") { return OrgJsonKind::Array; } else
+  if (value == "String") { return OrgJsonKind::String; } else
+  if (value == "Boolean") { return OrgJsonKind::Boolean; } else
+  if (value == "Int") { return OrgJsonKind::Int; } else
+  if (value == "Float") { return OrgJsonKind::Float; } else
+  { return std::nullopt; }
+}
+std::string enum_serde<OrgJsonKind>::to_string(OrgJsonKind value) {
+  switch (value) {
+    case OrgJsonKind::Null: return "Null";
+    case OrgJsonKind::Object: return "Object";
+    case OrgJsonKind::Array: return "Array";
+    case OrgJsonKind::String: return "String";
+    case OrgJsonKind::Boolean: return "Boolean";
+    case OrgJsonKind::Int: return "Int";
+    case OrgJsonKind::Float: return "Float";
     default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
   }
 }

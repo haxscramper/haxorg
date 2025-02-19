@@ -326,6 +326,10 @@ def registerDocument(node: org.Org, engine: Engine, file: str):
                 for sub in node:
                     aux(sub, parent=id(node))
 
+            case org.File():
+                for sub in node:
+                    aux(sub, parent=id(node))
+
             case org.Document():
                 session.add(Document(id=id(node)))
                 for sub in node:

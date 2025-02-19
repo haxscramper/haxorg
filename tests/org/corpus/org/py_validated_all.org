@@ -197,6 +197,19 @@ paragraph [fn:1]
 * Include commands
 
 #+include: include1.org
+#+INCLUDE: "~/.emacs" ":custom-name"
+#+INCLUDE: "~/.emacs" custom-name
+#+INCLUDE: "~/.emacs" src emacs-lisp
+#+INCLUDE: "./paper.org::#theory" :only-contents t
+#+INCLUDE: "~/my-book/chapter2.org" :minlevel 1
+#+INCLUDE: "~/.emacs" :lines "10-"
+#+INCLUDE: "~/.emacs" :lines "-10"
+#+INCLUDE: "~/.emacs" :lines "5-10"
+#+include: "data.org::* path 1/path 2"
+#+include: "d.org::* path 1"
+#+include: "data.org::#custom-id"
+#+include: "data.org"
+#+include: data.org
 
 * Block nodes
 
@@ -246,6 +259,11 @@ example
 \test{}
 #+end_export
 
+#+caption: Custom block caption
+#+begin_beat 
+Custom block content
+#+end_beat
+
 ** Without attachments
 
 #+begin_verse
@@ -276,6 +294,18 @@ example
 #+begin_export latex :placement header
 \test{}
 #+end_export
+
+* List
+
+** Description list
+
+#+attr_list: :attached subtree :list-format Table1D2Col
+- =item 1= :: Content 1
+  - Table with nested content 
+  - Instead of this ASCII art abomination
+- =item 2= :: Content 2
+- =item 3= :: Content 3
+
 
 * Subtree
 
@@ -327,6 +357,8 @@ CLOSED: [1960-01-15 Thu]
   :export_latex_header: somehaeders
   :archive_todo: COMPLETED
   :CUSTOM_ID: custom-id
+  :prop_json:NaME: {"key": "value"}
+  :prop_args:NAMe: :key value
   :end:
 
 

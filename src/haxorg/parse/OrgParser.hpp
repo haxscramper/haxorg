@@ -138,10 +138,17 @@ struct OrgParser : public OperationsTracer {
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION());
 
+
     OrgId start(
         OrgNodeKind kind,
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION());
+
+    OrgId error_token(
+        std::string const& message,
+        OrgLexer&          lex,
+        int                line     = __builtin_LINE(),
+        char const*        function = __builtin_FUNCTION());
 
     OrgId end(
         int         line     = __builtin_LINE(),

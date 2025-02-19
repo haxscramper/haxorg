@@ -226,19 +226,26 @@ struct Tblfm {
 };
 
 struct AttrValue {
+  /// \brief Best-guess type of the attribute
+  enum class Kind : short int { String, Boolean, Integer, Float, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, String, Boolean, Integer, Float)
   BOOST_DESCRIBE_CLASS(AttrValue,
                        (),
                        (),
                        (),
                        (name,
                         varname,
-                        value))
+                        value,
+                        isQuoted))
   Opt<Str> name = std::nullopt;
   Opt<Str> varname = std::nullopt;
   Str value = "";
+  /// \brief If the original value was explicitly quoted in the org-mode code
+  bool isQuoted = false;
   Opt<bool> getBool() const;
   Opt<int> getInt() const;
   Str getString() const;
+  Opt<double> getDouble() const;
   bool operator==(sem::AttrValue const& other) const;
 };
 
@@ -658,6 +665,15 @@ struct AttrGroup {
   Vec<sem::AttrValue> getAttrs(Opt<Str> const& key = std::nullopt) const;
   void setNamedAttr(Str const& key, Vec<sem::AttrValue> const& attrs);
   void setPositionalAttr(Vec<sem::AttrValue> const& items);
+  int getPositionalSize() const;
+  int getNamedSize() const;
+  bool isEmpty() const;
+  sem::AttrValue const& atPositional(int index) const;
+  Opt<sem::AttrValue> getPositional(int index) const;
+  sem::AttrList const& atNamed(Str const& index) const;
+  Opt<sem::AttrList> getNamed(Str const& index) const;
+  sem::AttrValue const& atFirstNamed(Str const& index) const;
+  Opt<sem::AttrValue> getFirstNamed(Str const& index) const;
   bool operator==(sem::AttrGroup const& other) const;
 };
 
@@ -1393,9 +1409,33 @@ struct NamedProperty {
     bool operator==(sem::NamedProperty::CustomRaw const& other) const;
   };
 
-  using Data = std::variant<sem::NamedProperty::Nonblocking, sem::NamedProperty::ArchiveTime, sem::NamedProperty::ArchiveFile, sem::NamedProperty::ArchiveOlpath, sem::NamedProperty::ArchiveTarget, sem::NamedProperty::ArchiveCategory, sem::NamedProperty::ArchiveTodo, sem::NamedProperty::Trigger, sem::NamedProperty::ExportLatexClass, sem::NamedProperty::CookieData, sem::NamedProperty::ExportLatexClassOptions, sem::NamedProperty::ExportLatexHeader, sem::NamedProperty::ExportLatexCompiler, sem::NamedProperty::Ordered, sem::NamedProperty::Effort, sem::NamedProperty::Visibility, sem::NamedProperty::ExportOptions, sem::NamedProperty::Blocker, sem::NamedProperty::Unnumbered, sem::NamedProperty::Created, sem::NamedProperty::RadioId, sem::NamedProperty::HashtagDef, sem::NamedProperty::CustomArgs, sem::NamedProperty::CustomRaw>;
-  enum class Kind : short int { Nonblocking, ArchiveTime, ArchiveFile, ArchiveOlpath, ArchiveTarget, ArchiveCategory, ArchiveTodo, Trigger, ExportLatexClass, CookieData, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, RadioId, HashtagDef, CustomArgs, CustomRaw, };
-  BOOST_DESCRIBE_NESTED_ENUM(Kind, Nonblocking, ArchiveTime, ArchiveFile, ArchiveOlpath, ArchiveTarget, ArchiveCategory, ArchiveTodo, Trigger, ExportLatexClass, CookieData, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, RadioId, HashtagDef, CustomArgs, CustomRaw)
+  /// \brief Free-form JSON
+  struct CustomSubtreeJson {
+    BOOST_DESCRIBE_CLASS(CustomSubtreeJson,
+                         (),
+                         (),
+                         (),
+                         (name, value))
+    Str name;
+    sem::OrgJson value;
+    bool operator==(sem::NamedProperty::CustomSubtreeJson const& other) const;
+  };
+
+  /// \brief Free-form flags
+  struct CustomSubtreeFlags {
+    BOOST_DESCRIBE_CLASS(CustomSubtreeFlags,
+                         (),
+                         (),
+                         (),
+                         (name, value))
+    Str name;
+    sem::AttrGroup value;
+    bool operator==(sem::NamedProperty::CustomSubtreeFlags const& other) const;
+  };
+
+  using Data = std::variant<sem::NamedProperty::Nonblocking, sem::NamedProperty::ArchiveTime, sem::NamedProperty::ArchiveFile, sem::NamedProperty::ArchiveOlpath, sem::NamedProperty::ArchiveTarget, sem::NamedProperty::ArchiveCategory, sem::NamedProperty::ArchiveTodo, sem::NamedProperty::Trigger, sem::NamedProperty::ExportLatexClass, sem::NamedProperty::CookieData, sem::NamedProperty::ExportLatexClassOptions, sem::NamedProperty::ExportLatexHeader, sem::NamedProperty::ExportLatexCompiler, sem::NamedProperty::Ordered, sem::NamedProperty::Effort, sem::NamedProperty::Visibility, sem::NamedProperty::ExportOptions, sem::NamedProperty::Blocker, sem::NamedProperty::Unnumbered, sem::NamedProperty::Created, sem::NamedProperty::RadioId, sem::NamedProperty::HashtagDef, sem::NamedProperty::CustomArgs, sem::NamedProperty::CustomRaw, sem::NamedProperty::CustomSubtreeJson, sem::NamedProperty::CustomSubtreeFlags>;
+  enum class Kind : short int { Nonblocking, ArchiveTime, ArchiveFile, ArchiveOlpath, ArchiveTarget, ArchiveCategory, ArchiveTodo, Trigger, ExportLatexClass, CookieData, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, RadioId, HashtagDef, CustomArgs, CustomRaw, CustomSubtreeJson, CustomSubtreeFlags, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, Nonblocking, ArchiveTime, ArchiveFile, ArchiveOlpath, ArchiveTarget, ArchiveCategory, ArchiveTodo, Trigger, ExportLatexClass, CookieData, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, RadioId, HashtagDef, CustomArgs, CustomRaw, CustomSubtreeJson, CustomSubtreeFlags)
   using variant_enum_type = sem::NamedProperty::Kind;
   using variant_data_type = sem::NamedProperty::Data;
   NamedProperty(CR<Data> data) : data(data) {}
@@ -1484,6 +1524,12 @@ struct NamedProperty {
   bool isCustomRaw() const { return getKind() == Kind::CustomRaw; }
   sem::NamedProperty::CustomRaw const& getCustomRaw() const { return std::get<23>(data); }
   sem::NamedProperty::CustomRaw& getCustomRaw() { return std::get<23>(data); }
+  bool isCustomSubtreeJson() const { return getKind() == Kind::CustomSubtreeJson; }
+  sem::NamedProperty::CustomSubtreeJson const& getCustomSubtreeJson() const { return std::get<24>(data); }
+  sem::NamedProperty::CustomSubtreeJson& getCustomSubtreeJson() { return std::get<24>(data); }
+  bool isCustomSubtreeFlags() const { return getKind() == Kind::CustomSubtreeFlags; }
+  sem::NamedProperty::CustomSubtreeFlags const& getCustomSubtreeFlags() const { return std::get<25>(data); }
+  sem::NamedProperty::CustomSubtreeFlags& getCustomSubtreeFlags() { return std::get<25>(data); }
   static sem::NamedProperty::Kind getKind(sem::NamedProperty::Data const& __input) { return static_cast<sem::NamedProperty::Kind>(__input.index()); }
   sem::NamedProperty::Kind getKind() const { return getKind(data); }
 };
@@ -1532,7 +1578,7 @@ struct ErrorGroup : public sem::Org {
   /// \brief Conversion function name where the error was created
   Opt<Str> function = std::nullopt;
   /// \brief Line number for the conversion where the error was created
-  Opt<Str> line = std::nullopt;
+  Opt<int> line = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::ErrorGroup; }
 };
 
@@ -2598,6 +2644,7 @@ struct List : public sem::Stmt {
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::List; }
   Vec<sem::AttrValue> getListAttrs(Str const& key) const;
+  ListFormattingMode getListFormattingMode() const;
   /// \brief List is marked as description if any list item has a header
   bool isDescriptionList() const;
   /// \brief List is marked as numbered if any list item has bullet text set
@@ -2821,27 +2868,58 @@ struct Symlink : public sem::Org {
 struct CmdInclude : public sem::Org {
   using Org::Org;
   virtual ~CmdInclude() = default;
-  struct Example {
-    BOOST_DESCRIBE_CLASS(Example, (), (), (), ())
+  struct IncludeBase {
+    BOOST_DESCRIBE_CLASS(IncludeBase, (), (), (), ())
+    IncludeBase() {  }
   };
 
-  struct Export {
-    BOOST_DESCRIBE_CLASS(Export, (), (), (), ())
+  struct Example : public sem::CmdInclude::IncludeBase {
+    BOOST_DESCRIBE_CLASS(Example, (IncludeBase), (), (), ())
+    Example() {  }
   };
 
-  struct Src {
-    BOOST_DESCRIBE_CLASS(Src, (), (), (), ())
+  struct Export : public sem::CmdInclude::IncludeBase {
+    BOOST_DESCRIBE_CLASS(Export, (IncludeBase), (), (), (language))
+    /// \brief Source code language for export
+    Str language;
+    Export() {  }
   };
 
-  struct OrgDocument {
-    BOOST_DESCRIBE_CLASS(OrgDocument, (), (), (), (minLevel))
+  /// \brief Second positional argument in the include command can have any arbitrary value -- default src/export/example have additional properties, but user can provide anything else there.
+  struct Custom : public sem::CmdInclude::IncludeBase {
+    BOOST_DESCRIBE_CLASS(Custom, (IncludeBase), (), (), (blockName))
+    /// \brief Block name not covered by the default values
+    Str blockName;
+    Custom() {  }
+  };
+
+  struct Src : public sem::CmdInclude::IncludeBase {
+    BOOST_DESCRIBE_CLASS(Src, (IncludeBase), (), (), (language))
+    /// \brief Source code language for code block
+    Str language;
+    Src() {  }
+  };
+
+  struct OrgDocument : public sem::CmdInclude::IncludeBase {
+    BOOST_DESCRIBE_CLASS(OrgDocument,
+                         (IncludeBase),
+                         (),
+                         (),
+                         (onlyContent, subtreePath, minLevel, customIdTarget))
+    /// \brief omits any planning lines or property drawers
+    Opt<bool> onlyContent = std::nullopt;
+    /// \brief Include first subtree matching path with `file.org::* tree`
+    Opt<sem::SubtreePath> subtreePath = std::nullopt;
     /// \brief The minimum level of headlines to include. Headlines with a level smaller than this value will be demoted to this level.
     Opt<int> minLevel = std::nullopt;
+    /// \brief Include target subtree content with `file.org::#custom`
+    Opt<Str> customIdTarget = std::nullopt;
+    OrgDocument() {  }
   };
 
-  using Data = std::variant<sem::CmdInclude::Example, sem::CmdInclude::Export, sem::CmdInclude::Src, sem::CmdInclude::OrgDocument>;
-  enum class Kind : short int { Example, Export, Src, OrgDocument, };
-  BOOST_DESCRIBE_NESTED_ENUM(Kind, Example, Export, Src, OrgDocument)
+  using Data = std::variant<sem::CmdInclude::Example, sem::CmdInclude::Export, sem::CmdInclude::Custom, sem::CmdInclude::Src, sem::CmdInclude::OrgDocument>;
+  enum class Kind : short int { Example, Export, Custom, Src, OrgDocument, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, Example, Export, Custom, Src, OrgDocument)
   using variant_enum_type = sem::CmdInclude::Kind;
   using variant_data_type = sem::CmdInclude::Data;
   BOOST_DESCRIBE_CLASS(CmdInclude,
@@ -2868,12 +2946,15 @@ struct CmdInclude : public sem::Org {
   bool isExport() const { return getIncludeKind() == Kind::Export; }
   sem::CmdInclude::Export const& getExport() const { return std::get<1>(data); }
   sem::CmdInclude::Export& getExport() { return std::get<1>(data); }
+  bool isCustom() const { return getIncludeKind() == Kind::Custom; }
+  sem::CmdInclude::Custom const& getCustom() const { return std::get<2>(data); }
+  sem::CmdInclude::Custom& getCustom() { return std::get<2>(data); }
   bool isSrc() const { return getIncludeKind() == Kind::Src; }
-  sem::CmdInclude::Src const& getSrc() const { return std::get<2>(data); }
-  sem::CmdInclude::Src& getSrc() { return std::get<2>(data); }
+  sem::CmdInclude::Src const& getSrc() const { return std::get<3>(data); }
+  sem::CmdInclude::Src& getSrc() { return std::get<3>(data); }
   bool isOrgDocument() const { return getIncludeKind() == Kind::OrgDocument; }
-  sem::CmdInclude::OrgDocument const& getOrgDocument() const { return std::get<3>(data); }
-  sem::CmdInclude::OrgDocument& getOrgDocument() { return std::get<3>(data); }
+  sem::CmdInclude::OrgDocument const& getOrgDocument() const { return std::get<4>(data); }
+  sem::CmdInclude::OrgDocument& getOrgDocument() { return std::get<4>(data); }
   static sem::CmdInclude::Kind getIncludeKind(sem::CmdInclude::Data const& __input) { return static_cast<sem::CmdInclude::Kind>(__input.index()); }
   sem::CmdInclude::Kind getIncludeKind() const { return getIncludeKind(data); }
 };

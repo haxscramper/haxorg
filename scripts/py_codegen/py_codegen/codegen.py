@@ -601,7 +601,7 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
                 result.append(
                     GenTuFunction(
                         doc=GenTuDoc(""),
-                        name="is" +kindName,
+                        name="is" + kindName,
                         result=QualType.ForName("bool"),
                         isConst=True,
                         impl=ast.Return(
@@ -615,7 +615,7 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
                     result.append(
                         GenTuFunction(
                             doc=GenTuDoc(""),
-                            name="get" +kindName,
+                            name="get" + kindName,
                             result=T.model_copy(update=dict(
                                 RefKind=ReferenceKind.LValue,
                                 isConst=isConst,
@@ -798,7 +798,10 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
                 obj.type = QualType.ForName(IMM_BOX, Parameters=[obj.type])
 
             case GenTuStruct():
-                obj.methods = [it for it in obj.methods if it.name in ["getKind"]]
+                obj.methods = [
+                    it for it in obj.methods
+                    if (it.name in ["getKind"] or it.name == obj.name.name)
+                ]
                 obj.GenDescribeMethods = False
                 obj.nested = [it for it in obj.nested if not isinstance(it, GenTuPass)]
                 self_arg = obj.name.asConstRef()

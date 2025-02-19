@@ -317,6 +317,7 @@ class ClassPrediate():
             if self.node_predicate:
                 res.node_check_result = self.node_predicate(value)
 
+            # log(CAT).info(f"{value}, {type(value)}")
             for field_name, field_value in value.__dict__.items():
                 if field_name in self.fields:
                     visit_res = self.fields[field_name].visit_field(
@@ -897,7 +898,7 @@ def get_spec() -> OrgSpecification:
 
     for kind in org.OrgSemKind(0):
         if kind not in res.alternatives:
-            res.alternatives[kind] = altCls(ClassPrediate("placeholder"))
+            res.alternatives[kind] = altCls(ClassPrediate("empty_class_predicate"))
 
     return res
 
@@ -1003,7 +1004,8 @@ def verify_full_coverage(cov: Coverage, cls, report_path: str) -> Generator:
     for line_no in range(start_line, end_line):
         class_line = source_lines[offset]
         if line_no in analysis.missing and not definition_lines.in_range(line_no):
-            missing_lines.append(f"[{line_no}] {class_line.strip('\n')}")
+            if not class_line.strip().startswith("@"):
+                missing_lines.append(f"[{line_no}] {class_line.strip('\n')}")
 
         offset += 1
 
@@ -1217,9 +1219,9 @@ def get_test_node_from_file() -> org.Org:
 
 def test_run_typst_exporter(cov):
     node = get_test_node_from_file()
-    from py_exporters.export_typst import ExporterTypst
+    from py_exporters.export_typst import ExporterTypst, refresh_typst_export_package
 
-    Path("/tmp/total_repr.txt").write_text(org.treeRepr(node, colored=False))
+    # Path("/tmp/total_repr.txt").write_text(org.treeRepr(node, colored=False))
 
     with verify_full_coverage(cov, ExporterTypst, "/tmp"):
         exp = ExporterTypst()
@@ -1230,7 +1232,8 @@ def test_run_typst_exporter(cov):
         full_export.write_text(exp.t.toString(res))
 
         cmd = local["typst"].with_cwd(str(full_export.parent))
-        # cmd.run(["compile", str(full_export), str(full_export.with_suffix(".pdf"))])
+        refresh_typst_export_package()
+        cmd.run(["compile", str(full_export), str(full_export.with_suffix(".pdf"))])
 
         exp.expr(org.parseString("word"))
         exp.evalParagraph(org.Paragraph())
@@ -1256,12 +1259,16 @@ def test_run_typst_exporter(cov):
 
 
 def test_run_html_exporter(cov):
-    node = get_test_node_from_text()
+    node = get_test_node_from_file()
     from py_exporters.export_html import ExporterHtml
 
     with verify_full_coverage(cov, ExporterHtml, "/tmp"):
         exp = ExporterHtml()
         exp.eval(node)
+
+        tmp_file = org.File()
+        tmp_file.subnodes.append(org.Document())
+        exp.evalDocument(tmp_file)
 
         with_custom_break_tag = ExporterHtml()
         with_custom_break_tag.get_break_tag = lambda it: "<basdf>"
@@ -1291,3 +1298,7 @@ def test_run_tex_exporter(cov):
         """))
 
         ExporterLatex().evalUnderline(org.Underline())
+
+def test_error_group_items():
+    for field, value in org.ErrorGroup().__dict__.items():
+        pass

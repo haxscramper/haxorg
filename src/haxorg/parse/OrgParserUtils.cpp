@@ -156,6 +156,26 @@ OrgId OrgParser::token(
     return res;
 }
 
+OrgId OrgParser::error_token(
+    const std::string& message,
+    OrgLexer&          lex,
+    int                line,
+    const char*        function) {
+    OrgNodeMono mono;
+    auto        box = std::make_shared<OrgNodeMono::Error::Box>();
+    box->error      = message;
+    if (lex.finished()) {
+        if (lex.lastToken) { box->failToken = lex.lastToken.value(); }
+    } else {
+        box->failToken = lex.tok();
+    }
+    box->parserFunction = function;
+    box->parserLine     = line;
+    mono.data           = OrgNodeMono::Error{.box = box};
+    OrgNode error       = OrgNode{OrgNodeKind::ErrorToken, mono};
+    return token(error);
+}
+
 void OrgParser::expect(
     CR<OrgLexer>      lex,
     CR<OrgExpectable> item,
@@ -276,7 +296,9 @@ parse_error OrgParser::fatalError(
     return parse_error::init(
         fmt("{} {} at {} in (prev: {}) {}",
             msg,
-            lex.finished() ? "<lexer-finished>" : fmt1(lex.tok()),
+            lex.finished() ? (lex.lastToken ? fmt1(lex.lastToken.value())
+                                            : "<lexer-finished>")
+                           : fmt1(lex.tok()),
             getLocMsg(lex),
             tok,
             lex.printToString([](ColStream& os, OrgToken const& t) {

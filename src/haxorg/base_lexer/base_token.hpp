@@ -71,10 +71,10 @@ struct LexerParams {
         int line;
         int col;
     };
-    int           maxUnknown     = 100;
-    int           visitedUnknown = 0;
-    std::ostream* traceStream    = nullptr;
-    int           indentation    = 0;
+    int           maxUnknown      = 100;
+    int           visitedUnknown  = 0;
+    std::ostream* traceStream     = nullptr;
+    int           indentation     = 0;
     bool          traceStructured = false;
     Vec<Loc>      sub_locations;
 };

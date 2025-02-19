@@ -3,6 +3,9 @@
 
 using namespace sem;
 
+#pragma clang diagnostic error "-Wswitch"
+
+
 namespace {
 long GetTimeDelta(CR<UserTime> from, CR<UserTime> to) {
     auto from_utc = absl::ToCivilSecond(
@@ -17,6 +20,10 @@ std::string FormatTimeDelta(long delta_seconds) {
     long hours   = delta / 60;
     long minutes = delta % 60;
     return std::format("{}:{:02}", hours, minutes);
+}
+
+std::string FormatPath(sem::SubtreePath const& path) {
+    return join("/", path.path);
 }
 
 } // namespace
@@ -333,9 +340,14 @@ auto Formatter::toString(SemId<InlineFootnote> id, CR<Context> ctx)
 
 auto Formatter::toString(sem::AttrValue const& id, CR<Context> ctx)
     -> Res {
+    Str value = id.value.replaceAll("\"", "\\\"");
+
+    if (id.isQuoted) { value = escape_for_write(value, true); }
+
     auto varname = id.varname.has_value()
-                     ? Str{fmt("{}={}", id.varname.value(), id.value)}
-                     : id.value;
+                     ? Str{fmt("{}={}", id.varname.value(), value)}
+                     : value;
+
 
     if (id.name) {
         return str(fmt(":{} {}", id.name.value(), varname));
@@ -534,13 +546,25 @@ auto Formatter::toString(sem::LinkTarget const& t, CR<Context> ctx)
             break;
         }
 
+        case LinkTarget::Kind::CustomId: {
+            head = str("#" + t.getCustomId().text);
+            break;
+        }
+
+        case LinkTarget::Kind::SubtreeTitle: {
+            head = str("*" + FormatPath(t.getSubtreeTitle().title));
+            break;
+        }
+
         case LinkTarget::Kind::Footnote: {
             head = str("fn:"_ss + t.getFootnote().target);
             break;
         }
 
-        default: {
-            LOG(FATAL) << fmt1(t.getKind());
+        case LinkTarget::Kind::UserProtocol: {
+            head = str(
+                t.getUserProtocol().protocol + ":"_ss
+                + t.getUserProtocol().target);
         }
     }
 
@@ -1016,6 +1040,176 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
         for (auto const& prop : id->properties) {
             using P = sem::NamedProperty;
             switch (prop.getKind()) {
+                case P::Kind::CustomSubtreeFlags: {
+                    add(head,
+                        b.line({
+                            str(
+                                fmt(":prop_args:{}:",
+                                    prop.getCustomSubtreeFlags().name)),
+                            toString(
+                                prop.getCustomSubtreeFlags().value, ctx),
+                        }));
+                    break;
+                }
+                case P::Kind::CustomSubtreeJson: {
+                    add(head,
+                        str(
+                            fmt(":prop_json:{}: {}",
+                                prop.getCustomSubtreeJson().name,
+                                prop.getCustomSubtreeJson()
+                                    .value.getRef()
+                                    .dump())));
+                    break;
+                }
+                case P::Kind::ExportLatexCompiler: {
+                    add(head,
+                        str(
+                            fmt(":latex_compiler: {}",
+                                prop.getExportLatexCompiler().compiler)));
+                    break;
+                }
+                case P::Kind::ExportOptions: {
+                    add(head,
+                        str(
+                            fmt(":export_options:{}: {}",
+                                prop.getExportOptions().backend,
+                                prop.getExportOptions().values
+                                    | rv::transform(
+                                        [](Pair<Str, Str> const& pair) {
+                                            return fmt(
+                                                "{}:{}",
+                                                pair.first,
+                                                pair.second);
+                                        })
+                                    | rv::intersperse(" ") //
+                                    | rv::join             //
+                                    | rs::to<std::string>())));
+                    break;
+                }
+                case P::Kind::ExportLatexClassOptions: {
+                    add(head,
+                        str(fmt(
+                            ":latex_class_options: {}",
+                            prop.getExportLatexClassOptions().options)));
+                    break;
+                }
+                case P::Kind::CookieData: {
+                    add(head,
+                        str(fmt(
+                            ":cookie: {}{}",
+                            prop.getCookieData().source,
+                            prop.getCookieData().isRecursive ? " recursive"
+                                                             : "")));
+                    break;
+                }
+                case P::Kind::ExportLatexHeader: {
+                    add(head,
+                        str(
+                            fmt(":latex_header: {}",
+                                prop.getExportLatexHeader().header)));
+                    break;
+                }
+                case P::Kind::ExportLatexClass: {
+                    add(head,
+                        str(
+                            fmt(":latex_class: {}",
+                                prop.getExportLatexClass().latexClass)));
+                    break;
+                }
+                case P::Kind::Trigger: {
+                    add(head, str(fmt(":trigger:")));
+                    break;
+                }
+                case P::Kind::ArchiveTodo: {
+                    add(head,
+                        str(
+                            fmt(":archive_todo: {}",
+                                prop.getArchiveTodo().todo)));
+                    break;
+                }
+                case P::Kind::ArchiveTarget: {
+                    add(head,
+                        str(fmt(
+                            ":archive: {}::* {}",
+                            prop.getArchiveTarget().pattern,
+                            FormatPath(prop.getArchiveTarget().path))));
+                    break;
+                }
+                case P::Kind::ArchiveOlpath: {
+                    add(head,
+                        str(fmt(
+                            ":archive_olpath: {}",
+                            FormatPath(prop.getArchiveOlpath().path))));
+                    break;
+                }
+                case P::Kind::ArchiveTime: {
+                    add(head,
+                        str(
+                            fmt(":archive_time: [{}]",
+                                prop.getArchiveTime().time.format(
+                                    UserTime::Format::OrgFormat))));
+                    break;
+                }
+                case P::Kind::Ordered: {
+                    add(head,
+                        str(fmt(
+                            ":ordered: {}",
+                            prop.getOrdered().isOrdered ? "t" : "nil")));
+                    break;
+                }
+                case P::Kind::Nonblocking: {
+                    add(head,
+                        str(fmt(
+                            ":nonblocking: {}",
+                            prop.getNonblocking().isBlocking ? "t"
+                                                             : "nil")));
+                    break;
+                }
+                case P::Kind::HashtagDef: {
+                    add(head,
+                        str(fmt(
+                            ":hashtag_def: {}",
+                            nestedHashtag(prop.getHashtagDef().hashtag))));
+                    break;
+                }
+                case P::Kind::CustomArgs: {
+                    auto const& ca   = prop.getCustomArgs();
+                    auto        line = b.line();
+                    add(line,
+                        str(
+                            fmt(":{}:{}{} ",
+                                ca.name,
+                                ca.sub.value_or(""),
+                                ca.sub ? ":" : "")));
+
+                    add(line, toString(ca.attrs, ctx));
+                    add(head, line);
+                    break;
+                }
+                case P::Kind::RadioId: {
+                    add(head,
+                        str(
+                            fmt(":radio_id: {}",
+                                join(" ", prop.getRadioId().words))));
+                    break;
+                }
+                case P::Kind::Unnumbered: {
+                    add(head, str(fmt(":unnumbered:")));
+                    break;
+                }
+                case P::Kind::Blocker: {
+                    add(head,
+                        str(fmt(
+                            ":blocker: {}", prop.getBlocker().blockers)));
+                    break;
+                }
+                case P::Kind::ArchiveCategory: {
+                    add(head,
+                        str(
+                            fmt(":archive_category: {}",
+                                prop.getArchiveCategory().category)));
+                    break;
+                }
                 case P::Kind::Created: {
                     add(head,
                         b.line({
@@ -1052,8 +1246,12 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
                                 prop.getVisibility().level)));
                     break;
                 }
-                default: {
-                    LOG(FATAL) << fmt1(prop.getKind());
+                case P::Kind::ArchiveFile: {
+                    add(head,
+                        str(
+                            fmt(":archive_file: {}",
+                                prop.getArchiveFile().file)));
+                    break;
                 }
             }
         }
@@ -1184,7 +1382,7 @@ auto Formatter::toString(SemId<Subtree> id, CR<Context> ctx) -> Res {
 
                 default: {
                     log_head = b.line({
-                        str(" -"),
+                        str("- "),
                         toString(log->desc.value(), ctx),
                     });
                 }

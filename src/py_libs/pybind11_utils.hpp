@@ -218,9 +218,17 @@ template <DescribedRecord R>
 py::object py_getattr_impl(R const& obj, std::string const& attr) {
     if (attr == "__dict__") {
         py::dict result;
-        for_each_field_with_bases<R>([&](auto const& field) {
-            result[field.name] = py::cast(obj.*field.pointer);
-        });
+        for_each_field_with_bases<R>(overloaded{
+            [&]<typename T>(Opt<T> const& field) {
+                if (field.has_value()) {
+                    result[field.name] = py::cast(obj.*field.pointer);
+                } else {
+                    result[field.name] = py::none();
+                }
+            },
+            [&](auto const& field) {
+                result[field.name] = py::cast(obj.*field.pointer);
+            }});
         return result;
     } else {
         Opt<py::object> result;

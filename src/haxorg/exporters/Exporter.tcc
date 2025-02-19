@@ -62,6 +62,7 @@ void Exporter<V, R>::visit(R& res, sem::AttrValue const& object) {
   __obj_field(res, object, name);
   __obj_field(res, object, varname);
   __obj_field(res, object, value);
+  __obj_field(res, object, isQuoted);
 }
 
 template <typename V, typename R>
@@ -410,6 +411,18 @@ void Exporter<V, R>::visit(R& res, sem::NamedProperty::CustomArgs const& object)
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::NamedProperty::CustomRaw const& object) {
+  __obj_field(res, object, name);
+  __obj_field(res, object, value);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::NamedProperty::CustomSubtreeJson const& object) {
+  __obj_field(res, object, name);
+  __obj_field(res, object, value);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::NamedProperty::CustomSubtreeFlags const& object) {
   __obj_field(res, object, name);
   __obj_field(res, object, value);
 }
@@ -1185,15 +1198,26 @@ void Exporter<V, R>::visitCmdInclude(R& res, In<sem::CmdInclude> object) {
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::CmdInclude::IncludeBase const& object) {  }
+
+template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::CmdInclude::Example const& object) {  }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::CmdInclude::Export const& object) {  }
+void Exporter<V, R>::visit(R& res, sem::CmdInclude::Export const& object) { __obj_field(res, object, language); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::CmdInclude::Src const& object) {  }
+void Exporter<V, R>::visit(R& res, sem::CmdInclude::Custom const& object) { __obj_field(res, object, blockName); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::CmdInclude::OrgDocument const& object) { __obj_field(res, object, minLevel); }
+void Exporter<V, R>::visit(R& res, sem::CmdInclude::Src const& object) { __obj_field(res, object, language); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::CmdInclude::OrgDocument const& object) {
+  __obj_field(res, object, onlyContent);
+  __obj_field(res, object, subtreePath);
+  __obj_field(res, object, minLevel);
+  __obj_field(res, object, customIdTarget);
+}
 
 /* clang-format on */

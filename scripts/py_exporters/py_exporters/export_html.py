@@ -146,11 +146,15 @@ class ExporterHtml(ExporterBase):
         return result
 
     def evalDocument(self, node: org.Subtree) -> dominate.document:
-        doc = dominate.document()
-        if node.title:
-            doc.title = self.eval(node.title)
+        if node.getKind() == org.OrgSemKind.File:
+            return self.evalDocument(node[0])
 
-        for sub in node:
-            add_html(doc, self.eval(sub))
+        else:
+            doc = dominate.document()
+            if node.title:
+                doc.title = self.eval(node.title)
 
-        return doc
+            for sub in node:
+                add_html(doc, self.eval(sub))
+
+            return doc

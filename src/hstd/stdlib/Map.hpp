@@ -24,6 +24,12 @@ struct MapBase : public CRTP_this_method<Map> {
         return _this()->at(key);
     }
 
+    std::optional<V> pop_opt(K const& key) {
+        auto res = get(key);
+        if (res) { _this()->erase(key); }
+        return res;
+    }
+
     std::optional<V> get(K const& key) const {
         if (_this()->contains(key)) {
             return _this()->at(key);

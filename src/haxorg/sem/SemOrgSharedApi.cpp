@@ -5,6 +5,27 @@
 #include <haxorg/sem/SemOrg.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 #include <haxorg/sem/SemBaseApi.hpp>
+#include <boost/algorithm/string.hpp>
+
+BOOST_DESCRIBE_ENUM(
+    ListFormattingMode,
+    None,
+    Table1D1Col,
+    Table1D2Col,
+    Table2DColFirst);
+
+template <class E>
+Opt<E> string_to_enum_insensitive(std::string const& name) {
+    bool   found = false;
+    Opt<E> r     = {};
+
+    boost::mp11::mp_for_each<boost::describe::describe_enumerators<E>>(
+        [&](auto D) {
+            if (!r && boost::iequals(D.name, name)) { r = D.value; }
+        });
+
+    return r;
+}
 
 namespace {
 template <sem::IsOrg T>
@@ -941,6 +962,17 @@ Vec<sem::SemId<sem::Org>> sem::Paragraph::getBody() const { return Paragraph_dro
 
 
 // clang-format on
+
+ListFormattingMode sem::List::getListFormattingMode() const {
+    auto formatting = getFirstAttr("list-format");
+    if (formatting.has_value()) {
+        auto mode = string_to_enum_insensitive<ListFormattingMode>(
+            formatting.value().getString());
+        return mode.value_or(ListFormattingMode::None);
+    } else {
+        return ListFormattingMode::None;
+    }
+}
 
 org::ImmAdapterT<org::ImmParagraph> org::ImmAdapterSubtreeAPI::getTitle()
     const {

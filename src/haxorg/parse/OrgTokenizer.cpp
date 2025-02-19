@@ -9,6 +9,7 @@
 #include <hstd/stdlib/Ranges.hpp>
 #include <hstd/system/Formatter.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
+#include <hstd/stdlib/Enumerate.hpp>
 
 struct Builder : OperationsMsgBulder<Builder, OrgTokenizer::Report> {
     Builder& with_id(OrgTokenId const& id) {
@@ -171,6 +172,10 @@ struct RecombineState {
         x_report(Print, .with_line(line).with_msg(msg));
     }
 
+    std::string const& tok_str(int offset = 0) const {
+        return lex.tok(offset)->text;
+    }
+
 
     void skip(
         OrgLexer&    lex,
@@ -205,6 +210,15 @@ struct RecombineState {
         }
     }
 
+    OrgTokenId add(OrgToken const& tok, int line = __builtin_LINE()) {
+        auto res = d->out->add(tok);
+        x_report(
+            Push,
+            .with_id(res).with_line(line).with_msg(
+                fmt("add {} from {}", tok, lex.tok())));
+        return res;
+    }
+
     void pop_as(
         OrgTokenKind      __to,
         Opt<OrgTokenKind> expected = std::nullopt,
@@ -228,6 +242,7 @@ struct RecombineState {
             .col  = lex.tok()->col,
         };
     }
+
 
     OrgTokenId add_fake(OrgTokenKind __to, int line = __builtin_LINE()) {
         auto res = d->out->add(OrgToken{__to});
@@ -266,6 +281,9 @@ struct RecombineState {
         otk::ParBegin,
         otk::ParEnd,
         otk::AnyPunct,
+        otk::ForwardSlash,
+        otk::Asterisk,
+        otk::Underline,
     };
 
     void recombine_markup() {
@@ -279,6 +297,10 @@ struct RecombineState {
                  {otk::BoldBegin, otk::BoldEnd, otk::BoldUnknown}},
                 {otk::ForwardSlash,
                  {otk::ItalicBegin, otk::ItalicEnd, otk::ItalicUnknown}},
+                {otk::Underline,
+                 {otk::UnderlineBegin,
+                  otk::UnderlineEnd,
+                  otk::UnderlineUnknown}},
                 {otk::Equals,
                  {otk::VerbatimBegin,
                   otk::VerbatimEnd,
@@ -421,6 +443,37 @@ struct RecombineState {
                 break;
             }
 
+            case otk::CmdRawArg: {
+                if (tok_str().starts_with('"')
+                    && !tok_str().ends_with('"')) {
+                    Vec<OrgToken> buf;
+                    buf.push_back(lex.tok());
+                    lex.pop();
+                    while (lex.tok().kind == OrgTokenKind::Whitespace
+                           || lex.tok().kind == OrgTokenKind::CmdRawArg) {
+                        buf.push_back(lex.tok());
+                        lex.pop();
+                        if (buf.back().value.text.ends_with('"')) {
+                            break;
+                        }
+                    }
+
+                    if (buf.back().value.text.ends_with('"')) {
+                        OrgToken merged = buf.front();
+                        merged->text    = "";
+                        for (auto const& it : enumerator(buf)) {
+                            merged->text += it.value()->text;
+                        }
+                        add(merged);
+                    } else {
+                        for (auto const& tok : buf) { add(tok); }
+                    }
+                } else {
+                    pop();
+                }
+                break;
+            }
+
             case otk::CmdExportEnd: {
                 add_fake(otk::CmdPrefix, loc_fill());
                 pop_as(otk::CmdExportEnd);
@@ -449,6 +502,7 @@ struct RecombineState {
             case otk::ForwardSlash:
             case otk::Equals:
             case otk::Tilda:
+            case otk::Underline:
             case otk::Asterisk: {
                 recombine_markup();
                 break;

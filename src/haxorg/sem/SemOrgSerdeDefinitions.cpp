@@ -193,6 +193,7 @@ void proto_serde<::orgproto::AttrValue, sem::AttrValue>::write(::orgproto::AttrV
     proto_serde<std::string, Str>::write(out->mutable_varname(), *in.varname);
   }
   proto_serde<std::string, Str>::write(out->mutable_value(), in.value);
+  out->set_isquoted(in.isQuoted);
 }
 
 void proto_serde<::orgproto::AttrValue, sem::AttrValue>::read(::orgproto::AttrValue const& out, proto_write_accessor<sem::AttrValue> in) {
@@ -203,6 +204,7 @@ void proto_serde<::orgproto::AttrValue, sem::AttrValue>::read(::orgproto::AttrVa
     proto_serde<Opt<std::string>, Opt<Str>>::read(out.varname(), in.for_field(&sem::AttrValue::varname));
   }
   proto_serde<std::string, Str>::read(out.value(), in.for_field(&sem::AttrValue::value));
+  in.for_field(&sem::AttrValue::isQuoted).get() = out.isquoted();
 }
 
 void proto_serde<::orgproto::HashTagFlat, sem::HashTagFlat>::write(::orgproto::HashTagFlat* out, sem::HashTagFlat const& in) {
@@ -1239,6 +1241,26 @@ void proto_serde<::orgproto::NamedProperty::CustomRaw, sem::NamedProperty::Custo
   proto_serde<std::string, Str>::read(out.value(), in.for_field(&sem::NamedProperty::CustomRaw::value));
 }
 
+void proto_serde<::orgproto::NamedProperty::CustomSubtreeJson, sem::NamedProperty::CustomSubtreeJson>::write(::orgproto::NamedProperty::CustomSubtreeJson* out, sem::NamedProperty::CustomSubtreeJson const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
+  proto_serde<orgproto::OrgJson, sem::OrgJson>::write(out->mutable_value(), in.value);
+}
+
+void proto_serde<::orgproto::NamedProperty::CustomSubtreeJson, sem::NamedProperty::CustomSubtreeJson>::read(::orgproto::NamedProperty::CustomSubtreeJson const& out, proto_write_accessor<sem::NamedProperty::CustomSubtreeJson> in) {
+  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::NamedProperty::CustomSubtreeJson::name));
+  proto_serde<orgproto::OrgJson, sem::OrgJson>::read(out.value(), in.for_field(&sem::NamedProperty::CustomSubtreeJson::value));
+}
+
+void proto_serde<::orgproto::NamedProperty::CustomSubtreeFlags, sem::NamedProperty::CustomSubtreeFlags>::write(::orgproto::NamedProperty::CustomSubtreeFlags* out, sem::NamedProperty::CustomSubtreeFlags const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
+  proto_serde<orgproto::AttrGroup, sem::AttrGroup>::write(out->mutable_value(), in.value);
+}
+
+void proto_serde<::orgproto::NamedProperty::CustomSubtreeFlags, sem::NamedProperty::CustomSubtreeFlags>::read(::orgproto::NamedProperty::CustomSubtreeFlags const& out, proto_write_accessor<sem::NamedProperty::CustomSubtreeFlags> in) {
+  proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::NamedProperty::CustomSubtreeFlags::name));
+  proto_serde<orgproto::AttrGroup, sem::AttrGroup>::read(out.value(), in.for_field(&sem::NamedProperty::CustomSubtreeFlags::value));
+}
+
 void proto_serde<::orgproto::NamedProperty, sem::NamedProperty>::write(::orgproto::NamedProperty* out, sem::NamedProperty const& in) {
   switch (in.data.index()) {
     case 0:
@@ -1312,6 +1334,12 @@ void proto_serde<::orgproto::NamedProperty, sem::NamedProperty>::write(::orgprot
       break;
     case 23:
       proto_serde<orgproto::NamedProperty::CustomRaw, sem::NamedProperty::CustomRaw>::write(out->mutable_data()->mutable_customraw(), std::get<23>(in.data));
+      break;
+    case 24:
+      proto_serde<orgproto::NamedProperty::CustomSubtreeJson, sem::NamedProperty::CustomSubtreeJson>::write(out->mutable_data()->mutable_customsubtreejson(), std::get<24>(in.data));
+      break;
+    case 25:
+      proto_serde<orgproto::NamedProperty::CustomSubtreeFlags, sem::NamedProperty::CustomSubtreeFlags>::write(out->mutable_data()->mutable_customsubtreeflags(), std::get<25>(in.data));
       break;
   }
 }
@@ -1390,6 +1418,12 @@ void proto_serde<::orgproto::NamedProperty, sem::NamedProperty>::read(::orgproto
     case ::orgproto::NamedProperty::Data::kCustomraw:
       proto_serde<orgproto::NamedProperty::CustomRaw, sem::NamedProperty::CustomRaw>::read(out.data().customraw(), in.for_field_variant<23>(&sem::NamedProperty::data));
       break;
+    case ::orgproto::NamedProperty::Data::kCustomsubtreejson:
+      proto_serde<orgproto::NamedProperty::CustomSubtreeJson, sem::NamedProperty::CustomSubtreeJson>::read(out.data().customsubtreejson(), in.for_field_variant<24>(&sem::NamedProperty::data));
+      break;
+    case ::orgproto::NamedProperty::Data::kCustomsubtreeflags:
+      proto_serde<orgproto::NamedProperty::CustomSubtreeFlags, sem::NamedProperty::CustomSubtreeFlags>::read(out.data().customsubtreeflags(), in.for_field_variant<25>(&sem::NamedProperty::data));
+      break;
   }
 }
 
@@ -1430,7 +1464,7 @@ void proto_serde<::orgproto::ErrorGroup, sem::ErrorGroup>::write(::orgproto::Err
     proto_serde<std::string, Str>::write(out->mutable_function(), *in.function);
   }
   if (in.line) {
-    proto_serde<std::string, Str>::write(out->mutable_line(), *in.line);
+    out->set_line(*in.line);
   }
 }
 
@@ -1441,7 +1475,7 @@ void proto_serde<::orgproto::ErrorGroup, sem::ErrorGroup>::read(::orgproto::Erro
     proto_serde<Opt<std::string>, Opt<Str>>::read(out.function(), in.for_field(&sem::ErrorGroup::function));
   }
   if (out.has_line()) {
-    proto_serde<Opt<std::string>, Opt<Str>>::read(out.line(), in.for_field(&sem::ErrorGroup::line));
+    proto_serde<Opt<::int32_t>, Opt<int>>::read(out.line(), in.for_field(&sem::ErrorGroup::line));
   }
 }
 
@@ -2533,6 +2567,14 @@ void proto_serde<::orgproto::Symlink, sem::Symlink>::read(::orgproto::Symlink co
   proto_serde<std::string, Str>::read(out.abspath(), in.for_field(&sem::Symlink::absPath));
 }
 
+void proto_serde<::orgproto::CmdInclude::IncludeBase, sem::CmdInclude::IncludeBase>::write(::orgproto::CmdInclude::IncludeBase* out, sem::CmdInclude::IncludeBase const& in) {
+
+}
+
+void proto_serde<::orgproto::CmdInclude::IncludeBase, sem::CmdInclude::IncludeBase>::read(::orgproto::CmdInclude::IncludeBase const& out, proto_write_accessor<sem::CmdInclude::IncludeBase> in) {
+
+}
+
 void proto_serde<::orgproto::CmdInclude::Example, sem::CmdInclude::Example>::write(::orgproto::CmdInclude::Example* out, sem::CmdInclude::Example const& in) {
 
 }
@@ -2542,30 +2584,56 @@ void proto_serde<::orgproto::CmdInclude::Example, sem::CmdInclude::Example>::rea
 }
 
 void proto_serde<::orgproto::CmdInclude::Export, sem::CmdInclude::Export>::write(::orgproto::CmdInclude::Export* out, sem::CmdInclude::Export const& in) {
-
+  proto_serde<std::string, Str>::write(out->mutable_language(), in.language);
 }
 
 void proto_serde<::orgproto::CmdInclude::Export, sem::CmdInclude::Export>::read(::orgproto::CmdInclude::Export const& out, proto_write_accessor<sem::CmdInclude::Export> in) {
+  proto_serde<std::string, Str>::read(out.language(), in.for_field(&sem::CmdInclude::Export::language));
+}
 
+void proto_serde<::orgproto::CmdInclude::Custom, sem::CmdInclude::Custom>::write(::orgproto::CmdInclude::Custom* out, sem::CmdInclude::Custom const& in) {
+  proto_serde<std::string, Str>::write(out->mutable_blockname(), in.blockName);
+}
+
+void proto_serde<::orgproto::CmdInclude::Custom, sem::CmdInclude::Custom>::read(::orgproto::CmdInclude::Custom const& out, proto_write_accessor<sem::CmdInclude::Custom> in) {
+  proto_serde<std::string, Str>::read(out.blockname(), in.for_field(&sem::CmdInclude::Custom::blockName));
 }
 
 void proto_serde<::orgproto::CmdInclude::Src, sem::CmdInclude::Src>::write(::orgproto::CmdInclude::Src* out, sem::CmdInclude::Src const& in) {
-
+  proto_serde<std::string, Str>::write(out->mutable_language(), in.language);
 }
 
 void proto_serde<::orgproto::CmdInclude::Src, sem::CmdInclude::Src>::read(::orgproto::CmdInclude::Src const& out, proto_write_accessor<sem::CmdInclude::Src> in) {
-
+  proto_serde<std::string, Str>::read(out.language(), in.for_field(&sem::CmdInclude::Src::language));
 }
 
 void proto_serde<::orgproto::CmdInclude::OrgDocument, sem::CmdInclude::OrgDocument>::write(::orgproto::CmdInclude::OrgDocument* out, sem::CmdInclude::OrgDocument const& in) {
+  if (in.onlyContent) {
+    out->set_onlycontent(*in.onlyContent);
+  }
+  if (in.subtreePath) {
+    proto_serde<orgproto::SubtreePath, sem::SubtreePath>::write(out->mutable_subtreepath(), *in.subtreePath);
+  }
   if (in.minLevel) {
     out->set_minlevel(*in.minLevel);
+  }
+  if (in.customIdTarget) {
+    proto_serde<std::string, Str>::write(out->mutable_customidtarget(), *in.customIdTarget);
   }
 }
 
 void proto_serde<::orgproto::CmdInclude::OrgDocument, sem::CmdInclude::OrgDocument>::read(::orgproto::CmdInclude::OrgDocument const& out, proto_write_accessor<sem::CmdInclude::OrgDocument> in) {
+  if (out.has_onlycontent()) {
+    proto_serde<Opt<bool>, Opt<bool>>::read(out.onlycontent(), in.for_field(&sem::CmdInclude::OrgDocument::onlyContent));
+  }
+  if (out.has_subtreepath()) {
+    proto_serde<Opt<orgproto::SubtreePath>, Opt<sem::SubtreePath>>::read(out.subtreepath(), in.for_field(&sem::CmdInclude::OrgDocument::subtreePath));
+  }
   if (out.has_minlevel()) {
     proto_serde<Opt<::int32_t>, Opt<int>>::read(out.minlevel(), in.for_field(&sem::CmdInclude::OrgDocument::minLevel));
+  }
+  if (out.has_customidtarget()) {
+    proto_serde<Opt<std::string>, Opt<Str>>::read(out.customidtarget(), in.for_field(&sem::CmdInclude::OrgDocument::customIdTarget));
   }
 }
 
@@ -2586,10 +2654,13 @@ void proto_serde<::orgproto::CmdInclude, sem::CmdInclude>::write(::orgproto::Cmd
       proto_serde<orgproto::CmdInclude::Export, sem::CmdInclude::Export>::write(out->mutable_data()->mutable_export_(), std::get<1>(in.data));
       break;
     case 2:
-      proto_serde<orgproto::CmdInclude::Src, sem::CmdInclude::Src>::write(out->mutable_data()->mutable_src(), std::get<2>(in.data));
+      proto_serde<orgproto::CmdInclude::Custom, sem::CmdInclude::Custom>::write(out->mutable_data()->mutable_custom(), std::get<2>(in.data));
       break;
     case 3:
-      proto_serde<orgproto::CmdInclude::OrgDocument, sem::CmdInclude::OrgDocument>::write(out->mutable_data()->mutable_orgdocument(), std::get<3>(in.data));
+      proto_serde<orgproto::CmdInclude::Src, sem::CmdInclude::Src>::write(out->mutable_data()->mutable_src(), std::get<3>(in.data));
+      break;
+    case 4:
+      proto_serde<orgproto::CmdInclude::OrgDocument, sem::CmdInclude::OrgDocument>::write(out->mutable_data()->mutable_orgdocument(), std::get<4>(in.data));
       break;
   }
 }
@@ -2610,11 +2681,14 @@ void proto_serde<::orgproto::CmdInclude, sem::CmdInclude>::read(::orgproto::CmdI
     case ::orgproto::CmdInclude::Data::kExport:
       proto_serde<orgproto::CmdInclude::Export, sem::CmdInclude::Export>::read(out.data().export_(), in.for_field_variant<1>(&sem::CmdInclude::data));
       break;
+    case ::orgproto::CmdInclude::Data::kCustom:
+      proto_serde<orgproto::CmdInclude::Custom, sem::CmdInclude::Custom>::read(out.data().custom(), in.for_field_variant<2>(&sem::CmdInclude::data));
+      break;
     case ::orgproto::CmdInclude::Data::kSrc:
-      proto_serde<orgproto::CmdInclude::Src, sem::CmdInclude::Src>::read(out.data().src(), in.for_field_variant<2>(&sem::CmdInclude::data));
+      proto_serde<orgproto::CmdInclude::Src, sem::CmdInclude::Src>::read(out.data().src(), in.for_field_variant<3>(&sem::CmdInclude::data));
       break;
     case ::orgproto::CmdInclude::Data::kOrgdocument:
-      proto_serde<orgproto::CmdInclude::OrgDocument, sem::CmdInclude::OrgDocument>::read(out.data().orgdocument(), in.for_field_variant<3>(&sem::CmdInclude::data));
+      proto_serde<orgproto::CmdInclude::OrgDocument, sem::CmdInclude::OrgDocument>::read(out.data().orgdocument(), in.for_field_variant<4>(&sem::CmdInclude::data));
       break;
   }
 }

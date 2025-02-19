@@ -111,6 +111,7 @@ def org_struct(
     fields: List[GenTuField] = [],
     nested: List[GenTuEntry] = [],
     methods: List[GenTuFunction] = [],
+    bases: List[QualType] = [],
 ) -> GenTuStruct:
     return GenTuStruct(
         name=typ,
@@ -118,6 +119,7 @@ def org_struct(
         fields=fields,
         nested=nested,
         methods=methods,
+        bases=bases,
     )
 
 
@@ -207,6 +209,11 @@ def eq_method(name: QualType) -> GenTuFunction:
 @beartype
 def default_constructor(name: str) -> GenTuPass:
     return GenTuPass(f"{name} () {{}}")
+
+
+@beartype
+def default_constructor_method(name: str) -> GenTuFunction:
+    return GenTuFunction(name=name, impl="", result=None)
 
 
 #endregion
@@ -483,7 +490,25 @@ def get_subtree_property_types():
                 str_field("name", GenTuDoc("Original name of the property")),
                 str_field("value", GenTuDoc("Property value")),
             ],
-        )
+        ),
+        GenTuStruct(
+            t_nest_shared("CustomSubtreeJson", ["NamedProperty"]),
+            GenTuDoc("Free-form JSON"),
+            methods=[eq_method(t_nest_shared("CustomSubtreeJson", ["NamedProperty"]))],
+            fields=[
+                org_field(t_str(), "name"), 
+                org_field(t_nest_shared("OrgJson"), "value")
+            ]
+        ),
+        GenTuStruct(
+            t_nest_shared("CustomSubtreeFlags", ["NamedProperty"]),
+            GenTuDoc("Free-form flags"),
+            methods=[eq_method(t_nest_shared("CustomSubtreeFlags", ["NamedProperty"]))],
+            fields=[
+                org_field(t_str(), "name"), 
+                org_field(t_nest_shared("AttrGroup"), "value")
+            ]
+        ),
     ]
 
 
@@ -522,7 +547,7 @@ def get_sem_bases():
                     "Conversion function name where the error was created",
                 ),
                 opt_field(
-                    t_str(),
+                    t_int(),
                     "line",
                     "Line number for the conversion where the error was created",
                 ),
@@ -1182,16 +1207,14 @@ def get_shared_sem_enums() -> Sequence[GenTuEnum]:
         d_simple_enum(
             t("ListFormattingMode"),
             GenTuDoc(""),
-            "None",
-            "Table1D1Col",
-            "Table1D2Col",
-            "Table2DColFirst",
-        ),
-        d_simple_enum(
-            t("NodeAttachMode"),
-            GenTuDoc(""),
-            "None",
-            "Subtree",
+            efield("None", "Default, no custom formatting"),
+            efield("Table1D1Col", "one column, each table item is an individual row"),
+            efield("Table1D2Col",
+                   "for description lists, treat header row as an individual column"),
+            efield(
+                "Table2DColFirst",
+                "for nested tables, treat the first level of items as column names, treat all nested elements in these columns as row values"
+            ),
         ),
         d_simple_enum(
             t("InitialSubtreeVisibility"),
@@ -1405,15 +1428,27 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
             ]),
         GenTuStruct(
             t_nest_shared("AttrValue"),
+            nested=[
+                d_simple_enum(
+                    t_nest_shared("Kind", ["AttrValue"]),
+                    org_doc("Best-guess type of the attribute"),
+                    efield("String"),
+                    efield("Boolean"),
+                    efield("Integer"),
+                    efield("Float"),
+                )
+            ],
             fields=[
                 opt_field(t_str(), "name"),
                 opt_field(t_str(), "varname"),
                 str_field("value"),
+                bool_field("isQuoted", "If the original value was explicitly quoted in the org-mode code"),
             ],
             methods=[
                 GenTuFunction(t_opt(t_bool()), "getBool", isConst=True),
                 GenTuFunction(t_opt(t_int()), "getInt", isConst=True),
                 GenTuFunction(t_str(), "getString", isConst=True),
+                GenTuFunction(t_opt(QualType(name="double")), "getDouble", isConst=True),
                 eq_method(t_nest_shared("AttrValue")),
             ],
         ),
@@ -1762,7 +1797,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
             t_nest_shared("AttrList"),
             fields=[
                 vec_field(t_nest_shared("AttrValue"), "items"),
-            ],
+        ],
             methods=[eq_method(t_nest_shared("AttrList"))],
         ),
         GenTuStruct(
@@ -1808,6 +1843,57 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     arguments=[
                         GenTuIdent(t_cr(t_vec(t_nest_shared("AttrValue"))), "items"),
                     ],
+                ),
+                GenTuFunction(
+                    t_int(),
+                    "getPositionalSize",
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_int(),
+                    "getNamedSize",
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_bool(),
+                    "isEmpty",
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_cr(t_nest_shared("AttrValue")),
+                    "atPositional",
+                    arguments=[GenTuIdent(t_int(), "index")],
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_opt(t_nest_shared("AttrValue")),
+                    "getPositional",
+                    arguments=[GenTuIdent(t_int(), "index")],
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_cr(t_nest_shared("AttrList")),
+                    "atNamed",
+                    arguments=[GenTuIdent(t_cr(t_str()), "index")],
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_opt(t_nest_shared("AttrList")),
+                    "getNamed",
+                    arguments=[GenTuIdent(t_cr(t_str()), "index")],
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_cr(t_nest_shared("AttrValue")),
+                    "atFirstNamed",
+                    arguments=[GenTuIdent(t_cr(t_str()), "index")],
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_opt(t_nest_shared("AttrValue")),
+                    "getFirstNamed",
+                    arguments=[GenTuIdent(t_cr(t_str()), "index")],
+                    isConst=True,
                 ),
                 eq_method(t_nest_shared("AttrGroup")),
             ],
@@ -2385,6 +2471,12 @@ def get_types() -> Sequence[GenTuStruct]:
                     isConst=True,
                 ),
                 GenTuFunction(
+                    t("ListFormattingMode"),
+                    "getListFormattingMode",
+                    GenTuDoc(""),
+                    isConst=True,
+                ),
+                GenTuFunction(
                     t_bool(),
                     "isDescriptionList",
                     GenTuDoc(
@@ -2584,19 +2676,73 @@ def get_types() -> Sequence[GenTuStruct]:
             "CmdInclude",
             bases=[t_org("Org")],
             nested=[
+                org_struct(
+                    t_nest("IncludeBase", ["CmdInclude"]),
+                    methods=[default_constructor_method("IncludeBase")],
+                    fields=[],
+                ),
                 GenTuTypeGroup(
                     [
-                        org_struct(t_nest("Example", ["CmdInclude"])),
-                        org_struct(t_nest("Export", ["CmdInclude"])),
-                        org_struct(t_nest("Src", ["CmdInclude"])),
+                        org_struct(
+                            t_nest("Example", ["CmdInclude"]),
+                            methods=[default_constructor_method("Example")],
+                            bases=[t_nest("IncludeBase", ["CmdInclude"])],
+                        ),
+                        org_struct(
+                            t_nest("Export", ["CmdInclude"]),
+                            methods=[default_constructor_method("Export")],
+                            bases=[t_nest("IncludeBase", ["CmdInclude"])],
+                            fields=[
+                                org_field(t_str(), "language",
+                                          "Source code language for export"),
+                            ],
+                        ),
+                        org_struct(
+                            t_nest("Custom", ["CmdInclude"]),
+                            doc=
+                            "Second positional argument in the include command can have any arbitrary value -- "
+                            "default src/export/example have additional properties, but user "
+                            "can provide anything else there.",
+                            methods=[default_constructor_method("Custom")],
+                            bases=[t_nest("IncludeBase", ["CmdInclude"])],
+                            fields=[
+                                org_field(t_str(), "blockName",
+                                          "Block name not covered by the default values")
+                            ]),
+                        org_struct(
+                            t_nest("Src", ["CmdInclude"]),
+                            methods=[default_constructor_method("Src")],
+                            bases=[t_nest("IncludeBase", ["CmdInclude"])],
+                            fields=[
+                                org_field(t_str(), "language",
+                                          "Source code language for code block"),
+                            ],
+                        ),
                         org_struct(
                             t_nest("OrgDocument", ["CmdInclude"]),
+                            methods=[default_constructor_method("OrgDocument")],
+                            bases=[t_nest("IncludeBase", ["CmdInclude"])],
                             fields=[
+                                opt_field(
+                                    t_bool(),
+                                    "onlyContent",
+                                    "omits any planning lines or property drawers",
+                                ),
+                                opt_field(
+                                    t_nest_shared("SubtreePath"),
+                                    "subtreePath",
+                                    "Include first subtree matching path with `file.org::* tree`",
+                                ),
                                 opt_field(
                                     t_int(),
                                     "minLevel",
                                     "The minimum level of headlines to include. Headlines with a level smaller than this value will be demoted to this level.",
-                                )
+                                ),
+                                opt_field(
+                                    t_str(),
+                                    "customIdTarget",
+                                    "Include target subtree content with `file.org::#custom`",
+                                ),
                             ]),
                     ],
                     kindGetter="getIncludeKind",
@@ -2640,6 +2786,8 @@ def get_org_node_kind_text():
      elements like `some text (notes)` are also represented as `Word,
      Word, Markup(str: \"(\", [Word])` - e.g. structure is not fully flat.""",
         ),
+        efield("ErrorWrap"),
+        efield("ErrorToken"),
         efield("Italic"),
         efield("Verbatim"),
         efield("Backtick"),
@@ -2964,5 +3112,16 @@ def get_enums():
             GenTuDoc(""),
             get_org_node_kind(),
             #endregion
+        ),
+        d_simple_enum(
+            t("OrgJsonKind"),
+            GenTuDoc(""),
+            efield("Null"),
+            efield("Object"),
+            efield("Array"),
+            efield("String"),
+            efield("Boolean"),
+            efield("Int"),
+            efield("Float"),
         ),
     ]

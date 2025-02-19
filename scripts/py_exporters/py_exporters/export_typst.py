@@ -6,7 +6,7 @@ from beartype.typing import List, Optional, Dict
 from enum import Enum
 from beartype import beartype
 
-from py_exporters.export_base import ExporterBase
+from py_exporters.export_base import ExporterBase, with_export_context
 from py_exporters.export_ultraplain import ExporterUltraplain
 from py_haxorg.pyhaxorg_utils import formatDateTime, formatHashTag, getFlatTags
 from py_scriptutils.script_logging import log
@@ -62,6 +62,9 @@ class ExporterTypstConfigTags(BaseModel):
     quote: str = "orgQuote"
     example: str = "orgExample"
     code: str = "orgCode"
+    table: str = "orgTable"
+    table_cell: str = "orgTableCell"
+    dynamic_block: str = "orgDynamicBlock"
 
 
 class ExporterTypstConfig(BaseModel):
@@ -71,7 +74,7 @@ class ExporterTypstConfig(BaseModel):
     with_standard_baze: bool = True
 
 
-@beartype
+# @beartype
 class ExporterTypst(ExporterBase):
     t: typ.ASTBuilder
     c: ExporterTypstConfig
@@ -117,8 +120,9 @@ class ExporterTypst(ExporterBase):
         return self.t.stack([self.exp.eval(it) for it in node])
 
     def evalParagraph(self, node: org.Paragraph) -> BlockId:
-        if node.isFootnoteDefinition() or node.hasTimestamp() or node.hasAdmonition():
-            result = self.lineSubnodes(self.trimSub(node))
+        if (node.isFootnoteDefinition() or node.hasTimestamp() or
+                self.isDefaultAdmonition(node)) and 0 < len(node.getBody()):
+            result = self.lineSubnodes(self.trimSub(node.getBody()))
             args = dict()
             if node.isFootnoteDefinition():
                 args["kind"] = "footnote"
@@ -151,6 +155,16 @@ class ExporterTypst(ExporterBase):
                 body=[self.lineSubnodes(self.trimSub(node))],
                 isLine=True,
             )
+
+    def evalBlockDynamicFallback(self, node: org.BlockDynamicFallback) -> BlockId:
+        return self.t.call(
+            self.c.tags.dynamic_block,
+            args=dict(
+                body=[typ.RawBlock(self.t.content(self.eval(it))) for it in node],
+                name=node.name,
+                org_attrs=self.getNodeAttrs(node),
+            ),
+        )
 
     def evalBlockCenter(self, node: org.BlockCenter) -> BlockId:
         return self.t.call(self.c.tags.center, body=[self.stackSubnodes(node)])
@@ -246,7 +260,9 @@ class ExporterTypst(ExporterBase):
                         return self.t.string("")
 
                     case _:
-                        raise ValueError(f"edit-config parameter at {node.loc} has unexpected value '{edit_config[0].getString()}'")
+                        raise ValueError(
+                            f"edit-config parameter at {node.loc} has unexpected value '{edit_config[0].getString()}'"
+                        )
 
             else:
                 return self.t.string(node.content)
@@ -254,6 +270,7 @@ class ExporterTypst(ExporterBase):
         else:
             return self.t.string("")
 
+    @with_export_context
     def evalSubtree(self, node: org.Subtree) -> BlockId:
         if node.isComment or node.isArchived:
             return self.t.string("")
@@ -270,7 +287,7 @@ class ExporterTypst(ExporterBase):
             self.t.line([
                 self.t.call(
                     self.c.tags.subtree,
-                    dict(level=node.level, tags=tags),
+                    dict(level=self.getRealSubtreeLevel(node), tags=tags),
                     self.exp.eval(node.title),
                 ),
             ]))
@@ -280,25 +297,30 @@ class ExporterTypst(ExporterBase):
 
         return res
 
+    @with_export_context
     def evalDocument(self, node: org.Document) -> BlockId:
-        module = typ.get_typst_export_package(typst_toml)
         res = self.t.stack([])
+        self.printTrace(
+            f"Eval document, context: {[n.getKind() for n in self.context]}, is in include {self.isInInclude()}"
+        )
+        if not self.isInInclude():
+            module = typ.get_typst_export_package(typst_toml)
 
-        if self.c.with_standard_baze:
-            self.t.add_at(
-                res,
-                self.t.string("#import \"@local/{name}:{version}\": *".format(
-                    name=module.package.name,
-                    version=module.package.version,
-                )),
-            )
+            if self.c.with_standard_baze:
+                self.t.add_at(
+                    res,
+                    self.t.string("#import \"@local/{name}:{version}\": *".format(
+                        name=module.package.name,
+                        version=module.package.version,
+                    )),
+                )
 
-        for it in node:
-            if isinstance(it, org.BlockExport):
-                edit_config = it.getAttrs("edit-config")
-                if edit_config and 0 < len(edit_config):
-                     if edit_config[0].getString() == "pre-visit":
-                        self.applyExportConfig(it)
+            for it in node:
+                if isinstance(it, org.BlockExport):
+                    edit_config = it.getAttrs("edit-config")
+                    if edit_config and 0 < len(edit_config):
+                        if edit_config[0].getString() == "pre-visit":
+                            self.applyExportConfig(it)
 
         for it in node:
             self.t.add_at(res, self.exp.eval(it))
@@ -328,12 +350,40 @@ class ExporterTypst(ExporterBase):
             case _:
                 return self.t.string(f"TODO {node.target.getKind()}")
 
+    @with_export_context
+    def evalCmdInclude(self, node: org.CmdInclude) -> BlockId:
+        match node.getIncludeKind():
+            case org.CmdIncludeKind.OrgDocument:
+                return self.eval(node.subnodes[0])
+
+            case _:
+                return self.t.string(f"TODO {node.getIncludeKind()}")
+
     def evalTimeRange(self, node: org.TimeRange) -> BlockId:
         return self.t.line([
             self.exp.eval(node.from_),
             self.t.string("--"),
             self.exp.eval(node.to),
         ])
+
+    def getNodeAttrs(self, node: org.Org) -> Dict[str, List[any]]:
+        res: Dict[str, List] = dict()
+        arg: org.AttrValue
+        for arg in node.getAttrs():
+            name = org.org_ident_normalize(arg.name)
+            if name not in res:
+                res[name] = []
+
+            res[name].append(arg.getString())
+
+        if isinstance(node, org.Stmt):
+            caption = node.getCaption()
+            if 0 < len(caption):
+                res["caption"] = [
+                    typ.RawBlock(self.t.content(self.eval(it))) for it in caption
+                ]
+
+        return res
 
     def evalList(self, node: org.List) -> BlockId:
         desc_status = [it.isDescriptionItem() for it in node.subnodes]
@@ -348,15 +398,43 @@ class ExporterTypst(ExporterBase):
                     org.treeRepr(node, maxDepth=1),
                 ))
 
-        return self.wrapStmt(
-            node,
-            self.t.call(self.c.tags.list,
-                        args=dict(
-                            isDescription=node.isDescriptionList(),
-                            items=typ.RawBlock(
-                                self.expr(
-                                    [typ.RawBlock(self.exp.eval(it)) for it in node])),
-                        )))
+        if node.isDescriptionList() and node.getListFormattingMode(
+        ) == org.ListFormattingMode.Table1D2Col:
+            items = []
+            item: org.ListItem
+            for item in node:
+                items.append(
+                    typ.RawBlock(
+                        self.t.call(self.c.tags.table_cell,
+                                    isFirst=False,
+                                    args=dict(column=0),
+                                    body=self.eval(item.header))))
+                items.append(
+                    typ.RawBlock(
+                        self.t.call(self.c.tags.table_cell,
+                                    isFirst=False,
+                                    args=dict(column=1),
+                                    body=self.t.stack([self.eval(it) for it in item]))))
+
+            return self.t.call(
+                self.c.tags.table,
+                args=dict(
+                    items=items,
+                    kwargs=dict(columns=2),
+                    org_attrs=self.getNodeAttrs(node),
+                ),
+            )
+
+        else:
+            return self.wrapStmt(
+                node,
+                self.t.call(
+                    self.c.tags.list,
+                    args=dict(
+                        isDescription=node.isDescriptionList(),
+                        items=typ.RawBlock(
+                            self.expr([typ.RawBlock(self.exp.eval(it)) for it in node])),
+                    )))
 
     def evalListItem(self, node: org.ListItem) -> BlockId:
         args = dict(

@@ -1,3 +1,5 @@
+#import "@preview/gentle-clues:1.1.0": *
+
 #let orgSubtree(
     level: 1, 
     tags: (),
@@ -19,6 +21,14 @@
   }
 }
 
+#let orgTable(kwargs: (), org_attrs: (), items: ()) = {
+  table(..kwargs, ..items)
+}
+
+#let orgTableCell(column: 0, body) = {
+  body
+}
+
 #let orgListItem(
   header: none,
   content: [],
@@ -31,6 +41,15 @@
   }
 }
 
+#let orgDynamicBlock(body: (), name: "", org_attrs:()) = {
+  [#name]
+  box(stroke: red, inset: 1em)[
+    #for value in body {
+      value
+    }
+  ]
+}
+
 #let orgParagraph(
   admonition: "",
   timestamp: "",
@@ -41,8 +60,25 @@
   if kind == "none" {
     body
   } else if kind == "admonition" {
-    [#box(radius: 2pt, stroke: red, inset: 4pt)[#admonition]]
-    body
+    if admonition == "INFO" {
+      info[#body]
+    } else if admonition == "IDEA" {
+      idea[#body]
+    } else if admonition == "QUESTION" {
+      question[#body]
+    } else if admonition == "EXAMPLE" {
+      example[#body]
+    } else if admonition == "NOTE" {
+      clue(
+        title: "Note",
+        icon: emoji.notepad,
+      )[#body]
+    } else {
+      clue(
+        title: admonition,
+        icon: emoji.unknown,
+      )[#body]
+    }
   }
 }
 

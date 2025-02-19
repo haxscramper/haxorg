@@ -65,7 +65,7 @@ class GenTuEnum:
 @beartype
 @dataclass
 class GenTuFunction:
-    result: QualType
+    result: Optional[QualType] 
     name: str
     doc: GenTuDoc = field(default_factory=lambda: GenTuDoc(""))
     params: List[GenTuParam] = field(default_factory=list)
@@ -315,7 +315,7 @@ class GenConverter:
                     self.ast.string(" const" if method.isConst else ""),
                     self.ast.string(") "),
                     self.ast.string(method.name),
-                ]) for method in record.methods
+                ]) for method in record.methods if method.result is not None
             ]
 
             if record.GenDescribeFields or record.GenDescribeMethods:

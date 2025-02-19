@@ -179,3 +179,24 @@ def validate_unique(items: Iterable[T], key: Callable[[T], Any] = lambda x: x) -
     duplicates = {k: v for k, v in seen.items() if len(v) > 1}
     if duplicates:
         raise ValueError(f"Found duplicate items: {duplicates}")
+
+@beartype
+def partition_list(items: List[T], predicate: Callable[[T], bool]) -> List[List[T]]:
+    """
+    Split input list on items matching predicate, final result will not contain matched items
+    """
+    result: List[List[T]] = []
+    current_partition: List[T] = []
+
+    for item in items:
+        if predicate(item):
+            if current_partition:
+                result.append(current_partition)
+                current_partition = []
+        else:
+            current_partition.append(item)
+
+    if current_partition:
+        result.append(current_partition)
+
+    return result

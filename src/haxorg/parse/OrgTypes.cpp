@@ -2,7 +2,6 @@
 
 #include <haxorg/lexbase/Node.cpp>
 
-template class NodeGroup<OrgNodeKind, OrgTokenKind, OrgFill>;
+template class NodeGroup<OrgNodeKind, OrgTokenKind, OrgFill, OrgNodeMono>;
 
 using org = OrgNodeKind;
-

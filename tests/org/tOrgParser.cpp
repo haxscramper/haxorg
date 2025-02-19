@@ -243,6 +243,32 @@ TEST(OrgParseSem, SubtreeProperties) {
             EXPECT_EQ(p.at(0).path.path.at(0), "Misc");
         }
     }
+    {
+        auto tree = parseOne<sem::Subtree>(
+            R"(* Tree
+:properties:
+:visibility: content
+:prop_json:NaME: {"key": "value"}
+:prop_args:NAMe: :key value
+:end:)",
+            getDebugFile("prop_json"));
+        {
+            auto p = sem::getSubtreeProperties<
+                sem::NamedProperty::CustomSubtreeJson>(tree);
+            EXPECT_EQ(p.size(), 1);
+            EXPECT_EQ(p.at(0).name, "name"_ss);
+            EXPECT_EQ(p.at(0).value.getField("key").getString(), "value");
+        }
+        {
+            auto p = sem::getSubtreeProperties<
+                sem::NamedProperty::CustomSubtreeFlags>(tree);
+            EXPECT_EQ(p.size(), 1);
+            EXPECT_EQ(p.at(0).value.getNamedSize(), 1);
+            EXPECT_EQ(p.at(0).name, "name"_ss);
+            EXPECT_EQ(
+                p.at(0).value.getFirstNamed("key")->getString(), "value");
+        }
+    }
 }
 
 TEST(OrgParseSem, HashtagParse) {
@@ -600,6 +626,16 @@ TEST(OrgParseSem, TextParsing) {
         EXPECT_EQ(ex4->exporter, "html"_ss);
         EXPECT_EQ(ex4->content, "</b>"_ss);
     }
+
+    {
+        auto par = parseOne<sem::Paragraph>(R"([2024])");
+        EXPECT_EQ(par.size(), 3);
+    }
+
+    {
+        auto par = parseOne<sem::Paragraph>(R"([2024-12])");
+        EXPECT_EQ(par.size(), 3);
+    }
 }
 
 TEST(OrgParseSem, TblfmExpression) {
@@ -739,6 +775,52 @@ TEST(OrgParseSem, SubtreePropertyContext) {
     }
 }
 
+TEST(OrgParseSem, Macro) {
+    {
+        auto m = parseOne<sem::Macro>(R"({{{simple}}})");
+        EXPECT_EQ(m->name, "simple"_ss);
+    }
+    {
+        auto m = parseOne<sem::Macro>(R"({{{simple(arg)}}})");
+        EXPECT_EQ(m->name, "simple"_ss);
+        EXPECT_EQ(m->attrs.getPositionalSize(), 1);
+        EXPECT_EQ(m->attrs.atPositional(0).getString(), "arg"_ss);
+    }
+    {
+        auto m = parseOne<sem::Macro>(R"({{{dashed-name}}})");
+        EXPECT_EQ(m->name, "dashed-name"_ss);
+    }
+    {
+        auto m = parseOne<sem::Macro>(
+            R"({{{property(PROPERTY-NAME, SEARCH OPTION)}}})");
+        EXPECT_EQ(m->name, "property");
+        EXPECT_EQ(m->attrs.getPositionalSize(), 2);
+        EXPECT_EQ(
+            m->attrs.atPositional(0).getString(), "PROPERTY-NAME"_ss);
+        EXPECT_EQ(m->attrs.atPositional(1).getString(), "SEARCH OPTION");
+    }
+    {
+        auto m = parseOne<sem::Macro>(R"({{{named(key=value)}}})");
+        EXPECT_EQ(m->name, "named"_ss);
+        EXPECT_EQ(m->attrs.getPositionalSize(), 0);
+        EXPECT_EQ(m->attrs.getNamedSize(), 1);
+        EXPECT_EQ(m->attrs.getFirstNamed("key")->getString(), "value"_ss);
+    }
+    {
+        auto par = parseOne<sem::Paragraph>(
+            R"({{{partial}})", getDebugFile("broken_macro"));
+        // _dbg(sem::exportToTreeString(par, sem::OrgTreeExportOpts{}));
+        EXPECT_EQ2(par.size(), 1);
+        EXPECT_EQ2(par.at(0)->getKind(), OrgSemKind::ErrorGroup);
+        auto err = par.at(0).as<sem::ErrorGroup>();
+        EXPECT_EQ2(err.size(), 1);
+        EXPECT_EQ2(err->diagnostics.size(), 1);
+        EXPECT_EQ2(err.at(0)->getKind(), OrgSemKind::Macro);
+        auto m = err.at(0).as<sem::Macro>();
+        EXPECT_EQ2(m->name, "partial"_ss);
+    }
+}
+
 TEST(OrgParseSem, SubtreeTitle) {
     {
         auto t    = parseOne<sem::Subtree>(R"(* Subtree)");
@@ -763,5 +845,164 @@ TEST(OrgParseSem, SubtreeTitle) {
         auto i    = conv.node;
         EXPECT_EQ(t->getCleanTitle(), "Time"_ss);
         EXPECT_EQ(i.getCleanTitle(), "Time"_ss);
+    }
+}
+
+TEST(OrgParseSem, TestMarkup) {
+    Str text{R"(
+test /Italic/
+
+/Italic with space/
+
+/*italic bold*/
+
+*Bold*
+
+*Bold with space*
+
+*/bold italic/*
+
+_Underline_
+
+_Underline with space_
+
+_*bold underline*_
+
+~Monospace~
+
+=Verbatim=
+
++strike+
+
++strike with space+
+
+@mention
+
+work_with_space
+
+BIG_IDENT
+
+other
+)"};
+
+    auto doc = parseOne<sem::Document>(text, getDebugFile("test_markup"));
+
+    auto get = [&](CVec<int> path) {
+        auto result = doc.asOrg();
+        for (int i : path) { result = result.at(i); }
+        return result;
+    };
+
+    EXPECT_EQ2(get({1})->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ2(get({1, 2})->getKind(), OrgSemKind::Italic);
+    EXPECT_EQ2(get({3, 0})->getKind(), OrgSemKind::Italic);
+    EXPECT_EQ2(get({5, 0})->getKind(), OrgSemKind::Italic);
+    EXPECT_EQ2(get({5, 0, 0})->getKind(), OrgSemKind::Bold);
+    EXPECT_EQ2(get({7, 0})->getKind(), OrgSemKind::Bold);
+    EXPECT_EQ2(get({9, 0})->getKind(), OrgSemKind::Bold);
+    EXPECT_EQ2(get({11, 0})->getKind(), OrgSemKind::Bold);
+    EXPECT_EQ2(get({11, 0, 0})->getKind(), OrgSemKind::Italic);
+    EXPECT_EQ2(get({13, 0})->getKind(), OrgSemKind::Underline);
+    EXPECT_EQ2(get({15, 0})->getKind(), OrgSemKind::Underline);
+    EXPECT_EQ2(get({17, 0})->getKind(), OrgSemKind::Underline);
+    EXPECT_EQ2(get({17, 0, 0})->getKind(), OrgSemKind::Bold);
+    EXPECT_EQ2(get({19, 0})->getKind(), OrgSemKind::Monospace);
+    EXPECT_EQ2(get({19, 0, 0})->getKind(), OrgSemKind::RawText);
+    EXPECT_EQ2(get({21, 0})->getKind(), OrgSemKind::Verbatim);
+    EXPECT_EQ2(get({21, 0, 0})->getKind(), OrgSemKind::RawText);
+    EXPECT_EQ2(get({23, 0})->getKind(), OrgSemKind::Strike);
+    EXPECT_EQ2(get({25, 0})->getKind(), OrgSemKind::Strike);
+    EXPECT_EQ2(get({27, 0})->getKind(), OrgSemKind::AtMention);
+    EXPECT_EQ2(get({29, 0})->getKind(), OrgSemKind::Word);
+    EXPECT_EQ2(get({29}).size(), 1);
+    EXPECT_EQ2(get({31, 0})->getKind(), OrgSemKind::BigIdent);
+    EXPECT_EQ2(get({31}).size(), 1);
+}
+
+TEST(OrgParseSem, IncludeCommand) {
+    auto get = [&](std::string const& s,
+                   Opt<std::string>   debug = std::nullopt) {
+        return parseOne<sem::CmdInclude>(s, debug);
+    };
+
+    {
+        auto i = get(R"(#+include: data.org)");
+        EXPECT_EQ(i->path, "data.org"_ss);
+    }
+    {
+        auto i = get(R"(#+include: "data.org")");
+        EXPECT_EQ(i->path, "data.org"_ss);
+    }
+    {
+        auto i = get(R"(#+include: "data.org::#custom-id")");
+        EXPECT_EQ2(
+            i->getIncludeKind(), sem::CmdInclude::Kind::OrgDocument);
+        EXPECT_EQ(
+            i->getOrgDocument().customIdTarget.value(), "custom-id"_ss);
+    }
+    {
+        auto i = get(R"(#+include: "d.org::* path 1")");
+        EXPECT_EQ2(
+            i->getIncludeKind(), sem::CmdInclude::Kind::OrgDocument);
+        EXPECT_EQ2(i->path, "d.org");
+        EXPECT_TRUE(i->getOrgDocument().subtreePath.has_value());
+        auto const& p = i->getOrgDocument().subtreePath.value().path;
+        EXPECT_EQ(p.size(), 1);
+        EXPECT_EQ2(p.at(0), "path 1"_ss);
+    }
+    {
+        auto i = get(R"(#+include: "data.org::* path 1/path 2")");
+        EXPECT_EQ2(
+            i->getIncludeKind(), sem::CmdInclude::Kind::OrgDocument);
+        EXPECT_EQ2(i->path, "data.org");
+        EXPECT_TRUE(i->getOrgDocument().subtreePath.has_value());
+        auto const& p = i->getOrgDocument().subtreePath.value().path;
+        EXPECT_EQ(p.size(), 2);
+        EXPECT_EQ2(p.at(0), "path 1"_ss);
+        EXPECT_EQ2(p.at(1), "path 2"_ss);
+    }
+
+    {
+        auto i = get(R"(#+INCLUDE: "~/.emacs" :lines "5-10")");
+        EXPECT_EQ(i->firstLine.value(), 5);
+        EXPECT_EQ(i->lastLine.value(), 10);
+    }
+    {
+        auto i = get(R"(#+INCLUDE: "~/.emacs" :lines "-10")");
+        EXPECT_FALSE(i->firstLine.has_value());
+        EXPECT_EQ(i->lastLine.value(), 10);
+    }
+    {
+        auto i = get(R"(#+INCLUDE: "~/.emacs" :lines "10-")");
+        EXPECT_EQ(i->firstLine.value(), 10);
+        EXPECT_FALSE(i->lastLine.has_value());
+    }
+    {
+        auto i = get(
+            R"(#+INCLUDE: "~/my-book/chapter2.org" :minlevel 1)",
+            getDebugFile("include_command"));
+        EXPECT_EQ(i->getOrgDocument().minLevel, 1);
+    }
+    {
+        auto i = get(
+            R"(#+INCLUDE: "./paper.org::#theory" :only-contents t)");
+        EXPECT_EQ(i->getOrgDocument().onlyContent.value(), true);
+    }
+    {
+        auto i = get(R"(#+INCLUDE: "~/.emacs" src emacs-lisp)");
+        EXPECT_EQ(i->getIncludeKind(), sem::CmdInclude::Kind::Src);
+        // EXPECT_EQ(i->getSrc())
+    }
+
+    {
+        auto i = get(R"(#+INCLUDE: "~/.emacs" custom-name)");
+        EXPECT_EQ(i->getIncludeKind(), sem::CmdInclude::Kind::Custom);
+        EXPECT_EQ2(i->getCustom().blockName, "custom-name");
+    }
+
+    {
+        auto i = get(R"(#+INCLUDE: "~/.emacs" ":custom-name")");
+        EXPECT_EQ(i->getIncludeKind(), sem::CmdInclude::Kind::Custom);
+        EXPECT_EQ2(i->getCustom().blockName, ":custom-name");
     }
 }

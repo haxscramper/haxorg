@@ -21,3 +21,7 @@ message LineCol {
   int32 column = 2;
   int32 pos = 3;
 }
+
+message OrgJson {
+  string raw = 1;
+}

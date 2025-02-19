@@ -72,6 +72,51 @@ Vec<sem::AttrValue> sem::AttrGroup::getAttrs(CR<Opt<Str>> param) const {
     }
 }
 
+int sem::AttrGroup::getNamedSize() const {
+    int result = 0;
+    for (auto const& [key, val] : this->named) {
+        result += val.items.size();
+    }
+    return result;
+}
+
+int sem::AttrGroup::getPositionalSize() const {
+    return positional.items.size();
+}
+
+bool sem::AttrGroup::isEmpty() const {
+    return getNamedSize() == 0 && getPositionalSize() == 0;
+}
+
+sem::AttrValue const& sem::AttrGroup::atPositional(int index) const {
+    return this->positional.items.at(index);
+}
+
+Opt<sem::AttrValue> sem::AttrGroup::getPositional(int index) const {
+    return this->positional.items.get(index);
+}
+
+sem::AttrList const& sem::AttrGroup::atNamed(Str const& index) const {
+    return this->named.at(index);
+}
+
+Opt<sem::AttrList> sem::AttrGroup::getNamed(Str const& index) const {
+    return this->named.get(index);
+}
+
+sem::AttrValue const& sem::AttrGroup::atFirstNamed(
+    Str const& index) const {
+    return this->named.at(index).items.at(0);
+}
+
+Opt<sem::AttrValue> sem::AttrGroup::getFirstNamed(Str const& index) const {
+    if (named.contains(index)) {
+        return this->named.at(index).items.get(0);
+    } else {
+        return std::nullopt;
+    }
+}
+
 void sem::AttrGroup::setNamedAttr(
     Str const&                 key,
     Vec<sem::AttrValue> const& attr) {
@@ -230,6 +275,12 @@ Vec<SemId<Org>> Org::getAllSubnodes() const {
 
 Str AttrValue::getString() const { return value; }
 
+Opt<double> AttrValue::getDouble() const {
+    try {
+        return value.toDouble();
+    } catch (std::invalid_argument const& e) { return std::nullopt; }
+}
+
 Opt<bool> AttrValue::getBool() const {
     if (value == "yes" || value == "true" || value == "on"
         || value == "t") {
@@ -244,11 +295,7 @@ Opt<bool> AttrValue::getBool() const {
 }
 
 Opt<int> AttrValue::getInt() const {
-    bool isOk   = false;
-    int  result = value.toInt();
-    if (isOk) {
-        return result;
-    } else {
-        return std::nullopt;
-    }
+    try {
+        return value.toInt();
+    } catch (std::invalid_argument const& e) { return std::nullopt; }
 }

@@ -78,11 +78,14 @@
     __IMPL(NamedProperty, RadioId, (RadioId)) \
     __IMPL(NamedProperty, HashtagDef, (HashtagDef)) \
     __IMPL(NamedProperty, CustomArgs, (CustomArgs)) \
-    __IMPL(NamedProperty, CustomRaw, (CustomRaw))
+    __IMPL(NamedProperty, CustomRaw, (CustomRaw)) \
+    __IMPL(NamedProperty, CustomSubtreeJson, (CustomSubtreeJson)) \
+    __IMPL(NamedProperty, CustomSubtreeFlags, (CustomSubtreeFlags))
 #define EACH_SHARED_ORG_ENUM_NESTED(__IMPL) \
     __IMPL(Tblfm, Expr::AxisRef::Position::Kind, (Expr, AxisRef, Position, Kind)) \
     __IMPL(Tblfm, Expr::Kind, (Expr, Kind)) \
     __IMPL(Tblfm, Assign::Flag, (Assign, Flag)) \
+    __IMPL(AttrValue, Kind, (Kind)) \
     __IMPL(LinkTarget, Kind, (Kind)) \
     __IMPL(SubtreeLogHead, Priority::Action, (Priority, Action)) \
     __IMPL(SubtreeLogHead, Kind, (Kind)) \
@@ -192,7 +195,9 @@
     __IMPL(NamedProperty::RadioId, (NamedProperty, RadioId)) \
     __IMPL(NamedProperty::HashtagDef, (NamedProperty, HashtagDef)) \
     __IMPL(NamedProperty::CustomArgs, (NamedProperty, CustomArgs)) \
-    __IMPL(NamedProperty::CustomRaw, (NamedProperty, CustomRaw))
+    __IMPL(NamedProperty::CustomRaw, (NamedProperty, CustomRaw)) \
+    __IMPL(NamedProperty::CustomSubtreeJson, (NamedProperty, CustomSubtreeJson)) \
+    __IMPL(NamedProperty::CustomSubtreeFlags, (NamedProperty, CustomSubtreeFlags))
 #define EACH_SEM_ORG_RECORD_NESTED(__IMPL) \
     __IMPL(Time, Repeat, (Repeat)) \
     __IMPL(Time, Static, (Static)) \
@@ -201,8 +206,10 @@
     __IMPL(File, Document, (Document)) \
     __IMPL(File, Attachment, (Attachment)) \
     __IMPL(File, Source, (Source)) \
+    __IMPL(CmdInclude, IncludeBase, (IncludeBase)) \
     __IMPL(CmdInclude, Example, (Example)) \
     __IMPL(CmdInclude, Export, (Export)) \
+    __IMPL(CmdInclude, Custom, (Custom)) \
     __IMPL(CmdInclude, Src, (Src)) \
     __IMPL(CmdInclude, OrgDocument, (OrgDocument))
 #define EACH_SEM_ORG_ENUM_NESTED(__IMPL) \
@@ -299,8 +306,10 @@
     __IMPL(Directory, (Directory)) \
     __IMPL(Symlink, (Symlink)) \
     __IMPL(CmdInclude, (CmdInclude)) \
+    __IMPL(CmdInclude::IncludeBase, (CmdInclude, IncludeBase)) \
     __IMPL(CmdInclude::Example, (CmdInclude, Example)) \
     __IMPL(CmdInclude::Export, (CmdInclude, Export)) \
+    __IMPL(CmdInclude::Custom, (CmdInclude, Custom)) \
     __IMPL(CmdInclude::Src, (CmdInclude, Src)) \
     __IMPL(CmdInclude::OrgDocument, (CmdInclude, OrgDocument))
 #define EACH_SEM_ORG_KIND(__IMPL) \
@@ -527,7 +536,16 @@
     __IMPL(Directory, Org) \
     __IMPL(Symlink, Org) \
     __IMPL(CmdInclude, Org)
-enum class ListFormattingMode : short int { None, Table1D1Col, Table1D2Col, Table2DColFirst, };
+enum class ListFormattingMode : short int {
+  /// \brief Default, no custom formatting
+  None,
+  /// \brief one column, each table item is an individual row
+  Table1D1Col,
+  /// \brief for description lists, treat header row as an individual column
+  Table1D2Col,
+  /// \brief for nested tables, treat the first level of items as column names, treat all nested elements in these columns as row values
+  Table2DColFirst,
+};
 template <>
 struct enum_serde<ListFormattingMode> {
   static Opt<ListFormattingMode> from_string(std::string value);
@@ -538,18 +556,6 @@ template <>
 struct value_domain<ListFormattingMode> : public value_domain_ungapped<ListFormattingMode,
                                                                        ListFormattingMode::None,
                                                                        ListFormattingMode::Table2DColFirst> {};
-
-enum class NodeAttachMode : short int { None, Subtree, };
-template <>
-struct enum_serde<NodeAttachMode> {
-  static Opt<NodeAttachMode> from_string(std::string value);
-  static std::string to_string(NodeAttachMode value);
-};
-
-template <>
-struct value_domain<NodeAttachMode> : public value_domain_ungapped<NodeAttachMode,
-                                                                   NodeAttachMode::None,
-                                                                   NodeAttachMode::Subtree> {};
 
 enum class InitialSubtreeVisibility : short int { Overview, Content, ShowAll, Show2Levels, Show3Levels, Show4Levels, Show5Levels, ShowEverything, };
 template <>
@@ -747,6 +753,8 @@ enum class OrgNodeKind : short int {
   ///      elements like `some text (notes)` are also represented as `Word,
   ///      Word, Markup(str: "(", [Word])` - e.g. structure is not fully flat.
   Bold,
+  ErrorWrap,
+  ErrorToken,
   Italic,
   Verbatim,
   Backtick,
@@ -844,6 +852,18 @@ template <>
 struct value_domain<OrgNodeKind> : public value_domain_ungapped<OrgNodeKind,
                                                                 OrgNodeKind::None,
                                                                 OrgNodeKind::SubtreeImportance> {};
+
+enum class OrgJsonKind : short int { Null, Object, Array, String, Boolean, Int, Float, };
+template <>
+struct enum_serde<OrgJsonKind> {
+  static Opt<OrgJsonKind> from_string(std::string value);
+  static std::string to_string(OrgJsonKind value);
+};
+
+template <>
+struct value_domain<OrgJsonKind> : public value_domain_ungapped<OrgJsonKind,
+                                                                OrgJsonKind::Null,
+                                                                OrgJsonKind::Float> {};
 
 enum class OrgSemKind : short int { None, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdResults, CmdTblfm, HashTag, InlineFootnote, InlineExport, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, RadioTarget, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCode, SubtreeLog, Subtree, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, CmdExport, Call, List, ListItem, DocumentOptions, Document, FileTarget, TextSeparator, DocumentGroup, File, Directory, Symlink, CmdInclude, };
 template <>

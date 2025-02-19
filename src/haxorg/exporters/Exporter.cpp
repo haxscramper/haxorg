@@ -24,9 +24,10 @@ void Exporter<V, R>::visitVariants(R& res, Kind kind, CR<T> var) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<UserTime> time) {
-    //    visitVariants(res, time.getKind(), time.time);
-}
+void Exporter<V, R>::visit(R& res, CR<UserTime> time) {}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, CR<sem::OrgJson> time) {}
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, CR<LineCol> time) {}

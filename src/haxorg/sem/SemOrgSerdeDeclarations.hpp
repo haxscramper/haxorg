@@ -712,6 +712,20 @@ struct proto_serde<::orgproto::NamedProperty::CustomRaw, sem::NamedProperty::Cus
 
 
 template <>
+struct proto_serde<::orgproto::NamedProperty::CustomSubtreeJson, sem::NamedProperty::CustomSubtreeJson> {
+  static void write(::orgproto::NamedProperty::CustomSubtreeJson* out, sem::NamedProperty::CustomSubtreeJson const& in);
+  static void read(::orgproto::NamedProperty::CustomSubtreeJson const& out, proto_write_accessor<sem::NamedProperty::CustomSubtreeJson> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::NamedProperty::CustomSubtreeFlags, sem::NamedProperty::CustomSubtreeFlags> {
+  static void write(::orgproto::NamedProperty::CustomSubtreeFlags* out, sem::NamedProperty::CustomSubtreeFlags const& in);
+  static void read(::orgproto::NamedProperty::CustomSubtreeFlags const& out, proto_write_accessor<sem::NamedProperty::CustomSubtreeFlags> in);
+};
+
+
+template <>
 struct proto_serde<::orgproto::NamedProperty, sem::NamedProperty> {
   static void write(::orgproto::NamedProperty* out, sem::NamedProperty const& in);
   static void read(::orgproto::NamedProperty const& out, proto_write_accessor<sem::NamedProperty> in);
@@ -1258,6 +1272,13 @@ struct proto_serde<::orgproto::Symlink, sem::Symlink> {
 
 
 template <>
+struct proto_serde<::orgproto::CmdInclude::IncludeBase, sem::CmdInclude::IncludeBase> {
+  static void write(::orgproto::CmdInclude::IncludeBase* out, sem::CmdInclude::IncludeBase const& in);
+  static void read(::orgproto::CmdInclude::IncludeBase const& out, proto_write_accessor<sem::CmdInclude::IncludeBase> in);
+};
+
+
+template <>
 struct proto_serde<::orgproto::CmdInclude::Example, sem::CmdInclude::Example> {
   static void write(::orgproto::CmdInclude::Example* out, sem::CmdInclude::Example const& in);
   static void read(::orgproto::CmdInclude::Example const& out, proto_write_accessor<sem::CmdInclude::Example> in);
@@ -1268,6 +1289,13 @@ template <>
 struct proto_serde<::orgproto::CmdInclude::Export, sem::CmdInclude::Export> {
   static void write(::orgproto::CmdInclude::Export* out, sem::CmdInclude::Export const& in);
   static void read(::orgproto::CmdInclude::Export const& out, proto_write_accessor<sem::CmdInclude::Export> in);
+};
+
+
+template <>
+struct proto_serde<::orgproto::CmdInclude::Custom, sem::CmdInclude::Custom> {
+  static void write(::orgproto::CmdInclude::Custom* out, sem::CmdInclude::Custom const& in);
+  static void read(::orgproto::CmdInclude::Custom const& out, proto_write_accessor<sem::CmdInclude::Custom> in);
 };
 
 

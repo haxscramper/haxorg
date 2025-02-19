@@ -1134,8 +1134,11 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::runSpecParse(
         }
 
         if (spec.subnodes.has_value()) {
-            nodes = fromFlatNodes<OrgNodeKind, OrgTokenKind, OrgFill>(
-                spec.subnodes.value());
+            nodes = fromFlatNodes<
+                OrgNodeKind,
+                OrgTokenKind,
+                OrgFill,
+                OrgNodeMono>(spec.subnodes.value());
         }
 
         nodes.tokens = &tokens;
