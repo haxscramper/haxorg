@@ -235,14 +235,17 @@ struct AttrValue {
                        (),
                        (name,
                         varname,
-                        value))
+                        value,
+                        isQuoted))
   Opt<Str> name = std::nullopt;
   Opt<Str> varname = std::nullopt;
   Str value = "";
+  /// \brief If the original value was explicitly quoted in the org-mode code
+  bool isQuoted = false;
   Opt<bool> getBool() const;
   Opt<int> getInt() const;
   Str getString() const;
-  double getDouble() const;
+  Opt<double> getDouble() const;
   bool operator==(sem::AttrValue const& other) const;
 };
 
@@ -1426,7 +1429,7 @@ struct NamedProperty {
                          (),
                          (name, value))
     Str name;
-    sem::AttrList value;
+    sem::AttrGroup value;
     bool operator==(sem::NamedProperty::CustomSubtreeFlags const& other) const;
   };
 
@@ -1575,7 +1578,7 @@ struct ErrorGroup : public sem::Org {
   /// \brief Conversion function name where the error was created
   Opt<Str> function = std::nullopt;
   /// \brief Line number for the conversion where the error was created
-  Opt<Str> line = std::nullopt;
+  Opt<int> line = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::ErrorGroup; }
 };
 

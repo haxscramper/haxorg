@@ -506,7 +506,7 @@ def get_subtree_property_types():
             methods=[eq_method(t_nest_shared("CustomSubtreeFlags", ["NamedProperty"]))],
             fields=[
                 org_field(t_str(), "name"), 
-                org_field(t_nest_shared("AttrList"), "value")
+                org_field(t_nest_shared("AttrGroup"), "value")
             ]
         ),
     ]
@@ -547,7 +547,7 @@ def get_sem_bases():
                     "Conversion function name where the error was created",
                 ),
                 opt_field(
-                    t_str(),
+                    t_int(),
                     "line",
                     "Line number for the conversion where the error was created",
                 ),
@@ -1442,12 +1442,13 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 opt_field(t_str(), "name"),
                 opt_field(t_str(), "varname"),
                 str_field("value"),
+                bool_field("isQuoted", "If the original value was explicitly quoted in the org-mode code"),
             ],
             methods=[
                 GenTuFunction(t_opt(t_bool()), "getBool", isConst=True),
                 GenTuFunction(t_opt(t_int()), "getInt", isConst=True),
                 GenTuFunction(t_str(), "getString", isConst=True),
-                GenTuFunction(QualType(name="double"), "getDouble", isConst=True),
+                GenTuFunction(t_opt(QualType(name="double")), "getDouble", isConst=True),
                 eq_method(t_nest_shared("AttrValue")),
             ],
         ),

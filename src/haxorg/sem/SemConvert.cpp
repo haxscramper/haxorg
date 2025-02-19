@@ -743,8 +743,15 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         handled();
         NamedProperty::CustomSubtreeJson prop{};
         auto name = strip(basename, CharSet{':'}, CharSet{':'}).split(':');
-        prop.name = normalize(name.at(0));
+        if (name.has(1)) { prop.name = normalize(name.at(1)); }
         prop.value = json::parse(strip_space(get_text(one(a, N::Values))));
+        result     = NamedProperty{prop};
+    } else if (name.starts_with("propargs")) {
+        handled();
+        NamedProperty::CustomSubtreeFlags prop{};
+        auto name = strip(basename, CharSet{':'}, CharSet{':'}).split(':');
+        if (name.has(1)) { prop.name = normalize(name.at(1)); }
+        prop.value = convertAttrs(one(a, N::Values));
         result     = NamedProperty{prop};
     } else if (
         one(a, N::Values).kind() == onk::InlineStmtList
@@ -1921,6 +1928,25 @@ sem::AttrValue OrgConverter::convertAttr(__args) {
     sem::AttrValue result;
     Str            key = get_text(one(a, N::Name));
     result.value       = get_text(one(a, N::Value));
+
+    for (int i = 0; i < result.value.size(); ++i) {
+        if (std::isalnum(result.value.at(i))) {
+            // pass
+        } else if (result.value.at(i) == '=' && i < result.value.size()) {
+            // found variable name
+            result.varname = result.value.substr(0, i);
+            result.value   = result.value.substr(i + 1);
+        } else {
+            // not a variable name
+            break;
+        }
+    }
+
+
+    if (result.value.starts_with('"') && result.value.ends_with('"')) {
+        result.isQuoted = true;
+        result.value    = result.value.substr(1, result.value.size() - 2);
+    }
 
     if (!key.empty()) { result.name = key.substr(1); }
 

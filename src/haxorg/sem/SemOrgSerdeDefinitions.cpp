@@ -193,6 +193,7 @@ void proto_serde<::orgproto::AttrValue, sem::AttrValue>::write(::orgproto::AttrV
     proto_serde<std::string, Str>::write(out->mutable_varname(), *in.varname);
   }
   proto_serde<std::string, Str>::write(out->mutable_value(), in.value);
+  out->set_isquoted(in.isQuoted);
 }
 
 void proto_serde<::orgproto::AttrValue, sem::AttrValue>::read(::orgproto::AttrValue const& out, proto_write_accessor<sem::AttrValue> in) {
@@ -203,6 +204,7 @@ void proto_serde<::orgproto::AttrValue, sem::AttrValue>::read(::orgproto::AttrVa
     proto_serde<Opt<std::string>, Opt<Str>>::read(out.varname(), in.for_field(&sem::AttrValue::varname));
   }
   proto_serde<std::string, Str>::read(out.value(), in.for_field(&sem::AttrValue::value));
+  in.for_field(&sem::AttrValue::isQuoted).get() = out.isquoted();
 }
 
 void proto_serde<::orgproto::HashTagFlat, sem::HashTagFlat>::write(::orgproto::HashTagFlat* out, sem::HashTagFlat const& in) {
@@ -1251,12 +1253,12 @@ void proto_serde<::orgproto::NamedProperty::CustomSubtreeJson, sem::NamedPropert
 
 void proto_serde<::orgproto::NamedProperty::CustomSubtreeFlags, sem::NamedProperty::CustomSubtreeFlags>::write(::orgproto::NamedProperty::CustomSubtreeFlags* out, sem::NamedProperty::CustomSubtreeFlags const& in) {
   proto_serde<std::string, Str>::write(out->mutable_name(), in.name);
-  proto_serde<orgproto::AttrList, sem::AttrList>::write(out->mutable_value(), in.value);
+  proto_serde<orgproto::AttrGroup, sem::AttrGroup>::write(out->mutable_value(), in.value);
 }
 
 void proto_serde<::orgproto::NamedProperty::CustomSubtreeFlags, sem::NamedProperty::CustomSubtreeFlags>::read(::orgproto::NamedProperty::CustomSubtreeFlags const& out, proto_write_accessor<sem::NamedProperty::CustomSubtreeFlags> in) {
   proto_serde<std::string, Str>::read(out.name(), in.for_field(&sem::NamedProperty::CustomSubtreeFlags::name));
-  proto_serde<orgproto::AttrList, sem::AttrList>::read(out.value(), in.for_field(&sem::NamedProperty::CustomSubtreeFlags::value));
+  proto_serde<orgproto::AttrGroup, sem::AttrGroup>::read(out.value(), in.for_field(&sem::NamedProperty::CustomSubtreeFlags::value));
 }
 
 void proto_serde<::orgproto::NamedProperty, sem::NamedProperty>::write(::orgproto::NamedProperty* out, sem::NamedProperty const& in) {
@@ -1462,7 +1464,7 @@ void proto_serde<::orgproto::ErrorGroup, sem::ErrorGroup>::write(::orgproto::Err
     proto_serde<std::string, Str>::write(out->mutable_function(), *in.function);
   }
   if (in.line) {
-    proto_serde<std::string, Str>::write(out->mutable_line(), *in.line);
+    out->set_line(*in.line);
   }
 }
 
@@ -1473,7 +1475,7 @@ void proto_serde<::orgproto::ErrorGroup, sem::ErrorGroup>::read(::orgproto::Erro
     proto_serde<Opt<std::string>, Opt<Str>>::read(out.function(), in.for_field(&sem::ErrorGroup::function));
   }
   if (out.has_line()) {
-    proto_serde<Opt<std::string>, Opt<Str>>::read(out.line(), in.for_field(&sem::ErrorGroup::line));
+    proto_serde<Opt<::int32_t>, Opt<int>>::read(out.line(), in.for_field(&sem::ErrorGroup::line));
   }
 }
 

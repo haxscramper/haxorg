@@ -259,6 +259,7 @@ example
 \test{}
 #+end_export
 
+#+caption: Custom block caption
 #+begin_beat 
 Custom block content
 #+end_beat
@@ -356,6 +357,8 @@ CLOSED: [1960-01-15 Thu]
   :export_latex_header: somehaeders
   :archive_todo: COMPLETED
   :CUSTOM_ID: custom-id
+  :prop_json:NaME: {"key": "value"}
+  :prop_args:NAMe: :key value
   :end:
 
 

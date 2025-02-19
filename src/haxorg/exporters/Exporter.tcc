@@ -62,6 +62,7 @@ void Exporter<V, R>::visit(R& res, sem::AttrValue const& object) {
   __obj_field(res, object, name);
   __obj_field(res, object, varname);
   __obj_field(res, object, value);
+  __obj_field(res, object, isQuoted);
 }
 
 template <typename V, typename R>

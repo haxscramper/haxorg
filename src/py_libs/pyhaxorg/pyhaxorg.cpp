@@ -512,10 +512,11 @@ node can have subnodes.)RAW")
     .def_readwrite("name", &sem::AttrValue::name)
     .def_readwrite("varname", &sem::AttrValue::varname)
     .def_readwrite("value", &sem::AttrValue::value)
+    .def_readwrite("isQuoted", &sem::AttrValue::isQuoted, R"RAW(If the original value was explicitly quoted in the org-mode code)RAW")
     .def("getBool", static_cast<Opt<bool>(sem::AttrValue::*)() const>(&sem::AttrValue::getBool))
     .def("getInt", static_cast<Opt<int>(sem::AttrValue::*)() const>(&sem::AttrValue::getInt))
     .def("getString", static_cast<Str(sem::AttrValue::*)() const>(&sem::AttrValue::getString))
-    .def("getDouble", static_cast<double(sem::AttrValue::*)() const>(&sem::AttrValue::getDouble))
+    .def("getDouble", static_cast<Opt<double>(sem::AttrValue::*)() const>(&sem::AttrValue::getDouble))
     .def("operator==",
          static_cast<bool(sem::AttrValue::*)(sem::AttrValue const&) const>(&sem::AttrValue::operator==),
          pybind11::arg("other"))

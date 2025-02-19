@@ -416,6 +416,7 @@ message AttrValue {
   optional string                                  name                             = 1;
   optional string                                  varname                          = 2;
   string                                           value                            = 3;
+  bool                                             isQuoted                         = 4;
   string                                           debug                            = 1000;
 }
 
@@ -956,7 +957,7 @@ message NamedProperty {
   }
   message CustomSubtreeFlags {
     string                                         name                             = 1;
-    AttrList                                       value                            = 2;
+    AttrGroup                                      value                            = 2;
     string                                         debug                            = 1000;
   }
   message Data {
@@ -1044,7 +1045,7 @@ message ErrorGroup {
   OrgSemKind                                       staticKind                       = 3;
   repeated ErrorItem                               diagnostics                      = 4;
   optional string                                  function                         = 5;
-  optional string                                  line                             = 6;
+  optional int32                                   line                             = 6;
   string                                           debug                            = 1000;
 }
 

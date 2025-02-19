@@ -248,15 +248,25 @@ TEST(OrgParseSem, SubtreeProperties) {
             R"(* Tree
 :properties:
 :visibility: content
-:prop_json:name: {"key": "value"}
-:prop_args:name: :key value
+:prop_json:NaME: {"key": "value"}
+:prop_args:NAMe: :key value
 :end:)",
             getDebugFile("prop_json"));
         {
             auto p = sem::getSubtreeProperties<
                 sem::NamedProperty::CustomSubtreeJson>(tree);
             EXPECT_EQ(p.size(), 1);
+            EXPECT_EQ(p.at(0).name, "name"_ss);
             EXPECT_EQ(p.at(0).value.getField("key").getString(), "value");
+        }
+        {
+            auto p = sem::getSubtreeProperties<
+                sem::NamedProperty::CustomSubtreeFlags>(tree);
+            EXPECT_EQ(p.size(), 1);
+            EXPECT_EQ(p.at(0).value.getNamedSize(), 1);
+            EXPECT_EQ(p.at(0).name, "name"_ss);
+            EXPECT_EQ(
+                p.at(0).value.getFirstNamed("key")->getString(), "value");
         }
     }
 }

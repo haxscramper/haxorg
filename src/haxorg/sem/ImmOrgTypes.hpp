@@ -54,7 +54,7 @@ struct ImmErrorGroup : public org::ImmOrg {
   /// \brief Conversion function name where the error was created
   ImmBox<Opt<Str>> function = std::nullopt;
   /// \brief Line number for the conversion where the error was created
-  ImmBox<Opt<Str>> line = std::nullopt;
+  ImmBox<Opt<int>> line = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::ErrorGroup; }
   bool operator==(org::ImmErrorGroup const& other) const;
 };

@@ -462,28 +462,12 @@ struct RecombineState {
                         OrgToken merged = buf.front();
                         merged->text    = "";
                         for (auto const& it : enumerator(buf)) {
-                            if (it.is_first()) {
-                                merged->text += it.value()->text.substr(1);
-                            } else if (it.is_last()) {
-                                merged->text += it.value()->text.substr(
-                                    0, it.value()->text.size() - 1);
-                            } else {
-                                merged->text += it.value()->text;
-                            }
+                            merged->text += it.value()->text;
                         }
                         add(merged);
                     } else {
                         for (auto const& tok : buf) { add(tok); }
                     }
-
-                } else if (
-                    tok_str().starts_with('"')
-                    && tok_str().ends_with('"')) {
-                    OrgToken tok = lex.tok();
-                    lex.next();
-                    tok.value.text = tok.value.text.substr(
-                        1, tok.value.text.size() - 2);
-                    add(tok);
                 } else {
                     pop();
                 }

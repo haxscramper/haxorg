@@ -342,10 +342,7 @@ auto Formatter::toString(sem::AttrValue const& id, CR<Context> ctx)
     -> Res {
     Str value = id.value.replaceAll("\"", "\\\"");
 
-    if (value.contains('"') || value.starts_with(":")
-        || value.contains('"')) {
-        value = "\""_ss + value + "\""_ss;
-    }
+    if (id.isQuoted) { value = escape_for_write(value, true); }
 
     auto varname = id.varname.has_value()
                      ? Str{fmt("{}={}", id.varname.value(), value)}

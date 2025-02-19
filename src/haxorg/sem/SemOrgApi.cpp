@@ -275,6 +275,12 @@ Vec<SemId<Org>> Org::getAllSubnodes() const {
 
 Str AttrValue::getString() const { return value; }
 
+Opt<double> AttrValue::getDouble() const {
+    try {
+        return value.toDouble();
+    } catch (std::invalid_argument const& e) { return std::nullopt; }
+}
+
 Opt<bool> AttrValue::getBool() const {
     if (value == "yes" || value == "true" || value == "on"
         || value == "t") {

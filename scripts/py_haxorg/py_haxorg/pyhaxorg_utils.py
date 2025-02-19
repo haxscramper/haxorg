@@ -155,24 +155,22 @@ def doExportAttachments(
                 match op:
                     case "copy" | "symlink":
                         src = base.parent.joinpath(path)
-                        if not src.exists():
-                            raise SystemError(f"Attachment source '{src}' does not exist")
+                        if src.exists():
+                            dst = destination.joinpath(path)
+                            if src != dst:
+                                if op == "copy":
+                                    shutil.copy(src=src, dst=dst)
+                                    log(CAT).info(f"Copied {path}")
 
-                        dst = destination.joinpath(path)
-                        if src != dst:
-                            if op == "copy":
-                                shutil.copy(src=src, dst=dst)
-                                log(CAT).info(f"Copied {path}")
+                                elif op == "symlink":
+                                    if dst.exists() or dst.is_symlink():
+                                        os.unlink(dst)
 
-                            elif op == "symlink":
-                                if dst.exists() or dst.is_symlink():
-                                    os.unlink(dst)
+                                    assert not dst.exists()
+                                    assert src.exists()
 
-                                assert not dst.exists()
-                                assert src.exists()
-
-                                dst.symlink_to(src)
-                                log(CAT).info(f"Symlinked {path}")
+                                    dst.symlink_to(src)
+                                    log(CAT).info(f"Symlinked {path}")
 
                     case _:
                         assert False
