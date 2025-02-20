@@ -17,7 +17,7 @@
 
 
 /// \brief Text block layouts used in exporters and code generation
-namespace layout {
+namespace hstd::layout {
 
 DECL_ID_TYPE_MASKED(LytStr, LytStrId, u64, 8);
 DECL_ID_TYPE_MASKED(Block, BlockId, u64, 8);
@@ -461,11 +461,13 @@ struct SimpleStringStore {
 };
 
 
-} // namespace layout
+} // namespace hstd::layout
 
+namespace hstd {
 template <>
 struct SerdeDefaultProvider<layout::BlockId> {
     static layout::BlockId get() { return layout::BlockId::Nil(); }
 };
+} // namespace hstd
 
 #endif // TEXTLAYOUTER_HPP

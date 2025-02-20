@@ -53,9 +53,20 @@ struct [[refl]] UserTime {
     bool operator==(UserTime const& it) const;
 };
 
+
+template <typename Tag>
+struct ReflVisitor<absl::Time, Tag>
+    : ReflVisitorLeafType<absl::Time, Tag> {};
+
+template <typename Tag>
+struct ReflVisitor<absl::TimeZone, Tag>
+    : ReflVisitorLeafType<absl::TimeZone, Tag> {};
+
+} // namespace hstd
+
 template <>
-struct std::hash<UserTime> {
-    std::size_t operator()(UserTime const& it) const noexcept;
+struct std::hash<hstd::UserTime> {
+    std::size_t operator()(hstd::UserTime const& it) const noexcept;
 };
 
 
@@ -76,14 +87,3 @@ struct std::formatter<absl::TimeZone> : std::formatter<std::string> {
         return fmt_ctx(absl::FormatTime("%z", absl::Now(), p), ctx);
     }
 };
-
-
-template <typename Tag>
-struct ReflVisitor<absl::Time, Tag>
-    : ReflVisitorLeafType<absl::Time, Tag> {};
-
-template <typename Tag>
-struct ReflVisitor<absl::TimeZone, Tag>
-    : ReflVisitorLeafType<absl::TimeZone, Tag> {};
-
-} // namespace hstd

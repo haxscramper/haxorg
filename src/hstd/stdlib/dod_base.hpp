@@ -26,7 +26,7 @@
 ///
 /// `dod::MultiStore` is an additional helper type to simplify management
 /// of multiple stores.
-namespace dod {
+namespace hstd::dod {
 /// \brief DOD Id type
 ///
 /// \note It does not have a default constructor, if you need co construct
@@ -628,7 +628,7 @@ struct MultiStore {
     std::tuple<Args...> stores; /// List of associated storage contianers
 };
 
-}; // namespace dod
+}; // namespace hstd::dod
 
 namespace std {
 template <dod::IsIdType Id>

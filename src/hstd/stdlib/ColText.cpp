@@ -2,7 +2,9 @@
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/stdlib/strutils.hpp>
 
-std::string ansiEsc(const TermColorFg8Bit& col) {
+using namespace hstd;
+
+std::string hstd::ansiEsc(const TermColorFg8Bit& col) {
     if ((u8)col <= 7) { // Regular colors
         return ansiEsc(value_domain<TermColorFg8Bit>::ord(col) + 30);
     } else if ((u8)col <= 15) { // Bright colors
@@ -12,7 +14,7 @@ std::string ansiEsc(const TermColorFg8Bit& col) {
     }
 }
 
-std::string ansiEsc(const TermColorBg8Bit& col) {
+std::string hstd::ansiEsc(const TermColorBg8Bit& col) {
     if ((u8)col <= 7) {
         return ansiEsc(value_domain<TermColorBg8Bit>::ord(col) + 40);
     } else if ((u8)col <= 15) {
@@ -22,7 +24,7 @@ std::string ansiEsc(const TermColorBg8Bit& col) {
     };
 }
 
-std::string ansiEsc(const Style& style, const bool& open) {
+std::string hstd::ansiEsc(const Style& style, const bool& open) {
     const auto diff = open ? 0 : 20;
     switch (style) {
         case Style::Bright: return ansiEsc(1 + diff);
@@ -38,7 +40,7 @@ std::string ansiEsc(const Style& style, const bool& open) {
     }
 }
 
-Str ansiDiff(const ColStyle& s1, const ColStyle& s2) {
+Str hstd::ansiDiff(const ColStyle& s1, const ColStyle& s2) {
     Str result;
     if (s2.fg != s1.fg) {
         if (isDefault(s2.fg)) {
@@ -67,7 +69,7 @@ Str ansiDiff(const ColStyle& s1, const ColStyle& s2) {
     return result;
 }
 
-std::string to_string(const ColRune& rune, const bool& color) {
+std::string hstd::to_string(const ColRune& rune, const bool& color) {
     std::string result;
     if (color) {
         result += ansiDiff(ColStyle{}, rune.style);
@@ -79,7 +81,7 @@ std::string to_string(const ColRune& rune, const bool& color) {
     return result;
 }
 
-std::string to_colored_string(
+std::string hstd::to_colored_string(
     const Vec<ColRune>& runes,
     const bool&         color) {
     std::string result;
@@ -101,11 +103,11 @@ std::string to_colored_string(
     return result;
 }
 
-void ColStream::flush() {
+void hstd::ColStream::flush() {
     if (!buffered) { ostream->flush(); }
 }
 
-void ColStream::write(const ColRune& text) {
+void hstd::ColStream::write(const ColRune& text) {
     position += 1;
     if (buffered) {
         append(text);
@@ -114,7 +116,7 @@ void ColStream::write(const ColRune& text) {
     }
 }
 
-void ColStream::write(const ColText& text) {
+void hstd::ColStream::write(const ColText& text) {
     position += text.size();
     if (buffered) {
         append(text);
@@ -134,7 +136,7 @@ void ColStream::write_indented_after_first(const Str& text, int indent) {
     }
 }
 
-void hshow<std::string_view>::format(
+void hstd::hshow<std::string_view>::format(
     ColStream&           os,
     CR<std::string_view> value,
     CR<hshow_opts>       opts) {
@@ -188,7 +190,7 @@ void hshow<std::string_view>::format(
     }
 }
 
-ColText::ColText(CR<ColStyle> style, CR<std::string> text) {
+hstd::ColText::ColText(CR<ColStyle> style, CR<std::string> text) {
     for (const auto& ch : rune_chunks(text)) {
         push_back(ColRune(ch, style));
     }
@@ -210,7 +212,7 @@ std::string toHtmlColor(TermColorFg8Bit color) {
 }
 } // namespace
 
-std::string to_colored_html(const Vec<ColRune>& runes) {
+std::string hstd::to_colored_html(const Vec<ColRune>& runes) {
     std::string result;
     auto        prev = ColStyle();
     for (const auto& rune : runes) {

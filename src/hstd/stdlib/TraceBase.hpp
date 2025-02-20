@@ -9,6 +9,8 @@
 #include <absl/log/internal/globals.h>
 #include <hstd/stdlib/Json.hpp>
 
+namespace hstd {
+
 struct OperationsMsg {
     Opt<std::string> msg;
     char const*      file     = nullptr;
@@ -109,3 +111,5 @@ struct OperationsMsgBulder : CRTP_this_method<Derived> {
         return *_this();
     }
 };
+
+} // namespace hstd

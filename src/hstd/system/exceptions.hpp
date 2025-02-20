@@ -56,7 +56,7 @@ struct out_of_range_error : CRTP_hexception<out_of_range_error> {};
 
 #define LOGIC_ASSERTION_CHECK(expr, message_fmt, ...)                     \
     if (!(expr)) {                                                        \
-        throw ::hstd::logic_assertion_error::init(::htsd::fmt(            \
+        throw ::hstd::logic_assertion_error::init(::hstd::fmt(            \
             "{}: {}",                                                     \
             #expr,                                                        \
             fmt(message_fmt __VA_OPT__(, ) __VA_ARGS__)));                \

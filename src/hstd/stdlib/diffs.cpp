@@ -1,7 +1,9 @@
 #include "diffs.hpp"
 #include <hstd/stdlib/Debug.hpp>
 
-Vec<BacktrackRes> longestCommonSubsequence(
+using namespace hstd;
+
+Vec<BacktrackRes> hstd::longestCommonSubsequence(
     int                   lhsSize,
     int                   rhsSize,
     Func<bool(int, int)>  itemCmp,
@@ -150,7 +152,7 @@ Vec<SeqEdit> myersDiff(
 }
 
 
-LevenshteinDistanceResult levenshteinDistance(
+LevenshteinDistanceResult hstd::levenshteinDistance(
     int                  lhsMax,
     int                  rhsMax,
     Func<bool(int, int)> itemEq) {
@@ -249,7 +251,10 @@ LevenshteinDistanceResult levenshteinDistance(
         resultOperations};
 }
 
-ShiftedDiff::ShiftedDiff(CR<BacktrackRes> track, int lhsMax, int rhsMax) {
+hstd::ShiftedDiff::ShiftedDiff(
+    CR<BacktrackRes> track,
+    int              lhsMax,
+    int              rhsMax) {
     using sek    = SeqEditKind;
     int prevLhs  = 0;
     int prevRhs  = 0;
@@ -288,7 +293,7 @@ ShiftedDiff::ShiftedDiff(CR<BacktrackRes> track, int lhsMax, int rhsMax) {
     }
 }
 
-ShiftedDiff::ShiftedDiff(CR<Vec<SeqEdit>>& diff) {
+hstd::ShiftedDiff::ShiftedDiff(CR<Vec<SeqEdit>>& diff) {
     // Align diff operations against each other, for further
     // formatting.
     using sek = SeqEditKind;
@@ -338,7 +343,7 @@ ShiftedDiff::ShiftedDiff(CR<Vec<SeqEdit>>& diff) {
     }
 }
 
-bool hasInvisibleChanges(
+bool hstd::hasInvisibleChanges(
     Vec<SeqEdit>& diff,
     Vec<Str>&     oldSeq,
     Vec<Str>&     newSeq) {
@@ -379,7 +384,7 @@ bool hasInvisibleChanges(
     return false;
 }
 
-FormattedDiff::FormattedDiff(
+hstd::FormattedDiff::FormattedDiff(
     const ShiftedDiff& shifted,
     DiffFormatConf     conf) {
     Vec<BufItem> oldText, newText;
@@ -419,7 +424,7 @@ FormattedDiff::FormattedDiff(
     *this = FormattedDiff(oldText, newText, conf);
 }
 
-FormattedDiff::FormattedDiff(
+hstd::FormattedDiff::FormattedDiff(
     const Vec<BufItem>&   oldText,
     const Vec<BufItem>&   newText,
     const DiffFormatConf& conf) {
@@ -520,7 +525,7 @@ FormattedDiff::FormattedDiff(
     }
 }
 
-ColText formatInlineDiff(
+hstd::ColText formatInlineDiff(
     const Vec<Str>&     src,
     const Vec<Str>&     target,
     const Vec<SeqEdit>& diffed,
@@ -738,7 +743,7 @@ fuzzy_result fuzzy_match_recursive(
 }
 } // namespace
 
-FuzzyMatcher::ScoreFunc FuzzyMatcher::getLinearScore(
+FuzzyMatcher::ScoreFunc hstd::FuzzyMatcher::getLinearScore(
     const LinearScoreConfig& conf) {
     return [&conf](
                Range const&    _str,
@@ -786,7 +791,7 @@ FuzzyMatcher::ScoreFunc FuzzyMatcher::getLinearScore(
     };
 }
 
-bool FuzzyMatcher::fuzzy_match(
+bool hstd::FuzzyMatcher::fuzzy_match(
     Range     pattern,
     Range     str,
     int&      outScore,

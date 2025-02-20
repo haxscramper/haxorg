@@ -97,14 +97,16 @@ struct Str : public std::string {
 } // namespace hstd
 
 
-inline hstd::Str operator+(CR<std::string> in, CR<hstd::Str> other) {
+inline hstd::Str operator+(
+    hstd::CR<std::string> in,
+    hstd::CR<hstd::Str>   other) {
     hstd::Str res;
     res.append(in);
     res.append(other);
     return res;
 }
 
-inline hstd::Str operator+(const char* in, CR<hstd::Str> other) {
+inline hstd::Str operator+(const char* in, hstd::CR<hstd::Str> other) {
     hstd::Str res;
     res.append(in);
     res.append(other);

@@ -4,7 +4,7 @@
 TEST(EnumerateTests, BasicEnumeration) {
     std::vector<int> v            = {1, 2, 3, 4};
     size_t           expected_idx = 0;
-    for (auto const& item : enumerator(v)) {
+    for (auto const& item : hstd::enumerator(v)) {
         EXPECT_EQ(item.index(), expected_idx);
         EXPECT_EQ(item.value(), v[expected_idx]);
         ++expected_idx;
@@ -15,7 +15,7 @@ TEST(EnumerateTests, BasicEnumeration) {
 TEST(EnumerateTests, SkipFirstElements) {
     std::vector<int> v            = {1, 2, 3, 4};
     size_t           expected_idx = 2;
-    for (auto const& item : enumerator(v).skip_first(2)) {
+    for (auto const& item : hstd::enumerator(v).skip_first(2)) {
         EXPECT_EQ(item.base_index(), expected_idx);
         EXPECT_EQ(item.index(), expected_idx - 2);
         EXPECT_EQ(item.value(), v[expected_idx]);
@@ -27,7 +27,7 @@ TEST(EnumerateTests, SkipFirstElements) {
 TEST(EnumerateTests, SkipLastElements) {
     std::vector<int> v            = {1, 2, 3, 4};
     size_t           expected_idx = 0;
-    for (auto const& item : enumerator(v).skip_last(2)) {
+    for (auto const& item : hstd::enumerator(v).skip_last(2)) {
         EXPECT_EQ(item.index(), expected_idx);
         EXPECT_EQ(item.value(), v[expected_idx]);
         ++expected_idx;
@@ -37,14 +37,14 @@ TEST(EnumerateTests, SkipLastElements) {
 
 TEST(EnumerateTests, EmptyContainer) {
     std::vector<int> v;
-    for (auto const& item : enumerator(v)) {
+    for (auto const& item : hstd::enumerator(v)) {
         FAIL() << "This should not be executed, the container is empty.";
     }
 }
 
 TEST(EnumerateTests, SkipMoreElementsThanSize) {
     std::vector<int> v = {1, 2, 3};
-    for (auto const& item : enumerator(v).skip_first(5)) {
+    for (auto const& item : hstd::enumerator(v).skip_first(5)) {
         FAIL() << "This should not be executed, we are skipping more "
                   "elements than the container size.";
     }
@@ -52,7 +52,7 @@ TEST(EnumerateTests, SkipMoreElementsThanSize) {
 
 TEST(EnumerateTests, PositionPredicates) {
     std::vector<int> v{0, 1, 2};
-    auto             e  = enumerator(v);
+    auto             e  = hstd::enumerator(v);
     auto             it = e.begin();
     {
         auto n = *it;
@@ -83,7 +83,7 @@ TEST(EnumerateTests, PositionPredicates) {
 
 TEST(EnumerateTests, PositionPredicatesWithSkip) {
     std::vector<int> v{0, 1, 2};
-    auto             e  = enumerator(v).skip_first(1);
+    auto             e  = hstd::enumerator(v).skip_first(1);
     auto             it = e.begin();
 
     {

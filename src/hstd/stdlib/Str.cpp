@@ -1,7 +1,9 @@
 #include "Str.hpp"
 #include <hstd/stdlib/strutils.hpp>
 
-Str Str::dropPrefix(CR<Str> prefix) const {
+using namespace hstd;
+
+Str hstd::Str::dropPrefix(CR<Str> prefix) const {
     if (this->starts_with(prefix)) {
         return substr(prefix.size());
     } else {
@@ -9,7 +11,7 @@ Str Str::dropPrefix(CR<Str> prefix) const {
     }
 }
 
-Str Str::dropSuffix(CR<Str> suffix) const {
+Str hstd::Str::dropSuffix(CR<Str> suffix) const {
     if (this->ends_with(suffix)) {
         return substr(0, size() - suffix.size());
     } else {
@@ -17,7 +19,7 @@ Str Str::dropSuffix(CR<Str> suffix) const {
     }
 }
 
-char Str::at(int pos) const {
+char hstd::Str::at(int pos) const {
     if (0 <= pos && pos < size()) {
         return std::string::operator[](pos);
     } else {
@@ -27,7 +29,7 @@ char Str::at(int pos) const {
     }
 }
 
-char& Str::at(int pos) {
+char& hstd::Str::at(int pos) {
     if (0 <= pos && pos < size()) {
         return std::string::operator[](pos);
     } else {
@@ -37,7 +39,7 @@ char& Str::at(int pos) {
     }
 }
 
-Str Str::replaceAll(const Str& from, const Str& to) const {
+Str hstd::Str::replaceAll(const Str& from, const Str& to) const {
     size_t startPos = 0;
     Str    result   = *this;
     while ((startPos = result.find(from, startPos)) != std::string::npos) {
@@ -47,7 +49,7 @@ Str Str::replaceAll(const Str& from, const Str& to) const {
     return result;
 }
 
-Vec<Str> Str::split(char delimiter) const {
+Vec<Str> hstd::Str::split(char delimiter) const {
     Vec<Str>           tokens;
     Str                token;
     std::istringstream tokenStream(*this);
@@ -59,7 +61,7 @@ Vec<Str> Str::split(char delimiter) const {
     return tokens;
 }
 
-Vec<Str> Str::split(const Str& delimiter) const {
+Vec<Str> hstd::Str::split(const Str& delimiter) const {
     Vec<Str> tokens;
     size_t   start = 0;
     size_t   end   = this->find(delimiter);
@@ -75,11 +77,11 @@ Vec<Str> Str::split(const Str& delimiter) const {
     return tokens;
 }
 
-Str Str::repeated(int N) const {
+Str hstd::Str::repeated(int N) const {
     Str result;
     result.reserve(size() * N);
     for (int i = 0; i < N; ++i) { result += *this; }
     return result;
 }
 
-int Str::runeLen() const { return rune_length(*this); }
+int hstd::Str::runeLen() const { return rune_length(*this); }
