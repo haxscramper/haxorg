@@ -199,13 +199,92 @@
     __IMPL(NamedProperty::CustomSubtreeJson, (NamedProperty, CustomSubtreeJson)) \
     __IMPL(NamedProperty::CustomSubtreeFlags, (NamedProperty, CustomSubtreeFlags))
 #define EACH_SEM_ORG_RECORD_NESTED(__IMPL) \
+    __IMPL(sem, None, (None)) \
+    __IMPL(sem, ErrorItem, (ErrorItem)) \
+    __IMPL(sem, ErrorGroup, (ErrorGroup)) \
+    __IMPL(sem, Stmt, (Stmt)) \
+    __IMPL(sem, Inline, (Inline)) \
+    __IMPL(sem, StmtList, (StmtList)) \
+    __IMPL(sem, Empty, (Empty)) \
+    __IMPL(sem, Cmd, (Cmd)) \
+    __IMPL(sem, Block, (Block)) \
+    __IMPL(sem, LineCommand, (LineCommand)) \
+    __IMPL(sem, Attached, (Attached)) \
+    __IMPL(sem, Leaf, (Leaf)) \
+    __IMPL(sem, CmdCaption, (CmdCaption)) \
+    __IMPL(sem, CmdColumns, (CmdColumns)) \
+    __IMPL(sem, CmdName, (CmdName)) \
+    __IMPL(sem, CmdCustomArgs, (CmdCustomArgs)) \
+    __IMPL(sem, CmdCustomRaw, (CmdCustomRaw)) \
+    __IMPL(sem, CmdCustomText, (CmdCustomText)) \
+    __IMPL(sem, CmdResults, (CmdResults)) \
+    __IMPL(sem, CmdTblfm, (CmdTblfm)) \
+    __IMPL(sem, HashTag, (HashTag)) \
+    __IMPL(sem, InlineFootnote, (InlineFootnote)) \
+    __IMPL(sem, InlineExport, (InlineExport)) \
+    __IMPL(sem, Time, (Time)) \
     __IMPL(Time, Repeat, (Repeat)) \
     __IMPL(Time, Static, (Static)) \
     __IMPL(Time, Dynamic, (Dynamic)) \
+    __IMPL(sem, TimeRange, (TimeRange)) \
+    __IMPL(sem, Macro, (Macro)) \
+    __IMPL(sem, Symbol, (Symbol)) \
     __IMPL(Symbol, Param, (Param)) \
+    __IMPL(sem, Escaped, (Escaped)) \
+    __IMPL(sem, Newline, (Newline)) \
+    __IMPL(sem, Space, (Space)) \
+    __IMPL(sem, Word, (Word)) \
+    __IMPL(sem, AtMention, (AtMention)) \
+    __IMPL(sem, RawText, (RawText)) \
+    __IMPL(sem, Punctuation, (Punctuation)) \
+    __IMPL(sem, Placeholder, (Placeholder)) \
+    __IMPL(sem, BigIdent, (BigIdent)) \
+    __IMPL(sem, TextTarget, (TextTarget)) \
+    __IMPL(sem, Markup, (Markup)) \
+    __IMPL(sem, Bold, (Bold)) \
+    __IMPL(sem, Underline, (Underline)) \
+    __IMPL(sem, Monospace, (Monospace)) \
+    __IMPL(sem, MarkQuote, (MarkQuote)) \
+    __IMPL(sem, Verbatim, (Verbatim)) \
+    __IMPL(sem, Italic, (Italic)) \
+    __IMPL(sem, Strike, (Strike)) \
+    __IMPL(sem, Par, (Par)) \
+    __IMPL(sem, RadioTarget, (RadioTarget)) \
+    __IMPL(sem, Latex, (Latex)) \
+    __IMPL(sem, Link, (Link)) \
+    __IMPL(sem, BlockCenter, (BlockCenter)) \
+    __IMPL(sem, BlockQuote, (BlockQuote)) \
+    __IMPL(sem, BlockComment, (BlockComment)) \
+    __IMPL(sem, BlockVerse, (BlockVerse)) \
+    __IMPL(sem, BlockDynamicFallback, (BlockDynamicFallback)) \
+    __IMPL(sem, BlockExample, (BlockExample)) \
+    __IMPL(sem, BlockExport, (BlockExport)) \
+    __IMPL(sem, BlockAdmonition, (BlockAdmonition)) \
+    __IMPL(sem, BlockCode, (BlockCode)) \
+    __IMPL(sem, SubtreeLog, (SubtreeLog)) \
+    __IMPL(sem, Subtree, (Subtree)) \
+    __IMPL(sem, Cell, (Cell)) \
+    __IMPL(sem, Row, (Row)) \
+    __IMPL(sem, Table, (Table)) \
+    __IMPL(sem, Paragraph, (Paragraph)) \
+    __IMPL(sem, ColonExample, (ColonExample)) \
+    __IMPL(sem, CmdAttr, (CmdAttr)) \
+    __IMPL(sem, CmdExport, (CmdExport)) \
+    __IMPL(sem, Call, (Call)) \
+    __IMPL(sem, List, (List)) \
+    __IMPL(sem, ListItem, (ListItem)) \
+    __IMPL(sem, DocumentOptions, (DocumentOptions)) \
+    __IMPL(sem, Document, (Document)) \
+    __IMPL(sem, FileTarget, (FileTarget)) \
+    __IMPL(sem, TextSeparator, (TextSeparator)) \
+    __IMPL(sem, DocumentGroup, (DocumentGroup)) \
+    __IMPL(sem, File, (File)) \
     __IMPL(File, Document, (Document)) \
     __IMPL(File, Attachment, (Attachment)) \
     __IMPL(File, Source, (Source)) \
+    __IMPL(sem, Directory, (Directory)) \
+    __IMPL(sem, Symlink, (Symlink)) \
+    __IMPL(sem, CmdInclude, (CmdInclude)) \
     __IMPL(CmdInclude, IncludeBase, (IncludeBase)) \
     __IMPL(CmdInclude, Example, (Example)) \
     __IMPL(CmdInclude, Export, (Export)) \
@@ -220,92 +299,92 @@
     __IMPL(File, Kind, (Kind)) \
     __IMPL(CmdInclude, Kind, (Kind))
 #define EACH_SEM_ORG_RECORD(__IMPL) \
-    __IMPL(None, (None)) \
-    __IMPL(ErrorItem, (ErrorItem)) \
-    __IMPL(ErrorGroup, (ErrorGroup)) \
-    __IMPL(Stmt, (Stmt)) \
-    __IMPL(Inline, (Inline)) \
-    __IMPL(StmtList, (StmtList)) \
-    __IMPL(Empty, (Empty)) \
-    __IMPL(Cmd, (Cmd)) \
-    __IMPL(Block, (Block)) \
-    __IMPL(LineCommand, (LineCommand)) \
-    __IMPL(Attached, (Attached)) \
-    __IMPL(Leaf, (Leaf)) \
-    __IMPL(CmdCaption, (CmdCaption)) \
-    __IMPL(CmdColumns, (CmdColumns)) \
-    __IMPL(CmdName, (CmdName)) \
-    __IMPL(CmdCustomArgs, (CmdCustomArgs)) \
-    __IMPL(CmdCustomRaw, (CmdCustomRaw)) \
-    __IMPL(CmdCustomText, (CmdCustomText)) \
-    __IMPL(CmdResults, (CmdResults)) \
-    __IMPL(CmdTblfm, (CmdTblfm)) \
-    __IMPL(HashTag, (HashTag)) \
-    __IMPL(InlineFootnote, (InlineFootnote)) \
-    __IMPL(InlineExport, (InlineExport)) \
-    __IMPL(Time, (Time)) \
+    __IMPL(sem::None, (sem, None)) \
+    __IMPL(sem::ErrorItem, (sem, ErrorItem)) \
+    __IMPL(sem::ErrorGroup, (sem, ErrorGroup)) \
+    __IMPL(sem::Stmt, (sem, Stmt)) \
+    __IMPL(sem::Inline, (sem, Inline)) \
+    __IMPL(sem::StmtList, (sem, StmtList)) \
+    __IMPL(sem::Empty, (sem, Empty)) \
+    __IMPL(sem::Cmd, (sem, Cmd)) \
+    __IMPL(sem::Block, (sem, Block)) \
+    __IMPL(sem::LineCommand, (sem, LineCommand)) \
+    __IMPL(sem::Attached, (sem, Attached)) \
+    __IMPL(sem::Leaf, (sem, Leaf)) \
+    __IMPL(sem::CmdCaption, (sem, CmdCaption)) \
+    __IMPL(sem::CmdColumns, (sem, CmdColumns)) \
+    __IMPL(sem::CmdName, (sem, CmdName)) \
+    __IMPL(sem::CmdCustomArgs, (sem, CmdCustomArgs)) \
+    __IMPL(sem::CmdCustomRaw, (sem, CmdCustomRaw)) \
+    __IMPL(sem::CmdCustomText, (sem, CmdCustomText)) \
+    __IMPL(sem::CmdResults, (sem, CmdResults)) \
+    __IMPL(sem::CmdTblfm, (sem, CmdTblfm)) \
+    __IMPL(sem::HashTag, (sem, HashTag)) \
+    __IMPL(sem::InlineFootnote, (sem, InlineFootnote)) \
+    __IMPL(sem::InlineExport, (sem, InlineExport)) \
+    __IMPL(sem::Time, (sem, Time)) \
     __IMPL(Time::Repeat, (Time, Repeat)) \
     __IMPL(Time::Static, (Time, Static)) \
     __IMPL(Time::Dynamic, (Time, Dynamic)) \
-    __IMPL(TimeRange, (TimeRange)) \
-    __IMPL(Macro, (Macro)) \
-    __IMPL(Symbol, (Symbol)) \
+    __IMPL(sem::TimeRange, (sem, TimeRange)) \
+    __IMPL(sem::Macro, (sem, Macro)) \
+    __IMPL(sem::Symbol, (sem, Symbol)) \
     __IMPL(Symbol::Param, (Symbol, Param)) \
-    __IMPL(Escaped, (Escaped)) \
-    __IMPL(Newline, (Newline)) \
-    __IMPL(Space, (Space)) \
-    __IMPL(Word, (Word)) \
-    __IMPL(AtMention, (AtMention)) \
-    __IMPL(RawText, (RawText)) \
-    __IMPL(Punctuation, (Punctuation)) \
-    __IMPL(Placeholder, (Placeholder)) \
-    __IMPL(BigIdent, (BigIdent)) \
-    __IMPL(TextTarget, (TextTarget)) \
-    __IMPL(Markup, (Markup)) \
-    __IMPL(Bold, (Bold)) \
-    __IMPL(Underline, (Underline)) \
-    __IMPL(Monospace, (Monospace)) \
-    __IMPL(MarkQuote, (MarkQuote)) \
-    __IMPL(Verbatim, (Verbatim)) \
-    __IMPL(Italic, (Italic)) \
-    __IMPL(Strike, (Strike)) \
-    __IMPL(Par, (Par)) \
-    __IMPL(RadioTarget, (RadioTarget)) \
-    __IMPL(Latex, (Latex)) \
-    __IMPL(Link, (Link)) \
-    __IMPL(BlockCenter, (BlockCenter)) \
-    __IMPL(BlockQuote, (BlockQuote)) \
-    __IMPL(BlockComment, (BlockComment)) \
-    __IMPL(BlockVerse, (BlockVerse)) \
-    __IMPL(BlockDynamicFallback, (BlockDynamicFallback)) \
-    __IMPL(BlockExample, (BlockExample)) \
-    __IMPL(BlockExport, (BlockExport)) \
-    __IMPL(BlockAdmonition, (BlockAdmonition)) \
-    __IMPL(BlockCode, (BlockCode)) \
-    __IMPL(SubtreeLog, (SubtreeLog)) \
-    __IMPL(Subtree, (Subtree)) \
-    __IMPL(Cell, (Cell)) \
-    __IMPL(Row, (Row)) \
-    __IMPL(Table, (Table)) \
-    __IMPL(Paragraph, (Paragraph)) \
-    __IMPL(ColonExample, (ColonExample)) \
-    __IMPL(CmdAttr, (CmdAttr)) \
-    __IMPL(CmdExport, (CmdExport)) \
-    __IMPL(Call, (Call)) \
-    __IMPL(List, (List)) \
-    __IMPL(ListItem, (ListItem)) \
-    __IMPL(DocumentOptions, (DocumentOptions)) \
-    __IMPL(Document, (Document)) \
-    __IMPL(FileTarget, (FileTarget)) \
-    __IMPL(TextSeparator, (TextSeparator)) \
-    __IMPL(DocumentGroup, (DocumentGroup)) \
-    __IMPL(File, (File)) \
+    __IMPL(sem::Escaped, (sem, Escaped)) \
+    __IMPL(sem::Newline, (sem, Newline)) \
+    __IMPL(sem::Space, (sem, Space)) \
+    __IMPL(sem::Word, (sem, Word)) \
+    __IMPL(sem::AtMention, (sem, AtMention)) \
+    __IMPL(sem::RawText, (sem, RawText)) \
+    __IMPL(sem::Punctuation, (sem, Punctuation)) \
+    __IMPL(sem::Placeholder, (sem, Placeholder)) \
+    __IMPL(sem::BigIdent, (sem, BigIdent)) \
+    __IMPL(sem::TextTarget, (sem, TextTarget)) \
+    __IMPL(sem::Markup, (sem, Markup)) \
+    __IMPL(sem::Bold, (sem, Bold)) \
+    __IMPL(sem::Underline, (sem, Underline)) \
+    __IMPL(sem::Monospace, (sem, Monospace)) \
+    __IMPL(sem::MarkQuote, (sem, MarkQuote)) \
+    __IMPL(sem::Verbatim, (sem, Verbatim)) \
+    __IMPL(sem::Italic, (sem, Italic)) \
+    __IMPL(sem::Strike, (sem, Strike)) \
+    __IMPL(sem::Par, (sem, Par)) \
+    __IMPL(sem::RadioTarget, (sem, RadioTarget)) \
+    __IMPL(sem::Latex, (sem, Latex)) \
+    __IMPL(sem::Link, (sem, Link)) \
+    __IMPL(sem::BlockCenter, (sem, BlockCenter)) \
+    __IMPL(sem::BlockQuote, (sem, BlockQuote)) \
+    __IMPL(sem::BlockComment, (sem, BlockComment)) \
+    __IMPL(sem::BlockVerse, (sem, BlockVerse)) \
+    __IMPL(sem::BlockDynamicFallback, (sem, BlockDynamicFallback)) \
+    __IMPL(sem::BlockExample, (sem, BlockExample)) \
+    __IMPL(sem::BlockExport, (sem, BlockExport)) \
+    __IMPL(sem::BlockAdmonition, (sem, BlockAdmonition)) \
+    __IMPL(sem::BlockCode, (sem, BlockCode)) \
+    __IMPL(sem::SubtreeLog, (sem, SubtreeLog)) \
+    __IMPL(sem::Subtree, (sem, Subtree)) \
+    __IMPL(sem::Cell, (sem, Cell)) \
+    __IMPL(sem::Row, (sem, Row)) \
+    __IMPL(sem::Table, (sem, Table)) \
+    __IMPL(sem::Paragraph, (sem, Paragraph)) \
+    __IMPL(sem::ColonExample, (sem, ColonExample)) \
+    __IMPL(sem::CmdAttr, (sem, CmdAttr)) \
+    __IMPL(sem::CmdExport, (sem, CmdExport)) \
+    __IMPL(sem::Call, (sem, Call)) \
+    __IMPL(sem::List, (sem, List)) \
+    __IMPL(sem::ListItem, (sem, ListItem)) \
+    __IMPL(sem::DocumentOptions, (sem, DocumentOptions)) \
+    __IMPL(sem::Document, (sem, Document)) \
+    __IMPL(sem::FileTarget, (sem, FileTarget)) \
+    __IMPL(sem::TextSeparator, (sem, TextSeparator)) \
+    __IMPL(sem::DocumentGroup, (sem, DocumentGroup)) \
+    __IMPL(sem::File, (sem, File)) \
     __IMPL(File::Document, (File, Document)) \
     __IMPL(File::Attachment, (File, Attachment)) \
     __IMPL(File::Source, (File, Source)) \
-    __IMPL(Directory, (Directory)) \
-    __IMPL(Symlink, (Symlink)) \
-    __IMPL(CmdInclude, (CmdInclude)) \
+    __IMPL(sem::Directory, (sem, Directory)) \
+    __IMPL(sem::Symlink, (sem, Symlink)) \
+    __IMPL(sem::CmdInclude, (sem, CmdInclude)) \
     __IMPL(CmdInclude::IncludeBase, (CmdInclude, IncludeBase)) \
     __IMPL(CmdInclude::Example, (CmdInclude, Example)) \
     __IMPL(CmdInclude::Export, (CmdInclude, Export)) \

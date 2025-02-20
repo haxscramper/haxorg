@@ -27,12 +27,12 @@ def efield(name: str,
 
 
 @beartype
-def t(name: str | QualType) -> QualType:
+def t(name: str | QualType, namespaces: List[QualType] = []) -> QualType:
     if isinstance(name, QualType):
-        return name
+        return name.model_copy(update=dict(Spaces=namespaces))
 
     else:
-        return QualType(name=name)
+        return QualType(name=name, Spaces=namespaces)
 
 
 @beartype
@@ -41,7 +41,7 @@ def t_namespace(name: str | QualType) -> QualType:
 
 
 def t_str() -> QualType:
-    return t("Str")
+    return t("Str", [n_hstd()])
 
 
 def t_bool() -> QualType:

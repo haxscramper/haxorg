@@ -87,7 +87,7 @@
     using VariantName = std::variant<__VA_ARGS__>;                        \
     FOR_EACH_CALL_WITH_PASS(                                              \
         __SUB_VARIANT_GETTER, (fieldName), __VA_ARGS__)                   \
-    static EnumName kindGetterName(CR<VariantName> __input) {             \
+    static EnumName kindGetterName(VariantName const& __input) {          \
         return std::visit(                                                \
             ::hstd::overloaded{FOR_EACH_CALL_WITH_PASS(                   \
                 __SUB_VARIANT_KIND_LAMBDA, (EnumName), __VA_ARGS__)},     \

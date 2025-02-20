@@ -65,7 +65,7 @@ class GenTuEnum:
 @beartype
 @dataclass
 class GenTuFunction:
-    result: Optional[QualType] 
+    result: Optional[QualType]
     name: str
     doc: GenTuDoc = field(default_factory=lambda: GenTuDoc(""))
     params: List[GenTuParam] = field(default_factory=list)
@@ -363,7 +363,9 @@ class GenConverter:
 
         if self.isSource:
             if isToplevel:
-                Class = QualType(name="enum_serde", Parameters=[entry.name])
+                Class = QualType(name="enum_serde",
+                                 Parameters=[entry.name],
+                                 Spaces=[n_hstd()])
 
                 SwichFrom = IfStmtParams(LookupIfStructure=True, Branches=[])
                 for _field in entry.fields:
@@ -568,17 +570,32 @@ class GenConverter:
 
 
 @beartype
+def n_hstd() -> QualType:
+    return QualType(name="hstd", isNamespace=True)
+
+
+@beartype
+def n_org() -> QualType:
+    return QualType(name="org", isNamespace=True)
+
+
+@beartype
 def t_opt(arg: QualType) -> QualType:
-    return QualType(name="Opt", Parameters=[arg])
+    return QualType(name="Opt", Parameters=[arg], Spaces=[n_hstd()])
 
 
 @beartype
 def t_vec(arg: QualType) -> QualType:
-    return QualType(name="Vec", Parameters=[arg])
+    return QualType(name="Vec", Parameters=[arg], Spaces=[n_hstd()])
 
 
 def n_sem() -> QualType:
-    return QualType(name="sem", isNamespace=True, meta=dict(isSemNamespace=True))
+    return QualType(
+        name="sem",
+        isNamespace=True,
+        meta=dict(isSemNamespace=True),
+        Spaces=[n_org()],
+    )
 
 
 @beartype

@@ -16,12 +16,12 @@
 #include <hstd/system/reflection.hpp>
 
 
-using SemSet = IntSet<OrgSemKind>;
+using SemSet = hstd::IntSet<OrgSemKind>;
 
-namespace sem {
+namespace org::sem {
 
 struct TreeId {
-    Str id;
+    hstd::Str id;
 };
 
 BOOST_DESCRIBE_STRUCT(TreeId, (), (id));
@@ -67,7 +67,7 @@ struct Org;
 
 template <typename O>
 struct SemId {
-    SPtr<O> value;
+    hstd::SPtr<O> value;
 
     bool isNil() const { return value.get() == nullptr; }
     bool operator==(SemId const& other) const {
@@ -80,10 +80,10 @@ struct SemId {
         return std::make_shared<O>(std::forward<Args>(args)...);
     }
 
-    static SemId Nil() { return SemId(SPtr<O>{}); }
+    static SemId Nil() { return SemId(hstd::SPtr<O>{}); }
 
     SemId() { value = nullptr; }
-    SemId(SPtr<O> const& value) : value(value) {}
+    SemId(hstd::SPtr<O> const& value) : value(value) {}
     SemId(O* value) : value(value) {}
 
     operator SemId<Org>() { return asOrg(); }
@@ -100,12 +100,14 @@ struct SemId {
     SemId<sem::Org> asOrg() const { return as<sem::Org>(); }
 
     SemId<sem::Org> at(int idx) { return value->at(idx); }
-    SemId<sem::Org> at(BackwardsIndex idx) { return value->at(idx); }
+    SemId<sem::Org> at(hstd::BackwardsIndex idx) { return value->at(idx); }
 
     SemId<sem::Org> get(int idx) { return value->get(idx); }
-    SemId<sem::Org> get(BackwardsIndex idx) { return value->get(idx); }
+    SemId<sem::Org> get(hstd::BackwardsIndex idx) {
+        return value->get(idx);
+    }
 
-    using SubnodeVec = Vec<SemId<sem::Org>>;
+    using SubnodeVec = hstd::Vec<SemId<org::sem::Org>>;
 
     SubnodeVec::iterator       begin() { return value->subnodes.begin(); }
     SubnodeVec::iterator       end() { return value->subnodes.end(); }
@@ -159,7 +161,7 @@ struct SemId {
     }
 
     template <typename T>
-    Vec<SemId<T>> subAs() const {
+    hstd::Vec<SemId<T>> subAs() const {
         return value->template subAs<T>();
     }
 
@@ -169,23 +171,23 @@ struct SemId {
 
 using SemIdOrg  = sem::SemId<sem::Org>;
 using OrgArg    = SemIdOrg const&;
-using OrgVecArg = Vec<SemIdOrg> const&;
+using OrgVecArg = hstd::Vec<SemIdOrg> const&;
 
 template <typename T>
 struct remove_sem_org {
-    using type = remove_smart_pointer<T>::type;
+    using type = hstd::remove_smart_pointer<T>::type;
 };
 
 template <typename T>
 struct remove_sem_org<SemId<T>> {
-    using type = remove_smart_pointer<T>::type;
+    using type = hstd::remove_smart_pointer<T>::type;
 };
 
 sem::OrgIdVariant  asVariant(SemId<Org> in);
 sem::OrgPtrVariant asVariant(Org* in);
 
 struct [[refl]] OrgJson {
-    mutable Variant<json, json*> value;
+    mutable hstd::Variant<json, json*> value;
 
     DESC_FIELDS(OrgJson, ());
 
@@ -242,10 +244,10 @@ struct [[refl]] OrgJson {
         return getRef().at(index);
     }
 
-    [[refl]] int          getInt() const { return getRef().get<int>(); }
-    [[refl]] bool         getBool() const { return getRef().get<bool>(); }
-    [[refl]] Vec<OrgJson> getArray() const {
-        Vec<OrgJson> result;
+    [[refl]] int  getInt() const { return getRef().get<int>(); }
+    [[refl]] bool getBool() const { return getRef().get<bool>(); }
+    [[refl]] hstd::Vec<OrgJson> getArray() const {
+        hstd::Vec<OrgJson> result;
         for (auto const& sub : getRef()) { result.push_back(&sub); }
         return result;
     }
@@ -260,7 +262,7 @@ struct [[refl]] Org {
     /// will be missing for all generated node kinds.
     OrgAdapter original;
 
-    Org(CVec<SemId<Org>> subnodes);
+    Org(hstd::CVec<SemId<Org>> subnodes);
     Org();
     Org(OrgAdapter original);
     virtual ~Org() = default;
@@ -272,18 +274,18 @@ struct [[refl]] Org {
     /// \brief Whether original node adapter is missing
     [[refl]] bool isGenerated() const { return original.isNil(); }
     /// \brief Location of the node in the original source file
-    [[refl]] Opt<LineCol> loc = std::nullopt;
+    [[refl]] hstd::Opt<LineCol> loc = std::nullopt;
     /// \brief List of subnodes.
     ///
     /// Some of the derived nodes don't make the use of subnode list
     /// (word, punctuation etc), but it was left on the top level of the
     /// hierarchy for conveinience purposes. It is not expected that 'any'
     /// node can have subnodes.
-    [[refl]] Vec<SemId<Org>> subnodes;
+    [[refl]] hstd::Vec<SemId<Org>> subnodes;
 
     [[refl]] void push_back(SemId<Org> sub);
 
-    using SubnodeVec = Vec<SemId<Org>>;
+    using SubnodeVec = hstd::Vec<SemId<Org>>;
 
     SubnodeVec::iterator       begin() { return subnodes.begin(); }
     SubnodeVec::iterator       end() { return subnodes.end(); }
@@ -311,9 +313,13 @@ struct [[refl]] Org {
 
     SemId<Org> as_unref_shared() const;
 
-    SemId<Org> at(BackwardsIndex idx) const { return subnodes.at(idx); }
-    Opt<SemId<Org>> get(int idx) const { return subnodes.get(idx); }
-    Opt<SemId<Org>> get(BackwardsIndex idx) const {
+    SemId<Org> at(hstd::BackwardsIndex idx) const {
+        return subnodes.at(idx);
+    }
+
+    hstd::Opt<SemId<Org>> get(int idx) const { return subnodes.get(idx); }
+
+    hstd::Opt<SemId<Org>> get(hstd::BackwardsIndex idx) const {
         return subnodes.get(idx);
     }
 
@@ -346,15 +352,15 @@ struct [[refl]] Org {
     }
 
     [[refl]] bool is(OrgSemKind kind) const { return getKind() == kind; }
-    bool          is(CR<IntSet<OrgSemKind>> kinds) const {
+    bool          is(hstd::CR<hstd::IntSet<OrgSemKind>> kinds) const {
         return kinds.contains(getKind());
     }
 
-    Vec<SemId<Org>> getAllSubnodes() const;
+    hstd::Vec<SemId<Org>> getAllSubnodes() const;
 
     template <typename T>
-    Vec<SemId<T>> subAs() const {
-        Vec<SemId<T>> result;
+    hstd::Vec<SemId<T>> subAs() const {
+        hstd::Vec<SemId<T>> result;
         for (auto const& sub : subnodes) {
             if (sub->getKind() == T::staticKind) {
                 result.push_back(sub.template as<T>());
@@ -365,7 +371,7 @@ struct [[refl]] Org {
 
     BOOST_DESCRIBE_CLASS(Org, (), (subnodes), (), ());
 };
-}; // namespace sem
+}; // namespace org::sem
 
 #define EACH_SEM_ORG_LEAF_KIND(__IMPL)                                    \
     __IMPL(Newline)                                                       \
@@ -377,21 +383,22 @@ struct [[refl]] Org {
     __IMPL(BigIdent)
 
 template <>
-struct std::formatter<sem::SemId<sem::Org>> : std::formatter<std::string> {
+struct std::formatter<org::sem::SemId<org::sem::Org>>
+    : std::formatter<std::string> {
     template <typename FormatContext>
     FormatContext::iterator format(
-        const sem::SemId<sem::Org>& p,
-        FormatContext&              ctx) const {
+        const org::sem::SemId<org::sem::Org>& p,
+        FormatContext&                        ctx) const {
         return fmt_ctx(p->getKind(), ctx);
     }
 };
 
 template <typename T>
-struct std::formatter<sem::SemId<T>> : std::formatter<std::string> {
+struct std::formatter<org::sem::SemId<T>> : std::formatter<std::string> {
     template <typename FormatContext>
     FormatContext::iterator format(
-        const sem::SemId<T>& p,
-        FormatContext&       ctx) const {
+        const org::sem::SemId<T>& p,
+        FormatContext&            ctx) const {
         if (p.isNil()) {
             return fmt_ctx("<nil>", ctx);
         } else {
@@ -401,10 +408,10 @@ struct std::formatter<sem::SemId<T>> : std::formatter<std::string> {
 };
 
 template <>
-struct std::hash<sem::OrgJson> {
-    std::size_t operator()(sem::OrgJson const& it) const noexcept {
+struct std::hash<org::sem::OrgJson> {
+    std::size_t operator()(org::sem::OrgJson const& it) const noexcept {
         std::size_t result = 0;
-        hax_hash_combine(result, it.getRef());
+        hstd::hax_hash_combine(result, it.getRef());
         return result;
     }
 };

@@ -38,7 +38,7 @@ struct OrgNodeMono {
                 (error, parserLine, parserFunction, failToken));
         };
 
-        SPtr<Box> box;
+        hstd::SPtr<Box> box;
         DESC_FIELDS(Error, (box));
     };
 
