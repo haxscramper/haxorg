@@ -9,6 +9,10 @@
 #include <optional>
 #include <hstd/system/Formatter.hpp>
 
+
+namespace hstd {
+
+
 template <typename T>
 class Span : public std::span<T> {
   public:
@@ -190,11 +194,24 @@ class Span : public std::span<T> {
     }
 };
 
+
+template <std::random_access_iterator Iter>
+static auto IteratorSpan(Iter begin, Iter end)
+    -> Span<typename Iter::value_type> {
+    return Span<typename Iter::value_type>{
+        const_cast<Iter::value_type*>(&*begin),
+        static_cast<int>(std::distance(begin, end))};
+}
+
+
+} // namespace hstd
+
 template <typename T>
-struct std::formatter<Span<T>> : std::formatter<std::string> {
+struct std::formatter<hstd::Span<T>> : std::formatter<std::string> {
     template <typename FormatContext>
-    FormatContext::iterator format(const Span<T>& p, FormatContext& ctx)
-        const {
+    FormatContext::iterator format(
+        const hstd::Span<T>& p,
+        FormatContext&       ctx) const {
         fmt_ctx("[", ctx);
         for (int i = 0; i < p.size(); ++i) {
             if (0 < i) { fmt_ctx(", ", ctx); }
@@ -204,12 +221,3 @@ struct std::formatter<Span<T>> : std::formatter<std::string> {
         return fmt_ctx("]", ctx);
     }
 };
-
-
-template <std::random_access_iterator Iter>
-static auto IteratorSpan(Iter begin, Iter end)
-    -> Span<typename Iter::value_type> {
-    return Span<typename Iter::value_type>{
-        const_cast<Iter::value_type*>(&*begin),
-        static_cast<int>(std::distance(begin, end))};
-}

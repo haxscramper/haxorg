@@ -3,8 +3,11 @@
 #include <format>
 #include <hstd/system/reflection.hpp>
 
+namespace hstd {
+
+
 template <typename T, typename CharT>
-using Fmt = std::formatter<T, CharT>;
+using Fmt = ::std::formatter<T, CharT>;
 
 template <typename T>
 void with_std_formatter(T const& value) {
@@ -85,12 +88,13 @@ struct std_format_ptr_as_hex_and_value : std::formatter<std::string> {
     }
 };
 
+} // namespace hstd
 
 template <>
-struct std::formatter<int const*> : std_format_ptr_as_value<int> {};
+struct std::formatter<int const*> : hstd::std_format_ptr_as_value<int> {};
 
 template <>
-struct std::formatter<int*> : std_format_ptr_as_value<int> {};
+struct std::formatter<int*> : hstd::std_format_ptr_as_value<int> {};
 
 template <typename T>
 struct std::formatter<std::reference_wrapper<T>>
@@ -102,7 +106,7 @@ struct std::formatter<std::reference_wrapper<T>>
     }
 };
 
-template <DescribedRecord R>
+template <hstd::DescribedRecord R>
 struct std::formatter<R> : std::formatter<std::string> {
     template <typename FormatContext>
     FormatContext::iterator format(R const& p, FormatContext& ctx) const {

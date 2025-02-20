@@ -7,6 +7,7 @@
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/system/reflection.hpp>
 
+namespace hstd {
 
 struct TermColorBgFull {
     u8 color;
@@ -225,32 +226,8 @@ struct ColRune {
     DESC_FIELDS(ColRune, (rune, style));
 };
 
-template <>
-struct std::formatter<ColRune> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(const ColRune& p, FormatContext& ctx) const {
-        fmt_ctx("{", ctx);
-        fmt_ctx(p.rune, ctx);
-        if (p.style.fg != (TermColorFg8Bit)0) {
-            fmt_ctx(":fg", ctx);
-            fmt_ctx(p.style.fg, ctx);
-        }
 
-        if (p.style.bg != (TermColorBg8Bit)0) {
-            fmt_ctx(":bg", ctx);
-            fmt_ctx(p.style.bg, ctx);
-        }
-
-        for (auto const& it : p.style.style) {
-            fmt_ctx(":", ctx);
-            fmt_ctx(it, ctx);
-        }
-
-        return fmt_ctx("}", ctx);
-    }
-};
-
-struct ColText : Vec<ColRune> {
+struct ColText : hstd::Vec<ColRune> {
     using Base = Vec<ColRune>;
     using Base::append;
 
@@ -291,18 +268,11 @@ struct ColText : Vec<ColRune> {
         return res;
     }
 
-    inline ColText leftAligned(int n, ColRune c = ColRune{' '}) const {
+    inline ColText leftAligned(int n, ColRune c = hstd::ColRune{' '})
+        const {
         auto s = *this;
         while (s.size() < n) { s.push_back(c); }
         return s;
-    }
-};
-
-template <>
-struct std::formatter<ColText> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(const ColText& p, FormatContext& ctx) const {
-        return std::formatter<Vec<ColRune>>{}.format(p, ctx);
     }
 };
 
@@ -565,7 +535,7 @@ struct hshow_described_record {
 template <DescribedEnum E>
 struct hshow_described_enum {
     static void format(ColStream& s, E value, CR<hshow_opts> opts) {
-        char const* string = boost::describe::enum_to_string(
+        char const* string = ::boost::describe::enum_to_string(
             value, nullptr);
         if (string == nullptr) {
             s.red();
@@ -740,3 +710,40 @@ ColText join(CR<ColText> separator, CR<T> container) {
     }
     return out.getBuffer();
 }
+
+} // namespace hstd
+
+
+template <>
+struct std::formatter<hstd::ColRune> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const hstd::ColRune& p, FormatContext& ctx) const {
+        fmt_ctx("{", ctx);
+        fmt_ctx(p.rune, ctx);
+        if (p.style.fg != (hstd::TermColorFg8Bit)0) {
+            fmt_ctx(":fg", ctx);
+            fmt_ctx(p.style.fg, ctx);
+        }
+
+        if (p.style.bg != (hstd::TermColorBg8Bit)0) {
+            fmt_ctx(":bg", ctx);
+            fmt_ctx(p.style.bg, ctx);
+        }
+
+        for (auto const& it : p.style.style) {
+            fmt_ctx(":", ctx);
+            fmt_ctx(it, ctx);
+        }
+
+        return fmt_ctx("}", ctx);
+    }
+};
+
+
+template <>
+struct std::formatter<hstd::ColText> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const hstd::ColText& p, FormatContext& ctx) const {
+        return std::formatter<hstd::Vec<hstd::ColRune>>{}.format(p, ctx);
+    }
+};

@@ -8,6 +8,8 @@
 #include <hstd/system/macros.hpp>
 #include <hstd/system/exceptions.hpp>
 
+namespace hstd {
+
 template <typename... Types>
 using Variant = std::variant<Types...>;
 
@@ -65,71 +67,23 @@ auto& get_sub_variant(auto& variant) {
     if (std::holds_alternative<T>(variant)) {
         return std::get<T>(variant);
     } else {
-        throw ::bad_variant_access::init(
+        throw hstd::bad_variant_access::init(
             static_cast<V::variant_enum_type>(
                 variant_index<T, typename V::variant_data_type>),
             static_cast<V::variant_enum_type>(variant.index()));
     }
 }
 
-template <IsVariant V>
-struct std::formatter<V> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(const V& p, FormatContext& ctx) const {
-        std::string res;
-        fmt_ctx("Var(", ctx);
-        fmt_ctx(p.index(), ctx);
-        fmt_ctx(": ", ctx);
-        std::visit([&ctx](const auto& value) { fmt_ctx(value, ctx); }, p);
-        return fmt_ctx(")", ctx);
-    }
-};
 
 template <typename T>
 concept DescribedSubVariantType = IsSubVariantType<T>
                                && DescribedRecord<T>;
 
-template <DescribedSubVariantType V>
-struct std::formatter<V> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(const V& p, FormatContext& ctx) const {
-        fmt_ctx(p.sub_variant_get_kind(), ctx);
-        fmt_ctx("(", ctx);
-        std::visit(
-            [&](auto const& t) { fmt_ctx(t, ctx); },
-            p.sub_variant_get_data());
-        for_each_field_value_with_bases(
-            p, [&](char const* name, auto const& value) {
-                if (std::string{name}
-                    != std::string{p.sub_variant_get_name()}) {
-                    fmt_ctx(", ", ctx);
-                    fmt_ctx(".", ctx);
-                    fmt_ctx(name, ctx);
-                    fmt_ctx(" = ", ctx);
-                    fmt_ctx(value, ctx);
-                }
-            });
-        return fmt_ctx(")", ctx);
-    }
-};
-
-
-template <IsVariant V>
-struct std::hash<V> {
-    std::size_t operator()(V const& it) const noexcept {
-        std::size_t result = 0;
-        hax_hash_combine(result, it.index());
-        std::visit(
-            [&](auto const& var) { hax_hash_combine(result, var); }, it);
-        return result;
-    }
-};
-
 
 template <IsVariant V>
 auto variant_from_index(size_t index) -> V {
-    return boost::mp11::mp_with_index<
-        boost::mp11::mp_size<V>>(index, [](auto I) {
+    return ::boost::mp11::mp_with_index<
+        ::boost::mp11::mp_size<V>>(index, [](auto I) {
         return V(
             std::in_place_index<I>,
             SerdeDefaultProvider<std::variant_alternative_t<I, V>>::get());
@@ -159,5 +113,58 @@ struct JsonSerde<V> {
                 value = JsonSerde<T>::from_json(j["value"]);
             },
             result);
+    }
+};
+
+
+} // namespace hstd
+
+
+template <hstd::IsVariant V>
+struct std::hash<V> {
+    std::size_t operator()(V const& it) const noexcept {
+        std::size_t result = 0;
+        hax_hash_combine(result, it.index());
+        std::visit(
+            [&](auto const& var) { hax_hash_combine(result, var); }, it);
+        return result;
+    }
+};
+
+template <hstd::DescribedSubVariantType V>
+struct std::formatter<V> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const V& p, FormatContext& ctx) const {
+        fmt_ctx(p.sub_variant_get_kind(), ctx);
+        fmt_ctx("(", ctx);
+        std::visit(
+            [&](auto const& t) { fmt_ctx(t, ctx); },
+            p.sub_variant_get_data());
+        for_each_field_value_with_bases(
+            p, [&](char const* name, auto const& value) {
+                if (std::string{name}
+                    != std::string{p.sub_variant_get_name()}) {
+                    fmt_ctx(", ", ctx);
+                    fmt_ctx(".", ctx);
+                    fmt_ctx(name, ctx);
+                    fmt_ctx(" = ", ctx);
+                    fmt_ctx(value, ctx);
+                }
+            });
+        return fmt_ctx(")", ctx);
+    }
+};
+
+
+template <hstd::IsVariant V>
+struct std::formatter<V> : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(const V& p, FormatContext& ctx) const {
+        std::string res;
+        fmt_ctx("Var(", ctx);
+        fmt_ctx(p.index(), ctx);
+        fmt_ctx(": ", ctx);
+        std::visit([&ctx](const auto& value) { fmt_ctx(value, ctx); }, p);
+        return fmt_ctx(")", ctx);
     }
 };

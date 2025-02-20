@@ -6,6 +6,8 @@
 #include <unordered_set>
 #include <set>
 
+namespace hstd {
+
 template <typename T>
 struct UnorderedSet
     : public std::unordered_set<T>
@@ -58,21 +60,25 @@ struct std_format_set_type : std::formatter<std::string> {
     }
 };
 
+} // namespace hstd
+
 template <typename T>
-struct std::formatter<UnorderedSet<T>>
-    : std_format_set_type<T, UnorderedSet<T>> {};
+struct std::formatter<hstd::UnorderedSet<T>>
+    : hstd::std_format_set_type<T, hstd::UnorderedSet<T>> {};
 
 template <typename T>
 struct std::formatter<std::unordered_set<T>>
-    : std_format_set_type<T, std::unordered_set<T>> {};
+    : hstd::std_format_set_type<T, std::unordered_set<T>> {};
 
 template <typename T>
 struct std::formatter<std::set<T>>
-    : std_format_set_type<T, std::set<T>> {};
+    : hstd::std_format_set_type<T, std::set<T>> {};
 
+namespace hstd {
 template <typename T>
-struct value_metadata<UnorderedSet<T>> {
+struct value_metadata<hstd::UnorderedSet<T>> {
     static bool isEmpty(UnorderedSet<T> const& value) {
         return value.empty();
     }
 };
+} // namespace hstd

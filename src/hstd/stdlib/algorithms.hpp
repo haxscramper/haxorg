@@ -7,6 +7,7 @@
 
 #include <hstd/system/generator.hpp>
 
+namespace hstd {
 
 /// \brief In-place reverse of the vector content
 template <typename T>
@@ -104,3 +105,6 @@ generator<Pair<typename A::value_type const*, typename B::value_type const*>> ca
         for (const auto& rhsIt : rhs) { co_yield {&lhsIt, &rhsIt}; }
     }
 }
+
+
+} // namespace hstd

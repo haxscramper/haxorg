@@ -21,6 +21,8 @@ struct std::formatter<std::any> : std::formatter<std::string> {
     }
 };
 
+namespace hstd {
+
 template <typename... Ts>
 struct AnyFormatter {
     std::string operator()(const std::any& a) const {
@@ -946,7 +948,7 @@ Vec<ReflPathItem<Tag>> reflSubItems(T const& item) {
 }
 
 struct ReflRecursiveVisitContext {
-    UnorderedSet<u64> visitedPointers;
+    hstd::UnorderedSet<u64> visitedPointers;
     template <typename T>
     bool canRecurse(T const& item) const {
         Opt<u64> id = ReflPointer<T>::getPointerId(item);
@@ -1003,3 +1005,5 @@ void reflVisitPath(
             });
     }
 }
+
+} // namespace hstd

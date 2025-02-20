@@ -1,6 +1,8 @@
 #include "strformat.hpp"
 #include <hstd/stdlib/Slice.hpp>
 
+using namespace hstd;
+
 void addf(
     std::string&                    s,
     CR<std::vector<AddfFragment>>   fragments,

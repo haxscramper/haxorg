@@ -3,6 +3,8 @@
 #include <functional>
 #include "macros.hpp"
 
+namespace hstd {
+
 /// Trigger callback when exiting the scope. Ad-hoc RAII
 /// implementation
 template <typename Func>
@@ -89,3 +91,5 @@ template <typename T>
 std::ptrdiff_t pointer_distance(T const* first, T const* last) {
     return last - first;
 }
+
+} // namespace hstd

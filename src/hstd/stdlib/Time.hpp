@@ -9,6 +9,8 @@
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/reflection_visitor.hpp>
 
+namespace hstd {
+
 struct [[refl]] UserTimeBreakdown {
     [[refl]] Opt<int>         year;
     [[refl]] Opt<int>         month;
@@ -83,3 +85,5 @@ struct ReflVisitor<absl::Time, Tag>
 template <typename Tag>
 struct ReflVisitor<absl::TimeZone, Tag>
     : ReflVisitorLeafType<absl::TimeZone, Tag> {};
+
+} // namespace hstd

@@ -1,6 +1,7 @@
 #pragma once
 #include <format>
 
+namespace hstd {
 struct BackwardsIndex {
     int value;
 
@@ -37,10 +38,11 @@ inline BackwardsIndex operator"" _B(unsigned long long int value) {
     return backIndex(value);
 }
 
+} // namespace hstd
 
 template <>
-struct std::formatter<BackwardsIndex> : std::formatter<std::string> {
-    using FmtType = BackwardsIndex;
+struct std::formatter<hstd::BackwardsIndex> : std::formatter<std::string> {
+    using FmtType = hstd::BackwardsIndex;
     template <typename FormatContext>
     FormatContext::iterator format(FmtType const& p, FormatContext& ctx)
         const {

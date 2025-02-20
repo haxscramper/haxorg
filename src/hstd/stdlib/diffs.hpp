@@ -14,6 +14,8 @@
 
 using std::operator""s;
 
+namespace hstd {
+
 struct BacktrackRes {
     Vec<int> lhsIndex = {};
     Vec<int> rhsIndex = {};
@@ -660,3 +662,5 @@ inline ColText formatDiffed(
     const DiffFormatConf& conf = DiffFormatConf{}) {
     return formatDiffed(split(text1, '\n'), split(text2, '\n'), conf);
 }
+
+} // namespace hstd
