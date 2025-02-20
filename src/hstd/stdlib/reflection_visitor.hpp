@@ -17,7 +17,7 @@ template <>
 struct std::formatter<std::any> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const std::any& p, FormatContext& ctx) const {
-        return fmt_ctx(p.type().name(), ctx);
+        return ::hstd::fmt_ctx(p.type().name(), ctx);
     }
 };
 
@@ -963,10 +963,10 @@ struct std::formatter<hstd::ReflPath<Tag>> : std::formatter<std::string> {
     auto format(const hstd::ReflPath<Tag>& step, FormatContext& ctx)
         const {
         for (auto const& it : enumerator(step.path)) {
-            if (!it.is_first()) { fmt_ctx(">>", ctx); }
-            fmt_ctx(it.value(), ctx);
+            if (!it.is_first()) { ::hstd::fmt_ctx(">>", ctx); }
+            ::hstd::fmt_ctx(it.value(), ctx);
         }
-        return fmt_ctx("", ctx);
+        return ::hstd::fmt_ctx("", ctx);
     }
 };
 
@@ -975,7 +975,7 @@ template <typename Tag>
 struct std::hash<hstd::ReflPath<Tag>> {
     std::size_t operator()(hstd::ReflPath<Tag> const& it) const noexcept {
         std::size_t result = 0;
-        hax_hash_combine(result, it.path);
+        ::hstd::hax_hash_combine(result, it.path);
         return result;
     }
 };
@@ -986,8 +986,8 @@ struct std::formatter<hstd::ReflPathItem<Tag>>
     template <typename FormatContext>
     auto format(const hstd::ReflPathItem<Tag>& step, FormatContext& ctx)
         const {
-        step.visit([&](auto const& it) { fmt_ctx(it, ctx); });
-        return fmt_ctx("", ctx);
+        step.visit([&](auto const& it) { ::hstd::fmt_ctx(it, ctx); });
+        return ::hstd::fmt_ctx("", ctx);
     }
 };
 
@@ -997,17 +997,17 @@ struct std::hash<hstd::ReflPathItem<Tag>> {
     std::size_t operator()(
         hstd::ReflPathItem<Tag> const& it) const noexcept {
         std::size_t result = 0;
-        it.visit(hstd::overloaded{
+        it.visit(::hstd::overloaded{
             [&](hstd::ReflPathItem<Tag>::Deref) {},
             [&](hstd::ReflPathItem<Tag>::AnyKey value) {
                 typename hstd::ReflTypeTraits<Tag>::AnyHasherType h;
                 result = h(value.key);
             },
             [&](hstd::ReflPathItem<Tag>::Index value) {
-                hax_hash_combine(result, value.index);
+                ::hstd::hax_hash_combine(result, value.index);
             },
             [&](hstd::ReflPathItem<Tag>::FieldName value) {
-                hax_hash_combine(result, value.name);
+                ::hstd::hax_hash_combine(result, value.name);
             },
         });
         return result;

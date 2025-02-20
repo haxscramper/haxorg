@@ -11,6 +11,9 @@
 #include <libdialect/hola.h>
 #include <libdialect/opts.h>
 
+using namespace hstd;
+using namespace hstd::ext;
+
 template <>
 struct std::formatter<Avoid::Point> : std::formatter<std::string> {
     template <typename FormatContext>

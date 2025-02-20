@@ -3,7 +3,7 @@
 #include <hstd/stdlib/Str.hpp>
 
 struct TestParameters {
-    Str corpusGlob;
+    hstd::Str corpusGlob;
 };
 
 extern TestParameters testParameters;
@@ -41,4 +41,4 @@ extern TestParameters testParameters;
     } // namespace testing
 
 
-GTEST_ADL_PRINT_TYPE(Str);
+GTEST_ADL_PRINT_TYPE(hstd::Str);

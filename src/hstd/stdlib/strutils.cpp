@@ -1002,7 +1002,7 @@ Str unicodeCharMappings[256][15] = {
 };
 
 
-Str styledUnicodeMapping(char ch, AsciiStyle style) {
+Str hstd::styledUnicodeMapping(char ch, AsciiStyle style) {
     int chIdx = value_domain<char>::ord(ch);
     if (unicodeCharMappings[chIdx][(int)style] != Str("\0")) {
         return unicodeCharMappings[chIdx][(int)style];
@@ -1011,7 +1011,7 @@ Str styledUnicodeMapping(char ch, AsciiStyle style) {
     }
 }
 
-Str styledUnicodeMapping(Str const& str, AsciiStyle style) {
+Str hstd::styledUnicodeMapping(Str const& str, AsciiStyle style) {
     Str result;
     result.reserve(str.size());
     for (const auto& ch : str) {
@@ -1020,7 +1020,10 @@ Str styledUnicodeMapping(Str const& str, AsciiStyle style) {
     return result;
 }
 
-Str strip(CR<Str> string, CR<CharSet> leading, CR<CharSet> trailing) {
+Str hstd::strip(
+    CR<Str>     string,
+    CR<CharSet> leading,
+    CR<CharSet> trailing) {
     if (0 < string.size()) {
         Span<char> view = string.toSpan();
         CHECK(view.data() != nullptr);
@@ -1040,13 +1043,13 @@ Str strip(CR<Str> string, CR<CharSet> leading, CR<CharSet> trailing) {
     }
 }
 
-Vec<Str> split(CR<Str> str, char ch) {
+Vec<Str> hstd::split(CR<Str> str, char ch) {
     Vec<Str> res;
     for (const auto& it : str.split(ch)) { res.push_back(it); }
     return res;
 }
 
-Vec<Str> split_keep_separator(const Str& str, CharSet sep) {
+Vec<Str> hstd::split_keep_separator(const Str& str, CharSet sep) {
     Vec<Str> result;
     int      prev = 0, curr = 0;
     while (curr < str.length()) {

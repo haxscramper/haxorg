@@ -2,6 +2,9 @@
 #include <hstd/wrappers/adaptagrams_wrap/adaptagrams_ir.hpp>
 #include <libcola/output_svg.h>
 
+using namespace hstd::ext;
+using namespace hstd;
+
 TEST(GraphUtils, LibcolaApi) {
     std::vector<std::pair<unsigned, unsigned>> edges{
         {0, 1},

@@ -30,8 +30,8 @@ template <typename A, typename B>
 struct std::hash<hstd::Pair<A, B>> {
     std::size_t operator()(hstd::Pair<A, B> const& it) const noexcept {
         std::size_t result = 0;
-        hax_hash_combine(result, it.first);
-        hax_hash_combine(result, it.second);
+        ::hstd::hax_hash_combine(result, it.first);
+        ::hstd::hax_hash_combine(result, it.second);
         return result;
     }
 };
@@ -40,11 +40,11 @@ template <typename A, typename B>
 struct std::formatter<hstd::Pair<A, B>> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const hstd::Pair<A, B>& p, FormatContext& ctx) const {
-        fmt_ctx("(", ctx);
-        fmt_ctx(p.first, ctx);
-        fmt_ctx(", ", ctx);
-        fmt_ctx(p.second, ctx);
-        return fmt_ctx(")", ctx);
+        ::hstd::fmt_ctx("(", ctx);
+        ::hstd::fmt_ctx(p.first, ctx);
+        ::hstd::fmt_ctx(", ", ctx);
+        ::hstd::fmt_ctx(p.second, ctx);
+        return ::hstd::fmt_ctx(")", ctx);
     }
 };
 
@@ -52,7 +52,7 @@ template <typename... Args>
 struct std::formatter<std::tuple<Args...>> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const std::tuple<Args...>& t, FormatContext& ctx) const {
-        return format_tuple_impl(
+        return ::hstd::format_tuple_impl(
             t, ctx, std::index_sequence_for<Args...>{});
     }
 };

@@ -92,7 +92,7 @@ Vec<BacktrackRes> hstd::longestCommonSubsequence(
     }
 }
 
-Vec<SeqEdit> myersDiff(
+Vec<SeqEdit> hstd::myersDiff(
     int                          lhsSize,
     int                          rhsSize,
     Func<bool(int lhs, int rhs)> itemCmp) {

@@ -13,6 +13,8 @@
 #include <libdialect/graphs.h>
 #pragma warning(pop)
 
+namespace hstd::ext {
+
 enum class [[refl]] GraphDimension
 {
     XDIM  = 0,
@@ -284,10 +286,12 @@ struct [[refl]] GraphEdge {
     DESC_FIELDS(GraphEdge, (source, target, bundle));
 };
 
+} // namespace hstd::ext
 
 template <>
-struct std::hash<GraphEdge> {
-    std::size_t operator()(GraphEdge const& it) const noexcept {
+struct std::hash<::hstd::ext::GraphEdge> {
+    std::size_t operator()(
+        ::hstd::ext::GraphEdge const& it) const noexcept {
         std::size_t result = 0;
         boost::hash_combine(result, it.source);
         boost::hash_combine(result, it.target);
@@ -295,6 +299,10 @@ struct std::hash<GraphEdge> {
         return result;
     }
 };
+
+
+namespace hstd::ext {
+
 
 struct [[refl]] GraphEdgeConstraint {
     enum class [[refl]] Port
@@ -557,3 +565,5 @@ struct [[refl]] GraphLayoutIR {
 
     [[refl]] std::string doColaStrFormat();
 };
+
+} // namespace hstd::ext

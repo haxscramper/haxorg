@@ -631,7 +631,7 @@ struct MultiStore {
 }; // namespace hstd::dod
 
 namespace std {
-template <dod::IsIdType Id>
+template <hstd::dod::IsIdType Id>
 struct hash<Id> {
     /// \brief Get hash (ID value)
     auto operator()(Id it) const -> std::size_t {
@@ -643,7 +643,7 @@ struct hash<Id> {
 }; // namespace std
 
 
-template <dod::IsIdType Id>
+template <hstd::dod::IsIdType Id>
 struct std::formatter<Id> : std::formatter<std::string> {
     using FmtType = Id;
     template <typename FormatContext>

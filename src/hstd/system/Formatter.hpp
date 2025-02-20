@@ -111,16 +111,16 @@ struct std::formatter<R> : std::formatter<std::string> {
     template <typename FormatContext>
     FormatContext::iterator format(R const& p, FormatContext& ctx) const {
         bool first = true;
-        fmt_ctx("{", ctx);
-        for_each_field_value_with_bases(
+        ::hstd::fmt_ctx("{", ctx);
+        ::hstd::for_each_field_value_with_bases(
             p, [&](char const* name, auto const& value) {
-                if (!first) { fmt_ctx(", ", ctx); }
-                fmt_ctx(".", ctx);
-                fmt_ctx(name, ctx);
-                fmt_ctx(" = ", ctx);
-                fmt_ctx(value, ctx);
+                if (!first) { ::hstd::fmt_ctx(", ", ctx); }
+                ::hstd::fmt_ctx(".", ctx);
+                ::hstd::fmt_ctx(name, ctx);
+                ::hstd::fmt_ctx(" = ", ctx);
+                ::hstd::fmt_ctx(value, ctx);
                 first = false;
             });
-        return fmt_ctx("}", ctx);
+        return ::hstd::fmt_ctx("}", ctx);
     }
 };

@@ -135,23 +135,23 @@ template <hstd::DescribedSubVariantType V>
 struct std::formatter<V> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const V& p, FormatContext& ctx) const {
-        fmt_ctx(p.sub_variant_get_kind(), ctx);
-        fmt_ctx("(", ctx);
+        ::hstd::fmt_ctx(p.sub_variant_get_kind(), ctx);
+        ::hstd::fmt_ctx("(", ctx);
         std::visit(
-            [&](auto const& t) { fmt_ctx(t, ctx); },
+            [&](auto const& t) { ::hstd::fmt_ctx(t, ctx); },
             p.sub_variant_get_data());
-        for_each_field_value_with_bases(
+        ::hstd::for_each_field_value_with_bases(
             p, [&](char const* name, auto const& value) {
                 if (std::string{name}
                     != std::string{p.sub_variant_get_name()}) {
-                    fmt_ctx(", ", ctx);
-                    fmt_ctx(".", ctx);
-                    fmt_ctx(name, ctx);
-                    fmt_ctx(" = ", ctx);
-                    fmt_ctx(value, ctx);
+                    ::hstd::fmt_ctx(", ", ctx);
+                    ::hstd::fmt_ctx(".", ctx);
+                    ::hstd::fmt_ctx(name, ctx);
+                    ::hstd::fmt_ctx(" = ", ctx);
+                    ::hstd::fmt_ctx(value, ctx);
                 }
             });
-        return fmt_ctx(")", ctx);
+        return ::hstd::fmt_ctx(")", ctx);
     }
 };
 
@@ -161,10 +161,11 @@ struct std::formatter<V> : std::formatter<std::string> {
     template <typename FormatContext>
     FormatContext::iterator format(const V& p, FormatContext& ctx) const {
         std::string res;
-        fmt_ctx("Var(", ctx);
-        fmt_ctx(p.index(), ctx);
-        fmt_ctx(": ", ctx);
-        std::visit([&ctx](const auto& value) { fmt_ctx(value, ctx); }, p);
-        return fmt_ctx(")", ctx);
+        ::hstd::fmt_ctx("Var(", ctx);
+        ::hstd::fmt_ctx(p.index(), ctx);
+        ::hstd::fmt_ctx(": ", ctx);
+        std::visit(
+            [&ctx](const auto& value) { ::hstd::fmt_ctx(value, ctx); }, p);
+        return ::hstd::fmt_ctx(")", ctx);
     }
 };

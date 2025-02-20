@@ -2,6 +2,8 @@
 #include <hstd/stdlib/Str.hpp>
 #include <gtest/gtest.h>
 
+using namespace hstd;
+
 TEST(UnorderedSetOperationsTest, Correctness) {
     using S = UnorderedSet<Str>;
     S set1{"1"};

@@ -8,6 +8,8 @@
 #include <hstd/stdlib/Ranges.hpp>
 
 
+using namespace hstd;
+
 enum class TestEnum_EnumToString
 {
     First,

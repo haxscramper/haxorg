@@ -10,7 +10,8 @@
 #include <hstd/system/Formatter.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 
-using namespace layout;
+using namespace hstd::layout;
+using namespace hstd;
 
 const auto infty = 1024 * 1024 * 1024;
 

@@ -51,7 +51,7 @@ struct std::formatter<hstd::Opt<T>> : std::formatter<std::string> {
         std::formatter<std::string> fmt;
         if (p.has_value()) {
             fmt.format("some(", ctx);
-            with_std_formatter(p.value());
+            ::hstd::with_std_formatter(p.value());
             std::formatter<T>{}.format(p.value(), ctx);
             return fmt.format(")", ctx);
         } else {

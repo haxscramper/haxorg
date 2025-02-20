@@ -76,9 +76,9 @@ struct std::formatter<hstd::SPtr<T>> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const hstd::SPtr<T>& p, FormatContext& ctx) const {
         if (p.get() == nullptr) {
-            return fmt_ctx("nullptr", ctx);
+            return ::hstd::fmt_ctx("nullptr", ctx);
         } else {
-            return fmt_ctx(p.get(), ctx);
+            return ::hstd::fmt_ctx(p.get(), ctx);
         }
     }
 };
@@ -88,9 +88,9 @@ struct std::formatter<hstd::UPtr<T>> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const hstd::UPtr<T>& p, FormatContext& ctx) const {
         if (p.get() == nullptr) {
-            return fmt_ctx("nullptr", ctx);
+            return ::hstd::fmt_ctx("nullptr", ctx);
         } else {
-            return fmt_ctx(p.get(), ctx);
+            return ::hstd::fmt_ctx(p.get(), ctx);
         }
     }
 };

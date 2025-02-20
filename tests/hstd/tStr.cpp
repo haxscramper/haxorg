@@ -6,6 +6,7 @@
 
 #include "../common.hpp"
 
+using namespace hstd;
 
 TEST(StringOperationsTest, StringViews) {
     Str  base{"test"};
@@ -233,7 +234,8 @@ TEST(WrapTextTest, JustifiedText) {
     Vec<Str> words = {
         "This", "is", "a", "test", "of", "justified", "text"};
     Str result = wrap_text(words, 20, true);
-    EXPECT_EQ(result.toBase(), "This  is  a  test of\njustified       text");
+    EXPECT_EQ(
+        result.toBase(), "This  is  a  test of\njustified       text");
 }
 
 TEST(WrapTextTest, LastLineNotJustified) {
