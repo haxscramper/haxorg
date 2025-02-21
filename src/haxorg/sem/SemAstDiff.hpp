@@ -83,11 +83,11 @@ struct OrgNodeDiff {
     }
 
     void setDiffTrees(
-        sem::SemId<sem::Org> const&    src,
-        sem::SemId<sem::Org> const&    dst,
-        diff::ComparisonOptions const& Options);
+        sem::SemId<sem::Org> const&               src,
+        sem::SemId<sem::Org> const&               dst,
+        hstd::ext::diff::ComparisonOptions const& Options);
 
-    diff::ComparisonOptions getOptions();
+    hstd::ext::diff::ComparisonOptions getOptions();
 };
 
 } // namespace org::algo

@@ -152,9 +152,9 @@ def get_imm_serde(types: List[GenTuStruct], ast: ASTBuilder) -> List[GenTuPass]:
                     return
 
                 sem_type = it.name
-                respace = it.name.flatQualSpaces()[1:] + [it.name.withoutAllSpaces()]
+                respace = it.name.flatQualSpaces()[2:] + [it.name.withoutAllSpaces()]
                 respace[0].name = "Imm" + respace[0].name
-                respace = [QualType(name="org")] + respace
+                respace = [n_imm()] + respace
                 imm_type = respace[-1].model_copy(update=dict(Spaces=respace[:-1]))
 
                 writer_body: List[BlockId] = [
@@ -162,8 +162,11 @@ def get_imm_serde(types: List[GenTuStruct], ast: ASTBuilder) -> List[GenTuPass]:
                         ast.Type(imm_type),
                         ast.string(" result = "),
                         ast.CallStatic(
-                            typ=QualType(name="SerdeDefaultProvider",
-                                         Parameters=[imm_type]),
+                            typ=QualType(
+                                name="SerdeDefaultProvider",
+                                Parameters=[imm_type],
+                                Spaces=[n_hstd()],
+                            ),
                             opc="get",
                         ),
                         ast.string(";"),
@@ -175,8 +178,11 @@ def get_imm_serde(types: List[GenTuStruct], ast: ASTBuilder) -> List[GenTuPass]:
                         ast.Type(sem_type),
                         ast.string(" result = "),
                         ast.CallStatic(
-                            typ=QualType(name="SerdeDefaultProvider",
-                                         Parameters=[sem_type]),
+                            typ=QualType(
+                                name="SerdeDefaultProvider",
+                                Parameters=[sem_type],
+                                Spaces=[n_hstd()],
+                            ),
                             opc="get",
                         ),
                         ast.string(";"),
@@ -920,8 +926,15 @@ def collect_pyhaxorg_typename_groups(types: List[GenTuStruct]) -> PyhaxorgTypena
             case GenTuStruct() | GenTuEnum():
                 flat = it.name.flatQualSpaces() + [it.name.withoutAllSpaces()]
                 if 2 < len(flat):
-                    parent = flat[1]
-                    nested = flat[2:]
+                    name_start = 0
+                    for i in range(len(flat)):
+                        if flat[i].name == "org" or flat[i].name == "sem" or flat[
+                                i].name == "imm":
+                            name_start = i + 1
+
+                    log(CAT).info(f"{flat} {name_start}")
+                    parent = flat[name_start]
+                    nested = flat[name_start + 1:]
                     value = (
                         parent.name,
                         "::".join(it.name for it in nested),

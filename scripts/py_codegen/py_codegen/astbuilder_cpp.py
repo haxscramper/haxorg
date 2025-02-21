@@ -14,6 +14,7 @@ from py_textlayout.py_textlayout_wrap import BlockId, TextLayout
 
 DEBUG_TYPE_ORIGIN = False
 
+
 class QualTypeKind(str, Enum):
     RegularType = "RegularTyp0e"
     FunctionPtr = "FunctionPtr"
@@ -23,6 +24,7 @@ class QualTypeKind(str, Enum):
 
     def __rich_repr__(self):
         yield self.name
+
 
 class ReferenceKind(str, Enum):
     NotRef = "NotRef"
@@ -90,8 +92,10 @@ class QualType(BaseModel, extra="forbid"):
         return self.model_copy(update=dict(isConst=False, RefKind=ReferenceKind.LValue))
 
     def flatQualSpaces(self) -> List["QualType"]:
+
         def aux(it: QualType) -> List[QualType]:
-            return list(itertools.chain(*(aux(s) for s in it.Spaces))) + [it.withoutAllSpaces()]
+            return list(
+                itertools.chain(*(aux(s) for s in it.Spaces))) + [it.withoutAllSpaces()]
 
         return list(itertools.chain(*(aux(s) for s in self.Spaces)))
 
@@ -217,12 +221,13 @@ class QualType(BaseModel, extra="forbid"):
                 )
 
             case QualTypeKind.RegularType:
-                return spaces + "R:[{name}{args}{cvref}{origin}]".format(
+                return spaces + "R:[{name}{args}{cvref}{origin}]{namespace}".format(
                     name=self.name,
                     args=("<" + ", ".join([T.format() for T in self.Parameters]) +
                           ">") if self.Parameters else "",
                     cvref=cvref,
                     origin=origin,
+                    namespace=("NSP" if self.isNamespace else ""),
                 )
 
             case QualTypeKind.TypeExpr:
@@ -1074,7 +1079,8 @@ class ASTBuilder(base.AstbuilderBase):
 
         head = self.b.line([
             self.string("struct "),
-            self.Type(params.name) if params.IsTemplateSpecialization else self.string(params.name.name),
+            self.Type(params.name)
+            if params.IsTemplateSpecialization else self.string(params.name.name),
             self.b.surround_non_empty(
                 self.b.join([self.Type(t) for t in params.NameParams], self.string(", ")),
                 self.string("<"), self.string(">")), bases or self.string(""),
