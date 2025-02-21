@@ -331,7 +331,7 @@ struct LexerCommon {
             if (pos.isNil()) {
                 os << "#" << os.red() << "nil" << os.end();
             } else {
-                os << fmt("#{}/{}", pos.getIndex(), in->size());
+                os << hstd::fmt("#{}/{}", pos.getIndex(), in->size());
             }
         }
 
@@ -690,7 +690,7 @@ struct std::formatter<org::parse::LexerCommon<K, V>>
     FormatContext::iterator format(
         const org::parse::LexerCommon<K, V>& p,
         FormatContext&                       ctx) const {
-        return fmt_ctx(
+        return ::hstd::fmt_ctx(
             p.printToString(
                 [](hstd::ColStream&, org::parse::Token<K, V> const&) {}),
             ctx);

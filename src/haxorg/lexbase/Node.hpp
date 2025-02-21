@@ -249,10 +249,11 @@ struct NodeGroup {
         }
 
         void check() const {
-            CHECK(!id.isNil() && id.getIndex() < group->size())
-                << "Check node id iterator"
-                << ("$# < $#"
-                    % to_string_vec(id.getIndex(), group->size()));
+            LOGIC_ASSERTION_CHECK(
+                !id.isNil() && id.getIndex() < group->size(),
+                "CHeck node id iterator {} < {}",
+                id.getIndex(),
+                group->size());
         }
 
         iterator& operator++() {

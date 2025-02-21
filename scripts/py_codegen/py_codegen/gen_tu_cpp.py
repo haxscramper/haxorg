@@ -579,6 +579,9 @@ class GenConverter:
 def n_hstd() -> QualType:
     return QualType(name="hstd", isNamespace=True)
 
+@beartype
+def n_hstd_ext() -> QualType:
+    return QualType(name="ext", isNamespace=True, Spaces=[n_hstd()])
 
 @beartype
 def n_org() -> QualType:

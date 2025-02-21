@@ -96,11 +96,11 @@ struct std::formatter<org::parse::OrgFill> : std::formatter<std::string> {
         org::parse::OrgFill const& p,
         FormatContext&             ctx) const {
         std::formatter<std::string>{}.format("<", ctx);
-        fmt_ctx(escape_for_write(p.text), ctx);
+        ::hstd::fmt_ctx(escape_for_write(p.text), ctx);
         std::formatter<std::string>{}.format(">:", ctx);
-        fmt_ctx(p.line, ctx);
+        ::hstd::fmt_ctx(p.line, ctx);
         std::formatter<std::string>{}.format(":", ctx);
-        fmt_ctx(p.col, ctx);
+        ::hstd::fmt_ctx(p.col, ctx);
         return ctx.out();
     }
 };

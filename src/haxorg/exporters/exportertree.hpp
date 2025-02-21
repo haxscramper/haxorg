@@ -1,9 +1,9 @@
-#ifndef EXPORTERTREE_HPP
-#define EXPORTERTREE_HPP
+#pragma once
 
 #include <hstd/stdlib/ColText.hpp>
 #include <haxorg/exporters/Exporter.hpp>
 
+namespace org::algo {
 struct QFileInfo;
 
 class ExporterTree : public Exporter<ExporterTree, int> {
@@ -40,13 +40,13 @@ class ExporterTree : public Exporter<ExporterTree, int> {
         }
     };
 
-    static ColText treeRepr(sem::SemId<sem::Org> org);
-    static void    treeRepr(
-           sem::SemId<sem::Org>         org,
-           const std::filesystem::path& path);
-    static ColText treeRepr(
+    static hstd::ColText treeRepr(sem::SemId<sem::Org> org);
+    static void          treeRepr(
+                 sem::SemId<sem::Org>         org,
+                 const std::filesystem::path& path);
+    static hstd::ColText treeRepr(
         sem::SemId<sem::Org> org,
-        CR<TreeReprConf>     conf);
+        TreeReprConf const&  conf);
 
     struct TreeReprCtx {
         int level      = 0;
@@ -54,9 +54,9 @@ class ExporterTree : public Exporter<ExporterTree, int> {
     };
 
 
-    ColStream&       os;
-    TreeReprConf     conf;
-    Vec<TreeReprCtx> stack;
+    hstd::ColStream&       os;
+    TreeReprConf           conf;
+    hstd::Vec<TreeReprCtx> stack;
 
     void pushIndent() {
         stack.push_back(
@@ -69,7 +69,7 @@ class ExporterTree : public Exporter<ExporterTree, int> {
     void visitDispatchHook(int&, sem::SemId<sem::Org> org) { init(org); }
     void indent() {
         if (stack.back().level != 0) {
-            Str value = Str("  ").repeated(stack.back().level);
+            hstd::Str value = hstd::Str("  ").repeated(stack.back().level);
             os << value;
         }
     }
@@ -81,7 +81,7 @@ class ExporterTree : public Exporter<ExporterTree, int> {
     };
 
     template <typename T>
-    int newRes(CR<T>) {
+    int newRes(T const&) {
         return 0;
     }
 
@@ -91,51 +91,51 @@ class ExporterTree : public Exporter<ExporterTree, int> {
     bool skipAsTooNested() const;
 
     template <typename T>
-    bool skipAsEmpty(CR<Opt<T>> opt) {
+    bool skipAsEmpty(hstd::Opt<T> const& opt) {
         return conf.skipEmptyFields && !opt;
     }
 
     template <typename T>
-    bool skipAsEmpty(CVec<T> vec) {
+    bool skipAsEmpty(hstd::CVec<T> vec) {
         return conf.skipEmptyFields && vec.empty();
     }
 
     template <typename T>
-    bool skipAsEmpty(CR<T> value) {
+    bool skipAsEmpty(T const& value) {
         return false;
     }
 
     void writeSkip(
-        CR<Str>     message,
-        CR<Str>     trail    = "",
-        int         line     = __builtin_LINE(),
-        char const* function = __builtin_FUNCTION());
+        hstd::Str const& message,
+        hstd::Str const& trail    = "",
+        int              line     = __builtin_LINE(),
+        char const*      function = __builtin_FUNCTION());
 
     template <typename T>
-    void visit(int& arg, CR<Vec<T>> value);
+    void visit(int& arg, hstd::Vec<T> const& value);
 
     template <typename T>
-    void visit(int& arg, CR<Opt<T>> opt);
+    void visit(int& arg, hstd::Opt<T> const& opt);
 
     template <typename T>
-    void visit(int& arg, CR<T> opt);
+    void visit(int& arg, T const& opt);
 
     template <typename K, typename V>
-    void visit(int& arg, CR<UnorderedMap<K, V>> opt) {
+    void visit(int& arg, hstd::UnorderedMap<K, V> const& opt) {
         // TODO
     }
 
     template <typename V>
-    void visit(int& arg, CR<UnorderedMap<Str, V>> opt);
+    void visit(int& arg, hstd::UnorderedMap<hstd::Str, V> const& opt);
 
     void visitField(
-        int&                       i,
-        const char*                name,
-        CVec<sem::SemId<sem::Org>> org);
+        int&                             i,
+        const char*                      name,
+        hstd::CVec<sem::SemId<sem::Org>> org);
 
 
     template <typename T>
-    void visitField(int& arg, const char* name, CR<T> value);
+    void visitField(int& arg, const char* name, T const& value);
 
     void visitField(int& arg, const char* name, sem::SemId<sem::Org> org);
 
@@ -145,9 +145,8 @@ class ExporterTree : public Exporter<ExporterTree, int> {
     template <typename T>
     void visit(int& arg, sem::SemId<T> org);
 
-    ExporterTree(ColStream& os) : os(os) {}
+    ExporterTree(hstd::ColStream& os) : os(os) {}
 };
 
 extern template class Exporter<ExporterTree, int>;
-
-#endif // EXPORTERTREE_HPP
+} // namespace org::algo

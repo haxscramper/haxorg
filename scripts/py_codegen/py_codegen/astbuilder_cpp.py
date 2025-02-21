@@ -117,8 +117,12 @@ class QualType(BaseModel, extra="forbid"):
             isGlobalNamespace=self.isGlobalNamespace,
         ))
 
-    def withWrapperType(self, name: str) -> "QualType":
-        return QualType(name=name, Parameters=[self])
+    def withWrapperType(self, name: Union[str, "QualType"]) -> "QualType":
+        if isinstance(name, str):
+            return QualType(name=name, Parameters=[self])
+
+        else:
+            return name.model_copy(update=dict(Parameters=[self]))
 
     def withExtraSpace(self, name: Union['QualType', str]) -> 'QualType':
         flat = self.flatten()

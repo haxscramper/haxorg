@@ -16,7 +16,8 @@ struct std::formatter<OrgSpecName> : std::formatter<std::string> {
         OrgSpecName const& p,
         FormatContext&     ctx) const {
         std::formatter<std::string> fmt;
-        return fmt.format(hstd::enum_serde<OrgSpecName>::to_string(p), ctx);
+        return fmt.format(
+            hstd::enum_serde<OrgSpecName>::to_string(p), ctx);
     }
 };
 
@@ -86,9 +87,9 @@ struct std::formatter<org::parse::OrgNodeMono::Error>
         const org::parse::OrgNodeMono::Error& p,
         FormatContext&                        ctx) const {
         if (p.box) {
-            return fmt_ctx(*p.box, ctx);
+            return hstd::fmt_ctx(*p.box, ctx);
         } else {
-            return fmt_ctx("Error{}", ctx);
+            return hstd::fmt_ctx("Error{}", ctx);
         }
     }
 };

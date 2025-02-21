@@ -728,8 +728,8 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
 def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
     result = deepcopy(recs)
 
-    IMM_BOX = "ImmBox"
-    ORG_SPACE = QualType.ForName("org")
+    IMM_BOX = t("ImmBox", [n_hstd_ext()])
+    ORG_SPACE = n_imm()
 
     def conv_type(obj: QualType):
         match obj:
@@ -771,11 +771,11 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
 
             case QualType(name="Vec"):
                 obj.name = "ImmVec"
-                obj.Spaces = []
+                obj.Spaces = [n_hstd_ext()]
 
             case QualType(name="UnorderedMap"):
                 obj.name = "ImmMap"
-                obj.Spaces = []
+                obj.Spaces = [n_hstd_ext()]
 
     def impl(obj: Any):
         match obj:
@@ -784,18 +784,18 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
 
             case GenTuField(type=QualType(name="SemId", parameters=[])):
                 conv_type(obj.type)
-                obj.value = "org::ImmId::Nil()"
+                obj.value = "org::imm::ImmId::Nil()"
 
             case GenTuField(type=QualType(name="SemId")):
                 conv_type(obj.type)
-                obj.value = f"org::ImmIdT<org::Imm{obj.type.par0().name}>::Nil()"
+                obj.value = f"org::imm::ImmIdT<org::imm::Imm{obj.type.par0().name}>::Nil()"
 
             case GenTuField(type=QualType(name="Opt")):
-                obj.type.Parameters = [obj.type.par0().withWrapperType("Opt")]
-                obj.type.name = IMM_BOX
+                obj.type = obj.type.par0().withWrapperType(
+                    QualType(name="Opt", Spaces=[n_hstd()])).withWrapperType(IMM_BOX)
 
             case GenTuField(type=QualType(name="Str")):
-                obj.type = QualType.ForName(IMM_BOX, Parameters=[obj.type])
+                obj.type = obj.type.withWrapperType(IMM_BOX)
 
             case GenTuStruct():
                 obj.methods = [

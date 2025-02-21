@@ -4,6 +4,7 @@
 #include <haxorg/parse/OrgTypes.hpp>
 
 
-using OrgSpec = astspec::AstSpec<OrgAdapter, OrgNodeKind, OrgSpecName>;
+using OrgSpec = hstd::ext::astspec::
+    AstSpec<org::parse::OrgAdapter, OrgNodeKind, OrgSpecName>;
 
 std::unique_ptr<OrgSpec> getOrgSpec();
