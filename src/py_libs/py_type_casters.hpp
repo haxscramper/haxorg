@@ -11,9 +11,9 @@
 namespace PYBIND11_NAMESPACE {
 namespace detail {
     template <>
-    struct type_caster<Str> {
+    struct type_caster<hstd::Str> {
       public:
-        PYBIND11_TYPE_CASTER(Str, _("str"));
+        PYBIND11_TYPE_CASTER(hstd::Str, _("str"));
 
         bool load(handle src, bool arg) {
             type_caster<std::string> impl;
@@ -23,7 +23,10 @@ namespace detail {
             return result;
         }
 
-        static handle cast(Str src, return_value_policy a1, handle a2) {
+        static handle cast(
+            hstd::Str           src,
+            return_value_policy a1,
+            handle              a2) {
             return type_caster<std::string>::cast(src, a1, a2);
         }
     };

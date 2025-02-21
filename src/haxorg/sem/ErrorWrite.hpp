@@ -497,7 +497,7 @@ template <>
 struct std::formatter<hstd::ext::CodeSpan> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const hstd::ext::CodeSpan& p, FormatContext& ctx) const {
-        return fmt_ctx(
+        return ::hstd::fmt_ctx(
             hstd::fmt("<{}:{}..{}>", p.source(), p.start(), p.end()), ctx);
     }
 };

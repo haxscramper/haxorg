@@ -56,8 +56,8 @@ PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::Row>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::Row>>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::BigIdent>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::BigIdent>>)
-PYBIND11_MAKE_OPAQUE(std::vector<UserTime>)
-PYBIND11_MAKE_OPAQUE(hstd::Vec<UserTime>)
+PYBIND11_MAKE_OPAQUE(std::vector<hstd::UserTime>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::UserTime>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::Time>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::Time>>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::OrgJson>)
@@ -108,7 +108,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<org::sem::SemId<org::sem::Cell>>(m, "hstdVecOforgSemIdOforgCell", type_registry_guard);
   bind_vector<org::sem::SemId<org::sem::Row>>(m, "hstdVecOforgSemIdOforgRow", type_registry_guard);
   bind_vector<org::sem::SemId<org::sem::BigIdent>>(m, "hstdVecOforgSemIdOforgBigIdent", type_registry_guard);
-  bind_vector<UserTime>(m, "hstdVecOfUserTime", type_registry_guard);
+  bind_vector<hstd::UserTime>(m, "hstdVecOfhstdUserTime", type_registry_guard);
   bind_vector<org::sem::SemId<org::sem::Time>>(m, "hstdVecOforgSemIdOforgTime", type_registry_guard);
   bind_vector<sem::OrgJson>(m, "VecOfOrgJson", type_registry_guard);
   bind_unordered_map<sem::HashTagFlat, sem::AstTrackingPath>(m, "UnorderedMapOfHashTagFlatAstTrackingPath", type_registry_guard);
@@ -3200,7 +3200,7 @@ node can have subnodes.)RAW")
     .def("getHour", static_cast<hstd::Opt<int>(org::sem::Time::*)() const>(&org::sem::Time::getHour))
     .def("getMinute", static_cast<hstd::Opt<int>(org::sem::Time::*)() const>(&org::sem::Time::getMinute))
     .def("getSecond", static_cast<hstd::Opt<int>(org::sem::Time::*)() const>(&org::sem::Time::getSecond))
-    .def("getStaticTime", static_cast<UserTime(org::sem::Time::*)() const>(&org::sem::Time::getStaticTime))
+    .def("getStaticTime", static_cast<hstd::UserTime(org::sem::Time::*)() const>(&org::sem::Time::getStaticTime))
     .def("isStatic", static_cast<bool(org::sem::Time::*)() const>(&org::sem::Time::isStatic))
     .def("getStatic", static_cast<sem::Time::Static&(org::sem::Time::*)()>(&org::sem::Time::getStatic))
     .def("isDynamic", static_cast<bool(org::sem::Time::*)() const>(&org::sem::Time::isDynamic))
@@ -4210,7 +4210,7 @@ node can have subnodes.)RAW")
     .def("getAdmonitions", static_cast<hstd::Vec<hstd::Str>(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::getAdmonitions))
     .def("getAdmonitionNodes", static_cast<hstd::Vec<org::sem::SemId<org::sem::BigIdent>>(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::getAdmonitionNodes))
     .def("hasTimestamp", static_cast<bool(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::hasTimestamp))
-    .def("getTimestamps", static_cast<hstd::Vec<UserTime>(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::getTimestamps))
+    .def("getTimestamps", static_cast<hstd::Vec<hstd::UserTime>(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::getTimestamps))
     .def("getTimestampNodes", static_cast<hstd::Vec<org::sem::SemId<org::sem::Time>>(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::getTimestampNodes))
     .def("hasLeadHashtags", static_cast<bool(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::hasLeadHashtags))
     .def("getLeadHashtags", static_cast<hstd::Vec<org::sem::SemId<org::sem::HashTag>>(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::getLeadHashtags))

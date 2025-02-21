@@ -11,6 +11,9 @@
 #include <haxorg/sem/perfetto_org.hpp>
 #include <hstd/stdlib/Enumerate.hpp>
 
+using namespace hstd;
+using namespace org::parse;
+
 struct Builder : OperationsMsgBulder<Builder, OrgTokenizer::Report> {
     Builder& with_id(OrgTokenId const& id) {
         report.id = id;

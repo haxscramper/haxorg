@@ -11,7 +11,7 @@ namespace hstd {
 namespace fs = std::filesystem;
 
 #define __CURRENT_FILE_PATH__ ::hstd::fs::path(__FILE__)
-#define __CURRENT_FILE_DIR__ ::htsd::fs::path(__FILE__).parent_path()
+#define __CURRENT_FILE_DIR__ ::hstd::fs::path(__FILE__).parent_path()
 
 struct FilesystemError : public std::runtime_error {
     explicit FilesystemError(const std::string& message)

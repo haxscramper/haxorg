@@ -102,7 +102,7 @@ struct value_metadata {
 #if defined(__GXX_RTTI) || defined(_CPPRTTI)
         return ::hstd::demangle(typeid(T).name());
 #else
-        return std::string{::get_type_name_fallback<T>()};
+        return std::string{::hstd::get_type_name_fallback<T>()};
 #endif
     }
 };

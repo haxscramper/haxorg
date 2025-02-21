@@ -132,14 +132,14 @@ using TimePoint = stime::time_point<stime::system_clock>;
 
 /// Mutable state passed around walker configurations
 struct walker_state {
-    CP<walker_config> config;
+    walker_config const* config;
 
-    SPtr<git_revwalk> walker;
+    hstd::SPtr<git_revwalk> walker;
     /// Current git repository
-    SPtr<git_repository> repo;
+    hstd::SPtr<git_repository> repo;
 
     /// Ordered list of commits that were considered for the processing run
-    Vec<git_oid>                              full_commits;
+    hstd::Vec<git_oid>                        full_commits;
     std::unordered_map<git_oid, ir::CommitId> commit_ids;
     /// Mapping from the commit id to it's position in the whole list of
     /// considered commits
@@ -163,7 +163,7 @@ struct walker_state {
         return config->cli.config.verbose_consistency_checks;
     }
 
-    bool should_check_file(Str const& path) {
+    bool should_check_file(hstd::Str const& path) {
         return config->cli.config.debug_paths.empty()
             || config->cli.config.debug_paths.contains(path);
     }
@@ -176,18 +176,18 @@ struct walker_state {
         return config->cli.config.debug_commits.contains(at(id).hash);
     }
 
-    ir::CommitId get_id(CR<git_oid> oid) { return commit_ids.at(oid); }
+    ir::CommitId get_id(git_oid const& oid) { return commit_ids.at(oid); }
 
     ir::content_manager* content;
 
-    template <dod::IsIdType Id>
-    auto at(Id id) -> typename dod::value_type_t<Id>& {
+    template <hstd::dod::IsIdType Id>
+    auto at(Id id) -> typename hstd::dod::value_type_t<Id>& {
         return this->content->at(id);
     }
 
-    Str const& str(ir::CommitId id) { return this->at(id).hash; }
-    Str const& str(ir::StringId id) { return this->at(id).text; }
-    Str const& str(ir::FilePathId id) {
+    hstd::Str const& str(ir::CommitId id) { return this->at(id).hash; }
+    hstd::Str const& str(ir::StringId id) { return this->at(id).text; }
+    hstd::Str const& str(ir::FilePathId id) {
         return this->str(content->at(id).path);
     }
 };

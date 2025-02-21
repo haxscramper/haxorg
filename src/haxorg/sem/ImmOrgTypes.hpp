@@ -409,7 +409,7 @@ struct ImmTime : public org::ImmOrg {
                          (),
                          (repeat, time))
     hstd::ImmBox<Opt<org::ImmTime::Repeat>> repeat;
-    UserTime time;
+    hstd::UserTime time;
     bool operator==(org::ImmTime::Static const& other) const;
   };
 
@@ -1049,11 +1049,11 @@ struct ImmSubtree : public org::ImmOrg {
   /// \brief Immediate properties
   ImmVec<sem::NamedProperty> properties = {};
   /// \brief When subtree was marked as closed
-  hstd::ImmBox<Opt<UserTime>> closed = std::nullopt;
+  hstd::ImmBox<Opt<hstd::UserTime>> closed = std::nullopt;
   /// \brief When is the deadline
-  hstd::ImmBox<Opt<UserTime>> deadline = std::nullopt;
+  hstd::ImmBox<Opt<hstd::UserTime>> deadline = std::nullopt;
   /// \brief When the event is scheduled
-  hstd::ImmBox<Opt<UserTime>> scheduled = std::nullopt;
+  hstd::ImmBox<Opt<hstd::UserTime>> scheduled = std::nullopt;
   /// \brief Subtree is annotated with the COMMENT keyword
   bool isComment = false;
   /// \brief Subtree is tagged with `:ARCHIVE:` tag

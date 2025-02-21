@@ -462,7 +462,7 @@ struct SubtreeLogHead {
     /// \brief New priority for change and addition
     hstd::Opt<std::string> newPriority = std::nullopt;
     /// \brief When priority was changed
-    UserTime on;
+    hstd::UserTime on;
     /// \brief Which action taken
     sem::SubtreeLogHead::Priority::Action action;
     bool operator==(sem::SubtreeLogHead::Priority const& other) const;
@@ -477,7 +477,7 @@ struct SubtreeLogHead {
                          (),
                          (on))
     /// \brief Where log was taken
-    UserTime on;
+    hstd::UserTime on;
     bool operator==(sem::SubtreeLogHead::Note const& other) const;
   };
 
@@ -490,7 +490,7 @@ struct SubtreeLogHead {
                          (),
                          (on, from))
     /// \brief When the refiling happened
-    UserTime on;
+    hstd::UserTime on;
     /// \brief Link to the original subtree
     sem::LinkTarget from;
     bool operator==(sem::SubtreeLogHead::Refile const& other) const;
@@ -505,9 +505,9 @@ struct SubtreeLogHead {
                          (),
                          (from, to))
     /// \brief Clock start time
-    UserTime from;
+    hstd::UserTime from;
     /// \brief Optional end of the clock
-    hstd::Opt<UserTime> to = std::nullopt;
+    hstd::Opt<hstd::UserTime> to = std::nullopt;
     bool operator==(sem::SubtreeLogHead::Clock const& other) const;
   };
 
@@ -521,7 +521,7 @@ struct SubtreeLogHead {
                          (from, to, on))
     hstd::Str from;
     hstd::Str to;
-    UserTime on;
+    hstd::UserTime on;
     bool operator==(sem::SubtreeLogHead::State const& other) const;
   };
 
@@ -533,9 +533,9 @@ struct SubtreeLogHead {
                          (),
                          (),
                          (from, to, on))
-    hstd::Opt<UserTime> from = std::nullopt;
-    UserTime to;
-    UserTime on;
+    hstd::Opt<hstd::UserTime> from = std::nullopt;
+    hstd::UserTime to;
+    hstd::UserTime on;
     bool operator==(sem::SubtreeLogHead::Deadline const& other) const;
   };
 
@@ -547,9 +547,9 @@ struct SubtreeLogHead {
                          (),
                          (),
                          (from, to, on))
-    hstd::Opt<UserTime> from = std::nullopt;
-    UserTime to;
-    UserTime on;
+    hstd::Opt<hstd::UserTime> from = std::nullopt;
+    hstd::UserTime to;
+    hstd::UserTime on;
     bool operator==(sem::SubtreeLogHead::Schedule const& other) const;
   };
 
@@ -562,7 +562,7 @@ struct SubtreeLogHead {
                          (),
                          (on, tag, added))
     /// \brief When the log was assigned
-    UserTime on;
+    hstd::UserTime on;
     /// \brief Tag in question
     sem::HashTagText tag;
     /// \brief Added/removed?
@@ -1110,9 +1110,9 @@ struct SubtreePeriod {
   /// \brief Time period kind -- not associated with point/range distinction
   sem::SubtreePeriod::Kind kind;
   /// \brief Clock start time
-  UserTime from;
+  hstd::UserTime from;
   /// \brief Optional end of the clock
-  hstd::Opt<UserTime> to = std::nullopt;
+  hstd::Opt<hstd::UserTime> to = std::nullopt;
   bool operator==(sem::SubtreePeriod const& other) const;
 };
 
@@ -1137,7 +1137,7 @@ struct NamedProperty {
                          (),
                          (),
                          (time))
-    UserTime time;
+    hstd::UserTime time;
     bool operator==(sem::NamedProperty::ArchiveTime const& other) const;
   };
 
@@ -1349,7 +1349,7 @@ struct NamedProperty {
                          (),
                          (),
                          (time))
-    UserTime time;
+    hstd::UserTime time;
     bool operator==(sem::NamedProperty::Created const& other) const;
   };
 
@@ -1885,7 +1885,7 @@ struct Time : public org::sem::Org {
   struct Static {
     BOOST_DESCRIBE_CLASS(Static, (), (), (), (repeat, time))
     hstd::Opt<sem::Time::Repeat> repeat;
-    UserTime time;
+    hstd::UserTime time;
   };
 
   struct Dynamic {
@@ -1916,7 +1916,7 @@ struct Time : public org::sem::Org {
   hstd::Opt<int> getHour() const;
   hstd::Opt<int> getMinute() const;
   hstd::Opt<int> getSecond() const;
-  UserTime getStaticTime() const;
+  hstd::UserTime getStaticTime() const;
   bool isStatic() const { return getTimeKind() == TimeKind::Static; }
   sem::Time::Static const& getStatic() const { return std::get<0>(time); }
   sem::Time::Static& getStatic() { return std::get<0>(time); }
@@ -2473,11 +2473,11 @@ struct Subtree : public org::sem::Org {
   /// \brief Immediate properties
   hstd::Vec<sem::NamedProperty> properties = {};
   /// \brief When subtree was marked as closed
-  hstd::Opt<UserTime> closed = std::nullopt;
+  hstd::Opt<hstd::UserTime> closed = std::nullopt;
   /// \brief When is the deadline
-  hstd::Opt<UserTime> deadline = std::nullopt;
+  hstd::Opt<hstd::UserTime> deadline = std::nullopt;
   /// \brief When the event is scheduled
-  hstd::Opt<UserTime> scheduled = std::nullopt;
+  hstd::Opt<hstd::UserTime> scheduled = std::nullopt;
   /// \brief Subtree is annotated with the COMMENT keyword
   bool isComment = false;
   /// \brief Subtree is tagged with `:ARCHIVE:` tag
@@ -2565,7 +2565,7 @@ struct Paragraph : public org::sem::Stmt {
   hstd::Vec<hstd::Str> getAdmonitions() const;
   hstd::Vec<org::sem::SemId<org::sem::BigIdent>> getAdmonitionNodes() const;
   bool hasTimestamp() const;
-  hstd::Vec<UserTime> getTimestamps() const;
+  hstd::Vec<hstd::UserTime> getTimestamps() const;
   hstd::Vec<org::sem::SemId<org::sem::Time>> getTimestampNodes() const;
   bool hasLeadHashtags() const;
   hstd::Vec<org::sem::SemId<org::sem::HashTag>> getLeadHashtags() const;

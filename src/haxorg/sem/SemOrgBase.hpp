@@ -260,11 +260,11 @@ struct [[refl]] Org {
     ///
     /// Set by the conversion functions from linearized representation,
     /// will be missing for all generated node kinds.
-    OrgAdapter original;
+    org::parse::OrgAdapter original;
 
     Org(hstd::CVec<SemId<Org>> subnodes);
     Org();
-    Org(OrgAdapter original);
+    Org(parse::OrgAdapter original);
     virtual ~Org() = default;
 
     /// \brief Get get kind of the original node.
@@ -274,7 +274,7 @@ struct [[refl]] Org {
     /// \brief Whether original node adapter is missing
     [[refl]] bool isGenerated() const { return original.isNil(); }
     /// \brief Location of the node in the original source file
-    [[refl]] hstd::Opt<LineCol> loc = std::nullopt;
+    [[refl]] hstd::Opt<parse::LineCol> loc = std::nullopt;
     /// \brief List of subnodes.
     ///
     /// Some of the derived nodes don't make the use of subnode list
