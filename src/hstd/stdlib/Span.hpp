@@ -212,12 +212,12 @@ struct std::formatter<hstd::Span<T>> : std::formatter<std::string> {
     FormatContext::iterator format(
         const hstd::Span<T>& p,
         FormatContext&       ctx) const {
-        fmt_ctx("[", ctx);
+        hstd::fmt_ctx("[", ctx);
         for (int i = 0; i < p.size(); ++i) {
             if (0 < i) { fmt_ctx(", ", ctx); }
-            fmt_ctx(p.at(i), ctx);
+            hstd::fmt_ctx(p.at(i), ctx);
         }
 
-        return fmt_ctx("]", ctx);
+        return hstd::fmt_ctx("]", ctx);
     }
 };

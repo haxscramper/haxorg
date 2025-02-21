@@ -718,24 +718,24 @@ template <>
 struct std::formatter<hstd::ColRune> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const hstd::ColRune& p, FormatContext& ctx) const {
-        fmt_ctx("{", ctx);
-        fmt_ctx(p.rune, ctx);
+        hstd::fmt_ctx("{", ctx);
+        hstd::fmt_ctx(p.rune, ctx);
         if (p.style.fg != (hstd::TermColorFg8Bit)0) {
-            fmt_ctx(":fg", ctx);
-            fmt_ctx(p.style.fg, ctx);
+            hstd::fmt_ctx(":fg", ctx);
+            hstd::fmt_ctx(p.style.fg, ctx);
         }
 
         if (p.style.bg != (hstd::TermColorBg8Bit)0) {
-            fmt_ctx(":bg", ctx);
-            fmt_ctx(p.style.bg, ctx);
+            hstd::fmt_ctx(":bg", ctx);
+            hstd::fmt_ctx(p.style.bg, ctx);
         }
 
         for (auto const& it : p.style.style) {
-            fmt_ctx(":", ctx);
-            fmt_ctx(it, ctx);
+            hstd::fmt_ctx(":", ctx);
+            hstd::fmt_ctx(it, ctx);
         }
 
-        return fmt_ctx("}", ctx);
+        return hstd::fmt_ctx("}", ctx);
     }
 };
 

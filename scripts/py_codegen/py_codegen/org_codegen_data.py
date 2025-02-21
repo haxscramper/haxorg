@@ -51,6 +51,7 @@ def t_bool() -> QualType:
 def t_int() -> QualType:
     return t("int")
 
+
 def t_user_time() -> QualType:
     return t("UserTime", [n_hstd()])
 
@@ -97,11 +98,11 @@ def t_cr(arg: QualType) -> QualType:
 
 
 def t_var(*args) -> QualType:
-    return QualType(name="Variant", Parameters=[*args])
+    return QualType(name="Variant", Parameters=[*args], Spaces=[n_hstd()])
 
 
 def t_map(key: QualType, val: QualType) -> QualType:
-    return QualType(name="UnorderedMap", Parameters=[key, val])
+    return QualType(name="UnorderedMap", Parameters=[key, val], Spaces=[n_hstd()])
 
 
 #endregion
@@ -499,19 +500,17 @@ def get_subtree_property_types():
             GenTuDoc("Free-form JSON"),
             methods=[eq_method(t_nest_shared("CustomSubtreeJson", ["NamedProperty"]))],
             fields=[
-                org_field(t_str(), "name"), 
+                org_field(t_str(), "name"),
                 org_field(t_nest_shared("OrgJson"), "value")
-            ]
-        ),
+            ]),
         GenTuStruct(
             t_nest_shared("CustomSubtreeFlags", ["NamedProperty"]),
             GenTuDoc("Free-form flags"),
             methods=[eq_method(t_nest_shared("CustomSubtreeFlags", ["NamedProperty"]))],
             fields=[
-                org_field(t_str(), "name"), 
+                org_field(t_str(), "name"),
                 org_field(t_nest_shared("AttrGroup"), "value")
-            ]
-        ),
+            ]),
     ]
 
 
@@ -610,7 +609,7 @@ def get_sem_bases():
             nested=[
                 GenTuPass("Stmt() {}"),
                 GenTuPass(
-                    "Stmt(CVec<SemId<Org>> attached, CVec<SemId<Org>> subnodes) : Org(subnodes), attached(attached) {}"
+                    "Stmt(hstd::Vec<SemId<Org>> const& attached, hstd::Vec<SemId<Org>> const& subnodes) : Org(subnodes), attached(attached) {}"
                 ),
             ],
         ),
@@ -1133,7 +1132,9 @@ def get_sem_subtree():
                         GenTuIdent(
                             QualType(
                                 name="IntSet",
-                                Parameters=[t_nest_shared("Kind", ["SubtreePeriod"])]),
+                                Parameters=[t_nest_shared("Kind", ["SubtreePeriod"])],
+                                Spaces=[n_hstd()],
+                            ),
                             "kinds",
                         )
                     ],
@@ -1445,7 +1446,9 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 opt_field(t_str(), "name"),
                 opt_field(t_str(), "varname"),
                 str_field("value"),
-                bool_field("isQuoted", "If the original value was explicitly quoted in the org-mode code"),
+                bool_field(
+                    "isQuoted",
+                    "If the original value was explicitly quoted in the org-mode code"),
             ],
             methods=[
                 GenTuFunction(t_opt(t_bool()), "getBool", isConst=True),
@@ -1800,7 +1803,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
             t_nest_shared("AttrList"),
             fields=[
                 vec_field(t_nest_shared("AttrValue"), "items"),
-        ],
+            ],
             methods=[eq_method(t_nest_shared("AttrList"))],
         ),
         GenTuStruct(
@@ -2350,7 +2353,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     enumName=t_nest_shared("Kind", ["NamedProperty"]),
                     variantName=t_nest_shared("Data", ["NamedProperty"]),
                 ),
-                GenTuPass("NamedProperty(CR<Data> data) : data(data) {}"),
+                GenTuPass("NamedProperty(Data const& data) : data(data) {}"),
             ],
         ),
     ]

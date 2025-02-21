@@ -10,10 +10,12 @@ enum Alignment {
   SECOND = 5;
 }
 
-message UserTime {
-  int64 time = 1;
-  optional string zone = 2;
-  Alignment align = 3;
+message hstd {  
+  message UserTime {
+    int64 time = 1;
+    optional string zone = 2;
+    Alignment align = 3;
+  }
 }
 
 message LineCol {

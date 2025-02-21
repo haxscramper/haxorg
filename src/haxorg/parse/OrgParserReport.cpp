@@ -4,6 +4,9 @@
 #include <hstd/stdlib/Json.hpp>
 #include <haxorg/lexbase/TraceStructured.hpp>
 
+using namespace hstd;
+using namespace org::parse;
+
 void OrgParser::report(CR<Report> in) {
     using fg = TermColorFg8Bit;
 

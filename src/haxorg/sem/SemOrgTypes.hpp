@@ -660,7 +660,7 @@ struct AttrGroup {
   /// \brief Positional arguments with no keys
   sem::AttrList positional;
   /// \brief Stored key-value mapping
-  UnorderedMap<hstd::Str, sem::AttrList> named;
+  hstd::UnorderedMap<hstd::Str, sem::AttrList> named;
   hstd::Vec<sem::AttrValue> getFlatArgs() const;
   hstd::Vec<sem::AttrValue> getAttrs(hstd::Opt<hstd::Str> const& key = std::nullopt) const;
   void setNamedAttr(hstd::Str const& key, hstd::Vec<sem::AttrValue> const& attrs);
@@ -1317,7 +1317,7 @@ struct NamedProperty {
                          (),
                          (backend, values))
     hstd::Str backend;
-    UnorderedMap<hstd::Str, hstd::Str> values;
+    hstd::UnorderedMap<hstd::Str, hstd::Str> values;
     bool operator==(sem::NamedProperty::ExportOptions const& other) const;
   };
 
@@ -1438,7 +1438,7 @@ struct NamedProperty {
   BOOST_DESCRIBE_NESTED_ENUM(Kind, Nonblocking, ArchiveTime, ArchiveFile, ArchiveOlpath, ArchiveTarget, ArchiveCategory, ArchiveTodo, Trigger, ExportLatexClass, CookieData, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, RadioId, HashtagDef, CustomArgs, CustomRaw, CustomSubtreeJson, CustomSubtreeFlags)
   using variant_enum_type = sem::NamedProperty::Kind;
   using variant_data_type = sem::NamedProperty::Data;
-  NamedProperty(CR<Data> data) : data(data) {}
+  NamedProperty(Data const& data) : data(data) {}
   BOOST_DESCRIBE_CLASS(NamedProperty,
                        (),
                        (),
@@ -1587,7 +1587,7 @@ struct Stmt : public org::sem::Org {
   using Org::Org;
   virtual ~Stmt() = default;
   Stmt() {}
-  Stmt(CVec<SemId<Org>> attached, CVec<SemId<Org>> subnodes) : Org(subnodes), attached(attached) {}
+  Stmt(hstd::Vec<SemId<Org>> const& attached, hstd::Vec<SemId<Org>> const& subnodes) : Org(subnodes), attached(attached) {}
   BOOST_DESCRIBE_CLASS(Stmt,
                        (Org),
                        (),
@@ -2484,7 +2484,7 @@ struct Subtree : public org::sem::Org {
   bool isArchived = false;
   hstd::Opt<hstd::Str> priority = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::Subtree; }
-  hstd::Vec<sem::SubtreePeriod> getTimePeriods(IntSet<sem::SubtreePeriod::Kind> kinds) const;
+  hstd::Vec<sem::SubtreePeriod> getTimePeriods(hstd::IntSet<sem::SubtreePeriod::Kind> kinds) const;
   hstd::Vec<sem::NamedProperty> getProperties(hstd::Str const& kind, hstd::Opt<hstd::Str> const& subkind = std::nullopt) const;
   hstd::Opt<sem::NamedProperty> getProperty(hstd::Str const& kind, hstd::Opt<hstd::Str> const& subkind = std::nullopt) const;
   /// \brief Remove all instances of the property with matching kind/subkind from the property list

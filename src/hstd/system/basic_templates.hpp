@@ -95,9 +95,7 @@ struct value_domain<T> {
 };
 
 template <typename T>
-struct value_metadata {
-    static bool        isEmpty(T const& value) { return false; }
-    static bool        isNil(T const& value) { return false; }
+struct value_metadata_default_type_name {
     static std::string typeName() {
 #if defined(__GXX_RTTI) || defined(_CPPRTTI)
         return ::hstd::demangle(typeid(T).name());
@@ -105,6 +103,13 @@ struct value_metadata {
         return std::string{::hstd::get_type_name_fallback<T>()};
 #endif
     }
+};
+
+
+template <typename T>
+struct value_metadata : public value_metadata_default_type_name<T> {
+    static bool isEmpty(T const& value) { return false; }
+    static bool isNil(T const& value) { return false; }
 };
 
 

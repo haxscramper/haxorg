@@ -22,7 +22,7 @@ PYBIND11_MAKE_OPAQUE(hstd::Vec<sem::HashTagFlat>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::AttrValue>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<sem::AttrValue>)
 PYBIND11_MAKE_OPAQUE(std::unordered_map<hstd::Str, sem::AttrList>)
-PYBIND11_MAKE_OPAQUE(UnorderedMap<hstd::Str, sem::AttrList>)
+PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<hstd::Str, sem::AttrList>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::ColumnView::Column>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<sem::ColumnView::Column>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::BlockCodeLine::Part>)
@@ -30,7 +30,7 @@ PYBIND11_MAKE_OPAQUE(hstd::Vec<sem::BlockCodeLine::Part>)
 PYBIND11_MAKE_OPAQUE(std::vector<int>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<int>)
 PYBIND11_MAKE_OPAQUE(std::unordered_map<hstd::Str, hstd::Str>)
-PYBIND11_MAKE_OPAQUE(UnorderedMap<hstd::Str, hstd::Str>)
+PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<hstd::Str, hstd::Str>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::ErrorItem>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::ErrorItem>>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::Org>>)
@@ -49,7 +49,7 @@ PYBIND11_MAKE_OPAQUE(std::vector<sem::NamedProperty>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<sem::NamedProperty>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SubtreePeriod>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<sem::SubtreePeriod>)
-PYBIND11_MAKE_OPAQUE(IntSet<sem::SubtreePeriod::Kind>)
+PYBIND11_MAKE_OPAQUE(hstd::IntSet<sem::SubtreePeriod::Kind>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::Cell>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::Cell>>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::Row>>)
@@ -90,11 +90,11 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::HashTagText>(m, "hstdVecOfHashTagText", type_registry_guard);
   bind_vector<sem::HashTagFlat>(m, "hstdVecOfHashTagFlat", type_registry_guard);
   bind_vector<sem::AttrValue>(m, "hstdVecOfAttrValue", type_registry_guard);
-  bind_unordered_map<hstd::Str, sem::AttrList>(m, "UnorderedMapOfhstdStrAttrList", type_registry_guard);
+  bind_unordered_map<hstd::Str, sem::AttrList>(m, "hstdUnorderedMapOfhstdStrAttrList", type_registry_guard);
   bind_vector<sem::ColumnView::Column>(m, "hstdVecOfColumnViewColumn", type_registry_guard);
   bind_vector<sem::BlockCodeLine::Part>(m, "hstdVecOfBlockCodeLinePart", type_registry_guard);
   bind_vector<int>(m, "hstdVecOfint", type_registry_guard);
-  bind_unordered_map<hstd::Str, hstd::Str>(m, "UnorderedMapOfhstdStrhstdStr", type_registry_guard);
+  bind_unordered_map<hstd::Str, hstd::Str>(m, "hstdUnorderedMapOfhstdStrhstdStr", type_registry_guard);
   bind_vector<org::sem::SemId<org::sem::ErrorItem>>(m, "hstdVecOforgSemIdOforgErrorItem", type_registry_guard);
   bind_vector<org::sem::SemId<org::sem::Org>>(m, "hstdVecOforgSemIdOforgOrg", type_registry_guard);
   bind_vector<sem::Symbol::Param>(m, "hstdVecOfSymbolParam", type_registry_guard);
@@ -104,7 +104,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<org::sem::SemId<org::sem::SubtreeLog>>(m, "hstdVecOforgSemIdOforgSubtreeLog", type_registry_guard);
   bind_vector<sem::NamedProperty>(m, "hstdVecOfNamedProperty", type_registry_guard);
   bind_vector<sem::SubtreePeriod>(m, "hstdVecOfSubtreePeriod", type_registry_guard);
-  bind_int_set<sem::SubtreePeriod::Kind>(m, "IntSetOfSubtreePeriodKind", type_registry_guard);
+  bind_int_set<sem::SubtreePeriod::Kind>(m, "hstdIntSetOfSubtreePeriodKind", type_registry_guard);
   bind_vector<org::sem::SemId<org::sem::Cell>>(m, "hstdVecOforgSemIdOforgCell", type_registry_guard);
   bind_vector<org::sem::SemId<org::sem::Row>>(m, "hstdVecOforgSemIdOforgRow", type_registry_guard);
   bind_vector<org::sem::SemId<org::sem::BigIdent>>(m, "hstdVecOforgSemIdOforgBigIdent", type_registry_guard);
@@ -4040,7 +4040,7 @@ node can have subnodes.)RAW")
     .def_readwrite("isArchived", &org::sem::Subtree::isArchived, R"RAW(Subtree is tagged with `:ARCHIVE:` tag)RAW")
     .def_readwrite("priority", &org::sem::Subtree::priority)
     .def("getTimePeriods",
-         static_cast<hstd::Vec<sem::SubtreePeriod>(org::sem::Subtree::*)(IntSet<sem::SubtreePeriod::Kind>) const>(&org::sem::Subtree::getTimePeriods),
+         static_cast<hstd::Vec<sem::SubtreePeriod>(org::sem::Subtree::*)(hstd::IntSet<sem::SubtreePeriod::Kind>) const>(&org::sem::Subtree::getTimePeriods),
          pybind11::arg("kinds"))
     .def("getProperties",
          static_cast<hstd::Vec<sem::NamedProperty>(org::sem::Subtree::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::Subtree::getProperties),

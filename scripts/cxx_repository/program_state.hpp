@@ -122,7 +122,7 @@ struct walker_config {
         return hstd::fs::path{cli.repo.path};
     }
     std::string heads_path() const {
-        return fmt(".git/refs/heads/{}", cli.repo.branch);
+        return hstd::fmt(".git/refs/heads/{}", cli.repo.branch);
     }
 };
 

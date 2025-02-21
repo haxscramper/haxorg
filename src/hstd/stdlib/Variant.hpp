@@ -169,3 +169,12 @@ struct std::formatter<V> : std::formatter<std::string> {
         return ::hstd::fmt_ctx(")", ctx);
     }
 };
+
+template <typename... Args>
+struct hstd::value_metadata<hstd::Variant<Args...>> {
+    static std::string typeName() {
+        return std::string{"Variant<"}
+             + join(", ", Vec<Str>{hstd::value_metadata<Args>::get()...})
+             + std::string{">"};
+    }
+};

@@ -69,3 +69,4 @@ struct std::formatter<std::nullopt_t> : std::formatter<std::string> {
         return fmt_ctx("nullopt", ctx);
     }
 };
+

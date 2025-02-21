@@ -266,7 +266,7 @@ NodeIdx hstd::ext::diff::ASTDiff::findCandidate(
     return Candidate;
 }
 
-double diff::ASTDiff::getJaccardSimilarity(
+double ASTDiff::getJaccardSimilarity(
     const Mapping& M,
     NodeIdx        Id1,
     NodeIdx        Id2) const {
@@ -289,7 +289,7 @@ double diff::ASTDiff::getJaccardSimilarity(
     return CommonDescendants / Denominator;
 }
 
-void diff::ASTDiff::addOptimalMapping(Mapping& M, NodeIdx Id1, NodeIdx Id2)
+void ASTDiff::addOptimalMapping(Mapping& M, NodeIdx Id1, NodeIdx Id2)
     const {
     if (std::max(
             src.getNumberOfDescendants(Id1),
@@ -307,7 +307,7 @@ void diff::ASTDiff::addOptimalMapping(Mapping& M, NodeIdx Id1, NodeIdx Id2)
     }
 }
 
-bool diff::ASTDiff::identical(NodeIdx Id1, NodeIdx Id2) const {
+bool ASTDiff::identical(NodeIdx Id1, NodeIdx Id2) const {
     const Node& N1 = src.getNode(Id1);
     const Node& N2 = dst.getNode(Id2);
     if (N1.Subnodes.size() != N2.Subnodes.size()
@@ -433,13 +433,13 @@ void ZhangShashaMatcher::computeForestDist(
     // }
 }
 
-void diff::SyntaxTree::FromNode(NodeStore* store) {
+void SyntaxTree::FromNode(NodeStore* store) {
     PreorderVisitor PreorderWalker(*this, store);
     PreorderWalker.Traverse(store->getRoot());
     initTree();
 }
 
-void diff::printDstChange(
+void hstd::ext::diff::printDstChange(
     ColStream&                       os,
     const ASTDiff&                   Diff,
     const SyntaxTree&                SrcTree,
@@ -486,7 +486,7 @@ void diff::printDstChange(
     }
 }
 
-void diff::printNode(
+void hstd::ext::diff::printNode(
     ColStream&                       os,
     const SyntaxTree&                Tree,
     NodeIdx                          id,
@@ -501,7 +501,7 @@ void diff::printNode(
 }
 
 
-void diff::printMapping(
+void hstd::ext::diff::printMapping(
     ColStream&                       os,
     ASTDiff const&                   Diff,
     SyntaxTree const&                SrcTree,
@@ -509,8 +509,8 @@ void diff::printMapping(
     Func<ColText(CR<NodeStore::Id>)> FormatSrcTreeValue,
     Func<ColText(CR<NodeStore::Id>)> FormatDstTreeValue) {
 
-    for (diff::NodeIdx Dst : DstTree) {
-        diff::NodeIdx Src = Diff.getMapped(DstTree, Dst);
+    for (NodeIdx Dst : DstTree) {
+        NodeIdx Src = Diff.getMapped(DstTree, Dst);
         if (Src.isValid()) {
             os << "Match [" << os.yellow();
             printNode(os, SrcTree, Src, FormatSrcTreeValue);

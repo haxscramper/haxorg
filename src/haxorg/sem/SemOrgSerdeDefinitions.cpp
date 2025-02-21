@@ -591,12 +591,12 @@ void proto_serde<::orgproto::AttrList, sem::AttrList>::read(::orgproto::AttrList
 
 void proto_serde<::orgproto::AttrGroup, sem::AttrGroup>::write(::orgproto::AttrGroup* out, sem::AttrGroup const& in) {
   proto_serde<orgproto::AttrList, sem::AttrList>::write(out->mutable_positional(), in.positional);
-  proto_serde<::google::protobuf::Map<std::string, orgproto::AttrList>, UnorderedMap<hstd::Str, sem::AttrList>>::write(out->mutable_named(), in.named);
+  proto_serde<::google::protobuf::Map<std::string, orgproto::AttrList>, hstd::UnorderedMap<hstd::Str, sem::AttrList>>::write(out->mutable_named(), in.named);
 }
 
 void proto_serde<::orgproto::AttrGroup, sem::AttrGroup>::read(::orgproto::AttrGroup const& out, proto_write_accessor<sem::AttrGroup> in) {
   proto_serde<orgproto::AttrList, sem::AttrList>::read(out.positional(), in.for_field(&sem::AttrGroup::positional));
-  proto_serde<::google::protobuf::Map<std::string, orgproto::AttrList>, UnorderedMap<hstd::Str, sem::AttrList>>::read(out.named(), in.for_field(&sem::AttrGroup::named));
+  proto_serde<::google::protobuf::Map<std::string, orgproto::AttrList>, hstd::UnorderedMap<hstd::Str, sem::AttrList>>::read(out.named(), in.for_field(&sem::AttrGroup::named));
 }
 
 void proto_serde<::orgproto::ColumnView::Summary::CheckboxAggregate, sem::ColumnView::Summary::CheckboxAggregate>::write(::orgproto::ColumnView::Summary::CheckboxAggregate* out, sem::ColumnView::Summary::CheckboxAggregate const& in) {
@@ -1167,12 +1167,12 @@ void proto_serde<::orgproto::NamedProperty::Visibility, sem::NamedProperty::Visi
 
 void proto_serde<::orgproto::NamedProperty::ExportOptions, sem::NamedProperty::ExportOptions>::write(::orgproto::NamedProperty::ExportOptions* out, sem::NamedProperty::ExportOptions const& in) {
   proto_serde<std::string, hstd::Str>::write(out->mutable_backend(), in.backend);
-  proto_serde<::google::protobuf::Map<std::string, std::string>, UnorderedMap<hstd::Str, hstd::Str>>::write(out->mutable_values(), in.values);
+  proto_serde<::google::protobuf::Map<std::string, std::string>, hstd::UnorderedMap<hstd::Str, hstd::Str>>::write(out->mutable_values(), in.values);
 }
 
 void proto_serde<::orgproto::NamedProperty::ExportOptions, sem::NamedProperty::ExportOptions>::read(::orgproto::NamedProperty::ExportOptions const& out, proto_write_accessor<sem::NamedProperty::ExportOptions> in) {
   proto_serde<std::string, hstd::Str>::read(out.backend(), in.for_field(&sem::NamedProperty::ExportOptions::backend));
-  proto_serde<::google::protobuf::Map<std::string, std::string>, UnorderedMap<hstd::Str, hstd::Str>>::read(out.values(), in.for_field(&sem::NamedProperty::ExportOptions::values));
+  proto_serde<::google::protobuf::Map<std::string, std::string>, hstd::UnorderedMap<hstd::Str, hstd::Str>>::read(out.values(), in.for_field(&sem::NamedProperty::ExportOptions::values));
 }
 
 void proto_serde<::orgproto::NamedProperty::Blocker, sem::NamedProperty::Blocker>::write(::orgproto::NamedProperty::Blocker* out, sem::NamedProperty::Blocker const& in) {
