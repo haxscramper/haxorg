@@ -59,7 +59,7 @@ struct out_of_range_error : CRTP_hexception<out_of_range_error> {};
         throw ::hstd::logic_assertion_error::init(::hstd::fmt(            \
             "{}: {}",                                                     \
             #expr,                                                        \
-            fmt(message_fmt __VA_OPT__(, ) __VA_ARGS__)));                \
+            ::hstd::fmt(message_fmt __VA_OPT__(, ) __VA_ARGS__)));        \
     }
 
 #define logic_todo_impl() throw logic_assertion_error::init("TODO");

@@ -464,6 +464,7 @@ class RecordParams:
     Template: TemplateParams = field(default_factory=TemplateParams)
     IsDefinition: bool = True
     TrailingLine: bool = True
+    IsTemplateSpecialization: bool = False
     OneLine: bool = False
 
     def methods(self) -> Iterable[Union[MethodDeclParams, MethodDefParams]]:
@@ -1069,7 +1070,7 @@ class ASTBuilder(base.AstbuilderBase):
 
         head = self.b.line([
             self.string("struct "),
-            self.Type(params.name),
+            self.Type(params.name) if params.IsTemplateSpecialization else self.string(params.name.name),
             self.b.surround_non_empty(
                 self.b.join([self.Type(t) for t in params.NameParams], self.string(", ")),
                 self.string("<"), self.string(">")), bases or self.string(""),

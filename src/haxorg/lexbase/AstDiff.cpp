@@ -1,6 +1,7 @@
 #include "AstDiff.hpp"
 
 using namespace hstd::ext::diff;
+using namespace hstd;
 
 /// Sets Height, Parent and Subnodes for each node.
 struct PreorderVisitor {
@@ -23,7 +24,7 @@ struct PreorderVisitor {
         N.ASTNode                = node;
 
         if (Parent.isValid()) {
-            diff::Node& P = Tree.getMutableNode(Parent);
+            hstd::ext::diff::Node& P = Tree.getMutableNode(Parent);
             P.Subnodes.push_back(MyId);
         }
 
@@ -40,8 +41,8 @@ struct PreorderVisitor {
             MyId.isValid() && "Expecting to only traverse valid nodes.");
         Parent = PreviousParent;
         --Depth;
-        diff::Node& N         = Tree.getMutableNode(MyId);
-        N.RightMostDescendant = id - 1;
+        hstd::ext::diff::Node& N = Tree.getMutableNode(MyId);
+        N.RightMostDescendant    = id - 1;
         assert(
             N.RightMostDescendant >= 0
             && N.RightMostDescendant < Tree.getSize()
@@ -64,7 +65,9 @@ struct PreorderVisitor {
 };
 
 
-Vec<NodeIdx> diff::getSubtreeBfs(const SyntaxTree& Tree, NodeIdx Root) {
+Vec<NodeIdx> hstd::ext::diff::getSubtreeBfs(
+    const SyntaxTree& Tree,
+    NodeIdx           Root) {
     Vec<NodeIdx> Ids;
     size_t       Expanded = 0;
     Ids.push_back(Root);
@@ -76,7 +79,7 @@ Vec<NodeIdx> diff::getSubtreeBfs(const SyntaxTree& Tree, NodeIdx Root) {
     return Ids;
 }
 
-Vec<NodeIdx> diff::getSubtreePostorder(
+Vec<NodeIdx> hstd::ext::diff::getSubtreePostorder(
     const SyntaxTree& Tree,
     NodeIdx           Root) {
     Vec<NodeIdx>        Postorder;
@@ -90,7 +93,7 @@ Vec<NodeIdx> diff::getSubtreePostorder(
 }
 
 
-void diff::ASTDiff::computeChangeKinds(Mapping& M) {
+void hstd::ext::diff::ASTDiff::computeChangeKinds(Mapping& M) {
     for (NodeIdx const& Id1 : src) {
         if (!M.hasSrc(Id1)) {
             src.getMutableNode(Id1).Change = ChangeKind::Delete;
@@ -132,7 +135,7 @@ void diff::ASTDiff::computeChangeKinds(Mapping& M) {
     }
 }
 
-Mapping diff::ASTDiff::greedyMatchTopDown() const {
+Mapping hstd::ext::diff::ASTDiff::greedyMatchTopDown() const {
     Mapping                      M(src.getSize() + dst.getSize());
     Func<void(NodeIdx, NodeIdx)> aux;
     aux = [&](NodeIdx srcId, NodeIdx dstId) {
@@ -153,7 +156,7 @@ Mapping diff::ASTDiff::greedyMatchTopDown() const {
     return M;
 }
 
-Mapping diff::ASTDiff::matchTopDown() const {
+Mapping hstd::ext::diff::ASTDiff::matchTopDown() const {
     PriorityList L1(src);
     PriorityList L2(dst);
     Mapping      M(src.getSize() + dst.getSize());
@@ -210,7 +213,7 @@ Mapping diff::ASTDiff::matchTopDown() const {
     return M;
 }
 
-void diff::ASTDiff::matchBottomUp(Mapping& M) const {
+void hstd::ext::diff::ASTDiff::matchBottomUp(Mapping& M) const {
     Vec<NodeIdx> Postorder = getSubtreePostorder(src, src.getRootId());
     // for all nodes in left, if node itself is not matched, but
     // has any children matched
@@ -245,7 +248,9 @@ void diff::ASTDiff::matchBottomUp(Mapping& M) const {
     }
 }
 
-NodeIdx diff::ASTDiff::findCandidate(const Mapping& M, NodeIdx Id1) const {
+NodeIdx hstd::ext::diff::ASTDiff::findCandidate(
+    const Mapping& M,
+    NodeIdx        Id1) const {
     NodeIdx Candidate;
     double  HighestSimilarity = 0.0;
     for (NodeIdx const& Id2 : dst) {

@@ -120,32 +120,32 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::AstTrackingGroup>(m, "VecOfAstTrackingGroup", type_registry_guard);
   bind_vector<SequenceAnnotation>(m, "VecOfSequenceAnnotation", type_registry_guard);
   bind_vector<SequenceSegmentGroup>(m, "VecOfSequenceSegmentGroup", type_registry_guard);
-  pybind11::class_<sem::Org, sem::SemId<sem::Org>>(m, "Org")
-    .def_readwrite("loc", &sem::Org::loc, R"RAW(\brief Location of the node in the original source file)RAW")
-    .def_readwrite("subnodes", &sem::Org::subnodes, R"RAW(\brief List of subnodes.
+  pybind11::class_<org::sem::Org, org::sem::SemId<org::sem::Org>>(m, "Org")
+    .def_readwrite("loc", &org::sem::Org::loc, R"RAW(\brief Location of the node in the original source file)RAW")
+    .def_readwrite("subnodes", &org::sem::Org::subnodes, R"RAW(\brief List of subnodes.
 
 Some of the derived nodes don't make the use of subnode list
 (word, punctuation etc), but it was left on the top level of the
 hierarchy for conveinience purposes. It is not expected that 'any'
 node can have subnodes.)RAW")
-    .def("getKind", static_cast<OrgSemKind(sem::Org::*)() const>(&sem::Org::getKind), R"RAW(\brief Get kind of this sem node)RAW")
-    .def("isGenerated", static_cast<bool(sem::Org::*)() const>(&sem::Org::isGenerated), R"RAW(\brief Whether original node adapter is missing)RAW")
+    .def("getKind", static_cast<OrgSemKind(org::sem::Org::*)() const>(&org::sem::Org::getKind), R"RAW(\brief Get kind of this sem node)RAW")
+    .def("isGenerated", static_cast<bool(org::sem::Org::*)() const>(&org::sem::Org::isGenerated), R"RAW(\brief Whether original node adapter is missing)RAW")
     .def("push_back",
-         static_cast<void(sem::Org::*)(sem::SemId<sem::Org>)>(&sem::Org::push_back),
+         static_cast<void(org::sem::Org::*)(sem::SemId<sem::Org>)>(&org::sem::Org::push_back),
          pybind11::arg("sub"))
     .def("insert",
-         static_cast<void(sem::Org::*)(int, sem::SemId<sem::Org>)>(&sem::Org::insert),
+         static_cast<void(org::sem::Org::*)(int, sem::SemId<sem::Org>)>(&org::sem::Org::insert),
          pybind11::arg("pos"),
          pybind11::arg("node"))
     .def("at",
-         static_cast<sem::SemId<sem::Org>(sem::Org::*)(int) const>(&sem::Org::at),
+         static_cast<sem::SemId<sem::Org>(org::sem::Org::*)(int) const>(&org::sem::Org::at),
          pybind11::arg("idx"),
          R"RAW(\brief Get subnode at specified index)RAW")
     .def("is_",
-         static_cast<bool(sem::Org::*)(OrgSemKind) const>(&sem::Org::is),
+         static_cast<bool(org::sem::Org::*)(OrgSemKind) const>(&org::sem::Org::is),
          pybind11::arg("kind"))
     .def("__getitem__",
-         static_cast<org::sem::SemId<org::sem::Org>(sem::Org::*)(int) const>(&sem::Org::at),
+         static_cast<org::sem::SemId<org::sem::Org>(org::sem::Org::*)(int) const>(&org::sem::Org::at),
          pybind11::arg("idx"))
     .def("__iter__",
          [](org::sem::Org const& node) -> auto {
@@ -2535,566 +2535,566 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::None, sem::SemId<sem::None>, org::sem::Org>(m, "None")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::None {
-                        sem::None result{};
+  pybind11::class_<org::sem::None, org::sem::SemId<org::sem::None>, org::sem::Org>(m, "None")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::None {
+                        org::sem::None result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("__repr__", [](sem::None _self) -> std::string {
+    .def("__repr__", [](org::sem::None _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::None _self, std::string name) -> pybind11::object {
+         [](org::sem::None _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::ErrorItem, sem::SemId<sem::ErrorItem>, org::sem::Org>(m, "ErrorItem")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::ErrorItem {
-                        sem::ErrorItem result{};
+  pybind11::class_<org::sem::ErrorItem, org::sem::SemId<org::sem::ErrorItem>, org::sem::Org>(m, "ErrorItem")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::ErrorItem {
+                        org::sem::ErrorItem result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("message", &sem::ErrorItem::message)
-    .def_readwrite("function", &sem::ErrorItem::function, R"RAW(Conversion function name where the error was created)RAW")
-    .def_readwrite("line", &sem::ErrorItem::line, R"RAW(Line number for the conversion where the error was created)RAW")
-    .def("__repr__", [](sem::ErrorItem _self) -> std::string {
+    .def_readwrite("message", &org::sem::ErrorItem::message)
+    .def_readwrite("function", &org::sem::ErrorItem::function, R"RAW(Conversion function name where the error was created)RAW")
+    .def_readwrite("line", &org::sem::ErrorItem::line, R"RAW(Line number for the conversion where the error was created)RAW")
+    .def("__repr__", [](org::sem::ErrorItem _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::ErrorItem _self, std::string name) -> pybind11::object {
+         [](org::sem::ErrorItem _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::ErrorGroup, sem::SemId<sem::ErrorGroup>, org::sem::Org>(m, "ErrorGroup")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::ErrorGroup {
-                        sem::ErrorGroup result{};
+  pybind11::class_<org::sem::ErrorGroup, org::sem::SemId<org::sem::ErrorGroup>, org::sem::Org>(m, "ErrorGroup")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::ErrorGroup {
+                        org::sem::ErrorGroup result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("diagnostics", &sem::ErrorGroup::diagnostics)
-    .def_readwrite("function", &sem::ErrorGroup::function, R"RAW(Conversion function name where the error was created)RAW")
-    .def_readwrite("line", &sem::ErrorGroup::line, R"RAW(Line number for the conversion where the error was created)RAW")
-    .def("__repr__", [](sem::ErrorGroup _self) -> std::string {
+    .def_readwrite("diagnostics", &org::sem::ErrorGroup::diagnostics)
+    .def_readwrite("function", &org::sem::ErrorGroup::function, R"RAW(Conversion function name where the error was created)RAW")
+    .def_readwrite("line", &org::sem::ErrorGroup::line, R"RAW(Line number for the conversion where the error was created)RAW")
+    .def("__repr__", [](org::sem::ErrorGroup _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::ErrorGroup _self, std::string name) -> pybind11::object {
+         [](org::sem::ErrorGroup _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Stmt, sem::SemId<sem::Stmt>, org::sem::Org>(m, "Stmt")
-    .def_readwrite("attached", &sem::Stmt::attached)
+  pybind11::class_<org::sem::Stmt, org::sem::SemId<org::sem::Stmt>, org::sem::Org>(m, "Stmt")
+    .def_readwrite("attached", &org::sem::Stmt::attached)
     .def("getAttached",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::Stmt::*)(hstd::Opt<hstd::Str> const&) const>(&sem::Stmt::getAttached),
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Stmt::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Stmt::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
-    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::Stmt::*)() const>(&sem::Stmt::getCaption))
-    .def("getName", static_cast<hstd::Vec<hstd::Str>(sem::Stmt::*)() const>(&sem::Stmt::getName))
+    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Stmt::*)() const>(&org::sem::Stmt::getCaption))
+    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::Stmt::*)() const>(&org::sem::Stmt::getName))
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::Stmt::*)(hstd::Opt<hstd::Str> const&) const>(&sem::Stmt::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::Stmt::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Stmt::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::Stmt::*)(hstd::Str const&) const>(&sem::Stmt::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::Stmt::*)(hstd::Str const&) const>(&org::sem::Stmt::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     ;
-  pybind11::class_<sem::Inline, sem::SemId<sem::Inline>, org::sem::Org>(m, "Inline")
+  pybind11::class_<org::sem::Inline, org::sem::SemId<org::sem::Inline>, org::sem::Org>(m, "Inline")
     ;
-  pybind11::class_<sem::StmtList, sem::SemId<sem::StmtList>, org::sem::Org>(m, "StmtList")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::StmtList {
-                        sem::StmtList result{};
+  pybind11::class_<org::sem::StmtList, org::sem::SemId<org::sem::StmtList>, org::sem::Org>(m, "StmtList")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::StmtList {
+                        org::sem::StmtList result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("__repr__", [](sem::StmtList _self) -> std::string {
+    .def("__repr__", [](org::sem::StmtList _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::StmtList _self, std::string name) -> pybind11::object {
+         [](org::sem::StmtList _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Empty, sem::SemId<sem::Empty>, org::sem::Org>(m, "Empty")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Empty {
-                        sem::Empty result{};
+  pybind11::class_<org::sem::Empty, org::sem::SemId<org::sem::Empty>, org::sem::Org>(m, "Empty")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Empty {
+                        org::sem::Empty result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("__repr__", [](sem::Empty _self) -> std::string {
+    .def("__repr__", [](org::sem::Empty _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::Empty _self, std::string name) -> pybind11::object {
+         [](org::sem::Empty _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Cmd, sem::SemId<sem::Cmd>, org::sem::Stmt>(m, "Cmd")
-    .def_readwrite("attrs", &sem::Cmd::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
-    .def_readwrite("attached", &sem::Cmd::attached)
+  pybind11::class_<org::sem::Cmd, org::sem::SemId<org::sem::Cmd>, org::sem::Stmt>(m, "Cmd")
+    .def_readwrite("attrs", &org::sem::Cmd::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &org::sem::Cmd::attached)
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::Cmd::*)(hstd::Opt<hstd::Str> const&) const>(&sem::Cmd::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::Cmd::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Cmd::getAttrs),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::Cmd::*)(hstd::Str const&) const>(&sem::Cmd::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::Cmd::*)(hstd::Str const&) const>(&org::sem::Cmd::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::Cmd::*)(hstd::Opt<hstd::Str> const&) const>(&sem::Cmd::getAttached),
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Cmd::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Cmd::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
-    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::Cmd::*)() const>(&sem::Cmd::getCaption))
-    .def("getName", static_cast<hstd::Vec<hstd::Str>(sem::Cmd::*)() const>(&sem::Cmd::getName))
+    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Cmd::*)() const>(&org::sem::Cmd::getCaption))
+    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::Cmd::*)() const>(&org::sem::Cmd::getName))
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::Cmd::*)(hstd::Opt<hstd::Str> const&) const>(&sem::Cmd::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::Cmd::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Cmd::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::Cmd::*)(hstd::Str const&) const>(&sem::Cmd::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::Cmd::*)(hstd::Str const&) const>(&org::sem::Cmd::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     ;
-  pybind11::class_<sem::Block, sem::SemId<sem::Block>, org::sem::Cmd>(m, "Block")
-    .def_readwrite("attrs", &sem::Block::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
-    .def_readwrite("attached", &sem::Block::attached)
+  pybind11::class_<org::sem::Block, org::sem::SemId<org::sem::Block>, org::sem::Cmd>(m, "Block")
+    .def_readwrite("attrs", &org::sem::Block::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &org::sem::Block::attached)
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::Block::*)(hstd::Opt<hstd::Str> const&) const>(&sem::Block::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::Block::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Block::getAttrs),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::Block::*)(hstd::Str const&) const>(&sem::Block::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::Block::*)(hstd::Str const&) const>(&org::sem::Block::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::Block::*)(hstd::Opt<hstd::Str> const&) const>(&sem::Block::getAttached),
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Block::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Block::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
-    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::Block::*)() const>(&sem::Block::getCaption))
-    .def("getName", static_cast<hstd::Vec<hstd::Str>(sem::Block::*)() const>(&sem::Block::getName))
+    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Block::*)() const>(&org::sem::Block::getCaption))
+    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::Block::*)() const>(&org::sem::Block::getName))
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::Block::*)(hstd::Opt<hstd::Str> const&) const>(&sem::Block::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::Block::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Block::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::Block::*)(hstd::Str const&) const>(&sem::Block::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::Block::*)(hstd::Str const&) const>(&org::sem::Block::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     ;
-  pybind11::class_<sem::LineCommand, sem::SemId<sem::LineCommand>, org::sem::Cmd>(m, "LineCommand")
-    .def_readwrite("attrs", &sem::LineCommand::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
-    .def_readwrite("attached", &sem::LineCommand::attached)
+  pybind11::class_<org::sem::LineCommand, org::sem::SemId<org::sem::LineCommand>, org::sem::Cmd>(m, "LineCommand")
+    .def_readwrite("attrs", &org::sem::LineCommand::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &org::sem::LineCommand::attached)
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::LineCommand::*)(hstd::Opt<hstd::Str> const&) const>(&sem::LineCommand::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::LineCommand::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::LineCommand::getAttrs),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::LineCommand::*)(hstd::Str const&) const>(&sem::LineCommand::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::LineCommand::*)(hstd::Str const&) const>(&org::sem::LineCommand::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::LineCommand::*)(hstd::Opt<hstd::Str> const&) const>(&sem::LineCommand::getAttached),
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::LineCommand::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::LineCommand::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
-    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::LineCommand::*)() const>(&sem::LineCommand::getCaption))
-    .def("getName", static_cast<hstd::Vec<hstd::Str>(sem::LineCommand::*)() const>(&sem::LineCommand::getName))
+    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::LineCommand::*)() const>(&org::sem::LineCommand::getCaption))
+    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::LineCommand::*)() const>(&org::sem::LineCommand::getName))
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::LineCommand::*)(hstd::Opt<hstd::Str> const&) const>(&sem::LineCommand::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::LineCommand::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::LineCommand::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::LineCommand::*)(hstd::Str const&) const>(&sem::LineCommand::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::LineCommand::*)(hstd::Str const&) const>(&org::sem::LineCommand::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     ;
-  pybind11::class_<sem::Attached, sem::SemId<sem::Attached>, org::sem::LineCommand>(m, "Attached")
-    .def_readwrite("attrs", &sem::Attached::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
-    .def_readwrite("attached", &sem::Attached::attached)
+  pybind11::class_<org::sem::Attached, org::sem::SemId<org::sem::Attached>, org::sem::LineCommand>(m, "Attached")
+    .def_readwrite("attrs", &org::sem::Attached::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &org::sem::Attached::attached)
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::Attached::*)(hstd::Opt<hstd::Str> const&) const>(&sem::Attached::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::Attached::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Attached::getAttrs),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::Attached::*)(hstd::Str const&) const>(&sem::Attached::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::Attached::*)(hstd::Str const&) const>(&org::sem::Attached::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::Attached::*)(hstd::Opt<hstd::Str> const&) const>(&sem::Attached::getAttached),
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Attached::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Attached::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
-    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::Attached::*)() const>(&sem::Attached::getCaption))
-    .def("getName", static_cast<hstd::Vec<hstd::Str>(sem::Attached::*)() const>(&sem::Attached::getName))
+    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Attached::*)() const>(&org::sem::Attached::getCaption))
+    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::Attached::*)() const>(&org::sem::Attached::getName))
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::Attached::*)(hstd::Opt<hstd::Str> const&) const>(&sem::Attached::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::Attached::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Attached::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::Attached::*)(hstd::Str const&) const>(&sem::Attached::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::Attached::*)(hstd::Str const&) const>(&org::sem::Attached::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     ;
-  pybind11::class_<sem::Leaf, sem::SemId<sem::Leaf>, org::sem::Org>(m, "Leaf")
-    .def_readwrite("text", &sem::Leaf::text, R"RAW(Final leaf value)RAW")
-    .def("getText", static_cast<hstd::Str(sem::Leaf::*)() const>(&sem::Leaf::getText))
+  pybind11::class_<org::sem::Leaf, org::sem::SemId<org::sem::Leaf>, org::sem::Org>(m, "Leaf")
+    .def_readwrite("text", &org::sem::Leaf::text, R"RAW(Final leaf value)RAW")
+    .def("getText", static_cast<hstd::Str(org::sem::Leaf::*)() const>(&org::sem::Leaf::getText))
     ;
-  pybind11::class_<sem::CmdCaption, sem::SemId<sem::CmdCaption>, org::sem::Attached>(m, "CmdCaption")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdCaption {
-                        sem::CmdCaption result{};
+  pybind11::class_<org::sem::CmdCaption, org::sem::SemId<org::sem::CmdCaption>, org::sem::Attached>(m, "CmdCaption")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdCaption {
+                        org::sem::CmdCaption result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("text", &sem::CmdCaption::text, R"RAW(Content description)RAW")
-    .def_readwrite("attrs", &sem::CmdCaption::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
-    .def_readwrite("attached", &sem::CmdCaption::attached)
+    .def_readwrite("text", &org::sem::CmdCaption::text, R"RAW(Content description)RAW")
+    .def_readwrite("attrs", &org::sem::CmdCaption::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &org::sem::CmdCaption::attached)
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::CmdCaption::*)(hstd::Opt<hstd::Str> const&) const>(&sem::CmdCaption::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::CmdCaption::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::CmdCaption::getAttrs),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::CmdCaption::*)(hstd::Str const&) const>(&sem::CmdCaption::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::CmdCaption::*)(hstd::Str const&) const>(&org::sem::CmdCaption::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::CmdCaption::*)(hstd::Opt<hstd::Str> const&) const>(&sem::CmdCaption::getAttached),
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::CmdCaption::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::CmdCaption::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
-    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::CmdCaption::*)() const>(&sem::CmdCaption::getCaption))
-    .def("getName", static_cast<hstd::Vec<hstd::Str>(sem::CmdCaption::*)() const>(&sem::CmdCaption::getName))
+    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::CmdCaption::*)() const>(&org::sem::CmdCaption::getCaption))
+    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::CmdCaption::*)() const>(&org::sem::CmdCaption::getName))
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::CmdCaption::*)(hstd::Opt<hstd::Str> const&) const>(&sem::CmdCaption::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::CmdCaption::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::CmdCaption::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::CmdCaption::*)(hstd::Str const&) const>(&sem::CmdCaption::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::CmdCaption::*)(hstd::Str const&) const>(&org::sem::CmdCaption::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
-    .def("__repr__", [](sem::CmdCaption _self) -> std::string {
+    .def("__repr__", [](org::sem::CmdCaption _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::CmdCaption _self, std::string name) -> pybind11::object {
+         [](org::sem::CmdCaption _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::CmdColumns, sem::SemId<sem::CmdColumns>, org::sem::Attached>(m, "CmdColumns")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdColumns {
-                        sem::CmdColumns result{};
+  pybind11::class_<org::sem::CmdColumns, org::sem::SemId<org::sem::CmdColumns>, org::sem::Attached>(m, "CmdColumns")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdColumns {
+                        org::sem::CmdColumns result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("view", &sem::CmdColumns::view)
-    .def_readwrite("attrs", &sem::CmdColumns::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
-    .def_readwrite("attached", &sem::CmdColumns::attached)
+    .def_readwrite("view", &org::sem::CmdColumns::view)
+    .def_readwrite("attrs", &org::sem::CmdColumns::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &org::sem::CmdColumns::attached)
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::CmdColumns::*)(hstd::Opt<hstd::Str> const&) const>(&sem::CmdColumns::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::CmdColumns::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::CmdColumns::getAttrs),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::CmdColumns::*)(hstd::Str const&) const>(&sem::CmdColumns::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::CmdColumns::*)(hstd::Str const&) const>(&org::sem::CmdColumns::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::CmdColumns::*)(hstd::Opt<hstd::Str> const&) const>(&sem::CmdColumns::getAttached),
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::CmdColumns::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::CmdColumns::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
-    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::CmdColumns::*)() const>(&sem::CmdColumns::getCaption))
-    .def("getName", static_cast<hstd::Vec<hstd::Str>(sem::CmdColumns::*)() const>(&sem::CmdColumns::getName))
+    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::CmdColumns::*)() const>(&org::sem::CmdColumns::getCaption))
+    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::CmdColumns::*)() const>(&org::sem::CmdColumns::getName))
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::CmdColumns::*)(hstd::Opt<hstd::Str> const&) const>(&sem::CmdColumns::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::CmdColumns::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::CmdColumns::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::CmdColumns::*)(hstd::Str const&) const>(&sem::CmdColumns::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::CmdColumns::*)(hstd::Str const&) const>(&org::sem::CmdColumns::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
-    .def("__repr__", [](sem::CmdColumns _self) -> std::string {
+    .def("__repr__", [](org::sem::CmdColumns _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::CmdColumns _self, std::string name) -> pybind11::object {
+         [](org::sem::CmdColumns _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::CmdName, sem::SemId<sem::CmdName>, org::sem::Attached>(m, "CmdName")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdName {
-                        sem::CmdName result{};
+  pybind11::class_<org::sem::CmdName, org::sem::SemId<org::sem::CmdName>, org::sem::Attached>(m, "CmdName")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdName {
+                        org::sem::CmdName result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("name", &sem::CmdName::name)
-    .def_readwrite("attrs", &sem::CmdName::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
-    .def_readwrite("attached", &sem::CmdName::attached)
+    .def_readwrite("name", &org::sem::CmdName::name)
+    .def_readwrite("attrs", &org::sem::CmdName::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &org::sem::CmdName::attached)
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::CmdName::*)(hstd::Opt<hstd::Str> const&) const>(&sem::CmdName::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::CmdName::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::CmdName::getAttrs),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::CmdName::*)(hstd::Str const&) const>(&sem::CmdName::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::CmdName::*)(hstd::Str const&) const>(&org::sem::CmdName::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::CmdName::*)(hstd::Opt<hstd::Str> const&) const>(&sem::CmdName::getAttached),
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::CmdName::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::CmdName::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
-    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::CmdName::*)() const>(&sem::CmdName::getCaption))
-    .def("getName", static_cast<hstd::Vec<hstd::Str>(sem::CmdName::*)() const>(&sem::CmdName::getName))
+    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::CmdName::*)() const>(&org::sem::CmdName::getCaption))
+    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::CmdName::*)() const>(&org::sem::CmdName::getName))
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::CmdName::*)(hstd::Opt<hstd::Str> const&) const>(&sem::CmdName::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::CmdName::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::CmdName::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::CmdName::*)(hstd::Str const&) const>(&sem::CmdName::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::CmdName::*)(hstd::Str const&) const>(&org::sem::CmdName::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
-    .def("__repr__", [](sem::CmdName _self) -> std::string {
+    .def("__repr__", [](org::sem::CmdName _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::CmdName _self, std::string name) -> pybind11::object {
+         [](org::sem::CmdName _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::CmdCustomArgs, sem::SemId<sem::CmdCustomArgs>, org::sem::Cmd>(m, "CmdCustomArgs")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdCustomArgs {
-                        sem::CmdCustomArgs result{};
+  pybind11::class_<org::sem::CmdCustomArgs, org::sem::SemId<org::sem::CmdCustomArgs>, org::sem::Cmd>(m, "CmdCustomArgs")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdCustomArgs {
+                        org::sem::CmdCustomArgs result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("name", &sem::CmdCustomArgs::name)
-    .def_readwrite("isAttached", &sem::CmdCustomArgs::isAttached)
-    .def_readwrite("attrs", &sem::CmdCustomArgs::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
-    .def_readwrite("attached", &sem::CmdCustomArgs::attached)
+    .def_readwrite("name", &org::sem::CmdCustomArgs::name)
+    .def_readwrite("isAttached", &org::sem::CmdCustomArgs::isAttached)
+    .def_readwrite("attrs", &org::sem::CmdCustomArgs::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &org::sem::CmdCustomArgs::attached)
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::CmdCustomArgs::*)(hstd::Opt<hstd::Str> const&) const>(&sem::CmdCustomArgs::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::CmdCustomArgs::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::CmdCustomArgs::getAttrs),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::CmdCustomArgs::*)(hstd::Str const&) const>(&sem::CmdCustomArgs::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::CmdCustomArgs::*)(hstd::Str const&) const>(&org::sem::CmdCustomArgs::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::CmdCustomArgs::*)(hstd::Opt<hstd::Str> const&) const>(&sem::CmdCustomArgs::getAttached),
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::CmdCustomArgs::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::CmdCustomArgs::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
-    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::CmdCustomArgs::*)() const>(&sem::CmdCustomArgs::getCaption))
-    .def("getName", static_cast<hstd::Vec<hstd::Str>(sem::CmdCustomArgs::*)() const>(&sem::CmdCustomArgs::getName))
+    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::CmdCustomArgs::*)() const>(&org::sem::CmdCustomArgs::getCaption))
+    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::CmdCustomArgs::*)() const>(&org::sem::CmdCustomArgs::getName))
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::CmdCustomArgs::*)(hstd::Opt<hstd::Str> const&) const>(&sem::CmdCustomArgs::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::CmdCustomArgs::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::CmdCustomArgs::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::CmdCustomArgs::*)(hstd::Str const&) const>(&sem::CmdCustomArgs::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::CmdCustomArgs::*)(hstd::Str const&) const>(&org::sem::CmdCustomArgs::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
-    .def("__repr__", [](sem::CmdCustomArgs _self) -> std::string {
+    .def("__repr__", [](org::sem::CmdCustomArgs _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::CmdCustomArgs _self, std::string name) -> pybind11::object {
+         [](org::sem::CmdCustomArgs _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::CmdCustomRaw, sem::SemId<sem::CmdCustomRaw>, org::sem::Stmt>(m, "CmdCustomRaw")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdCustomRaw {
-                        sem::CmdCustomRaw result{};
+  pybind11::class_<org::sem::CmdCustomRaw, org::sem::SemId<org::sem::CmdCustomRaw>, org::sem::Stmt>(m, "CmdCustomRaw")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdCustomRaw {
+                        org::sem::CmdCustomRaw result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("name", &sem::CmdCustomRaw::name)
-    .def_readwrite("isAttached", &sem::CmdCustomRaw::isAttached)
-    .def_readwrite("text", &sem::CmdCustomRaw::text)
-    .def_readwrite("attached", &sem::CmdCustomRaw::attached)
+    .def_readwrite("name", &org::sem::CmdCustomRaw::name)
+    .def_readwrite("isAttached", &org::sem::CmdCustomRaw::isAttached)
+    .def_readwrite("text", &org::sem::CmdCustomRaw::text)
+    .def_readwrite("attached", &org::sem::CmdCustomRaw::attached)
     .def("getAttached",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::CmdCustomRaw::*)(hstd::Opt<hstd::Str> const&) const>(&sem::CmdCustomRaw::getAttached),
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::CmdCustomRaw::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::CmdCustomRaw::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
-    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::CmdCustomRaw::*)() const>(&sem::CmdCustomRaw::getCaption))
-    .def("getName", static_cast<hstd::Vec<hstd::Str>(sem::CmdCustomRaw::*)() const>(&sem::CmdCustomRaw::getName))
+    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::CmdCustomRaw::*)() const>(&org::sem::CmdCustomRaw::getCaption))
+    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::CmdCustomRaw::*)() const>(&org::sem::CmdCustomRaw::getName))
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::CmdCustomRaw::*)(hstd::Opt<hstd::Str> const&) const>(&sem::CmdCustomRaw::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::CmdCustomRaw::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::CmdCustomRaw::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::CmdCustomRaw::*)(hstd::Str const&) const>(&sem::CmdCustomRaw::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::CmdCustomRaw::*)(hstd::Str const&) const>(&org::sem::CmdCustomRaw::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
-    .def("__repr__", [](sem::CmdCustomRaw _self) -> std::string {
+    .def("__repr__", [](org::sem::CmdCustomRaw _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::CmdCustomRaw _self, std::string name) -> pybind11::object {
+         [](org::sem::CmdCustomRaw _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::CmdCustomText, sem::SemId<sem::CmdCustomText>, org::sem::Stmt>(m, "CmdCustomText")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdCustomText {
-                        sem::CmdCustomText result{};
+  pybind11::class_<org::sem::CmdCustomText, org::sem::SemId<org::sem::CmdCustomText>, org::sem::Stmt>(m, "CmdCustomText")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdCustomText {
+                        org::sem::CmdCustomText result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("name", &sem::CmdCustomText::name)
-    .def_readwrite("isAttached", &sem::CmdCustomText::isAttached)
-    .def_readwrite("text", &sem::CmdCustomText::text)
-    .def_readwrite("attached", &sem::CmdCustomText::attached)
+    .def_readwrite("name", &org::sem::CmdCustomText::name)
+    .def_readwrite("isAttached", &org::sem::CmdCustomText::isAttached)
+    .def_readwrite("text", &org::sem::CmdCustomText::text)
+    .def_readwrite("attached", &org::sem::CmdCustomText::attached)
     .def("getAttached",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::CmdCustomText::*)(hstd::Opt<hstd::Str> const&) const>(&sem::CmdCustomText::getAttached),
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::CmdCustomText::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::CmdCustomText::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
-    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::CmdCustomText::*)() const>(&sem::CmdCustomText::getCaption))
-    .def("getName", static_cast<hstd::Vec<hstd::Str>(sem::CmdCustomText::*)() const>(&sem::CmdCustomText::getName))
+    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::CmdCustomText::*)() const>(&org::sem::CmdCustomText::getCaption))
+    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::CmdCustomText::*)() const>(&org::sem::CmdCustomText::getName))
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::CmdCustomText::*)(hstd::Opt<hstd::Str> const&) const>(&sem::CmdCustomText::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::CmdCustomText::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::CmdCustomText::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::CmdCustomText::*)(hstd::Str const&) const>(&sem::CmdCustomText::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::CmdCustomText::*)(hstd::Str const&) const>(&org::sem::CmdCustomText::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
-    .def("__repr__", [](sem::CmdCustomText _self) -> std::string {
+    .def("__repr__", [](org::sem::CmdCustomText _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::CmdCustomText _self, std::string name) -> pybind11::object {
+         [](org::sem::CmdCustomText _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::CmdResults, sem::SemId<sem::CmdResults>, org::sem::Attached>(m, "CmdResults")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdResults {
-                        sem::CmdResults result{};
+  pybind11::class_<org::sem::CmdResults, org::sem::SemId<org::sem::CmdResults>, org::sem::Attached>(m, "CmdResults")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdResults {
+                        org::sem::CmdResults result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("attrs", &sem::CmdResults::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
-    .def_readwrite("attached", &sem::CmdResults::attached)
+    .def_readwrite("attrs", &org::sem::CmdResults::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &org::sem::CmdResults::attached)
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::CmdResults::*)(hstd::Opt<hstd::Str> const&) const>(&sem::CmdResults::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::CmdResults::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::CmdResults::getAttrs),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::CmdResults::*)(hstd::Str const&) const>(&sem::CmdResults::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::CmdResults::*)(hstd::Str const&) const>(&org::sem::CmdResults::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::CmdResults::*)(hstd::Opt<hstd::Str> const&) const>(&sem::CmdResults::getAttached),
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::CmdResults::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::CmdResults::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
-    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::CmdResults::*)() const>(&sem::CmdResults::getCaption))
-    .def("getName", static_cast<hstd::Vec<hstd::Str>(sem::CmdResults::*)() const>(&sem::CmdResults::getName))
+    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::CmdResults::*)() const>(&org::sem::CmdResults::getCaption))
+    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::CmdResults::*)() const>(&org::sem::CmdResults::getName))
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::CmdResults::*)(hstd::Opt<hstd::Str> const&) const>(&sem::CmdResults::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::CmdResults::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::CmdResults::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::CmdResults::*)(hstd::Str const&) const>(&sem::CmdResults::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::CmdResults::*)(hstd::Str const&) const>(&org::sem::CmdResults::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
-    .def("__repr__", [](sem::CmdResults _self) -> std::string {
+    .def("__repr__", [](org::sem::CmdResults _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::CmdResults _self, std::string name) -> pybind11::object {
+         [](org::sem::CmdResults _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::CmdTblfm, sem::SemId<sem::CmdTblfm>, org::sem::Cmd>(m, "CmdTblfm")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdTblfm {
-                        sem::CmdTblfm result{};
+  pybind11::class_<org::sem::CmdTblfm, org::sem::SemId<org::sem::CmdTblfm>, org::sem::Cmd>(m, "CmdTblfm")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdTblfm {
+                        org::sem::CmdTblfm result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("expr", &sem::CmdTblfm::expr)
-    .def_readwrite("attrs", &sem::CmdTblfm::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
-    .def_readwrite("attached", &sem::CmdTblfm::attached)
+    .def_readwrite("expr", &org::sem::CmdTblfm::expr)
+    .def_readwrite("attrs", &org::sem::CmdTblfm::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &org::sem::CmdTblfm::attached)
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::CmdTblfm::*)(hstd::Opt<hstd::Str> const&) const>(&sem::CmdTblfm::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::CmdTblfm::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::CmdTblfm::getAttrs),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::CmdTblfm::*)(hstd::Str const&) const>(&sem::CmdTblfm::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::CmdTblfm::*)(hstd::Str const&) const>(&org::sem::CmdTblfm::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::CmdTblfm::*)(hstd::Opt<hstd::Str> const&) const>(&sem::CmdTblfm::getAttached),
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::CmdTblfm::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::CmdTblfm::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
-    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::CmdTblfm::*)() const>(&sem::CmdTblfm::getCaption))
-    .def("getName", static_cast<hstd::Vec<hstd::Str>(sem::CmdTblfm::*)() const>(&sem::CmdTblfm::getName))
+    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::CmdTblfm::*)() const>(&org::sem::CmdTblfm::getCaption))
+    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::CmdTblfm::*)() const>(&org::sem::CmdTblfm::getName))
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::CmdTblfm::*)(hstd::Opt<hstd::Str> const&) const>(&sem::CmdTblfm::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::CmdTblfm::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::CmdTblfm::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::CmdTblfm::*)(hstd::Str const&) const>(&sem::CmdTblfm::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::CmdTblfm::*)(hstd::Str const&) const>(&org::sem::CmdTblfm::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
-    .def("__repr__", [](sem::CmdTblfm _self) -> std::string {
+    .def("__repr__", [](org::sem::CmdTblfm _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::CmdTblfm _self, std::string name) -> pybind11::object {
+         [](org::sem::CmdTblfm _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::HashTag, sem::SemId<sem::HashTag>, org::sem::Inline>(m, "HashTag")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::HashTag {
-                        sem::HashTag result{};
+  pybind11::class_<org::sem::HashTag, org::sem::SemId<org::sem::HashTag>, org::sem::Inline>(m, "HashTag")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::HashTag {
+                        org::sem::HashTag result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("text", &sem::HashTag::text)
-    .def("__repr__", [](sem::HashTag _self) -> std::string {
+    .def_readwrite("text", &org::sem::HashTag::text)
+    .def("__repr__", [](org::sem::HashTag _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::HashTag _self, std::string name) -> pybind11::object {
+         [](org::sem::HashTag _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::InlineFootnote, sem::SemId<sem::InlineFootnote>, org::sem::Inline>(m, "InlineFootnote")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::InlineFootnote {
-                        sem::InlineFootnote result{};
+  pybind11::class_<org::sem::InlineFootnote, org::sem::SemId<org::sem::InlineFootnote>, org::sem::Inline>(m, "InlineFootnote")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::InlineFootnote {
+                        org::sem::InlineFootnote result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("tag", &sem::InlineFootnote::tag, R"RAW(Footnote text target name)RAW")
-    .def_readwrite("definition", &sem::InlineFootnote::definition, R"RAW(Link to possibly resolved definition)RAW")
-    .def("__repr__", [](sem::InlineFootnote _self) -> std::string {
+    .def_readwrite("tag", &org::sem::InlineFootnote::tag, R"RAW(Footnote text target name)RAW")
+    .def_readwrite("definition", &org::sem::InlineFootnote::definition, R"RAW(Link to possibly resolved definition)RAW")
+    .def("__repr__", [](org::sem::InlineFootnote _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::InlineFootnote _self, std::string name) -> pybind11::object {
+         [](org::sem::InlineFootnote _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::InlineExport, sem::SemId<sem::InlineExport>, org::sem::Inline>(m, "InlineExport")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::InlineExport {
-                        sem::InlineExport result{};
+  pybind11::class_<org::sem::InlineExport, org::sem::SemId<org::sem::InlineExport>, org::sem::Inline>(m, "InlineExport")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::InlineExport {
+                        org::sem::InlineExport result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("exporter", &sem::InlineExport::exporter)
-    .def_readwrite("content", &sem::InlineExport::content)
-    .def("__repr__", [](sem::InlineExport _self) -> std::string {
+    .def_readwrite("exporter", &org::sem::InlineExport::exporter)
+    .def_readwrite("content", &org::sem::InlineExport::content)
+    .def("__repr__", [](org::sem::InlineExport _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::InlineExport _self, std::string name) -> pybind11::object {
+         [](org::sem::InlineExport _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -3186,68 +3186,68 @@ node can have subnodes.)RAW")
                      ();
                      })
     ;
-  pybind11::class_<sem::Time, sem::SemId<sem::Time>, org::sem::Org>(m, "Time")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Time {
-                        sem::Time result{};
+  pybind11::class_<org::sem::Time, org::sem::SemId<org::sem::Time>, org::sem::Org>(m, "Time")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Time {
+                        org::sem::Time result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("isActive", &sem::Time::isActive, R"RAW(<active> vs [inactive])RAW")
-    .def_readwrite("time", &sem::Time::time)
-    .def("getYear", static_cast<hstd::Opt<int>(sem::Time::*)() const>(&sem::Time::getYear))
-    .def("getMonth", static_cast<hstd::Opt<int>(sem::Time::*)() const>(&sem::Time::getMonth))
-    .def("getDay", static_cast<hstd::Opt<int>(sem::Time::*)() const>(&sem::Time::getDay))
-    .def("getHour", static_cast<hstd::Opt<int>(sem::Time::*)() const>(&sem::Time::getHour))
-    .def("getMinute", static_cast<hstd::Opt<int>(sem::Time::*)() const>(&sem::Time::getMinute))
-    .def("getSecond", static_cast<hstd::Opt<int>(sem::Time::*)() const>(&sem::Time::getSecond))
-    .def("getStaticTime", static_cast<UserTime(sem::Time::*)() const>(&sem::Time::getStaticTime))
-    .def("isStatic", static_cast<bool(sem::Time::*)() const>(&sem::Time::isStatic))
-    .def("getStatic", static_cast<sem::Time::Static&(sem::Time::*)()>(&sem::Time::getStatic))
-    .def("isDynamic", static_cast<bool(sem::Time::*)() const>(&sem::Time::isDynamic))
-    .def("getDynamic", static_cast<sem::Time::Dynamic&(sem::Time::*)()>(&sem::Time::getDynamic))
+    .def_readwrite("isActive", &org::sem::Time::isActive, R"RAW(<active> vs [inactive])RAW")
+    .def_readwrite("time", &org::sem::Time::time)
+    .def("getYear", static_cast<hstd::Opt<int>(org::sem::Time::*)() const>(&org::sem::Time::getYear))
+    .def("getMonth", static_cast<hstd::Opt<int>(org::sem::Time::*)() const>(&org::sem::Time::getMonth))
+    .def("getDay", static_cast<hstd::Opt<int>(org::sem::Time::*)() const>(&org::sem::Time::getDay))
+    .def("getHour", static_cast<hstd::Opt<int>(org::sem::Time::*)() const>(&org::sem::Time::getHour))
+    .def("getMinute", static_cast<hstd::Opt<int>(org::sem::Time::*)() const>(&org::sem::Time::getMinute))
+    .def("getSecond", static_cast<hstd::Opt<int>(org::sem::Time::*)() const>(&org::sem::Time::getSecond))
+    .def("getStaticTime", static_cast<UserTime(org::sem::Time::*)() const>(&org::sem::Time::getStaticTime))
+    .def("isStatic", static_cast<bool(org::sem::Time::*)() const>(&org::sem::Time::isStatic))
+    .def("getStatic", static_cast<sem::Time::Static&(org::sem::Time::*)()>(&org::sem::Time::getStatic))
+    .def("isDynamic", static_cast<bool(org::sem::Time::*)() const>(&org::sem::Time::isDynamic))
+    .def("getDynamic", static_cast<sem::Time::Dynamic&(org::sem::Time::*)()>(&org::sem::Time::getDynamic))
     .def_static("getTimeKindStatic",
-                static_cast<sem::Time::TimeKind(*)(sem::Time::TimeVariant const&)>(&sem::Time::getTimeKind),
+                static_cast<sem::Time::TimeKind(*)(sem::Time::TimeVariant const&)>(&org::sem::Time::getTimeKind),
                 pybind11::arg("__input"))
-    .def("getTimeKind", static_cast<sem::Time::TimeKind(sem::Time::*)() const>(&sem::Time::getTimeKind))
-    .def("__repr__", [](sem::Time _self) -> std::string {
+    .def("getTimeKind", static_cast<sem::Time::TimeKind(org::sem::Time::*)() const>(&org::sem::Time::getTimeKind))
+    .def("__repr__", [](org::sem::Time _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::Time _self, std::string name) -> pybind11::object {
+         [](org::sem::Time _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::TimeRange, sem::SemId<sem::TimeRange>, org::sem::Org>(m, "TimeRange")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::TimeRange {
-                        sem::TimeRange result{};
+  pybind11::class_<org::sem::TimeRange, org::sem::SemId<org::sem::TimeRange>, org::sem::Org>(m, "TimeRange")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::TimeRange {
+                        org::sem::TimeRange result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("from_", &sem::TimeRange::from, R"RAW(Starting time)RAW")
-    .def_readwrite("to", &sem::TimeRange::to, R"RAW(Finishing time)RAW")
-    .def("__repr__", [](sem::TimeRange _self) -> std::string {
+    .def_readwrite("from_", &org::sem::TimeRange::from, R"RAW(Starting time)RAW")
+    .def_readwrite("to", &org::sem::TimeRange::to, R"RAW(Finishing time)RAW")
+    .def("__repr__", [](org::sem::TimeRange _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::TimeRange _self, std::string name) -> pybind11::object {
+         [](org::sem::TimeRange _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Macro, sem::SemId<sem::Macro>, org::sem::Org>(m, "Macro")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Macro {
-                        sem::Macro result{};
+  pybind11::class_<org::sem::Macro, org::sem::SemId<org::sem::Macro>, org::sem::Org>(m, "Macro")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Macro {
+                        org::sem::Macro result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("name", &sem::Macro::name, R"RAW(Macro name)RAW")
-    .def_readwrite("attrs", &sem::Macro::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
-    .def("__repr__", [](sem::Macro _self) -> std::string {
+    .def_readwrite("name", &org::sem::Macro::name, R"RAW(Macro name)RAW")
+    .def_readwrite("attrs", &org::sem::Macro::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def("__repr__", [](org::sem::Macro _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::Macro _self, std::string name) -> pybind11::object {
+         [](org::sem::Macro _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -3269,1121 +3269,1121 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Symbol, sem::SemId<sem::Symbol>, org::sem::Org>(m, "Symbol")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Symbol {
-                        sem::Symbol result{};
+  pybind11::class_<org::sem::Symbol, org::sem::SemId<org::sem::Symbol>, org::sem::Org>(m, "Symbol")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Symbol {
+                        org::sem::Symbol result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("name", &sem::Symbol::name, R"RAW(Name of the symbol)RAW")
-    .def_readwrite("parameters", &sem::Symbol::parameters, R"RAW(Optional list of parameters)RAW")
-    .def_readwrite("positional", &sem::Symbol::positional, R"RAW(Positional parameters)RAW")
-    .def("__repr__", [](sem::Symbol _self) -> std::string {
+    .def_readwrite("name", &org::sem::Symbol::name, R"RAW(Name of the symbol)RAW")
+    .def_readwrite("parameters", &org::sem::Symbol::parameters, R"RAW(Optional list of parameters)RAW")
+    .def_readwrite("positional", &org::sem::Symbol::positional, R"RAW(Positional parameters)RAW")
+    .def("__repr__", [](org::sem::Symbol _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::Symbol _self, std::string name) -> pybind11::object {
+         [](org::sem::Symbol _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Escaped, sem::SemId<sem::Escaped>, org::sem::Leaf>(m, "Escaped")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Escaped {
-                        sem::Escaped result{};
+  pybind11::class_<org::sem::Escaped, org::sem::SemId<org::sem::Escaped>, org::sem::Leaf>(m, "Escaped")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Escaped {
+                        org::sem::Escaped result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("text", &sem::Escaped::text, R"RAW(Final leaf value)RAW")
-    .def("getText", static_cast<hstd::Str(sem::Escaped::*)() const>(&sem::Escaped::getText))
-    .def("__repr__", [](sem::Escaped _self) -> std::string {
+    .def_readwrite("text", &org::sem::Escaped::text, R"RAW(Final leaf value)RAW")
+    .def("getText", static_cast<hstd::Str(org::sem::Escaped::*)() const>(&org::sem::Escaped::getText))
+    .def("__repr__", [](org::sem::Escaped _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::Escaped _self, std::string name) -> pybind11::object {
+         [](org::sem::Escaped _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Newline, sem::SemId<sem::Newline>, org::sem::Leaf>(m, "Newline")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Newline {
-                        sem::Newline result{};
+  pybind11::class_<org::sem::Newline, org::sem::SemId<org::sem::Newline>, org::sem::Leaf>(m, "Newline")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Newline {
+                        org::sem::Newline result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("text", &sem::Newline::text, R"RAW(Final leaf value)RAW")
-    .def("getText", static_cast<hstd::Str(sem::Newline::*)() const>(&sem::Newline::getText))
-    .def("__repr__", [](sem::Newline _self) -> std::string {
+    .def_readwrite("text", &org::sem::Newline::text, R"RAW(Final leaf value)RAW")
+    .def("getText", static_cast<hstd::Str(org::sem::Newline::*)() const>(&org::sem::Newline::getText))
+    .def("__repr__", [](org::sem::Newline _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::Newline _self, std::string name) -> pybind11::object {
+         [](org::sem::Newline _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Space, sem::SemId<sem::Space>, org::sem::Leaf>(m, "Space")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Space {
-                        sem::Space result{};
+  pybind11::class_<org::sem::Space, org::sem::SemId<org::sem::Space>, org::sem::Leaf>(m, "Space")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Space {
+                        org::sem::Space result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("text", &sem::Space::text, R"RAW(Final leaf value)RAW")
-    .def("getText", static_cast<hstd::Str(sem::Space::*)() const>(&sem::Space::getText))
-    .def("__repr__", [](sem::Space _self) -> std::string {
+    .def_readwrite("text", &org::sem::Space::text, R"RAW(Final leaf value)RAW")
+    .def("getText", static_cast<hstd::Str(org::sem::Space::*)() const>(&org::sem::Space::getText))
+    .def("__repr__", [](org::sem::Space _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::Space _self, std::string name) -> pybind11::object {
+         [](org::sem::Space _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Word, sem::SemId<sem::Word>, org::sem::Leaf>(m, "Word")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Word {
-                        sem::Word result{};
+  pybind11::class_<org::sem::Word, org::sem::SemId<org::sem::Word>, org::sem::Leaf>(m, "Word")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Word {
+                        org::sem::Word result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("text", &sem::Word::text, R"RAW(Final leaf value)RAW")
-    .def("getText", static_cast<hstd::Str(sem::Word::*)() const>(&sem::Word::getText))
-    .def("__repr__", [](sem::Word _self) -> std::string {
+    .def_readwrite("text", &org::sem::Word::text, R"RAW(Final leaf value)RAW")
+    .def("getText", static_cast<hstd::Str(org::sem::Word::*)() const>(&org::sem::Word::getText))
+    .def("__repr__", [](org::sem::Word _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::Word _self, std::string name) -> pybind11::object {
+         [](org::sem::Word _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::AtMention, sem::SemId<sem::AtMention>, org::sem::Leaf>(m, "AtMention")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::AtMention {
-                        sem::AtMention result{};
+  pybind11::class_<org::sem::AtMention, org::sem::SemId<org::sem::AtMention>, org::sem::Leaf>(m, "AtMention")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::AtMention {
+                        org::sem::AtMention result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("text", &sem::AtMention::text, R"RAW(Final leaf value)RAW")
-    .def("getText", static_cast<hstd::Str(sem::AtMention::*)() const>(&sem::AtMention::getText))
-    .def("__repr__", [](sem::AtMention _self) -> std::string {
+    .def_readwrite("text", &org::sem::AtMention::text, R"RAW(Final leaf value)RAW")
+    .def("getText", static_cast<hstd::Str(org::sem::AtMention::*)() const>(&org::sem::AtMention::getText))
+    .def("__repr__", [](org::sem::AtMention _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::AtMention _self, std::string name) -> pybind11::object {
+         [](org::sem::AtMention _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::RawText, sem::SemId<sem::RawText>, org::sem::Leaf>(m, "RawText")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::RawText {
-                        sem::RawText result{};
+  pybind11::class_<org::sem::RawText, org::sem::SemId<org::sem::RawText>, org::sem::Leaf>(m, "RawText")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::RawText {
+                        org::sem::RawText result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("text", &sem::RawText::text, R"RAW(Final leaf value)RAW")
-    .def("getText", static_cast<hstd::Str(sem::RawText::*)() const>(&sem::RawText::getText))
-    .def("__repr__", [](sem::RawText _self) -> std::string {
+    .def_readwrite("text", &org::sem::RawText::text, R"RAW(Final leaf value)RAW")
+    .def("getText", static_cast<hstd::Str(org::sem::RawText::*)() const>(&org::sem::RawText::getText))
+    .def("__repr__", [](org::sem::RawText _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::RawText _self, std::string name) -> pybind11::object {
+         [](org::sem::RawText _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Punctuation, sem::SemId<sem::Punctuation>, org::sem::Leaf>(m, "Punctuation")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Punctuation {
-                        sem::Punctuation result{};
+  pybind11::class_<org::sem::Punctuation, org::sem::SemId<org::sem::Punctuation>, org::sem::Leaf>(m, "Punctuation")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Punctuation {
+                        org::sem::Punctuation result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("text", &sem::Punctuation::text, R"RAW(Final leaf value)RAW")
-    .def("getText", static_cast<hstd::Str(sem::Punctuation::*)() const>(&sem::Punctuation::getText))
-    .def("__repr__", [](sem::Punctuation _self) -> std::string {
+    .def_readwrite("text", &org::sem::Punctuation::text, R"RAW(Final leaf value)RAW")
+    .def("getText", static_cast<hstd::Str(org::sem::Punctuation::*)() const>(&org::sem::Punctuation::getText))
+    .def("__repr__", [](org::sem::Punctuation _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::Punctuation _self, std::string name) -> pybind11::object {
+         [](org::sem::Punctuation _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Placeholder, sem::SemId<sem::Placeholder>, org::sem::Leaf>(m, "Placeholder")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Placeholder {
-                        sem::Placeholder result{};
+  pybind11::class_<org::sem::Placeholder, org::sem::SemId<org::sem::Placeholder>, org::sem::Leaf>(m, "Placeholder")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Placeholder {
+                        org::sem::Placeholder result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("text", &sem::Placeholder::text, R"RAW(Final leaf value)RAW")
-    .def("getText", static_cast<hstd::Str(sem::Placeholder::*)() const>(&sem::Placeholder::getText))
-    .def("__repr__", [](sem::Placeholder _self) -> std::string {
+    .def_readwrite("text", &org::sem::Placeholder::text, R"RAW(Final leaf value)RAW")
+    .def("getText", static_cast<hstd::Str(org::sem::Placeholder::*)() const>(&org::sem::Placeholder::getText))
+    .def("__repr__", [](org::sem::Placeholder _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::Placeholder _self, std::string name) -> pybind11::object {
+         [](org::sem::Placeholder _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::BigIdent, sem::SemId<sem::BigIdent>, org::sem::Leaf>(m, "BigIdent")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BigIdent {
-                        sem::BigIdent result{};
+  pybind11::class_<org::sem::BigIdent, org::sem::SemId<org::sem::BigIdent>, org::sem::Leaf>(m, "BigIdent")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BigIdent {
+                        org::sem::BigIdent result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("text", &sem::BigIdent::text, R"RAW(Final leaf value)RAW")
-    .def("getText", static_cast<hstd::Str(sem::BigIdent::*)() const>(&sem::BigIdent::getText))
-    .def("__repr__", [](sem::BigIdent _self) -> std::string {
+    .def_readwrite("text", &org::sem::BigIdent::text, R"RAW(Final leaf value)RAW")
+    .def("getText", static_cast<hstd::Str(org::sem::BigIdent::*)() const>(&org::sem::BigIdent::getText))
+    .def("__repr__", [](org::sem::BigIdent _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::BigIdent _self, std::string name) -> pybind11::object {
+         [](org::sem::BigIdent _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::TextTarget, sem::SemId<sem::TextTarget>, org::sem::Leaf>(m, "TextTarget")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::TextTarget {
-                        sem::TextTarget result{};
+  pybind11::class_<org::sem::TextTarget, org::sem::SemId<org::sem::TextTarget>, org::sem::Leaf>(m, "TextTarget")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::TextTarget {
+                        org::sem::TextTarget result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("text", &sem::TextTarget::text, R"RAW(Final leaf value)RAW")
-    .def("getText", static_cast<hstd::Str(sem::TextTarget::*)() const>(&sem::TextTarget::getText))
-    .def("__repr__", [](sem::TextTarget _self) -> std::string {
+    .def_readwrite("text", &org::sem::TextTarget::text, R"RAW(Final leaf value)RAW")
+    .def("getText", static_cast<hstd::Str(org::sem::TextTarget::*)() const>(&org::sem::TextTarget::getText))
+    .def("__repr__", [](org::sem::TextTarget _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::TextTarget _self, std::string name) -> pybind11::object {
+         [](org::sem::TextTarget _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Markup, sem::SemId<sem::Markup>, org::sem::Org>(m, "Markup")
+  pybind11::class_<org::sem::Markup, org::sem::SemId<org::sem::Markup>, org::sem::Org>(m, "Markup")
     ;
-  pybind11::class_<sem::Bold, sem::SemId<sem::Bold>, org::sem::Markup>(m, "Bold")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Bold {
-                        sem::Bold result{};
+  pybind11::class_<org::sem::Bold, org::sem::SemId<org::sem::Bold>, org::sem::Markup>(m, "Bold")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Bold {
+                        org::sem::Bold result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("__repr__", [](sem::Bold _self) -> std::string {
+    .def("__repr__", [](org::sem::Bold _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::Bold _self, std::string name) -> pybind11::object {
+         [](org::sem::Bold _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Underline, sem::SemId<sem::Underline>, org::sem::Markup>(m, "Underline")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Underline {
-                        sem::Underline result{};
+  pybind11::class_<org::sem::Underline, org::sem::SemId<org::sem::Underline>, org::sem::Markup>(m, "Underline")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Underline {
+                        org::sem::Underline result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("__repr__", [](sem::Underline _self) -> std::string {
+    .def("__repr__", [](org::sem::Underline _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::Underline _self, std::string name) -> pybind11::object {
+         [](org::sem::Underline _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Monospace, sem::SemId<sem::Monospace>, org::sem::Markup>(m, "Monospace")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Monospace {
-                        sem::Monospace result{};
+  pybind11::class_<org::sem::Monospace, org::sem::SemId<org::sem::Monospace>, org::sem::Markup>(m, "Monospace")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Monospace {
+                        org::sem::Monospace result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("__repr__", [](sem::Monospace _self) -> std::string {
+    .def("__repr__", [](org::sem::Monospace _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::Monospace _self, std::string name) -> pybind11::object {
+         [](org::sem::Monospace _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::MarkQuote, sem::SemId<sem::MarkQuote>, org::sem::Markup>(m, "MarkQuote")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::MarkQuote {
-                        sem::MarkQuote result{};
+  pybind11::class_<org::sem::MarkQuote, org::sem::SemId<org::sem::MarkQuote>, org::sem::Markup>(m, "MarkQuote")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::MarkQuote {
+                        org::sem::MarkQuote result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("__repr__", [](sem::MarkQuote _self) -> std::string {
+    .def("__repr__", [](org::sem::MarkQuote _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::MarkQuote _self, std::string name) -> pybind11::object {
+         [](org::sem::MarkQuote _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Verbatim, sem::SemId<sem::Verbatim>, org::sem::Markup>(m, "Verbatim")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Verbatim {
-                        sem::Verbatim result{};
+  pybind11::class_<org::sem::Verbatim, org::sem::SemId<org::sem::Verbatim>, org::sem::Markup>(m, "Verbatim")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Verbatim {
+                        org::sem::Verbatim result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("__repr__", [](sem::Verbatim _self) -> std::string {
+    .def("__repr__", [](org::sem::Verbatim _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::Verbatim _self, std::string name) -> pybind11::object {
+         [](org::sem::Verbatim _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Italic, sem::SemId<sem::Italic>, org::sem::Markup>(m, "Italic")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Italic {
-                        sem::Italic result{};
+  pybind11::class_<org::sem::Italic, org::sem::SemId<org::sem::Italic>, org::sem::Markup>(m, "Italic")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Italic {
+                        org::sem::Italic result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("__repr__", [](sem::Italic _self) -> std::string {
+    .def("__repr__", [](org::sem::Italic _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::Italic _self, std::string name) -> pybind11::object {
+         [](org::sem::Italic _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Strike, sem::SemId<sem::Strike>, org::sem::Markup>(m, "Strike")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Strike {
-                        sem::Strike result{};
+  pybind11::class_<org::sem::Strike, org::sem::SemId<org::sem::Strike>, org::sem::Markup>(m, "Strike")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Strike {
+                        org::sem::Strike result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("__repr__", [](sem::Strike _self) -> std::string {
+    .def("__repr__", [](org::sem::Strike _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::Strike _self, std::string name) -> pybind11::object {
+         [](org::sem::Strike _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Par, sem::SemId<sem::Par>, org::sem::Markup>(m, "Par")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Par {
-                        sem::Par result{};
+  pybind11::class_<org::sem::Par, org::sem::SemId<org::sem::Par>, org::sem::Markup>(m, "Par")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Par {
+                        org::sem::Par result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("__repr__", [](sem::Par _self) -> std::string {
+    .def("__repr__", [](org::sem::Par _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::Par _self, std::string name) -> pybind11::object {
+         [](org::sem::Par _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::RadioTarget, sem::SemId<sem::RadioTarget>, org::sem::Org>(m, "RadioTarget")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::RadioTarget {
-                        sem::RadioTarget result{};
+  pybind11::class_<org::sem::RadioTarget, org::sem::SemId<org::sem::RadioTarget>, org::sem::Org>(m, "RadioTarget")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::RadioTarget {
+                        org::sem::RadioTarget result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("words", &sem::RadioTarget::words)
-    .def("__repr__", [](sem::RadioTarget _self) -> std::string {
+    .def_readwrite("words", &org::sem::RadioTarget::words)
+    .def("__repr__", [](org::sem::RadioTarget _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::RadioTarget _self, std::string name) -> pybind11::object {
+         [](org::sem::RadioTarget _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Latex, sem::SemId<sem::Latex>, org::sem::Org>(m, "Latex")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Latex {
-                        sem::Latex result{};
+  pybind11::class_<org::sem::Latex, org::sem::SemId<org::sem::Latex>, org::sem::Org>(m, "Latex")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Latex {
+                        org::sem::Latex result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("__repr__", [](sem::Latex _self) -> std::string {
+    .def("__repr__", [](org::sem::Latex _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::Latex _self, std::string name) -> pybind11::object {
+         [](org::sem::Latex _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Link, sem::SemId<sem::Link>, org::sem::Stmt>(m, "Link")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Link {
-                        sem::Link result{};
+  pybind11::class_<org::sem::Link, org::sem::SemId<org::sem::Link>, org::sem::Stmt>(m, "Link")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Link {
+                        org::sem::Link result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("description", &sem::Link::description)
-    .def_readwrite("target", &sem::Link::target)
-    .def_readwrite("attached", &sem::Link::attached)
+    .def_readwrite("description", &org::sem::Link::description)
+    .def_readwrite("target", &org::sem::Link::target)
+    .def_readwrite("attached", &org::sem::Link::attached)
     .def("getAttached",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::Link::*)(hstd::Opt<hstd::Str> const&) const>(&sem::Link::getAttached),
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Link::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Link::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
-    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::Link::*)() const>(&sem::Link::getCaption))
-    .def("getName", static_cast<hstd::Vec<hstd::Str>(sem::Link::*)() const>(&sem::Link::getName))
+    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Link::*)() const>(&org::sem::Link::getCaption))
+    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::Link::*)() const>(&org::sem::Link::getName))
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::Link::*)(hstd::Opt<hstd::Str> const&) const>(&sem::Link::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::Link::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Link::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::Link::*)(hstd::Str const&) const>(&sem::Link::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::Link::*)(hstd::Str const&) const>(&org::sem::Link::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
-    .def("__repr__", [](sem::Link _self) -> std::string {
+    .def("__repr__", [](org::sem::Link _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::Link _self, std::string name) -> pybind11::object {
+         [](org::sem::Link _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::BlockCenter, sem::SemId<sem::BlockCenter>, org::sem::Block>(m, "BlockCenter")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCenter {
-                        sem::BlockCenter result{};
+  pybind11::class_<org::sem::BlockCenter, org::sem::SemId<org::sem::BlockCenter>, org::sem::Block>(m, "BlockCenter")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BlockCenter {
+                        org::sem::BlockCenter result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("attrs", &sem::BlockCenter::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
-    .def_readwrite("attached", &sem::BlockCenter::attached)
+    .def_readwrite("attrs", &org::sem::BlockCenter::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &org::sem::BlockCenter::attached)
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::BlockCenter::*)(hstd::Opt<hstd::Str> const&) const>(&sem::BlockCenter::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::BlockCenter::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockCenter::getAttrs),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::BlockCenter::*)(hstd::Str const&) const>(&sem::BlockCenter::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::BlockCenter::*)(hstd::Str const&) const>(&org::sem::BlockCenter::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::BlockCenter::*)(hstd::Opt<hstd::Str> const&) const>(&sem::BlockCenter::getAttached),
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::BlockCenter::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockCenter::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
-    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::BlockCenter::*)() const>(&sem::BlockCenter::getCaption))
-    .def("getName", static_cast<hstd::Vec<hstd::Str>(sem::BlockCenter::*)() const>(&sem::BlockCenter::getName))
+    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::BlockCenter::*)() const>(&org::sem::BlockCenter::getCaption))
+    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::BlockCenter::*)() const>(&org::sem::BlockCenter::getName))
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::BlockCenter::*)(hstd::Opt<hstd::Str> const&) const>(&sem::BlockCenter::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::BlockCenter::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockCenter::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::BlockCenter::*)(hstd::Str const&) const>(&sem::BlockCenter::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::BlockCenter::*)(hstd::Str const&) const>(&org::sem::BlockCenter::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
-    .def("__repr__", [](sem::BlockCenter _self) -> std::string {
+    .def("__repr__", [](org::sem::BlockCenter _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::BlockCenter _self, std::string name) -> pybind11::object {
+         [](org::sem::BlockCenter _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::BlockQuote, sem::SemId<sem::BlockQuote>, org::sem::Block>(m, "BlockQuote")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockQuote {
-                        sem::BlockQuote result{};
+  pybind11::class_<org::sem::BlockQuote, org::sem::SemId<org::sem::BlockQuote>, org::sem::Block>(m, "BlockQuote")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BlockQuote {
+                        org::sem::BlockQuote result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("attrs", &sem::BlockQuote::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
-    .def_readwrite("attached", &sem::BlockQuote::attached)
+    .def_readwrite("attrs", &org::sem::BlockQuote::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &org::sem::BlockQuote::attached)
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::BlockQuote::*)(hstd::Opt<hstd::Str> const&) const>(&sem::BlockQuote::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::BlockQuote::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockQuote::getAttrs),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::BlockQuote::*)(hstd::Str const&) const>(&sem::BlockQuote::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::BlockQuote::*)(hstd::Str const&) const>(&org::sem::BlockQuote::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::BlockQuote::*)(hstd::Opt<hstd::Str> const&) const>(&sem::BlockQuote::getAttached),
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::BlockQuote::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockQuote::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
-    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::BlockQuote::*)() const>(&sem::BlockQuote::getCaption))
-    .def("getName", static_cast<hstd::Vec<hstd::Str>(sem::BlockQuote::*)() const>(&sem::BlockQuote::getName))
+    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::BlockQuote::*)() const>(&org::sem::BlockQuote::getCaption))
+    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::BlockQuote::*)() const>(&org::sem::BlockQuote::getName))
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::BlockQuote::*)(hstd::Opt<hstd::Str> const&) const>(&sem::BlockQuote::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::BlockQuote::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockQuote::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::BlockQuote::*)(hstd::Str const&) const>(&sem::BlockQuote::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::BlockQuote::*)(hstd::Str const&) const>(&org::sem::BlockQuote::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
-    .def("__repr__", [](sem::BlockQuote _self) -> std::string {
+    .def("__repr__", [](org::sem::BlockQuote _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::BlockQuote _self, std::string name) -> pybind11::object {
+         [](org::sem::BlockQuote _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::BlockComment, sem::SemId<sem::BlockComment>, org::sem::Stmt>(m, "BlockComment")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockComment {
-                        sem::BlockComment result{};
+  pybind11::class_<org::sem::BlockComment, org::sem::SemId<org::sem::BlockComment>, org::sem::Stmt>(m, "BlockComment")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BlockComment {
+                        org::sem::BlockComment result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("attached", &sem::BlockComment::attached)
+    .def_readwrite("attached", &org::sem::BlockComment::attached)
     .def("getAttached",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::BlockComment::*)(hstd::Opt<hstd::Str> const&) const>(&sem::BlockComment::getAttached),
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::BlockComment::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockComment::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
-    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::BlockComment::*)() const>(&sem::BlockComment::getCaption))
-    .def("getName", static_cast<hstd::Vec<hstd::Str>(sem::BlockComment::*)() const>(&sem::BlockComment::getName))
+    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::BlockComment::*)() const>(&org::sem::BlockComment::getCaption))
+    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::BlockComment::*)() const>(&org::sem::BlockComment::getName))
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::BlockComment::*)(hstd::Opt<hstd::Str> const&) const>(&sem::BlockComment::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::BlockComment::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockComment::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::BlockComment::*)(hstd::Str const&) const>(&sem::BlockComment::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::BlockComment::*)(hstd::Str const&) const>(&org::sem::BlockComment::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
-    .def("__repr__", [](sem::BlockComment _self) -> std::string {
+    .def("__repr__", [](org::sem::BlockComment _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::BlockComment _self, std::string name) -> pybind11::object {
+         [](org::sem::BlockComment _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::BlockVerse, sem::SemId<sem::BlockVerse>, org::sem::Block>(m, "BlockVerse")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockVerse {
-                        sem::BlockVerse result{};
+  pybind11::class_<org::sem::BlockVerse, org::sem::SemId<org::sem::BlockVerse>, org::sem::Block>(m, "BlockVerse")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BlockVerse {
+                        org::sem::BlockVerse result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("attrs", &sem::BlockVerse::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
-    .def_readwrite("attached", &sem::BlockVerse::attached)
+    .def_readwrite("attrs", &org::sem::BlockVerse::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &org::sem::BlockVerse::attached)
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::BlockVerse::*)(hstd::Opt<hstd::Str> const&) const>(&sem::BlockVerse::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::BlockVerse::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockVerse::getAttrs),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::BlockVerse::*)(hstd::Str const&) const>(&sem::BlockVerse::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::BlockVerse::*)(hstd::Str const&) const>(&org::sem::BlockVerse::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::BlockVerse::*)(hstd::Opt<hstd::Str> const&) const>(&sem::BlockVerse::getAttached),
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::BlockVerse::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockVerse::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
-    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::BlockVerse::*)() const>(&sem::BlockVerse::getCaption))
-    .def("getName", static_cast<hstd::Vec<hstd::Str>(sem::BlockVerse::*)() const>(&sem::BlockVerse::getName))
+    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::BlockVerse::*)() const>(&org::sem::BlockVerse::getCaption))
+    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::BlockVerse::*)() const>(&org::sem::BlockVerse::getName))
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::BlockVerse::*)(hstd::Opt<hstd::Str> const&) const>(&sem::BlockVerse::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::BlockVerse::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockVerse::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::BlockVerse::*)(hstd::Str const&) const>(&sem::BlockVerse::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::BlockVerse::*)(hstd::Str const&) const>(&org::sem::BlockVerse::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
-    .def("__repr__", [](sem::BlockVerse _self) -> std::string {
+    .def("__repr__", [](org::sem::BlockVerse _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::BlockVerse _self, std::string name) -> pybind11::object {
+         [](org::sem::BlockVerse _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::BlockDynamicFallback, sem::SemId<sem::BlockDynamicFallback>, org::sem::Block>(m, "BlockDynamicFallback")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockDynamicFallback {
-                        sem::BlockDynamicFallback result{};
+  pybind11::class_<org::sem::BlockDynamicFallback, org::sem::SemId<org::sem::BlockDynamicFallback>, org::sem::Block>(m, "BlockDynamicFallback")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BlockDynamicFallback {
+                        org::sem::BlockDynamicFallback result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("name", &sem::BlockDynamicFallback::name)
-    .def_readwrite("attrs", &sem::BlockDynamicFallback::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
-    .def_readwrite("attached", &sem::BlockDynamicFallback::attached)
+    .def_readwrite("name", &org::sem::BlockDynamicFallback::name)
+    .def_readwrite("attrs", &org::sem::BlockDynamicFallback::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &org::sem::BlockDynamicFallback::attached)
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::BlockDynamicFallback::*)(hstd::Opt<hstd::Str> const&) const>(&sem::BlockDynamicFallback::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::BlockDynamicFallback::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockDynamicFallback::getAttrs),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::BlockDynamicFallback::*)(hstd::Str const&) const>(&sem::BlockDynamicFallback::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::BlockDynamicFallback::*)(hstd::Str const&) const>(&org::sem::BlockDynamicFallback::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::BlockDynamicFallback::*)(hstd::Opt<hstd::Str> const&) const>(&sem::BlockDynamicFallback::getAttached),
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::BlockDynamicFallback::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockDynamicFallback::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
-    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::BlockDynamicFallback::*)() const>(&sem::BlockDynamicFallback::getCaption))
-    .def("getName", static_cast<hstd::Vec<hstd::Str>(sem::BlockDynamicFallback::*)() const>(&sem::BlockDynamicFallback::getName))
+    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::BlockDynamicFallback::*)() const>(&org::sem::BlockDynamicFallback::getCaption))
+    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::BlockDynamicFallback::*)() const>(&org::sem::BlockDynamicFallback::getName))
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::BlockDynamicFallback::*)(hstd::Opt<hstd::Str> const&) const>(&sem::BlockDynamicFallback::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::BlockDynamicFallback::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockDynamicFallback::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::BlockDynamicFallback::*)(hstd::Str const&) const>(&sem::BlockDynamicFallback::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::BlockDynamicFallback::*)(hstd::Str const&) const>(&org::sem::BlockDynamicFallback::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
-    .def("__repr__", [](sem::BlockDynamicFallback _self) -> std::string {
+    .def("__repr__", [](org::sem::BlockDynamicFallback _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::BlockDynamicFallback _self, std::string name) -> pybind11::object {
+         [](org::sem::BlockDynamicFallback _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::BlockExample, sem::SemId<sem::BlockExample>, org::sem::Block>(m, "BlockExample")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockExample {
-                        sem::BlockExample result{};
+  pybind11::class_<org::sem::BlockExample, org::sem::SemId<org::sem::BlockExample>, org::sem::Block>(m, "BlockExample")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BlockExample {
+                        org::sem::BlockExample result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("attrs", &sem::BlockExample::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
-    .def_readwrite("attached", &sem::BlockExample::attached)
+    .def_readwrite("attrs", &org::sem::BlockExample::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &org::sem::BlockExample::attached)
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::BlockExample::*)(hstd::Opt<hstd::Str> const&) const>(&sem::BlockExample::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::BlockExample::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockExample::getAttrs),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::BlockExample::*)(hstd::Str const&) const>(&sem::BlockExample::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::BlockExample::*)(hstd::Str const&) const>(&org::sem::BlockExample::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::BlockExample::*)(hstd::Opt<hstd::Str> const&) const>(&sem::BlockExample::getAttached),
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::BlockExample::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockExample::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
-    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::BlockExample::*)() const>(&sem::BlockExample::getCaption))
-    .def("getName", static_cast<hstd::Vec<hstd::Str>(sem::BlockExample::*)() const>(&sem::BlockExample::getName))
+    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::BlockExample::*)() const>(&org::sem::BlockExample::getCaption))
+    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::BlockExample::*)() const>(&org::sem::BlockExample::getName))
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::BlockExample::*)(hstd::Opt<hstd::Str> const&) const>(&sem::BlockExample::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::BlockExample::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockExample::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::BlockExample::*)(hstd::Str const&) const>(&sem::BlockExample::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::BlockExample::*)(hstd::Str const&) const>(&org::sem::BlockExample::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
-    .def("__repr__", [](sem::BlockExample _self) -> std::string {
+    .def("__repr__", [](org::sem::BlockExample _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::BlockExample _self, std::string name) -> pybind11::object {
+         [](org::sem::BlockExample _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::BlockExport, sem::SemId<sem::BlockExport>, org::sem::Block>(m, "BlockExport")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockExport {
-                        sem::BlockExport result{};
+  pybind11::class_<org::sem::BlockExport, org::sem::SemId<org::sem::BlockExport>, org::sem::Block>(m, "BlockExport")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BlockExport {
+                        org::sem::BlockExport result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("exporter", &sem::BlockExport::exporter)
-    .def_readwrite("content", &sem::BlockExport::content)
-    .def_readwrite("attrs", &sem::BlockExport::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
-    .def_readwrite("attached", &sem::BlockExport::attached)
-    .def("getPlacement", static_cast<hstd::Opt<hstd::Str>(sem::BlockExport::*)() const>(&sem::BlockExport::getPlacement), R"RAW(Return value of the :placement attribute if present)RAW")
+    .def_readwrite("exporter", &org::sem::BlockExport::exporter)
+    .def_readwrite("content", &org::sem::BlockExport::content)
+    .def_readwrite("attrs", &org::sem::BlockExport::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &org::sem::BlockExport::attached)
+    .def("getPlacement", static_cast<hstd::Opt<hstd::Str>(org::sem::BlockExport::*)() const>(&org::sem::BlockExport::getPlacement), R"RAW(Return value of the :placement attribute if present)RAW")
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::BlockExport::*)(hstd::Opt<hstd::Str> const&) const>(&sem::BlockExport::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::BlockExport::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockExport::getAttrs),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::BlockExport::*)(hstd::Str const&) const>(&sem::BlockExport::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::BlockExport::*)(hstd::Str const&) const>(&org::sem::BlockExport::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::BlockExport::*)(hstd::Opt<hstd::Str> const&) const>(&sem::BlockExport::getAttached),
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::BlockExport::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockExport::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
-    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::BlockExport::*)() const>(&sem::BlockExport::getCaption))
-    .def("getName", static_cast<hstd::Vec<hstd::Str>(sem::BlockExport::*)() const>(&sem::BlockExport::getName))
+    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::BlockExport::*)() const>(&org::sem::BlockExport::getCaption))
+    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::BlockExport::*)() const>(&org::sem::BlockExport::getName))
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::BlockExport::*)(hstd::Opt<hstd::Str> const&) const>(&sem::BlockExport::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::BlockExport::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockExport::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::BlockExport::*)(hstd::Str const&) const>(&sem::BlockExport::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::BlockExport::*)(hstd::Str const&) const>(&org::sem::BlockExport::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
-    .def("__repr__", [](sem::BlockExport _self) -> std::string {
+    .def("__repr__", [](org::sem::BlockExport _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::BlockExport _self, std::string name) -> pybind11::object {
+         [](org::sem::BlockExport _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::BlockAdmonition, sem::SemId<sem::BlockAdmonition>, org::sem::Block>(m, "BlockAdmonition")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockAdmonition {
-                        sem::BlockAdmonition result{};
+  pybind11::class_<org::sem::BlockAdmonition, org::sem::SemId<org::sem::BlockAdmonition>, org::sem::Block>(m, "BlockAdmonition")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BlockAdmonition {
+                        org::sem::BlockAdmonition result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("attrs", &sem::BlockAdmonition::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
-    .def_readwrite("attached", &sem::BlockAdmonition::attached)
+    .def_readwrite("attrs", &org::sem::BlockAdmonition::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &org::sem::BlockAdmonition::attached)
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::BlockAdmonition::*)(hstd::Opt<hstd::Str> const&) const>(&sem::BlockAdmonition::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::BlockAdmonition::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockAdmonition::getAttrs),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::BlockAdmonition::*)(hstd::Str const&) const>(&sem::BlockAdmonition::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::BlockAdmonition::*)(hstd::Str const&) const>(&org::sem::BlockAdmonition::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::BlockAdmonition::*)(hstd::Opt<hstd::Str> const&) const>(&sem::BlockAdmonition::getAttached),
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::BlockAdmonition::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockAdmonition::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
-    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::BlockAdmonition::*)() const>(&sem::BlockAdmonition::getCaption))
-    .def("getName", static_cast<hstd::Vec<hstd::Str>(sem::BlockAdmonition::*)() const>(&sem::BlockAdmonition::getName))
+    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::BlockAdmonition::*)() const>(&org::sem::BlockAdmonition::getCaption))
+    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::BlockAdmonition::*)() const>(&org::sem::BlockAdmonition::getName))
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::BlockAdmonition::*)(hstd::Opt<hstd::Str> const&) const>(&sem::BlockAdmonition::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::BlockAdmonition::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockAdmonition::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::BlockAdmonition::*)(hstd::Str const&) const>(&sem::BlockAdmonition::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::BlockAdmonition::*)(hstd::Str const&) const>(&org::sem::BlockAdmonition::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
-    .def("__repr__", [](sem::BlockAdmonition _self) -> std::string {
+    .def("__repr__", [](org::sem::BlockAdmonition _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::BlockAdmonition _self, std::string name) -> pybind11::object {
+         [](org::sem::BlockAdmonition _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::BlockCode, sem::SemId<sem::BlockCode>, org::sem::Block>(m, "BlockCode")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::BlockCode {
-                        sem::BlockCode result{};
+  pybind11::class_<org::sem::BlockCode, org::sem::SemId<org::sem::BlockCode>, org::sem::Block>(m, "BlockCode")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BlockCode {
+                        org::sem::BlockCode result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("lang", &sem::BlockCode::lang, R"RAW(Code block language name)RAW")
-    .def_readwrite("switches", &sem::BlockCode::switches, R"RAW(Switch options for block)RAW")
-    .def_readwrite("exports", &sem::BlockCode::exports, R"RAW(What to export)RAW")
-    .def_readwrite("result", &sem::BlockCode::result, R"RAW(Code evaluation results)RAW")
-    .def_readwrite("lines", &sem::BlockCode::lines, R"RAW(Collected code lines)RAW")
-    .def_readwrite("cache", &sem::BlockCode::cache, R"RAW(Do cache values?)RAW")
-    .def_readwrite("eval", &sem::BlockCode::eval, R"RAW(Eval on export?)RAW")
-    .def_readwrite("noweb", &sem::BlockCode::noweb, R"RAW(Web-tangle code on export/run)RAW")
-    .def_readwrite("hlines", &sem::BlockCode::hlines, R"RAW(?)RAW")
-    .def_readwrite("tangle", &sem::BlockCode::tangle, R"RAW(?)RAW")
-    .def_readwrite("attrs", &sem::BlockCode::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
-    .def_readwrite("attached", &sem::BlockCode::attached)
+    .def_readwrite("lang", &org::sem::BlockCode::lang, R"RAW(Code block language name)RAW")
+    .def_readwrite("switches", &org::sem::BlockCode::switches, R"RAW(Switch options for block)RAW")
+    .def_readwrite("exports", &org::sem::BlockCode::exports, R"RAW(What to export)RAW")
+    .def_readwrite("result", &org::sem::BlockCode::result, R"RAW(Code evaluation results)RAW")
+    .def_readwrite("lines", &org::sem::BlockCode::lines, R"RAW(Collected code lines)RAW")
+    .def_readwrite("cache", &org::sem::BlockCode::cache, R"RAW(Do cache values?)RAW")
+    .def_readwrite("eval", &org::sem::BlockCode::eval, R"RAW(Eval on export?)RAW")
+    .def_readwrite("noweb", &org::sem::BlockCode::noweb, R"RAW(Web-tangle code on export/run)RAW")
+    .def_readwrite("hlines", &org::sem::BlockCode::hlines, R"RAW(?)RAW")
+    .def_readwrite("tangle", &org::sem::BlockCode::tangle, R"RAW(?)RAW")
+    .def_readwrite("attrs", &org::sem::BlockCode::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &org::sem::BlockCode::attached)
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::BlockCode::*)(hstd::Opt<hstd::Str> const&) const>(&sem::BlockCode::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::BlockCode::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockCode::getAttrs),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::BlockCode::*)(hstd::Str const&) const>(&sem::BlockCode::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::BlockCode::*)(hstd::Str const&) const>(&org::sem::BlockCode::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::BlockCode::*)(hstd::Opt<hstd::Str> const&) const>(&sem::BlockCode::getAttached),
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::BlockCode::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockCode::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
-    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::BlockCode::*)() const>(&sem::BlockCode::getCaption))
-    .def("getName", static_cast<hstd::Vec<hstd::Str>(sem::BlockCode::*)() const>(&sem::BlockCode::getName))
+    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::BlockCode::*)() const>(&org::sem::BlockCode::getCaption))
+    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::BlockCode::*)() const>(&org::sem::BlockCode::getName))
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::BlockCode::*)(hstd::Opt<hstd::Str> const&) const>(&sem::BlockCode::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::BlockCode::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockCode::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::BlockCode::*)(hstd::Str const&) const>(&sem::BlockCode::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::BlockCode::*)(hstd::Str const&) const>(&org::sem::BlockCode::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
-    .def("__repr__", [](sem::BlockCode _self) -> std::string {
+    .def("__repr__", [](org::sem::BlockCode _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::BlockCode _self, std::string name) -> pybind11::object {
+         [](org::sem::BlockCode _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::SubtreeLog, sem::SemId<sem::SubtreeLog>, org::sem::Org>(m, "SubtreeLog")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::SubtreeLog {
-                        sem::SubtreeLog result{};
+  pybind11::class_<org::sem::SubtreeLog, org::sem::SemId<org::sem::SubtreeLog>, org::sem::Org>(m, "SubtreeLog")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::SubtreeLog {
+                        org::sem::SubtreeLog result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("head", &sem::SubtreeLog::head)
-    .def_readwrite("desc", &sem::SubtreeLog::desc, R"RAW(Optional description of the log entry)RAW")
+    .def_readwrite("head", &org::sem::SubtreeLog::head)
+    .def_readwrite("desc", &org::sem::SubtreeLog::desc, R"RAW(Optional description of the log entry)RAW")
     .def("setDescription",
-         static_cast<void(sem::SubtreeLog::*)(org::sem::SemId<org::sem::StmtList>)>(&sem::SubtreeLog::setDescription),
+         static_cast<void(org::sem::SubtreeLog::*)(org::sem::SemId<org::sem::StmtList>)>(&org::sem::SubtreeLog::setDescription),
          pybind11::arg("desc"))
-    .def("__repr__", [](sem::SubtreeLog _self) -> std::string {
+    .def("__repr__", [](org::sem::SubtreeLog _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::SubtreeLog _self, std::string name) -> pybind11::object {
+         [](org::sem::SubtreeLog _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Subtree, sem::SemId<sem::Subtree>, org::sem::Org>(m, "Subtree")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Subtree {
-                        sem::Subtree result{};
+  pybind11::class_<org::sem::Subtree, org::sem::SemId<org::sem::Subtree>, org::sem::Org>(m, "Subtree")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Subtree {
+                        org::sem::Subtree result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("level", &sem::Subtree::level, R"RAW(Subtree level)RAW")
-    .def_readwrite("treeId", &sem::Subtree::treeId, R"RAW(:ID: property)RAW")
-    .def_readwrite("todo", &sem::Subtree::todo, R"RAW(Todo state of the tree)RAW")
-    .def_readwrite("completion", &sem::Subtree::completion, R"RAW(Task completion state)RAW")
-    .def_readwrite("description", &sem::Subtree::description)
-    .def_readwrite("tags", &sem::Subtree::tags, R"RAW(Trailing tags)RAW")
-    .def_readwrite("title", &sem::Subtree::title, R"RAW(Main title)RAW")
-    .def_readwrite("logbook", &sem::Subtree::logbook, R"RAW(Associated subtree log)RAW")
-    .def_readwrite("properties", &sem::Subtree::properties, R"RAW(Immediate properties)RAW")
-    .def_readwrite("closed", &sem::Subtree::closed, R"RAW(When subtree was marked as closed)RAW")
-    .def_readwrite("deadline", &sem::Subtree::deadline, R"RAW(When is the deadline)RAW")
-    .def_readwrite("scheduled", &sem::Subtree::scheduled, R"RAW(When the event is scheduled)RAW")
-    .def_readwrite("isComment", &sem::Subtree::isComment, R"RAW(Subtree is annotated with the COMMENT keyword)RAW")
-    .def_readwrite("isArchived", &sem::Subtree::isArchived, R"RAW(Subtree is tagged with `:ARCHIVE:` tag)RAW")
-    .def_readwrite("priority", &sem::Subtree::priority)
+    .def_readwrite("level", &org::sem::Subtree::level, R"RAW(Subtree level)RAW")
+    .def_readwrite("treeId", &org::sem::Subtree::treeId, R"RAW(:ID: property)RAW")
+    .def_readwrite("todo", &org::sem::Subtree::todo, R"RAW(Todo state of the tree)RAW")
+    .def_readwrite("completion", &org::sem::Subtree::completion, R"RAW(Task completion state)RAW")
+    .def_readwrite("description", &org::sem::Subtree::description)
+    .def_readwrite("tags", &org::sem::Subtree::tags, R"RAW(Trailing tags)RAW")
+    .def_readwrite("title", &org::sem::Subtree::title, R"RAW(Main title)RAW")
+    .def_readwrite("logbook", &org::sem::Subtree::logbook, R"RAW(Associated subtree log)RAW")
+    .def_readwrite("properties", &org::sem::Subtree::properties, R"RAW(Immediate properties)RAW")
+    .def_readwrite("closed", &org::sem::Subtree::closed, R"RAW(When subtree was marked as closed)RAW")
+    .def_readwrite("deadline", &org::sem::Subtree::deadline, R"RAW(When is the deadline)RAW")
+    .def_readwrite("scheduled", &org::sem::Subtree::scheduled, R"RAW(When the event is scheduled)RAW")
+    .def_readwrite("isComment", &org::sem::Subtree::isComment, R"RAW(Subtree is annotated with the COMMENT keyword)RAW")
+    .def_readwrite("isArchived", &org::sem::Subtree::isArchived, R"RAW(Subtree is tagged with `:ARCHIVE:` tag)RAW")
+    .def_readwrite("priority", &org::sem::Subtree::priority)
     .def("getTimePeriods",
-         static_cast<hstd::Vec<sem::SubtreePeriod>(sem::Subtree::*)(IntSet<sem::SubtreePeriod::Kind>) const>(&sem::Subtree::getTimePeriods),
+         static_cast<hstd::Vec<sem::SubtreePeriod>(org::sem::Subtree::*)(IntSet<sem::SubtreePeriod::Kind>) const>(&org::sem::Subtree::getTimePeriods),
          pybind11::arg("kinds"))
     .def("getProperties",
-         static_cast<hstd::Vec<sem::NamedProperty>(sem::Subtree::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&sem::Subtree::getProperties),
+         static_cast<hstd::Vec<sem::NamedProperty>(org::sem::Subtree::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::Subtree::getProperties),
          pybind11::arg("kind"),
          pybind11::arg_v("subkind", std::nullopt))
     .def("getProperty",
-         static_cast<hstd::Opt<sem::NamedProperty>(sem::Subtree::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&sem::Subtree::getProperty),
+         static_cast<hstd::Opt<sem::NamedProperty>(org::sem::Subtree::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::Subtree::getProperty),
          pybind11::arg("kind"),
          pybind11::arg_v("subkind", std::nullopt))
     .def("removeProperty",
-         static_cast<void(sem::Subtree::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&)>(&sem::Subtree::removeProperty),
+         static_cast<void(org::sem::Subtree::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&)>(&org::sem::Subtree::removeProperty),
          pybind11::arg("kind"),
          pybind11::arg_v("subkind", std::nullopt),
          R"RAW(Remove all instances of the property with matching kind/subkind from the property list)RAW")
     .def("setProperty",
-         static_cast<void(sem::Subtree::*)(sem::NamedProperty const&)>(&sem::Subtree::setProperty),
+         static_cast<void(org::sem::Subtree::*)(sem::NamedProperty const&)>(&org::sem::Subtree::setProperty),
          pybind11::arg("value"),
          R"RAW(Create or override existing property value in the subtree property list)RAW")
     .def("setPropertyStrValue",
-         static_cast<void(sem::Subtree::*)(hstd::Str const&, hstd::Str const&, hstd::Opt<hstd::Str> const&)>(&sem::Subtree::setPropertyStrValue),
+         static_cast<void(org::sem::Subtree::*)(hstd::Str const&, hstd::Str const&, hstd::Opt<hstd::Str> const&)>(&org::sem::Subtree::setPropertyStrValue),
          pybind11::arg("value"),
          pybind11::arg("kind"),
          pybind11::arg_v("subkind", std::nullopt),
          R"RAW(Assign a raw string literal to a property.)RAW")
-    .def("getCleanTitle", static_cast<hstd::Str(sem::Subtree::*)() const>(&sem::Subtree::getCleanTitle), R"RAW(Get subtree title as a flat string, without markup nodes, but with all left strings)RAW")
-    .def("__repr__", [](sem::Subtree _self) -> std::string {
+    .def("getCleanTitle", static_cast<hstd::Str(org::sem::Subtree::*)() const>(&org::sem::Subtree::getCleanTitle), R"RAW(Get subtree title as a flat string, without markup nodes, but with all left strings)RAW")
+    .def("__repr__", [](org::sem::Subtree _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::Subtree _self, std::string name) -> pybind11::object {
+         [](org::sem::Subtree _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Cell, sem::SemId<sem::Cell>, org::sem::Cmd>(m, "Cell")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Cell {
-                        sem::Cell result{};
+  pybind11::class_<org::sem::Cell, org::sem::SemId<org::sem::Cell>, org::sem::Cmd>(m, "Cell")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Cell {
+                        org::sem::Cell result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("isBlock", &sem::Cell::isBlock, R"RAW(Single-line pipe cell or `#+cell:` command)RAW")
-    .def_readwrite("attrs", &sem::Cell::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
-    .def_readwrite("attached", &sem::Cell::attached)
+    .def_readwrite("isBlock", &org::sem::Cell::isBlock, R"RAW(Single-line pipe cell or `#+cell:` command)RAW")
+    .def_readwrite("attrs", &org::sem::Cell::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &org::sem::Cell::attached)
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::Cell::*)(hstd::Opt<hstd::Str> const&) const>(&sem::Cell::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::Cell::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Cell::getAttrs),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::Cell::*)(hstd::Str const&) const>(&sem::Cell::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::Cell::*)(hstd::Str const&) const>(&org::sem::Cell::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::Cell::*)(hstd::Opt<hstd::Str> const&) const>(&sem::Cell::getAttached),
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Cell::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Cell::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
-    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::Cell::*)() const>(&sem::Cell::getCaption))
-    .def("getName", static_cast<hstd::Vec<hstd::Str>(sem::Cell::*)() const>(&sem::Cell::getName))
+    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Cell::*)() const>(&org::sem::Cell::getCaption))
+    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::Cell::*)() const>(&org::sem::Cell::getName))
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::Cell::*)(hstd::Opt<hstd::Str> const&) const>(&sem::Cell::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::Cell::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Cell::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::Cell::*)(hstd::Str const&) const>(&sem::Cell::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::Cell::*)(hstd::Str const&) const>(&org::sem::Cell::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
-    .def("__repr__", [](sem::Cell _self) -> std::string {
+    .def("__repr__", [](org::sem::Cell _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::Cell _self, std::string name) -> pybind11::object {
+         [](org::sem::Cell _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Row, sem::SemId<sem::Row>, org::sem::Cmd>(m, "Row")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Row {
-                        sem::Row result{};
+  pybind11::class_<org::sem::Row, org::sem::SemId<org::sem::Row>, org::sem::Cmd>(m, "Row")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Row {
+                        org::sem::Row result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("cells", &sem::Row::cells, R"RAW(List of cells on the row)RAW")
-    .def_readwrite("isBlock", &sem::Row::isBlock, R"RAW(Single-line pipe cell or `#+cell:` command)RAW")
-    .def_readwrite("attrs", &sem::Row::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
-    .def_readwrite("attached", &sem::Row::attached)
+    .def_readwrite("cells", &org::sem::Row::cells, R"RAW(List of cells on the row)RAW")
+    .def_readwrite("isBlock", &org::sem::Row::isBlock, R"RAW(Single-line pipe cell or `#+cell:` command)RAW")
+    .def_readwrite("attrs", &org::sem::Row::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &org::sem::Row::attached)
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::Row::*)(hstd::Opt<hstd::Str> const&) const>(&sem::Row::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::Row::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Row::getAttrs),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::Row::*)(hstd::Str const&) const>(&sem::Row::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::Row::*)(hstd::Str const&) const>(&org::sem::Row::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::Row::*)(hstd::Opt<hstd::Str> const&) const>(&sem::Row::getAttached),
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Row::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Row::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
-    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::Row::*)() const>(&sem::Row::getCaption))
-    .def("getName", static_cast<hstd::Vec<hstd::Str>(sem::Row::*)() const>(&sem::Row::getName))
+    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Row::*)() const>(&org::sem::Row::getCaption))
+    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::Row::*)() const>(&org::sem::Row::getName))
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::Row::*)(hstd::Opt<hstd::Str> const&) const>(&sem::Row::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::Row::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Row::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::Row::*)(hstd::Str const&) const>(&sem::Row::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::Row::*)(hstd::Str const&) const>(&org::sem::Row::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
-    .def("__repr__", [](sem::Row _self) -> std::string {
+    .def("__repr__", [](org::sem::Row _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::Row _self, std::string name) -> pybind11::object {
+         [](org::sem::Row _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Table, sem::SemId<sem::Table>, org::sem::Block>(m, "Table")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Table {
-                        sem::Table result{};
+  pybind11::class_<org::sem::Table, org::sem::SemId<org::sem::Table>, org::sem::Block>(m, "Table")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Table {
+                        org::sem::Table result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("rows", &sem::Table::rows, R"RAW(List of rows for the table)RAW")
-    .def_readwrite("isBlock", &sem::Table::isBlock, R"RAW(Single-line pipe cell or `#+cell:` command)RAW")
-    .def_readwrite("attrs", &sem::Table::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
-    .def_readwrite("attached", &sem::Table::attached)
+    .def_readwrite("rows", &org::sem::Table::rows, R"RAW(List of rows for the table)RAW")
+    .def_readwrite("isBlock", &org::sem::Table::isBlock, R"RAW(Single-line pipe cell or `#+cell:` command)RAW")
+    .def_readwrite("attrs", &org::sem::Table::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &org::sem::Table::attached)
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::Table::*)(hstd::Opt<hstd::Str> const&) const>(&sem::Table::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::Table::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Table::getAttrs),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::Table::*)(hstd::Str const&) const>(&sem::Table::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::Table::*)(hstd::Str const&) const>(&org::sem::Table::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::Table::*)(hstd::Opt<hstd::Str> const&) const>(&sem::Table::getAttached),
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Table::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Table::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
-    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::Table::*)() const>(&sem::Table::getCaption))
-    .def("getName", static_cast<hstd::Vec<hstd::Str>(sem::Table::*)() const>(&sem::Table::getName))
+    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Table::*)() const>(&org::sem::Table::getCaption))
+    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::Table::*)() const>(&org::sem::Table::getName))
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::Table::*)(hstd::Opt<hstd::Str> const&) const>(&sem::Table::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::Table::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Table::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::Table::*)(hstd::Str const&) const>(&sem::Table::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::Table::*)(hstd::Str const&) const>(&org::sem::Table::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
-    .def("__repr__", [](sem::Table _self) -> std::string {
+    .def("__repr__", [](org::sem::Table _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::Table _self, std::string name) -> pybind11::object {
+         [](org::sem::Table _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Paragraph, sem::SemId<sem::Paragraph>, org::sem::Stmt>(m, "Paragraph")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Paragraph {
-                        sem::Paragraph result{};
+  pybind11::class_<org::sem::Paragraph, org::sem::SemId<org::sem::Paragraph>, org::sem::Stmt>(m, "Paragraph")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Paragraph {
+                        org::sem::Paragraph result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("attached", &sem::Paragraph::attached)
-    .def("isFootnoteDefinition", static_cast<bool(sem::Paragraph::*)() const>(&sem::Paragraph::isFootnoteDefinition))
-    .def("getFootnoteName", static_cast<hstd::Opt<hstd::Str>(sem::Paragraph::*)() const>(&sem::Paragraph::getFootnoteName))
-    .def("hasAdmonition", static_cast<bool(sem::Paragraph::*)() const>(&sem::Paragraph::hasAdmonition))
-    .def("getAdmonitions", static_cast<hstd::Vec<hstd::Str>(sem::Paragraph::*)() const>(&sem::Paragraph::getAdmonitions))
-    .def("getAdmonitionNodes", static_cast<hstd::Vec<org::sem::SemId<org::sem::BigIdent>>(sem::Paragraph::*)() const>(&sem::Paragraph::getAdmonitionNodes))
-    .def("hasTimestamp", static_cast<bool(sem::Paragraph::*)() const>(&sem::Paragraph::hasTimestamp))
-    .def("getTimestamps", static_cast<hstd::Vec<UserTime>(sem::Paragraph::*)() const>(&sem::Paragraph::getTimestamps))
-    .def("getTimestampNodes", static_cast<hstd::Vec<org::sem::SemId<org::sem::Time>>(sem::Paragraph::*)() const>(&sem::Paragraph::getTimestampNodes))
-    .def("hasLeadHashtags", static_cast<bool(sem::Paragraph::*)() const>(&sem::Paragraph::hasLeadHashtags))
-    .def("getLeadHashtags", static_cast<hstd::Vec<org::sem::SemId<org::sem::HashTag>>(sem::Paragraph::*)() const>(&sem::Paragraph::getLeadHashtags))
-    .def("getBody", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::Paragraph::*)() const>(&sem::Paragraph::getBody), R"RAW(Return content of the paragraph, without prefix idents, hashtags, footnotes etc. )RAW")
+    .def_readwrite("attached", &org::sem::Paragraph::attached)
+    .def("isFootnoteDefinition", static_cast<bool(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::isFootnoteDefinition))
+    .def("getFootnoteName", static_cast<hstd::Opt<hstd::Str>(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::getFootnoteName))
+    .def("hasAdmonition", static_cast<bool(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::hasAdmonition))
+    .def("getAdmonitions", static_cast<hstd::Vec<hstd::Str>(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::getAdmonitions))
+    .def("getAdmonitionNodes", static_cast<hstd::Vec<org::sem::SemId<org::sem::BigIdent>>(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::getAdmonitionNodes))
+    .def("hasTimestamp", static_cast<bool(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::hasTimestamp))
+    .def("getTimestamps", static_cast<hstd::Vec<UserTime>(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::getTimestamps))
+    .def("getTimestampNodes", static_cast<hstd::Vec<org::sem::SemId<org::sem::Time>>(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::getTimestampNodes))
+    .def("hasLeadHashtags", static_cast<bool(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::hasLeadHashtags))
+    .def("getLeadHashtags", static_cast<hstd::Vec<org::sem::SemId<org::sem::HashTag>>(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::getLeadHashtags))
+    .def("getBody", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::getBody), R"RAW(Return content of the paragraph, without prefix idents, hashtags, footnotes etc. )RAW")
     .def("getAttached",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::Paragraph::*)(hstd::Opt<hstd::Str> const&) const>(&sem::Paragraph::getAttached),
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Paragraph::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Paragraph::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
-    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::Paragraph::*)() const>(&sem::Paragraph::getCaption))
-    .def("getName", static_cast<hstd::Vec<hstd::Str>(sem::Paragraph::*)() const>(&sem::Paragraph::getName))
+    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::getCaption))
+    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::Paragraph::*)() const>(&org::sem::Paragraph::getName))
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::Paragraph::*)(hstd::Opt<hstd::Str> const&) const>(&sem::Paragraph::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::Paragraph::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Paragraph::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::Paragraph::*)(hstd::Str const&) const>(&sem::Paragraph::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::Paragraph::*)(hstd::Str const&) const>(&org::sem::Paragraph::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
-    .def("__repr__", [](sem::Paragraph _self) -> std::string {
+    .def("__repr__", [](org::sem::Paragraph _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::Paragraph _self, std::string name) -> pybind11::object {
+         [](org::sem::Paragraph _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::ColonExample, sem::SemId<sem::ColonExample>, org::sem::Org>(m, "ColonExample")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::ColonExample {
-                        sem::ColonExample result{};
+  pybind11::class_<org::sem::ColonExample, org::sem::SemId<org::sem::ColonExample>, org::sem::Org>(m, "ColonExample")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::ColonExample {
+                        org::sem::ColonExample result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("__repr__", [](sem::ColonExample _self) -> std::string {
+    .def("__repr__", [](org::sem::ColonExample _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::ColonExample _self, std::string name) -> pybind11::object {
+         [](org::sem::ColonExample _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::CmdAttr, sem::SemId<sem::CmdAttr>, org::sem::Attached>(m, "CmdAttr")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdAttr {
-                        sem::CmdAttr result{};
+  pybind11::class_<org::sem::CmdAttr, org::sem::SemId<org::sem::CmdAttr>, org::sem::Attached>(m, "CmdAttr")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdAttr {
+                        org::sem::CmdAttr result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("target", &sem::CmdAttr::target)
-    .def_readwrite("attrs", &sem::CmdAttr::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
-    .def_readwrite("attached", &sem::CmdAttr::attached)
+    .def_readwrite("target", &org::sem::CmdAttr::target)
+    .def_readwrite("attrs", &org::sem::CmdAttr::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &org::sem::CmdAttr::attached)
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::CmdAttr::*)(hstd::Opt<hstd::Str> const&) const>(&sem::CmdAttr::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::CmdAttr::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::CmdAttr::getAttrs),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::CmdAttr::*)(hstd::Str const&) const>(&sem::CmdAttr::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::CmdAttr::*)(hstd::Str const&) const>(&org::sem::CmdAttr::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::CmdAttr::*)(hstd::Opt<hstd::Str> const&) const>(&sem::CmdAttr::getAttached),
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::CmdAttr::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::CmdAttr::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
-    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::CmdAttr::*)() const>(&sem::CmdAttr::getCaption))
-    .def("getName", static_cast<hstd::Vec<hstd::Str>(sem::CmdAttr::*)() const>(&sem::CmdAttr::getName))
+    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::CmdAttr::*)() const>(&org::sem::CmdAttr::getCaption))
+    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::CmdAttr::*)() const>(&org::sem::CmdAttr::getName))
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::CmdAttr::*)(hstd::Opt<hstd::Str> const&) const>(&sem::CmdAttr::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::CmdAttr::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::CmdAttr::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::CmdAttr::*)(hstd::Str const&) const>(&sem::CmdAttr::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::CmdAttr::*)(hstd::Str const&) const>(&org::sem::CmdAttr::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
-    .def("__repr__", [](sem::CmdAttr _self) -> std::string {
+    .def("__repr__", [](org::sem::CmdAttr _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::CmdAttr _self, std::string name) -> pybind11::object {
+         [](org::sem::CmdAttr _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::CmdExport, sem::SemId<sem::CmdExport>, org::sem::Attached>(m, "CmdExport")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdExport {
-                        sem::CmdExport result{};
+  pybind11::class_<org::sem::CmdExport, org::sem::SemId<org::sem::CmdExport>, org::sem::Attached>(m, "CmdExport")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdExport {
+                        org::sem::CmdExport result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("exporter", &sem::CmdExport::exporter)
-    .def_readwrite("content", &sem::CmdExport::content)
-    .def_readwrite("attrs", &sem::CmdExport::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
-    .def_readwrite("attached", &sem::CmdExport::attached)
+    .def_readwrite("exporter", &org::sem::CmdExport::exporter)
+    .def_readwrite("content", &org::sem::CmdExport::content)
+    .def_readwrite("attrs", &org::sem::CmdExport::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &org::sem::CmdExport::attached)
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::CmdExport::*)(hstd::Opt<hstd::Str> const&) const>(&sem::CmdExport::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::CmdExport::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::CmdExport::getAttrs),
          pybind11::arg_v("key", std::nullopt),
          R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::CmdExport::*)(hstd::Str const&) const>(&sem::CmdExport::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::CmdExport::*)(hstd::Str const&) const>(&org::sem::CmdExport::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
     .def("getAttached",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::CmdExport::*)(hstd::Opt<hstd::Str> const&) const>(&sem::CmdExport::getAttached),
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::CmdExport::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::CmdExport::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
-    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::CmdExport::*)() const>(&sem::CmdExport::getCaption))
-    .def("getName", static_cast<hstd::Vec<hstd::Str>(sem::CmdExport::*)() const>(&sem::CmdExport::getName))
+    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::CmdExport::*)() const>(&org::sem::CmdExport::getCaption))
+    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::CmdExport::*)() const>(&org::sem::CmdExport::getName))
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::CmdExport::*)(hstd::Opt<hstd::Str> const&) const>(&sem::CmdExport::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::CmdExport::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::CmdExport::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::CmdExport::*)(hstd::Str const&) const>(&sem::CmdExport::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::CmdExport::*)(hstd::Str const&) const>(&org::sem::CmdExport::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
-    .def("__repr__", [](sem::CmdExport _self) -> std::string {
+    .def("__repr__", [](org::sem::CmdExport _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::CmdExport _self, std::string name) -> pybind11::object {
+         [](org::sem::CmdExport _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Call, sem::SemId<sem::Call>, org::sem::Org>(m, "Call")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Call {
-                        sem::Call result{};
+  pybind11::class_<org::sem::Call, org::sem::SemId<org::sem::Call>, org::sem::Org>(m, "Call")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Call {
+                        org::sem::Call result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("name", &sem::Call::name, R"RAW(Call target name)RAW")
-    .def_readwrite("attrs", &sem::Call::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
-    .def_readwrite("isCommand", &sem::Call::isCommand)
-    .def("__repr__", [](sem::Call _self) -> std::string {
+    .def_readwrite("name", &org::sem::Call::name, R"RAW(Call target name)RAW")
+    .def_readwrite("attrs", &org::sem::Call::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("isCommand", &org::sem::Call::isCommand)
+    .def("__repr__", [](org::sem::Call _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::Call _self, std::string name) -> pybind11::object {
+         [](org::sem::Call _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::List, sem::SemId<sem::List>, org::sem::Stmt>(m, "List")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::List {
-                        sem::List result{};
+  pybind11::class_<org::sem::List, org::sem::SemId<org::sem::List>, org::sem::Stmt>(m, "List")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::List {
+                        org::sem::List result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("attached", &sem::List::attached)
+    .def_readwrite("attached", &org::sem::List::attached)
     .def("getListAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::List::*)(hstd::Str const&) const>(&sem::List::getListAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::List::*)(hstd::Str const&) const>(&org::sem::List::getListAttrs),
          pybind11::arg("key"))
-    .def("getListFormattingMode", static_cast<ListFormattingMode(sem::List::*)() const>(&sem::List::getListFormattingMode))
-    .def("isDescriptionList", static_cast<bool(sem::List::*)() const>(&sem::List::isDescriptionList), R"RAW(List is marked as description if any list item has a header)RAW")
-    .def("isNumberedList", static_cast<bool(sem::List::*)() const>(&sem::List::isNumberedList), R"RAW(List is marked as numbered if any list item has bullet text set)RAW")
+    .def("getListFormattingMode", static_cast<ListFormattingMode(org::sem::List::*)() const>(&org::sem::List::getListFormattingMode))
+    .def("isDescriptionList", static_cast<bool(org::sem::List::*)() const>(&org::sem::List::isDescriptionList), R"RAW(List is marked as description if any list item has a header)RAW")
+    .def("isNumberedList", static_cast<bool(org::sem::List::*)() const>(&org::sem::List::isNumberedList), R"RAW(List is marked as numbered if any list item has bullet text set)RAW")
     .def("getAttached",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::List::*)(hstd::Opt<hstd::Str> const&) const>(&sem::List::getAttached),
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::List::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::List::getAttached),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
-    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(sem::List::*)() const>(&sem::List::getCaption))
-    .def("getName", static_cast<hstd::Vec<hstd::Str>(sem::List::*)() const>(&sem::List::getName))
+    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::List::*)() const>(&org::sem::List::getCaption))
+    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::List::*)() const>(&org::sem::List::getName))
     .def("getAttrs",
-         static_cast<hstd::Vec<sem::AttrValue>(sem::List::*)(hstd::Opt<hstd::Str> const&) const>(&sem::List::getAttrs),
+         static_cast<hstd::Vec<sem::AttrValue>(org::sem::List::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::List::getAttrs),
          pybind11::arg_v("kind", std::nullopt),
          R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
     .def("getFirstAttr",
-         static_cast<hstd::Opt<sem::AttrValue>(sem::List::*)(hstd::Str const&) const>(&sem::List::getFirstAttr),
+         static_cast<hstd::Opt<sem::AttrValue>(org::sem::List::*)(hstd::Str const&) const>(&org::sem::List::getFirstAttr),
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
-    .def("__repr__", [](sem::List _self) -> std::string {
+    .def("__repr__", [](org::sem::List _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::List _self, std::string name) -> pybind11::object {
+         [](org::sem::List _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -4400,136 +4400,136 @@ node can have subnodes.)RAW")
                      ();
                      })
     ;
-  pybind11::class_<sem::ListItem, sem::SemId<sem::ListItem>, org::sem::Org>(m, "ListItem")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::ListItem {
-                        sem::ListItem result{};
+  pybind11::class_<org::sem::ListItem, org::sem::SemId<org::sem::ListItem>, org::sem::Org>(m, "ListItem")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::ListItem {
+                        org::sem::ListItem result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("checkbox", &sem::ListItem::checkbox)
-    .def_readwrite("header", &sem::ListItem::header, R"RAW(Description list item header)RAW")
-    .def_readwrite("bullet", &sem::ListItem::bullet, R"RAW(Full text of the numbered list item, e.g. `a)`, `a.`)RAW")
-    .def("isDescriptionItem", static_cast<bool(sem::ListItem::*)() const>(&sem::ListItem::isDescriptionItem))
-    .def("getCleanHeader", static_cast<hstd::Opt<hstd::Str>(sem::ListItem::*)() const>(&sem::ListItem::getCleanHeader), R"RAW(Return flat text for the description list header)RAW")
-    .def("__repr__", [](sem::ListItem _self) -> std::string {
+    .def_readwrite("checkbox", &org::sem::ListItem::checkbox)
+    .def_readwrite("header", &org::sem::ListItem::header, R"RAW(Description list item header)RAW")
+    .def_readwrite("bullet", &org::sem::ListItem::bullet, R"RAW(Full text of the numbered list item, e.g. `a)`, `a.`)RAW")
+    .def("isDescriptionItem", static_cast<bool(org::sem::ListItem::*)() const>(&org::sem::ListItem::isDescriptionItem))
+    .def("getCleanHeader", static_cast<hstd::Opt<hstd::Str>(org::sem::ListItem::*)() const>(&org::sem::ListItem::getCleanHeader), R"RAW(Return flat text for the description list header)RAW")
+    .def("__repr__", [](org::sem::ListItem _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::ListItem _self, std::string name) -> pybind11::object {
+         [](org::sem::ListItem _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::DocumentOptions, sem::SemId<sem::DocumentOptions>, org::sem::Org>(m, "DocumentOptions")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::DocumentOptions {
-                        sem::DocumentOptions result{};
+  pybind11::class_<org::sem::DocumentOptions, org::sem::SemId<org::sem::DocumentOptions>, org::sem::Org>(m, "DocumentOptions")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::DocumentOptions {
+                        org::sem::DocumentOptions result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("initialVisibility", &sem::DocumentOptions::initialVisibility)
-    .def_readwrite("properties", &sem::DocumentOptions::properties)
-    .def_readwrite("exportConfig", &sem::DocumentOptions::exportConfig)
-    .def_readwrite("fixedWidthSections", &sem::DocumentOptions::fixedWidthSections)
-    .def_readwrite("startupIndented", &sem::DocumentOptions::startupIndented)
-    .def_readwrite("category", &sem::DocumentOptions::category)
-    .def_readwrite("setupfile", &sem::DocumentOptions::setupfile)
-    .def_readwrite("maxSubtreeLevelExport", &sem::DocumentOptions::maxSubtreeLevelExport)
-    .def_readwrite("columns", &sem::DocumentOptions::columns)
+    .def_readwrite("initialVisibility", &org::sem::DocumentOptions::initialVisibility)
+    .def_readwrite("properties", &org::sem::DocumentOptions::properties)
+    .def_readwrite("exportConfig", &org::sem::DocumentOptions::exportConfig)
+    .def_readwrite("fixedWidthSections", &org::sem::DocumentOptions::fixedWidthSections)
+    .def_readwrite("startupIndented", &org::sem::DocumentOptions::startupIndented)
+    .def_readwrite("category", &org::sem::DocumentOptions::category)
+    .def_readwrite("setupfile", &org::sem::DocumentOptions::setupfile)
+    .def_readwrite("maxSubtreeLevelExport", &org::sem::DocumentOptions::maxSubtreeLevelExport)
+    .def_readwrite("columns", &org::sem::DocumentOptions::columns)
     .def("getProperties",
-         static_cast<hstd::Vec<sem::NamedProperty>(sem::DocumentOptions::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&sem::DocumentOptions::getProperties),
+         static_cast<hstd::Vec<sem::NamedProperty>(org::sem::DocumentOptions::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::DocumentOptions::getProperties),
          pybind11::arg("kind"),
          pybind11::arg_v("subKind", std::nullopt))
     .def("getProperty",
-         static_cast<hstd::Opt<sem::NamedProperty>(sem::DocumentOptions::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&sem::DocumentOptions::getProperty),
+         static_cast<hstd::Opt<sem::NamedProperty>(org::sem::DocumentOptions::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::DocumentOptions::getProperty),
          pybind11::arg("kind"),
          pybind11::arg_v("subKind", std::nullopt))
-    .def("__repr__", [](sem::DocumentOptions _self) -> std::string {
+    .def("__repr__", [](org::sem::DocumentOptions _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::DocumentOptions _self, std::string name) -> pybind11::object {
+         [](org::sem::DocumentOptions _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Document, sem::SemId<sem::Document>, org::sem::Org>(m, "Document")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Document {
-                        sem::Document result{};
+  pybind11::class_<org::sem::Document, org::sem::SemId<org::sem::Document>, org::sem::Org>(m, "Document")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Document {
+                        org::sem::Document result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("title", &sem::Document::title)
-    .def_readwrite("author", &sem::Document::author)
-    .def_readwrite("creator", &sem::Document::creator)
-    .def_readwrite("filetags", &sem::Document::filetags)
-    .def_readwrite("email", &sem::Document::email)
-    .def_readwrite("language", &sem::Document::language)
-    .def_readwrite("options", &sem::Document::options)
-    .def_readwrite("exportFileName", &sem::Document::exportFileName)
+    .def_readwrite("title", &org::sem::Document::title)
+    .def_readwrite("author", &org::sem::Document::author)
+    .def_readwrite("creator", &org::sem::Document::creator)
+    .def_readwrite("filetags", &org::sem::Document::filetags)
+    .def_readwrite("email", &org::sem::Document::email)
+    .def_readwrite("language", &org::sem::Document::language)
+    .def_readwrite("options", &org::sem::Document::options)
+    .def_readwrite("exportFileName", &org::sem::Document::exportFileName)
     .def("getProperties",
-         static_cast<hstd::Vec<sem::NamedProperty>(sem::Document::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&sem::Document::getProperties),
+         static_cast<hstd::Vec<sem::NamedProperty>(org::sem::Document::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::Document::getProperties),
          pybind11::arg("kind"),
          pybind11::arg_v("subKind", std::nullopt))
     .def("getProperty",
-         static_cast<hstd::Opt<sem::NamedProperty>(sem::Document::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&sem::Document::getProperty),
+         static_cast<hstd::Opt<sem::NamedProperty>(org::sem::Document::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::Document::getProperty),
          pybind11::arg("kind"),
          pybind11::arg_v("subKind", std::nullopt))
-    .def("__repr__", [](sem::Document _self) -> std::string {
+    .def("__repr__", [](org::sem::Document _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::Document _self, std::string name) -> pybind11::object {
+         [](org::sem::Document _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::FileTarget, sem::SemId<sem::FileTarget>, org::sem::Org>(m, "FileTarget")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::FileTarget {
-                        sem::FileTarget result{};
+  pybind11::class_<org::sem::FileTarget, org::sem::SemId<org::sem::FileTarget>, org::sem::Org>(m, "FileTarget")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::FileTarget {
+                        org::sem::FileTarget result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("path", &sem::FileTarget::path)
-    .def_readwrite("line", &sem::FileTarget::line)
-    .def_readwrite("searchTarget", &sem::FileTarget::searchTarget)
-    .def_readwrite("restrictToHeadlines", &sem::FileTarget::restrictToHeadlines)
-    .def_readwrite("targetId", &sem::FileTarget::targetId)
-    .def_readwrite("regexp", &sem::FileTarget::regexp)
-    .def("__repr__", [](sem::FileTarget _self) -> std::string {
+    .def_readwrite("path", &org::sem::FileTarget::path)
+    .def_readwrite("line", &org::sem::FileTarget::line)
+    .def_readwrite("searchTarget", &org::sem::FileTarget::searchTarget)
+    .def_readwrite("restrictToHeadlines", &org::sem::FileTarget::restrictToHeadlines)
+    .def_readwrite("targetId", &org::sem::FileTarget::targetId)
+    .def_readwrite("regexp", &org::sem::FileTarget::regexp)
+    .def("__repr__", [](org::sem::FileTarget _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::FileTarget _self, std::string name) -> pybind11::object {
+         [](org::sem::FileTarget _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::TextSeparator, sem::SemId<sem::TextSeparator>, org::sem::Org>(m, "TextSeparator")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::TextSeparator {
-                        sem::TextSeparator result{};
+  pybind11::class_<org::sem::TextSeparator, org::sem::SemId<org::sem::TextSeparator>, org::sem::Org>(m, "TextSeparator")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::TextSeparator {
+                        org::sem::TextSeparator result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("__repr__", [](sem::TextSeparator _self) -> std::string {
+    .def("__repr__", [](org::sem::TextSeparator _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::TextSeparator _self, std::string name) -> pybind11::object {
+         [](org::sem::TextSeparator _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::DocumentGroup, sem::SemId<sem::DocumentGroup>, org::sem::Org>(m, "DocumentGroup")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::DocumentGroup {
-                        sem::DocumentGroup result{};
+  pybind11::class_<org::sem::DocumentGroup, org::sem::SemId<org::sem::DocumentGroup>, org::sem::Org>(m, "DocumentGroup")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::DocumentGroup {
+                        org::sem::DocumentGroup result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("__repr__", [](sem::DocumentGroup _self) -> std::string {
+    .def("__repr__", [](org::sem::DocumentGroup _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::DocumentGroup _self, std::string name) -> pybind11::object {
+         [](org::sem::DocumentGroup _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -4590,64 +4590,64 @@ node can have subnodes.)RAW")
                      ();
                      })
     ;
-  pybind11::class_<sem::File, sem::SemId<sem::File>, org::sem::Org>(m, "File")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::File {
-                        sem::File result{};
+  pybind11::class_<org::sem::File, org::sem::SemId<org::sem::File>, org::sem::Org>(m, "File")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::File {
+                        org::sem::File result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("relPath", &sem::File::relPath, R"RAW(Relative path from the root directory)RAW")
-    .def_readwrite("absPath", &sem::File::absPath, R"RAW(Absolute resolved path to physical file)RAW")
-    .def_readwrite("data", &sem::File::data)
-    .def("isDocument", static_cast<bool(sem::File::*)() const>(&sem::File::isDocument))
-    .def("getDocument", static_cast<sem::File::Document&(sem::File::*)()>(&sem::File::getDocument))
-    .def("isAttachment", static_cast<bool(sem::File::*)() const>(&sem::File::isAttachment))
-    .def("getAttachment", static_cast<sem::File::Attachment&(sem::File::*)()>(&sem::File::getAttachment))
-    .def("isSource", static_cast<bool(sem::File::*)() const>(&sem::File::isSource))
-    .def("getSource", static_cast<sem::File::Source&(sem::File::*)()>(&sem::File::getSource))
+    .def_readwrite("relPath", &org::sem::File::relPath, R"RAW(Relative path from the root directory)RAW")
+    .def_readwrite("absPath", &org::sem::File::absPath, R"RAW(Absolute resolved path to physical file)RAW")
+    .def_readwrite("data", &org::sem::File::data)
+    .def("isDocument", static_cast<bool(org::sem::File::*)() const>(&org::sem::File::isDocument))
+    .def("getDocument", static_cast<sem::File::Document&(org::sem::File::*)()>(&org::sem::File::getDocument))
+    .def("isAttachment", static_cast<bool(org::sem::File::*)() const>(&org::sem::File::isAttachment))
+    .def("getAttachment", static_cast<sem::File::Attachment&(org::sem::File::*)()>(&org::sem::File::getAttachment))
+    .def("isSource", static_cast<bool(org::sem::File::*)() const>(&org::sem::File::isSource))
+    .def("getSource", static_cast<sem::File::Source&(org::sem::File::*)()>(&org::sem::File::getSource))
     .def_static("getFileKindStatic",
-                static_cast<sem::File::Kind(*)(sem::File::Data const&)>(&sem::File::getFileKind),
+                static_cast<sem::File::Kind(*)(sem::File::Data const&)>(&org::sem::File::getFileKind),
                 pybind11::arg("__input"))
-    .def("getFileKind", static_cast<sem::File::Kind(sem::File::*)() const>(&sem::File::getFileKind))
-    .def("__repr__", [](sem::File _self) -> std::string {
+    .def("getFileKind", static_cast<sem::File::Kind(org::sem::File::*)() const>(&org::sem::File::getFileKind))
+    .def("__repr__", [](org::sem::File _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::File _self, std::string name) -> pybind11::object {
+         [](org::sem::File _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Directory, sem::SemId<sem::Directory>, org::sem::Org>(m, "Directory")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Directory {
-                        sem::Directory result{};
+  pybind11::class_<org::sem::Directory, org::sem::SemId<org::sem::Directory>, org::sem::Org>(m, "Directory")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Directory {
+                        org::sem::Directory result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("relPath", &sem::Directory::relPath, R"RAW(Relative path from the root directory, empty if this is the root directory)RAW")
-    .def_readwrite("absPath", &sem::Directory::absPath, R"RAW(Absolute resolved path to physical directory)RAW")
-    .def("__repr__", [](sem::Directory _self) -> std::string {
+    .def_readwrite("relPath", &org::sem::Directory::relPath, R"RAW(Relative path from the root directory, empty if this is the root directory)RAW")
+    .def_readwrite("absPath", &org::sem::Directory::absPath, R"RAW(Absolute resolved path to physical directory)RAW")
+    .def("__repr__", [](org::sem::Directory _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::Directory _self, std::string name) -> pybind11::object {
+         [](org::sem::Directory _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<sem::Symlink, sem::SemId<sem::Symlink>, org::sem::Org>(m, "Symlink")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::Symlink {
-                        sem::Symlink result{};
+  pybind11::class_<org::sem::Symlink, org::sem::SemId<org::sem::Symlink>, org::sem::Org>(m, "Symlink")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Symlink {
+                        org::sem::Symlink result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("isDirectory", &sem::Symlink::isDirectory)
-    .def_readwrite("absPath", &sem::Symlink::absPath, R"RAW(Absolute path to the symlinked target directory. All relative paths under symlink node use its absolute path as a root.)RAW")
-    .def("__repr__", [](sem::Symlink _self) -> std::string {
+    .def_readwrite("isDirectory", &org::sem::Symlink::isDirectory)
+    .def_readwrite("absPath", &org::sem::Symlink::absPath, R"RAW(Absolute path to the symlinked target directory. All relative paths under symlink node use its absolute path as a root.)RAW")
+    .def("__repr__", [](org::sem::Symlink _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::Symlink _self, std::string name) -> pybind11::object {
+         [](org::sem::Symlink _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -4762,35 +4762,35 @@ node can have subnodes.)RAW")
                      ();
                      })
     ;
-  pybind11::class_<sem::CmdInclude, sem::SemId<sem::CmdInclude>, org::sem::Org>(m, "CmdInclude")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> sem::CmdInclude {
-                        sem::CmdInclude result{};
+  pybind11::class_<org::sem::CmdInclude, org::sem::SemId<org::sem::CmdInclude>, org::sem::Org>(m, "CmdInclude")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdInclude {
+                        org::sem::CmdInclude result{};
                         init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("path", &sem::CmdInclude::path, R"RAW(Path to include)RAW")
-    .def_readwrite("firstLine", &sem::CmdInclude::firstLine, R"RAW(0-based index of the first line to include. NOTE: Org-mode syntax uses 1-based half-open range in the text)RAW")
-    .def_readwrite("lastLine", &sem::CmdInclude::lastLine, R"RAW(0-based index of the last line to include)RAW")
-    .def_readwrite("data", &sem::CmdInclude::data)
-    .def("isExample", static_cast<bool(sem::CmdInclude::*)() const>(&sem::CmdInclude::isExample))
-    .def("getExample", static_cast<sem::CmdInclude::Example&(sem::CmdInclude::*)()>(&sem::CmdInclude::getExample))
-    .def("isExport", static_cast<bool(sem::CmdInclude::*)() const>(&sem::CmdInclude::isExport))
-    .def("getExport", static_cast<sem::CmdInclude::Export&(sem::CmdInclude::*)()>(&sem::CmdInclude::getExport))
-    .def("isCustom", static_cast<bool(sem::CmdInclude::*)() const>(&sem::CmdInclude::isCustom))
-    .def("getCustom", static_cast<sem::CmdInclude::Custom&(sem::CmdInclude::*)()>(&sem::CmdInclude::getCustom))
-    .def("isSrc", static_cast<bool(sem::CmdInclude::*)() const>(&sem::CmdInclude::isSrc))
-    .def("getSrc", static_cast<sem::CmdInclude::Src&(sem::CmdInclude::*)()>(&sem::CmdInclude::getSrc))
-    .def("isOrgDocument", static_cast<bool(sem::CmdInclude::*)() const>(&sem::CmdInclude::isOrgDocument))
-    .def("getOrgDocument", static_cast<sem::CmdInclude::OrgDocument&(sem::CmdInclude::*)()>(&sem::CmdInclude::getOrgDocument))
+    .def_readwrite("path", &org::sem::CmdInclude::path, R"RAW(Path to include)RAW")
+    .def_readwrite("firstLine", &org::sem::CmdInclude::firstLine, R"RAW(0-based index of the first line to include. NOTE: Org-mode syntax uses 1-based half-open range in the text)RAW")
+    .def_readwrite("lastLine", &org::sem::CmdInclude::lastLine, R"RAW(0-based index of the last line to include)RAW")
+    .def_readwrite("data", &org::sem::CmdInclude::data)
+    .def("isExample", static_cast<bool(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::isExample))
+    .def("getExample", static_cast<sem::CmdInclude::Example&(org::sem::CmdInclude::*)()>(&org::sem::CmdInclude::getExample))
+    .def("isExport", static_cast<bool(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::isExport))
+    .def("getExport", static_cast<sem::CmdInclude::Export&(org::sem::CmdInclude::*)()>(&org::sem::CmdInclude::getExport))
+    .def("isCustom", static_cast<bool(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::isCustom))
+    .def("getCustom", static_cast<sem::CmdInclude::Custom&(org::sem::CmdInclude::*)()>(&org::sem::CmdInclude::getCustom))
+    .def("isSrc", static_cast<bool(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::isSrc))
+    .def("getSrc", static_cast<sem::CmdInclude::Src&(org::sem::CmdInclude::*)()>(&org::sem::CmdInclude::getSrc))
+    .def("isOrgDocument", static_cast<bool(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::isOrgDocument))
+    .def("getOrgDocument", static_cast<sem::CmdInclude::OrgDocument&(org::sem::CmdInclude::*)()>(&org::sem::CmdInclude::getOrgDocument))
     .def_static("getIncludeKindStatic",
-                static_cast<sem::CmdInclude::Kind(*)(sem::CmdInclude::Data const&)>(&sem::CmdInclude::getIncludeKind),
+                static_cast<sem::CmdInclude::Kind(*)(sem::CmdInclude::Data const&)>(&org::sem::CmdInclude::getIncludeKind),
                 pybind11::arg("__input"))
-    .def("getIncludeKind", static_cast<sem::CmdInclude::Kind(sem::CmdInclude::*)() const>(&sem::CmdInclude::getIncludeKind))
-    .def("__repr__", [](sem::CmdInclude _self) -> std::string {
+    .def("getIncludeKind", static_cast<sem::CmdInclude::Kind(org::sem::CmdInclude::*)() const>(&org::sem::CmdInclude::getIncludeKind))
+    .def("__repr__", [](org::sem::CmdInclude _self) -> std::string {
                      return py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](sem::CmdInclude _self, std::string name) -> pybind11::object {
+         [](org::sem::CmdInclude _self, std::string name) -> pybind11::object {
          return py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))

@@ -151,9 +151,13 @@ struct NodeGroup {
     int size() const { return nodes.size(); }
 
     V const& val(Id id) const {
-        CHECK(notNil(tokens));
-        CHECK(at(id).isTerminal()) << fmt(
-            "ID:{} {}({})", id.getUnmasked(), at(id).kind, at(id).value);
+        LOGIC_ASSERTION_CHECK(tokens != nullptr, "");
+        LOGIC_ASSERTION_CHECK(
+            at(id).isTerminal(),
+            "ID:{} {}({})",
+            id.getUnmasked(),
+            at(id).kind,
+            at(id).value);
         return tokens->at(at(id).getToken()).value;
     }
 
@@ -214,12 +218,12 @@ struct NodeGroup {
     Node<N, K, V, M>&       at(Id id) { return nodes.at(id); }
     Node<N, K, V, M> const& at(Id id) const { return nodes.at(id); }
     Token<K, V>&            at(TokenId<K, V> id) {
-        assert(notNil(tokens));
+        LOGIC_ASSERTION_CHECK(tokens != nullptr, "");
         return tokens->at(id);
     }
 
     Token<K, V> const& at(TokenId<K, V> id) const {
-        assert(notNil(tokens));
+        LOGIC_ASSERTION_CHECK(tokens != nullptr, "");
         return tokens->at(id);
     }
 

@@ -284,11 +284,11 @@ def filter_init_fields(Fields: List[Py11Field]) -> List[Py11Field]:
 @beartype
 def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
                   base_map: Mapping[str, GenTuStruct]) -> Py11Class:
-    base_type = QualType.ForName(typ.name.name, Spaces=[QualType.ForName("sem")])
+    base_type = QualType.ForName(typ.name.name, Spaces=[n_sem()])
     id_type = QualType.ForName(
         "SemId",
         Parameters=[base_type],
-        Spaces=[QualType.ForName("sem")],
+        Spaces=[n_sem()],
     )
 
     res = Py11Class(
@@ -404,7 +404,7 @@ def add_structures(res: Py11Module, ast: ASTBuilder, structs: List[GenTuStruct])
 
     # Map data definitions into python wrappers
     iterate_object_tree(
-        GenTuNamespace("sem", structs),
+        GenTuNamespace(n_sem(), structs),
         [],
         post_visit=codegenConstructCallback,
     )
@@ -1144,7 +1144,7 @@ struct std::formatter<OrgSemKind> : std::formatter<std::string> {
                     GenTuInclude("hstd/system/macros.hpp", True),
                     GenTuInclude("haxorg/sem/SemOrgBase.hpp", True),
                     GenTuInclude("haxorg/sem/SemOrgEnums.hpp", True),
-                    GenTuNamespace("sem", shared_types + expanded),
+                    GenTuNamespace(n_sem(), shared_types + expanded),
                 ],
             )),
         GenUnit(
@@ -1153,7 +1153,7 @@ struct std::formatter<OrgSemKind> : std::formatter<std::string> {
                 [
                     GenTuPass("#pragma once"),
                     GenTuInclude("haxorg/sem/ImmOrgBase.hpp", True),
-                    GenTuNamespace("org", immutable),
+                    GenTuNamespace(n_imm(), immutable),
                 ],
             )),
     ])

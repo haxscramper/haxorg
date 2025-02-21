@@ -12,7 +12,7 @@
 #include <immer/flex_vector.hpp>
 #include <absl/log/log.h>
 
-template <dod::IsIdType T>
+template <hstd::dod::IsIdType T>
 auto operator<<(std::ostream& stream, T id) -> std::ostream& {
     if (id.isNil()) {
         stream << "NULL";
@@ -34,14 +34,14 @@ DECL_ID_TYPE(FileTrackSection, FileTrackSectionId, std::size_t);
 } // namespace ir
 
 
-namespace dod {
+namespace hstd::dod {
 /// Provide struct specialization for string to be able to get it's id
 /// type.
 template <>
 struct id_type<Str> {
     using type = ir::StringId;
 };
-} // namespace dod
+} // namespace hstd::dod
 
 namespace ir {
 
@@ -55,7 +55,7 @@ struct FilePath {
     using id_type = FilePathId;
     ir::StringId path;
 
-    bool operator==(CR<FilePath> other) const {
+    bool operator==(FilePath const& other) const {
         return this->path == other.path;
     }
 };
@@ -64,11 +64,11 @@ struct FilePath {
 /// \ingroup db_mapped
 struct Commit {
     using id_type = CommitId;
-    AuthorId author;   /// references unique author id
-    i64      time;     /// posix time
-    int      timezone; /// timezone where commit was taken
-    Str      hash;     /// git hash of the commit
-    Str      message;  /// Commit message
+    AuthorId  author;   /// references unique author id
+    hstd::i64 time;     /// posix time
+    int       timezone; /// timezone where commit was taken
+    hstd::Str hash;     /// git hash of the commit
+    hstd::Str message;  /// Commit message
 
     DECL_DESCRIBED_ENUM(ActionKind, Modify, Delete, Rename, Add);
 
@@ -82,7 +82,7 @@ struct Commit {
         int             removed  = 0;
     };
 
-    Vec<Action> actions;
+    hstd::Vec<Action> actions;
 };
 
 struct FileTrackSection {
@@ -96,23 +96,23 @@ struct FileTrackSection {
     ir::FileTrackId track;
     /// List of all lines found in the file
     immer::flex_vector<LineId> lines;
-    Vec<int>                   added_lines;
-    Vec<int>                   removed_lines;
+    hstd::Vec<int>             added_lines;
+    hstd::Vec<int>             removed_lines;
 };
 
 /// \brief single version of the file that appeared in some commit
 /// \ingroup db_mapped
 struct FileTrack {
     using id_type = FileTrackId;
-    Vec<FileTrackSectionId> sections;
+    hstd::Vec<FileTrackSectionId> sections;
 };
 
 /// \brief Table of interned stirngs for different purposes
 /// \ingroup db_mapped
 struct String {
     using id_type = StringId;
-    Str  text; /// Textual content of the line
-    auto operator==(CR<String> other) const -> bool {
+    hstd::Str text; /// Textual content of the line
+    auto      operator==(String const& other) const -> bool {
         return text == other.text;
     }
 };
@@ -121,10 +121,10 @@ struct String {
 /// \ingroup db_mapped
 struct Author {
     using id_type = AuthorId;
-    Str name;
-    Str email;
+    hstd::Str name;
+    hstd::Str email;
 
-    auto operator==(CR<Author> other) const -> bool {
+    auto operator==(Author const& other) const -> bool {
         return name == other.name && email == other.email;
     }
 };
@@ -142,7 +142,7 @@ struct LineData {
     StringId content; /// Content of the line
     CommitId commit;
 
-    auto operator==(CR<LineData> other) const -> bool {
+    auto operator==(LineData const& other) const -> bool {
         return commit == other.commit && content == other.content;
     }
 };
@@ -185,18 +185,18 @@ MAKE_HASHABLE(ir::FilePath, it, it.path);
 namespace ir {
 /// \brief Main store for repository analysis
 struct content_manager {
-    dod::MultiStore<
-        dod::InternStore<AuthorId, Author>, // Full list of authors
-        dod::InternStore<LineId, LineData>, // found lines
-        dod::Store<FileTrackSectionId, FileTrackSection>,
-        dod::Store<FileTrackId, FileTrack>,     // file tracks
-        dod::InternStore<FilePathId, FilePath>, // file paths
-        dod::Store<CommitId, Commit>,           // all commits
-        dod::InternStore<StringId, String>      // all interned strings
+    hstd::dod::MultiStore<
+        hstd::dod::InternStore<AuthorId, Author>, // Full list of authors
+        hstd::dod::InternStore<LineId, LineData>, // found lines
+        hstd::dod::Store<FileTrackSectionId, FileTrackSection>,
+        hstd::dod::Store<FileTrackId, FileTrack>,     // file tracks
+        hstd::dod::InternStore<FilePathId, FilePath>, // file paths
+        hstd::dod::Store<CommitId, Commit>,           // all commits
+        hstd::dod::InternStore<StringId, String> // all interned strings
         >
         multi;
 
-    FilePathId getFilePath(CR<fs::path> file) {
+    FilePathId getFilePath(hstd::fs::path const& file) {
         if (file.native().starts_with(" ")) {
             std::cerr << file << std::endl;
             LOG(FATAL);
@@ -214,19 +214,20 @@ struct content_manager {
     }
 
     /// \brief Get reference to value pointed to by the ID
-    template <dod::IsIdType Id>
-    auto at(Id id) -> typename dod::value_type_t<Id>& {
+    template <hstd::dod::IsIdType Id>
+    auto at(Id id) -> typename hstd::dod::value_type_t<Id>& {
         return multi.at<Id>(id);
     }
 
-    template <dod::IsIdType Id>
-    [[nodiscard]] auto at(Id id) const -> CR<dod::value_type_t<Id>> {
+    template <hstd::dod::IsIdType Id>
+    [[nodiscard]] auto at(Id id) const
+        -> hstd::dod::value_type_t<Id> const& {
         return multi.at<Id>(id);
     }
 
     /// \brief Push in a value, return newly generated ID
     template <typename T>
-    [[nodiscard]] auto add(CR<T> it) -> dod::id_type_t<T> {
+    [[nodiscard]] auto add(T const& it) -> hstd::dod::id_type_t<T> {
         return multi.add<T>(it);
     }
 };

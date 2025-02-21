@@ -42,17 +42,6 @@ struct overloaded : Ts... {
 template <class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
 
-template <typename T>
-bool notNil(T* ptr) {
-    return ptr != nullptr;
-}
-
-/// Check if pointer is a null pointer
-template <typename T>
-bool isNil(T* ptr) {
-    return ptr == nullptr;
-}
-
 /// Helper base type for defining CRTP classes
 template <typename T>
 struct CRTP_this_method {

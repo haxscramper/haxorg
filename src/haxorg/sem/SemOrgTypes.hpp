@@ -11,12 +11,12 @@
 #include <hstd/system/macros.hpp>
 #include <haxorg/sem/SemOrgBase.hpp>
 #include <haxorg/sem/SemOrgEnums.hpp>
-namespace sem{
-struct sem::Tblfm {
-  struct sem::Tblfm::Expr {
-    struct sem::Tblfm::Expr::AxisRef {
-      struct sem::Tblfm::Expr::AxisRef::Position {
-        struct sem::Tblfm::Expr::AxisRef::Position::Index {
+namespace org::sem {
+struct Tblfm {
+  struct Expr {
+    struct AxisRef {
+      struct Position {
+        struct Index {
           Index () {}
           BOOST_DESCRIBE_CLASS(Index,
                                (),
@@ -27,7 +27,7 @@ struct sem::Tblfm {
           bool operator==(sem::Tblfm::Expr::AxisRef::Position::Index const& other) const;
         };
 
-        struct sem::Tblfm::Expr::AxisRef::Position::Name {
+        struct Name {
           Name () {}
           BOOST_DESCRIBE_CLASS(Name,
                                (),
@@ -71,7 +71,7 @@ struct sem::Tblfm {
       bool operator==(sem::Tblfm::Expr::AxisRef const& other) const;
     };
 
-    struct sem::Tblfm::Expr::AxisName {
+    struct AxisName {
       BOOST_DESCRIBE_CLASS(AxisName,
                            (),
                            (),
@@ -81,7 +81,7 @@ struct sem::Tblfm {
       bool operator==(sem::Tblfm::Expr::AxisName const& other) const;
     };
 
-    struct sem::Tblfm::Expr::IntLiteral {
+    struct IntLiteral {
       BOOST_DESCRIBE_CLASS(IntLiteral,
                            (),
                            (),
@@ -91,7 +91,7 @@ struct sem::Tblfm {
       bool operator==(sem::Tblfm::Expr::IntLiteral const& other) const;
     };
 
-    struct sem::Tblfm::Expr::FloatLiteral {
+    struct FloatLiteral {
       BOOST_DESCRIBE_CLASS(FloatLiteral,
                            (),
                            (),
@@ -101,7 +101,7 @@ struct sem::Tblfm {
       bool operator==(sem::Tblfm::Expr::FloatLiteral const& other) const;
     };
 
-    struct sem::Tblfm::Expr::RangeRef {
+    struct RangeRef {
       BOOST_DESCRIBE_CLASS(RangeRef,
                            (),
                            (),
@@ -112,7 +112,7 @@ struct sem::Tblfm {
       bool operator==(sem::Tblfm::Expr::RangeRef const& other) const;
     };
 
-    struct sem::Tblfm::Expr::Call {
+    struct Call {
       BOOST_DESCRIBE_CLASS(Call,
                            (),
                            (),
@@ -123,7 +123,7 @@ struct sem::Tblfm {
       bool operator==(sem::Tblfm::Expr::Call const& other) const;
     };
 
-    struct sem::Tblfm::Expr::Elisp {
+    struct Elisp {
       BOOST_DESCRIBE_CLASS(Elisp,
                            (),
                            (),
@@ -170,7 +170,7 @@ struct sem::Tblfm {
     sem::Tblfm::Expr::Kind getKind() const { return getKind(data); }
   };
 
-  struct sem::Tblfm::Assign {
+  struct Assign {
     /// \brief Flags for table format expression cell formulas
     enum class Flag : short int {
       /// \brief Left-align the result
@@ -225,7 +225,7 @@ struct sem::Tblfm {
   bool operator==(sem::Tblfm const& other) const;
 };
 
-struct sem::AttrValue {
+struct AttrValue {
   /// \brief Best-guess type of the attribute
   enum class Kind : short int { String, Boolean, Integer, Float, };
   BOOST_DESCRIBE_NESTED_ENUM(Kind, String, Boolean, Integer, Float)
@@ -249,7 +249,7 @@ struct sem::AttrValue {
   bool operator==(sem::AttrValue const& other) const;
 };
 
-struct sem::HashTagFlat {
+struct HashTagFlat {
   BOOST_DESCRIBE_CLASS(HashTagFlat,
                        (),
                        (),
@@ -261,7 +261,7 @@ struct sem::HashTagFlat {
 };
 
 /// \brief Single or nested inline hash-tag
-struct sem::HashTagText {
+struct HashTagText {
   BOOST_DESCRIBE_CLASS(HashTagText,
                        (),
                        (),
@@ -279,7 +279,7 @@ struct sem::HashTagText {
   hstd::Vec<sem::HashTagFlat> getFlatHashes(bool withIntermediate = true) const;
 };
 
-struct sem::SubtreePath {
+struct SubtreePath {
   BOOST_DESCRIBE_CLASS(SubtreePath,
                        (),
                        (),
@@ -289,8 +289,8 @@ struct sem::SubtreePath {
   bool operator==(sem::SubtreePath const& other) const;
 };
 
-struct sem::LinkTarget {
-  struct sem::LinkTarget::Raw {
+struct LinkTarget {
+  struct Raw {
     BOOST_DESCRIBE_CLASS(Raw,
                          (),
                          (),
@@ -300,7 +300,7 @@ struct sem::LinkTarget {
     bool operator==(sem::LinkTarget::Raw const& other) const;
   };
 
-  struct sem::LinkTarget::Id {
+  struct Id {
     BOOST_DESCRIBE_CLASS(Id,
                          (),
                          (),
@@ -310,7 +310,7 @@ struct sem::LinkTarget {
     bool operator==(sem::LinkTarget::Id const& other) const;
   };
 
-  struct sem::LinkTarget::CustomId {
+  struct CustomId {
     BOOST_DESCRIBE_CLASS(CustomId,
                          (),
                          (),
@@ -320,7 +320,7 @@ struct sem::LinkTarget {
     bool operator==(sem::LinkTarget::CustomId const& other) const;
   };
 
-  struct sem::LinkTarget::SubtreeTitle {
+  struct SubtreeTitle {
     BOOST_DESCRIBE_CLASS(SubtreeTitle,
                          (),
                          (),
@@ -331,7 +331,7 @@ struct sem::LinkTarget {
     bool operator==(sem::LinkTarget::SubtreeTitle const& other) const;
   };
 
-  struct sem::LinkTarget::Person {
+  struct Person {
     BOOST_DESCRIBE_CLASS(Person,
                          (),
                          (),
@@ -341,7 +341,7 @@ struct sem::LinkTarget {
     bool operator==(sem::LinkTarget::Person const& other) const;
   };
 
-  struct sem::LinkTarget::UserProtocol {
+  struct UserProtocol {
     BOOST_DESCRIBE_CLASS(UserProtocol,
                          (),
                          (),
@@ -352,7 +352,7 @@ struct sem::LinkTarget {
     bool operator==(sem::LinkTarget::UserProtocol const& other) const;
   };
 
-  struct sem::LinkTarget::Internal {
+  struct Internal {
     BOOST_DESCRIBE_CLASS(Internal,
                          (),
                          (),
@@ -362,7 +362,7 @@ struct sem::LinkTarget {
     bool operator==(sem::LinkTarget::Internal const& other) const;
   };
 
-  struct sem::LinkTarget::Footnote {
+  struct Footnote {
     BOOST_DESCRIBE_CLASS(Footnote,
                          (),
                          (),
@@ -372,7 +372,7 @@ struct sem::LinkTarget {
     bool operator==(sem::LinkTarget::Footnote const& other) const;
   };
 
-  struct sem::LinkTarget::File {
+  struct File {
     BOOST_DESCRIBE_CLASS(File,
                          (),
                          (),
@@ -382,7 +382,7 @@ struct sem::LinkTarget {
     bool operator==(sem::LinkTarget::File const& other) const;
   };
 
-  struct sem::LinkTarget::Attachment {
+  struct Attachment {
     BOOST_DESCRIBE_CLASS(Attachment,
                          (),
                          (),
@@ -438,9 +438,9 @@ struct sem::LinkTarget {
   sem::LinkTarget::Kind getKind() const { return getKind(data); }
 };
 
-struct sem::SubtreeLogHead {
+struct SubtreeLogHead {
   /// \brief Priority added
-  struct sem::SubtreeLogHead::Priority {
+  struct Priority {
     /// \brief Priority change action
     enum class Action : short int {
       /// \brief `Priority B added on [timestamp]`
@@ -469,7 +469,7 @@ struct sem::SubtreeLogHead {
   };
 
   /// \brief Timestamped note
-  struct sem::SubtreeLogHead::Note {
+  struct Note {
     Note() {}
     BOOST_DESCRIBE_CLASS(Note,
                          (),
@@ -482,7 +482,7 @@ struct sem::SubtreeLogHead {
   };
 
   /// \brief Refiling action
-  struct sem::SubtreeLogHead::Refile {
+  struct Refile {
     Refile() {}
     BOOST_DESCRIBE_CLASS(Refile,
                          (),
@@ -497,7 +497,7 @@ struct sem::SubtreeLogHead {
   };
 
   /// \brief Clock entry `CLOCK: [2023-04-30 Sun 13:29:04]--[2023-04-30 Sun 14:51:16] => 1:22`
-  struct sem::SubtreeLogHead::Clock {
+  struct Clock {
     Clock() {}
     BOOST_DESCRIBE_CLASS(Clock,
                          (),
@@ -512,7 +512,7 @@ struct sem::SubtreeLogHead {
   };
 
   /// \brief Change of the subtree state -- `- State "WIP" from "TODO" [2023-04-30 Sun 13:29:04]`
-  struct sem::SubtreeLogHead::State {
+  struct State {
     State() {}
     BOOST_DESCRIBE_CLASS(State,
                          (),
@@ -526,7 +526,7 @@ struct sem::SubtreeLogHead {
   };
 
   /// \brief Change of the subtree deadline
-  struct sem::SubtreeLogHead::Deadline {
+  struct Deadline {
     Deadline() {}
     BOOST_DESCRIBE_CLASS(Deadline,
                          (),
@@ -540,7 +540,7 @@ struct sem::SubtreeLogHead {
   };
 
   /// \brief Change of the subtree Schedule
-  struct sem::SubtreeLogHead::Schedule {
+  struct Schedule {
     Schedule() {}
     BOOST_DESCRIBE_CLASS(Schedule,
                          (),
@@ -554,7 +554,7 @@ struct sem::SubtreeLogHead {
   };
 
   /// \brief Assign tag to the subtree `- Tag "project##haxorg" Added on [2023-04-30 Sun 13:29:06]`
-  struct sem::SubtreeLogHead::Tag {
+  struct Tag {
     Tag() {}
     BOOST_DESCRIBE_CLASS(Tag,
                          (),
@@ -571,7 +571,7 @@ struct sem::SubtreeLogHead {
   };
 
   /// \brief Unknown subtree log entry kind
-  struct sem::SubtreeLogHead::Unknown {
+  struct Unknown {
     Unknown() {}
     BOOST_DESCRIBE_CLASS(Unknown,
                          (),
@@ -625,7 +625,7 @@ struct sem::SubtreeLogHead {
 };
 
 /// \brief Completion status of the subtree list element
-struct sem::SubtreeCompletion {
+struct SubtreeCompletion {
   BOOST_DESCRIBE_CLASS(SubtreeCompletion,
                        (),
                        (),
@@ -640,7 +640,7 @@ struct sem::SubtreeCompletion {
   bool operator==(sem::SubtreeCompletion const& other) const;
 };
 
-struct sem::AttrList {
+struct AttrList {
   BOOST_DESCRIBE_CLASS(AttrList,
                        (),
                        (),
@@ -650,7 +650,7 @@ struct sem::AttrList {
   bool operator==(sem::AttrList const& other) const;
 };
 
-struct sem::AttrGroup {
+struct AttrGroup {
   BOOST_DESCRIBE_CLASS(AttrGroup,
                        (),
                        (),
@@ -677,9 +677,9 @@ struct sem::AttrGroup {
   bool operator==(sem::AttrGroup const& other) const;
 };
 
-struct sem::ColumnView {
-  struct sem::ColumnView::Summary {
-    struct sem::ColumnView::Summary::CheckboxAggregate {
+struct ColumnView {
+  struct Summary {
+    struct CheckboxAggregate {
       enum class Kind : short int { IfAllNested, AggregateFractionRec, AggregatePercentRec, };
       BOOST_DESCRIBE_NESTED_ENUM(Kind, IfAllNested, AggregateFractionRec, AggregatePercentRec)
       BOOST_DESCRIBE_CLASS(CheckboxAggregate,
@@ -691,7 +691,7 @@ struct sem::ColumnView {
       bool operator==(sem::ColumnView::Summary::CheckboxAggregate const& other) const;
     };
 
-    struct sem::ColumnView::Summary::MathAggregate {
+    struct MathAggregate {
       enum class Kind : short int { Min, Max, Mean, Sum, LowHighEst, };
       BOOST_DESCRIBE_NESTED_ENUM(Kind, Min, Max, Mean, Sum, LowHighEst)
       BOOST_DESCRIBE_CLASS(MathAggregate,
@@ -727,7 +727,7 @@ struct sem::ColumnView {
     sem::ColumnView::Summary::Kind getKind() const { return getKind(data); }
   };
 
-  struct sem::ColumnView::Column {
+  struct Column {
     BOOST_DESCRIBE_CLASS(Column,
                          (),
                          (),
@@ -749,9 +749,9 @@ struct sem::ColumnView {
   bool operator==(sem::ColumnView const& other) const;
 };
 
-struct sem::BlockCodeLine {
-  struct sem::BlockCodeLine::Part {
-    struct sem::BlockCodeLine::Part::Raw {
+struct BlockCodeLine {
+  struct Part {
+    struct Raw {
       BOOST_DESCRIBE_CLASS(Raw,
                            (),
                            (),
@@ -761,7 +761,7 @@ struct sem::BlockCodeLine {
       bool operator==(sem::BlockCodeLine::Part::Raw const& other) const;
     };
 
-    struct sem::BlockCodeLine::Part::Callout {
+    struct Callout {
       BOOST_DESCRIBE_CLASS(Callout,
                            (),
                            (),
@@ -771,7 +771,7 @@ struct sem::BlockCodeLine {
       bool operator==(sem::BlockCodeLine::Part::Callout const& other) const;
     };
 
-    struct sem::BlockCodeLine::Part::Tangle {
+    struct Tangle {
       BOOST_DESCRIBE_CLASS(Tangle,
                            (),
                            (),
@@ -817,10 +817,10 @@ struct sem::BlockCodeLine {
 };
 
 /// \brief Extra configuration switches that can be used to control representation of the rendered code block. This field does not exactly correspond to the `-XX` parameters that can be passed directly in the field, but also works with attached `#+options` from the block
-struct sem::BlockCodeSwitch {
+struct BlockCodeSwitch {
   BlockCodeSwitch() {}
   /// \brief Enumerate code lines starting from `start` value instead of default indexing.
-  struct sem::BlockCodeSwitch::LineStart {
+  struct LineStart {
     LineStart() {}
     BOOST_DESCRIBE_CLASS(LineStart,
                          (),
@@ -834,7 +834,7 @@ struct sem::BlockCodeSwitch {
     bool operator==(sem::BlockCodeSwitch::LineStart const& other) const;
   };
 
-  struct sem::BlockCodeSwitch::CalloutFormat {
+  struct CalloutFormat {
     CalloutFormat() {}
     BOOST_DESCRIBE_CLASS(CalloutFormat,
                          (),
@@ -845,7 +845,7 @@ struct sem::BlockCodeSwitch {
     bool operator==(sem::BlockCodeSwitch::CalloutFormat const& other) const;
   };
 
-  struct sem::BlockCodeSwitch::RemoveCallout {
+  struct RemoveCallout {
     RemoveCallout() {}
     BOOST_DESCRIBE_CLASS(RemoveCallout,
                          (),
@@ -857,7 +857,7 @@ struct sem::BlockCodeSwitch {
   };
 
   /// \brief Emphasize single line -- can be repeated multiple times
-  struct sem::BlockCodeSwitch::EmphasizeLine {
+  struct EmphasizeLine {
     EmphasizeLine() {}
     BOOST_DESCRIBE_CLASS(EmphasizeLine,
                          (),
@@ -868,7 +868,7 @@ struct sem::BlockCodeSwitch {
     bool operator==(sem::BlockCodeSwitch::EmphasizeLine const& other) const;
   };
 
-  struct sem::BlockCodeSwitch::Dedent {
+  struct Dedent {
     Dedent() {}
     BOOST_DESCRIBE_CLASS(Dedent,
                          (),
@@ -910,9 +910,9 @@ struct sem::BlockCodeSwitch {
   sem::BlockCodeSwitch::Kind getKind() const { return getKind(data); }
 };
 
-struct sem::BlockCodeEvalResult {
+struct BlockCodeEvalResult {
   /// \brief Default value
-  struct sem::BlockCodeEvalResult::None {
+  struct None {
     BOOST_DESCRIBE_CLASS(None,
                          (),
                          (),
@@ -922,7 +922,7 @@ struct sem::BlockCodeEvalResult {
   };
 
   /// \brief Source code block evaluated to an org-mode node element
-  struct sem::BlockCodeEvalResult::OrgValue {
+  struct OrgValue {
     BOOST_DESCRIBE_CLASS(OrgValue,
                          (),
                          (),
@@ -934,7 +934,7 @@ struct sem::BlockCodeEvalResult {
   };
 
   /// \brief Output evaluation results to a file
-  struct sem::BlockCodeEvalResult::File {
+  struct File {
     BOOST_DESCRIBE_CLASS(File,
                          (),
                          (),
@@ -945,7 +945,7 @@ struct sem::BlockCodeEvalResult {
   };
 
   /// \brief Evaluation output is a raw text
-  struct sem::BlockCodeEvalResult::Raw {
+  struct Raw {
     BOOST_DESCRIBE_CLASS(Raw,
                          (),
                          (),
@@ -983,8 +983,8 @@ struct sem::BlockCodeEvalResult {
   sem::BlockCodeEvalResult::Kind getKind() const { return getKind(data); }
 };
 
-struct sem::DocumentExportConfig {
-  struct sem::DocumentExportConfig::TaskExport {
+struct DocumentExportConfig {
+  struct TaskExport {
     BOOST_DESCRIBE_CLASS(TaskExport,
                          (),
                          (),
@@ -1014,7 +1014,7 @@ struct sem::DocumentExportConfig {
   BOOST_DESCRIBE_NESTED_ENUM(TaskFiltering, Whitelist, Done, None, All)
   enum class BrokenLinks : short int { Mark, Raise, Ignore, };
   BOOST_DESCRIBE_NESTED_ENUM(BrokenLinks, Mark, Raise, Ignore)
-  struct sem::DocumentExportConfig::DoExport {
+  struct DoExport {
     BOOST_DESCRIBE_CLASS(DoExport,
                          (),
                          (),
@@ -1024,7 +1024,7 @@ struct sem::DocumentExportConfig {
     bool operator==(sem::DocumentExportConfig::DoExport const& other) const;
   };
 
-  struct sem::DocumentExportConfig::ExportFixed {
+  struct ExportFixed {
     BOOST_DESCRIBE_CLASS(ExportFixed,
                          (),
                          (),
@@ -1082,7 +1082,7 @@ struct sem::DocumentExportConfig {
 };
 
 /// \brief Type of the subtree associated time periods
-struct sem::SubtreePeriod {
+struct SubtreePeriod {
   SubtreePeriod() {}
   /// \brief Period kind
   enum class Kind : short int {
@@ -1117,9 +1117,9 @@ struct sem::SubtreePeriod {
 };
 
 /// \brief Single subtree property
-struct sem::NamedProperty {
+struct NamedProperty {
   NamedProperty() {}
-  struct sem::NamedProperty::Nonblocking {
+  struct Nonblocking {
     Nonblocking() {}
     BOOST_DESCRIBE_CLASS(Nonblocking,
                          (),
@@ -1130,7 +1130,7 @@ struct sem::NamedProperty {
     bool operator==(sem::NamedProperty::Nonblocking const& other) const;
   };
 
-  struct sem::NamedProperty::ArchiveTime {
+  struct ArchiveTime {
     ArchiveTime() {}
     BOOST_DESCRIBE_CLASS(ArchiveTime,
                          (),
@@ -1141,7 +1141,7 @@ struct sem::NamedProperty {
     bool operator==(sem::NamedProperty::ArchiveTime const& other) const;
   };
 
-  struct sem::NamedProperty::ArchiveFile {
+  struct ArchiveFile {
     ArchiveFile() {}
     BOOST_DESCRIBE_CLASS(ArchiveFile,
                          (),
@@ -1152,7 +1152,7 @@ struct sem::NamedProperty {
     bool operator==(sem::NamedProperty::ArchiveFile const& other) const;
   };
 
-  struct sem::NamedProperty::ArchiveOlpath {
+  struct ArchiveOlpath {
     ArchiveOlpath() {}
     BOOST_DESCRIBE_CLASS(ArchiveOlpath,
                          (),
@@ -1163,7 +1163,7 @@ struct sem::NamedProperty {
     bool operator==(sem::NamedProperty::ArchiveOlpath const& other) const;
   };
 
-  struct sem::NamedProperty::ArchiveTarget {
+  struct ArchiveTarget {
     ArchiveTarget() {}
     BOOST_DESCRIBE_CLASS(ArchiveTarget,
                          (),
@@ -1175,7 +1175,7 @@ struct sem::NamedProperty {
     bool operator==(sem::NamedProperty::ArchiveTarget const& other) const;
   };
 
-  struct sem::NamedProperty::ArchiveCategory {
+  struct ArchiveCategory {
     ArchiveCategory() {}
     BOOST_DESCRIBE_CLASS(ArchiveCategory,
                          (),
@@ -1186,7 +1186,7 @@ struct sem::NamedProperty {
     bool operator==(sem::NamedProperty::ArchiveCategory const& other) const;
   };
 
-  struct sem::NamedProperty::ArchiveTodo {
+  struct ArchiveTodo {
     ArchiveTodo() {}
     BOOST_DESCRIBE_CLASS(ArchiveTodo,
                          (),
@@ -1197,7 +1197,7 @@ struct sem::NamedProperty {
     bool operator==(sem::NamedProperty::ArchiveTodo const& other) const;
   };
 
-  struct sem::NamedProperty::Trigger {
+  struct Trigger {
     Trigger() {}
     BOOST_DESCRIBE_CLASS(Trigger,
                          (),
@@ -1207,7 +1207,7 @@ struct sem::NamedProperty {
     bool operator==(sem::NamedProperty::Trigger const& other) const;
   };
 
-  struct sem::NamedProperty::ExportLatexClass {
+  struct ExportLatexClass {
     ExportLatexClass() {}
     BOOST_DESCRIBE_CLASS(ExportLatexClass,
                          (),
@@ -1219,7 +1219,7 @@ struct sem::NamedProperty {
   };
 
   /// \brief `:COOKIE_DATA:` for the subtree completion calculation
-  struct sem::NamedProperty::CookieData {
+  struct CookieData {
     /// \brief Where to take todo completion statistics from
     enum class TodoSource : short int {
       /// \brief Only count checkbox subnodes as a progress completion
@@ -1240,7 +1240,7 @@ struct sem::NamedProperty {
     bool operator==(sem::NamedProperty::CookieData const& other) const;
   };
 
-  struct sem::NamedProperty::ExportLatexClassOptions {
+  struct ExportLatexClassOptions {
     ExportLatexClassOptions() {}
     BOOST_DESCRIBE_CLASS(ExportLatexClassOptions,
                          (),
@@ -1251,7 +1251,7 @@ struct sem::NamedProperty {
     bool operator==(sem::NamedProperty::ExportLatexClassOptions const& other) const;
   };
 
-  struct sem::NamedProperty::ExportLatexHeader {
+  struct ExportLatexHeader {
     ExportLatexHeader() {}
     BOOST_DESCRIBE_CLASS(ExportLatexHeader,
                          (),
@@ -1262,7 +1262,7 @@ struct sem::NamedProperty {
     bool operator==(sem::NamedProperty::ExportLatexHeader const& other) const;
   };
 
-  struct sem::NamedProperty::ExportLatexCompiler {
+  struct ExportLatexCompiler {
     ExportLatexCompiler() {}
     BOOST_DESCRIBE_CLASS(ExportLatexCompiler,
                          (),
@@ -1273,7 +1273,7 @@ struct sem::NamedProperty {
     bool operator==(sem::NamedProperty::ExportLatexCompiler const& other) const;
   };
 
-  struct sem::NamedProperty::Ordered {
+  struct Ordered {
     Ordered() {}
     BOOST_DESCRIBE_CLASS(Ordered,
                          (),
@@ -1284,7 +1284,7 @@ struct sem::NamedProperty {
     bool operator==(sem::NamedProperty::Ordered const& other) const;
   };
 
-  struct sem::NamedProperty::Effort {
+  struct Effort {
     Effort() {}
     BOOST_DESCRIBE_CLASS(Effort,
                          (),
@@ -1296,7 +1296,7 @@ struct sem::NamedProperty {
     bool operator==(sem::NamedProperty::Effort const& other) const;
   };
 
-  struct sem::NamedProperty::Visibility {
+  struct Visibility {
     Visibility() {}
     enum class Level : short int { Folded, Children, Content, All, };
     BOOST_DESCRIBE_NESTED_ENUM(Level, Folded, Children, Content, All)
@@ -1309,7 +1309,7 @@ struct sem::NamedProperty {
     bool operator==(sem::NamedProperty::Visibility const& other) const;
   };
 
-  struct sem::NamedProperty::ExportOptions {
+  struct ExportOptions {
     ExportOptions() {}
     BOOST_DESCRIBE_CLASS(ExportOptions,
                          (),
@@ -1321,7 +1321,7 @@ struct sem::NamedProperty {
     bool operator==(sem::NamedProperty::ExportOptions const& other) const;
   };
 
-  struct sem::NamedProperty::Blocker {
+  struct Blocker {
     Blocker() {}
     BOOST_DESCRIBE_CLASS(Blocker,
                          (),
@@ -1332,7 +1332,7 @@ struct sem::NamedProperty {
     bool operator==(sem::NamedProperty::Blocker const& other) const;
   };
 
-  struct sem::NamedProperty::Unnumbered {
+  struct Unnumbered {
     Unnumbered() {}
     BOOST_DESCRIBE_CLASS(Unnumbered,
                          (),
@@ -1342,7 +1342,7 @@ struct sem::NamedProperty {
     bool operator==(sem::NamedProperty::Unnumbered const& other) const;
   };
 
-  struct sem::NamedProperty::Created {
+  struct Created {
     Created() {}
     BOOST_DESCRIBE_CLASS(Created,
                          (),
@@ -1354,7 +1354,7 @@ struct sem::NamedProperty {
   };
 
   /// \brief Radio target ID
-  struct sem::NamedProperty::RadioId {
+  struct RadioId {
     RadioId() {}
     BOOST_DESCRIBE_CLASS(RadioId,
                          (),
@@ -1366,7 +1366,7 @@ struct sem::NamedProperty {
   };
 
   /// \brief Definition of a hashtag entry
-  struct sem::NamedProperty::HashtagDef {
+  struct HashtagDef {
     HashtagDef() {}
     BOOST_DESCRIBE_CLASS(HashtagDef,
                          (),
@@ -1378,7 +1378,7 @@ struct sem::NamedProperty {
   };
 
   /// \brief Custop property with unparsed arguments
-  struct sem::NamedProperty::CustomArgs {
+  struct CustomArgs {
     CustomArgs() {}
     BOOST_DESCRIBE_CLASS(CustomArgs,
                          (),
@@ -1395,7 +1395,7 @@ struct sem::NamedProperty {
   };
 
   /// \brief Custom property with unparsed arguments
-  struct sem::NamedProperty::CustomRaw {
+  struct CustomRaw {
     CustomRaw() {}
     BOOST_DESCRIBE_CLASS(CustomRaw,
                          (),
@@ -1410,7 +1410,7 @@ struct sem::NamedProperty {
   };
 
   /// \brief Free-form JSON
-  struct sem::NamedProperty::CustomSubtreeJson {
+  struct CustomSubtreeJson {
     BOOST_DESCRIBE_CLASS(CustomSubtreeJson,
                          (),
                          (),
@@ -1422,7 +1422,7 @@ struct sem::NamedProperty {
   };
 
   /// \brief Free-form flags
-  struct sem::NamedProperty::CustomSubtreeFlags {
+  struct CustomSubtreeFlags {
     BOOST_DESCRIBE_CLASS(CustomSubtreeFlags,
                          (),
                          (),
@@ -1535,7 +1535,7 @@ struct sem::NamedProperty {
 };
 
 /// \brief No node
-struct org::sem::None : public org::sem::Org {
+struct None : public org::sem::Org {
   using Org::Org;
   virtual ~None() = default;
   BOOST_DESCRIBE_CLASS(None,
@@ -1547,7 +1547,7 @@ struct org::sem::None : public org::sem::Org {
   virtual OrgSemKind getKind() const { return OrgSemKind::None; }
 };
 
-struct org::sem::ErrorItem : public org::sem::Org {
+struct ErrorItem : public org::sem::Org {
   using Org::Org;
   virtual ~ErrorItem() = default;
   BOOST_DESCRIBE_CLASS(ErrorItem,
@@ -1565,7 +1565,7 @@ struct org::sem::ErrorItem : public org::sem::Org {
 };
 
 /// \brief Group of value conversion errors
-struct org::sem::ErrorGroup : public org::sem::Org {
+struct ErrorGroup : public org::sem::Org {
   using Org::Org;
   virtual ~ErrorGroup() = default;
   BOOST_DESCRIBE_CLASS(ErrorGroup,
@@ -1583,7 +1583,7 @@ struct org::sem::ErrorGroup : public org::sem::Org {
 };
 
 /// \brief Base class for all document-level entries. Note that some node kinds might also have inline entries (examples include links, source code blocks, call blocks)
-struct org::sem::Stmt : public org::sem::Org {
+struct Stmt : public org::sem::Org {
   using Org::Org;
   virtual ~Stmt() = default;
   Stmt() {}
@@ -1605,14 +1605,14 @@ struct org::sem::Stmt : public org::sem::Org {
 };
 
 /// \brief Base class for all inline elements
-struct org::sem::Inline : public org::sem::Org {
+struct Inline : public org::sem::Org {
   using Org::Org;
   virtual ~Inline() = default;
   BOOST_DESCRIBE_CLASS(Inline, (Org), (), (), ())
 };
 
 /// \brief Zero or more statement nodes
-struct org::sem::StmtList : public org::sem::Org {
+struct StmtList : public org::sem::Org {
   using Org::Org;
   virtual ~StmtList() = default;
   BOOST_DESCRIBE_CLASS(StmtList,
@@ -1625,7 +1625,7 @@ struct org::sem::StmtList : public org::sem::Org {
 };
 
 /// \brief Node without content
-struct org::sem::Empty : public org::sem::Org {
+struct Empty : public org::sem::Org {
   using Org::Org;
   virtual ~Empty() = default;
   BOOST_DESCRIBE_CLASS(Empty,
@@ -1638,7 +1638,7 @@ struct org::sem::Empty : public org::sem::Org {
 };
 
 /// \brief Base class for block or line commands
-struct org::sem::Cmd : public org::sem::Stmt {
+struct Cmd : public org::sem::Stmt {
   using Stmt::Stmt;
   virtual ~Cmd() = default;
   BOOST_DESCRIBE_CLASS(Cmd,
@@ -1655,28 +1655,28 @@ struct org::sem::Cmd : public org::sem::Stmt {
 };
 
 /// \brief Block command type
-struct org::sem::Block : public org::sem::Cmd {
+struct Block : public org::sem::Cmd {
   using Cmd::Cmd;
   virtual ~Block() = default;
   BOOST_DESCRIBE_CLASS(Block, (Cmd), (), (), ())
 };
 
 /// \brief Line commands
-struct org::sem::LineCommand : public org::sem::Cmd {
+struct LineCommand : public org::sem::Cmd {
   using Cmd::Cmd;
   virtual ~LineCommand() = default;
   BOOST_DESCRIBE_CLASS(LineCommand, (Cmd), (), (), ())
 };
 
 /// \brief Line command that might get attached to some block element
-struct org::sem::Attached : public org::sem::LineCommand {
+struct Attached : public org::sem::LineCommand {
   using LineCommand::LineCommand;
   virtual ~Attached() = default;
   BOOST_DESCRIBE_CLASS(Attached, (LineCommand), (), (), ())
 };
 
 /// \brief Final node
-struct org::sem::Leaf : public org::sem::Org {
+struct Leaf : public org::sem::Org {
   using Org::Org;
   virtual ~Leaf() = default;
   BOOST_DESCRIBE_CLASS(Leaf,
@@ -1690,7 +1690,7 @@ struct org::sem::Leaf : public org::sem::Org {
 };
 
 /// \brief Caption annotation for any subsequent node
-struct org::sem::CmdCaption : public org::sem::Attached {
+struct CmdCaption : public org::sem::Attached {
   using Attached::Attached;
   virtual ~CmdCaption() = default;
   BOOST_DESCRIBE_CLASS(CmdCaption,
@@ -1705,7 +1705,7 @@ struct org::sem::CmdCaption : public org::sem::Attached {
 };
 
 /// \brief Caption annotation for any subsequent node
-struct org::sem::CmdColumns : public org::sem::Attached {
+struct CmdColumns : public org::sem::Attached {
   using Attached::Attached;
   virtual ~CmdColumns() = default;
   BOOST_DESCRIBE_CLASS(CmdColumns,
@@ -1719,7 +1719,7 @@ struct org::sem::CmdColumns : public org::sem::Attached {
 };
 
 /// \brief Name identifier for the statement elements.
-struct org::sem::CmdName : public org::sem::Attached {
+struct CmdName : public org::sem::Attached {
   using Attached::Attached;
   virtual ~CmdName() = default;
   BOOST_DESCRIBE_CLASS(CmdName,
@@ -1733,7 +1733,7 @@ struct org::sem::CmdName : public org::sem::Attached {
 };
 
 /// \brief Custom line command with list of parsed arguments
-struct org::sem::CmdCustomArgs : public org::sem::Cmd {
+struct CmdCustomArgs : public org::sem::Cmd {
   using Cmd::Cmd;
   virtual ~CmdCustomArgs() = default;
   BOOST_DESCRIBE_CLASS(CmdCustomArgs,
@@ -1748,7 +1748,7 @@ struct org::sem::CmdCustomArgs : public org::sem::Cmd {
 };
 
 /// \brief Custom command with raw unparsed string value
-struct org::sem::CmdCustomRaw : public org::sem::Stmt {
+struct CmdCustomRaw : public org::sem::Stmt {
   using Stmt::Stmt;
   virtual ~CmdCustomRaw() = default;
   BOOST_DESCRIBE_CLASS(CmdCustomRaw,
@@ -1764,7 +1764,7 @@ struct org::sem::CmdCustomRaw : public org::sem::Stmt {
 };
 
 /// \brief Custom line command with text paragraph value
-struct org::sem::CmdCustomText : public org::sem::Stmt {
+struct CmdCustomText : public org::sem::Stmt {
   using Stmt::Stmt;
   virtual ~CmdCustomText() = default;
   BOOST_DESCRIBE_CLASS(CmdCustomText,
@@ -1779,7 +1779,7 @@ struct org::sem::CmdCustomText : public org::sem::Stmt {
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdCustomText; }
 };
 
-struct org::sem::CmdResults : public org::sem::Attached {
+struct CmdResults : public org::sem::Attached {
   using Attached::Attached;
   virtual ~CmdResults() = default;
   BOOST_DESCRIBE_CLASS(CmdResults,
@@ -1792,7 +1792,7 @@ struct org::sem::CmdResults : public org::sem::Attached {
 };
 
 /// \brief Tblfm command type
-struct org::sem::CmdTblfm : public org::sem::Cmd {
+struct CmdTblfm : public org::sem::Cmd {
   using Cmd::Cmd;
   virtual ~CmdTblfm() = default;
   BOOST_DESCRIBE_CLASS(CmdTblfm,
@@ -1805,7 +1805,7 @@ struct org::sem::CmdTblfm : public org::sem::Cmd {
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdTblfm; }
 };
 
-struct org::sem::HashTag : public org::sem::Inline {
+struct HashTag : public org::sem::Inline {
   using Inline::Inline;
   virtual ~HashTag() = default;
   BOOST_DESCRIBE_CLASS(HashTag,
@@ -1821,7 +1821,7 @@ struct org::sem::HashTag : public org::sem::Inline {
 /// \brief Inline footnote definition
 ///
 /// \note in-text link to the footnotes are implemented using `Link` nodes
-struct org::sem::InlineFootnote : public org::sem::Inline {
+struct InlineFootnote : public org::sem::Inline {
   using Inline::Inline;
   virtual ~InlineFootnote() = default;
   BOOST_DESCRIBE_CLASS(InlineFootnote,
@@ -1838,7 +1838,7 @@ struct org::sem::InlineFootnote : public org::sem::Inline {
 };
 
 /// \brief Inline export
-struct org::sem::InlineExport : public org::sem::Inline {
+struct InlineExport : public org::sem::Inline {
   using Inline::Inline;
   virtual ~InlineExport() = default;
   BOOST_DESCRIBE_CLASS(InlineExport,
@@ -1853,11 +1853,11 @@ struct org::sem::InlineExport : public org::sem::Inline {
 };
 
 /// \brief Single static or dynamic timestamp (active or inactive)
-struct org::sem::Time : public org::sem::Org {
+struct Time : public org::sem::Org {
   using Org::Org;
   virtual ~Time() = default;
   /// \brief Repetition information for static time
-  struct sem::Time::Repeat {
+  struct Repeat {
     /// \brief Timestamp repetition mode
     enum class Mode : short int {
       /// \brief Do not repeat task on completion
@@ -1882,13 +1882,13 @@ struct org::sem::Time : public org::sem::Org {
     int count;
   };
 
-  struct sem::Time::Static {
+  struct Static {
     BOOST_DESCRIBE_CLASS(Static, (), (), (), (repeat, time))
     hstd::Opt<sem::Time::Repeat> repeat;
     UserTime time;
   };
 
-  struct sem::Time::Dynamic {
+  struct Dynamic {
     BOOST_DESCRIBE_CLASS(Dynamic, (), (), (), (expr))
     hstd::Str expr;
   };
@@ -1928,7 +1928,7 @@ struct org::sem::Time : public org::sem::Org {
 };
 
 /// \brief Range of time delimited by two points
-struct org::sem::TimeRange : public org::sem::Org {
+struct TimeRange : public org::sem::Org {
   using Org::Org;
   virtual ~TimeRange() = default;
   BOOST_DESCRIBE_CLASS(TimeRange,
@@ -1945,7 +1945,7 @@ struct org::sem::TimeRange : public org::sem::Org {
 };
 
 /// \brief Inline macro invocation
-struct org::sem::Macro : public org::sem::Org {
+struct Macro : public org::sem::Org {
   using Org::Org;
   virtual ~Macro() = default;
   BOOST_DESCRIBE_CLASS(Macro,
@@ -1962,11 +1962,11 @@ struct org::sem::Macro : public org::sem::Org {
 };
 
 /// \brief Text symbol or symbol command
-struct org::sem::Symbol : public org::sem::Org {
+struct Symbol : public org::sem::Org {
   using Org::Org;
   virtual ~Symbol() = default;
   /// \brief Symbol parameters
-  struct sem::Symbol::Param {
+  struct Param {
     BOOST_DESCRIBE_CLASS(Param, (), (), (), (key, value))
     /// \brief Key -- for non-positional
     hstd::Opt<hstd::Str> key;
@@ -1990,7 +1990,7 @@ struct org::sem::Symbol : public org::sem::Org {
 };
 
 /// \brief Escaped text
-struct org::sem::Escaped : public org::sem::Leaf {
+struct Escaped : public org::sem::Leaf {
   using Leaf::Leaf;
   virtual ~Escaped() = default;
   BOOST_DESCRIBE_CLASS(Escaped,
@@ -2003,7 +2003,7 @@ struct org::sem::Escaped : public org::sem::Leaf {
 };
 
 /// \brief \n newline
-struct org::sem::Newline : public org::sem::Leaf {
+struct Newline : public org::sem::Leaf {
   using Leaf::Leaf;
   virtual ~Newline() = default;
   BOOST_DESCRIBE_CLASS(Newline,
@@ -2016,7 +2016,7 @@ struct org::sem::Newline : public org::sem::Leaf {
 };
 
 /// \brief ' "space",
-struct org::sem::Space : public org::sem::Leaf {
+struct Space : public org::sem::Leaf {
   using Leaf::Leaf;
   virtual ~Space() = default;
   BOOST_DESCRIBE_CLASS(Space,
@@ -2029,7 +2029,7 @@ struct org::sem::Space : public org::sem::Leaf {
 };
 
 /// \brief word
-struct org::sem::Word : public org::sem::Leaf {
+struct Word : public org::sem::Leaf {
   using Leaf::Leaf;
   virtual ~Word() = default;
   BOOST_DESCRIBE_CLASS(Word,
@@ -2042,7 +2042,7 @@ struct org::sem::Word : public org::sem::Leaf {
 };
 
 /// \brief @mention
-struct org::sem::AtMention : public org::sem::Leaf {
+struct AtMention : public org::sem::Leaf {
   using Leaf::Leaf;
   virtual ~AtMention() = default;
   BOOST_DESCRIBE_CLASS(AtMention,
@@ -2054,7 +2054,7 @@ struct org::sem::AtMention : public org::sem::Leaf {
   virtual OrgSemKind getKind() const { return OrgSemKind::AtMention; }
 };
 
-struct org::sem::RawText : public org::sem::Leaf {
+struct RawText : public org::sem::Leaf {
   using Leaf::Leaf;
   virtual ~RawText() = default;
   BOOST_DESCRIBE_CLASS(RawText,
@@ -2066,7 +2066,7 @@ struct org::sem::RawText : public org::sem::Leaf {
   virtual OrgSemKind getKind() const { return OrgSemKind::RawText; }
 };
 
-struct org::sem::Punctuation : public org::sem::Leaf {
+struct Punctuation : public org::sem::Leaf {
   using Leaf::Leaf;
   virtual ~Punctuation() = default;
   BOOST_DESCRIBE_CLASS(Punctuation,
@@ -2078,7 +2078,7 @@ struct org::sem::Punctuation : public org::sem::Leaf {
   virtual OrgSemKind getKind() const { return OrgSemKind::Punctuation; }
 };
 
-struct org::sem::Placeholder : public org::sem::Leaf {
+struct Placeholder : public org::sem::Leaf {
   using Leaf::Leaf;
   virtual ~Placeholder() = default;
   BOOST_DESCRIBE_CLASS(Placeholder,
@@ -2090,7 +2090,7 @@ struct org::sem::Placeholder : public org::sem::Leaf {
   virtual OrgSemKind getKind() const { return OrgSemKind::Placeholder; }
 };
 
-struct org::sem::BigIdent : public org::sem::Leaf {
+struct BigIdent : public org::sem::Leaf {
   using Leaf::Leaf;
   virtual ~BigIdent() = default;
   BOOST_DESCRIBE_CLASS(BigIdent,
@@ -2103,7 +2103,7 @@ struct org::sem::BigIdent : public org::sem::Leaf {
 };
 
 /// \brief ~<<target>>~
-struct org::sem::TextTarget : public org::sem::Leaf {
+struct TextTarget : public org::sem::Leaf {
   using Leaf::Leaf;
   virtual ~TextTarget() = default;
   BOOST_DESCRIBE_CLASS(TextTarget,
@@ -2115,13 +2115,13 @@ struct org::sem::TextTarget : public org::sem::Leaf {
   virtual OrgSemKind getKind() const { return OrgSemKind::TextTarget; }
 };
 
-struct org::sem::Markup : public org::sem::Org {
+struct Markup : public org::sem::Org {
   using Org::Org;
   virtual ~Markup() = default;
   BOOST_DESCRIBE_CLASS(Markup, (Org), (), (), ())
 };
 
-struct org::sem::Bold : public org::sem::Markup {
+struct Bold : public org::sem::Markup {
   using Markup::Markup;
   virtual ~Bold() = default;
   BOOST_DESCRIBE_CLASS(Bold,
@@ -2133,7 +2133,7 @@ struct org::sem::Bold : public org::sem::Markup {
   virtual OrgSemKind getKind() const { return OrgSemKind::Bold; }
 };
 
-struct org::sem::Underline : public org::sem::Markup {
+struct Underline : public org::sem::Markup {
   using Markup::Markup;
   virtual ~Underline() = default;
   BOOST_DESCRIBE_CLASS(Underline,
@@ -2145,7 +2145,7 @@ struct org::sem::Underline : public org::sem::Markup {
   virtual OrgSemKind getKind() const { return OrgSemKind::Underline; }
 };
 
-struct org::sem::Monospace : public org::sem::Markup {
+struct Monospace : public org::sem::Markup {
   using Markup::Markup;
   virtual ~Monospace() = default;
   BOOST_DESCRIBE_CLASS(Monospace,
@@ -2157,7 +2157,7 @@ struct org::sem::Monospace : public org::sem::Markup {
   virtual OrgSemKind getKind() const { return OrgSemKind::Monospace; }
 };
 
-struct org::sem::MarkQuote : public org::sem::Markup {
+struct MarkQuote : public org::sem::Markup {
   using Markup::Markup;
   virtual ~MarkQuote() = default;
   BOOST_DESCRIBE_CLASS(MarkQuote,
@@ -2169,7 +2169,7 @@ struct org::sem::MarkQuote : public org::sem::Markup {
   virtual OrgSemKind getKind() const { return OrgSemKind::MarkQuote; }
 };
 
-struct org::sem::Verbatim : public org::sem::Markup {
+struct Verbatim : public org::sem::Markup {
   using Markup::Markup;
   virtual ~Verbatim() = default;
   BOOST_DESCRIBE_CLASS(Verbatim,
@@ -2181,7 +2181,7 @@ struct org::sem::Verbatim : public org::sem::Markup {
   virtual OrgSemKind getKind() const { return OrgSemKind::Verbatim; }
 };
 
-struct org::sem::Italic : public org::sem::Markup {
+struct Italic : public org::sem::Markup {
   using Markup::Markup;
   virtual ~Italic() = default;
   BOOST_DESCRIBE_CLASS(Italic,
@@ -2193,7 +2193,7 @@ struct org::sem::Italic : public org::sem::Markup {
   virtual OrgSemKind getKind() const { return OrgSemKind::Italic; }
 };
 
-struct org::sem::Strike : public org::sem::Markup {
+struct Strike : public org::sem::Markup {
   using Markup::Markup;
   virtual ~Strike() = default;
   BOOST_DESCRIBE_CLASS(Strike,
@@ -2205,7 +2205,7 @@ struct org::sem::Strike : public org::sem::Markup {
   virtual OrgSemKind getKind() const { return OrgSemKind::Strike; }
 };
 
-struct org::sem::Par : public org::sem::Markup {
+struct Par : public org::sem::Markup {
   using Markup::Markup;
   virtual ~Par() = default;
   BOOST_DESCRIBE_CLASS(Par,
@@ -2218,7 +2218,7 @@ struct org::sem::Par : public org::sem::Markup {
 };
 
 /// \brief ~<<<target>>>~
-struct org::sem::RadioTarget : public org::sem::Org {
+struct RadioTarget : public org::sem::Org {
   using Org::Org;
   virtual ~RadioTarget() = default;
   BOOST_DESCRIBE_CLASS(RadioTarget,
@@ -2232,7 +2232,7 @@ struct org::sem::RadioTarget : public org::sem::Org {
 };
 
 /// \brief Latex code body
-struct org::sem::Latex : public org::sem::Org {
+struct Latex : public org::sem::Org {
   using Org::Org;
   virtual ~Latex() = default;
   BOOST_DESCRIBE_CLASS(Latex,
@@ -2244,7 +2244,7 @@ struct org::sem::Latex : public org::sem::Org {
   virtual OrgSemKind getKind() const { return OrgSemKind::Latex; }
 };
 
-struct org::sem::Link : public org::sem::Stmt {
+struct Link : public org::sem::Stmt {
   using Stmt::Stmt;
   virtual ~Link() = default;
   BOOST_DESCRIBE_CLASS(Link,
@@ -2259,7 +2259,7 @@ struct org::sem::Link : public org::sem::Stmt {
 };
 
 /// \brief Center nested content in export
-struct org::sem::BlockCenter : public org::sem::Block {
+struct BlockCenter : public org::sem::Block {
   using Block::Block;
   virtual ~BlockCenter() = default;
   BOOST_DESCRIBE_CLASS(BlockCenter,
@@ -2272,7 +2272,7 @@ struct org::sem::BlockCenter : public org::sem::Block {
 };
 
 /// \brief Quotation block
-struct org::sem::BlockQuote : public org::sem::Block {
+struct BlockQuote : public org::sem::Block {
   using Block::Block;
   virtual ~BlockQuote() = default;
   BOOST_DESCRIBE_CLASS(BlockQuote,
@@ -2285,7 +2285,7 @@ struct org::sem::BlockQuote : public org::sem::Block {
 };
 
 /// \brief Comment block
-struct org::sem::BlockComment : public org::sem::Stmt {
+struct BlockComment : public org::sem::Stmt {
   using Stmt::Stmt;
   virtual ~BlockComment() = default;
   BOOST_DESCRIBE_CLASS(BlockComment,
@@ -2298,7 +2298,7 @@ struct org::sem::BlockComment : public org::sem::Stmt {
 };
 
 /// \brief Verse quotation block
-struct org::sem::BlockVerse : public org::sem::Block {
+struct BlockVerse : public org::sem::Block {
   using Block::Block;
   virtual ~BlockVerse() = default;
   BOOST_DESCRIBE_CLASS(BlockVerse,
@@ -2310,7 +2310,7 @@ struct org::sem::BlockVerse : public org::sem::Block {
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockVerse; }
 };
 
-struct org::sem::BlockDynamicFallback : public org::sem::Block {
+struct BlockDynamicFallback : public org::sem::Block {
   using Block::Block;
   virtual ~BlockDynamicFallback() = default;
   BOOST_DESCRIBE_CLASS(BlockDynamicFallback,
@@ -2324,7 +2324,7 @@ struct org::sem::BlockDynamicFallback : public org::sem::Block {
 };
 
 /// \brief Example block
-struct org::sem::BlockExample : public org::sem::Block {
+struct BlockExample : public org::sem::Block {
   using Block::Block;
   virtual ~BlockExample() = default;
   BOOST_DESCRIBE_CLASS(BlockExample,
@@ -2337,7 +2337,7 @@ struct org::sem::BlockExample : public org::sem::Block {
 };
 
 /// \brief Direct export passthrough
-struct org::sem::BlockExport : public org::sem::Block {
+struct BlockExport : public org::sem::Block {
   using Block::Block;
   virtual ~BlockExport() = default;
   BOOST_DESCRIBE_CLASS(BlockExport,
@@ -2356,7 +2356,7 @@ struct org::sem::BlockExport : public org::sem::Block {
 };
 
 /// \brief Block of text with admonition tag: 'note',', 'warning','
-struct org::sem::BlockAdmonition : public org::sem::Block {
+struct BlockAdmonition : public org::sem::Block {
   using Block::Block;
   virtual ~BlockAdmonition() = default;
   BOOST_DESCRIBE_CLASS(BlockAdmonition,
@@ -2369,7 +2369,7 @@ struct org::sem::BlockAdmonition : public org::sem::Block {
 };
 
 /// \brief Base class for all code blocks
-struct org::sem::BlockCode : public org::sem::Block {
+struct BlockCode : public org::sem::Block {
   using Block::Block;
   virtual ~BlockCode() = default;
   BOOST_DESCRIBE_CLASS(BlockCode,
@@ -2412,7 +2412,7 @@ struct org::sem::BlockCode : public org::sem::Block {
 };
 
 /// \brief Single subtree log entry
-struct org::sem::SubtreeLog : public org::sem::Org {
+struct SubtreeLog : public org::sem::Org {
   using Org::Org;
   virtual ~SubtreeLog() = default;
   BOOST_DESCRIBE_CLASS(SubtreeLog,
@@ -2431,7 +2431,7 @@ struct org::sem::SubtreeLog : public org::sem::Org {
 };
 
 /// \brief Subtree
-struct org::sem::Subtree : public org::sem::Org {
+struct Subtree : public org::sem::Org {
   using Org::Org;
   virtual ~Subtree() = default;
   BOOST_DESCRIBE_CLASS(Subtree,
@@ -2500,7 +2500,7 @@ struct org::sem::Subtree : public org::sem::Org {
 };
 
 /// \brief Table cell
-struct org::sem::Cell : public org::sem::Cmd {
+struct Cell : public org::sem::Cmd {
   using Cmd::Cmd;
   virtual ~Cell() = default;
   BOOST_DESCRIBE_CLASS(Cell,
@@ -2515,7 +2515,7 @@ struct org::sem::Cell : public org::sem::Cmd {
 };
 
 /// \brief Table row
-struct org::sem::Row : public org::sem::Cmd {
+struct Row : public org::sem::Cmd {
   using Cmd::Cmd;
   virtual ~Row() = default;
   BOOST_DESCRIBE_CLASS(Row,
@@ -2532,7 +2532,7 @@ struct org::sem::Row : public org::sem::Cmd {
 };
 
 /// \brief Table
-struct org::sem::Table : public org::sem::Block {
+struct Table : public org::sem::Block {
   using Block::Block;
   virtual ~Table() = default;
   BOOST_DESCRIBE_CLASS(Table,
@@ -2549,7 +2549,7 @@ struct org::sem::Table : public org::sem::Block {
 };
 
 /// \brief Top-level or inline paragraph
-struct org::sem::Paragraph : public org::sem::Stmt {
+struct Paragraph : public org::sem::Stmt {
   using Stmt::Stmt;
   virtual ~Paragraph() = default;
   BOOST_DESCRIBE_CLASS(Paragraph,
@@ -2574,7 +2574,7 @@ struct org::sem::Paragraph : public org::sem::Stmt {
 };
 
 /// \brief Shortened colon example block
-struct org::sem::ColonExample : public org::sem::Org {
+struct ColonExample : public org::sem::Org {
   using Org::Org;
   virtual ~ColonExample() = default;
   BOOST_DESCRIBE_CLASS(ColonExample,
@@ -2587,7 +2587,7 @@ struct org::sem::ColonExample : public org::sem::Org {
 };
 
 /// \brief Caption annotation for any subsequent node
-struct org::sem::CmdAttr : public org::sem::Attached {
+struct CmdAttr : public org::sem::Attached {
   using Attached::Attached;
   virtual ~CmdAttr() = default;
   BOOST_DESCRIBE_CLASS(CmdAttr,
@@ -2601,7 +2601,7 @@ struct org::sem::CmdAttr : public org::sem::Attached {
 };
 
 /// \brief Single line of passthrough code
-struct org::sem::CmdExport : public org::sem::Attached {
+struct CmdExport : public org::sem::Attached {
   using Attached::Attached;
   virtual ~CmdExport() = default;
   BOOST_DESCRIBE_CLASS(CmdExport,
@@ -2616,7 +2616,7 @@ struct org::sem::CmdExport : public org::sem::Attached {
 };
 
 /// \brief Inline, statement or block call
-struct org::sem::Call : public org::sem::Org {
+struct Call : public org::sem::Org {
   using Org::Org;
   virtual ~Call() = default;
   BOOST_DESCRIBE_CLASS(Call,
@@ -2633,7 +2633,7 @@ struct org::sem::Call : public org::sem::Org {
   virtual OrgSemKind getKind() const { return OrgSemKind::Call; }
 };
 
-struct org::sem::List : public org::sem::Stmt {
+struct List : public org::sem::Stmt {
   using Stmt::Stmt;
   virtual ~List() = default;
   BOOST_DESCRIBE_CLASS(List,
@@ -2651,7 +2651,7 @@ struct org::sem::List : public org::sem::Stmt {
   bool isNumberedList() const;
 };
 
-struct org::sem::ListItem : public org::sem::Org {
+struct ListItem : public org::sem::Org {
   using Org::Org;
   virtual ~ListItem() = default;
   enum class Checkbox : short int { None, Done, Empty, Partial, };
@@ -2676,7 +2676,7 @@ struct org::sem::ListItem : public org::sem::Org {
   hstd::Opt<hstd::Str> getCleanHeader() const;
 };
 
-struct org::sem::DocumentOptions : public org::sem::Org {
+struct DocumentOptions : public org::sem::Org {
   using Org::Org;
   virtual ~DocumentOptions() = default;
   BOOST_DESCRIBE_CLASS(DocumentOptions,
@@ -2708,7 +2708,7 @@ struct org::sem::DocumentOptions : public org::sem::Org {
   hstd::Opt<sem::NamedProperty> getProperty(hstd::Str const& kind, hstd::Opt<hstd::Str> const& subKind = std::nullopt) const;
 };
 
-struct org::sem::Document : public org::sem::Org {
+struct Document : public org::sem::Org {
   using Org::Org;
   virtual ~Document() = default;
   BOOST_DESCRIBE_CLASS(Document,
@@ -2738,7 +2738,7 @@ struct org::sem::Document : public org::sem::Org {
   hstd::Opt<sem::NamedProperty> getProperty(hstd::Str const& kind, hstd::Opt<hstd::Str> const& subKind = std::nullopt) const;
 };
 
-struct org::sem::FileTarget : public org::sem::Org {
+struct FileTarget : public org::sem::Org {
   using Org::Org;
   virtual ~FileTarget() = default;
   BOOST_DESCRIBE_CLASS(FileTarget,
@@ -2762,7 +2762,7 @@ struct org::sem::FileTarget : public org::sem::Org {
   virtual OrgSemKind getKind() const { return OrgSemKind::FileTarget; }
 };
 
-struct org::sem::TextSeparator : public org::sem::Org {
+struct TextSeparator : public org::sem::Org {
   using Org::Org;
   virtual ~TextSeparator() = default;
   BOOST_DESCRIBE_CLASS(TextSeparator,
@@ -2774,7 +2774,7 @@ struct org::sem::TextSeparator : public org::sem::Org {
   virtual OrgSemKind getKind() const { return OrgSemKind::TextSeparator; }
 };
 
-struct org::sem::DocumentGroup : public org::sem::Org {
+struct DocumentGroup : public org::sem::Org {
   using Org::Org;
   virtual ~DocumentGroup() = default;
   BOOST_DESCRIBE_CLASS(DocumentGroup,
@@ -2786,18 +2786,18 @@ struct org::sem::DocumentGroup : public org::sem::Org {
   virtual OrgSemKind getKind() const { return OrgSemKind::DocumentGroup; }
 };
 
-struct org::sem::File : public org::sem::Org {
+struct File : public org::sem::Org {
   using Org::Org;
   virtual ~File() = default;
-  struct sem::File::Document {
+  struct Document {
     BOOST_DESCRIBE_CLASS(Document, (), (), (), ())
   };
 
-  struct sem::File::Attachment {
+  struct Attachment {
     BOOST_DESCRIBE_CLASS(Attachment, (), (), (), ())
   };
 
-  struct sem::File::Source {
+  struct Source {
     BOOST_DESCRIBE_CLASS(Source, (), (), (), ())
   };
 
@@ -2834,7 +2834,7 @@ struct org::sem::File : public org::sem::Org {
   sem::File::Kind getFileKind() const { return getFileKind(data); }
 };
 
-struct org::sem::Directory : public org::sem::Org {
+struct Directory : public org::sem::Org {
   using Org::Org;
   virtual ~Directory() = default;
   BOOST_DESCRIBE_CLASS(Directory,
@@ -2850,7 +2850,7 @@ struct org::sem::Directory : public org::sem::Org {
   virtual OrgSemKind getKind() const { return OrgSemKind::Directory; }
 };
 
-struct org::sem::Symlink : public org::sem::Org {
+struct Symlink : public org::sem::Org {
   using Org::Org;
   virtual ~Symlink() = default;
   BOOST_DESCRIBE_CLASS(Symlink,
@@ -2865,20 +2865,20 @@ struct org::sem::Symlink : public org::sem::Org {
   virtual OrgSemKind getKind() const { return OrgSemKind::Symlink; }
 };
 
-struct org::sem::CmdInclude : public org::sem::Org {
+struct CmdInclude : public org::sem::Org {
   using Org::Org;
   virtual ~CmdInclude() = default;
-  struct sem::CmdInclude::IncludeBase {
+  struct IncludeBase {
     BOOST_DESCRIBE_CLASS(IncludeBase, (), (), (), ())
     IncludeBase() {  }
   };
 
-  struct sem::CmdInclude::Example : public sem::CmdInclude::IncludeBase {
+  struct Example : public sem::CmdInclude::IncludeBase {
     BOOST_DESCRIBE_CLASS(Example, (IncludeBase), (), (), ())
     Example() {  }
   };
 
-  struct sem::CmdInclude::Export : public sem::CmdInclude::IncludeBase {
+  struct Export : public sem::CmdInclude::IncludeBase {
     BOOST_DESCRIBE_CLASS(Export, (IncludeBase), (), (), (language))
     /// \brief Source code language for export
     hstd::Str language;
@@ -2886,21 +2886,21 @@ struct org::sem::CmdInclude : public org::sem::Org {
   };
 
   /// \brief Second positional argument in the include command can have any arbitrary value -- default src/export/example have additional properties, but user can provide anything else there.
-  struct sem::CmdInclude::Custom : public sem::CmdInclude::IncludeBase {
+  struct Custom : public sem::CmdInclude::IncludeBase {
     BOOST_DESCRIBE_CLASS(Custom, (IncludeBase), (), (), (blockName))
     /// \brief Block name not covered by the default values
     hstd::Str blockName;
     Custom() {  }
   };
 
-  struct sem::CmdInclude::Src : public sem::CmdInclude::IncludeBase {
+  struct Src : public sem::CmdInclude::IncludeBase {
     BOOST_DESCRIBE_CLASS(Src, (IncludeBase), (), (), (language))
     /// \brief Source code language for code block
     hstd::Str language;
     Src() {  }
   };
 
-  struct sem::CmdInclude::OrgDocument : public sem::CmdInclude::IncludeBase {
+  struct OrgDocument : public sem::CmdInclude::IncludeBase {
     BOOST_DESCRIBE_CLASS(OrgDocument,
                          (IncludeBase),
                          (),

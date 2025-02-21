@@ -220,7 +220,7 @@ check: {2:064b}
 
 #define DECL_ID_TYPE_MASKED(__value, __name, __type, __mask)              \
     struct __value;                                                       \
-    using __name##BaseId = dod::                                          \
+    using __name##BaseId = ::hstd::dod::                                  \
         Id<__type, __type, std::integral_constant<__type, __mask>>;       \
     struct [[nodiscard]] __name : __name##BaseId {                        \
                                                                           \

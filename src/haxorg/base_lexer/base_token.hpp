@@ -15,68 +15,31 @@ template <typename T>
 class AbstractLexer;
 }; // namespace reflex
 
-template <>
-struct enum_serde<OrgTokenKind> {
-    static std::string       to_string(OrgTokenKind const& value);
-    static Opt<OrgTokenKind> from_string(std::string const& value);
-};
 
-
-template <>
-struct std::formatter<OrgTokenKind> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(
-        OrgTokenKind const& p,
-        FormatContext&      ctx) const {
-        std::formatter<std::string> fmt;
-        return fmt.format(enum_serde<OrgTokenKind>::to_string(p), ctx);
-    }
-};
+namespace org::parse {
 
 struct OrgFill {
-    Str  text;
-    int  line = -1;
-    int  col  = -1;
-    bool isFake() const { return line == -1 && col == -1; }
+    hstd::Str text;
+    int       line = -1;
+    int       col  = -1;
+    bool      isFake() const { return line == -1 && col == -1; }
 };
 
 using OrgToken      = Token<OrgTokenKind, OrgFill>;
 using OrgTokenGroup = TokenGroup<OrgTokenKind, OrgFill>;
 using OrgTokenId    = TokenId<OrgTokenKind, OrgFill>;
 
-template <>
-struct value_domain<OrgTokenKind>
-    : public value_domain_ungapped<
-          OrgTokenKind,
-          OrgTokenKind::Ampersand,
-          OrgTokenKind::Word> {};
-
-template <>
-struct std::formatter<OrgFill> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(OrgFill const& p, FormatContext& ctx)
-        const {
-        std::formatter<std::string>{}.format("<", ctx);
-        fmt_ctx(escape_for_write(p.text), ctx);
-        std::formatter<std::string>{}.format(">:", ctx);
-        fmt_ctx(p.line, ctx);
-        std::formatter<std::string>{}.format(":", ctx);
-        fmt_ctx(p.col, ctx);
-        return ctx.out();
-    }
-};
-
 struct LexerParams {
     struct Loc {
         int line;
         int col;
     };
-    int           maxUnknown      = 100;
-    int           visitedUnknown  = 0;
-    std::ostream* traceStream     = nullptr;
-    int           indentation     = 0;
-    bool          traceStructured = false;
-    Vec<Loc>      sub_locations;
+    int            maxUnknown      = 100;
+    int            visitedUnknown  = 0;
+    std::ostream*  traceStream     = nullptr;
+    int            indentation     = 0;
+    bool           traceStructured = false;
+    hstd::Vec<Loc> sub_locations;
 };
 
 
@@ -95,7 +58,7 @@ struct OrgLexerImpl {
         std::string matched; /// matched text content
     };
 
-    Vec<PushInfo> states;
+    hstd::Vec<PushInfo> states;
 
     OrgTokenGroup* tokens;
     void           add(OrgTokenKind token);
@@ -107,8 +70,56 @@ struct OrgLexerImpl {
     void maybe_pop_expect_impl(int current, int next, int line);
     void pop_expect_impl(int current, int next, int line);
     void push_expect_impl(int current, int next, int line);
-    void before(int line, Opt<OrgTokenKind> kind, char const* pattern);
+    void before(
+        int                     line,
+        hstd::Opt<OrgTokenKind> kind,
+        char const*             pattern);
     void after(int line);
 
     std::pair<const char*, size_t> get_capture(char const* name);
+};
+
+} // namespace org::parse
+
+
+template <>
+struct hstd::value_domain<OrgTokenKind>
+    : public value_domain_ungapped<
+          OrgTokenKind,
+          OrgTokenKind::Ampersand,
+          OrgTokenKind::Word> {};
+
+template <>
+struct std::formatter<org::parse::OrgFill> : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(
+        org::parse::OrgFill const& p,
+        FormatContext&             ctx) const {
+        std::formatter<std::string>{}.format("<", ctx);
+        fmt_ctx(escape_for_write(p.text), ctx);
+        std::formatter<std::string>{}.format(">:", ctx);
+        fmt_ctx(p.line, ctx);
+        std::formatter<std::string>{}.format(":", ctx);
+        fmt_ctx(p.col, ctx);
+        return ctx.out();
+    }
+};
+
+template <>
+struct hstd::enum_serde<OrgTokenKind> {
+    static std::string       to_string(OrgTokenKind const& value);
+    static Opt<OrgTokenKind> from_string(std::string const& value);
+};
+
+
+template <>
+struct std::formatter<OrgTokenKind> : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(
+        OrgTokenKind const& p,
+        FormatContext&      ctx) const {
+        std::formatter<std::string> fmt;
+        return fmt.format(
+            hstd::enum_serde<OrgTokenKind>::to_string(p), ctx);
+    }
 };

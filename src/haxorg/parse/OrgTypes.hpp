@@ -16,7 +16,7 @@ struct std::formatter<OrgSpecName> : std::formatter<std::string> {
         OrgSpecName const& p,
         FormatContext&     ctx) const {
         std::formatter<std::string> fmt;
-        return fmt.format(enum_serde<OrgSpecName>::to_string(p), ctx);
+        return fmt.format(hstd::enum_serde<OrgSpecName>::to_string(p), ctx);
     }
 };
 
@@ -79,11 +79,12 @@ extern template class NodeGroup<
 
 
 template <>
-struct std::formatter<org::sem::OrgNodeMono::Error>
+struct std::formatter<org::parse::OrgNodeMono::Error>
     : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const org::sem::OrgNodeMono::Error& p, FormatContext& ctx)
-        const {
+    auto format(
+        const org::parse::OrgNodeMono::Error& p,
+        FormatContext&                        ctx) const {
         if (p.box) {
             return fmt_ctx(*p.box, ctx);
         } else {

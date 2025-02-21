@@ -162,7 +162,7 @@ class GenTuTypeGroup:
 @beartype
 @dataclass
 class GenTuNamespace:
-    name: str
+    name: QualType
     entries: Sequence[GenTuEntry]
 
 
@@ -457,6 +457,7 @@ class GenConverter:
                     doc=DocParams(""),
                     Template=TemplateParams.FinalSpecialization(),
                     NameParams=[entry.name],
+                    IsTemplateSpecialization=True,
                     bases=[
                         QualType(
                             name="value_domain_ungapped",
@@ -483,6 +484,7 @@ class GenConverter:
                     doc=DocParams(""),
                     Template=TemplateParams.FinalSpecialization(),
                     NameParams=[entry.name],
+                    IsTemplateSpecialization=True,
                 )
 
                 Serde.members.append(
@@ -508,8 +510,12 @@ class GenConverter:
 
     def convertNamespace(self, space: GenTuNamespace) -> BlockId:
         result = self.ast.b.stack([])
-        with GenConverterWithContext(self, QualType(name=space.name).asNamespace()):
-            self.ast.b.add_at(result, self.ast.string(f"namespace {space.name}{{"))
+        with GenConverterWithContext(self, space.name.asNamespace()):
+            self.ast.b.add_at(result, self.ast.b.line([
+                self.ast.string("namespace "),
+                self.ast.Type(space.name),
+                self.ast.string(" {"),
+            ]))
 
             for sub in space.entries:
                 self.ast.b.add_at_list(result, self.convertWithToplevel(sub))
@@ -597,6 +603,13 @@ def n_sem() -> QualType:
         Spaces=[n_org()],
     )
 
+def n_imm() -> QualType:
+    return QualType(
+        name="imm",
+        isNamespace=True,
+        meta=dict(isSemNamespace=True),
+        Spaces=[n_org()],
+    )
 
 @beartype
 def t_id(target: Optional[Union[QualType, str]] = None) -> QualType:

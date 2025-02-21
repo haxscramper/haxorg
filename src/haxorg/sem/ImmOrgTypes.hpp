@@ -1,9 +1,9 @@
 /* clang-format off */
 #pragma once
 #include <haxorg/sem/ImmOrgBase.hpp>
-namespace org{
+namespace org::imm {
 /// \brief No node
-struct org::ImmNone : public org::ImmOrg {
+struct ImmNone : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmNone() = default;
   BOOST_DESCRIBE_CLASS(ImmNone,
@@ -16,7 +16,7 @@ struct org::ImmNone : public org::ImmOrg {
   bool operator==(org::ImmNone const& other) const;
 };
 
-struct org::ImmErrorItem : public org::ImmOrg {
+struct ImmErrorItem : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmErrorItem() = default;
   BOOST_DESCRIBE_CLASS(ImmErrorItem,
@@ -38,7 +38,7 @@ struct org::ImmErrorItem : public org::ImmOrg {
 };
 
 /// \brief Group of value conversion errors
-struct org::ImmErrorGroup : public org::ImmOrg {
+struct ImmErrorGroup : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmErrorGroup() = default;
   BOOST_DESCRIBE_CLASS(ImmErrorGroup,
@@ -60,7 +60,7 @@ struct org::ImmErrorGroup : public org::ImmOrg {
 };
 
 /// \brief Base class for all document-level entries. Note that some node kinds might also have inline entries (examples include links, source code blocks, call blocks)
-struct org::ImmStmt : public org::ImmOrg {
+struct ImmStmt : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmStmt() = default;
   BOOST_DESCRIBE_CLASS(ImmStmt,
@@ -73,7 +73,7 @@ struct org::ImmStmt : public org::ImmOrg {
 };
 
 /// \brief Base class for all inline elements
-struct org::ImmInline : public org::ImmOrg {
+struct ImmInline : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmInline() = default;
   BOOST_DESCRIBE_CLASS(ImmInline,
@@ -85,7 +85,7 @@ struct org::ImmInline : public org::ImmOrg {
 };
 
 /// \brief Zero or more statement nodes
-struct org::ImmStmtList : public org::ImmOrg {
+struct ImmStmtList : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmStmtList() = default;
   BOOST_DESCRIBE_CLASS(ImmStmtList,
@@ -99,7 +99,7 @@ struct org::ImmStmtList : public org::ImmOrg {
 };
 
 /// \brief Node without content
-struct org::ImmEmpty : public org::ImmOrg {
+struct ImmEmpty : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmEmpty() = default;
   BOOST_DESCRIBE_CLASS(ImmEmpty,
@@ -113,7 +113,7 @@ struct org::ImmEmpty : public org::ImmOrg {
 };
 
 /// \brief Base class for block or line commands
-struct org::ImmCmd : public org::ImmStmt {
+struct ImmCmd : public org::ImmStmt {
   using ImmStmt::ImmStmt;
   virtual ~ImmCmd() = default;
   BOOST_DESCRIBE_CLASS(ImmCmd,
@@ -127,7 +127,7 @@ struct org::ImmCmd : public org::ImmStmt {
 };
 
 /// \brief Block command type
-struct org::ImmBlock : public org::ImmCmd {
+struct ImmBlock : public org::ImmCmd {
   using ImmCmd::ImmCmd;
   virtual ~ImmBlock() = default;
   BOOST_DESCRIBE_CLASS(ImmBlock,
@@ -139,7 +139,7 @@ struct org::ImmBlock : public org::ImmCmd {
 };
 
 /// \brief Line commands
-struct org::ImmLineCommand : public org::ImmCmd {
+struct ImmLineCommand : public org::ImmCmd {
   using ImmCmd::ImmCmd;
   virtual ~ImmLineCommand() = default;
   BOOST_DESCRIBE_CLASS(ImmLineCommand,
@@ -151,7 +151,7 @@ struct org::ImmLineCommand : public org::ImmCmd {
 };
 
 /// \brief Line command that might get attached to some block element
-struct org::ImmAttached : public org::ImmLineCommand {
+struct ImmAttached : public org::ImmLineCommand {
   using ImmLineCommand::ImmLineCommand;
   virtual ~ImmAttached() = default;
   BOOST_DESCRIBE_CLASS(ImmAttached,
@@ -163,7 +163,7 @@ struct org::ImmAttached : public org::ImmLineCommand {
 };
 
 /// \brief Final node
-struct org::ImmLeaf : public org::ImmOrg {
+struct ImmLeaf : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmLeaf() = default;
   BOOST_DESCRIBE_CLASS(ImmLeaf,
@@ -177,7 +177,7 @@ struct org::ImmLeaf : public org::ImmOrg {
 };
 
 /// \brief Caption annotation for any subsequent node
-struct org::ImmCmdCaption : public org::ImmAttached {
+struct ImmCmdCaption : public org::ImmAttached {
   using ImmAttached::ImmAttached;
   virtual ~ImmCmdCaption() = default;
   BOOST_DESCRIBE_CLASS(ImmCmdCaption,
@@ -194,7 +194,7 @@ struct org::ImmCmdCaption : public org::ImmAttached {
 };
 
 /// \brief Caption annotation for any subsequent node
-struct org::ImmCmdColumns : public org::ImmAttached {
+struct ImmCmdColumns : public org::ImmAttached {
   using ImmAttached::ImmAttached;
   virtual ~ImmCmdColumns() = default;
   BOOST_DESCRIBE_CLASS(ImmCmdColumns,
@@ -210,7 +210,7 @@ struct org::ImmCmdColumns : public org::ImmAttached {
 };
 
 /// \brief Name identifier for the statement elements.
-struct org::ImmCmdName : public org::ImmAttached {
+struct ImmCmdName : public org::ImmAttached {
   using ImmAttached::ImmAttached;
   virtual ~ImmCmdName() = default;
   BOOST_DESCRIBE_CLASS(ImmCmdName,
@@ -226,7 +226,7 @@ struct org::ImmCmdName : public org::ImmAttached {
 };
 
 /// \brief Custom line command with list of parsed arguments
-struct org::ImmCmdCustomArgs : public org::ImmCmd {
+struct ImmCmdCustomArgs : public org::ImmCmd {
   using ImmCmd::ImmCmd;
   virtual ~ImmCmdCustomArgs() = default;
   BOOST_DESCRIBE_CLASS(ImmCmdCustomArgs,
@@ -244,7 +244,7 @@ struct org::ImmCmdCustomArgs : public org::ImmCmd {
 };
 
 /// \brief Custom command with raw unparsed string value
-struct org::ImmCmdCustomRaw : public org::ImmStmt {
+struct ImmCmdCustomRaw : public org::ImmStmt {
   using ImmStmt::ImmStmt;
   virtual ~ImmCmdCustomRaw() = default;
   BOOST_DESCRIBE_CLASS(ImmCmdCustomRaw,
@@ -264,7 +264,7 @@ struct org::ImmCmdCustomRaw : public org::ImmStmt {
 };
 
 /// \brief Custom line command with text paragraph value
-struct org::ImmCmdCustomText : public org::ImmStmt {
+struct ImmCmdCustomText : public org::ImmStmt {
   using ImmStmt::ImmStmt;
   virtual ~ImmCmdCustomText() = default;
   BOOST_DESCRIBE_CLASS(ImmCmdCustomText,
@@ -283,7 +283,7 @@ struct org::ImmCmdCustomText : public org::ImmStmt {
   bool operator==(org::ImmCmdCustomText const& other) const;
 };
 
-struct org::ImmCmdResults : public org::ImmAttached {
+struct ImmCmdResults : public org::ImmAttached {
   using ImmAttached::ImmAttached;
   virtual ~ImmCmdResults() = default;
   BOOST_DESCRIBE_CLASS(ImmCmdResults,
@@ -297,7 +297,7 @@ struct org::ImmCmdResults : public org::ImmAttached {
 };
 
 /// \brief Tblfm command type
-struct org::ImmCmdTblfm : public org::ImmCmd {
+struct ImmCmdTblfm : public org::ImmCmd {
   using ImmCmd::ImmCmd;
   virtual ~ImmCmdTblfm() = default;
   BOOST_DESCRIBE_CLASS(ImmCmdTblfm,
@@ -312,7 +312,7 @@ struct org::ImmCmdTblfm : public org::ImmCmd {
   bool operator==(org::ImmCmdTblfm const& other) const;
 };
 
-struct org::ImmHashTag : public org::ImmInline {
+struct ImmHashTag : public org::ImmInline {
   using ImmInline::ImmInline;
   virtual ~ImmHashTag() = default;
   BOOST_DESCRIBE_CLASS(ImmHashTag,
@@ -330,7 +330,7 @@ struct org::ImmHashTag : public org::ImmInline {
 /// \brief Inline footnote definition
 ///
 /// \note in-text link to the footnotes are implemented using `Link` nodes
-struct org::ImmInlineFootnote : public org::ImmInline {
+struct ImmInlineFootnote : public org::ImmInline {
   using ImmInline::ImmInline;
   virtual ~ImmInlineFootnote() = default;
   BOOST_DESCRIBE_CLASS(ImmInlineFootnote,
@@ -350,7 +350,7 @@ struct org::ImmInlineFootnote : public org::ImmInline {
 };
 
 /// \brief Inline export
-struct org::ImmInlineExport : public org::ImmInline {
+struct ImmInlineExport : public org::ImmInline {
   using ImmInline::ImmInline;
   virtual ~ImmInlineExport() = default;
   BOOST_DESCRIBE_CLASS(ImmInlineExport,
@@ -368,11 +368,11 @@ struct org::ImmInlineExport : public org::ImmInline {
 };
 
 /// \brief Single static or dynamic timestamp (active or inactive)
-struct org::ImmTime : public org::ImmOrg {
+struct ImmTime : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmTime() = default;
   /// \brief Repetition information for static time
-  struct org::ImmTime::Repeat {
+  struct Repeat {
     /// \brief Timestamp repetition mode
     enum class Mode : short int {
       /// \brief Do not repeat task on completion
@@ -402,7 +402,7 @@ struct org::ImmTime : public org::ImmOrg {
     bool operator==(org::ImmTime::Repeat const& other) const;
   };
 
-  struct org::ImmTime::Static {
+  struct Static {
     BOOST_DESCRIBE_CLASS(Static,
                          (),
                          (),
@@ -413,7 +413,7 @@ struct org::ImmTime : public org::ImmOrg {
     bool operator==(org::ImmTime::Static const& other) const;
   };
 
-  struct org::ImmTime::Dynamic {
+  struct Dynamic {
     BOOST_DESCRIBE_CLASS(Dynamic,
                          (),
                          (),
@@ -452,7 +452,7 @@ struct org::ImmTime : public org::ImmOrg {
 };
 
 /// \brief Range of time delimited by two points
-struct org::ImmTimeRange : public org::ImmOrg {
+struct ImmTimeRange : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmTimeRange() = default;
   BOOST_DESCRIBE_CLASS(ImmTimeRange,
@@ -472,7 +472,7 @@ struct org::ImmTimeRange : public org::ImmOrg {
 };
 
 /// \brief Inline macro invocation
-struct org::ImmMacro : public org::ImmOrg {
+struct ImmMacro : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmMacro() = default;
   BOOST_DESCRIBE_CLASS(ImmMacro,
@@ -492,11 +492,11 @@ struct org::ImmMacro : public org::ImmOrg {
 };
 
 /// \brief Text symbol or symbol command
-struct org::ImmSymbol : public org::ImmOrg {
+struct ImmSymbol : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmSymbol() = default;
   /// \brief Symbol parameters
-  struct org::ImmSymbol::Param {
+  struct Param {
     BOOST_DESCRIBE_CLASS(Param,
                          (),
                          (),
@@ -529,7 +529,7 @@ struct org::ImmSymbol : public org::ImmOrg {
 };
 
 /// \brief Escaped text
-struct org::ImmEscaped : public org::ImmLeaf {
+struct ImmEscaped : public org::ImmLeaf {
   using ImmLeaf::ImmLeaf;
   virtual ~ImmEscaped() = default;
   BOOST_DESCRIBE_CLASS(ImmEscaped,
@@ -543,7 +543,7 @@ struct org::ImmEscaped : public org::ImmLeaf {
 };
 
 /// \brief \n newline
-struct org::ImmNewline : public org::ImmLeaf {
+struct ImmNewline : public org::ImmLeaf {
   using ImmLeaf::ImmLeaf;
   virtual ~ImmNewline() = default;
   BOOST_DESCRIBE_CLASS(ImmNewline,
@@ -557,7 +557,7 @@ struct org::ImmNewline : public org::ImmLeaf {
 };
 
 /// \brief ' "space",
-struct org::ImmSpace : public org::ImmLeaf {
+struct ImmSpace : public org::ImmLeaf {
   using ImmLeaf::ImmLeaf;
   virtual ~ImmSpace() = default;
   BOOST_DESCRIBE_CLASS(ImmSpace,
@@ -571,7 +571,7 @@ struct org::ImmSpace : public org::ImmLeaf {
 };
 
 /// \brief word
-struct org::ImmWord : public org::ImmLeaf {
+struct ImmWord : public org::ImmLeaf {
   using ImmLeaf::ImmLeaf;
   virtual ~ImmWord() = default;
   BOOST_DESCRIBE_CLASS(ImmWord,
@@ -585,7 +585,7 @@ struct org::ImmWord : public org::ImmLeaf {
 };
 
 /// \brief @mention
-struct org::ImmAtMention : public org::ImmLeaf {
+struct ImmAtMention : public org::ImmLeaf {
   using ImmLeaf::ImmLeaf;
   virtual ~ImmAtMention() = default;
   BOOST_DESCRIBE_CLASS(ImmAtMention,
@@ -598,7 +598,7 @@ struct org::ImmAtMention : public org::ImmLeaf {
   bool operator==(org::ImmAtMention const& other) const;
 };
 
-struct org::ImmRawText : public org::ImmLeaf {
+struct ImmRawText : public org::ImmLeaf {
   using ImmLeaf::ImmLeaf;
   virtual ~ImmRawText() = default;
   BOOST_DESCRIBE_CLASS(ImmRawText,
@@ -611,7 +611,7 @@ struct org::ImmRawText : public org::ImmLeaf {
   bool operator==(org::ImmRawText const& other) const;
 };
 
-struct org::ImmPunctuation : public org::ImmLeaf {
+struct ImmPunctuation : public org::ImmLeaf {
   using ImmLeaf::ImmLeaf;
   virtual ~ImmPunctuation() = default;
   BOOST_DESCRIBE_CLASS(ImmPunctuation,
@@ -624,7 +624,7 @@ struct org::ImmPunctuation : public org::ImmLeaf {
   bool operator==(org::ImmPunctuation const& other) const;
 };
 
-struct org::ImmPlaceholder : public org::ImmLeaf {
+struct ImmPlaceholder : public org::ImmLeaf {
   using ImmLeaf::ImmLeaf;
   virtual ~ImmPlaceholder() = default;
   BOOST_DESCRIBE_CLASS(ImmPlaceholder,
@@ -637,7 +637,7 @@ struct org::ImmPlaceholder : public org::ImmLeaf {
   bool operator==(org::ImmPlaceholder const& other) const;
 };
 
-struct org::ImmBigIdent : public org::ImmLeaf {
+struct ImmBigIdent : public org::ImmLeaf {
   using ImmLeaf::ImmLeaf;
   virtual ~ImmBigIdent() = default;
   BOOST_DESCRIBE_CLASS(ImmBigIdent,
@@ -651,7 +651,7 @@ struct org::ImmBigIdent : public org::ImmLeaf {
 };
 
 /// \brief ~<<target>>~
-struct org::ImmTextTarget : public org::ImmLeaf {
+struct ImmTextTarget : public org::ImmLeaf {
   using ImmLeaf::ImmLeaf;
   virtual ~ImmTextTarget() = default;
   BOOST_DESCRIBE_CLASS(ImmTextTarget,
@@ -664,7 +664,7 @@ struct org::ImmTextTarget : public org::ImmLeaf {
   bool operator==(org::ImmTextTarget const& other) const;
 };
 
-struct org::ImmMarkup : public org::ImmOrg {
+struct ImmMarkup : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmMarkup() = default;
   BOOST_DESCRIBE_CLASS(ImmMarkup,
@@ -675,7 +675,7 @@ struct org::ImmMarkup : public org::ImmOrg {
   bool operator==(org::ImmMarkup const& other) const;
 };
 
-struct org::ImmBold : public org::ImmMarkup {
+struct ImmBold : public org::ImmMarkup {
   using ImmMarkup::ImmMarkup;
   virtual ~ImmBold() = default;
   BOOST_DESCRIBE_CLASS(ImmBold,
@@ -688,7 +688,7 @@ struct org::ImmBold : public org::ImmMarkup {
   bool operator==(org::ImmBold const& other) const;
 };
 
-struct org::ImmUnderline : public org::ImmMarkup {
+struct ImmUnderline : public org::ImmMarkup {
   using ImmMarkup::ImmMarkup;
   virtual ~ImmUnderline() = default;
   BOOST_DESCRIBE_CLASS(ImmUnderline,
@@ -701,7 +701,7 @@ struct org::ImmUnderline : public org::ImmMarkup {
   bool operator==(org::ImmUnderline const& other) const;
 };
 
-struct org::ImmMonospace : public org::ImmMarkup {
+struct ImmMonospace : public org::ImmMarkup {
   using ImmMarkup::ImmMarkup;
   virtual ~ImmMonospace() = default;
   BOOST_DESCRIBE_CLASS(ImmMonospace,
@@ -714,7 +714,7 @@ struct org::ImmMonospace : public org::ImmMarkup {
   bool operator==(org::ImmMonospace const& other) const;
 };
 
-struct org::ImmMarkQuote : public org::ImmMarkup {
+struct ImmMarkQuote : public org::ImmMarkup {
   using ImmMarkup::ImmMarkup;
   virtual ~ImmMarkQuote() = default;
   BOOST_DESCRIBE_CLASS(ImmMarkQuote,
@@ -727,7 +727,7 @@ struct org::ImmMarkQuote : public org::ImmMarkup {
   bool operator==(org::ImmMarkQuote const& other) const;
 };
 
-struct org::ImmVerbatim : public org::ImmMarkup {
+struct ImmVerbatim : public org::ImmMarkup {
   using ImmMarkup::ImmMarkup;
   virtual ~ImmVerbatim() = default;
   BOOST_DESCRIBE_CLASS(ImmVerbatim,
@@ -740,7 +740,7 @@ struct org::ImmVerbatim : public org::ImmMarkup {
   bool operator==(org::ImmVerbatim const& other) const;
 };
 
-struct org::ImmItalic : public org::ImmMarkup {
+struct ImmItalic : public org::ImmMarkup {
   using ImmMarkup::ImmMarkup;
   virtual ~ImmItalic() = default;
   BOOST_DESCRIBE_CLASS(ImmItalic,
@@ -753,7 +753,7 @@ struct org::ImmItalic : public org::ImmMarkup {
   bool operator==(org::ImmItalic const& other) const;
 };
 
-struct org::ImmStrike : public org::ImmMarkup {
+struct ImmStrike : public org::ImmMarkup {
   using ImmMarkup::ImmMarkup;
   virtual ~ImmStrike() = default;
   BOOST_DESCRIBE_CLASS(ImmStrike,
@@ -766,7 +766,7 @@ struct org::ImmStrike : public org::ImmMarkup {
   bool operator==(org::ImmStrike const& other) const;
 };
 
-struct org::ImmPar : public org::ImmMarkup {
+struct ImmPar : public org::ImmMarkup {
   using ImmMarkup::ImmMarkup;
   virtual ~ImmPar() = default;
   BOOST_DESCRIBE_CLASS(ImmPar,
@@ -780,7 +780,7 @@ struct org::ImmPar : public org::ImmMarkup {
 };
 
 /// \brief ~<<<target>>>~
-struct org::ImmRadioTarget : public org::ImmOrg {
+struct ImmRadioTarget : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmRadioTarget() = default;
   BOOST_DESCRIBE_CLASS(ImmRadioTarget,
@@ -796,7 +796,7 @@ struct org::ImmRadioTarget : public org::ImmOrg {
 };
 
 /// \brief Latex code body
-struct org::ImmLatex : public org::ImmOrg {
+struct ImmLatex : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmLatex() = default;
   BOOST_DESCRIBE_CLASS(ImmLatex,
@@ -809,7 +809,7 @@ struct org::ImmLatex : public org::ImmOrg {
   bool operator==(org::ImmLatex const& other) const;
 };
 
-struct org::ImmLink : public org::ImmStmt {
+struct ImmLink : public org::ImmStmt {
   using ImmStmt::ImmStmt;
   virtual ~ImmLink() = default;
   BOOST_DESCRIBE_CLASS(ImmLink,
@@ -827,7 +827,7 @@ struct org::ImmLink : public org::ImmStmt {
 };
 
 /// \brief Center nested content in export
-struct org::ImmBlockCenter : public org::ImmBlock {
+struct ImmBlockCenter : public org::ImmBlock {
   using ImmBlock::ImmBlock;
   virtual ~ImmBlockCenter() = default;
   BOOST_DESCRIBE_CLASS(ImmBlockCenter,
@@ -841,7 +841,7 @@ struct org::ImmBlockCenter : public org::ImmBlock {
 };
 
 /// \brief Quotation block
-struct org::ImmBlockQuote : public org::ImmBlock {
+struct ImmBlockQuote : public org::ImmBlock {
   using ImmBlock::ImmBlock;
   virtual ~ImmBlockQuote() = default;
   BOOST_DESCRIBE_CLASS(ImmBlockQuote,
@@ -855,7 +855,7 @@ struct org::ImmBlockQuote : public org::ImmBlock {
 };
 
 /// \brief Comment block
-struct org::ImmBlockComment : public org::ImmStmt {
+struct ImmBlockComment : public org::ImmStmt {
   using ImmStmt::ImmStmt;
   virtual ~ImmBlockComment() = default;
   BOOST_DESCRIBE_CLASS(ImmBlockComment,
@@ -869,7 +869,7 @@ struct org::ImmBlockComment : public org::ImmStmt {
 };
 
 /// \brief Verse quotation block
-struct org::ImmBlockVerse : public org::ImmBlock {
+struct ImmBlockVerse : public org::ImmBlock {
   using ImmBlock::ImmBlock;
   virtual ~ImmBlockVerse() = default;
   BOOST_DESCRIBE_CLASS(ImmBlockVerse,
@@ -882,7 +882,7 @@ struct org::ImmBlockVerse : public org::ImmBlock {
   bool operator==(org::ImmBlockVerse const& other) const;
 };
 
-struct org::ImmBlockDynamicFallback : public org::ImmBlock {
+struct ImmBlockDynamicFallback : public org::ImmBlock {
   using ImmBlock::ImmBlock;
   virtual ~ImmBlockDynamicFallback() = default;
   BOOST_DESCRIBE_CLASS(ImmBlockDynamicFallback,
@@ -898,7 +898,7 @@ struct org::ImmBlockDynamicFallback : public org::ImmBlock {
 };
 
 /// \brief Example block
-struct org::ImmBlockExample : public org::ImmBlock {
+struct ImmBlockExample : public org::ImmBlock {
   using ImmBlock::ImmBlock;
   virtual ~ImmBlockExample() = default;
   BOOST_DESCRIBE_CLASS(ImmBlockExample,
@@ -912,7 +912,7 @@ struct org::ImmBlockExample : public org::ImmBlock {
 };
 
 /// \brief Direct export passthrough
-struct org::ImmBlockExport : public org::ImmBlock {
+struct ImmBlockExport : public org::ImmBlock {
   using ImmBlock::ImmBlock;
   virtual ~ImmBlockExport() = default;
   BOOST_DESCRIBE_CLASS(ImmBlockExport,
@@ -930,7 +930,7 @@ struct org::ImmBlockExport : public org::ImmBlock {
 };
 
 /// \brief Block of text with admonition tag: 'note',', 'warning','
-struct org::ImmBlockAdmonition : public org::ImmBlock {
+struct ImmBlockAdmonition : public org::ImmBlock {
   using ImmBlock::ImmBlock;
   virtual ~ImmBlockAdmonition() = default;
   BOOST_DESCRIBE_CLASS(ImmBlockAdmonition,
@@ -944,7 +944,7 @@ struct org::ImmBlockAdmonition : public org::ImmBlock {
 };
 
 /// \brief Base class for all code blocks
-struct org::ImmBlockCode : public org::ImmBlock {
+struct ImmBlockCode : public org::ImmBlock {
   using ImmBlock::ImmBlock;
   virtual ~ImmBlockCode() = default;
   BOOST_DESCRIBE_CLASS(ImmBlockCode,
@@ -988,7 +988,7 @@ struct org::ImmBlockCode : public org::ImmBlock {
 };
 
 /// \brief Single subtree log entry
-struct org::ImmSubtreeLog : public org::ImmOrg {
+struct ImmSubtreeLog : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmSubtreeLog() = default;
   BOOST_DESCRIBE_CLASS(ImmSubtreeLog,
@@ -1007,7 +1007,7 @@ struct org::ImmSubtreeLog : public org::ImmOrg {
 };
 
 /// \brief Subtree
-struct org::ImmSubtree : public org::ImmOrg {
+struct ImmSubtree : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmSubtree() = default;
   BOOST_DESCRIBE_CLASS(ImmSubtree,
@@ -1064,7 +1064,7 @@ struct org::ImmSubtree : public org::ImmOrg {
 };
 
 /// \brief Table cell
-struct org::ImmCell : public org::ImmCmd {
+struct ImmCell : public org::ImmCmd {
   using ImmCmd::ImmCmd;
   virtual ~ImmCell() = default;
   BOOST_DESCRIBE_CLASS(ImmCell,
@@ -1081,7 +1081,7 @@ struct org::ImmCell : public org::ImmCmd {
 };
 
 /// \brief Table row
-struct org::ImmRow : public org::ImmCmd {
+struct ImmRow : public org::ImmCmd {
   using ImmCmd::ImmCmd;
   virtual ~ImmRow() = default;
   BOOST_DESCRIBE_CLASS(ImmRow,
@@ -1101,7 +1101,7 @@ struct org::ImmRow : public org::ImmCmd {
 };
 
 /// \brief Table
-struct org::ImmTable : public org::ImmBlock {
+struct ImmTable : public org::ImmBlock {
   using ImmBlock::ImmBlock;
   virtual ~ImmTable() = default;
   BOOST_DESCRIBE_CLASS(ImmTable,
@@ -1121,7 +1121,7 @@ struct org::ImmTable : public org::ImmBlock {
 };
 
 /// \brief Top-level or inline paragraph
-struct org::ImmParagraph : public org::ImmStmt {
+struct ImmParagraph : public org::ImmStmt {
   using ImmStmt::ImmStmt;
   virtual ~ImmParagraph() = default;
   BOOST_DESCRIBE_CLASS(ImmParagraph,
@@ -1135,7 +1135,7 @@ struct org::ImmParagraph : public org::ImmStmt {
 };
 
 /// \brief Shortened colon example block
-struct org::ImmColonExample : public org::ImmOrg {
+struct ImmColonExample : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmColonExample() = default;
   BOOST_DESCRIBE_CLASS(ImmColonExample,
@@ -1149,7 +1149,7 @@ struct org::ImmColonExample : public org::ImmOrg {
 };
 
 /// \brief Caption annotation for any subsequent node
-struct org::ImmCmdAttr : public org::ImmAttached {
+struct ImmCmdAttr : public org::ImmAttached {
   using ImmAttached::ImmAttached;
   virtual ~ImmCmdAttr() = default;
   BOOST_DESCRIBE_CLASS(ImmCmdAttr,
@@ -1165,7 +1165,7 @@ struct org::ImmCmdAttr : public org::ImmAttached {
 };
 
 /// \brief Single line of passthrough code
-struct org::ImmCmdExport : public org::ImmAttached {
+struct ImmCmdExport : public org::ImmAttached {
   using ImmAttached::ImmAttached;
   virtual ~ImmCmdExport() = default;
   BOOST_DESCRIBE_CLASS(ImmCmdExport,
@@ -1183,7 +1183,7 @@ struct org::ImmCmdExport : public org::ImmAttached {
 };
 
 /// \brief Inline, statement or block call
-struct org::ImmCall : public org::ImmOrg {
+struct ImmCall : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmCall() = default;
   BOOST_DESCRIBE_CLASS(ImmCall,
@@ -1204,7 +1204,7 @@ struct org::ImmCall : public org::ImmOrg {
   bool operator==(org::ImmCall const& other) const;
 };
 
-struct org::ImmList : public org::ImmStmt {
+struct ImmList : public org::ImmStmt {
   using ImmStmt::ImmStmt;
   virtual ~ImmList() = default;
   BOOST_DESCRIBE_CLASS(ImmList,
@@ -1217,7 +1217,7 @@ struct org::ImmList : public org::ImmStmt {
   bool operator==(org::ImmList const& other) const;
 };
 
-struct org::ImmListItem : public org::ImmOrg {
+struct ImmListItem : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmListItem() = default;
   enum class Checkbox : short int { None, Done, Empty, Partial, };
@@ -1240,7 +1240,7 @@ struct org::ImmListItem : public org::ImmOrg {
   bool operator==(org::ImmListItem const& other) const;
 };
 
-struct org::ImmDocumentOptions : public org::ImmOrg {
+struct ImmDocumentOptions : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmDocumentOptions() = default;
   BOOST_DESCRIBE_CLASS(ImmDocumentOptions,
@@ -1271,7 +1271,7 @@ struct org::ImmDocumentOptions : public org::ImmOrg {
   bool operator==(org::ImmDocumentOptions const& other) const;
 };
 
-struct org::ImmDocument : public org::ImmOrg {
+struct ImmDocument : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmDocument() = default;
   BOOST_DESCRIBE_CLASS(ImmDocument,
@@ -1300,7 +1300,7 @@ struct org::ImmDocument : public org::ImmOrg {
   bool operator==(org::ImmDocument const& other) const;
 };
 
-struct org::ImmFileTarget : public org::ImmOrg {
+struct ImmFileTarget : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmFileTarget() = default;
   BOOST_DESCRIBE_CLASS(ImmFileTarget,
@@ -1325,7 +1325,7 @@ struct org::ImmFileTarget : public org::ImmOrg {
   bool operator==(org::ImmFileTarget const& other) const;
 };
 
-struct org::ImmTextSeparator : public org::ImmOrg {
+struct ImmTextSeparator : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmTextSeparator() = default;
   BOOST_DESCRIBE_CLASS(ImmTextSeparator,
@@ -1338,7 +1338,7 @@ struct org::ImmTextSeparator : public org::ImmOrg {
   bool operator==(org::ImmTextSeparator const& other) const;
 };
 
-struct org::ImmDocumentGroup : public org::ImmOrg {
+struct ImmDocumentGroup : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmDocumentGroup() = default;
   BOOST_DESCRIBE_CLASS(ImmDocumentGroup,
@@ -1351,10 +1351,10 @@ struct org::ImmDocumentGroup : public org::ImmOrg {
   bool operator==(org::ImmDocumentGroup const& other) const;
 };
 
-struct org::ImmFile : public org::ImmOrg {
+struct ImmFile : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmFile() = default;
-  struct org::ImmFile::Document {
+  struct Document {
     BOOST_DESCRIBE_CLASS(Document,
                          (),
                          (),
@@ -1363,7 +1363,7 @@ struct org::ImmFile : public org::ImmOrg {
     bool operator==(org::ImmFile::Document const& other) const;
   };
 
-  struct org::ImmFile::Attachment {
+  struct Attachment {
     BOOST_DESCRIBE_CLASS(Attachment,
                          (),
                          (),
@@ -1372,7 +1372,7 @@ struct org::ImmFile : public org::ImmOrg {
     bool operator==(org::ImmFile::Attachment const& other) const;
   };
 
-  struct org::ImmFile::Source {
+  struct Source {
     BOOST_DESCRIBE_CLASS(Source,
                          (),
                          (),
@@ -1415,7 +1415,7 @@ struct org::ImmFile : public org::ImmOrg {
   org::ImmFile::Kind getFileKind() const { return getFileKind(data); }
 };
 
-struct org::ImmDirectory : public org::ImmOrg {
+struct ImmDirectory : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmDirectory() = default;
   BOOST_DESCRIBE_CLASS(ImmDirectory,
@@ -1434,7 +1434,7 @@ struct org::ImmDirectory : public org::ImmOrg {
   bool operator==(org::ImmDirectory const& other) const;
 };
 
-struct org::ImmSymlink : public org::ImmOrg {
+struct ImmSymlink : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmSymlink() = default;
   BOOST_DESCRIBE_CLASS(ImmSymlink,
@@ -1452,10 +1452,10 @@ struct org::ImmSymlink : public org::ImmOrg {
   bool operator==(org::ImmSymlink const& other) const;
 };
 
-struct org::ImmCmdInclude : public org::ImmOrg {
+struct ImmCmdInclude : public org::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmCmdInclude() = default;
-  struct org::ImmCmdInclude::IncludeBase {
+  struct IncludeBase {
     BOOST_DESCRIBE_CLASS(IncludeBase,
                          (),
                          (),
@@ -1465,7 +1465,7 @@ struct org::ImmCmdInclude : public org::ImmOrg {
     bool operator==(org::ImmCmdInclude::IncludeBase const& other) const;
   };
 
-  struct org::ImmCmdInclude::Example : public org::ImmCmdInclude::IncludeBase {
+  struct Example : public org::ImmCmdInclude::IncludeBase {
     BOOST_DESCRIBE_CLASS(Example,
                          (IncludeBase),
                          (),
@@ -1475,7 +1475,7 @@ struct org::ImmCmdInclude : public org::ImmOrg {
     bool operator==(org::ImmCmdInclude::Example const& other) const;
   };
 
-  struct org::ImmCmdInclude::Export : public org::ImmCmdInclude::IncludeBase {
+  struct Export : public org::ImmCmdInclude::IncludeBase {
     BOOST_DESCRIBE_CLASS(Export,
                          (IncludeBase),
                          (),
@@ -1488,7 +1488,7 @@ struct org::ImmCmdInclude : public org::ImmOrg {
   };
 
   /// \brief Second positional argument in the include command can have any arbitrary value -- default src/export/example have additional properties, but user can provide anything else there.
-  struct org::ImmCmdInclude::Custom : public org::ImmCmdInclude::IncludeBase {
+  struct Custom : public org::ImmCmdInclude::IncludeBase {
     BOOST_DESCRIBE_CLASS(Custom,
                          (IncludeBase),
                          (),
@@ -1500,7 +1500,7 @@ struct org::ImmCmdInclude : public org::ImmOrg {
     bool operator==(org::ImmCmdInclude::Custom const& other) const;
   };
 
-  struct org::ImmCmdInclude::Src : public org::ImmCmdInclude::IncludeBase {
+  struct Src : public org::ImmCmdInclude::IncludeBase {
     BOOST_DESCRIBE_CLASS(Src,
                          (IncludeBase),
                          (),
@@ -1512,7 +1512,7 @@ struct org::ImmCmdInclude : public org::ImmOrg {
     bool operator==(org::ImmCmdInclude::Src const& other) const;
   };
 
-  struct org::ImmCmdInclude::OrgDocument : public org::ImmCmdInclude::IncludeBase {
+  struct OrgDocument : public org::ImmCmdInclude::IncludeBase {
     BOOST_DESCRIBE_CLASS(OrgDocument,
                          (IncludeBase),
                          (),

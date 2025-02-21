@@ -5,6 +5,8 @@
 #include <variant>
 #include <format>
 
+namespace org::parse {
+
 struct [[refl]] LineCol {
     [[refl]] int line;
     [[refl]] int column;
@@ -16,30 +18,6 @@ struct [[refl]] LineCol {
     }
 
     BOOST_DESCRIBE_CLASS(LineCol, (), (line, column, pos), (), ());
-};
-
-template <>
-struct std::formatter<LineCol> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(const LineCol& p, FormatContext& ctx)
-        const {
-        fmt_ctx(p.line, ctx);
-        fmt_ctx(":", ctx);
-        fmt_ctx(p.column, ctx);
-        fmt_ctx(":", ctx);
-        return fmt_ctx(p.pos, ctx);
-    }
-};
-
-template <>
-struct std::hash<LineCol> {
-    std::size_t operator()(LineCol const& it) const noexcept {
-        std::size_t result = 0;
-        hax_hash_combine(result, it.line);
-        hax_hash_combine(result, it.column);
-        hax_hash_combine(result, it.pos);
-        return result;
-    }
 };
 
 
@@ -96,3 +74,31 @@ struct UnbalancedWrapError : public LexerError {};
 /// \brief Can be raised by user-provided lexer to indicate malformed token
 /// at position
 struct MalformedTokenError : public LexerError {};
+
+} // namespace org::parse
+
+
+template <>
+struct std::formatter<org::parse::LineCol> : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(
+        const org::parse::LineCol& p,
+        FormatContext&             ctx) const {
+        fmt_ctx(p.line, ctx);
+        fmt_ctx(":", ctx);
+        fmt_ctx(p.column, ctx);
+        fmt_ctx(":", ctx);
+        return fmt_ctx(p.pos, ctx);
+    }
+};
+
+template <>
+struct std::hash<org::parse::LineCol> {
+    std::size_t operator()(org::parse::LineCol const& it) const noexcept {
+        std::size_t result = 0;
+        hstd::hax_hash_combine(result, it.line);
+        hstd::hax_hash_combine(result, it.column);
+        hstd::hax_hash_combine(result, it.pos);
+        return result;
+    }
+};
