@@ -2,7 +2,9 @@
 #include <hstd/stdlib/RangeTree.hpp>
 #include <hstd/stdlib/Set.hpp>
 
-Vec<SequenceAnnotation> annotateSequence(
+using namespace hstd;
+
+Vec<SequenceAnnotation> hstd::annotateSequence(
     const Vec<SequenceSegmentGroup>& groups,
     int                              first,
     int                              last) {
@@ -89,8 +91,9 @@ Vec<SequenceAnnotation> annotateSequence(
     return result;
 }
 
-bool SequenceAnnotation::isAnnotatedWith(int groupKind, int segmentKind)
-    const {
+bool hstd::SequenceAnnotation::isAnnotatedWith(
+    int groupKind,
+    int segmentKind) const {
     for (auto const& a : annotations) {
         if (a.groupKind == groupKind
             && a.segmentKinds.indexOf(segmentKind) != -1) {

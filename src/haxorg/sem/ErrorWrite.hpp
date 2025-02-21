@@ -18,6 +18,8 @@
 #include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/stdlib/Opt.hpp>
 
+namespace hstd::ext {
+
 class Source;
 
 /// \brief A trait implemented by `Source` caches.
@@ -49,15 +51,6 @@ struct CodeSpan {
 
     /// Determine whether the Codespan contains the given offset.
     bool contains(int offset) const { return range.contains(offset); }
-};
-
-template <>
-struct std::formatter<CodeSpan> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(const CodeSpan& p, FormatContext& ctx) const {
-        return fmt_ctx(
-            fmt("<{}:{}..{}>", p.source(), p.start(), p.end()), ctx);
-    }
 };
 
 class Cache {
@@ -243,11 +236,6 @@ struct Label {
     }
 };
 
-template <>
-struct std::formatter<CodeSpan*>
-    : public std_format_ptr_as_value<CodeSpan> {
-    using std_format_ptr_as_value<CodeSpan>::format;
-};
 
 struct LabelInfo {
     LabelKind kind;
@@ -500,4 +488,23 @@ class Report {
     }
 
     static Vec<Label> build_multi_labels(Vec<LabelInfo> const& labels);
+};
+
+} // namespace hstd::ext
+
+
+template <>
+struct std::formatter<hstd::ext::CodeSpan> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const hstd::ext::CodeSpan& p, FormatContext& ctx) const {
+        return ::hstd::fmt_ctx(
+            hstd::fmt("<{}:{}..{}>", p.source(), p.start(), p.end()), ctx);
+    }
+};
+
+
+template <>
+struct std::formatter<hstd::ext::CodeSpan*>
+    : public hstd::std_format_ptr_as_value<hstd::ext::CodeSpan> {
+    using std_format_ptr_as_value<hstd::ext::CodeSpan>::format;
 };

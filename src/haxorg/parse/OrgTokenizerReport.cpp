@@ -5,6 +5,9 @@
 #include <haxorg/lexbase/TraceStructured.hpp>
 #include <hstd/stdlib/Json.hpp>
 
+using namespace org::parse;
+using namespace hstd;
+
 void OrgTokenizer::report(CR<Report> in) {
     if (!TraceState) { return; }
     if (reportHook) { reportHook(in); }

@@ -518,44 +518,44 @@ message SubtreeLogHead {
     }
     optional string                                oldPriority                      = 1;
     optional string                                newPriority                      = 2;
-    UserTime                                       on                               = 3;
+    hstd.UserTime                                  on                               = 3;
     SubtreeLogHead.Priority.Action                 action                           = 4;
     string                                         debug                            = 1000;
   }
   message Note {
-    UserTime                                       on                               = 1;
+    hstd.UserTime                                  on                               = 1;
     string                                         debug                            = 1000;
   }
   message Refile {
-    UserTime                                       on                               = 1;
+    hstd.UserTime                                  on                               = 1;
     LinkTarget                                     from                             = 2;
     string                                         debug                            = 1000;
   }
   message Clock {
-    UserTime                                       from                             = 1;
-    optional UserTime                              to                               = 2;
+    hstd.UserTime                                  from                             = 1;
+    optional hstd.UserTime                         to                               = 2;
     string                                         debug                            = 1000;
   }
   message State {
     string                                         from                             = 1;
     string                                         to                               = 2;
-    UserTime                                       on                               = 3;
+    hstd.UserTime                                  on                               = 3;
     string                                         debug                            = 1000;
   }
   message Deadline {
-    optional UserTime                              from                             = 1;
-    UserTime                                       to                               = 2;
-    UserTime                                       on                               = 3;
+    optional hstd.UserTime                         from                             = 1;
+    hstd.UserTime                                  to                               = 2;
+    hstd.UserTime                                  on                               = 3;
     string                                         debug                            = 1000;
   }
   message Schedule {
-    optional UserTime                              from                             = 1;
-    UserTime                                       to                               = 2;
-    UserTime                                       on                               = 3;
+    optional hstd.UserTime                         from                             = 1;
+    hstd.UserTime                                  to                               = 2;
+    hstd.UserTime                                  on                               = 3;
     string                                         debug                            = 1000;
   }
   message Tag {
-    UserTime                                       on                               = 1;
+    hstd.UserTime                                  on                               = 1;
     HashTagText                                    tag                              = 2;
     bool                                           added                            = 3;
     string                                         debug                            = 1000;
@@ -832,8 +832,8 @@ message SubtreePeriod {
     Kind_Repeated_f                                                                 = 6;
   }
   SubtreePeriod.Kind                               kind                             = 1;
-  UserTime                                         from                             = 2;
-  optional UserTime                                to                               = 3;
+  hstd.UserTime                                    from                             = 2;
+  optional hstd.UserTime                           to                               = 3;
   string                                           debug                            = 1000;
 }
 
@@ -843,7 +843,7 @@ message NamedProperty {
     string                                         debug                            = 1000;
   }
   message ArchiveTime {
-    UserTime                                       time                             = 1;
+    hstd.UserTime                                  time                             = 1;
     string                                         debug                            = 1000;
   }
   message ArchiveFile {
@@ -928,7 +928,7 @@ message NamedProperty {
     string                                         debug                            = 1000;
   }
   message Created {
-    UserTime                                       time                             = 1;
+    hstd.UserTime                                  time                             = 1;
     string                                         debug                            = 1000;
   }
   message RadioId {
@@ -1246,7 +1246,7 @@ message Time {
   }
   message Static {
     optional Time.Repeat                           repeat                           = 1;
-    UserTime                                       time                             = 2;
+    hstd.UserTime                                  time                             = 2;
     string                                         debug                            = 1000;
   }
   message Dynamic {
@@ -1586,9 +1586,9 @@ message Subtree {
   Paragraph                                        title                            = 10;
   repeated SubtreeLog                              logbook                          = 11;
   repeated NamedProperty                           properties                       = 12;
-  optional UserTime                                closed                           = 13;
-  optional UserTime                                deadline                         = 14;
-  optional UserTime                                scheduled                        = 15;
+  optional hstd.UserTime                           closed                           = 13;
+  optional hstd.UserTime                           deadline                         = 14;
+  optional hstd.UserTime                           scheduled                        = 15;
   bool                                             isComment                        = 16;
   bool                                             isArchived                       = 17;
   optional string                                  priority                         = 18;

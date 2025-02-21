@@ -1,6 +1,9 @@
 #include <haxorg/parse/OrgParser.hpp>
 #include <hstd/stdlib/Debug.hpp>
 
+using namespace hstd;
+using namespace org::parse;
+
 std::string OrgParser::getLocMsg(CR<OrgLexer> lex) {
     std::string result;
     std::string pos = lex.pos.isNil() ? "<nil>" : fmt1(lex.pos.getIndex());

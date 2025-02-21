@@ -4,6 +4,8 @@
 #include <absl/log/check.h>
 #include <numeric>
 
+using namespace hstd;
+
 Str unicodeCharMappings[256][15] = {
     [(int)'A']
     = {Str("A"),
@@ -1000,7 +1002,7 @@ Str unicodeCharMappings[256][15] = {
 };
 
 
-Str styledUnicodeMapping(char ch, AsciiStyle style) {
+Str hstd::styledUnicodeMapping(char ch, AsciiStyle style) {
     int chIdx = value_domain<char>::ord(ch);
     if (unicodeCharMappings[chIdx][(int)style] != Str("\0")) {
         return unicodeCharMappings[chIdx][(int)style];
@@ -1009,7 +1011,7 @@ Str styledUnicodeMapping(char ch, AsciiStyle style) {
     }
 }
 
-Str styledUnicodeMapping(Str const& str, AsciiStyle style) {
+Str hstd::styledUnicodeMapping(Str const& str, AsciiStyle style) {
     Str result;
     result.reserve(str.size());
     for (const auto& ch : str) {
@@ -1018,7 +1020,10 @@ Str styledUnicodeMapping(Str const& str, AsciiStyle style) {
     return result;
 }
 
-Str strip(CR<Str> string, CR<CharSet> leading, CR<CharSet> trailing) {
+Str hstd::strip(
+    CR<Str>     string,
+    CR<CharSet> leading,
+    CR<CharSet> trailing) {
     if (0 < string.size()) {
         Span<char> view = string.toSpan();
         CHECK(view.data() != nullptr);
@@ -1038,13 +1043,13 @@ Str strip(CR<Str> string, CR<CharSet> leading, CR<CharSet> trailing) {
     }
 }
 
-Vec<Str> split(CR<Str> str, char ch) {
+Vec<Str> hstd::split(CR<Str> str, char ch) {
     Vec<Str> res;
     for (const auto& it : str.split(ch)) { res.push_back(it); }
     return res;
 }
 
-Vec<Str> split_keep_separator(const Str& str, CharSet sep) {
+Vec<Str> hstd::split_keep_separator(const Str& str, CharSet sep) {
     Vec<Str> result;
     int      prev = 0, curr = 0;
     while (curr < str.length()) {
@@ -1067,7 +1072,7 @@ Vec<Str> split_keep_separator(const Str& str, CharSet sep) {
     return result;
 }
 
-Vec<Str> visibleUnicodeName(std::string_view str, bool useUnicode) {
+Vec<Str> hstd::visibleUnicodeName(std::string_view str, bool useUnicode) {
     Vec<Str> result;
     for (char ch : str) {
         if (ch <= 127) {
@@ -1084,11 +1089,11 @@ Vec<Str> visibleUnicodeName(std::string_view str, bool useUnicode) {
     return result;
 }
 
-Vec<Str> visibleUnicodeName(Str const& str, bool useUnicode) {
+Vec<Str> hstd::visibleUnicodeName(Str const& str, bool useUnicode) {
     return visibleUnicodeName(std::string_view{str.toBase()}, useUnicode);
 }
 
-Pair<Str, Str> visibleName(char ch) {
+Pair<Str, Str> hstd::visibleName(char ch) {
     switch (ch) {
             // clang-format off
         case '\x00': return {Str("␀"), "[NUL]"}; // Null character
@@ -1130,7 +1135,7 @@ Pair<Str, Str> visibleName(char ch) {
     }
 }
 
-Str indent(CR<Str> str, int spaces, char space, Str prefix) {
+Str hstd::indent(CR<Str> str, int spaces, char space, Str prefix) {
     auto lines = str.split('\n');
     for (auto& line : lines) {
         line = prefix + repeat(Str(space), spaces) + line;
@@ -1138,7 +1143,7 @@ Str indent(CR<Str> str, int spaces, char space, Str prefix) {
     return join("\n", lines);
 }
 
-Str normalize(CR<Str> in) {
+Str hstd::normalize(CR<Str> in) {
     Str res;
     for (char c : in) {
         if (!(c == '_' || c == '-')) {
@@ -1152,21 +1157,21 @@ Str normalize(CR<Str> in) {
     return res;
 }
 
-Str repeat(CR<Str> str, int count) {
+Str hstd::repeat(CR<Str> str, int count) {
     Str res;
     res.reserve(str.size() * count);
     for (int i = 0; i < count; ++i) { res += str; }
     return res;
 }
 
-Str left_aligned(CR<Str> str, int n, char c) {
+Str hstd::left_aligned(CR<Str> str, int n, char c) {
     auto s         = str;
     int  rune_size = rune_length(str);
     if (rune_size < n) { s.append(Str(c).repeated(n - rune_size)); }
     return s;
 }
 
-Str right_aligned(CR<Str> str, int n, char c) {
+Str hstd::right_aligned(CR<Str> str, int n, char c) {
     Str res;
     int rune_size = rune_length(str);
 
@@ -1176,7 +1181,7 @@ Str right_aligned(CR<Str> str, int n, char c) {
     return res;
 }
 
-Str escape_for_write(const Str& str, bool quote) {
+Str hstd::escape_for_write(const Str& str, bool quote) {
     Str res;
     res.reserve(str.size());
     if (quote) { res += "\""; }
@@ -1195,7 +1200,7 @@ Str escape_for_write(const Str& str, bool quote) {
     return res;
 }
 
-int rune_length(const std::string& str) {
+int hstd::rune_length(const std::string& str) {
     int count = 0;
     for (int i = 0; i < str.size();) {
         unsigned char byte = static_cast<unsigned char>(str.at(i));
@@ -1221,7 +1226,7 @@ int rune_length(const std::string& str) {
 
 // This is mostly for fancy rendering, so should be ok as it is, but really
 // it ought to be a generator of string view slices.
-std::vector<std::string> rune_chunks(const std::string& str) {
+std::vector<std::string> hstd::rune_chunks(const std::string& str) {
     std::vector<std::string> runes;
     for (int i = 0; i < str.size();) {
         int           len  = 0;
@@ -1248,15 +1253,15 @@ std::vector<std::string> rune_chunks(const std::string& str) {
     return runes;
 }
 
-Str lstrip(CR<Str> string, CR<CharSet> chars) {
+Str hstd::lstrip(CR<Str> string, CR<CharSet> chars) {
     return strip(string, chars, {});
 }
 
-Str rstrip(CR<Str> string, CR<CharSet> chars) {
+Str hstd::rstrip(CR<Str> string, CR<CharSet> chars) {
     return strip(string, {}, chars);
 }
 
-Str wrap_text(const Vec<Str>& words, int maxWidth, bool justified) {
+Str hstd::wrap_text(const Vec<Str>& words, int maxWidth, bool justified) {
     Vec<Str> lines;
     Vec<Str> buffer;
     int      currentWidth = 0;

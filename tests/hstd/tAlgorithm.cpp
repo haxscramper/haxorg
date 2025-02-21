@@ -2,6 +2,8 @@
 #include <hstd/stdlib/algorithms.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 
+using namespace hstd;
+
 TEST(Algorithms, Partitioning) {
     Vec<int> it{1, 1, 2, 2, 3, 3, 4, 4, 3};
     auto     spans = partition<int, int>(

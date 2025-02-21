@@ -1,5 +1,4 @@
-#ifndef EXPORTERSIMPLESEXPR_HPP
-#define EXPORTERSIMPLESEXPR_HPP
+#pragma once
 
 #include <haxorg/exporters/Exporter.hpp>
 #include <hstd/wrappers/hstd_extra/textlayouter.hpp>
@@ -7,6 +6,7 @@
 #include <hstd/stdlib/strutils.hpp>
 #include <absl/log/check.h>
 
+namespace org::algo {
 
 struct ExporterSimpleSExpr
     : public Exporter<ExporterSimpleSExpr, layout::BlockId> {
@@ -16,37 +16,37 @@ struct ExporterSimpleSExpr
 #undef __ExporterBase
 
 
-    using Res    = layout::BlockId;
-    using LytStr = layout::LytStr;
+    using Res    = hstd::layout::BlockId;
+    using LytStr = hstd::layout::LytStr;
 
-    layout::BlockStore        b;
-    layout::SimpleStringStore store;
+    hstd::layout::BlockStore        b;
+    hstd::layout::SimpleStringStore store;
     ExporterSimpleSExpr() : store{&b} {}
-    Res newRes(CR<sem::SemId<sem::Org>> id) { return Res::Nil(); }
+    Res newRes(sem::SemId<sem::Org> const& id) { return Res::Nil(); }
 
     Res string(std::string const& str) { return b.text(store.str(str)); }
 
     void visit(Res& res, sem::SemId<sem::Org> org);
 
     template <sem::IsOrg T>
-    void visit(Res& res, CR<T> value) {
+    void visit(Res& res, T const& value) {
         visit(res, value.asOrg());
     }
 
     template <sem::NotOrg T>
-    void visit(Res& res, CR<T> value) {
+    void visit(Res& res, T const& value) {
         res = b.line({string(escape_for_write(std::format("{}", value)))});
     }
 
     template <typename T>
-    void visit(Res& res, CVec<T> value) {
+    void visit(Res& res, hstd::CVec<T> value) {
         res = b.stack();
         for (const auto& it : value) { b.add_at(res, eval(it)); }
     }
 
 
     template <typename T>
-    void visit(Res& res, CR<Opt<T>> value) {
+    void visit(Res& res, hstd::Opt<T> const& value) {
         if (value) {
             res = eval(*value);
         } else {
@@ -54,23 +54,25 @@ struct ExporterSimpleSExpr
         }
     }
 
-    Res eval(int value) { return string(fmt1(value)); }
-    Res eval(CR<Str> value) { return string(escape_for_write(value)); }
-
-    Res eval(CR<std::string> value) {
+    Res eval(int value) { return string(hstd::fmt1(value)); }
+    Res eval(hstd::Str const& value) {
         return string(escape_for_write(value));
+    }
+
+    Res eval(std::string const& value) {
+        return string(hstd::escape_for_write(value));
     }
 
 
     template <typename T>
-    Res eval(CR<T> value) {
+    Res eval(T const& value) {
         Res tmp = b.stack();
         visit(tmp, value);
         return b.line({string("("), tmp, string(")")});
     }
 
     template <typename T>
-    void visitField(Res& res, char const* name, CVec<T> value) {
+    void visitField(Res& res, char const* name, hstd::CVec<T> value) {
         if (!value.empty()) {
             if (b.at(res).isLine()) { b.add_at(res, string(" ")); }
             b.add_at(
@@ -79,12 +81,15 @@ struct ExporterSimpleSExpr
     }
 
     template <typename T>
-    void visitField(Res& res, char const* name, CR<Opt<T>> value) {
+    void visitField(
+        Res&                res,
+        char const*         name,
+        hstd::Opt<T> const& value) {
         if (value) { visitField(res, name, *value); }
     }
 
     template <typename T>
-    void visitField(Res& res, char const* name, CR<T> value) {
+    void visitField(Res& res, char const* name, T const& value) {
         CHECK(!res.isNil());
         if (b.at(res).isLine()) { b.add_at(res, string(" ")); }
         b.add_at(res, b.line({string(name), string(": "), eval(value)}));
@@ -105,6 +110,6 @@ struct ExporterSimpleSExpr
     }
 };
 
-extern template class Exporter<ExporterSimpleSExpr, layout::BlockId>;
+extern template class Exporter<ExporterSimpleSExpr, hstd::layout::BlockId>;
 
-#endif // EXPORTERSIMPLESEXPR_HPP
+} // namespace org::algo

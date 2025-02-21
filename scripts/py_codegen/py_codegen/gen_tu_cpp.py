@@ -65,7 +65,7 @@ class GenTuEnum:
 @beartype
 @dataclass
 class GenTuFunction:
-    result: Optional[QualType] 
+    result: Optional[QualType]
     name: str
     doc: GenTuDoc = field(default_factory=lambda: GenTuDoc(""))
     params: List[GenTuParam] = field(default_factory=list)
@@ -162,7 +162,7 @@ class GenTuTypeGroup:
 @beartype
 @dataclass
 class GenTuNamespace:
-    name: str
+    name: QualType
     entries: Sequence[GenTuEntry]
 
 
@@ -273,12 +273,12 @@ class GenConverter:
 
     def convertStruct(self, record: GenTuStruct) -> BlockId:
         params = RecordParams(
-            name=record.name.name,
+            name=record.name,
             doc=self.convertDoc(record.doc),
             bases=record.bases,
         )
 
-        with GenConverterWithContext(self, QualType.ForName(record.name.name)):
+        with GenConverterWithContext(self, record.name):
             for type in record.nested:
                 for sub in self.convert(type):
                     params.nested.append(sub)
@@ -363,7 +363,9 @@ class GenConverter:
 
         if self.isSource:
             if isToplevel:
-                Class = QualType(name="enum_serde", Parameters=[entry.name])
+                Class = QualType(name="enum_serde",
+                                 Parameters=[entry.name],
+                                 Spaces=[n_hstd()])
 
                 SwichFrom = IfStmtParams(LookupIfStructure=True, Branches=[])
                 for _field in entry.fields:
@@ -451,10 +453,11 @@ class GenConverter:
 
             if isToplevel:
                 Domain = RecordParams(
-                    name="value_domain",
+                    name=QualType(name="value_domain", Spaces=[n_hstd()]),
                     doc=DocParams(""),
                     Template=TemplateParams.FinalSpecialization(),
                     NameParams=[entry.name],
+                    IsTemplateSpecialization=True,
                     bases=[
                         QualType(
                             name="value_domain_ungapped",
@@ -477,10 +480,11 @@ class GenConverter:
                 ToDefininition = ToParams
 
                 Serde = RecordParams(
-                    name="enum_serde",
+                    name=QualType(name="enum_serde", Spaces=[n_hstd()]),
                     doc=DocParams(""),
                     Template=TemplateParams.FinalSpecialization(),
                     NameParams=[entry.name],
+                    IsTemplateSpecialization=True,
                 )
 
                 Serde.members.append(
@@ -506,8 +510,12 @@ class GenConverter:
 
     def convertNamespace(self, space: GenTuNamespace) -> BlockId:
         result = self.ast.b.stack([])
-        with GenConverterWithContext(self, QualType(name=space.name).asNamespace()):
-            self.ast.b.add_at(result, self.ast.string(f"namespace {space.name}{{"))
+        with GenConverterWithContext(self, space.name.asNamespace()):
+            self.ast.b.add_at(result, self.ast.b.line([
+                self.ast.string("namespace "),
+                self.ast.Type(space.name),
+                self.ast.string(" {"),
+            ]))
 
             for sub in space.entries:
                 self.ast.b.add_at_list(result, self.convertWithToplevel(sub))
@@ -568,18 +576,43 @@ class GenConverter:
 
 
 @beartype
+def n_hstd() -> QualType:
+    return QualType(name="hstd", isNamespace=True)
+
+@beartype
+def n_hstd_ext() -> QualType:
+    return QualType(name="ext", isNamespace=True, Spaces=[n_hstd()])
+
+@beartype
+def n_org() -> QualType:
+    return QualType(name="org", isNamespace=True)
+
+
+@beartype
 def t_opt(arg: QualType) -> QualType:
-    return QualType(name="Opt", Parameters=[arg])
+    return QualType(name="Opt", Parameters=[arg], Spaces=[n_hstd()])
 
 
 @beartype
 def t_vec(arg: QualType) -> QualType:
-    return QualType(name="Vec", Parameters=[arg])
+    return QualType(name="Vec", Parameters=[arg], Spaces=[n_hstd()])
 
 
 def n_sem() -> QualType:
-    return QualType(name="sem", isNamespace=True, meta=dict(isSemNamespace=True))
+    return QualType(
+        name="sem",
+        isNamespace=True,
+        meta=dict(isSemNamespace=True),
+        Spaces=[n_org()],
+    )
 
+def n_imm() -> QualType:
+    return QualType(
+        name="imm",
+        isNamespace=True,
+        meta=dict(isSemNamespace=True),
+        Spaces=[n_org()],
+    )
 
 @beartype
 def t_id(target: Optional[Union[QualType, str]] = None) -> QualType:

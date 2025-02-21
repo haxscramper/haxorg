@@ -25,6 +25,9 @@ struct std::formatter<json> : std::formatter<std::string> {
 
 extern template class nlohmann::basic_json<>;
 
+namespace hstd {
+
+
 template <typename T>
 struct JsonSerde;
 
@@ -137,8 +140,10 @@ struct JsonSerde<char const*> {
 
 template <>
 struct JsonSerde<Str> {
-    static json to_json(Str const& it) { return json(it.toBase()); }
-    static Str  from_json(json const& j) { return j.get<std::string>(); }
+    static json      to_json(Str const& it) { return json(it.toBase()); }
+    static hstd::Str from_json(json const& j) {
+        return j.get<std::string>();
+    }
 };
 
 
@@ -166,7 +171,8 @@ std::string to_compact_json(
     JsonFormatOptions const& options = JsonFormatOptions{});
 
 template <typename T>
-concept DescribedMembers = boost::describe::has_describe_members<T>::value;
+concept DescribedMembers = ::boost::describe::has_describe_members<
+    T>::value;
 
 template <typename T, typename ListType>
 struct JsonSerdeListApi {
@@ -388,3 +394,6 @@ template <typename T>
 T from_json_eval(json const& j) {
     return JsonSerde<T>::from_json(j);
 }
+
+
+} // namespace hstd

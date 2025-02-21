@@ -26,7 +26,7 @@
 ///
 /// `dod::MultiStore` is an additional helper type to simplify management
 /// of multiple stores.
-namespace dod {
+namespace hstd::dod {
 /// \brief DOD Id type
 ///
 /// \note It does not have a default constructor, if you need co construct
@@ -220,7 +220,7 @@ check: {2:064b}
 
 #define DECL_ID_TYPE_MASKED(__value, __name, __type, __mask)              \
     struct __value;                                                       \
-    using __name##BaseId = dod::                                          \
+    using __name##BaseId = ::hstd::dod::                                  \
         Id<__type, __type, std::integral_constant<__type, __mask>>;       \
     struct [[nodiscard]] __name : __name##BaseId {                        \
                                                                           \
@@ -628,10 +628,10 @@ struct MultiStore {
     std::tuple<Args...> stores; /// List of associated storage contianers
 };
 
-}; // namespace dod
+}; // namespace hstd::dod
 
 namespace std {
-template <dod::IsIdType Id>
+template <hstd::dod::IsIdType Id>
 struct hash<Id> {
     /// \brief Get hash (ID value)
     auto operator()(Id it) const -> std::size_t {
@@ -643,7 +643,7 @@ struct hash<Id> {
 }; // namespace std
 
 
-template <dod::IsIdType Id>
+template <hstd::dod::IsIdType Id>
 struct std::formatter<Id> : std::formatter<std::string> {
     using FmtType = Id;
     template <typename FormatContext>

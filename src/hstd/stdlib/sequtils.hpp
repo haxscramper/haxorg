@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <hstd/stdlib/Pair.hpp>
 
+namespace hstd {
+
 template <typename T, typename Ref>
 struct EnumerateState {
 
@@ -80,3 +82,5 @@ template <typename T, typename Pred>
 bool all_of(CR<T> seq, CR<Pred> pr) {
     return std::all_of(seq.begin(), seq.end(), pr);
 }
+
+} // namespace hstd

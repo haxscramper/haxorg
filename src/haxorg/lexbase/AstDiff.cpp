@@ -1,6 +1,7 @@
 #include "AstDiff.hpp"
 
-using namespace diff;
+using namespace hstd::ext::diff;
+using namespace hstd;
 
 /// Sets Height, Parent and Subnodes for each node.
 struct PreorderVisitor {
@@ -17,13 +18,13 @@ struct PreorderVisitor {
     std::tuple<NodeIdx, NodeIdx> PreTraverse(NodeStore::Id const& node) {
         NodeIdx MyId = id;
         Tree.Nodes.emplace_back(store);
-        diff::Node& N = Tree.getMutableNode(MyId);
-        N.Parent      = Parent;
-        N.Depth       = Depth;
-        N.ASTNode     = node;
+        hstd::ext::diff::Node& N = Tree.getMutableNode(MyId);
+        N.Parent                 = Parent;
+        N.Depth                  = Depth;
+        N.ASTNode                = node;
 
         if (Parent.isValid()) {
-            diff::Node& P = Tree.getMutableNode(Parent);
+            hstd::ext::diff::Node& P = Tree.getMutableNode(Parent);
             P.Subnodes.push_back(MyId);
         }
 
@@ -40,8 +41,8 @@ struct PreorderVisitor {
             MyId.isValid() && "Expecting to only traverse valid nodes.");
         Parent = PreviousParent;
         --Depth;
-        diff::Node& N         = Tree.getMutableNode(MyId);
-        N.RightMostDescendant = id - 1;
+        hstd::ext::diff::Node& N = Tree.getMutableNode(MyId);
+        N.RightMostDescendant    = id - 1;
         assert(
             N.RightMostDescendant >= 0
             && N.RightMostDescendant < Tree.getSize()
@@ -64,7 +65,9 @@ struct PreorderVisitor {
 };
 
 
-Vec<NodeIdx> diff::getSubtreeBfs(const SyntaxTree& Tree, NodeIdx Root) {
+Vec<NodeIdx> hstd::ext::diff::getSubtreeBfs(
+    const SyntaxTree& Tree,
+    NodeIdx           Root) {
     Vec<NodeIdx> Ids;
     size_t       Expanded = 0;
     Ids.push_back(Root);
@@ -76,7 +79,7 @@ Vec<NodeIdx> diff::getSubtreeBfs(const SyntaxTree& Tree, NodeIdx Root) {
     return Ids;
 }
 
-Vec<NodeIdx> diff::getSubtreePostorder(
+Vec<NodeIdx> hstd::ext::diff::getSubtreePostorder(
     const SyntaxTree& Tree,
     NodeIdx           Root) {
     Vec<NodeIdx>        Postorder;
@@ -90,7 +93,7 @@ Vec<NodeIdx> diff::getSubtreePostorder(
 }
 
 
-void diff::ASTDiff::computeChangeKinds(Mapping& M) {
+void hstd::ext::diff::ASTDiff::computeChangeKinds(Mapping& M) {
     for (NodeIdx const& Id1 : src) {
         if (!M.hasSrc(Id1)) {
             src.getMutableNode(Id1).Change = ChangeKind::Delete;
@@ -132,7 +135,7 @@ void diff::ASTDiff::computeChangeKinds(Mapping& M) {
     }
 }
 
-Mapping diff::ASTDiff::greedyMatchTopDown() const {
+Mapping hstd::ext::diff::ASTDiff::greedyMatchTopDown() const {
     Mapping                      M(src.getSize() + dst.getSize());
     Func<void(NodeIdx, NodeIdx)> aux;
     aux = [&](NodeIdx srcId, NodeIdx dstId) {
@@ -153,7 +156,7 @@ Mapping diff::ASTDiff::greedyMatchTopDown() const {
     return M;
 }
 
-Mapping diff::ASTDiff::matchTopDown() const {
+Mapping hstd::ext::diff::ASTDiff::matchTopDown() const {
     PriorityList L1(src);
     PriorityList L2(dst);
     Mapping      M(src.getSize() + dst.getSize());
@@ -210,7 +213,7 @@ Mapping diff::ASTDiff::matchTopDown() const {
     return M;
 }
 
-void diff::ASTDiff::matchBottomUp(Mapping& M) const {
+void hstd::ext::diff::ASTDiff::matchBottomUp(Mapping& M) const {
     Vec<NodeIdx> Postorder = getSubtreePostorder(src, src.getRootId());
     // for all nodes in left, if node itself is not matched, but
     // has any children matched
@@ -245,7 +248,9 @@ void diff::ASTDiff::matchBottomUp(Mapping& M) const {
     }
 }
 
-NodeIdx diff::ASTDiff::findCandidate(const Mapping& M, NodeIdx Id1) const {
+NodeIdx hstd::ext::diff::ASTDiff::findCandidate(
+    const Mapping& M,
+    NodeIdx        Id1) const {
     NodeIdx Candidate;
     double  HighestSimilarity = 0.0;
     for (NodeIdx const& Id2 : dst) {
@@ -261,7 +266,7 @@ NodeIdx diff::ASTDiff::findCandidate(const Mapping& M, NodeIdx Id1) const {
     return Candidate;
 }
 
-double diff::ASTDiff::getJaccardSimilarity(
+double ASTDiff::getJaccardSimilarity(
     const Mapping& M,
     NodeIdx        Id1,
     NodeIdx        Id2) const {
@@ -284,7 +289,7 @@ double diff::ASTDiff::getJaccardSimilarity(
     return CommonDescendants / Denominator;
 }
 
-void diff::ASTDiff::addOptimalMapping(Mapping& M, NodeIdx Id1, NodeIdx Id2)
+void ASTDiff::addOptimalMapping(Mapping& M, NodeIdx Id1, NodeIdx Id2)
     const {
     if (std::max(
             src.getNumberOfDescendants(Id1),
@@ -302,7 +307,7 @@ void diff::ASTDiff::addOptimalMapping(Mapping& M, NodeIdx Id1, NodeIdx Id2)
     }
 }
 
-bool diff::ASTDiff::identical(NodeIdx Id1, NodeIdx Id2) const {
+bool ASTDiff::identical(NodeIdx Id1, NodeIdx Id2) const {
     const Node& N1 = src.getNode(Id1);
     const Node& N2 = dst.getNode(Id2);
     if (N1.Subnodes.size() != N2.Subnodes.size()
@@ -428,13 +433,13 @@ void ZhangShashaMatcher::computeForestDist(
     // }
 }
 
-void diff::SyntaxTree::FromNode(NodeStore* store) {
+void SyntaxTree::FromNode(NodeStore* store) {
     PreorderVisitor PreorderWalker(*this, store);
     PreorderWalker.Traverse(store->getRoot());
     initTree();
 }
 
-void diff::printDstChange(
+void hstd::ext::diff::printDstChange(
     ColStream&                       os,
     const ASTDiff&                   Diff,
     const SyntaxTree&                SrcTree,
@@ -481,7 +486,7 @@ void diff::printDstChange(
     }
 }
 
-void diff::printNode(
+void hstd::ext::diff::printNode(
     ColStream&                       os,
     const SyntaxTree&                Tree,
     NodeIdx                          id,
@@ -496,7 +501,7 @@ void diff::printNode(
 }
 
 
-void diff::printMapping(
+void hstd::ext::diff::printMapping(
     ColStream&                       os,
     ASTDiff const&                   Diff,
     SyntaxTree const&                SrcTree,
@@ -504,8 +509,8 @@ void diff::printMapping(
     Func<ColText(CR<NodeStore::Id>)> FormatSrcTreeValue,
     Func<ColText(CR<NodeStore::Id>)> FormatDstTreeValue) {
 
-    for (diff::NodeIdx Dst : DstTree) {
-        diff::NodeIdx Src = Diff.getMapped(DstTree, Dst);
+    for (NodeIdx Dst : DstTree) {
+        NodeIdx Src = Diff.getMapped(DstTree, Dst);
         if (Src.isValid()) {
             os << "Match [" << os.yellow();
             printNode(os, SrcTree, Src, FormatSrcTreeValue);

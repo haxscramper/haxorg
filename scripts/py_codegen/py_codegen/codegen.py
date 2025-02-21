@@ -152,9 +152,9 @@ def get_imm_serde(types: List[GenTuStruct], ast: ASTBuilder) -> List[GenTuPass]:
                     return
 
                 sem_type = it.name
-                respace = it.name.flatQualSpaces()[1:] + [it.name.withoutAllSpaces()]
+                respace = it.name.flatQualSpaces()[2:] + [it.name.withoutAllSpaces()]
                 respace[0].name = "Imm" + respace[0].name
-                respace = [QualType(name="org")] + respace
+                respace = [n_imm()] + respace
                 imm_type = respace[-1].model_copy(update=dict(Spaces=respace[:-1]))
 
                 writer_body: List[BlockId] = [
@@ -162,8 +162,11 @@ def get_imm_serde(types: List[GenTuStruct], ast: ASTBuilder) -> List[GenTuPass]:
                         ast.Type(imm_type),
                         ast.string(" result = "),
                         ast.CallStatic(
-                            typ=QualType(name="SerdeDefaultProvider",
-                                         Parameters=[imm_type]),
+                            typ=QualType(
+                                name="SerdeDefaultProvider",
+                                Parameters=[imm_type],
+                                Spaces=[n_hstd()],
+                            ),
                             opc="get",
                         ),
                         ast.string(";"),
@@ -175,8 +178,11 @@ def get_imm_serde(types: List[GenTuStruct], ast: ASTBuilder) -> List[GenTuPass]:
                         ast.Type(sem_type),
                         ast.string(" result = "),
                         ast.CallStatic(
-                            typ=QualType(name="SerdeDefaultProvider",
-                                         Parameters=[sem_type]),
+                            typ=QualType(
+                                name="SerdeDefaultProvider",
+                                Parameters=[sem_type],
+                                Spaces=[n_hstd()],
+                            ),
                             opc="get",
                         ),
                         ast.string(";"),
@@ -254,7 +260,7 @@ def get_imm_serde(types: List[GenTuStruct], ast: ASTBuilder) -> List[GenTuPass]:
                 )
 
                 rec = RecordParams(
-                    name="ImmSemSerde",
+                    name=QualType(name="ImmSemSerde"),
                     NameParams=[sem_type, imm_type],
                     Template=TemplateParams(Stacks=[TemplateGroup(Params=[])]),
                     members=[writer, reader],
@@ -284,11 +290,11 @@ def filter_init_fields(Fields: List[Py11Field]) -> List[Py11Field]:
 @beartype
 def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
                   base_map: Mapping[str, GenTuStruct]) -> Py11Class:
-    base_type = QualType.ForName(typ.name.name, Spaces=[QualType.ForName("sem")])
+    base_type = QualType.ForName(typ.name.name, Spaces=[n_sem()])
     id_type = QualType.ForName(
         "SemId",
         Parameters=[base_type],
-        Spaces=[QualType.ForName("sem")],
+        Spaces=[n_sem()],
     )
 
     res = Py11Class(
@@ -404,7 +410,7 @@ def add_structures(res: Py11Module, ast: ASTBuilder, structs: List[GenTuStruct])
 
     # Map data definitions into python wrappers
     iterate_object_tree(
-        GenTuNamespace("sem", structs),
+        GenTuNamespace(n_sem(), structs),
         [],
         post_visit=codegenConstructCallback,
     )
@@ -728,8 +734,8 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
 def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
     result = deepcopy(recs)
 
-    IMM_BOX = "ImmBox"
-    ORG_SPACE = QualType.ForName("org")
+    IMM_BOX = t("ImmBox", [n_hstd_ext()])
+    ORG_SPACE = n_imm()
 
     def conv_type(obj: QualType):
         match obj:
@@ -771,11 +777,11 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
 
             case QualType(name="Vec"):
                 obj.name = "ImmVec"
-                obj.Spaces = []
+                obj.Spaces = [n_hstd_ext()]
 
             case QualType(name="UnorderedMap"):
                 obj.name = "ImmMap"
-                obj.Spaces = []
+                obj.Spaces = [n_hstd_ext()]
 
     def impl(obj: Any):
         match obj:
@@ -784,18 +790,18 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
 
             case GenTuField(type=QualType(name="SemId", parameters=[])):
                 conv_type(obj.type)
-                obj.value = "org::ImmId::Nil()"
+                obj.value = "org::imm::ImmId::Nil()"
 
             case GenTuField(type=QualType(name="SemId")):
                 conv_type(obj.type)
-                obj.value = f"org::ImmIdT<org::Imm{obj.type.par0().name}>::Nil()"
+                obj.value = f"org::imm::ImmIdT<org::imm::Imm{obj.type.par0().name}>::Nil()"
 
             case GenTuField(type=QualType(name="Opt")):
-                obj.type.Parameters = [obj.type.par0().withWrapperType("Opt")]
-                obj.type.name = IMM_BOX
+                obj.type = obj.type.par0().withWrapperType(
+                    QualType(name="Opt", Spaces=[n_hstd()])).withWrapperType(IMM_BOX)
 
             case GenTuField(type=QualType(name="Str")):
-                obj.type = QualType.ForName(IMM_BOX, Parameters=[obj.type])
+                obj.type = obj.type.withWrapperType(IMM_BOX)
 
             case GenTuStruct():
                 obj.methods = [
@@ -920,8 +926,15 @@ def collect_pyhaxorg_typename_groups(types: List[GenTuStruct]) -> PyhaxorgTypena
             case GenTuStruct() | GenTuEnum():
                 flat = it.name.flatQualSpaces() + [it.name.withoutAllSpaces()]
                 if 2 < len(flat):
-                    parent = flat[1]
-                    nested = flat[2:]
+                    name_start = 0
+                    for i in range(len(flat)):
+                        if flat[i].name == "org" or flat[i].name == "sem" or flat[
+                                i].name == "imm":
+                            name_start = i + 1
+
+                    log(CAT).info(f"{flat} {name_start}")
+                    parent = flat[name_start]
+                    nested = flat[name_start + 1:]
                     value = (
                         parent.name,
                         "::".join(it.name for it in nested),
@@ -1117,7 +1130,7 @@ struct std::formatter<OrgSemKind> : std::formatter<std::string> {
     FormatContext::iterator format(OrgSemKind const& p, FormatContext& ctx)
         const {
         std::formatter<std::string> fmt;
-        return fmt.format(enum_serde<OrgSemKind>::to_string(p), ctx);
+        return fmt.format(::hstd::enum_serde<OrgSemKind>::to_string(p), ctx);
     }
 };
                     """)
@@ -1144,7 +1157,7 @@ struct std::formatter<OrgSemKind> : std::formatter<std::string> {
                     GenTuInclude("hstd/system/macros.hpp", True),
                     GenTuInclude("haxorg/sem/SemOrgBase.hpp", True),
                     GenTuInclude("haxorg/sem/SemOrgEnums.hpp", True),
-                    GenTuNamespace("sem", shared_types + expanded),
+                    GenTuNamespace(n_sem(), shared_types + expanded),
                 ],
             )),
         GenUnit(
@@ -1153,7 +1166,7 @@ struct std::formatter<OrgSemKind> : std::formatter<std::string> {
                 [
                     GenTuPass("#pragma once"),
                     GenTuInclude("haxorg/sem/ImmOrgBase.hpp", True),
-                    GenTuNamespace("org", immutable),
+                    GenTuNamespace(n_imm(), immutable),
                 ],
             )),
     ])

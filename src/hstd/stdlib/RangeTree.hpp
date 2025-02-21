@@ -10,6 +10,8 @@
 #include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 
+namespace hstd {
+
 template <typename T>
 struct RangeTreeRange {
     Slice<T> range;
@@ -144,34 +146,40 @@ class RangeTree {
     UPtr<Node> root;
 };
 
+} // namespace hstd
+
 template <typename T>
-struct std::formatter<RangeTreeRange<T>> : std::formatter<std::string> {
+struct std::formatter<hstd::RangeTreeRange<T>>
+    : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const RangeTreeRange<T>& p, FormatContext& ctx) const {
-        fmt_ctx("[", ctx);
-        fmt_ctx(p.range.first, ctx);
-        fmt_ctx("..", ctx);
-        fmt_ctx(p.range.last, ctx);
-        fmt_ctx("[", ctx);
-        fmt_ctx(p.index, ctx);
+    auto format(const hstd::RangeTreeRange<T>& p, FormatContext& ctx)
+        const {
+        ::hstd::fmt_ctx("[", ctx);
+        ::hstd::fmt_ctx(p.range.first, ctx);
+        ::hstd::fmt_ctx("..", ctx);
+        ::hstd::fmt_ctx(p.range.last, ctx);
+        ::hstd::fmt_ctx("[", ctx);
+        ::hstd::fmt_ctx(p.index, ctx);
         return fmt_ctx("]]", ctx);
     }
 };
 
 
 template <typename T>
-struct std::formatter<RangeTree<T>> : std::formatter<std::string> {
+struct std::formatter<hstd::RangeTree<T>> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const RangeTree<T>& p, FormatContext& ctx) const {
+    auto format(const hstd::RangeTree<T>& p, FormatContext& ctx) const {
         if (p.root == nullptr) {
             return fmt_ctx("nil", ctx);
         } else {
-            typename RangeTree<T>::Node& node = *(p.root.get());
-            std::stringstream            os;
-            Func<void(typename RangeTree<T>::Node const&, int)> aux;
+            typename hstd::RangeTree<T>::Node& node = *(p.root.get());
+            std::stringstream                  os;
+            hstd::Func<void(typename hstd::RangeTree<T>::Node const&, int)>
+                aux;
 
-            aux = [&](typename RangeTree<T>::Node const& node, int level) {
-                auto indent = Str("  ").repeated(level);
+            aux = [&](typename hstd::RangeTree<T>::Node const& node,
+                      int                                      level) {
+                auto indent = hstd::Str("  ").repeated(level);
                 os << indent;
                 os << fmt(
                     "center = {} overlapping = {}",
@@ -197,4 +205,4 @@ struct std::formatter<RangeTree<T>> : std::formatter<std::string> {
 };
 
 
-extern template class RangeTree<int>;
+extern template class hstd::RangeTree<int>;

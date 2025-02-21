@@ -8,6 +8,8 @@
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/system/Formatter.hpp>
 
+namespace hstd::ext {
+
 /// \brief Simplified wrapper around boost bimap, providing a simpler
 /// interace for 1-1 mapping between two types `L` and `R`.
 template <typename L, typename R>
@@ -74,12 +76,15 @@ class Unordered1to1Bimap {
     }
 };
 
+} // namespace hstd::ext
+
 template <typename L, typename R>
-struct std::formatter<Unordered1to1Bimap<L, R>>
+struct std::formatter<hstd::ext::Unordered1to1Bimap<L, R>>
     : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const Unordered1to1Bimap<L, R>& p, FormatContext& ctx)
-        const {
+    auto format(
+        const hstd::ext::Unordered1to1Bimap<L, R>& p,
+        FormatContext&                             ctx) const {
         bool first = true;
         fmt_ctx("{", ctx);
         for (auto const& [left, right] : p.get_map()) {

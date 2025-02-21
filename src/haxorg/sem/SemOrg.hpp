@@ -18,7 +18,7 @@
 //#include <haxorg/sem/SemOrgTypes_old.hpp>
 #include <haxorg/sem/SemOrgTypes.hpp>
 
-namespace sem {
+namespace org::sem {
 template <typename T>
 concept NotOrg = !(
     std::derived_from<typename remove_sem_org<T>::type, sem::Org>
@@ -30,4 +30,4 @@ template <typename T>
 concept IsOrg = std::
     derived_from<typename remove_sem_org<T>::type, sem::Org>;
 
-}; // namespace sem
+}; // namespace org::sem

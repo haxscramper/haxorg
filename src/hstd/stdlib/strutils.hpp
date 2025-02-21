@@ -6,6 +6,7 @@
 #include <hstd/stdlib/Vec.hpp>
 #include <sstream>
 
+namespace hstd {
 
 template <typename T>
 Str join(CR<Str> sep, generator<T>& list) {
@@ -97,3 +98,5 @@ Str styledUnicodeMapping(char ch, AsciiStyle style);
 Str styledUnicodeMapping(Str const& str, AsciiStyle style);
 
 inline char* strdup(std::string const& str) { return strdup(str.c_str()); }
+
+} // namespace hstd

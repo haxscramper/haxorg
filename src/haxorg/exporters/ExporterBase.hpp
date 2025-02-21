@@ -10,7 +10,7 @@
     visitFieldRedirect(res, #name, obj->name);
 
 template <typename V, typename R>
-void Exporter<V, R>::visitField(
+void org::algo::Exporter<V, R>::visitField(
     R&                   arg,
     const char*          name,
     sem::SemId<sem::Org> org) {
@@ -21,12 +21,17 @@ void Exporter<V, R>::visitField(
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visitSubnode(R& tmp, int, sem::SemId<sem::Org> val) {
+void org::algo::Exporter<V, R>::visitSubnode(
+    R& tmp,
+    int,
+    sem::SemId<sem::Org> val) {
     _this()->visit(tmp, val);
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visitDispatch(R& res, sem::SemId<sem::Org> arg) {
+void org::algo::Exporter<V, R>::visitDispatch(
+    R&                   res,
+    sem::SemId<sem::Org> arg) {
     auto __scope = trace(VisitReport::Kind::VisitDispatch).with_node(arg);
 
     if (arg.isNil()) { return; }
@@ -51,7 +56,7 @@ void Exporter<V, R>::visitDispatch(R& res, sem::SemId<sem::Org> arg) {
 }
 
 template <typename V, typename R>
-R Exporter<V, R>::evalTop(sem::SemId<sem::Org> org) {
+R org::algo::Exporter<V, R>::evalTop(sem::SemId<sem::Org> org) {
     auto __scope = trace_scope(
         trace(VisitReport::Kind::VisitTop).with_node(org));
     _this()->visitStart(org);

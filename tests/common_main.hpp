@@ -41,7 +41,7 @@ class QuietTestPrinter : public ::testing::EmptyTestEventListener {
     void OnTestPartResult(
         const ::testing::TestPartResult& test_part_result) override {
         if (test_part_result.failed()) {
-            std::cout << fmt(
+            std::cout << ::hstd::fmt(
                 "{} in {}:{}\n{}\n",
                 test_part_result.failed() ? "*** Failure" : "Success",
                 test_part_result.file_name() ? test_part_result.file_name()

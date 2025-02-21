@@ -13,12 +13,13 @@ void setMessageStream(std::ostream& stream);
 
 #define _dbg(expr)                                                        \
     ([](auto const& it, char const* __base_function) {                    \
-        LOG(INFO) << fmt("@{} {} = ⦃{}⦄", __base_function, #expr, it);    \
+        LOG(INFO) << ::hstd::fmt(                                         \
+            "@{} {} = ⦃{}⦄", __base_function, #expr, it);                 \
         return it;                                                        \
     }((expr), __FUNCTION__))
 
 #define _dfmt_impl(_1, _2, arg)                                           \
-    << " " << BOOST_PP_STRINGIZE(arg) << fmt(" = ⦃{}⦄", arg)
+    << " " << BOOST_PP_STRINGIZE(arg) << ::hstd::fmt(" = ⦃{}⦄", arg)
 
 
 /// \brief Print values to string `<expr1> = ⦃<value1>⦄ <expr2> =

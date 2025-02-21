@@ -17,9 +17,9 @@
 
 #define _declare_hash(__kind)                                             \
     template <>                                                           \
-    struct std::hash<org::Imm##__kind> {                                  \
+    struct std::hash<org::imm::Imm##__kind> {                             \
         std::size_t operator()(                                           \
-            org::Imm##__kind const& it) const noexcept;                   \
+            org::imm::Imm##__kind const& it) const noexcept;              \
     };
 
 EACH_SEM_ORG_KIND(_declare_hash)
@@ -28,9 +28,9 @@ EACH_SEM_ORG_KIND(_declare_hash)
 
 #define _declare_hash(__parent, __qual, _)                                \
     template <>                                                           \
-    struct std::hash<org::Imm##__parent::__qual> {                        \
+    struct std::hash<org::imm::Imm##__parent::__qual> {                   \
         std::size_t operator()(                                           \
-            org::Imm##__parent::__qual const& it) const noexcept;         \
+            org::imm::Imm##__parent::__qual const& it) const noexcept;    \
     };
 
 EACH_SEM_ORG_RECORD_NESTED(_declare_hash)
@@ -38,8 +38,9 @@ EACH_SEM_ORG_RECORD_NESTED(_declare_hash)
 
 #define _declare_hash(__qual, _)                                          \
     template <>                                                           \
-    struct std::hash<sem::__qual> {                                       \
-        std::size_t operator()(sem::__qual const& it) const noexcept;     \
+    struct std::hash<org::sem::__qual> {                                  \
+        std::size_t operator()(                                           \
+            org::sem::__qual const& it) const noexcept;                   \
     };
 
 EACH_SHARED_ORG_RECORD(_declare_hash)
@@ -51,7 +52,7 @@ void switch_node_nullptr(OrgSemKind kind, Func const& cb) {
     switch (kind) {
 #define _case(__Kind)                                                     \
     case OrgSemKind::__Kind: {                                            \
-        cb((org::Imm##__Kind*)nullptr);                                   \
+        cb((org::imm::Imm##__Kind*)nullptr);                              \
         break;                                                            \
     }
 
@@ -61,12 +62,13 @@ void switch_node_nullptr(OrgSemKind kind, Func const& cb) {
 }
 
 
-namespace org {
+namespace org::imm {
 
 template <typename T>
 concept IsImmOrgValueType = std::derived_from<T, ImmOrg>;
 
-using ImmAstParentMapType = ImmMap<org::ImmId, org::ImmId>;
+using ImmAstParentMapType = hstd::ext::
+    ImmMap<org::imm::ImmId, org::imm::ImmId>;
 
 struct ImmAstTrackingMap;
 
@@ -119,7 +121,8 @@ struct ImmPathStep {
 
     bool operator<(ImmPathStep const& other) const {
         return path.lessThan(
-            other.path, ReflPathComparator<org::ImmReflPathTag>{});
+            other.path,
+            hstd::ReflPathComparator<org::imm::ImmReflPathTag>{});
     }
 };
 
@@ -145,7 +148,7 @@ struct ImmPath {
     ImmPath(ImmId root) : root{root} {};
     /// \brief Path referring to a direct sub-element of the root (one jump
     /// from the root node)
-    ImmPath(ImmId root, org::ImmReflPathBase const& step0)
+    ImmPath(ImmId root, org::imm::ImmReflPathBase const& step0)
         : root{root}, path{ImmPathStep{step0}} {}
     /// \brief Path referring to a direct sub-element (one jump from the
     /// root)
@@ -156,7 +159,7 @@ struct ImmPath {
     ImmPath(ImmId root, Store const& path) : root{root}, path{path} {}
     /// \brief Path referring to some nested element in the tree (any
     /// number of jumps)
-    ImmPath(ImmId root, Span<ImmPathStep> const& span)
+    ImmPath(ImmId root, hstd::Span<ImmPathStep> const& span)
         : root{root}, path{span.begin(), span.end()} {}
 
     /// \brief Generate sequence of spans for each jump step, starting from
@@ -164,7 +167,7 @@ struct ImmPath {
     ///
     /// \note Spans will not include the empty span (targeting the root
     /// node itself)
-    generator<immer::flex_vector<ImmPathStep>> pathSpans(
+    hstd::generator<immer::flex_vector<ImmPathStep>> pathSpans(
         /// \brief Starting from the leaf will generate the largest path
         /// span first, and then will decrease it in steps. Starting from
         /// the root will go from the span of size 1 and increase it until
@@ -197,7 +200,7 @@ struct ImmPath {
 
     bool operator<(ImmPath const& other) const {
         return root < other.root
-            && itemwise_less_than(
+            && hstd::itemwise_less_than(
                    path, other.path, std::less<ImmPathStep>{});
     }
 };
@@ -237,31 +240,31 @@ struct ImmUniqId {
     }
 };
 
-} // namespace org
+} // namespace org::imm
 
 
 template <>
-struct std::hash<org::ImmUniqId> {
-    std::size_t operator()(org::ImmUniqId const& it) const noexcept {
+struct std::hash<org::imm::ImmUniqId> {
+    std::size_t operator()(org::imm::ImmUniqId const& it) const noexcept {
         std::size_t result = 0;
-        hax_hash_combine(result, it.id);
-        hax_hash_combine(result, it.path);
+        hstd::hax_hash_combine(result, it.id);
+        hstd::hax_hash_combine(result, it.path);
         return result;
     }
 };
 
 
-namespace org {
+namespace org::imm {
 
 struct ImmAdapter;
-using ImmStrIdMap          = ImmMap<Str, ImmId>;
-using ImmHashTagIdMap      = ImmMap<sem::HashTagFlat, ImmId>;
-using ImmParentPathVec     = SmallVec<ImmPathStep, 4>;
-using ImmParentIdVec       = SmallVec<ImmId, 4>;
-using ParentPathMap        = UnorderedMap<ImmId, ImmParentPathVec>;
-using RadioTargetMap       = ImmMap<Str, Vec<ImmId>>;
-using ImmParentMap         = ImmMap<ImmId, ImmParentIdVec>;
-using ImmPanentTrackFilter = Func<bool(ImmAdapter const&)>;
+using ImmStrIdMap      = hstd::ext::ImmMap<hstd::Str, ImmId>;
+using ImmHashTagIdMap  = hstd::ext::ImmMap<sem::HashTagFlat, ImmId>;
+using ImmParentPathVec = hstd::SmallVec<ImmPathStep, 4>;
+using ImmParentIdVec   = hstd::SmallVec<ImmId, 4>;
+using ParentPathMap    = hstd::UnorderedMap<ImmId, ImmParentPathVec>;
+using RadioTargetMap   = hstd::ext::ImmMap<hstd::Str, hstd::Vec<ImmId>>;
+using ImmParentMap     = hstd::ext::ImmMap<ImmId, ImmParentIdVec>;
+using ImmPanentTrackFilter = hstd::Func<bool(ImmAdapter const&)>;
 
 
 struct ImmAstTrackingMapTransient {
@@ -328,7 +331,7 @@ struct ImmAstTrackingMap {
         return parents.contains(item) && parents.at(item).contains(parent);
     }
 
-    ColText toString() const;
+    hstd::ColText toString() const;
 
     /// \brief Get a list of all nodes that specified ID is used in. Due to
     /// value interning, each specific ID can be used in multiple places at
@@ -341,8 +344,9 @@ struct ImmAstTrackingMap {
     /// \brief Get full list of all paths that can be used to reach the
     /// target node. Resulting paths are not guaranteed to converge to a
     /// single root.
-    Vec<ImmUniqId> getPathsFor(ImmId const& it, ImmAstContext const* ctx)
-        const;
+    hstd::Vec<ImmUniqId> getPathsFor(
+        ImmId const&         it,
+        ImmAstContext const* ctx) const;
 
     ImmAstTrackingMapTransient transient(ImmAstContext* oldCtx) {
         return {
@@ -363,14 +367,14 @@ struct ImmAstStore;
 
 struct ImmAstEditContext {
     ImmAstTrackingMapTransient transientTrack;
-    WPtr<ImmAstContext>        ctx;
-    SPtr<ImmAstContext>        finish();
+    hstd::WPtr<ImmAstContext>  ctx;
+    hstd::SPtr<ImmAstContext>  finish();
     ImmAstStore&               store();
-    OperationsScope            debug;
+    hstd::OperationsScope      debug;
 
     /// \brief Add or remove tracking data associated with the value for
     /// the node
-    void updateTracking(org::ImmId const& node, bool add);
+    void updateTracking(org::imm::ImmId const& node, bool add);
 
     void message(
         std::string const& value,
@@ -380,25 +384,26 @@ struct ImmAstEditContext {
 
     ImmAstContext* operator->() { return ctx.lock().get(); }
 
-    finally_std collectAbslLogs();
+    hstd::finally_std collectAbslLogs();
 };
 
-template <org::IsImmOrgValueType T>
+template <org::imm::IsImmOrgValueType T>
 struct ImmAstKindStore {
     using NodeType = T;
-    dod::InternStore<org::ImmId, T> values;
+    hstd::dod::InternStore<org::imm::ImmId, T> values;
 
     int size() const { return values.size(); }
 
     ImmAstKindStore() {}
-    void format(ColStream& os, std::string const& linePrefix = "") const;
+    void format(hstd::ColStream& os, std::string const& linePrefix = "")
+        const;
 
     bool     empty() const { return values.empty(); }
-    T const* at(org::ImmId id) const { return &values.at(id); }
+    T const* at(org::imm::ImmId id) const { return &values.at(id); }
     ImmId    add(T const& value, ImmAstEditContext& ctx);
     ImmId    add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx);
 
-    sem::SemId<sem::Org> get(org::ImmId id, ImmAstContext const& ctx);
+    sem::SemId<sem::Org> get(org::imm::ImmId id, ImmAstContext const& ctx);
 };
 
 struct ImmAstReplace {
@@ -1387,7 +1392,7 @@ org::ImmId immer_from_sem(
     sem::SemId<sem::Org> const& id,
     ImmAstEditContext&          ctx);
 
-} // namespace org
+} // namespace org::imm
 
 
 template <>

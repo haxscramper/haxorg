@@ -16,9 +16,12 @@ struct std::formatter<OrgSpecName> : std::formatter<std::string> {
         OrgSpecName const& p,
         FormatContext&     ctx) const {
         std::formatter<std::string> fmt;
-        return fmt.format(enum_serde<OrgSpecName>::to_string(p), ctx);
+        return fmt.format(
+            hstd::enum_serde<OrgSpecName>::to_string(p), ctx);
     }
 };
+
+namespace org::parse {
 
 using OrgToken = Token<OrgTokenKind, OrgFill>;
 
@@ -38,25 +41,13 @@ struct OrgNodeMono {
                 (error, parserLine, parserFunction, failToken));
         };
 
-        SPtr<Box> box;
+        hstd::SPtr<Box> box;
         DESC_FIELDS(Error, (box));
     };
 
     SUB_VARIANTS(Kind, Data, data, getKind, None, Error);
     Data data;
     DESC_FIELDS(OrgNodeMono, (data));
-};
-
-template <>
-struct std::formatter<OrgNodeMono::Error> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(const OrgNodeMono::Error& p, FormatContext& ctx) const {
-        if (p.box) {
-            return fmt_ctx(*p.box, ctx);
-        } else {
-            return fmt_ctx("Error{}", ctx);
-        }
-    }
 };
 
 
@@ -71,16 +62,34 @@ using OrgNodeGroup = NodeGroup<
     OrgFill,
     OrgNodeMono>;
 using OrgLexer   = LexerCommon<OrgTokenKind, OrgFill>;
-using OrgTokSet  = IntSet<OrgTokenKind>;
+using OrgTokSet  = hstd::IntSet<OrgTokenKind>;
 using OrgAdapter = NodeAdapter<
     OrgNodeKind,
     OrgTokenKind,
     OrgFill,
     OrgNodeMono>;
-using OrgSet = IntSet<OrgNodeKind>;
+using OrgSet = hstd::IntSet<OrgNodeKind>;
 
 extern template class NodeGroup<
     OrgNodeKind,
     OrgTokenKind,
     OrgFill,
     OrgNodeMono>;
+
+} // namespace org::parse
+
+
+template <>
+struct std::formatter<org::parse::OrgNodeMono::Error>
+    : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(
+        const org::parse::OrgNodeMono::Error& p,
+        FormatContext&                        ctx) const {
+        if (p.box) {
+            return hstd::fmt_ctx(*p.box, ctx);
+        } else {
+            return hstd::fmt_ctx("Error{}", ctx);
+        }
+    }
+};

@@ -3,6 +3,8 @@
 #include <hstd/system/exceptions.hpp>
 
 
+using namespace hstd;
+
 struct test_exception_1 : CRTP_hexception<test_exception_1> {};
 
 void a() {

@@ -1,6 +1,8 @@
 #include "Time.hpp"
 #include <absl/hash/hash.h>
 
+using namespace hstd;
+
 UserTimeBreakdown UserTime::getBreakdown() const {
     UserTimeBreakdown result;
     absl::CivilSecond sec = absl::TimeZone{}.At(time).cs;

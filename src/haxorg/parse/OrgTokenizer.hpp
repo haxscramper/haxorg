@@ -12,6 +12,8 @@
 
 #include <hstd/stdlib/TraceBase.hpp>
 
+namespace org::parse {
+
 struct ImplementError : public std::runtime_error {
     explicit inline ImplementError(const std::string& message = "")
         : std::runtime_error(message) {}
@@ -24,7 +26,7 @@ struct ImplementError : public std::runtime_error {
 /// and implemented as explicitly specialized templates with static bool
 /// argument.
 struct OrgTokenizer
-    : public OperationsTracer
+    : public hstd::OperationsTracer
     , public Tokenizer<OrgTokenKind, OrgFill> {
     // TODO at the moment the assumption is that adding conditional checks
     // all over the place in each lexer function would hinder the
@@ -47,26 +49,26 @@ struct OrgTokenizer
         Error
     };
 
-    struct Report : OperationsMsg {
-        bool       addBuffered = false;
-        ReportKind kind;
-        OrgToken   tok;
-        OrgTokenId id          = OrgTokenId::Nil();
-        Opt<Str>   subname     = std::nullopt;
-        OrgLexer*  lex         = nullptr;
-        int        extraIndent = 0;
+    struct Report : hstd::OperationsMsg {
+        bool                 addBuffered = false;
+        ReportKind           kind;
+        OrgToken             tok;
+        OrgTokenId           id          = OrgTokenId::Nil();
+        hstd::Opt<hstd::Str> subname     = std::nullopt;
+        OrgLexer*            lex         = nullptr;
+        int                  extraIndent = 0;
     };
 
 
   public:
-    using ReportHookCb      = Func<void(CR<Report>)>;
-    using TraceUpdateHookCb = Func<void(CR<Report>, bool&, bool)>;
+    using ReportHookCb      = hstd::Func<void(Report const&)>;
+    using TraceUpdateHookCb = hstd::Func<void(Report const&, bool&, bool)>;
 
     OrgTokenizer::ReportHookCb reportHook;
 
-    void       push(CR<std::span<OrgToken>> tok) { out->add(tok); }
-    void       push(CR<Vec<OrgToken>> tok) { out->add(tok); }
-    OrgTokenId push(CR<OrgToken> tok) { return out->add(tok); }
+    void       push(std::span<OrgToken> const& tok) { out->add(tok); }
+    void       push(hstd::Vec<OrgToken> const& tok) { out->add(tok); }
+    OrgTokenId push(OrgToken tok) { return out->add(tok); }
 
     OrgTokenizer(OrgTokenGroup* out)
         : Tokenizer<OrgTokenKind, OrgFill>(out) {}
@@ -80,7 +82,7 @@ struct OrgTokenizer
     void convert(OrgLexer& lex);
 
     int  depth = 0;
-    void report(CR<Report> in);
+    void report(Report const& in);
 
     void print(
         OrgLexer&          lex,
@@ -89,3 +91,5 @@ struct OrgTokenizer
         char const*        function    = __builtin_FUNCTION(),
         int                extraIndent = 0);
 };
+
+} // namespace org::parse

@@ -10,6 +10,8 @@
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Json.hpp>
 
+namespace hstd {
+
 template <typename Map, typename K, typename V>
 struct MapBase : public CRTP_this_method<Map> {
     using CRTP_this_method<Map>::_this;
@@ -100,25 +102,35 @@ struct std_kv_tuple_iterator_formatter : std::formatter<std::string> {
     }
 };
 
+} // namespace hstd
+
 template <typename K, typename V>
 struct std::formatter<std::unordered_map<K, V>>
-    : std_kv_tuple_iterator_formatter<K, V, std::unordered_map<K, V>> {};
+    : hstd::
+          std_kv_tuple_iterator_formatter<K, V, std::unordered_map<K, V>> {
+};
 
 template <typename K, typename V>
 struct std::formatter<std::map<K, V>>
-    : std_kv_tuple_iterator_formatter<K, V, std::map<K, V>> {};
+    : hstd::std_kv_tuple_iterator_formatter<K, V, std::map<K, V>> {};
 
 
 template <typename K, typename V>
-struct std::formatter<UnorderedMap<K, V>>
-    : std_kv_tuple_iterator_formatter<K, V, UnorderedMap<K, V>> {};
+struct std::formatter<hstd::UnorderedMap<K, V>>
+    : hstd::
+          std_kv_tuple_iterator_formatter<K, V, hstd::UnorderedMap<K, V>> {
+};
 
 template <typename K, typename V, typename _Compare>
-struct std::formatter<SortedMap<K, V, _Compare>>
-    : std_kv_tuple_iterator_formatter<K, V, SortedMap<K, V, _Compare>> {};
+struct std::formatter<hstd::SortedMap<K, V, _Compare>>
+    : hstd::std_kv_tuple_iterator_formatter<
+          K,
+          V,
+          hstd::SortedMap<K, V, _Compare>> {};
 
+namespace hstd {
 template <typename K, typename V>
-struct value_metadata<UnorderedMap<K, V>> {
+struct value_metadata<hstd::UnorderedMap<K, V>> {
     static bool isEmpty(UnorderedMap<K, V> const& value) {
         return value.empty();
     }
@@ -135,15 +147,17 @@ struct std_kv_tuple_iterator_hash {
         return result;
     }
 };
+} // namespace hstd
 
 template <typename K, typename V>
-struct std::hash<UnorderedMap<K, V>>
-    : std_kv_tuple_iterator_hash<K, V, UnorderedMap<K, V>> {};
+struct std::hash<hstd::UnorderedMap<K, V>>
+    : hstd::std_kv_tuple_iterator_hash<K, V, hstd::UnorderedMap<K, V>> {};
 
 template <typename K, typename V>
-struct std::hash<SortedMap<K, V>>
-    : std_kv_tuple_iterator_hash<K, V, SortedMap<K, V>> {};
+struct std::hash<hstd::SortedMap<K, V>>
+    : hstd::std_kv_tuple_iterator_hash<K, V, hstd::SortedMap<K, V>> {};
 
+namespace hstd {
 template <typename K, typename V>
 struct JsonSerde<UnorderedMap<K, V>> {
     static json to_json(UnorderedMap<K, V> const& it) {
@@ -167,3 +181,4 @@ struct JsonSerde<UnorderedMap<K, V>> {
         return result;
     }
 };
+} // namespace hstd

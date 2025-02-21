@@ -1,5 +1,7 @@
 #include "Node.hpp"
 
+using namespace org::parse;
+using namespace hstd;
 
 template <typename N, typename K, typename V, typename M>
 typename NodeGroup<N, K, V, M>::Id NodeGroup<N, K, V, M>::endTree(

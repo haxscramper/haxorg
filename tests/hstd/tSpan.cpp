@@ -3,6 +3,8 @@
 
 #include <gtest/gtest.h>
 
+using namespace hstd;
+
 TEST(SpanTest, SpanFromVector) {
     Vec<int>   data{0, 1, 2, 3, 4, 5, 6, 7, 8};
     int const* end = &data.back();

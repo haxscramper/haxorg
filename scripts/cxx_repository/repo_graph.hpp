@@ -51,16 +51,16 @@ struct CommitGraph {
     inline int out_degree(VDesc v) const { return bg::out_degree(v, g); }
     inline CommitInfo& operator[](VDesc v) { return g[v]; }
     inline CommitEdge& operator[](EDesc e) { return g[e]; }
-    inline VDesc operator[](CR<git_oid> oid) { return get_desc(oid); }
+    inline VDesc operator[](git_oid const& oid) { return get_desc(oid); }
     inline VDesc source(EDesc e) const { return bg::source(e, g); }
     inline VDesc target(EDesc e) const { return bg::target(e, g); }
     inline bool  is_merge(VDesc v) const { return 1 < in_degree(v); }
 
-    Opt<VDesc> get_base(VDesc v) const;
+    hstd::Opt<VDesc> get_base(VDesc v) const;
 
-    Vec<EDesc> parent_commits(VDesc v) const;
+    hstd::Vec<EDesc> parent_commits(VDesc v) const;
 
-    inline generator<VDesc> commits() const {
+    inline hstd::generator<VDesc> commits() const {
         for (auto [begin, end] = bg::vertices(g); begin != end; ++begin) {
             co_yield *begin;
         }
@@ -71,11 +71,11 @@ struct CommitGraph {
     /// filtered out using `is_base()` predicate.
     ///
     /// can return empty 'base' commit for starting commits
-    Vec<Pair<VDesc, Opt<VDesc>>> commit_pairs() const;
+    hstd::Vec<hstd::Pair<VDesc, hstd::Opt<VDesc>>> commit_pairs() const;
 
 
-    VDesc get_desc(CR<git_oid> oid);
-    CommitGraph(SPtr<git_repository> repo, const Str& branch);
+    VDesc get_desc(git_oid const& oid);
+    CommitGraph(hstd::SPtr<git_repository> repo, const hstd::Str& branch);
 
     std::string toGraphviz() const;
 };

@@ -15,38 +15,42 @@
 #include <haxorg/sem/SemOrgTypes.hpp>
 #include <hstd/stdlib/Array.hpp>
 
-namespace org {
+namespace org::imm {
 struct ImmReflFieldId;
 }
 
 template <>
-struct std::hash<org::ImmReflFieldId> {
-    std::size_t operator()(org::ImmReflFieldId const& it) const noexcept;
+struct std::hash<org::imm::ImmReflFieldId> {
+    std::size_t operator()(
+        org::imm::ImmReflFieldId const& it) const noexcept;
 };
 
 
+namespace hstd::ext {
 template <typename T>
 using ImmVec = immer::flex_vector<T>;
 
 template <typename T>
 using ImmBox = immer::box<T>;
+} // namespace hstd::ext
 
 template <typename T>
-struct std::hash<ImmVec<T>> : std_indexable_hash<ImmVec<T>> {};
+struct std::hash<hstd::ext::ImmVec<T>>
+    : hstd::std_indexable_hash<hstd::ext::ImmVec<T>> {};
 
 template <typename T>
 struct std::hash<immer::vector<T>>
-    : std_indexable_hash<immer::vector<T>> {};
+    : hstd::std_indexable_hash<immer::vector<T>> {};
 
 template <typename T>
 struct std::formatter<immer::vector<T>>
-    : std_item_iterator_formatter<T, immer::vector<T>> {};
+    : hstd::std_item_iterator_formatter<T, immer::vector<T>> {};
 
 template <typename T>
-struct std::formatter<ImmVec<T>>
-    : std_item_iterator_formatter<T, ImmVec<T>> {};
+struct std::formatter<hstd::ext::ImmVec<T>>
+    : hstd::std_item_iterator_formatter<T, hstd::ext::ImmVec<T>> {};
 
-
+namespace hstd::ext {
 template <typename K, typename V>
 struct ImmMap : immer::map<K, V> {
     using base = immer::map<K, V>;
@@ -69,17 +73,18 @@ struct ImmMap : immer::map<K, V> {
 
 template <typename T>
 using ImmSet = immer::set<T>;
+} // namespace hstd::ext
 
 
-namespace org {
+namespace org::imm {
 
 
 struct ImmReflPathTag {
     using field_name_type = ImmReflFieldId;
 };
 
-using ImmReflPathItemBase = ReflPathItem<ImmReflPathTag>;
-using ImmReflPathBase     = ReflPath<ImmReflPathTag>;
+using ImmReflPathItemBase = hstd::ReflPathItem<ImmReflPathTag>;
+using ImmReflPathBase     = hstd::ReflPath<ImmReflPathTag>;
 
 struct ImmReflFieldId {
     struct R {
@@ -87,12 +92,12 @@ struct ImmReflFieldId {
     };
 
     static const int member_ptr_size = sizeof(&R::f);
-    using member_ptr_store           = Array<u8, member_ptr_size>;
+    using member_ptr_store = hstd::Array<hstd::u8, member_ptr_size>;
     member_ptr_store field;
 
-    static UnorderedMap<ImmReflFieldId, Str> fieldNames;
+    static hstd::UnorderedMap<ImmReflFieldId, hstd::Str> fieldNames;
 
-    Str getName() const {
+    hstd::Str getName() const {
         return fieldNames.get(*this).value_or("<none>");
     }
 
@@ -128,85 +133,91 @@ struct ImmReflFieldId {
 };
 
 
-} // namespace org
+} // namespace org::imm
 
 template <>
-struct std::formatter<org::ImmReflFieldId> : std::formatter<std::string> {
+struct std::formatter<org::imm::ImmReflFieldId>
+    : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const org::ImmReflFieldId& p, FormatContext& ctx) const {
+    auto format(const org::imm::ImmReflFieldId& p, FormatContext& ctx)
+        const {
         return fmt_ctx(p.getName(), ctx);
     }
 };
 
 template <>
-struct std::hash<org::ImmReflFieldId::member_ptr_store> {
-    size_t operator()(
-        const org::ImmReflFieldId::member_ptr_store& arr) const noexcept {
+struct std::hash<org::imm::ImmReflFieldId::member_ptr_store> {
+    size_t operator()(const org::imm::ImmReflFieldId::member_ptr_store&
+                          arr) const noexcept {
         size_t result = 0;
-        for (const auto& byte : arr) { hax_hash_combine(result, byte); }
+        for (const auto& byte : arr) {
+            hstd::hax_hash_combine(result, byte);
+        }
         return result;
     }
 };
 
 
 template <>
-struct ReflTypeTraits<org::ImmReflPathTag> {
+struct hstd::ReflTypeTraits<org::imm::ImmReflPathTag> {
     using AnyFormatterType = AnyFormatter<Str>;
     using AnyHasherType    = AnyHasher<Str>;
     using AnyEqualType     = AnyEqual<Str>;
 
     using ReflPathStoreType = immer::vector<
-        ReflPathItem<org::ImmReflPathTag>>;
+        ReflPathItem<org::imm::ImmReflPathTag>>;
 
     template <typename T>
-    static org::ImmReflPathTag::field_name_type InitFieldName(
+    static org::imm::ImmReflPathTag::field_name_type InitFieldName(
         T const&    value,
         auto const& field) {
-        return org::ImmReflFieldId::FromTypeFieldName<T>(
+        return org::imm::ImmReflFieldId::FromTypeFieldName<T>(
             field.name, field.pointer);
     }
 
-    static ReflPath<org::ImmReflPathTag> AddPathItem(
-        ReflPath<org::ImmReflPathTag>     res,
-        ReflPathItem<org::ImmReflPathTag> item) {
-        return ReflPath<org::ImmReflPathTag>{res.path.push_back(item)};
+    static ReflPath<org::imm::ImmReflPathTag> AddPathItem(
+        ReflPath<org::imm::ImmReflPathTag>     res,
+        ReflPathItem<org::imm::ImmReflPathTag> item) {
+        return ReflPath<org::imm::ImmReflPathTag>{
+            res.path.push_back(item)};
     }
 };
 
 
 template <typename K, typename V, typename Tag>
-struct ReflVisitor<immer::map<K, V>, Tag>
+struct hstd::ReflVisitor<immer::map<K, V>, Tag>
     : ReflVisitorKeyValue<K, V, immer::map<K, V>, Tag> {};
 
 
 template <typename K, typename V, typename Tag>
-struct ReflVisitor<ImmMap<K, V>, Tag>
-    : ReflVisitorKeyValue<K, V, ImmMap<K, V>, Tag> {};
+struct hstd::ReflVisitor<hstd::ext::ImmMap<K, V>, Tag>
+    : ReflVisitorKeyValue<K, V, hstd::ext::ImmMap<K, V>, Tag> {};
 
 template <typename T, typename Tag>
-struct ReflVisitor<immer::set<T>, Tag>
+struct hstd::ReflVisitor<immer::set<T>, Tag>
     : ReflVisitorUnorderedIndexed<T, immer::set<T>, Tag> {};
 
 template <typename T, typename Tag>
-struct ReflVisitor<immer::flex_vector<T>, Tag>
+struct hstd::ReflVisitor<immer::flex_vector<T>, Tag>
     : ReflVisitorIndexed<T, immer::flex_vector<T>, Tag> {};
 
 
 template <typename T, typename Tag>
-struct ReflVisitor<ImmBox<T>, Tag> {
+struct hstd::ReflVisitor<hstd::ext::ImmBox<T>, Tag> {
     /// \brief Apply callback to passed value if the path points to it,
     /// otherwise follow the path down the data structure.
     template <typename Func>
     static void visit(
-        ImmBox<T> const&         value,
-        ReflPathItem<Tag> const& step,
-        Func const&              cb) {
+        hstd::ext::ImmBox<T> const& value,
+        ReflPathItem<Tag> const&    step,
+        Func const&                 cb) {
         LOGIC_ASSERTION_CHECK(step.isDeref(), "{}", step.getKind());
         cb(value.get());
     }
 
 
-    static Vec<ReflPathItem<Tag>> subitems(ImmBox<T> const& value) {
+    static Vec<ReflPathItem<Tag>> subitems(
+        hstd::ext::ImmBox<T> const& value) {
         Vec<ReflPathItem<Tag>> result;
         result.push_back(ReflPathItem<Tag>::FromDeref());
         return result;
@@ -214,9 +225,9 @@ struct ReflVisitor<ImmBox<T>, Tag> {
 };
 
 template <typename T>
-struct std::formatter<ImmBox<T>> : std::formatter<std::string> {
+struct std::formatter<hstd::ext::ImmBox<T>> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const ImmBox<T>& p, FormatContext& ctx) const {
+    auto format(const hstd::ext::ImmBox<T>& p, FormatContext& ctx) const {
         fmt_ctx("Box{", ctx);
         fmt_ctx(p.get(), ctx);
         return fmt_ctx("}", ctx);
@@ -224,38 +235,43 @@ struct std::formatter<ImmBox<T>> : std::formatter<std::string> {
 };
 
 template <>
-struct std::formatter<ImmBox<std::string>> : std::formatter<std::string> {
+struct std::formatter<hstd::ext::ImmBox<std::string>>
+    : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const ImmBox<std::string>& p, FormatContext& ctx) const {
-        fmt_ctx("Box{", ctx);
-        fmt_ctx(escape_literal(p.get()), ctx);
-        return fmt_ctx("}", ctx);
+    auto format(
+        const hstd::ext::ImmBox<std::string>& p,
+        FormatContext&                        ctx) const {
+        hstd::fmt_ctx("Box{", ctx);
+        hstd::fmt_ctx(hstd::escape_literal(p.get()), ctx);
+        return hstd::fmt_ctx("}", ctx);
     }
 };
 
 template <>
-struct std::formatter<ImmBox<Str>> : std::formatter<std::string> {
+struct std::formatter<hstd::ext::ImmBox<hstd::Str>>
+    : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const ImmBox<Str>& p, FormatContext& ctx) const {
-        fmt_ctx("Box{", ctx);
-        fmt_ctx(escape_literal(p.get()), ctx);
-        return fmt_ctx("}", ctx);
+    auto format(const hstd::ext::ImmBox<hstd::Str>& p, FormatContext& ctx)
+        const {
+        hstd::fmt_ctx("Box{", ctx);
+        hstd::fmt_ctx(hstd::escape_literal(p.get()), ctx);
+        return hstd::fmt_ctx("}", ctx);
     }
 };
 
 template <typename T>
-struct JsonSerde<ImmBox<T>> {
-    static json to_json(ImmBox<T> const& it) {
+struct hstd::JsonSerde<hstd::ext::ImmBox<T>> {
+    static json to_json(hstd::ext::ImmBox<T> const& it) {
         return JsonSerde<T>::to_json(it.get());
     }
-    static ImmBox<T> from_json(json const& j) {
-        return ImmBox<T>{JsonSerde<T>::from_json(j)};
+    static hstd::ext::ImmBox<T> from_json(json const& j) {
+        return hstd::ext::ImmBox<T>{JsonSerde<T>::from_json(j)};
     }
 };
 
 template <typename T>
-struct JsonSerde<ImmVec<T>> {
-    static json to_json(ImmVec<T> const& it) {
+struct hstd::JsonSerde<hstd::ext::ImmVec<T>> {
+    static json to_json(hstd::ext::ImmVec<T> const& it) {
         auto result = json::array();
         for (auto const& i : it) {
             result.push_back(JsonSerde<T>::to_json(i));
@@ -263,9 +279,9 @@ struct JsonSerde<ImmVec<T>> {
 
         return result;
     }
-    static ImmVec<T> from_json(json const& j) {
-        ImmVec<T> result;
-        auto      tmp = result.transient();
+    static hstd::ext::ImmVec<T> from_json(json const& j) {
+        hstd::ext::ImmVec<T> result;
+        auto                 tmp = result.transient();
         for (auto const& i : j) {
             tmp.push_back(JsonSerde<T>::from_json(i));
         }
@@ -274,8 +290,8 @@ struct JsonSerde<ImmVec<T>> {
 };
 
 template <typename T>
-struct JsonSerde<ImmSet<T>> {
-    static json to_json(ImmSet<T> const& it) {
+struct hstd::JsonSerde<hstd::ext::ImmSet<T>> {
+    static json to_json(hstd::ext::ImmSet<T> const& it) {
         auto result = json::array();
         for (auto const& i : it) {
             result.push_back(JsonSerde<T>::to_json(i));
@@ -283,9 +299,9 @@ struct JsonSerde<ImmSet<T>> {
 
         return result;
     }
-    static ImmSet<T> from_json(json const& j) {
-        ImmSet<T> result;
-        auto      tmp = result.transient();
+    static hstd::ext::ImmSet<T> from_json(json const& j) {
+        hstd::ext::ImmSet<T> result;
+        auto                 tmp = result.transient();
         for (auto const& i : j) {
             result.insert(JsonSerde<T>::from_json(i));
         }
@@ -294,10 +310,11 @@ struct JsonSerde<ImmSet<T>> {
 };
 
 template <typename T>
-struct std::formatter<ImmSet<T>> : std::formatter<std::string> {
+struct std::formatter<hstd::ext::ImmSet<T>> : std::formatter<std::string> {
     template <typename FormatContext>
-    FormatContext::iterator format(ImmSet<T> const& p, FormatContext& ctx)
-        const {
+    FormatContext::iterator format(
+        hstd::ext::ImmSet<T> const& p,
+        FormatContext&              ctx) const {
         std::formatter<std::string> fmt;
         fmt.format("{", ctx);
         fmt.format(join(", ", p), ctx);
@@ -317,20 +334,24 @@ using ImmMapTransientDefault = immer::map_transient<
 
 template <typename K, typename V>
 struct std::formatter<ImmMapTransientDefault<K, V>>
-    : std_kv_tuple_iterator_formatter<K, V, ImmMapTransientDefault<K, V>> {
+    : hstd::std_kv_tuple_iterator_formatter<
+          K,
+          V,
+          ImmMapTransientDefault<K, V>> {};
+
+template <typename K, typename V>
+struct std::formatter<hstd::ext::ImmMap<K, V>>
+    : hstd::
+          std_kv_tuple_iterator_formatter<K, V, hstd::ext::ImmMap<K, V>> {
 };
 
 template <typename K, typename V>
-struct std::formatter<ImmMap<K, V>>
-    : std_kv_tuple_iterator_formatter<K, V, ImmMap<K, V>> {};
-
-template <typename K, typename V>
 struct std::formatter<immer::map<K, V>>
-    : std_kv_tuple_iterator_formatter<K, V, immer::map<K, V>> {};
+    : hstd::std_kv_tuple_iterator_formatter<K, V, immer::map<K, V>> {};
 
 
 template <typename K, typename V>
-struct JsonSerde<immer::map<K, V>> {
+struct hstd::JsonSerde<immer::map<K, V>> {
     static json to_json(immer::map<K, V> const& it) {
         auto result = json::array();
         for (auto const& [key, val] : it) {
@@ -355,17 +376,17 @@ struct JsonSerde<immer::map<K, V>> {
 };
 
 template <typename K, typename V>
-struct JsonSerde<ImmMap<K, V>> {
-    static json to_json(ImmMap<K, V> const& it) {
+struct hstd::JsonSerde<hstd::ext::ImmMap<K, V>> {
+    static json to_json(hstd::ext::ImmMap<K, V> const& it) {
         return JsonSerde<immer::map<K, V>>::to_json(it);
     }
-    static ImmMap<K, V> from_json(json const& j) {
+    static hstd::ext::ImmMap<K, V> from_json(json const& j) {
         return JsonSerde<immer::map<K, V>>::from_json(j);
     }
 };
 
 
-namespace org {
+namespace org::imm {
 
 #define forward_declare(__Kind) struct Imm##__Kind;
 EACH_SEM_ORG_KIND(forward_declare)
@@ -377,19 +398,21 @@ struct ImmOrg;
 template <typename T>
 struct ImmIdT;
 
-static const u64 ImmIdMaskSize   = 4 * 6;
-static const u64 ImmIdMaskOffset = 8 * 8 - ImmIdMaskSize;
-using ImmIdBase                  = dod::
-    Id<u64, u64, std::integral_constant<u64, ImmIdMaskSize>>;
+static const hstd::u64 ImmIdMaskSize   = 4 * 6;
+static const hstd::u64 ImmIdMaskOffset = 8 * 8 - ImmIdMaskSize;
+using ImmIdBase                        = hstd::dod::Id<
+                           hstd::u64,
+                           hstd::u64,
+                           std::integral_constant<hstd::u64, ImmIdMaskSize>>;
 
 struct ImmId : ImmIdBase {
-    using IdType   = u64;
-    using NodeIdxT = u32;
+    using IdType   = hstd::u64;
+    using NodeIdxT = hstd::u32;
 
-    static const u64 NodeIdxMask;
-    static const u64 NodeIdxOffset;
-    static const u64 NodeKindMask;
-    static const u64 NodeKindOffset;
+    static const hstd::u64 NodeIdxMask;
+    static const hstd::u64 NodeIdxOffset;
+    static const hstd::u64 NodeKindMask;
+    static const hstd::u64 NodeKindOffset;
 
     // clang-format off
     static NodeIdxT   getNodeIdx(IdType id)    { return NodeIdxT((id & NodeIdxMask) >> NodeIdxOffset); }
@@ -406,7 +429,7 @@ struct ImmId : ImmIdBase {
     }
 
     ImmId() : ImmIdBase{0} {};
-    static ImmId FromValue(u64 value) {
+    static ImmId FromValue(hstd::u64 value) {
         return ImmId{ImmIdBase::FromValue(value)};
     }
     ImmId(ImmIdBase const& base) : ImmIdBase{base} {};
@@ -455,15 +478,15 @@ struct ImmIdT : public ImmId {
 
 
 struct ImmOrg {
-    ImmVec<ImmId>      subnodes;
-    Opt<LineCol>       loc             = std::nullopt;
-    virtual OrgSemKind getKind() const = 0;
+    hstd::ext::ImmVec<ImmId>       subnodes;
+    hstd::Opt<org::parse::LineCol> loc             = std::nullopt;
+    virtual OrgSemKind             getKind() const = 0;
 
     ImmId at(int pos) const { return subnodes.at(pos); }
     auto  begin() const { return subnodes.begin(); }
     auto  end() const { return subnodes.end(); }
     int   size() const { return subnodes.size(); }
-    int   indexOf(org::ImmId subnode) const {
+    int   indexOf(org::imm::ImmId subnode) const {
         for (int i = 0; i < subnodes.size(); ++i) {
             if (subnodes.at(i) == subnode) { return i; }
         }
@@ -483,13 +506,13 @@ struct ImmOrg {
         auto res = dyn_cast<T>();
         if (res == nullptr) {
             if constexpr (std::is_abstract_v<T>) {
-                throw std::logic_error(
-                    fmt("Cannot cast node of kind {}", this->getKind()));
+                throw std::logic_error(hstd::fmt(
+                    "Cannot cast node of kind {}", this->getKind()));
             } else {
-                throw std::logic_error(
-                    fmt("Cannot cast node of kind {} to kind {}",
-                        this->getKind(),
-                        T::staticKind));
+                throw std::logic_error(hstd::fmt(
+                    "Cannot cast node of kind {} to kind {}",
+                    this->getKind(),
+                    T::staticKind));
             }
         }
         return res;
@@ -498,54 +521,59 @@ struct ImmOrg {
     DESC_FIELDS(ImmOrg, (subnodes, loc));
 };
 
-} // namespace org
+} // namespace org::imm
 
 template <>
-struct std::formatter<org::ImmId> : std::formatter<std::string> {
+struct std::formatter<org::imm::ImmId> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const org::ImmId& p, FormatContext& ctx) const {
+    auto format(const org::imm::ImmId& p, FormatContext& ctx) const {
         return fmt_ctx(p.getReadableId(), ctx);
     }
 };
 
 
 template <>
-struct JsonSerde<org::ImmId> {
-    static json to_json(org::ImmId const& it) {
+struct hstd::JsonSerde<org::imm::ImmId> {
+    static json to_json(org::imm::ImmId const& it) {
         return json::object(
             {{"number", it.getValue()}, {"format", it.getReadableId()}});
     }
-    static org::ImmId from_json(json const& j) {
-        return org::ImmId::FromValue(
+    static org::imm::ImmId from_json(json const& j) {
+        return org::imm::ImmId::FromValue(
             j["number"].get<unsigned long long>());
     }
 };
 
 template <typename T>
-struct JsonSerde<org::ImmIdT<T>> {
-    static json to_json(org::ImmIdT<T> const& it) {
-        return JsonSerde<org::ImmId>::to_json(it.toId());
+struct hstd::JsonSerde<org::imm::ImmIdT<T>> {
+    static json to_json(org::imm::ImmIdT<T> const& it) {
+        return JsonSerde<org::imm::ImmId>::to_json(it.toId());
     }
-    static org::ImmIdT<T> from_json(json const& j) {
-        return org::ImmIdT<T>{JsonSerde<org::ImmId>::from_json(j)};
+    static org::imm::ImmIdT<T> from_json(json const& j) {
+        return org::imm::ImmIdT<T>{
+            JsonSerde<org::imm::ImmId>::from_json(j)};
     }
 };
 
 template <>
-struct ReflVisitor<org::ImmId, org::ImmReflPathTag>
-    : ReflVisitorLeafType<org::ImmId, org::ImmReflPathTag> {};
+struct hstd::ReflVisitor<org::imm::ImmId, org::imm::ImmReflPathTag>
+    : hstd::
+          ReflVisitorLeafType<org::imm::ImmId, org::imm::ImmReflPathTag> {
+};
 
 template <typename T>
-struct ReflVisitor<org::ImmIdT<T>, org::ImmReflPathTag>
-    : ReflVisitorLeafType<org::ImmIdT<T>, org::ImmReflPathTag> {};
+struct hstd::ReflVisitor<org::imm::ImmIdT<T>, org::imm::ImmReflPathTag>
+    : hstd::ReflVisitorLeafType<
+          org::imm::ImmIdT<T>,
+          org::imm::ImmReflPathTag> {};
 
 
 template <>
-struct hshow<org::ImmId> {
+struct hstd::hshow<org::imm::ImmId> {
     static void format(
-        ColStream&     s,
-        CR<org::ImmId> value,
-        CR<hshow_opts> opts) {
+        hstd::ColStream&        s,
+        org::imm::ImmId const&  value,
+        hstd::hshow_opts const& opts) {
         auto copy = opts;
         copy.with_use_quotes(false);
         hshow_ctx(s, value.format(), copy);

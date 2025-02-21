@@ -7,6 +7,8 @@
 #include <hstd/stdlib/SetCommon.hpp>
 #include <hstd/system/basic_templates.hpp>
 
+namespace hstd {
+
 template <typename T, typename InT>
 concept ConvertibleToSet
     = (std::same_as<std::remove_cvref_t<InT>, T> //
@@ -190,10 +192,11 @@ struct IntSet : public SetBase<IntSet<T>, T> {
     iterator end() const { return iterator(values.size(), &values); }
 };
 
+} // namespace hstd
 
 template <typename T>
-struct std::formatter<IntSet<T>> : std::formatter<std::string> {
-    using FmtType = IntSet<T>;
+struct std::formatter<hstd::IntSet<T>> : std::formatter<std::string> {
+    using FmtType = hstd::IntSet<T>;
     template <typename FormatContext>
     FormatContext::iterator format(FmtType const& p, FormatContext& ctx)
         const {

@@ -3,6 +3,8 @@
 #include <gtest/gtest.h>
 #include <absl/log/log.h>
 
+using namespace hstd;
+
 TEST(TestIntegralSetOperations, InitialSetContent) {
     CharSet s;
     CharSet other;
@@ -126,8 +128,6 @@ TEST(TestIntegralSetOperations, ValueDomainSanityChecks) {
         EXPECT_EQ(D::ord(c), count)
             << std::format("'{}' ({:B} {:B}) != '{}'", c, c, uc, count);
         ++count;
-        if (uc == 255) {
-            break;
-        }
+        if (uc == 255) { break; }
     }
 }

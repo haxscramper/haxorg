@@ -10,7 +10,7 @@
 #include <py_type_casters.hpp>
 #include <absl/log/log.h>
 
-using namespace layout;
+using namespace hstd::layout;
 
 void exception_breakpoint() {
     // std::cout << "Stacktrace:\n"
@@ -40,8 +40,8 @@ struct TextLayout {
 
     Id text(std::string t) { return store.text(t); }
 
-    Vec<BlockId> tmpVec(std::vector<Id> const& ids) {
-        return map(ids, [](Id t) { return t.id; });
+    hstd::Vec<BlockId> tmpVec(std::vector<Id> const& ids) {
+        return hstd::map(ids, [](Id t) { return t.id; });
     }
 
     Id stack(std::vector<Id> const& ids) { return b.stack(tmpVec(ids)); }
@@ -49,7 +49,9 @@ struct TextLayout {
     Id line(std::vector<Id> const& ids) { return b.line(tmpVec(ids)); }
 
     Id choice(std::vector<Id> const& ids) { return b.choice(tmpVec(ids)); }
-    Id indent(int indent, CR<Id> block) { return b.indent(indent, block); }
+    Id indent(int indent, Id const& block) {
+        return b.indent(indent, block);
+    }
 
     Id space(int count) { return b.space(count); }
 
@@ -57,7 +59,7 @@ struct TextLayout {
 
     Id join(
         std::vector<Id> const& items,
-        CR<Id>                 join,
+        Id const&              join,
         bool                   isLine,
         bool                   isTrailing) {
         return b.join(tmpVec(items), join, isLine, isTrailing);
@@ -67,7 +69,7 @@ struct TextLayout {
         return b.wrap(tmpVec(ids), store.str(sep));
     }
 
-    std::string toString(Id id, CR<Options> options) {
+    std::string toString(Id id, Options const& options) {
         // try {
         return store.toString(id);
         // } catch (...) { exception_breakpoint(); }
@@ -176,7 +178,7 @@ PYBIND11_MODULE(py_textlayout_cpp, m) {
     using namespace pybind11;
     TextLayout::py_define(m);
 
-    class_<layout::Options>(m, "TextOptions")
+    class_<hstd::layout::Options>(m, "TextOptions")
         .def(pybind11::init<>())
         .def_readwrite("leftMargin", &Options::leftMargin)
         .def_readwrite("rightMargin", &Options::rightMargin)

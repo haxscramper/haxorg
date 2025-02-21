@@ -3,6 +3,8 @@
 #include <iterator>
 #include <algorithm>
 
+namespace hstd {
+
 template <typename Iter>
 class enumerator_impl {
   public:
@@ -135,3 +137,5 @@ enumerator_impl<typename Sequence::const_iterator> enumerator(
     return enumerator_impl<typename Sequence::const_iterator>(
         std::begin(it), std::end(it));
 }
+
+} // namespace hstd

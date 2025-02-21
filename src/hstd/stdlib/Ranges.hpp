@@ -6,6 +6,8 @@
 #include <hstd/stdlib/Func.hpp>
 #include <absl/log/log.h>
 
+namespace hstd {
+
 namespace rv = ranges::views;
 namespace rs = ranges;
 using ranges::operator|;
@@ -185,3 +187,5 @@ inline auto drop_if_nullopt() {
 inline auto unpack_optional() {
     return rv::transform([](auto const& it) { return it.value(); });
 }
+
+} // namespace hstd

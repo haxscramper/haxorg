@@ -10,6 +10,9 @@
 #include <span>
 #include <array>
 
+namespace hstd {
+
+
 template <typename T, int Size>
 struct Array : std::array<T, Size> {
     using std::array<T, Size>::array; // Inherit constructor
@@ -123,12 +126,14 @@ struct TypArray : public Array<Val, pow_v<2, 8 * sizeof(Key)>::res> {
     }
 };
 
+} // namespace hstd
+
 template <typename T, int Size>
-struct std::formatter<Array<T, Size>> : std::formatter<std::string> {
+struct std::formatter<hstd::Array<T, Size>> : std::formatter<std::string> {
     template <typename FormatContext>
     typename FormatContext::iterator format(
-        Array<T, Size> const& p,
-        FormatContext&        ctx) const {
+        hstd::Array<T, Size> const& p,
+        FormatContext&              ctx) const {
         std::formatter<std::string> fmt;
         fmt.format("[", ctx);
         fmt.format(join(", ", p), ctx);

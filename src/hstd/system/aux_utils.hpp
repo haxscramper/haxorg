@@ -3,6 +3,8 @@
 #include <functional>
 #include "macros.hpp"
 
+namespace hstd {
+
 /// Trigger callback when exiting the scope. Ad-hoc RAII
 /// implementation
 template <typename Func>
@@ -39,17 +41,6 @@ struct overloaded : Ts... {
 
 template <class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
-
-template <typename T>
-bool notNil(T* ptr) {
-    return ptr != nullptr;
-}
-
-/// Check if pointer is a null pointer
-template <typename T>
-bool isNil(T* ptr) {
-    return ptr == nullptr;
-}
 
 /// Helper base type for defining CRTP classes
 template <typename T>
@@ -89,3 +80,5 @@ template <typename T>
 std::ptrdiff_t pointer_distance(T const* first, T const* last) {
     return last - first;
 }
+
+} // namespace hstd

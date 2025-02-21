@@ -27,12 +27,12 @@ def efield(name: str,
 
 
 @beartype
-def t(name: str | QualType) -> QualType:
+def t(name: str | QualType, namespaces: List[QualType] = []) -> QualType:
     if isinstance(name, QualType):
-        return name
+        return name.model_copy(update=dict(Spaces=namespaces))
 
     else:
-        return QualType(name=name)
+        return QualType(name=name, Spaces=namespaces)
 
 
 @beartype
@@ -41,7 +41,7 @@ def t_namespace(name: str | QualType) -> QualType:
 
 
 def t_str() -> QualType:
-    return t("Str")
+    return t("Str", [n_hstd()])
 
 
 def t_bool() -> QualType:
@@ -50,6 +50,10 @@ def t_bool() -> QualType:
 
 def t_int() -> QualType:
     return t("int")
+
+
+def t_user_time() -> QualType:
+    return t("UserTime", [n_hstd()])
 
 
 @beartype
@@ -94,11 +98,11 @@ def t_cr(arg: QualType) -> QualType:
 
 
 def t_var(*args) -> QualType:
-    return QualType(name="Variant", Parameters=[*args])
+    return QualType(name="Variant", Parameters=[*args], Spaces=[n_hstd()])
 
 
 def t_map(key: QualType, val: QualType) -> QualType:
-    return QualType(name="UnorderedMap", Parameters=[key, val])
+    return QualType(name="UnorderedMap", Parameters=[key, val], Spaces=[n_hstd()])
 
 
 #endregion
@@ -289,7 +293,7 @@ def get_subtree_property_types():
             GenTuDoc(""),
             nested=[GenTuPass("ArchiveTime() {}")],
             methods=[eq_method(t_nest_shared("ArchiveTime", ["NamedProperty"]))],
-            fields=[GenTuField(t("UserTime"), "time")],
+            fields=[GenTuField(t_user_time(), "time")],
         ),
         GenTuStruct(
             t_nest_shared("ArchiveFile", ["NamedProperty"]),
@@ -452,7 +456,7 @@ def get_subtree_property_types():
             t_nest_shared("Created", ["NamedProperty"]),
             GenTuDoc(""),
             nested=[GenTuPass("Created() {}")],
-            fields=[GenTuField(t("UserTime"), "time", GenTuDoc(""))],
+            fields=[GenTuField(t_user_time(), "time", GenTuDoc(""))],
             methods=[eq_method(t_nest_shared("Created", ["NamedProperty"]))],
         ),
         GenTuStruct(
@@ -496,19 +500,17 @@ def get_subtree_property_types():
             GenTuDoc("Free-form JSON"),
             methods=[eq_method(t_nest_shared("CustomSubtreeJson", ["NamedProperty"]))],
             fields=[
-                org_field(t_str(), "name"), 
+                org_field(t_str(), "name"),
                 org_field(t_nest_shared("OrgJson"), "value")
-            ]
-        ),
+            ]),
         GenTuStruct(
             t_nest_shared("CustomSubtreeFlags", ["NamedProperty"]),
             GenTuDoc("Free-form flags"),
             methods=[eq_method(t_nest_shared("CustomSubtreeFlags", ["NamedProperty"]))],
             fields=[
-                org_field(t_str(), "name"), 
+                org_field(t_str(), "name"),
                 org_field(t_nest_shared("AttrGroup"), "value")
-            ]
-        ),
+            ]),
     ]
 
 
@@ -607,7 +609,7 @@ def get_sem_bases():
             nested=[
                 GenTuPass("Stmt() {}"),
                 GenTuPass(
-                    "Stmt(CVec<SemId<Org>> attached, CVec<SemId<Org>> subnodes) : Org(subnodes), attached(attached) {}"
+                    "Stmt(hstd::Vec<SemId<Org>> const& attached, hstd::Vec<SemId<Org>> const& subnodes) : Org(subnodes), attached(attached) {}"
                 ),
             ],
         ),
@@ -903,7 +905,7 @@ def get_sem_text():
                 GenTuFunction(t_opt(t_int()), "getHour", isConst=True),
                 GenTuFunction(t_opt(t_int()), "getMinute", isConst=True),
                 GenTuFunction(t_opt(t_int()), "getSecond", isConst=True),
-                GenTuFunction(t("UserTime"), "getStaticTime", isConst=True),
+                GenTuFunction(t_user_time(), "getStaticTime", isConst=True),
             ],
             nested=[
                 GenTuStruct(
@@ -967,7 +969,7 @@ def get_sem_text():
                             fields=[
                                 GenTuField(t_opt(t_nest("Repeat", ["Time"])), "repeat",
                                            GenTuDoc("")),
-                                GenTuField(t("UserTime"), "time", GenTuDoc("")),
+                                GenTuField(t_user_time(), "time", GenTuDoc("")),
                             ],
                         ),
                         GenTuStruct(
@@ -1109,10 +1111,10 @@ def get_sem_subtree():
                           GenTuDoc("Associated subtree log")),
                 vec_field(t_nest_shared(t("NamedProperty"), []), "properties",
                           GenTuDoc("Immediate properties")),
-                opt_field(t("UserTime"), "closed",
+                opt_field(t_user_time(), "closed",
                           GenTuDoc("When subtree was marked as closed")),
-                opt_field(t("UserTime"), "deadline", GenTuDoc("When is the deadline")),
-                opt_field(t("UserTime"), "scheduled",
+                opt_field(t_user_time(), "deadline", GenTuDoc("When is the deadline")),
+                opt_field(t_user_time(), "scheduled",
                           GenTuDoc("When the event is scheduled")),
                 bool_field("isComment",
                            GenTuDoc("Subtree is annotated with the COMMENT keyword")),
@@ -1130,7 +1132,9 @@ def get_sem_subtree():
                         GenTuIdent(
                             QualType(
                                 name="IntSet",
-                                Parameters=[t_nest_shared("Kind", ["SubtreePeriod"])]),
+                                Parameters=[t_nest_shared("Kind", ["SubtreePeriod"])],
+                                Spaces=[n_hstd()],
+                            ),
                             "kinds",
                         )
                     ],
@@ -1442,7 +1446,9 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 opt_field(t_str(), "name"),
                 opt_field(t_str(), "varname"),
                 str_field("value"),
-                bool_field("isQuoted", "If the original value was explicitly quoted in the org-mode code"),
+                bool_field(
+                    "isQuoted",
+                    "If the original value was explicitly quoted in the org-mode code"),
             ],
             methods=[
                 GenTuFunction(t_opt(t_bool()), "getBool", isConst=True),
@@ -1642,7 +1648,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                                     "newPriority",
                                     GenTuDoc("New priority for change and addition"),
                                 ),
-                                org_field(t("UserTime"), "on",
+                                org_field(t_user_time(), "on",
                                           GenTuDoc("When priority was changed")),
                                 GenTuField(
                                     t_nest_shared("Action",
@@ -1654,7 +1660,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                             t_nest_shared("Note", ["SubtreeLogHead"]),
                             GenTuDoc("Timestamped note"),
                             fields=[
-                                org_field(t("UserTime"), "on",
+                                org_field(t_user_time(), "on",
                                           GenTuDoc("Where log was taken"))
                             ],
                             nested=[GenTuPass("Note() {}")],
@@ -1666,7 +1672,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                             t_nest_shared("Refile", ["SubtreeLogHead"]),
                             GenTuDoc("Refiling action"),
                             fields=[
-                                org_field(t("UserTime"), "on",
+                                org_field(t_user_time(), "on",
                                           GenTuDoc("When the refiling happened")),
                                 org_field(t_nest_shared("LinkTarget"), "from",
                                           GenTuDoc("Link to the original subtree")),
@@ -1682,9 +1688,9 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                                 "Clock entry `CLOCK: [2023-04-30 Sun 13:29:04]--[2023-04-30 Sun 14:51:16] => 1:22`"
                             ),
                             fields=[
-                                org_field(t("UserTime"), "from",
+                                org_field(t_user_time(), "from",
                                           GenTuDoc("Clock start time")),
-                                opt_field(t("UserTime"), "to",
+                                opt_field(t_user_time(), "to",
                                           GenTuDoc("Optional end of the clock")),
                             ],
                             nested=[GenTuPass("Clock() {}")],
@@ -1700,7 +1706,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                             fields=[
                                 org_field(t_str(), "from", GenTuDoc("")),
                                 org_field(t_str(), "to", GenTuDoc("")),
-                                org_field(t("UserTime"), "on", GenTuDoc("")),
+                                org_field(t_user_time(), "on", GenTuDoc("")),
                             ],
                             nested=[GenTuPass("State() {}")],
                             methods=[
@@ -1711,9 +1717,9 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                             t_nest_shared("Deadline", ["SubtreeLogHead"]),
                             GenTuDoc('Change of the subtree deadline'),
                             fields=[
-                                opt_field(t("UserTime"), "from", GenTuDoc("")),
-                                org_field(t("UserTime"), "to", GenTuDoc("")),
-                                org_field(t("UserTime"), "on", GenTuDoc("")),
+                                opt_field(t_user_time(), "from", GenTuDoc("")),
+                                org_field(t_user_time(), "to", GenTuDoc("")),
+                                org_field(t_user_time(), "on", GenTuDoc("")),
                             ],
                             nested=[GenTuPass("Deadline() {}")],
                             methods=[
@@ -1724,9 +1730,9 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                             t_nest_shared("Schedule", ["SubtreeLogHead"]),
                             GenTuDoc('Change of the subtree Schedule'),
                             fields=[
-                                opt_field(t("UserTime"), "from", GenTuDoc("")),
-                                org_field(t("UserTime"), "to", GenTuDoc("")),
-                                org_field(t("UserTime"), "on", GenTuDoc("")),
+                                opt_field(t_user_time(), "from", GenTuDoc("")),
+                                org_field(t_user_time(), "to", GenTuDoc("")),
+                                org_field(t_user_time(), "on", GenTuDoc("")),
                             ],
                             nested=[GenTuPass("Schedule() {}")],
                             methods=[
@@ -1739,7 +1745,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                                 'Assign tag to the subtree `- Tag "project##haxorg" Added on [2023-04-30 Sun 13:29:06]`'
                             ),
                             fields=[
-                                org_field(t("UserTime"), "on",
+                                org_field(t_user_time(), "on",
                                           GenTuDoc("When the log was assigned")),
                                 org_field(t_nest_shared("HashTagText"), "tag",
                                           GenTuDoc("Tag in question")),
@@ -1797,7 +1803,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
             t_nest_shared("AttrList"),
             fields=[
                 vec_field(t_nest_shared("AttrValue"), "items"),
-        ],
+            ],
             methods=[eq_method(t_nest_shared("AttrList"))],
         ),
         GenTuStruct(
@@ -2269,8 +2275,8 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                         "Time period kind -- not associated with point/range distinction"
                     ),
                 ),
-                GenTuField(t("UserTime"), "from", GenTuDoc("Clock start time")),
-                opt_field(t("UserTime"), "to", GenTuDoc("Optional end of the clock")),
+                GenTuField(t_user_time(), "from", GenTuDoc("Clock start time")),
+                opt_field(t_user_time(), "to", GenTuDoc("Optional end of the clock")),
             ],
             nested=[
                 GenTuPass("SubtreePeriod() {}"),
@@ -2347,7 +2353,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     enumName=t_nest_shared("Kind", ["NamedProperty"]),
                     variantName=t_nest_shared("Data", ["NamedProperty"]),
                 ),
-                GenTuPass("NamedProperty(CR<Data> data) : data(data) {}"),
+                GenTuPass("NamedProperty(Data const& data) : data(data) {}"),
             ],
         ),
     ]
@@ -2408,7 +2414,7 @@ def get_types() -> Sequence[GenTuStruct]:
                 GenTuFunction(t_vec(t_id("BigIdent")), "getAdmonitionNodes",
                               isConst=True),
                 GenTuFunction(t_bool(), "hasTimestamp", isConst=True),
-                GenTuFunction(t_vec(t("UserTime")), "getTimestamps", isConst=True),
+                GenTuFunction(t_vec(t_user_time()), "getTimestamps", isConst=True),
                 GenTuFunction(t_vec(t_id("Time")), "getTimestampNodes", isConst=True),
                 GenTuFunction(t_bool(), "hasLeadHashtags", isConst=True),
                 GenTuFunction(t_vec(t_id("HashTag")), "getLeadHashtags", isConst=True),

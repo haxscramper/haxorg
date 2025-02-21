@@ -26,13 +26,13 @@
 /// \internal Generate getter methods for SUB_VARIANTS
 #define __SUB_VARIANT_GETTER(fieldName, Type)                             \
     Type& get##Type() {                                                   \
-        return ::                                                         \
+        return ::hstd::                                                   \
             get_sub_variant<Type, std::remove_cvref_t<decltype(*this)>>(  \
                 fieldName);                                               \
     }                                                                     \
                                                                           \
     Type const& get##Type() const {                                       \
-        return ::                                                         \
+        return ::hstd::                                                   \
             get_sub_variant<Type, std::remove_cvref_t<decltype(*this)>>(  \
                 fieldName);                                               \
     }                                                                     \
@@ -87,9 +87,9 @@
     using VariantName = std::variant<__VA_ARGS__>;                        \
     FOR_EACH_CALL_WITH_PASS(                                              \
         __SUB_VARIANT_GETTER, (fieldName), __VA_ARGS__)                   \
-    static EnumName kindGetterName(CR<VariantName> __input) {             \
+    static EnumName kindGetterName(VariantName const& __input) {          \
         return std::visit(                                                \
-            overloaded{FOR_EACH_CALL_WITH_PASS(                           \
+            ::hstd::overloaded{FOR_EACH_CALL_WITH_PASS(                   \
                 __SUB_VARIANT_KIND_LAMBDA, (EnumName), __VA_ARGS__)},     \
             __input);                                                     \
     }                                                                     \

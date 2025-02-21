@@ -2,8 +2,10 @@
 #include <gtest/gtest.h>
 #include <hstd/wrappers/hstd_extra/bimap_wrap.hpp>
 
+using namespace hstd;
+
 TEST(BimapTest, AddUnique) {
-    Unordered1to1Bimap<int, std::string> bimap;
+    hstd::ext::Unordered1to1Bimap<int, std::string> bimap;
     bimap.add_unique(1, "one");
     EXPECT_TRUE(bimap.contains_left(1));
     EXPECT_TRUE(bimap.contains_right("one"));
@@ -16,7 +18,7 @@ TEST(BimapTest, AddUnique) {
 
 
 TEST(BimapTest, Contains) {
-    Unordered1to1Bimap<int, std::string> bimap;
+    hstd::ext::Unordered1to1Bimap<int, std::string> bimap;
     bimap.add_unique(1, "one");
     EXPECT_TRUE(bimap.contains_left(1));
     EXPECT_FALSE(bimap.contains_left(2));
@@ -26,7 +28,7 @@ TEST(BimapTest, Contains) {
 
 
 TEST(BimapTest, LeftKeysAndRightKeys) {
-    Unordered1to1Bimap<int, std::string> bimap;
+    hstd::ext::Unordered1to1Bimap<int, std::string> bimap;
     bimap.add_unique(1, "one");
     bimap.add_unique(2, "two");
 

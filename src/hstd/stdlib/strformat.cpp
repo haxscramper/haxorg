@@ -1,7 +1,9 @@
 #include "strformat.hpp"
 #include <hstd/stdlib/Slice.hpp>
 
-void addf(
+using namespace hstd;
+
+void hstd::addf(
     std::string&                    s,
     CR<std::vector<AddfFragment>>   fragments,
     const std::vector<std::string>& a) {
@@ -54,7 +56,8 @@ void addf(
     }
 }
 
-std::vector<AddfFragment> addfFragments(const std::string& formatstr) {
+std::vector<AddfFragment> hstd::addfFragments(
+    const std::string& formatstr) {
     std::vector<AddfFragment> result{};
     auto                      i   = 0;
     auto                      num = 0;

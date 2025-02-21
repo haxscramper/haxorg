@@ -3,6 +3,8 @@
 #include <hstd/system/all.hpp>
 #include <hstd/stdlib/Slice.hpp>
 
+namespace hstd {
+
 template <typename Set, typename Val>
 struct SetBase : public CRTP_this_method<Set> {
     using CRTP_this_method<Set>::_this;
@@ -61,3 +63,5 @@ struct SetBase : public CRTP_this_method<Set> {
         return other.contains(*_this());
     }
 };
+
+} // namespace hstd

@@ -4,6 +4,8 @@
 #include <hstd/stdlib/Time.hpp>
 #include <hstd/stdlib/Json.hpp>
 
+namespace org::algo {
+
 struct ExporterJson : public Exporter<ExporterJson, json> {
     using Base = Exporter<ExporterJson, json>;
 #define __ExporterBase Base
@@ -13,19 +15,19 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
     void visitSubtreeValueFields(json&, In<sem::Subtree> tree);
 
     template <typename T>
-    json newRes(CVec<T>) {
+    json newRes(hstd::CVec<T>) {
         return json::array();
     }
 
 
     template <typename T>
-    json newRes(CR<T>) {
+    json newRes(T const&) {
         return json::object();
     }
 
 
     template <typename T>
-    json newRes(CR<Opt<T>> arg) {
+    json newRes(hstd::Opt<T> const& arg) {
         if (arg) {
             return newRes(*arg);
         } else {
@@ -34,18 +36,18 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
     }
 
     template <typename... Args>
-    json newRes(CR<Variant<Args...>> var) {
+    json newRes(hstd::Variant<Args...> const& var) {
         return std::visit(
             [this](auto const& it) -> json { return eval(it); }, var);
     }
 
-    json eval(CR<Str> value) { return json(value); }
-    json eval(CR<std::string> value) { return json(value); }
-    json eval(CR<bool> value) { return json(value); }
-    json eval(CR<int> value) { return json(value); }
+    json eval(hstd::Str const& value) { return json(value); }
+    json eval(std::string const& value) { return json(value); }
+    json eval(bool value) { return json(value); }
+    json eval(int value) { return json(value); }
 
     template <typename T>
-    json eval(CR<T> arg);
+    json eval(T const& arg);
 
     json newRes(sem::SemId<sem::Org> org);
 
@@ -55,21 +57,21 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
     }
 
     template <typename T>
-    void visitField(json& j, const char* name, CR<Opt<T>> value);
+    void visitField(json& j, const char* name, hstd::Opt<T> const& value);
 
     template <typename T>
-    json eval(CR<Vec<T>> values);
+    json eval(hstd::Vec<T> const& values);
 
     template <typename T>
-    json eval(CR<UnorderedMap<Str, T>> map);
+    json eval(hstd::UnorderedMap<hstd::Str, T> map);
 
     template <typename T>
-    void visitField(json& j, const char* name, CR<T> field) {
+    void visitField(json& j, const char* name, T const& field) {
         j[name] = eval(field);
     }
 
     template <typename T>
-    void visitField(json& j, const char* name, CVec<T> field) {
+    void visitField(json& j, const char* name, hstd::CVec<T> field) {
         if (!skipEmptyLists || !field.empty()) { j[name] = eval(field); }
     }
 
@@ -87,3 +89,4 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
 };
 
 extern template class Exporter<ExporterJson, json>;
+} // namespace org::algo

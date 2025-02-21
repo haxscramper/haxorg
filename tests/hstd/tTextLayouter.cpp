@@ -9,15 +9,16 @@
 
 #include "../common.hpp"
 
-using namespace layout;
+using namespace hstd;
+using namespace hstd::layout;
 using namespace testing;
 
 
 /// \internal
-//template <> // FIXME COMPILATION
-//void internal::PrintTo(CR<Event> e, ::std::ostream* os) {
-//    *os << to_string(e);
-//}
+// template <> // FIXME COMPILATION
+// void internal::PrintTo(CR<Event> e, ::std::ostream* os) {
+//     *os << to_string(e);
+// }
 
 
 using b = Block;

@@ -60,6 +60,7 @@ PERFETTO_DEFINE_CATEGORIES(
 namespace fs = std::filesystem;
 using namespace llvm::coverage;
 using namespace llvm::itanium_demangle;
+using namespace hstd;
 
 enum class KindProxy
 {
@@ -196,7 +197,7 @@ NO_COVERAGE llvm::json::Value treeRepr(Node const* node) {
 
     result["NodeKind"] = Kind;
 
-    auto sub = overloaded{
+    auto sub = hstd::overloaded{
         [&result](std::string const& field, llvm::json::Value value) {
             result[field] = value;
         },

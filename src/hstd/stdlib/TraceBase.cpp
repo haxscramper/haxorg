@@ -6,6 +6,8 @@
 #include <hstd/stdlib/strutils.hpp>
 #include <cpptrace.hpp>
 
+using namespace hstd;
+
 SPtr<std::ostream> OperationsTracer::getTraceFile() { return stream; }
 
 void OperationsTracer::setTraceFile(SPtr<std::ostream> stream) {

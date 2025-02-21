@@ -1,14 +1,14 @@
 /* clang-format off */
 #include "SemOrgEnums.hpp"
 
-Opt<ListFormattingMode> enum_serde<ListFormattingMode>::from_string(std::string value) {
+Opt<ListFormattingMode> hstd::enum_serde<ListFormattingMode>::from_string(std::string value) {
   if (value == "None") { return ListFormattingMode::None; } else
   if (value == "Table1D1Col") { return ListFormattingMode::Table1D1Col; } else
   if (value == "Table1D2Col") { return ListFormattingMode::Table1D2Col; } else
   if (value == "Table2DColFirst") { return ListFormattingMode::Table2DColFirst; } else
   { return std::nullopt; }
 }
-std::string enum_serde<ListFormattingMode>::to_string(ListFormattingMode value) {
+std::string hstd::enum_serde<ListFormattingMode>::to_string(ListFormattingMode value) {
   switch (value) {
     case ListFormattingMode::None: return "None";
     case ListFormattingMode::Table1D1Col: return "Table1D1Col";
@@ -18,7 +18,7 @@ std::string enum_serde<ListFormattingMode>::to_string(ListFormattingMode value) 
   }
 }
 
-Opt<InitialSubtreeVisibility> enum_serde<InitialSubtreeVisibility>::from_string(std::string value) {
+Opt<InitialSubtreeVisibility> hstd::enum_serde<InitialSubtreeVisibility>::from_string(std::string value) {
   if (value == "Overview") { return InitialSubtreeVisibility::Overview; } else
   if (value == "Content") { return InitialSubtreeVisibility::Content; } else
   if (value == "ShowAll") { return InitialSubtreeVisibility::ShowAll; } else
@@ -29,7 +29,7 @@ Opt<InitialSubtreeVisibility> enum_serde<InitialSubtreeVisibility>::from_string(
   if (value == "ShowEverything") { return InitialSubtreeVisibility::ShowEverything; } else
   { return std::nullopt; }
 }
-std::string enum_serde<InitialSubtreeVisibility>::to_string(InitialSubtreeVisibility value) {
+std::string hstd::enum_serde<InitialSubtreeVisibility>::to_string(InitialSubtreeVisibility value) {
   switch (value) {
     case InitialSubtreeVisibility::Overview: return "Overview";
     case InitialSubtreeVisibility::Content: return "Content";
@@ -43,25 +43,25 @@ std::string enum_serde<InitialSubtreeVisibility>::to_string(InitialSubtreeVisibi
   }
 }
 
-Opt<BlockCodeResults> enum_serde<BlockCodeResults>::from_string(std::string value) {
+Opt<BlockCodeResults> hstd::enum_serde<BlockCodeResults>::from_string(std::string value) {
   if (value == "Replace") { return BlockCodeResults::Replace; } else
   { return std::nullopt; }
 }
-std::string enum_serde<BlockCodeResults>::to_string(BlockCodeResults value) {
+std::string hstd::enum_serde<BlockCodeResults>::to_string(BlockCodeResults value) {
   switch (value) {
     case BlockCodeResults::Replace: return "Replace";
     default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
   }
 }
 
-Opt<BlockCodeExports> enum_serde<BlockCodeExports>::from_string(std::string value) {
+Opt<BlockCodeExports> hstd::enum_serde<BlockCodeExports>::from_string(std::string value) {
   if (value == "None") { return BlockCodeExports::None; } else
   if (value == "Both") { return BlockCodeExports::Both; } else
   if (value == "Code") { return BlockCodeExports::Code; } else
   if (value == "Results") { return BlockCodeExports::Results; } else
   { return std::nullopt; }
 }
-std::string enum_serde<BlockCodeExports>::to_string(BlockCodeExports value) {
+std::string hstd::enum_serde<BlockCodeExports>::to_string(BlockCodeExports value) {
   switch (value) {
     case BlockCodeExports::None: return "None";
     case BlockCodeExports::Both: return "Both";
@@ -71,7 +71,7 @@ std::string enum_serde<BlockCodeExports>::to_string(BlockCodeExports value) {
   }
 }
 
-Opt<OrgSpecName> enum_serde<OrgSpecName>::from_string(std::string value) {
+Opt<OrgSpecName> hstd::enum_serde<OrgSpecName>::from_string(std::string value) {
   if (value == "Unnamed") { return OrgSpecName::Unnamed; } else
   if (value == "Result") { return OrgSpecName::Result; } else
   if (value == "Year") { return OrgSpecName::Year; } else
@@ -132,7 +132,7 @@ Opt<OrgSpecName> enum_serde<OrgSpecName>::from_string(std::string value) {
   if (value == "Chunks") { return OrgSpecName::Chunks; } else
   { return std::nullopt; }
 }
-std::string enum_serde<OrgSpecName>::to_string(OrgSpecName value) {
+std::string hstd::enum_serde<OrgSpecName>::to_string(OrgSpecName value) {
   switch (value) {
     case OrgSpecName::Unnamed: return "Unnamed";
     case OrgSpecName::Result: return "Result";
@@ -196,7 +196,7 @@ std::string enum_serde<OrgSpecName>::to_string(OrgSpecName value) {
   }
 }
 
-Opt<OrgNodeKind> enum_serde<OrgNodeKind>::from_string(std::string value) {
+Opt<OrgNodeKind> hstd::enum_serde<OrgNodeKind>::from_string(std::string value) {
   if (value == "None") { return OrgNodeKind::None; } else
   if (value == "Document") { return OrgNodeKind::Document; } else
   if (value == "Empty") { return OrgNodeKind::Empty; } else
@@ -321,7 +321,7 @@ Opt<OrgNodeKind> enum_serde<OrgNodeKind>::from_string(std::string value) {
   if (value == "SubtreeImportance") { return OrgNodeKind::SubtreeImportance; } else
   { return std::nullopt; }
 }
-std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
+std::string hstd::enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
   switch (value) {
     case OrgNodeKind::None: return "None";
     case OrgNodeKind::Document: return "Document";
@@ -449,7 +449,7 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
   }
 }
 
-Opt<OrgJsonKind> enum_serde<OrgJsonKind>::from_string(std::string value) {
+Opt<OrgJsonKind> hstd::enum_serde<OrgJsonKind>::from_string(std::string value) {
   if (value == "Null") { return OrgJsonKind::Null; } else
   if (value == "Object") { return OrgJsonKind::Object; } else
   if (value == "Array") { return OrgJsonKind::Array; } else
@@ -459,7 +459,7 @@ Opt<OrgJsonKind> enum_serde<OrgJsonKind>::from_string(std::string value) {
   if (value == "Float") { return OrgJsonKind::Float; } else
   { return std::nullopt; }
 }
-std::string enum_serde<OrgJsonKind>::to_string(OrgJsonKind value) {
+std::string hstd::enum_serde<OrgJsonKind>::to_string(OrgJsonKind value) {
   switch (value) {
     case OrgJsonKind::Null: return "Null";
     case OrgJsonKind::Object: return "Object";
@@ -472,7 +472,7 @@ std::string enum_serde<OrgJsonKind>::to_string(OrgJsonKind value) {
   }
 }
 
-Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
+Opt<OrgSemKind> hstd::enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "None") { return OrgSemKind::None; } else
   if (value == "ErrorItem") { return OrgSemKind::ErrorItem; } else
   if (value == "ErrorGroup") { return OrgSemKind::ErrorGroup; } else
@@ -546,7 +546,7 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "CmdInclude") { return OrgSemKind::CmdInclude; } else
   { return std::nullopt; }
 }
-std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
+std::string hstd::enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
   switch (value) {
     case OrgSemKind::None: return "None";
     case OrgSemKind::ErrorItem: return "ErrorItem";
