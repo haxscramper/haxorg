@@ -455,7 +455,7 @@ RecordNested = Union[EnumParams, 'RecordParams', BlockId]
 @beartype
 @dataclass
 class RecordParams:
-    name: str
+    name: QualType
     doc: DocParams = field(default_factory=lambda: DocParams(""))
     NameParams: List[QualType] = field(default_factory=list)
     bases: List[QualType] = field(default_factory=list)
@@ -1069,7 +1069,7 @@ class ASTBuilder(base.AstbuilderBase):
 
         head = self.b.line([
             self.string("struct "),
-            self.string(params.name),
+            self.Type(params.name),
             self.b.surround_non_empty(
                 self.b.join([self.Type(t) for t in params.NameParams], self.string(", ")),
                 self.string("<"), self.string(">")), bases or self.string(""),

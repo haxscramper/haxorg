@@ -20,6 +20,8 @@ struct std::formatter<OrgSpecName> : std::formatter<std::string> {
     }
 };
 
+namespace org::parse {
+
 using OrgToken = Token<OrgTokenKind, OrgFill>;
 
 struct OrgNodeMono {
@@ -47,18 +49,6 @@ struct OrgNodeMono {
     DESC_FIELDS(OrgNodeMono, (data));
 };
 
-template <>
-struct std::formatter<OrgNodeMono::Error> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(const OrgNodeMono::Error& p, FormatContext& ctx) const {
-        if (p.box) {
-            return fmt_ctx(*p.box, ctx);
-        } else {
-            return fmt_ctx("Error{}", ctx);
-        }
-    }
-};
-
 
 using OrgTokenId    = TokenId<OrgTokenKind, OrgFill>;
 using OrgTokenStore = TokenStore<OrgTokenKind, OrgFill>;
@@ -71,16 +61,33 @@ using OrgNodeGroup = NodeGroup<
     OrgFill,
     OrgNodeMono>;
 using OrgLexer   = LexerCommon<OrgTokenKind, OrgFill>;
-using OrgTokSet  = IntSet<OrgTokenKind>;
+using OrgTokSet  = hstd::IntSet<OrgTokenKind>;
 using OrgAdapter = NodeAdapter<
     OrgNodeKind,
     OrgTokenKind,
     OrgFill,
     OrgNodeMono>;
-using OrgSet = IntSet<OrgNodeKind>;
+using OrgSet = hstd::IntSet<OrgNodeKind>;
 
 extern template class NodeGroup<
     OrgNodeKind,
     OrgTokenKind,
     OrgFill,
     OrgNodeMono>;
+
+} // namespace org::parse
+
+
+template <>
+struct std::formatter<org::sem::OrgNodeMono::Error>
+    : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const org::sem::OrgNodeMono::Error& p, FormatContext& ctx)
+        const {
+        if (p.box) {
+            return fmt_ctx(*p.box, ctx);
+        } else {
+            return fmt_ctx("Error{}", ctx);
+        }
+    }
+};

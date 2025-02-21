@@ -254,7 +254,7 @@ def get_imm_serde(types: List[GenTuStruct], ast: ASTBuilder) -> List[GenTuPass]:
                 )
 
                 rec = RecordParams(
-                    name="ImmSemSerde",
+                    name=QualType(name="ImmSemSerde"),
                     NameParams=[sem_type, imm_type],
                     Template=TemplateParams(Stacks=[TemplateGroup(Params=[])]),
                     members=[writer, reader],
@@ -1117,7 +1117,7 @@ struct std::formatter<OrgSemKind> : std::formatter<std::string> {
     FormatContext::iterator format(OrgSemKind const& p, FormatContext& ctx)
         const {
         std::formatter<std::string> fmt;
-        return fmt.format(enum_serde<OrgSemKind>::to_string(p), ctx);
+        return fmt.format(::hstd::enum_serde<OrgSemKind>::to_string(p), ctx);
     }
 };
                     """)

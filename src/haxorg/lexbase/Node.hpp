@@ -17,6 +17,8 @@
 #include <variant>
 #include <absl/log/check.h>
 
+namespace org::parse {
+
 template <typename N, typename K, typename V, typename M>
 struct Node;
 
@@ -25,11 +27,12 @@ template <
     typename K,
     typename V,
     typename M,
-    typename IdBase   = u64,
+    typename IdBase   = hstd::u64,
     typename MaskType = IdBase>
 struct [[nodiscard]] NodeId
-    : dod::Id<IdBase, MaskType, std::integral_constant<MaskType, 16>> {
-    using base_type = dod::
+    : hstd::dod::
+          Id<IdBase, MaskType, std::integral_constant<MaskType, 16>> {
+    using base_type = hstd::dod::
         Id<IdBase, MaskType, std::integral_constant<MaskType, 16>>;
     using value_type = Node<N, K, V, M>;
     static auto Nil() -> NodeId { return FromValue(0); };
@@ -50,48 +53,13 @@ struct [[nodiscard]] NodeId
 };
 
 
-template <typename N, typename K, typename IdBase, typename MaskType>
-struct value_domain<NodeId<N, K, IdBase, MaskType>> {
-    using ID = NodeId<N, K, IdBase, MaskType>;
-    static ID succ(ID id) {
-        ++id;
-        return id;
-    }
-};
-
-
-template <typename N, typename K, typename V, typename M>
-struct std::formatter<NodeId<N, K, V, M>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(
-        const NodeId<N, K, V, M>& p,
-        FormatContext&            ctx) const {
-        std::formatter<std::string> fmt;
-        return fmt.format(
-            p.format(
-                std::format("NodeId<{}>", demangle(typeid(N).name()))),
-            ctx);
-    }
-};
-
-
-template <>
-struct std::formatter<std::monostate> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(
-        const std::monostate& p,
-        FormatContext&        ctx) const {
-        std::formatter<std::string> fmt;
-        return fmt_ctx("<std::monostate>", ctx);
-    }
-};
-
 template <typename N, typename K, typename V, typename M>
 struct Node {
     N                                   kind;
     std::variant<int, TokenId<K, V>, M> value;
 
-    Node(N _kind, CR<TokenId<K, V>> token) : kind(_kind), value(token) {}
+    Node(N _kind, TokenId<K, V> const& token)
+        : kind(_kind), value(token) {}
     Node(N _kind, int extent = 0) : kind(_kind), value(extent) {}
     Node(N _kind, M mono) : kind(_kind), value(mono) {}
 
@@ -147,7 +115,7 @@ struct Node {
     /// \brief Return inclusive slice of all subnodes. NOTE: Because the
     /// `slice<T>()` is always inclusive, this function does not support
     /// returning empty list directly and instead outputs a nullopt value.
-    Opt<Slice<NodeId<N, K, V, M>>> nestedNodes(
+    hstd::Opt<hstd::Slice<NodeId<N, K, V, M>>> nestedNodes(
         NodeId<N, K, V, M> selfId) const {
         CHECK(isNonTerminal());
         if (isEmpty()) {
@@ -157,7 +125,7 @@ struct Node {
         }
     }
 
-    bool operator==(CR<Node<N, K, V, M>> other) const {
+    bool operator==(Node<N, K, V, M> const& other) const {
         if (isTerminal() == other.isTerminal()) {
             return (this->kind == other.kind)
                 && (this->value == other.value);
@@ -177,8 +145,8 @@ struct NodeGroup {
     /// \brief Typedef for DOD store API operations
     using Id = NodeId<N, K, V, M>;
 
-    dod::Store<Id, NodeT> nodes;
-    TokenGroup<K, V>*     tokens;
+    hstd::dod::Store<Id, NodeT> nodes;
+    TokenGroup<K, V>*           tokens;
 
     int size() const { return nodes.size(); }
 
@@ -191,12 +159,12 @@ struct NodeGroup {
 
     NodeGroup(TokenGroup<K, V>* _tokens = nullptr) : tokens(_tokens) {}
 
-    Vec<Id> pendingTrees;
+    hstd::Vec<Id> pendingTrees;
 
     int treeDepth() const { return pendingTrees.size(); }
 
     /// \brief Add token node to the list of nodes
-    [[nodiscard]] Id token(CR<NodeT> node) { return nodes.add(node); }
+    [[nodiscard]] Id token(NodeT const& node) { return nodes.add(node); }
     /// \brief Create new token node
     [[nodiscard]] Id token(N node, TokenId<K, V> tok) {
         return nodes.add(Node<N, K, V, M>(node, tok));
@@ -217,7 +185,7 @@ struct NodeGroup {
     /// snippet:
     ///
     /// \snippet tNode.cpp nested tree construction
-    [[nodiscard]] Id startTree(CR<NodeT> node) {
+    [[nodiscard]] Id startTree(NodeT const& node) {
         auto res = nodes.add(node);
         pendingTrees.push_back(res);
         return res;
@@ -238,19 +206,19 @@ struct NodeGroup {
     /// \brief Remove all nodes starting from a position `id`
     void removeTail(Id id);
 
-    CR<Node<N, K, V, M>> lastPending() const {
+    Node<N, K, V, M> const& lastPending() const {
         return nodes.at(pendingTrees.back());
     }
 
     /// \brief Return reference to the node *object* at specified ID
-    Node<N, K, V, M>&    at(Id id) { return nodes.at(id); }
-    CR<Node<N, K, V, M>> at(Id id) const { return nodes.at(id); }
-    Token<K, V>&         at(TokenId<K, V> id) {
+    Node<N, K, V, M>&       at(Id id) { return nodes.at(id); }
+    Node<N, K, V, M> const& at(Id id) const { return nodes.at(id); }
+    Token<K, V>&            at(TokenId<K, V> id) {
         assert(notNil(tokens));
         return tokens->at(id);
     }
 
-    CR<Token<K, V>> at(TokenId<K, V> id) const {
+    Token<K, V> const& at(TokenId<K, V> id) const {
         assert(notNil(tokens));
         return tokens->at(id);
     }
@@ -258,8 +226,8 @@ struct NodeGroup {
 
     class iterator {
       public:
-        Id            id;
-        CP<NodeGroup> group;
+        Id               id;
+        NodeGroup const* group;
 
       public:
         typedef std::forward_iterator_tag iterator_category;
@@ -268,7 +236,8 @@ struct NodeGroup {
         typedef Id&                       reference;
         typedef std::ptrdiff_t            difference_type;
 
-        iterator(Id _id, CP<NodeGroup> _group) : id(_id), group(_group) {}
+        iterator(Id _id, NodeGroup const* _group)
+            : id(_id), group(_group) {}
 
         Id operator*() const {
             check();
@@ -308,14 +277,14 @@ struct NodeGroup {
     ///     call_(*begin);
     /// }
     /// ```
-    Opt<Pair<iterator, iterator>> subnodesOf(Id node) const;
+    hstd::Opt<hstd::Pair<iterator, iterator>> subnodesOf(Id node) const;
 
     /// \brief Get ID slice over all subnodes that are places 'in' a
     /// specific node. For nodes without any nested elements returns empty
     /// option as `Slice` type is not intended to provde 'zero-size' ranges
     /// -- it always has the first and the last element, in some cases they
     /// might be equal, but that's all
-    Opt<Slice<Id>> allSubnodesOf(Id node) const;
+    hstd::Opt<hstd::Slice<Id>> allSubnodesOf(Id node) const;
 
     /// \brief Get closest left node that contains \arg node in its full
     /// extent.
@@ -343,50 +312,34 @@ struct NodeGroup {
         };
 
         struct WriteParams {
-            ColStream& os;
-            Id         current;
-            WritePos   pos;
-            Opt<int>   subnodeIdx;
-            int        level;
-            Opt<Id>    parent;
+            hstd::ColStream& os;
+            Id               current;
+            WritePos         pos;
+            hstd::Opt<int>   subnodeIdx;
+            int              level;
+            hstd::Opt<Id>    parent;
         };
 
-        Func<void(WriteParams const& params)> customWrite;
+        hstd::Func<void(WriteParams const& params)> customWrite;
     };
 
     void lispRepr(
-        std::ostream&    os,
-        Id               node,
-        CR<TreeReprConf> conf = TreeReprConf()) const;
+        std::ostream&       os,
+        Id                  node,
+        TreeReprConf const& conf = TreeReprConf()) const;
 
 
     void treeRepr(
-        ColStream&       os,
-        Id               node,
-        int              level,
-        CR<TreeReprConf> conf       = TreeReprConf(),
-        int              subnodeIdx = 0,
-        Opt<Id>          parent     = std::nullopt) const;
+        hstd::ColStream&    os,
+        Id                  node,
+        int                 level,
+        TreeReprConf const& conf       = TreeReprConf(),
+        int                 subnodeIdx = 0,
+        hstd::Opt<Id>       parent     = std::nullopt) const;
 
-    std::string treeRepr(Id node, CR<TreeReprConf> conf = TreeReprConf())
-        const;
-};
-
-
-template <typename N, typename K, typename V, typename M>
-struct std::formatter<Node<N, K, V, M>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(const Node<N, K, V, M>& p, FormatContext& ctx) const {
-        fmt_ctx("{", ctx);
-        fmt_ctx(p.kind, ctx);
-        if (p.isTerminal()) {
-            fmt_ctx(p.getToken(), ctx);
-        } else {
-            fmt_ctx(p.getExtent(), ctx);
-        }
-
-        return fmt_ctx("}", ctx);
-    }
+    std::string treeRepr(
+        Id                  node,
+        TreeReprConf const& conf = TreeReprConf()) const;
 };
 
 
@@ -412,7 +365,7 @@ struct NodeAdapter {
     M const  getMono() const { return group->at(id).getMono(); }
     bool isNonTerminal() const { return group->at(id).isNonTerminal(); }
 
-    CR<Node<N, K, V, M>> get() const { return group->at(id); }
+    Node<N, K, V, M> const& get() const { return group->at(id); }
 
 
     NodeAdapter<N, K, V, M>(
@@ -442,30 +395,30 @@ struct NodeAdapter {
 
 
     void treeRepr(
-        ColStream&                                       os,
-        int                                              level = 0,
-        CR<typename NodeGroup<N, K, V, M>::TreeReprConf> conf =
+        hstd::ColStream&                                    os,
+        int                                                 level = 0,
+        typename NodeGroup<N, K, V, M>::TreeReprConf const& conf =
             typename NodeGroup<N, K, V, M>::TreeReprConf()) const {
         group->treeRepr(os, id, level, conf);
     }
 
     std::string treeRepr(bool colored = true) const {
         std::stringstream buffer;
-        ColStream         text{buffer};
+        hstd::ColStream   text{buffer};
         text.colored = colored;
         treeRepr(text);
         return buffer.str();
     }
 
-    generator<NodeAdapter<N, K, V, M>> items() {
+    hstd::generator<NodeAdapter<N, K, V, M>> items() {
         for (int i = 0; i < group->size(id); ++i) {
             co_yield this->operator[](i);
         }
     }
 
     template <typename H, typename L>
-    Vec<NodeAdapter<N, K, V, M>> at(HSlice<H, L> range) {
-        Vec<NodeAdapter<N, K, V, M>> result;
+    hstd::Vec<NodeAdapter<N, K, V, M>> at(hstd::HSlice<H, L> range) {
+        hstd::Vec<NodeAdapter<N, K, V, M>> result;
         const auto [start, end] = getSpan(group->size(id), range, true);
         for (const auto& i : slice(start, end)) {
             result.push_back(this->operator[](i));
@@ -525,5 +478,63 @@ struct NodeAdapter {
 
     iterator end() const {
         return iterator(group->end(id + group->at(id).getExtent()));
+    }
+};
+
+} // namespace org::parse
+
+
+template <typename N, typename K, typename IdBase, typename MaskType>
+struct hstd::value_domain<org::parse::NodeId<N, K, IdBase, MaskType>> {
+    using ID = org::parse::NodeId<N, K, IdBase, MaskType>;
+    static ID succ(ID id) {
+        ++id;
+        return id;
+    }
+};
+
+
+template <typename N, typename K, typename V, typename M>
+struct std::formatter<org::parse::NodeId<N, K, V, M>>
+    : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(
+        const org::parse::NodeId<N, K, V, M>& p,
+        FormatContext&                        ctx) const {
+        std::formatter<std::string> fmt;
+        return fmt.format(
+            p.format(std::format(
+                "NodeId<{}>", hstd::demangle(typeid(N).name()))),
+            ctx);
+    }
+};
+
+
+template <>
+struct std::formatter<std::monostate> : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(
+        const std::monostate& p,
+        FormatContext&        ctx) const {
+        std::formatter<std::string> fmt;
+        return fmt_ctx("<std::monostate>", ctx);
+    }
+};
+
+template <typename N, typename K, typename V, typename M>
+struct std::formatter<org::parse::Node<N, K, V, M>>
+    : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const org::parse::Node<N, K, V, M>& p, FormatContext& ctx)
+        const {
+        fmt_ctx("{", ctx);
+        fmt_ctx(p.kind, ctx);
+        if (p.isTerminal()) {
+            fmt_ctx(p.getToken(), ctx);
+        } else {
+            fmt_ctx(p.getExtent(), ctx);
+        }
+
+        return fmt_ctx("}", ctx);
     }
 };

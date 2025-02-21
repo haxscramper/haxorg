@@ -6,6 +6,9 @@
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Set.hpp>
 
+using namespace hstd::ext;
+using namespace hstd;
+
 Characters Config::unicode() {
     return Characters{
         .hbar       = Str("─"),

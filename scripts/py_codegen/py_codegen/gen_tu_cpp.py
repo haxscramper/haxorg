@@ -273,12 +273,12 @@ class GenConverter:
 
     def convertStruct(self, record: GenTuStruct) -> BlockId:
         params = RecordParams(
-            name=record.name.name,
+            name=record.name,
             doc=self.convertDoc(record.doc),
             bases=record.bases,
         )
 
-        with GenConverterWithContext(self, QualType.ForName(record.name.name)):
+        with GenConverterWithContext(self, record.name):
             for type in record.nested:
                 for sub in self.convert(type):
                     params.nested.append(sub)
@@ -453,7 +453,7 @@ class GenConverter:
 
             if isToplevel:
                 Domain = RecordParams(
-                    name="value_domain",
+                    name=QualType(name="value_domain", Spaces=[n_hstd()]),
                     doc=DocParams(""),
                     Template=TemplateParams.FinalSpecialization(),
                     NameParams=[entry.name],
@@ -479,7 +479,7 @@ class GenConverter:
                 ToDefininition = ToParams
 
                 Serde = RecordParams(
-                    name="enum_serde",
+                    name=QualType(name="enum_serde", Spaces=[n_hstd()]),
                     doc=DocParams(""),
                     Template=TemplateParams.FinalSpecialization(),
                     NameParams=[entry.name],

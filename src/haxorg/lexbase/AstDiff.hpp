@@ -23,7 +23,7 @@
 
 #define COUT std::cout << "[\033[33m" << __LINE__ << "\033[0m] "
 
-namespace diff {
+namespace hstd::ext::diff {
 template <int Idx, typename... Args>
 void writeIfIndex(std::ostream& os, std::variant<Args...> const& var) {
     if constexpr (Idx == 0) {
@@ -223,29 +223,35 @@ struct Node {
         return res;
     }
 };
-} // namespace diff
+} // namespace hstd::ext::diff
 
 template <>
-struct std::formatter<diff::NodeIdx> : std::formatter<std::string> {
+struct std::formatter<hstd::ext::diff::NodeIdx>
+    : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const diff::NodeIdx& p, FormatContext& ctx) const {
+    auto format(const hstd::ext::diff::NodeIdx& p, FormatContext& ctx)
+        const {
         return fmt_ctx(p.Offset, ctx);
     }
 };
 
 
 template <>
-struct std::formatter<diff::NodeStore::Id> : std::formatter<std::string> {
+struct std::formatter<hstd::ext::diff::NodeStore::Id>
+    : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const diff::NodeStore::Id& p, FormatContext& ctx) const {
+    auto format(
+        const hstd::ext::diff::NodeStore::Id& p,
+        FormatContext&                        ctx) const {
         return fmt_ctx(p.id, ctx);
     }
 };
 
 template <>
-struct std::formatter<diff::Node> : std::formatter<std::string> {
+struct std::formatter<hstd::ext::diff::Node>
+    : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const diff::Node& p, FormatContext& ctx) {
+    auto format(const hstd::ext::diff::Node& p, FormatContext& ctx) {
         return std::format(
             "<H: {}, D: {}, S: {}, P: {}, L: {}, R: {}>",
             p.Height,
@@ -258,7 +264,7 @@ struct std::formatter<diff::Node> : std::formatter<std::string> {
 };
 
 
-namespace diff {
+namespace hstd::ext::diff {
 
 class SyntaxTree;
 
@@ -915,8 +921,8 @@ void printMapping(
     SyntaxTree const&                DstTree,
     Func<ColText(CR<NodeStore::Id>)> FormatSrcTreeValue,
     Func<ColText(CR<NodeStore::Id>)> FormatDstTreeValue);
-} // namespace diff
+} // namespace hstd::ext::diff
 
 template <>
-struct std::formatter<diff::ASTDiff*>
-    : std_format_ptr_as_hex<diff::ASTDiff> {};
+struct std::formatter<hstd::ext::diff::ASTDiff*>
+    : hstd::std_format_ptr_as_hex<hstd::ext::diff::ASTDiff> {};

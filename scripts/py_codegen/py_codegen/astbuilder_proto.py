@@ -697,7 +697,7 @@ class ProtoBuilder():
 
                 result.append((
                     cpp.RecordParams(
-                        name="proto_serde",
+                        name=cpp.QualType(name="proto_serde"),
                         doc=cpp.DocParams(""),
                         NameParams=[proto_param_type, org_param_type],
                         members=[

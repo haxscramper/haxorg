@@ -1,6 +1,6 @@
 #include "AstDiff.hpp"
 
-using namespace diff;
+using namespace hstd::ext::diff;
 
 /// Sets Height, Parent and Subnodes for each node.
 struct PreorderVisitor {
@@ -17,10 +17,10 @@ struct PreorderVisitor {
     std::tuple<NodeIdx, NodeIdx> PreTraverse(NodeStore::Id const& node) {
         NodeIdx MyId = id;
         Tree.Nodes.emplace_back(store);
-        diff::Node& N = Tree.getMutableNode(MyId);
-        N.Parent      = Parent;
-        N.Depth       = Depth;
-        N.ASTNode     = node;
+        hstd::ext::diff::Node& N = Tree.getMutableNode(MyId);
+        N.Parent                 = Parent;
+        N.Depth                  = Depth;
+        N.ASTNode                = node;
 
         if (Parent.isValid()) {
             diff::Node& P = Tree.getMutableNode(Parent);
