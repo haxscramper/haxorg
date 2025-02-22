@@ -152,7 +152,7 @@ def get_imm_serde(types: List[GenTuStruct], ast: ASTBuilder) -> List[GenTuPass]:
                     return
 
                 sem_type = it.name
-                respace = it.name.flatQualSpaces()[2:] + [it.name.withoutAllSpaces()]
+                respace = it.name.flatQualScope()[2:] + [it.name.withoutAllScopeQualifiers()]
                 respace[0].name = "Imm" + respace[0].name
                 respace = [n_imm()] + respace
                 imm_type = respace[-1].model_copy(update=dict(Spaces=respace[:-1]))
@@ -747,33 +747,31 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
                 obj.name = "ImmIdT"
                 obj.Spaces = [ORG_SPACE]
 
-            case QualType(meta={"isOrgType": True}):
-                if len(obj.Spaces) == 0:
-                    obj.name = "Imm" + obj.name
+            # case QualType(meta={"isOrgType": True}):
+            #     if len(obj.Spaces) == 0:
+            #         obj.name = "Imm" + obj.name
 
-                elif len(obj.Spaces) == 1:
-                    obj.name = "Imm" + obj.name
-                    obj.Spaces = [ORG_SPACE]
+            #     elif len(obj.Spaces) == 1:
+            #         obj.name = "Imm" + obj.name
+            #         obj.Spaces = [ORG_SPACE]
 
-                else:
-                    spaces = obj.flatQualSpaces() + [obj.withoutAllSpaces()]
-                    # obj.dbg_origin = "{} - - > {}".format(obj.format(),
-                    #                                       [s.format() for s in spaces])
-                    obj.Spaces = [
-                        ORG_SPACE,
-                        spaces[1].model_copy(update=dict(name="Imm" + spaces[1].name)),
-                        *(spaces[2:-1] if 1 < len(spaces) else []),
-                    ]
+            #     else:
+            #         spaces = obj.flatQualScope() + [obj.withoutAllScopeQualifiers()]
+            #         obj.Spaces = [
+            #             ORG_SPACE,
+            #             spaces[1].model_copy(update=dict(name="Imm" + spaces[1].name)),
+            #             *(spaces[2:-1] if 1 < len(spaces) else []),
+            #         ]
 
-            case QualType(name=TypeName,
-                          Spaces=[QualType(name="sem")]) if "Id" not in TypeName:
-                match obj:
-                    case QualType(meta={"isOrgType": False}):
-                        pass
+            # case QualType(name=TypeName,
+            #               Spaces=[QualType(name="sem")]) if "Id" not in TypeName:
+            #     match obj:
+            #         case QualType(meta={"isOrgType": False}):
+            #             pass
 
-                    case _:
-                        obj.name = "Imm" + obj.name
-                        obj.Spaces = [ORG_SPACE]
+            #         case _:
+            #             obj.name = "Imm" + obj.name
+            #             obj.Spaces = [ORG_SPACE]
 
             case QualType(name="Vec"):
                 obj.name = "ImmVec"
@@ -782,6 +780,28 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
             case QualType(name="UnorderedMap"):
                 obj.name = "ImmMap"
                 obj.Spaces = [n_hstd_ext()]
+
+            case _:
+                flat_namespace = obj.flatQualFullName()
+                match flat_namespace:
+                    case [QualType(name="org"), QualType(name="sem"), *rest]:
+                        if 0 < len(rest):
+                            # log(CAT).info(f"{obj} {rest}")
+                            obj = QualType(name="Imm" + rest[0].name, Spaces=[ORG_SPACE, *(rest[1:] if 1 < len(rest) else [])])
+
+                    case _:
+                        log(CAT).info(f"{flat_namespace}")
+                        # obj = res
+
+                        # if 1 < len(rest):
+                        #     obj.name = rest[-1].name
+                        #     obj.Spaces[1].name = "Imm" + obj.Spaces[1].name
+                        #     obj.dbg_origin += f"org sem qual name 1 {flat_namespace}"
+
+                        # else:
+                        #     obj.name = "Imm" + rest[-1].name
+                        #     obj.dbg_origin += f"org sem qual name 2 {flat_namespace}"
+
 
     def impl(obj: Any):
         match obj:
@@ -924,7 +944,7 @@ def collect_pyhaxorg_typename_groups(types: List[GenTuStruct]) -> PyhaxorgTypena
     def aux(it):
         match it:
             case GenTuStruct() | GenTuEnum():
-                flat = it.name.flatQualSpaces() + [it.name.withoutAllSpaces()]
+                flat = it.name.flatQualScope() + [it.name.withoutAllScopeQualifiers()]
                 without_namespaces = [i for i in range(len(flat)) if not flat[i].isNamespace]
                 # log(CAT).info(f"{it.name} {flat} {name_start} {without_namespaces}")
                 name_start = without_namespaces[0]

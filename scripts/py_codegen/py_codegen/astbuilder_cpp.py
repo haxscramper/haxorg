@@ -12,7 +12,7 @@ import itertools
 
 from py_textlayout.py_textlayout_wrap import BlockId, TextLayout
 
-DEBUG_TYPE_ORIGIN = False
+DEBUG_TYPE_ORIGIN = True
 
 
 class QualTypeKind(str, Enum):
@@ -80,7 +80,7 @@ class QualType(BaseModel, extra="forbid"):
         return QualType(expr=expr, Kind=QualTypeKind.TypeExpr, **args)
 
     def flatten(self) -> "QualType":
-        return self.model_copy(update=dict(Spaces=self.flatQualSpaces()))
+        return self.model_copy(update=dict(Spaces=self.flatQualScope()))
 
     def withDbgOrigin(self, msg: str) -> "QualType":
         return self.model_copy(update=dict(dbg_origin=self.dbg_origin + msg))
@@ -91,13 +91,21 @@ class QualType(BaseModel, extra="forbid"):
     def asRef(self) -> 'QualType':
         return self.model_copy(update=dict(isConst=False, RefKind=ReferenceKind.LValue))
 
-    def flatQualSpaces(self) -> List["QualType"]:
+    def flatQualScope(self) -> List["QualType"]:
+        "Flatten fully qualified name for the type"
 
         def aux(it: QualType) -> List[QualType]:
-            return list(
-                itertools.chain(*(aux(s) for s in it.Spaces))) + [it.withoutAllSpaces()]
+            return list(itertools.chain(
+                *(aux(s) for s in it.Spaces))) + [it.withoutAllScopeQualifiers()]
 
         return list(itertools.chain(*(aux(s) for s in self.Spaces)))
+
+    def flatQualFullName(self) -> List["QualType"]:
+        return self.flatQualScope() + [self.withoutAllScopeQualifiers()]
+
+    def flatQualNameNoNamespace(self) -> List["QualType"]:
+        "Return qualified name for the type, dropping all namespace parents (but leaving non-namespaces)"
+        return [it for it in self.flatQualScope() if not it.isNamespace]
 
     def asPtr(self, ptrCount: int = 1) -> 'QualType':
         return self.model_copy(update=dict(ptrCount=ptrCount))
@@ -105,11 +113,12 @@ class QualType(BaseModel, extra="forbid"):
     def withGlobalSpace(self) -> 'QualType':
         return self.model_copy(update=dict(isGlobalNamespace=True))
 
-    def flatSpaces(self) -> List[str]:
+    def flatSpaceNames(self) -> List[str]:
+        "Get flat list of names for fully qualified type"
         return [S.name for S in self.Spaces]
 
     def flatQualName(self) -> List[str]:
-        return self.flatSpaces() + [self.name]
+        return self.flatSpaceNames() + [self.name]
 
     def asSpaceFor(self, other: 'QualType') -> 'QualType':
         return other.model_copy(update=dict(
@@ -139,7 +148,7 @@ class QualType(BaseModel, extra="forbid"):
         return flat.model_copy(update=dict(
             Spaces=[S for S in flat.Spaces if S.name != name]))
 
-    def withoutAllSpaces(self) -> 'QualType':
+    def withoutAllScopeQualifiers(self) -> 'QualType':
         return self.model_copy(update=dict(Spaces=[]))
 
     def withChangedSpace(self, name: Union['QualType', str]) -> 'QualType':
@@ -200,38 +209,42 @@ class QualType(BaseModel, extra="forbid"):
 
         origin = f"FROM:[{self.dbg_origin}]" if dbgOrigin else ""
 
-        spaces = "".join([S.format(dbgOrigin) + "::" for S in self.Spaces])
-        if spaces:
-            spaces = f"[{spaces}]<<"
+        spaces = "".join([f"{S.format(dbgOrigin)}::" for S in self.Spaces])
+        # if spaces:
+        #     spaces = f"{spaces}"
 
         match self.Kind:
             case QualTypeKind.FunctionPtr:
-                return spaces + "F:[{}({})]".format(
-                    self.func.ReturnTy.format(),
-                    ", ".join([T.format(dbgOrigin) for T in self.func.Args]),
+                return "[{spaces}FUNC:[{origin}({args})]]".format(
+                    spaces=spaces,
+                    origin=self.func.ReturnTy.format(dbgOrigin),
+                    args=", ".join([T.format(dbgOrigin) for T in self.func.Args]),
                 )
 
             case QualTypeKind.Array:
-                return spaces + "A:[{first}[{expr}]{cvref}{origin}]".format(
+                return "[{spaces}ARR:[{first}[{expr}]{cvref}{origin}]]".format(
                     first=self.Parameters[0].format(dbgOrigin),
                     expr=self.Parameters[1].format(dbgOrigin)
                     if 1 < len(self.Parameters) else "",
                     cvref=cvref,
                     origin=origin,
+                    spaces=spaces,
                 )
 
             case QualTypeKind.RegularType:
-                return spaces + "R:[{name}{args}{cvref}{origin}]{namespace}".format(
-                    name=self.name,
-                    args=("<" + ", ".join([T.format() for T in self.Parameters]) +
-                          ">") if self.Parameters else "",
+                return spaces + "[{spaces}REC:({name}{args}{cvref}{origin})]".format(
+                    name=self.name or "?",
+                    args="<{}>".format(", ".join(
+                        [T.format(dbgOrigin)
+                         for T in self.Parameters])) if self.Parameters else "",
                     cvref=cvref,
                     origin=origin,
-                    namespace=("NSP" if self.isNamespace else ""),
+                    spaces=spaces,
+                    # namespace=("NSP" if self.isNamespace else ""),
                 )
 
             case QualTypeKind.TypeExpr:
-                return f"E:{self.expr}"
+                return f"[E:{self.expr}]"
 
             case _:
                 assert False, self.Kind

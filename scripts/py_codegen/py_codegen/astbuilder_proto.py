@@ -282,7 +282,7 @@ class ProtoBuilder():
 
                 else:
                     result = typ.model_copy(update=dict(Parameters=aux_parameters(typ)))
-                    if "sem" in result.flatSpaces() or typ.name in [
+                    if "sem" in result.flatSpaceNames() or typ.name in [
                             "UserTime", "LineCol"
                     ]:
                         result = result.withoutSpace("sem").withExtraSpace("orgproto")
@@ -498,7 +498,7 @@ class ProtoBuilder():
                 Expr=t.line([dot_write, t.text(".index()")]))
 
             if is_typedef:
-                kind_type = proto_type.asSpaceFor(field.type.withoutAllSpaces())
+                kind_type = proto_type.asSpaceFor(field.type.withoutAllScopeQualifiers())
 
             else:
                 kind_type = proto_type
@@ -582,7 +582,7 @@ class ProtoBuilder():
         typ: tu.QualType,
     ) -> Iterable[tu.GenTuField]:
         return (tu.GenTuField(
-            name=self.rewrite_for_proto_grammar(sub.withoutAllSpaces()).lower().replace(
+            name=self.rewrite_for_proto_grammar(sub.withoutAllScopeQualifiers()).lower().replace(
                 " ", "_"),
             type=sub,
         ) for sub in typ.Parameters)
