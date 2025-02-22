@@ -24,7 +24,7 @@ struct Tblfm {
                                (),
                                (index))
           int index;
-          bool operator==(sem::Tblfm::Expr::AxisRef::Position::Index const& other) const;
+          bool operator==(org::sem::Tblfm::Expr::AxisRef::Position::Index const& other) const;
         };
 
         struct Name {
@@ -35,30 +35,30 @@ struct Tblfm {
                                (),
                                (name))
           hstd::Str name = "";
-          bool operator==(sem::Tblfm::Expr::AxisRef::Position::Name const& other) const;
+          bool operator==(org::sem::Tblfm::Expr::AxisRef::Position::Name const& other) const;
         };
 
-        using Data = std::variant<sem::Tblfm::Expr::AxisRef::Position::Index, sem::Tblfm::Expr::AxisRef::Position::Name>;
+        using Data = std::variant<org::sem::Tblfm::Expr::AxisRef::Position::Index, org::sem::Tblfm::Expr::AxisRef::Position::Name>;
         enum class Kind : short int { Index, Name, };
         BOOST_DESCRIBE_NESTED_ENUM(Kind, Index, Name)
-        using variant_enum_type = sem::Tblfm::Expr::AxisRef::Position::Kind;
-        using variant_data_type = sem::Tblfm::Expr::AxisRef::Position::Data;
+        using variant_enum_type = org::sem::Tblfm::Expr::AxisRef::Position::Kind;
+        using variant_data_type = org::sem::Tblfm::Expr::AxisRef::Position::Data;
         Position () {}
         BOOST_DESCRIBE_CLASS(Position,
                              (),
                              (),
                              (),
                              (data))
-        sem::Tblfm::Expr::AxisRef::Position::Data data;
-        bool operator==(sem::Tblfm::Expr::AxisRef::Position const& other) const;
+        org::sem::Tblfm::Expr::AxisRef::Position::Data data;
+        bool operator==(org::sem::Tblfm::Expr::AxisRef::Position const& other) const;
         bool isIndex() const { return getKind() == Kind::Index; }
-        sem::Tblfm::Expr::AxisRef::Position::Index const& getIndex() const { return std::get<0>(data); }
-        sem::Tblfm::Expr::AxisRef::Position::Index& getIndex() { return std::get<0>(data); }
+        org::sem::Tblfm::Expr::AxisRef::Position::Index const& getIndex() const { return std::get<0>(data); }
+        org::sem::Tblfm::Expr::AxisRef::Position::Index& getIndex() { return std::get<0>(data); }
         bool isName() const { return getKind() == Kind::Name; }
-        sem::Tblfm::Expr::AxisRef::Position::Name const& getName() const { return std::get<1>(data); }
-        sem::Tblfm::Expr::AxisRef::Position::Name& getName() { return std::get<1>(data); }
-        static sem::Tblfm::Expr::AxisRef::Position::Kind getKind(sem::Tblfm::Expr::AxisRef::Position::Data const& __input) { return static_cast<sem::Tblfm::Expr::AxisRef::Position::Kind>(__input.index()); }
-        sem::Tblfm::Expr::AxisRef::Position::Kind getKind() const { return getKind(data); }
+        org::sem::Tblfm::Expr::AxisRef::Position::Name const& getName() const { return std::get<1>(data); }
+        org::sem::Tblfm::Expr::AxisRef::Position::Name& getName() { return std::get<1>(data); }
+        static org::sem::Tblfm::Expr::AxisRef::Position::Kind getKind(org::sem::Tblfm::Expr::AxisRef::Position::Data const& __input) { return static_cast<org::sem::Tblfm::Expr::AxisRef::Position::Kind>(__input.index()); }
+        org::sem::Tblfm::Expr::AxisRef::Position::Kind getKind() const { return getKind(data); }
       };
 
       BOOST_DESCRIBE_CLASS(AxisRef,
@@ -66,9 +66,9 @@ struct Tblfm {
                            (),
                            (),
                            (col, row))
-      sem::Tblfm::Expr::AxisRef::Position col;
-      hstd::Opt<sem::Tblfm::Expr::AxisRef::Position> row = std::nullopt;
-      bool operator==(sem::Tblfm::Expr::AxisRef const& other) const;
+      org::sem::Tblfm::Expr::AxisRef::Position col;
+      hstd::Opt<org::sem::Tblfm::Expr::AxisRef::Position> row = std::nullopt;
+      bool operator==(org::sem::Tblfm::Expr::AxisRef const& other) const;
     };
 
     struct AxisName {
@@ -78,7 +78,7 @@ struct Tblfm {
                            (),
                            (name))
       hstd::Str name = "";
-      bool operator==(sem::Tblfm::Expr::AxisName const& other) const;
+      bool operator==(org::sem::Tblfm::Expr::AxisName const& other) const;
     };
 
     struct IntLiteral {
@@ -88,7 +88,7 @@ struct Tblfm {
                            (),
                            (value))
       int value;
-      bool operator==(sem::Tblfm::Expr::IntLiteral const& other) const;
+      bool operator==(org::sem::Tblfm::Expr::IntLiteral const& other) const;
     };
 
     struct FloatLiteral {
@@ -98,7 +98,7 @@ struct Tblfm {
                            (),
                            (value))
       float value;
-      bool operator==(sem::Tblfm::Expr::FloatLiteral const& other) const;
+      bool operator==(org::sem::Tblfm::Expr::FloatLiteral const& other) const;
     };
 
     struct RangeRef {
@@ -107,9 +107,9 @@ struct Tblfm {
                            (),
                            (),
                            (first, last))
-      hstd::Opt<sem::Tblfm::Expr::AxisRef> first = std::nullopt;
-      hstd::Opt<sem::Tblfm::Expr::AxisRef> last = std::nullopt;
-      bool operator==(sem::Tblfm::Expr::RangeRef const& other) const;
+      hstd::Opt<org::sem::Tblfm::Expr::AxisRef> first = std::nullopt;
+      hstd::Opt<org::sem::Tblfm::Expr::AxisRef> last = std::nullopt;
+      bool operator==(org::sem::Tblfm::Expr::RangeRef const& other) const;
     };
 
     struct Call {
@@ -119,8 +119,8 @@ struct Tblfm {
                            (),
                            (name, args))
       hstd::Str name = "";
-      hstd::Vec<sem::Tblfm::Expr> args = {};
-      bool operator==(sem::Tblfm::Expr::Call const& other) const;
+      hstd::Vec<org::sem::Tblfm::Expr> args = {};
+      bool operator==(org::sem::Tblfm::Expr::Call const& other) const;
     };
 
     struct Elisp {
@@ -130,44 +130,44 @@ struct Tblfm {
                            (),
                            (value))
       hstd::Str value = "";
-      bool operator==(sem::Tblfm::Expr::Elisp const& other) const;
+      bool operator==(org::sem::Tblfm::Expr::Elisp const& other) const;
     };
 
-    using Data = std::variant<sem::Tblfm::Expr::AxisRef, sem::Tblfm::Expr::AxisName, sem::Tblfm::Expr::IntLiteral, sem::Tblfm::Expr::FloatLiteral, sem::Tblfm::Expr::RangeRef, sem::Tblfm::Expr::Call, sem::Tblfm::Expr::Elisp>;
+    using Data = std::variant<org::sem::Tblfm::Expr::AxisRef, org::sem::Tblfm::Expr::AxisName, org::sem::Tblfm::Expr::IntLiteral, org::sem::Tblfm::Expr::FloatLiteral, org::sem::Tblfm::Expr::RangeRef, org::sem::Tblfm::Expr::Call, org::sem::Tblfm::Expr::Elisp>;
     enum class Kind : short int { AxisRef, AxisName, IntLiteral, FloatLiteral, RangeRef, Call, Elisp, };
     BOOST_DESCRIBE_NESTED_ENUM(Kind, AxisRef, AxisName, IntLiteral, FloatLiteral, RangeRef, Call, Elisp)
-    using variant_enum_type = sem::Tblfm::Expr::Kind;
-    using variant_data_type = sem::Tblfm::Expr::Data;
+    using variant_enum_type = org::sem::Tblfm::Expr::Kind;
+    using variant_data_type = org::sem::Tblfm::Expr::Data;
     BOOST_DESCRIBE_CLASS(Expr,
                          (),
                          (),
                          (),
                          (data))
-    sem::Tblfm::Expr::Data data;
-    bool operator==(sem::Tblfm::Expr const& other) const;
+    org::sem::Tblfm::Expr::Data data;
+    bool operator==(org::sem::Tblfm::Expr const& other) const;
     bool isAxisRef() const { return getKind() == Kind::AxisRef; }
-    sem::Tblfm::Expr::AxisRef const& getAxisRef() const { return std::get<0>(data); }
-    sem::Tblfm::Expr::AxisRef& getAxisRef() { return std::get<0>(data); }
+    org::sem::Tblfm::Expr::AxisRef const& getAxisRef() const { return std::get<0>(data); }
+    org::sem::Tblfm::Expr::AxisRef& getAxisRef() { return std::get<0>(data); }
     bool isAxisName() const { return getKind() == Kind::AxisName; }
-    sem::Tblfm::Expr::AxisName const& getAxisName() const { return std::get<1>(data); }
-    sem::Tblfm::Expr::AxisName& getAxisName() { return std::get<1>(data); }
+    org::sem::Tblfm::Expr::AxisName const& getAxisName() const { return std::get<1>(data); }
+    org::sem::Tblfm::Expr::AxisName& getAxisName() { return std::get<1>(data); }
     bool isIntLiteral() const { return getKind() == Kind::IntLiteral; }
-    sem::Tblfm::Expr::IntLiteral const& getIntLiteral() const { return std::get<2>(data); }
-    sem::Tblfm::Expr::IntLiteral& getIntLiteral() { return std::get<2>(data); }
+    org::sem::Tblfm::Expr::IntLiteral const& getIntLiteral() const { return std::get<2>(data); }
+    org::sem::Tblfm::Expr::IntLiteral& getIntLiteral() { return std::get<2>(data); }
     bool isFloatLiteral() const { return getKind() == Kind::FloatLiteral; }
-    sem::Tblfm::Expr::FloatLiteral const& getFloatLiteral() const { return std::get<3>(data); }
-    sem::Tblfm::Expr::FloatLiteral& getFloatLiteral() { return std::get<3>(data); }
+    org::sem::Tblfm::Expr::FloatLiteral const& getFloatLiteral() const { return std::get<3>(data); }
+    org::sem::Tblfm::Expr::FloatLiteral& getFloatLiteral() { return std::get<3>(data); }
     bool isRangeRef() const { return getKind() == Kind::RangeRef; }
-    sem::Tblfm::Expr::RangeRef const& getRangeRef() const { return std::get<4>(data); }
-    sem::Tblfm::Expr::RangeRef& getRangeRef() { return std::get<4>(data); }
+    org::sem::Tblfm::Expr::RangeRef const& getRangeRef() const { return std::get<4>(data); }
+    org::sem::Tblfm::Expr::RangeRef& getRangeRef() { return std::get<4>(data); }
     bool isCall() const { return getKind() == Kind::Call; }
-    sem::Tblfm::Expr::Call const& getCall() const { return std::get<5>(data); }
-    sem::Tblfm::Expr::Call& getCall() { return std::get<5>(data); }
+    org::sem::Tblfm::Expr::Call const& getCall() const { return std::get<5>(data); }
+    org::sem::Tblfm::Expr::Call& getCall() { return std::get<5>(data); }
     bool isElisp() const { return getKind() == Kind::Elisp; }
-    sem::Tblfm::Expr::Elisp const& getElisp() const { return std::get<6>(data); }
-    sem::Tblfm::Expr::Elisp& getElisp() { return std::get<6>(data); }
-    static sem::Tblfm::Expr::Kind getKind(sem::Tblfm::Expr::Data const& __input) { return static_cast<sem::Tblfm::Expr::Kind>(__input.index()); }
-    sem::Tblfm::Expr::Kind getKind() const { return getKind(data); }
+    org::sem::Tblfm::Expr::Elisp const& getElisp() const { return std::get<6>(data); }
+    org::sem::Tblfm::Expr::Elisp& getElisp() { return std::get<6>(data); }
+    static org::sem::Tblfm::Expr::Kind getKind(org::sem::Tblfm::Expr::Data const& __input) { return static_cast<org::sem::Tblfm::Expr::Kind>(__input.index()); }
+    org::sem::Tblfm::Expr::Kind getKind() const { return getKind(data); }
   };
 
   struct Assign {
@@ -210,10 +210,10 @@ struct Tblfm {
                          (),
                          (),
                          (target, expr, flags))
-    sem::Tblfm::Expr::AxisRef target;
-    hstd::Vec<sem::Tblfm::Expr> expr = {};
-    hstd::Vec<sem::Tblfm::Assign::Flag> flags = {};
-    bool operator==(sem::Tblfm::Assign const& other) const;
+    org::sem::Tblfm::Expr::AxisRef target;
+    hstd::Vec<org::sem::Tblfm::Expr> expr = {};
+    hstd::Vec<org::sem::Tblfm::Assign::Flag> flags = {};
+    bool operator==(org::sem::Tblfm::Assign const& other) const;
   };
 
   BOOST_DESCRIBE_CLASS(Tblfm,
@@ -221,8 +221,8 @@ struct Tblfm {
                        (),
                        (),
                        (exprs))
-  hstd::Vec<sem::Tblfm::Assign> exprs = {};
-  bool operator==(sem::Tblfm const& other) const;
+  hstd::Vec<org::sem::Tblfm::Assign> exprs = {};
+  bool operator==(org::sem::Tblfm const& other) const;
 };
 
 struct AttrValue {
@@ -246,7 +246,7 @@ struct AttrValue {
   hstd::Opt<int> getInt() const;
   hstd::Str getString() const;
   hstd::Opt<double> getDouble() const;
-  bool operator==(sem::AttrValue const& other) const;
+  bool operator==(org::sem::AttrValue const& other) const;
 };
 
 struct HashTagFlat {
@@ -256,8 +256,8 @@ struct HashTagFlat {
                        (),
                        (tags))
   hstd::Vec<hstd::Str> tags = {};
-  bool operator==(sem::HashTagFlat const& other) const;
-  bool operator<(sem::HashTagFlat const& other) const;
+  bool operator==(org::sem::HashTagFlat const& other) const;
+  bool operator<(org::sem::HashTagFlat const& other) const;
 };
 
 /// \brief Single or nested inline hash-tag
@@ -271,12 +271,12 @@ struct HashTagText {
   /// \brief Main part of the tag
   hstd::Str head;
   /// \brief List of nested tags
-  hstd::Vec<sem::HashTagText> subtags = {};
-  bool operator==(sem::HashTagText const& other) const;
+  hstd::Vec<org::sem::HashTagText> subtags = {};
+  bool operator==(org::sem::HashTagText const& other) const;
   /// \brief Check if list of tag names is a prefix for either of the nested hash tags in this one
   bool prefixMatch(hstd::Vec<hstd::Str> const& prefix) const;
   /// \brief Get flat list of expanded hashtags
-  hstd::Vec<sem::HashTagFlat> getFlatHashes(bool withIntermediate = true) const;
+  hstd::Vec<org::sem::HashTagFlat> getFlatHashes(bool withIntermediate = true) const;
 };
 
 struct SubtreePath {
@@ -286,7 +286,7 @@ struct SubtreePath {
                        (),
                        (path))
   hstd::Vec<hstd::Str> path = {};
-  bool operator==(sem::SubtreePath const& other) const;
+  bool operator==(org::sem::SubtreePath const& other) const;
 };
 
 struct LinkTarget {
@@ -297,7 +297,7 @@ struct LinkTarget {
                          (),
                          (text))
     hstd::Str text;
-    bool operator==(sem::LinkTarget::Raw const& other) const;
+    bool operator==(org::sem::LinkTarget::Raw const& other) const;
   };
 
   struct Id {
@@ -307,7 +307,7 @@ struct LinkTarget {
                          (),
                          (text))
     hstd::Str text;
-    bool operator==(sem::LinkTarget::Id const& other) const;
+    bool operator==(org::sem::LinkTarget::Id const& other) const;
   };
 
   struct CustomId {
@@ -317,7 +317,7 @@ struct LinkTarget {
                          (),
                          (text))
     hstd::Str text;
-    bool operator==(sem::LinkTarget::CustomId const& other) const;
+    bool operator==(org::sem::LinkTarget::CustomId const& other) const;
   };
 
   struct SubtreeTitle {
@@ -326,9 +326,9 @@ struct LinkTarget {
                          (),
                          (),
                          (title, level))
-    sem::SubtreePath title;
+    org::sem::SubtreePath title;
     int level;
-    bool operator==(sem::LinkTarget::SubtreeTitle const& other) const;
+    bool operator==(org::sem::LinkTarget::SubtreeTitle const& other) const;
   };
 
   struct Person {
@@ -338,7 +338,7 @@ struct LinkTarget {
                          (),
                          (name))
     hstd::Str name;
-    bool operator==(sem::LinkTarget::Person const& other) const;
+    bool operator==(org::sem::LinkTarget::Person const& other) const;
   };
 
   struct UserProtocol {
@@ -349,7 +349,7 @@ struct LinkTarget {
                          (protocol, target))
     hstd::Str protocol;
     hstd::Str target;
-    bool operator==(sem::LinkTarget::UserProtocol const& other) const;
+    bool operator==(org::sem::LinkTarget::UserProtocol const& other) const;
   };
 
   struct Internal {
@@ -359,7 +359,7 @@ struct LinkTarget {
                          (),
                          (target))
     hstd::Str target;
-    bool operator==(sem::LinkTarget::Internal const& other) const;
+    bool operator==(org::sem::LinkTarget::Internal const& other) const;
   };
 
   struct Footnote {
@@ -369,7 +369,7 @@ struct LinkTarget {
                          (),
                          (target))
     hstd::Str target;
-    bool operator==(sem::LinkTarget::Footnote const& other) const;
+    bool operator==(org::sem::LinkTarget::Footnote const& other) const;
   };
 
   struct File {
@@ -379,7 +379,7 @@ struct LinkTarget {
                          (),
                          (file))
     hstd::Str file;
-    bool operator==(sem::LinkTarget::File const& other) const;
+    bool operator==(org::sem::LinkTarget::File const& other) const;
   };
 
   struct Attachment {
@@ -389,53 +389,53 @@ struct LinkTarget {
                          (),
                          (file))
     hstd::Str file;
-    bool operator==(sem::LinkTarget::Attachment const& other) const;
+    bool operator==(org::sem::LinkTarget::Attachment const& other) const;
   };
 
-  using Data = std::variant<sem::LinkTarget::Raw, sem::LinkTarget::Id, sem::LinkTarget::CustomId, sem::LinkTarget::SubtreeTitle, sem::LinkTarget::Person, sem::LinkTarget::UserProtocol, sem::LinkTarget::Internal, sem::LinkTarget::Footnote, sem::LinkTarget::File, sem::LinkTarget::Attachment>;
+  using Data = std::variant<org::sem::LinkTarget::Raw, org::sem::LinkTarget::Id, org::sem::LinkTarget::CustomId, org::sem::LinkTarget::SubtreeTitle, org::sem::LinkTarget::Person, org::sem::LinkTarget::UserProtocol, org::sem::LinkTarget::Internal, org::sem::LinkTarget::Footnote, org::sem::LinkTarget::File, org::sem::LinkTarget::Attachment>;
   enum class Kind : short int { Raw, Id, CustomId, SubtreeTitle, Person, UserProtocol, Internal, Footnote, File, Attachment, };
   BOOST_DESCRIBE_NESTED_ENUM(Kind, Raw, Id, CustomId, SubtreeTitle, Person, UserProtocol, Internal, Footnote, File, Attachment)
-  using variant_enum_type = sem::LinkTarget::Kind;
-  using variant_data_type = sem::LinkTarget::Data;
+  using variant_enum_type = org::sem::LinkTarget::Kind;
+  using variant_data_type = org::sem::LinkTarget::Data;
   BOOST_DESCRIBE_CLASS(LinkTarget,
                        (),
                        (),
                        (),
                        (data))
-  sem::LinkTarget::Data data;
-  bool operator==(sem::LinkTarget const& other) const;
+  org::sem::LinkTarget::Data data;
+  bool operator==(org::sem::LinkTarget const& other) const;
   bool isRaw() const { return getKind() == Kind::Raw; }
-  sem::LinkTarget::Raw const& getRaw() const { return std::get<0>(data); }
-  sem::LinkTarget::Raw& getRaw() { return std::get<0>(data); }
+  org::sem::LinkTarget::Raw const& getRaw() const { return std::get<0>(data); }
+  org::sem::LinkTarget::Raw& getRaw() { return std::get<0>(data); }
   bool isId() const { return getKind() == Kind::Id; }
-  sem::LinkTarget::Id const& getId() const { return std::get<1>(data); }
-  sem::LinkTarget::Id& getId() { return std::get<1>(data); }
+  org::sem::LinkTarget::Id const& getId() const { return std::get<1>(data); }
+  org::sem::LinkTarget::Id& getId() { return std::get<1>(data); }
   bool isCustomId() const { return getKind() == Kind::CustomId; }
-  sem::LinkTarget::CustomId const& getCustomId() const { return std::get<2>(data); }
-  sem::LinkTarget::CustomId& getCustomId() { return std::get<2>(data); }
+  org::sem::LinkTarget::CustomId const& getCustomId() const { return std::get<2>(data); }
+  org::sem::LinkTarget::CustomId& getCustomId() { return std::get<2>(data); }
   bool isSubtreeTitle() const { return getKind() == Kind::SubtreeTitle; }
-  sem::LinkTarget::SubtreeTitle const& getSubtreeTitle() const { return std::get<3>(data); }
-  sem::LinkTarget::SubtreeTitle& getSubtreeTitle() { return std::get<3>(data); }
+  org::sem::LinkTarget::SubtreeTitle const& getSubtreeTitle() const { return std::get<3>(data); }
+  org::sem::LinkTarget::SubtreeTitle& getSubtreeTitle() { return std::get<3>(data); }
   bool isPerson() const { return getKind() == Kind::Person; }
-  sem::LinkTarget::Person const& getPerson() const { return std::get<4>(data); }
-  sem::LinkTarget::Person& getPerson() { return std::get<4>(data); }
+  org::sem::LinkTarget::Person const& getPerson() const { return std::get<4>(data); }
+  org::sem::LinkTarget::Person& getPerson() { return std::get<4>(data); }
   bool isUserProtocol() const { return getKind() == Kind::UserProtocol; }
-  sem::LinkTarget::UserProtocol const& getUserProtocol() const { return std::get<5>(data); }
-  sem::LinkTarget::UserProtocol& getUserProtocol() { return std::get<5>(data); }
+  org::sem::LinkTarget::UserProtocol const& getUserProtocol() const { return std::get<5>(data); }
+  org::sem::LinkTarget::UserProtocol& getUserProtocol() { return std::get<5>(data); }
   bool isInternal() const { return getKind() == Kind::Internal; }
-  sem::LinkTarget::Internal const& getInternal() const { return std::get<6>(data); }
-  sem::LinkTarget::Internal& getInternal() { return std::get<6>(data); }
+  org::sem::LinkTarget::Internal const& getInternal() const { return std::get<6>(data); }
+  org::sem::LinkTarget::Internal& getInternal() { return std::get<6>(data); }
   bool isFootnote() const { return getKind() == Kind::Footnote; }
-  sem::LinkTarget::Footnote const& getFootnote() const { return std::get<7>(data); }
-  sem::LinkTarget::Footnote& getFootnote() { return std::get<7>(data); }
+  org::sem::LinkTarget::Footnote const& getFootnote() const { return std::get<7>(data); }
+  org::sem::LinkTarget::Footnote& getFootnote() { return std::get<7>(data); }
   bool isFile() const { return getKind() == Kind::File; }
-  sem::LinkTarget::File const& getFile() const { return std::get<8>(data); }
-  sem::LinkTarget::File& getFile() { return std::get<8>(data); }
+  org::sem::LinkTarget::File const& getFile() const { return std::get<8>(data); }
+  org::sem::LinkTarget::File& getFile() { return std::get<8>(data); }
   bool isAttachment() const { return getKind() == Kind::Attachment; }
-  sem::LinkTarget::Attachment const& getAttachment() const { return std::get<9>(data); }
-  sem::LinkTarget::Attachment& getAttachment() { return std::get<9>(data); }
-  static sem::LinkTarget::Kind getKind(sem::LinkTarget::Data const& __input) { return static_cast<sem::LinkTarget::Kind>(__input.index()); }
-  sem::LinkTarget::Kind getKind() const { return getKind(data); }
+  org::sem::LinkTarget::Attachment const& getAttachment() const { return std::get<9>(data); }
+  org::sem::LinkTarget::Attachment& getAttachment() { return std::get<9>(data); }
+  static org::sem::LinkTarget::Kind getKind(org::sem::LinkTarget::Data const& __input) { return static_cast<org::sem::LinkTarget::Kind>(__input.index()); }
+  org::sem::LinkTarget::Kind getKind() const { return getKind(data); }
 };
 
 struct SubtreeLogHead {
@@ -464,8 +464,8 @@ struct SubtreeLogHead {
     /// \brief When priority was changed
     hstd::UserTime on;
     /// \brief Which action taken
-    sem::SubtreeLogHead::Priority::Action action;
-    bool operator==(sem::SubtreeLogHead::Priority const& other) const;
+    org::sem::SubtreeLogHead::Priority::Action action;
+    bool operator==(org::sem::SubtreeLogHead::Priority const& other) const;
   };
 
   /// \brief Timestamped note
@@ -478,7 +478,7 @@ struct SubtreeLogHead {
                          (on))
     /// \brief Where log was taken
     hstd::UserTime on;
-    bool operator==(sem::SubtreeLogHead::Note const& other) const;
+    bool operator==(org::sem::SubtreeLogHead::Note const& other) const;
   };
 
   /// \brief Refiling action
@@ -492,8 +492,8 @@ struct SubtreeLogHead {
     /// \brief When the refiling happened
     hstd::UserTime on;
     /// \brief Link to the original subtree
-    sem::LinkTarget from;
-    bool operator==(sem::SubtreeLogHead::Refile const& other) const;
+    org::sem::LinkTarget from;
+    bool operator==(org::sem::SubtreeLogHead::Refile const& other) const;
   };
 
   /// \brief Clock entry `CLOCK: [2023-04-30 Sun 13:29:04]--[2023-04-30 Sun 14:51:16] => 1:22`
@@ -508,7 +508,7 @@ struct SubtreeLogHead {
     hstd::UserTime from;
     /// \brief Optional end of the clock
     hstd::Opt<hstd::UserTime> to = std::nullopt;
-    bool operator==(sem::SubtreeLogHead::Clock const& other) const;
+    bool operator==(org::sem::SubtreeLogHead::Clock const& other) const;
   };
 
   /// \brief Change of the subtree state -- `- State "WIP" from "TODO" [2023-04-30 Sun 13:29:04]`
@@ -522,7 +522,7 @@ struct SubtreeLogHead {
     hstd::Str from;
     hstd::Str to;
     hstd::UserTime on;
-    bool operator==(sem::SubtreeLogHead::State const& other) const;
+    bool operator==(org::sem::SubtreeLogHead::State const& other) const;
   };
 
   /// \brief Change of the subtree deadline
@@ -536,7 +536,7 @@ struct SubtreeLogHead {
     hstd::Opt<hstd::UserTime> from = std::nullopt;
     hstd::UserTime to;
     hstd::UserTime on;
-    bool operator==(sem::SubtreeLogHead::Deadline const& other) const;
+    bool operator==(org::sem::SubtreeLogHead::Deadline const& other) const;
   };
 
   /// \brief Change of the subtree Schedule
@@ -550,7 +550,7 @@ struct SubtreeLogHead {
     hstd::Opt<hstd::UserTime> from = std::nullopt;
     hstd::UserTime to;
     hstd::UserTime on;
-    bool operator==(sem::SubtreeLogHead::Schedule const& other) const;
+    bool operator==(org::sem::SubtreeLogHead::Schedule const& other) const;
   };
 
   /// \brief Assign tag to the subtree `- Tag "project##haxorg" Added on [2023-04-30 Sun 13:29:06]`
@@ -564,10 +564,10 @@ struct SubtreeLogHead {
     /// \brief When the log was assigned
     hstd::UserTime on;
     /// \brief Tag in question
-    sem::HashTagText tag;
+    org::sem::HashTagText tag;
     /// \brief Added/removed?
     bool added = false;
-    bool operator==(sem::SubtreeLogHead::Tag const& other) const;
+    bool operator==(org::sem::SubtreeLogHead::Tag const& other) const;
   };
 
   /// \brief Unknown subtree log entry kind
@@ -578,50 +578,50 @@ struct SubtreeLogHead {
                          (),
                          (),
                          ())
-    bool operator==(sem::SubtreeLogHead::Unknown const& other) const;
+    bool operator==(org::sem::SubtreeLogHead::Unknown const& other) const;
   };
 
-  using LogEntry = std::variant<sem::SubtreeLogHead::Priority, sem::SubtreeLogHead::Note, sem::SubtreeLogHead::Refile, sem::SubtreeLogHead::Clock, sem::SubtreeLogHead::State, sem::SubtreeLogHead::Deadline, sem::SubtreeLogHead::Schedule, sem::SubtreeLogHead::Tag, sem::SubtreeLogHead::Unknown>;
+  using LogEntry = std::variant<org::sem::SubtreeLogHead::Priority, org::sem::SubtreeLogHead::Note, org::sem::SubtreeLogHead::Refile, org::sem::SubtreeLogHead::Clock, org::sem::SubtreeLogHead::State, org::sem::SubtreeLogHead::Deadline, org::sem::SubtreeLogHead::Schedule, org::sem::SubtreeLogHead::Tag, org::sem::SubtreeLogHead::Unknown>;
   enum class Kind : short int { Priority, Note, Refile, Clock, State, Deadline, Schedule, Tag, Unknown, };
   BOOST_DESCRIBE_NESTED_ENUM(Kind, Priority, Note, Refile, Clock, State, Deadline, Schedule, Tag, Unknown)
-  using variant_enum_type = sem::SubtreeLogHead::Kind;
-  using variant_data_type = sem::SubtreeLogHead::LogEntry;
+  using variant_enum_type = org::sem::SubtreeLogHead::Kind;
+  using variant_data_type = org::sem::SubtreeLogHead::LogEntry;
   BOOST_DESCRIBE_CLASS(SubtreeLogHead,
                        (),
                        (),
                        (),
                        (log))
-  sem::SubtreeLogHead::LogEntry log = Note{};
-  bool operator==(sem::SubtreeLogHead const& other) const;
+  org::sem::SubtreeLogHead::LogEntry log = Note{};
+  bool operator==(org::sem::SubtreeLogHead const& other) const;
   bool isPriority() const { return getLogKind() == Kind::Priority; }
-  sem::SubtreeLogHead::Priority const& getPriority() const { return std::get<0>(log); }
-  sem::SubtreeLogHead::Priority& getPriority() { return std::get<0>(log); }
+  org::sem::SubtreeLogHead::Priority const& getPriority() const { return std::get<0>(log); }
+  org::sem::SubtreeLogHead::Priority& getPriority() { return std::get<0>(log); }
   bool isNote() const { return getLogKind() == Kind::Note; }
-  sem::SubtreeLogHead::Note const& getNote() const { return std::get<1>(log); }
-  sem::SubtreeLogHead::Note& getNote() { return std::get<1>(log); }
+  org::sem::SubtreeLogHead::Note const& getNote() const { return std::get<1>(log); }
+  org::sem::SubtreeLogHead::Note& getNote() { return std::get<1>(log); }
   bool isRefile() const { return getLogKind() == Kind::Refile; }
-  sem::SubtreeLogHead::Refile const& getRefile() const { return std::get<2>(log); }
-  sem::SubtreeLogHead::Refile& getRefile() { return std::get<2>(log); }
+  org::sem::SubtreeLogHead::Refile const& getRefile() const { return std::get<2>(log); }
+  org::sem::SubtreeLogHead::Refile& getRefile() { return std::get<2>(log); }
   bool isClock() const { return getLogKind() == Kind::Clock; }
-  sem::SubtreeLogHead::Clock const& getClock() const { return std::get<3>(log); }
-  sem::SubtreeLogHead::Clock& getClock() { return std::get<3>(log); }
+  org::sem::SubtreeLogHead::Clock const& getClock() const { return std::get<3>(log); }
+  org::sem::SubtreeLogHead::Clock& getClock() { return std::get<3>(log); }
   bool isState() const { return getLogKind() == Kind::State; }
-  sem::SubtreeLogHead::State const& getState() const { return std::get<4>(log); }
-  sem::SubtreeLogHead::State& getState() { return std::get<4>(log); }
+  org::sem::SubtreeLogHead::State const& getState() const { return std::get<4>(log); }
+  org::sem::SubtreeLogHead::State& getState() { return std::get<4>(log); }
   bool isDeadline() const { return getLogKind() == Kind::Deadline; }
-  sem::SubtreeLogHead::Deadline const& getDeadline() const { return std::get<5>(log); }
-  sem::SubtreeLogHead::Deadline& getDeadline() { return std::get<5>(log); }
+  org::sem::SubtreeLogHead::Deadline const& getDeadline() const { return std::get<5>(log); }
+  org::sem::SubtreeLogHead::Deadline& getDeadline() { return std::get<5>(log); }
   bool isSchedule() const { return getLogKind() == Kind::Schedule; }
-  sem::SubtreeLogHead::Schedule const& getSchedule() const { return std::get<6>(log); }
-  sem::SubtreeLogHead::Schedule& getSchedule() { return std::get<6>(log); }
+  org::sem::SubtreeLogHead::Schedule const& getSchedule() const { return std::get<6>(log); }
+  org::sem::SubtreeLogHead::Schedule& getSchedule() { return std::get<6>(log); }
   bool isTag() const { return getLogKind() == Kind::Tag; }
-  sem::SubtreeLogHead::Tag const& getTag() const { return std::get<7>(log); }
-  sem::SubtreeLogHead::Tag& getTag() { return std::get<7>(log); }
+  org::sem::SubtreeLogHead::Tag const& getTag() const { return std::get<7>(log); }
+  org::sem::SubtreeLogHead::Tag& getTag() { return std::get<7>(log); }
   bool isUnknown() const { return getLogKind() == Kind::Unknown; }
-  sem::SubtreeLogHead::Unknown const& getUnknown() const { return std::get<8>(log); }
-  sem::SubtreeLogHead::Unknown& getUnknown() { return std::get<8>(log); }
-  static sem::SubtreeLogHead::Kind getLogKind(sem::SubtreeLogHead::LogEntry const& __input) { return static_cast<sem::SubtreeLogHead::Kind>(__input.index()); }
-  sem::SubtreeLogHead::Kind getLogKind() const { return getLogKind(log); }
+  org::sem::SubtreeLogHead::Unknown const& getUnknown() const { return std::get<8>(log); }
+  org::sem::SubtreeLogHead::Unknown& getUnknown() { return std::get<8>(log); }
+  static org::sem::SubtreeLogHead::Kind getLogKind(org::sem::SubtreeLogHead::LogEntry const& __input) { return static_cast<org::sem::SubtreeLogHead::Kind>(__input.index()); }
+  org::sem::SubtreeLogHead::Kind getLogKind() const { return getLogKind(log); }
 };
 
 /// \brief Completion status of the subtree list element
@@ -637,7 +637,7 @@ struct SubtreeCompletion {
   int full = 0;
   /// \brief Use fraction or percent to display completion
   bool isPercent = false;
-  bool operator==(sem::SubtreeCompletion const& other) const;
+  bool operator==(org::sem::SubtreeCompletion const& other) const;
 };
 
 struct AttrList {
@@ -646,8 +646,8 @@ struct AttrList {
                        (),
                        (),
                        (items))
-  hstd::Vec<sem::AttrValue> items = {};
-  bool operator==(sem::AttrList const& other) const;
+  hstd::Vec<org::sem::AttrValue> items = {};
+  bool operator==(org::sem::AttrList const& other) const;
 };
 
 struct AttrGroup {
@@ -658,23 +658,23 @@ struct AttrGroup {
                        (positional,
                         named))
   /// \brief Positional arguments with no keys
-  sem::AttrList positional;
+  org::sem::AttrList positional;
   /// \brief Stored key-value mapping
-  hstd::UnorderedMap<hstd::Str, sem::AttrList> named;
-  hstd::Vec<sem::AttrValue> getFlatArgs() const;
-  hstd::Vec<sem::AttrValue> getAttrs(hstd::Opt<hstd::Str> const& key = std::nullopt) const;
-  void setNamedAttr(hstd::Str const& key, hstd::Vec<sem::AttrValue> const& attrs);
-  void setPositionalAttr(hstd::Vec<sem::AttrValue> const& items);
+  hstd::UnorderedMap<hstd::Str, org::sem::AttrList> named;
+  hstd::Vec<org::sem::AttrValue> getFlatArgs() const;
+  hstd::Vec<org::sem::AttrValue> getAttrs(hstd::Opt<hstd::Str> const& key = std::nullopt) const;
+  void setNamedAttr(hstd::Str const& key, hstd::Vec<org::sem::AttrValue> const& attrs);
+  void setPositionalAttr(hstd::Vec<org::sem::AttrValue> const& items);
   int getPositionalSize() const;
   int getNamedSize() const;
   bool isEmpty() const;
-  sem::AttrValue const& atPositional(int index) const;
-  hstd::Opt<sem::AttrValue> getPositional(int index) const;
-  sem::AttrList const& atNamed(hstd::Str const& index) const;
-  hstd::Opt<sem::AttrList> getNamed(hstd::Str const& index) const;
-  sem::AttrValue const& atFirstNamed(hstd::Str const& index) const;
-  hstd::Opt<sem::AttrValue> getFirstNamed(hstd::Str const& index) const;
-  bool operator==(sem::AttrGroup const& other) const;
+  org::sem::AttrValue const& atPositional(int index) const;
+  hstd::Opt<org::sem::AttrValue> getPositional(int index) const;
+  org::sem::AttrList const& atNamed(hstd::Str const& index) const;
+  hstd::Opt<org::sem::AttrList> getNamed(hstd::Str const& index) const;
+  org::sem::AttrValue const& atFirstNamed(hstd::Str const& index) const;
+  hstd::Opt<org::sem::AttrValue> getFirstNamed(hstd::Str const& index) const;
+  bool operator==(org::sem::AttrGroup const& other) const;
 };
 
 struct ColumnView {
@@ -687,8 +687,8 @@ struct ColumnView {
                            (),
                            (),
                            (kind))
-      sem::ColumnView::Summary::CheckboxAggregate::Kind kind;
-      bool operator==(sem::ColumnView::Summary::CheckboxAggregate const& other) const;
+      org::sem::ColumnView::Summary::CheckboxAggregate::Kind kind;
+      bool operator==(org::sem::ColumnView::Summary::CheckboxAggregate const& other) const;
     };
 
     struct MathAggregate {
@@ -699,32 +699,32 @@ struct ColumnView {
                            (),
                            (),
                            (kind, formatDigits, formatPrecision))
-      sem::ColumnView::Summary::MathAggregate::Kind kind;
+      org::sem::ColumnView::Summary::MathAggregate::Kind kind;
       hstd::Opt<int> formatDigits = std::nullopt;
       hstd::Opt<int> formatPrecision = std::nullopt;
-      bool operator==(sem::ColumnView::Summary::MathAggregate const& other) const;
+      bool operator==(org::sem::ColumnView::Summary::MathAggregate const& other) const;
     };
 
-    using Data = std::variant<sem::ColumnView::Summary::CheckboxAggregate, sem::ColumnView::Summary::MathAggregate>;
+    using Data = std::variant<org::sem::ColumnView::Summary::CheckboxAggregate, org::sem::ColumnView::Summary::MathAggregate>;
     enum class Kind : short int { CheckboxAggregate, MathAggregate, };
     BOOST_DESCRIBE_NESTED_ENUM(Kind, CheckboxAggregate, MathAggregate)
-    using variant_enum_type = sem::ColumnView::Summary::Kind;
-    using variant_data_type = sem::ColumnView::Summary::Data;
+    using variant_enum_type = org::sem::ColumnView::Summary::Kind;
+    using variant_data_type = org::sem::ColumnView::Summary::Data;
     BOOST_DESCRIBE_CLASS(Summary,
                          (),
                          (),
                          (),
                          (data))
-    sem::ColumnView::Summary::Data data;
-    bool operator==(sem::ColumnView::Summary const& other) const;
+    org::sem::ColumnView::Summary::Data data;
+    bool operator==(org::sem::ColumnView::Summary const& other) const;
     bool isCheckboxAggregate() const { return getKind() == Kind::CheckboxAggregate; }
-    sem::ColumnView::Summary::CheckboxAggregate const& getCheckboxAggregate() const { return std::get<0>(data); }
-    sem::ColumnView::Summary::CheckboxAggregate& getCheckboxAggregate() { return std::get<0>(data); }
+    org::sem::ColumnView::Summary::CheckboxAggregate const& getCheckboxAggregate() const { return std::get<0>(data); }
+    org::sem::ColumnView::Summary::CheckboxAggregate& getCheckboxAggregate() { return std::get<0>(data); }
     bool isMathAggregate() const { return getKind() == Kind::MathAggregate; }
-    sem::ColumnView::Summary::MathAggregate const& getMathAggregate() const { return std::get<1>(data); }
-    sem::ColumnView::Summary::MathAggregate& getMathAggregate() { return std::get<1>(data); }
-    static sem::ColumnView::Summary::Kind getKind(sem::ColumnView::Summary::Data const& __input) { return static_cast<sem::ColumnView::Summary::Kind>(__input.index()); }
-    sem::ColumnView::Summary::Kind getKind() const { return getKind(data); }
+    org::sem::ColumnView::Summary::MathAggregate const& getMathAggregate() const { return std::get<1>(data); }
+    org::sem::ColumnView::Summary::MathAggregate& getMathAggregate() { return std::get<1>(data); }
+    static org::sem::ColumnView::Summary::Kind getKind(org::sem::ColumnView::Summary::Data const& __input) { return static_cast<org::sem::ColumnView::Summary::Kind>(__input.index()); }
+    org::sem::ColumnView::Summary::Kind getKind() const { return getKind(data); }
   };
 
   struct Column {
@@ -733,11 +733,11 @@ struct ColumnView {
                          (),
                          (),
                          (summary, width, property, propertyTitle))
-    hstd::Opt<sem::ColumnView::Summary> summary = std::nullopt;
+    hstd::Opt<org::sem::ColumnView::Summary> summary = std::nullopt;
     hstd::Opt<int> width = std::nullopt;
     hstd::Opt<hstd::Str> property = std::nullopt;
     hstd::Opt<hstd::Str> propertyTitle = std::nullopt;
-    bool operator==(sem::ColumnView::Column const& other) const;
+    bool operator==(org::sem::ColumnView::Column const& other) const;
   };
 
   BOOST_DESCRIBE_CLASS(ColumnView,
@@ -745,8 +745,8 @@ struct ColumnView {
                        (),
                        (),
                        (columns))
-  hstd::Vec<sem::ColumnView::Column> columns = {};
-  bool operator==(sem::ColumnView const& other) const;
+  hstd::Vec<org::sem::ColumnView::Column> columns = {};
+  bool operator==(org::sem::ColumnView const& other) const;
 };
 
 struct BlockCodeLine {
@@ -758,7 +758,7 @@ struct BlockCodeLine {
                            (),
                            (code))
       hstd::Str code;
-      bool operator==(sem::BlockCodeLine::Part::Raw const& other) const;
+      bool operator==(org::sem::BlockCodeLine::Part::Raw const& other) const;
     };
 
     struct Callout {
@@ -768,7 +768,7 @@ struct BlockCodeLine {
                            (),
                            (name))
       hstd::Str name;
-      bool operator==(sem::BlockCodeLine::Part::Callout const& other) const;
+      bool operator==(org::sem::BlockCodeLine::Part::Callout const& other) const;
     };
 
     struct Tangle {
@@ -778,32 +778,32 @@ struct BlockCodeLine {
                            (),
                            (target))
       hstd::Str target;
-      bool operator==(sem::BlockCodeLine::Part::Tangle const& other) const;
+      bool operator==(org::sem::BlockCodeLine::Part::Tangle const& other) const;
     };
 
-    using Data = std::variant<sem::BlockCodeLine::Part::Raw, sem::BlockCodeLine::Part::Callout, sem::BlockCodeLine::Part::Tangle>;
+    using Data = std::variant<org::sem::BlockCodeLine::Part::Raw, org::sem::BlockCodeLine::Part::Callout, org::sem::BlockCodeLine::Part::Tangle>;
     enum class Kind : short int { Raw, Callout, Tangle, };
     BOOST_DESCRIBE_NESTED_ENUM(Kind, Raw, Callout, Tangle)
-    using variant_enum_type = sem::BlockCodeLine::Part::Kind;
-    using variant_data_type = sem::BlockCodeLine::Part::Data;
+    using variant_enum_type = org::sem::BlockCodeLine::Part::Kind;
+    using variant_data_type = org::sem::BlockCodeLine::Part::Data;
     BOOST_DESCRIBE_CLASS(Part,
                          (),
                          (),
                          (),
                          (data))
-    sem::BlockCodeLine::Part::Data data;
-    bool operator==(sem::BlockCodeLine::Part const& other) const;
+    org::sem::BlockCodeLine::Part::Data data;
+    bool operator==(org::sem::BlockCodeLine::Part const& other) const;
     bool isRaw() const { return getKind() == Kind::Raw; }
-    sem::BlockCodeLine::Part::Raw const& getRaw() const { return std::get<0>(data); }
-    sem::BlockCodeLine::Part::Raw& getRaw() { return std::get<0>(data); }
+    org::sem::BlockCodeLine::Part::Raw const& getRaw() const { return std::get<0>(data); }
+    org::sem::BlockCodeLine::Part::Raw& getRaw() { return std::get<0>(data); }
     bool isCallout() const { return getKind() == Kind::Callout; }
-    sem::BlockCodeLine::Part::Callout const& getCallout() const { return std::get<1>(data); }
-    sem::BlockCodeLine::Part::Callout& getCallout() { return std::get<1>(data); }
+    org::sem::BlockCodeLine::Part::Callout const& getCallout() const { return std::get<1>(data); }
+    org::sem::BlockCodeLine::Part::Callout& getCallout() { return std::get<1>(data); }
     bool isTangle() const { return getKind() == Kind::Tangle; }
-    sem::BlockCodeLine::Part::Tangle const& getTangle() const { return std::get<2>(data); }
-    sem::BlockCodeLine::Part::Tangle& getTangle() { return std::get<2>(data); }
-    static sem::BlockCodeLine::Part::Kind getKind(sem::BlockCodeLine::Part::Data const& __input) { return static_cast<sem::BlockCodeLine::Part::Kind>(__input.index()); }
-    sem::BlockCodeLine::Part::Kind getKind() const { return getKind(data); }
+    org::sem::BlockCodeLine::Part::Tangle const& getTangle() const { return std::get<2>(data); }
+    org::sem::BlockCodeLine::Part::Tangle& getTangle() { return std::get<2>(data); }
+    static org::sem::BlockCodeLine::Part::Kind getKind(org::sem::BlockCodeLine::Part::Data const& __input) { return static_cast<org::sem::BlockCodeLine::Part::Kind>(__input.index()); }
+    org::sem::BlockCodeLine::Part::Kind getKind() const { return getKind(data); }
   };
 
   BOOST_DESCRIBE_CLASS(BlockCodeLine,
@@ -812,8 +812,8 @@ struct BlockCodeLine {
                        (),
                        (parts))
   /// \brief parts of the single line
-  hstd::Vec<sem::BlockCodeLine::Part> parts = {};
-  bool operator==(sem::BlockCodeLine const& other) const;
+  hstd::Vec<org::sem::BlockCodeLine::Part> parts = {};
+  bool operator==(org::sem::BlockCodeLine const& other) const;
 };
 
 /// \brief Extra configuration switches that can be used to control representation of the rendered code block. This field does not exactly correspond to the `-XX` parameters that can be passed directly in the field, but also works with attached `#+options` from the block
@@ -831,7 +831,7 @@ struct BlockCodeSwitch {
     int start;
     /// \brief Continue numbering from the previous block nstead of starting anew
     bool extendLast = false;
-    bool operator==(sem::BlockCodeSwitch::LineStart const& other) const;
+    bool operator==(org::sem::BlockCodeSwitch::LineStart const& other) const;
   };
 
   struct CalloutFormat {
@@ -842,7 +842,7 @@ struct BlockCodeSwitch {
                          (),
                          (format))
     hstd::Str format = "";
-    bool operator==(sem::BlockCodeSwitch::CalloutFormat const& other) const;
+    bool operator==(org::sem::BlockCodeSwitch::CalloutFormat const& other) const;
   };
 
   struct RemoveCallout {
@@ -853,7 +853,7 @@ struct BlockCodeSwitch {
                          (),
                          (remove))
     bool remove = true;
-    bool operator==(sem::BlockCodeSwitch::RemoveCallout const& other) const;
+    bool operator==(org::sem::BlockCodeSwitch::RemoveCallout const& other) const;
   };
 
   /// \brief Emphasize single line -- can be repeated multiple times
@@ -865,7 +865,7 @@ struct BlockCodeSwitch {
                          (),
                          (line))
     hstd::Vec<int> line = {};
-    bool operator==(sem::BlockCodeSwitch::EmphasizeLine const& other) const;
+    bool operator==(org::sem::BlockCodeSwitch::EmphasizeLine const& other) const;
   };
 
   struct Dedent {
@@ -876,38 +876,38 @@ struct BlockCodeSwitch {
                          (),
                          (value))
     int value = 0;
-    bool operator==(sem::BlockCodeSwitch::Dedent const& other) const;
+    bool operator==(org::sem::BlockCodeSwitch::Dedent const& other) const;
   };
 
-  using Data = std::variant<sem::BlockCodeSwitch::LineStart, sem::BlockCodeSwitch::CalloutFormat, sem::BlockCodeSwitch::RemoveCallout, sem::BlockCodeSwitch::EmphasizeLine, sem::BlockCodeSwitch::Dedent>;
+  using Data = std::variant<org::sem::BlockCodeSwitch::LineStart, org::sem::BlockCodeSwitch::CalloutFormat, org::sem::BlockCodeSwitch::RemoveCallout, org::sem::BlockCodeSwitch::EmphasizeLine, org::sem::BlockCodeSwitch::Dedent>;
   enum class Kind : short int { LineStart, CalloutFormat, RemoveCallout, EmphasizeLine, Dedent, };
   BOOST_DESCRIBE_NESTED_ENUM(Kind, LineStart, CalloutFormat, RemoveCallout, EmphasizeLine, Dedent)
-  using variant_enum_type = sem::BlockCodeSwitch::Kind;
-  using variant_data_type = sem::BlockCodeSwitch::Data;
+  using variant_enum_type = org::sem::BlockCodeSwitch::Kind;
+  using variant_data_type = org::sem::BlockCodeSwitch::Data;
   BOOST_DESCRIBE_CLASS(BlockCodeSwitch,
                        (),
                        (),
                        (),
                        (data))
-  sem::BlockCodeSwitch::Data data;
-  bool operator==(sem::BlockCodeSwitch const& other) const;
+  org::sem::BlockCodeSwitch::Data data;
+  bool operator==(org::sem::BlockCodeSwitch const& other) const;
   bool isLineStart() const { return getKind() == Kind::LineStart; }
-  sem::BlockCodeSwitch::LineStart const& getLineStart() const { return std::get<0>(data); }
-  sem::BlockCodeSwitch::LineStart& getLineStart() { return std::get<0>(data); }
+  org::sem::BlockCodeSwitch::LineStart const& getLineStart() const { return std::get<0>(data); }
+  org::sem::BlockCodeSwitch::LineStart& getLineStart() { return std::get<0>(data); }
   bool isCalloutFormat() const { return getKind() == Kind::CalloutFormat; }
-  sem::BlockCodeSwitch::CalloutFormat const& getCalloutFormat() const { return std::get<1>(data); }
-  sem::BlockCodeSwitch::CalloutFormat& getCalloutFormat() { return std::get<1>(data); }
+  org::sem::BlockCodeSwitch::CalloutFormat const& getCalloutFormat() const { return std::get<1>(data); }
+  org::sem::BlockCodeSwitch::CalloutFormat& getCalloutFormat() { return std::get<1>(data); }
   bool isRemoveCallout() const { return getKind() == Kind::RemoveCallout; }
-  sem::BlockCodeSwitch::RemoveCallout const& getRemoveCallout() const { return std::get<2>(data); }
-  sem::BlockCodeSwitch::RemoveCallout& getRemoveCallout() { return std::get<2>(data); }
+  org::sem::BlockCodeSwitch::RemoveCallout const& getRemoveCallout() const { return std::get<2>(data); }
+  org::sem::BlockCodeSwitch::RemoveCallout& getRemoveCallout() { return std::get<2>(data); }
   bool isEmphasizeLine() const { return getKind() == Kind::EmphasizeLine; }
-  sem::BlockCodeSwitch::EmphasizeLine const& getEmphasizeLine() const { return std::get<3>(data); }
-  sem::BlockCodeSwitch::EmphasizeLine& getEmphasizeLine() { return std::get<3>(data); }
+  org::sem::BlockCodeSwitch::EmphasizeLine const& getEmphasizeLine() const { return std::get<3>(data); }
+  org::sem::BlockCodeSwitch::EmphasizeLine& getEmphasizeLine() { return std::get<3>(data); }
   bool isDedent() const { return getKind() == Kind::Dedent; }
-  sem::BlockCodeSwitch::Dedent const& getDedent() const { return std::get<4>(data); }
-  sem::BlockCodeSwitch::Dedent& getDedent() { return std::get<4>(data); }
-  static sem::BlockCodeSwitch::Kind getKind(sem::BlockCodeSwitch::Data const& __input) { return static_cast<sem::BlockCodeSwitch::Kind>(__input.index()); }
-  sem::BlockCodeSwitch::Kind getKind() const { return getKind(data); }
+  org::sem::BlockCodeSwitch::Dedent const& getDedent() const { return std::get<4>(data); }
+  org::sem::BlockCodeSwitch::Dedent& getDedent() { return std::get<4>(data); }
+  static org::sem::BlockCodeSwitch::Kind getKind(org::sem::BlockCodeSwitch::Data const& __input) { return static_cast<org::sem::BlockCodeSwitch::Kind>(__input.index()); }
+  org::sem::BlockCodeSwitch::Kind getKind() const { return getKind(data); }
 };
 
 struct BlockCodeEvalResult {
@@ -918,7 +918,7 @@ struct BlockCodeEvalResult {
                          (),
                          (),
                          ())
-    bool operator==(sem::BlockCodeEvalResult::None const& other) const;
+    bool operator==(org::sem::BlockCodeEvalResult::None const& other) const;
   };
 
   /// \brief Source code block evaluated to an org-mode node element
@@ -930,7 +930,7 @@ struct BlockCodeEvalResult {
                          (value))
     /// \brief Evaluation result
     hstd::Str value = "";
-    bool operator==(sem::BlockCodeEvalResult::OrgValue const& other) const;
+    bool operator==(org::sem::BlockCodeEvalResult::OrgValue const& other) const;
   };
 
   /// \brief Output evaluation results to a file
@@ -941,7 +941,7 @@ struct BlockCodeEvalResult {
                          (),
                          (path))
     hstd::Str path;
-    bool operator==(sem::BlockCodeEvalResult::File const& other) const;
+    bool operator==(org::sem::BlockCodeEvalResult::File const& other) const;
   };
 
   /// \brief Evaluation output is a raw text
@@ -952,35 +952,35 @@ struct BlockCodeEvalResult {
                          (),
                          (text))
     hstd::Str text;
-    bool operator==(sem::BlockCodeEvalResult::Raw const& other) const;
+    bool operator==(org::sem::BlockCodeEvalResult::Raw const& other) const;
   };
 
-  using Data = std::variant<sem::BlockCodeEvalResult::None, sem::BlockCodeEvalResult::OrgValue, sem::BlockCodeEvalResult::File, sem::BlockCodeEvalResult::Raw>;
+  using Data = std::variant<org::sem::BlockCodeEvalResult::None, org::sem::BlockCodeEvalResult::OrgValue, org::sem::BlockCodeEvalResult::File, org::sem::BlockCodeEvalResult::Raw>;
   enum class Kind : short int { None, OrgValue, File, Raw, };
   BOOST_DESCRIBE_NESTED_ENUM(Kind, None, OrgValue, File, Raw)
-  using variant_enum_type = sem::BlockCodeEvalResult::Kind;
-  using variant_data_type = sem::BlockCodeEvalResult::Data;
+  using variant_enum_type = org::sem::BlockCodeEvalResult::Kind;
+  using variant_data_type = org::sem::BlockCodeEvalResult::Data;
   BOOST_DESCRIBE_CLASS(BlockCodeEvalResult,
                        (),
                        (),
                        (),
                        (data))
-  sem::BlockCodeEvalResult::Data data;
-  bool operator==(sem::BlockCodeEvalResult const& other) const;
+  org::sem::BlockCodeEvalResult::Data data;
+  bool operator==(org::sem::BlockCodeEvalResult const& other) const;
   bool isNone() const { return getKind() == Kind::None; }
-  sem::BlockCodeEvalResult::None const& getNone() const { return std::get<0>(data); }
-  sem::BlockCodeEvalResult::None& getNone() { return std::get<0>(data); }
+  org::sem::BlockCodeEvalResult::None const& getNone() const { return std::get<0>(data); }
+  org::sem::BlockCodeEvalResult::None& getNone() { return std::get<0>(data); }
   bool isOrgValue() const { return getKind() == Kind::OrgValue; }
-  sem::BlockCodeEvalResult::OrgValue const& getOrgValue() const { return std::get<1>(data); }
-  sem::BlockCodeEvalResult::OrgValue& getOrgValue() { return std::get<1>(data); }
+  org::sem::BlockCodeEvalResult::OrgValue const& getOrgValue() const { return std::get<1>(data); }
+  org::sem::BlockCodeEvalResult::OrgValue& getOrgValue() { return std::get<1>(data); }
   bool isFile() const { return getKind() == Kind::File; }
-  sem::BlockCodeEvalResult::File const& getFile() const { return std::get<2>(data); }
-  sem::BlockCodeEvalResult::File& getFile() { return std::get<2>(data); }
+  org::sem::BlockCodeEvalResult::File const& getFile() const { return std::get<2>(data); }
+  org::sem::BlockCodeEvalResult::File& getFile() { return std::get<2>(data); }
   bool isRaw() const { return getKind() == Kind::Raw; }
-  sem::BlockCodeEvalResult::Raw const& getRaw() const { return std::get<3>(data); }
-  sem::BlockCodeEvalResult::Raw& getRaw() { return std::get<3>(data); }
-  static sem::BlockCodeEvalResult::Kind getKind(sem::BlockCodeEvalResult::Data const& __input) { return static_cast<sem::BlockCodeEvalResult::Kind>(__input.index()); }
-  sem::BlockCodeEvalResult::Kind getKind() const { return getKind(data); }
+  org::sem::BlockCodeEvalResult::Raw const& getRaw() const { return std::get<3>(data); }
+  org::sem::BlockCodeEvalResult::Raw& getRaw() { return std::get<3>(data); }
+  static org::sem::BlockCodeEvalResult::Kind getKind(org::sem::BlockCodeEvalResult::Data const& __input) { return static_cast<org::sem::BlockCodeEvalResult::Kind>(__input.index()); }
+  org::sem::BlockCodeEvalResult::Kind getKind() const { return getKind(data); }
 };
 
 struct DocumentExportConfig {
@@ -991,7 +991,7 @@ struct DocumentExportConfig {
                          (),
                          (taskWhitelist))
     hstd::Vec<hstd::Str> taskWhitelist = {};
-    bool operator==(sem::DocumentExportConfig::TaskExport const& other) const;
+    bool operator==(org::sem::DocumentExportConfig::TaskExport const& other) const;
   };
 
   enum class TagExport : short int {
@@ -1021,7 +1021,7 @@ struct DocumentExportConfig {
                          (),
                          (exportToc))
     bool exportToc;
-    bool operator==(sem::DocumentExportConfig::DoExport const& other) const;
+    bool operator==(org::sem::DocumentExportConfig::DoExport const& other) const;
   };
 
   struct ExportFixed {
@@ -1031,14 +1031,14 @@ struct DocumentExportConfig {
                          (),
                          (exportLevels))
     int exportLevels;
-    bool operator==(sem::DocumentExportConfig::ExportFixed const& other) const;
+    bool operator==(org::sem::DocumentExportConfig::ExportFixed const& other) const;
   };
 
-  using TocExport = std::variant<sem::DocumentExportConfig::DoExport, sem::DocumentExportConfig::ExportFixed>;
+  using TocExport = std::variant<org::sem::DocumentExportConfig::DoExport, org::sem::DocumentExportConfig::ExportFixed>;
   enum class TocExportKind : short int { DoExport, ExportFixed, };
   BOOST_DESCRIBE_NESTED_ENUM(TocExportKind, DoExport, ExportFixed)
-  using variant_enum_type = sem::DocumentExportConfig::TocExportKind;
-  using variant_data_type = sem::DocumentExportConfig::TocExport;
+  using variant_enum_type = org::sem::DocumentExportConfig::TocExportKind;
+  using variant_data_type = org::sem::DocumentExportConfig::TocExport;
   BOOST_DESCRIBE_CLASS(DocumentExportConfig,
                        (),
                        (),
@@ -1066,19 +1066,19 @@ struct DocumentExportConfig {
   hstd::Opt<bool> statisticsCookies = std::nullopt;
   /// \brief Include todo keywords in export
   hstd::Opt<bool> todoText = std::nullopt;
-  sem::DocumentExportConfig::BrokenLinks brokenLinks = sem::DocumentExportConfig::BrokenLinks::Mark;
-  sem::DocumentExportConfig::TocExport tocExport;
-  sem::DocumentExportConfig::TagExport tagExport = sem::DocumentExportConfig::TagExport::NotInToc;
-  sem::DocumentExportConfig::TocExport data;
-  bool operator==(sem::DocumentExportConfig const& other) const;
+  org::sem::DocumentExportConfig::BrokenLinks brokenLinks = sem::DocumentExportConfig::BrokenLinks::Mark;
+  org::sem::DocumentExportConfig::TocExport tocExport;
+  org::sem::DocumentExportConfig::TagExport tagExport = org::sem::DocumentExportConfig::TagExport::NotInToc;
+  org::sem::DocumentExportConfig::TocExport data;
+  bool operator==(org::sem::DocumentExportConfig const& other) const;
   bool isDoExport() const { return getTocExportKind() == TocExportKind::DoExport; }
-  sem::DocumentExportConfig::DoExport const& getDoExport() const { return std::get<0>(data); }
-  sem::DocumentExportConfig::DoExport& getDoExport() { return std::get<0>(data); }
+  org::sem::DocumentExportConfig::DoExport const& getDoExport() const { return std::get<0>(data); }
+  org::sem::DocumentExportConfig::DoExport& getDoExport() { return std::get<0>(data); }
   bool isExportFixed() const { return getTocExportKind() == TocExportKind::ExportFixed; }
-  sem::DocumentExportConfig::ExportFixed const& getExportFixed() const { return std::get<1>(data); }
-  sem::DocumentExportConfig::ExportFixed& getExportFixed() { return std::get<1>(data); }
-  static sem::DocumentExportConfig::TocExportKind getTocExportKind(sem::DocumentExportConfig::TocExport const& __input) { return static_cast<sem::DocumentExportConfig::TocExportKind>(__input.index()); }
-  sem::DocumentExportConfig::TocExportKind getTocExportKind() const { return getTocExportKind(data); }
+  org::sem::DocumentExportConfig::ExportFixed const& getExportFixed() const { return std::get<1>(data); }
+  org::sem::DocumentExportConfig::ExportFixed& getExportFixed() { return std::get<1>(data); }
+  static org::sem::DocumentExportConfig::TocExportKind getTocExportKind(org::sem::DocumentExportConfig::TocExport const& __input) { return static_cast<org::sem::DocumentExportConfig::TocExportKind>(__input.index()); }
+  org::sem::DocumentExportConfig::TocExportKind getTocExportKind() const { return getTocExportKind(data); }
 };
 
 /// \brief Type of the subtree associated time periods
@@ -1108,12 +1108,12 @@ struct SubtreePeriod {
                        (),
                        (kind, from, to))
   /// \brief Time period kind -- not associated with point/range distinction
-  sem::SubtreePeriod::Kind kind;
+  org::sem::SubtreePeriod::Kind kind;
   /// \brief Clock start time
   hstd::UserTime from;
   /// \brief Optional end of the clock
   hstd::Opt<hstd::UserTime> to = std::nullopt;
-  bool operator==(sem::SubtreePeriod const& other) const;
+  bool operator==(org::sem::SubtreePeriod const& other) const;
 };
 
 /// \brief Single subtree property
@@ -1127,7 +1127,7 @@ struct NamedProperty {
                          (),
                          (isBlocking))
     bool isBlocking;
-    bool operator==(sem::NamedProperty::Nonblocking const& other) const;
+    bool operator==(org::sem::NamedProperty::Nonblocking const& other) const;
   };
 
   struct ArchiveTime {
@@ -1138,7 +1138,7 @@ struct NamedProperty {
                          (),
                          (time))
     hstd::UserTime time;
-    bool operator==(sem::NamedProperty::ArchiveTime const& other) const;
+    bool operator==(org::sem::NamedProperty::ArchiveTime const& other) const;
   };
 
   struct ArchiveFile {
@@ -1149,7 +1149,7 @@ struct NamedProperty {
                          (),
                          (file))
     hstd::Str file;
-    bool operator==(sem::NamedProperty::ArchiveFile const& other) const;
+    bool operator==(org::sem::NamedProperty::ArchiveFile const& other) const;
   };
 
   struct ArchiveOlpath {
@@ -1159,8 +1159,8 @@ struct NamedProperty {
                          (),
                          (),
                          (path))
-    sem::SubtreePath path;
-    bool operator==(sem::NamedProperty::ArchiveOlpath const& other) const;
+    org::sem::SubtreePath path;
+    bool operator==(org::sem::NamedProperty::ArchiveOlpath const& other) const;
   };
 
   struct ArchiveTarget {
@@ -1170,9 +1170,9 @@ struct NamedProperty {
                          (),
                          (),
                          (path, pattern))
-    sem::SubtreePath path;
+    org::sem::SubtreePath path;
     hstd::Str pattern;
-    bool operator==(sem::NamedProperty::ArchiveTarget const& other) const;
+    bool operator==(org::sem::NamedProperty::ArchiveTarget const& other) const;
   };
 
   struct ArchiveCategory {
@@ -1183,7 +1183,7 @@ struct NamedProperty {
                          (),
                          (category))
     hstd::Str category;
-    bool operator==(sem::NamedProperty::ArchiveCategory const& other) const;
+    bool operator==(org::sem::NamedProperty::ArchiveCategory const& other) const;
   };
 
   struct ArchiveTodo {
@@ -1194,7 +1194,7 @@ struct NamedProperty {
                          (),
                          (todo))
     hstd::Str todo;
-    bool operator==(sem::NamedProperty::ArchiveTodo const& other) const;
+    bool operator==(org::sem::NamedProperty::ArchiveTodo const& other) const;
   };
 
   struct Trigger {
@@ -1204,7 +1204,7 @@ struct NamedProperty {
                          (),
                          (),
                          ())
-    bool operator==(sem::NamedProperty::Trigger const& other) const;
+    bool operator==(org::sem::NamedProperty::Trigger const& other) const;
   };
 
   struct ExportLatexClass {
@@ -1215,7 +1215,7 @@ struct NamedProperty {
                          (),
                          (latexClass))
     hstd::Str latexClass;
-    bool operator==(sem::NamedProperty::ExportLatexClass const& other) const;
+    bool operator==(org::sem::NamedProperty::ExportLatexClass const& other) const;
   };
 
   /// \brief `:COOKIE_DATA:` for the subtree completion calculation
@@ -1236,8 +1236,8 @@ struct NamedProperty {
                          (),
                          (isRecursive, source))
     bool isRecursive;
-    sem::NamedProperty::CookieData::TodoSource source;
-    bool operator==(sem::NamedProperty::CookieData const& other) const;
+    org::sem::NamedProperty::CookieData::TodoSource source;
+    bool operator==(org::sem::NamedProperty::CookieData const& other) const;
   };
 
   struct ExportLatexClassOptions {
@@ -1248,7 +1248,7 @@ struct NamedProperty {
                          (),
                          (options))
     hstd::Vec<hstd::Str> options;
-    bool operator==(sem::NamedProperty::ExportLatexClassOptions const& other) const;
+    bool operator==(org::sem::NamedProperty::ExportLatexClassOptions const& other) const;
   };
 
   struct ExportLatexHeader {
@@ -1259,7 +1259,7 @@ struct NamedProperty {
                          (),
                          (header))
     hstd::Str header;
-    bool operator==(sem::NamedProperty::ExportLatexHeader const& other) const;
+    bool operator==(org::sem::NamedProperty::ExportLatexHeader const& other) const;
   };
 
   struct ExportLatexCompiler {
@@ -1270,7 +1270,7 @@ struct NamedProperty {
                          (),
                          (compiler))
     hstd::Str compiler;
-    bool operator==(sem::NamedProperty::ExportLatexCompiler const& other) const;
+    bool operator==(org::sem::NamedProperty::ExportLatexCompiler const& other) const;
   };
 
   struct Ordered {
@@ -1281,7 +1281,7 @@ struct NamedProperty {
                          (),
                          (isOrdered))
     bool isOrdered;
-    bool operator==(sem::NamedProperty::Ordered const& other) const;
+    bool operator==(org::sem::NamedProperty::Ordered const& other) const;
   };
 
   struct Effort {
@@ -1293,7 +1293,7 @@ struct NamedProperty {
                          (hours, minutes))
     int hours = 0;
     int minutes = 0;
-    bool operator==(sem::NamedProperty::Effort const& other) const;
+    bool operator==(org::sem::NamedProperty::Effort const& other) const;
   };
 
   struct Visibility {
@@ -1305,8 +1305,8 @@ struct NamedProperty {
                          (),
                          (),
                          (level))
-    sem::NamedProperty::Visibility::Level level;
-    bool operator==(sem::NamedProperty::Visibility const& other) const;
+    org::sem::NamedProperty::Visibility::Level level;
+    bool operator==(org::sem::NamedProperty::Visibility const& other) const;
   };
 
   struct ExportOptions {
@@ -1318,7 +1318,7 @@ struct NamedProperty {
                          (backend, values))
     hstd::Str backend;
     hstd::UnorderedMap<hstd::Str, hstd::Str> values;
-    bool operator==(sem::NamedProperty::ExportOptions const& other) const;
+    bool operator==(org::sem::NamedProperty::ExportOptions const& other) const;
   };
 
   struct Blocker {
@@ -1329,7 +1329,7 @@ struct NamedProperty {
                          (),
                          (blockers))
     hstd::Vec<hstd::Str> blockers;
-    bool operator==(sem::NamedProperty::Blocker const& other) const;
+    bool operator==(org::sem::NamedProperty::Blocker const& other) const;
   };
 
   struct Unnumbered {
@@ -1339,7 +1339,7 @@ struct NamedProperty {
                          (),
                          (),
                          ())
-    bool operator==(sem::NamedProperty::Unnumbered const& other) const;
+    bool operator==(org::sem::NamedProperty::Unnumbered const& other) const;
   };
 
   struct Created {
@@ -1350,7 +1350,7 @@ struct NamedProperty {
                          (),
                          (time))
     hstd::UserTime time;
-    bool operator==(sem::NamedProperty::Created const& other) const;
+    bool operator==(org::sem::NamedProperty::Created const& other) const;
   };
 
   /// \brief Radio target ID
@@ -1362,7 +1362,7 @@ struct NamedProperty {
                          (),
                          (words))
     hstd::Vec<hstd::Str> words = {};
-    bool operator==(sem::NamedProperty::RadioId const& other) const;
+    bool operator==(org::sem::NamedProperty::RadioId const& other) const;
   };
 
   /// \brief Definition of a hashtag entry
@@ -1373,8 +1373,8 @@ struct NamedProperty {
                          (),
                          (),
                          (hashtag))
-    sem::HashTagText hashtag;
-    bool operator==(sem::NamedProperty::HashtagDef const& other) const;
+    org::sem::HashTagText hashtag;
+    bool operator==(org::sem::NamedProperty::HashtagDef const& other) const;
   };
 
   /// \brief Custop property with unparsed arguments
@@ -1390,8 +1390,8 @@ struct NamedProperty {
     /// \brief Property target specialization
     hstd::Opt<hstd::Str> sub = std::nullopt;
     /// \brief Property parameters
-    sem::AttrGroup attrs;
-    bool operator==(sem::NamedProperty::CustomArgs const& other) const;
+    org::sem::AttrGroup attrs;
+    bool operator==(org::sem::NamedProperty::CustomArgs const& other) const;
   };
 
   /// \brief Custom property with unparsed arguments
@@ -1406,7 +1406,7 @@ struct NamedProperty {
     hstd::Str name = "";
     /// \brief Property value
     hstd::Str value = "";
-    bool operator==(sem::NamedProperty::CustomRaw const& other) const;
+    bool operator==(org::sem::NamedProperty::CustomRaw const& other) const;
   };
 
   /// \brief Free-form JSON
@@ -1417,8 +1417,8 @@ struct NamedProperty {
                          (),
                          (name, value))
     hstd::Str name;
-    sem::OrgJson value;
-    bool operator==(sem::NamedProperty::CustomSubtreeJson const& other) const;
+    org::sem::OrgJson value;
+    bool operator==(org::sem::NamedProperty::CustomSubtreeJson const& other) const;
   };
 
   /// \brief Free-form flags
@@ -1429,109 +1429,109 @@ struct NamedProperty {
                          (),
                          (name, value))
     hstd::Str name;
-    sem::AttrGroup value;
-    bool operator==(sem::NamedProperty::CustomSubtreeFlags const& other) const;
+    org::sem::AttrGroup value;
+    bool operator==(org::sem::NamedProperty::CustomSubtreeFlags const& other) const;
   };
 
-  using Data = std::variant<sem::NamedProperty::Nonblocking, sem::NamedProperty::ArchiveTime, sem::NamedProperty::ArchiveFile, sem::NamedProperty::ArchiveOlpath, sem::NamedProperty::ArchiveTarget, sem::NamedProperty::ArchiveCategory, sem::NamedProperty::ArchiveTodo, sem::NamedProperty::Trigger, sem::NamedProperty::ExportLatexClass, sem::NamedProperty::CookieData, sem::NamedProperty::ExportLatexClassOptions, sem::NamedProperty::ExportLatexHeader, sem::NamedProperty::ExportLatexCompiler, sem::NamedProperty::Ordered, sem::NamedProperty::Effort, sem::NamedProperty::Visibility, sem::NamedProperty::ExportOptions, sem::NamedProperty::Blocker, sem::NamedProperty::Unnumbered, sem::NamedProperty::Created, sem::NamedProperty::RadioId, sem::NamedProperty::HashtagDef, sem::NamedProperty::CustomArgs, sem::NamedProperty::CustomRaw, sem::NamedProperty::CustomSubtreeJson, sem::NamedProperty::CustomSubtreeFlags>;
+  using Data = std::variant<org::sem::NamedProperty::Nonblocking, org::sem::NamedProperty::ArchiveTime, org::sem::NamedProperty::ArchiveFile, org::sem::NamedProperty::ArchiveOlpath, org::sem::NamedProperty::ArchiveTarget, org::sem::NamedProperty::ArchiveCategory, org::sem::NamedProperty::ArchiveTodo, org::sem::NamedProperty::Trigger, org::sem::NamedProperty::ExportLatexClass, org::sem::NamedProperty::CookieData, org::sem::NamedProperty::ExportLatexClassOptions, org::sem::NamedProperty::ExportLatexHeader, org::sem::NamedProperty::ExportLatexCompiler, org::sem::NamedProperty::Ordered, org::sem::NamedProperty::Effort, org::sem::NamedProperty::Visibility, org::sem::NamedProperty::ExportOptions, org::sem::NamedProperty::Blocker, org::sem::NamedProperty::Unnumbered, org::sem::NamedProperty::Created, org::sem::NamedProperty::RadioId, org::sem::NamedProperty::HashtagDef, org::sem::NamedProperty::CustomArgs, org::sem::NamedProperty::CustomRaw, org::sem::NamedProperty::CustomSubtreeJson, org::sem::NamedProperty::CustomSubtreeFlags>;
   enum class Kind : short int { Nonblocking, ArchiveTime, ArchiveFile, ArchiveOlpath, ArchiveTarget, ArchiveCategory, ArchiveTodo, Trigger, ExportLatexClass, CookieData, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, RadioId, HashtagDef, CustomArgs, CustomRaw, CustomSubtreeJson, CustomSubtreeFlags, };
   BOOST_DESCRIBE_NESTED_ENUM(Kind, Nonblocking, ArchiveTime, ArchiveFile, ArchiveOlpath, ArchiveTarget, ArchiveCategory, ArchiveTodo, Trigger, ExportLatexClass, CookieData, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, RadioId, HashtagDef, CustomArgs, CustomRaw, CustomSubtreeJson, CustomSubtreeFlags)
-  using variant_enum_type = sem::NamedProperty::Kind;
-  using variant_data_type = sem::NamedProperty::Data;
+  using variant_enum_type = org::sem::NamedProperty::Kind;
+  using variant_data_type = org::sem::NamedProperty::Data;
   NamedProperty(Data const& data) : data(data) {}
   BOOST_DESCRIBE_CLASS(NamedProperty,
                        (),
                        (),
                        (),
                        (data))
-  sem::NamedProperty::Data data;
+  org::sem::NamedProperty::Data data;
   /// \brief Check if property matches specified kind and optional subkind. Built-in property checking is also done with this function -- 'created' etc.
   bool isMatching(hstd::Str const& kind, hstd::Opt<hstd::Str> const& subKind = std::nullopt) const;
   /// \brief Get non-normalized name of the property (for built-in and user)
   hstd::Str getName() const;
   /// \brief Get non-normalized sub-kind for the property.
   hstd::Opt<hstd::Str> getSubKind() const;
-  bool operator==(sem::NamedProperty const& other) const;
+  bool operator==(org::sem::NamedProperty const& other) const;
   bool isNonblocking() const { return getKind() == Kind::Nonblocking; }
-  sem::NamedProperty::Nonblocking const& getNonblocking() const { return std::get<0>(data); }
-  sem::NamedProperty::Nonblocking& getNonblocking() { return std::get<0>(data); }
+  org::sem::NamedProperty::Nonblocking const& getNonblocking() const { return std::get<0>(data); }
+  org::sem::NamedProperty::Nonblocking& getNonblocking() { return std::get<0>(data); }
   bool isArchiveTime() const { return getKind() == Kind::ArchiveTime; }
-  sem::NamedProperty::ArchiveTime const& getArchiveTime() const { return std::get<1>(data); }
-  sem::NamedProperty::ArchiveTime& getArchiveTime() { return std::get<1>(data); }
+  org::sem::NamedProperty::ArchiveTime const& getArchiveTime() const { return std::get<1>(data); }
+  org::sem::NamedProperty::ArchiveTime& getArchiveTime() { return std::get<1>(data); }
   bool isArchiveFile() const { return getKind() == Kind::ArchiveFile; }
-  sem::NamedProperty::ArchiveFile const& getArchiveFile() const { return std::get<2>(data); }
-  sem::NamedProperty::ArchiveFile& getArchiveFile() { return std::get<2>(data); }
+  org::sem::NamedProperty::ArchiveFile const& getArchiveFile() const { return std::get<2>(data); }
+  org::sem::NamedProperty::ArchiveFile& getArchiveFile() { return std::get<2>(data); }
   bool isArchiveOlpath() const { return getKind() == Kind::ArchiveOlpath; }
-  sem::NamedProperty::ArchiveOlpath const& getArchiveOlpath() const { return std::get<3>(data); }
-  sem::NamedProperty::ArchiveOlpath& getArchiveOlpath() { return std::get<3>(data); }
+  org::sem::NamedProperty::ArchiveOlpath const& getArchiveOlpath() const { return std::get<3>(data); }
+  org::sem::NamedProperty::ArchiveOlpath& getArchiveOlpath() { return std::get<3>(data); }
   bool isArchiveTarget() const { return getKind() == Kind::ArchiveTarget; }
-  sem::NamedProperty::ArchiveTarget const& getArchiveTarget() const { return std::get<4>(data); }
-  sem::NamedProperty::ArchiveTarget& getArchiveTarget() { return std::get<4>(data); }
+  org::sem::NamedProperty::ArchiveTarget const& getArchiveTarget() const { return std::get<4>(data); }
+  org::sem::NamedProperty::ArchiveTarget& getArchiveTarget() { return std::get<4>(data); }
   bool isArchiveCategory() const { return getKind() == Kind::ArchiveCategory; }
-  sem::NamedProperty::ArchiveCategory const& getArchiveCategory() const { return std::get<5>(data); }
-  sem::NamedProperty::ArchiveCategory& getArchiveCategory() { return std::get<5>(data); }
+  org::sem::NamedProperty::ArchiveCategory const& getArchiveCategory() const { return std::get<5>(data); }
+  org::sem::NamedProperty::ArchiveCategory& getArchiveCategory() { return std::get<5>(data); }
   bool isArchiveTodo() const { return getKind() == Kind::ArchiveTodo; }
-  sem::NamedProperty::ArchiveTodo const& getArchiveTodo() const { return std::get<6>(data); }
-  sem::NamedProperty::ArchiveTodo& getArchiveTodo() { return std::get<6>(data); }
+  org::sem::NamedProperty::ArchiveTodo const& getArchiveTodo() const { return std::get<6>(data); }
+  org::sem::NamedProperty::ArchiveTodo& getArchiveTodo() { return std::get<6>(data); }
   bool isTrigger() const { return getKind() == Kind::Trigger; }
-  sem::NamedProperty::Trigger const& getTrigger() const { return std::get<7>(data); }
-  sem::NamedProperty::Trigger& getTrigger() { return std::get<7>(data); }
+  org::sem::NamedProperty::Trigger const& getTrigger() const { return std::get<7>(data); }
+  org::sem::NamedProperty::Trigger& getTrigger() { return std::get<7>(data); }
   bool isExportLatexClass() const { return getKind() == Kind::ExportLatexClass; }
-  sem::NamedProperty::ExportLatexClass const& getExportLatexClass() const { return std::get<8>(data); }
-  sem::NamedProperty::ExportLatexClass& getExportLatexClass() { return std::get<8>(data); }
+  org::sem::NamedProperty::ExportLatexClass const& getExportLatexClass() const { return std::get<8>(data); }
+  org::sem::NamedProperty::ExportLatexClass& getExportLatexClass() { return std::get<8>(data); }
   bool isCookieData() const { return getKind() == Kind::CookieData; }
-  sem::NamedProperty::CookieData const& getCookieData() const { return std::get<9>(data); }
-  sem::NamedProperty::CookieData& getCookieData() { return std::get<9>(data); }
+  org::sem::NamedProperty::CookieData const& getCookieData() const { return std::get<9>(data); }
+  org::sem::NamedProperty::CookieData& getCookieData() { return std::get<9>(data); }
   bool isExportLatexClassOptions() const { return getKind() == Kind::ExportLatexClassOptions; }
-  sem::NamedProperty::ExportLatexClassOptions const& getExportLatexClassOptions() const { return std::get<10>(data); }
-  sem::NamedProperty::ExportLatexClassOptions& getExportLatexClassOptions() { return std::get<10>(data); }
+  org::sem::NamedProperty::ExportLatexClassOptions const& getExportLatexClassOptions() const { return std::get<10>(data); }
+  org::sem::NamedProperty::ExportLatexClassOptions& getExportLatexClassOptions() { return std::get<10>(data); }
   bool isExportLatexHeader() const { return getKind() == Kind::ExportLatexHeader; }
-  sem::NamedProperty::ExportLatexHeader const& getExportLatexHeader() const { return std::get<11>(data); }
-  sem::NamedProperty::ExportLatexHeader& getExportLatexHeader() { return std::get<11>(data); }
+  org::sem::NamedProperty::ExportLatexHeader const& getExportLatexHeader() const { return std::get<11>(data); }
+  org::sem::NamedProperty::ExportLatexHeader& getExportLatexHeader() { return std::get<11>(data); }
   bool isExportLatexCompiler() const { return getKind() == Kind::ExportLatexCompiler; }
-  sem::NamedProperty::ExportLatexCompiler const& getExportLatexCompiler() const { return std::get<12>(data); }
-  sem::NamedProperty::ExportLatexCompiler& getExportLatexCompiler() { return std::get<12>(data); }
+  org::sem::NamedProperty::ExportLatexCompiler const& getExportLatexCompiler() const { return std::get<12>(data); }
+  org::sem::NamedProperty::ExportLatexCompiler& getExportLatexCompiler() { return std::get<12>(data); }
   bool isOrdered() const { return getKind() == Kind::Ordered; }
-  sem::NamedProperty::Ordered const& getOrdered() const { return std::get<13>(data); }
-  sem::NamedProperty::Ordered& getOrdered() { return std::get<13>(data); }
+  org::sem::NamedProperty::Ordered const& getOrdered() const { return std::get<13>(data); }
+  org::sem::NamedProperty::Ordered& getOrdered() { return std::get<13>(data); }
   bool isEffort() const { return getKind() == Kind::Effort; }
-  sem::NamedProperty::Effort const& getEffort() const { return std::get<14>(data); }
-  sem::NamedProperty::Effort& getEffort() { return std::get<14>(data); }
+  org::sem::NamedProperty::Effort const& getEffort() const { return std::get<14>(data); }
+  org::sem::NamedProperty::Effort& getEffort() { return std::get<14>(data); }
   bool isVisibility() const { return getKind() == Kind::Visibility; }
-  sem::NamedProperty::Visibility const& getVisibility() const { return std::get<15>(data); }
-  sem::NamedProperty::Visibility& getVisibility() { return std::get<15>(data); }
+  org::sem::NamedProperty::Visibility const& getVisibility() const { return std::get<15>(data); }
+  org::sem::NamedProperty::Visibility& getVisibility() { return std::get<15>(data); }
   bool isExportOptions() const { return getKind() == Kind::ExportOptions; }
-  sem::NamedProperty::ExportOptions const& getExportOptions() const { return std::get<16>(data); }
-  sem::NamedProperty::ExportOptions& getExportOptions() { return std::get<16>(data); }
+  org::sem::NamedProperty::ExportOptions const& getExportOptions() const { return std::get<16>(data); }
+  org::sem::NamedProperty::ExportOptions& getExportOptions() { return std::get<16>(data); }
   bool isBlocker() const { return getKind() == Kind::Blocker; }
-  sem::NamedProperty::Blocker const& getBlocker() const { return std::get<17>(data); }
-  sem::NamedProperty::Blocker& getBlocker() { return std::get<17>(data); }
+  org::sem::NamedProperty::Blocker const& getBlocker() const { return std::get<17>(data); }
+  org::sem::NamedProperty::Blocker& getBlocker() { return std::get<17>(data); }
   bool isUnnumbered() const { return getKind() == Kind::Unnumbered; }
-  sem::NamedProperty::Unnumbered const& getUnnumbered() const { return std::get<18>(data); }
-  sem::NamedProperty::Unnumbered& getUnnumbered() { return std::get<18>(data); }
+  org::sem::NamedProperty::Unnumbered const& getUnnumbered() const { return std::get<18>(data); }
+  org::sem::NamedProperty::Unnumbered& getUnnumbered() { return std::get<18>(data); }
   bool isCreated() const { return getKind() == Kind::Created; }
-  sem::NamedProperty::Created const& getCreated() const { return std::get<19>(data); }
-  sem::NamedProperty::Created& getCreated() { return std::get<19>(data); }
+  org::sem::NamedProperty::Created const& getCreated() const { return std::get<19>(data); }
+  org::sem::NamedProperty::Created& getCreated() { return std::get<19>(data); }
   bool isRadioId() const { return getKind() == Kind::RadioId; }
-  sem::NamedProperty::RadioId const& getRadioId() const { return std::get<20>(data); }
-  sem::NamedProperty::RadioId& getRadioId() { return std::get<20>(data); }
+  org::sem::NamedProperty::RadioId const& getRadioId() const { return std::get<20>(data); }
+  org::sem::NamedProperty::RadioId& getRadioId() { return std::get<20>(data); }
   bool isHashtagDef() const { return getKind() == Kind::HashtagDef; }
-  sem::NamedProperty::HashtagDef const& getHashtagDef() const { return std::get<21>(data); }
-  sem::NamedProperty::HashtagDef& getHashtagDef() { return std::get<21>(data); }
+  org::sem::NamedProperty::HashtagDef const& getHashtagDef() const { return std::get<21>(data); }
+  org::sem::NamedProperty::HashtagDef& getHashtagDef() { return std::get<21>(data); }
   bool isCustomArgs() const { return getKind() == Kind::CustomArgs; }
-  sem::NamedProperty::CustomArgs const& getCustomArgs() const { return std::get<22>(data); }
-  sem::NamedProperty::CustomArgs& getCustomArgs() { return std::get<22>(data); }
+  org::sem::NamedProperty::CustomArgs const& getCustomArgs() const { return std::get<22>(data); }
+  org::sem::NamedProperty::CustomArgs& getCustomArgs() { return std::get<22>(data); }
   bool isCustomRaw() const { return getKind() == Kind::CustomRaw; }
-  sem::NamedProperty::CustomRaw const& getCustomRaw() const { return std::get<23>(data); }
-  sem::NamedProperty::CustomRaw& getCustomRaw() { return std::get<23>(data); }
+  org::sem::NamedProperty::CustomRaw const& getCustomRaw() const { return std::get<23>(data); }
+  org::sem::NamedProperty::CustomRaw& getCustomRaw() { return std::get<23>(data); }
   bool isCustomSubtreeJson() const { return getKind() == Kind::CustomSubtreeJson; }
-  sem::NamedProperty::CustomSubtreeJson const& getCustomSubtreeJson() const { return std::get<24>(data); }
-  sem::NamedProperty::CustomSubtreeJson& getCustomSubtreeJson() { return std::get<24>(data); }
+  org::sem::NamedProperty::CustomSubtreeJson const& getCustomSubtreeJson() const { return std::get<24>(data); }
+  org::sem::NamedProperty::CustomSubtreeJson& getCustomSubtreeJson() { return std::get<24>(data); }
   bool isCustomSubtreeFlags() const { return getKind() == Kind::CustomSubtreeFlags; }
-  sem::NamedProperty::CustomSubtreeFlags const& getCustomSubtreeFlags() const { return std::get<25>(data); }
-  sem::NamedProperty::CustomSubtreeFlags& getCustomSubtreeFlags() { return std::get<25>(data); }
-  static sem::NamedProperty::Kind getKind(sem::NamedProperty::Data const& __input) { return static_cast<sem::NamedProperty::Kind>(__input.index()); }
-  sem::NamedProperty::Kind getKind() const { return getKind(data); }
+  org::sem::NamedProperty::CustomSubtreeFlags const& getCustomSubtreeFlags() const { return std::get<25>(data); }
+  org::sem::NamedProperty::CustomSubtreeFlags& getCustomSubtreeFlags() { return std::get<25>(data); }
+  static org::sem::NamedProperty::Kind getKind(org::sem::NamedProperty::Data const& __input) { return static_cast<org::sem::NamedProperty::Kind>(__input.index()); }
+  org::sem::NamedProperty::Kind getKind() const { return getKind(data); }
 };
 
 /// \brief No node
@@ -1599,9 +1599,9 @@ struct Stmt : public org::sem::Org {
   hstd::Vec<org::sem::SemId<org::sem::Org>> getCaption() const;
   hstd::Vec<hstd::Str> getName() const;
   /// \brief Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.
-  virtual hstd::Vec<sem::AttrValue> getAttrs(hstd::Opt<hstd::Str> const& kind = std::nullopt) const;
+  virtual hstd::Vec<org::sem::AttrValue> getAttrs(hstd::Opt<hstd::Str> const& kind = std::nullopt) const;
   /// \brief Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities
-  virtual hstd::Opt<sem::AttrValue> getFirstAttr(hstd::Str const& kind) const;
+  virtual hstd::Opt<org::sem::AttrValue> getFirstAttr(hstd::Str const& kind) const;
 };
 
 /// \brief Base class for all inline elements
@@ -1647,11 +1647,11 @@ struct Cmd : public org::sem::Stmt {
                        (),
                        (attrs))
   /// \brief Additional parameters aside from 'exporter',
-  hstd::Opt<sem::AttrGroup> attrs = std::nullopt;
+  hstd::Opt<org::sem::AttrGroup> attrs = std::nullopt;
   /// \brief Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.
-  virtual hstd::Vec<sem::AttrValue> getAttrs(hstd::Opt<hstd::Str> const& key = std::nullopt) const override;
+  virtual hstd::Vec<org::sem::AttrValue> getAttrs(hstd::Opt<hstd::Str> const& key = std::nullopt) const override;
   /// \brief Override of the base statement argument get, prioritizing the explicit command parameters
-  virtual hstd::Opt<sem::AttrValue> getFirstAttr(hstd::Str const& kind) const override;
+  virtual hstd::Opt<org::sem::AttrValue> getFirstAttr(hstd::Str const& kind) const override;
 };
 
 /// \brief Block command type
@@ -1714,7 +1714,7 @@ struct CmdColumns : public org::sem::Attached {
                        (),
                        (staticKind, view))
   static OrgSemKind const staticKind;
-  sem::ColumnView view;
+  org::sem::ColumnView view;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdColumns; }
 };
 
@@ -1801,7 +1801,7 @@ struct CmdTblfm : public org::sem::Cmd {
                        (),
                        (staticKind, expr))
   static OrgSemKind const staticKind;
-  sem::Tblfm expr;
+  org::sem::Tblfm expr;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdTblfm; }
 };
 
@@ -1814,7 +1814,7 @@ struct HashTag : public org::sem::Inline {
                        (),
                        (staticKind, text))
   static OrgSemKind const staticKind;
-  sem::HashTagText text;
+  org::sem::HashTagText text;
   virtual OrgSemKind getKind() const { return OrgSemKind::HashTag; }
 };
 
@@ -1875,16 +1875,16 @@ struct Time : public org::sem::Org {
     BOOST_DESCRIBE_NESTED_ENUM(Period, Year, Month, Week, Day, Hour, Minute)
     BOOST_DESCRIBE_CLASS(Repeat, (), (), (), (mode, period, count))
     /// \brief mode
-    sem::Time::Repeat::Mode mode;
+    org::sem::Time::Repeat::Mode mode;
     /// \brief period
-    sem::Time::Repeat::Period period;
+    org::sem::Time::Repeat::Period period;
     /// \brief count
     int count;
   };
 
   struct Static {
     BOOST_DESCRIBE_CLASS(Static, (), (), (), (repeat, time))
-    hstd::Opt<sem::Time::Repeat> repeat;
+    hstd::Opt<org::sem::Time::Repeat> repeat;
     hstd::UserTime time;
   };
 
@@ -1893,11 +1893,11 @@ struct Time : public org::sem::Org {
     hstd::Str expr;
   };
 
-  using TimeVariant = std::variant<sem::Time::Static, sem::Time::Dynamic>;
+  using TimeVariant = std::variant<org::sem::Time::Static, org::sem::Time::Dynamic>;
   enum class TimeKind : short int { Static, Dynamic, };
   BOOST_DESCRIBE_NESTED_ENUM(TimeKind, Static, Dynamic)
-  using variant_enum_type = sem::Time::TimeKind;
-  using variant_data_type = sem::Time::TimeVariant;
+  using variant_enum_type = org::sem::Time::TimeKind;
+  using variant_data_type = org::sem::Time::TimeVariant;
   BOOST_DESCRIBE_CLASS(Time,
                        (Org),
                        (),
@@ -1908,7 +1908,7 @@ struct Time : public org::sem::Org {
   static OrgSemKind const staticKind;
   /// \brief <active> vs [inactive]
   bool isActive = false;
-  sem::Time::TimeVariant time;
+  org::sem::Time::TimeVariant time;
   virtual OrgSemKind getKind() const { return OrgSemKind::Time; }
   hstd::Opt<int> getYear() const;
   hstd::Opt<int> getMonth() const;
@@ -1918,13 +1918,13 @@ struct Time : public org::sem::Org {
   hstd::Opt<int> getSecond() const;
   hstd::UserTime getStaticTime() const;
   bool isStatic() const { return getTimeKind() == TimeKind::Static; }
-  sem::Time::Static const& getStatic() const { return std::get<0>(time); }
-  sem::Time::Static& getStatic() { return std::get<0>(time); }
+  org::sem::Time::Static const& getStatic() const { return std::get<0>(time); }
+  org::sem::Time::Static& getStatic() { return std::get<0>(time); }
   bool isDynamic() const { return getTimeKind() == TimeKind::Dynamic; }
-  sem::Time::Dynamic const& getDynamic() const { return std::get<1>(time); }
-  sem::Time::Dynamic& getDynamic() { return std::get<1>(time); }
-  static sem::Time::TimeKind getTimeKind(sem::Time::TimeVariant const& __input) { return static_cast<sem::Time::TimeKind>(__input.index()); }
-  sem::Time::TimeKind getTimeKind() const { return getTimeKind(time); }
+  org::sem::Time::Dynamic const& getDynamic() const { return std::get<1>(time); }
+  org::sem::Time::Dynamic& getDynamic() { return std::get<1>(time); }
+  static org::sem::Time::TimeKind getTimeKind(org::sem::Time::TimeVariant const& __input) { return static_cast<org::sem::Time::TimeKind>(__input.index()); }
+  org::sem::Time::TimeKind getTimeKind() const { return getTimeKind(time); }
 };
 
 /// \brief Range of time delimited by two points
@@ -1957,7 +1957,7 @@ struct Macro : public org::sem::Org {
   /// \brief Macro name
   hstd::Str name = "";
   /// \brief Additional parameters aside from 'exporter',
-  sem::AttrGroup attrs;
+  org::sem::AttrGroup attrs;
   virtual OrgSemKind getKind() const { return OrgSemKind::Macro; }
 };
 
@@ -1983,7 +1983,7 @@ struct Symbol : public org::sem::Org {
   /// \brief Name of the symbol
   hstd::Str name;
   /// \brief Optional list of parameters
-  hstd::Vec<sem::Symbol::Param> parameters;
+  hstd::Vec<org::sem::Symbol::Param> parameters;
   /// \brief Positional parameters
   hstd::Vec<org::sem::SemId<org::sem::Org>> positional;
   virtual OrgSemKind getKind() const { return OrgSemKind::Symbol; }
@@ -2254,7 +2254,7 @@ struct Link : public org::sem::Stmt {
                        (staticKind, description, target))
   static OrgSemKind const staticKind;
   hstd::Opt<org::sem::SemId<org::sem::Paragraph>> description = std::nullopt;
-  sem::LinkTarget target;
+  org::sem::LinkTarget target;
   virtual OrgSemKind getKind() const { return OrgSemKind::Link; }
 };
 
@@ -2391,13 +2391,13 @@ struct BlockCode : public org::sem::Block {
   /// \brief Code block language name
   hstd::Opt<hstd::Str> lang = std::nullopt;
   /// \brief Switch options for block
-  hstd::Vec<sem::BlockCodeSwitch> switches = {};
+  hstd::Vec<org::sem::BlockCodeSwitch> switches = {};
   /// \brief What to export
   BlockCodeExports exports = BlockCodeExports::Both;
   /// \brief Code evaluation results
-  hstd::Opt<sem::BlockCodeEvalResult> result = std::nullopt;
+  hstd::Opt<org::sem::BlockCodeEvalResult> result = std::nullopt;
   /// \brief Collected code lines
-  hstd::Vec<sem::BlockCodeLine> lines = {};
+  hstd::Vec<org::sem::BlockCodeLine> lines = {};
   /// \brief Do cache values?
   bool cache = false;
   /// \brief Eval on export?
@@ -2423,7 +2423,7 @@ struct SubtreeLog : public org::sem::Org {
                         head,
                         desc))
   static OrgSemKind const staticKind;
-  sem::SubtreeLogHead head;
+  org::sem::SubtreeLogHead head;
   /// \brief Optional description of the log entry
   hstd::Opt<org::sem::SemId<org::sem::StmtList>> desc = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::SubtreeLog; }
@@ -2462,7 +2462,7 @@ struct Subtree : public org::sem::Org {
   /// \brief Todo state of the tree
   hstd::Opt<hstd::Str> todo = std::nullopt;
   /// \brief Task completion state
-  hstd::Opt<sem::SubtreeCompletion> completion = std::nullopt;
+  hstd::Opt<org::sem::SubtreeCompletion> completion = std::nullopt;
   hstd::Opt<org::sem::SemId<org::sem::Paragraph>> description = std::nullopt;
   /// \brief Trailing tags
   hstd::Vec<org::sem::SemId<org::sem::HashTag>> tags = {};
@@ -2471,7 +2471,7 @@ struct Subtree : public org::sem::Org {
   /// \brief Associated subtree log
   hstd::Vec<org::sem::SemId<org::sem::SubtreeLog>> logbook = {};
   /// \brief Immediate properties
-  hstd::Vec<sem::NamedProperty> properties = {};
+  hstd::Vec<org::sem::NamedProperty> properties = {};
   /// \brief When subtree was marked as closed
   hstd::Opt<hstd::UserTime> closed = std::nullopt;
   /// \brief When is the deadline
@@ -2484,13 +2484,13 @@ struct Subtree : public org::sem::Org {
   bool isArchived = false;
   hstd::Opt<hstd::Str> priority = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::Subtree; }
-  hstd::Vec<sem::SubtreePeriod> getTimePeriods(hstd::IntSet<sem::SubtreePeriod::Kind> kinds) const;
-  hstd::Vec<sem::NamedProperty> getProperties(hstd::Str const& kind, hstd::Opt<hstd::Str> const& subkind = std::nullopt) const;
-  hstd::Opt<sem::NamedProperty> getProperty(hstd::Str const& kind, hstd::Opt<hstd::Str> const& subkind = std::nullopt) const;
+  hstd::Vec<org::sem::SubtreePeriod> getTimePeriods(hstd::IntSet<org::sem::SubtreePeriod::Kind> kinds) const;
+  hstd::Vec<org::sem::NamedProperty> getProperties(hstd::Str const& kind, hstd::Opt<hstd::Str> const& subkind = std::nullopt) const;
+  hstd::Opt<org::sem::NamedProperty> getProperty(hstd::Str const& kind, hstd::Opt<hstd::Str> const& subkind = std::nullopt) const;
   /// \brief Remove all instances of the property with matching kind/subkind from the property list
   void removeProperty(hstd::Str const& kind, hstd::Opt<hstd::Str> const& subkind = std::nullopt);
   /// \brief Create or override existing property value in the subtree property list
-  void setProperty(sem::NamedProperty const& value);
+  void setProperty(org::sem::NamedProperty const& value);
   /// \brief Assign a raw string literal to a property.
   ///
   /// This function will not do the conversion or parsing of the assigned value, so if it is a 'created' or some other property with a typed value, it will still remain as string until the file is written and then parsed back from scratch.
@@ -2628,7 +2628,7 @@ struct Call : public org::sem::Org {
   /// \brief Call target name
   hstd::Str name;
   /// \brief Additional parameters aside from 'exporter',
-  sem::AttrGroup attrs;
+  org::sem::AttrGroup attrs;
   bool isCommand = false;
   virtual OrgSemKind getKind() const { return OrgSemKind::Call; }
 };
@@ -2643,7 +2643,7 @@ struct List : public org::sem::Stmt {
                        (staticKind))
   static OrgSemKind const staticKind;
   virtual OrgSemKind getKind() const { return OrgSemKind::List; }
-  hstd::Vec<sem::AttrValue> getListAttrs(hstd::Str const& key) const;
+  hstd::Vec<org::sem::AttrValue> getListAttrs(hstd::Str const& key) const;
   ListFormattingMode getListFormattingMode() const;
   /// \brief List is marked as description if any list item has a header
   bool isDescriptionList() const;
@@ -2665,7 +2665,7 @@ struct ListItem : public org::sem::Org {
                         header,
                         bullet))
   static OrgSemKind const staticKind;
-  sem::ListItem::Checkbox checkbox = Checkbox::None;
+  org::sem::ListItem::Checkbox checkbox = Checkbox::None;
   /// \brief Description list item header
   hstd::Opt<org::sem::SemId<org::sem::Paragraph>> header = std::nullopt;
   /// \brief Full text of the numbered list item, e.g. `a)`, `a.`
@@ -2695,17 +2695,17 @@ struct DocumentOptions : public org::sem::Org {
                         columns))
   static OrgSemKind const staticKind;
   InitialSubtreeVisibility initialVisibility = InitialSubtreeVisibility::ShowEverything;
-  hstd::Vec<sem::NamedProperty> properties = {};
-  sem::DocumentExportConfig exportConfig;
+  hstd::Vec<org::sem::NamedProperty> properties = {};
+  org::sem::DocumentExportConfig exportConfig;
   hstd::Opt<bool> fixedWidthSections = std::nullopt;
   hstd::Opt<bool> startupIndented = std::nullopt;
   hstd::Opt<hstd::Str> category = std::nullopt;
   hstd::Opt<hstd::Str> setupfile = std::nullopt;
   hstd::Opt<int> maxSubtreeLevelExport = std::nullopt;
-  hstd::Opt<sem::ColumnView> columns = std::nullopt;
+  hstd::Opt<org::sem::ColumnView> columns = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::DocumentOptions; }
-  hstd::Vec<sem::NamedProperty> getProperties(hstd::Str const& kind, hstd::Opt<hstd::Str> const& subKind = std::nullopt) const;
-  hstd::Opt<sem::NamedProperty> getProperty(hstd::Str const& kind, hstd::Opt<hstd::Str> const& subKind = std::nullopt) const;
+  hstd::Vec<org::sem::NamedProperty> getProperties(hstd::Str const& kind, hstd::Opt<hstd::Str> const& subKind = std::nullopt) const;
+  hstd::Opt<org::sem::NamedProperty> getProperty(hstd::Str const& kind, hstd::Opt<hstd::Str> const& subKind = std::nullopt) const;
 };
 
 struct Document : public org::sem::Org {
@@ -2734,8 +2734,8 @@ struct Document : public org::sem::Org {
   org::sem::SemId<org::sem::DocumentOptions> options = sem::SemId<sem::DocumentOptions>::Nil();
   hstd::Opt<hstd::Str> exportFileName = std::nullopt;
   virtual OrgSemKind getKind() const { return OrgSemKind::Document; }
-  hstd::Vec<sem::NamedProperty> getProperties(hstd::Str const& kind, hstd::Opt<hstd::Str> const& subKind = std::nullopt) const;
-  hstd::Opt<sem::NamedProperty> getProperty(hstd::Str const& kind, hstd::Opt<hstd::Str> const& subKind = std::nullopt) const;
+  hstd::Vec<org::sem::NamedProperty> getProperties(hstd::Str const& kind, hstd::Opt<hstd::Str> const& subKind = std::nullopt) const;
+  hstd::Opt<org::sem::NamedProperty> getProperty(hstd::Str const& kind, hstd::Opt<hstd::Str> const& subKind = std::nullopt) const;
 };
 
 struct FileTarget : public org::sem::Org {
@@ -2801,11 +2801,11 @@ struct File : public org::sem::Org {
     BOOST_DESCRIBE_CLASS(Source, (), (), (), ())
   };
 
-  using Data = std::variant<sem::File::Document, sem::File::Attachment, sem::File::Source>;
+  using Data = std::variant<org::sem::File::Document, org::sem::File::Attachment, org::sem::File::Source>;
   enum class Kind : short int { Document, Attachment, Source, };
   BOOST_DESCRIBE_NESTED_ENUM(Kind, Document, Attachment, Source)
-  using variant_enum_type = sem::File::Kind;
-  using variant_data_type = sem::File::Data;
+  using variant_enum_type = org::sem::File::Kind;
+  using variant_data_type = org::sem::File::Data;
   BOOST_DESCRIBE_CLASS(File,
                        (Org),
                        (),
@@ -2819,19 +2819,19 @@ struct File : public org::sem::Org {
   hstd::Str relPath = "";
   /// \brief Absolute resolved path to physical file
   hstd::Str absPath = "";
-  sem::File::Data data;
+  org::sem::File::Data data;
   virtual OrgSemKind getKind() const { return OrgSemKind::File; }
   bool isDocument() const { return getFileKind() == Kind::Document; }
-  sem::File::Document const& getDocument() const { return std::get<0>(data); }
-  sem::File::Document& getDocument() { return std::get<0>(data); }
+  org::sem::File::Document const& getDocument() const { return std::get<0>(data); }
+  org::sem::File::Document& getDocument() { return std::get<0>(data); }
   bool isAttachment() const { return getFileKind() == Kind::Attachment; }
-  sem::File::Attachment const& getAttachment() const { return std::get<1>(data); }
-  sem::File::Attachment& getAttachment() { return std::get<1>(data); }
+  org::sem::File::Attachment const& getAttachment() const { return std::get<1>(data); }
+  org::sem::File::Attachment& getAttachment() { return std::get<1>(data); }
   bool isSource() const { return getFileKind() == Kind::Source; }
-  sem::File::Source const& getSource() const { return std::get<2>(data); }
-  sem::File::Source& getSource() { return std::get<2>(data); }
-  static sem::File::Kind getFileKind(sem::File::Data const& __input) { return static_cast<sem::File::Kind>(__input.index()); }
-  sem::File::Kind getFileKind() const { return getFileKind(data); }
+  org::sem::File::Source const& getSource() const { return std::get<2>(data); }
+  org::sem::File::Source& getSource() { return std::get<2>(data); }
+  static org::sem::File::Kind getFileKind(org::sem::File::Data const& __input) { return static_cast<org::sem::File::Kind>(__input.index()); }
+  org::sem::File::Kind getFileKind() const { return getFileKind(data); }
 };
 
 struct Directory : public org::sem::Org {
@@ -2873,12 +2873,12 @@ struct CmdInclude : public org::sem::Org {
     IncludeBase() {  }
   };
 
-  struct Example : public sem::CmdInclude::IncludeBase {
+  struct Example : public org::sem::CmdInclude::IncludeBase {
     BOOST_DESCRIBE_CLASS(Example, (IncludeBase), (), (), ())
     Example() {  }
   };
 
-  struct Export : public sem::CmdInclude::IncludeBase {
+  struct Export : public org::sem::CmdInclude::IncludeBase {
     BOOST_DESCRIBE_CLASS(Export, (IncludeBase), (), (), (language))
     /// \brief Source code language for export
     hstd::Str language;
@@ -2886,21 +2886,21 @@ struct CmdInclude : public org::sem::Org {
   };
 
   /// \brief Second positional argument in the include command can have any arbitrary value -- default src/export/example have additional properties, but user can provide anything else there.
-  struct Custom : public sem::CmdInclude::IncludeBase {
+  struct Custom : public org::sem::CmdInclude::IncludeBase {
     BOOST_DESCRIBE_CLASS(Custom, (IncludeBase), (), (), (blockName))
     /// \brief Block name not covered by the default values
     hstd::Str blockName;
     Custom() {  }
   };
 
-  struct Src : public sem::CmdInclude::IncludeBase {
+  struct Src : public org::sem::CmdInclude::IncludeBase {
     BOOST_DESCRIBE_CLASS(Src, (IncludeBase), (), (), (language))
     /// \brief Source code language for code block
     hstd::Str language;
     Src() {  }
   };
 
-  struct OrgDocument : public sem::CmdInclude::IncludeBase {
+  struct OrgDocument : public org::sem::CmdInclude::IncludeBase {
     BOOST_DESCRIBE_CLASS(OrgDocument,
                          (IncludeBase),
                          (),
@@ -2909,7 +2909,7 @@ struct CmdInclude : public org::sem::Org {
     /// \brief omits any planning lines or property drawers
     hstd::Opt<bool> onlyContent = std::nullopt;
     /// \brief Include first subtree matching path with `file.org::* tree`
-    hstd::Opt<sem::SubtreePath> subtreePath = std::nullopt;
+    hstd::Opt<org::sem::SubtreePath> subtreePath = std::nullopt;
     /// \brief The minimum level of headlines to include. Headlines with a level smaller than this value will be demoted to this level.
     hstd::Opt<int> minLevel = std::nullopt;
     /// \brief Include target subtree content with `file.org::#custom`
@@ -2917,11 +2917,11 @@ struct CmdInclude : public org::sem::Org {
     OrgDocument() {  }
   };
 
-  using Data = std::variant<sem::CmdInclude::Example, sem::CmdInclude::Export, sem::CmdInclude::Custom, sem::CmdInclude::Src, sem::CmdInclude::OrgDocument>;
+  using Data = std::variant<org::sem::CmdInclude::Example, org::sem::CmdInclude::Export, org::sem::CmdInclude::Custom, org::sem::CmdInclude::Src, org::sem::CmdInclude::OrgDocument>;
   enum class Kind : short int { Example, Export, Custom, Src, OrgDocument, };
   BOOST_DESCRIBE_NESTED_ENUM(Kind, Example, Export, Custom, Src, OrgDocument)
-  using variant_enum_type = sem::CmdInclude::Kind;
-  using variant_data_type = sem::CmdInclude::Data;
+  using variant_enum_type = org::sem::CmdInclude::Kind;
+  using variant_data_type = org::sem::CmdInclude::Data;
   BOOST_DESCRIBE_CLASS(CmdInclude,
                        (Org),
                        (),
@@ -2938,25 +2938,25 @@ struct CmdInclude : public org::sem::Org {
   hstd::Opt<int> firstLine = std::nullopt;
   /// \brief 0-based index of the last line to include
   hstd::Opt<int> lastLine = std::nullopt;
-  sem::CmdInclude::Data data;
+  org::sem::CmdInclude::Data data;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdInclude; }
   bool isExample() const { return getIncludeKind() == Kind::Example; }
-  sem::CmdInclude::Example const& getExample() const { return std::get<0>(data); }
-  sem::CmdInclude::Example& getExample() { return std::get<0>(data); }
+  org::sem::CmdInclude::Example const& getExample() const { return std::get<0>(data); }
+  org::sem::CmdInclude::Example& getExample() { return std::get<0>(data); }
   bool isExport() const { return getIncludeKind() == Kind::Export; }
-  sem::CmdInclude::Export const& getExport() const { return std::get<1>(data); }
-  sem::CmdInclude::Export& getExport() { return std::get<1>(data); }
+  org::sem::CmdInclude::Export const& getExport() const { return std::get<1>(data); }
+  org::sem::CmdInclude::Export& getExport() { return std::get<1>(data); }
   bool isCustom() const { return getIncludeKind() == Kind::Custom; }
-  sem::CmdInclude::Custom const& getCustom() const { return std::get<2>(data); }
-  sem::CmdInclude::Custom& getCustom() { return std::get<2>(data); }
+  org::sem::CmdInclude::Custom const& getCustom() const { return std::get<2>(data); }
+  org::sem::CmdInclude::Custom& getCustom() { return std::get<2>(data); }
   bool isSrc() const { return getIncludeKind() == Kind::Src; }
-  sem::CmdInclude::Src const& getSrc() const { return std::get<3>(data); }
-  sem::CmdInclude::Src& getSrc() { return std::get<3>(data); }
+  org::sem::CmdInclude::Src const& getSrc() const { return std::get<3>(data); }
+  org::sem::CmdInclude::Src& getSrc() { return std::get<3>(data); }
   bool isOrgDocument() const { return getIncludeKind() == Kind::OrgDocument; }
-  sem::CmdInclude::OrgDocument const& getOrgDocument() const { return std::get<4>(data); }
-  sem::CmdInclude::OrgDocument& getOrgDocument() { return std::get<4>(data); }
-  static sem::CmdInclude::Kind getIncludeKind(sem::CmdInclude::Data const& __input) { return static_cast<sem::CmdInclude::Kind>(__input.index()); }
-  sem::CmdInclude::Kind getIncludeKind() const { return getIncludeKind(data); }
+  org::sem::CmdInclude::OrgDocument const& getOrgDocument() const { return std::get<4>(data); }
+  org::sem::CmdInclude::OrgDocument& getOrgDocument() { return std::get<4>(data); }
+  static org::sem::CmdInclude::Kind getIncludeKind(org::sem::CmdInclude::Data const& __input) { return static_cast<org::sem::CmdInclude::Kind>(__input.index()); }
+  org::sem::CmdInclude::Kind getIncludeKind() const { return getIncludeKind(data); }
 };
 
 }

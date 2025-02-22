@@ -4,3 +4,15 @@ thirdparty
 profdata_merger.sql
 ImmOrgTypes.hpp
 SemOrgTypes.hpp
+scripts/py_haxorg/py_haxorg/pyhaxorg.pyi
+sem/SemOrgProto.proto
+sem/SemOrgSerdeDeclarations.hpp
+sem/SemOrgSerdeDefinitions.cpp
+exporters/Exporter.tcc
+sem/ImmOrgSerde.tcc
+exporters/ExporterMethods.tcc
+src/py_libs/pyhaxorg/pyhaxorg.cpp
+sem/SemOrgEnums.hpp
+sem/SemOrgEnums.cpp
+sem/SemOrgTypes.hpp
+sem/ImmOrgTypes.hpp

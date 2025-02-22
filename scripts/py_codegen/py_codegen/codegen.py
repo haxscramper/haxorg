@@ -925,16 +925,12 @@ def collect_pyhaxorg_typename_groups(types: List[GenTuStruct]) -> PyhaxorgTypena
         match it:
             case GenTuStruct() | GenTuEnum():
                 flat = it.name.flatQualSpaces() + [it.name.withoutAllSpaces()]
-                if 2 < len(flat):
-                    name_start = 0
-                    for i in range(len(flat)):
-                        if flat[i].name == "org" or flat[i].name == "sem" or flat[
-                                i].name == "imm":
-                            name_start = i + 1
-
-                    log(CAT).info(f"{flat} {name_start}")
+                without_namespaces = [i for i in range(len(flat)) if not flat[i].isNamespace]
+                # log(CAT).info(f"{it.name} {flat} {name_start} {without_namespaces}")
+                name_start = without_namespaces[0]
+                if 1 < len(without_namespaces):
                     parent = flat[name_start]
-                    nested = flat[name_start + 1:]
+                    nested = flat[without_namespaces[1]:]
                     value = (
                         parent.name,
                         "::".join(it.name for it in nested),
@@ -948,8 +944,8 @@ def collect_pyhaxorg_typename_groups(types: List[GenTuStruct]) -> PyhaxorgTypena
 
                 if isinstance(it, GenTuStruct):
                     res.all_records.append((
-                        "::".join(it.name for it in flat[1:]),
-                        "({})".format(", ".join(it.name for it in flat[1:])),
+                        "::".join(it.name for it in flat[name_start:]),
+                        "({})".format(", ".join(it.name for it in flat[name_start:])),
                     ))
 
     iterate_object_tree(types, [], pre_visit=aux)
