@@ -42,7 +42,7 @@ struct OrgNodeStore : hstd::ext::diff::NodeStore {
         return static_cast<int>(get(node)->getKind());
     }
 
-    hstd::Func<ColText(NodeStore::Id const&)> getToStr();
+    hstd::Func<hstd::ColText(NodeStore::Id const&)> getToStr();
 };
 
 struct OrgNodeDiff {

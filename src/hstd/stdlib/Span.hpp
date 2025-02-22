@@ -214,7 +214,7 @@ struct std::formatter<hstd::Span<T>> : std::formatter<std::string> {
         FormatContext&       ctx) const {
         hstd::fmt_ctx("[", ctx);
         for (int i = 0; i < p.size(); ++i) {
-            if (0 < i) { fmt_ctx(", ", ctx); }
+            if (0 < i) { hstd::fmt_ctx(", ", ctx); }
             hstd::fmt_ctx(p.at(i), ctx);
         }
 

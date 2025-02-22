@@ -27,7 +27,11 @@ def efield(name: str,
 
 
 @beartype
-def t(name: str | QualType, namespaces: List[QualType] = []) -> QualType:
+def t(
+    name: str | QualType,
+    namespaces: List[QualType] = [],
+    isOrgType: bool = False,
+) -> QualType:
     if isinstance(name, QualType):
         return name.model_copy(update=dict(Spaces=namespaces))
 
@@ -69,26 +73,22 @@ def t_space(name: str | QualType, Spaces: List[QualType]) -> QualType:
 
 
 @beartype
-def t_org(name: str, extraSpaces: List[QualType] = []) -> QualType:
+def t_org(name: str) -> QualType:
     return QualType(
         name=name,
-        Spaces=[n_sem()] + extraSpaces,
         meta=dict(isOrgType=True),
-        dbg_origin="t_org",
+        # dbg_origin="t_org",
     )
 
 
 @beartype
-def t_nest(name: Union[str, QualType],
-           Spaces: List[QualType],
-           isOrgType: bool = True) -> QualType:
-    return t_space(name, [n_sem()] +
-                   Spaces).model_copy(update=dict(meta=dict(isOrgType=isOrgType)))
+def t_nest(name: Union[str, QualType], Spaces: List[QualType] = []) -> QualType:
+    return t_space(name, [n_sem()] + Spaces)
 
 
 @beartype
 def t_nest_shared(name: Union[str, QualType], Spaces: List[QualType] = []) -> QualType:
-    return t_nest(name=name, Spaces=Spaces, isOrgType=False)
+    return t_nest(name=name, Spaces=Spaces)
 
 
 @beartype
@@ -544,7 +544,7 @@ def get_sem_bases():
         d_org(
             "ErrorItem",
             doc=org_doc(""),
-            bases=[t_org("Org")],
+            bases=[t_nest(t_org("Org"))],
             fields=[
                 org_field(t_str(), "message"),
                 opt_field(
@@ -562,7 +562,7 @@ def get_sem_bases():
         d_org(
             "ErrorGroup",
             doc=org_doc("Group of value conversion errors"),
-            bases=[t_org("Org")],
+            bases=[t_nest(t_org("Org"))],
             fields=[
                 vec_field(t_id("ErrorItem"), "diagnostics"),
                 opt_field(
@@ -582,7 +582,7 @@ def get_sem_bases():
             GenTuDoc(
                 "Base class for all document-level entries. Note that some node kinds might also have inline entries (examples include links, source code blocks, call blocks)"
             ),
-            bases=[t_org("Org")],
+            bases=[t_nest(t_org("Org"))],
             concreteKind=False,
             fields=[GenTuField(t_vec(t_id()), "attached", GenTuDoc(""))],
             methods=[
@@ -638,18 +638,18 @@ def get_sem_bases():
         d_org(
             "Inline",
             GenTuDoc("Base class for all inline elements"),
-            bases=[t_org("Org")],
+            bases=[t_nest(t_org("Org"))],
             concreteKind=False,
         ),
         d_org(
             "StmtList",
             GenTuDoc("Zero or more statement nodes"),
-            bases=[t_org("Org")],
+            bases=[t_nest(t_org("Org"))],
         ),
         d_org(
             "Empty",
             GenTuDoc("Node without content"),
-            bases=[t_org("Org")],
+            bases=[t_nest(t_org("Org"))],
         ),
         d_org(
             "Cmd",
@@ -710,7 +710,7 @@ def get_sem_bases():
         d_org(
             "Leaf",
             GenTuDoc("Final node"),
-            bases=[t_org("Org")],
+            bases=[t_nest(t_org("Org"))],
             concreteKind=False,
             fields=[
                 GenTuField(t_str(), "text", GenTuDoc("Final leaf value"), value='""')
@@ -913,7 +913,7 @@ def get_sem_text():
         d_org(
             "Time",
             GenTuDoc("Single static or dynamic timestamp (active or inactive)"),
-            bases=[t_org("Org")],
+            bases=[t_nest(t_org("Org"))],
             fields=[
                 GenTuField(t_bool(),
                            "isActive",
@@ -931,11 +931,11 @@ def get_sem_text():
             ],
             nested=[
                 GenTuStruct(
-                    t_nest("Repeat", [t("Time")]),
+                    t_nest("Repeat", [t_org("Time")]),
                     GenTuDoc("Repetition information for static time"),
                     nested=[
                         GenTuEnum(
-                            t_nest("Mode", [t("Time"), t("Repeat")]),
+                            t_nest("Mode", [t_org("Time"), t("Repeat")]),
                             GenTuDoc("Timestamp repetition mode"),
                             [
                                 GenTuEnumField(
@@ -955,7 +955,7 @@ def get_sem_text():
                             ],
                         ),
                         GenTuEnum(
-                            t_nest("Period", [t("Time"), t("Repeat")]),
+                            t_nest("Period", [t_org("Time"), t("Repeat")]),
                             GenTuDoc(
                                 "Repetition period. Temporary placeholder for now, until I figure out what would be the proper way to represent whatever org can do ... which is to be determined as well"
                             ),
@@ -971,12 +971,12 @@ def get_sem_text():
                     ],
                     fields=[
                         GenTuField(
-                            t_nest("Mode", [t("Time"), t("Repeat")]),
+                            t_nest("Mode", [t_org("Time"), t("Repeat")]),
                             "mode",
                             GenTuDoc("mode"),
                         ),
                         GenTuField(
-                            t_nest("Period", [t("Time"), t("Repeat")]),
+                            t_nest("Period", [t_org("Time"), t("Repeat")]),
                             "period",
                             GenTuDoc("period"),
                         ),
@@ -986,31 +986,31 @@ def get_sem_text():
                 GenTuTypeGroup(
                     [
                         GenTuStruct(
-                            t_nest("Static", [t("Time")]),
+                            t_nest("Static", [t_org("Time")]),
                             GenTuDoc(""),
                             fields=[
-                                GenTuField(t_opt(t_nest("Repeat", [t("Time")])), "repeat",
+                                GenTuField(t_opt(t_nest("Repeat", [t_org("Time")])), "repeat",
                                            GenTuDoc("")),
                                 GenTuField(t_user_time(), "time", GenTuDoc("")),
                             ],
                         ),
                         GenTuStruct(
-                            t_nest("Dynamic", [t("Time")]),
+                            t_nest("Dynamic", [t_org("Time")]),
                             GenTuDoc(""),
                             fields=[GenTuField(t_str(), "expr", GenTuDoc(""))],
                         ),
                     ],
                     kindGetter="getTimeKind",
-                    enumName=t_nest("TimeKind", [t("Time")]),
+                    enumName=t_nest("TimeKind", [t_org("Time")]),
                     variantField="time",
-                    variantName=t_nest("TimeVariant", [t("Time")]),
+                    variantName=t_nest("TimeVariant", [t_org("Time")]),
                 ),
             ],
         ),
         d_org(
             "TimeRange",
             GenTuDoc("Range of time delimited by two points"),
-            bases=[t_org("Org")],
+            bases=[t_nest(t_org("Org"))],
             fields=[
                 id_field("Time", "from", GenTuDoc("Starting time")),
                 id_field("Time", "to", GenTuDoc("Finishing time")),
@@ -1019,7 +1019,7 @@ def get_sem_text():
         d_org(
             "Macro",
             GenTuDoc("Inline macro invocation"),
-            bases=[t_org("Org")],
+            bases=[t_nest(t_org("Org"))],
             fields=[
                 GenTuField(t_str(), "name", GenTuDoc("Macro name"), value='""'),
                 org_field(
@@ -1032,7 +1032,7 @@ def get_sem_text():
         d_org(
             "Symbol",
             GenTuDoc("Text symbol or symbol command"),
-            bases=[t_org("Org")],
+            bases=[t_nest(t_org("Org"))],
             nested=[
                 GenTuStruct(
                     t_nest("Param", [t("Symbol")]),
@@ -1065,7 +1065,7 @@ def get_sem_text():
         d_org(
             "Markup",
             GenTuDoc(""),
-            bases=[t_org("Org")],
+            bases=[t_nest(t_org("Org"))],
             concreteKind=False,
         ),
         d_org("Bold", GenTuDoc(""), bases=[t_org("Markup")]),
@@ -1079,10 +1079,10 @@ def get_sem_text():
         d_org(
             "RadioTarget",
             GenTuDoc("~<<<target>>>~"),
-            bases=[t_org("Org")],
+            bases=[t_nest(t_org("Org"))],
             fields=[vec_field(t_str(), "words")],
         ),
-        d_org("Latex", GenTuDoc("Latex code body"), bases=[t_org("Org")]),
+        d_org("Latex", GenTuDoc("Latex code body"), bases=[t_nest(t_org("Org"))]),
         d_org(
             "Link",
             GenTuDoc(""),
@@ -1099,7 +1099,7 @@ def get_sem_subtree():
     return [
         d_org("SubtreeLog",
               GenTuDoc("Single subtree log entry"),
-              bases=[t_org("Org")],
+              bases=[t_nest(t_org("Org"))],
               methods=[
                   GenTuFunction(
                       t("void"),
@@ -1119,7 +1119,7 @@ def get_sem_subtree():
         d_org(
             "Subtree",
             GenTuDoc("Subtree"),
-            bases=[t_org("Org")],
+            bases=[t_nest(t_org("Org"))],
             fields=[
                 GenTuField(t_int(), "level", GenTuDoc("Subtree level"), value="0"),
                 opt_field(t_str(), "treeId", GenTuDoc(":ID: property")),
@@ -2490,7 +2490,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
 
 def get_types() -> Sequence[GenTuStruct]:
     return [
-        d_org("None", GenTuDoc("No node"), bases=[t_org("Org")]),
+        d_org("None", GenTuDoc("No node"), bases=[t_nest(t_org("Org"))]),
         *get_sem_bases(),
         *get_sem_commands(),
         *get_sem_text(),
@@ -2558,7 +2558,7 @@ def get_types() -> Sequence[GenTuStruct]:
         d_org(
             "ColonExample",
             GenTuDoc("Shortened colon example block"),
-            bases=[t_org("Org")],
+            bases=[t_nest(t_org("Org"))],
         ),
         d_org(
             "CmdAttr",
@@ -2578,7 +2578,7 @@ def get_types() -> Sequence[GenTuStruct]:
         d_org(
             "Call",
             GenTuDoc("Inline, statement or block call"),
-            bases=[t_org("Org")],
+            bases=[t_nest(t_org("Org"))],
             fields=[
                 org_field(
                     t_str(),
@@ -2631,7 +2631,7 @@ def get_types() -> Sequence[GenTuStruct]:
         d_org(
             "ListItem",
             GenTuDoc(""),
-            bases=[t_org("Org")],
+            bases=[t_nest(t_org("Org"))],
             fields=[
                 GenTuField(t_nest("Checkbox", [t("ListItem")]),
                            "checkbox",
@@ -2674,7 +2674,7 @@ def get_types() -> Sequence[GenTuStruct]:
         d_org(
             "DocumentOptions",
             GenTuDoc(""),
-            bases=[t_org("Org")],
+            bases=[t_nest(t_org("Org"))],
             methods=[
                 GenTuFunction(
                     t_vec(t_nest_shared("NamedProperty", [])),
@@ -2716,7 +2716,7 @@ def get_types() -> Sequence[GenTuStruct]:
         d_org(
             "Document",
             GenTuDoc(""),
-            bases=[t_org("Org")],
+            bases=[t_nest(t_org("Org"))],
             methods=[
                 GenTuFunction(
                     t_vec(t_nest_shared("NamedProperty", [])),
@@ -2751,7 +2751,7 @@ def get_types() -> Sequence[GenTuStruct]:
         ),
         d_org(
             "FileTarget",
-            bases=[t_org("Org")],
+            bases=[t_nest(t_org("Org"))],
             fields=[
                 org_field(t_str(), "path"),
                 opt_field(t_int(), "line"),
@@ -2763,14 +2763,14 @@ def get_types() -> Sequence[GenTuStruct]:
         ),
         d_org(
             "TextSeparator",
-            bases=[t_org("Org")],
+            bases=[t_nest(t_org("Org"))],
         ),
         d_org(
             "DocumentGroup",
-            bases=[t_org("Org")],
+            bases=[t_nest(t_org("Org"))],
         ),
         d_org("File",
-              bases=[t_org("Org")],
+              bases=[t_nest(t_org("Org"))],
               fields=[
                   str_field("relPath", "Relative path from the root directory"),
                   str_field("absPath", "Absolute resolved path to physical file"),
@@ -2789,7 +2789,7 @@ def get_types() -> Sequence[GenTuStruct]:
               ]),
         d_org(
             "Directory",
-            bases=[t_org("Org")],
+            bases=[t_nest(t_org("Org"))],
             fields=[
                 str_field(
                     "relPath",
@@ -2799,7 +2799,7 @@ def get_types() -> Sequence[GenTuStruct]:
             ]),
         d_org(
             "Symlink",
-            bases=[t_org("Org")],
+            bases=[t_nest(t_org("Org"))],
             fields=[
                 org_field(t_bool(), "isDirectory"),
                 str_field(
@@ -2809,7 +2809,7 @@ def get_types() -> Sequence[GenTuStruct]:
             ]),
         d_org(
             "CmdInclude",
-            bases=[t_org("Org")],
+            bases=[t_nest(t_org("Org"))],
             nested=[
                 org_struct(
                     t_nest("IncludeBase", [t("CmdInclude")]),

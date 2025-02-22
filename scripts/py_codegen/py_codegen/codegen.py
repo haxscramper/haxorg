@@ -786,20 +786,21 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
                 # obj.dbg_origin += f"{flat_namespace} {obj.withoutAllScopeQualifiers()}"
                 match flat_namespace:
                     case [QualType(name="org"), QualType(name="sem"), *rest]:
-                        if 1 == len(rest):
-                            obj.name = "Imm" + obj.name
-                            obj.Spaces = [ORG_SPACE]
-                            # obj = QualType(name="Imm" + rest[0].name, Spaces=[ORG_SPACE, *(rest[1:] if 1 < len(rest) else [])])
+                        if rest and rest[0].isOrgType():
+                            if 1 == len(rest):
+                                obj.name = "Imm" + obj.name
+                                obj.Spaces = [ORG_SPACE]
+                                # obj = QualType(name="Imm" + rest[0].name, Spaces=[ORG_SPACE, *(rest[1:] if 1 < len(rest) else [])])
 
-                        elif 1 < len(rest):
-                            # log(CAT).info(f"{obj} {rest}")
-                            obj.dbg_origin += f"rest? {rest[1:]}"
-                            # obj.name = "Imm" + rest[0].name
-                            obj.Spaces=[ORG_SPACE, rest[0].model_copy(update=dict(name="Imm" + rest[0].name)), *rest[1:-2]]
+                            elif 1 < len(rest):
+                                # log(CAT).info(f"{obj} {rest}")
+                                # obj.dbg_origin += f"rest? {rest[1:]}"
+                                # obj.name = "Imm" + rest[0].name
+                                obj.Spaces=[ORG_SPACE, rest[0].model_copy(update=dict(name="Imm" + rest[0].name)), *rest[1:-2]]
 
-                        else:
-                            obj.dbg_origin += "?"
-                            # log(CAT).info(f"{obj.__dict__} {flat_namespace}")
+                            else:
+                                obj.dbg_origin += "?"
+                                # log(CAT).info(f"{obj.__dict__} {flat_namespace}")
 
                     # case _:
                         # obj = res

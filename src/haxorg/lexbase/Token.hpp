@@ -463,11 +463,11 @@ struct LexerCommon {
         if (at(kind)) {
             return true;
         } else if (finished()) {
-            throw UnexpectedEndError(
-                "Unexpected end encountered while trying to skip $# token "
-                "at index $#"
-                    % to_string_vec(kind, pos.getIndex()),
-                pos.getIndex());
+            throw UnexpectedEndError(hstd::fmt(
+                "Unexpected end encountered while trying to skip {} token "
+                "at index {}",
+                kind,
+                pos.getIndex()));
 
         } else {
             throw UnexpectedCharError(

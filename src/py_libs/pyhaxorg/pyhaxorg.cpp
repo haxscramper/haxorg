@@ -2535,7 +2535,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::None, org::sem::SemId<org::sem::None>, org::sem::Org /* t_org */>(m, "None")
+  pybind11::class_<org::sem::None, org::sem::SemId<org::sem::None>, org::sem::Org>(m, "None")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::None {
                         org::sem::None result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -2550,7 +2550,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::ErrorItem, org::sem::SemId<org::sem::ErrorItem>, org::sem::Org /* t_org */>(m, "ErrorItem")
+  pybind11::class_<org::sem::ErrorItem, org::sem::SemId<org::sem::ErrorItem>, org::sem::Org>(m, "ErrorItem")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::ErrorItem {
                         org::sem::ErrorItem result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -2568,7 +2568,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::ErrorGroup, org::sem::SemId<org::sem::ErrorGroup>, org::sem::Org /* t_org */>(m, "ErrorGroup")
+  pybind11::class_<org::sem::ErrorGroup, org::sem::SemId<org::sem::ErrorGroup>, org::sem::Org>(m, "ErrorGroup")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::ErrorGroup {
                         org::sem::ErrorGroup result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -2586,7 +2586,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::Stmt, org::sem::SemId<org::sem::Stmt>, org::sem::Org /* t_org */>(m, "Stmt")
+  pybind11::class_<org::sem::Stmt, org::sem::SemId<org::sem::Stmt>, org::sem::Org>(m, "Stmt")
     .def_readwrite("attached", &org::sem::Stmt::attached)
     .def("getAttached",
          static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::Stmt::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::Stmt::getAttached),
@@ -2603,9 +2603,9 @@ node can have subnodes.)RAW")
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     ;
-  pybind11::class_<org::sem::Inline, org::sem::SemId<org::sem::Inline>, org::sem::Org /* t_org */>(m, "Inline")
+  pybind11::class_<org::sem::Inline, org::sem::SemId<org::sem::Inline>, org::sem::Org>(m, "Inline")
     ;
-  pybind11::class_<org::sem::StmtList, org::sem::SemId<org::sem::StmtList>, org::sem::Org /* t_org */>(m, "StmtList")
+  pybind11::class_<org::sem::StmtList, org::sem::SemId<org::sem::StmtList>, org::sem::Org>(m, "StmtList")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::StmtList {
                         org::sem::StmtList result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -2620,7 +2620,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::Empty, org::sem::SemId<org::sem::Empty>, org::sem::Org /* t_org */>(m, "Empty")
+  pybind11::class_<org::sem::Empty, org::sem::SemId<org::sem::Empty>, org::sem::Org>(m, "Empty")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Empty {
                         org::sem::Empty result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -2635,7 +2635,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::Cmd, org::sem::SemId<org::sem::Cmd>, org::sem::Stmt /* t_org */>(m, "Cmd")
+  pybind11::class_<org::sem::Cmd, org::sem::SemId<org::sem::Cmd>, Stmt>(m, "Cmd")
     .def_readwrite("attrs", &org::sem::Cmd::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("attached", &org::sem::Cmd::attached)
     .def("getAttrs",
@@ -2661,7 +2661,7 @@ node can have subnodes.)RAW")
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     ;
-  pybind11::class_<org::sem::Block, org::sem::SemId<org::sem::Block>, org::sem::Cmd /* t_org */>(m, "Block")
+  pybind11::class_<org::sem::Block, org::sem::SemId<org::sem::Block>, Cmd>(m, "Block")
     .def_readwrite("attrs", &org::sem::Block::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("attached", &org::sem::Block::attached)
     .def("getAttrs",
@@ -2687,7 +2687,7 @@ node can have subnodes.)RAW")
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     ;
-  pybind11::class_<org::sem::LineCommand, org::sem::SemId<org::sem::LineCommand>, org::sem::Cmd /* t_org */>(m, "LineCommand")
+  pybind11::class_<org::sem::LineCommand, org::sem::SemId<org::sem::LineCommand>, Cmd>(m, "LineCommand")
     .def_readwrite("attrs", &org::sem::LineCommand::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("attached", &org::sem::LineCommand::attached)
     .def("getAttrs",
@@ -2713,7 +2713,7 @@ node can have subnodes.)RAW")
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     ;
-  pybind11::class_<org::sem::Attached, org::sem::SemId<org::sem::Attached>, org::sem::LineCommand /* t_org */>(m, "Attached")
+  pybind11::class_<org::sem::Attached, org::sem::SemId<org::sem::Attached>, LineCommand>(m, "Attached")
     .def_readwrite("attrs", &org::sem::Attached::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("attached", &org::sem::Attached::attached)
     .def("getAttrs",
@@ -2739,11 +2739,11 @@ node can have subnodes.)RAW")
          pybind11::arg("kind"),
          R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
     ;
-  pybind11::class_<org::sem::Leaf, org::sem::SemId<org::sem::Leaf>, org::sem::Org /* t_org */>(m, "Leaf")
+  pybind11::class_<org::sem::Leaf, org::sem::SemId<org::sem::Leaf>, org::sem::Org>(m, "Leaf")
     .def_readwrite("text", &org::sem::Leaf::text, R"RAW(Final leaf value)RAW")
     .def("getText", static_cast<hstd::Str(org::sem::Leaf::*)() const>(&org::sem::Leaf::getText))
     ;
-  pybind11::class_<org::sem::CmdCaption, org::sem::SemId<org::sem::CmdCaption>, org::sem::Attached /* t_org */>(m, "CmdCaption")
+  pybind11::class_<org::sem::CmdCaption, org::sem::SemId<org::sem::CmdCaption>, Attached>(m, "CmdCaption")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdCaption {
                         org::sem::CmdCaption result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -2783,7 +2783,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::CmdColumns, org::sem::SemId<org::sem::CmdColumns>, org::sem::Attached /* t_org */>(m, "CmdColumns")
+  pybind11::class_<org::sem::CmdColumns, org::sem::SemId<org::sem::CmdColumns>, Attached>(m, "CmdColumns")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdColumns {
                         org::sem::CmdColumns result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -2823,7 +2823,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::CmdName, org::sem::SemId<org::sem::CmdName>, org::sem::Attached /* t_org */>(m, "CmdName")
+  pybind11::class_<org::sem::CmdName, org::sem::SemId<org::sem::CmdName>, Attached>(m, "CmdName")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdName {
                         org::sem::CmdName result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -2863,7 +2863,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::CmdCustomArgs, org::sem::SemId<org::sem::CmdCustomArgs>, org::sem::Cmd /* t_org */>(m, "CmdCustomArgs")
+  pybind11::class_<org::sem::CmdCustomArgs, org::sem::SemId<org::sem::CmdCustomArgs>, Cmd>(m, "CmdCustomArgs")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdCustomArgs {
                         org::sem::CmdCustomArgs result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -2904,7 +2904,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::CmdCustomRaw, org::sem::SemId<org::sem::CmdCustomRaw>, org::sem::Stmt /* t_org */>(m, "CmdCustomRaw")
+  pybind11::class_<org::sem::CmdCustomRaw, org::sem::SemId<org::sem::CmdCustomRaw>, Stmt>(m, "CmdCustomRaw")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdCustomRaw {
                         org::sem::CmdCustomRaw result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -2937,7 +2937,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::CmdCustomText, org::sem::SemId<org::sem::CmdCustomText>, org::sem::Stmt /* t_org */>(m, "CmdCustomText")
+  pybind11::class_<org::sem::CmdCustomText, org::sem::SemId<org::sem::CmdCustomText>, Stmt>(m, "CmdCustomText")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdCustomText {
                         org::sem::CmdCustomText result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -2970,7 +2970,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::CmdResults, org::sem::SemId<org::sem::CmdResults>, org::sem::Attached /* t_org */>(m, "CmdResults")
+  pybind11::class_<org::sem::CmdResults, org::sem::SemId<org::sem::CmdResults>, Attached>(m, "CmdResults")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdResults {
                         org::sem::CmdResults result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3009,7 +3009,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::CmdTblfm, org::sem::SemId<org::sem::CmdTblfm>, org::sem::Cmd /* t_org */>(m, "CmdTblfm")
+  pybind11::class_<org::sem::CmdTblfm, org::sem::SemId<org::sem::CmdTblfm>, Cmd>(m, "CmdTblfm")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdTblfm {
                         org::sem::CmdTblfm result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3049,7 +3049,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::HashTag, org::sem::SemId<org::sem::HashTag>, org::sem::Inline /* t_org */>(m, "HashTag")
+  pybind11::class_<org::sem::HashTag, org::sem::SemId<org::sem::HashTag>, Inline>(m, "HashTag")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::HashTag {
                         org::sem::HashTag result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3065,7 +3065,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::InlineFootnote, org::sem::SemId<org::sem::InlineFootnote>, org::sem::Inline /* t_org */>(m, "InlineFootnote")
+  pybind11::class_<org::sem::InlineFootnote, org::sem::SemId<org::sem::InlineFootnote>, Inline>(m, "InlineFootnote")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::InlineFootnote {
                         org::sem::InlineFootnote result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3082,7 +3082,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::InlineExport, org::sem::SemId<org::sem::InlineExport>, org::sem::Inline /* t_org */>(m, "InlineExport")
+  pybind11::class_<org::sem::InlineExport, org::sem::SemId<org::sem::InlineExport>, Inline>(m, "InlineExport")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::InlineExport {
                         org::sem::InlineExport result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3186,7 +3186,7 @@ node can have subnodes.)RAW")
                      ();
                      })
     ;
-  pybind11::class_<org::sem::Time, org::sem::SemId<org::sem::Time>, org::sem::Org /* t_org */>(m, "Time")
+  pybind11::class_<org::sem::Time, org::sem::SemId<org::sem::Time>, org::sem::Org>(m, "Time")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Time {
                         org::sem::Time result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3218,7 +3218,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::TimeRange, org::sem::SemId<org::sem::TimeRange>, org::sem::Org /* t_org */>(m, "TimeRange")
+  pybind11::class_<org::sem::TimeRange, org::sem::SemId<org::sem::TimeRange>, org::sem::Org>(m, "TimeRange")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::TimeRange {
                         org::sem::TimeRange result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3235,7 +3235,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::Macro, org::sem::SemId<org::sem::Macro>, org::sem::Org /* t_org */>(m, "Macro")
+  pybind11::class_<org::sem::Macro, org::sem::SemId<org::sem::Macro>, org::sem::Org>(m, "Macro")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Macro {
                         org::sem::Macro result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3269,7 +3269,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::Symbol, org::sem::SemId<org::sem::Symbol>, org::sem::Org /* t_org */>(m, "Symbol")
+  pybind11::class_<org::sem::Symbol, org::sem::SemId<org::sem::Symbol>, org::sem::Org>(m, "Symbol")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Symbol {
                         org::sem::Symbol result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3287,7 +3287,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::Escaped, org::sem::SemId<org::sem::Escaped>, org::sem::Leaf /* t_org */>(m, "Escaped")
+  pybind11::class_<org::sem::Escaped, org::sem::SemId<org::sem::Escaped>, Leaf>(m, "Escaped")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Escaped {
                         org::sem::Escaped result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3304,7 +3304,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::Newline, org::sem::SemId<org::sem::Newline>, org::sem::Leaf /* t_org */>(m, "Newline")
+  pybind11::class_<org::sem::Newline, org::sem::SemId<org::sem::Newline>, Leaf>(m, "Newline")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Newline {
                         org::sem::Newline result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3321,7 +3321,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::Space, org::sem::SemId<org::sem::Space>, org::sem::Leaf /* t_org */>(m, "Space")
+  pybind11::class_<org::sem::Space, org::sem::SemId<org::sem::Space>, Leaf>(m, "Space")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Space {
                         org::sem::Space result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3338,7 +3338,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::Word, org::sem::SemId<org::sem::Word>, org::sem::Leaf /* t_org */>(m, "Word")
+  pybind11::class_<org::sem::Word, org::sem::SemId<org::sem::Word>, Leaf>(m, "Word")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Word {
                         org::sem::Word result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3355,7 +3355,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::AtMention, org::sem::SemId<org::sem::AtMention>, org::sem::Leaf /* t_org */>(m, "AtMention")
+  pybind11::class_<org::sem::AtMention, org::sem::SemId<org::sem::AtMention>, Leaf>(m, "AtMention")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::AtMention {
                         org::sem::AtMention result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3372,7 +3372,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::RawText, org::sem::SemId<org::sem::RawText>, org::sem::Leaf /* t_org */>(m, "RawText")
+  pybind11::class_<org::sem::RawText, org::sem::SemId<org::sem::RawText>, Leaf>(m, "RawText")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::RawText {
                         org::sem::RawText result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3389,7 +3389,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::Punctuation, org::sem::SemId<org::sem::Punctuation>, org::sem::Leaf /* t_org */>(m, "Punctuation")
+  pybind11::class_<org::sem::Punctuation, org::sem::SemId<org::sem::Punctuation>, Leaf>(m, "Punctuation")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Punctuation {
                         org::sem::Punctuation result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3406,7 +3406,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::Placeholder, org::sem::SemId<org::sem::Placeholder>, org::sem::Leaf /* t_org */>(m, "Placeholder")
+  pybind11::class_<org::sem::Placeholder, org::sem::SemId<org::sem::Placeholder>, Leaf>(m, "Placeholder")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Placeholder {
                         org::sem::Placeholder result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3423,7 +3423,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::BigIdent, org::sem::SemId<org::sem::BigIdent>, org::sem::Leaf /* t_org */>(m, "BigIdent")
+  pybind11::class_<org::sem::BigIdent, org::sem::SemId<org::sem::BigIdent>, Leaf>(m, "BigIdent")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BigIdent {
                         org::sem::BigIdent result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3440,7 +3440,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::TextTarget, org::sem::SemId<org::sem::TextTarget>, org::sem::Leaf /* t_org */>(m, "TextTarget")
+  pybind11::class_<org::sem::TextTarget, org::sem::SemId<org::sem::TextTarget>, Leaf>(m, "TextTarget")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::TextTarget {
                         org::sem::TextTarget result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3457,9 +3457,9 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::Markup, org::sem::SemId<org::sem::Markup>, org::sem::Org /* t_org */>(m, "Markup")
+  pybind11::class_<org::sem::Markup, org::sem::SemId<org::sem::Markup>, org::sem::Org>(m, "Markup")
     ;
-  pybind11::class_<org::sem::Bold, org::sem::SemId<org::sem::Bold>, org::sem::Markup /* t_org */>(m, "Bold")
+  pybind11::class_<org::sem::Bold, org::sem::SemId<org::sem::Bold>, Markup>(m, "Bold")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Bold {
                         org::sem::Bold result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3474,7 +3474,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::Underline, org::sem::SemId<org::sem::Underline>, org::sem::Markup /* t_org */>(m, "Underline")
+  pybind11::class_<org::sem::Underline, org::sem::SemId<org::sem::Underline>, Markup>(m, "Underline")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Underline {
                         org::sem::Underline result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3489,7 +3489,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::Monospace, org::sem::SemId<org::sem::Monospace>, org::sem::Markup /* t_org */>(m, "Monospace")
+  pybind11::class_<org::sem::Monospace, org::sem::SemId<org::sem::Monospace>, Markup>(m, "Monospace")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Monospace {
                         org::sem::Monospace result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3504,7 +3504,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::MarkQuote, org::sem::SemId<org::sem::MarkQuote>, org::sem::Markup /* t_org */>(m, "MarkQuote")
+  pybind11::class_<org::sem::MarkQuote, org::sem::SemId<org::sem::MarkQuote>, Markup>(m, "MarkQuote")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::MarkQuote {
                         org::sem::MarkQuote result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3519,7 +3519,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::Verbatim, org::sem::SemId<org::sem::Verbatim>, org::sem::Markup /* t_org */>(m, "Verbatim")
+  pybind11::class_<org::sem::Verbatim, org::sem::SemId<org::sem::Verbatim>, Markup>(m, "Verbatim")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Verbatim {
                         org::sem::Verbatim result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3534,7 +3534,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::Italic, org::sem::SemId<org::sem::Italic>, org::sem::Markup /* t_org */>(m, "Italic")
+  pybind11::class_<org::sem::Italic, org::sem::SemId<org::sem::Italic>, Markup>(m, "Italic")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Italic {
                         org::sem::Italic result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3549,7 +3549,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::Strike, org::sem::SemId<org::sem::Strike>, org::sem::Markup /* t_org */>(m, "Strike")
+  pybind11::class_<org::sem::Strike, org::sem::SemId<org::sem::Strike>, Markup>(m, "Strike")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Strike {
                         org::sem::Strike result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3564,7 +3564,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::Par, org::sem::SemId<org::sem::Par>, org::sem::Markup /* t_org */>(m, "Par")
+  pybind11::class_<org::sem::Par, org::sem::SemId<org::sem::Par>, Markup>(m, "Par")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Par {
                         org::sem::Par result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3579,7 +3579,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::RadioTarget, org::sem::SemId<org::sem::RadioTarget>, org::sem::Org /* t_org */>(m, "RadioTarget")
+  pybind11::class_<org::sem::RadioTarget, org::sem::SemId<org::sem::RadioTarget>, org::sem::Org>(m, "RadioTarget")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::RadioTarget {
                         org::sem::RadioTarget result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3595,7 +3595,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::Latex, org::sem::SemId<org::sem::Latex>, org::sem::Org /* t_org */>(m, "Latex")
+  pybind11::class_<org::sem::Latex, org::sem::SemId<org::sem::Latex>, org::sem::Org>(m, "Latex")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Latex {
                         org::sem::Latex result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3610,7 +3610,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::Link, org::sem::SemId<org::sem::Link>, org::sem::Stmt /* t_org */>(m, "Link")
+  pybind11::class_<org::sem::Link, org::sem::SemId<org::sem::Link>, Stmt>(m, "Link")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Link {
                         org::sem::Link result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3642,7 +3642,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::BlockCenter, org::sem::SemId<org::sem::BlockCenter>, org::sem::Block /* t_org */>(m, "BlockCenter")
+  pybind11::class_<org::sem::BlockCenter, org::sem::SemId<org::sem::BlockCenter>, Block>(m, "BlockCenter")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BlockCenter {
                         org::sem::BlockCenter result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3681,7 +3681,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::BlockQuote, org::sem::SemId<org::sem::BlockQuote>, org::sem::Block /* t_org */>(m, "BlockQuote")
+  pybind11::class_<org::sem::BlockQuote, org::sem::SemId<org::sem::BlockQuote>, Block>(m, "BlockQuote")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BlockQuote {
                         org::sem::BlockQuote result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3720,7 +3720,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::BlockComment, org::sem::SemId<org::sem::BlockComment>, org::sem::Stmt /* t_org */>(m, "BlockComment")
+  pybind11::class_<org::sem::BlockComment, org::sem::SemId<org::sem::BlockComment>, Stmt>(m, "BlockComment")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BlockComment {
                         org::sem::BlockComment result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3750,7 +3750,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::BlockVerse, org::sem::SemId<org::sem::BlockVerse>, org::sem::Block /* t_org */>(m, "BlockVerse")
+  pybind11::class_<org::sem::BlockVerse, org::sem::SemId<org::sem::BlockVerse>, Block>(m, "BlockVerse")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BlockVerse {
                         org::sem::BlockVerse result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3789,7 +3789,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::BlockDynamicFallback, org::sem::SemId<org::sem::BlockDynamicFallback>, org::sem::Block /* t_org */>(m, "BlockDynamicFallback")
+  pybind11::class_<org::sem::BlockDynamicFallback, org::sem::SemId<org::sem::BlockDynamicFallback>, Block>(m, "BlockDynamicFallback")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BlockDynamicFallback {
                         org::sem::BlockDynamicFallback result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3829,7 +3829,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::BlockExample, org::sem::SemId<org::sem::BlockExample>, org::sem::Block /* t_org */>(m, "BlockExample")
+  pybind11::class_<org::sem::BlockExample, org::sem::SemId<org::sem::BlockExample>, Block>(m, "BlockExample")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BlockExample {
                         org::sem::BlockExample result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3868,7 +3868,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::BlockExport, org::sem::SemId<org::sem::BlockExport>, org::sem::Block /* t_org */>(m, "BlockExport")
+  pybind11::class_<org::sem::BlockExport, org::sem::SemId<org::sem::BlockExport>, Block>(m, "BlockExport")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BlockExport {
                         org::sem::BlockExport result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3910,7 +3910,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::BlockAdmonition, org::sem::SemId<org::sem::BlockAdmonition>, org::sem::Block /* t_org */>(m, "BlockAdmonition")
+  pybind11::class_<org::sem::BlockAdmonition, org::sem::SemId<org::sem::BlockAdmonition>, Block>(m, "BlockAdmonition")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BlockAdmonition {
                         org::sem::BlockAdmonition result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3949,7 +3949,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::BlockCode, org::sem::SemId<org::sem::BlockCode>, org::sem::Block /* t_org */>(m, "BlockCode")
+  pybind11::class_<org::sem::BlockCode, org::sem::SemId<org::sem::BlockCode>, Block>(m, "BlockCode")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BlockCode {
                         org::sem::BlockCode result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -3998,7 +3998,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::SubtreeLog, org::sem::SemId<org::sem::SubtreeLog>, org::sem::Org /* t_org */>(m, "SubtreeLog")
+  pybind11::class_<org::sem::SubtreeLog, org::sem::SemId<org::sem::SubtreeLog>, org::sem::Org>(m, "SubtreeLog")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::SubtreeLog {
                         org::sem::SubtreeLog result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -4018,7 +4018,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::Subtree, org::sem::SemId<org::sem::Subtree>, org::sem::Org /* t_org */>(m, "Subtree")
+  pybind11::class_<org::sem::Subtree, org::sem::SemId<org::sem::Subtree>, org::sem::Org>(m, "Subtree")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Subtree {
                         org::sem::Subtree result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -4075,7 +4075,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::Cell, org::sem::SemId<org::sem::Cell>, org::sem::Cmd /* t_org */>(m, "Cell")
+  pybind11::class_<org::sem::Cell, org::sem::SemId<org::sem::Cell>, Cmd>(m, "Cell")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Cell {
                         org::sem::Cell result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -4115,7 +4115,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::Row, org::sem::SemId<org::sem::Row>, org::sem::Cmd /* t_org */>(m, "Row")
+  pybind11::class_<org::sem::Row, org::sem::SemId<org::sem::Row>, Cmd>(m, "Row")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Row {
                         org::sem::Row result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -4156,7 +4156,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::Table, org::sem::SemId<org::sem::Table>, org::sem::Block /* t_org */>(m, "Table")
+  pybind11::class_<org::sem::Table, org::sem::SemId<org::sem::Table>, Block>(m, "Table")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Table {
                         org::sem::Table result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -4197,7 +4197,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::Paragraph, org::sem::SemId<org::sem::Paragraph>, org::sem::Stmt /* t_org */>(m, "Paragraph")
+  pybind11::class_<org::sem::Paragraph, org::sem::SemId<org::sem::Paragraph>, Stmt>(m, "Paragraph")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Paragraph {
                         org::sem::Paragraph result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -4238,7 +4238,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::ColonExample, org::sem::SemId<org::sem::ColonExample>, org::sem::Org /* t_org */>(m, "ColonExample")
+  pybind11::class_<org::sem::ColonExample, org::sem::SemId<org::sem::ColonExample>, org::sem::Org>(m, "ColonExample")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::ColonExample {
                         org::sem::ColonExample result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -4253,7 +4253,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::CmdAttr, org::sem::SemId<org::sem::CmdAttr>, org::sem::Attached /* t_org */>(m, "CmdAttr")
+  pybind11::class_<org::sem::CmdAttr, org::sem::SemId<org::sem::CmdAttr>, Attached>(m, "CmdAttr")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdAttr {
                         org::sem::CmdAttr result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -4293,7 +4293,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::CmdExport, org::sem::SemId<org::sem::CmdExport>, org::sem::Attached /* t_org */>(m, "CmdExport")
+  pybind11::class_<org::sem::CmdExport, org::sem::SemId<org::sem::CmdExport>, Attached>(m, "CmdExport")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdExport {
                         org::sem::CmdExport result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -4334,7 +4334,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::Call, org::sem::SemId<org::sem::Call>, org::sem::Org /* t_org */>(m, "Call")
+  pybind11::class_<org::sem::Call, org::sem::SemId<org::sem::Call>, org::sem::Org>(m, "Call")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Call {
                         org::sem::Call result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -4352,7 +4352,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::List, org::sem::SemId<org::sem::List>, org::sem::Stmt /* t_org */>(m, "List")
+  pybind11::class_<org::sem::List, org::sem::SemId<org::sem::List>, Stmt>(m, "List")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::List {
                         org::sem::List result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -4400,7 +4400,7 @@ node can have subnodes.)RAW")
                      ();
                      })
     ;
-  pybind11::class_<org::sem::ListItem, org::sem::SemId<org::sem::ListItem>, org::sem::Org /* t_org */>(m, "ListItem")
+  pybind11::class_<org::sem::ListItem, org::sem::SemId<org::sem::ListItem>, org::sem::Org>(m, "ListItem")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::ListItem {
                         org::sem::ListItem result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -4420,7 +4420,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::DocumentOptions, org::sem::SemId<org::sem::DocumentOptions>, org::sem::Org /* t_org */>(m, "DocumentOptions")
+  pybind11::class_<org::sem::DocumentOptions, org::sem::SemId<org::sem::DocumentOptions>, org::sem::Org>(m, "DocumentOptions")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::DocumentOptions {
                         org::sem::DocumentOptions result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -4452,7 +4452,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::Document, org::sem::SemId<org::sem::Document>, org::sem::Org /* t_org */>(m, "Document")
+  pybind11::class_<org::sem::Document, org::sem::SemId<org::sem::Document>, org::sem::Org>(m, "Document")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Document {
                         org::sem::Document result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -4483,7 +4483,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::FileTarget, org::sem::SemId<org::sem::FileTarget>, org::sem::Org /* t_org */>(m, "FileTarget")
+  pybind11::class_<org::sem::FileTarget, org::sem::SemId<org::sem::FileTarget>, org::sem::Org>(m, "FileTarget")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::FileTarget {
                         org::sem::FileTarget result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -4504,7 +4504,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::TextSeparator, org::sem::SemId<org::sem::TextSeparator>, org::sem::Org /* t_org */>(m, "TextSeparator")
+  pybind11::class_<org::sem::TextSeparator, org::sem::SemId<org::sem::TextSeparator>, org::sem::Org>(m, "TextSeparator")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::TextSeparator {
                         org::sem::TextSeparator result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -4519,7 +4519,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::DocumentGroup, org::sem::SemId<org::sem::DocumentGroup>, org::sem::Org /* t_org */>(m, "DocumentGroup")
+  pybind11::class_<org::sem::DocumentGroup, org::sem::SemId<org::sem::DocumentGroup>, org::sem::Org>(m, "DocumentGroup")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::DocumentGroup {
                         org::sem::DocumentGroup result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -4590,7 +4590,7 @@ node can have subnodes.)RAW")
                      ();
                      })
     ;
-  pybind11::class_<org::sem::File, org::sem::SemId<org::sem::File>, org::sem::Org /* t_org */>(m, "File")
+  pybind11::class_<org::sem::File, org::sem::SemId<org::sem::File>, org::sem::Org>(m, "File")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::File {
                         org::sem::File result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -4618,7 +4618,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::Directory, org::sem::SemId<org::sem::Directory>, org::sem::Org /* t_org */>(m, "Directory")
+  pybind11::class_<org::sem::Directory, org::sem::SemId<org::sem::Directory>, org::sem::Org>(m, "Directory")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Directory {
                         org::sem::Directory result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -4635,7 +4635,7 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::Symlink, org::sem::SemId<org::sem::Symlink>, org::sem::Org /* t_org */>(m, "Symlink")
+  pybind11::class_<org::sem::Symlink, org::sem::SemId<org::sem::Symlink>, org::sem::Org>(m, "Symlink")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::Symlink {
                         org::sem::Symlink result{};
                         init_fields_from_kwargs(result, kwargs);
@@ -4762,7 +4762,7 @@ node can have subnodes.)RAW")
                      ();
                      })
     ;
-  pybind11::class_<org::sem::CmdInclude, org::sem::SemId<org::sem::CmdInclude>, org::sem::Org /* t_org */>(m, "CmdInclude")
+  pybind11::class_<org::sem::CmdInclude, org::sem::SemId<org::sem::CmdInclude>, org::sem::Org>(m, "CmdInclude")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::CmdInclude {
                         org::sem::CmdInclude result{};
                         init_fields_from_kwargs(result, kwargs);
