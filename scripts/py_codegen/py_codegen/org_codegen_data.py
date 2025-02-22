@@ -70,7 +70,12 @@ def t_space(name: str | QualType, Spaces: List[QualType]) -> QualType:
 
 @beartype
 def t_org(name: str, extraSpaces: List[QualType] = []) -> QualType:
-    return QualType(name=name, Spaces=[n_sem()] + extraSpaces, meta=dict(isOrgType=True))
+    return QualType(
+        name=name,
+        Spaces=[n_sem()] + extraSpaces,
+        meta=dict(isOrgType=True),
+        dbg_origin="t_org",
+    )
 
 
 @beartype
