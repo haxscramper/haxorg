@@ -11,6 +11,8 @@
 #include <boost/mp11.hpp>
 #include <hstd/system/Formatter.hpp>
 
+using yaml = YAML::Node;
+
 namespace hstd {
 
 struct BadTypeConversion : public YAML::RepresentationException {
@@ -18,7 +20,6 @@ struct BadTypeConversion : public YAML::RepresentationException {
         : YAML::RepresentationException(mark, message) {}
 };
 
-using yaml = YAML::Node;
 
 template <typename E>
 inline E to_enum(yaml const& in, E fallback) {
@@ -59,9 +60,9 @@ struct std::formatter<YAML::Mark> : std::formatter<std::string> {
 };
 
 template <>
-struct std::formatter<hstd::yaml> : std::formatter<std::string> {
+struct std::formatter<yaml> : std::formatter<std::string> {
     template <typename FormatContext>
-    FormatContext::iterator format(hstd::yaml const& p, FormatContext& ctx)
+    FormatContext::iterator format(yaml const& p, FormatContext& ctx)
         const {
         std::formatter<std::string> fmt;
         std::stringstream           os;

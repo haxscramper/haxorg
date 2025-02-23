@@ -8,15 +8,18 @@
 #include <hstd/system/macros.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
 
+namespace org::test {
 
-json toJson(CR<yaml> node);
-yaml toYaml(CR<json> node);
+json       toJson(hstd::CR<yaml> node);
+yaml toYaml(hstd::CR<json> node);
 
 struct ParseSpec {
     std::string getLocMsg() const {
-        return "$# at $#:$#"
-             % to_string_vec(
-                   name ? *name : "<test>", specFile, specLocation.line);
+        return hstd::fmt(
+            "{} at {}:{}",
+            name ? *name : "<test>",
+            specFile,
+            specLocation.line);
     }
 
     struct Conf {
@@ -104,10 +107,10 @@ struct ParseSpec {
              debugOutDir));
     };
 
-    fs::path debugFile(
-        std::string     relativePath,
-        CR<std::string> relDebug,
-        bool            create = true) const;
+    hstd::fs::path debugFile(
+        std::string           relativePath,
+        hstd::CR<std::string> relDebug,
+        bool                  create = true) const;
 
     struct SpecValidationError : public std::runtime_error {
         explicit SpecValidationError(const std::string& message)
@@ -133,20 +136,20 @@ struct ParseSpec {
     }
 
     ParseSpec(
-        CR<yaml>        node,
-        CR<std::string> specFile,
-        CR<std::string> testRoot);
+        hstd::CR<yaml>  node,
+        hstd::CR<std::string> specFile,
+        hstd::CR<std::string> testRoot);
 
     template <typename N, typename K, typename V, typename M>
-    NodeGroup<N, K, V, M> getNodeGroup() {
-        NodeGroup<N, K, V, M> result;
+    org::parse::NodeGroup<N, K, V, M> getNodeGroup() {
+        org::parse::NodeGroup<N, K, V, M> result;
 
         return result;
     }
 
     template <typename K, typename V>
-    TokenGroup<K, V> getTokenGroup() {
-        TokenGroup<K, V> result;
+    org::parse::TokenGroup<K, V> getTokenGroup() {
+        org::parse::TokenGroup<K, V> result;
 
         return result;
     }
@@ -156,22 +159,22 @@ struct ParseSpec {
     /// Name of the method to call for lexing or parsing. Pointer to
     /// implementation is resolved externally, spec file just contains
     /// the required name.
-    Opt<std::string> file           = std::nullopt;
-    Dbg              debug          = Dbg{};
-    Conf             conf           = Conf{};
-    Opt<yaml>        subnodes       = std::nullopt;
-    Opt<yaml>        base_tokens    = std::nullopt;
-    Opt<yaml>        tokens         = std::nullopt;
-    Opt<json>        sem            = std::nullopt;
-    Str              source         = "";
-    Opt<std::string> name           = std::nullopt;
-    YAML::Mark       specLocation   = YAML::Mark();
-    YAML::Mark       sourceLocation = YAML::Mark();
-    std::string      specFile       = "";
+    hstd::Opt<std::string> file           = std::nullopt;
+    Dbg                    debug          = Dbg{};
+    Conf                   conf           = Conf{};
+    hstd::Opt<yaml>  subnodes       = std::nullopt;
+    hstd::Opt<yaml>  base_tokens    = std::nullopt;
+    hstd::Opt<yaml>  tokens         = std::nullopt;
+    hstd::Opt<json>        sem            = std::nullopt;
+    hstd::Str              source         = "";
+    hstd::Opt<std::string> name           = std::nullopt;
+    YAML::Mark             specLocation   = YAML::Mark();
+    YAML::Mark             sourceLocation = YAML::Mark();
+    std::string            specFile       = "";
     /// \brief Spec tags for filtering the groups of tests in pytest. In
     /// the `.yaml` file they are specified as `["tag"]`, when rendered for
     /// pytest they can be checked for as `test_gtest_tag("tag")`
-    Vec<std::string> tags = {};
+    hstd::Vec<std::string> tags = {};
 
     DESC_FIELDS(
         ParseSpec,
@@ -193,9 +196,11 @@ struct ParseSpec {
 
 struct ParseSpecGroup {
     ParseSpecGroup(
-        CR<yaml>        node,
-        CR<std::string> from,
-        CR<std::string> testRoot);
+        hstd::CR<yaml>  node,
+        hstd::CR<std::string> from,
+        hstd::CR<std::string> testRoot);
 
-    Vec<ParseSpec> specs;
+    hstd::Vec<ParseSpec> specs;
 };
+
+} // namespace org::test

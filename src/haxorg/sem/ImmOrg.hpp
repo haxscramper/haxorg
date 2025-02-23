@@ -844,7 +844,7 @@ struct ImmAdapter {
     void treeRepr(hstd::ColStream& os, TreeReprConf const& conf) const;
     hstd::ColText treeRepr(
         TreeReprConf const& conf = TreeReprConf::getDefault()) const {
-        ColStream os;
+        hstd::ColStream os;
         treeRepr(os, conf);
         return os.getBuffer();
     }
@@ -992,11 +992,11 @@ struct ImmAdapter {
 
     template <typename Func>
     void visitNodeFields(Func const& cb) const {
-        ::org::switch_node_fields(id, ctx, cb);
+        ::org::imm::switch_node_fields(id, ctx, cb);
     }
 };
 
-template <org::IsImmOrgValueType T, typename Func>
+template <org::imm::IsImmOrgValueType T, typename Func>
 ImmAstReplace ImmAstStore::updateNode(
     ImmAdapter         id,
     ImmAstEditContext& ctx,
@@ -1018,8 +1018,8 @@ ImmAstReplace setSubnodes(
 /// represented by the actual document syntax, like radio link targets.
 struct ImmSubnodeGroup {
     struct RadioTarget {
-        hstd::Vec<org::ImmAdapter> nodes;
-        ImmId                      target;
+        hstd::Vec<ImmAdapter> nodes;
+        ImmId                 target;
         DESC_FIELDS(RadioTarget, (nodes, target));
     };
 
@@ -1069,11 +1069,11 @@ struct ImmAdapterTBase : ImmAdapter {
     /// access, not for something that would have to be marked as 'edited'
     /// later on.
     template <typename F>
-    ImmAdapterT<F> getField(org::ImmIdT<F> T::*fieldPtr) const;
+    ImmAdapterT<F> getField(ImmIdT<F> T::*fieldPtr) const;
 
     template <typename F>
     ImmAdapterT<F> getField(
-        org::ImmIdT<F> T::*fieldPtr,
+        ImmIdT<F> T::*     fieldPtr,
         ImmPathStep const& step) const;
 };
 
@@ -1099,7 +1099,7 @@ struct ImmAdapterT : ImmAdapterTBase<T> {
 
 #define __declare_adapter(Derived, Base)                                  \
     template <>                                                           \
-    struct ImmAdapterT<org::Imm##Derived>;
+    struct ImmAdapterT<org::imm::Imm##Derived>;
 
 EACH_SEM_ORG_FINAL_TYPE_BASE(__declare_adapter)
 #undef __declare_adapter
@@ -1115,7 +1115,7 @@ struct ImmAdapterVirtualBase {
     }
 
     template <typename T>
-    ImmAdapterT<T> pass(org::ImmIdT<T> const& id, ImmPathStep const& step)
+    ImmAdapterT<T> pass(ImmIdT<T> const& id, ImmPathStep const& step)
         const {
         return ImmAdapterT<T>{
             id, getThis()->ctx, getThis()->path.add(step)};
@@ -1127,35 +1127,38 @@ struct ImmAdapterVirtualBase {
 struct ImmAdapterOrgAPI : ImmAdapterVirtualBase {};
 
 struct ImmAdapterStmtAPI : ImmAdapterOrgAPI {
-    virtual Vec<org::sem::AttrValue> getAttrs(CR<Opt<Str>> param) const;
-    virtual Opt<org::sem::AttrValue> getFirstAttr(Str const& kind) const;
+    virtual hstd::Vec<org::sem::AttrValue> getAttrs(
+        hstd::Opt<hstd::Str> param) const;
+    virtual hstd::Opt<org::sem::AttrValue> getFirstAttr(
+        hstd::Str const& kind) const;
 
-    Vec<ImmAdapter> getCaption() const;
-    Vec<Str>        getName() const;
-    Vec<ImmAdapter> getAttached(Opt<Str> const& kind = std::nullopt) const;
+    hstd::Vec<ImmAdapter> getCaption() const;
+    hstd::Vec<Str>        getName() const;
+    hstd::Vec<ImmAdapter> getAttached(
+        hstd::Opt<hstd::Str> const& kind = std::nullopt) const;
 };
 
 struct ImmAdapterCmdAPI : ImmAdapterStmtAPI {
-    virtual Vec<org::sem::AttrValue> getAttrs(
-        CR<Opt<Str>> param) const override;
-    virtual Opt<org::sem::AttrValue> getFirstAttr(
-        Str const& kind) const override;
+    virtual hstd::Vec<org::sem::AttrValue> getAttrs(
+        hstd::Opt<hstd::Str> param) const override;
+    virtual hstd::Opt<org::sem::AttrValue> getFirstAttr(
+        hstd::Str const& kind) const override;
 };
 
 struct ImmAdapterSubtreeAPI : ImmAdapterOrgAPI {
-    Vec<org::sem::SubtreePeriod> getTimePeriods(
-        IntSet<org::sem::SubtreePeriod::Kind> kinds,
-        bool                                  withPath = true) const;
-    Vec<org::sem::NamedProperty> getProperties(
-        Str const&      kind,
-        Opt<Str> const& subkind = std::nullopt) const;
-    Opt<org::sem::NamedProperty> getProperty(
-        Str const&      kind,
-        Opt<Str> const& subkind = std::nullopt) const;
+    hstd::Vec<org::sem::SubtreePeriod> getTimePeriods(
+        hstd::IntSet<org::sem::SubtreePeriod::Kind> kinds,
+        bool                                        withPath = true) const;
+    hstd::Vec<org::sem::NamedProperty> getProperties(
+        hstd::Str const&            kind,
+        hstd::Opt<hstd::Str> const& subkind = std::nullopt) const;
+    hstd::Opt<org::sem::NamedProperty> getProperty(
+        hstd::Str const&            kind,
+        hstd::Opt<hstd::Str> const& subkind = std::nullopt) const;
 
-    org::ImmAdapterT<org::ImmParagraph> getTitle() const;
+    org::imm::ImmAdapterT<org::imm::ImmParagraph> getTitle() const;
 
-    Str getCleanTitle() const;
+    hstd::Str getCleanTitle() const;
 };
 
 struct ImmAdapterNoneAPI : ImmAdapterOrgAPI {};
@@ -1182,19 +1185,19 @@ struct ImmAdapterInlineAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterHashTagAPI : ImmAdapterInlineAPI {};
 struct ImmAdapterInlineFootnoteAPI : ImmAdapterInlineAPI {};
 struct ImmAdapterTimeAPI : ImmAdapterOrgAPI {
-    UserTime getStaticTime() const;
-    Opt<int> getYear() const;
-    Opt<int> getMonth() const;
-    Opt<int> getDay() const;
-    Opt<int> getHour() const;
-    Opt<int> getMinute() const;
-    Opt<int> getSecond() const;
+    hstd::UserTime getStaticTime() const;
+    hstd::Opt<int> getYear() const;
+    hstd::Opt<int> getMonth() const;
+    hstd::Opt<int> getDay() const;
+    hstd::Opt<int> getHour() const;
+    hstd::Opt<int> getMinute() const;
+    hstd::Opt<int> getSecond() const;
 };
 struct ImmAdapterTimeRangeAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterMacroAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterSymbolAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterLeafAPI : ImmAdapterOrgAPI {
-    Str const& getText() const;
+    hstd::Str const& getText() const;
 };
 struct ImmAdapterEscapedAPI : ImmAdapterLeafAPI {};
 struct ImmAdapterNewlineAPI : ImmAdapterLeafAPI {};
@@ -1227,7 +1230,7 @@ struct ImmAdapterBlockExampleAPI : ImmAdapterBlockAPI {};
 struct ImmAdapterInlineExportAPI : ImmAdapterBlockAPI {};
 struct ImmAdapterCmdExportAPI : ImmAdapterBlockAPI {};
 struct ImmAdapterBlockExportAPI : ImmAdapterBlockAPI {
-    Opt<Str> getPlacement() const;
+    hstd::Opt<hstd::Str> getPlacement() const;
 };
 struct ImmAdapterBlockDynamicFallbackAPI : ImmAdapterBlockAPI {};
 struct ImmAdapterBlockAdmonitionAPI : ImmAdapterBlockAPI {};
@@ -1273,19 +1276,19 @@ struct ImmAdapterListItemAPI : ImmAdapterOrgAPI {
 };
 
 struct ImmAdapterDocumentOptionsAPI : ImmAdapterOrgAPI {
-    Vec<sem::NamedProperty> getProperties(
+    hstd::Vec<sem::NamedProperty> getProperties(
         hstd::Str const&            kind,
         hstd::Opt<hstd::Str> const& subkind = std::nullopt) const;
-    Opt<sem::NamedProperty> getProperty(
+    hstd::Opt<sem::NamedProperty> getProperty(
         hstd::Str const&            kind,
         hstd::Opt<hstd::Str> const& subkind = std::nullopt) const;
 };
 
 struct ImmAdapterDocumentAPI : ImmAdapterOrgAPI {
-    Vec<sem::NamedProperty> getProperties(
+    hstd::Vec<sem::NamedProperty> getProperties(
         hstd::Str const&            kind,
         hstd::Opt<hstd::Str> const& subkind = std::nullopt) const;
-    Opt<sem::NamedProperty> getProperty(
+    hstd::Opt<sem::NamedProperty> getProperty(
         hstd::Str const&            kind,
         hstd::Opt<hstd::Str> const& subkind = std::nullopt) const;
 };
@@ -1298,19 +1301,19 @@ struct ImmAdapterDocumentGroupAPI : ImmAdapterOrgAPI {};
 // Define specializations for all final (non-abstract) org-mode types.
 #define __define_adapter(Derived, Base)                                   \
     template <>                                                           \
-    struct ImmAdapterT<org::Imm##Derived>                                 \
+    struct ImmAdapterT<org::imm::Imm##Derived>                            \
         : ImmAdapterTBase<Imm##Derived>                                   \
         , ImmAdapter##Derived##API {                                      \
         using api_type = ImmAdapter##Derived##API;                        \
-        USE_IMM_ADAPTER_BASE(org::Imm##Derived);                          \
+        USE_IMM_ADAPTER_BASE(org::imm::Imm##Derived);                     \
     };
 
 EACH_SEM_ORG_FINAL_TYPE_BASE(__define_adapter)
 #undef __define_adapter
 
 template <typename T>
-Vec<T> getSubtreeProperties(CR<org::ImmSubtree> subtree) {
-    Vec<T> result;
+hstd::Vec<T> getSubtreeProperties(org::imm::ImmSubtree const& subtree) {
+    hstd::Vec<T> result;
     for (auto const& prop : subtree.properties) {
         if (std::holds_alternative<T>(prop.data)) {
             result.push_back(std::get<T>(prop.data));
@@ -1324,21 +1327,21 @@ Vec<T> getSubtreeProperties(CR<org::ImmSubtree> subtree) {
 template <typename T>
 template <typename F>
 inline ImmAdapterT<F> ImmAdapterTBase<T>::getField(
-    org::ImmIdT<F> T::*fieldPtr) const {
+    org::imm::ImmIdT<F> T::*fieldPtr) const {
     return ImmAdapterT<F>{(get()->*fieldPtr).asOrg(), ctx, {}};
 }
 
 template <typename T>
 template <typename F>
 ImmAdapterT<F> ImmAdapterTBase<T>::getField(
-    org::ImmIdT<F> T::*fieldPtr,
-    ImmPathStep const& step) const {
+    org::imm::ImmIdT<F> T::*fieldPtr,
+    ImmPathStep const&      step) const {
     return ImmAdapterT<F>{(get()->*fieldPtr).asOrg(), ctx, path.add(step)};
 }
 
 template <typename T>
 struct remove_sem_org {
-    using type = remove_smart_pointer<T>::type;
+    using type = hstd::remove_smart_pointer<T>::type;
 };
 
 template <>
@@ -1353,12 +1356,12 @@ struct remove_sem_org<ImmAdapter> {
 
 template <typename T>
 struct remove_sem_org<ImmIdT<T>> {
-    using type = remove_smart_pointer<T>::type;
+    using type = hstd::remove_smart_pointer<T>::type;
 };
 
 template <typename T>
 struct remove_sem_org<ImmAdapterT<T>> {
-    using type = remove_smart_pointer<T>::type;
+    using type = hstd::remove_smart_pointer<T>::type;
 };
 
 
@@ -1367,8 +1370,11 @@ concept IsImmOrg = std::
     derived_from<typename remove_sem_org<T>::type, ImmOrg>;
 
 
-using SubnodeVisitor = Func<void(ImmAdapter)>;
-void eachSubnodeRec(org::ImmAdapter id, bool withPath, SubnodeVisitor cb);
+using SubnodeVisitor = hstd::Func<void(ImmAdapter)>;
+void eachSubnodeRec(
+    org::imm::ImmAdapter id,
+    bool                 withPath,
+    SubnodeVisitor       cb);
 
 /// \brief Map immutable AST type to the sem type, defines inner type
 /// `sem_type`
@@ -1382,126 +1388,131 @@ struct sem_to_imm_map {};
 
 #define _gen_map(__Kind)                                                  \
     template <>                                                           \
-    struct imm_to_sem_map<org::Imm##__Kind> {                             \
-        using sem_type = sem::__Kind;                                     \
+    struct imm_to_sem_map<org::imm::Imm##__Kind> {                        \
+        using sem_type = org::sem::__Kind;                                \
     };                                                                    \
     template <>                                                           \
-    struct sem_to_imm_map<sem::__Kind> {                                  \
-        using imm_type = org::Imm##__Kind;                                \
+    struct sem_to_imm_map<org::sem::__Kind> {                             \
+        using imm_type = org::imm::Imm##__Kind;                           \
     };
 EACH_SEM_ORG_KIND(_gen_map)
 #undef _gen_map
 
 sem::SemId<sem::Org> sem_from_immer(
-    org::ImmId const&    id,
-    ImmAstContext const& ctx);
+    org::imm::ImmId const& id,
+    ImmAstContext const&   ctx);
 
-org::ImmId immer_from_sem(
-    sem::SemId<sem::Org> const& id,
-    ImmAstEditContext&          ctx);
+org::imm::ImmId immer_from_sem(
+    org::sem::SemId<org::sem::Org> const& id,
+    ImmAstEditContext&                    ctx);
 
 } // namespace org::imm
 
 
 template <>
-struct std::formatter<org::ImmAstStore*>
-    : std_format_ptr_as_hex<org::ImmAstStore> {};
+struct std::formatter<org::imm::ImmAstStore*>
+    : hstd::std_format_ptr_as_hex<org::imm::ImmAstStore> {};
 
 template <>
-struct std::formatter<org::ImmAstContext*>
-    : std_format_ptr_as_hex<org::ImmAstContext> {};
+struct std::formatter<org::imm::ImmAstContext*>
+    : hstd::std_format_ptr_as_hex<org::imm::ImmAstContext> {};
 
 template <>
-struct std::formatter<org::ParentPathMap*>
-    : std_format_ptr_as_hex_and_value<org::ParentPathMap> {};
+struct std::formatter<org::imm::ParentPathMap*>
+    : hstd::std_format_ptr_as_hex_and_value<org::imm::ParentPathMap> {};
 
 template <>
-struct std::formatter<org::ImmPath> : std::formatter<std::string> {
+struct std::formatter<org::imm::ImmPath> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const org::ImmPath& p, FormatContext& ctx) const {
-        return fmt_ctx(fmt("{}//{}", p.root, p.path), ctx);
+    auto format(const org::imm::ImmPath& p, FormatContext& ctx) const {
+        return hstd::fmt_ctx(hstd::fmt("{}//{}", p.root, p.path), ctx);
     }
 };
 
 template <>
-struct std::formatter<org::ImmUniqId> : std::formatter<std::string> {
+struct std::formatter<org::imm::ImmUniqId> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const org::ImmUniqId& p, FormatContext& ctx) const {
-        return fmt_ctx(fmt("{}->{}", p.path, p.id), ctx);
-    }
-};
-
-
-template <>
-struct std::formatter<org::ImmAstStore> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(const org::ImmAstStore& p, FormatContext& ctx) const {
-        return fmt_ctx("ImmAstStore{}", ctx);
+    auto format(const org::imm::ImmUniqId& p, FormatContext& ctx) const {
+        return hstd::fmt_ctx(hstd::fmt("{}->{}", p.path, p.id), ctx);
     }
 };
 
 
 template <>
-struct std::formatter<org::ImmAdapter> : std::formatter<std::string> {
+struct std::formatter<org::imm::ImmAstStore>
+    : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const org::ImmAdapter& p, FormatContext& ctx) const {
-        return fmt_ctx(fmt("{}->{}", p.path, p.id), ctx);
+    auto format(const org::imm::ImmAstStore& p, FormatContext& ctx) const {
+        return hstd::fmt_ctx("ImmAstStore{}", ctx);
+    }
+};
+
+
+template <>
+struct std::formatter<org::imm::ImmAdapter> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const org::imm::ImmAdapter& p, FormatContext& ctx) const {
+        return hstd::fmt_ctx(hstd::fmt("{}->{}", p.path, p.id), ctx);
     }
 };
 
 
 template <typename T>
-struct std::formatter<org::ImmAdapterT<T>> : std::formatter<std::string> {
+struct std::formatter<org::imm::ImmAdapterT<T>>
+    : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const org::ImmAdapterT<T>& p, FormatContext& ctx) const {
+    auto format(const org::imm::ImmAdapterT<T>& p, FormatContext& ctx)
+        const {
         return fmt_ctx(p.id, ctx);
     }
 };
 
 
 template <>
-struct JsonSerde<org::ImmAdapter> {
-    static json to_json(org::ImmAdapter const& it) {
+struct hstd::JsonSerde<org::imm::ImmAdapter> {
+    static json to_json(org::imm::ImmAdapter const& it) {
         return json(it.id.getReadableId());
     }
-    static org::ImmAdapter from_json(json const& j) {
+    static org::imm::ImmAdapter from_json(json const& j) {
         throw logic_assertion_error::init(
             "org::ImmAdapter does not support deserialization.");
     }
 };
 
 template <typename T>
-struct JsonSerde<org::ImmAdapterT<T>> {
-    static json to_json(org::ImmAdapterT<T> const& it) {
+struct hstd::JsonSerde<org::imm::ImmAdapterT<T>> {
+    static json to_json(org::imm::ImmAdapterT<T> const& it) {
         return json(it.id.getReadableId());
     }
-    static org::ImmAdapterT<T> from_json(json const& j) {
+    static org::imm::ImmAdapterT<T> from_json(json const& j) {
         throw logic_assertion_error::init(
             "org::ImmAdapterT<T> does not support deserialization.");
     }
 };
 
 template <>
-struct std::formatter<org::ImmPathStep> : std::formatter<std::string> {
+struct std::formatter<org::imm::ImmPathStep>
+    : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const org::ImmPathStep& p, FormatContext& ctx) const {
+    auto format(const org::imm::ImmPathStep& p, FormatContext& ctx) const {
         return ReflPathFormatter<org::ImmReflPathTag>{}.format(
             p.path, ctx);
     }
 };
 
 template <>
-struct std::hash<org::ImmPathStep> {
-    std::size_t operator()(org::ImmPathStep const& step) const noexcept {
-        AnyHasher<Str> hasher;
-        std::size_t    result = 0;
+struct std::hash<org::imm::ImmPathStep> {
+    std::size_t operator()(
+        org::imm::ImmPathStep const& step) const noexcept {
+        AnyHasher<hstd::Str> hasher;
+        std::size_t          result = 0;
         for (int i = 0; i < step.path.path.size(); ++i) {
-            org::ImmReflPathItemBase const& it = step.path.path.at(i);
-            hax_hash_combine(result, i);
+            org::imm::ImmReflPathItemBase const& it = step.path.path.at(i);
+            hstd::hax_hash_combine(result, i);
             if (it.isAnyKey()) {
-                hax_hash_combine(result, hasher(it.getAnyKey().key));
+                hstd::hax_hash_combine(result, hasher(it.getAnyKey().key));
             } else {
-                hax_hash_combine(result, it);
+                hstd::hax_hash_combine(result, it);
             }
         }
         return result;
@@ -1509,8 +1520,8 @@ struct std::hash<org::ImmPathStep> {
 };
 
 template <>
-struct std::hash<org::ImmPath> {
-    std::size_t operator()(org::ImmPath const& it) const noexcept {
+struct std::hash<org::imm::ImmPath> {
+    std::size_t operator()(org::imm::ImmPath const& it) const noexcept {
         std::size_t result = 0;
         hax_hash_combine(result, it.root);
         hax_hash_combine(result, it.path);
@@ -1520,17 +1531,19 @@ struct std::hash<org::ImmPath> {
 
 
 namespace org::details {
-inline org::ImmAstContext* ___get_context(org::ImmAstContext::Ptr p) {
+inline org::imm::ImmAstContext* ___get_context(
+    org::imm::ImmAstContext::Ptr p) {
     return p.get();
 }
-inline ImmAstEditContext* ___get_context(org::ImmAstEditContext& p) {
+inline org::imm::ImmAstEditContext* ___get_context(
+    org::imm::ImmAstEditContext& p) {
     return &p;
 }
 
-inline bool ___is_debug(org::ImmAstEditContext& p) {
+inline bool ___is_debug(org::imm::ImmAstEditContext& p) {
     return p.debug.TraceState;
 }
-inline bool ___is_debug(org::ImmAstContext::Ptr p) {
+inline bool ___is_debug(org::imm::ImmAstContext::Ptr p) {
     return p->debug->TraceState;
 }
 } // namespace org::details

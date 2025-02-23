@@ -4,6 +4,8 @@
 
 #include <haxorg/exporters/Exporter.cpp>
 
+namespace org::algo {
+
 template class Exporter<ExporterJson, json>;
 
 json ExporterJson::newRes(sem::SemId<sem::Org> org) {
@@ -85,3 +87,5 @@ json ExporterJson::eval(CR<T> arg) {
 
 
 void tmp() { ExporterJson().evalTop(sem::SemId<sem::Org>::Nil()); }
+
+} // namespace org::algo

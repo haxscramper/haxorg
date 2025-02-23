@@ -4,17 +4,17 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Json.hpp>
 
-namespace sem {
+namespace org {
 
 [[refl]] sem::SemId<sem::Time> newSemTimeStatic(
-    UserTimeBreakdown const& breakdown,
-    bool                     isActive = false);
+    hstd::UserTimeBreakdown const& breakdown,
+    bool                           isActive = false);
 
 struct [[refl]] OrgParseParameters {
-    [[refl]] Opt<std::string> baseTokenTracePath = std::nullopt;
-    [[refl]] Opt<std::string> tokenTracePath     = std::nullopt;
-    [[refl]] Opt<std::string> parseTracePath     = std::nullopt;
-    [[refl]] Opt<std::string> semTracePath       = std::nullopt;
+    [[refl]] hstd::Opt<std::string> baseTokenTracePath = std::nullopt;
+    [[refl]] hstd::Opt<std::string> tokenTracePath     = std::nullopt;
+    [[refl]] hstd::Opt<std::string> parseTracePath     = std::nullopt;
+    [[refl]] hstd::Opt<std::string> semTracePath       = std::nullopt;
 
     BOOST_DESCRIBE_CLASS(
         OrgParseParameters,
@@ -25,11 +25,11 @@ struct [[refl]] OrgParseParameters {
 };
 
 struct [[refl]] OrgDirectoryParseParameters {
-    Func<sem::SemId<sem::Document>(std::string const& fullPath)>
+    hstd::Func<sem::SemId<sem::Document>(std::string const& fullPath)>
         getParsedNode;
 
-    Func<bool(std::string const& fullPath)> shouldProcessPath;
-    Func<Opt<std::string>(std::string const& includePath)>
+    hstd::Func<bool(std::string const& fullPath)> shouldProcessPath;
+    hstd::Func<hstd::Opt<std::string>(std::string const& includePath)>
         findIncludeTarget;
 
     BOOST_DESCRIBE_CLASS(OrgDirectoryParseParameters, (), (), (), ());
@@ -45,7 +45,7 @@ struct [[refl]] OrgDirectoryParseParameters {
     std::string const         text,
     OrgParseParameters const& opts);
 
-[[refl]] Opt<sem::SemId<sem::Org>> parseDirectoryOpts(
+[[refl]] hstd::Opt<sem::SemId<sem::Org>> parseDirectoryOpts(
     std::string const&                 path,
     OrgDirectoryParseParameters const& opts);
 
@@ -136,7 +136,7 @@ struct [[refl]] OrgTreeExportOpts {
 
 /// \brief Full path to an AST tracking target.
 struct [[refl]] AstTrackingPath {
-    [[refl]] Vec<sem::SemId<sem::Org>> path;
+    [[refl]] hstd::Vec<sem::SemId<sem::Org>> path;
     DESC_FIELDS(AstTrackingPath, (path));
 
     [[refl]] sem::SemId<sem::Org> getParent(int offset = 0) const {
@@ -159,15 +159,15 @@ struct [[refl]] AstTrackingPath {
 /// of them are recorded, since it is not possible to know whether
 /// duplicate IDs is an issue for the caller code, or it can resolve them.
 struct [[refl]] AstTrackingAlternatives {
-    Vec<AstTrackingPath> alternatives;
+    hstd::Vec<AstTrackingPath> alternatives;
     DESC_FIELDS(AstTrackingAlternatives, (alternatives));
 
     /// \brief Return final nodes for all tracking alternatives.
-    [[refl]] Vec<sem::SemId<sem::Org>> getAllNodes() const {
+    [[refl]] hstd::Vec<sem::SemId<sem::Org>> getAllNodes() const {
         return alternatives //
-             | rv::transform(
+             | hstd::rv::transform(
                    [](AstTrackingPath const& p) { return p.getNode(); })
-             | rs::to<Vec>();
+             | hstd::rs::to<hstd::Vec>();
     }
 
     /// \brief Return first node from the alternatives.
@@ -178,8 +178,8 @@ struct [[refl]] AstTrackingAlternatives {
 
 struct [[refl]] AstTrackingGroup {
     struct [[refl]] RadioTarget {
-        [[refl]] AstTrackingPath           target;
-        [[refl]] Vec<sem::SemId<sem::Org>> nodes;
+        [[refl]] AstTrackingPath                 target;
+        [[refl]] hstd::Vec<sem::SemId<sem::Org>> nodes;
         DESC_FIELDS(RadioTarget, (nodes));
     };
 
@@ -189,12 +189,13 @@ struct [[refl]] AstTrackingGroup {
     };
 
     struct [[refl]] TrackedHashtag {
-        [[refl]] sem::SemId<sem::Org>                            tag;
-        [[refl]] UnorderedMap<sem::HashTagFlat, AstTrackingPath> targets;
+        [[refl]] sem::SemId<sem::Org> tag;
+        [[refl]] hstd::UnorderedMap<sem::HashTagFlat, AstTrackingPath>
+            targets;
         DESC_FIELDS(TrackedHashtag, (tag, targets));
     };
 
-    using Data = Variant<RadioTarget, Single, TrackedHashtag>;
+    using Data = hstd::Variant<RadioTarget, Single, TrackedHashtag>;
     Data data;
     DESC_FIELDS(AstTrackingGroup, (data));
 
@@ -216,24 +217,26 @@ struct [[refl]] AstTrackingGroup {
     Kind getKind() const { return static_cast<Kind>(data.index()); }
 
     [[refl]] RadioTarget const& getRadioTarget() const {
-        return get_sub_variant<RadioTarget, AstTrackingGroup>(data);
+        return hstd::get_sub_variant<RadioTarget, AstTrackingGroup>(data);
     }
 
 
     [[refl]] TrackedHashtag const& getTrackedHashtag() const {
-        return get_sub_variant<TrackedHashtag, AstTrackingGroup>(data);
+        return hstd::get_sub_variant<TrackedHashtag, AstTrackingGroup>(
+            data);
     }
 
     [[refl]] TrackedHashtag& getTrackedHashtag() {
-        return get_sub_variant<TrackedHashtag, AstTrackingGroup>(data);
+        return hstd::get_sub_variant<TrackedHashtag, AstTrackingGroup>(
+            data);
     }
 
     [[refl]] Single const& getSingle() const {
-        return get_sub_variant<Single, AstTrackingGroup>(data);
+        return hstd::get_sub_variant<Single, AstTrackingGroup>(data);
     }
 
     [[refl]] RadioTarget& getRadioTarget() {
-        return get_sub_variant<RadioTarget, AstTrackingGroup>(data);
+        return hstd::get_sub_variant<RadioTarget, AstTrackingGroup>(data);
     }
 
     [[refl]] Single& getSingle() { return std::get<Single>(data); }
@@ -251,12 +254,16 @@ struct [[refl]] AstTrackingGroup {
 /// \brief Fixed snapshot of all tracking information from a set of nodes.
 /// Mirrors the `ImmAstTrackingMap` API for shared pointer AST.
 struct [[refl]] AstTrackingMap {
-    [[refl]] UnorderedMap<Str, AstTrackingAlternatives> footnotes;
-    [[refl]] UnorderedMap<Str, AstTrackingAlternatives> subtrees;
-    [[refl]] UnorderedMap<Str, AstTrackingAlternatives> names;
-    [[refl]] UnorderedMap<Str, AstTrackingAlternatives> anchorTargets;
-    [[refl]] UnorderedMap<Str, AstTrackingAlternatives> radioTargets;
-    [[refl]] UnorderedMap<sem::HashTagFlat, AstTrackingAlternatives>
+    [[refl]] hstd::UnorderedMap<hstd::Str, AstTrackingAlternatives>
+        footnotes;
+    [[refl]] hstd::UnorderedMap<hstd::Str, AstTrackingAlternatives>
+        subtrees;
+    [[refl]] hstd::UnorderedMap<hstd::Str, AstTrackingAlternatives> names;
+    [[refl]] hstd::UnorderedMap<hstd::Str, AstTrackingAlternatives>
+        anchorTargets;
+    [[refl]] hstd::UnorderedMap<hstd::Str, AstTrackingAlternatives>
+        radioTargets;
+    [[refl]] hstd::UnorderedMap<sem::HashTagFlat, AstTrackingAlternatives>
         hashtagDefinitions;
 
     DESC_FIELDS(
@@ -380,4 +387,4 @@ Opt<sem::NamedProperty> getFinalProperty(
     CR<Opt<Str>>             subKind = std::nullopt);
 
 
-} // namespace sem
+} // namespace org

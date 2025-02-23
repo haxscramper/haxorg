@@ -63,7 +63,7 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
     json eval(hstd::Vec<T> const& values);
 
     template <typename T>
-    json eval(hstd::UnorderedMap<hstd::Str, T> map);
+    json eval(hstd::UnorderedMap<hstd::Str, T> const& map);
 
     template <typename T>
     void visitField(json& j, const char* name, T const& field) {
