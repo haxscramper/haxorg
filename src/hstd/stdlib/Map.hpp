@@ -134,6 +134,12 @@ struct value_metadata<hstd::UnorderedMap<K, V>> {
     static bool isEmpty(UnorderedMap<K, V> const& value) {
         return value.empty();
     }
+
+    static std::string typeName() {
+        return std::string{"UnorderedMap<"} + value_metadata<K>::typeName()
+             + std::string{", "} + value_metadata<V>::typeName()
+             + std::string{">"};
+    }
 };
 
 template <typename K, typename V, typename Type>

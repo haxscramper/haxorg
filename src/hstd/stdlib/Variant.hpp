@@ -174,7 +174,9 @@ template <typename... Args>
 struct hstd::value_metadata<hstd::Variant<Args...>> {
     static std::string typeName() {
         return std::string{"Variant<"}
-             + join(", ", Vec<Str>{hstd::value_metadata<Args>::get()...})
+             + join(
+                   ", ",
+                   Vec<Str>{hstd::value_metadata<Args>::typeName()...})
              + std::string{">"};
     }
 };

@@ -122,13 +122,14 @@ void ExporterTree::visitField(int& arg, const char* name, CR<T> value) {
         return;
     }
     // Location is printed as a part of 'init'
-    if (std::is_same_v<T, Opt<LineCol>>) { return; }
+    if (std::is_same_v<T, Opt<org::parse::LineCol>>) { return; }
 
     __scope();
     indent();
     os << name << " ";
     if (conf.withTypeAnnotations) {
-        os << "(" << os.green() << TypeName<T>::get() << os.end() << ")";
+        os << "(" << os.green() << hstd::value_metadata<T>::typeName()
+           << os.end() << ")";
     }
     if constexpr (std::is_same_v<T, int>) {
         os << " = " << os.cyan() << fmt1(value) << os.end() << "\n";
@@ -176,13 +177,15 @@ void ExporterTree::visit(int& arg, CR<T> opt) {
     if constexpr (std::is_enum<T>::value) {
         os << os.red() << std::format("{}", opt) << os.end() << "\n";
     } else if constexpr (std::is_same_v<T, Str>) {
-        if (conf.withTypeAnnotations) { os << TypeName<T>::get(); }
+        if (conf.withTypeAnnotations) {
+            os << value_metadata<T>::typeName();
+        }
 
         os << os.yellow() << " " << escape_literal(opt) << os.end()
            << "\n";
     } else {
         if (conf.withTypeAnnotations) {
-            os << os.red() << TypeName<T>::get() << os.end();
+            os << os.red() << value_metadata<T>::typeName() << os.end();
         }
         os << "\n";
     }

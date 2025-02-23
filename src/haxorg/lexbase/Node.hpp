@@ -121,7 +121,7 @@ struct Node {
         if (isEmpty()) {
             return std::nullopt;
         } else {
-            return slice(selfId + 1, selfId + getExtent());
+            return hstd::slice(selfId + 1, selfId + getExtent());
         }
     }
 

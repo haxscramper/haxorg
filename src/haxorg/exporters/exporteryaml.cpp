@@ -2,12 +2,14 @@
 
 
 #include <haxorg/exporters/Exporter.cpp>
-template class Exporter<ExporterYaml, yaml>;
+
+namespace org::algo {
+template class Exporter<ExporterYaml, hstd::yaml>;
 
 
 using osm = OrgSemKind;
 
-yaml ExporterYaml::newRes(sem::SemId<sem::Org> org) {
+hstd::yaml ExporterYaml::newRes(sem::SemId<sem::Org> org) {
     yaml res;
     res["kind"] = std::format("{}", org->getKind());
 
@@ -36,3 +38,4 @@ yaml ExporterYaml::newRes(sem::SemId<sem::Org> org) {
 
     return res;
 }
+} // namespace org::algo

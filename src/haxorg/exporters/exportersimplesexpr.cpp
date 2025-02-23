@@ -3,10 +3,12 @@
 
 #include <haxorg/exporters/Exporter.cpp>
 
-template class Exporter<ExporterSimpleSExpr, layout::BlockId>;
+template class org::algo::Exporter<ExporterSimpleSExpr, layout::BlockId>;
 
 
-void ExporterSimpleSExpr::visit(Res& res, sem::SemId<sem::Org> org) {
+void org::algo::ExporterSimpleSExpr::visit(
+    Res&                 res,
+    sem::SemId<sem::Org> org) {
     if (org.isNil()) {
         res = string("<nil>");
     } else {

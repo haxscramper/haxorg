@@ -159,31 +159,31 @@ struct std::formatter<hstd::ext::astspec::AstRange<Name>>
         FormatContext&                            ctx) const {
         switch (p.kind) {
             case hstd::ext::astspec::AstRangeKind::Point: {
-                fmt_ctx(p.idx, ctx);
+                hstd::fmt_ctx(p.idx, ctx);
                 break;
             }
             case hstd::ext::astspec::AstRangeKind::InversePoint: {
-                fmt_ctx("^", ctx);
-                fmt_ctx(p.idx, ctx);
+                hstd::fmt_ctx("^", ctx);
+                hstd::fmt_ctx(p.idx, ctx);
                 break;
             }
             case hstd::ext::astspec::AstRangeKind::DirectSlice: {
-                fmt_ctx(p.first, ctx);
-                fmt_ctx("..", ctx);
-                fmt_ctx(p.last, ctx);
+                hstd::fmt_ctx(p.first, ctx);
+                hstd::fmt_ctx("..", ctx);
+                hstd::fmt_ctx(p.last, ctx);
                 break;
             }
             case hstd::ext::astspec::AstRangeKind::InverseSlice: {
-                fmt_ctx("^", ctx);
-                fmt_ctx(p.first, ctx);
-                fmt_ctx("..^", ctx);
-                fmt_ctx(p.last, ctx);
+                hstd::fmt_ctx("^", ctx);
+                hstd::fmt_ctx(p.first, ctx);
+                hstd::fmt_ctx("..^", ctx);
+                hstd::fmt_ctx(p.last, ctx);
                 break;
             }
             case hstd::ext::astspec::AstRangeKind::MixedSlice: {
-                fmt_ctx(p.first, ctx);
-                fmt_ctx("..^", ctx);
-                fmt_ctx(p.last, ctx);
+                hstd::fmt_ctx(p.first, ctx);
+                hstd::fmt_ctx("..^", ctx);
+                hstd::fmt_ctx(p.last, ctx);
                 break;
             }
         }

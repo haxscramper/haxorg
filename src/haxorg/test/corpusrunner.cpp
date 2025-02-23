@@ -252,8 +252,8 @@ void describeDiff(
             std::string to   = conv.dump();
 
             if (exp.type() != conv.type()) {
-                os << "type mismatch: " << exp.type_name()
-                   << " != " << conv.type_name() << " ";
+                os << "type mismatch: " << exp.typeName()
+                   << " != " << conv.typeName() << " ";
             }
 
             if (40 < from.size() || 40 < to.size()) {

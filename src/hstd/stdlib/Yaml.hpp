@@ -58,6 +58,18 @@ struct std::formatter<YAML::Mark> : std::formatter<std::string> {
     }
 };
 
+template <>
+struct std::formatter<hstd::yaml> : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(hstd::yaml const& p, FormatContext& ctx)
+        const {
+        std::formatter<std::string> fmt;
+        std::stringstream           os;
+        os << p;
+        return fmt.format(os.str(), ctx);
+    }
+};
+
 
 namespace YAML {
 template <typename T>
@@ -94,10 +106,12 @@ struct convert<E> {
             out = res.value();
             return true;
         } else {
-            throw BadTypeConversion(
+            throw hstd::BadTypeConversion(
                 in.Mark(),
-                "Could not convert $# to $#"
-                    % to_string_vec(in, demangle(typeid(E).name())));
+                hstd::fmt(
+                    "Could not convert {} to {}",
+                    in,
+                    hstd::demangle(typeid(E).name())));
         }
     }
 };
@@ -167,15 +181,3 @@ struct convert<T> {
     }
 };
 }; // namespace YAML
-
-template <>
-struct std::formatter<hstd::yaml> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(hstd::yaml const& p, FormatContext& ctx)
-        const {
-        std::formatter<std::string> fmt;
-        std::stringstream           os;
-        os << p;
-        return fmt.format(os.str(), ctx);
-    }
-};

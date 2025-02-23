@@ -23,14 +23,16 @@
 #include <lexy/callback/container.hpp>
 #include <lexy/action/trace.hpp>
 
-struct convert_logic_error : CRTP_hexception<convert_logic_error> {};
+struct convert_logic_error : hstd::CRTP_hexception<convert_logic_error> {};
 
-using namespace sem;
+using namespace org::sem;
+using namespace org::algo;
+using namespace hstd;
 
 using onk      = OrgNodeKind;
 using otk      = OrgTokenKind;
 using Err      = OrgConverter::Errors;
-using Property = sem::NamedProperty;
+using Property = org::sem::NamedProperty;
 
 namespace {
 bool org_streq(CR<Str> str1, CR<Str> str2) {
@@ -41,8 +43,8 @@ Str strip_space(Str const& space) {
     return strip(space, CharSet{' '}, CharSet{' '});
 }
 
-sem::SubtreePath convertSubtreePath(Str const& path) {
-    sem::SubtreePath res;
+org::sem::SubtreePath convertSubtreePath(Str const& path) {
+    org::sem::SubtreePath res;
     for (auto const& item :
          strip(path, CharSet{'*', ' '}, CharSet{' '}).split("/")) {
         res.path.push_back(strip_space(item));
