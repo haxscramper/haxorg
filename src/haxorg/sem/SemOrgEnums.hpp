@@ -548,7 +548,7 @@ enum class ListFormattingMode : short int {
 };
 template <>
 struct hstd::enum_serde<ListFormattingMode> {
-  static Opt<ListFormattingMode> from_string(std::string value);
+  static hstd::Opt<ListFormattingMode> from_string(std::string value);
   static std::string to_string(ListFormattingMode value);
 };
 
@@ -560,7 +560,7 @@ struct hstd::value_domain<ListFormattingMode> : public value_domain_ungapped<Lis
 enum class InitialSubtreeVisibility : short int { Overview, Content, ShowAll, Show2Levels, Show3Levels, Show4Levels, Show5Levels, ShowEverything, };
 template <>
 struct hstd::enum_serde<InitialSubtreeVisibility> {
-  static Opt<InitialSubtreeVisibility> from_string(std::string value);
+  static hstd::Opt<InitialSubtreeVisibility> from_string(std::string value);
   static std::string to_string(InitialSubtreeVisibility value);
 };
 
@@ -576,7 +576,7 @@ enum class BlockCodeResults : short int {
 };
 template <>
 struct hstd::enum_serde<BlockCodeResults> {
-  static Opt<BlockCodeResults> from_string(std::string value);
+  static hstd::Opt<BlockCodeResults> from_string(std::string value);
   static std::string to_string(BlockCodeResults value);
 };
 
@@ -598,7 +598,7 @@ enum class BlockCodeExports : short int {
 };
 template <>
 struct hstd::enum_serde<BlockCodeExports> {
-  static Opt<BlockCodeExports> from_string(std::string value);
+  static hstd::Opt<BlockCodeExports> from_string(std::string value);
   static std::string to_string(BlockCodeExports value);
 };
 
@@ -610,7 +610,7 @@ struct hstd::value_domain<BlockCodeExports> : public value_domain_ungapped<Block
 enum class OrgSpecName : short int { Unnamed, Result, Year, Day, Clock, Repeater, Zone, Link, Tags, Tag, State, Protocol, Desc, Times, Drawer, Args, Name, Definition, Body, HeaderArgs, File, Kind, Lang, Prefix, Text, Todo, Importance, Title, Completion, Head, Subnodes, Properties, Logbook, Description, Logs, Newstate, Oldstate, Time, From, EndArgs, Flags, Value, Assoc, Main, Hash, Bullet, Counter, Checkbox, Header, To, Diff, Property, Subname, Values, Cells, Rows, Lines, Chunks, };
 template <>
 struct hstd::enum_serde<OrgSpecName> {
-  static Opt<OrgSpecName> from_string(std::string value);
+  static hstd::Opt<OrgSpecName> from_string(std::string value);
   static std::string to_string(OrgSpecName value);
 };
 
@@ -844,7 +844,7 @@ enum class OrgNodeKind : short int {
 };
 template <>
 struct hstd::enum_serde<OrgNodeKind> {
-  static Opt<OrgNodeKind> from_string(std::string value);
+  static hstd::Opt<OrgNodeKind> from_string(std::string value);
   static std::string to_string(OrgNodeKind value);
 };
 
@@ -856,7 +856,7 @@ struct hstd::value_domain<OrgNodeKind> : public value_domain_ungapped<OrgNodeKin
 enum class OrgJsonKind : short int { Null, Object, Array, String, Boolean, Int, Float, };
 template <>
 struct hstd::enum_serde<OrgJsonKind> {
-  static Opt<OrgJsonKind> from_string(std::string value);
+  static hstd::Opt<OrgJsonKind> from_string(std::string value);
   static std::string to_string(OrgJsonKind value);
 };
 
@@ -868,7 +868,7 @@ struct hstd::value_domain<OrgJsonKind> : public value_domain_ungapped<OrgJsonKin
 enum class OrgSemKind : short int { None, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdResults, CmdTblfm, HashTag, InlineFootnote, InlineExport, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, RadioTarget, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCode, SubtreeLog, Subtree, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, CmdExport, Call, List, ListItem, DocumentOptions, Document, FileTarget, TextSeparator, DocumentGroup, File, Directory, Symlink, CmdInclude, };
 template <>
 struct hstd::enum_serde<OrgSemKind> {
-  static Opt<OrgSemKind> from_string(std::string value);
+  static hstd::Opt<OrgSemKind> from_string(std::string value);
   static std::string to_string(OrgSemKind value);
 };
 

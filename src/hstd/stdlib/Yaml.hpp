@@ -11,29 +11,14 @@
 #include <boost/mp11.hpp>
 #include <hstd/system/Formatter.hpp>
 
+namespace hstd {
+
 struct BadTypeConversion : public YAML::RepresentationException {
     explicit BadTypeConversion(YAML::Mark mark, const std::string& message)
         : YAML::RepresentationException(mark, message) {}
 };
 
-
 using yaml = YAML::Node;
-
-template <>
-struct std::formatter<YAML::Mark> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(const YAML::Mark& p, FormatContext& ctx) const {
-        if (p.is_null()) {
-            return fmt_ctx("null", ctx);
-        } else {
-            fmt_ctx(p.pos, ctx);
-            fmt_ctx(":", ctx);
-            fmt_ctx(p.line, ctx);
-            fmt_ctx(":", ctx);
-            return fmt_ctx(p.column, ctx);
-        }
-    }
-};
 
 template <typename E>
 inline E to_enum(yaml const& in, E fallback) {
@@ -53,6 +38,25 @@ inline void maybe_enum_field(
     E           fallback) {
     if (in[name]) { out = to_enum<E>(in[name], fallback); }
 }
+
+} // namespace hstd
+
+
+template <>
+struct std::formatter<YAML::Mark> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const YAML::Mark& p, FormatContext& ctx) const {
+        if (p.is_null()) {
+            return fmt_ctx("null", ctx);
+        } else {
+            fmt_ctx(p.pos, ctx);
+            fmt_ctx(":", ctx);
+            fmt_ctx(p.line, ctx);
+            fmt_ctx(":", ctx);
+            return fmt_ctx(p.column, ctx);
+        }
+    }
+};
 
 
 namespace YAML {
@@ -77,7 +81,7 @@ struct convert<std::optional<T>> {
     }
 };
 
-template <IsEnum E>
+template <hstd::IsEnum E>
 struct convert<E> {
     static Node encode(E const& str) {
         Node result;
@@ -85,7 +89,7 @@ struct convert<E> {
         return result;
     }
     static bool decode(Node const& in, E& out) {
-        auto res = enum_serde<E>::from_string(in.as<std::string>());
+        auto res = hstd::enum_serde<E>::from_string(in.as<std::string>());
         if (res.has_value()) {
             out = res.value();
             return true;
@@ -99,19 +103,19 @@ struct convert<E> {
 };
 
 template <>
-struct convert<Str> {
-    static Node encode(Str const& str) {
+struct convert<hstd::Str> {
+    static Node encode(hstd::Str const& str) {
         Node result;
         result = str.toBase();
         return result;
     }
-    static bool decode(Node const& in, Str& out) {
+    static bool decode(Node const& in, hstd::Str& out) {
         out = in.as<std::string>();
         return true;
     }
 };
 
-template <IsVariant T, typename CRTP_Derived>
+template <hstd::IsVariant T, typename CRTP_Derived>
 struct variant_convert {
     static bool decode(Node const& value, T& result) {
         CRTP_Derived::init(result, value);
@@ -125,7 +129,7 @@ struct variant_convert {
     }
 };
 
-template <DescribedRecord T>
+template <hstd::DescribedRecord T>
 struct convert<T> {
     using Bd = boost::describe::
         describe_bases<T, boost::describe::mod_any_access>;
@@ -165,9 +169,9 @@ struct convert<T> {
 }; // namespace YAML
 
 template <>
-struct std::formatter<yaml> : std::formatter<std::string> {
+struct std::formatter<hstd::yaml> : std::formatter<std::string> {
     template <typename FormatContext>
-    FormatContext::iterator format(yaml const& p, FormatContext& ctx)
+    FormatContext::iterator format(hstd::yaml const& p, FormatContext& ctx)
         const {
         std::formatter<std::string> fmt;
         std::stringstream           os;

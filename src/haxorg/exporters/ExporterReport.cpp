@@ -2,6 +2,8 @@
 #include <hstd/stdlib/Json.hpp>
 #include <haxorg/lexbase/TraceStructured.hpp>
 
+using namespace hstd;
+using namespace org::algo;
 
 void ExporterEventBase::report(CR<VisitReport> ev) {
     using K = typename VisitReport::Kind;

@@ -1,7 +1,7 @@
 /* clang-format off */
 #include "SemOrgEnums.hpp"
 
-Opt<ListFormattingMode> hstd::enum_serde<ListFormattingMode>::from_string(std::string value) {
+hstd::Opt<ListFormattingMode> hstd::enum_serde<ListFormattingMode>::from_string(std::string value) {
   if (value == "None") { return ListFormattingMode::None; } else
   if (value == "Table1D1Col") { return ListFormattingMode::Table1D1Col; } else
   if (value == "Table1D2Col") { return ListFormattingMode::Table1D2Col; } else
@@ -18,7 +18,7 @@ std::string hstd::enum_serde<ListFormattingMode>::to_string(ListFormattingMode v
   }
 }
 
-Opt<InitialSubtreeVisibility> hstd::enum_serde<InitialSubtreeVisibility>::from_string(std::string value) {
+hstd::Opt<InitialSubtreeVisibility> hstd::enum_serde<InitialSubtreeVisibility>::from_string(std::string value) {
   if (value == "Overview") { return InitialSubtreeVisibility::Overview; } else
   if (value == "Content") { return InitialSubtreeVisibility::Content; } else
   if (value == "ShowAll") { return InitialSubtreeVisibility::ShowAll; } else
@@ -43,7 +43,7 @@ std::string hstd::enum_serde<InitialSubtreeVisibility>::to_string(InitialSubtree
   }
 }
 
-Opt<BlockCodeResults> hstd::enum_serde<BlockCodeResults>::from_string(std::string value) {
+hstd::Opt<BlockCodeResults> hstd::enum_serde<BlockCodeResults>::from_string(std::string value) {
   if (value == "Replace") { return BlockCodeResults::Replace; } else
   { return std::nullopt; }
 }
@@ -54,7 +54,7 @@ std::string hstd::enum_serde<BlockCodeResults>::to_string(BlockCodeResults value
   }
 }
 
-Opt<BlockCodeExports> hstd::enum_serde<BlockCodeExports>::from_string(std::string value) {
+hstd::Opt<BlockCodeExports> hstd::enum_serde<BlockCodeExports>::from_string(std::string value) {
   if (value == "None") { return BlockCodeExports::None; } else
   if (value == "Both") { return BlockCodeExports::Both; } else
   if (value == "Code") { return BlockCodeExports::Code; } else
@@ -71,7 +71,7 @@ std::string hstd::enum_serde<BlockCodeExports>::to_string(BlockCodeExports value
   }
 }
 
-Opt<OrgSpecName> hstd::enum_serde<OrgSpecName>::from_string(std::string value) {
+hstd::Opt<OrgSpecName> hstd::enum_serde<OrgSpecName>::from_string(std::string value) {
   if (value == "Unnamed") { return OrgSpecName::Unnamed; } else
   if (value == "Result") { return OrgSpecName::Result; } else
   if (value == "Year") { return OrgSpecName::Year; } else
@@ -196,7 +196,7 @@ std::string hstd::enum_serde<OrgSpecName>::to_string(OrgSpecName value) {
   }
 }
 
-Opt<OrgNodeKind> hstd::enum_serde<OrgNodeKind>::from_string(std::string value) {
+hstd::Opt<OrgNodeKind> hstd::enum_serde<OrgNodeKind>::from_string(std::string value) {
   if (value == "None") { return OrgNodeKind::None; } else
   if (value == "Document") { return OrgNodeKind::Document; } else
   if (value == "Empty") { return OrgNodeKind::Empty; } else
@@ -449,7 +449,7 @@ std::string hstd::enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
   }
 }
 
-Opt<OrgJsonKind> hstd::enum_serde<OrgJsonKind>::from_string(std::string value) {
+hstd::Opt<OrgJsonKind> hstd::enum_serde<OrgJsonKind>::from_string(std::string value) {
   if (value == "Null") { return OrgJsonKind::Null; } else
   if (value == "Object") { return OrgJsonKind::Object; } else
   if (value == "Array") { return OrgJsonKind::Array; } else
@@ -472,7 +472,7 @@ std::string hstd::enum_serde<OrgJsonKind>::to_string(OrgJsonKind value) {
   }
 }
 
-Opt<OrgSemKind> hstd::enum_serde<OrgSemKind>::from_string(std::string value) {
+hstd::Opt<OrgSemKind> hstd::enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "None") { return OrgSemKind::None; } else
   if (value == "ErrorItem") { return OrgSemKind::ErrorItem; } else
   if (value == "ErrorGroup") { return OrgSemKind::ErrorGroup; } else

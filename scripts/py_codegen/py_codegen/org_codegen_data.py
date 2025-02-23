@@ -2812,51 +2812,51 @@ def get_types() -> Sequence[GenTuStruct]:
             bases=[t_nest(t_org("Org"))],
             nested=[
                 org_struct(
-                    t_nest("IncludeBase", [t("CmdInclude")]),
+                    t_nest("IncludeBase", [t_org("CmdInclude")]),
                     methods=[default_constructor_method("IncludeBase")],
                     fields=[],
                 ),
                 GenTuTypeGroup(
                     [
                         org_struct(
-                            t_nest("Example", [t("CmdInclude")]),
+                            t_nest("Example", [t_org("CmdInclude")]),
                             methods=[default_constructor_method("Example")],
-                            bases=[t_nest("IncludeBase", [t("CmdInclude")])],
+                            bases=[t_nest("IncludeBase", [t_org("CmdInclude")])],
                         ),
                         org_struct(
-                            t_nest("Export", [t("CmdInclude")]),
+                            t_nest("Export", [t_org("CmdInclude")]),
                             methods=[default_constructor_method("Export")],
-                            bases=[t_nest("IncludeBase", [t("CmdInclude")])],
+                            bases=[t_nest("IncludeBase", [t_org("CmdInclude")])],
                             fields=[
                                 org_field(t_str(), "language",
                                           "Source code language for export"),
                             ],
                         ),
                         org_struct(
-                            t_nest("Custom", [t("CmdInclude")]),
+                            t_nest("Custom", [t_org("CmdInclude")]),
                             doc=
                             "Second positional argument in the include command can have any arbitrary value -- "
                             "default src/export/example have additional properties, but user "
                             "can provide anything else there.",
                             methods=[default_constructor_method("Custom")],
-                            bases=[t_nest("IncludeBase", [t("CmdInclude")])],
+                            bases=[t_nest("IncludeBase", [t_org("CmdInclude")])],
                             fields=[
                                 org_field(t_str(), "blockName",
                                           "Block name not covered by the default values")
                             ]),
                         org_struct(
-                            t_nest("Src", [t("CmdInclude")]),
+                            t_nest("Src", [t_org("CmdInclude")]),
                             methods=[default_constructor_method("Src")],
-                            bases=[t_nest("IncludeBase", [t("CmdInclude")])],
+                            bases=[t_nest("IncludeBase", [t_org("CmdInclude")])],
                             fields=[
                                 org_field(t_str(), "language",
                                           "Source code language for code block"),
                             ],
                         ),
                         org_struct(
-                            t_nest("OrgDocument", [t("CmdInclude")]),
+                            t_nest("OrgDocument", [t_org("CmdInclude")]),
                             methods=[default_constructor_method("OrgDocument")],
-                            bases=[t_nest("IncludeBase", [t("CmdInclude")])],
+                            bases=[t_nest("IncludeBase", [t_org("CmdInclude")])],
                             fields=[
                                 opt_field(
                                     t_bool(),
@@ -2881,8 +2881,8 @@ def get_types() -> Sequence[GenTuStruct]:
                             ]),
                     ],
                     kindGetter="getIncludeKind",
-                    enumName=t_nest("Kind", [t("CmdInclude")]),
-                    variantName=t_nest("Data", [t("CmdInclude")]),
+                    enumName=t_nest("Kind", [t_org("CmdInclude")]),
+                    variantName=t_nest("Data", [t_org("CmdInclude")]),
                 )
             ],
             fields=[

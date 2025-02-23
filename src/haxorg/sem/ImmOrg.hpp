@@ -407,15 +407,15 @@ struct ImmAstKindStore {
 };
 
 struct ImmAstReplace {
-    Opt<org::ImmUniqId> original;
-    org::ImmUniqId      replaced;
+    hstd::Opt<org::imm::ImmUniqId> original;
+    org::imm::ImmUniqId            replaced;
 
     DESC_FIELDS(ImmAstReplace, (original, replaced));
 };
 
 struct ImmAstReplaceGroup {
-    UnorderedMap<ImmUniqId, ImmUniqId> map;
-    UnorderedMap<ImmId, ImmId>         nodeReplaceMap;
+    hstd::UnorderedMap<ImmUniqId, ImmUniqId> map;
+    hstd::UnorderedMap<ImmId, ImmId>         nodeReplaceMap;
     DESC_FIELDS(ImmAstReplaceGroup, (map, nodeReplaceMap));
 
     ImmAstReplaceGroup() {}
@@ -433,10 +433,11 @@ struct ImmAstReplaceGroup {
     /// during recursive node updates to construct the final node value in
     /// a single go -- this reduces the number of intermediate nodes in the
     /// cascading update. See `demoteSubtreeRecursive` for use example.
-    ImmVec<ImmId> newSubnodes(ImmVec<ImmId> oldSubnodes) const;
-    Vec<ImmId>    newSubnodes(Vec<ImmId> oldSubnodes) const;
+    hstd::ext::ImmVec<ImmId> newSubnodes(
+        hstd::ext::ImmVec<ImmId> oldSubnodes) const;
+    hstd::Vec<ImmId> newSubnodes(hstd::Vec<ImmId> oldSubnodes) const;
 
-    generator<ImmAstReplace> allReplacements() const {
+    hstd::generator<ImmAstReplace> allReplacements() const {
         for (auto const& key : sorted(this->map.keys())) {
             co_yield ImmAstReplace{
                 .original = key,
@@ -458,15 +459,15 @@ struct ImmAstReplaceEpoch {
 struct ImmAdapter;
 
 struct ImmAstStore {
-    template <org::IsImmOrgValueType T>
+    template <org::imm::IsImmOrgValueType T>
     ImmAstKindStore<T> const* getStoreImpl() const;
 
-    template <org::IsImmOrgValueType T>
+    template <org::imm::IsImmOrgValueType T>
     ImmAstKindStore<T> const* getStore() const {
         return getStoreImpl<T>();
     }
 
-    template <org::IsImmOrgValueType T>
+    template <org::imm::IsImmOrgValueType T>
     ImmAstKindStore<T>* getStore() {
         return const_cast<ImmAstKindStore<T>*>(getStoreImpl<T>());
     }

@@ -1,7 +1,9 @@
 #include <haxorg/sem/SemOrgFormat.hpp>
 #include <hstd/stdlib/algorithms.hpp>
 
-using namespace sem;
+using namespace org::sem;
+using namespace hstd;
+using namespace org::algo;
 
 #pragma clang diagnostic error "-Wswitch"
 
@@ -22,7 +24,7 @@ std::string FormatTimeDelta(long delta_seconds) {
     return std::format("{}:{:02}", hours, minutes);
 }
 
-std::string FormatPath(sem::SubtreePath const& path) {
+std::string FormatPath(org::sem::SubtreePath const& path) {
     return join("/", path.path);
 }
 

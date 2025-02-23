@@ -4,8 +4,11 @@
 #include <format>
 #include <haxorg/exporters/exportertree.hpp>
 
+using namespace hstd;
+using namespace org::sem;
+
 #define _define_static(__Kind)                                            \
-    const OrgSemKind sem::__Kind::staticKind = OrgSemKind::__Kind;
+    const OrgSemKind org::sem::__Kind::staticKind = OrgSemKind::__Kind;
 
 EACH_SEM_ORG_KIND(_define_static)
 
@@ -15,18 +18,17 @@ EACH_SEM_ORG_KIND(_define_static)
 using boost::mp11::mp_for_each;
 using namespace boost::describe;
 
-using namespace sem;
 using osk      = OrgSemKind;
 using Property = NamedProperty;
 
 template <>
 struct value_domain<sem::SubtreePeriod::Kind>
     : value_domain_ungapped<
-          sem::SubtreePeriod::Kind,
-          sem::SubtreePeriod::Kind::Clocked,
-          sem::SubtreePeriod::Kind::Repeated> {};
+          org::sem::SubtreePeriod::Kind,
+          org::sem::SubtreePeriod::Kind::Clocked,
+          org::sem::SubtreePeriod::Kind::Repeated> {};
 
-namespace sem {
+namespace org::sem {
 sem::OrgIdVariant asVariant(SemId<Org> in) {
 #define __case(__Kind)                                                    \
     case OrgSemKind::__Kind: return in.as<__Kind>();
@@ -43,24 +45,24 @@ sem::OrgPtrVariant asVariant(Org* in) {
 #undef __case
 }
 
-} // namespace sem
+} // namespace org::sem
 
 Org::Org() : subnodes({}) {}
 Org::Org(OrgAdapter original) : original(original), subnodes({}) {}
 Org::Org(CVec<SemId<Org>> subnodes) : subnodes(subnodes) {}
 
-Vec<sem::AttrValue> sem::AttrGroup::getFlatArgs() const {
-    Vec<sem::AttrValue> res = positional.items;
+Vec<sem::AttrValue> AttrGroup::getFlatArgs() const {
+    Vec<AttrValue> res = positional.items;
     for (auto const& key : sorted(named.keys())) {
         res.append(named.at(key).items);
     }
     return res;
 }
 
-Vec<sem::AttrValue> sem::AttrGroup::getAttrs(CR<Opt<Str>> param) const {
+Vec<AttrValue> AttrGroup::getAttrs(CR<Opt<Str>> param) const {
     if (param) {
-        Vec<sem::AttrValue> res;
-        auto                norm = normalize(*param);
+        Vec<AttrValue> res;
+        auto           norm = normalize(*param);
         if (named.contains(norm)) {
             for (auto const& it : named.at(norm).items) {
                 res.push_back(it);
@@ -72,7 +74,7 @@ Vec<sem::AttrValue> sem::AttrGroup::getAttrs(CR<Opt<Str>> param) const {
     }
 }
 
-int sem::AttrGroup::getNamedSize() const {
+int AttrGroup::getNamedSize() const {
     int result = 0;
     for (auto const& [key, val] : this->named) {
         result += val.items.size();
@@ -80,36 +82,35 @@ int sem::AttrGroup::getNamedSize() const {
     return result;
 }
 
-int sem::AttrGroup::getPositionalSize() const {
+int AttrGroup::getPositionalSize() const {
     return positional.items.size();
 }
 
-bool sem::AttrGroup::isEmpty() const {
+bool AttrGroup::isEmpty() const {
     return getNamedSize() == 0 && getPositionalSize() == 0;
 }
 
-sem::AttrValue const& sem::AttrGroup::atPositional(int index) const {
+AttrValue const& AttrGroup::atPositional(int index) const {
     return this->positional.items.at(index);
 }
 
-Opt<sem::AttrValue> sem::AttrGroup::getPositional(int index) const {
+Opt<AttrValue> AttrGroup::getPositional(int index) const {
     return this->positional.items.get(index);
 }
 
-sem::AttrList const& sem::AttrGroup::atNamed(Str const& index) const {
+AttrList const& AttrGroup::atNamed(Str const& index) const {
     return this->named.at(index);
 }
 
-Opt<sem::AttrList> sem::AttrGroup::getNamed(Str const& index) const {
+Opt<AttrList> AttrGroup::getNamed(Str const& index) const {
     return this->named.get(index);
 }
 
-sem::AttrValue const& sem::AttrGroup::atFirstNamed(
-    Str const& index) const {
+AttrValue const& AttrGroup::atFirstNamed(Str const& index) const {
     return this->named.at(index).items.at(0);
 }
 
-Opt<sem::AttrValue> sem::AttrGroup::getFirstNamed(Str const& index) const {
+Opt<AttrValue> AttrGroup::getFirstNamed(Str const& index) const {
     if (named.contains(index)) {
         return this->named.at(index).items.get(0);
     } else {
@@ -117,13 +118,11 @@ Opt<sem::AttrValue> sem::AttrGroup::getFirstNamed(Str const& index) const {
     }
 }
 
-void sem::AttrGroup::setNamedAttr(
-    Str const&                 key,
-    Vec<sem::AttrValue> const& attr) {
-    named.insert_or_assign(normalize(key), sem::AttrList{.items = attr});
+void AttrGroup::setNamedAttr(Str const& key, Vec<AttrValue> const& attr) {
+    named.insert_or_assign(normalize(key), AttrList{.items = attr});
 }
 
-void sem::AttrGroup::setPositionalAttr(Vec<sem::AttrValue> const& attr) {
+void AttrGroup::setPositionalAttr(Vec<AttrValue> const& attr) {
     positional.items = attr;
 }
 
@@ -143,21 +142,19 @@ bool HashTagText::prefixMatch(CR<Vec<Str>> prefix) const {
     }
 }
 
-Vec<sem::HashTagFlat> sem::HashTagText::getFlatHashes(
-    bool withIntermediate) const {
-    using Res = Vec<sem::HashTagFlat>;
-    Func<Res(Vec<Str> const& parents, sem::HashTagText const& tag)> aux;
-    UnorderedSet<Vec<Str>> visited;
-    aux = [&](Vec<Str> const&         parents,
-              sem::HashTagText const& tag) -> Res {
+Vec<HashTagFlat> HashTagText::getFlatHashes(bool withIntermediate) const {
+    using Res = Vec<HashTagFlat>;
+    Func<Res(Vec<Str> const& parents, HashTagText const& tag)> aux;
+    UnorderedSet<Vec<Str>>                                     visited;
+    aux = [&](Vec<Str> const& parents, HashTagText const& tag) -> Res {
         Res result;
         if (withIntermediate && !parents.empty()
             && !visited.contains(parents)) {
-            result.push_back(sem::HashTagFlat{parents});
+            result.push_back(HashTagFlat{parents});
             visited.incl(parents);
         }
         if (tag.subtags.empty()) {
-            result.push_back(sem::HashTagFlat{parents});
+            result.push_back(HashTagFlat{parents});
             result.back().tags.push_back(tag.head);
         } else {
             for (auto const& subtag : tag.subtags) {

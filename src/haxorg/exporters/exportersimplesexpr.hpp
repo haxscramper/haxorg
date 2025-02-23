@@ -9,8 +9,8 @@
 namespace org::algo {
 
 struct ExporterSimpleSExpr
-    : public Exporter<ExporterSimpleSExpr, layout::BlockId> {
-    using Base = Exporter<ExporterSimpleSExpr, layout::BlockId>;
+    : public Exporter<ExporterSimpleSExpr, hstd::layout::BlockId> {
+    using Base = Exporter<ExporterSimpleSExpr, hstd::layout::BlockId>;
 #define __ExporterBase Base
     EXPORTER_USING()
 #undef __ExporterBase
@@ -33,7 +33,7 @@ struct ExporterSimpleSExpr
         visit(res, value.asOrg());
     }
 
-    template <sem::NotOrg T>
+    template <org::sem::NotOrg T>
     void visit(Res& res, T const& value) {
         res = b.line({string(escape_for_write(std::format("{}", value)))});
     }

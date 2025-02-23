@@ -1462,20 +1462,20 @@ struct ImmCmdInclude : public org::imm::ImmOrg {
                          (),
                          ())
     IncludeBase() {  }
-    bool operator==(org::sem::CmdInclude::IncludeBase const& other) const;
+    bool operator==(org::imm::ImmCmdInclude::IncludeBase const& other) const;
   };
 
-  struct Example : public org::sem::CmdInclude::IncludeBase {
+  struct Example : public org::imm::ImmCmdInclude::IncludeBase {
     BOOST_DESCRIBE_CLASS(Example,
                          (IncludeBase),
                          (),
                          (),
                          ())
     Example() {  }
-    bool operator==(org::sem::CmdInclude::Example const& other) const;
+    bool operator==(org::imm::ImmCmdInclude::Example const& other) const;
   };
 
-  struct Export : public org::sem::CmdInclude::IncludeBase {
+  struct Export : public org::imm::ImmCmdInclude::IncludeBase {
     BOOST_DESCRIBE_CLASS(Export,
                          (IncludeBase),
                          (),
@@ -1484,11 +1484,11 @@ struct ImmCmdInclude : public org::imm::ImmOrg {
     /// \brief Source code language for export
     hstd::ext::ImmBox<hstd::Str> language;
     Export() {  }
-    bool operator==(org::sem::CmdInclude::Export const& other) const;
+    bool operator==(org::imm::ImmCmdInclude::Export const& other) const;
   };
 
   /// \brief Second positional argument in the include command can have any arbitrary value -- default src/export/example have additional properties, but user can provide anything else there.
-  struct Custom : public org::sem::CmdInclude::IncludeBase {
+  struct Custom : public org::imm::ImmCmdInclude::IncludeBase {
     BOOST_DESCRIBE_CLASS(Custom,
                          (IncludeBase),
                          (),
@@ -1497,10 +1497,10 @@ struct ImmCmdInclude : public org::imm::ImmOrg {
     /// \brief Block name not covered by the default values
     hstd::ext::ImmBox<hstd::Str> blockName;
     Custom() {  }
-    bool operator==(org::sem::CmdInclude::Custom const& other) const;
+    bool operator==(org::imm::ImmCmdInclude::Custom const& other) const;
   };
 
-  struct Src : public org::sem::CmdInclude::IncludeBase {
+  struct Src : public org::imm::ImmCmdInclude::IncludeBase {
     BOOST_DESCRIBE_CLASS(Src,
                          (IncludeBase),
                          (),
@@ -1509,10 +1509,10 @@ struct ImmCmdInclude : public org::imm::ImmOrg {
     /// \brief Source code language for code block
     hstd::ext::ImmBox<hstd::Str> language;
     Src() {  }
-    bool operator==(org::sem::CmdInclude::Src const& other) const;
+    bool operator==(org::imm::ImmCmdInclude::Src const& other) const;
   };
 
-  struct OrgDocument : public org::sem::CmdInclude::IncludeBase {
+  struct OrgDocument : public org::imm::ImmCmdInclude::IncludeBase {
     BOOST_DESCRIBE_CLASS(OrgDocument,
                          (IncludeBase),
                          (),
@@ -1527,14 +1527,14 @@ struct ImmCmdInclude : public org::imm::ImmOrg {
     /// \brief Include target subtree content with `file.org::#custom`
     hstd::ext::ImmBox<hstd::Opt<hstd::Str>> customIdTarget = std::nullopt;
     OrgDocument() {  }
-    bool operator==(org::sem::CmdInclude::OrgDocument const& other) const;
+    bool operator==(org::imm::ImmCmdInclude::OrgDocument const& other) const;
   };
 
-  using Data = std::variant<org::sem::CmdInclude::Example, org::sem::CmdInclude::Export, org::sem::CmdInclude::Custom, org::sem::CmdInclude::Src, org::sem::CmdInclude::OrgDocument>;
+  using Data = std::variant<org::imm::ImmCmdInclude::Example, org::imm::ImmCmdInclude::Export, org::imm::ImmCmdInclude::Custom, org::imm::ImmCmdInclude::Src, org::imm::ImmCmdInclude::OrgDocument>;
   enum class Kind : short int { Example, Export, Custom, Src, OrgDocument, };
   BOOST_DESCRIBE_NESTED_ENUM(Kind, Example, Export, Custom, Src, OrgDocument)
-  using variant_enum_type = org::sem::CmdInclude::Kind;
-  using variant_data_type = org::sem::CmdInclude::Data;
+  using variant_enum_type = org::imm::ImmCmdInclude::Kind;
+  using variant_data_type = org::imm::ImmCmdInclude::Data;
   BOOST_DESCRIBE_CLASS(ImmCmdInclude,
                        (ImmOrg),
                        (),
@@ -1551,26 +1551,26 @@ struct ImmCmdInclude : public org::imm::ImmOrg {
   hstd::ext::ImmBox<hstd::Opt<int>> firstLine = std::nullopt;
   /// \brief 0-based index of the last line to include
   hstd::ext::ImmBox<hstd::Opt<int>> lastLine = std::nullopt;
-  org::sem::CmdInclude::Data data;
+  org::imm::ImmCmdInclude::Data data;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdInclude; }
   bool operator==(org::imm::ImmCmdInclude const& other) const;
   bool isExample() const { return getIncludeKind() == Kind::Example; }
-  org::sem::CmdInclude::Example const& getExample() const { return std::get<0>(data); }
-  org::sem::CmdInclude::Example& getExample() { return std::get<0>(data); }
+  org::imm::ImmCmdInclude::Example const& getExample() const { return std::get<0>(data); }
+  org::imm::ImmCmdInclude::Example& getExample() { return std::get<0>(data); }
   bool isExport() const { return getIncludeKind() == Kind::Export; }
-  org::sem::CmdInclude::Export const& getExport() const { return std::get<1>(data); }
-  org::sem::CmdInclude::Export& getExport() { return std::get<1>(data); }
+  org::imm::ImmCmdInclude::Export const& getExport() const { return std::get<1>(data); }
+  org::imm::ImmCmdInclude::Export& getExport() { return std::get<1>(data); }
   bool isCustom() const { return getIncludeKind() == Kind::Custom; }
-  org::sem::CmdInclude::Custom const& getCustom() const { return std::get<2>(data); }
-  org::sem::CmdInclude::Custom& getCustom() { return std::get<2>(data); }
+  org::imm::ImmCmdInclude::Custom const& getCustom() const { return std::get<2>(data); }
+  org::imm::ImmCmdInclude::Custom& getCustom() { return std::get<2>(data); }
   bool isSrc() const { return getIncludeKind() == Kind::Src; }
-  org::sem::CmdInclude::Src const& getSrc() const { return std::get<3>(data); }
-  org::sem::CmdInclude::Src& getSrc() { return std::get<3>(data); }
+  org::imm::ImmCmdInclude::Src const& getSrc() const { return std::get<3>(data); }
+  org::imm::ImmCmdInclude::Src& getSrc() { return std::get<3>(data); }
   bool isOrgDocument() const { return getIncludeKind() == Kind::OrgDocument; }
-  org::sem::CmdInclude::OrgDocument const& getOrgDocument() const { return std::get<4>(data); }
-  org::sem::CmdInclude::OrgDocument& getOrgDocument() { return std::get<4>(data); }
-  static org::sem::CmdInclude::Kind getIncludeKind(org::sem::CmdInclude::Data const& __input) { return static_cast<org::sem::CmdInclude::Kind>(__input.index()); }
-  org::sem::CmdInclude::Kind getIncludeKind() const { return getIncludeKind(data); }
+  org::imm::ImmCmdInclude::OrgDocument const& getOrgDocument() const { return std::get<4>(data); }
+  org::imm::ImmCmdInclude::OrgDocument& getOrgDocument() { return std::get<4>(data); }
+  static org::imm::ImmCmdInclude::Kind getIncludeKind(org::imm::ImmCmdInclude::Data const& __input) { return static_cast<org::imm::ImmCmdInclude::Kind>(__input.index()); }
+  org::imm::ImmCmdInclude::Kind getIncludeKind() const { return getIncludeKind(data); }
 };
 
 }
