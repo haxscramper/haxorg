@@ -790,17 +790,25 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
                             if 1 == len(rest):
                                 obj.name = "Imm" + obj.name
                                 obj.Spaces = [ORG_SPACE]
+                                # obj.dbg_origin = "1"
                                 # obj = QualType(name="Imm" + rest[0].name, Spaces=[ORG_SPACE, *(rest[1:] if 1 < len(rest) else [])])
 
                             elif 1 < len(rest):
                                 # log(CAT).info(f"{obj} {rest}")
-                                # obj.dbg_origin += f"rest? {rest[1:]}"
                                 # obj.name = "Imm" + rest[0].name
-                                obj.Spaces=[ORG_SPACE, rest[0].model_copy(update=dict(name="Imm" + rest[0].name)), *rest[1:-2]]
+                                reuse_spaces = copy(rest)
+                                reuse_spaces.pop(0)
+                                reuse_spaces.pop(-1)
+                                # obj.dbg_origin += f"rest? {rest} -> {reuse_spaces}"
+                                obj.Spaces=[ORG_SPACE, rest[0].model_copy(update=dict(name="Imm" + rest[0].name)), *reuse_spaces]
 
                             else:
-                                obj.dbg_origin += "?"
+                                pass
+                                # obj.dbg_origin += "?"
                                 # log(CAT).info(f"{obj.__dict__} {flat_namespace}")
+
+                    # case _:
+                    #     obj.dbg_origin = f"{flat_namespace}"
 
                     # case _:
                         # obj = res

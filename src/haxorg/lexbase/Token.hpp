@@ -471,7 +471,8 @@ struct LexerCommon {
 
         } else {
             throw UnexpectedCharError(
-                fmt("Expected '{}' but found '{}' at index {}: {}",
+                hstd::fmt(
+                    "Expected '{}' but found '{}' at index {}: {}",
                     kind,
                     this->kind(),
                     pos.getIndex(),

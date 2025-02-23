@@ -654,7 +654,7 @@ def get_sem_bases():
         d_org(
             "Cmd",
             GenTuDoc("Base class for block or line commands"),
-            bases=[t_org("Stmt")],
+            bases=[t_nest(t_org("Stmt"))],
             concreteKind=False,
             fields=[
                 opt_field(
@@ -692,19 +692,19 @@ def get_sem_bases():
         d_org(
             "Block",
             GenTuDoc("Block command type"),
-            bases=[t_org("Cmd")],
+            bases=[t_nest(t_org("Cmd"))],
             concreteKind=False,
         ),
         d_org(
             "LineCommand",
             GenTuDoc("Line commands"),
-            bases=[t_org("Cmd")],
+            bases=[t_nest(t_org("Cmd"))],
             concreteKind=False,
         ),
         d_org(
             "Attached",
             GenTuDoc("Line command that might get attached to some block element"),
-            bases=[t_org("LineCommand")],
+            bases=[t_nest(t_org("LineCommand"))],
             concreteKind=False,
         ),
         d_org(
@@ -727,19 +727,19 @@ def get_sem_commands():
         d_org(
             "CmdCaption",
             GenTuDoc("Caption annotation for any subsequent node"),
-            bases=[t_org("Attached")],
+            bases=[t_nest(t_org("Attached"))],
             fields=[id_field("Paragraph", "text", GenTuDoc("Content description"))],
         ),
         d_org(
             "CmdColumns",
             GenTuDoc("Caption annotation for any subsequent node"),
-            bases=[t_org("Attached")],
+            bases=[t_nest(t_org("Attached"))],
             fields=[org_field(t_nest_shared("ColumnView"), "view")],
         ),
         d_org(
             "CmdName",
             GenTuDoc("Name identifier for the statement elements."),
-            bases=[t_org("Attached")],
+            bases=[t_nest(t_org("Attached"))],
             fields=[
                 GenTuField(t_str(), "name", GenTuDoc("")),
             ],
@@ -747,7 +747,7 @@ def get_sem_commands():
         d_org(
             "CmdCustomArgs",
             doc=org_doc("Custom line command with list of parsed arguments"),
-            bases=[t_org("Cmd")],
+            bases=[t_nest(t_org("Cmd"))],
             fields=[
                 org_field(t_str(), "name"),
                 bool_field("isAttached"),
@@ -756,7 +756,7 @@ def get_sem_commands():
         d_org(
             "CmdCustomRaw",
             doc=org_doc("Custom command with raw unparsed string value"),
-            bases=[t_org("Stmt")],
+            bases=[t_nest(t_org("Stmt"))],
             fields=[
                 org_field(t_str(), "name"),
                 bool_field("isAttached"),
@@ -766,7 +766,7 @@ def get_sem_commands():
         d_org(
             "CmdCustomText",
             doc=org_doc("Custom line command with text paragraph value"),
-            bases=[t_org("Stmt")],
+            bases=[t_nest(t_org("Stmt"))],
             fields=[
                 org_field(t_str(), "name"),
                 bool_field("isAttached"),
@@ -776,11 +776,11 @@ def get_sem_commands():
         d_org(
             "CmdResults",
             GenTuDoc(""),
-            bases=[t_org("Attached")],
+            bases=[t_nest(t_org("Attached"))],
         ),
         d_org("CmdTblfm",
               GenTuDoc("Tblfm command type"),
-              bases=[t_org("Cmd")],
+              bases=[t_nest(t_org("Cmd"))],
               fields=[org_field(t_nest_shared("Tblfm"), "expr")]),
     ]
 
@@ -789,35 +789,35 @@ def get_sem_block():
     return [
         d_org("BlockCenter",
               GenTuDoc("Center nested content in export"),
-              bases=[t_org("Block")]),
+              bases=[t_nest(t_org("Block"))]),
         d_org(
             "BlockQuote",
             GenTuDoc("Quotation block"),
-            bases=[t_org("Block")],
+            bases=[t_nest(t_org("Block"))],
         ),
         d_org(
             "BlockComment",
             GenTuDoc("Comment block"),
-            bases=[t_org("Stmt")],
+            bases=[t_nest(t_org("Stmt"))],
         ),
         d_org(
             "BlockVerse",
             GenTuDoc("Verse quotation block"),
-            bases=[t_org("Block")],
+            bases=[t_nest(t_org("Block"))],
         ),
         d_org(
             "BlockDynamicFallback",
             GenTuDoc(""),
-            bases=[t_org("Block")],
+            bases=[t_nest(t_org("Block"))],
             fields=[
                 str_field("name"),
             ],
         ),
-        d_org("BlockExample", GenTuDoc("Example block"), bases=[t_org("Block")]),
+        d_org("BlockExample", GenTuDoc("Example block"), bases=[t_nest(t_org("Block"))]),
         d_org(
             "BlockExport",
             GenTuDoc("Direct export passthrough"),
-            bases=[t_org("Block")],
+            bases=[t_nest(t_org("Block"))],
             fields=[
                 str_field("exporter"),
                 str_field("content"),
@@ -834,12 +834,12 @@ def get_sem_block():
         d_org(
             "BlockAdmonition",
             GenTuDoc("Block of text with admonition tag: 'note',', 'warning','"),
-            bases=[t_org("Block")],
+            bases=[t_nest(t_org("Block"))],
         ),
         d_org(
             "BlockCode",
             GenTuDoc("Base class for all code blocks"),
-            bases=[t_org("Block")],
+            bases=[t_nest(t_org("Block"))],
             fields=[
                 GenTuField(
                     t_opt(t_str()),
@@ -878,7 +878,7 @@ def get_sem_block():
 def get_sem_text():
     return [
         d_org("HashTag",
-              bases=[t_org("Inline")],
+              bases=[t_nest(t_org("Inline"))],
               fields=[
                   org_field(t_nest_shared("HashTagText"), "text"),
               ]),
@@ -889,7 +889,7 @@ def get_sem_text():
                 full=
                 "\\note in-text link to the footnotes are implemented using `Link` nodes",
             ),
-            bases=[t_org("Inline")],
+            bases=[t_nest(t_org("Inline"))],
             fields=[
                 GenTuField(t_str(),
                            "tag",
@@ -905,7 +905,7 @@ def get_sem_text():
         ),
         d_org("InlineExport",
               GenTuDoc("Inline export"),
-              bases=[t_org("Inline")],
+              bases=[t_nest(t_org("Inline"))],
               fields=[
                   str_field("exporter"),
                   str_field("content"),
@@ -1052,30 +1052,30 @@ def get_sem_text():
                            GenTuDoc("Positional parameters")),
             ],
         ),
-        d_org("Escaped", GenTuDoc("Escaped text"), bases=[t_org("Leaf")]),
-        d_org("Newline", GenTuDoc("\\n newline"), bases=[t_org("Leaf")]),
-        d_org("Space", GenTuDoc('\' "space",'), bases=[t_org("Leaf")]),
-        d_org("Word", GenTuDoc("word"), bases=[t_org("Leaf")]),
-        d_org("AtMention", GenTuDoc("@mention"), bases=[t_org("Leaf")]),
-        d_org("RawText", GenTuDoc(""), bases=[t_org("Leaf")]),
-        d_org("Punctuation", GenTuDoc(""), bases=[t_org("Leaf")]),
-        d_org("Placeholder", GenTuDoc(""), bases=[t_org("Leaf")]),
-        d_org("BigIdent", GenTuDoc(""), bases=[t_org("Leaf")]),
-        d_org("TextTarget", GenTuDoc("~<<target>>~"), bases=[t_org("Leaf")]),
+        d_org("Escaped", GenTuDoc("Escaped text"), bases=[t_nest(t_org("Leaf"))]),
+        d_org("Newline", GenTuDoc("\\n newline"), bases=[t_nest(t_org("Leaf"))]),
+        d_org("Space", GenTuDoc('\' "space",'), bases=[t_nest(t_org("Leaf"))]),
+        d_org("Word", GenTuDoc("word"), bases=[t_nest(t_org("Leaf"))]),
+        d_org("AtMention", GenTuDoc("@mention"), bases=[t_nest(t_org("Leaf"))]),
+        d_org("RawText", GenTuDoc(""), bases=[t_nest(t_org("Leaf"))]),
+        d_org("Punctuation", GenTuDoc(""), bases=[t_nest(t_org("Leaf"))]),
+        d_org("Placeholder", GenTuDoc(""), bases=[t_nest(t_org("Leaf"))]),
+        d_org("BigIdent", GenTuDoc(""), bases=[t_nest(t_org("Leaf"))]),
+        d_org("TextTarget", GenTuDoc("~<<target>>~"), bases=[t_nest(t_org("Leaf"))]),
         d_org(
             "Markup",
             GenTuDoc(""),
             bases=[t_nest(t_org("Org"))],
             concreteKind=False,
         ),
-        d_org("Bold", GenTuDoc(""), bases=[t_org("Markup")]),
-        d_org("Underline", GenTuDoc(""), bases=[t_org("Markup")]),
-        d_org("Monospace", GenTuDoc(""), bases=[t_org("Markup")]),
-        d_org("MarkQuote", GenTuDoc(""), bases=[t_org("Markup")]),
-        d_org("Verbatim", GenTuDoc(""), bases=[t_org("Markup")]),
-        d_org("Italic", GenTuDoc(""), bases=[t_org("Markup")]),
-        d_org("Strike", GenTuDoc(""), bases=[t_org("Markup")]),
-        d_org("Par", GenTuDoc(""), bases=[t_org("Markup")]),
+        d_org("Bold", GenTuDoc(""), bases=[t_nest(t_org("Markup"))]),
+        d_org("Underline", GenTuDoc(""), bases=[t_nest(t_org("Markup"))]),
+        d_org("Monospace", GenTuDoc(""), bases=[t_nest(t_org("Markup"))]),
+        d_org("MarkQuote", GenTuDoc(""), bases=[t_nest(t_org("Markup"))]),
+        d_org("Verbatim", GenTuDoc(""), bases=[t_nest(t_org("Markup"))]),
+        d_org("Italic", GenTuDoc(""), bases=[t_nest(t_org("Markup"))]),
+        d_org("Strike", GenTuDoc(""), bases=[t_nest(t_org("Markup"))]),
+        d_org("Par", GenTuDoc(""), bases=[t_nest(t_org("Markup"))]),
         d_org(
             "RadioTarget",
             GenTuDoc("~<<<target>>>~"),
@@ -1086,7 +1086,7 @@ def get_sem_text():
         d_org(
             "Link",
             GenTuDoc(""),
-            bases=[t_org("Stmt")],
+            bases=[t_nest(t_org("Stmt"))],
             fields=[
                 opt_field(t_id("Paragraph"), "description"),
                 org_field(t_nest_shared("LinkTarget"), "target"),
@@ -2498,7 +2498,7 @@ def get_types() -> Sequence[GenTuStruct]:
         *get_sem_subtree(),
         d_org("Cell",
               GenTuDoc("Table cell"),
-              bases=[t_org("Cmd")],
+              bases=[t_nest(t_org("Cmd"))],
               fields=[
                   bool_field(
                       "isBlock",
@@ -2507,7 +2507,7 @@ def get_types() -> Sequence[GenTuStruct]:
               ]),
         d_org("Row",
               GenTuDoc("Table row"),
-              bases=[t_org("Cmd")],
+              bases=[t_nest(t_org("Cmd"))],
               fields=[
                   vec_field(t_id("Cell"), "cells", GenTuDoc("List of cells on the row")),
                   bool_field(
@@ -2518,7 +2518,7 @@ def get_types() -> Sequence[GenTuStruct]:
         d_org(
             "Table",
             GenTuDoc("Table"),
-            bases=[t_org("Block")],
+            bases=[t_nest(t_org("Block"))],
             fields=[
                 vec_field(
                     t_id("Row"),
@@ -2534,7 +2534,7 @@ def get_types() -> Sequence[GenTuStruct]:
         d_org(
             "Paragraph",
             GenTuDoc("Top-level or inline paragraph"),
-            bases=[t_org("Stmt")],
+            bases=[t_nest(t_org("Stmt"))],
             methods=[
                 GenTuFunction(t_bool(), "isFootnoteDefinition", isConst=True),
                 GenTuFunction(t_opt(t_str()), "getFootnoteName", isConst=True),
@@ -2563,14 +2563,14 @@ def get_types() -> Sequence[GenTuStruct]:
         d_org(
             "CmdAttr",
             GenTuDoc("Caption annotation for any subsequent node"),
-            bases=[t_org("Attached")],
+            bases=[t_nest(t_org("Attached"))],
             fields=[
                 GenTuField(t_str(), "target", GenTuDoc("")),
             ],
         ),
         d_org("CmdExport",
               GenTuDoc("Single line of passthrough code"),
-              bases=[t_org("Attached")],
+              bases=[t_nest(t_org("Attached"))],
               fields=[
                   str_field("exporter"),
                   str_field("content"),
@@ -2596,7 +2596,7 @@ def get_types() -> Sequence[GenTuStruct]:
         d_org(
             "List",
             GenTuDoc(""),
-            bases=[t_org("Stmt")],
+            bases=[t_nest(t_org("Stmt"))],
             methods=[
                 GenTuFunction(
                     t_vec(t_nest_shared("AttrValue")),
@@ -2633,7 +2633,7 @@ def get_types() -> Sequence[GenTuStruct]:
             GenTuDoc(""),
             bases=[t_nest(t_org("Org"))],
             fields=[
-                GenTuField(t_nest("Checkbox", [t("ListItem")]),
+                GenTuField(t_nest("Checkbox", [t_org("ListItem")]),
                            "checkbox",
                            GenTuDoc(""),
                            value="Checkbox::None"),
@@ -2778,13 +2778,13 @@ def get_types() -> Sequence[GenTuStruct]:
               nested=[
                   GenTuTypeGroup(
                       [
-                          GenTuStruct(t_nest("Document", [t("File")])),
-                          GenTuStruct(t_nest("Attachment", [t("File")])),
-                          GenTuStruct(t_nest("Source", [t("File")]))
+                          GenTuStruct(t_nest("Document", [t_org("File")])),
+                          GenTuStruct(t_nest("Attachment", [t_org("File")])),
+                          GenTuStruct(t_nest("Source", [t_org("File")]))
                       ],
-                      enumName=t_nest("Kind", [t("File")]),
+                      enumName=t_nest("Kind", [t_org("File")]),
                       kindGetter="getFileKind",
-                      variantName=t_nest("Data", [t("File")]),
+                      variantName=t_nest("Data", [t_org("File")]),
                   )
               ]),
         d_org(

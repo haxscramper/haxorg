@@ -1638,7 +1638,7 @@ struct Empty : public org::sem::Org {
 };
 
 /// \brief Base class for block or line commands
-struct Cmd : public Stmt {
+struct Cmd : public org::sem::Stmt {
   using Stmt::Stmt;
   virtual ~Cmd() = default;
   BOOST_DESCRIBE_CLASS(Cmd,
@@ -1655,21 +1655,21 @@ struct Cmd : public Stmt {
 };
 
 /// \brief Block command type
-struct Block : public Cmd {
+struct Block : public org::sem::Cmd {
   using Cmd::Cmd;
   virtual ~Block() = default;
   BOOST_DESCRIBE_CLASS(Block, (Cmd), (), (), ())
 };
 
 /// \brief Line commands
-struct LineCommand : public Cmd {
+struct LineCommand : public org::sem::Cmd {
   using Cmd::Cmd;
   virtual ~LineCommand() = default;
   BOOST_DESCRIBE_CLASS(LineCommand, (Cmd), (), (), ())
 };
 
 /// \brief Line command that might get attached to some block element
-struct Attached : public LineCommand {
+struct Attached : public org::sem::LineCommand {
   using LineCommand::LineCommand;
   virtual ~Attached() = default;
   BOOST_DESCRIBE_CLASS(Attached, (LineCommand), (), (), ())
@@ -1690,7 +1690,7 @@ struct Leaf : public org::sem::Org {
 };
 
 /// \brief Caption annotation for any subsequent node
-struct CmdCaption : public Attached {
+struct CmdCaption : public org::sem::Attached {
   using Attached::Attached;
   virtual ~CmdCaption() = default;
   BOOST_DESCRIBE_CLASS(CmdCaption,
@@ -1705,7 +1705,7 @@ struct CmdCaption : public Attached {
 };
 
 /// \brief Caption annotation for any subsequent node
-struct CmdColumns : public Attached {
+struct CmdColumns : public org::sem::Attached {
   using Attached::Attached;
   virtual ~CmdColumns() = default;
   BOOST_DESCRIBE_CLASS(CmdColumns,
@@ -1719,7 +1719,7 @@ struct CmdColumns : public Attached {
 };
 
 /// \brief Name identifier for the statement elements.
-struct CmdName : public Attached {
+struct CmdName : public org::sem::Attached {
   using Attached::Attached;
   virtual ~CmdName() = default;
   BOOST_DESCRIBE_CLASS(CmdName,
@@ -1733,7 +1733,7 @@ struct CmdName : public Attached {
 };
 
 /// \brief Custom line command with list of parsed arguments
-struct CmdCustomArgs : public Cmd {
+struct CmdCustomArgs : public org::sem::Cmd {
   using Cmd::Cmd;
   virtual ~CmdCustomArgs() = default;
   BOOST_DESCRIBE_CLASS(CmdCustomArgs,
@@ -1748,7 +1748,7 @@ struct CmdCustomArgs : public Cmd {
 };
 
 /// \brief Custom command with raw unparsed string value
-struct CmdCustomRaw : public Stmt {
+struct CmdCustomRaw : public org::sem::Stmt {
   using Stmt::Stmt;
   virtual ~CmdCustomRaw() = default;
   BOOST_DESCRIBE_CLASS(CmdCustomRaw,
@@ -1764,7 +1764,7 @@ struct CmdCustomRaw : public Stmt {
 };
 
 /// \brief Custom line command with text paragraph value
-struct CmdCustomText : public Stmt {
+struct CmdCustomText : public org::sem::Stmt {
   using Stmt::Stmt;
   virtual ~CmdCustomText() = default;
   BOOST_DESCRIBE_CLASS(CmdCustomText,
@@ -1779,7 +1779,7 @@ struct CmdCustomText : public Stmt {
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdCustomText; }
 };
 
-struct CmdResults : public Attached {
+struct CmdResults : public org::sem::Attached {
   using Attached::Attached;
   virtual ~CmdResults() = default;
   BOOST_DESCRIBE_CLASS(CmdResults,
@@ -1792,7 +1792,7 @@ struct CmdResults : public Attached {
 };
 
 /// \brief Tblfm command type
-struct CmdTblfm : public Cmd {
+struct CmdTblfm : public org::sem::Cmd {
   using Cmd::Cmd;
   virtual ~CmdTblfm() = default;
   BOOST_DESCRIBE_CLASS(CmdTblfm,
@@ -1805,7 +1805,7 @@ struct CmdTblfm : public Cmd {
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdTblfm; }
 };
 
-struct HashTag : public Inline {
+struct HashTag : public org::sem::Inline {
   using Inline::Inline;
   virtual ~HashTag() = default;
   BOOST_DESCRIBE_CLASS(HashTag,
@@ -1821,7 +1821,7 @@ struct HashTag : public Inline {
 /// \brief Inline footnote definition
 ///
 /// \note in-text link to the footnotes are implemented using `Link` nodes
-struct InlineFootnote : public Inline {
+struct InlineFootnote : public org::sem::Inline {
   using Inline::Inline;
   virtual ~InlineFootnote() = default;
   BOOST_DESCRIBE_CLASS(InlineFootnote,
@@ -1838,7 +1838,7 @@ struct InlineFootnote : public Inline {
 };
 
 /// \brief Inline export
-struct InlineExport : public Inline {
+struct InlineExport : public org::sem::Inline {
   using Inline::Inline;
   virtual ~InlineExport() = default;
   BOOST_DESCRIBE_CLASS(InlineExport,
@@ -1990,7 +1990,7 @@ struct Symbol : public org::sem::Org {
 };
 
 /// \brief Escaped text
-struct Escaped : public Leaf {
+struct Escaped : public org::sem::Leaf {
   using Leaf::Leaf;
   virtual ~Escaped() = default;
   BOOST_DESCRIBE_CLASS(Escaped,
@@ -2003,7 +2003,7 @@ struct Escaped : public Leaf {
 };
 
 /// \brief \n newline
-struct Newline : public Leaf {
+struct Newline : public org::sem::Leaf {
   using Leaf::Leaf;
   virtual ~Newline() = default;
   BOOST_DESCRIBE_CLASS(Newline,
@@ -2016,7 +2016,7 @@ struct Newline : public Leaf {
 };
 
 /// \brief ' "space",
-struct Space : public Leaf {
+struct Space : public org::sem::Leaf {
   using Leaf::Leaf;
   virtual ~Space() = default;
   BOOST_DESCRIBE_CLASS(Space,
@@ -2029,7 +2029,7 @@ struct Space : public Leaf {
 };
 
 /// \brief word
-struct Word : public Leaf {
+struct Word : public org::sem::Leaf {
   using Leaf::Leaf;
   virtual ~Word() = default;
   BOOST_DESCRIBE_CLASS(Word,
@@ -2042,7 +2042,7 @@ struct Word : public Leaf {
 };
 
 /// \brief @mention
-struct AtMention : public Leaf {
+struct AtMention : public org::sem::Leaf {
   using Leaf::Leaf;
   virtual ~AtMention() = default;
   BOOST_DESCRIBE_CLASS(AtMention,
@@ -2054,7 +2054,7 @@ struct AtMention : public Leaf {
   virtual OrgSemKind getKind() const { return OrgSemKind::AtMention; }
 };
 
-struct RawText : public Leaf {
+struct RawText : public org::sem::Leaf {
   using Leaf::Leaf;
   virtual ~RawText() = default;
   BOOST_DESCRIBE_CLASS(RawText,
@@ -2066,7 +2066,7 @@ struct RawText : public Leaf {
   virtual OrgSemKind getKind() const { return OrgSemKind::RawText; }
 };
 
-struct Punctuation : public Leaf {
+struct Punctuation : public org::sem::Leaf {
   using Leaf::Leaf;
   virtual ~Punctuation() = default;
   BOOST_DESCRIBE_CLASS(Punctuation,
@@ -2078,7 +2078,7 @@ struct Punctuation : public Leaf {
   virtual OrgSemKind getKind() const { return OrgSemKind::Punctuation; }
 };
 
-struct Placeholder : public Leaf {
+struct Placeholder : public org::sem::Leaf {
   using Leaf::Leaf;
   virtual ~Placeholder() = default;
   BOOST_DESCRIBE_CLASS(Placeholder,
@@ -2090,7 +2090,7 @@ struct Placeholder : public Leaf {
   virtual OrgSemKind getKind() const { return OrgSemKind::Placeholder; }
 };
 
-struct BigIdent : public Leaf {
+struct BigIdent : public org::sem::Leaf {
   using Leaf::Leaf;
   virtual ~BigIdent() = default;
   BOOST_DESCRIBE_CLASS(BigIdent,
@@ -2103,7 +2103,7 @@ struct BigIdent : public Leaf {
 };
 
 /// \brief ~<<target>>~
-struct TextTarget : public Leaf {
+struct TextTarget : public org::sem::Leaf {
   using Leaf::Leaf;
   virtual ~TextTarget() = default;
   BOOST_DESCRIBE_CLASS(TextTarget,
@@ -2121,7 +2121,7 @@ struct Markup : public org::sem::Org {
   BOOST_DESCRIBE_CLASS(Markup, (Org), (), (), ())
 };
 
-struct Bold : public Markup {
+struct Bold : public org::sem::Markup {
   using Markup::Markup;
   virtual ~Bold() = default;
   BOOST_DESCRIBE_CLASS(Bold,
@@ -2133,7 +2133,7 @@ struct Bold : public Markup {
   virtual OrgSemKind getKind() const { return OrgSemKind::Bold; }
 };
 
-struct Underline : public Markup {
+struct Underline : public org::sem::Markup {
   using Markup::Markup;
   virtual ~Underline() = default;
   BOOST_DESCRIBE_CLASS(Underline,
@@ -2145,7 +2145,7 @@ struct Underline : public Markup {
   virtual OrgSemKind getKind() const { return OrgSemKind::Underline; }
 };
 
-struct Monospace : public Markup {
+struct Monospace : public org::sem::Markup {
   using Markup::Markup;
   virtual ~Monospace() = default;
   BOOST_DESCRIBE_CLASS(Monospace,
@@ -2157,7 +2157,7 @@ struct Monospace : public Markup {
   virtual OrgSemKind getKind() const { return OrgSemKind::Monospace; }
 };
 
-struct MarkQuote : public Markup {
+struct MarkQuote : public org::sem::Markup {
   using Markup::Markup;
   virtual ~MarkQuote() = default;
   BOOST_DESCRIBE_CLASS(MarkQuote,
@@ -2169,7 +2169,7 @@ struct MarkQuote : public Markup {
   virtual OrgSemKind getKind() const { return OrgSemKind::MarkQuote; }
 };
 
-struct Verbatim : public Markup {
+struct Verbatim : public org::sem::Markup {
   using Markup::Markup;
   virtual ~Verbatim() = default;
   BOOST_DESCRIBE_CLASS(Verbatim,
@@ -2181,7 +2181,7 @@ struct Verbatim : public Markup {
   virtual OrgSemKind getKind() const { return OrgSemKind::Verbatim; }
 };
 
-struct Italic : public Markup {
+struct Italic : public org::sem::Markup {
   using Markup::Markup;
   virtual ~Italic() = default;
   BOOST_DESCRIBE_CLASS(Italic,
@@ -2193,7 +2193,7 @@ struct Italic : public Markup {
   virtual OrgSemKind getKind() const { return OrgSemKind::Italic; }
 };
 
-struct Strike : public Markup {
+struct Strike : public org::sem::Markup {
   using Markup::Markup;
   virtual ~Strike() = default;
   BOOST_DESCRIBE_CLASS(Strike,
@@ -2205,7 +2205,7 @@ struct Strike : public Markup {
   virtual OrgSemKind getKind() const { return OrgSemKind::Strike; }
 };
 
-struct Par : public Markup {
+struct Par : public org::sem::Markup {
   using Markup::Markup;
   virtual ~Par() = default;
   BOOST_DESCRIBE_CLASS(Par,
@@ -2244,7 +2244,7 @@ struct Latex : public org::sem::Org {
   virtual OrgSemKind getKind() const { return OrgSemKind::Latex; }
 };
 
-struct Link : public Stmt {
+struct Link : public org::sem::Stmt {
   using Stmt::Stmt;
   virtual ~Link() = default;
   BOOST_DESCRIBE_CLASS(Link,
@@ -2259,7 +2259,7 @@ struct Link : public Stmt {
 };
 
 /// \brief Center nested content in export
-struct BlockCenter : public Block {
+struct BlockCenter : public org::sem::Block {
   using Block::Block;
   virtual ~BlockCenter() = default;
   BOOST_DESCRIBE_CLASS(BlockCenter,
@@ -2272,7 +2272,7 @@ struct BlockCenter : public Block {
 };
 
 /// \brief Quotation block
-struct BlockQuote : public Block {
+struct BlockQuote : public org::sem::Block {
   using Block::Block;
   virtual ~BlockQuote() = default;
   BOOST_DESCRIBE_CLASS(BlockQuote,
@@ -2285,7 +2285,7 @@ struct BlockQuote : public Block {
 };
 
 /// \brief Comment block
-struct BlockComment : public Stmt {
+struct BlockComment : public org::sem::Stmt {
   using Stmt::Stmt;
   virtual ~BlockComment() = default;
   BOOST_DESCRIBE_CLASS(BlockComment,
@@ -2298,7 +2298,7 @@ struct BlockComment : public Stmt {
 };
 
 /// \brief Verse quotation block
-struct BlockVerse : public Block {
+struct BlockVerse : public org::sem::Block {
   using Block::Block;
   virtual ~BlockVerse() = default;
   BOOST_DESCRIBE_CLASS(BlockVerse,
@@ -2310,7 +2310,7 @@ struct BlockVerse : public Block {
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockVerse; }
 };
 
-struct BlockDynamicFallback : public Block {
+struct BlockDynamicFallback : public org::sem::Block {
   using Block::Block;
   virtual ~BlockDynamicFallback() = default;
   BOOST_DESCRIBE_CLASS(BlockDynamicFallback,
@@ -2324,7 +2324,7 @@ struct BlockDynamicFallback : public Block {
 };
 
 /// \brief Example block
-struct BlockExample : public Block {
+struct BlockExample : public org::sem::Block {
   using Block::Block;
   virtual ~BlockExample() = default;
   BOOST_DESCRIBE_CLASS(BlockExample,
@@ -2337,7 +2337,7 @@ struct BlockExample : public Block {
 };
 
 /// \brief Direct export passthrough
-struct BlockExport : public Block {
+struct BlockExport : public org::sem::Block {
   using Block::Block;
   virtual ~BlockExport() = default;
   BOOST_DESCRIBE_CLASS(BlockExport,
@@ -2356,7 +2356,7 @@ struct BlockExport : public Block {
 };
 
 /// \brief Block of text with admonition tag: 'note',', 'warning','
-struct BlockAdmonition : public Block {
+struct BlockAdmonition : public org::sem::Block {
   using Block::Block;
   virtual ~BlockAdmonition() = default;
   BOOST_DESCRIBE_CLASS(BlockAdmonition,
@@ -2369,7 +2369,7 @@ struct BlockAdmonition : public Block {
 };
 
 /// \brief Base class for all code blocks
-struct BlockCode : public Block {
+struct BlockCode : public org::sem::Block {
   using Block::Block;
   virtual ~BlockCode() = default;
   BOOST_DESCRIBE_CLASS(BlockCode,
@@ -2500,7 +2500,7 @@ struct Subtree : public org::sem::Org {
 };
 
 /// \brief Table cell
-struct Cell : public Cmd {
+struct Cell : public org::sem::Cmd {
   using Cmd::Cmd;
   virtual ~Cell() = default;
   BOOST_DESCRIBE_CLASS(Cell,
@@ -2515,7 +2515,7 @@ struct Cell : public Cmd {
 };
 
 /// \brief Table row
-struct Row : public Cmd {
+struct Row : public org::sem::Cmd {
   using Cmd::Cmd;
   virtual ~Row() = default;
   BOOST_DESCRIBE_CLASS(Row,
@@ -2532,7 +2532,7 @@ struct Row : public Cmd {
 };
 
 /// \brief Table
-struct Table : public Block {
+struct Table : public org::sem::Block {
   using Block::Block;
   virtual ~Table() = default;
   BOOST_DESCRIBE_CLASS(Table,
@@ -2549,7 +2549,7 @@ struct Table : public Block {
 };
 
 /// \brief Top-level or inline paragraph
-struct Paragraph : public Stmt {
+struct Paragraph : public org::sem::Stmt {
   using Stmt::Stmt;
   virtual ~Paragraph() = default;
   BOOST_DESCRIBE_CLASS(Paragraph,
@@ -2587,7 +2587,7 @@ struct ColonExample : public org::sem::Org {
 };
 
 /// \brief Caption annotation for any subsequent node
-struct CmdAttr : public Attached {
+struct CmdAttr : public org::sem::Attached {
   using Attached::Attached;
   virtual ~CmdAttr() = default;
   BOOST_DESCRIBE_CLASS(CmdAttr,
@@ -2601,7 +2601,7 @@ struct CmdAttr : public Attached {
 };
 
 /// \brief Single line of passthrough code
-struct CmdExport : public Attached {
+struct CmdExport : public org::sem::Attached {
   using Attached::Attached;
   virtual ~CmdExport() = default;
   BOOST_DESCRIBE_CLASS(CmdExport,
@@ -2633,7 +2633,7 @@ struct Call : public org::sem::Org {
   virtual OrgSemKind getKind() const { return OrgSemKind::Call; }
 };
 
-struct List : public Stmt {
+struct List : public org::sem::Stmt {
   using Stmt::Stmt;
   virtual ~List() = default;
   BOOST_DESCRIBE_CLASS(List,
