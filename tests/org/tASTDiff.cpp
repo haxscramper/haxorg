@@ -7,7 +7,10 @@
 #include <haxorg/test/org_parse_aux.hpp>
 #include <haxorg/sem/SemAstDiff.hpp>
 
-using namespace diff;
+using namespace hstd::ext::diff;
+using namespace hstd;
+using namespace org::sem;
+using namespace org;
 
 
 struct TestNode : SharedPtrApi<TestNode> {

@@ -3,8 +3,10 @@
 
 
 using namespace org;
+using namespace org::imm;
+using namespace hstd;
 
-ImmAstReplace org::setSubnode(
+ImmAstReplace org::imm::setSubnode(
     CR<ImmAdapter>     node,
     ImmId              newSubnode,
     int                position,
@@ -15,7 +17,7 @@ ImmAstReplace org::setSubnode(
     return res;
 }
 
-ImmAstReplace org::insertSubnode(
+ImmAstReplace org::imm::insertSubnode(
     CR<ImmAdapter>     node,
     ImmId              add,
     int                position,
@@ -24,7 +26,7 @@ ImmAstReplace org::insertSubnode(
     return setSubnodes(node, node->subnodes.insert(position, add), ctx);
 }
 
-ImmAstReplace org::insertSubnodes(
+ImmAstReplace org::imm::insertSubnodes(
     CR<ImmAdapter>     node,
     Vec<ImmId>         add,
     int                position,
@@ -38,17 +40,18 @@ ImmAstReplace org::insertSubnodes(
     for (int i = 0; i < position; ++i) { u.push_back(tmp.at(i)); }
     for (auto const& a : add) { u.push_back(a); }
     for (int i = position; i < tmp.size(); ++i) { u.push_back(tmp.at(i)); }
-    return setSubnodes(node, ImmVec<ImmId>{u.begin(), u.end()}, ctx);
+    return setSubnodes(
+        node, hstd::ext::ImmVec<ImmId>{u.begin(), u.end()}, ctx);
 }
 
-ImmAstReplace org::appendSubnode(
+ImmAstReplace org::imm::appendSubnode(
     CR<ImmAdapter>     node,
     ImmId              add,
     ImmAstEditContext& ctx) {
     return insertSubnode(node, add, node->size(), ctx);
 }
 
-ImmAstReplace org::dropSubnode(
+ImmAstReplace org::imm::dropSubnode(
     CR<ImmAdapter>     node,
     int                position,
     ImmAstEditContext& ctx) {
@@ -56,7 +59,7 @@ ImmAstReplace org::dropSubnode(
     return setSubnodes(node, node->subnodes.take(position), ctx);
 }
 
-ImmAstReplace org::dropSubnode(
+ImmAstReplace org::imm::dropSubnode(
     CR<ImmAdapter>     node,
     ImmId              subnode,
     ImmAstEditContext& ctx) {
@@ -66,7 +69,7 @@ ImmAstReplace org::dropSubnode(
     return dropSubnode(node, idx, ctx);
 }
 
-Pair<ImmAstReplace, ImmId> org::popSubnode(
+Pair<ImmAstReplace, ImmId> org::imm::popSubnode(
     CR<ImmAdapter>     node,
     int                position,
     ImmAstEditContext& ctx) {
@@ -76,7 +79,7 @@ Pair<ImmAstReplace, ImmId> org::popSubnode(
     return {update, pop};
 }
 
-ImmAstReplaceGroup org::demoteSubtree(
+ImmAstReplaceGroup org::imm::demoteSubtree(
     CR<ImmAdapter>     node,
     SubtreeMove        move,
     ImmAstEditContext& ctx) {
@@ -94,8 +97,8 @@ ImmAstReplaceGroup org::demoteSubtree(
                 aux(sub);
             }
 
-            auto update = ctx.store().updateNode<org::ImmSubtree>(
-                target, ctx, [&](org::ImmSubtree value) {
+            auto update = ctx.store().updateNode<org::imm::ImmSubtree>(
+                target, ctx, [&](org::imm::ImmSubtree value) {
                     value.subnodes = edits.newSubnodes(value.subnodes);
                     value.level += 1;
                     return value;
@@ -110,9 +113,10 @@ ImmAstReplaceGroup org::demoteSubtree(
         auto adjacent = node.getAdjacentNode(-1);
 
         if (parent && adjacent && adjacent->is(OrgSemKind::Subtree)) {
-            auto adjacentTree = adjacent.value().as<org::ImmSubtree>();
+            auto adjacentTree = adjacent.value()
+                                    .as<org::imm::ImmSubtree>();
             auto replacedTree = ctx->adapt(update.replaced)
-                                    .as<org::ImmSubtree>();
+                                    .as<org::imm::ImmSubtree>();
             if (adjacentTree->level < replacedTree->level) {
                 // Demoting subtree caused reparenting, removing the
                 // node from the old subtree.
@@ -147,10 +151,11 @@ ImmAstReplaceGroup org::demoteSubtree(
         AST_EDIT_MSG(fmt("Physical demote subtree {}", node));
         Vec<ImmId> demotedSubnodes;
         Vec<ImmId> reparentedSubnodes;
-        auto       tree  = node.as<org::ImmSubtree>();
+        auto       tree  = node.as<org::imm::ImmSubtree>();
         int        level = tree->level;
         for (auto const& sub : tree.sub()) {
-            if (auto subtree = sub.asOpt<org::ImmSubtree>(); subtree) {
+            if (auto subtree = sub.asOpt<org::imm::ImmSubtree>();
+                subtree) {
                 if (subtree.value()->level < level + 1) {
                     demotedSubnodes.push_back(subtree->id);
                 } else {
@@ -167,10 +172,12 @@ ImmAstReplaceGroup org::demoteSubtree(
 
         {
             auto __scope = ctx.debug.scopeLevel();
-            auto update  = ctx.store().updateNode<org::ImmSubtree>(
-                node, ctx, [&](org::ImmSubtree value) {
-                    value.subnodes = edits.newSubnodes(ImmVec<ImmId>{
-                        demotedSubnodes.begin(), demotedSubnodes.end()});
+            auto update  = ctx.store().updateNode<org::imm::ImmSubtree>(
+                node, ctx, [&](org::imm::ImmSubtree value) {
+                    value.subnodes = edits.newSubnodes(
+                        hstd::ext::ImmVec<imm::ImmId>{
+                            demotedSubnodes.begin(),
+                            demotedSubnodes.end()});
                     value.level += 1;
                     return value;
                 });
@@ -205,7 +212,7 @@ ImmAstReplaceGroup org::demoteSubtree(
     return edits;
 }
 
-Opt<ImmAstReplace> org::moveSubnode(
+Opt<ImmAstReplace> org::imm::moveSubnode(
     CR<ImmAdapter>     node,
     int                position,
     int                offset,
@@ -252,7 +259,7 @@ Opt<ImmAstReplace> org::moveSubnode(
     return setSubnodes(node, subnodes, ctx);
 }
 
-ImmAstReplace org::swapSubnode(
+ImmAstReplace org::imm::swapSubnode(
     CR<ImmAdapter>     node,
     int                from,
     int                to,
@@ -265,13 +272,13 @@ ImmAstReplace org::swapSubnode(
     return setSubnodes(node, tmp.persistent(), ctx);
 }
 
-Opt<ImmAstReplace> org::moveSubnodeStructural(
+Opt<ImmAstReplace> org::imm::moveSubnodeStructural(
     CR<ImmAdapter>     node,
     int                position,
     int                offset,
     ImmAstEditContext& ctx) {
 
-    if (node->dyn_cast<org::ImmStmt>() != nullptr) {
+    if (node->dyn_cast<org::imm::ImmStmt>() != nullptr) {
         int targetOffset    = offset;
         int offsetDirection = 0 < offset ? 1 : -1;
         for (auto adj = node.getAdjacentNode(targetOffset);
@@ -294,7 +301,7 @@ Opt<ImmAstReplace> org::moveSubnodeStructural(
     }
 }
 
-ImmAstReplace org::replaceNode(
+ImmAstReplace org::imm::replaceNode(
     const ImmAdapter&  target,
     const ImmId&       value,
     ImmAstEditContext& ctx) {
@@ -458,7 +465,7 @@ bool recMatches(PathIter condition, ImmAdapter node, int depth, Ctx ctx) {
         if (isMatch && condition->isTarget) {
             ctx.sel->message(
                 fmt("node is matched and marked as target\n{}",
-                    node.treeRepr(org::ImmAdapter::TreeReprConf{
+                    node.treeRepr(org::imm::ImmAdapter::TreeReprConf{
                                       .withAuxFields = true,
                                   })
                         .toString(false)),
@@ -496,9 +503,9 @@ Vec<ImmAdapter> OrgDocumentSelector::getMatches(
     return result;
 }
 
-Vec<Str> org::flatWords(ImmAdapter const& node) {
+Vec<Str> org::imm::flatWords(ImmAdapter const& node) {
     Vec<Str> result;
-    if (auto it = node->dyn_cast<org::ImmLeaf>(); it != nullptr) {
+    if (auto it = node->dyn_cast<org::imm::ImmLeaf>(); it != nullptr) {
         if (it->is(SemSet{
                 OrgSemKind::RawText,
                 OrgSemKind::Word,

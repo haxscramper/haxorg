@@ -12,7 +12,7 @@ import itertools
 
 from py_textlayout.py_textlayout_wrap import BlockId, TextLayout
 
-DEBUG_TYPE_ORIGIN = True
+DEBUG_TYPE_ORIGIN = False
 
 
 class QualTypeKind(str, Enum):

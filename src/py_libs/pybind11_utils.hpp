@@ -10,13 +10,15 @@
 #include <hstd/stdlib/Pair.hpp>
 #include <hstd/stdlib/Map.hpp>
 
+namespace org::bind::python {
+
 namespace py = pybind11;
 
 struct PyTypeRegistryGuard {
-    UnorderedSet<Str> py_cxx_map;
+    hstd::UnorderedSet<hstd::Str> py_cxx_map;
 
-    void incl(Str const& name) { py_cxx_map.incl(name); }
-    bool contains(Str const& name) const {
+    void incl(hstd::Str const& name) { py_cxx_map.incl(name); }
+    bool contains(hstd::Str const& name) const {
         return py_cxx_map.contains(name);
     }
 
@@ -24,7 +26,7 @@ struct PyTypeRegistryGuard {
         auto const& registered_types = pybind11::detail::get_internals()
                                            .registered_types_py;
         for (auto& item : registered_types) {
-            auto type = Str((((PyTypeObject*)item.first)->tp_name));
+            auto type = hstd::Str((((PyTypeObject*)item.first)->tp_name));
             auto name = type.split(".").at(1);
             py_cxx_map.incl(name);
         }
@@ -34,19 +36,19 @@ struct PyTypeRegistryGuard {
 template <typename E>
 class PyEnumIterator {
   public:
-    explicit PyEnumIterator(E value = value_domain<E>::low())
+    explicit PyEnumIterator(E value = hstd::value_domain<E>::low())
         : value(value) {}
 
     E operator*() const { return value; }
 
     PyEnumIterator& operator++() {
-        value = value_domain<E>::succ(value);
+        value = hstd::value_domain<E>::succ(value);
         return *this;
     }
 
     bool operator!=(const PyEnumIterator& other) const {
-        return value_domain<E>::ord(value)
-            != value_domain<E>::ord(other.value);
+        return hstd::value_domain<E>::ord(value)
+            != hstd::value_domain<E>::ord(other.value);
     }
 
   private:
@@ -65,7 +67,7 @@ void bind_enum_iterator(
             .def("__iter__", [](PyEnumIterator<E>& self) { return self; })
             .def("__next__", [](PyEnumIterator<E>& self) {
                 auto current = *self;
-                if (current == value_domain<E>::high()) {
+                if (current == hstd::value_domain<E>::high()) {
                     throw py::stop_iteration();
                 }
                 ++self;
@@ -81,9 +83,9 @@ void bind_int_set(
     PyTypeRegistryGuard& guard) {
     if (!guard.contains(PyNameType)) {
         guard.incl(PyNameType);
-        py::class_<IntSet<T>>(m, PyNameType)
-            .def(py::init([](py::list list) -> IntSet<T> {
-                IntSet<T> result;
+        py::class_<hstd::IntSet<T>>(m, PyNameType)
+            .def(py::init([](py::list list) -> hstd::IntSet<T> {
+                hstd::IntSet<T> result;
                 for (auto const& it : list) { result.incl(it.cast<T>()); }
 
                 return result;
@@ -107,19 +109,20 @@ void bind_vector(
 
     if (!guard.contains(hstd_name)) {
         guard.incl(hstd_name);
-        pybind11::class_<Vec<T>, std::vector<T>>(m, hstd_name.c_str())
+        pybind11::class_<hstd::Vec<T>, std::vector<T>>(
+            m, hstd_name.c_str())
             .def(pybind11::init<>())
             .def(pybind11::init<int, const T&>())
             .def(pybind11::init<std::initializer_list<T>>())
-            .def(pybind11::init<const Vec<T>&>())
-            .def(py::init([](py::list list) -> Vec<T> {
-                Vec<T> result;
+            .def(pybind11::init<const hstd::Vec<T>&>())
+            .def(py::init([](py::list list) -> hstd::Vec<T> {
+                hstd::Vec<T> result;
                 for (auto const& it : list) {
                     result.push_back(it.cast<T>());
                 }
                 return result;
             }))
-            .def("FromValue", &Vec<T>::FromValue)
+            .def("FromValue", &hstd::Vec<T>::FromValue)
             // .def("append", (void(Vec<T>::*)(const Vec<T>&)) &
             // Vec<T>::append)
             ;
@@ -142,10 +145,11 @@ void bind_unordered_map(
 
     if (!guard.contains(hstd_name)) {
         guard.incl(hstd_name);
-        pybind11::class_<UnorderedMap<K, V>, std::unordered_map<K, V>>(
-            m, hstd_name.c_str())
-            .def(pybind11::init<>())
-            .def(pybind11::init<const UnorderedMap<K, V>&>());
+        pybind11::
+            class_<hstd::UnorderedMap<K, V>, std::unordered_map<K, V>>(
+                m, hstd_name.c_str())
+                .def(pybind11::init<>())
+                .def(pybind11::init<const hstd::UnorderedMap<K, V>&>());
     }
 }
 
@@ -154,7 +158,7 @@ void bind_mapping(
     py::module&          m,
     const char*          PyNameType,
     PyTypeRegistryGuard& guard) {
-    using M = UnorderedMap<K, V>;
+    using M = hstd::UnorderedMap<K, V>;
 
     auto base_name = std::string(PyNameType) + "StdUnorderedMap";
     auto hstd_name = std::string(PyNameType) + "UnorderedMap";
@@ -166,7 +170,7 @@ void bind_mapping(
 
     if (!guard.contains(hstd_name)) {
         guard.incl(hstd_name);
-        py::class_<UnorderedMap<K, V>, std::unordered_map<K, V>>(
+        py::class_<hstd::UnorderedMap<K, V>, std::unordered_map<K, V>>(
             m, hstd_name.c_str())
             .def(py::init<>())
             .def("contains", &M::contains)
@@ -183,17 +187,17 @@ struct py_arg_convertor {
 };
 
 template <typename T>
-struct py_arg_convertor<Vec<T>> {
-    static void write(Vec<T>& value, pybind11::handle const& py) {
+struct py_arg_convertor<hstd::Vec<T>> {
+    static void write(hstd::Vec<T>& value, pybind11::handle const& py) {
         for (auto const& it : py) {
             py_arg_convertor<T>::write(value.emplace_back(), it);
         }
     }
 };
 
-template <DescribedRecord R>
+template <hstd::DescribedRecord R>
 void init_fields_from_kwargs(R& value, pybind11::kwargs const& kwargs) {
-    UnorderedSet<Str> used_kwargs;
+    hstd::UnorderedSet<hstd::Str> used_kwargs;
     for_each_field_with_bases<R>([&](auto const& field) {
         if (kwargs.contains(field.name)) {
             used_kwargs.incl(field.name);
@@ -204,9 +208,9 @@ void init_fields_from_kwargs(R& value, pybind11::kwargs const& kwargs) {
     });
 
     if (used_kwargs.size() != kwargs.size()) {
-        UnorderedSet<Str> passed_kwargs;
+        hstd::UnorderedSet<hstd::Str> passed_kwargs;
         for (auto const& it : kwargs) {
-            passed_kwargs.incl(Str(pybind11::str(it.first)));
+            passed_kwargs.incl(hstd::Str(pybind11::str(it.first)));
         }
         throw std::logic_error(
             fmt("Passed unknown field name {}",
@@ -214,12 +218,12 @@ void init_fields_from_kwargs(R& value, pybind11::kwargs const& kwargs) {
     }
 }
 
-template <DescribedRecord R>
+template <hstd::DescribedRecord R>
 py::object py_getattr_impl(R const& obj, std::string const& attr) {
     if (attr == "__dict__") {
         py::dict result;
-        for_each_field_with_bases<R>(overloaded{
-            [&]<typename T>(Opt<T> const& field) {
+        for_each_field_with_bases<R>(hstd::overloaded{
+            [&]<typename T>(hstd::Opt<T> const& field) {
                 if (field.has_value()) {
                     result[field.name] = py::cast(obj.*field.pointer);
                 } else {
@@ -231,7 +235,7 @@ py::object py_getattr_impl(R const& obj, std::string const& attr) {
             }});
         return result;
     } else {
-        Opt<py::object> result;
+        hstd::Opt<py::object> result;
         for_each_field_with_bases<R>([&](auto const& field) {
             if (field.name == attr) {
                 result = py::cast(obj.*field.pointer);
@@ -241,15 +245,15 @@ py::object py_getattr_impl(R const& obj, std::string const& attr) {
         if (result.has_value()) {
             return result.value();
         } else {
-            throw py::attribute_error(
-                fmt("No attribute '{}' found for type {}",
-                    attr,
-                    typeid(obj).name()));
+            throw py::attribute_error(hstd::fmt(
+                "No attribute '{}' found for type {}",
+                attr,
+                typeid(obj).name()));
         }
     }
 }
 
-template <DescribedRecord R>
+template <hstd::DescribedRecord R>
 void py_setattr_impl(R& obj, std::string const& attr, py::object value) {
     bool found_target = false;
     for_each_field_with_bases<R>([&](auto const& field) {
@@ -261,14 +265,16 @@ void py_setattr_impl(R& obj, std::string const& attr, py::object value) {
     });
 
     if (!found_target) {
-        throw py::attribute_error(
-            fmt("No attribute '{}' found for type {}",
-                attr,
-                typeid(obj).name()));
+        throw py::attribute_error(hstd::fmt(
+            "No attribute '{}' found for type {}",
+            attr,
+            typeid(obj).name()));
     }
 }
 
-template <DescribedRecord R>
+template <hstd::DescribedRecord R>
 std::string py_repr_impl(R const& value) {
     return fmt1(value);
 }
+
+} // namespace org::bind::python

@@ -1128,19 +1128,19 @@ struct ImmAdapterOrgAPI : ImmAdapterVirtualBase {};
 
 struct ImmAdapterStmtAPI : ImmAdapterOrgAPI {
     virtual hstd::Vec<org::sem::AttrValue> getAttrs(
-        hstd::Opt<hstd::Str> param) const;
+        hstd::Opt<hstd::Str> const& param) const;
     virtual hstd::Opt<org::sem::AttrValue> getFirstAttr(
         hstd::Str const& kind) const;
 
     hstd::Vec<ImmAdapter> getCaption() const;
-    hstd::Vec<Str>        getName() const;
+    hstd::Vec<hstd::Str>  getName() const;
     hstd::Vec<ImmAdapter> getAttached(
         hstd::Opt<hstd::Str> const& kind = std::nullopt) const;
 };
 
 struct ImmAdapterCmdAPI : ImmAdapterStmtAPI {
     virtual hstd::Vec<org::sem::AttrValue> getAttrs(
-        hstd::Opt<hstd::Str> param) const override;
+        hstd::Opt<hstd::Str> const& param) const override;
     virtual hstd::Opt<org::sem::AttrValue> getFirstAttr(
         hstd::Str const& kind) const override;
 };
@@ -1311,18 +1311,6 @@ struct ImmAdapterDocumentGroupAPI : ImmAdapterOrgAPI {};
 EACH_SEM_ORG_FINAL_TYPE_BASE(__define_adapter)
 #undef __define_adapter
 
-template <typename T>
-hstd::Vec<T> getSubtreeProperties(org::imm::ImmSubtree const& subtree) {
-    hstd::Vec<T> result;
-    for (auto const& prop : subtree.properties) {
-        if (std::holds_alternative<T>(prop.data)) {
-            result.push_back(std::get<T>(prop.data));
-        }
-    }
-
-    return result;
-}
-
 
 template <typename T>
 template <typename F>
@@ -1369,12 +1357,6 @@ template <typename T>
 concept IsImmOrg = std::
     derived_from<typename remove_sem_org<T>::type, ImmOrg>;
 
-
-using SubnodeVisitor = hstd::Func<void(ImmAdapter)>;
-void eachSubnodeRec(
-    org::imm::ImmAdapter id,
-    bool                 withPath,
-    SubnodeVisitor       cb);
 
 /// \brief Map immutable AST type to the sem type, defines inner type
 /// `sem_type`
@@ -1463,7 +1445,7 @@ struct std::formatter<org::imm::ImmAdapterT<T>>
     template <typename FormatContext>
     auto format(const org::imm::ImmAdapterT<T>& p, FormatContext& ctx)
         const {
-        return fmt_ctx(p.id, ctx);
+        return hstd::fmt_ctx(p.id, ctx);
     }
 };
 
@@ -1495,7 +1477,7 @@ struct std::formatter<org::imm::ImmPathStep>
     : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const org::imm::ImmPathStep& p, FormatContext& ctx) const {
-        return ReflPathFormatter<org::ImmReflPathTag>{}.format(
+        return hstd::ReflPathFormatter<org::imm::ImmReflPathTag>{}.format(
             p.path, ctx);
     }
 };
@@ -1504,8 +1486,8 @@ template <>
 struct std::hash<org::imm::ImmPathStep> {
     std::size_t operator()(
         org::imm::ImmPathStep const& step) const noexcept {
-        AnyHasher<hstd::Str> hasher;
-        std::size_t          result = 0;
+        hstd::AnyHasher<hstd::Str> hasher;
+        std::size_t                result = 0;
         for (int i = 0; i < step.path.path.size(); ++i) {
             org::imm::ImmReflPathItemBase const& it = step.path.path.at(i);
             hstd::hax_hash_combine(result, i);
@@ -1523,8 +1505,8 @@ template <>
 struct std::hash<org::imm::ImmPath> {
     std::size_t operator()(org::imm::ImmPath const& it) const noexcept {
         std::size_t result = 0;
-        hax_hash_combine(result, it.root);
-        hax_hash_combine(result, it.path);
+        hstd::hax_hash_combine(result, it.root);
+        hstd::hax_hash_combine(result, it.path);
         return result;
     }
 };

@@ -275,96 +275,117 @@ struct [[refl]] AstTrackingMap {
          radioTargets,
          hashtagDefinitions));
 
-    [[refl]] Opt<AstTrackingAlternatives> getIdPath(Str const& id) const {
+    [[refl]] hstd::Opt<AstTrackingAlternatives> getIdPath(
+        hstd::Str const& id) const {
         return subtrees.get(id);
     }
 
-    [[refl]] Opt<AstTrackingAlternatives> getNamePath(
-        Str const& id) const {
+    [[refl]] hstd::Opt<AstTrackingAlternatives> getNamePath(
+        hstd::Str const& id) const {
         return names.get(id);
     }
 
 
-    [[refl]] Opt<AstTrackingAlternatives> getAnchorTarget(
-        Str const& id) const {
+    [[refl]] hstd::Opt<AstTrackingAlternatives> getAnchorTarget(
+        hstd::Str const& id) const {
         return anchorTargets.get(id);
     }
 
-    [[refl]] Opt<AstTrackingAlternatives> getFootnotePath(
-        Str const& id) const {
+    [[refl]] hstd::Opt<AstTrackingAlternatives> getFootnotePath(
+        hstd::Str const& id) const {
         return names.get(id);
     }
 };
 
 [[refl]] AstTrackingMap getAstTrackingMap(
-    Vec<sem::SemId<sem::Org>> const& nodes);
+    hstd::Vec<sem::SemId<sem::Org>> const& nodes);
 
-[[refl]] Vec<AstTrackingGroup> getSubnodeGroups(
+[[refl]] hstd::Vec<AstTrackingGroup> getSubnodeGroups(
     sem::SemId<sem::Org>  node,
     AstTrackingMap const& map);
 
-using SubnodeVisitor           = Func<void(SemId<Org> const&)>;
-using SubnodeVisitorSimplePath = Func<
-    void(SemId<Org> const&, Vec<SemId<Org>> const& path)>;
+using SemSubnodeVisitor = hstd::Func<void(sem::SemId<sem::Org> const&)>;
+using SemSubnodeVisitorSimplePath = hstd::Func<void(
+    sem::SemId<sem::Org> const&,
+    hstd::Vec<sem::SemId<sem::Org>> const& path)>;
 /// \brief Recursively visit each subnode in the tree and apply the
 /// provided callback
-void eachSubnodeRec(SemId<Org> id, SubnodeVisitor cb);
-void eachSubnodeRecSimplePath(SemId<Org> id, SubnodeVisitorSimplePath cb);
+void eachSubnodeRec(sem::SemId<sem::Org> id, SemSubnodeVisitor cb);
+void eachSubnodeRecSimplePath(
+    sem::SemId<sem::Org>        id,
+    SemSubnodeVisitorSimplePath cb);
+
+
+using ImmSubnodeVisitor = hstd::Func<void(imm::ImmAdapter)>;
+void eachSubnodeRec(
+    org::imm::ImmAdapter id,
+    bool                 withPath,
+    ImmSubnodeVisitor    cb);
 
 template <typename T, typename Func>
-Vec<T> getDfsFuncEval(SemId<Org> id, Func const& cb) {
-    Vec<T> dfs;
-    eachSubnodeRec(id, [&](SemId<Org> const& sub) {
-        Opt<T> res = cb(sub);
+hstd::Vec<T> getDfsFuncEval(sem::SemId<sem::Org> id, Func const& cb) {
+    hstd::Vec<T> dfs;
+    eachSubnodeRec(id, [&](sem::SemId<sem::Org> const& sub) {
+        hstd::Opt<T> res = cb(sub);
         if (res.has_value()) { dfs.push_back(res.value()); }
     });
     return dfs;
 }
 
 template <typename T, typename Func>
-Vec<T> getDfsFuncEval(org::ImmAdapter id, bool withPath, Func const& cb) {
-    Vec<T> dfs;
-    org::eachSubnodeRec(id, withPath, [&](org::ImmAdapter const& sub) {
-        Opt<T> res = cb(sub);
-        if (res.has_value()) { dfs.push_back(res.value()); }
-    });
+hstd::Vec<T> getDfsFuncEval(
+    org::imm::ImmAdapter id,
+    bool                 withPath,
+    Func const&          cb) {
+    hstd::Vec<T> dfs;
+    org::eachSubnodeRec(
+        id, withPath, [&](org::imm::ImmAdapter const& sub) {
+            hstd::Opt<T> res = cb(sub);
+            if (res.has_value()) { dfs.push_back(res.value()); }
+        });
     return dfs;
 }
 
-Vec<Str> getDfsLeafText(SemId<Org> id, SemSet const& filter);
-Vec<Str> getDfsLeafText(org::ImmAdapter const& id, SemSet const& filter);
-Str      getCleanText(sem::SemId<sem::Org> const& id);
-Str      getCleanText(org::ImmAdapter const& id);
+hstd::Vec<hstd::Str> getDfsLeafText(
+    sem::SemId<sem::Org> id,
+    SemSet const&        filter);
+hstd::Vec<hstd::Str> getDfsLeafText(
+    org::imm::ImmAdapter const& id,
+    SemSet const&               filter);
+hstd::Str getCleanText(sem::SemId<sem::Org> const& id);
+hstd::Str getCleanText(imm::ImmAdapter const& id);
 
 /// \brief Get index of the list item with given text
-int getListHeaderIndex(sem::SemId<sem::List> const& it, CR<Str> text);
+int getListHeaderIndex(
+    sem::SemId<sem::List> const& it,
+    hstd::CR<hstd::Str>          text);
 /// \brief Assign body to the list item at the given position.
 void setListItemBody(
-    sem::SemId<sem::List>     id,
-    int                       index,
-    Vec<sem::SemId<sem::Org>> value);
+    sem::SemId<sem::List>           id,
+    int                             index,
+    hstd::Vec<sem::SemId<sem::Org>> value);
 
 void setDescriptionListItemBody(
-    sem::SemId<sem::List>     list,
-    CR<Str>                   text,
-    Vec<sem::SemId<sem::Org>> value);
+    sem::SemId<sem::List>           list,
+    hstd::CR<hstd::Str>             text,
+    hstd::Vec<sem::SemId<sem::Org>> value);
 
 /// \brief Insert the list item at the specified position
 void insertListItemBody(
-    sem::SemId<sem::List>     id,
-    int                       index,
-    Vec<sem::SemId<sem::Org>> value);
+    sem::SemId<sem::List>           id,
+    int                             index,
+    hstd::Vec<sem::SemId<sem::Org>> value);
 
 void insertDescriptionListItem(
-    sem::SemId<sem::List>      id,
-    int                        index,
-    sem::SemId<sem::Paragraph> paragraph,
-    Vec<sem::SemId<sem::Org>>  value);
+    sem::SemId<sem::List>           id,
+    int                             index,
+    sem::SemId<sem::Paragraph>      paragraph,
+    hstd::Vec<sem::SemId<sem::Org>> value);
 
 
 template <typename T>
-Vec<T> getSubtreeProperties(sem::SemId<sem::Subtree> const& tree) {
-    Vec<T> result;
+hstd::Vec<T> getSubtreeProperties(sem::SemId<sem::Subtree> const& tree) {
+    hstd::Vec<T> result;
     for (auto const& prop : tree->properties) {
         if (std::holds_alternative<T>(prop.data)) {
             result.push_back(std::get<T>(prop.data));
@@ -374,17 +395,32 @@ Vec<T> getSubtreeProperties(sem::SemId<sem::Subtree> const& tree) {
     return result;
 }
 
-Opt<UserTime> getCreationTime(SemId<Org> const& node);
 
-Opt<sem::NamedProperty> getFinalProperty(
-    CR<Vec<sem::SemId<sem::Org>>> nodes,
-    CR<Str>                       kind,
-    CR<Opt<Str>>                  subKind = std::nullopt);
+template <typename T>
+hstd::Vec<T> getSubtreeProperties(org::imm::ImmSubtree const& subtree) {
+    hstd::Vec<T> result;
+    for (auto const& prop : subtree.properties) {
+        if (std::holds_alternative<T>(prop.data)) {
+            result.push_back(std::get<T>(prop.data));
+        }
+    }
 
-Opt<sem::NamedProperty> getFinalProperty(
-    CR<Vec<org::ImmAdapter>> nodes,
-    CR<Str>                  kind,
-    CR<Opt<Str>>             subKind = std::nullopt);
+    return result;
+}
+
+
+hstd::Opt<hstd::UserTime> getCreationTime(
+    sem::SemId<sem::Org> const& node);
+
+hstd::Opt<sem::NamedProperty> getFinalProperty(
+    hstd::CR<hstd::Vec<sem::SemId<sem::Org>>> nodes,
+    hstd::CR<hstd::Str>                       kind,
+    hstd::CR<hstd::Opt<hstd::Str>>            subKind = std::nullopt);
+
+hstd::Opt<sem::NamedProperty> getFinalProperty(
+    hstd::CR<hstd::Vec<imm::ImmAdapter>> nodes,
+    hstd::CR<hstd::Str>                  kind,
+    hstd::CR<hstd::Opt<hstd::Str>>       subKind = std::nullopt);
 
 
 } // namespace org

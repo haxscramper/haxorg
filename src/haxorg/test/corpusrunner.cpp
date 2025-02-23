@@ -14,6 +14,11 @@
 #include <haxorg/sem/perfetto_org.hpp>
 #include <haxorg/sem/SemOrgFormat.hpp>
 
+
+using namespace org::test;
+using namespace hstd;
+using namespace org::parse;
+
 struct DiffItem {
     DECL_DESCRIBED_ENUM(Op, Replace, Remove, Add);
     Op          op;
@@ -252,8 +257,8 @@ void describeDiff(
             std::string to   = conv.dump();
 
             if (exp.type() != conv.type()) {
-                os << "type mismatch: " << exp.typeName()
-                   << " != " << conv.typeName() << " ";
+                os << "type mismatch: " << exp.type_name()
+                   << " != " << conv.type_name() << " ";
             }
 
             if (40 < from.size() || 40 < to.size()) {
@@ -585,8 +590,8 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
     }
 }
 
-yaml toTestYaml(sem::OrgArg arg) {
-    ExporterYaml exporter;
+yaml toTestYaml(org::sem::OrgArg arg) {
+    org::algo::ExporterYaml exporter;
     exporter.skipNullFields  = true;
     exporter.skipFalseFields = true;
     exporter.skipZeroFields  = true;
@@ -595,8 +600,8 @@ yaml toTestYaml(sem::OrgArg arg) {
     return exporter.evalTop(arg);
 }
 
-json toTestJson(sem::OrgArg arg) {
-    ExporterJson exporter;
+json toTestJson(org::sem::OrgArg arg) {
+    org::algo::ExporterJson exporter;
     exporter.skipEmptyLists = true;
     exporter.skipNullFields = true;
     json converted          = exporter.evalTop(arg);
@@ -1047,8 +1052,7 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::runSpecParse(
                         } else {
                             par.os << " " << par.os.red()
                                    << fmt("!! Missing field name for "
-                                          "element {} of node "
-                                          "{} !!",
+                                          "element {} of node {} !!",
                                           *par.subnodeIdx,
                                           OrgAdapter(&p.nodes, *par.parent)
                                               .getKind())

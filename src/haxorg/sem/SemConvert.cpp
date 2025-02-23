@@ -27,6 +27,7 @@ struct convert_logic_error : hstd::CRTP_hexception<convert_logic_error> {};
 
 using namespace org::sem;
 using namespace org::algo;
+using namespace org;
 using namespace hstd;
 
 using onk      = OrgNodeKind;
@@ -758,7 +759,8 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
     } else if (
         one(a, N::Values).kind() == onk::InlineStmtList
         && rs::all_of(
-            gen_view(one(a, N::Values).items()), [](OrgAdapter const& a) {
+            gen_view(one(a, N::Values).items()),
+            [](org::parse::OrgAdapter const& a) {
                 return a.getKind() == onk::CmdValue;
             })) {
         handled();

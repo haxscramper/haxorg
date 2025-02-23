@@ -179,7 +179,9 @@ struct proto_serde<hstd::Opt<Proto>, hstd::Opt<T>> {
         proto_serde<Proto, T>::write(out, in.value());
     }
 
-    static void read(Proto const& out, proto_write_accessor<Opt<T>> in) {
+    static void read(
+        Proto const&                       out,
+        proto_write_accessor<hstd::Opt<T>> in) {
         proto_init<hstd::Opt<T>>::init_default(in.get());
         proto_serde<Proto, T>::read(out, in.for_value());
     }
@@ -486,7 +488,7 @@ struct proto_serde<Proto, sem::Stmt> {
         proto_write_accessor<sem::Stmt> in) {
         proto_serde<
             gpb::RepeatedPtrField<orgproto::AnyNode>,
-            Vec<sem::SemId<sem::Org>>>::
+            hstd::Vec<sem::SemId<sem::Org>>>::
             read(out.attached(), in.for_field(&sem::Stmt::attached));
     }
 };
