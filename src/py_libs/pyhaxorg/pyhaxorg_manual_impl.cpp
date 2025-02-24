@@ -14,6 +14,7 @@
 
 using namespace org;
 using namespace hstd;
+using namespace org::bind::python;
 
 template class org::algo::Exporter<ExporterPython, py::object>;
 

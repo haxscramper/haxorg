@@ -30,6 +30,8 @@ PYBIND11_DECLARE_HOLDER_TYPE(T, org::sem::SemId<T>);
 
 namespace py = pybind11;
 
+namespace org::bind::python {
+
 std::vector<org::sem::SemId<org::sem::Org>> getSubnodeRange(
     org::sem::SemId<org::sem::Org> id,
     pybind11::slice                slice);
@@ -58,14 +60,17 @@ enum class [[refl]] LeafFieldType
     Any
 };
 
+} // namespace org::bind::python
+
 template <>
-struct hstd::value_domain<LeafFieldType>
+struct hstd::value_domain<org::bind::python::LeafFieldType>
     : value_domain_ungapped<
-          LeafFieldType,
-          LeafFieldType::Int,
-          LeafFieldType::Any> {};
+          org::bind::python::LeafFieldType,
+          org::bind::python::LeafFieldType::Int,
+          org::bind::python::LeafFieldType::Any> {};
 
 
+namespace org::bind::python {
 template <typename T>
 struct LeafKindForT;
 
@@ -543,3 +548,5 @@ struct [[refl]] ExporterPython
 };
 
 void init_py_manual_api(py::module& m);
+
+} // namespace org::bind::python

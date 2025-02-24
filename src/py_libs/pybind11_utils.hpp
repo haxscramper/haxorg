@@ -236,7 +236,7 @@ py::object py_getattr_impl(R const& obj, std::string const& attr) {
         return result;
     } else {
         hstd::Opt<py::object> result;
-        for_each_field_with_bases<R>([&](auto const& field) {
+        hstd::for_each_field_with_bases<R>([&](auto const& field) {
             if (field.name == attr) {
                 result = py::cast(obj.*field.pointer);
             }
@@ -274,7 +274,7 @@ void py_setattr_impl(R& obj, std::string const& attr, py::object value) {
 
 template <hstd::DescribedRecord R>
 std::string py_repr_impl(R const& value) {
-    return fmt1(value);
+    return hstd::fmt1(value);
 }
 
 } // namespace org::bind::python

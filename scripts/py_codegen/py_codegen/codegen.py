@@ -477,7 +477,7 @@ def add_type_specializations(res: Py11Module, ast: ASTBuilder):
 
     opaque_declarations: List[BlockId] = []
     specialization_calls: List[BlockId] = [
-        ast.string("PyTypeRegistryGuard type_registry_guard{};")
+        ast.string("org::bind::python::PyTypeRegistryGuard type_registry_guard{};")
     ]
 
     type_use_context: List[Any] = []

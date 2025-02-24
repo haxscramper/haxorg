@@ -527,7 +527,7 @@ class Py11Class:
                     ast.b.line([ast.Type(self.Class),
                                 ast.string(" result{};")]),
                     ast.XCall(
-                        "init_fields_from_kwargs",
+                        "org::bind::python::init_fields_from_kwargs",
                         args=[ast.string("result"),
                               ast.string("kwargs")],
                         Stmt=True,
@@ -546,7 +546,9 @@ class Py11Class:
                        CxxName="",
                        ResultTy=str_type,
                        Body=[
-                           ast.Return(ast.XCall("py_repr_impl", [ast.string("_self")])),
+                           ast.Return(
+                               ast.XCall("org::bind::python::py_repr_impl",
+                                         [ast.string("_self")])),
                        ]))
 
         self.Methods.append(
@@ -556,7 +558,7 @@ class Py11Class:
                        Args=[GenTuIdent(str_type, "name")],
                        Body=[
                            ast.Return(
-                               ast.XCall("py_getattr_impl", [
+                               ast.XCall("org::bind::python::py_getattr_impl", [
                                    ast.string("_self"),
                                    ast.string("name"),
                                ])),

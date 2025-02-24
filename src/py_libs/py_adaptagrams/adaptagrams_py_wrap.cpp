@@ -5,507 +5,507 @@
 #include <py_libs/pybind11_utils.hpp>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-PYBIND11_MAKE_OPAQUE(std::vector<GraphPoint>)
-PYBIND11_MAKE_OPAQUE(Vec<GraphPoint>)
-PYBIND11_MAKE_OPAQUE(std::vector<GraphNodeConstraint::Align::Spec>)
-PYBIND11_MAKE_OPAQUE(Vec<GraphNodeConstraint::Align::Spec>)
-PYBIND11_MAKE_OPAQUE(std::vector<GraphNodeConstraint::Align>)
-PYBIND11_MAKE_OPAQUE(Vec<GraphNodeConstraint::Align>)
+PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphPoint>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphPoint>)
+PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphNodeConstraint::Align::Spec>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphNodeConstraint::Align::Spec>)
+PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphNodeConstraint::Align>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphNodeConstraint::Align>)
 PYBIND11_MAKE_OPAQUE(std::vector<std::pair<int, int>>)
-PYBIND11_MAKE_OPAQUE(Vec<std::pair<int, int>>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<std::pair<int, int>>)
 PYBIND11_MAKE_OPAQUE(std::vector<int>)
-PYBIND11_MAKE_OPAQUE(Vec<int>)
-PYBIND11_MAKE_OPAQUE(std::vector<GraphSize>)
-PYBIND11_MAKE_OPAQUE(Vec<GraphSize>)
-PYBIND11_MAKE_OPAQUE(std::vector<GraphEdge>)
-PYBIND11_MAKE_OPAQUE(Vec<GraphEdge>)
-PYBIND11_MAKE_OPAQUE(std::vector<GraphNodeConstraint>)
-PYBIND11_MAKE_OPAQUE(Vec<GraphNodeConstraint>)
-PYBIND11_MAKE_OPAQUE(std::vector<GraphLayoutIR::Subgraph>)
-PYBIND11_MAKE_OPAQUE(Vec<GraphLayoutIR::Subgraph>)
-PYBIND11_MAKE_OPAQUE(std::unordered_map<GraphEdge, GraphSize>)
-PYBIND11_MAKE_OPAQUE(UnorderedMap<GraphEdge, GraphSize>)
-PYBIND11_MAKE_OPAQUE(std::unordered_map<GraphEdge, GraphEdgeConstraint>)
-PYBIND11_MAKE_OPAQUE(UnorderedMap<GraphEdge, GraphEdgeConstraint>)
-PYBIND11_MAKE_OPAQUE(std::vector<GraphPath>)
-PYBIND11_MAKE_OPAQUE(Vec<GraphPath>)
-PYBIND11_MAKE_OPAQUE(std::vector<GraphRect>)
-PYBIND11_MAKE_OPAQUE(Vec<GraphRect>)
-PYBIND11_MAKE_OPAQUE(std::unordered_map<GraphEdge, GraphLayoutIR::Edge>)
-PYBIND11_MAKE_OPAQUE(UnorderedMap<GraphEdge, GraphLayoutIR::Edge>)
-PYBIND11_MAKE_OPAQUE(std::vector<GraphLayoutIR::Result::Subgraph>)
-PYBIND11_MAKE_OPAQUE(Vec<GraphLayoutIR::Result::Subgraph>)
-PYBIND11_MAKE_OPAQUE(std::vector<Vec<int>>)
-PYBIND11_MAKE_OPAQUE(Vec<Vec<int>>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<int>)
+PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphSize>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphSize>)
+PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphEdge>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphEdge>)
+PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphNodeConstraint>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphNodeConstraint>)
+PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphLayoutIR::Subgraph>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphLayoutIR::Subgraph>)
+PYBIND11_MAKE_OPAQUE(std::unordered_map<hstd::ext::GraphEdge, hstd::ext::GraphSize>)
+PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<hstd::ext::GraphEdge, hstd::ext::GraphSize>)
+PYBIND11_MAKE_OPAQUE(std::unordered_map<hstd::ext::GraphEdge, hstd::ext::GraphEdgeConstraint>)
+PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<hstd::ext::GraphEdge, hstd::ext::GraphEdgeConstraint>)
+PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphPath>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphPath>)
+PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphRect>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphRect>)
+PYBIND11_MAKE_OPAQUE(std::unordered_map<hstd::ext::GraphEdge, hstd::ext::GraphLayoutIR::Edge>)
+PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<hstd::ext::GraphEdge, hstd::ext::GraphLayoutIR::Edge>)
+PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphLayoutIR::Result::Subgraph>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphLayoutIR::Result::Subgraph>)
+PYBIND11_MAKE_OPAQUE(std::vector<hstd::Vec<int>>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::Vec<int>>)
 PYBIND11_MODULE(py_adaptagrams, m) {
-  PyTypeRegistryGuard type_registry_guard{};
-  bind_vector<GraphPoint>(m, "VecOfGraphPoint", type_registry_guard);
-  bind_vector<GraphNodeConstraint::Align::Spec>(m, "VecOfGraphNodeConstraintAlignSpec", type_registry_guard);
-  bind_vector<GraphNodeConstraint::Align>(m, "VecOfGraphNodeConstraintAlign", type_registry_guard);
-  bind_vector<std::pair<int, int>>(m, "VecOfstdpairOfintint", type_registry_guard);
-  bind_vector<int>(m, "VecOfint", type_registry_guard);
-  bind_vector<GraphSize>(m, "VecOfGraphSize", type_registry_guard);
-  bind_vector<GraphEdge>(m, "VecOfGraphEdge", type_registry_guard);
-  bind_vector<GraphNodeConstraint>(m, "VecOfGraphNodeConstraint", type_registry_guard);
-  bind_vector<GraphLayoutIR::Subgraph>(m, "VecOfGraphLayoutIRSubgraph", type_registry_guard);
-  bind_unordered_map<GraphEdge, GraphSize>(m, "UnorderedMapOfGraphEdgeGraphSize", type_registry_guard);
-  bind_unordered_map<GraphEdge, GraphEdgeConstraint>(m, "UnorderedMapOfGraphEdgeGraphEdgeConstraint", type_registry_guard);
-  bind_vector<GraphPath>(m, "VecOfGraphPath", type_registry_guard);
-  bind_vector<GraphRect>(m, "VecOfGraphRect", type_registry_guard);
-  bind_unordered_map<GraphEdge, GraphLayoutIR::Edge>(m, "UnorderedMapOfGraphEdgeGraphLayoutIREdge", type_registry_guard);
-  bind_vector<GraphLayoutIR::Result::Subgraph>(m, "VecOfGraphLayoutIRResultSubgraph", type_registry_guard);
-  bind_vector<Vec<int>>(m, "VecOfVecOfint", type_registry_guard);
-  pybind11::class_<GraphPoint>(m, "GraphPoint")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> GraphPoint {
-                        GraphPoint result{};
-                        init_fields_from_kwargs(result, kwargs);
+  org::bind::python::PyTypeRegistryGuard type_registry_guard{};
+  bind_vector<hstd::ext::GraphPoint>(m, "hstdVecOfhstdextGraphPoint", type_registry_guard);
+  bind_vector<hstd::ext::GraphNodeConstraint::Align::Spec>(m, "hstdVecOfhstdextGraphNodeConstraintAlignSpec", type_registry_guard);
+  bind_vector<hstd::ext::GraphNodeConstraint::Align>(m, "hstdVecOfhstdextGraphNodeConstraintAlign", type_registry_guard);
+  bind_vector<std::pair<int, int>>(m, "hstdVecOfstdpairOfintint", type_registry_guard);
+  bind_vector<int>(m, "hstdVecOfint", type_registry_guard);
+  bind_vector<hstd::ext::GraphSize>(m, "hstdVecOfhstdextGraphSize", type_registry_guard);
+  bind_vector<hstd::ext::GraphEdge>(m, "hstdVecOfhstdextGraphEdge", type_registry_guard);
+  bind_vector<hstd::ext::GraphNodeConstraint>(m, "hstdVecOfhstdextGraphNodeConstraint", type_registry_guard);
+  bind_vector<hstd::ext::GraphLayoutIR::Subgraph>(m, "hstdVecOfhstdextGraphLayoutIRSubgraph", type_registry_guard);
+  bind_unordered_map<hstd::ext::GraphEdge, hstd::ext::GraphSize>(m, "hstdUnorderedMapOfhstdextGraphEdgehstdextGraphSize", type_registry_guard);
+  bind_unordered_map<hstd::ext::GraphEdge, hstd::ext::GraphEdgeConstraint>(m, "hstdUnorderedMapOfhstdextGraphEdgehstdextGraphEdgeConstraint", type_registry_guard);
+  bind_vector<hstd::ext::GraphPath>(m, "hstdVecOfhstdextGraphPath", type_registry_guard);
+  bind_vector<hstd::ext::GraphRect>(m, "hstdVecOfhstdextGraphRect", type_registry_guard);
+  bind_unordered_map<hstd::ext::GraphEdge, hstd::ext::GraphLayoutIR::Edge>(m, "hstdUnorderedMapOfhstdextGraphEdgehstdextGraphLayoutIREdge", type_registry_guard);
+  bind_vector<hstd::ext::GraphLayoutIR::Result::Subgraph>(m, "hstdVecOfhstdextGraphLayoutIRResultSubgraph", type_registry_guard);
+  bind_vector<hstd::Vec<int>>(m, "hstdVecOfhstdVecOfint", type_registry_guard);
+  pybind11::class_<hstd::ext::GraphPoint>(m, "hstdextGraphPoint")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphPoint {
+                        hstd::ext::GraphPoint result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("x", &GraphPoint::x)
-    .def_readwrite("y", &GraphPoint::y)
-    .def("__repr__", [](GraphPoint _self) -> std::string {
-                     return py_repr_impl(_self);
+    .def_readwrite("x", &hstd::ext::GraphPoint::x)
+    .def_readwrite("y", &hstd::ext::GraphPoint::y)
+    .def("__repr__", [](hstd::ext::GraphPoint _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](GraphPoint _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
+         [](hstd::ext::GraphPoint _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<GraphPath>(m, "GraphPath")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> GraphPath {
-                        GraphPath result{};
-                        init_fields_from_kwargs(result, kwargs);
+  pybind11::class_<hstd::ext::GraphPath>(m, "hstdextGraphPath")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphPath {
+                        hstd::ext::GraphPath result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("points", &GraphPath::points)
-    .def_readwrite("startPoint", &GraphPath::startPoint)
-    .def_readwrite("endPoint", &GraphPath::endPoint)
-    .def_readwrite("bezier", &GraphPath::bezier)
+    .def_readwrite("points", &hstd::ext::GraphPath::points)
+    .def_readwrite("startPoint", &hstd::ext::GraphPath::startPoint)
+    .def_readwrite("endPoint", &hstd::ext::GraphPath::endPoint)
+    .def_readwrite("bezier", &hstd::ext::GraphPath::bezier)
     .def("point",
-         static_cast<void(GraphPath::*)(double, double)>(&GraphPath::point),
+         static_cast<void(hstd::ext::GraphPath::*)(double, double)>(&hstd::ext::GraphPath::point),
          pybind11::arg("x"),
          pybind11::arg("y"))
     .def("point",
-         static_cast<void(GraphPath::*)(GraphPoint const&)>(&GraphPath::point),
+         static_cast<void(hstd::ext::GraphPath::*)(hstd::ext::GraphPoint const&)>(&hstd::ext::GraphPath::point),
          pybind11::arg("p"))
-    .def("__repr__", [](GraphPath _self) -> std::string {
-                     return py_repr_impl(_self);
+    .def("__repr__", [](hstd::ext::GraphPath _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](GraphPath _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
+         [](hstd::ext::GraphPath _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<GraphSize>(m, "GraphSize")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> GraphSize {
-                        GraphSize result{};
-                        init_fields_from_kwargs(result, kwargs);
+  pybind11::class_<hstd::ext::GraphSize>(m, "hstdextGraphSize")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphSize {
+                        hstd::ext::GraphSize result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("w", &GraphSize::w)
-    .def_readwrite("h", &GraphSize::h)
-    .def("height", static_cast<double(GraphSize::*)() const>(&GraphSize::height))
-    .def("width", static_cast<double(GraphSize::*)() const>(&GraphSize::width))
-    .def("__repr__", [](GraphSize _self) -> std::string {
-                     return py_repr_impl(_self);
+    .def_readwrite("w", &hstd::ext::GraphSize::w)
+    .def_readwrite("h", &hstd::ext::GraphSize::h)
+    .def("height", static_cast<double(hstd::ext::GraphSize::*)() const>(&hstd::ext::GraphSize::height))
+    .def("width", static_cast<double(hstd::ext::GraphSize::*)() const>(&hstd::ext::GraphSize::width))
+    .def("__repr__", [](hstd::ext::GraphSize _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](GraphSize _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
+         [](hstd::ext::GraphSize _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<GraphRect>(m, "GraphRect")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> GraphRect {
-                        GraphRect result{};
-                        init_fields_from_kwargs(result, kwargs);
+  pybind11::class_<hstd::ext::GraphRect>(m, "hstdextGraphRect")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphRect {
+                        hstd::ext::GraphRect result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("left", &GraphRect::left)
-    .def_readwrite("top", &GraphRect::top)
-    .def_readwrite("width", &GraphRect::width)
-    .def_readwrite("height", &GraphRect::height)
-    .def("size", static_cast<GraphSize(GraphRect::*)() const>(&GraphRect::size))
-    .def("__repr__", [](GraphRect _self) -> std::string {
-                     return py_repr_impl(_self);
+    .def_readwrite("left", &hstd::ext::GraphRect::left)
+    .def_readwrite("top", &hstd::ext::GraphRect::top)
+    .def_readwrite("width", &hstd::ext::GraphRect::width)
+    .def_readwrite("height", &hstd::ext::GraphRect::height)
+    .def("size", static_cast<hstd::ext::GraphSize(hstd::ext::GraphRect::*)() const>(&hstd::ext::GraphRect::size))
+    .def("__repr__", [](hstd::ext::GraphRect _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](GraphRect _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
+         [](hstd::ext::GraphRect _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<GraphNodeConstraint>(m, "GraphNodeConstraint")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> GraphNodeConstraint {
-                        GraphNodeConstraint result{};
-                        init_fields_from_kwargs(result, kwargs);
+  pybind11::class_<hstd::ext::GraphNodeConstraint>(m, "hstdextGraphNodeConstraint")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphNodeConstraint {
+                        hstd::ext::GraphNodeConstraint result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("getEmpty", static_cast<GraphNodeConstraint::Empty const&(GraphNodeConstraint::*)() const>(&GraphNodeConstraint::getEmpty))
-    .def("getAlign", static_cast<GraphNodeConstraint::Align const&(GraphNodeConstraint::*)() const>(&GraphNodeConstraint::getAlign))
-    .def("getFixedRelative", static_cast<GraphNodeConstraint::FixedRelative&(GraphNodeConstraint::*)()>(&GraphNodeConstraint::getFixedRelative))
-    .def("getSeparate", static_cast<GraphNodeConstraint::Separate const&(GraphNodeConstraint::*)() const>(&GraphNodeConstraint::getSeparate))
-    .def("getMultiSeparate", static_cast<GraphNodeConstraint::MultiSeparate const&(GraphNodeConstraint::*)() const>(&GraphNodeConstraint::getMultiSeparate))
-    .def("getPageBoundary", static_cast<GraphNodeConstraint::PageBoundary const&(GraphNodeConstraint::*)() const>(&GraphNodeConstraint::getPageBoundary))
-    .def("getKind", static_cast<GraphNodeConstraint::Kind(GraphNodeConstraint::*)() const>(&GraphNodeConstraint::getKind))
+    .def("getEmpty", static_cast<hstd::ext::GraphNodeConstraint::Empty const&(hstd::ext::GraphNodeConstraint::*)() const>(&hstd::ext::GraphNodeConstraint::getEmpty))
+    .def("getAlign", static_cast<hstd::ext::GraphNodeConstraint::Align const&(hstd::ext::GraphNodeConstraint::*)() const>(&hstd::ext::GraphNodeConstraint::getAlign))
+    .def("getFixedRelative", static_cast<hstd::ext::GraphNodeConstraint::FixedRelative&(hstd::ext::GraphNodeConstraint::*)()>(&hstd::ext::GraphNodeConstraint::getFixedRelative))
+    .def("getSeparate", static_cast<hstd::ext::GraphNodeConstraint::Separate const&(hstd::ext::GraphNodeConstraint::*)() const>(&hstd::ext::GraphNodeConstraint::getSeparate))
+    .def("getMultiSeparate", static_cast<hstd::ext::GraphNodeConstraint::MultiSeparate const&(hstd::ext::GraphNodeConstraint::*)() const>(&hstd::ext::GraphNodeConstraint::getMultiSeparate))
+    .def("getPageBoundary", static_cast<hstd::ext::GraphNodeConstraint::PageBoundary const&(hstd::ext::GraphNodeConstraint::*)() const>(&hstd::ext::GraphNodeConstraint::getPageBoundary))
+    .def("getKind", static_cast<GraphNodeConstraint::hstd::ext::Kind(hstd::ext::GraphNodeConstraint::*)() const>(&hstd::ext::GraphNodeConstraint::getKind))
     .def_static("InitEmptyStatic",
-                static_cast<GraphNodeConstraint(*)(GraphNodeConstraint::Empty const&)>(&GraphNodeConstraint::InitEmpty),
+                static_cast<hstd::ext::GraphNodeConstraint(*)(hstd::ext::GraphNodeConstraint::Empty const&)>(&hstd::ext::GraphNodeConstraint::InitEmpty),
                 pybind11::arg("arg"))
     .def_static("InitAlignStatic",
-                static_cast<GraphNodeConstraint(*)(GraphNodeConstraint::Align const&)>(&GraphNodeConstraint::InitAlign),
+                static_cast<hstd::ext::GraphNodeConstraint(*)(hstd::ext::GraphNodeConstraint::Align const&)>(&hstd::ext::GraphNodeConstraint::InitAlign),
                 pybind11::arg("arg"))
     .def_static("InitSeparateStatic",
-                static_cast<GraphNodeConstraint(*)(GraphNodeConstraint::Separate const&)>(&GraphNodeConstraint::InitSeparate),
+                static_cast<hstd::ext::GraphNodeConstraint(*)(hstd::ext::GraphNodeConstraint::Separate const&)>(&hstd::ext::GraphNodeConstraint::InitSeparate),
                 pybind11::arg("arg"))
     .def_static("InitMultiSeparateStatic",
-                static_cast<GraphNodeConstraint(*)(GraphNodeConstraint::MultiSeparate const&)>(&GraphNodeConstraint::InitMultiSeparate),
+                static_cast<hstd::ext::GraphNodeConstraint(*)(hstd::ext::GraphNodeConstraint::MultiSeparate const&)>(&hstd::ext::GraphNodeConstraint::InitMultiSeparate),
                 pybind11::arg("arg"))
     .def_static("InitFixedRelativeStatic",
-                static_cast<GraphNodeConstraint(*)(GraphNodeConstraint::FixedRelative const&)>(&GraphNodeConstraint::InitFixedRelative),
+                static_cast<hstd::ext::GraphNodeConstraint(*)(hstd::ext::GraphNodeConstraint::FixedRelative const&)>(&hstd::ext::GraphNodeConstraint::InitFixedRelative),
                 pybind11::arg("arg"))
     .def_static("InitPageBoundaryStatic",
-                static_cast<GraphNodeConstraint(*)(GraphNodeConstraint::PageBoundary const&)>(&GraphNodeConstraint::InitPageBoundary),
+                static_cast<hstd::ext::GraphNodeConstraint(*)(hstd::ext::GraphNodeConstraint::PageBoundary const&)>(&hstd::ext::GraphNodeConstraint::InitPageBoundary),
                 pybind11::arg("arg"))
-    .def("__repr__", [](GraphNodeConstraint _self) -> std::string {
-                     return py_repr_impl(_self);
+    .def("__repr__", [](hstd::ext::GraphNodeConstraint _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](GraphNodeConstraint _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
+         [](hstd::ext::GraphNodeConstraint _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<GraphNodeConstraint::Empty>(m, "GraphNodeConstraintEmpty")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> GraphNodeConstraint::Empty {
-                        GraphNodeConstraint::Empty result{};
-                        init_fields_from_kwargs(result, kwargs);
+  pybind11::class_<hstd::ext::GraphNodeConstraint::Empty>(m, "hstdextGraphNodeConstraintEmpty")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphNodeConstraint::Empty {
+                        hstd::ext::GraphNodeConstraint::Empty result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("__repr__", [](GraphNodeConstraint::Empty _self) -> std::string {
-                     return py_repr_impl(_self);
+    .def("__repr__", [](hstd::ext::GraphNodeConstraint::Empty _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](GraphNodeConstraint::Empty _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
+         [](hstd::ext::GraphNodeConstraint::Empty _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<GraphNodeConstraint::Align>(m, "GraphNodeConstraintAlign")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> GraphNodeConstraint::Align {
-                        GraphNodeConstraint::Align result{};
-                        init_fields_from_kwargs(result, kwargs);
+  pybind11::class_<hstd::ext::GraphNodeConstraint::Align>(m, "hstdextGraphNodeConstraintAlign")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphNodeConstraint::Align {
+                        hstd::ext::GraphNodeConstraint::Align result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("nodes", &GraphNodeConstraint::Align::nodes)
-    .def_readwrite("dimension", &GraphNodeConstraint::Align::dimension, R"RAW(Which axist to align on)RAW")
-    .def("toColaString", static_cast<std::string(GraphNodeConstraint::Align::*)() const>(&GraphNodeConstraint::Align::toColaString))
-    .def("__repr__", [](GraphNodeConstraint::Align _self) -> std::string {
-                     return py_repr_impl(_self);
+    .def_readwrite("nodes", &hstd::ext::GraphNodeConstraint::Align::nodes)
+    .def_readwrite("dimension", &hstd::ext::GraphNodeConstraint::Align::dimension, R"RAW(Which axist to align on)RAW")
+    .def("toColaString", static_cast<std::string(hstd::ext::GraphNodeConstraint::Align::*)() const>(&hstd::ext::GraphNodeConstraint::Align::toColaString))
+    .def("__repr__", [](hstd::ext::GraphNodeConstraint::Align _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](GraphNodeConstraint::Align _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
+         [](hstd::ext::GraphNodeConstraint::Align _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<GraphNodeConstraint::Align::Spec>(m, "GraphNodeConstraintAlignSpec")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> GraphNodeConstraint::Align::Spec {
-                        GraphNodeConstraint::Align::Spec result{};
-                        init_fields_from_kwargs(result, kwargs);
+  pybind11::class_<hstd::ext::GraphNodeConstraint::Align::Spec>(m, "hstdextGraphNodeConstraintAlignSpec")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphNodeConstraint::Align::Spec {
+                        hstd::ext::GraphNodeConstraint::Align::Spec result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("node", &GraphNodeConstraint::Align::Spec::node, R"RAW(Rectangle index)RAW")
-    .def_readwrite("fixPos", &GraphNodeConstraint::Align::Spec::fixPos, R"RAW(??? wtf)RAW")
-    .def_readwrite("offset", &GraphNodeConstraint::Align::Spec::offset, R"RAW(Offset from the axis)RAW")
-    .def("__repr__", [](GraphNodeConstraint::Align::Spec _self) -> std::string {
-                     return py_repr_impl(_self);
+    .def_readwrite("node", &hstd::ext::GraphNodeConstraint::Align::Spec::node, R"RAW(Rectangle index)RAW")
+    .def_readwrite("fixPos", &hstd::ext::GraphNodeConstraint::Align::Spec::fixPos, R"RAW(??? wtf)RAW")
+    .def_readwrite("offset", &hstd::ext::GraphNodeConstraint::Align::Spec::offset, R"RAW(Offset from the axis)RAW")
+    .def("__repr__", [](hstd::ext::GraphNodeConstraint::Align::Spec _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](GraphNodeConstraint::Align::Spec _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
+         [](hstd::ext::GraphNodeConstraint::Align::Spec _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<GraphNodeConstraint::Separate>(m, "GraphNodeConstraintSeparate")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> GraphNodeConstraint::Separate {
-                        GraphNodeConstraint::Separate result{};
-                        init_fields_from_kwargs(result, kwargs);
+  pybind11::class_<hstd::ext::GraphNodeConstraint::Separate>(m, "hstdextGraphNodeConstraintSeparate")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphNodeConstraint::Separate {
+                        hstd::ext::GraphNodeConstraint::Separate result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("left", &GraphNodeConstraint::Separate::left)
-    .def_readwrite("right", &GraphNodeConstraint::Separate::right)
-    .def_readwrite("separationDistance", &GraphNodeConstraint::Separate::separationDistance)
-    .def_readwrite("isExactSeparation", &GraphNodeConstraint::Separate::isExactSeparation)
-    .def_readwrite("dimension", &GraphNodeConstraint::Separate::dimension, R"RAW(Which axis to partition
+    .def_readwrite("left", &hstd::ext::GraphNodeConstraint::Separate::left)
+    .def_readwrite("right", &hstd::ext::GraphNodeConstraint::Separate::right)
+    .def_readwrite("separationDistance", &hstd::ext::GraphNodeConstraint::Separate::separationDistance)
+    .def_readwrite("isExactSeparation", &hstd::ext::GraphNodeConstraint::Separate::isExactSeparation)
+    .def_readwrite("dimension", &hstd::ext::GraphNodeConstraint::Separate::dimension, R"RAW(Which axis to partition
 nodes)RAW")
-    .def("toColaString", static_cast<std::string(GraphNodeConstraint::Separate::*)() const>(&GraphNodeConstraint::Separate::toColaString))
-    .def("__repr__", [](GraphNodeConstraint::Separate _self) -> std::string {
-                     return py_repr_impl(_self);
+    .def("toColaString", static_cast<std::string(hstd::ext::GraphNodeConstraint::Separate::*)() const>(&hstd::ext::GraphNodeConstraint::Separate::toColaString))
+    .def("__repr__", [](hstd::ext::GraphNodeConstraint::Separate _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](GraphNodeConstraint::Separate _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
+         [](hstd::ext::GraphNodeConstraint::Separate _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<GraphNodeConstraint::MultiSeparate>(m, "GraphNodeConstraintMultiSeparate")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> GraphNodeConstraint::MultiSeparate {
-                        GraphNodeConstraint::MultiSeparate result{};
-                        init_fields_from_kwargs(result, kwargs);
+  pybind11::class_<hstd::ext::GraphNodeConstraint::MultiSeparate>(m, "hstdextGraphNodeConstraintMultiSeparate")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphNodeConstraint::MultiSeparate {
+                        hstd::ext::GraphNodeConstraint::MultiSeparate result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("lines", &GraphNodeConstraint::MultiSeparate::lines)
-    .def_readwrite("alignPairs", &GraphNodeConstraint::MultiSeparate::alignPairs)
-    .def_readwrite("dimension", &GraphNodeConstraint::MultiSeparate::dimension)
-    .def_readwrite("separationDistance", &GraphNodeConstraint::MultiSeparate::separationDistance)
-    .def_readwrite("isExactSeparation", &GraphNodeConstraint::MultiSeparate::isExactSeparation)
-    .def("toColaString", static_cast<std::string(GraphNodeConstraint::MultiSeparate::*)() const>(&GraphNodeConstraint::MultiSeparate::toColaString))
-    .def("__repr__", [](GraphNodeConstraint::MultiSeparate _self) -> std::string {
-                     return py_repr_impl(_self);
+    .def_readwrite("lines", &hstd::ext::GraphNodeConstraint::MultiSeparate::lines)
+    .def_readwrite("alignPairs", &hstd::ext::GraphNodeConstraint::MultiSeparate::alignPairs)
+    .def_readwrite("dimension", &hstd::ext::GraphNodeConstraint::MultiSeparate::dimension)
+    .def_readwrite("separationDistance", &hstd::ext::GraphNodeConstraint::MultiSeparate::separationDistance)
+    .def_readwrite("isExactSeparation", &hstd::ext::GraphNodeConstraint::MultiSeparate::isExactSeparation)
+    .def("toColaString", static_cast<std::string(hstd::ext::GraphNodeConstraint::MultiSeparate::*)() const>(&hstd::ext::GraphNodeConstraint::MultiSeparate::toColaString))
+    .def("__repr__", [](hstd::ext::GraphNodeConstraint::MultiSeparate _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](GraphNodeConstraint::MultiSeparate _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
+         [](hstd::ext::GraphNodeConstraint::MultiSeparate _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<GraphNodeConstraint::FixedRelative>(m, "GraphNodeConstraintFixedRelative")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> GraphNodeConstraint::FixedRelative {
-                        GraphNodeConstraint::FixedRelative result{};
-                        init_fields_from_kwargs(result, kwargs);
+  pybind11::class_<hstd::ext::GraphNodeConstraint::FixedRelative>(m, "hstdextGraphNodeConstraintFixedRelative")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphNodeConstraint::FixedRelative {
+                        hstd::ext::GraphNodeConstraint::FixedRelative result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("nodes", &GraphNodeConstraint::FixedRelative::nodes)
-    .def_readwrite("fixedPosition", &GraphNodeConstraint::FixedRelative::fixedPosition)
-    .def("__repr__", [](GraphNodeConstraint::FixedRelative _self) -> std::string {
-                     return py_repr_impl(_self);
+    .def_readwrite("nodes", &hstd::ext::GraphNodeConstraint::FixedRelative::nodes)
+    .def_readwrite("fixedPosition", &hstd::ext::GraphNodeConstraint::FixedRelative::fixedPosition)
+    .def("__repr__", [](hstd::ext::GraphNodeConstraint::FixedRelative _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](GraphNodeConstraint::FixedRelative _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
+         [](hstd::ext::GraphNodeConstraint::FixedRelative _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<GraphNodeConstraint::PageBoundary>(m, "GraphNodeConstraintPageBoundary")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> GraphNodeConstraint::PageBoundary {
-                        GraphNodeConstraint::PageBoundary result{};
-                        init_fields_from_kwargs(result, kwargs);
+  pybind11::class_<hstd::ext::GraphNodeConstraint::PageBoundary>(m, "hstdextGraphNodeConstraintPageBoundary")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphNodeConstraint::PageBoundary {
+                        hstd::ext::GraphNodeConstraint::PageBoundary result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("rect", &GraphNodeConstraint::PageBoundary::rect)
-    .def_readwrite("weight", &GraphNodeConstraint::PageBoundary::weight)
-    .def_readwrite("nodes", &GraphNodeConstraint::PageBoundary::nodes)
+    .def_readwrite("rect", &hstd::ext::GraphNodeConstraint::PageBoundary::rect)
+    .def_readwrite("weight", &hstd::ext::GraphNodeConstraint::PageBoundary::weight)
+    .def_readwrite("nodes", &hstd::ext::GraphNodeConstraint::PageBoundary::nodes)
     .def("toColaString",
-         static_cast<std::string(GraphNodeConstraint::PageBoundary::*)(std::vector<vpsc::Rectangle*> const&) const>(&GraphNodeConstraint::PageBoundary::toColaString),
+         static_cast<std::string(hstd::ext::GraphNodeConstraint::PageBoundary::*)(std::vector<vpsc::Rectangle*> const&) const>(&hstd::ext::GraphNodeConstraint::PageBoundary::toColaString),
          pybind11::arg("allRects"))
-    .def("__repr__", [](GraphNodeConstraint::PageBoundary _self) -> std::string {
-                     return py_repr_impl(_self);
+    .def("__repr__", [](hstd::ext::GraphNodeConstraint::PageBoundary _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](GraphNodeConstraint::PageBoundary _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
+         [](hstd::ext::GraphNodeConstraint::PageBoundary _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<GraphEdge>(m, "GraphEdge")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> GraphEdge {
-                        GraphEdge result{};
-                        init_fields_from_kwargs(result, kwargs);
+  pybind11::class_<hstd::ext::GraphEdge>(m, "hstdextGraphEdge")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphEdge {
+                        hstd::ext::GraphEdge result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("source", &GraphEdge::source)
-    .def_readwrite("target", &GraphEdge::target)
-    .def_readwrite("bundle", &GraphEdge::bundle)
-    .def("__repr__", [](GraphEdge _self) -> std::string {
-                     return py_repr_impl(_self);
+    .def_readwrite("source", &hstd::ext::GraphEdge::source)
+    .def_readwrite("target", &hstd::ext::GraphEdge::target)
+    .def_readwrite("bundle", &hstd::ext::GraphEdge::bundle)
+    .def("__repr__", [](hstd::ext::GraphEdge _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](GraphEdge _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
+         [](hstd::ext::GraphEdge _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<GraphEdgeConstraint>(m, "GraphEdgeConstraint")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> GraphEdgeConstraint {
-                        GraphEdgeConstraint result{};
-                        init_fields_from_kwargs(result, kwargs);
+  pybind11::class_<hstd::ext::GraphEdgeConstraint>(m, "hstdextGraphEdgeConstraint")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphEdgeConstraint {
+                        hstd::ext::GraphEdgeConstraint result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("sourcePort", &GraphEdgeConstraint::sourcePort)
-    .def_readwrite("targetPort", &GraphEdgeConstraint::targetPort)
-    .def_readwrite("sourceOffset", &GraphEdgeConstraint::sourceOffset, R"RAW(\brief Offset the port position on the side of the shape. Value in
+    .def_readwrite("sourcePort", &hstd::ext::GraphEdgeConstraint::sourcePort)
+    .def_readwrite("targetPort", &hstd::ext::GraphEdgeConstraint::targetPort)
+    .def_readwrite("sourceOffset", &hstd::ext::GraphEdgeConstraint::sourceOffset, R"RAW(\brief Offset the port position on the side of the shape. Value in
 range [0, 1] used as a relative position along the edge of the
 shape. For vertical edges (west/east) the port movement would be
 vertical, and for horizontal (north/south) it would be horizontal.
 If the value is not provided the nodes are placed in the center
 with the ratio computed automatically.)RAW")
-    .def_readwrite("targetOffset", &GraphEdgeConstraint::targetOffset)
-    .def_readwrite("sourceCheckpoint", &GraphEdgeConstraint::sourceCheckpoint)
-    .def_readwrite("targetCheckpoint", &GraphEdgeConstraint::targetCheckpoint)
-    .def("__repr__", [](GraphEdgeConstraint _self) -> std::string {
-                     return py_repr_impl(_self);
+    .def_readwrite("targetOffset", &hstd::ext::GraphEdgeConstraint::targetOffset)
+    .def_readwrite("sourceCheckpoint", &hstd::ext::GraphEdgeConstraint::sourceCheckpoint)
+    .def_readwrite("targetCheckpoint", &hstd::ext::GraphEdgeConstraint::targetCheckpoint)
+    .def("__repr__", [](hstd::ext::GraphEdgeConstraint _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](GraphEdgeConstraint _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
+         [](hstd::ext::GraphEdgeConstraint _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<GraphLayoutIR>(m, "GraphLayoutIR")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> GraphLayoutIR {
-                        GraphLayoutIR result{};
-                        init_fields_from_kwargs(result, kwargs);
+  pybind11::class_<hstd::ext::GraphLayoutIR>(m, "hstdextGraphLayoutIR")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphLayoutIR {
+                        hstd::ext::GraphLayoutIR result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("rectangles", &GraphLayoutIR::rectangles, R"RAW(\brief Nodes for the graph. Node is identified by the index in the
+    .def_readwrite("rectangles", &hstd::ext::GraphLayoutIR::rectangles, R"RAW(\brief Nodes for the graph. Node is identified by the index in the
 array of sizes. In the result value each original qsize is mapped
 to the rectangle.)RAW")
-    .def_readwrite("edges", &GraphLayoutIR::edges, R"RAW(\brief List of source-target pairs. Edge source/target IDs refer to
+    .def_readwrite("edges", &hstd::ext::GraphLayoutIR::edges, R"RAW(\brief List of source-target pairs. Edge source/target IDs refer to
 the size rectangles.)RAW")
-    .def_readwrite("nodeConstraints", &GraphLayoutIR::nodeConstraints, R"RAW(\brief Cola nodeConstraints for graph layout. This part is
+    .def_readwrite("nodeConstraints", &hstd::ext::GraphLayoutIR::nodeConstraints, R"RAW(\brief Cola nodeConstraints for graph layout. This part is
 backend-specific.)RAW")
-    .def_readwrite("subgraphs", &GraphLayoutIR::subgraphs)
-    .def_readwrite("edgeLabels", &GraphLayoutIR::edgeLabels, R"RAW(\brief If some edge has a dedicated label of specified size.)RAW")
-    .def_readwrite("edgeConstraints", &GraphLayoutIR::edgeConstraints)
-    .def_readwrite("width", &GraphLayoutIR::width)
-    .def_readwrite("height", &GraphLayoutIR::height)
-    .def_readwrite("leftBBoxMargin", &GraphLayoutIR::leftBBoxMargin)
-    .def_readwrite("rightBBoxMargin", &GraphLayoutIR::rightBBoxMargin)
-    .def_readwrite("topBBoxMargin", &GraphLayoutIR::topBBoxMargin)
-    .def_readwrite("bottomBBoxMargin", &GraphLayoutIR::bottomBBoxMargin)
-    .def_readwrite("graphName", &GraphLayoutIR::graphName, R"RAW(\brief Graph name. Backend-specific.)RAW")
-    .def_readwrite("graphviz_size_scaling", &GraphLayoutIR::graphviz_size_scaling, R"RAW(\brief Which DPI to use when converting to and from graphviz sizes.
+    .def_readwrite("subgraphs", &hstd::ext::GraphLayoutIR::subgraphs)
+    .def_readwrite("edgeLabels", &hstd::ext::GraphLayoutIR::edgeLabels, R"RAW(\brief If some edge has a dedicated label of specified size.)RAW")
+    .def_readwrite("edgeConstraints", &hstd::ext::GraphLayoutIR::edgeConstraints)
+    .def_readwrite("width", &hstd::ext::GraphLayoutIR::width)
+    .def_readwrite("height", &hstd::ext::GraphLayoutIR::height)
+    .def_readwrite("leftBBoxMargin", &hstd::ext::GraphLayoutIR::leftBBoxMargin)
+    .def_readwrite("rightBBoxMargin", &hstd::ext::GraphLayoutIR::rightBBoxMargin)
+    .def_readwrite("topBBoxMargin", &hstd::ext::GraphLayoutIR::topBBoxMargin)
+    .def_readwrite("bottomBBoxMargin", &hstd::ext::GraphLayoutIR::bottomBBoxMargin)
+    .def_readwrite("graphName", &hstd::ext::GraphLayoutIR::graphName, R"RAW(\brief Graph name. Backend-specific.)RAW")
+    .def_readwrite("graphviz_size_scaling", &hstd::ext::GraphLayoutIR::graphviz_size_scaling, R"RAW(\brief Which DPI to use when converting to and from graphviz sizes.
 Backend-specific, 72 is the default used by graphviz.)RAW")
-    .def("validate", static_cast<void(GraphLayoutIR::*)()>(&GraphLayoutIR::validate), R"RAW(\brief validate the edge/rectangle structure for debugging. Throws
+    .def("validate", static_cast<void(hstd::ext::GraphLayoutIR::*)()>(&hstd::ext::GraphLayoutIR::validate), R"RAW(\brief validate the edge/rectangle structure for debugging. Throws
 assert failure if the structure is incorrect.)RAW")
-    .def("doGraphvizConvert", static_cast<GraphLayoutIR::Result(GraphLayoutIR::*)()>(&GraphLayoutIR::doGraphvizConvert))
-    .def("doHolaConvert", static_cast<GraphLayoutIR::Result(GraphLayoutIR::*)()>(&GraphLayoutIR::doHolaConvert))
-    .def("doColaConvert", static_cast<GraphLayoutIR::Result(GraphLayoutIR::*)()>(&GraphLayoutIR::doColaConvert))
+    .def("doGraphvizConvert", static_cast<hstd::ext::GraphLayoutIR::Result(hstd::ext::GraphLayoutIR::*)()>(&hstd::ext::GraphLayoutIR::doGraphvizConvert))
+    .def("doHolaConvert", static_cast<hstd::ext::GraphLayoutIR::Result(hstd::ext::GraphLayoutIR::*)()>(&hstd::ext::GraphLayoutIR::doHolaConvert))
+    .def("doColaConvert", static_cast<hstd::ext::GraphLayoutIR::Result(hstd::ext::GraphLayoutIR::*)()>(&hstd::ext::GraphLayoutIR::doColaConvert))
     .def("doColaSvgWrite",
-         static_cast<void(GraphLayoutIR::*)(std::string const&)>(&GraphLayoutIR::doColaSvgWrite),
+         static_cast<void(hstd::ext::GraphLayoutIR::*)(std::string const&)>(&hstd::ext::GraphLayoutIR::doColaSvgWrite),
          pybind11::arg("path"))
-    .def("doColaStrFormat", static_cast<std::string(GraphLayoutIR::*)()>(&GraphLayoutIR::doColaStrFormat))
-    .def("__repr__", [](GraphLayoutIR _self) -> std::string {
-                     return py_repr_impl(_self);
+    .def("doColaStrFormat", static_cast<std::string(hstd::ext::GraphLayoutIR::*)()>(&hstd::ext::GraphLayoutIR::doColaStrFormat))
+    .def("__repr__", [](hstd::ext::GraphLayoutIR _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](GraphLayoutIR _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
+         [](hstd::ext::GraphLayoutIR _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<GraphLayoutIR::Subgraph>(m, "GraphLayoutIRSubgraph")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> GraphLayoutIR::Subgraph {
-                        GraphLayoutIR::Subgraph result{};
-                        init_fields_from_kwargs(result, kwargs);
+  pybind11::class_<hstd::ext::GraphLayoutIR::Subgraph>(m, "hstdextGraphLayoutIRSubgraph")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphLayoutIR::Subgraph {
+                        hstd::ext::GraphLayoutIR::Subgraph result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("__repr__", [](GraphLayoutIR::Subgraph _self) -> std::string {
-                     return py_repr_impl(_self);
+    .def("__repr__", [](hstd::ext::GraphLayoutIR::Subgraph _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](GraphLayoutIR::Subgraph _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
+         [](hstd::ext::GraphLayoutIR::Subgraph _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<GraphLayoutIR::Edge>(m, "GraphLayoutIREdge")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> GraphLayoutIR::Edge {
-                        GraphLayoutIR::Edge result{};
-                        init_fields_from_kwargs(result, kwargs);
+  pybind11::class_<hstd::ext::GraphLayoutIR::Edge>(m, "hstdextGraphLayoutIREdge")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphLayoutIR::Edge {
+                        hstd::ext::GraphLayoutIR::Edge result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("paths", &GraphLayoutIR::Edge::paths, R"RAW(\brief Sequence of painter paths going from source to target
+    .def_readwrite("paths", &hstd::ext::GraphLayoutIR::Edge::paths, R"RAW(\brief Sequence of painter paths going from source to target
 node. If the node has a label rectangle specified, the paths
 are placed in a way to accomodate for the rectangle.)RAW")
-    .def_readwrite("labelRect", &GraphLayoutIR::Edge::labelRect, R"RAW(\brief Edge label rectangle)RAW")
-    .def("__repr__", [](GraphLayoutIR::Edge _self) -> std::string {
-                     return py_repr_impl(_self);
+    .def_readwrite("labelRect", &hstd::ext::GraphLayoutIR::Edge::labelRect, R"RAW(\brief Edge label rectangle)RAW")
+    .def("__repr__", [](hstd::ext::GraphLayoutIR::Edge _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](GraphLayoutIR::Edge _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
+         [](hstd::ext::GraphLayoutIR::Edge _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<GraphLayoutIR::Result>(m, "GraphLayoutIRResult")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> GraphLayoutIR::Result {
-                        GraphLayoutIR::Result result{};
-                        init_fields_from_kwargs(result, kwargs);
+  pybind11::class_<hstd::ext::GraphLayoutIR::Result>(m, "hstdextGraphLayoutIRResult")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphLayoutIR::Result {
+                        hstd::ext::GraphLayoutIR::Result result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("fixed", &GraphLayoutIR::Result::fixed, R"RAW(\brief Fixed node layout rectangles with absolute coordinates.
+    .def_readwrite("fixed", &hstd::ext::GraphLayoutIR::Result::fixed, R"RAW(\brief Fixed node layout rectangles with absolute coordinates.
 Subgraph nodes are also included. Edge label nodes are not
 included.)RAW")
-    .def_readwrite("lines", &GraphLayoutIR::Result::lines, R"RAW(\brief Mapping from the source-target edge pair to the edge
+    .def_readwrite("lines", &hstd::ext::GraphLayoutIR::Result::lines, R"RAW(\brief Mapping from the source-target edge pair to the edge
 layout spec)RAW")
-    .def_readwrite("bbox", &GraphLayoutIR::Result::bbox, R"RAW(\brief Bounding box for the whole rectangle)RAW")
-    .def_readwrite("subgraphs", &GraphLayoutIR::Result::subgraphs, R"RAW(\brief Top-level list of subgraphs)RAW")
-    .def_readwrite("subgraphPaths", &GraphLayoutIR::Result::subgraphPaths, R"RAW(\brief Flattened list of subgraphs in DFS order with paths)RAW")
-    .def("__repr__", [](GraphLayoutIR::Result _self) -> std::string {
-                     return py_repr_impl(_self);
+    .def_readwrite("bbox", &hstd::ext::GraphLayoutIR::Result::bbox, R"RAW(\brief Bounding box for the whole rectangle)RAW")
+    .def_readwrite("subgraphs", &hstd::ext::GraphLayoutIR::Result::subgraphs, R"RAW(\brief Top-level list of subgraphs)RAW")
+    .def_readwrite("subgraphPaths", &hstd::ext::GraphLayoutIR::Result::subgraphPaths, R"RAW(\brief Flattened list of subgraphs in DFS order with paths)RAW")
+    .def("__repr__", [](hstd::ext::GraphLayoutIR::Result _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](GraphLayoutIR::Result _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
+         [](hstd::ext::GraphLayoutIR::Result _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<GraphLayoutIR::Result::Subgraph>(m, "GraphLayoutIRResultSubgraph")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> GraphLayoutIR::Result::Subgraph {
-                        GraphLayoutIR::Result::Subgraph result{};
-                        init_fields_from_kwargs(result, kwargs);
+  pybind11::class_<hstd::ext::GraphLayoutIR::Result::Subgraph>(m, "hstdextGraphLayoutIRResultSubgraph")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphLayoutIR::Result::Subgraph {
+                        hstd::ext::GraphLayoutIR::Result::Subgraph result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def_readwrite("bbox", &GraphLayoutIR::Result::Subgraph::bbox, R"RAW(\brief Bounding box for the rectangle content)RAW")
-    .def_readwrite("subgraphs", &GraphLayoutIR::Result::Subgraph::subgraphs)
-    .def("__repr__", [](GraphLayoutIR::Result::Subgraph _self) -> std::string {
-                     return py_repr_impl(_self);
+    .def_readwrite("bbox", &hstd::ext::GraphLayoutIR::Result::Subgraph::bbox, R"RAW(\brief Bounding box for the rectangle content)RAW")
+    .def_readwrite("subgraphs", &hstd::ext::GraphLayoutIR::Result::Subgraph::subgraphs)
+    .def("__repr__", [](hstd::ext::GraphLayoutIR::Result::Subgraph _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](GraphLayoutIR::Result::Subgraph _self, std::string name) -> pybind11::object {
-         return py_getattr_impl(_self, name);
+         [](hstd::ext::GraphLayoutIR::Result::Subgraph _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
     ;
-  bind_enum_iterator<GraphDimension>(m, "GraphDimension", type_registry_guard);
-  pybind11::enum_<GraphDimension>(m, "GraphDimension")
-    .value("XDIM", GraphDimension::XDIM)
-    .value("YDIM", GraphDimension::YDIM)
-    .value("UNSET", GraphDimension::UNSET)
-    .def("__iter__", [](GraphDimension _self) -> PyEnumIterator<GraphDimension> {
+  bind_enum_iterator<hstd::ext::GraphDimension>(m, "hstdextGraphDimension", type_registry_guard);
+  pybind11::enum_<hstd::ext::GraphDimension>(m, "hstdextGraphDimension")
+    .value("XDIM", hstd::ext::GraphDimension::XDIM)
+    .value("YDIM", hstd::ext::GraphDimension::YDIM)
+    .value("UNSET", hstd::ext::GraphDimension::UNSET)
+    .def("__iter__", [](hstd::ext::GraphDimension _self) -> PyEnumIterator<hstd::ext::GraphDimension> {
                      return
-                     PyEnumIterator<GraphDimension>
+                     PyEnumIterator<hstd::ext::GraphDimension>
                      ();
                      })
     ;
-  bind_enum_iterator<GraphNodeConstraint::Kind>(m, "GraphNodeConstraintKind", type_registry_guard);
-  pybind11::enum_<GraphNodeConstraint::Kind>(m, "GraphNodeConstraintKind")
-    .value("Empty", GraphNodeConstraint::Kind::Empty)
-    .value("Align", GraphNodeConstraint::Kind::Align)
-    .value("FixedRelative", GraphNodeConstraint::Kind::FixedRelative)
-    .value("Separate", GraphNodeConstraint::Kind::Separate)
-    .value("MultiSeparate", GraphNodeConstraint::Kind::MultiSeparate)
-    .value("PageBoundary", GraphNodeConstraint::Kind::PageBoundary)
-    .def("__iter__", [](GraphNodeConstraint::Kind _self) -> PyEnumIterator<GraphNodeConstraint::Kind> {
+  bind_enum_iterator<hstd::ext::GraphNodeConstraint::Kind>(m, "hstdextGraphNodeConstraintKind", type_registry_guard);
+  pybind11::enum_<hstd::ext::GraphNodeConstraint::Kind>(m, "hstdextGraphNodeConstraintKind")
+    .value("Empty", hstd::ext::GraphNodeConstraint::Kind::Empty)
+    .value("Align", hstd::ext::GraphNodeConstraint::Kind::Align)
+    .value("FixedRelative", hstd::ext::GraphNodeConstraint::Kind::FixedRelative)
+    .value("Separate", hstd::ext::GraphNodeConstraint::Kind::Separate)
+    .value("MultiSeparate", hstd::ext::GraphNodeConstraint::Kind::MultiSeparate)
+    .value("PageBoundary", hstd::ext::GraphNodeConstraint::Kind::PageBoundary)
+    .def("__iter__", [](hstd::ext::GraphNodeConstraint::Kind _self) -> PyEnumIterator<hstd::ext::GraphNodeConstraint::Kind> {
                      return
-                     PyEnumIterator<GraphNodeConstraint::Kind>
+                     PyEnumIterator<hstd::ext::GraphNodeConstraint::Kind>
                      ();
                      })
     ;
-  bind_enum_iterator<GraphEdgeConstraint::Port>(m, "GraphEdgeConstraintPort", type_registry_guard);
-  pybind11::enum_<GraphEdgeConstraint::Port>(m, "GraphEdgeConstraintPort")
-    .value("Default", GraphEdgeConstraint::Port::Default)
-    .value("North", GraphEdgeConstraint::Port::North)
-    .value("South", GraphEdgeConstraint::Port::South)
-    .value("West", GraphEdgeConstraint::Port::West)
-    .value("East", GraphEdgeConstraint::Port::East)
-    .value("Center", GraphEdgeConstraint::Port::Center)
-    .def("__iter__", [](GraphEdgeConstraint::Port _self) -> PyEnumIterator<GraphEdgeConstraint::Port> {
+  bind_enum_iterator<hstd::ext::GraphEdgeConstraint::Port>(m, "hstdextGraphEdgeConstraintPort", type_registry_guard);
+  pybind11::enum_<hstd::ext::GraphEdgeConstraint::Port>(m, "hstdextGraphEdgeConstraintPort")
+    .value("Default", hstd::ext::GraphEdgeConstraint::Port::Default)
+    .value("North", hstd::ext::GraphEdgeConstraint::Port::North)
+    .value("South", hstd::ext::GraphEdgeConstraint::Port::South)
+    .value("West", hstd::ext::GraphEdgeConstraint::Port::West)
+    .value("East", hstd::ext::GraphEdgeConstraint::Port::East)
+    .value("Center", hstd::ext::GraphEdgeConstraint::Port::Center)
+    .def("__iter__", [](hstd::ext::GraphEdgeConstraint::Port _self) -> PyEnumIterator<hstd::ext::GraphEdgeConstraint::Port> {
                      return
-                     PyEnumIterator<GraphEdgeConstraint::Port>
+                     PyEnumIterator<hstd::ext::GraphEdgeConstraint::Port>
                      ();
                      })
     ;
