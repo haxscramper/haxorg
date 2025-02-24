@@ -41,7 +41,7 @@ Referencing [[id:subtree-id]]
 Mention #hashtag1 and #nested##alias1 with #nested##alias2
 )");
 
-    auto map = sem::getAstTrackingMap({doc1, doc2});
+    auto map = org::getAstTrackingMap({doc1, doc2});
 
     writeFile(getDebugFile("tracking.json"), to_json_eval(map).dump(2));
 
@@ -53,14 +53,14 @@ Mention #hashtag1 and #nested##alias1 with #nested##alias2
     writeFile(getDebugFile("repr.txt"), dbgString(doc2_par1));
 
     {
-        auto groups = sem::getSubnodeGroups(doc2_par1, map);
+        auto groups = org::getSubnodeGroups(doc2_par1, map);
         EXPECT_TRUE(groups.at(2).isRadioTarget());
         EXPECT_TRUE(groups.at(5).isRadioTarget());
         EXPECT_TRUE(groups.at(1_B).isRadioTarget());
     }
 
     {
-        auto group = sem::getSubnodeGroups(doc2_par3, map);
+        auto group = org::getSubnodeGroups(doc2_par3, map);
 
         EXPECT_TRUE(group.at(2).isTrackedHashtag());
         EXPECT_TRUE(group.at(6).isTrackedHashtag());

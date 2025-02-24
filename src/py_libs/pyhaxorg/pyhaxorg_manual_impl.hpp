@@ -372,7 +372,8 @@ struct [[refl]] ExporterPython
             switch (kind) {
 #define __case(__Kind)                                                    \
     case OrgSemKind::__Kind: {                                            \
-        _this()->visit##__Kind(res, node.template as<sem::__Kind>());     \
+        _this()->visit##__Kind(                                           \
+            res, node.template as<org::sem::__Kind>());                   \
         break;                                                            \
     }
 
@@ -419,13 +420,19 @@ struct [[refl]] ExporterPython
 
 
     template <typename T>
-    void fallbackFieldVisitor(Res& res, const char* name, CVec<T> value) {
+    void fallbackFieldVisitor(
+        Res&          res,
+        const char*   name,
+        hstd::CVec<T> value) {
         __fallback_visit("using fallback field visitor for vector");
         for (T const& it : value) { _this()->visit(res, it); }
     }
 
     template <typename T>
-    void fallbackFieldVisitor(Res& res, const char* name, Opt<T> value) {
+    void fallbackFieldVisitor(
+        Res&         res,
+        const char*  name,
+        hstd::Opt<T> value) {
         __fallback_visit("using fallback field visitor for vector");
         if (value) { _this()->visit(res, value.value()); }
     }
@@ -437,7 +444,7 @@ struct [[refl]] ExporterPython
     }
 
 
-    template <sem::NotOrg T>
+    template <org::sem::NotOrg T>
     void visitOrgField(Res& res, const char* name, T const& value) {
         auto ev = trace(VK::VisitField).with_value(value).with_field(name);
 
@@ -461,7 +468,7 @@ struct [[refl]] ExporterPython
         }
     }
 
-    template <sem::IsOrg T>
+    template <org::sem::IsOrg T>
     void visitDispatchHook(Res& res, org::sem::SemId<T> id) {
         if (visitAnyHookCb) {
             auto __scope = trace_scoped(
@@ -478,19 +485,19 @@ struct [[refl]] ExporterPython
 
     void pushVisitImpl(Res& res, org::sem::OrgArg id);
 
-    template <sem::IsOrg T>
+    template <org::sem::IsOrg T>
     void pushVisit(Res& res, org::sem::SemId<T> id) {
         pushVisitImpl(res, id);
     }
 
     void popVisitImpl(Res& res, org::sem::OrgArg id);
 
-    template <sem::IsOrg T>
+    template <org::sem::IsOrg T>
     void popVisit(Res& res, org::sem::SemId<T> id) {
         popVisitImpl(res, id);
     }
 
-    template <sem::IsOrg T>
+    template <org::sem::IsOrg T>
     void visit(Res& res, org::sem::SemId<T> node) {
         visitOrgNodeAround(res, node);
     }
@@ -499,22 +506,24 @@ struct [[refl]] ExporterPython
         _this()->visitDispatch(res, node);
     }
 
-    void visit(Res& res, sem::BlockCodeSwitch const&) {}
-    void visit(Res& res, sem::Symbol::Param const&) {}
-    void visit(Res& res, sem::NamedProperty const&) {}
-    void visit(Res& res, Str const&) {}
-    void visit(Res& res, Vec<Str> const&) {}
-    void visit(Res& res, sem::DocumentExportConfig::TocExport const&) {}
-    void visit(Res& res, sem::Tblfm const&) {}
-    void visit(Res& res, sem::Tblfm::Assign::Flag const&) {}
+    void visit(Res& res, org::sem::BlockCodeSwitch const&) {}
+    void visit(Res& res, org::sem::Symbol::Param const&) {}
+    void visit(Res& res, org::sem::NamedProperty const&) {}
+    void visit(Res& res, hstd::Str const&) {}
+    void visit(Res& res, hstd::Vec<hstd::Str> const&) {}
+    void visit(
+        Res& res,
+        org::sem::DocumentExportConfig::TocExport const&) {}
+    void visit(Res& res, org::sem::Tblfm const&) {}
+    void visit(Res& res, org::sem::Tblfm::Assign::Flag const&) {}
     void visit(Res& res, int const&) {}
 
-    template <sem::IsOrg T>
+    template <org::sem::IsOrg T>
     void visitField(Res& res, char const* name, org::sem::SemId<T> value) {
         visitOrgField(res, name, value);
     }
 
-    template <sem::NotOrg T>
+    template <org::sem::NotOrg T>
     void visitField(Res& res, char const* name, T const& value) {
         visitOrgField(res, name, value);
     }

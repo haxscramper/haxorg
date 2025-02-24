@@ -21,18 +21,18 @@ Str getDebugFile(const Str& suffix) {
 }
 
 void writeTreeRepr(
-    org::ImmAdapter               n,
+    imm::ImmAdapter               n,
     const Str                     suffix,
-    org::ImmAdapter::TreeReprConf conf) {
+    imm::ImmAdapter::TreeReprConf conf) {
     writeFile(getDebugFile(suffix), n.treeRepr(conf).toString(false));
 }
 
 sem::SemId<sem::Org> testParseString(
     const std::string&         text,
     std::optional<std::string> debug) {
-    MockFull          p{debug.has_value(), debug.has_value()};
-    sem::OrgConverter converter{};
-    LexerParams       params;
+    org::test::MockFull     p{debug.has_value(), debug.has_value()};
+    sem::OrgConverter       converter{};
+    org::parse::LexerParams params;
     params.maxUnknown = 1;
     if (debug) {
         fs::path tokenizer_trace{debug.value() + "_tokenizer_trace.txt"};
@@ -59,18 +59,19 @@ sem::SemId<sem::Org> testParseString(
         std::stringstream buffer;
         ColStream         os{buffer};
         os.colored = false;
-        OrgAdapter(&p.nodes, OrgId(0))
-            .treeRepr(os, 0, OrgNodeGroup::TreeReprConf{});
+        org::parse::OrgAdapter(&p.nodes, org::parse::OrgId(0))
+            .treeRepr(os, 0, org::parse::OrgNodeGroup::TreeReprConf{});
 
         writeFile(
             fs::path{debug.value() + "_parse_tree.txt"}, buffer.str());
     }
 
-    auto res = converter.toDocument(OrgAdapter(&p.nodes, OrgId(0)));
+    auto res = converter.toDocument(
+        org::parse::OrgAdapter(&p.nodes, org::parse::OrgId(0)));
 
     if (debug) {
-        ColStream    os;
-        ExporterTree tree{os};
+        ColStream               os;
+        org::algo::ExporterTree tree{os};
         tree.conf.withLineCol     = true;
         tree.conf.withOriginalId  = true;
         tree.conf.skipEmptyFields = false;

@@ -16,7 +16,7 @@ extern "C" void __llvm_profile_reset_counters(void);
 extern "C" void __llvm_profile_set_filename(char*);
 extern "C" int  __llvm_profile_write_file(void);
 
-Vec<TestProfiler::RunRecord> TestProfiler::runRecords;
+hstd::Vec<TestProfiler::RunRecord> TestProfiler::runRecords;
 
 json TestProfiler::getJsonRecords() {
     return to_json_eval(TestProfiler::runRecords);

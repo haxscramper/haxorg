@@ -1,7 +1,9 @@
 #include "tOrgTestCommon.hpp"
 
+using namespace org::parse;
+using namespace org::test;
 
-Str getSelfTest(org::ImmAdapter const& it) {
+Str getSelfTest(org::imm::ImmAdapter const& it) {
     return fmt(
         R"(
 auto {0} = {1};
@@ -22,7 +24,7 @@ TEST(TestFiles, AllNodeSerde) {
     sem::SemId        write_node = converter.toDocument(
         OrgAdapter(&p.nodes, OrgId(0)));
     orgproto::AnyNode result;
-    proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
+    org::algo::proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
         &result, write_node);
 
     google::protobuf::util::JsonPrintOptions options;
@@ -37,14 +39,15 @@ TEST(TestFiles, AllNodeSerde) {
     }
 
     sem::SemId read_node = sem::SemId<sem::Org>::Nil();
-    proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::read(
+    org::algo::proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::read(
         result,
-        proto_write_accessor<sem::SemId<sem::Org>>::for_ref(read_node));
+        org::algo::proto_write_accessor<sem::SemId<sem::Org>>::for_ref(
+            read_node));
 
     {
         orgproto::AnyNode result2;
-        proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
-            &result2, read_node);
+        org::algo::proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::
+            write(&result2, read_node);
         std::string proto_read_json;
         (void)google::protobuf::util::MessageToJsonString(
             result2, &proto_read_json, options);
@@ -52,8 +55,8 @@ TEST(TestFiles, AllNodeSerde) {
         writeFile("/tmp/proto_read.json", proto_read_json);
     }
 
-    json write_json = ExporterJson{}.evalTop(write_node);
-    json read_json  = ExporterJson{}.evalTop(read_node);
+    json write_json = org::algo::ExporterJson{}.evalTop(write_node);
+    json read_json  = org::algo::ExporterJson{}.evalTop(read_node);
 
     writeFile("/tmp/node_write.json", write_json.dump(2));
     writeFile("/tmp/node_read.json", read_json.dump(2));

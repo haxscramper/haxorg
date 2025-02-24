@@ -1,5 +1,8 @@
 #include "tOrgTestCommon.hpp"
 
+using namespace org;
+using namespace hstd;
+
 
 TEST(OrgParseSem, NamedPropertyModification) {
     auto doc = testParseString(R"(* Subtree)");
@@ -7,11 +10,11 @@ TEST(OrgParseSem, NamedPropertyModification) {
     auto tree = doc.at(0).as<sem::Subtree>();
     tree->setPropertyStrValue("123", "bookmark_pos");
 
-    Str formatted = sem::formatToString(doc);
+    Str formatted = org::formatToString(doc);
     EXPECT_NE(formatted.find(":bookmark_pos: 123"), -1) << formatted;
 
     tree->removeProperty("bookmark_pos");
-    formatted = sem::formatToString(doc);
+    formatted = org::formatToString(doc);
     EXPECT_EQ(formatted.find(":bookmark_pos: 123"), -1) << formatted;
 }
 
@@ -38,13 +41,13 @@ TEST(OrgParseSem, LinkAttachedGet1) {
 }
 
 TEST(OrgParseSem, TracerOperations1) {
-    auto     text = R"(
+    auto                text = R"(
 * Subtree
   :properties:
   :key: value
   :end:
 )";
-    MockFull p{true, true};
+    org::test::MockFull p{true, true};
     fs::path tokenizer_trace{"/tmp/TraceOperations1_tokenizer_trace.txt"};
     p.tokenizer->setTraceFile(tokenizer_trace);
     p.tokenizer->traceStructured = true;
@@ -61,7 +64,7 @@ TEST(OrgParseSem, TracerOperations1) {
     fs::path      lex_trace{"/tmp/TraceOperations1_lex_trace.txt"};
     std::ofstream fileTrace{lex_trace.c_str()};
 
-    LexerParams params;
+    org::parse::LexerParams params;
     params.traceStructured = true;
     params.maxUnknown      = 1;
     params.traceStream     = &fileTrace;
@@ -69,10 +72,11 @@ TEST(OrgParseSem, TracerOperations1) {
     p.tokenizeConvert();
     p.parse();
 
-    auto document = converter.toDocument(OrgAdapter(&p.nodes, OrgId(0)));
+    auto document = converter.toDocument(
+        org::parse::OrgAdapter(&p.nodes, org::parse::OrgId(0)));
 
-    ExporterJson exp{};
-    fs::path     exp_trace{"/tmp/TraceOperations1_exp_trace.txt"};
+    org::algo::ExporterJson exp{};
+    fs::path exp_trace{"/tmp/TraceOperations1_exp_trace.txt"};
     exp.setTraceFile(exp_trace);
     exp.traceStructured = true;
     exp.evalTop(document);
@@ -176,7 +180,7 @@ TEST(OrgParseSem, SubtreeProperties) {
   :END:)",
             getDebugFile("cookie_data"));
 
-        auto p = sem::getSubtreeProperties<sem::NamedProperty::CookieData>(
+        auto p = org::getSubtreeProperties<sem::NamedProperty::CookieData>(
             t);
         EXPECT_EQ(p.size(), 1);
         EXPECT_EQ(p.at(0).isRecursive, true);
@@ -204,7 +208,7 @@ TEST(OrgParseSem, SubtreeProperties) {
         // dbgString(tree);
 
         {
-            auto olpath = sem::getSubtreeProperties<
+            auto olpath = org::getSubtreeProperties<
                 sem::NamedProperty::ArchiveOlpath>(tree);
             EXPECT_EQ(olpath.size(), 1);
             auto const& p = olpath.at(0).path.path;
@@ -214,7 +218,7 @@ TEST(OrgParseSem, SubtreeProperties) {
         }
 
         {
-            auto p = sem::getSubtreeProperties<
+            auto p = org::getSubtreeProperties<
                 sem::NamedProperty::ArchiveFile>(tree);
             EXPECT_EQ(p.size(), 1);
             EXPECT_EQ(p.at(0).file, "~/projects.org");
@@ -222,20 +226,20 @@ TEST(OrgParseSem, SubtreeProperties) {
 
 
         {
-            auto p = sem::getSubtreeProperties<
+            auto p = org::getSubtreeProperties<
                 sem::NamedProperty::ArchiveCategory>(tree);
             EXPECT_EQ(p.size(), 1);
             EXPECT_EQ(p.at(0).category, "projects");
         }
         {
-            auto p = sem::getSubtreeProperties<
+            auto p = org::getSubtreeProperties<
                 sem::NamedProperty::ArchiveTodo>(tree);
             EXPECT_EQ(p.size(), 1);
             EXPECT_EQ(p.at(0).todo, "COMPLETED");
         }
 
         {
-            auto p = sem::getSubtreeProperties<
+            auto p = org::getSubtreeProperties<
                 sem::NamedProperty::ArchiveTarget>(tree);
             EXPECT_EQ(p.size(), 1);
             EXPECT_EQ(p.at(0).pattern, "%s_archive");
@@ -253,14 +257,14 @@ TEST(OrgParseSem, SubtreeProperties) {
 :end:)",
             getDebugFile("prop_json"));
         {
-            auto p = sem::getSubtreeProperties<
+            auto p = org::getSubtreeProperties<
                 sem::NamedProperty::CustomSubtreeJson>(tree);
             EXPECT_EQ(p.size(), 1);
             EXPECT_EQ(p.at(0).name, "name"_ss);
             EXPECT_EQ(p.at(0).value.getField("key").getString(), "value");
         }
         {
-            auto p = sem::getSubtreeProperties<
+            auto p = org::getSubtreeProperties<
                 sem::NamedProperty::CustomSubtreeFlags>(tree);
             EXPECT_EQ(p.size(), 1);
             EXPECT_EQ(p.at(0).value.getNamedSize(), 1);
@@ -433,7 +437,7 @@ TEST(OrgParseSem, SubtreeLogParsing) {
         EXPECT_EQ(n.on.getBreakdown().year, 2023);
         EXPECT_EQ(n.on.getBreakdown().second, 03);
         EXPECT_TRUE(l.at(0)->desc.has_value());
-        Vec<Str> desc = sem::getDfsLeafText(
+        Vec<Str> desc = org::getDfsLeafText(
             l.at(0)->desc.value().asOrg(), {OrgSemKind::Word});
         EXPECT_EQ(desc.at(0), "Increasing");
         EXPECT_NE(desc.indexOf("tasks"), -1);
@@ -463,9 +467,9 @@ TEST(OrgParseSem, SubtreeLogParsing) {
         EXPECT_EQ(it1->at(1)->at(0)->getKind(), OrgSemKind::ListItem);
         EXPECT_EQ(it1->at(1)->at(1)->getKind(), OrgSemKind::ListItem);
         EXPECT_EQ(
-            sem::getCleanText(it1->at(1)->at(0)), "More nesting1"_ss);
+            org::getCleanText(it1->at(1)->at(0)), "More nesting1"_ss);
         EXPECT_EQ(
-            sem::getCleanText(it1->at(1)->at(1)), "More nesting2"_ss);
+            org::getCleanText(it1->at(1)->at(1)), "More nesting2"_ss);
     }
 }
 
@@ -705,27 +709,27 @@ TEST(OrgParseSem, List) {
 
         auto conv = immConv(l);
         EXPECT_EQ(
-            conv.node.at(0).as<org::ImmListItem>().getCleanHeader(),
+            conv.node.at(0).as<imm::ImmListItem>().getCleanHeader(),
             "Desc");
     }
     {
         auto l = parseOne<sem::List>("- Desc :: value");
         EXPECT_EQ(l.size(), 1);
-        sem::setDescriptionListItemBody(
+        org::setDescriptionListItemBody(
             l, "Desc", {parseOne<sem::Paragraph>("value")});
 
         EXPECT_EQ(l.size(), 1);
-        sem::setDescriptionListItemBody(
+        org::setDescriptionListItemBody(
             l, "Desc2", {parseOne<sem::Paragraph>("value")});
         EXPECT_EQ(l.size(), 2);
     }
     {
         auto l = parseOne<sem::List>("- Item");
         EXPECT_EQ(l.size(), 1);
-        sem::insertListItemBody(l, 0, {parseOne<sem::Paragraph>("Item2")});
+        org::insertListItemBody(l, 0, {parseOne<sem::Paragraph>("Item2")});
         EXPECT_EQ(l.size(), 2);
-        EXPECT_EQ(sem::getCleanText(l.at(0)), "Item2"_ss);
-        EXPECT_EQ(sem::getCleanText(l.at(1)), "Item"_ss);
+        EXPECT_EQ(org::getCleanText(l.at(0)), "Item2"_ss);
+        EXPECT_EQ(org::getCleanText(l.at(1)), "Item"_ss);
     }
 }
 
@@ -763,7 +767,7 @@ TEST(OrgParseSem, SubtreePropertyContext) {
             attrs2.getAttrs("results").at(0).name.value(), "results");
         EXPECT_EQ(attrs2.getAttrs("results").at(0).value, "silent");
 
-        auto stacked = sem::getFinalProperty({t1, t2}, "header-args");
+        auto stacked = org::getFinalProperty({t1, t2}, "header-args");
         EXPECT_TRUE(stacked.has_value());
         auto s = stacked.value();
         EXPECT_EQ(

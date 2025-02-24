@@ -12,8 +12,10 @@
 #include <haxorg/sem/perfetto_org.hpp>
 #include <hstd/wrappers/hstd_extra/perfetto_aux_impl_template.hpp>
 
+using namespace org;
+using namespace hstd;
 
-template class Exporter<ExporterPython, py::object>;
+template class org::algo::Exporter<ExporterPython, py::object>;
 
 
 std::vector<sem::SemId<sem::Org>> getSubnodeRange(
@@ -200,14 +202,14 @@ ExporterPython::Res ExporterPython::evalTop(sem::SemId<sem::Org> org) {
 
 
 void eachSubnodeRec(sem::SemId<sem::Org> node, py::function callback) {
-    sem::eachSubnodeRec(
+    org::eachSubnodeRec(
         node, [&](sem::SemId<sem::Org> arg) { callback(arg); });
 }
 
 void eachSubnodeRecSimplePath(
     sem::SemId<sem::Org> node,
     py::function         callback) {
-    sem::eachSubnodeRecSimplePath(
+    org::eachSubnodeRecSimplePath(
         node, [&](sem::OrgArg arg, sem::OrgVecArg path) {
             callback(arg, path);
         });
