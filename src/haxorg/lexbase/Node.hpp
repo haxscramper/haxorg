@@ -522,7 +522,7 @@ struct std::formatter<std::monostate> : std::formatter<std::string> {
         const std::monostate& p,
         FormatContext&        ctx) const {
         std::formatter<std::string> fmt;
-        return fmt_ctx("<std::monostate>", ctx);
+        return hstd::fmt_ctx("<std::monostate>", ctx);
     }
 };
 
@@ -532,14 +532,14 @@ struct std::formatter<org::parse::Node<N, K, V, M>>
     template <typename FormatContext>
     auto format(const org::parse::Node<N, K, V, M>& p, FormatContext& ctx)
         const {
-        fmt_ctx("{", ctx);
-        fmt_ctx(p.kind, ctx);
+        hstd::fmt_ctx("{", ctx);
+        hstd::fmt_ctx(p.kind, ctx);
         if (p.isTerminal()) {
-            fmt_ctx(p.getToken(), ctx);
+            hstd::fmt_ctx(p.getToken(), ctx);
         } else {
-            fmt_ctx(p.getExtent(), ctx);
+            hstd::fmt_ctx(p.getExtent(), ctx);
         }
 
-        return fmt_ctx("}", ctx);
+        return hstd::fmt_ctx("}", ctx);
     }
 };

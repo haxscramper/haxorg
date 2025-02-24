@@ -94,7 +94,7 @@ struct proto_write_accessor<T>
     template <typename FieldType, typename Var, int Field>
     struct variant_init {
         static void init(Var& variant) {
-            variant = variant_from_index<Var>(Field);
+            variant = hstd::variant_from_index<Var>(Field);
         }
     };
 

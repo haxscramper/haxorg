@@ -1035,7 +1035,7 @@ def get_sem_text():
             bases=[t_nest(t_org("Org"))],
             nested=[
                 GenTuStruct(
-                    t_nest("Param", [t("Symbol")]),
+                    t_nest("Param", [t_org("Symbol")]),
                     GenTuDoc("Symbol parameters"),
                     fields=[
                         GenTuField(t_opt(t_str()), "key",
@@ -1046,7 +1046,7 @@ def get_sem_text():
             ],
             fields=[
                 GenTuField(t_str(), "name", GenTuDoc("Name of the symbol")),
-                GenTuField(t_vec(t_nest("Param", [t("Symbol")])), "parameters",
+                GenTuField(t_vec(t_nest("Param", [t_org("Symbol")])), "parameters",
                            GenTuDoc("Optional list of parameters")),
                 GenTuField(t_vec(t_id()), "positional",
                            GenTuDoc("Positional parameters")),

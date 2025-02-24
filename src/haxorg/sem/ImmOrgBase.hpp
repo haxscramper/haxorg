@@ -228,9 +228,9 @@ template <typename T>
 struct std::formatter<hstd::ext::ImmBox<T>> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const hstd::ext::ImmBox<T>& p, FormatContext& ctx) const {
-        fmt_ctx("Box{", ctx);
-        fmt_ctx(p.get(), ctx);
-        return fmt_ctx("}", ctx);
+        hstd::fmt_ctx("Box{", ctx);
+        hstd::fmt_ctx(p.get(), ctx);
+        return hstd::fmt_ctx("}", ctx);
     }
 };
 
@@ -449,10 +449,10 @@ struct ImmId : ImmIdBase {
     ImmIdT<T> as() const {
         if constexpr (!std::is_abstract_v<T>) {
             if (T::staticKind != getKind()) {
-                throw std::logic_error(
-                    fmt("Kind for type T '{}' != ID kind '{}'",
-                        T::staticKind,
-                        getKind()));
+                throw std::logic_error(hstd::fmt(
+                    "Kind for type T '{}' != ID kind '{}'",
+                    T::staticKind,
+                    getKind()));
             }
         }
 

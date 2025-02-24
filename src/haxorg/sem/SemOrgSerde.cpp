@@ -1,7 +1,11 @@
 #include <haxorg/sem/SemOrgSerde.hpp>
 #include <haxorg/sem/SemOrgSerdeDeclarations.hpp>
 
-void proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
+using namespace org::algo;
+using namespace org;
+using namespace hstd;
+
+void proto_serde<orgproto::AnyNode, org::sem::SemId<org::sem::Org>>::write(
     orgproto::AnyNode*          out,
     const sem::SemId<sem::Org>& in) {
 
@@ -19,7 +23,7 @@ void proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
 #undef _case
 }
 
-void proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::read(
+void proto_serde<orgproto::AnyNode, org::sem::SemId<org::sem::Org>>::read(
     const orgproto::AnyNode&                   out,
     proto_write_accessor<sem::SemId<sem::Org>> in) {
 #define _case(_fieldEnum, _field, __Kind)                                 \
@@ -83,6 +87,7 @@ void proto_serde<Proto, sem::Block>::read(
     const Proto&                     out,
     proto_write_accessor<sem::Block> in) {}
 
+namespace org::algo {
 
 template class proto_serde<::orgproto::BlockVerse, sem::Block>;
 template class proto_serde<::orgproto::BlockExport, sem::Block>;
@@ -110,3 +115,5 @@ template class proto_serde<::orgproto::BlockQuote, sem::Cmd>;
 template class proto_serde<::orgproto::CmdCustomArgs, sem::Cmd>;
 template class proto_serde<::orgproto::CmdColumns, sem::Cmd>;
 template class proto_serde<::orgproto::CmdExport, sem::Cmd>;
+
+} // namespace org::algo

@@ -506,7 +506,7 @@ struct ImmSymbol : public org::imm::ImmOrg {
     hstd::ext::ImmBox<hstd::Opt<hstd::Str>> key;
     /// \brief Uninterpreted value
     hstd::ext::ImmBox<hstd::Str> value;
-    bool operator==(org::sem::Symbol::Param const& other) const;
+    bool operator==(org::imm::ImmSymbol::Param const& other) const;
   };
 
   BOOST_DESCRIBE_CLASS(ImmSymbol,
@@ -521,7 +521,7 @@ struct ImmSymbol : public org::imm::ImmOrg {
   /// \brief Name of the symbol
   hstd::ext::ImmBox<hstd::Str> name;
   /// \brief Optional list of parameters
-  hstd::ext::ImmVec<org::sem::Symbol::Param> parameters;
+  hstd::ext::ImmVec<org::imm::ImmSymbol::Param> parameters;
   /// \brief Positional parameters
   hstd::ext::ImmVec<org::imm::ImmIdT<org::sem::Org>> positional;
   virtual OrgSemKind getKind() const { return OrgSemKind::Symbol; }

@@ -123,9 +123,9 @@ Opt<UserTime> ParseUserTime(
 } // namespace
 
 Str get_text(
-    OrgAdapter  a,
-    int         line     = __builtin_LINE(),
-    char const* function = __builtin_FUNCTION()) {
+    org::parse::OrgAdapter a,
+    int                    line     = __builtin_LINE(),
+    char const*            function = __builtin_FUNCTION()) {
     if (a.isTerminal()) {
         return a.val().text;
     } else if (a.kind() == onk::Empty) {
@@ -208,8 +208,8 @@ OrgConverter::ConvResult<HashTag> OrgConverter::convertHashTag(__args) {
     auto __trace = trace(a);
     auto result  = Sem<HashTag>(a);
 
-    Func<sem::HashTagText(OrgAdapter)> aux;
-    aux = [&aux, this](OrgAdapter a) -> sem::HashTagText {
+    Func<sem::HashTagText(org::parse::OrgAdapter)> aux;
+    aux = [&aux, this](org::parse::OrgAdapter a) -> sem::HashTagText {
         sem::HashTagText text;
         text.head = strip(get_text(a.at(0)), CharSet{'#'}, CharSet{});
         if (1 < a.size()) {
@@ -922,7 +922,7 @@ OrgConverter::ConvResult<Time> OrgConverter::convertTime(__args) {
     __perf_trace("convert", "convertTime");
     auto __trace = trace(a);
 
-    bool cond = OrgSet{
+    bool cond = org::parse::OrgSet{
                       onk::DynamicActiveTime,
                       onk::DynamicInactiveTime,
                       onk::StaticActiveTime,
@@ -2235,7 +2235,7 @@ OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(
         } else {
             result->result = sem::BlockCodeEvalResult{
                 sem::BlockCodeEvalResult::Raw{
-                    .text = sem::Formatter::format(conv)}};
+                    .text = org::algo::Formatter::format(conv)}};
         }
     }
 
@@ -2258,7 +2258,7 @@ OrgConverter::ConvResult<Call> OrgConverter::convertCall(__args) {
 
 
 Vec<OrgConverter::ConvResult<Org>> OrgConverter::flatConvertAttached(
-    Vec<OrgAdapter> items) {
+    Vec<org::parse::OrgAdapter> items) {
     auto __trace = trace(std::nullopt);
 
     Vec<OrgConverter::ConvResult<Org>> result;
@@ -2289,7 +2289,8 @@ Vec<OrgConverter::ConvResult<Org>> OrgConverter::flatConvertAttached(
 
                 int offset = 0;
 
-                Opt<CRw<OrgAdapter>> next_opt = items.get(i + offset + 1);
+                Opt<CRw<org::parse::OrgAdapter>> next_opt = items.get(
+                    i + offset + 1);
                 while (next_opt) {
                     if (next_opt->get().getKind() == onk::CmdTblfm) {
                         print(
@@ -2332,7 +2333,7 @@ Vec<OrgConverter::ConvResult<Org>> OrgConverter::flatConvertAttached(
 
 Vec<OrgConverter::ConvResult<Org>> OrgConverter::
     flatConvertAttachedSubnodes(In item) {
-    Vec<OrgAdapter> items;
+    Vec<org::parse::OrgAdapter> items;
     for (auto const& sub : item) { items.push_back(sub); }
     return flatConvertAttached(items);
 }
@@ -2441,7 +2442,7 @@ SemId<Org> OrgConverter::convert(__args) {
 
 void OrgConverter::convertDocumentOptions(
     SemId<DocumentOptions> opts,
-    OrgAdapter             a) {
+    org::parse::OrgAdapter a) {
     if (opts->isGenerated()) { opts->original = a; }
     auto item      = a.at(0);
     auto parseBool = [](CR<Str> value) {
@@ -2504,13 +2505,13 @@ void OrgConverter::convertDocumentOptions(
     }
 }
 
-SemId<Document> OrgConverter::toDocument(OrgAdapter adapter) {
+SemId<Document> OrgConverter::toDocument(org::parse::OrgAdapter adapter) {
     auto __trace = trace(adapter);
 
     SemId<Document> doc = Sem<Document>(adapter);
     doc->options        = Sem<DocumentOptions>(adapter);
     using Prop          = NamedProperty;
-    Vec<OrgAdapter> buffer;
+    Vec<org::parse::OrgAdapter> buffer;
 
     if (adapter.kind() == onk::StmtList) {
         for (const auto& sub : adapter) {

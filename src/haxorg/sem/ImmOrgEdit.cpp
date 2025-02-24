@@ -527,10 +527,10 @@ void OrgDocumentSelector::searchSubtreePlaintextTitle(
     path.push_back(OrgSelectorCondition{
         .check = [title,
                   this](ImmAdapter const& node) -> OrgSelectorResult {
-            if (auto tree = node.asOpt<org::ImmSubtree>(); tree) {
+            if (auto tree = node.asOpt<imm::ImmSubtree>(); tree) {
                 Vec<Str> plaintext = flatWords(tree.value().at(
-                    org::ImmReflFieldId::FromTypeField<org::ImmSubtree>(
-                        &org::ImmSubtree::title)));
+                    imm::ImmReflFieldId::FromTypeField<imm::ImmSubtree>(
+                        &imm::ImmSubtree::title)));
                 message(
                     fmt("{} == {} -> {}",
                         plaintext,
@@ -563,7 +563,7 @@ void OrgDocumentSelector::searchSubtreeId(
         .check = [id,
                   maxLevel](ImmAdapter const& node) -> OrgSelectorResult {
             if (node->is(OrgSemKind::Subtree)) {
-                auto const& tree = node.as<org::ImmSubtree>();
+                auto const& tree = node.as<imm::ImmSubtree>();
                 if (maxLevel) {
                     return OrgSelectorResult{
                         .isMatching = tree->treeId == id,

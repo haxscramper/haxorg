@@ -1,5 +1,6 @@
 #include "haxorg/exporters/Exporter.hpp"
 #include "haxorg/sem/ImmOrgEdit.hpp"
+#include "haxorg/sem/SemBaseApi.hpp"
 #include "hstd/stdlib/Set.hpp"
 #include <haxorg/sem/ImmOrg.hpp>
 #include <hstd/stdlib/Exception.hpp>
@@ -19,6 +20,7 @@
 
 using namespace hstd;
 using namespace org::imm;
+using namespace hstd::ext;
 
 const u64 ImmId::NodeIdxMask    = 0x000000FFFFFFFFFF; // >>0*0=0,
 const u64 ImmId::NodeIdxOffset  = 0;
@@ -860,8 +862,8 @@ IMM_SUBNODE_COLLECTOR((typename T), (Opt<T>)) {
     }
 }
 
-template <org::IsImmOrgValueType T>
-Vec<ImmId> org::allSubnodes(
+template <IsImmOrgValueType T>
+Vec<ImmId> imm::allSubnodes(
     T const&                  value,
     const ImmAstContext::Ptr& ctx) {
     Vec<ImmId> subnodes;
@@ -875,14 +877,15 @@ Vec<ImmId> org::allSubnodes(
 }
 
 
-Vec<ImmId> org::allSubnodes(
+Vec<ImmId> imm::allSubnodes(
     const ImmId&              value,
     const ImmAstContext::Ptr& ctx) {
     value.assertValid();
     switch (value.getKind()) {
 #define _case(__Kind)                                                     \
     case OrgSemKind::__Kind: {                                            \
-        return allSubnodes(ctx->value<org::Imm##__Kind>(value), ctx);     \
+        return allSubnodes(                                               \
+            ctx->value<org::imm::Imm##__Kind>(value), ctx);               \
     }
         EACH_SEM_ORG_KIND(_case)
     }
@@ -1098,7 +1101,7 @@ ImmAstEditContext ImmAstContext::getEditContext() {
         }};
 }
 
-bool org::isTrackingParentDefault(const ImmAdapter& node) {
+bool imm::isTrackingParentDefault(const ImmAdapter& node) {
     return !SemSet{
         OrgSemKind::Space,
         OrgSemKind::Word,
@@ -1119,17 +1122,17 @@ struct RadioTargetSearchResult {
 
 
 RadioTargetSearchResult tryRadioTargetSearch(
-    auto const&             words,
-    CR<Vec<ImmAdapter>>     sub,
-    CR<int>                 groupingIdx,
-    ImmId                   targetId,
-    org::ImmAstContext::Ptr ctx) {
+    auto const&         words,
+    CR<Vec<ImmAdapter>> sub,
+    CR<int>             groupingIdx,
+    ImmId               targetId,
+    ImmAstContext::Ptr  ctx) {
     int                     sourceOffset = 0;
     int                     radioOffset  = 0;
     RadioTargetSearchResult result;
     while (radioOffset < words.size()) {
         auto atSource   = sub.at(groupingIdx + sourceOffset);
-        auto sourceWord = atSource->dyn_cast<org::ImmLeaf>();
+        auto sourceWord = atSource->dyn_cast<org::imm::ImmLeaf>();
         if (sourceWord == nullptr) {
             ctx->message(
                 fmt("Source word at offset {} is not "
@@ -1179,7 +1182,7 @@ RadioTargetSearchResult tryRadioTargetSearch(
 
 } // namespace
 
-Vec<ImmSubnodeGroup> org::getSubnodeGroups(
+Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
     CR<ImmAdapter> node,
     bool           withPath) {
     ImmAstTrackingMap const& track = *node.ctx.lock()->currentTrack;
@@ -1190,7 +1193,7 @@ Vec<ImmSubnodeGroup> org::getSubnodeGroups(
 
     for (int groupingIdx = 0; groupingIdx < sub.size(); ++groupingIdx) {
         ImmAdapter const& it = sub.at(groupingIdx);
-        if (auto leaf = it->dyn_cast<org::ImmLeaf>();
+        if (auto leaf = it->dyn_cast<ImmLeaf>();
             leaf != nullptr && !leaf->is(OrgSemKind::Space)) {
             ctx->message(fmt("Subnode {} is leaf", groupingIdx));
             Vec<ImmId> const* radioTargets = track.radioTargets.find(
@@ -1210,8 +1213,7 @@ Vec<ImmSubnodeGroup> org::getSubnodeGroups(
                         radioId);
 
                     if (radioAdapter.is(OrgSemKind::RadioTarget)) {
-                        auto radio = radioAdapter
-                                         .as<org::ImmRadioTarget>();
+                        auto radio   = radioAdapter.as<ImmRadioTarget>();
                         searchResult = tryRadioTargetSearch(
                             radio->words, sub, groupingIdx, radio.id, ctx);
 
@@ -1219,7 +1221,7 @@ Vec<ImmSubnodeGroup> org::getSubnodeGroups(
                             goto radio_search_exit;
                         }
                     } else if (radioAdapter.is(OrgSemKind::Subtree)) {
-                        auto subtree = radioAdapter.as<org::ImmSubtree>();
+                        auto subtree = radioAdapter.as<ImmSubtree>();
                         for (auto const& id : org::getSubtreeProperties<
                                  sem::NamedProperty::RadioId>(
                                  subtree.value())) {
@@ -1253,7 +1255,7 @@ Vec<ImmSubnodeGroup> org::getSubnodeGroups(
                         ImmSubnodeGroup::Single{.node = it}});
                 }
             }
-        } else if (auto tag = it.asOpt<org::ImmHashTag>()) {
+        } else if (auto tag = it.asOpt<ImmHashTag>()) {
             ImmSubnodeGroup::TrackedHashtag rt;
             // <<hashtag_track_set_minimization>>
             // hashtag group tracking will only search for a fully

@@ -42,15 +42,15 @@ struct map_graph_buffered_iterator {
     using pointer           = const value_type*;
     using reference         = const value_type&;
 
-    Vec<T> buffer;
-    int    index = 0;
+    hstd::Vec<T> buffer;
+    int          index = 0;
 
     map_graph_buffered_iterator(int index = 0) : index{index} {}
-    map_graph_buffered_iterator(Vec<T> const& buf, int index = 0)
+    map_graph_buffered_iterator(hstd::Vec<T> const& buf, int index = 0)
         : buffer(buf), index{index} {}
 
     static std::pair<map_graph_buffered_iterator<T>, map_graph_buffered_iterator<T>> to_iterator_pair(
-        Vec<T> const& buf) {
+        hstd::Vec<T> const& buf) {
         return std::make_pair(
             map_graph_buffered_iterator<T>{buf},
             map_graph_buffered_iterator<T>{buf.size()});
@@ -305,9 +305,9 @@ struct unordered_map_property_map {
     using reference  = const Value&;
     using category   = boost::readable_property_map_tag;
 
-    const UnorderedMap<Key, Value>& map_ref;
+    const hstd::UnorderedMap<Key, Value>& map_ref;
 
-    unordered_map_property_map(const UnorderedMap<Key, Value>& map)
+    unordered_map_property_map(const hstd::UnorderedMap<Key, Value>& map)
         : map_ref(map) {}
 
     reference operator[](const key_type& key) const {
@@ -317,7 +317,7 @@ struct unordered_map_property_map {
 
 template <typename Key, typename Value>
 unordered_map_property_map<Key, Value> make_unordered_map_property_map(
-    const UnorderedMap<Key, Value>& map) {
+    const hstd::UnorderedMap<Key, Value>& map) {
     return unordered_map_property_map<Key, Value>(map);
 }
 
@@ -420,38 +420,38 @@ boost::dynamic_properties toGraphvizDynamicProperties(MapGraph const& g);
 
 template <org::graph::IsOrgMapGraph OrgGraphT>
 void bfs_visit(
-    OrgGraphT const&                                  g,
-    MapNode const&                                    start,
-    boost_lambda_bfs_visitor<OrgGraphT> const&        visitor,
-    boost_color_property_map_bundle<OrgGraphT> const& map) {
+    OrgGraphT const&                                      g,
+    MapNode const&                                        start,
+    hstd::ext::boost_lambda_bfs_visitor<OrgGraphT> const& visitor,
+    boost_color_property_map_bundle<OrgGraphT> const&     map) {
     boost::breadth_first_search(
         g, start, boost::visitor(visitor).color_map(map.map));
 }
 
 template <org::graph::IsOrgMapGraph OrgGraphT>
 inline void bfs_visit(
-    OrgGraphT const&                           g,
-    MapNode const&                             start,
-    boost_lambda_bfs_visitor<OrgGraphT> const& visitor) {
+    OrgGraphT const&                                      g,
+    MapNode const&                                        start,
+    hstd::ext::boost_lambda_bfs_visitor<OrgGraphT> const& visitor) {
     boost_color_property_map_bundle<OrgGraphT> map{g};
     bfs_visit(g, start, visitor, map);
 }
 
 template <org::graph::IsOrgMapGraph OrgGraphT>
 void dfs_visit(
-    OrgGraphT const&                                  g,
-    MapNode const&                                    start,
-    boost_lambda_dfs_visitor<OrgGraphT> const&        visitor,
-    boost_color_property_map_bundle<OrgGraphT> const& map) {
+    OrgGraphT const&                                      g,
+    MapNode const&                                        start,
+    hstd::ext::boost_lambda_dfs_visitor<OrgGraphT> const& visitor,
+    boost_color_property_map_bundle<OrgGraphT> const&     map) {
     boost::breadth_first_search(
         g, start, boost::visitor(visitor).color_map(map.map));
 }
 
 template <org::graph::IsOrgMapGraph OrgGraphT>
 inline void dfs_visit(
-    OrgGraphT const&                           g,
-    MapNode const&                             start,
-    boost_lambda_dfs_visitor<OrgGraphT> const& visitor) {
+    OrgGraphT const&                                      g,
+    MapNode const&                                        start,
+    hstd::ext::boost_lambda_dfs_visitor<OrgGraphT> const& visitor) {
     boost_color_property_map_bundle<OrgGraphT> map{g};
     dfs_visit(g, start, visitor, map);
 }

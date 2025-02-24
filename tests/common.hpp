@@ -26,7 +26,7 @@ extern TestParameters testParameters;
 #define GTEST_ADL_PRINT_TYPE(__type)                                      \
     namespace testing {                                                   \
         inline std::string PrintToString(__type const& value) {           \
-            return fmt1(value);                                           \
+            return hstd::fmt1(value);                                     \
         }                                                                 \
                                                                           \
         namespace internal {                                              \
@@ -34,7 +34,7 @@ extern TestParameters testParameters;
             class FormatForComparison<__type, Other> {                    \
               public:                                                     \
                 static ::std::string Format(const __type& value) {        \
-                    return fmt1(value);                                   \
+                    return hstd::fmt1(value);                             \
                 }                                                         \
             };                                                            \
         }                                                                 \

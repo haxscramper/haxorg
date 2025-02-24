@@ -554,7 +554,7 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
             }
         };
 
-        if (auto par = node.id.asOpt<org::ImmParagraph>()) {
+        if (auto par = node.id.asOpt<imm::ImmParagraph>()) {
             for (auto const& group : getSubnodeGroups(node.id)) {
                 GRAPH_MSG(fmt("Group {}", group));
                 if (group.isRadioTarget()) {
@@ -709,7 +709,7 @@ void MapGraph::addNode(const MapNode& node) {
 
 
 Graphviz::Graph MapGraph::toGraphviz(
-    org::ImmAstContext::Ptr const& ctx,
+    imm::ImmAstContext::Ptr const& ctx,
     GvConfig const&                conf) const {
     Graphviz::Graph                       res{"g"_ss};
     UnorderedMap<MapNode, Graphviz::Node> gvNodes;
@@ -858,7 +858,7 @@ void org::graph::addNodeRec(
                 break;
             }
             case OrgSemKind::Paragraph: {
-                auto par = node.as<org::ImmParagraph>();
+                auto par = node.as<imm::ImmParagraph>();
                 // conf.message(
                 //     fmt("rec visit of {}\n{}",
                 //         par,
@@ -866,7 +866,7 @@ void org::graph::addNodeRec(
                 if (org::graph::hasGraphAnnotations(par)) {
                     addNode(g, node, conf);
                 } else {
-                    auto group = org::getSubnodeGroups(node, false);
+                    auto group = imm::getSubnodeGroups(node, false);
                     if (rs::any_of(group, [](auto const& it) {
                             return it.isRadioTarget();
                         })) {
@@ -877,7 +877,7 @@ void org::graph::addNodeRec(
                 break;
             }
             case OrgSemKind::Subtree: {
-                if (auto tree = node.as<org::ImmSubtree>();
+                if (auto tree = node.as<imm::ImmSubtree>();
                     org::graph::hasGraphAnnotations(tree)) {
                     addNode(g, node, conf);
                 }

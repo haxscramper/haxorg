@@ -22,7 +22,7 @@ using osk      = OrgSemKind;
 using Property = NamedProperty;
 
 template <>
-struct value_domain<sem::SubtreePeriod::Kind>
+struct value_domain<org::sem::SubtreePeriod::Kind>
     : value_domain_ungapped<
           org::sem::SubtreePeriod::Kind,
           org::sem::SubtreePeriod::Kind::Clocked,
@@ -48,10 +48,10 @@ sem::OrgPtrVariant asVariant(Org* in) {
 } // namespace org::sem
 
 Org::Org() : subnodes({}) {}
-Org::Org(OrgAdapter original) : original(original), subnodes({}) {}
+Org::Org(parse::OrgAdapter original) : original(original), subnodes({}) {}
 Org::Org(CVec<SemId<Org>> subnodes) : subnodes(subnodes) {}
 
-Vec<sem::AttrValue> AttrGroup::getFlatArgs() const {
+Vec<org::sem::AttrValue> AttrGroup::getFlatArgs() const {
     Vec<AttrValue> res = positional.items;
     for (auto const& key : sorted(named.keys())) {
         res.append(named.at(key).items);

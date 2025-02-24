@@ -759,12 +759,12 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
         return skip;
     }
 
-    inRerun              = true;
-    ParseSpec      rerun = spec;
-    MockFull       p2(spec.debug.traceParse, spec.debug.traceLex);
-    sem::Formatter formatter;
-    auto           fmt_result = formatter.toString(
-        p.node, sem::Formatter::Context{});
+    inRerun                    = true;
+    ParseSpec            rerun = spec;
+    MockFull             p2(spec.debug.traceParse, spec.debug.traceLex);
+    org::algo::Formatter formatter;
+    auto                 fmt_result = formatter.toString(
+        p.node, org::algo::Formatter::Context{});
     rerun.source = formatter.store.toString(fmt_result);
     // reset all expected tokens of the copied parse spec so `runSpecBase`
     // did not try to run the validation.
@@ -1180,7 +1180,7 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
             std::ofstream file{spec.debugFile("sem.txt", relDebug)};
             ColStream     os{file};
             os.colored = false;
-            ExporterTree tree{os};
+            algo::ExporterTree tree{os};
             tree.evalTop(document);
         }
 
@@ -1189,7 +1189,7 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
                 spec.debugFile("sem_colored.ansi", relDebug)};
             ColStream os{file};
             os.colored = true;
-            ExporterTree tree{os};
+            algo::ExporterTree tree{os};
             tree.evalTop(document);
         }
     }

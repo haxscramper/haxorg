@@ -14,26 +14,28 @@
 #include <haxorg/sem/SemOrgSerdeDeclarations.hpp>
 #include <SemOrgProto.pb.h>
 
-using namespace sem;
+using namespace org::sem;
+using namespace org;
+using namespace hstd;
 using osk = OrgSemKind;
 
 
-std::string sem::exportToJsonString(sem::SemId<sem::Org> const& node) {
-    return to_string(ExporterJson{}.evalTop(node));
+std::string org::exportToJsonString(sem::SemId<sem::Org> const& node) {
+    return to_string(org::algo::ExporterJson{}.evalTop(node));
 }
 
-void sem::exportToJsonFile(
+void org::exportToJsonFile(
     sem::SemId<sem::Org> const& node,
     std::string                 path) {
     writeFile(fs::path{path}, exportToJsonString(node));
 }
 
-std::string sem::exportToYamlString(
+std::string org::exportToYamlString(
     sem::SemId<sem::Org> const& node,
     const OrgYamlExportOpts&    opts) {
     std::stringstream os;
 
-    ExporterYaml exp{
+    org::algo::ExporterYaml exp{
         .skipNullFields  = opts.skipNullFields,
         .skipFalseFields = opts.skipFalseFields,
         .skipZeroFields  = opts.skipZeroFields,
@@ -46,7 +48,7 @@ std::string sem::exportToYamlString(
     return os.str();
 }
 
-void sem::exportToYamlFile(
+void org::exportToYamlFile(
     sem::SemId<sem::Org> const& node,
     std::string                 path,
     const OrgYamlExportOpts&    opts) {
@@ -57,8 +59,8 @@ namespace {
 void treeExportImpl(
     ColStream&                    os,
     sem::SemId<sem::Org> const&   node,
-    sem::OrgTreeExportOpts const& opts) {
-    ExporterTree tree{os};
+    org::OrgTreeExportOpts const& opts) {
+    org::algo::ExporterTree tree{os};
 
     tree.conf.withLineCol     = opts.withLineCol;
     tree.conf.withOriginalId  = opts.withOriginalId;
@@ -69,9 +71,9 @@ void treeExportImpl(
 }
 } // namespace
 
-std::string sem::exportToTreeString(
+std::string org::exportToTreeString(
     sem::SemId<sem::Org> const&   node,
-    sem::OrgTreeExportOpts const& opts) {
+    org::OrgTreeExportOpts const& opts) {
     ColStream os{};
     treeExportImpl(os, node, opts);
 
@@ -79,49 +81,50 @@ std::string sem::exportToTreeString(
     return result;
 }
 
-void sem::exportToTreeFile(
+void org::exportToTreeFile(
     sem::SemId<sem::Org> const&   node,
     std::string                   path,
-    sem::OrgTreeExportOpts const& opts) {
+    org::OrgTreeExportOpts const& opts) {
     ColStream os{};
     treeExportImpl(os, node, opts);
     std::ofstream file{path};
     file << os.toString(opts.withColor);
 }
 
-sem::SemId<sem::Document> sem::parseFile(
+sem::SemId<sem::Document> org::parseFile(
     std::string               file,
     const OrgParseParameters& opts) {
     return parseStringOpts(readFile(fs::path{file}), opts);
 }
 
-sem::SemId<sem::Document> sem::parseString(std::string text) {
+sem::SemId<sem::Document> org::parseString(std::string text) {
     return parseStringOpts(text, OrgParseParameters{});
 }
 
-sem::SemId<sem::Document> sem::parseStringOpts(
+sem::SemId<sem::Document> org::parseStringOpts(
     const std::string         text,
     OrgParseParameters const& opts) {
-    LexerParams         p;
-    SPtr<std::ofstream> fileTrace;
+    org::parse::LexerParams p;
+    SPtr<std::ofstream>     fileTrace;
     if (opts.baseTokenTracePath) {
         fileTrace = std::make_shared<std::ofstream>(
             *opts.baseTokenTracePath);
     }
-    p.traceStream            = fileTrace.get();
-    OrgTokenGroup baseTokens = ::tokenize(text.data(), text.size(), p);
-    OrgTokenGroup tokens;
-    OrgTokenizer  tokenizer{&tokens};
+    p.traceStream                        = fileTrace.get();
+    org::parse::OrgTokenGroup baseTokens = org::parse::tokenize(
+        text.data(), text.size(), p);
+    org::parse::OrgTokenGroup tokens;
+    org::parse::OrgTokenizer  tokenizer{&tokens};
 
     if (opts.tokenTracePath) {
         tokenizer.setTraceFile(*opts.tokenTracePath);
     }
 
     tokenizer.convert(baseTokens);
-    Lexer<OrgTokenKind, OrgFill> lex{&tokens};
+    org::parse::Lexer<OrgTokenKind, org::parse::OrgFill> lex{&tokens};
 
-    OrgNodeGroup nodes{&tokens};
-    OrgParser    parser{&nodes};
+    org::parse::OrgNodeGroup nodes{&tokens};
+    org::parse::OrgParser    parser{&nodes};
     if (opts.parseTracePath) { parser.setTraceFile(*opts.parseTracePath); }
 
     (void)parser.parseFull(lex);
@@ -129,7 +132,8 @@ sem::SemId<sem::Document> sem::parseStringOpts(
     sem::OrgConverter converter{};
     if (opts.semTracePath) { converter.setTraceFile(*opts.semTracePath); }
 
-    return converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
+    return converter.toDocument(
+        org::parse::OrgAdapter(&nodes, org::parse::OrgId(0)));
 }
 
 
@@ -158,8 +162,8 @@ Opt<sem::SemId<sem::File>> parseFileAux(
 
     auto parsed = opts.getParsedNode
                     ? opts.getParsedNode(path)
-                    : sem::parseFile(
-                          path.native(), sem::OrgParseParameters{});
+                    : org::parseFile(
+                          path.native(), org::OrgParseParameters{});
 
     if (parsed.isNil()) { return std::nullopt; }
     postProcessFileReferences(path, activeRoot, parsed, opts, state);
@@ -357,7 +361,7 @@ void postProcessFileReferences(
     sem::OrgArg                        parsed,
     const OrgDirectoryParseParameters& opts,
     DirectoryParseState&               state) {
-    sem::eachSubnodeRec(parsed, [&](sem::SemId<sem::Org> arg) {
+    org::eachSubnodeRec(parsed, [&](sem::SemId<sem::Org> arg) {
         if (auto incl = arg.asOpt<sem::CmdInclude>()) {
             postProcessInclude(arg, path, activeRoot, parsed, opts, state);
         } else if (auto link = arg.asOpt<sem::Link>()) {
@@ -369,7 +373,7 @@ void postProcessFileReferences(
 } // namespace
 
 
-Opt<sem::SemId<Org>> sem::parseDirectoryOpts(
+Opt<sem::SemId<Org>> org::parseDirectoryOpts(
     const std::string&                 root,
     const OrgDirectoryParseParameters& opts) {
 
@@ -377,7 +381,7 @@ Opt<sem::SemId<Org>> sem::parseDirectoryOpts(
     return parsePathAux(fs::absolute(root), root, opts, state);
 }
 
-sem::SemId<File> sem::parseFileWithIncludes(
+sem::SemId<File> org::parseFileWithIncludes(
     const std::string&                 file,
     const OrgDirectoryParseParameters& opts) {
     DirectoryParseState state;
@@ -391,68 +395,69 @@ sem::SemId<File> sem::parseFileWithIncludes(
 }
 
 
-sem::SemId<sem::Document> sem::readProtobufFile(const std::string& file) {
+sem::SemId<sem::Document> org::readProtobufFile(const std::string& file) {
     sem::SemId        read_node = sem::SemId<sem::Org>::Nil();
     std::ifstream     stream{file};
     orgproto::AnyNode result;
     result.ParseFromIstream(&stream);
-    proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::read(
+    org::algo::proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::read(
         result,
-        proto_write_accessor<sem::SemId<sem::Org>>::for_ref(read_node));
+        org::algo::proto_write_accessor<sem::SemId<sem::Org>>::for_ref(
+            read_node));
     return read_node.as<sem::Document>();
 }
 
-void sem::exportToProtobufFile(
+void org::exportToProtobufFile(
     sem::SemId<sem::Document> doc,
     const std::string&        file) {
     std::ofstream     stream{file};
     orgproto::AnyNode result;
-    proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
+    org::algo::proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
         &result, doc.asOrg());
     result.SerializeToOstream(&stream);
 }
 
 
-std::string sem::formatToString(sem::SemId<sem::Org> arg) {
-    return sem::Formatter::format(arg);
+std::string org::formatToString(sem::SemId<sem::Org> arg) {
+    return org::algo::Formatter::format(arg);
 }
 
 namespace {
 void eachSubnodeRecImpl(
-    CR<sem::SubnodeVisitor> visitor,
-    SemId<Org>              org,
-    bool                    originalBase);
+    CR<org::SemSubnodeVisitor> visitor,
+    SemId<Org>                 org,
+    bool                       originalBase);
 
 template <sem::NotOrg T>
-void visitField(CR<sem::SubnodeVisitor>, CR<T>) {}
+void visitField(CR<org::SemSubnodeVisitor>, CR<T>) {}
 
 
-void visitField(CR<sem::SubnodeVisitor> visitor, SemId<Org> node) {
+void visitField(CR<org::SemSubnodeVisitor> visitor, SemId<Org> node) {
     if (!node.isNil()) { eachSubnodeRecImpl(visitor, node, true); }
 }
 
 template <sem::IsOrg T>
-void visitField(CR<sem::SubnodeVisitor> visitor, CR<T> node) {
+void visitField(CR<org::SemSubnodeVisitor> visitor, CR<T> node) {
     visitField(visitor, node.asOrg());
 }
 
 
 template <typename T>
-void visitField(CR<sem::SubnodeVisitor> visitor, CVec<T> value) {
+void visitField(CR<org::SemSubnodeVisitor> visitor, CVec<T> value) {
     for (const auto& it : value) { visitField(visitor, it); }
 }
 
 
 template <typename T>
-void visitField(CR<sem::SubnodeVisitor> visitor, CR<Opt<T>> value) {
+void visitField(CR<org::SemSubnodeVisitor> visitor, CR<Opt<T>> value) {
     if (value) { visitField(visitor, *value); }
 }
 
 template <typename T>
 void recVisitOrgNodesImpl(
-    CR<sem::SubnodeVisitor> visitor,
-    SemId<T>                tree,
-    bool                    originalBase) {
+    CR<org::SemSubnodeVisitor> visitor,
+    SemId<T>                   tree,
+    bool                       originalBase) {
     if (tree.isNil()) { return; }
     if (originalBase) { visitor(tree); }
     using Bd = describe_bases<T, mod_any_access>;
@@ -470,9 +475,9 @@ void recVisitOrgNodesImpl(
 
 
 void eachSubnodeRecImpl(
-    CR<sem::SubnodeVisitor> visitor,
-    SemId<Org>              org,
-    bool                    originalBase) {
+    CR<org::SemSubnodeVisitor> visitor,
+    SemId<Org>                 org,
+    bool                       originalBase) {
     std::visit(
         [&](const auto& node) {
             recVisitOrgNodesImpl(visitor, node, originalBase);
@@ -482,12 +487,12 @@ void eachSubnodeRecImpl(
 } // namespace
 
 
-void sem::eachSubnodeRec(SemId<Org> id, SubnodeVisitor cb) {
+void org::eachSubnodeRec(SemId<Org> id, org::SemSubnodeVisitor cb) {
     eachSubnodeRecImpl(cb, id, true);
 }
 
 
-Opt<UserTime> getCreationTime(const SemId<Org>& node) {
+Opt<UserTime> org::getCreationTime(const SemId<Org>& node) {
     if (node->is(osk::Paragraph)) {
         auto time = node.as<sem::Paragraph>()->getTimestamps();
         return time.get(0);
@@ -599,7 +604,7 @@ absl::TimeZone LoadTimeZone(CR<Str> name) {
     }
 }
 
-sem::SemId<Time> sem::newSemTimeStatic(
+sem::SemId<Time> org::newSemTimeStatic(
     const UserTimeBreakdown& breakdown,
     bool                     isActive) {
 
@@ -641,20 +646,20 @@ sem::SemId<Time> sem::newSemTimeStatic(
     return result;
 }
 
-sem::SemId<Org> sem::asOneNode(OrgArg arg) {
+sem::SemId<Org> org::asOneNode(OrgArg arg) {
     switch (arg->getKind()) {
         case osk::StmtList:
         case osk::Document:
             LOGIC_ASSERTION_CHECK(
                 arg.size() == 1,
                 "`asOneNode` expects a node with a single nested element");
-            return sem::asOneNode(arg->at(0));
+            return org::asOneNode(arg->at(0));
         default: return arg;
     }
 }
 
 
-int sem::getListHeaderIndex(const sem::SemId<List>& it, CR<Str> text) {
+int org::getListHeaderIndex(const sem::SemId<List>& it, CR<Str> text) {
     for (auto const& [idx, sub] : enumerate(it->subnodes)) {
         if (auto it = sub.asOpt<sem::ListItem>();
             it && it->isDescriptionItem()
@@ -666,7 +671,7 @@ int sem::getListHeaderIndex(const sem::SemId<List>& it, CR<Str> text) {
     return -1;
 }
 
-void sem::setListItemBody(
+void org::setListItemBody(
     sem::SemId<sem::List> list,
     int                   index,
     Vec<sem::SemId<Org>>  value) {
@@ -674,7 +679,7 @@ void sem::setListItemBody(
 }
 
 
-void sem::insertDescriptionListItem(
+void org::insertDescriptionListItem(
     sem::SemId<List>           id,
     int                        index,
     sem::SemId<sem::Paragraph> paragraph,
@@ -685,7 +690,7 @@ void sem::insertDescriptionListItem(
     id->subnodes.insert(id->subnodes.begin() + index, item);
 }
 
-void sem::setDescriptionListItemBody(
+void org::setDescriptionListItemBody(
     sem::SemId<List>     list,
     CR<Str>              text,
     Vec<sem::SemId<Org>> value) {
@@ -700,7 +705,7 @@ void sem::setDescriptionListItemBody(
     }
 }
 
-void sem::insertListItemBody(
+void org::insertListItemBody(
     sem::SemId<List>     id,
     int                  index,
     Vec<sem::SemId<Org>> value) {
@@ -709,9 +714,9 @@ void sem::insertListItemBody(
     id->subnodes.insert(id->subnodes.begin() + index, item);
 }
 
-void sem::eachSubnodeRecSimplePath(
-    SemId<Org>               id,
-    SubnodeVisitorSimplePath cb) {
+void org::eachSubnodeRecSimplePath(
+    SemId<Org>                       id,
+    org::SemSubnodeVisitorSimplePath cb) {
     Func<void(sem::OrgArg, OrgVecArg path)> aux;
 
     aux = [&](sem::OrgArg node, OrgVecArg path) {
@@ -724,11 +729,11 @@ void sem::eachSubnodeRecSimplePath(
     aux(id, {});
 }
 
-AstTrackingMap sem::getAstTrackingMap(const Vec<sem::SemId<Org>>& nodes) {
+AstTrackingMap org::getAstTrackingMap(const Vec<sem::SemId<Org>>& nodes) {
     AstTrackingMap res;
 
     for (auto const& node : nodes) {
-        sem::eachSubnodeRecSimplePath(
+        org::eachSubnodeRecSimplePath(
             node, [&](sem::OrgArg node, CR<Vec<SemId<Org>>> path) {
                 auto add_string_tracking =
                     [&](UnorderedMap<Str, AstTrackingAlternatives>& map,
@@ -752,7 +757,7 @@ AstTrackingMap sem::getAstTrackingMap(const Vec<sem::SemId<Org>>& nodes) {
                             res.radioTargets, radio.words.at(0), {node});
                     }
 
-                    for (auto const& tag : sem::getSubtreeProperties<
+                    for (auto const& tag : org::getSubtreeProperties<
                              sem::NamedProperty::HashtagDef>(tree)) {
                         // only track fully resolved nodes, for node
                         // details see [[hashtag_track_set_minimization]]
@@ -836,7 +841,7 @@ RadioTargetSearchResult tryRadioTargetSearch(
 
 } // namespace
 
-Vec<AstTrackingGroup> sem::getSubnodeGroups(
+Vec<AstTrackingGroup> org::getSubnodeGroups(
     sem::SemId<Org>       node,
     const AstTrackingMap& map) {
     using G = AstTrackingGroup;
@@ -855,7 +860,7 @@ Vec<AstTrackingGroup> sem::getSubnodeGroups(
                 for (CR<AstTrackingPath> alt :
                      radioTargets->second.alternatives) {
                     if (auto tree = alt.getNode().asOpt<Subtree>()) {
-                        for (auto const& prop : sem::getSubtreeProperties<
+                        for (auto const& prop : org::getSubtreeProperties<
                                  sem::NamedProperty::RadioId>(tree)) {
                             search = tryRadioTargetSearch(
                                 prop.words, sub, idx, alt);

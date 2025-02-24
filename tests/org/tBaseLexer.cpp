@@ -11,6 +11,10 @@
 #include <haxorg/sem/ImmOrg.hpp>
 #include <haxorg/sem/SemBaseApi.hpp>
 
+using namespace hstd;
+using namespace org::test;
+using namespace org;
+
 TEST(ManualFileRun, TestDoc1) {
     {
         fs::path file{"/home/haxscramper/tmp/doc1.org"};
@@ -24,13 +28,13 @@ TEST(ManualFileRun, TestDoc1) {
                 .file = "doc1",
             });
 
-            auto start = org::ImmAstContext::init_start_context();
-            auto n     = start->init(sem::parseString(content));
+            auto start = imm::ImmAstContext::init_start_context();
+            auto n     = start->init(org::parseString(content));
 
             writeFile(
                 "/tmp/TestDoc1_clean.txt",
                 n.getRootAdapter()
-                    .treeRepr(org::ImmAdapter::TreeReprConf{
+                    .treeRepr(imm::ImmAdapter::TreeReprConf{
                         .withAuxFields = true,
                     })
                     .toString(false));
@@ -38,7 +42,7 @@ TEST(ManualFileRun, TestDoc1) {
             writeFile(
                 "/tmp/TestDoc1_refl.txt",
                 n.getRootAdapter()
-                    .treeRepr(org::ImmAdapter::TreeReprConf{
+                    .treeRepr(imm::ImmAdapter::TreeReprConf{
                         .withAuxFields  = true,
                         .withReflFields = true,
                     })
@@ -60,8 +64,8 @@ TEST(ManualFileRun, TestDoc1) {
                 .file = "doc2",
             });
 
-            auto start = org::ImmAstContext::init_start_context();
-            auto n     = start->init(sem::parseString(content));
+            auto start = imm::ImmAstContext::init_start_context();
+            auto n     = start->init(org::parseString(content));
         }
     }
 }
@@ -69,13 +73,13 @@ TEST(ManualFileRun, TestDoc1) {
 TEST(ManualFileRun, TestMain1) {
     fs::path file{"/home/haxscramper/tmp/org_test_dir/main/main.org"};
     if (fs::exists(file)) {
-        sem::OrgDirectoryParseParameters opts;
+        OrgDirectoryParseParameters opts;
 
         opts.getParsedNode = [&](std::string const& path) {
-            return sem::parseFile(path, sem::OrgParseParameters{});
+            return parseFile(path, org::OrgParseParameters{});
         };
 
-        auto parsed = sem::parseFileWithIncludes(file, opts);
+        auto parsed = parseFileWithIncludes(file, opts);
     }
 }
 
@@ -83,10 +87,10 @@ TEST(ManualFileRun, TestMain1) {
 TEST(ManualFileRun, TestDir1) {
     fs::path dir{"/home/haxscramper/tmp/org_test_dir"};
     if (fs::exists(dir)) {
-        sem::OrgDirectoryParseParameters opts;
+        org::OrgDirectoryParseParameters opts;
 
         opts.getParsedNode = [&](std::string const& path) {
-            return sem::parseFile(path, sem::OrgParseParameters{});
+            return org::parseFile(path, org::OrgParseParameters{});
         };
 
         opts.shouldProcessPath = [](std::string const& path) -> bool {
@@ -98,8 +102,8 @@ TEST(ManualFileRun, TestDir1) {
         };
 
         LOG(INFO) << "Parse directory content";
-        auto parse           = sem::parseDirectoryOpts(dir, opts);
-        auto initial_context = org::ImmAstContext::init_start_context();
+        auto parse           = org::parseDirectoryOpts(dir, opts);
+        auto initial_context = imm::ImmAstContext::init_start_context();
         auto root            = initial_context->addRoot(parse.value());
 
         LOG(INFO) << "Write tracking debug";
@@ -122,13 +126,13 @@ TEST(ManualFileRun, TestDir1) {
                         || 0 < graph.graph.outDegree(node);
                 },
             });
-        Graphviz gvc;
-        gv.setRankDirection(Graphviz::Graph::RankDirection::LR);
+        hstd::ext::Graphviz gvc;
+        gv.setRankDirection(hstd::ext::Graphviz::Graph::RankDirection::LR);
         gvc.writeFile("/tmp/TestDir.dot", gv);
         gvc.renderToFile(
             "/tmp/TestDir.png",
             gv,
-            Graphviz::RenderFormat::PNG,
-            Graphviz::LayoutType::Dot);
+            hstd::ext::Graphviz::RenderFormat::PNG,
+            hstd::ext::Graphviz::LayoutType::Dot);
     }
 }

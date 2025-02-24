@@ -588,6 +588,15 @@ def n_org() -> QualType:
     return QualType(name="org", isNamespace=True)
 
 
+def n_org_algo() -> QualType:
+    return QualType(
+        name="algo",
+        isNamespace=True,
+        meta=dict(isSemNamespace=True),
+        Spaces=[n_org()],
+    )
+
+
 @beartype
 def t_opt(arg: QualType) -> QualType:
     return QualType(name="Opt", Parameters=[arg], Spaces=[n_hstd()])
@@ -598,6 +607,7 @@ def t_vec(arg: QualType) -> QualType:
     return QualType(name="Vec", Parameters=[arg], Spaces=[n_hstd()])
 
 
+@beartype
 def n_sem() -> QualType:
     return QualType(
         name="sem",
@@ -606,6 +616,7 @@ def n_sem() -> QualType:
         Spaces=[n_org()],
     )
 
+@beartype
 def n_imm() -> QualType:
     return QualType(
         name="imm",

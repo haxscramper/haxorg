@@ -14,6 +14,7 @@
 using namespace org;
 using namespace org::imm;
 using namespace hstd;
+using namespace hstd::ext;
 
 struct store_error : hstd::CRTP_hexception<store_error> {};
 
@@ -28,9 +29,9 @@ EACH_SEM_ORG_KIND(_kind)
 
 
 ImmAstReplace org::imm::setSubnodes(
-    ImmAdapter               target,
-    hstd::ext::ImmVec<ImmId> subnodes,
-    ImmAstEditContext&       ctx) {
+    ImmAdapter         target,
+    ImmVec<ImmId>      subnodes,
+    ImmAstEditContext& ctx) {
     LOGIC_ASSERTION_CHECK(
         !target.isNil(), "cannot set subnodes to nil node");
     Opt<ImmAstReplace> result;
@@ -197,38 +198,38 @@ ImmAstReplace setNewSubnodes(
                         // clang-format off
                         [&]<hstd::IsVariant V>(V const&) { fail_field(); },
                         [&]<hstd::IsEnum E>(E const&) { fail_field(); },
-                        [&](hstd::ext::ImmBox<Opt<int>> const&) { fail_field(); },
-                        [&](hstd::ext::ImmBox<int> const&) { fail_field(); },
-                        [&](hstd::ext::ImmBox<Opt<bool>> const&) { fail_field(); },
-                        [&](hstd::ext::ImmBox<bool> const&) { fail_field(); },
+                        [&](ImmBox<Opt<int>> const&) { fail_field(); },
+                        [&](ImmBox<int> const&) { fail_field(); },
+                        [&](ImmBox<Opt<bool>> const&) { fail_field(); },
+                        [&](ImmBox<bool> const&) { fail_field(); },
                         [&](bool const&) { fail_field(); },
-                        [&](hstd::ext::ImmBox<Opt<sem::BlockCodeEvalResult>> const&) { fail_field(); },
-                        [&](hstd::ext::ImmBox<Opt<sem::AttrGroup>> const&) { fail_field(); },
-                        [&](hstd::ext::ImmBox<Opt<sem::HashTagText>> const&) { fail_field(); },
-                        [&](hstd::ext::ImmBox<Opt<sem::SubtreeCompletion>> const&) { fail_field(); },
-                        [&](hstd::ext::ImmBox<Opt<UserTime>> const&) { fail_field(); },
-                        [&](hstd::ext::ImmBox<sem::BlockCodeEvalResult> const&) { fail_field(); },
-                        [&](hstd::ext::ImmBox<sem::Tblfm> const&) { fail_field(); },
-                        [&](hstd::ext::ImmBox<sem::Tblfm::Assign::Flag> const&) { fail_field(); },
-                        [&](hstd::ext::ImmBox<Opt<Str>> const&) { fail_field(); },
+                        [&](ImmBox<Opt<sem::BlockCodeEvalResult>> const&) { fail_field(); },
+                        [&](ImmBox<Opt<sem::AttrGroup>> const&) { fail_field(); },
+                        [&](ImmBox<Opt<sem::HashTagText>> const&) { fail_field(); },
+                        [&](ImmBox<Opt<sem::SubtreeCompletion>> const&) { fail_field(); },
+                        [&](ImmBox<Opt<UserTime>> const&) { fail_field(); },
+                        [&](ImmBox<sem::BlockCodeEvalResult> const&) { fail_field(); },
+                        [&](ImmBox<sem::Tblfm> const&) { fail_field(); },
+                        [&](ImmBox<sem::Tblfm::Assign::Flag> const&) { fail_field(); },
+                        [&](ImmBox<Opt<Str>> const&) { fail_field(); },
                         [&](org::parse::LineCol const&) { fail_field(); },
                         [&](hstd::Opt<org::parse::LineCol> const&) { fail_field(); },
-                        [&](hstd::ext::ImmBox<Str> const&) { fail_field(); },
-                        [&](hstd::ext::ImmVec<Str> const&) { fail_field(); },
-                        [&](hstd::ext::ImmVec<org::imm::ImmSymbol::Param> const&) { fail_field(); },
-                        [&](hstd::ext::ImmVec<sem::BlockCodeSwitch> const&) { fail_field(); },
-                        [&](hstd::ext::ImmVec<sem::BlockCodeLine> const&) { fail_field(); },
-                        [&](hstd::ext::ImmVec<sem::NamedProperty> const&) { fail_field(); },
+                        [&](ImmBox<Str> const&) { fail_field(); },
+                        [&](ImmVec<Str> const&) { fail_field(); },
+                        [&](ImmVec<org::imm::ImmSymbol::Param> const&) { fail_field(); },
+                        [&](ImmVec<sem::BlockCodeSwitch> const&) { fail_field(); },
+                        [&](ImmVec<sem::BlockCodeLine> const&) { fail_field(); },
+                        [&](ImmVec<sem::NamedProperty> const&) { fail_field(); },
                         [&](sem::LinkTarget const&) { fail_field(); },
                         [&](sem::ColumnView const&) { fail_field(); },
-                        [&](hstd::ext::ImmBox<Opt<sem::ColumnView>> const&) { fail_field(); },
+                        [&](ImmBox<Opt<sem::ColumnView>> const&) { fail_field(); },
                         [&](sem::DocumentExportConfig const&) { fail_field(); },
                         [&](sem::AttrValue const&) { fail_field(); },
                         [&](sem::SubtreeLogHead const&) { fail_field(); },
                         // clang-format on
                         [&]<typename FK>(
-                            hstd::ext::ImmBox<hstd::Opt<
-                                org::imm::ImmIdT<FK>>> const& f) {
+                            ImmBox<hstd::Opt<org::imm::ImmIdT<FK>>> const&
+                                f) {
                             LOGIC_ASSERTION_CHECK(
                                 fieldGroup.second.size() == 1,
                                 "Assignment to single field cannot have "
@@ -242,30 +243,28 @@ ImmAstReplace setNewSubnodes(
                                 "multiple values");
                             mut_cast(f) = fieldGroup.second.at(0).second;
                         },
-                        [&]<typename FK>(
-                            hstd::ext::ImmVec<ImmIdT<FK>> const& f) {
+                        [&]<typename FK>(ImmVec<ImmIdT<FK>> const& f) {
                             // <<vector_field_assignment>> overwrite the
                             // node fields with a new value.
                             hstd::Vec<ImmIdT<FK>> convKinds;
                             for (auto const& it : fieldGroup.second) {
                                 convKinds.push_back(it.second.as<FK>());
                             }
-                            mut_cast(f) = hstd::ext::ImmVec<ImmIdT<FK>>{
+                            mut_cast(f) = ImmVec<ImmIdT<FK>>{
                                 convKinds.begin(), convKinds.end()};
                         },
-                        [&](hstd::ext::ImmVec<ImmId> const& f) {
+                        [&](ImmVec<ImmId> const& f) {
                             hstd::Vec<ImmId> convKinds;
                             for (auto const& it : fieldGroup.second) {
                                 convKinds.push_back(it.second);
                             }
-                            mut_cast(f) = hstd::ext::ImmVec<ImmId>{
+                            mut_cast(f) = ImmVec<ImmId>{
                                 convKinds.begin(),
                                 convKinds.end(),
                             };
                         },
                         [&]<typename FK>(
-                            hstd::ext::ImmMap<Str, org::ImmIdT<FK>> const&
-                                f) {
+                            ImmMap<Str, org::imm::ImmIdT<FK>> const& f) {
                             auto transient = f.transient();
                             for (auto const& key : fieldGroup.second) {
                                 transient.set(
@@ -459,7 +458,7 @@ ImmId ImmAstStore::add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx) {
     org::imm::ImmId result = org::imm::ImmId::Nil();
     switch_node_kind(
         org::imm::ImmId{data->getKind(), 0},
-        [&]<typename K>(org::ImmIdT<K> id) {
+        [&]<typename K>(org::imm::ImmIdT<K> id) {
             result = getStore<K>()->add(data, ctx);
         });
     auto adapter = ctx->adapt(ImmUniqId{result});
@@ -568,7 +567,8 @@ ImmAdapter ImmAstContext::adapt(const ImmUniqId& id) const {
 }
 
 ImmAdapter ImmAstContext::adaptUnrooted(const ImmId& id) const {
-    return org::imm::ImmAdapter{org::imm::ImmUniqId{id, {}}, mweak_from_this()};
+    return org::imm::ImmAdapter{
+        org::imm::ImmUniqId{id, {}}, mweak_from_this()};
 }
 
 
@@ -845,7 +845,7 @@ __same_type(sem::SubtreeCompletion);
 __same_type(sem::HashTagText);
 __same_type(sem::SubtreeLogHead);
 __same_type(sem::SubtreePath);
-__same_type(LineCol);
+__same_type(org::parse::LineCol);
 
 
 template <typename SemType, typename ImmType>
@@ -883,14 +883,14 @@ void assign_sem_field(
 
 #include "ImmOrgSerde.tcc"
 
-ImmId org::immer_from_sem(
+ImmId imm::immer_from_sem(
     const sem::SemId<sem::Org>& id,
     ImmAstEditContext&          ctx) {
     return ImmSemSerde<SemId_t, ImmId_t>::to_immer(id, ctx);
 }
 
 
-sem::SemId<sem::Org> org::sem_from_immer(
+sem::SemId<sem::Org> imm::sem_from_immer(
     const ImmId&         id,
     const ImmAstContext& ctx) {
     return ImmSemSerde<SemId_t, ImmId_t>::from_immer(id, ctx);
@@ -901,8 +901,8 @@ sem::SemId<sem::Org> ImmAstContext::get(ImmId id) {
     return store->get(id, *this);
 }
 
-template <org::IsImmOrgValueType ImmType>
-ImmId_t org::ImmAstKindStore<ImmType>::add(
+template <IsImmOrgValueType ImmType>
+ImmId_t imm::ImmAstKindStore<ImmType>::add(
     SemId_t            data,
     ImmAstEditContext& ctx) {
 
@@ -923,7 +923,7 @@ ImmId_t org::ImmAstKindStore<ImmType>::add(
     return add(value, ctx);
 }
 
-template <org::IsImmOrgValueType T>
+template <IsImmOrgValueType T>
 ImmId ImmAstKindStore<T>::add(const T& value, ImmAstEditContext& ctx) {
     auto  mask   = ImmId::combineMask(T::staticKind);
     ImmId result = values.add(value, mask);
@@ -944,7 +944,7 @@ mask:              {:064b}
 }
 
 
-template <org::IsImmOrgValueType T>
+template <IsImmOrgValueType T>
 sem::SemId<sem::Org> ImmAstKindStore<T>::get(
     ImmId                id,
     const ImmAstContext& ctx) {
@@ -962,7 +962,7 @@ sem::SemId<sem::Org> ImmAstKindStore<T>::get(
 
 
 #define forward_declare(__Kind)                                           \
-    template class org::ImmAstKindStore<org::Imm##__Kind>;
+    template class org::imm::ImmAstKindStore<org::imm::Imm##__Kind>;
 
 EACH_SEM_ORG_KIND(forward_declare)
 #undef forward_declare

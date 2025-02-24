@@ -24,9 +24,12 @@
 #include <haxorg/sem/perfetto_org.hpp>
 #include <haxorg/exporters/exportertree.hpp>
 
+using namespace hstd;
+using namespace org;
+using namespace org::sem;
 
-GTEST_ADL_PRINT_TYPE(org::ImmAdapter);
-GTEST_ADL_PRINT_TYPE(org::ImmUniqId);
+GTEST_ADL_PRINT_TYPE(imm::ImmAdapter);
+GTEST_ADL_PRINT_TYPE(imm::ImmUniqId);
 GTEST_ADL_PRINT_TYPE(org::graph::MapNode);
 GTEST_ADL_PRINT_TYPE(org::graph::MapEdge);
 GTEST_ADL_PRINT_TYPE(Vec<Str>);
@@ -40,9 +43,9 @@ GTEST_ADL_PRINT_TYPE(UserTimeBreakdown);
 Str getDebugFile(Str const& suffix = "");
 
 void writeTreeRepr(
-    org::ImmAdapter               n,
+    imm::ImmAdapter               n,
     Str const                     suffix,
-    org::ImmAdapter::TreeReprConf conf = org::ImmAdapter::TreeReprConf{
+    imm::ImmAdapter::TreeReprConf conf = imm::ImmAdapter::TreeReprConf{
         .withAuxFields = true,
     });
 
@@ -50,7 +53,7 @@ void writeTreeRepr(
 
 
 GTEST_ADL_PRINT_TYPE(OrgSemKind);
-GTEST_ADL_PRINT_TYPE(org::ImmId);
+GTEST_ADL_PRINT_TYPE(imm::ImmId);
 
 
 template <typename T>
@@ -415,7 +418,7 @@ template <typename T>
 struct ImmTestResult {
     org::ImmAstContext::Ptr context;
     org::ImmAstVersion      version;
-    org::ImmAdapterT<T>     node;
+    imm::ImmAdapterT<T>     node;
 };
 
 template <
