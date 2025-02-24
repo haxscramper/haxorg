@@ -947,7 +947,7 @@ bool sem::List::isDescriptionList() const { return List_isDescriptionList(this);
 bool sem::List::isNumberedList() const { return List_isNumberedList(this); }
 Vec<sem::AttrValue> sem::List::getListAttrs(CR<Str> param) const { return List_getListAttrs(this, param); }
 bool sem::ListItem::isDescriptionItem() const { return ListItem_isDescriptionItem(this); }
-Opt<Str> sem::ListItem::getCleanHeader() const { return isDescriptionItem() ? std::make_optional(sem::getCleanText(header.value().asOrg())) : std::nullopt; }
+Opt<Str> sem::ListItem::getCleanHeader() const { return isDescriptionItem() ? std::make_optional(org::getCleanText(header.value().asOrg())) : std::nullopt; }
 
 bool sem::Paragraph::isFootnoteDefinition() const { return getFootnoteName().has_value(); }
 bool sem::Paragraph::hasAdmonition() const { return !getAdmonitionNodes().empty(); }

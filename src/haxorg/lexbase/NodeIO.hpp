@@ -20,7 +20,7 @@ yaml yamlRepr(
     yaml out;
     for (const auto& [id, node] : group.nodes.pairs()) {
         yaml item;
-        item["kind"] = fmt1(node->kind);
+        item["kind"] = hstd::fmt1(node->kind);
         if (withId) { item["id"] = id.getUnmasked(); }
 
         if (node->isTerminal()) {
@@ -192,7 +192,7 @@ org::parse::NodeGroup<N, K, V, M> fromFlatNodes(hstd::CR<yaml> node) {
     org::parse::NodeGroup<N, K, V, M> result;
     result.nodes.resize(
         node.size(),
-        Node<N, K, V, M>(
+        org::parse::Node<N, K, V, M>(
             hstd::value_domain<N>::low(),
             org::parse::TokenId<K, V>::Nil()));
     int index = 0;
@@ -201,11 +201,13 @@ org::parse::NodeGroup<N, K, V, M> fromFlatNodes(hstd::CR<yaml> node) {
                      it["kind"].as<std::string>())
                      .value();
         if (it["extent"]) {
-            result.at(NodeId<N, K, V, M>(index)) = Node<N, K, V, M>(
-                kind, it["extent"].as<int>());
+            result.at(org::parse::NodeId<N, K, V, M>(index)) = org::parse::
+                Node<N, K, V, M>(kind, it["extent"].as<int>());
         } else {
-            result.at(NodeId<N, K, V, M>(index)) = Node<N, K, V, M>(
-                kind, TokenId<K, V>(it["tok_idx"].as<int>()));
+            result.at(org::parse::NodeId<N, K, V, M>(index)) = org::parse::
+                Node<N, K, V, M>(
+                    kind,
+                    org::parse::TokenId<K, V>(it["tok_idx"].as<int>()));
         }
         ++index;
     }
@@ -222,7 +224,7 @@ org::parse::TokenGroup<K, V> fromFlatTokens(
     int index = 0;
     for (const auto& it : node) {
         auto start    = buf.size();
-        auto id       = TokenId<K, V>(index);
+        auto id       = org::parse::TokenId<K, V>(index);
         result.at(id) = it.as<org::parse::Token<K, V>>();
         ++index;
     }

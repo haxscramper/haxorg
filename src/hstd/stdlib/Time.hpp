@@ -74,7 +74,7 @@ template <>
 struct std::formatter<absl::Time> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const absl::Time& p, FormatContext& ctx) const {
-        return fmt_ctx(
+        return hstd::fmt_ctx(
             absl::FormatTime("%Y-%m-%d %H:%M:%S", p, absl::TimeZone{}),
             ctx);
     }
@@ -84,6 +84,6 @@ template <>
 struct std::formatter<absl::TimeZone> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const absl::TimeZone& p, FormatContext& ctx) const {
-        return fmt_ctx(absl::FormatTime("%z", absl::Now(), p), ctx);
+        return hstd::fmt_ctx(absl::FormatTime("%z", absl::Now(), p), ctx);
     }
 };

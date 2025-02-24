@@ -36,7 +36,7 @@ TEST_F(ImmMapApi, AddNode) {
     org::graph::addNode(s1, v1.getRootAdapter(), conf);
     EXPECT_EQ(s1.graph.nodeCount(), 1);
 
-    Graphviz gvc;
+    hstd::ext::Graphviz gvc;
     auto     gv = s1.graph.toGraphviz(v1.context);
     gvc.renderToFile(getDebugFile("MapS2.png"), gv);
 }

@@ -425,7 +425,7 @@ struct NodeAdapter {
     hstd::Vec<NodeAdapter<N, K, V, M>> at(hstd::HSlice<H, L> range) {
         hstd::Vec<NodeAdapter<N, K, V, M>> result;
         const auto [start, end] = getSpan(group->size(id), range, true);
-        for (const auto& i : slice(start, end)) {
+        for (const auto& i : hstd::slice(start, end)) {
             result.push_back(this->operator[](i));
         }
         return result;

@@ -172,6 +172,14 @@ struct std::formatter<V> : std::formatter<std::string> {
 
 template <typename... Args>
 struct hstd::value_metadata<hstd::Variant<Args...>> {
+    static bool isEmpty(hstd::Variant<Args...> const& value) {
+        return std::visit(
+            []<typename Arg>(Arg const& arg) {
+                return hstd::value_metadata<Arg>::isEmpty(arg);
+            },
+            value);
+    }
+
     static std::string typeName() {
         return std::string{"Variant<"}
              + join(

@@ -84,11 +84,11 @@ struct std::formatter<org::parse::LineCol> : std::formatter<std::string> {
     FormatContext::iterator format(
         const org::parse::LineCol& p,
         FormatContext&             ctx) const {
-        fmt_ctx(p.line, ctx);
-        fmt_ctx(":", ctx);
-        fmt_ctx(p.column, ctx);
-        fmt_ctx(":", ctx);
-        return fmt_ctx(p.pos, ctx);
+        hstd::fmt_ctx(p.line, ctx);
+        hstd::fmt_ctx(":", ctx);
+        hstd::fmt_ctx(p.column, ctx);
+        hstd::fmt_ctx(":", ctx);
+        return hstd::fmt_ctx(p.pos, ctx);
     }
 };
 

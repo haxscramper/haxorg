@@ -424,7 +424,7 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
         GRAPH_MSG(fmt("subtrees {}", s.ast->currentTrack->subtrees));
         GRAPH_MSG(fmt("names {}", s.ast->currentTrack->names));
 
-        auto add_edge = [&](org::ImmId const& target) {
+        auto add_edge = [&](imm::ImmId const& target) {
             auto adapters = s.ast->getAdaptersFor(target);
             LOGIC_ASSERTION_CHECK(
                 !adapters.empty(),

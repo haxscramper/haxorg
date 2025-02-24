@@ -5,7 +5,7 @@
 #define __scope() ScopedField CONCAT(close, __COUNTER__){this};
 
 #include <haxorg/exporters/Exporter.cpp>
-template class Exporter<ExporterTree, int>;
+template class org::algo::Exporter<ExporterTree, int>;
 
 void ExporterTree::visitField(
     int&                 arg,

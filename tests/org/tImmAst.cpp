@@ -400,7 +400,7 @@ TEST_F(ImmOrgApiEdit, LeafSubtreeDemote) {
             EXPECT_EQ(s3010->getKind(), OrgSemKind::Subtree);
             EXPECT_EQ(s3010->as<imm::ImmSubtree>()->level, 3);
             return demoteSubtree(
-                s3010, org::SubtreeMove::ForceLevels, ctx);
+                s3010, imm::SubtreeMove::ForceLevels, ctx);
         });
 
     imm::ImmAdapter::TreeReprConf conf{.withAuxFields = true};
@@ -450,7 +450,7 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_OneNested) {
             auto s201 = root.at(Vec{0, 1});
             EXPECT_EQ(s201->getKind(), OrgSemKind::Subtree);
             EXPECT_EQ(s201->as<imm::ImmSubtree>()->level, 2);
-            return demoteSubtree(s201, org::SubtreeMove::ForceLevels, ctx);
+            return demoteSubtree(s201, imm::SubtreeMove::ForceLevels, ctx);
         });
 
     writeGvHistory({v1, v2}, "v1_v2");
@@ -476,7 +476,7 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_All) {
             imm::ImmAstEditContext& ctx) -> imm::ImmAstReplaceGroup {
             auto root = v1.getRootAdapter();
             auto s1   = root.at(0);
-            return demoteSubtree(s1, org::SubtreeMove::ForceLevels, ctx);
+            return demoteSubtree(s1, imm::SubtreeMove::ForceLevels, ctx);
         });
 
     writeGvHistory({v1, v2}, "v1_v2");
@@ -502,7 +502,7 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_WithParentChange) {
                 auto root = v.getRootAdapter();
                 auto s1   = root.at(path);
                 return demoteSubtree(
-                    s1, org::SubtreeMove::ForceLevels, ctx);
+                    s1, imm::SubtreeMove::ForceLevels, ctx);
             });
     };
 
@@ -575,7 +575,7 @@ TEST_F(ImmOrgApiEdit, PhysicalDemote) {
             imm::ImmAstEditContext& ctx) -> imm::ImmAstReplaceGroup {
             auto root = v1.getRootAdapter();
             auto s1   = root.at(Vec{0, 0});
-            return demoteSubtree(s1, org::SubtreeMove::Physical, ctx);
+            return demoteSubtree(s1, imm::SubtreeMove::Physical, ctx);
         });
 
     writeGvHistory({v1, v2}, "v1_v2");
@@ -601,8 +601,8 @@ TEST_F(ImmOrgApiEdit, ResetTitle) {
             return ctx.store().updateNode<imm::ImmSubtree>(
                 v1.getRootAdapter().at(0), ctx, [&](imm::ImmSubtree tree) {
                     tree.title = ctx->add(
-                                        sem::asOneNode(
-                                            sem::parseString("replaced")),
+                                        org::asOneNode(
+                                            org::parseString("replaced")),
                                         ctx)
                                      .as<imm::ImmParagraph>();
                     return tree;
@@ -774,16 +774,16 @@ TEST_F(ImmOrgApiAppModel, EditModel) {
             imm::ImmAstEditContext& ctx) -> imm::ImmAstReplaceGroup {
             auto                    t2 = rows1.at(0).nested.at(0);
             imm::ImmAstReplaceGroup result;
-            result.incl(org::replaceNode(
+            result.incl(imm::replaceNode(
                 t2.nameOrigin,
                 ast->add(
-                    sem::asOneNode(sem::parseString("New title")), ctx),
+                    org::asOneNode(org::parseString("New title")), ctx),
                 ctx));
-            result.incl(org::replaceNode(
+            result.incl(imm::replaceNode(
                 t2.storyEventOrigin,
                 ast->add(
-                    sem::asOneNode(
-                        sem::parseString("New story event description")),
+                    org::asOneNode(
+                        org::parseString("New story event description")),
                     ctx),
                 ctx));
             return result;
@@ -814,7 +814,7 @@ struct ImmOrgDocumentSelector : public ImmOrgApiTestBase {};
 
 TEST_F(ImmOrgDocumentSelector, GetMatchingNodeByKind) {
     auto                     node = getInitialVersion("bold");
-    org::OrgDocumentSelector selector;
+    imm::OrgDocumentSelector selector;
     selector.searchAnyKind({OrgSemKind::Word}, true);
 
     auto words = selector.getMatches(node.getRootAdapter());
@@ -826,7 +826,7 @@ TEST_F(ImmOrgDocumentSelector, GetMatchingNodeByKind) {
 
 TEST_F(ImmOrgDocumentSelector, GetMultipleMatchingNodesByKind) {
     auto                     node = getInitialVersion("word *bold*");
-    org::OrgDocumentSelector selector;
+    imm::OrgDocumentSelector selector;
     selector.searchAnyKind({OrgSemKind::Word}, true);
 
     auto words = selector.getMatches(node.getRootAdapter());
@@ -838,7 +838,7 @@ TEST_F(ImmOrgDocumentSelector, GetMultipleMatchingNodesByKind) {
 
 TEST_F(ImmOrgDocumentSelector, GetDirectlyNestedNode) {
     auto                     node = getInitialVersion("word *bold*");
-    org::OrgDocumentSelector selector;
+    imm::OrgDocumentSelector selector;
     selector.searchAnyKind(
         {OrgSemKind::Bold}, false, selector.linkDirectSubnode());
     selector.searchAnyKind({OrgSemKind::Word}, true);
@@ -862,7 +862,7 @@ Paragraph under subtitle 2
 )");
 
     if (true) {
-        org::OrgDocumentSelector selector;
+        imm::OrgDocumentSelector selector;
         selector.setTraceFile(getDebugFile("title_search_1"));
         selector.searchSubtreePlaintextTitle({"Title1"}, true);
 
@@ -872,7 +872,7 @@ Paragraph under subtitle 2
     }
 
     if (true) {
-        org::OrgDocumentSelector selector;
+        imm::OrgDocumentSelector selector;
         selector.setTraceFile(getDebugFile("title_search_2"));
         selector.searchSubtreePlaintextTitle(
             {"Subtitle2"}, false, selector.linkIndirectSubnode());
@@ -895,7 +895,7 @@ Paragraph under subtitle 2
     }
 
     if (true) {
-        org::OrgDocumentSelector selector;
+        imm::OrgDocumentSelector selector;
         selector.setTraceFile(getDebugFile("title_search_3"));
         selector.searchSubtreePlaintextTitle(
             {"Subtitle2"},
@@ -926,7 +926,7 @@ Content2
 * Title2
 )");
 
-    org::OrgDocumentSelector selector;
+    imm::OrgDocumentSelector selector;
     selector.searchSubtreePlaintextTitle(
         {"Title1"}, false, selector.linkIndirectSubnode());
     selector.searchSubtreePlaintextTitle({"Subtitle1"}, true);
@@ -943,13 +943,13 @@ First
 *** Nested subtree
 )");
 
-    org::OrgDocumentSelector      selector;
+    imm::OrgDocumentSelector      selector;
     UnorderedMap<OrgSemKind, int> counts;
 
     selector.searchPredicate(
-        [&](imm::ImmAdapter const& node) -> org::OrgSelectorResult {
+        [&](imm::ImmAdapter const& node) -> imm::OrgSelectorResult {
             ++counts[node->getKind()];
-            return org::OrgSelectorResult{
+            return imm::OrgSelectorResult{
                 .isMatching     = node->is(OrgSemKind::Subtree),
                 .tryNestedNodes = !node->is(OrgSemKind::Subtree),
             };
@@ -974,7 +974,7 @@ TEST_F(ImmOrgDocumentSelector, NonLeafSubtrees) {
 ** s7
 )");
 
-    org::OrgDocumentSelector selector;
+    imm::OrgDocumentSelector selector;
     selector.searchAnyKind(
         {OrgSemKind::Subtree}, true, selector.linkIndirectSubnode());
 
@@ -1006,7 +1006,7 @@ TEST_F(ImmOrgDocumentSelector, SubtreesWithDateInTitleAndBody) {
 )");
 
     {
-        org::OrgDocumentSelector selector;
+        imm::OrgDocumentSelector selector;
         selector.searchAnyKind(
             {OrgSemKind::Subtree},
             true,
@@ -1018,7 +1018,7 @@ TEST_F(ImmOrgDocumentSelector, SubtreesWithDateInTitleAndBody) {
     }
 
     {
-        org::OrgDocumentSelector selector;
+        imm::OrgDocumentSelector selector;
         selector.searchAnyKind(
             {OrgSemKind::Subtree}, true, selector.linkIndirectSubnode());
         selector.searchAnyKind({OrgSemKind::Time}, false);

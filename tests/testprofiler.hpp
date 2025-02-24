@@ -17,8 +17,8 @@ struct TestProfiler {
         DESC_FIELDS(RunRecord, (xray_path, pgo_path, metadata));
     };
 
-    static Vec<RunRecord> runRecords;
-    static json           getJsonRecords();
+    static hstd::Vec<RunRecord> runRecords;
+    static json                 getJsonRecords();
 
     TestProfiler(
         std::string const& xray_path,

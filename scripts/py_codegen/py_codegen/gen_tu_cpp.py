@@ -511,11 +511,13 @@ class GenConverter:
     def convertNamespace(self, space: GenTuNamespace) -> BlockId:
         result = self.ast.b.stack([])
         with GenConverterWithContext(self, space.name.asNamespace()):
-            self.ast.b.add_at(result, self.ast.b.line([
-                self.ast.string("namespace "),
-                self.ast.Type(space.name),
-                self.ast.string(" {"),
-            ]))
+            self.ast.b.add_at(
+                result,
+                self.ast.b.line([
+                    self.ast.string("namespace "),
+                    self.ast.Type(space.name),
+                    self.ast.string(" {"),
+                ]))
 
             for sub in space.entries:
                 self.ast.b.add_at_list(result, self.convertWithToplevel(sub))
@@ -579,9 +581,11 @@ class GenConverter:
 def n_hstd() -> QualType:
     return QualType(name="hstd", isNamespace=True)
 
+
 @beartype
 def n_hstd_ext() -> QualType:
     return QualType(name="ext", isNamespace=True, Spaces=[n_hstd()])
+
 
 @beartype
 def n_org() -> QualType:
@@ -616,6 +620,7 @@ def n_sem() -> QualType:
         Spaces=[n_org()],
     )
 
+
 @beartype
 def n_imm() -> QualType:
     return QualType(
@@ -625,6 +630,7 @@ def n_imm() -> QualType:
         Spaces=[n_org()],
     )
 
+
 @beartype
 def t_org(name: str) -> QualType:
     return QualType(
@@ -633,13 +639,13 @@ def t_org(name: str) -> QualType:
         # dbg_origin="t_org",
     )
 
+
 @beartype
 def t_space(name: str | QualType, Spaces: List[QualType]) -> QualType:
     if isinstance(name, QualType):
         return name.model_copy(update=dict(Spaces=Spaces))
     else:
         return QualType(name=name, Spaces=Spaces)
-
 
 
 @beartype
@@ -650,13 +656,7 @@ def t_nest(name: Union[str, QualType], Spaces: List[QualType] = []) -> QualType:
 @beartype
 def t_id(target: Optional[Union[QualType, str]] = None) -> QualType:
     org_t = target if target else t_nest(t_org("Org"))
-    org_t = org_t if isinstance(
-        org_t,
-        QualType,
-    ) else QualType(
-        name=org_t,
-        Spaces=[n_sem()],
-    )
+    org_t = org_t if isinstance(org_t, QualType) else t_nest(t_org(org_t))
 
     return (QualType(name="SemId", Parameters=[org_t], Spaces=[n_sem()]))
 

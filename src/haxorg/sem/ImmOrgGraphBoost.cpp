@@ -12,7 +12,7 @@ boost::dynamic_properties org::graph::toGraphvizDynamicProperties(
             "node_id",
             make_transform_value_property_map<std::string>(
                 [&](org::graph::MapNode const& prop) -> std::string {
-                    return fmt1(prop.id);
+                    return hstd::fmt1(prop.id);
                 },
                 boost::make_map_vertex_identity_map()))
         .property(
@@ -34,7 +34,7 @@ boost::dynamic_properties org::graph::toGraphvizDynamicProperties(
             "label",
             make_transform_value_property_map<std::string>(
                 [&](org::graph::MapNodeProp const& prop) -> std::string {
-                    return fmt("{}", prop.id);
+                    return hstd::fmt("{}", prop.id);
                 },
                 boost::get(boost::vertex_bundle, g)));
 
