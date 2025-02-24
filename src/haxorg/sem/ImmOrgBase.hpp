@@ -527,7 +527,7 @@ template <>
 struct std::formatter<org::imm::ImmId> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const org::imm::ImmId& p, FormatContext& ctx) const {
-        return fmt_ctx(p.getReadableId(), ctx);
+        return hstd::fmt_ctx(p.getReadableId(), ctx);
     }
 };
 

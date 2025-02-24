@@ -732,7 +732,7 @@ void switch_node_fields(
     Func const&               cb) {
     LOGIC_ASSERTION_CHECK(id.getKind() != OrgSemKind::None, "");
     switch_node_value(id, ctx, [&]<typename T>(T const& node) {
-        for_each_field_value_with_bases(node, cb);
+        hstd::for_each_field_value_with_bases(node, cb);
     });
 }
 

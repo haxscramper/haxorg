@@ -389,7 +389,7 @@ struct std::formatter<org::sem::SemId<org::sem::Org>>
     FormatContext::iterator format(
         const org::sem::SemId<org::sem::Org>& p,
         FormatContext&                        ctx) const {
-        return fmt_ctx(p->getKind(), ctx);
+        return hstd::fmt_ctx(p->getKind(), ctx);
     }
 };
 
@@ -400,9 +400,9 @@ struct std::formatter<org::sem::SemId<T>> : std::formatter<std::string> {
         const org::sem::SemId<T>& p,
         FormatContext&            ctx) const {
         if (p.isNil()) {
-            return fmt_ctx("<nil>", ctx);
+            return hstd::fmt_ctx("<nil>", ctx);
         } else {
-            return fmt_ctx(p->getKind(), ctx);
+            return hstd::fmt_ctx(p->getKind(), ctx);
         }
     }
 };

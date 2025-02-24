@@ -626,8 +626,30 @@ def n_imm() -> QualType:
     )
 
 @beartype
+def t_org(name: str) -> QualType:
+    return QualType(
+        name=name,
+        meta=dict(isOrgType=True),
+        # dbg_origin="t_org",
+    )
+
+@beartype
+def t_space(name: str | QualType, Spaces: List[QualType]) -> QualType:
+    if isinstance(name, QualType):
+        return name.model_copy(update=dict(Spaces=Spaces))
+    else:
+        return QualType(name=name, Spaces=Spaces)
+
+
+
+@beartype
+def t_nest(name: Union[str, QualType], Spaces: List[QualType] = []) -> QualType:
+    return t_space(name, [n_sem()] + Spaces)
+
+
+@beartype
 def t_id(target: Optional[Union[QualType, str]] = None) -> QualType:
-    org_t = target if target else QualType(name="Org", Spaces=[n_sem()])
+    org_t = target if target else t_nest(t_org("Org"))
     org_t = org_t if isinstance(
         org_t,
         QualType,

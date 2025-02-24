@@ -105,7 +105,7 @@ auto Formatter::toString(SemId<Macro> id, CR<Context> ctx) -> Res {
     }
 }
 
-std::string nestedHashtag(sem::HashTagText const& hash) {
+std::string nestedHashtag(org::sem::HashTagText const& hash) {
     if (hash.subtags.empty()) {
         return hash.head;
     } else if (hash.subtags.size() == 1) {

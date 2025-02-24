@@ -26,7 +26,6 @@
 
 using namespace hstd;
 using namespace org;
-using namespace org::sem;
 
 GTEST_ADL_PRINT_TYPE(imm::ImmAdapter);
 GTEST_ADL_PRINT_TYPE(imm::ImmUniqId);
@@ -350,7 +349,10 @@ struct reporting_comparator<sem::SemId<sem::Org>> {
 };
 
 template <typename Obj, typename Field>
-compare_report cmp_field_value(CR<T> lhs, CR<T> rhs, Field T::*fieldPtr) {
+compare_report cmp_field_value(
+    CR<Obj> lhs,
+    CR<Obj> rhs,
+    Field Obj::*fieldPtr) {
     return reporting_comparator<decltype(lhs.*fieldPtr)>::compare(
         lhs.*fieldPtr, rhs.*fieldPtr);
 };
@@ -372,9 +374,9 @@ std::string dbgString(
         "{}:{}\n{}",
         function,
         line,
-        sem::exportToTreeString(
+        org::exportToTreeString(
             id.asOrg(),
-            sem::OrgTreeExportOpts{
+            org::OrgTreeExportOpts{
                 .withColor = false,
             }));
 }
@@ -401,13 +403,13 @@ sem::SemId<T> parseOne(
     if (T::staticKind == node->getKind()) {
         return node.as<T>();
     } else {
-        auto one = sem::asOneNode(node);
+        auto one = org::asOneNode(node);
         while (T::staticKind != one->getKind()) {
             LOGIC_ASSERTION_CHECK(
                 one->subnodes.has(0),
                 "Parsed node does not have item at index 0: {}",
-                sem::exportToTreeString(
-                    node, sem::OrgTreeExportOpts{.withColor = false}));
+                org::exportToTreeString(
+                    node, org::OrgTreeExportOpts{.withColor = false}));
             one = one.at(0);
         }
         return one.as<T>();
@@ -416,16 +418,16 @@ sem::SemId<T> parseOne(
 
 template <typename T>
 struct ImmTestResult {
-    org::ImmAstContext::Ptr context;
-    org::ImmAstVersion      version;
+    imm::ImmAstContext::Ptr context;
+    imm::ImmAstVersion      version;
     imm::ImmAdapterT<T>     node;
 };
 
 template <
     sem::IsOrg Sem,
-    typename Imm = org::sem_to_imm_map<Sem>::imm_type>
+    typename Imm = imm::sem_to_imm_map<Sem>::imm_type>
 ImmTestResult<Imm> immConv(
-    org::ImmAstContext::Ptr ctx,
+    imm::ImmAstContext::Ptr ctx,
     sem::SemId<Sem> const&  id) {
     ImmTestResult<Imm> res;
     res.context = ctx;
@@ -436,36 +438,36 @@ ImmTestResult<Imm> immConv(
 
 template <
     sem::IsOrg Sem,
-    typename Imm = org::sem_to_imm_map<Sem>::imm_type>
+    typename Imm = imm::sem_to_imm_map<Sem>::imm_type>
 ImmTestResult<Imm> immConv(sem::SemId<Sem> const& id) {
-    return immConv(org::ImmAstContext::init_start_context(), id);
+    return immConv(imm::ImmAstContext::init_start_context(), id);
 }
 
 struct ImmOrgApiTestBase : public ::testing::Test {
-    org::ImmAstContext::Ptr start;
+    imm::ImmAstContext::Ptr start;
 
     ImmOrgApiTestBase()
-        : start{org::ImmAstContext::init_start_context()} {}
+        : start{imm::ImmAstContext::init_start_context()} {}
 
     void setTraceFile(std::string const& path) {
         start->debug->setTraceFile(path);
     }
 
-    org::ImmAstVersion getInitialVersion(
+    imm::ImmAstVersion getInitialVersion(
         Str const&                 text,
         std::optional<std::string> debug = std::nullopt) {
         return start->init(testParseString(text, debug));
     }
 
     void writeGvHistory(
-        const Vec<org::ImmAstVersion>& history,
+        const Vec<imm::ImmAstVersion>& history,
         std::string                    suffix,
-        org::ImmAstGraphvizConf const& conf = org::ImmAstGraphvizConf{
+        imm::ImmAstGraphvizConf const& conf = imm::ImmAstGraphvizConf{
             .withAuxNodes    = true,
             .withEditHistory = true,
         }) {
-        Graphviz gvc;
-        auto     gv = org::toGraphviz(history, conf);
+        hstd::ext::Graphviz gvc;
+        auto                gv = imm::toGraphviz(history, conf);
         gvc.writeFile(getDebugFile(suffix + ".dot"), gv);
         gvc.renderToFile(getDebugFile(suffix + ".png"), gv);
     }

@@ -64,26 +64,7 @@ def t_user_time() -> QualType:
     return t("UserTime", [n_hstd()])
 
 
-@beartype
-def t_space(name: str | QualType, Spaces: List[QualType]) -> QualType:
-    if isinstance(name, QualType):
-        return name.model_copy(update=dict(Spaces=Spaces))
-    else:
-        return QualType(name=name, Spaces=Spaces)
 
-
-@beartype
-def t_org(name: str) -> QualType:
-    return QualType(
-        name=name,
-        meta=dict(isOrgType=True),
-        # dbg_origin="t_org",
-    )
-
-
-@beartype
-def t_nest(name: Union[str, QualType], Spaces: List[QualType] = []) -> QualType:
-    return t_space(name, [n_sem()] + Spaces)
 
 
 @beartype
