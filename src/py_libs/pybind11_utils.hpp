@@ -198,7 +198,7 @@ struct py_arg_convertor<hstd::Vec<T>> {
 template <hstd::DescribedRecord R>
 void init_fields_from_kwargs(R& value, pybind11::kwargs const& kwargs) {
     hstd::UnorderedSet<hstd::Str> used_kwargs;
-    for_each_field_with_bases<R>([&](auto const& field) {
+    hstd::for_each_field_with_bases<R>([&](auto const& field) {
         if (kwargs.contains(field.name)) {
             used_kwargs.incl(field.name);
             auto& ref = value.*field.pointer;

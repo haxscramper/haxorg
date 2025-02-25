@@ -226,12 +226,16 @@ struct [[refl]] ExporterPython
     }
 
     FieldCbMap    visitLeafFieldCb;
-    [[refl]] void setVisitLeafField(LeafFieldType kind, PyFunc cb) {
+    [[refl]] void setVisitLeafField(
+        org::bind::python::LeafFieldType kind,
+        PyFunc                           cb) {
         visitLeafFieldCb[kind] = cb;
     }
 
     FieldCbMap    evalLeafFieldCb;
-    [[refl]] void setEvalLeafField(LeafFieldType kind, PyFunc cb) {
+    [[refl]] void setEvalLeafField(
+        org::bind::python::LeafFieldType kind,
+        PyFunc                           cb) {
         evalLeafFieldCb[kind] = cb;
     }
 
@@ -258,7 +262,9 @@ struct [[refl]] ExporterPython
     [[refl]] void     setNewAnyOrgRes(PyFunc cb) { newAnyOrgResCb = cb; }
 
     FieldCbMap    newLeafResCb;
-    [[refl]] void setNewLeafRes(LeafFieldType kind, PyFunc cb) {
+    [[refl]] void setNewLeafRes(
+        org::bind::python::LeafFieldType kind,
+        PyFunc                           cb) {
         newLeafResCb[kind] = cb;
     }
 

@@ -149,7 +149,7 @@ PYBIND11_MODULE(py_adaptagrams, m) {
     .def("getSeparate", static_cast<hstd::ext::GraphNodeConstraint::Separate const&(hstd::ext::GraphNodeConstraint::*)() const>(&hstd::ext::GraphNodeConstraint::getSeparate))
     .def("getMultiSeparate", static_cast<hstd::ext::GraphNodeConstraint::MultiSeparate const&(hstd::ext::GraphNodeConstraint::*)() const>(&hstd::ext::GraphNodeConstraint::getMultiSeparate))
     .def("getPageBoundary", static_cast<hstd::ext::GraphNodeConstraint::PageBoundary const&(hstd::ext::GraphNodeConstraint::*)() const>(&hstd::ext::GraphNodeConstraint::getPageBoundary))
-    .def("getKind", static_cast<GraphNodeConstraint::hstd::ext::Kind(hstd::ext::GraphNodeConstraint::*)() const>(&hstd::ext::GraphNodeConstraint::getKind))
+    .def("getKind", static_cast<hstd::ext::GraphNodeConstraint::Kind(hstd::ext::GraphNodeConstraint::*)() const>(&hstd::ext::GraphNodeConstraint::getKind))
     .def_static("InitEmptyStatic",
                 static_cast<hstd::ext::GraphNodeConstraint(*)(hstd::ext::GraphNodeConstraint::Empty const&)>(&hstd::ext::GraphNodeConstraint::InitEmpty),
                 pybind11::arg("arg"))
@@ -475,9 +475,9 @@ layout spec)RAW")
     .value("XDIM", hstd::ext::GraphDimension::XDIM)
     .value("YDIM", hstd::ext::GraphDimension::YDIM)
     .value("UNSET", hstd::ext::GraphDimension::UNSET)
-    .def("__iter__", [](hstd::ext::GraphDimension _self) -> PyEnumIterator<hstd::ext::GraphDimension> {
+    .def("__iter__", [](hstd::ext::GraphDimension _self) -> org::bind::python::PyEnumIterator<hstd::ext::GraphDimension> {
                      return
-                     PyEnumIterator<hstd::ext::GraphDimension>
+                     org::bind::python::PyEnumIterator<hstd::ext::GraphDimension>
                      ();
                      })
     ;
@@ -489,9 +489,9 @@ layout spec)RAW")
     .value("Separate", hstd::ext::GraphNodeConstraint::Kind::Separate)
     .value("MultiSeparate", hstd::ext::GraphNodeConstraint::Kind::MultiSeparate)
     .value("PageBoundary", hstd::ext::GraphNodeConstraint::Kind::PageBoundary)
-    .def("__iter__", [](hstd::ext::GraphNodeConstraint::Kind _self) -> PyEnumIterator<hstd::ext::GraphNodeConstraint::Kind> {
+    .def("__iter__", [](hstd::ext::GraphNodeConstraint::Kind _self) -> org::bind::python::PyEnumIterator<hstd::ext::GraphNodeConstraint::Kind> {
                      return
-                     PyEnumIterator<hstd::ext::GraphNodeConstraint::Kind>
+                     org::bind::python::PyEnumIterator<hstd::ext::GraphNodeConstraint::Kind>
                      ();
                      })
     ;
@@ -503,9 +503,9 @@ layout spec)RAW")
     .value("West", hstd::ext::GraphEdgeConstraint::Port::West)
     .value("East", hstd::ext::GraphEdgeConstraint::Port::East)
     .value("Center", hstd::ext::GraphEdgeConstraint::Port::Center)
-    .def("__iter__", [](hstd::ext::GraphEdgeConstraint::Port _self) -> PyEnumIterator<hstd::ext::GraphEdgeConstraint::Port> {
+    .def("__iter__", [](hstd::ext::GraphEdgeConstraint::Port _self) -> org::bind::python::PyEnumIterator<hstd::ext::GraphEdgeConstraint::Port> {
                      return
-                     PyEnumIterator<hstd::ext::GraphEdgeConstraint::Port>
+                     org::bind::python::PyEnumIterator<hstd::ext::GraphEdgeConstraint::Port>
                      ();
                      })
     ;

@@ -1069,10 +1069,10 @@ def gen_pyhaxorg_wrappers(
     full_enums = get_shared_sem_enums() + get_enums() + [get_osk_enum(expanded)]
     tu: ConvTu = conv_proto_file(reflection_path)
 
-    with open("/tmp/reflection_data.yaml", "w") as file:
+    with open("/tmp/pyhaxorg_reflection_data.yaml", "w") as file:
         yaml.safe_dump(to_base_types(tu), stream=file)
 
-    with open("/tmp/reflection_data.json", "w") as file:
+    with open("/tmp/pyhaxorg_reflection_data.json", "w") as file:
         log(CAT).debug(f"Debug reflection data to {file.name}")
         file.write(open_proto_file(reflection_path).to_json(2))
 

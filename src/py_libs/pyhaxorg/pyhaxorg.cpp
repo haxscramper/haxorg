@@ -62,14 +62,12 @@ PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::Time>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::Time>>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::OrgJson>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::OrgJson>)
-PYBIND11_MAKE_OPAQUE(std::vector<sem::sem::SemId<sem::sem::Org>>)
-PYBIND11_MAKE_OPAQUE(hstd::Vec<sem::sem::SemId<sem::sem::Org>>)
-PYBIND11_MAKE_OPAQUE(std::unordered_map<sem::sem::HashTagFlat, org::AstTrackingPath>)
-PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<sem::sem::HashTagFlat, org::AstTrackingPath>)
+PYBIND11_MAKE_OPAQUE(std::unordered_map<org::sem::HashTagFlat, org::AstTrackingPath>)
+PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<org::sem::HashTagFlat, org::AstTrackingPath>)
 PYBIND11_MAKE_OPAQUE(std::unordered_map<hstd::Str, org::AstTrackingAlternatives>)
 PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<hstd::Str, org::AstTrackingAlternatives>)
-PYBIND11_MAKE_OPAQUE(std::unordered_map<sem::sem::HashTagFlat, org::AstTrackingAlternatives>)
-PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<sem::sem::HashTagFlat, org::AstTrackingAlternatives>)
+PYBIND11_MAKE_OPAQUE(std::unordered_map<org::sem::HashTagFlat, org::AstTrackingAlternatives>)
+PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<org::sem::HashTagFlat, org::AstTrackingAlternatives>)
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::SequenceSegment>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::SequenceSegment>)
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::SequenceAnnotationTag>)
@@ -111,10 +109,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<hstd::UserTime>(m, "hstdVecOfhstdUserTime", type_registry_guard);
   bind_vector<org::sem::SemId<org::sem::Time>>(m, "hstdVecOforgSemIdOforgTime", type_registry_guard);
   bind_vector<org::sem::OrgJson>(m, "hstdVecOforgOrgJson", type_registry_guard);
-  bind_vector<sem::sem::SemId<sem::sem::Org>>(m, "hstdVecOfSemIdOfOrg", type_registry_guard);
-  bind_unordered_map<sem::sem::HashTagFlat, org::AstTrackingPath>(m, "hstdUnorderedMapOfHashTagFlatorgAstTrackingPath", type_registry_guard);
+  bind_unordered_map<org::sem::HashTagFlat, org::AstTrackingPath>(m, "hstdUnorderedMapOforgHashTagFlatorgAstTrackingPath", type_registry_guard);
   bind_unordered_map<hstd::Str, org::AstTrackingAlternatives>(m, "hstdUnorderedMapOfhstdStrorgAstTrackingAlternatives", type_registry_guard);
-  bind_unordered_map<sem::sem::HashTagFlat, org::AstTrackingAlternatives>(m, "hstdUnorderedMapOfHashTagFlatorgAstTrackingAlternatives", type_registry_guard);
+  bind_unordered_map<org::sem::HashTagFlat, org::AstTrackingAlternatives>(m, "hstdUnorderedMapOforgHashTagFlatorgAstTrackingAlternatives", type_registry_guard);
   bind_vector<hstd::SequenceSegment>(m, "hstdVecOfhstdSequenceSegment", type_registry_guard);
   bind_vector<hstd::SequenceAnnotationTag>(m, "hstdVecOfhstdSequenceAnnotationTag", type_registry_guard);
   bind_vector<org::AstTrackingGroup>(m, "hstdVecOforgAstTrackingGroup", type_registry_guard);
@@ -213,9 +210,9 @@ node can have subnodes.)RAW")
   pybind11::enum_<org::sem::Tblfm::Expr::AxisRef::Position::Kind>(m, "orgTblfmExprAxisRefPositionKind")
     .value("Index", org::sem::Tblfm::Expr::AxisRef::Position::Kind::Index)
     .value("Name", org::sem::Tblfm::Expr::AxisRef::Position::Kind::Name)
-    .def("__iter__", [](org::sem::Tblfm::Expr::AxisRef::Position::Kind _self) -> PyEnumIterator<org::sem::Tblfm::Expr::AxisRef::Position::Kind> {
+    .def("__iter__", [](org::sem::Tblfm::Expr::AxisRef::Position::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::Tblfm::Expr::AxisRef::Position::Kind> {
                      return
-                     PyEnumIterator<org::sem::Tblfm::Expr::AxisRef::Position::Kind>
+                     org::bind::python::PyEnumIterator<org::sem::Tblfm::Expr::AxisRef::Position::Kind>
                      ();
                      })
     ;
@@ -391,9 +388,9 @@ node can have subnodes.)RAW")
     .value("RangeRef", org::sem::Tblfm::Expr::Kind::RangeRef)
     .value("Call", org::sem::Tblfm::Expr::Kind::Call)
     .value("Elisp", org::sem::Tblfm::Expr::Kind::Elisp)
-    .def("__iter__", [](org::sem::Tblfm::Expr::Kind _self) -> PyEnumIterator<org::sem::Tblfm::Expr::Kind> {
+    .def("__iter__", [](org::sem::Tblfm::Expr::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::Tblfm::Expr::Kind> {
                      return
-                     PyEnumIterator<org::sem::Tblfm::Expr::Kind>
+                     org::bind::python::PyEnumIterator<org::sem::Tblfm::Expr::Kind>
                      ();
                      })
     ;
@@ -451,9 +448,9 @@ node can have subnodes.)RAW")
     .value("CellZero", org::sem::Tblfm::Assign::Flag::CellZero, R"RAW(Display zero as empty cell)RAW")
     .value("CellMarkInvalid", org::sem::Tblfm::Assign::Flag::CellMarkInvalid, R"RAW(Mark field as invalid if conversion fails)RAW")
     .value("CellQuote", org::sem::Tblfm::Assign::Flag::CellQuote, R"RAW(Quote field contents)RAW")
-    .def("__iter__", [](org::sem::Tblfm::Assign::Flag _self) -> PyEnumIterator<org::sem::Tblfm::Assign::Flag> {
+    .def("__iter__", [](org::sem::Tblfm::Assign::Flag _self) -> org::bind::python::PyEnumIterator<org::sem::Tblfm::Assign::Flag> {
                      return
-                     PyEnumIterator<org::sem::Tblfm::Assign::Flag>
+                     org::bind::python::PyEnumIterator<org::sem::Tblfm::Assign::Flag>
                      ();
                      })
     ;
@@ -503,9 +500,9 @@ node can have subnodes.)RAW")
     .value("Boolean", org::sem::AttrValue::Kind::Boolean)
     .value("Integer", org::sem::AttrValue::Kind::Integer)
     .value("Float", org::sem::AttrValue::Kind::Float)
-    .def("__iter__", [](org::sem::AttrValue::Kind _self) -> PyEnumIterator<org::sem::AttrValue::Kind> {
+    .def("__iter__", [](org::sem::AttrValue::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::AttrValue::Kind> {
                      return
-                     PyEnumIterator<org::sem::AttrValue::Kind>
+                     org::bind::python::PyEnumIterator<org::sem::AttrValue::Kind>
                      ();
                      })
     ;
@@ -808,9 +805,9 @@ node can have subnodes.)RAW")
     .value("Footnote", org::sem::LinkTarget::Kind::Footnote)
     .value("File", org::sem::LinkTarget::Kind::File)
     .value("Attachment", org::sem::LinkTarget::Kind::Attachment)
-    .def("__iter__", [](org::sem::LinkTarget::Kind _self) -> PyEnumIterator<org::sem::LinkTarget::Kind> {
+    .def("__iter__", [](org::sem::LinkTarget::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::LinkTarget::Kind> {
                      return
-                     PyEnumIterator<org::sem::LinkTarget::Kind>
+                     org::bind::python::PyEnumIterator<org::sem::LinkTarget::Kind>
                      ();
                      })
     ;
@@ -862,9 +859,9 @@ node can have subnodes.)RAW")
     .value("Added", org::sem::SubtreeLogHead::Priority::Action::Added, R"RAW(`Priority B added on [timestamp]`)RAW")
     .value("Removed", org::sem::SubtreeLogHead::Priority::Action::Removed, R"RAW(`Priority C removed on [timestamp]`)RAW")
     .value("Changed", org::sem::SubtreeLogHead::Priority::Action::Changed, R"RAW(`Priority B changed from C on [timestamp]`)RAW")
-    .def("__iter__", [](org::sem::SubtreeLogHead::Priority::Action _self) -> PyEnumIterator<org::sem::SubtreeLogHead::Priority::Action> {
+    .def("__iter__", [](org::sem::SubtreeLogHead::Priority::Action _self) -> org::bind::python::PyEnumIterator<org::sem::SubtreeLogHead::Priority::Action> {
                      return
-                     PyEnumIterator<org::sem::SubtreeLogHead::Priority::Action>
+                     org::bind::python::PyEnumIterator<org::sem::SubtreeLogHead::Priority::Action>
                      ();
                      })
     ;
@@ -1062,9 +1059,9 @@ node can have subnodes.)RAW")
     .value("Schedule", org::sem::SubtreeLogHead::Kind::Schedule)
     .value("Tag", org::sem::SubtreeLogHead::Kind::Tag)
     .value("Unknown", org::sem::SubtreeLogHead::Kind::Unknown)
-    .def("__iter__", [](org::sem::SubtreeLogHead::Kind _self) -> PyEnumIterator<org::sem::SubtreeLogHead::Kind> {
+    .def("__iter__", [](org::sem::SubtreeLogHead::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::SubtreeLogHead::Kind> {
                      return
-                     PyEnumIterator<org::sem::SubtreeLogHead::Kind>
+                     org::bind::python::PyEnumIterator<org::sem::SubtreeLogHead::Kind>
                      ();
                      })
     ;
@@ -1206,9 +1203,9 @@ node can have subnodes.)RAW")
     .value("IfAllNested", org::sem::ColumnView::Summary::CheckboxAggregate::Kind::IfAllNested)
     .value("AggregateFractionRec", org::sem::ColumnView::Summary::CheckboxAggregate::Kind::AggregateFractionRec)
     .value("AggregatePercentRec", org::sem::ColumnView::Summary::CheckboxAggregate::Kind::AggregatePercentRec)
-    .def("__iter__", [](org::sem::ColumnView::Summary::CheckboxAggregate::Kind _self) -> PyEnumIterator<org::sem::ColumnView::Summary::CheckboxAggregate::Kind> {
+    .def("__iter__", [](org::sem::ColumnView::Summary::CheckboxAggregate::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::ColumnView::Summary::CheckboxAggregate::Kind> {
                      return
-                     PyEnumIterator<org::sem::ColumnView::Summary::CheckboxAggregate::Kind>
+                     org::bind::python::PyEnumIterator<org::sem::ColumnView::Summary::CheckboxAggregate::Kind>
                      ();
                      })
     ;
@@ -1238,9 +1235,9 @@ node can have subnodes.)RAW")
     .value("Mean", org::sem::ColumnView::Summary::MathAggregate::Kind::Mean)
     .value("Sum", org::sem::ColumnView::Summary::MathAggregate::Kind::Sum)
     .value("LowHighEst", org::sem::ColumnView::Summary::MathAggregate::Kind::LowHighEst)
-    .def("__iter__", [](org::sem::ColumnView::Summary::MathAggregate::Kind _self) -> PyEnumIterator<org::sem::ColumnView::Summary::MathAggregate::Kind> {
+    .def("__iter__", [](org::sem::ColumnView::Summary::MathAggregate::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::ColumnView::Summary::MathAggregate::Kind> {
                      return
-                     PyEnumIterator<org::sem::ColumnView::Summary::MathAggregate::Kind>
+                     org::bind::python::PyEnumIterator<org::sem::ColumnView::Summary::MathAggregate::Kind>
                      ();
                      })
     ;
@@ -1269,9 +1266,9 @@ node can have subnodes.)RAW")
   pybind11::enum_<org::sem::ColumnView::Summary::Kind>(m, "orgColumnViewSummaryKind")
     .value("CheckboxAggregate", org::sem::ColumnView::Summary::Kind::CheckboxAggregate)
     .value("MathAggregate", org::sem::ColumnView::Summary::Kind::MathAggregate)
-    .def("__iter__", [](org::sem::ColumnView::Summary::Kind _self) -> PyEnumIterator<org::sem::ColumnView::Summary::Kind> {
+    .def("__iter__", [](org::sem::ColumnView::Summary::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::ColumnView::Summary::Kind> {
                      return
-                     PyEnumIterator<org::sem::ColumnView::Summary::Kind>
+                     org::bind::python::PyEnumIterator<org::sem::ColumnView::Summary::Kind>
                      ();
                      })
     ;
@@ -1405,9 +1402,9 @@ node can have subnodes.)RAW")
     .value("Raw", org::sem::BlockCodeLine::Part::Kind::Raw)
     .value("Callout", org::sem::BlockCodeLine::Part::Kind::Callout)
     .value("Tangle", org::sem::BlockCodeLine::Part::Kind::Tangle)
-    .def("__iter__", [](org::sem::BlockCodeLine::Part::Kind _self) -> PyEnumIterator<org::sem::BlockCodeLine::Part::Kind> {
+    .def("__iter__", [](org::sem::BlockCodeLine::Part::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::BlockCodeLine::Part::Kind> {
                      return
-                     PyEnumIterator<org::sem::BlockCodeLine::Part::Kind>
+                     org::bind::python::PyEnumIterator<org::sem::BlockCodeLine::Part::Kind>
                      ();
                      })
     ;
@@ -1562,9 +1559,9 @@ node can have subnodes.)RAW")
     .value("RemoveCallout", org::sem::BlockCodeSwitch::Kind::RemoveCallout)
     .value("EmphasizeLine", org::sem::BlockCodeSwitch::Kind::EmphasizeLine)
     .value("Dedent", org::sem::BlockCodeSwitch::Kind::Dedent)
-    .def("__iter__", [](org::sem::BlockCodeSwitch::Kind _self) -> PyEnumIterator<org::sem::BlockCodeSwitch::Kind> {
+    .def("__iter__", [](org::sem::BlockCodeSwitch::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::BlockCodeSwitch::Kind> {
                      return
-                     PyEnumIterator<org::sem::BlockCodeSwitch::Kind>
+                     org::bind::python::PyEnumIterator<org::sem::BlockCodeSwitch::Kind>
                      ();
                      })
     ;
@@ -1682,9 +1679,9 @@ node can have subnodes.)RAW")
     .value("OrgValue", org::sem::BlockCodeEvalResult::Kind::OrgValue)
     .value("File", org::sem::BlockCodeEvalResult::Kind::File)
     .value("Raw", org::sem::BlockCodeEvalResult::Kind::Raw)
-    .def("__iter__", [](org::sem::BlockCodeEvalResult::Kind _self) -> PyEnumIterator<org::sem::BlockCodeEvalResult::Kind> {
+    .def("__iter__", [](org::sem::BlockCodeEvalResult::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::BlockCodeEvalResult::Kind> {
                      return
-                     PyEnumIterator<org::sem::BlockCodeEvalResult::Kind>
+                     org::bind::python::PyEnumIterator<org::sem::BlockCodeEvalResult::Kind>
                      ();
                      })
     ;
@@ -1743,9 +1740,9 @@ node can have subnodes.)RAW")
     .value("None", org::sem::DocumentExportConfig::TagExport::None)
     .value("All", org::sem::DocumentExportConfig::TagExport::All)
     .value("NotInToc", org::sem::DocumentExportConfig::TagExport::NotInToc, R"RAW(Expot tags in subtree titles but not in the table of content)RAW")
-    .def("__iter__", [](org::sem::DocumentExportConfig::TagExport _self) -> PyEnumIterator<org::sem::DocumentExportConfig::TagExport> {
+    .def("__iter__", [](org::sem::DocumentExportConfig::TagExport _self) -> org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::TagExport> {
                      return
-                     PyEnumIterator<org::sem::DocumentExportConfig::TagExport>
+                     org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::TagExport>
                      ();
                      })
     ;
@@ -1755,9 +1752,9 @@ node can have subnodes.)RAW")
     .value("Done", org::sem::DocumentExportConfig::TaskFiltering::Done, R"RAW(Include tasks marked as done)RAW")
     .value("None", org::sem::DocumentExportConfig::TaskFiltering::None, R"RAW(Exclude all task subtrees from export)RAW")
     .value("All", org::sem::DocumentExportConfig::TaskFiltering::All, R"RAW(Add all task subtrees to export)RAW")
-    .def("__iter__", [](org::sem::DocumentExportConfig::TaskFiltering _self) -> PyEnumIterator<org::sem::DocumentExportConfig::TaskFiltering> {
+    .def("__iter__", [](org::sem::DocumentExportConfig::TaskFiltering _self) -> org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::TaskFiltering> {
                      return
-                     PyEnumIterator<org::sem::DocumentExportConfig::TaskFiltering>
+                     org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::TaskFiltering>
                      ();
                      })
     ;
@@ -1766,9 +1763,9 @@ node can have subnodes.)RAW")
     .value("Mark", org::sem::DocumentExportConfig::BrokenLinks::Mark)
     .value("Raise", org::sem::DocumentExportConfig::BrokenLinks::Raise)
     .value("Ignore", org::sem::DocumentExportConfig::BrokenLinks::Ignore)
-    .def("__iter__", [](org::sem::DocumentExportConfig::BrokenLinks _self) -> PyEnumIterator<org::sem::DocumentExportConfig::BrokenLinks> {
+    .def("__iter__", [](org::sem::DocumentExportConfig::BrokenLinks _self) -> org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::BrokenLinks> {
                      return
-                     PyEnumIterator<org::sem::DocumentExportConfig::BrokenLinks>
+                     org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::BrokenLinks>
                      ();
                      })
     ;
@@ -1814,9 +1811,9 @@ node can have subnodes.)RAW")
   pybind11::enum_<org::sem::DocumentExportConfig::TocExportKind>(m, "orgDocumentExportConfigTocExportKind")
     .value("DoExport", org::sem::DocumentExportConfig::TocExportKind::DoExport)
     .value("ExportFixed", org::sem::DocumentExportConfig::TocExportKind::ExportFixed)
-    .def("__iter__", [](org::sem::DocumentExportConfig::TocExportKind _self) -> PyEnumIterator<org::sem::DocumentExportConfig::TocExportKind> {
+    .def("__iter__", [](org::sem::DocumentExportConfig::TocExportKind _self) -> org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::TocExportKind> {
                      return
-                     PyEnumIterator<org::sem::DocumentExportConfig::TocExportKind>
+                     org::bind::python::PyEnumIterator<org::sem::DocumentExportConfig::TocExportKind>
                      ();
                      })
     ;
@@ -1868,9 +1865,9 @@ node can have subnodes.)RAW")
     .value("Deadline", org::sem::SubtreePeriod::Kind::Deadline, R"RAW(Date of task completion. Must be a single time point)RAW")
     .value("Created", org::sem::SubtreePeriod::Kind::Created, R"RAW(When the subtree was created)RAW")
     .value("Repeated", org::sem::SubtreePeriod::Kind::Repeated, R"RAW(Last repeat time of the recurring tasks)RAW")
-    .def("__iter__", [](org::sem::SubtreePeriod::Kind _self) -> PyEnumIterator<org::sem::SubtreePeriod::Kind> {
+    .def("__iter__", [](org::sem::SubtreePeriod::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::SubtreePeriod::Kind> {
                      return
-                     PyEnumIterator<org::sem::SubtreePeriod::Kind>
+                     org::bind::python::PyEnumIterator<org::sem::SubtreePeriod::Kind>
                      ();
                      })
     ;
@@ -2071,9 +2068,9 @@ node can have subnodes.)RAW")
     .value("Checkbox", org::sem::NamedProperty::CookieData::TodoSource::Checkbox, R"RAW(Only count checkbox subnodes as a progress completion)RAW")
     .value("Todo", org::sem::NamedProperty::CookieData::TodoSource::Todo, R"RAW(Use subtrees with todo keywords)RAW")
     .value("Both", org::sem::NamedProperty::CookieData::TodoSource::Both, R"RAW(Use both subtrees and todo keywords)RAW")
-    .def("__iter__", [](org::sem::NamedProperty::CookieData::TodoSource _self) -> PyEnumIterator<org::sem::NamedProperty::CookieData::TodoSource> {
+    .def("__iter__", [](org::sem::NamedProperty::CookieData::TodoSource _self) -> org::bind::python::PyEnumIterator<org::sem::NamedProperty::CookieData::TodoSource> {
                      return
-                     PyEnumIterator<org::sem::NamedProperty::CookieData::TodoSource>
+                     org::bind::python::PyEnumIterator<org::sem::NamedProperty::CookieData::TodoSource>
                      ();
                      })
     ;
@@ -2199,9 +2196,9 @@ node can have subnodes.)RAW")
     .value("Children", org::sem::NamedProperty::Visibility::Level::Children)
     .value("Content", org::sem::NamedProperty::Visibility::Level::Content)
     .value("All", org::sem::NamedProperty::Visibility::Level::All)
-    .def("__iter__", [](org::sem::NamedProperty::Visibility::Level _self) -> PyEnumIterator<org::sem::NamedProperty::Visibility::Level> {
+    .def("__iter__", [](org::sem::NamedProperty::Visibility::Level _self) -> org::bind::python::PyEnumIterator<org::sem::NamedProperty::Visibility::Level> {
                      return
-                     PyEnumIterator<org::sem::NamedProperty::Visibility::Level>
+                     org::bind::python::PyEnumIterator<org::sem::NamedProperty::Visibility::Level>
                      ();
                      })
     ;
@@ -2447,9 +2444,9 @@ node can have subnodes.)RAW")
     .value("CustomRaw", org::sem::NamedProperty::Kind::CustomRaw)
     .value("CustomSubtreeJson", org::sem::NamedProperty::Kind::CustomSubtreeJson)
     .value("CustomSubtreeFlags", org::sem::NamedProperty::Kind::CustomSubtreeFlags)
-    .def("__iter__", [](org::sem::NamedProperty::Kind _self) -> PyEnumIterator<org::sem::NamedProperty::Kind> {
+    .def("__iter__", [](org::sem::NamedProperty::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::NamedProperty::Kind> {
                      return
-                     PyEnumIterator<org::sem::NamedProperty::Kind>
+                     org::bind::python::PyEnumIterator<org::sem::NamedProperty::Kind>
                      ();
                      })
     ;
@@ -3105,9 +3102,9 @@ node can have subnodes.)RAW")
     .value("Exact", org::sem::Time::Repeat::Mode::Exact, R"RAW(?)RAW")
     .value("FirstMatch", org::sem::Time::Repeat::Mode::FirstMatch, R"RAW(Repeat on the first matching day in the future)RAW")
     .value("SameDay", org::sem::Time::Repeat::Mode::SameDay, R"RAW(Repeat task on the same day next week/month/year)RAW")
-    .def("__iter__", [](org::sem::Time::Repeat::Mode _self) -> PyEnumIterator<org::sem::Time::Repeat::Mode> {
+    .def("__iter__", [](org::sem::Time::Repeat::Mode _self) -> org::bind::python::PyEnumIterator<org::sem::Time::Repeat::Mode> {
                      return
-                     PyEnumIterator<org::sem::Time::Repeat::Mode>
+                     org::bind::python::PyEnumIterator<org::sem::Time::Repeat::Mode>
                      ();
                      })
     ;
@@ -3119,9 +3116,9 @@ node can have subnodes.)RAW")
     .value("Day", org::sem::Time::Repeat::Period::Day)
     .value("Hour", org::sem::Time::Repeat::Period::Hour)
     .value("Minute", org::sem::Time::Repeat::Period::Minute)
-    .def("__iter__", [](org::sem::Time::Repeat::Period _self) -> PyEnumIterator<org::sem::Time::Repeat::Period> {
+    .def("__iter__", [](org::sem::Time::Repeat::Period _self) -> org::bind::python::PyEnumIterator<org::sem::Time::Repeat::Period> {
                      return
-                     PyEnumIterator<org::sem::Time::Repeat::Period>
+                     org::bind::python::PyEnumIterator<org::sem::Time::Repeat::Period>
                      ();
                      })
     ;
@@ -3180,9 +3177,9 @@ node can have subnodes.)RAW")
   pybind11::enum_<org::sem::Time::TimeKind>(m, "orgTimeTimeKind")
     .value("Static", org::sem::Time::TimeKind::Static)
     .value("Dynamic", org::sem::Time::TimeKind::Dynamic)
-    .def("__iter__", [](org::sem::Time::TimeKind _self) -> PyEnumIterator<org::sem::Time::TimeKind> {
+    .def("__iter__", [](org::sem::Time::TimeKind _self) -> org::bind::python::PyEnumIterator<org::sem::Time::TimeKind> {
                      return
-                     PyEnumIterator<org::sem::Time::TimeKind>
+                     org::bind::python::PyEnumIterator<org::sem::Time::TimeKind>
                      ();
                      })
     ;
@@ -4394,9 +4391,9 @@ node can have subnodes.)RAW")
     .value("Done", org::sem::ListItem::Checkbox::Done)
     .value("Empty", org::sem::ListItem::Checkbox::Empty)
     .value("Partial", org::sem::ListItem::Checkbox::Partial)
-    .def("__iter__", [](org::sem::ListItem::Checkbox _self) -> PyEnumIterator<org::sem::ListItem::Checkbox> {
+    .def("__iter__", [](org::sem::ListItem::Checkbox _self) -> org::bind::python::PyEnumIterator<org::sem::ListItem::Checkbox> {
                      return
-                     PyEnumIterator<org::sem::ListItem::Checkbox>
+                     org::bind::python::PyEnumIterator<org::sem::ListItem::Checkbox>
                      ();
                      })
     ;
@@ -4584,9 +4581,9 @@ node can have subnodes.)RAW")
     .value("Document", org::sem::File::Kind::Document)
     .value("Attachment", org::sem::File::Kind::Attachment)
     .value("Source", org::sem::File::Kind::Source)
-    .def("__iter__", [](org::sem::File::Kind _self) -> PyEnumIterator<org::sem::File::Kind> {
+    .def("__iter__", [](org::sem::File::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::File::Kind> {
                      return
-                     PyEnumIterator<org::sem::File::Kind>
+                     org::bind::python::PyEnumIterator<org::sem::File::Kind>
                      ();
                      })
     ;
@@ -4756,9 +4753,9 @@ node can have subnodes.)RAW")
     .value("Custom", org::sem::CmdInclude::Kind::Custom)
     .value("Src", org::sem::CmdInclude::Kind::Src)
     .value("OrgDocument", org::sem::CmdInclude::Kind::OrgDocument)
-    .def("__iter__", [](org::sem::CmdInclude::Kind _self) -> PyEnumIterator<org::sem::CmdInclude::Kind> {
+    .def("__iter__", [](org::sem::CmdInclude::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::CmdInclude::Kind> {
                      return
-                     PyEnumIterator<org::sem::CmdInclude::Kind>
+                     org::bind::python::PyEnumIterator<org::sem::CmdInclude::Kind>
                      ();
                      })
     ;
@@ -4801,9 +4798,9 @@ node can have subnodes.)RAW")
     .value("Table1D1Col", ListFormattingMode::Table1D1Col, R"RAW(one column, each table item is an individual row)RAW")
     .value("Table1D2Col", ListFormattingMode::Table1D2Col, R"RAW(for description lists, treat header row as an individual column)RAW")
     .value("Table2DColFirst", ListFormattingMode::Table2DColFirst, R"RAW(for nested tables, treat the first level of items as column names, treat all nested elements in these columns as row values)RAW")
-    .def("__iter__", [](ListFormattingMode _self) -> PyEnumIterator<ListFormattingMode> {
+    .def("__iter__", [](ListFormattingMode _self) -> org::bind::python::PyEnumIterator<ListFormattingMode> {
                      return
-                     PyEnumIterator<ListFormattingMode>
+                     org::bind::python::PyEnumIterator<ListFormattingMode>
                      ();
                      })
     ;
@@ -4817,18 +4814,18 @@ node can have subnodes.)RAW")
     .value("Show4Levels", InitialSubtreeVisibility::Show4Levels)
     .value("Show5Levels", InitialSubtreeVisibility::Show5Levels)
     .value("ShowEverything", InitialSubtreeVisibility::ShowEverything)
-    .def("__iter__", [](InitialSubtreeVisibility _self) -> PyEnumIterator<InitialSubtreeVisibility> {
+    .def("__iter__", [](InitialSubtreeVisibility _self) -> org::bind::python::PyEnumIterator<InitialSubtreeVisibility> {
                      return
-                     PyEnumIterator<InitialSubtreeVisibility>
+                     org::bind::python::PyEnumIterator<InitialSubtreeVisibility>
                      ();
                      })
     ;
   bind_enum_iterator<BlockCodeResults>(m, "BlockCodeResults", type_registry_guard);
   pybind11::enum_<BlockCodeResults>(m, "BlockCodeResults")
     .value("Replace", BlockCodeResults::Replace, R"RAW(Remove old result, replace with new value)RAW")
-    .def("__iter__", [](BlockCodeResults _self) -> PyEnumIterator<BlockCodeResults> {
+    .def("__iter__", [](BlockCodeResults _self) -> org::bind::python::PyEnumIterator<BlockCodeResults> {
                      return
-                     PyEnumIterator<BlockCodeResults>
+                     org::bind::python::PyEnumIterator<BlockCodeResults>
                      ();
                      })
     ;
@@ -4838,9 +4835,9 @@ node can have subnodes.)RAW")
     .value("Both", BlockCodeExports::Both, R"RAW(Show output and code)RAW")
     .value("Code", BlockCodeExports::Code, R"RAW(Show only code)RAW")
     .value("Results", BlockCodeExports::Results, R"RAW(Show only evaluation results)RAW")
-    .def("__iter__", [](BlockCodeExports _self) -> PyEnumIterator<BlockCodeExports> {
+    .def("__iter__", [](BlockCodeExports _self) -> org::bind::python::PyEnumIterator<BlockCodeExports> {
                      return
-                     PyEnumIterator<BlockCodeExports>
+                     org::bind::python::PyEnumIterator<BlockCodeExports>
                      ();
                      })
     ;
@@ -4904,9 +4901,9 @@ node can have subnodes.)RAW")
     .value("Rows", OrgSpecName::Rows)
     .value("Lines", OrgSpecName::Lines)
     .value("Chunks", OrgSpecName::Chunks)
-    .def("__iter__", [](OrgSpecName _self) -> PyEnumIterator<OrgSpecName> {
+    .def("__iter__", [](OrgSpecName _self) -> org::bind::python::PyEnumIterator<OrgSpecName> {
                      return
-                     PyEnumIterator<OrgSpecName>
+                     org::bind::python::PyEnumIterator<OrgSpecName>
                      ();
                      })
     ;
@@ -5051,9 +5048,9 @@ node can have subnodes.)RAW")
     .value("SubtreeStars", OrgNodeKind::SubtreeStars)
     .value("SubtreeCompletion", OrgNodeKind::SubtreeCompletion, R"RAW(Task compleation cookie, indicated either in percents of completion, or as `<done>/<todo>` ratio.)RAW")
     .value("SubtreeImportance", OrgNodeKind::SubtreeImportance, R"RAW(Subtree importance level, such as `[#A]` or `[#B]`. Default org-mode only allows single character for contents inside of `[]`, but this parser makes it possible to use any regular identifier, such as `[#urgent]`.)RAW")
-    .def("__iter__", [](OrgNodeKind _self) -> PyEnumIterator<OrgNodeKind> {
+    .def("__iter__", [](OrgNodeKind _self) -> org::bind::python::PyEnumIterator<OrgNodeKind> {
                      return
-                     PyEnumIterator<OrgNodeKind>
+                     org::bind::python::PyEnumIterator<OrgNodeKind>
                      ();
                      })
     ;
@@ -5066,9 +5063,9 @@ node can have subnodes.)RAW")
     .value("Boolean", OrgJsonKind::Boolean)
     .value("Int", OrgJsonKind::Int)
     .value("Float", OrgJsonKind::Float)
-    .def("__iter__", [](OrgJsonKind _self) -> PyEnumIterator<OrgJsonKind> {
+    .def("__iter__", [](OrgJsonKind _self) -> org::bind::python::PyEnumIterator<OrgJsonKind> {
                      return
-                     PyEnumIterator<OrgJsonKind>
+                     org::bind::python::PyEnumIterator<OrgJsonKind>
                      ();
                      })
     ;
@@ -5145,9 +5142,9 @@ node can have subnodes.)RAW")
     .value("Directory", OrgSemKind::Directory)
     .value("Symlink", OrgSemKind::Symlink)
     .value("CmdInclude", OrgSemKind::CmdInclude)
-    .def("__iter__", [](OrgSemKind _self) -> PyEnumIterator<OrgSemKind> {
+    .def("__iter__", [](OrgSemKind _self) -> org::bind::python::PyEnumIterator<OrgSemKind> {
                      return
-                     PyEnumIterator<OrgSemKind>
+                     org::bind::python::PyEnumIterator<OrgSemKind>
                      ();
                      })
     ;
@@ -5306,9 +5303,9 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("path", &org::AstTrackingPath::path)
     .def("getParent",
-         static_cast<sem::sem::SemId<sem::sem::Org>(org::AstTrackingPath::*)(int) const>(&org::AstTrackingPath::getParent),
+         static_cast<org::sem::SemId<org::sem::Org>(org::AstTrackingPath::*)(int) const>(&org::AstTrackingPath::getParent),
          pybind11::arg_v("offset", 0))
-    .def("getNode", static_cast<sem::sem::SemId<sem::sem::Org>(org::AstTrackingPath::*)() const>(&org::AstTrackingPath::getNode))
+    .def("getNode", static_cast<org::sem::SemId<org::sem::Org>(org::AstTrackingPath::*)() const>(&org::AstTrackingPath::getNode))
     .def("__repr__", [](org::AstTrackingPath _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -5324,8 +5321,8 @@ node can have subnodes.)RAW")
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("getAllNodes", static_cast<hstd::Vec<sem::sem::SemId<sem::sem::Org>>(org::AstTrackingAlternatives::*)() const>(&org::AstTrackingAlternatives::getAllNodes), R"RAW(\brief Return final nodes for all tracking alternatives.)RAW")
-    .def("getNode", static_cast<sem::sem::SemId<sem::sem::Org>(org::AstTrackingAlternatives::*)() const>(&org::AstTrackingAlternatives::getNode), R"RAW(\brief Return first node from the alternatives.)RAW")
+    .def("getAllNodes", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::AstTrackingAlternatives::*)() const>(&org::AstTrackingAlternatives::getAllNodes), R"RAW(\brief Return final nodes for all tracking alternatives.)RAW")
+    .def("getNode", static_cast<org::sem::SemId<org::sem::Org>(org::AstTrackingAlternatives::*)() const>(&org::AstTrackingAlternatives::getNode), R"RAW(\brief Return first node from the alternatives.)RAW")
     .def("__repr__", [](org::AstTrackingAlternatives _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -5421,16 +5418,16 @@ node can have subnodes.)RAW")
     .def_readwrite("radioTargets", &org::AstTrackingMap::radioTargets)
     .def_readwrite("hashtagDefinitions", &org::AstTrackingMap::hashtagDefinitions)
     .def("getIdPath",
-         static_cast<hstd::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getIdPath),
+         static_cast<std::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getIdPath),
          pybind11::arg("id"))
     .def("getNamePath",
-         static_cast<hstd::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getNamePath),
+         static_cast<std::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getNamePath),
          pybind11::arg("id"))
     .def("getAnchorTarget",
-         static_cast<hstd::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getAnchorTarget),
+         static_cast<std::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getAnchorTarget),
          pybind11::arg("id"))
     .def("getFootnotePath",
-         static_cast<hstd::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getFootnotePath),
+         static_cast<std::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getFootnotePath),
          pybind11::arg("id"))
     .def("__repr__", [](org::AstTrackingMap _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
@@ -5538,117 +5535,117 @@ and a segment kind.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<ExporterPython>(m, "ExporterPython")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> ExporterPython {
-                        ExporterPython result{};
+  pybind11::class_<org::bind::python::ExporterPython>(m, "orgbindpythonExporterPython")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::bind::python::ExporterPython {
+                        org::bind::python::ExporterPython result{};
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
-    .def("enableBufferTrace", static_cast<void(ExporterPython::*)()>(&ExporterPython::enableBufferTrace))
-    .def("getTraceBuffer", static_cast<std::string(ExporterPython::*)() const>(&ExporterPython::getTraceBuffer))
+    .def("enableBufferTrace", static_cast<void(org::bind::python::ExporterPython::*)()>(&org::bind::python::ExporterPython::enableBufferTrace))
+    .def("getTraceBuffer", static_cast<std::string(org::bind::python::ExporterPython::*)() const>(&org::bind::python::ExporterPython::getTraceBuffer))
     .def("enableFileTrace",
-         static_cast<void(ExporterPython::*)(std::string const&, bool)>(&ExporterPython::enableFileTrace),
+         static_cast<void(org::bind::python::ExporterPython::*)(std::string const&, bool)>(&org::bind::python::ExporterPython::enableFileTrace),
          pybind11::arg("path"),
          pybind11::arg("colored"))
     .def("setVisitAnyIdAround",
-         static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setVisitAnyIdAround),
+         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitAnyIdAround),
          pybind11::arg("cb"))
     .def("setVisitAnyIdIn",
-         static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setVisitAnyIdIn),
+         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitAnyIdIn),
          pybind11::arg("cb"))
     .def("setVisitAnyField",
-         static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setVisitAnyField),
+         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitAnyField),
          pybind11::arg("cb"))
     .def("setEvalTopCb",
-         static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setEvalTopCb),
+         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalTopCb),
          pybind11::arg("cb"))
     .def("setVisitIdAround",
-         static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setVisitIdAround),
+         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitIdAround),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setEvalIdAround",
-         static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setEvalIdAround),
+         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalIdAround),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setVisitIdInCb",
-         static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setVisitIdInCb),
+         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitIdInCb),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setEvalIdIn",
-         static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setEvalIdIn),
+         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalIdIn),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setVisitLeafField",
-         static_cast<void(ExporterPython::*)(LeafFieldType, ExporterPython::PyFunc)>(&ExporterPython::setVisitLeafField),
+         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::LeafFieldType, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitLeafField),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setEvalLeafField",
-         static_cast<void(ExporterPython::*)(LeafFieldType, ExporterPython::PyFunc)>(&ExporterPython::setEvalLeafField),
+         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::LeafFieldType, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalLeafField),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setVisitOrgField",
-         static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setVisitOrgField),
+         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitOrgField),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setEvalOrgField",
-         static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setEvalOrgField),
+         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalOrgField),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setSelf",
-         static_cast<void(ExporterPython::*)(pybind11::object)>(&ExporterPython::setSelf),
+         static_cast<void(org::bind::python::ExporterPython::*)(pybind11::object)>(&org::bind::python::ExporterPython::setSelf),
          pybind11::arg("val"))
     .def("setNewOrgRes",
-         static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setNewOrgRes),
+         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setNewOrgRes),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setNewAnyOrgRes",
-         static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setNewAnyOrgRes),
+         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setNewAnyOrgRes),
          pybind11::arg("cb"))
     .def("setNewLeafRes",
-         static_cast<void(ExporterPython::*)(LeafFieldType, ExporterPython::PyFunc)>(&ExporterPython::setNewLeafRes),
+         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::LeafFieldType, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setNewLeafRes),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setNewAnyLeafRes",
-         static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setNewAnyLeafRes),
+         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setNewAnyLeafRes),
          pybind11::arg("cb"))
     .def("setPushVisitAnyId",
-         static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setPushVisitAnyId),
+         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setPushVisitAnyId),
          pybind11::arg("cb"))
     .def("setPopVisitAnyId",
-         static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setPopVisitAnyId),
+         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setPopVisitAnyId),
          pybind11::arg("cb"))
     .def("setPushVisitId",
-         static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setPushVisitId),
+         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setPushVisitId),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setPopVisitIdCb",
-         static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setPopVisitIdCb),
+         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setPopVisitIdCb),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setVisitAnyHookCb",
-         static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setVisitAnyHookCb),
+         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitAnyHookCb),
          pybind11::arg("cb"))
     .def("setVisitIdHook",
-         static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setVisitIdHook),
+         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitIdHook),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("print_trace",
-         static_cast<void(ExporterPython::*)(std::string const&, std::string const&, std::string const&, int)>(&ExporterPython::print_trace),
+         static_cast<void(org::bind::python::ExporterPython::*)(std::string const&, std::string const&, std::string const&, int)>(&org::bind::python::ExporterPython::print_trace),
          pybind11::arg("trace"),
          pybind11::arg("file"),
          pybind11::arg("function"),
          pybind11::arg("line"))
     .def("evalTop",
-         static_cast<ExporterPython::Res(ExporterPython::*)(org::sem::SemId<org::sem::Org>)>(&ExporterPython::evalTop),
+         static_cast<org::bind::python::ExporterPython::Res(org::bind::python::ExporterPython::*)(org::sem::SemId<org::sem::Org>)>(&org::bind::python::ExporterPython::evalTop),
          pybind11::arg("org"))
     .def("eval",
-         static_cast<ExporterPython::Res(ExporterPython::*)(org::sem::SemId<org::sem::Org>)>(&ExporterPython::eval),
+         static_cast<org::bind::python::ExporterPython::Res(org::bind::python::ExporterPython::*)(org::sem::SemId<org::sem::Org>)>(&org::bind::python::ExporterPython::eval),
          pybind11::arg("org"))
-    .def("__repr__", [](ExporterPython _self) -> std::string {
+    .def("__repr__", [](org::bind::python::ExporterPython _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](ExporterPython _self, std::string name) -> pybind11::object {
+         [](org::bind::python::ExporterPython _self, std::string name) -> pybind11::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -5658,95 +5655,95 @@ and a segment kind.)RAW")
     .value("RadioTarget", org::AstTrackingGroup::Kind::RadioTarget)
     .value("Single", org::AstTrackingGroup::Kind::Single)
     .value("TrackedHashtag", org::AstTrackingGroup::Kind::TrackedHashtag)
-    .def("__iter__", [](org::AstTrackingGroup::Kind _self) -> PyEnumIterator<org::AstTrackingGroup::Kind> {
+    .def("__iter__", [](org::AstTrackingGroup::Kind _self) -> org::bind::python::PyEnumIterator<org::AstTrackingGroup::Kind> {
                      return
-                     PyEnumIterator<org::AstTrackingGroup::Kind>
+                     org::bind::python::PyEnumIterator<org::AstTrackingGroup::Kind>
                      ();
                      })
     ;
-  bind_enum_iterator<LeafFieldType>(m, "LeafFieldType", type_registry_guard);
-  pybind11::enum_<LeafFieldType>(m, "LeafFieldType")
-    .value("Int", LeafFieldType::Int)
-    .value("UserTimeKind", LeafFieldType::UserTimeKind)
-    .value("QDate", LeafFieldType::QDate)
-    .value("Bool", LeafFieldType::Bool)
-    .value("FixedIdVec", LeafFieldType::FixedIdVec)
-    .value("TopIdVec", LeafFieldType::TopIdVec)
-    .value("QDateTime", LeafFieldType::QDateTime)
-    .value("Str", LeafFieldType::Str)
-    .value("Any", LeafFieldType::Any)
-    .def("__iter__", [](LeafFieldType _self) -> PyEnumIterator<LeafFieldType> {
+  bind_enum_iterator<org::bind::python::LeafFieldType>(m, "orgbindpythonLeafFieldType", type_registry_guard);
+  pybind11::enum_<org::bind::python::LeafFieldType>(m, "orgbindpythonLeafFieldType")
+    .value("Int", org::bind::python::LeafFieldType::Int)
+    .value("UserTimeKind", org::bind::python::LeafFieldType::UserTimeKind)
+    .value("QDate", org::bind::python::LeafFieldType::QDate)
+    .value("Bool", org::bind::python::LeafFieldType::Bool)
+    .value("FixedIdVec", org::bind::python::LeafFieldType::FixedIdVec)
+    .value("TopIdVec", org::bind::python::LeafFieldType::TopIdVec)
+    .value("QDateTime", org::bind::python::LeafFieldType::QDateTime)
+    .value("Str", org::bind::python::LeafFieldType::Str)
+    .value("Any", org::bind::python::LeafFieldType::Any)
+    .def("__iter__", [](org::bind::python::LeafFieldType _self) -> org::bind::python::PyEnumIterator<org::bind::python::LeafFieldType> {
                      return
-                     PyEnumIterator<LeafFieldType>
+                     org::bind::python::PyEnumIterator<org::bind::python::LeafFieldType>
                      ();
                      })
     ;
   m.def("newSemTimeStatic",
-        static_cast<sem::sem::SemId<sem::sem::Time>(*)(hstd::UserTimeBreakdown const&, bool)>(&org::newSemTimeStatic),
+        static_cast<org::sem::SemId<org::sem::Time>(*)(hstd::UserTimeBreakdown const&, bool)>(&org::newSemTimeStatic),
         pybind11::arg("breakdown"),
         pybind11::arg_v("isActive", 0));
   m.def("parseFile",
-        static_cast<sem::sem::SemId<sem::sem::Document>(*)(std::string, org::OrgParseParameters const&)>(&org::parseFile),
+        static_cast<org::sem::SemId<org::sem::Document>(*)(std::string, org::OrgParseParameters const&)>(&org::parseFile),
         pybind11::arg("file"),
         pybind11::arg("opts"));
   m.def("parseString",
-        static_cast<sem::sem::SemId<sem::sem::Document>(*)(std::string const)>(&org::parseString),
+        static_cast<org::sem::SemId<org::sem::Document>(*)(std::string const)>(&org::parseString),
         pybind11::arg("text"));
   m.def("parseStringOpts",
-        static_cast<sem::sem::SemId<sem::sem::Document>(*)(std::string const, org::OrgParseParameters const&)>(&org::parseStringOpts),
+        static_cast<org::sem::SemId<org::sem::Document>(*)(std::string const, org::OrgParseParameters const&)>(&org::parseStringOpts),
         pybind11::arg("text"),
         pybind11::arg("opts"));
   m.def("parseDirectoryOpts",
-        static_cast<hstd::optional<sem::sem::SemId<sem::sem::Org>>(*)(std::string const&, org::OrgDirectoryParseParameters const&)>(&org::parseDirectoryOpts),
+        static_cast<std::optional<org::sem::SemId<org::sem::Org>>(*)(std::string const&, org::OrgDirectoryParseParameters const&)>(&org::parseDirectoryOpts),
         pybind11::arg("path"),
         pybind11::arg("opts"));
   m.def("parseFileWithIncludes",
-        static_cast<sem::sem::SemId<sem::sem::File>(*)(std::string const&, org::OrgDirectoryParseParameters const&)>(&org::parseFileWithIncludes),
+        static_cast<org::sem::SemId<org::sem::File>(*)(std::string const&, org::OrgDirectoryParseParameters const&)>(&org::parseFileWithIncludes),
         pybind11::arg("file"),
         pybind11::arg("opts"));
   m.def("asOneNode",
-        static_cast<sem::sem::SemId<sem::sem::Org>(*)(org::sem::OrgArg)>(&org::asOneNode),
+        static_cast<org::sem::SemId<org::sem::Org>(*)(org::sem::OrgArg)>(&org::asOneNode),
         pybind11::arg("arg"));
   m.def("formatToString",
-        static_cast<std::string(*)(sem::sem::SemId<sem::sem::Org>)>(&org::formatToString),
+        static_cast<std::string(*)(org::sem::SemId<org::sem::Org>)>(&org::formatToString),
         pybind11::arg("arg"));
   m.def("exportToYamlString",
-        static_cast<std::string(*)(sem::sem::SemId<sem::sem::Org> const&, org::OrgYamlExportOpts const&)>(&org::exportToYamlString),
+        static_cast<std::string(*)(org::sem::SemId<org::sem::Org> const&, org::OrgYamlExportOpts const&)>(&org::exportToYamlString),
         pybind11::arg("node"),
         pybind11::arg("opts"));
   m.def("exportToYamlFile",
-        static_cast<void(*)(sem::sem::SemId<sem::sem::Org> const&, std::string, org::OrgYamlExportOpts const&)>(&org::exportToYamlFile),
+        static_cast<void(*)(org::sem::SemId<org::sem::Org> const&, std::string, org::OrgYamlExportOpts const&)>(&org::exportToYamlFile),
         pybind11::arg("node"),
         pybind11::arg("path"),
         pybind11::arg("opts"));
   m.def("exportToJsonString",
-        static_cast<std::string(*)(sem::sem::SemId<sem::sem::Org> const&)>(&org::exportToJsonString),
+        static_cast<std::string(*)(org::sem::SemId<org::sem::Org> const&)>(&org::exportToJsonString),
         pybind11::arg("node"));
   m.def("exportToJsonFile",
-        static_cast<void(*)(sem::sem::SemId<sem::sem::Org> const&, std::string)>(&org::exportToJsonFile),
+        static_cast<void(*)(org::sem::SemId<org::sem::Org> const&, std::string)>(&org::exportToJsonFile),
         pybind11::arg("node"),
         pybind11::arg("path"));
   m.def("readProtobufFile",
-        static_cast<sem::sem::SemId<sem::sem::Document>(*)(std::string const&)>(&org::readProtobufFile),
+        static_cast<org::sem::SemId<org::sem::Document>(*)(std::string const&)>(&org::readProtobufFile),
         pybind11::arg("file"));
   m.def("exportToProtobufFile",
-        static_cast<void(*)(sem::sem::SemId<sem::sem::Document>, std::string const&)>(&org::exportToProtobufFile),
+        static_cast<void(*)(org::sem::SemId<org::sem::Document>, std::string const&)>(&org::exportToProtobufFile),
         pybind11::arg("doc"),
         pybind11::arg("file"));
   m.def("exportToTreeString",
-        static_cast<std::string(*)(sem::sem::SemId<sem::sem::Org> const&, org::OrgTreeExportOpts const&)>(&org::exportToTreeString),
+        static_cast<std::string(*)(org::sem::SemId<org::sem::Org> const&, org::OrgTreeExportOpts const&)>(&org::exportToTreeString),
         pybind11::arg("node"),
         pybind11::arg("opts"));
   m.def("exportToTreeFile",
-        static_cast<void(*)(sem::sem::SemId<sem::sem::Org> const&, std::string, org::OrgTreeExportOpts const&)>(&org::exportToTreeFile),
+        static_cast<void(*)(org::sem::SemId<org::sem::Org> const&, std::string, org::OrgTreeExportOpts const&)>(&org::exportToTreeFile),
         pybind11::arg("node"),
         pybind11::arg("path"),
         pybind11::arg("opts"));
   m.def("getAstTrackingMap",
-        static_cast<org::AstTrackingMap(*)(hstd::Vec<sem::sem::SemId<sem::sem::Org>> const&)>(&org::getAstTrackingMap),
+        static_cast<org::AstTrackingMap(*)(hstd::Vec<org::sem::SemId<org::sem::Org>> const&)>(&org::getAstTrackingMap),
         pybind11::arg("nodes"));
   m.def("getSubnodeGroups",
-        static_cast<hstd::Vec<org::AstTrackingGroup>(*)(sem::sem::SemId<sem::sem::Org>, org::AstTrackingMap const&)>(&org::getSubnodeGroups),
+        static_cast<hstd::Vec<org::AstTrackingGroup>(*)(org::sem::SemId<org::sem::Org>, org::AstTrackingMap const&)>(&org::getSubnodeGroups),
         pybind11::arg("node"),
         pybind11::arg("map"));
   m.def("annotateSequence",
@@ -5755,11 +5752,11 @@ and a segment kind.)RAW")
         pybind11::arg("first"),
         pybind11::arg("last"));
   m.def("eachSubnodeRec",
-        static_cast<void(*)(org::sem::SemId<org::sem::Org>, pybind11::function)>(&eachSubnodeRec),
+        static_cast<void(*)(org::sem::SemId<org::sem::Org>, pybind11::function)>(&bind::python::org::eachSubnodeRec),
         pybind11::arg("node"),
         pybind11::arg("callback"));
   m.def("eachSubnodeRecSimplePath",
-        static_cast<void(*)(org::sem::SemId<org::sem::Org>, pybind11::function)>(&eachSubnodeRecSimplePath),
+        static_cast<void(*)(org::sem::SemId<org::sem::Org>, pybind11::function)>(&bind::python::org::eachSubnodeRecSimplePath),
         pybind11::arg("node"),
         pybind11::arg("callback"));
 }

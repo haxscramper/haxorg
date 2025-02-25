@@ -376,7 +376,11 @@ class Py11Enum:
 
     def build_bind(self, ast: ASTBuilder) -> BlockId:
         b = ast.b
-        iter_type = QualType(name="PyEnumIterator", Parameters=[self.Enum])
+        iter_type = QualType(
+            name="PyEnumIterator",
+            Parameters=[self.Enum],
+            Spaces=[n_org(), t_namespace("bind"), t_namespace("python")],
+        )
         return b.stack([
             ast.XCall(
                 "bind_enum_iterator",

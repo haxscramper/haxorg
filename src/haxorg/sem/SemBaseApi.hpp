@@ -139,7 +139,8 @@ struct [[refl]] AstTrackingPath {
     [[refl]] hstd::Vec<sem::SemId<sem::Org>> path;
     DESC_FIELDS(AstTrackingPath, (path));
 
-    [[refl]] sem::SemId<sem::Org> getParent(int offset = 0) const {
+    [[refl]] org::sem::SemId<org::sem::Org> getParent(
+        int offset = 0) const {
         int pos = path.high() - 1 - offset;
         LOGIC_ASSERTION_CHECK(
             path.has(pos),

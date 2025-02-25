@@ -641,6 +641,24 @@ def t_org(name: str) -> QualType:
 
 
 @beartype
+def t(
+    name: str | QualType,
+    namespaces: List[QualType] = [],
+    isOrgType: bool = False,
+) -> QualType:
+    if isinstance(name, QualType):
+        return name.model_copy(update=dict(Spaces=namespaces))
+
+    else:
+        return QualType(name=name, Spaces=namespaces)
+
+
+@beartype
+def t_namespace(name: str | QualType) -> QualType:
+    return t(name).asNamespace()
+
+
+@beartype
 def t_space(name: str | QualType, Spaces: List[QualType]) -> QualType:
     if isinstance(name, QualType):
         return name.model_copy(update=dict(Spaces=Spaces))
