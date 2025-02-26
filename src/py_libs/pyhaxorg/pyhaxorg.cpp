@@ -7,77 +7,111 @@
 #include "pyhaxorg_manual_impl.hpp"
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::Org>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::Org>>)
+/* (('hstd', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('Org', False, 0, NotRef), ('SemId', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::Tblfm::Expr>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::Tblfm::Expr>)
+/* (('hstd', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('Tblfm', False, 0, NotRef), ('Expr', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::Tblfm::Assign::Flag>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::Tblfm::Assign::Flag>)
+/* (('hstd', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('Tblfm', False, 0, NotRef), ('Assign', False, 0, NotRef), ('Flag', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::Tblfm::Assign>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::Tblfm::Assign>)
+/* (('hstd', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('Tblfm', False, 0, NotRef), ('Assign', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::Str>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::Str>)
+/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('Str', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::HashTagText>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::HashTagText>)
+/* (('hstd', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('HashTagText', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::HashTagFlat>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::HashTagFlat>)
+/* (('hstd', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('HashTagFlat', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::AttrValue>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::AttrValue>)
+/* (('hstd', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('AttrValue', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::unordered_map<hstd::Str, org::sem::AttrList>)
 PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<hstd::Str, org::sem::AttrList>)
+/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('Str', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('AttrList', False, 0, NotRef), ('UnorderedMap', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::ColumnView::Column>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::ColumnView::Column>)
+/* (('hstd', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('ColumnView', False, 0, NotRef), ('Column', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::BlockCodeLine::Part>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::BlockCodeLine::Part>)
+/* (('hstd', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('BlockCodeLine', False, 0, NotRef), ('Part', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<int>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<int>)
+/* (('hstd', False, 0, NotRef), ('int', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::unordered_map<hstd::Str, hstd::Str>)
 PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<hstd::Str, hstd::Str>)
+/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('Str', False, 0, NotRef), ('hstd', False, 0, NotRef), ('Str', False, 0, NotRef), ('UnorderedMap', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::ErrorItem>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::ErrorItem>>)
-PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::Org>>)
-PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::Org>>)
+/* (('hstd', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('ErrorItem', False, 0, NotRef), ('SemId', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::Symbol::Param>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::Symbol::Param>)
+/* (('hstd', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('Symbol', False, 0, NotRef), ('Param', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::BlockCodeSwitch>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::BlockCodeSwitch>)
+/* (('hstd', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('BlockCodeSwitch', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::BlockCodeLine>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::BlockCodeLine>)
+/* (('hstd', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('BlockCodeLine', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::HashTag>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::HashTag>>)
+/* (('hstd', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('HashTag', False, 0, NotRef), ('SemId', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::SubtreeLog>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::SubtreeLog>>)
+/* (('hstd', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('SubtreeLog', False, 0, NotRef), ('SemId', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::NamedProperty>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::NamedProperty>)
+/* (('hstd', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('NamedProperty', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SubtreePeriod>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SubtreePeriod>)
+/* (('hstd', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('SubtreePeriod', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(hstd::IntSet<org::sem::SubtreePeriod::Kind>)
+/* (('hstd', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('SubtreePeriod', False, 0, NotRef), ('Kind', False, 0, NotRef), ('IntSet', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::Cell>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::Cell>>)
+/* (('hstd', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('Cell', False, 0, NotRef), ('SemId', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::Row>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::Row>>)
+/* (('hstd', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('Row', False, 0, NotRef), ('SemId', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::BigIdent>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::BigIdent>>)
+/* (('hstd', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('BigIdent', False, 0, NotRef), ('SemId', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::UserTime>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::UserTime>)
+/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('UserTime', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::Time>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::Time>>)
+/* (('hstd', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('Time', False, 0, NotRef), ('SemId', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::OrgJson>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::OrgJson>)
+/* (('hstd', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('OrgJson', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::unordered_map<org::sem::HashTagFlat, org::AstTrackingPath>)
 PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<org::sem::HashTagFlat, org::AstTrackingPath>)
+/* (('hstd', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('HashTagFlat', False, 0, NotRef), ('org', False, 0, NotRef), ('AstTrackingPath', False, 0, NotRef), ('UnorderedMap', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::unordered_map<hstd::Str, org::AstTrackingAlternatives>)
 PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<hstd::Str, org::AstTrackingAlternatives>)
+/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('Str', False, 0, NotRef), ('org', False, 0, NotRef), ('AstTrackingAlternatives', False, 0, NotRef), ('UnorderedMap', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::unordered_map<org::sem::HashTagFlat, org::AstTrackingAlternatives>)
 PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<org::sem::HashTagFlat, org::AstTrackingAlternatives>)
+/* (('hstd', False, 0, NotRef), ('org', False, 0, NotRef), ('sem', False, 0, NotRef), ('HashTagFlat', False, 0, NotRef), ('org', False, 0, NotRef), ('AstTrackingAlternatives', False, 0, NotRef), ('UnorderedMap', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::SequenceSegment>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::SequenceSegment>)
+/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('SequenceSegment', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::SequenceAnnotationTag>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::SequenceAnnotationTag>)
+/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('SequenceAnnotationTag', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<org::AstTrackingGroup>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::AstTrackingGroup>)
+/* (('hstd', False, 0, NotRef), ('org', False, 0, NotRef), ('AstTrackingGroup', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::SequenceAnnotation>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::SequenceAnnotation>)
+/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('SequenceAnnotation', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::SequenceSegmentGroup>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::SequenceSegmentGroup>)
+/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('SequenceSegmentGroup', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MODULE(pyhaxorg, m) {
   org::bind::python::PyTypeRegistryGuard type_registry_guard{};
   bind_vector<org::sem::SemId<org::sem::Org>>(m, "hstdVecOforgSemIdOforgOrg", type_registry_guard);
@@ -94,7 +128,6 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<int>(m, "hstdVecOfint", type_registry_guard);
   bind_unordered_map<hstd::Str, hstd::Str>(m, "hstdUnorderedMapOfhstdStrhstdStr", type_registry_guard);
   bind_vector<org::sem::SemId<org::sem::ErrorItem>>(m, "hstdVecOforgSemIdOforgErrorItem", type_registry_guard);
-  bind_vector<org::sem::SemId<org::sem::Org>>(m, "hstdVecOforgSemIdOforgOrg", type_registry_guard);
   bind_vector<org::sem::Symbol::Param>(m, "hstdVecOforgSymbolParam", type_registry_guard);
   bind_vector<org::sem::BlockCodeSwitch>(m, "hstdVecOforgBlockCodeSwitch", type_registry_guard);
   bind_vector<org::sem::BlockCodeLine>(m, "hstdVecOforgBlockCodeLine", type_registry_guard);

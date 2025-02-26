@@ -7,36 +7,52 @@
 #include <pybind11/stl.h>
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphPoint>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphPoint>)
+/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('ext', False, 0, NotRef), ('GraphPoint', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphNodeConstraint::Align::Spec>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphNodeConstraint::Align::Spec>)
+/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('ext', False, 0, NotRef), ('GraphNodeConstraint', False, 0, NotRef), ('Align', False, 0, NotRef), ('Spec', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphNodeConstraint::Align>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphNodeConstraint::Align>)
+/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('ext', False, 0, NotRef), ('GraphNodeConstraint', False, 0, NotRef), ('Align', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<std::pair<int, int>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<std::pair<int, int>>)
+/* (('hstd', False, 0, NotRef), ('std', False, 0, NotRef), ('int', False, 0, NotRef), ('int', False, 0, NotRef), ('pair', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<int>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<int>)
+/* (('hstd', False, 0, NotRef), ('int', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphSize>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphSize>)
+/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('ext', False, 0, NotRef), ('GraphSize', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphEdge>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphEdge>)
+/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('ext', False, 0, NotRef), ('GraphEdge', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphNodeConstraint>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphNodeConstraint>)
+/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('ext', False, 0, NotRef), ('GraphNodeConstraint', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphLayoutIR::Subgraph>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphLayoutIR::Subgraph>)
+/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('ext', False, 0, NotRef), ('GraphLayoutIR', False, 0, NotRef), ('Subgraph', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::unordered_map<hstd::ext::GraphEdge, hstd::ext::GraphSize>)
 PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<hstd::ext::GraphEdge, hstd::ext::GraphSize>)
+/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('ext', False, 0, NotRef), ('GraphEdge', False, 0, NotRef), ('hstd', False, 0, NotRef), ('ext', False, 0, NotRef), ('GraphSize', False, 0, NotRef), ('UnorderedMap', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::unordered_map<hstd::ext::GraphEdge, hstd::ext::GraphEdgeConstraint>)
 PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<hstd::ext::GraphEdge, hstd::ext::GraphEdgeConstraint>)
+/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('ext', False, 0, NotRef), ('GraphEdge', False, 0, NotRef), ('hstd', False, 0, NotRef), ('ext', False, 0, NotRef), ('GraphEdgeConstraint', False, 0, NotRef), ('UnorderedMap', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphPath>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphPath>)
+/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('ext', False, 0, NotRef), ('GraphPath', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphRect>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphRect>)
+/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('ext', False, 0, NotRef), ('GraphRect', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::unordered_map<hstd::ext::GraphEdge, hstd::ext::GraphLayoutIR::Edge>)
 PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<hstd::ext::GraphEdge, hstd::ext::GraphLayoutIR::Edge>)
+/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('ext', False, 0, NotRef), ('GraphEdge', False, 0, NotRef), ('hstd', False, 0, NotRef), ('ext', False, 0, NotRef), ('GraphLayoutIR', False, 0, NotRef), ('Edge', False, 0, NotRef), ('UnorderedMap', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphLayoutIR::Result::Subgraph>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphLayoutIR::Result::Subgraph>)
+/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('ext', False, 0, NotRef), ('GraphLayoutIR', False, 0, NotRef), ('Result', False, 0, NotRef), ('Subgraph', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::Vec<int>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::Vec<int>>)
+/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('int', False, 0, NotRef), ('Vec', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MODULE(py_adaptagrams, m) {
   org::bind::python::PyTypeRegistryGuard type_registry_guard{};
   bind_vector<hstd::ext::GraphPoint>(m, "hstdVecOfhstdextGraphPoint", type_registry_guard);

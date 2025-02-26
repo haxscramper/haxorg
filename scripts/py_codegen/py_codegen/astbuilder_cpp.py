@@ -34,6 +34,9 @@ class ReferenceKind(str, Enum):
     def __rich_repr__(self):
         yield self.name
 
+    def __repr__(self):
+        return self.name
+
 
 @beartype
 class QualType(BaseModel, extra="forbid"):
@@ -184,11 +187,28 @@ class QualType(BaseModel, extra="forbid"):
 
     func: Optional[Function] = None
 
+    def flat_repr_flatten(self) -> Any:
+        result = []
+
+        def aux(T: QualType):
+            for S in T.Spaces:
+                aux(S)
+
+            for P in T.Parameters:
+                aux(P)
+
+            result.append((
+                T.name,
+                T.isConst,
+                T.ptrCount,
+                T.RefKind,
+            ))
+
+        aux(self)
+        return tuple(result)
+
     def __hash__(self) -> int:
-        return hash(
-            (self.name, self.isConst, self.ptrCount, self.RefKind, self.isNamespace,
-             tuple([hash(T) for T in self.Spaces]),
-             tuple([hash(T) for T in self.Parameters])))
+        return hash(self.flat_repr_flatten())
 
     def __repr__(self) -> str:
         return self.format()
@@ -197,57 +217,63 @@ class QualType(BaseModel, extra="forbid"):
         return self.format()
 
     def format(self, dbgOrigin: bool = False) -> str:
-        cvref = "{const}{ptr}{ref}".format(
-            const=" const" if self.isConst else "",
-            ptr=("*" * self.ptrCount),
-            ref={
-                ReferenceKind.LValue: "&",
-                ReferenceKind.RValue: "&&",
-                ReferenceKind.NotRef: ""
-            }[self.RefKind],
-        )
 
-        origin = f"FROM:[{self.dbg_origin}]" if dbgOrigin else ""
+        def aux(Typ: QualType) -> str:
+            cvref = "{const}{ptr}{ref}".format(
+                const=" const" if Typ.isConst else "",
+                ptr=("*" * Typ.ptrCount),
+                ref={
+                    ReferenceKind.LValue: "&",
+                    ReferenceKind.RValue: "&&",
+                    ReferenceKind.NotRef: ""
+                }[Typ.RefKind],
+            )
 
-        spaces = "".join([f"{S.format(dbgOrigin)}::" for S in self.Spaces])
-        # if spaces:
-        #     spaces = f"{spaces}"
+            origin = f"FROM:[{Typ.dbg_origin}]" if dbgOrigin else ""
 
-        match self.Kind:
-            case QualTypeKind.FunctionPtr:
-                return "[{spaces}FUNC:[{origin}({args})]]".format(
-                    spaces=spaces,
-                    origin=self.func.ReturnTy.format(dbgOrigin),
-                    args=", ".join([T.format(dbgOrigin) for T in self.func.Args]),
-                )
+            spaces = "".join([f"{aux(S)}::" for S in Typ.Spaces])
+            # if spaces:
+            #     spaces = f"{spaces}"
 
-            case QualTypeKind.Array:
-                return "[{spaces}ARR:[{first}[{expr}]{cvref}{origin}]]".format(
-                    first=self.Parameters[0].format(dbgOrigin),
-                    expr=self.Parameters[1].format(dbgOrigin)
-                    if 1 < len(self.Parameters) else "",
-                    cvref=cvref,
-                    origin=origin,
-                    spaces=spaces,
-                )
+            match Typ.Kind:
+                case QualTypeKind.FunctionPtr:
+                    result = "{spaces}FUNC:{origin}({args})".format(
+                        spaces=spaces,
+                        origin=aux(Typ.func.ReturnTy),
+                        args=", ".join([aux(T) for T in Typ.func.Args]),
+                    )
 
-            case QualTypeKind.RegularType:
-                return spaces + "[{spaces}REC:({name}{args}{cvref}{origin})]".format(
-                    name=self.name or "?",
-                    args="<{}>".format(", ".join(
-                        [T.format(dbgOrigin)
-                         for T in self.Parameters])) if self.Parameters else "",
-                    cvref=cvref,
-                    origin=origin,
-                    spaces=spaces,
-                    # namespace=("NSP" if self.isNamespace else ""),
-                )
+                case QualTypeKind.Array:
+                    result = "{spaces}ARR:{first}[{expr}]{cvref}{origin}".format(
+                        first=aux(Typ.Parameters[0]),
+                        expr=aux(Typ.Parameters[1]) if 1 < len(Typ.Parameters) else "",
+                        cvref=cvref,
+                        origin=origin,
+                        spaces=spaces,
+                    )
 
-            case QualTypeKind.TypeExpr:
-                return f"[E:{self.expr}]"
+                case QualTypeKind.RegularType:
+                    result = "{spaces}REC:({name}{args}{cvref}{origin})".format(
+                        name=Typ.name or "?",
+                        args="<{}>".format(", ".join([aux(T) for T in Typ.Parameters]))
+                        if Typ.Parameters else "",
+                        cvref=cvref,
+                        origin=origin,
+                        spaces=spaces,
+                        # namespace=("NSP" if Typ.isNamespace else ""),
+                    )
 
-            case _:
-                assert False, self.Kind
+                case QualTypeKind.TypeExpr:
+                    result = f"[E:{Typ.expr}]"
+
+                case _:
+                    assert False, Typ.Kind
+
+            return "{" + result + "}"
+
+        # return self.model_dump_json() + "  --- " + aux(self)
+        # return aux(self)
+        return str(self.flat_repr_flatten())
 
     def asNamespace(self, is_namespace=True):
         self.isNamespace = is_namespace
