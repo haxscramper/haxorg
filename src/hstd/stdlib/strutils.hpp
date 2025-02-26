@@ -97,6 +97,8 @@ struct value_domain<AsciiStyle>
 Str styledUnicodeMapping(char ch, AsciiStyle style);
 Str styledUnicodeMapping(Str const& str, AsciiStyle style);
 
-inline char* strdup(std::string const& str) { return strdup(str.c_str()); }
+inline char* strdup(std::string const& str) {
+    return ::strdup(str.c_str());
+}
 
 } // namespace hstd

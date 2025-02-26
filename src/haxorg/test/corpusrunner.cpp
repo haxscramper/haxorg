@@ -1201,7 +1201,7 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
     }
 }
 
-TestResult gtest_run_spec(CR<TestParams> params) {
+TestResult org::test::gtest_run_spec(CR<TestParams> params) {
 
 
     auto spec              = params.spec;

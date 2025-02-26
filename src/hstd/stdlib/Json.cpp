@@ -8,7 +8,7 @@ template class nlohmann::basic_json<>;
 
 using namespace hstd;
 
-std::string to_compact_json(
+std::string hstd::to_compact_json(
     const json&              j,
     const JsonFormatOptions& options) {
     std::unordered_map<std::size_t, int> sizes;

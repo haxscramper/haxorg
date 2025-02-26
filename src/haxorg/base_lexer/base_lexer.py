@@ -285,7 +285,7 @@ def generate_reflex_code(config: Configuration) -> str:
 
 {sub_lexer_definitions}
 
-org::parse::TokenGroup<OrgTokenKind, org::parse::OrgFill> tokenize(const char* input, int size, org::parse::LexerParams const& p) {{
+org::parse::TokenGroup<OrgTokenKind, org::parse::OrgFill> org::parse::tokenize(const char* input, int size, org::parse::LexerParams const& p) {{
     base_lexer::Lexer lex(input);
     org::parse::OrgTokenGroup result;
     lex.impl.tokens = &result;
