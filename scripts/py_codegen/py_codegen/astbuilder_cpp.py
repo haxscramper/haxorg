@@ -188,6 +188,9 @@ class QualType(BaseModel, extra="forbid"):
     func: Optional[Function] = None
 
     def flat_repr_flatten(self) -> Any:
+        ## NOTE: Used for hashing, order of append is important, it must match the actual representation,
+        ## otherwise namespace nesting might throw off the hashing results, and make `[org::[sem::[Id]]]`
+        ## not match with the type `[org::sem::[Id]]` because of how namespaces are walked. 
         result = []
 
         def aux(T: QualType):

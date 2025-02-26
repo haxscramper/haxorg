@@ -224,7 +224,7 @@ class Py11Function:
     def build_bind(self, ast: ASTBuilder) -> BlockId:
         if self.Spaces:
             full_name = ast.Scoped(
-                QualType(name=self.Spaces[0].name, Spaces=self.Spaces[1:]),
+                QualType(name=self.Spaces[-1].name, Spaces=self.Spaces[:-1]),
                 ast.string(self.CxxName))
 
         else:

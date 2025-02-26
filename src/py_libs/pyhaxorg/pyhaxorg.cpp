@@ -5785,11 +5785,11 @@ and a segment kind.)RAW")
         pybind11::arg("first"),
         pybind11::arg("last"));
   m.def("eachSubnodeRec",
-        static_cast<void(*)(org::sem::SemId<org::sem::Org>, pybind11::function)>(&bind::python::org::eachSubnodeRec),
+        static_cast<void(*)(org::sem::SemId<org::sem::Org>, pybind11::function)>(&org::bind::python::eachSubnodeRec),
         pybind11::arg("node"),
         pybind11::arg("callback"));
   m.def("eachSubnodeRecSimplePath",
-        static_cast<void(*)(org::sem::SemId<org::sem::Org>, pybind11::function)>(&bind::python::org::eachSubnodeRecSimplePath),
+        static_cast<void(*)(org::sem::SemId<org::sem::Org>, pybind11::function)>(&org::bind::python::eachSubnodeRecSimplePath),
         pybind11::arg("node"),
         pybind11::arg("callback"));
 }
