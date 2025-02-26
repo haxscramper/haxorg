@@ -15,7 +15,7 @@ struct LaneNodePos {
         return lane == other.lane && row == other.row;
     }
 
-    std::string getImId() const { return fmt("{}_{}", row, lane); }
+    std::string getImId() const { return hstd::fmt("{}_{}", row, lane); }
 
     DESC_FIELDS(LaneNodePos, (lane, row));
 };
@@ -33,11 +33,13 @@ struct std::formatter<LaneNodePos> : std::formatter<std::string> {
 };
 
 struct LaneNodeEdge {
-    LaneNodePos               target;
-    Opt<int>                  targetOffset;
-    Opt<int>                  sourceOffset;
-    GraphEdgeConstraint::Port targetPort = GraphEdgeConstraint::Port::East;
-    GraphEdgeConstraint::Port sourcePort = GraphEdgeConstraint::Port::West;
+    LaneNodePos                          target;
+    hstd::Opt<int>                       targetOffset;
+    hstd::Opt<int>                       sourceOffset;
+    hstd::ext::GraphEdgeConstraint::Port targetPort = hstd::ext::
+        GraphEdgeConstraint::Port::East;
+    hstd::ext::GraphEdgeConstraint::Port sourcePort = hstd::ext::
+        GraphEdgeConstraint::Port::West;
     DESC_FIELDS(
         LaneNodeEdge,
         (target, targetOffset, sourceOffset, targetPort, sourcePort));
@@ -52,7 +54,7 @@ struct LaneBlockNode {
     int horizontalCenterOffset = 0;
     /// \brief If block has fixed vertical offset it will be arranged
     /// relative to the top baseline alignment.
-    Opt<int> fixedVerticalOffset = std::nullopt;
+    hstd::Opt<int> fixedVerticalOffset = std::nullopt;
 
     /// \brief Get full vertical space occupied by the doc block, including
     /// top and bottom margins.
@@ -64,8 +66,8 @@ struct LaneBlockNode {
         return width;
     }
 
-    Slice<int> heightSpan(int start) const {
-        return slice(start, start + fullHeight());
+    hstd::Slice<int> heightSpan(int start) const {
+        return hstd::slice(start, start + fullHeight());
     }
 
     DESC_FIELDS(
@@ -79,11 +81,14 @@ struct LaneBlockGraphConfig {
     float edgeCurveWidth       = 4;
     float edgeCurveBorderWidth = 1;
 
-    Func<Pair<int, int>(int lane)> getDefaultLaneMargin =
-        [](int lane) -> Pair<int, int> { return {50, 50}; };
+    hstd::Func<hstd::Pair<int, int>(int lane)> getDefaultLaneMargin =
+        [](int lane) -> hstd::Pair<int, int> { return {50, 50}; };
 
-    Func<Pair<int, int>(LaneNodePos const& pos)> getDefaultBlockMargin =
-        [](LaneNodePos const& pos) -> Pair<int, int> { return {5, 5}; };
+    hstd::Func<hstd::Pair<int, int>(LaneNodePos const& pos)>
+        getDefaultBlockMargin =
+            [](LaneNodePos const& pos) -> hstd::Pair<int, int> {
+        return {5, 5};
+    };
 
     DESC_FIELDS(
         LaneBlockGraphConfig,
@@ -95,26 +100,27 @@ struct LaneBlockGraphConfig {
 
 
 struct LaneBlockStack {
-    Vec<LaneBlockNode> blocks;
-    int                scrollOffset = 0;
-    int                leftMargin   = 50;
-    int                rightMargin  = 50;
+    hstd::Vec<LaneBlockNode> blocks;
+    int                      scrollOffset = 0;
+    int                      leftMargin   = 50;
+    int                      rightMargin  = 50;
     DESC_FIELDS(
         LaneBlockStack,
         (blocks, scrollOffset, leftMargin, rightMargin));
-    int      getBlockHeightStart(int blockIdx) const;
-    bool     inSpan(int blockIdx, Slice<int> heightRange) const;
-    Vec<int> getVisibleBlocks(Slice<int> heightRange) const;
-    int      addBlock(
-             int                         laneIndex,
-             ImVec2 const&               size,
-             LaneBlockGraphConfig const& conf);
+    int  getBlockHeightStart(int blockIdx) const;
+    bool inSpan(int blockIdx, hstd::Slice<int> heightRange) const;
+    hstd::Vec<int> getVisibleBlocks(hstd::Slice<int> heightRange) const;
+    int            addBlock(
+                   int                         laneIndex,
+                   ImVec2 const&               size,
+                   LaneBlockGraphConfig const& conf);
 
     int getWidth() const {
-        return rs::max(
-            blocks | rv::transform([](LaneBlockNode const& b) -> int {
-                return b.getWidth();
-            }));
+        return hstd::rs::max(
+            blocks
+            | hstd::rv::transform([](LaneBlockNode const& b) -> int {
+                  return b.getWidth();
+              }));
     }
 
     int getFullWidth() const {
@@ -126,8 +132,8 @@ template <>
 struct std::hash<LaneNodePos> {
     std::size_t operator()(LaneNodePos const& it) const noexcept {
         std::size_t result = 0;
-        hax_hash_combine(result, it.lane);
-        hax_hash_combine(result, it.row);
+        hstd::hax_hash_combine(result, it.lane);
+        hstd::hax_hash_combine(result, it.row);
         return result;
     }
 };
@@ -139,8 +145,8 @@ DECL_ID_TYPE(___BlockNode, BlockNodeId, std::size_t);
 struct ColaConstraintDebug {
     struct Constraint {
         struct Point {
-            ImVec2   pos;
-            Vec<int> rectOrigin;
+            ImVec2         pos;
+            hstd::Vec<int> rectOrigin;
             DESC_FIELDS(Point, (pos, rectOrigin));
         };
 
@@ -160,10 +166,10 @@ struct ColaConstraintDebug {
         };
 
         struct Align {
-            Point       start;
-            Point       end;
-            Vec<Offset> offsets;
-            Vec<int>    rects;
+            Point             start;
+            Point             end;
+            hstd::Vec<Offset> offsets;
+            hstd::Vec<int>    rects;
             DESC_FIELDS(Align, (start, end, offsets, rects));
         };
 
@@ -186,14 +192,14 @@ struct ColaConstraintDebug {
         DESC_FIELDS(Constraint, (data));
     };
 
-    void    toString(ColStream& os) const;
-    ColText toString() const {
-        ColStream os;
+    void          toString(hstd::ColStream& os) const;
+    hstd::ColText toString() const {
+        hstd::ColStream os;
         toString(os);
         return os.getBuffer();
     }
 
-    Vec<Constraint> constraints;
+    hstd::Vec<Constraint> constraints;
     DESC_FIELDS(ColaConstraintDebug, (constraints));
 };
 
@@ -202,7 +208,7 @@ struct LaneBlockGraph;
 struct LaneBlockLayout {
     /// \brief Finalized set of graph layout constraints, ready to be
     /// solved for final layout.
-    GraphLayoutIR ir;
+    hstd::ext::GraphLayoutIR ir;
     /// \brief Store mapping between the block graph nodes and the final
     /// fixed layout rectangles. Adaptagrams IR will only have nodes that
     /// are actually laid out, so this will create a full new set of
@@ -210,12 +216,12 @@ struct LaneBlockLayout {
     /// `GraphLayoutIR::Result::fixed` field (final data for fully
     /// positioned nodes) or `GraphLayoutIR::rectangles` field
     /// (intermediate data for not-yet-positioned rectangle sizes)
-    UnorderedMap<LaneNodePos, int> rectMap;
+    hstd::UnorderedMap<LaneNodePos, int> rectMap;
 
     /// \brief Intermediate storage for the adaptagrapms graph layout IR.
     /// Updated in the `syncLayout` method, together with the `layout`
     /// field.
-    GraphLayoutIR::Result layout;
+    hstd::ext::GraphLayoutIR::Result layout;
 
     DESC_FIELDS(LaneBlockLayout, (ir, rectMap));
 
@@ -245,21 +251,22 @@ struct LaneBlockLayout {
     ///
     /// \warning If any changes were made to the rectangle list it is
     /// necessary to run `syncLayout` again to update the layout data.
-    Vec<RectSpec> getRectangles(LaneBlockGraph const& blockGraph) const;
+    hstd::Vec<RectSpec> getRectangles(
+        LaneBlockGraph const& blockGraph) const;
     ColaConstraintDebug getConstraintDebug() const;
 };
 
 
 struct LaneBlockGraph {
-    Vec<LaneBlockStack>                          lanes;
-    UnorderedMap<LaneNodePos, Vec<LaneNodeEdge>> edges;
-    GraphSize                                    visible;
+    hstd::Vec<LaneBlockStack>                                lanes;
+    hstd::UnorderedMap<LaneNodePos, hstd::Vec<LaneNodeEdge>> edges;
+    hstd::ext::GraphSize                                     visible;
     /// \brief Map external node index to the lane node position. Changed
     /// in `add` method.
-    UnorderedMap<BlockNodeId, LaneNodePos> idToPos;
+    hstd::UnorderedMap<BlockNodeId, LaneNodePos> idToPos;
     /// \brief Reverse map to get external node index based on the lane
     /// node position. Updated in the `add` method.
-    UnorderedMap<LaneNodePos, BlockNodeId> posToId;
+    hstd::UnorderedMap<LaneNodePos, BlockNodeId> posToId;
 
     DESC_FIELDS(LaneBlockGraph, (lanes, visible, edges, idToPos, posToId));
 
@@ -269,7 +276,8 @@ struct LaneBlockGraph {
     }
 
 
-    void syncSize(Func<Opt<ImVec2>(BlockNodeId)> const& getSizeForFlat) {
+    void syncSize(
+        hstd::Func<hstd::Opt<ImVec2>(BlockNodeId)> const& getSizeForFlat) {
         for (auto const& [flat_idx, lane_idx] : idToPos) {
             auto size = getSizeForFlat(flat_idx);
             if (size) {
@@ -279,11 +287,11 @@ struct LaneBlockGraph {
         }
     }
 
-    Opt<BlockNodeId> getBlockId(LaneNodePos const& pos) const {
+    hstd::Opt<BlockNodeId> getBlockId(LaneNodePos const& pos) const {
         return posToId.get(pos);
     }
 
-    Opt<LaneNodePos> getBlockPos(BlockNodeId node) const {
+    hstd::Opt<LaneNodePos> getBlockPos(BlockNodeId node) const {
         return idToPos.get(node);
     }
 
@@ -344,9 +352,10 @@ struct LaneBlockGraph {
         return lanes.at(pos.lane).blocks.at(pos.row);
     }
 
-    generator<Pair<LaneNodePos, LaneBlockNode>> getBlocks() const;
+    hstd::generator<hstd::Pair<LaneNodePos, LaneBlockNode>> getBlocks()
+        const;
 
-    Vec<Slice<int>> getLaneSpans() const;
+    hstd::Vec<hstd::Slice<int>> getLaneSpans() const;
 
     /// \brief Convert lane block graph into adaptagrams block layout IR.
     /// This function does not perform any node positioning, only creates a
@@ -356,27 +365,27 @@ struct LaneBlockGraph {
 
 
 ColaConstraintDebug to_constraints(
-    LaneBlockLayout const&       lyt,
-    LaneBlockGraph const&        g,
-    const GraphLayoutIR::Result& final);
+    LaneBlockLayout const&                  lyt,
+    LaneBlockGraph const&                   g,
+    const hstd::ext::GraphLayoutIR::Result& final);
 
-void render_point(const GraphPoint& point, ImVec2 const& shift);
-void render_path(const GraphPath& path, ImVec2 const& shift);
+void render_point(const hstd::ext::GraphPoint& point, ImVec2 const& shift);
+void render_path(const hstd::ext::GraphPath& path, ImVec2 const& shift);
 void render_bezier_path(
-    const GraphPath&            path,
+    const hstd::ext::GraphPath& path,
     ImVec2 const&               shift,
     const LaneBlockGraphConfig& conf);
-void render_rect(const GraphRect& rect, ImVec2 const& shift);
+void render_rect(const hstd::ext::GraphRect& rect, ImVec2 const& shift);
 void render_edge(
-    const GraphLayoutIR::Edge&  edge,
-    ImVec2 const&               shift,
-    bool                        bezier,
-    LaneBlockGraphConfig const& style);
+    const hstd::ext::GraphLayoutIR::Edge& edge,
+    ImVec2 const&                         shift,
+    bool                                  bezier,
+    LaneBlockGraphConfig const&           style);
 void render_result(
-    GraphLayoutIR::Result const& res,
-    ImVec2 const&                shift,
-    const LaneBlockGraphConfig&  style);
+    hstd::ext::GraphLayoutIR::Result const& res,
+    ImVec2 const&                           shift,
+    const LaneBlockGraphConfig&             style);
 void render_debug(
-    ColaConstraintDebug const&   debug,
-    const ImVec2&                shift,
-    const GraphLayoutIR::Result& ir);
+    ColaConstraintDebug const&              debug,
+    const ImVec2&                           shift,
+    const hstd::ext::GraphLayoutIR::Result& ir);

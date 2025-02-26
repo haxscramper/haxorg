@@ -79,8 +79,12 @@ struct Rect2i {
     int   width  = 0;
     int   height = 0;
 
-    Slice<int> widthSpan() const { return slice(pos.x, pos.x + width); }
-    Slice<int> heightSpan() const { return slice(pos.y, pos.y + height); }
+    hstd::Slice<int> widthSpan() const {
+        return hstd::slice(pos.x, pos.x + width);
+    }
+    hstd::Slice<int> heightSpan() const {
+        return hstd::slice(pos.y, pos.y + height);
+    }
 
     bool contains(Vec2i const& pos) const {
         return widthSpan().contains(pos.x) && heightSpan().contains(pos.y);
@@ -109,8 +113,8 @@ template <>
 struct std::hash<Vec2i> {
     std::size_t operator()(Vec2i const& it) const noexcept {
         std::size_t result = 0;
-        hax_hash_combine(result, it.x);
-        hax_hash_combine(result, it.y);
+        hstd::hax_hash_combine(result, it.x);
+        hstd::hax_hash_combine(result, it.y);
         return result;
     }
 };
@@ -129,22 +133,22 @@ template <>
 struct std::hash<ShapeOrigin> {
     std::size_t operator()(ShapeOrigin const& it) const noexcept {
         std::size_t result = 0;
-        hax_hash_combine(result, it.stack);
-        hax_hash_combine(result, it.index);
+        hstd::hax_hash_combine(result, it.stack);
+        hstd::hax_hash_combine(result, it.index);
         return result;
     }
 };
 
 
 struct BufferCell {
-    ColRune     text;
-    ShapeOrigin origin;
+    hstd::ColRune text;
+    ShapeOrigin   origin;
     DESC_FIELDS(BufferCell, (text, origin));
 };
 
 struct DisplayCell {
-    Opt<BufferCell> content;
-    Vec2i           pos;
+    hstd::Opt<BufferCell> content;
+    Vec2i                 pos;
     DESC_FIELDS(DisplayCell, (content, pos));
 
     void render() const {
@@ -153,30 +157,30 @@ struct DisplayCell {
 };
 
 struct DisplayBuffer {
-    UnorderedMap<Vec2i, BufferCell> runes;
-    Rect2i                          size;
+    hstd::UnorderedMap<Vec2i, BufferCell> runes;
+    Rect2i                                size;
 
     DESC_FIELDS(DisplayBuffer, (runes, size));
 
     void set(
-        Vec2i const&       pos,
-        ColRune const&     rune,
-        ShapeOrigin const& origin);
+        Vec2i const&         pos,
+        hstd::ColRune const& rune,
+        ShapeOrigin const&   origin);
 
-    Vec<Vec<DisplayCell>> toGrid();
+    hstd::Vec<hstd::Vec<DisplayCell>> toGrid();
 };
 
 struct Shape {
     struct Rectangle {
-        Vec2i   size;
-        ColRune upperLeft{"#"};
-        ColRune lowerLeft{"#"};
-        ColRune upperRight{"#"};
-        ColRune lowerRight{"#"};
-        ColRune topEdge{"#"};
-        ColRune bottomEdge{"#"};
-        ColRune leftEdge{"#"};
-        ColRune rightEdge{"#"};
+        Vec2i         size;
+        hstd::ColRune upperLeft{"#"};
+        hstd::ColRune lowerLeft{"#"};
+        hstd::ColRune upperRight{"#"};
+        hstd::ColRune lowerRight{"#"};
+        hstd::ColRune topEdge{"#"};
+        hstd::ColRune bottomEdge{"#"};
+        hstd::ColRune leftEdge{"#"};
+        hstd::ColRune rightEdge{"#"};
         DESC_FIELDS(
             Rectangle,
             (size,
@@ -196,7 +200,7 @@ struct Shape {
     };
 
     struct Freeform {
-        UnorderedMap<Vec2i, ColRune> content;
+        hstd::UnorderedMap<Vec2i, hstd::ColRune> content;
         DESC_FIELDS(Freeform, (content));
 
         void render(
@@ -234,11 +238,11 @@ struct Shape {
     }
 };
 
-using OffsetMap = UnorderedMap<ShapeOrigin, Vec2i>;
+using OffsetMap = hstd::UnorderedMap<ShapeOrigin, Vec2i>;
 
 struct Layer {
-    Vec<Shape> shapes;
-    bool       isVisible = true;
+    hstd::Vec<Shape> shapes;
+    bool             isVisible = true;
     DESC_FIELDS(Layer, (shapes, isVisible));
 
     void render(
@@ -251,7 +255,7 @@ struct Layer {
 };
 
 struct Stack {
-    Vec<Layer> layers;
+    hstd::Vec<Layer> layers;
     DESC_FIELDS(Stack, (layers));
     void render(DisplayBuffer& buf, OffsetMap const& offsets) {
         for (int i = 0; i < layers.size(); ++i) {
@@ -278,9 +282,8 @@ struct Scene {
         DESC_FIELDS(DragInfo, (target, start, current));
     };
 
-    Opt<DragInfo> dragging;
-
-    Opt<Vec2i> getDragOffset2i() const;
+    hstd::Opt<DragInfo> dragging;
+    hstd::Opt<Vec2i> getDragOffset2i() const;
 
     void render(DisplayBuffer& buf);
 

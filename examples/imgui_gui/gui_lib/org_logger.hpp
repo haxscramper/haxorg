@@ -75,10 +75,10 @@ sink_ptr log_sink_mutable_factory(Generator&& gen) {
     ::org_logging::log_sink_mutable_factory<__COUNTER__>(impl)
 
 
-sink_ptr      init_file_sink(Str const& log_file_name);
-void          push_sink(sink_ptr const& sink);
-Opt<sink_ptr> get_last_sink();
-Vec<sink_ptr> get_sink_list();
+sink_ptr            init_file_sink(hstd::Str const& log_file_name);
+void                push_sink(sink_ptr const& sink);
+hstd::Opt<sink_ptr> get_last_sink();
+hstd::Vec<sink_ptr> get_sink_list();
 
 
 /// \brief remove all sink backends from the logger
@@ -87,16 +87,16 @@ void clear_sink_backends();
 
 struct log_record {
     struct log_data {
-        Str            message;
-        int            line = 0;
-        char const*    file = nullptr;
-        Str            category;
-        severity_level severity     = severity_level::trace;
-        char const*    function     = nullptr;
-        Opt<int>       depth        = std::nullopt;
-        Vec<Str>       source_scope = {};
-        Opt<Str>       source_id    = std::nullopt;
-        Opt<json>      metadata     = std::nullopt;
+        hstd::Str            message;
+        int                  line = 0;
+        char const*          file = nullptr;
+        hstd::Str            category;
+        severity_level       severity     = severity_level::trace;
+        char const*          function     = nullptr;
+        hstd::Opt<int>       depth        = std::nullopt;
+        hstd::Vec<hstd::Str> source_scope = {};
+        hstd::Opt<hstd::Str> source_id    = std::nullopt;
+        hstd::Opt<json>      metadata     = std::nullopt;
         DESC_FIELDS(
             log_data,
             (message,
@@ -125,18 +125,18 @@ struct log_record {
 
     log_record& function(char const* func);
     log_record& message(int const& msg);
-    log_record& message(Str const& msg);
+    log_record& message(hstd::Str const& msg);
     log_record& message(char const* msg);
     log_record& line(int l);
     log_record& file(char const* f);
-    log_record& category(Str const& cat);
+    log_record& category(hstd::Str const& cat);
     log_record& severity(severity_level l);
     log_record& depth(int depth);
-    log_record& source_scope(Vec<Str> const& scope);
-    log_record& source_scope_add(Str const& scope);
-    log_record& source_id(Str const& id);
+    log_record& source_scope(hstd::Vec<hstd::Str> const& scope);
+    log_record& source_scope_add(hstd::Str const& scope);
+    log_record& source_id(hstd::Str const& id);
     log_record& metadata(json const& metadata);
-    log_record& metadata(Str const& field, json const& value);
+    log_record& metadata(hstd::Str const& field, json const& value);
     log_record& maybe_space();
 
     log_record& set_callsite(
@@ -162,11 +162,11 @@ struct log_record {
 /// \brief If the scoped code section runs more than one time, sink will
 /// produce log file showing difference between two runs in diff format.
 struct log_differential_sink_factory {
-    Vec<log_record>  prev_run;
-    Vec<std::string> prev_run_format;
-    Str              outfile;
-    sink_ptr         operator()();
-    bool             ignoreDepth = false;
+    hstd::Vec<log_record>  prev_run;
+    hstd::Vec<std::string> prev_run_format;
+    hstd::Str              outfile;
+    sink_ptr               operator()();
+    bool                   ignoreDepth = false;
 
     log_differential_sink_factory& ignore_depth(bool ignore) {
         ignoreDepth = ignore;
@@ -178,7 +178,7 @@ struct log_differential_sink_factory {
 };
 
 
-using log_filter_cb = Func<bool(log_record const&)>;
+using log_filter_cb = hstd::Func<bool(log_record const&)>;
 
 sink_ptr set_sink_filter(sink_ptr, log_filter_cb filter);
 
@@ -196,7 +196,7 @@ log_sink_scope log_sink_scoped_factory(Generator&& gen) {
 
 
 struct log_builder {
-    using Finalizer        = Func<void(log_builder&)>;
+    using Finalizer        = hstd::Func<void(log_builder&)>;
     bool       is_released = false;
     Finalizer  finalizer;
     log_record rec;
@@ -207,18 +207,18 @@ struct log_builder {
     template <typename Self> inline auto&& maybe_space(this Self&& self) { if (!self.is_released) { self.rec.maybe_space(); } return std::forward<Self>(self); }
     template <typename Self> inline auto&& function(this Self&& self, char const* func) { if (!self.is_released) { self.rec.function(func); } return std::forward<Self>(self); }
     template <typename Self> inline auto&& message(this Self&& self, int const& msg) { if (!self.is_released) { self.rec.message(msg); } return std::forward<Self>(self); }
-    template <typename Self> inline auto&& message(this Self&& self, Str const& msg) { if (!self.is_released) { self.rec.message(msg); } return std::forward<Self>(self); }
+    template <typename Self> inline auto&& message(this Self&& self, hstd::Str const& msg) { if (!self.is_released) { self.rec.message(msg); } return std::forward<Self>(self); }
     template <typename Self> inline auto&& message(this Self&& self, char const* msg) { if (!self.is_released) { self.rec.message(msg); } return std::forward<Self>(self); }
     template <typename Self> inline auto&& line(this Self&& self, int l) { if (!self.is_released) { self.rec.line(l); } return std::forward<Self>(self); }
     template <typename Self> inline auto&& file(this Self&& self, char const* f) { if (!self.is_released) { self.rec.file(f); } return std::forward<Self>(self); }
-    template <typename Self> inline auto&& category(this Self&& self, Str const& cat) { if (!self.is_released) { self.rec.category(cat); } return std::forward<Self>(self); }
+    template <typename Self> inline auto&& category(this Self&& self,hstd:: Str const& cat) { if (!self.is_released) { self.rec.category(cat); } return std::forward<Self>(self); }
     template <typename Self> inline auto&& severity(this Self&& self, severity_level l) { if (!self.is_released) { self.rec.severity(l); } return std::forward<Self>(self); }
     template <typename Self> inline auto&& depth(this Self&& self, int depth) { if (!self.is_released) { self.rec.depth(depth); } return std::forward<Self>(self); }
-    template <typename Self> inline auto&& source_scope(this Self&& self, Vec<Str> const& scope) { if (!self.is_released) { self.rec.source_scope(scope); } return std::forward<Self>(self); }
-    template <typename Self> inline auto&& source_scope_add(this Self&& self, Str const& scope) { if (!self.is_released) { self.rec.source_scope_add(scope); } return std::forward<Self>(self); }
-    template <typename Self> inline auto&& source_id(this Self&& self, Str const& id) { if (!self.is_released) { self.rec.source_id(id); } return std::forward<Self>(self); }
+    template <typename Self> inline auto&& source_scope(this Self&& self, hstd::Vec<hstd::Str> const& scope) { if (!self.is_released) { self.rec.source_scope(scope); } return std::forward<Self>(self); }
+    template <typename Self> inline auto&& source_scope_add(this Self&& self, hstd::Str const& scope) { if (!self.is_released) { self.rec.source_scope_add(scope); } return std::forward<Self>(self); }
+    template <typename Self> inline auto&& source_id(this Self&& self, hstd::Str const& id) { if (!self.is_released) { self.rec.source_id(id); } return std::forward<Self>(self); }
     template <typename Self> inline auto&& metadata(this Self&& self, json const& id) { if (!self.is_released) { self.rec.metadata(id); } return std::forward<Self>(self); }
-    template <typename Self> inline auto&& metadata(this Self&& self, Str const& key, json const& id) { if (!self.is_released) { self.rec.metadata(key, id); } return std::forward<Self>(self); }
+    template <typename Self> inline auto&& metadata(this Self&& self, hstd::Str const& key, json const& id) { if (!self.is_released) { self.rec.metadata(key, id); } return std::forward<Self>(self); }
     // clang-format on
 
     template <typename Self>
@@ -228,7 +228,7 @@ struct log_builder {
     }
 
     template <typename Self>
-    inline auto&& escape_message(this Self&& self, Str const& msg) {
+    inline auto&& escape_message(this Self&& self, hstd::Str const& msg) {
         if (!self.is_released) { self.rec.message(escape_literal(msg)); }
         return std::forward<Self>(self);
     }
@@ -336,7 +336,7 @@ template <int Unique>
 log_builder::Finalizer log_builder_get_mutable_finalizer_filter_unique_records(
     bool reset = false) {
     return log_builder_get_mutable_finalizer_filter<Unique>(
-        [hash_state = UnorderedSet<std::size_t>{}](
+        [hash_state = hstd::UnorderedSet<std::size_t>{}](
             log_builder const& rec) mutable -> bool {
             auto h = rec.hash();
             if (hash_state.contains(h)) {
@@ -375,7 +375,7 @@ log_builder::Finalizer log_builder_get_mutable_finalizer_filter_changed_value(
         log_builder_get_mutable_finalizer_filter_changed_value<           \
             __COUNTER__>(__reset)
 
-bool is_log_accepted(Str const& category, severity_level level);
+bool is_log_accepted(hstd::Str const& category, severity_level level);
 
 } // namespace org_logging
 
