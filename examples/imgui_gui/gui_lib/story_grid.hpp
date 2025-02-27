@@ -1077,7 +1077,7 @@ struct StoryGridContext
         char const*             function = __builtin_FUNCTION(),
         char const*             file     = __builtin_FILE()) {
         GridAction ga{act};
-        message(fmt("Action {}", ga), line, function, file);
+        message(hstd::fmt("Action {}", ga), line, function, file);
         actions.push_back({ga});
     }
 
@@ -1097,7 +1097,8 @@ struct StoryGridHistory {
 };
 
 struct StoryGridState {
-    hstd::UnorderedMap<int, hstd::UnorderedMap<Vec<int>, bool>> folded;
+    hstd::UnorderedMap<int, hstd::UnorderedMap<hstd::Vec<int>, bool>>
+        folded;
     DESC_FIELDS(StoryGridState, (folded));
 };
 
@@ -1139,10 +1140,10 @@ struct StoryGridModel {
 
 
 hstd::Opt<json> story_grid_loop(
-    GLFWwindow*            window,
-    const Vec<Str>&        file,
-    hstd::Opt<json> const& in_state,
-    StoryGridConfig&       conf);
+    GLFWwindow*                 window,
+    const hstd::Vec<hstd::Str>& file,
+    hstd::Opt<json> const&      in_state,
+    StoryGridConfig&            conf);
 
 void run_story_grid_annotated_cycle(
     StoryGridModel&        model,

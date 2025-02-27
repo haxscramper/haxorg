@@ -22,7 +22,7 @@ inline void join_fmt_varargs_impl(
 
 template <typename T>
 inline std::string format_for_log(T const& t) {
-    return fmt1(t);
+    return hstd::fmt1(t);
 }
 
 inline std::string format_for_log(char const* str) {
@@ -185,7 +185,7 @@ template <typename T, typename... Args>
 inline std::string __im_test_utils_format_va_args_list(
     T const& head,
     Args&&... args) {
-    return fmt(
+    return hstd::fmt(
         ", {}{}", head, __im_test_utils_format_va_args_list(args...));
 }
 
@@ -258,7 +258,7 @@ inline PredicateResult not_has_substring_normalized(
             __lhs, __rhs __VA_OPT__(, ) __VA_ARGS__);                     \
         std::string arglist_buf = __im_test_utils_format_va_args_list(    \
             __VA_ARGS__);                                                 \
-        std::string expr_buf = fmt(                                       \
+        std::string expr_buf = hstd::fmt(                                 \
             "{} [{}] !{}(_, _{} {} [{}]",                                 \
             #_LHS,                                                        \
             __lhs,                                                        \

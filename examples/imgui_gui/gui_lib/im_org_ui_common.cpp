@@ -12,7 +12,7 @@ using namespace hstd;
 EditableOrgText EditableOrgText::from_adapter(
     const org::imm::ImmAdapter& it) {
     EditableOrgText                res;
-    org::sem::SemId<org::sem::Org> sem_ast = org::sem_from_immer(
+    org::sem::SemId<org::sem::Org> sem_ast = org::imm::sem_from_immer(
         it.id, *it.ctx.lock());
     res.value  = org::algo::Formatter::format(sem_ast);
     res.origin = it;

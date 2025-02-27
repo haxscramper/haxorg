@@ -26,7 +26,7 @@ struct FileState {
 struct ContentNode;
 
 struct DirContext {
-    org::ImmAstContext::Ptr              ctx;
+    org::imm::ImmAstContext::Ptr         ctx;
     fs::path                             root;
     UnorderedMap<Str, FileState>         fileStates;
     UnorderedMap<Str, SPtr<ContentNode>> cache;
@@ -51,7 +51,7 @@ struct DirContext {
 
 struct ContentNode : public SharedPtrApi<ContentNode> {
     Vec<ContentNode::Ptr> nested;
-    org::ImmAdapter       a;
+    org::imm::ImmAdapter  a;
 
     struct Subtree {
         Str title;
@@ -71,7 +71,7 @@ struct ContentNode : public SharedPtrApi<ContentNode> {
         } else if (isSubtree()) {
             if (ImGui::TreeNodeEx(
                     c_fmt("content_{}", a.id),
-                    a.as<org::ImmSubtree>()->level == 1
+                    a.as<org::imm::ImmSubtree>()->level == 1
                         ? ImGuiTreeNodeFlags_DefaultOpen
                         : ImGuiTreeNodeFlags_None,
                     "%s",
@@ -83,21 +83,21 @@ struct ContentNode : public SharedPtrApi<ContentNode> {
     }
 
     static ContentNode::Ptr from_node(
-        DirContext&            ctx,
-        org::ImmAdapter const& a) {
+        DirContext&                 ctx,
+        org::imm::ImmAdapter const& a) {
         auto res = ContentNode::shared();
         res->a   = a;
-        if (auto tree = a.asOpt<org::ImmSubtree>()) {
+        if (auto tree = a.asOpt<org::imm::ImmSubtree>()) {
             res->data = Subtree{
                 .title = tree->getCleanTitle(),
             };
 
-            for (auto const& sub : tree->subAs<org::ImmSubtree>()) {
+            for (auto const& sub : tree->subAs<org::imm::ImmSubtree>()) {
                 res->nested.push_back(ContentNode::from_node(ctx, sub));
             }
-        } else if (auto doc = a.asOpt<org::ImmDocument>()) {
+        } else if (auto doc = a.asOpt<org::imm::ImmDocument>()) {
             res->data = Document{};
-            for (auto const& sub : doc->subAs<org::ImmSubtree>()) {
+            for (auto const& sub : doc->subAs<org::imm::ImmSubtree>()) {
                 res->nested.push_back(ContentNode::from_node(ctx, sub));
             }
         }
@@ -112,7 +112,7 @@ SPtr<ContentNode> DirContext::getFileNode(const fs::path& file) {
     if (hadChanges(file)) {
         OLOG_INFO(
             "load", "Loading file ", fs::relative(file, root).native());
-        auto node = sem::parseString(readFile(file));
+        auto node = org::parseString(readFile(file));
         auto root = ctx->addRoot(node);
         auto res  = ContentNode::from_node(*this, root.getRootAdapter());
         cache.insert_or_assign(file.native(), res);
@@ -123,10 +123,10 @@ SPtr<ContentNode> DirContext::getFileNode(const fs::path& file) {
 
 
 struct FileNode : public SharedPtrApi<FileNode> {
-    org::ImmAdapter  root;
-    Str              title;
-    ContentNode::Ptr document;
-    Str              relative;
+    org::imm::ImmAdapter root;
+    Str                  title;
+    ContentNode::Ptr     document;
+    Str                  relative;
 
     void render(DirContext& ctx) {
         if (ImGui::TreeNodeEx(
@@ -151,9 +151,9 @@ struct FileNode : public SharedPtrApi<FileNode> {
         if (true) {
             res->title = file.filename().native();
         } else {
-            if (auto doc_node = doc->a.asOpt<org::ImmDocument>();
+            if (auto doc_node = doc->a.asOpt<org::imm::ImmDocument>();
                 doc_node && doc_node.value()->title->has_value()) {
-                res->title = sem::getCleanText(doc_node.value().pass(
+                res->title = org::getCleanText(doc_node.value().pass(
                     doc_node.value()->title->value()));
             } else {
                 res->title = file.filename().native();
@@ -337,7 +337,7 @@ class InotifyWatcher {
 
 
 void dir_explorer_loop(GLFWwindow* window, CVec<Str> directories) {
-    auto       start = org::ImmAstContext::init_start_context();
+    auto       start = org::imm::ImmAstContext::init_start_context();
     DirContext ctx{start};
     ctx.ctx           = start;
     ctx.root          = directories.front().toBase();

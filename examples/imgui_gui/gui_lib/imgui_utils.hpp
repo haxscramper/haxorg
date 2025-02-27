@@ -14,7 +14,7 @@
 #include <stb/stb_truetype.h>
 
 inline auto rv_transform_fmt1 = hstd::rv::transform(
-    [](auto const& it) { return fmt1(it); });
+    [](auto const& it) { return hstd::fmt1(it); });
 
 inline auto rv_transform_pair_first = hstd::rv::transform(
     []<typename A, typename B>(hstd::Pair<A, B> const& it) {
@@ -252,4 +252,4 @@ struct ImRenderTraceRecord {
 #define IM_FN_PRINT(_What, _Msg)                                          \
     ImRenderTraceRecord::ImRenderUnit(_What, _Msg);
 
-#define c_fmt(__fmt_expr, ...) fmt(__fmt_expr, __VA_ARGS__).c_str()
+#define c_fmt(__fmt_expr, ...) hstd::fmt(__fmt_expr, __VA_ARGS__).c_str()
