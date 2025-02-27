@@ -13,25 +13,25 @@
 
 using SLock = std::scoped_lock<std::mutex>;
 
-auto get_nesting(CR<Str> line) -> int;
+auto get_nesting(hstd::Str const& line) -> int;
 
 /// Append new line to the file and update related counteres (total
 /// complexity, line count and so on)
 void push_line(
-    ir::FileTrackId  id,
-    walker_state*    walker,
-    CR<ir::LineData> line,
-    bool             changed,
-    int              period);
+    ir::FileTrackId     id,
+    walker_state*       walker,
+    ir::LineData const& line,
+    bool                changed,
+    int                 period);
 
 struct SubTaskParams {
     git_oid      commit_oid; ///< Original git commit iD
     ir::CommitId out_commit; ///< ID of the commit to append resulting file
                              ///< to
-    Str                  root;      ///< Root path for the analyzed entry
-    SPtr<git_tree_entry> entry;     ///< Entry to analyze
-    int                  index;     ///< Task index in the global sequence
-    int                  max_count; ///< Maximum number of task to process
+    hstd::Str                  root;  ///< Root path for the analyzed entry
+    hstd::SPtr<git_tree_entry> entry; ///< Entry to analyze
+    int index;     ///< Task index in the global sequence
+    int max_count; ///< Maximum number of task to process
 };
 
 /// Implementaiton of the commit processing function. Walks files that were

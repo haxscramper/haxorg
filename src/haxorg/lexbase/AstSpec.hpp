@@ -19,7 +19,7 @@
 #include <functional>
 
 
-namespace astspec {
+namespace hstd::ext::astspec {
 struct FieldAccessError : CRTP_hexception<FieldAccessError> {};
 
 
@@ -147,43 +147,43 @@ struct AstRange {
         return slice.has_value() && slice->contains(idx);
     }
 };
-} // namespace astspec
+} // namespace hstd::ext::astspec
 
 
 template <typename Name>
-struct std::formatter<astspec::AstRange<Name>>
+struct std::formatter<hstd::ext::astspec::AstRange<Name>>
     : std::formatter<std::string> {
     template <typename FormatContext>
     FormatContext::iterator format(
-        astspec::AstRange<Name> const& p,
-        FormatContext&                 ctx) const {
+        hstd::ext::astspec::AstRange<Name> const& p,
+        FormatContext&                            ctx) const {
         switch (p.kind) {
-            case astspec::AstRangeKind::Point: {
-                fmt_ctx(p.idx, ctx);
+            case hstd::ext::astspec::AstRangeKind::Point: {
+                hstd::fmt_ctx(p.idx, ctx);
                 break;
             }
-            case astspec::AstRangeKind::InversePoint: {
-                fmt_ctx("^", ctx);
-                fmt_ctx(p.idx, ctx);
+            case hstd::ext::astspec::AstRangeKind::InversePoint: {
+                hstd::fmt_ctx("^", ctx);
+                hstd::fmt_ctx(p.idx, ctx);
                 break;
             }
-            case astspec::AstRangeKind::DirectSlice: {
-                fmt_ctx(p.first, ctx);
-                fmt_ctx("..", ctx);
-                fmt_ctx(p.last, ctx);
+            case hstd::ext::astspec::AstRangeKind::DirectSlice: {
+                hstd::fmt_ctx(p.first, ctx);
+                hstd::fmt_ctx("..", ctx);
+                hstd::fmt_ctx(p.last, ctx);
                 break;
             }
-            case astspec::AstRangeKind::InverseSlice: {
-                fmt_ctx("^", ctx);
-                fmt_ctx(p.first, ctx);
-                fmt_ctx("..^", ctx);
-                fmt_ctx(p.last, ctx);
+            case hstd::ext::astspec::AstRangeKind::InverseSlice: {
+                hstd::fmt_ctx("^", ctx);
+                hstd::fmt_ctx(p.first, ctx);
+                hstd::fmt_ctx("..^", ctx);
+                hstd::fmt_ctx(p.last, ctx);
                 break;
             }
-            case astspec::AstRangeKind::MixedSlice: {
-                fmt_ctx(p.first, ctx);
-                fmt_ctx("..^", ctx);
-                fmt_ctx(p.last, ctx);
+            case hstd::ext::astspec::AstRangeKind::MixedSlice: {
+                hstd::fmt_ctx(p.first, ctx);
+                hstd::fmt_ctx("..^", ctx);
+                hstd::fmt_ctx(p.last, ctx);
                 break;
             }
         }
@@ -191,7 +191,7 @@ struct std::formatter<astspec::AstRange<Name>>
     }
 };
 
-namespace astspec {
+namespace hstd::ext::astspec {
 
 template <typename Node, typename Kind, typename Name>
 struct AstCheckFail {
@@ -798,4 +798,4 @@ struct AstSpec {
 };
 
 
-}; // namespace astspec
+}; // namespace hstd::ext::astspec

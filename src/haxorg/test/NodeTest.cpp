@@ -5,6 +5,7 @@
 #include <hstd/system/reflection.hpp>
 #include <boost/mp11.hpp>
 
+using namespace hstd;
 
 namespace YAML {
 
@@ -32,7 +33,7 @@ template <>
 struct convert<json> {
     static Node encode(json const& v) { return Node(); }
     static bool decode(Node const& in, json& out) {
-        out = toJson(in);
+        out = org::test::toJson(in);
         return true;
     }
 };
@@ -110,16 +111,20 @@ template <DescribedRecord T>
 UnorderedMap<std::string, bool> verbose_convert<T>::knownFieldCache;
 
 template <>
-struct convert<ParseSpec::Dbg> : verbose_convert<ParseSpec::Dbg> {};
+struct convert<org::test::ParseSpec::Dbg>
+    : verbose_convert<org::test::ParseSpec::Dbg> {};
 
 template <>
-struct convert<ParseSpec::Conf> : verbose_convert<ParseSpec::Conf> {};
+struct convert<org::test::ParseSpec::Conf>
+    : verbose_convert<org::test::ParseSpec::Conf> {};
 
 template <>
-struct convert<ParseSpec> : verbose_convert<ParseSpec> {};
+struct convert<org::test::ParseSpec>
+    : verbose_convert<org::test::ParseSpec> {};
 
 } // namespace YAML
 
+namespace org::test {
 
 fs::path ParseSpec::debugFile(
     std::string     relativePath,
@@ -284,3 +289,5 @@ yaml toYaml(CR<json> node) {
         }
     }
 }
+
+} // namespace org::test

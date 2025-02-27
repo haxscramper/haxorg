@@ -4,6 +4,8 @@
 #include <boost/graph/graphviz.hpp>
 #include <absl/log/log.h>
 
+using namespace hstd;
+
 CommitGraph::CommitGraph(
     SPtr<git_repository> repo,
     Str const&           branch_name) {

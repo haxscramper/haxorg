@@ -3,6 +3,7 @@
 
 #include <haxorg/exporters/Exporter.cpp>
 
+namespace org::algo {
 template class Exporter<ExporterUltraplain, std::string>;
 
 
@@ -55,3 +56,4 @@ void ExporterUltraplain::visitTime(std::string& res, In<sem::Time> time) {
         res += (time->getTimeKind() == sem::Time::TimeKind::Dynamic ? ">" : "]");
     }
 }
+} // namespace org::algo

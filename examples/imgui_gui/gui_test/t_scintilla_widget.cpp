@@ -3,6 +3,8 @@
 
 #define TEST_GRP_NAME "scintilla"
 
+using namespace hstd;
+
 struct SciVars : public ImTestVarsBase {
     std::string text;
 };

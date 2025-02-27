@@ -16,6 +16,9 @@
 
 #include <haxorg/sem/perfetto_org.hpp>
 
+using namespace hstd;
+using namespace org::test;
+
 // std::string corpusGlob = "*text.yaml";
 std::string corpusGlob = "";
 

@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
 
     json          records = TestProfiler::getJsonRecords();
     std::ofstream test_records{"/tmp/compact_records.json"};
-    test_records << to_compact_json(records);
+    test_records << hstd::to_compact_json(records);
 
 
     return result;

@@ -12,7 +12,7 @@ TEST_F(ImmOrgApi, StoreNode) {
 
 =pybind11= python module exposing the org-mode AST for scripting. intern intern intern intern
 )");
-    auto s0            = org::ImmAstContext::init_start_context();
+    auto s0            = imm::ImmAstContext::init_start_context();
     auto [store, root] = s0->addRoot(node);
     ColStream os;
     store->format(os);
@@ -23,9 +23,9 @@ TEST_F(ImmOrgApi, StoreNode) {
 TEST_F(ImmOrgApi, RountripImmutableAst) {
     std::string file       = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
     std::string source     = readFile(fs::path(file));
-    auto        store      = org::ImmAstContext::init_start_context();
+    auto        store      = imm::ImmAstContext::init_start_context();
     sem::SemId  write_node = testParseString(source);
-    org::ImmAstVersion v1  = store->addRoot(write_node);
+    imm::ImmAstVersion v1  = store->addRoot(write_node);
     sem::SemId         read_node = v1.context->get(v1.getRoot());
 
     Vec<compare_report> out;
@@ -37,19 +37,19 @@ TEST_F(ImmOrgApi, RountripImmutableAst) {
 
 
 TEST_F(ImmOrgApi, ImmAstFieldIteration) {
-    auto store = org::ImmAstContext::init_start_context();
+    auto store = imm::ImmAstContext::init_start_context();
     for (auto const& k : sliceT<OrgSemKind>()) {
         if (k != OrgSemKind::None) {
             switch_node_nullptr(k, [&]<typename N>(N*) {
                 N                         tmp{};
                 ReflRecursiveVisitContext ctx;
-                Vec<org::ImmReflPathBase> paths;
+                Vec<imm::ImmReflPathBase> paths;
                 reflVisitAll<N>(
                     tmp,
-                    org::ImmReflPathBase{},
+                    imm::ImmReflPathBase{},
                     ctx,
                     [&]<typename T>(
-                        org::ImmReflPathBase const& path, T const& value) {
+                        imm::ImmReflPathBase const& path, T const& value) {
                         paths.push_back(path);
                     });
             });
@@ -60,7 +60,7 @@ TEST_F(ImmOrgApi, ImmAstFieldIteration) {
 
 TEST_F(ImmOrgApi, ItearteParentNodes) {
     setTraceFile(getDebugFile("trace.txt"));
-    start->currentTrack->isTrackingParent = [](org::ImmAdapter const&) {
+    start->currentTrack->isTrackingParent = [](imm::ImmAdapter const&) {
         return true;
     };
 
@@ -77,7 +77,7 @@ TEST_F(ImmOrgApi, ItearteParentNodes) {
 
     EXPECT_EQ(space_id->getKind(), OrgSemKind::Space);
     {
-        org::ImmParentIdVec parents = v1.context->getParentIds(
+        imm::ImmParentIdVec parents = v1.context->getParentIds(
             space_id.id);
         EXPECT_EQ(parents.size(), 1);
         EXPECT_TRUE(parents.contains(par_id.id));
@@ -85,26 +85,26 @@ TEST_F(ImmOrgApi, ItearteParentNodes) {
     }
 
     {
-        org::ParentPathMap parents = v1.context->getParentsFor(
+        imm::ParentPathMap parents = v1.context->getParentsFor(
             space_id.id);
         EXPECT_EQ(parents.size(), 1);
         EXPECT_TRUE(parents.contains(par_id.id));
         EXPECT_EQ(parents.at(par_id.id).size(), 2);
         EXPECT_EQ(
             parents.at(par_id.id).at(0).path.at(0).getFieldName().name,
-            org::ImmReflFieldId::FromTypeField(&org::ImmOrg::subnodes));
+            imm::ImmReflFieldId::FromTypeField(&imm::ImmOrg::subnodes));
         EXPECT_EQ(
             parents.at(par_id.id).at(0).path.at(1).getIndex().index, 1);
         EXPECT_EQ(
             parents.at(par_id.id).at(1).path.at(0).getFieldName().name,
-            org::ImmReflFieldId::FromTypeField(&org::ImmOrg::subnodes));
+            imm::ImmReflFieldId::FromTypeField(&imm::ImmOrg::subnodes));
         EXPECT_EQ(
             parents.at(par_id.id).at(1).path.at(1).getIndex().index, 3);
     }
 
 
     {
-        Vec<org::ImmUniqId> paths = v1.context->getPathsFor(space_id.id);
+        Vec<imm::ImmUniqId> paths = v1.context->getPathsFor(space_id.id);
         EXPECT_EQ(paths.size(), 2);
         auto const& p0 = paths.at(0);
         auto const& p1 = paths.at(1);
@@ -115,22 +115,22 @@ TEST_F(ImmOrgApi, ItearteParentNodes) {
 
 TEST_F(ImmOrgApi, RadioLinkDetection) {
     setTraceFile(getDebugFile("trace.log"));
-    org::ImmAstVersion init = getInitialVersion(R"(
+    imm::ImmAstVersion init = getInitialVersion(R"(
 <<<radiotarget>>> Paragraph with radio links
 
 Other paragraph mentions radiotarget
 )");
 
-    org::ImmAdapter root = init.getRootAdapter();
+    imm::ImmAdapter root = init.getRootAdapter();
     writeTreeRepr(root, "repr.txt");
 
-    org::ImmAdapter par1 = root.at(1);
+    imm::ImmAdapter par1 = root.at(1);
     EXPECT_EQ(par1.getKind(), OrgSemKind::Paragraph);
-    org::ImmAdapter radio = par1.at(0);
+    imm::ImmAdapter radio = par1.at(0);
     EXPECT_EQ(radio.getKind(), OrgSemKind::RadioTarget);
-    org::ImmAdapter par2 = root.at(3);
+    imm::ImmAdapter par2 = root.at(3);
     EXPECT_EQ(par2.getKind(), OrgSemKind::Paragraph);
-    Vec<org::ImmSubnodeGroup> grouped = org::getSubnodeGroups(par2);
+    Vec<imm::ImmSubnodeGroup> grouped = imm::getSubnodeGroups(par2);
     EXPECT_EQ(grouped.size(), 7);
     EXPECT_TRUE(grouped.at(0).isSingle());
     EXPECT_TRUE(grouped.at(6).isRadioTarget());
@@ -139,7 +139,7 @@ Other paragraph mentions radiotarget
 
 TEST_F(ImmOrgApi, HashtagDefinitionTracking) {
     setTraceFile(getDebugFile("trace.log"));
-    org::ImmAstVersion init = getInitialVersion(
+    imm::ImmAstVersion init = getInitialVersion(
         R"(
 * Subtree with item description
   :properties:
@@ -152,14 +152,14 @@ Mention #hashtag1 and #nested##alias1 with #nested##alias2
 )",
         getDebugFile());
 
-    org::ImmAdapter root = init.getRootAdapter();
+    imm::ImmAdapter root = init.getRootAdapter();
     writeTreeRepr(root, "repr.txt");
-    org::ImmAdapter t1 = root.at(1);
+    imm::ImmAdapter t1 = root.at(1);
     EXPECT_EQ(t1.getKind(), OrgSemKind::Subtree);
-    org::ImmAdapter par = t1.at(0);
+    imm::ImmAdapter par = t1.at(0);
     EXPECT_EQ2(par.getKind(), OrgSemKind::Paragraph);
 
-    auto group = org::getSubnodeGroups(par);
+    auto group = imm::getSubnodeGroups(par);
 
     EXPECT_TRUE(group.at(2).isTrackedHashtag());
     EXPECT_TRUE(group.at(6).isTrackedHashtag());
@@ -186,7 +186,7 @@ Mention #hashtag1 and #nested##alias1 with #nested##alias2
 
 TEST_F(ImmOrgApi, RadioLinkDetectionForSubtree) {
     setTraceFile(getDebugFile("trace.log"));
-    org::ImmAstVersion init = getInitialVersion(R"(
+    imm::ImmAstVersion init = getInitialVersion(R"(
 * Subtree with item description
   :properties:
   :radio_id: alias1
@@ -203,15 +203,15 @@ alias2 is a thing
 also known as a human-readable alias
 )");
 
-    org::ImmAdapter root = init.getRootAdapter();
+    imm::ImmAdapter root = init.getRootAdapter();
     writeTreeRepr(root, "repr.txt");
-    org::ImmAdapter t1 = root.at(1);
+    imm::ImmAdapter t1 = root.at(1);
     EXPECT_EQ(t1.getKind(), OrgSemKind::Subtree);
-    org::ImmAdapter t2 = root.at(2);
+    imm::ImmAdapter t2 = root.at(2);
     EXPECT_EQ(t2.getKind(), OrgSemKind::Subtree);
 
-    org::ImmAdapterT<org::ImmSubtree>
-        treeAdapter = t1.as<org::ImmSubtree>();
+    imm::ImmAdapterT<imm::ImmSubtree>
+        treeAdapter = t1.as<imm::ImmSubtree>();
 
     Vec<sem::NamedProperty> radioAliases = treeAdapter.getProperties(
         "radio_id");
@@ -223,25 +223,25 @@ also known as a human-readable alias
         radioAliases.at(2).getRadioId().words,
         (Vec<Str>{"human-readable", "alias"}));
 
-    org::ImmAdapter par_alias1 = t2.at(0);
-    org::ImmAdapter par_alias2 = t2.at(2);
-    org::ImmAdapter par_human  = t2.at(4);
+    imm::ImmAdapter par_alias1 = t2.at(0);
+    imm::ImmAdapter par_alias2 = t2.at(2);
+    imm::ImmAdapter par_human  = t2.at(4);
 
     EXPECT_EQ(par_alias1.getKind(), OrgSemKind::Paragraph);
     EXPECT_EQ(par_alias2.getKind(), OrgSemKind::Paragraph);
     EXPECT_EQ(par_human.getKind(), OrgSemKind::Paragraph);
 
-    auto group_alias1 = org::getSubnodeGroups(par_alias1);
+    auto group_alias1 = imm::getSubnodeGroups(par_alias1);
     EXPECT_EQ(group_alias1.size(), 7);
     EXPECT_TRUE(group_alias1.at(0).isRadioTarget());
     EXPECT_EQ(group_alias1.at(0).getRadioTarget().target, t1.id);
 
-    auto group_alias2 = org::getSubnodeGroups(par_alias2);
+    auto group_alias2 = imm::getSubnodeGroups(par_alias2);
     EXPECT_EQ(group_alias2.size(), 7);
     EXPECT_TRUE(group_alias2.at(0).isRadioTarget());
     EXPECT_EQ(group_alias2.at(0).getRadioTarget().target, t1.id);
 
-    auto group_human = org::getSubnodeGroups(par_human);
+    auto group_human = imm::getSubnodeGroups(par_human);
     EXPECT_EQ(group_human.size(), 9);
     EXPECT_TRUE(group_human.at(1_B).isRadioTarget());
     EXPECT_EQ(group_human.at(1_B).getRadioTarget().target, t1.id);
@@ -249,7 +249,7 @@ also known as a human-readable alias
 
 TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {
     setTraceFile(getDebugFile("trace.txt"));
-    start->currentTrack->isTrackingParent = [](org::ImmAdapter const&) {
+    start->currentTrack->isTrackingParent = [](imm::ImmAdapter const&) {
         return true;
     };
 
@@ -258,10 +258,10 @@ TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {
     sem::SemId<sem::Org> replace_node = testParseString("wordXX").at(0).at(
         0);
 
-    org::ImmAstVersion      version1     = start->init(start_node);
-    org::ImmAstContext::Ptr store        = version1.context;
-    org::ImmAdapter         paragraph    = version1.getRootAdapter().at(0);
-    org::ImmAstEditContext  ctx          = store->getEditContext();
+    imm::ImmAstVersion      version1     = start->init(start_node);
+    imm::ImmAstContext::Ptr store        = version1.context;
+    imm::ImmAdapter         paragraph    = version1.getRootAdapter().at(0);
+    imm::ImmAstEditContext  ctx          = store->getEditContext();
     auto                    __absl_scope = ctx.collectAbslLogs();
     auto                    word_xx      = store->add(replace_node, ctx);
     auto                    version2     = store->finishEdit(
@@ -292,10 +292,10 @@ TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {
     EXPECT_EQ(par1_id.id.getNodeIndex(), 1);
     EXPECT_EQ(par2_id.id.getNodeIndex(), 2);
 
-    auto const& doc1 = doc1_id.value<org::ImmDocument>();
-    auto const& doc2 = doc2_id.value<org::ImmDocument>();
-    auto const& par1 = par1_id.value<org::ImmParagraph>();
-    auto const& par2 = par2_id.value<org::ImmParagraph>();
+    auto const& doc1 = doc1_id.value<imm::ImmDocument>();
+    auto const& doc2 = doc2_id.value<imm::ImmDocument>();
+    auto const& par1 = par1_id.value<imm::ImmParagraph>();
+    auto const& par2 = par2_id.value<imm::ImmParagraph>();
 
     EXPECT_EQ(doc1.subnodes.size(), 1);
     EXPECT_EQ(doc1.indexOf(par1_id.id), 0);
@@ -331,17 +331,17 @@ TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {
     EXPECT_EQ(word2_id->getKind(), OrgSemKind::Word);
     EXPECT_EQ(word4_id->getKind(), OrgSemKind::Word);
 
-    EXPECT_EQ(word0_id.value<org::ImmWord>().text, "word0");
-    EXPECT_EQ(word2_id.value<org::ImmWord>().text, "word2");
-    EXPECT_EQ(word4_id.value<org::ImmWord>().text, "word4");
+    EXPECT_EQ(word0_id.value<imm::ImmWord>().text, "word0");
+    EXPECT_EQ(word2_id.value<imm::ImmWord>().text, "word2");
+    EXPECT_EQ(word4_id.value<imm::ImmWord>().text, "word4");
 
-    auto gv = org::toGraphviz(
+    auto gv = imm::toGraphviz(
         {version1, version2},
-        org::ImmAstGraphvizConf{
+        imm::ImmAstGraphvizConf{
             .skippedKinds = SemSet{OrgSemKind::Space},
         });
 
-    Graphviz gvc;
+    hstd::ext::Graphviz gvc;
     gvc.renderToFile("/tmp/ReplaceSubnodeAtPath.png", gv);
     gvc.writeFile("/tmp/ReplaceSubnodeAtPath.dot", gv);
 }
@@ -349,11 +349,11 @@ TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {
 
 struct ImmOrgApiEdit : ImmOrgApiTestBase {};
 
-Vec<int> getDfsSubtreeLevels(org::ImmAdapter n) {
+Vec<int> getDfsSubtreeLevels(imm::ImmAdapter n) {
     Vec<int>                    result;
-    Func<void(org::ImmAdapter)> aux;
-    aux = [&](org::ImmAdapter n) {
-        if (auto tree = n.asOpt<org::ImmSubtree>()) {
+    Func<void(imm::ImmAdapter)> aux;
+    aux = [&](imm::ImmAdapter n) {
+        if (auto tree = n.asOpt<imm::ImmSubtree>()) {
             result.push_back(tree.value()->level);
         }
         for (auto const& it : n.sub()) { aux(it); }
@@ -381,7 +381,7 @@ Str getSubtreeDash() {
 
 TEST_F(ImmOrgApiEdit, LeafSubtreeDemote) {
     setTraceFile(getDebugFile("trace.txt"));
-    org::ImmAstVersion v1 = getInitialVersion(getSubtreeDash());
+    imm::ImmAstVersion v1 = getInitialVersion(getSubtreeDash());
 
     {
         auto root = v1.getRootAdapter();
@@ -392,18 +392,18 @@ TEST_F(ImmOrgApiEdit, LeafSubtreeDemote) {
 
     Vec<int> path{0, 1, 0};
 
-    org::ImmAstVersion v2 = v1.getEditVersion(
-        [&](org::ImmAstContext::Ptr ast,
-            org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
+    imm::ImmAstVersion v2 = v1.getEditVersion(
+        [&](imm::ImmAstContext::Ptr ast,
+            imm::ImmAstEditContext& ctx) -> imm::ImmAstReplaceGroup {
             auto root  = v1.getRootAdapter();
             auto s3010 = root.at(path);
             EXPECT_EQ(s3010->getKind(), OrgSemKind::Subtree);
-            EXPECT_EQ(s3010->as<org::ImmSubtree>()->level, 3);
+            EXPECT_EQ(s3010->as<imm::ImmSubtree>()->level, 3);
             return demoteSubtree(
-                s3010, org::SubtreeMove::ForceLevels, ctx);
+                s3010, imm::SubtreeMove::ForceLevels, ctx);
         });
 
-    org::ImmAdapter::TreeReprConf conf{.withAuxFields = true};
+    imm::ImmAdapter::TreeReprConf conf{.withAuxFields = true};
 
     writeFile(
         getDebugFile("repr_v1.txt"),
@@ -422,7 +422,7 @@ TEST_F(ImmOrgApiEdit, LeafSubtreeDemote) {
         auto r     = v1.getRootAdapter();
         auto s3010 = r.at(path);
         EXPECT_EQ(s3010->getKind(), OrgSemKind::Subtree);
-        EXPECT_EQ(s3010->as<org::ImmSubtree>()->level, 3);
+        EXPECT_EQ(s3010->as<imm::ImmSubtree>()->level, 3);
         auto levels = getDfsSubtreeLevels(r);
         EXPECT_EQ(levels, (Vec<int>{1, 2, 3, 3, 2, 3}));
     }
@@ -431,7 +431,7 @@ TEST_F(ImmOrgApiEdit, LeafSubtreeDemote) {
         auto r     = v2.getRootAdapter();
         auto s3010 = r.at(path);
         EXPECT_EQ(s3010->getKind(), OrgSemKind::Subtree);
-        EXPECT_EQ(s3010->as<org::ImmSubtree>()->level, 4);
+        EXPECT_EQ(s3010->as<imm::ImmSubtree>()->level, 4);
         auto levels = getDfsSubtreeLevels(r);
         EXPECT_EQ(levels, (Vec<int>{1, 2, 3, 3, 2, 4}));
     }
@@ -440,17 +440,17 @@ TEST_F(ImmOrgApiEdit, LeafSubtreeDemote) {
 
 TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_OneNested) {
     setTraceFile(getDebugFile("trace.txt"));
-    org::ImmAstVersion v1 = getInitialVersion(getSubtreeDash());
+    imm::ImmAstVersion v1 = getInitialVersion(getSubtreeDash());
     writeTreeRepr(v1.getRootAdapter(), "repr_v1.txt");
 
-    org::ImmAstVersion v2 = v1.getEditVersion(
-        [&](org::ImmAstContext::Ptr ast,
-            org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
+    imm::ImmAstVersion v2 = v1.getEditVersion(
+        [&](imm::ImmAstContext::Ptr ast,
+            imm::ImmAstEditContext& ctx) -> imm::ImmAstReplaceGroup {
             auto root = v1.getRootAdapter();
             auto s201 = root.at(Vec{0, 1});
             EXPECT_EQ(s201->getKind(), OrgSemKind::Subtree);
-            EXPECT_EQ(s201->as<org::ImmSubtree>()->level, 2);
-            return demoteSubtree(s201, org::SubtreeMove::ForceLevels, ctx);
+            EXPECT_EQ(s201->as<imm::ImmSubtree>()->level, 2);
+            return demoteSubtree(s201, imm::SubtreeMove::ForceLevels, ctx);
         });
 
     writeGvHistory({v1, v2}, "v1_v2");
@@ -459,24 +459,24 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_OneNested) {
     writeTreeRepr(r, "repr_v2.txt");
     auto s201 = r.at(Vec{0, 0, 2});
     EXPECT_EQ(s201->getKind(), OrgSemKind::Subtree);
-    EXPECT_EQ(s201->as<org::ImmSubtree>()->level, 3);
+    EXPECT_EQ(s201->as<imm::ImmSubtree>()->level, 3);
     auto s3010 = r.at({0, 0, 2, 0});
     EXPECT_EQ(s3010->getKind(), OrgSemKind::Subtree);
-    EXPECT_EQ(s3010->as<org::ImmSubtree>()->level, 4);
+    EXPECT_EQ(s3010->as<imm::ImmSubtree>()->level, 4);
     auto levels = getDfsSubtreeLevels(r);
     EXPECT_EQ(levels, (Vec<int>{1, 2, 3, 3, 3, 4}));
 }
 
 TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_All) {
     setTraceFile(getDebugFile("trace.txt"));
-    org::ImmAstVersion v1 = getInitialVersion(getSubtreeDash());
+    imm::ImmAstVersion v1 = getInitialVersion(getSubtreeDash());
 
-    org::ImmAstVersion v2 = v1.getEditVersion(
-        [&](org::ImmAstContext::Ptr ast,
-            org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
+    imm::ImmAstVersion v2 = v1.getEditVersion(
+        [&](imm::ImmAstContext::Ptr ast,
+            imm::ImmAstEditContext& ctx) -> imm::ImmAstReplaceGroup {
             auto root = v1.getRootAdapter();
             auto s1   = root.at(0);
-            return demoteSubtree(s1, org::SubtreeMove::ForceLevels, ctx);
+            return demoteSubtree(s1, imm::SubtreeMove::ForceLevels, ctx);
         });
 
     writeGvHistory({v1, v2}, "v1_v2");
@@ -492,21 +492,21 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_All) {
 
 TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_WithParentChange) {
     setTraceFile(getDebugFile("trace.txt"));
-    org::ImmAstVersion v1 = getInitialVersion(getSubtreeDash());
+    imm::ImmAstVersion v1 = getInitialVersion(getSubtreeDash());
 
-    auto demotePath = [&](org::ImmAstVersion v,
-                          CVec<int>          path) -> org::ImmAstVersion {
+    auto demotePath = [&](imm::ImmAstVersion v,
+                          CVec<int>          path) -> imm::ImmAstVersion {
         return v.getEditVersion(
-            [&](org::ImmAstContext::Ptr ast,
-                org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
+            [&](imm::ImmAstContext::Ptr ast,
+                imm::ImmAstEditContext& ctx) -> imm::ImmAstReplaceGroup {
                 auto root = v.getRootAdapter();
                 auto s1   = root.at(path);
                 return demoteSubtree(
-                    s1, org::SubtreeMove::ForceLevels, ctx);
+                    s1, imm::SubtreeMove::ForceLevels, ctx);
             });
     };
 
-    org::ImmAstVersion v2 = demotePath(v1, {0, 0, 1});
+    imm::ImmAstVersion v2 = demotePath(v1, {0, 0, 1});
 
     {
         auto r = v2.getRootAdapter();
@@ -524,28 +524,28 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_WithParentChange) {
 
 
         EXPECT_TRUE(r.at(p0000).is(OrgSemKind::Subtree));
-        EXPECT_EQ(r.at(p0000).as<org::ImmSubtree>()->level, 4);
+        EXPECT_EQ(r.at(p0000).as<imm::ImmSubtree>()->level, 4);
         EXPECT_EQ(r.at(p0000).getParent().value().id, r.at(p000).id);
         EXPECT_EQ(r.at(p000).at(0).id, r.at(p0000).id);
 
-        EXPECT_EQ(r.at(p000).as<org::ImmSubtree>()->level, 3);
+        EXPECT_EQ(r.at(p000).as<imm::ImmSubtree>()->level, 3);
         EXPECT_EQ(r.at(p000).getParent().value().id, r.at(p00).id);
         EXPECT_EQ(r.at(p00).at(0).id, r.at(p000).id);
 
-        EXPECT_EQ(r.at(p00).as<org::ImmSubtree>()->level, 2);
+        EXPECT_EQ(r.at(p00).as<imm::ImmSubtree>()->level, 2);
         EXPECT_EQ(r.at(p0).at(0).id, r.at(p00).id);
     }
 
-    org::ImmAstVersion v3 = demotePath(v2, {0, 1});
+    imm::ImmAstVersion v3 = demotePath(v2, {0, 1});
     writeTreeRepr(v3.getRootAdapter(), "repr_v3.txt");
-    org::ImmAstVersion v4 = demotePath(v3, {0, 0, 1});
+    imm::ImmAstVersion v4 = demotePath(v3, {0, 0, 1});
     writeTreeRepr(v4.getRootAdapter(), "repr_v4.txt");
-    org::ImmAstVersion v5 = demotePath(v4, {0, 0, 0, 1});
+    imm::ImmAstVersion v5 = demotePath(v4, {0, 0, 0, 1});
     writeTreeRepr(v5.getRootAdapter(), "repr_v5.txt");
     writeGvHistory(
         {v1, v2, v3, v4, v5},
         "v_final",
-        org::ImmAstGraphvizConf{
+        imm::ImmAstGraphvizConf{
             .withAuxNodes      = true,
             .withEditHistory   = false,
             .withEpochClusters = false,
@@ -556,26 +556,26 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_WithParentChange) {
         EXPECT_TRUE(
             r.at({0, 0, 0, 0, 0, 0}).isSubnodeOf(r.at({0, 0, 0, 0, 0})));
         EXPECT_EQ(
-            r.at({0, 0, 0, 0, 0, 0}).as<org::ImmSubtree>()->level, 6);
+            r.at({0, 0, 0, 0, 0, 0}).as<imm::ImmSubtree>()->level, 6);
         EXPECT_EQ(
-            r.at({0, 0, 0, 0, 0, 0}).as<org::ImmSubtree>()->level, 6);
-        EXPECT_EQ(r.at({0, 0, 0, 0, 0}).as<org::ImmSubtree>()->level, 5);
-        EXPECT_EQ(r.at({0, 0, 0, 0}).as<org::ImmSubtree>()->level, 4);
-        EXPECT_EQ(r.at({0, 0, 0}).as<org::ImmSubtree>()->level, 3);
+            r.at({0, 0, 0, 0, 0, 0}).as<imm::ImmSubtree>()->level, 6);
+        EXPECT_EQ(r.at({0, 0, 0, 0, 0}).as<imm::ImmSubtree>()->level, 5);
+        EXPECT_EQ(r.at({0, 0, 0, 0}).as<imm::ImmSubtree>()->level, 4);
+        EXPECT_EQ(r.at({0, 0, 0}).as<imm::ImmSubtree>()->level, 3);
     }
 }
 
 TEST_F(ImmOrgApiEdit, PhysicalDemote) {
     setTraceFile(getDebugFile("trace.txt"));
-    org::ImmAstVersion v1 = getInitialVersion(getSubtreeDash());
+    imm::ImmAstVersion v1 = getInitialVersion(getSubtreeDash());
     writeTreeRepr(v1.getRootAdapter(), "repr_v1.txt");
 
-    org::ImmAstVersion v2 = v1.getEditVersion(
-        [&](org::ImmAstContext::Ptr ast,
-            org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
+    imm::ImmAstVersion v2 = v1.getEditVersion(
+        [&](imm::ImmAstContext::Ptr ast,
+            imm::ImmAstEditContext& ctx) -> imm::ImmAstReplaceGroup {
             auto root = v1.getRootAdapter();
             auto s1   = root.at(Vec{0, 0});
-            return demoteSubtree(s1, org::SubtreeMove::Physical, ctx);
+            return demoteSubtree(s1, imm::SubtreeMove::Physical, ctx);
         });
 
     writeGvHistory({v1, v2}, "v1_v2");
@@ -592,19 +592,19 @@ TEST_F(ImmOrgApiEdit, PhysicalDemote) {
 
 TEST_F(ImmOrgApiEdit, ResetTitle) {
     setTraceFile(getDebugFile("trace.txt"));
-    org::ImmAstVersion v1 = getInitialVersion("* subtree");
+    imm::ImmAstVersion v1 = getInitialVersion("* subtree");
     writeTreeRepr(v1.getRootAdapter(), "repr_v1.txt");
 
-    org::ImmAstVersion v2 = v1.getEditVersion(
-        [&](org::ImmAstContext::Ptr ast,
-            org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
-            return ctx.store().updateNode<org::ImmSubtree>(
-                v1.getRootAdapter().at(0), ctx, [&](org::ImmSubtree tree) {
+    imm::ImmAstVersion v2 = v1.getEditVersion(
+        [&](imm::ImmAstContext::Ptr ast,
+            imm::ImmAstEditContext& ctx) -> imm::ImmAstReplaceGroup {
+            return ctx.store().updateNode<imm::ImmSubtree>(
+                v1.getRootAdapter().at(0), ctx, [&](imm::ImmSubtree tree) {
                     tree.title = ctx->add(
-                                        sem::asOneNode(
-                                            sem::parseString("replaced")),
+                                        org::asOneNode(
+                                            org::parseString("replaced")),
                                         ctx)
-                                     .as<org::ImmParagraph>();
+                                     .as<imm::ImmParagraph>();
                     return tree;
                 });
         });
@@ -613,29 +613,29 @@ TEST_F(ImmOrgApiEdit, ResetTitle) {
     writeTreeRepr(v2.getRootAdapter(), "repr_v2.txt");
 
     {
-        auto tree = v1.getRootAdapter().at(0).as<org::ImmSubtree>();
+        auto tree = v1.getRootAdapter().at(0).as<imm::ImmSubtree>();
         EXPECT_EQ(
-            tree.pass(tree->title).at(0).as<org::ImmWord>()->text,
+            tree.pass(tree->title).at(0).as<imm::ImmWord>()->text,
             "subtree");
     }
 
     {
-        auto tree = v2.getRootAdapter().at(0).as<org::ImmSubtree>();
+        auto tree = v2.getRootAdapter().at(0).as<imm::ImmSubtree>();
         EXPECT_EQ(
-            tree.pass(tree->title).at(0).as<org::ImmWord>()->text,
+            tree.pass(tree->title).at(0).as<imm::ImmWord>()->text,
             "replaced");
     }
 }
 
 TEST_F(ImmOrgApiEdit, MoveSubnodes) {
     setTraceFile(getDebugFile("trace.txt"));
-    org::ImmAstVersion v1 = getInitialVersion("zero one two three");
+    imm::ImmAstVersion v1 = getInitialVersion("zero one two three");
 
     auto move =
-        [&](int position, int offset, bool bounded) -> org::ImmAstVersion {
+        [&](int position, int offset, bool bounded) -> imm::ImmAstVersion {
         return v1.getEditVersion(
-            [&](org::ImmAstContext::Ptr ast,
-                org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
+            [&](imm::ImmAstContext::Ptr ast,
+                imm::ImmAstEditContext& ctx) -> imm::ImmAstReplaceGroup {
                 auto update = moveSubnode(
                     v1.getRootAdapter().at(0),
                     position,
@@ -650,12 +650,12 @@ TEST_F(ImmOrgApiEdit, MoveSubnodes) {
             });
     };
 
-    Func<Vec<Str>(org::ImmAdapter const&)> flat;
-    flat = [&](org::ImmAdapter const& it) -> Vec<Str> {
+    Func<Vec<Str>(imm::ImmAdapter const&)> flat;
+    flat = [&](imm::ImmAdapter const& it) -> Vec<Str> {
         Vec<Str> result;
-        if (auto i = it.asOpt<org::ImmWord>(); i) {
+        if (auto i = it.asOpt<imm::ImmWord>(); i) {
             result.push_back(i.value()->text);
-        } else if (auto i = it.asOpt<org::ImmSpace>(); i) {
+        } else if (auto i = it.asOpt<imm::ImmSpace>(); i) {
             result.push_back(i.value()->text);
         } else {
             for (auto const& sub : it.sub()) { result.append(flat(sub)); }
@@ -666,9 +666,9 @@ TEST_F(ImmOrgApiEdit, MoveSubnodes) {
 
     writeGvHistory({v1}, "graph_v1");
 
-    org::ImmAstVersion v2 = move(0, 2, true);
-    org::ImmAstVersion v3 = move(0, 4, true);
-    org::ImmAstVersion v4 = move(2, -2, true);
+    imm::ImmAstVersion v2 = move(0, 2, true);
+    imm::ImmAstVersion v3 = move(0, 4, true);
+    imm::ImmAstVersion v4 = move(2, -2, true);
 
     writeGvHistory({v1, v2, v3, v4}, "graph");
     EXPECT_EQ(
@@ -687,9 +687,9 @@ TEST_F(ImmOrgApiEdit, MoveSubnodes) {
 
 struct ImmOrgApiAppModel : ImmOrgApiTestBase {
     struct Row {
-        org::ImmAdapter nameOrigin;
+        imm::ImmAdapter nameOrigin;
         std::string     name;
-        org::ImmAdapter storyEventOrigin;
+        imm::ImmAdapter storyEventOrigin;
         std::string     storyEvent;
         Vec<Row>        nested;
         DESC_FIELDS(
@@ -697,13 +697,13 @@ struct ImmOrgApiAppModel : ImmOrgApiTestBase {
             (nameOrigin, name, storyEventOrigin, storyEvent, nested));
     };
 
-    Row buildRow(org::ImmAdapterT<org::ImmSubtree> tree) {
+    Row buildRow(imm::ImmAdapterT<imm::ImmSubtree> tree) {
         Row result;
         result.name       = join(" ", flatWords(tree.getTitle()));
         result.nameOrigin = tree.getTitle();
-        for (auto const& sub : tree.subAs<org::ImmList>()) {
+        for (auto const& sub : tree.subAs<imm::ImmList>()) {
             if (sub.isDescriptionList()) {
-                for (auto const& item : sub.subAs<org::ImmListItem>()) {
+                for (auto const& item : sub.subAs<imm::ImmListItem>()) {
                     auto flat = flatWords(item.getHeader().value());
                     for (auto const& word : flat) {
                         if (word == "story_event") {
@@ -716,16 +716,16 @@ struct ImmOrgApiAppModel : ImmOrgApiTestBase {
             }
         }
 
-        for (auto const& sub : tree.subAs<org::ImmSubtree>()) {
+        for (auto const& sub : tree.subAs<imm::ImmSubtree>()) {
             result.nested.push_back(buildRow(sub));
         }
 
         return result;
     }
 
-    Vec<Row> buildRows(org::ImmAdapter root) {
+    Vec<Row> buildRows(imm::ImmAdapter root) {
         Vec<Row> result;
-        for (auto const& tree : root.subAs<org::ImmSubtree>()) {
+        for (auto const& tree : root.subAs<imm::ImmSubtree>()) {
             result.push_back(buildRow(tree));
         }
 
@@ -734,7 +734,7 @@ struct ImmOrgApiAppModel : ImmOrgApiTestBase {
 };
 
 TEST_F(ImmOrgApiAppModel, CreateModel) {
-    org::ImmAstVersion v1 = getInitialVersion(R"(
+    imm::ImmAstVersion v1 = getInitialVersion(R"(
 * Entry 1
 ** Subtree 2
 
@@ -753,7 +753,7 @@ TEST_F(ImmOrgApiAppModel, CreateModel) {
 
 TEST_F(ImmOrgApiAppModel, EditModel) {
     setTraceFile(getDebugFile("trace.txt"));
-    org::ImmAstVersion v1 = getInitialVersion(R"(
+    imm::ImmAstVersion v1 = getInitialVersion(R"(
 * Entry 1
 ** Subtree 2
 - =story_event= :: Description
@@ -769,21 +769,21 @@ TEST_F(ImmOrgApiAppModel, EditModel) {
         EXPECT_EQ(rows1.at(0).nested.at(0).storyEvent, "Description");
     }
 
-    org::ImmAstVersion v2 = v1.getEditVersion(
-        [&](org::ImmAstContext::Ptr ast,
-            org::ImmAstEditContext& ctx) -> org::ImmAstReplaceGroup {
+    imm::ImmAstVersion v2 = v1.getEditVersion(
+        [&](imm::ImmAstContext::Ptr ast,
+            imm::ImmAstEditContext& ctx) -> imm::ImmAstReplaceGroup {
             auto                    t2 = rows1.at(0).nested.at(0);
-            org::ImmAstReplaceGroup result;
-            result.incl(org::replaceNode(
+            imm::ImmAstReplaceGroup result;
+            result.incl(imm::replaceNode(
                 t2.nameOrigin,
                 ast->add(
-                    sem::asOneNode(sem::parseString("New title")), ctx),
+                    org::asOneNode(org::parseString("New title")), ctx),
                 ctx));
-            result.incl(org::replaceNode(
+            result.incl(imm::replaceNode(
                 t2.storyEventOrigin,
                 ast->add(
-                    sem::asOneNode(
-                        sem::parseString("New story event description")),
+                    org::asOneNode(
+                        org::parseString("New story event description")),
                     ctx),
                 ctx));
             return result;
@@ -793,7 +793,7 @@ TEST_F(ImmOrgApiAppModel, EditModel) {
     writeGvHistory(
         {v1, v2},
         "graph.png",
-        org::ImmAstGraphvizConf{
+        imm::ImmAstGraphvizConf{
             .withAuxNodes    = true,
             .withEditHistory = false,
         });
@@ -814,31 +814,31 @@ struct ImmOrgDocumentSelector : public ImmOrgApiTestBase {};
 
 TEST_F(ImmOrgDocumentSelector, GetMatchingNodeByKind) {
     auto                     node = getInitialVersion("bold");
-    org::OrgDocumentSelector selector;
+    imm::OrgDocumentSelector selector;
     selector.searchAnyKind({OrgSemKind::Word}, true);
 
     auto words = selector.getMatches(node.getRootAdapter());
 
     EXPECT_EQ(words.size(), 1);
     EXPECT_EQ(words.at(0)->getKind(), OrgSemKind::Word);
-    EXPECT_EQ(words.at(0).as<org::ImmWord>()->text, "bold");
+    EXPECT_EQ(words.at(0).as<imm::ImmWord>()->text, "bold");
 }
 
 TEST_F(ImmOrgDocumentSelector, GetMultipleMatchingNodesByKind) {
     auto                     node = getInitialVersion("word *bold*");
-    org::OrgDocumentSelector selector;
+    imm::OrgDocumentSelector selector;
     selector.searchAnyKind({OrgSemKind::Word}, true);
 
     auto words = selector.getMatches(node.getRootAdapter());
 
     EXPECT_EQ(words.size(), 2);
-    EXPECT_EQ(words.at(0).as<org::ImmWord>()->text, "word");
-    EXPECT_EQ(words.at(1).as<org::ImmWord>()->text, "bold");
+    EXPECT_EQ(words.at(0).as<imm::ImmWord>()->text, "word");
+    EXPECT_EQ(words.at(1).as<imm::ImmWord>()->text, "bold");
 }
 
 TEST_F(ImmOrgDocumentSelector, GetDirectlyNestedNode) {
     auto                     node = getInitialVersion("word *bold*");
-    org::OrgDocumentSelector selector;
+    imm::OrgDocumentSelector selector;
     selector.searchAnyKind(
         {OrgSemKind::Bold}, false, selector.linkDirectSubnode());
     selector.searchAnyKind({OrgSemKind::Word}, true);
@@ -847,7 +847,7 @@ TEST_F(ImmOrgDocumentSelector, GetDirectlyNestedNode) {
 
     EXPECT_EQ(words.size(), 1);
     EXPECT_EQ(words.at(0)->getKind(), OrgSemKind::Word);
-    EXPECT_EQ(words.at(0).as<org::ImmWord>()->text, "bold");
+    EXPECT_EQ(words.at(0).as<imm::ImmWord>()->text, "bold");
 }
 
 TEST_F(ImmOrgDocumentSelector, GetSubtreeByTitle) {
@@ -862,7 +862,7 @@ Paragraph under subtitle 2
 )");
 
     if (true) {
-        org::OrgDocumentSelector selector;
+        imm::OrgDocumentSelector selector;
         selector.setTraceFile(getDebugFile("title_search_1"));
         selector.searchSubtreePlaintextTitle({"Title1"}, true);
 
@@ -872,7 +872,7 @@ Paragraph under subtitle 2
     }
 
     if (true) {
-        org::OrgDocumentSelector selector;
+        imm::OrgDocumentSelector selector;
         selector.setTraceFile(getDebugFile("title_search_2"));
         selector.searchSubtreePlaintextTitle(
             {"Subtitle2"}, false, selector.linkIndirectSubnode());
@@ -883,25 +883,25 @@ Paragraph under subtitle 2
         // Subtree nodes are added as targets in the post-order DFS
         // traversal over all 'nested' elements. First the words in subtree
         // are collected.
-        EXPECT_EQ(words.at(0).as<org::ImmWord>()->text, "Paragraph");
-        EXPECT_EQ(words.at(1).as<org::ImmWord>()->text, "under");
-        EXPECT_EQ(words.at(2).as<org::ImmWord>()->text, "subtitle");
-        EXPECT_EQ(words.at(3).as<org::ImmWord>()->text, "2");
+        EXPECT_EQ(words.at(0).as<imm::ImmWord>()->text, "Paragraph");
+        EXPECT_EQ(words.at(1).as<imm::ImmWord>()->text, "under");
+        EXPECT_EQ(words.at(2).as<imm::ImmWord>()->text, "subtitle");
+        EXPECT_EQ(words.at(3).as<imm::ImmWord>()->text, "2");
         // Then visitation gets to the subtree title itself. Nested fields
         // for each node are iterated starting from the base's fields and
         // then to the concrete type -- also in the DFS order.
         EXPECT_EQ(
-            words.at(4).as<org::ImmWord>()->text->toBase(), "Subtitle2");
+            words.at(4).as<imm::ImmWord>()->text->toBase(), "Subtitle2");
     }
 
     if (true) {
-        org::OrgDocumentSelector selector;
+        imm::OrgDocumentSelector selector;
         selector.setTraceFile(getDebugFile("title_search_3"));
         selector.searchSubtreePlaintextTitle(
             {"Subtitle2"},
             false,
-            selector.linkField(org::ImmReflFieldId::FromTypeField(
-                &org::ImmOrg::subnodes)));
+            selector.linkField(imm::ImmReflFieldId::FromTypeField(
+                &imm::ImmOrg::subnodes)));
         selector.searchAnyKind({OrgSemKind::Word}, true);
 
         auto words = selector.getMatches(doc.getRootAdapter());
@@ -909,10 +909,10 @@ Paragraph under subtitle 2
         // Subtree nodes are added as targets in the post-order DFS
         // traversal over all 'nested' elements. First the words in subtree
         // are collected.
-        EXPECT_EQ(words.at(0).as<org::ImmWord>()->text, "Paragraph");
-        EXPECT_EQ(words.at(1).as<org::ImmWord>()->text, "under");
-        EXPECT_EQ(words.at(2).as<org::ImmWord>()->text, "subtitle");
-        EXPECT_EQ(words.at(3).as<org::ImmWord>()->text, "2");
+        EXPECT_EQ(words.at(0).as<imm::ImmWord>()->text, "Paragraph");
+        EXPECT_EQ(words.at(1).as<imm::ImmWord>()->text, "under");
+        EXPECT_EQ(words.at(2).as<imm::ImmWord>()->text, "subtitle");
+        EXPECT_EQ(words.at(3).as<imm::ImmWord>()->text, "2");
     }
 }
 
@@ -926,7 +926,7 @@ Content2
 * Title2
 )");
 
-    org::OrgDocumentSelector selector;
+    imm::OrgDocumentSelector selector;
     selector.searchSubtreePlaintextTitle(
         {"Title1"}, false, selector.linkIndirectSubnode());
     selector.searchSubtreePlaintextTitle({"Subtitle1"}, true);
@@ -943,13 +943,13 @@ First
 *** Nested subtree
 )");
 
-    org::OrgDocumentSelector      selector;
+    imm::OrgDocumentSelector      selector;
     UnorderedMap<OrgSemKind, int> counts;
 
     selector.searchPredicate(
-        [&](org::ImmAdapter const& node) -> org::OrgSelectorResult {
+        [&](imm::ImmAdapter const& node) -> imm::OrgSelectorResult {
             ++counts[node->getKind()];
-            return org::OrgSelectorResult{
+            return imm::OrgSelectorResult{
                 .isMatching     = node->is(OrgSemKind::Subtree),
                 .tryNestedNodes = !node->is(OrgSemKind::Subtree),
             };
@@ -974,21 +974,21 @@ TEST_F(ImmOrgDocumentSelector, NonLeafSubtrees) {
 ** s7
 )");
 
-    org::OrgDocumentSelector selector;
+    imm::OrgDocumentSelector selector;
     selector.searchAnyKind(
         {OrgSemKind::Subtree}, true, selector.linkIndirectSubnode());
 
     selector.searchAnyKind({OrgSemKind::Subtree}, false);
 
-    Vec<org::ImmAdapter> subtrees = selector.getMatches(
+    Vec<imm::ImmAdapter> subtrees = selector.getMatches(
         doc.getRootAdapter());
 
     EXPECT_EQ(subtrees.size(), 3);
     auto titles = subtrees
-                | rv::transform([](org::ImmAdapter const& id) -> Vec<Str> {
+                | rv::transform([](imm::ImmAdapter const& id) -> Vec<Str> {
                       return flatWords(id.at(
-                          org::ImmReflFieldId::FromTypeField<
-                              org::ImmSubtree>(&org::ImmSubtree::title)));
+                          imm::ImmReflFieldId::FromTypeField<
+                              imm::ImmSubtree>(&imm::ImmSubtree::title)));
                   })
                 | rs::to<Vec>();
 
@@ -1006,19 +1006,19 @@ TEST_F(ImmOrgDocumentSelector, SubtreesWithDateInTitleAndBody) {
 )");
 
     {
-        org::OrgDocumentSelector selector;
+        imm::OrgDocumentSelector selector;
         selector.searchAnyKind(
             {OrgSemKind::Subtree},
             true,
-            selector.linkField(org::ImmReflFieldId::FromTypeField(
-                &org::ImmSubtree::title)));
+            selector.linkField(imm::ImmReflFieldId::FromTypeField(
+                &imm::ImmSubtree::title)));
         selector.searchAnyKind({OrgSemKind::Time}, false);
         auto subtrees = selector.getMatches(doc.getRootAdapter());
         EXPECT_EQ(subtrees.size(), 1);
     }
 
     {
-        org::OrgDocumentSelector selector;
+        imm::OrgDocumentSelector selector;
         selector.searchAnyKind(
             {OrgSemKind::Subtree}, true, selector.linkIndirectSubnode());
         selector.searchAnyKind({OrgSemKind::Time}, false);

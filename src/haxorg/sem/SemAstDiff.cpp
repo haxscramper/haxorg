@@ -1,5 +1,9 @@
 #include "SemAstDiff.hpp"
 
+using namespace org::algo;
+using namespace hstd::ext;
+using namespace hstd;
+
 int OrgNodeStore::getSubnodeCount(const Id& id) {
     auto n = get(id);
     switch (n->getKind()) {
@@ -15,7 +19,9 @@ int OrgNodeStore::getSubnodeCount(const Id& id) {
     }
 }
 
-diff::NodeStore::Id OrgNodeStore::getSubnodeAt(const Id& node, int index) {
+hstd::ext::diff::NodeStore::Id OrgNodeStore::getSubnodeAt(
+    const Id& node,
+    int       index) {
     auto n = get(node);
     switch (n->getKind()) {
         case OrgSemKind::Row: {
@@ -33,7 +39,7 @@ diff::NodeStore::Id OrgNodeStore::getSubnodeAt(const Id& node, int index) {
     }
 }
 
-Func<ColText(CR<diff::NodeStore::Id>)> OrgNodeStore::getToStr() {
+Func<hstd::ColText(CR<diff::NodeStore::Id>)> OrgNodeStore::getToStr() {
     return [](CR<diff::NodeStore::Id> arg) -> ColText {
         auto      org = arg.ToPtr<sem::Org>();
         ColStream res;

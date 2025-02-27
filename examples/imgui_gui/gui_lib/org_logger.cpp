@@ -46,6 +46,8 @@ namespace expr     = boost::log::expressions;
 namespace keywords = boost::log::keywords;
 namespace sinks    = boost::log::sinks;
 
+using namespace hstd;
+
 #define LOG_RECORD_FIELD "record"
 #define LOG_SCOPE_DEPTH_FIELD "CommonDepth"
 #define LOG_TIMESTAMP_FIELD "TimeStamp"

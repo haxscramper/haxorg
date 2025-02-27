@@ -205,7 +205,7 @@ def generate_state(config: Configuration) -> str:
         set([rule.token for rule in config.get_all_rules() if rule.token] +
             [tok.name for tok in config.tokens]))
     return """
-std::string OrgLexerImpl::state_name(int state) {{
+std::string org::parse::OrgLexerImpl::state_name(int state) {{
     switch(state) {{
         case 0: return "INITIAL";
 {mappings}
@@ -213,13 +213,13 @@ std::string OrgLexerImpl::state_name(int state) {{
     }}
 }}
 
-std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {{
+std::string hstd::enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {{
     switch(value) {{
 {values}
     }}
 }}
 
-Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value) {{
+Opt<OrgTokenKind> hstd::enum_serde<OrgTokenKind>::from_string(std::string const& value) {{
 {from_string}
 }}
 
@@ -269,7 +269,7 @@ def generate_reflex_code(config: Configuration) -> str:
 
 %class{{
   public:
-    OrgLexerImpl impl;
+    org::parse::OrgLexerImpl impl;
 
   {sub_lexer_declarations}
 }}
@@ -285,9 +285,9 @@ def generate_reflex_code(config: Configuration) -> str:
 
 {sub_lexer_definitions}
 
-TokenGroup<OrgTokenKind, OrgFill> tokenize(const char* input, int size, LexerParams const& p) {{
+org::parse::TokenGroup<OrgTokenKind, org::parse::OrgFill> org::parse::tokenize(const char* input, int size, org::parse::LexerParams const& p) {{
     base_lexer::Lexer lex(input);
-    OrgTokenGroup result;
+    org::parse::OrgTokenGroup result;
     lex.impl.tokens = &result;
     lex.impl.impl = &lex;
     lex.impl.p = p;

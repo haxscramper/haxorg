@@ -14,6 +14,11 @@
 #include <haxorg/sem/perfetto_org.hpp>
 #include <haxorg/sem/SemOrgFormat.hpp>
 
+
+using namespace org::test;
+using namespace hstd;
+using namespace org::parse;
+
 struct DiffItem {
     DECL_DESCRIBED_ENUM(Op, Replace, Remove, Add);
     Op          op;
@@ -585,8 +590,8 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
     }
 }
 
-yaml toTestYaml(sem::OrgArg arg) {
-    ExporterYaml exporter;
+yaml toTestYaml(org::sem::OrgArg arg) {
+    org::algo::ExporterYaml exporter;
     exporter.skipNullFields  = true;
     exporter.skipFalseFields = true;
     exporter.skipZeroFields  = true;
@@ -595,8 +600,8 @@ yaml toTestYaml(sem::OrgArg arg) {
     return exporter.evalTop(arg);
 }
 
-json toTestJson(sem::OrgArg arg) {
-    ExporterJson exporter;
+json toTestJson(org::sem::OrgArg arg) {
+    org::algo::ExporterJson exporter;
     exporter.skipEmptyLists = true;
     exporter.skipNullFields = true;
     json converted          = exporter.evalTop(arg);
@@ -754,12 +759,12 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
         return skip;
     }
 
-    inRerun              = true;
-    ParseSpec      rerun = spec;
-    MockFull       p2(spec.debug.traceParse, spec.debug.traceLex);
-    sem::Formatter formatter;
-    auto           fmt_result = formatter.toString(
-        p.node, sem::Formatter::Context{});
+    inRerun                    = true;
+    ParseSpec            rerun = spec;
+    MockFull             p2(spec.debug.traceParse, spec.debug.traceLex);
+    org::algo::Formatter formatter;
+    auto                 fmt_result = formatter.toString(
+        p.node, org::algo::Formatter::Context{});
     rerun.source = formatter.store.toString(fmt_result);
     // reset all expected tokens of the copied parse spec so `runSpecBase`
     // did not try to run the validation.
@@ -1047,8 +1052,7 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::runSpecParse(
                         } else {
                             par.os << " " << par.os.red()
                                    << fmt("!! Missing field name for "
-                                          "element {} of node "
-                                          "{} !!",
+                                          "element {} of node {} !!",
                                           *par.subnodeIdx,
                                           OrgAdapter(&p.nodes, *par.parent)
                                               .getKind())
@@ -1176,7 +1180,7 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
             std::ofstream file{spec.debugFile("sem.txt", relDebug)};
             ColStream     os{file};
             os.colored = false;
-            ExporterTree tree{os};
+            algo::ExporterTree tree{os};
             tree.evalTop(document);
         }
 
@@ -1185,7 +1189,7 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
                 spec.debugFile("sem_colored.ansi", relDebug)};
             ColStream os{file};
             os.colored = true;
-            ExporterTree tree{os};
+            algo::ExporterTree tree{os};
             tree.evalTop(document);
         }
     }
@@ -1197,7 +1201,7 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
     }
 }
 
-TestResult gtest_run_spec(CR<TestParams> params) {
+TestResult org::test::gtest_run_spec(CR<TestParams> params) {
 
 
     auto spec              = params.spec;

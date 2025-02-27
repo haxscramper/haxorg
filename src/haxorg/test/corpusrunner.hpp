@@ -8,30 +8,32 @@
 #include <haxorg/test/NodeTest.hpp>
 #include <hstd/wrappers/hstd_extra/textlayouter.hpp>
 
+namespace org::test {
+
 /// Whole result of the specification test run
 struct TestResult {
     struct File {
-        Str  path;
-        bool rerun = false;
+        hstd::Str path;
+        bool      rerun = false;
         BOOST_DESCRIBE_CLASS(File, (), (path, rerun), (), ());
     };
 
     struct Skip {
-        Str msg;
+        hstd::Str msg;
         BOOST_DESCRIBE_CLASS(Skip, (), (msg), (), ());
     };
 
     struct Fail {
-        Str msg;
+        hstd::Str msg;
         BOOST_DESCRIBE_CLASS(Fail, (), (msg), (), ());
     };
 
     struct Success {
-        Str msg;
+        hstd::Str msg;
         BOOST_DESCRIBE_CLASS(Success, (), (msg), (), ());
     };
 
-    Vec<File> debugFiles;
+    hstd::Vec<File> debugFiles;
 
     SUB_VARIANTS(Kind, Data, data, getKind, Skip, Fail, Success);
     Data data;
@@ -43,14 +45,14 @@ struct RunContext {};
 
 
 class CorpusRunner
-    : public OperationsTracer
-    , public OperationsScope {
+    : public hstd::OperationsTracer
+    , public hstd::OperationsScope {
   public:
     // Define environment variable in the QT app run environment to get
     // better-formatted test diff output.
 
-    Vec<TestResult::File> files;
-    bool                  inRerun = false;
+    hstd::Vec<TestResult::File> files;
+    bool                        inRerun = false;
 
     void message(
         std::string const& value,
@@ -62,27 +64,27 @@ class CorpusRunner
     }
 
     void writeFile(
-        CR<ParseSpec> spec,
-        CR<Str>       name,
-        CR<Str>       content,
-        CR<Str>       relDebug) {
+        hstd::CR<ParseSpec> spec,
+        hstd::CR<hstd::Str> name,
+        hstd::CR<hstd::Str> content,
+        hstd::CR<hstd::Str> relDebug) {
         files.push_back(TestResult::File{
             .path  = name,
             .rerun = inRerun,
         });
-        ::writeFile(spec.debugFile(name, relDebug), content);
+        hstd::writeFile(spec.debugFile(name, relDebug), content);
     }
 
     json toTextLyt(
-        layout::BlockStore&       b,
-        layout::BlockId           block,
-        Func<Str(layout::LytStr)> getStr);
+        hstd::layout::BlockStore&                   b,
+        hstd::layout::BlockId                       block,
+        hstd::Func<hstd::Str(hstd::layout::LytStr)> getStr);
 
 
     struct RunResult {
         struct CompareBase {
-            bool    isOk = false;
-            ColText failDescribe;
+            bool          isOk = false;
+            hstd::ColText failDescribe;
         };
 
         struct NodeCompare : CompareBase {};
@@ -103,15 +105,15 @@ class CorpusRunner
             SemCompare);
 
         RunResult() {}
-        RunResult(CR<Data> data) : data(data) {}
+        RunResult(hstd::CR<Data> data) : data(data) {}
         Data data;
 
         bool isOk() const {
             return std::visit(
-                overloaded{
-                    [](CR<CompareBase> n) { return n.isOk; },
-                    [](CR<Skip> n) { return true; },
-                    [](CR<None> n) { return true; },
+                hstd::overloaded{
+                    [](hstd::CR<CompareBase> n) { return n.isOk; },
+                    [](hstd::CR<Skip> n) { return true; },
+                    [](hstd::CR<None> n) { return true; },
                 },
                 data);
         }
@@ -119,47 +121,49 @@ class CorpusRunner
 
 
     RunResult::NodeCompare compareNodes(
-        CR<OrgNodeGroup> parsed,
-        CR<OrgNodeGroup> expected);
+        hstd::CR<org::parse::OrgNodeGroup> parsed,
+        hstd::CR<org::parse::OrgNodeGroup> expected);
 
 
     RunResult::SemCompare compareSem(
-        CR<ParseSpec>        spec,
+        hstd::CR<ParseSpec>  spec,
         sem::SemId<sem::Org> node,
         json                 expected);
 
     RunResult runSpec(
-        CR<ParseSpec>   spec,
-        CR<std::string> from,
-        CR<Str>         relDebug);
+        hstd::CR<ParseSpec>   spec,
+        hstd::CR<std::string> from,
+        hstd::CR<hstd::Str>   relDebug);
     RunResult::LexCompare runSpecBaseLex(
-        MockFull&     p,
-        CR<ParseSpec> spec,
-        CR<Str>       relDebug);
+        MockFull&           p,
+        hstd::CR<ParseSpec> spec,
+        hstd::CR<hstd::Str> relDebug);
     RunResult::LexCompare runSpecLex(
-        MockFull&     p,
-        CR<ParseSpec> spec,
-        CR<Str>       relDebug);
+        MockFull&           p,
+        hstd::CR<ParseSpec> spec,
+        hstd::CR<hstd::Str> relDebug);
     RunResult::NodeCompare runSpecParse(
-        MockFull&     p,
-        CR<ParseSpec> spec,
-        CR<Str>       relDebug);
+        MockFull&           p,
+        hstd::CR<ParseSpec> spec,
+        hstd::CR<hstd::Str> relDebug);
     RunResult::SemCompare runSpecSem(
-        MockFull&     p,
-        CR<ParseSpec> spec,
-        CR<Str>       relDebug);
+        MockFull&           p,
+        hstd::CR<ParseSpec> spec,
+        hstd::CR<hstd::Str> relDebug);
 };
 
 struct TestParams {
-    ParseSpec   spec;
-    fs::path    file;
-    std::string testName() const;
-    std::string fullName() const;
-    void        PrintToImpl(std::ostream* os) const;
-    friend void PrintTo(const TestParams& point, std::ostream* os) {
+    ParseSpec      spec;
+    hstd::fs::path file;
+    std::string    testName() const;
+    std::string    fullName() const;
+    void           PrintToImpl(std::ostream* os) const;
+    friend void    PrintTo(const TestParams& point, std::ostream* os) {
         point.PrintToImpl(os);
     }
 };
 
 
-TestResult gtest_run_spec(CR<TestParams> params);
+TestResult gtest_run_spec(hstd::CR<TestParams> params);
+
+} // namespace org::test

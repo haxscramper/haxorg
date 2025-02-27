@@ -9,6 +9,8 @@
 #include <cpptrace.hpp>
 #include <sstream>
 
+namespace hstd {
+
 template <typename Derived>
 struct CRTP_hexception
     : cpptrace::lazy_exception
@@ -54,10 +56,10 @@ struct out_of_range_error : CRTP_hexception<out_of_range_error> {};
 
 #define LOGIC_ASSERTION_CHECK(expr, message_fmt, ...)                     \
     if (!(expr)) {                                                        \
-        throw logic_assertion_error::init(                                \
-            fmt("{}: {}",                                                 \
-                #expr,                                                    \
-                fmt(message_fmt __VA_OPT__(, ) __VA_ARGS__)));            \
+        throw ::hstd::logic_assertion_error::init(::hstd::fmt(            \
+            "{}: {}",                                                     \
+            #expr,                                                        \
+            ::hstd::fmt(message_fmt __VA_OPT__(, ) __VA_ARGS__)));        \
     }
 
 #define logic_todo_impl() throw logic_assertion_error::init("TODO");
@@ -72,3 +74,5 @@ struct KeyError : CRTP_hexception<KeyError> {};
 struct LogicError : CRTP_hexception<LogicError> {};
 struct UnexpectedKindError : CRTP_hexception<UnexpectedKindError> {};
 struct RangeError : CRTP_hexception<RangeError> {};
+
+} // namespace hstd

@@ -3,6 +3,9 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 
+using namespace hstd::ext;
+using namespace hstd;
+
 TEST(PrintError, Simple) {
     StrCache sources;
     Id       a_id = 1;

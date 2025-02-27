@@ -6,7 +6,7 @@
 #define TEST_GRP_NAME "story_grid"
 
 template <typename T>
-struct JsonSerde<immer::vector<T>> {
+struct hstd::JsonSerde<immer::vector<T>> {
     static json to_json(immer::vector<T> const& it) {
         auto result = json::array();
         for (auto const& i : it) {
@@ -26,7 +26,7 @@ struct JsonSerde<immer::vector<T>> {
 };
 
 template <typename Tag>
-struct JsonSerde<ReflPathItem<Tag>> {
+struct hstd::JsonSerde<hstd::ReflPathItem<Tag>> {
     static json to_json(ReflPathItem<Tag> const it) { return json{}; }
 
     static ReflPathItem<Tag> from_json(json const& j) {
@@ -36,27 +36,27 @@ struct JsonSerde<ReflPathItem<Tag>> {
 };
 
 struct StoryGridVars : public ImTestVarsBase {
-    org::ImmAstContext::Ptr          start;
-    EditableOrgDocGroup              history;
-    StoryGridModel                   model;
-    StoryGridConfig                  conf;
-    Vec<org_logging::log_sink_scope> debug_scopes;
-    DocRootId                        root = DocRootId::Nil();
+    org::imm::ImmAstContext::Ptr           start;
+    EditableOrgDocGroup                    history;
+    StoryGridModel                         model;
+    StoryGridConfig                        conf;
+    hstd::Vec<org_logging::log_sink_scope> debug_scopes;
+    DocRootId                              root = DocRootId::Nil();
 
     StoryGridVars()
-        : start{org::ImmAstContext::init_start_context()}
+        : start{org::imm::ImmAstContext::init_start_context()}
         , history{start}
         , model{&history} {}
 
     void add_text(std::string const& text) {
-        root = model.history->addRoot(sem::parseString(text));
+        root = model.history->addRoot(org::parseString(text));
         model.rebuild(conf);
     }
 
-    Str get_text() {
-        auto sem = org::sem_from_immer(
+    hstd::Str get_text() {
+        auto sem = org::imm::sem_from_immer(
             model.history->getRoot(root).id, *model.history->getContext());
-        return sem::Formatter::format(sem);
+        return org::algo::Formatter::format(sem);
     }
 
     void init_section(ImGuiTestContext* ctx, std::string const& text) {
@@ -141,7 +141,7 @@ void _Load_One_Paragraph(ImGuiTestEngine* e) {
             if (ctx->IsFirstGuiFrame()) {
                 vars.conf.gridViewport = params.windowSize;
                 vars.conf.blockGraphConf.getDefaultLaneMargin =
-                    [](int lane) -> Pair<int, int> {
+                    [](int lane) -> hstd::Pair<int, int> {
                     return {lane == 0 ? 0 : 50, 50};
                 };
             }
@@ -234,7 +234,7 @@ void _FootnoteAnnotation(ImGuiTestEngine* e) {
                                 -> bool {
                                 return rec.data.category == "surface"
                                     && rec.data.source_scope
-                                           == Vec<Str>{
+                                           == hstd::Vec<hstd::Str>{
                                                "gui",
                                                "widget",
                                                "scintilla_editor"};

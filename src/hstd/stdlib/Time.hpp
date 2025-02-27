@@ -9,6 +9,8 @@
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/reflection_visitor.hpp>
 
+namespace hstd {
+
 struct [[refl]] UserTimeBreakdown {
     [[refl]] Opt<int>         year;
     [[refl]] Opt<int>         month;
@@ -51,9 +53,20 @@ struct [[refl]] UserTime {
     bool operator==(UserTime const& it) const;
 };
 
+
+template <typename Tag>
+struct ReflVisitor<absl::Time, Tag>
+    : ReflVisitorLeafType<absl::Time, Tag> {};
+
+template <typename Tag>
+struct ReflVisitor<absl::TimeZone, Tag>
+    : ReflVisitorLeafType<absl::TimeZone, Tag> {};
+
+} // namespace hstd
+
 template <>
-struct std::hash<UserTime> {
-    std::size_t operator()(UserTime const& it) const noexcept;
+struct std::hash<hstd::UserTime> {
+    std::size_t operator()(hstd::UserTime const& it) const noexcept;
 };
 
 
@@ -61,7 +74,7 @@ template <>
 struct std::formatter<absl::Time> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const absl::Time& p, FormatContext& ctx) const {
-        return fmt_ctx(
+        return hstd::fmt_ctx(
             absl::FormatTime("%Y-%m-%d %H:%M:%S", p, absl::TimeZone{}),
             ctx);
     }
@@ -71,15 +84,6 @@ template <>
 struct std::formatter<absl::TimeZone> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const absl::TimeZone& p, FormatContext& ctx) const {
-        return fmt_ctx(absl::FormatTime("%z", absl::Now(), p), ctx);
+        return hstd::fmt_ctx(absl::FormatTime("%z", absl::Now(), p), ctx);
     }
 };
-
-
-template <typename Tag>
-struct ReflVisitor<absl::Time, Tag>
-    : ReflVisitorLeafType<absl::Time, Tag> {};
-
-template <typename Tag>
-struct ReflVisitor<absl::TimeZone, Tag>
-    : ReflVisitorLeafType<absl::TimeZone, Tag> {};

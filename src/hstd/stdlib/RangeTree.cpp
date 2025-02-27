@@ -1,3 +1,4 @@
 #include <hstd/stdlib/RangeTree.hpp>
 
-template class RangeTree<int>;
+
+template class hstd::RangeTree<int>;

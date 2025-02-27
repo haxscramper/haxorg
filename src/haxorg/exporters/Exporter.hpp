@@ -8,40 +8,9 @@
 using boost::mp11::mp_for_each;
 using namespace boost::describe;
 
-template <typename T>
-struct TypeName {
-    static Str get() {
-        return Str(demangle(typeid(T).name())).replaceAll("sem::", "");
-    }
-};
-
-
-template <typename T>
-struct TypeName<Opt<T>> {
-    static Str get() {
-        return Str("Opt<") + TypeName<T>::get() + Str(">");
-    }
-};
-
-template <typename K, typename V>
-struct TypeName<UnorderedMap<K, V>> {
-    static Str get() {
-        return "UnorderedMap<"_ss + TypeName<K>::get() + ", "_ss
-             + TypeName<V>::get() + ">"_ss;
-    }
-};
-
-template <typename... Args>
-struct TypeName<Variant<Args...>> {
-    static Str get() {
-        return "Variant<"_ss
-             + Str(join(", ", Vec<Str>{TypeName<Args>::get()...}))
-             + ">"_ss;
-    }
-};
-
-struct ExporterEventBase : OperationsTracer {
-    struct VisitReport : OperationsMsg {
+namespace org::algo {
+struct ExporterEventBase : hstd::OperationsTracer {
+    struct VisitReport : hstd::OperationsMsg {
         DECL_DESCRIBED_ENUM(
             Kind,
             VisitField,
@@ -61,12 +30,12 @@ struct ExporterEventBase : OperationsTracer {
             VisitVariant,
             Print);
 
-        Kind                      kind;
-        Opt<sem::SemId<sem::Org>> node = std::nullopt;
-        Opt<std::string>          field;
-        bool                      isStart = true;
-        Opt<std::string>          type;
-        bool                      instant = false;
+        Kind                            kind;
+        hstd::Opt<sem::SemId<sem::Org>> node = std::nullopt;
+        hstd::Opt<std::string>          field;
+        bool                            isStart = true;
+        hstd::Opt<std::string>          type;
+        bool                            instant = false;
 
         VisitReport& with_loc(
             int         line     = __builtin_LINE(),
@@ -78,8 +47,8 @@ struct ExporterEventBase : OperationsTracer {
 
 
         template <typename T>
-        VisitReport& with_value(CR<T> value) {
-            this->type = TypeName<T>::get();
+        VisitReport& with_value(T const& value) {
+            this->type = hstd::value_metadata<T>::typeName();
             return *this;
         }
 
@@ -109,7 +78,7 @@ struct ExporterEventBase : OperationsTracer {
         }
     };
 
-    void report(CR<VisitReport> event);
+    void report(VisitReport const& event);
 
     int visitDepth = 0;
 
@@ -153,7 +122,7 @@ struct ExporterEventBase : OperationsTracer {
         int               line     = __builtin_LINE(),
         char const*       function = __builtin_FUNCTION()) {
         return VisitReport{
-            OperationsMsg{
+            hstd::OperationsMsg{
                 .line     = line,
                 .function = function,
             },
@@ -209,7 +178,7 @@ struct Exporter : ExporterEventBase {
 
     /// \brief Create default instance of the new result type
     R newRes(sem::SemId<sem::Org>) {
-        return SerdeDefaultProvider<R>::get();
+        return hstd::SerdeDefaultProvider<R>::get();
     }
 
 
@@ -231,10 +200,10 @@ struct Exporter : ExporterEventBase {
     /// RTTI type.
     void visitDispatch(R& res, sem::SemId<sem::Org> arg);
 
-    template <sem::NotOrg T>
-    void visitDescribedOrgFields(R& res, CR<T> value);
+    template <org::sem::NotOrg T>
+    void visitDescribedOrgFields(R& res, T const& value);
 
-    template <sem::IsOrg T>
+    template <org::sem::IsOrg T>
     void visitDescribedOrgFields(R& res, In<T> tree);
 
     /// \brief Hook called each time new sem node is visited using specific
@@ -283,15 +252,17 @@ struct Exporter : ExporterEventBase {
 
 
     template <typename T, typename Kind>
-    void visitVariants(R& res, Kind kind, CR<T> var);
+    void visitVariants(R& res, Kind kind, T const& var);
 
-    void visit(R& res, CR<UserTime> time);
-    void visit(R& res, CR<sem::OrgJson> time);
-    void visit(R& res, CR<LineCol> time);
+    void visit(R& res, hstd::UserTime const& time);
+    void visit(R& res, org::sem::OrgJson const& time);
+    void visit(R& res, org::parse::LineCol const& time);
     void visit(R& res, float const& time);
     void visit(
-        R&                                             res,
-        CR<Variant<In<sem::Time>, In<sem::TimeRange>>> range);
+        R&                                                      res,
+        hstd::Variant<In<sem::Time>, In<sem::TimeRange>> const& range);
 
 #include "ExporterMethods.tcc"
 };
+
+} // namespace org::algo

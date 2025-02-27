@@ -2,6 +2,8 @@
 
 
 #include <haxorg/exporters/Exporter.cpp>
+
+namespace org::algo {
 template class Exporter<ExporterYaml, yaml>;
 
 
@@ -36,3 +38,4 @@ yaml ExporterYaml::newRes(sem::SemId<sem::Org> org) {
 
     return res;
 }
+} // namespace org::algo

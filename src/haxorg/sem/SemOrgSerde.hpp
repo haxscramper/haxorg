@@ -4,6 +4,25 @@
 #include <SemOrgProto.pb.h>
 #include <concepts>
 
+
+template <>
+struct hstd::SerdeDefaultProvider<
+    org::sem::BlockCodeEvalResult::OrgValue> {
+    static org::sem::BlockCodeEvalResult::OrgValue get() {
+        return org::sem::BlockCodeEvalResult::OrgValue{};
+    }
+};
+
+template <>
+struct hstd::SerdeDefaultProvider<org::sem::BlockCodeEvalResult> {
+    static org::sem::BlockCodeEvalResult get() {
+        return org::sem::BlockCodeEvalResult{
+            org::sem::BlockCodeEvalResult::OrgValue{}};
+    }
+};
+
+namespace org::algo {
+
 template <typename Proto, typename T>
 struct proto_serde {};
 
@@ -15,7 +34,7 @@ struct proto_org_map {};
 #define _map(__Kind)                                                      \
     template <>                                                           \
     struct proto_org_map<::orgproto::__Kind> {                            \
-        using org_kind = sem::__Kind;                                     \
+        using org_kind = org::sem::__Kind;                                \
     };
 
 EACH_SEM_ORG_KIND(_map)
@@ -44,8 +63,10 @@ struct proto_write_accessor
     : proto_write_accessor_base<T, proto_write_accessor<T>> {};
 
 template <typename T>
-struct proto_write_accessor<Opt<T>>
-    : proto_write_accessor_base<Opt<T>, proto_write_accessor<Opt<T>>> {
+struct proto_write_accessor<hstd::Opt<T>>
+    : proto_write_accessor_base<
+          hstd::Opt<T>,
+          proto_write_accessor<hstd::Opt<T>>> {
 
     proto_write_accessor<T> for_value() {
         return proto_write_accessor<T>{
@@ -54,7 +75,7 @@ struct proto_write_accessor<Opt<T>>
 };
 
 
-template <IsRecord T>
+template <hstd::IsRecord T>
 struct proto_write_accessor<T>
     : proto_write_accessor_base<T, proto_write_accessor<T>> {
 
@@ -73,7 +94,7 @@ struct proto_write_accessor<T>
     template <typename FieldType, typename Var, int Field>
     struct variant_init {
         static void init(Var& variant) {
-            variant = variant_from_index<Var>(Field);
+            variant = hstd::variant_from_index<Var>(Field);
         }
     };
 
@@ -108,20 +129,6 @@ struct proto_write_accessor<T>
     }
 };
 
-template <>
-struct SerdeDefaultProvider<sem::BlockCodeEvalResult::OrgValue> {
-    static sem::BlockCodeEvalResult::OrgValue get() {
-        return sem::BlockCodeEvalResult::OrgValue{};
-    }
-};
-
-template <>
-struct SerdeDefaultProvider<sem::BlockCodeEvalResult> {
-    static sem::BlockCodeEvalResult get() {
-        return sem::BlockCodeEvalResult{
-            sem::BlockCodeEvalResult::OrgValue{}};
-    }
-};
 
 template <typename T>
 struct proto_init {
@@ -129,9 +136,9 @@ struct proto_init {
 };
 
 template <typename T>
-struct proto_init<Opt<T>> {
-    static void init_default(Opt<T>& value) {
-        value = SerdeDefaultProvider<T>::get();
+struct proto_init<hstd::Opt<T>> {
+    static void init_default(hstd::Opt<T>& value) {
+        value = hstd::SerdeDefaultProvider<T>::get();
     }
 };
 
@@ -153,27 +160,29 @@ struct proto_init<sem::SemId<T>> {
 };
 
 template <>
-struct proto_init<Opt<sem::SemId<sem::Org>>> {
-    static void init_default(Opt<sem::SemId<sem::Org>>& value) {
+struct proto_init<hstd::Opt<sem::SemId<sem::Org>>> {
+    static void init_default(hstd::Opt<sem::SemId<sem::Org>>& value) {
         value = sem::SemId<sem::Org>::Nil();
     }
 };
 
 template <typename T>
-struct proto_init<Opt<sem::SemId<T>>> {
-    static void init_default(Opt<sem::SemId<T>>& value) {
+struct proto_init<hstd::Opt<sem::SemId<T>>> {
+    static void init_default(hstd::Opt<sem::SemId<T>>& value) {
         value = sem::SemId<T>::Nil();
     }
 };
 
 template <typename Proto, typename T>
-struct proto_serde<Opt<Proto>, Opt<T>> {
-    static void write(Proto* out, Opt<T> const& in) {
+struct proto_serde<hstd::Opt<Proto>, hstd::Opt<T>> {
+    static void write(Proto* out, hstd::Opt<T> const& in) {
         proto_serde<Proto, T>::write(out, in.value());
     }
 
-    static void read(Proto const& out, proto_write_accessor<Opt<T>> in) {
-        proto_init<Opt<T>>::init_default(in.get());
+    static void read(
+        Proto const&                       out,
+        proto_write_accessor<hstd::Opt<T>> in) {
+        proto_init<hstd::Opt<T>>::init_default(in.get());
         proto_serde<Proto, T>::read(out, in.for_value());
     }
 };
@@ -181,22 +190,24 @@ struct proto_serde<Opt<Proto>, Opt<T>> {
 template <>
 struct proto_serde<
     gpb::RepeatedPtrField<orgproto::Tblfm_Assign_Flag>,
-    Vec<sem::Tblfm::Assign::Flag>> {
+    hstd::Vec<sem::Tblfm::Assign::Flag>> {
     using Proto = orgproto::Tblfm_Assign_Flag;
     using T     = sem::Tblfm::Assign::Flag;
     static void write(
         gpb::RepeatedPtrField<Proto>* out,
-        Vec<T> const&                 in) {
+        hstd::Vec<T> const&           in) {
         for (auto const& it : in) { out->Add(static_cast<Proto>(it)); }
     }
 
-    static void write(gpb::RepeatedField<int>* out, Vec<T> const& in) {
+    static void write(
+        gpb::RepeatedField<int>* out,
+        hstd::Vec<T> const&      in) {
         for (auto const& it : in) { out->Add(static_cast<int>(it)); }
     }
 
     static void read(
         gpb::RepeatedPtrField<Proto> const& out,
-        proto_write_accessor<Vec<T>>        in) {
+        proto_write_accessor<hstd::Vec<T>>  in) {
         for (auto const& it : out) {
             auto& ref = in.get().emplace_back();
             ref       = static_cast<T>(it);
@@ -204,8 +215,8 @@ struct proto_serde<
     }
 
     static void read(
-        gpb::RepeatedField<int> const& out,
-        proto_write_accessor<Vec<T>>   in) {
+        gpb::RepeatedField<int> const&     out,
+        proto_write_accessor<hstd::Vec<T>> in) {
         for (auto const& it : out) {
             auto& ref = in.get().emplace_back();
             ref       = static_cast<T>(it);
@@ -214,10 +225,10 @@ struct proto_serde<
 };
 
 template <typename Proto, typename T>
-struct proto_serde<gpb::RepeatedPtrField<Proto>, Vec<T>> {
+struct proto_serde<gpb::RepeatedPtrField<Proto>, hstd::Vec<T>> {
     static void write(
         gpb::RepeatedPtrField<Proto>* out,
-        Vec<T> const&                 in) {
+        hstd::Vec<T> const&           in) {
         for (auto const& it : in) {
             proto_serde<Proto, T>::write(out->Add(), it);
         }
@@ -225,7 +236,7 @@ struct proto_serde<gpb::RepeatedPtrField<Proto>, Vec<T>> {
 
     static void read(
         gpb::RepeatedPtrField<Proto> const& out,
-        proto_write_accessor<Vec<T>>        in) {
+        proto_write_accessor<hstd::Vec<T>>  in) {
         for (auto const& it : out) {
             auto& ref = in.get().emplace_back();
             proto_serde<Proto, T>::read(
@@ -237,10 +248,10 @@ struct proto_serde<gpb::RepeatedPtrField<Proto>, Vec<T>> {
 template <typename Proto>
 struct proto_serde<
     gpb::RepeatedPtrField<Proto>,
-    Vec<sem::SemId<sem::Org>>> {
+    hstd::Vec<sem::SemId<sem::Org>>> {
     static void write(
-        gpb::RepeatedPtrField<Proto>*    out,
-        Vec<sem::SemId<sem::Org>> const& in) {
+        gpb::RepeatedPtrField<Proto>*          out,
+        hstd::Vec<sem::SemId<sem::Org>> const& in) {
         for (auto const& it : in) {
             proto_serde<Proto, sem::SemId<sem::Org>>::write(
                 out->Add(), it);
@@ -248,8 +259,8 @@ struct proto_serde<
     }
 
     static void read(
-        gpb::RepeatedPtrField<Proto> const&             out,
-        proto_write_accessor<Vec<sem::SemId<sem::Org>>> in) {
+        gpb::RepeatedPtrField<Proto> const&                   out,
+        proto_write_accessor<hstd::Vec<sem::SemId<sem::Org>>> in) {
         for (auto const& it : out) {
             auto& items = in.get();
             items.emplace_back(sem::SemId<sem::Org>::Nil());
@@ -264,10 +275,12 @@ struct proto_serde<
 };
 
 template <typename Proto, typename T>
-struct proto_serde<gpb::RepeatedPtrField<Proto>, Vec<sem::SemId<T>>> {
+struct proto_serde<
+    gpb::RepeatedPtrField<Proto>,
+    hstd::Vec<sem::SemId<T>>> {
     static void write(
-        gpb::RepeatedPtrField<Proto>* out,
-        Vec<sem::SemId<T>> const&     in) {
+        gpb::RepeatedPtrField<Proto>*   out,
+        hstd::Vec<sem::SemId<T>> const& in) {
         for (auto const& it : in) {
             proto_serde<Proto, sem::SemId<sem::Org>>::write(
                 out->Add(), it.asOrg());
@@ -275,8 +288,8 @@ struct proto_serde<gpb::RepeatedPtrField<Proto>, Vec<sem::SemId<T>>> {
     }
 
     static void read(
-        gpb::RepeatedPtrField<Proto> const&      out,
-        proto_write_accessor<Vec<sem::SemId<T>>> in) {
+        gpb::RepeatedPtrField<Proto> const&            out,
+        proto_write_accessor<hstd::Vec<sem::SemId<T>>> in) {
         for (auto const& it : out) {
             auto& ref = in.get().emplace_back(sem::SemId<T>::Nil());
             proto_serde<Proto, sem::SemId<T>>::read(
@@ -287,16 +300,16 @@ struct proto_serde<gpb::RepeatedPtrField<Proto>, Vec<sem::SemId<T>>> {
 
 
 template <typename T>
-struct proto_serde<gpb::RepeatedField<::int32_t>, Vec<T>> {
+struct proto_serde<gpb::RepeatedField<::int32_t>, hstd::Vec<T>> {
     static void write(
         gpb::RepeatedField<::int32_t>* out,
-        Vec<T> const&                  in) {
+        hstd::Vec<T> const&            in) {
         for (auto const& it : in) { out->Add(it); }
     }
 
     static void read(
         gpb::RepeatedField<::int32_t> const& out,
-        proto_write_accessor<Vec<T>>         in) {
+        proto_write_accessor<hstd::Vec<T>>   in) {
         for (auto const& it : out) { in.get().push_back(it); }
     }
 };
@@ -308,10 +321,12 @@ template <class T>
 concept NonDefaultConstructible = !IsDefaultConstructible<T>;
 
 template <typename ProtoKey, typename ProtoVal, typename K, typename V>
-struct proto_serde<gpb::Map<ProtoKey, ProtoVal>, UnorderedMap<K, V>> {
+struct proto_serde<
+    gpb::Map<ProtoKey, ProtoVal>,
+    hstd::UnorderedMap<K, V>> {
     static void write(
-        gpb::Map<ProtoKey, ProtoVal>* out,
-        UnorderedMap<K, V> const&     in) {
+        gpb::Map<ProtoKey, ProtoVal>*   out,
+        hstd::UnorderedMap<K, V> const& in) {
         for (auto const& [k, v] : in) {
             proto_serde<ProtoVal, V>::write(&out->operator[](k), v);
         }
@@ -319,10 +334,11 @@ struct proto_serde<gpb::Map<ProtoKey, ProtoVal>, UnorderedMap<K, V>> {
 
     template <IsDefaultConstructible U = V>
     static void read(
-        gpb::Map<ProtoKey, ProtoVal> const&      out,
-        proto_write_accessor<UnorderedMap<K, V>> in) {
+        gpb::Map<ProtoKey, ProtoVal> const&            out,
+        proto_write_accessor<hstd::UnorderedMap<K, V>> in) {
         for (auto const& [key, val] : out) {
-            in.get().insert_or_assign(key, SerdeDefaultProvider<V>::get());
+            in.get().insert_or_assign(
+                key, hstd::SerdeDefaultProvider<V>::get());
             proto_serde<ProtoVal, V>::read(
                 val, proto_write_accessor<V>{[&in, &key]() -> V& {
                     return in.get().at(key);
@@ -339,7 +355,7 @@ struct proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>> {
 
     static void write(
         gpb::RepeatedPtrField<orgproto::AnyNode>* out,
-        Vec<sem::SemId<sem::Org>> const&          in) {
+        hstd::Vec<sem::SemId<sem::Org>> const&    in) {
         for (auto const& it : in) {
             proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
                 out->Add(), it);
@@ -351,8 +367,8 @@ struct proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>> {
         proto_write_accessor<sem::SemId<sem::Org>> in);
 
     static void read(
-        gpb::RepeatedPtrField<orgproto::AnyNode> const& out,
-        proto_write_accessor<Vec<sem::SemId<sem::Org>>> in) {
+        gpb::RepeatedPtrField<orgproto::AnyNode> const&       out,
+        proto_write_accessor<hstd::Vec<sem::SemId<sem::Org>>> in) {
         LOG(FATAL) << "??";
     }
 };
@@ -394,8 +410,8 @@ struct proto_serde<orgproto::AnyNode, sem::SemId<T>> {
 
     template <typename Proto>
     static void write(
-        gpb::RepeatedPtrField<Proto>* out,
-        Vec<sem::SemId<T>> const&     in) {
+        gpb::RepeatedPtrField<Proto>*   out,
+        hstd::Vec<sem::SemId<T>> const& in) {
         LOG(FATAL) << "??";
     }
 };
@@ -412,8 +428,8 @@ struct proto_serde<Proto, sem::SemId<T>> {
     }
 
     static void write(
-        gpb::RepeatedPtrField<Proto>* out,
-        Vec<sem::SemId<T>> const&     in) {
+        gpb::RepeatedPtrField<Proto>*   out,
+        hstd::Vec<sem::SemId<T>> const& in) {
         for (auto const& it : in) {
             proto_serde<Proto, sem::SemId<sem::Org>>::write(
                 out->Add(), it.asOrg());
@@ -453,7 +469,7 @@ struct proto_serde<Proto, sem::Org> {
     static void read(Proto const& out, proto_write_accessor<sem::Org> in) {
         proto_serde<
             gpb::RepeatedPtrField<orgproto::AnyNode>,
-            Vec<sem::SemId<sem::Org>>>::
+            hstd::Vec<sem::SemId<sem::Org>>>::
             read(out.subnodes(), in.for_field(&sem::Org::subnodes));
     }
 };
@@ -463,7 +479,7 @@ struct proto_serde<Proto, sem::Stmt> {
     static void write(Proto* out, sem::Stmt const& in) {
         proto_serde<
             gpb::RepeatedPtrField<orgproto::AnyNode>,
-            Vec<sem::SemId<sem::Org>>>::
+            hstd::Vec<sem::SemId<sem::Org>>>::
             write(out->mutable_attached(), in.attached);
     }
 
@@ -472,7 +488,7 @@ struct proto_serde<Proto, sem::Stmt> {
         proto_write_accessor<sem::Stmt> in) {
         proto_serde<
             gpb::RepeatedPtrField<orgproto::AnyNode>,
-            Vec<sem::SemId<sem::Org>>>::
+            hstd::Vec<sem::SemId<sem::Org>>>::
             read(out.attached(), in.for_field(&sem::Stmt::attached));
     }
 };
@@ -505,15 +521,17 @@ struct proto_serde<Proto, sem::Cmd> {
 };
 
 template <>
-struct proto_serde<orgproto::LineCol, LineCol> {
-    static void write(orgproto::LineCol* out, LineCol const& in) {
+struct proto_serde<orgproto::LineCol, org::parse::LineCol> {
+    static void write(
+        orgproto::LineCol*         out,
+        org::parse::LineCol const& in) {
         out->set_line(in.line);
         out->set_column(in.column);
         out->set_pos(in.pos);
     }
     static void read(
-        orgproto::LineCol const&      out,
-        proto_write_accessor<LineCol> in) {
+        orgproto::LineCol const&                  out,
+        proto_write_accessor<org::parse::LineCol> in) {
         in.get().pos    = out.pos();
         in.get().line   = out.line();
         in.get().column = out.column();
@@ -521,11 +539,11 @@ struct proto_serde<orgproto::LineCol, LineCol> {
 };
 
 template <>
-struct proto_serde<std::string, Str> {
-    static void write(std::string* out, Str const& in) { *out = in; }
+struct proto_serde<std::string, hstd::Str> {
+    static void write(std::string* out, hstd::Str const& in) { *out = in; }
     static void read(
-        std::string const&        out,
-        proto_write_accessor<Str> in) {
+        std::string const&              out,
+        proto_write_accessor<hstd::Str> in) {
         in.get() = out;
     }
 };
@@ -549,7 +567,7 @@ struct proto_serde<bool, bool> {
 
 
 template <>
-struct proto_serde<::orgproto::OrgJson, ::sem::OrgJson> {
+struct proto_serde<::orgproto::OrgJson, org::sem::OrgJson> {
     static void read(
         ::orgproto::OrgJson const&         out,
         proto_write_accessor<sem::OrgJson> in) {
@@ -589,22 +607,25 @@ struct proto_serde<float, float> {
 
 
 template <>
-struct proto_serde<orgproto::UserTime, UserTime> {
-    static void write(orgproto::UserTime* out, UserTime const& in) {
+struct proto_serde<orgproto::hstd::UserTime, hstd::UserTime> {
+    static void write(
+        orgproto::hstd::UserTime* out,
+        hstd::UserTime const&     in) {
         out->set_time(absl::ToUnixSeconds(in.time));
         if (in.zone) { out->set_zone(in.zone->name()); }
         out->set_align(static_cast<orgproto::Alignment>(in.align));
     }
     static void read(
-        orgproto::UserTime const&      out,
-        proto_write_accessor<UserTime> in) {
+        orgproto::hstd::UserTime const&      out,
+        proto_write_accessor<hstd::UserTime> in) {
         in.get().time = absl::FromUnixSeconds(out.time());
         if (out.has_zone()) {
             absl::TimeZone tz;
             if (!absl::LoadTimeZone(out.zone(), &tz)) {}
             in.get().zone = tz;
         }
-        in.get().align = static_cast<UserTime::Alignment>(out.align());
+        in.get().align = static_cast<hstd::UserTime::Alignment>(
+            out.align());
     }
 };
 
@@ -615,3 +636,5 @@ struct proto_serde<Out, sem::CmdInclude::IncludeBase> {
         Out const&                                         out,
         proto_write_accessor<sem::CmdInclude::IncludeBase> in) {}
 };
+
+} // namespace org::algo

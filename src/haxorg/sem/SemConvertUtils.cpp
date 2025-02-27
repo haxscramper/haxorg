@@ -3,7 +3,9 @@
 #include <haxorg/lexbase/TraceStructured.hpp>
 
 
-using namespace sem;
+using namespace org::sem;
+using namespace hstd;
+
 
 using onk = OrgNodeKind;
 using otk = OrgTokenKind;
@@ -11,8 +13,8 @@ using Err = OrgConverter::Errors;
 
 
 OrgConverter::ConvertError OrgConverter::wrapError(
-    CR<Error>      err,
-    CR<OrgAdapter> adapter) {
+    CR<Error>             err,
+    CR<parse::OrgAdapter> adapter) {
     ConvertError result{err};
     auto         loc = getLoc(adapter);
 
@@ -23,22 +25,24 @@ OrgConverter::ConvertError OrgConverter::wrapError(
     return result;
 }
 
-Opt<LineCol> OrgConverter::getLoc(CR<OrgAdapter> adapter) {
+Opt<org::parse::LineCol> OrgConverter::getLoc(
+    CR<parse::OrgAdapter> adapter) {
     if (adapter.isTerminal()) {
         if (adapter.val().isFake()) {
             return std::nullopt;
         } else {
-            return LineCol{adapter.val().line, adapter.val().col};
+            return org::parse::LineCol{
+                adapter.val().line, adapter.val().col};
         }
     } else if (adapter.isMono()) {
         return std::nullopt;
 
     } else if (auto nested = adapter.get().nestedNodes(adapter.id);
                nested) {
-        for (OrgId const& id : nested.value()) {
-            OrgAdapter sub{adapter.group, id};
+        for (org::parse::OrgId const& id : nested.value()) {
+            parse::OrgAdapter sub{adapter.group, id};
             if (sub.isTerminal() && !sub.val().isFake()) {
-                return LineCol{sub.val().line, sub.val().col};
+                return org::parse::LineCol{sub.val().line, sub.val().col};
             }
         }
     }
@@ -46,9 +50,9 @@ Opt<LineCol> OrgConverter::getLoc(CR<OrgAdapter> adapter) {
     return std::nullopt;
 }
 
-std::string OrgConverter::getLocMsg(CR<OrgAdapter> adapter) {
-    Opt<LineCol>    loc = getLoc(adapter);
-    Opt<OrgTokenId> tok;
+std::string OrgConverter::getLocMsg(CR<parse::OrgAdapter> adapter) {
+    Opt<parse::LineCol>    loc = getLoc(adapter);
+    Opt<parse::OrgTokenId> tok;
     if (adapter.get().isTerminal()) { tok = adapter.get().getToken(); }
 
     return "$#:$# (node $#, token $#, pos $#)"
@@ -68,7 +72,7 @@ void OrgConverter::report(CR<OrgConverter::Report> in) {
     auto getLoc = [&]() -> std::string {
         std::string res;
         if (in.node.has_value()) {
-            Opt<LineCol> loc = this->getLoc(in.node.value());
+            Opt<parse::LineCol> loc = this->getLoc(in.node.value());
             if (loc.has_value()) {
                 res = "$#:$# " % to_string_vec(loc->line, loc->column);
             }
@@ -189,7 +193,7 @@ struct Builder : OperationsMsgBulder<Builder, OrgConverter::Report> {
         return *this;
     }
 
-    Builder& with_node(CR<Opt<OrgAdapter>> node) {
+    Builder& with_node(CR<Opt<org::parse::OrgAdapter>> node) {
         report.node = node;
         return *this;
     }

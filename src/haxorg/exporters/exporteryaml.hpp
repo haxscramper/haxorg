@@ -1,9 +1,9 @@
-#ifndef EXPORTERYAML_HPP
-#define EXPORTERYAML_HPP
+#pragma once
 
 #include <haxorg/exporters/Exporter.hpp>
 #include <hstd/stdlib/Yaml.hpp>
 
+namespace org::algo {
 struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
     using Base = Exporter<ExporterYaml, yaml>;
 #define __ExporterBase Base
@@ -11,7 +11,7 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
 #undef __ExporterBase
 
     template <typename T>
-    yaml newRes(CR<Opt<T>> arg) {
+    yaml newRes(hstd::Opt<T> const& arg) {
         if (arg) {
             return newRes(*arg);
         } else {
@@ -20,20 +20,20 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
     }
 
 
-    yaml eval(CR<Str> value) {
+    yaml eval(hstd::Str const& value) {
         yaml tmp = yaml(value);
         return tmp;
     }
 
     template <typename T>
-    yaml newRes(CR<T>) {
+    yaml newRes(T const&) {
         return yaml();
     }
 
 
-    yaml eval(CR<bool> value) { return yaml(value); }
-    yaml eval(CR<int> value) { return yaml(value); }
-    yaml eval(CR<std::string> value) { return yaml(value); }
+    yaml eval(bool value) { return yaml(value); }
+    yaml eval(int value) { return yaml(value); }
+    yaml eval(std::string const& value) { return yaml(value); }
 
     template <typename E>
     yaml eval(E value)
@@ -43,7 +43,7 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
     }
 
     template <typename T>
-    yaml eval(CR<T> arg)
+    yaml eval(T const& arg)
         requires(!std::is_enum<T>::value)
     {
         yaml tmp = _this()->newRes(arg);
@@ -54,7 +54,10 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
     yaml newRes(sem::SemId<sem::Org> org);
 
     template <typename T>
-    void visitField(yaml& j, const char* name, CR<Opt<T>> value) {
+    void visitField(
+        yaml&         j,
+        const char*         name,
+        hstd::Opt<T> const& value) {
         if (value) {
             j[name] = eval(value.value());
         } else {
@@ -63,23 +66,23 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
     }
 
     template <typename T>
-    yaml eval(CR<Vec<T>> values) {
+    yaml eval(hstd::Vec<T> const& values) {
         yaml tmp;
         for (const auto& it : values) { tmp.push_back(eval(it)); }
         return tmp;
     }
 
     template <typename T>
-    yaml eval(CR<UnorderedMap<Str, T>> map) {
+    yaml eval(hstd::UnorderedMap<hstd::Str, T> const& map) {
         yaml tmp;
         for (const auto& [key, val] : map) { tmp[key] = eval(val); }
         return tmp;
     }
 
     void visitField(
-        yaml&       y,
+        yaml& y,
         char const* name,
-        CR<UnorderedMap<int, sem::SemId<sem::Org>>>) {}
+        hstd::UnorderedMap<int, sem::SemId<sem::Org>> const&) {}
 
     void visitField(yaml& j, const char* name, int field) {
         yaml result = eval(field);
@@ -92,7 +95,7 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
 
 
     template <typename T>
-    void visitField(yaml& j, const char* name, CR<T> field) {
+    void visitField(yaml& j, const char* name, T const& field) {
         yaml result = eval(field);
         if (!skipNullFields || !result.IsNull()) { j[name] = result; }
     }
@@ -110,5 +113,4 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
 };
 
 extern template class Exporter<ExporterYaml, yaml>;
-
-#endif // EXPORTERYAML_HPP
+} // namespace org::algo

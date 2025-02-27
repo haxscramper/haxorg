@@ -10,6 +10,9 @@
 using otk = OrgTokenKind;
 using onk = OrgNodeKind;
 
+using namespace org::parse;
+using namespace hstd;
+
 namespace {
 const OrgTokSet Newline{
     otk::Newline,

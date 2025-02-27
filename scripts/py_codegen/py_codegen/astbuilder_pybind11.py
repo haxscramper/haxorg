@@ -28,13 +28,20 @@ if TYPE_CHECKING:
 else:
     BlockId = NewType('BlockId', int)
 
+IGNORED_NAMESPACES = ["sem", "org", "hstd", "ext", "algo", "bind", "python"]
+
 
 @beartype
 def py_type_bind(Typ: QualType) -> pya.PyType:
-    return pya.PyType(
-        "".join([py_type_bind(T).Name for T in Typ.withoutSpace("sem").Spaces]) +
-        Typ.name + ("Of" if Typ.Parameters else "") +
-        "".join([py_type_bind(T).Name for T in Typ.Parameters]))
+    fullname = "".join([py_type_bind(T).Name for T in Typ.Spaces])
+    if Typ.name not in IGNORED_NAMESPACES:
+        fullname += Typ.name
+
+    if 0 < len(Typ.Parameters):
+        fullname += "Of"
+        fullname += "".join([py_type_bind(T).Name for T in Typ.Parameters])
+
+    return pya.PyType(fullname)
 
 
 @beartype
@@ -49,7 +56,7 @@ def flat_scope(Typ: QualType) -> List[str]:
 
 @beartype
 def py_type(Typ: QualType) -> pya.PyType:
-    flat = [N for N in flat_scope(Typ) if N != "sem"]
+    flat = [N for N in flat_scope(Typ) if N not in IGNORED_NAMESPACES]
     match flat:
         case ["Vec"]:
             name = "List"
@@ -224,7 +231,7 @@ class Py11Function:
     def build_bind(self, ast: ASTBuilder) -> BlockId:
         if self.Spaces:
             full_name = ast.Scoped(
-                QualType(name=self.Spaces[0].name, Spaces=self.Spaces[1:]),
+                QualType(name=self.Spaces[-1].name, Spaces=self.Spaces[:-1]),
                 ast.string(self.CxxName))
 
         else:
@@ -376,7 +383,12 @@ class Py11Enum:
 
     def build_bind(self, ast: ASTBuilder) -> BlockId:
         b = ast.b
-        iter_type = QualType(name="PyEnumIterator", Parameters=[self.Enum])
+        iter_type = QualType(
+            name="PyEnumIterator",
+            Parameters=[self.Enum],
+            Spaces=[n_org(), t_namespace("bind"),
+                    t_namespace("python")],
+        )
         return b.stack([
             ast.XCall(
                 "bind_enum_iterator",
@@ -527,7 +539,7 @@ class Py11Class:
                     ast.b.line([ast.Type(self.Class),
                                 ast.string(" result{};")]),
                     ast.XCall(
-                        "init_fields_from_kwargs",
+                        "org::bind::python::init_fields_from_kwargs",
                         args=[ast.string("result"),
                               ast.string("kwargs")],
                         Stmt=True,
@@ -546,7 +558,9 @@ class Py11Class:
                        CxxName="",
                        ResultTy=str_type,
                        Body=[
-                           ast.Return(ast.XCall("py_repr_impl", [ast.string("_self")])),
+                           ast.Return(
+                               ast.XCall("org::bind::python::py_repr_impl",
+                                         [ast.string("_self")])),
                        ]))
 
         self.Methods.append(
@@ -556,7 +570,7 @@ class Py11Class:
                        Args=[GenTuIdent(str_type, "name")],
                        Body=[
                            ast.Return(
-                               ast.XCall("py_getattr_impl", [
+                               ast.XCall("org::bind::python::py_getattr_impl", [
                                    ast.string("_self"),
                                    ast.string("name"),
                                ])),

@@ -9,7 +9,7 @@ void TreeGridCell::render(
     const std::string&     im_tag) {
     auto& ctx = model.ctx;
 
-    IM_FN_PRINT("Cell", fmt("pos:{} size:{}", start, getSize()));
+    IM_FN_PRINT("Cell", hstd::fmt("pos:{} size:{}", start, getSize()));
     auto frameless_vars = push_frameless_window_vars();
     ImGui::SetNextWindowPos(start);
     if (IM_FN_BEGIN(
@@ -20,7 +20,7 @@ void TreeGridCell::render(
             ImGuiWindowFlags_NoScrollbar)) {
 
         auto& val = getValue();
-        auto  res = val.value.render(fmt("cell_{}_{}", id, im_tag));
+        auto  res = val.value.render(hstd::fmt("cell_{}_{}", id, im_tag));
 
         if (res) {
             ctx.action(GridAction::EditCell{
@@ -131,7 +131,8 @@ void TreeGridRow::render(
 
     if (skipped && nested.empty()) { return; };
 
-    auto __im_scope = IM_SCOPE_BEGIN("Tree row", fmt("row [{}]", flatIdx));
+    auto __im_scope = IM_SCOPE_BEGIN(
+        "Tree row", hstd::fmt("row [{}]", flatIdx));
 
     auto render_tree_columns = [&]() {
 
@@ -148,7 +149,7 @@ void TreeGridRow::render(
                     id,
                     conf,
                     start + doc->getCellPos(flatIdx, col.name),
-                    fmt("{}_{}", flatIdx, col));
+                    hstd::fmt("{}_{}", flatIdx, col));
             }
             ++colIdx;
         }
@@ -170,11 +171,11 @@ void TreeGridRow::render(
 
     if (cell_rect.Contains(ImGui::GetMousePos())) {
         if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-            ImGui::OpenPopup(fmt("ctx_{}", origin.id).c_str());
+            ImGui::OpenPopup(hstd::fmt("ctx_{}", origin.id).c_str());
         }
     }
 
-    if (ImGui::BeginPopup(fmt("ctx_{}", origin.id).c_str())) {
+    if (ImGui::BeginPopup(hstd::fmt("ctx_{}", origin.id).c_str())) {
         if (ImGui::MenuItem("Copy")) {
             if (origin->treeId.get().has_value()) {
                 ImGui::SetClipboardText(origin->treeId->value().c_str());

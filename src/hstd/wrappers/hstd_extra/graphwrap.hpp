@@ -6,6 +6,8 @@
 #include <boost/graph/breadth_first_search.hpp>
 #include <boost/graph/depth_first_search.hpp>
 
+namespace hstd::ext {
+
 template <
     typename Graph,
     typename Derived,
@@ -103,3 +105,5 @@ struct boost_lambda_astar_visitor
     : public boost_visitor_callback_base<
           Graph,
           boost_lambda_astar_visitor<Graph>> {};
+
+} // namespace hstd::ext

@@ -4,7 +4,9 @@
 #include <sstream>
 #include <absl/log/log.h>
 
-void writeFile(const fs::path& target, const std::string& content) {
+using namespace hstd;
+
+void hstd::writeFile(const fs::path& target, const std::string& content) {
     std::ofstream file{target.native()};
     // REFACTOR truncate file on write
     // REFACTOR add error message on write failure
@@ -16,7 +18,7 @@ void writeFile(const fs::path& target, const std::string& content) {
     }
 }
 
-std::string readFile(const fs::path& target) {
+std::string hstd::readFile(const fs::path& target) {
     std::ifstream in{target.native()};
     if (in.is_open()) {
         std::stringstream result;
@@ -28,7 +30,7 @@ std::string readFile(const fs::path& target) {
     }
 }
 
-void writeFileOrStdout(
+void hstd::writeFileOrStdout(
     const fs::path&    target,
     const std::string& content,
     bool               useFile,
@@ -41,7 +43,7 @@ void writeFileOrStdout(
     }
 }
 
-void writeDebugFile(
+void hstd::writeDebugFile(
     const std::string& content,
     const std::string& extension,
     bool               writeLog,
@@ -60,7 +62,10 @@ void writeDebugFile(
     }
 }
 
-void createDirectory(const fs::path& target, bool parents, bool existsOk) {
+void hstd::createDirectory(
+    const fs::path& target,
+    bool            parents,
+    bool            existsOk) {
     if (target.native().empty()) {
         throw FilesystemError{
             fmt("Cannot create directory, target is empty")};
@@ -87,8 +92,8 @@ void createDirectory(const fs::path& target, bool parents, bool existsOk) {
 
     std::function<void(fs::path const& target)> aux;
     aux = [&](fs::path const& target) {
-        // apparently `/` root directory has parent path according to this code,
-        // so the `!=` thing is the only one that worked.
+        // apparently `/` root directory has parent path according to this
+        // code, so the `!=` thing is the only one that worked.
         if (target.parent_path() != target) {
             aux(target.parent_path());
             if (fs::is_directory(target.parent_path())) {

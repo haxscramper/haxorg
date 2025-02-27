@@ -1,5 +1,5 @@
 
-std::string OrgLexerImpl::state_name(int state) {
+std::string org::parse::OrgLexerImpl::state_name(int state) {
     switch(state) {
         case 0: return "INITIAL";
         case 1: return "COMMAND_TEXT";
@@ -28,7 +28,7 @@ std::string OrgLexerImpl::state_name(int state) {
     }
 }
 
-std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
+std::string hstd::enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
     switch(value) {
         case OrgTokenKind::Ampersand: return "Ampersand";
         case OrgTokenKind::AngleBegin: return "AngleBegin";
@@ -250,7 +250,7 @@ std::string enum_serde<OrgTokenKind>::to_string(const OrgTokenKind &value) {
     }
 }
 
-Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string const& value) {
+Opt<OrgTokenKind> hstd::enum_serde<OrgTokenKind>::from_string(std::string const& value) {
   if (value == "Ampersand") { return OrgTokenKind::Ampersand; } else
   if (value == "AngleBegin") { return OrgTokenKind::AngleBegin; } else
   if (value == "AngleEnd") { return OrgTokenKind::AngleEnd; } else

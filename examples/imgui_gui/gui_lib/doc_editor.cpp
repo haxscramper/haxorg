@@ -5,6 +5,8 @@
 #include "block_graph.hpp"
 #include "node_grid_graph.hpp"
 
+using namespace hstd;
+
 #define CTX_MSG(...)                                                      \
     if (ctx.OperationsTracer::TraceState) { ctx.message(__VA_ARGS__); }
 
@@ -12,9 +14,9 @@
 
 
 Opt<DocBlock::Ptr> to_doc_block(
-    const org::ImmAdapter& it,
-    const DocBlockConfig&  conf,
-    DocBlockContext&       ctx) {
+    const org::imm::ImmAdapter& it,
+    const DocBlockConfig&       conf,
+    DocBlockContext&            ctx) {
 
     struct AuxCtx {
         int depth = 0;
@@ -43,17 +45,17 @@ Opt<DocBlock::Ptr> to_doc_block(
         }
     };
 
-    Func<Opt<DocBlock::Ptr>(org::ImmAdapter const&, CR<AuxCtx> actx)>
+    Func<Opt<DocBlock::Ptr>(org::imm::ImmAdapter const&, CR<AuxCtx> actx)>
         auxAnnotation;
-    Func<Opt<DocBlock::Ptr>(org::ImmAdapter const&, CR<AuxCtx> actx)>
+    Func<Opt<DocBlock::Ptr>(org::imm::ImmAdapter const&, CR<AuxCtx> actx)>
         auxNode;
 
-    auxAnnotation = [&](org::ImmAdapter const& it,
+    auxAnnotation = [&](org::imm::ImmAdapter const& it,
                         CR<AuxCtx> actx) -> Opt<DocBlock::Ptr> {
         CTX_MSG(fmt("Aux annotation from {}", it));
         auto __scope = ctx.scopeLevel();
         auto tmp     = std::make_shared<DocBlockAnnotation>();
-        if (auto item = it.asOpt<org::ImmListItem>()) {
+        if (auto item = it.asOpt<org::imm::ImmListItem>()) {
             if (auto header = item->getHeader()) {
                 tmp->name = EditableOrgTextEntry::from_adapter(
                     header.value(),
@@ -70,8 +72,8 @@ Opt<DocBlock::Ptr> to_doc_block(
         return tmp;
     };
 
-    auxNode = [&](org::ImmAdapter const& it,
-                  CR<AuxCtx>             actx) -> Opt<DocBlock::Ptr> {
+    auxNode = [&](org::imm::ImmAdapter const& it,
+                  CR<AuxCtx>                  actx) -> Opt<DocBlock::Ptr> {
         if (it.is(OrgSemKind::Newline)) {
             return std::nullopt;
         } else {
@@ -85,17 +87,17 @@ Opt<DocBlock::Ptr> to_doc_block(
                 }
             };
 
-            if (auto d = it.asOpt<org::ImmDocument>()) {
+            if (auto d = it.asOpt<org::imm::ImmDocument>()) {
                 auto tmp    = std::make_shared<DocBlockDocument>();
                 tmp->origin = d.value();
                 result      = tmp;
                 add_subnodes();
-            } else if (auto d = it.asOpt<org::ImmParagraph>()) {
+            } else if (auto d = it.asOpt<org::imm::ImmParagraph>()) {
                 auto tmp  = std::make_shared<DocBlockParagraph>();
                 tmp->text = EditableOrgTextEntry::from_adapter(
                     d.value(), actx.getThisWidth(conf));
                 result = tmp;
-            } else if (auto d = it.asOpt<org::ImmSubtree>()) {
+            } else if (auto d = it.asOpt<org::imm::ImmSubtree>()) {
                 auto tmp    = std::make_shared<DocBlockSubtree>();
                 tmp->origin = d.value();
                 tmp->title  = EditableOrgTextEntry::from_adapter(
@@ -113,7 +115,7 @@ Opt<DocBlock::Ptr> to_doc_block(
                         if (subdoc) { result->addNested(subdoc.value()); }
                     }
                 }
-            } else if (auto e = it.asOpt<org::ImmBlockExport>()) {
+            } else if (auto e = it.asOpt<org::imm::ImmBlockExport>()) {
                 auto tmp    = std::make_shared<DocBlockExport>();
                 tmp->origin = e.value();
                 result      = tmp;
@@ -252,8 +254,8 @@ Vec<DocBlock::Ptr> DocBlock::getFlatAnnotations() {
 
 
 void DocBlockModel::syncRoot(
-    const org::ImmAdapter& root,
-    const DocBlockConfig&  conf) {
+    const org::imm::ImmAdapter& root,
+    const DocBlockConfig&       conf) {
     this->root = std::dynamic_pointer_cast<DocBlockDocument>(
         to_doc_block(root, conf, ctx).value());
 }
@@ -382,9 +384,11 @@ int DocBlock::getDepth() const {
     }
 }
 
-void doc_editor_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
-    auto                ast_ctx = org::ImmAstContext::init_start_context();
-    DocBlockModel       model;
+void doc_editor_loop(
+    GLFWwindow*                    window,
+    org::sem::SemId<org::sem::Org> node) {
+    auto          ast_ctx = org::imm::ImmAstContext::init_start_context();
+    DocBlockModel model;
     EditableOrgDocGroup docs{ast_ctx};
     DocBlockConfig      conf;
 

@@ -547,27 +547,27 @@ enum class ListFormattingMode : short int {
   Table2DColFirst,
 };
 template <>
-struct enum_serde<ListFormattingMode> {
-  static Opt<ListFormattingMode> from_string(std::string value);
+struct hstd::enum_serde<ListFormattingMode> {
+  static hstd::Opt<ListFormattingMode> from_string(std::string value);
   static std::string to_string(ListFormattingMode value);
 };
 
 template <>
-struct value_domain<ListFormattingMode> : public value_domain_ungapped<ListFormattingMode,
-                                                                       ListFormattingMode::None,
-                                                                       ListFormattingMode::Table2DColFirst> {};
+struct hstd::value_domain<ListFormattingMode> : public value_domain_ungapped<ListFormattingMode,
+                                                                             ListFormattingMode::None,
+                                                                             ListFormattingMode::Table2DColFirst> {};
 
 enum class InitialSubtreeVisibility : short int { Overview, Content, ShowAll, Show2Levels, Show3Levels, Show4Levels, Show5Levels, ShowEverything, };
 template <>
-struct enum_serde<InitialSubtreeVisibility> {
-  static Opt<InitialSubtreeVisibility> from_string(std::string value);
+struct hstd::enum_serde<InitialSubtreeVisibility> {
+  static hstd::Opt<InitialSubtreeVisibility> from_string(std::string value);
   static std::string to_string(InitialSubtreeVisibility value);
 };
 
 template <>
-struct value_domain<InitialSubtreeVisibility> : public value_domain_ungapped<InitialSubtreeVisibility,
-                                                                             InitialSubtreeVisibility::Overview,
-                                                                             InitialSubtreeVisibility::ShowEverything> {};
+struct hstd::value_domain<InitialSubtreeVisibility> : public value_domain_ungapped<InitialSubtreeVisibility,
+                                                                                   InitialSubtreeVisibility::Overview,
+                                                                                   InitialSubtreeVisibility::ShowEverything> {};
 
 /// \brief What to do with newly evaluated result
 enum class BlockCodeResults : short int {
@@ -575,15 +575,15 @@ enum class BlockCodeResults : short int {
   Replace,
 };
 template <>
-struct enum_serde<BlockCodeResults> {
-  static Opt<BlockCodeResults> from_string(std::string value);
+struct hstd::enum_serde<BlockCodeResults> {
+  static hstd::Opt<BlockCodeResults> from_string(std::string value);
   static std::string to_string(BlockCodeResults value);
 };
 
 template <>
-struct value_domain<BlockCodeResults> : public value_domain_ungapped<BlockCodeResults,
-                                                                     BlockCodeResults::Replace,
-                                                                     BlockCodeResults::Replace> {};
+struct hstd::value_domain<BlockCodeResults> : public value_domain_ungapped<BlockCodeResults,
+                                                                           BlockCodeResults::Replace,
+                                                                           BlockCodeResults::Replace> {};
 
 /// \brief What part of the code block should be visible in export
 enum class BlockCodeExports : short int {
@@ -597,27 +597,27 @@ enum class BlockCodeExports : short int {
   Results,
 };
 template <>
-struct enum_serde<BlockCodeExports> {
-  static Opt<BlockCodeExports> from_string(std::string value);
+struct hstd::enum_serde<BlockCodeExports> {
+  static hstd::Opt<BlockCodeExports> from_string(std::string value);
   static std::string to_string(BlockCodeExports value);
 };
 
 template <>
-struct value_domain<BlockCodeExports> : public value_domain_ungapped<BlockCodeExports,
-                                                                     BlockCodeExports::None,
-                                                                     BlockCodeExports::Results> {};
+struct hstd::value_domain<BlockCodeExports> : public value_domain_ungapped<BlockCodeExports,
+                                                                           BlockCodeExports::None,
+                                                                           BlockCodeExports::Results> {};
 
 enum class OrgSpecName : short int { Unnamed, Result, Year, Day, Clock, Repeater, Zone, Link, Tags, Tag, State, Protocol, Desc, Times, Drawer, Args, Name, Definition, Body, HeaderArgs, File, Kind, Lang, Prefix, Text, Todo, Importance, Title, Completion, Head, Subnodes, Properties, Logbook, Description, Logs, Newstate, Oldstate, Time, From, EndArgs, Flags, Value, Assoc, Main, Hash, Bullet, Counter, Checkbox, Header, To, Diff, Property, Subname, Values, Cells, Rows, Lines, Chunks, };
 template <>
-struct enum_serde<OrgSpecName> {
-  static Opt<OrgSpecName> from_string(std::string value);
+struct hstd::enum_serde<OrgSpecName> {
+  static hstd::Opt<OrgSpecName> from_string(std::string value);
   static std::string to_string(OrgSpecName value);
 };
 
 template <>
-struct value_domain<OrgSpecName> : public value_domain_ungapped<OrgSpecName,
-                                                                OrgSpecName::Unnamed,
-                                                                OrgSpecName::Chunks> {};
+struct hstd::value_domain<OrgSpecName> : public value_domain_ungapped<OrgSpecName,
+                                                                      OrgSpecName::Unnamed,
+                                                                      OrgSpecName::Chunks> {};
 
 enum class OrgNodeKind : short int {
   /// \brief Default valye for node - invalid state
@@ -843,39 +843,39 @@ enum class OrgNodeKind : short int {
   SubtreeImportance,
 };
 template <>
-struct enum_serde<OrgNodeKind> {
-  static Opt<OrgNodeKind> from_string(std::string value);
+struct hstd::enum_serde<OrgNodeKind> {
+  static hstd::Opt<OrgNodeKind> from_string(std::string value);
   static std::string to_string(OrgNodeKind value);
 };
 
 template <>
-struct value_domain<OrgNodeKind> : public value_domain_ungapped<OrgNodeKind,
-                                                                OrgNodeKind::None,
-                                                                OrgNodeKind::SubtreeImportance> {};
+struct hstd::value_domain<OrgNodeKind> : public value_domain_ungapped<OrgNodeKind,
+                                                                      OrgNodeKind::None,
+                                                                      OrgNodeKind::SubtreeImportance> {};
 
 enum class OrgJsonKind : short int { Null, Object, Array, String, Boolean, Int, Float, };
 template <>
-struct enum_serde<OrgJsonKind> {
-  static Opt<OrgJsonKind> from_string(std::string value);
+struct hstd::enum_serde<OrgJsonKind> {
+  static hstd::Opt<OrgJsonKind> from_string(std::string value);
   static std::string to_string(OrgJsonKind value);
 };
 
 template <>
-struct value_domain<OrgJsonKind> : public value_domain_ungapped<OrgJsonKind,
-                                                                OrgJsonKind::Null,
-                                                                OrgJsonKind::Float> {};
+struct hstd::value_domain<OrgJsonKind> : public value_domain_ungapped<OrgJsonKind,
+                                                                      OrgJsonKind::Null,
+                                                                      OrgJsonKind::Float> {};
 
 enum class OrgSemKind : short int { None, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdResults, CmdTblfm, HashTag, InlineFootnote, InlineExport, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, RadioTarget, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCode, SubtreeLog, Subtree, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, CmdExport, Call, List, ListItem, DocumentOptions, Document, FileTarget, TextSeparator, DocumentGroup, File, Directory, Symlink, CmdInclude, };
 template <>
-struct enum_serde<OrgSemKind> {
-  static Opt<OrgSemKind> from_string(std::string value);
+struct hstd::enum_serde<OrgSemKind> {
+  static hstd::Opt<OrgSemKind> from_string(std::string value);
   static std::string to_string(OrgSemKind value);
 };
 
 template <>
-struct value_domain<OrgSemKind> : public value_domain_ungapped<OrgSemKind,
-                                                               OrgSemKind::None,
-                                                               OrgSemKind::CmdInclude> {};
+struct hstd::value_domain<OrgSemKind> : public value_domain_ungapped<OrgSemKind,
+                                                                     OrgSemKind::None,
+                                                                     OrgSemKind::CmdInclude> {};
 
 
 template <>
@@ -884,7 +884,7 @@ struct std::formatter<OrgSemKind> : std::formatter<std::string> {
     FormatContext::iterator format(OrgSemKind const& p, FormatContext& ctx)
         const {
         std::formatter<std::string> fmt;
-        return fmt.format(enum_serde<OrgSemKind>::to_string(p), ctx);
+        return fmt.format(::hstd::enum_serde<OrgSemKind>::to_string(p), ctx);
     }
 };
 

@@ -10,7 +10,7 @@
 struct DocBlockConfig {
     int      editLaneWidth      = 600;
     int      nestingBlockOffset = 40;
-    Vec<int> annotationLanesWidth{200};
+    hstd::Vec<int> annotationLanesWidth{200};
     ImU32    annotationNodeWindowBg = IM_COL32(128, 128, 128, 128);
     int      pageUpScrollStep       = 20;
     int      pageDownScrollStep     = -20;
@@ -35,13 +35,13 @@ struct DocBlockConfig {
 struct DocBlockModel;
 struct DocBlockContext;
 
-struct DocBlock : SharedPtrApi<DocBlock> {
+struct DocBlock : hstd::SharedPtrApi<DocBlock> {
     virtual ~DocBlock() = default;
 
     ImDrawList* dl() const { return ImGui::GetWindowDrawList(); }
 
     template <typename Other>
-    SPtr<Other> ptr_as() {
+    hstd::SPtr<Other> ptr_as() {
         auto tmp = std::dynamic_pointer_cast<Other>(shared_from_this());
         LOGIC_ASSERTION_CHECK(tmp.get() != nullptr, "Ptr get failed");
         return tmp;
@@ -79,10 +79,10 @@ struct DocBlock : SharedPtrApi<DocBlock> {
 
 #undef __kind_methods
 
-    Vec<DocBlock::Ptr>      nested;
-    Vec<DocBlock::Ptr>      annotations;
-    std::weak_ptr<DocBlock> parent;
-    bool                    isVisible = true;
+    hstd::Vec<DocBlock::Ptr> nested;
+    hstd::Vec<DocBlock::Ptr> annotations;
+    std::weak_ptr<DocBlock>  parent;
+    bool                     isVisible = true;
 
     DESC_FIELDS(DocBlock, (nested, annotations, isVisible));
 
@@ -106,22 +106,24 @@ struct DocBlock : SharedPtrApi<DocBlock> {
         }
 
         std::string getId(std::string prefix = "") const {
-            return fmt("{}_{}", prefix, dfsIndex);
+            return hstd::fmt("{}_{}", prefix, dfsIndex);
         }
     };
 
     virtual void render(DocBlockModel& model, DocBlockConfig const& conf, RenderContext& renderContext) = 0;
 
     DocBlock::Ptr at(int pos) const { return nested.at(pos); }
-    DocBlock::Ptr at(Vec<int> path) const {
+    DocBlock::Ptr at(hstd::Vec<int> path) const {
         auto res = nested.at(path.front());
-        for (int i : path.at(slice(1, 1_B))) { res = res->at(i); }
+        for (int i : path.at(slice(1, hstd::BackwardsIndex(1)))) {
+            res = res->at(i);
+        }
         return res;
     }
 
-    void    treeRepr(ColStream& os);
-    ColText treeRepr() {
-        ColStream os;
+    void          treeRepr(hstd::ColStream& os);
+    hstd::ColText treeRepr() {
+        hstd::ColStream os;
         treeRepr(os);
         return os.getBuffer();
     }
@@ -148,12 +150,12 @@ struct DocBlock : SharedPtrApi<DocBlock> {
         for (auto& a : annotations) { a->syncSizeRec(thisLane + 1, conf); }
     }
 
-    Vec<DocBlock::Ptr> getFlatBlocks();
-    Vec<DocBlock::Ptr> getFlatAnnotations();
+    hstd::Vec<DocBlock::Ptr> getFlatBlocks();
+    hstd::Vec<DocBlock::Ptr> getFlatAnnotations();
 };
 
 struct DocBlockDocument : public DocBlock {
-    org::ImmAdapterT<org::ImmDocument> origin;
+    org::imm::ImmAdapterT<org::imm::ImmDocument> origin;
 
     Kind   getKind() const override { return Kind::Document; }
     ImVec2 getSize() const override { return ImVec2(10, 10); }
@@ -161,7 +163,7 @@ struct DocBlockDocument : public DocBlock {
 
     BOOST_DESCRIBE_CLASS(DocBlockDocument, (DocBlock), (origin), (), ());
 
-    org::ImmAdapter getRootOrigin() const { return origin; }
+    org::imm::ImmAdapter getRootOrigin() const { return origin; }
 
     virtual void render(
         DocBlockModel&        model,
@@ -194,7 +196,7 @@ struct DocBlockAnnotation : public DocBlock {
 };
 
 struct DocBlockExport : public DocBlock {
-    org::ImmAdapterT<org::ImmBlockExport> origin;
+    org::imm::ImmAdapterT<org::imm::ImmBlockExport> origin;
     ImVec2 getSize() const override { return ImVec2{100, 20}; }
     void   setWidth(int width) override {}
     Kind   getKind() const override { return Kind::Export; }
@@ -207,10 +209,10 @@ struct DocBlockExport : public DocBlock {
 };
 
 struct DocBlockFallback : public DocBlock {
-    org::ImmAdapter origin;
-    ImVec2          getSize() const override { return ImVec2{200, 20}; }
-    void            setWidth(int width) override {}
-    Kind            getKind() const override { return Kind::Fallback; }
+    org::imm::ImmAdapter origin;
+    ImVec2 getSize() const override { return ImVec2{200, 20}; }
+    void   setWidth(int width) override {}
+    Kind   getKind() const override { return Kind::Fallback; }
     BOOST_DESCRIBE_CLASS(DocBlockFallback, (DocBlock), (origin), (), ());
 
     virtual void render(
@@ -221,8 +223,8 @@ struct DocBlockFallback : public DocBlock {
 
 
 struct DocBlockParagraph : public DocBlock {
-    org::ImmAdapterT<org::ImmParagraph> origin;
-    EditableOrgTextEntry                text;
+    org::imm::ImmAdapterT<org::imm::ImmParagraph> origin;
+    EditableOrgTextEntry                          text;
     void   setWidth(int width) override { text.setWidth(width); }
     ImVec2 getSize() const override { return text.getSize(); }
     Kind   getKind() const override { return Kind::Paragraph; }
@@ -235,8 +237,8 @@ struct DocBlockParagraph : public DocBlock {
 };
 
 struct DocBlockSubtree : public DocBlock {
-    org::ImmAdapterT<org::ImmSubtree> origin;
-    EditableOrgTextEntry              title;
+    org::imm::ImmAdapterT<org::imm::ImmSubtree> origin;
+    EditableOrgTextEntry                        title;
 
     void   setWidth(int width) override { title.setWidth(width); }
     ImVec2 getSize() const override { return title.getSize(); }
@@ -251,7 +253,7 @@ struct DocBlockSubtree : public DocBlock {
 };
 
 struct DocBlockListHeader : public DocBlock {
-    org::ImmAdapterT<org::ImmList> origin;
+    org::imm::ImmAdapterT<org::imm::ImmList> origin;
     Kind   getKind() const override { return Kind::ListHeader; }
     void   setWidth(int width) override {}
     ImVec2 getSize() const override { return ImVec2{100, 20}; }
@@ -264,10 +266,11 @@ struct DocBlockListHeader : public DocBlock {
 };
 
 template <>
-struct std::formatter<DocBlock*> : std_format_ptr_as_hex<DocBlock> {};
+struct std::formatter<DocBlock*>
+    : hstd::std_format_ptr_as_hex<DocBlock> {};
 template <>
 struct std::formatter<DocBlock const*>
-    : std_format_ptr_as_hex<DocBlock> {};
+    : hstd::std_format_ptr_as_hex<DocBlock> {};
 
 struct DocBlockAction {
     struct NodeEditChanged {
@@ -302,9 +305,9 @@ struct DocBlockAction {
 };
 
 struct DocBlockContext
-    : OperationsTracer
-    , OperationsScope {
-    Vec<DocBlockAction> actions;
+    : hstd::OperationsTracer
+    , hstd::OperationsScope {
+    hstd::Vec<DocBlockAction> actions;
 
     void action(
         DocBlockAction::Data const& act,
@@ -312,7 +315,7 @@ struct DocBlockContext
         char const*                 function = __builtin_FUNCTION(),
         char const*                 file     = __builtin_FILE()) {
         DocBlockAction ga{act};
-        message(fmt("Action {}", ga), line, function, file);
+        message(hstd::fmt("Action {}", ga), line, function, file);
         actions.push_back({ga});
     }
 
@@ -328,21 +331,23 @@ struct DocBlockModel {
     DocBlockDocument::Ptr root;
     DocBlockContext       ctx;
 
-    LaneBlockGraph     g;
-    LaneBlockLayout    lyt;
-    Vec<DocBlock::Ptr> flatGrid;
+    LaneBlockGraph           g;
+    LaneBlockLayout          lyt;
+    hstd::Vec<DocBlock::Ptr> flatGrid;
 
     DESC_FIELDS(DocBlockModel, (root, ctx, g));
 
     void syncFull(
-        org::ImmAdapter const& root,
-        DocBlockConfig const&  conf) {
+        org::imm::ImmAdapter const& root,
+        DocBlockConfig const&       conf) {
         syncRoot(root, conf);
         syncBlockGraph(conf);
         syncLayout(conf);
     }
 
-    void syncRoot(org::ImmAdapter const& root, DocBlockConfig const& conf);
+    void syncRoot(
+        org::imm::ImmAdapter const& root,
+        DocBlockConfig const&       conf);
     void syncBlockGraph(DocBlockConfig const& conf);
     void syncLayout(DocBlockConfig const& conf);
 
@@ -351,10 +356,10 @@ struct DocBlockModel {
     }
 };
 
-Opt<DocBlock::Ptr> to_doc_block(
-    org::ImmAdapter const& it,
-    DocBlockConfig const&  conf,
-    DocBlockContext&       ctx);
+hstd::Opt<DocBlock::Ptr> to_doc_block(
+    org::imm::ImmAdapter const& it,
+    DocBlockConfig const&       conf,
+    DocBlockContext&            ctx);
 void render_doc_block(DocBlockModel& model, DocBlockConfig const& conf);
 
 void apply_doc_block_actions(
@@ -362,4 +367,6 @@ void apply_doc_block_actions(
     DocBlockModel&        model,
     DocBlockConfig const& conf);
 
-void doc_editor_loop(GLFWwindow* window, sem::SemId<sem::Org> node);
+void doc_editor_loop(
+    GLFWwindow*                    window,
+    org::sem::SemId<org::sem::Org> node);

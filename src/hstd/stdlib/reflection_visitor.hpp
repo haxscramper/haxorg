@@ -17,9 +17,11 @@ template <>
 struct std::formatter<std::any> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const std::any& p, FormatContext& ctx) const {
-        return fmt_ctx(p.type().name(), ctx);
+        return ::hstd::fmt_ctx(p.type().name(), ctx);
     }
 };
+
+namespace hstd {
 
 template <typename... Ts>
 struct AnyFormatter {
@@ -344,38 +346,6 @@ struct ReflPathItemFormatter : std::formatter<std::string> {
 
 
 template <typename Tag>
-struct std::formatter<ReflPathItem<Tag>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(const ReflPathItem<Tag>& step, FormatContext& ctx) const {
-        step.visit([&](auto const& it) { fmt_ctx(it, ctx); });
-        return fmt_ctx("", ctx);
-    }
-};
-
-
-template <typename Tag>
-struct std::hash<ReflPathItem<Tag>> {
-    std::size_t operator()(ReflPathItem<Tag> const& it) const noexcept {
-        std::size_t result = 0;
-        it.visit(overloaded{
-            [&](ReflPathItem<Tag>::Deref) {},
-            [&](ReflPathItem<Tag>::AnyKey value) {
-                typename ReflTypeTraits<Tag>::AnyHasherType h;
-                result = h(value.key);
-            },
-            [&](ReflPathItem<Tag>::Index value) {
-                hax_hash_combine(result, value.index);
-            },
-            [&](ReflPathItem<Tag>::FieldName value) {
-                hax_hash_combine(result, value.name);
-            },
-        });
-        return result;
-    }
-};
-
-
-template <typename Tag>
 struct ReflPath {
     using Store = ReflTypeTraits<Tag>::ReflPathStoreType;
     Store path;
@@ -448,15 +418,6 @@ struct ReflPath {
 
 
 template <typename Tag>
-struct std::hash<ReflPath<Tag>> {
-    std::size_t operator()(ReflPath<Tag> const& it) const noexcept {
-        std::size_t result = 0;
-        hax_hash_combine(result, it.path);
-        return result;
-    }
-};
-
-template <typename Tag>
 struct ReflPathHasher {
     std::size_t operator()(ReflPath<Tag> const& it) const noexcept {
         std::size_t                                 result = 0;
@@ -516,17 +477,6 @@ struct ReflPathFormatter : std::formatter<std::string> {
     }
 };
 
-template <typename Tag>
-struct std::formatter<ReflPath<Tag>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(const ReflPath<Tag>& step, FormatContext& ctx) const {
-        for (auto const& it : enumerator(step.path)) {
-            if (!it.is_first()) { fmt_ctx(">>", ctx); }
-            fmt_ctx(it.value(), ctx);
-        }
-        return fmt_ctx("", ctx);
-    }
-};
 
 template <typename T, typename Tag>
 struct ReflVisitor {};
@@ -946,7 +896,7 @@ Vec<ReflPathItem<Tag>> reflSubItems(T const& item) {
 }
 
 struct ReflRecursiveVisitContext {
-    UnorderedSet<u64> visitedPointers;
+    hstd::UnorderedSet<u64> visitedPointers;
     template <typename T>
     bool canRecurse(T const& item) const {
         Opt<u64> id = ReflPointer<T>::getPointerId(item);
@@ -1003,3 +953,63 @@ void reflVisitPath(
             });
     }
 }
+
+} // namespace hstd
+
+
+template <typename Tag>
+struct std::formatter<hstd::ReflPath<Tag>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const hstd::ReflPath<Tag>& step, FormatContext& ctx)
+        const {
+        for (auto const& it : enumerator(step.path)) {
+            if (!it.is_first()) { ::hstd::fmt_ctx(">>", ctx); }
+            ::hstd::fmt_ctx(it.value(), ctx);
+        }
+        return ::hstd::fmt_ctx("", ctx);
+    }
+};
+
+
+template <typename Tag>
+struct std::hash<hstd::ReflPath<Tag>> {
+    std::size_t operator()(hstd::ReflPath<Tag> const& it) const noexcept {
+        std::size_t result = 0;
+        ::hstd::hax_hash_combine(result, it.path);
+        return result;
+    }
+};
+
+template <typename Tag>
+struct std::formatter<hstd::ReflPathItem<Tag>>
+    : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const hstd::ReflPathItem<Tag>& step, FormatContext& ctx)
+        const {
+        step.visit([&](auto const& it) { ::hstd::fmt_ctx(it, ctx); });
+        return ::hstd::fmt_ctx("", ctx);
+    }
+};
+
+
+template <typename Tag>
+struct std::hash<hstd::ReflPathItem<Tag>> {
+    std::size_t operator()(
+        hstd::ReflPathItem<Tag> const& it) const noexcept {
+        std::size_t result = 0;
+        it.visit(::hstd::overloaded{
+            [&](hstd::ReflPathItem<Tag>::Deref) {},
+            [&](hstd::ReflPathItem<Tag>::AnyKey value) {
+                typename hstd::ReflTypeTraits<Tag>::AnyHasherType h;
+                result = h(value.key);
+            },
+            [&](hstd::ReflPathItem<Tag>::Index value) {
+                ::hstd::hax_hash_combine(result, value.index);
+            },
+            [&](hstd::ReflPathItem<Tag>::FieldName value) {
+                ::hstd::hax_hash_combine(result, value.name);
+            },
+        });
+        return result;
+    }
+};

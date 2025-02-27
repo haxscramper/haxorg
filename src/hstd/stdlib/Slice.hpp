@@ -11,6 +11,9 @@
 
 #include <stdexcept>
 
+namespace hstd {
+
+
 template <typename A, typename B>
 struct HSlice {
     A first;
@@ -180,13 +183,15 @@ HSlice<A, B> slice(CR<A> first, CR<B> last) {
     return {.first = first, .last = last};
 }
 
+} // namespace hstd
+
 
 template <typename A, typename B>
-struct std::formatter<HSlice<A, B>> : std::formatter<std::string> {
+struct std::formatter<hstd::HSlice<A, B>> : std::formatter<std::string> {
     template <typename FormatContext>
     FormatContext::iterator format(
-        HSlice<A, B> const& p,
-        FormatContext&      ctx) const {
+        hstd::HSlice<A, B> const& p,
+        FormatContext&            ctx) const {
         std::formatter<std::string> fmt;
         fmt.format("[", ctx);
         std::format_to(ctx.out(), "{}", p.first);
@@ -197,10 +202,11 @@ struct std::formatter<HSlice<A, B>> : std::formatter<std::string> {
 };
 
 template <typename T>
-struct std::formatter<Slice<T>> : std::formatter<std::string> {
+struct std::formatter<hstd::Slice<T>> : std::formatter<std::string> {
     template <typename FormatContext>
-    FormatContext::iterator format(Slice<T> const& p, FormatContext& ctx)
-        const {
+    FormatContext::iterator format(
+        hstd::Slice<T> const& p,
+        FormatContext&        ctx) const {
         std::formatter<std::string> fmt;
         std::formatter<T>           fmt_t;
         fmt.format("[", ctx);
@@ -213,8 +219,8 @@ struct std::formatter<Slice<T>> : std::formatter<std::string> {
 
 
 template <typename T>
-struct std::hash<Slice<T>> {
-    std::size_t operator()(Slice<T> const& it) const noexcept {
+struct std::hash<hstd::Slice<T>> {
+    std::size_t operator()(hstd::Slice<T> const& it) const noexcept {
         std::size_t result = 0;
         boost::hash_combine(result, it.first);
         boost::hash_combine(result, it.last);
@@ -223,6 +229,7 @@ struct std::hash<Slice<T>> {
 };
 
 
+namespace hstd {
 template <typename A, typename B>
 Pair<int, int> getSpan(
     int          containerSize, /// Size of the container to get span over
@@ -261,3 +268,5 @@ Pair<int, int> getSpan(
 
     return {startPos, endPos};
 }
+
+} // namespace hstd

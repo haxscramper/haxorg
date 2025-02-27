@@ -6,10 +6,12 @@
 #include <hstd/stdlib/Ptrs.hpp>
 #include <format>
 
+namespace hstd {
+
 namespace fs = std::filesystem;
 
-#define __CURRENT_FILE_PATH__ fs::path(__FILE__)
-#define __CURRENT_FILE_DIR__ fs::path(__FILE__).parent_path()
+#define __CURRENT_FILE_PATH__ ::hstd::fs::path(__FILE__)
+#define __CURRENT_FILE_DIR__ ::hstd::fs::path(__FILE__).parent_path()
 
 struct FilesystemError : public std::runtime_error {
     explicit FilesystemError(const std::string& message)
@@ -45,9 +47,13 @@ void writeDebugFile(
 
 std::string readFile(fs::path const& target);
 
+
+} // namespace hstd
+
+
 template <>
-struct std::formatter<fs::path> : std::formatter<std::string> {
-    using FmtType = fs::path;
+struct std::formatter<hstd::fs::path> : std::formatter<std::string> {
+    using FmtType = hstd::fs::path;
     template <typename FormatContext>
     FormatContext::iterator format(FmtType const& p, FormatContext& ctx)
         const {

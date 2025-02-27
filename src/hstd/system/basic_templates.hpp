@@ -12,6 +12,8 @@
 #    include <memory>
 #    include <cxxabi.h>
 
+namespace hstd {
+
 template <typename T>
 constexpr std::string_view get_type_name_fallback() {
 #    if defined(__clang__)
@@ -37,13 +39,19 @@ inline std::string demangle(const char* name) {
 
     return (status == 0) ? res.get() : name;
 }
+} // namespace hstd
 
 #else
 
+namespace hstd {
 // does nothing if not g++
 inline std::string demangle(const char* name) { return name; }
+} // namespace hstd
 
 #endif
+
+namespace hstd {
+
 
 /// \brief get next value
 template <typename T>
@@ -87,16 +95,21 @@ struct value_domain<T> {
 };
 
 template <typename T>
-struct value_metadata {
-    static bool        isEmpty(T const& value) { return false; }
-    static bool        isNil(T const& value) { return false; }
+struct value_metadata_default_type_name {
     static std::string typeName() {
 #if defined(__GXX_RTTI) || defined(_CPPRTTI)
-        return ::demangle(typeid(T).name());
+        return ::hstd::demangle(typeid(T).name());
 #else
-        return std::string{::get_type_name_fallback<T>()};
+        return std::string{::hstd::get_type_name_fallback<T>()};
 #endif
     }
+};
+
+
+template <typename T>
+struct value_metadata : public value_metadata_default_type_name<T> {
+    static bool isEmpty(T const& value) { return false; }
+    static bool isNil(T const& value) { return false; }
 };
 
 
@@ -183,3 +196,6 @@ struct value_domain<char> {
 
     static inline char succ(char c) { return char(c + 1); }
 };
+
+
+} // namespace hstd

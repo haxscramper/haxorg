@@ -21,6 +21,8 @@
 #include <gui_lib/im_org_ui_common.hpp>
 #include <boost/graph/breadth_first_search.hpp>
 
+using namespace hstd;
+
 #define CTX_MSG(...)                                                      \
     if (ctx.OperationsTracer::TraceState) { ctx.message(__VA_ARGS__); }
 
@@ -198,12 +200,13 @@ Opt<json> story_grid_loop(
     Vec<Str> const&  file,
     const Opt<json>& in_state,
     StoryGridConfig& conf) {
-    auto                start = org::ImmAstContext::init_start_context();
+    auto start = org::imm::ImmAstContext::init_start_context();
     EditableOrgDocGroup docs{start};
     StoryGridModel      model{&docs};
     model.ctx.setTraceFile("/tmp/story_grid_trace.log");
     for (auto const& f : file) {
-        auto doc = docs.addRoot(sem::parseString(readFile(f.toBase())));
+        auto doc = docs.addRoot(
+            org::parseString(hstd::readFile(f.toBase())));
         model.documents = docs.migrate(model.documents).value();
         model.addDocument(doc);
         model.ctx.message(fmt("added file {}", f));
@@ -262,15 +265,15 @@ Opt<json> story_grid_loop(
 
 
 TreeGridCell build_editable_cell(
-    org::ImmAdapter       adapter,
+    org::imm::ImmAdapter  adapter,
     TreeGridColumn const& col,
     StoryGridContext&     ctx);
 
 TreeGridRow::Ptr build_row(
-    org::ImmAdapterT<org::ImmSubtree> tree,
-    TreeGridDocument&                 doc,
-    int&                              flatIdx,
-    StoryGridContext&                 ctx) {
+    org::imm::ImmAdapterT<org::imm::ImmSubtree> tree,
+    TreeGridDocument&                           doc,
+    int&                                        flatIdx,
+    StoryGridContext&                           ctx) {
     auto result     = TreeGridRow::shared();
     auto title_cell = build_editable_cell(
         tree.getTitle(), doc.getColumn("title"), ctx);
@@ -286,9 +289,9 @@ TreeGridRow::Ptr build_row(
     result->origin  = tree;
     result->flatIdx = flatIdx;
     ++flatIdx;
-    for (auto const& sub : tree.subAs<org::ImmList>()) {
+    for (auto const& sub : tree.subAs<org::imm::ImmList>()) {
         if (sub.isDescriptionList()) {
-            for (auto const& item : sub.subAs<org::ImmListItem>()) {
+            for (auto const& item : sub.subAs<org::imm::ImmListItem>()) {
                 auto flat = flatWords(item.getHeader().value());
                 for (auto const& word : flat) {
                     if (word.starts_with("story_")) {
@@ -301,7 +304,7 @@ TreeGridRow::Ptr build_row(
         }
     }
 
-    for (auto const& sub : tree.subAs<org::ImmSubtree>()) {
+    for (auto const& sub : tree.subAs<org::imm::ImmSubtree>()) {
         if (!sub->isComment && !sub->isArchived) {
             result->addNested(build_row(sub, doc, flatIdx, ctx));
         }
@@ -311,13 +314,13 @@ TreeGridRow::Ptr build_row(
 }
 
 Vec<TreeGridRow::Ptr> build_rows(
-    org::ImmAdapter   root,
-    TreeGridDocument& doc,
-    StoryGridContext& ctx) {
+    org::imm::ImmAdapter root,
+    TreeGridDocument&    doc,
+    StoryGridContext&    ctx) {
     STORY_GRID_MSG_SCOPE(ctx, "Build grid document rows");
     Vec<TreeGridRow::Ptr> result;
     int                   idx = 0;
-    for (auto const& tree : root.subAs<org::ImmSubtree>()) {
+    for (auto const& tree : root.subAs<org::imm::ImmSubtree>()) {
         result.push_back(build_row(tree, doc, idx, ctx));
     }
 
@@ -325,7 +328,7 @@ Vec<TreeGridRow::Ptr> build_rows(
 }
 
 TreeGridCell build_editable_cell(
-    org::ImmAdapter       adapter,
+    org::imm::ImmAdapter  adapter,
     TreeGridColumn const& col,
     StoryGridContext&     ctx) {
     TreeGridCell result{TreeGridCell::Value{}};
@@ -336,10 +339,10 @@ TreeGridCell build_editable_cell(
 }
 
 void StoryGridGraph::SemGraphStore::addFootnoteAnnotationNode(
-    UnorderedSet<org::ImmUniqId>& visited,
-    org::ImmUniqId const&         origin,
-    org::ImmAdapter const&        node,
-    StoryGridContext&             ctx) {
+    UnorderedSet<org::imm::ImmUniqId>& visited,
+    org::imm::ImmUniqId const&         origin,
+    org::imm::ImmAdapter const&        node,
+    StoryGridContext&                  ctx) {
     if (visited.contains(node.uniq())) {
         return;
     } else {
@@ -348,8 +351,8 @@ void StoryGridGraph::SemGraphStore::addFootnoteAnnotationNode(
     CTX_MSG(fmt("Footnotes from {}", origin.id));
     auto __scope = ctx.scopeLevel();
     for (auto const& recSub : node.getAllSubnodesDFS(node.path)) {
-        Opt<org::ImmAdapterT<org::ImmLink>>
-            link = recSub.asOpt<org::ImmLink>();
+        Opt<org::imm::ImmAdapterT<org::imm::ImmLink>>
+            link = recSub.asOpt<org::imm::ImmLink>();
 
         if (!(link && link.value()->target.isFootnote())) { continue; }
 
@@ -526,8 +529,8 @@ void StoryGridGraph::BlockGraphStore::setPartition(
             // }
 
             for (auto const& node : group) {
-                org::ImmUniqId adapter = node.id;
-                org::ImmUniqId root    = semGraph.getRoot(node.id);
+                org::imm::ImmUniqId adapter = node.id;
+                org::imm::ImmUniqId root    = semGraph.getRoot(node.id);
                 StoryNodeId id = storyNodes->getStoryNodeId(root).value();
                 CTX_MSG(
                     fmt("Node {} to root {} story ID {}",
@@ -543,15 +546,15 @@ void StoryGridGraph::BlockGraphStore::setPartition(
         STORY_GRID_MSG_SCOPE(ctx, "Connect partitioned node edges");
         for (auto const& [source, target_bundle] : partition.edges) {
             for (org::graph::MapNode const& target : target_bundle) {
-                org::ImmUniqId source_org_adapter = source.id;
-                org::ImmUniqId source_org_root    = semGraph.getRoot(
+                org::imm::ImmUniqId source_org_adapter = source.id;
+                org::imm::ImmUniqId source_org_root    = semGraph.getRoot(
                     source.id);
                 StoryNodeId source_story_id //
                     = storyNodes->getStoryNodeId(source_org_root).value();
                 LaneNodePos source_block_pos = getPos(source_story_id);
 
-                org::ImmUniqId target_org_adapter = target.id;
-                org::ImmUniqId target_org_root    = semGraph.getRoot(
+                org::imm::ImmUniqId target_org_adapter = target.id;
+                org::imm::ImmUniqId target_org_root    = semGraph.getRoot(
                     target.id);
                 StoryNodeId target_story_id //
                     = storyNodes->getStoryNodeId(target_org_root).value();
@@ -559,7 +562,7 @@ void StoryGridGraph::BlockGraphStore::setPartition(
                 LaneNodePos target_block_pos = getPos(target_story_id);
 
 
-                using GEC = GraphEdgeConstraint;
+                using GEC = hstd::ext::GraphEdgeConstraint;
 
                 LaneNodeEdge edge;
                 edge.target = target_block_pos;
@@ -575,8 +578,8 @@ void StoryGridGraph::BlockGraphStore::setPartition(
                 }
 
                 auto get_connector_offset =
-                    [&](StoryNode const&      flat,
-                        org::ImmUniqId const& node) -> Opt<int> {
+                    [&](StoryNode const&           flat,
+                        org::imm::ImmUniqId const& node) -> Opt<int> {
                     if (flat.isTreeGrid()) {
                         int row_idx = flat.getTreeGrid()
                                           .node.getRow(node)
@@ -653,7 +656,7 @@ void StoryGridGraph::FlatNodeStore::Store::focusLinkListTargetRows(
     if (rs::any_of(gen_view(nodes.items()), [](StoryNode* n) {
             return n->isLinkList() && n->getLinkList().isSelected;
         })) {
-        UnorderedSet<org::ImmUniqId> targets;
+        UnorderedSet<org::imm::ImmUniqId> targets;
         for (auto const& node : items()) {
             if (node->isLinkList() && node->getLinkList().isSelected) {
                 for (auto const& item : node->getLinkList().items) {
@@ -740,9 +743,9 @@ void StoryGridGraph::BlockGraphStore::updateHiddenRowConnection(
                                    : 0)
                             + row->getHeight().value());
 
-                    org::ImmUniqId rowId = row->origin.uniq();
-                    auto adjacent        = semGraph.graph.adjNodes(rowId);
-                    auto overlap         = rowRange.overlap(viewportRange);
+                    org::imm::ImmUniqId rowId = row->origin.uniq();
+                    auto adjacent = semGraph.graph.adjNodes(rowId);
+                    auto overlap  = rowRange.overlap(viewportRange);
 
                     if (!adjacent.empty()) {
                         CTX_MSG(
@@ -947,23 +950,23 @@ Vec<org::graph::MapNode> StoryGridGraph::FlatNodeStore::getInitialNodes(
 }
 
 namespace {
-bool isSubtreeDescriptionList(org::ImmAdapter const& list) {
+bool isSubtreeDescriptionList(org::imm::ImmAdapter const& list) {
     return list.is(OrgSemKind::List)
-        && list.as<org::ImmList>().isDescriptionList()
+        && list.as<org::imm::ImmList>().isDescriptionList()
         && org::graph::isAttachedDescriptionList(list);
 }
 } // namespace
 
 StoryNodeId StoryGridGraph::FlatNodeStore::Store::add(
-    const org::ImmAdapter& node,
-    const StoryGridConfig& conf,
-    StoryGridContext&      ctx) {
+    const org::imm::ImmAdapter& node,
+    const StoryGridConfig&      conf,
+    StoryGridContext&           ctx) {
     if (orgToFlatIdx.contains(node.uniq())) {
         auto annotation = orgToFlatIdx.at(node.uniq());
         CTX_MSG(
             fmt("Node {} already mapped to id {}", node.id, annotation));
         return annotation;
-    } else if (auto doc = node.asOpt<org::ImmDocument>()) {
+    } else if (auto doc = node.asOpt<org::imm::ImmDocument>()) {
         auto grid = TreeGridDocument::from_root(doc.value(), conf, ctx);
         StoryNodeId res = add(
             StoryNode{StoryNode::TreeGrid{.node = grid}});
@@ -973,9 +976,9 @@ StoryNodeId StoryGridGraph::FlatNodeStore::Store::add(
     } else if (isSubtreeDescriptionList(node)) {
         StoryNode::LinkList text{};
         text.origin = node;
-        auto list   = node.asOpt<org::ImmList>();
+        auto list   = node.asOpt<org::imm::ImmList>();
 
-        for (auto const& item : list->subAs<org::ImmListItem>()) {
+        for (auto const& item : list->subAs<org::imm::ImmListItem>()) {
             StoryNode::LinkList::Item listItem;
             listItem.node = item;
             listItem.text = EditableOrgTextEntry::from_adapter(
@@ -1030,9 +1033,11 @@ void StoryGridModel::apply(
             "/tmp/story_grid_model_apply.diff"});
 
 
-    auto as_sem_list = [](sem::OrgArg doc) -> Vec<sem::SemId<sem::Org>> {
+    auto as_sem_list =
+        [](org::sem::OrgArg doc) -> Vec<org::sem::SemId<org::sem::Org>> {
         if (doc->is(OrgSemKind::Document)) {
-            return Vec<sem::SemId<sem::Org>>{doc.begin(), doc.end()};
+            return Vec<org::sem::SemId<org::sem::Org>>{
+                doc.begin(), doc.end()};
         } else {
             return {doc};
         }
@@ -1269,9 +1274,9 @@ void StoryGridModel::applyChanges(StoryGridConfig const& conf) {
 }
 
 StoryGridGraph::SemGraphStore StoryGridGraph::SemGraphStore::init(
-    Vec<org::ImmAdapter> const& root,
-    StoryGridConfig const&      conf,
-    StoryGridContext&           ctx) {
+    Vec<org::imm::ImmAdapter> const& root,
+    StoryGridConfig const&           conf,
+    StoryGridContext&                ctx) {
     LOGIC_ASSERTION_CHECK(
         !root.empty(),
         "Cannot update story grid graph with empty list of nodes");
@@ -1285,14 +1290,14 @@ StoryGridGraph::SemGraphStore StoryGridGraph::SemGraphStore::init(
     }
 
     {
-        auto     gv = res.graph.toGraphviz(res.ctx);
-        Graphviz gvc;
-        gv.setRankDirection(Graphviz::Graph::RankDirection::LR);
+        auto                gv = res.graph.toGraphviz(res.ctx);
+        hstd::ext::Graphviz gvc;
+        gv.setRankDirection(hstd::ext::Graphviz::Graph::RankDirection::LR);
         gvc.renderToFile(
             "/tmp/sem_graph.png",
             gv,
-            Graphviz::RenderFormat::PNG,
-            Graphviz::LayoutType::Fdp);
+            hstd::ext::Graphviz::RenderFormat::PNG,
+            hstd::ext::Graphviz::LayoutType::Fdp);
 
         gvc.writeFile("/tmp/sem_graph.dot", gv);
     }
@@ -1332,11 +1337,11 @@ StoryGridGraph::SemGraphStore StoryGridGraph::SemGraphStore::init(
 
 
 TreeGridDocument TreeGridDocument::from_root(
-    const org::ImmAdapter& node,
-    const StoryGridConfig& conf,
-    StoryGridContext&      ctx) {
+    const org::imm::ImmAdapter& node,
+    const StoryGridConfig&      conf,
+    StoryGridContext&           ctx) {
     TreeGridDocument doc = conf.getDefaultDoc();
-    doc.origin           = node.as<org::ImmDocument>();
+    doc.origin           = node.as<org::imm::ImmDocument>();
     __perf_trace_begin("gui", "build doc rows");
     doc.rows = build_rows(node, doc, ctx);
     __perf_trace_end("gui");
@@ -1375,9 +1380,9 @@ TreeGridDocument TreeGridDocument::from_root(
 }
 
 void StoryGridGraph::SemGraphStore::addDocNode(
-    const org::ImmAdapter& node,
-    const StoryGridConfig& conf,
-    StoryGridContext&      ctx) {
+    const org::imm::ImmAdapter& node,
+    const StoryGridConfig&      conf,
+    StoryGridContext&           ctx) {
 
     auto doc  = TreeGridDocument::from_root(node, conf, ctx);
     auto flat = doc.flatRows(true);
@@ -1417,7 +1422,7 @@ void StoryGridGraph::SemGraphStore::addGridAnnotationNodes(
         //     CTX_MSG(fmt("- Nested {}", sub));
         // }
         for (auto const& nested :
-             row->origin.subAs<org::ImmBlockComment>()) {
+             row->origin.subAs<org::imm::ImmBlockComment>()) {
             org::graph::MapNode subtreeNode{row->origin.uniq()};
             org::graph::MapNode commentNode{nested.uniq()};
             graph.addNode(commentNode);
@@ -1432,7 +1437,7 @@ void StoryGridGraph::SemGraphStore::addGridAnnotationNodes(
             addFootnoteAnnotationNode(commentNode.id, nested, ctx);
         }
 
-        for (auto const& list : row->origin.subAs<org::ImmList>()) {
+        for (auto const& list : row->origin.subAs<org::imm::ImmList>()) {
             if (isSubtreeDescriptionList(list)) {
                 addDescriptionListNodes(list, ctx);
             }
@@ -1441,12 +1446,12 @@ void StoryGridGraph::SemGraphStore::addGridAnnotationNodes(
 }
 
 void StoryGridGraph::SemGraphStore::addDescriptionListNodes(
-    const org::ImmAdapterT<org::ImmList>& list,
-    StoryGridContext&                     ctx) {
+    const org::imm::ImmAdapterT<org::imm::ImmList>& list,
+    StoryGridContext&                               ctx) {
 
     if (!rs::any_of(
-            list.subAs<org::ImmListItem>(),
-            [&](org::ImmAdapterT<org::ImmListItem> const& item) {
+            list.subAs<org::imm::ImmListItem>(),
+            [&](org::imm::ImmAdapterT<org::imm::ImmListItem> const& item) {
                 return org::graph::isLinkedDescriptionItemNode(item);
             })) {
         return;
@@ -1454,9 +1459,10 @@ void StoryGridGraph::SemGraphStore::addDescriptionListNodes(
 
     org::graph::MapNode listNode{list.uniq()};
     addStoryNode(list.uniq());
-    for (auto const& item : list.subAs<org::ImmListItem>()) {
+    for (auto const& item : list.subAs<org::imm::ImmListItem>()) {
         graph.addNode(item.uniq());
-        for (auto const& link : item.getHeader()->subAs<org::ImmLink>()) {
+        for (auto const& link :
+             item.getHeader()->subAs<org::imm::ImmLink>()) {
             if (link->target.isId()) {
                 auto target = link.ctx.lock()->currentTrack->subtrees.get(
                     link.value().target.getId().text);
@@ -1479,7 +1485,7 @@ void StoryGridGraph::SemGraphStore::addDescriptionListNodes(
 }
 
 bool StoryGridGraph::FlatNodeStore::isVisible(
-    const org::ImmUniqId& id) const {
+    const org::imm::ImmUniqId& id) const {
     Opt<StoryNodeId> node = getStoryNodeId(id);
     if (!node) { return false; }
     StoryNode const& ref = getStoryNode(node.value());
@@ -1596,9 +1602,9 @@ void StoryGridGraph::cascadeScrollingUpdate(
 }
 
 void StoryGridGraph::cascadeSemanticUpdate(
-    const Vec<org::ImmAdapter>& root,
-    StoryGridContext&           ctx,
-    const StoryGridConfig&      conf) {
+    const Vec<org::imm::ImmAdapter>& root,
+    StoryGridContext&                ctx,
+    const StoryGridConfig&           conf) {
     {
         STORY_GRID_MSG_SCOPE(ctx, "Semantic update");
         getLayer().updateSemanticGraph(root, ctx, conf);
@@ -1880,11 +1886,11 @@ StoryGridGraph::SemGraphStore StoryGridGraph::Layer::getSubgraph(
 
     CTX_MSG(fmt(
         "Initial nodes {}",
-        initial                                  //
-            | rv::transform(&MapNode::id)        //
-            | rv::transform(&org::ImmUniqId::id) //
-            | rv_transform_fmt1                  //
-            | rs::to<Vec>()                      //
+        initial                                       //
+            | rv::transform(&MapNode::id)             //
+            | rv::transform(&org::imm::ImmUniqId::id) //
+            | rv_transform_fmt1                       //
+            | rs::to<Vec>()                           //
         ));
 
 
@@ -1897,7 +1903,8 @@ StoryGridGraph::SemGraphStore StoryGridGraph::Layer::getSubgraph(
             if (!g.hasNode(n)) {
                 g.addNode(n);
 
-                org::ImmUniqId parent = res.annotationParents.at(n.id);
+                org::imm::ImmUniqId parent = res.annotationParents.at(
+                    n.id);
                 if (!res.graphGroupRoots.contains(parent)) {
                     res.graphGroupRoots.push_back(parent);
                 }

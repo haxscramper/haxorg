@@ -8,6 +8,7 @@
 #include "misc/cpp/imgui_stdlib.h"
 #include <hstd/stdlib/Debug.hpp>
 
+using namespace hstd;
 
 generator<Vec2i> line_points(Vec2i start, Vec2i end) {
     int dx = abs(end.x - start.x), dy = abs(end.y - start.y);

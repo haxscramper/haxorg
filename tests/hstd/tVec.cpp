@@ -2,6 +2,8 @@
 #include <gtest/gtest.h>
 #include <hstd/stdlib/Ranges.hpp>
 
+using namespace hstd;
+
 template <typename T>
 class IntVecTypedTest : public ::testing::Test {};
 using IntVecTestTypes = ::testing::Types<Vec<int>, SmallVec<int, 10>>;

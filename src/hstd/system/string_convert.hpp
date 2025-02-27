@@ -16,6 +16,8 @@
 #include <format>
 
 
+namespace hstd {
+
 /// \brief Escape string literal, converting newline and other (TODO)
 /// control characters into unicode.
 inline std::string escape_literal(std::string const& in) {
@@ -64,3 +66,5 @@ template <typename T>
 concept StdFormattable = requires(T& v, std::format_context ctx) {
     std::formatter<std::remove_cvref_t<T>>().format(v, ctx);
 };
+
+} // namespace hstd

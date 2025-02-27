@@ -152,9 +152,9 @@ def get_imm_serde(types: List[GenTuStruct], ast: ASTBuilder) -> List[GenTuPass]:
                     return
 
                 sem_type = it.name
-                respace = it.name.flatQualSpaces()[1:] + [it.name.withoutAllSpaces()]
+                respace = it.name.flatQualScope()[2:] + [it.name.withoutAllScopeQualifiers()]
                 respace[0].name = "Imm" + respace[0].name
-                respace = [QualType(name="org")] + respace
+                respace = [n_imm()] + respace
                 imm_type = respace[-1].model_copy(update=dict(Spaces=respace[:-1]))
 
                 writer_body: List[BlockId] = [
@@ -162,8 +162,11 @@ def get_imm_serde(types: List[GenTuStruct], ast: ASTBuilder) -> List[GenTuPass]:
                         ast.Type(imm_type),
                         ast.string(" result = "),
                         ast.CallStatic(
-                            typ=QualType(name="SerdeDefaultProvider",
-                                         Parameters=[imm_type]),
+                            typ=QualType(
+                                name="SerdeDefaultProvider",
+                                Parameters=[imm_type],
+                                Spaces=[n_hstd()],
+                            ),
                             opc="get",
                         ),
                         ast.string(";"),
@@ -175,8 +178,11 @@ def get_imm_serde(types: List[GenTuStruct], ast: ASTBuilder) -> List[GenTuPass]:
                         ast.Type(sem_type),
                         ast.string(" result = "),
                         ast.CallStatic(
-                            typ=QualType(name="SerdeDefaultProvider",
-                                         Parameters=[sem_type]),
+                            typ=QualType(
+                                name="SerdeDefaultProvider",
+                                Parameters=[sem_type],
+                                Spaces=[n_hstd()],
+                            ),
                             opc="get",
                         ),
                         ast.string(";"),
@@ -254,7 +260,7 @@ def get_imm_serde(types: List[GenTuStruct], ast: ASTBuilder) -> List[GenTuPass]:
                 )
 
                 rec = RecordParams(
-                    name="ImmSemSerde",
+                    name=QualType(name="ImmSemSerde"),
                     NameParams=[sem_type, imm_type],
                     Template=TemplateParams(Stacks=[TemplateGroup(Params=[])]),
                     members=[writer, reader],
@@ -284,11 +290,11 @@ def filter_init_fields(Fields: List[Py11Field]) -> List[Py11Field]:
 @beartype
 def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
                   base_map: Mapping[str, GenTuStruct]) -> Py11Class:
-    base_type = QualType.ForName(typ.name.name, Spaces=[QualType.ForName("sem")])
+    base_type = QualType.ForName(typ.name.name, Spaces=[n_sem()])
     id_type = QualType.ForName(
         "SemId",
         Parameters=[base_type],
-        Spaces=[QualType.ForName("sem")],
+        Spaces=[n_sem()],
     )
 
     res = Py11Class(
@@ -404,7 +410,7 @@ def add_structures(res: Py11Module, ast: ASTBuilder, structs: List[GenTuStruct])
 
     # Map data definitions into python wrappers
     iterate_object_tree(
-        GenTuNamespace("sem", structs),
+        GenTuNamespace(n_sem(), structs),
         [],
         post_visit=codegenConstructCallback,
     )
@@ -471,7 +477,7 @@ def add_type_specializations(res: Py11Module, ast: ASTBuilder):
 
     opaque_declarations: List[BlockId] = []
     specialization_calls: List[BlockId] = [
-        ast.string("PyTypeRegistryGuard type_registry_guard{};")
+        ast.string("org::bind::python::PyTypeRegistryGuard type_registry_guard{};")
     ]
 
     type_use_context: List[Any] = []
@@ -519,6 +525,8 @@ def add_type_specializations(res: Py11Module, ast: ASTBuilder):
 
                     opaque_declarations.append(
                         ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(T)]))
+
+                    # opaque_declarations.append(ast.Comment(str(T)))
 
                     specialization_calls.append(
                         ast.XCall(
@@ -728,8 +736,8 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
 def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
     result = deepcopy(recs)
 
-    IMM_BOX = "ImmBox"
-    ORG_SPACE = QualType.ForName("org")
+    IMM_BOX = t("ImmBox", [n_hstd_ext()])
+    ORG_SPACE = n_imm()
 
     def conv_type(obj: QualType):
         match obj:
@@ -741,41 +749,81 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
                 obj.name = "ImmIdT"
                 obj.Spaces = [ORG_SPACE]
 
-            case QualType(meta={"isOrgType": True}):
-                if len(obj.Spaces) == 0:
-                    obj.name = "Imm" + obj.name
+            # case QualType(meta={"isOrgType": True}):
+            #     if len(obj.Spaces) == 0:
+            #         obj.name = "Imm" + obj.name
 
-                elif len(obj.Spaces) == 1:
-                    obj.name = "Imm" + obj.name
-                    obj.Spaces = [ORG_SPACE]
+            #     elif len(obj.Spaces) == 1:
+            #         obj.name = "Imm" + obj.name
+            #         obj.Spaces = [ORG_SPACE]
 
-                else:
-                    spaces = obj.flatQualSpaces() + [obj.withoutAllSpaces()]
-                    # obj.dbg_origin = "{} - - > {}".format(obj.format(),
-                    #                                       [s.format() for s in spaces])
-                    obj.Spaces = [
-                        ORG_SPACE,
-                        spaces[1].model_copy(update=dict(name="Imm" + spaces[1].name)),
-                        *(spaces[2:-1] if 1 < len(spaces) else []),
-                    ]
+            #     else:
+            #         spaces = obj.flatQualScope() + [obj.withoutAllScopeQualifiers()]
+            #         obj.Spaces = [
+            #             ORG_SPACE,
+            #             spaces[1].model_copy(update=dict(name="Imm" + spaces[1].name)),
+            #             *(spaces[2:-1] if 1 < len(spaces) else []),
+            #         ]
 
-            case QualType(name=TypeName,
-                          Spaces=[QualType(name="sem")]) if "Id" not in TypeName:
-                match obj:
-                    case QualType(meta={"isOrgType": False}):
-                        pass
+            # case QualType(name=TypeName,
+            #               Spaces=[QualType(name="sem")]) if "Id" not in TypeName:
+            #     match obj:
+            #         case QualType(meta={"isOrgType": False}):
+            #             pass
 
-                    case _:
-                        obj.name = "Imm" + obj.name
-                        obj.Spaces = [ORG_SPACE]
+            #         case _:
+            #             obj.name = "Imm" + obj.name
+            #             obj.Spaces = [ORG_SPACE]
 
             case QualType(name="Vec"):
                 obj.name = "ImmVec"
-                obj.Spaces = []
+                obj.Spaces = [n_hstd_ext()]
 
             case QualType(name="UnorderedMap"):
                 obj.name = "ImmMap"
-                obj.Spaces = []
+                obj.Spaces = [n_hstd_ext()]
+
+            case _:
+                flat_namespace = obj.flatQualFullName()
+                # obj.dbg_origin += f"{flat_namespace} {obj.withoutAllScopeQualifiers()}"
+                match flat_namespace:
+                    case [QualType(name="org"), QualType(name="sem"), *rest]:
+                        if rest and rest[0].isOrgType():
+                            if 1 == len(rest):
+                                obj.name = "Imm" + obj.name
+                                obj.Spaces = [ORG_SPACE]
+                                # obj.dbg_origin = "1"
+                                # obj = QualType(name="Imm" + rest[0].name, Spaces=[ORG_SPACE, *(rest[1:] if 1 < len(rest) else [])])
+
+                            elif 1 < len(rest):
+                                # log(CAT).info(f"{obj} {rest}")
+                                # obj.name = "Imm" + rest[0].name
+                                reuse_spaces = copy(rest)
+                                reuse_spaces.pop(0)
+                                reuse_spaces.pop(-1)
+                                # obj.dbg_origin += f"rest? {rest} -> {reuse_spaces}"
+                                obj.Spaces=[ORG_SPACE, rest[0].model_copy(update=dict(name="Imm" + rest[0].name)), *reuse_spaces]
+
+                            else:
+                                pass
+                                # obj.dbg_origin += "?"
+                                # log(CAT).info(f"{obj.__dict__} {flat_namespace}")
+
+                    # case _:
+                    #     obj.dbg_origin = f"{flat_namespace}"
+
+                    # case _:
+                        # obj = res
+
+                        # if 1 < len(rest):
+                        #     obj.name = rest[-1].name
+                        #     obj.Spaces[1].name = "Imm" + obj.Spaces[1].name
+                        #     obj.dbg_origin += f"org sem qual name 1 {flat_namespace}"
+
+                        # else:
+                        #     obj.name = "Imm" + rest[-1].name
+                        #     obj.dbg_origin += f"org sem qual name 2 {flat_namespace}"
+
 
     def impl(obj: Any):
         match obj:
@@ -784,18 +832,18 @@ def rewrite_to_immutable(recs: List[GenTuStruct]) -> List[GenTuStruct]:
 
             case GenTuField(type=QualType(name="SemId", parameters=[])):
                 conv_type(obj.type)
-                obj.value = "org::ImmId::Nil()"
+                obj.value = "org::imm::ImmId::Nil()"
 
             case GenTuField(type=QualType(name="SemId")):
                 conv_type(obj.type)
-                obj.value = f"org::ImmIdT<org::Imm{obj.type.par0().name}>::Nil()"
+                obj.value = f"org::imm::ImmIdT<org::imm::Imm{obj.type.par0().name}>::Nil()"
 
             case GenTuField(type=QualType(name="Opt")):
-                obj.type.Parameters = [obj.type.par0().withWrapperType("Opt")]
-                obj.type.name = IMM_BOX
+                obj.type = obj.type.par0().withWrapperType(
+                    QualType(name="Opt", Spaces=[n_hstd()])).withWrapperType(IMM_BOX)
 
             case GenTuField(type=QualType(name="Str")):
-                obj.type = QualType.ForName(IMM_BOX, Parameters=[obj.type])
+                obj.type = obj.type.withWrapperType(IMM_BOX)
 
             case GenTuStruct():
                 obj.methods = [
@@ -918,10 +966,13 @@ def collect_pyhaxorg_typename_groups(types: List[GenTuStruct]) -> PyhaxorgTypena
     def aux(it):
         match it:
             case GenTuStruct() | GenTuEnum():
-                flat = it.name.flatQualSpaces() + [it.name.withoutAllSpaces()]
-                if 2 < len(flat):
-                    parent = flat[1]
-                    nested = flat[2:]
+                flat = it.name.flatQualScope() + [it.name.withoutAllScopeQualifiers()]
+                without_namespaces = [i for i in range(len(flat)) if not flat[i].isNamespace]
+                # log(CAT).info(f"{it.name} {flat} {name_start} {without_namespaces}")
+                name_start = without_namespaces[0]
+                if 1 < len(without_namespaces):
+                    parent = flat[name_start]
+                    nested = flat[without_namespaces[1]:]
                     value = (
                         parent.name,
                         "::".join(it.name for it in nested),
@@ -935,8 +986,8 @@ def collect_pyhaxorg_typename_groups(types: List[GenTuStruct]) -> PyhaxorgTypena
 
                 if isinstance(it, GenTuStruct):
                     res.all_records.append((
-                        "::".join(it.name for it in flat[1:]),
-                        "({})".format(", ".join(it.name for it in flat[1:])),
+                        "::".join(it.name for it in flat[name_start:]),
+                        "({})".format(", ".join(it.name for it in flat[name_start:])),
                     ))
 
     iterate_object_tree(types, [], pre_visit=aux)
@@ -1020,10 +1071,10 @@ def gen_pyhaxorg_wrappers(
     full_enums = get_shared_sem_enums() + get_enums() + [get_osk_enum(expanded)]
     tu: ConvTu = conv_proto_file(reflection_path)
 
-    with open("/tmp/reflection_data.yaml", "w") as file:
+    with open("/tmp/pyhaxorg_reflection_data.yaml", "w") as file:
         yaml.safe_dump(to_base_types(tu), stream=file)
 
-    with open("/tmp/reflection_data.json", "w") as file:
+    with open("/tmp/pyhaxorg_reflection_data.json", "w") as file:
         log(CAT).debug(f"Debug reflection data to {file.name}")
         file.write(open_proto_file(reflection_path).to_json(2))
 
@@ -1117,7 +1168,7 @@ struct std::formatter<OrgSemKind> : std::formatter<std::string> {
     FormatContext::iterator format(OrgSemKind const& p, FormatContext& ctx)
         const {
         std::formatter<std::string> fmt;
-        return fmt.format(enum_serde<OrgSemKind>::to_string(p), ctx);
+        return fmt.format(::hstd::enum_serde<OrgSemKind>::to_string(p), ctx);
     }
 };
                     """)
@@ -1144,7 +1195,7 @@ struct std::formatter<OrgSemKind> : std::formatter<std::string> {
                     GenTuInclude("hstd/system/macros.hpp", True),
                     GenTuInclude("haxorg/sem/SemOrgBase.hpp", True),
                     GenTuInclude("haxorg/sem/SemOrgEnums.hpp", True),
-                    GenTuNamespace("sem", shared_types + expanded),
+                    GenTuNamespace(n_sem(), shared_types + expanded),
                 ],
             )),
         GenUnit(
@@ -1153,7 +1204,7 @@ struct std::formatter<OrgSemKind> : std::formatter<std::string> {
                 [
                     GenTuPass("#pragma once"),
                     GenTuInclude("haxorg/sem/ImmOrgBase.hpp", True),
-                    GenTuNamespace("org", immutable),
+                    GenTuNamespace(n_imm(), immutable),
                 ],
             )),
     ])

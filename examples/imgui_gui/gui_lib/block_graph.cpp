@@ -7,6 +7,8 @@
 #include "imgui_utils.hpp"
 #include <gui_lib/org_logger.hpp>
 
+using namespace hstd;
+using namespace hstd::ext;
 
 using GC = GraphNodeConstraint;
 

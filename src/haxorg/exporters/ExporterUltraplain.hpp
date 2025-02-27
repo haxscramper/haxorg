@@ -1,5 +1,6 @@
 #include <haxorg/exporters/Exporter.hpp>
 
+namespace org::algo {
 struct ExporterUltraplain
     : public Exporter<ExporterUltraplain, std::string> {
 #define __ExporterBase Exporter<ExporterUltraplain, std::string>
@@ -11,7 +12,7 @@ struct ExporterUltraplain
     void visitLink(std::string& res, In<sem::Link> link);
 
     template <sem::NotOrg T>
-    void visit(std::string& res, CR<T> value) {}
+    void visit(std::string& res, T const& value) {}
 
     template <sem::IsOrg T>
     void visit(std::string& res, T const& arg) {
@@ -29,17 +30,17 @@ struct ExporterUltraplain
     void visitTime(std::string& res, In<sem::Time> time);
 
     template <typename T>
-    void visit(std::string& res, CVec<T> values) {
+    void visit(std::string& res, hstd::CVec<T> values) {
         for (const auto& value : values) { visit(res, value); }
     }
 
     template <typename T>
-    void visit(std::string& res, CR<Opt<T>> opt) {
+    void visit(std::string& res, hstd::Opt<T> const& opt) {
         if (opt) { visit(res, *opt); }
     }
 
     template <typename T>
-    void visitField(std::string& res, const char* name, CR<T> field) {
+    void visitField(std::string& res, const char* name, T const& field) {
         visit(res, field);
     }
 
@@ -62,3 +63,4 @@ struct ExporterUltraplain
 };
 
 extern template class Exporter<ExporterUltraplain, std::string>;
+} // namespace org::algo

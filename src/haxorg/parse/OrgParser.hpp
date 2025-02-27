@@ -8,23 +8,23 @@
 
 #include <hstd/stdlib/TraceBase.hpp>
 
-struct parse_error : CRTP_hexception<parse_error> {};
+namespace org::parse {
+
+struct parse_error : hstd::CRTP_hexception<parse_error> {};
 
 using ParseCb = std::function<OrgId(OrgLexer&)>;
 
-struct OrgParser : public OperationsTracer {
+struct OrgParser : public hstd::OperationsTracer {
   public:
-    using OrgExpectable = Variant<
-        OrgTokenKind,
-        OrgTokSet,
-        Vec<OrgTokenKind>>;
+    using OrgExpectable = hstd::
+        Variant<OrgTokenKind, OrgTokSet, hstd::Vec<OrgTokenKind>>;
 
-    std::string getLocMsg(CR<OrgLexer> lex);
+    std::string getLocMsg(OrgLexer const& lex);
     parse_error fatalError(
-        const OrgLexer& lex,
-        CR<Str>         msg,
-        int             line     = __builtin_LINE(),
-        char const*     function = __builtin_FUNCTION());
+        const OrgLexer&  lex,
+        hstd::Str const& msg,
+        int              line     = __builtin_LINE(),
+        char const*      function = __builtin_FUNCTION());
 
   public:
     enum class ReportKind
@@ -39,10 +39,10 @@ struct OrgParser : public OperationsTracer {
         FailTree,
     };
 
-    struct Report : OperationsMsg {
-        ReportKind      kind;
-        Opt<OrgId>      node = OrgId::Nil();
-        OrgLexer const* lex  = nullptr;
+    struct Report : hstd::OperationsMsg {
+        ReportKind       kind;
+        hstd::Opt<OrgId> node = OrgId::Nil();
+        OrgLexer const*  lex  = nullptr;
     };
 
 
@@ -104,7 +104,7 @@ struct OrgParser : public OperationsTracer {
         char const* function = __builtin_FUNCTION());
 
   public:
-    CR<OrgNode> pending() const {
+    OrgNode const& pending() const {
         CHECK(0 <= group->treeDepth());
         return group->lastPending();
     }
@@ -125,12 +125,12 @@ struct OrgParser : public OperationsTracer {
 
     OrgNode getEmpty() { return OrgNode::Mono(OrgNodeKind::Empty); }
 
-    bool at(CR<OrgLexer> lex, CR<OrgParser::OrgExpectable> item);
+    bool at(OrgLexer const& lex, OrgParser::OrgExpectable const& item);
 
     OrgId token(
-        CR<OrgNode> node,
-        int         line     = __builtin_LINE(),
-        char const* function = __builtin_FUNCTION());
+        OrgNode const& node,
+        int            line     = __builtin_LINE(),
+        char const*    function = __builtin_FUNCTION());
 
     OrgId token(
         OrgNodeKind kind,
@@ -160,28 +160,28 @@ struct OrgParser : public OperationsTracer {
         char const* function = __builtin_FUNCTION());
 
     void fail(
-        CR<OrgLexer> lex,
-        CR<OrgNode>  replace,
-        int          line     = __builtin_LINE(),
-        char const*  function = __builtin_FUNCTION());
+        OrgLexer const& lex,
+        OrgNode const&  replace,
+        int             line     = __builtin_LINE(),
+        char const*     function = __builtin_FUNCTION());
 
     void expect(
-        CR<OrgLexer>                 lex,
-        CR<OrgParser::OrgExpectable> item,
-        int                          line     = __builtin_LINE(),
-        char const*                  function = __builtin_FUNCTION());
+        OrgLexer const&                 lex,
+        OrgParser::OrgExpectable const& item,
+        int                             line     = __builtin_LINE(),
+        char const*                     function = __builtin_FUNCTION());
 
     OrgTokenId pop(
-        OrgLexer&                     lex,
-        Opt<OrgParser::OrgExpectable> tok      = std::nullopt,
-        int                           line     = __builtin_LINE(),
-        char const*                   function = __builtin_FUNCTION());
+        OrgLexer&                           lex,
+        hstd::Opt<OrgParser::OrgExpectable> tok  = std::nullopt,
+        int                                 line = __builtin_LINE(),
+        char const* function                     = __builtin_FUNCTION());
 
     void skip(
-        OrgLexer&                     lex,
-        Opt<OrgParser::OrgExpectable> item     = std::nullopt,
-        int                           line     = __builtin_LINE(),
-        char const*                   function = __builtin_FUNCTION());
+        OrgLexer&                           lex,
+        hstd::Opt<OrgParser::OrgExpectable> item = std::nullopt,
+        int                                 line = __builtin_LINE(),
+        char const* function                     = __builtin_FUNCTION());
 
     void space(
         OrgLexer&   lex,
@@ -193,11 +193,11 @@ struct OrgParser : public OperationsTracer {
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION());
 
-    finally_std trace(
-        OrgLexer&        lex,
-        Opt<std::string> msg      = std::nullopt,
-        int              line     = __builtin_LINE(),
-        char const*      function = __builtin_FUNCTION());
+    hstd::finally_std trace(
+        OrgLexer&              lex,
+        hstd::Opt<std::string> msg      = std::nullopt,
+        int                    line     = __builtin_LINE(),
+        char const*            function = __builtin_FUNCTION());
 
     void print(
         std::string const& msg,
@@ -208,19 +208,21 @@ struct OrgParser : public OperationsTracer {
 
   public:
     int  depth = 0;
-    void report(CR<Report> in);
+    void report(Report const& in);
 
-    Func<void(CR<Report>)> reportHook;
-    OrgNodeGroup*          group = nullptr;
+    hstd::Func<void(Report const&)> reportHook;
+    OrgNodeGroup*                   group = nullptr;
     OrgParser(OrgNodeGroup* _group) : group(_group) {}
 
     void reserve(int size) { group->nodes.reserve(size); }
 
-    void setReportHook(Func<void(CR<Report>)> in) { reportHook = in; }
+    void setReportHook(hstd::Func<void(Report const&)> in) {
+        reportHook = in;
+    }
 
-    static Opt<LineCol> getLoc(CR<OrgLexer> lex);
+    static hstd::Opt<LineCol> getLoc(OrgLexer const& lex);
 
-    Slice<OrgId> parseText(OrgLexer& lex);
+    hstd::Slice<OrgId> parseText(OrgLexer& lex);
 
     /// First pass of the text processing pass. Fold all known text
     /// structures into larger nodes, convert opening markup tokens into
@@ -230,5 +232,7 @@ struct OrgParser : public OperationsTracer {
     /// Recursively fold text block in the specified range, updating nested
     /// markup nodes and converting `XOpen/XClose` elements to `X/Empty`
     /// nodes as needed.
-    void parseTextRecursiveFold(Slice<OrgId> range);
+    void parseTextRecursiveFold(hstd::Slice<OrgId> range);
 };
+
+} // namespace org::parse

@@ -8,56 +8,59 @@
 #include <haxorg/exporters/ExporterUltraplain.hpp>
 
 using namespace org::graph;
+using namespace hstd;
+using namespace org::imm;
+using namespace hstd::ext;
 using osk = OrgSemKind;
-using slk = sem::LinkTarget::Kind;
+using slk = org::sem::LinkTarget::Kind;
 
 #define GRAPH_TRACE() conf.OperationsTracer::TraceState
 
 #define GRAPH_MSG(...)                                                    \
     if (GRAPH_TRACE()) { conf.message(__VA_ARGS__); }
 
-bool org::graph::isDescriptionItem(org::ImmAdapter const& node) {
-    return node.as<org::ImmListItem>()->header->has_value();
+bool org::graph::isDescriptionItem(ImmAdapter const& node) {
+    return node.as<ImmListItem>()->header->has_value();
 }
 
-bool org::graph::isLinkedDescriptionItemNode(org::ImmAdapter const& n) {
+bool org::graph::isLinkedDescriptionItemNode(ImmAdapter const& n) {
     return n.is(osk::ListItem)  //
         && isDescriptionItem(n) //
         && rs::any_of(
-               n.pass(n.as<org::ImmListItem>()->header.get().value())
-                   .subAs<org::ImmLink>(),
-               [](org::ImmAdapterT<org::ImmLink> head) -> bool {
+               n.pass(n.as<ImmListItem>()->header.get().value())
+                   .subAs<ImmLink>(),
+               [](ImmAdapterT<ImmLink> head) -> bool {
                    return !head->target.isRaw();
                });
 }
 
-bool org::graph::isLinkedDescriptionItem(org::ImmAdapter const& n) {
+bool org::graph::isLinkedDescriptionItem(ImmAdapter const& n) {
     // If any of the parent nodes for this box is a linked description
     // item, ignore the entry as it has already been added as a part of the
     // link descripion.
     return rs::any_of(
         n.getParentChain(/*withSelf = */ false),
-        [&](org::ImmAdapter parent) -> bool {
+        [&](ImmAdapter parent) -> bool {
             return isLinkedDescriptionItemNode(parent);
         });
 }
 
-bool org::graph::isLinkedDescriptionList(org::ImmAdapter const& n) {
+bool org::graph::isLinkedDescriptionList(ImmAdapter const& n) {
     return n.is(osk::List)
-        && rs::any_of(n.sub(), [&](org::ImmAdapter arg) -> bool {
+        && rs::any_of(n.sub(), [&](ImmAdapter arg) -> bool {
                return isLinkedDescriptionItem(arg);
            });
 }
 
-bool org::graph::isInSubtreeDescriptionList(org::ImmAdapter const& n) {
-    return rs::any_of(n.getParentChain(), [](org::ImmAdapter tree) {
+bool org::graph::isInSubtreeDescriptionList(ImmAdapter const& n) {
+    return rs::any_of(n.getParentChain(), [](ImmAdapter tree) {
         return isAttachedDescriptionList(tree);
     });
 }
 
 
 bool org::graph::isAttachedDescriptionList(ImmAdapter const& n) {
-    if (auto list = n.asOpt<org::ImmList>();
+    if (auto list = n.asOpt<ImmList>();
         list && list->isDescriptionList()) {
         auto attached = list->getListAttrs("attached");
         return attached.has(0) && attached.at(0).value == "subtree";
@@ -67,7 +70,7 @@ bool org::graph::isAttachedDescriptionList(ImmAdapter const& n) {
 }
 
 
-bool org::graph::isMmapIgnored(org::ImmAdapter const& n) {
+bool org::graph::isMmapIgnored(ImmAdapter const& n) {
     return isInSubtreeDescriptionList(n)
         || (isLinkedDescriptionList(n) && isAttachedDescriptionList(n));
 }
@@ -79,8 +82,7 @@ static const IntSet<slk> SkipLinks{
 
 bool org::graph::hasGraphAnnotations(const ImmAdapterT<ImmSubtree>& par) {
     return par->treeId->has_value()
-        || !org::getSubtreeProperties<sem::NamedProperty::RadioId>(
-                par.value())
+        || !getSubtreeProperties<sem::NamedProperty::RadioId>(par.value())
                 .empty();
 }
 
@@ -89,7 +91,7 @@ bool org::graph::hasGraphAnnotations(
     for (auto const& node : par.sub(false)) {
         if (node.is(OrgSemKind::RadioTarget)) {
             return true;
-        } else if (auto link = node.asOpt<org::ImmLink>();
+        } else if (auto link = node.asOpt<ImmLink>();
                    link
                    && !SkipLinks.contains(
                        link.value()->target.getKind())) {
@@ -290,33 +292,33 @@ Opt<MapLink> org::graph::getUnresolvedLink(
                 ? Vec{link.at(
                       link->description.get().value().toId(),
                       ImmPathStep::FieldDeref(
-                          org::ImmReflFieldId::FromTypeField(
-                              &org::ImmLink::description)))}
-                : Vec<org::ImmAdapter>{},
+                          ImmReflFieldId::FromTypeField(
+                              &ImmLink::description)))}
+                : Vec<ImmAdapter>{},
         }};
     }
 }
 
 
 Vec<MapLink> org::graph::getUnresolvedSubtreeLinks(
-    const MapGraphState&         s,
-    ImmAdapterT<org::ImmSubtree> tree,
-    MapConfig&                   conf) {
+    const MapGraphState&    s,
+    ImmAdapterT<ImmSubtree> tree,
+    MapConfig&              conf) {
     Vec<MapLink> unresolved;
     // Description lists with links in header are attached as the
     // outgoing link to the parent subtree. It is the only supported
     // way to provide an extensive label between subtree nodes.
-    for (auto const& list : tree.subAs<org::ImmList>()) {
+    for (auto const& list : tree.subAs<ImmList>()) {
         if (auto attached = list.getListAttrs("attached");
             attached.has(0) && attached.at(0).value == "subtree") {
             GRAPH_MSG("Subtree has list");
-            for (auto const& item : list.subAs<org::ImmListItem>()) {
+            for (auto const& item : list.subAs<ImmListItem>()) {
                 GRAPH_MSG(fmt("{}", item.id));
                 if (isLinkedDescriptionItemNode(item)) {
                     GRAPH_MSG("List has description item");
                     for (auto const& link :
                          item.pass(item->header->value())
-                             .subAs<org::ImmLink>()) {
+                             .subAs<ImmLink>()) {
                         GRAPH_MSG(fmt("List item contains link {}", link));
                         // Description list header might contain
                         // non-link elements. These are ignored in the
@@ -340,7 +342,7 @@ Vec<MapLink> org::graph::getUnresolvedSubtreeLinks(
 
 Opt<MapNodeProp> org::graph::MapInterface::getInitialNodeProp(
     MapGraphState const& s,
-    org::ImmAdapter      node,
+    ImmAdapter           node,
     MapConfig&           conf) {
     // `- [[link-to-something]] :: Description` is stored as a description
     // field and is collected from the list item. So all boxes with
@@ -359,10 +361,10 @@ Opt<MapNodeProp> org::graph::MapInterface::getInitialNodeProp(
 
     MapNodeProp result{.id = node};
 
-    auto register_used_links = [&](org::ImmAdapter arg) {
+    auto register_used_links = [&](ImmAdapter arg) {
         // Unconditionally register all links as unresolved -- some of
         // them will be converted to edges later on.
-        if (auto link = arg.asOpt<org::ImmLink>()) {
+        if (auto link = arg.asOpt<ImmLink>()) {
             if (auto target = getUnresolvedLink(s, link.value(), conf)) {
                 GRAPH_MSG(
                     fmt("Got unresolved link for adapter {} under {}",
@@ -373,15 +375,15 @@ Opt<MapNodeProp> org::graph::MapInterface::getInitialNodeProp(
         }
     };
 
-    if (auto tree = node.asOpt<org::ImmSubtree>()) {
+    if (auto tree = node.asOpt<ImmSubtree>()) {
         result.unresolved.append(
             getUnresolvedSubtreeLinks(s, tree.value(), conf));
-    } else if (auto par = node.asOpt<org::ImmParagraph>();
+    } else if (auto par = node.asOpt<ImmParagraph>();
                par && par->isFootnoteDefinition()) {
         auto sub = par->sub();
         for (auto const& it : enumerator(sub)) {
             if (!it.is_first()) {
-                org::eachSubnodeRec(it.value(), true, register_used_links);
+                eachSubnodeRec(it.value(), true, register_used_links);
             }
         }
     } else if (!NestedNodes.contains(node->getKind())) {
@@ -422,7 +424,7 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
         GRAPH_MSG(fmt("subtrees {}", s.ast->currentTrack->subtrees));
         GRAPH_MSG(fmt("names {}", s.ast->currentTrack->names));
 
-        auto add_edge = [&](org::ImmId const& target) {
+        auto add_edge = [&](imm::ImmId const& target) {
             auto adapters = s.ast->getAdaptersFor(target);
             LOGIC_ASSERTION_CHECK(
                 !adapters.empty(),
@@ -529,7 +531,7 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
         auto __scope = conf.scopeLevel();
         GRAPH_MSG(fmt("Collecting radio targets in graph"));
 
-        auto found_radio_target_node = [&](CR<org::ImmAdapter> radio) {
+        auto found_radio_target_node = [&](CR<ImmAdapter> radio) {
             if (s.graph.isRegisteredNode(radio.uniq())) {
                 GRAPH_MSG(
                     fmt("Detected radio target from node {} "
@@ -552,7 +554,7 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
             }
         };
 
-        if (auto par = node.id.asOpt<org::ImmParagraph>()) {
+        if (auto par = node.id.asOpt<imm::ImmParagraph>()) {
             for (auto const& group : getSubnodeGroups(node.id)) {
                 GRAPH_MSG(fmt("Group {}", group));
                 if (group.isRadioTarget()) {
@@ -563,7 +565,7 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
                             found_radio_target_node(ctx->adapt(subtree));
                         }
                     } else if (groupTarget.is(OrgSemKind::RadioTarget)) {
-                        for (org::ImmAdapter const& radio :
+                        for (ImmAdapter const& radio :
                              ctx->getParentPathsFor(groupTarget)) {
                             found_radio_target_node(radio);
                         }
@@ -665,9 +667,9 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
 }
 
 void org::graph::addNode(
-    MapGraphState&         g,
-    org::ImmAdapter const& node,
-    MapConfig&             conf) {
+    MapGraphState&    g,
+    ImmAdapter const& node,
+    MapConfig&        conf) {
     GRAPH_MSG(fmt("{} {}", node, Str("- ").repeated(32)));
     auto prop = conf.getInitialNodeProp(g, node);
     if (prop) {
@@ -707,7 +709,7 @@ void MapGraph::addNode(const MapNode& node) {
 
 
 Graphviz::Graph MapGraph::toGraphviz(
-    org::ImmAstContext::Ptr const& ctx,
+    imm::ImmAstContext::Ptr const& ctx,
     GvConfig const&                conf) const {
     Graphviz::Graph                       res{"g"_ss};
     UnorderedMap<MapNode, Graphviz::Node> gvNodes;
@@ -771,10 +773,10 @@ Graphviz::Node::Record MapGraph::GvConfig::getDefaultNodeLabel(
     Record rec;
     rec.setEscaped("ID", fmt1(node.id));
 
-    auto add_field_text = [&](Str const& name, org::ImmId id) {
+    auto add_field_text = [&](Str const& name, ImmId id) {
         rec.set(
             name,
-            Record{Graphviz::escapeHtmlForGraphviz(
+            Record{hstd::ext::Graphviz::escapeHtmlForGraphviz(
                 wrap_text(flatWords(node), 60, true))});
     };
 
@@ -784,7 +786,7 @@ Graphviz::Node::Record MapGraph::GvConfig::getDefaultNodeLabel(
         node.id,
         node.ctx.lock(),
         overloaded{
-            [&](org::ImmSubtree const& tree) {
+            [&](ImmSubtree const& tree) {
                 rec.setEscaped(
                     "Title",
                     join(
@@ -792,16 +794,16 @@ Graphviz::Node::Record MapGraph::GvConfig::getDefaultNodeLabel(
                         flatWords(
                             node.ctx.lock()->adaptUnrooted(tree.title))));
             },
-            [&](org::ImmParagraph const& tree) {
+            [&](ImmParagraph const& tree) {
                 add_field_text("Text", node.id);
             },
             [&]<typename K>(K const& value) {
-                rec.setEscaped("Type", TypeName<K>::get());
+                rec.setEscaped("Type", value_metadata<K>::typeName());
             },
         });
 
     auto file = node.getFirstMatchingParent(
-        [](org::ImmAdapter const& a) { return a.is(OrgSemKind::File); });
+        [](ImmAdapter const& a) { return a.is(OrgSemKind::File); });
 
     if (node->loc || file) {
         rec.setEscaped(
@@ -810,8 +812,7 @@ Graphviz::Node::Record MapGraph::GvConfig::getDefaultNodeLabel(
                 node->loc->column,
                 node->loc->line,
                 node->loc->pos,
-                file ? file->as<org::ImmFile>()->relPath.get()
-                     : Str{"?"}));
+                file ? file->as<ImmFile>()->relPath.get() : Str{"?"}));
     }
 
     for (auto const& [idx, unresolved] : enumerate(prop.unresolved)) {
@@ -841,8 +842,8 @@ void org::graph::addNodeRec(
     MapGraphState&    g,
     const ImmAdapter& node,
     MapConfig&        conf) {
-    Func<void(org::ImmAdapter const&)> aux;
-    aux = [&](org::ImmAdapter const& node) {
+    Func<void(ImmAdapter const&)> aux;
+    aux = [&](ImmAdapter const& node) {
         conf.message(fmt("recursive add {}", node), "addNodeRec");
         auto __tmp = conf.scopeLevel();
         switch (node->getKind()) {
@@ -857,7 +858,7 @@ void org::graph::addNodeRec(
                 break;
             }
             case OrgSemKind::Paragraph: {
-                auto par = node.as<org::ImmParagraph>();
+                auto par = node.as<imm::ImmParagraph>();
                 // conf.message(
                 //     fmt("rec visit of {}\n{}",
                 //         par,
@@ -865,7 +866,7 @@ void org::graph::addNodeRec(
                 if (org::graph::hasGraphAnnotations(par)) {
                     addNode(g, node, conf);
                 } else {
-                    auto group = org::getSubnodeGroups(node, false);
+                    auto group = imm::getSubnodeGroups(node, false);
                     if (rs::any_of(group, [](auto const& it) {
                             return it.isRadioTarget();
                         })) {
@@ -876,7 +877,7 @@ void org::graph::addNodeRec(
                 break;
             }
             case OrgSemKind::Subtree: {
-                if (auto tree = node.as<org::ImmSubtree>();
+                if (auto tree = node.as<imm::ImmSubtree>();
                     org::graph::hasGraphAnnotations(tree)) {
                     addNode(g, node, conf);
                 }

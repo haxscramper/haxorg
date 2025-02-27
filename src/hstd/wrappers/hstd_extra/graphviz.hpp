@@ -46,6 +46,8 @@
         setAttr(#key, enum_serde<Name>::to_string(value));                \
     }
 
+namespace hstd::ext {
+
 class Graphviz {
 
   public:
@@ -753,3 +755,5 @@ class Graphviz {
   private:
     SPtr<GVC_t> gvc;
 };
+
+} // namespace hstd::ext

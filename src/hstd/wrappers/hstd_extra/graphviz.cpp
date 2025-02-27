@@ -3,6 +3,9 @@
 #include <filesystem>
 #include <format>
 
+using namespace hstd;
+using namespace hstd::ext;
+
 Str Graphviz::Node::Record::escape(const Str& input) {
     Str escaped;
     escaped.reserve(input.size());

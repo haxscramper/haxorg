@@ -16,6 +16,8 @@
 #include <haxorg/lexbase/Errors.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 
+namespace org::parse {
+
 template <typename K, typename V>
 struct Token;
 
@@ -23,11 +25,12 @@ struct Token;
 template <
     typename K,
     typename V,
-    typename IdBase   = u64,
+    typename IdBase   = hstd::u64,
     typename MaskType = IdBase>
 struct TokenId
-    : dod::Id<IdBase, MaskType, std::integral_constant<MaskType, 16>> {
-    using base_type = dod::
+    : hstd::dod::
+          Id<IdBase, MaskType, std::integral_constant<MaskType, 16>> {
+    using base_type = hstd::dod::
         Id<IdBase, MaskType, std::integral_constant<MaskType, 16>>;
     using value_type = Token<K, V>;
     static auto Nil() -> TokenId { return FromValue(0); };
@@ -45,17 +48,6 @@ struct TokenId
 
     explicit TokenId(IdBase arg) : base_type(arg) {}
     TokenId(base_type arg) : base_type(arg) {}
-};
-
-template <typename K, typename V>
-struct std::formatter<TokenId<K, V>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    typename FormatContext::iterator format(
-        const TokenId<K, V>& p,
-        FormatContext&       ctx) const {
-        std::formatter<std::string> fmt;
-        return fmt.format(p.format(demangle(typeid(K).name())), ctx);
-    }
 };
 
 
@@ -76,27 +68,11 @@ struct Token {
 };
 
 
-template <StdFormattable K, typename V>
-struct std::formatter<Token<K, V>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(
-        const Token<K, V>& p,
-        FormatContext&     ctx) const {
-        std::formatter<std::string> fmt;
-        fmt.format("Token<", ctx);
-        std::formatter<K>{}.format(p.kind, ctx);
-        fmt.format(">(", ctx);
-        std::formatter<V>{}.format(p.value, ctx);
-        return fmt.format(")", ctx);
-    }
-};
-
-
 template <typename K, typename V>
 struct TokenGroup {
     using TokenT         = Token<K, V>;
     using IdT            = TokenId<K, V>;
-    using StoreT         = dod::Store<IdT, TokenT>;
+    using StoreT         = hstd::dod::Store<IdT, TokenT>;
     using iterator       = typename StoreT::ContentT::iterator;
     using const_iterator = typename StoreT::ContentT::const_iterator;
 
@@ -123,16 +99,16 @@ struct TokenGroup {
 
 
     TokenGroup() {}
-    TokenId<K, V> add(CR<TokenT> tok) { return tokens.add(tok); }
+    TokenId<K, V> add(TokenT const& tok) { return tokens.add(tok); }
 
-    Vec<IdT> add(CR<Vec<TokenT>> tok) {
-        Vec<IdT> result;
+    hstd::Vec<IdT> add(hstd::Vec<TokenT> const& tok) {
+        hstd::Vec<IdT> result;
         for (const auto& t : tok) { result.push_back(tokens.add(t)); }
         return result;
     }
 
-    Vec<IdT> add(CR<std::span<TokenT>> tok) {
-        Vec<IdT> result;
+    hstd::Vec<IdT> add(std::span<TokenT> const& tok) {
+        hstd::Vec<IdT> result;
         for (const auto& t : tok) { result.push_back(tokens.add(t)); }
         return result;
     }
@@ -140,7 +116,7 @@ struct TokenGroup {
 
     TokenT& at(IdT pos) { return tokens.at(pos); }
 
-    std::span<TokenT> at(HSlice<IdT, IdT> slice) {
+    std::span<TokenT> at(hstd::HSlice<IdT, IdT> slice) {
         assert(slice.first.getStoreIdx() == slice.last.getStoreIdx());
         tokens.at(slice(slice.first.getIndex(), slice.last.getIndex()));
     }
@@ -151,31 +127,16 @@ struct TokenGroup {
     }
 };
 
-template <StdFormattable K, StdFormattable V>
-struct std::formatter<TokenGroup<K, V>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(const TokenGroup<K, V>& p, FormatContext& ctx) {
-        std::formatter<std::string> fmt;
-        for (const auto& [idx, tok] : p.tokens.pairs()) {
-            fmt.format(std::format("{:<16}", idx), ctx);
-            fmt.format(" | ", ctx);
-            fmt.format(*tok, ctx);
-            fmt.format("\n", ctx);
-        }
-
-        return fmt.format("", ctx);
-    }
-};
-
 
 template <typename K, typename V>
 struct TokenStore {
-    Vec<TokenGroup<K, V>> groups;
-    Token<K, V>&          at(TokenId<K, V> id) {
+    hstd::Vec<TokenGroup<K, V>> groups;
+    Token<K, V>&                at(TokenId<K, V> id) {
         return groups.at(id.getStoreIdx());
     }
 
-    std::span<Token<K, V>> at(HSlice<TokenId<K, V>, TokenId<K, V>> slice) {
+    std::span<Token<K, V>> at(
+        hstd::HSlice<TokenId<K, V>, TokenId<K, V>> slice) {
         assert(slice.first.getStoreIdx() == slice.last.getStoreIdx());
         groups.at(slice.first.getStoreIdx()).at(slice);
     }
@@ -185,8 +146,8 @@ template <typename K, typename V>
 struct Tokenizer {
     TokenGroup<K, V>* out;
     Tokenizer(TokenGroup<K, V>* _out) : out(_out) {}
-    Vec<Vec<Token<K, V>>*> buffer;
-    void                   clearBuffer() { buffer.pop_back(); }
+    hstd::Vec<hstd::Vec<Token<K, V>>*> buffer;
+    void                               clearBuffer() { buffer.pop_back(); }
     /// \brief Get reference to token with specified ID
     Token<K, V>& at(TokenId<K, V> id) { return out->at(id); }
     /// \brief Get ID of the last token
@@ -203,7 +164,7 @@ struct Tokenizer {
     ///
     /// \warning Returns nil IDs or empty list with active buffer!
     ///@{
-    TokenId<K, V> push(CR<Token<K, V>> tok) {
+    TokenId<K, V> push(Token<K, V> const& tok) {
         if (buffer.empty()) {
             return out->add(tok);
         } else {
@@ -212,7 +173,7 @@ struct Tokenizer {
         }
     }
 
-    Vec<TokenId<K, V>> push(CR<std::span<Token<K, V>>> tok) {
+    hstd::Vec<TokenId<K, V>> push(std::span<Token<K, V>> const& tok) {
         if (buffer.empty()) {
             return out->add(tok);
         } else {
@@ -221,7 +182,7 @@ struct Tokenizer {
         }
     }
 
-    Vec<TokenId<K, V>> push(CR<Vec<Token<K, V>>> tok) {
+    hstd::Vec<TokenId<K, V>> push(hstd::CVec<Token<K, V>> tok) {
         if (buffer.empty()) {
             return out->add(tok);
         } else {
@@ -235,25 +196,25 @@ struct Tokenizer {
 template <typename K, typename V>
 struct LexerCommon {
   public:
-    TokenGroup<K, V>* in;
-    TokenId<K, V>     pos;
-    Opt<Token<K, V>>  lastToken;
+    TokenGroup<K, V>*      in;
+    TokenId<K, V>          pos;
+    hstd::Opt<Token<K, V>> lastToken;
     LexerCommon(
         TokenGroup<K, V>* _in,
         TokenId<K, V>     startPos = TokenId<K, V>(0))
         : in(_in), pos(startPos) {}
 
-    K               kind(int offset = 0) const { return tok(offset).kind; }
-    Token<K, V>&    tok(TokenId<K, V> id) { return in->at(id); }
-    CR<Token<K, V>> tok(TokenId<K, V> id) const { return in->at(id); }
-    CR<Token<K, V>> tok(int offset = 0) const {
+    K            kind(int offset = 0) const { return tok(offset).kind; }
+    Token<K, V>& tok(TokenId<K, V> id) { return in->at(id); }
+    Token<K, V> const& tok(TokenId<K, V> id) const { return in->at(id); }
+    Token<K, V> const& tok(int offset = 0) const {
         return in->at(get(offset));
     }
     TokenId<K, V> get(int offset = 0) const { return pos + offset; }
     V const&      val(int offset = 0) const { return tok(offset).value; }
     V&            val(int offset = 0) { return in->at(get(offset)).value; }
 
-    Opt<CRw<Token<K, V>>> opt(int offset = 0) {
+    hstd::Opt<hstd::CRw<Token<K, V>>> opt(int offset = 0) {
         if (hasNext(offset)) {
             return tok(offset);
         } else {
@@ -270,8 +231,8 @@ struct LexerCommon {
     const_iterator end() const { return in->end(); }
 
     struct WholeTmp {
-        LexerCommon<K, V>* _this;
-        Opt<TokenId<K, V>> currentPos;
+        LexerCommon<K, V>*       _this;
+        hstd::Opt<TokenId<K, V>> currentPos;
 
         LexerCommon<K, V>*       __this() { return _this; }
         LexerCommon<K, V> const* __this() const { return _this; }
@@ -320,28 +281,28 @@ struct LexerCommon {
                 currentPos ? *currentPos : _this->pos);
         }
 
-        rs::subrange<iterator> range() {
-            return rs::subrange(begin(), end());
+        hstd::rs::subrange<iterator> range() {
+            return hstd::rs::subrange(begin(), end());
         }
 
-        rs::subrange<const_iterator> range() const {
-            return rs::subrange(begin(), end());
+        hstd::rs::subrange<const_iterator> range() const {
+            return hstd::rs::subrange(begin(), end());
         }
 
-        rs::subrange<iterator> range_current() {
-            return rs::subrange(current(), end());
+        hstd::rs::subrange<iterator> range_current() {
+            return hstd::rs::subrange(current(), end());
         }
 
-        rs::subrange<const_iterator> range_current() const {
-            return rs::subrange(current(), end());
+        hstd::rs::subrange<const_iterator> range_current() const {
+            return hstd::rs::subrange(current(), end());
         }
 
-        rs::subrange<iterator> rrange() {
-            return rs::subrange(rbegin(), rend());
+        hstd::rs::subrange<iterator> rrange() {
+            return hstd::rs::subrange(rbegin(), rend());
         }
 
-        rs::subrange<const_iterator> rrange() const {
-            return rs::subrange(rbegin(), rend());
+        hstd::rs::subrange<const_iterator> rrange() const {
+            return hstd::rs::subrange(rbegin(), rend());
         }
     };
 
@@ -359,15 +320,18 @@ struct LexerCommon {
         bool withOffsets = false;
     };
 
-    using TokenFormatCb = Func<void(ColStream&, Token<K, V> const&)>;
+    using TokenFormatCb = hstd::Func<
+        void(hstd::ColStream&, Token<K, V> const&)>;
 
-    void print(ColStream& os, TokenFormatCb format, CR<PrintParams> params)
-        const {
+    void print(
+        hstd::ColStream&   os,
+        TokenFormatCb      format,
+        PrintParams const& params) const {
         if (params.withPos) {
             if (pos.isNil()) {
                 os << "#" << os.red() << "nil" << os.end();
             } else {
-                os << fmt("#{}/{}", pos.getIndex(), in->size());
+                os << hstd::fmt("#{}/{}", pos.getIndex(), in->size());
             }
         }
 
@@ -382,7 +346,7 @@ struct LexerCommon {
                     os << " "
                        << styledUnicodeMapping(
                               std::format("{}", t.kind),
-                              AsciiStyle::Italic);
+                              hstd::AsciiStyle::Italic);
                 } else {
                     os << " " << std::format("{}", t.kind);
                 }
@@ -402,7 +366,7 @@ struct LexerCommon {
         TokenFormatCb format,
         bool          colored = false) const {
         std::stringstream stream;
-        ColStream         out{stream};
+        hstd::ColStream   out{stream};
         out.colored = colored;
         print(out, format, params);
         return stream.str();
@@ -415,7 +379,7 @@ struct LexerCommon {
     }
 
 
-    TokenId<K, V> pop(IntSet<K> kind) {
+    TokenId<K, V> pop(hstd::IntSet<K> kind) {
         TokenId<K, V> result = get();
         skip(kind);
         return result;
@@ -427,9 +391,9 @@ struct LexerCommon {
         return result;
     }
 
-    Vec<TokenId<K, V>> pop(int count) {
+    hstd::Vec<TokenId<K, V>> pop(int count) {
         assert(0 <= count);
-        Vec<TokenId<K, V>> result;
+        hstd::Vec<TokenId<K, V>> result;
         for (int i = 0; i < count; ++i) { result.push_back(pop()); }
         return result;
     }
@@ -439,7 +403,7 @@ struct LexerCommon {
     }
 
 
-    bool at(Vec<K> kind, int offset = 0) const {
+    bool at(hstd::CVec<K> kind, int offset = 0) const {
         if (!hasNext(offset)) {
             return false;
         } else {
@@ -454,15 +418,17 @@ struct LexerCommon {
     }
 
     bool can_search(K kind) { return !finished() && !at(kind); }
-    bool can_search(IntSet<K> kind) { return !finished() && !at(kind); }
-    bool can_search(Vec<K> kind) { return !finished() && !at(kind); }
+    bool can_search(hstd::IntSet<K> kind) {
+        return !finished() && !at(kind);
+    }
+    bool can_search(hstd::Vec<K> kind) { return !finished() && !at(kind); }
 
-    bool at(IntSet<K> kind, int offset = 0) const {
+    bool at(hstd::IntSet<K> kind, int offset = 0) const {
         return hasNext(offset) && kind.contains(tok(offset).kind);
     }
 
     template <typename Target>
-    int find(CR<IntSet<K>> skip, CR<Target> target) const {
+    int find(hstd::IntSet<K> const& skip, Target const& target) const {
         int offset = 0;
         while (at(skip, offset)) { ++offset; }
 
@@ -473,16 +439,18 @@ struct LexerCommon {
         }
     }
 
-    bool ahead(CR<IntSet<K>> skip, CR<Vec<K>> target) const {
+    bool ahead(hstd::IntSet<K> const& skip, hstd::Vec<K> const& target)
+        const {
         return find(skip, target) != -1;
     }
 
-    bool ahead(CR<IntSet<K>> skip, CR<IntSet<K>> target) const {
+    bool ahead(hstd::IntSet<K> const& skip, hstd::IntSet<K> const& target)
+        const {
         return find(skip, target) != -1;
     }
 
-    bool ahead(CR<K> skip, CR<K> target) const {
-        return find(IntSet<K>{skip}, IntSet<K>{target}) != -1;
+    bool ahead(K const& skip, K const& target) const {
+        return find(hstd::IntSet<K>{skip}, hstd::IntSet<K>{target}) != -1;
     }
 
     /// Check if the lexer is positioned on the appropriate token kind
@@ -490,20 +458,21 @@ struct LexerCommon {
     /// token does not match and return true otherwise.
     template <typename T>
     bool expect(T kind)
-        requires IsAnyOf<std::remove_cvref_t<T>, K, IntSet<K>>
+        requires hstd::IsAnyOf<std::remove_cvref_t<T>, K, hstd::IntSet<K>>
     {
         if (at(kind)) {
             return true;
         } else if (finished()) {
-            throw UnexpectedEndError(
-                "Unexpected end encountered while trying to skip $# token "
-                "at index $#"
-                    % to_string_vec(kind, pos.getIndex()),
-                pos.getIndex());
+            throw UnexpectedEndError(hstd::fmt(
+                "Unexpected end encountered while trying to skip {} token "
+                "at index {}",
+                kind,
+                pos.getIndex()));
 
         } else {
             throw UnexpectedCharError(
-                fmt("Expected '{}' but found '{}' at index {}: {}",
+                hstd::fmt(
+                    "Expected '{}' but found '{}' at index {}: {}",
                     kind,
                     this->kind(),
                     pos.getIndex(),
@@ -514,7 +483,7 @@ struct LexerCommon {
 
     template <typename T>
     void skip(T kind)
-        requires IsAnyOf<std::remove_cvref_t<T>, K, IntSet<K>>
+        requires hstd::IsAnyOf<std::remove_cvref_t<T>, K, hstd::IntSet<K>>
     {
         if (expect(kind)) { next(); }
     }
@@ -544,9 +513,11 @@ struct LexerCommon {
         if (!hasNext(offset)) { return -1; }
     }
 
-    Vec<TokenId<K, V>> getInside(IntSet<K> start, IntSet<K> finish) {
-        Vec<TokenId<K, V>> result;
-        int                count = 0;
+    hstd::Vec<TokenId<K, V>> getInside(
+        hstd::IntSet<K> const& start,
+        hstd::IntSet<K> const& finish) {
+        hstd::Vec<TokenId<K, V>> result;
+        int                      count = 0;
         while (start.contains(kind())) { next(); }
         count++;
         while (0 < count && !finished()) {
@@ -579,17 +550,6 @@ struct LexerCommon {
     }
 };
 
-template <typename K, typename V>
-struct std::formatter<LexerCommon<K, V>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(
-        const LexerCommon<K, V>& p,
-        FormatContext&           ctx) const {
-        return fmt_ctx(
-            p.printToString([](ColStream&, Token<K, V> const&) {}), ctx);
-    }
-};
-
 
 /// \brief Lexer specialization for iterating over fixed sequence of IDs
 template <typename K, typename V>
@@ -599,8 +559,8 @@ struct SubLexer : public LexerCommon<K, V> {
     // issue, but aside from that I don't really know.
     using LexerCommon<K, V>::pos;
 
-    int                subPos = 0;
-    Vec<TokenId<K, V>> tokens;
+    int                      subPos = 0;
+    hstd::Vec<TokenId<K, V>> tokens;
 
 
     bool empty() const { return tokens.empty(); }
@@ -609,7 +569,7 @@ struct SubLexer : public LexerCommon<K, V> {
         return !pos.isNil() && (0 <= idx) && (idx < tokens.size());
     }
 
-    void add(CR<TokenId<K, V>> tok) { tokens.push_back(tok); }
+    void add(TokenId<K, V> const& tok) { tokens.push_back(tok); }
     void start() { pos = tokens.at(0); }
 
     void setPos(TokenId<K, V> id) override {
@@ -637,7 +597,7 @@ struct SubLexer : public LexerCommon<K, V> {
 
     SubLexer(LexerCommon<K, V> const& in) : LexerCommon<K, V>(in.in) {}
 
-    SubLexer(TokenGroup<K, V>* in, Vec<TokenId<K, V>> _tokens)
+    SubLexer(TokenGroup<K, V>* in, hstd::Vec<TokenId<K, V>> const& _tokens)
         : LexerCommon<K, V>(
               in,
               _tokens.empty() ? TokenId<K, V>::Nil() : _tokens.at(0))
@@ -671,4 +631,69 @@ struct Lexer : public LexerCommon<K, V> {
     }
 
     Lexer(TokenGroup<K, V>* in) : LexerCommon<K, V>(in) {}
+};
+
+} // namespace org::parse
+
+template <hstd::StdFormattable K, hstd::StdFormattable V>
+struct std::formatter<org::parse::TokenGroup<K, V>>
+    : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(
+        const org::parse::TokenGroup<K, V>& p,
+        FormatContext&                      ctx) {
+        std::formatter<std::string> fmt;
+        for (const auto& [idx, tok] : p.tokens.pairs()) {
+            fmt.format(std::format("{:<16}", idx), ctx);
+            fmt.format(" | ", ctx);
+            fmt.format(*tok, ctx);
+            fmt.format("\n", ctx);
+        }
+
+        return fmt.format("", ctx);
+    }
+};
+
+
+template <hstd::StdFormattable K, typename V>
+struct std::formatter<org::parse::Token<K, V>>
+    : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(
+        org::parse::Token<K, V> const& p,
+        FormatContext&                 ctx) const {
+        std::formatter<std::string> fmt;
+        fmt.format("Token<", ctx);
+        std::formatter<K>{}.format(p.kind, ctx);
+        fmt.format(">(", ctx);
+        std::formatter<V>{}.format(p.value, ctx);
+        return fmt.format(")", ctx);
+    }
+};
+
+
+template <typename K, typename V>
+struct std::formatter<org::parse::TokenId<K, V>>
+    : std::formatter<std::string> {
+    template <typename FormatContext>
+    typename FormatContext::iterator format(
+        const org::parse::TokenId<K, V>& p,
+        FormatContext&                   ctx) const {
+        std::formatter<std::string> fmt;
+        return fmt.format(p.format(hstd::demangle(typeid(K).name())), ctx);
+    }
+};
+
+template <typename K, typename V>
+struct std::formatter<org::parse::LexerCommon<K, V>>
+    : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(
+        const org::parse::LexerCommon<K, V>& p,
+        FormatContext&                       ctx) const {
+        return ::hstd::fmt_ctx(
+            p.printToString(
+                [](hstd::ColStream&, org::parse::Token<K, V> const&) {}),
+            ctx);
+    }
 };

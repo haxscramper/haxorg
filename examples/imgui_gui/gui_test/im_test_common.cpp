@@ -2,6 +2,8 @@
 #include "imgui_internal.h"
 #include <hstd/stdlib/Filesystem.hpp>
 
+using namespace hstd;
+
 void PrintAllWindows() {
     ImGuiContext& g = *GImGui;
     for (int i = 0; i < g.Windows.Size; i++) {

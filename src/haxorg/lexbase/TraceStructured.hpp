@@ -7,9 +7,9 @@
 namespace org::report {
 
 struct ValueToken {
-    Str kind;
-    Str value;
-    int index;
+    hstd::Str kind;
+    hstd::Str value;
+    int       index;
     DESC_FIELDS(ValueToken, (kind, value, index));
 };
 
@@ -17,16 +17,16 @@ struct ValueLexPosition {
     int nowPos;
     int maxPos;
     /// \brief First N tokens visible ahead of the lexer position
-    Vec<ValueToken> tokens;
-    int             line;
-    int             column;
+    hstd::Vec<ValueToken> tokens;
+    int                   line;
+    int                   column;
     DESC_FIELDS(ValueLexPosition, (nowPos, maxPos, line, column, tokens));
 };
 
 struct ValueOrgNode {
-    Str      id;
-    Str      kind;
-    Opt<Str> value;
+    hstd::Str            id;
+    hstd::Str            kind;
+    hstd::Opt<hstd::Str> value;
     DESC_FIELDS(ValueOrgNode, (id, kind, value));
 };
 
@@ -44,13 +44,13 @@ struct EntryParser {
 
     /// \brief String render of the node id, for reports related to
     /// start/end events of the nodes
-    Opt<ValueOrgNode>     node;
-    Opt<ValueLexPosition> lex;
-    int                   depth;
-    Kind                  kind;
-    Opt<Str>              codeFunction;
-    Opt<int>              codeLine;
-    Opt<Str>              message;
+    hstd::Opt<ValueOrgNode>     node;
+    hstd::Opt<ValueLexPosition> lex;
+    int                         depth;
+    Kind                        kind;
+    hstd::Opt<hstd::Str>        codeFunction;
+    hstd::Opt<int>              codeLine;
+    hstd::Opt<hstd::Str>        message;
 
     DESC_FIELDS(
         EntryParser,
@@ -67,13 +67,13 @@ struct EntrySem {
         Print,
         Leave);
 
-    Kind              kind;
-    Opt<ValueOrgNode> node;
-    Opt<std::string>  field;
-    int               indent;
-    Opt<Str>          message;
-    Opt<Str>          codeFunction;
-    Opt<int>          codeLine;
+    Kind                    kind;
+    hstd::Opt<ValueOrgNode> node;
+    hstd::Opt<std::string>  field;
+    int                     indent;
+    hstd::Opt<hstd::Str>    message;
+    hstd::Opt<hstd::Str>    codeFunction;
+    hstd::Opt<int>          codeLine;
     DESC_FIELDS(
         EntrySem,
         (kind, node, field, indent, message, codeFunction, codeLine));
@@ -82,14 +82,14 @@ struct EntrySem {
 struct EntryTokenizer {
     DECL_DESCRIBED_ENUM(Kind, Enter, Leave, Push, Print, Error);
 
-    Kind            kind;
-    Opt<Str>        codeFunction;
-    Opt<int>        codeLine;
-    Opt<Str>        message;
-    int             depth;
-    Opt<ValueToken> token;
-    Opt<int>        line;
-    Opt<int>        column;
+    Kind                  kind;
+    hstd::Opt<hstd::Str>  codeFunction;
+    hstd::Opt<int>        codeLine;
+    hstd::Opt<hstd::Str>  message;
+    int                   depth;
+    hstd::Opt<ValueToken> token;
+    hstd::Opt<int>        line;
+    hstd::Opt<int>        column;
 
     DESC_FIELDS(
         EntryTokenizer,
@@ -116,10 +116,10 @@ struct EntryLexer {
 
 
     struct View {
-        int         line;
-        int         column;
-        std::string state;
-        Vec<State>  states;
+        int              line;
+        int              column;
+        std::string      state;
+        hstd::Vec<State> states;
         DESC_FIELDS(View, (line, column, state, states));
     };
 
@@ -138,22 +138,22 @@ struct EntryLexer {
     };
 
     struct Push {
-        int  indent;
-        View view;
-        Str  currentState;
-        Str  nextState;
-        int  yamlLine;
+        int       indent;
+        View      view;
+        hstd::Str currentState;
+        hstd::Str nextState;
+        int       yamlLine;
         DESC_FIELDS(
             Push,
             (indent, view, currentState, nextState, yamlLine));
     };
 
     struct Pop {
-        int  indent;
-        Str  currentState;
-        Str  nextState;
-        int  yamlLine;
-        View view;
+        int       indent;
+        hstd::Str currentState;
+        hstd::Str nextState;
+        int       yamlLine;
+        View      view;
         DESC_FIELDS(
             Pop,
             (view, indent, currentState, nextState, yamlLine));
@@ -201,15 +201,15 @@ struct EntryExport {
         VisitVariant,
         Print);
 
-    Kind             kind;
-    Opt<Str>         visitedKind = std::nullopt;
-    int              level       = 0;
-    int              codeLine    = 0;
-    Opt<std::string> field;
-    Opt<std::string> codeFunction;
-    bool             isStart = true;
-    Opt<std::string> type;
-    Opt<std::string> msg;
+    Kind                   kind;
+    hstd::Opt<hstd::Str>   visitedKind = std::nullopt;
+    int                    level       = 0;
+    int                    codeLine    = 0;
+    hstd::Opt<std::string> field;
+    hstd::Opt<std::string> codeFunction;
+    bool                   isStart = true;
+    hstd::Opt<std::string> type;
+    hstd::Opt<std::string> msg;
 
     DESC_FIELDS(
         EntryExport,
@@ -227,7 +227,7 @@ struct EntryExport {
 } // namespace org::report
 
 template <>
-struct JsonSerde<org::report::EntryLexer> {
+struct hstd::JsonSerde<org::report::EntryLexer> {
     static json to_json(org::report::EntryLexer const& it) {
         json result    = json::object();
         result["kind"] = fmt1(it.getKind());

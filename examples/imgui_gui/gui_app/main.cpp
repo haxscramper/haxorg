@@ -35,22 +35,24 @@ struct Config {
         DirectoryExplorer,
         DocEditor);
 
-    Vec<Str> file;
-    Mode     mode = Mode::SemTree;
-    Opt<Str> appstate;
-    bool     fullscreen = false;
-    Opt<Str> log_file   = std::nullopt;
+    hstd::Vec<hstd::Str> file;
+    Mode                 mode = Mode::SemTree;
+    hstd::Opt<hstd::Str> appstate;
+    bool                 fullscreen = false;
+    hstd::Opt<hstd::Str> log_file   = std::nullopt;
 
     DESC_FIELDS(Config, (file, mode, appstate, fullscreen, log_file));
 };
 
 struct OutlineConfig {
-    bool              showDone = false;
-    UnorderedSet<Str> priorities;
+    bool                          showDone = false;
+    hstd::UnorderedSet<hstd::Str> priorities;
     DESC_FIELDS(OutlineConfig, (showDone));
 };
 
-long GetTimeDelta(CR<UserTime> from, CR<UserTime> to) {
+long GetTimeDelta(
+    hstd::CR<hstd::UserTime> from,
+    hstd::CR<hstd::UserTime> to) {
     auto from_utc = absl::ToCivilSecond(
         from.time, from.zone ? *from.zone : absl::TimeZone{});
     auto to_utc = absl::ToCivilSecond(
@@ -71,21 +73,22 @@ float minimap_top_offset  = 10.0f;
 float minimap_indent_size = 5.0f;
 } // namespace
 
-Opt<int> render_mini_map(
-    CVec<sem::SemId<sem::Subtree>> tree,
-    float                          mini_map_height,
-    ImVec2                         size,
-    float                          content_height,
-    float                          scroll_y) {
+hstd::Opt<int> render_mini_map(
+    hstd::CVec<org::sem::SemId<org::sem::Subtree>> tree,
+    float                                          mini_map_height,
+    ImVec2                                         size,
+    float                                          content_height,
+    float                                          scroll_y) {
 
     ImGui::InvisibleButton("MiniMap", size);
     ImVec2 window_pos = ImGui::GetWindowPos();
-    std::function<void(const sem::SemId<sem::Subtree>&)> render_node;
+    std::function<void(const org::sem::SemId<org::sem::Subtree>&)>
+        render_node;
 
-    int      dfs_idx = 0;
-    Opt<int> out_idx;
+    int            dfs_idx = 0;
+    hstd::Opt<int> out_idx;
 
-    render_node = [&](const sem::SemId<sem::Subtree>& node) {
+    render_node = [&](const org::sem::SemId<org::sem::Subtree>& node) {
         const float node_y = minimap_top_offset + window_pos.y
                            + (dfs_idx * minimap_rect_height);
 
@@ -115,7 +118,7 @@ Opt<int> render_mini_map(
             }
         }
 
-        for (const auto& subnode : node.subAs<sem::Subtree>()) {
+        for (const auto& subnode : node.subAs<org::sem::Subtree>()) {
             render_node(subnode);
         }
     };
@@ -127,12 +130,12 @@ Opt<int> render_mini_map(
 
 
 void render_outline_subtree(
-    sem::SemId<sem::Subtree> const& org,
-    OutlineConfig const&            conf,
-    float&                          content_height) {
+    org::sem::SemId<org::sem::Subtree> const& org,
+    OutlineConfig const&                      conf,
+    float&                                    content_height) {
 
 
-    auto const nested = org.subAs<sem::Subtree>();
+    auto const nested = org.subAs<org::sem::Subtree>();
 
     bool skipped //
         = (!conf.showDone && org->todo
@@ -151,7 +154,9 @@ void render_outline_subtree(
         ImGui::PushTextWrapPos(
             ImGui::GetCursorPos().x + ImGui::GetContentRegionAvail().x);
         ImGui::Text(
-            "%s", ExporterUltraplain::toStr(org->title.asOrg()).c_str());
+            "%s",
+            org::algo::ExporterUltraplain::toStr(org->title.asOrg())
+                .c_str());
         ImGui::PopTextWrapPos();
 
         if (org->priority) {
@@ -172,7 +177,7 @@ void render_outline_subtree(
         long full_duration = 0;
         for (auto const& log : org->logbook) {
             switch (log->head.getLogKind()) {
-                case sem::SubtreeLogHead::Kind::Clock: {
+                case org::sem::SubtreeLogHead::Kind::Clock: {
                     auto const& clock = log->head.getClock();
                     if (clock.to) {
                         full_duration += GetTimeDelta(
@@ -195,14 +200,14 @@ void render_outline_subtree(
 
     if (!nested.empty()) {
         ImGui::PushID(
-            fmt("{:p}", static_cast<const void*>(org.value.get()))
+            hstd::fmt("{:p}", static_cast<const void*>(org.value.get()))
                 .c_str());
 
         if (org->level < 3) {
             ImGui::SetNextItemOpen(true, ImGuiCond_Once);
         }
         bool node_open = ImGui::TreeNodeEx(
-            fmt("[{}]", org->level).c_str(),
+            hstd::fmt("[{}]", org->level).c_str(),
             ImGuiTreeNodeFlags_SpanFullWidth);
         ImGui::PopID();
 
@@ -220,9 +225,9 @@ void render_outline_subtree(
 }
 
 void render_outline(
-    sem::SemId<sem::Org> const& org,
-    OutlineConfig const&        conf,
-    float&                      content_height) {
+    org::sem::SemId<org::sem::Org> const& org,
+    OutlineConfig const&                  conf,
+    float&                                content_height) {
     if (ImGui::BeginTable(
             "TreeTable",
             5,
@@ -241,7 +246,7 @@ void render_outline(
             "Duration", ImGuiTableColumnFlags_WidthStretch);
         ImGui::TableHeadersRow();
 
-        for (auto const& sub : org.subAs<sem::Subtree>()) {
+        for (auto const& sub : org.subAs<org::sem::Subtree>()) {
             render_outline_subtree(sub, conf, content_height);
         }
 
@@ -259,7 +264,9 @@ void fps_window_begin() {
     ImGui::Text("%.2f FPS", io.Framerate);
 }
 
-void sem_tree_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
+void sem_tree_loop(
+    GLFWwindow*                    window,
+    org::sem::SemId<org::sem::Org> node) {
     VisualExporterConfig sem_tree_config;
     while (!glfwWindowShouldClose(window)) {
         frame_start();
@@ -274,15 +281,17 @@ void sem_tree_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
     }
 }
 
-void outline_tree_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
+void outline_tree_loop(
+    GLFWwindow*                    window,
+    org::sem::SemId<org::sem::Org> node) {
     OutlineConfig outline_config;
     outline_config.priorities.incl("");
 
-    Vec<Str> priorities{""};
-    int      subtree_count = 0;
-    int      max_level     = 0;
-    sem::eachSubnodeRec(node, [&](sem::SemId<sem::Org> it) {
-        if (auto tree = it.asOpt<sem::Subtree>()) {
+    hstd::Vec<hstd::Str> priorities{""};
+    int                  subtree_count = 0;
+    int                  max_level     = 0;
+    org::eachSubnodeRec(node, [&](org::sem::SemId<org::sem::Org> it) {
+        if (auto tree = it.asOpt<org::sem::Subtree>()) {
             ++subtree_count;
             max_level = std::max(tree->level, max_level);
             if (tree->priority
@@ -292,8 +301,8 @@ void outline_tree_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
         }
     });
 
-    rs::sort(priorities);
-    Opt<int> row_scroll;
+    hstd::rs::sort(priorities);
+    hstd::Opt<int> row_scroll;
 
     while (!glfwWindowShouldClose(window)) {
         frame_start();
@@ -333,7 +342,7 @@ void outline_tree_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
 
 
             row_scroll = render_mini_map(
-                node.subAs<sem::Subtree>(),
+                node.subAs<org::sem::Subtree>(),
                 mini_map_size.y,
                 mini_map_size,
                 content_height,
@@ -365,11 +374,11 @@ void outline_tree_loop(GLFWwindow* window, sem::SemId<sem::Org> node) {
 }
 
 int main(int argc, char** argv) {
-    auto conf_file = fs::path{argv[1]};
-    CHECK(fs::is_regular_file(conf_file)) << conf_file;
-    auto conf_text = readFile(conf_file);
+    auto conf_file = hstd::fs::path{argv[1]};
+    CHECK(hstd::fs::is_regular_file(conf_file)) << conf_file;
+    auto conf_text = hstd::readFile(conf_file);
     auto conf_json = json::parse(conf_text);
-    auto conf      = from_json_eval<Config>(conf_json);
+    auto conf      = hstd::from_json_eval<Config>(conf_json);
 
     org_logging::clear_sink_backends();
     if (conf.log_file) {
@@ -381,7 +390,7 @@ int main(int argc, char** argv) {
     std::unique_ptr<perfetto::TracingSession>
         tracing_session = StartProcessTracing("Perfetto track example");
 
-    finally end_trace{[&]() {
+    hstd::finally end_trace{[&]() {
         StopTracing(std::move(tracing_session), "/tmp/story_grid.pftrace");
     }};
 #endif
@@ -414,11 +423,11 @@ int main(int argc, char** argv) {
     ImGui_ImplOpenGL3_Init("#version 130");
 
 
-    Opt<json> appstate;
+    hstd::Opt<json> appstate;
     if (conf.appstate.has_value()
-        && fs::is_regular_file(conf.appstate.value().toBase())) {
-        appstate = json::parse(
-            readFile(fs::path{conf.appstate.value().toBase()}));
+        && hstd::fs::is_regular_file(conf.appstate.value().toBase())) {
+        appstate = json::parse(hstd::readFile(
+            hstd::fs::path{conf.appstate.value().toBase()}));
     }
 
     switch (conf.mode) {
@@ -427,20 +436,20 @@ int main(int argc, char** argv) {
             break;
         }
         case Config::Mode::SemTree: {
-            auto node = sem::parseString(
-                readFile(fs::path{conf.file.front().toBase()}));
+            auto node = org::parseString(hstd::readFile(
+                hstd::fs::path{conf.file.front().toBase()}));
             sem_tree_loop(window, node);
             break;
         }
         case Config::Mode::Outline: {
-            auto node = sem::parseString(
-                readFile(fs::path{conf.file.front().toBase()}));
+            auto node = org::parseString(hstd::readFile(
+                hstd::fs::path{conf.file.front().toBase()}));
             outline_tree_loop(window, node);
             break;
         }
         case Config::Mode::DocEditor: {
-            auto node = sem::parseString(
-                readFile(fs::path{conf.file.front().toBase()}));
+            auto node = org::parseString(hstd::readFile(
+                hstd::fs::path{conf.file.front().toBase()}));
             doc_editor_loop(window, node);
             break;
         }
@@ -469,7 +478,7 @@ int main(int argc, char** argv) {
 
 
             storyGridConf.blockGraphConf.getDefaultLaneMargin =
-                [](int lane) -> Pair<int, int> {
+                [](int lane) -> hstd::Pair<int, int> {
                 if (lane == 0) {
                     return std::make_pair(0, 25);
                 } else {
@@ -497,8 +506,8 @@ int main(int argc, char** argv) {
     }
 
     if (appstate && conf.appstate.has_value()) {
-        writeFile(
-            fs::path{conf.appstate.value().toBase()},
+        hstd::writeFile(
+            hstd::fs::path{conf.appstate.value().toBase()},
             appstate.value().dump(2));
     }
 

@@ -12,20 +12,23 @@
 #include <haxorg/sem/perfetto_org.hpp>
 
 using namespace org;
+using namespace org::imm;
+using namespace hstd;
+using namespace hstd::ext;
 
-struct store_error : CRTP_hexception<store_error> {};
+struct store_error : hstd::CRTP_hexception<store_error> {};
 
 #define _kind(__Kind)                                                     \
     template <>                                                           \
-    ImmAstKindStore<Imm##__Kind> const* ImmAstStore::getStoreImpl()       \
-        const {                                                           \
+    ImmAstKindStore<org::imm::Imm##__Kind> const*                         \
+        ImmAstStore::getStoreImpl() const {                               \
         return &store##__Kind;                                            \
     }
 EACH_SEM_ORG_KIND(_kind)
 #undef _kind
 
 
-ImmAstReplace org::setSubnodes(
+ImmAstReplace org::imm::setSubnodes(
     ImmAdapter         target,
     ImmVec<ImmId>      subnodes,
     ImmAstEditContext& ctx) {
@@ -42,7 +45,7 @@ ImmAstReplace org::setSubnodes(
 }
 
 
-template <org::IsImmOrgValueType T>
+template <org::imm::IsImmOrgValueType T>
 ImmAstReplace ImmAstStore::setNode(
     const ImmAdapter&  target,
     const T&           value,
@@ -103,13 +106,13 @@ ImmAstReplace ImmAstStore::setNode(
 
 /// \brief Reflection path in the parent node, and the subnode that needs
 /// to be assigned to the specified place.
-using SubnodeAssignTarget = Pair<org::ImmReflPathBase, ImmId>;
+using SubnodeAssignTarget = Pair<org::imm::ImmReflPathBase, ImmId>;
 /// \brief Group of subnode values to assign to the given path in the
 /// parent node.
 using SubnodeVecAssignPair = Pair<
-    org::ImmReflPathBase,
+    org::imm::ImmReflPathBase,
     Vec<SubnodeAssignTarget>>;
-using SubnodeAssignGroup = Vec<SubnodeVecAssignPair>;
+using SubnodeAssignGroup = hstd::Vec<SubnodeVecAssignPair>;
 
 /// \brief Group a flat list of subnode updates into assignment group so
 /// that changes on the same field would be grouped together.
@@ -139,7 +142,8 @@ SubnodeAssignGroup groupUpdatedSubnodes(
               return std::make_pair(
                   path,
                   group
-                      | rs::to<Vec<Pair<org::ImmReflPathBase, ImmId>>>());
+                      | rs::to<
+                          Vec<Pair<org::imm::ImmReflPathBase, ImmId>>>());
           })
         | rs::to<SubnodeAssignGroup>();
 
@@ -182,7 +186,7 @@ ImmAstReplace setNewSubnodes(
                             function);
                     };
 
-                ReflVisitor<K, org::ImmReflPathTag>::visit(
+                ReflVisitor<K, org::imm::ImmReflPathTag>::visit(
                     node,
                     field,
                     // All field types are explicitly handled in the
@@ -192,8 +196,8 @@ ImmAstReplace setNewSubnodes(
                         // assignment to subnodes only works for fields
                         // that contain IDs.
                         // clang-format off
-                        [&]<IsVariant V>(V const&) { fail_field(); },
-                        [&]<IsEnum E>(E const&) { fail_field(); },
+                        [&]<hstd::IsVariant V>(V const&) { fail_field(); },
+                        [&]<hstd::IsEnum E>(E const&) { fail_field(); },
                         [&](ImmBox<Opt<int>> const&) { fail_field(); },
                         [&](ImmBox<int> const&) { fail_field(); },
                         [&](ImmBox<Opt<bool>> const&) { fail_field(); },
@@ -208,11 +212,11 @@ ImmAstReplace setNewSubnodes(
                         [&](ImmBox<sem::Tblfm> const&) { fail_field(); },
                         [&](ImmBox<sem::Tblfm::Assign::Flag> const&) { fail_field(); },
                         [&](ImmBox<Opt<Str>> const&) { fail_field(); },
-                        [&](LineCol const&) { fail_field(); },
-                        [&](Opt<LineCol> const&) { fail_field(); },
+                        [&](org::parse::LineCol const&) { fail_field(); },
+                        [&](hstd::Opt<org::parse::LineCol> const&) { fail_field(); },
                         [&](ImmBox<Str> const&) { fail_field(); },
                         [&](ImmVec<Str> const&) { fail_field(); },
-                        [&](ImmVec<org::ImmSymbol::Param> const&) { fail_field(); },
+                        [&](ImmVec<org::imm::ImmSymbol::Param> const&) { fail_field(); },
                         [&](ImmVec<sem::BlockCodeSwitch> const&) { fail_field(); },
                         [&](ImmVec<sem::BlockCodeLine> const&) { fail_field(); },
                         [&](ImmVec<sem::NamedProperty> const&) { fail_field(); },
@@ -224,14 +228,15 @@ ImmAstReplace setNewSubnodes(
                         [&](sem::SubtreeLogHead const&) { fail_field(); },
                         // clang-format on
                         [&]<typename FK>(
-                            ImmBox<Opt<org::ImmIdT<FK>>> const& f) {
+                            ImmBox<hstd::Opt<org::imm::ImmIdT<FK>>> const&
+                                f) {
                             LOGIC_ASSERTION_CHECK(
                                 fieldGroup.second.size() == 1,
                                 "Assignment to single field cannot have "
                                 "multiple values");
                             mut_cast(f) = fieldGroup.second.at(0).second;
                         },
-                        [&]<typename FK>(org::ImmIdT<FK> const& f) {
+                        [&]<typename FK>(org::imm::ImmIdT<FK> const& f) {
                             LOGIC_ASSERTION_CHECK(
                                 fieldGroup.second.size() == 1,
                                 "Assignment to single field cannot have "
@@ -241,7 +246,7 @@ ImmAstReplace setNewSubnodes(
                         [&]<typename FK>(ImmVec<ImmIdT<FK>> const& f) {
                             // <<vector_field_assignment>> overwrite the
                             // node fields with a new value.
-                            Vec<ImmIdT<FK>> convKinds;
+                            hstd::Vec<ImmIdT<FK>> convKinds;
                             for (auto const& it : fieldGroup.second) {
                                 convKinds.push_back(it.second.as<FK>());
                             }
@@ -249,7 +254,7 @@ ImmAstReplace setNewSubnodes(
                                 convKinds.begin(), convKinds.end()};
                         },
                         [&](ImmVec<ImmId> const& f) {
-                            Vec<ImmId> convKinds;
+                            hstd::Vec<ImmId> convKinds;
                             for (auto const& it : fieldGroup.second) {
                                 convKinds.push_back(it.second);
                             }
@@ -259,7 +264,7 @@ ImmAstReplace setNewSubnodes(
                             };
                         },
                         [&]<typename FK>(
-                            ImmMap<Str, org::ImmIdT<FK>> const& f) {
+                            ImmMap<Str, org::imm::ImmIdT<FK>> const& f) {
                             auto transient = f.transient();
                             for (auto const& key : fieldGroup.second) {
                                 transient.set(
@@ -385,8 +390,9 @@ ImmId recurseUpdateSubnodes(
         // of subnodes.
         auto targetSubnodes //
             = own_view(updateTarget.getAllSubnodes(std::nullopt))
-            | rv::transform(
-                  [](org::ImmAdapter const& it) -> ImmId { return it.id; })
+            | rv::transform([](org::imm::ImmAdapter const& it) -> ImmId {
+                  return it.id;
+              })
             | rs::to<Vec>();
         if (flatUpdatedSubnodes == targetSubnodes) {
             AST_EDIT_MSG(
@@ -449,10 +455,10 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
 
 ImmId ImmAstStore::add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx) {
     __perf_trace("imm", "ImmAstStore::Add", "kind", fmt1(data->getKind()));
-    org::ImmId result = org::ImmId::Nil();
+    org::imm::ImmId result = org::imm::ImmId::Nil();
     switch_node_kind(
-        org::ImmId{data->getKind(), 0},
-        [&]<typename K>(org::ImmIdT<K> id) {
+        org::imm::ImmId{data->getKind(), 0},
+        [&]<typename K>(org::imm::ImmIdT<K> id) {
             result = getStore<K>()->add(data, ctx);
         });
     auto adapter = ctx->adapt(ImmUniqId{result});
@@ -464,7 +470,7 @@ ImmId ImmAstStore::add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx) {
 
 sem::SemId<sem::Org> ImmAstStore::get(ImmId id, const ImmAstContext& ctx) {
     sem::SemId<sem::Org> result;
-    switch_node_kind(id, [&]<typename K>(org::ImmIdT<K> id) {
+    switch_node_kind(id, [&]<typename K>(org::imm::ImmIdT<K> id) {
         result = getStore<K>()->get(id, ctx);
     });
 
@@ -481,7 +487,7 @@ const ImmOrg* ImmAstContext::at(ImmId id) const {
 ImmId ImmAstContext::at(ImmId node, const ImmPathStep& item) const {
     node.assertValid();
     if (item.path.isSingle() && item.path.first().isIndex()) {
-        return value<org::ImmOrg>(node).subnodes.at(
+        return value<org::imm::ImmOrg>(node).subnodes.at(
             item.path.first().getIndex().index);
     } else {
         Opt<ImmId> result;
@@ -516,7 +522,7 @@ ImmId ImmAstContext::at(const ImmPath& item) const {
     return result;
 }
 
-template <org::IsImmOrgValueType T>
+template <org::imm::IsImmOrgValueType T>
 void ImmAstKindStore<T>::format(
     ColStream&         os,
     const std::string& linePrefix) const {
@@ -557,16 +563,17 @@ void ImmAstContext::format(ColStream& os, const std::string& prefix)
 }
 
 ImmAdapter ImmAstContext::adapt(const ImmUniqId& id) const {
-    return org::ImmAdapter{id, mweak_from_this()};
+    return org::imm::ImmAdapter{id, mweak_from_this()};
 }
 
 ImmAdapter ImmAstContext::adaptUnrooted(const ImmId& id) const {
-    return org::ImmAdapter{org::ImmUniqId{id, {}}, mweak_from_this()};
+    return org::imm::ImmAdapter{
+        org::imm::ImmUniqId{id, {}}, mweak_from_this()};
 }
 
 
 ImmAstVersion ImmAstContext::getEditVersion(
-    const org::ImmAdapter&                                           root,
+    const org::imm::ImmAdapter&                                      root,
     Func<ImmAstReplaceGroup(ImmAstContext::Ptr, ImmAstEditContext&)> cb) {
     auto ctx     = getEditContext();
     auto replace = cb(shared_from_this(), ctx);
@@ -622,7 +629,7 @@ struct SerdeDefaultProvider<sem::SubtreeLogHead::Priority> {
 };
 
 using SemId_t = sem::SemId<sem::Org>;
-using ImmId_t = org::ImmId;
+using ImmId_t = org::imm::ImmId;
 
 
 template <typename Sem, typename Imm>
@@ -643,8 +650,8 @@ struct ImmSemSerde<SemId_t, ImmId_t> {
 };
 
 template <typename SemType, typename ImmType>
-struct ImmSemSerde<sem::SemId<SemType>, org::ImmIdT<ImmType>> {
-    static org::ImmIdT<ImmType> to_immer(
+struct ImmSemSerde<sem::SemId<SemType>, org::imm::ImmIdT<ImmType>> {
+    static org::imm::ImmIdT<ImmType> to_immer(
         sem::SemId<SemType> const& id,
         ImmAstEditContext&         ctx) {
         return ctx.ctx.lock()
@@ -653,8 +660,8 @@ struct ImmSemSerde<sem::SemId<SemType>, org::ImmIdT<ImmType>> {
     }
 
     static sem::SemId<SemType> from_immer(
-        org::ImmIdT<ImmType> const& id,
-        ImmAstContext const&        ctx) {
+        org::imm::ImmIdT<ImmType> const& id,
+        ImmAstContext const&             ctx) {
         return ctx.store->get(id, ctx).template as<SemType>();
     }
 };
@@ -838,7 +845,7 @@ __same_type(sem::SubtreeCompletion);
 __same_type(sem::HashTagText);
 __same_type(sem::SubtreeLogHead);
 __same_type(sem::SubtreePath);
-__same_type(LineCol);
+__same_type(org::parse::LineCol);
 
 
 template <typename SemType, typename ImmType>
@@ -876,14 +883,14 @@ void assign_sem_field(
 
 #include "ImmOrgSerde.tcc"
 
-ImmId org::immer_from_sem(
+ImmId imm::immer_from_sem(
     const sem::SemId<sem::Org>& id,
     ImmAstEditContext&          ctx) {
     return ImmSemSerde<SemId_t, ImmId_t>::to_immer(id, ctx);
 }
 
 
-sem::SemId<sem::Org> org::sem_from_immer(
+sem::SemId<sem::Org> imm::sem_from_immer(
     const ImmId&         id,
     const ImmAstContext& ctx) {
     return ImmSemSerde<SemId_t, ImmId_t>::from_immer(id, ctx);
@@ -894,8 +901,8 @@ sem::SemId<sem::Org> ImmAstContext::get(ImmId id) {
     return store->get(id, *this);
 }
 
-template <org::IsImmOrgValueType ImmType>
-ImmId_t org::ImmAstKindStore<ImmType>::add(
+template <IsImmOrgValueType ImmType>
+ImmId_t imm::ImmAstKindStore<ImmType>::add(
     SemId_t            data,
     ImmAstEditContext& ctx) {
 
@@ -916,7 +923,7 @@ ImmId_t org::ImmAstKindStore<ImmType>::add(
     return add(value, ctx);
 }
 
-template <org::IsImmOrgValueType T>
+template <IsImmOrgValueType T>
 ImmId ImmAstKindStore<T>::add(const T& value, ImmAstEditContext& ctx) {
     auto  mask   = ImmId::combineMask(T::staticKind);
     ImmId result = values.add(value, mask);
@@ -937,7 +944,7 @@ mask:              {:064b}
 }
 
 
-template <org::IsImmOrgValueType T>
+template <IsImmOrgValueType T>
 sem::SemId<sem::Org> ImmAstKindStore<T>::get(
     ImmId                id,
     const ImmAstContext& ctx) {
@@ -955,7 +962,7 @@ sem::SemId<sem::Org> ImmAstKindStore<T>::get(
 
 
 #define forward_declare(__Kind)                                           \
-    template class org::ImmAstKindStore<org::Imm##__Kind>;
+    template class org::imm::ImmAstKindStore<org::imm::Imm##__Kind>;
 
 EACH_SEM_ORG_KIND(forward_declare)
 #undef forward_declare

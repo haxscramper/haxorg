@@ -5,31 +5,31 @@
 #include <haxorg/parse/OrgParser.hpp>
 #include <haxorg/parse/OrgSpec.hpp>
 
-namespace sem {
-struct OrgConverter : public OperationsTracer {
+namespace org::sem {
+struct OrgConverter : public hstd::OperationsTracer {
     using Up = SemId<Org>;
-    using In = OrgAdapter;
+    using In = parse::OrgAdapter;
 
   public:
     struct Errors {
         struct Base : std::exception {
-            Opt<LineCol>    loc;
-            Opt<OrgAdapter> adapter;
-            Opt<Org*>       node;
+            hstd::Opt<parse::LineCol>    loc;
+            hstd::Opt<parse::OrgAdapter> adapter;
+            hstd::Opt<Org*>              node;
             Base(
-                Opt<LineCol>    loc     = std::nullopt,
-                Opt<OrgAdapter> adapter = std::nullopt,
-                Opt<Org*>       node    = std::nullopt)
+                hstd::Opt<parse::LineCol>    loc     = std::nullopt,
+                hstd::Opt<parse::OrgAdapter> adapter = std::nullopt,
+                hstd::Opt<Org*>              node    = std::nullopt)
                 : loc(loc), adapter(adapter), node(node) {}
 
 
             std::string getLocMsg() const {
-                return "$#:$# (pos $#)"
-                     % to_string_vec(
-                           loc ? loc->line : -1,
-                           loc ? loc->column : -1,
-                           adapter ? fmt1(adapter->id.getIndex())
-                                   : fmt1("<none>"));
+                return hstd::fmt(
+                    "{}:{} (pos {})",
+                    loc ? loc->line : -1,
+                    loc ? loc->column : -1,
+                    adapter ? hstd::fmt1(adapter->id.getIndex())
+                            : hstd::fmt1("<none>"));
             }
         };
 
@@ -39,44 +39,48 @@ struct OrgConverter : public OperationsTracer {
             OrgNodeKind kind;
             UnhandledKind(OrgNodeKind kind) : kind(kind) {}
             const char* what() const noexcept override {
-                return strdup(
-                    "Unexpected kind $# at $#"
-                    % to_string_vec(kind, getLocMsg()));
+                return hstd::strdup(hstd::fmt(
+                    "Unexpected kind {} at {}", kind, getLocMsg()));
             };
         };
     };
 
-    using Error = Variant<Errors::None, Errors::UnhandledKind>;
+    using Error = hstd::Variant<Errors::None, Errors::UnhandledKind>;
 
 
     struct ConvertError : std::exception {
         Error err;
         ConvertError() : err(Errors::None()) {}
-        explicit ConvertError(CR<Error> err) : err(err) {}
+        explicit ConvertError(Error const& err) : err(err) {}
         const char* what() const noexcept override {
             return std::visit(
                 [](auto const& in) { return in.what(); }, err);
         }
-        void setLoc(CR<LineCol> loc) {
+        void setLoc(org::parse::LineCol const& loc) {
             std::visit([&loc](auto& in) { in.loc = loc; }, err);
         }
 
-        void setAdapter(CR<OrgAdapter> adapter) {
+        void setAdapter(org::parse::OrgAdapter const& adapter) {
             std::visit(
                 [&adapter](auto& in) { in.adapter = adapter; }, err);
         }
 
 
-        Opt<OrgAdapter> getAdapter() const {
+        hstd::Opt<org::parse::OrgAdapter> getAdapter() const {
             return std::visit(
-                [](auto& in) -> Opt<OrgAdapter> { return in.adapter; },
+                [](auto& in) -> hstd::Opt<org::parse::OrgAdapter> {
+                    return in.adapter;
+                },
                 err);
         }
     };
 
-    ConvertError wrapError(CR<Error> err, CR<OrgAdapter> adapter);
-    Opt<LineCol> getLoc(CR<OrgAdapter> adapter);
-    std::string  getLocMsg(CR<OrgAdapter> adapter);
+    ConvertError wrapError(
+        Error const&                  err,
+        org::parse::OrgAdapter const& adapter);
+    hstd::Opt<org::parse::LineCol> getLoc(
+        org::parse::OrgAdapter const& adapter);
+    std::string getLocMsg(org::parse::OrgAdapter const& adapter);
 
   public:
     enum class ReportKind
@@ -89,30 +93,34 @@ struct OrgConverter : public OperationsTracer {
         Print,
     };
 
-    struct Report : OperationsMsg {
-        ReportKind       kind;
-        Opt<OrgAdapter>  node;
-        Opt<OrgSpecName> field;
-        SemId<Org>       semResult = SemId<Org>::Nil();
+    struct Report : hstd::OperationsMsg {
+        ReportKind                   kind;
+        hstd::Opt<parse::OrgAdapter> node;
+        hstd::Opt<OrgSpecName>       field;
+        SemId<Org>                   semResult = SemId<Org>::Nil();
     };
 
     int  depth = 0;
-    void report(CR<Report> in);
+    void report(Report const& in);
 
   public:
-    UPtr<OrgSpec> spec;
-    Opt<int>      documentId = std::nullopt;
+    hstd::UPtr<OrgSpec> spec;
+    hstd::Opt<int>      documentId = std::nullopt;
 
-    OrgConverter(Opt<int> documentId = std::nullopt)
+    OrgConverter(hstd::Opt<int> documentId = std::nullopt)
         : documentId(documentId) {
         spec = getOrgSpec();
     }
 
-    OrgAdapter one(OrgAdapter node, OrgSpecName name) {
+    org::parse::OrgAdapter one(
+        org::parse::OrgAdapter node,
+        OrgSpecName            name) {
         return spec->getSingleSubnode(node, name);
     }
 
-    Vec<OrgAdapter> many(OrgAdapter node, OrgSpecName name) {
+    hstd::Vec<org::parse::OrgAdapter> many(
+        org::parse::OrgAdapter node,
+        OrgSpecName            name) {
         return spec->getMultipleSubnode(node, name);
     }
 
@@ -129,11 +137,11 @@ struct OrgConverter : public OperationsTracer {
         SUB_VARIANTS(Kind, Data, data, getKind, Node, Error);
         Data data;
 
-        Opt<SemId<ErrorGroup>> optError() const {
+        hstd::Opt<SemId<ErrorGroup>> optError() const {
             return isError() ? std::make_optional(error()) : std::nullopt;
         }
 
-        Opt<SemId<T>> optNode() const {
+        hstd::Opt<SemId<T>> optNode() const {
             return isNode() ? std::make_optional(value()) : std::nullopt;
         }
 
@@ -151,13 +159,15 @@ struct OrgConverter : public OperationsTracer {
     };
 
   public:
-    Opt<SemId<ErrorGroup>> convertPropertyList(SemId<Subtree>&, In);
-    Opt<SemId<ErrorGroup>> convertSubtreeDrawer(SemId<Subtree>&, In);
-    Vec<ConvResult<Org>>   flatConvertAttached(Vec<In> items);
-    Vec<ConvResult<Org>>   flatConvertAttachedSubnodes(In item);
+    hstd::Opt<SemId<ErrorGroup>> convertPropertyList(SemId<Subtree>&, In);
+    hstd::Opt<SemId<ErrorGroup>> convertSubtreeDrawer(SemId<Subtree>&, In);
+    hstd::Vec<ConvResult<Org>>   flatConvertAttached(hstd::Vec<In> items);
+    hstd::Vec<ConvResult<Org>>   flatConvertAttachedSubnodes(In item);
 
     ConvResult<BlockDynamicFallback> convertBlockDynamicFallback(In);
-    void convertDocumentOptions(SemId<DocumentOptions> opts, OrgAdapter a);
+    void                             convertDocumentOptions(
+                                    SemId<DocumentOptions> opts,
+                                    parse::OrgAdapter      a);
 
     ConvResult<Table>           convertTable(In);
     ConvResult<HashTag>         convertHashTag(In);
@@ -211,7 +221,7 @@ struct OrgConverter : public OperationsTracer {
     ConvResult<CmdName>         convertCmdName(In);
     ConvResult<InlineExport>    convertInlineExport(In);
 
-    sem::AttrGroup convertCallArguments(CVec<In>, In source);
+    sem::AttrGroup convertCallArguments(hstd::CVec<In>, In source);
     sem::AttrValue convertAttr(In);
     sem::AttrGroup convertAttrs(In);
 
@@ -242,38 +252,38 @@ struct OrgConverter : public OperationsTracer {
     }
 
     SemId<ErrorItem> SemErrorItem(
-        In          adapter,
-        CR<Str>     message,
-        int         line     = __builtin_LINE(),
-        char const* function = __builtin_FUNCTION());
+        In               adapter,
+        hstd::Str const& message,
+        int              line     = __builtin_LINE(),
+        char const*      function = __builtin_FUNCTION());
 
     SemId<ErrorGroup> SemError(
-        In          adapter,
-        CR<Str>     message,
-        int         line     = __builtin_LINE(),
-        char const* function = __builtin_FUNCTION());
+        In               adapter,
+        hstd::Str const& message,
+        int              line     = __builtin_LINE(),
+        char const*      function = __builtin_FUNCTION());
 
     SemId<ErrorGroup> SemError(
-        In                    adapter,
-        Vec<SemId<ErrorItem>> errors   = {},
-        int                   line     = __builtin_LINE(),
-        char const*           function = __builtin_FUNCTION());
+        In                          adapter,
+        hstd::Vec<SemId<ErrorItem>> errors   = {},
+        int                         line     = __builtin_LINE(),
+        char const*                 function = __builtin_FUNCTION());
 
     SemId<Org>      convert(In);
-    SemId<Document> toDocument(OrgAdapter tree);
+    SemId<Document> toDocument(org::parse::OrgAdapter tree);
 
-    finally_std trace(
-        Opt<In>     adapter,
-        Opt<Str>    subname  = std::nullopt,
-        int         line     = __builtin_LINE(),
-        char const* function = __builtin_FUNCTION());
+    hstd::finally_std trace(
+        hstd::Opt<In>        adapter,
+        hstd::Opt<hstd::Str> subname  = std::nullopt,
+        int                  line     = __builtin_LINE(),
+        char const*          function = __builtin_FUNCTION());
 
-    finally_std field(
-        OrgSpecName name,
-        In          adapter,
-        Opt<Str>    subname  = std::nullopt,
-        int         line     = __builtin_LINE(),
-        char const* function = __builtin_FUNCTION());
+    hstd::finally_std field(
+        OrgSpecName          name,
+        In                   adapter,
+        hstd::Opt<hstd::Str> subname  = std::nullopt,
+        int                  line     = __builtin_LINE(),
+        char const*          function = __builtin_FUNCTION());
 
     void print_json(
         SemId<sem::Org> semResult,
@@ -285,4 +295,4 @@ struct OrgConverter : public OperationsTracer {
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION());
 };
-}; // namespace sem
+}; // namespace org::sem

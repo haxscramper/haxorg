@@ -6,25 +6,27 @@
 #include <haxorg/sem/SemBaseApi.hpp>
 #include <haxorg/sem/SemOrgFormat.hpp>
 
+using namespace hstd;
+
 
 struct DocEditVars : public ImTestVarsBase {
-    org::ImmAstContext::Ptr ctx;
-    DocBlockModel           model;
-    EditableOrgDocGroup     docs;
-    DocBlockConfig          conf;
-    DocRootId               root_idx = DocRootId::Nil();
+    org::imm::ImmAstContext::Ptr ctx;
+    DocBlockModel                model;
+    EditableOrgDocGroup          docs;
+    DocBlockConfig               conf;
+    DocRootId                    root_idx = DocRootId::Nil();
 
     DocEditVars()
-        : ctx{org::ImmAstContext::init_start_context()}, docs{ctx} {}
+        : ctx{org::imm::ImmAstContext::init_start_context()}, docs{ctx} {}
 
     Str get_text() {
-        auto sem = org::sem_from_immer(
+        auto sem = org::imm::sem_from_immer(
             docs.getCurrentRoot(root_idx).id, *docs.getContext());
-        return sem::Formatter::format(sem);
+        return org::algo::Formatter::format(sem);
     }
 
     void add_text(std::string const& text) {
-        root_idx = docs.addRoot(sem::parseString(text));
+        root_idx = docs.addRoot(org::parseString(text));
         model.syncFull(docs.getCurrentRoot(root_idx), conf);
     }
 

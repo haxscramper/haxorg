@@ -2,6 +2,9 @@
 #include <gtest/gtest.h>
 #include <hstd/stdlib/dod_base.hpp>
 #include <bitset>
+
+using namespace hstd;
+
 struct IdMask2;
 struct IdMask2Value {
     using id_type = IdMask2;

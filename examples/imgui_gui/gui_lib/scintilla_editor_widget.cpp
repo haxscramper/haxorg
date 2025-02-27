@@ -70,6 +70,8 @@ using CharacterCategoryMap = Lexilla::CharacterCategoryMap;
     ::org_logging::log_builder{}.set_callsite().category(__cat).severity( \
         __severity)
 
+using namespace hstd;
+
 const Vec<Str> scintilla_logging_scope{
     "gui",
     "widget",

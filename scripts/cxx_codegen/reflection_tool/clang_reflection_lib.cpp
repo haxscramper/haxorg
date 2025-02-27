@@ -171,7 +171,7 @@ void ReflASTVisitor::applyNamespaces(
          i < std::max(newNamespaces.size(), oldNamespaces.size());
          ++i) {
         if (i < newNamespaces.size() && i < oldNamespaces.size()) {
-            QualType const* _old = oldNamespaces.at(i);
+            QualType*       _old = oldNamespaces.at(i);
             QualType const* _new = newNamespaces.at(i);
             if (_old->name() != _new->name()) {
                 llvm::outs() << std::format(
@@ -182,6 +182,7 @@ void ReflASTVisitor::applyNamespaces(
                     _old->dbgorigin(),
                     _new->name(),
                     _new->dbgorigin());
+                _old->set_name(_new->name());
             }
 
 
@@ -198,8 +199,13 @@ void ReflASTVisitor::applyNamespaces(
 
             auto space = Out->add_spaces();
             space->set_isnamespace(true);
-            add_debug(space, newSpace.dbgorigin()),
-                space->set_name(newSpace.name());
+            add_debug(
+                space,
+                std::format(
+                    "Apply namespace '{}' @[{}]",
+                    newSpace.dbgorigin(),
+                    i));
+            space->set_name(newSpace.name());
             // TODO Fill namespace parameters
         }
     }
@@ -236,21 +242,30 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
     c::DeclContext*       dc = Decl->getDeclContext();
     std::vector<QualType> result;
 
+    int namespaceIndex = 0;
+
     while (dc) {
         if (c::NamespaceDecl* nns = dyn_cast<c::NamespaceDecl>(dc)) {
             if (!nns->isAnonymousNamespace()
                 && !nns->isInlineNamespace()) {
                 auto space = &result.emplace_back();
-                add_debug(space, "regular type namespaces");
+                add_debug(
+                    space,
+                    std::format(
+                        "regular type namespaces @[{}]", namespaceIndex));
                 space->set_name(nns->getNameAsString());
                 space->set_isnamespace(true);
+                ++namespaceIndex;
             }
         } else if (
             c::CXXRecordDecl* rec = dyn_cast<c::CXXRecordDecl>(dc)) {
             auto space = &result.emplace_back();
-            add_debug(space, "type namespace");
+            add_debug(
+                space,
+                std::format("type namespace @[{}]", namespaceIndex));
             space->set_name(rec->getNameAsString());
             space->set_isnamespace(false);
+            ++namespaceIndex;
         } else if (dyn_cast<c::TranslationUnitDecl>(dc)) {
         } else {
             errs() << dc->getDeclKindName() << "\n";
@@ -337,7 +352,7 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
                     space->set_name(record->getNameAsString());
                     auto spaces = getNamespaces(record, Loc);
                     result.insert(
-                        result.end(), spaces.begin(), spaces.end());
+                        result.begin(), spaces.begin(), spaces.end());
                     break;
                 }
 

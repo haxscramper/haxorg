@@ -20,6 +20,7 @@
 #include <hstd/stdlib/Variant.hpp>
 
 using namespace ir;
+using namespace hstd;
 
 int get_nesting(CR<Str> line) {
     int result = 0;

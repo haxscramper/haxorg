@@ -7,6 +7,9 @@
 #include <haxorg/sem/SemBaseApi.hpp>
 #include <boost/algorithm/string.hpp>
 
+using namespace org;
+using namespace hstd;
+
 BOOST_DESCRIBE_ENUM(
     ListFormattingMode,
     None,
@@ -39,8 +42,8 @@ T* getMutHandle(sem::SemId<sem::Org> ptr) {
 }
 
 
-template <org::IsImmOrgValueType T>
-T* getMutHandle(org::ImmAdapterT<T> ptr) {
+template <imm::IsImmOrgValueType T>
+T* getMutHandle(imm::ImmAdapterT<T> ptr) {
     return ptr.get();
 }
 
@@ -55,8 +58,8 @@ T const* getConstHandle(sem::SemId<T> ptr) {
 }
 
 
-template <org::IsImmOrgValueType T>
-T const* getConstHandle(org::ImmAdapterT<T> ptr) {
+template <imm::IsImmOrgValueType T>
+T const* getConstHandle(imm::ImmAdapterT<T> ptr) {
     return ptr.get();
 }
 
@@ -91,16 +94,16 @@ Opt<sem::NamedProperty> subtreeGetPropertyImpl(
 
 
 // clang-format off
-Vec<org::ImmAdapter> getSubnodes(org::ImmAdapter const& t, bool withPath) { return t.sub(withPath); }
+Vec<imm::ImmAdapter> getSubnodes(imm::ImmAdapter const& t, bool withPath) { return t.sub(withPath); }
 template <typename T>
-Vec<org::ImmAdapter> getSubnodes(org::ImmAdapterT<T> const& t, bool withPath) { return t.sub(withPath); }
+Vec<imm::ImmAdapter> getSubnodes(imm::ImmAdapterT<T> const& t, bool withPath) { return t.sub(withPath); }
 template <sem::IsOrg T>
 Vec<sem::SemId<sem::Org>> getSubnodes(sem::SemId<T> const& t, bool withPath) { return t->subnodes; }
 template <sem::IsOrg T>
 Vec<sem::SemId<sem::Org>> getSubnodes(T const* t, bool withPath) { return t->subnodes; }
 // clang-format on
 
-bool is_kind(org::ImmAdapter const& ad, OrgSemKind kind) {
+bool is_kind(imm::ImmAdapter const& ad, OrgSemKind kind) {
     return ad.getKind() == kind;
 }
 
@@ -119,16 +122,16 @@ sem::SemId<Out> org_cast(sem::SemId<In> arg) {
 ///
 /// The target is specified as sem ID, but return type is mapped to imm ID.
 /// This is made for uniform API and more streamlined use on the callsite.
-template <sem::IsOrg Out, org::IsImmOrgValueType In>
-org::ImmAdapterT<typename org::sem_to_imm_map<Out>::imm_type> org_cast(
-    org::ImmAdapterT<In> arg) {
-    return arg.template as<typename org::sem_to_imm_map<Out>::imm_type>();
+template <sem::IsOrg Out, imm::IsImmOrgValueType In>
+imm::ImmAdapterT<typename imm::sem_to_imm_map<Out>::imm_type> org_cast(
+    imm::ImmAdapterT<In> arg) {
+    return arg.template as<typename imm::sem_to_imm_map<Out>::imm_type>();
 }
 
 template <sem::IsOrg Out>
-org::ImmAdapterT<typename org::sem_to_imm_map<Out>::imm_type> org_cast(
-    org::ImmAdapter arg) {
-    return arg.template as<typename org::sem_to_imm_map<Out>::imm_type>();
+imm::ImmAdapterT<typename imm::sem_to_imm_map<Out>::imm_type> org_cast(
+    imm::ImmAdapter arg) {
+    return arg.template as<typename imm::sem_to_imm_map<Out>::imm_type>();
 }
 
 /// brief Helper function to check if value is 'empty' -- used to
@@ -139,9 +142,9 @@ bool isBoolFalse(T const& t) {
 }
 
 /// \brief Convert immer ID to the imm adapter.
-template <org::IsImmOrgValueType T, typename Handle>
-org::ImmAdapterT<T> toHandle(org::ImmIdT<T> id, Handle const& handle) {
-    return org::ImmAdapterT<T>{id, handle.ctx, {}};
+template <imm::IsImmOrgValueType T, typename Handle>
+imm::ImmAdapterT<T> toHandle(imm::ImmIdT<T> id, Handle const& handle) {
+    return imm::ImmAdapterT<T>{id, handle.ctx, {}};
 }
 
 /// \brief Convert sem ID to the sem ID -- identity function.
@@ -151,9 +154,9 @@ sem::SemId<T> toHandle(sem::SemId<T> id, Handle const& handle) {
 }
 
 /// \brief Convert optional imm ID to optional adapter
-template <org::IsImmOrgValueType T, typename Handle>
-Opt<org::ImmAdapterT<T>> toHandle(
-    Opt<org::ImmIdT<T>> id,
+template <imm::IsImmOrgValueType T, typename Handle>
+Opt<imm::ImmAdapterT<T>> toHandle(
+    Opt<imm::ImmIdT<T>> id,
     Handle const&       handle) {
     if (id) {
         return toHandle(id.value(), handle);
@@ -162,23 +165,23 @@ Opt<org::ImmAdapterT<T>> toHandle(
     }
 }
 
-template <org::IsImmOrgValueType T, typename Handle>
-org::ImmAdapterT<T> toHandle(
-    org::ImmAdapterT<T> id,
+template <imm::IsImmOrgValueType T, typename Handle>
+imm::ImmAdapterT<T> toHandle(
+    imm::ImmAdapterT<T> id,
     Handle const&       handle) {
     return id;
 }
 
 template <typename Handle>
-org::ImmAdapter toHandle(org::ImmAdapter id, Handle const& handle) {
+imm::ImmAdapter toHandle(imm::ImmAdapter id, Handle const& handle) {
     return id;
 }
 
 /// \brief Convert boxed optional imm ID to optional adapter
-template <org::IsImmOrgValueType T, typename Handle>
-Opt<org::ImmAdapterT<T>> toHandle(
-    ImmBox<Opt<org::ImmIdT<T>>> id,
-    Handle const&               handle) {
+template <imm::IsImmOrgValueType T, typename Handle>
+Opt<imm::ImmAdapterT<T>> toHandle(
+    hstd::ext::ImmBox<Opt<imm::ImmIdT<T>>> id,
+    Handle const&                          handle) {
     return toHandle(id.get(), handle);
 }
 
@@ -198,8 +201,8 @@ T const& to_api(T const* it) {
     return *it;
 }
 
-template <org::IsImmOrgValueType T>
-org::ImmAdapterT<T> to_api(org::ImmAdapterT<T> it) {
+template <imm::IsImmOrgValueType T>
+imm::ImmAdapterT<T> to_api(imm::ImmAdapterT<T> it) {
     return it;
 }
 
@@ -213,8 +216,8 @@ T const& to_value(T const* it) {
     return *it;
 }
 
-template <org::IsImmOrgValueType T>
-T const& to_value(org::ImmAdapterT<T> it) {
+template <imm::IsImmOrgValueType T>
+T const& to_value(imm::ImmAdapterT<T> it) {
     return *it.template dyn_cast<T>();
 }
 
@@ -224,13 +227,13 @@ template <typename T>
 struct get_ast_type {};
 
 template <typename T>
-struct get_ast_type<org::ImmAdapterT<T>> {
+struct get_ast_type<imm::ImmAdapterT<T>> {
     using ast_type = T;
 };
 
 template <>
-struct get_ast_type<org::ImmAdapter> {
-    using ast_type = org::ImmOrg;
+struct get_ast_type<imm::ImmAdapter> {
+    using ast_type = imm::ImmOrg;
 };
 
 
@@ -250,7 +253,7 @@ struct get_ast_type<T*> {
 /// If `T` is a sem type, define nested `result = SemType`, otherwise
 /// define `result = ImmType`.
 template <typename T, typename SemType, typename ImmType>
-    requires sem::IsOrg<T> || org::IsImmOrgValueType<T>
+    requires sem::IsOrg<T> || imm::IsImmOrgValueType<T>
 struct SemOrImmType {};
 
 /// \brief Org type selector specialization to select sem type
@@ -260,7 +263,7 @@ struct SemOrImmType<T, SemType, ImmType> {
 };
 
 /// \brief Org type selector specialization to select immer type
-template <org::IsImmOrgValueType T, typename SemType, typename ImmType>
+template <imm::IsImmOrgValueType T, typename SemType, typename ImmType>
 struct SemOrImmType<T, SemType, ImmType> {
     using result = ImmType;
 };
@@ -269,14 +272,14 @@ template <typename T>
 using SemIdOrImmId = SemOrImmType<
     typename get_ast_type<T>::ast_type,
     sem::SemId<sem::Org>,
-    org::ImmAdapter>::result;
+    imm::ImmAdapter>::result;
 
 template <typename Handle>
 concept IsSemOrgInstance = sem::IsOrg<
     typename get_ast_type<Handle>::ast_type>;
 
 template <typename Handle>
-concept IsImmOrgInstance = org::IsImmOrgValueType<
+concept IsImmOrgInstance = imm::IsImmOrgValueType<
     typename get_ast_type<Handle>::ast_type>;
 
 /// \brief Generic implementation of the subtree period collection --
@@ -310,7 +313,7 @@ Vec<sem::SubtreePeriod> Subtree_getTimePeriodsImpl(
             SubtreePeriod period{};
             // Specifying `sem::Time` in the cast, but returned type also
             // depends on the type of the adapter -- if this is an immer
-            // adapter, the final cast would be to `org::ImmTime`,
+            // adapter, the final cast would be to `imm::ImmTime`,
             period.from = org_cast<sem::Time>(it)->getStatic().time;
             period.kind = SubtreePeriod::Kind::Titled;
             res.push_back(period);
@@ -370,14 +373,14 @@ Vec<sem::SubtreePeriod> Subtree_getTimePeriodsImpl(
     if (kinds.contains(SubtreePeriod::Kind::Clocked)) {
         // Subtree log is an AST type which has nested enum definitions,
         // which are identical in structure, but from the compiler
-        // perspective `org::ImmSubtreeLog::Kind` and
+        // perspective `imm::ImmSubtreeLog::Kind` and
         // `sem::SubtreeLog::Kind` are two different classes. That's why I
         // need to use the type selector here and define the target log
         // type.
         using LogType = SemOrImmType<
             HandleBase,
             sem::SubtreeLog,
-            org::ImmSubtreeLog>::result;
+            imm::ImmSubtreeLog>::result;
 
         for (auto const& logIt : h->logbook) {
             auto const log = toHandle(logIt, handle);
@@ -457,18 +460,18 @@ Opt<Str> Org_getString(Handle const& id) {
         auto w = id->template dyn_cast<typename SemOrImmType<
                      typename get_ast_type<Handle>::ast_type,
                      sem::Leaf,
-                     org::ImmLeaf>::result>()) {
+                     imm::ImmLeaf>::result>()) {
         return w->text;
     } else {
         return std::nullopt;
     }
 }
 
-Vec<org::ImmAdapter> Org_getLeadNodes(
-    org::ImmAdapter const& it,
+Vec<imm::ImmAdapter> Org_getLeadNodes(
+    imm::ImmAdapter const& it,
     OrgSemKind             kind,
     SemSet const&          skip) {
-    Vec<org::ImmAdapter> result;
+    Vec<imm::ImmAdapter> result;
     for (auto const& sub : it.sub()) {
         if (sub->getKind() == kind) {
             result.push_back(sub);
@@ -527,7 +530,7 @@ Vec<Select> Paragraph_dropAdmonitionNodes(Handle handle, bool withPath) {
                     isFootnote = sub.template as<sem::Link>()
                                      ->target.isFootnote();
                 } else {
-                    isFootnote = sub.template as<org::ImmLink>()
+                    isFootnote = sub.template as<imm::ImmLink>()
                                      ->target.isFootnote();
                 }
 
@@ -552,8 +555,8 @@ Vec<Select> Paragraph_dropAdmonitionNodes(Handle handle, bool withPath) {
 }
 
 template <typename T>
-Vec<org::ImmAdapterT<T>> mapNodes(Vec<org::ImmAdapter> const& nodes) {
-    return nodes | rv::transform([](org::ImmAdapter const& id) {
+Vec<imm::ImmAdapterT<T>> mapNodes(Vec<imm::ImmAdapter> const& nodes) {
+    return nodes | rv::transform([](imm::ImmAdapter const& id) {
                return id.as<T>();
            })
          | rs::to<Vec>();
@@ -610,7 +613,7 @@ auto Stmt_getAttached(Handle handle, CR<Opt<Str>> kind) {
     using Select = SemOrImmType<
         typename get_ast_type<Handle>::ast_type,
         sem::SemId<sem::Org>,
-        org::ImmAdapter>;
+        imm::ImmAdapter>;
 
     Vec<typename Select::result> result;
     auto                         h = getConstHandle(handle);
@@ -789,7 +792,7 @@ template <
     typename... Args>
 void CallDynamicOrgMethod(ThisType thisType, Func func, Args&&... args) {
     thisType->visitNodeAdapter(overloaded{
-        [&]<typename Kind>(org::ImmAdapterT<Kind> const& cast)
+        [&]<typename Kind>(imm::ImmAdapterT<Kind> const& cast)
             requires std::derived_from<Kind, CastType>
         {
             auto dyn = cast.template dyn_cast<CastType>();
@@ -801,7 +804,7 @@ void CallDynamicOrgMethod(ThisType thisType, Func func, Args&&... args) {
                 *thisType);
             std::invoke(func, cast, std::forward<Args>(args)...);
         },
-        [&]<typename Kind>(org::ImmAdapterT<Kind> const& cast) {
+        [&]<typename Kind>(imm::ImmAdapterT<Kind> const& cast) {
             LOGIC_ASSERTION_CHECK(
                 false,
                 "Statement adapter must hold an ID for the value type "
@@ -815,80 +818,80 @@ void CallDynamicOrgMethod(ThisType thisType, Func func, Args&&... args) {
 
 // clang-format off
 
-Vec<org::ImmAdapter> org::ImmAdapterStmtAPI::getCaption() const {
-    Vec<org::ImmAdapter> result;
-    CallDynamicOrgMethod<org::ImmStmt>(getThis(), [&](auto const &a1) { result = Stmt_getCaption(a1); });
+Vec<imm::ImmAdapter> imm::ImmAdapterStmtAPI::getCaption() const {
+    Vec<imm::ImmAdapter> result;
+    CallDynamicOrgMethod<imm::ImmStmt>(getThis(), [&](auto const &a1) { result = Stmt_getCaption(a1); });
     return result;
 }
 
-Vec<Str> org::ImmAdapterStmtAPI::getName() const {
+Vec<Str> imm::ImmAdapterStmtAPI::getName() const {
     Vec<Str> result;
-    CallDynamicOrgMethod<org::ImmStmt>(getThis(), [&](auto const &a1) { result = Stmt_getName(a1); });
+    CallDynamicOrgMethod<imm::ImmStmt>(getThis(), [&](auto const &a1) { result = Stmt_getName(a1); });
     return result;
 }
 
-Vec<org::ImmAdapter> org::ImmAdapterStmtAPI::getAttached(Opt<Str> const& kind) const {
-    Vec<org::ImmAdapter> result;
-    CallDynamicOrgMethod<org::ImmStmt>(getThis(), [&](auto const &a1, auto const &a2) { result = Stmt_getAttached(a1, a2); }, kind);
+Vec<imm::ImmAdapter> imm::ImmAdapterStmtAPI::getAttached(Opt<Str> const& kind) const {
+    Vec<imm::ImmAdapter> result;
+    CallDynamicOrgMethod<imm::ImmStmt>(getThis(), [&](auto const &a1, auto const &a2) { result = Stmt_getAttached(a1, a2); }, kind);
     return result;
 }
 
-Str const& org::ImmAdapterLeafAPI::getText() const {
+Str const& imm::ImmAdapterLeafAPI::getText() const {
     Str const* result;
-    CallDynamicOrgMethod<org::ImmLeaf>(getThis(), [&](auto const &a1) { result = &a1->text.get(); });
+    CallDynamicOrgMethod<imm::ImmLeaf>(getThis(), [&](auto const &a1) { result = &a1->text.get(); });
     return *result;
 }
 
-Opt<sem::AttrValue> org::ImmAdapterStmtAPI::getFirstAttr(Str const& param) const {
+Opt<sem::AttrValue> imm::ImmAdapterStmtAPI::getFirstAttr(Str const& param) const {
   Opt<sem::AttrValue> result;
-  CallDynamicOrgMethod<org::ImmStmt>(getThis(), [&](auto const &a1, auto const &a2) { result = Stmt_getFirstAttr(a1, a2); }, param);
+  CallDynamicOrgMethod<imm::ImmStmt>(getThis(), [&](auto const &a1, auto const &a2) { result = Stmt_getFirstAttr(a1, a2); }, param);
   return result;
 }
 
-Vec<sem::AttrValue> org::ImmAdapterStmtAPI::getAttrs(CR<Opt<Str>> param) const {
+Vec<sem::AttrValue> imm::ImmAdapterStmtAPI::getAttrs(CR<Opt<Str>> param) const {
   Vec<sem::AttrValue> result;
-  CallDynamicOrgMethod<org::ImmStmt>(getThis(), [&](auto const &a1, auto const &a2) { result = Stmt_getAttrs(a1, a2); }, param);
+  CallDynamicOrgMethod<imm::ImmStmt>(getThis(), [&](auto const &a1, auto const &a2) { result = Stmt_getAttrs(a1, a2); }, param);
   return result;
 }
 
-Vec<sem::AttrValue> org::ImmAdapterCmdAPI::getAttrs(CR<Opt<Str>> param) const {
+Vec<sem::AttrValue> imm::ImmAdapterCmdAPI::getAttrs(CR<Opt<Str>> param) const {
   Vec<sem::AttrValue> result;
-  CallDynamicOrgMethod<org::ImmCmd>(getThis(), [&](auto const &a1, auto const &a2) { result = Cmd_getAttrs(a1, a2); }, param);
+  CallDynamicOrgMethod<imm::ImmCmd>(getThis(), [&](auto const &a1, auto const &a2) { result = Cmd_getAttrs(a1, a2); }, param);
   return result;
 }
 
-Opt<sem::AttrValue> org::ImmAdapterCmdAPI::getFirstAttr(Str const& param) const {
+Opt<sem::AttrValue> imm::ImmAdapterCmdAPI::getFirstAttr(Str const& param) const {
   Opt<sem::AttrValue> result;
-  CallDynamicOrgMethod<org::ImmCmd>(getThis(), [&](auto const &a1, auto const &a2) { result = Cmd_getFirstAttr(a1, a2); }, param);
+  CallDynamicOrgMethod<imm::ImmCmd>(getThis(), [&](auto const &a1, auto const &a2) { result = Cmd_getFirstAttr(a1, a2); }, param);
   return result;
 }
 
 
 
-UserTime org::ImmAdapterTimeAPI::getStaticTime() const  { return getThis()->as<org::ImmTime>()->getStatic().time; }
-Opt<int> org::ImmAdapterTimeAPI::getYear() const { return getStaticTime().getBreakdown().year; }
-Opt<int> org::ImmAdapterTimeAPI::getMonth() const { return getStaticTime().getBreakdown().month; }
-Opt<int> org::ImmAdapterTimeAPI::getDay() const { return getStaticTime().getBreakdown().day; }
-Opt<int> org::ImmAdapterTimeAPI::getSecond() const { return getStaticTime().getBreakdown().second; }
-Opt<int> org::ImmAdapterTimeAPI::getHour() const { return getStaticTime().getBreakdown().hour; }
-Opt<int> org::ImmAdapterTimeAPI::getMinute() const { return getStaticTime().getBreakdown().minute; }
+UserTime imm::ImmAdapterTimeAPI::getStaticTime() const  { return getThis()->as<imm::ImmTime>()->getStatic().time; }
+Opt<int> imm::ImmAdapterTimeAPI::getYear() const { return getStaticTime().getBreakdown().year; }
+Opt<int> imm::ImmAdapterTimeAPI::getMonth() const { return getStaticTime().getBreakdown().month; }
+Opt<int> imm::ImmAdapterTimeAPI::getDay() const { return getStaticTime().getBreakdown().day; }
+Opt<int> imm::ImmAdapterTimeAPI::getSecond() const { return getStaticTime().getBreakdown().second; }
+Opt<int> imm::ImmAdapterTimeAPI::getHour() const { return getStaticTime().getBreakdown().hour; }
+Opt<int> imm::ImmAdapterTimeAPI::getMinute() const { return getStaticTime().getBreakdown().minute; }
 
-Str org::ImmAdapterSubtreeAPI::getCleanTitle() const { return sem::getCleanText(getThis()->as<org::ImmSubtree>().getTitle()); }
-Opt<sem::NamedProperty> org::ImmAdapterSubtreeAPI::getProperty(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertyImpl(getThis()->as<org::ImmSubtree>(), kind, subkind); }
-Vec<sem::NamedProperty> org::ImmAdapterSubtreeAPI::getProperties(const Str &kind, const Opt<Str> &subkind) const { return subtreeGetPropertiesImpl(getThis()->as<org::ImmSubtree>(), kind, subkind); }
-Vec<sem::SubtreePeriod> org::ImmAdapterSubtreeAPI::getTimePeriods(IntSet<sem::SubtreePeriod::Kind> kinds, bool withPath) const { return Subtree_getTimePeriodsImpl(getThis()->as<org::ImmSubtree>(), kinds, withPath); }
+Str imm::ImmAdapterSubtreeAPI::getCleanTitle() const { return org::getCleanText(getThis()->as<imm::ImmSubtree>().getTitle()); }
+Opt<sem::NamedProperty> imm::ImmAdapterSubtreeAPI::getProperty(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertyImpl(getThis()->as<imm::ImmSubtree>(), kind, subkind); }
+Vec<sem::NamedProperty> imm::ImmAdapterSubtreeAPI::getProperties(const Str &kind, const Opt<Str> &subkind) const { return subtreeGetPropertiesImpl(getThis()->as<imm::ImmSubtree>(), kind, subkind); }
+Vec<sem::SubtreePeriod> imm::ImmAdapterSubtreeAPI::getTimePeriods(IntSet<sem::SubtreePeriod::Kind> kinds, bool withPath) const { return Subtree_getTimePeriodsImpl(getThis()->as<imm::ImmSubtree>(), kinds, withPath); }
 
-Vec<sem::NamedProperty> org::ImmAdapterDocumentOptionsAPI::getProperties(Str const &kind, CR<Opt<Str>> subkind) const { return DocumentOptions_getProperties(getThis()->as<org::ImmDocumentOptions>(), kind, subkind); }
-Opt<sem::NamedProperty> org::ImmAdapterDocumentOptionsAPI::getProperty(CR<Str> kind, CR<Opt<Str>> subkind) const { return DocumentOptions_getProperty(getThis()->as<org::ImmDocumentOptions>(), kind, subkind); }
-Vec<sem::NamedProperty> org::ImmAdapterDocumentAPI::getProperties(CR<Str> kind, CR<Opt<Str>> subkind) const { return Document_getProperties(getThis()->as<org::ImmDocument>(), kind, subkind); }
-Opt<sem::NamedProperty> org::ImmAdapterDocumentAPI::getProperty(CR<Str> kind, CR<Opt<Str>> subkind) const { return Document_getProperty(getThis()->as<org::ImmDocument>(), kind, subkind); }
+Vec<sem::NamedProperty> imm::ImmAdapterDocumentOptionsAPI::getProperties(Str const &kind, CR<Opt<Str>> subkind) const { return DocumentOptions_getProperties(getThis()->as<imm::ImmDocumentOptions>(), kind, subkind); }
+Opt<sem::NamedProperty> imm::ImmAdapterDocumentOptionsAPI::getProperty(CR<Str> kind, CR<Opt<Str>> subkind) const { return DocumentOptions_getProperty(getThis()->as<imm::ImmDocumentOptions>(), kind, subkind); }
+Vec<sem::NamedProperty> imm::ImmAdapterDocumentAPI::getProperties(CR<Str> kind, CR<Opt<Str>> subkind) const { return Document_getProperties(getThis()->as<imm::ImmDocument>(), kind, subkind); }
+Opt<sem::NamedProperty> imm::ImmAdapterDocumentAPI::getProperty(CR<Str> kind, CR<Opt<Str>> subkind) const { return Document_getProperty(getThis()->as<imm::ImmDocument>(), kind, subkind); }
 
-bool org::ImmAdapterListAPI::isDescriptionList() const { return List_isDescriptionList(getThis()->as<org::ImmList>()); }
-bool org::ImmAdapterListAPI::isNumberedList() const { return List_isNumberedList(getThis()->as<org::ImmList>()); }
-Vec<sem::AttrValue> org::ImmAdapterListAPI::getListAttrs(CR<Str> param) const { return List_getListAttrs(getThis()->as<org::ImmList>(), param); }
+bool imm::ImmAdapterListAPI::isDescriptionList() const { return List_isDescriptionList(getThis()->as<imm::ImmList>()); }
+bool imm::ImmAdapterListAPI::isNumberedList() const { return List_isNumberedList(getThis()->as<imm::ImmList>()); }
+Vec<sem::AttrValue> imm::ImmAdapterListAPI::getListAttrs(CR<Str> param) const { return List_getListAttrs(getThis()->as<imm::ImmList>(), param); }
 
-bool org::ImmAdapterListItemAPI::isDescriptionItem() const { return ListItem_isDescriptionItem(getThis()->as<org::ImmListItem>()); }
-Opt<Str> org::ImmAdapterListItemAPI::getCleanHeader() const { return isDescriptionItem() ? std::make_optional(sem::getCleanText(getHeader().value())) : std::nullopt; }
+bool imm::ImmAdapterListItemAPI::isDescriptionItem() const { return ListItem_isDescriptionItem(getThis()->as<imm::ImmListItem>()); }
+Opt<Str> imm::ImmAdapterListItemAPI::getCleanHeader() const { return isDescriptionItem() ? std::make_optional(org::getCleanText(getHeader().value())) : std::nullopt; }
 
 SemSet LeadParagraphNodes{
     OrgSemKind::HashTag,
@@ -898,16 +901,16 @@ SemSet LeadParagraphNodes{
 };
 
 
-bool org::ImmAdapterParagraphAPI::isFootnoteDefinition() const { return getFootnoteName().has_value(); }
-bool org::ImmAdapterParagraphAPI::hasAdmonition() const { return !getAdmonitionNodes().empty(); }
-Vec<Str> org::ImmAdapterParagraphAPI::getAdmonitions() const { return own_view(getAdmonitionNodes()) | rv::transform([](org::ImmAdapterT<org::ImmBigIdent> const &id) { return id->text.get(); }) | rs::to<Vec>(); }
-Vec<org::ImmAdapterT<org::ImmBigIdent>> org::ImmAdapterParagraphAPI::getAdmonitionNodes() const { return mapNodes<org::ImmBigIdent>(Org_getLeadNodes(*getThis(), OrgSemKind::BigIdent, LeadParagraphNodes)); }
-bool org::ImmAdapterParagraphAPI::hasTimestamp() const { return !getTimestampNodes().empty(); }
-Vec<UserTime> org::ImmAdapterParagraphAPI::getTimestamps() const { return own_view(getTimestampNodes()) | rv::transform([](org::ImmAdapterT<org::ImmTime> const &id) { return id->getStatic().time; }) | rs::to<Vec>(); }
-Vec<org::ImmAdapterT<org::ImmTime>> org::ImmAdapterParagraphAPI::getTimestampNodes() const { return mapNodes<org::ImmTime>(Org_getLeadNodes(*getThis(), OrgSemKind::Time, LeadParagraphNodes)); }
-bool org::ImmAdapterParagraphAPI::hasLeadHashtags() const { return !getLeadHashtags().empty(); }
-Vec<org::ImmAdapterT<org::ImmHashTag>> org::ImmAdapterParagraphAPI::getLeadHashtags() const { return mapNodes<org::ImmHashTag>(Org_getLeadNodes(*getThis(), OrgSemKind::HashTag, LeadParagraphNodes)); }
-Vec<org::ImmAdapter> org::ImmAdapterParagraphAPI::getBody(bool withPath) const { return Paragraph_dropAdmonitionNodes(*getThis(), withPath); }
+bool imm::ImmAdapterParagraphAPI::isFootnoteDefinition() const { return getFootnoteName().has_value(); }
+bool imm::ImmAdapterParagraphAPI::hasAdmonition() const { return !getAdmonitionNodes().empty(); }
+Vec<Str> imm::ImmAdapterParagraphAPI::getAdmonitions() const { return own_view(getAdmonitionNodes()) | rv::transform([](imm::ImmAdapterT<imm::ImmBigIdent> const &id) { return id->text.get(); }) | rs::to<Vec>(); }
+Vec<imm::ImmAdapterT<imm::ImmBigIdent>> imm::ImmAdapterParagraphAPI::getAdmonitionNodes() const { return mapNodes<imm::ImmBigIdent>(Org_getLeadNodes(*getThis(), OrgSemKind::BigIdent, LeadParagraphNodes)); }
+bool imm::ImmAdapterParagraphAPI::hasTimestamp() const { return !getTimestampNodes().empty(); }
+Vec<UserTime> imm::ImmAdapterParagraphAPI::getTimestamps() const { return own_view(getTimestampNodes()) | rv::transform([](imm::ImmAdapterT<imm::ImmTime> const &id) { return id->getStatic().time; }) | rs::to<Vec>(); }
+Vec<imm::ImmAdapterT<imm::ImmTime>> imm::ImmAdapterParagraphAPI::getTimestampNodes() const { return mapNodes<imm::ImmTime>(Org_getLeadNodes(*getThis(), OrgSemKind::Time, LeadParagraphNodes)); }
+bool imm::ImmAdapterParagraphAPI::hasLeadHashtags() const { return !getLeadHashtags().empty(); }
+Vec<imm::ImmAdapterT<imm::ImmHashTag>> imm::ImmAdapterParagraphAPI::getLeadHashtags() const { return mapNodes<imm::ImmHashTag>(Org_getLeadNodes(*getThis(), OrgSemKind::HashTag, LeadParagraphNodes)); }
+Vec<imm::ImmAdapter> imm::ImmAdapterParagraphAPI::getBody(bool withPath) const { return Paragraph_dropAdmonitionNodes(*getThis(), withPath); }
 
 // sem type API implementation
 
@@ -919,7 +922,7 @@ Opt<int> sem::Time::getSecond() const { return getStaticTime().getBreakdown().se
 Opt<int> sem::Time::getHour() const { return getStaticTime().getBreakdown().hour; }
 Opt<int> sem::Time::getMinute() const { return getStaticTime().getBreakdown().minute; }
 
-Str sem::Subtree::getCleanTitle() const { return sem::getCleanText(title.asOrg()); }
+Str sem::Subtree::getCleanTitle() const { return org::getCleanText(title.asOrg()); }
 Opt<sem::NamedProperty> sem::Subtree::getProperty(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertyImpl(this, kind, subkind); }
 Vec<sem::NamedProperty> sem::Subtree::getProperties(Str const &kind, CR<Opt<Str>> subkind) const { return subtreeGetPropertiesImpl(this, kind, subkind); }
 Vec<sem::SubtreePeriod> sem::Subtree::getTimePeriods(IntSet<sem::SubtreePeriod::Kind> kinds) const { return Subtree_getTimePeriodsImpl(this, kinds, false); }
@@ -944,7 +947,7 @@ bool sem::List::isDescriptionList() const { return List_isDescriptionList(this);
 bool sem::List::isNumberedList() const { return List_isNumberedList(this); }
 Vec<sem::AttrValue> sem::List::getListAttrs(CR<Str> param) const { return List_getListAttrs(this, param); }
 bool sem::ListItem::isDescriptionItem() const { return ListItem_isDescriptionItem(this); }
-Opt<Str> sem::ListItem::getCleanHeader() const { return isDescriptionItem() ? std::make_optional(sem::getCleanText(header.value().asOrg())) : std::nullopt; }
+Opt<Str> sem::ListItem::getCleanHeader() const { return isDescriptionItem() ? std::make_optional(org::getCleanText(header.value().asOrg())) : std::nullopt; }
 
 bool sem::Paragraph::isFootnoteDefinition() const { return getFootnoteName().has_value(); }
 bool sem::Paragraph::hasAdmonition() const { return !getAdmonitionNodes().empty(); }
@@ -958,7 +961,7 @@ Vec<sem::SemId<sem::HashTag>> sem::Paragraph::getLeadHashtags() const { return m
 Vec<sem::SemId<sem::Org>> sem::Paragraph::getBody() const { return Paragraph_dropAdmonitionNodes(this, false); }
 
 
-// Opt<org::ImmAdapterT<org::ImmAttrList>> org::ImmAdapterT<org::ImmCell>::getAttrs(CR<Opt<Str>> param) const { return cmdgetAttrsImpl(*this, param); }
+// Opt<imm::ImmAdapterT<imm::ImmAttrList>> imm::ImmAdapterT<imm::ImmCell>::getAttrs(CR<Opt<Str>> param) const { return cmdgetAttrsImpl(*this, param); }
 
 
 // clang-format on
@@ -974,31 +977,31 @@ ListFormattingMode sem::List::getListFormattingMode() const {
     }
 }
 
-org::ImmAdapterT<org::ImmParagraph> org::ImmAdapterSubtreeAPI::getTitle()
+imm::ImmAdapterT<imm::ImmParagraph> imm::ImmAdapterSubtreeAPI::getTitle()
     const {
     return pass(
-        getThisT<org::ImmSubtree>()->title,
+        getThisT<imm::ImmSubtree>()->title,
         ImmPathStep::Field(
-            org::ImmReflFieldId::FromTypeField(&org::ImmSubtree::title)));
+            imm::ImmReflFieldId::FromTypeField(&imm::ImmSubtree::title)));
 }
-org::ImmAdapterT<org::ImmParagraph> org::ImmAdapterCmdCaptionAPI::getText()
+imm::ImmAdapterT<imm::ImmParagraph> imm::ImmAdapterCmdCaptionAPI::getText()
     const {
     return pass(
-        getThisT<org::ImmCmdCaption>()->text,
-        ImmPathStep::Field(org::ImmReflFieldId::FromTypeField(
-            &org::ImmCmdCaption::text)));
+        getThisT<imm::ImmCmdCaption>()->text,
+        ImmPathStep::Field(imm::ImmReflFieldId::FromTypeField(
+            &imm::ImmCmdCaption::text)));
 }
 
 
-Opt<org::ImmAdapter> org::ImmAdapterListItemAPI::getHeader() const {
-    auto it = getThisT<org::ImmListItem>();
+Opt<imm::ImmAdapter> imm::ImmAdapterListItemAPI::getHeader() const {
+    auto it = getThisT<imm::ImmListItem>();
     if (isBoolFalse(it->header)) {
         return std::nullopt;
     } else {
         return pass(
             it->header->value(),
-            ImmPathStep::FieldDeref(org::ImmReflFieldId::FromTypeField(
-                &org::ImmListItem::header)));
+            ImmPathStep::FieldDeref(imm::ImmReflFieldId::FromTypeField(
+                &imm::ImmListItem::header)));
     }
 }
 
@@ -1012,9 +1015,9 @@ Opt<Str> sem::Paragraph::getFootnoteName() const {
     }
 }
 
-Opt<Str> org::ImmAdapterParagraphAPI::getFootnoteName() const {
+Opt<Str> imm::ImmAdapterParagraphAPI::getFootnoteName() const {
     if (getThis()->get()->subnodes.empty()) { return std::nullopt; }
-    if (auto link = getThis()->at(0, false).asOpt<org::ImmLink>();
+    if (auto link = getThis()->at(0, false).asOpt<imm::ImmLink>();
         link && link.value()->target.isFootnote()) {
         return link.value()->target.getFootnote().target;
     } else {
@@ -1091,12 +1094,12 @@ Opt<sem::NamedProperty> getPropertyValue(
 }
 
 Opt<sem::NamedProperty> getPropertyValue(
-    org::ImmAdapter const& org,
+    imm::ImmAdapter const& org,
     CR<Str>                kind,
     CR<Opt<Str>>           sub) {
-    if (auto tree = org.asOpt<org::ImmSubtree>()) {
+    if (auto tree = org.asOpt<imm::ImmSubtree>()) {
         return tree->getProperty(kind, sub);
-    } else if (auto doc = org.asOpt<org::ImmDocument>()) {
+    } else if (auto doc = org.asOpt<imm::ImmDocument>()) {
         return doc->getProperty(kind, sub);
     } else {
         return std::nullopt;
@@ -1118,35 +1121,25 @@ Opt<sem::NamedProperty> Org_getFinalProperty(
     return Org_combinePropertyStack(propertyStack, kind, subKind);
 }
 
-Opt<sem::NamedProperty> sem::getFinalProperty(
-    CR<Vec<org::ImmAdapter>> nodes,
+Opt<sem::NamedProperty> org::getFinalProperty(
+    CR<Vec<imm::ImmAdapter>> nodes,
     CR<Str>                  kind,
     CR<Opt<Str>>             subKind) {
     return Org_getFinalProperty(nodes, kind, subKind);
 }
 
-Opt<sem::NamedProperty> sem::getFinalProperty(
+Opt<sem::NamedProperty> org::getFinalProperty(
     CR<Vec<sem::SemId<sem::Org>>> nodes,
     CR<Str>                       kind,
     CR<Opt<Str>>                  subKind) {
     return Org_getFinalProperty(nodes, kind, subKind);
 }
 
-Vec<Str> sem::getDfsLeafText(SemId<Org> id, const SemSet& filter) {
-    return getDfsFuncEval<Str>(id, [&](SemId<Org> const& id) -> Opt<Str> {
-        if (!filter.contains(id->getKind())) {
-            return std::nullopt;
-        } else {
-            return Org_getString(id);
-        }
-    });
-}
-
-Vec<Str> sem::getDfsLeafText(
-    const org::ImmAdapter& id,
-    const SemSet&          filter) {
+Vec<Str> org::getDfsLeafText(
+    sem::SemId<sem::Org> id,
+    const SemSet&        filter) {
     return getDfsFuncEval<Str>(
-        id, false, [&](org::ImmAdapter const& id) -> Opt<Str> {
+        id, [&](sem::SemId<sem::Org> const& id) -> Opt<Str> {
             if (!filter.contains(id->getKind())) {
                 return std::nullopt;
             } else {
@@ -1155,24 +1148,38 @@ Vec<Str> sem::getDfsLeafText(
         });
 }
 
-Str sem::getCleanText(sem::SemId<sem::Org> const& id) {
-    return join(
-        "",
-        sem::getDfsFuncEval<Str>(id, [](SemId<Org> const& id) -> Opt<Str> {
-            if (auto space = id.asOpt<sem::Space>()) {
-                return " ";
+Vec<Str> org::getDfsLeafText(
+    const imm::ImmAdapter& id,
+    const SemSet&          filter) {
+    return getDfsFuncEval<Str>(
+        id, false, [&](imm::ImmAdapter const& id) -> Opt<Str> {
+            if (!filter.contains(id->getKind())) {
+                return std::nullopt;
             } else {
                 return Org_getString(id);
             }
-        }));
+        });
 }
 
-Str sem::getCleanText(org::ImmAdapter const& id) {
+Str org::getCleanText(sem::SemId<sem::Org> const& id) {
     return join(
         "",
-        sem::getDfsFuncEval<Str>(
-            id, false, [](org::ImmAdapter const& a) -> Opt<Str> {
-                if (auto space = a.dyn_cast<org::ImmSpace>()) {
+        org::getDfsFuncEval<Str>(
+            id, [](sem::SemId<sem::Org> const& id) -> Opt<Str> {
+                if (auto space = id.asOpt<sem::Space>()) {
+                    return " ";
+                } else {
+                    return Org_getString(id);
+                }
+            }));
+}
+
+Str org::getCleanText(imm::ImmAdapter const& id) {
+    return join(
+        "",
+        org::getDfsFuncEval<Str>(
+            id, false, [](imm::ImmAdapter const& a) -> Opt<Str> {
+                if (auto space = a.dyn_cast<imm::ImmSpace>()) {
                     return " ";
                 } else {
                     return Org_getString(a);
@@ -1180,8 +1187,8 @@ Str sem::getCleanText(org::ImmAdapter const& id) {
             }));
 }
 
-Opt<Str> org::ImmAdapterBlockExportAPI::getPlacement() const {
-    auto p = getThis()->as<org::ImmBlockExport>().getFirstAttr(
+Opt<Str> imm::ImmAdapterBlockExportAPI::getPlacement() const {
+    auto p = getThis()->as<imm::ImmBlockExport>().getFirstAttr(
         "placement");
     if (p) {
         return p.value().value;

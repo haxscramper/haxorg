@@ -167,8 +167,8 @@ class ProtoBuilder():
 
     @beartype
     def get_all_concrete_types(self) -> Iterable[tu.GenTuStruct]:
-        return (rec for rec in self.types_list
-                if isinstance(rec, tu.GenTuStruct) and rec.concreteKind and rec.name.isOrgType())
+        return (rec for rec in self.types_list if isinstance(rec, tu.GenTuStruct) and
+                rec.concreteKind and rec.name.isOrgType())
 
     @beartype
     def get_any_node_field_mapping(self) -> cpp.MacroParams:
@@ -212,7 +212,7 @@ class ProtoBuilder():
             case "SemId":
                 if it.par0().name == "Org":
                     return "AnyNode"
-                
+
                 else:
                     return self.rewrite_for_proto_grammar(it.Parameters[0])
 
@@ -233,9 +233,10 @@ class ProtoBuilder():
             case tu.QualType(name="SemId", Parameters=[nodeType]):
                 if nodeType.name == "Org":
                     return tu.QualType.ForName("AnyNode").withExtraSpace("orgproto")
-                
+
                 else:
-                    return nodeType.withoutSpace("sem").withExtraSpace("orgproto")
+                    return nodeType.withoutSpace("sem").withoutSpace(
+                        "org").withExtraSpace("orgproto")
 
             case tu.QualType(name="bool"):
                 return typ
@@ -277,15 +278,16 @@ class ProtoBuilder():
             case _:
                 if tu.in_type_list(typ, self.enum_type_list):
                     return tu.QualType.ForName("_".join(
-                        typ.withoutSpace("sem").flatQualName())).withExtraSpace(
-                            "orgproto")
+                        typ.withoutSpace("sem").withoutSpace(
+                            "org").flatQualName())).withExtraSpace("orgproto")
 
                 else:
                     result = typ.model_copy(update=dict(Parameters=aux_parameters(typ)))
-                    if "sem" in result.flatSpaces() or typ.name in [
+                    if "sem" in result.flatSpaceNames() or typ.name in [
                             "UserTime", "LineCol"
                     ]:
-                        result = result.withoutSpace("sem").withExtraSpace("orgproto")
+                        result = result.withoutSpace("sem").withoutSpace(
+                            "org").withExtraSpace("orgproto")
 
                     return result
 
@@ -498,7 +500,7 @@ class ProtoBuilder():
                 Expr=t.line([dot_write, t.text(".index()")]))
 
             if is_typedef:
-                kind_type = proto_type.asSpaceFor(field.type.withoutAllSpaces())
+                kind_type = proto_type.asSpaceFor(field.type.withoutAllScopeQualifiers())
 
             else:
                 kind_type = proto_type
@@ -582,8 +584,8 @@ class ProtoBuilder():
         typ: tu.QualType,
     ) -> Iterable[tu.GenTuField]:
         return (tu.GenTuField(
-            name=self.rewrite_for_proto_grammar(sub.withoutAllSpaces()).lower().replace(
-                " ", "_"),
+            name=self.rewrite_for_proto_grammar(
+                sub.withoutAllScopeQualifiers()).lower().replace(" ", "_"),
             type=sub,
         ) for sub in typ.Parameters)
 
@@ -599,10 +601,11 @@ class ProtoBuilder():
 
                 out = self.t.text(PROTO_VALUE_NAME)
                 _in = self.t.text(ORG_VALUE_NAME)
-                org_cleaned = it.name.withoutSpace("sem").withExtraSpace("orgproto")
+                org_cleaned = it.name.withoutSpace("sem").withoutSpace(
+                    "org").withExtraSpace("orgproto")
                 proto_param_type = org_cleaned.withGlobalSpace()
                 org_param_type = it.name
-                
+
                 writer_body: List[BlockId] = []
                 reader_body: List[BlockId] = []
                 for base in tu.get_base_list(it, self.base_map):
@@ -612,8 +615,11 @@ class ProtoBuilder():
 
                     writer_body.append(
                         self.ast.CallStatic(
-                            tu.QualType(name="proto_serde",
-                                        Parameters=[proto_param_type, base]),
+                            tu.QualType(
+                                name="proto_serde",
+                                Parameters=[proto_param_type, base],
+                                Spaces=[tu.n_org_algo()],
+                            ),
                             "write",
                             [out, _in],
                             Stmt=True,
@@ -621,8 +627,11 @@ class ProtoBuilder():
 
                     reader_body.append(
                         self.ast.CallStatic(
-                            tu.QualType(name="proto_serde",
-                                        Parameters=[proto_param_type, base]),
+                            tu.QualType(
+                                name="proto_serde",
+                                Parameters=[proto_param_type, base],
+                                Spaces=[tu.n_org_algo()],
+                            ),
                             "read",
                             [
                                 out,
@@ -693,11 +702,15 @@ class ProtoBuilder():
                 writer_specialization = tu.QualType(
                     name="proto_serde",
                     Parameters=[proto_param_type, org_param_type],
+                    Spaces=[tu.n_org_algo()],
                 )
 
                 result.append((
                     cpp.RecordParams(
-                        name="proto_serde",
+                        name=cpp.QualType(
+                            name="proto_serde",
+                            Spaces=[tu.n_org_algo()],
+                        ),
                         doc=cpp.DocParams(""),
                         NameParams=[proto_param_type, org_param_type],
                         members=[
@@ -706,6 +719,7 @@ class ProtoBuilder():
                         ],
                         Template=cpp.TemplateParams(Stacks=[cpp.TemplateGroup(
                             Params=[])]),
+                        IsTemplateSpecialization=True,
                     ),
                     writer_specialization,
                 ))

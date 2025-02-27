@@ -2,7 +2,7 @@
 
 #include <haxorg/sem/ImmOrg.hpp>
 
-namespace org {
+namespace org::imm {
 // clang-format off
 
 enum class SubtreeMove
@@ -39,23 +39,23 @@ enum class SubtreeMove
 
 
 ImmAstReplace replaceNode(const ImmAdapter &target, const ImmId &value, ImmAstEditContext &ctx);
-ImmAstReplaceGroup demoteSubtree(CR<ImmAdapter> node, SubtreeMove move, ImmAstEditContext& ctx);
-Vec<ImmAstReplace> promoteSubtree(CR<ImmAdapter> node, SubtreeMove move, ImmAstEditContext& ctx);
-ImmAstReplace setSubnode(CR<ImmAdapter> node, org::ImmId newSubnode, int position, ImmAstEditContext& ctx);
-ImmAstReplace insertSubnode(CR<ImmAdapter> node, ImmId add, int position, ImmAstEditContext& ctx);
-ImmAstReplace insertSubnodes(CR<ImmAdapter> node, Vec<ImmId> add, int position, ImmAstEditContext& ctx);
-ImmAstReplace appendSubnode(CR<ImmAdapter> node, ImmId add, ImmAstEditContext& ctx);
-ImmAstReplace dropSubnode(CR<ImmAdapter> node, int position, ImmAstEditContext& ctx);
-ImmAstReplace dropSubnode(CR<ImmAdapter> node, org::ImmId subnode, ImmAstEditContext& ctx);
-Opt<ImmAstReplace> moveSubnode(CR<ImmAdapter> node, int position, int offset, ImmAstEditContext& ctx, bool bounded = true);
-Pair<ImmAstReplace, org::ImmId> popSubnode(CR<ImmAdapter> node, int position, ImmAstEditContext& ctx);
-ImmAstReplace swapSubnode(CR<ImmAdapter> node, int from, int to, ImmAstEditContext& ctx);
+ImmAstReplaceGroup demoteSubtree(hstd::CR<ImmAdapter> node, SubtreeMove move, ImmAstEditContext& ctx);
+hstd::Vec<ImmAstReplace> promoteSubtree(hstd::CR<ImmAdapter> node, SubtreeMove move, ImmAstEditContext& ctx);
+ImmAstReplace setSubnode(hstd::CR<ImmAdapter> node, org::imm::ImmId newSubnode, int position, ImmAstEditContext& ctx);
+ImmAstReplace insertSubnode(hstd::CR<ImmAdapter> node, ImmId add, int position, ImmAstEditContext& ctx);
+ImmAstReplace insertSubnodes(hstd::CR<ImmAdapter> node, hstd::Vec<ImmId> add, int position, ImmAstEditContext& ctx);
+ImmAstReplace appendSubnode(hstd::CR<ImmAdapter> node, ImmId add, ImmAstEditContext& ctx);
+ImmAstReplace dropSubnode(hstd::CR<ImmAdapter> node, int position, ImmAstEditContext& ctx);
+ImmAstReplace dropSubnode(hstd::CR<ImmAdapter> node, org::imm::ImmId subnode, ImmAstEditContext& ctx);
+hstd::Opt<ImmAstReplace> moveSubnode(hstd::CR<ImmAdapter> node, int position, int offset, ImmAstEditContext& ctx, bool bounded = true);
+hstd::Pair<ImmAstReplace, org::imm::ImmId> popSubnode(hstd::CR<ImmAdapter> node, int position, ImmAstEditContext& ctx);
+ImmAstReplace swapSubnode(hstd::CR<ImmAdapter> node, int from, int to, ImmAstEditContext& ctx);
 /// \brief Move subnode up/down with the structural movements -- jumping over spaces, newlines etc.
-Opt<ImmAstReplace> moveSubnodeStructural(CR<ImmAdapter> node, int position, int offset, ImmAstEditContext& ctx);
+hstd::Opt<ImmAstReplace> moveSubnodeStructural(hstd::CR<ImmAdapter> node, int position, int offset, ImmAstEditContext& ctx);
 
 // clang-format on
 
-Vec<Str> flatWords(ImmAdapter const& node);
+hstd::Vec<hstd::Str> flatWords(ImmAdapter const& node);
 
 /// \brief How to select next target for the selector search.
 struct OrgSelectorLink {
@@ -82,7 +82,7 @@ struct OrgSelectorLink {
         ImmReflFieldId name;
     };
 
-    using Data = Variant<DirectSubnode, IndirectSubnode, FieldName>;
+    using Data = hstd::Variant<DirectSubnode, IndirectSubnode, FieldName>;
     Data data;
 
     Kind getKind() const { return static_cast<Kind>(data.index()); }
@@ -102,28 +102,28 @@ struct OrgSelectorResult {
 };
 
 struct OrgSelectorCondition {
-    using Predicate = Func<OrgSelectorResult(ImmAdapter const&)>;
+    using Predicate = hstd::Func<OrgSelectorResult(ImmAdapter const&)>;
     Predicate check;
 
     /// \brief Matched node should be added to the full match set
-    bool                 isTarget = false;
-    Opt<Str>             debug;
-    Opt<OrgSelectorLink> link;
+    bool                       isTarget = false;
+    hstd::Opt<hstd::Str>       debug;
+    hstd::Opt<OrgSelectorLink> link;
 
     BOOST_DESCRIBE_CLASS(OrgSelectorCondition, (), (), (), ());
 };
 
 struct OrgDocumentSelector
-    : OperationsTracer
-    , OperationsScope {
-    Vec<OrgSelectorCondition> path;
-    bool                      debug = false;
+    : hstd::OperationsTracer
+    , hstd::OperationsScope {
+    hstd::Vec<OrgSelectorCondition> path;
+    bool                            debug = false;
 
     OrgDocumentSelector() {
         OperationsScope::TraceState = &(OperationsTracer::TraceState);
     }
 
-    Vec<ImmAdapter> getMatches(ImmAdapter const& node) const;
+    hstd::Vec<ImmAdapter> getMatches(ImmAdapter const& node) const;
 
     OrgSelectorLink linkDirectSubnode() const {
         return OrgSelectorLink{.data = OrgSelectorLink::DirectSubnode{}};
@@ -139,32 +139,32 @@ struct OrgDocumentSelector
     }
 
     void searchSubtreePlaintextTitle(
-        Vec<Str> const&      title,
-        bool                 isTarget,
-        Opt<OrgSelectorLink> link = std::nullopt);
+        hstd::Vec<hstd::Str> const& title,
+        bool                        isTarget,
+        hstd::Opt<OrgSelectorLink>  link = std::nullopt);
 
     void searchSubtreeId(
-        Str const&           id,
-        bool                 isTarget,
-        Opt<int>             maxLevel = std::nullopt,
-        Opt<OrgSelectorLink> link     = std::nullopt);
+        hstd::Str const&           id,
+        bool                       isTarget,
+        hstd::Opt<int>             maxLevel = std::nullopt,
+        hstd::Opt<OrgSelectorLink> link     = std::nullopt);
 
     void searchAnyKind(
-        const IntSet<OrgSemKind>& kinds,
-        bool                      isTarget,
-        Opt<OrgSelectorLink>      link = std::nullopt);
+        const hstd::IntSet<OrgSemKind>& kinds,
+        bool                            isTarget,
+        hstd::Opt<OrgSelectorLink>      link = std::nullopt);
 
     void searchPredicate(
-        org::OrgSelectorCondition::Predicate const& predicate,
-        bool                                        isTarget,
-        Opt<OrgSelectorLink>                        link = std::nullopt);
+        org::imm::OrgSelectorCondition::Predicate const& predicate,
+        bool                                             isTarget,
+        hstd::Opt<OrgSelectorLink> link = std::nullopt);
 
     BOOST_DESCRIBE_CLASS(OrgDocumentSelector, (), (path), (), ());
 };
 
-Vec<ImmAdapter> getAllMatching(
+hstd::Vec<ImmAdapter> getAllMatching(
     ImmAdapter const&          node,
     OrgDocumentSelector const& selector);
 
 
-} // namespace org
+} // namespace org::imm

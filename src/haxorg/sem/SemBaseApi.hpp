@@ -4,17 +4,17 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Json.hpp>
 
-namespace sem {
+namespace org {
 
 [[refl]] sem::SemId<sem::Time> newSemTimeStatic(
-    UserTimeBreakdown const& breakdown,
-    bool                     isActive = false);
+    hstd::UserTimeBreakdown const& breakdown,
+    bool                           isActive = false);
 
 struct [[refl]] OrgParseParameters {
-    [[refl]] Opt<std::string> baseTokenTracePath = std::nullopt;
-    [[refl]] Opt<std::string> tokenTracePath     = std::nullopt;
-    [[refl]] Opt<std::string> parseTracePath     = std::nullopt;
-    [[refl]] Opt<std::string> semTracePath       = std::nullopt;
+    [[refl]] hstd::Opt<std::string> baseTokenTracePath = std::nullopt;
+    [[refl]] hstd::Opt<std::string> tokenTracePath     = std::nullopt;
+    [[refl]] hstd::Opt<std::string> parseTracePath     = std::nullopt;
+    [[refl]] hstd::Opt<std::string> semTracePath       = std::nullopt;
 
     BOOST_DESCRIBE_CLASS(
         OrgParseParameters,
@@ -25,11 +25,11 @@ struct [[refl]] OrgParseParameters {
 };
 
 struct [[refl]] OrgDirectoryParseParameters {
-    Func<sem::SemId<sem::Document>(std::string const& fullPath)>
+    hstd::Func<sem::SemId<sem::Document>(std::string const& fullPath)>
         getParsedNode;
 
-    Func<bool(std::string const& fullPath)> shouldProcessPath;
-    Func<Opt<std::string>(std::string const& includePath)>
+    hstd::Func<bool(std::string const& fullPath)> shouldProcessPath;
+    hstd::Func<hstd::Opt<std::string>(std::string const& includePath)>
         findIncludeTarget;
 
     BOOST_DESCRIBE_CLASS(OrgDirectoryParseParameters, (), (), (), ());
@@ -45,7 +45,7 @@ struct [[refl]] OrgDirectoryParseParameters {
     std::string const         text,
     OrgParseParameters const& opts);
 
-[[refl]] Opt<sem::SemId<sem::Org>> parseDirectoryOpts(
+[[refl]] hstd::Opt<sem::SemId<sem::Org>> parseDirectoryOpts(
     std::string const&                 path,
     OrgDirectoryParseParameters const& opts);
 
@@ -136,10 +136,11 @@ struct [[refl]] OrgTreeExportOpts {
 
 /// \brief Full path to an AST tracking target.
 struct [[refl]] AstTrackingPath {
-    [[refl]] Vec<sem::SemId<sem::Org>> path;
+    [[refl]] hstd::Vec<sem::SemId<sem::Org>> path;
     DESC_FIELDS(AstTrackingPath, (path));
 
-    [[refl]] sem::SemId<sem::Org> getParent(int offset = 0) const {
+    [[refl]] org::sem::SemId<org::sem::Org> getParent(
+        int offset = 0) const {
         int pos = path.high() - 1 - offset;
         LOGIC_ASSERTION_CHECK(
             path.has(pos),
@@ -159,15 +160,15 @@ struct [[refl]] AstTrackingPath {
 /// of them are recorded, since it is not possible to know whether
 /// duplicate IDs is an issue for the caller code, or it can resolve them.
 struct [[refl]] AstTrackingAlternatives {
-    Vec<AstTrackingPath> alternatives;
+    hstd::Vec<AstTrackingPath> alternatives;
     DESC_FIELDS(AstTrackingAlternatives, (alternatives));
 
     /// \brief Return final nodes for all tracking alternatives.
-    [[refl]] Vec<sem::SemId<sem::Org>> getAllNodes() const {
+    [[refl]] hstd::Vec<sem::SemId<sem::Org>> getAllNodes() const {
         return alternatives //
-             | rv::transform(
+             | hstd::rv::transform(
                    [](AstTrackingPath const& p) { return p.getNode(); })
-             | rs::to<Vec>();
+             | hstd::rs::to<hstd::Vec>();
     }
 
     /// \brief Return first node from the alternatives.
@@ -178,8 +179,8 @@ struct [[refl]] AstTrackingAlternatives {
 
 struct [[refl]] AstTrackingGroup {
     struct [[refl]] RadioTarget {
-        [[refl]] AstTrackingPath           target;
-        [[refl]] Vec<sem::SemId<sem::Org>> nodes;
+        [[refl]] AstTrackingPath                 target;
+        [[refl]] hstd::Vec<sem::SemId<sem::Org>> nodes;
         DESC_FIELDS(RadioTarget, (nodes));
     };
 
@@ -189,12 +190,13 @@ struct [[refl]] AstTrackingGroup {
     };
 
     struct [[refl]] TrackedHashtag {
-        [[refl]] sem::SemId<sem::Org>                            tag;
-        [[refl]] UnorderedMap<sem::HashTagFlat, AstTrackingPath> targets;
+        [[refl]] sem::SemId<sem::Org> tag;
+        [[refl]] hstd::UnorderedMap<sem::HashTagFlat, AstTrackingPath>
+            targets;
         DESC_FIELDS(TrackedHashtag, (tag, targets));
     };
 
-    using Data = Variant<RadioTarget, Single, TrackedHashtag>;
+    using Data = hstd::Variant<RadioTarget, Single, TrackedHashtag>;
     Data data;
     DESC_FIELDS(AstTrackingGroup, (data));
 
@@ -216,24 +218,26 @@ struct [[refl]] AstTrackingGroup {
     Kind getKind() const { return static_cast<Kind>(data.index()); }
 
     [[refl]] RadioTarget const& getRadioTarget() const {
-        return get_sub_variant<RadioTarget, AstTrackingGroup>(data);
+        return hstd::get_sub_variant<RadioTarget, AstTrackingGroup>(data);
     }
 
 
     [[refl]] TrackedHashtag const& getTrackedHashtag() const {
-        return get_sub_variant<TrackedHashtag, AstTrackingGroup>(data);
+        return hstd::get_sub_variant<TrackedHashtag, AstTrackingGroup>(
+            data);
     }
 
     [[refl]] TrackedHashtag& getTrackedHashtag() {
-        return get_sub_variant<TrackedHashtag, AstTrackingGroup>(data);
+        return hstd::get_sub_variant<TrackedHashtag, AstTrackingGroup>(
+            data);
     }
 
     [[refl]] Single const& getSingle() const {
-        return get_sub_variant<Single, AstTrackingGroup>(data);
+        return hstd::get_sub_variant<Single, AstTrackingGroup>(data);
     }
 
     [[refl]] RadioTarget& getRadioTarget() {
-        return get_sub_variant<RadioTarget, AstTrackingGroup>(data);
+        return hstd::get_sub_variant<RadioTarget, AstTrackingGroup>(data);
     }
 
     [[refl]] Single& getSingle() { return std::get<Single>(data); }
@@ -251,12 +255,16 @@ struct [[refl]] AstTrackingGroup {
 /// \brief Fixed snapshot of all tracking information from a set of nodes.
 /// Mirrors the `ImmAstTrackingMap` API for shared pointer AST.
 struct [[refl]] AstTrackingMap {
-    [[refl]] UnorderedMap<Str, AstTrackingAlternatives> footnotes;
-    [[refl]] UnorderedMap<Str, AstTrackingAlternatives> subtrees;
-    [[refl]] UnorderedMap<Str, AstTrackingAlternatives> names;
-    [[refl]] UnorderedMap<Str, AstTrackingAlternatives> anchorTargets;
-    [[refl]] UnorderedMap<Str, AstTrackingAlternatives> radioTargets;
-    [[refl]] UnorderedMap<sem::HashTagFlat, AstTrackingAlternatives>
+    [[refl]] hstd::UnorderedMap<hstd::Str, AstTrackingAlternatives>
+        footnotes;
+    [[refl]] hstd::UnorderedMap<hstd::Str, AstTrackingAlternatives>
+        subtrees;
+    [[refl]] hstd::UnorderedMap<hstd::Str, AstTrackingAlternatives> names;
+    [[refl]] hstd::UnorderedMap<hstd::Str, AstTrackingAlternatives>
+        anchorTargets;
+    [[refl]] hstd::UnorderedMap<hstd::Str, AstTrackingAlternatives>
+        radioTargets;
+    [[refl]] hstd::UnorderedMap<sem::HashTagFlat, AstTrackingAlternatives>
         hashtagDefinitions;
 
     DESC_FIELDS(
@@ -268,96 +276,117 @@ struct [[refl]] AstTrackingMap {
          radioTargets,
          hashtagDefinitions));
 
-    [[refl]] Opt<AstTrackingAlternatives> getIdPath(Str const& id) const {
+    [[refl]] hstd::Opt<AstTrackingAlternatives> getIdPath(
+        hstd::Str const& id) const {
         return subtrees.get(id);
     }
 
-    [[refl]] Opt<AstTrackingAlternatives> getNamePath(
-        Str const& id) const {
+    [[refl]] hstd::Opt<AstTrackingAlternatives> getNamePath(
+        hstd::Str const& id) const {
         return names.get(id);
     }
 
 
-    [[refl]] Opt<AstTrackingAlternatives> getAnchorTarget(
-        Str const& id) const {
+    [[refl]] hstd::Opt<AstTrackingAlternatives> getAnchorTarget(
+        hstd::Str const& id) const {
         return anchorTargets.get(id);
     }
 
-    [[refl]] Opt<AstTrackingAlternatives> getFootnotePath(
-        Str const& id) const {
+    [[refl]] hstd::Opt<AstTrackingAlternatives> getFootnotePath(
+        hstd::Str const& id) const {
         return names.get(id);
     }
 };
 
 [[refl]] AstTrackingMap getAstTrackingMap(
-    Vec<sem::SemId<sem::Org>> const& nodes);
+    hstd::Vec<sem::SemId<sem::Org>> const& nodes);
 
-[[refl]] Vec<AstTrackingGroup> getSubnodeGroups(
+[[refl]] hstd::Vec<AstTrackingGroup> getSubnodeGroups(
     sem::SemId<sem::Org>  node,
     AstTrackingMap const& map);
 
-using SubnodeVisitor           = Func<void(SemId<Org> const&)>;
-using SubnodeVisitorSimplePath = Func<
-    void(SemId<Org> const&, Vec<SemId<Org>> const& path)>;
+using SemSubnodeVisitor = hstd::Func<void(sem::SemId<sem::Org> const&)>;
+using SemSubnodeVisitorSimplePath = hstd::Func<void(
+    sem::SemId<sem::Org> const&,
+    hstd::Vec<sem::SemId<sem::Org>> const& path)>;
 /// \brief Recursively visit each subnode in the tree and apply the
 /// provided callback
-void eachSubnodeRec(SemId<Org> id, SubnodeVisitor cb);
-void eachSubnodeRecSimplePath(SemId<Org> id, SubnodeVisitorSimplePath cb);
+void eachSubnodeRec(sem::SemId<sem::Org> id, SemSubnodeVisitor cb);
+void eachSubnodeRecSimplePath(
+    sem::SemId<sem::Org>        id,
+    SemSubnodeVisitorSimplePath cb);
+
+
+using ImmSubnodeVisitor = hstd::Func<void(imm::ImmAdapter)>;
+void eachSubnodeRec(
+    org::imm::ImmAdapter id,
+    bool                 withPath,
+    ImmSubnodeVisitor    cb);
 
 template <typename T, typename Func>
-Vec<T> getDfsFuncEval(SemId<Org> id, Func const& cb) {
-    Vec<T> dfs;
-    eachSubnodeRec(id, [&](SemId<Org> const& sub) {
-        Opt<T> res = cb(sub);
+hstd::Vec<T> getDfsFuncEval(sem::SemId<sem::Org> id, Func const& cb) {
+    hstd::Vec<T> dfs;
+    eachSubnodeRec(id, [&](sem::SemId<sem::Org> const& sub) {
+        hstd::Opt<T> res = cb(sub);
         if (res.has_value()) { dfs.push_back(res.value()); }
     });
     return dfs;
 }
 
 template <typename T, typename Func>
-Vec<T> getDfsFuncEval(org::ImmAdapter id, bool withPath, Func const& cb) {
-    Vec<T> dfs;
-    org::eachSubnodeRec(id, withPath, [&](org::ImmAdapter const& sub) {
-        Opt<T> res = cb(sub);
-        if (res.has_value()) { dfs.push_back(res.value()); }
-    });
+hstd::Vec<T> getDfsFuncEval(
+    org::imm::ImmAdapter id,
+    bool                 withPath,
+    Func const&          cb) {
+    hstd::Vec<T> dfs;
+    org::eachSubnodeRec(
+        id, withPath, [&](org::imm::ImmAdapter const& sub) {
+            hstd::Opt<T> res = cb(sub);
+            if (res.has_value()) { dfs.push_back(res.value()); }
+        });
     return dfs;
 }
 
-Vec<Str> getDfsLeafText(SemId<Org> id, SemSet const& filter);
-Vec<Str> getDfsLeafText(org::ImmAdapter const& id, SemSet const& filter);
-Str      getCleanText(sem::SemId<sem::Org> const& id);
-Str      getCleanText(org::ImmAdapter const& id);
+hstd::Vec<hstd::Str> getDfsLeafText(
+    sem::SemId<sem::Org> id,
+    SemSet const&        filter);
+hstd::Vec<hstd::Str> getDfsLeafText(
+    org::imm::ImmAdapter const& id,
+    SemSet const&               filter);
+hstd::Str getCleanText(sem::SemId<sem::Org> const& id);
+hstd::Str getCleanText(imm::ImmAdapter const& id);
 
 /// \brief Get index of the list item with given text
-int getListHeaderIndex(sem::SemId<sem::List> const& it, CR<Str> text);
+int getListHeaderIndex(
+    sem::SemId<sem::List> const& it,
+    hstd::CR<hstd::Str>          text);
 /// \brief Assign body to the list item at the given position.
 void setListItemBody(
-    sem::SemId<sem::List>     id,
-    int                       index,
-    Vec<sem::SemId<sem::Org>> value);
+    sem::SemId<sem::List>           id,
+    int                             index,
+    hstd::Vec<sem::SemId<sem::Org>> value);
 
 void setDescriptionListItemBody(
-    sem::SemId<sem::List>     list,
-    CR<Str>                   text,
-    Vec<sem::SemId<sem::Org>> value);
+    sem::SemId<sem::List>           list,
+    hstd::CR<hstd::Str>             text,
+    hstd::Vec<sem::SemId<sem::Org>> value);
 
 /// \brief Insert the list item at the specified position
 void insertListItemBody(
-    sem::SemId<sem::List>     id,
-    int                       index,
-    Vec<sem::SemId<sem::Org>> value);
+    sem::SemId<sem::List>           id,
+    int                             index,
+    hstd::Vec<sem::SemId<sem::Org>> value);
 
 void insertDescriptionListItem(
-    sem::SemId<sem::List>      id,
-    int                        index,
-    sem::SemId<sem::Paragraph> paragraph,
-    Vec<sem::SemId<sem::Org>>  value);
+    sem::SemId<sem::List>           id,
+    int                             index,
+    sem::SemId<sem::Paragraph>      paragraph,
+    hstd::Vec<sem::SemId<sem::Org>> value);
 
 
 template <typename T>
-Vec<T> getSubtreeProperties(sem::SemId<sem::Subtree> const& tree) {
-    Vec<T> result;
+hstd::Vec<T> getSubtreeProperties(sem::SemId<sem::Subtree> const& tree) {
+    hstd::Vec<T> result;
     for (auto const& prop : tree->properties) {
         if (std::holds_alternative<T>(prop.data)) {
             result.push_back(std::get<T>(prop.data));
@@ -367,17 +396,32 @@ Vec<T> getSubtreeProperties(sem::SemId<sem::Subtree> const& tree) {
     return result;
 }
 
-Opt<UserTime> getCreationTime(SemId<Org> const& node);
 
-Opt<sem::NamedProperty> getFinalProperty(
-    CR<Vec<sem::SemId<sem::Org>>> nodes,
-    CR<Str>                       kind,
-    CR<Opt<Str>>                  subKind = std::nullopt);
+template <typename T>
+hstd::Vec<T> getSubtreeProperties(org::imm::ImmSubtree const& subtree) {
+    hstd::Vec<T> result;
+    for (auto const& prop : subtree.properties) {
+        if (std::holds_alternative<T>(prop.data)) {
+            result.push_back(std::get<T>(prop.data));
+        }
+    }
 
-Opt<sem::NamedProperty> getFinalProperty(
-    CR<Vec<org::ImmAdapter>> nodes,
-    CR<Str>                  kind,
-    CR<Opt<Str>>             subKind = std::nullopt);
+    return result;
+}
 
 
-} // namespace sem
+hstd::Opt<hstd::UserTime> getCreationTime(
+    sem::SemId<sem::Org> const& node);
+
+hstd::Opt<sem::NamedProperty> getFinalProperty(
+    hstd::CR<hstd::Vec<sem::SemId<sem::Org>>> nodes,
+    hstd::CR<hstd::Str>                       kind,
+    hstd::CR<hstd::Opt<hstd::Str>>            subKind = std::nullopt);
+
+hstd::Opt<sem::NamedProperty> getFinalProperty(
+    hstd::CR<hstd::Vec<imm::ImmAdapter>> nodes,
+    hstd::CR<hstd::Str>                  kind,
+    hstd::CR<hstd::Opt<hstd::Str>>       subKind = std::nullopt);
+
+
+} // namespace org

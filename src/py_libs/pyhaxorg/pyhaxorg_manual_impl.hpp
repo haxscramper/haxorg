@@ -26,21 +26,26 @@
 #include <hstd/stdlib/RangeSegmentation.hpp>
 
 
-PYBIND11_DECLARE_HOLDER_TYPE(T, sem::SemId<T>);
+PYBIND11_DECLARE_HOLDER_TYPE(T, org::sem::SemId<T>);
 
+namespace py = pybind11;
 
-std::vector<sem::SemId<sem::Org>> getSubnodeRange(
-    sem::SemId<sem::Org> id,
-    pybind11::slice      slice);
-sem::SemId<sem::Org> getSingleSubnode(sem::SemId<sem::Org> id, int index);
+namespace org::bind::python {
+
+std::vector<org::sem::SemId<org::sem::Org>> getSubnodeRange(
+    org::sem::SemId<org::sem::Org> id,
+    pybind11::slice                slice);
+org::sem::SemId<org::sem::Org> getSingleSubnode(
+    org::sem::SemId<org::sem::Org> id,
+    int                            index);
 
 [[refl]] void eachSubnodeRec(
-    sem::SemId<sem::Org> node,
-    py::function         callback);
+    org::sem::SemId<org::sem::Org> node,
+    py::function                   callback);
 
 [[refl]] void eachSubnodeRecSimplePath(
-    sem::SemId<sem::Org> node,
-    py::function         callback);
+    org::sem::SemId<org::sem::Org> node,
+    py::function                   callback);
 
 enum class [[refl]] LeafFieldType
 {
@@ -55,14 +60,17 @@ enum class [[refl]] LeafFieldType
     Any
 };
 
+} // namespace org::bind::python
+
 template <>
-struct value_domain<LeafFieldType>
+struct hstd::value_domain<org::bind::python::LeafFieldType>
     : value_domain_ungapped<
-          LeafFieldType,
-          LeafFieldType::Int,
-          LeafFieldType::Any> {};
+          org::bind::python::LeafFieldType,
+          org::bind::python::LeafFieldType::Int,
+          org::bind::python::LeafFieldType::Any> {};
 
 
+namespace org::bind::python {
 template <typename T>
 struct LeafKindForT;
 
@@ -76,19 +84,23 @@ struct LeafKindForT<int> : LeafKindForBase<int, LeafFieldType::Int> {};
 
 
 template <>
-struct LeafKindForT<Str> : LeafKindForBase<Str, LeafFieldType::Str> {};
+struct LeafKindForT<hstd::Str>
+    : LeafKindForBase<hstd::Str, LeafFieldType::Str> {};
 
 template <>
 struct LeafKindForT<bool> : LeafKindForBase<bool, LeafFieldType::Bool> {};
 
 template <>
-struct LeafKindForT<Vec<sem::SemId<sem::Org>>>
-    : LeafKindForBase<Vec<sem::SemId<sem::Org>>, LeafFieldType::TopIdVec> {
-};
+struct LeafKindForT<hstd::Vec<org::sem::SemId<org::sem::Org>>>
+    : LeafKindForBase<
+          hstd::Vec<org::sem::SemId<org::sem::Org>>,
+          LeafFieldType::TopIdVec> {};
 
-template <sem::IsOrg T>
-struct LeafKindForT<Vec<sem::SemId<T>>>
-    : LeafKindForBase<Vec<sem::SemId<T>>, LeafFieldType::FixedIdVec> {};
+template <org::sem::IsOrg T>
+struct LeafKindForT<hstd::Vec<org::sem::SemId<T>>>
+    : LeafKindForBase<
+          hstd::Vec<org::sem::SemId<T>>,
+          LeafFieldType::FixedIdVec> {};
 
 template <typename T>
 struct LeafKindForT : LeafKindForBase<T, LeafFieldType::Any> {};
@@ -115,8 +127,9 @@ template <typename T, typename... Ts>
 concept IsOneOf = FixedTypeUnion<Ts...>::template contains<
     std::remove_cvref_t<T>>;
 
-struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
-    using Base = Exporter<ExporterPython, py::object>;
+struct [[refl]] ExporterPython
+    : org::algo::Exporter<ExporterPython, py::object> {
+    using Base = org::algo::Exporter<ExporterPython, py::object>;
 #define __ExporterBase Base
     EXPORTER_USING()
 #undef __ExporterBase
@@ -125,8 +138,8 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
 
     using PyFunc     = py::function;
     using Res        = py::object;
-    using SemCbMap   = UnorderedMap<OrgSemKind, PyFunc>;
-    using FieldCbMap = UnorderedMap<LeafFieldType, PyFunc>;
+    using SemCbMap   = hstd::UnorderedMap<OrgSemKind, PyFunc>;
+    using FieldCbMap = hstd::UnorderedMap<LeafFieldType, PyFunc>;
 
     std::string describe(PyFunc const& func) const;
     std::string describe_use(std::string const& msg, PyFunc const& usage)
@@ -136,21 +149,21 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
     using VK = VisitReport::Kind;
 
     void trace_no_cb(
-        VK          kind,
-        sem::OrgArg node,
-        int         line     = __builtin_LINE(),
-        char const* function = __builtin_FUNCTION()) {
+        VK               kind,
+        org::sem::OrgArg node,
+        int              line     = __builtin_LINE(),
+        char const*      function = __builtin_FUNCTION()) {
         trace_instant(
             trace(kind)
                 .with_node(node)
                 .with_loc(line, function)
-                .with_msg(
-                    fmt("no callback for node kind {}", node->getKind())));
+                .with_msg(hstd::fmt(
+                    "no callback for node kind {}", node->getKind())));
     }
 
     VisitScope trace_leaf(
         VK                 kind,
-        sem::OrgArg        node,
+        org::sem::OrgArg   node,
         std::string const& msg,
         PyFunc const&      cb,
         int                line     = __builtin_LINE(),
@@ -163,7 +176,7 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
 
     VisitScope trace_scoped(
         VK                 kind,
-        sem::OrgArg        node,
+        org::sem::OrgArg   node,
         std::string const& msg,
         PyFunc const&      cb,
         int                line     = __builtin_LINE(),
@@ -178,19 +191,19 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
     [[refl]] std::string getTraceBuffer() const;
     [[refl]] void enableFileTrace(std::string const& path, bool colored);
 
-    Opt<PyFunc>   visitAnyNodeAround;
-    [[refl]] void setVisitAnyIdAround(PyFunc cb) {
+    hstd::Opt<PyFunc> visitAnyNodeAround;
+    [[refl]] void     setVisitAnyIdAround(PyFunc cb) {
         visitAnyNodeAround = cb;
     }
 
-    Opt<PyFunc>   visitAnyNodeIn;
-    [[refl]] void setVisitAnyIdIn(PyFunc cb) { visitAnyNodeIn = cb; }
+    hstd::Opt<PyFunc> visitAnyNodeIn;
+    [[refl]] void     setVisitAnyIdIn(PyFunc cb) { visitAnyNodeIn = cb; }
 
-    Opt<PyFunc>   visitAnyField;
-    [[refl]] void setVisitAnyField(PyFunc cb) { visitAnyField = cb; }
+    hstd::Opt<PyFunc> visitAnyField;
+    [[refl]] void     setVisitAnyField(PyFunc cb) { visitAnyField = cb; }
 
-    Opt<PyFunc>   evalTopCb;
-    [[refl]] void setEvalTopCb(PyFunc cb) { evalTopCb = cb; }
+    hstd::Opt<PyFunc> evalTopCb;
+    [[refl]] void     setEvalTopCb(PyFunc cb) { evalTopCb = cb; }
 
     SemCbMap      visitIdAroundCb;
     [[refl]] void setVisitIdAround(OrgSemKind kind, PyFunc cb) {
@@ -213,12 +226,16 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
     }
 
     FieldCbMap    visitLeafFieldCb;
-    [[refl]] void setVisitLeafField(LeafFieldType kind, PyFunc cb) {
+    [[refl]] void setVisitLeafField(
+        org::bind::python::LeafFieldType kind,
+        PyFunc                           cb) {
         visitLeafFieldCb[kind] = cb;
     }
 
     FieldCbMap    evalLeafFieldCb;
-    [[refl]] void setEvalLeafField(LeafFieldType kind, PyFunc cb) {
+    [[refl]] void setEvalLeafField(
+        org::bind::python::LeafFieldType kind,
+        PyFunc                           cb) {
         evalLeafFieldCb[kind] = cb;
     }
 
@@ -241,22 +258,24 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
         newOrgResCb[kind] = cb;
     }
 
-    Opt<PyFunc>   newAnyOrgResCb;
-    [[refl]] void setNewAnyOrgRes(PyFunc cb) { newAnyOrgResCb = cb; }
+    hstd::Opt<PyFunc> newAnyOrgResCb;
+    [[refl]] void     setNewAnyOrgRes(PyFunc cb) { newAnyOrgResCb = cb; }
 
     FieldCbMap    newLeafResCb;
-    [[refl]] void setNewLeafRes(LeafFieldType kind, PyFunc cb) {
+    [[refl]] void setNewLeafRes(
+        org::bind::python::LeafFieldType kind,
+        PyFunc                           cb) {
         newLeafResCb[kind] = cb;
     }
 
-    Opt<PyFunc>   newAnyLeafResCb;
-    [[refl]] void setNewAnyLeafRes(PyFunc cb) { newAnyLeafResCb = cb; }
+    hstd::Opt<PyFunc> newAnyLeafResCb;
+    [[refl]] void     setNewAnyLeafRes(PyFunc cb) { newAnyLeafResCb = cb; }
 
-    Opt<PyFunc>   pushVisitAnyIdCb;
+    hstd::Opt<PyFunc> pushVisitAnyIdCb;
     [[refl]] void setPushVisitAnyId(PyFunc cb) { pushVisitAnyIdCb = cb; }
 
-    Opt<PyFunc>   popVisitAnyIdCb;
-    [[refl]] void setPopVisitAnyId(PyFunc cb) { popVisitAnyIdCb = cb; }
+    hstd::Opt<PyFunc> popVisitAnyIdCb;
+    [[refl]] void     setPopVisitAnyId(PyFunc cb) { popVisitAnyIdCb = cb; }
 
     SemCbMap      pushVisitIdCb;
     [[refl]] void setPushVisitId(OrgSemKind kind, PyFunc cb) {
@@ -268,8 +287,8 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
         popVisitIdCb[kind] = cb;
     }
 
-    Opt<PyFunc>   visitAnyHookCb;
-    [[refl]] void setVisitAnyHookCb(PyFunc cb) { visitAnyHookCb = cb; }
+    hstd::Opt<PyFunc> visitAnyHookCb;
+    [[refl]] void     setVisitAnyHookCb(PyFunc cb) { visitAnyHookCb = cb; }
 
     SemCbMap      visitIdHookCb;
     [[refl]] void setVisitIdHook(OrgSemKind kind, PyFunc cb) {
@@ -282,18 +301,18 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
         std::string const& function,
         int                line);
 
-    Res newResImpl(sem::OrgArg node);
+    Res newResImpl(org::sem::OrgArg node);
 
-    Res newRes(sem::SemId<sem::Org> const& node) {
+    Res newRes(org::sem::SemId<org::sem::Org> const& node) {
         return newResImpl(node);
     }
 
-    template <sem::IsOrg T>
-    Res newRes(sem::SemId<T> const& node) {
+    template <org::sem::IsOrg T>
+    Res newRes(org::sem::SemId<T> const& node) {
         return newResImpl(node.asOrg());
     }
 
-    template <sem::NotOrg T>
+    template <org::sem::NotOrg T>
     Res newRes(T const& node) {
         if (newAnyOrgResCb) {
             return newAnyLeafResCb->operator()(_self, node);
@@ -314,8 +333,8 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
         }
     }
 
-    template <sem::IsOrg T>
-    void visitOrgNodeAround(Res& res, sem::SemId<T> node) {
+    template <org::sem::IsOrg T>
+    void visitOrgNodeAround(Res& res, org::sem::SemId<T> node) {
         OrgSemKind kind = T::staticKind;
         auto       ev   = trace(VK::VisitValue).with_node(node);
         if (visitAnyNodeAround) {
@@ -339,10 +358,10 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
         }
     }
 
-    void visitDispatch(Res& res, sem::SemId<sem::Org> arg);
+    void visitDispatch(Res& res, org::sem::SemId<org::sem::Org> arg);
 
-    template <sem::IsOrg T>
-    void visitOrgNodeIn(Res& res, sem::SemId<T> node) {
+    template <org::sem::IsOrg T>
+    void visitOrgNodeIn(Res& res, org::sem::SemId<T> node) {
         OrgSemKind kind = T::staticKind;
         auto       ev   = trace(VK::VisitSpecificKind).with_node(node);
         if (visitAnyNodeIn) {
@@ -364,7 +383,8 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
             switch (kind) {
 #define __case(__Kind)                                                    \
     case OrgSemKind::__Kind: {                                            \
-        _this()->visit##__Kind(res, node.template as<sem::__Kind>());     \
+        _this()->visit##__Kind(                                           \
+            res, node.template as<org::sem::__Kind>());                   \
         break;                                                            \
     }
 
@@ -375,11 +395,11 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
         }
     }
 
-    template <sem::IsOrg T>
+    template <org::sem::IsOrg T>
     void visitOrgField(
-        Res&                 res,
-        const char*          name,
-        sem::SemId<T> const& value) {
+        Res&                      res,
+        const char*               name,
+        org::sem::SemId<T> const& value) {
         OrgSemKind kind = T::staticKind;
         auto       ev   = trace(VK::VisitField)
                       .with_node(value.asOrg())
@@ -411,13 +431,19 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
 
 
     template <typename T>
-    void fallbackFieldVisitor(Res& res, const char* name, CVec<T> value) {
+    void fallbackFieldVisitor(
+        Res&          res,
+        const char*   name,
+        hstd::CVec<T> value) {
         __fallback_visit("using fallback field visitor for vector");
         for (T const& it : value) { _this()->visit(res, it); }
     }
 
     template <typename T>
-    void fallbackFieldVisitor(Res& res, const char* name, Opt<T> value) {
+    void fallbackFieldVisitor(
+        Res&         res,
+        const char*  name,
+        hstd::Opt<T> value) {
         __fallback_visit("using fallback field visitor for vector");
         if (value) { _this()->visit(res, value.value()); }
     }
@@ -429,7 +455,7 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
     }
 
 
-    template <sem::NotOrg T>
+    template <org::sem::NotOrg T>
     void visitOrgField(Res& res, const char* name, T const& value) {
         auto ev = trace(VK::VisitField).with_value(value).with_field(name);
 
@@ -453,8 +479,8 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
         }
     }
 
-    template <sem::IsOrg T>
-    void visitDispatchHook(Res& res, sem::SemId<T> id) {
+    template <org::sem::IsOrg T>
+    void visitDispatchHook(Res& res, org::sem::SemId<T> id) {
         if (visitAnyHookCb) {
             auto __scope = trace_scoped(
                 VK::VisitDispatchHook, id, "universal", *visitAnyHookCb);
@@ -468,57 +494,59 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
         }
     }
 
-    void pushVisitImpl(Res& res, sem::OrgArg id);
+    void pushVisitImpl(Res& res, org::sem::OrgArg id);
 
-    template <sem::IsOrg T>
-    void pushVisit(Res& res, sem::SemId<T> id) {
+    template <org::sem::IsOrg T>
+    void pushVisit(Res& res, org::sem::SemId<T> id) {
         pushVisitImpl(res, id);
     }
 
-    void popVisitImpl(Res& res, sem::OrgArg id);
+    void popVisitImpl(Res& res, org::sem::OrgArg id);
 
-    template <sem::IsOrg T>
-    void popVisit(Res& res, sem::SemId<T> id) {
+    template <org::sem::IsOrg T>
+    void popVisit(Res& res, org::sem::SemId<T> id) {
         popVisitImpl(res, id);
     }
 
-    template <sem::IsOrg T>
-    void visit(Res& res, sem::SemId<T> node) {
+    template <org::sem::IsOrg T>
+    void visit(Res& res, org::sem::SemId<T> node) {
         visitOrgNodeAround(res, node);
     }
 
-    void visit(Res& res, sem::SemId<sem::Org> node) {
+    void visit(Res& res, org::sem::SemId<org::sem::Org> node) {
         _this()->visitDispatch(res, node);
     }
 
-    void visit(Res& res, sem::BlockCodeSwitch const&) {}
-    void visit(Res& res, sem::Symbol::Param const&) {}
-    void visit(Res& res, sem::NamedProperty const&) {}
-    void visit(Res& res, Str const&) {}
-    void visit(Res& res, Vec<Str> const&) {}
-    void visit(Res& res, sem::DocumentExportConfig::TocExport const&) {}
-    void visit(Res& res, sem::Tblfm const&) {}
-    void visit(Res& res, sem::Tblfm::Assign::Flag const&) {}
+    void visit(Res& res, org::sem::BlockCodeSwitch const&) {}
+    void visit(Res& res, org::sem::Symbol::Param const&) {}
+    void visit(Res& res, org::sem::NamedProperty const&) {}
+    void visit(Res& res, hstd::Str const&) {}
+    void visit(Res& res, hstd::Vec<hstd::Str> const&) {}
+    void visit(
+        Res& res,
+        org::sem::DocumentExportConfig::TocExport const&) {}
+    void visit(Res& res, org::sem::Tblfm const&) {}
+    void visit(Res& res, org::sem::Tblfm::Assign::Flag const&) {}
     void visit(Res& res, int const&) {}
 
-    template <sem::IsOrg T>
-    void visitField(Res& res, char const* name, sem::SemId<T> value) {
+    template <org::sem::IsOrg T>
+    void visitField(Res& res, char const* name, org::sem::SemId<T> value) {
         visitOrgField(res, name, value);
     }
 
-    template <sem::NotOrg T>
+    template <org::sem::NotOrg T>
     void visitField(Res& res, char const* name, T const& value) {
         visitOrgField(res, name, value);
     }
 
     void visitField(
-        Res&                 res,
-        char const*          name,
-        sem::SemId<sem::Org> value);
+        Res&                           res,
+        char const*                    name,
+        org::sem::SemId<org::sem::Org> value);
 
-    [[refl]] Res evalTop(sem::SemId<sem::Org> org);
+    [[refl]] Res evalTop(org::sem::SemId<org::sem::Org> org);
 
-    [[refl]] Res eval(sem::SemId<sem::Org> org) {
+    [[refl]] Res eval(org::sem::SemId<org::sem::Org> org) {
         Res tmp = _this()->newRes(org);
         _this()->visit(tmp, org);
         return tmp;
@@ -526,3 +554,5 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
 };
 
 void init_py_manual_api(py::module& m);
+
+} // namespace org::bind::python

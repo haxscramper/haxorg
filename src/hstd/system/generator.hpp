@@ -7,6 +7,8 @@
 #include <cpptrace.hpp>
 #include <cpptrace/from_current.hpp>
 
+namespace hstd {
+
 struct generator_rethrow_exception
     : CRTP_hexception<generator_rethrow_exception> {};
 
@@ -78,3 +80,5 @@ struct generator {
 
     std::coroutine_handle<promise_type> p;
 };
+
+} // namespace hstd

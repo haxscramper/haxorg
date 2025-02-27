@@ -2,19 +2,22 @@
 #include <haxorg/sem/perfetto_org.hpp>
 #include <hstd/wrappers/hstd_extra/perfetto_aux_impl_template.hpp>
 
+using namespace org::parse;
+using namespace org::test;
+
 template <>
-struct JsonSerde<YAML::Mark> {
+struct hstd::JsonSerde<YAML::Mark> {
     static YAML::Mark from_json(json const& j) { return YAML::Mark(); }
 };
 
 template <>
-struct JsonSerde<YAML::Node> {
+struct hstd::JsonSerde<YAML::Node> {
     static YAML::Node from_json(json const& j) { return toYaml(j); }
 };
 
 
 template <>
-struct JsonSerde<TestResult::Data> {
+struct hstd::JsonSerde<TestResult::Data> {
     static json to_json(TestResult::Data const& data) {
         json j    = json::object();
         j["kind"] = fmt1(TestResult::getKind(data));
@@ -37,11 +40,11 @@ struct JsonSerde<TestResult::Data> {
 
 int main(int argc, char** argv) {
     CHECK(argc == 2);
-    auto spec = JsonSerde<ParseSpec>::from_json(
+    auto spec = hstd::JsonSerde<ParseSpec>::from_json(
         json::parse(std::string(argv[1])));
 
     TestResult result      = gtest_run_spec(TestParams{.spec = spec});
-    json       json_result = to_json_eval(result);
+    json       json_result = hstd::to_json_eval(result);
     std::cout << json_result.dump() << std::endl;
     return 0;
 }

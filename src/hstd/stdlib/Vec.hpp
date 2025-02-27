@@ -11,6 +11,8 @@
 #include <vector>
 #include <span>
 
+namespace hstd {
+
 template <typename T>
 concept IsIterableRange = requires(T t) {
     { std::begin(t) } -> std::input_or_output_iterator;
@@ -558,17 +560,6 @@ struct std_item_iterator_formatter : std::formatter<std::string> {
     }
 };
 
-/// \brief Vector formatting operator
-template <typename T>
-struct std::formatter<Vec<T>> : std_item_iterator_formatter<T, Vec<T>> {};
-
-template <typename T>
-struct std::formatter<std::vector<T>>
-    : std_item_iterator_formatter<T, std::vector<T>> {};
-
-template <typename T, int Size>
-struct std::formatter<SmallVec<T, Size>>
-    : std_item_iterator_formatter<T, SmallVec<T, Size>> {};
 
 template <typename Indexable>
 struct std_indexable_hash {
@@ -582,13 +573,6 @@ struct std_indexable_hash {
     }
 };
 
-template <typename T>
-struct std::hash<Vec<T>> : std_indexable_hash<Vec<T>> {};
-
-template <typename T, int Size>
-struct std::hash<SmallVec<T, Size>>
-    : std_indexable_hash<SmallVec<T, Size>> {};
-
 
 template <typename T>
 using CVec = CR<Vec<T>>;
@@ -596,4 +580,31 @@ using CVec = CR<Vec<T>>;
 template <typename T>
 struct value_metadata<Vec<T>> {
     static bool isEmpty(Vec<T> const& value) { return value.empty(); }
+    static std::string typeName() {
+        return std::string{"Vec<"} + value_metadata<T>::typeName()
+             + std::string{">"};
+    }
 };
+
+} // namespace hstd
+
+/// \brief Vector formatting operator
+template <typename T>
+struct std::formatter<hstd::Vec<T>>
+    : hstd::std_item_iterator_formatter<T, hstd::Vec<T>> {};
+
+template <typename T>
+struct std::formatter<std::vector<T>>
+    : hstd::std_item_iterator_formatter<T, std::vector<T>> {};
+
+template <typename T, int Size>
+struct std::formatter<hstd::SmallVec<T, Size>>
+    : hstd::std_item_iterator_formatter<T, hstd::SmallVec<T, Size>> {};
+
+
+template <typename T>
+struct std::hash<hstd::Vec<T>> : hstd::std_indexable_hash<hstd::Vec<T>> {};
+
+template <typename T, int Size>
+struct std::hash<hstd::SmallVec<T, Size>>
+    : hstd::std_indexable_hash<hstd::SmallVec<T, Size>> {};

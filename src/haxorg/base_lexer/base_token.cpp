@@ -3,6 +3,9 @@
 #include <reflex/abslexer.h>
 #include <reflex/matcher.h>
 
+using namespace hstd;
+using namespace org::parse;
+
 #include "base_token_state.tcc"
 #include <haxorg/lexbase/TraceStructured.hpp>
 
@@ -244,8 +247,8 @@ void OrgLexerImpl::unknown() {
         if (p.traceStructured) {
             (*p.traceStream)
                 << to_json_eval(EntryLexer{EntryLexer::Unknown{
-                       .indent = p.indentation,
                        .view   = viewStruct(this),
+                       .indent = p.indentation,
                    }})
                 << std::endl;
         } else {

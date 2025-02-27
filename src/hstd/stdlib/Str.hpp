@@ -8,6 +8,8 @@
 #include <hstd/stdlib/Vec.hpp>
 #include <format>
 
+namespace hstd {
+
 struct Str : public std::string {
     using std::string::operator[];
     using std::string::reserve;
@@ -92,33 +94,38 @@ struct Str : public std::string {
 
     int runeLen() const;
 };
+} // namespace hstd
 
 
-inline Str operator+(CR<std::string> in, CR<Str> other) {
-    Str res;
+inline hstd::Str operator+(
+    hstd::CR<std::string> in,
+    hstd::CR<hstd::Str>   other) {
+    hstd::Str res;
     res.append(in);
     res.append(other);
     return res;
 }
 
-inline Str operator+(const char* in, CR<Str> other) {
-    Str res;
+inline hstd::Str operator+(const char* in, hstd::CR<hstd::Str> other) {
+    hstd::Str res;
     res.append(in);
     res.append(other);
     return res;
 }
+
 
 template <class CharT>
-struct std::formatter<Str, CharT> : std::formatter<std::string, CharT> {
+struct std::formatter<hstd::Str, CharT>
+    : std::formatter<std::string, CharT> {
     template <typename FormatContext>
-    auto format(const Str& p, FormatContext& ctx) const {
+    auto format(const hstd::Str& p, FormatContext& ctx) const {
         return std::formatter<std::string, CharT>::format(p.toBase(), ctx);
     }
 };
 
 template <>
-struct std::hash<Str> : std::hash<std::string> {};
+struct std::hash<hstd::Str> : std::hash<std::string> {};
 
-inline Str operator""_ss(char const* value, unsigned long size) {
-    return Str(value, size);
+inline hstd::Str operator""_ss(char const* value, unsigned long size) {
+    return hstd::Str(value, size);
 }

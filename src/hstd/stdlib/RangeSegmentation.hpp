@@ -7,6 +7,8 @@
 
 #include <hstd/stdlib/Vec.hpp>
 
+namespace hstd {
+
 /// \brief Input segment.
 struct [[refl]] SequenceSegment {
     /// \brief Kind of the segment, does not have to be unique for all
@@ -79,7 +81,7 @@ struct [[refl]] SequenceAnnotation {
 
     DESC_FIELDS(SequenceAnnotation, (first, last, annotations));
 
-    Slice<int> slice() const { return ::slice(first, last); }
+    Slice<int> slice() const { return ::hstd::slice(first, last); }
 };
 
 
@@ -89,3 +91,5 @@ struct [[refl]] SequenceAnnotation {
     Vec<SequenceSegmentGroup> const& groups,
     int                              first,
     int                              last);
+
+} // namespace hstd

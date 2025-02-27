@@ -7,6 +7,8 @@
 #include <hstd/stdlib/sequtils.hpp>
 #include <hstd/system/all.hpp>
 
+namespace hstd {
+
 enum class AddfFragmentKind
 {
     Text,        ///< Regular text fragment
@@ -90,3 +92,5 @@ std::vector<std::string> to_string_vec(Args&&... args) {
     to_string_vec_impl(result, args...);
     return result;
 }
+
+} // namespace hstd

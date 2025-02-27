@@ -22,19 +22,19 @@ inline void join_fmt_varargs_impl(
 
 template <typename T>
 inline std::string format_for_log(T const& t) {
-    return fmt1(t);
+    return hstd::fmt1(t);
 }
 
 inline std::string format_for_log(char const* str) {
-    return escape_literal(str);
+    return hstd::escape_literal(str);
 }
 
-inline std::string format_for_log(Str const& str) {
-    return escape_literal(str);
+inline std::string format_for_log(hstd::Str const& str) {
+    return hstd::escape_literal(str);
 }
 
 inline std::string format_for_log(std::string const& str) {
-    return escape_literal(str);
+    return hstd::escape_literal(str);
 }
 
 template <typename T, typename... Args>
@@ -89,14 +89,14 @@ void im_ctx_act_impl(
     template <>                                                           \
     inline void ImGuiTestEngineUtil_appendf_auto(                         \
         ImGuiTextBuffer* buf, T v) {                                      \
-        buf->append(fmt1(v).c_str());                                     \
+        buf->append(hstd::fmt1(v).c_str());                               \
         IM_UNUSED(v);                                                     \
     }
 
 IM_FMT_DECL(std::string);
-IM_FMT_DECL(Str);
+IM_FMT_DECL(hstd::Str);
 
-Str getDebugFile(ImGuiTest* t, const Str& suffix);
+hstd::Str getDebugFile(ImGuiTest* t, const hstd::Str& suffix);
 
 struct ImTestFuncStartupParams {
     ImVec2      windowSize{250, 250};
@@ -104,8 +104,8 @@ struct ImTestFuncStartupParams {
 };
 
 struct ImTestVarsBase {
-    OperationsTracer trace;
-    int              TraceCounter = 0;
+    hstd::OperationsTracer trace;
+    int                    TraceCounter = 0;
 
     bool is_im_traced() { return 0 < TraceCounter; }
     void im_trace_run() {
@@ -185,7 +185,7 @@ template <typename T, typename... Args>
 inline std::string __im_test_utils_format_va_args_list(
     T const& head,
     Args&&... args) {
-    return fmt(
+    return hstd::fmt(
         ", {}{}", head, __im_test_utils_format_va_args_list(args...));
 }
 
@@ -195,8 +195,8 @@ inline float ImVec2Length(const ImVec2& vec) {
 
 
 struct PredicateResult {
-    bool     ok = false;
-    Opt<Str> explanation;
+    bool                 ok = false;
+    hstd::Opt<hstd::Str> explanation;
 };
 
 
@@ -207,23 +207,27 @@ inline PredicateResult is_within_distance(
     PredicateResult res;
     float           dist = ImVec2Length(rhs - lhs);
     res.ok               = dist <= distance;
-    if (!res.ok) { res.explanation = fmt("distance is {}", dist); }
+    if (!res.ok) { res.explanation = hstd::fmt("distance is {}", dist); }
     return res;
 }
 
-inline PredicateResult has_substring(Str const& lhs, Str const& rhs) {
+inline PredicateResult has_substring(
+    hstd::Str const& lhs,
+    hstd::Str const& rhs) {
     PredicateResult res;
     res.ok = lhs.contains(rhs);
     return res;
 }
 
 inline PredicateResult has_substring_normalized(
-    Str const& lhs,
-    Str const& rhs) {
+    hstd::Str const& lhs,
+    hstd::Str const& rhs) {
     return has_substring(normalize(lhs), normalize(rhs));
 }
 
-inline PredicateResult not_has_substring(Str const& lhs, Str const& rhs) {
+inline PredicateResult not_has_substring(
+    hstd::Str const& lhs,
+    hstd::Str const& rhs) {
     PredicateResult res;
     int             idx = lhs.find(rhs);
     if (idx == std::string::npos) {
@@ -240,8 +244,8 @@ inline PredicateResult not_has_substring(Str const& lhs, Str const& rhs) {
 }
 
 inline PredicateResult not_has_substring_normalized(
-    Str const& lhs,
-    Str const& rhs) {
+    hstd::Str const& lhs,
+    hstd::Str const& rhs) {
     return not_has_substring(normalize(lhs), normalize(rhs));
 }
 
@@ -254,7 +258,7 @@ inline PredicateResult not_has_substring_normalized(
             __lhs, __rhs __VA_OPT__(, ) __VA_ARGS__);                     \
         std::string arglist_buf = __im_test_utils_format_va_args_list(    \
             __VA_ARGS__);                                                 \
-        std::string expr_buf = fmt(                                       \
+        std::string expr_buf = hstd::fmt(                                 \
             "{} [{}] !{}(_, _{} {} [{}]",                                 \
             #_LHS,                                                        \
             __lhs,                                                        \

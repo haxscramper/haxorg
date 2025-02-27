@@ -17,7 +17,6 @@ else:
 
 SemSet = set[OrgSemKind]
 
-
 @beartype
 def org_ident_normalize(input_str: str) -> str:
     result = ""

@@ -15,6 +15,9 @@
 #include <type_traits>
 
 
+namespace hstd {
+
+
 template <typename T>
 inline void hax_hash_combine(std::size_t& seed, const T& v) {
     std::hash<T> hasher;
@@ -91,6 +94,8 @@ concept DescribedRecord = boost::describe::has_describe_members<
                        && boost::describe::has_describe_bases<
                               std::remove_cvref_t<T>>::value;
 
+} // namespace hstd
+
 namespace boost::describe {
 
 [[noreturn]] inline void throw_invalid_name(
@@ -106,7 +111,7 @@ E string_to_enum(char const* name) {
     bool found = false;
     E    r     = {};
 
-    boost::mp11::mp_for_each<boost::describe::describe_enumerators<E>>(
+    ::boost::mp11::mp_for_each<::boost::describe::describe_enumerators<E>>(
         [&](auto D) {
             if (!found && std::strcmp(D.name, name) == 0) {
                 found = true;
@@ -129,6 +134,9 @@ E string_to_enum(char const* name) {
 }
 }; // namespace boost::describe
 
+
+namespace hstd {
+
 template <typename E>
 struct enum_serde;
 
@@ -141,34 +149,10 @@ template <typename T>
 concept NonSerializableEnum = IsEnum<T> && !SerializableEnum<T>;
 
 
-template <SerializableEnum T>
-struct std::formatter<T> : std::formatter<std::string> {
-    using FmtType = T;
-    template <typename FormatContext>
-    FormatContext::iterator format(FmtType const& p, FormatContext& ctx)
-        const {
-        std::formatter<std::string> fmt;
-        return fmt.format(enum_serde<T>::to_string(p), ctx);
-    }
-};
-
-
-template <NonSerializableEnum T>
-struct std::formatter<T> : std::formatter<std::string> {
-    using FmtType = T;
-    template <typename FormatContext>
-    FormatContext::iterator format(FmtType const& p, FormatContext& ctx)
-        const {
-        std::formatter<std::string> fmt;
-        return fmt.format(std::to_string((int)p), ctx);
-    }
-};
-
-
 template <DescribedEnum E>
 struct enum_serde<E> {
     static inline std::string to_string(E const& value) {
-        return boost::describe::enum_to_string(value, "<unnamed>");
+        return ::boost::describe::enum_to_string(value, "<unnamed>");
     }
 
     static inline std::optional<E> from_string(std::string const& str) {
@@ -187,7 +171,7 @@ constexpr std::array<E, sizeof...(T)> describe_enumerators_list(L<T...>) {
 template <class E>
 constexpr auto describe_enumerators_as_array() {
     return describe_enumerators_list<E>(
-        boost::describe::describe_enumerators<E>());
+        ::boost::describe::describe_enumerators<E>());
 }
 
 template <class E>
@@ -215,7 +199,7 @@ std::vector<EnumFieldDesc<E>> describe_enumerators() {
 
 template <class E>
 std::vector<std::string> enumerator_names() {
-    auto                     tmp = ::describe_enumerators<E>();
+    auto                     tmp = hstd::describe_enumerators<E>();
     std::vector<std::string> result;
     for (const auto& it : tmp) { result.push_back(it.name); }
     return result;
@@ -242,22 +226,22 @@ struct value_domain<E> {
 template <typename T, typename Func>
 void for_each_field_with_bases(Func cb, bool pre_bases = true) {
     if (pre_bases) {
-        boost::mp11::mp_for_each<boost::describe::describe_bases<
+        ::boost::mp11::mp_for_each<::boost::describe::describe_bases<
             T,
-            boost::describe::mod_any_access>>([&](auto Base) {
+            ::boost::describe::mod_any_access>>([&](auto Base) {
             for_each_field_with_bases<typename decltype(Base)::type>(
                 cb, pre_bases);
         });
     }
 
-    boost::mp11::mp_for_each<boost::describe::describe_members<
+    ::boost::mp11::mp_for_each<::boost::describe::describe_members<
         T,
-        boost::describe::mod_any_access>>(cb);
+        ::boost::describe::mod_any_access>>(cb);
 
     if (!pre_bases) {
-        boost::mp11::mp_for_each<boost::describe::describe_bases<
+        ::boost::mp11::mp_for_each<::boost::describe::describe_bases<
             T,
-            boost::describe::mod_any_access>>([&](auto Base) {
+            ::boost::describe::mod_any_access>>([&](auto Base) {
             for_each_field_with_bases<typename decltype(Base)::type>(
                 cb, pre_bases);
         });
@@ -270,23 +254,23 @@ void for_each_field_with_base_value(
     Func     cb,
     bool     pre_bases = true) {
     if (pre_bases) {
-        boost::mp11::mp_for_each<boost::describe::describe_bases<
+        ::boost::mp11::mp_for_each<::boost::describe::describe_bases<
             T,
-            boost::describe::mod_any_access>>([&](auto Base) {
+            ::boost::describe::mod_any_access>>([&](auto Base) {
             for_each_field_with_base_value<typename decltype(Base)::type>(
                 value, cb, pre_bases);
         });
     }
 
-    boost::mp11::mp_for_each<boost::describe::describe_members<
+    ::boost::mp11::mp_for_each<::boost::describe::describe_members<
         T,
-        boost::describe::mod_any_access>>(
+        ::boost::describe::mod_any_access>>(
         [&](auto const& field) { cb(value, field); });
 
     if (!pre_bases) {
-        boost::mp11::mp_for_each<boost::describe::describe_bases<
+        ::boost::mp11::mp_for_each<::boost::describe::describe_bases<
             T,
-            boost::describe::mod_any_access>>([&](auto Base) {
+            ::boost::describe::mod_any_access>>([&](auto Base) {
             for_each_field_with_base_value<typename decltype(Base)::type>(
                 value, cb, pre_bases);
         });
@@ -295,9 +279,9 @@ void for_each_field_with_base_value(
 
 template <typename T, typename Func>
 void for_each_field_no_base(Func cb, bool pre_bases = true) {
-    boost::mp11::mp_for_each<boost::describe::describe_members<
+    ::boost::mp11::mp_for_each<::boost::describe::describe_members<
         T,
-        boost::describe::mod_any_access>>(cb);
+        ::boost::describe::mod_any_access>>(cb);
 }
 
 
@@ -324,7 +308,7 @@ struct __DescFieldTypeHelper {};
 
 /// \brief Get type of the boost::describe field descriptor.
 #define DESC_FIELD_TYPE(__field)                                          \
-    __DescFieldTypeHelper<decltype(__field.pointer)>::Type
+    hstd::__DescFieldTypeHelper<decltype(__field.pointer)>::Type
 
 template <typename StructType, typename FieldType>
 struct __DescFieldTypeHelper<FieldType StructType::*> {
@@ -334,6 +318,31 @@ struct __DescFieldTypeHelper<FieldType StructType::*> {
 template <typename StructType, typename FieldType>
 struct __DescFieldTypeHelper<FieldType StructType::*const> {
     using Type = std::remove_cvref_t<FieldType>;
+};
+
+} // namespace hstd
+
+template <hstd::SerializableEnum T>
+struct std::formatter<T> : std::formatter<std::string> {
+    using FmtType = T;
+    template <typename FormatContext>
+    FormatContext::iterator format(FmtType const& p, FormatContext& ctx)
+        const {
+        std::formatter<std::string> fmt;
+        return fmt.format(hstd::enum_serde<T>::to_string(p), ctx);
+    }
+};
+
+
+template <hstd::NonSerializableEnum T>
+struct std::formatter<T> : std::formatter<std::string> {
+    using FmtType = T;
+    template <typename FormatContext>
+    FormatContext::iterator format(FmtType const& p, FormatContext& ctx)
+        const {
+        std::formatter<std::string> fmt;
+        return fmt.format(std::to_string((int)p), ctx);
+    }
 };
 
 

@@ -14,6 +14,7 @@ from py_textlayout.py_textlayout_wrap import BlockId, TextLayout
 
 DEBUG_TYPE_ORIGIN = False
 
+
 class QualTypeKind(str, Enum):
     RegularType = "RegularTyp0e"
     FunctionPtr = "FunctionPtr"
@@ -24,6 +25,7 @@ class QualTypeKind(str, Enum):
     def __rich_repr__(self):
         yield self.name
 
+
 class ReferenceKind(str, Enum):
     NotRef = "NotRef"
     LValue = "LValue"
@@ -31,6 +33,9 @@ class ReferenceKind(str, Enum):
 
     def __rich_repr__(self):
         yield self.name
+
+    def __repr__(self):
+        return self.name
 
 
 @beartype
@@ -78,7 +83,7 @@ class QualType(BaseModel, extra="forbid"):
         return QualType(expr=expr, Kind=QualTypeKind.TypeExpr, **args)
 
     def flatten(self) -> "QualType":
-        return self.model_copy(update=dict(Spaces=self.flatQualSpaces()))
+        return self.model_copy(update=dict(Spaces=self.flatQualScope()))
 
     def withDbgOrigin(self, msg: str) -> "QualType":
         return self.model_copy(update=dict(dbg_origin=self.dbg_origin + msg))
@@ -89,11 +94,21 @@ class QualType(BaseModel, extra="forbid"):
     def asRef(self) -> 'QualType':
         return self.model_copy(update=dict(isConst=False, RefKind=ReferenceKind.LValue))
 
-    def flatQualSpaces(self) -> List["QualType"]:
+    def flatQualScope(self) -> List["QualType"]:
+        "Flatten fully qualified name for the type"
+
         def aux(it: QualType) -> List[QualType]:
-            return list(itertools.chain(*(aux(s) for s in it.Spaces))) + [it.withoutAllSpaces()]
+            return list(itertools.chain(
+                *(aux(s) for s in it.Spaces))) + [it.withoutAllScopeQualifiers()]
 
         return list(itertools.chain(*(aux(s) for s in self.Spaces)))
+
+    def flatQualFullName(self) -> List["QualType"]:
+        return self.flatQualScope() + [self.withoutAllScopeQualifiers()]
+
+    def flatQualNameNoNamespace(self) -> List["QualType"]:
+        "Return qualified name for the type, dropping all namespace parents (but leaving non-namespaces)"
+        return [it for it in self.flatQualScope() if not it.isNamespace]
 
     def asPtr(self, ptrCount: int = 1) -> 'QualType':
         return self.model_copy(update=dict(ptrCount=ptrCount))
@@ -101,11 +116,12 @@ class QualType(BaseModel, extra="forbid"):
     def withGlobalSpace(self) -> 'QualType':
         return self.model_copy(update=dict(isGlobalNamespace=True))
 
-    def flatSpaces(self) -> List[str]:
+    def flatSpaceNames(self) -> List[str]:
+        "Get flat list of names for fully qualified type"
         return [S.name for S in self.Spaces]
 
     def flatQualName(self) -> List[str]:
-        return self.flatSpaces() + [self.name]
+        return self.flatSpaceNames() + [self.name]
 
     def asSpaceFor(self, other: 'QualType') -> 'QualType':
         return other.model_copy(update=dict(
@@ -117,8 +133,12 @@ class QualType(BaseModel, extra="forbid"):
             isGlobalNamespace=self.isGlobalNamespace,
         ))
 
-    def withWrapperType(self, name: str) -> "QualType":
-        return QualType(name=name, Parameters=[self])
+    def withWrapperType(self, name: Union[str, "QualType"]) -> "QualType":
+        if isinstance(name, str):
+            return QualType(name=name, Parameters=[self])
+
+        else:
+            return name.model_copy(update=dict(Parameters=[self]))
 
     def withExtraSpace(self, name: Union['QualType', str]) -> 'QualType':
         flat = self.flatten()
@@ -131,7 +151,7 @@ class QualType(BaseModel, extra="forbid"):
         return flat.model_copy(update=dict(
             Spaces=[S for S in flat.Spaces if S.name != name]))
 
-    def withoutAllSpaces(self) -> 'QualType':
+    def withoutAllScopeQualifiers(self) -> 'QualType':
         return self.model_copy(update=dict(Spaces=[]))
 
     def withChangedSpace(self, name: Union['QualType', str]) -> 'QualType':
@@ -167,11 +187,31 @@ class QualType(BaseModel, extra="forbid"):
 
     func: Optional[Function] = None
 
+    def flat_repr_flatten(self) -> Any:
+        ## NOTE: Used for hashing, order of append is important, it must match the actual representation,
+        ## otherwise namespace nesting might throw off the hashing results, and make `[org::[sem::[Id]]]`
+        ## not match with the type `[org::sem::[Id]]` because of how namespaces are walked. 
+        result = []
+
+        def aux(T: QualType):
+            for S in T.Spaces:
+                aux(S)
+
+            for P in T.Parameters:
+                aux(P)
+
+            result.append((
+                T.name,
+                T.isConst,
+                T.ptrCount,
+                T.RefKind,
+            ))
+
+        aux(self)
+        return tuple(result)
+
     def __hash__(self) -> int:
-        return hash(
-            (self.name, self.isConst, self.ptrCount, self.RefKind, self.isNamespace,
-             tuple([hash(T) for T in self.Spaces]),
-             tuple([hash(T) for T in self.Parameters])))
+        return hash(self.flat_repr_flatten())
 
     def __repr__(self) -> str:
         return self.format()
@@ -180,52 +220,63 @@ class QualType(BaseModel, extra="forbid"):
         return self.format()
 
     def format(self, dbgOrigin: bool = False) -> str:
-        cvref = "{const}{ptr}{ref}".format(
-            const=" const" if self.isConst else "",
-            ptr=("*" * self.ptrCount),
-            ref={
-                ReferenceKind.LValue: "&",
-                ReferenceKind.RValue: "&&",
-                ReferenceKind.NotRef: ""
-            }[self.RefKind],
-        )
 
-        origin = f"FROM:[{self.dbg_origin}]" if dbgOrigin else ""
+        def aux(Typ: QualType) -> str:
+            cvref = "{const}{ptr}{ref}".format(
+                const=" const" if Typ.isConst else "",
+                ptr=("*" * Typ.ptrCount),
+                ref={
+                    ReferenceKind.LValue: "&",
+                    ReferenceKind.RValue: "&&",
+                    ReferenceKind.NotRef: ""
+                }[Typ.RefKind],
+            )
 
-        spaces = "".join([S.format(dbgOrigin) + "::" for S in self.Spaces])
-        if spaces:
-            spaces = f"[{spaces}]<<"
+            origin = f"FROM:[{Typ.dbg_origin}]" if dbgOrigin else ""
 
-        match self.Kind:
-            case QualTypeKind.FunctionPtr:
-                return spaces + "F:[{}({})]".format(
-                    self.func.ReturnTy.format(),
-                    ", ".join([T.format(dbgOrigin) for T in self.func.Args]),
-                )
+            spaces = "".join([f"{aux(S)}::" for S in Typ.Spaces])
+            # if spaces:
+            #     spaces = f"{spaces}"
 
-            case QualTypeKind.Array:
-                return spaces + "A:[{first}[{expr}]{cvref}{origin}]".format(
-                    first=self.Parameters[0].format(dbgOrigin),
-                    expr=self.Parameters[1].format(dbgOrigin)
-                    if 1 < len(self.Parameters) else "",
-                    cvref=cvref,
-                    origin=origin,
-                )
+            match Typ.Kind:
+                case QualTypeKind.FunctionPtr:
+                    result = "{spaces}FUNC:{origin}({args})".format(
+                        spaces=spaces,
+                        origin=aux(Typ.func.ReturnTy),
+                        args=", ".join([aux(T) for T in Typ.func.Args]),
+                    )
 
-            case QualTypeKind.RegularType:
-                return spaces + "R:[{name}{args}{cvref}{origin}]".format(
-                    name=self.name,
-                    args=("<" + ", ".join([T.format() for T in self.Parameters]) +
-                          ">") if self.Parameters else "",
-                    cvref=cvref,
-                    origin=origin,
-                )
+                case QualTypeKind.Array:
+                    result = "{spaces}ARR:{first}[{expr}]{cvref}{origin}".format(
+                        first=aux(Typ.Parameters[0]),
+                        expr=aux(Typ.Parameters[1]) if 1 < len(Typ.Parameters) else "",
+                        cvref=cvref,
+                        origin=origin,
+                        spaces=spaces,
+                    )
 
-            case QualTypeKind.TypeExpr:
-                return f"E:{self.expr}"
+                case QualTypeKind.RegularType:
+                    result = "{spaces}REC:({name}{args}{cvref}{origin})".format(
+                        name=Typ.name or "?",
+                        args="<{}>".format(", ".join([aux(T) for T in Typ.Parameters]))
+                        if Typ.Parameters else "",
+                        cvref=cvref,
+                        origin=origin,
+                        spaces=spaces,
+                        # namespace=("NSP" if Typ.isNamespace else ""),
+                    )
 
-            case _:
-                assert False, self.Kind
+                case QualTypeKind.TypeExpr:
+                    result = f"[E:{Typ.expr}]"
+
+                case _:
+                    assert False, Typ.Kind
+
+            return "{" + result + "}"
+
+        # return self.model_dump_json() + "  --- " + aux(self)
+        # return aux(self)
+        return str(self.flat_repr_flatten())
 
     def asNamespace(self, is_namespace=True):
         self.isNamespace = is_namespace
@@ -455,7 +506,7 @@ RecordNested = Union[EnumParams, 'RecordParams', BlockId]
 @beartype
 @dataclass
 class RecordParams:
-    name: str
+    name: QualType
     doc: DocParams = field(default_factory=lambda: DocParams(""))
     NameParams: List[QualType] = field(default_factory=list)
     bases: List[QualType] = field(default_factory=list)
@@ -464,6 +515,7 @@ class RecordParams:
     Template: TemplateParams = field(default_factory=TemplateParams)
     IsDefinition: bool = True
     TrailingLine: bool = True
+    IsTemplateSpecialization: bool = False
     OneLine: bool = False
 
     def methods(self) -> Iterable[Union[MethodDeclParams, MethodDefParams]]:
@@ -1069,7 +1121,8 @@ class ASTBuilder(base.AstbuilderBase):
 
         head = self.b.line([
             self.string("struct "),
-            self.string(params.name),
+            self.Type(params.name)
+            if params.IsTemplateSpecialization else self.string(params.name.name),
             self.b.surround_non_empty(
                 self.b.join([self.Type(t) for t in params.NameParams], self.string(", ")),
                 self.string("<"), self.string(">")), bases or self.string(""),

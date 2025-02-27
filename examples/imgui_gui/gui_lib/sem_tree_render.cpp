@@ -79,9 +79,9 @@ struct ExporterVisual : public Exporter<ExporterVisual, int> {
 
 
     void visitField(
-        int&                       i,
-        const char*                name,
-        CVec<sem::SemId<sem::Org>> org) {
+        int&                                 i,
+        const char*                          name,
+        CVec<org::sem::SemId<org::sem::Org>> org) {
         auto __scope = trace_scope(trace(VK::VisitField).with_field(name));
         for (const auto& [idx, sub] : enumerate(org)) {
             if (LeafKinds.contains(sub->getKind())) {
@@ -95,7 +95,7 @@ struct ExporterVisual : public Exporter<ExporterVisual, int> {
         }
     }
 
-    void visitSpace(int& j, sem::SemId<sem::Space> s) {
+    void visitSpace(int& j, org::sem::SemId<org::sem::Space> s) {
         if (config.showSpace) {
             ImGui::Text("Space");
             ImGui::SameLine();
@@ -107,7 +107,7 @@ struct ExporterVisual : public Exporter<ExporterVisual, int> {
     }
 
 #define _visit_leaf(__Kind)                                               \
-    void visit##__Kind(int& j, sem::SemId<sem::__Kind> s) {               \
+    void visit##__Kind(int& j, org::sem::SemId<org::sem::__Kind> s) {     \
         ImGui::Text(#__Kind);                                             \
         ImGui::SameLine();                                                \
         ImGui::TextColored(                                               \
@@ -159,7 +159,10 @@ struct ExporterVisual : public Exporter<ExporterVisual, int> {
     }
 
     template <typename T>
-    void visitField(int& j, const char* name, CR<sem::SemId<T>> field) {
+    void visitField(
+        int&                   j,
+        const char*            name,
+        CR<org::sem::SemId<T>> field) {
         auto __scope = trace_scope(trace(VK::VisitField).with_field(name));
         if (ImOrgTree(name)) {
             visit(j, field);
@@ -174,11 +177,11 @@ struct ExporterVisual : public Exporter<ExporterVisual, int> {
             color(ColorName::Red),
             "%s %s",
             name,
-            TypeName<T>::get().c_str());
+            value_metadata<T>::typeName().c_str());
     }
 
     template <typename T>
-    void visit(int& arg, sem::SemId<T> const& org) {
+    void visit(int& arg, org::sem::SemId<T> const& org) {
         auto __scope = trace_scope(
             trace(VK::VisitGeneric).with_node(org.asOrg()));
         if (ImOrgTree(fmt1(org->getKind()).c_str())) {
@@ -188,9 +191,11 @@ struct ExporterVisual : public Exporter<ExporterVisual, int> {
     }
 };
 
-template class Exporter<ExporterVisual, int>;
+template class org::algo::Exporter<ExporterVisual, int>;
 
-void render_sem_tree(sem::SemId<sem::Org> tree, VisualExporterConfig& config) {
+void render_sem_tree(
+    org::sem::SemId<org::sem::Org> tree,
+    VisualExporterConfig&          config) {
     ExporterVisual exp{.config = config};
     if (config.doTrace) {
         exp.setTraceFile("/tmp/ExportWalker.txt");

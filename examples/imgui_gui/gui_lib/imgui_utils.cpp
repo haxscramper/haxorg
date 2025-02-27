@@ -13,6 +13,8 @@
 
 #include <fstream>
 
+using namespace hstd;
+
 Vec<ImRenderTraceRecord> ImRenderTraceRecord::stack;
 bool                     ImRenderTraceRecord::TraceState;
 

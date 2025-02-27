@@ -7,7 +7,11 @@
 #include <haxorg/test/org_parse_aux.hpp>
 #include <haxorg/sem/SemAstDiff.hpp>
 
-using namespace diff;
+using namespace hstd::ext::diff;
+using namespace hstd;
+using namespace org::sem;
+using namespace hstd::ext;
+using namespace org;
 
 
 struct TestNode : SharedPtrApi<TestNode> {
@@ -238,16 +242,17 @@ TEST(AstDiff, PointerBasedNodes) {
 }
 
 
-struct OrgDiffBuilder : OrgNodeDiff {
-    MockFull srcParse;
-    MockFull dstParse;
+struct OrgDiffBuilder : org::algo::OrgNodeDiff {
+    org::test::MockFull srcParse;
+    org::test::MockFull dstParse;
 
 
     sem::SemId<sem::Document> setOrg(std::string const& text, bool isSrc) {
         auto mock = isSrc ? &srcParse : &dstParse;
         mock->run(text);
         sem::OrgConverter converter{};
-        return converter.toDocument(OrgAdapter(&mock->nodes, OrgId(0)));
+        return converter.toDocument(
+            org::parse::OrgAdapter(&mock->nodes, org::parse::OrgId(0)));
     }
 
     sem::SemId<sem::Document> setSrc(std::string const& text) {

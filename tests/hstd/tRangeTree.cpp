@@ -6,6 +6,8 @@
 #include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/RangeSegmentation.hpp>
 
+using namespace hstd;
+
 bool operator==(Slice<int> lhs, Slice<int> rhs) {
     return lhs.operator==(rhs);
 }
