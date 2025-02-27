@@ -10,8 +10,8 @@ struct VisualExporterConfig {
 };
 
 void render_sem_tree(
-    sem::SemId<sem::Org>  tree,
-    VisualExporterConfig& config);
+    org::sem::SemId<org::sem::Org> tree,
+    VisualExporterConfig&          config);
 
 enum class ColorName
 {

@@ -24,11 +24,11 @@ template <>
 struct std::formatter<LaneNodePos> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const LaneNodePos& p, FormatContext& ctx) const {
-        fmt_ctx("[", ctx);
-        fmt_ctx(p.lane, ctx);
-        fmt_ctx("@", ctx);
-        fmt_ctx(p.row, ctx);
-        return fmt_ctx("]", ctx);
+        hstd::fmt_ctx("[", ctx);
+        hstd::fmt_ctx(p.lane, ctx);
+        hstd::fmt_ctx("@", ctx);
+        hstd::fmt_ctx(p.row, ctx);
+        return hstd::fmt_ctx("]", ctx);
     }
 };
 

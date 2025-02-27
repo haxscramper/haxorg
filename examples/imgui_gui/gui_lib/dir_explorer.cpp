@@ -13,6 +13,7 @@
 #include <filesystem>
 #include <stdexcept>
 
+using namespace hstd;
 
 struct FileState {
     std::filesystem::file_time_type modified;

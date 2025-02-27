@@ -65,7 +65,7 @@ struct ScEditor : public Scintilla::Internal::ScintillaBase {
 
     org_logging::log_builder message(
         ::org_logging::severity_level level,
-        Str const&                    msg,
+        hstd::Str const&              msg,
         int                           line     = __builtin_LINE(),
         char const*                   function = __builtin_FUNCTION(),
         char const*                   file     = __builtin_FILE());

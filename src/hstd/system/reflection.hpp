@@ -308,7 +308,7 @@ struct __DescFieldTypeHelper {};
 
 /// \brief Get type of the boost::describe field descriptor.
 #define DESC_FIELD_TYPE(__field)                                          \
-    __DescFieldTypeHelper<decltype(__field.pointer)>::Type
+    hstd::__DescFieldTypeHelper<decltype(__field.pointer)>::Type
 
 template <typename StructType, typename FieldType>
 struct __DescFieldTypeHelper<FieldType StructType::*> {

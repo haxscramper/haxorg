@@ -13,21 +13,23 @@
 
 #include <stb/stb_truetype.h>
 
-inline auto rv_transform_fmt1 = rv::transform(
+inline auto rv_transform_fmt1 = hstd::rv::transform(
     [](auto const& it) { return fmt1(it); });
 
-inline auto rv_transform_pair_first = rv::transform(
-    []<typename A, typename B>(Pair<A, B> const& it) { return it.first; });
+inline auto rv_transform_pair_first = hstd::rv::transform(
+    []<typename A, typename B>(hstd::Pair<A, B> const& it) {
+        return it.first;
+    });
 
-inline auto rv_transform_pair_second = rv::transform(
-    []<typename A, typename B>(Pair<A, B> const& it) {
+inline auto rv_transform_pair_second = hstd::rv::transform(
+    []<typename A, typename B>(hstd::Pair<A, B> const& it) {
         return it.second;
     });
 
 inline auto rv_intersperse_newline_join //
-    = rv::intersperse("\n")             //
-    | rv::join                          //
-    | rs::to<std::string>();
+    = hstd::rv::intersperse("\n")       //
+    | hstd::rv::join                    //
+    | hstd::rs::to<std::string>();
 
 template <typename T, typename Self>
 struct transfer_this_const {
@@ -103,7 +105,7 @@ void quit_on_q(GLFWwindow* window);
 
 /// \brief Return full path for the font with a given name, if it could be
 /// found.
-Opt<Str> get_fontconfig_path(Str const& fontname);
+hstd::Opt<hstd::Str> get_fontconfig_path(hstd::Str const& fontname);
 
 BOOST_DESCRIBE_STRUCT(ImVec2, (), (x, y));
 BOOST_DESCRIBE_STRUCT(ImVec4, (), (x, y, z, w));
@@ -113,11 +115,11 @@ template <>
 struct std::formatter<ImVec2> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const ImVec2& p, FormatContext& ctx) const {
-        fmt_ctx("(", ctx);
-        fmt_ctx(p.x, ctx);
-        fmt_ctx(", ", ctx);
-        fmt_ctx(p.y, ctx);
-        return fmt_ctx(")", ctx);
+        hstd::fmt_ctx("(", ctx);
+        hstd::fmt_ctx(p.x, ctx);
+        hstd::fmt_ctx(", ", ctx);
+        hstd::fmt_ctx(p.y, ctx);
+        return hstd::fmt_ctx(")", ctx);
     }
 };
 
@@ -127,33 +129,33 @@ struct StbFontMetrics {
     float                      scale;
     std::vector<unsigned char> buffer;
 
-    static SPtr<StbFontMetrics> FromPath(
+    static hstd::SPtr<StbFontMetrics> FromPath(
         std::string const& fontPath,
         float              fontSize);
 
     int WidthChar(char ch) const;
 
-    Pair<int, int> GetAscentDescent() const;
+    hstd::Pair<int, int> GetAscentDescent() const;
 
     int GetTextWidth(std::string_view const& text) const;
 };
 
 struct ImRenderTraceRecord {
-    char const*              file;
-    int                      line;
-    int                      col;
-    char const*              function;
-    Opt<std::string>         im_id;
-    Opt<std::string>         im_function;
-    Opt<ImVec2>              cursor_screenpos;
-    Opt<ImVec2>              cursor_winpos;
-    Vec<ImRenderTraceRecord> nested;
+    char const*                    file;
+    int                            line;
+    int                            col;
+    char const*                    function;
+    hstd::Opt<std::string>         im_id;
+    hstd::Opt<std::string>         im_function;
+    hstd::Opt<ImVec2>              cursor_screenpos;
+    hstd::Opt<ImVec2>              cursor_winpos;
+    hstd::Vec<ImRenderTraceRecord> nested;
     // Vec<std::string> im_id_stack
 
     ::org_logging::log_record to_org_log_record() const;
 
-    static Vec<ImRenderTraceRecord> stack;
-    static bool                     TraceState;
+    static hstd::Vec<ImRenderTraceRecord> stack;
+    static bool                           TraceState;
 
     static void StartTrace();
     static void EndTrace();
@@ -195,7 +197,7 @@ struct ImRenderTraceRecord {
         int                line     = __builtin_LINE(),
         char const*        file     = __builtin_FILE());
 
-    static finally_std ImScopeRecord(
+    static hstd::finally_std ImScopeRecord(
         std::string const& _What,
         std::string const& _Msg,
         char const*        function = __builtin_FUNCTION(),
@@ -203,13 +205,14 @@ struct ImRenderTraceRecord {
         char const*        file     = __builtin_FILE()) {
         (void)ImRenderTraceRecord::ImRenderBegin(
             true, _What.c_str(), _Msg.c_str(), function, line, file);
-        return finally_std{[]() { ImRenderTraceRecord::ImRenderEnd(); }};
+        return hstd::finally_std{
+            []() { ImRenderTraceRecord::ImRenderEnd(); }};
     }
 
     static void ImRenderEnd() { PopRecord(); }
 
-    static void WriteTrace(OperationsTracer& trace);
-    void        WriteRecord(OperationsTracer& trace, int level) const;
+    static void WriteTrace(hstd::OperationsTracer& trace);
+    void WriteRecord(hstd::OperationsTracer& trace, int level) const;
 };
 
 #define IM_SCOPE_BEGIN(_What, _Msg)                                       \

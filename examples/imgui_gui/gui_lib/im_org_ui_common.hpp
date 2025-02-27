@@ -9,10 +9,10 @@
 /// \brief Store current value of the editable text and the current edit
 /// buffer.
 struct EditableOrgText {
-    std::string     value;
-    std::string     edit_buffer;
-    bool            is_editing = false;
-    org::ImmAdapter origin;
+    std::string          value;
+    std::string          edit_buffer;
+    bool                 is_editing = false;
+    org::imm::ImmAdapter origin;
 
     DESC_FIELDS(EditableOrgText, (value, edit_buffer, is_editing, origin));
 
@@ -33,9 +33,9 @@ struct EditableOrgText {
             Changed,
             StartedEditing,
             CancelledEditing);
-        Kind             kind;
-        org::ImmAdapter  origin;
-        Opt<std::string> value;
+        Kind                   kind;
+        org::imm::ImmAdapter   origin;
+        hstd::Opt<std::string> value;
 
         DESC_FIELDS(Result, (kind, origin, value));
 
@@ -48,14 +48,14 @@ struct EditableOrgText {
         }
     };
 
-    static EditableOrgText from_adapter(org::ImmAdapter const& it);
+    static EditableOrgText from_adapter(org::imm::ImmAdapter const& it);
 
     int get_expected_height(int width, Mode mode);
 
     /// \brief Render editable text widget at the current position using
     /// provided size and edit mode. Edit state and buffer are stored in
     /// the object.
-    Opt<Result> render(
+    hstd::Opt<Result> render(
         ImVec2 const&         size,
         EditableOrgText::Mode edit,
         std::string const&    id);
@@ -77,9 +77,9 @@ struct EditableOrgTextEntry {
         (text, mode, assignedWidth, computedHeight));
 
     static EditableOrgTextEntry from_adapter(
-        org::ImmAdapter const& it,
-        int                    width,
-        EditableOrgText::Mode  mode = EditableOrgText::Mode::Multiline) {
+        org::imm::ImmAdapter const& it,
+        int                         width,
+        EditableOrgText::Mode mode = EditableOrgText::Mode::Multiline) {
         EditableOrgTextEntry result{
             .text = EditableOrgText::from_adapter(it)};
         result.setWidth(width);
@@ -87,8 +87,8 @@ struct EditableOrgTextEntry {
         return result;
     }
 
-    std::string     getFinalValue() const { return text.getFinalValue(); }
-    org::ImmAdapter getOrigin() const { return text.origin; }
+    std::string getFinalValue() const { return text.getFinalValue(); }
+    org::imm::ImmAdapter getOrigin() const { return text.origin; }
 
     int    getHeight() const;
     int    getWidth() const { return assignedWidth; }
@@ -104,21 +104,21 @@ struct EditableOrgTextEntry {
         computedHeight = text.get_expected_height(assignedWidth, mode);
     }
 
-    Opt<EditableOrgText::Result> render(std::string const& id) {
+    hstd::Opt<EditableOrgText::Result> render(std::string const& id) {
         return text.render(getSize(), mode, id);
     }
 };
 
-DECL_ID_TYPE_MASKED(___RootId, DocRootId, u64, 32);
+DECL_ID_TYPE_MASKED(___RootId, DocRootId, hstd::u64, 32);
 
 template <>
-struct std::formatter<org::ImmAstVersion*>
-    : std_format_ptr_as_hex<org::ImmAstVersion> {};
+struct std::formatter<org::imm::ImmAstVersion*>
+    : hstd::std_format_ptr_as_hex<org::imm::ImmAstVersion> {};
 
 struct EditableOrgDocGroup {
     struct RootGroup {
-        Vec<DocRootId> roots;
-        int            historyIndex = 0;
+        hstd::Vec<DocRootId> roots;
+        int                  historyIndex = 0;
         DESC_FIELDS(RootGroup, (roots, historyIndex));
 
         int getHistoryIndex() const { return historyIndex; }
@@ -126,20 +126,21 @@ struct EditableOrgDocGroup {
         void add(DocRootId id);
 
         RootGroup() {}
-        RootGroup(int history, Vec<DocRootId> roots);
+        RootGroup(int history, hstd::Vec<DocRootId> roots);
     };
 
     struct History {
-        SPtr<org::ImmAstVersion> ast;
-        ImmVec<org::ImmUniqId>   roots;
-        UnorderedMap<int, int>   transition;
+        hstd::SPtr<org::imm::ImmAstVersion>    ast;
+        hstd::ext::ImmVec<org::imm::ImmUniqId> roots;
+        hstd::UnorderedMap<int, int>           transition;
         DESC_FIELDS(History, (ast, roots, transition));
 
-        Opt<int> getTransition(int rootIdx) const {
+        hstd::Opt<int> getTransition(int rootIdx) const {
             return transition.get(rootIdx);
         }
 
-        org::ImmAdapter getNewRoot(org::ImmAdapter const& oldRoot) {
+        org::imm::ImmAdapter getNewRoot(
+            org::imm::ImmAdapter const& oldRoot) {
             auto mapped = ast->epoch.replaced.map.get(oldRoot.uniq());
             if (mapped) {
                 return ast->context->adapt(mapped.value());
@@ -148,35 +149,37 @@ struct EditableOrgDocGroup {
             }
         }
 
-        History withNewVersion(org::ImmAstVersion const& updated) const;
-        Pair<History, int> addRoot(sem::SemId<sem::Org> const& root) const;
+        History withNewVersion(
+            org::imm::ImmAstVersion const& updated) const;
+        hstd::Pair<History, int> addRoot(
+            org::sem::SemId<org::sem::Org> const& root) const;
 
         History() {}
-        History(org::ImmAstContext::Ptr const& ctx)
-            : ast{std::make_shared<org::ImmAstVersion>()} {
+        History(org::imm::ImmAstContext::Ptr const& ctx)
+            : ast{std::make_shared<org::imm::ImmAstVersion>()} {
             ast->context = ctx;
         }
 
-        org::ImmAdapter getRoot(int index) const {
+        org::imm::ImmAdapter getRoot(int index) const {
             return ast->context->adapt(roots.at(index));
         }
     };
 
-    Vec<History> history;
+    hstd::Vec<History> history;
 
-    EditableOrgDocGroup(org::ImmAstContext::Ptr const& ctx) {
+    EditableOrgDocGroup(org::imm::ImmAstContext::Ptr const& ctx) {
         addHistory(History{ctx});
     }
 
-    DocRootId resetWith(sem::SemId<sem::Org> const& id) {
+    DocRootId resetWith(org::sem::SemId<org::sem::Org> const& id) {
         history.clear();
         return addRoot(id);
     }
 
-    DocRootId addRoot(sem::SemId<sem::Org> const& id);
+    DocRootId addRoot(org::sem::SemId<org::sem::Org> const& id);
 
     int addHistory(History const& h) { return history.push_back_idx(h); }
-    Opt<int> extendHistory(org::ImmAstVersion const& ast) {
+    hstd::Opt<int> extendHistory(org::imm::ImmAstVersion const& ast) {
         if (ast.epoch.replaced.map.empty()) {
             return std::nullopt;
         } else {
@@ -191,27 +194,28 @@ struct EditableOrgDocGroup {
         return id.getMask() == history.high();
     }
 
-    DocRootId               getLatest(DocRootId id) const;
-    org::ImmAstContext::Ptr getContext() const {
+    DocRootId                    getLatest(DocRootId id) const;
+    org::imm::ImmAstContext::Ptr getContext() const {
         return getCurrentHistory().ast->context;
     }
     History&       getCurrentHistory() { return history.back(); }
     History const& getCurrentHistory() const { return history.back(); }
-    Vec<org::ImmAdapter> getAdapters(RootGroup const& ids) const {
-        Vec<org::ImmAdapter> res;
+    hstd::Vec<org::imm::ImmAdapter> getAdapters(
+        RootGroup const& ids) const {
+        hstd::Vec<org::imm::ImmAdapter> res;
         for (auto const& id : ids.roots) { res.push_back(getRoot(id)); }
         return res;
     }
 
-    Opt<RootGroup> migrate(
-        RootGroup prev,
-        Opt<int>  maxVersion = std::nullopt) const;
+    hstd::Opt<RootGroup> migrate(
+        RootGroup      prev,
+        hstd::Opt<int> maxVersion = std::nullopt) const;
 
-    org::ImmAdapter getRoot(DocRootId id) const {
+    org::imm::ImmAdapter getRoot(DocRootId id) const {
         return history.at(id.getMask()).getRoot(id.getIndex());
     }
 
-    org::ImmAdapter getCurrentRoot(DocRootId id) const {
+    org::imm::ImmAdapter getCurrentRoot(DocRootId id) const {
         LOGIC_ASSERTION_CHECK(
             isLatest(id),
             "Provided doc root ID {} does not come from the latest "
@@ -220,11 +224,11 @@ struct EditableOrgDocGroup {
         return history.back().getRoot(id.getIndex());
     }
 
-    [[nodiscard]] org::ImmAstVersion replaceNode(
-        org::ImmAdapter const&    origin,
-        Vec<sem::SemId<sem::Org>> replace);
+    [[nodiscard]] org::imm::ImmAstVersion replaceNode(
+        org::imm::ImmAdapter const&               origin,
+        hstd::Vec<org::sem::SemId<org::sem::Org>> replace);
 
-    [[nodiscard]] org::ImmAstVersion replaceNode(
-        org::ImmAdapter const& origin,
-        std::string const&     text);
+    [[nodiscard]] org::imm::ImmAstVersion replaceNode(
+        org::imm::ImmAdapter const& origin,
+        std::string const&          text);
 };

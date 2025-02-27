@@ -50,7 +50,7 @@ struct TreeGridCell {
     }
 
     std::string getFinalTextValue() { return getValue().getFinalValue(); }
-    org::ImmAdapter getOrigin() const {
+    org::imm::ImmAdapter getOrigin() const {
         return getValue().value.getOrigin();
     }
 
@@ -69,21 +69,21 @@ struct TreeGridColumn {
     DESC_FIELDS(TreeGridColumn, (name, width, edit));
 };
 
-struct TreeGridRow : SharedPtrApi<TreeGridRow> {
-    int                               flatIdx;
-    org::ImmAdapterT<org::ImmSubtree> origin;
-    UnorderedMap<Str, TreeGridCell>   columns;
-    Vec<TreeGridRow::Ptr>             nested;
-    std::weak_ptr<TreeGridRow>        parent;
-    bool                              isVisible = true;
-    bool                              isOpen    = true;
+struct TreeGridRow : hstd::SharedPtrApi<TreeGridRow> {
+    int                                         flatIdx;
+    org::imm::ImmAdapterT<org::imm::ImmSubtree> origin;
+    hstd::UnorderedMap<hstd::Str, TreeGridCell> columns;
+    hstd::Vec<TreeGridRow::Ptr>                 nested;
+    std::weak_ptr<TreeGridRow>                  parent;
+    bool                                        isVisible = true;
+    bool                                        isOpen    = true;
 
     DESC_FIELDS(
         TreeGridRow,
         (columns, origin, flatIdx, nested, isVisible, isOpen));
 
     bool isEditing() const {
-        return rs::any_of(columns, [](auto const& arg) -> bool {
+        return hstd::rs::any_of(columns, [](auto const& arg) -> bool {
             return arg.second.isEditing();
         });
     }
@@ -97,8 +97,8 @@ struct TreeGridRow : SharedPtrApi<TreeGridRow> {
 
     bool isShowingNested() const { return !nested.empty() && isOpen; }
 
-    Vec<int> getOriginPath() const {
-        Vec<int> idx;
+    hstd::Vec<int> getOriginPath() const {
+        hstd::Vec<int> idx;
         for (auto const& step : origin.flatPath().path) {
             if (step.isIndex()) { idx.push_back(step.getIndex().index); }
         }
@@ -110,11 +110,11 @@ struct TreeGridRow : SharedPtrApi<TreeGridRow> {
         nested.back()->parent = weak_from_this();
     }
 
-    Vec<Ptr> flatThisNested(bool withInvisible) const;
-    int      getHeightDirect(int padding = 0) const;
-    Opt<int> getHeight(int padding = 0) const;
-    int      getHeightRecDirect(int padding = 0) const;
-    Opt<int> getHeightRec(int padding = 0) const;
+    hstd::Vec<Ptr> flatThisNested(bool withInvisible) const;
+    int            getHeightDirect(int padding = 0) const;
+    hstd::Opt<int> getHeight(int padding = 0) const;
+    int            getHeightRecDirect(int padding = 0) const;
+    hstd::Opt<int> getHeightRec(int padding = 0) const;
 
     TreeGridRow::Ptr getLastLeaf() const {
         if (nested.empty()) {
@@ -134,18 +134,18 @@ struct TreeGridRow : SharedPtrApi<TreeGridRow> {
 
 
 struct TreeGridDocument {
-    Vec<TreeGridRow::Ptr> rows;
-    Vec<TreeGridColumn>   columns;
-    int                   rowPadding = 6;
-    int                   colPadding = 6;
+    hstd::Vec<TreeGridRow::Ptr> rows;
+    hstd::Vec<TreeGridColumn>   columns;
+    int                         rowPadding = 6;
+    int                         colPadding = 6;
     /// \brief Width of leftmost column with tree folding indicators
-    int      treeFoldWidth     = 120;
-    int      tableHeaderHeight = 16;
-    Vec<int> rowPositions;
-    Vec<int> colPositions;
+    int            treeFoldWidth     = 120;
+    int            tableHeaderHeight = 16;
+    hstd::Vec<int> rowPositions;
+    hstd::Vec<int> colPositions;
 
-    org::ImmAdapterT<org::ImmDocument> origin;
-    UnorderedMap<org::ImmUniqId, int>  rowOrigins;
+    org::imm::ImmAdapterT<org::imm::ImmDocument> origin;
+    hstd::UnorderedMap<org::imm::ImmUniqId, int> rowOrigins;
 
     void updatePositions();
 
@@ -154,23 +154,23 @@ struct TreeGridDocument {
     }
     int getRowYPos(int index) { return rowPositions.at(index); }
 
-    int getColumnXPos(CR<Str> name) {
+    int getColumnXPos(hstd::CR<hstd::Str> name) {
         return colPositions.at(getColumnIndex(name));
     }
 
-    TreeGridCell& getExistingCell(int row, CR<Str> column) {
+    TreeGridCell& getExistingCell(int row, hstd::CR<hstd::Str> column) {
         return flatRows(true).at(row)->columns.at(column);
     }
 
 
-    ImVec2 getCellPos(int row, CR<Str> column) {
+    ImVec2 getCellPos(int row, hstd::CR<hstd::Str> column) {
         return ImVec2(getColumnXPos(column), getRowYPos(row));
     }
 
     ImVec2 getSize() const { return ImVec2(getWidth(), getHeight()); }
 
-    int getColumnIndex(CR<Str> name) {
-        auto iter = rs::find_if(
+    int getColumnIndex(hstd::CR<hstd::Str> name) {
+        auto iter = hstd::rs::find_if(
             columns, [&](TreeGridColumn const& col) -> bool {
                 return col.name == name;
             });
@@ -182,12 +182,12 @@ struct TreeGridDocument {
         }
     }
 
-    TreeGridColumn& getColumn(CR<Str> name) {
+    TreeGridColumn& getColumn(hstd::CR<hstd::Str> name) {
         return columns.at(getColumnIndex(name));
     }
 
-    Vec<TreeGridRow::Ptr> flatRows(bool withInvisible) const {
-        Vec<TreeGridRow::Ptr> result;
+    hstd::Vec<TreeGridRow::Ptr> flatRows(bool withInvisible) const {
+        hstd::Vec<TreeGridRow::Ptr> result;
         for (auto& row : rows) {
             result.append(row->flatThisNested(withInvisible));
         }
@@ -202,11 +202,11 @@ struct TreeGridDocument {
         return nullptr;
     }
 
-    Opt<int> getRow(org::ImmUniqId const& id) const {
+    hstd::Opt<int> getRow(org::imm::ImmUniqId const& id) const {
         return rowOrigins.get(id);
     }
 
-    int getNodeOffset(org::ImmUniqId const& id) const {
+    int getNodeOffset(org::imm::ImmUniqId const& id) const {
         return rowPositions.at(rowOrigins.at(id));
     }
 
@@ -219,7 +219,7 @@ struct TreeGridDocument {
         return colPositions.back() + columns.back().width;
     }
 
-    Opt<int> getRowCenterOffset(int rowIdx) const {
+    hstd::Opt<int> getRowCenterOffset(int rowIdx) const {
         if (getRow(rowIdx)->isVisible) {
             return float(rowPositions.at(rowIdx))
                  + float(getRow(rowIdx)->getHeight().value()) / 2;
@@ -229,9 +229,9 @@ struct TreeGridDocument {
     }
 
     static TreeGridDocument from_root(
-        const org::ImmAdapter& node,
-        const StoryGridConfig& conf,
-        StoryGridContext&      ctx);
+        const org::imm::ImmAdapter& node,
+        const StoryGridConfig&      conf,
+        StoryGridContext&           ctx);
 
     void render(
         StoryGridModel&        model,
@@ -259,28 +259,28 @@ struct StoryNode {
     struct LinkList {
         struct Item {
             EditableOrgTextEntry text;
-            org::ImmAdapter      node;
+            org::imm::ImmAdapter node;
             DESC_FIELDS(Item, (text, node));
             ImVec2 getSize() const { return text.getSize(); }
             int    getHeight() const { return text.getHeight(); }
             int    getWidth() const { return text.getWidth(); }
         };
-        Vec<Item>       items;
-        ImVec2          size;
-        org::ImmAdapter origin;
-        bool            isSelected           = false;
-        int             imguiTableRowPadding = 5;
+        hstd::Vec<Item>      items;
+        ImVec2               size;
+        org::imm::ImmAdapter origin;
+        bool                 isSelected           = false;
+        int                  imguiTableRowPadding = 5;
         DESC_FIELDS(LinkList, (items, size, isSelected, origin));
 
-        int getRow(org::ImmUniqId const& row) const {
-            auto iter = rs::find_if(items, [&](Item const& i) {
+        int getRow(org::imm::ImmUniqId const& row) const {
+            auto iter = hstd::rs::find_if(items, [&](Item const& i) {
                 return i.node.uniq() == row;
             });
             LOGIC_ASSERTION_CHECK(iter != items.end(), "{}", row);
             return std::distance(items.begin(), iter);
         }
 
-        int getRowOffset(org::ImmUniqId const& row) const {
+        int getRowOffset(org::imm::ImmUniqId const& row) const {
             return getRowOffset(getRow(row));
         }
 
@@ -307,8 +307,8 @@ struct StoryNode {
         }
 
         int getWidth() const {
-            return rs::max(
-                items | rv::transform([&](Item const& col) -> int {
+            return hstd::rs::max(
+                items | hstd::rv::transform([&](Item const& col) -> int {
                     return col.getWidth();
                 }));
         }
@@ -320,9 +320,9 @@ struct StoryNode {
     };
 
     struct Text {
-        ImVec2          size;
-        org::ImmAdapter origin;
-        EditableOrgText text;
+        ImVec2               size;
+        org::imm::ImmAdapter origin;
+        EditableOrgText      text;
         DESC_FIELDS(Text, (origin, size, text));
         ImVec2 getSize() const {
             return ImVec2(size.x, size.y + (text.is_editing ? 40 : 0));
@@ -336,7 +336,7 @@ struct StoryNode {
 
     ImVec2 getSize() const {
         return std::visit(
-            overloaded{
+            hstd::overloaded{
                 [](LinkList const& l) -> ImVec2 { return l.getSize(); },
                 [](TreeGrid const& t) -> ImVec2 { return t.getSize(); },
                 [](Text const& t) -> ImVec2 { return t.getSize(); },
@@ -356,10 +356,10 @@ struct StoryGridConfig;
 
 struct StoryGridGraph {
     struct SemGraphStore {
-        org::ImmAstContext::Ptr ctx;
+        org::imm::ImmAstContext::Ptr ctx;
         /// \brief Node IDs that are explicitly mapped to a node in the
         /// story grid.
-        Vec<org::ImmUniqId> graphGroupRoots;
+        hstd::Vec<org::imm::ImmUniqId> graphGroupRoots;
         /// \brief Graph storage for specific document nodes that are
         /// targeting other parts of the document. Map graph entries are
         /// nested under parent nodes.
@@ -371,18 +371,20 @@ struct StoryGridGraph {
         /// contains nodes nodes for list *items*, not the list itself. But
         /// to render them on the scene and compute layout the list items
         /// must be grouped under a single parent, a list.
-        UnorderedMap<org::ImmUniqId, org::ImmUniqId> annotationParents;
+        hstd::UnorderedMap<org::imm::ImmUniqId, org::imm::ImmUniqId>
+            annotationParents;
         DESC_FIELDS(
             SemGraphStore,
             (annotationParents, graph, graphGroupRoots));
 
         void setParent(
-            org::ImmUniqId const& nested,
-            org::ImmUniqId const& parent) {
+            org::imm::ImmUniqId const& nested,
+            org::imm::ImmUniqId const& parent) {
             annotationParents.insert_or_assign(nested, parent);
         }
 
-        org::ImmUniqId getRoot(org::ImmUniqId const& nested) const {
+        org::imm::ImmUniqId getRoot(
+            org::imm::ImmUniqId const& nested) const {
             auto res = annotationParents.get(nested).value_or(nested);
             LOGIC_ASSERTION_CHECK(
                 graphGroupRoots.contains(res),
@@ -393,51 +395,51 @@ struct StoryGridGraph {
             return res;
         }
 
-        void addStoryNode(org::ImmUniqId const& id) {
+        void addStoryNode(org::imm::ImmUniqId const& id) {
             graphGroupRoots.push_back(id);
         }
 
         void addDocNode(
-            org::ImmAdapter const& node,
-            StoryGridConfig const& conf,
-            StoryGridContext&      ctx);
+            org::imm::ImmAdapter const& node,
+            StoryGridConfig const&      conf,
+            StoryGridContext&           ctx);
 
         void addGridAnnotationNodes(
             TreeGridDocument const& doc,
             StoryGridContext&       ctx);
 
         void addDescriptionListNodes(
-            org::ImmAdapterT<org::ImmList> const& list,
-            StoryGridContext&                     ctx);
+            org::imm::ImmAdapterT<org::imm::ImmList> const& list,
+            StoryGridContext&                               ctx);
 
         void addFootnoteAnnotationNode(
-            UnorderedSet<org::ImmUniqId>& visited,
-            org::ImmUniqId const&         origin,
-            org::ImmAdapter const&        node,
-            StoryGridContext&             ctx);
+            hstd::UnorderedSet<org::imm::ImmUniqId>& visited,
+            org::imm::ImmUniqId const&               origin,
+            org::imm::ImmAdapter const&              node,
+            StoryGridContext&                        ctx);
 
         void addFootnoteAnnotationNode(
-            org::ImmUniqId const&  origin,
-            org::ImmAdapter const& node,
-            StoryGridContext&      ctx) {
-            UnorderedSet<org::ImmUniqId> visited;
+            org::imm::ImmUniqId const&  origin,
+            org::imm::ImmAdapter const& node,
+            StoryGridContext&           ctx) {
+            hstd::UnorderedSet<org::imm::ImmUniqId> visited;
             addFootnoteAnnotationNode(visited, origin, node, ctx);
         }
 
 
         static SemGraphStore init(
-            Vec<org::ImmAdapter> const& root,
-            StoryGridConfig const&      conf,
-            StoryGridContext&           ctx);
+            hstd::Vec<org::imm::ImmAdapter> const& root,
+            StoryGridConfig const&                 conf,
+            StoryGridContext&                      ctx);
     };
 
 
-    struct FlatNodeStore : SharedPtrApi<FlatNodeStore> {
+    struct FlatNodeStore : hstd::SharedPtrApi<FlatNodeStore> {
         struct Partition {
-            Vec<Vec<org::graph::MapNode>> nodes;
-            UnorderedMap<
+            hstd::Vec<hstd::Vec<org::graph::MapNode>> nodes;
+            hstd::UnorderedMap<
                 org::graph::MapNode,
-                UnorderedSet<org::graph::MapNode>>
+                hstd::UnorderedSet<org::graph::MapNode>>
                 edges;
 
             DESC_FIELDS(Partition, (nodes, edges));
@@ -446,13 +448,14 @@ struct StoryGridGraph {
         };
 
         struct Store {
-            UnorderedMap<org::ImmUniqId, StoryNodeId> orgToFlatIdx;
-            dod::Store<StoryNodeId, StoryNode>        nodes;
+            hstd::UnorderedMap<org::imm::ImmUniqId, StoryNodeId>
+                                                     orgToFlatIdx;
+            hstd::dod::Store<StoryNodeId, StoryNode> nodes;
 
             StoryNodeId add(
-                const org::ImmAdapter& node,
-                const StoryGridConfig& conf,
-                StoryGridContext&      ctx);
+                const org::imm::ImmAdapter& node,
+                const StoryGridConfig&      conf,
+                StoryGridContext&           ctx);
 
             StoryNodeId add(StoryNode const& node) {
                 auto id = nodes.add(node);
@@ -460,7 +463,7 @@ struct StoryGridGraph {
                 return id;
             }
 
-            generator<Pair<org::ImmUniqId, StoryNodeId>> getOrgToFlatMapping()
+            hstd::generator<hstd::Pair<org::imm::ImmUniqId, StoryNodeId>> getOrgToFlatMapping()
                 const {
                 for (auto const& pair : orgToFlatIdx) { co_yield pair; }
             }
@@ -468,8 +471,8 @@ struct StoryGridGraph {
             void setOrgNodeOrigin(StoryNode const& n, StoryNodeId id);
 
             void setOrgNodeOrigin(
-                org::ImmUniqId const& id,
-                StoryNodeId           flatIdx) {
+                org::imm::ImmUniqId const& id,
+                StoryNodeId                flatIdx) {
                 LOGIC_ASSERTION_CHECK(
                     !id.id.isNil(), "Cannot map NIL node to node");
                 orgToFlatIdx.insert_or_assign(id, flatIdx);
@@ -477,7 +480,7 @@ struct StoryGridGraph {
 
             template <typename Self>
             auto pairs(this Self&& self)
-                -> generator<Pair<
+                -> hstd::generator<hstd::Pair<
                     StoryNodeId,
                     transfer_this_const_t<StoryNode*, Self>>> {
                 const int size = self.nodes.size();
@@ -487,13 +490,13 @@ struct StoryGridGraph {
                 }
             }
 
-            generator<StoryNodeId> getNodeIds() const {
+            hstd::generator<StoryNodeId> getNodeIds() const {
                 for (auto const& [id, node] : nodes.pairs()) {
                     co_yield id;
                 }
             }
 
-            auto items() -> generator<StoryNode*> {
+            auto items() -> hstd::generator<StoryNode*> {
                 const int size = nodes.size();
                 for (int i = 0; i < size; ++i) {
                     auto id = StoryNodeId::FromIndex(i);
@@ -520,13 +523,15 @@ struct StoryGridGraph {
                 return getNodes().at(id);
             }
 
-            auto&& getStoryNode(this auto&& s, org::ImmUniqId const& id) {
+            auto&& getStoryNode(
+                this auto&&                s,
+                org::imm::ImmUniqId const& id) {
                 return s.getStoryNode(s.orgToFlatIdx.at(id));
             }
 
 
-            Opt<StoryNodeId> getStoryNodeId(
-                org::ImmUniqId const& id) const {
+            hstd::Opt<StoryNodeId> getStoryNodeId(
+                org::imm::ImmUniqId const& id) const {
                 return orgToFlatIdx.get(id);
             }
 
@@ -544,7 +549,7 @@ struct StoryGridGraph {
                 StoryNodeId const& underlying,
                 StoryNodeId const& proxy);
 
-            generator<Pair<org::ImmUniqId, StoryNodeId>> getOrgToFlatMapping()
+            hstd::generator<hstd::Pair<org::imm::ImmUniqId, StoryNodeId>> getOrgToFlatMapping()
                 const {
                 for (auto const& pair : source->getOrgToFlatMapping()) {
                     if (hasUnderlying(pair.second)) {
@@ -561,12 +566,12 @@ struct StoryGridGraph {
                 return map.right.find(id) != map.right.end();
             }
 
-            generator<StoryNodeId> getNodeIds() const {
+            hstd::generator<StoryNodeId> getNodeIds() const {
                 for (auto const& pair : map) { co_yield pair.right; }
             }
 
             template <typename Self>
-            generator<Pair<StoryNodeId, transfer_this_const_t<StoryNode*, Self>>> pairs(
+            hstd::generator<hstd::Pair<StoryNodeId, transfer_this_const_t<StoryNode*, Self>>> pairs(
                 this Self&& self) {
                 for (auto const& id : self.getNodeIds()) {
                     co_yield {id, &self.getStoryNode(id)};
@@ -598,8 +603,8 @@ struct StoryGridGraph {
             StoryNode&       getStoryNode(StoryNodeId const& id);
             StoryNode const& getStoryNode(StoryNodeId const& id) const;
 
-            Opt<StoryNodeId> getStoryNodeId(
-                org::ImmUniqId const& id) const {
+            hstd::Opt<StoryNodeId> getStoryNodeId(
+                org::imm::ImmUniqId const& id) const {
                 auto mapped = source->getStoryNodeId(id);
                 if (mapped && hasProxy(mapped.value())) {
                     return getProxy(mapped.value());
@@ -614,7 +619,7 @@ struct StoryGridGraph {
         Data data;
         DESC_FIELDS(FlatNodeStore, (data));
 
-        Vec<org::graph::MapNode> getInitialNodes(
+        hstd::Vec<org::graph::MapNode> getInitialNodes(
             StoryGridContext&    ctx,
             SemGraphStore const& semGraph) const;
 
@@ -630,7 +635,7 @@ struct StoryGridGraph {
             StoryGridContext&         ctx,
             StoryGridConfig const&    conf);
 
-        bool isVisible(const org::ImmUniqId& id) const;
+        bool isVisible(const org::imm::ImmUniqId& id) const;
 
 
         Partition getPartition(
@@ -638,7 +643,7 @@ struct StoryGridGraph {
             SemGraphStore const& semGraph) const;
 
         template <typename Self>
-        generator<Pair<StoryNodeId, transfer_this_const_t<StoryNode*, Self>>> pairs(
+        hstd::generator<hstd::Pair<StoryNodeId, transfer_this_const_t<StoryNode*, Self>>> pairs(
             this Self&& self) {
             if (self.isStore()) {
                 return self.getStore().pairs();
@@ -647,7 +652,7 @@ struct StoryGridGraph {
             }
         }
 
-        generator<Pair<org::ImmUniqId, StoryNodeId>> getOrgToFlatMapping()
+        hstd::generator<hstd::Pair<org::imm::ImmUniqId, StoryNodeId>> getOrgToFlatMapping()
             const {
             if (isStore()) {
                 return getStore().getOrgToFlatMapping();
@@ -664,7 +669,8 @@ struct StoryGridGraph {
             }
         }
 
-        Opt<StoryNodeId> getStoryNodeId(org::ImmUniqId const& id) const {
+        hstd::Opt<StoryNodeId> getStoryNodeId(
+            org::imm::ImmUniqId const& id) const {
             if (isStore()) {
                 return getStore().getStoryNodeId(id);
             } else {
@@ -672,7 +678,7 @@ struct StoryGridGraph {
             }
         }
 
-        generator<StoryNodeId> getNodeIds() const {
+        hstd::generator<StoryNodeId> getNodeIds() const {
             if (isStore()) {
                 return getStore().getNodeIds();
             } else {
@@ -719,7 +725,7 @@ struct StoryGridGraph {
             return it->second;
         }
 
-        Opt<LaneNodePos> getBlockPos(StoryNodeId const& id) const {
+        hstd::Opt<LaneNodePos> getBlockPos(StoryNodeId const& id) const {
             if (hasBlockForNode(id)) {
                 return ir.getBlockPos(toBlock(id));
             } else {
@@ -727,7 +733,8 @@ struct StoryGridGraph {
             }
         }
 
-        Opt<StoryNodeId> getStoryNodeId(LaneNodePos const& pos) const {
+        hstd::Opt<StoryNodeId> getStoryNodeId(
+            LaneNodePos const& pos) const {
             auto idx = ir.getBlockId(pos);
             if (idx) {
                 return StoryNodeId::FromIndex(idx.value().getIndex());
@@ -781,9 +788,9 @@ struct StoryGridGraph {
     };
 
     struct NodePositionStore {
-        LaneBlockLayout                   lyt;
-        UnorderedMap<StoryNodeId, ImVec2> nodePositions;
-        Opt<ColaConstraintDebug>          debug;
+        LaneBlockLayout                         lyt;
+        hstd::UnorderedMap<StoryNodeId, ImVec2> nodePositions;
+        hstd::Opt<ColaConstraintDebug>          debug;
 
         /// \brief Check if the story node has a position information. If
         /// the block node is hidden or went out of visible range, it is
@@ -835,9 +842,9 @@ struct StoryGridGraph {
         }
 
         void updateSemanticGraph(
-            Vec<org::ImmAdapter> const& root,
-            StoryGridContext&           ctx,
-            StoryGridConfig const&      conf) {
+            hstd::Vec<org::imm::ImmAdapter> const& root,
+            StoryGridContext&                      ctx,
+            StoryGridConfig const&                 conf) {
             sem = SemGraphStore::init(root, conf, ctx);
         }
 
@@ -845,11 +852,11 @@ struct StoryGridGraph {
         void updateNodeLanePlacement(
             StoryGridContext&      ctx,
             StoryGridConfig const& conf) {
-            Vec<int> offset      //
-                = block.ir.lanes //
-                | rv::transform(
+            hstd::Vec<int> offset //
+                = block.ir.lanes  //
+                | hstd::rv::transform(
                       get_field_get(&LaneBlockStack::scrollOffset)) //
-                | rs::to<Vec>();
+                | hstd::rs::to<hstd::Vec>();
 
             block = BlockGraphStore::init(sem, flat, ctx, conf);
 
@@ -867,8 +874,8 @@ struct StoryGridGraph {
         }
     };
 
-    Layer      base;
-    Opt<Layer> subgraph;
+    Layer            base;
+    hstd::Opt<Layer> subgraph;
 
     Layer const& getLayer() const {
         if (subgraph) {
@@ -887,7 +894,7 @@ struct StoryGridGraph {
     }
 
     // clang-format off
-    void cascadeSemanticUpdate(Vec<org::ImmAdapter> const &root, StoryGridContext &ctx, StoryGridConfig const &conf);
+    void cascadeSemanticUpdate(hstd::Vec<org::imm::ImmAdapter> const &root, StoryGridContext &ctx, StoryGridConfig const &conf);
     void cascadeStoryNodeUpdate(StoryGridContext &ctx, StoryGridConfig const &conf);
     void cascadeBlockGraphUpdate(StoryGridContext &ctx, StoryGridConfig const &conf);
     void cascadeGeometryUpdate(StoryNodeId const &id, StoryGridContext &ctx, StoryGridConfig const &conf);
@@ -909,19 +916,19 @@ struct StoryGridGraph {
         return getLayer().block.getBlockPos(id).has_value();
     }
 
-    Vec<StoryNode*> getGridNodes() {
-        Vec<StoryNode*> res;
+    hstd::Vec<StoryNode*> getGridNodes() {
+        hstd::Vec<StoryNode*> res;
         for (auto const& node : getLayer().flat->getStore().items()) {
             if (node->isTreeGrid()) { res.push_back(node); }
         }
         return res;
     }
 
-    bool isVisible(org::ImmUniqId const& id) const;
+    bool isVisible(org::imm::ImmUniqId const& id) const;
 
     DESC_FIELDS(StoryGridGraph, (base, subgraph));
 
-    generator<Pair<StoryNodeId, StoryNode*>> getPositionedStoryNodes() {
+    hstd::generator<hstd::Pair<StoryNodeId, StoryNode*>> getPositionedStoryNodes() {
         for (auto const& [node_id, node] : getLayer().flat->pairs()) {
             if (getLayer().position.hasNode(node_id)) {
                 co_yield {node_id, node};
@@ -945,19 +952,20 @@ struct StoryGridGraph {
         return getLayer().flat->getStoryNode(getStoryNodeId(idx).value());
     }
 
-    Opt<LaneNodePos> getBlockPos(StoryNodeId idx) const {
+    hstd::Opt<LaneNodePos> getBlockPos(StoryNodeId idx) const {
         return getLayer().block.getBlockPos(idx);
     }
 
-    Opt<StoryNodeId> getStoryNodeId(LaneNodePos const& node) const {
+    hstd::Opt<StoryNodeId> getStoryNodeId(LaneNodePos const& node) const {
         return getLayer().block.getStoryNodeId(node);
     }
 
-    Opt<StoryNodeId> getStoryNodeId(org::ImmUniqId const& id) const {
+    hstd::Opt<StoryNodeId> getStoryNodeId(
+        org::imm::ImmUniqId const& id) const {
         return getLayer().flat->getStoryNodeId(id);
     }
 
-    Opt<LaneNodePos> getBlockNodePos(org::ImmUniqId const& id) {
+    hstd::Opt<LaneNodePos> getBlockNodePos(org::imm::ImmUniqId const& id) {
         auto flat = getStoryNodeId(id);
         if (flat) {
             return getLayer().block.getBlockPos(flat.value());
@@ -1019,8 +1027,8 @@ struct GridAction {
 /// model updates etc., but are not change-able from within the UI part
 /// of the application.
 struct StoryGridConfig {
-    LaneBlockGraphConfig     blockGraphConf;
-    Func<TreeGridDocument()> getDefaultDoc;
+    LaneBlockGraphConfig           blockGraphConf;
+    hstd::Func<TreeGridDocument()> getDefaultDoc;
 
     ImU32  foldCellHoverBackground_Open   = IM_COL32(0, 255, 255, 255);
     ImU32  foldCellForeground_Open        = IM_COL32(255, 0, 0, 128);
@@ -1056,12 +1064,12 @@ struct StoryGridConfig {
 /// \brief Highly mutable context variable that is passed to all
 /// rendering elements to collect actions.
 struct StoryGridContext
-    : OperationsTracer
-    , OperationsScope {
+    : hstd::OperationsTracer
+    , hstd::OperationsScope {
 
     DESC_FIELDS(StoryGridContext, (actions));
 
-    Vec<GridAction> actions;
+    hstd::Vec<GridAction> actions;
 
     void action(
         GridAction::Data const& act,
@@ -1085,11 +1093,11 @@ struct StoryGridContext
     auto BOOST_PP_CAT(__scope, __COUNTER__) = __ctx.scopeLevel();
 
 struct StoryGridHistory {
-    org::ImmAstVersion ast;
+    org::imm::ImmAstVersion ast;
 };
 
 struct StoryGridState {
-    UnorderedMap<int, UnorderedMap<Vec<int>, bool>> folded;
+    hstd::UnorderedMap<int, hstd::UnorderedMap<Vec<int>, bool>> folded;
     DESC_FIELDS(StoryGridState, (folded));
 };
 
@@ -1114,10 +1122,10 @@ struct StoryGridModel {
 
     /// \brief Get graph nodes associated with the current root grid
     /// node.
-    Vec<org::graph::MapNode> getDocNodes();
+    hstd::Vec<org::graph::MapNode> getDocNodes();
 
     /// \brief Get existing block node position for AST adapter.
-    int getFlatNodePos(org::ImmAdapter const& node);
+    int getFlatNodePos(org::imm::ImmAdapter const& node);
 
     /// \brief Update full document using latest history data.
     void rebuild(const StoryGridConfig& conf) {
@@ -1130,11 +1138,11 @@ struct StoryGridModel {
 };
 
 
-Opt<json> story_grid_loop(
-    GLFWwindow*      window,
-    const Vec<Str>&  file,
-    Opt<json> const& in_state,
-    StoryGridConfig& conf);
+hstd::Opt<json> story_grid_loop(
+    GLFWwindow*            window,
+    const Vec<Str>&        file,
+    hstd::Opt<json> const& in_state,
+    StoryGridConfig&       conf);
 
 void run_story_grid_annotated_cycle(
     StoryGridModel&        model,
