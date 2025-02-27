@@ -5532,7 +5532,7 @@ and a segment kind.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::bind::python::ExporterPython>(m, "bindpythonExporterPython")
+  pybind11::class_<org::bind::python::ExporterPython>(m, "ExporterPython")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::bind::python::ExporterPython {
                         org::bind::python::ExporterPython result{};
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
@@ -5658,8 +5658,8 @@ and a segment kind.)RAW")
                      ();
                      })
     ;
-  bind_enum_iterator<org::bind::python::LeafFieldType>(m, "bindpythonLeafFieldType", type_registry_guard);
-  pybind11::enum_<org::bind::python::LeafFieldType>(m, "bindpythonLeafFieldType")
+  bind_enum_iterator<org::bind::python::LeafFieldType>(m, "LeafFieldType", type_registry_guard);
+  pybind11::enum_<org::bind::python::LeafFieldType>(m, "LeafFieldType")
     .value("Int", org::bind::python::LeafFieldType::Int)
     .value("UserTimeKind", org::bind::python::LeafFieldType::UserTimeKind)
     .value("QDate", org::bind::python::LeafFieldType::QDate)
