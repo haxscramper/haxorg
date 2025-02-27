@@ -526,7 +526,7 @@ def add_type_specializations(res: Py11Module, ast: ASTBuilder):
                     opaque_declarations.append(
                         ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(T)]))
 
-                    opaque_declarations.append(ast.Comment(str(T)))
+                    # opaque_declarations.append(ast.Comment(str(T)))
 
                     specialization_calls.append(
                         ast.XCall(

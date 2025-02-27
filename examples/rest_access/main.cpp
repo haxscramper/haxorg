@@ -20,6 +20,8 @@
 #include <boost/beast/websocket.hpp>
 #include <tracy/Tracy.hpp>
 
+using namespace hstd;
+
 namespace cpptrace {
 BOOST_DESCRIBE_STRUCT(stacktrace, (), (frames));
 BOOST_DESCRIBE_STRUCT(
@@ -186,14 +188,15 @@ struct JsonSerde<immer::vector<T>> {
 };
 
 template <>
-struct JsonSerde<org::ImmReflFieldId> {
-    static json to_json(org::ImmReflFieldId const& id) {
+struct JsonSerde<org::imm::ImmReflFieldId> {
+    static json to_json(org::imm::ImmReflFieldId const& id) {
         return id.getName();
     }
 
-    static org::ImmReflFieldId from_json(json const& j) {
+    static org::imm::ImmReflFieldId from_json(json const& j) {
         std::string j_name = j.get<std::string>();
-        for (auto const& [id, name] : org::ImmReflFieldId::fieldNames) {
+        for (auto const& [id, name] :
+             org::imm::ImmReflFieldId::fieldNames) {
             if (name == j_name) { return id; }
         }
 
@@ -329,7 +332,7 @@ struct TypeSpecProvider {
 __trivial_type_spec_provider(std::string, "string");
 __trivial_type_spec_provider(int, "number");
 __trivial_type_spec_provider(i8, "number");
-__trivial_type_spec_provider(org::ImmUniqId, "ImmUniqId");
+__trivial_type_spec_provider(org::imm::ImmUniqId, "ImmUniqId");
 __trivial_type_spec_provider(json, "json");
 
 
@@ -389,15 +392,15 @@ void standalone_function(int arg1, int arg2, int opt1 = 123) {
 
 
 struct HttpState : public SharedPtrApi<HttpState> {
-    org::ImmAstContext::Ptr ctx;
-    org::ImmAstVersion      root;
-    bool                    exception_handler = false;
+    org::imm::ImmAstContext::Ptr ctx;
+    org::imm::ImmAstVersion      root;
+    bool                         exception_handler = false;
 
     void parseRoot(std::string const& text) {
-        root = ctx->addRoot(sem::parseString(text));
+        root = ctx->addRoot(org::parseString(text));
     }
 
-    HttpState() : ctx{org::ImmAstContext::init_start_context()} {}
+    HttpState() : ctx{org::imm::ImmAstContext::init_start_context()} {}
 };
 
 struct ResponseWrap {
@@ -525,26 +528,27 @@ struct RestHandlerContext {
         query_body = json::parse(body);
     }
 
-    org::ImmUniqId getRoot() const {
+    org::imm::ImmUniqId getRoot() const {
         return state->root.getRootAdapter().uniq();
     }
 
-    OrgSemKind getKind(org::ImmUniqId const& id) const {
+    OrgSemKind getKind(org::imm::ImmUniqId const& id) const {
         return state->ctx->adapt(id).getKind();
     }
 
-    std::string getCleanSubtreeTitle(org::ImmUniqId const& id) const {
+    std::string getCleanSubtreeTitle(org::imm::ImmUniqId const& id) const {
         if (id.id.is(OrgSemKind::Subtree)) {
             return state->ctx->adapt(id)
-                .as<org::ImmSubtree>()
+                .as<org::imm::ImmSubtree>()
                 .getCleanTitle();
         } else {
             return "";
         }
     }
 
-    Vec<org::ImmUniqId> getAllSubnodes(org::ImmUniqId const& id) const {
-        Vec<org::ImmUniqId> res;
+    Vec<org::imm::ImmUniqId> getAllSubnodes(
+        org::imm::ImmUniqId const& id) const {
+        Vec<org::imm::ImmUniqId> res;
         for (auto const& sub : state->ctx->adapt(id).sub(true)) {
             res.push_back(sub.uniq());
         }
@@ -552,12 +556,13 @@ struct RestHandlerContext {
     }
 
 
-    org::ImmUniqId getSubnodeAt(org::ImmUniqId const& id, int index)
-        const {
+    org::imm::ImmUniqId getSubnodeAt(
+        org::imm::ImmUniqId const& id,
+        int                        index) const {
         return state->ctx->adapt(id).at(index).uniq();
     }
 
-    int getSize(org::ImmUniqId const& id) const {
+    int getSize(org::imm::ImmUniqId const& id) const {
         return state->ctx->adapt(id).size();
     }
 
@@ -567,8 +572,8 @@ struct RestHandlerContext {
         state->exception_handler = handler;
     }
 
-    json toJson(sem::SemId<sem::Org> id) {
-        ExporterJson exp{};
+    json toJson(org::sem::SemId<org::sem::Org> id) {
+        org::algo::ExporterJson exp{};
         opt_query_param(query_params, exp, skipEmptyLists);
         opt_query_param(query_params, exp, skipLocation);
         opt_query_param(query_params, exp, skipId);
@@ -576,8 +581,8 @@ struct RestHandlerContext {
         return exp.eval(id);
     }
 
-    json getTreeJsonDeep(org::ImmUniqId const& id) {
-        return toJson(org::sem_from_immer(id.id, *state->ctx));
+    json getTreeJsonDeep(org::imm::ImmUniqId const& id) {
+        return toJson(org::imm::sem_from_immer(id.id, *state->ctx));
     }
 
     void setTarget(std::string_view target) {
@@ -1118,7 +1123,7 @@ class HttpSession : public SharedPtrApi<HttpSession> {
                     response->result(http::status::ok);
                     response->body() //
                         = ctx
-                              .toJson(sem::parseString(
+                              .toJson(org::parseString(
                                   ctx.getArg<std::string>({"text"})))
                               .dump();
                 } else if (ctx.route == "/api/parseRoot") {

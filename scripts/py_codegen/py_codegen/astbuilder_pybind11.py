@@ -28,13 +28,20 @@ if TYPE_CHECKING:
 else:
     BlockId = NewType('BlockId', int)
 
+IGNORED_NAMESPACES = ["sem", "org", "hstd", "ext"]
+
 
 @beartype
 def py_type_bind(Typ: QualType) -> pya.PyType:
-    return pya.PyType(
-        "".join([py_type_bind(T).Name for T in Typ.withoutSpace("sem").Spaces]) +
-        Typ.name + ("Of" if Typ.Parameters else "") +
-        "".join([py_type_bind(T).Name for T in Typ.Parameters]))
+    fullname = "".join([py_type_bind(T).Name for T in Typ.Spaces])
+    if Typ.name not in IGNORED_NAMESPACES:
+        fullname += Typ.name
+
+    if 0 < len(Typ.Parameters):
+        fullname += "Of"
+        fullname += "".join([py_type_bind(T).Name for T in Typ.Parameters])
+
+    return pya.PyType(fullname)
 
 
 @beartype
@@ -49,7 +56,7 @@ def flat_scope(Typ: QualType) -> List[str]:
 
 @beartype
 def py_type(Typ: QualType) -> pya.PyType:
-    flat = [N for N in flat_scope(Typ) if N != "sem"]
+    flat = [N for N in flat_scope(Typ) if N not in IGNORED_NAMESPACES]
     match flat:
         case ["Vec"]:
             name = "List"
@@ -379,7 +386,8 @@ class Py11Enum:
         iter_type = QualType(
             name="PyEnumIterator",
             Parameters=[self.Enum],
-            Spaces=[n_org(), t_namespace("bind"), t_namespace("python")],
+            Spaces=[n_org(), t_namespace("bind"),
+                    t_namespace("python")],
         )
         return b.stack([
             ast.XCall(

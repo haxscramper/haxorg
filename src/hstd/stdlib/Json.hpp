@@ -19,7 +19,7 @@ template <>
 struct std::formatter<json> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const json& p, FormatContext& ctx) const {
-        return fmt_ctx(p.dump(), ctx);
+        return hstd::fmt_ctx(p.dump(), ctx);
     }
 };
 

@@ -202,12 +202,14 @@ ExporterPython::Res ExporterPython::evalTop(sem::SemId<sem::Org> org) {
 }
 
 
-void eachSubnodeRec(sem::SemId<sem::Org> node, py::function callback) {
+void org::bind::python::eachSubnodeRec(
+    sem::SemId<sem::Org> node,
+    py::function         callback) {
     org::eachSubnodeRec(
         node, [&](sem::SemId<sem::Org> arg) { callback(arg); });
 }
 
-void eachSubnodeRecSimplePath(
+void org::bind::python::eachSubnodeRecSimplePath(
     sem::SemId<sem::Org> node,
     py::function         callback) {
     org::eachSubnodeRecSimplePath(

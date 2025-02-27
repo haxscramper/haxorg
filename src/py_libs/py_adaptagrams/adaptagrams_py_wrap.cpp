@@ -7,71 +7,55 @@
 #include <pybind11/stl.h>
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphPoint>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphPoint>)
-/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('ext', False, 0, NotRef), ('GraphPoint', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphNodeConstraint::Align::Spec>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphNodeConstraint::Align::Spec>)
-/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('ext', False, 0, NotRef), ('GraphNodeConstraint', False, 0, NotRef), ('Align', False, 0, NotRef), ('Spec', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphNodeConstraint::Align>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphNodeConstraint::Align>)
-/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('ext', False, 0, NotRef), ('GraphNodeConstraint', False, 0, NotRef), ('Align', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<std::pair<int, int>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<std::pair<int, int>>)
-/* (('hstd', False, 0, NotRef), ('std', False, 0, NotRef), ('int', False, 0, NotRef), ('int', False, 0, NotRef), ('pair', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<int>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<int>)
-/* (('hstd', False, 0, NotRef), ('int', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphSize>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphSize>)
-/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('ext', False, 0, NotRef), ('GraphSize', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphEdge>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphEdge>)
-/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('ext', False, 0, NotRef), ('GraphEdge', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphNodeConstraint>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphNodeConstraint>)
-/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('ext', False, 0, NotRef), ('GraphNodeConstraint', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphLayoutIR::Subgraph>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphLayoutIR::Subgraph>)
-/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('ext', False, 0, NotRef), ('GraphLayoutIR', False, 0, NotRef), ('Subgraph', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::unordered_map<hstd::ext::GraphEdge, hstd::ext::GraphSize>)
 PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<hstd::ext::GraphEdge, hstd::ext::GraphSize>)
-/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('ext', False, 0, NotRef), ('GraphEdge', False, 0, NotRef), ('hstd', False, 0, NotRef), ('ext', False, 0, NotRef), ('GraphSize', False, 0, NotRef), ('UnorderedMap', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::unordered_map<hstd::ext::GraphEdge, hstd::ext::GraphEdgeConstraint>)
 PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<hstd::ext::GraphEdge, hstd::ext::GraphEdgeConstraint>)
-/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('ext', False, 0, NotRef), ('GraphEdge', False, 0, NotRef), ('hstd', False, 0, NotRef), ('ext', False, 0, NotRef), ('GraphEdgeConstraint', False, 0, NotRef), ('UnorderedMap', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphPath>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphPath>)
-/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('ext', False, 0, NotRef), ('GraphPath', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphRect>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphRect>)
-/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('ext', False, 0, NotRef), ('GraphRect', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::unordered_map<hstd::ext::GraphEdge, hstd::ext::GraphLayoutIR::Edge>)
 PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<hstd::ext::GraphEdge, hstd::ext::GraphLayoutIR::Edge>)
-/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('ext', False, 0, NotRef), ('GraphEdge', False, 0, NotRef), ('hstd', False, 0, NotRef), ('ext', False, 0, NotRef), ('GraphLayoutIR', False, 0, NotRef), ('Edge', False, 0, NotRef), ('UnorderedMap', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::ext::GraphLayoutIR::Result::Subgraph>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::ext::GraphLayoutIR::Result::Subgraph>)
-/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('ext', False, 0, NotRef), ('GraphLayoutIR', False, 0, NotRef), ('Result', False, 0, NotRef), ('Subgraph', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::Vec<int>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::Vec<int>>)
-/* (('hstd', False, 0, NotRef), ('hstd', False, 0, NotRef), ('int', False, 0, NotRef), ('Vec', False, 0, NotRef), ('Vec', False, 0, NotRef)) */
 PYBIND11_MODULE(py_adaptagrams, m) {
   org::bind::python::PyTypeRegistryGuard type_registry_guard{};
-  bind_vector<hstd::ext::GraphPoint>(m, "hstdVecOfhstdextGraphPoint", type_registry_guard);
-  bind_vector<hstd::ext::GraphNodeConstraint::Align::Spec>(m, "hstdVecOfhstdextGraphNodeConstraintAlignSpec", type_registry_guard);
-  bind_vector<hstd::ext::GraphNodeConstraint::Align>(m, "hstdVecOfhstdextGraphNodeConstraintAlign", type_registry_guard);
-  bind_vector<std::pair<int, int>>(m, "hstdVecOfstdpairOfintint", type_registry_guard);
-  bind_vector<int>(m, "hstdVecOfint", type_registry_guard);
-  bind_vector<hstd::ext::GraphSize>(m, "hstdVecOfhstdextGraphSize", type_registry_guard);
-  bind_vector<hstd::ext::GraphEdge>(m, "hstdVecOfhstdextGraphEdge", type_registry_guard);
-  bind_vector<hstd::ext::GraphNodeConstraint>(m, "hstdVecOfhstdextGraphNodeConstraint", type_registry_guard);
-  bind_vector<hstd::ext::GraphLayoutIR::Subgraph>(m, "hstdVecOfhstdextGraphLayoutIRSubgraph", type_registry_guard);
-  bind_unordered_map<hstd::ext::GraphEdge, hstd::ext::GraphSize>(m, "hstdUnorderedMapOfhstdextGraphEdgehstdextGraphSize", type_registry_guard);
-  bind_unordered_map<hstd::ext::GraphEdge, hstd::ext::GraphEdgeConstraint>(m, "hstdUnorderedMapOfhstdextGraphEdgehstdextGraphEdgeConstraint", type_registry_guard);
-  bind_vector<hstd::ext::GraphPath>(m, "hstdVecOfhstdextGraphPath", type_registry_guard);
-  bind_vector<hstd::ext::GraphRect>(m, "hstdVecOfhstdextGraphRect", type_registry_guard);
-  bind_unordered_map<hstd::ext::GraphEdge, hstd::ext::GraphLayoutIR::Edge>(m, "hstdUnorderedMapOfhstdextGraphEdgehstdextGraphLayoutIREdge", type_registry_guard);
-  bind_vector<hstd::ext::GraphLayoutIR::Result::Subgraph>(m, "hstdVecOfhstdextGraphLayoutIRResultSubgraph", type_registry_guard);
-  bind_vector<hstd::Vec<int>>(m, "hstdVecOfhstdVecOfint", type_registry_guard);
-  pybind11::class_<hstd::ext::GraphPoint>(m, "hstdextGraphPoint")
+  bind_vector<hstd::ext::GraphPoint>(m, "VecOfGraphPoint", type_registry_guard);
+  bind_vector<hstd::ext::GraphNodeConstraint::Align::Spec>(m, "VecOfGraphNodeConstraintAlignSpec", type_registry_guard);
+  bind_vector<hstd::ext::GraphNodeConstraint::Align>(m, "VecOfGraphNodeConstraintAlign", type_registry_guard);
+  bind_vector<std::pair<int, int>>(m, "VecOfstdpairOfintint", type_registry_guard);
+  bind_vector<int>(m, "VecOfint", type_registry_guard);
+  bind_vector<hstd::ext::GraphSize>(m, "VecOfGraphSize", type_registry_guard);
+  bind_vector<hstd::ext::GraphEdge>(m, "VecOfGraphEdge", type_registry_guard);
+  bind_vector<hstd::ext::GraphNodeConstraint>(m, "VecOfGraphNodeConstraint", type_registry_guard);
+  bind_vector<hstd::ext::GraphLayoutIR::Subgraph>(m, "VecOfGraphLayoutIRSubgraph", type_registry_guard);
+  bind_unordered_map<hstd::ext::GraphEdge, hstd::ext::GraphSize>(m, "UnorderedMapOfGraphEdgeGraphSize", type_registry_guard);
+  bind_unordered_map<hstd::ext::GraphEdge, hstd::ext::GraphEdgeConstraint>(m, "UnorderedMapOfGraphEdgeGraphEdgeConstraint", type_registry_guard);
+  bind_vector<hstd::ext::GraphPath>(m, "VecOfGraphPath", type_registry_guard);
+  bind_vector<hstd::ext::GraphRect>(m, "VecOfGraphRect", type_registry_guard);
+  bind_unordered_map<hstd::ext::GraphEdge, hstd::ext::GraphLayoutIR::Edge>(m, "UnorderedMapOfGraphEdgeGraphLayoutIREdge", type_registry_guard);
+  bind_vector<hstd::ext::GraphLayoutIR::Result::Subgraph>(m, "VecOfGraphLayoutIRResultSubgraph", type_registry_guard);
+  bind_vector<hstd::Vec<int>>(m, "VecOfVecOfint", type_registry_guard);
+  pybind11::class_<hstd::ext::GraphPoint>(m, "GraphPoint")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphPoint {
                         hstd::ext::GraphPoint result{};
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
@@ -88,7 +72,7 @@ PYBIND11_MODULE(py_adaptagrams, m) {
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<hstd::ext::GraphPath>(m, "hstdextGraphPath")
+  pybind11::class_<hstd::ext::GraphPath>(m, "GraphPath")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphPath {
                         hstd::ext::GraphPath result{};
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
@@ -114,7 +98,7 @@ PYBIND11_MODULE(py_adaptagrams, m) {
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<hstd::ext::GraphSize>(m, "hstdextGraphSize")
+  pybind11::class_<hstd::ext::GraphSize>(m, "GraphSize")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphSize {
                         hstd::ext::GraphSize result{};
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
@@ -133,7 +117,7 @@ PYBIND11_MODULE(py_adaptagrams, m) {
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<hstd::ext::GraphRect>(m, "hstdextGraphRect")
+  pybind11::class_<hstd::ext::GraphRect>(m, "GraphRect")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphRect {
                         hstd::ext::GraphRect result{};
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
@@ -153,7 +137,7 @@ PYBIND11_MODULE(py_adaptagrams, m) {
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<hstd::ext::GraphNodeConstraint>(m, "hstdextGraphNodeConstraint")
+  pybind11::class_<hstd::ext::GraphNodeConstraint>(m, "GraphNodeConstraint")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphNodeConstraint {
                         hstd::ext::GraphNodeConstraint result{};
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
@@ -193,7 +177,7 @@ PYBIND11_MODULE(py_adaptagrams, m) {
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<hstd::ext::GraphNodeConstraint::Empty>(m, "hstdextGraphNodeConstraintEmpty")
+  pybind11::class_<hstd::ext::GraphNodeConstraint::Empty>(m, "GraphNodeConstraintEmpty")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphNodeConstraint::Empty {
                         hstd::ext::GraphNodeConstraint::Empty result{};
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
@@ -208,7 +192,7 @@ PYBIND11_MODULE(py_adaptagrams, m) {
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<hstd::ext::GraphNodeConstraint::Align>(m, "hstdextGraphNodeConstraintAlign")
+  pybind11::class_<hstd::ext::GraphNodeConstraint::Align>(m, "GraphNodeConstraintAlign")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphNodeConstraint::Align {
                         hstd::ext::GraphNodeConstraint::Align result{};
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
@@ -226,7 +210,7 @@ PYBIND11_MODULE(py_adaptagrams, m) {
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<hstd::ext::GraphNodeConstraint::Align::Spec>(m, "hstdextGraphNodeConstraintAlignSpec")
+  pybind11::class_<hstd::ext::GraphNodeConstraint::Align::Spec>(m, "GraphNodeConstraintAlignSpec")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphNodeConstraint::Align::Spec {
                         hstd::ext::GraphNodeConstraint::Align::Spec result{};
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
@@ -244,7 +228,7 @@ PYBIND11_MODULE(py_adaptagrams, m) {
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<hstd::ext::GraphNodeConstraint::Separate>(m, "hstdextGraphNodeConstraintSeparate")
+  pybind11::class_<hstd::ext::GraphNodeConstraint::Separate>(m, "GraphNodeConstraintSeparate")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphNodeConstraint::Separate {
                         hstd::ext::GraphNodeConstraint::Separate result{};
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
@@ -266,7 +250,7 @@ nodes)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<hstd::ext::GraphNodeConstraint::MultiSeparate>(m, "hstdextGraphNodeConstraintMultiSeparate")
+  pybind11::class_<hstd::ext::GraphNodeConstraint::MultiSeparate>(m, "GraphNodeConstraintMultiSeparate")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphNodeConstraint::MultiSeparate {
                         hstd::ext::GraphNodeConstraint::MultiSeparate result{};
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
@@ -287,7 +271,7 @@ nodes)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<hstd::ext::GraphNodeConstraint::FixedRelative>(m, "hstdextGraphNodeConstraintFixedRelative")
+  pybind11::class_<hstd::ext::GraphNodeConstraint::FixedRelative>(m, "GraphNodeConstraintFixedRelative")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphNodeConstraint::FixedRelative {
                         hstd::ext::GraphNodeConstraint::FixedRelative result{};
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
@@ -304,7 +288,7 @@ nodes)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<hstd::ext::GraphNodeConstraint::PageBoundary>(m, "hstdextGraphNodeConstraintPageBoundary")
+  pybind11::class_<hstd::ext::GraphNodeConstraint::PageBoundary>(m, "GraphNodeConstraintPageBoundary")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphNodeConstraint::PageBoundary {
                         hstd::ext::GraphNodeConstraint::PageBoundary result{};
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
@@ -325,7 +309,7 @@ nodes)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<hstd::ext::GraphEdge>(m, "hstdextGraphEdge")
+  pybind11::class_<hstd::ext::GraphEdge>(m, "GraphEdge")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphEdge {
                         hstd::ext::GraphEdge result{};
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
@@ -343,7 +327,7 @@ nodes)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<hstd::ext::GraphEdgeConstraint>(m, "hstdextGraphEdgeConstraint")
+  pybind11::class_<hstd::ext::GraphEdgeConstraint>(m, "GraphEdgeConstraint")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphEdgeConstraint {
                         hstd::ext::GraphEdgeConstraint result{};
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
@@ -369,7 +353,7 @@ with the ratio computed automatically.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<hstd::ext::GraphLayoutIR>(m, "hstdextGraphLayoutIR")
+  pybind11::class_<hstd::ext::GraphLayoutIR>(m, "GraphLayoutIR")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphLayoutIR {
                         hstd::ext::GraphLayoutIR result{};
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
@@ -412,7 +396,7 @@ assert failure if the structure is incorrect.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<hstd::ext::GraphLayoutIR::Subgraph>(m, "hstdextGraphLayoutIRSubgraph")
+  pybind11::class_<hstd::ext::GraphLayoutIR::Subgraph>(m, "GraphLayoutIRSubgraph")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphLayoutIR::Subgraph {
                         hstd::ext::GraphLayoutIR::Subgraph result{};
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
@@ -427,7 +411,7 @@ assert failure if the structure is incorrect.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<hstd::ext::GraphLayoutIR::Edge>(m, "hstdextGraphLayoutIREdge")
+  pybind11::class_<hstd::ext::GraphLayoutIR::Edge>(m, "GraphLayoutIREdge")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphLayoutIR::Edge {
                         hstd::ext::GraphLayoutIR::Edge result{};
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
@@ -446,7 +430,7 @@ are placed in a way to accomodate for the rectangle.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<hstd::ext::GraphLayoutIR::Result>(m, "hstdextGraphLayoutIRResult")
+  pybind11::class_<hstd::ext::GraphLayoutIR::Result>(m, "GraphLayoutIRResult")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphLayoutIR::Result {
                         hstd::ext::GraphLayoutIR::Result result{};
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
@@ -469,7 +453,7 @@ layout spec)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<hstd::ext::GraphLayoutIR::Result::Subgraph>(m, "hstdextGraphLayoutIRResultSubgraph")
+  pybind11::class_<hstd::ext::GraphLayoutIR::Result::Subgraph>(m, "GraphLayoutIRResultSubgraph")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> hstd::ext::GraphLayoutIR::Result::Subgraph {
                         hstd::ext::GraphLayoutIR::Result::Subgraph result{};
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
@@ -486,8 +470,8 @@ layout spec)RAW")
          },
          pybind11::arg("name"))
     ;
-  bind_enum_iterator<hstd::ext::GraphDimension>(m, "hstdextGraphDimension", type_registry_guard);
-  pybind11::enum_<hstd::ext::GraphDimension>(m, "hstdextGraphDimension")
+  bind_enum_iterator<hstd::ext::GraphDimension>(m, "GraphDimension", type_registry_guard);
+  pybind11::enum_<hstd::ext::GraphDimension>(m, "GraphDimension")
     .value("XDIM", hstd::ext::GraphDimension::XDIM)
     .value("YDIM", hstd::ext::GraphDimension::YDIM)
     .value("UNSET", hstd::ext::GraphDimension::UNSET)
@@ -497,8 +481,8 @@ layout spec)RAW")
                      ();
                      })
     ;
-  bind_enum_iterator<hstd::ext::GraphNodeConstraint::Kind>(m, "hstdextGraphNodeConstraintKind", type_registry_guard);
-  pybind11::enum_<hstd::ext::GraphNodeConstraint::Kind>(m, "hstdextGraphNodeConstraintKind")
+  bind_enum_iterator<hstd::ext::GraphNodeConstraint::Kind>(m, "GraphNodeConstraintKind", type_registry_guard);
+  pybind11::enum_<hstd::ext::GraphNodeConstraint::Kind>(m, "GraphNodeConstraintKind")
     .value("Empty", hstd::ext::GraphNodeConstraint::Kind::Empty)
     .value("Align", hstd::ext::GraphNodeConstraint::Kind::Align)
     .value("FixedRelative", hstd::ext::GraphNodeConstraint::Kind::FixedRelative)
@@ -511,8 +495,8 @@ layout spec)RAW")
                      ();
                      })
     ;
-  bind_enum_iterator<hstd::ext::GraphEdgeConstraint::Port>(m, "hstdextGraphEdgeConstraintPort", type_registry_guard);
-  pybind11::enum_<hstd::ext::GraphEdgeConstraint::Port>(m, "hstdextGraphEdgeConstraintPort")
+  bind_enum_iterator<hstd::ext::GraphEdgeConstraint::Port>(m, "GraphEdgeConstraintPort", type_registry_guard);
+  pybind11::enum_<hstd::ext::GraphEdgeConstraint::Port>(m, "GraphEdgeConstraintPort")
     .value("Default", hstd::ext::GraphEdgeConstraint::Port::Default)
     .value("North", hstd::ext::GraphEdgeConstraint::Port::North)
     .value("South", hstd::ext::GraphEdgeConstraint::Port::South)
