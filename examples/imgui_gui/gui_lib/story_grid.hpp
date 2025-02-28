@@ -11,7 +11,7 @@
 #include <haxorg/sem/ImmOrg.hpp>
 #include "imgui.h"
 #include <haxorg/sem/ImmOrgGraph.hpp>
-#include <hstd/wrappers/adaptagrams_wrap/adaptagrams_ir.hpp>
+#include <adaptagrams/adaptagrams_ir.hpp>
 #include <gui_lib/im_org_ui_common.hpp>
 #include <gui_lib/node_grid_graph.hpp>
 #include <gui_lib/imgui_utils.hpp>
@@ -854,8 +854,8 @@ struct StoryGridGraph {
             StoryGridConfig const& conf) {
             hstd::Vec<int> offset //
                 = block.ir.lanes  //
-                | hstd::rv::transform(
-                      get_field_get(&LaneBlockStack::scrollOffset)) //
+                | hstd::rv::transform(hstd::get_field_get(
+                    &LaneBlockStack::scrollOffset)) //
                 | hstd::rs::to<hstd::Vec>();
 
             block = BlockGraphStore::init(sem, flat, ctx, conf);

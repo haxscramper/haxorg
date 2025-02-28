@@ -8,7 +8,7 @@
 #include <haxorg/sem/SemOrg.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <immer/map_transient.hpp>
-#include <hstd/wrappers/hstd_extra/graphviz.hpp>
+#include <hstd/ext/graphviz.hpp>
 #include <boost/preprocessor.hpp>
 #include <hstd/stdlib/reflection_visitor.hpp>
 #include <immer/flex_vector_transient.hpp>

@@ -10,7 +10,7 @@
 
 #include <haxorg/exporters/Exporter.cpp>
 #include <haxorg/sem/perfetto_org.hpp>
-#include <hstd/wrappers/hstd_extra/perfetto_aux_impl_template.hpp>
+#include <hstd/ext/perfetto_aux_impl_template.hpp>
 
 using namespace org;
 using namespace hstd;

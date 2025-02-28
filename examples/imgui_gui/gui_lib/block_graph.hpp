@@ -2,7 +2,7 @@
 
 #include <GLFW/glfw3.h>
 #include <hstd/stdlib/Vec.hpp>
-#include <hstd/wrappers/adaptagrams_wrap/adaptagrams_ir.hpp>
+#include <adaptagrams/adaptagrams_ir.hpp>
 #include "imgui.h"
 #include "imgui_internal.h"
 #include <hstd/stdlib/Ranges.hpp>

@@ -1,5 +1,5 @@
 #include "block_graph.hpp"
-#include <hstd/wrappers/adaptagrams_wrap/adaptagrams_ir.hpp>
+#include <adaptagrams/adaptagrams_ir.hpp>
 #include <hstd/stdlib/Enumerate.hpp>
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/stdlib/Ranges.hpp>

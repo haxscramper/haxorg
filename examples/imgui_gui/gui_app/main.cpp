@@ -19,7 +19,7 @@
 #include <gui_lib/dir_explorer.hpp>
 
 #include <gui_lib/gui_perfetto.hpp>
-#include <hstd/wrappers/hstd_extra/perfetto_aux_impl_template.hpp>
+#include <hstd/ext/perfetto_aux_impl_template.hpp>
 
 
 struct Config {

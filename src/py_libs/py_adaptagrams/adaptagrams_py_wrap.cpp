@@ -1,7 +1,7 @@
 /* clang-format off */
 #undef slots
 #define PYBIND11_DETAILED_ERROR_MESSAGES
-#include <hstd/wrappers/adaptagrams_wrap/adaptagrams_ir.hpp>
+#include <adaptagrams/adaptagrams_ir.hpp>
 #include <py_libs/pybind11_utils.hpp>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>

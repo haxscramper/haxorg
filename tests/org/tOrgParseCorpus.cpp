@@ -4,7 +4,7 @@
 #include <haxorg/parse/OrgTokenizer.hpp>
 #include <haxorg/lexbase/NodeIO.hpp>
 #include <haxorg/test/NodeTest.hpp>
-#include <haxorg/sem/ErrorWrite.hpp>
+#include <hstd/ext/error_write.hpp>
 #include <gtest/gtest.h>
 
 #include <hstd/stdlib/Filesystem.hpp>

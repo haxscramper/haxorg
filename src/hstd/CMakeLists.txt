@@ -2,8 +2,7 @@ add_library(hstd)
 set_common_files(hstd)
 glob_add_sources2(TARGET hstd LS_REGEX "${BASE}/src/hstd/stdlib/.*" SEARCH_BASE "${BASE}")
 glob_add_sources2(TARGET hstd LS_REGEX "${BASE}/src/hstd/system/.*" SEARCH_BASE "${BASE}")
-glob_add_sources2(TARGET hstd LS_REGEX "${BASE}/src/hstd/wrappers/hstd_extra.*" SEARCH_BASE
-                  "${BASE}")
+glob_add_sources2(TARGET hstd LS_REGEX "${BASE}/src/hstd/ext/.*" SEARCH_BASE "${BASE}")
 set_target_output(hstd)
 set_target_flags(hstd)
 
@@ -27,6 +26,8 @@ if(${ORG_USE_PERFETTO})
   target_link_libraries(hstd PUBLIC Perfetto::perfetto)
 endif()
 
+target_include_directories(hstd PUBLIC "$<BUILD_INTERFACE:${BASE}/thirdparty/immer>" "$<BUILD_INTERFACE:${BASE}/thirdparty/lager>")
+
 add_executable(tests_hstd)
 set_common_files(tests_hstd)
 set_target_output(tests_hstd)
@@ -34,3 +35,4 @@ set_target_flags(tests_hstd)
 glob_add_sources2(TARGET tests_hstd LS_REGEX "${BASE}/tests/hstd/.*" SEARCH_BASE "${BASE}")
 
 target_link_libraries(tests_hstd PUBLIC GTest::gtest hstd absl::flags absl::flags_parse adaptagrams)
+

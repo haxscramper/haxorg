@@ -34,7 +34,7 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Map.hpp>
 
-#include <hstd/wrappers/hstd_extra/perfetto_aux.hpp>
+#include <hstd/ext/perfetto_aux.hpp>
 
 #ifdef ORG_USE_PERFETTO
 
@@ -55,7 +55,7 @@ PERFETTO_DEFINE_CATEGORIES(
 
 #pragma clang diagnostic error "-Wswitch"
 
-#include <hstd/wrappers/hstd_extra/perfetto_aux_impl_template.hpp>
+#include <hstd/ext/perfetto_aux_impl_template.hpp>
 
 namespace fs = std::filesystem;
 using namespace llvm::coverage;

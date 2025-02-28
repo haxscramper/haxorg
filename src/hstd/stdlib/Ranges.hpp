@@ -188,4 +188,24 @@ inline auto unpack_optional() {
     return rv::transform([](auto const& it) { return it.value(); });
 }
 
+
+inline auto rv_transform_fmt1 = hstd::rv::transform(
+    [](auto const& it) { return hstd::fmt1(it); });
+
+inline auto rv_transform_pair_first = hstd::rv::transform(
+    []<typename A, typename B>(hstd::Pair<A, B> const& it) {
+        return it.first;
+    });
+
+inline auto rv_transform_pair_second = hstd::rv::transform(
+    []<typename A, typename B>(hstd::Pair<A, B> const& it) {
+        return it.second;
+    });
+
+inline auto rv_intersperse_newline_join //
+    = hstd::rv::intersperse("\n")       //
+    | hstd::rv::join                    //
+    | hstd::rs::to<std::string>();
+
+
 } // namespace hstd

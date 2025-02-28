@@ -1,5 +1,5 @@
 #pragma once
-#include <haxorg/lexbase/AstDiff.hpp>
+#include <hstd/ext/astdiff.hpp>
 #include <haxorg/sem/SemOrg.hpp>
 
 namespace org::algo {

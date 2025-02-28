@@ -15,7 +15,7 @@
 #include "imgui_test_engine/imgui_te_utils.h"
 
 #include <gui_lib/gui_perfetto.hpp>
-#include <hstd/wrappers/hstd_extra/perfetto_aux_impl_template.hpp>
+#include <hstd/ext/perfetto_aux_impl_template.hpp>
 #include <gui_lib/org_logger.hpp>
 
 extern void RegisterApptests(ImGuiTestEngine* engine);

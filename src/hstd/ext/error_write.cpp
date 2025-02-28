@@ -1,10 +1,10 @@
 #include <hstd/stdlib/sequtils.hpp>
-#include <haxorg/sem/ErrorWrite.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/system/macros.hpp>
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Set.hpp>
+#include "error_write.hpp"
 
 using namespace hstd::ext;
 using namespace hstd;
