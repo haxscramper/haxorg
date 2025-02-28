@@ -5,7 +5,7 @@
 
 #include <hstd/stdlib/TraceBase.hpp>
 #include <immer/map_transient.hpp>
-#include <hstd/wrappers/hstd_extra/graphviz.hpp>
+#include <hstd/ext/graphviz.hpp>
 
 namespace org::graph {
 

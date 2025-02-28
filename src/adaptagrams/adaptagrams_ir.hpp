@@ -6,7 +6,7 @@
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/stdlib/Map.hpp>
-#include <hstd/wrappers/hstd_extra/graphviz.hpp>
+#include <hstd/ext/graphviz.hpp>
 
 #pragma warning(push, 0)
 #include <libavoid/libavoid.h>

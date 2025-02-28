@@ -1,7 +1,7 @@
 #pragma once
 
 #include <haxorg/sem/SemOrg.hpp>
-#include <hstd/wrappers/hstd_extra/textlayouter.hpp>
+#include <hstd/ext/textlayouter.hpp>
 
 namespace org::algo {
 struct Formatter {

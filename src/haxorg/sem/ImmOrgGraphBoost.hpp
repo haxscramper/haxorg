@@ -3,7 +3,7 @@
 #include <haxorg/sem/ImmOrgGraph.hpp>
 
 #include <boost/graph/graph_traits.hpp>
-#include <hstd/wrappers/hstd_extra/graphwrap.hpp>
+#include <hstd/ext/graphwrap.hpp>
 
 namespace boost {
 

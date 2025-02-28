@@ -1,5 +1,5 @@
 #include <boost/algorithm/string/replace.hpp>
-#include <hstd/wrappers/hstd_extra/graphviz.hpp>
+#include <hstd/ext/graphviz.hpp>
 #include <filesystem>
 #include <format>
 

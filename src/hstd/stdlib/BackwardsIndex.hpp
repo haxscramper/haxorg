@@ -34,9 +34,6 @@ inline BackwardsIndex backIndex(int value) {
     return BackwardsIndex{.value = value};
 }
 
-inline BackwardsIndex operator"" _B(unsigned long long int value) {
-    return backIndex(value);
-}
 
 } // namespace hstd
 
@@ -50,3 +47,7 @@ struct std::formatter<hstd::BackwardsIndex> : std::formatter<std::string> {
         return fmt.format("^" + std::to_string(p.value), ctx);
     }
 };
+
+inline hstd::BackwardsIndex operator"" _B(unsigned long long int value) {
+    return hstd::backIndex(value);
+}

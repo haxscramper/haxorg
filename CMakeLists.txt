@@ -120,7 +120,7 @@ set(JSON_BuildTests
     CACHE INTERNAL "")
 
 add_subdirectory(src/hstd)
-add_subdirectory(src/hstd/wrappers/adaptagrams_wrap)
+add_subdirectory(src/adaptagrams)
 add_subdirectory(src/haxorg)
 add_subdirectory(src/py_libs)
 

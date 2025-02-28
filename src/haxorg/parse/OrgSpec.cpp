@@ -4,12 +4,12 @@ using namespace hstd;
 using namespace org::parse;
 
 using otk        = OrgTokenKind;
-using OrgPattern = hstd::ext::astspec::
+using OrgPattern = org::parse::
     AstPattern<OrgAdapter, OrgNodeKind, OrgSpecName>;
 using SpecPair = Pair<OrgNodeKind, OrgPattern>;
-using Field    = hstd::ext::astspec::
+using Field    = org::parse::
     AstPatternRange<OrgAdapter, OrgNodeKind, OrgSpecName>;
-using Range = hstd::ext::astspec::AstRange<OrgSpecName>;
+using Range = org::parse::AstRange<OrgSpecName>;
 
 using N   = OrgSpecName;
 using onk = OrgNodeKind;

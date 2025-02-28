@@ -6,7 +6,7 @@
 #include <string>
 
 #include <haxorg/test/NodeTest.hpp>
-#include <hstd/wrappers/hstd_extra/textlayouter.hpp>
+#include <hstd/ext/textlayouter.hpp>
 
 namespace org::test {
 

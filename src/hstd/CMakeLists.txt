@@ -2,8 +2,7 @@ add_library(hstd)
 set_common_files(hstd)
 glob_add_sources2(TARGET hstd LS_REGEX "${BASE}/src/hstd/stdlib/.*" SEARCH_BASE "${BASE}")
 glob_add_sources2(TARGET hstd LS_REGEX "${BASE}/src/hstd/system/.*" SEARCH_BASE "${BASE}")
-glob_add_sources2(TARGET hstd LS_REGEX "${BASE}/src/hstd/wrappers/hstd_extra.*" SEARCH_BASE
-                  "${BASE}")
+glob_add_sources2(TARGET hstd LS_REGEX "${BASE}/src/hstd/ext/.*" SEARCH_BASE "${BASE}")
 set_target_output(hstd)
 set_target_flags(hstd)
 

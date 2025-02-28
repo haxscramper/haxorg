@@ -940,7 +940,7 @@ def gen_adaptagrams_wrappers(
                 [
                     GenTuPass("#undef slots"),
                     GenTuPass("#define PYBIND11_DETAILED_ERROR_MESSAGES"),
-                    GenTuInclude("hstd/wrappers/adaptagrams_wrap/adaptagrams_ir.hpp",
+                    GenTuInclude("adaptagrams/adaptagrams_ir.hpp",
                                  True),
                     GenTuInclude("py_libs/pybind11_utils.hpp", True),
                     GenTuInclude("pybind11/pybind11.h", True),

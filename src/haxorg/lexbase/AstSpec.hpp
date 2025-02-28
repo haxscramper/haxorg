@@ -19,11 +19,11 @@
 #include <functional>
 
 
-namespace hstd::ext::astspec {
-struct FieldAccessError : CRTP_hexception<FieldAccessError> {};
+namespace org::parse {
+struct FieldAccessError : hstd::CRTP_hexception<FieldAccessError> {};
 
 
-enum class AstRangeKind : u8
+enum class AstRangeKind : hstd::u8
 {
     Point,        ///< `idx`
     InversePoint, ///< `^idx`
@@ -41,18 +41,20 @@ BOOST_DESCRIBE_ENUM(
     MixedSlice);
 
 
-inline auto tmp = value_domain<AstRangeKind>::low();
+inline auto tmp = hstd::value_domain<AstRangeKind>::low();
 
 template <typename N>
-Str toPath(const N& ast, const Vec<int>& path) {
-    Func<Vec<Str>(N const&, Span<const int> const&)> aux;
-    aux = [&aux](const N& a, const Span<const int>& path) {
-        Vec<Str> result;
+hstd::Str toPath(const N& ast, const hstd::Vec<int>& path) {
+    hstd::Func<hstd::Vec<hstd::Str>(
+        N const&, hstd::Span<const int> const&)>
+        aux;
+    aux = [&aux](const N& a, const hstd::Span<const int>& path) {
+        hstd::Vec<hstd::Str> result;
         result.push_back(fmt1(a.getKind()));
         if (1 < path.size()) {
             result.append(aux(a[path[0]], path[slice(1, 1_B)]));
         } else if (path.size() == 1) {
-            result.push_back("[" + fmt1(path[0]) + "]");
+            result.push_back("[" + hstd::fmt1(path[0]) + "]");
         }
         return result;
     };
@@ -66,7 +68,7 @@ Str toPath(const N& ast, const Vec<int>& path) {
 template <typename Name>
 struct AstRange {
     bool         isOptional = false; /*!Whether the field is optional */
-    Str          fieldDoc;           /*!Documentation for a field */
+    hstd::Str    fieldDoc;           /*!Documentation for a field */
     Name         fieldName;          /*!Field name */
     AstRangeKind kind = AstRangeKind::Point;
 
@@ -75,7 +77,7 @@ struct AstRange {
     int last  = 0; /*!End of the subnode range, right part of `..` */
 
     /// \brief Set field documentation
-    AstRange<Name>& doc(CR<Str> _doc) {
+    AstRange<Name>& doc(hstd::CR<hstd::Str> _doc) {
         fieldDoc = _doc;
         return *this;
     }
@@ -94,24 +96,26 @@ struct AstRange {
     inline AstRange(int point, Name name)
         : idx(point), kind(AstRangeKind::Point), fieldName(name) {}
     /// \brief  Construct inverse point AST range
-    inline AstRange(BackwardsIndex point, Name name)
+    inline AstRange(hstd::BackwardsIndex point, Name name)
         : idx(point.value)
         , kind(AstRangeKind::InversePoint)
         , fieldName(name) {}
     /// \brief Construct direct slice AST range
-    inline AstRange(Slice<int> slice, Name name)
+    inline AstRange(hstd::Slice<int> slice, Name name)
         : first(slice.first)
         , last(slice.last)
         , kind(AstRangeKind::DirectSlice)
         , fieldName(name) {}
     /// \brief Construct mixed slice AST range
-    inline AstRange(HSlice<int, BackwardsIndex> slice, Name name)
+    inline AstRange(
+        hstd::HSlice<int, hstd::BackwardsIndex> slice,
+        Name                                    name)
         : first(slice.first)
         , last(slice.last.value)
         , kind(AstRangeKind::MixedSlice)
         , fieldName(name) {}
     /// \brief  Construct inverse slice AST range
-    inline AstRange(Slice<BackwardsIndex> slice, Name name)
+    inline AstRange(hstd::Slice<hstd::BackwardsIndex> slice, Name name)
         : first(slice.first.value)
         , last(slice.last.value)
         , kind(AstRangeKind::InverseSlice)
@@ -119,8 +123,8 @@ struct AstRange {
 
     /// \brief Get resolved subnode slice if the range is applicable for
     /// node of provided range size. Otherwise return empty option.
-    Opt<Slice<int>> toSlice(const int& maxLen) const {
-        Pair<int, int> range;
+    hstd::Opt<hstd::Slice<int>> toSlice(const int& maxLen) const {
+        hstd::Pair<int, int> range;
         switch (kind) {
             case AstRangeKind::Point: range = {idx, idx}; break;
             case AstRangeKind::InversePoint:
@@ -136,7 +140,7 @@ struct AstRange {
         }
 
         if (range.first <= range.second && range.second <= maxLen) {
-            return slice(range.first, range.second);
+            return hstd::slice(range.first, range.second);
         } else {
             return std::nullopt;
         }
@@ -147,40 +151,40 @@ struct AstRange {
         return slice.has_value() && slice->contains(idx);
     }
 };
-} // namespace hstd::ext::astspec
+} // namespace org::parse
 
 
 template <typename Name>
-struct std::formatter<hstd::ext::astspec::AstRange<Name>>
+struct std::formatter<org::parse::AstRange<Name>>
     : std::formatter<std::string> {
     template <typename FormatContext>
     FormatContext::iterator format(
-        hstd::ext::astspec::AstRange<Name> const& p,
-        FormatContext&                            ctx) const {
+        org::parse::AstRange<Name> const& p,
+        FormatContext&                    ctx) const {
         switch (p.kind) {
-            case hstd::ext::astspec::AstRangeKind::Point: {
+            case org::parse::AstRangeKind::Point: {
                 hstd::fmt_ctx(p.idx, ctx);
                 break;
             }
-            case hstd::ext::astspec::AstRangeKind::InversePoint: {
+            case org::parse::AstRangeKind::InversePoint: {
                 hstd::fmt_ctx("^", ctx);
                 hstd::fmt_ctx(p.idx, ctx);
                 break;
             }
-            case hstd::ext::astspec::AstRangeKind::DirectSlice: {
+            case org::parse::AstRangeKind::DirectSlice: {
                 hstd::fmt_ctx(p.first, ctx);
                 hstd::fmt_ctx("..", ctx);
                 hstd::fmt_ctx(p.last, ctx);
                 break;
             }
-            case hstd::ext::astspec::AstRangeKind::InverseSlice: {
+            case org::parse::AstRangeKind::InverseSlice: {
                 hstd::fmt_ctx("^", ctx);
                 hstd::fmt_ctx(p.first, ctx);
                 hstd::fmt_ctx("..^", ctx);
                 hstd::fmt_ctx(p.last, ctx);
                 break;
             }
-            case hstd::ext::astspec::AstRangeKind::MixedSlice: {
+            case org::parse::AstRangeKind::MixedSlice: {
                 hstd::fmt_ctx(p.first, ctx);
                 hstd::fmt_ctx("..^", ctx);
                 hstd::fmt_ctx(p.last, ctx);
@@ -191,21 +195,21 @@ struct std::formatter<hstd::ext::astspec::AstRange<Name>>
     }
 };
 
-namespace hstd::ext::astspec {
+namespace org::parse {
 
 template <typename Node, typename Kind, typename Name>
 struct AstCheckFail {
-    bool           isMissing = false;
-    Str            msg;
-    Vec<int>       path;
-    Kind           parent = value_domain<Kind>::low();
-    IntSet<Kind>   expected;
-    Opt<Kind>      got;
-    AstRange<Name> range;
+    bool               isMissing = false;
+    hstd::Str          msg;
+    hstd::Vec<int>     path;
+    Kind               parent = hstd::value_domain<Kind>::low();
+    hstd::IntSet<Kind> expected;
+    hstd::Opt<Kind>    got;
+    AstRange<Name>     range;
 
     AstCheckFail() {}
 
-    Vec<AstCheckFail<Node, Kind, Name>> nested;
+    hstd::Vec<AstCheckFail<Node, Kind, Name>> nested;
 
     bool empty(const bool& withNested = true) const {
         return !isMissing && msg.size() == 0 && expected.size() == 0
@@ -220,11 +224,12 @@ struct AstCheckFail {
     };
 
 
-    ColText format(Node const& node) const {
-        using fg = TermColorFg8Bit;
-        ColStream s;
+    hstd::ColText format(Node const& node) const {
+        using fg = hstd::TermColorFg8Bit;
+        hstd::ColStream s;
 
-        Func<void(const AstCheckFail<Node, Kind, Name>&, const int&)> aux;
+        hstd::Func<void(const AstCheckFail<Node, Kind, Name>&, const int&)>
+            aux;
 
         aux = [&s, &aux, &node](
                   const AstCheckFail<Node, Kind, Name>& fail,
@@ -303,7 +308,8 @@ struct AstCheckError : public std::runtime_error {};
 
 /// \brief User-defined validation callback
 template <typename Node, typename Kind, typename Name>
-using AstCheckProc = Func<Opt<AstCheckFail<Node, Kind, Name>>(Node)>;
+using AstCheckProc = hstd::Func<hstd::Opt<AstCheckFail<Node, Kind, Name>>(
+    Node)>;
 
 
 template <typename Node, typename Kind, typename Name>
@@ -312,15 +318,15 @@ struct AstPattern;
 /// \brief Description of the AST field with provided structural pattern
 template <typename Node, typename Kind, typename Name>
 struct AstPatternRange {
-    AstRange<Name>                    range;
-    Vec<AstPattern<Node, Kind, Name>> alts;
+    AstRange<Name>                          range;
+    hstd::Vec<AstPattern<Node, Kind, Name>> alts;
     AstPatternRange(
-        CR<AstRange<Name>>               range,
-        CR<AstPattern<Node, Kind, Name>> pattern)
+        hstd::CR<AstRange<Name>>               range,
+        hstd::CR<AstPattern<Node, Kind, Name>> pattern)
         : range(range), alts({pattern}) {}
     AstPatternRange(
-        CR<AstRange<Name>>                    range,
-        CR<Vec<AstPattern<Node, Kind, Name>>> alts = {})
+        hstd::CR<AstRange<Name>>                          range,
+        hstd::CR<hstd::Vec<AstPattern<Node, Kind, Name>>> alts = {})
         : range(range), alts(alts) {}
 };
 
@@ -329,39 +335,42 @@ struct AstPatternRange {
 template <typename Node, typename Kind, typename Name>
 struct AstPattern {
     /// \brief Documentation for AST pattern at specific place in the tree
-    Str doc;
+    hstd::Str doc;
     /// \brief Extra user-provided validation procedure
     AstCheckProc<Node, Kind, Name> check;
     /// \brief Set of node kinds expected at point, mostly used for
     /// leaf-level nodes
-    IntSet<Kind> expected;
+    hstd::IntSet<Kind> expected;
     /// \brief List of subnode ranges, mostly used for describing the
     /// structure of upper-level nodes
-    Vec<AstPatternRange<Node, Kind, Name>> ranges;
+    hstd::Vec<AstPatternRange<Node, Kind, Name>> ranges;
 
     /// \brief Construt upper-level AST patter specification, containing
     /// one or more pattern ranges for fields
-    AstPattern(CR<Vec<AstPatternRange<Node, Kind, Name>>> ranges)
+    AstPattern(
+        hstd::CR<hstd::Vec<AstPatternRange<Node, Kind, Name>>> ranges)
         : ranges(ranges) {}
     /// \brief Construct leaf-level AST pattern specification, containing
     /// set of expected nodes
-    AstPattern(CR<IntSet<Kind>> expected) : expected(expected) {}
-    AstPattern(Kind expected) : expected(IntSet<Kind>{expected}) {}
+    AstPattern(hstd::CR<hstd::IntSet<Kind>> expected)
+        : expected(expected) {}
+    AstPattern(Kind expected) : expected(hstd::IntSet<Kind>{expected}) {}
     /// \brief Appent subranges to the already constructed pattern object.
     /// Used for constructing patterns that have constrained kind and
     /// pattern range.
-    AstPattern& sub(CR<Vec<AstPatternRange<Node, Kind, Name>>> subr) {
+    AstPattern& sub(
+        hstd::CR<hstd::Vec<AstPatternRange<Node, Kind, Name>>> subr) {
         ranges.append(subr);
         return *this;
     }
 
 
     AstCheckFail<Node, Kind, Name> validateAst(
-        Kind const&     kind,
-        Kind const&     subnode,
-        const int&      idx,
-        const int&      maxLen,
-        const Vec<int>& path = Vec<int>{}) const {
+        Kind const&           kind,
+        Kind const&           subnode,
+        const int&            idx,
+        const int&            maxLen,
+        const hstd::Vec<int>& path = hstd::Vec<int>{}) const {
         AstCheckFail<Node, Kind, Name> result;
         result.path = path;
         for (const auto arange : ranges) {
@@ -385,8 +394,8 @@ struct AstPattern {
 
 
     AstCheckFail<Node, Kind, Name> findMissing(
-        Node const&     node,
-        const Vec<int>& path = Vec<int>{}) const {
+        Node const&           node,
+        const hstd::Vec<int>& path = hstd::Vec<int>{}) const {
         AstCheckFail<Node, Kind, Name> result;
         result.path = path;
         if (!ranges.empty()) {
@@ -409,7 +418,7 @@ struct AstPattern {
 
             for (const auto& [rangeIdx, found] : enumerate(altFound)) {
                 if (!found && !ranges[rangeIdx].range.isOptional) {
-                    IntSet<Kind> expected;
+                    hstd::IntSet<Kind> expected;
                     for (const auto alt : ranges[rangeIdx].alts) {
                         expected.incl(alt.expected);
                     }
@@ -428,7 +437,7 @@ struct AstPattern {
         return result;
     }
 
-    Opt<ColText> validateSub(
+    hstd::Opt<hstd::ColText> validateSub(
         Kind const& node,
         Kind const& sub,
         const int&  idx,
@@ -448,12 +457,14 @@ struct AstPattern {
 template <typename Node, typename Kind, typename Name>
 struct AstSpec {
   private:
-    TypArray<Kind, Opt<AstPattern<Node, Kind, Name>>>  spec;
-    TypArray<Kind, UnorderedMap<Name, AstRange<Name>>> nodeRanges;
+    hstd::TypArray<Kind, hstd::Opt<AstPattern<Node, Kind, Name>>> spec;
+    hstd::TypArray<Kind, hstd::UnorderedMap<Name, AstRange<Name>>>
+        nodeRanges;
 
-    TypArray<Kind, UnorderedMap<Name, AstRange<Name>>> getNodeRanges()
+    hstd::TypArray<Kind, hstd::UnorderedMap<Name, AstRange<Name>>> getNodeRanges()
         const {
-        TypArray<Kind, UnorderedMap<Name, AstRange<Name>>> result;
+        hstd::TypArray<Kind, hstd::UnorderedMap<Name, AstRange<Name>>>
+            result;
         for (const auto& [kind, pattern] : spec.pairs()) {
             if (pattern->has_value()) {
                 for (const auto& range : pattern->value().ranges) {
@@ -468,7 +479,8 @@ struct AstSpec {
 
   public:
     AstSpec(
-        const Vec<Pair<Kind, AstPattern<Node, Kind, Name>>>& patterns) {
+        const hstd::Vec<hstd::Pair<Kind, AstPattern<Node, Kind, Name>>>&
+            patterns) {
         for (const auto& [kind, pattern] : patterns) {
             spec[kind] = pattern;
         }
@@ -481,16 +493,16 @@ struct AstSpec {
 
     bool hasPattern(Kind kind) const { return spec[kind].has_value(); }
 
-    ColText validateAst(Node const& node) const {
+    hstd::ColText validateAst(Node const& node) const {
         if (spec[node.kind].has_value()) {
             return formatFail(
                 spec[node.kind].value().findMissing(node), node);
         } else {
-            return ColText{};
+            return hstd::ColText{};
         }
     }
 
-    Opt<ColText> validateSelf(Node const& node) const {
+    hstd::Opt<hstd::ColText> validateSelf(Node const& node) const {
         if (spec[node.getKind()].has_value()) {
             const auto missing = spec[node.getKind()].value().findMissing(
                 node);
@@ -503,11 +515,11 @@ struct AstSpec {
     }
 
 
-    Opt<ColText> validateSub(
+    hstd::Opt<hstd::ColText> validateSub(
         Node const& node,
         int const&  idx,
         Node const& sub) const {
-        Opt<ColText> result;
+        hstd::Opt<hstd::ColText> result;
         if (spec[node.getKind()].has_value()) {
             const auto fail = spec[node.getKind()].value().validateAst(
                 node.getKind(), sub.getKind(), idx, node.size());
@@ -517,17 +529,19 @@ struct AstSpec {
     }
 
 
-    Opt<ColText> validateSub(Node const& node, const int& idx) const {
+    hstd::Opt<hstd::ColText> validateSub(Node const& node, const int& idx)
+        const {
         return validateSub(node, idx, node[idx]);
     }
 
-    UnorderedMap<Name, AstRange<Name>> nodeFields(Kind kind) const {
+    hstd::UnorderedMap<Name, AstRange<Name>> nodeFields(Kind kind) const {
         return nodeRanges.at(kind);
     }
 
-    Vec<Pair<Name, Slice<int>>> resolveNodeFields(Kind kind, int size)
-        const {
-        Vec<Pair<Name, Slice<int>>> result;
+    hstd::Vec<hstd::Pair<Name, hstd::Slice<int>>> resolveNodeFields(
+        Kind kind,
+        int  size) const {
+        hstd::Vec<hstd::Pair<Name, hstd::Slice<int>>> result;
         if (size == 0 && nodeRanges.at(kind).size() == 0) {
             return result;
         }
@@ -539,7 +553,7 @@ struct AstSpec {
             }
         }
 
-        sort<Pair<Name, Slice<int>>>(
+        sort<hstd::Pair<Name, hstd::Slice<int>>>(
             result, [](auto const& lhs, auto const& rhs) {
                 return lhs.first < rhs.first;
             });
@@ -549,7 +563,7 @@ struct AstSpec {
 
             auto overlap = lhs->second.overlap(rhs->second);
             if (overlap.has_value()) {
-                throw astspec::FieldAccessError(
+                throw org::parse::FieldAccessError(
                     "Cannot access field with overlapping ranges: '$#' "
                     "and '$#' had ast ranges specified as '$#' and '$#' "
                     "respectively which resolved to $# and $# for node of "
@@ -566,19 +580,19 @@ struct AstSpec {
             }
         }
 
-        int               max = result.back().second.last;
-        UnorderedSet<int> visited;
+        int                     max = result.back().second.last;
+        hstd::UnorderedSet<int> visited;
         for (const auto& [_, range] : result) {
             max = std::max(max, range.last);
             for (const auto& value : range) { visited.insert(value); }
         }
 
-        UnorderedSet<int> all;
+        hstd::UnorderedSet<int> all;
         for (int i = 0; i < max; ++i) { all.insert(i); }
 
         auto diff = all - visited;
         if (!diff.empty()) {
-            throw astspec::FieldAccessError(std::format(
+            throw FieldAccessError(std::format(
                 "Indices missing from the field description {} are not "
                 "covered in spec for node {}",
                 diff,
@@ -588,11 +602,11 @@ struct AstSpec {
         return result;
     }
 
-    ColText validateAst(
+    hstd::ColText validateAst(
         Node const& node,
         Node const& subnode,
         const int&  idx) const {
-        ColStream s;
+        hstd::ColStream s;
         if (spec[node.getKind()].has_value()) {
             const auto fail1 = validateAst(
                 spec[node.getKind()].value(),
@@ -600,7 +614,7 @@ struct AstSpec {
                 subnode.getKind(),
                 idx,
                 node.size(),
-                Vec<int>({idx}));
+                hstd::Vec<int>({idx}));
 
             if (0 < fail1.count()) {
                 s << formatFail(fail1, node) << "\n";
@@ -613,12 +627,13 @@ struct AstSpec {
         return s.getBuffer();
     }
 
-    ColText treeRepr() const {
-        using fg = TermColorFg8Bit;
+    hstd::ColText treeRepr() const {
+        using fg = hstd::TermColorFg8Bit;
 
-        ColStream s;
+        hstd::ColStream s;
 
-        Func<void(const AstPattern<Node, Kind, Name>&, const int&)> aux;
+        hstd::Func<void(const AstPattern<Node, Kind, Name>&, const int&)>
+            aux;
 
         aux = [&s, &aux](
                   const AstPattern<Node, Kind, Name>& p,
@@ -659,9 +674,9 @@ struct AstSpec {
     }
 
     int getSingleSubnodeIdx(
-        Kind const&     kind,
-        Name const&     name,
-        const Opt<int>& nodeLen = Opt<int>{}) const {
+        Kind const&           kind,
+        Name const&           name,
+        const hstd::Opt<int>& nodeLen = hstd::Opt<int>{}) const {
         if (nodeRanges.at(kind).contains(name)) {
             const auto range = nodeRanges.at(kind).at(name);
             if (range.kind == AstRangeKind::Point) {
@@ -678,7 +693,7 @@ struct AstSpec {
                     "Cannot get single subnode index for element "
                     + fmt1(name) + " of node kind " + fmt1(kind)
                     + " - field exists, but allowed AST range is of kind "
-                    + enum_serde<AstRangeKind>::to_string(range.kind)
+                    + hstd::enum_serde<AstRangeKind>::to_string(range.kind)
                     + " and requires node length, but it "
                     + "wasn't specified.");
             }
@@ -702,36 +717,36 @@ struct AstSpec {
     }
 
     FieldAccessError makeMissingSlice(
-        Kind               kind,
-        CR<Name>           name,
-        Opt<Slice<int>>    slice,
-        CR<AstRange<Name>> range) const {
+        Kind                        kind,
+        hstd::CR<Name>              name,
+        hstd::Opt<hstd::Slice<int>> slice,
+        hstd::CR<AstRange<Name>>    range) const {
         return FieldAccessError::init(std::format(
             "Range {} for node kind {} was resolved into slice {} "
             "(required ast range is {})",
-            fmt1(name),
-            fmt1(kind),
-            fmt1(slice),
-            fmt1(range)));
+            hstd::fmt1(name),
+            hstd::fmt1(kind),
+            hstd::fmt1(slice),
+            hstd::fmt1(range)));
     }
 
-    FieldAccessError makeMissingPositional(Kind kind, CR<Name> name)
+    FieldAccessError makeMissingPositional(Kind kind, hstd::CR<Name> name)
         const {
-        Str names;
+        hstd::Str names;
         if (nodeRanges.at(kind).empty()) {
             names = "No named subnodes specified.";
         } else {
-            Vec<Str> tmp;
+            hstd::Vec<hstd::Str> tmp;
             for (const auto& key : nodeRanges.at(kind).keys()) {
-                tmp.push_back(fmt1(key));
+                tmp.push_back(hstd::fmt1(key));
             }
 
             names = "Available names: " + join(", ", tmp);
         }
 
         return FieldAccessError::init(
-            "Cannot get positional node with name '" + fmt1(name)
-            + "' from node of kind '" + fmt1(kind) + "'. "
+            "Cannot get positional node with name '" + hstd::fmt1(name)
+            + "' from node of kind '" + hstd::fmt1(kind) + "'. "
             + names.toBase());
     }
 
@@ -739,12 +754,12 @@ struct AstSpec {
         return node.at(getSingleSubnodeIdx(node, name));
     }
 
-    Vec<Node> getMultipleSubnode(Node const& node, Name const& name)
+    hstd::Vec<Node> getMultipleSubnode(Node const& node, Name const& name)
         const {
         if (nodeRanges[node.getKind()].contains(name)) {
-            Vec<Node>  result;
-            const auto range = nodeRanges.at(node.getKind()).at(name);
-            const auto slice = range.toSlice(node.size());
+            hstd::Vec<Node> result;
+            const auto      range = nodeRanges.at(node.getKind()).at(name);
+            const auto      slice = range.toSlice(node.size());
             if (!slice.has_value()) {
                 throw makeMissingSlice(node.getKind(), name, slice, range);
             }
@@ -757,7 +772,7 @@ struct AstSpec {
         }
     }
 
-    Opt<AstRange<Name>> fieldRange(Node const& node, const int& idx)
+    hstd::Opt<AstRange<Name>> fieldRange(Node const& node, const int& idx)
         const {
         if (spec.at(node.getKind()).has_value()) {
             const auto pattern = spec.at(node.getKind()).value();
@@ -770,7 +785,7 @@ struct AstSpec {
         return std::nullopt;
     }
 
-    Opt<Name> fieldName(Node const& node, const int& idx) const {
+    hstd::Opt<Name> fieldName(Node const& node, const int& idx) const {
         const auto field = fieldRange(node, idx);
         if (field.has_value()) {
             return field.value().fieldName;
@@ -782,12 +797,12 @@ struct AstSpec {
     bool isSingleField(Node const& node, const int& idx) const {
         const auto field = fieldRange(node, idx);
         return field.has_value()
-            && IntSet<
+            && hstd::IntSet<
                    AstRangeKind>{AstRangeKind::Point, AstRangeKind::InversePoint}
                    .contains(field.value().kind);
     }
 
-    Opt<Str> fieldDoc(Node const& node, const int& idx) const {
+    hstd::Opt<hstd::Str> fieldDoc(Node const& node, const int& idx) const {
         const auto field = fieldRange(node, idx);
         if (field.has_value()) {
             return field.value().fieldDoc;
@@ -798,4 +813,4 @@ struct AstSpec {
 };
 
 
-}; // namespace hstd::ext::astspec
+}; // namespace org::parse

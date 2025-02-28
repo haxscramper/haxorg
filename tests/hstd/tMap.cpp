@@ -1,6 +1,6 @@
 #include "hstd/stdlib/Debug.hpp"
 #include <gtest/gtest.h>
-#include <hstd/wrappers/hstd_extra/bimap_wrap.hpp>
+#include <hstd/ext/bimap_wrap.hpp>
 
 using namespace hstd;
 

@@ -13,24 +13,6 @@
 
 #include <stb/stb_truetype.h>
 
-inline auto rv_transform_fmt1 = hstd::rv::transform(
-    [](auto const& it) { return hstd::fmt1(it); });
-
-inline auto rv_transform_pair_first = hstd::rv::transform(
-    []<typename A, typename B>(hstd::Pair<A, B> const& it) {
-        return it.first;
-    });
-
-inline auto rv_transform_pair_second = hstd::rv::transform(
-    []<typename A, typename B>(hstd::Pair<A, B> const& it) {
-        return it.second;
-    });
-
-inline auto rv_intersperse_newline_join //
-    = hstd::rv::intersperse("\n")       //
-    | hstd::rv::join                    //
-    | hstd::rs::to<std::string>();
-
 template <typename T, typename Self>
 struct transfer_this_const {
     using type = std::conditional_t<
@@ -57,22 +39,6 @@ struct transfer_this_const<T&, Self> {
 
 template <typename T, typename Self>
 using transfer_this_const_t = typename transfer_this_const<T, Self>::type;
-
-template <typename T, typename F>
-std::function<F(T const& obj)> get_field_get(F T::*field) {
-    return [field](T const& obj) -> F { return obj.*field; };
-}
-
-template <typename T, typename F>
-std::function<F(T const& obj)> get_getter_get(F (T::*method)() const) {
-    return [method](T const& obj) -> F { return (obj.*method)(); };
-}
-
-template <typename T>
-std::function<bool(T const& obj)> get_method_filter(bool (T::*method)()
-                                                        const) {
-    return [method](T const& obj) -> bool { return (obj.*method)(); };
-}
 
 void frame_start();
 void frame_end(GLFWwindow* window);

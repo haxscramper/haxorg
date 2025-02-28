@@ -1,4 +1,4 @@
-#include <haxorg/sem/ErrorWrite.hpp>
+#include <hstd/ext/error_write.hpp>
 #include <gtest/gtest.h>
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Ranges.hpp>
