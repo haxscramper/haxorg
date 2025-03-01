@@ -16,16 +16,16 @@
 
 #include <gui_lib/gui_perfetto.hpp>
 #include <hstd/ext/perfetto_aux_impl_template.hpp>
-#include <gui_lib/org_logger.hpp>
+#include <hstd/ext/logger.hpp>
 
 extern void RegisterApptests(ImGuiTestEngine* engine);
 
 int main(int argc, char** argv) {
     if (!glfwInit()) { return 1; }
 
-    org_logging::clear_sink_backends();
-    org_logging::push_sink(
-        org_logging::init_file_sink("/tmp/imgui_tests_sink.log"));
+    hstd::log::clear_sink_backends();
+    hstd::log::push_sink(
+        hstd::log::init_file_sink("/tmp/imgui_tests_sink.log"));
 
     GLFWmonitor*       monitor = glfwGetPrimaryMonitor();
     const GLFWvidmode* mode    = glfwGetVideoMode(monitor);

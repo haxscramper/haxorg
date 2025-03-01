@@ -180,8 +180,8 @@ int StbFontMetrics::GetTextWidth(const std::string_view& text) const {
     return textWidth;
 }
 
-org_logging::log_record ImRenderTraceRecord::to_org_log_record() const {
-    org_logging::log_record res;
+hstd::log::log_record ImRenderTraceRecord::to_org_log_record() const {
+    hstd::log::log_record res;
     res.set_callsite(line, function, file);
     if (cursor_winpos) {
         res.metadata("cursor_winpos", fmt1(cursor_winpos.value()));

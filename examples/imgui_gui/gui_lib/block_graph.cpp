@@ -5,7 +5,7 @@
 #include <hstd/stdlib/Ranges.hpp>
 #include <hstd/stdlib/Debug.hpp>
 #include "imgui_utils.hpp"
-#include <gui_lib/org_logger.hpp>
+#include <hstd/ext/logger.hpp>
 
 using namespace hstd;
 using namespace hstd::ext;
@@ -14,12 +14,12 @@ using GC = GraphNodeConstraint;
 
 
 namespace {
-org_logging::log_builder gr_log(
-    org_logging::severity_level __severity,
-    int                         line     = __builtin_LINE(),
-    char const*                 function = __builtin_FUNCTION(),
-    char const*                 file     = __builtin_FILE()) {
-    return std::move(::org_logging::log_builder{}
+hstd::log::log_builder gr_log(
+    hstd::log::severity_level __severity,
+    int                       line     = __builtin_LINE(),
+    char const*               function = __builtin_FUNCTION(),
+    char const*               file     = __builtin_FILE()) {
+    return std::move(::hstd::log::log_builder{}
                          .set_callsite(line, function, file)
                          .severity(__severity)
                          .source_scope({"gui", "logic", "block_graph"}));
@@ -37,15 +37,16 @@ void connect_vertical_constraints(
     Vec<GC::Align>&       laneAlignments,
     Vec<GC::Align::Spec>& topLaneAlign,
     LaneBlockGraph const& g) {
-    OLOG_DEPTH_SCOPE_ANON();
+    HSLOG_DEPTH_SCOPE_ANON();
     for (auto const& [lane_idx, lane] : enumerate(g.lanes)) {
-        gr_log(ol_trace).fmt_message(
-            "Lane index {} size {}, scroll is {}",
-            lane_idx,
-            lane.blocks.size(),
-            lane.scrollOffset);
+        gr_log(hstd::log::l_trace)
+            .fmt_message(
+                "Lane index {} size {}, scroll is {}",
+                lane_idx,
+                lane.blocks.size(),
+                lane.scrollOffset);
 
-        OLOG_DEPTH_SCOPE_ANON();
+        HSLOG_DEPTH_SCOPE_ANON();
 
         int maxRow = lane.blocks.high();
 
@@ -110,7 +111,7 @@ void connect_inter_lane_constraints(
     LaneBlockLayout&      lyt,
     Vec<GC::Align>&       laneAlignments,
     LaneBlockGraph const& g) {
-    OLOG_DEPTH_SCOPE_ANON();
+    HSLOG_DEPTH_SCOPE_ANON();
 
 
     for (auto const& [lane_idx, lane] : enumerate(g.lanes)) {
@@ -139,7 +140,7 @@ void connect_inter_lane_constraints(
 }
 
 void connect_edges(LaneBlockLayout& lyt, LaneBlockGraph const& g) {
-    OLOG_DEPTH_SCOPE_ANON();
+    HSLOG_DEPTH_SCOPE_ANON();
     int                               edgeId = 0;
     UnorderedMap<Pair<int, int>, int> inLaneCheckpoints;
     for (auto const& lane : enumerator(g.lanes)) {
@@ -345,7 +346,7 @@ bool LaneBlockStack::inSpan(int blockIdx, Slice<int> heightRange) const {
     auto span = blocks.at(blockIdx).heightSpan(
         getBlockHeightStart(blockIdx));
     bool result = heightRange.overlap(span).has_value();
-    // gr_log(ol_debug).message(
+    // gr_log(hstd::log::l_debug).message(
     //     _dfmt_expr(span, heightRange, blockIdx, result,
     //     scrollOffset));
     return result;
@@ -575,23 +576,26 @@ void render_debug(
 void LaneBlockGraph::addScrolling(
     const ImVec2& graphPos,
     float         direction) {
-    gr_log(ol_trace).fmt_message(
-        "Graph position {}, direction {}", graphPos, direction);
-    OLOG_DEPTH_SCOPE_ANON();
+    gr_log(hstd::log::l_trace)
+        .fmt_message(
+            "Graph position {}, direction {}", graphPos, direction);
+    HSLOG_DEPTH_SCOPE_ANON();
     auto spans = getLaneSpans();
     for (auto const& [idx, span] : enumerate(spans)) {
         if (span.contains(graphPos.x)) {
             lanes.at(idx).scrollOffset += direction;
-            gr_log(ol_trace).fmt_message(
-                "Lane {} x span is {}, adding scroll offset {}, current "
-                "scroll is {}",
-                idx,
-                span,
-                direction,
-                lanes.at(idx).scrollOffset);
+            gr_log(hstd::log::l_trace)
+                .fmt_message(
+                    "Lane {} x span is {}, adding scroll offset {}, "
+                    "current "
+                    "scroll is {}",
+                    idx,
+                    span,
+                    direction,
+                    lanes.at(idx).scrollOffset);
         } else {
-            gr_log(ol_trace).fmt_message(
-                "Lane {} x span {}, no match", idx, span);
+            gr_log(hstd::log::l_trace)
+                .fmt_message("Lane {} x span {}, no match", idx, span);
         }
     }
 }
@@ -619,7 +623,7 @@ Vec<Slice<int>> LaneBlockGraph::getLaneSpans() const {
             laneStartX + lane.leftMargin,
             laneStartX + lane.leftMargin + lane.getWidth());
 
-        gr_log(ol_debug).fmt_message("{}", sl);
+        gr_log(hstd::log::l_debug).fmt_message("{}", sl);
         laneSpans.resize_at(lane_idx) = sl;
         laneStartX += lane.getFullWidth();
     }
@@ -630,11 +634,11 @@ Vec<Slice<int>> LaneBlockGraph::getLaneSpans() const {
 LaneBlockLayout LaneBlockGraph::getLayout() const {
     LOGIC_ASSERTION_CHECK(
         int(visible.h) != 0 && int(visible.w) != 0, "{}", visible);
-    gr_log(ol_info).fmt_message(
-        "Create block layout, {} lanes", lanes.size());
+    gr_log(hstd::log::l_info)
+        .fmt_message("Create block layout, {} lanes", lanes.size());
 
     {
-        auto rec = gr_log(ol_info).get_record();
+        auto rec = gr_log(hstd::log::l_info).get_record();
         for (auto const& [idx, lane] : enumerate(lanes)) {
             rec.fmt_message(" [{}] scroll:{}", idx, lane.scrollOffset);
         }
@@ -648,7 +652,7 @@ LaneBlockLayout LaneBlockGraph::getLayout() const {
             idx);
     }
 
-    OLOG_DEPTH_SCOPE_ANON();
+    HSLOG_DEPTH_SCOPE_ANON();
 
     for (auto const& [pos, block] : getBlocks()) {
         LOGIC_ASSERTION_CHECK(
@@ -659,7 +663,8 @@ LaneBlockLayout LaneBlockGraph::getLayout() const {
             block.height,
             block.width);
 
-        // gr_log(ol_info).fmt_message("Pos {} block {}", pos, block);
+        // gr_log(hstd::log::l_info).fmt_message("Pos {} block {}", pos,
+        // block);
     }
 
 
@@ -711,7 +716,8 @@ LaneBlockLayout LaneBlockGraph::getLayout() const {
     auto cola     = res.ir.doColaLayout();
     res.layout    = cola.convert();
 
-    gr_log(ol_info).fmt_message("left-pad:{} top-pad:{}", leftPad, topPad);
+    gr_log(hstd::log::l_info)
+        .fmt_message("left-pad:{} top-pad:{}", leftPad, topPad);
 
     for (auto const& [key, edge] : res.layout.lines) {
         for (auto& path : res.layout.lines.at(key).paths) {

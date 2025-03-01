@@ -67,7 +67,7 @@ using CharacterCategoryMap = Lexilla::CharacterCategoryMap;
 #include <boost/describe.hpp>
 
 #define SCI_LOG_ROOT(__cat, __severity)                                   \
-    ::org_logging::log_builder{}.set_callsite().category(__cat).severity( \
+    ::hstd::log::log_builder{}.set_callsite().category(__cat).severity(   \
         __severity)
 
 using namespace hstd;
@@ -309,7 +309,7 @@ struct ImFontWrap : public Font {
             // for debug
             std::string msg;
             for (auto const& [k, _] : fontCache) {
-                SCI_LOG_ROOT("font", ol_info)
+                SCI_LOG_ROOT("font", hstd::log::l_info)
                     .fmt_message(
                         "== -> {}\n{} {}\n{} {}",
                         CacheMapEqImpl{}(fp, k),
@@ -333,14 +333,14 @@ struct ImFontWrap : public Font {
     static bool ResolvePendingFonts() {
         ImGuiIO& io = ImGui::GetIO();
         for (auto& font : pending_fonts) {
-            SCI_LOG_ROOT("font", ol_info)
+            SCI_LOG_ROOT("font", hstd::log::l_info)
                 .fmt_message("Creating font for parameters {}", font->fp);
             auto font_path = get_fontconfig_path(font->fp.faceName);
             LOGIC_ASSERTION_CHECK(
                 font_path.has_value(),
                 "Could not find font path for '{}'",
                 font->fp.faceName);
-            SCI_LOG_ROOT("font", ol_info)
+            SCI_LOG_ROOT("font", hstd::log::l_info)
                 .fmt_message("Using font file {}", *font_path);
 
             ImFontConfig fontConfig;
@@ -364,7 +364,7 @@ struct ImFontWrap : public Font {
                 font_path.value(), font->fp.size);
 
             fontCache.insert_or_assign(font->fp, font);
-            SCI_LOG_ROOT("font", ol_info)
+            SCI_LOG_ROOT("font", hstd::log::l_info)
                 .fmt_message("Added font for {}", font->fp);
         }
 
@@ -472,7 +472,8 @@ void run_scintilla_editor_widget_test(GLFWwindow* window) {
 
             auto action = ed->HandleInput();
             if (action.hadEvents) {
-                SCI_LOG_ROOT("font", ol_trace).fmt_message("{}", action);
+                SCI_LOG_ROOT("font", hstd::log::l_trace)
+                    .fmt_message("{}", action);
             }
 
             if (updatedFont) { ed->FullRedraw(); }
@@ -512,13 +513,13 @@ class SurfaceImpl : public Scintilla::Internal::Surface {
         int                line     = __builtin_LINE(),
         char const*        function = __builtin_FUNCTION(),
         char const*        file     = __builtin_FILE()) {
-        OLOG_BUILDER()
+        HSLOG_BUILDER()
             .set_callsite(line, function, file)
             .category("surface")
-            .severity(ol_trace)
+            .severity(hstd::log::l_trace)
             .message(msg)
             .source_scope(scintilla_logging_scope)
-            .set_finalizer(OLOG_UNIQUE_VALUE_FILTER_FINALIZER(reset));
+            .set_finalizer(HSLOG_UNIQUE_VALUE_FILTER_FINALIZER(reset));
     }
 
     // clang-format off
@@ -704,13 +705,13 @@ std::shared_ptr<Font> Font::Allocate(const FontParameters& fp) {
     return ImFontWrap::GetFontForParameters(fp);
 }
 
-::org_logging::log_builder ScEditor::message(
-    ::org_logging::severity_level level,
-    const Str&                    msg,
-    int                           line,
-    const char*                   function,
-    const char*                   file) {
-    return ::org_logging::log_builder{}
+::hstd::log::log_builder ScEditor::message(
+    ::hstd::log::severity_level level,
+    const Str&                  msg,
+    int                         line,
+    const char*                 function,
+    const char*                 file) {
+    return ::hstd::log::log_builder{}
         .category("edit")
         .severity(level)
         .source_scope(scintilla_logging_scope)
@@ -793,7 +794,7 @@ ScEditor::InputResult ScEditor::HandleInput() {
             pt, io.MouseDownDuration[0], Scintilla::KeyMod::Norm);
         res.hadEvents = true;
         message(
-            ol_trace,
+            hstd::log::l_trace,
             fmt("Clicked mouse at {}, sci pos {}, cursor pos {}",
                 io.MouseClickedPos[0],
                 pos,
@@ -804,7 +805,7 @@ ScEditor::InputResult ScEditor::HandleInput() {
         && !io.KeySuper //
         && 0 < io.InputQueueCharacters.Size) {
         auto debug //
-            = message(ol_trace, "Typed ")
+            = message(hstd::log::l_trace, "Typed ")
                   .fmt_message(
                       "{} characters at {}:",
                       io.InputQueueCharacters.Size,

@@ -1063,9 +1063,7 @@ struct StoryGridConfig {
 
 /// \brief Highly mutable context variable that is passed to all
 /// rendering elements to collect actions.
-struct StoryGridContext
-    : hstd::OperationsTracer
-    , hstd::OperationsScope {
+struct StoryGridContext : hstd::OperationsTracer {
 
     DESC_FIELDS(StoryGridContext, (actions));
 

@@ -380,10 +380,10 @@ int main(int argc, char** argv) {
     auto conf_json = json::parse(conf_text);
     auto conf      = hstd::from_json_eval<Config>(conf_json);
 
-    org_logging::clear_sink_backends();
+    hstd::log::clear_sink_backends();
     if (conf.log_file) {
-        org_logging::push_sink(
-            org_logging::init_file_sink(conf.log_file.value()));
+        hstd::log::push_sink(
+            hstd::log::init_file_sink(conf.log_file.value()));
     }
 
 #ifdef ORG_USE_PERFETTO

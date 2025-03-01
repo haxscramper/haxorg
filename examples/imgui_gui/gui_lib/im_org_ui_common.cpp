@@ -22,12 +22,12 @@ EditableOrgText EditableOrgText::from_adapter(
 namespace {
 int edit_button_offset = 40;
 
-org_logging::log_builder gr_log(
-    org_logging::severity_level __severity,
-    int                         line     = __builtin_LINE(),
-    char const*                 function = __builtin_FUNCTION(),
-    char const*                 file     = __builtin_FILE()) {
-    return std::move(::org_logging::log_builder{}
+hstd::log::log_builder gr_log(
+    hstd::log::severity_level __severity,
+    int                       line     = __builtin_LINE(),
+    char const*               function = __builtin_FUNCTION(),
+    char const*               file     = __builtin_FILE()) {
+    return std::move(::hstd::log::log_builder{}
                          .set_callsite(line, function, file)
                          .severity(__severity)
                          .source_scope({"gui", "logic", "shared"}));
@@ -220,16 +220,17 @@ Opt<EditableOrgText::Result> EditableOrgText::render(
 
 DocRootId EditableOrgDocGroup::addRoot(
     const org::sem::SemId<org::sem::Org>& id) {
-    gr_log(ol_trace).fmt_message("Adding root to AST");
-    OLOG_DEPTH_SCOPE_ANON();
+    gr_log(hstd::log::l_trace).fmt_message("Adding root to AST");
+    HSLOG_DEPTH_SCOPE_ANON();
     auto const& current = getCurrentHistory();
-    gr_log(ol_trace).fmt_message(
-        "Current history {}", current.roots.size());
+    gr_log(hstd::log::l_trace)
+        .fmt_message("Current history {}", current.roots.size());
     auto [history, root_idx] = current.addRoot(id);
-    gr_log(ol_trace).fmt_message(
-        "History {} root idx {}", history, root_idx);
+    gr_log(hstd::log::l_trace)
+        .fmt_message("History {} root idx {}", history, root_idx);
     int history_idx = addHistory(history);
-    gr_log(ol_trace).fmt_message("Added history as index {}", history_idx);
+    gr_log(hstd::log::l_trace)
+        .fmt_message("Added history as index {}", history_idx);
     return DocRootId::FromMaskedIdx(root_idx, history_idx);
 }
 
@@ -240,36 +241,41 @@ DocRootId EditableOrgDocGroup::getLatest(DocRootId id) const {
 Opt<EditableOrgDocGroup::RootGroup> EditableOrgDocGroup::migrate(
     RootGroup prev,
     Opt<int>  maxVersion) const {
-    gr_log(ol_trace).fmt_message("Migrating root group {}", prev);
+    gr_log(hstd::log::l_trace)
+        .fmt_message("Migrating root group {}", prev);
     if (prev.getHistoryIndex() == history.high()) {
         return std::nullopt;
     } else {
-        OLOG_DEPTH_SCOPE_ANON();
+        HSLOG_DEPTH_SCOPE_ANON();
         while (prev.getHistoryIndex() < history.high()
                && (!maxVersion || prev.getHistoryIndex() <= maxVersion)) {
             int            idx  = prev.getHistoryIndex();
             int            next = idx + 1;
             Vec<DocRootId> updated;
             {
-                OLOG_DEPTH_SCOPE_ANON();
+                HSLOG_DEPTH_SCOPE_ANON();
                 for (auto const& item : prev.roots) {
                     if (auto migrated = history.at(next).getTransition(
                             item.getIndex())) {
                         updated.push_back(DocRootId::FromMaskedIdx(
                             migrated.value(), next));
-                        gr_log(ol_trace).fmt_message(
-                            "Item {} migrated to {}",
-                            item,
-                            migrated.value());
+                        gr_log(hstd::log::l_trace)
+                            .fmt_message(
+                                "Item {} migrated to {}",
+                                item,
+                                migrated.value());
                     } else {
-                        gr_log(ol_trace).fmt_message(
-                            "Item {} has no mapping in the last version",
-                            item);
+                        gr_log(hstd::log::l_trace)
+                            .fmt_message(
+                                "Item {} has no mapping in the last "
+                                "version",
+                                item);
                     }
                 }
             }
             RootGroup upd{next, updated};
-            gr_log(ol_trace).fmt_message("Updating {} -> {}", prev, upd);
+            gr_log(hstd::log::l_trace)
+                .fmt_message("Updating {} -> {}", prev, upd);
             prev = upd;
         }
         return prev;
@@ -279,7 +285,7 @@ Opt<EditableOrgDocGroup::RootGroup> EditableOrgDocGroup::migrate(
 org::imm::ImmAstVersion EditableOrgDocGroup::replaceNode(
     const org::imm::ImmAdapter&         origin,
     Vec<org::sem::SemId<org::sem::Org>> replace) {
-    // gr_log(ol_trace).message(origin.treeRepr().toString(false));
+    // gr_log(hstd::log::l_trace).message(origin.treeRepr().toString(false));
     LOGIC_ASSERTION_CHECK(!origin.isNil(), "Cannot replace nil node");
     org::imm::ImmAstVersion vNext = getCurrentHistory().ast->getEditVersion(
         [&](org::imm::ImmAstContext::Ptr ast,
@@ -293,15 +299,17 @@ org::imm::ImmAstVersion EditableOrgDocGroup::replaceNode(
                     result.incl(
                         org::imm::replaceNode(origin, id, ast_ctx));
                 } else {
-                    gr_log(ol_info).fmt_message(
-                        "Original node {} has the same ID as replacement "
-                        "target {} == {}",
-                        origin,
-                        origin.id,
-                        id);
+                    gr_log(hstd::log::l_info)
+                        .fmt_message(
+                            "Original node {} has the same ID as "
+                            "replacement "
+                            "target {} == {}",
+                            origin,
+                            origin.id,
+                            id);
 
-                    gr_log(ol_trace).message(
-                        origin.treeRepr().toString(false));
+                    gr_log(hstd::log::l_trace)
+                        .message(origin.treeRepr().toString(false));
                 }
             } else {
                 auto opt_parent = origin.getParent();
@@ -374,7 +382,7 @@ org::imm::ImmAstVersion EditableOrgDocGroup::replaceNode(
 
 EditableOrgDocGroup::History EditableOrgDocGroup::History::withNewVersion(
     const org::imm::ImmAstVersion& updated) const {
-    OLOG_DEPTH_SCOPE_ANON();
+    HSLOG_DEPTH_SCOPE_ANON();
     History res{};
     res.ast = std::make_shared<org::imm::ImmAstVersion>(updated);
 
@@ -390,8 +398,8 @@ EditableOrgDocGroup::History EditableOrgDocGroup::History::withNewVersion(
     }
 
     res.roots = tmp.persistent();
-    gr_log(ol_trace).fmt_message(
-        "With new version, roots {} -> {}", roots, res.roots);
+    gr_log(hstd::log::l_trace)
+        .fmt_message("With new version, roots {} -> {}", roots, res.roots);
 
     return res;
 }

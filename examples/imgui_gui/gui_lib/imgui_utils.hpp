@@ -4,7 +4,7 @@
 #include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/stdlib/TraceBase.hpp>
 #include <hstd/system/reflection.hpp>
-#include "gui_lib/org_logger.hpp"
+#include <hstd/ext/logger.hpp>
 #include "imgui.h"
 #include "imgui_internal.h"
 #include <hstd/stdlib/Opt.hpp>
@@ -118,7 +118,7 @@ struct ImRenderTraceRecord {
     hstd::Vec<ImRenderTraceRecord> nested;
     // Vec<std::string> im_id_stack
 
-    ::org_logging::log_record to_org_log_record() const;
+    ::hstd::log::log_record to_org_log_record() const;
 
     static hstd::Vec<ImRenderTraceRecord> stack;
     static bool                           TraceState;
