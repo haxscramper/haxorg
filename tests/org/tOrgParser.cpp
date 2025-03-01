@@ -1057,4 +1057,14 @@ TEST(OrgParseSem, CodeBlockVariables) {
         EXPECT_EQ(span.at(2).first, 1);
         EXPECT_FALSE(span.at(2).last.has_value());
     }
+    {
+        auto c   = get(R"(#+BEGIN_SRC emacs-lisp :var NAME=FILE:REFERENCE
+  data
+#+END_SRC)");
+        auto var = c->getVariable("NAME");
+        EXPECT_TRUE(var->isFileReference());
+        EXPECT_EQ(var->varname, "NAME");
+        EXPECT_EQ(var->getFileReference().file, "FILE");
+        EXPECT_EQ(var->getFileReference().reference, "REFERENCE");
+    }
 }
