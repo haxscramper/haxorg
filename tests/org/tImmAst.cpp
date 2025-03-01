@@ -258,13 +258,12 @@ TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {
     sem::SemId<sem::Org> replace_node = testParseString("wordXX").at(0).at(
         0);
 
-    imm::ImmAstVersion      version1     = start->init(start_node);
-    imm::ImmAstContext::Ptr store        = version1.context;
-    imm::ImmAdapter         paragraph    = version1.getRootAdapter().at(0);
-    imm::ImmAstEditContext  ctx          = store->getEditContext();
-    auto                    __absl_scope = ctx.collectAbslLogs();
-    auto                    word_xx      = store->add(replace_node, ctx);
-    auto                    version2     = store->finishEdit(
+    imm::ImmAstVersion      version1  = start->init(start_node);
+    imm::ImmAstContext::Ptr store     = version1.context;
+    imm::ImmAdapter         paragraph = version1.getRootAdapter().at(0);
+    imm::ImmAstEditContext  ctx       = store->getEditContext();
+    auto                    word_xx   = store->add(replace_node, ctx);
+    auto                    version2  = store->finishEdit(
         ctx,
         ctx.store().cascadeUpdate(
             version1.getRootAdapter(),

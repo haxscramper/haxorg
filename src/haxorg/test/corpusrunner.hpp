@@ -44,24 +44,13 @@ struct TestResult {
 struct RunContext {};
 
 
-class CorpusRunner
-    : public hstd::OperationsTracer
-    , public hstd::OperationsScope {
+class CorpusRunner : public hstd::OperationsTracer {
   public:
     // Define environment variable in the QT app run environment to get
     // better-formatted test diff output.
 
     hstd::Vec<TestResult::File> files;
     bool                        inRerun = false;
-
-    void message(
-        std::string const& value,
-        char const*        function = __builtin_FUNCTION(),
-        int                line     = __builtin_LINE(),
-        char const*        file     = __builtin_FILE()) {
-        OperationsTracer::message(
-            value, activeLevel, line, function, file);
-    }
 
     void writeFile(
         hstd::CR<ParseSpec> spec,

@@ -345,9 +345,7 @@ struct MapInterface {
         MapConfig&           conf);
 };
 
-struct MapConfig
-    : hstd::OperationsTracer
-    , hstd::OperationsScope {
+struct MapConfig : hstd::OperationsTracer {
     hstd::SPtr<MapInterface> impl;
     MapConfig(hstd::SPtr<MapInterface> impl);
     MapConfig();
@@ -356,16 +354,6 @@ struct MapConfig
         MapGraphState const& s,
         org::imm::ImmAdapter node) {
         return impl->getInitialNodeProp(s, node, *this);
-    }
-
-
-    void message(
-        std::string const& value,
-        char const*        function = __builtin_FUNCTION(),
-        int                line     = __builtin_LINE(),
-        char const*        file     = __builtin_FILE()) {
-        hstd::OperationsTracer::message(
-            value, activeLevel, line, function, file);
     }
 };
 

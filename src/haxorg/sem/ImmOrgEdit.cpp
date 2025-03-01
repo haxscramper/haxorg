@@ -93,7 +93,7 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
         Func<ImmAstReplace(CR<ImmAdapter>)> aux;
         aux = [&](CR<ImmAdapter> target) -> ImmAstReplace {
             for (auto const& sub : target.sub()) {
-                auto __scope = ctx.debug.scopeLevel();
+                auto __scope = ctx.debug()->scopeLevel();
                 aux(sub);
             }
 
@@ -128,7 +128,7 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
                         update.replaced,
                         node));
 
-                auto __scope = ctx.debug.scopeLevel();
+                auto __scope = ctx.debug()->scopeLevel();
                 edits.incl(dropSubnode(*parent, node.id, ctx));
                 edits.incl(
                     appendSubnode(*adjacent, update.replaced.id, ctx));
@@ -171,7 +171,7 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
 
 
         {
-            auto __scope = ctx.debug.scopeLevel();
+            auto __scope = ctx.debug()->scopeLevel();
             auto update  = ctx.store().updateNode<org::imm::ImmSubtree>(
                 node, ctx, [&](org::imm::ImmSubtree value) {
                     value.subnodes = edits.newSubnodes(
@@ -356,8 +356,7 @@ bool recMatches(PathIter condition, ImmAdapter node, int depth, Ctx ctx) {
     if (ctx.can_visit(node)) {
         ctx.visit(node);
     } else {
-        ctx.sel->message(
-            fmt("Cannot visit adapter {}", node), ctx.sel->activeLevel);
+        ctx.sel->message(fmt("Cannot visit adapter {}", node));
         return false;
     }
     ctx.sel->message(
@@ -365,14 +364,12 @@ bool recMatches(PathIter condition, ImmAdapter node, int depth, Ctx ctx) {
             condition->debug.value_or("<?>"),
             std::distance(ctx.sel->path.begin(), condition),
             ctx.sel->path.high(),
-            node),
-        ctx.sel->activeLevel);
+            node));
     auto __scope = ctx.sel->scopeLevel();
 
     if (ctx.maxDepth && ctx.maxDepth.value() < depth) {
         ctx.sel->message(
-            fmt("maxDepth {} < depth {}", ctx.maxDepth.value(), depth),
-            ctx.sel->activeLevel);
+            fmt("maxDepth {} < depth {}", ctx.maxDepth.value(), depth));
 
         return false;
     }
@@ -382,8 +379,7 @@ bool recMatches(PathIter condition, ImmAdapter node, int depth, Ctx ctx) {
         bool isMatch = false;
 
         if (condition == ctx.sel->path.end() - 1) {
-            ctx.sel->message(
-                "last condition in path, match ok", ctx.sel->activeLevel);
+            ctx.sel->message("last condition in path, match ok");
             isMatch = true;
         } else {
             LOGIC_ASSERTION_CHECK(
@@ -394,7 +390,7 @@ bool recMatches(PathIter condition, ImmAdapter node, int depth, Ctx ctx) {
 
             switch (condition->link->getKind()) {
                 case OrgSelectorLink::Kind::DirectSubnode: {
-                    ctx.sel->message("link direct subnode", depth);
+                    ctx.sel->message("link direct subnode");
                     for (auto const& sub :
                          node.getAllSubnodes(node.path)) {
                         if (recMatches(
@@ -403,8 +399,7 @@ bool recMatches(PathIter condition, ImmAdapter node, int depth, Ctx ctx) {
                                 depth + 1,
                                 ctx.with_max_depth(depth + 1))) {
                             ctx.sel->message(
-                                "got match on the direct subnode",
-                                ctx.sel->activeLevel);
+                                "got match on the direct subnode");
                             isMatch = true;
                         }
                     }
@@ -412,15 +407,14 @@ bool recMatches(PathIter condition, ImmAdapter node, int depth, Ctx ctx) {
                 }
 
                 case OrgSelectorLink::Kind::IndirectSubnode: {
-                    ctx.sel->message("link indirect subnode", depth);
+                    ctx.sel->message("link indirect subnode");
                     auto tmp = ctx.with_visited();
                     for (auto const& sub :
                          node.getAllSubnodesDFS(node.path)) {
                         if (recMatches(
                                 condition + 1, sub, depth + 1, tmp)) {
                             ctx.sel->message(
-                                "got match on indirect subnode",
-                                ctx.sel->activeLevel);
+                                "got match on indirect subnode");
                             isMatch = true;
                         }
                     }
@@ -431,8 +425,7 @@ bool recMatches(PathIter condition, ImmAdapter node, int depth, Ctx ctx) {
                     auto const& name = std::get<
                         OrgSelectorLink::FieldName>(condition->link->data);
                     ctx.sel->message(
-                        fmt("link field name '{}'", name.name),
-                        ctx.sel->activeLevel);
+                        fmt("link field name '{}'", name.name));
 
                     for (auto const& sub :
                          node.getAllSubnodes(node.path)) {
@@ -443,16 +436,14 @@ bool recMatches(PathIter condition, ImmAdapter node, int depth, Ctx ctx) {
                                 sub.id,
                                 sub.flatPath(),
                                 node.flatPath(),
-                                drop),
-                            ctx.sel->activeLevel);
+                                drop));
                         if (!drop.empty() && drop.first().isFieldName()
                             && drop.first().getFieldName().name
                                    == name.name) {
                             if (recMatches(
                                     condition + 1, sub, depth + 1, ctx)) {
                                 ctx.sel->message(
-                                    "got match on field subnode",
-                                    ctx.sel->activeLevel);
+                                    "got match on field subnode");
                                 isMatch = true;
                             }
                         }
@@ -468,8 +459,7 @@ bool recMatches(PathIter condition, ImmAdapter node, int depth, Ctx ctx) {
                     node.treeRepr(org::imm::ImmAdapter::TreeReprConf{
                                       .withAuxFields = true,
                                   })
-                        .toString(false)),
-                ctx.sel->activeLevel);
+                        .toString(false)));
             ctx.addMatch(node);
         }
 
@@ -535,8 +525,7 @@ void OrgDocumentSelector::searchSubtreePlaintextTitle(
                     fmt("{} == {} -> {}",
                         plaintext,
                         title,
-                        plaintext == title),
-                    activeLevel);
+                        plaintext == title));
 
                 return OrgSelectorResult{
                     .isMatching = title == plaintext,

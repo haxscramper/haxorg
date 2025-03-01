@@ -756,15 +756,9 @@ Graphviz::Graph MapGraph::toGraphviz(
 }
 
 
-MapConfig::MapConfig(SPtr<MapInterface> impl) : impl{impl} {
-    this->OperationsScope::TraceState //
-        = &this->OperationsTracer::TraceState;
-}
+MapConfig::MapConfig(SPtr<MapInterface> impl) : impl{impl} {}
 
-MapConfig::MapConfig() : impl{std::make_shared<MapInterface>()} {
-    this->OperationsScope::TraceState //
-        = &this->OperationsTracer::TraceState;
-}
+MapConfig::MapConfig() : impl{std::make_shared<MapInterface>()} {}
 
 Graphviz::Node::Record MapGraph::GvConfig::getDefaultNodeLabel(
     const ImmAdapter&  node,

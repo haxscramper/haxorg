@@ -113,15 +113,11 @@ struct OrgSelectorCondition {
     BOOST_DESCRIBE_CLASS(OrgSelectorCondition, (), (), (), ());
 };
 
-struct OrgDocumentSelector
-    : hstd::OperationsTracer
-    , hstd::OperationsScope {
+struct OrgDocumentSelector : hstd::OperationsTracer {
     hstd::Vec<OrgSelectorCondition> path;
     bool                            debug = false;
 
-    OrgDocumentSelector() {
-        OperationsScope::TraceState = &(OperationsTracer::TraceState);
-    }
+    OrgDocumentSelector() {}
 
     hstd::Vec<ImmAdapter> getMatches(ImmAdapter const& node) const;
 

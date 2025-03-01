@@ -55,13 +55,12 @@ void OperationsTracer::endStream(ColStream& stream) const {
 
 void OperationsTracer::message(
     const std::string& value,
-    int                level,
-    int                line,
     const char*        function,
+    int                line,
     const char*        file) const {
     if (TraceState) {
         message(OperationsMsg{
-            .level    = level,
+            .level    = activeLevel,
             .function = function,
             .line     = line,
             .msg      = value,
@@ -122,49 +121,19 @@ void OperationsTracer::message(const OperationsMsg& value) const {
     }
 }
 
-finally_std OperationsScope::scopeLevel() const {
-    ++(const_cast<OperationsScope*>(this)->activeLevel);
+finally_std OperationsTracer::scopeLevel() const {
+    ++(const_cast<OperationsTracer*>(this)->activeLevel);
     return finally_std{
-        [&]() { --(const_cast<OperationsScope*>(this)->activeLevel); }};
+        [&]() { --(const_cast<OperationsTracer*>(this)->activeLevel); }};
 }
 
-finally_std OperationsScope::scopeTrace(bool state) {
-    LOGIC_ASSERTION_CHECK(
-        TraceState != nullptr,
-        "use operations tracer `.TraceState` field as a pointer base");
-    bool initialTrace = *TraceState;
-    *TraceState       = state;
+finally_std OperationsTracer::scopeTrace(bool state) {
+    bool initialTrace = TraceState;
+    TraceState        = state;
     return finally_std{
-        [initialTrace, this]() { *TraceState = initialTrace; }};
+        [initialTrace, this]() { TraceState = initialTrace; }};
 }
 
-void OperationsTracerSink::Send(const absl::LogEntry& entry) {
-    tracer->message(
-        entry.text_message().data(),
-        scope ? scope->activeLevel : 0,
-        entry.source_line(),
-        LogSeverityName(entry.log_severity()),
-        entry.source_filename().data());
-}
-
-
-finally_std OperationsTracer::collectAbslLogs(
-    const OperationsScope* scope) const {
-    auto cthis = const_cast<OperationsTracer*>(this);
-    if (cthis->collectingAbseil) {
-        return finally_std::nop();
-    } else {
-        auto sink               = std::make_shared<OperationsTracerSink>();
-        cthis->collectingAbseil = true;
-        sink->tracer            = this;
-        sink->scope             = scope;
-        absl::AddLogSink(sink.get());
-        return finally_std{[sink, cthis]() {
-            absl::RemoveLogSink(sink.get());
-            cthis->collectingAbseil = false;
-        }};
-    }
-}
 
 void OperationsMsg::use_stacktrace_as_msg() {
     this->msg = cpptrace::generate_trace().to_string(false);

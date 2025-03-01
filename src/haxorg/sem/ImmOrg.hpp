@@ -370,11 +370,12 @@ struct ImmAstEditContext {
     hstd::WPtr<ImmAstContext>  ctx;
     hstd::SPtr<ImmAstContext>  finish();
     ImmAstStore&               store();
-    hstd::OperationsScope      debug;
 
     /// \brief Add or remove tracking data associated with the value for
     /// the node
     void updateTracking(org::imm::ImmId const& node, bool add);
+
+    hstd::SPtr<hstd::OperationsTracer> debug();
 
     void message(
         std::string const& value,
@@ -384,7 +385,6 @@ struct ImmAstEditContext {
 
     ImmAstContext* operator->() { return ctx.lock().get(); }
 
-    hstd::finally_std collectAbslLogs();
 };
 
 template <org::imm::IsImmOrgValueType T>
@@ -547,15 +547,6 @@ struct [[nodiscard]] ImmAstContext : hstd::SharedPtrApi<ImmAstContext> {
     /// \brief Current version of the AST tracking map stored in the
     /// context
     hstd::SPtr<ImmAstTrackingMap> currentTrack;
-
-    void message(
-        std::string const& value,
-        int                level    = 0,
-        char const*        function = __builtin_FUNCTION(),
-        int                line     = __builtin_LINE(),
-        char const*        file     = __builtin_FILE()) {
-        if (debug) { debug->message(value, level, line, function, file); }
-    }
 
     DESC_FIELDS(ImmAstContext, (store, currentTrack));
 
@@ -1523,7 +1514,7 @@ inline org::imm::ImmAstEditContext* ___get_context(
 }
 
 inline bool ___is_debug(org::imm::ImmAstEditContext& p) {
-    return p.debug.TraceState;
+    return p.ctx.lock()->debug->TraceState;
 }
 inline bool ___is_debug(org::imm::ImmAstContext::Ptr p) {
     return p->debug->TraceState;
