@@ -185,6 +185,38 @@ void org::algo::proto_serde<::orgproto::Tblfm, org::sem::Tblfm>::read(::orgproto
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::Tblfm::Assign>, hstd::Vec<org::sem::Tblfm::Assign>>::read(out.exprs(), in.for_field(&org::sem::Tblfm::exprs));
 }
 
+void org::algo::proto_serde<::orgproto::AttrValue::DimensionSpan, org::sem::AttrValue::DimensionSpan>::write(::orgproto::AttrValue::DimensionSpan* out, org::sem::AttrValue::DimensionSpan const& in) {
+  out->set_first(in.first);
+  if (in.last) {
+    out->set_last(*in.last);
+  }
+}
+
+void org::algo::proto_serde<::orgproto::AttrValue::DimensionSpan, org::sem::AttrValue::DimensionSpan>::read(::orgproto::AttrValue::DimensionSpan const& out, proto_write_accessor<org::sem::AttrValue::DimensionSpan> in) {
+  in.for_field(&org::sem::AttrValue::DimensionSpan::first).get() = out.first();
+  if (out.has_last()) {
+    proto_serde<hstd::Opt<::int32_t>, hstd::Opt<int>>::read(out.last(), in.for_field(&org::sem::AttrValue::DimensionSpan::last));
+  }
+}
+
+void org::algo::proto_serde<::orgproto::AttrValue::TextValue, org::sem::AttrValue::TextValue>::write(::orgproto::AttrValue::TextValue* out, org::sem::AttrValue::TextValue const& in) {
+  proto_serde<std::string, hstd::Str>::write(out->mutable_value(), in.value);
+}
+
+void org::algo::proto_serde<::orgproto::AttrValue::TextValue, org::sem::AttrValue::TextValue>::read(::orgproto::AttrValue::TextValue const& out, proto_write_accessor<org::sem::AttrValue::TextValue> in) {
+  proto_serde<std::string, hstd::Str>::read(out.value(), in.for_field(&org::sem::AttrValue::TextValue::value));
+}
+
+void org::algo::proto_serde<::orgproto::AttrValue::FileReference, org::sem::AttrValue::FileReference>::write(::orgproto::AttrValue::FileReference* out, org::sem::AttrValue::FileReference const& in) {
+  proto_serde<std::string, hstd::Str>::write(out->mutable_file(), in.file);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_reference(), in.reference);
+}
+
+void org::algo::proto_serde<::orgproto::AttrValue::FileReference, org::sem::AttrValue::FileReference>::read(::orgproto::AttrValue::FileReference const& out, proto_write_accessor<org::sem::AttrValue::FileReference> in) {
+  proto_serde<std::string, hstd::Str>::read(out.file(), in.for_field(&org::sem::AttrValue::FileReference::file));
+  proto_serde<std::string, hstd::Str>::read(out.reference(), in.for_field(&org::sem::AttrValue::FileReference::reference));
+}
+
 void org::algo::proto_serde<::orgproto::AttrValue, org::sem::AttrValue>::write(::orgproto::AttrValue* out, org::sem::AttrValue const& in) {
   if (in.name) {
     proto_serde<std::string, hstd::Str>::write(out->mutable_name(), *in.name);
@@ -192,8 +224,16 @@ void org::algo::proto_serde<::orgproto::AttrValue, org::sem::AttrValue>::write(:
   if (in.varname) {
     proto_serde<std::string, hstd::Str>::write(out->mutable_varname(), *in.varname);
   }
-  proto_serde<std::string, hstd::Str>::write(out->mutable_value(), in.value);
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::AttrValue::DimensionSpan>, hstd::Vec<org::sem::AttrValue::DimensionSpan>>::write(out->mutable_span(), in.span);
   out->set_isquoted(in.isQuoted);
+  switch (in.data.index()) {
+    case 0:
+      proto_serde<orgproto::AttrValue::TextValue, org::sem::AttrValue::TextValue>::write(out->mutable_data()->mutable_textvalue(), std::get<0>(in.data));
+      break;
+    case 1:
+      proto_serde<orgproto::AttrValue::FileReference, org::sem::AttrValue::FileReference>::write(out->mutable_data()->mutable_filereference(), std::get<1>(in.data));
+      break;
+  }
 }
 
 void org::algo::proto_serde<::orgproto::AttrValue, org::sem::AttrValue>::read(::orgproto::AttrValue const& out, proto_write_accessor<org::sem::AttrValue> in) {
@@ -203,8 +243,16 @@ void org::algo::proto_serde<::orgproto::AttrValue, org::sem::AttrValue>::read(::
   if (out.has_varname()) {
     proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.varname(), in.for_field(&org::sem::AttrValue::varname));
   }
-  proto_serde<std::string, hstd::Str>::read(out.value(), in.for_field(&org::sem::AttrValue::value));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::AttrValue::DimensionSpan>, hstd::Vec<org::sem::AttrValue::DimensionSpan>>::read(out.span(), in.for_field(&org::sem::AttrValue::span));
   in.for_field(&org::sem::AttrValue::isQuoted).get() = out.isquoted();
+  switch (out.data().kind_case()) {
+    case ::orgproto::AttrValue::DataVariant::kTextvalue:
+      proto_serde<orgproto::AttrValue::TextValue, org::sem::AttrValue::TextValue>::read(out.data().textvalue(), in.for_field_variant<0>(&org::sem::AttrValue::data));
+      break;
+    case ::orgproto::AttrValue::DataVariant::kFilereference:
+      proto_serde<orgproto::AttrValue::FileReference, org::sem::AttrValue::FileReference>::read(out.data().filereference(), in.for_field_variant<1>(&org::sem::AttrValue::data));
+      break;
+  }
 }
 
 void org::algo::proto_serde<::orgproto::HashTagFlat, org::sem::HashTagFlat>::write(::orgproto::HashTagFlat* out, org::sem::HashTagFlat const& in) {

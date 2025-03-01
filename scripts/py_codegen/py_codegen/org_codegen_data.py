@@ -26,7 +26,6 @@ def efield(name: str,
 #region cxx-types
 
 
-
 @beartype
 def t_str() -> QualType:
     return t("Str", [n_hstd()])
@@ -45,9 +44,6 @@ def t_int() -> QualType:
 @beartype
 def t_user_time() -> QualType:
     return t("UserTime", [n_hstd()])
-
-
-
 
 
 @beartype
@@ -132,6 +128,11 @@ def opt_field(typ: QualType, name: str, doc: AnyDoc = GenTuDoc("")):
 
 
 @beartype
+def org_function(result: QualType, name: str, *args, **kwargs) -> GenTuFunction:
+    return GenTuFunction(result, name, *args, **kwargs)
+
+
+@beartype
 def org_field(
         typ: QualType,
         name: str,
@@ -148,7 +149,7 @@ def arg_ident(
         doc: GenTuDoc = GenTuDoc(""),
         value: Optional[str] = None,
 ) -> GenTuIdent:
-    return GenTuIdent(type=t_cr(typ), name=name, value=value)
+    return GenTuIdent(type=typ, name=name, value=value)
 
 
 @beartype
@@ -172,7 +173,7 @@ def str_field(name: str, doc: AnyDoc = GenTuDoc(""), default: str = '""') -> Gen
 
 
 @beartype
-def int_field(name: str, doc: AnyDoc = GenTuDoc(""), default: str = '""') -> GenTuField:
+def int_field(name: str, doc: AnyDoc = GenTuDoc(""), default: str = 0) -> GenTuField:
     return org_field(t_int(), name, doc, default)
 
 
@@ -587,7 +588,7 @@ def get_sem_bases():
                         "Get the first parameter for the statement. "
                         "In case there is a longer list of values matching given kind"
                         "different node kinds can implement different priorities "),
-                    arguments=[arg_ident(t_str(), "kind")],
+                    arguments=[arg_ident(t_cr(t_str()), "kind")],
                     isConst=True,
                     isVirtual=True,
                 ),
@@ -646,7 +647,7 @@ def get_sem_bases():
                     GenTuDoc(
                         "Override of the base statement argument get, prioritizing the explicit command parameters"
                     ),
-                    arguments=[arg_ident(t_str(), "kind")],
+                    arguments=[arg_ident(t_cr(t_str()), "kind")],
                     isConst=True,
                     isVirtual=True,
                     isOverride=True,
@@ -804,6 +805,13 @@ def get_sem_block():
             "BlockCode",
             GenTuDoc("Base class for all code blocks"),
             bases=[t_nest(t_org("Block"))],
+            methods=[
+                GenTuFunction(
+                    t_opt(t_nest_shared("AttrValue")),
+                    "getVariable",
+                    arguments=[arg_ident(t_cr(t_str()), "varname")],
+                ),
+            ],
             fields=[
                 GenTuField(
                     t_opt(t_str()),
@@ -953,8 +961,8 @@ def get_sem_text():
                             t_nest("Static", [t_org("Time")]),
                             GenTuDoc(""),
                             fields=[
-                                GenTuField(t_opt(t_nest("Repeat", [t_org("Time")])), "repeat",
-                                           GenTuDoc("")),
+                                GenTuField(t_opt(t_nest("Repeat", [t_org("Time")])),
+                                           "repeat", GenTuDoc("")),
                                 GenTuField(t_user_time(), "time", GenTuDoc("")),
                             ],
                         ),
@@ -1479,66 +1487,108 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     efield("Boolean"),
                     efield("Integer"),
                     efield("Float"),
+                    efield("FileReference"),
+                ),
+                org_struct(t_nest_shared("DimensionSpan", [t("AttrValue")]),
+                           fields=[
+                               int_field("first"),
+                               opt_field(t_int(), "last"),
+                           ],
+                           methods=[
+                               default_constructor_method("DimensionSpan"),
+                               eq_method(t_nest_shared("DimensionSpan",
+                                                       [t("AttrValue")])),
+                           ]),
+                GenTuTypeGroup(
+                    [
+                        org_struct(
+                            t_nest_shared("TextValue", [t("AttrValue")]),
+                            fields=[
+                                str_field("value"),
+                            ],
+                            methods=[
+                                eq_method(t_nest_shared("TextValue", [t("AttrValue")])),
+                                default_constructor_method("TextValue"),
+                            ],
+                        ),
+                        org_struct(
+                            t_nest_shared("FileReference", [t("AttrValue")]),
+                            fields=[
+                                str_field("file"),
+                                str_field("reference"),
+                            ],
+                            methods=[
+                                default_constructor_method("FileReference"),
+                                eq_method(t_nest_shared("FileReference",
+                                                        [t("AttrValue")])),
+                            ],
+                        ),
+                    ],
+                    kindGetter="getDataKind",
+                    enumName=t_nest_shared("DataKind", [t("AttrValue")]),
+                    variantField="data",
+                    variantName=t_nest_shared("DataVariant", [t("AttrValue")]),
                 )
             ],
             fields=[
                 opt_field(t_str(), "name"),
                 opt_field(t_str(), "varname"),
-                str_field("value"),
+                vec_field(t_nest_shared("DimensionSpan", [t("AttrValue")]), "span"),
                 bool_field(
                     "isQuoted",
                     "If the original value was explicitly quoted in the org-mode code"),
             ],
             methods=[
-                GenTuFunction(t_opt(t_bool()), "getBool", isConst=True),
-                GenTuFunction(t_opt(t_int()), "getInt", isConst=True),
-                GenTuFunction(t_str(), "getString", isConst=True),
-                GenTuFunction(t_opt(QualType(name="double")), "getDouble", isConst=True),
+                org_function(t_opt(t_bool()), "getBool", isConst=True),
+                org_function(t_opt(t_int()), "getInt", isConst=True),
+                org_function(t_str(), "getString", isConst=True),
+                org_function(t_str(), "getFile", isConst=True),
+                org_function(t_str(), "getReference", isConst=True),
+                org_function(t_opt(QualType(name="double")), "getDouble", isConst=True),
                 eq_method(t_nest_shared("AttrValue")),
+                default_constructor_method("AttrValue")
             ],
         ),
-        GenTuStruct(
+        org_struct(
             t_nest_shared("HashTagFlat"),
             fields=[vec_field(t_str(), "tags")],
             methods=[
                 eq_method(t_nest_shared("HashTagFlat")),
-                GenTuFunction(
+                org_function(
                     result=t_bool(),
                     name="operator<",
-                    arguments=[
-                        GenTuIdent(type=t_cr(t_nest_shared("HashTagFlat")), name="other")
-                    ],
+                    arguments=[arg_ident(t_cr(t_nest_shared("HashTagFlat")), "other")],
                     isConst=True,
                 ),
             ],
         ),
-        GenTuStruct(
+        org_struct(
             t_nest_shared("HashTagText"),
-            GenTuDoc("Single or nested inline hash-tag"),
+            org_doc("Single or nested inline hash-tag"),
             fields=[
-                GenTuField(t_str(), "head", GenTuDoc("Main part of the tag")),
-                GenTuField(
+                org_field(t_str(), "head", org_doc("Main part of the tag")),
+                org_field(
                     t_vec(t_nest_shared("HashTagText")),
                     "subtags",
-                    GenTuDoc("List of nested tags"),
+                    org_doc("List of nested tags"),
                     value="{}",
                 ),
             ],
             methods=[
                 eq_method(t_nest_shared("HashTagText")),
-                GenTuFunction(
+                org_function(
                     t("bool"),
                     "prefixMatch",
-                    GenTuDoc(
+                    org_doc(
                         "Check if list of tag names is a prefix for either of the nested hash tags in this one"
                     ),
                     isConst=True,
-                    arguments=[GenTuIdent(t_cr(t_vec(t_str())), "prefix")],
+                    arguments=[arg_ident(t_cr(t_vec(t_str())), "prefix")],
                 ),
-                GenTuFunction(
+                org_function(
                     t_vec(t_nest_shared("HashTagFlat")),
                     "getFlatHashes",
-                    arguments=[GenTuIdent(t_bool(), "withIntermediate", value="true")],
+                    arguments=[arg_ident(t_bool(), "withIntermediate", value="true")],
                     isConst=True,
                     doc=org_doc("Get flat list of expanded hashtags"),
                 ),
@@ -1561,7 +1611,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     [
                         GenTuStruct(
                             t_nest_shared("Raw", [t("LinkTarget")]),
-                            GenTuDoc(""),
+                            org_doc(""),
                             fields=[(GenTuField(t_str(), "text", GenTuDoc("")))],
                             methods=[eq_method(t_nest_shared("Raw", [t("LinkTarget")]))],
                         ),

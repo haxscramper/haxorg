@@ -16,6 +16,9 @@
     __IMPL(Tblfm, Expr::Call, (Expr, Call)) \
     __IMPL(Tblfm, Expr::Elisp, (Expr, Elisp)) \
     __IMPL(Tblfm, Assign, (Assign)) \
+    __IMPL(AttrValue, DimensionSpan, (DimensionSpan)) \
+    __IMPL(AttrValue, TextValue, (TextValue)) \
+    __IMPL(AttrValue, FileReference, (FileReference)) \
     __IMPL(LinkTarget, Raw, (Raw)) \
     __IMPL(LinkTarget, Id, (Id)) \
     __IMPL(LinkTarget, CustomId, (CustomId)) \
@@ -86,6 +89,7 @@
     __IMPL(Tblfm, Expr::Kind, (Expr, Kind)) \
     __IMPL(Tblfm, Assign::Flag, (Assign, Flag)) \
     __IMPL(AttrValue, Kind, (Kind)) \
+    __IMPL(AttrValue, DataKind, (DataKind)) \
     __IMPL(LinkTarget, Kind, (Kind)) \
     __IMPL(SubtreeLogHead, Priority::Action, (Priority, Action)) \
     __IMPL(SubtreeLogHead, Kind, (Kind)) \
@@ -118,6 +122,9 @@
     __IMPL(Tblfm::Expr::Elisp, (Tblfm, Expr, Elisp)) \
     __IMPL(Tblfm::Assign, (Tblfm, Assign)) \
     __IMPL(AttrValue, (AttrValue)) \
+    __IMPL(AttrValue::DimensionSpan, (AttrValue, DimensionSpan)) \
+    __IMPL(AttrValue::TextValue, (AttrValue, TextValue)) \
+    __IMPL(AttrValue::FileReference, (AttrValue, FileReference)) \
     __IMPL(HashTagFlat, (HashTagFlat)) \
     __IMPL(HashTagText, (HashTagText)) \
     __IMPL(SubtreePath, (SubtreePath)) \

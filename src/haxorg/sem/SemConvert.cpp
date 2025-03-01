@@ -1846,7 +1846,7 @@ OrgConverter::ConvResult<CmdInclude> OrgConverter::convertCmdInclude(
     if (TraceState) { print(fmt("args: {}", args)); }
 
     if (auto kind = args.positional.items.get(1)) {
-        Str ks = kind.value().get().value;
+        Str ks = kind.value().get().getString();
         if (ks == "src"_ss) {
             auto src      = sem::CmdInclude::Src{};
             include->data = src;
@@ -1930,16 +1930,16 @@ OrgConverter::ConvResult<AtMention> OrgConverter::convertAtMention(
 sem::AttrValue OrgConverter::convertAttr(__args) {
     auto           __trace = trace(a);
     sem::AttrValue result;
-    Str            key = get_text(one(a, N::Name));
-    result.value       = get_text(one(a, N::Value));
+    Str            key   = get_text(one(a, N::Name));
+    Str            value = get_text(one(a, N::Value));
 
-    for (int i = 0; i < result.value.size(); ++i) {
-        if (std::isalnum(result.value.at(i))) {
+    for (int i = 0; i < value.size(); ++i) {
+        if (std::isalnum(value.at(i))) {
             // pass
-        } else if (result.value.at(i) == '=' && i < result.value.size()) {
+        } else if (value.at(i) == '=' && i < value.size()) {
             // found variable name
-            result.varname = result.value.substr(0, i);
-            result.value   = result.value.substr(i + 1);
+            result.varname = value.substr(0, i);
+            value          = value.substr(i + 1);
         } else {
             // not a variable name
             break;
@@ -1947,16 +1947,61 @@ sem::AttrValue OrgConverter::convertAttr(__args) {
     }
 
 
-    if (result.value.starts_with('"') && result.value.ends_with('"')) {
+    if (value.starts_with('"') && value.ends_with('"')) {
         result.isQuoted = true;
-        result.value    = result.value.substr(1, result.value.size() - 2);
+        value           = value.substr(1, value.size() - 2);
+        AttrValue::TextValue tv{};
+        tv.value    = value;
+        result.data = tv;
+    } else {
+        Str dimension;
+        if (value.ends_with(']')) {
+            for (int i = 0; i < value.size(); ++i) {
+                if (value.at(i) == '[') {
+                    dimension = value.substr(i + 1, value.size() - 1);
+                    value     = value.substr(0, i);
+                }
+            }
+        }
+
+        if (!dimension.empty()) {
+            for (auto axis : dimension.split(',')) {
+                AttrValue::DimensionSpan dim;
+                axis = strip_space(axis);
+                if (axis == "" || axis == "*") {
+                    dim.first = 0;
+                    dim.last  = -1;
+                } else {
+                    auto split = axis.split(':');
+                    dim.first  = split.at(0).toInt();
+                    if (split.has(1)) { dim.last = split.at(1).toInt(); }
+                }
+                result.span.push_back(dim);
+            }
+        }
+
+        if (value.contains(':')) {
+            auto split = value.split(':');
+            if (split.has(1)) {
+                AttrValue::FileReference fr{};
+                fr.file      = split.at(0);
+                fr.reference = split.at(1);
+                result.data  = fr;
+            } else {
+                AttrValue::TextValue tv{};
+                tv.value    = value;
+                result.data = tv;
+            }
+        } else {
+            AttrValue::TextValue tv{};
+            tv.value    = value;
+            result.data = tv;
+        }
     }
 
     if (!key.empty()) { result.name = key.substr(1); }
 
-    if (TraceState) {
-        print(fmt("key:{} value:{}", result.name, result.value));
-    }
+    if (TraceState) { print(fmt("key:{} value:{}", result.name, value)); }
 
     return result;
 }
@@ -1984,14 +2029,15 @@ sem::AttrGroup OrgConverter::convertCallArguments(
     sem::AttrGroup result;
     for (auto const& arg : args) {
         sem::AttrValue conv;
+        conv.data = AttrValue::TextValue{};
         if (2 < arg.size() && get_text(arg.at(1)) == "=") {
             conv.name = get_text(arg.at(0));
             for (int i = 2; i < arg.size(); ++i) {
-                conv.value += get_text(arg.at(i));
+                conv.getTextValue().value += get_text(arg.at(i));
             }
         } else {
             for (int i = 0; i < arg.size(); ++i) {
-                conv.value += get_text(arg.at(i));
+                conv.getTextValue().value += get_text(arg.at(i));
             }
         }
 
@@ -2131,7 +2177,7 @@ OrgConverter::ConvResult<CmdColumns> OrgConverter::convertCmdColumns(
 OrgConverter::ConvResult<CmdName> OrgConverter::convertCmdName(__args) {
     auto           __trace = trace(a);
     SemId<CmdName> result  = Sem<CmdName>(a);
-    result->name           = convertAttr(a.at(0).at(0)).value;
+    result->name           = convertAttr(a.at(0).at(0)).getString();
     return result;
 }
 

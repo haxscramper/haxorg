@@ -756,7 +756,7 @@ TEST(OrgParseSem, SubtreePropertyContext) {
         auto attrs1 = h1.value().getCustomArgs().attrs;
         EXPECT_EQ(attrs1.getAttrs("cache").size(), 1);
         EXPECT_EQ(attrs1.getAttrs("cache").at(0).name.value(), "cache");
-        EXPECT_EQ(attrs1.getAttrs("cache").at(0).value, "yes");
+        EXPECT_EQ(attrs1.getAttrs("cache").at(0).getString(), "yes");
         EXPECT_EQ(attrs1.getAttrs("cache").at(0).getBool(), true);
 
         auto h2     = t2->getProperty("header-args");
@@ -765,17 +765,18 @@ TEST(OrgParseSem, SubtreePropertyContext) {
         EXPECT_EQ(attrs2.getAttrs("results").size(), 1);
         EXPECT_EQ(
             attrs2.getAttrs("results").at(0).name.value(), "results");
-        EXPECT_EQ(attrs2.getAttrs("results").at(0).value, "silent");
+        EXPECT_EQ(attrs2.getAttrs("results").at(0).getString(), "silent");
 
         auto stacked = org::getFinalProperty({t1, t2}, "header-args");
         EXPECT_TRUE(stacked.has_value());
         auto s = stacked.value();
         EXPECT_EQ(
-            s.getCustomArgs().attrs.getAttrs("results").at(0).value,
+            s.getCustomArgs().attrs.getAttrs("results").at(0).getString(),
             "silent");
 
         EXPECT_EQ(
-            s.getCustomArgs().attrs.getAttrs("cache").at(0).value, "yes");
+            s.getCustomArgs().attrs.getAttrs("cache").at(0).getString(),
+            "yes");
     }
 }
 
@@ -1008,5 +1009,15 @@ TEST(OrgParseSem, IncludeCommand) {
         auto i = get(R"(#+INCLUDE: "~/.emacs" ":custom-name")");
         EXPECT_EQ(i->getIncludeKind(), sem::CmdInclude::Kind::Custom);
         EXPECT_EQ2(i->getCustom().blockName, ":custom-name");
+    }
+}
+
+TEST(OrgParseSem, CodeBlockVariables) {
+    auto get = [&](std::string const& s,
+                   Opt<std::string>   debug = std::nullopt) {
+        return parseOne<sem::BlockCode>(s, debug);
+    };
+    {
+        //
     }
 }

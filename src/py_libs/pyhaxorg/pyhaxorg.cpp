@@ -13,6 +13,8 @@ PYBIND11_MAKE_OPAQUE(std::vector<org::sem::Tblfm::Assign::Flag>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::Tblfm::Assign::Flag>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::Tblfm::Assign>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::Tblfm::Assign>)
+PYBIND11_MAKE_OPAQUE(std::vector<org::sem::AttrValue::DimensionSpan>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::AttrValue::DimensionSpan>)
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::Str>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::Str>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::HashTagText>)
@@ -82,6 +84,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<org::sem::Tblfm::Expr>(m, "VecOfTblfmExpr", type_registry_guard);
   bind_vector<org::sem::Tblfm::Assign::Flag>(m, "VecOfTblfmAssignFlag", type_registry_guard);
   bind_vector<org::sem::Tblfm::Assign>(m, "VecOfTblfmAssign", type_registry_guard);
+  bind_vector<org::sem::AttrValue::DimensionSpan>(m, "VecOfAttrValueDimensionSpan", type_registry_guard);
   bind_vector<hstd::Str>(m, "VecOfStr", type_registry_guard);
   bind_vector<org::sem::HashTagText>(m, "VecOfHashTagText", type_registry_guard);
   bind_vector<org::sem::HashTagFlat>(m, "VecOfHashTagFlat", type_registry_guard);
@@ -497,9 +500,79 @@ node can have subnodes.)RAW")
     .value("Boolean", org::sem::AttrValue::Kind::Boolean)
     .value("Integer", org::sem::AttrValue::Kind::Integer)
     .value("Float", org::sem::AttrValue::Kind::Float)
+    .value("FileReference", org::sem::AttrValue::Kind::FileReference)
     .def("__iter__", [](org::sem::AttrValue::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::AttrValue::Kind> {
                      return
                      org::bind::python::PyEnumIterator<org::sem::AttrValue::Kind>
+                     ();
+                     })
+    ;
+  pybind11::class_<org::sem::AttrValue::DimensionSpan>(m, "AttrValueDimensionSpan")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::AttrValue::DimensionSpan {
+                        org::sem::AttrValue::DimensionSpan result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("first", &org::sem::AttrValue::DimensionSpan::first)
+    .def_readwrite("last", &org::sem::AttrValue::DimensionSpan::last)
+    .def("operator==",
+         static_cast<bool(org::sem::AttrValue::DimensionSpan::*)(org::sem::AttrValue::DimensionSpan const&) const>(&org::sem::AttrValue::DimensionSpan::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::sem::AttrValue::DimensionSpan _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::AttrValue::DimensionSpan _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::sem::AttrValue::TextValue>(m, "AttrValueTextValue")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::AttrValue::TextValue {
+                        org::sem::AttrValue::TextValue result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("value", &org::sem::AttrValue::TextValue::value)
+    .def("operator==",
+         static_cast<bool(org::sem::AttrValue::TextValue::*)(org::sem::AttrValue::TextValue const&) const>(&org::sem::AttrValue::TextValue::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::sem::AttrValue::TextValue _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::AttrValue::TextValue _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::sem::AttrValue::FileReference>(m, "AttrValueFileReference")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::AttrValue::FileReference {
+                        org::sem::AttrValue::FileReference result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("file", &org::sem::AttrValue::FileReference::file)
+    .def_readwrite("reference", &org::sem::AttrValue::FileReference::reference)
+    .def("operator==",
+         static_cast<bool(org::sem::AttrValue::FileReference::*)(org::sem::AttrValue::FileReference const&) const>(&org::sem::AttrValue::FileReference::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::sem::AttrValue::FileReference _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::AttrValue::FileReference _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<org::sem::AttrValue::DataKind>(m, "AttrValueDataKind", type_registry_guard);
+  pybind11::enum_<org::sem::AttrValue::DataKind>(m, "AttrValueDataKind")
+    .value("TextValue", org::sem::AttrValue::DataKind::TextValue)
+    .value("FileReference", org::sem::AttrValue::DataKind::FileReference)
+    .def("__iter__", [](org::sem::AttrValue::DataKind _self) -> org::bind::python::PyEnumIterator<org::sem::AttrValue::DataKind> {
+                     return
+                     org::bind::python::PyEnumIterator<org::sem::AttrValue::DataKind>
                      ();
                      })
     ;
@@ -511,15 +584,26 @@ node can have subnodes.)RAW")
                         }))
     .def_readwrite("name", &org::sem::AttrValue::name)
     .def_readwrite("varname", &org::sem::AttrValue::varname)
-    .def_readwrite("value", &org::sem::AttrValue::value)
+    .def_readwrite("span", &org::sem::AttrValue::span)
     .def_readwrite("isQuoted", &org::sem::AttrValue::isQuoted, R"RAW(If the original value was explicitly quoted in the org-mode code)RAW")
+    .def_readwrite("data", &org::sem::AttrValue::data)
     .def("getBool", static_cast<hstd::Opt<bool>(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getBool))
     .def("getInt", static_cast<hstd::Opt<int>(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getInt))
     .def("getString", static_cast<hstd::Str(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getString))
+    .def("getFile", static_cast<hstd::Str(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getFile))
+    .def("getReference", static_cast<hstd::Str(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getReference))
     .def("getDouble", static_cast<hstd::Opt<double>(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getDouble))
     .def("operator==",
          static_cast<bool(org::sem::AttrValue::*)(org::sem::AttrValue const&) const>(&org::sem::AttrValue::operator==),
          pybind11::arg("other"))
+    .def("isTextValue", static_cast<bool(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::isTextValue))
+    .def("getTextValue", static_cast<org::sem::AttrValue::TextValue&(org::sem::AttrValue::*)()>(&org::sem::AttrValue::getTextValue))
+    .def("isFileReference", static_cast<bool(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::isFileReference))
+    .def("getFileReference", static_cast<org::sem::AttrValue::FileReference&(org::sem::AttrValue::*)()>(&org::sem::AttrValue::getFileReference))
+    .def_static("getDataKindStatic",
+                static_cast<org::sem::AttrValue::DataKind(*)(org::sem::AttrValue::DataVariant const&)>(&org::sem::AttrValue::getDataKind),
+                pybind11::arg("__input"))
+    .def("getDataKind", static_cast<org::sem::AttrValue::DataKind(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getDataKind))
     .def("__repr__", [](org::sem::AttrValue _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3961,6 +4045,9 @@ node can have subnodes.)RAW")
     .def_readwrite("tangle", &org::sem::BlockCode::tangle, R"RAW(?)RAW")
     .def_readwrite("attrs", &org::sem::BlockCode::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("attached", &org::sem::BlockCode::attached)
+    .def("getVariable",
+         static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::BlockCode::*)(hstd::Str const&)>(&org::sem::BlockCode::getVariable),
+         pybind11::arg("varname"))
     .def("getAttrs",
          static_cast<hstd::Vec<org::sem::AttrValue>(org::sem::BlockCode::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockCode::getAttrs),
          pybind11::arg_v("key", std::nullopt),

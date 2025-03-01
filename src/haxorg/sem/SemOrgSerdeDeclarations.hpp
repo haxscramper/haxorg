@@ -166,6 +166,27 @@ struct org::algo::proto_serde<::orgproto::Tblfm, org::sem::Tblfm> {
 
 
 template <>
+struct org::algo::proto_serde<::orgproto::AttrValue::DimensionSpan, org::sem::AttrValue::DimensionSpan> {
+  static void write(::orgproto::AttrValue::DimensionSpan* out, org::sem::AttrValue::DimensionSpan const& in);
+  static void read(::orgproto::AttrValue::DimensionSpan const& out, proto_write_accessor<org::sem::AttrValue::DimensionSpan> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::AttrValue::TextValue, org::sem::AttrValue::TextValue> {
+  static void write(::orgproto::AttrValue::TextValue* out, org::sem::AttrValue::TextValue const& in);
+  static void read(::orgproto::AttrValue::TextValue const& out, proto_write_accessor<org::sem::AttrValue::TextValue> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::AttrValue::FileReference, org::sem::AttrValue::FileReference> {
+  static void write(::orgproto::AttrValue::FileReference* out, org::sem::AttrValue::FileReference const& in);
+  static void read(::orgproto::AttrValue::FileReference const& out, proto_write_accessor<org::sem::AttrValue::FileReference> in);
+};
+
+
+template <>
 struct org::algo::proto_serde<::orgproto::AttrValue, org::sem::AttrValue> {
   static void write(::orgproto::AttrValue* out, org::sem::AttrValue const& in);
   static void read(::orgproto::AttrValue const& out, proto_write_accessor<org::sem::AttrValue> in);
