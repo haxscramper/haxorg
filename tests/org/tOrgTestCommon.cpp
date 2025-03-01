@@ -1,24 +1,6 @@
 #include "tOrgTestCommon.hpp"
 
-Str getDebugFile(const Str& suffix) {
-    auto dir = fs::path{
-        fmt("/tmp/haxorg_tests/{}",
-            ::testing::UnitTest::GetInstance()
-                ->current_test_info()
-                ->test_suite_name())};
-    auto testname = ::testing::UnitTest::GetInstance()
-                        ->current_test_info()
-                        ->name();
-    if (suffix.empty()) {
-        Str result = fmt("{}/{}", dir.native(), testname);
-        createDirectory(fs::path{result.toBase()});
-        return result;
-    } else {
-        Str result = fmt("{}/{}/{}", dir.native(), testname, suffix);
-        createDirectory(fs::path{result.toBase()}.parent_path());
-        return result;
-    }
-}
+
 
 void writeTreeRepr(
     imm::ImmAdapter               n,

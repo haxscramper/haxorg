@@ -4,6 +4,7 @@
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/stdlib/Variant.hpp>
 
+/// \brief Structured org-mode processing report types.
 namespace org::report {
 
 struct ValueToken {

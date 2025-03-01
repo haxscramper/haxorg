@@ -6,13 +6,13 @@
 #include "imgui_test_engine/imgui_te_context.h"
 #include <hstd/stdlib/Str.hpp>
 #include <gui_lib/imgui_utils.hpp>
-#include <gui_lib/org_logger.hpp>
+#include <hstd/ext/logger.hpp>
 
 #define IM_TEST_LOG(__cat)                                                \
-    ::org_logging::log_builder{}                                          \
+    ::hstd::log::log_builder{}                                            \
         .set_callsite()                                                   \
         .category(__cat)                                                  \
-        .severity(ol_info)                                                \
+        .severity(hstd::log::l_info)                                      \
         .source_scope({"gui", "test"})
 
 

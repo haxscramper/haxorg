@@ -36,12 +36,12 @@ struct hstd::JsonSerde<hstd::ReflPathItem<Tag>> {
 };
 
 struct StoryGridVars : public ImTestVarsBase {
-    org::imm::ImmAstContext::Ptr           start;
-    EditableOrgDocGroup                    history;
-    StoryGridModel                         model;
-    StoryGridConfig                        conf;
-    hstd::Vec<org_logging::log_sink_scope> debug_scopes;
-    DocRootId                              root = DocRootId::Nil();
+    org::imm::ImmAstContext::Ptr         start;
+    EditableOrgDocGroup                  history;
+    StoryGridModel                       model;
+    StoryGridConfig                      conf;
+    hstd::Vec<hstd::log::log_sink_scope> debug_scopes;
+    DocRootId                            root = DocRootId::Nil();
 
     StoryGridVars()
         : start{org::imm::ImmAstContext::init_start_context()}
@@ -226,12 +226,11 @@ void _FootnoteAnnotation(ImGuiTestEngine* e) {
             if (ctx->IsFirstGuiFrame()) {
                 vars.conf.gridViewport = params.windowSize;
                 vars.debug_scopes.emplace_back(
-                    OLOG_SINK_FACTORY_SCOPED([ctx]() {
-                        return org_logging::set_sink_filter(
-                            ::org_logging::init_file_sink(getDebugFile(
+                    HSLOG_SINK_FACTORY_SCOPED([ctx]() {
+                        return hstd::log::set_sink_filter(
+                            ::hstd::log::init_file_sink(getDebugFile(
                                 ctx->Test, "scintilla_sink.log")),
-                            [](org_logging::log_record const& rec)
-                                -> bool {
+                            [](hstd::log::log_record const& rec) -> bool {
                                 return rec.data.category == "surface"
                                     && rec.data.source_scope
                                            == hstd::Vec<hstd::Str>{

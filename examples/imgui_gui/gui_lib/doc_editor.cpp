@@ -175,8 +175,8 @@ void apply_doc_block_actions(
     const DocBlockConfig& conf) {
     if (model.ctx.actions.empty()) { return; }
 
-    auto __log_scoped = OLOG_SINK_FACTORY_SCOPED([]() {
-        return ::org_logging::init_file_sink(
+    auto __log_scoped = HSLOG_SINK_FACTORY_SCOPED([]() {
+        return ::hstd::log::init_file_sink(
             "/tmp/apply_doc_block_actions.log");
     });
 
@@ -322,15 +322,15 @@ void DocBlockContext::message(
     int                line,
     const char*        function,
     const char*        file) const {
-    OLOG_BUILDER()
+    HSLOG_BUILDER()
         .set_callsite(line, function, file)
         .message(value)
         .depth(activeLevel)
         .category("doc-edit")
-        .severity(ol_info)
+        .severity(hstd::log::l_info)
         .source_scope({"gui", "feature", "doc_edit"});
 
-    OperationsTracer::message(value, activeLevel, line, function, file);
+    OperationsTracer::message(value, function, line, file);
 }
 
 void DocBlock::treeRepr(ColStream& os) {

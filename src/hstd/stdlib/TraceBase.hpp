@@ -27,22 +27,7 @@ struct OperationsMsg {
         (msg, file, function, line, column, metadata));
 };
 
-struct OperationsScope {
-    bool* TraceState  = nullptr;
-    int   activeLevel = 0;
-
-    finally_std scopeLevel() const;
-    finally_std scopeTrace(bool state);
-};
-
 struct OperationsTracer;
-
-struct OperationsTracerSink : public absl::LogSink {
-    OperationsTracer const* tracer;
-    OperationsScope const*  scope;
-
-    void Send(const absl::LogEntry& entry) override;
-};
 
 struct OperationsTracer {
     bool        TraceState       = false;
@@ -52,6 +37,11 @@ struct OperationsTracer {
     bool        traceColored     = true;
     bool        collectingAbseil = false;
     std::string traceBuffer;
+
+    int activeLevel = 0;
+
+    finally_std scopeLevel() const;
+    finally_std scopeTrace(bool state);
 
     OperationsTracer() {}
     OperationsTracer(fs::path const& info) { setTraceFile(info); }
@@ -64,14 +54,11 @@ struct OperationsTracer {
     ColStream          getStream() const;
     void               endStream(ColStream& stream) const;
     void               message(OperationsMsg const& value) const;
-    finally_std        collectAbslLogs(
-               OperationsScope const* scope = nullptr) const;
 
     void message(
         std::string const& value,
-        int                level    = 0,
-        int                line     = __builtin_LINE(),
         char const*        function = __builtin_FUNCTION(),
+        int                line     = __builtin_LINE(),
         char const*        file     = __builtin_FILE()) const;
 };
 

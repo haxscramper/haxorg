@@ -71,10 +71,9 @@ ImmAstReplace ImmAstStore::setNode(
     ctx.updateTracking(target.id, false);
     ctx.updateTracking(result_node, true);
 
-    auto __absl_scope = ctx.collectAbslLogs();
     auto dbg          = [&](std::string section) {
         AST_EDIT_MSG(fmt("{}", section));
-        auto        __scope = ctx.debug.scopeLevel();
+        auto        __scope = ctx.debug()->scopeLevel();
         auto const& imm     = ctx.ctx.lock()->currentTrack->parents;
         auto const& mut     = ctx.transientTrack.parents;
 
@@ -312,7 +311,7 @@ UnorderedSet<ImmUniqId> getEditParents(
 
     AST_EDIT_MSG("Edit replaces");
     if (AST_EDIT_TRACE()) {
-        auto __scope = ctx.debug.scopeLevel();
+        auto __scope = ctx.debug()->scopeLevel();
         for (auto const& key : replace.allReplacements()) {
             AST_EDIT_MSG(fmt("[{}] -> {}", key.original, key.replaced));
         }
@@ -320,7 +319,7 @@ UnorderedSet<ImmUniqId> getEditParents(
 
     AST_EDIT_MSG("Node replace map");
     if (AST_EDIT_TRACE()) {
-        auto __scope = ctx.debug.scopeLevel();
+        auto __scope = ctx.debug()->scopeLevel();
         for (auto const& key : sorted(replace.nodeReplaceMap.keys())) {
             AST_EDIT_MSG(
                 fmt("[{}] -> {}", key, replace.nodeReplaceMap.at(key)));
@@ -329,7 +328,7 @@ UnorderedSet<ImmUniqId> getEditParents(
 
     AST_EDIT_MSG("Edit parents");
     if (AST_EDIT_TRACE()) {
-        auto __scope = ctx.debug.scopeLevel();
+        auto __scope = ctx.debug()->scopeLevel();
         for (auto const& key : sorted(editParents | rs::to<Vec>())) {
             AST_EDIT_MSG(fmt("[{}]", key));
         }
@@ -378,7 +377,7 @@ ImmId recurseUpdateSubnodes(
     const UnorderedSet<ImmUniqId> editParents,
     ImmAstReplaceEpoch&           result) {
     __perf_trace("imm", "recurseUpdateSubnodes");
-    auto __scope = ctx.debug.scopeLevel();
+    auto __scope = ctx.debug()->scopeLevel();
     if (editParents.contains(node.uniq())) {
         // The node is a parent subnode for some edit.
         auto updateTarget = getUpdateTarget(node, replace, ctx);
@@ -441,7 +440,7 @@ ImmAstReplaceEpoch ImmAstStore::cascadeUpdate(
     ImmAstEditContext&        ctx) {
     __perf_trace("imm", "cascadeUpdate");
     AST_EDIT_MSG("Start cascade update");
-    auto                    __scope     = ctx.debug.scopeLevel();
+    auto                    __scope     = ctx.debug()->scopeLevel();
     UnorderedSet<ImmUniqId> editParents = getEditParents(replace, ctx);
 
     ImmAstReplaceEpoch result;

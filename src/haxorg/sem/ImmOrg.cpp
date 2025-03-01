@@ -615,18 +615,17 @@ void ImmAstEditContext::updateTracking(const ImmId& node, bool add) {
         });
 }
 
+hstd::SPtr<OperationsTracer> ImmAstEditContext::debug() {
+    return ctx.lock()->debug;
+}
+
 void ImmAstEditContext::message(
     const std::string& value,
     const char*        function,
     int                line,
     const char*        file) {
-    ctx.lock()->message(value, debug.activeLevel, function, line, file);
+    ctx.lock()->debug->message(value, function, line, file);
 }
-
-finally_std ImmAstEditContext::collectAbslLogs() {
-    return ctx.lock()->debug->collectAbslLogs(&debug);
-}
-
 
 template <typename T>
 struct value_metadata<hstd::ext::ImmVec<T>> {
@@ -1095,10 +1094,7 @@ ImmAstEditContext ImmAstContext::getEditContext() {
     return ImmAstEditContext{
         .transientTrack = currentTrack->transient(this),
         .ctx            = shared_from_this(),
-        .debug          = OperationsScope{
-                     .TraceState  = &debug->TraceState,
-                     .activeLevel = 0,
-        }};
+    };
 }
 
 bool imm::isTrackingParentDefault(const ImmAdapter& node) {
@@ -1134,7 +1130,7 @@ RadioTargetSearchResult tryRadioTargetSearch(
         auto atSource   = sub.at(groupingIdx + sourceOffset);
         auto sourceWord = atSource->dyn_cast<org::imm::ImmLeaf>();
         if (sourceWord == nullptr) {
-            ctx->message(
+            ctx->debug->message(
                 fmt("Source word at offset {} is not "
                     "a leaf",
                     sourceOffset));
@@ -1149,7 +1145,7 @@ RadioTargetSearchResult tryRadioTargetSearch(
                 result.target = ImmSubnodeGroup::RadioTarget{
                     .target = targetId,
                     .nodes  = Vec<ImmAdapter>{sub.at(range)}};
-                ctx->message(
+                ctx->debug->message(
                     fmt("Fully matched radio target "
                         "offset, subnode range {} is a "
                         "radio target",
@@ -1195,20 +1191,21 @@ Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
         ImmAdapter const& it = sub.at(groupingIdx);
         if (auto leaf = it->dyn_cast<ImmLeaf>();
             leaf != nullptr && !leaf->is(OrgSemKind::Space)) {
-            ctx->message(fmt("Subnode {} is leaf", groupingIdx));
+            ctx->debug->message(fmt("Subnode {} is leaf", groupingIdx));
             Vec<ImmId> const* radioTargets = track.radioTargets.find(
                 leaf->text);
             if (radioTargets == nullptr) {
-                ctx->message(
+                ctx->debug->message(
                     fmt("No radio target starting with word '{}'",
                         leaf->text));
                 result.push_back(
                     ImmSubnodeGroup{ImmSubnodeGroup::Single{.node = it}});
             } else {
-                ctx->message(fmt("Found potential radio targets"));
+                ctx->debug->message(fmt("Found potential radio targets"));
                 RadioTargetSearchResult searchResult;
                 for (ImmId const& radioId : *radioTargets) {
-                    ctx->message(fmt("Trying radio ID {}", radioId));
+                    ctx->debug->message(
+                        fmt("Trying radio ID {}", radioId));
                     auto radioAdapter = it.ctx.lock()->adaptUnrooted(
                         radioId);
 

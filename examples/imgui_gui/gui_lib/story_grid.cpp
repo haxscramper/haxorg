@@ -13,7 +13,7 @@
 #include <haxorg/sem/ImmOrg.hpp>
 #include <haxorg/sem/SemOrgFormat.hpp>
 #include <haxorg/sem/ImmOrgGraphBoost.hpp>
-#include "org_logger.hpp"
+#include <hstd/ext/logger.hpp>
 #include <boost/range/iterator_range.hpp>
 
 #include <haxorg/sem/ImmOrgGraphBoost.hpp>
@@ -30,7 +30,7 @@ using namespace hstd;
 
 
 #define SGR_LOG_ROOT(__cat, __severity)                                   \
-    ::org_logging::log_builder{}.set_callsite().category(__cat).severity( \
+    ::hstd::log::log_builder{}.set_callsite().category(__cat).severity(   \
         __severity)
 
 template <typename KeyValueWhatever>
@@ -1023,13 +1023,13 @@ void StoryGridModel::apply(
     CTX_MSG(fmt("Apply story grid action {}", act));
     auto __scope = ctx.scopeLevel();
 
-    auto __log_scoped = OLOG_SINK_FACTORY_SCOPED([]() {
-        return ::org_logging::init_file_sink(
+    auto __log_scoped = HSLOG_SINK_FACTORY_SCOPED([]() {
+        return ::hstd::log::init_file_sink(
             "/tmp/story_grid_model_apply.log");
     });
 
-    auto __log_diff = OLOG_SINK_FACTORY_SCOPED(
-        ::org_logging::log_differential_sink_factory{
+    auto __log_diff = HSLOG_SINK_FACTORY_SCOPED(
+        ::hstd::log::log_differential_sink_factory{
             "/tmp/story_grid_model_apply.diff"});
 
 
@@ -1123,15 +1123,15 @@ void StoryGridContext::message(
     int                line,
     const char*        function,
     const char*        file) const {
-    OLOG_BUILDER()
+    HSLOG_BUILDER()
         .set_callsite(line, function, file)
         .message(value)
         .depth(activeLevel)
         .category("story-grid")
-        .severity(ol_info)
+        .severity(hstd::log::l_info)
         .source_scope({"gui", "feature", "story_grid"});
 
-    OperationsTracer::message(value, activeLevel, line, function, file);
+    OperationsTracer::message(value, function, line, file);
 }
 
 Vec<TreeGridRow::Ptr> TreeGridRow::flatThisNested(
@@ -1229,8 +1229,8 @@ void TreeGridDocument::updatePositions() {
 void run_story_grid_cycle(
     StoryGridModel&        model,
     StoryGridConfig const& conf) {
-    auto __log_scoped = OLOG_SINK_FACTORY_SCOPED([]() {
-        return ::org_logging::init_file_sink(
+    auto __log_scoped = HSLOG_SINK_FACTORY_SCOPED([]() {
+        return ::hstd::log::init_file_sink(
             "/tmp/story_grid_model_cycle.log");
     });
 

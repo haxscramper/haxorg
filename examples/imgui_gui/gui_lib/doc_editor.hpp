@@ -8,14 +8,14 @@
 #include <hstd/stdlib/Ptrs.hpp>
 
 struct DocBlockConfig {
-    int      editLaneWidth      = 600;
-    int      nestingBlockOffset = 40;
+    int            editLaneWidth      = 600;
+    int            nestingBlockOffset = 40;
     hstd::Vec<int> annotationLanesWidth{200};
-    ImU32    annotationNodeWindowBg = IM_COL32(128, 128, 128, 128);
-    int      pageUpScrollStep       = 20;
-    int      pageDownScrollStep     = -20;
-    int      mouseScrollMultiplier  = 10;
-    ImVec2   gridViewport;
+    ImU32          annotationNodeWindowBg = IM_COL32(128, 128, 128, 128);
+    int            pageUpScrollStep       = 20;
+    int            pageDownScrollStep     = -20;
+    int            mouseScrollMultiplier  = 10;
+    ImVec2         gridViewport;
 
     LaneBlockGraphConfig laneConf;
 
@@ -304,9 +304,7 @@ struct DocBlockAction {
     DESC_FIELDS(DocBlockAction, (data));
 };
 
-struct DocBlockContext
-    : hstd::OperationsTracer
-    , hstd::OperationsScope {
+struct DocBlockContext : hstd::OperationsTracer {
     hstd::Vec<DocBlockAction> actions;
 
     void action(

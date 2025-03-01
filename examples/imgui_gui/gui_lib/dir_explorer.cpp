@@ -3,7 +3,7 @@
 #include <haxorg/sem/SemBaseApi.hpp>
 #include <hstd/stdlib/Variant.hpp>
 #include <haxorg/sem/ImmOrg.hpp>
-#include <gui_lib/org_logger.hpp>
+#include <hstd/ext/logger.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
 
 #include <sys/inotify.h>
@@ -110,7 +110,7 @@ struct ContentNode : public SharedPtrApi<ContentNode> {
 
 SPtr<ContentNode> DirContext::getFileNode(const fs::path& file) {
     if (hadChanges(file)) {
-        OLOG_INFO(
+        HSLOG_INFO(
             "load", "Loading file ", fs::relative(file, root).native());
         auto node = org::parseString(readFile(file));
         auto root = ctx->addRoot(node);
@@ -141,7 +141,7 @@ struct FileNode : public SharedPtrApi<FileNode> {
 
     static FileNode::Ptr from_file(DirContext& ctx, fs::path const& file) {
         Str relative = fs::relative(file, ctx.root).native();
-        OLOG_DEPTH_SCOPE_ANON();
+        HSLOG_DEPTH_SCOPE_ANON();
 
         auto doc      = ctx.getFileNode(file);
         auto res      = FileNode::shared();
@@ -199,9 +199,9 @@ struct DirNode : public SharedPtrApi<DirNode> {
             return res;
         }
 
-        OLOG_INFO(
+        HSLOG_INFO(
             "load", "Loading directory ", escape_literal(res->relative));
-        OLOG_DEPTH_SCOPE_ANON();
+        HSLOG_DEPTH_SCOPE_ANON();
 
         for (const auto& entry : fs::directory_iterator(dir)) {
             if (entry.is_directory()) {
@@ -287,7 +287,7 @@ class InotifyWatcher {
         watchDescriptors.clear();
 
         for (const auto& file : files) {
-            // OLOG_INFO(
+            // HSLOG_INFO(
             //     "watch",
             //     "Watching for changes in ",
             //     escape_literal(file.native()));
@@ -310,8 +310,8 @@ class InotifyWatcher {
         ssize_t length = read(inotifyFd, buffer, sizeof(buffer));
 
         if (0 < length) {
-            OLOG_DEPTH_SCOPE_ANON();
-            OLOG_INFO("watch", "Changes in the filesystem");
+            HSLOG_DEPTH_SCOPE_ANON();
+            HSLOG_INFO("watch", "Changes in the filesystem");
             int  i           = 0;
             bool had_changes = false;
             while (i < length) {
@@ -320,7 +320,7 @@ class InotifyWatcher {
                 if (event->len) {
                     fs::path const& path = watchDescriptors.at(event->wd);
                     std::string     description = format_event(*event);
-                    OLOG_INFO(
+                    HSLOG_INFO(
                         "watch", "Path ", path.native(), description);
                     had_changes = true;
                 }

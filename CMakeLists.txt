@@ -111,6 +111,7 @@ find_package(BoostDescribe CONFIG REQUIRED)
 find_package(PythonLibs 3.13)
 find_package(Adaptagrams CONFIG REQUIRED)
 find_package(cpptrace CONFIG REQUIRED)
+find_package(Boost REQUIRED COMPONENTS log)
 
 include("${DEPS_DIR}/protobuf/cmake/protobuf-generate.cmake")
 message(STATUS "PYTHON_LIBRARIES = ${PYTHON_LIBRARIES}")
