@@ -39,8 +39,6 @@ GTEST_ADL_PRINT_TYPE(UserTimeBreakdown);
 #include <gtest/gtest.h>
 
 
-Str getDebugFile(Str const& suffix = "");
-
 void writeTreeRepr(
     imm::ImmAdapter               n,
     Str const                     suffix,

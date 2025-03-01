@@ -6,6 +6,7 @@
 #include <boost/core/null_deleter.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
+#include "../common.hpp"
 
 using namespace hstd;
 
@@ -24,9 +25,7 @@ class buffer_sink
         }
     }
 
-    void flush() {
-        // Nothing to flush as we're just storing in memory
-    }
+    void flush() {}
 
   private:
     std::vector<log::log_record>* buffer;
@@ -46,6 +45,10 @@ struct LoggerTest : public ::testing::Test {
         scope = HSLOG_SINK_FACTORY_SCOPED(
             [&]() { return init_buffer_sink(&buffer); });
     }
+
+    void debug() {
+        for (auto const& it : buffer) { LOG(INFO) << fmt1(it); }
+    }
 };
 
 const std::string _cat = "cat";
@@ -57,4 +60,28 @@ TEST_F(LoggerTest, SimpleLog) {
     HSLOG_WARNING(_cat, "warning");
     HSLOG_ERROR(_cat, "error");
     HSLOG_ERROR(_cat, "fatal");
+
+    // debug();
+    auto const& b = buffer;
+    EXPECT_EQ(b.at(0).data.severity, log::l_trace);
+    EXPECT_EQ(b.at(1).data.severity, log::l_debug);
+    EXPECT_EQ(b.size(), 6);
+}
+
+TEST_F(LoggerTest, DifferentialDebug) {
+    int  counter = 0;
+    auto run     = [&]() {
+        auto __log_diff = HSLOG_SINK_FACTORY_SCOPED(
+            log::log_differential_sink_factory{getDebugFile("res.diff")});
+        HSLOG_TRACE(_cat, "trace ", counter);
+        HSLOG_DEBUG(_cat, "debug ", counter);
+        HSLOG_INFO(_cat, "info ", counter);
+        HSLOG_WARNING(_cat, "warning ", counter);
+        HSLOG_ERROR(_cat, "error ", counter);
+        HSLOG_ERROR(_cat, "fatal ", counter);
+        ++counter;
+    };
+
+    run();
+    run();
 }
