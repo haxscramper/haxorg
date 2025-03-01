@@ -82,14 +82,14 @@ void OrgConverter::report(CR<OrgConverter::Report> in) {
 
     if (in.kind == ReportKind::Enter
         || in.kind == ReportKind::EnterField) {
-        ++depth;
+        ++activeLevel;
     }
 
     ColStream os = getStream();
     if (traceStructured) {
         using namespace org::report;
         EntrySem res;
-        res.indent = depth;
+        res.indent = activeLevel;
 #define __kind(K)                                                         \
     case ReportKind::K: {                                                 \
         res.kind = EntrySem::Kind::K;                                     \
@@ -121,7 +121,7 @@ void OrgConverter::report(CR<OrgConverter::Report> in) {
         os << to_json_eval(res).dump();
     } else {
         int start_pos = os.position;
-        os << repeat("  ", depth);
+        os << repeat("  ", activeLevel);
 
 
         switch (in.kind) {
@@ -182,7 +182,7 @@ void OrgConverter::report(CR<OrgConverter::Report> in) {
 
     if (in.kind == ReportKind::Leave
         || in.kind == ReportKind::LeaveField) {
-        --depth;
+        --activeLevel;
     }
 }
 

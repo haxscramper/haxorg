@@ -100,7 +100,6 @@ struct OrgConverter : public hstd::OperationsTracer {
         SemId<Org>                   semResult = SemId<Org>::Nil();
     };
 
-    int  depth = 0;
     void report(Report const& in);
 
   public:

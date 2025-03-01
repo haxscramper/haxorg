@@ -81,7 +81,6 @@ struct OrgTokenizer
     void convert(OrgTokenGroup& input);
     void convert(OrgLexer& lex);
 
-    int  depth = 0;
     void report(Report const& in);
 
     void print(

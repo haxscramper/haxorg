@@ -207,7 +207,6 @@ struct OrgParser : public hstd::OperationsTracer {
 
 
   public:
-    int  depth = 0;
     void report(Report const& in);
 
     hstd::Func<void(Report const&)> reportHook;
