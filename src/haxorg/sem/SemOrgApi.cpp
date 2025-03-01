@@ -269,6 +269,10 @@ Vec<SemId<Org>> Org::getAllSubnodes() const {
     return result;
 }
 
+Str AttrValue::getFile() const { return getFileReference().file; }
+Str AttrValue::getReference() const {
+    return getFileReference().reference;
+}
 
 Str AttrValue::getString() const { return getTextValue().value; }
 
