@@ -4046,7 +4046,7 @@ node can have subnodes.)RAW")
     .def_readwrite("attrs", &org::sem::BlockCode::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("attached", &org::sem::BlockCode::attached)
     .def("getVariable",
-         static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::BlockCode::*)(hstd::Str const&)>(&org::sem::BlockCode::getVariable),
+         static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::BlockCode::*)(hstd::Str const&) const>(&org::sem::BlockCode::getVariable),
          pybind11::arg("varname"))
     .def("getAttrs",
          static_cast<hstd::Vec<org::sem::AttrValue>(org::sem::BlockCode::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockCode::getAttrs),

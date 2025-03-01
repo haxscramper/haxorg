@@ -1018,6 +1018,43 @@ TEST(OrgParseSem, CodeBlockVariables) {
         return parseOne<sem::BlockCode>(s, debug);
     };
     {
-        //
+        auto c = get(R"(#+BEGIN_SRC emacs-lisp :var table=example-table
+  (length table)
+#+END_SRC)");
+        EXPECT_EQ2(c->getVariable("table")->getString(), "example-table");
+    }
+    {
+        auto c = get(
+            R"(#+BEGIN_SRC emacs-lisp :var data=example-table[0,-1]
+  data
+#+END_SRC)");
+        EXPECT_EQ2(c->getVariable("data")->getString(), "example-table");
+        auto span = c->getVariable("data")->span;
+        EXPECT_EQ2(span.size(), 2);
+        EXPECT_EQ(span.at(0).first, 0);
+        EXPECT_FALSE(span.at(0).last.has_value());
+        EXPECT_EQ(span.at(1).first, -1);
+        EXPECT_FALSE(span.at(1).last.has_value());
+    }
+    {
+        auto c = get(R"(#+BEGIN_SRC emacs-lisp :var data=example-table[1:3]
+  data
+#+END_SRC)");
+        auto span = c->getVariable("data")->span;
+        EXPECT_EQ(span.at(0).first, 1);
+        EXPECT_EQ(span.at(0).last.value(), 3);
+    }
+    {
+        auto c    = get(R"(#+BEGIN_SRC emacs-lisp :var data=3D[1,,1]
+  data
+#+END_SRC)");
+        auto span = c->getVariable("data")->span;
+        EXPECT_EQ(span.size(), 3);
+        EXPECT_EQ(span.at(0).first, 1);
+        EXPECT_FALSE(span.at(0).last.has_value());
+        EXPECT_EQ(span.at(1).first, 0);
+        EXPECT_EQ(span.at(1).last.value(), -1);
+        EXPECT_EQ(span.at(2).first, 1);
+        EXPECT_FALSE(span.at(2).last.has_value());
     }
 }

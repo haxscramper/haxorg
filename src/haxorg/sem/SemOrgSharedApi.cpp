@@ -1204,3 +1204,11 @@ Opt<Str> sem::BlockExport::getPlacement() const {
         return std::nullopt;
     }
 }
+
+Opt<sem::AttrValue> sem::BlockCode::getVariable(Str const& var) const {
+    for (auto const& attr : getAttrs("var")) {
+        if (attr.varname == var) { return attr; }
+    }
+
+    return std::nullopt;
+}

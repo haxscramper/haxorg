@@ -2462,7 +2462,7 @@ struct BlockCode : public org::sem::Block {
   /// \brief ?
   bool tangle = false;
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockCode; }
-  hstd::Opt<org::sem::AttrValue> getVariable(hstd::Str const& varname);
+  hstd::Opt<org::sem::AttrValue> getVariable(hstd::Str const& varname) const;
 };
 
 /// \brief Single subtree log entry

@@ -810,6 +810,7 @@ def get_sem_block():
                     t_opt(t_nest_shared("AttrValue")),
                     "getVariable",
                     arguments=[arg_ident(t_cr(t_str()), "varname")],
+                    isConst=True,
                 ),
             ],
             fields=[
