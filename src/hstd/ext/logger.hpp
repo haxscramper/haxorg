@@ -14,8 +14,9 @@
 #include <hstd/stdlib/Set.hpp>
 #include <boost/log/core.hpp>
 #include <boost/log/sinks/sink.hpp>
+#include <hstd/stdlib/TraceBase.hpp>
 
-namespace org_logging {
+namespace hstd::log {
 
 enum class severity_level
 {
@@ -71,8 +72,8 @@ sink_ptr log_sink_mutable_factory(Generator&& gen) {
 }
 
 
-#define OLOG_SINK_FACTORY(impl)                                           \
-    ::org_logging::log_sink_mutable_factory<__COUNTER__>(impl)
+#define HSLOG_SINK_FACTORY(impl)                                          \
+    ::hstd::log::log_sink_mutable_factory<__COUNTER__>(impl)
 
 
 sink_ptr            init_file_sink(hstd::Str const& log_file_name);
@@ -120,6 +121,8 @@ struct log_record {
     bool        operator==(log_record const& other) const {
         return data == other.data;
     }
+
+    static log_record from_operations(hstd::OperationsMsg const& msg);
 
     log_data data;
 
@@ -183,8 +186,8 @@ using log_filter_cb = hstd::Func<bool(log_record const&)>;
 sink_ptr set_sink_filter(sink_ptr, log_filter_cb filter);
 
 
-#define OLOG_SINK_FACTORY_SCOPED(generator)                               \
-    ::org_logging::log_sink_scoped_factory<__COUNTER__>(generator)
+#define HSLOG_SINK_FACTORY_SCOPED(generator)                              \
+    ::hstd::log::log_sink_scoped_factory<__COUNTER__>(generator)
 
 template <int Unique, typename Generator>
 log_sink_scope log_sink_scoped_factory(Generator&& gen) {
@@ -295,11 +298,11 @@ class log_scoped_depth_attr {
     };
 };
 
-#define OLOG_DEPTH_SCOPE()                                                \
-    ::org_logging::log_scoped_depth_attr::raii {}
+#define HSLOG_DEPTH_SCOPE()                                               \
+    ::hstd::log::log_scoped_depth_attr::raii {}
 
-#define OLOG_DEPTH_SCOPE_ANON()                                           \
-    auto BOOST_PP_CAT(__scope, __COUNTER__) = OLOG_DEPTH_SCOPE();
+#define HSLOG_DEPTH_SCOPE_ANON()                                          \
+    auto BOOST_PP_CAT(__scope, __COUNTER__) = HSLOG_DEPTH_SCOPE();
 
 /// \brief Create a finalizer that can use a mutable generator object as a
 /// filter on the callsite.
@@ -349,10 +352,9 @@ log_builder::Finalizer log_builder_get_mutable_finalizer_filter_unique_records(
         reset);
 }
 
-#define OLOG_UNIQUE_VALUE_FILTER_FINALIZER(__reset)                       \
-    ::org_logging::                                                       \
-        log_builder_get_mutable_finalizer_filter_unique_records<          \
-            __COUNTER__>(__reset)
+#define HSLOG_UNIQUE_VALUE_FILTER_FINALIZER(__reset)                      \
+    ::hstd::log::log_builder_get_mutable_finalizer_filter_unique_records< \
+        __COUNTER__>(__reset)
 
 template <int Unique>
 log_builder::Finalizer log_builder_get_mutable_finalizer_filter_changed_value(
@@ -370,14 +372,22 @@ log_builder::Finalizer log_builder_get_mutable_finalizer_filter_changed_value(
         reset);
 }
 
-#define OLOG_CHANGED_VALUE_FILTER_FINALIZER(__reset)                      \
-    ::org_logging::                                                       \
-        log_builder_get_mutable_finalizer_filter_changed_value<           \
-            __COUNTER__>(__reset)
+#define HSLOG_CHANGED_VALUE_FILTER_FINALIZER(__reset)                     \
+    ::hstd::log::log_builder_get_mutable_finalizer_filter_changed_value<  \
+        __COUNTER__>(__reset)
 
 bool is_log_accepted(hstd::Str const& category, severity_level level);
 
-} // namespace org_logging
+// clang-format off
+constexpr ::hstd::log::severity_level  l_trace   = ::hstd::log::severity_level::trace;
+constexpr ::hstd::log::severity_level  l_info    = ::hstd::log::severity_level::info;
+constexpr ::hstd::log::severity_level  l_debug   = ::hstd::log::severity_level::debug;
+constexpr ::hstd::log::severity_level  l_warning = ::hstd::log::severity_level::warning;
+constexpr ::hstd::log::severity_level  l_error   = ::hstd::log::severity_level::error;
+constexpr ::hstd::log::severity_level  l_fatal   = ::hstd::log::severity_level::fatal;
+// clang-format on
+
+} // namespace hstd::log
 
 #define __ORG_LOG_MESSAGE(_1, _2, arg) .message((arg))
 
@@ -385,57 +395,55 @@ bool is_log_accepted(hstd::Str const& category, severity_level level);
     BOOST_PP_SEQ_FOR_EACH(                                                \
         __ORG_LOG_MESSAGE, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))
 
-#define OLOG_BUILDER()                                                    \
-    ::org_logging::log_builder {}
+#define HSLOG_BUILDER()                                                   \
+    ::hstd::log::log_builder {}
 
 #define __ORG_LOG_IMPL(__cat, __severity, ...)                            \
-    if (::org_logging::is_log_accepted(                                   \
-            __cat, ::org_logging::severity_level::__severity)) {          \
-        OLOG_INIT(__cat, __severity)                                      \
+    if (::hstd::log::is_log_accepted(                                     \
+            __cat, ::hstd::log::severity_level::__severity)) {            \
+        HSLOG_INIT(__cat, __severity)                                     \
         __ORG_LOG_ALL_ARGS(__VA_ARGS__).end();                            \
     }
 
-#define OLOG_INIT(__cat, __severity)                                      \
-    ::org_logging::log_record{}                                           \
+#define HSLOG_INIT(__cat, __severity)                                     \
+    ::hstd::log::log_record{}                                             \
         .file(__FILE__)                                                   \
         .line(__LINE__)                                                   \
         .category(__cat)                                                  \
         .function(__FUNCTION__)                                           \
-        .severity(::org_logging::severity_level::__severity)
+        .severity(::hstd::log::severity_level::__severity)
 
-#define OLOG_TRACE(__cat, ...) __ORG_LOG_IMPL(__cat, trace, __VA_ARGS__)
-#define OLOG_DEBUG(__cat, ...) __ORG_LOG_IMPL(__cat, debug, __VA_ARGS__)
-#define OLOG_INFO(__cat, ...) __ORG_LOG_IMPL(__cat, info, __VA_ARGS__)
-#define OLOG_WARNING(__cat, ...)                                          \
+#define HSLOG_TRACE(__cat, ...) __ORG_LOG_IMPL(__cat, trace, __VA_ARGS__)
+#define HSLOG_DEBUG(__cat, ...) __ORG_LOG_IMPL(__cat, debug, __VA_ARGS__)
+#define HSLOG_INFO(__cat, ...) __ORG_LOG_IMPL(__cat, info, __VA_ARGS__)
+#define HSLOG_WARNING(__cat, ...)                                         \
     __ORG_LOG_IMPL(__cat, warning, __VA_ARGS__)
-#define OLOG_ERROR(__cat, ...) __ORG_LOG_IMPL(__cat, error, __VA_ARGS__)
-#define OLOG_FATAL(__cat, ...) __ORG_LOG_IMPL(__cat, fatal, __VA_ARGS__)
+#define HSLOG_ERROR(__cat, ...) __ORG_LOG_IMPL(__cat, error, __VA_ARGS__)
+#define HSLOG_FATAL(__cat, ...) __ORG_LOG_IMPL(__cat, fatal, __VA_ARGS__)
 
-#define OLOG_SINK_SCOPE() ::org_logging::log_sink_scope()
+#define HSLOG_SINK_SCOPE() ::hstd::log::log_sink_scope()
 /// \brief Create logging sink scope and clear all the current sink state
-#define OLOG_NOSINK_SCOPE() OLOG_SINK_SCOPE().drop_current_sinks()
+#define HSLOG_NOSINK_SCOPE() HSLOG_SINK_SCOPE().drop_current_sinks()
 
-// clang-format off
-constexpr ::org_logging::severity_level  ol_trace   = ::org_logging::severity_level::trace;
-constexpr ::org_logging::severity_level  ol_info    = ::org_logging::severity_level::info;
-constexpr ::org_logging::severity_level  ol_debug   = ::org_logging::severity_level::debug;
-constexpr ::org_logging::severity_level  ol_warning = ::org_logging::severity_level::warning;
-constexpr ::org_logging::severity_level  ol_error   = ::org_logging::severity_level::error;
-constexpr ::org_logging::severity_level  ol_fatal   = ::org_logging::severity_level::fatal;
-// clang-format on
+
+#define HSLOG_RECORD_FIELD "record"
+#define HSLOG_SCOPE_DEPTH_FIELD "CommonDepth"
+#define HSLOG_TIMESTAMP_FIELD "TimeStamp"
+
+
 
 template <>
-struct std::hash<org_logging::log_record> {
+struct std::hash<hstd::log::log_record> {
     std::size_t operator()(
-        org_logging::log_record const& it) const noexcept {
+        hstd::log::log_record const& it) const noexcept {
         return it.hash();
     }
 };
 
 template <>
-struct std::hash<org_logging::log_record::log_data> {
+struct std::hash<hstd::log::log_record::log_data> {
     std::size_t operator()(
-        org_logging::log_record::log_data const& it) const noexcept {
+        hstd::log::log_record::log_data const& it) const noexcept {
         return it.hash();
     }
 };

@@ -1,4 +1,4 @@
-#include "org_logger.hpp"
+#include "logger.hpp"
 
 #include <boost/log/attributes.hpp>
 #include <boost/log/core.hpp>
@@ -29,6 +29,7 @@
 #include <boost/thread/locks.hpp>
 #include <fstream>
 
+using namespace hstd;
 
 BOOST_LOG_GLOBAL_LOGGER(
     global_logger,
@@ -48,24 +49,21 @@ namespace sinks    = boost::log::sinks;
 
 using namespace hstd;
 
-#define LOG_RECORD_FIELD "record"
-#define LOG_SCOPE_DEPTH_FIELD "CommonDepth"
-#define LOG_TIMESTAMP_FIELD "TimeStamp"
 
 BOOST_LOG_ATTRIBUTE_KEYWORD(
     a_file,
-    LOG_RECORD_FIELD,
-    org_logging::log_record)
+    HSLOG_RECORD_FIELD,
+    hstd::log::log_record)
 
 typedef boost::log::attributes::mutable_constant<
-    org_logging::log_record,                 // attribute value type
+    hstd::log::log_record,                   // attribute value type
     boost::shared_mutex,                     // synchronization primitive
     boost::unique_lock<boost::shared_mutex>, // exclusive lock type
     boost::shared_lock<boost::shared_mutex>  // shared lock type
     >
     log_record_mutable_constant;
 
-using namespace org_logging;
+using namespace hstd::log;
 
 namespace {
 log_record_mutable_constant current_record{log_record{}};
@@ -78,16 +76,16 @@ BOOST_LOG_GLOBAL_LOGGER_INIT(
         boost::log::trivial::severity_level>
         logger;
     logger.add_attribute(
-        LOG_TIMESTAMP_FIELD, boost::log::attributes::local_clock());
+        HSLOG_TIMESTAMP_FIELD, boost::log::attributes::local_clock());
 
     logger.add_attribute(
-        LOG_SCOPE_DEPTH_FIELD,
+        HSLOG_SCOPE_DEPTH_FIELD,
         boost::log::attributes::make_function([]() -> int {
             return log_scoped_depth_attr::instance().get_depth();
         }));
 
     boost::log::add_common_attributes();
-    logger.add_attribute(LOG_RECORD_FIELD, current_record);
+    logger.add_attribute(HSLOG_RECORD_FIELD, current_record);
     return logger;
 }
 
@@ -160,10 +158,10 @@ class log_sink_manager {
     std::mutex           m_;
 };
 
-org_logging::log_sink_scope::log_sink_scope()
+hstd::log::log_sink_scope::log_sink_scope()
     : previous_sinks_(log_sink_manager::instance().get_sinks()) {}
 
-org_logging::log_sink_scope::~log_sink_scope() {
+hstd::log::log_sink_scope::~log_sink_scope() {
     if (!moved) {
         log_sink_manager::instance().set_sinks(previous_sinks_);
     }
@@ -175,7 +173,7 @@ log_sink_scope& log_sink_scope::drop_current_sinks() {
 }
 
 
-void org_logging::clear_sink_backends() {
+void hstd::log::clear_sink_backends() {
     log_sink_manager::instance().set_sinks({});
 }
 
@@ -186,8 +184,9 @@ void format_log_record_data(
     boost::log::formatting_ostream& strm,
     log_record::log_data const&     data,
     bool                            ignoreDepth = false) {
-    auto ts = rec[LOG_TIMESTAMP_FIELD].extract<boost::posix_time::ptime>();
-    auto global_depth = rec[LOG_SCOPE_DEPTH_FIELD].extract<int>();
+    auto ts = rec[HSLOG_TIMESTAMP_FIELD]
+                  .extract<boost::posix_time::ptime>();
+    auto        global_depth = rec[HSLOG_SCOPE_DEPTH_FIELD].extract<int>();
     std::string prefix;
 
     if (false) {
@@ -240,7 +239,7 @@ void format_log_record_data(
 }
 } // namespace
 
-sink_ptr org_logging::init_file_sink(Str const& log_file_name) {
+sink_ptr hstd::log::init_file_sink(Str const& log_file_name) {
 
     auto& logger = global_logger::get();
 
@@ -257,7 +256,7 @@ sink_ptr org_logging::init_file_sink(Str const& log_file_name) {
 
     sink->set_formatter([](const boost::log::record_view&  rec,
                            boost::log::formatting_ostream& strm) {
-        auto ref = rec[LOG_RECORD_FIELD].extract<log_record>();
+        auto ref = rec[HSLOG_RECORD_FIELD].extract<log_record>();
         LOGIC_ASSERTION_CHECK(!!ref, "Log record view missing data");
         format_log_record_data(rec, strm, ref->data);
     });
@@ -275,7 +274,7 @@ struct log_differential_sink
     log_differential_sink_factory* factory;
 
     void consume(const boost::log::record_view& rec, std::string const&) {
-        auto ref = rec[LOG_RECORD_FIELD].extract<log_record>();
+        auto ref = rec[HSLOG_RECORD_FIELD].extract<log_record>();
         if (!ref) { return; }
 
         std::string                    ss;
@@ -333,7 +332,7 @@ sink_ptr log_differential_sink_factory::operator()() {
         backend);
 }
 
-void org_logging::push_sink(sink_ptr const& sink) {
+void hstd::log::push_sink(sink_ptr const& sink) {
     log_sink_manager::instance().push_sink(sink);
 }
 
@@ -341,13 +340,12 @@ void org_logging::push_sink(sink_ptr const& sink) {
 logger_type& get_logger() { return global_logger::get(); }
 
 
-org_logging::log_record& ::org_logging::log_record::message(
-    int const& msg) {
+hstd::log::log_record& ::hstd::log::log_record::message(int const& msg) {
     data.message += std::to_string(msg);
     return *this;
 }
 
-org_logging::log_record& ::org_logging::log_record::depth(int depth) {
+hstd::log::log_record& ::hstd::log::log_record::depth(int depth) {
     data.depth = depth;
     return *this;
 }
@@ -355,6 +353,17 @@ org_logging::log_record& ::org_logging::log_record::depth(int depth) {
 log_record& log_record::source_scope(const Vec<Str>& scope) {
     data.source_scope = scope;
     return *this;
+}
+
+log_record log_record::from_operations(const OperationsMsg& msg) {
+    log_record res;
+    if (msg.msg) { res.message(msg.msg.value()); }
+    if (msg.file) { res.file(msg.file); }
+    if (msg.function) { res.function(msg.function); }
+    res.line(msg.line);
+    res.depth(msg.level);
+    if (!msg.metadata.is_null()) { res.metadata(msg.metadata); }
+    return res;
 }
 
 log_record& log_record::source_scope_add(const Str& scope) {
@@ -392,35 +401,32 @@ log_record& log_record::maybe_space() {
     return *this;
 }
 
-org_logging::log_record& ::org_logging::log_record::message(
-    Str const& msg) {
+hstd::log::log_record& ::hstd::log::log_record::message(Str const& msg) {
     data.message += msg;
     return *this;
 }
 
-org_logging::log_record& ::org_logging::log_record::message(
-    char const* msg) {
+hstd::log::log_record& ::hstd::log::log_record::message(char const* msg) {
     data.message += Str{msg};
     return *this;
 }
 
-org_logging::log_record& ::org_logging::log_record::line(int l) {
+hstd::log::log_record& ::hstd::log::log_record::line(int l) {
     data.line = l;
     return *this;
 }
 
-org_logging::log_record& ::org_logging::log_record::file(char const* f) {
+hstd::log::log_record& ::hstd::log::log_record::file(char const* f) {
     data.file = f;
     return *this;
 }
 
-org_logging::log_record& ::org_logging::log_record::category(
-    Str const& cat) {
+hstd::log::log_record& ::hstd::log::log_record::category(Str const& cat) {
     data.category = cat;
     return *this;
 }
 
-org_logging::log_record& ::org_logging::log_record::severity(
+hstd::log::log_record& ::hstd::log::log_record::severity(
     severity_level l) {
     data.severity = l;
     return *this;
@@ -468,7 +474,7 @@ bool log_record::log_data::operator==(const log_data& other) const {
 // log_record::log_data::log_data() {
 //     get_logger().lock();
 //     auto const&           attrs = get_logger().get_attributes();
-//     boost::log::attribute attr  = attrs[LOG_SCOPE_DEPTH_FIELD];
+//     boost::log::attribute attr  = attrs[HSLOG_SCOPE_DEPTH_FIELD];
 //     // if (attr) {
 //     //     auto res = attr.get_value().extract<int>();
 //     //     if (res) { this->depth = *res; }
@@ -476,7 +482,7 @@ bool log_record::log_data::operator==(const log_data& other) const {
 //     get_logger().unlock();
 // }
 
-org_logging::log_record& ::org_logging::log_record::function(
+hstd::log::log_record& ::hstd::log::log_record::function(
     char const* func) {
     data.function = func;
     return *this;
@@ -490,7 +496,7 @@ record_type start_log_record(boost::log::trivial::severity_level level) {
 
 } // namespace
 
-void org_logging::log_record::end() {
+void hstd::log::log_record::end() {
     // current record is global, but synced, and all record attributes are
     // evaluated when record is opened.
     current_record.set(*this);
@@ -525,11 +531,11 @@ struct std::formatter<boost::log::attribute_value>
 };
 
 
-sink_ptr org_logging::set_sink_filter(
+sink_ptr hstd::log::set_sink_filter(
     sink_ptr                      sink,
     Func<bool(const log_record&)> filter) {
     sink->set_filter([filter](const logging::attribute_value_set& attrs) {
-        auto rec = attrs[LOG_RECORD_FIELD].extract<log_record>();
+        auto rec = attrs[HSLOG_RECORD_FIELD].extract<log_record>();
 
         LOGIC_ASSERTION_CHECK(
             !!rec,
@@ -549,13 +555,13 @@ sink_ptr org_logging::set_sink_filter(
     return sink;
 }
 
-bool ::org_logging::is_log_accepted(
+bool ::hstd::log::is_log_accepted(
     const Str&     category,
     severity_level level) {
     return true;
 }
 
-::org_logging::log_builder::~log_builder() {
+::hstd::log::log_builder::~log_builder() {
     if (!is_released) {
         if (finalizer) {
             finalizer(*this);
@@ -566,7 +572,7 @@ bool ::org_logging::is_log_accepted(
 }
 
 
-Opt<sink_ptr> org_logging::get_last_sink() {
+Opt<sink_ptr> hstd::log::get_last_sink() {
     auto const& stack = log_sink_manager::instance().get_sinks();
     if (stack.empty()) {
         return std::nullopt;
