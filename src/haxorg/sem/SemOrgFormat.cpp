@@ -84,13 +84,13 @@ auto Formatter::toString(SemId<Macro> id, CR<Context> ctx) -> Res {
     Vec<Res> parameters;
 
     for (auto const& it : id->attrs.positional.items) {
-        parameters.push_back(str(it.value));
+        parameters.push_back(str(it.getString()));
     }
 
     for (auto const& key : sorted(id->attrs.named.keys())) {
         for (auto const& it : id->attrs.named.at(key).items) {
             parameters.push_back(
-                str(fmt("{}={}", it.name.value(), it.value)));
+                str(fmt("{}={}", it.name.value(), it.getString())));
         }
     }
 
@@ -342,7 +342,7 @@ auto Formatter::toString(SemId<InlineFootnote> id, CR<Context> ctx)
 
 auto Formatter::toString(sem::AttrValue const& id, CR<Context> ctx)
     -> Res {
-    Str value = id.value.replaceAll("\"", "\\\"");
+    Str value = id.getString().replaceAll("\"", "\\\"");
 
     if (id.isQuoted) { value = escape_for_write(value, true); }
 
@@ -690,17 +690,17 @@ auto Formatter::toString(SemId<Call> id, CR<Context> ctx) -> Res {
 
 
     for (auto const& it : id->attrs.positional.items) {
-        if (it.value.contains(",")) {
-            parameters.push_back(str(fmt("={}=", it.value)));
+        if (it.getString().contains(",")) {
+            parameters.push_back(str(fmt("={}=", it.getString())));
         } else {
-            parameters.push_back(str(it.value));
+            parameters.push_back(str(it.getString()));
         }
     }
 
     for (auto const& key : sorted(id->attrs.named.keys())) {
         for (auto const& it : id->attrs.named.at(key).items) {
             parameters.push_back(
-                str(fmt("{}={}", it.name.value(), it.value)));
+                str(fmt("{}={}", it.name.value(), it.getString())));
         }
     }
 

@@ -58,11 +58,30 @@ void Exporter<V, R>::visit(R& res, sem::Tblfm::Assign const& object) {
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, org::sem::AttrValue::DataVariant const& object) { visitVariants(res, sem::AttrValue::getDataKind(object), object); }
+
+template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::AttrValue const& object) {
   __obj_field(res, object, name);
   __obj_field(res, object, varname);
-  __obj_field(res, object, value);
+  __obj_field(res, object, span);
   __obj_field(res, object, isQuoted);
+  __obj_field(res, object, data);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::AttrValue::DimensionSpan const& object) {
+  __obj_field(res, object, first);
+  __obj_field(res, object, last);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::AttrValue::TextValue const& object) { __obj_field(res, object, value); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::AttrValue::FileReference const& object) {
+  __obj_field(res, object, file);
+  __obj_field(res, object, reference);
 }
 
 template <typename V, typename R>

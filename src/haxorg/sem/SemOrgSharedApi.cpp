@@ -1191,7 +1191,7 @@ Opt<Str> imm::ImmAdapterBlockExportAPI::getPlacement() const {
     auto p = getThis()->as<imm::ImmBlockExport>().getFirstAttr(
         "placement");
     if (p) {
-        return p.value().value;
+        return p.value().getString();
     } else {
         return std::nullopt;
     }
@@ -1199,8 +1199,16 @@ Opt<Str> imm::ImmAdapterBlockExportAPI::getPlacement() const {
 
 Opt<Str> sem::BlockExport::getPlacement() const {
     if (auto p = getFirstAttr("placement")) {
-        return p.value().value;
+        return p.value().getString();
     } else {
         return std::nullopt;
     }
+}
+
+Opt<sem::AttrValue> sem::BlockCode::getVariable(Str const& var) const {
+    for (auto const& attr : getAttrs("var")) {
+        if (attr.varname == var) { return attr; }
+    }
+
+    return std::nullopt;
 }

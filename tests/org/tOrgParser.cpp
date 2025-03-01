@@ -756,7 +756,7 @@ TEST(OrgParseSem, SubtreePropertyContext) {
         auto attrs1 = h1.value().getCustomArgs().attrs;
         EXPECT_EQ(attrs1.getAttrs("cache").size(), 1);
         EXPECT_EQ(attrs1.getAttrs("cache").at(0).name.value(), "cache");
-        EXPECT_EQ(attrs1.getAttrs("cache").at(0).value, "yes");
+        EXPECT_EQ(attrs1.getAttrs("cache").at(0).getString(), "yes");
         EXPECT_EQ(attrs1.getAttrs("cache").at(0).getBool(), true);
 
         auto h2     = t2->getProperty("header-args");
@@ -765,17 +765,18 @@ TEST(OrgParseSem, SubtreePropertyContext) {
         EXPECT_EQ(attrs2.getAttrs("results").size(), 1);
         EXPECT_EQ(
             attrs2.getAttrs("results").at(0).name.value(), "results");
-        EXPECT_EQ(attrs2.getAttrs("results").at(0).value, "silent");
+        EXPECT_EQ(attrs2.getAttrs("results").at(0).getString(), "silent");
 
         auto stacked = org::getFinalProperty({t1, t2}, "header-args");
         EXPECT_TRUE(stacked.has_value());
         auto s = stacked.value();
         EXPECT_EQ(
-            s.getCustomArgs().attrs.getAttrs("results").at(0).value,
+            s.getCustomArgs().attrs.getAttrs("results").at(0).getString(),
             "silent");
 
         EXPECT_EQ(
-            s.getCustomArgs().attrs.getAttrs("cache").at(0).value, "yes");
+            s.getCustomArgs().attrs.getAttrs("cache").at(0).getString(),
+            "yes");
     }
 }
 
@@ -1008,5 +1009,62 @@ TEST(OrgParseSem, IncludeCommand) {
         auto i = get(R"(#+INCLUDE: "~/.emacs" ":custom-name")");
         EXPECT_EQ(i->getIncludeKind(), sem::CmdInclude::Kind::Custom);
         EXPECT_EQ2(i->getCustom().blockName, ":custom-name");
+    }
+}
+
+TEST(OrgParseSem, CodeBlockVariables) {
+    auto get = [&](std::string const& s,
+                   Opt<std::string>   debug = std::nullopt) {
+        return parseOne<sem::BlockCode>(s, debug);
+    };
+    {
+        auto c = get(R"(#+BEGIN_SRC emacs-lisp :var table=example-table
+  (length table)
+#+END_SRC)");
+        EXPECT_EQ2(c->getVariable("table")->getString(), "example-table");
+    }
+    {
+        auto c = get(
+            R"(#+BEGIN_SRC emacs-lisp :var data=example-table[0,-1]
+  data
+#+END_SRC)");
+        EXPECT_EQ2(c->getVariable("data")->getString(), "example-table");
+        auto span = c->getVariable("data")->span;
+        EXPECT_EQ2(span.size(), 2);
+        EXPECT_EQ(span.at(0).first, 0);
+        EXPECT_FALSE(span.at(0).last.has_value());
+        EXPECT_EQ(span.at(1).first, -1);
+        EXPECT_FALSE(span.at(1).last.has_value());
+    }
+    {
+        auto c = get(R"(#+BEGIN_SRC emacs-lisp :var data=example-table[1:3]
+  data
+#+END_SRC)");
+        auto span = c->getVariable("data")->span;
+        EXPECT_EQ(span.at(0).first, 1);
+        EXPECT_EQ(span.at(0).last.value(), 3);
+    }
+    {
+        auto c    = get(R"(#+BEGIN_SRC emacs-lisp :var data=3D[1,,1]
+  data
+#+END_SRC)");
+        auto span = c->getVariable("data")->span;
+        EXPECT_EQ(span.size(), 3);
+        EXPECT_EQ(span.at(0).first, 1);
+        EXPECT_FALSE(span.at(0).last.has_value());
+        EXPECT_EQ(span.at(1).first, 0);
+        EXPECT_EQ(span.at(1).last.value(), -1);
+        EXPECT_EQ(span.at(2).first, 1);
+        EXPECT_FALSE(span.at(2).last.has_value());
+    }
+    {
+        auto c   = get(R"(#+BEGIN_SRC emacs-lisp :var NAME=FILE:REFERENCE
+  data
+#+END_SRC)");
+        auto var = c->getVariable("NAME");
+        EXPECT_TRUE(var->isFileReference());
+        EXPECT_EQ(var->varname, "NAME");
+        EXPECT_EQ(var->getFileReference().file, "FILE");
+        EXPECT_EQ(var->getFileReference().reference, "REFERENCE");
     }
 }

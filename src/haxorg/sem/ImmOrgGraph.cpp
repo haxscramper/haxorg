@@ -63,7 +63,7 @@ bool org::graph::isAttachedDescriptionList(ImmAdapter const& n) {
     if (auto list = n.asOpt<ImmList>();
         list && list->isDescriptionList()) {
         auto attached = list->getListAttrs("attached");
-        return attached.has(0) && attached.at(0).value == "subtree";
+        return attached.has(0) && attached.at(0).getString() == "subtree";
     } else {
         return false;
     }
@@ -310,7 +310,7 @@ Vec<MapLink> org::graph::getUnresolvedSubtreeLinks(
     // way to provide an extensive label between subtree nodes.
     for (auto const& list : tree.subAs<ImmList>()) {
         if (auto attached = list.getListAttrs("attached");
-            attached.has(0) && attached.at(0).value == "subtree") {
+            attached.has(0) && attached.at(0).getString() == "subtree") {
             GRAPH_MSG("Subtree has list");
             for (auto const& item : list.subAs<ImmListItem>()) {
                 GRAPH_MSG(fmt("{}", item.id));

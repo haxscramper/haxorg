@@ -269,22 +269,24 @@ Vec<SemId<Org>> Org::getAllSubnodes() const {
     return result;
 }
 
+Str AttrValue::getFile() const { return getFileReference().file; }
+Str AttrValue::getReference() const {
+    return getFileReference().reference;
+}
 
-Str AttrValue::getString() const { return value; }
+Str AttrValue::getString() const { return getTextValue().value; }
 
 Opt<double> AttrValue::getDouble() const {
     try {
-        return value.toDouble();
+        return getString().toDouble();
     } catch (std::invalid_argument const& e) { return std::nullopt; }
 }
 
 Opt<bool> AttrValue::getBool() const {
-    if (value == "yes" || value == "true" || value == "on"
-        || value == "t") {
+    auto const& v = getString();
+    if (v == "yes" || v == "true" || v == "on" || v == "t") {
         return true;
-    } else if (
-        value == "no" || value == "false" || value == "nil"
-        || value == "off") {
+    } else if (v == "no" || v == "false" || v == "nil" || v == "off") {
         return false;
     } else {
         return std::nullopt;
@@ -293,6 +295,6 @@ Opt<bool> AttrValue::getBool() const {
 
 Opt<int> AttrValue::getInt() const {
     try {
-        return value.toInt();
+        return getString().toInt();
     } catch (std::invalid_argument const& e) { return std::nullopt; }
 }

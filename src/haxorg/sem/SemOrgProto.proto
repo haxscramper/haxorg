@@ -412,11 +412,37 @@ message AttrValue {
     Kind_Boolean_f                                                                  = 1;
     Kind_Integer_f                                                                  = 2;
     Kind_Float_f                                                                    = 3;
+    Kind_FileReference_f                                                            = 4;
+  }
+  message DimensionSpan {
+    int32                                          first                            = 1;
+    optional int32                                 last                             = 2;
+    string                                         debug                            = 1000;
+  }
+  message TextValue {
+    string                                         value                            = 1;
+    string                                         debug                            = 1000;
+  }
+  message FileReference {
+    string                                         file                             = 1;
+    string                                         reference                        = 2;
+    string                                         debug                            = 1000;
+  }
+  message DataVariant {
+    oneof kind {
+      AttrValue.TextValue                          textvalue                        = 1;
+      AttrValue.FileReference                      filereference                    = 2;
+    }
+  }
+  enum DataKind {
+    DataKind_TextValue_f                                                            = 0;
+    DataKind_FileReference_f                                                        = 1;
   }
   optional string                                  name                             = 1;
   optional string                                  varname                          = 2;
-  string                                           value                            = 3;
+  repeated AttrValue.DimensionSpan                 span                             = 3;
   bool                                             isQuoted                         = 4;
+  AttrValue.DataVariant                            data                             = 5;
   string                                           debug                            = 1000;
 }
 

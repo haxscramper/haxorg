@@ -227,26 +227,79 @@ struct Tblfm {
 
 struct AttrValue {
   /// \brief Best-guess type of the attribute
-  enum class Kind : short int { String, Boolean, Integer, Float, };
-  BOOST_DESCRIBE_NESTED_ENUM(Kind, String, Boolean, Integer, Float)
+  enum class Kind : short int { String, Boolean, Integer, Float, FileReference, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, String, Boolean, Integer, Float, FileReference)
+  struct DimensionSpan {
+    BOOST_DESCRIBE_CLASS(DimensionSpan,
+                         (),
+                         (),
+                         (),
+                         (first, last))
+    int first;
+    hstd::Opt<int> last = std::nullopt;
+    DimensionSpan() {  }
+    bool operator==(org::sem::AttrValue::DimensionSpan const& other) const;
+  };
+
+  struct TextValue {
+    BOOST_DESCRIBE_CLASS(TextValue,
+                         (),
+                         (),
+                         (),
+                         (value))
+    hstd::Str value = "";
+    bool operator==(org::sem::AttrValue::TextValue const& other) const;
+    TextValue() {  }
+  };
+
+  struct FileReference {
+    BOOST_DESCRIBE_CLASS(FileReference,
+                         (),
+                         (),
+                         (),
+                         (file, reference))
+    hstd::Str file = "";
+    hstd::Str reference = "";
+    FileReference() {  }
+    bool operator==(org::sem::AttrValue::FileReference const& other) const;
+  };
+
+  using DataVariant = std::variant<org::sem::AttrValue::TextValue, org::sem::AttrValue::FileReference>;
+  enum class DataKind : short int { TextValue, FileReference, };
+  BOOST_DESCRIBE_NESTED_ENUM(DataKind, TextValue, FileReference)
+  using variant_enum_type = org::sem::AttrValue::DataKind;
+  using variant_data_type = org::sem::AttrValue::DataVariant;
   BOOST_DESCRIBE_CLASS(AttrValue,
                        (),
                        (),
                        (),
                        (name,
                         varname,
-                        value,
-                        isQuoted))
+                        span,
+                        isQuoted,
+                        data))
   hstd::Opt<hstd::Str> name = std::nullopt;
   hstd::Opt<hstd::Str> varname = std::nullopt;
-  hstd::Str value = "";
+  hstd::Vec<org::sem::AttrValue::DimensionSpan> span = {};
   /// \brief If the original value was explicitly quoted in the org-mode code
   bool isQuoted = false;
+  org::sem::AttrValue::DataVariant data;
   hstd::Opt<bool> getBool() const;
   hstd::Opt<int> getInt() const;
   hstd::Str getString() const;
+  hstd::Str getFile() const;
+  hstd::Str getReference() const;
   hstd::Opt<double> getDouble() const;
   bool operator==(org::sem::AttrValue const& other) const;
+  AttrValue() {  }
+  bool isTextValue() const { return getDataKind() == DataKind::TextValue; }
+  org::sem::AttrValue::TextValue const& getTextValue() const { return std::get<0>(data); }
+  org::sem::AttrValue::TextValue& getTextValue() { return std::get<0>(data); }
+  bool isFileReference() const { return getDataKind() == DataKind::FileReference; }
+  org::sem::AttrValue::FileReference const& getFileReference() const { return std::get<1>(data); }
+  org::sem::AttrValue::FileReference& getFileReference() { return std::get<1>(data); }
+  static org::sem::AttrValue::DataKind getDataKind(org::sem::AttrValue::DataVariant const& __input) { return static_cast<org::sem::AttrValue::DataKind>(__input.index()); }
+  org::sem::AttrValue::DataKind getDataKind() const { return getDataKind(data); }
 };
 
 struct HashTagFlat {
@@ -2409,6 +2462,7 @@ struct BlockCode : public org::sem::Block {
   /// \brief ?
   bool tangle = false;
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockCode; }
+  hstd::Opt<org::sem::AttrValue> getVariable(hstd::Str const& varname) const;
 };
 
 /// \brief Single subtree log entry
