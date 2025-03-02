@@ -358,6 +358,12 @@ auto Formatter::toString(sem::AttrValue const& id, CR<Context> ctx)
     }
 }
 
+auto Formatter::toString(SemId<BlockCodeEvalResult> id, CR<Context> ctx)
+    -> Res {
+    if (id.isNil()) { return str("<nil>"); }
+    return str("TODO");
+}
+
 auto Formatter::toString(SemId<BlockCode> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     bool isInline = ctx.isInline;
@@ -437,33 +443,6 @@ auto Formatter::toString(SemId<BlockCode> id, CR<Context> ctx) -> Res {
         add(result, str("}"));
     } else {
         add(result, str("#+end_src"));
-    }
-
-    if (id->result) {
-        add(result, str(""));
-        add(result, b.line({str("#+results:")}));
-        switch (id->result->getKind()) {
-            case BlockCodeEvalResult::Kind::OrgValue: {
-                add(result, str(id->result->getOrgValue().value));
-                break;
-            }
-
-            case BlockCodeEvalResult::Kind::Raw: {
-                add(result, str(id->result->getRaw().text));
-                break;
-            }
-
-
-            case BlockCodeEvalResult::Kind::None: {
-                break;
-            }
-
-            case BlockCodeEvalResult::Kind::File: {
-                add(result,
-                    str(fmt("[file:{}]", id->result->getFile().path)));
-                break;
-            }
-        }
     }
 
     auto out = stackAttached(result, id.as<sem::Stmt>(), ctx);

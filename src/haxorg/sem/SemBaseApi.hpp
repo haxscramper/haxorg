@@ -53,6 +53,15 @@ struct [[refl]] OrgDirectoryParseParameters {
     std::string const&                 file,
     OrgDirectoryParseParameters const& opts);
 
+struct OrgCodeEvalParameters {
+    hstd::Func<sem::OrgCodeEvalOutput(sem::OrgCodeEvalInput)> evalBlock;
+    hstd::OperationsTracer                                    debug;
+};
+
+sem::SemId<sem::Org> evaluateCodeBlocks(
+    sem::SemId<sem::Org>         document,
+    OrgCodeEvalParameters const& conf);
+
 /// \brief Remove outer wrapper containers from a node and return its
 /// single subnode.
 ///
@@ -422,6 +431,5 @@ hstd::Opt<sem::NamedProperty> getFinalProperty(
     hstd::CR<hstd::Vec<imm::ImmAdapter>> nodes,
     hstd::CR<hstd::Str>                  kind,
     hstd::CR<hstd::Opt<hstd::Str>>       subKind = std::nullopt);
-
 
 } // namespace org

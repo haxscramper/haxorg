@@ -2271,18 +2271,11 @@ OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(
     }
 
     if (auto res = one(a, N::Result); res.kind() != onk::Empty) {
-        auto body = one(res, N::Body);
-        auto conv = convert(body);
-        if (auto link = conv.asOpt<sem::Link>();
-            link && link->target.isFile()) {
-            result->result = sem::BlockCodeEvalResult{
-                sem::BlockCodeEvalResult::File{
-                    .path = link->target.getFile().file}};
-        } else {
-            result->result = sem::BlockCodeEvalResult{
-                sem::BlockCodeEvalResult::Raw{
-                    .text = org::algo::Formatter::format(conv)}};
-        }
+        auto body          = one(res, N::Body);
+        auto conv          = convert(body);
+        auto result_block  = Sem<sem::BlockCodeEvalResult>(res);
+        result_block->node = conv;
+        result->result.push_back(result_block);
     }
 
     return result;

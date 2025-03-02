@@ -39,6 +39,8 @@ PYBIND11_MAKE_OPAQUE(std::vector<org::sem::Symbol::Param>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::Symbol::Param>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::BlockCodeSwitch>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::BlockCodeSwitch>)
+PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::BlockCodeEvalResult>>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::BlockCodeLine>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::BlockCodeLine>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::HashTag>>)
@@ -97,6 +99,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<org::sem::SemId<org::sem::ErrorItem>>(m, "VecOfSemIdOfErrorItem", type_registry_guard);
   bind_vector<org::sem::Symbol::Param>(m, "VecOfSymbolParam", type_registry_guard);
   bind_vector<org::sem::BlockCodeSwitch>(m, "VecOfBlockCodeSwitch", type_registry_guard);
+  bind_vector<org::sem::SemId<org::sem::BlockCodeEvalResult>>(m, "VecOfSemIdOfBlockCodeEvalResult", type_registry_guard);
   bind_vector<org::sem::BlockCodeLine>(m, "VecOfBlockCodeLine", type_registry_guard);
   bind_vector<org::sem::SemId<org::sem::HashTag>>(m, "VecOfSemIdOfHashTag", type_registry_guard);
   bind_vector<org::sem::SemId<org::sem::SubtreeLog>>(m, "VecOfSemIdOfSubtreeLog", type_registry_guard);
@@ -1279,6 +1282,89 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  bind_enum_iterator<org::sem::OrgCodeEvalInput::ResultType>(m, "OrgCodeEvalInputResultType", type_registry_guard);
+  pybind11::enum_<org::sem::OrgCodeEvalInput::ResultType>(m, "OrgCodeEvalInputResultType")
+    .value("Table", org::sem::OrgCodeEvalInput::ResultType::Table, R"RAW(Interpret the results as an Org table. If the result is a single value, create a table with one row and one column.)RAW")
+    .value("List", org::sem::OrgCodeEvalInput::ResultType::List, R"RAW(Interpret the results as an Org list. If the result is a single value, create a list of one element.)RAW")
+    .value("Scalar", org::sem::OrgCodeEvalInput::ResultType::Scalar, R"RAW(Interpret literally and insert as quoted text. Do not create a table.)RAW")
+    .value("SaveFile", org::sem::OrgCodeEvalInput::ResultType::SaveFile, R"RAW(Interpret as a filename. Save the results of execution of the code block to that file, then insert a link to it.)RAW")
+    .def("__iter__", [](org::sem::OrgCodeEvalInput::ResultType _self) -> org::bind::python::PyEnumIterator<org::sem::OrgCodeEvalInput::ResultType> {
+                     return
+                     org::bind::python::PyEnumIterator<org::sem::OrgCodeEvalInput::ResultType>
+                     ();
+                     })
+    ;
+  bind_enum_iterator<org::sem::OrgCodeEvalInput::ResultFormat>(m, "OrgCodeEvalInputResultFormat", type_registry_guard);
+  pybind11::enum_<org::sem::OrgCodeEvalInput::ResultFormat>(m, "OrgCodeEvalInputResultFormat")
+    .value("Raw", org::sem::OrgCodeEvalInput::ResultFormat::Raw, R"RAW(Interpreted as raw Org mode. Inserted directly into the buffer.)RAW")
+    .value("Code", org::sem::OrgCodeEvalInput::ResultFormat::Code, R"RAW(Result enclosed in a code block.)RAW")
+    .value("Drawer", org::sem::OrgCodeEvalInput::ResultFormat::Drawer, R"RAW(Results are added directly to the Org file as with ‘raw’, but are wrapped in a ‘RESULTS’ drawer or results macro (for inline code blocks), for later scripting and automated processing.)RAW")
+    .value("ExportType", org::sem::OrgCodeEvalInput::ResultFormat::ExportType, R"RAW(Results enclosed in a ‘BEGIN_EXPORT’ block.)RAW")
+    .value("Link", org::sem::OrgCodeEvalInput::ResultFormat::Link)
+    .def("__iter__", [](org::sem::OrgCodeEvalInput::ResultFormat _self) -> org::bind::python::PyEnumIterator<org::sem::OrgCodeEvalInput::ResultFormat> {
+                     return
+                     org::bind::python::PyEnumIterator<org::sem::OrgCodeEvalInput::ResultFormat>
+                     ();
+                     })
+    ;
+  bind_enum_iterator<org::sem::OrgCodeEvalInput::ResultHandling>(m, "OrgCodeEvalInputResultHandling", type_registry_guard);
+  pybind11::enum_<org::sem::OrgCodeEvalInput::ResultHandling>(m, "OrgCodeEvalInputResultHandling")
+    .value("Replace", org::sem::OrgCodeEvalInput::ResultHandling::Replace)
+    .value("Silent", org::sem::OrgCodeEvalInput::ResultHandling::Silent)
+    .value("None", org::sem::OrgCodeEvalInput::ResultHandling::None)
+    .value("Discard", org::sem::OrgCodeEvalInput::ResultHandling::Discard)
+    .value("Append", org::sem::OrgCodeEvalInput::ResultHandling::Append)
+    .value("Prepend", org::sem::OrgCodeEvalInput::ResultHandling::Prepend)
+    .def("__iter__", [](org::sem::OrgCodeEvalInput::ResultHandling _self) -> org::bind::python::PyEnumIterator<org::sem::OrgCodeEvalInput::ResultHandling> {
+                     return
+                     org::bind::python::PyEnumIterator<org::sem::OrgCodeEvalInput::ResultHandling>
+                     ();
+                     })
+    ;
+  pybind11::class_<org::sem::OrgCodeEvalInput>(m, "OrgCodeEvalInput")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::OrgCodeEvalInput {
+                        org::sem::OrgCodeEvalInput result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("blockAttrs", &org::sem::OrgCodeEvalInput::blockAttrs)
+    .def_readwrite("tangledCode", &org::sem::OrgCodeEvalInput::tangledCode)
+    .def_readwrite("resultType", &org::sem::OrgCodeEvalInput::resultType)
+    .def_readwrite("resultFormat", &org::sem::OrgCodeEvalInput::resultFormat)
+    .def_readwrite("resultHandling", &org::sem::OrgCodeEvalInput::resultHandling)
+    .def("operator==",
+         static_cast<bool(org::sem::OrgCodeEvalInput::*)(org::sem::OrgCodeEvalInput const&) const>(&org::sem::OrgCodeEvalInput::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::sem::OrgCodeEvalInput _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::OrgCodeEvalInput _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::sem::OrgCodeEvalOutput>(m, "OrgCodeEvalOutput")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::OrgCodeEvalOutput {
+                        org::sem::OrgCodeEvalOutput result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("stdout", &org::sem::OrgCodeEvalOutput::stdout)
+    .def_readwrite("stderr", &org::sem::OrgCodeEvalOutput::stderr)
+    .def_readwrite("code", &org::sem::OrgCodeEvalOutput::code)
+    .def("operator==",
+         static_cast<bool(org::sem::OrgCodeEvalOutput::*)(org::sem::OrgCodeEvalOutput const&) const>(&org::sem::OrgCodeEvalOutput::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::sem::OrgCodeEvalOutput _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::OrgCodeEvalOutput _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   bind_enum_iterator<org::sem::ColumnView::Summary::CheckboxAggregate::Kind>(m, "ColumnViewSummaryCheckboxAggregateKind", type_registry_guard);
   pybind11::enum_<org::sem::ColumnView::Summary::CheckboxAggregate::Kind>(m, "ColumnViewSummaryCheckboxAggregateKind")
     .value("IfAllNested", org::sem::ColumnView::Summary::CheckboxAggregate::Kind::IfAllNested)
@@ -1675,124 +1761,6 @@ node can have subnodes.)RAW")
                      })
     .def("__getattr__",
          [](org::sem::BlockCodeSwitch _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<org::sem::BlockCodeEvalResult::None>(m, "BlockCodeEvalResultNone")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BlockCodeEvalResult::None {
-                        org::sem::BlockCodeEvalResult::None result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def("operator==",
-         static_cast<bool(org::sem::BlockCodeEvalResult::None::*)(org::sem::BlockCodeEvalResult::None const&) const>(&org::sem::BlockCodeEvalResult::None::operator==),
-         pybind11::arg("other"))
-    .def("__repr__", [](org::sem::BlockCodeEvalResult::None _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::sem::BlockCodeEvalResult::None _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<org::sem::BlockCodeEvalResult::OrgValue>(m, "BlockCodeEvalResultOrgValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BlockCodeEvalResult::OrgValue {
-                        org::sem::BlockCodeEvalResult::OrgValue result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("value", &org::sem::BlockCodeEvalResult::OrgValue::value, R"RAW(Evaluation result)RAW")
-    .def("operator==",
-         static_cast<bool(org::sem::BlockCodeEvalResult::OrgValue::*)(org::sem::BlockCodeEvalResult::OrgValue const&) const>(&org::sem::BlockCodeEvalResult::OrgValue::operator==),
-         pybind11::arg("other"))
-    .def("__repr__", [](org::sem::BlockCodeEvalResult::OrgValue _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::sem::BlockCodeEvalResult::OrgValue _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<org::sem::BlockCodeEvalResult::File>(m, "BlockCodeEvalResultFile")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BlockCodeEvalResult::File {
-                        org::sem::BlockCodeEvalResult::File result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("path", &org::sem::BlockCodeEvalResult::File::path)
-    .def("operator==",
-         static_cast<bool(org::sem::BlockCodeEvalResult::File::*)(org::sem::BlockCodeEvalResult::File const&) const>(&org::sem::BlockCodeEvalResult::File::operator==),
-         pybind11::arg("other"))
-    .def("__repr__", [](org::sem::BlockCodeEvalResult::File _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::sem::BlockCodeEvalResult::File _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<org::sem::BlockCodeEvalResult::Raw>(m, "BlockCodeEvalResultRaw")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BlockCodeEvalResult::Raw {
-                        org::sem::BlockCodeEvalResult::Raw result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("text", &org::sem::BlockCodeEvalResult::Raw::text)
-    .def("operator==",
-         static_cast<bool(org::sem::BlockCodeEvalResult::Raw::*)(org::sem::BlockCodeEvalResult::Raw const&) const>(&org::sem::BlockCodeEvalResult::Raw::operator==),
-         pybind11::arg("other"))
-    .def("__repr__", [](org::sem::BlockCodeEvalResult::Raw _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::sem::BlockCodeEvalResult::Raw _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  bind_enum_iterator<org::sem::BlockCodeEvalResult::Kind>(m, "BlockCodeEvalResultKind", type_registry_guard);
-  pybind11::enum_<org::sem::BlockCodeEvalResult::Kind>(m, "BlockCodeEvalResultKind")
-    .value("None", org::sem::BlockCodeEvalResult::Kind::None)
-    .value("OrgValue", org::sem::BlockCodeEvalResult::Kind::OrgValue)
-    .value("File", org::sem::BlockCodeEvalResult::Kind::File)
-    .value("Raw", org::sem::BlockCodeEvalResult::Kind::Raw)
-    .def("__iter__", [](org::sem::BlockCodeEvalResult::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::BlockCodeEvalResult::Kind> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::BlockCodeEvalResult::Kind>
-                     ();
-                     })
-    ;
-  pybind11::class_<org::sem::BlockCodeEvalResult>(m, "BlockCodeEvalResult")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BlockCodeEvalResult {
-                        org::sem::BlockCodeEvalResult result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("data", &org::sem::BlockCodeEvalResult::data)
-    .def("operator==",
-         static_cast<bool(org::sem::BlockCodeEvalResult::*)(org::sem::BlockCodeEvalResult const&) const>(&org::sem::BlockCodeEvalResult::operator==),
-         pybind11::arg("other"))
-    .def("isNone", static_cast<bool(org::sem::BlockCodeEvalResult::*)() const>(&org::sem::BlockCodeEvalResult::isNone))
-    .def("getNone", static_cast<org::sem::BlockCodeEvalResult::None&(org::sem::BlockCodeEvalResult::*)()>(&org::sem::BlockCodeEvalResult::getNone))
-    .def("isOrgValue", static_cast<bool(org::sem::BlockCodeEvalResult::*)() const>(&org::sem::BlockCodeEvalResult::isOrgValue))
-    .def("getOrgValue", static_cast<org::sem::BlockCodeEvalResult::OrgValue&(org::sem::BlockCodeEvalResult::*)()>(&org::sem::BlockCodeEvalResult::getOrgValue))
-    .def("isFile", static_cast<bool(org::sem::BlockCodeEvalResult::*)() const>(&org::sem::BlockCodeEvalResult::isFile))
-    .def("getFile", static_cast<org::sem::BlockCodeEvalResult::File&(org::sem::BlockCodeEvalResult::*)()>(&org::sem::BlockCodeEvalResult::getFile))
-    .def("isRaw", static_cast<bool(org::sem::BlockCodeEvalResult::*)() const>(&org::sem::BlockCodeEvalResult::isRaw))
-    .def("getRaw", static_cast<org::sem::BlockCodeEvalResult::Raw&(org::sem::BlockCodeEvalResult::*)()>(&org::sem::BlockCodeEvalResult::getRaw))
-    .def_static("getKindStatic",
-                static_cast<org::sem::BlockCodeEvalResult::Kind(*)(org::sem::BlockCodeEvalResult::Data const&)>(&org::sem::BlockCodeEvalResult::getKind),
-                pybind11::arg("__input"))
-    .def("getKind", static_cast<org::sem::BlockCodeEvalResult::Kind(org::sem::BlockCodeEvalResult::*)() const>(&org::sem::BlockCodeEvalResult::getKind))
-    .def("__repr__", [](org::sem::BlockCodeEvalResult _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::sem::BlockCodeEvalResult _self, std::string name) -> pybind11::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -4027,6 +3995,47 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<org::sem::BlockCodeEvalResult, org::sem::SemId<org::sem::BlockCodeEvalResult>, org::sem::Block>(m, "BlockCodeEvalResult")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BlockCodeEvalResult {
+                        org::sem::BlockCodeEvalResult result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("raw", &org::sem::BlockCodeEvalResult::raw)
+    .def_readwrite("node", &org::sem::BlockCodeEvalResult::node)
+    .def_readwrite("attrs", &org::sem::BlockCodeEvalResult::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attached", &org::sem::BlockCodeEvalResult::attached)
+    .def("getAttrs",
+         static_cast<hstd::Vec<org::sem::AttrValue>(org::sem::BlockCodeEvalResult::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockCodeEvalResult::getAttrs),
+         pybind11::arg_v("key", std::nullopt),
+         R"RAW(Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.)RAW")
+    .def("getFirstAttr",
+         static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::BlockCodeEvalResult::*)(hstd::Str const&) const>(&org::sem::BlockCodeEvalResult::getFirstAttr),
+         pybind11::arg("kind"),
+         R"RAW(Override of the base statement argument get, prioritizing the explicit command parameters)RAW")
+    .def("getAttached",
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::BlockCodeEvalResult::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockCodeEvalResult::getAttached),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Return attached nodes of a specific kinds or all attached (if kind is nullopt))RAW")
+    .def("getCaption", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::sem::BlockCodeEvalResult::*)() const>(&org::sem::BlockCodeEvalResult::getCaption))
+    .def("getName", static_cast<hstd::Vec<hstd::Str>(org::sem::BlockCodeEvalResult::*)() const>(&org::sem::BlockCodeEvalResult::getName))
+    .def("getAttrs",
+         static_cast<hstd::Vec<org::sem::AttrValue>(org::sem::BlockCodeEvalResult::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockCodeEvalResult::getAttrs),
+         pybind11::arg_v("kind", std::nullopt),
+         R"RAW(Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties.)RAW")
+    .def("getFirstAttr",
+         static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::BlockCodeEvalResult::*)(hstd::Str const&) const>(&org::sem::BlockCodeEvalResult::getFirstAttr),
+         pybind11::arg("kind"),
+         R"RAW(Get the first parameter for the statement. In case there is a longer list of values matching given kinddifferent node kinds can implement different priorities )RAW")
+    .def("__repr__", [](org::sem::BlockCodeEvalResult _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::BlockCodeEvalResult _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<org::sem::BlockCode, org::sem::SemId<org::sem::BlockCode>, org::sem::Block>(m, "BlockCode")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BlockCode {
                         org::sem::BlockCode result{};
@@ -4048,6 +4057,7 @@ node can have subnodes.)RAW")
     .def("getVariable",
          static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::BlockCode::*)(hstd::Str const&) const>(&org::sem::BlockCode::getVariable),
          pybind11::arg("varname"))
+    .def("getCodeForEvaluation", static_cast<org::sem::OrgCodeEvalInput::ResultType(org::sem::BlockCode::*)() const>(&org::sem::BlockCode::getCodeForEvaluation))
     .def("getAttrs",
          static_cast<hstd::Vec<org::sem::AttrValue>(org::sem::BlockCode::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockCode::getAttrs),
          pybind11::arg_v("key", std::nullopt),
@@ -4422,7 +4432,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("name", &org::sem::Call::name, R"RAW(Call target name)RAW")
-    .def_readwrite("attrs", &org::sem::Call::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("attrs", &org::sem::Call::attrs, R"RAW(Additional parameters aside from 'exporter')RAW")
     .def_readwrite("isCommand", &org::sem::Call::isCommand)
     .def("__repr__", [](org::sem::Call _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
@@ -5204,6 +5214,7 @@ node can have subnodes.)RAW")
     .value("BlockExample", OrgSemKind::BlockExample)
     .value("BlockExport", OrgSemKind::BlockExport)
     .value("BlockAdmonition", OrgSemKind::BlockAdmonition)
+    .value("BlockCodeEvalResult", OrgSemKind::BlockCodeEvalResult)
     .value("BlockCode", OrgSemKind::BlockCode)
     .value("SubtreeLog", OrgSemKind::SubtreeLog)
     .value("Subtree", OrgSemKind::Subtree)

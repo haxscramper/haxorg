@@ -1225,6 +1225,7 @@ struct ImmAdapterBlockExportAPI : ImmAdapterBlockAPI {
 };
 struct ImmAdapterBlockDynamicFallbackAPI : ImmAdapterBlockAPI {};
 struct ImmAdapterBlockAdmonitionAPI : ImmAdapterBlockAPI {};
+struct ImmAdapterBlockCodeEvalResultAPI : ImmAdapterBlockAPI {};
 struct ImmAdapterBlockCodeAPI : ImmAdapterBlockAPI {};
 struct ImmAdapterSubtreeLogAPI : ImmAdapterOrgAPI {};
 struct ImmAdapterSubtreeCompletionAPI : ImmAdapterInlineAPI {};

@@ -522,6 +522,7 @@ hstd::Opt<OrgSemKind> hstd::enum_serde<OrgSemKind>::from_string(std::string valu
   if (value == "BlockExample") { return OrgSemKind::BlockExample; } else
   if (value == "BlockExport") { return OrgSemKind::BlockExport; } else
   if (value == "BlockAdmonition") { return OrgSemKind::BlockAdmonition; } else
+  if (value == "BlockCodeEvalResult") { return OrgSemKind::BlockCodeEvalResult; } else
   if (value == "BlockCode") { return OrgSemKind::BlockCode; } else
   if (value == "SubtreeLog") { return OrgSemKind::SubtreeLog; } else
   if (value == "Subtree") { return OrgSemKind::Subtree; } else
@@ -597,6 +598,7 @@ std::string hstd::enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::BlockExample: return "BlockExample";
     case OrgSemKind::BlockExport: return "BlockExport";
     case OrgSemKind::BlockAdmonition: return "BlockAdmonition";
+    case OrgSemKind::BlockCodeEvalResult: return "BlockCodeEvalResult";
     case OrgSemKind::BlockCode: return "BlockCode";
     case OrgSemKind::SubtreeLog: return "SubtreeLog";
     case OrgSemKind::Subtree: return "Subtree";

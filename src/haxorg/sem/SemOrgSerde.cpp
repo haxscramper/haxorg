@@ -93,6 +93,7 @@ template class proto_serde<::orgproto::BlockVerse, sem::Block>;
 template class proto_serde<::orgproto::BlockExport, sem::Block>;
 template class proto_serde<::orgproto::BlockAdmonition, sem::Block>;
 template class proto_serde<::orgproto::BlockCode, sem::Block>;
+template class proto_serde<::orgproto::BlockCodeEvalResult, sem::Block>;
 template class proto_serde<::orgproto::BlockExample, sem::Block>;
 template class proto_serde<::orgproto::BlockDynamicFallback, sem::Block>;
 
@@ -103,6 +104,7 @@ template class proto_serde<::orgproto::CmdAttr, sem::Cmd>;
 template class proto_serde<::orgproto::CmdName, sem::Cmd>;
 template class proto_serde<::orgproto::CmdResults, sem::Cmd>;
 template class proto_serde<::orgproto::BlockCode, sem::Cmd>;
+template class proto_serde<::orgproto::BlockCodeEvalResult, sem::Cmd>;
 template class proto_serde<::orgproto::BlockExample, sem::Cmd>;
 template class proto_serde<::orgproto::BlockCenter, sem::Cmd>;
 template class proto_serde<::orgproto::BlockExport, sem::Cmd>;

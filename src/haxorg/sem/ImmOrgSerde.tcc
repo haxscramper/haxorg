@@ -1004,6 +1004,30 @@ struct ImmSemSerde<org::sem::BlockAdmonition, org::imm::ImmBlockAdmonition> {
 };
 
 template <>
+struct ImmSemSerde<org::sem::BlockCodeEvalResult, org::imm::ImmBlockCodeEvalResult> {
+  static org::imm::ImmBlockCodeEvalResult to_immer(org::sem::BlockCodeEvalResult const& value, ImmAstEditContext& ctx) {
+    org::imm::ImmBlockCodeEvalResult result = hstd::SerdeDefaultProvider<org::imm::ImmBlockCodeEvalResult>::get();
+    assign_immer_field(result.raw, value.raw, ctx);
+    assign_immer_field(result.node, value.node, ctx);
+    assign_immer_field(result.attrs, value.attrs, ctx);
+    assign_immer_field(result.attached, value.attached, ctx);
+    assign_immer_field(result.subnodes, value.subnodes, ctx);
+    assign_immer_field(result.loc, value.loc, ctx);
+    return result;
+  }
+  static org::sem::BlockCodeEvalResult from_immer(org::imm::ImmBlockCodeEvalResult const& value, ImmAstContext const& ctx) {
+    org::sem::BlockCodeEvalResult result = hstd::SerdeDefaultProvider<org::sem::BlockCodeEvalResult>::get();
+    assign_sem_field(result.raw, value.raw, ctx);
+    assign_sem_field(result.node, value.node, ctx);
+    assign_sem_field(result.attrs, value.attrs, ctx);
+    assign_sem_field(result.attached, value.attached, ctx);
+    assign_sem_field(result.subnodes, value.subnodes, ctx);
+    assign_sem_field(result.loc, value.loc, ctx);
+    return result;
+  }
+};
+
+template <>
 struct ImmSemSerde<org::sem::BlockCode, org::imm::ImmBlockCode> {
   static org::imm::ImmBlockCode to_immer(org::sem::BlockCode const& value, ImmAstEditContext& ctx) {
     org::imm::ImmBlockCode result = hstd::SerdeDefaultProvider<org::imm::ImmBlockCode>::get();

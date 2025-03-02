@@ -730,6 +730,60 @@ struct AttrGroup {
   bool operator==(org::sem::AttrGroup const& other) const;
 };
 
+struct OrgCodeEvalInput {
+  /// \brief What context to use for results
+  enum class ResultType : short int {
+    /// \brief Interpret the results as an Org table. If the result is a single value, create a table with one row and one column.
+    Table,
+    /// \brief Interpret the results as an Org list. If the result is a single value, create a list of one element.
+    List,
+    /// \brief Interpret literally and insert as quoted text. Do not create a table.
+    Scalar,
+    /// \brief Interpret as a filename. Save the results of execution of the code block to that file, then insert a link to it.
+    SaveFile,
+  };
+  BOOST_DESCRIBE_NESTED_ENUM(ResultType, Table, List, Scalar, SaveFile)
+  /// \brief How to interpret output from the script
+  enum class ResultFormat : short int {
+    /// \brief Interpreted as raw Org mode. Inserted directly into the buffer.
+    Raw,
+    /// \brief Result enclosed in a code block.
+    Code,
+    /// \brief Results are added directly to the Org file as with ‘raw’, but are wrapped in a ‘RESULTS’ drawer or results macro (for inline code blocks), for later scripting and automated processing.
+    Drawer,
+    /// \brief Results enclosed in a ‘BEGIN_EXPORT’ block.
+    ExportType,
+    Link,
+  };
+  BOOST_DESCRIBE_NESTED_ENUM(ResultFormat, Raw, Code, Drawer, ExportType, Link)
+  /// \brief What to do with the final evaluation results
+  enum class ResultHandling : short int { Replace, Silent, None, Discard, Append, Prepend, };
+  BOOST_DESCRIBE_NESTED_ENUM(ResultHandling, Replace, Silent, None, Discard, Append, Prepend)
+  BOOST_DESCRIBE_CLASS(OrgCodeEvalInput,
+                       (),
+                       (),
+                       (),
+                       (blockAttrs, tangledCode, resultType, resultFormat, resultHandling))
+  org::sem::AttrGroup blockAttrs;
+  hstd::Str tangledCode;
+  org::sem::OrgCodeEvalInput::ResultType resultType;
+  org::sem::OrgCodeEvalInput::ResultFormat resultFormat;
+  org::sem::OrgCodeEvalInput::ResultHandling resultHandling;
+  bool operator==(org::sem::OrgCodeEvalInput const& other) const;
+};
+
+struct OrgCodeEvalOutput {
+  BOOST_DESCRIBE_CLASS(OrgCodeEvalOutput,
+                       (),
+                       (),
+                       (),
+                       (stdout, stderr, code))
+  hstd::Str stdout = "";
+  hstd::Str stderr = "";
+  int code;
+  bool operator==(org::sem::OrgCodeEvalOutput const& other) const;
+};
+
 struct ColumnView {
   struct Summary {
     struct CheckboxAggregate {
@@ -961,79 +1015,6 @@ struct BlockCodeSwitch {
   org::sem::BlockCodeSwitch::Dedent& getDedent() { return std::get<4>(data); }
   static org::sem::BlockCodeSwitch::Kind getKind(org::sem::BlockCodeSwitch::Data const& __input) { return static_cast<org::sem::BlockCodeSwitch::Kind>(__input.index()); }
   org::sem::BlockCodeSwitch::Kind getKind() const { return getKind(data); }
-};
-
-struct BlockCodeEvalResult {
-  /// \brief Default value
-  struct None {
-    BOOST_DESCRIBE_CLASS(None,
-                         (),
-                         (),
-                         (),
-                         ())
-    bool operator==(org::sem::BlockCodeEvalResult::None const& other) const;
-  };
-
-  /// \brief Source code block evaluated to an org-mode node element
-  struct OrgValue {
-    BOOST_DESCRIBE_CLASS(OrgValue,
-                         (),
-                         (),
-                         (),
-                         (value))
-    /// \brief Evaluation result
-    hstd::Str value = "";
-    bool operator==(org::sem::BlockCodeEvalResult::OrgValue const& other) const;
-  };
-
-  /// \brief Output evaluation results to a file
-  struct File {
-    BOOST_DESCRIBE_CLASS(File,
-                         (),
-                         (),
-                         (),
-                         (path))
-    hstd::Str path;
-    bool operator==(org::sem::BlockCodeEvalResult::File const& other) const;
-  };
-
-  /// \brief Evaluation output is a raw text
-  struct Raw {
-    BOOST_DESCRIBE_CLASS(Raw,
-                         (),
-                         (),
-                         (),
-                         (text))
-    hstd::Str text;
-    bool operator==(org::sem::BlockCodeEvalResult::Raw const& other) const;
-  };
-
-  using Data = std::variant<org::sem::BlockCodeEvalResult::None, org::sem::BlockCodeEvalResult::OrgValue, org::sem::BlockCodeEvalResult::File, org::sem::BlockCodeEvalResult::Raw>;
-  enum class Kind : short int { None, OrgValue, File, Raw, };
-  BOOST_DESCRIBE_NESTED_ENUM(Kind, None, OrgValue, File, Raw)
-  using variant_enum_type = org::sem::BlockCodeEvalResult::Kind;
-  using variant_data_type = org::sem::BlockCodeEvalResult::Data;
-  BOOST_DESCRIBE_CLASS(BlockCodeEvalResult,
-                       (),
-                       (),
-                       (),
-                       (data))
-  org::sem::BlockCodeEvalResult::Data data;
-  bool operator==(org::sem::BlockCodeEvalResult const& other) const;
-  bool isNone() const { return getKind() == Kind::None; }
-  org::sem::BlockCodeEvalResult::None const& getNone() const { return std::get<0>(data); }
-  org::sem::BlockCodeEvalResult::None& getNone() { return std::get<0>(data); }
-  bool isOrgValue() const { return getKind() == Kind::OrgValue; }
-  org::sem::BlockCodeEvalResult::OrgValue const& getOrgValue() const { return std::get<1>(data); }
-  org::sem::BlockCodeEvalResult::OrgValue& getOrgValue() { return std::get<1>(data); }
-  bool isFile() const { return getKind() == Kind::File; }
-  org::sem::BlockCodeEvalResult::File const& getFile() const { return std::get<2>(data); }
-  org::sem::BlockCodeEvalResult::File& getFile() { return std::get<2>(data); }
-  bool isRaw() const { return getKind() == Kind::Raw; }
-  org::sem::BlockCodeEvalResult::Raw const& getRaw() const { return std::get<3>(data); }
-  org::sem::BlockCodeEvalResult::Raw& getRaw() { return std::get<3>(data); }
-  static org::sem::BlockCodeEvalResult::Kind getKind(org::sem::BlockCodeEvalResult::Data const& __input) { return static_cast<org::sem::BlockCodeEvalResult::Kind>(__input.index()); }
-  org::sem::BlockCodeEvalResult::Kind getKind() const { return getKind(data); }
 };
 
 struct DocumentExportConfig {
@@ -2421,6 +2402,21 @@ struct BlockAdmonition : public org::sem::Block {
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockAdmonition; }
 };
 
+/// \brief Parsed results of code block evaluation
+struct BlockCodeEvalResult : public org::sem::Block {
+  using Block::Block;
+  virtual ~BlockCodeEvalResult() = default;
+  BOOST_DESCRIBE_CLASS(BlockCodeEvalResult,
+                       (Block),
+                       (),
+                       (),
+                       (staticKind, raw, node))
+  static OrgSemKind const staticKind;
+  org::sem::OrgCodeEvalOutput raw;
+  org::sem::SemId<org::sem::Org> node = sem::SemId<sem::Org>::Nil();
+  virtual OrgSemKind getKind() const { return OrgSemKind::BlockCodeEvalResult; }
+};
+
 /// \brief Base class for all code blocks
 struct BlockCode : public org::sem::Block {
   using Block::Block;
@@ -2448,7 +2444,7 @@ struct BlockCode : public org::sem::Block {
   /// \brief What to export
   BlockCodeExports exports = BlockCodeExports::Both;
   /// \brief Code evaluation results
-  hstd::Opt<org::sem::BlockCodeEvalResult> result = std::nullopt;
+  hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>> result = {};
   /// \brief Collected code lines
   hstd::Vec<org::sem::BlockCodeLine> lines = {};
   /// \brief Do cache values?
@@ -2463,6 +2459,7 @@ struct BlockCode : public org::sem::Block {
   bool tangle = false;
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockCode; }
   hstd::Opt<org::sem::AttrValue> getVariable(hstd::Str const& varname) const;
+  org::sem::OrgCodeEvalInput::ResultType getCodeForEvaluation() const;
 };
 
 /// \brief Single subtree log entry
@@ -2681,7 +2678,7 @@ struct Call : public org::sem::Org {
   static OrgSemKind const staticKind;
   /// \brief Call target name
   hstd::Str name;
-  /// \brief Additional parameters aside from 'exporter',
+  /// \brief Additional parameters aside from 'exporter'
   org::sem::AttrGroup attrs;
   bool isCommand = false;
   virtual OrgSemKind getKind() const { return OrgSemKind::Call; }

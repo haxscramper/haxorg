@@ -943,6 +943,24 @@ struct ImmBlockAdmonition : public org::imm::ImmBlock {
   bool operator==(org::imm::ImmBlockAdmonition const& other) const;
 };
 
+/// \brief Parsed results of code block evaluation
+struct ImmBlockCodeEvalResult : public org::imm::ImmBlock {
+  using ImmBlock::ImmBlock;
+  virtual ~ImmBlockCodeEvalResult() = default;
+  BOOST_DESCRIBE_CLASS(ImmBlockCodeEvalResult,
+                       (ImmBlock),
+                       (),
+                       (),
+                       (staticKind,
+                        raw,
+                        node))
+  static OrgSemKind const staticKind;
+  org::sem::OrgCodeEvalOutput raw;
+  org::imm::ImmIdT<org::imm::ImmOrg> node = org::imm::ImmIdT<org::imm::ImmOrg>::Nil();
+  virtual OrgSemKind getKind() const { return OrgSemKind::BlockCodeEvalResult; }
+  bool operator==(org::imm::ImmBlockCodeEvalResult const& other) const;
+};
+
 /// \brief Base class for all code blocks
 struct ImmBlockCode : public org::imm::ImmBlock {
   using ImmBlock::ImmBlock;
@@ -970,7 +988,7 @@ struct ImmBlockCode : public org::imm::ImmBlock {
   /// \brief What to export
   BlockCodeExports exports = BlockCodeExports::Both;
   /// \brief Code evaluation results
-  hstd::ext::ImmBox<hstd::Opt<org::sem::BlockCodeEvalResult>> result = std::nullopt;
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> result = {};
   /// \brief Collected code lines
   hstd::ext::ImmVec<org::sem::BlockCodeLine> lines = {};
   /// \brief Do cache values?
@@ -1197,7 +1215,7 @@ struct ImmCall : public org::imm::ImmOrg {
   static OrgSemKind const staticKind;
   /// \brief Call target name
   hstd::ext::ImmBox<hstd::Str> name;
-  /// \brief Additional parameters aside from 'exporter',
+  /// \brief Additional parameters aside from 'exporter'
   org::sem::AttrGroup attrs;
   bool isCommand = false;
   virtual OrgSemKind getKind() const { return OrgSemKind::Call; }

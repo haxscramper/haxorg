@@ -277,28 +277,29 @@ enum OrgSemKind {
   OrgSemKind_BlockExample_f                                                         = 46;
   OrgSemKind_BlockExport_f                                                          = 47;
   OrgSemKind_BlockAdmonition_f                                                      = 48;
-  OrgSemKind_BlockCode_f                                                            = 49;
-  OrgSemKind_SubtreeLog_f                                                           = 50;
-  OrgSemKind_Subtree_f                                                              = 51;
-  OrgSemKind_Cell_f                                                                 = 52;
-  OrgSemKind_Row_f                                                                  = 53;
-  OrgSemKind_Table_f                                                                = 54;
-  OrgSemKind_Paragraph_f                                                            = 55;
-  OrgSemKind_ColonExample_f                                                         = 56;
-  OrgSemKind_CmdAttr_f                                                              = 57;
-  OrgSemKind_CmdExport_f                                                            = 58;
-  OrgSemKind_Call_f                                                                 = 59;
-  OrgSemKind_List_f                                                                 = 60;
-  OrgSemKind_ListItem_f                                                             = 61;
-  OrgSemKind_DocumentOptions_f                                                      = 62;
-  OrgSemKind_Document_f                                                             = 63;
-  OrgSemKind_FileTarget_f                                                           = 64;
-  OrgSemKind_TextSeparator_f                                                        = 65;
-  OrgSemKind_DocumentGroup_f                                                        = 66;
-  OrgSemKind_File_f                                                                 = 67;
-  OrgSemKind_Directory_f                                                            = 68;
-  OrgSemKind_Symlink_f                                                              = 69;
-  OrgSemKind_CmdInclude_f                                                           = 70;
+  OrgSemKind_BlockCodeEvalResult_f                                                  = 49;
+  OrgSemKind_BlockCode_f                                                            = 50;
+  OrgSemKind_SubtreeLog_f                                                           = 51;
+  OrgSemKind_Subtree_f                                                              = 52;
+  OrgSemKind_Cell_f                                                                 = 53;
+  OrgSemKind_Row_f                                                                  = 54;
+  OrgSemKind_Table_f                                                                = 55;
+  OrgSemKind_Paragraph_f                                                            = 56;
+  OrgSemKind_ColonExample_f                                                         = 57;
+  OrgSemKind_CmdAttr_f                                                              = 58;
+  OrgSemKind_CmdExport_f                                                            = 59;
+  OrgSemKind_Call_f                                                                 = 60;
+  OrgSemKind_List_f                                                                 = 61;
+  OrgSemKind_ListItem_f                                                             = 62;
+  OrgSemKind_DocumentOptions_f                                                      = 63;
+  OrgSemKind_Document_f                                                             = 64;
+  OrgSemKind_FileTarget_f                                                           = 65;
+  OrgSemKind_TextSeparator_f                                                        = 66;
+  OrgSemKind_DocumentGroup_f                                                        = 67;
+  OrgSemKind_File_f                                                                 = 68;
+  OrgSemKind_Directory_f                                                            = 69;
+  OrgSemKind_Symlink_f                                                              = 70;
+  OrgSemKind_CmdInclude_f                                                           = 71;
 }
 
 message Tblfm {
@@ -635,6 +636,43 @@ message AttrGroup {
   string                                           debug                            = 1000;
 }
 
+message OrgCodeEvalInput {
+  enum ResultType {
+    ResultType_Table_f                                                              = 0;
+    ResultType_List_f                                                               = 1;
+    ResultType_Scalar_f                                                             = 2;
+    ResultType_SaveFile_f                                                           = 3;
+  }
+  enum ResultFormat {
+    ResultFormat_Raw_f                                                              = 0;
+    ResultFormat_Code_f                                                             = 1;
+    ResultFormat_Drawer_f                                                           = 2;
+    ResultFormat_ExportType_f                                                       = 3;
+    ResultFormat_Link_f                                                             = 4;
+  }
+  enum ResultHandling {
+    ResultHandling_Replace_f                                                        = 0;
+    ResultHandling_Silent_f                                                         = 1;
+    ResultHandling_None_f                                                           = 2;
+    ResultHandling_Discard_f                                                        = 3;
+    ResultHandling_Append_f                                                         = 4;
+    ResultHandling_Prepend_f                                                        = 5;
+  }
+  AttrGroup                                        blockAttrs                       = 1;
+  string                                           tangledCode                      = 2;
+  OrgCodeEvalInput.ResultType                      resultType                       = 3;
+  OrgCodeEvalInput.ResultFormat                    resultFormat                     = 4;
+  OrgCodeEvalInput.ResultHandling                  resultHandling                   = 5;
+  string                                           debug                            = 1000;
+}
+
+message OrgCodeEvalOutput {
+  string                                           stdout                           = 1;
+  string                                           stderr                           = 2;
+  int32                                            code                             = 3;
+  string                                           debug                            = 1000;
+}
+
 message ColumnView {
   message Summary {
     message CheckboxAggregate {
@@ -755,40 +793,6 @@ message BlockCodeSwitch {
     Kind_Dedent_f                                                                   = 4;
   }
   BlockCodeSwitch.Data                             data                             = 1;
-  string                                           debug                            = 1000;
-}
-
-message BlockCodeEvalResult {
-  message None {
-    string                                         debug                            = 1000;
-  }
-  message OrgValue {
-    string                                         value                            = 1;
-    string                                         debug                            = 1000;
-  }
-  message File {
-    string                                         path                             = 1;
-    string                                         debug                            = 1000;
-  }
-  message Raw {
-    string                                         text                             = 1;
-    string                                         debug                            = 1000;
-  }
-  message Data {
-    oneof kind {
-      BlockCodeEvalResult.None                     none                             = 1;
-      BlockCodeEvalResult.OrgValue                 orgvalue                         = 2;
-      BlockCodeEvalResult.File                     file                             = 3;
-      BlockCodeEvalResult.Raw                      raw                              = 4;
-    }
-  }
-  enum Kind {
-    Kind_None_f                                                                     = 0;
-    Kind_OrgValue_f                                                                 = 1;
-    Kind_File_f                                                                     = 2;
-    Kind_Raw_f                                                                      = 3;
-  }
-  BlockCodeEvalResult.Data                         data                             = 1;
   string                                           debug                            = 1000;
 }
 
@@ -1571,6 +1575,17 @@ message BlockAdmonition {
   string                                           debug                            = 1000;
 }
 
+message BlockCodeEvalResult {
+  optional AttrGroup                               attrs                            = 1;
+  repeated AnyNode                                 attached                         = 2;
+  repeated AnyNode                                 subnodes                         = 3;
+  optional LineCol                                 loc                              = 4;
+  OrgSemKind                                       staticKind                       = 5;
+  OrgCodeEvalOutput                                raw                              = 6;
+  AnyNode                                          node                             = 7;
+  string                                           debug                            = 1000;
+}
+
 message BlockCode {
   optional AttrGroup                               attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
@@ -1580,7 +1595,7 @@ message BlockCode {
   optional string                                  lang                             = 6;
   repeated BlockCodeSwitch                         switches                         = 7;
   BlockCodeExports                                 exports                          = 8;
-  optional BlockCodeEvalResult                     result                           = 9;
+  repeated BlockCodeEvalResult                     result                           = 9;
   repeated BlockCodeLine                           lines                            = 10;
   bool                                             cache                            = 11;
   bool                                             eval                             = 12;
@@ -1933,28 +1948,29 @@ message AnyNode {
     BlockExample                                     blockexample                     = 47;
     BlockExport                                      blockexport                      = 48;
     BlockAdmonition                                  blockadmonition                  = 49;
-    BlockCode                                        blockcode                        = 50;
-    SubtreeLog                                       subtreelog                       = 51;
-    Subtree                                          subtree                          = 52;
-    Cell                                             cell                             = 53;
-    Row                                              row                              = 54;
-    Table                                            table                            = 55;
-    Paragraph                                        paragraph                        = 56;
-    ColonExample                                     colonexample                     = 57;
-    CmdAttr                                          cmdattr                          = 58;
-    CmdExport                                        cmdexport                        = 59;
-    Call                                             call                             = 60;
-    List                                             list                             = 61;
-    ListItem                                         listitem                         = 62;
-    DocumentOptions                                  documentoptions                  = 63;
-    Document                                         document                         = 64;
-    FileTarget                                       filetarget                       = 65;
-    TextSeparator                                    textseparator                    = 66;
-    DocumentGroup                                    documentgroup                    = 67;
-    File                                             file                             = 68;
-    Directory                                        directory                        = 69;
-    Symlink                                          symlink                          = 70;
-    CmdInclude                                       cmdinclude                       = 71;
+    BlockCodeEvalResult                              blockcodeevalresult              = 50;
+    BlockCode                                        blockcode                        = 51;
+    SubtreeLog                                       subtreelog                       = 52;
+    Subtree                                          subtree                          = 53;
+    Cell                                             cell                             = 54;
+    Row                                              row                              = 55;
+    Table                                            table                            = 56;
+    Paragraph                                        paragraph                        = 57;
+    ColonExample                                     colonexample                     = 58;
+    CmdAttr                                          cmdattr                          = 59;
+    CmdExport                                        cmdexport                        = 60;
+    Call                                             call                             = 61;
+    List                                             list                             = 62;
+    ListItem                                         listitem                         = 63;
+    DocumentOptions                                  documentoptions                  = 64;
+    Document                                         document                         = 65;
+    FileTarget                                       filetarget                       = 66;
+    TextSeparator                                    textseparator                    = 67;
+    DocumentGroup                                    documentgroup                    = 68;
+    File                                             file                             = 69;
+    Directory                                        directory                        = 70;
+    Symlink                                          symlink                          = 71;
+    CmdInclude                                       cmdinclude                       = 72;
   }
 }
 /* clang-format on */

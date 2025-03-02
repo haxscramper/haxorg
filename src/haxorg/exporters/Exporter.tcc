@@ -215,6 +215,22 @@ void Exporter<V, R>::visit(R& res, sem::AttrGroup const& object) {
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::OrgCodeEvalInput const& object) {
+  __obj_field(res, object, blockAttrs);
+  __obj_field(res, object, tangledCode);
+  __obj_field(res, object, resultType);
+  __obj_field(res, object, resultFormat);
+  __obj_field(res, object, resultHandling);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::OrgCodeEvalOutput const& object) {
+  __obj_field(res, object, stdout);
+  __obj_field(res, object, stderr);
+  __obj_field(res, object, code);
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::ColumnView const& object) { __obj_field(res, object, columns); }
 
 template <typename V, typename R>
@@ -282,24 +298,6 @@ void Exporter<V, R>::visit(R& res, sem::BlockCodeSwitch::EmphasizeLine const& ob
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::BlockCodeSwitch::Dedent const& object) { __obj_field(res, object, value); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, org::sem::BlockCodeEvalResult::Data const& object) { visitVariants(res, sem::BlockCodeEvalResult::getKind(object), object); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::BlockCodeEvalResult const& object) { __obj_field(res, object, data); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::BlockCodeEvalResult::None const& object) {  }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::BlockCodeEvalResult::OrgValue const& object) { __obj_field(res, object, value); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::BlockCodeEvalResult::File const& object) { __obj_field(res, object, path); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::BlockCodeEvalResult::Raw const& object) { __obj_field(res, object, text); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, org::sem::DocumentExportConfig::TocExport const& object) { visitVariants(res, sem::DocumentExportConfig::getTocExportKind(object), object); }
@@ -952,6 +950,17 @@ void Exporter<V, R>::visitBlockExport(R& res, In<sem::BlockExport> object) {
 template <typename V, typename R>
 void Exporter<V, R>::visitBlockAdmonition(R& res, In<sem::BlockAdmonition> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
+  __org_field(res, object, attrs);
+  __org_field(res, object, attached);
+  __org_field(res, object, subnodes);
+  __org_field(res, object, loc);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visitBlockCodeEvalResult(R& res, In<sem::BlockCodeEvalResult> object) {
+  auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
+  __org_field(res, object, raw);
+  __org_field(res, object, node);
   __org_field(res, object, attrs);
   __org_field(res, object, attached);
   __org_field(res, object, subnodes);

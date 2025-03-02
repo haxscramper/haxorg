@@ -906,3 +906,29 @@ Vec<AstTrackingGroup> org::getSubnodeGroups(
 
     return res;
 }
+
+sem::SemId<Org> org::evaluateCodeBlocks(
+    sem::SemId<sem::Org>         document,
+    const OrgCodeEvalParameters& conf) {
+    auto imm_context = imm::ImmAstContext::init_start_context();
+    auto version     = imm_context->init(document);
+
+    auto& d = conf.debug;
+
+#define EVAL_TRACE(msg)                                                   \
+    if (d.TraceState) { d.message(msg); }
+
+    Vec<imm::ImmUniqId> codeBlockPaths;
+    org::eachSubnodeRec(
+        version.getRootAdapter(),
+        true,
+        [&](imm::ImmAdapter const& adapter) {
+            if (adapter.is(OrgSemKind::BlockCode)) {
+                codeBlockPaths.push_back(adapter.uniq());
+            }
+        });
+
+    for(auto const& block : codeBlockPaths) {
+
+    }
+}

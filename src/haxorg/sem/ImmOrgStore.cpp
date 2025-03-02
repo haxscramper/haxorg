@@ -71,7 +71,7 @@ ImmAstReplace ImmAstStore::setNode(
     ctx.updateTracking(target.id, false);
     ctx.updateTracking(result_node, true);
 
-    auto dbg          = [&](std::string section) {
+    auto dbg = [&](std::string section) {
         AST_EDIT_MSG(fmt("{}", section));
         auto        __scope = ctx.debug()->scopeLevel();
         auto const& imm     = ctx.ctx.lock()->currentTrack->parents;
@@ -225,6 +225,7 @@ ImmAstReplace setNewSubnodes(
                         [&](sem::DocumentExportConfig const&) { fail_field(); },
                         [&](sem::AttrValue const&) { fail_field(); },
                         [&](sem::SubtreeLogHead const&) { fail_field(); },
+                        [&](sem::OrgCodeEvalOutput const&) { fail_field(); },
                         // clang-format on
                         [&]<typename FK>(
                             ImmBox<hstd::Opt<org::imm::ImmIdT<FK>>> const&
@@ -845,6 +846,7 @@ __same_type(sem::HashTagText);
 __same_type(sem::SubtreeLogHead);
 __same_type(sem::SubtreePath);
 __same_type(org::parse::LineCol);
+__same_type(org::sem::OrgCodeEvalOutput);
 
 
 template <typename SemType, typename ImmType>

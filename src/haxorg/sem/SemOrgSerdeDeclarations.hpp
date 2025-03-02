@@ -51,6 +51,7 @@
         __MAP(kBlockexample, blockexample, BlockExample)  \
         __MAP(kBlockexport, blockexport, BlockExport)  \
         __MAP(kBlockadmonition, blockadmonition, BlockAdmonition)  \
+        __MAP(kBlockcodeevalresult, blockcodeevalresult, BlockCodeEvalResult)  \
         __MAP(kBlockcode, blockcode, BlockCode)  \
         __MAP(kSubtreelog, subtreelog, SubtreeLog)  \
         __MAP(kSubtree, subtree, Subtree)  \
@@ -383,6 +384,20 @@ struct org::algo::proto_serde<::orgproto::AttrGroup, org::sem::AttrGroup> {
 
 
 template <>
+struct org::algo::proto_serde<::orgproto::OrgCodeEvalInput, org::sem::OrgCodeEvalInput> {
+  static void write(::orgproto::OrgCodeEvalInput* out, org::sem::OrgCodeEvalInput const& in);
+  static void read(::orgproto::OrgCodeEvalInput const& out, proto_write_accessor<org::sem::OrgCodeEvalInput> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::OrgCodeEvalOutput, org::sem::OrgCodeEvalOutput> {
+  static void write(::orgproto::OrgCodeEvalOutput* out, org::sem::OrgCodeEvalOutput const& in);
+  static void read(::orgproto::OrgCodeEvalOutput const& out, proto_write_accessor<org::sem::OrgCodeEvalOutput> in);
+};
+
+
+template <>
 struct org::algo::proto_serde<::orgproto::ColumnView::Summary::CheckboxAggregate, org::sem::ColumnView::Summary::CheckboxAggregate> {
   static void write(::orgproto::ColumnView::Summary::CheckboxAggregate* out, org::sem::ColumnView::Summary::CheckboxAggregate const& in);
   static void read(::orgproto::ColumnView::Summary::CheckboxAggregate const& out, proto_write_accessor<org::sem::ColumnView::Summary::CheckboxAggregate> in);
@@ -491,41 +506,6 @@ template <>
 struct org::algo::proto_serde<::orgproto::BlockCodeSwitch, org::sem::BlockCodeSwitch> {
   static void write(::orgproto::BlockCodeSwitch* out, org::sem::BlockCodeSwitch const& in);
   static void read(::orgproto::BlockCodeSwitch const& out, proto_write_accessor<org::sem::BlockCodeSwitch> in);
-};
-
-
-template <>
-struct org::algo::proto_serde<::orgproto::BlockCodeEvalResult::None, org::sem::BlockCodeEvalResult::None> {
-  static void write(::orgproto::BlockCodeEvalResult::None* out, org::sem::BlockCodeEvalResult::None const& in);
-  static void read(::orgproto::BlockCodeEvalResult::None const& out, proto_write_accessor<org::sem::BlockCodeEvalResult::None> in);
-};
-
-
-template <>
-struct org::algo::proto_serde<::orgproto::BlockCodeEvalResult::OrgValue, org::sem::BlockCodeEvalResult::OrgValue> {
-  static void write(::orgproto::BlockCodeEvalResult::OrgValue* out, org::sem::BlockCodeEvalResult::OrgValue const& in);
-  static void read(::orgproto::BlockCodeEvalResult::OrgValue const& out, proto_write_accessor<org::sem::BlockCodeEvalResult::OrgValue> in);
-};
-
-
-template <>
-struct org::algo::proto_serde<::orgproto::BlockCodeEvalResult::File, org::sem::BlockCodeEvalResult::File> {
-  static void write(::orgproto::BlockCodeEvalResult::File* out, org::sem::BlockCodeEvalResult::File const& in);
-  static void read(::orgproto::BlockCodeEvalResult::File const& out, proto_write_accessor<org::sem::BlockCodeEvalResult::File> in);
-};
-
-
-template <>
-struct org::algo::proto_serde<::orgproto::BlockCodeEvalResult::Raw, org::sem::BlockCodeEvalResult::Raw> {
-  static void write(::orgproto::BlockCodeEvalResult::Raw* out, org::sem::BlockCodeEvalResult::Raw const& in);
-  static void read(::orgproto::BlockCodeEvalResult::Raw const& out, proto_write_accessor<org::sem::BlockCodeEvalResult::Raw> in);
-};
-
-
-template <>
-struct org::algo::proto_serde<::orgproto::BlockCodeEvalResult, org::sem::BlockCodeEvalResult> {
-  static void write(::orgproto::BlockCodeEvalResult* out, org::sem::BlockCodeEvalResult const& in);
-  static void read(::orgproto::BlockCodeEvalResult const& out, proto_write_accessor<org::sem::BlockCodeEvalResult> in);
 };
 
 
@@ -1121,6 +1101,13 @@ template <>
 struct org::algo::proto_serde<::orgproto::BlockAdmonition, org::sem::BlockAdmonition> {
   static void write(::orgproto::BlockAdmonition* out, org::sem::BlockAdmonition const& in);
   static void read(::orgproto::BlockAdmonition const& out, proto_write_accessor<org::sem::BlockAdmonition> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::BlockCodeEvalResult, org::sem::BlockCodeEvalResult> {
+  static void write(::orgproto::BlockCodeEvalResult* out, org::sem::BlockCodeEvalResult const& in);
+  static void read(::orgproto::BlockCodeEvalResult const& out, proto_write_accessor<org::sem::BlockCodeEvalResult> in);
 };
 
 
