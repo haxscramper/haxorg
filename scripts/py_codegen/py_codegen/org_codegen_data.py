@@ -2019,6 +2019,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
             fields=[
                 org_field(t_nest_shared("AttrGroup"), "blockAttrs"),
                 org_field(t_str(), "tangledCode"),
+                opt_field(t_str(), "exportType"),
                 org_field(
                     t_nest_shared("ResultType", [t("OrgCodeEvalInput")]),
                     "resultType",

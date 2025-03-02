@@ -662,10 +662,11 @@ message OrgCodeEvalInput {
   }
   AttrGroup                                        blockAttrs                       = 1;
   string                                           tangledCode                      = 2;
-  OrgCodeEvalInput.ResultType                      resultType                       = 3;
-  OrgCodeEvalInput.ResultFormat                    resultFormat                     = 4;
-  OrgCodeEvalInput.ResultHandling                  resultHandling                   = 5;
-  string                                           language                         = 6;
+  optional string                                  exportType                       = 3;
+  OrgCodeEvalInput.ResultType                      resultType                       = 4;
+  OrgCodeEvalInput.ResultFormat                    resultFormat                     = 5;
+  OrgCodeEvalInput.ResultHandling                  resultHandling                   = 6;
+  string                                           language                         = 7;
   string                                           debug                            = 1000;
 }
 

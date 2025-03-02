@@ -767,12 +767,14 @@ struct OrgCodeEvalInput {
                        (),
                        (blockAttrs,
                         tangledCode,
+                        exportType,
                         resultType,
                         resultFormat,
                         resultHandling,
                         language))
   org::sem::AttrGroup blockAttrs;
   hstd::Str tangledCode;
+  hstd::Opt<hstd::Str> exportType = std::nullopt;
   org::sem::OrgCodeEvalInput::ResultType resultType = ResultType::None;
   org::sem::OrgCodeEvalInput::ResultFormat resultFormat = ResultFormat::None;
   org::sem::OrgCodeEvalInput::ResultHandling resultHandling = ResultHandling::None;

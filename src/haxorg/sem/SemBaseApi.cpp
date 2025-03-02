@@ -919,6 +919,59 @@ sem::OrgCodeEvalInput convertInput(
     sem::OrgCodeEvalInput input;
     input.language = block->lang.get().value();
 
+    using I = sem::OrgCodeEvalInput;
+
+    for (auto const& res : block.getAttrs("results")) {
+        auto norm = normalize(res.getString());
+        if (norm == "table" || norm == "vector") {
+            input.resultType = I::ResultType::Table;
+        } else if (norm == "list") {
+            input.resultType = I::ResultType::List;
+        } else if (norm == "scalar" || norm == "verbatim") {
+            input.resultType = I::ResultType::Scalar;
+        } else if (norm == "file") {
+            input.resultType = I ::ResultType::SaveFile;
+        } else if (norm == "raw") {
+            input.resultFormat = I::ResultFormat::Raw;
+        } else if (norm == "code") {
+            input.resultFormat = I::ResultFormat::Code;
+        } else if (norm == "drawer") {
+            input.resultFormat = I::ResultFormat::Drawer;
+        } else if (norm == "html") {
+            input.resultFormat = I::ResultFormat::ExportType;
+            input.exportType   = "html";
+        } else if (norm == "latex") {
+            input.resultFormat = I::ResultFormat::ExportType;
+            input.exportType   = "latex";
+        } else if (norm == "link" || norm == "graphics") {
+            input.resultFormat = I::ResultFormat::Link;
+        } else if (norm == "org") {
+            input.resultFormat = I::ResultFormat::Code;
+            input.exportType   = "org";
+        } else if (norm == "pp") {
+            input.resultFormat = I::ResultFormat::Code;
+        } else if (norm == "replace") {
+            input.resultHandling = I::ResultHandling::Replace;
+        } else if (norm == "silent") {
+            input.resultHandling = I::ResultHandling::Silent;
+        } else if (norm == "none") {
+            input.resultHandling = I::ResultHandling::None;
+        } else if (norm == "discard") {
+            input.resultHandling = I::ResultHandling::Discard;
+        } else if (norm == "append") {
+            input.resultHandling = I::ResultHandling::Append;
+        } else if (norm == "prepend") {
+            input.resultHandling = I::ResultHandling::Prepend;
+        }
+    }
+
+    if (auto attr = block.getFirstAttr("result-export-language")) {
+        input.exportType = attr->getString();
+    }
+
+    if (auto attr = block.getFirstAttr("result-code-language")) {
+        input.exportType = attr->getString();
+    }
 
     return input;
 }

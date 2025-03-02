@@ -218,6 +218,7 @@ template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::OrgCodeEvalInput const& object) {
   __obj_field(res, object, blockAttrs);
   __obj_field(res, object, tangledCode);
+  __obj_field(res, object, exportType);
   __obj_field(res, object, resultType);
   __obj_field(res, object, resultFormat);
   __obj_field(res, object, resultHandling);

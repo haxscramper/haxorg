@@ -650,6 +650,9 @@ void org::algo::proto_serde<::orgproto::AttrGroup, org::sem::AttrGroup>::read(::
 void org::algo::proto_serde<::orgproto::OrgCodeEvalInput, org::sem::OrgCodeEvalInput>::write(::orgproto::OrgCodeEvalInput* out, org::sem::OrgCodeEvalInput const& in) {
   proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::write(out->mutable_blockattrs(), in.blockAttrs);
   proto_serde<std::string, hstd::Str>::write(out->mutable_tangledcode(), in.tangledCode);
+  if (in.exportType) {
+    proto_serde<std::string, hstd::Str>::write(out->mutable_exporttype(), *in.exportType);
+  }
   out->set_resulttype(static_cast<orgproto::OrgCodeEvalInput_ResultType>(in.resultType));
   out->set_resultformat(static_cast<orgproto::OrgCodeEvalInput_ResultFormat>(in.resultFormat));
   out->set_resulthandling(static_cast<orgproto::OrgCodeEvalInput_ResultHandling>(in.resultHandling));
@@ -659,6 +662,9 @@ void org::algo::proto_serde<::orgproto::OrgCodeEvalInput, org::sem::OrgCodeEvalI
 void org::algo::proto_serde<::orgproto::OrgCodeEvalInput, org::sem::OrgCodeEvalInput>::read(::orgproto::OrgCodeEvalInput const& out, proto_write_accessor<org::sem::OrgCodeEvalInput> in) {
   proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::read(out.blockattrs(), in.for_field(&org::sem::OrgCodeEvalInput::blockAttrs));
   proto_serde<std::string, hstd::Str>::read(out.tangledcode(), in.for_field(&org::sem::OrgCodeEvalInput::tangledCode));
+  if (out.has_exporttype()) {
+    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.exporttype(), in.for_field(&org::sem::OrgCodeEvalInput::exportType));
+  }
   in.for_field(&org::sem::OrgCodeEvalInput::resultType).get() = static_cast<org::sem::OrgCodeEvalInput::ResultType>(out.resulttype());
   in.for_field(&org::sem::OrgCodeEvalInput::resultFormat).get() = static_cast<org::sem::OrgCodeEvalInput::ResultFormat>(out.resultformat());
   in.for_field(&org::sem::OrgCodeEvalInput::resultHandling).get() = static_cast<org::sem::OrgCodeEvalInput::ResultHandling>(out.resulthandling());
