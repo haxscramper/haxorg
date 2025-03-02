@@ -663,6 +663,7 @@ message OrgCodeEvalInput {
   OrgCodeEvalInput.ResultType                      resultType                       = 3;
   OrgCodeEvalInput.ResultFormat                    resultFormat                     = 4;
   OrgCodeEvalInput.ResultHandling                  resultHandling                   = 5;
+  string                                           language                         = 6;
   string                                           debug                            = 1000;
 }
 

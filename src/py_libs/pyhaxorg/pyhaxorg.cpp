@@ -1332,6 +1332,7 @@ node can have subnodes.)RAW")
     .def_readwrite("resultType", &org::sem::OrgCodeEvalInput::resultType)
     .def_readwrite("resultFormat", &org::sem::OrgCodeEvalInput::resultFormat)
     .def_readwrite("resultHandling", &org::sem::OrgCodeEvalInput::resultHandling)
+    .def_readwrite("language", &org::sem::OrgCodeEvalInput::language)
     .def("operator==",
          static_cast<bool(org::sem::OrgCodeEvalInput::*)(org::sem::OrgCodeEvalInput const&) const>(&org::sem::OrgCodeEvalInput::operator==),
          pybind11::arg("other"))
@@ -4057,7 +4058,7 @@ node can have subnodes.)RAW")
     .def("getVariable",
          static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::BlockCode::*)(hstd::Str const&) const>(&org::sem::BlockCode::getVariable),
          pybind11::arg("varname"))
-    .def("getCodeForEvaluation", static_cast<org::sem::OrgCodeEvalInput::ResultType(org::sem::BlockCode::*)() const>(&org::sem::BlockCode::getCodeForEvaluation))
+    .def("getCodeForEvaluation", static_cast<org::sem::OrgCodeEvalInput(org::sem::BlockCode::*)() const>(&org::sem::BlockCode::getCodeForEvaluation))
     .def("getAttrs",
          static_cast<hstd::Vec<org::sem::AttrValue>(org::sem::BlockCode::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockCode::getAttrs),
          pybind11::arg_v("key", std::nullopt),

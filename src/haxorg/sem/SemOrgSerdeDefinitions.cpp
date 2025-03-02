@@ -653,6 +653,7 @@ void org::algo::proto_serde<::orgproto::OrgCodeEvalInput, org::sem::OrgCodeEvalI
   out->set_resulttype(static_cast<orgproto::OrgCodeEvalInput_ResultType>(in.resultType));
   out->set_resultformat(static_cast<orgproto::OrgCodeEvalInput_ResultFormat>(in.resultFormat));
   out->set_resulthandling(static_cast<orgproto::OrgCodeEvalInput_ResultHandling>(in.resultHandling));
+  proto_serde<std::string, hstd::Str>::write(out->mutable_language(), in.language);
 }
 
 void org::algo::proto_serde<::orgproto::OrgCodeEvalInput, org::sem::OrgCodeEvalInput>::read(::orgproto::OrgCodeEvalInput const& out, proto_write_accessor<org::sem::OrgCodeEvalInput> in) {
@@ -661,6 +662,7 @@ void org::algo::proto_serde<::orgproto::OrgCodeEvalInput, org::sem::OrgCodeEvalI
   in.for_field(&org::sem::OrgCodeEvalInput::resultType).get() = static_cast<org::sem::OrgCodeEvalInput::ResultType>(out.resulttype());
   in.for_field(&org::sem::OrgCodeEvalInput::resultFormat).get() = static_cast<org::sem::OrgCodeEvalInput::ResultFormat>(out.resultformat());
   in.for_field(&org::sem::OrgCodeEvalInput::resultHandling).get() = static_cast<org::sem::OrgCodeEvalInput::ResultHandling>(out.resulthandling());
+  proto_serde<std::string, hstd::Str>::read(out.language(), in.for_field(&org::sem::OrgCodeEvalInput::language));
 }
 
 void org::algo::proto_serde<::orgproto::OrgCodeEvalOutput, org::sem::OrgCodeEvalOutput>::write(::orgproto::OrgCodeEvalOutput* out, org::sem::OrgCodeEvalOutput const& in) {

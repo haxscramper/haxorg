@@ -82,3 +82,18 @@ Mention #hashtag1 and #nested##alias1 with #nested##alias2
             (sem::HashTagFlat{{"nested", "alias2"}}));
     }
 }
+
+TEST(OrgApi, EvalCodeBlocks) {
+    auto block = parseOne<sem::BlockCode>(
+        R"(#+begin_src test :results value raw
+content
+#+end_src)");
+    EXPECT_EQ(block->lang, "test");
+    org::OrgCodeEvalParameters conf;
+    conf.evalBlock =
+        [](sem::OrgCodeEvalInput const& in) -> sem::OrgCodeEvalOutput {
+        return sem::OrgCodeEvalOutput{.stdout = "*bold*"};
+    };
+    conf.debug.setTraceFile(getDebugFile("EvalCodeBlock.log"));
+    auto evaluated = org::evaluateCodeBlocks(block, conf);
+}

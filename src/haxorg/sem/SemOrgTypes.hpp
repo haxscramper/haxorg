@@ -763,12 +763,18 @@ struct OrgCodeEvalInput {
                        (),
                        (),
                        (),
-                       (blockAttrs, tangledCode, resultType, resultFormat, resultHandling))
+                       (blockAttrs,
+                        tangledCode,
+                        resultType,
+                        resultFormat,
+                        resultHandling,
+                        language))
   org::sem::AttrGroup blockAttrs;
   hstd::Str tangledCode;
   org::sem::OrgCodeEvalInput::ResultType resultType;
   org::sem::OrgCodeEvalInput::ResultFormat resultFormat;
   org::sem::OrgCodeEvalInput::ResultHandling resultHandling;
+  hstd::Str language = "";
   bool operator==(org::sem::OrgCodeEvalInput const& other) const;
 };
 
@@ -2459,7 +2465,7 @@ struct BlockCode : public org::sem::Block {
   bool tangle = false;
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockCode; }
   hstd::Opt<org::sem::AttrValue> getVariable(hstd::Str const& varname) const;
-  org::sem::OrgCodeEvalInput::ResultType getCodeForEvaluation() const;
+  org::sem::OrgCodeEvalInput getCodeForEvaluation() const;
 };
 
 /// \brief Single subtree log entry

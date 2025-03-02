@@ -221,6 +221,7 @@ void Exporter<V, R>::visit(R& res, sem::OrgCodeEvalInput const& object) {
   __obj_field(res, object, resultType);
   __obj_field(res, object, resultFormat);
   __obj_field(res, object, resultHandling);
+  __obj_field(res, object, language);
 }
 
 template <typename V, typename R>

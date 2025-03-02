@@ -819,11 +819,6 @@ def get_sem_block():
                     arguments=[arg_ident(t_cr(t_str()), "varname")],
                     isConst=True,
                 ),
-                org_function(
-                    t_nest_shared("ResultType", [t("OrgCodeEvalInput")]),
-                    "getCodeForEvaluation",
-                    isConst=True,
-                )
             ],
             fields=[
                 org_field(
@@ -2030,6 +2025,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                           "resultFormat"),
                 org_field(t_nest_shared("ResultHandling", [t("OrgCodeEvalInput")]),
                           "resultHandling"),
+                str_field("language"),
             ],
             nested=[
                 d_simple_enum(

@@ -907,6 +907,14 @@ Vec<AstTrackingGroup> org::getSubnodeGroups(
     return res;
 }
 
+namespace {
+sem::SemId<Org> convertOutput(
+    sem::OrgCodeEvalOutput const& out,
+    sem::OrgCodeEvalInput const&  in) {
+    return org::parseString(out.stdout);
+}
+} // namespace
+
 sem::SemId<Org> org::evaluateCodeBlocks(
     sem::SemId<sem::Org>         document,
     const OrgCodeEvalParameters& conf) {
@@ -928,7 +936,78 @@ sem::SemId<Org> org::evaluateCodeBlocks(
             }
         });
 
-    for(auto const& block : codeBlockPaths) {
+    auto set_output = [&](sem::OrgCodeEvalOutput const& out,
+                          sem::OrgCodeEvalInput const&  input,
+                          imm::ImmUniqId const&         block,
+                          sem::SemId<sem::Org>          node) {
+        auto target_id = block.update(version.context->at(block.path));
+        auto target    = version.context->adapt(target_id);
+        auto result    = sem::SemId<sem::BlockCodeEvalResult>::New();
 
+        result->raw  = out;
+        result->node = node;
+
+        version = version.getEditVersion(
+            [&](imm::ImmAstContext::Ptr ast,
+                imm::ImmAstEditContext& ctx) -> imm::ImmAstReplaceGroup {
+                auto id = ast->add(result, ctx)
+                              .as<imm::ImmBlockCodeEvalResult>();
+
+                if (id == target_id.id) {
+                    EVAL_TRACE("No changes in the code eval");
+                    return imm::ImmAstReplaceGroup{};
+                } else {
+                    EVAL_TRACE("Updating AST with new eval result");
+                    return ctx.store().updateNode<imm::ImmBlockCode>(
+                        target, ctx, [&](imm::ImmBlockCode code) {
+                            using RH = sem::OrgCodeEvalInput::
+                                ResultHandling;
+                            switch (input.resultHandling) {
+                                case RH::Append:
+                                    code.result = code.result.push_back(
+                                        id);
+                                    break;
+                                case RH::Prepend:
+                                    code.result = code.result.insert(
+                                        0, id);
+                                    break;
+                                case RH::Replace:
+                                    code.result = {id};
+                                    break;
+                                case RH::Discard: break;
+                                case RH::Silent:
+                                case RH::None:
+                                    // TODO
+                                    break;
+                            }
+
+                            return code;
+                        });
+                }
+            });
+    };
+
+    for (auto const& block : codeBlockPaths) {
+        sem::OrgCodeEvalInput input;
+        auto                  adapter = version.context->adapt(block)
+                           .as<imm::ImmBlockCode>();
+        EVAL_TRACE(
+            fmt("Evaluating language '{}' at {}",
+                adapter->lang,
+                adapter->loc));
+
+        auto output = conf.evalBlock(input);
+
+        if (!output.stderr.empty()) {
+            EVAL_TRACE(fmt("stderr:\n{}", output.stderr));
+        }
+
+        if (!output.stdout.empty()) {
+            EVAL_TRACE(fmt("stdout:\n{}", output.stdout));
+        }
+
+        set_output(output, input, block, convertOutput(output, input));
     }
+
+    return org::imm::sem_from_immer(version.getRoot(), *version.context);
 }
