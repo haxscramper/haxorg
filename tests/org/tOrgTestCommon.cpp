@@ -1,6 +1,5 @@
 #include "tOrgTestCommon.hpp"
-
-
+#include <haxorg/exporters/exporteryaml.hpp>
 
 void writeTreeRepr(
     imm::ImmAdapter               n,
@@ -8,6 +7,14 @@ void writeTreeRepr(
     imm::ImmAdapter::TreeReprConf conf) {
     writeFile(getDebugFile(suffix), n.treeRepr(conf).toString(false));
 }
+
+
+void writeTreeRepr(sem::SemId<sem::Org> node, CR<Str> full) {
+    writeFile(
+        full.toBase(),
+        org::algo::ExporterTree::treeRepr(node).toString(false));
+}
+
 
 sem::SemId<sem::Org> testParseString(
     const std::string&         text,
@@ -61,6 +68,11 @@ sem::SemId<sem::Org> testParseString(
 
         writeFile(
             fs::path{debug.value()} + "_sem_tree.txt", os.toString(false));
+
+        org::algo::ExporterYaml exp{};
+        auto                    yaml_result = exp.eval(res);
+        writeFile(
+            fs::path{debug.value()} + "_sem_tree.yaml", fmt1(yaml_result));
     }
 
     return res;

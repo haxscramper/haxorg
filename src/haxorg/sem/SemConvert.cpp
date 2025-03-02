@@ -2010,12 +2010,31 @@ sem::AttrGroup OrgConverter::convertAttrs(__args) {
     auto           __trace = trace(a);
     sem::AttrGroup result;
 
+    Opt<sem::AttrValue> last_named;
+
+    auto push_argument = [&](sem::AttrValue const& it) {
+        if (it.name) {
+            addArgument(result, it);
+            last_named = it;
+        } else {
+            if (last_named) {
+                auto tmp = it;
+                tmp.name = last_named->name;
+                addArgument(result, tmp);
+            } else {
+                addArgument(result, it);
+            }
+        }
+    };
+
     if (a.getKind() == onk::Attrs) {
         for (auto const& item : one(a, N::Values)) {
-            addArgument(result, convertAttr(item));
+            push_argument(convertAttr(item));
         }
     } else if (a.getKind() == onk::InlineStmtList) {
-        for (auto const& it : a) { addArgument(result, convertAttr(it)); }
+        for (auto const& it : a) {
+            push_argument(convertAttr(it)); //
+        }
     } else {
         CHECK(a.getKind() == onk::Empty) << a.treeRepr();
     }

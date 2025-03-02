@@ -913,6 +913,16 @@ sem::SemId<Org> convertOutput(
     sem::OrgCodeEvalInput const&  in) {
     return org::parseString(out.stdout);
 }
+
+sem::OrgCodeEvalInput convertInput(
+    imm::ImmAdapterT<imm::ImmBlockCode> block) {
+    sem::OrgCodeEvalInput input;
+    input.language = block->lang.get().value();
+
+
+    return input;
+}
+
 } // namespace
 
 sem::SemId<Org> org::evaluateCodeBlocks(
@@ -957,7 +967,9 @@ sem::SemId<Org> org::evaluateCodeBlocks(
                     EVAL_TRACE("No changes in the code eval");
                     return imm::ImmAstReplaceGroup{};
                 } else {
-                    EVAL_TRACE("Updating AST with new eval result");
+                    EVAL_TRACE(
+                        fmt("Updating AST with new eval result, target {}",
+                            target.uniq()));
                     return ctx.store().updateNode<imm::ImmBlockCode>(
                         target, ctx, [&](imm::ImmBlockCode code) {
                             using RH = sem::OrgCodeEvalInput::
@@ -988,15 +1000,16 @@ sem::SemId<Org> org::evaluateCodeBlocks(
     };
 
     for (auto const& block : codeBlockPaths) {
-        sem::OrgCodeEvalInput input;
-        auto                  adapter = version.context->adapt(block)
+        auto adapter = version.context->adapt(block)
                            .as<imm::ImmBlockCode>();
         EVAL_TRACE(
             fmt("Evaluating language '{}' at {}",
                 adapter->lang,
                 adapter->loc));
 
-        auto output = conf.evalBlock(input);
+        auto __scope = conf.debug.scopeLevel();
+        auto input   = convertInput(adapter);
+        auto output  = conf.evalBlock(input);
 
         if (!output.stderr.empty()) {
             EVAL_TRACE(fmt("stderr:\n{}", output.stderr));

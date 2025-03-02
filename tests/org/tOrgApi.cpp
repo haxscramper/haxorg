@@ -84,16 +84,27 @@ Mention #hashtag1 and #nested##alias1 with #nested##alias2
 }
 
 TEST(OrgApi, EvalCodeBlocks) {
-    auto block = parseOne<sem::BlockCode>(
+    auto doc = testParseString(
         R"(#+begin_src test :results value raw
 content
-#+end_src)");
-    EXPECT_EQ(block->lang, "test");
+#+end_src)",
+        getDebugFile("eval_code_blocks"));
     org::OrgCodeEvalParameters conf;
+    Vec<sem::OrgCodeEvalInput> buf;
+
     conf.evalBlock =
-        [](sem::OrgCodeEvalInput const& in) -> sem::OrgCodeEvalOutput {
+        [&](sem::OrgCodeEvalInput const& in) -> sem::OrgCodeEvalOutput {
+        buf.push_back(in);
         return sem::OrgCodeEvalOutput{.stdout = "*bold*"};
     };
     conf.debug.setTraceFile(getDebugFile("EvalCodeBlock.log"));
-    auto evaluated = org::evaluateCodeBlocks(block, conf);
+    auto evaluated = org::evaluateCodeBlocks(doc, conf);
+
+    writeTreeRepr(evaluated, getDebugFile("result.txt"));
+
+    EXPECT_EQ2(buf.at(0).language, "test");
+    EXPECT_EQ2(
+        buf.at(0).resultFormat, sem::OrgCodeEvalInput::ResultFormat::Raw);
+    EXPECT_EQ2(
+        buf.at(0).resultType, sem::OrgCodeEvalInput::ResultType::Scalar);
 }

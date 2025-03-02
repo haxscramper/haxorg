@@ -917,8 +917,9 @@ void ImmAstReplaceGroup::set(const ImmAstReplace& replace) {
             check,
             "Replace group origina/replaced ID must either be a tree root "
             "-- document or a document group -- or have a non-empty path, "
-            "but {} does not match the requirement. Kind is {}, path is "
-            "{}",
+            "otherwise replacing the node with a new value would create a "
+            "completely independent root. Provided node {} does not match "
+            "the requirement. Kind is {}, path is {}",
             replace,
             it.id.getKind(),
             it.path);
