@@ -535,22 +535,24 @@ class AttrGroup:
     named: Dict[str, AttrList]
 
 class OrgCodeEvalInputResultType(Enum):
-    Table = 1
-    List = 2
-    Scalar = 3
-    SaveFile = 4
+    _None = 1
+    Table = 2
+    List = 3
+    Scalar = 4
+    SaveFile = 5
 
 class OrgCodeEvalInputResultFormat(Enum):
-    Raw = 1
-    Code = 2
-    Drawer = 3
-    ExportType = 4
-    Link = 5
+    _None = 1
+    Raw = 2
+    Code = 3
+    Drawer = 4
+    ExportType = 5
+    Link = 6
 
 class OrgCodeEvalInputResultHandling(Enum):
-    Replace = 1
-    Silent = 2
-    _None = 3
+    _None = 1
+    Replace = 2
+    Silent = 3
     Discard = 4
     Append = 5
     Prepend = 6
@@ -1727,7 +1729,6 @@ class BlockCodeEvalResult(Block):
 class BlockCode(Block):
     def __init__(self, lang: Optional[str], switches: List[BlockCodeSwitch], exports: BlockCodeExports, result: List[BlockCodeEvalResult], lines: List[BlockCodeLine], cache: bool, eval: bool, noweb: bool, hlines: bool, tangle: bool, attrs: Optional[AttrGroup], attached: List[Org]) -> None: ...
     def getVariable(self, varname: str) -> Optional[AttrValue]: ...
-    def getCodeForEvaluation(self) -> OrgCodeEvalInput: ...
     def getAttrs(self, key: Optional[str]) -> List[AttrValue]: ...
     def getFirstAttr(self, kind: str) -> Optional[AttrValue]: ...
     def getAttached(self, kind: Optional[str]) -> List[Org]: ...

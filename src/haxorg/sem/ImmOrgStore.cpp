@@ -10,11 +10,14 @@
 #include <immer/flex_vector_transient.hpp>
 #include <immer/flex_vector.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
+#include <hstd/ext/logger.hpp>
 
 using namespace org;
 using namespace org::imm;
 using namespace hstd;
 using namespace hstd::ext;
+
+#define _cat "imm.store"
 
 struct store_error : hstd::CRTP_hexception<store_error> {};
 
@@ -50,6 +53,7 @@ ImmAstReplace ImmAstStore::setNode(
     const ImmAdapter&  target,
     const T&           value,
     ImmAstEditContext& ctx) {
+    HSLOG_TRACE(_cat, "Set node value");
 
     for (auto const& it : allSubnodes<T>(value, ctx.ctx.lock())) {
         it.assertValid();
@@ -96,6 +100,8 @@ ImmAstReplace ImmAstStore::setNode(
     if (verboseSubnodeSet) { dbg("After remove"); }
     ctx.transientTrack.insertAllSubnodesOf(ctx->adapt(replaced));
     if (verboseSubnodeSet) { dbg("After insert remove"); }
+
+    // LOG(INFO) << fmt("{} -> {}", replaced, target.uniq());
 
     return ImmAstReplace{
         .replaced = replaced,
@@ -928,6 +934,8 @@ template <IsImmOrgValueType T>
 ImmId ImmAstKindStore<T>::add(const T& value, ImmAstEditContext& ctx) {
     auto  mask   = ImmId::combineMask(T::staticKind);
     ImmId result = values.add(value, mask);
+    HSLOG_TRACE(_cat, fmt("Insert value to kind store, {}", value));
+    HSLOG_TRACE(_cat, fmt("Result ID {}", result));
 
     CHECK(result.getKind() == value.getKind())
         << fmt(R"(

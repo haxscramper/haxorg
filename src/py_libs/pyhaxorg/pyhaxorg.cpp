@@ -1284,6 +1284,7 @@ node can have subnodes.)RAW")
     ;
   bind_enum_iterator<org::sem::OrgCodeEvalInput::ResultType>(m, "OrgCodeEvalInputResultType", type_registry_guard);
   pybind11::enum_<org::sem::OrgCodeEvalInput::ResultType>(m, "OrgCodeEvalInputResultType")
+    .value("None", org::sem::OrgCodeEvalInput::ResultType::None)
     .value("Table", org::sem::OrgCodeEvalInput::ResultType::Table, R"RAW(Interpret the results as an Org table. If the result is a single value, create a table with one row and one column.)RAW")
     .value("List", org::sem::OrgCodeEvalInput::ResultType::List, R"RAW(Interpret the results as an Org list. If the result is a single value, create a list of one element.)RAW")
     .value("Scalar", org::sem::OrgCodeEvalInput::ResultType::Scalar, R"RAW(Interpret literally and insert as quoted text. Do not create a table.)RAW")
@@ -1296,6 +1297,7 @@ node can have subnodes.)RAW")
     ;
   bind_enum_iterator<org::sem::OrgCodeEvalInput::ResultFormat>(m, "OrgCodeEvalInputResultFormat", type_registry_guard);
   pybind11::enum_<org::sem::OrgCodeEvalInput::ResultFormat>(m, "OrgCodeEvalInputResultFormat")
+    .value("None", org::sem::OrgCodeEvalInput::ResultFormat::None)
     .value("Raw", org::sem::OrgCodeEvalInput::ResultFormat::Raw, R"RAW(Interpreted as raw Org mode. Inserted directly into the buffer.)RAW")
     .value("Code", org::sem::OrgCodeEvalInput::ResultFormat::Code, R"RAW(Result enclosed in a code block.)RAW")
     .value("Drawer", org::sem::OrgCodeEvalInput::ResultFormat::Drawer, R"RAW(Results are added directly to the Org file as with ‘raw’, but are wrapped in a ‘RESULTS’ drawer or results macro (for inline code blocks), for later scripting and automated processing.)RAW")
@@ -1309,9 +1311,9 @@ node can have subnodes.)RAW")
     ;
   bind_enum_iterator<org::sem::OrgCodeEvalInput::ResultHandling>(m, "OrgCodeEvalInputResultHandling", type_registry_guard);
   pybind11::enum_<org::sem::OrgCodeEvalInput::ResultHandling>(m, "OrgCodeEvalInputResultHandling")
+    .value("None", org::sem::OrgCodeEvalInput::ResultHandling::None)
     .value("Replace", org::sem::OrgCodeEvalInput::ResultHandling::Replace)
     .value("Silent", org::sem::OrgCodeEvalInput::ResultHandling::Silent)
-    .value("None", org::sem::OrgCodeEvalInput::ResultHandling::None)
     .value("Discard", org::sem::OrgCodeEvalInput::ResultHandling::Discard)
     .value("Append", org::sem::OrgCodeEvalInput::ResultHandling::Append)
     .value("Prepend", org::sem::OrgCodeEvalInput::ResultHandling::Prepend)
@@ -4058,7 +4060,6 @@ node can have subnodes.)RAW")
     .def("getVariable",
          static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::BlockCode::*)(hstd::Str const&) const>(&org::sem::BlockCode::getVariable),
          pybind11::arg("varname"))
-    .def("getCodeForEvaluation", static_cast<org::sem::OrgCodeEvalInput(org::sem::BlockCode::*)() const>(&org::sem::BlockCode::getCodeForEvaluation))
     .def("getAttrs",
          static_cast<hstd::Vec<org::sem::AttrValue>(org::sem::BlockCode::*)(hstd::Opt<hstd::Str> const&) const>(&org::sem::BlockCode::getAttrs),
          pybind11::arg_v("key", std::nullopt),

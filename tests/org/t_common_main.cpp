@@ -4,6 +4,7 @@
 
 #include <haxorg/sem/perfetto_org.hpp>
 #include <hstd/ext/perfetto_aux_impl_template.hpp>
+#include <hstd/ext/logger.hpp>
 
 FILE* trace_out;
 
@@ -13,6 +14,9 @@ const char* __asan_default_options() {
 
 
 int main(int argc, char** argv) {
+    hstd::log::clear_sink_backends();
+    hstd::log::push_sink(
+        hstd::log::init_file_sink("/tmp/t_common_main.log"));
 #ifdef ORG_USE_PERFETTO
     std::unique_ptr<perfetto::TracingSession>
         tracing_session = StartProcessTracing("Perfetto track example");

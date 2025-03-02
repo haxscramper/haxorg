@@ -638,22 +638,24 @@ message AttrGroup {
 
 message OrgCodeEvalInput {
   enum ResultType {
-    ResultType_Table_f                                                              = 0;
-    ResultType_List_f                                                               = 1;
-    ResultType_Scalar_f                                                             = 2;
-    ResultType_SaveFile_f                                                           = 3;
+    ResultType_None_f                                                               = 0;
+    ResultType_Table_f                                                              = 1;
+    ResultType_List_f                                                               = 2;
+    ResultType_Scalar_f                                                             = 3;
+    ResultType_SaveFile_f                                                           = 4;
   }
   enum ResultFormat {
-    ResultFormat_Raw_f                                                              = 0;
-    ResultFormat_Code_f                                                             = 1;
-    ResultFormat_Drawer_f                                                           = 2;
-    ResultFormat_ExportType_f                                                       = 3;
-    ResultFormat_Link_f                                                             = 4;
+    ResultFormat_None_f                                                             = 0;
+    ResultFormat_Raw_f                                                              = 1;
+    ResultFormat_Code_f                                                             = 2;
+    ResultFormat_Drawer_f                                                           = 3;
+    ResultFormat_ExportType_f                                                       = 4;
+    ResultFormat_Link_f                                                             = 5;
   }
   enum ResultHandling {
-    ResultHandling_Replace_f                                                        = 0;
-    ResultHandling_Silent_f                                                         = 1;
-    ResultHandling_None_f                                                           = 2;
+    ResultHandling_None_f                                                           = 0;
+    ResultHandling_Replace_f                                                        = 1;
+    ResultHandling_Silent_f                                                         = 2;
     ResultHandling_Discard_f                                                        = 3;
     ResultHandling_Append_f                                                         = 4;
     ResultHandling_Prepend_f                                                        = 5;

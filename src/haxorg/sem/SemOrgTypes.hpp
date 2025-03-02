@@ -733,6 +733,7 @@ struct AttrGroup {
 struct OrgCodeEvalInput {
   /// \brief What context to use for results
   enum class ResultType : short int {
+    None,
     /// \brief Interpret the results as an Org table. If the result is a single value, create a table with one row and one column.
     Table,
     /// \brief Interpret the results as an Org list. If the result is a single value, create a list of one element.
@@ -742,9 +743,10 @@ struct OrgCodeEvalInput {
     /// \brief Interpret as a filename. Save the results of execution of the code block to that file, then insert a link to it.
     SaveFile,
   };
-  BOOST_DESCRIBE_NESTED_ENUM(ResultType, Table, List, Scalar, SaveFile)
+  BOOST_DESCRIBE_NESTED_ENUM(ResultType, None, Table, List, Scalar, SaveFile)
   /// \brief How to interpret output from the script
   enum class ResultFormat : short int {
+    None,
     /// \brief Interpreted as raw Org mode. Inserted directly into the buffer.
     Raw,
     /// \brief Result enclosed in a code block.
@@ -755,10 +757,10 @@ struct OrgCodeEvalInput {
     ExportType,
     Link,
   };
-  BOOST_DESCRIBE_NESTED_ENUM(ResultFormat, Raw, Code, Drawer, ExportType, Link)
+  BOOST_DESCRIBE_NESTED_ENUM(ResultFormat, None, Raw, Code, Drawer, ExportType, Link)
   /// \brief What to do with the final evaluation results
-  enum class ResultHandling : short int { Replace, Silent, None, Discard, Append, Prepend, };
-  BOOST_DESCRIBE_NESTED_ENUM(ResultHandling, Replace, Silent, None, Discard, Append, Prepend)
+  enum class ResultHandling : short int { None, Replace, Silent, Discard, Append, Prepend, };
+  BOOST_DESCRIBE_NESTED_ENUM(ResultHandling, None, Replace, Silent, Discard, Append, Prepend)
   BOOST_DESCRIBE_CLASS(OrgCodeEvalInput,
                        (),
                        (),
@@ -771,9 +773,9 @@ struct OrgCodeEvalInput {
                         language))
   org::sem::AttrGroup blockAttrs;
   hstd::Str tangledCode;
-  org::sem::OrgCodeEvalInput::ResultType resultType;
-  org::sem::OrgCodeEvalInput::ResultFormat resultFormat;
-  org::sem::OrgCodeEvalInput::ResultHandling resultHandling;
+  org::sem::OrgCodeEvalInput::ResultType resultType = ResultType::None;
+  org::sem::OrgCodeEvalInput::ResultFormat resultFormat = ResultFormat::None;
+  org::sem::OrgCodeEvalInput::ResultHandling resultHandling = ResultHandling::None;
   hstd::Str language = "";
   bool operator==(org::sem::OrgCodeEvalInput const& other) const;
 };
@@ -2465,7 +2467,6 @@ struct BlockCode : public org::sem::Block {
   bool tangle = false;
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockCode; }
   hstd::Opt<org::sem::AttrValue> getVariable(hstd::Str const& varname) const;
-  org::sem::OrgCodeEvalInput getCodeForEvaluation() const;
 };
 
 /// \brief Single subtree log entry

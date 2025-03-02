@@ -2019,18 +2019,28 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
             fields=[
                 org_field(t_nest_shared("AttrGroup"), "blockAttrs"),
                 org_field(t_str(), "tangledCode"),
-                org_field(t_nest_shared("ResultType", [t("OrgCodeEvalInput")]),
-                          "resultType"),
-                org_field(t_nest_shared("ResultFormat", [t("OrgCodeEvalInput")]),
-                          "resultFormat"),
-                org_field(t_nest_shared("ResultHandling", [t("OrgCodeEvalInput")]),
-                          "resultHandling"),
+                org_field(
+                    t_nest_shared("ResultType", [t("OrgCodeEvalInput")]),
+                    "resultType",
+                    value="ResultType::None",
+                ),
+                org_field(
+                    t_nest_shared("ResultFormat", [t("OrgCodeEvalInput")]),
+                    "resultFormat",
+                    value="ResultFormat::None",
+                ),
+                org_field(
+                    t_nest_shared("ResultHandling", [t("OrgCodeEvalInput")]),
+                    "resultHandling",
+                    value="ResultHandling::None",
+                ),
                 str_field("language"),
             ],
             nested=[
                 d_simple_enum(
                     t_nest_shared("ResultType", [t("OrgCodeEvalInput")]),
                     "What context to use for results",
+                    efield("None"),
                     efield(
                         "Table",
                         "Interpret the results as an Org table. If the result is a single value, create a table with one row and one column."
@@ -2051,6 +2061,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 d_simple_enum(
                     t_nest_shared("ResultFormat", [t("OrgCodeEvalInput")]),
                     "How to interpret output from the script",
+                    efield("None"),
                     efield(
                         "Raw",
                         "Interpreted as raw Org mode. Inserted directly into the buffer."
@@ -2066,9 +2077,9 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 d_simple_enum(
                     t_nest_shared("ResultHandling", [t("OrgCodeEvalInput")]),
                     "What to do with the final evaluation results",
+                    efield("None"),
                     efield("Replace"),
                     efield("Silent"),
-                    efield("None"),
                     efield("Discard"),
                     efield("Append"),
                     efield("Prepend"),

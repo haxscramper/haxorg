@@ -929,7 +929,8 @@ sem::SemId<Org> org::evaluateCodeBlocks(
     sem::SemId<sem::Org>         document,
     const OrgCodeEvalParameters& conf) {
     auto imm_context = imm::ImmAstContext::init_start_context();
-    auto version     = imm_context->init(document);
+    // imm_context->debug->setTraceFile("/tmp/evaluateCodeBlocks.log");
+    auto version = imm_context->init(document);
 
     auto& d = conf.debug;
 
@@ -968,8 +969,11 @@ sem::SemId<Org> org::evaluateCodeBlocks(
                     return imm::ImmAstReplaceGroup{};
                 } else {
                     EVAL_TRACE(
-                        fmt("Updating AST with new eval result, target {}",
-                            target.uniq()));
+                        fmt("Updating AST with new eval result, target "
+                            "{}, result handling {} result format {}",
+                            target.uniq(),
+                            input.resultHandling,
+                            input.resultFormat));
                     return ctx.store().updateNode<imm::ImmBlockCode>(
                         target, ctx, [&](imm::ImmBlockCode code) {
                             using RH = sem::OrgCodeEvalInput::
