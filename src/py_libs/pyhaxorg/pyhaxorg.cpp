@@ -5672,6 +5672,25 @@ and a segment kind.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<org::bind::python::PyCodeEvalParameters>(m, "PyCodeEvalParameters")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::bind::python::PyCodeEvalParameters {
+                        org::bind::python::PyCodeEvalParameters result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("evalBlock", &org::bind::python::PyCodeEvalParameters::evalBlock)
+    .def("setTraceFile",
+         static_cast<void(org::bind::python::PyCodeEvalParameters::*)(std::string const&)>(&org::bind::python::PyCodeEvalParameters::setTraceFile),
+         pybind11::arg("path"))
+    .def("__repr__", [](org::bind::python::PyCodeEvalParameters _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::bind::python::PyCodeEvalParameters _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<org::bind::python::ExporterPython>(m, "ExporterPython")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::bind::python::ExporterPython {
                         org::bind::python::ExporterPython result{};
@@ -5896,5 +5915,9 @@ and a segment kind.)RAW")
         static_cast<void(*)(org::sem::SemId<org::sem::Org>, pybind11::function)>(&org::bind::python::eachSubnodeRecSimplePath),
         pybind11::arg("node"),
         pybind11::arg("callback"));
+  m.def("evaluateCodeBlocks",
+        static_cast<org::sem::SemId<org::sem::Org>(*)(org::sem::SemId<org::sem::Org>, org::bind::python::PyCodeEvalParameters const&)>(&org::bind::python::evaluateCodeBlocks),
+        pybind11::arg("node"),
+        pybind11::arg("conf"));
 }
 /* clang-format on */

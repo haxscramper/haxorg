@@ -912,11 +912,15 @@ sem::SemId<Org> convertOutput(
     sem::OrgCodeEvalOutput const& out,
     sem::OrgCodeEvalInput const&  in,
     const OrgCodeEvalParameters&  conf) {
-    conf.debug.message(fmt("Parsing stdout {}", out.stdout));
+    if (conf.isTraceEnabled()) {
+        conf.debug->message(fmt("Parsing stdout {}", out.stdout));
+    }
     auto doc  = org::parseString(out.stdout);
     auto stmt = sem::SemId<sem::StmtList>::New();
     for (auto const& node : doc) {
-        conf.debug.message(fmt("Result node {}", node->getKind()));
+        if (conf.isTraceEnabled()) {
+            conf.debug->message(fmt("Result node {}", node->getKind()));
+        }
         stmt->subnodes.push_back(node);
     }
     return stmt;
@@ -999,7 +1003,7 @@ sem::SemId<Org> org::evaluateCodeBlocks(
     auto& d = conf.debug;
 
 #define EVAL_TRACE(msg)                                                   \
-    if (d.TraceState) { d.message(msg); }
+    if (d && d->TraceState) { d->message(msg); }
 
     Vec<imm::ImmUniqId> codeBlockPaths;
     org::eachSubnodeRec(
@@ -1012,7 +1016,7 @@ sem::SemId<Org> org::evaluateCodeBlocks(
         });
 
     Vec<imm::ImmAstVersion> history;
-    if (d.TraceState) { history.push_back(version); }
+    if (d && d->TraceState) { history.push_back(version); }
 
     auto set_output = [&](sem::OrgCodeEvalOutput const& out,
                           sem::OrgCodeEvalInput const&  input,
@@ -1071,7 +1075,7 @@ sem::SemId<Org> org::evaluateCodeBlocks(
                 }
             });
 
-        if (d.TraceState) { history.push_back(version); }
+        if (conf.isTraceEnabled()) { history.push_back(version); }
     };
 
     for (auto const& block : codeBlockPaths) {
@@ -1082,7 +1086,8 @@ sem::SemId<Org> org::evaluateCodeBlocks(
                 adapter->lang,
                 adapter->loc));
 
-        auto __scope = conf.debug.scopeLevel();
+        auto __scope = conf.isTraceEnabled() ? conf.debug->scopeLevel()
+                                             : finally_std::nop();
         auto input   = convertInput(adapter);
         auto output  = conf.evalBlock(input);
 
@@ -1098,7 +1103,7 @@ sem::SemId<Org> org::evaluateCodeBlocks(
             output, input, block, convertOutput(output, input, conf));
     }
 
-    if (d.TraceState) {
+    if (conf.isTraceEnabled()) {
         auto graph = org::imm::toGraphviz(history);
         graph.render("/tmp/CodeBlockEvalGraph.png");
     }

@@ -31,5 +31,22 @@ namespace detail {
         }
     };
 
+    template <>
+    struct type_caster<pybind11::function> {
+        PYBIND11_TYPE_CASTER(function, const_name("function"));
+
+        bool load(handle src, bool) {
+            value = src.cast<pybind11::function>();
+            return !value.is_none();
+        }
+
+        static handle cast(
+            const function& src,
+            return_value_policy,
+            handle) {
+            return src.inc_ref();
+        }
+    };
+
 } // namespace detail
 } // namespace PYBIND11_NAMESPACE

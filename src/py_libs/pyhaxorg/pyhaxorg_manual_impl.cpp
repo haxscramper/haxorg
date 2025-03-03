@@ -217,3 +217,16 @@ void org::bind::python::eachSubnodeRecSimplePath(
             callback(arg, path);
         });
 }
+
+org::sem::SemId<sem::Org> org::bind::python::evaluateCodeBlocks(
+    org::sem::SemId<sem::Org>   node,
+    const PyCodeEvalParameters& conf) {
+    OrgCodeEvalParameters eval_conf{conf.debug};
+
+    eval_conf.evalBlock = [&](org::sem::OrgCodeEvalInput const& input)
+        -> org::sem::OrgCodeEvalOutput {
+        return conf.evalBlock(input).cast<org::sem::OrgCodeEvalOutput>();
+    };
+
+    return org::evaluateCodeBlocks(node, eval_conf);
+}
