@@ -1005,15 +1005,18 @@ sem::SemId<Org> org::evaluateCodeBlocks(
 #define EVAL_TRACE(msg)                                                   \
     if (d && d->TraceState) { d->message(msg); }
 
-    Vec<imm::ImmUniqId> codeBlockPaths;
-    org::eachSubnodeRec(
-        version.getRootAdapter(),
-        true,
-        [&](imm::ImmAdapter const& adapter) {
+    auto collect_code_blocks =
+        [](imm::ImmAdapter const& ad) -> Vec<imm::ImmUniqId> {
+        Vec<imm::ImmUniqId> res;
+        org::eachSubnodeRec(ad, true, [&](imm::ImmAdapter const& adapter) {
             if (adapter.is(OrgSemKind::BlockCode)) {
-                codeBlockPaths.push_back(adapter.uniq());
+                res.push_back(adapter.uniq());
             }
         });
+
+        return res;
+    };
+
 
     Vec<imm::ImmAstVersion> history;
     if (d && d->TraceState) { history.push_back(version); }
@@ -1047,7 +1050,7 @@ sem::SemId<Org> org::evaluateCodeBlocks(
                             input.resultHandling,
                             input.resultFormat,
                             id));
-                    return ctx.store().updateNode<imm::ImmBlockCode>(
+                    auto update = ctx.store().updateNode<imm::ImmBlockCode>(
                         target, ctx, [&](imm::ImmBlockCode code) {
                             using RH = sem::OrgCodeEvalInput::
                                 ResultHandling;
@@ -1072,13 +1075,21 @@ sem::SemId<Org> org::evaluateCodeBlocks(
 
                             return code;
                         });
+
+                    return update;
                 }
             });
 
         if (conf.isTraceEnabled()) { history.push_back(version); }
     };
 
-    for (auto const& block : codeBlockPaths) {
+    auto init_buffer = collect_code_blocks(version.getRootAdapter());
+    std::deque<imm::ImmUniqId> codeBlockPaths{
+        init_buffer.begin(), init_buffer.end()};
+
+    while (!codeBlockPaths.empty()) {
+        auto block = codeBlockPaths.front();
+        codeBlockPaths.pop_front();
         auto adapter = version.context->adapt(block)
                            .as<imm::ImmBlockCode>();
         EVAL_TRACE(
