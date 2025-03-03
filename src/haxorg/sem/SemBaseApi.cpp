@@ -913,9 +913,12 @@ sem::SemId<Org> convertOutput(
     sem::OrgCodeEvalInput const&  in,
     const OrgCodeEvalParameters&  conf) {
     conf.debug.message(fmt("Parsing stdout {}", out.stdout));
-    auto doc       = org::parseString(out.stdout);
-    auto stmt      = sem::SemId<sem::StmtList>::New();
-    stmt->subnodes = doc->subnodes;
+    auto doc  = org::parseString(out.stdout);
+    auto stmt = sem::SemId<sem::StmtList>::New();
+    for (auto const& node : doc) {
+        conf.debug.message(fmt("Result node {}", node->getKind()));
+        stmt->subnodes.push_back(node);
+    }
     return stmt;
 }
 
@@ -1008,6 +1011,9 @@ sem::SemId<Org> org::evaluateCodeBlocks(
             }
         });
 
+    Vec<imm::ImmAstVersion> history;
+    if (d.TraceState) { history.push_back(version); }
+
     auto set_output = [&](sem::OrgCodeEvalOutput const& out,
                           sem::OrgCodeEvalInput const&  input,
                           imm::ImmUniqId const&         block,
@@ -1031,10 +1037,12 @@ sem::SemId<Org> org::evaluateCodeBlocks(
                 } else {
                     EVAL_TRACE(
                         fmt("Updating AST with new eval result, target "
-                            "{}, result handling {} result format {}",
+                            "{}, result handling {} result format {} new "
+                            "node {}",
                             target.uniq(),
                             input.resultHandling,
-                            input.resultFormat));
+                            input.resultFormat,
+                            id));
                     return ctx.store().updateNode<imm::ImmBlockCode>(
                         target, ctx, [&](imm::ImmBlockCode code) {
                             using RH = sem::OrgCodeEvalInput::
@@ -1062,6 +1070,8 @@ sem::SemId<Org> org::evaluateCodeBlocks(
                         });
                 }
             });
+
+        if (d.TraceState) { history.push_back(version); }
     };
 
     for (auto const& block : codeBlockPaths) {
@@ -1088,5 +1098,12 @@ sem::SemId<Org> org::evaluateCodeBlocks(
             output, input, block, convertOutput(output, input, conf));
     }
 
+    if (d.TraceState) {
+        auto graph = org::imm::toGraphviz(history);
+        graph.render("/tmp/CodeBlockEvalGraph.png");
+    }
+
+    EVAL_TRACE(fmt(
+        "Converting final root result {} back to sem", version.getRoot()));
     return org::imm::sem_from_immer(version.getRoot(), *version.context);
 }

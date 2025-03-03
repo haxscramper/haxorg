@@ -697,7 +697,7 @@ class ASTBuilder(base.AstbuilderBase):
     def XCall(
         self,
         opc: str,
-        args: List[BlockId],
+        args: List[BlockId] = list(),
         Stmt: bool = False,
         Line: bool = True,
         Params: Optional[List[QualType]] = None,

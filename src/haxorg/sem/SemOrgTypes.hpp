@@ -59,6 +59,9 @@ struct Tblfm {
         org::sem::Tblfm::Expr::AxisRef::Position::Name& getName() { return std::get<1>(data); }
         static org::sem::Tblfm::Expr::AxisRef::Position::Kind getKind(org::sem::Tblfm::Expr::AxisRef::Position::Data const& __input) { return static_cast<org::sem::Tblfm::Expr::AxisRef::Position::Kind>(__input.index()); }
         org::sem::Tblfm::Expr::AxisRef::Position::Kind getKind() const { return getKind(data); }
+        char const* sub_variant_get_name() const { return "data"; }
+        org::sem::Tblfm::Expr::AxisRef::Position::Data const& sub_variant_get_data() const { return data; }
+        org::sem::Tblfm::Expr::AxisRef::Position::Kind sub_variant_get_kind() const { return getKind(); }
       };
 
       BOOST_DESCRIBE_CLASS(AxisRef,
@@ -168,6 +171,9 @@ struct Tblfm {
     org::sem::Tblfm::Expr::Elisp& getElisp() { return std::get<6>(data); }
     static org::sem::Tblfm::Expr::Kind getKind(org::sem::Tblfm::Expr::Data const& __input) { return static_cast<org::sem::Tblfm::Expr::Kind>(__input.index()); }
     org::sem::Tblfm::Expr::Kind getKind() const { return getKind(data); }
+    char const* sub_variant_get_name() const { return "data"; }
+    org::sem::Tblfm::Expr::Data const& sub_variant_get_data() const { return data; }
+    org::sem::Tblfm::Expr::Kind sub_variant_get_kind() const { return getKind(); }
   };
 
   struct Assign {
@@ -300,6 +306,9 @@ struct AttrValue {
   org::sem::AttrValue::FileReference& getFileReference() { return std::get<1>(data); }
   static org::sem::AttrValue::DataKind getDataKind(org::sem::AttrValue::DataVariant const& __input) { return static_cast<org::sem::AttrValue::DataKind>(__input.index()); }
   org::sem::AttrValue::DataKind getDataKind() const { return getDataKind(data); }
+  char const* sub_variant_get_name() const { return "data"; }
+  org::sem::AttrValue::DataVariant const& sub_variant_get_data() const { return data; }
+  org::sem::AttrValue::DataKind sub_variant_get_kind() const { return getDataKind(); }
 };
 
 struct HashTagFlat {
@@ -489,6 +498,9 @@ struct LinkTarget {
   org::sem::LinkTarget::Attachment& getAttachment() { return std::get<9>(data); }
   static org::sem::LinkTarget::Kind getKind(org::sem::LinkTarget::Data const& __input) { return static_cast<org::sem::LinkTarget::Kind>(__input.index()); }
   org::sem::LinkTarget::Kind getKind() const { return getKind(data); }
+  char const* sub_variant_get_name() const { return "data"; }
+  org::sem::LinkTarget::Data const& sub_variant_get_data() const { return data; }
+  org::sem::LinkTarget::Kind sub_variant_get_kind() const { return getKind(); }
 };
 
 struct SubtreeLogHead {
@@ -675,6 +687,9 @@ struct SubtreeLogHead {
   org::sem::SubtreeLogHead::Unknown& getUnknown() { return std::get<8>(log); }
   static org::sem::SubtreeLogHead::Kind getLogKind(org::sem::SubtreeLogHead::LogEntry const& __input) { return static_cast<org::sem::SubtreeLogHead::Kind>(__input.index()); }
   org::sem::SubtreeLogHead::Kind getLogKind() const { return getLogKind(log); }
+  char const* sub_variant_get_name() const { return "log"; }
+  org::sem::SubtreeLogHead::LogEntry const& sub_variant_get_data() const { return log; }
+  org::sem::SubtreeLogHead::Kind sub_variant_get_kind() const { return getLogKind(); }
 };
 
 /// \brief Completion status of the subtree list element
@@ -842,6 +857,9 @@ struct ColumnView {
     org::sem::ColumnView::Summary::MathAggregate& getMathAggregate() { return std::get<1>(data); }
     static org::sem::ColumnView::Summary::Kind getKind(org::sem::ColumnView::Summary::Data const& __input) { return static_cast<org::sem::ColumnView::Summary::Kind>(__input.index()); }
     org::sem::ColumnView::Summary::Kind getKind() const { return getKind(data); }
+    char const* sub_variant_get_name() const { return "data"; }
+    org::sem::ColumnView::Summary::Data const& sub_variant_get_data() const { return data; }
+    org::sem::ColumnView::Summary::Kind sub_variant_get_kind() const { return getKind(); }
   };
 
   struct Column {
@@ -921,6 +939,9 @@ struct BlockCodeLine {
     org::sem::BlockCodeLine::Part::Tangle& getTangle() { return std::get<2>(data); }
     static org::sem::BlockCodeLine::Part::Kind getKind(org::sem::BlockCodeLine::Part::Data const& __input) { return static_cast<org::sem::BlockCodeLine::Part::Kind>(__input.index()); }
     org::sem::BlockCodeLine::Part::Kind getKind() const { return getKind(data); }
+    char const* sub_variant_get_name() const { return "data"; }
+    org::sem::BlockCodeLine::Part::Data const& sub_variant_get_data() const { return data; }
+    org::sem::BlockCodeLine::Part::Kind sub_variant_get_kind() const { return getKind(); }
   };
 
   BOOST_DESCRIBE_CLASS(BlockCodeLine,
@@ -1025,6 +1046,9 @@ struct BlockCodeSwitch {
   org::sem::BlockCodeSwitch::Dedent& getDedent() { return std::get<4>(data); }
   static org::sem::BlockCodeSwitch::Kind getKind(org::sem::BlockCodeSwitch::Data const& __input) { return static_cast<org::sem::BlockCodeSwitch::Kind>(__input.index()); }
   org::sem::BlockCodeSwitch::Kind getKind() const { return getKind(data); }
+  char const* sub_variant_get_name() const { return "data"; }
+  org::sem::BlockCodeSwitch::Data const& sub_variant_get_data() const { return data; }
+  org::sem::BlockCodeSwitch::Kind sub_variant_get_kind() const { return getKind(); }
 };
 
 struct DocumentExportConfig {
@@ -1123,6 +1147,9 @@ struct DocumentExportConfig {
   org::sem::DocumentExportConfig::ExportFixed& getExportFixed() { return std::get<1>(data); }
   static org::sem::DocumentExportConfig::TocExportKind getTocExportKind(org::sem::DocumentExportConfig::TocExport const& __input) { return static_cast<org::sem::DocumentExportConfig::TocExportKind>(__input.index()); }
   org::sem::DocumentExportConfig::TocExportKind getTocExportKind() const { return getTocExportKind(data); }
+  char const* sub_variant_get_name() const { return "data"; }
+  org::sem::DocumentExportConfig::TocExport const& sub_variant_get_data() const { return data; }
+  org::sem::DocumentExportConfig::TocExportKind sub_variant_get_kind() const { return getTocExportKind(); }
 };
 
 /// \brief Type of the subtree associated time periods
@@ -1576,6 +1603,9 @@ struct NamedProperty {
   org::sem::NamedProperty::CustomSubtreeFlags& getCustomSubtreeFlags() { return std::get<25>(data); }
   static org::sem::NamedProperty::Kind getKind(org::sem::NamedProperty::Data const& __input) { return static_cast<org::sem::NamedProperty::Kind>(__input.index()); }
   org::sem::NamedProperty::Kind getKind() const { return getKind(data); }
+  char const* sub_variant_get_name() const { return "data"; }
+  org::sem::NamedProperty::Data const& sub_variant_get_data() const { return data; }
+  org::sem::NamedProperty::Kind sub_variant_get_kind() const { return getKind(); }
 };
 
 /// \brief No node
@@ -1969,6 +1999,9 @@ struct Time : public org::sem::Org {
   org::sem::Time::Dynamic& getDynamic() { return std::get<1>(time); }
   static org::sem::Time::TimeKind getTimeKind(org::sem::Time::TimeVariant const& __input) { return static_cast<org::sem::Time::TimeKind>(__input.index()); }
   org::sem::Time::TimeKind getTimeKind() const { return getTimeKind(time); }
+  char const* sub_variant_get_name() const { return "time"; }
+  org::sem::Time::TimeVariant const& sub_variant_get_data() const { return time; }
+  org::sem::Time::TimeKind sub_variant_get_kind() const { return getTimeKind(); }
 };
 
 /// \brief Range of time delimited by two points
@@ -2892,6 +2925,9 @@ struct File : public org::sem::Org {
   org::sem::File::Source& getSource() { return std::get<2>(data); }
   static org::sem::File::Kind getFileKind(org::sem::File::Data const& __input) { return static_cast<org::sem::File::Kind>(__input.index()); }
   org::sem::File::Kind getFileKind() const { return getFileKind(data); }
+  char const* sub_variant_get_name() const { return "data"; }
+  org::sem::File::Data const& sub_variant_get_data() const { return data; }
+  org::sem::File::Kind sub_variant_get_kind() const { return getFileKind(); }
 };
 
 struct Directory : public org::sem::Org {
@@ -3017,6 +3053,9 @@ struct CmdInclude : public org::sem::Org {
   org::sem::CmdInclude::OrgDocument& getOrgDocument() { return std::get<4>(data); }
   static org::sem::CmdInclude::Kind getIncludeKind(org::sem::CmdInclude::Data const& __input) { return static_cast<org::sem::CmdInclude::Kind>(__input.index()); }
   org::sem::CmdInclude::Kind getIncludeKind() const { return getIncludeKind(data); }
+  char const* sub_variant_get_name() const { return "data"; }
+  org::sem::CmdInclude::Data const& sub_variant_get_data() const { return data; }
+  org::sem::CmdInclude::Kind sub_variant_get_kind() const { return getIncludeKind(); }
 };
 
 }

@@ -449,6 +449,9 @@ struct ImmTime : public org::imm::ImmOrg {
   org::imm::ImmTime::Dynamic& getDynamic() { return std::get<1>(time); }
   static org::imm::ImmTime::TimeKind getTimeKind(org::imm::ImmTime::TimeVariant const& __input) { return static_cast<org::imm::ImmTime::TimeKind>(__input.index()); }
   org::imm::ImmTime::TimeKind getTimeKind() const { return getTimeKind(time); }
+  char const* sub_variant_get_name() const { return "time"; }
+  org::imm::ImmTime::TimeVariant const& sub_variant_get_data() const { return time; }
+  org::imm::ImmTime::TimeKind sub_variant_get_kind() const { return getTimeKind(); }
 };
 
 /// \brief Range of time delimited by two points
@@ -1431,6 +1434,9 @@ struct ImmFile : public org::imm::ImmOrg {
   org::imm::ImmFile::Source& getSource() { return std::get<2>(data); }
   static org::imm::ImmFile::Kind getFileKind(org::imm::ImmFile::Data const& __input) { return static_cast<org::imm::ImmFile::Kind>(__input.index()); }
   org::imm::ImmFile::Kind getFileKind() const { return getFileKind(data); }
+  char const* sub_variant_get_name() const { return "data"; }
+  org::imm::ImmFile::Data const& sub_variant_get_data() const { return data; }
+  org::imm::ImmFile::Kind sub_variant_get_kind() const { return getFileKind(); }
 };
 
 struct ImmDirectory : public org::imm::ImmOrg {
@@ -1589,6 +1595,9 @@ struct ImmCmdInclude : public org::imm::ImmOrg {
   org::imm::ImmCmdInclude::OrgDocument& getOrgDocument() { return std::get<4>(data); }
   static org::imm::ImmCmdInclude::Kind getIncludeKind(org::imm::ImmCmdInclude::Data const& __input) { return static_cast<org::imm::ImmCmdInclude::Kind>(__input.index()); }
   org::imm::ImmCmdInclude::Kind getIncludeKind() const { return getIncludeKind(data); }
+  char const* sub_variant_get_name() const { return "data"; }
+  org::imm::ImmCmdInclude::Data const& sub_variant_get_data() const { return data; }
+  org::imm::ImmCmdInclude::Kind sub_variant_get_kind() const { return getIncludeKind(); }
 };
 
 }
