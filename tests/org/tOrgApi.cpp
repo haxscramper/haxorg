@@ -100,7 +100,8 @@ content
     conf.debug.setTraceFile(getDebugFile("EvalCodeBlock.log"));
     auto evaluated = org::evaluateCodeBlocks(doc, conf);
 
-    writeTreeRepr(evaluated, getDebugFile("result.txt"));
+    writeTreeRepr(doc, getDebugFile("eval-pre.json"));
+    writeTreeRepr(evaluated, getDebugFile("eval-post.json"));
 
     EXPECT_EQ2(buf.at(0).language, "test");
     EXPECT_EQ2(

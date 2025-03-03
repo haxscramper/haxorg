@@ -910,8 +910,13 @@ Vec<AstTrackingGroup> org::getSubnodeGroups(
 namespace {
 sem::SemId<Org> convertOutput(
     sem::OrgCodeEvalOutput const& out,
-    sem::OrgCodeEvalInput const&  in) {
-    return org::parseString(out.stdout);
+    sem::OrgCodeEvalInput const&  in,
+    const OrgCodeEvalParameters&  conf) {
+    conf.debug.message(fmt("Parsing stdout {}", out.stdout));
+    auto doc       = org::parseString(out.stdout);
+    auto stmt      = sem::SemId<sem::StmtList>::New();
+    stmt->subnodes = doc->subnodes;
+    return stmt;
 }
 
 sem::OrgCodeEvalInput convertInput(
@@ -920,6 +925,9 @@ sem::OrgCodeEvalInput convertInput(
     input.language = block->lang.get().value();
 
     using I = sem::OrgCodeEvalInput;
+
+    input.resultHandling = I::ResultHandling::Replace;
+    input.resultType     = I::ResultType::Scalar;
 
     for (auto const& res : block.getAttrs("results")) {
         auto norm = normalize(res.getString());
@@ -1076,7 +1084,8 @@ sem::SemId<Org> org::evaluateCodeBlocks(
             EVAL_TRACE(fmt("stdout:\n{}", output.stdout));
         }
 
-        set_output(output, input, block, convertOutput(output, input));
+        set_output(
+            output, input, block, convertOutput(output, input, conf));
     }
 
     return org::imm::sem_from_immer(version.getRoot(), *version.context);

@@ -10,9 +10,19 @@ void writeTreeRepr(
 
 
 void writeTreeRepr(sem::SemId<sem::Org> node, CR<Str> full) {
-    writeFile(
-        full.toBase(),
-        org::algo::ExporterTree::treeRepr(node).toString(false));
+    if (full.ends_with("yaml")) {
+        org::algo::ExporterYaml exp{};
+        auto                    yaml_result = exp.eval(node);
+        writeFile(full.toBase(), fmt1(yaml_result));
+    } else if (full.ends_with("json")) {
+        org::algo::ExporterJson exp{};
+        auto                    json_result = exp.eval(node);
+        writeFile(full.toBase(), json_result.dump(2));
+    } else {
+        writeFile(
+            full.toBase(),
+            org::algo::ExporterTree::treeRepr(node).toString(false));
+    }
 }
 
 

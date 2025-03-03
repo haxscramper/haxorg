@@ -384,7 +384,6 @@ struct ImmAstEditContext {
         char const*        file     = __builtin_FILE());
 
     ImmAstContext* operator->() { return ctx.lock().get(); }
-
 };
 
 template <org::imm::IsImmOrgValueType T>
@@ -420,6 +419,9 @@ struct ImmAstReplaceGroup {
 
     ImmAstReplaceGroup() {}
     ImmAstReplaceGroup(ImmAstReplace const& replace) { incl(replace); }
+    ImmAstReplaceGroup(hstd::Opt<ImmAstReplace> const& replace) {
+        if (replace) { incl(replace.value()); }
+    }
 
     void set(ImmAstReplace const& replace);
 
@@ -505,13 +507,13 @@ struct ImmAstStore {
     ImmOrg const* at(ImmId index) const;
 
     template <org::imm::IsImmOrgValueType T>
-    ImmAstReplace setNode(
+    hstd::Opt<ImmAstReplace> setNode(
         ImmAdapter const&  target,
         T const&           value,
         ImmAstEditContext& ctx);
 
     template <org::imm::IsImmOrgValueType T, typename Func>
-    ImmAstReplace updateNode(
+    hstd::Opt<ImmAstReplace> updateNode(
         ImmAdapter         id,
         ImmAstEditContext& ctx,
         Func               cb);
@@ -988,13 +990,13 @@ struct ImmAdapter {
 };
 
 template <org::imm::IsImmOrgValueType T, typename Func>
-ImmAstReplace ImmAstStore::updateNode(
+hstd::Opt<ImmAstReplace> ImmAstStore::updateNode(
     ImmAdapter         id,
     ImmAstEditContext& ctx,
     Func               cb) {
-    auto const&   start_value  = id.value<T>();
-    auto const&   update_value = cb(start_value);
-    ImmAstReplace update       = setNode(id, update_value, ctx);
+    auto const&              start_value  = id.value<T>();
+    auto const&              update_value = cb(start_value);
+    hstd::Opt<ImmAstReplace> update       = setNode(id, update_value, ctx);
     return update;
 }
 

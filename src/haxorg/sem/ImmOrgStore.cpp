@@ -49,7 +49,7 @@ ImmAstReplace org::imm::setSubnodes(
 
 
 template <org::imm::IsImmOrgValueType T>
-ImmAstReplace ImmAstStore::setNode(
+hstd::Opt<ImmAstReplace> ImmAstStore::setNode(
     const ImmAdapter&  target,
     const T&           value,
     ImmAstEditContext& ctx) {
@@ -103,10 +103,17 @@ ImmAstReplace ImmAstStore::setNode(
 
     // LOG(INFO) << fmt("{} -> {}", replaced, target.uniq());
 
-    return ImmAstReplace{
-        .replaced = replaced,
-        .original = target.uniq(),
-    };
+    if (replaced == target.uniq()) {
+        AST_EDIT_MSG(
+            fmt("Original and replaced have the same ID -- node value did "
+                "not change, no replacement action needed"));
+        return std::nullopt;
+    } else {
+        return ImmAstReplace{
+            .replaced = replaced,
+            .original = target.uniq(),
+        };
+    }
 }
 
 /// \brief Reflection path in the parent node, and the subnode that needs
@@ -167,11 +174,11 @@ Const& mut_cast(Const const& value) {
 /// \brief Apply all subnode updates on the current value of the
 /// `updateTarget` and set a new node value. Inserts a new node value into
 /// the store.
-ImmAstReplace setNewSubnodes(
+Opt<ImmAstReplace> setNewSubnodes(
     ImmAdapter                updateTarget,
     SubnodeAssignGroup const& grouped,
     ImmAstEditContext&        ctx) {
-    ImmAstReplace act;
+    Opt<ImmAstReplace> act;
     switch_node_value(
         updateTarget.id,
         updateTarget.ctx.lock(),
@@ -423,8 +430,8 @@ ImmId recurseUpdateSubnodes(
 
             auto grouped = groupUpdatedSubnodes(updatedSubnodes);
             auto act     = setNewSubnodes(updateTarget, grouped, ctx);
-            result.replaced.set(act);
-            return act.replaced.id;
+            result.replaced.set(act.value());
+            return act.value().replaced.id;
         }
     } else {
         // The node is not a parent for any other replacement. If it
