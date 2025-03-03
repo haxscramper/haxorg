@@ -98,14 +98,31 @@ content
         return sem::OrgCodeEvalOutput{.stdout = "*bold*"};
     };
     conf.debug.setTraceFile(getDebugFile("EvalCodeBlock.log"));
-    auto evaluated = org::evaluateCodeBlocks(doc, conf);
+    auto ev = org::evaluateCodeBlocks(doc, conf);
 
     writeTreeRepr(doc, getDebugFile("eval-pre.json"));
-    writeTreeRepr(evaluated, getDebugFile("eval-post.json"));
+    writeTreeRepr(ev, getDebugFile("eval-post.json"));
+
+    writeTreeRepr(doc, getDebugFile("eval-pre.txt"));
+    writeTreeRepr(ev, getDebugFile("eval-post.txt"));
 
     EXPECT_EQ2(buf.at(0).language, "test");
     EXPECT_EQ2(
         buf.at(0).resultFormat, sem::OrgCodeEvalInput::ResultFormat::Raw);
     EXPECT_EQ2(
         buf.at(0).resultType, sem::OrgCodeEvalInput::ResultType::Scalar);
+
+    EXPECT_EQ2(ev->getKind(), OrgSemKind::Document);
+    EXPECT_EQ2(ev.at(0)->getKind(), OrgSemKind::BlockCode);
+    auto bc = ev.at(0).as<sem::BlockCode>();
+    EXPECT_EQ2(bc->result.size(), 1);
+    EXPECT_EQ2(
+        bc->result.at(0)->getKind(), OrgSemKind::BlockCodeEvalResult);
+    auto res = bc->result.at(0).as<sem::BlockCodeEvalResult>();
+    EXPECT_EQ2(res->node->getKind(), OrgSemKind::StmtList);
+    EXPECT_EQ2(res->node.at(0)->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ2(res->node.at(0).at(0)->getKind(), OrgSemKind::Bold);
+    EXPECT_EQ2(res->node.at(0).at(0).at(0)->getKind(), OrgSemKind::Word);
+    auto w = res->node.at(0).at(0).at(0).as<sem::Word>();
+    EXPECT_EQ2(w->text, "bold");
 }

@@ -1103,6 +1103,13 @@ sem::SemId<Org> org::evaluateCodeBlocks(
         graph.render("/tmp/CodeBlockEvalGraph.png");
     }
 
+    imm::ImmAdapter::TreeReprConf repr_conf;
+    repr_conf.withAuxFields  = true;
+    repr_conf.withReflFields = true;
+    writeFile(
+        "/tmp/codeblock_eval_final.txt",
+        version.getRootAdapter().treeRepr(repr_conf).toString(false));
+
     EVAL_TRACE(fmt(
         "Converting final root result {} back to sem", version.getRoot()));
     return org::imm::sem_from_immer(version.getRoot(), *version.context);
