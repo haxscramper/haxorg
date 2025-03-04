@@ -12,6 +12,127 @@
 #include <haxorg/sem/SemOrgBase.hpp>
 #include <haxorg/sem/SemOrgEnums.hpp>
 namespace org::sem {
+struct LispCode {
+  struct Call {
+    BOOST_DESCRIBE_CLASS(Call,
+                         (),
+                         (),
+                         (),
+                         (name, args))
+    hstd::Str name = "";
+    hstd::Vec<org::sem::LispCode> args = {};
+    bool operator==(org::sem::LispCode::Call const& other) const;
+    Call() {  }
+  };
+
+  struct List {
+    BOOST_DESCRIBE_CLASS(List,
+                         (),
+                         (),
+                         (),
+                         (items))
+    hstd::Vec<org::sem::LispCode> items = {};
+    bool operator==(org::sem::LispCode::List const& other) const;
+    List() {  }
+  };
+
+  struct KeyValue {
+    BOOST_DESCRIBE_CLASS(KeyValue,
+                         (),
+                         (),
+                         (),
+                         (name, value))
+    hstd::Str name = "";
+    hstd::Vec<org::sem::LispCode> value = {};
+    bool operator==(org::sem::LispCode::KeyValue const& other) const;
+    KeyValue() {  }
+  };
+
+  struct Number {
+    BOOST_DESCRIBE_CLASS(Number,
+                         (),
+                         (),
+                         (),
+                         (value))
+    int value;
+    bool operator==(org::sem::LispCode::Number const& other) const;
+    Number() {  }
+  };
+
+  struct Text {
+    BOOST_DESCRIBE_CLASS(Text,
+                         (),
+                         (),
+                         (),
+                         (value))
+    hstd::Str value = "";
+    bool operator==(org::sem::LispCode::Text const& other) const;
+    Text() {  }
+  };
+
+  struct Ident {
+    BOOST_DESCRIBE_CLASS(Ident,
+                         (),
+                         (),
+                         (),
+                         (name))
+    hstd::Str name = "";
+    bool operator==(org::sem::LispCode::Ident const& other) const;
+    Ident() {  }
+  };
+
+  struct Real {
+    BOOST_DESCRIBE_CLASS(Real,
+                         (),
+                         (),
+                         (),
+                         (value))
+    float value;
+    bool operator==(org::sem::LispCode::Real const& other) const;
+    Real() {  }
+  };
+
+  using Data = std::variant<org::sem::LispCode::Call, org::sem::LispCode::List, org::sem::LispCode::KeyValue, org::sem::LispCode::Number, org::sem::LispCode::Text, org::sem::LispCode::Ident, org::sem::LispCode::Real>;
+  enum class Kind : short int { Call, List, KeyValue, Number, Text, Ident, Real, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, Call, List, KeyValue, Number, Text, Ident, Real)
+  using variant_enum_type = org::sem::LispCode::Kind;
+  using variant_data_type = org::sem::LispCode::Data;
+  BOOST_DESCRIBE_CLASS(LispCode,
+                       (),
+                       (),
+                       (),
+                       (data))
+  org::sem::LispCode::Data data;
+  bool operator==(org::sem::LispCode const& other) const;
+  LispCode() {  }
+  bool isCall() const { return getKind() == Kind::Call; }
+  org::sem::LispCode::Call const& getCall() const { return std::get<0>(data); }
+  org::sem::LispCode::Call& getCall() { return std::get<0>(data); }
+  bool isList() const { return getKind() == Kind::List; }
+  org::sem::LispCode::List const& getList() const { return std::get<1>(data); }
+  org::sem::LispCode::List& getList() { return std::get<1>(data); }
+  bool isKeyValue() const { return getKind() == Kind::KeyValue; }
+  org::sem::LispCode::KeyValue const& getKeyValue() const { return std::get<2>(data); }
+  org::sem::LispCode::KeyValue& getKeyValue() { return std::get<2>(data); }
+  bool isNumber() const { return getKind() == Kind::Number; }
+  org::sem::LispCode::Number const& getNumber() const { return std::get<3>(data); }
+  org::sem::LispCode::Number& getNumber() { return std::get<3>(data); }
+  bool isText() const { return getKind() == Kind::Text; }
+  org::sem::LispCode::Text const& getText() const { return std::get<4>(data); }
+  org::sem::LispCode::Text& getText() { return std::get<4>(data); }
+  bool isIdent() const { return getKind() == Kind::Ident; }
+  org::sem::LispCode::Ident const& getIdent() const { return std::get<5>(data); }
+  org::sem::LispCode::Ident& getIdent() { return std::get<5>(data); }
+  bool isReal() const { return getKind() == Kind::Real; }
+  org::sem::LispCode::Real const& getReal() const { return std::get<6>(data); }
+  org::sem::LispCode::Real& getReal() { return std::get<6>(data); }
+  static org::sem::LispCode::Kind getKind(org::sem::LispCode::Data const& __input) { return static_cast<org::sem::LispCode::Kind>(__input.index()); }
+  org::sem::LispCode::Kind getKind() const { return getKind(data); }
+  char const* sub_variant_get_name() const { return "data"; }
+  org::sem::LispCode::Data const& sub_variant_get_data() const { return data; }
+  org::sem::LispCode::Kind sub_variant_get_kind() const { return getKind(); }
+};
+
 struct Tblfm {
   struct Expr {
     struct AxisRef {
@@ -270,9 +391,19 @@ struct AttrValue {
     bool operator==(org::sem::AttrValue::FileReference const& other) const;
   };
 
-  using DataVariant = std::variant<org::sem::AttrValue::TextValue, org::sem::AttrValue::FileReference>;
-  enum class DataKind : short int { TextValue, FileReference, };
-  BOOST_DESCRIBE_NESTED_ENUM(DataKind, TextValue, FileReference)
+  struct EvalValue {
+    BOOST_DESCRIBE_CLASS(EvalValue,
+                         (),
+                         (),
+                         (),
+                         ())
+    bool operator==(org::sem::AttrValue::EvalValue const& other) const;
+    EvalValue() {  }
+  };
+
+  using DataVariant = std::variant<org::sem::AttrValue::TextValue, org::sem::AttrValue::FileReference, org::sem::AttrValue::EvalValue>;
+  enum class DataKind : short int { TextValue, FileReference, EvalValue, };
+  BOOST_DESCRIBE_NESTED_ENUM(DataKind, TextValue, FileReference, EvalValue)
   using variant_enum_type = org::sem::AttrValue::DataKind;
   using variant_data_type = org::sem::AttrValue::DataVariant;
   BOOST_DESCRIBE_CLASS(AttrValue,
@@ -304,6 +435,9 @@ struct AttrValue {
   bool isFileReference() const { return getDataKind() == DataKind::FileReference; }
   org::sem::AttrValue::FileReference const& getFileReference() const { return std::get<1>(data); }
   org::sem::AttrValue::FileReference& getFileReference() { return std::get<1>(data); }
+  bool isEvalValue() const { return getDataKind() == DataKind::EvalValue; }
+  org::sem::AttrValue::EvalValue const& getEvalValue() const { return std::get<2>(data); }
+  org::sem::AttrValue::EvalValue& getEvalValue() { return std::get<2>(data); }
   static org::sem::AttrValue::DataKind getDataKind(org::sem::AttrValue::DataVariant const& __input) { return static_cast<org::sem::AttrValue::DataKind>(__input.index()); }
   org::sem::AttrValue::DataKind getDataKind() const { return getDataKind(data); }
   char const* sub_variant_get_name() const { return "data"; }
@@ -1872,10 +2006,17 @@ struct CmdCall : public org::sem::Attached {
                        (Attached),
                        (),
                        (),
-                       (staticKind, name, insideHeaderAttrs, callAttrs, endHeaderAttrs))
+                       (staticKind,
+                        name,
+                        fileName,
+                        insideHeaderAttrs,
+                        callAttrs,
+                        endHeaderAttrs))
   static OrgSemKind const staticKind;
   /// \brief Code block call name
   hstd::Str name = "";
+  /// \brief Which file code block should come from
+  hstd::Opt<hstd::Str> fileName = std::nullopt;
   /// \brief Additional parameters aside from 'exporter',
   org::sem::AttrGroup insideHeaderAttrs;
   /// \brief Additional parameters aside from 'exporter',

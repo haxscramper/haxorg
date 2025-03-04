@@ -22,6 +22,102 @@ class parseLineCol:
     column: int
     pos: int
 
+class LispCodeCall:
+    def __init__(self, name: str, args: List[LispCode]) -> None: ...
+    def operator==(self, other: LispCodeCall) -> bool: ...
+    def Call(self) ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    name: str
+    args: List[LispCode]
+
+class LispCodeList:
+    def __init__(self, items: List[LispCode]) -> None: ...
+    def operator==(self, other: LispCodeList) -> bool: ...
+    def List(self) ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    items: List[LispCode]
+
+class LispCodeKeyValue:
+    def __init__(self, name: str, value: List[LispCode]) -> None: ...
+    def operator==(self, other: LispCodeKeyValue) -> bool: ...
+    def KeyValue(self) ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    name: str
+    value: List[LispCode]
+
+class LispCodeNumber:
+    def __init__(self, value: int) -> None: ...
+    def operator==(self, other: LispCodeNumber) -> bool: ...
+    def Number(self) ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    value: int
+
+class LispCodeText:
+    def __init__(self, value: str) -> None: ...
+    def operator==(self, other: LispCodeText) -> bool: ...
+    def Text(self) ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    value: str
+
+class LispCodeIdent:
+    def __init__(self, name: str) -> None: ...
+    def operator==(self, other: LispCodeIdent) -> bool: ...
+    def Ident(self) ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    name: str
+
+class LispCodeReal:
+    def __init__(self, value: float) -> None: ...
+    def operator==(self, other: LispCodeReal) -> bool: ...
+    def Real(self) ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    value: float
+
+LispCodeData = Union[LispCodeCall, LispCodeList, LispCodeKeyValue, LispCodeNumber, LispCodeText, LispCodeIdent, LispCodeReal]
+class LispCodeKind(Enum):
+    Call = 1
+    List = 2
+    KeyValue = 3
+    Number = 4
+    Text = 5
+    Ident = 6
+    Real = 7
+
+class LispCode:
+    def __init__(self, data: LispCodeData) -> None: ...
+    def operator==(self, other: LispCode) -> bool: ...
+    def LispCode(self) ...
+    def isCall(self) -> bool: ...
+    def getCall(self) -> LispCodeCall: ...
+    def isList(self) -> bool: ...
+    def getList(self) -> LispCodeList: ...
+    def isKeyValue(self) -> bool: ...
+    def getKeyValue(self) -> LispCodeKeyValue: ...
+    def isNumber(self) -> bool: ...
+    def getNumber(self) -> LispCodeNumber: ...
+    def isText(self) -> bool: ...
+    def getText(self) -> LispCodeText: ...
+    def isIdent(self) -> bool: ...
+    def getIdent(self) -> LispCodeIdent: ...
+    def isReal(self) -> bool: ...
+    def getReal(self) -> LispCodeReal: ...
+    @staticmethod
+    def getKindStatic(self, __input: LispCodeData) -> LispCodeKind: ...
+    def getKind(self) -> LispCodeKind: ...
+    def sub_variant_get_name(self) -> char: ...
+    def sub_variant_get_data(self) -> LispCodeData: ...
+    def sub_variant_get_kind(self) -> LispCodeKind: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    data: LispCodeData
+
 class TblfmExprAxisRefPositionIndex:
     def __init__(self, index: int) -> None: ...
     def operator==(self, other: TblfmExprAxisRefPositionIndex) -> bool: ...
@@ -213,10 +309,18 @@ class AttrValueFileReference:
     file: str
     reference: str
 
-AttrValueDataVariant = Union[AttrValueTextValue, AttrValueFileReference]
+class AttrValueEvalValue:
+    def __init__(self) -> None: ...
+    def operator==(self, other: AttrValueEvalValue) -> bool: ...
+    def EvalValue(self) ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+
+AttrValueDataVariant = Union[AttrValueTextValue, AttrValueFileReference, AttrValueEvalValue]
 class AttrValueDataKind(Enum):
     TextValue = 1
     FileReference = 2
+    EvalValue = 3
 
 class AttrValue:
     def __init__(self, name: Optional[str], varname: Optional[str], span: List[AttrValueDimensionSpan], isQuoted: bool, data: AttrValueDataVariant) -> None: ...
@@ -232,6 +336,8 @@ class AttrValue:
     def getTextValue(self) -> AttrValueTextValue: ...
     def isFileReference(self) -> bool: ...
     def getFileReference(self) -> AttrValueFileReference: ...
+    def isEvalValue(self) -> bool: ...
+    def getEvalValue(self) -> AttrValueEvalValue: ...
     @staticmethod
     def getDataKindStatic(self, __input: AttrValueDataVariant) -> AttrValueDataKind: ...
     def getDataKind(self) -> AttrValueDataKind: ...
@@ -1356,7 +1462,7 @@ class CmdCustomText(Stmt):
     attached: List[Org]
 
 class CmdCall(Attached):
-    def __init__(self, name: str, insideHeaderAttrs: AttrGroup, callAttrs: AttrGroup, endHeaderAttrs: AttrGroup, attrs: Optional[AttrGroup], attached: List[Org]) -> None: ...
+    def __init__(self, name: str, fileName: Optional[str], insideHeaderAttrs: AttrGroup, callAttrs: AttrGroup, endHeaderAttrs: AttrGroup, attrs: Optional[AttrGroup], attached: List[Org]) -> None: ...
     def getAttrs(self, key: Optional[str]) -> List[AttrValue]: ...
     def getFirstAttr(self, kind: str) -> Optional[AttrValue]: ...
     def getAttached(self, kind: Optional[str]) -> List[Org]: ...
@@ -1367,6 +1473,7 @@ class CmdCall(Attached):
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     name: str
+    fileName: Optional[str]
     insideHeaderAttrs: AttrGroup
     callAttrs: AttrGroup
     endHeaderAttrs: AttrGroup
@@ -2283,85 +2390,86 @@ class OrgNodeKind(Enum):
     CmdFlag = 41
     CmdKey = 42
     CmdValue = 43
-    CmdNamedValue = 44
-    CmdLatexClass = 45
-    CmdLatexHeader = 46
-    CmdLatexCompiler = 47
-    CmdLatexClassOptions = 48
-    CmdHtmlHead = 49
-    CmdColumns = 50
-    CmdPropertyArgs = 51
-    CmdPropertyText = 52
-    CmdPropertyRaw = 53
-    CmdFiletags = 54
-    BlockVerbatimMultiline = 55
-    CodeLine = 56
-    CodeText = 57
-    CodeTangle = 58
-    CodeCallout = 59
-    BlockCode = 60
-    BlockQuote = 61
-    BlockComment = 62
-    BlockCenter = 63
-    BlockVerse = 64
-    BlockExample = 65
-    BlockExport = 66
-    BlockDetails = 67
-    BlockSummary = 68
-    BlockDynamicFallback = 69
-    BigIdent = 70
-    Bold = 71
-    ErrorWrap = 72
-    ErrorToken = 73
-    Italic = 74
-    Verbatim = 75
-    Backtick = 76
-    Underline = 77
-    Strike = 78
-    Quote = 79
-    Angle = 80
-    Monospace = 81
-    Par = 82
-    InlineMath = 83
-    DisplayMath = 84
-    Space = 85
-    Punctuation = 86
-    Colon = 87
-    Word = 88
-    Escaped = 89
-    Newline = 90
-    RawLink = 91
-    Link = 92
-    Macro = 93
-    Symbol = 94
-    StaticActiveTime = 95
-    StaticInactiveTime = 96
-    DynamicActiveTime = 97
-    DynamicInactiveTime = 98
-    TimeRange = 99
-    SimpleTime = 100
-    HashTag = 101
-    MetaSymbol = 102
-    AtMention = 103
-    Placeholder = 104
-    RadioTarget = 105
-    Target = 106
-    SrcInlineCode = 107
-    InlineCallCode = 108
-    InlineExport = 109
-    InlineComment = 110
-    RawText = 111
-    SubtreeDescription = 112
-    SubtreeUrgency = 113
-    DrawerLogbook = 114
-    Drawer = 115
-    DrawerPropertyList = 116
-    DrawerProperty = 117
-    Subtree = 118
-    SubtreeTimes = 119
-    SubtreeStars = 120
-    SubtreeCompletion = 121
-    SubtreeImportance = 122
+    CmdLispValue = 44
+    CmdNamedValue = 45
+    CmdLatexClass = 46
+    CmdLatexHeader = 47
+    CmdLatexCompiler = 48
+    CmdLatexClassOptions = 49
+    CmdHtmlHead = 50
+    CmdColumns = 51
+    CmdPropertyArgs = 52
+    CmdPropertyText = 53
+    CmdPropertyRaw = 54
+    CmdFiletags = 55
+    BlockVerbatimMultiline = 56
+    CodeLine = 57
+    CodeText = 58
+    CodeTangle = 59
+    CodeCallout = 60
+    BlockCode = 61
+    BlockQuote = 62
+    BlockComment = 63
+    BlockCenter = 64
+    BlockVerse = 65
+    BlockExample = 66
+    BlockExport = 67
+    BlockDetails = 68
+    BlockSummary = 69
+    BlockDynamicFallback = 70
+    BigIdent = 71
+    Bold = 72
+    ErrorWrap = 73
+    ErrorToken = 74
+    Italic = 75
+    Verbatim = 76
+    Backtick = 77
+    Underline = 78
+    Strike = 79
+    Quote = 80
+    Angle = 81
+    Monospace = 82
+    Par = 83
+    InlineMath = 84
+    DisplayMath = 85
+    Space = 86
+    Punctuation = 87
+    Colon = 88
+    Word = 89
+    Escaped = 90
+    Newline = 91
+    RawLink = 92
+    Link = 93
+    Macro = 94
+    Symbol = 95
+    StaticActiveTime = 96
+    StaticInactiveTime = 97
+    DynamicActiveTime = 98
+    DynamicInactiveTime = 99
+    TimeRange = 100
+    SimpleTime = 101
+    HashTag = 102
+    MetaSymbol = 103
+    AtMention = 104
+    Placeholder = 105
+    RadioTarget = 106
+    Target = 107
+    SrcInlineCode = 108
+    InlineCallCode = 109
+    InlineExport = 110
+    InlineComment = 111
+    RawText = 112
+    SubtreeDescription = 113
+    SubtreeUrgency = 114
+    DrawerLogbook = 115
+    Drawer = 116
+    DrawerPropertyList = 117
+    DrawerProperty = 118
+    Subtree = 119
+    SubtreeTimes = 120
+    SubtreeStars = 121
+    SubtreeCompletion = 122
+    SubtreeImportance = 123
 
 class OrgJsonKind(Enum):
     Null = 1

@@ -4,6 +4,13 @@
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #define EACH_SHARED_ORG_RECORD_NESTED(__IMPL) \
+    __IMPL(LispCode, Call, (Call)) \
+    __IMPL(LispCode, List, (List)) \
+    __IMPL(LispCode, KeyValue, (KeyValue)) \
+    __IMPL(LispCode, Number, (Number)) \
+    __IMPL(LispCode, Text, (Text)) \
+    __IMPL(LispCode, Ident, (Ident)) \
+    __IMPL(LispCode, Real, (Real)) \
     __IMPL(Tblfm, Expr, (Expr)) \
     __IMPL(Tblfm, Expr::AxisRef, (Expr, AxisRef)) \
     __IMPL(Tblfm, Expr::AxisRef::Position, (Expr, AxisRef, Position)) \
@@ -19,6 +26,7 @@
     __IMPL(AttrValue, DimensionSpan, (DimensionSpan)) \
     __IMPL(AttrValue, TextValue, (TextValue)) \
     __IMPL(AttrValue, FileReference, (FileReference)) \
+    __IMPL(AttrValue, EvalValue, (EvalValue)) \
     __IMPL(LinkTarget, Raw, (Raw)) \
     __IMPL(LinkTarget, Id, (Id)) \
     __IMPL(LinkTarget, CustomId, (CustomId)) \
@@ -81,6 +89,7 @@
     __IMPL(NamedProperty, CustomSubtreeJson, (CustomSubtreeJson)) \
     __IMPL(NamedProperty, CustomSubtreeFlags, (CustomSubtreeFlags))
 #define EACH_SHARED_ORG_ENUM_NESTED(__IMPL) \
+    __IMPL(LispCode, Kind, (Kind)) \
     __IMPL(Tblfm, Expr::AxisRef::Position::Kind, (Expr, AxisRef, Position, Kind)) \
     __IMPL(Tblfm, Expr::Kind, (Expr, Kind)) \
     __IMPL(Tblfm, Assign::Flag, (Assign, Flag)) \
@@ -106,6 +115,14 @@
     __IMPL(NamedProperty, Visibility::Level, (Visibility, Level)) \
     __IMPL(NamedProperty, Kind, (Kind))
 #define EACH_SHARED_ORG_RECORD(__IMPL) \
+    __IMPL(LispCode, (LispCode)) \
+    __IMPL(LispCode::Call, (LispCode, Call)) \
+    __IMPL(LispCode::List, (LispCode, List)) \
+    __IMPL(LispCode::KeyValue, (LispCode, KeyValue)) \
+    __IMPL(LispCode::Number, (LispCode, Number)) \
+    __IMPL(LispCode::Text, (LispCode, Text)) \
+    __IMPL(LispCode::Ident, (LispCode, Ident)) \
+    __IMPL(LispCode::Real, (LispCode, Real)) \
     __IMPL(Tblfm, (Tblfm)) \
     __IMPL(Tblfm::Expr, (Tblfm, Expr)) \
     __IMPL(Tblfm::Expr::AxisRef, (Tblfm, Expr, AxisRef)) \
@@ -123,6 +140,7 @@
     __IMPL(AttrValue::DimensionSpan, (AttrValue, DimensionSpan)) \
     __IMPL(AttrValue::TextValue, (AttrValue, TextValue)) \
     __IMPL(AttrValue::FileReference, (AttrValue, FileReference)) \
+    __IMPL(AttrValue::EvalValue, (AttrValue, EvalValue)) \
     __IMPL(HashTagFlat, (HashTagFlat)) \
     __IMPL(HashTagText, (HashTagText)) \
     __IMPL(SubtreePath, (SubtreePath)) \
@@ -704,6 +722,8 @@ enum class OrgNodeKind : short int {
   CmdFlag,
   CmdKey,
   CmdValue,
+  /// \brief Value portion of the command value
+  CmdLispValue,
   /// \brief Key-value pair for source code block call.
   CmdNamedValue,
   CmdLatexClass,

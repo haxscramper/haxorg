@@ -1,5 +1,38 @@
 /* clang-format off */
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, org::sem::LispCode::Data const& object) { visitVariants(res, sem::LispCode::getKind(object), object); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::LispCode const& object) { __obj_field(res, object, data); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::LispCode::Call const& object) {
+  __obj_field(res, object, name);
+  __obj_field(res, object, args);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::LispCode::List const& object) { __obj_field(res, object, items); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::LispCode::KeyValue const& object) {
+  __obj_field(res, object, name);
+  __obj_field(res, object, value);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::LispCode::Number const& object) { __obj_field(res, object, value); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::LispCode::Text const& object) { __obj_field(res, object, value); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::LispCode::Ident const& object) { __obj_field(res, object, name); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::LispCode::Real const& object) { __obj_field(res, object, value); }
+
+template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::Tblfm const& object) { __obj_field(res, object, exprs); }
 
 template <typename V, typename R>
@@ -83,6 +116,9 @@ void Exporter<V, R>::visit(R& res, sem::AttrValue::FileReference const& object) 
   __obj_field(res, object, file);
   __obj_field(res, object, reference);
 }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::AttrValue::EvalValue const& object) {  }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::HashTagFlat const& object) { __obj_field(res, object, tags); }
@@ -616,6 +652,7 @@ template <typename V, typename R>
 void Exporter<V, R>::visitCmdCall(R& res, In<sem::CmdCall> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, name);
+  __org_field(res, object, fileName);
   __org_field(res, object, insideHeaderAttrs);
   __org_field(res, object, callAttrs);
   __org_field(res, object, endHeaderAttrs);

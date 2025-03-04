@@ -1,6 +1,118 @@
 /* clang-format off */
 #include <haxorg/sem/SemOrgSerde.hpp>
 #include <haxorg/sem/SemOrgSerdeDeclarations.hpp>
+void org::algo::proto_serde<::orgproto::LispCode::Call, org::sem::LispCode::Call>::write(::orgproto::LispCode::Call* out, org::sem::LispCode::Call const& in) {
+  proto_serde<std::string, hstd::Str>::write(out->mutable_name(), in.name);
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::LispCode>, hstd::Vec<org::sem::LispCode>>::write(out->mutable_args(), in.args);
+}
+
+void org::algo::proto_serde<::orgproto::LispCode::Call, org::sem::LispCode::Call>::read(::orgproto::LispCode::Call const& out, proto_write_accessor<org::sem::LispCode::Call> in) {
+  proto_serde<std::string, hstd::Str>::read(out.name(), in.for_field(&org::sem::LispCode::Call::name));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::LispCode>, hstd::Vec<org::sem::LispCode>>::read(out.args(), in.for_field(&org::sem::LispCode::Call::args));
+}
+
+void org::algo::proto_serde<::orgproto::LispCode::List, org::sem::LispCode::List>::write(::orgproto::LispCode::List* out, org::sem::LispCode::List const& in) {
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::LispCode>, hstd::Vec<org::sem::LispCode>>::write(out->mutable_items(), in.items);
+}
+
+void org::algo::proto_serde<::orgproto::LispCode::List, org::sem::LispCode::List>::read(::orgproto::LispCode::List const& out, proto_write_accessor<org::sem::LispCode::List> in) {
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::LispCode>, hstd::Vec<org::sem::LispCode>>::read(out.items(), in.for_field(&org::sem::LispCode::List::items));
+}
+
+void org::algo::proto_serde<::orgproto::LispCode::KeyValue, org::sem::LispCode::KeyValue>::write(::orgproto::LispCode::KeyValue* out, org::sem::LispCode::KeyValue const& in) {
+  proto_serde<std::string, hstd::Str>::write(out->mutable_name(), in.name);
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::LispCode>, hstd::Vec<org::sem::LispCode>>::write(out->mutable_value(), in.value);
+}
+
+void org::algo::proto_serde<::orgproto::LispCode::KeyValue, org::sem::LispCode::KeyValue>::read(::orgproto::LispCode::KeyValue const& out, proto_write_accessor<org::sem::LispCode::KeyValue> in) {
+  proto_serde<std::string, hstd::Str>::read(out.name(), in.for_field(&org::sem::LispCode::KeyValue::name));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::LispCode>, hstd::Vec<org::sem::LispCode>>::read(out.value(), in.for_field(&org::sem::LispCode::KeyValue::value));
+}
+
+void org::algo::proto_serde<::orgproto::LispCode::Number, org::sem::LispCode::Number>::write(::orgproto::LispCode::Number* out, org::sem::LispCode::Number const& in) {
+  out->set_value(in.value);
+}
+
+void org::algo::proto_serde<::orgproto::LispCode::Number, org::sem::LispCode::Number>::read(::orgproto::LispCode::Number const& out, proto_write_accessor<org::sem::LispCode::Number> in) {
+  in.for_field(&org::sem::LispCode::Number::value).get() = out.value();
+}
+
+void org::algo::proto_serde<::orgproto::LispCode::Text, org::sem::LispCode::Text>::write(::orgproto::LispCode::Text* out, org::sem::LispCode::Text const& in) {
+  proto_serde<std::string, hstd::Str>::write(out->mutable_value(), in.value);
+}
+
+void org::algo::proto_serde<::orgproto::LispCode::Text, org::sem::LispCode::Text>::read(::orgproto::LispCode::Text const& out, proto_write_accessor<org::sem::LispCode::Text> in) {
+  proto_serde<std::string, hstd::Str>::read(out.value(), in.for_field(&org::sem::LispCode::Text::value));
+}
+
+void org::algo::proto_serde<::orgproto::LispCode::Ident, org::sem::LispCode::Ident>::write(::orgproto::LispCode::Ident* out, org::sem::LispCode::Ident const& in) {
+  proto_serde<std::string, hstd::Str>::write(out->mutable_name(), in.name);
+}
+
+void org::algo::proto_serde<::orgproto::LispCode::Ident, org::sem::LispCode::Ident>::read(::orgproto::LispCode::Ident const& out, proto_write_accessor<org::sem::LispCode::Ident> in) {
+  proto_serde<std::string, hstd::Str>::read(out.name(), in.for_field(&org::sem::LispCode::Ident::name));
+}
+
+void org::algo::proto_serde<::orgproto::LispCode::Real, org::sem::LispCode::Real>::write(::orgproto::LispCode::Real* out, org::sem::LispCode::Real const& in) {
+  out->set_value(in.value);
+}
+
+void org::algo::proto_serde<::orgproto::LispCode::Real, org::sem::LispCode::Real>::read(::orgproto::LispCode::Real const& out, proto_write_accessor<org::sem::LispCode::Real> in) {
+  in.for_field(&org::sem::LispCode::Real::value).get() = out.value();
+}
+
+void org::algo::proto_serde<::orgproto::LispCode, org::sem::LispCode>::write(::orgproto::LispCode* out, org::sem::LispCode const& in) {
+  switch (in.data.index()) {
+    case 0:
+      proto_serde<orgproto::LispCode::Call, org::sem::LispCode::Call>::write(out->mutable_data()->mutable_call(), std::get<0>(in.data));
+      break;
+    case 1:
+      proto_serde<orgproto::LispCode::List, org::sem::LispCode::List>::write(out->mutable_data()->mutable_list(), std::get<1>(in.data));
+      break;
+    case 2:
+      proto_serde<orgproto::LispCode::KeyValue, org::sem::LispCode::KeyValue>::write(out->mutable_data()->mutable_keyvalue(), std::get<2>(in.data));
+      break;
+    case 3:
+      proto_serde<orgproto::LispCode::Number, org::sem::LispCode::Number>::write(out->mutable_data()->mutable_number(), std::get<3>(in.data));
+      break;
+    case 4:
+      proto_serde<orgproto::LispCode::Text, org::sem::LispCode::Text>::write(out->mutable_data()->mutable_text(), std::get<4>(in.data));
+      break;
+    case 5:
+      proto_serde<orgproto::LispCode::Ident, org::sem::LispCode::Ident>::write(out->mutable_data()->mutable_ident(), std::get<5>(in.data));
+      break;
+    case 6:
+      proto_serde<orgproto::LispCode::Real, org::sem::LispCode::Real>::write(out->mutable_data()->mutable_real(), std::get<6>(in.data));
+      break;
+  }
+}
+
+void org::algo::proto_serde<::orgproto::LispCode, org::sem::LispCode>::read(::orgproto::LispCode const& out, proto_write_accessor<org::sem::LispCode> in) {
+  switch (out.data().kind_case()) {
+    case ::orgproto::LispCode::Data::kCall:
+      proto_serde<orgproto::LispCode::Call, org::sem::LispCode::Call>::read(out.data().call(), in.for_field_variant<0>(&org::sem::LispCode::data));
+      break;
+    case ::orgproto::LispCode::Data::kList:
+      proto_serde<orgproto::LispCode::List, org::sem::LispCode::List>::read(out.data().list(), in.for_field_variant<1>(&org::sem::LispCode::data));
+      break;
+    case ::orgproto::LispCode::Data::kKeyvalue:
+      proto_serde<orgproto::LispCode::KeyValue, org::sem::LispCode::KeyValue>::read(out.data().keyvalue(), in.for_field_variant<2>(&org::sem::LispCode::data));
+      break;
+    case ::orgproto::LispCode::Data::kNumber:
+      proto_serde<orgproto::LispCode::Number, org::sem::LispCode::Number>::read(out.data().number(), in.for_field_variant<3>(&org::sem::LispCode::data));
+      break;
+    case ::orgproto::LispCode::Data::kText:
+      proto_serde<orgproto::LispCode::Text, org::sem::LispCode::Text>::read(out.data().text(), in.for_field_variant<4>(&org::sem::LispCode::data));
+      break;
+    case ::orgproto::LispCode::Data::kIdent:
+      proto_serde<orgproto::LispCode::Ident, org::sem::LispCode::Ident>::read(out.data().ident(), in.for_field_variant<5>(&org::sem::LispCode::data));
+      break;
+    case ::orgproto::LispCode::Data::kReal:
+      proto_serde<orgproto::LispCode::Real, org::sem::LispCode::Real>::read(out.data().real(), in.for_field_variant<6>(&org::sem::LispCode::data));
+      break;
+  }
+}
+
 void org::algo::proto_serde<::orgproto::Tblfm::Expr::AxisRef::Position::Index, org::sem::Tblfm::Expr::AxisRef::Position::Index>::write(::orgproto::Tblfm::Expr::AxisRef::Position::Index* out, org::sem::Tblfm::Expr::AxisRef::Position::Index const& in) {
   out->set_index(in.index);
 }
@@ -217,6 +329,14 @@ void org::algo::proto_serde<::orgproto::AttrValue::FileReference, org::sem::Attr
   proto_serde<std::string, hstd::Str>::read(out.reference(), in.for_field(&org::sem::AttrValue::FileReference::reference));
 }
 
+void org::algo::proto_serde<::orgproto::AttrValue::EvalValue, org::sem::AttrValue::EvalValue>::write(::orgproto::AttrValue::EvalValue* out, org::sem::AttrValue::EvalValue const& in) {
+
+}
+
+void org::algo::proto_serde<::orgproto::AttrValue::EvalValue, org::sem::AttrValue::EvalValue>::read(::orgproto::AttrValue::EvalValue const& out, proto_write_accessor<org::sem::AttrValue::EvalValue> in) {
+
+}
+
 void org::algo::proto_serde<::orgproto::AttrValue, org::sem::AttrValue>::write(::orgproto::AttrValue* out, org::sem::AttrValue const& in) {
   if (in.name) {
     proto_serde<std::string, hstd::Str>::write(out->mutable_name(), *in.name);
@@ -232,6 +352,9 @@ void org::algo::proto_serde<::orgproto::AttrValue, org::sem::AttrValue>::write(:
       break;
     case 1:
       proto_serde<orgproto::AttrValue::FileReference, org::sem::AttrValue::FileReference>::write(out->mutable_data()->mutable_filereference(), std::get<1>(in.data));
+      break;
+    case 2:
+      proto_serde<orgproto::AttrValue::EvalValue, org::sem::AttrValue::EvalValue>::write(out->mutable_data()->mutable_evalvalue(), std::get<2>(in.data));
       break;
   }
 }
@@ -251,6 +374,9 @@ void org::algo::proto_serde<::orgproto::AttrValue, org::sem::AttrValue>::read(::
       break;
     case ::orgproto::AttrValue::DataVariant::kFilereference:
       proto_serde<orgproto::AttrValue::FileReference, org::sem::AttrValue::FileReference>::read(out.data().filereference(), in.for_field_variant<1>(&org::sem::AttrValue::data));
+      break;
+    case ::orgproto::AttrValue::DataVariant::kEvalvalue:
+      proto_serde<orgproto::AttrValue::EvalValue, org::sem::AttrValue::EvalValue>::read(out.data().evalvalue(), in.for_field_variant<2>(&org::sem::AttrValue::data));
       break;
   }
 }
@@ -1622,6 +1748,9 @@ void org::algo::proto_serde<::orgproto::CmdCall, org::sem::CmdCall>::write(::org
   org::algo::proto_serde<::orgproto::CmdCall, org::sem::Stmt>::write(out, in);
   org::algo::proto_serde<::orgproto::CmdCall, org::sem::Org>::write(out, in);
   proto_serde<std::string, hstd::Str>::write(out->mutable_name(), in.name);
+  if (in.fileName) {
+    proto_serde<std::string, hstd::Str>::write(out->mutable_filename(), *in.fileName);
+  }
   proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::write(out->mutable_insideheaderattrs(), in.insideHeaderAttrs);
   proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::write(out->mutable_callattrs(), in.callAttrs);
   proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::write(out->mutable_endheaderattrs(), in.endHeaderAttrs);
@@ -1632,6 +1761,9 @@ void org::algo::proto_serde<::orgproto::CmdCall, org::sem::CmdCall>::read(::orgp
   org::algo::proto_serde<::orgproto::CmdCall, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
   org::algo::proto_serde<::orgproto::CmdCall, org::sem::Org>::read(out, in.as<org::sem::Org>());
   proto_serde<std::string, hstd::Str>::read(out.name(), in.for_field(&org::sem::CmdCall::name));
+  if (out.has_filename()) {
+    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.filename(), in.for_field(&org::sem::CmdCall::fileName));
+  }
   proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::read(out.insideheaderattrs(), in.for_field(&org::sem::CmdCall::insideHeaderAttrs));
   proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::read(out.callattrs(), in.for_field(&org::sem::CmdCall::callAttrs));
   proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::read(out.endheaderattrs(), in.for_field(&org::sem::CmdCall::endHeaderAttrs));

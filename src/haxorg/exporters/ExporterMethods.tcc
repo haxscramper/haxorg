@@ -1,4 +1,13 @@
 /* clang-format off */
+void visit(R& res, org::sem::LispCode::Data const& object);
+void visit(R& res, sem::LispCode const& object);
+void visit(R& res, sem::LispCode::Call const& object);
+void visit(R& res, sem::LispCode::List const& object);
+void visit(R& res, sem::LispCode::KeyValue const& object);
+void visit(R& res, sem::LispCode::Number const& object);
+void visit(R& res, sem::LispCode::Text const& object);
+void visit(R& res, sem::LispCode::Ident const& object);
+void visit(R& res, sem::LispCode::Real const& object);
 void visit(R& res, sem::Tblfm const& object);
 void visit(R& res, org::sem::Tblfm::Expr::Data const& object);
 void visit(R& res, sem::Tblfm::Expr const& object);
@@ -19,6 +28,7 @@ void visit(R& res, sem::AttrValue const& object);
 void visit(R& res, sem::AttrValue::DimensionSpan const& object);
 void visit(R& res, sem::AttrValue::TextValue const& object);
 void visit(R& res, sem::AttrValue::FileReference const& object);
+void visit(R& res, sem::AttrValue::EvalValue const& object);
 void visit(R& res, sem::HashTagFlat const& object);
 void visit(R& res, sem::HashTagText const& object);
 void visit(R& res, sem::SubtreePath const& object);

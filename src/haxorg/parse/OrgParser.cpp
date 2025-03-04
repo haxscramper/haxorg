@@ -1159,11 +1159,15 @@ OrgId OrgParser::parseCommandArguments(OrgLexer& lex) {
         if (lex.at(otk::CmdColonIdent)) {
             start(onk::CmdValue);
             {
+                // `:ident key=value` colon ident can have two values in
+                // parse.
                 token(onk::Word, pop(lex, otk::CmdColonIdent));
                 space(lex);
                 if (lex.at(otk::CmdRawArg)) {
                     token(onk::RawText, pop(lex, otk::CmdRawArg));
+                    space(lex);
                 } else {
+                    empty();
                     empty();
                 }
             }

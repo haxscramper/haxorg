@@ -240,6 +240,7 @@ hstd::Opt<OrgNodeKind> hstd::enum_serde<OrgNodeKind>::from_string(std::string va
   if (value == "CmdFlag") { return OrgNodeKind::CmdFlag; } else
   if (value == "CmdKey") { return OrgNodeKind::CmdKey; } else
   if (value == "CmdValue") { return OrgNodeKind::CmdValue; } else
+  if (value == "CmdLispValue") { return OrgNodeKind::CmdLispValue; } else
   if (value == "CmdNamedValue") { return OrgNodeKind::CmdNamedValue; } else
   if (value == "CmdLatexClass") { return OrgNodeKind::CmdLatexClass; } else
   if (value == "CmdLatexHeader") { return OrgNodeKind::CmdLatexHeader; } else
@@ -366,6 +367,7 @@ std::string hstd::enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     case OrgNodeKind::CmdFlag: return "CmdFlag";
     case OrgNodeKind::CmdKey: return "CmdKey";
     case OrgNodeKind::CmdValue: return "CmdValue";
+    case OrgNodeKind::CmdLispValue: return "CmdLispValue";
     case OrgNodeKind::CmdNamedValue: return "CmdNamedValue";
     case OrgNodeKind::CmdLatexClass: return "CmdLatexClass";
     case OrgNodeKind::CmdLatexHeader: return "CmdLatexHeader";

@@ -76,6 +76,62 @@
         __MAP(kCmdinclude, cmdinclude, CmdInclude)  \
 
 template <>
+struct org::algo::proto_serde<::orgproto::LispCode::Call, org::sem::LispCode::Call> {
+  static void write(::orgproto::LispCode::Call* out, org::sem::LispCode::Call const& in);
+  static void read(::orgproto::LispCode::Call const& out, proto_write_accessor<org::sem::LispCode::Call> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::LispCode::List, org::sem::LispCode::List> {
+  static void write(::orgproto::LispCode::List* out, org::sem::LispCode::List const& in);
+  static void read(::orgproto::LispCode::List const& out, proto_write_accessor<org::sem::LispCode::List> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::LispCode::KeyValue, org::sem::LispCode::KeyValue> {
+  static void write(::orgproto::LispCode::KeyValue* out, org::sem::LispCode::KeyValue const& in);
+  static void read(::orgproto::LispCode::KeyValue const& out, proto_write_accessor<org::sem::LispCode::KeyValue> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::LispCode::Number, org::sem::LispCode::Number> {
+  static void write(::orgproto::LispCode::Number* out, org::sem::LispCode::Number const& in);
+  static void read(::orgproto::LispCode::Number const& out, proto_write_accessor<org::sem::LispCode::Number> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::LispCode::Text, org::sem::LispCode::Text> {
+  static void write(::orgproto::LispCode::Text* out, org::sem::LispCode::Text const& in);
+  static void read(::orgproto::LispCode::Text const& out, proto_write_accessor<org::sem::LispCode::Text> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::LispCode::Ident, org::sem::LispCode::Ident> {
+  static void write(::orgproto::LispCode::Ident* out, org::sem::LispCode::Ident const& in);
+  static void read(::orgproto::LispCode::Ident const& out, proto_write_accessor<org::sem::LispCode::Ident> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::LispCode::Real, org::sem::LispCode::Real> {
+  static void write(::orgproto::LispCode::Real* out, org::sem::LispCode::Real const& in);
+  static void read(::orgproto::LispCode::Real const& out, proto_write_accessor<org::sem::LispCode::Real> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::LispCode, org::sem::LispCode> {
+  static void write(::orgproto::LispCode* out, org::sem::LispCode const& in);
+  static void read(::orgproto::LispCode const& out, proto_write_accessor<org::sem::LispCode> in);
+};
+
+
+template <>
 struct org::algo::proto_serde<::orgproto::Tblfm::Expr::AxisRef::Position::Index, org::sem::Tblfm::Expr::AxisRef::Position::Index> {
   static void write(::orgproto::Tblfm::Expr::AxisRef::Position::Index* out, org::sem::Tblfm::Expr::AxisRef::Position::Index const& in);
   static void read(::orgproto::Tblfm::Expr::AxisRef::Position::Index const& out, proto_write_accessor<org::sem::Tblfm::Expr::AxisRef::Position::Index> in);
@@ -184,6 +240,13 @@ template <>
 struct org::algo::proto_serde<::orgproto::AttrValue::FileReference, org::sem::AttrValue::FileReference> {
   static void write(::orgproto::AttrValue::FileReference* out, org::sem::AttrValue::FileReference const& in);
   static void read(::orgproto::AttrValue::FileReference const& out, proto_write_accessor<org::sem::AttrValue::FileReference> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::AttrValue::EvalValue, org::sem::AttrValue::EvalValue> {
+  static void write(::orgproto::AttrValue::EvalValue* out, org::sem::AttrValue::EvalValue const& in);
+  static void read(::orgproto::AttrValue::EvalValue const& out, proto_write_accessor<org::sem::AttrValue::EvalValue> in);
 };
 
 

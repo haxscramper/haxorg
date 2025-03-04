@@ -1360,52 +1360,88 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
     return [
         org_struct(
             t_nest_shared("LispCode"),
+            methods=[
+                eq_method(t_nest_shared("LispCode")),
+                default_constructor_method("LispCode"),
+            ],
             nested=[
-                GenTuStruct(
-                    org_struct(
-                        t_nest_shared("Call", [t("LispCode")]),
-                        fields=[
-                            str_field("name"),
-                            vec_field(t_nest_shared("LispCode"), "args"),
-                        ],
-                    ),
-                    org_struct(
-                        t_nest_shared("List", [t("LispCode")]),
-                        fields=[
-                            vec_field(t_nest_shared("LispCode"), "items"),
-                        ],
-                    ),
-                    org_struct(
-                        t_nest_shared("KeyValue", [t("LispCode")]),
-                        fields=[
-                            str_field("name"),
-                            org_field(t_nest_shared("LispCode"), "value")
-                        ],
-                    ),
-                    org_struct(
-                        t_nest_shared("Int", [t("LispCode")]),
-                        fields=[
-                            int_field("value"),
-                        ],
-                    ),
-                    org_struct(
-                        t_nest_shared("Str", [t("LispCode")]),
-                        fields=[
-                            str_field("value"),
-                        ],
-                    ),
-                    org_struct(
-                        t_nest_shared("Ident", [t("LispCode")]),
-                        fields=[
-                            str_field("name"),
-                        ],
-                    ),
-                    org_struct(
-                        t_nest_shared("Float", [t("LispCode")]),
-                        fields=[
-                            org_field(t("float"), "value"),
-                        ],
-                    ),
+                GenTuTypeGroup(
+                    [
+                        org_struct(
+                            t_nest_shared("Call", [t("LispCode")]),
+                            fields=[
+                                str_field("name"),
+                                vec_field(t_nest_shared("LispCode"), "args"),
+                            ],
+                            methods=[
+                                eq_method(t_nest_shared("Call", [t("LispCode")])),
+                                default_constructor_method("Call"),
+                            ],
+                        ),
+                        org_struct(
+                            t_nest_shared("List", [t("LispCode")]),
+                            fields=[
+                                vec_field(t_nest_shared("LispCode"), "items"),
+                            ],
+                            methods=[
+                                eq_method(t_nest_shared("List", [t("LispCode")])),
+                                default_constructor_method("List"),
+                            ],
+                        ),
+                        org_struct(
+                            t_nest_shared("KeyValue", [t("LispCode")]),
+                            fields=[
+                                str_field("name"),
+                                vec_field(t_nest_shared("LispCode"), "value")
+                            ],
+                            methods=[
+                                eq_method(t_nest_shared("KeyValue", [t("LispCode")])),
+                                default_constructor_method("KeyValue"),
+                            ],
+                        ),
+                        org_struct(
+                            t_nest_shared("Number", [t("LispCode")]),
+                            fields=[
+                                int_field("value"),
+                            ],
+                            methods=[
+                                eq_method(t_nest_shared("Number", [t("LispCode")])),
+                                default_constructor_method("Number"),
+                            ],
+                        ),
+                        org_struct(
+                            t_nest_shared("Text", [t("LispCode")]),
+                            fields=[
+                                str_field("value"),
+                            ],
+                            methods=[
+                                eq_method(t_nest_shared("Text", [t("LispCode")])),
+                                default_constructor_method("Text"),
+                            ],
+                        ),
+                        org_struct(
+                            t_nest_shared("Ident", [t("LispCode")]),
+                            fields=[
+                                str_field("name"),
+                            ],
+                            methods=[
+                                eq_method(t_nest_shared("Ident", [t("LispCode")])),
+                                default_constructor_method("Ident"),
+                            ],
+                        ),
+                        org_struct(
+                            t_nest_shared("Real", [t("LispCode")]),
+                            fields=[
+                                org_field(t("float"), "value"),
+                            ],
+                            methods=[
+                                eq_method(t_nest_shared("Real", [t("LispCode")])),
+                                default_constructor_method("Real"),
+                            ],
+                        ),
+                    ],
+                    enumName=t_nest_shared("Kind", [t("LispCode")]),
+                    variantName=t_nest_shared("Data", [t("LispCode")]),
                 )
             ],
         ),
@@ -1416,7 +1452,8 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
             ],
             nested=[
                 GenTuStruct(
-                    t_nest_shared("Expr", [t("Tblfm")]),
+                    t_nest_shared("Expr",
+                                  [t("Tblfm")]),
                     nested=[
                         GenTuTypeGroup(
                             [
@@ -1600,7 +1637,13 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                                                         [t("AttrValue")])),
                             ],
                         ),
-                        org_struct(t_nest_shared("EvalValue", [t("AttrValue")])),
+                        org_struct(
+                            t_nest_shared("EvalValue", [t("AttrValue")]),
+                            methods=[
+                                eq_method(t_nest_shared("EvalValue", [t("AttrValue")])),
+                                default_constructor_method("EvalValue"),
+                            ],
+                        ),
                     ],
                     kindGetter="getDataKind",
                     enumName=t_nest_shared("DataKind", [t("AttrValue")]),
@@ -3210,6 +3253,7 @@ def get_org_node_kind_commands():
         ),
         efield("CmdKey"),
         efield("CmdValue"),
+        efield("CmdLispValue", "Value portion of the command value"),
         efield("CmdNamedValue", "Key-value pair for source code block call."),
         efield("CmdLatexClass"),
         efield("CmdLatexHeader"),

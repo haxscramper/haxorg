@@ -7,6 +7,8 @@
 #include "pyhaxorg_manual_impl.hpp"
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::Org>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::Org>>)
+PYBIND11_MAKE_OPAQUE(std::vector<org::sem::LispCode>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::LispCode>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::Tblfm::Expr>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::Tblfm::Expr>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::Tblfm::Assign::Flag>)
@@ -85,6 +87,7 @@ PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::SequenceSegmentGroup>)
 PYBIND11_MODULE(pyhaxorg, m) {
   org::bind::python::PyTypeRegistryGuard type_registry_guard{};
   bind_vector<org::sem::SemId<org::sem::Org>>(m, "VecOfSemIdOfOrg", type_registry_guard);
+  bind_vector<org::sem::LispCode>(m, "VecOfLispCode", type_registry_guard);
   bind_vector<org::sem::Tblfm::Expr>(m, "VecOfTblfmExpr", type_registry_guard);
   bind_vector<org::sem::Tblfm::Assign::Flag>(m, "VecOfTblfmAssignFlag", type_registry_guard);
   bind_vector<org::sem::Tblfm::Assign>(m, "VecOfTblfmAssign", type_registry_guard);
@@ -170,6 +173,196 @@ node can have subnodes.)RAW")
                      })
     .def("__getattr__",
          [](org::parse::LineCol _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::sem::LispCode::Call>(m, "LispCodeCall")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::LispCode::Call {
+                        org::sem::LispCode::Call result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("name", &org::sem::LispCode::Call::name)
+    .def_readwrite("args", &org::sem::LispCode::Call::args)
+    .def("operator==",
+         static_cast<bool(org::sem::LispCode::Call::*)(org::sem::LispCode::Call const&) const>(&org::sem::LispCode::Call::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::sem::LispCode::Call _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::LispCode::Call _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::sem::LispCode::List>(m, "LispCodeList")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::LispCode::List {
+                        org::sem::LispCode::List result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("items", &org::sem::LispCode::List::items)
+    .def("operator==",
+         static_cast<bool(org::sem::LispCode::List::*)(org::sem::LispCode::List const&) const>(&org::sem::LispCode::List::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::sem::LispCode::List _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::LispCode::List _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::sem::LispCode::KeyValue>(m, "LispCodeKeyValue")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::LispCode::KeyValue {
+                        org::sem::LispCode::KeyValue result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("name", &org::sem::LispCode::KeyValue::name)
+    .def_readwrite("value", &org::sem::LispCode::KeyValue::value)
+    .def("operator==",
+         static_cast<bool(org::sem::LispCode::KeyValue::*)(org::sem::LispCode::KeyValue const&) const>(&org::sem::LispCode::KeyValue::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::sem::LispCode::KeyValue _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::LispCode::KeyValue _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::sem::LispCode::Number>(m, "LispCodeNumber")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::LispCode::Number {
+                        org::sem::LispCode::Number result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("value", &org::sem::LispCode::Number::value)
+    .def("operator==",
+         static_cast<bool(org::sem::LispCode::Number::*)(org::sem::LispCode::Number const&) const>(&org::sem::LispCode::Number::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::sem::LispCode::Number _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::LispCode::Number _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::sem::LispCode::Text>(m, "LispCodeText")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::LispCode::Text {
+                        org::sem::LispCode::Text result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("value", &org::sem::LispCode::Text::value)
+    .def("operator==",
+         static_cast<bool(org::sem::LispCode::Text::*)(org::sem::LispCode::Text const&) const>(&org::sem::LispCode::Text::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::sem::LispCode::Text _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::LispCode::Text _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::sem::LispCode::Ident>(m, "LispCodeIdent")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::LispCode::Ident {
+                        org::sem::LispCode::Ident result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("name", &org::sem::LispCode::Ident::name)
+    .def("operator==",
+         static_cast<bool(org::sem::LispCode::Ident::*)(org::sem::LispCode::Ident const&) const>(&org::sem::LispCode::Ident::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::sem::LispCode::Ident _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::LispCode::Ident _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::sem::LispCode::Real>(m, "LispCodeReal")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::LispCode::Real {
+                        org::sem::LispCode::Real result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("value", &org::sem::LispCode::Real::value)
+    .def("operator==",
+         static_cast<bool(org::sem::LispCode::Real::*)(org::sem::LispCode::Real const&) const>(&org::sem::LispCode::Real::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::sem::LispCode::Real _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::LispCode::Real _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  bind_enum_iterator<org::sem::LispCode::Kind>(m, "LispCodeKind", type_registry_guard);
+  pybind11::enum_<org::sem::LispCode::Kind>(m, "LispCodeKind")
+    .value("Call", org::sem::LispCode::Kind::Call)
+    .value("List", org::sem::LispCode::Kind::List)
+    .value("KeyValue", org::sem::LispCode::Kind::KeyValue)
+    .value("Number", org::sem::LispCode::Kind::Number)
+    .value("Text", org::sem::LispCode::Kind::Text)
+    .value("Ident", org::sem::LispCode::Kind::Ident)
+    .value("Real", org::sem::LispCode::Kind::Real)
+    .def("__iter__", [](org::sem::LispCode::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::LispCode::Kind> {
+                     return
+                     org::bind::python::PyEnumIterator<org::sem::LispCode::Kind>
+                     ();
+                     })
+    ;
+  pybind11::class_<org::sem::LispCode>(m, "LispCode")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::LispCode {
+                        org::sem::LispCode result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("data", &org::sem::LispCode::data)
+    .def("operator==",
+         static_cast<bool(org::sem::LispCode::*)(org::sem::LispCode const&) const>(&org::sem::LispCode::operator==),
+         pybind11::arg("other"))
+    .def("isCall", static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isCall))
+    .def("getCall", static_cast<org::sem::LispCode::Call&(org::sem::LispCode::*)()>(&org::sem::LispCode::getCall))
+    .def("isList", static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isList))
+    .def("getList", static_cast<org::sem::LispCode::List&(org::sem::LispCode::*)()>(&org::sem::LispCode::getList))
+    .def("isKeyValue", static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isKeyValue))
+    .def("getKeyValue", static_cast<org::sem::LispCode::KeyValue&(org::sem::LispCode::*)()>(&org::sem::LispCode::getKeyValue))
+    .def("isNumber", static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isNumber))
+    .def("getNumber", static_cast<org::sem::LispCode::Number&(org::sem::LispCode::*)()>(&org::sem::LispCode::getNumber))
+    .def("isText", static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isText))
+    .def("getText", static_cast<org::sem::LispCode::Text&(org::sem::LispCode::*)()>(&org::sem::LispCode::getText))
+    .def("isIdent", static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isIdent))
+    .def("getIdent", static_cast<org::sem::LispCode::Ident&(org::sem::LispCode::*)()>(&org::sem::LispCode::getIdent))
+    .def("isReal", static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isReal))
+    .def("getReal", static_cast<org::sem::LispCode::Real&(org::sem::LispCode::*)()>(&org::sem::LispCode::getReal))
+    .def_static("getKindStatic",
+                static_cast<org::sem::LispCode::Kind(*)(org::sem::LispCode::Data const&)>(&org::sem::LispCode::getKind),
+                pybind11::arg("__input"))
+    .def("getKind", static_cast<org::sem::LispCode::Kind(org::sem::LispCode::*)() const>(&org::sem::LispCode::getKind))
+    .def("sub_variant_get_name", static_cast<char const*(org::sem::LispCode::*)() const>(&org::sem::LispCode::sub_variant_get_name))
+    .def("sub_variant_get_data", static_cast<org::sem::LispCode::Data const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::sub_variant_get_data))
+    .def("sub_variant_get_kind", static_cast<org::sem::LispCode::Kind(org::sem::LispCode::*)() const>(&org::sem::LispCode::sub_variant_get_kind))
+    .def("__repr__", [](org::sem::LispCode _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::LispCode _self, std::string name) -> pybind11::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -578,10 +771,29 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<org::sem::AttrValue::EvalValue>(m, "AttrValueEvalValue")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::AttrValue::EvalValue {
+                        org::sem::AttrValue::EvalValue result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def("operator==",
+         static_cast<bool(org::sem::AttrValue::EvalValue::*)(org::sem::AttrValue::EvalValue const&) const>(&org::sem::AttrValue::EvalValue::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::sem::AttrValue::EvalValue _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::AttrValue::EvalValue _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   bind_enum_iterator<org::sem::AttrValue::DataKind>(m, "AttrValueDataKind", type_registry_guard);
   pybind11::enum_<org::sem::AttrValue::DataKind>(m, "AttrValueDataKind")
     .value("TextValue", org::sem::AttrValue::DataKind::TextValue)
     .value("FileReference", org::sem::AttrValue::DataKind::FileReference)
+    .value("EvalValue", org::sem::AttrValue::DataKind::EvalValue)
     .def("__iter__", [](org::sem::AttrValue::DataKind _self) -> org::bind::python::PyEnumIterator<org::sem::AttrValue::DataKind> {
                      return
                      org::bind::python::PyEnumIterator<org::sem::AttrValue::DataKind>
@@ -612,6 +824,8 @@ node can have subnodes.)RAW")
     .def("getTextValue", static_cast<org::sem::AttrValue::TextValue&(org::sem::AttrValue::*)()>(&org::sem::AttrValue::getTextValue))
     .def("isFileReference", static_cast<bool(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::isFileReference))
     .def("getFileReference", static_cast<org::sem::AttrValue::FileReference&(org::sem::AttrValue::*)()>(&org::sem::AttrValue::getFileReference))
+    .def("isEvalValue", static_cast<bool(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::isEvalValue))
+    .def("getEvalValue", static_cast<org::sem::AttrValue::EvalValue&(org::sem::AttrValue::*)()>(&org::sem::AttrValue::getEvalValue))
     .def_static("getDataKindStatic",
                 static_cast<org::sem::AttrValue::DataKind(*)(org::sem::AttrValue::DataVariant const&)>(&org::sem::AttrValue::getDataKind),
                 pybind11::arg("__input"))
@@ -3063,6 +3277,7 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("name", &org::sem::CmdCall::name, R"RAW(Code block call name)RAW")
+    .def_readwrite("fileName", &org::sem::CmdCall::fileName, R"RAW(Which file code block should come from)RAW")
     .def_readwrite("insideHeaderAttrs", &org::sem::CmdCall::insideHeaderAttrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("callAttrs", &org::sem::CmdCall::callAttrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("endHeaderAttrs", &org::sem::CmdCall::endHeaderAttrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
@@ -5098,6 +5313,7 @@ node can have subnodes.)RAW")
     .value("CmdFlag", OrgNodeKind::CmdFlag, R"RAW(Flag for source code block. For example `-n`, which is used to to make source code block export with lines)RAW")
     .value("CmdKey", OrgNodeKind::CmdKey)
     .value("CmdValue", OrgNodeKind::CmdValue)
+    .value("CmdLispValue", OrgNodeKind::CmdLispValue, R"RAW(Value portion of the command value)RAW")
     .value("CmdNamedValue", OrgNodeKind::CmdNamedValue, R"RAW(Key-value pair for source code block call.)RAW")
     .value("CmdLatexClass", OrgNodeKind::CmdLatexClass)
     .value("CmdLatexHeader", OrgNodeKind::CmdLatexHeader)

@@ -234,6 +234,7 @@ struct ImmSemSerde<org::sem::CmdCall, org::imm::ImmCmdCall> {
   static org::imm::ImmCmdCall to_immer(org::sem::CmdCall const& value, ImmAstEditContext& ctx) {
     org::imm::ImmCmdCall result = hstd::SerdeDefaultProvider<org::imm::ImmCmdCall>::get();
     assign_immer_field(result.name, value.name, ctx);
+    assign_immer_field(result.fileName, value.fileName, ctx);
     assign_immer_field(result.insideHeaderAttrs, value.insideHeaderAttrs, ctx);
     assign_immer_field(result.callAttrs, value.callAttrs, ctx);
     assign_immer_field(result.endHeaderAttrs, value.endHeaderAttrs, ctx);
@@ -246,6 +247,7 @@ struct ImmSemSerde<org::sem::CmdCall, org::imm::ImmCmdCall> {
   static org::sem::CmdCall from_immer(org::imm::ImmCmdCall const& value, ImmAstContext const& ctx) {
     org::sem::CmdCall result = hstd::SerdeDefaultProvider<org::sem::CmdCall>::get();
     assign_sem_field(result.name, value.name, ctx);
+    assign_sem_field(result.fileName, value.fileName, ctx);
     assign_sem_field(result.insideHeaderAttrs, value.insideHeaderAttrs, ctx);
     assign_sem_field(result.callAttrs, value.callAttrs, ctx);
     assign_sem_field(result.endHeaderAttrs, value.endHeaderAttrs, ctx);

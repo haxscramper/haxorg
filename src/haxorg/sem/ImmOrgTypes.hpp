@@ -292,12 +292,15 @@ struct ImmCmdCall : public org::imm::ImmAttached {
                        (),
                        (staticKind,
                         name,
+                        fileName,
                         insideHeaderAttrs,
                         callAttrs,
                         endHeaderAttrs))
   static OrgSemKind const staticKind;
   /// \brief Code block call name
   hstd::ext::ImmBox<hstd::Str> name = "";
+  /// \brief Which file code block should come from
+  hstd::ext::ImmBox<hstd::Opt<hstd::Str>> fileName = std::nullopt;
   /// \brief Additional parameters aside from 'exporter',
   org::sem::AttrGroup insideHeaderAttrs;
   /// \brief Additional parameters aside from 'exporter',
