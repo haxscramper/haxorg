@@ -121,7 +121,7 @@ void visitCmdName(R& res, In<sem::CmdName> object);
 void visitCmdCustomArgs(R& res, In<sem::CmdCustomArgs> object);
 void visitCmdCustomRaw(R& res, In<sem::CmdCustomRaw> object);
 void visitCmdCustomText(R& res, In<sem::CmdCustomText> object);
-void visitCmdResults(R& res, In<sem::CmdResults> object);
+void visitCmdCall(R& res, In<sem::CmdCall> object);
 void visitCmdTblfm(R& res, In<sem::CmdTblfm> object);
 void visitHashTag(R& res, In<sem::HashTag> object);
 void visitInlineFootnote(R& res, In<sem::InlineFootnote> object);

@@ -739,9 +739,28 @@ def get_sem_commands():
             ],
         ),
         d_org(
-            "CmdResults",
+            "CmdCall",
             GenTuDoc(""),
             bases=[t_nest(t_org("Attached"))],
+            fields=[
+                str_field("name", "Code block call name"),
+                opt_field(t_str(), "fileName", "Which file code block should come from"),
+                org_field(
+                    t_nest_shared("AttrGroup"),
+                    "insideHeaderAttrs",
+                    GenTuDoc("Additional parameters aside from 'exporter',"),
+                ),
+                org_field(
+                    t_nest_shared("AttrGroup"),
+                    "callAttrs",
+                    GenTuDoc("Additional parameters aside from 'exporter',"),
+                ),
+                org_field(
+                    t_nest_shared("AttrGroup"),
+                    "endHeaderAttrs",
+                    GenTuDoc("Additional parameters aside from 'exporter',"),
+                ),
+            ],
         ),
         d_org("CmdTblfm",
               GenTuDoc("Tblfm command type"),
@@ -805,7 +824,7 @@ def get_sem_block():
               org_doc("Parsed results of code block evaluation"),
               bases=[t_nest(t_org("Block"))],
               fields=[
-                  org_field(t_nest_shared("OrgCodeEvalOutput"), "raw"),
+                  org_field(t_vec(t_nest_shared("OrgCodeEvalOutput")), "raw"),
                   id_field("Org", "node"),
               ]),
         d_org(
@@ -1339,6 +1358,57 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
     )
 
     return [
+        org_struct(
+            t_nest_shared("LispCode"),
+            nested=[
+                GenTuStruct(
+                    org_struct(
+                        t_nest_shared("Call", [t("LispCode")]),
+                        fields=[
+                            str_field("name"),
+                            vec_field(t_nest_shared("LispCode"), "args"),
+                        ],
+                    ),
+                    org_struct(
+                        t_nest_shared("List", [t("LispCode")]),
+                        fields=[
+                            vec_field(t_nest_shared("LispCode"), "items"),
+                        ],
+                    ),
+                    org_struct(
+                        t_nest_shared("KeyValue", [t("LispCode")]),
+                        fields=[
+                            str_field("name"),
+                            org_field(t_nest_shared("LispCode"), "value")
+                        ],
+                    ),
+                    org_struct(
+                        t_nest_shared("Int", [t("LispCode")]),
+                        fields=[
+                            int_field("value"),
+                        ],
+                    ),
+                    org_struct(
+                        t_nest_shared("Str", [t("LispCode")]),
+                        fields=[
+                            str_field("value"),
+                        ],
+                    ),
+                    org_struct(
+                        t_nest_shared("Ident", [t("LispCode")]),
+                        fields=[
+                            str_field("name"),
+                        ],
+                    ),
+                    org_struct(
+                        t_nest_shared("Float", [t("LispCode")]),
+                        fields=[
+                            org_field(t("float"), "value"),
+                        ],
+                    ),
+                )
+            ],
+        ),
         GenTuStruct(
             t_nest_shared("Tblfm"),
             fields=[
@@ -1530,6 +1600,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                                                         [t("AttrValue")])),
                             ],
                         ),
+                        org_struct(t_nest_shared("EvalValue", [t("AttrValue")])),
                     ],
                     kindGetter="getDataKind",
                     enumName=t_nest_shared("DataKind", [t("AttrValue")]),
@@ -2087,15 +2158,24 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 ),
             ],
         ),
-        org_struct(t_nest_shared("OrgCodeEvalOutput"),
-                   fields=[
-                       str_field("stdout"),
-                       str_field("stderr"),
-                       int_field("code"),
-                   ],
-                   methods=[
-                       eq_method(t_nest_shared("OrgCodeEvalOutput")),
-                   ]),
+        org_struct(
+            t_nest_shared("OrgCodeEvalOutput"),
+            doc="Single command/subprocess executed to evaluate org babel code entry",
+            fields=[
+                str_field("stdout"),
+                str_field("stderr"),
+                int_field("code"),
+                opt_field(
+                    t_str(), "cmd",
+                    "Command evaluated, if none then eval output did not run CLI subprocess"
+                ),
+                vec_field(t_str(), "args",
+                          "Command line arguments provided for execution"),
+                str_field("cwd", "Working directory where command was executed"),
+            ],
+            methods=[
+                eq_method(t_nest_shared("OrgCodeEvalOutput")),
+            ]),
         GenTuStruct(
             t_nest_shared("ColumnView"),
             methods=[eq_method(t_nest_shared("ColumnView"))],

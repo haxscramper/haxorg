@@ -224,8 +224,9 @@ org::sem::SemId<sem::Org> org::bind::python::evaluateCodeBlocks(
     OrgCodeEvalParameters eval_conf{conf.debug};
 
     eval_conf.evalBlock = [&](org::sem::OrgCodeEvalInput const& input)
-        -> org::sem::OrgCodeEvalOutput {
-        return conf.evalBlock(input).cast<org::sem::OrgCodeEvalOutput>();
+        -> Vec<org::sem::OrgCodeEvalOutput> {
+        return conf.evalBlock(input)
+            .cast<Vec<org::sem::OrgCodeEvalOutput>>();
     };
 
     return org::evaluateCodeBlocks(node, eval_conf);

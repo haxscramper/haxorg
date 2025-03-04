@@ -239,6 +239,7 @@ Opt<ImmAstReplace> setNewSubnodes(
                         [&](sem::AttrValue const&) { fail_field(); },
                         [&](sem::SubtreeLogHead const&) { fail_field(); },
                         [&](sem::OrgCodeEvalOutput const&) { fail_field(); },
+                        [&](Vec<sem::OrgCodeEvalOutput> const&) { fail_field(); },
                         // clang-format on
                         [&]<typename FK>(
                             ImmBox<hstd::Opt<org::imm::ImmIdT<FK>>> const&

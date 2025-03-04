@@ -283,17 +283,29 @@ struct ImmCmdCustomText : public org::imm::ImmStmt {
   bool operator==(org::imm::ImmCmdCustomText const& other) const;
 };
 
-struct ImmCmdResults : public org::imm::ImmAttached {
+struct ImmCmdCall : public org::imm::ImmAttached {
   using ImmAttached::ImmAttached;
-  virtual ~ImmCmdResults() = default;
-  BOOST_DESCRIBE_CLASS(ImmCmdResults,
+  virtual ~ImmCmdCall() = default;
+  BOOST_DESCRIBE_CLASS(ImmCmdCall,
                        (ImmAttached),
                        (),
                        (),
-                       (staticKind))
+                       (staticKind,
+                        name,
+                        insideHeaderAttrs,
+                        callAttrs,
+                        endHeaderAttrs))
   static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::CmdResults; }
-  bool operator==(org::imm::ImmCmdResults const& other) const;
+  /// \brief Code block call name
+  hstd::ext::ImmBox<hstd::Str> name = "";
+  /// \brief Additional parameters aside from 'exporter',
+  org::sem::AttrGroup insideHeaderAttrs;
+  /// \brief Additional parameters aside from 'exporter',
+  org::sem::AttrGroup callAttrs;
+  /// \brief Additional parameters aside from 'exporter',
+  org::sem::AttrGroup endHeaderAttrs;
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdCall; }
+  bool operator==(org::imm::ImmCmdCall const& other) const;
 };
 
 /// \brief Tblfm command type
@@ -958,7 +970,7 @@ struct ImmBlockCodeEvalResult : public org::imm::ImmBlock {
                         raw,
                         node))
   static OrgSemKind const staticKind;
-  org::sem::OrgCodeEvalOutput raw;
+  hstd::ext::ImmVec<org::sem::OrgCodeEvalOutput> raw;
   org::imm::ImmIdT<org::imm::ImmOrg> node = org::imm::ImmIdT<org::imm::ImmOrg>::Nil();
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockCodeEvalResult; }
   bool operator==(org::imm::ImmBlockCodeEvalResult const& other) const;

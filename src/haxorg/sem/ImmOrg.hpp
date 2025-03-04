@@ -1169,6 +1169,7 @@ struct ImmAdapterCmdCaptionAPI : ImmAdapterAttachedAPI {
 };
 struct ImmAdapterCmdColumnsAPI : ImmAdapterAttachedAPI {};
 struct ImmAdapterCmdNameAPI : ImmAdapterAttachedAPI {};
+struct ImmAdapterCmdCallAPI : ImmAdapterAttachedAPI {};
 struct ImmAdapterCmdCustomArgsAPI : ImmAdapterCmdAPI {};
 struct ImmAdapterCmdCustomRawAPI : ImmAdapterStmtAPI {};
 struct ImmAdapterCmdCustomTextAPI : ImmAdapterStmtAPI {};

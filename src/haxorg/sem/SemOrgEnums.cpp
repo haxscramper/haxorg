@@ -484,7 +484,7 @@ hstd::Opt<OrgSemKind> hstd::enum_serde<OrgSemKind>::from_string(std::string valu
   if (value == "CmdCustomArgs") { return OrgSemKind::CmdCustomArgs; } else
   if (value == "CmdCustomRaw") { return OrgSemKind::CmdCustomRaw; } else
   if (value == "CmdCustomText") { return OrgSemKind::CmdCustomText; } else
-  if (value == "CmdResults") { return OrgSemKind::CmdResults; } else
+  if (value == "CmdCall") { return OrgSemKind::CmdCall; } else
   if (value == "CmdTblfm") { return OrgSemKind::CmdTblfm; } else
   if (value == "HashTag") { return OrgSemKind::HashTag; } else
   if (value == "InlineFootnote") { return OrgSemKind::InlineFootnote; } else
@@ -560,7 +560,7 @@ std::string hstd::enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::CmdCustomArgs: return "CmdCustomArgs";
     case OrgSemKind::CmdCustomRaw: return "CmdCustomRaw";
     case OrgSemKind::CmdCustomText: return "CmdCustomText";
-    case OrgSemKind::CmdResults: return "CmdResults";
+    case OrgSemKind::CmdCall: return "CmdCall";
     case OrgSemKind::CmdTblfm: return "CmdTblfm";
     case OrgSemKind::HashTag: return "HashTag";
     case OrgSemKind::InlineFootnote: return "InlineFootnote";

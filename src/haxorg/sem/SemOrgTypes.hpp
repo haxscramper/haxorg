@@ -797,15 +797,27 @@ struct OrgCodeEvalInput {
   bool operator==(org::sem::OrgCodeEvalInput const& other) const;
 };
 
+/// \brief Single command/subprocess executed to evaluate org babel code entry
 struct OrgCodeEvalOutput {
   BOOST_DESCRIBE_CLASS(OrgCodeEvalOutput,
                        (),
                        (),
                        (),
-                       (stdout, stderr, code))
+                       (stdout,
+                        stderr,
+                        code,
+                        cmd,
+                        args,
+                        cwd))
   hstd::Str stdout = "";
   hstd::Str stderr = "";
   int code;
+  /// \brief Command evaluated, if none then eval output did not run CLI subprocess
+  hstd::Opt<hstd::Str> cmd = std::nullopt;
+  /// \brief Command line arguments provided for execution
+  hstd::Vec<hstd::Str> args = {};
+  /// \brief Working directory where command was executed
+  hstd::Str cwd = "";
   bool operator==(org::sem::OrgCodeEvalOutput const& other) const;
 };
 
@@ -1853,16 +1865,24 @@ struct CmdCustomText : public org::sem::Stmt {
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdCustomText; }
 };
 
-struct CmdResults : public org::sem::Attached {
+struct CmdCall : public org::sem::Attached {
   using Attached::Attached;
-  virtual ~CmdResults() = default;
-  BOOST_DESCRIBE_CLASS(CmdResults,
+  virtual ~CmdCall() = default;
+  BOOST_DESCRIBE_CLASS(CmdCall,
                        (Attached),
                        (),
                        (),
-                       (staticKind))
+                       (staticKind, name, insideHeaderAttrs, callAttrs, endHeaderAttrs))
   static OrgSemKind const staticKind;
-  virtual OrgSemKind getKind() const { return OrgSemKind::CmdResults; }
+  /// \brief Code block call name
+  hstd::Str name = "";
+  /// \brief Additional parameters aside from 'exporter',
+  org::sem::AttrGroup insideHeaderAttrs;
+  /// \brief Additional parameters aside from 'exporter',
+  org::sem::AttrGroup callAttrs;
+  /// \brief Additional parameters aside from 'exporter',
+  org::sem::AttrGroup endHeaderAttrs;
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdCall; }
 };
 
 /// \brief Tblfm command type
@@ -2455,7 +2475,7 @@ struct BlockCodeEvalResult : public org::sem::Block {
                        (),
                        (staticKind, raw, node))
   static OrgSemKind const staticKind;
-  org::sem::OrgCodeEvalOutput raw;
+  hstd::Vec<org::sem::OrgCodeEvalOutput> raw;
   org::sem::SemId<org::sem::Org> node = sem::SemId<sem::Org>::Nil();
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockCodeEvalResult; }
 };

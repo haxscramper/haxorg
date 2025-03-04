@@ -675,12 +675,22 @@ void org::algo::proto_serde<::orgproto::OrgCodeEvalOutput, org::sem::OrgCodeEval
   proto_serde<std::string, hstd::Str>::write(out->mutable_stdout(), in.stdout);
   proto_serde<std::string, hstd::Str>::write(out->mutable_stderr(), in.stderr);
   out->set_code(in.code);
+  if (in.cmd) {
+    proto_serde<std::string, hstd::Str>::write(out->mutable_cmd(), *in.cmd);
+  }
+  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, hstd::Vec<hstd::Str>>::write(out->mutable_args(), in.args);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_cwd(), in.cwd);
 }
 
 void org::algo::proto_serde<::orgproto::OrgCodeEvalOutput, org::sem::OrgCodeEvalOutput>::read(::orgproto::OrgCodeEvalOutput const& out, proto_write_accessor<org::sem::OrgCodeEvalOutput> in) {
   proto_serde<std::string, hstd::Str>::read(out.stdout(), in.for_field(&org::sem::OrgCodeEvalOutput::stdout));
   proto_serde<std::string, hstd::Str>::read(out.stderr(), in.for_field(&org::sem::OrgCodeEvalOutput::stderr));
   in.for_field(&org::sem::OrgCodeEvalOutput::code).get() = out.code();
+  if (out.has_cmd()) {
+    proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.cmd(), in.for_field(&org::sem::OrgCodeEvalOutput::cmd));
+  }
+  proto_serde<::google::protobuf::RepeatedPtrField<std::string>, hstd::Vec<hstd::Str>>::read(out.args(), in.for_field(&org::sem::OrgCodeEvalOutput::args));
+  proto_serde<std::string, hstd::Str>::read(out.cwd(), in.for_field(&org::sem::OrgCodeEvalOutput::cwd));
 }
 
 void org::algo::proto_serde<::orgproto::ColumnView::Summary::CheckboxAggregate, org::sem::ColumnView::Summary::CheckboxAggregate>::write(::orgproto::ColumnView::Summary::CheckboxAggregate* out, org::sem::ColumnView::Summary::CheckboxAggregate const& in) {
@@ -1607,16 +1617,24 @@ void org::algo::proto_serde<::orgproto::CmdCustomText, org::sem::CmdCustomText>:
   proto_serde<orgproto::Paragraph, org::sem::SemId<org::sem::Paragraph>>::read(out.text(), in.for_field(&org::sem::CmdCustomText::text));
 }
 
-void org::algo::proto_serde<::orgproto::CmdResults, org::sem::CmdResults>::write(::orgproto::CmdResults* out, org::sem::CmdResults const& in) {
-  org::algo::proto_serde<::orgproto::CmdResults, org::sem::Cmd>::write(out, in);
-  org::algo::proto_serde<::orgproto::CmdResults, org::sem::Stmt>::write(out, in);
-  org::algo::proto_serde<::orgproto::CmdResults, org::sem::Org>::write(out, in);
+void org::algo::proto_serde<::orgproto::CmdCall, org::sem::CmdCall>::write(::orgproto::CmdCall* out, org::sem::CmdCall const& in) {
+  org::algo::proto_serde<::orgproto::CmdCall, org::sem::Cmd>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdCall, org::sem::Stmt>::write(out, in);
+  org::algo::proto_serde<::orgproto::CmdCall, org::sem::Org>::write(out, in);
+  proto_serde<std::string, hstd::Str>::write(out->mutable_name(), in.name);
+  proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::write(out->mutable_insideheaderattrs(), in.insideHeaderAttrs);
+  proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::write(out->mutable_callattrs(), in.callAttrs);
+  proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::write(out->mutable_endheaderattrs(), in.endHeaderAttrs);
 }
 
-void org::algo::proto_serde<::orgproto::CmdResults, org::sem::CmdResults>::read(::orgproto::CmdResults const& out, proto_write_accessor<org::sem::CmdResults> in) {
-  org::algo::proto_serde<::orgproto::CmdResults, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
-  org::algo::proto_serde<::orgproto::CmdResults, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
-  org::algo::proto_serde<::orgproto::CmdResults, org::sem::Org>::read(out, in.as<org::sem::Org>());
+void org::algo::proto_serde<::orgproto::CmdCall, org::sem::CmdCall>::read(::orgproto::CmdCall const& out, proto_write_accessor<org::sem::CmdCall> in) {
+  org::algo::proto_serde<::orgproto::CmdCall, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
+  org::algo::proto_serde<::orgproto::CmdCall, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
+  org::algo::proto_serde<::orgproto::CmdCall, org::sem::Org>::read(out, in.as<org::sem::Org>());
+  proto_serde<std::string, hstd::Str>::read(out.name(), in.for_field(&org::sem::CmdCall::name));
+  proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::read(out.insideheaderattrs(), in.for_field(&org::sem::CmdCall::insideHeaderAttrs));
+  proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::read(out.callattrs(), in.for_field(&org::sem::CmdCall::callAttrs));
+  proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::read(out.endheaderattrs(), in.for_field(&org::sem::CmdCall::endHeaderAttrs));
 }
 
 void org::algo::proto_serde<::orgproto::CmdTblfm, org::sem::CmdTblfm>::write(::orgproto::CmdTblfm* out, org::sem::CmdTblfm const& in) {
@@ -2091,7 +2109,7 @@ void org::algo::proto_serde<::orgproto::BlockCodeEvalResult, org::sem::BlockCode
   org::algo::proto_serde<::orgproto::BlockCodeEvalResult, org::sem::Cmd>::write(out, in);
   org::algo::proto_serde<::orgproto::BlockCodeEvalResult, org::sem::Stmt>::write(out, in);
   org::algo::proto_serde<::orgproto::BlockCodeEvalResult, org::sem::Org>::write(out, in);
-  proto_serde<orgproto::OrgCodeEvalOutput, org::sem::OrgCodeEvalOutput>::write(out->mutable_raw(), in.raw);
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::OrgCodeEvalOutput>, hstd::Vec<org::sem::OrgCodeEvalOutput>>::write(out->mutable_raw(), in.raw);
   if (!in.node.isNil()) {
     proto_serde<orgproto::AnyNode, org::sem::SemId<org::sem::Org>>::write(out->mutable_node(), in.node);
   }
@@ -2101,7 +2119,7 @@ void org::algo::proto_serde<::orgproto::BlockCodeEvalResult, org::sem::BlockCode
   org::algo::proto_serde<::orgproto::BlockCodeEvalResult, org::sem::Cmd>::read(out, in.as<org::sem::Cmd>());
   org::algo::proto_serde<::orgproto::BlockCodeEvalResult, org::sem::Stmt>::read(out, in.as<org::sem::Stmt>());
   org::algo::proto_serde<::orgproto::BlockCodeEvalResult, org::sem::Org>::read(out, in.as<org::sem::Org>());
-  proto_serde<orgproto::OrgCodeEvalOutput, org::sem::OrgCodeEvalOutput>::read(out.raw(), in.for_field(&org::sem::BlockCodeEvalResult::raw));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::OrgCodeEvalOutput>, hstd::Vec<org::sem::OrgCodeEvalOutput>>::read(out.raw(), in.for_field(&org::sem::BlockCodeEvalResult::raw));
   proto_serde<orgproto::AnyNode, org::sem::SemId<org::sem::Org>>::read(out.node(), in.for_field(&org::sem::BlockCodeEvalResult::node));
 }
 

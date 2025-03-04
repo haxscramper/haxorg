@@ -230,6 +230,9 @@ void Exporter<V, R>::visit(R& res, sem::OrgCodeEvalOutput const& object) {
   __obj_field(res, object, stdout);
   __obj_field(res, object, stderr);
   __obj_field(res, object, code);
+  __obj_field(res, object, cmd);
+  __obj_field(res, object, args);
+  __obj_field(res, object, cwd);
 }
 
 template <typename V, typename R>
@@ -610,8 +613,12 @@ void Exporter<V, R>::visitCmdCustomText(R& res, In<sem::CmdCustomText> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visitCmdResults(R& res, In<sem::CmdResults> object) {
+void Exporter<V, R>::visitCmdCall(R& res, In<sem::CmdCall> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
+  __org_field(res, object, name);
+  __org_field(res, object, insideHeaderAttrs);
+  __org_field(res, object, callAttrs);
+  __org_field(res, object, endHeaderAttrs);
   __org_field(res, object, attrs);
   __org_field(res, object, attached);
   __org_field(res, object, subnodes);

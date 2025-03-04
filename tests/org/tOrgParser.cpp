@@ -1068,3 +1068,15 @@ TEST(OrgParseSem, CodeBlockVariables) {
         EXPECT_EQ(var->getFileReference().reference, "REFERENCE");
     }
 }
+
+TEST(OrgParseSem, CmdCallNode) {
+    auto get = [&](std::string const& s,
+                   Opt<std::string>   debug = std::nullopt) {
+        return parseOne<sem::CmdCall>(s, debug);
+    };
+    {
+        auto c = get(
+            R"(#+call: docker-swarm-systemd-configure[:dir (docker:infra-ssh "docker-swarm-0")]() :results silent)",
+            getDebugFile("CmdCallNode"));
+    }
+}

@@ -1045,10 +1045,10 @@ sem::SemId<Org> org::evaluateCodeBlocks(
     Vec<imm::ImmAstVersion> history;
     if (d && d->TraceState) { history.push_back(version); }
 
-    auto set_output = [&](sem::OrgCodeEvalOutput const& out,
-                          sem::OrgCodeEvalInput const&  input,
-                          imm::ImmUniqId const&         block,
-                          sem::SemId<sem::Org>          node) {
+    auto set_output = [&](Vec<sem::OrgCodeEvalOutput> const& out,
+                          sem::OrgCodeEvalInput const&       input,
+                          imm::ImmUniqId const&              block,
+                          sem::SemId<sem::Org>               node) {
         auto target_id = block.update(version.context->at(block.path));
         auto target    = version.context->adapt(target_id);
         auto result    = sem::SemId<sem::BlockCodeEvalResult>::New();
@@ -1126,16 +1126,27 @@ sem::SemId<Org> org::evaluateCodeBlocks(
         auto input   = convertInput(adapter);
         auto output  = conf.evalBlock(input);
 
-        if (!output.stderr.empty()) {
-            EVAL_TRACE(fmt("stderr:\n{}", output.stderr));
+        for (auto const& it : output) {
+            if (!it.cmd) { EVAL_TRACE(fmt("cmd: {}", it.cmd)); }
+            if (!it.args.empty()) { EVAL_TRACE(fmt("args: {}", it.args)); }
+            EVAL_TRACE(fmt("code: {}", it.code));
+            if (!it.cwd.empty()) { EVAL_TRACE(fmt("cwd: {}", it.cwd)); }
+
+            if (!it.stderr.empty()) {
+                EVAL_TRACE(fmt("stderr:\n{}", it.stderr));
+            }
+
+            if (!it.stdout.empty()) {
+                EVAL_TRACE(fmt("stdout:\n{}", it.stdout));
+            }
         }
 
-        if (!output.stdout.empty()) {
-            EVAL_TRACE(fmt("stdout:\n{}", output.stdout));
-        }
 
         set_output(
-            output, input, block, convertOutput(output, input, conf));
+            output,
+            input,
+            block,
+            convertOutput(output.back(), input, conf));
     }
 
     if (conf.isTraceEnabled()) {

@@ -54,7 +54,8 @@ struct [[refl]] OrgDirectoryParseParameters {
     OrgDirectoryParseParameters const& opts);
 
 struct OrgCodeEvalParameters {
-    hstd::Func<sem::OrgCodeEvalOutput(sem::OrgCodeEvalInput const&)>
+    hstd::Func<hstd::Vec<sem::OrgCodeEvalOutput>(
+        sem::OrgCodeEvalInput const&)>
                                        evalBlock;
     hstd::SPtr<hstd::OperationsTracer> debug;
     bool isTraceEnabled() const { return debug && debug->TraceState; }

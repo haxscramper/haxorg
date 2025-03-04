@@ -102,7 +102,7 @@ template class proto_serde<::orgproto::CmdCaption, sem::Cmd>;
 template class proto_serde<::orgproto::Cell, sem::Cmd>;
 template class proto_serde<::orgproto::CmdAttr, sem::Cmd>;
 template class proto_serde<::orgproto::CmdName, sem::Cmd>;
-template class proto_serde<::orgproto::CmdResults, sem::Cmd>;
+template class proto_serde<::orgproto::CmdCall, sem::Cmd>;
 template class proto_serde<::orgproto::BlockCode, sem::Cmd>;
 template class proto_serde<::orgproto::BlockCodeEvalResult, sem::Cmd>;
 template class proto_serde<::orgproto::BlockExample, sem::Cmd>;

@@ -619,9 +619,27 @@ auto Formatter::toString(SemId<CmdColumns> id, CR<Context> ctx) -> Res {
     return b.line({str("#+columns: ")});
 }
 
-auto Formatter::toString(SemId<CmdResults> id, CR<Context> ctx) -> Res {
+auto Formatter::toString(SemId<CmdCall> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    return b.line({str("#+results: ")});
+    auto res = b.line({str("#+call: ")});
+    if (!id->insideHeaderAttrs.isEmpty()) {
+        b.add_at(res, str("["));
+        b.add_at(res, toString(id->insideHeaderAttrs, ctx));
+        b.add_at(res, str("]"));
+    }
+
+    if (!id->callAttrs.isEmpty()) {
+        b.add_at(res, str("("));
+
+        b.add_at(res, str(")"));
+    }
+
+    if (!id->insideHeaderAttrs.isEmpty()) {
+        b.add_at(res, str(" "));
+        b.add_at(res, toString(id->insideHeaderAttrs, ctx));
+    }
+
+    return res;
 }
 
 auto Formatter::toString(SemId<CmdCustomRaw> id, CR<Context> ctx) -> Res {

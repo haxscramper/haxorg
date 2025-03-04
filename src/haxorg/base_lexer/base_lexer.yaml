@@ -113,6 +113,18 @@ sub_lexers:
     - re: "\\d+[a-zA-Z]"
       token: TimeRepeaterDuration
 
+  sub_call_cmd:
+    - { re: "call{prop_colon}", token: CmdCall }
+    - { re: "\\[", token: BraceBegin }
+    - { re: "\\]", token: BraceEnd }
+    - { lit: "(", token: ParBegin }
+    - { lit: ")", token: ParEnd }
+    - { lit: "=", token: Equals }
+    - { re: ":(\\w|-)+", token: CmdColonIdent }
+    - { re: "{space}+", token: Whitespace }
+    - { re: "[\\H--[\\n\\[\\]\\(\\)=]]+", token: CmdRawArg }
+
+
 tokens:
   - name: Indent
   - name: Dedent
@@ -343,6 +355,8 @@ rules:
   #endregion
 
   #region Command-parameters
+  - { lit: "(", token: ParBegin }
+  - { lit: ")", token: ParEnd }
   - re: ":(\\w|-)+"
     states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT, PROPERTY_ARGUMENT]
     token: CmdColonIdent
@@ -586,6 +600,9 @@ rules:
     states: [COMMAND]
     token: CmdInclude
     actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+  - re: "call{prop_colon}.*?\\n"
+    sub: sub_call_cmd
 
   - re: "row{prop_colon}"
     states: [COMMAND]

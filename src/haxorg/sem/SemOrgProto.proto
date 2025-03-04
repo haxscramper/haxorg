@@ -239,7 +239,7 @@ enum OrgSemKind {
   OrgSemKind_CmdCustomArgs_f                                                        = 8;
   OrgSemKind_CmdCustomRaw_f                                                         = 9;
   OrgSemKind_CmdCustomText_f                                                        = 10;
-  OrgSemKind_CmdResults_f                                                           = 11;
+  OrgSemKind_CmdCall_f                                                              = 11;
   OrgSemKind_CmdTblfm_f                                                             = 12;
   OrgSemKind_HashTag_f                                                              = 13;
   OrgSemKind_InlineFootnote_f                                                       = 14;
@@ -674,6 +674,9 @@ message OrgCodeEvalOutput {
   string                                           stdout                           = 1;
   string                                           stderr                           = 2;
   int32                                            code                             = 3;
+  optional string                                  cmd                              = 4;
+  repeated string                                  args                             = 5;
+  string                                           cwd                              = 6;
   string                                           debug                            = 1000;
 }
 
@@ -1212,12 +1215,16 @@ message CmdCustomText {
   string                                           debug                            = 1000;
 }
 
-message CmdResults {
+message CmdCall {
   optional AttrGroup                               attrs                            = 1;
   repeated AnyNode                                 attached                         = 2;
   repeated AnyNode                                 subnodes                         = 3;
   optional LineCol                                 loc                              = 4;
   OrgSemKind                                       staticKind                       = 5;
+  string                                           name                             = 6;
+  AttrGroup                                        insideHeaderAttrs                = 7;
+  AttrGroup                                        callAttrs                        = 8;
+  AttrGroup                                        endHeaderAttrs                   = 9;
   string                                           debug                            = 1000;
 }
 
@@ -1585,7 +1592,7 @@ message BlockCodeEvalResult {
   repeated AnyNode                                 subnodes                         = 3;
   optional LineCol                                 loc                              = 4;
   OrgSemKind                                       staticKind                       = 5;
-  OrgCodeEvalOutput                                raw                              = 6;
+  repeated OrgCodeEvalOutput                       raw                              = 6;
   AnyNode                                          node                             = 7;
   string                                           debug                            = 1000;
 }
@@ -1914,7 +1921,7 @@ message AnyNode {
     CmdCustomArgs                                    cmdcustomargs                    = 9;
     CmdCustomRaw                                     cmdcustomraw                     = 10;
     CmdCustomText                                    cmdcustomtext                    = 11;
-    CmdResults                                       cmdresults                       = 12;
+    CmdCall                                          cmdcall                          = 12;
     CmdTblfm                                         cmdtblfm                         = 13;
     HashTag                                          hashtag                          = 14;
     InlineFootnote                                   inlinefootnote                   = 15;

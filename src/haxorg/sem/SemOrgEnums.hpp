@@ -240,7 +240,7 @@
     __IMPL(CmdCustomArgs, (CmdCustomArgs)) \
     __IMPL(CmdCustomRaw, (CmdCustomRaw)) \
     __IMPL(CmdCustomText, (CmdCustomText)) \
-    __IMPL(CmdResults, (CmdResults)) \
+    __IMPL(CmdCall, (CmdCall)) \
     __IMPL(CmdTblfm, (CmdTblfm)) \
     __IMPL(HashTag, (HashTag)) \
     __IMPL(InlineFootnote, (InlineFootnote)) \
@@ -327,7 +327,7 @@
     __IMPL(CmdCustomArgs) \
     __IMPL(CmdCustomRaw) \
     __IMPL(CmdCustomText) \
-    __IMPL(CmdResults) \
+    __IMPL(CmdCall) \
     __IMPL(CmdTblfm) \
     __IMPL(HashTag) \
     __IMPL(InlineFootnote) \
@@ -400,7 +400,7 @@
     __IMPL(CmdCustomArgs, Cmd) \
     __IMPL(CmdCustomRaw, Stmt) \
     __IMPL(CmdCustomText, Stmt) \
-    __IMPL(CmdResults, Attached) \
+    __IMPL(CmdCall, Attached) \
     __IMPL(CmdTblfm, Cmd) \
     __IMPL(HashTag, Inline) \
     __IMPL(InlineFootnote, Inline) \
@@ -480,7 +480,7 @@
     __IMPL(CmdCustomArgs, Cmd) \
     __IMPL(CmdCustomRaw, Stmt) \
     __IMPL(CmdCustomText, Stmt) \
-    __IMPL(CmdResults, Attached) \
+    __IMPL(CmdCall, Attached) \
     __IMPL(CmdTblfm, Cmd) \
     __IMPL(HashTag, Inline) \
     __IMPL(InlineFootnote, Inline) \
@@ -871,7 +871,7 @@ struct hstd::value_domain<OrgJsonKind> : public value_domain_ungapped<OrgJsonKin
                                                                       OrgJsonKind::Null,
                                                                       OrgJsonKind::Float> {};
 
-enum class OrgSemKind : short int { None, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdResults, CmdTblfm, HashTag, InlineFootnote, InlineExport, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, RadioTarget, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCodeEvalResult, BlockCode, SubtreeLog, Subtree, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, CmdExport, Call, List, ListItem, DocumentOptions, Document, FileTarget, TextSeparator, DocumentGroup, File, Directory, Symlink, CmdInclude, };
+enum class OrgSemKind : short int { None, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdCall, CmdTblfm, HashTag, InlineFootnote, InlineExport, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, TextTarget, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, RadioTarget, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCodeEvalResult, BlockCode, SubtreeLog, Subtree, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, CmdExport, Call, List, ListItem, DocumentOptions, Document, FileTarget, TextSeparator, DocumentGroup, File, Directory, Symlink, CmdInclude, };
 template <>
 struct hstd::enum_serde<OrgSemKind> {
   static hstd::Opt<OrgSemKind> from_string(std::string value);

@@ -13,7 +13,7 @@
         __MAP(kCmdcustomargs, cmdcustomargs, CmdCustomArgs)  \
         __MAP(kCmdcustomraw, cmdcustomraw, CmdCustomRaw)  \
         __MAP(kCmdcustomtext, cmdcustomtext, CmdCustomText)  \
-        __MAP(kCmdresults, cmdresults, CmdResults)  \
+        __MAP(kCmdcall, cmdcall, CmdCall)  \
         __MAP(kCmdtblfm, cmdtblfm, CmdTblfm)  \
         __MAP(kHashtag, hashtag, HashTag)  \
         __MAP(kInlinefootnote, inlinefootnote, InlineFootnote)  \
@@ -811,9 +811,9 @@ struct org::algo::proto_serde<::orgproto::CmdCustomText, org::sem::CmdCustomText
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::CmdResults, org::sem::CmdResults> {
-  static void write(::orgproto::CmdResults* out, org::sem::CmdResults const& in);
-  static void read(::orgproto::CmdResults const& out, proto_write_accessor<org::sem::CmdResults> in);
+struct org::algo::proto_serde<::orgproto::CmdCall, org::sem::CmdCall> {
+  static void write(::orgproto::CmdCall* out, org::sem::CmdCall const& in);
+  static void read(::orgproto::CmdCall const& out, proto_write_accessor<org::sem::CmdCall> in);
 };
 
 
