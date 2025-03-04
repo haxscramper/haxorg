@@ -936,6 +936,30 @@ sem::OrgCodeEvalInput convertInput(
     input.resultHandling = I::ResultHandling::Replace;
     input.resultType     = I::ResultType::Scalar;
 
+    Vec<Str> buf;
+    for (auto const& line : block->lines) {
+        buf.push_back("");
+        for (auto const& part : line.parts) {
+            using K = sem::BlockCodeLine::Part::Kind;
+            switch (part.getKind()) {
+                case K::Raw: {
+                    buf.back().append(part.getRaw().code);
+                    break;
+                }
+                case K::Callout: {
+                    // callouts are explicitly skipped
+                    break;
+                }
+                case K::Tangle: {
+                    logic_todo_impl();
+                    break;
+                }
+            }
+        }
+    }
+
+    input.tangledCode = join("\n", buf);
+
     for (auto const& res : block.getAttrs("results")) {
         auto norm = normalize(res.getString());
         if (norm == "table" || norm == "vector") {
