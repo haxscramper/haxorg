@@ -92,10 +92,10 @@ content
     org::OrgCodeEvalParameters conf;
     Vec<sem::OrgCodeEvalInput> buf;
 
-    conf.evalBlock =
-        [&](sem::OrgCodeEvalInput const& in) -> sem::OrgCodeEvalOutput {
+    conf.evalBlock = [&](sem::OrgCodeEvalInput const& in)
+        -> Vec<sem::OrgCodeEvalOutput> {
         buf.push_back(in);
-        return sem::OrgCodeEvalOutput{.stdout = "*bold*"};
+        return {sem::OrgCodeEvalOutput{.stdout = "*bold*"}};
     };
     conf.debug->setTraceFile(getDebugFile("EvalCodeBlock.log"));
     auto ev = org::evaluateCodeBlocks(doc, conf);

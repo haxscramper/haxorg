@@ -24,6 +24,7 @@ std::string org::parse::OrgLexerImpl::state_name(int state) {
         case 20: return "sub_state_no_protocol_file_link";
         case 21: return "sub_state_link_protocol_internal";
         case 22: return "sub_state_timestamp_repeater";
+        case 23: return "sub_state_sub_call_cmd";
         default: return std::to_string(state);
     }
 }

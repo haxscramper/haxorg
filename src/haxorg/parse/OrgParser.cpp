@@ -123,7 +123,42 @@ OrgId OrgParser::parseMacro(OrgLexer& lex) {
     skip(lex, otk::CurlyBegin);
     token(onk::Word, pop(lex, OrgTokSet{otk::Word}));
 
-    parseCallArguments(lex);
+    if (lex.at(otk::ParBegin)) {
+        skip(lex, otk::ParBegin);
+        space(lex);
+        if (lex.at(otk::ParEnd)) {
+            empty();
+            skip(lex, otk::ParEnd);
+        } else {
+            bool isVerbatimWrap = lex.at(otk::VerbatimBegin);
+            if (isVerbatimWrap) { skip(lex, otk::VerbatimBegin); }
+
+            auto argEnd   = isVerbatimWrap
+                              ? Vec{otk::VerbatimEnd, otk::ParEnd}
+                              : Vec{otk::ParEnd};
+            auto macroEnd = Vec{
+                otk::CurlyEnd,
+                otk::CurlyEnd,
+                otk::CurlyEnd,
+            };
+
+            while (lex.can_search(macroEnd) && lex.can_search(argEnd)) {
+                start(onk::InlineStmtList);
+                while (lex.can_search(otk::Comma)
+                       && lex.can_search(argEnd)) {
+                    token(onk::RawText, pop(lex));
+                }
+                end();
+                if (lex.at(otk::Comma)) { skip(lex); }
+                space(lex);
+            }
+
+            if (isVerbatimWrap) { skip(lex, otk::VerbatimEnd); }
+            skip(lex, otk::ParEnd);
+        }
+    } else {
+        empty();
+    }
 
     for (int i = 0; i <= 2; ++i) {
         if (lex.at(otk::CurlyEnd)) {
@@ -141,43 +176,7 @@ OrgId OrgParser::parseMacro(OrgLexer& lex) {
     return end();
 }
 
-void OrgParser::parseCallArguments(OrgLexer& lex) {
-    if (lex.at(otk::ParBegin)) {
-        skip(lex, otk::ParBegin);
-        space(lex);
-        if (lex.at(otk::ParEnd)) {
-            empty();
-            skip(lex, otk::ParEnd);
-            return;
-        }
-
-        bool isVerbatimWrap = lex.at(otk::VerbatimBegin);
-        if (isVerbatimWrap) { skip(lex, otk::VerbatimBegin); }
-
-        auto argEnd   = isVerbatimWrap ? Vec{otk::VerbatimEnd, otk::ParEnd}
-                                       : Vec{otk::ParEnd};
-        auto macroEnd = Vec{
-            otk::CurlyEnd,
-            otk::CurlyEnd,
-            otk::CurlyEnd,
-        };
-
-        while (lex.can_search(macroEnd) && lex.can_search(argEnd)) {
-            start(onk::InlineStmtList);
-            while (lex.can_search(otk::Comma) && lex.can_search(argEnd)) {
-                token(onk::RawText, pop(lex));
-            }
-            end();
-            if (lex.at(otk::Comma)) { skip(lex); }
-            space(lex);
-        }
-
-        if (isVerbatimWrap) { skip(lex, otk::VerbatimEnd); }
-        skip(lex, otk::ParEnd);
-    } else {
-        empty();
-    }
-}
+void OrgParser::parseCallArguments(OrgLexer& lex) {}
 
 
 OrgId OrgParser::parsePlaceholder(OrgLexer& lex) {

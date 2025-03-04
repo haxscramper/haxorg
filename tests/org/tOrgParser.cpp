@@ -1018,9 +1018,11 @@ TEST(OrgParseSem, CodeBlockVariables) {
         return parseOne<sem::BlockCode>(s, debug);
     };
     {
-        auto c = get(R"(#+BEGIN_SRC emacs-lisp :var table=example-table
+        auto c = get(
+            R"(#+BEGIN_SRC emacs-lisp :var table=example-table
   (length table)
-#+END_SRC)");
+#+END_SRC)",
+            getDebugFile("example-table"));
         EXPECT_EQ2(c->getVariable("table")->getString(), "example-table");
     }
     {
@@ -1076,7 +1078,7 @@ TEST(OrgParseSem, CmdCallNode) {
     };
     {
         auto c = get(
-            R"(#+call: docker-swarm-systemd-configure[:dir (docker:infra-ssh "docker-swarm-0")]() :results silent)",
+            R"(#+call: docker-swarm-systemd-configure[:dir (docker:infra-ssh "docker-swarm-0")](nodes=process42-node-table[2:-1],graph=process42-graph[2:-1]) :results silent)",
             getDebugFile("CmdCallNode"));
     }
 }
