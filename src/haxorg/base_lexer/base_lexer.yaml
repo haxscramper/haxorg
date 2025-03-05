@@ -375,7 +375,7 @@ rules:
     states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT, PROPERTY_ARGUMENT]
     token: Whitespace
 
-  - re: "[\\H--[\\n\\[\\]\\(\\)=]]+"
+  - re: "[\\H--[\\n\\[\\]\\(\\)=,]]+"
     states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT, PROPERTY_ARGUMENT]
     token: CmdRawArg
   #endregion

@@ -266,10 +266,12 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             })},
         SpecPair{
             onk::AttrValue,
-            OrgPattern(
-                {fieldN(0, N::Name),
-                 fieldN(1, N::Subname),
-                 fieldN(2, N::Value)})},
+            OrgPattern({
+                fieldN(0, N::Name),
+                fieldN(1, N::Subname),
+                fieldN(2, N::Value),
+                fieldN(3, N::Cells),
+            })},
         SpecPair{onk::CmdTblfm, OrgPattern({fieldN(0, N::Values)})},
         SpecPair{
             onk::CmdResult,
@@ -529,7 +531,10 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             onk::CmdCallCode,
             OrgPattern({
                 fieldN(0, N::Name),
-                fieldN(slice(1, 1_B), N::Args, onk::InlineStmtList),
+                fieldN(
+                    1, N::HeaderArgs, {onk::InlineStmtList, onk::Empty}),
+                fieldN(2, N::Args, {onk::InlineStmtList, onk::Empty}),
+                fieldN(3, N::EndArgs, {onk::InlineStmtList, onk::Empty}),
             })},
         SpecPair{onk::Angle, OrgPattern({fieldN(0, N::Body)})},
         SpecPair{onk::Bold, OrgPattern({fieldN(slice(0, 1_B), N::Body)})},
