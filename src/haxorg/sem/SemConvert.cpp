@@ -761,7 +761,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         && rs::all_of(
             gen_view(one(a, N::Values).items()),
             [](org::parse::OrgAdapter const& a) {
-                return a.getKind() == onk::CmdValue;
+                return a.getKind() == onk::AttrValue;
             })) {
         handled();
         NamedProperty::CustomArgs prop;

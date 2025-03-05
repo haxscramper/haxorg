@@ -113,13 +113,6 @@ sub_lexers:
     - re: "\\d+[a-zA-Z]"
       token: TimeRepeaterDuration
 
-  sub_call_cmd:
-    - { re: "call{prop_colon}", token: CmdCall }
-    - { re: ":(\\w|-)+", token: CmdColonIdent }
-    - { re: "{space}+", token: Whitespace }
-    - { re: "[\\H--[\\n\\[\\]\\(\\)=]]+", token: CmdRawArg }
-
-
 tokens:
   - name: Indent
   - name: Dedent
@@ -373,7 +366,7 @@ rules:
   - lit: ","
     token: Comma
     states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT, PROPERTY_ARGUMENT]
-    
+
   - re: ":(\\w|-)+"
     states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT, PROPERTY_ARGUMENT]
     token: CmdColonIdent

@@ -51,7 +51,9 @@ struct OrgParser : public hstd::OperationsTracer {
 
     OrgId parseFootnote(OrgLexer& lex);
     OrgId parseMacro(OrgLexer& lex);
-    void  parseCallArguments(OrgLexer& lex);
+    OrgId parseCallArguments(OrgLexer& lex);
+    OrgId parseAttrValue(OrgLexer& lex);
+    OrgId parseAttrLisp(OrgLexer& lex);
     OrgId parseLink(OrgLexer& lex);
     OrgId parseInlineMath(OrgLexer& lex);
     OrgId parseSymbol(OrgLexer& lex);

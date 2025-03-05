@@ -219,6 +219,8 @@ hstd::Opt<OrgNodeKind> hstd::enum_serde<OrgNodeKind>::from_string(std::string va
   if (value == "Footnote") { return OrgNodeKind::Footnote; } else
   if (value == "Cmd") { return OrgNodeKind::Cmd; } else
   if (value == "Attrs") { return OrgNodeKind::Attrs; } else
+  if (value == "AttrValue") { return OrgNodeKind::AttrValue; } else
+  if (value == "AttrLisp") { return OrgNodeKind::AttrLisp; } else
   if (value == "CmdTitle") { return OrgNodeKind::CmdTitle; } else
   if (value == "CmdAuthor") { return OrgNodeKind::CmdAuthor; } else
   if (value == "CmdCreator") { return OrgNodeKind::CmdCreator; } else
@@ -238,10 +240,6 @@ hstd::Opt<OrgNodeKind> hstd::enum_serde<OrgNodeKind>::from_string(std::string va
   if (value == "CmdResult") { return OrgNodeKind::CmdResult; } else
   if (value == "CmdCallCode") { return OrgNodeKind::CmdCallCode; } else
   if (value == "CmdFlag") { return OrgNodeKind::CmdFlag; } else
-  if (value == "CmdKey") { return OrgNodeKind::CmdKey; } else
-  if (value == "CmdValue") { return OrgNodeKind::CmdValue; } else
-  if (value == "CmdLispValue") { return OrgNodeKind::CmdLispValue; } else
-  if (value == "CmdNamedValue") { return OrgNodeKind::CmdNamedValue; } else
   if (value == "CmdLatexClass") { return OrgNodeKind::CmdLatexClass; } else
   if (value == "CmdLatexHeader") { return OrgNodeKind::CmdLatexHeader; } else
   if (value == "CmdLatexCompiler") { return OrgNodeKind::CmdLatexCompiler; } else
@@ -346,6 +344,8 @@ std::string hstd::enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     case OrgNodeKind::Footnote: return "Footnote";
     case OrgNodeKind::Cmd: return "Cmd";
     case OrgNodeKind::Attrs: return "Attrs";
+    case OrgNodeKind::AttrValue: return "AttrValue";
+    case OrgNodeKind::AttrLisp: return "AttrLisp";
     case OrgNodeKind::CmdTitle: return "CmdTitle";
     case OrgNodeKind::CmdAuthor: return "CmdAuthor";
     case OrgNodeKind::CmdCreator: return "CmdCreator";
@@ -365,10 +365,6 @@ std::string hstd::enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     case OrgNodeKind::CmdResult: return "CmdResult";
     case OrgNodeKind::CmdCallCode: return "CmdCallCode";
     case OrgNodeKind::CmdFlag: return "CmdFlag";
-    case OrgNodeKind::CmdKey: return "CmdKey";
-    case OrgNodeKind::CmdValue: return "CmdValue";
-    case OrgNodeKind::CmdLispValue: return "CmdLispValue";
-    case OrgNodeKind::CmdNamedValue: return "CmdNamedValue";
     case OrgNodeKind::CmdLatexClass: return "CmdLatexClass";
     case OrgNodeKind::CmdLatexHeader: return "CmdLatexHeader";
     case OrgNodeKind::CmdLatexCompiler: return "CmdLatexCompiler";

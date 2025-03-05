@@ -262,11 +262,14 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                     {OrgPattern(onk::InlineStmtList)
                          .sub({Field(
                              Range(slice(0, 1_B), N::Value),
-                             OrgPattern(onk::CmdValue))})}),
+                             OrgPattern(onk::AttrValue))})}),
             })},
         SpecPair{
-            onk::CmdValue,
-            OrgPattern({fieldN(0, N::Name), fieldN(1, N::Value)})},
+            onk::AttrValue,
+            OrgPattern(
+                {fieldN(0, N::Name),
+                 fieldN(1, N::Subname),
+                 fieldN(2, N::Value)})},
         SpecPair{onk::CmdTblfm, OrgPattern({fieldN(0, N::Values)})},
         SpecPair{
             onk::CmdResult,

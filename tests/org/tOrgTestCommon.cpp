@@ -34,10 +34,10 @@ sem::SemId<sem::Org> testParseString(
     org::parse::LexerParams params;
     params.maxUnknown = 1;
     if (debug) {
-        fs::path tokenizer_trace{debug.value() + "_tokenizer_trace.txt"};
-        fs::path parser_trace{debug.value() + "_parser_trace.txt"};
-        fs::path sem_trace{debug.value() + "_sem_trace.txt"};
-        fs::path lex_trace{debug.value() + "_lex_trace.txt"};
+        fs::path tokenizer_trace{debug.value() + "_tokenizer_trace.log"};
+        fs::path parser_trace{debug.value() + "_parser_trace.log"};
+        fs::path sem_trace{debug.value() + "_sem_trace.log"};
+        fs::path lex_trace{debug.value() + "_lex_trace.log"};
         p.tokenizer->setTraceFile(tokenizer_trace);
         p.parser->setTraceFile(parser_trace);
         converter.setTraceFile(sem_trace);

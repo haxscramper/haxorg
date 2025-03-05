@@ -123,42 +123,7 @@ OrgId OrgParser::parseMacro(OrgLexer& lex) {
     skip(lex, otk::CurlyBegin);
     token(onk::Word, pop(lex, OrgTokSet{otk::Word}));
 
-    if (lex.at(otk::ParBegin)) {
-        skip(lex, otk::ParBegin);
-        space(lex);
-        if (lex.at(otk::ParEnd)) {
-            empty();
-            skip(lex, otk::ParEnd);
-        } else {
-            bool isVerbatimWrap = lex.at(otk::VerbatimBegin);
-            if (isVerbatimWrap) { skip(lex, otk::VerbatimBegin); }
-
-            auto argEnd   = isVerbatimWrap
-                              ? Vec{otk::VerbatimEnd, otk::ParEnd}
-                              : Vec{otk::ParEnd};
-            auto macroEnd = Vec{
-                otk::CurlyEnd,
-                otk::CurlyEnd,
-                otk::CurlyEnd,
-            };
-
-            while (lex.can_search(macroEnd) && lex.can_search(argEnd)) {
-                start(onk::InlineStmtList);
-                while (lex.can_search(otk::Comma)
-                       && lex.can_search(argEnd)) {
-                    token(onk::RawText, pop(lex));
-                }
-                end();
-                if (lex.at(otk::Comma)) { skip(lex); }
-                space(lex);
-            }
-
-            if (isVerbatimWrap) { skip(lex, otk::VerbatimEnd); }
-            skip(lex, otk::ParEnd);
-        }
-    } else {
-        empty();
-    }
+    subParse(CallArguments, lex);
 
     for (int i = 0; i <= 2; ++i) {
         if (lex.at(otk::CurlyEnd)) {
@@ -176,7 +141,92 @@ OrgId OrgParser::parseMacro(OrgLexer& lex) {
     return end();
 }
 
-void OrgParser::parseCallArguments(OrgLexer& lex) {}
+OrgId OrgParser::parseCallArguments(OrgLexer& lex) {
+    if (lex.at(otk::ParBegin)) {
+        skip(lex, otk::ParBegin);
+        space(lex);
+        if (lex.at(otk::ParEnd)) {
+            return empty();
+            skip(lex, otk::ParEnd);
+        } else {
+            start(onk::InlineStmtList);
+            bool isVerbatimWrap = lex.at(otk::VerbatimBegin);
+            if (isVerbatimWrap) { skip(lex, otk::VerbatimBegin); }
+
+            auto argEnd = isVerbatimWrap
+                            ? Vec{otk::VerbatimEnd, otk::ParEnd}
+                            : Vec{otk::ParEnd};
+
+            while (lex.can_search(argEnd)) {
+                while (lex.can_search(otk::Comma)
+                       && lex.can_search(argEnd)) {
+                    subParse(AttrValue, lex);
+                }
+                if (lex.at(otk::Comma)) { skip(lex); }
+                space(lex);
+            }
+
+            if (isVerbatimWrap) { skip(lex, otk::VerbatimEnd); }
+            skip(lex, otk::ParEnd);
+            return end();
+        }
+    } else {
+        return empty();
+    }
+}
+
+
+OrgId OrgParser::parseAttrValue(OrgLexer& lex) {
+    __perf_trace("parsing", "parseAttrColonKeyValue");
+    auto __trace = trace(lex);
+    start(onk::AttrValue);
+
+    if (lex.at(otk::CmdColonIdent)) {
+        // `:ident`
+        token(onk::Word, pop(lex, otk::CmdColonIdent));
+        space(lex);
+    } else {
+        empty();
+    }
+
+    if (lex.at(otk::CmdRawArg) && lex.at(otk::Equals)) {
+        // `key=`
+        token(onk::RawText, pop(lex, otk::CmdRawArg));
+        space(lex);
+    } else {
+        empty();
+    }
+
+    if (lex.at(otk::ParBegin)) {
+        subParse(AttrLisp, lex);
+    } else if (lex.at(otk::CmdRawArg)) {
+        token(onk::RawText, pop(lex, otk::CmdRawArg));
+    } else {
+        empty();
+    }
+
+    return end();
+}
+
+OrgId OrgParser::parseAttrLisp(OrgLexer& lex) {
+    __perf_trace("parsing", "parseAttrLisp");
+    auto __trace = trace(lex);
+    start(onk::AttrLisp);
+    if (lex.at(otk::ParBegin)) {
+        start(onk::InlineStmtList);
+        skip(lex, otk::ParBegin);
+        space(lex);
+        while(lex.can_search(otk::ParEnd)) {
+            // parseAttrLisp()
+        }
+        skip(lex, otk::ParEnd);
+        end();
+    } else {
+        token(onk::RawText, pop(lex, lex.kind()));
+    }
+
+    return end();
+}
 
 
 OrgId OrgParser::parsePlaceholder(OrgLexer& lex) {
@@ -1156,31 +1206,7 @@ OrgId OrgParser::parseCommandArguments(OrgLexer& lex) {
     space(lex);
     start(onk::InlineStmtList);
     while (lex.at(OrgTokSet{otk::CmdRawArg, otk::CmdColonIdent})) {
-        if (lex.at(otk::CmdColonIdent)) {
-            start(onk::CmdValue);
-            {
-                // `:ident key=value` colon ident can have two values in
-                // parse.
-                token(onk::Word, pop(lex, otk::CmdColonIdent));
-                space(lex);
-                if (lex.at(otk::CmdRawArg)) {
-                    token(onk::RawText, pop(lex, otk::CmdRawArg));
-                    space(lex);
-                } else {
-                    empty();
-                    empty();
-                }
-            }
-            end();
-        } else {
-            start(onk::CmdValue);
-            {
-                empty();
-                space(lex);
-                token(onk::RawText, pop(lex, otk::CmdRawArg));
-            }
-            end();
-        }
+        subParse(AttrValue, lex);
         space(lex);
     }
 
@@ -1905,7 +1931,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             start(onk::CmdCallCode);
             skip(lex, otk::CmdPrefix);
             skip(lex, otk::CmdCall);
-            token(onk::Word, pop(lex, otk::Word));
+            token(onk::Word, pop(lex, otk::CmdRawArg));
             parseCallArguments(lex);
             break;
         }

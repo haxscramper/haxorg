@@ -683,6 +683,10 @@ enum class OrgNodeKind : short int {
   Cmd,
   /// \brief Arguments for the command block
   Attrs,
+  /// \brief :key name=value syntax
+  AttrValue,
+  /// \brief S-expression as an attribute value value
+  AttrLisp,
   /// \brief `#+title:` - full document title
   CmdTitle,
   /// \brief `#+author:` Document author
@@ -720,12 +724,6 @@ enum class OrgNodeKind : short int {
   CmdCallCode,
   /// \brief Flag for source code block. For example `-n`, which is used to to make source code block export with lines
   CmdFlag,
-  CmdKey,
-  CmdValue,
-  /// \brief Value portion of the command value
-  CmdLispValue,
-  /// \brief Key-value pair for source code block call.
-  CmdNamedValue,
   CmdLatexClass,
   CmdLatexHeader,
   CmdLatexCompiler,
