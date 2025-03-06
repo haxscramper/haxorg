@@ -1038,41 +1038,8 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::runSpecParse(
     using Pos = OrgNodeGroup::TreeReprConf::WritePos;
     UnorderedMap<OrgId, int> parseAddedOnLine;
 
-    auto writeImpl =
-        [&](OrgNodeGroup::TreeReprConf::WriteParams const& par) {
-            switch (par.pos) {
-                case Pos::AfterKind: {
-                    if (par.parent && par.subnodeIdx) {
-                        auto name = p.spec->fieldName(
-                            OrgAdapter(&p.nodes, *par.parent),
-                            *par.subnodeIdx);
-                        if (name) {
-                            par.os << " " << par.os.magenta()
-                                   << fmt("{}", *name) << par.os.end();
-                        } else {
-                            par.os << " " << par.os.red()
-                                   << fmt("!! Missing field name for "
-                                          "element {} of node {} !!",
-                                          *par.subnodeIdx,
-                                          OrgAdapter(&p.nodes, *par.parent)
-                                              .getKind())
-                                   << par.os.end() << " ";
-                        }
-                    }
-                    break;
-                }
-                case Pos::LineEnd: {
-                    if (parseAddedOnLine.contains(par.current)) {
-                        par.os << " " << par.os.red()
-                               << fmt(" @{}",
-                                      parseAddedOnLine.at(par.current))
-                               << par.os.end();
-                    }
-                    break;
-                }
-                default:
-            }
-        };
+    auto writeImpl = getOrgParseWriteParams(
+        p.spec.get(), &p.nodes, &parseAddedOnLine);
 
 
     p.parser->TraceState = spec.debug.traceAll || spec.debug.traceParse;
@@ -1306,4 +1273,46 @@ void TestParams::PrintToImpl(std::ostream* os) const {
     if (spec.name) { dump["args"] = json::array({spec.name.value()}); }
     dump["kind"] = "OrgCorpus";
     *os << dump.dump();
+}
+
+hstd::Func<void(const org::parse::OrgNodeGroup::TreeReprConf::WriteParams&)> org::
+    test::getOrgParseWriteParams(
+        OrgSpec const*                               spec,
+        org::parse::OrgNodeGroup const*              nodes,
+        hstd::UnorderedMap<parse::OrgId, int> const* parseAddedOnLine) {
+    using Pos = OrgNodeGroup::TreeReprConf::WritePos;
+    return [=](OrgNodeGroup::TreeReprConf::WriteParams const& par) {
+        switch (par.pos) {
+            case Pos::AfterKind: {
+                if (par.parent && par.subnodeIdx) {
+                    auto name = spec->fieldName(
+                        OrgAdapter(nodes, *par.parent), *par.subnodeIdx);
+                    if (name) {
+                        par.os << " " << par.os.magenta()
+                               << fmt("{}", *name) << par.os.end();
+                    } else {
+                        par.os << " " << par.os.red()
+                               << fmt("!! Missing field name for "
+                                      "element {} of node {} !!",
+                                      *par.subnodeIdx,
+                                      OrgAdapter(nodes, *par.parent)
+                                          .getKind())
+                               << par.os.end() << " ";
+                    }
+                }
+                break;
+            }
+            case Pos::LineEnd: {
+                if (parseAddedOnLine != nullptr
+                    && parseAddedOnLine->contains(par.current)) {
+                    par.os
+                        << " " << par.os.red()
+                        << fmt(" @{}", parseAddedOnLine->at(par.current))
+                        << par.os.end();
+                }
+                break;
+            }
+            default:
+        }
+    };
 }

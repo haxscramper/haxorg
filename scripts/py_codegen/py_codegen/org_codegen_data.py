@@ -13,7 +13,8 @@ def org_doc(text: Union[str, GenTuDoc] = GenTuDoc(""), full: str = "") -> GenTuD
     return GenTuDoc(text, full) if isinstance(text, str) else text
 
 
-AnyDoc = Union[str, GenTuDoc]
+AnyDoc = Union[str, GenTuDoc            }
+]
 
 
 @beartype

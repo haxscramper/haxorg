@@ -1,5 +1,6 @@
 #include "tOrgTestCommon.hpp"
 #include <haxorg/exporters/exporteryaml.hpp>
+#include <haxorg/test/corpusrunner.hpp>
 
 void writeTreeRepr(
     imm::ImmAdapter               n,
@@ -58,8 +59,16 @@ sem::SemId<sem::Org> testParseString(
         std::stringstream buffer;
         ColStream         os{buffer};
         os.colored = false;
+
+        auto writeImpl = org::test::getOrgParseWriteParams(
+            p.spec.get(), &p.nodes, nullptr);
+
         org::parse::OrgAdapter(&p.nodes, org::parse::OrgId(0))
-            .treeRepr(os, 0, org::parse::OrgNodeGroup::TreeReprConf{});
+            .treeRepr(
+                os,
+                0,
+                org::parse::OrgNodeGroup::TreeReprConf{
+                    .customWrite = writeImpl});
 
         writeFile(
             fs::path{debug.value() + "_parse_tree.txt"}, buffer.str());

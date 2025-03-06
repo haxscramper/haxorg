@@ -155,4 +155,9 @@ struct TestParams {
 
 TestResult gtest_run_spec(hstd::CR<TestParams> params);
 
+hstd::Func<void(org::parse::OrgNodeGroup::TreeReprConf::WriteParams const& params)> getOrgParseWriteParams(
+    OrgSpec const*                               spec,
+    org::parse::OrgNodeGroup const*              nodes,
+    hstd::UnorderedMap<parse::OrgId, int> const* parseAddedOnLine);
+
 } // namespace org::test
