@@ -215,14 +215,14 @@ struct OrgConverter : public hstd::OperationsTracer {
     ConvResult<BlockExport>     convertBlockExport(In);
     ConvResult<CmdColumns>      convertCmdColumns(In);
     ConvResult<BlockCode>       convertBlockCode(In);
-    ConvResult<Call>            convertCall(In);
+    ConvResult<CmdCall>         convertCmdCall(In);
     ConvResult<CmdAttr>         convertCmdAttr(In);
     ConvResult<CmdName>         convertCmdName(In);
     ConvResult<InlineExport>    convertInlineExport(In);
 
-    sem::AttrGroup convertCallArguments(hstd::CVec<In>, In source);
     sem::AttrValue convertAttr(In);
     sem::AttrGroup convertAttrs(In);
+    sem::LispCode  convertLisp(In);
 
     template <typename T>
     SemId<T> convertAllSubnodes(In a) {

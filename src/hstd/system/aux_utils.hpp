@@ -33,6 +33,14 @@ struct finally {
 
 using finally_std = finally<std::function<void(void)>>;
 
+template <typename Func>
+bool no_exception(Func const& f) {
+    try {
+        f();
+        return true;
+    } catch (...) { return false; }
+}
+
 /// Overloading support for `std::visit`
 template <class... Ts>
 struct overloaded : Ts... {

@@ -53,6 +53,14 @@ void org::algo::proto_serde<::orgproto::LispCode::Ident, org::sem::LispCode::Ide
   proto_serde<std::string, hstd::Str>::read(out.name(), in.for_field(&org::sem::LispCode::Ident::name));
 }
 
+void org::algo::proto_serde<::orgproto::LispCode::Boolean, org::sem::LispCode::Boolean>::write(::orgproto::LispCode::Boolean* out, org::sem::LispCode::Boolean const& in) {
+  out->set_value(in.value);
+}
+
+void org::algo::proto_serde<::orgproto::LispCode::Boolean, org::sem::LispCode::Boolean>::read(::orgproto::LispCode::Boolean const& out, proto_write_accessor<org::sem::LispCode::Boolean> in) {
+  in.for_field(&org::sem::LispCode::Boolean::value).get() = out.value();
+}
+
 void org::algo::proto_serde<::orgproto::LispCode::Real, org::sem::LispCode::Real>::write(::orgproto::LispCode::Real* out, org::sem::LispCode::Real const& in) {
   out->set_value(in.value);
 }
@@ -82,7 +90,10 @@ void org::algo::proto_serde<::orgproto::LispCode, org::sem::LispCode>::write(::o
       proto_serde<orgproto::LispCode::Ident, org::sem::LispCode::Ident>::write(out->mutable_data()->mutable_ident(), std::get<5>(in.data));
       break;
     case 6:
-      proto_serde<orgproto::LispCode::Real, org::sem::LispCode::Real>::write(out->mutable_data()->mutable_real(), std::get<6>(in.data));
+      proto_serde<orgproto::LispCode::Boolean, org::sem::LispCode::Boolean>::write(out->mutable_data()->mutable_boolean(), std::get<6>(in.data));
+      break;
+    case 7:
+      proto_serde<orgproto::LispCode::Real, org::sem::LispCode::Real>::write(out->mutable_data()->mutable_real(), std::get<7>(in.data));
       break;
   }
 }
@@ -107,8 +118,11 @@ void org::algo::proto_serde<::orgproto::LispCode, org::sem::LispCode>::read(::or
     case ::orgproto::LispCode::Data::kIdent:
       proto_serde<orgproto::LispCode::Ident, org::sem::LispCode::Ident>::read(out.data().ident(), in.for_field_variant<5>(&org::sem::LispCode::data));
       break;
+    case ::orgproto::LispCode::Data::kBoolean:
+      proto_serde<orgproto::LispCode::Boolean, org::sem::LispCode::Boolean>::read(out.data().boolean(), in.for_field_variant<6>(&org::sem::LispCode::data));
+      break;
     case ::orgproto::LispCode::Data::kReal:
-      proto_serde<orgproto::LispCode::Real, org::sem::LispCode::Real>::read(out.data().real(), in.for_field_variant<6>(&org::sem::LispCode::data));
+      proto_serde<orgproto::LispCode::Real, org::sem::LispCode::Real>::read(out.data().real(), in.for_field_variant<7>(&org::sem::LispCode::data));
       break;
   }
 }

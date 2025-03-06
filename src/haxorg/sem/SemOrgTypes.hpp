@@ -81,6 +81,17 @@ struct LispCode {
     Ident() {  }
   };
 
+  struct Boolean {
+    BOOST_DESCRIBE_CLASS(Boolean,
+                         (),
+                         (),
+                         (),
+                         (value))
+    bool value = false;
+    bool operator==(org::sem::LispCode::Boolean const& other) const;
+    Boolean() {  }
+  };
+
   struct Real {
     BOOST_DESCRIBE_CLASS(Real,
                          (),
@@ -92,9 +103,9 @@ struct LispCode {
     Real() {  }
   };
 
-  using Data = std::variant<org::sem::LispCode::Call, org::sem::LispCode::List, org::sem::LispCode::KeyValue, org::sem::LispCode::Number, org::sem::LispCode::Text, org::sem::LispCode::Ident, org::sem::LispCode::Real>;
-  enum class Kind : short int { Call, List, KeyValue, Number, Text, Ident, Real, };
-  BOOST_DESCRIBE_NESTED_ENUM(Kind, Call, List, KeyValue, Number, Text, Ident, Real)
+  using Data = std::variant<org::sem::LispCode::Call, org::sem::LispCode::List, org::sem::LispCode::KeyValue, org::sem::LispCode::Number, org::sem::LispCode::Text, org::sem::LispCode::Ident, org::sem::LispCode::Boolean, org::sem::LispCode::Real>;
+  enum class Kind : short int { Call, List, KeyValue, Number, Text, Ident, Boolean, Real, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, Call, List, KeyValue, Number, Text, Ident, Boolean, Real)
   using variant_enum_type = org::sem::LispCode::Kind;
   using variant_data_type = org::sem::LispCode::Data;
   BOOST_DESCRIBE_CLASS(LispCode,
@@ -123,9 +134,12 @@ struct LispCode {
   bool isIdent() const { return getKind() == Kind::Ident; }
   org::sem::LispCode::Ident const& getIdent() const { return std::get<5>(data); }
   org::sem::LispCode::Ident& getIdent() { return std::get<5>(data); }
+  bool isBoolean() const { return getKind() == Kind::Boolean; }
+  org::sem::LispCode::Boolean const& getBoolean() const { return std::get<6>(data); }
+  org::sem::LispCode::Boolean& getBoolean() { return std::get<6>(data); }
   bool isReal() const { return getKind() == Kind::Real; }
-  org::sem::LispCode::Real const& getReal() const { return std::get<6>(data); }
-  org::sem::LispCode::Real& getReal() { return std::get<6>(data); }
+  org::sem::LispCode::Real const& getReal() const { return std::get<7>(data); }
+  org::sem::LispCode::Real& getReal() { return std::get<7>(data); }
   static org::sem::LispCode::Kind getKind(org::sem::LispCode::Data const& __input) { return static_cast<org::sem::LispCode::Kind>(__input.index()); }
   org::sem::LispCode::Kind getKind() const { return getKind(data); }
   char const* sub_variant_get_name() const { return "data"; }

@@ -1015,7 +1015,7 @@ OrgConverter::ConvResult<Macro> OrgConverter::convertMacro(__args) {
     auto __trace = trace(a);
     auto macro   = Sem<Macro>(a);
     macro->name  = get_text(one(a, N::Name));
-    macro->attrs = convertCallArguments(many(a, N::Args), a);
+    macro->attrs = convertAttrs(one(a, N::Args));
     return macro;
 }
 
@@ -2042,28 +2042,53 @@ sem::AttrGroup OrgConverter::convertAttrs(__args) {
     return result;
 }
 
-sem::AttrGroup OrgConverter::convertCallArguments(
-    CVec<In> args,
-    In       source) {
-    sem::AttrGroup result;
-    for (auto const& arg : args) {
-        sem::AttrValue conv;
-        conv.data = AttrValue::TextValue{};
-        if (2 < arg.size() && get_text(arg.at(1)) == "=") {
-            conv.name = get_text(arg.at(0));
-            for (int i = 2; i < arg.size(); ++i) {
-                conv.getTextValue().value += get_text(arg.at(i));
-            }
+LispCode OrgConverter::convertLisp(In a) {
+    auto __trace = trace(a);
+    using L      = sem::LispCode;
+    L out;
+    if (one(a, N::Value).getKind() == onk::InlineStmtList) {
+        Vec<LispCode> items;
+        for (auto const& it : a) { items.push_back(convertLisp(it)); }
+        if (!items.empty() && items.front().isIdent()) {
+            L::Call res;
+            res.name = items.front().getIdent().name;
+            res.args = Vec<LispCode>{items.at(slice(1, 1_B))};
+            out.data = res;
         } else {
-            for (int i = 0; i < arg.size(); ++i) {
-                conv.getTextValue().value += get_text(arg.at(i));
-            }
+            L::List res;
+            res.items = items;
+            out.data  = res;
         }
-
-        addArgument(result, conv);
+    } else {
+        Str v = get_text(a);
+        if (v.starts_with('"') && v.ends_with('"')) {
+            L::Text res;
+            res.value = v.substr(1, v.size() - 2);
+            out.data  = res;
+        } else if (no_exception([&]() { v.toInt(); })) {
+            L::Number res;
+            res.value = v.toInt();
+            out.data  = res;
+        } else if (no_exception([&]() { v.toFloat(); })) {
+            L::Real res;
+            res.value = v.toFloat();
+            out.data  = res;
+        } else if (v == "t") {
+            L::Boolean res;
+            res.value = true;
+            out.data  = res;
+        } else if (v == "nil") {
+            L::Boolean res;
+            res.value = false;
+            out.data  = res;
+        } else {
+            L::Ident res;
+            res.name = v;
+            out.data = res;
+        }
     }
 
-    return result;
+    return out;
 }
 
 OrgConverter::ConvResult<CmdAttr> OrgConverter::convertCmdAttr(__args) {
@@ -2300,14 +2325,15 @@ OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(
     return result;
 }
 
-OrgConverter::ConvResult<Call> OrgConverter::convertCall(__args) {
+OrgConverter::ConvResult<CmdCall> OrgConverter::convertCmdCall(__args) {
     __perf_trace("convert", "convertCall");
     auto __trace = trace(a);
     if (a.kind() == onk::CmdCallCode) {
-        auto call       = Sem<Call>(a);
-        call->name      = get_text(one(a, N::Name));
-        call->isCommand = true;
-        call->attrs     = convertCallArguments(many(a, N::Args), a);
+        auto call               = Sem<CmdCall>(a);
+        call->name              = get_text(one(a, N::Name));
+        call->insideHeaderAttrs = convertAttrs(one(a, N::HeaderArgs));
+        call->callAttrs         = convertAttrs(one(a, N::Args));
+        call->endHeaderAttrs    = convertAttrs(one(a, N::EndArgs));
         return call;
     } else {
         return SemError(a, "TODO Convert inline call");
@@ -2464,7 +2490,7 @@ SemId<Org> OrgConverter::convert(__args) {
         case onk::ColonExample: return convertColonExample(a).unwrap();
         case onk::CmdCaption: return convertCmdCaption(a).unwrap();
         case onk::CmdName: return convertCmdName(a).unwrap();
-        case onk::CmdCallCode: return convertCall(a).unwrap();
+        case onk::CmdCallCode: return convertCmdCall(a).unwrap();
         case onk::Paragraph: return convertParagraph(a).unwrap();
         case onk::BlockDynamicFallback:
             return convertBlockDynamicFallback(a).unwrap();

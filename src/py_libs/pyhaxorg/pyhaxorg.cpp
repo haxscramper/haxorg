@@ -293,6 +293,25 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
+  pybind11::class_<org::sem::LispCode::Boolean>(m, "LispCodeBoolean")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::LispCode::Boolean {
+                        org::sem::LispCode::Boolean result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("value", &org::sem::LispCode::Boolean::value)
+    .def("operator==",
+         static_cast<bool(org::sem::LispCode::Boolean::*)(org::sem::LispCode::Boolean const&) const>(&org::sem::LispCode::Boolean::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::sem::LispCode::Boolean _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::LispCode::Boolean _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
   pybind11::class_<org::sem::LispCode::Real>(m, "LispCodeReal")
     .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::LispCode::Real {
                         org::sem::LispCode::Real result{};
@@ -320,6 +339,7 @@ node can have subnodes.)RAW")
     .value("Number", org::sem::LispCode::Kind::Number)
     .value("Text", org::sem::LispCode::Kind::Text)
     .value("Ident", org::sem::LispCode::Kind::Ident)
+    .value("Boolean", org::sem::LispCode::Kind::Boolean)
     .value("Real", org::sem::LispCode::Kind::Real)
     .def("__iter__", [](org::sem::LispCode::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::LispCode::Kind> {
                      return
@@ -349,6 +369,8 @@ node can have subnodes.)RAW")
     .def("getText", static_cast<org::sem::LispCode::Text&(org::sem::LispCode::*)()>(&org::sem::LispCode::getText))
     .def("isIdent", static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isIdent))
     .def("getIdent", static_cast<org::sem::LispCode::Ident&(org::sem::LispCode::*)()>(&org::sem::LispCode::getIdent))
+    .def("isBoolean", static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isBoolean))
+    .def("getBoolean", static_cast<org::sem::LispCode::Boolean&(org::sem::LispCode::*)()>(&org::sem::LispCode::getBoolean))
     .def("isReal", static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isReal))
     .def("getReal", static_cast<org::sem::LispCode::Real&(org::sem::LispCode::*)()>(&org::sem::LispCode::getReal))
     .def_static("getKindStatic",

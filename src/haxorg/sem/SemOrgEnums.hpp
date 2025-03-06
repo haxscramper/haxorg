@@ -10,6 +10,7 @@
     __IMPL(LispCode, Number, (Number)) \
     __IMPL(LispCode, Text, (Text)) \
     __IMPL(LispCode, Ident, (Ident)) \
+    __IMPL(LispCode, Boolean, (Boolean)) \
     __IMPL(LispCode, Real, (Real)) \
     __IMPL(Tblfm, Expr, (Expr)) \
     __IMPL(Tblfm, Expr::AxisRef, (Expr, AxisRef)) \
@@ -122,6 +123,7 @@
     __IMPL(LispCode::Number, (LispCode, Number)) \
     __IMPL(LispCode::Text, (LispCode, Text)) \
     __IMPL(LispCode::Ident, (LispCode, Ident)) \
+    __IMPL(LispCode::Boolean, (LispCode, Boolean)) \
     __IMPL(LispCode::Real, (LispCode, Real)) \
     __IMPL(Tblfm, (Tblfm)) \
     __IMPL(Tblfm::Expr, (Tblfm, Expr)) \

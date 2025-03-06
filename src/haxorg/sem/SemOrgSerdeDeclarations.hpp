@@ -118,6 +118,13 @@ struct org::algo::proto_serde<::orgproto::LispCode::Ident, org::sem::LispCode::I
 
 
 template <>
+struct org::algo::proto_serde<::orgproto::LispCode::Boolean, org::sem::LispCode::Boolean> {
+  static void write(::orgproto::LispCode::Boolean* out, org::sem::LispCode::Boolean const& in);
+  static void read(::orgproto::LispCode::Boolean const& out, proto_write_accessor<org::sem::LispCode::Boolean> in);
+};
+
+
+template <>
 struct org::algo::proto_serde<::orgproto::LispCode::Real, org::sem::LispCode::Real> {
   static void write(::orgproto::LispCode::Real* out, org::sem::LispCode::Real const& in);
   static void read(::orgproto::LispCode::Real const& out, proto_write_accessor<org::sem::LispCode::Real> in);

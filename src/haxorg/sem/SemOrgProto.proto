@@ -328,6 +328,10 @@ message LispCode {
     string                                         name                             = 1;
     string                                         debug                            = 1000;
   }
+  message Boolean {
+    bool                                           value                            = 1;
+    string                                         debug                            = 1000;
+  }
   message Real {
     float                                          value                            = 1;
     string                                         debug                            = 1000;
@@ -340,7 +344,8 @@ message LispCode {
       LispCode.Number                              number                           = 4;
       LispCode.Text                                text                             = 5;
       LispCode.Ident                               ident                            = 6;
-      LispCode.Real                                real                             = 7;
+      LispCode.Boolean                             boolean                          = 7;
+      LispCode.Real                                real                             = 8;
     }
   }
   enum Kind {
@@ -350,7 +355,8 @@ message LispCode {
     Kind_Number_f                                                                   = 3;
     Kind_Text_f                                                                     = 4;
     Kind_Ident_f                                                                    = 5;
-    Kind_Real_f                                                                     = 6;
+    Kind_Boolean_f                                                                  = 6;
+    Kind_Real_f                                                                     = 7;
   }
   LispCode.Data                                    data                             = 1;
   string                                           debug                            = 1000;

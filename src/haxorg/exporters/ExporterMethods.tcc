@@ -7,6 +7,7 @@ void visit(R& res, sem::LispCode::KeyValue const& object);
 void visit(R& res, sem::LispCode::Number const& object);
 void visit(R& res, sem::LispCode::Text const& object);
 void visit(R& res, sem::LispCode::Ident const& object);
+void visit(R& res, sem::LispCode::Boolean const& object);
 void visit(R& res, sem::LispCode::Real const& object);
 void visit(R& res, sem::Tblfm const& object);
 void visit(R& res, org::sem::Tblfm::Expr::Data const& object);

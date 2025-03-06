@@ -13,8 +13,7 @@ def org_doc(text: Union[str, GenTuDoc] = GenTuDoc(""), full: str = "") -> GenTuD
     return GenTuDoc(text, full) if isinstance(text, str) else text
 
 
-AnyDoc = Union[str, GenTuDoc            }
-]
+AnyDoc = Union[str, GenTuDoc]
 
 
 @beartype
@@ -1428,6 +1427,16 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                             methods=[
                                 eq_method(t_nest_shared("Ident", [t("LispCode")])),
                                 default_constructor_method("Ident"),
+                            ],
+                        ),
+                        org_struct(
+                            t_nest_shared("Boolean", [t("LispCode")]),
+                            fields=[
+                                bool_field("value"),
+                            ],
+                            methods=[
+                                eq_method(t_nest_shared("Boolean", [t("LispCode")])),
+                                default_constructor_method("Boolean"),
                             ],
                         ),
                         org_struct(

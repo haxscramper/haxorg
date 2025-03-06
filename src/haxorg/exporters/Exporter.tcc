@@ -30,6 +30,9 @@ template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::LispCode::Ident const& object) { __obj_field(res, object, name); }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::LispCode::Boolean const& object) { __obj_field(res, object, value); }
+
+template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::LispCode::Real const& object) { __obj_field(res, object, value); }
 
 template <typename V, typename R>
