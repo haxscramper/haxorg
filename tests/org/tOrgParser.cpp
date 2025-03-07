@@ -1080,5 +1080,43 @@ TEST(OrgParseSem, CmdCallNode) {
         auto c = get(
             R"(#+call: docker-swarm-systemd-configure[:dir (docker:infra-ssh "docker-swarm-0")](nodes=process42-node-table[2:-1],graph=process42-graph[2:-1],arg=(elisp-eval (something))) :results silent)",
             getDebugFile("CmdCallNode"));
+
+        auto ea = c->endHeaderAttrs;
+        auto ha = c->insideHeaderAttrs;
+        auto ca = c->callAttrs;
+        EXPECT_EQ(ea.getNamedSize(), 1);
+        EXPECT_EQ(ea.getFirstNamed("results")->getString(), "silent");
+
+        EXPECT_EQ(ha.getNamedSize(), 1);
+        EXPECT_TRUE(ha.getFirstNamed("dir")->isLispValue());
+        auto dir = ha.getFirstNamed("dir").value().getLispValue().code;
+        EXPECT_TRUE(dir.isCall());
+        EXPECT_EQ2(dir.getCall().name, "docker:infra-ssh");
+        EXPECT_EQ2(
+            dir.getCall().args.at(0).getText().value, "docker-swarm-0");
+
+        EXPECT_EQ(ca.getPositionalSize(), 3);
+        auto ca1 = ca.getPositional(0);
+        auto ca2 = ca.getPositional(1);
+        auto ca3 = ca.getPositional(2);
+
+        EXPECT_EQ2(ca1->varname.value(), "nodes");
+        EXPECT_EQ2(ca2->varname.value(), "graph");
+        EXPECT_EQ2(ca3->varname.value(), "arg");
+        EXPECT_FALSE(ca1->name.has_value());
+        EXPECT_FALSE(ca2->name.has_value());
+        EXPECT_FALSE(ca3->name.has_value());
+        EXPECT_EQ2(ca1.value().getString(), "process42-node-table"_ss);
+        EXPECT_EQ2(ca1->span.at(0).first, 2);
+        EXPECT_EQ2(ca1->span.at(0).last.value(), -1);
+        EXPECT_EQ2(ca2.value().getString(), "process42-graph"_ss);
+        EXPECT_EQ2(ca2->span.at(0).first, 2);
+        EXPECT_EQ2(ca2->span.at(0).last.value(), -1);
+
+        auto el = ca3->getLispValue().code;
+        EXPECT_TRUE(el.isCall());
+        EXPECT_EQ2(el.getCall().name, "elisp-eval"_ss);
+        EXPECT_TRUE(el.getCall().args.at(0).isCall());
+        EXPECT_EQ2(el.getCall().args.at(0).getCall().name, "something"_ss);
     }
 }
