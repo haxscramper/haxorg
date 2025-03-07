@@ -126,3 +126,35 @@ content
     auto w = res->node.at(0).at(0).at(0).as<sem::Word>();
     EXPECT_EQ2(w->text, "bold");
 }
+
+TEST(OrgApi, EvalCallCommand) {
+    auto doc = testParseString(
+        R"(
+#+name: callable
+#+begin_src test :var input=default
+input text
+#+end_src
+
+#+call: callable(input=first-item)
+#+call: callable(input=second-call)
+#+call: callable(0, 2, random-named=whatever)
+)",
+        getDebugFile("eval_call_command"));
+
+    org::OrgCodeEvalParameters conf;
+    Vec<sem::OrgCodeEvalInput> buf;
+
+    conf.evalBlock = [&](sem::OrgCodeEvalInput const& in)
+        -> Vec<sem::OrgCodeEvalOutput> {
+        buf.push_back(in);
+        return {sem::OrgCodeEvalOutput{.stdout = "*bold*"}};
+    };
+    conf.debug->setTraceFile(getDebugFile("EvalCallCommand.log"));
+    auto ev = org::evaluateCodeBlocks(doc, conf);
+
+    writeTreeRepr(doc, getDebugFile("eval-pre.json"));
+    writeTreeRepr(ev, getDebugFile("eval-post.json"));
+
+    writeTreeRepr(doc, getDebugFile("eval-pre.txt"));
+    writeTreeRepr(ev, getDebugFile("eval-post.txt"));
+}

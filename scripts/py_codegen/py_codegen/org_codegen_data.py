@@ -760,6 +760,8 @@ def get_sem_commands():
                     "endHeaderAttrs",
                     GenTuDoc("Additional parameters aside from 'exporter',"),
                 ),
+                vec_field(t_id("BlockCodeEvalResult"), "result",
+                          "Code evaluation results"),
             ],
         ),
         d_org("CmdTblfm",

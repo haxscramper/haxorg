@@ -238,6 +238,7 @@ struct ImmSemSerde<org::sem::CmdCall, org::imm::ImmCmdCall> {
     assign_immer_field(result.insideHeaderAttrs, value.insideHeaderAttrs, ctx);
     assign_immer_field(result.callAttrs, value.callAttrs, ctx);
     assign_immer_field(result.endHeaderAttrs, value.endHeaderAttrs, ctx);
+    assign_immer_field(result.result, value.result, ctx);
     assign_immer_field(result.attrs, value.attrs, ctx);
     assign_immer_field(result.attached, value.attached, ctx);
     assign_immer_field(result.subnodes, value.subnodes, ctx);
@@ -251,6 +252,7 @@ struct ImmSemSerde<org::sem::CmdCall, org::imm::ImmCmdCall> {
     assign_sem_field(result.insideHeaderAttrs, value.insideHeaderAttrs, ctx);
     assign_sem_field(result.callAttrs, value.callAttrs, ctx);
     assign_sem_field(result.endHeaderAttrs, value.endHeaderAttrs, ctx);
+    assign_sem_field(result.result, value.result, ctx);
     assign_sem_field(result.attrs, value.attrs, ctx);
     assign_sem_field(result.attached, value.attached, ctx);
     assign_sem_field(result.subnodes, value.subnodes, ctx);

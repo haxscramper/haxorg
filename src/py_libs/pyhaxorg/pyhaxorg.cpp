@@ -37,14 +37,14 @@ PYBIND11_MAKE_OPAQUE(std::unordered_map<hstd::Str, hstd::Str>)
 PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<hstd::Str, hstd::Str>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::ErrorItem>>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::ErrorItem>>)
+PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::BlockCodeEvalResult>>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::Symbol::Param>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::Symbol::Param>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::OrgCodeEvalOutput>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::OrgCodeEvalOutput>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::BlockCodeSwitch>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::BlockCodeSwitch>)
-PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::BlockCodeEvalResult>>)
-PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::BlockCodeLine>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::BlockCodeLine>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::HashTag>>)
@@ -102,10 +102,10 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<int>(m, "VecOfint", type_registry_guard);
   bind_unordered_map<hstd::Str, hstd::Str>(m, "UnorderedMapOfStrStr", type_registry_guard);
   bind_vector<org::sem::SemId<org::sem::ErrorItem>>(m, "VecOfSemIdOfErrorItem", type_registry_guard);
+  bind_vector<org::sem::SemId<org::sem::BlockCodeEvalResult>>(m, "VecOfSemIdOfBlockCodeEvalResult", type_registry_guard);
   bind_vector<org::sem::Symbol::Param>(m, "VecOfSymbolParam", type_registry_guard);
   bind_vector<org::sem::OrgCodeEvalOutput>(m, "VecOfOrgCodeEvalOutput", type_registry_guard);
   bind_vector<org::sem::BlockCodeSwitch>(m, "VecOfBlockCodeSwitch", type_registry_guard);
-  bind_vector<org::sem::SemId<org::sem::BlockCodeEvalResult>>(m, "VecOfSemIdOfBlockCodeEvalResult", type_registry_guard);
   bind_vector<org::sem::BlockCodeLine>(m, "VecOfBlockCodeLine", type_registry_guard);
   bind_vector<org::sem::SemId<org::sem::HashTag>>(m, "VecOfSemIdOfHashTag", type_registry_guard);
   bind_vector<org::sem::SemId<org::sem::SubtreeLog>>(m, "VecOfSemIdOfSubtreeLog", type_registry_guard);
@@ -3304,6 +3304,7 @@ node can have subnodes.)RAW")
     .def_readwrite("insideHeaderAttrs", &org::sem::CmdCall::insideHeaderAttrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("callAttrs", &org::sem::CmdCall::callAttrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("endHeaderAttrs", &org::sem::CmdCall::endHeaderAttrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
+    .def_readwrite("result", &org::sem::CmdCall::result, R"RAW(Code evaluation results)RAW")
     .def_readwrite("attrs", &org::sem::CmdCall::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("attached", &org::sem::CmdCall::attached)
     .def("getAttrs",

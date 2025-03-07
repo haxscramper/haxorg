@@ -1474,7 +1474,7 @@ class CmdCustomText(Stmt):
     attached: List[Org]
 
 class CmdCall(Attached):
-    def __init__(self, name: str, fileName: Optional[str], insideHeaderAttrs: AttrGroup, callAttrs: AttrGroup, endHeaderAttrs: AttrGroup, attrs: Optional[AttrGroup], attached: List[Org]) -> None: ...
+    def __init__(self, name: str, fileName: Optional[str], insideHeaderAttrs: AttrGroup, callAttrs: AttrGroup, endHeaderAttrs: AttrGroup, result: List[BlockCodeEvalResult], attrs: Optional[AttrGroup], attached: List[Org]) -> None: ...
     def getAttrs(self, key: Optional[str]) -> List[AttrValue]: ...
     def getFirstAttr(self, kind: str) -> Optional[AttrValue]: ...
     def getAttached(self, kind: Optional[str]) -> List[Org]: ...
@@ -1489,6 +1489,7 @@ class CmdCall(Attached):
     insideHeaderAttrs: AttrGroup
     callAttrs: AttrGroup
     endHeaderAttrs: AttrGroup
+    result: List[BlockCodeEvalResult]
     attrs: Optional[AttrGroup]
     attached: List[Org]
 

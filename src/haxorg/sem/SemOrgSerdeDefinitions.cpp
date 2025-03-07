@@ -1768,6 +1768,7 @@ void org::algo::proto_serde<::orgproto::CmdCall, org::sem::CmdCall>::write(::org
   proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::write(out->mutable_insideheaderattrs(), in.insideHeaderAttrs);
   proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::write(out->mutable_callattrs(), in.callAttrs);
   proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::write(out->mutable_endheaderattrs(), in.endHeaderAttrs);
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::BlockCodeEvalResult>, hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>>>::write(out->mutable_result(), in.result);
 }
 
 void org::algo::proto_serde<::orgproto::CmdCall, org::sem::CmdCall>::read(::orgproto::CmdCall const& out, proto_write_accessor<org::sem::CmdCall> in) {
@@ -1781,6 +1782,7 @@ void org::algo::proto_serde<::orgproto::CmdCall, org::sem::CmdCall>::read(::orgp
   proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::read(out.insideheaderattrs(), in.for_field(&org::sem::CmdCall::insideHeaderAttrs));
   proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::read(out.callattrs(), in.for_field(&org::sem::CmdCall::callAttrs));
   proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::read(out.endheaderattrs(), in.for_field(&org::sem::CmdCall::endHeaderAttrs));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::BlockCodeEvalResult>, hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>>>::read(out.result(), in.for_field(&org::sem::CmdCall::result));
 }
 
 void org::algo::proto_serde<::orgproto::CmdTblfm, org::sem::CmdTblfm>::write(::orgproto::CmdTblfm* out, org::sem::CmdTblfm const& in) {

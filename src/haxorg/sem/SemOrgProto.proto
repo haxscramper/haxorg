@@ -1292,6 +1292,7 @@ message CmdCall {
   AttrGroup                                        insideHeaderAttrs                = 8;
   AttrGroup                                        callAttrs                        = 9;
   AttrGroup                                        endHeaderAttrs                   = 10;
+  repeated BlockCodeEvalResult                     result                           = 11;
   string                                           debug                            = 1000;
 }
 

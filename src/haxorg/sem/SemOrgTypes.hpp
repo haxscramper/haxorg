@@ -2026,7 +2026,8 @@ struct CmdCall : public org::sem::Attached {
                         fileName,
                         insideHeaderAttrs,
                         callAttrs,
-                        endHeaderAttrs))
+                        endHeaderAttrs,
+                        result))
   static OrgSemKind const staticKind;
   /// \brief Code block call name
   hstd::Str name = "";
@@ -2038,6 +2039,8 @@ struct CmdCall : public org::sem::Attached {
   org::sem::AttrGroup callAttrs;
   /// \brief Additional parameters aside from 'exporter',
   org::sem::AttrGroup endHeaderAttrs;
+  /// \brief Code evaluation results
+  hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>> result = {};
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdCall; }
 };
 

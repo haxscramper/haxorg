@@ -1033,7 +1033,8 @@ sem::SemId<Org> org::evaluateCodeBlocks(
         [](imm::ImmAdapter const& ad) -> Vec<imm::ImmUniqId> {
         Vec<imm::ImmUniqId> res;
         org::eachSubnodeRec(ad, true, [&](imm::ImmAdapter const& adapter) {
-            if (adapter.is(OrgSemKind::BlockCode)) {
+            if (adapter.is(OrgSemKind::BlockCode)
+                || adapter.is(OrgSemKind::CmdCall)) {
                 res.push_back(adapter.uniq());
             }
         });
@@ -1074,33 +1075,38 @@ sem::SemId<Org> org::evaluateCodeBlocks(
                             input.resultHandling,
                             input.resultFormat,
                             id));
-                    auto update = ctx.store().updateNode<imm::ImmBlockCode>(
-                        target, ctx, [&](imm::ImmBlockCode code) {
-                            using RH = sem::OrgCodeEvalInput::
-                                ResultHandling;
-                            switch (input.resultHandling) {
-                                case RH::Append:
-                                    code.result = code.result.push_back(
-                                        id);
-                                    break;
-                                case RH::Prepend:
-                                    code.result = code.result.insert(
-                                        0, id);
-                                    break;
-                                case RH::Replace:
-                                    code.result = {id};
-                                    break;
-                                case RH::Discard: break;
-                                case RH::Silent:
-                                case RH::None:
-                                    // TODO
-                                    break;
-                            }
 
-                            return code;
-                        });
+                    auto assign_result = [&]<typename T>(T code) -> T {
+                        using RH = sem::OrgCodeEvalInput::ResultHandling;
+                        switch (input.resultHandling) {
+                            case RH::Append:
+                                code.result = code.result.push_back(id);
+                                break;
+                            case RH::Prepend:
+                                code.result = code.result.insert(0, id);
+                                break;
+                            case RH::Replace: code.result = {id}; break;
+                            case RH::Discard: break;
+                            case RH::Silent:
+                            case RH::None:
+                                // TODO
+                                break;
+                        }
 
-                    return update;
+                        return code;
+                    };
+
+                    if (target.is(OrgSemKind::BlockCode)) {
+                        return ctx.store().updateNode<imm::ImmBlockCode>(
+                            target, ctx, [&](imm::ImmBlockCode code) {
+                                return assign_result(code);
+                            });
+                    } else {
+                        return ctx.store().updateNode<imm::ImmCmdCall>(
+                            target, ctx, [&](imm::ImmCmdCall code) {
+                                return assign_result(code);
+                            });
+                    }
                 }
             });
 
@@ -1114,39 +1120,75 @@ sem::SemId<Org> org::evaluateCodeBlocks(
     while (!codeBlockPaths.empty()) {
         auto block = codeBlockPaths.front();
         codeBlockPaths.pop_front();
-        auto adapter = version.context->adapt(block)
-                           .as<imm::ImmBlockCode>();
-        EVAL_TRACE(
-            fmt("Evaluating language '{}' at {}",
-                adapter->lang,
-                adapter->loc));
+        auto adapter = version.context->adapt(block);
+        imm::ImmAdapterT<imm::ImmBlockCode> block_adapter;
+        if (adapter.is(OrgSemKind::BlockCode)) {
+            block_adapter = adapter.as<imm::ImmBlockCode>();
+        } else {
+            auto command = adapter.as<imm::ImmCmdCall>();
+            EVAL_TRACE(fmt(
+                "Getting target code block for name '{}'", command->name));
+            if (auto opt_block = imm_context->currentTrack->names.get(
+                    command->name)) {
+                if (!opt_block->is(OrgSemKind::BlockCode)) {
+                    EVAL_TRACE(
+                        fmt("Name '{}' does not refer to a code block",
+                            command->name));
+                }
 
-        auto __scope = conf.isTraceEnabled() ? conf.debug->scopeLevel()
-                                             : finally_std::nop();
-        auto input   = convertInput(adapter);
-        auto output  = conf.evalBlock(input);
-
-        for (auto const& it : output) {
-            if (!it.cmd) { EVAL_TRACE(fmt("cmd: {}", it.cmd)); }
-            if (!it.args.empty()) { EVAL_TRACE(fmt("args: {}", it.args)); }
-            EVAL_TRACE(fmt("code: {}", it.code));
-            if (!it.cwd.empty()) { EVAL_TRACE(fmt("cwd: {}", it.cwd)); }
-
-            if (!it.stderr.empty()) {
-                EVAL_TRACE(fmt("stderr:\n{}", it.stderr));
-            }
-
-            if (!it.stdout.empty()) {
-                EVAL_TRACE(fmt("stdout:\n{}", it.stdout));
+                auto paths = imm_context->getPathsFor(opt_block.value());
+                LOGIC_ASSERTION_CHECK(
+                    !paths.empty(),
+                    "Logic block {} has no paths",
+                    opt_block.value());
+                block_adapter = imm_context->adapt(paths.front())
+                                    .as<imm::ImmBlockCode>();
+            } else {
+                EVAL_TRACE(fmt(
+                    "Name '{}' does not refere to a known document entry",
+                    command->name));
             }
         }
 
+        if (!block_adapter.isNil())
 
-        set_output(
-            output,
-            input,
-            block,
-            convertOutput(output.back(), input, conf));
+        {
+            EVAL_TRACE(
+                fmt("Evaluating language '{}' at {}",
+                    block_adapter->lang,
+                    block_adapter->loc));
+
+            auto __scope = conf.isTraceEnabled() ? conf.debug->scopeLevel()
+                                                 : finally_std::nop();
+            auto input   = convertInput(block_adapter);
+            auto output  = conf.evalBlock(input);
+
+            for (auto const& it : output) {
+                if (!it.cmd) { EVAL_TRACE(fmt("cmd: {}", it.cmd)); }
+                if (!it.args.empty()) {
+                    EVAL_TRACE(fmt("args: {}", it.args));
+                }
+                EVAL_TRACE(fmt("code: {}", it.code));
+                if (!it.cwd.empty()) {
+                    EVAL_TRACE(fmt("cwd: {}", it.cwd));
+                }
+
+                if (!it.stderr.empty()) {
+                    EVAL_TRACE(fmt("stderr:\n{}", it.stderr));
+                }
+
+                if (!it.stdout.empty()) {
+                    EVAL_TRACE(fmt("stdout:\n{}", it.stdout));
+                }
+            }
+
+
+            set_output(
+                output,
+                input,
+                block,
+                convertOutput(output.back(), input, conf));
+        }
     }
 
     if (conf.isTraceEnabled()) {

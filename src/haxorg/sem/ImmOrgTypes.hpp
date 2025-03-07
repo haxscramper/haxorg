@@ -295,7 +295,8 @@ struct ImmCmdCall : public org::imm::ImmAttached {
                         fileName,
                         insideHeaderAttrs,
                         callAttrs,
-                        endHeaderAttrs))
+                        endHeaderAttrs,
+                        result))
   static OrgSemKind const staticKind;
   /// \brief Code block call name
   hstd::ext::ImmBox<hstd::Str> name = "";
@@ -307,6 +308,8 @@ struct ImmCmdCall : public org::imm::ImmAttached {
   org::sem::AttrGroup callAttrs;
   /// \brief Additional parameters aside from 'exporter',
   org::sem::AttrGroup endHeaderAttrs;
+  /// \brief Code evaluation results
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> result = {};
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdCall; }
   bool operator==(org::imm::ImmCmdCall const& other) const;
 };

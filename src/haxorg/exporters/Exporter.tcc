@@ -659,6 +659,7 @@ void Exporter<V, R>::visitCmdCall(R& res, In<sem::CmdCall> object) {
   __org_field(res, object, insideHeaderAttrs);
   __org_field(res, object, callAttrs);
   __org_field(res, object, endHeaderAttrs);
+  __org_field(res, object, result);
   __org_field(res, object, attrs);
   __org_field(res, object, attached);
   __org_field(res, object, subnodes);
