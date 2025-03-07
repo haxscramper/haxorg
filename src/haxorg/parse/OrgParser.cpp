@@ -171,10 +171,16 @@ OrgId OrgParser::parseAttrValue(OrgLexer& lex) {
         empty();
     }
 
-    if (lex.at(otk::CmdRawArg) && lex.at(otk::Equals, +1)) {
+    IntSet<OrgTokenKind> eqTokens{
+        otk::Equals,
+        otk::VerbatimBegin,
+        otk::VerbatimEnd,
+        otk::VerbatimUnknown};
+
+    if (lex.at(otk::CmdRawArg) && lex.at(eqTokens, +1)) {
         // `key=`
         token(onk::RawText, pop(lex, otk::CmdRawArg));
-        skip(lex, otk::Equals);
+        skip(lex, eqTokens);
         space(lex);
     } else {
         empty();

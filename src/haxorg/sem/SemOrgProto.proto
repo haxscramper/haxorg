@@ -489,20 +489,21 @@ message AttrValue {
     string                                         reference                        = 2;
     string                                         debug                            = 1000;
   }
-  message EvalValue {
+  message LispValue {
+    LispCode                                       code                             = 1;
     string                                         debug                            = 1000;
   }
   message DataVariant {
     oneof kind {
       AttrValue.TextValue                          textvalue                        = 1;
       AttrValue.FileReference                      filereference                    = 2;
-      AttrValue.EvalValue                          evalvalue                        = 3;
+      AttrValue.LispValue                          lispvalue                        = 3;
     }
   }
   enum DataKind {
     DataKind_TextValue_f                                                            = 0;
     DataKind_FileReference_f                                                        = 1;
-    DataKind_EvalValue_f                                                            = 2;
+    DataKind_LispValue_f                                                            = 2;
   }
   optional string                                  name                             = 1;
   optional string                                  varname                          = 2;

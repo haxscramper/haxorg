@@ -1078,7 +1078,7 @@ TEST(OrgParseSem, CmdCallNode) {
     };
     {
         auto c = get(
-            R"(#+call: docker-swarm-systemd-configure[:dir (docker:infra-ssh "docker-swarm-0")](nodes=process42-node-table[2:-1],graph=process42-graph[2:-1]) :results silent)",
+            R"(#+call: docker-swarm-systemd-configure[:dir (docker:infra-ssh "docker-swarm-0")](nodes=process42-node-table[2:-1],graph=process42-graph[2:-1],arg=(elisp-eval (something))) :results silent)",
             getDebugFile("CmdCallNode"));
     }
 }

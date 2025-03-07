@@ -343,12 +343,12 @@ void org::algo::proto_serde<::orgproto::AttrValue::FileReference, org::sem::Attr
   proto_serde<std::string, hstd::Str>::read(out.reference(), in.for_field(&org::sem::AttrValue::FileReference::reference));
 }
 
-void org::algo::proto_serde<::orgproto::AttrValue::EvalValue, org::sem::AttrValue::EvalValue>::write(::orgproto::AttrValue::EvalValue* out, org::sem::AttrValue::EvalValue const& in) {
-
+void org::algo::proto_serde<::orgproto::AttrValue::LispValue, org::sem::AttrValue::LispValue>::write(::orgproto::AttrValue::LispValue* out, org::sem::AttrValue::LispValue const& in) {
+  proto_serde<orgproto::LispCode, org::sem::LispCode>::write(out->mutable_code(), in.code);
 }
 
-void org::algo::proto_serde<::orgproto::AttrValue::EvalValue, org::sem::AttrValue::EvalValue>::read(::orgproto::AttrValue::EvalValue const& out, proto_write_accessor<org::sem::AttrValue::EvalValue> in) {
-
+void org::algo::proto_serde<::orgproto::AttrValue::LispValue, org::sem::AttrValue::LispValue>::read(::orgproto::AttrValue::LispValue const& out, proto_write_accessor<org::sem::AttrValue::LispValue> in) {
+  proto_serde<orgproto::LispCode, org::sem::LispCode>::read(out.code(), in.for_field(&org::sem::AttrValue::LispValue::code));
 }
 
 void org::algo::proto_serde<::orgproto::AttrValue, org::sem::AttrValue>::write(::orgproto::AttrValue* out, org::sem::AttrValue const& in) {
@@ -368,7 +368,7 @@ void org::algo::proto_serde<::orgproto::AttrValue, org::sem::AttrValue>::write(:
       proto_serde<orgproto::AttrValue::FileReference, org::sem::AttrValue::FileReference>::write(out->mutable_data()->mutable_filereference(), std::get<1>(in.data));
       break;
     case 2:
-      proto_serde<orgproto::AttrValue::EvalValue, org::sem::AttrValue::EvalValue>::write(out->mutable_data()->mutable_evalvalue(), std::get<2>(in.data));
+      proto_serde<orgproto::AttrValue::LispValue, org::sem::AttrValue::LispValue>::write(out->mutable_data()->mutable_lispvalue(), std::get<2>(in.data));
       break;
   }
 }
@@ -389,8 +389,8 @@ void org::algo::proto_serde<::orgproto::AttrValue, org::sem::AttrValue>::read(::
     case ::orgproto::AttrValue::DataVariant::kFilereference:
       proto_serde<orgproto::AttrValue::FileReference, org::sem::AttrValue::FileReference>::read(out.data().filereference(), in.for_field_variant<1>(&org::sem::AttrValue::data));
       break;
-    case ::orgproto::AttrValue::DataVariant::kEvalvalue:
-      proto_serde<orgproto::AttrValue::EvalValue, org::sem::AttrValue::EvalValue>::read(out.data().evalvalue(), in.for_field_variant<2>(&org::sem::AttrValue::data));
+    case ::orgproto::AttrValue::DataVariant::kLispvalue:
+      proto_serde<orgproto::AttrValue::LispValue, org::sem::AttrValue::LispValue>::read(out.data().lispvalue(), in.for_field_variant<2>(&org::sem::AttrValue::data));
       break;
   }
 }

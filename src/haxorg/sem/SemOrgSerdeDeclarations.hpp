@@ -251,9 +251,9 @@ struct org::algo::proto_serde<::orgproto::AttrValue::FileReference, org::sem::At
 
 
 template <>
-struct org::algo::proto_serde<::orgproto::AttrValue::EvalValue, org::sem::AttrValue::EvalValue> {
-  static void write(::orgproto::AttrValue::EvalValue* out, org::sem::AttrValue::EvalValue const& in);
-  static void read(::orgproto::AttrValue::EvalValue const& out, proto_write_accessor<org::sem::AttrValue::EvalValue> in);
+struct org::algo::proto_serde<::orgproto::AttrValue::LispValue, org::sem::AttrValue::LispValue> {
+  static void write(::orgproto::AttrValue::LispValue* out, org::sem::AttrValue::LispValue const& in);
+  static void read(::orgproto::AttrValue::LispValue const& out, proto_write_accessor<org::sem::AttrValue::LispValue> in);
 };
 
 

@@ -405,19 +405,20 @@ struct AttrValue {
     bool operator==(org::sem::AttrValue::FileReference const& other) const;
   };
 
-  struct EvalValue {
-    BOOST_DESCRIBE_CLASS(EvalValue,
+  struct LispValue {
+    BOOST_DESCRIBE_CLASS(LispValue,
                          (),
                          (),
                          (),
-                         ())
-    bool operator==(org::sem::AttrValue::EvalValue const& other) const;
-    EvalValue() {  }
+                         (code))
+    org::sem::LispCode code;
+    bool operator==(org::sem::AttrValue::LispValue const& other) const;
+    LispValue() {  }
   };
 
-  using DataVariant = std::variant<org::sem::AttrValue::TextValue, org::sem::AttrValue::FileReference, org::sem::AttrValue::EvalValue>;
-  enum class DataKind : short int { TextValue, FileReference, EvalValue, };
-  BOOST_DESCRIBE_NESTED_ENUM(DataKind, TextValue, FileReference, EvalValue)
+  using DataVariant = std::variant<org::sem::AttrValue::TextValue, org::sem::AttrValue::FileReference, org::sem::AttrValue::LispValue>;
+  enum class DataKind : short int { TextValue, FileReference, LispValue, };
+  BOOST_DESCRIBE_NESTED_ENUM(DataKind, TextValue, FileReference, LispValue)
   using variant_enum_type = org::sem::AttrValue::DataKind;
   using variant_data_type = org::sem::AttrValue::DataVariant;
   BOOST_DESCRIBE_CLASS(AttrValue,
@@ -449,9 +450,9 @@ struct AttrValue {
   bool isFileReference() const { return getDataKind() == DataKind::FileReference; }
   org::sem::AttrValue::FileReference const& getFileReference() const { return std::get<1>(data); }
   org::sem::AttrValue::FileReference& getFileReference() { return std::get<1>(data); }
-  bool isEvalValue() const { return getDataKind() == DataKind::EvalValue; }
-  org::sem::AttrValue::EvalValue const& getEvalValue() const { return std::get<2>(data); }
-  org::sem::AttrValue::EvalValue& getEvalValue() { return std::get<2>(data); }
+  bool isLispValue() const { return getDataKind() == DataKind::LispValue; }
+  org::sem::AttrValue::LispValue const& getLispValue() const { return std::get<2>(data); }
+  org::sem::AttrValue::LispValue& getLispValue() { return std::get<2>(data); }
   static org::sem::AttrValue::DataKind getDataKind(org::sem::AttrValue::DataVariant const& __input) { return static_cast<org::sem::AttrValue::DataKind>(__input.index()); }
   org::sem::AttrValue::DataKind getDataKind() const { return getDataKind(data); }
   char const* sub_variant_get_name() const { return "data"; }

@@ -272,6 +272,11 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                 fieldN(2, N::Value),
                 fieldN(3, N::Cells),
             })},
+        SpecPair{
+            onk::AttrLisp,
+            OrgPattern({
+                fieldN(0, N::Value),
+            })},
         SpecPair{onk::CmdTblfm, OrgPattern({fieldN(0, N::Values)})},
         SpecPair{
             onk::CmdResult,

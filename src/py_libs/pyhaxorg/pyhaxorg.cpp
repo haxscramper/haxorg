@@ -793,20 +793,21 @@ node can have subnodes.)RAW")
          },
          pybind11::arg("name"))
     ;
-  pybind11::class_<org::sem::AttrValue::EvalValue>(m, "AttrValueEvalValue")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::AttrValue::EvalValue {
-                        org::sem::AttrValue::EvalValue result{};
+  pybind11::class_<org::sem::AttrValue::LispValue>(m, "AttrValueLispValue")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::AttrValue::LispValue {
+                        org::sem::AttrValue::LispValue result{};
                         org::bind::python::init_fields_from_kwargs(result, kwargs);
                         return result;
                         }))
+    .def_readwrite("code", &org::sem::AttrValue::LispValue::code)
     .def("operator==",
-         static_cast<bool(org::sem::AttrValue::EvalValue::*)(org::sem::AttrValue::EvalValue const&) const>(&org::sem::AttrValue::EvalValue::operator==),
+         static_cast<bool(org::sem::AttrValue::LispValue::*)(org::sem::AttrValue::LispValue const&) const>(&org::sem::AttrValue::LispValue::operator==),
          pybind11::arg("other"))
-    .def("__repr__", [](org::sem::AttrValue::EvalValue _self) -> std::string {
+    .def("__repr__", [](org::sem::AttrValue::LispValue _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::sem::AttrValue::EvalValue _self, std::string name) -> pybind11::object {
+         [](org::sem::AttrValue::LispValue _self, std::string name) -> pybind11::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -815,7 +816,7 @@ node can have subnodes.)RAW")
   pybind11::enum_<org::sem::AttrValue::DataKind>(m, "AttrValueDataKind")
     .value("TextValue", org::sem::AttrValue::DataKind::TextValue)
     .value("FileReference", org::sem::AttrValue::DataKind::FileReference)
-    .value("EvalValue", org::sem::AttrValue::DataKind::EvalValue)
+    .value("LispValue", org::sem::AttrValue::DataKind::LispValue)
     .def("__iter__", [](org::sem::AttrValue::DataKind _self) -> org::bind::python::PyEnumIterator<org::sem::AttrValue::DataKind> {
                      return
                      org::bind::python::PyEnumIterator<org::sem::AttrValue::DataKind>
@@ -846,8 +847,8 @@ node can have subnodes.)RAW")
     .def("getTextValue", static_cast<org::sem::AttrValue::TextValue&(org::sem::AttrValue::*)()>(&org::sem::AttrValue::getTextValue))
     .def("isFileReference", static_cast<bool(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::isFileReference))
     .def("getFileReference", static_cast<org::sem::AttrValue::FileReference&(org::sem::AttrValue::*)()>(&org::sem::AttrValue::getFileReference))
-    .def("isEvalValue", static_cast<bool(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::isEvalValue))
-    .def("getEvalValue", static_cast<org::sem::AttrValue::EvalValue&(org::sem::AttrValue::*)()>(&org::sem::AttrValue::getEvalValue))
+    .def("isLispValue", static_cast<bool(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::isLispValue))
+    .def("getLispValue", static_cast<org::sem::AttrValue::LispValue&(org::sem::AttrValue::*)()>(&org::sem::AttrValue::getLispValue))
     .def_static("getDataKindStatic",
                 static_cast<org::sem::AttrValue::DataKind(*)(org::sem::AttrValue::DataVariant const&)>(&org::sem::AttrValue::getDataKind),
                 pybind11::arg("__input"))

@@ -1930,78 +1930,112 @@ OrgConverter::ConvResult<AtMention> OrgConverter::convertAtMention(
 sem::AttrValue OrgConverter::convertAttr(__args) {
     auto           __trace = trace(a);
     sem::AttrValue result;
-    Str            key   = get_text(one(a, N::Name));
-    Str            value = get_text(one(a, N::Value));
 
-    for (int i = 0; i < value.size(); ++i) {
-        if (std::isalnum(value.at(i))) {
-            // pass
-        } else if (value.at(i) == '=' && i < value.size()) {
-            // found variable name
-            result.varname = value.substr(0, i);
-            value          = value.substr(i + 1);
-        } else {
-            // not a variable name
-            break;
-        }
+    if (one(a, N::Name).getKind() != onk::Empty) {
+        result.name = get_text(one(a, N::Name));
     }
 
+    if (one(a, N::Subname).getKind() != onk::Empty) {
+        result.varname = get_text(one(a, N::Subname));
+    }
 
-    if (value.starts_with('"') && value.ends_with('"')) {
-        result.isQuoted = true;
-        value           = value.substr(1, value.size() - 2);
-        AttrValue::TextValue tv{};
-        tv.value    = value;
-        result.data = tv;
-    } else {
-        Str dimension;
-        if (value.ends_with(']')) {
-            for (int i = 0; i < value.size(); ++i) {
-                if (value.at(i) == '[') {
-                    dimension = value.substr(i + 1, value.size() - 1);
-                    value     = value.substr(0, i);
-                }
-            }
-        }
-
-        if (!dimension.empty()) {
-            for (auto axis : dimension.split(',')) {
-                AttrValue::DimensionSpan dim;
-                axis = strip_space(axis);
-                if (axis == "" || axis == "*") {
-                    dim.first = 0;
-                    dim.last  = -1;
-                } else {
-                    auto split = axis.split(':');
-                    dim.first  = split.at(0).toInt();
-                    if (split.has(1)) { dim.last = split.at(1).toInt(); }
-                }
-                result.span.push_back(dim);
-            }
-        }
-
+    if (one(a, N::Value).getKind() == onk::RawText) {
+        Str  value = get_text(one(a, N::Value));
+        auto split = value.split(':');
         if (value.contains(':')) {
-            auto split = value.split(':');
-            if (split.has(1)) {
-                AttrValue::FileReference fr{};
-                fr.file      = split.at(0);
-                fr.reference = split.at(1);
-                result.data  = fr;
-            } else {
-                AttrValue::TextValue tv{};
-                tv.value    = value;
-                result.data = tv;
-            }
+            AttrValue::FileReference fr{};
+            fr.file      = split.at(0);
+            fr.reference = split.at(1);
+            result.data  = fr;
         } else {
             AttrValue::TextValue tv{};
             tv.value    = value;
             result.data = tv;
         }
+    } else if (one(a, N::Value).getKind() == onk::AttrLisp) {
+        AttrValue::LispValue ev{};
+        ev.code     = convertLisp(one(a, N::Value));
+        result.data = ev;
     }
 
-    if (!key.empty()) { result.name = key.substr(1); }
+    if (one(a, N::Cells).getKind() != onk::Empty) {
+        for (auto const& it : one(a, N::Cells)) {
+            AttrValue::DimensionSpan dim;
+            auto                     axis = get_text(it);
+            if (axis == "" || axis == "*") {
+                dim.first = 0;
+                dim.last  = -1;
+            } else {
+                auto split = axis.split(':');
+                dim.first  = split.at(0).toInt();
+                if (split.has(1)) { dim.last = split.at(1).toInt(); }
+            }
+            result.span.push_back(dim);
+        }
+    }
 
-    if (TraceState) { print(fmt("key:{} value:{}", result.name, value)); }
+    // else if (one(a, N::Value).getKind() == onk:)
+
+    // for (int i = 0; i < value.size(); ++i) {
+    //     if (std::isalnum(value.at(i))) {
+    //         // pass
+    //     } else if (value.at(i) == '=' && i < value.size()) {
+    //         // found variable name
+    //         result.varname = value.substr(0, i);
+    //         value          = value.substr(i + 1);
+    //     } else {
+    //         // not a variable name
+    //         break;
+    //     }
+    // }
+
+
+    // if (value.starts_with('"') && value.ends_with('"')) {
+    //     result.isQuoted = true;
+    //     value           = value.substr(1, value.size() - 2);
+    //     AttrValue::TextValue tv{};
+    //     tv.value    = value;
+    //     result.data = tv;
+    // } else {
+    //     Str dimension;
+    //     if (value.ends_with(']')) {
+    //         for (int i = 0; i < value.size(); ++i) {
+    //             if (value.at(i) == '[') {
+    //                 dimension = value.substr(i + 1, value.size() - 1);
+    //                 value     = value.substr(0, i);
+    //             }
+    //         }
+    //     }
+
+    //     if (!dimension.empty()) {
+    //         for (auto axis : dimension.split(',')) {
+
+    //         }
+    //     }
+
+    //     if (value.contains(':')) {
+    //         auto split = value.split(':');
+    //         if (split.has(1)) {
+    //             AttrValue::FileReference fr{};
+    //             fr.file      = split.at(0);
+    //             fr.reference = split.at(1);
+    //             result.data  = fr;
+    //         } else {
+    //             AttrValue::TextValue tv{};
+    //             tv.value    = value;
+    //             result.data = tv;
+    //         }
+    //     } else {
+    //         AttrValue::TextValue tv{};
+    //         tv.value    = value;
+    //         result.data = tv;
+    //     }
+    // }
+
+    // if (!key.empty()) { result.name = key.substr(1); }
+
+    // if (TraceState) { print(fmt("key:{} value:{}", result.name, value));
+    // }
 
     return result;
 }
@@ -2046,13 +2080,17 @@ LispCode OrgConverter::convertLisp(In a) {
     auto __trace = trace(a);
     using L      = sem::LispCode;
     L out;
-    if (one(a, N::Value).getKind() == onk::InlineStmtList) {
+    if (a.getKind() == onk::AttrLisp) {
+        return convertLisp(one(a, N::Value));
+    } else if (a.getKind() == onk::InlineStmtList) {
         Vec<LispCode> items;
         for (auto const& it : a) { items.push_back(convertLisp(it)); }
         if (!items.empty() && items.front().isIdent()) {
             L::Call res;
             res.name = items.front().getIdent().name;
-            res.args = Vec<LispCode>{items.at(slice(1, 1_B))};
+            if (items.has(1)) {
+                res.args = Vec<LispCode>{items.at(slice(1, 1_B))};
+            }
             out.data = res;
         } else {
             L::List res;

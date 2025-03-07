@@ -1648,10 +1648,13 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                             ],
                         ),
                         org_struct(
-                            t_nest_shared("EvalValue", [t("AttrValue")]),
+                            t_nest_shared("LispValue", [t("AttrValue")]),
+                            fields=[
+                                org_field(t_nest_shared("LispCode"), "code"),
+                            ],
                             methods=[
-                                eq_method(t_nest_shared("EvalValue", [t("AttrValue")])),
-                                default_constructor_method("EvalValue"),
+                                eq_method(t_nest_shared("LispValue", [t("AttrValue")])),
+                                default_constructor_method("LispValue"),
                             ],
                         ),
                     ],

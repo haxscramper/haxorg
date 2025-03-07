@@ -121,7 +121,7 @@ void Exporter<V, R>::visit(R& res, sem::AttrValue::FileReference const& object) 
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::AttrValue::EvalValue const& object) {  }
+void Exporter<V, R>::visit(R& res, sem::AttrValue::LispValue const& object) { __obj_field(res, object, code); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::HashTagFlat const& object) { __obj_field(res, object, tags); }

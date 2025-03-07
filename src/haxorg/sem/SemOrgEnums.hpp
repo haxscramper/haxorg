@@ -27,7 +27,7 @@
     __IMPL(AttrValue, DimensionSpan, (DimensionSpan)) \
     __IMPL(AttrValue, TextValue, (TextValue)) \
     __IMPL(AttrValue, FileReference, (FileReference)) \
-    __IMPL(AttrValue, EvalValue, (EvalValue)) \
+    __IMPL(AttrValue, LispValue, (LispValue)) \
     __IMPL(LinkTarget, Raw, (Raw)) \
     __IMPL(LinkTarget, Id, (Id)) \
     __IMPL(LinkTarget, CustomId, (CustomId)) \
@@ -142,7 +142,7 @@
     __IMPL(AttrValue::DimensionSpan, (AttrValue, DimensionSpan)) \
     __IMPL(AttrValue::TextValue, (AttrValue, TextValue)) \
     __IMPL(AttrValue::FileReference, (AttrValue, FileReference)) \
-    __IMPL(AttrValue::EvalValue, (AttrValue, EvalValue)) \
+    __IMPL(AttrValue::LispValue, (AttrValue, LispValue)) \
     __IMPL(HashTagFlat, (HashTagFlat)) \
     __IMPL(HashTagText, (HashTagText)) \
     __IMPL(SubtreePath, (SubtreePath)) \
