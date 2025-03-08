@@ -1052,7 +1052,6 @@ struct ImmSemSerde<org::sem::BlockCode, org::imm::ImmBlockCode> {
     assign_immer_field(result.noweb, value.noweb, ctx);
     assign_immer_field(result.hlines, value.hlines, ctx);
     assign_immer_field(result.tangle, value.tangle, ctx);
-    assign_immer_field(result.executionVars, value.executionVars, ctx);
     assign_immer_field(result.switches, value.switches, ctx);
     assign_immer_field(result.attrs, value.attrs, ctx);
     assign_immer_field(result.attached, value.attached, ctx);
@@ -1071,7 +1070,6 @@ struct ImmSemSerde<org::sem::BlockCode, org::imm::ImmBlockCode> {
     assign_sem_field(result.noweb, value.noweb, ctx);
     assign_sem_field(result.hlines, value.hlines, ctx);
     assign_sem_field(result.tangle, value.tangle, ctx);
-    assign_sem_field(result.executionVars, value.executionVars, ctx);
     assign_sem_field(result.switches, value.switches, ctx);
     assign_sem_field(result.attrs, value.attrs, ctx);
     assign_sem_field(result.attached, value.attached, ctx);

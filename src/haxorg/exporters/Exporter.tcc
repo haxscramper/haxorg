@@ -1013,7 +1013,6 @@ void Exporter<V, R>::visitBlockCode(R& res, In<sem::BlockCode> object) {
   __org_field(res, object, noweb);
   __org_field(res, object, hlines);
   __org_field(res, object, tangle);
-  __org_field(res, object, executionVars);
   __org_field(res, object, switches);
   __org_field(res, object, attrs);
   __org_field(res, object, attached);

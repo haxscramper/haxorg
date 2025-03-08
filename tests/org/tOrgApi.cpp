@@ -147,6 +147,7 @@ input text
     conf.evalBlock = [&](sem::OrgCodeEvalInput const& in)
         -> Vec<sem::OrgCodeEvalOutput> {
         buf.push_back(in);
+        LOG(INFO) << fmt1(in);
         return {sem::OrgCodeEvalOutput{.stdout = "*bold*"}};
     };
     conf.debug->setTraceFile(getDebugFile("EvalCallCommand.log"));

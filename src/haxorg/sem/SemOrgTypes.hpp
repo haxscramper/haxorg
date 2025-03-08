@@ -1806,7 +1806,7 @@ struct Cmd : public org::sem::Stmt {
                        (),
                        (attrs))
   /// \brief Additional parameters aside from 'exporter',
-  hstd::Opt<org::sem::AttrGroup> attrs = std::nullopt;
+  org::sem::AttrGroup attrs;
   /// \brief Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any.
   virtual hstd::Vec<org::sem::AttrValue> getAttrs(hstd::Opt<hstd::Str> const& key = std::nullopt) const override;
   /// \brief Override of the base statement argument get, prioritizing the explicit command parameters
@@ -2581,7 +2581,6 @@ struct BlockCode : public org::sem::Block {
                         noweb,
                         hlines,
                         tangle,
-                        executionVars,
                         switches))
   static OrgSemKind const staticKind;
   /// \brief Code block language name
@@ -2602,8 +2601,6 @@ struct BlockCode : public org::sem::Block {
   bool hlines = false;
   /// \brief ?
   bool tangle = false;
-  /// \brief Attributes provided under `:var`
-  org::sem::AttrGroup executionVars;
   /// \brief Dash-based switches for code block execution
   org::sem::AttrGroup switches;
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockCode; }

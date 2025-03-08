@@ -370,8 +370,8 @@ auto Formatter::toString(SemId<BlockCode> id, CR<Context> ctx) -> Res {
 
     auto     result = isInline ? b.line() : b.stack();
     Vec<Res> parameters;
-    if (id->attrs) {
-        parameters.push_back(toString(id->attrs.value(), ctx));
+    if (!id->attrs.isEmpty()) {
+        parameters.push_back(toString(id->attrs, ctx));
     }
 
     auto head = isInline ? b.line({str("src_")})
@@ -1498,9 +1498,9 @@ auto Formatter::toString(SemId<BlockExport> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Res head = b.line();
     add(head, str("#+begin_export " + id->exporter));
-    if (id->attrs) {
+    if (!id->attrs.isEmpty()) {
         add(head, str(" "));
-        add(head, toString(id->attrs.value(), ctx));
+        add(head, toString(id->attrs, ctx));
     }
 
     return b.stack(

@@ -59,12 +59,8 @@ void proto_serde<orgproto::AnyNode, org::sem::SemId<org::sem::Org>>::read(
 
 template <typename Proto>
 void proto_serde<Proto, sem::Cmd>::write(Proto* out, const sem::Cmd& in) {
-    if (in.attrs) {
-        if (in.attrs) {
-            proto_serde<orgproto::AttrGroup, sem::AttrGroup>::write(
-                out->mutable_attrs(), *in.attrs);
-        }
-    }
+    proto_serde<orgproto::AttrGroup, sem::AttrGroup>::write(
+        out->mutable_attrs(), in.attrs);
 }
 
 template <typename Proto>
@@ -72,7 +68,7 @@ void proto_serde<Proto, sem::Cmd>::read(
     const Proto&                   out,
     proto_write_accessor<sem::Cmd> in) {
     if (out.has_attrs()) {
-        proto_serde<Opt<orgproto::AttrGroup>, Opt<sem::AttrGroup>>::read(
+        proto_serde<orgproto::AttrGroup, sem::AttrGroup>::read(
             out.attrs(), in.for_field(&sem::BlockExport::attrs));
     }
 }

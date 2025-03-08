@@ -622,7 +622,7 @@ def get_sem_bases():
             bases=[t_nest(t_org("Stmt"))],
             concreteKind=False,
             fields=[
-                opt_field(
+                org_field(
                     t_nest_shared("AttrGroup"),
                     "attrs",
                     GenTuDoc("Additional parameters aside from 'exporter',"),
@@ -864,11 +864,6 @@ def get_sem_block():
                           value="false"),
                 org_field(t_bool(), "hlines", "?", value="false"),
                 org_field(t_bool(), "tangle", "?", value="false"),
-                org_field(
-                    t_nest_shared("AttrGroup"),
-                    "executionVars",
-                    "Attributes provided under `:var`",
-                ),
                 org_field(
                     t_nest_shared("AttrGroup"),
                     "switches",

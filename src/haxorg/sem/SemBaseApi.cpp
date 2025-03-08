@@ -927,9 +927,7 @@ sem::SemId<Org> convertOutput(
 }
 
 sem::OrgCodeEvalInput convertInput(
-    imm::ImmAdapterT<imm::ImmBlockCode> block,
-    Opt<org::sem::AttrGroup>            callsiteVars,
-    Opt<org::sem::AttrGroup>            callsiteHeaderArgs) {
+    imm::ImmAdapterT<imm::ImmBlockCode> block) {
     sem::OrgCodeEvalInput input;
     input.language = block->lang.get().value();
 
@@ -937,6 +935,7 @@ sem::OrgCodeEvalInput convertInput(
 
     input.resultHandling = I::ResultHandling::Replace;
     input.resultType     = I::ResultType::Scalar;
+
 
     Vec<Str> buf;
     for (auto const& line : block->lines) {
@@ -1165,8 +1164,44 @@ sem::SemId<Org> org::evaluateCodeBlocks(
 
             auto __scope = conf.isTraceEnabled() ? conf.debug->scopeLevel()
                                                  : finally_std::nop();
-            auto input   = convertInput(
-                block_adapter, callsiteVars, callsiteHeaderArgs);
+
+
+            auto input = convertInput(block_adapter);
+
+            {
+                UnorderedMap<Str, sem::AttrValue> byVarname;
+                if (auto default_vars = block_adapter->attrs.getNamed(
+                        "var")) {
+                    for (auto const& var : default_vars->items) {
+                        EVAL_TRACE(fmt("Default variable {}", var));
+                        byVarname.insert_or_assign(
+                            var.varname.value(), var);
+                    }
+                }
+
+                if (callsiteVars) {
+                    for (auto const& var :
+                         callsiteVars->positional.items) {
+                        EVAL_TRACE(fmt("Callsite variable {}", var));
+                        if (var.varname) {
+                            byVarname.insert_or_assign(
+                                var.varname.value(), var);
+                        }
+                    }
+                }
+
+                for (auto const& key : sorted(byVarname.keys())) {
+                    sem::OrgCodeEvalInput::Var var;
+                    auto const&                attr = byVarname.at(key);
+
+                    var.name = attr.varname.value();
+                    json value;
+                    value     = attr.getString();
+                    var.value = value;
+                    input.argList.push_back(var);
+                }
+            }
+
             auto output = conf.evalBlock(input);
 
             for (auto const& it : output) {

@@ -2218,7 +2218,6 @@ void org::algo::proto_serde<::orgproto::BlockCode, org::sem::BlockCode>::write(:
   out->set_noweb(in.noweb);
   out->set_hlines(in.hlines);
   out->set_tangle(in.tangle);
-  proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::write(out->mutable_executionvars(), in.executionVars);
   proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::write(out->mutable_switches(), in.switches);
 }
 
@@ -2237,7 +2236,6 @@ void org::algo::proto_serde<::orgproto::BlockCode, org::sem::BlockCode>::read(::
   in.for_field(&org::sem::BlockCode::noweb).get() = out.noweb();
   in.for_field(&org::sem::BlockCode::hlines).get() = out.hlines();
   in.for_field(&org::sem::BlockCode::tangle).get() = out.tangle();
-  proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::read(out.executionvars(), in.for_field(&org::sem::BlockCode::executionVars));
   proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::read(out.switches(), in.for_field(&org::sem::BlockCode::switches));
 }
 
