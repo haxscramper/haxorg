@@ -1006,30 +1006,30 @@ struct EvalContext {
                                           ? conf.debug->scopeLevel()      \
                                           : finally_std::nop();
 
-
-    Opt<json> getAttrValue(sem::AttrValue const& attr) const {
-        EVAL_TRACE(fmt("Resolving attribute value to state {}", attr));
-        EVAL_SCOPE();
-        Str  name = attr.getString();
-        auto node = getTrack()->names.get(name);
-        if (!node) {
-            EVAL_TRACE("No named nodes with the value");
-            return std::nullopt;
-        }
-        auto paths = getContext()->getPathsFor(node.value());
-        LOGIC_ASSERTION_CHECK(
-            !paths.empty(), "Logic block {} has no paths", node.value());
-        auto target = getContext()->adapt(paths.front());
-
-        Opt<json> result;
+    Opt<json> getTargetValue(imm::ImmId const& target_id, bool asFlatText)
+        const {
+        auto target = getContext()->adaptUnrooted(target_id);
         EVAL_TRACE(fmt("Target node is {}", target));
-
-        bool asFlatText = true;
+        EVAL_SCOPE();
+        Opt<json> result;
 
         target.visitNodeValue(overloaded{
+            [&](imm::ImmStmtList const& list) {
+                json out = json::array();
+                for (auto const& it : list) {
+                    auto nested = getTargetValue(it, asFlatText);
+                    if (nested) { out.push_back(nested.value()); }
+                }
+
+                if (out.size() == 0) {
+                    result = std::nullopt;
+                } else if (out.size() == 1) {
+                    result = out.at(0);
+                } else {
+                    result = out;
+                }
+            },
             [&](imm::ImmTable const& t) {
-                EVAL_TRACE("Target is table data");
-                EVAL_SCOPE();
                 json out_table = json::array();
                 for (auto const& row : t.rows) {
                     json out_row = json::array();
@@ -1055,8 +1055,41 @@ struct EvalContext {
                 }
                 result = out_table;
             },
+            [&](imm::ImmBlockCode const& code) {
+                if (code.result.empty()) {
+                    EVAL_TRACE(
+                        "Target code block was not evaluated, no result "
+                        "field");
+                } else {
+                    auto value = getContext()
+                                     ->adaptUnrooted(code.result.back())
+                                     .as<imm::ImmBlockCodeEvalResult>();
+                    EVAL_TRACE(
+                        fmt("Target code block evaluated to {}", value));
+                    // EVAL_TRACE()
+                    result = getTargetValue(value->node, asFlatText);
+                }
+            },
             [&](auto const&) {},
         });
+
+        return result;
+    }
+
+    Opt<json> getAttrValue(sem::AttrValue const& attr) const {
+        EVAL_TRACE(fmt("Resolving attribute value to state {}", attr));
+        EVAL_SCOPE();
+        Str  name = attr.getString();
+        auto node = getTrack()->names.get(name);
+        if (!node) {
+            EVAL_TRACE("No named nodes with the value");
+            return std::nullopt;
+        }
+        auto paths = getContext()->getPathsFor(node.value());
+        LOGIC_ASSERTION_CHECK(
+            !paths.empty(), "Logic block {} has no paths", node.value());
+        Opt<json> result = getTargetValue(paths.front().id, true);
+
 
         if (result) { result = sliceJson(result.value(), attr.span); }
 

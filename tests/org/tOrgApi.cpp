@@ -190,13 +190,12 @@ TEST(OrgApi, BlockEvalIntermediateData) {
 |---+---+---|
 | g | h | i |
 
-#+NAME: no-hline
-#+BEGIN_SRC python :var tab=many-cols :hlines no
+#+NAME: second-user
+#+BEGIN_SRC python :var tab=many-cols
 return tab
 #+END_SRC
 
-#+NAME: hlines
-#+BEGIN_SRC python :var tab=many-cols :hlines yes
+#+BEGIN_SRC python :var tab=second-user
 return tab
 #+END_SRC
 )");

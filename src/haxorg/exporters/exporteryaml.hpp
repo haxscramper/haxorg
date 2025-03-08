@@ -54,10 +54,7 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
     yaml newRes(sem::SemId<sem::Org> org);
 
     template <typename T>
-    void visitField(
-        yaml&         j,
-        const char*         name,
-        hstd::Opt<T> const& value) {
+    void visitField(yaml& j, const char* name, hstd::Opt<T> const& value) {
         if (value) {
             j[name] = eval(value.value());
         } else {
@@ -80,7 +77,7 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
     }
 
     void visitField(
-        yaml& y,
+        yaml&       y,
         char const* name,
         hstd::UnorderedMap<int, sem::SemId<sem::Org>> const&) {}
 
@@ -110,6 +107,11 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
     bool skipZeroFields  = false;
     bool skipLocation    = false;
     bool skipId          = false;
+
+    static yaml toYaml(sem::SemId<sem::Org> const& node) {
+        ExporterYaml exp{};
+        return exp.eval(node);
+    }
 };
 
 extern template class Exporter<ExporterYaml, yaml>;
