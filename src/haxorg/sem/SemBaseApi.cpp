@@ -927,7 +927,9 @@ sem::SemId<Org> convertOutput(
 }
 
 sem::OrgCodeEvalInput convertInput(
-    imm::ImmAdapterT<imm::ImmBlockCode> block) {
+    imm::ImmAdapterT<imm::ImmBlockCode> block,
+    Opt<org::sem::AttrGroup>            callsiteVars,
+    Opt<org::sem::AttrGroup>            callsiteHeaderArgs) {
     sem::OrgCodeEvalInput input;
     input.language = block->lang.get().value();
 
@@ -1122,13 +1124,18 @@ sem::SemId<Org> org::evaluateCodeBlocks(
         codeBlockPaths.pop_front();
         auto adapter = version.context->adapt(block);
         imm::ImmAdapterT<imm::ImmBlockCode> block_adapter;
+        Opt<org::sem::AttrGroup>            callsiteVars;
+        Opt<org::sem::AttrGroup>            callsiteHeaderArgs;
         if (adapter.is(OrgSemKind::BlockCode)) {
             block_adapter = adapter.as<imm::ImmBlockCode>();
         } else {
-            auto command = adapter.as<imm::ImmCmdCall>();
+            auto        command = adapter.as<imm::ImmCmdCall>();
+            auto const& ctx     = version.context;
             EVAL_TRACE(fmt(
                 "Getting target code block for name '{}'", command->name));
-            if (auto opt_block = imm_context->currentTrack->names.get(
+            callsiteVars       = command->callAttrs;
+            callsiteHeaderArgs = command->insideHeaderAttrs;
+            if (auto opt_block = ctx->currentTrack->names.get(
                     command->name)) {
                 if (!opt_block->is(OrgSemKind::BlockCode)) {
                     EVAL_TRACE(
@@ -1136,23 +1143,21 @@ sem::SemId<Org> org::evaluateCodeBlocks(
                             command->name));
                 }
 
-                auto paths = imm_context->getPathsFor(opt_block.value());
+                auto paths = ctx->getPathsFor(opt_block.value());
                 LOGIC_ASSERTION_CHECK(
                     !paths.empty(),
                     "Logic block {} has no paths",
                     opt_block.value());
-                block_adapter = imm_context->adapt(paths.front())
+                block_adapter = ctx->adapt(paths.front())
                                     .as<imm::ImmBlockCode>();
             } else {
                 EVAL_TRACE(fmt(
-                    "Name '{}' does not refere to a known document entry",
+                    "Name '{}' does not refer to a known document entry",
                     command->name));
             }
         }
 
-        if (!block_adapter.isNil())
-
-        {
+        if (!block_adapter.isNil()) {
             EVAL_TRACE(
                 fmt("Evaluating language '{}' at {}",
                     block_adapter->lang,
@@ -1160,8 +1165,9 @@ sem::SemId<Org> org::evaluateCodeBlocks(
 
             auto __scope = conf.isTraceEnabled() ? conf.debug->scopeLevel()
                                                  : finally_std::nop();
-            auto input   = convertInput(block_adapter);
-            auto output  = conf.evalBlock(input);
+            auto input   = convertInput(
+                block_adapter, callsiteVars, callsiteHeaderArgs);
+            auto output = conf.evalBlock(input);
 
             for (auto const& it : output) {
                 if (!it.cmd) { EVAL_TRACE(fmt("cmd: {}", it.cmd)); }

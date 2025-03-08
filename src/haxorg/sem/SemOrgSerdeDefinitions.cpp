@@ -787,6 +787,16 @@ void org::algo::proto_serde<::orgproto::AttrGroup, org::sem::AttrGroup>::read(::
   proto_serde<::google::protobuf::Map<std::string, orgproto::AttrList>, hstd::UnorderedMap<hstd::Str, org::sem::AttrList>>::read(out.named(), in.for_field(&org::sem::AttrGroup::named));
 }
 
+void org::algo::proto_serde<::orgproto::OrgCodeEvalInput::Var, org::sem::OrgCodeEvalInput::Var>::write(::orgproto::OrgCodeEvalInput::Var* out, org::sem::OrgCodeEvalInput::Var const& in) {
+  proto_serde<std::string, hstd::Str>::write(out->mutable_name(), in.name);
+  proto_serde<orgproto::OrgJson, org::sem::OrgJson>::write(out->mutable_value(), in.value);
+}
+
+void org::algo::proto_serde<::orgproto::OrgCodeEvalInput::Var, org::sem::OrgCodeEvalInput::Var>::read(::orgproto::OrgCodeEvalInput::Var const& out, proto_write_accessor<org::sem::OrgCodeEvalInput::Var> in) {
+  proto_serde<std::string, hstd::Str>::read(out.name(), in.for_field(&org::sem::OrgCodeEvalInput::Var::name));
+  proto_serde<orgproto::OrgJson, org::sem::OrgJson>::read(out.value(), in.for_field(&org::sem::OrgCodeEvalInput::Var::value));
+}
+
 void org::algo::proto_serde<::orgproto::OrgCodeEvalInput, org::sem::OrgCodeEvalInput>::write(::orgproto::OrgCodeEvalInput* out, org::sem::OrgCodeEvalInput const& in) {
   proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::write(out->mutable_blockattrs(), in.blockAttrs);
   proto_serde<std::string, hstd::Str>::write(out->mutable_tangledcode(), in.tangledCode);
@@ -797,6 +807,7 @@ void org::algo::proto_serde<::orgproto::OrgCodeEvalInput, org::sem::OrgCodeEvalI
   out->set_resultformat(static_cast<orgproto::OrgCodeEvalInput_ResultFormat>(in.resultFormat));
   out->set_resulthandling(static_cast<orgproto::OrgCodeEvalInput_ResultHandling>(in.resultHandling));
   proto_serde<std::string, hstd::Str>::write(out->mutable_language(), in.language);
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::OrgCodeEvalInput::Var>, hstd::Vec<org::sem::OrgCodeEvalInput::Var>>::write(out->mutable_arglist(), in.argList);
 }
 
 void org::algo::proto_serde<::orgproto::OrgCodeEvalInput, org::sem::OrgCodeEvalInput>::read(::orgproto::OrgCodeEvalInput const& out, proto_write_accessor<org::sem::OrgCodeEvalInput> in) {
@@ -809,6 +820,7 @@ void org::algo::proto_serde<::orgproto::OrgCodeEvalInput, org::sem::OrgCodeEvalI
   in.for_field(&org::sem::OrgCodeEvalInput::resultFormat).get() = static_cast<org::sem::OrgCodeEvalInput::ResultFormat>(out.resultformat());
   in.for_field(&org::sem::OrgCodeEvalInput::resultHandling).get() = static_cast<org::sem::OrgCodeEvalInput::ResultHandling>(out.resulthandling());
   proto_serde<std::string, hstd::Str>::read(out.language(), in.for_field(&org::sem::OrgCodeEvalInput::language));
+  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::OrgCodeEvalInput::Var>, hstd::Vec<org::sem::OrgCodeEvalInput::Var>>::read(out.arglist(), in.for_field(&org::sem::OrgCodeEvalInput::argList));
 }
 
 void org::algo::proto_serde<::orgproto::OrgCodeEvalOutput, org::sem::OrgCodeEvalOutput>::write(::orgproto::OrgCodeEvalOutput* out, org::sem::OrgCodeEvalOutput const& in) {
@@ -820,6 +832,7 @@ void org::algo::proto_serde<::orgproto::OrgCodeEvalOutput, org::sem::OrgCodeEval
   }
   proto_serde<::google::protobuf::RepeatedPtrField<std::string>, hstd::Vec<hstd::Str>>::write(out->mutable_args(), in.args);
   proto_serde<std::string, hstd::Str>::write(out->mutable_cwd(), in.cwd);
+  proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::write(out->mutable_appliedheaderarg(), in.appliedHeaderArg);
 }
 
 void org::algo::proto_serde<::orgproto::OrgCodeEvalOutput, org::sem::OrgCodeEvalOutput>::read(::orgproto::OrgCodeEvalOutput const& out, proto_write_accessor<org::sem::OrgCodeEvalOutput> in) {
@@ -831,6 +844,7 @@ void org::algo::proto_serde<::orgproto::OrgCodeEvalOutput, org::sem::OrgCodeEval
   }
   proto_serde<::google::protobuf::RepeatedPtrField<std::string>, hstd::Vec<hstd::Str>>::read(out.args(), in.for_field(&org::sem::OrgCodeEvalOutput::args));
   proto_serde<std::string, hstd::Str>::read(out.cwd(), in.for_field(&org::sem::OrgCodeEvalOutput::cwd));
+  proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::read(out.appliedheaderarg(), in.for_field(&org::sem::OrgCodeEvalOutput::appliedHeaderArg));
 }
 
 void org::algo::proto_serde<::orgproto::ColumnView::Summary::CheckboxAggregate, org::sem::ColumnView::Summary::CheckboxAggregate>::write(::orgproto::ColumnView::Summary::CheckboxAggregate* out, org::sem::ColumnView::Summary::CheckboxAggregate const& in) {
@@ -979,88 +993,6 @@ void org::algo::proto_serde<::orgproto::BlockCodeLine, org::sem::BlockCodeLine>:
 
 void org::algo::proto_serde<::orgproto::BlockCodeLine, org::sem::BlockCodeLine>::read(::orgproto::BlockCodeLine const& out, proto_write_accessor<org::sem::BlockCodeLine> in) {
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::BlockCodeLine::Part>, hstd::Vec<org::sem::BlockCodeLine::Part>>::read(out.parts(), in.for_field(&org::sem::BlockCodeLine::parts));
-}
-
-void org::algo::proto_serde<::orgproto::BlockCodeSwitch::LineStart, org::sem::BlockCodeSwitch::LineStart>::write(::orgproto::BlockCodeSwitch::LineStart* out, org::sem::BlockCodeSwitch::LineStart const& in) {
-  out->set_start(in.start);
-  out->set_extendlast(in.extendLast);
-}
-
-void org::algo::proto_serde<::orgproto::BlockCodeSwitch::LineStart, org::sem::BlockCodeSwitch::LineStart>::read(::orgproto::BlockCodeSwitch::LineStart const& out, proto_write_accessor<org::sem::BlockCodeSwitch::LineStart> in) {
-  in.for_field(&org::sem::BlockCodeSwitch::LineStart::start).get() = out.start();
-  in.for_field(&org::sem::BlockCodeSwitch::LineStart::extendLast).get() = out.extendlast();
-}
-
-void org::algo::proto_serde<::orgproto::BlockCodeSwitch::CalloutFormat, org::sem::BlockCodeSwitch::CalloutFormat>::write(::orgproto::BlockCodeSwitch::CalloutFormat* out, org::sem::BlockCodeSwitch::CalloutFormat const& in) {
-  proto_serde<std::string, hstd::Str>::write(out->mutable_format(), in.format);
-}
-
-void org::algo::proto_serde<::orgproto::BlockCodeSwitch::CalloutFormat, org::sem::BlockCodeSwitch::CalloutFormat>::read(::orgproto::BlockCodeSwitch::CalloutFormat const& out, proto_write_accessor<org::sem::BlockCodeSwitch::CalloutFormat> in) {
-  proto_serde<std::string, hstd::Str>::read(out.format(), in.for_field(&org::sem::BlockCodeSwitch::CalloutFormat::format));
-}
-
-void org::algo::proto_serde<::orgproto::BlockCodeSwitch::RemoveCallout, org::sem::BlockCodeSwitch::RemoveCallout>::write(::orgproto::BlockCodeSwitch::RemoveCallout* out, org::sem::BlockCodeSwitch::RemoveCallout const& in) {
-  out->set_remove(in.remove);
-}
-
-void org::algo::proto_serde<::orgproto::BlockCodeSwitch::RemoveCallout, org::sem::BlockCodeSwitch::RemoveCallout>::read(::orgproto::BlockCodeSwitch::RemoveCallout const& out, proto_write_accessor<org::sem::BlockCodeSwitch::RemoveCallout> in) {
-  in.for_field(&org::sem::BlockCodeSwitch::RemoveCallout::remove).get() = out.remove();
-}
-
-void org::algo::proto_serde<::orgproto::BlockCodeSwitch::EmphasizeLine, org::sem::BlockCodeSwitch::EmphasizeLine>::write(::orgproto::BlockCodeSwitch::EmphasizeLine* out, org::sem::BlockCodeSwitch::EmphasizeLine const& in) {
-  proto_serde<::google::protobuf::RepeatedField<::int32_t>, hstd::Vec<int>>::write(out->mutable_line(), in.line);
-}
-
-void org::algo::proto_serde<::orgproto::BlockCodeSwitch::EmphasizeLine, org::sem::BlockCodeSwitch::EmphasizeLine>::read(::orgproto::BlockCodeSwitch::EmphasizeLine const& out, proto_write_accessor<org::sem::BlockCodeSwitch::EmphasizeLine> in) {
-  proto_serde<::google::protobuf::RepeatedField<::int32_t>, hstd::Vec<int>>::read(out.line(), in.for_field(&org::sem::BlockCodeSwitch::EmphasizeLine::line));
-}
-
-void org::algo::proto_serde<::orgproto::BlockCodeSwitch::Dedent, org::sem::BlockCodeSwitch::Dedent>::write(::orgproto::BlockCodeSwitch::Dedent* out, org::sem::BlockCodeSwitch::Dedent const& in) {
-  out->set_value(in.value);
-}
-
-void org::algo::proto_serde<::orgproto::BlockCodeSwitch::Dedent, org::sem::BlockCodeSwitch::Dedent>::read(::orgproto::BlockCodeSwitch::Dedent const& out, proto_write_accessor<org::sem::BlockCodeSwitch::Dedent> in) {
-  in.for_field(&org::sem::BlockCodeSwitch::Dedent::value).get() = out.value();
-}
-
-void org::algo::proto_serde<::orgproto::BlockCodeSwitch, org::sem::BlockCodeSwitch>::write(::orgproto::BlockCodeSwitch* out, org::sem::BlockCodeSwitch const& in) {
-  switch (in.data.index()) {
-    case 0:
-      proto_serde<orgproto::BlockCodeSwitch::LineStart, org::sem::BlockCodeSwitch::LineStart>::write(out->mutable_data()->mutable_linestart(), std::get<0>(in.data));
-      break;
-    case 1:
-      proto_serde<orgproto::BlockCodeSwitch::CalloutFormat, org::sem::BlockCodeSwitch::CalloutFormat>::write(out->mutable_data()->mutable_calloutformat(), std::get<1>(in.data));
-      break;
-    case 2:
-      proto_serde<orgproto::BlockCodeSwitch::RemoveCallout, org::sem::BlockCodeSwitch::RemoveCallout>::write(out->mutable_data()->mutable_removecallout(), std::get<2>(in.data));
-      break;
-    case 3:
-      proto_serde<orgproto::BlockCodeSwitch::EmphasizeLine, org::sem::BlockCodeSwitch::EmphasizeLine>::write(out->mutable_data()->mutable_emphasizeline(), std::get<3>(in.data));
-      break;
-    case 4:
-      proto_serde<orgproto::BlockCodeSwitch::Dedent, org::sem::BlockCodeSwitch::Dedent>::write(out->mutable_data()->mutable_dedent(), std::get<4>(in.data));
-      break;
-  }
-}
-
-void org::algo::proto_serde<::orgproto::BlockCodeSwitch, org::sem::BlockCodeSwitch>::read(::orgproto::BlockCodeSwitch const& out, proto_write_accessor<org::sem::BlockCodeSwitch> in) {
-  switch (out.data().kind_case()) {
-    case ::orgproto::BlockCodeSwitch::Data::kLinestart:
-      proto_serde<orgproto::BlockCodeSwitch::LineStart, org::sem::BlockCodeSwitch::LineStart>::read(out.data().linestart(), in.for_field_variant<0>(&org::sem::BlockCodeSwitch::data));
-      break;
-    case ::orgproto::BlockCodeSwitch::Data::kCalloutformat:
-      proto_serde<orgproto::BlockCodeSwitch::CalloutFormat, org::sem::BlockCodeSwitch::CalloutFormat>::read(out.data().calloutformat(), in.for_field_variant<1>(&org::sem::BlockCodeSwitch::data));
-      break;
-    case ::orgproto::BlockCodeSwitch::Data::kRemovecallout:
-      proto_serde<orgproto::BlockCodeSwitch::RemoveCallout, org::sem::BlockCodeSwitch::RemoveCallout>::read(out.data().removecallout(), in.for_field_variant<2>(&org::sem::BlockCodeSwitch::data));
-      break;
-    case ::orgproto::BlockCodeSwitch::Data::kEmphasizeline:
-      proto_serde<orgproto::BlockCodeSwitch::EmphasizeLine, org::sem::BlockCodeSwitch::EmphasizeLine>::read(out.data().emphasizeline(), in.for_field_variant<3>(&org::sem::BlockCodeSwitch::data));
-      break;
-    case ::orgproto::BlockCodeSwitch::Data::kDedent:
-      proto_serde<orgproto::BlockCodeSwitch::Dedent, org::sem::BlockCodeSwitch::Dedent>::read(out.data().dedent(), in.for_field_variant<4>(&org::sem::BlockCodeSwitch::data));
-      break;
-  }
 }
 
 void org::algo::proto_serde<::orgproto::DocumentExportConfig::TaskExport, org::sem::DocumentExportConfig::TaskExport>::write(::orgproto::DocumentExportConfig::TaskExport* out, org::sem::DocumentExportConfig::TaskExport const& in) {
@@ -2278,7 +2210,6 @@ void org::algo::proto_serde<::orgproto::BlockCode, org::sem::BlockCode>::write(:
   if (in.lang) {
     proto_serde<std::string, hstd::Str>::write(out->mutable_lang(), *in.lang);
   }
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::BlockCodeSwitch>, hstd::Vec<org::sem::BlockCodeSwitch>>::write(out->mutable_switches(), in.switches);
   out->set_exports(static_cast<orgproto::BlockCodeExports>(in.exports));
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::BlockCodeEvalResult>, hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>>>::write(out->mutable_result(), in.result);
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::BlockCodeLine>, hstd::Vec<org::sem::BlockCodeLine>>::write(out->mutable_lines(), in.lines);
@@ -2287,6 +2218,8 @@ void org::algo::proto_serde<::orgproto::BlockCode, org::sem::BlockCode>::write(:
   out->set_noweb(in.noweb);
   out->set_hlines(in.hlines);
   out->set_tangle(in.tangle);
+  proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::write(out->mutable_executionvars(), in.executionVars);
+  proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::write(out->mutable_switches(), in.switches);
 }
 
 void org::algo::proto_serde<::orgproto::BlockCode, org::sem::BlockCode>::read(::orgproto::BlockCode const& out, proto_write_accessor<org::sem::BlockCode> in) {
@@ -2296,7 +2229,6 @@ void org::algo::proto_serde<::orgproto::BlockCode, org::sem::BlockCode>::read(::
   if (out.has_lang()) {
     proto_serde<hstd::Opt<std::string>, hstd::Opt<hstd::Str>>::read(out.lang(), in.for_field(&org::sem::BlockCode::lang));
   }
-  proto_serde<::google::protobuf::RepeatedPtrField<orgproto::BlockCodeSwitch>, hstd::Vec<org::sem::BlockCodeSwitch>>::read(out.switches(), in.for_field(&org::sem::BlockCode::switches));
   in.for_field(&org::sem::BlockCode::exports).get() = static_cast<BlockCodeExports>(out.exports());
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::BlockCodeEvalResult>, hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>>>::read(out.result(), in.for_field(&org::sem::BlockCode::result));
   proto_serde<::google::protobuf::RepeatedPtrField<orgproto::BlockCodeLine>, hstd::Vec<org::sem::BlockCodeLine>>::read(out.lines(), in.for_field(&org::sem::BlockCode::lines));
@@ -2305,6 +2237,8 @@ void org::algo::proto_serde<::orgproto::BlockCode, org::sem::BlockCode>::read(::
   in.for_field(&org::sem::BlockCode::noweb).get() = out.noweb();
   in.for_field(&org::sem::BlockCode::hlines).get() = out.hlines();
   in.for_field(&org::sem::BlockCode::tangle).get() = out.tangle();
+  proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::read(out.executionvars(), in.for_field(&org::sem::BlockCode::executionVars));
+  proto_serde<orgproto::AttrGroup, org::sem::AttrGroup>::read(out.switches(), in.for_field(&org::sem::BlockCode::switches));
 }
 
 void org::algo::proto_serde<::orgproto::SubtreeLog, org::sem::SubtreeLog>::write(::orgproto::SubtreeLog* out, org::sem::SubtreeLog const& in) {

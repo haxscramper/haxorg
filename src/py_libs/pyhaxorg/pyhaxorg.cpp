@@ -27,12 +27,12 @@ PYBIND11_MAKE_OPAQUE(std::vector<org::sem::AttrValue>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::AttrValue>)
 PYBIND11_MAKE_OPAQUE(std::unordered_map<hstd::Str, org::sem::AttrList>)
 PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<hstd::Str, org::sem::AttrList>)
+PYBIND11_MAKE_OPAQUE(std::vector<org::sem::OrgCodeEvalInput::Var>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::OrgCodeEvalInput::Var>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::ColumnView::Column>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::ColumnView::Column>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::BlockCodeLine::Part>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::BlockCodeLine::Part>)
-PYBIND11_MAKE_OPAQUE(std::vector<int>)
-PYBIND11_MAKE_OPAQUE(hstd::Vec<int>)
 PYBIND11_MAKE_OPAQUE(std::unordered_map<hstd::Str, hstd::Str>)
 PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<hstd::Str, hstd::Str>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::ErrorItem>>)
@@ -43,8 +43,6 @@ PYBIND11_MAKE_OPAQUE(std::vector<org::sem::Symbol::Param>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::Symbol::Param>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::OrgCodeEvalOutput>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::OrgCodeEvalOutput>)
-PYBIND11_MAKE_OPAQUE(std::vector<org::sem::BlockCodeSwitch>)
-PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::BlockCodeSwitch>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::BlockCodeLine>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<org::sem::BlockCodeLine>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::HashTag>>)
@@ -76,6 +74,8 @@ PYBIND11_MAKE_OPAQUE(std::unordered_map<org::sem::HashTagFlat, org::AstTrackingA
 PYBIND11_MAKE_OPAQUE(hstd::UnorderedMap<org::sem::HashTagFlat, org::AstTrackingAlternatives>)
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::SequenceSegment>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::SequenceSegment>)
+PYBIND11_MAKE_OPAQUE(std::vector<int>)
+PYBIND11_MAKE_OPAQUE(hstd::Vec<int>)
 PYBIND11_MAKE_OPAQUE(std::vector<hstd::SequenceAnnotationTag>)
 PYBIND11_MAKE_OPAQUE(hstd::Vec<hstd::SequenceAnnotationTag>)
 PYBIND11_MAKE_OPAQUE(std::vector<org::AstTrackingGroup>)
@@ -97,15 +97,14 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<org::sem::HashTagFlat>(m, "VecOfHashTagFlat", type_registry_guard);
   bind_vector<org::sem::AttrValue>(m, "VecOfAttrValue", type_registry_guard);
   bind_unordered_map<hstd::Str, org::sem::AttrList>(m, "UnorderedMapOfStrAttrList", type_registry_guard);
+  bind_vector<org::sem::OrgCodeEvalInput::Var>(m, "VecOfOrgCodeEvalInputVar", type_registry_guard);
   bind_vector<org::sem::ColumnView::Column>(m, "VecOfColumnViewColumn", type_registry_guard);
   bind_vector<org::sem::BlockCodeLine::Part>(m, "VecOfBlockCodeLinePart", type_registry_guard);
-  bind_vector<int>(m, "VecOfint", type_registry_guard);
   bind_unordered_map<hstd::Str, hstd::Str>(m, "UnorderedMapOfStrStr", type_registry_guard);
   bind_vector<org::sem::SemId<org::sem::ErrorItem>>(m, "VecOfSemIdOfErrorItem", type_registry_guard);
   bind_vector<org::sem::SemId<org::sem::BlockCodeEvalResult>>(m, "VecOfSemIdOfBlockCodeEvalResult", type_registry_guard);
   bind_vector<org::sem::Symbol::Param>(m, "VecOfSymbolParam", type_registry_guard);
   bind_vector<org::sem::OrgCodeEvalOutput>(m, "VecOfOrgCodeEvalOutput", type_registry_guard);
-  bind_vector<org::sem::BlockCodeSwitch>(m, "VecOfBlockCodeSwitch", type_registry_guard);
   bind_vector<org::sem::BlockCodeLine>(m, "VecOfBlockCodeLine", type_registry_guard);
   bind_vector<org::sem::SemId<org::sem::HashTag>>(m, "VecOfSemIdOfHashTag", type_registry_guard);
   bind_vector<org::sem::SemId<org::sem::SubtreeLog>>(m, "VecOfSemIdOfSubtreeLog", type_registry_guard);
@@ -122,6 +121,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_unordered_map<hstd::Str, org::AstTrackingAlternatives>(m, "UnorderedMapOfStrAstTrackingAlternatives", type_registry_guard);
   bind_unordered_map<org::sem::HashTagFlat, org::AstTrackingAlternatives>(m, "UnorderedMapOfHashTagFlatAstTrackingAlternatives", type_registry_guard);
   bind_vector<hstd::SequenceSegment>(m, "VecOfSequenceSegment", type_registry_guard);
+  bind_vector<int>(m, "VecOfint", type_registry_guard);
   bind_vector<hstd::SequenceAnnotationTag>(m, "VecOfSequenceAnnotationTag", type_registry_guard);
   bind_vector<org::AstTrackingGroup>(m, "VecOfAstTrackingGroup", type_registry_guard);
   bind_vector<hstd::SequenceAnnotation>(m, "VecOfSequenceAnnotation", type_registry_guard);
@@ -1525,6 +1525,18 @@ node can have subnodes.)RAW")
     .def("getFirstNamed",
          static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::AttrGroup::*)(hstd::Str const&) const>(&org::sem::AttrGroup::getFirstNamed),
          pybind11::arg("index"))
+    .def("atVarNamed",
+         static_cast<org::sem::AttrList const&(org::sem::AttrGroup::*)(hstd::Str const&) const>(&org::sem::AttrGroup::atVarNamed),
+         pybind11::arg("index"))
+    .def("getVarNamed",
+         static_cast<hstd::Opt<org::sem::AttrList>(org::sem::AttrGroup::*)(hstd::Str const&) const>(&org::sem::AttrGroup::getVarNamed),
+         pybind11::arg("index"))
+    .def("atFirstVarNamed",
+         static_cast<org::sem::AttrValue const&(org::sem::AttrGroup::*)(hstd::Str const&) const>(&org::sem::AttrGroup::atFirstVarNamed),
+         pybind11::arg("index"))
+    .def("getFirstVarNamed",
+         static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::AttrGroup::*)(hstd::Str const&) const>(&org::sem::AttrGroup::getFirstVarNamed),
+         pybind11::arg("index"))
     .def("operator==",
          static_cast<bool(org::sem::AttrGroup::*)(org::sem::AttrGroup const&) const>(&org::sem::AttrGroup::operator==),
          pybind11::arg("other"))
@@ -1533,6 +1545,26 @@ node can have subnodes.)RAW")
                      })
     .def("__getattr__",
          [](org::sem::AttrGroup _self, std::string name) -> pybind11::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         pybind11::arg("name"))
+    ;
+  pybind11::class_<org::sem::OrgCodeEvalInput::Var>(m, "OrgCodeEvalInputVar")
+    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::OrgCodeEvalInput::Var {
+                        org::sem::OrgCodeEvalInput::Var result{};
+                        org::bind::python::init_fields_from_kwargs(result, kwargs);
+                        return result;
+                        }))
+    .def_readwrite("name", &org::sem::OrgCodeEvalInput::Var::name)
+    .def_readwrite("value", &org::sem::OrgCodeEvalInput::Var::value)
+    .def("operator==",
+         static_cast<bool(org::sem::OrgCodeEvalInput::Var::*)(org::sem::OrgCodeEvalInput::Var const&) const>(&org::sem::OrgCodeEvalInput::Var::operator==),
+         pybind11::arg("other"))
+    .def("__repr__", [](org::sem::OrgCodeEvalInput::Var _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::OrgCodeEvalInput::Var _self, std::string name) -> pybind11::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -1591,6 +1623,7 @@ node can have subnodes.)RAW")
     .def_readwrite("resultFormat", &org::sem::OrgCodeEvalInput::resultFormat)
     .def_readwrite("resultHandling", &org::sem::OrgCodeEvalInput::resultHandling)
     .def_readwrite("language", &org::sem::OrgCodeEvalInput::language)
+    .def_readwrite("argList", &org::sem::OrgCodeEvalInput::argList)
     .def("operator==",
          static_cast<bool(org::sem::OrgCodeEvalInput::*)(org::sem::OrgCodeEvalInput const&) const>(&org::sem::OrgCodeEvalInput::operator==),
          pybind11::arg("other"))
@@ -1615,6 +1648,7 @@ node can have subnodes.)RAW")
     .def_readwrite("cmd", &org::sem::OrgCodeEvalOutput::cmd, R"RAW(Command evaluated, if none then eval output did not run CLI subprocess)RAW")
     .def_readwrite("args", &org::sem::OrgCodeEvalOutput::args, R"RAW(Command line arguments provided for execution)RAW")
     .def_readwrite("cwd", &org::sem::OrgCodeEvalOutput::cwd, R"RAW(Working directory where command was executed)RAW")
+    .def_readwrite("appliedHeaderArg", &org::sem::OrgCodeEvalOutput::appliedHeaderArg, R"RAW(Final set of header arguments applied during evaluation)RAW")
     .def("operator==",
          static_cast<bool(org::sem::OrgCodeEvalOutput::*)(org::sem::OrgCodeEvalOutput const&) const>(&org::sem::OrgCodeEvalOutput::operator==),
          pybind11::arg("other"))
@@ -1887,151 +1921,6 @@ node can have subnodes.)RAW")
                      })
     .def("__getattr__",
          [](org::sem::BlockCodeLine _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<org::sem::BlockCodeSwitch::LineStart>(m, "BlockCodeSwitchLineStart")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BlockCodeSwitch::LineStart {
-                        org::sem::BlockCodeSwitch::LineStart result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("start", &org::sem::BlockCodeSwitch::LineStart::start, R"RAW(First line number)RAW")
-    .def_readwrite("extendLast", &org::sem::BlockCodeSwitch::LineStart::extendLast, R"RAW(Continue numbering from the previous block nstead of starting anew)RAW")
-    .def("operator==",
-         static_cast<bool(org::sem::BlockCodeSwitch::LineStart::*)(org::sem::BlockCodeSwitch::LineStart const&) const>(&org::sem::BlockCodeSwitch::LineStart::operator==),
-         pybind11::arg("other"))
-    .def("__repr__", [](org::sem::BlockCodeSwitch::LineStart _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::sem::BlockCodeSwitch::LineStart _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<org::sem::BlockCodeSwitch::CalloutFormat>(m, "BlockCodeSwitchCalloutFormat")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BlockCodeSwitch::CalloutFormat {
-                        org::sem::BlockCodeSwitch::CalloutFormat result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("format", &org::sem::BlockCodeSwitch::CalloutFormat::format)
-    .def("operator==",
-         static_cast<bool(org::sem::BlockCodeSwitch::CalloutFormat::*)(org::sem::BlockCodeSwitch::CalloutFormat const&) const>(&org::sem::BlockCodeSwitch::CalloutFormat::operator==),
-         pybind11::arg("other"))
-    .def("__repr__", [](org::sem::BlockCodeSwitch::CalloutFormat _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::sem::BlockCodeSwitch::CalloutFormat _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<org::sem::BlockCodeSwitch::RemoveCallout>(m, "BlockCodeSwitchRemoveCallout")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BlockCodeSwitch::RemoveCallout {
-                        org::sem::BlockCodeSwitch::RemoveCallout result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("remove", &org::sem::BlockCodeSwitch::RemoveCallout::remove)
-    .def("operator==",
-         static_cast<bool(org::sem::BlockCodeSwitch::RemoveCallout::*)(org::sem::BlockCodeSwitch::RemoveCallout const&) const>(&org::sem::BlockCodeSwitch::RemoveCallout::operator==),
-         pybind11::arg("other"))
-    .def("__repr__", [](org::sem::BlockCodeSwitch::RemoveCallout _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::sem::BlockCodeSwitch::RemoveCallout _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<org::sem::BlockCodeSwitch::EmphasizeLine>(m, "BlockCodeSwitchEmphasizeLine")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BlockCodeSwitch::EmphasizeLine {
-                        org::sem::BlockCodeSwitch::EmphasizeLine result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("line", &org::sem::BlockCodeSwitch::EmphasizeLine::line)
-    .def("operator==",
-         static_cast<bool(org::sem::BlockCodeSwitch::EmphasizeLine::*)(org::sem::BlockCodeSwitch::EmphasizeLine const&) const>(&org::sem::BlockCodeSwitch::EmphasizeLine::operator==),
-         pybind11::arg("other"))
-    .def("__repr__", [](org::sem::BlockCodeSwitch::EmphasizeLine _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::sem::BlockCodeSwitch::EmphasizeLine _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  pybind11::class_<org::sem::BlockCodeSwitch::Dedent>(m, "BlockCodeSwitchDedent")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BlockCodeSwitch::Dedent {
-                        org::sem::BlockCodeSwitch::Dedent result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("value", &org::sem::BlockCodeSwitch::Dedent::value)
-    .def("operator==",
-         static_cast<bool(org::sem::BlockCodeSwitch::Dedent::*)(org::sem::BlockCodeSwitch::Dedent const&) const>(&org::sem::BlockCodeSwitch::Dedent::operator==),
-         pybind11::arg("other"))
-    .def("__repr__", [](org::sem::BlockCodeSwitch::Dedent _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::sem::BlockCodeSwitch::Dedent _self, std::string name) -> pybind11::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         pybind11::arg("name"))
-    ;
-  bind_enum_iterator<org::sem::BlockCodeSwitch::Kind>(m, "BlockCodeSwitchKind", type_registry_guard);
-  pybind11::enum_<org::sem::BlockCodeSwitch::Kind>(m, "BlockCodeSwitchKind")
-    .value("LineStart", org::sem::BlockCodeSwitch::Kind::LineStart)
-    .value("CalloutFormat", org::sem::BlockCodeSwitch::Kind::CalloutFormat)
-    .value("RemoveCallout", org::sem::BlockCodeSwitch::Kind::RemoveCallout)
-    .value("EmphasizeLine", org::sem::BlockCodeSwitch::Kind::EmphasizeLine)
-    .value("Dedent", org::sem::BlockCodeSwitch::Kind::Dedent)
-    .def("__iter__", [](org::sem::BlockCodeSwitch::Kind _self) -> org::bind::python::PyEnumIterator<org::sem::BlockCodeSwitch::Kind> {
-                     return
-                     org::bind::python::PyEnumIterator<org::sem::BlockCodeSwitch::Kind>
-                     ();
-                     })
-    ;
-  pybind11::class_<org::sem::BlockCodeSwitch>(m, "BlockCodeSwitch")
-    .def(pybind11::init([](pybind11::kwargs const& kwargs) -> org::sem::BlockCodeSwitch {
-                        org::sem::BlockCodeSwitch result{};
-                        org::bind::python::init_fields_from_kwargs(result, kwargs);
-                        return result;
-                        }))
-    .def_readwrite("data", &org::sem::BlockCodeSwitch::data)
-    .def("operator==",
-         static_cast<bool(org::sem::BlockCodeSwitch::*)(org::sem::BlockCodeSwitch const&) const>(&org::sem::BlockCodeSwitch::operator==),
-         pybind11::arg("other"))
-    .def("isLineStart", static_cast<bool(org::sem::BlockCodeSwitch::*)() const>(&org::sem::BlockCodeSwitch::isLineStart))
-    .def("getLineStart", static_cast<org::sem::BlockCodeSwitch::LineStart&(org::sem::BlockCodeSwitch::*)()>(&org::sem::BlockCodeSwitch::getLineStart))
-    .def("isCalloutFormat", static_cast<bool(org::sem::BlockCodeSwitch::*)() const>(&org::sem::BlockCodeSwitch::isCalloutFormat))
-    .def("getCalloutFormat", static_cast<org::sem::BlockCodeSwitch::CalloutFormat&(org::sem::BlockCodeSwitch::*)()>(&org::sem::BlockCodeSwitch::getCalloutFormat))
-    .def("isRemoveCallout", static_cast<bool(org::sem::BlockCodeSwitch::*)() const>(&org::sem::BlockCodeSwitch::isRemoveCallout))
-    .def("getRemoveCallout", static_cast<org::sem::BlockCodeSwitch::RemoveCallout&(org::sem::BlockCodeSwitch::*)()>(&org::sem::BlockCodeSwitch::getRemoveCallout))
-    .def("isEmphasizeLine", static_cast<bool(org::sem::BlockCodeSwitch::*)() const>(&org::sem::BlockCodeSwitch::isEmphasizeLine))
-    .def("getEmphasizeLine", static_cast<org::sem::BlockCodeSwitch::EmphasizeLine&(org::sem::BlockCodeSwitch::*)()>(&org::sem::BlockCodeSwitch::getEmphasizeLine))
-    .def("isDedent", static_cast<bool(org::sem::BlockCodeSwitch::*)() const>(&org::sem::BlockCodeSwitch::isDedent))
-    .def("getDedent", static_cast<org::sem::BlockCodeSwitch::Dedent&(org::sem::BlockCodeSwitch::*)()>(&org::sem::BlockCodeSwitch::getDedent))
-    .def_static("getKindStatic",
-                static_cast<org::sem::BlockCodeSwitch::Kind(*)(org::sem::BlockCodeSwitch::Data const&)>(&org::sem::BlockCodeSwitch::getKind),
-                pybind11::arg("__input"))
-    .def("getKind", static_cast<org::sem::BlockCodeSwitch::Kind(org::sem::BlockCodeSwitch::*)() const>(&org::sem::BlockCodeSwitch::getKind))
-    .def("sub_variant_get_name", static_cast<char const*(org::sem::BlockCodeSwitch::*)() const>(&org::sem::BlockCodeSwitch::sub_variant_get_name))
-    .def("sub_variant_get_data", static_cast<org::sem::BlockCodeSwitch::Data const&(org::sem::BlockCodeSwitch::*)() const>(&org::sem::BlockCodeSwitch::sub_variant_get_data))
-    .def("sub_variant_get_kind", static_cast<org::sem::BlockCodeSwitch::Kind(org::sem::BlockCodeSwitch::*)() const>(&org::sem::BlockCodeSwitch::sub_variant_get_kind))
-    .def("__repr__", [](org::sem::BlockCodeSwitch _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::sem::BlockCodeSwitch _self, std::string name) -> pybind11::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          pybind11::arg("name"))
@@ -4329,7 +4218,6 @@ node can have subnodes.)RAW")
                         return result;
                         }))
     .def_readwrite("lang", &org::sem::BlockCode::lang, R"RAW(Code block language name)RAW")
-    .def_readwrite("switches", &org::sem::BlockCode::switches, R"RAW(Switch options for block)RAW")
     .def_readwrite("exports", &org::sem::BlockCode::exports, R"RAW(What to export)RAW")
     .def_readwrite("result", &org::sem::BlockCode::result, R"RAW(Code evaluation results)RAW")
     .def_readwrite("lines", &org::sem::BlockCode::lines, R"RAW(Collected code lines)RAW")
@@ -4338,6 +4226,8 @@ node can have subnodes.)RAW")
     .def_readwrite("noweb", &org::sem::BlockCode::noweb, R"RAW(Web-tangle code on export/run)RAW")
     .def_readwrite("hlines", &org::sem::BlockCode::hlines, R"RAW(?)RAW")
     .def_readwrite("tangle", &org::sem::BlockCode::tangle, R"RAW(?)RAW")
+    .def_readwrite("executionVars", &org::sem::BlockCode::executionVars, R"RAW(Attributes provided under `:var`)RAW")
+    .def_readwrite("switches", &org::sem::BlockCode::switches, R"RAW(Dash-based switches for code block execution)RAW")
     .def_readwrite("attrs", &org::sem::BlockCode::attrs, R"RAW(Additional parameters aside from 'exporter',)RAW")
     .def_readwrite("attached", &org::sem::BlockCode::attached)
     .def("getVariable",

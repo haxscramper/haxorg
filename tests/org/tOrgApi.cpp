@@ -157,4 +157,6 @@ input text
 
     writeTreeRepr(doc, getDebugFile("eval-pre.txt"));
     writeTreeRepr(ev, getDebugFile("eval-post.txt"));
+
+    EXPECT_EQ(buf.size(), 4);
 }

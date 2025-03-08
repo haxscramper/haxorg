@@ -262,6 +262,13 @@ void Exporter<V, R>::visit(R& res, sem::OrgCodeEvalInput const& object) {
   __obj_field(res, object, resultFormat);
   __obj_field(res, object, resultHandling);
   __obj_field(res, object, language);
+  __obj_field(res, object, argList);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::OrgCodeEvalInput::Var const& object) {
+  __obj_field(res, object, name);
+  __obj_field(res, object, value);
 }
 
 template <typename V, typename R>
@@ -272,6 +279,7 @@ void Exporter<V, R>::visit(R& res, sem::OrgCodeEvalOutput const& object) {
   __obj_field(res, object, cmd);
   __obj_field(res, object, args);
   __obj_field(res, object, cwd);
+  __obj_field(res, object, appliedHeaderArg);
 }
 
 template <typename V, typename R>
@@ -318,30 +326,6 @@ void Exporter<V, R>::visit(R& res, sem::BlockCodeLine::Part::Callout const& obje
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::BlockCodeLine::Part::Tangle const& object) { __obj_field(res, object, target); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, org::sem::BlockCodeSwitch::Data const& object) { visitVariants(res, sem::BlockCodeSwitch::getKind(object), object); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::BlockCodeSwitch const& object) { __obj_field(res, object, data); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::BlockCodeSwitch::LineStart const& object) {
-  __obj_field(res, object, start);
-  __obj_field(res, object, extendLast);
-}
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::BlockCodeSwitch::CalloutFormat const& object) { __obj_field(res, object, format); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::BlockCodeSwitch::RemoveCallout const& object) { __obj_field(res, object, remove); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::BlockCodeSwitch::EmphasizeLine const& object) { __obj_field(res, object, line); }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::BlockCodeSwitch::Dedent const& object) { __obj_field(res, object, value); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, org::sem::DocumentExportConfig::TocExport const& object) { visitVariants(res, sem::DocumentExportConfig::getTocExportKind(object), object); }
@@ -1021,7 +1005,6 @@ template <typename V, typename R>
 void Exporter<V, R>::visitBlockCode(R& res, In<sem::BlockCode> object) {
   auto __scope = trace_scope(trace(VisitReport::Kind::VisitSpecificKind).with_node(object.asOrg()));
   __org_field(res, object, lang);
-  __org_field(res, object, switches);
   __org_field(res, object, exports);
   __org_field(res, object, result);
   __org_field(res, object, lines);
@@ -1030,6 +1013,8 @@ void Exporter<V, R>::visitBlockCode(R& res, In<sem::BlockCode> object) {
   __org_field(res, object, noweb);
   __org_field(res, object, hlines);
   __org_field(res, object, tangle);
+  __org_field(res, object, executionVars);
+  __org_field(res, object, switches);
   __org_field(res, object, attrs);
   __org_field(res, object, attached);
   __org_field(res, object, subnodes);

@@ -848,12 +848,6 @@ def get_sem_block():
                     "Code block language name",
                     value="std::nullopt",
                 ),
-                org_field(
-                    t_vec(t_nest_shared("BlockCodeSwitch", [])),
-                    "switches",
-                    "Switch options for block",
-                    value="{}",
-                ),
                 org_field(t("BlockCodeExports"),
                           "exports",
                           "What to export",
@@ -870,6 +864,16 @@ def get_sem_block():
                           value="false"),
                 org_field(t_bool(), "hlines", "?", value="false"),
                 org_field(t_bool(), "tangle", "?", value="false"),
+                org_field(
+                    t_nest_shared("AttrGroup"),
+                    "executionVars",
+                    "Attributes provided under `:var`",
+                ),
+                org_field(
+                    t_nest_shared("AttrGroup"),
+                    "switches",
+                    "Dash-based switches for code block execution",
+                ),
             ],
         ),
     ]
@@ -2137,6 +2141,30 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     arguments=[GenTuIdent(t_cr(t_str()), "index")],
                     isConst=True,
                 ),
+                GenTuFunction(
+                    t_cr(t_nest_shared("AttrList")),
+                    "atVarNamed",
+                    arguments=[GenTuIdent(t_cr(t_str()), "index")],
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_opt(t_nest_shared("AttrList")),
+                    "getVarNamed",
+                    arguments=[GenTuIdent(t_cr(t_str()), "index")],
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_cr(t_nest_shared("AttrValue")),
+                    "atFirstVarNamed",
+                    arguments=[GenTuIdent(t_cr(t_str()), "index")],
+                    isConst=True,
+                ),
+                GenTuFunction(
+                    t_opt(t_nest_shared("AttrValue")),
+                    "getFirstVarNamed",
+                    arguments=[GenTuIdent(t_cr(t_str()), "index")],
+                    isConst=True,
+                ),
                 eq_method(t_nest_shared("AttrGroup")),
             ],
         ),
@@ -2165,8 +2193,18 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     value="ResultHandling::None",
                 ),
                 str_field("language"),
+                vec_field(t_nest_shared("Var", [t("OrgCodeEvalInput")]), "argList"),
             ],
             nested=[
+                org_struct(t_nest_shared("Var", [t("OrgCodeEvalInput")]),
+                           fields=[
+                               str_field("name"),
+                               org_field(t_nest_shared("OrgJson"), "value"),
+                           ],
+                           methods=[
+                               eq_method(t_nest_shared("Var", [t("OrgCodeEvalInput")])),
+                               default_constructor_method("Var"),
+                           ]),
                 d_simple_enum(
                     t_nest_shared("ResultType", [t("OrgCodeEvalInput")]),
                     "What context to use for results",
@@ -2227,9 +2265,17 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     t_str(), "cmd",
                     "Command evaluated, if none then eval output did not run CLI subprocess"
                 ),
-                vec_field(t_str(), "args",
-                          "Command line arguments provided for execution"),
+                vec_field(
+                    t_str(),
+                    "args",
+                    "Command line arguments provided for execution",
+                ),
                 str_field("cwd", "Working directory where command was executed"),
+                org_field(
+                    t_nest_shared("AttrGroup"),
+                    "appliedHeaderArg",
+                    "Final set of header arguments applied during evaluation",
+                ),
             ],
             methods=[
                 eq_method(t_nest_shared("OrgCodeEvalOutput")),
@@ -2408,98 +2454,6 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     "parts",
                     GenTuDoc("parts of the single line"),
                 )
-            ],
-        ),
-        GenTuStruct(
-            t_nest_shared("BlockCodeSwitch", []),
-            GenTuDoc(
-                "Extra configuration switches that can be used to control representation of the rendered code block. This field does not exactly correspond to the `-XX` parameters that can be passed directly in the field, but also works with attached `#+options` from the block"
-            ),
-            methods=[eq_method(t_nest_shared("BlockCodeSwitch"))],
-            nested=[
-                GenTuPass("BlockCodeSwitch() {}"),
-                GenTuTypeGroup(
-                    [
-                        GenTuStruct(
-                            t_nest_shared("LineStart", [t("BlockCodeSwitch")]),
-                            GenTuDoc(
-                                "Enumerate code lines starting from `start` value instead of default indexing."
-                            ),
-                            fields=[
-                                GenTuField(t_int(), "start",
-                                           GenTuDoc("First line number")),
-                                GenTuField(
-                                    t_bool(),
-                                    "extendLast",
-                                    GenTuDoc(
-                                        "Continue numbering from the previous block nstead of starting anew"
-                                    ),
-                                    value="false",
-                                ),
-                            ],
-                            nested=[GenTuPass("LineStart() {}")],
-                            methods=[
-                                eq_method(
-                                    t_nest_shared("LineStart", [t("BlockCodeSwitch")]))
-                            ],
-                        ),
-                        GenTuStruct(
-                            t_nest_shared("CalloutFormat", [t("BlockCodeSwitch")]),
-                            GenTuDoc(""),
-                            fields=[
-                                GenTuField(t_str(), "format", GenTuDoc(""), value='""')
-                            ],
-                            nested=[GenTuPass("CalloutFormat() {}")],
-                            methods=[
-                                eq_method(
-                                    t_nest_shared("CalloutFormat",
-                                                  [t("BlockCodeSwitch")]))
-                            ],
-                        ),
-                        GenTuStruct(
-                            t_nest_shared("RemoveCallout", [t("BlockCodeSwitch")]),
-                            GenTuDoc(""),
-                            fields=[
-                                GenTuField(t_bool(), "remove", GenTuDoc(""), value="true")
-                            ],
-                            nested=[GenTuPass("RemoveCallout() {}")],
-                            methods=[
-                                eq_method(
-                                    t_nest_shared("RemoveCallout",
-                                                  [t("BlockCodeSwitch")]))
-                            ],
-                        ),
-                        GenTuStruct(
-                            t_nest_shared("EmphasizeLine", [t("BlockCodeSwitch")]),
-                            GenTuDoc(
-                                "Emphasize single line -- can be repeated multiple times"
-                            ),
-                            fields=[
-                                GenTuField(
-                                    t_vec(t_int()), "line", GenTuDoc(""), value="{}")
-                            ],
-                            nested=[GenTuPass("EmphasizeLine() {}")],
-                            methods=[
-                                eq_method(
-                                    t_nest_shared("EmphasizeLine",
-                                                  [t("BlockCodeSwitch")]))
-                            ],
-                        ),
-                        GenTuStruct(
-                            t_nest_shared("Dedent", [t("BlockCodeSwitch")]),
-                            GenTuDoc(""),
-                            fields=[
-                                GenTuField(t_int(), "value", GenTuDoc(""), value="0")
-                            ],
-                            nested=[GenTuPass("Dedent() {}")],
-                            methods=[
-                                eq_method(t_nest_shared("Dedent", [t("BlockCodeSwitch")]))
-                            ],
-                        ),
-                    ],
-                    enumName=t_nest_shared("Kind", [t("BlockCodeSwitch")]),
-                    variantName=t_nest_shared("Data", [t("BlockCodeSwitch")]),
-                ),
             ],
         ),
         org_struct(

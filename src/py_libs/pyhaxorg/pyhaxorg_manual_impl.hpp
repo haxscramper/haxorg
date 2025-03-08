@@ -541,7 +541,6 @@ struct [[refl]] ExporterPython
         _this()->visitDispatch(res, node);
     }
 
-    void visit(Res& res, org::sem::BlockCodeSwitch const&) {}
     void visit(Res& res, org::sem::Symbol::Param const&) {}
     void visit(Res& res, org::sem::NamedProperty const&) {}
     void visit(Res& res, hstd::Str const&) {}

@@ -992,7 +992,6 @@ struct ImmBlockCode : public org::imm::ImmBlock {
                        (),
                        (staticKind,
                         lang,
-                        switches,
                         exports,
                         result,
                         lines,
@@ -1000,12 +999,12 @@ struct ImmBlockCode : public org::imm::ImmBlock {
                         eval,
                         noweb,
                         hlines,
-                        tangle))
+                        tangle,
+                        executionVars,
+                        switches))
   static OrgSemKind const staticKind;
   /// \brief Code block language name
   hstd::ext::ImmBox<hstd::Opt<hstd::Str>> lang = std::nullopt;
-  /// \brief Switch options for block
-  hstd::ext::ImmVec<org::sem::BlockCodeSwitch> switches = {};
   /// \brief What to export
   BlockCodeExports exports = BlockCodeExports::Both;
   /// \brief Code evaluation results
@@ -1022,6 +1021,10 @@ struct ImmBlockCode : public org::imm::ImmBlock {
   bool hlines = false;
   /// \brief ?
   bool tangle = false;
+  /// \brief Attributes provided under `:var`
+  org::sem::AttrGroup executionVars;
+  /// \brief Dash-based switches for code block execution
+  org::sem::AttrGroup switches;
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockCode; }
   bool operator==(org::imm::ImmBlockCode const& other) const;
 };

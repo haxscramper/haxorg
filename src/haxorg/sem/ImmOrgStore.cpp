@@ -229,7 +229,6 @@ Opt<ImmAstReplace> setNewSubnodes(
                         [&](ImmBox<Str> const&) { fail_field(); },
                         [&](ImmVec<Str> const&) { fail_field(); },
                         [&](ImmVec<org::imm::ImmSymbol::Param> const&) { fail_field(); },
-                        [&](ImmVec<sem::BlockCodeSwitch> const&) { fail_field(); },
                         [&](ImmVec<sem::BlockCodeLine> const&) { fail_field(); },
                         [&](ImmVec<sem::NamedProperty> const&) { fail_field(); },
                         [&](sem::LinkTarget const&) { fail_field(); },
@@ -847,7 +846,6 @@ __same_type(std::string);
 __same_type(UserTime);
 __same_type(sem::NamedProperty);
 __same_type(sem::DocumentExportConfig);
-__same_type(sem::BlockCodeSwitch);
 __same_type(sem::BlockCodeEvalResult);
 __same_type(sem::BlockCodeLine);
 __same_type(sem::Tblfm);

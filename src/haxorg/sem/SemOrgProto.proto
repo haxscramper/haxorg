@@ -703,6 +703,11 @@ message AttrGroup {
 }
 
 message OrgCodeEvalInput {
+  message Var {
+    string                                         name                             = 1;
+    OrgJson                                        value                            = 2;
+    string                                         debug                            = 1000;
+  }
   enum ResultType {
     ResultType_None_f                                                               = 0;
     ResultType_Table_f                                                              = 1;
@@ -733,6 +738,7 @@ message OrgCodeEvalInput {
   OrgCodeEvalInput.ResultFormat                    resultFormat                     = 5;
   OrgCodeEvalInput.ResultHandling                  resultHandling                   = 6;
   string                                           language                         = 7;
+  repeated OrgCodeEvalInput.Var                    argList                          = 8;
   string                                           debug                            = 1000;
 }
 
@@ -743,6 +749,7 @@ message OrgCodeEvalOutput {
   optional string                                  cmd                              = 4;
   repeated string                                  args                             = 5;
   string                                           cwd                              = 6;
+  AttrGroup                                        appliedHeaderArg                 = 7;
   string                                           debug                            = 1000;
 }
 
@@ -824,48 +831,6 @@ message BlockCodeLine {
     string                                         debug                            = 1000;
   }
   repeated BlockCodeLine.Part                      parts                            = 1;
-  string                                           debug                            = 1000;
-}
-
-message BlockCodeSwitch {
-  message LineStart {
-    int32                                          start                            = 1;
-    bool                                           extendLast                       = 2;
-    string                                         debug                            = 1000;
-  }
-  message CalloutFormat {
-    string                                         format                           = 1;
-    string                                         debug                            = 1000;
-  }
-  message RemoveCallout {
-    bool                                           remove                           = 1;
-    string                                         debug                            = 1000;
-  }
-  message EmphasizeLine {
-    repeated int32                                 line                             = 1;
-    string                                         debug                            = 1000;
-  }
-  message Dedent {
-    int32                                          value                            = 1;
-    string                                         debug                            = 1000;
-  }
-  message Data {
-    oneof kind {
-      BlockCodeSwitch.LineStart                    linestart                        = 1;
-      BlockCodeSwitch.CalloutFormat                calloutformat                    = 2;
-      BlockCodeSwitch.RemoveCallout                removecallout                    = 3;
-      BlockCodeSwitch.EmphasizeLine                emphasizeline                    = 4;
-      BlockCodeSwitch.Dedent                       dedent                           = 5;
-    }
-  }
-  enum Kind {
-    Kind_LineStart_f                                                                = 0;
-    Kind_CalloutFormat_f                                                            = 1;
-    Kind_RemoveCallout_f                                                            = 2;
-    Kind_EmphasizeLine_f                                                            = 3;
-    Kind_Dedent_f                                                                   = 4;
-  }
-  BlockCodeSwitch.Data                             data                             = 1;
   string                                           debug                            = 1000;
 }
 
@@ -1672,15 +1637,16 @@ message BlockCode {
   optional LineCol                                 loc                              = 4;
   OrgSemKind                                       staticKind                       = 5;
   optional string                                  lang                             = 6;
-  repeated BlockCodeSwitch                         switches                         = 7;
-  BlockCodeExports                                 exports                          = 8;
-  repeated BlockCodeEvalResult                     result                           = 9;
-  repeated BlockCodeLine                           lines                            = 10;
-  bool                                             cache                            = 11;
-  bool                                             eval                             = 12;
-  bool                                             noweb                            = 13;
-  bool                                             hlines                           = 14;
-  bool                                             tangle                           = 15;
+  BlockCodeExports                                 exports                          = 7;
+  repeated BlockCodeEvalResult                     result                           = 8;
+  repeated BlockCodeLine                           lines                            = 9;
+  bool                                             cache                            = 10;
+  bool                                             eval                             = 11;
+  bool                                             noweb                            = 12;
+  bool                                             hlines                           = 13;
+  bool                                             tangle                           = 14;
+  AttrGroup                                        executionVars                    = 15;
+  AttrGroup                                        switches                         = 16;
   string                                           debug                            = 1000;
 }
 

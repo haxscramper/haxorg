@@ -891,10 +891,26 @@ struct AttrGroup {
   hstd::Opt<org::sem::AttrList> getNamed(hstd::Str const& index) const;
   org::sem::AttrValue const& atFirstNamed(hstd::Str const& index) const;
   hstd::Opt<org::sem::AttrValue> getFirstNamed(hstd::Str const& index) const;
+  org::sem::AttrList const& atVarNamed(hstd::Str const& index) const;
+  hstd::Opt<org::sem::AttrList> getVarNamed(hstd::Str const& index) const;
+  org::sem::AttrValue const& atFirstVarNamed(hstd::Str const& index) const;
+  hstd::Opt<org::sem::AttrValue> getFirstVarNamed(hstd::Str const& index) const;
   bool operator==(org::sem::AttrGroup const& other) const;
 };
 
 struct OrgCodeEvalInput {
+  struct Var {
+    BOOST_DESCRIBE_CLASS(Var,
+                         (),
+                         (),
+                         (),
+                         (name, value))
+    hstd::Str name = "";
+    org::sem::OrgJson value;
+    bool operator==(org::sem::OrgCodeEvalInput::Var const& other) const;
+    Var() {  }
+  };
+
   /// \brief What context to use for results
   enum class ResultType : short int {
     None,
@@ -935,7 +951,8 @@ struct OrgCodeEvalInput {
                         resultType,
                         resultFormat,
                         resultHandling,
-                        language))
+                        language,
+                        argList))
   org::sem::AttrGroup blockAttrs;
   hstd::Str tangledCode;
   hstd::Opt<hstd::Str> exportType = std::nullopt;
@@ -943,6 +960,7 @@ struct OrgCodeEvalInput {
   org::sem::OrgCodeEvalInput::ResultFormat resultFormat = ResultFormat::None;
   org::sem::OrgCodeEvalInput::ResultHandling resultHandling = ResultHandling::None;
   hstd::Str language = "";
+  hstd::Vec<org::sem::OrgCodeEvalInput::Var> argList = {};
   bool operator==(org::sem::OrgCodeEvalInput const& other) const;
 };
 
@@ -957,7 +975,8 @@ struct OrgCodeEvalOutput {
                         code,
                         cmd,
                         args,
-                        cwd))
+                        cwd,
+                        appliedHeaderArg))
   hstd::Str stdout = "";
   hstd::Str stderr = "";
   int code;
@@ -967,6 +986,8 @@ struct OrgCodeEvalOutput {
   hstd::Vec<hstd::Str> args = {};
   /// \brief Working directory where command was executed
   hstd::Str cwd = "";
+  /// \brief Final set of header arguments applied during evaluation
+  org::sem::AttrGroup appliedHeaderArg;
   bool operator==(org::sem::OrgCodeEvalOutput const& other) const;
 };
 
@@ -1113,103 +1134,6 @@ struct BlockCodeLine {
   /// \brief parts of the single line
   hstd::Vec<org::sem::BlockCodeLine::Part> parts = {};
   bool operator==(org::sem::BlockCodeLine const& other) const;
-};
-
-/// \brief Extra configuration switches that can be used to control representation of the rendered code block. This field does not exactly correspond to the `-XX` parameters that can be passed directly in the field, but also works with attached `#+options` from the block
-struct BlockCodeSwitch {
-  BlockCodeSwitch() {}
-  /// \brief Enumerate code lines starting from `start` value instead of default indexing.
-  struct LineStart {
-    LineStart() {}
-    BOOST_DESCRIBE_CLASS(LineStart,
-                         (),
-                         (),
-                         (),
-                         (start, extendLast))
-    /// \brief First line number
-    int start;
-    /// \brief Continue numbering from the previous block nstead of starting anew
-    bool extendLast = false;
-    bool operator==(org::sem::BlockCodeSwitch::LineStart const& other) const;
-  };
-
-  struct CalloutFormat {
-    CalloutFormat() {}
-    BOOST_DESCRIBE_CLASS(CalloutFormat,
-                         (),
-                         (),
-                         (),
-                         (format))
-    hstd::Str format = "";
-    bool operator==(org::sem::BlockCodeSwitch::CalloutFormat const& other) const;
-  };
-
-  struct RemoveCallout {
-    RemoveCallout() {}
-    BOOST_DESCRIBE_CLASS(RemoveCallout,
-                         (),
-                         (),
-                         (),
-                         (remove))
-    bool remove = true;
-    bool operator==(org::sem::BlockCodeSwitch::RemoveCallout const& other) const;
-  };
-
-  /// \brief Emphasize single line -- can be repeated multiple times
-  struct EmphasizeLine {
-    EmphasizeLine() {}
-    BOOST_DESCRIBE_CLASS(EmphasizeLine,
-                         (),
-                         (),
-                         (),
-                         (line))
-    hstd::Vec<int> line = {};
-    bool operator==(org::sem::BlockCodeSwitch::EmphasizeLine const& other) const;
-  };
-
-  struct Dedent {
-    Dedent() {}
-    BOOST_DESCRIBE_CLASS(Dedent,
-                         (),
-                         (),
-                         (),
-                         (value))
-    int value = 0;
-    bool operator==(org::sem::BlockCodeSwitch::Dedent const& other) const;
-  };
-
-  using Data = std::variant<org::sem::BlockCodeSwitch::LineStart, org::sem::BlockCodeSwitch::CalloutFormat, org::sem::BlockCodeSwitch::RemoveCallout, org::sem::BlockCodeSwitch::EmphasizeLine, org::sem::BlockCodeSwitch::Dedent>;
-  enum class Kind : short int { LineStart, CalloutFormat, RemoveCallout, EmphasizeLine, Dedent, };
-  BOOST_DESCRIBE_NESTED_ENUM(Kind, LineStart, CalloutFormat, RemoveCallout, EmphasizeLine, Dedent)
-  using variant_enum_type = org::sem::BlockCodeSwitch::Kind;
-  using variant_data_type = org::sem::BlockCodeSwitch::Data;
-  BOOST_DESCRIBE_CLASS(BlockCodeSwitch,
-                       (),
-                       (),
-                       (),
-                       (data))
-  org::sem::BlockCodeSwitch::Data data;
-  bool operator==(org::sem::BlockCodeSwitch const& other) const;
-  bool isLineStart() const { return getKind() == Kind::LineStart; }
-  org::sem::BlockCodeSwitch::LineStart const& getLineStart() const { return std::get<0>(data); }
-  org::sem::BlockCodeSwitch::LineStart& getLineStart() { return std::get<0>(data); }
-  bool isCalloutFormat() const { return getKind() == Kind::CalloutFormat; }
-  org::sem::BlockCodeSwitch::CalloutFormat const& getCalloutFormat() const { return std::get<1>(data); }
-  org::sem::BlockCodeSwitch::CalloutFormat& getCalloutFormat() { return std::get<1>(data); }
-  bool isRemoveCallout() const { return getKind() == Kind::RemoveCallout; }
-  org::sem::BlockCodeSwitch::RemoveCallout const& getRemoveCallout() const { return std::get<2>(data); }
-  org::sem::BlockCodeSwitch::RemoveCallout& getRemoveCallout() { return std::get<2>(data); }
-  bool isEmphasizeLine() const { return getKind() == Kind::EmphasizeLine; }
-  org::sem::BlockCodeSwitch::EmphasizeLine const& getEmphasizeLine() const { return std::get<3>(data); }
-  org::sem::BlockCodeSwitch::EmphasizeLine& getEmphasizeLine() { return std::get<3>(data); }
-  bool isDedent() const { return getKind() == Kind::Dedent; }
-  org::sem::BlockCodeSwitch::Dedent const& getDedent() const { return std::get<4>(data); }
-  org::sem::BlockCodeSwitch::Dedent& getDedent() { return std::get<4>(data); }
-  static org::sem::BlockCodeSwitch::Kind getKind(org::sem::BlockCodeSwitch::Data const& __input) { return static_cast<org::sem::BlockCodeSwitch::Kind>(__input.index()); }
-  org::sem::BlockCodeSwitch::Kind getKind() const { return getKind(data); }
-  char const* sub_variant_get_name() const { return "data"; }
-  org::sem::BlockCodeSwitch::Data const& sub_variant_get_data() const { return data; }
-  org::sem::BlockCodeSwitch::Kind sub_variant_get_kind() const { return getKind(); }
 };
 
 struct DocumentExportConfig {
@@ -2649,7 +2573,6 @@ struct BlockCode : public org::sem::Block {
                        (),
                        (staticKind,
                         lang,
-                        switches,
                         exports,
                         result,
                         lines,
@@ -2657,12 +2580,12 @@ struct BlockCode : public org::sem::Block {
                         eval,
                         noweb,
                         hlines,
-                        tangle))
+                        tangle,
+                        executionVars,
+                        switches))
   static OrgSemKind const staticKind;
   /// \brief Code block language name
   hstd::Opt<hstd::Str> lang = std::nullopt;
-  /// \brief Switch options for block
-  hstd::Vec<org::sem::BlockCodeSwitch> switches = {};
   /// \brief What to export
   BlockCodeExports exports = BlockCodeExports::Both;
   /// \brief Code evaluation results
@@ -2679,6 +2602,10 @@ struct BlockCode : public org::sem::Block {
   bool hlines = false;
   /// \brief ?
   bool tangle = false;
+  /// \brief Attributes provided under `:var`
+  org::sem::AttrGroup executionVars;
+  /// \brief Dash-based switches for code block execution
+  org::sem::AttrGroup switches;
   virtual OrgSemKind getKind() const { return OrgSemKind::BlockCode; }
   hstd::Opt<org::sem::AttrValue> getVariable(hstd::Str const& varname) const;
 };

@@ -47,6 +47,7 @@
     __IMPL(SubtreeLogHead, Schedule, (Schedule)) \
     __IMPL(SubtreeLogHead, Tag, (Tag)) \
     __IMPL(SubtreeLogHead, Unknown, (Unknown)) \
+    __IMPL(OrgCodeEvalInput, Var, (Var)) \
     __IMPL(ColumnView, Summary, (Summary)) \
     __IMPL(ColumnView, Summary::CheckboxAggregate, (Summary, CheckboxAggregate)) \
     __IMPL(ColumnView, Summary::MathAggregate, (Summary, MathAggregate)) \
@@ -55,11 +56,6 @@
     __IMPL(BlockCodeLine, Part::Raw, (Part, Raw)) \
     __IMPL(BlockCodeLine, Part::Callout, (Part, Callout)) \
     __IMPL(BlockCodeLine, Part::Tangle, (Part, Tangle)) \
-    __IMPL(BlockCodeSwitch, LineStart, (LineStart)) \
-    __IMPL(BlockCodeSwitch, CalloutFormat, (CalloutFormat)) \
-    __IMPL(BlockCodeSwitch, RemoveCallout, (RemoveCallout)) \
-    __IMPL(BlockCodeSwitch, EmphasizeLine, (EmphasizeLine)) \
-    __IMPL(BlockCodeSwitch, Dedent, (Dedent)) \
     __IMPL(DocumentExportConfig, TaskExport, (TaskExport)) \
     __IMPL(DocumentExportConfig, DoExport, (DoExport)) \
     __IMPL(DocumentExportConfig, ExportFixed, (ExportFixed)) \
@@ -106,7 +102,6 @@
     __IMPL(ColumnView, Summary::MathAggregate::Kind, (Summary, MathAggregate, Kind)) \
     __IMPL(ColumnView, Summary::Kind, (Summary, Kind)) \
     __IMPL(BlockCodeLine, Part::Kind, (Part, Kind)) \
-    __IMPL(BlockCodeSwitch, Kind, (Kind)) \
     __IMPL(DocumentExportConfig, TagExport, (TagExport)) \
     __IMPL(DocumentExportConfig, TaskFiltering, (TaskFiltering)) \
     __IMPL(DocumentExportConfig, BrokenLinks, (BrokenLinks)) \
@@ -171,6 +166,7 @@
     __IMPL(AttrList, (AttrList)) \
     __IMPL(AttrGroup, (AttrGroup)) \
     __IMPL(OrgCodeEvalInput, (OrgCodeEvalInput)) \
+    __IMPL(OrgCodeEvalInput::Var, (OrgCodeEvalInput, Var)) \
     __IMPL(OrgCodeEvalOutput, (OrgCodeEvalOutput)) \
     __IMPL(ColumnView, (ColumnView)) \
     __IMPL(ColumnView::Summary, (ColumnView, Summary)) \
@@ -182,12 +178,6 @@
     __IMPL(BlockCodeLine::Part::Raw, (BlockCodeLine, Part, Raw)) \
     __IMPL(BlockCodeLine::Part::Callout, (BlockCodeLine, Part, Callout)) \
     __IMPL(BlockCodeLine::Part::Tangle, (BlockCodeLine, Part, Tangle)) \
-    __IMPL(BlockCodeSwitch, (BlockCodeSwitch)) \
-    __IMPL(BlockCodeSwitch::LineStart, (BlockCodeSwitch, LineStart)) \
-    __IMPL(BlockCodeSwitch::CalloutFormat, (BlockCodeSwitch, CalloutFormat)) \
-    __IMPL(BlockCodeSwitch::RemoveCallout, (BlockCodeSwitch, RemoveCallout)) \
-    __IMPL(BlockCodeSwitch::EmphasizeLine, (BlockCodeSwitch, EmphasizeLine)) \
-    __IMPL(BlockCodeSwitch::Dedent, (BlockCodeSwitch, Dedent)) \
     __IMPL(DocumentExportConfig, (DocumentExportConfig)) \
     __IMPL(DocumentExportConfig::TaskExport, (DocumentExportConfig, TaskExport)) \
     __IMPL(DocumentExportConfig::DoExport, (DocumentExportConfig, DoExport)) \
