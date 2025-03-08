@@ -415,3 +415,11 @@ struct std::hash<org::sem::OrgJson> {
         return result;
     }
 };
+
+template <>
+struct std::formatter<org::sem::OrgJson> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const org::sem::OrgJson& p, FormatContext& ctx) const {
+        return hstd::fmt_ctx(p.getRef().dump(), ctx);
+    }
+};

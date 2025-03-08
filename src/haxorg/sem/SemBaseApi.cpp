@@ -1196,7 +1196,9 @@ sem::SemId<Org> org::evaluateCodeBlocks(
 
                     var.name = attr.varname.value();
                     json value;
-                    value     = attr.getString();
+                    value = attr.getString();
+                    EVAL_TRACE(fmt(
+                        "Var '{}' value is '{}'", var.name, value.dump()));
                     var.value = value;
                     input.argList.push_back(var);
                 }

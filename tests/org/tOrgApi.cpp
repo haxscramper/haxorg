@@ -147,7 +147,7 @@ input text
     conf.evalBlock = [&](sem::OrgCodeEvalInput const& in)
         -> Vec<sem::OrgCodeEvalOutput> {
         buf.push_back(in);
-        LOG(INFO) << fmt1(in);
+        // LOG(INFO) << fmt1(in);
         return {sem::OrgCodeEvalOutput{.stdout = "*bold*"}};
     };
     conf.debug->setTraceFile(getDebugFile("EvalCallCommand.log"));
@@ -160,4 +160,23 @@ input text
     writeTreeRepr(ev, getDebugFile("eval-post.txt"));
 
     EXPECT_EQ(buf.size(), 4);
+
+    auto b0 = buf.at(0);
+    auto b1 = buf.at(1);
+    auto b2 = buf.at(2);
+    auto b3 = buf.at(3);
+
+    EXPECT_EQ2(b0.argList.size(), 1);
+    EXPECT_EQ2(b0.argList.at(0).value.getString(), "default"_ss);
+
+    EXPECT_EQ2(b1.argList.size(), 1);
+    EXPECT_EQ2(b1.argList.at(0).value.getString(), "first-item"_ss);
+
+    EXPECT_EQ2(b2.argList.size(), 1);
+    EXPECT_EQ2(b2.argList.at(0).value.getString(), "second-call"_ss);
+
+    EXPECT_EQ2(b3.argList.size(), 2);
+    EXPECT_EQ2(b3.argList.at(0).value.getString(), "default"_ss);
+    EXPECT_EQ2(b3.argList.at(1).value.getString(), "whatever"_ss);
+    EXPECT_EQ2(b3.argList.at(1).name, "random-named"_ss);
 }
