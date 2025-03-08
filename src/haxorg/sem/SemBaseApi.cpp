@@ -992,39 +992,10 @@ struct EvalContext {
         return getContext()->currentTrack;
     }
 
-
-    Opt<json> getAttrValue(sem::AttrValue const& attr) const {
-        Str  name = attr.getString();
-        auto node = getTrack()->names.get(name);
-        if (!node) { return std::nullopt; }
-        auto paths = getContext()->getPathsFor(node.value());
-        LOGIC_ASSERTION_CHECK(
-            !paths.empty(), "Logic block {} has no paths", node.value());
-        auto target = getContext()->adapt(paths.front());
-
-        Opt<json> result;
-
-        target.visitNodeValue(overloaded{
-            [&](imm::ImmTable const& t) {
-                json out_table = json::array();
-                for (auto const& row : t.rows) {
-                    json out_row = json::array();
-                    for (auto const& cell :
-                         getContext()->adaptUnrooted(row)) {
-                        out_row.push_back(getCleanText(cell));
-                    }
-                    out_table.push_back(out_row);
-                }
-            },
-            [&](auto const&) {},
-        });
-
-        if (result) { result = sliceJson(result.value(), attr.span); }
-
-        return result;
+    bool isTraceEnabled() const {
+        return conf.debug && conf.debug->TraceState;
     }
 
-    bool isTraceEnabled() { return conf.debug && conf.debug->TraceState; }
 
 #define EVAL_TRACE(msg)                                                   \
     if (isTraceEnabled()) { conf.debug->message(msg); }
@@ -1034,6 +1005,63 @@ struct EvalContext {
     auto CONCAT(__scope, __COUNTER__) = isTraceEnabled()                  \
                                           ? conf.debug->scopeLevel()      \
                                           : finally_std::nop();
+
+
+    Opt<json> getAttrValue(sem::AttrValue const& attr) const {
+        EVAL_TRACE(fmt("Resolving attribute value to state {}", attr));
+        EVAL_SCOPE();
+        Str  name = attr.getString();
+        auto node = getTrack()->names.get(name);
+        if (!node) {
+            EVAL_TRACE("No named nodes with the value");
+            return std::nullopt;
+        }
+        auto paths = getContext()->getPathsFor(node.value());
+        LOGIC_ASSERTION_CHECK(
+            !paths.empty(), "Logic block {} has no paths", node.value());
+        auto target = getContext()->adapt(paths.front());
+
+        Opt<json> result;
+        EVAL_TRACE(fmt("Target node is {}", target));
+
+        bool asFlatText = true;
+
+        target.visitNodeValue(overloaded{
+            [&](imm::ImmTable const& t) {
+                EVAL_TRACE("Target is table data");
+                EVAL_SCOPE();
+                json out_table = json::array();
+                for (auto const& row : t.rows) {
+                    json out_row = json::array();
+                    EVAL_TRACE(fmt("Row {}", row));
+                    EVAL_SCOPE();
+                    for (auto const& cell : getContext()
+                                                ->adaptUnrooted(row)
+                                                .as<imm::ImmRow>()
+                                                ->cells) {
+                        EVAL_TRACE(fmt("Cell {}", cell));
+                        if (asFlatText) {
+                            out_row.push_back(getCleanText(
+                                getContext()->adaptUnrooted(cell)));
+                        } else {
+                            auto cell_sem = org::imm::sem_from_immer(
+                                cell, *getContext());
+                            auto json_res = algo::ExporterJson::toJson(
+                                cell_sem);
+                            out_row.push_back(json_res);
+                        }
+                    }
+                    out_table.push_back(out_row);
+                }
+                result = out_table;
+            },
+            [&](auto const&) {},
+        });
+
+        if (result) { result = sliceJson(result.value(), attr.span); }
+
+        return result;
+    }
 
 
     struct CallParams {
@@ -1085,7 +1113,7 @@ struct EvalContext {
         sem::OrgCodeEvalInput const&  in,
         const OrgCodeEvalParameters&  conf) {
         EVAL_SCOPE();
-        EVAL_TRACE(fmt("Parsing stdout {}", out.stdout));
+        EVAL_TRACE(fmt("Parsing stdout"));
         auto doc  = org::parseString(out.stdout);
         auto stmt = sem::SemId<sem::StmtList>::New();
         for (auto const& node : doc) {

@@ -200,4 +200,23 @@ return tab
 return tab
 #+END_SRC
 )");
+
+    org::OrgCodeEvalParameters conf;
+
+    conf.evalBlock = [&](sem::OrgCodeEvalInput const& in)
+        -> Vec<sem::OrgCodeEvalOutput> {
+        return {sem::OrgCodeEvalOutput{.stdout = R"(| a | b | c |
+| d | e | f |
+| g | h | i |
+)"}};
+    };
+    conf.debug->setTraceFile(
+        getDebugFile("BlockEvalIntermediateData.log"));
+    auto ev = org::evaluateCodeBlocks(doc, conf);
+
+    writeTreeRepr(doc, getDebugFile("eval-pre.json"));
+    writeTreeRepr(ev, getDebugFile("eval-post.json"));
+
+    writeTreeRepr(doc, getDebugFile("eval-pre.txt"));
+    writeTreeRepr(ev, getDebugFile("eval-post.txt"));
 }
