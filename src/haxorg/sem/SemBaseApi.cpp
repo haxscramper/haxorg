@@ -908,149 +908,325 @@ Vec<AstTrackingGroup> org::getSubnodeGroups(
 }
 
 namespace {
-sem::SemId<Org> convertOutput(
-    sem::OrgCodeEvalOutput const& out,
-    sem::OrgCodeEvalInput const&  in,
-    const OrgCodeEvalParameters&  conf) {
-    if (conf.isTraceEnabled()) {
-        conf.debug->message(fmt("Parsing stdout {}", out.stdout));
+
+json sliceJson(
+    const json&                                    input,
+    const Vec<org::sem::AttrValue::DimensionSpan>& spans) {
+    if (!input.is_array()) {
+        throw std::invalid_argument("Input JSON must be an array");
     }
-    auto doc  = org::parseString(out.stdout);
-    auto stmt = sem::SemId<sem::StmtList>::New();
-    for (auto const& node : doc) {
-        if (conf.isTraceEnabled()) {
-            conf.debug->message(fmt("Result node {}", node->getKind()));
+
+    if (spans.empty()) { return input; }
+
+    std::vector<size_t> dimensions;
+    auto                current = &input;
+    while (current->is_array() && !current->empty()) {
+        dimensions.push_back(current->size());
+        current = &(*current)[0];
+    }
+
+    if (spans.size() > dimensions.size()) {
+        throw std::invalid_argument(
+            "More spans provided than dimensions in input");
+    }
+
+    std::vector<std::vector<int>> indices(spans.size());
+    for (size_t i = 0; i < spans.size(); ++i) {
+        const auto& span     = spans[i];
+        int         dim_size = static_cast<int>(dimensions[i]);
+
+        int first = span.first;
+        if (first < 0) { first = dim_size + first; }
+        if (first < 0 || first >= dim_size) {
+            throw std::out_of_range("Span first index out of bounds");
         }
-        stmt->subnodes.push_back(node);
+
+        int last = span.last.has_value() ? span.last.value() : first;
+        if (last < 0) { last = dim_size + last; }
+        if (last < 0 || last >= dim_size || last < first) {
+            throw std::out_of_range("Span last index out of bounds");
+        }
+
+        for (int idx = first; idx <= last; ++idx) {
+            indices[i].push_back(idx);
+        }
     }
-    return stmt;
-}
 
-sem::OrgCodeEvalInput convertInput(
-    imm::ImmAdapterT<imm::ImmBlockCode> block) {
-    sem::OrgCodeEvalInput input;
-    input.language = block->lang.get().value();
+    std::function<json(const json&, size_t, const std::vector<int>&)>
+        sliceRecursive;
+    sliceRecursive = [&](const json&             arr,
+                         size_t                  dim,
+                         const std::vector<int>& path) -> json {
+        if (dim == indices.size()) {
+            const json* value = &arr;
+            for (int idx : path) { value = &(*value)[idx]; }
+            return *value;
+        }
 
-    using I = sem::OrgCodeEvalInput;
+        json result = json::array();
+        for (int idx : indices[dim]) {
+            std::vector<int> newPath = path;
+            newPath.push_back(idx);
 
-    input.resultHandling = I::ResultHandling::Replace;
-    input.resultType     = I::ResultType::Scalar;
-
-
-    Vec<Str> buf;
-    for (auto const& line : block->lines) {
-        buf.push_back("");
-        for (auto const& part : line.parts) {
-            using K = sem::BlockCodeLine::Part::Kind;
-            switch (part.getKind()) {
-                case K::Raw: {
-                    buf.back().append(part.getRaw().code);
-                    break;
-                }
-                case K::Callout: {
-                    // callouts are explicitly skipped
-                    break;
-                }
-                case K::Tangle: {
-                    logic_todo_impl();
-                    break;
-                }
+            if (dim == indices.size() - 1) {
+                result.push_back(sliceRecursive(arr, dim + 1, newPath));
+            } else {
+                json subArray = sliceRecursive(arr, dim + 1, newPath);
+                result.push_back(subArray);
             }
         }
-    }
-
-    input.tangledCode = join("\n", buf);
-
-    for (auto const& res : block.getAttrs("results")) {
-        auto norm = normalize(res.getString());
-        if (norm == "table" || norm == "vector") {
-            input.resultType = I::ResultType::Table;
-        } else if (norm == "list") {
-            input.resultType = I::ResultType::List;
-        } else if (norm == "scalar" || norm == "verbatim") {
-            input.resultType = I::ResultType::Scalar;
-        } else if (norm == "file") {
-            input.resultType = I ::ResultType::SaveFile;
-        } else if (norm == "raw") {
-            input.resultFormat = I::ResultFormat::Raw;
-        } else if (norm == "code") {
-            input.resultFormat = I::ResultFormat::Code;
-        } else if (norm == "drawer") {
-            input.resultFormat = I::ResultFormat::Drawer;
-        } else if (norm == "html") {
-            input.resultFormat = I::ResultFormat::ExportType;
-            input.exportType   = "html";
-        } else if (norm == "latex") {
-            input.resultFormat = I::ResultFormat::ExportType;
-            input.exportType   = "latex";
-        } else if (norm == "link" || norm == "graphics") {
-            input.resultFormat = I::ResultFormat::Link;
-        } else if (norm == "org") {
-            input.resultFormat = I::ResultFormat::Code;
-            input.exportType   = "org";
-        } else if (norm == "pp") {
-            input.resultFormat = I::ResultFormat::Code;
-        } else if (norm == "replace") {
-            input.resultHandling = I::ResultHandling::Replace;
-        } else if (norm == "silent") {
-            input.resultHandling = I::ResultHandling::Silent;
-        } else if (norm == "none") {
-            input.resultHandling = I::ResultHandling::None;
-        } else if (norm == "discard") {
-            input.resultHandling = I::ResultHandling::Discard;
-        } else if (norm == "append") {
-            input.resultHandling = I::ResultHandling::Append;
-        } else if (norm == "prepend") {
-            input.resultHandling = I::ResultHandling::Prepend;
-        }
-    }
-
-    if (auto attr = block.getFirstAttr("result-export-language")) {
-        input.exportType = attr->getString();
-    }
-
-    if (auto attr = block.getFirstAttr("result-code-language")) {
-        input.exportType = attr->getString();
-    }
-
-    return input;
-}
-
-} // namespace
-
-sem::SemId<Org> org::evaluateCodeBlocks(
-    sem::SemId<sem::Org>         document,
-    const OrgCodeEvalParameters& conf) {
-    auto imm_context = imm::ImmAstContext::init_start_context();
-    // imm_context->debug->setTraceFile("/tmp/evaluateCodeBlocks.log");
-    auto version = imm_context->init(document);
-
-    auto& d = conf.debug;
-
-#define EVAL_TRACE(msg)                                                   \
-    if (d && d->TraceState) { d->message(msg); }
-
-    auto collect_code_blocks =
-        [](imm::ImmAdapter const& ad) -> Vec<imm::ImmUniqId> {
-        Vec<imm::ImmUniqId> res;
-        org::eachSubnodeRec(ad, true, [&](imm::ImmAdapter const& adapter) {
-            if (adapter.is(OrgSemKind::BlockCode)
-                || adapter.is(OrgSemKind::CmdCall)) {
-                res.push_back(adapter.uniq());
-            }
-        });
-
-        return res;
+        return result;
     };
 
+    return sliceRecursive(input, 0, {});
+}
 
-    Vec<imm::ImmAstVersion> history;
-    if (d && d->TraceState) { history.push_back(version); }
+struct EvalContext {
+    OrgCodeEvalParameters const& conf;
+    imm::ImmAstVersion           version;
+    Vec<imm::ImmAstVersion>      history;
+    UnorderedMap<Str, json>      namedResults;
 
-    auto set_output = [&](Vec<sem::OrgCodeEvalOutput> const& out,
-                          sem::OrgCodeEvalInput const&       input,
-                          imm::ImmUniqId const&              block,
-                          sem::SemId<sem::Org>               node) {
+    imm::ImmAstContext::Ptr getContext() const { return version.context; }
+    hstd::SPtr<imm::ImmAstTrackingMap> getTrack() const {
+        return getContext()->currentTrack;
+    }
+
+
+    Opt<json> getAttrValue(sem::AttrValue const& attr) const {
+        Str  name = attr.getString();
+        auto node = getTrack()->names.get(name);
+        if (!node) { return std::nullopt; }
+        auto paths = getContext()->getPathsFor(node.value());
+        LOGIC_ASSERTION_CHECK(
+            !paths.empty(), "Logic block {} has no paths", node.value());
+        auto target = getContext()->adapt(paths.front());
+
+        Opt<json> result;
+
+        target.visitNodeValue(overloaded{
+            [&](imm::ImmTable const& t) {
+                json out_table = json::array();
+                for (auto const& row : t.rows) {
+                    json out_row = json::array();
+                    for (auto const& cell :
+                         getContext()->adaptUnrooted(row)) {
+                        out_row.push_back(getCleanText(cell));
+                    }
+                    out_table.push_back(out_row);
+                }
+            },
+            [&](auto const&) {},
+        });
+
+        if (result) { result = sliceJson(result.value(), attr.span); }
+
+        return result;
+    }
+
+    bool isTraceEnabled() { return conf.debug && conf.debug->TraceState; }
+
+#define EVAL_TRACE(msg)                                                   \
+    if (isTraceEnabled()) { conf.debug->message(msg); }
+
+
+#define EVAL_SCOPE()                                                      \
+    auto CONCAT(__scope, __COUNTER__) = isTraceEnabled()                  \
+                                          ? conf.debug->scopeLevel()      \
+                                          : finally_std::nop();
+
+
+    struct CallParams {
+        imm::ImmAdapterT<imm::ImmBlockCode> block;
+        Opt<org::sem::AttrGroup>            callsiteVars;
+        Opt<org::sem::AttrGroup>            callsiteHeaderArgs;
+    };
+
+    CallParams getTargetBlock(imm::ImmAdapter const& adapter) {
+        EVAL_SCOPE();
+        CallParams res;
+        if (adapter.is(OrgSemKind::BlockCode)) {
+            res.block = adapter.as<imm::ImmBlockCode>();
+        } else {
+            auto command = adapter.as<imm::ImmCmdCall>();
+            EVAL_TRACE(fmt(
+                "Getting target code block for name '{}'", command->name));
+            res.callsiteVars       = command->callAttrs;
+            res.callsiteHeaderArgs = command->insideHeaderAttrs;
+            if (auto opt_block = getTrack()->names.get(command->name)) {
+                if (!opt_block->is(OrgSemKind::BlockCode)) {
+                    EVAL_TRACE(
+                        fmt("Name '{}' does not refer to a code block",
+                            command->name));
+                }
+
+                auto paths = getContext()->getPathsFor(opt_block.value());
+                LOGIC_ASSERTION_CHECK(
+                    !paths.empty(),
+                    "Logic block {} has no paths",
+                    opt_block.value());
+                res.block = getContext()
+                                ->adapt(paths.front())
+                                .as<imm::ImmBlockCode>();
+            } else {
+                EVAL_TRACE(
+                    fmt("Name '{}' does not refer to a known document "
+                        "entry",
+                        command->name));
+            }
+        }
+
+
+        return res;
+    }
+
+    sem::SemId<Org> convertOutput(
+        sem::OrgCodeEvalOutput const& out,
+        sem::OrgCodeEvalInput const&  in,
+        const OrgCodeEvalParameters&  conf) {
+        EVAL_SCOPE();
+        EVAL_TRACE(fmt("Parsing stdout {}", out.stdout));
+        auto doc  = org::parseString(out.stdout);
+        auto stmt = sem::SemId<sem::StmtList>::New();
+        for (auto const& node : doc) {
+            EVAL_TRACE(fmt("Result node {}", node->getKind()));
+            stmt->subnodes.push_back(node);
+        }
+        return stmt;
+    }
+
+    sem::OrgCodeEvalInput convertInput(CallParams const& res) {
+        EVAL_SCOPE();
+        sem::OrgCodeEvalInput input;
+        input.language = res.block->lang.get().value();
+
+        using I = sem::OrgCodeEvalInput;
+
+        input.resultHandling = I::ResultHandling::Replace;
+        input.resultType     = I::ResultType::Scalar;
+
+
+        Vec<Str> buf;
+        for (auto const& line : res.block->lines) {
+            buf.push_back("");
+            for (auto const& part : line.parts) {
+                using K = sem::BlockCodeLine::Part::Kind;
+                switch (part.getKind()) {
+                    case K::Raw: {
+                        buf.back().append(part.getRaw().code);
+                        break;
+                    }
+                    case K::Callout: {
+                        // callouts are explicitly skipped
+                        break;
+                    }
+                    case K::Tangle: {
+                        logic_todo_impl();
+                        break;
+                    }
+                }
+            }
+        }
+
+        input.tangledCode = join("\n", buf);
+
+        for (auto const& res : res.block.getAttrs("results")) {
+            auto norm = normalize(res.getString());
+            if (norm == "table" || norm == "vector") {
+                input.resultType = I::ResultType::Table;
+            } else if (norm == "list") {
+                input.resultType = I::ResultType::List;
+            } else if (norm == "scalar" || norm == "verbatim") {
+                input.resultType = I::ResultType::Scalar;
+            } else if (norm == "file") {
+                input.resultType = I ::ResultType::SaveFile;
+            } else if (norm == "raw") {
+                input.resultFormat = I::ResultFormat::Raw;
+            } else if (norm == "code") {
+                input.resultFormat = I::ResultFormat::Code;
+            } else if (norm == "drawer") {
+                input.resultFormat = I::ResultFormat::Drawer;
+            } else if (norm == "html") {
+                input.resultFormat = I::ResultFormat::ExportType;
+                input.exportType   = "html";
+            } else if (norm == "latex") {
+                input.resultFormat = I::ResultFormat::ExportType;
+                input.exportType   = "latex";
+            } else if (norm == "link" || norm == "graphics") {
+                input.resultFormat = I::ResultFormat::Link;
+            } else if (norm == "org") {
+                input.resultFormat = I::ResultFormat::Code;
+                input.exportType   = "org";
+            } else if (norm == "pp") {
+                input.resultFormat = I::ResultFormat::Code;
+            } else if (norm == "replace") {
+                input.resultHandling = I::ResultHandling::Replace;
+            } else if (norm == "silent") {
+                input.resultHandling = I::ResultHandling::Silent;
+            } else if (norm == "none") {
+                input.resultHandling = I::ResultHandling::None;
+            } else if (norm == "discard") {
+                input.resultHandling = I::ResultHandling::Discard;
+            } else if (norm == "append") {
+                input.resultHandling = I::ResultHandling::Append;
+            } else if (norm == "prepend") {
+                input.resultHandling = I::ResultHandling::Prepend;
+            }
+        }
+
+        if (auto attr = res.block.getFirstAttr("result-export-language")) {
+            input.exportType = attr->getString();
+        }
+
+        if (auto attr = res.block.getFirstAttr("result-code-language")) {
+            input.exportType = attr->getString();
+        }
+
+        UnorderedMap<Str, sem::AttrValue> byVarname;
+        if (auto default_vars = res.block->attrs.getNamed("var")) {
+            for (auto const& var : default_vars->items) {
+                EVAL_TRACE(fmt("Default variable {}", var));
+                byVarname.insert_or_assign(var.varname.value(), var);
+            }
+        }
+
+        if (res.callsiteVars) {
+            for (auto const& var : res.callsiteVars->positional.items) {
+                EVAL_TRACE(fmt("Callsite variable {}", var));
+                if (var.varname) {
+                    byVarname.insert_or_assign(var.varname.value(), var);
+                }
+            }
+        }
+
+        for (auto const& key : sorted(byVarname.keys())) {
+            sem::OrgCodeEvalInput::Var var;
+            auto const&                attr = byVarname.at(key);
+
+            var.name = attr.varname.value();
+            json value;
+            if (auto named_value = getAttrValue(attr)) {
+                value = named_value.value();
+            } else {
+                value = attr.getString();
+            }
+            EVAL_TRACE(
+                fmt("Var '{}' value is '{}'", var.name, value.dump()));
+            var.value = value;
+            input.argList.push_back(var);
+        }
+
+
+        return input;
+    }
+
+
+    void setOutput(
+        Vec<sem::OrgCodeEvalOutput> const& out,
+        sem::OrgCodeEvalInput const&       input,
+        imm::ImmUniqId const&              block,
+        sem::SemId<sem::Org>               node) {
+        EVAL_SCOPE();
         auto target_id = block.update(version.context->at(block.path));
         auto target    = version.context->adapt(target_id);
         auto result    = sem::SemId<sem::BlockCodeEvalResult>::New();
@@ -1114,139 +1290,103 @@ sem::SemId<Org> org::evaluateCodeBlocks(
         if (conf.isTraceEnabled()) { history.push_back(version); }
     };
 
-    auto init_buffer = collect_code_blocks(version.getRootAdapter());
-    std::deque<imm::ImmUniqId> codeBlockPaths{
-        init_buffer.begin(), init_buffer.end()};
+    sem::SemId<Org> evalAll(sem::SemId<sem::Org> document) {
+        auto imm_context = imm::ImmAstContext::init_start_context();
+        // imm_context->debug->setTraceFile("/tmp/evaluateCodeBlocks.log");
+        version = imm_context->init(document);
 
-    while (!codeBlockPaths.empty()) {
-        auto block = codeBlockPaths.front();
-        codeBlockPaths.pop_front();
-        auto adapter = version.context->adapt(block);
-        imm::ImmAdapterT<imm::ImmBlockCode> block_adapter;
-        Opt<org::sem::AttrGroup>            callsiteVars;
-        Opt<org::sem::AttrGroup>            callsiteHeaderArgs;
-        if (adapter.is(OrgSemKind::BlockCode)) {
-            block_adapter = adapter.as<imm::ImmBlockCode>();
-        } else {
-            auto        command = adapter.as<imm::ImmCmdCall>();
-            auto const& ctx     = version.context;
-            EVAL_TRACE(fmt(
-                "Getting target code block for name '{}'", command->name));
-            callsiteVars       = command->callAttrs;
-            callsiteHeaderArgs = command->insideHeaderAttrs;
-            if (auto opt_block = ctx->currentTrack->names.get(
-                    command->name)) {
-                if (!opt_block->is(OrgSemKind::BlockCode)) {
-                    EVAL_TRACE(
-                        fmt("Name '{}' does not refer to a code block",
-                            command->name));
-                }
+        auto collect_code_blocks =
+            [](imm::ImmAdapter const& ad) -> Vec<imm::ImmUniqId> {
+            Vec<imm::ImmUniqId> res;
+            org::eachSubnodeRec(
+                ad, true, [&](imm::ImmAdapter const& adapter) {
+                    if (adapter.is(OrgSemKind::BlockCode)
+                        || adapter.is(OrgSemKind::CmdCall)) {
+                        res.push_back(adapter.uniq());
+                    }
+                });
 
-                auto paths = ctx->getPathsFor(opt_block.value());
-                LOGIC_ASSERTION_CHECK(
-                    !paths.empty(),
-                    "Logic block {} has no paths",
-                    opt_block.value());
-                block_adapter = ctx->adapt(paths.front())
-                                    .as<imm::ImmBlockCode>();
-            } else {
-                EVAL_TRACE(fmt(
-                    "Name '{}' does not refer to a known document entry",
-                    command->name));
-            }
-        }
-
-        if (!block_adapter.isNil()) {
-            EVAL_TRACE(
-                fmt("Evaluating language '{}' at {}",
-                    block_adapter->lang,
-                    block_adapter->loc));
-
-            auto __scope = conf.isTraceEnabled() ? conf.debug->scopeLevel()
-                                                 : finally_std::nop();
+            return res;
+        };
 
 
-            auto input = convertInput(block_adapter);
+        if (isTraceEnabled()) { history.push_back(version); }
 
-            {
-                UnorderedMap<Str, sem::AttrValue> byVarname;
-                if (auto default_vars = block_adapter->attrs.getNamed(
-                        "var")) {
-                    for (auto const& var : default_vars->items) {
-                        EVAL_TRACE(fmt("Default variable {}", var));
-                        byVarname.insert_or_assign(
-                            var.varname.value(), var);
+
+        auto init_buffer = collect_code_blocks(version.getRootAdapter());
+        std::deque<imm::ImmUniqId> codeBlockPaths{
+            init_buffer.begin(), init_buffer.end()};
+
+        while (!codeBlockPaths.empty()) {
+            auto block = codeBlockPaths.front();
+            codeBlockPaths.pop_front();
+            imm::ImmAdapter adapter = version.context->adapt(block);
+
+            CallParams call = getTargetBlock(adapter);
+
+            if (!call.block.isNil()) {
+                EVAL_TRACE(
+                    fmt("Evaluating language '{}' at {}",
+                        call.block->lang,
+                        call.block->loc));
+                EVAL_SCOPE();
+
+                auto input  = convertInput(call);
+                auto output = conf.evalBlock(input);
+
+                for (auto const& it : output) {
+                    if (!it.cmd) { EVAL_TRACE(fmt("cmd: {}", it.cmd)); }
+                    if (!it.args.empty()) {
+                        EVAL_TRACE(fmt("args: {}", it.args));
+                    }
+                    EVAL_TRACE(fmt("code: {}", it.code));
+                    if (!it.cwd.empty()) {
+                        EVAL_TRACE(fmt("cwd: {}", it.cwd));
+                    }
+
+                    if (!it.stderr.empty()) {
+                        EVAL_TRACE(fmt("stderr:\n{}", it.stderr));
+                    }
+
+                    if (!it.stdout.empty()) {
+                        EVAL_TRACE(fmt("stdout:\n{}", it.stdout));
                     }
                 }
 
-                if (callsiteVars) {
-                    for (auto const& var :
-                         callsiteVars->positional.items) {
-                        EVAL_TRACE(fmt("Callsite variable {}", var));
-                        if (var.varname) {
-                            byVarname.insert_or_assign(
-                                var.varname.value(), var);
-                        }
-                    }
-                }
 
-                for (auto const& key : sorted(byVarname.keys())) {
-                    sem::OrgCodeEvalInput::Var var;
-                    auto const&                attr = byVarname.at(key);
-
-                    var.name = attr.varname.value();
-                    json value;
-                    value = attr.getString();
-                    EVAL_TRACE(fmt(
-                        "Var '{}' value is '{}'", var.name, value.dump()));
-                    var.value = value;
-                    input.argList.push_back(var);
-                }
+                setOutput(
+                    output,
+                    input,
+                    block,
+                    convertOutput(output.back(), input, conf));
             }
-
-            auto output = conf.evalBlock(input);
-
-            for (auto const& it : output) {
-                if (!it.cmd) { EVAL_TRACE(fmt("cmd: {}", it.cmd)); }
-                if (!it.args.empty()) {
-                    EVAL_TRACE(fmt("args: {}", it.args));
-                }
-                EVAL_TRACE(fmt("code: {}", it.code));
-                if (!it.cwd.empty()) {
-                    EVAL_TRACE(fmt("cwd: {}", it.cwd));
-                }
-
-                if (!it.stderr.empty()) {
-                    EVAL_TRACE(fmt("stderr:\n{}", it.stderr));
-                }
-
-                if (!it.stdout.empty()) {
-                    EVAL_TRACE(fmt("stdout:\n{}", it.stdout));
-                }
-            }
-
-
-            set_output(
-                output,
-                input,
-                block,
-                convertOutput(output.back(), input, conf));
         }
+
+        if (isTraceEnabled()) {
+            auto graph = org::imm::toGraphviz(history);
+            graph.render("/tmp/CodeBlockEvalGraph.png");
+        }
+
+        imm::ImmAdapter::TreeReprConf repr_conf;
+        repr_conf.withAuxFields  = true;
+        repr_conf.withReflFields = true;
+        writeFile(
+            "/tmp/codeblock_eval_final.txt",
+            version.getRootAdapter().treeRepr(repr_conf).toString(false));
+
+        EVAL_TRACE(
+            fmt("Converting final root result {} back to sem",
+                version.getRoot()));
+        return org::imm::sem_from_immer(
+            version.getRoot(), *version.context);
     }
+};
 
-    if (conf.isTraceEnabled()) {
-        auto graph = org::imm::toGraphviz(history);
-        graph.render("/tmp/CodeBlockEvalGraph.png");
-    }
+} // namespace
 
-    imm::ImmAdapter::TreeReprConf repr_conf;
-    repr_conf.withAuxFields  = true;
-    repr_conf.withReflFields = true;
-    writeFile(
-        "/tmp/codeblock_eval_final.txt",
-        version.getRootAdapter().treeRepr(repr_conf).toString(false));
-
-    EVAL_TRACE(fmt(
-        "Converting final root result {} back to sem", version.getRoot()));
-    return org::imm::sem_from_immer(version.getRoot(), *version.context);
+sem::SemId<Org> org::evaluateCodeBlocks(
+    sem::SemId<sem::Org>         document,
+    const OrgCodeEvalParameters& conf) {
+    EvalContext ctx{.conf = conf};
+    return ctx.evalAll(document);
 }

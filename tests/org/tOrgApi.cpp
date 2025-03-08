@@ -180,3 +180,24 @@ input text
     EXPECT_EQ2(b3.argList.at(1).value.getString(), "whatever"_ss);
     EXPECT_EQ2(b3.argList.at(1).name, "random-named"_ss);
 }
+
+TEST(OrgApi, BlockEvalIntermediateData) {
+    auto doc = testParseString(R"(
+#+NAME: many-cols
+| a | b | c |
+|---+---+---|
+| d | e | f |
+|---+---+---|
+| g | h | i |
+
+#+NAME: no-hline
+#+BEGIN_SRC python :var tab=many-cols :hlines no
+return tab
+#+END_SRC
+
+#+NAME: hlines
+#+BEGIN_SRC python :var tab=many-cols :hlines yes
+return tab
+#+END_SRC
+)");
+}

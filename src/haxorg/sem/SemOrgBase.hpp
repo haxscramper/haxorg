@@ -228,8 +228,9 @@ struct [[refl]] OrgJson {
         }
     }
 
-    [[refl]] OrgJson at(int idx) const { return &getRef().at(idx); }
-    [[refl]] OrgJson at(std::string const& name) const {
+    [[refl]] std::string getJsonString() const { return getRef().dump(); }
+    [[refl]] OrgJson     at(int idx) const { return &getRef().at(idx); }
+    [[refl]] OrgJson     at(std::string const& name) const {
         return &getRef().at(name);
     }
     [[refl]] std::string getString() const {

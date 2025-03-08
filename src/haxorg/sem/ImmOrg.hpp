@@ -980,7 +980,7 @@ struct ImmAdapter {
 
     template <typename Func>
     void visitNodeValue(Func const& cb) const {
-        ::org::imm::switch_node_value(id, ctx, cb);
+        ::org::imm::switch_node_value(id, ctx.lock(), cb);
     }
 
     template <typename Func>
