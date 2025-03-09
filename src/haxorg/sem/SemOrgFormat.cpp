@@ -83,15 +83,8 @@ auto Formatter::toString(SemId<Macro> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     Vec<Res> parameters;
 
-    for (auto const& it : id->attrs.positional.items) {
-        parameters.push_back(str(it.getString()));
-    }
-
-    for (auto const& key : sorted(id->attrs.named.keys())) {
-        for (auto const& it : id->attrs.named.at(key).items) {
-            parameters.push_back(
-                str(fmt("{}={}", it.name.value(), it.getString())));
-        }
+    for (auto const& it : id->attrs.getAll().items) {
+        parameters.push_back(toString(it, ctx));
     }
 
     if (parameters.empty()) {
@@ -443,6 +436,11 @@ auto Formatter::toString(SemId<BlockCode> id, CR<Context> ctx) -> Res {
         add(result, str("}"));
     } else {
         add(result, str("#+end_src"));
+    }
+
+    for (auto const& res : id->result) {
+        add(result, str("#+results:"));
+        add(result, toString(res->node, ctx));
     }
 
     auto out = stackAttached(result, id.as<sem::Stmt>(), ctx);

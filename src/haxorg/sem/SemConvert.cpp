@@ -1740,7 +1740,8 @@ OrgConverter::ConvResult<Underline> OrgConverter::convertUnderline(
 
 OrgConverter::ConvResult<BlockExample> OrgConverter::convertBlockExample(
     __args) {
-    SemId<BlockExample> result = Sem<BlockExample>(a);
+    auto                __trace = trace(a);
+    SemId<BlockExample> result  = Sem<BlockExample>(a);
     for (auto const& it : many(a, N::Body)) {
         result->subnodes.push_back(convert(it));
     }
@@ -1750,8 +1751,9 @@ OrgConverter::ConvResult<BlockExample> OrgConverter::convertBlockExample(
 
 OrgConverter::ConvResult<BlockDynamicFallback> OrgConverter::
     convertBlockDynamicFallback(__args) {
-    SemId<BlockDynamicFallback> result = Sem<BlockDynamicFallback>(a);
-    result->attrs                      = convertAttrs(one(a, N::Args));
+    auto                        __trace = trace(a);
+    SemId<BlockDynamicFallback> result  = Sem<BlockDynamicFallback>(a);
+    result->attrs                       = convertAttrs(one(a, N::Args));
 
     result->name = normalize(get_text(one(a, N::Name)));
     boost::replace_all(result->name, "begin", "");
@@ -1764,7 +1766,8 @@ OrgConverter::ConvResult<BlockDynamicFallback> OrgConverter::
 
 OrgConverter::ConvResult<ColonExample> OrgConverter::convertColonExample(
     __args) {
-    SemId<ColonExample> result = Sem<ColonExample>(a);
+    auto                __trace = trace(a);
+    SemId<ColonExample> result  = Sem<ColonExample>(a);
     for (auto const& it : many(a, N::Body)) {
         if (it.isMono()) {
             result->subnodes.push_back(Sem<RawText>(it));
@@ -1777,6 +1780,7 @@ OrgConverter::ConvResult<ColonExample> OrgConverter::convertColonExample(
 
 OrgConverter::ConvResult<BlockExport> OrgConverter::convertBlockExport(
     __args) {
+    auto __trace = trace(a);
     auto eexport = Sem<BlockExport>(a);
 
     auto values       = convertAttrs(one(a, N::Args));
@@ -1797,7 +1801,8 @@ OrgConverter::ConvResult<BlockExport> OrgConverter::convertBlockExport(
 
 OrgConverter::ConvResult<BlockCenter> OrgConverter::convertBlockCenter(
     __args) {
-    SemId<BlockCenter> res = Sem<BlockCenter>(a);
+    auto               __trace = trace(a);
+    SemId<BlockCenter> res     = Sem<BlockCenter>(a);
     for (const auto& sub : many(a, N::Body)) {
         auto aux = convert(sub);
         res->push_back(aux);
@@ -1807,7 +1812,8 @@ OrgConverter::ConvResult<BlockCenter> OrgConverter::convertBlockCenter(
 
 OrgConverter::ConvResult<BlockQuote> OrgConverter::convertBlockQuote(
     __args) {
-    SemId<BlockQuote> quote = Sem<BlockQuote>(a);
+    auto              __trace = trace(a);
+    SemId<BlockQuote> quote   = Sem<BlockQuote>(a);
 
     if (auto args = one(a, N::Args); args.kind() != onk::Empty) {
         quote->attrs = convertAttrs(args);
@@ -1821,7 +1827,8 @@ OrgConverter::ConvResult<BlockQuote> OrgConverter::convertBlockQuote(
 
 OrgConverter::ConvResult<BlockComment> OrgConverter::convertBlockComment(
     __args) {
-    SemId<BlockComment> result = Sem<BlockComment>(a);
+    auto                __trace = trace(a);
+    SemId<BlockComment> result  = Sem<BlockComment>(a);
     for (const auto& sub : flatConvertAttached(many(a, N::Body))) {
         result->push_back(sub.unwrap());
     }
@@ -1829,6 +1836,7 @@ OrgConverter::ConvResult<BlockComment> OrgConverter::convertBlockComment(
 }
 
 OrgConverter::ConvResult<Latex> OrgConverter::convertMath(__args) {
+    auto __trace = trace(a);
     if (a.kind() == onk::InlineMath) {
         return Sem<Latex>(a);
     } else {
@@ -1839,6 +1847,7 @@ OrgConverter::ConvResult<Latex> OrgConverter::convertMath(__args) {
 
 OrgConverter::ConvResult<CmdInclude> OrgConverter::convertCmdInclude(
     __args) {
+    auto              __trace = trace(a);
     SemId<CmdInclude> include = Sem<CmdInclude>(a);
     auto              args    = convertAttrs(one(a, N::Args));
     include->path             = args.positional.items.at(0).getString();
@@ -1919,11 +1928,13 @@ OrgConverter::ConvResult<CmdInclude> OrgConverter::convertCmdInclude(
 
 OrgConverter::ConvResult<TextSeparator> OrgConverter::convertTextSeparator(
     __args) {
+    auto __trace = trace(a);
     return Sem<TextSeparator>(a);
 }
 
 OrgConverter::ConvResult<AtMention> OrgConverter::convertAtMention(
     __args) {
+    auto __trace = trace(a);
     return SemLeaf<AtMention>(a);
 }
 
@@ -2266,14 +2277,21 @@ SemId<ErrorGroup> OrgConverter::SemError(
 
 OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(
     __args) {
-    SemId<BlockCode> result = Sem<BlockCode>(a);
+    auto             __trace = trace(a);
+    SemId<BlockCode> result  = Sem<BlockCode>(a);
 
-    if (one(a, N::Lang).getKind() != onk::Empty) {
-        result->lang = get_text(one(a, N::Lang));
+    {
+        auto __field = field(N::Lang, a);
+        if (one(a, N::Lang).getKind() != onk::Empty) {
+            result->lang = get_text(one(a, N::Lang));
+        }
     }
 
-    if (one(a, N::HeaderArgs).kind() != onk::Empty) {
-        result->attrs = convertAttrs(one(a, N::HeaderArgs));
+    {
+        auto __field = field(N::HeaderArgs, a);
+        if (one(a, N::HeaderArgs).kind() != onk::Empty) {
+            result->attrs = convertAttrs(one(a, N::HeaderArgs));
+        }
     }
 
     if (a.kind() == onk::SrcInlineCode) {
@@ -2285,6 +2303,7 @@ OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(
                 }));
         }
     } else {
+        auto __field = field(N::Body, a);
         for (auto const& it : one(a, N::Body)) {
             BlockCodeLine& line = result->lines.emplace_back();
             for (auto const& part : it) {
@@ -2304,12 +2323,16 @@ OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(
         }
     }
 
-    if (auto res = one(a, N::Result); res.kind() != onk::Empty) {
-        auto body          = one(res, N::Body);
-        auto conv          = convert(body);
-        auto result_block  = Sem<sem::BlockCodeEvalResult>(res);
-        result_block->node = conv;
-        result->result.push_back(result_block);
+    {
+        auto __field = field(N::Result, a);
+        if (auto res = one(a, N::Result); res.kind() != onk::Empty) {
+            auto body = one(res, N::Body);
+            auto conv = convert(body);
+            print(fmt("Parsed result body as {}", conv->getKind()));
+            auto result_block  = Sem<sem::BlockCodeEvalResult>(res);
+            result_block->node = conv;
+            result->result.push_back(result_block);
+        }
     }
 
     return result;
