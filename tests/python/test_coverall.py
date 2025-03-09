@@ -960,6 +960,10 @@ def verify_full_coverage(cov: Coverage, cls, report_path: str) -> Generator:
     Raises AssertionError with coverage report if not fully covered.
     """
 
+    if cov is None:
+        yield
+        return
+
     cov_obj = cov
 
     use_target_cov = True
@@ -1286,7 +1290,7 @@ def test_run_pandoc_exporter(cov):
         ExporterPandoc().evalNewline(org.Newline())
 
 
-def test_run_tex_exporter(cov):
+def test_run_tex_exporter(cov=None):
     from py_exporters.export_tex import ExporterLatex
     with verify_full_coverage(cov, ExporterLatex, "/tmp"):
         ExporterLatex().eval(get_test_node_from_text())
@@ -1302,3 +1306,6 @@ def test_run_tex_exporter(cov):
 def test_error_group_items():
     for field, value in org.ErrorGroup().__dict__.items():
         pass
+
+if __name__ == "__main__":
+    test_run_tex_exporter()

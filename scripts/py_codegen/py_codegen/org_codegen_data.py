@@ -2101,6 +2101,11 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     isConst=True,
                 ),
                 GenTuFunction(
+                    t_nest_shared("AttrList"),
+                    "getAll",
+                    isConst=True,
+                ),
+                GenTuFunction(
                     t_cr(t_nest_shared("AttrValue")),
                     "atPositional",
                     arguments=[GenTuIdent(t_int(), "index")],
@@ -2137,7 +2142,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     isConst=True,
                 ),
                 GenTuFunction(
-                    t_cr(t_nest_shared("AttrList")),
+                    t_nest_shared("AttrList"),
                     "atVarNamed",
                     arguments=[GenTuIdent(t_cr(t_str()), "index")],
                     isConst=True,
@@ -2149,7 +2154,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                     isConst=True,
                 ),
                 GenTuFunction(
-                    t_cr(t_nest_shared("AttrValue")),
+                    t_nest_shared("AttrValue"),
                     "atFirstVarNamed",
                     arguments=[GenTuIdent(t_cr(t_str()), "index")],
                     isConst=True,

@@ -145,7 +145,11 @@ OrgId OrgParser::parseCallArguments(OrgLexer& lex) {
     __perf_trace("parsing", "parseCallArguments");
     auto __trace = trace(lex);
     start(onk::InlineStmtList);
-    while (lex.can_search(otk::ParEnd)) {
+    while (lex.at(IntSet<OrgTokenKind>{
+        otk::CmdColonIdent,
+        otk::CmdRawArg,
+        otk::ParBegin,
+    })) {
         subParse(AttrValue, lex);
         space(lex);
         if (lex.at(otk::Comma)) {

@@ -1932,29 +1932,43 @@ sem::AttrValue OrgConverter::convertAttr(__args) {
     sem::AttrValue result;
 
     if (one(a, N::Name).getKind() != onk::Empty) {
-        result.name = get_text(one(a, N::Name));
+        result.name = lstrip(get_text(one(a, N::Name)), CharSet{':'});
+        print(fmt("Result name '{}'", result.name.value()));
     }
 
     if (one(a, N::Subname).getKind() != onk::Empty) {
         result.varname = get_text(one(a, N::Subname));
+        print(fmt("Result varname '{}'", result.varname.value()));
     }
 
     if (one(a, N::Value).getKind() == onk::RawText) {
-        Str  value = get_text(one(a, N::Value));
+        Str value = get_text(one(a, N::Value));
+        print(fmt("Text value is '{}'", value));
+
+        if (value.starts_with('"') && value.ends_with('"')) {
+            result.isQuoted = true;
+            value           = value.substr(1, value.size() - 2);
+        }
+
         auto split = value.split(':');
-        if (value.contains(':')) {
+        if (!result.isQuoted && split.size() == 2
+            && !value.contains("::")) {
             AttrValue::FileReference fr{};
             fr.file      = split.at(0);
             fr.reference = split.at(1);
-            result.data  = fr;
+            print(fmt("Attribute is file reference {}", fr));
+            result.data = fr;
         } else {
             AttrValue::TextValue tv{};
-            tv.value    = value;
+            tv.value = value;
+            print(fmt("Attribute is text value {}", tv));
+
             result.data = tv;
         }
     } else if (one(a, N::Value).getKind() == onk::AttrLisp) {
         AttrValue::LispValue ev{};
-        ev.code     = convertLisp(one(a, N::Value));
+        ev.code = convertLisp(one(a, N::Value));
+        print("Attribute is lisp value");
         result.data = ev;
     }
 
@@ -1970,72 +1984,10 @@ sem::AttrValue OrgConverter::convertAttr(__args) {
                 dim.first  = split.at(0).toInt();
                 if (split.has(1)) { dim.last = split.at(1).toInt(); }
             }
+            print(fmt("Attribute dimension span {}", dim));
             result.span.push_back(dim);
         }
     }
-
-    // else if (one(a, N::Value).getKind() == onk:)
-
-    // for (int i = 0; i < value.size(); ++i) {
-    //     if (std::isalnum(value.at(i))) {
-    //         // pass
-    //     } else if (value.at(i) == '=' && i < value.size()) {
-    //         // found variable name
-    //         result.varname = value.substr(0, i);
-    //         value          = value.substr(i + 1);
-    //     } else {
-    //         // not a variable name
-    //         break;
-    //     }
-    // }
-
-
-    // if (value.starts_with('"') && value.ends_with('"')) {
-    //     result.isQuoted = true;
-    //     value           = value.substr(1, value.size() - 2);
-    //     AttrValue::TextValue tv{};
-    //     tv.value    = value;
-    //     result.data = tv;
-    // } else {
-    //     Str dimension;
-    //     if (value.ends_with(']')) {
-    //         for (int i = 0; i < value.size(); ++i) {
-    //             if (value.at(i) == '[') {
-    //                 dimension = value.substr(i + 1, value.size() - 1);
-    //                 value     = value.substr(0, i);
-    //             }
-    //         }
-    //     }
-
-    //     if (!dimension.empty()) {
-    //         for (auto axis : dimension.split(',')) {
-
-    //         }
-    //     }
-
-    //     if (value.contains(':')) {
-    //         auto split = value.split(':');
-    //         if (split.has(1)) {
-    //             AttrValue::FileReference fr{};
-    //             fr.file      = split.at(0);
-    //             fr.reference = split.at(1);
-    //             result.data  = fr;
-    //         } else {
-    //             AttrValue::TextValue tv{};
-    //             tv.value    = value;
-    //             result.data = tv;
-    //         }
-    //     } else {
-    //         AttrValue::TextValue tv{};
-    //         tv.value    = value;
-    //         result.data = tv;
-    //     }
-    // }
-
-    // if (!key.empty()) { result.name = key.substr(1); }
-
-    // if (TraceState) { print(fmt("key:{} value:{}", result.name, value));
-    // }
 
     return result;
 }

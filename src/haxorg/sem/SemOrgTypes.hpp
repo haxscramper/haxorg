@@ -885,15 +885,16 @@ struct AttrGroup {
   int getPositionalSize() const;
   int getNamedSize() const;
   bool isEmpty() const;
+  org::sem::AttrList getAll() const;
   org::sem::AttrValue const& atPositional(int index) const;
   hstd::Opt<org::sem::AttrValue> getPositional(int index) const;
   org::sem::AttrList const& atNamed(hstd::Str const& index) const;
   hstd::Opt<org::sem::AttrList> getNamed(hstd::Str const& index) const;
   org::sem::AttrValue const& atFirstNamed(hstd::Str const& index) const;
   hstd::Opt<org::sem::AttrValue> getFirstNamed(hstd::Str const& index) const;
-  org::sem::AttrList const& atVarNamed(hstd::Str const& index) const;
+  org::sem::AttrList atVarNamed(hstd::Str const& index) const;
   hstd::Opt<org::sem::AttrList> getVarNamed(hstd::Str const& index) const;
-  org::sem::AttrValue const& atFirstVarNamed(hstd::Str const& index) const;
+  org::sem::AttrValue atFirstVarNamed(hstd::Str const& index) const;
   hstd::Opt<org::sem::AttrValue> getFirstVarNamed(hstd::Str const& index) const;
   bool operator==(org::sem::AttrGroup const& other) const;
 };

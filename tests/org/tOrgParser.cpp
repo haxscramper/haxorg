@@ -932,17 +932,17 @@ TEST(OrgParseSem, IncludeCommand) {
 
     {
         auto i = get(R"(#+include: data.org)");
-        EXPECT_EQ(i->path, "data.org"_ss);
+        EXPECT_EQ2(i->path, "data.org"_ss);
     }
     {
         auto i = get(R"(#+include: "data.org")");
-        EXPECT_EQ(i->path, "data.org"_ss);
+        EXPECT_EQ2(i->path, "data.org"_ss);
     }
     {
         auto i = get(R"(#+include: "data.org::#custom-id")");
         EXPECT_EQ2(
             i->getIncludeKind(), sem::CmdInclude::Kind::OrgDocument);
-        EXPECT_EQ(
+        EXPECT_EQ2(
             i->getOrgDocument().customIdTarget.value(), "custom-id"_ss);
     }
     {
@@ -952,7 +952,7 @@ TEST(OrgParseSem, IncludeCommand) {
         EXPECT_EQ2(i->path, "d.org");
         EXPECT_TRUE(i->getOrgDocument().subtreePath.has_value());
         auto const& p = i->getOrgDocument().subtreePath.value().path;
-        EXPECT_EQ(p.size(), 1);
+        EXPECT_EQ2(p.size(), 1);
         EXPECT_EQ2(p.at(0), "path 1"_ss);
     }
     {
@@ -962,52 +962,54 @@ TEST(OrgParseSem, IncludeCommand) {
         EXPECT_EQ2(i->path, "data.org");
         EXPECT_TRUE(i->getOrgDocument().subtreePath.has_value());
         auto const& p = i->getOrgDocument().subtreePath.value().path;
-        EXPECT_EQ(p.size(), 2);
+        EXPECT_EQ2(p.size(), 2);
         EXPECT_EQ2(p.at(0), "path 1"_ss);
         EXPECT_EQ2(p.at(1), "path 2"_ss);
     }
 
     {
         auto i = get(R"(#+INCLUDE: "~/.emacs" :lines "5-10")");
-        EXPECT_EQ(i->firstLine.value(), 5);
-        EXPECT_EQ(i->lastLine.value(), 10);
+        EXPECT_EQ2(i->firstLine.value(), 5);
+        EXPECT_EQ2(i->lastLine.value(), 10);
     }
     {
         auto i = get(R"(#+INCLUDE: "~/.emacs" :lines "-10")");
         EXPECT_FALSE(i->firstLine.has_value());
-        EXPECT_EQ(i->lastLine.value(), 10);
+        EXPECT_EQ2(i->lastLine.value(), 10);
     }
     {
         auto i = get(R"(#+INCLUDE: "~/.emacs" :lines "10-")");
-        EXPECT_EQ(i->firstLine.value(), 10);
+        EXPECT_EQ2(i->firstLine.value(), 10);
         EXPECT_FALSE(i->lastLine.has_value());
     }
     {
         auto i = get(
             R"(#+INCLUDE: "~/my-book/chapter2.org" :minlevel 1)",
             getDebugFile("include_command"));
-        EXPECT_EQ(i->getOrgDocument().minLevel, 1);
+        EXPECT_EQ2(i->getOrgDocument().minLevel, 1);
     }
     {
         auto i = get(
             R"(#+INCLUDE: "./paper.org::#theory" :only-contents t)");
-        EXPECT_EQ(i->getOrgDocument().onlyContent.value(), true);
+        EXPECT_EQ2(i->getOrgDocument().onlyContent.value(), true);
     }
     {
         auto i = get(R"(#+INCLUDE: "~/.emacs" src emacs-lisp)");
-        EXPECT_EQ(i->getIncludeKind(), sem::CmdInclude::Kind::Src);
-        // EXPECT_EQ(i->getSrc())
+        EXPECT_EQ2(i->getIncludeKind(), sem::CmdInclude::Kind::Src);
+        // EXPECT_EQ2(i->getSrc())
     }
 
     {
         auto i = get(R"(#+INCLUDE: "~/.emacs" custom-name)");
-        EXPECT_EQ(i->getIncludeKind(), sem::CmdInclude::Kind::Custom);
+        EXPECT_EQ2(i->getIncludeKind(), sem::CmdInclude::Kind::Custom);
         EXPECT_EQ2(i->getCustom().blockName, "custom-name");
     }
 
     {
-        auto i = get(R"(#+INCLUDE: "~/.emacs" ":custom-name")");
-        EXPECT_EQ(i->getIncludeKind(), sem::CmdInclude::Kind::Custom);
+        auto i = get(
+            R"(#+INCLUDE: "~/.emacs" ":custom-name")",
+            getDebugFile("quoted_custom_name"));
+        EXPECT_EQ2(i->getIncludeKind(), sem::CmdInclude::Kind::Custom);
         EXPECT_EQ2(i->getCustom().blockName, ":custom-name");
     }
 }
@@ -1033,7 +1035,7 @@ TEST(OrgParseSem, CodeBlockVariables) {
         EXPECT_EQ2(c->getVariable("data")->getString(), "example-table");
         auto span = c->getVariable("data")->span;
         EXPECT_EQ2(span.size(), 2);
-        EXPECT_EQ(span.at(0).first, 0);
+        EXPECT_EQ2(span.at(0).first, 0);
         EXPECT_FALSE(span.at(0).last.has_value());
         EXPECT_EQ(span.at(1).first, -1);
         EXPECT_FALSE(span.at(1).last.has_value());

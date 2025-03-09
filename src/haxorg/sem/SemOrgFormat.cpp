@@ -622,6 +622,9 @@ auto Formatter::toString(SemId<CmdColumns> id, CR<Context> ctx) -> Res {
 auto Formatter::toString(SemId<CmdCall> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     auto res = b.line({str("#+call: ")});
+
+    b.add_at(res, str(id->name));
+
     if (!id->insideHeaderAttrs.isEmpty()) {
         b.add_at(res, str("["));
         b.add_at(res, toString(id->insideHeaderAttrs, ctx));
@@ -630,6 +633,12 @@ auto Formatter::toString(SemId<CmdCall> id, CR<Context> ctx) -> Res {
 
     if (!id->callAttrs.isEmpty()) {
         b.add_at(res, str("("));
+        bool isFirst = true;
+        for (auto const& it : id->callAttrs.getAll().items) {
+            if (!isFirst) { b.add_at(res, str(", ")); }
+            isFirst = false;
+            b.add_at(res, toString(it, ctx));
+        }
 
         b.add_at(res, str(")"));
     }
