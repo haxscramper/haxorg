@@ -797,8 +797,7 @@ TEST(OrgParseSem, Macro) {
     }
     {
         auto m = parseOne<sem::Macro>(
-            R"({{{property(PROPERTY-NAME, SEARCH OPTION)}}})",
-            getDebugFile("dash_name"));
+            R"({{{property(PROPERTY-NAME, SEARCH OPTION)}}})");
         EXPECT_EQ(m->name, "property");
         EXPECT_EQ(m->attrs.getPositionalSize(), 2);
         EXPECT_EQ(
@@ -806,11 +805,12 @@ TEST(OrgParseSem, Macro) {
         EXPECT_EQ(m->attrs.atPositional(1).getString(), "SEARCH OPTION");
     }
     {
-        auto m = parseOne<sem::Macro>(R"({{{named(key=value)}}})");
+        auto m = parseOne<sem::Macro>(
+            R"({{{named(key=value)}}})", getDebugFile("dash_name"));
         EXPECT_EQ(m->name, "named"_ss);
-        EXPECT_EQ(m->attrs.getPositionalSize(), 0);
-        EXPECT_EQ(m->attrs.getNamedSize(), 1);
-        EXPECT_EQ(m->attrs.getFirstNamed("key")->getString(), "value"_ss);
+        EXPECT_EQ(m->attrs.getPositionalSize(), 1);
+        EXPECT_EQ(m->attrs.getNamedSize(), 0);
+        EXPECT_EQ(m->attrs.getPositional(0)->getString(), "value"_ss);
     }
     {
         auto par = parseOne<sem::Paragraph>(

@@ -235,9 +235,24 @@ OrgId OrgParser::parseAttrValue(OrgLexer& lex) {
         // are not 'correct'.
         print("Argument value was lexed using random tokens");
         empty();
-        empty();
+
+        if (lex.at(OrgTokSet{otk::Word, otk::RawText})
+            && lex.at(
+                OrgTokSet{
+                    otk::Equals,
+                    otk::VerbatimBegin,
+                    otk::VerbatimEnd,
+                    otk::VerbatimUnknown,
+                },
+                +1)) {
+            token(onk::RawText, pop(lex, lex.kind()));
+            skip(lex);
+        } else {
+            empty();
+        }
+
         start(onk::InlineStmtList);
-        while (lex.can_search(otk::ParEnd)) {
+        while (lex.can_search(OrgTokSet{otk::ParEnd, otk::Comma})) {
             token(onk::RawText, pop(lex, lex.kind()));
         }
         end();
@@ -1917,6 +1932,23 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
     __perf_trace("parsing", "parseLineCommand");
     auto __trace  = trace(lex);
     auto cmd_kind = lex.kind(+1);
+
+    OrgTokSet raw_arg_cmd_value{
+        otk::CmdRawArg,
+        otk::BraceBegin,
+        otk::BraceEnd,
+        otk::Comma,
+        otk::Equals,
+    };
+
+    auto get_cmd_arguments = [&]() {
+        start(onk::InlineStmtList);
+        while (lex.at(raw_arg_cmd_value)) {
+            token(onk::RawText, pop(lex, raw_arg_cmd_value));
+        }
+        end();
+    };
+
     switch (cmd_kind) {
         case otk::CmdEmailRaw:
         case otk::CmdBindRaw:
@@ -2093,7 +2125,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             skip(lex, otk::CmdPrefix);
             skip(lex, otk::CmdLatexClassOptions);
             start(onk::CmdLatexClassOptions);
-            token(onk::RawText, pop(lex, otk::CmdRawArg));
+            get_cmd_arguments();
             break;
         }
 
@@ -2162,7 +2194,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             skip(lex, otk::CmdPrefix);
             skip(lex);
             start(onk::CmdOptions);
-            token(onk::RawText, pop(lex, otk::RawText));
+            get_cmd_arguments();
             break;
         }
 
@@ -2175,7 +2207,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
                 case otk::CmdColumns: start(onk::CmdColumns); break;
                 default: throw fatalError(lex, "asdf");
             }
-            token(onk::RawText, pop(lex, otk::RawText));
+            get_cmd_arguments();
             break;
         }
 

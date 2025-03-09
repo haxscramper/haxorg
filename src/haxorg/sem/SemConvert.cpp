@@ -130,6 +130,10 @@ Str get_text(
         return a.val().text;
     } else if (a.kind() == onk::Empty) {
         return "";
+    } else if (a.kind() == onk::InlineStmtList) {
+        Str res;
+        for (auto const& it : a) { res += get_text(it); }
+        return res;
     } else {
         throw convert_logic_error::init(
             fmt("{} {} {}", function, line, a.treeRepr(false)));
@@ -783,9 +787,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         if (one(a, N::Values).kind() == onk::RawText) {
             prop.value = get_values_text();
         } else {
-            for (auto const& arg : one(a, N::Values)) {
-                prop.value += get_text(arg);
-            }
+            prop.value = get_text(one(a, N::Values));
         }
         result = NamedProperty(prop);
     }
@@ -1983,9 +1985,7 @@ sem::AttrValue OrgConverter::convertAttr(__args) {
         result.data = ev;
     } else {
         AttrValue::TextValue tv{};
-        for (auto const& it : one(a, N::Value)) {
-            tv.value += get_text(it);
-        }
+        tv.value += get_text(one(a, N::Value));
         print(fmt("Attribute is text value {}", tv));
         result.data = tv;
     }
