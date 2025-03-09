@@ -460,11 +460,11 @@ struct ImmTime : public org::imm::ImmOrg {
   virtual OrgSemKind getKind() const { return OrgSemKind::Time; }
   bool operator==(org::imm::ImmTime const& other) const;
   bool isStatic() const { return getTimeKind() == TimeKind::Static; }
-  org::imm::ImmTime::Static const& getStatic() const { return std::get<0>(time); }
-  org::imm::ImmTime::Static& getStatic() { return std::get<0>(time); }
+  org::imm::ImmTime::Static const& getStatic() const { return hstd::variant_get<0>(time); }
+  org::imm::ImmTime::Static& getStatic() { return hstd::variant_get<0>(time); }
   bool isDynamic() const { return getTimeKind() == TimeKind::Dynamic; }
-  org::imm::ImmTime::Dynamic const& getDynamic() const { return std::get<1>(time); }
-  org::imm::ImmTime::Dynamic& getDynamic() { return std::get<1>(time); }
+  org::imm::ImmTime::Dynamic const& getDynamic() const { return hstd::variant_get<1>(time); }
+  org::imm::ImmTime::Dynamic& getDynamic() { return hstd::variant_get<1>(time); }
   static org::imm::ImmTime::TimeKind getTimeKind(org::imm::ImmTime::TimeVariant const& __input) { return static_cast<org::imm::ImmTime::TimeKind>(__input.index()); }
   org::imm::ImmTime::TimeKind getTimeKind() const { return getTimeKind(time); }
   char const* sub_variant_get_name() const { return "time"; }
@@ -1442,14 +1442,14 @@ struct ImmFile : public org::imm::ImmOrg {
   virtual OrgSemKind getKind() const { return OrgSemKind::File; }
   bool operator==(org::imm::ImmFile const& other) const;
   bool isDocument() const { return getFileKind() == Kind::Document; }
-  org::imm::ImmFile::Document const& getDocument() const { return std::get<0>(data); }
-  org::imm::ImmFile::Document& getDocument() { return std::get<0>(data); }
+  org::imm::ImmFile::Document const& getDocument() const { return hstd::variant_get<0>(data); }
+  org::imm::ImmFile::Document& getDocument() { return hstd::variant_get<0>(data); }
   bool isAttachment() const { return getFileKind() == Kind::Attachment; }
-  org::imm::ImmFile::Attachment const& getAttachment() const { return std::get<1>(data); }
-  org::imm::ImmFile::Attachment& getAttachment() { return std::get<1>(data); }
+  org::imm::ImmFile::Attachment const& getAttachment() const { return hstd::variant_get<1>(data); }
+  org::imm::ImmFile::Attachment& getAttachment() { return hstd::variant_get<1>(data); }
   bool isSource() const { return getFileKind() == Kind::Source; }
-  org::imm::ImmFile::Source const& getSource() const { return std::get<2>(data); }
-  org::imm::ImmFile::Source& getSource() { return std::get<2>(data); }
+  org::imm::ImmFile::Source const& getSource() const { return hstd::variant_get<2>(data); }
+  org::imm::ImmFile::Source& getSource() { return hstd::variant_get<2>(data); }
   static org::imm::ImmFile::Kind getFileKind(org::imm::ImmFile::Data const& __input) { return static_cast<org::imm::ImmFile::Kind>(__input.index()); }
   org::imm::ImmFile::Kind getFileKind() const { return getFileKind(data); }
   char const* sub_variant_get_name() const { return "data"; }
@@ -1597,20 +1597,20 @@ struct ImmCmdInclude : public org::imm::ImmOrg {
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdInclude; }
   bool operator==(org::imm::ImmCmdInclude const& other) const;
   bool isExample() const { return getIncludeKind() == Kind::Example; }
-  org::imm::ImmCmdInclude::Example const& getExample() const { return std::get<0>(data); }
-  org::imm::ImmCmdInclude::Example& getExample() { return std::get<0>(data); }
+  org::imm::ImmCmdInclude::Example const& getExample() const { return hstd::variant_get<0>(data); }
+  org::imm::ImmCmdInclude::Example& getExample() { return hstd::variant_get<0>(data); }
   bool isExport() const { return getIncludeKind() == Kind::Export; }
-  org::imm::ImmCmdInclude::Export const& getExport() const { return std::get<1>(data); }
-  org::imm::ImmCmdInclude::Export& getExport() { return std::get<1>(data); }
+  org::imm::ImmCmdInclude::Export const& getExport() const { return hstd::variant_get<1>(data); }
+  org::imm::ImmCmdInclude::Export& getExport() { return hstd::variant_get<1>(data); }
   bool isCustom() const { return getIncludeKind() == Kind::Custom; }
-  org::imm::ImmCmdInclude::Custom const& getCustom() const { return std::get<2>(data); }
-  org::imm::ImmCmdInclude::Custom& getCustom() { return std::get<2>(data); }
+  org::imm::ImmCmdInclude::Custom const& getCustom() const { return hstd::variant_get<2>(data); }
+  org::imm::ImmCmdInclude::Custom& getCustom() { return hstd::variant_get<2>(data); }
   bool isSrc() const { return getIncludeKind() == Kind::Src; }
-  org::imm::ImmCmdInclude::Src const& getSrc() const { return std::get<3>(data); }
-  org::imm::ImmCmdInclude::Src& getSrc() { return std::get<3>(data); }
+  org::imm::ImmCmdInclude::Src const& getSrc() const { return hstd::variant_get<3>(data); }
+  org::imm::ImmCmdInclude::Src& getSrc() { return hstd::variant_get<3>(data); }
   bool isOrgDocument() const { return getIncludeKind() == Kind::OrgDocument; }
-  org::imm::ImmCmdInclude::OrgDocument const& getOrgDocument() const { return std::get<4>(data); }
-  org::imm::ImmCmdInclude::OrgDocument& getOrgDocument() { return std::get<4>(data); }
+  org::imm::ImmCmdInclude::OrgDocument const& getOrgDocument() const { return hstd::variant_get<4>(data); }
+  org::imm::ImmCmdInclude::OrgDocument& getOrgDocument() { return hstd::variant_get<4>(data); }
   static org::imm::ImmCmdInclude::Kind getIncludeKind(org::imm::ImmCmdInclude::Data const& __input) { return static_cast<org::imm::ImmCmdInclude::Kind>(__input.index()); }
   org::imm::ImmCmdInclude::Kind getIncludeKind() const { return getIncludeKind(data); }
   char const* sub_variant_get_name() const { return "data"; }

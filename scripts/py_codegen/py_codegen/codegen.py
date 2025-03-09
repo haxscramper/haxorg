@@ -633,7 +633,7 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
                             isConst=isConst,
                             impl=ast.Return(
                                 ast.XCall(
-                                    "std::get",
+                                    "hstd::variant_get",
                                     [ast.string(record.variantField)],
                                     Params=[QualType.ForName(str(idx))],
                                 )),

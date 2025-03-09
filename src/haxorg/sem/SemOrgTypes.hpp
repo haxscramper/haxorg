@@ -117,29 +117,29 @@ struct LispCode {
   bool operator==(org::sem::LispCode const& other) const;
   LispCode() {  }
   bool isCall() const { return getKind() == Kind::Call; }
-  org::sem::LispCode::Call const& getCall() const { return std::get<0>(data); }
-  org::sem::LispCode::Call& getCall() { return std::get<0>(data); }
+  org::sem::LispCode::Call const& getCall() const { return hstd::variant_get<0>(data); }
+  org::sem::LispCode::Call& getCall() { return hstd::variant_get<0>(data); }
   bool isList() const { return getKind() == Kind::List; }
-  org::sem::LispCode::List const& getList() const { return std::get<1>(data); }
-  org::sem::LispCode::List& getList() { return std::get<1>(data); }
+  org::sem::LispCode::List const& getList() const { return hstd::variant_get<1>(data); }
+  org::sem::LispCode::List& getList() { return hstd::variant_get<1>(data); }
   bool isKeyValue() const { return getKind() == Kind::KeyValue; }
-  org::sem::LispCode::KeyValue const& getKeyValue() const { return std::get<2>(data); }
-  org::sem::LispCode::KeyValue& getKeyValue() { return std::get<2>(data); }
+  org::sem::LispCode::KeyValue const& getKeyValue() const { return hstd::variant_get<2>(data); }
+  org::sem::LispCode::KeyValue& getKeyValue() { return hstd::variant_get<2>(data); }
   bool isNumber() const { return getKind() == Kind::Number; }
-  org::sem::LispCode::Number const& getNumber() const { return std::get<3>(data); }
-  org::sem::LispCode::Number& getNumber() { return std::get<3>(data); }
+  org::sem::LispCode::Number const& getNumber() const { return hstd::variant_get<3>(data); }
+  org::sem::LispCode::Number& getNumber() { return hstd::variant_get<3>(data); }
   bool isText() const { return getKind() == Kind::Text; }
-  org::sem::LispCode::Text const& getText() const { return std::get<4>(data); }
-  org::sem::LispCode::Text& getText() { return std::get<4>(data); }
+  org::sem::LispCode::Text const& getText() const { return hstd::variant_get<4>(data); }
+  org::sem::LispCode::Text& getText() { return hstd::variant_get<4>(data); }
   bool isIdent() const { return getKind() == Kind::Ident; }
-  org::sem::LispCode::Ident const& getIdent() const { return std::get<5>(data); }
-  org::sem::LispCode::Ident& getIdent() { return std::get<5>(data); }
+  org::sem::LispCode::Ident const& getIdent() const { return hstd::variant_get<5>(data); }
+  org::sem::LispCode::Ident& getIdent() { return hstd::variant_get<5>(data); }
   bool isBoolean() const { return getKind() == Kind::Boolean; }
-  org::sem::LispCode::Boolean const& getBoolean() const { return std::get<6>(data); }
-  org::sem::LispCode::Boolean& getBoolean() { return std::get<6>(data); }
+  org::sem::LispCode::Boolean const& getBoolean() const { return hstd::variant_get<6>(data); }
+  org::sem::LispCode::Boolean& getBoolean() { return hstd::variant_get<6>(data); }
   bool isReal() const { return getKind() == Kind::Real; }
-  org::sem::LispCode::Real const& getReal() const { return std::get<7>(data); }
-  org::sem::LispCode::Real& getReal() { return std::get<7>(data); }
+  org::sem::LispCode::Real const& getReal() const { return hstd::variant_get<7>(data); }
+  org::sem::LispCode::Real& getReal() { return hstd::variant_get<7>(data); }
   static org::sem::LispCode::Kind getKind(org::sem::LispCode::Data const& __input) { return static_cast<org::sem::LispCode::Kind>(__input.index()); }
   org::sem::LispCode::Kind getKind() const { return getKind(data); }
   char const* sub_variant_get_name() const { return "data"; }
@@ -187,11 +187,11 @@ struct Tblfm {
         org::sem::Tblfm::Expr::AxisRef::Position::Data data;
         bool operator==(org::sem::Tblfm::Expr::AxisRef::Position const& other) const;
         bool isIndex() const { return getKind() == Kind::Index; }
-        org::sem::Tblfm::Expr::AxisRef::Position::Index const& getIndex() const { return std::get<0>(data); }
-        org::sem::Tblfm::Expr::AxisRef::Position::Index& getIndex() { return std::get<0>(data); }
+        org::sem::Tblfm::Expr::AxisRef::Position::Index const& getIndex() const { return hstd::variant_get<0>(data); }
+        org::sem::Tblfm::Expr::AxisRef::Position::Index& getIndex() { return hstd::variant_get<0>(data); }
         bool isName() const { return getKind() == Kind::Name; }
-        org::sem::Tblfm::Expr::AxisRef::Position::Name const& getName() const { return std::get<1>(data); }
-        org::sem::Tblfm::Expr::AxisRef::Position::Name& getName() { return std::get<1>(data); }
+        org::sem::Tblfm::Expr::AxisRef::Position::Name const& getName() const { return hstd::variant_get<1>(data); }
+        org::sem::Tblfm::Expr::AxisRef::Position::Name& getName() { return hstd::variant_get<1>(data); }
         static org::sem::Tblfm::Expr::AxisRef::Position::Kind getKind(org::sem::Tblfm::Expr::AxisRef::Position::Data const& __input) { return static_cast<org::sem::Tblfm::Expr::AxisRef::Position::Kind>(__input.index()); }
         org::sem::Tblfm::Expr::AxisRef::Position::Kind getKind() const { return getKind(data); }
         char const* sub_variant_get_name() const { return "data"; }
@@ -284,26 +284,26 @@ struct Tblfm {
     org::sem::Tblfm::Expr::Data data;
     bool operator==(org::sem::Tblfm::Expr const& other) const;
     bool isAxisRef() const { return getKind() == Kind::AxisRef; }
-    org::sem::Tblfm::Expr::AxisRef const& getAxisRef() const { return std::get<0>(data); }
-    org::sem::Tblfm::Expr::AxisRef& getAxisRef() { return std::get<0>(data); }
+    org::sem::Tblfm::Expr::AxisRef const& getAxisRef() const { return hstd::variant_get<0>(data); }
+    org::sem::Tblfm::Expr::AxisRef& getAxisRef() { return hstd::variant_get<0>(data); }
     bool isAxisName() const { return getKind() == Kind::AxisName; }
-    org::sem::Tblfm::Expr::AxisName const& getAxisName() const { return std::get<1>(data); }
-    org::sem::Tblfm::Expr::AxisName& getAxisName() { return std::get<1>(data); }
+    org::sem::Tblfm::Expr::AxisName const& getAxisName() const { return hstd::variant_get<1>(data); }
+    org::sem::Tblfm::Expr::AxisName& getAxisName() { return hstd::variant_get<1>(data); }
     bool isIntLiteral() const { return getKind() == Kind::IntLiteral; }
-    org::sem::Tblfm::Expr::IntLiteral const& getIntLiteral() const { return std::get<2>(data); }
-    org::sem::Tblfm::Expr::IntLiteral& getIntLiteral() { return std::get<2>(data); }
+    org::sem::Tblfm::Expr::IntLiteral const& getIntLiteral() const { return hstd::variant_get<2>(data); }
+    org::sem::Tblfm::Expr::IntLiteral& getIntLiteral() { return hstd::variant_get<2>(data); }
     bool isFloatLiteral() const { return getKind() == Kind::FloatLiteral; }
-    org::sem::Tblfm::Expr::FloatLiteral const& getFloatLiteral() const { return std::get<3>(data); }
-    org::sem::Tblfm::Expr::FloatLiteral& getFloatLiteral() { return std::get<3>(data); }
+    org::sem::Tblfm::Expr::FloatLiteral const& getFloatLiteral() const { return hstd::variant_get<3>(data); }
+    org::sem::Tblfm::Expr::FloatLiteral& getFloatLiteral() { return hstd::variant_get<3>(data); }
     bool isRangeRef() const { return getKind() == Kind::RangeRef; }
-    org::sem::Tblfm::Expr::RangeRef const& getRangeRef() const { return std::get<4>(data); }
-    org::sem::Tblfm::Expr::RangeRef& getRangeRef() { return std::get<4>(data); }
+    org::sem::Tblfm::Expr::RangeRef const& getRangeRef() const { return hstd::variant_get<4>(data); }
+    org::sem::Tblfm::Expr::RangeRef& getRangeRef() { return hstd::variant_get<4>(data); }
     bool isCall() const { return getKind() == Kind::Call; }
-    org::sem::Tblfm::Expr::Call const& getCall() const { return std::get<5>(data); }
-    org::sem::Tblfm::Expr::Call& getCall() { return std::get<5>(data); }
+    org::sem::Tblfm::Expr::Call const& getCall() const { return hstd::variant_get<5>(data); }
+    org::sem::Tblfm::Expr::Call& getCall() { return hstd::variant_get<5>(data); }
     bool isElisp() const { return getKind() == Kind::Elisp; }
-    org::sem::Tblfm::Expr::Elisp const& getElisp() const { return std::get<6>(data); }
-    org::sem::Tblfm::Expr::Elisp& getElisp() { return std::get<6>(data); }
+    org::sem::Tblfm::Expr::Elisp const& getElisp() const { return hstd::variant_get<6>(data); }
+    org::sem::Tblfm::Expr::Elisp& getElisp() { return hstd::variant_get<6>(data); }
     static org::sem::Tblfm::Expr::Kind getKind(org::sem::Tblfm::Expr::Data const& __input) { return static_cast<org::sem::Tblfm::Expr::Kind>(__input.index()); }
     org::sem::Tblfm::Expr::Kind getKind() const { return getKind(data); }
     char const* sub_variant_get_name() const { return "data"; }
@@ -445,14 +445,14 @@ struct AttrValue {
   bool operator==(org::sem::AttrValue const& other) const;
   AttrValue() {  }
   bool isTextValue() const { return getDataKind() == DataKind::TextValue; }
-  org::sem::AttrValue::TextValue const& getTextValue() const { return std::get<0>(data); }
-  org::sem::AttrValue::TextValue& getTextValue() { return std::get<0>(data); }
+  org::sem::AttrValue::TextValue const& getTextValue() const { return hstd::variant_get<0>(data); }
+  org::sem::AttrValue::TextValue& getTextValue() { return hstd::variant_get<0>(data); }
   bool isFileReference() const { return getDataKind() == DataKind::FileReference; }
-  org::sem::AttrValue::FileReference const& getFileReference() const { return std::get<1>(data); }
-  org::sem::AttrValue::FileReference& getFileReference() { return std::get<1>(data); }
+  org::sem::AttrValue::FileReference const& getFileReference() const { return hstd::variant_get<1>(data); }
+  org::sem::AttrValue::FileReference& getFileReference() { return hstd::variant_get<1>(data); }
   bool isLispValue() const { return getDataKind() == DataKind::LispValue; }
-  org::sem::AttrValue::LispValue const& getLispValue() const { return std::get<2>(data); }
-  org::sem::AttrValue::LispValue& getLispValue() { return std::get<2>(data); }
+  org::sem::AttrValue::LispValue const& getLispValue() const { return hstd::variant_get<2>(data); }
+  org::sem::AttrValue::LispValue& getLispValue() { return hstd::variant_get<2>(data); }
   static org::sem::AttrValue::DataKind getDataKind(org::sem::AttrValue::DataVariant const& __input) { return static_cast<org::sem::AttrValue::DataKind>(__input.index()); }
   org::sem::AttrValue::DataKind getDataKind() const { return getDataKind(data); }
   char const* sub_variant_get_name() const { return "data"; }
@@ -616,35 +616,35 @@ struct LinkTarget {
   org::sem::LinkTarget::Data data;
   bool operator==(org::sem::LinkTarget const& other) const;
   bool isRaw() const { return getKind() == Kind::Raw; }
-  org::sem::LinkTarget::Raw const& getRaw() const { return std::get<0>(data); }
-  org::sem::LinkTarget::Raw& getRaw() { return std::get<0>(data); }
+  org::sem::LinkTarget::Raw const& getRaw() const { return hstd::variant_get<0>(data); }
+  org::sem::LinkTarget::Raw& getRaw() { return hstd::variant_get<0>(data); }
   bool isId() const { return getKind() == Kind::Id; }
-  org::sem::LinkTarget::Id const& getId() const { return std::get<1>(data); }
-  org::sem::LinkTarget::Id& getId() { return std::get<1>(data); }
+  org::sem::LinkTarget::Id const& getId() const { return hstd::variant_get<1>(data); }
+  org::sem::LinkTarget::Id& getId() { return hstd::variant_get<1>(data); }
   bool isCustomId() const { return getKind() == Kind::CustomId; }
-  org::sem::LinkTarget::CustomId const& getCustomId() const { return std::get<2>(data); }
-  org::sem::LinkTarget::CustomId& getCustomId() { return std::get<2>(data); }
+  org::sem::LinkTarget::CustomId const& getCustomId() const { return hstd::variant_get<2>(data); }
+  org::sem::LinkTarget::CustomId& getCustomId() { return hstd::variant_get<2>(data); }
   bool isSubtreeTitle() const { return getKind() == Kind::SubtreeTitle; }
-  org::sem::LinkTarget::SubtreeTitle const& getSubtreeTitle() const { return std::get<3>(data); }
-  org::sem::LinkTarget::SubtreeTitle& getSubtreeTitle() { return std::get<3>(data); }
+  org::sem::LinkTarget::SubtreeTitle const& getSubtreeTitle() const { return hstd::variant_get<3>(data); }
+  org::sem::LinkTarget::SubtreeTitle& getSubtreeTitle() { return hstd::variant_get<3>(data); }
   bool isPerson() const { return getKind() == Kind::Person; }
-  org::sem::LinkTarget::Person const& getPerson() const { return std::get<4>(data); }
-  org::sem::LinkTarget::Person& getPerson() { return std::get<4>(data); }
+  org::sem::LinkTarget::Person const& getPerson() const { return hstd::variant_get<4>(data); }
+  org::sem::LinkTarget::Person& getPerson() { return hstd::variant_get<4>(data); }
   bool isUserProtocol() const { return getKind() == Kind::UserProtocol; }
-  org::sem::LinkTarget::UserProtocol const& getUserProtocol() const { return std::get<5>(data); }
-  org::sem::LinkTarget::UserProtocol& getUserProtocol() { return std::get<5>(data); }
+  org::sem::LinkTarget::UserProtocol const& getUserProtocol() const { return hstd::variant_get<5>(data); }
+  org::sem::LinkTarget::UserProtocol& getUserProtocol() { return hstd::variant_get<5>(data); }
   bool isInternal() const { return getKind() == Kind::Internal; }
-  org::sem::LinkTarget::Internal const& getInternal() const { return std::get<6>(data); }
-  org::sem::LinkTarget::Internal& getInternal() { return std::get<6>(data); }
+  org::sem::LinkTarget::Internal const& getInternal() const { return hstd::variant_get<6>(data); }
+  org::sem::LinkTarget::Internal& getInternal() { return hstd::variant_get<6>(data); }
   bool isFootnote() const { return getKind() == Kind::Footnote; }
-  org::sem::LinkTarget::Footnote const& getFootnote() const { return std::get<7>(data); }
-  org::sem::LinkTarget::Footnote& getFootnote() { return std::get<7>(data); }
+  org::sem::LinkTarget::Footnote const& getFootnote() const { return hstd::variant_get<7>(data); }
+  org::sem::LinkTarget::Footnote& getFootnote() { return hstd::variant_get<7>(data); }
   bool isFile() const { return getKind() == Kind::File; }
-  org::sem::LinkTarget::File const& getFile() const { return std::get<8>(data); }
-  org::sem::LinkTarget::File& getFile() { return std::get<8>(data); }
+  org::sem::LinkTarget::File const& getFile() const { return hstd::variant_get<8>(data); }
+  org::sem::LinkTarget::File& getFile() { return hstd::variant_get<8>(data); }
   bool isAttachment() const { return getKind() == Kind::Attachment; }
-  org::sem::LinkTarget::Attachment const& getAttachment() const { return std::get<9>(data); }
-  org::sem::LinkTarget::Attachment& getAttachment() { return std::get<9>(data); }
+  org::sem::LinkTarget::Attachment const& getAttachment() const { return hstd::variant_get<9>(data); }
+  org::sem::LinkTarget::Attachment& getAttachment() { return hstd::variant_get<9>(data); }
   static org::sem::LinkTarget::Kind getKind(org::sem::LinkTarget::Data const& __input) { return static_cast<org::sem::LinkTarget::Kind>(__input.index()); }
   org::sem::LinkTarget::Kind getKind() const { return getKind(data); }
   char const* sub_variant_get_name() const { return "data"; }
@@ -808,32 +808,32 @@ struct SubtreeLogHead {
   org::sem::SubtreeLogHead::LogEntry log = Note{};
   bool operator==(org::sem::SubtreeLogHead const& other) const;
   bool isPriority() const { return getLogKind() == Kind::Priority; }
-  org::sem::SubtreeLogHead::Priority const& getPriority() const { return std::get<0>(log); }
-  org::sem::SubtreeLogHead::Priority& getPriority() { return std::get<0>(log); }
+  org::sem::SubtreeLogHead::Priority const& getPriority() const { return hstd::variant_get<0>(log); }
+  org::sem::SubtreeLogHead::Priority& getPriority() { return hstd::variant_get<0>(log); }
   bool isNote() const { return getLogKind() == Kind::Note; }
-  org::sem::SubtreeLogHead::Note const& getNote() const { return std::get<1>(log); }
-  org::sem::SubtreeLogHead::Note& getNote() { return std::get<1>(log); }
+  org::sem::SubtreeLogHead::Note const& getNote() const { return hstd::variant_get<1>(log); }
+  org::sem::SubtreeLogHead::Note& getNote() { return hstd::variant_get<1>(log); }
   bool isRefile() const { return getLogKind() == Kind::Refile; }
-  org::sem::SubtreeLogHead::Refile const& getRefile() const { return std::get<2>(log); }
-  org::sem::SubtreeLogHead::Refile& getRefile() { return std::get<2>(log); }
+  org::sem::SubtreeLogHead::Refile const& getRefile() const { return hstd::variant_get<2>(log); }
+  org::sem::SubtreeLogHead::Refile& getRefile() { return hstd::variant_get<2>(log); }
   bool isClock() const { return getLogKind() == Kind::Clock; }
-  org::sem::SubtreeLogHead::Clock const& getClock() const { return std::get<3>(log); }
-  org::sem::SubtreeLogHead::Clock& getClock() { return std::get<3>(log); }
+  org::sem::SubtreeLogHead::Clock const& getClock() const { return hstd::variant_get<3>(log); }
+  org::sem::SubtreeLogHead::Clock& getClock() { return hstd::variant_get<3>(log); }
   bool isState() const { return getLogKind() == Kind::State; }
-  org::sem::SubtreeLogHead::State const& getState() const { return std::get<4>(log); }
-  org::sem::SubtreeLogHead::State& getState() { return std::get<4>(log); }
+  org::sem::SubtreeLogHead::State const& getState() const { return hstd::variant_get<4>(log); }
+  org::sem::SubtreeLogHead::State& getState() { return hstd::variant_get<4>(log); }
   bool isDeadline() const { return getLogKind() == Kind::Deadline; }
-  org::sem::SubtreeLogHead::Deadline const& getDeadline() const { return std::get<5>(log); }
-  org::sem::SubtreeLogHead::Deadline& getDeadline() { return std::get<5>(log); }
+  org::sem::SubtreeLogHead::Deadline const& getDeadline() const { return hstd::variant_get<5>(log); }
+  org::sem::SubtreeLogHead::Deadline& getDeadline() { return hstd::variant_get<5>(log); }
   bool isSchedule() const { return getLogKind() == Kind::Schedule; }
-  org::sem::SubtreeLogHead::Schedule const& getSchedule() const { return std::get<6>(log); }
-  org::sem::SubtreeLogHead::Schedule& getSchedule() { return std::get<6>(log); }
+  org::sem::SubtreeLogHead::Schedule const& getSchedule() const { return hstd::variant_get<6>(log); }
+  org::sem::SubtreeLogHead::Schedule& getSchedule() { return hstd::variant_get<6>(log); }
   bool isTag() const { return getLogKind() == Kind::Tag; }
-  org::sem::SubtreeLogHead::Tag const& getTag() const { return std::get<7>(log); }
-  org::sem::SubtreeLogHead::Tag& getTag() { return std::get<7>(log); }
+  org::sem::SubtreeLogHead::Tag const& getTag() const { return hstd::variant_get<7>(log); }
+  org::sem::SubtreeLogHead::Tag& getTag() { return hstd::variant_get<7>(log); }
   bool isUnknown() const { return getLogKind() == Kind::Unknown; }
-  org::sem::SubtreeLogHead::Unknown const& getUnknown() const { return std::get<8>(log); }
-  org::sem::SubtreeLogHead::Unknown& getUnknown() { return std::get<8>(log); }
+  org::sem::SubtreeLogHead::Unknown const& getUnknown() const { return hstd::variant_get<8>(log); }
+  org::sem::SubtreeLogHead::Unknown& getUnknown() { return hstd::variant_get<8>(log); }
   static org::sem::SubtreeLogHead::Kind getLogKind(org::sem::SubtreeLogHead::LogEntry const& __input) { return static_cast<org::sem::SubtreeLogHead::Kind>(__input.index()); }
   org::sem::SubtreeLogHead::Kind getLogKind() const { return getLogKind(log); }
   char const* sub_variant_get_name() const { return "log"; }
@@ -1033,11 +1033,11 @@ struct ColumnView {
     org::sem::ColumnView::Summary::Data data;
     bool operator==(org::sem::ColumnView::Summary const& other) const;
     bool isCheckboxAggregate() const { return getKind() == Kind::CheckboxAggregate; }
-    org::sem::ColumnView::Summary::CheckboxAggregate const& getCheckboxAggregate() const { return std::get<0>(data); }
-    org::sem::ColumnView::Summary::CheckboxAggregate& getCheckboxAggregate() { return std::get<0>(data); }
+    org::sem::ColumnView::Summary::CheckboxAggregate const& getCheckboxAggregate() const { return hstd::variant_get<0>(data); }
+    org::sem::ColumnView::Summary::CheckboxAggregate& getCheckboxAggregate() { return hstd::variant_get<0>(data); }
     bool isMathAggregate() const { return getKind() == Kind::MathAggregate; }
-    org::sem::ColumnView::Summary::MathAggregate const& getMathAggregate() const { return std::get<1>(data); }
-    org::sem::ColumnView::Summary::MathAggregate& getMathAggregate() { return std::get<1>(data); }
+    org::sem::ColumnView::Summary::MathAggregate const& getMathAggregate() const { return hstd::variant_get<1>(data); }
+    org::sem::ColumnView::Summary::MathAggregate& getMathAggregate() { return hstd::variant_get<1>(data); }
     static org::sem::ColumnView::Summary::Kind getKind(org::sem::ColumnView::Summary::Data const& __input) { return static_cast<org::sem::ColumnView::Summary::Kind>(__input.index()); }
     org::sem::ColumnView::Summary::Kind getKind() const { return getKind(data); }
     char const* sub_variant_get_name() const { return "data"; }
@@ -1112,14 +1112,14 @@ struct BlockCodeLine {
     org::sem::BlockCodeLine::Part::Data data;
     bool operator==(org::sem::BlockCodeLine::Part const& other) const;
     bool isRaw() const { return getKind() == Kind::Raw; }
-    org::sem::BlockCodeLine::Part::Raw const& getRaw() const { return std::get<0>(data); }
-    org::sem::BlockCodeLine::Part::Raw& getRaw() { return std::get<0>(data); }
+    org::sem::BlockCodeLine::Part::Raw const& getRaw() const { return hstd::variant_get<0>(data); }
+    org::sem::BlockCodeLine::Part::Raw& getRaw() { return hstd::variant_get<0>(data); }
     bool isCallout() const { return getKind() == Kind::Callout; }
-    org::sem::BlockCodeLine::Part::Callout const& getCallout() const { return std::get<1>(data); }
-    org::sem::BlockCodeLine::Part::Callout& getCallout() { return std::get<1>(data); }
+    org::sem::BlockCodeLine::Part::Callout const& getCallout() const { return hstd::variant_get<1>(data); }
+    org::sem::BlockCodeLine::Part::Callout& getCallout() { return hstd::variant_get<1>(data); }
     bool isTangle() const { return getKind() == Kind::Tangle; }
-    org::sem::BlockCodeLine::Part::Tangle const& getTangle() const { return std::get<2>(data); }
-    org::sem::BlockCodeLine::Part::Tangle& getTangle() { return std::get<2>(data); }
+    org::sem::BlockCodeLine::Part::Tangle const& getTangle() const { return hstd::variant_get<2>(data); }
+    org::sem::BlockCodeLine::Part::Tangle& getTangle() { return hstd::variant_get<2>(data); }
     static org::sem::BlockCodeLine::Part::Kind getKind(org::sem::BlockCodeLine::Part::Data const& __input) { return static_cast<org::sem::BlockCodeLine::Part::Kind>(__input.index()); }
     org::sem::BlockCodeLine::Part::Kind getKind() const { return getKind(data); }
     char const* sub_variant_get_name() const { return "data"; }
@@ -1226,11 +1226,11 @@ struct DocumentExportConfig {
   org::sem::DocumentExportConfig::TocExport data;
   bool operator==(org::sem::DocumentExportConfig const& other) const;
   bool isDoExport() const { return getTocExportKind() == TocExportKind::DoExport; }
-  org::sem::DocumentExportConfig::DoExport const& getDoExport() const { return std::get<0>(data); }
-  org::sem::DocumentExportConfig::DoExport& getDoExport() { return std::get<0>(data); }
+  org::sem::DocumentExportConfig::DoExport const& getDoExport() const { return hstd::variant_get<0>(data); }
+  org::sem::DocumentExportConfig::DoExport& getDoExport() { return hstd::variant_get<0>(data); }
   bool isExportFixed() const { return getTocExportKind() == TocExportKind::ExportFixed; }
-  org::sem::DocumentExportConfig::ExportFixed const& getExportFixed() const { return std::get<1>(data); }
-  org::sem::DocumentExportConfig::ExportFixed& getExportFixed() { return std::get<1>(data); }
+  org::sem::DocumentExportConfig::ExportFixed const& getExportFixed() const { return hstd::variant_get<1>(data); }
+  org::sem::DocumentExportConfig::ExportFixed& getExportFixed() { return hstd::variant_get<1>(data); }
   static org::sem::DocumentExportConfig::TocExportKind getTocExportKind(org::sem::DocumentExportConfig::TocExport const& __input) { return static_cast<org::sem::DocumentExportConfig::TocExportKind>(__input.index()); }
   org::sem::DocumentExportConfig::TocExportKind getTocExportKind() const { return getTocExportKind(data); }
   char const* sub_variant_get_name() const { return "data"; }
@@ -1610,83 +1610,83 @@ struct NamedProperty {
   hstd::Opt<hstd::Str> getSubKind() const;
   bool operator==(org::sem::NamedProperty const& other) const;
   bool isNonblocking() const { return getKind() == Kind::Nonblocking; }
-  org::sem::NamedProperty::Nonblocking const& getNonblocking() const { return std::get<0>(data); }
-  org::sem::NamedProperty::Nonblocking& getNonblocking() { return std::get<0>(data); }
+  org::sem::NamedProperty::Nonblocking const& getNonblocking() const { return hstd::variant_get<0>(data); }
+  org::sem::NamedProperty::Nonblocking& getNonblocking() { return hstd::variant_get<0>(data); }
   bool isArchiveTime() const { return getKind() == Kind::ArchiveTime; }
-  org::sem::NamedProperty::ArchiveTime const& getArchiveTime() const { return std::get<1>(data); }
-  org::sem::NamedProperty::ArchiveTime& getArchiveTime() { return std::get<1>(data); }
+  org::sem::NamedProperty::ArchiveTime const& getArchiveTime() const { return hstd::variant_get<1>(data); }
+  org::sem::NamedProperty::ArchiveTime& getArchiveTime() { return hstd::variant_get<1>(data); }
   bool isArchiveFile() const { return getKind() == Kind::ArchiveFile; }
-  org::sem::NamedProperty::ArchiveFile const& getArchiveFile() const { return std::get<2>(data); }
-  org::sem::NamedProperty::ArchiveFile& getArchiveFile() { return std::get<2>(data); }
+  org::sem::NamedProperty::ArchiveFile const& getArchiveFile() const { return hstd::variant_get<2>(data); }
+  org::sem::NamedProperty::ArchiveFile& getArchiveFile() { return hstd::variant_get<2>(data); }
   bool isArchiveOlpath() const { return getKind() == Kind::ArchiveOlpath; }
-  org::sem::NamedProperty::ArchiveOlpath const& getArchiveOlpath() const { return std::get<3>(data); }
-  org::sem::NamedProperty::ArchiveOlpath& getArchiveOlpath() { return std::get<3>(data); }
+  org::sem::NamedProperty::ArchiveOlpath const& getArchiveOlpath() const { return hstd::variant_get<3>(data); }
+  org::sem::NamedProperty::ArchiveOlpath& getArchiveOlpath() { return hstd::variant_get<3>(data); }
   bool isArchiveTarget() const { return getKind() == Kind::ArchiveTarget; }
-  org::sem::NamedProperty::ArchiveTarget const& getArchiveTarget() const { return std::get<4>(data); }
-  org::sem::NamedProperty::ArchiveTarget& getArchiveTarget() { return std::get<4>(data); }
+  org::sem::NamedProperty::ArchiveTarget const& getArchiveTarget() const { return hstd::variant_get<4>(data); }
+  org::sem::NamedProperty::ArchiveTarget& getArchiveTarget() { return hstd::variant_get<4>(data); }
   bool isArchiveCategory() const { return getKind() == Kind::ArchiveCategory; }
-  org::sem::NamedProperty::ArchiveCategory const& getArchiveCategory() const { return std::get<5>(data); }
-  org::sem::NamedProperty::ArchiveCategory& getArchiveCategory() { return std::get<5>(data); }
+  org::sem::NamedProperty::ArchiveCategory const& getArchiveCategory() const { return hstd::variant_get<5>(data); }
+  org::sem::NamedProperty::ArchiveCategory& getArchiveCategory() { return hstd::variant_get<5>(data); }
   bool isArchiveTodo() const { return getKind() == Kind::ArchiveTodo; }
-  org::sem::NamedProperty::ArchiveTodo const& getArchiveTodo() const { return std::get<6>(data); }
-  org::sem::NamedProperty::ArchiveTodo& getArchiveTodo() { return std::get<6>(data); }
+  org::sem::NamedProperty::ArchiveTodo const& getArchiveTodo() const { return hstd::variant_get<6>(data); }
+  org::sem::NamedProperty::ArchiveTodo& getArchiveTodo() { return hstd::variant_get<6>(data); }
   bool isTrigger() const { return getKind() == Kind::Trigger; }
-  org::sem::NamedProperty::Trigger const& getTrigger() const { return std::get<7>(data); }
-  org::sem::NamedProperty::Trigger& getTrigger() { return std::get<7>(data); }
+  org::sem::NamedProperty::Trigger const& getTrigger() const { return hstd::variant_get<7>(data); }
+  org::sem::NamedProperty::Trigger& getTrigger() { return hstd::variant_get<7>(data); }
   bool isExportLatexClass() const { return getKind() == Kind::ExportLatexClass; }
-  org::sem::NamedProperty::ExportLatexClass const& getExportLatexClass() const { return std::get<8>(data); }
-  org::sem::NamedProperty::ExportLatexClass& getExportLatexClass() { return std::get<8>(data); }
+  org::sem::NamedProperty::ExportLatexClass const& getExportLatexClass() const { return hstd::variant_get<8>(data); }
+  org::sem::NamedProperty::ExportLatexClass& getExportLatexClass() { return hstd::variant_get<8>(data); }
   bool isCookieData() const { return getKind() == Kind::CookieData; }
-  org::sem::NamedProperty::CookieData const& getCookieData() const { return std::get<9>(data); }
-  org::sem::NamedProperty::CookieData& getCookieData() { return std::get<9>(data); }
+  org::sem::NamedProperty::CookieData const& getCookieData() const { return hstd::variant_get<9>(data); }
+  org::sem::NamedProperty::CookieData& getCookieData() { return hstd::variant_get<9>(data); }
   bool isExportLatexClassOptions() const { return getKind() == Kind::ExportLatexClassOptions; }
-  org::sem::NamedProperty::ExportLatexClassOptions const& getExportLatexClassOptions() const { return std::get<10>(data); }
-  org::sem::NamedProperty::ExportLatexClassOptions& getExportLatexClassOptions() { return std::get<10>(data); }
+  org::sem::NamedProperty::ExportLatexClassOptions const& getExportLatexClassOptions() const { return hstd::variant_get<10>(data); }
+  org::sem::NamedProperty::ExportLatexClassOptions& getExportLatexClassOptions() { return hstd::variant_get<10>(data); }
   bool isExportLatexHeader() const { return getKind() == Kind::ExportLatexHeader; }
-  org::sem::NamedProperty::ExportLatexHeader const& getExportLatexHeader() const { return std::get<11>(data); }
-  org::sem::NamedProperty::ExportLatexHeader& getExportLatexHeader() { return std::get<11>(data); }
+  org::sem::NamedProperty::ExportLatexHeader const& getExportLatexHeader() const { return hstd::variant_get<11>(data); }
+  org::sem::NamedProperty::ExportLatexHeader& getExportLatexHeader() { return hstd::variant_get<11>(data); }
   bool isExportLatexCompiler() const { return getKind() == Kind::ExportLatexCompiler; }
-  org::sem::NamedProperty::ExportLatexCompiler const& getExportLatexCompiler() const { return std::get<12>(data); }
-  org::sem::NamedProperty::ExportLatexCompiler& getExportLatexCompiler() { return std::get<12>(data); }
+  org::sem::NamedProperty::ExportLatexCompiler const& getExportLatexCompiler() const { return hstd::variant_get<12>(data); }
+  org::sem::NamedProperty::ExportLatexCompiler& getExportLatexCompiler() { return hstd::variant_get<12>(data); }
   bool isOrdered() const { return getKind() == Kind::Ordered; }
-  org::sem::NamedProperty::Ordered const& getOrdered() const { return std::get<13>(data); }
-  org::sem::NamedProperty::Ordered& getOrdered() { return std::get<13>(data); }
+  org::sem::NamedProperty::Ordered const& getOrdered() const { return hstd::variant_get<13>(data); }
+  org::sem::NamedProperty::Ordered& getOrdered() { return hstd::variant_get<13>(data); }
   bool isEffort() const { return getKind() == Kind::Effort; }
-  org::sem::NamedProperty::Effort const& getEffort() const { return std::get<14>(data); }
-  org::sem::NamedProperty::Effort& getEffort() { return std::get<14>(data); }
+  org::sem::NamedProperty::Effort const& getEffort() const { return hstd::variant_get<14>(data); }
+  org::sem::NamedProperty::Effort& getEffort() { return hstd::variant_get<14>(data); }
   bool isVisibility() const { return getKind() == Kind::Visibility; }
-  org::sem::NamedProperty::Visibility const& getVisibility() const { return std::get<15>(data); }
-  org::sem::NamedProperty::Visibility& getVisibility() { return std::get<15>(data); }
+  org::sem::NamedProperty::Visibility const& getVisibility() const { return hstd::variant_get<15>(data); }
+  org::sem::NamedProperty::Visibility& getVisibility() { return hstd::variant_get<15>(data); }
   bool isExportOptions() const { return getKind() == Kind::ExportOptions; }
-  org::sem::NamedProperty::ExportOptions const& getExportOptions() const { return std::get<16>(data); }
-  org::sem::NamedProperty::ExportOptions& getExportOptions() { return std::get<16>(data); }
+  org::sem::NamedProperty::ExportOptions const& getExportOptions() const { return hstd::variant_get<16>(data); }
+  org::sem::NamedProperty::ExportOptions& getExportOptions() { return hstd::variant_get<16>(data); }
   bool isBlocker() const { return getKind() == Kind::Blocker; }
-  org::sem::NamedProperty::Blocker const& getBlocker() const { return std::get<17>(data); }
-  org::sem::NamedProperty::Blocker& getBlocker() { return std::get<17>(data); }
+  org::sem::NamedProperty::Blocker const& getBlocker() const { return hstd::variant_get<17>(data); }
+  org::sem::NamedProperty::Blocker& getBlocker() { return hstd::variant_get<17>(data); }
   bool isUnnumbered() const { return getKind() == Kind::Unnumbered; }
-  org::sem::NamedProperty::Unnumbered const& getUnnumbered() const { return std::get<18>(data); }
-  org::sem::NamedProperty::Unnumbered& getUnnumbered() { return std::get<18>(data); }
+  org::sem::NamedProperty::Unnumbered const& getUnnumbered() const { return hstd::variant_get<18>(data); }
+  org::sem::NamedProperty::Unnumbered& getUnnumbered() { return hstd::variant_get<18>(data); }
   bool isCreated() const { return getKind() == Kind::Created; }
-  org::sem::NamedProperty::Created const& getCreated() const { return std::get<19>(data); }
-  org::sem::NamedProperty::Created& getCreated() { return std::get<19>(data); }
+  org::sem::NamedProperty::Created const& getCreated() const { return hstd::variant_get<19>(data); }
+  org::sem::NamedProperty::Created& getCreated() { return hstd::variant_get<19>(data); }
   bool isRadioId() const { return getKind() == Kind::RadioId; }
-  org::sem::NamedProperty::RadioId const& getRadioId() const { return std::get<20>(data); }
-  org::sem::NamedProperty::RadioId& getRadioId() { return std::get<20>(data); }
+  org::sem::NamedProperty::RadioId const& getRadioId() const { return hstd::variant_get<20>(data); }
+  org::sem::NamedProperty::RadioId& getRadioId() { return hstd::variant_get<20>(data); }
   bool isHashtagDef() const { return getKind() == Kind::HashtagDef; }
-  org::sem::NamedProperty::HashtagDef const& getHashtagDef() const { return std::get<21>(data); }
-  org::sem::NamedProperty::HashtagDef& getHashtagDef() { return std::get<21>(data); }
+  org::sem::NamedProperty::HashtagDef const& getHashtagDef() const { return hstd::variant_get<21>(data); }
+  org::sem::NamedProperty::HashtagDef& getHashtagDef() { return hstd::variant_get<21>(data); }
   bool isCustomArgs() const { return getKind() == Kind::CustomArgs; }
-  org::sem::NamedProperty::CustomArgs const& getCustomArgs() const { return std::get<22>(data); }
-  org::sem::NamedProperty::CustomArgs& getCustomArgs() { return std::get<22>(data); }
+  org::sem::NamedProperty::CustomArgs const& getCustomArgs() const { return hstd::variant_get<22>(data); }
+  org::sem::NamedProperty::CustomArgs& getCustomArgs() { return hstd::variant_get<22>(data); }
   bool isCustomRaw() const { return getKind() == Kind::CustomRaw; }
-  org::sem::NamedProperty::CustomRaw const& getCustomRaw() const { return std::get<23>(data); }
-  org::sem::NamedProperty::CustomRaw& getCustomRaw() { return std::get<23>(data); }
+  org::sem::NamedProperty::CustomRaw const& getCustomRaw() const { return hstd::variant_get<23>(data); }
+  org::sem::NamedProperty::CustomRaw& getCustomRaw() { return hstd::variant_get<23>(data); }
   bool isCustomSubtreeJson() const { return getKind() == Kind::CustomSubtreeJson; }
-  org::sem::NamedProperty::CustomSubtreeJson const& getCustomSubtreeJson() const { return std::get<24>(data); }
-  org::sem::NamedProperty::CustomSubtreeJson& getCustomSubtreeJson() { return std::get<24>(data); }
+  org::sem::NamedProperty::CustomSubtreeJson const& getCustomSubtreeJson() const { return hstd::variant_get<24>(data); }
+  org::sem::NamedProperty::CustomSubtreeJson& getCustomSubtreeJson() { return hstd::variant_get<24>(data); }
   bool isCustomSubtreeFlags() const { return getKind() == Kind::CustomSubtreeFlags; }
-  org::sem::NamedProperty::CustomSubtreeFlags const& getCustomSubtreeFlags() const { return std::get<25>(data); }
-  org::sem::NamedProperty::CustomSubtreeFlags& getCustomSubtreeFlags() { return std::get<25>(data); }
+  org::sem::NamedProperty::CustomSubtreeFlags const& getCustomSubtreeFlags() const { return hstd::variant_get<25>(data); }
+  org::sem::NamedProperty::CustomSubtreeFlags& getCustomSubtreeFlags() { return hstd::variant_get<25>(data); }
   static org::sem::NamedProperty::Kind getKind(org::sem::NamedProperty::Data const& __input) { return static_cast<org::sem::NamedProperty::Kind>(__input.index()); }
   org::sem::NamedProperty::Kind getKind() const { return getKind(data); }
   char const* sub_variant_get_name() const { return "data"; }
@@ -2096,11 +2096,11 @@ struct Time : public org::sem::Org {
   hstd::Opt<int> getSecond() const;
   hstd::UserTime getStaticTime() const;
   bool isStatic() const { return getTimeKind() == TimeKind::Static; }
-  org::sem::Time::Static const& getStatic() const { return std::get<0>(time); }
-  org::sem::Time::Static& getStatic() { return std::get<0>(time); }
+  org::sem::Time::Static const& getStatic() const { return hstd::variant_get<0>(time); }
+  org::sem::Time::Static& getStatic() { return hstd::variant_get<0>(time); }
   bool isDynamic() const { return getTimeKind() == TimeKind::Dynamic; }
-  org::sem::Time::Dynamic const& getDynamic() const { return std::get<1>(time); }
-  org::sem::Time::Dynamic& getDynamic() { return std::get<1>(time); }
+  org::sem::Time::Dynamic const& getDynamic() const { return hstd::variant_get<1>(time); }
+  org::sem::Time::Dynamic& getDynamic() { return hstd::variant_get<1>(time); }
   static org::sem::Time::TimeKind getTimeKind(org::sem::Time::TimeVariant const& __input) { return static_cast<org::sem::Time::TimeKind>(__input.index()); }
   org::sem::Time::TimeKind getTimeKind() const { return getTimeKind(time); }
   char const* sub_variant_get_name() const { return "time"; }
@@ -3019,14 +3019,14 @@ struct File : public org::sem::Org {
   org::sem::File::Data data;
   virtual OrgSemKind getKind() const { return OrgSemKind::File; }
   bool isDocument() const { return getFileKind() == Kind::Document; }
-  org::sem::File::Document const& getDocument() const { return std::get<0>(data); }
-  org::sem::File::Document& getDocument() { return std::get<0>(data); }
+  org::sem::File::Document const& getDocument() const { return hstd::variant_get<0>(data); }
+  org::sem::File::Document& getDocument() { return hstd::variant_get<0>(data); }
   bool isAttachment() const { return getFileKind() == Kind::Attachment; }
-  org::sem::File::Attachment const& getAttachment() const { return std::get<1>(data); }
-  org::sem::File::Attachment& getAttachment() { return std::get<1>(data); }
+  org::sem::File::Attachment const& getAttachment() const { return hstd::variant_get<1>(data); }
+  org::sem::File::Attachment& getAttachment() { return hstd::variant_get<1>(data); }
   bool isSource() const { return getFileKind() == Kind::Source; }
-  org::sem::File::Source const& getSource() const { return std::get<2>(data); }
-  org::sem::File::Source& getSource() { return std::get<2>(data); }
+  org::sem::File::Source const& getSource() const { return hstd::variant_get<2>(data); }
+  org::sem::File::Source& getSource() { return hstd::variant_get<2>(data); }
   static org::sem::File::Kind getFileKind(org::sem::File::Data const& __input) { return static_cast<org::sem::File::Kind>(__input.index()); }
   org::sem::File::Kind getFileKind() const { return getFileKind(data); }
   char const* sub_variant_get_name() const { return "data"; }
@@ -3141,20 +3141,20 @@ struct CmdInclude : public org::sem::Org {
   org::sem::CmdInclude::Data data;
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdInclude; }
   bool isExample() const { return getIncludeKind() == Kind::Example; }
-  org::sem::CmdInclude::Example const& getExample() const { return std::get<0>(data); }
-  org::sem::CmdInclude::Example& getExample() { return std::get<0>(data); }
+  org::sem::CmdInclude::Example const& getExample() const { return hstd::variant_get<0>(data); }
+  org::sem::CmdInclude::Example& getExample() { return hstd::variant_get<0>(data); }
   bool isExport() const { return getIncludeKind() == Kind::Export; }
-  org::sem::CmdInclude::Export const& getExport() const { return std::get<1>(data); }
-  org::sem::CmdInclude::Export& getExport() { return std::get<1>(data); }
+  org::sem::CmdInclude::Export const& getExport() const { return hstd::variant_get<1>(data); }
+  org::sem::CmdInclude::Export& getExport() { return hstd::variant_get<1>(data); }
   bool isCustom() const { return getIncludeKind() == Kind::Custom; }
-  org::sem::CmdInclude::Custom const& getCustom() const { return std::get<2>(data); }
-  org::sem::CmdInclude::Custom& getCustom() { return std::get<2>(data); }
+  org::sem::CmdInclude::Custom const& getCustom() const { return hstd::variant_get<2>(data); }
+  org::sem::CmdInclude::Custom& getCustom() { return hstd::variant_get<2>(data); }
   bool isSrc() const { return getIncludeKind() == Kind::Src; }
-  org::sem::CmdInclude::Src const& getSrc() const { return std::get<3>(data); }
-  org::sem::CmdInclude::Src& getSrc() { return std::get<3>(data); }
+  org::sem::CmdInclude::Src const& getSrc() const { return hstd::variant_get<3>(data); }
+  org::sem::CmdInclude::Src& getSrc() { return hstd::variant_get<3>(data); }
   bool isOrgDocument() const { return getIncludeKind() == Kind::OrgDocument; }
-  org::sem::CmdInclude::OrgDocument const& getOrgDocument() const { return std::get<4>(data); }
-  org::sem::CmdInclude::OrgDocument& getOrgDocument() { return std::get<4>(data); }
+  org::sem::CmdInclude::OrgDocument const& getOrgDocument() const { return hstd::variant_get<4>(data); }
+  org::sem::CmdInclude::OrgDocument& getOrgDocument() { return hstd::variant_get<4>(data); }
   static org::sem::CmdInclude::Kind getIncludeKind(org::sem::CmdInclude::Data const& __input) { return static_cast<org::sem::CmdInclude::Kind>(__input.index()); }
   org::sem::CmdInclude::Kind getIncludeKind() const { return getIncludeKind(data); }
   char const* sub_variant_get_name() const { return "data"; }
