@@ -145,17 +145,20 @@ OrgId OrgParser::parseCallArguments(OrgLexer& lex) {
     __perf_trace("parsing", "parseCallArguments");
     auto __trace = trace(lex);
     start(onk::InlineStmtList);
-    while (lex.at(IntSet<OrgTokenKind>{
-        otk::CmdColonIdent,
-        otk::CmdRawArg,
-        otk::ParBegin,
-    })) {
-        subParse(AttrValue, lex);
-        space(lex);
-        if (lex.at(otk::Comma)) {
-            skip(lex, otk::Comma);
+    if (lex.at(otk::ParBegin)) {
+        skip(lex, otk::ParBegin);
+        if (lex.can_search(otk::ParEnd)) {
+            subParse(AttrValue, lex);
             space(lex);
+            if (lex.at(otk::Comma)) {
+                skip(lex, otk::Comma);
+                space(lex);
+            }
         }
+
+
+    argument_list_end:
+        skip(lex, otk::ParEnd);
     }
 
     return end();
@@ -167,54 +170,75 @@ OrgId OrgParser::parseAttrValue(OrgLexer& lex) {
     auto __trace = trace(lex);
     start(onk::AttrValue);
 
-    if (lex.at(otk::CmdColonIdent)) {
-        // `:ident`
-        token(onk::Word, pop(lex, otk::CmdColonIdent));
-        space(lex);
-    } else {
-        empty();
-    }
-
-    IntSet<OrgTokenKind> eqTokens{
-        otk::Equals,
-        otk::VerbatimBegin,
-        otk::VerbatimEnd,
-        otk::VerbatimUnknown};
-
-    if (lex.at(otk::CmdRawArg) && lex.at(eqTokens, +1)) {
-        // `key=`
-        token(onk::RawText, pop(lex, otk::CmdRawArg));
-        skip(lex, eqTokens);
-        space(lex);
-    } else {
-        empty();
-    }
-
-    if (lex.at(otk::ParBegin)) {
-        subParse(AttrLisp, lex);
-    } else if (lex.at(otk::CmdRawArg)) {
-        token(onk::RawText, pop(lex, otk::CmdRawArg));
-    } else {
-        empty();
-    }
-
-    if (lex.at(otk::BraceBegin)) {
-        start(onk::InlineStmtList);
-        skip(lex, otk::BraceBegin);
-        while (lex.at(otk::CmdRawArg)) {
-            token(onk::RawText, pop(lex, otk::CmdRawArg));
+    if (lex.at(IntSet<OrgTokenKind>{
+            otk::CmdColonIdent,
+            otk::CmdRawArg,
+            otk::ParBegin,
+        })) {
+        print("Attribute value was lexed with explicit argument tokens");
+        if (lex.at(otk::CmdColonIdent)) {
+            // `:ident`
+            token(onk::Word, pop(lex, otk::CmdColonIdent));
             space(lex);
-            if (lex.at(otk::Comma)) {
-                skip(lex, otk::Comma);
-                space(lex);
-            }
+        } else {
+            empty();
         }
 
-        skip(lex, otk::BraceEnd);
-        end();
+        IntSet<OrgTokenKind> eqTokens{
+            otk::Equals,
+            otk::VerbatimBegin,
+            otk::VerbatimEnd,
+            otk::VerbatimUnknown};
+
+        if (lex.at(otk::CmdRawArg) && lex.at(eqTokens, +1)) {
+            // `key=`
+            token(onk::RawText, pop(lex, otk::CmdRawArg));
+            skip(lex, eqTokens);
+            space(lex);
+        } else {
+            empty();
+        }
+
+        if (lex.at(otk::ParBegin)) {
+            subParse(AttrLisp, lex);
+        } else if (lex.at(otk::CmdRawArg)) {
+            token(onk::RawText, pop(lex, otk::CmdRawArg));
+        } else {
+            empty();
+        }
+
+        if (lex.at(otk::BraceBegin)) {
+            start(onk::InlineStmtList);
+            skip(lex, otk::BraceBegin);
+            while (lex.at(otk::CmdRawArg)) {
+                token(onk::RawText, pop(lex, otk::CmdRawArg));
+                space(lex);
+                if (lex.at(otk::Comma)) {
+                    skip(lex, otk::Comma);
+                    space(lex);
+                }
+            }
+
+            skip(lex, otk::BraceEnd);
+            end();
+        } else {
+            empty();
+        }
     } else {
+        // `{{{macro(with some parameter that looks like actual text)}}}}`
+        // is lexed as a part of the text, so tokens in the argument list
+        // are not 'correct'.
+        print("Argument value was lexed using random tokens");
+        empty();
+        empty();
+        start(onk::InlineStmtList);
+        while (lex.can_search(otk::ParEnd)) {
+            token(onk::RawText, pop(lex, lex.kind()));
+        }
+        end();
         empty();
     }
+
 
     return end();
 }

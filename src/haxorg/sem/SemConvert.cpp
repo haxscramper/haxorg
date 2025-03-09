@@ -1981,6 +1981,13 @@ sem::AttrValue OrgConverter::convertAttr(__args) {
         ev.code = convertLisp(one(a, N::Value));
         print("Attribute is lisp value");
         result.data = ev;
+    } else {
+        AttrValue::TextValue tv{};
+        for (auto const& it : one(a, N::Value)) {
+            tv.value += get_text(it);
+        }
+        print(fmt("Attribute is text value {}", tv));
+        result.data = tv;
     }
 
     if (one(a, N::Cells).getKind() != onk::Empty) {

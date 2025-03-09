@@ -53,6 +53,7 @@ void Formatter::add(Res id, Res other) {
     }
 }
 
+
 void Formatter::add_subnodes(Res result, SemId<Org> id, CR<Context> ctx) {
     for (auto const& it : id->subnodes) { add(result, toString(it, ctx)); }
 }
@@ -333,22 +334,74 @@ auto Formatter::toString(SemId<InlineFootnote> id, CR<Context> ctx)
     }
 }
 
+Formatter::Res Formatter::toString(
+    const sem::LispCode& id,
+    const Context&       ctx) {
+    using C = sem::LispCode;
+    return std::visit(
+        overloaded{
+            [&](C::Boolean const& b) -> Res {
+                return str(b.value ? "t" : "nil");
+            },
+            [&](C::Call const& c) -> Res {
+                auto res = b.line({str("("), str(c.name)});
+                for (auto const& arg : c.args) {
+                    b.add_at(res, str(" "));
+                    b.add_at(res, toString(arg, ctx));
+                }
+                b.add_at(res, str(")"));
+                return res;
+            },
+            [&](C::KeyValue const& kv) {
+                return b.line({
+                    str(fmt(":{} ", kv.name)),
+                    toString(kv.value.front(), ctx),
+                });
+            },
+            [&](C::List const& l) -> Res {
+                auto res = b.line({str("(")});
+                for (auto const& it : enumerator(l.items)) {
+                    if (!it.is_first()) { b.add_at(res, str(" ")); }
+                    b.add_at(res, toString(it.value(), ctx));
+                }
+                b.add_at(res, str(")"));
+                return res;
+            },
+            [&](C::Ident const& i) -> Res { return str(i.name); },
+            [&](C::Real const& r) -> Res { return str(fmt1(r.value)); },
+            [&](C::Number const& r) -> Res { return str(fmt1(r.value)); },
+            [&](C::Text const& r) -> Res {
+                return str(fmt("\"{}\"", r.value));
+            },
+        },
+        id.data);
+}
+
 auto Formatter::toString(sem::AttrValue const& id, CR<Context> ctx)
     -> Res {
-    Str value = id.getString().replaceAll("\"", "\\\"");
-
-    if (id.isQuoted) { value = escape_for_write(value, true); }
-
-    auto varname = id.varname.has_value()
-                     ? Str{fmt("{}={}", id.varname.value(), value)}
-                     : value;
-
-
+    auto result = b.line();
     if (id.name) {
-        return str(fmt(":{} {}", id.name.value(), varname));
-    } else {
-        return str(varname);
+        b.add_at(result, str(":"_ss + id.name.value() + " "_ss));
     }
+
+    if (id.varname) {
+        b.add_at(result, str(id.varname.value()));
+        b.add_at(result, str("="));
+    }
+
+    if (id.isTextValue()) {
+        Str value = id.getString().replaceAll("\"", "\\\"");
+        if (id.isQuoted) { value = escape_for_write(value, true); }
+        b.add_at(result, str(value));
+    } else if (id.isFileReference()) {
+        b.add_at(result, str(id.getFileReference().file));
+        b.add_at(result, str(":"));
+        b.add_at(result, str(id.getFileReference().reference));
+    } else {
+        b.add_at(result, toString(id.getLispValue().code, ctx));
+    }
+
+    return result;
 }
 
 auto Formatter::toString(SemId<BlockCodeEvalResult> id, CR<Context> ctx)
