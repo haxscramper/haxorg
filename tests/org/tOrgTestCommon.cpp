@@ -74,8 +74,10 @@ sem::SemId<sem::Org> testParseString(
             fs::path{debug.value() + "_parse_tree.txt"}, buffer.str());
     }
 
-    auto res = converter.toDocument(
-        org::parse::OrgAdapter(&p.nodes, org::parse::OrgId(0)));
+    auto res = converter
+                   .convertDocument(org::parse::OrgAdapter(
+                       &p.nodes, org::parse::OrgId(0)))
+                   .value();
 
     if (debug) {
         ColStream               os;

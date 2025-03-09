@@ -25,7 +25,7 @@ struct [[refl]] OrgParseParameters {
 };
 
 struct [[refl]] OrgDirectoryParseParameters {
-    hstd::Func<sem::SemId<sem::Document>(std::string const& fullPath)>
+    hstd::Func<sem::SemId<sem::Org>(std::string const& fullPath)>
         getParsedNode;
 
     hstd::Func<bool(std::string const& fullPath)> shouldProcessPath;
@@ -35,13 +35,13 @@ struct [[refl]] OrgDirectoryParseParameters {
     BOOST_DESCRIBE_CLASS(OrgDirectoryParseParameters, (), (), (), ());
 };
 
-[[refl]] sem::SemId<sem::Document> parseFile(
+[[refl]] sem::SemId<sem::Org> parseFile(
     std::string               file,
     OrgParseParameters const& opts);
 
 
-[[refl]] sem::SemId<sem::Document> parseString(std::string const text);
-[[refl]] sem::SemId<sem::Document> parseStringOpts(
+[[refl]] sem::SemId<sem::Org> parseString(std::string const text);
+[[refl]] sem::SemId<sem::Org> parseStringOpts(
     std::string const         text,
     OrgParseParameters const& opts);
 

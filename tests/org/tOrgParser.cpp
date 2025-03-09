@@ -72,8 +72,10 @@ TEST(OrgParseSem, TracerOperations1) {
     p.tokenizeConvert();
     p.parse();
 
-    auto document = converter.toDocument(
-        org::parse::OrgAdapter(&p.nodes, org::parse::OrgId(0)));
+    auto document = converter
+                        .convertDocument(org::parse::OrgAdapter(
+                            &p.nodes, org::parse::OrgId(0)))
+                        .value();
 
     org::algo::ExporterJson exp{};
     fs::path exp_trace{"/tmp/TraceOperations1_exp_trace.txt"};

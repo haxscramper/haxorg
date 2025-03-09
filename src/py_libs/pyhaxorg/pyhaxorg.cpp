@@ -5978,14 +5978,14 @@ and a segment kind.)RAW")
         pybind11::arg("breakdown"),
         pybind11::arg_v("isActive", 0));
   m.def("parseFile",
-        static_cast<org::sem::SemId<org::sem::Document>(*)(std::string, org::OrgParseParameters const&)>(&org::parseFile),
+        static_cast<org::sem::SemId<org::sem::Org>(*)(std::string, org::OrgParseParameters const&)>(&org::parseFile),
         pybind11::arg("file"),
         pybind11::arg("opts"));
   m.def("parseString",
-        static_cast<org::sem::SemId<org::sem::Document>(*)(std::string const)>(&org::parseString),
+        static_cast<org::sem::SemId<org::sem::Org>(*)(std::string const)>(&org::parseString),
         pybind11::arg("text"));
   m.def("parseStringOpts",
-        static_cast<org::sem::SemId<org::sem::Document>(*)(std::string const, org::OrgParseParameters const&)>(&org::parseStringOpts),
+        static_cast<org::sem::SemId<org::sem::Org>(*)(std::string const, org::OrgParseParameters const&)>(&org::parseStringOpts),
         pybind11::arg("text"),
         pybind11::arg("opts"));
   m.def("parseDirectoryOpts",

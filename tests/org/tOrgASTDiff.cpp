@@ -23,8 +23,10 @@ struct OrgDiffBuilder : org::algo::OrgNodeDiff {
         auto mock = isSrc ? &srcParse : &dstParse;
         mock->run(text);
         sem::OrgConverter converter{};
-        return converter.toDocument(
-            org::parse::OrgAdapter(&mock->nodes, org::parse::OrgId(0)));
+        return converter
+            .convertDocument(
+                org::parse::OrgAdapter(&mock->nodes, org::parse::OrgId(0)))
+            .value();
     }
 
     sem::SemId<sem::Document> setSrc(std::string const& text) {

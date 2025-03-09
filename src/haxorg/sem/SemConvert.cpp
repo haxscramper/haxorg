@@ -2609,25 +2609,34 @@ void OrgConverter::convertDocumentOptions(
     }
 }
 
-SemId<Document> OrgConverter::toDocument(org::parse::OrgAdapter adapter) {
-    auto __trace = trace(adapter);
+org::sem::OrgConverter::ConvResult<Document> OrgConverter::convertDocument(
+    __args) {
+    auto __trace = trace(a);
 
-    SemId<Document> doc = Sem<Document>(adapter);
-    doc->options        = Sem<DocumentOptions>(adapter);
+    SemId<Document> doc = Sem<Document>(a);
+    doc->options        = Sem<DocumentOptions>(a);
     using Prop          = NamedProperty;
     Vec<org::parse::OrgAdapter> buffer;
 
-    if (adapter.kind() == onk::StmtList) {
-        for (const auto& sub : adapter) {
-            auto __trace = trace(adapter, fmt1(sub.getKind()));
+    if (a.kind() == onk::StmtList) {
+        for (const auto& sub : a) {
+            auto __trace = trace(a, fmt1(sub.getKind()));
             switch (sub.kind()) {
                 case onk::CmdColumns: {
-                    auto cols             = convertCmdColumns(sub).value();
-                    doc->options->columns = cols->view;
+                    if (auto columns = convertCmdColumns(sub)) {
+                        auto cols             = columns.value();
+                        doc->options->columns = cols->view;
+                    } else {
+                        doc->push_back(columns.error());
+                    }
                     break;
                 }
                 case onk::CmdTitle: {
-                    doc->title = convertParagraph(sub[0]).value();
+                    if (auto title = convertParagraph(sub[0])) {
+                        doc->title = title.value();
+                    } else {
+                        doc->push_back(title.error());
+                    }
                     break;
                 }
                 case onk::CmdOptions: {
@@ -2717,7 +2726,7 @@ SemId<Document> OrgConverter::toDocument(org::parse::OrgAdapter adapter) {
             }
         }
     } else {
-        buffer.push_back(adapter);
+        buffer.push_back(a);
     }
 
     for (auto const& it : flatConvertAttached(buffer)) {

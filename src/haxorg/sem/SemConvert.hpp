@@ -144,6 +144,8 @@ struct OrgConverter : public hstd::OperationsTracer {
             return isNode() ? std::make_optional(value()) : std::nullopt;
         }
 
+        operator bool() const { return isNode(); }
+
         ConvResult(SemId<T> value) : data{Node{.node = value}} {}
 
         ConvResult(SemId<ErrorGroup> error)
@@ -219,6 +221,7 @@ struct OrgConverter : public hstd::OperationsTracer {
     ConvResult<CmdAttr>         convertCmdAttr(In);
     ConvResult<CmdName>         convertCmdName(In);
     ConvResult<InlineExport>    convertInlineExport(In);
+    ConvResult<Document>        convertDocument(In);
 
     sem::AttrValue convertAttr(In);
     sem::AttrGroup convertAttrs(In);
@@ -268,8 +271,7 @@ struct OrgConverter : public hstd::OperationsTracer {
         int                         line     = __builtin_LINE(),
         char const*                 function = __builtin_FUNCTION());
 
-    SemId<Org>      convert(In);
-    SemId<Document> toDocument(org::parse::OrgAdapter tree);
+    SemId<Org> convert(In);
 
     hstd::finally_std trace(
         hstd::Opt<In>        adapter,

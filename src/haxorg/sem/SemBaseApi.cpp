@@ -91,17 +91,17 @@ void org::exportToTreeFile(
     file << os.toString(opts.withColor);
 }
 
-sem::SemId<sem::Document> org::parseFile(
+sem::SemId<sem::Org> org::parseFile(
     std::string               file,
     const OrgParseParameters& opts) {
     return parseStringOpts(readFile(fs::path{file}), opts);
 }
 
-sem::SemId<sem::Document> org::parseString(std::string text) {
+sem::SemId<sem::Org> org::parseString(std::string text) {
     return parseStringOpts(text, OrgParseParameters{});
 }
 
-sem::SemId<sem::Document> org::parseStringOpts(
+sem::SemId<sem::Org> org::parseStringOpts(
     const std::string         text,
     OrgParseParameters const& opts) {
     org::parse::LexerParams p;
@@ -132,8 +132,10 @@ sem::SemId<sem::Document> org::parseStringOpts(
     sem::OrgConverter converter{};
     if (opts.semTracePath) { converter.setTraceFile(*opts.semTracePath); }
 
-    return converter.toDocument(
-        org::parse::OrgAdapter(&nodes, org::parse::OrgId(0)));
+    return converter
+        .convertDocument(
+            org::parse::OrgAdapter(&nodes, org::parse::OrgId(0)))
+        .unwrap();
 }
 
 

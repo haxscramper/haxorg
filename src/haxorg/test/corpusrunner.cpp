@@ -1132,8 +1132,10 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
         converter.setTraceFile(spec.debugFile("trace_sem.log", relDebug));
     }
 
-    auto document = converter.toDocument(OrgAdapter(&p.nodes, OrgId(0)));
-    p.node        = document.asOrg();
+    auto document = converter
+                        .convertDocument(OrgAdapter(&p.nodes, OrgId(0)))
+                        .unwrap();
+    p.node = document.asOrg();
 
     if (spec.debug.traceAll || spec.debug.printSem
         || spec.debug.printSemToFile) {
