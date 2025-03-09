@@ -1493,7 +1493,7 @@ auto Formatter::toString(SemId<BlockQuote> id, CR<Context> ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     return stackAttached(
         b.stack(Vec<Res>::Splice(
-            b.line({str("#+begin_quote"), toString(id->attrs, ctx)}),
+            b.line({str("#+begin_quote "), toString(id->attrs, ctx)}),
             toSubnodes(id, ctx),
             str("#+end_quote"))),
         id.as<sem::Stmt>(),

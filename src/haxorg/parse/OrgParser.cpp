@@ -147,7 +147,7 @@ OrgId OrgParser::parseCallArguments(OrgLexer& lex) {
     start(onk::InlineStmtList);
     if (lex.at(otk::ParBegin)) {
         skip(lex, otk::ParBegin);
-        if (lex.can_search(otk::ParEnd)) {
+        while (lex.can_search(otk::ParEnd)) {
             subParse(AttrValue, lex);
             space(lex);
             if (lex.at(otk::Comma)) {
@@ -157,7 +157,6 @@ OrgId OrgParser::parseCallArguments(OrgLexer& lex) {
         }
 
 
-    argument_list_end:
         skip(lex, otk::ParEnd);
     }
 
@@ -210,12 +209,18 @@ OrgId OrgParser::parseAttrValue(OrgLexer& lex) {
         if (lex.at(otk::BraceBegin)) {
             start(onk::InlineStmtList);
             skip(lex, otk::BraceBegin);
-            while (lex.at(otk::CmdRawArg)) {
-                token(onk::RawText, pop(lex, otk::CmdRawArg));
-                space(lex);
+            while (lex.at(otk::CmdRawArg) || lex.at(otk::Comma)) {
                 if (lex.at(otk::Comma)) {
+                    empty();
                     skip(lex, otk::Comma);
                     space(lex);
+                } else {
+                    token(onk::RawText, pop(lex, otk::CmdRawArg));
+                    space(lex);
+                    if (lex.at(otk::Comma)) {
+                        skip(lex, otk::Comma);
+                        space(lex);
+                    }
                 }
             }
 
@@ -1984,9 +1989,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
 
             // Args
             if (lex.at(otk::ParBegin)) {
-                skip(lex, otk::ParBegin);
                 subParse(CallArguments, lex);
-                skip(lex, otk::ParEnd);
             } else {
                 empty();
             }

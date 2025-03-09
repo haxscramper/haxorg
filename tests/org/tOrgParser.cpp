@@ -797,7 +797,8 @@ TEST(OrgParseSem, Macro) {
     }
     {
         auto m = parseOne<sem::Macro>(
-            R"({{{property(PROPERTY-NAME, SEARCH OPTION)}}})");
+            R"({{{property(PROPERTY-NAME, SEARCH OPTION)}}})",
+            getDebugFile("dash_name"));
         EXPECT_EQ(m->name, "property");
         EXPECT_EQ(m->attrs.getPositionalSize(), 2);
         EXPECT_EQ(
@@ -1049,9 +1050,11 @@ TEST(OrgParseSem, CodeBlockVariables) {
         EXPECT_EQ(span.at(0).last.value(), 3);
     }
     {
-        auto c    = get(R"(#+BEGIN_SRC emacs-lisp :var data=3D[1,,1]
+        auto c = get(
+            R"(#+BEGIN_SRC emacs-lisp :var data=3D[1,,1]
   data
-#+END_SRC)");
+#+END_SRC)",
+            getDebugFile("empty_content_slice"));
         auto span = c->getVariable("data")->span;
         EXPECT_EQ(span.size(), 3);
         EXPECT_EQ(span.at(0).first, 1);
